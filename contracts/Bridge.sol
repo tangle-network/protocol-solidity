@@ -12,7 +12,6 @@ import "./utils/SafeMath.sol";
 import "./utils/SafeCast.sol";
 import "./interfaces/IDepositExecute.sol";
 import "./interfaces/IERCHandler.sol";
-import "./interfaces/IGenericHandler.sol";
 
 /**
     @title Facilitates deposits, creation and voting of deposit proposals, and deposit executions.
@@ -38,30 +37,21 @@ contract Bridge is Pausable, AccessControl, SafeMath {
         uint40  _proposedBlock; // 1099511627775 maximum block
     }
 
-    // destinationChainID => number of deposits
-    mapping(uint8 => uint64) public _depositCounts;
-    // resourceID => handler address
-    mapping(bytes32 => address) public _resourceIDToHandlerAddress;
+    // resourceID => anchor address
+    mapping(bytes32 => address) public _resourceIDToAnchorAddress;
     // destinationChainID + depositNonce => dataHash => Proposal
     mapping(uint72 => mapping(bytes32 => Proposal)) private _proposals;
 
     event RelayerThresholdChanged(uint256 newThreshold);
     event RelayerAdded(address relayer);
     event RelayerRemoved(address relayer);
-    event Deposit(
-        uint8   destinationChainID,
-        bytes32 resourceID,
-        uint64  depositNonce
-    );
     event ProposalEvent(
         uint8          originChainID,
-        uint64         depositNonce,
         ProposalStatus status,
         bytes32 dataHash
     );
     event ProposalVote(
         uint8   originChainID,
-        uint64  depositNonce,
         ProposalStatus status,
         bytes32 dataHash
     );
@@ -210,47 +200,26 @@ contract Bridge is Pausable, AccessControl, SafeMath {
 
     /**
         @notice Sets a new resource for handler contracts that use the IERCHandler interface,
-        and maps the {handlerAddress} to {resourceID} in {_resourceIDToHandlerAddress}.
+        and maps the {anchorAddress} to {resourceID} in {_resourceIDToAnchorAddress}.
         @notice Only callable by an address that currently has the admin role.
-        @param handlerAddress Address of handler resource will be set for.
+        @param anchorAddress Address of handler resource will be set for.
         @param resourceID ResourceID to be used when making deposits.
         @param tokenAddress Address of contract to be called when a deposit is made and a deposited is executed.
      */
-    function adminSetResource(address handlerAddress, bytes32 resourceID, address tokenAddress) external onlyAdmin {
-        _resourceIDToHandlerAddress[resourceID] = handlerAddress;
-        IERCHandler handler = IERCHandler(handlerAddress);
+    function adminSetResource(address anchorAddress, bytes32 resourceID, address tokenAddress) external onlyAdmin {
+        _resourceIDToAnchorAddress[resourceID] = anchorAddress;
+        IERCHandler handler = IERCHandler(anchorAddress);
         handler.setResource(resourceID, tokenAddress);
-    }
-
-    /**
-        @notice Sets a new resource for handler contracts that use the IGenericHandler interface,
-        and maps the {handlerAddress} to {resourceID} in {_resourceIDToHandlerAddress}.
-        @notice Only callable by an address that currently has the admin role.
-        @param handlerAddress Address of handler resource will be set for.
-        @param resourceID ResourceID to be used when making deposits.
-        @param contractAddress Address of contract to be called when a deposit is made and a deposited is executed.
-     */
-    function adminSetGenericResource(
-        address handlerAddress,
-        bytes32 resourceID,
-        address contractAddress,
-        bytes4 depositFunctionSig,
-        uint256 depositFunctionDepositerOffset,
-        bytes4 executeFunctionSig
-    ) external onlyAdmin {
-        _resourceIDToHandlerAddress[resourceID] = handlerAddress;
-        IGenericHandler handler = IGenericHandler(handlerAddress);
-        handler.setResource(resourceID, contractAddress, depositFunctionSig, depositFunctionDepositerOffset, executeFunctionSig);
     }
 
     /**
         @notice Sets a resource as burnable for handler contracts that use the IERCHandler interface.
         @notice Only callable by an address that currently has the admin role.
-        @param handlerAddress Address of handler resource will be set for.
+        @param anchorAddress Address of handler resource will be set for.
         @param tokenAddress Address of contract to be called when a deposit is made and a deposited is executed.
      */
-    function adminSetBurnable(address handlerAddress, address tokenAddress) external onlyAdmin {
-        IERCHandler handler = IERCHandler(handlerAddress);
+    function adminSetBurnable(address anchorAddress, address tokenAddress) external onlyAdmin {
+        IERCHandler handler = IERCHandler(anchorAddress);
         handler.setBurnable(tokenAddress);
     }
 
@@ -290,18 +259,18 @@ contract Bridge is Pausable, AccessControl, SafeMath {
 
     /**
         @notice Used to manually withdraw funds from ERC safes.
-        @param handlerAddress Address of handler to withdraw from.
+        @param anchorAddress Address of handler to withdraw from.
         @param tokenAddress Address of token to withdraw.
         @param recipient Address to withdraw tokens to.
         @param amountOrTokenID Either the amount of ERC20 tokens or the ERC721 token ID to withdraw.
      */
     function adminWithdraw(
-        address handlerAddress,
+        address anchorAddress,
         address tokenAddress,
         address recipient,
         uint256 amountOrTokenID
     ) external onlyAdmin {
-        IERCHandler handler = IERCHandler(handlerAddress);
+        IERCHandler handler = IERCHandler(anchorAddress);
         handler.withdraw(tokenAddress, recipient, amountOrTokenID);
     }
 
@@ -316,7 +285,7 @@ contract Bridge is Pausable, AccessControl, SafeMath {
     function deposit(uint8 destinationChainID, bytes32 resourceID, bytes calldata data) external payable whenNotPaused {
         require(msg.value == _fee, "Incorrect fee supplied");
 
-        address handler = _resourceIDToHandlerAddress[resourceID];
+        address handler = _resourceIDToAnchorAddress[resourceID];
         require(handler != address(0), "resourceID not mapped to handler");
 
         uint64 depositNonce = ++_depositCounts[destinationChainID];
@@ -343,7 +312,7 @@ contract Bridge is Pausable, AccessControl, SafeMath {
         uint72 nonceAndID = (uint72(depositNonce) << 8) | uint72(chainID);
         Proposal memory proposal = _proposals[nonceAndID][dataHash];
 
-        require(_resourceIDToHandlerAddress[resourceID] != address(0), "no handler for resourceID");
+        require(_resourceIDToAnchorAddress[resourceID] != address(0), "no handler for resourceID");
         require(uint(proposal._status) <= 1, "proposal already passed/executed/cancelled");
         require(!_hasVoted(proposal, msg.sender), "relayer already voted");
 
@@ -416,7 +385,7 @@ contract Bridge is Pausable, AccessControl, SafeMath {
         @notice Emits {ProposalEvent} event with status {Executed}.
      */
     function executeProposal(uint8 chainID, uint64 depositNonce, bytes calldata data, bytes32 resourceID) external onlyRelayers whenNotPaused {
-        address handler = _resourceIDToHandlerAddress[resourceID];
+        address handler = _resourceIDToAnchorAddress[resourceID];
         uint72 nonceAndID = (uint72(depositNonce) << 8) | uint72(chainID);
         bytes32 dataHash = keccak256(abi.encodePacked(handler, data));
         Proposal storage proposal = _proposals[nonceAndID][dataHash];
