@@ -6,7 +6,7 @@
 pragma solidity ^0.8.0;
 
 import "./MerkleTreeWithHistory.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 interface IVerifier {
   function verifyProof(bytes memory _proof, uint256[6] memory _input) external returns (bool);
@@ -19,7 +19,7 @@ abstract contract Anchor is MerkleTreeWithHistory, ReentrancyGuard {
   uint256 public immutable denomination;
 
   struct Edge {
-    uint8 chainId;
+    uint8 chainID;
     bytes32 latestMerkleRoot;
     uint256 latestHeight;
   }
@@ -97,10 +97,12 @@ abstract contract Anchor is MerkleTreeWithHistory, ReentrancyGuard {
     require(_fee <= denomination, "Fee exceeds transfer value");
     require(!nullifierHashes[_nullifierHash], "The note has been already spent");
     require(isKnownRoot(_root), "Cannot find your merkle root"); // Make sure to use a recent one
+    address rec = address(_recipient);
+    address rel = address(_relayer);
     require(
       verifier.verifyProof(
         _proof,
-        [uint256(_root), uint256(_nullifierHash), uint256(_recipient), uint256(_relayer), _fee, _refund]
+        [uint256(_root), uint256(_nullifierHash), uint256(uint160(rec)), uint256(uint160(rel)), _fee, _refund]
       ),
       "Invalid withdraw proof"
     );
@@ -118,14 +120,14 @@ abstract contract Anchor is MerkleTreeWithHistory, ReentrancyGuard {
   ) onlyBridge external payable nonReentrant {
     edgeExistsForChain[toChainID] = true;
     uint index = edgeList.length;
-    Edge edge = new Edge {
+    Edge memory edge = Edge({
       chainID: toChainID,
       latestMerkleRoot: latestRoot,
       latestHeight: height
-    };
+    });
     edgeList.push(edge);
     edgeIndex[anchorID] = index;
-    emit EdgeAddition(toChainID, anchorID, latestHeight, latestRoot);
+    emit EdgeAddition(toChainID, anchorID, height, latestRoot);
   }
 
   function updateEdge(
@@ -137,12 +139,12 @@ abstract contract Anchor is MerkleTreeWithHistory, ReentrancyGuard {
     require(edgeExistsForChain[toChainID], "Chain must be integrated from the bridge before updates");
     require(edgeList[edgeIndex[anchorID]].latestHeight < height, "New height must be greater");
     // update the edge in the edge list
-    edgeList[edgeIndex[anchorID]] = new Edge {
+    edgeList[edgeIndex[anchorID]] = Edge({
       chainID: toChainID,
       latestMerkleRoot: latestRoot,
       latestHeight: height
-    };
-    emit EdgeUpdate(toChainID, anchorID, latestHeight, latestRoot);
+    });
+    emit EdgeUpdate(toChainID, anchorID, height, latestRoot);
   }
 
   /** @dev this function is defined in a child contract */
