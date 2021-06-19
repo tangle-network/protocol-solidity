@@ -22,8 +22,6 @@ contract('Bridge - [voteProposal with relayerThreshold == 3]', async (accounts) 
     const relayer1Bit = 1 << 0;
     const relayer2Bit = 1 << 1;
     const relayer3Bit = 1 << 2;
-    const relayer4Bit = 1 << 3;
-    const depositerAddress = accounts[4];
     const destinationChainRecipientAddress = accounts[4];
     const depositAmount = 10;
     const expectedDepositNonce = 1;
@@ -118,7 +116,7 @@ contract('Bridge - [voteProposal with relayerThreshold == 3]', async (accounts) 
 
         const depositProposal = await BridgeInstance.getProposal(originChainID, expectedDepositNonce, depositDataHash);
         assert.deepInclude(Object.assign({}, depositProposal), expectedDepositProposal);
-        await TruffleAssert.reverts(vote(relayer3Address), "proposal already passed/executed/cancelled.")
+        await TruffleAssert.reverts(vote(relayer3Address), "proposal already passed/executed/cancelled")
     });
 
 
@@ -138,7 +136,7 @@ contract('Bridge - [voteProposal with relayerThreshold == 3]', async (accounts) 
         await TruffleAssert.passes(BridgeInstance.cancelProposal(originChainID, expectedDepositNonce, depositDataHash))
         const depositProposal = await BridgeInstance.getProposal(originChainID, expectedDepositNonce, depositDataHash);
         assert.deepInclude(Object.assign({}, depositProposal), expectedDepositProposal);
-        await TruffleAssert.reverts(vote(relayer4Address), "proposal already passed/executed/cancelled.")
+        await TruffleAssert.reverts(vote(relayer4Address), "proposal already passed/executed/cancelled")
     });
 
     it("relayer cannot cancel proposal before threshold blocks have passed", async () => {
@@ -163,7 +161,7 @@ contract('Bridge - [voteProposal with relayerThreshold == 3]', async (accounts) 
         await TruffleAssert.passes(BridgeInstance.cancelProposal(originChainID, expectedDepositNonce, depositDataHash))
         const depositProposal = await BridgeInstance.getProposal(originChainID, expectedDepositNonce, depositDataHash);
         assert.deepInclude(Object.assign({}, depositProposal), expectedDepositProposal);
-        await TruffleAssert.reverts(vote(relayer2Address), "proposal already passed/executed/cancelled.")
+        await TruffleAssert.reverts(vote(relayer2Address), "proposal already passed/executed/cancelled")
     });
 
     it("proposal cannot be cancelled twice", async () => {

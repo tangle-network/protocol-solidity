@@ -29,9 +29,9 @@
 };
 
 const advanceBlock = () => {
-    let provider = new Ethers.providers.JsonRpcProvider();
     const time = Math.floor(Date.now() / 1000);
-    return provider.send("evm_mine", [time]);
+    ethers.provider.send("evm_increaseTime", [time]) 
+    ethers.provider.send("evm_mine", []);
 }
 
 const createResourceID = (contractAddress, chainID) => {
