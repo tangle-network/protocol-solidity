@@ -110,7 +110,7 @@ contract Bridge is Pausable, AccessControl, SafeMath {
         @param initialRelayers Addresses that should be initially granted the relayer role.
         @param initialRelayerThreshold Number of votes needed for a deposit proposal to be considered passed.
      */
-    constructor (uint8 chainID, address[] memory initialRelayers, uint256 initialRelayerThreshold, uint256 fee, uint256 expiry) public {
+    constructor (uint8 chainID, address[] memory initialRelayers, uint256 initialRelayerThreshold, uint256 fee, uint256 expiry) {
         _chainID = chainID;
         _relayerThreshold = initialRelayerThreshold.toUint8();
         _fee = fee.toUint128();

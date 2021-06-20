@@ -20,8 +20,8 @@ abstract contract Anchor is MerkleTreeWithHistory, ReentrancyGuard {
 
   struct Edge {
     uint8 chainID;
-    bytes32 latestMerkleRoot;
-    uint256 latestHeight;
+    bytes32 root;
+    uint256 height;
   }
 
   // maps anchor resource IDs to the index in the edge list
@@ -38,8 +38,8 @@ abstract contract Anchor is MerkleTreeWithHistory, ReentrancyGuard {
   event Deposit(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp);
   event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uint256 fee);
   // bridge events
-  event EdgeAddition(uint8 chainID, bytes32 anchorID, uint256 height, bytes32 merkleRoot);
-  event EdgeUpdate(uint8 chainID, bytes32 anchorID, uint256 height, bytes32 merkleRoot);
+  event EdgeAddition(uint8 chainID, bytes32 destResourceID, uint256 height, bytes32 merkleRoot);
+  event EdgeUpdate(uint8 chainID, bytes32 destResourceID, uint256 height, bytes32 merkleRoot);
   
 
   /**
@@ -114,37 +114,37 @@ abstract contract Anchor is MerkleTreeWithHistory, ReentrancyGuard {
 
   function addEdge(
     uint8 toChainID,
-    bytes32 anchorID,
-    bytes32 latestRoot,
+    bytes32 destResourceID,
+    bytes32 root,
     uint256 height
   ) onlyBridge external payable nonReentrant {
     edgeExistsForChain[toChainID] = true;
     uint index = edgeList.length;
     Edge memory edge = Edge({
       chainID: toChainID,
-      latestMerkleRoot: latestRoot,
-      latestHeight: height
+      root: root,
+      height: height
     });
     edgeList.push(edge);
-    edgeIndex[anchorID] = index;
-    emit EdgeAddition(toChainID, anchorID, height, latestRoot);
+    edgeIndex[destResourceID] = index;
+    emit EdgeAddition(toChainID, destResourceID, height, root);
   }
 
   function updateEdge(
     uint8 toChainID,
-    bytes32 anchorID,
-    bytes32 latestRoot,
+    bytes32 destResourceID,
+    bytes32 root,
     uint256 height
   ) onlyBridge external payable nonReentrant {
     require(edgeExistsForChain[toChainID], "Chain must be integrated from the bridge before updates");
-    require(edgeList[edgeIndex[anchorID]].latestHeight < height, "New height must be greater");
+    require(edgeList[edgeIndex[destResourceID]].height < height, "New height must be greater");
     // update the edge in the edge list
-    edgeList[edgeIndex[anchorID]] = Edge({
+    edgeList[edgeIndex[destResourceID]] = Edge({
       chainID: toChainID,
-      latestMerkleRoot: latestRoot,
-      latestHeight: height
+      root: root,
+      height: height
     });
-    emit EdgeUpdate(toChainID, anchorID, height, latestRoot);
+    emit EdgeUpdate(toChainID, destResourceID, height, root);
   }
 
   /** @dev this function is defined in a child contract */
