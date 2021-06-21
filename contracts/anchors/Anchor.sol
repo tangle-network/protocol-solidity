@@ -5,7 +5,7 @@
 
 pragma solidity ^0.8.0;
 
-import "./MerkleTreeWithHistory.sol";
+import "../MerkleTreeWithHistory.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 interface IVerifier {
