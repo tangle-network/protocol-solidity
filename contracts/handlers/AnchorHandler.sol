@@ -20,9 +20,7 @@ contract AnchorHandler is IUpdateExecute, HandlerHelpers, ERC20Safe {
         address _tokenAddress;
         uint8   _destinationChainID;
         bytes32 _resourceID;
-        bytes   _destinationRecipientAddress;
         bytes32 _merkleRoot;
-        uint    _amount;
     }
 
     // fromChainID => height => Update Record
@@ -107,9 +105,7 @@ contract AnchorHandler is IUpdateExecute, HandlerHelpers, ERC20Safe {
             anchorAddress,
             destinationChainID,
             resourceID,
-            recipientAddress,
-            merkleRoot,
-            amount
+            merkleRoot
         );
     }
 
@@ -139,6 +135,7 @@ contract AnchorHandler is IUpdateExecute, HandlerHelpers, ERC20Safe {
         }
 
         require(_contractWhitelist[tokenAddress], "provided tokenAddress is not whitelisted");
+        // TODO: Implement update logic for executing an update proposal
     }
 
     /**
