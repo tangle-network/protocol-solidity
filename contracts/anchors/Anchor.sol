@@ -14,12 +14,14 @@ interface IVerifier {
 
 abstract contract Anchor is MerkleTreeWithHistory, ReentrancyGuard {
   address public bridge;
+  address public admin;
 
   IVerifier public immutable verifier;
   uint256 public immutable denomination;
-
+  uint256 public immutable maxRoots = 100;
   struct Edge {
     uint8 chainID;
+    bytes32 resourceID;
     bytes32 root;
     uint256 height;
   }
@@ -33,14 +35,18 @@ abstract contract Anchor is MerkleTreeWithHistory, ReentrancyGuard {
   mapping(bytes32 => bool) public nullifierHashes;
   // map to store all commitments to prevent accidental deposits with the same commitment
   mapping(bytes32 => bool) public commitments;
-
+  // map to store the history of root updates
+  mapping(uint => bytes32[]) public rootHistory;
+  // pruning length for root history (i.e. the # of history items to persist)
+  uint pruningLength;
+  // the latest history index that also represents the latest set of roots for the Anchor
+  uint latestHistory;
   // currency events
   event Deposit(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp);
   event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uint256 fee);
   // bridge events
   event EdgeAddition(uint8 chainID, bytes32 destResourceID, uint256 height, bytes32 merkleRoot);
   event EdgeUpdate(uint8 chainID, bytes32 destResourceID, uint256 height, bytes32 merkleRoot);
-  
 
   /**
     @dev The constructor
@@ -58,6 +64,8 @@ abstract contract Anchor is MerkleTreeWithHistory, ReentrancyGuard {
     require(_denomination > 0, "denomination should be greater than 0");
     verifier = _verifier;
     denomination = _denomination;
+    pruningLength = 100;
+    latestHistory = 0;
   }
 
   /**
@@ -112,41 +120,6 @@ abstract contract Anchor is MerkleTreeWithHistory, ReentrancyGuard {
     emit Withdrawal(_recipient, _nullifierHash, _relayer, _fee);
   }
 
-  function addEdge(
-    uint8 toChainID,
-    bytes32 destResourceID,
-    bytes32 root,
-    uint256 height
-  ) onlyBridge external payable nonReentrant {
-    edgeExistsForChain[toChainID] = true;
-    uint index = edgeList.length;
-    Edge memory edge = Edge({
-      chainID: toChainID,
-      root: root,
-      height: height
-    });
-    edgeList.push(edge);
-    edgeIndex[destResourceID] = index;
-    emit EdgeAddition(toChainID, destResourceID, height, root);
-  }
-
-  function updateEdge(
-    uint8 toChainID,
-    bytes32 destResourceID,
-    bytes32 root,
-    uint256 height
-  ) onlyBridge external payable nonReentrant {
-    require(edgeExistsForChain[toChainID], "Chain must be integrated from the bridge before updates");
-    require(edgeList[edgeIndex[destResourceID]].height < height, "New height must be greater");
-    // update the edge in the edge list
-    edgeList[edgeIndex[destResourceID]] = Edge({
-      chainID: toChainID,
-      root: root,
-      height: height
-    });
-    emit EdgeUpdate(toChainID, destResourceID, height, root);
-  }
-
   /** @dev this function is defined in a child contract */
   function _processWithdraw(
     address payable _recipient,
@@ -168,6 +141,10 @@ abstract contract Anchor is MerkleTreeWithHistory, ReentrancyGuard {
         spent[i] = true;
       }
     }
+  }
+  /** @dev */
+  function getLatestNeighborRoots() public view returns (bytes32[] memory roots) {
+    roots = rootHistory[latestHistory];
   }
 
   modifier onlyBridge()  {
