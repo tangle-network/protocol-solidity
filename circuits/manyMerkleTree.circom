@@ -14,14 +14,14 @@ template SetMembership(length) {
   signal input set[length];
   signal input diffs[length];
 
-  signal product;
-  product <-- element;
+  signal product[length + 1];
+  product[0] <== element;
   for (var i = 0; i < length; i++) {
     set[i] === diffs[i] + element;
-    product <-- product * diffs[i];
+    product[i + 1] <== product[i] * diffs[i];
   }
 
-  product === 0
+  product[length] === 0
 }
 
 // Computes MiMC([left, right])
@@ -73,6 +73,8 @@ template ManyMerkleTreeChecker(levels, length) {
         hashers[i].right <== selectors[i].out[1];
     }
 
+    // verify that the resultant hash (computed merkle root)
+    // is in the set of roots
     component set = SetMembership(length);
     set.element <== hashers[levels - 1].hash;
     for (var i = 0; i < length; i++) {

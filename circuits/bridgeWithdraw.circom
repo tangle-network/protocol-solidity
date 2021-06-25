@@ -37,7 +37,11 @@ template CommitmentHasher() {
 template Withdraw(levels, length) {
     signal input root;
     signal input nullifierHash;
+    // chainID fixes a withdrawal proof to the destination since
+    // this will be taken as a public input from the smart contract.
     signal input chainID;
+    // the set of roots to prove membership within, provided
+    // as a public input from the smart contract.
     signal input roots[length];
     signal input recipient; // not taking part in any computations
     signal input relayer;  // not taking part in any computations
@@ -47,6 +51,8 @@ template Withdraw(levels, length) {
     signal private input secret;
     signal private input pathElements[levels];
     signal private input pathIndices[levels];
+    // the differences of the root one is proving against and
+    // all the roots provided as a public input in the `roots` signal.
     signal private input diffs[length];
 
     component hasher = CommitmentHasher();
@@ -63,6 +69,7 @@ template Withdraw(levels, length) {
         tree.pathIndices[i] <== pathIndices[i];
     }
 
+    // add the roots and diffs signals to the bridge circuit
     for (var i = 0; i < length; i++) {
         tree.roots[i] <== roots[i];
         tree.diffs[i] <== diffs[i];
