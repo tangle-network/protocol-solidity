@@ -1,5 +1,29 @@
 include "../node_modules/circomlib/circuits/mimcsponge.circom";
 
+// Set membership gadget is handled with a multiplicative trick.
+//
+// For a given set of elements, a prover first computes the difference between
+// each element in the set and the element they are proving knowledge of. We
+// constrain this operation accordingly. We then multiply all differences and constrain
+// this value by zero. If the prover actually knows an element in the set then for that
+// element, it must hold that the difference is 0. Therefore, the product of 0 and
+// anything else should be 0. The prove can't lie by adding a zero into the diffs set
+// because we constrain those to match all elements in the set respectively.
+template SetMembership(length) {
+  signal input element;
+  signal input set[length];
+  signal input diffs[length];
+
+  signal product;
+  product <-- element;
+  for (var i = 0; i < length; i++) {
+    set[i] === diffs[i] + element;
+    product <-- product * diffs[i];
+  }
+
+  product === 0
+}
+
 // Computes MiMC([left, right])
 template HashLeftRight() {
     signal input left;
@@ -27,11 +51,13 @@ template DualMux() {
 
 // Verifies that merkle proof is correct for given merkle root and a leaf
 // pathIndices input is an array of 0/1 selectors telling whether given pathElement is on the left or right side of merkle path
-template ManyMerkleTreeChecker(levels) {
+template ManyMerkleTreeChecker(levels, length) {
     signal input leaf;
     signal input root;
     signal input pathElements[levels];
     signal input pathIndices[levels];
+    signal input roots[length];
+    signal input diffs[length];
 
     component selectors[levels];
     component hashers[levels];
@@ -47,5 +73,10 @@ template ManyMerkleTreeChecker(levels) {
         hashers[i].right <== selectors[i].out[1];
     }
 
-    root === hashers[levels - 1].hash;
+    component set = SetMembership(length);
+    set.element <== hashers[levels - 1].hash;
+    for (var i = 0; i < length; i++) {
+        set.set[i] <== roots[i];
+        set.diffs[i] <== diffs[i];
+    }
 }

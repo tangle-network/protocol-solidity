@@ -64,4 +64,4 @@ template Withdraw(levels) {
     refundSquare <== refund * refund;
 }
 
-component main = Withdraw(32);
+component main = Withdraw(20);

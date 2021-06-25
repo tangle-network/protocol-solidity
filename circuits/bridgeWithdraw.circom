@@ -34,10 +34,11 @@ template CommitmentHasher() {
 }
 
 // Verifies that commitment that corresponds to given secret and nullifier is included in the merkle tree of deposits
-template Withdraw(levels) {
+template Withdraw(levels, length) {
     signal input root;
     signal input nullifierHash;
     signal input chainID;
+    signal input roots[length];
     signal input recipient; // not taking part in any computations
     signal input relayer;  // not taking part in any computations
     signal input fee;      // not taking part in any computations
@@ -46,6 +47,7 @@ template Withdraw(levels) {
     signal private input secret;
     signal private input pathElements[levels];
     signal private input pathIndices[levels];
+    signal private input diffs[length];
 
     component hasher = CommitmentHasher();
     hasher.chainID <== chainID;
@@ -53,12 +55,17 @@ template Withdraw(levels) {
     hasher.secret <== secret;
     hasher.nullifierHash === nullifierHash;
 
-    component tree = ManyMerkleTreeChecker(levels);
+    component tree = ManyMerkleTreeChecker(levels, length);
     tree.leaf <== hasher.commitment;
     tree.root <== root;
     for (var i = 0; i < levels; i++) {
         tree.pathElements[i] <== pathElements[i];
         tree.pathIndices[i] <== pathIndices[i];
+    }
+
+    for (var i = 0; i < length; i++) {
+        tree.roots[i] <== roots[i];
+        tree.diffs[i] <== diffs[i];
     }
 
     // Add hidden signals to make sure that tampering with recipient or fee will invalidate the snark proof
@@ -74,4 +81,4 @@ template Withdraw(levels) {
     refundSquare <== refund * refund;
 }
 
-component main = Withdraw(32);
+component main = Withdraw(32, 100);
