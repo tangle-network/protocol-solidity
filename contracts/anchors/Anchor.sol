@@ -15,6 +15,7 @@ interface IVerifier {
 abstract contract Anchor is MerkleTreeWithHistory, ReentrancyGuard {
   address public bridge;
   address public admin;
+  address public handler;
 
   IVerifier public immutable verifier;
   uint256 public immutable denomination;
@@ -149,6 +150,12 @@ abstract contract Anchor is MerkleTreeWithHistory, ReentrancyGuard {
 
   modifier onlyBridge()  {
     if (msg.sender == bridge) {
+      _;
+    }
+  }
+
+  modifier onlyHandler()  {
+    if (msg.sender == handler) {
       _;
     }
   }

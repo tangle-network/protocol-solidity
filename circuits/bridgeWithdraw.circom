@@ -1,24 +1,32 @@
 include "../node_modules/circomlib/circuits/bitify.circom";
 include "../node_modules/circomlib/circuits/pedersen.circom";
-include "merkleTree.circom";
+include "manyMerkleTree.circom";
 
 // computes Pedersen(nullifier + secret)
 template CommitmentHasher() {
+    signal input chainID;
     signal input nullifier;
     signal input secret;
     signal output commitment;
     signal output nullifierHash;
 
-    component commitmentHasher = Pedersen(496);
+    // 1 byte for chainID + 31 bytes for nullifier + 31 bytes for secret
+    component commitmentHasher = Pedersen(504);
     component nullifierHasher = Pedersen(248);
+    component chainIDBits = Num2Bits(8);
     component nullifierBits = Num2Bits(248);
     component secretBits = Num2Bits(248);
     nullifierBits.in <== nullifier;
     secretBits.in <== secret;
+
     for (var i = 0; i < 248; i++) {
+        if (i < 8) {
+          commitmentHasher.in[i] <== chainIDBits.out[i];
+        }
+
         nullifierHasher.in[i] <== nullifierBits.out[i];
-        commitmentHasher.in[i] <== nullifierBits.out[i];
-        commitmentHasher.in[i + 248] <== secretBits.out[i];
+        commitmentHasher.in[i + 8] <== nullifierBits.out[i];
+        commitmentHasher.in[i + 8 + 248] <== secretBits.out[i];
     }
 
     commitment <== commitmentHasher.out[0];
@@ -29,6 +37,7 @@ template CommitmentHasher() {
 template Withdraw(levels) {
     signal input root;
     signal input nullifierHash;
+    signal input chainID;
     signal input recipient; // not taking part in any computations
     signal input relayer;  // not taking part in any computations
     signal input fee;      // not taking part in any computations
@@ -39,11 +48,12 @@ template Withdraw(levels) {
     signal private input pathIndices[levels];
 
     component hasher = CommitmentHasher();
+    hasher.chainID <== chainID;
     hasher.nullifier <== nullifier;
     hasher.secret <== secret;
     hasher.nullifierHash === nullifierHash;
 
-    component tree = MerkleTreeChecker(levels);
+    component tree = ManyMerkleTreeChecker(levels);
     tree.leaf <== hasher.commitment;
     tree.root <== root;
     for (var i = 0; i < levels; i++) {

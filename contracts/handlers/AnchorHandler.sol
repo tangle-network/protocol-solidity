@@ -8,14 +8,14 @@ pragma experimental ABIEncoderV2;
 
 import "../interfaces/IUpdateExecute.sol";
 import "./HandlerHelpers.sol";
-import "../tokens/ERC20Safe.sol";
+import "../anchors/LinkableAnchor.sol";
 
 /**
     @title Handles Anchor edge list merkle root updates
     @author Webb Technologies.
     @notice This contract is intended to be used with the Bridge contract.
  */
-contract AnchorHandler is IUpdateExecute, HandlerHelpers, ERC20Safe {
+contract AnchorHandler is IUpdateExecute, HandlerHelpers {
     struct UpdateRecord {
         address _tokenAddress;
         uint8   _destinationChainID;
@@ -92,14 +92,22 @@ contract AnchorHandler is IUpdateExecute, HandlerHelpers, ERC20Safe {
         bytes   calldata data
     ) external override onlyBridge {
         bytes   memory recipientAddress;
-        uint256        amount;
+        uint256        height;
         uint256        lenRecipientAddress;
 
-        (amount, lenRecipientAddress) = abi.decode(data, (uint, uint));
+        (height, lenRecipientAddress) = abi.decode(data, (uint, uint));
         recipientAddress = bytes(data[64:64 + lenRecipientAddress]);
 
         address anchorAddress = _resourceIDToTokenContractAddress[resourceID];
         require(_contractWhitelist[anchorAddress], "provided tokenAddress is not whitelisted");
+
+        LinkableAnchor anchor = LinkableAnchor(anchorAddress);
+        anchor.updateEdge(
+            destinationChainID,
+            resourceID,
+            merkleRoot,
+            height
+        );
 
         _updateRecords[destinationChainID][depositNonce] = UpdateRecord(
             anchorAddress,

@@ -14,9 +14,11 @@ abstract contract LinkableAnchor is Anchor {
     uint256 _denomination,
     uint32 _merkleTreeHeight
   ) Anchor(_verifier, _hasher, _denomination, _merkleTreeHeight) {
-    // set the sender as admin & bridge address
+    // set the sender as admin & bridge & handler address
+    // TODO: Properly set addresses and permissions
     bridge = msg.sender;
     admin = msg.sender;
+    handler = msg.sender;
   }
 
   function addEdge(
@@ -24,7 +26,7 @@ abstract contract LinkableAnchor is Anchor {
     bytes32 destResourceID,
     bytes32 root,
     uint256 height
-  ) onlyBridge external payable nonReentrant {
+  ) onlyHandler external payable nonReentrant {
     edgeExistsForChain[destChainID] = true;
     uint index = edgeList.length;
     Edge memory edge = Edge({
@@ -43,7 +45,7 @@ abstract contract LinkableAnchor is Anchor {
     bytes32 destResourceID,
     bytes32 root,
     uint256 height
-  ) onlyBridge external payable nonReentrant {
+  ) onlyHandler external payable nonReentrant {
     require(edgeExistsForChain[destChainID], "Chain must be integrated from the bridge before updates");
     require(edgeList[edgeIndex[destResourceID]].height < height, "New height must be greater");
     // update the edge in the edge list

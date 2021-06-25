@@ -7,9 +7,9 @@ const Ethers = require('ethers');
 
 const Helpers = require('../helpers');
 
-const AnchorContract = artifacts.require("Anchor");
+const LinkableAnchorContract = artifacts.require("LinkableERC20Anchor");
 const Verifier = artifacts.require("Verifier");
-const HasherABI = require('./hasher.json');
+const Hasher = artifacts.require("HasherMock");
 const Token = artifacts.require("ERC20Mock");
 const USDTToken = artifacts.require('IUSDT')
 
@@ -28,22 +28,23 @@ contract('Anchor - [add / update edges]', async accounts => {
   let token
   let usdtToken
   let badRecipient
+  const merkleTreeHeight = 31;
   const sender = accounts[0]
   const operator = accounts[0]
   const levels = 16
   let tokenDenomination = '1000000000000000000' // 1 ether
 
   beforeEach(async () => {
-    HasherFactory = new ethers.ContractFactory(HasherABI);
-    hasher = await HasherFactory.deploy();
+    hasher = await Hasher.new();
     verifier = await Verifier.new();
     token = await Token.new();
     await token.mint(sender, tokenDenomination);
     LinkableAnchorInstance = await LinkableAnchorContract.new(
       verifier.address,
       hasher.address,
-      merkleTreeHeight,
       tokenDenomination,
+      merkleTreeHeight,
+      token,
     );
     ADMIN_ROLE = await LinkableAnchorInstance.DEFAULT_ADMIN_ROLE()
   });

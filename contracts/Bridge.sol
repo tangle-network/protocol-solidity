@@ -15,7 +15,7 @@ import "./interfaces/IERCHandler.sol";
 
 /**
     @title Facilitates deposits, creation and voting of deposit proposals, and deposit executions.
-    @author ChainSafe Systems.
+    @author ChainSafe Systems & Webb Technologies.
  */
 contract Bridge is Pausable, AccessControl, SafeMath {
     using SafeCast for *;
