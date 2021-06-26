@@ -21,6 +21,14 @@ abstract contract LinkableAnchor is Anchor {
     handler = msg.sender;
   }
 
+  function setHandler(address _handler) onlyBridge external {
+    handler = _handler;
+  }
+
+  function setBridge(address _bridge) onlyAdmin external {
+    bridge = _bridge;
+  }
+
   function addEdge(
     uint8 destChainID,
     bytes32 destResourceID,
@@ -38,6 +46,12 @@ abstract contract LinkableAnchor is Anchor {
     edgeList.push(edge);
     edgeIndex[destResourceID] = index;
     emit EdgeAddition(destChainID, destResourceID, height, root);
+    // update root history and emit update event
+    bytes32[] memory neighbors = getLatestNeighborRoots();
+    neighbors[index] = root;
+    latestHistory = block.number;
+    rootHistory[latestHistory] = neighbors;
+    emit RootHistoryUpdate(block.timestamp, neighbors);
   }
 
   function updateEdge(
@@ -48,13 +62,20 @@ abstract contract LinkableAnchor is Anchor {
   ) onlyHandler external payable nonReentrant {
     require(edgeExistsForChain[destChainID], "Chain must be integrated from the bridge before updates");
     require(edgeList[edgeIndex[destResourceID]].height < height, "New height must be greater");
+    uint index = edgeIndex[destResourceID];
     // update the edge in the edge list
-    edgeList[edgeIndex[destResourceID]] = Edge({
+    edgeList[index] = Edge({
       chainID: destChainID,
       resourceID: destResourceID,
       root: root,
       height: height
     });
     emit EdgeUpdate(destChainID, destResourceID, height, root);
+    // update root history and emit update event
+    bytes32[] memory neighbors = getLatestNeighborRoots();
+    neighbors[index] = root;
+    latestHistory = block.number;
+    rootHistory[latestHistory] = neighbors;
+    emit RootHistoryUpdate(block.timestamp, neighbors);
   }
 }

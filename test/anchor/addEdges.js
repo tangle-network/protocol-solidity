@@ -6,6 +6,7 @@ const TruffleAssert = require('truffle-assertions');
 const Ethers = require('ethers');
 
 const Helpers = require('../helpers');
+const { assert } = require('console');
 
 const LinkableAnchorContract = artifacts.require("LinkableERC20Anchor");
 const Verifier = artifacts.require("Verifier");
@@ -15,7 +16,7 @@ const USDTToken = artifacts.require('IUSDT')
 
 // This test does NOT include all getter methods, just 
 // getters that should work with only the constructor called
-contract('Anchor - [add / update edges]', async accounts => {
+contract('LinkableAnchor - [add / update edges]', async accounts => {
   const chainID = 1;
   const linkedChainIDs = [2,3,4,5];
   let ADMIN_ROLE;
@@ -33,6 +34,11 @@ contract('Anchor - [add / update edges]', async accounts => {
   const operator = accounts[0]
   const levels = 16
   let tokenDenomination = '1000000000000000000' // 1 ether
+  // function stubs
+  let setHandler;
+  let setBridge;
+  let addEdge;
+  let updateEdge;
 
   beforeEach(async () => {
     hasher = await Hasher.new();
@@ -46,11 +52,62 @@ contract('Anchor - [add / update edges]', async accounts => {
       merkleTreeHeight,
       token.address,
     );
+
+    setHandler = (handler, sender) => LinkableAnchorInstance.setHandler(handler, {
+      from: sender
+    });
+
+    setBridge = (bridge, sender) => LinkableAnchorInstance.setBridge(bridge, {
+      from: sender
+    });
+
+    addEdge = (edge, sender) => LinkableAnchorInstance.addEdge(
+      edge.destChainID,
+      edge.destResourceID,
+      edge.root,
+      edge.height,
+      { from: sender }
+    )
+
+    updateEdge = (edge, sender) => LinkableAnchorInstance.updateEdge(
+      edge.destChainID,
+      edge.destResourceID,
+      edge.root,
+      edge.height,
+      { from: sender }
+    )
   });
 
-  it.only('Anchor should have same bridge & admin', async () => {
+  it('LinkableAnchor should have same bridge & admin & handler on init', async () => {
     assert.equal(await LinkableAnchorInstance.admin(), accounts[0]);
     assert.equal(await LinkableAnchorInstance.bridge(), accounts[0]);
+    assert.equal(await LinkableAnchorInstance.handler(), accounts[0]);
+  });
+
+  it('LinkableAnchor handler should only be updatable by bridge only', async () => {
+    await TruffleAssert.passes(setHandler(accounts[1], accounts[0]));
+    await TruffleAssert.reverts(setHandler(accounts[0], accounts[1]), "sender is not the bridge");
+  });
+
+  it('LinkableAnchor bridge should only be updatable by admin only', async () => {
+    await TruffleAssert.passes(setBridge(accounts[1], accounts[0]));
+    await TruffleAssert.reverts(setBridge(accounts[0], accounts[1]), "sender is not the admin");
+  });
+
+  it.only('LinkableAnchor edges should be modifiable by handler only', async () => {
+    const edge = {
+      destChainID: '0x01',
+      destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
+      root: '0x1111111111111111111111111111111111111111111111111111111111111111',
+      height: 100,
+    };
+
+    await TruffleAssert.passes(addEdge(edge, accounts[0]));
+    await TruffleAssert.reverts(addEdge(edge, accounts[1]), "sender is not the handler");
+
+    const roots = await LinkableAnchorInstance.getLatestNeighborRoots();
+    assert(roots.length == 100);
+    assert(roots[0] == edge.root);
   });
 });
  

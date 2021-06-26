@@ -48,6 +48,7 @@ abstract contract Anchor is MerkleTreeWithHistory, ReentrancyGuard {
   // bridge events
   event EdgeAddition(uint8 chainID, bytes32 destResourceID, uint256 height, bytes32 merkleRoot);
   event EdgeUpdate(uint8 chainID, bytes32 destResourceID, uint256 height, bytes32 merkleRoot);
+  event RootHistoryUpdate(uint timestamp, bytes32[] roots);
 
   /**
     @dev The constructor
@@ -65,8 +66,11 @@ abstract contract Anchor is MerkleTreeWithHistory, ReentrancyGuard {
     require(_denomination > 0, "denomination should be greater than 0");
     verifier = _verifier;
     denomination = _denomination;
+    // TODO: Handle pruning length in function signature
     pruningLength = 100;
     latestHistory = 0;
+    // TODO: Parameterize max rooots (length of array should be max roots)
+    rootHistory[latestHistory] = new bytes32[](100);
   }
 
   /**
@@ -148,15 +152,18 @@ abstract contract Anchor is MerkleTreeWithHistory, ReentrancyGuard {
     roots = rootHistory[latestHistory];
   }
 
+  modifier onlyAdmin()  {
+    require(msg.sender == admin, 'sender is not the admin');
+    _;
+  }
+
   modifier onlyBridge()  {
-    if (msg.sender == bridge) {
-      _;
-    }
+    require(msg.sender == bridge, 'sender is not the bridge');
+    _;
   }
 
   modifier onlyHandler()  {
-    if (msg.sender == handler) {
-      _;
-    }
+    require(msg.sender == handler, 'sender is not the handler');
+    _;
   }
 }
