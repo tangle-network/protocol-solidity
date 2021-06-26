@@ -44,13 +44,13 @@ contract('Anchor - [add / update edges]', async accounts => {
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      token,
+      token.address,
     );
-    ADMIN_ROLE = await LinkableAnchorInstance.DEFAULT_ADMIN_ROLE()
   });
 
   it.only('Anchor should have same bridge & admin', async () => {
-    assert.isFalse(await AnchorInstance.paused());
+    assert.equal(await LinkableAnchorInstance.admin(), accounts[0]);
+    assert.equal(await LinkableAnchorInstance.bridge(), accounts[0]);
   });
 });
  
