@@ -18,8 +18,9 @@ contract ERC20Anchor is Anchor {
     IHasher _hasher,
     uint256 _denomination,
     uint32 _merkleTreeHeight,
+    uint32 _maxRoots,
     IERC20 _token
-  ) Anchor(_verifier, _hasher, _denomination, _merkleTreeHeight) {
+  ) Anchor(_verifier, _hasher, _denomination, _merkleTreeHeight, _maxRoots) {
     token = _token;
   }
 

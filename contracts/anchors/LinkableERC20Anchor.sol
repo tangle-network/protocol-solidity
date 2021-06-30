@@ -18,8 +18,9 @@ contract LinkableERC20Anchor is LinkableAnchor {
     IHasher _hasher,
     uint256 _denomination,
     uint32 _merkleTreeHeight,
+    uint32 _maxRoots,
     IERC20 _token
-  ) LinkableAnchor(_verifier, _hasher, _denomination, _merkleTreeHeight) {
+  ) LinkableAnchor(_verifier, _hasher, _denomination, _merkleTreeHeight, _maxRoots) {
     token = _token;
   }
 

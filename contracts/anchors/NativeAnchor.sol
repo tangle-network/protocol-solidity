@@ -12,8 +12,9 @@ contract NativeAnchor is Anchor {
     IVerifier _verifier,
     IHasher _hasher,
     uint256 _denomination,
-    uint32 _merkleTreeHeight
-  ) Anchor(_verifier, _hasher, _denomination, _merkleTreeHeight) {}
+    uint32 _merkleTreeHeight,
+    uint32 _maxRoots
+  ) Anchor(_verifier, _hasher, _denomination, _merkleTreeHeight, _maxRoots) {}
 
   function _processDeposit() internal override {
     require(msg.value == denomination, "Please send `mixDenomination` ETH along with transaction");

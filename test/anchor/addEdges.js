@@ -30,6 +30,7 @@ contract('LinkableAnchor - [add / update edges]', async accounts => {
   let usdtToken
   let badRecipient
   const merkleTreeHeight = 31;
+  const maxRoots = 100;
   const sender = accounts[0]
   const operator = accounts[0]
   const levels = 16
@@ -50,6 +51,7 @@ contract('LinkableAnchor - [add / update edges]', async accounts => {
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
+      maxRoots,
       token.address,
     );
 

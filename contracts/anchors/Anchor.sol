@@ -19,7 +19,7 @@ abstract contract Anchor is MerkleTreeWithHistory, ReentrancyGuard {
 
   IVerifier public immutable verifier;
   uint256 public immutable denomination;
-  uint256 public immutable maxRoots = 100;
+  uint256 public immutable maxRoots;
   struct Edge {
     uint8 chainID;
     bytes32 resourceID;
@@ -36,18 +36,21 @@ abstract contract Anchor is MerkleTreeWithHistory, ReentrancyGuard {
   mapping(bytes32 => bool) public nullifierHashes;
   // map to store all commitments to prevent accidental deposits with the same commitment
   mapping(bytes32 => bool) public commitments;
+
   // map to store the history of root updates
   mapping(uint => bytes32[]) public rootHistory;
   // pruning length for root history (i.e. the # of history items to persist)
   uint pruningLength;
-  // the latest history index that also represents the latest set of roots for the Anchor
-  uint latestHistory;
+  // the latest history index that represents the next index to store history at % pruningLength
+  uint latestHistoryIndex;
+
   // currency events
   event Deposit(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp);
   event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uint256 fee);
   // bridge events
   event EdgeAddition(uint8 chainID, bytes32 destResourceID, uint256 height, bytes32 merkleRoot);
   event EdgeUpdate(uint8 chainID, bytes32 destResourceID, uint256 height, bytes32 merkleRoot);
+  event RootHistoryRecorded(uint timestamp, bytes32[] roots);
   event RootHistoryUpdate(uint timestamp, bytes32[] roots);
 
   /**
@@ -61,16 +64,18 @@ abstract contract Anchor is MerkleTreeWithHistory, ReentrancyGuard {
     IVerifier _verifier,
     IHasher _hasher,
     uint256 _denomination,
-    uint32 _merkleTreeHeight
+    uint32 _merkleTreeHeight,
+    uint32 _maxRoots
   ) MerkleTreeWithHistory(_merkleTreeHeight, _hasher) {
     require(_denomination > 0, "denomination should be greater than 0");
     verifier = _verifier;
     denomination = _denomination;
+    maxRoots = _maxRoots;
     // TODO: Handle pruning length in function signature
     pruningLength = 100;
-    latestHistory = 0;
+    latestHistoryIndex = 0;
     // TODO: Parameterize max rooots (length of array should be max roots)
-    rootHistory[latestHistory] = new bytes32[](100);
+    rootHistory[latestHistoryIndex] = new bytes32[](_maxRoots);
   }
 
   /**
@@ -149,7 +154,10 @@ abstract contract Anchor is MerkleTreeWithHistory, ReentrancyGuard {
   }
   /** @dev */
   function getLatestNeighborRoots() public view returns (bytes32[] memory roots) {
-    roots = rootHistory[latestHistory];
+    roots = new bytes32[](edgeList.length);
+    for (uint256 i = 0; i < edgeList.length; i++) {
+      roots[i] = edgeList[i].root;
+    }
   }
 
   modifier onlyAdmin()  {
