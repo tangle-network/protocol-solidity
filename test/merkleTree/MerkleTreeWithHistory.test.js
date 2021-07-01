@@ -9,13 +9,11 @@ const Helpers = require('../helpers');
 const { assert } = require('console');
 
 const MerkleTreeWithHistory = artifacts.require('MerkleTreeWithHistoryMock')
+const MiMC = artifacts.require('MiMCSponge220');
 
 const MerkleTree = require('../../lib/tornado-withdraw/MerkleTree')
 const hasherImpl = require('../../lib/tornado-withdraw/MiMC')
 const snarkjs = require('snarkjs')
-const bigInt = snarkjs.bigInt
-
-const mimcGenContract = require("../../node_modules/circomlib/src/mimcsponge_gencontract");
 
 const { ETH_AMOUNT, MERKLE_TREE_HEIGHT } = process.env
 
@@ -29,18 +27,11 @@ function BNArrayToStringArray(array) {
 }
 
 function toFixedHex(number, length = 32) {
-  let str = bigInt(number).toString(16)
+  let str = BigInt(number).toString(16)
   while (str.length < length * 2) str = '0' + str
   str = '0x' + str
   return str
 }
-
-const SEED = "mimc";
-const hasherContractRaw = {
-  contractName: 'Hasher',
-  abi: mimcGenContract.abi,
-  bytecode: mimcGenContract.createCode('mimcsponge', 220),
-};
 
 contract('MerkleTreeWithHistory', (accounts) => {
   let web3;
@@ -56,19 +47,14 @@ contract('MerkleTreeWithHistory', (accounts) => {
   let hasher
 
   before(async () => {
-    const HasherFactory = new ethers.ContractFactory(hasherContractRaw.abi, hasherContractRaw.bytecode);
-    console.log(HasherFactory);
-    let hasherInstance = await HasherFactory.deploy({gasLimit: '0x5B8D80'});
-
-    const hasherAddress = await hasherInstance.deployed();
+    hasher = await MiMC.new();
 
     tree = new MerkleTree(levels, null, prefix)
-    merkleTreeWithHistory = await MerkleTreeWithHistory.new(levels, mimc.address)
-    snapshotId = await takeSnapshot()
+    merkleTreeWithHistory = await MerkleTreeWithHistory.new(levels, hasher.address)
   })
 
   describe('#constructor', () => {
-    it.only('should initialize', async () => {
+    it('should initialize', async () => {
       const zeroValue = await merkleTreeWithHistory.ZERO_VALUE()
       const firstSubtree = await merkleTreeWithHistory.filledSubtrees(0)
       assert(firstSubtree, toFixedHex(zeroValue));
@@ -84,7 +70,7 @@ contract('MerkleTreeWithHistory', (accounts) => {
     });
 
     it('tests insert', async () => {
-      hasher = new C()
+      hasher = await MiMC.new()
       tree = new MerkleTree(2, null, prefix)
       await tree.insert(toFixedHex('5'))
       let { root, path_elements } = await tree.path(0)
