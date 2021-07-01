@@ -1,4 +1,5 @@
 import { task } from "hardhat/config";
+import "hardhat-artifactor";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-truffle5";
 
