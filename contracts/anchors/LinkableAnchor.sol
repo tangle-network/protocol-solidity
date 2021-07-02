@@ -59,11 +59,12 @@ abstract contract LinkableAnchor is Anchor {
     emit EdgeAddition(destChainID, destResourceID, height, root);
     // emit update event
     bytes32[] memory neighbors = getLatestNeighborRoots();
-    neighbors[index] = root;
+    // @dev doesn't neighbors already have root at index?
+    //neighbors[index] = root;
     emit RootHistoryUpdate(block.timestamp, neighbors);
     
   }
-
+  
   function updateEdge(
     uint8 destChainID,
     bytes32 destResourceID,
@@ -83,7 +84,8 @@ abstract contract LinkableAnchor is Anchor {
     emit EdgeUpdate(destChainID, destResourceID, height, root);
     // emit update event
     bytes32[] memory neighbors = getLatestNeighborRoots();
-    neighbors[index] = root;
+    // @dev doesn't neighbors already have root at index?
+    //neighbors[index] = root;
     emit RootHistoryUpdate(block.timestamp, neighbors);
   }
 }

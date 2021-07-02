@@ -16,7 +16,7 @@ const USDTToken = artifacts.require('IUSDT')
 
 // This test does NOT include all getter methods, just 
 // getters that should work with only the constructor called
-contract('LinkableAnchor - [add / update edges]', async accounts => {
+contract('LinkableAnchor - [add edges]', async accounts => {
   const chainID = 1;
   const linkedChainIDs = [2,3,4,5];
   let ADMIN_ROLE;
@@ -108,9 +108,117 @@ contract('LinkableAnchor - [add / update edges]', async accounts => {
     await TruffleAssert.reverts(addEdge(edge, accounts[1]), "sender is not the handler");
 
     const roots = await LinkableAnchorInstance.getLatestNeighborRoots();
-    assert(roots.length == 100);
+    assert(roots.length == 1);
     assert(roots[0] == edge.root);
   });
-});
+
+  it('LinkableAnchor edges should update edgeIndex', async () => {
+    const edge = {
+      destChainID: '0x01',
+      destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
+      root: '0x1111111111111111111111111111111111111111111111111111111111111111',
+      height: 100,
+    };
+
+    await TruffleAssert.passes(addEdge(edge, accounts[0]));
+
+    assert(await LinkableAnchorInstance.edgeIndex(edge.destResourceID) == 0);
+  });
+
+  it('LinkableAnchor edges should update edgeIndex with 2 edges', async () => {
+    const edge = {
+      destChainID: '0x01',
+      destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
+      root: '0x1111111111111111111111111111111111111111111111111111111111111111',
+      height: 100,
+    };
+
+    await TruffleAssert.passes(addEdge(edge, accounts[0]));
+    assert(await LinkableAnchorInstance.edgeIndex(edge.destResourceID) == 0);
+    const edge1 = {
+      destChainID: '0x02',
+      destResourceID: '0x1100000000000000000000000000000000000000000000000000000000000010',
+      root: '0x1111111111111111111111111111111111111111111111111111111111111111',
+      height: 100,
+    };
+
+    await TruffleAssert.passes(addEdge(edge1, accounts[0]));
+    assert(await LinkableAnchorInstance.edgeIndex(edge1.destResourceID) == 1);
+  });
+
+  it('LinkableAnchor edges should keep correct edgeList with two edges', async () => {
+    const edge = {
+      destChainID: '0x01',
+      destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
+      root: '0x1111111111111111111111111111111111111111111111111111111111111111',
+      height: 100,
+    };
+
+    await TruffleAssert.passes(addEdge(edge, accounts[0]));
+
+    const roots = await LinkableAnchorInstance.getLatestNeighborRoots();
+    assert(roots.length == 1);
+    assert(roots[0] == edge.root);
+    const edge1 = {
+      destChainID: '0x01',
+      destResourceID: '0x1100000000000000000000000000000000000000000000000000000000000010',
+      root: '0x2111111111111111111111111111111111111111111111111111111111111111',
+      height: 100,
+    };
+    
+    await TruffleAssert.passes(addEdge(edge1, accounts[0]));
+
+    const newRoots = await LinkableAnchorInstance.getLatestNeighborRoots();      
+    assert(newRoots.length == 2);
+    assert(newRoots[0] == edge.root);
+    assert(newRoots[1] == edge1.root);
+  });
+
+  it('LinkableAnchor edges should emit correct EdgeAddition event', async () => {
+    const edge = {
+      destChainID: '0x01',
+      destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
+      root: '0x1111111111111111111111111111111111111111111111111111111111111111',
+      height: 100,
+    };
+
+    const result = await addEdge(edge, accounts[0]);
+    
+    TruffleAssert.eventEmitted(result, 'EdgeAddition', (ev) => {
+      return ev.chainID == parseInt(edge.destChainID, 16) && ev.destResourceID == edge.destResourceID &&
+       ev.height == edge.height && ev.merkleRoot == edge.root
+    });
+  });
+
+  it('LinkableAnchor edges should emit multiple correct RootHistoryUpdate events', async () => {
+    const edge = {
+      destChainID: '0x01',
+      destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
+      root: '0x1111111111111111111111111111111111111111111111111111111111111111',
+      height: 100,
+    };
+
+    const result = await addEdge(edge, accounts[0]);
+    const roots = await LinkableAnchorInstance.getLatestNeighborRoots();
+    
+    TruffleAssert.eventEmitted(result, 'RootHistoryUpdate', (ev) => {
+      return ev.roots == roots[0]
+    });
+
+    const edge1 = {
+      destChainID: '0x01',
+      destResourceID: '0x1100000000000000000000000000000000000000000000000000000000000010',
+      root: '0x2111111111111111111111111111111111111111111111111111111111111111',
+      height: 100,
+    };
+    
+    const newResult = await addEdge(edge1, accounts[0]);
+
+    const newRoots = await LinkableAnchorInstance.getLatestNeighborRoots();      
+    TruffleAssert.eventEmitted(newResult, 'RootHistoryUpdate', (ev) => {
+      return ev.roots == newRoots.join(",")
+    });
+  });
  
+}); 
  
