@@ -6,7 +6,9 @@
   "author": "Webb Technologies",
   "license": "LGPL-3.0",
   "scripts": {
-    "test": "npx hardhat test",
+    "compile": "npx hardhat compile",
+    "build:hashers": "ts-node scripts/build_hashers.ts",
+    "test": "yarn compile && yarn build:hashers && npx hardhat test",
     "circuit:compile": "./scripts/compile_circom.sh"
   },
   "devDependencies": {

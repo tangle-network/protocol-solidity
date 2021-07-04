@@ -7,7 +7,7 @@ const buildPoseidon = async (numInputs: number) => {
 }
 
 const buildMiMC = async (numRounds: number) => {
-    await overwriteArtifact(`MiMCSponge${numRounds}`, mimcGenContract.createCode('mimcsponge', numRounds));
+    await overwriteArtifact(`MiMCSponge${numRounds}`, mimcGenContract.createCode('mimc', numRounds));
 }
 
 const buildPoseidonT3 = () => buildPoseidon(2);

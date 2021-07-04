@@ -44,13 +44,12 @@ contract('MerkleTreeWithHistory', (accounts) => {
   let snapshotId
   let prefix = 'test'
   let tree
-  let hasher
 
   before(async () => {
-    hasher = await MiMC.new();
+    hasherInstance = await MiMC.new();
 
     tree = new MerkleTree(levels, null, prefix)
-    merkleTreeWithHistory = await MerkleTreeWithHistory.new(levels, hasher.address)
+    merkleTreeWithHistory = await MerkleTreeWithHistory.new(levels, hasherInstance.address)
   })
 
   describe('#constructor', () => {
@@ -70,11 +69,15 @@ contract('MerkleTreeWithHistory', (accounts) => {
     });
 
     it('tests insert', async () => {
-      hasher = await MiMC.new()
+      hasherInstance = await MiMC.new()
       tree = new MerkleTree(2, null, prefix)
       await tree.insert(toFixedHex('5'))
       let { root, path_elements } = await tree.path(0)
-      const calculated_root = hasher.hash(null, hasher.hash(null, '5', path_elements[0]), path_elements[1])
+      const calculated_root = hasherInstance.MiMCSponge(
+        null,
+        hasherInstance.MiMCSponge(null, '5', path_elements[0]),
+        path_elements[1]
+      );
       // console.log(root)
       assert(root, calculated_root)
     });
@@ -164,13 +167,13 @@ contract('MerkleTreeWithHistory', (accounts) => {
         TruffleAssert.passes(await merkleTreeWithHistory.insert(toFixedHex(i + 42)))
       }
 
-      TruffleAssert.rejects(
-        await merkleTreeWithHistory.insert(toFixedHex(1337)),
+      TruffleAssert.reverts(
+        merkleTreeWithHistory.insert(toFixedHex(1337)),
         'Merkle tree is full. No more leaves can be added'
       );
 
-      TruffleAssert.rejects(
-        await merkleTreeWithHistory.insert(toFixedHex(1)).should.be.rejected,
+      TruffleAssert.reverts(
+        merkleTreeWithHistory.insert(toFixedHex(1)),
         'Merkle tree is full. No more leaves can be added'
       );
     })
@@ -197,14 +200,14 @@ contract('MerkleTreeWithHistory', (accounts) => {
         assert(isKnown, true);
       }
 
-      await merkleTreeWithHistory.insert(toFixedHex(42), { from: sender }).should.be.fulfilled
+      TruffleAssert.passes(await merkleTreeWithHistory.insert(toFixedHex(42), { from: sender }));
       // check outdated root
       let isKnown = await merkleTreeWithHistory.isKnownRoot(toFixedHex(path.root))
       assert(isKnown, true);
     })
 
     it('should not return uninitialized roots', async () => {
-      await merkleTreeWithHistory.insert(toFixedHex(42), { from: sender }).should.be.fulfilled
+      TruffleAssert.passes(await merkleTreeWithHistory.insert(toFixedHex(42), { from: sender }));
       let isKnown = await merkleTreeWithHistory.isKnownRoot(toFixedHex(0))
       assert(isKnown, false);
     })
