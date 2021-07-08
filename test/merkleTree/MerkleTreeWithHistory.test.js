@@ -6,7 +6,7 @@ const TruffleAssert = require('truffle-assertions');
 const { ethers } = require('hardhat');
 
 const Helpers = require('../helpers');
-const { assert } = require('console');
+const assert = require('assert');
 
 const MerkleTreeWithHistory = artifacts.require('MerkleTreeWithHistoryMock')
 const MiMC = artifacts.require('MiMCSponge220');
@@ -47,7 +47,6 @@ contract('MerkleTreeWithHistory', (accounts) => {
 
   before(async () => {
     hasherInstance = await MiMC.new();
-
     tree = new MerkleTree(levels, null, prefix)
     merkleTreeWithHistory = await MerkleTreeWithHistory.new(levels, hasherInstance.address)
   })
@@ -68,11 +67,12 @@ contract('MerkleTreeWithHistory', (accounts) => {
       assert(MerkleTree.index_to_key('test', 5, 20), 'test_tree_5_20')
     });
 
-    it('tests insert', async () => {
+    it.only('tests insert', async () => {
       hasherInstance = await MiMC.new()
       tree = new MerkleTree(2, null, prefix)
       await tree.insert(toFixedHex('5'))
-      let { root, path_elements } = await tree.path(0)
+      let { root, path_elements } = await tree.path(0);
+      console.log(root, path_elements);
       const calculated_root = hasherInstance.MiMCSponge(
         null,
         hasherInstance.MiMCSponge(null, '5', path_elements[0]),
@@ -167,12 +167,12 @@ contract('MerkleTreeWithHistory', (accounts) => {
         TruffleAssert.passes(await merkleTreeWithHistory.insert(toFixedHex(i + 42)))
       }
 
-      TruffleAssert.reverts(
+      await TruffleAssert.reverts(
         merkleTreeWithHistory.insert(toFixedHex(1337)),
         'Merkle tree is full. No more leaves can be added'
       );
 
-      TruffleAssert.reverts(
+      await TruffleAssert.reverts(
         merkleTreeWithHistory.insert(toFixedHex(1)),
         'Merkle tree is full. No more leaves can be added'
       );

@@ -35,18 +35,20 @@ template CommitmentHasher() {
 
 // Verifies that commitment that corresponds to given secret and nullifier is included in the merkle tree of deposits
 template Withdraw(levels, length) {
-    signal input root;
     signal input nullifierHash;
+    signal input recipient; // not taking part in any computations
+    signal input relayer;  // not taking part in any computations
+    signal input fee;      // not taking part in any computations
+    signal input refund;   // not taking part in any computations
+
     // chainID fixes a withdrawal proof to the destination since
     // this will be taken as a public input from the smart contract.
     signal input chainID;
     // the set of roots to prove membership within, provided
     // as a public input from the smart contract.
     signal input roots[length];
-    signal input recipient; // not taking part in any computations
-    signal input relayer;  // not taking part in any computations
-    signal input fee;      // not taking part in any computations
-    signal input refund;   // not taking part in any computations
+
+
     signal private input nullifier;
     signal private input secret;
     signal private input pathElements[levels];
@@ -63,7 +65,6 @@ template Withdraw(levels, length) {
 
     component tree = ManyMerkleTreeChecker(levels, length);
     tree.leaf <== hasher.commitment;
-    tree.root <== root;
     for (var i = 0; i < levels; i++) {
         tree.pathElements[i] <== pathElements[i];
         tree.pathIndices[i] <== pathIndices[i];

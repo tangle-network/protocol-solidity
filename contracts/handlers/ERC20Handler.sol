@@ -7,6 +7,7 @@ pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
 import "../interfaces/IDepositExecute.sol";
+import "../interfaces/IExecutor.sol";
 import "./HandlerHelpers.sol";
 import "../tokens/ERC20Safe.sol";
 
@@ -15,7 +16,7 @@ import "../tokens/ERC20Safe.sol";
     @author ChainSafe Systems.
     @notice This contract is intended to be used with the Bridge contract.
  */
-contract ERC20Handler is IDepositExecute, HandlerHelpers, ERC20Safe {
+contract ERC20Handler is IDepositExecute, IExecutor, HandlerHelpers, ERC20Safe {
     struct DepositRecord {
         address _tokenAddress;
         uint8   _destinationChainID;

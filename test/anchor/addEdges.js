@@ -6,7 +6,7 @@ const TruffleAssert = require('truffle-assertions');
 const Ethers = require('ethers');
 
 const Helpers = require('../helpers');
-const { assert } = require('console');
+const assert = require('assert');
 
 const LinkableAnchorContract = artifacts.require("LinkableERC20Anchor");
 const Verifier = artifacts.require("Verifier");

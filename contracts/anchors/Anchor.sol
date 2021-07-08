@@ -154,10 +154,14 @@ abstract contract Anchor is MerkleTreeWithHistory, ReentrancyGuard {
   }
   /** @dev */
   function getLatestNeighborRoots() public view returns (bytes32[] memory roots) {
-    roots = new bytes32[](edgeList.length);
+    roots = new bytes32[](maxRoots);
     for (uint256 i = 0; i < edgeList.length; i++) {
       roots[i] = edgeList[i].root;
     }
+  }
+
+  function hasEdge(uint8 chainID) public view returns (bool) {
+    return edgeExistsForChain[chainID];
   }
 
   modifier onlyAdmin()  {
