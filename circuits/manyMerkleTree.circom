@@ -53,7 +53,6 @@ template DualMux() {
 // pathIndices input is an array of 0/1 selectors telling whether given pathElement is on the left or right side of merkle path
 template ManyMerkleTreeChecker(levels, length) {
     signal input leaf;
-    signal input root;
     signal input pathElements[levels];
     signal input pathIndices[levels];
     signal input roots[length];

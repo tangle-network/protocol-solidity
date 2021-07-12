@@ -356,7 +356,7 @@ contract Bridge is Pausable, AccessControl, SafeMath {
         IUpdateExecute anchorHandler = IUpdateExecute(handler);
         anchorHandler.update(resourceID, destinationChainID, updateNonce, msg.sender, data);
 
-        emit Deposit(destinationChainID, resourceID, updateNonce);
+        emit Update(destinationChainID, resourceID, updateNonce);
     }
 
     /**
