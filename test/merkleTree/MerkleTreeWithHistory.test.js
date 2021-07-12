@@ -67,15 +67,14 @@ contract('MerkleTreeWithHistory', (accounts) => {
       assert(MerkleTree.index_to_key('test', 5, 20), 'test_tree_5_20')
     });
 
-    it.only('tests insert', async () => {
-      hasherInstance = await MiMC.new()
+    it('tests insert', async () => {
+      hasher = new hasherImpl()
       tree = new MerkleTree(2, null, prefix)
       await tree.insert(toFixedHex('5'))
       let { root, path_elements } = await tree.path(0);
-      console.log(root, path_elements);
-      const calculated_root = hasherInstance.MiMCSponge(
+      const calculated_root = hasher.hash(
         null,
-        hasherInstance.MiMCSponge(null, '5', path_elements[0]),
+        hasher.hash(null, '5', path_elements[0]),
         path_elements[1]
       );
       // console.log(root)
