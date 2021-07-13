@@ -6,7 +6,7 @@
 pragma solidity ^0.8.0;
 
 interface IHasher {
-  function hash(uint256 in_xL, uint256 in_xR, uint256 key) external pure returns (uint256 xL, uint256 xR);
+  function hash(uint256 in_xL, uint256 in_xR, uint256 key) external view returns (uint256 xL, uint256 xR);
 }
 
 abstract contract MerkleTreeWithHistory {
