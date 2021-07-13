@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.1.0",
+    "@truffle/contract": "^4.3.24",
     "bn-chai": "^1.0.1",
     "chai-as-promised": "^7.1.1",
     "circom": "^0.5.45",

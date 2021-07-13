@@ -32,7 +32,7 @@ contract PoseidonT6 {
 }
 
 contract MiMCSponge220 is IHasher {
-    function MiMCSponge(uint256 in_xL, uint256 in_xR) external override pure returns (uint256 xL, uint256 xR) {
+    function MiMCSponge(uint256 in_xL, uint256 in_xR, uint256 key) external override pure returns (uint256 xL, uint256 xR) {
         return (0, 0);
     }
 }
