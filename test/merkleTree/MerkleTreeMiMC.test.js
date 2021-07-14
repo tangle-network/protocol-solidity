@@ -8,7 +8,7 @@ const { ethers } = require('hardhat');
 const Helpers = require('../helpers');
 const assert = require('assert');
 
-const MerkleTreeWithHistory = artifacts.require('MerkleTreeWithHistoryMock')
+const MerkleTreeWithHistory = artifacts.require('MerkleTreeMiMCMock')
 const MiMC = artifacts.require('MiMCSponge220');
 
 const MerkleTree = require('../../lib/tornado-withdraw/MerkleTree')
@@ -33,7 +33,7 @@ function toFixedHex(number, length = 32) {
   return str
 }
 
-contract('MerkleTreeWithHistory', (accounts) => {
+contract('MerkleTreeMiMC', (accounts) => {
   let web3;
   let merkleTreeWithHistory;
   let HasherFactory;

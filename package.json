@@ -36,6 +36,7 @@
     "circom_runtime": "^0.1.9",
     "circomlib": "^0.5.2",
     "ganache-cli": "^6.12.2",
-    "hardhat-artifactor": "^0.2.0"
+    "hardhat-artifactor": "^0.2.0",
+    "maci-crypto": "^0.9.1"
   }
 }
