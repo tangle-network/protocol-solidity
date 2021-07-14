@@ -1,4 +1,4 @@
-include "../node_modules/circomlib/circuits/mimcsponge.circom";
+include "../../node_modules/circomlib/circuits/mimcsponge.circom";
 
 // Computes MiMC([left, right])
 template HashLeftRight() {

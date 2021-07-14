@@ -1,4 +1,5 @@
-include "../node_modules/circomlib/circuits/mimcsponge.circom";
+include "../../node_modules/circomlib/circuits/mimcsponge.circom";
+include "../poseidon/hasher.circom";
 
 // Set membership gadget is handled with a multiplicative trick.
 //
@@ -22,19 +23,6 @@ template SetMembership(length) {
   }
 
   product[length] === 0
-}
-
-// Computes MiMC([left, right])
-template HashLeftRight() {
-    signal input left;
-    signal input right;
-    signal output hash;
-
-    component hasher = MiMCSponge(2, 220, 1);
-    hasher.ins[0] <== left;
-    hasher.ins[1] <== right;
-    hasher.k <== 0;
-    hash <== hasher.outs[0];
 }
 
 // if s == 0 returns [in[0], in[1]]

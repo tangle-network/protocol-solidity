@@ -28,9 +28,9 @@ contract MerkleTreeMiMC is MerkleTreeWithHistory {
     require(uint256(_right) < FIELD_SIZE, "_right should be inside the field");
     uint256 R = uint256(_left);
     uint256 C = 0;
-    (R, C) = _hasher.hash(R, C, 0);
+    (R, C) = _hasher.MiMCSponge(R, C, 0);
     R = addmod(R, uint256(_right), FIELD_SIZE);
-    (R, C) = _hasher.hash(R, C, 0);
+    (R, C) = _hasher.MiMCSponge(R, C, 0);
     return bytes32(R);
   }
 

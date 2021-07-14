@@ -5,14 +5,14 @@
 
 pragma solidity ^0.8.0;
 
-import "../MerkleTreeWithHistory.sol";
+import "../trees/MerkleTreeMiMC.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 interface IVerifier {
   function verifyProof(bytes memory _proof, uint256[6] memory _input) external returns (bool);
 }
 
-abstract contract Anchor is MerkleTreeWithHistory, ReentrancyGuard {
+abstract contract Anchor is MerkleTreeMiMC, ReentrancyGuard {
   address public bridge;
   address public admin;
   address public handler;
@@ -66,7 +66,7 @@ abstract contract Anchor is MerkleTreeWithHistory, ReentrancyGuard {
     uint256 _denomination,
     uint32 _merkleTreeHeight,
     uint32 _maxRoots
-  ) MerkleTreeWithHistory(_merkleTreeHeight, _hasher) {
+  ) MerkleTreeMiMC(_merkleTreeHeight, _hasher) {
     require(_denomination > 0, "denomination should be greater than 0");
     verifier = _verifier;
     denomination = _denomination;
