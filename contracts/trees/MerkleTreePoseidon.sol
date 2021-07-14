@@ -5,14 +5,12 @@
 
 pragma solidity ^0.8.0;
 
-interface IPoseidonMerkleHasher {
-  function hash(uint256[2] memory) external view returns (uint256);
-}
+import "./Hashers.sol";
 
 abstract contract MerkleTreeWithHistoryPoseidon {
   uint256 public constant FIELD_SIZE = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
   uint256 public constant ZERO_VALUE = 21663839004416932945382355908790599225266501822907911457504978515578255421292; // = keccak256("tornado") % FIELD_SIZE
-  IPoseidonMerkleHasher public immutable hasher;
+  IPoseidonT3 public immutable hasher;
   uint32 public immutable levels;
 
   // the following variables are made public for easier testing and debugging and
@@ -26,7 +24,7 @@ abstract contract MerkleTreeWithHistoryPoseidon {
   uint32 public currentRootIndex = 0;
   uint32 public nextIndex = 0;
 
-  constructor(uint32 _levels, IPoseidonMerkleHasher _hasher) {
+  constructor(uint32 _levels, IPoseidonT3 _hasher) {
     require(_levels > 0, "_levels should be greater than zero");
     require(_levels < 32, "_levels should be less than 32");
     levels = _levels;
@@ -34,7 +32,7 @@ abstract contract MerkleTreeWithHistoryPoseidon {
   }
 
   /** @dev this function is defined in a child contract */
-  function hashLeftRight(IPoseidonMerkleHasher _hasher, bytes32 _left, bytes32 _right) public virtual returns (bytes32);
+  function hashLeftRight(IPoseidonT3 _hasher, bytes32 _left, bytes32 _right) public virtual returns (bytes32);
 
   function _insert(bytes32 _leaf) internal returns (uint32 index) {
     uint32 _nextIndex = nextIndex;
@@ -96,8 +94,8 @@ abstract contract MerkleTreeWithHistoryPoseidon {
   function zeros(uint256 i) public virtual pure returns (bytes32);
 }
 
-contract MerkleTreeMiMC is MerkleTreeWithHistoryPoseidon {
-  constructor(uint32 _levels, IPoseidonMerkleHasher _hasher) MerkleTreeWithHistoryPoseidon(_levels, _hasher) {
+contract MerkleTreePoseidon is MerkleTreeWithHistoryPoseidon {
+  constructor(uint32 _levels, IPoseidonT3 _hasher) MerkleTreeWithHistoryPoseidon(_levels, _hasher) {
     for (uint32 i = 0; i < _levels; i++) {
       filledSubtrees[i] = zeros(i);
     }
@@ -106,10 +104,10 @@ contract MerkleTreeMiMC is MerkleTreeWithHistoryPoseidon {
   }
 
   /**
-    @dev Hash 2 tree leaves, returns MiMC(_left, _right)
+    @dev Hash 2 tree leaves, returns PoseidonT3([_left, _right])
   */
   function hashLeftRight(
-    IPoseidonMerkleHasher _hasher,
+    IPoseidonT3 _hasher,
     bytes32 _left,
     bytes32 _right
   ) override public view returns (bytes32) {
@@ -117,7 +115,7 @@ contract MerkleTreeMiMC is MerkleTreeWithHistoryPoseidon {
     require(uint256(_right) < FIELD_SIZE, "_right should be inside the field");
     uint256 output = uint256(_left);
     uint256 right = uint256(_right);
-    output = _hasher.hash([output, right]);
+    output = _hasher.poseidon([output, right]);
     return bytes32(output);
   }
 

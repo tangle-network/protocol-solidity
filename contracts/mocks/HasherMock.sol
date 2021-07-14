@@ -8,3 +8,9 @@ contract HasherMock is IHasher {
     return (in_xL, in_xR);
   }
 }
+
+contract MiMCSponge220 is IHasher {
+    function MiMCSponge(uint256 in_xL, uint256 in_xR, uint256 key) external override view returns (uint256 xL, uint256 xR) {
+        return (0, 0);
+    }
+}
