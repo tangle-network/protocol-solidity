@@ -114,7 +114,7 @@
     await TruffleAssert.reverts(updateEdge(edgeUpdated, accounts[1]), "sender is not the handler");
    });
 
-   it('LinkableAnchor edges should be modifiable only if bridge exists beforehand', async () => {
+   it('LinkableAnchor edges should be modifiable only if edge exists beforehand', async () => {
     const edge = {
       destChainID: '0x01',
       destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
@@ -147,15 +147,15 @@
      await TruffleAssert.passes(addEdge(edge, accounts[0]));
 
      const roots = await LinkableAnchorInstance.getLatestNeighborRoots();
-     assert(roots.length == 1);
+     assert(roots.length == 100);
      assert(roots[0] == edge.root);
 
      await TruffleAssert.passes(updateEdge(edgeUpdated, accounts[0]));
      
-     const rootsU = await LinkableAnchorInstance.getLatestNeighborRoots();
-     assert(rootsU.length == 1); 
-     //really strange error where roots[0] has an extra 0 appended to its end so it is not equal
-     assert(rootsU[0] == edgeUpdated.root, rootsU[0] + "vs.  " + edgeUpdated.root);
+     const rootsUpdated = await LinkableAnchorInstance.getLatestNeighborRoots();
+     assert(rootsUpdated.length == 100); 
+     //really strange error where rootsUPdated[0] has an extra 0 appended to its end so it is not equal
+     assert(rootsUpdated[0] == edgeUpdated.root, rootsUpdated[0] + "vs.  " + edgeUpdated.root);
    });
    
    it('LinkableAnchor edges should emit correct EdgeUpdate event', async () => {
@@ -182,7 +182,7 @@
   });
 
   it('LinkableAnchor edges should emit correct RootHistoryUpdate event', async () => {
-    const edge = {
+    const edge = {  
       destChainID: '0x01',
       destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
@@ -199,7 +199,7 @@
     const roots = await LinkableAnchorInstance.getLatestNeighborRoots();
     
     TruffleAssert.eventEmitted(result, 'RootHistoryUpdate', (ev) => {
-      return ev.roots == roots[0]
+      return ev.roots.toString().split(',')[0]  == roots[0]
     });
   });
 });
