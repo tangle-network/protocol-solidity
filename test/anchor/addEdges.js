@@ -146,7 +146,7 @@ contract('LinkableAnchor - [add edges]', async accounts => {
     assert(await LinkableAnchorInstance.edgeIndex(edge1.destResourceID) == 1);
   });
 
-  it('LinkableAnchor edges should keep correct edgeList with two edges', async () => {
+  it('LinkableAnchor added edges should return from latestNeighborRoots', async () => {
     const edge = {
       destChainID: '0x01',
       destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
