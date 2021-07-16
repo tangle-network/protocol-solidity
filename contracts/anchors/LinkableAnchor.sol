@@ -40,23 +40,23 @@ abstract contract LinkableAnchor is Anchor {
   }
 
   function addEdge(
-    uint8 destChainID,
-    bytes32 destResourceID,
+    uint8 sourceChainID,
+    bytes32 resourceID,
     bytes32 root,
     uint256 height
   ) onlyHandler external payable nonReentrant {
     require(edgeList.length < maxRoots, "This Anchor is at capacity");
-    edgeExistsForChain[destChainID] = true;
+    edgeExistsForChain[sourceChainID] = true;
     uint index = edgeList.length;
     Edge memory edge = Edge({
-      chainID: destChainID,
-      resourceID: destResourceID,
+      chainID: sourceChainID,
+      resourceID: resourceID,
       root: root,
       height: height
     });
     edgeList.push(edge);
-    edgeIndex[destResourceID] = index;
-    emit EdgeAddition(destChainID, destResourceID, height, root);
+    edgeIndex[resourceID] = index;
+    emit EdgeAddition(sourceChainID, resourceID, height, root);
     // emit update event
     bytes32[] memory neighbors = getLatestNeighborRoots();
     neighbors[index] = root;
@@ -65,22 +65,22 @@ abstract contract LinkableAnchor is Anchor {
   }
 
   function updateEdge(
-    uint8 destChainID,
-    bytes32 destResourceID,
+    uint8 sourceChainID,
+    bytes32 resourceID,
     bytes32 root,
     uint256 height
   ) onlyHandler external payable nonReentrant {
-    require(edgeExistsForChain[destChainID], "Chain must be integrated from the bridge before updates");
-    require(edgeList[edgeIndex[destResourceID]].height < height, "New height must be greater");
-    uint index = edgeIndex[destResourceID];
+    require(edgeExistsForChain[sourceChainID], "Chain must be integrated from the bridge before updates");
+    require(edgeList[edgeIndex[resourceID]].height < height, "New height must be greater");
+    uint index = edgeIndex[resourceID];
     // update the edge in the edge list
     edgeList[index] = Edge({
-      chainID: destChainID,
-      resourceID: destResourceID,
+      chainID: sourceChainID,
+      resourceID: resourceID,
       root: root,
       height: height
     });
-    emit EdgeUpdate(destChainID, destResourceID, height, root);
+    emit EdgeUpdate(sourceChainID, resourceID, height, root);
     // emit update event
     bytes32[] memory neighbors = getLatestNeighborRoots();
     neighbors[index] = root;
