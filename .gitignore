@@ -7,3 +7,5 @@ artifacts
 
 build
 dist
+
+*.ptau

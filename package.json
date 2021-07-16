@@ -38,6 +38,7 @@
     "circomlib": "^0.5.2",
     "ganache-cli": "^6.12.2",
     "hardhat-artifactor": "^0.2.0",
-    "maci-crypto": "^0.9.1"
+    "maci-crypto": "^0.9.1",
+    "wasmsnark": "^0.0.10"
   }
 }
