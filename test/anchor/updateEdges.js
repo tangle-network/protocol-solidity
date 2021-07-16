@@ -6,7 +6,7 @@
  const Ethers = require('ethers');
  
  const Helpers = require('../helpers');
- const { assert } = require('console');
+ const assert = require('assert');
  
  const LinkableAnchorContract = artifacts.require("LinkableERC20Anchor");
  const Verifier = artifacts.require("Verifier");
@@ -106,9 +106,10 @@
     const edgeUpdated = {
       destChainID: '0x01',
       destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
-      root: '0x222211111111111111111111111111111111111111111111111111111111111',
+      root: '0x2222111111111111111111111111111111111111111111111111111111111111',
       height: 101,
     };
+
     await TruffleAssert.passes(addEdge(edge, accounts[0]));
     await TruffleAssert.passes(updateEdge(edgeUpdated, accounts[0]));
     await TruffleAssert.reverts(updateEdge(edgeUpdated, accounts[1]), "sender is not the handler");
@@ -124,7 +125,7 @@
     const edgeUpdated = {
       destChainID: '0x02',
       destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
-      root: '0x222211111111111111111111111111111111111111111111111111111111111',
+      root: '0x2222111111111111111111111111111111111111111111111111111111111111',
       height: 101,
     };
     await TruffleAssert.passes(addEdge(edge, accounts[0]));
@@ -141,7 +142,7 @@
      const edgeUpdated = {
       destChainID: '0x01',
        destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
-       root: '0x222211111111111111111111111111111111111111111111111111111111111',
+       root: '0x22221111111111111111111111111111111111111111111111111111111111111',
        height: 101,
      };
      await TruffleAssert.passes(addEdge(edge, accounts[0]));
@@ -168,7 +169,7 @@
     const edgeUpdated = {
       destChainID: '0x01',
       destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
-      root: '0x222211111111111111111111111111111111111111111111111111111111111',
+      root: '0x2222111111111111111111111111111111111111111111111111111111111111',
       height: 101,
     };
 
@@ -191,7 +192,7 @@
     const edgeUpdated = {
         destChainID: '0x01',
         destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
-        root: '0x222211111111111111111111111111111111111111111111111111111111111',
+        root: '0x2222111111111111111111111111111111111111111111111111111111111111',
         height: 101,
       };
     await addEdge(edge, accounts[0]);
