@@ -9232,6 +9232,14 @@ wasmcurves@0.0.5:
     big-integer "^1.6.42"
     blakejs "^1.1.0"
 
+wasmsnark@^0.0.10:
+  version "0.0.10"
+  resolved "https://registry.yarnpkg.com/wasmsnark/-/wasmsnark-0.0.10.tgz#5d8e04a380c00390a484a44dd9ecd254ae929669"
+  integrity sha512-ARrJWhxvnBJXMERwBcnEnO5ByLwYhJZr1xwac9dl61SN7+1eOmG7Od3SJL1GzU6zaf86b9wza20y1d5ThCecLw==
+  dependencies:
+    big-integer "^1.6.42"
+    blakejs "^1.1.0"
+
 watchpack-chokidar2@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/watchpack-chokidar2/-/watchpack-chokidar2-2.0.1.tgz#38500072ee6ece66f3769936950ea1771be1c957"
