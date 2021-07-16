@@ -19,7 +19,7 @@ import "../interfaces/IExecutor.sol";
 contract AnchorHandler is IUpdateExecute, IExecutor, HandlerHelpers {
     struct UpdateRecord {
         address _tokenAddress;
-        uint8   _destinationChainID;
+        uint8   _sourceChainID;
         bytes32 _resourceID;
         bytes32 _merkleRoot;
     }
@@ -61,7 +61,7 @@ contract AnchorHandler is IUpdateExecute, IExecutor, HandlerHelpers {
         @param destId ID of chain deposit will be bridged to.
         @return UpdateRecord which consists of:
         - _tokenAddress Address used when {deposit} was executed.
-        - _destinationChainID ChainID deposited tokens are intended to end up on.
+        - _sourceChainID ChainID deposited tokens are intended to end up on.
         - _resourceID ResourceID used when {deposit} was executed.
         - _destinationRecipientAddress Address tokens are intended to be deposited to on desitnation chain.
         - _depositer Address that initially called {deposit} in the Bridge contract.
@@ -73,7 +73,7 @@ contract AnchorHandler is IUpdateExecute, IExecutor, HandlerHelpers {
 
     /**
         @notice An update is initiatied by making a deposit in the destination Anchor contract.
-        @param destinationChainID Chain ID of chain tokens are expected to be bridged to.
+        @param sourceChainID Chain ID of chain tokens are expected to be bridged to.
         @param updateNonce This value is generated as an ID by the Bridge contract.
         @param updater The updater address.
         @param data Consists of: {height} and {merkleRoot}
@@ -85,7 +85,7 @@ contract AnchorHandler is IUpdateExecute, IExecutor, HandlerHelpers {
      */
     function update(
         bytes32 resourceID,
-        uint8   destinationChainID,
+        uint8   sourceChainID,
         uint64  updateNonce,
         address updater,
         bytes   calldata data
@@ -100,25 +100,25 @@ contract AnchorHandler is IUpdateExecute, IExecutor, HandlerHelpers {
 
         LinkableAnchor anchor = LinkableAnchor(anchorAddress);
 
-        if (anchor.hasEdge(destinationChainID)) {
+        if (anchor.hasEdge(sourceChainID)) {
             anchor.updateEdge(
-                destinationChainID,
+                sourceChainID,
                 resourceID,
                 merkleRoot,
                 height
             );
         } else {
             anchor.addEdge(
-                destinationChainID,
+                sourceChainID,
                 resourceID,
                 merkleRoot,
                 height
             );
         }
 
-        _updateRecords[destinationChainID][updateNonce] = UpdateRecord(
+        _updateRecords[sourceChainID][updateNonce] = UpdateRecord(
             anchorAddress,
-            destinationChainID,
+            sourceChainID,
             resourceID,
             merkleRoot
         );

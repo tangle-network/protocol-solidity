@@ -142,7 +142,7 @@
      const edgeUpdated = {
       destChainID: '0x01',
        destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
-       root: '0x22221111111111111111111111111111111111111111111111111111111111111',
+       root: '0x2222111111111111111111111111111111111111111111111111111111111111',
        height: 101,
      };
      await TruffleAssert.passes(addEdge(edge, accounts[0]));
@@ -155,8 +155,7 @@
      
      const rootsUpdated = await LinkableAnchorInstance.getLatestNeighborRoots();
      assert(rootsUpdated.length == 100); 
-     //really strange error where rootsUPdated[0] has an extra 0 appended to its end so it is not equal
-     assert(rootsUpdated[0] == edgeUpdated.root, rootsUpdated[0] + "vs.  " + edgeUpdated.root);
+     assert(rootsUpdated[0] == edgeUpdated.root);
    });
    
    it('LinkableAnchor edges should emit correct EdgeUpdate event', async () => {
@@ -175,7 +174,6 @@
 
     await addEdge(edge, accounts[0]);
     const result = await updateEdge(edgeUpdated, accounts[0]);
-    //same error where MerkleRoot has an extra 0 appended at the end
     TruffleAssert.eventEmitted(result, 'EdgeUpdate', (ev) => {
       return ev.chainID == parseInt(edgeUpdated.destChainID, 16) && ev.destResourceID == 
       edgeUpdated.destResourceID && ev.height == edgeUpdated.height && ev.merkleRoot == edgeUpdated.root
