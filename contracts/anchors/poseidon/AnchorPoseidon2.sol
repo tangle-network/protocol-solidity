@@ -51,8 +51,8 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
   // bridge events
   event EdgeAddition(uint8 chainID, bytes32 destResourceID, uint256 height, bytes32 merkleRoot);
   event EdgeUpdate(uint8 chainID, bytes32 destResourceID, uint256 height, bytes32 merkleRoot);
-  event RootHistoryRecorded(uint timestamp, bytes32[] roots);
-  event RootHistoryUpdate(uint timestamp, bytes32[] roots);
+  event RootHistoryRecorded(uint timestamp, bytes32[1] roots);
+  event RootHistoryUpdate(uint timestamp, bytes32[1] roots);
 
   /**
     @dev The constructor
@@ -76,7 +76,7 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
     pruningLength = 100;
     latestHistoryIndex = 0;
     // TODO: Parameterize max rooots (length of array should be max roots)
-    rootHistory[latestHistoryIndex] = new bytes32[](2);
+    rootHistory[latestHistoryIndex] = new bytes32[](1);
   }
 
   /**
@@ -118,7 +118,7 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
     require(isKnownRoot(_root), "Cannot find your merkle root"); // Make sure to use a recent one
     address rec = address(_recipient);
     address rel = address(_relayer);
-    bytes32[2] memory neighbors = getLatestNeighborRoots();
+    bytes32[1] memory neighbors = getLatestNeighborRoots();
     require(
       verifier.verifyProof(
         _proof,
@@ -129,8 +129,8 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
           _fee,
           _refund,
           uint256(chainID),
-          uint256(neighbors[0]),
-          uint256(neighbors[1])]
+          uint256(_root),
+          uint256(neighbors[0])]
       ),
       "Invalid withdraw proof"
     );
@@ -163,14 +163,14 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
     }
   }
   /** @dev */
-  function getLatestNeighborRoots() public view returns (bytes32[2] memory roots) {
-    for (uint256 i = 0; i < 2; i++) {
+  function getLatestNeighborRoots() public view returns (bytes32[1] memory roots) {
+    for (uint256 i = 0; i < 1; i++) {
       roots[i] = edgeList[i].root;
     }
   }
 
-  function hasEdge(uint8 chainID) public view returns (bool) {
-    return edgeExistsForChain[chainID];
+  function hasEdge(uint8 _chainID) public view returns (bool) {
+    return edgeExistsForChain[_chainID];
   }
 
   modifier onlyAdmin()  {
