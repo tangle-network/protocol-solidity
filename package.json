@@ -7,10 +7,12 @@
   "license": "LGPL-3.0",
   "scripts": {
     "compile": "npx hardhat compile",
+    "build": "yarn build:circuits && yarn build:hashers",
+    "build:circuits": "./scripts/compile_circom.sh",
     "build:hashers": "ts-node scripts/build_hashers.ts",
-    "test:all": "yarn compile && yarn build:hashers && npx hardhat test",
-    "test": "npx hardhat test",
-    "circuit:compile": "./scripts/compile_circom.sh"
+    "setup": "./scripts/generate_trusted_setup_withdraw.sh",
+    "test:all": "yarn compile && yarn build && yarn test",
+    "test": "npx hardhat test"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
