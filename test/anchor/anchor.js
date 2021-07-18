@@ -1,19 +1,19 @@
 /**
  * Copyright 2021 Webb Technologies
- * SPDX-License-Identifier: LGPL-3.0-only
+ * SPDX-License-Identifier: LGPL-3.0
  */
- const TruffleAssert = require('truffle-assertions');
- const Ethers = require('ethers');
- 
- const Helpers = require('../helpers');
- const assert = require('assert');
+const TruffleAssert = require('truffle-assertions');
+const Ethers = require('ethers');
+
+const Helpers = require('../helpers');
+const assert = require('assert');
 
 const fs = require('fs')
 const path = require('path');
 const { toBN, randomHex } = require('web3-utils')
 const LinkableAnchorContract = artifacts.require('./LinkableERC20AnchorPoseidon2.sol');
 const PoseidonBridgeVerifier = artifacts.require('./PoseidonBridgeVerifier.sol');
-const Hasher = artifacts.require("HasherMock");
+const Poseidon = artifacts.require('PoseidonT3');
 const Token = artifacts.require("ERC20Mock");
 
 const { NATIVE_AMOUNT, MERKLE_TREE_HEIGHT } = process.env
@@ -40,7 +40,6 @@ const {
 const primeForField = beBuff2int((
   new BN('21888242871839275222246405745257275088548364400416034343698204186575808495617')
 ).toBuffer());
-console.log(primeForField);
 
 function bigNumberToPaddedBytes(num, digits =  32) {
   var n = num.toString(16).replace(/^0x/, '');
@@ -112,14 +111,16 @@ contract('AnchorPoseidon2', (accounts) => {
 
   let createWitness;
 
-  before(async () => {
-    hasher = await Hasher.new();
+  beforeEach(async () => {
+    tree = new MerkleTree(levels, null, prefix)
+    hasherInstance = await Poseidon.new();
     verifier = await PoseidonBridgeVerifier.new();
     token = await Token.new();
-    await token.mint(sender, tokenDenomination);
+    await token.mint(sender, new BN('10000000000000000000'));
+    const balanceOfSender = await token.balanceOf.call(sender);
     anchor = await LinkableAnchorContract.new(
       verifier.address,
-      hasher.address,
+      hasherInstance.address,
       tokenDenomination,
       merkleTreeHeight,
       maxRoots,
@@ -173,27 +174,27 @@ contract('AnchorPoseidon2', (accounts) => {
   })
 
   describe('#deposit', () => {
-    it('should emit event', async () => {
-      let commitment = toFixedHex(42)
-      let { logs } = await anchor.deposit(commitment, { value, from: sender })
+    it.only('should emit event', async () => {
+      let commitment = toFixedHex(42);
+      await token.approve(anchor.address, tokenDenomination)
+      let { logs } = await anchor.deposit(commitment, { from: sender })
 
       assert.strictEqual(logs[0].event, 'Deposit')
       assert.strictEqual(logs[0].args.commitment, commitment)
-      assert.strictEqual(logs[0].args.leafIndex, BN('0'));
+      assert.strictEqual(logs[0].args.leafIndex.toString(), '0');
 
-      commitment = toFixedHex(12)
-      ;({ logs } = await anchor.deposit(commitment, { value, from: accounts[2] }))
-
-      assert.strictEqual(logs[0].event, 'Deposit')
-      assert.strictEqual(logs[0].args.commitment, commitment)
-      assert.strictEqual(logs[0].args.leafIndex, BN('1'));
+      const anchorBalance = await token.balanceOf.call(anchor.address);
+      assert.strictEqual(anchorBalance.toString(), toBN(tokenDenomination).toString());
     })
 
-    it('should throw if there is a such commitment', async () => {
+    it.only('should throw if there is a such commitment', async () => {
       const commitment = toFixedHex(42)
-      await anchor.deposit(commitment, { value, from: sender }).should.be.fulfilled
-      const error = await anchor.deposit(commitment, { value, from: sender }).should.be.rejected
-      assert.strictEqual(error.reason, 'The commitment has been submitted')
+      await token.approve(anchor.address, tokenDenomination)
+      await TruffleAssert.passes(anchor.deposit(commitment, { from: sender }));
+      await TruffleAssert.reverts(
+        anchor.deposit(commitment, { from: sender }),
+        'The commitment has been submitted'
+      );
     })
   })
 
@@ -253,7 +254,7 @@ contract('AnchorPoseidon2', (accounts) => {
   })
 
   describe('#withdraw', () => {
-    it('should work', async () => {
+    it.only('should work', async () => {
       const deposit = generateDeposit()
       const user = accounts[4]
       await tree.insert(deposit.commitment)
@@ -263,7 +264,8 @@ contract('AnchorPoseidon2', (accounts) => {
       // Uncomment to measure gas usage
       // let gas = await anchor.deposit.estimateGas(toBN(deposit.commitment.toString()), { value, from: user, gasPrice: '0' })
       // console.log('deposit gas:', gas)
-      await anchor.deposit(toFixedHex(deposit.commitment), { value, from: user, gasPrice: '0' })
+      await token.approve(anchor.address, tokenDenomination)
+      await anchor.deposit(toFixedHex(deposit.commitment), { from: user, gasPrice: '0' })
 
       const balanceUserAfter = await web3.eth.getBalance(user)
       assert.strictEqual(balanceUserAfter, BN(toBN(balanceUserBefore).sub(toBN(value))));
@@ -328,10 +330,11 @@ contract('AnchorPoseidon2', (accounts) => {
       assert(isSpent);
     })
 
-    it('should prevent double spend', async () => {
+    it.only('should prevent double spend', async () => {
       const deposit = generateDeposit();
       await tree.insert(deposit.commitment);
-      await anchor.deposit(toFixedHex(deposit.commitment), { value, from: sender });
+      await token.approve(anchor.address, tokenDenomination)
+      await anchor.deposit(toFixedHex(deposit.commitment), { from: sender });
 
       const { root, path_elements, path_index } = await tree.path(0);
 
@@ -364,10 +367,11 @@ contract('AnchorPoseidon2', (accounts) => {
       );
     })
 
-    it('should prevent double spend with overflow', async () => {
+    it.only('should prevent double spend with overflow', async () => {
       const deposit = generateDeposit()
       await tree.insert(deposit.commitment)
-      await anchor.deposit(toFixedHex(deposit.commitment), { value, from: sender })
+      await token.approve(anchor.address, tokenDenomination)
+      await anchor.deposit(toFixedHex(deposit.commitment), { from: sender })
 
       const { root, path_elements, path_index } = await tree.path(0)
 
@@ -403,10 +407,11 @@ contract('AnchorPoseidon2', (accounts) => {
       );
     })
 
-    it('fee should be less or equal transfer value', async () => {
+    it.only('fee should be less or equal transfer value', async () => {
       const deposit = generateDeposit()
       await tree.insert(deposit.commitment)
-      await anchor.deposit(toFixedHex(deposit.commitment), { value, from: sender })
+      await token.approve(anchor.address, tokenDenomination)
+      await anchor.deposit(toFixedHex(deposit.commitment), { from: sender })
 
       const { root, path_elements, path_index } = await tree.path(0)
       const largeFee = new BN(`${value}`).add(bigInt(1))
@@ -439,10 +444,11 @@ contract('AnchorPoseidon2', (accounts) => {
       );
     })
 
-    it('should throw for corrupted merkle tree root', async () => {
+    it.only('should throw for corrupted merkle tree root', async () => {
       const deposit = generateDeposit()
       await tree.insert(deposit.commitment)
-      await anchor.deposit(toFixedHex(deposit.commitment), { value, from: sender })
+      await token.approve(anchor.address, tokenDenomination)
+      await anchor.deposit(toFixedHex(deposit.commitment), { from: sender })
 
       const { root, path_elements, path_index } = await tree.path(0)
 
@@ -476,10 +482,11 @@ contract('AnchorPoseidon2', (accounts) => {
       );
     })
 
-    it('should reject with tampered public inputs', async () => {
+    it.only('should reject with tampered public inputs', async () => {
       const deposit = generateDeposit()
       await tree.insert(deposit.commitment)
-      await anchor.deposit(toFixedHex(deposit.commitment), { value, from: sender })
+      await token.approve(anchor.address, tokenDenomination)
+      await anchor.deposit(toFixedHex(deposit.commitment), { from: sender })
 
       let { root, path_elements, path_index } = await tree.path(0)
 
@@ -558,10 +565,11 @@ contract('AnchorPoseidon2', (accounts) => {
       await TruffleAssert.passes(anchor.withdraw(originalProof, ...args, { from: relayer }));
     })
 
-    it('should reject with non zero refund', async () => {
+    it.only('should reject with non zero refund', async () => {
       const deposit = generateDeposit()
       await tree.insert(deposit.commitment)
-      await anchor.deposit(toFixedHex(deposit.commitment), { value, from: sender })
+      await token.approve(anchor.address, tokenDenomination)
+      await anchor.deposit(toFixedHex(deposit.commitment), { from: sender })
 
       const { root, path_elements, path_index } = await tree.path(0)
 
@@ -597,7 +605,7 @@ contract('AnchorPoseidon2', (accounts) => {
   })
 
   describe('#isSpent', () => {
-    it('should work', async () => {
+    it.only('should work', async () => {
       const deposit1 = generateDeposit()
       const deposit2 = generateDeposit()
       await tree.insert(deposit1.commitment)
