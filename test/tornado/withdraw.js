@@ -1,34 +1,22 @@
-/**
- * Copyright 2021 Webb Technologies
- * SPDX-License-Identifier: LGPL-3.0-only
- */
- const TruffleAssert = require('truffle-assertions');
- const Ethers = require('ethers');
- 
- const Helpers = require('../helpers');
- const assert = require('assert');
-
+/* global artifacts, web3, contract */
+require('chai').use(require('bn-chai')(web3.utils.BN)).use(require('chai-as-promised')).should()
 const fs = require('fs')
-const path = require('path');
-const { toBN, randomHex } = require('web3-utils')
-const LinkableAnchorContract = artifacts.require('./LinkableERC20AnchorPoseidon2.sol');
-const PoseidonBridgeVerifier = artifacts.require('./PoseidonBridgeVerifier.sol');
-const Hasher = artifacts.require("HasherMock");
-const Token = artifacts.require("ERC20Mock");
 
+const { toBN, randomHex } = require('web3-utils')
+
+const Anchor = artifacts.require('./NativeAnchor.sol')
 const { NATIVE_AMOUNT, MERKLE_TREE_HEIGHT } = process.env
+
 const wasmsnark = require('wasmsnark');
 const buildBn128 = wasmsnark.buildBn128;
 const wasmsnarkUtils = require('wasmsnark/src/utils')
-
 const stringifyBigInts = require('wasmsnark/tools/stringifybigint').stringifyBigInts
 const snarkjs = require('snarkjs')
-const bigInt = require('big-integer');
-const BN = require('bn.js');
+const bigInt = BigInt;
 const crypto = require('crypto')
 const circomlib = require('circomlib')
-const MerkleTree = require('../../lib/bridgePoseidon-withdraw/MerkleTree')
-
+const MerkleTree = require('../../lib/tornado-withdraw/MerkleTree')
+const BN = require('bn.js');
 const utils = require("ffjavascript").utils;
 const {
   beBuff2int,
@@ -37,40 +25,21 @@ const {
   leInt2Buff,
 } = utils;
 
-const primeForField = beBuff2int((
-  new BN('21888242871839275222246405745257275088548364400416034343698204186575808495617')
-).toBuffer());
-console.log(primeForField);
-
-function bigNumberToPaddedBytes(num, digits =  32) {
-  var n = num.toString(16).replace(/^0x/, '');
-  while (n.length < (digits * 2)) {
-      n = "0" + n;
-  }
-  return "0x" + n;
-}
-
 const rbigint = (nbytes) => leBuff2int(crypto.randomBytes(nbytes))
 const pedersenHash = (data) => circomlib.babyJub.unpackPoint(circomlib.pedersenHash.hash(data))[0]
 const toFixedHex = (number, length = 32) =>
   '0x' +
-  BigInt(`${number}`)
+  bigInt(number)
     .toString(16)
     .padStart(length * 2, '0')
 const getRandomRecipient = () => rbigint(20)
 
-function generateDeposit(targetChainID = 0) {
+function generateDeposit() {
   let deposit = {
-    chainID: BigInt(targetChainID),
     secret: rbigint(31),
     nullifier: rbigint(31),
   }
-
-  const preimage = Buffer.concat([
-    leInt2Buff(deposit.chainID, 1),
-    leInt2Buff(deposit.nullifier, 31),
-    leInt2Buff(deposit.secret, 31),
-  ]);
+  const preimage = Buffer.concat([leInt2Buff(deposit.nullifier, 31), leInt2Buff(deposit.secret, 31)])
   deposit.commitment = pedersenHash(preimage)
   return deposit
 }
@@ -85,91 +54,39 @@ function BNArrayToStringArray(array) {
 }
 
 function snarkVerify(proof) {
-  const verification_key = require('../build/circuits/withdraw_verification_key.json')
+  const verification_key = unstringifyBigInts2(require('../build/circuits/withdraw_verification_key.json'))
   return snarkjs['groth'].isValid(verification_key, proof, proof.publicSignals)
 }
 
-contract('AnchorPoseidon2', (accounts) => {
+contract('NativeAnchor', (accounts) => {
   let anchor
   const sender = accounts[0]
   const operator = accounts[0]
   const levels = MERKLE_TREE_HEIGHT || 16
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
-  let snapshotId
   let prefix = 'test'
   let tree
   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString())
   const refund = BigInt((new BN('0')).toString())
   const recipient = getRandomRecipient()
   const relayer = accounts[1]
+  let groth16
   let circuit
   let proving_key
-  let bn128;
-  let verifier;
-  let tokenDenomination = '1000000000000000000' // 1 ether
-  const merkleTreeHeight = 31;
-  const maxRoots = 1;
-
-  let createWitness;
 
   before(async () => {
-    hasher = await Hasher.new();
-    verifier = await PoseidonBridgeVerifier.new();
-    token = await Token.new();
-    await token.mint(sender, tokenDenomination);
-    anchor = await LinkableAnchorContract.new(
-      verifier.address,
-      hasher.address,
-      tokenDenomination,
-      merkleTreeHeight,
-      maxRoots,
-      token.address,
-    );
-
-    setHandler = (handler, _sender) => LinkableAnchorInstance.setHandler(handler, {
-      from: _sender
-    });
-
-    setBridge = (bridge, _sender) => LinkableAnchorInstance.setBridge(bridge, {
-      from: _sender
-    });
-
-    addEdge = (edge, _sender) => LinkableAnchorInstance.addEdge(
-      edge.destChainID,
-      edge.destResourceID,
-      edge.root,
-      edge.height,
-      { from: _sender }
-    )
-
-    updateEdge = (edge, _sender) => LinkableAnchorInstance.updateEdge(
-      edge.destChainID,
-      edge.destResourceID,
-      edge.root,
-      edge.height,
-      { from: _sender }
-    )
-
-    createWitness = async (data) => {
-      const wtns = {type: "mem"};
-      await snarkjs.wtns.calculate(data, path.join(
-        "artifacts/circuits",
-        "bridge",
-        "poseidon_bridge_2.wasm"
-      ), wtns);
-      return wtns;
-    }
-
-    bn128 = await buildBn128();
     tree = new MerkleTree(levels, null, prefix)
-    zkey_final = fs.readFileSync('circuit_final.zkey').buffer;
+    anchor = await Anchor.deployed()
+    groth16;
+    circuit = require('../build/circuits/withdraw.json')
+    proving_key = fs.readFileSync('build/circuits/withdraw_proving_key.bin').buffer
   })
 
   describe('#constructor', () => {
-    it.only('should initialize', async () => {
+    it('should initialize', async () => {
       const etherDenomination = await anchor.denomination()
-      assert.strictEqual(etherDenomination.toString(), toBN(value).toString());
-    });
+      etherDenomination.should.be.eq.BN(toBN(value))
+    })
   })
 
   describe('#deposit', () => {
@@ -177,78 +94,69 @@ contract('AnchorPoseidon2', (accounts) => {
       let commitment = toFixedHex(42)
       let { logs } = await anchor.deposit(commitment, { value, from: sender })
 
-      assert.strictEqual(logs[0].event, 'Deposit')
-      assert.strictEqual(logs[0].args.commitment, commitment)
-      assert.strictEqual(logs[0].args.leafIndex, BN('0'));
+      logs[0].event.should.be.equal('Deposit')
+      logs[0].args.commitment.should.be.equal(commitment)
+      logs[0].args.leafIndex.should.be.eq.BN(0)
 
       commitment = toFixedHex(12)
       ;({ logs } = await anchor.deposit(commitment, { value, from: accounts[2] }))
 
-      assert.strictEqual(logs[0].event, 'Deposit')
-      assert.strictEqual(logs[0].args.commitment, commitment)
-      assert.strictEqual(logs[0].args.leafIndex, BN('1'));
+      logs[0].event.should.be.equal('Deposit')
+      logs[0].args.commitment.should.be.equal(commitment)
+      logs[0].args.leafIndex.should.be.eq.BN(1)
     })
 
     it('should throw if there is a such commitment', async () => {
       const commitment = toFixedHex(42)
       await anchor.deposit(commitment, { value, from: sender }).should.be.fulfilled
       const error = await anchor.deposit(commitment, { value, from: sender }).should.be.rejected
-      assert.strictEqual(error.reason, 'The commitment has been submitted')
+      error.reason.should.be.equal('The commitment has been submitted')
     })
   })
 
   // Use Node version >=12
   describe('snark proof verification on js side', () => {
-    it.only('should detect tampering', async () => {
-      const chainID = 0;
-      const roots = [...Array(2).keys()].map(_ => BigInt('0'), 31);
-
-      const deposit = generateDeposit(chainID);
+    it('should detect tampering', async () => {
+      const deposit = generateDeposit()
       await tree.insert(deposit.commitment)
       const { root, path_elements, path_index } = await tree.path(0)
-      roots[0] = BigInt(root);
 
-      const wtns = await createWitness({
-        "nullifierHash": pedersenHash(leInt2Buff(deposit.nullifier, 31)),
-        "recipient": recipient,
-        "relayer": operator,
-        "fee": fee,
-        "refund": refund,
-        "chainID": chainID,
-        "roots": roots,
-        "nullifier": deposit.nullifier,
-        "secret": deposit.secret,
-        "pathElements": path_elements,
-        "pathIndices": path_index,
-      });
+      const input = stringifyBigInts({
+        root,
+        nullifierHash: pedersenHash(leInt2Buff(deposit.nullifier, 31)),
+        nullifier: deposit.nullifier,
+        relayer: operator,
+        recipient,
+        fee,
+        refund,
+        secret: deposit.secret,
+        pathElements: path_elements,
+        pathIndices: path_index,
+      })
 
-      let res = await snarkjs.groth16.prove('circuit_final.zkey', wtns);
-      proof = res.proof;
-      publicSignals = res.publicSignals;
-      let tempProof = proof;
-      let tempSignals = publicSignals;
-      const vKey = await snarkjs.zKey.exportVerificationKey('circuit_final.zkey');
-
-      res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
-      assert.strictEqual(res, true);
+      let proofData = await wasmsnarkUtils.genWitnessAndProve(groth16, input, circuit, proving_key)
+      const originalProof = JSON.parse(JSON.stringify(proofData))
+      let result = snarkVerify(proofData)
+      result.should.be.equal(true)
 
       // nullifier
-      publicSignals[0] = '133792158246920651341275668520530514036799294649489851421007411546007850802'
-      res = await snarkjs.plonk.verify(vKey, publicSignals, proof);
-      assert.strictEqual(res, false)
-      publicSignals = tempSignals;
+      proofData.publicSignals[1] =
+        '133792158246920651341275668520530514036799294649489851421007411546007850802'
+      result = snarkVerify(proofData)
+      result.should.be.equal(false)
+      proofData = originalProof
 
       // try to cheat with recipient
-      publicSignals[1] = '133738360804642228759657445999390850076318544422'
-      res = await snarkjs.plonk.verify(vKey, publicSignals, proof);
-      assert.strictEqual(res, false)
-      publicSignals = tempSignals;
+      proofData.publicSignals[2] = '133738360804642228759657445999390850076318544422'
+      result = snarkVerify(proofData)
+      result.should.be.equal(false)
+      proofData = originalProof
 
       // fee
-      publicSignals[2] = '1337100000000000000000'
-      res = await snarkjs.plonk.verify(vKey, publicSignals, proof);
-      assert.strictEqual(res, false)
-      publicSignals = tempSignals;
+      proofData.publicSignals[3] = '1337100000000000000000'
+      result = snarkVerify(proofData)
+      result.should.be.equal(false)
+      proofData = originalProof
     })
   })
 
@@ -266,7 +174,7 @@ contract('AnchorPoseidon2', (accounts) => {
       await anchor.deposit(toFixedHex(deposit.commitment), { value, from: user, gasPrice: '0' })
 
       const balanceUserAfter = await web3.eth.getBalance(user)
-      assert.strictEqual(balanceUserAfter, BN(toBN(balanceUserBefore).sub(toBN(value))));
+      balanceUserAfter.should.be.eq.BN(toBN(balanceUserBefore).sub(toBN(value)))
 
       const { root, path_elements, path_index } = await tree.path(0)
 
@@ -274,7 +182,7 @@ contract('AnchorPoseidon2', (accounts) => {
       const input = stringifyBigInts({
         // public
         root,
-        nullifierHash: pedersenHash(bigNumberToPaddedBytes(deposit.nullifier, 31)),
+        nullifierHash: pedersenHash(leInt2Buff(deposit.nullifier, 31)),
         relayer: operator,
         recipient,
         fee,
@@ -287,7 +195,7 @@ contract('AnchorPoseidon2', (accounts) => {
         pathIndices: path_index,
       })
 
-      const proofData = await wasmsnarkUtils.groth16GenProof(input, circuit, proving_key)
+      const proofData = await wasmsnarkUtils.genWitnessAndProve(groth16, input, circuit, proving_key)
       const { proof } = wasmsnarkUtils.toSolidityInput(proofData)
 
       const balanceAnchorBefore = await web3.eth.getBalance(anchor.address)
@@ -295,7 +203,7 @@ contract('AnchorPoseidon2', (accounts) => {
       const balanceOperatorBefore = await web3.eth.getBalance(operator)
       const balanceRecieverBefore = await web3.eth.getBalance(toFixedHex(recipient, 20))
       let isSpent = await anchor.isSpent(toFixedHex(input.nullifierHash))
-      assert.strictEqual(isSpent, false)
+      isSpent.should.be.equal(false)
 
       // Uncomment to measure gas usage
       // gas = await anchor.withdraw.estimateGas(proof, publicSignals, { from: relayer, gasPrice: '0' })
@@ -315,29 +223,29 @@ contract('AnchorPoseidon2', (accounts) => {
       const balanceOperatorAfter = await web3.eth.getBalance(operator)
       const balanceRecieverAfter = await web3.eth.getBalance(toFixedHex(recipient, 20))
       const feeBN = toBN(fee.toString())
-      assert.strictEqual(balanceAnchorAfter, toBN(balanceAnchorBefore).sub(toBN(value)))
-      assert.strictEqual(balanceRelayerAfter, toBN(balanceRelayerBefore))
-      assert.strictEqual(balanceOperatorAfter, toBN(balanceOperatorBefore).add(feeBN))
-      assert.strictEqual(balanceRecieverAfter, toBN(balanceRecieverBefore).add(toBN(value)).sub(feeBN))
+      balanceAnchorAfter.should.be.eq.BN(toBN(balanceAnchorBefore).sub(toBN(value)))
+      balanceRelayerAfter.should.be.eq.BN(toBN(balanceRelayerBefore))
+      balanceOperatorAfter.should.be.eq.BN(toBN(balanceOperatorBefore).add(feeBN))
+      balanceRecieverAfter.should.be.eq.BN(toBN(balanceRecieverBefore).add(toBN(value)).sub(feeBN))
 
-      assert.strictEqual(logs[0].event, 'Withdrawal')
-      assert.strictEqual(logs[0].args.nullifierHash, toFixedHex(input.nullifierHash))
-      assert.strictEqual(logs[0].args.relayer, BN(operator));
-      assert.strictEqual(logs[0].args.fee, BN(feeBN));
+      logs[0].event.should.be.equal('Withdrawal')
+      logs[0].args.nullifierHash.should.be.equal(toFixedHex(input.nullifierHash))
+      logs[0].args.relayer.should.be.eq.BN(operator)
+      logs[0].args.fee.should.be.eq.BN(feeBN)
       isSpent = await anchor.isSpent(toFixedHex(input.nullifierHash))
-      assert(isSpent);
+      isSpent.should.be.equal(true)
     })
 
     it('should prevent double spend', async () => {
-      const deposit = generateDeposit();
-      await tree.insert(deposit.commitment);
-      await anchor.deposit(toFixedHex(deposit.commitment), { value, from: sender });
+      const deposit = generateDeposit()
+      await tree.insert(deposit.commitment)
+      await anchor.deposit(toFixedHex(deposit.commitment), { value, from: sender })
 
-      const { root, path_elements, path_index } = await tree.path(0);
+      const { root, path_elements, path_index } = await tree.path(0)
 
       const input = stringifyBigInts({
         root,
-        nullifierHash: pedersenHash(bigNumberToPaddedBytes(deposit.nullifier, 31)),
+        nullifierHash: pedersenHash(leInt2Buff(deposit.nullifier, 31)),
         nullifier: deposit.nullifier,
         relayer: operator,
         recipient,
@@ -346,9 +254,9 @@ contract('AnchorPoseidon2', (accounts) => {
         secret: deposit.secret,
         pathElements: path_elements,
         pathIndices: path_index,
-      });
-
-      const { proof } = wasmsnarkUtils.toSolidityInput(proofData);
+      })
+      const proofData = await wasmsnarkUtils.genWitnessAndProve(groth16, input, circuit, proving_key)
+      const { proof } = wasmsnarkUtils.toSolidityInput(proofData)
       const args = [
         toFixedHex(input.root),
         toFixedHex(input.nullifierHash),
@@ -356,12 +264,10 @@ contract('AnchorPoseidon2', (accounts) => {
         toFixedHex(input.relayer, 20),
         toFixedHex(input.fee),
         toFixedHex(input.refund),
-      ];
-      await TruffleAssert.passes(anchor.withdraw(proof, ...args, { from: relayer }));
-      await TruffleAssert.reverts(
-        anchor.withdraw(proof, ...args, { from: relayer }),
-        "The note has been already spent"
-      );
+      ]
+      await anchor.withdraw(proof, ...args, { from: relayer }).should.be.fulfilled
+      const error = await anchor.withdraw(proof, ...args, { from: relayer }).should.be.rejected
+      error.reason.should.be.equal('The note has been already spent')
     })
 
     it('should prevent double spend with overflow', async () => {
@@ -373,7 +279,7 @@ contract('AnchorPoseidon2', (accounts) => {
 
       const input = stringifyBigInts({
         root,
-        nullifierHash: pedersenHash(bigNumberToPaddedBytes(deposit.nullifier, 31)),
+        nullifierHash: pedersenHash(leInt2Buff(deposit.nullifier, 31)),
         nullifier: deposit.nullifier,
         relayer: operator,
         recipient,
@@ -383,7 +289,7 @@ contract('AnchorPoseidon2', (accounts) => {
         pathElements: path_elements,
         pathIndices: path_index,
       })
-      const proofData = await wasmsnarkUtils.groth16GenProof(input, circuit, proving_key)
+      const proofData = await wasmsnarkUtils.genWitnessAndProve(groth16, input, circuit, proving_key)
       const { proof } = wasmsnarkUtils.toSolidityInput(proofData)
       const args = [
         toFixedHex(input.root),
@@ -396,11 +302,9 @@ contract('AnchorPoseidon2', (accounts) => {
         toFixedHex(input.relayer, 20),
         toFixedHex(input.fee),
         toFixedHex(input.refund),
-      ];
-      await TruffleAssert.reverts(
-        anchor.withdraw(proof, ...args, { from: relayer }),
-        "verifier-gte-snark-scalar-field"
-      );
+      ]
+      const error = await anchor.withdraw(proof, ...args, { from: relayer }).should.be.rejected
+      error.reason.should.be.equal('verifier-gte-snark-scalar-field')
     })
 
     it('fee should be less or equal transfer value', async () => {
@@ -409,10 +313,10 @@ contract('AnchorPoseidon2', (accounts) => {
       await anchor.deposit(toFixedHex(deposit.commitment), { value, from: sender })
 
       const { root, path_elements, path_index } = await tree.path(0)
-      const largeFee = new BN(`${value}`).add(bigInt(1))
+      const largeFee = bigInt(value).add(bigInt(1))
       const input = stringifyBigInts({
         root,
-        nullifierHash: pedersenHash(bigNumberToPaddedBytes(deposit.nullifier, 31)),
+        nullifierHash: pedersenHash(leInt2Buff(deposit.nullifier, 31)),
         nullifier: deposit.nullifier,
         relayer: operator,
         recipient,
@@ -423,7 +327,7 @@ contract('AnchorPoseidon2', (accounts) => {
         pathIndices: path_index,
       })
 
-      const proofData = await wasmsnarkUtils.groth16GenProof(input, circuit, proving_key)
+      const proofData = await wasmsnarkUtils.genWitnessAndProve(groth16, input, circuit, proving_key)
       const { proof } = wasmsnarkUtils.toSolidityInput(proofData)
       const args = [
         toFixedHex(input.root),
@@ -433,10 +337,8 @@ contract('AnchorPoseidon2', (accounts) => {
         toFixedHex(input.fee),
         toFixedHex(input.refund),
       ]
-      await TruffleAssert.reverts(
-        anchor.withdraw(proof, ...args, { from: relayer }),
-        "Fee exceeds transfer value"
-      );
+      const error = await anchor.withdraw(proof, ...args, { from: relayer }).should.be.rejected
+      error.reason.should.be.equal('Fee exceeds transfer value')
     })
 
     it('should throw for corrupted merkle tree root', async () => {
@@ -447,7 +349,7 @@ contract('AnchorPoseidon2', (accounts) => {
       const { root, path_elements, path_index } = await tree.path(0)
 
       const input = stringifyBigInts({
-        nullifierHash: pedersenHash(bigNumberToPaddedBytes(deposit.nullifier, 31)),
+        nullifierHash: pedersenHash(leInt2Buff(deposit.nullifier, 31)),
         root,
         nullifier: deposit.nullifier,
         relayer: operator,
@@ -459,7 +361,7 @@ contract('AnchorPoseidon2', (accounts) => {
         pathIndices: path_index,
       })
 
-      const proofData = await wasmsnarkUtils.groth16GenProof(input, circuit, proving_key)
+      const proofData = await wasmsnarkUtils.genWitnessAndProve(groth16, input, circuit, proving_key)
       const { proof } = wasmsnarkUtils.toSolidityInput(proofData)
 
       const args = [
@@ -470,10 +372,8 @@ contract('AnchorPoseidon2', (accounts) => {
         toFixedHex(input.fee),
         toFixedHex(input.refund),
       ]
-      await TruffleAssert.reverts(
-        anchor.withdraw(proof, ...args, { from: relayer }),
-        "Cannot find your merkle root"
-      );
+      const error = await anchor.withdraw(proof, ...args, { from: relayer }).should.be.rejected
+      error.reason.should.be.equal('Cannot find your merkle root')
     })
 
     it('should reject with tampered public inputs', async () => {
@@ -485,7 +385,7 @@ contract('AnchorPoseidon2', (accounts) => {
 
       const input = stringifyBigInts({
         root,
-        nullifierHash: pedersenHash(bigNumberToPaddedBytes(deposit.nullifier, 31)),
+        nullifierHash: pedersenHash(leInt2Buff(deposit.nullifier, 31)),
         nullifier: deposit.nullifier,
         relayer: operator,
         recipient,
@@ -495,7 +395,7 @@ contract('AnchorPoseidon2', (accounts) => {
         pathElements: path_elements,
         pathIndices: path_index,
       })
-      const proofData = await wasmsnarkUtils.groth16GenProof(input, circuit, proving_key)
+      const proofData = await wasmsnarkUtils.genWitnessAndProve(groth16, input, circuit, proving_key)
       let { proof } = wasmsnarkUtils.toSolidityInput(proofData)
       const args = [
         toFixedHex(input.root),
@@ -516,11 +416,9 @@ contract('AnchorPoseidon2', (accounts) => {
         toFixedHex(input.relayer, 20),
         toFixedHex(input.fee),
         toFixedHex(input.refund),
-      ];
-      await TruffleAssert.reverts(
-        anchor.withdraw(proof, ...incorrectArgs, { from: relayer }),
-        "Invalid withdraw proof"
-      );
+      ]
+      let error = await anchor.withdraw(proof, ...incorrectArgs, { from: relayer }).should.be.rejected
+      error.reason.should.be.equal('Invalid withdraw proof')
 
       // fee
       incorrectArgs = [
@@ -530,11 +428,9 @@ contract('AnchorPoseidon2', (accounts) => {
         toFixedHex(input.relayer, 20),
         toFixedHex('0x000000000000000000000000000000000000000000000000015345785d8a0000'),
         toFixedHex(input.refund),
-      ];
-      await TruffleAssert.reverts(
-        anchor.withdraw(proof, ...incorrectArgs, { from: relayer }),
-        "Invalid withdraw proof"
-      );
+      ]
+      error = await anchor.withdraw(proof, ...incorrectArgs, { from: relayer }).should.be.rejected
+      error.reason.should.be.equal('Invalid withdraw proof')
 
       // nullifier
       incorrectArgs = [
@@ -544,18 +440,16 @@ contract('AnchorPoseidon2', (accounts) => {
         toFixedHex(input.relayer, 20),
         toFixedHex(input.fee),
         toFixedHex(input.refund),
-      ];
-      await TruffleAssert.reverts(
-        anchor.withdraw(proof, ...incorrectArgs, { from: relayer }),
-        "Invalid withdraw proof"
-      );
+      ]
+      error = await anchor.withdraw(proof, ...incorrectArgs, { from: relayer }).should.be.rejected
+      error.reason.should.be.equal('Invalid withdraw proof')
 
       // proof itself
       proof = '0xbeef' + proof.substr(6)
-      await TruffleAssert.passes(anchor.withdraw(proof, ...args, { from: relayer }));
+      await anchor.withdraw(proof, ...args, { from: relayer }).should.be.rejected
 
       // should work with original values
-      await TruffleAssert.passes(anchor.withdraw(originalProof, ...args, { from: relayer }));
+      await anchor.withdraw(originalProof, ...args, { from: relayer }).should.be.fulfilled
     })
 
     it('should reject with non zero refund', async () => {
@@ -566,19 +460,19 @@ contract('AnchorPoseidon2', (accounts) => {
       const { root, path_elements, path_index } = await tree.path(0)
 
       const input = stringifyBigInts({
-        nullifierHash: pedersenHash(bigNumberToPaddedBytes(deposit.nullifier, 31)),
+        nullifierHash: pedersenHash(leInt2Buff(deposit.nullifier, 31)),
         root,
         nullifier: deposit.nullifier,
         relayer: operator,
         recipient,
         fee,
-        refund: new BN(`${1}`),
+        refund: bigInt(1),
         secret: deposit.secret,
         pathElements: path_elements,
         pathIndices: path_index,
       })
 
-      const proofData = await wasmsnarkUtils.groth16GenProof(input, circuit, proving_key)
+      const proofData = await wasmsnarkUtils.genWitnessAndProve(groth16, input, circuit, proving_key)
       const { proof } = wasmsnarkUtils.toSolidityInput(proofData)
 
       const args = [
@@ -588,11 +482,9 @@ contract('AnchorPoseidon2', (accounts) => {
         toFixedHex(input.relayer, 20),
         toFixedHex(input.fee),
         toFixedHex(input.refund),
-      ];
-      await TruffleAssert.reverts(
-        anchor.withdraw(proof, ...args, { from: relayer }),
-        "Refund value is supposed to be zero for ETH instance"
-      );
+      ]
+      const error = await anchor.withdraw(proof, ...args, { from: relayer }).should.be.rejected
+      error.reason.should.be.equal('Refund value is supposed to be zero for ETH instance')
     })
   })
 
@@ -611,7 +503,7 @@ contract('AnchorPoseidon2', (accounts) => {
       const input = stringifyBigInts({
         // public
         root,
-        nullifierHash: pedersenHash(bigNumberToPaddedBytes(deposit2.nullifier, 31)),
+        nullifierHash: pedersenHash(leInt2Buff(deposit2.nullifier, 31)),
         relayer: operator,
         recipient,
         fee,
@@ -624,7 +516,7 @@ contract('AnchorPoseidon2', (accounts) => {
         pathIndices: path_index,
       })
 
-      const proofData = await wasmsnarkUtils.groth16GenProof(input, circuit, proving_key)
+      const proofData = await wasmsnarkUtils.genWitnessAndProve(groth16, input, circuit, proving_key)
       const { proof } = wasmsnarkUtils.toSolidityInput(proofData)
 
       const args = [
@@ -638,10 +530,10 @@ contract('AnchorPoseidon2', (accounts) => {
 
       await anchor.withdraw(proof, ...args, { from: relayer, gasPrice: '0' })
 
-      const nullifierHash1 = toFixedHex(pedersenHash(bigNumberToPaddedBytes(deposit1.nullifier, 31)))
-      const nullifierHash2 = toFixedHex(pedersenHash(bigNumberToPaddedBytes(deposit2.nullifier, 31)))
+      const nullifierHash1 = toFixedHex(pedersenHash(leInt2Buff(deposit1.nullifier, 31)))
+      const nullifierHash2 = toFixedHex(pedersenHash(leInt2Buff(deposit2.nullifier, 31)))
       const spentArray = await anchor.isSpentArray([nullifierHash1, nullifierHash2])
-      assert.strictEqual(spentArray, [false, true])
+      spentArray.should.be.deep.equal([false, true])
     })
   })
 
