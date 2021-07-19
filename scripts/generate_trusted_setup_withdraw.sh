@@ -12,11 +12,11 @@ snarkjs powersoftau beacon pot12_0001.ptau pot12_beacon.ptau 0102030405060708090
 snarkjs powersoftau prepare phase2 pot12_0001.ptau pot12_final.ptau -v
 
 # Start a new zkey and make a contribution (enter some random text)
-snarkjs groth16 setup ../artifacts/circuits/bridge/poseidon_bridge_2.r1cs pot12_final.ptau circuit_0000.zkey
+snarkjs groth16 setup ./artifacts/circuits/bridge/poseidon_bridge_2.r1cs pot12_final.ptau circuit_0000.zkey
 snarkjs zkey contribute circuit_0000.zkey circuit_0001.zkey --name="1st Contributor Name" -v
 
 # Verify zkey
-snarkjs zkey verify ../artifacts/circuits/bridge/poseidon_bridge_2.r1cs pot12_final.ptau circuit_0001.zkey
+snarkjs zkey verify ./artifacts/circuits/bridge/poseidon_bridge_2.r1cs pot12_final.ptau circuit_0001.zkey
 
 # Apply random beacon
 snarkjs zkey beacon circuit_0001.zkey circuit_final.zkey 0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f 10 -n="Final Beacon phase2"

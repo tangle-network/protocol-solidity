@@ -1,3 +1,3 @@
 include "../bridgeMiMC/withdraw.circom";
 
-component main = Withdraw(32, 2);
+component main = Withdraw(30, 2);
