@@ -1,11 +1,11 @@
 node_modules
 .vscode
+.DS_STORE
 
 #Hardhat files
 cache
 artifacts
 
-build
 dist
 
 *.ptau

@@ -19,8 +19,6 @@ const MerkleTree = require('../../lib/tornado-withdraw/MerkleTree')
 const BN = require('bn.js');
 const utils = require("ffjavascript").utils;
 const {
-  beBuff2int,
-  beInt2Buff,
   leBuff2int,
   leInt2Buff,
 } = utils;
