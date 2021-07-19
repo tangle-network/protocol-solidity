@@ -4,11 +4,11 @@
  */
 const TruffleAssert = require('truffle-assertions');
 const { ethers } = require('hardhat');
-
+const BN = require('bn.js');
 const Helpers = require('../helpers');
 const assert = require('assert');
 
-const MerkleTreeWithHistory = artifacts.require('MerkleTreeWithHistoryMock')
+const MerkleTreeWithHistory = artifacts.require('MerkleTreeMiMCMock')
 const MiMC = artifacts.require('MiMCSponge220');
 
 const MerkleTree = require('../../lib/tornado-withdraw/MerkleTree')
@@ -33,7 +33,7 @@ function toFixedHex(number, length = 32) {
   return str
 }
 
-contract('MerkleTreeWithHistory', (accounts) => {
+contract('MerkleTreeMiMC', (accounts) => {
   let web3;
   let merkleTreeWithHistory;
   let HasherFactory;
@@ -52,7 +52,7 @@ contract('MerkleTreeWithHistory', (accounts) => {
     // let gen = mimcGenContract.createCode('mimcsponge', 220);
     // let HasherFactory = new ethers.ContractFactory(mimcGenContract.abi, gen, accounts[0]);
     // hasherInstance = await  HasherFactory.deploy();
-    hasherInstance = await  MiMC.new();
+    hasherInstance = await MiMC.new();
     tree = new MerkleTree(levels, null, prefix)
     merkleTreeWithHistory = await MerkleTreeWithHistory.new(levels, hasherInstance.address)
   })
@@ -156,8 +156,14 @@ contract('MerkleTreeWithHistory', (accounts) => {
 
   describe('#hash', () => {
     it('should hash', async () => {
-      let result = await hasherInstance.MiMCSponge(10, 10, 0);
-      assert(result);
+      hasher = new hasherImpl()
+      let zero_values = [];
+      let current_zero_value = '21663839004416932945382355908790599225266501822907911457504978515578255421292'
+      zero_values.push(current_zero_value)
+      for (let i = 0; i < 32; i++) {
+        current_zero_value = hasher.hash(i, current_zero_value, current_zero_value)
+        zero_values.push(current_zero_value.toString())
+      }
     });
   });
 

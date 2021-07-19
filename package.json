@@ -8,7 +8,8 @@
   "scripts": {
     "compile": "npx hardhat compile",
     "build:hashers": "ts-node scripts/build_hashers.ts",
-    "test": "yarn compile && yarn build:hashers && npx hardhat test",
+    "test:all": "yarn compile && yarn build:hashers && npx hardhat test",
+    "test": "npx hardhat test",
     "circuit:compile": "./scripts/compile_circom.sh"
   },
   "devDependencies": {
@@ -36,6 +37,7 @@
     "circom_runtime": "^0.1.9",
     "circomlib": "^0.5.2",
     "ganache-cli": "^6.12.2",
-    "hardhat-artifactor": "^0.2.0"
+    "hardhat-artifactor": "^0.2.0",
+    "maci-crypto": "^0.9.1"
   }
 }
