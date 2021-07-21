@@ -6,11 +6,6 @@ const { toBN, randomHex } = require('web3-utils')
 
 const Anchor = artifacts.require('./NativeAnchor.sol')
 const { NATIVE_AMOUNT, MERKLE_TREE_HEIGHT } = process.env
-
-const wasmsnark = require('wasmsnark');
-const buildBn128 = wasmsnark.buildBn128;
-const wasmsnarkUtils = require('wasmsnark/src/utils')
-const stringifyBigInts = require('wasmsnark/tools/stringifybigint').stringifyBigInts
 const snarkjs = require('snarkjs')
 const bigInt = BigInt;
 const crypto = require('crypto')
@@ -71,13 +66,23 @@ contract('NativeAnchor', (accounts) => {
   let groth16
   let circuit
   let proving_key
-
+  let createWitness
+  
   before(async () => {
     tree = new MerkleTree(levels, null, prefix)
     anchor = await Anchor.deployed()
     groth16;
     circuit = require('../build/circuits/withdraw.json')
     proving_key = fs.readFileSync('build/circuits/withdraw_proving_key.bin').buffer
+    createWitness = async (data) => {
+      const wtns = {type: "mem"};
+      await snarkjs.wtns.calculate(data, path.join(
+        "artifacts/circuits",
+        "tornado",
+        "withdraw_30.wasm"
+      ), wtns);
+      return wtns;
+    }
   })
 
   describe('#constructor', () => {
@@ -119,7 +124,7 @@ contract('NativeAnchor', (accounts) => {
       await tree.insert(deposit.commitment)
       const { root, path_elements, path_index } = await tree.path(0)
 
-      const input = stringifyBigInts({
+      const witness = {
         root,
         nullifierHash: pedersenHash(leInt2Buff(deposit.nullifier, 31)),
         nullifier: deposit.nullifier,
@@ -130,31 +135,37 @@ contract('NativeAnchor', (accounts) => {
         secret: deposit.secret,
         pathElements: path_elements,
         pathIndices: path_index,
-      })
+      };
+      const wtns = await createWitness(witness);
 
-      let proofData = await wasmsnarkUtils.genWitnessAndProve(groth16, input, circuit, proving_key)
-      const originalProof = JSON.parse(JSON.stringify(proofData))
-      let result = snarkVerify(proofData)
+      let res = await snarkjs.groth16.prove('build/tornado/circuit_final.zkey', wtns);
+      proof = res.proof;
+      publicSignals = res.publicSignals;
+      let tempProof = proof;
+      let tempSignals = publicSignals;
+      const vKey = await snarkjs.zKey.exportVerificationKey('circuit_final.zkey');
+
+      let result = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       result.should.be.equal(true)
 
       // nullifier
-      proofData.publicSignals[1] =
-        '133792158246920651341275668520530514036799294649489851421007411546007850802'
-      result = snarkVerify(proofData)
-      result.should.be.equal(false)
-      proofData = originalProof
+      publicSignals[1] =
+        '133792158246920651341275668520530514036799294649489851421007411546007850802';
+      result = snarkVerify(proofData);
+      result.should.be.equal(false);
+      publicSignals = tempSignals;
 
       // try to cheat with recipient
-      proofData.publicSignals[2] = '133738360804642228759657445999390850076318544422'
-      result = snarkVerify(proofData)
-      result.should.be.equal(false)
-      proofData = originalProof
+      publicSignals[2] = '133738360804642228759657445999390850076318544422';
+      result = snarkVerify(proofData);
+      result.should.be.equal(false);
+      publicSignals = tempSignals;
 
       // fee
-      proofData.publicSignals[3] = '1337100000000000000000'
-      result = snarkVerify(proofData)
-      result.should.be.equal(false)
-      proofData = originalProof
+      publicSignals[3] = '1337100000000000000000';
+      result = snarkVerify(proofData);
+      result.should.be.equal(false);
+      publicSignals = tempSignals;
     })
   })
 
@@ -177,7 +188,7 @@ contract('NativeAnchor', (accounts) => {
       const { root, path_elements, path_index } = await tree.path(0)
 
       // Circuit input
-      const input = stringifyBigInts({
+      const witness = {
         // public
         root,
         nullifierHash: pedersenHash(leInt2Buff(deposit.nullifier, 31)),
@@ -191,10 +202,12 @@ contract('NativeAnchor', (accounts) => {
         secret: deposit.secret,
         pathElements: path_elements,
         pathIndices: path_index,
-      })
+      };
+      const wtns = await createWitness(witness);
 
-      const proofData = await wasmsnarkUtils.genWitnessAndProve(groth16, input, circuit, proving_key)
-      const { proof } = wasmsnarkUtils.toSolidityInput(proofData)
+      let res = await snarkjs.groth16.prove('build/tornado/circuit_final.zkey', wtns);
+      proof = res.proof;
+      publicSignals = res.publicSignals;
 
       const balanceAnchorBefore = await web3.eth.getBalance(anchor.address)
       const balanceRelayerBefore = await web3.eth.getBalance(relayer)
@@ -241,7 +254,7 @@ contract('NativeAnchor', (accounts) => {
 
       const { root, path_elements, path_index } = await tree.path(0)
 
-      const input = stringifyBigInts({
+      const witness = {
         root,
         nullifierHash: pedersenHash(leInt2Buff(deposit.nullifier, 31)),
         nullifier: deposit.nullifier,
@@ -252,9 +265,13 @@ contract('NativeAnchor', (accounts) => {
         secret: deposit.secret,
         pathElements: path_elements,
         pathIndices: path_index,
-      })
-      const proofData = await wasmsnarkUtils.genWitnessAndProve(groth16, input, circuit, proving_key)
-      const { proof } = wasmsnarkUtils.toSolidityInput(proofData)
+      };
+      const wtns = await createWitness(witness);
+
+      let res = await snarkjs.groth16.prove('build/tornado/circuit_final.zkey', wtns);
+      proof = res.proof;
+      publicSignals = res.publicSignals;
+
       const args = [
         toFixedHex(input.root),
         toFixedHex(input.nullifierHash),
@@ -275,7 +292,7 @@ contract('NativeAnchor', (accounts) => {
 
       const { root, path_elements, path_index } = await tree.path(0)
 
-      const input = stringifyBigInts({
+      const witness = {
         root,
         nullifierHash: pedersenHash(leInt2Buff(deposit.nullifier, 31)),
         nullifier: deposit.nullifier,
@@ -286,9 +303,13 @@ contract('NativeAnchor', (accounts) => {
         secret: deposit.secret,
         pathElements: path_elements,
         pathIndices: path_index,
-      })
-      const proofData = await wasmsnarkUtils.genWitnessAndProve(groth16, input, circuit, proving_key)
-      const { proof } = wasmsnarkUtils.toSolidityInput(proofData)
+      };
+      const wtns = await createWitness(witness);
+
+      let res = await snarkjs.groth16.prove('build/tornado/circuit_final.zkey', wtns);
+      proof = res.proof;
+      publicSignals = res.publicSignals;
+
       const args = [
         toFixedHex(input.root),
         toFixedHex(
@@ -312,7 +333,7 @@ contract('NativeAnchor', (accounts) => {
 
       const { root, path_elements, path_index } = await tree.path(0)
       const largeFee = bigInt(value).add(bigInt(1))
-      const input = stringifyBigInts({
+      const witness = {
         root,
         nullifierHash: pedersenHash(leInt2Buff(deposit.nullifier, 31)),
         nullifier: deposit.nullifier,
@@ -323,10 +344,13 @@ contract('NativeAnchor', (accounts) => {
         secret: deposit.secret,
         pathElements: path_elements,
         pathIndices: path_index,
-      })
+      };
+      const wtns = await createWitness(witness);
 
-      const proofData = await wasmsnarkUtils.genWitnessAndProve(groth16, input, circuit, proving_key)
-      const { proof } = wasmsnarkUtils.toSolidityInput(proofData)
+      let res = await snarkjs.groth16.prove('build/tornado/circuit_final.zkey', wtns);
+      proof = res.proof;
+      publicSignals = res.publicSignals;
+
       const args = [
         toFixedHex(input.root),
         toFixedHex(input.nullifierHash),
@@ -346,7 +370,7 @@ contract('NativeAnchor', (accounts) => {
 
       const { root, path_elements, path_index } = await tree.path(0)
 
-      const input = stringifyBigInts({
+      const witness = {
         nullifierHash: pedersenHash(leInt2Buff(deposit.nullifier, 31)),
         root,
         nullifier: deposit.nullifier,
@@ -357,10 +381,12 @@ contract('NativeAnchor', (accounts) => {
         secret: deposit.secret,
         pathElements: path_elements,
         pathIndices: path_index,
-      })
+      };
+      const wtns = await createWitness(witness);
 
-      const proofData = await wasmsnarkUtils.genWitnessAndProve(groth16, input, circuit, proving_key)
-      const { proof } = wasmsnarkUtils.toSolidityInput(proofData)
+      let res = await snarkjs.groth16.prove('build/tornado/circuit_final.zkey', wtns);
+      proof = res.proof;
+      publicSignals = res.publicSignals;
 
       const args = [
         toFixedHex(randomHex(32)),
@@ -381,7 +407,7 @@ contract('NativeAnchor', (accounts) => {
 
       let { root, path_elements, path_index } = await tree.path(0)
 
-      const input = stringifyBigInts({
+      const witness = {
         root,
         nullifierHash: pedersenHash(leInt2Buff(deposit.nullifier, 31)),
         nullifier: deposit.nullifier,
@@ -392,9 +418,13 @@ contract('NativeAnchor', (accounts) => {
         secret: deposit.secret,
         pathElements: path_elements,
         pathIndices: path_index,
-      })
-      const proofData = await wasmsnarkUtils.genWitnessAndProve(groth16, input, circuit, proving_key)
-      let { proof } = wasmsnarkUtils.toSolidityInput(proofData)
+      };
+      const wtns = await createWitness(witness);
+
+      let res = await snarkjs.groth16.prove('build/tornado/circuit_final.zkey', wtns);
+      proof = res.proof;
+      publicSignals = res.publicSignals;
+
       const args = [
         toFixedHex(input.root),
         toFixedHex(input.nullifierHash),
@@ -457,7 +487,7 @@ contract('NativeAnchor', (accounts) => {
 
       const { root, path_elements, path_index } = await tree.path(0)
 
-      const input = stringifyBigInts({
+      const witness = {
         nullifierHash: pedersenHash(leInt2Buff(deposit.nullifier, 31)),
         root,
         nullifier: deposit.nullifier,
@@ -468,10 +498,12 @@ contract('NativeAnchor', (accounts) => {
         secret: deposit.secret,
         pathElements: path_elements,
         pathIndices: path_index,
-      })
+      };
+      const wtns = await createWitness(witness);
 
-      const proofData = await wasmsnarkUtils.genWitnessAndProve(groth16, input, circuit, proving_key)
-      const { proof } = wasmsnarkUtils.toSolidityInput(proofData)
+      let res = await snarkjs.groth16.prove('build/tornado/circuit_final.zkey', wtns);
+      proof = res.proof;
+      publicSignals = res.publicSignals;
 
       const args = [
         toFixedHex(input.root),
@@ -498,7 +530,7 @@ contract('NativeAnchor', (accounts) => {
       const { root, path_elements, path_index } = await tree.path(1)
 
       // Circuit input
-      const input = stringifyBigInts({
+      const witness = {
         // public
         root,
         nullifierHash: pedersenHash(leInt2Buff(deposit2.nullifier, 31)),
@@ -512,10 +544,12 @@ contract('NativeAnchor', (accounts) => {
         secret: deposit2.secret,
         pathElements: path_elements,
         pathIndices: path_index,
-      })
+      };
+      const wtns = await createWitness(witness);
 
-      const proofData = await wasmsnarkUtils.genWitnessAndProve(groth16, input, circuit, proving_key)
-      const { proof } = wasmsnarkUtils.toSolidityInput(proofData)
+      let res = await snarkjs.groth16.prove('build/tornado/circuit_final.zkey', wtns);
+      proof = res.proof;
+      publicSignals = res.publicSignals;
 
       const args = [
         toFixedHex(input.root),
