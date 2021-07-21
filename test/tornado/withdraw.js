@@ -1,10 +1,9 @@
 /* global artifacts, web3, contract */
 require('chai').use(require('bn-chai')(web3.utils.BN)).use(require('chai-as-promised')).should()
 const fs = require('fs')
+const path = require("path");
 
 const { toBN, randomHex } = require('web3-utils')
-
-const Anchor = artifacts.require('./NativeAnchor.sol')
 const { NATIVE_AMOUNT, MERKLE_TREE_HEIGHT } = process.env
 const snarkjs = require('snarkjs')
 const bigInt = BigInt;
@@ -13,6 +12,7 @@ const circomlib = require('circomlib')
 const MerkleTree = require('../../lib/tornado-withdraw/MerkleTree')
 const BN = require('bn.js');
 const utils = require("ffjavascript").utils;
+const TruffleAssert = require('truffle-assertions');
 const {
   leBuff2int,
   leInt2Buff,
@@ -37,26 +37,24 @@ function generateDeposit() {
   return deposit
 }
 
-// eslint-disable-next-line no-unused-vars
-function BNArrayToStringArray(array) {
-  const arrayToPrint = []
-  array.forEach((item) => {
-    arrayToPrint.push(item.toString())
-  })
-  return arrayToPrint
-}
-
 function snarkVerify(proof) {
-  const verification_key = unstringifyBigInts2(require('../build/circuits/withdraw_verification_key.json'))
+  const verification_key = unstringifyBigInts2(require('../build/tornado/verification_key.json'))
   return snarkjs['groth'].isValid(verification_key, proof, proof.publicSignals)
 }
 
+const HasherMimcContract = artifacts.require("MiMCSponge220");
+const VerifierMimcContract = artifacts.require("Verifier");
+const NativeAnchorContract = artifacts.require("NativeAnchor");
+
 contract('NativeAnchor', (accounts) => {
-  let anchor
+  let hasher;
+  let verifier;
+  let anchor;
   const sender = accounts[0]
   const operator = accounts[0]
   const levels = MERKLE_TREE_HEIGHT || 16
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
+  const maxRoots = 100;
   let prefix = 'test'
   let tree
   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString())
@@ -64,16 +62,14 @@ contract('NativeAnchor', (accounts) => {
   const recipient = getRandomRecipient()
   const relayer = accounts[1]
   let groth16
-  let circuit
-  let proving_key
   let createWitness
   
-  before(async () => {
+  beforeEach(async () => {
+    hasher = await HasherMimcContract.new();
+    verifier = await VerifierMimcContract.new();
+    anchor = await NativeAnchorContract.new(verifier.address, hasher.address, value, levels, maxRoots);
     tree = new MerkleTree(levels, null, prefix)
-    anchor = await Anchor.deployed()
     groth16;
-    circuit = require('../build/circuits/withdraw.json')
-    proving_key = fs.readFileSync('build/circuits/withdraw_proving_key.bin').buffer
     createWitness = async (data) => {
       const wtns = {type: "mem"};
       await snarkjs.wtns.calculate(data, path.join(
@@ -85,14 +81,14 @@ contract('NativeAnchor', (accounts) => {
     }
   })
 
-  describe('#constructor', () => {
+  describe.only('#constructor', () => {
     it('should initialize', async () => {
       const etherDenomination = await anchor.denomination()
       etherDenomination.should.be.eq.BN(toBN(value))
     })
   })
 
-  describe('#deposit', () => {
+  describe.only('#deposit', () => {
     it('should emit event', async () => {
       let commitment = toFixedHex(42)
       let { logs } = await anchor.deposit(commitment, { value, from: sender })
@@ -101,8 +97,8 @@ contract('NativeAnchor', (accounts) => {
       logs[0].args.commitment.should.be.equal(commitment)
       logs[0].args.leafIndex.should.be.eq.BN(0)
 
-      commitment = toFixedHex(12)
-      ;({ logs } = await anchor.deposit(commitment, { value, from: accounts[2] }))
+      commitment = toFixedHex(12);
+      ({ logs } = await anchor.deposit(commitment, { value, from: accounts[2] }))
 
       logs[0].event.should.be.equal('Deposit')
       logs[0].args.commitment.should.be.equal(commitment)
@@ -112,17 +108,16 @@ contract('NativeAnchor', (accounts) => {
     it('should throw if there is a such commitment', async () => {
       const commitment = toFixedHex(42)
       await anchor.deposit(commitment, { value, from: sender }).should.be.fulfilled
-      const error = await anchor.deposit(commitment, { value, from: sender }).should.be.rejected
-      error.reason.should.be.equal('The commitment has been submitted')
+      await TruffleAssert.reverts(anchor.deposit(commitment, { value, from: sender }), 'The commitment has been submitted');
     })
   })
 
   // Use Node version >=12
-  describe('snark proof verification on js side', () => {
+  describe.only('snark proof verification on js side', () => {
     it('should detect tampering', async () => {
-      const deposit = generateDeposit()
-      await tree.insert(deposit.commitment)
-      const { root, path_elements, path_index } = await tree.path(0)
+      const deposit = generateDeposit();
+      await tree.insert(deposit.commitment);
+      const { root, path_elements, path_index } = await tree.path(0);
 
       const witness = {
         root,
@@ -143,7 +138,7 @@ contract('NativeAnchor', (accounts) => {
       publicSignals = res.publicSignals;
       let tempProof = proof;
       let tempSignals = publicSignals;
-      const vKey = await snarkjs.zKey.exportVerificationKey('circuit_final.zkey');
+      const vKey = await snarkjs.zKey.exportVerificationKey('build/tornado/circuit_final.zkey');
 
       let result = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       result.should.be.equal(true)
@@ -174,7 +169,6 @@ contract('NativeAnchor', (accounts) => {
       const deposit = generateDeposit()
       const user = accounts[4]
       await tree.insert(deposit.commitment)
-
       const balanceUserBefore = await web3.eth.getBalance(user)
 
       // Uncomment to measure gas usage
