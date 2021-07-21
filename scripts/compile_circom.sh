@@ -4,10 +4,10 @@ mkdir -p artifacts/circuits/tornado
 mkdir -p artifacts/circuits/bridge
 
 echo "Compiling Tornado style withdrawal circuit..."
-circom circuits/test/tornado_withdraw_20.circom \
-  --r1cs artifacts/circuits/tornado/withdraw_20.r1cs \
-  --wasm artifacts/circuits/tornado/withdraw_20.wasm \
-  --sym artifacts/circuits/tornado/withdraw_20.sym
+circom circuits/test/tornado_withdraw_30.circom \
+  --r1cs artifacts/circuits/tornado/withdraw_30.r1cs \
+  --wasm artifacts/circuits/tornado/withdraw_30.wasm \
+  --sym artifacts/circuits/tornado/withdraw_30.sym
 echo "Done!\n"
 
 echo "Compiling Webb style MiMC bridge withdrawal circuit..."
