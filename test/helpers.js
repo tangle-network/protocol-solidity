@@ -28,6 +28,12 @@
         recipientAddress.substr(2);               // recipientAddress               (?? bytes)
 };
 
+const createUpdateProposalData = (newLeafIndex, merkleRoot) => {
+    return '0x' +
+        toHex(newLeafIndex, 32).substr(2) +     // latest index (height) of merkle tree (32 bytes);
+        toHex(merkleRoot, 32).substr(2);        // Updated Merkle Root (32 bytes)
+};
+
 const advanceBlock = () => {
     const time = Math.floor(Date.now() / 1000);
     ethers.provider.send("evm_increaseTime", [time]) 
@@ -83,6 +89,7 @@ module.exports = {
     abiEncode,
     getFunctionSignature,
     createERCDepositData,
+    createUpdateProposalData,
     createResourceID,
     assertObjectsMatch,
     nonceAndId

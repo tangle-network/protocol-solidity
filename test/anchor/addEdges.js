@@ -125,7 +125,26 @@ contract('LinkableAnchor - [add edges]', async accounts => {
     assert(await LinkableAnchorInstance.edgeIndex(edge.destResourceID) == 0);
   });
 
-  it('LinkableAnchor edges should update edgeList with 2 edges', async () => {
+  it('As a handler should not be able to add 101st edge', async () => {
+    for (let i = 0; i <= 99; i++) {
+      const edge = {
+        destChainID: '0x' + String(i),
+        destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
+        root: '0x1111111111111111111111111111111111111111111111111111111111111111',
+        height: 100,
+      };
+      await TruffleAssert.passes(addEdge(edge, accounts[0]));
+    }
+    const edge101 = {
+      destChainID: '0x1A',
+      destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
+      root: '0x1111111111111111111111111111111111111111111111111111111111111111',
+      height: 100,
+    };
+    await TruffleAssert.reverts(addEdge(edge101, accounts[0]));;
+  });
+
+  it('Adding 2 edges should give correct edgeList', async () => {
     const edge = {
       destChainID: '0x01',
       destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
@@ -146,7 +165,7 @@ contract('LinkableAnchor - [add edges]', async accounts => {
     assert(await LinkableAnchorInstance.edgeIndex(edge1.destResourceID) == 1);
   });
 
-  it('LinkableAnchor added edges should return from latestNeighborRoots', async () => {
+  it('latestNeighborRoots should return correct roots', async () => {
     const edge = {
       destChainID: '0x01',
       destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
@@ -174,7 +193,7 @@ contract('LinkableAnchor - [add edges]', async accounts => {
     assert(newRoots[1] == edge1.root);
   });
 
-  it('LinkableAnchor edges should emit correct EdgeAddition event', async () => {
+  it('Adding edge should emit correct EdgeAddition event', async () => {
     const edge = {
       destChainID: '0x01',
       destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
@@ -190,7 +209,7 @@ contract('LinkableAnchor - [add edges]', async accounts => {
     });
   });
 
-  it('LinkableAnchor edges should emit correct RootHistoryUpdate event', async () => {
+  it('Adding edge should emit correct RootHistoryUpdate event', async () => {
     const edge = {
       destChainID: '0x01',
       destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
@@ -205,7 +224,8 @@ contract('LinkableAnchor - [add edges]', async accounts => {
       return ev.roots.toString().split(",")[0] == roots[0]
     });
   });
-  it('LinkableAnchor edges should emit multiple correct RootHistoryUpdate events', async () => {
+
+  it('Adding edges should emit multiple correct RootHistoryUpdate events', async () => {
     const edge = {
       destChainID: '0x01',
       destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
