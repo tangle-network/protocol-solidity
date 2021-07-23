@@ -52,7 +52,7 @@ contract('NativeAnchor', (accounts) => {
   let anchor;
   const sender = accounts[0]
   const operator = accounts[0]
-  const levels = MERKLE_TREE_HEIGHT || 16
+  const levels = MERKLE_TREE_HEIGHT || 30
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
   const maxRoots = 100;
   let prefix = 'test'
@@ -61,7 +61,6 @@ contract('NativeAnchor', (accounts) => {
   const refund = BigInt((new BN('0')).toString())
   const recipient = getRandomRecipient()
   const relayer = accounts[1]
-  let groth16
   let createWitness
   
   beforeEach(async () => {
@@ -69,7 +68,6 @@ contract('NativeAnchor', (accounts) => {
     verifier = await VerifierMimcContract.new();
     anchor = await NativeAnchorContract.new(verifier.address, hasher.address, value, levels, maxRoots);
     tree = new MerkleTree(levels, null, prefix)
-    groth16;
     createWitness = async (data) => {
       const wtns = {type: "mem"};
       await snarkjs.wtns.calculate(data, path.join(
@@ -136,9 +134,8 @@ contract('NativeAnchor', (accounts) => {
       let res = await snarkjs.groth16.prove('build/tornado/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
-      let tempProof = proof;
       let tempSignals = publicSignals;
-      const vKey = await snarkjs.zKey.exportVerificationKey('build/tornado/circuit_final.zkey');
+      const vKey = JSON.parse(fs.readFileSync("./build/tornado/verification_key.json"));
 
       let result = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       result.should.be.equal(true)
