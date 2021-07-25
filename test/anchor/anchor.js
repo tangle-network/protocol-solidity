@@ -3,9 +3,6 @@
  * SPDX-License-Identifier: LGPL-3.0
  */
 const TruffleAssert = require('truffle-assertions');
-const Ethers = require('ethers');
-
-const Helpers = require('../helpers');
 const assert = require('assert');
 
 const fs = require('fs')
@@ -30,14 +27,9 @@ const MerkleTree = require('../../lib/bridgePoseidon-withdraw/MerkleTree')
 const utils = require("ffjavascript").utils;
 const {
   beBuff2int,
-  beInt2Buff,
   leBuff2int,
   leInt2Buff,
 } = utils;
-
-const primeForField = beBuff2int((
-  new BN('21888242871839275222246405745257275088548364400416034343698204186575808495617')
-).toBuffer());
 
 function bigNumberToPaddedBytes(num, digits =  32) {
   var n = num.toString(16).replace(/^0x/, '');
@@ -70,20 +62,6 @@ function generateDeposit(targetChainID = 0) {
   ]);
   deposit.commitment = pedersenHash(preimage)
   return deposit
-}
-
-// eslint-disable-next-line no-unused-vars
-function BNArrayToStringArray(array) {
-  const arrayToPrint = []
-  array.forEach((item) => {
-    arrayToPrint.push(item.toString())
-  })
-  return arrayToPrint
-}
-
-function snarkVerify(proof) {
-  const verification_key = require('../build/circuits/withdraw_verification_key.json')
-  return snarkjs['groth'].isValid(verification_key, proof, proof.publicSignals)
 }
 
 contract('AnchorPoseidon2', (accounts) => {
