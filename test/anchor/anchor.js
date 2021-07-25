@@ -205,7 +205,7 @@ contract('AnchorPoseidon2', (accounts) => {
       console.log(root, path_elements, path_index);
     });
 
-    it.only('should detect tampering', async () => {
+    it('should detect tampering', async () => {
       const chainID = 0;
 
       const deposit = generateDeposit(chainID);
