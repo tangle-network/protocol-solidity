@@ -180,7 +180,7 @@ contract('AnchorPoseidon2', (accounts) => {
       await tree.insert(deposit.commitment)
       const { root, path_elements, path_index } = await tree.path(0);
       const roots = [root, 0];
-      console.log(root, path_elements, path_index);
+      // console.log(root, path_elements, path_index);
     });
 
     it('should detect tampering', async () => {

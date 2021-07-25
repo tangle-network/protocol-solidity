@@ -10,3 +10,4 @@ dist
 
 *.ptau
 *.zkey
+yarn-error.log

@@ -79,14 +79,14 @@ contract('NativeAnchor', (accounts) => {
     }
   })
 
-  describe.only('#constructor', () => {
+  describe('#constructor', () => {
     it('should initialize', async () => {
       const etherDenomination = await anchor.denomination()
       etherDenomination.should.be.eq.BN(toBN(value))
     })
   })
 
-  describe.only('#deposit', () => {
+  describe('#deposit', () => {
     it('should emit event', async () => {
       let commitment = toFixedHex(42)
       let { logs } = await anchor.deposit(commitment, { value, from: sender })
@@ -111,7 +111,7 @@ contract('NativeAnchor', (accounts) => {
   })
 
   // Use Node version >=12
-  describe.only('snark proof verification on js side', () => {
+  describe('snark proof verification on js side', () => {
     it('should detect tampering', async () => {
       const deposit = generateDeposit();
       await tree.insert(deposit.commitment);
