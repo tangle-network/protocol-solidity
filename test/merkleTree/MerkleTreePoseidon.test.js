@@ -13,7 +13,8 @@ const Poseidon = artifacts.require('PoseidonT3');
 
 const MerkleTree = require('../../lib/bridgePoseidon-withdraw/MerkleTree')
 const hasherImpl = require('../../lib/bridgePoseidon-withdraw/Poseidon')
-const snarkjs = require('snarkjs')
+const snarkjs = require('snarkjs');
+const { collapseTextChangeRangesAcrossMultipleVersions } = require('typescript');
 
 const { ETH_AMOUNT, MERKLE_TREE_HEIGHT } = process.env
 
@@ -38,7 +39,7 @@ contract('MerkleTreePoseidon', (accounts) => {
   let merkleTreeWithHistory;
   let HasherFactory;
   let hasherInstance;
-  let levels = MERKLE_TREE_HEIGHT || 16;
+  let levels = MERKLE_TREE_HEIGHT || 30;
   const sender = accounts[0];
   // eslint-disable-next-line no-unused-vars
   const value = ETH_AMOUNT || '1000000000000000000';
@@ -227,12 +228,42 @@ contract('MerkleTreePoseidon', (accounts) => {
       // check outdated root
       let isKnown = await merkleTreeWithHistory.isKnownRoot(toFixedHex(path.root))
       assert(isKnown);
-    })
+    });
 
     it('should not return uninitialized roots', async () => {
       TruffleAssert.passes(await merkleTreeWithHistory.insert(toFixedHex(42), { from: sender }));
       let isKnown = await merkleTreeWithHistory.isKnownRoot(toFixedHex(0))
       assert(!isKnown);
-    })
+    });
+  });
+
+  describe('#insertions using deposit commitments', async () =>  {
+    const generateDeposit = require('../anchor/anchor').generateDeposit;
+    
+    it('should rebuild root correctly between native and contract', async () => {
+      const merkleTreeWithHistory = await MerkleTreeWithHistory.new(levels, hasherInstance.address);
+      const deposit = generateDeposit();
+      const commitment = deposit.commitment;
+      await tree.insert(commitment);
+      const { root, path_elements, path_index } = await tree.path(0);
+      await merkleTreeWithHistory.insert(toFixedHex(commitment), { from: sender });
+      rootFromContract = await merkleTreeWithHistory.getLastRoot();
+      assert.strictEqual(toFixedHex(root), rootFromContract.toString());
+
+      let curr = deposit.commitment;
+      for (var i = 0; i < path_elements.length; i++) {
+        let elt = path_elements[i];
+        let side = path_index[i];
+        if (side === 0) {
+          let contractResult = await hasherInstance.poseidon([curr, elt]);
+          curr = contractResult;
+        } else {
+          let contractResult = await hasherInstance.poseidon([elt, curr]);
+          curr =  contractResult;
+        }
+      }
+
+      assert.strictEqual(toFixedHex(curr), toFixedHex(root));
+    });
   });
 });

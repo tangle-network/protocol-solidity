@@ -46,11 +46,10 @@ fi
 
 # Contribute to the circuit specific setup
 if [ ! -f $OUTPUT_DIR/pot12_0000.ptau ]; then
-    echo "File not found!"
+    echo "echo 'test' | snarkjs zkey contribute $OUTPUT_DIR/circuit_0000.zkey $OUTPUT_DIR/circuit_0001.zkey --name="1st Contributor Name" -v\n"
+    echo 'test' | snarkjs zkey contribute $OUTPUT_DIR/circuit_0000.zkey $OUTPUT_DIR/circuit_0001.zkey --name="1st Contributor Name" -v
+    wait 500
 fi
-echo "echo 'test' | snarkjs zkey contribute $OUTPUT_DIR/circuit_0000.zkey $OUTPUT_DIR/circuit_0001.zkey --name="1st Contributor Name" -v\n"
-echo 'test' | snarkjs zkey contribute $OUTPUT_DIR/circuit_0000.zkey $OUTPUT_DIR/circuit_0001.zkey --name="1st Contributor Name" -v
-wait 500
 
 # Verify zkey
 echo "snarkjs zkey verify $R1CS_PATH $OUTPUT_DIR/pot12_final.ptau $OUTPUT_DIR/circuit_0001.zkey\n"
@@ -59,11 +58,10 @@ wait 500
 
 # Apply random beacon
 if [ ! -f $OUTPUT_DIR/pot12_0000.ptau ]; then
-    echo "File not found!"
+    echo "snarkjs zkey beacon $OUTPUT_DIR/circuit_0001.zkey $OUTPUT_DIR/circuit_final.zkey 0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f 10 -n="Final Beacon phase2"\n"
+    snarkjs zkey beacon $OUTPUT_DIR/circuit_0001.zkey $OUTPUT_DIR/circuit_final.zkey 0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f 10 -n="Final Beacon phase2"
+    wait 500
 fi
-echo "snarkjs zkey beacon $OUTPUT_DIR/circuit_0001.zkey $OUTPUT_DIR/circuit_final.zkey 0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f 10 -n="Final Beacon phase2"\n"
-snarkjs zkey beacon $OUTPUT_DIR/circuit_0001.zkey $OUTPUT_DIR/circuit_final.zkey 0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f 10 -n="Final Beacon phase2"
-wait 500
 
 # Verify final zkey
 echo "snarkjs zkey verify $R1CS_PATH $OUTPUT_DIR/pot12_final.ptau $OUTPUT_DIR/circuit_final.zkey\n"

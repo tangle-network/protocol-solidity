@@ -143,7 +143,7 @@ contract('NativeAnchor', (accounts) => {
       publicSignals = res.publicSignals;
       let tempProof = proof;
       let tempSignals = publicSignals;
-      const vKey = await snarkjs.zKey.exportVerificationKey('circuit_final.zkey');
+      const vKey = await snarkjs.zKey.exportVerificationKey('build/tornado/circuit_final.zkey');
 
       let result = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       result.should.be.equal(true)
