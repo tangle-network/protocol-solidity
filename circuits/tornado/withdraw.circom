@@ -63,5 +63,3 @@ template Withdraw(levels) {
     relayerSquare <== relayer * relayer;
     refundSquare <== refund * refund;
 }
-
-component main = Withdraw(20);
