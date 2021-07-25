@@ -135,7 +135,8 @@ contract('NativeAnchor', (accounts) => {
       proof = res.proof;
       publicSignals = res.publicSignals;
       let tempSignals = publicSignals;
-      const vKey = JSON.parse(fs.readFileSync("./build/tornado/verification_key.json"));
+      // const vKey = JSON.parse(fs.readFileSync("./build/tornado/verification_key.json"));
+      const vKey = await snarkjs.zKey.exportVerificationKey('build/tornado/circuit_final.zkey');
 
       let result = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       result.should.be.equal(true)

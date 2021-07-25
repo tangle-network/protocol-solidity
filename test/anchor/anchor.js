@@ -18,7 +18,10 @@ const snarkjs = require('snarkjs')
 const bigInt = require('big-integer');
 const BN = require('bn.js');
 const crypto = require('crypto')
-const circomlib = require('circomlib')
+const circomlib = require('circomlib');
+const F = require('circomlib').babyJub.F;
+const Scalar = require("ffjavascript").Scalar;
+
 const MerkleTree = require('../../lib/bridgePoseidon-withdraw/MerkleTree')
 
 const utils = require("ffjavascript").utils;
@@ -78,7 +81,6 @@ contract('AnchorPoseidon2', (accounts) => {
   let proving_key
   let verifier;
   let tokenDenomination = '1000000000000000000' // 1 ether
-  const merkleTreeHeight = 31;
   const maxRoots = 1;
 
   let createWitness;
@@ -94,7 +96,7 @@ contract('AnchorPoseidon2', (accounts) => {
       verifier.address,
       hasherInstance.address,
       tokenDenomination,
-      merkleTreeHeight,
+      levels,
       maxRoots,
       token.address,
     );
@@ -134,7 +136,7 @@ contract('AnchorPoseidon2', (accounts) => {
     }
 
     tree = new MerkleTree(levels, null, prefix)
-    zkey_final = fs.readFileSync('circuit_final.zkey').buffer;
+    zkey_final = fs.readFileSync('build/bridge-poseidon/circuit_final.zkey').buffer;
   })
 
   describe('#constructor', () => {
@@ -178,6 +180,7 @@ contract('AnchorPoseidon2', (accounts) => {
       await tree.insert(deposit.commitment)
       const { root, path_elements, path_index } = await tree.path(0);
       const roots = [root, 0];
+      console.log(root, path_elements, path_index);
     });
 
     it('should detect tampering', async () => {
@@ -187,28 +190,41 @@ contract('AnchorPoseidon2', (accounts) => {
       await tree.insert(deposit.commitment)
       const { root, path_elements, path_index } = await tree.path(0);
       const roots = [root, 0];
-      
+      // calculate diffs of target root to prove and roots
+      const diffs = roots.map(r => {
+        return F.sub(
+          Scalar.fromString(r),
+          Scalar.fromString(root),
+        ).toString();
+      });
+
+      // mock set membership gadget computation
+      for (var i = 0; i < roots.length; i++) {
+        assert.strictEqual(Scalar.fromString(roots[i]), F.add(Scalar.fromString(diffs[i]), Scalar.fromString(root)));
+      }
+
       const witness = {
-        "nullifierHash": pedersenHash(leInt2Buff(deposit.nullifier, 31)).toString(),
-        "recipient": recipient.toString(),
-        "relayer": operator.toString(),
-        "fee": fee.toString(),
-        "refund": refund.toString(),
-        "chainID": chainID.toString(),
-        "roots": roots,
-        "nullifier": deposit.nullifier.toString(),
-        "secret": deposit.secret.toString(),
-        "pathElements": path_elements,
-        "pathIndices": path_index,
+        nullifierHash: pedersenHash(leInt2Buff(deposit.nullifier, 31)).toString(),
+        recipient: recipient.toString(),
+        relayer: operator.toString(),
+        fee: fee.toString(),
+        refund: refund.toString(),
+        chainID: chainID.toString(),
+        roots: roots,
+        diffs: diffs,
+        nullifier: deposit.nullifier.toString(),
+        secret: deposit.secret.toString(),
+        pathElements: path_elements,
+        pathIndices: path_index,
       };
       const wtns = await createWitness(witness);
 
-      let res = await snarkjs.groth16.prove('circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('build/bridge-poseidon/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
       let tempProof = proof;
       let tempSignals = publicSignals;
-      const vKey = await snarkjs.zKey.exportVerificationKey('circuit_final.zkey');
+      const vKey = await snarkjs.zKey.exportVerificationKey('build/bridge-poseidon/circuit_final.zkey');
 
       res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       assert.strictEqual(res, true);
@@ -662,3 +678,7 @@ contract('AnchorPoseidon2', (accounts) => {
     tree = new MerkleTree(levels, null, prefix)
   })
 })
+
+module.exports = {
+  generateDeposit,
+};
