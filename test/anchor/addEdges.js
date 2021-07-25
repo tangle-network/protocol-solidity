@@ -146,7 +146,7 @@ contract('LinkableAnchor - [add edges]', async accounts => {
     await TruffleAssert.reverts(addEdge(edge1, accounts[0], 'This Anchor is at capacity'));
   });
 
-  it('LinkableAnchor added edges should return from latestNeighborRoots', async () => {
+  it('latestNeighborRoots should return correct roots', async () => {
     const edge = {
       destChainID: '0x01',
       destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
@@ -161,7 +161,7 @@ contract('LinkableAnchor - [add edges]', async accounts => {
     assert.strictEqual(roots[0], edge.root);
   });
 
-  it('LinkableAnchor edges should emit correct EdgeAddition event', async () => {
+  it('Adding edge should emit correct EdgeAddition event', async () => {
     const edge = {
       destChainID: '0x01',
       destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
@@ -177,7 +177,7 @@ contract('LinkableAnchor - [add edges]', async accounts => {
     });
   });
 
-  it('LinkableAnchor edges should emit correct RootHistoryUpdate event', async () => {
+  it('Adding edge should emit correct RootHistoryUpdate event', async () => {
     const edge = {
       destChainID: '0x01',
       destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',

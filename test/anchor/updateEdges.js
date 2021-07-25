@@ -132,7 +132,7 @@
     await TruffleAssert.reverts(updateEdge(edgeUpdated, accounts[0]));
    });
 
-   it('LinkableAnchor edges should update edge root values if changed', async () => {
+   it('getLatestNeighborRoots should return updated values', async () => {
      const edge = {
        destChainID: '0x01',
        destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
@@ -158,7 +158,7 @@
      assert(rootsUpdated[0] == edgeUpdated.root);
    });
    
-   it('LinkableAnchor edges should emit correct EdgeUpdate event', async () => {
+   it('Updating edge should emit correct EdgeUpdate event', async () => {
     const edge = {
       destChainID: '0x01',
       destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
@@ -180,7 +180,7 @@
     });
   });
 
-  it('LinkableAnchor edges should emit correct RootHistoryUpdate event', async () => {
+  it('Updating edge should emit correct RootHistoryUpdate event', async () => {
     const edge = {  
       destChainID: '0x01',
       destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
