@@ -39,8 +39,7 @@ contract AnchorHandler is IUpdateExecute, IExecutor, HandlerHelpers {
     constructor(
         address          bridgeAddress,
         bytes32[] memory initialResourceIDs,
-        address[] memory initialContractAddresses,
-        address[] memory burnableContractAddresses
+        address[] memory initialContractAddresses
     ) {
         require(initialResourceIDs.length == initialContractAddresses.length,
             "initialResourceIDs and initialContractAddresses len mismatch");
@@ -49,10 +48,6 @@ contract AnchorHandler is IUpdateExecute, IExecutor, HandlerHelpers {
 
         for (uint256 i = 0; i < initialResourceIDs.length; i++) {
             _setResource(initialResourceIDs[i], initialContractAddresses[i]);
-        }
-
-        for (uint256 i = 0; i < burnableContractAddresses.length; i++) {
-            _setBurnable(burnableContractAddresses[i]);
         }
     }
 
