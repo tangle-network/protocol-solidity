@@ -37,7 +37,6 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
     const sender = accounts[5]
     const operator = accounts[5]
 
-    const linkedChainIDs = [2,3,4,5];
     let ADMIN_ROLE;
     let merkleRoot;
     let LinkableAnchorInstance;
@@ -102,7 +101,7 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
             initialContractAddresses,
         );
 
-        data = Helpers.createUpdateProposalData(blockHeight, merkleRoot);
+        data = Helpers.createUpdateProposalData(originChainID, blockHeight, merkleRoot);
         dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
 
         await Promise.all([

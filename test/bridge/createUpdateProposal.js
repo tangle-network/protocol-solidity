@@ -34,7 +34,6 @@ contract('Bridge - [create a update proposal (voteProposal) with relayerThreshol
     const sender = accounts[0]
     const operator = accounts[0]
 
-
     let ADMIN_ROLE;
     let merkleRoot;
     let LinkableAnchorInstance;
@@ -97,18 +96,15 @@ contract('Bridge - [create a update proposal (voteProposal) with relayerThreshol
             initialContractAddresses,
         );
 
-        data = Helpers.createUpdateProposalData(blockHeight, merkleRoot);
+        data = Helpers.createUpdateProposalData(originChainID, blockHeight, merkleRoot);
         dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
 
         await Promise.all([
             BridgeInstance.adminSetResource(DestinationAnchorHandlerInstance.address, resourceID, DestinationAnchorHandlerInstance.address)
         ]);
-
-        vote = (relayer) => BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer });
-        executeProposal = (relayer) => BridgeInstance.executeProposal(originChainID, expectedUpdateNonce, data, { from: relayer });
     });
 
-    it.only('should create updateProposal successfully', async () => {
+    it('should create updateProposal successfully', async () => {
         TruffleAssert.passes(await BridgeInstance.voteProposal(
             destinationChainID,
             expectedUpdateNonce,
@@ -118,7 +114,7 @@ contract('Bridge - [create a update proposal (voteProposal) with relayerThreshol
         ));
     });
 
-    it.only('should revert because updaterAddress is not a relayer', async () => {
+    it('should revert because updaterAddress is not a relayer', async () => {
         await TruffleAssert.reverts(BridgeInstance.voteProposal(
             destinationChainID,
             expectedUpdateNonce,
@@ -128,7 +124,7 @@ contract('Bridge - [create a update proposal (voteProposal) with relayerThreshol
         ));
     });
 
-    it.only("updateProposal shouldn't be created if it has an Active status", async () => {
+    it("updateProposal shouldn't be created if it has an Active status", async () => {
         await TruffleAssert.passes(BridgeInstance.voteProposal(
             destinationChainID,
             expectedUpdateNonce,
@@ -146,13 +142,13 @@ contract('Bridge - [create a update proposal (voteProposal) with relayerThreshol
         ));
     });
 
-    it.only("getProposal should be called successfully", async () => {
+    it("getProposal should be called successfully", async () => {
         await TruffleAssert.passes(BridgeInstance.getProposal(
             destinationChainID, expectedUpdateNonce, dataHash
         ));
     });
 
-    it.only('updateProposal should be created with expected values', async () => {
+    it('updateProposal should be created with expected values', async () => {
         const expectedUpdateProposal = {
             _yesVotes: originChainRelayerBit.toString(),
             _yesVotesTotal: '1',
@@ -172,7 +168,7 @@ contract('Bridge - [create a update proposal (voteProposal) with relayerThreshol
         Helpers.assertObjectsMatch(expectedUpdateProposal, Object.assign({}, updateProposal));
     });
 
-    it.only('originChainRelayerAddress should be marked as voted for proposal', async () => {
+    it('originChainRelayerAddress should be marked as voted for proposal', async () => {
         await BridgeInstance.voteProposal(
             destinationChainID,
             expectedUpdateNonce,
@@ -185,7 +181,7 @@ contract('Bridge - [create a update proposal (voteProposal) with relayerThreshol
         assert.isTrue(hasVoted);
     });
 
-    it.only('UpdateProposal Created event should be emitted with expected values', async () => {
+    it('UpdateProposal Created event should be emitted with expected values', async () => {
         const proposalTx = await BridgeInstance.voteProposal(
             originChainID,
             expectedUpdateNonce,
@@ -282,18 +278,15 @@ contract('Bridge - [create an update proposal (voteProposal) with relayerThresho
             initialContractAddresses,
         );
 
-        data = Helpers.createUpdateProposalData(blockHeight, merkleRoot);
+        data = Helpers.createUpdateProposalData(originChainID, blockHeight, merkleRoot);
         dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
 
         await Promise.all([
             BridgeInstance.adminSetResource(DestinationAnchorHandlerInstance.address, resourceID, DestinationAnchorHandlerInstance.address)
         ]);
-
-        vote = (relayer) => BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer });
-        executeProposal = (relayer) => BridgeInstance.executeProposal(originChainID, expectedUpdateNonce, data, { from: relayer });
     });
 
-    it.only('should create updateProposal successfully', async () => {
+    it('should create updateProposal successfully', async () => {
         TruffleAssert.passes(await BridgeInstance.voteProposal(
             destinationChainID,
             expectedUpdateNonce,
@@ -303,7 +296,7 @@ contract('Bridge - [create an update proposal (voteProposal) with relayerThresho
         ));
     });
 
-    it.only('should revert because depositerAddress is not a relayer', async () => {
+    it('should revert because depositerAddress is not a relayer', async () => {
         await TruffleAssert.reverts(BridgeInstance.voteProposal(
             destinationChainID,
             expectedUpdateNonce,
@@ -313,7 +306,7 @@ contract('Bridge - [create an update proposal (voteProposal) with relayerThresho
         ));
     });
 
-    it.only("updateProposal shouldn't be created if it has an Active status", async () => {
+    it("updateProposal shouldn't be created if it has an Active status", async () => {
         await TruffleAssert.passes(BridgeInstance.voteProposal(
             destinationChainID,
             expectedUpdateNonce,
@@ -331,7 +324,7 @@ contract('Bridge - [create an update proposal (voteProposal) with relayerThresho
         ));
     });
 
-    it.only('updateProposal should be created with expected values', async () => {
+    it('updateProposal should be created with expected values', async () => {
         const expectedUpdateProposal = {
             _yesVotes: originChainRelayerBit.toString(),
             _yesVotesTotal: '1',
@@ -351,7 +344,7 @@ contract('Bridge - [create an update proposal (voteProposal) with relayerThresho
         Helpers.assertObjectsMatch(expectedUpdateProposal, Object.assign({}, updateProposal));
     });
 
-    it.only('originChainRelayerAddress should be marked as voted for proposal', async () => {
+    it('originChainRelayerAddress should be marked as voted for proposal', async () => {
         await BridgeInstance.voteProposal(
             destinationChainID,
             expectedUpdateNonce,
@@ -364,7 +357,7 @@ contract('Bridge - [create an update proposal (voteProposal) with relayerThresho
         assert.isTrue(hasVoted);
     });
 
-    it.only('updateProposalCreated event should be emitted with expected values', async () => {
+    it('updateProposalCreated event should be emitted with expected values', async () => {
         const proposalTx = await BridgeInstance.voteProposal(
             originChainID,
             expectedUpdateNonce,

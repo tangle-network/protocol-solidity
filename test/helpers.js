@@ -28,8 +28,9 @@
         recipientAddress.substr(2);               // recipientAddress               (?? bytes)
 };
 
-const createUpdateProposalData = (blockHeight, merkleRoot) => {
+const createUpdateProposalData = (sourceChainID, blockHeight, merkleRoot) => {
     return '0x' +
+        toHex(sourceChainID, 1).substr(2) +           // chainID (1 bytes)
         toHex(blockHeight, 32).substr(2) +      // latest block height of incoming root updates (32 bytes)
         toHex(merkleRoot, 32).substr(2);        // Updated Merkle Root (32 bytes)
 };
