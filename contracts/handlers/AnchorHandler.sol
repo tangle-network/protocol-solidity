@@ -22,10 +22,14 @@ contract AnchorHandler is IUpdateExecute, IExecutor, HandlerHelpers {
         uint8   _sourceChainID;
         bytes32 _resourceID;
         bytes32 _merkleRoot;
+        uint256 _blockHeight;
     }
 
     // fromChainID => height => Update Record
     mapping (uint8 => mapping(uint256 => UpdateRecord)) public _updateRecords;
+
+    // sourceChainID => number of updates
+    mapping(uint8 => uint64) public _counts;
 
     /**
         @param bridgeAddress Contract address of previously deployed Bridge.
@@ -90,53 +94,56 @@ contract AnchorHandler is IUpdateExecute, IExecutor, HandlerHelpers {
 
         (height, merkleRoot) = abi.decode(data, (uint, bytes32));
 
-        address anchorAddress = _resourceIDToTokenContractAddress[resourceID];
+        address anchorAddress = _resourceIDToContractAddress[resourceID];
         require(_contractWhitelist[anchorAddress], "provided tokenAddress is not whitelisted");
 
-        LinkableAnchor anchor = LinkableAnchor(anchorAddress);
 
-        if (anchor.hasEdge(sourceChainID)) {
-            anchor.updateEdge(
-                sourceChainID,
-                resourceID,
-                merkleRoot,
-                height
-            );
-        } else {
-            anchor.addEdge(
-                sourceChainID,
-                resourceID,
-                merkleRoot,
-                height
-            );
-        }
-
-        _updateRecords[sourceChainID][updateNonce] = UpdateRecord(
-            anchorAddress,
-            sourceChainID,
-            resourceID,
-            merkleRoot
-        );
     }
 
     /**
         @notice Proposal execution should be initiated when a proposal is finalized in the Bridge contract.
         by a relayer on the deposit's destination chain.
-        @param data Consists of {origin chainID} {resourceID}, {amount}, {lenDestinationRecipientAddress},
-        and {destinationRecipientAddress} all padded to 32 bytes.
+        @param data Consists of {resourceID}, {chainID}, {blockHeight}, {merkleRoot} all padded to 32 bytes.
         @notice Data passed into the function should be constructed as follows:
-        newLeafIndex                             uint256     bytes  0 - 32
+        blockHeight                              uint256     bytes  0 - 32
         merkleRoot                               uint256     bytes  32 - 64
      */
     function executeProposal(bytes32 resourceID, bytes calldata data) external override onlyBridge {
-        uint256       newLeafIndex;
+        uint8         chainID;
+        uint256       blockHeight;
         uint256       merkleRoot;
 
-        (newLeafIndex, merkleRoot) = abi.decode(data, (uint, uint));
+        (chainID, blockHeight, merkleRoot) = abi.decode(data, (uint8, uint, uint));
 
-        address tokenAddress = _resourceIDToTokenContractAddress[resourceID];
+        address anchorAddress = _resourceIDToContractAddress[resourceID];
 
-        require(_contractWhitelist[tokenAddress], "provided tokenAddress is not whitelisted");
-        // TODO: Implement update logic for executing an update proposal
+        require(_contractWhitelist[anchorAddress], "provided tokenAddress is not whitelisted");
+
+        LinkableAnchor anchor = LinkableAnchor(anchorAddress);
+
+        if (anchor.hasEdge(chainID)) {
+            anchor.updateEdge(
+                chainID,
+                resourceID,
+                bytes32(merkleRoot),
+                blockHeight
+            );
+        } else {
+            anchor.addEdge(
+                chainID,
+                resourceID,
+                bytes32(merkleRoot),
+                blockHeight
+            );
+        }
+
+        uint nonce = ++_counts[chainID];
+        _updateRecords[chainID][nonce] = UpdateRecord(
+            anchorAddress,
+            chainID,
+            resourceID,
+            bytes32(merkleRoot),
+            blockHeight
+        );
     }
 }

@@ -146,24 +146,6 @@ contract('Bridge - [create a update proposal (voteProposal) with relayerThreshol
         ));
     });
 
-    it.only("updateProposal shouldn't be created by a different address if it has an Active status", async () => {
-        await TruffleAssert.passes(BridgeInstance.voteProposal(
-            destinationChainID,
-            expectedUpdateNonce,
-            resourceID,
-            dataHash,
-            { from: originChainRelayerAddress }
-        ));
-
-        await TruffleAssert.reverts(BridgeInstance.voteProposal(
-            destinationChainID,
-            expectedUpdateNonce,
-            resourceID,
-            dataHash,
-            { from: originChainRelayerAddress2}
-        ));
-    });
-
     it.only("getProposal should be called successfully", async () => {
         await TruffleAssert.passes(BridgeInstance.getProposal(
             destinationChainID, expectedUpdateNonce, dataHash

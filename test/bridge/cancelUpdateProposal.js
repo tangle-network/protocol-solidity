@@ -58,7 +58,6 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
     let resourceID = '';
     let initialResourceIDs;
     let initialContractAddresses;
-    let burnableContractAddresses;
 
     let vote, executeProposal;
 
@@ -96,7 +95,6 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
         resourceID = Helpers.createResourceID(LinkableAnchorInstance.address, originChainID);
         initialResourceIDs = [resourceID];
         initialContractAddresses = [LinkableAnchorInstance.address];
-        burnableContractAddresses = [LinkableAnchorInstance.address];
 
         DestinationAnchorHandlerInstance = await AnchorHandlerContract.new(
             BridgeInstance.address,

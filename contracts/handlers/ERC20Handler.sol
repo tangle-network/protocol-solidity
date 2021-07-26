@@ -104,7 +104,7 @@ contract ERC20Handler is IDepositExecute, IExecutor, HandlerHelpers, ERC20Safe {
         (amount, lenRecipientAddress) = abi.decode(data, (uint, uint));
         recipientAddress = bytes(data[64:64 + lenRecipientAddress]);
 
-        address tokenAddress = _resourceIDToTokenContractAddress[resourceID];
+        address tokenAddress = _resourceIDToContractAddress[resourceID];
         require(_contractWhitelist[tokenAddress], "provided tokenAddress is not whitelisted");
 
         if (_burnList[tokenAddress]) {
@@ -142,7 +142,7 @@ contract ERC20Handler is IDepositExecute, IExecutor, HandlerHelpers, ERC20Safe {
         destinationRecipientAddress = bytes(data[64:64 + lenDestinationRecipientAddress]);
 
         bytes20 recipientAddress;
-        address tokenAddress = _resourceIDToTokenContractAddress[resourceID];
+        address tokenAddress = _resourceIDToContractAddress[resourceID];
 
         assembly {
             recipientAddress := mload(add(destinationRecipientAddress, 0x20))
