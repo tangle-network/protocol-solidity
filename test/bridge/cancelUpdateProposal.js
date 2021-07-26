@@ -15,6 +15,7 @@
  const Verifier = artifacts.require("Verifier");
  const Hasher = artifacts.require("HasherMock");
  const Token = artifacts.require("ERC20Mock");
+ 
  contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (accounts) => {
      const originChainID = 1;
      const destinationChainID = 2;
