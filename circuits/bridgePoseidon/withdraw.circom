@@ -2,7 +2,7 @@ include "../../node_modules/circomlib/circuits/bitify.circom";
 include "../../node_modules/circomlib/circuits/pedersen.circom";
 include "manyMerkleTree.circom";
 
-// computes Pedersen(nullifier + secret)
+// computes Poseidon(chainID, nullifier, secret)
 template CommitmentHasher() {
     signal input chainID;
     signal input nullifier;
@@ -10,27 +10,17 @@ template CommitmentHasher() {
     signal output commitment;
     signal output nullifierHash;
 
-    // 1 byte for chainID + 31 bytes for nullifier + 31 bytes for secret
-    component commitmentHasher = Pedersen(504);
-    component nullifierHasher = Pedersen(248);
-    component chainIDBits = Num2Bits(8);
-    component nullifierBits = Num2Bits(248);
-    component secretBits = Num2Bits(248);
-    nullifierBits.in <== nullifier;
-    secretBits.in <== secret;
+    component poseidon3Hasher = Hasher3();
+    poseidon3Hasher.in[0] <== chainID;
+    poseidon3Hasher.in[1] <== nullifier;
+    poseidon3Hasher.in[2] <== secret;
 
-    for (var i = 0; i < 248; i++) {
-        if (i < 8) {
-          commitmentHasher.in[i] <== chainIDBits.out[i];
-        }
+    component nullifierHasher = HashLeftRight();
+    nullifierHasher.left <==  nullifier;
+    nullifierHasher.right <== nullifier;
 
-        nullifierHasher.in[i] <== nullifierBits.out[i];
-        commitmentHasher.in[i + 8] <== nullifierBits.out[i];
-        commitmentHasher.in[i + 8 + 248] <== secretBits.out[i];
-    }
-
-    commitment <== commitmentHasher.out[0];
-    nullifierHash <== nullifierHasher.out[0];
+    commitment <== poseidon3Hasher.hash;
+    nullifierHash <== nullifierHasher.hash;
 }
 
 // Verifies that commitment that corresponds to given secret and nullifier is included in the merkle tree of deposits
