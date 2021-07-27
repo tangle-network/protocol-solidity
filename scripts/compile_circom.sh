@@ -24,11 +24,11 @@ circom circuits/test/poseidon_bridge_2.circom \
   --sym artifacts/circuits/bridge/poseidon_bridge_2.sym
 echo "Done!"
 
-echo "Compiling pederson preimage circuit..."
-circom circuits/test/pederson_preimage.circom \
-  --r1cs artifacts/circuits/pederson_preimage.r1cs \
-  --wasm artifacts/circuits/pederson_preimage.wasm \
-  --sym artifacts/circuits/pederson_preimage.sym
+echo "Compiling pedersen preimage circuit..."
+circom circuits/test/pedersen_preimage.circom \
+  --r1cs artifacts/circuits/pedersen_preimage.r1cs \
+  --wasm artifacts/circuits/pedersen_preimage.wasm \
+  --sym artifacts/circuits/pedersen_preimage.sym
 echo "Done!"
 
 echo "Compiling poseidon preimage circuit..."

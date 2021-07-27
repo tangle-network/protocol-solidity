@@ -13,6 +13,7 @@
     "setup:bridge-poseidon": "./scripts/generate_trusted_setup_withdraw.sh ./artifacts/circuits/bridge/poseidon_bridge_2.r1cs ./build/bridge-poseidon",
     "setup:mimc-poseidon": "./scripts/generate_trusted_setup_withdraw.sh ./artifacts/circuits/bridge/mimc_bridge_2.r1cs ./build/bridge-mimc",
     "setup:poseidon-preimage": "node scripts/generatePoseidonInput.js && ./scripts/phase2_poseidon_1.sh && ./scripts/phase2_poseidon_2.sh",
+    "setup:pedersen-preimage": "node scripts/generatePedersenInput.js && ./scripts/phase2_pedersen_1.sh && ./scripts/phase2_pedersen_2.sh",
     "setup:tornado": "./scripts/generate_trusted_setup_withdraw.sh ./artifacts/circuits/tornado/withdraw_30.r1cs ./build/tornado",
     "test:all": "yarn compile && yarn build && yarn test",
     "test:bridge": "yarn compile && yarn build && yarn setup && yarn test",

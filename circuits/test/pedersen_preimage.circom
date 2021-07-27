@@ -1,7 +1,7 @@
 include "../../node_modules/circomlib/circuits/bitify.circom";
 include "../../node_modules/circomlib/circuits/pedersen.circom";
 
-template PedersonPreimage() {
+template PedersenPreimage() {
     signal input commitment;
     signal private input nullifier;
     signal private input secret;
@@ -19,4 +19,4 @@ template PedersonPreimage() {
     commitment === commitmentHasher.out[0];
 }
 
-component main = PedersonPreimage();
+component main = PedersenPreimage();
