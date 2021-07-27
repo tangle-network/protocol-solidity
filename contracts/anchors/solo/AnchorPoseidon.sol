@@ -5,53 +5,29 @@
 
 pragma solidity ^0.8.0;
 
-import "../trees/MerkleTreeMiMC.sol";
+import "../../trees/MerkleTreePoseidon.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 interface IVerifier {
   function verifyProof(bytes memory _proof, uint256[6] memory _input) external returns (bool);
 }
 
-abstract contract Anchor is MerkleTreeMiMC, ReentrancyGuard {
+abstract contract AnchorPoseidon is MerkleTreePoseidon, ReentrancyGuard {
   address public bridge;
   address public admin;
   address public handler;
 
   IVerifier public immutable verifier;
   uint256 public immutable denomination;
-  uint256 public immutable maxRoots;
-  struct Edge {
-    uint8 chainID;
-    bytes32 resourceID;
-    bytes32 root;
-    uint256 height;
-  }
-
-  // maps anchor resource IDs to the index in the edge list
-  mapping(bytes32 => uint256) public edgeIndex;
-  mapping(uint8 => bool) public edgeExistsForChain;
-  Edge[] public edgeList;
 
   // map to store used nullifier hashes
   mapping(bytes32 => bool) public nullifierHashes;
   // map to store all commitments to prevent accidental deposits with the same commitment
   mapping(bytes32 => bool) public commitments;
 
-  // map to store the history of root updates
-  mapping(uint => bytes32[]) public rootHistory;
-  // pruning length for root history (i.e. the # of history items to persist)
-  uint pruningLength;
-  // the latest history index that represents the next index to store history at % pruningLength
-  uint latestHistoryIndex;
-
   // currency events
   event Deposit(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp);
   event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uint256 fee);
-  // bridge events
-  event EdgeAddition(uint8 chainID, bytes32 destResourceID, uint256 height, bytes32 merkleRoot);
-  event EdgeUpdate(uint8 chainID, bytes32 destResourceID, uint256 height, bytes32 merkleRoot);
-  event RootHistoryRecorded(uint timestamp, bytes32[] roots);
-  event RootHistoryUpdate(uint timestamp, bytes32[] roots);
 
   /**
     @dev The constructor
@@ -62,20 +38,13 @@ abstract contract Anchor is MerkleTreeMiMC, ReentrancyGuard {
   */
   constructor(
     IVerifier _verifier,
-    IHasher _hasher,
+    IPoseidonT3 _hasher,
     uint256 _denomination,
-    uint32 _merkleTreeHeight,
-    uint32 _maxRoots
-  ) MerkleTreeMiMC(_merkleTreeHeight, _hasher) {
+    uint32 _merkleTreeHeight
+  ) MerkleTreePoseidon(_merkleTreeHeight, _hasher) {
     require(_denomination > 0, "denomination should be greater than 0");
     verifier = _verifier;
     denomination = _denomination;
-    maxRoots = _maxRoots;
-    // TODO: Handle pruning length in function signature
-    pruningLength = 100;
-    latestHistoryIndex = 0;
-    // TODO: Parameterize max rooots (length of array should be max roots)
-    rootHistory[latestHistoryIndex] = new bytes32[](_maxRoots);
   }
 
   /**
@@ -151,31 +120,5 @@ abstract contract Anchor is MerkleTreeMiMC, ReentrancyGuard {
         spent[i] = true;
       }
     }
-  }
-  /** @dev */
-  function getLatestNeighborRoots() public view returns (bytes32[] memory roots) {
-    roots = new bytes32[](maxRoots);
-    for (uint256 i = 0; i < edgeList.length; i++) {
-      roots[i] = edgeList[i].root;
-    }
-  }
-
-  function hasEdge(uint8 chainID) public view returns (bool) {
-    return edgeExistsForChain[chainID];
-  }
-
-  modifier onlyAdmin()  {
-    require(msg.sender == admin, 'sender is not the admin');
-    _;
-  }
-
-  modifier onlyBridge()  {
-    require(msg.sender == bridge, 'sender is not the bridge');
-    _;
-  }
-
-  modifier onlyHandler()  {
-    require(msg.sender == handler, 'sender is not the handler');
-    _;
   }
 }

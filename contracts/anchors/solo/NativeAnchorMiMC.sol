@@ -5,16 +5,15 @@
 
 pragma solidity ^0.8.0;
 
-import "./Anchor.sol";
+import "./AnchorMiMC.sol";
 
-contract NativeAnchor is Anchor {
+contract NativeAnchorMiMC is AnchorMiMC {
   constructor(
     IVerifier _verifier,
     IHasher _hasher,
     uint256 _denomination,
-    uint32 _merkleTreeHeight,
-    uint32 _maxRoots
-  ) Anchor(_verifier, _hasher, _denomination, _merkleTreeHeight, _maxRoots) {}
+    uint32 _merkleTreeHeight
+  ) AnchorMiMC(_verifier, _hasher, _denomination, _merkleTreeHeight) {}
 
   function _processDeposit() internal override {
     require(msg.value == denomination, "Please send `mixDenomination` ETH along with transaction");

@@ -6,15 +6,16 @@
 pragma solidity ^0.8.0;
 
 import "./AnchorPoseidon2.sol";
+import "../interfaces/ILinkableAnchor.sol";
 
-abstract contract LinkableAnchorPoseidon2 is AnchorPoseidon2 {
+abstract contract LinkableAnchorPoseidon2 is AnchorPoseidon2, ILinkableAnchor {
   constructor(
     IVerifier _verifier,
     IPoseidonT3 _hasher,
     uint256 _denomination,
     uint32 _merkleTreeHeight,
-    uint32 _maxRoots
-  ) AnchorPoseidon2(_verifier, _hasher, _denomination, _merkleTreeHeight, _maxRoots) {
+    uint32 _chainID
+  ) AnchorPoseidon2(_verifier, _hasher, _denomination, _merkleTreeHeight, _chainID) {
     // set the sender as admin & bridge & handler address
     // TODO: Properly set addresses and permissions
     bridge = msg.sender;
@@ -22,15 +23,19 @@ abstract contract LinkableAnchorPoseidon2 is AnchorPoseidon2 {
     handler = msg.sender;
   }
 
-  function setHandler(address _handler) onlyBridge external {
+  function setHandler(address _handler) onlyBridge override external {
     handler = _handler;
   }
 
-  function setBridge(address _bridge) onlyAdmin external {
+  function setBridge(address _bridge) onlyAdmin override external {
     bridge = _bridge;
   }
 
-  function recordHistory() external {
+  function hasEdge(uint8 _chainID) override external view returns (bool) {
+    return edgeExistsForChain[_chainID];
+  }
+
+  function recordHistory() override external {
     // add a new historical record by snapshotting the Anchor's current neighbors
     bytes32[1] memory history = getLatestNeighborRoots();
     rootHistory[latestHistoryIndex] = history;
@@ -44,7 +49,7 @@ abstract contract LinkableAnchorPoseidon2 is AnchorPoseidon2 {
     bytes32 resourceID,
     bytes32 root,
     uint256 height
-  ) onlyHandler external payable nonReentrant {
+  ) onlyHandler override external payable nonReentrant {
     require(edgeList.length < 1, "This Anchor is at capacity");
     edgeExistsForChain[sourceChainID] = true;
     uint index = edgeList.length;
@@ -68,7 +73,7 @@ abstract contract LinkableAnchorPoseidon2 is AnchorPoseidon2 {
     bytes32 resourceID,
     bytes32 root,
     uint256 height
-  ) onlyHandler external payable nonReentrant {
+  ) onlyHandler override external payable nonReentrant {
     require(edgeExistsForChain[sourceChainID], "Chain must be integrated from the bridge before updates");
     require(edgeList[edgeIndex[resourceID]].height < height, "New height must be greater");
     uint index = edgeIndex[resourceID];

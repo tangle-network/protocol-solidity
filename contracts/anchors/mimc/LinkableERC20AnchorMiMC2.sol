@@ -5,22 +5,22 @@
 
 pragma solidity ^0.8.0;
 
-import "./LinkableAnchorPoseidon2.sol";
+import "./LinkableAnchorMiMC2.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract LinkableERC20AnchorPoseidon2 is LinkableAnchorPoseidon2 {
+contract LinkableERC20AnchorMiMC2 is LinkableAnchorMiMC2 {
   using SafeERC20 for IERC20;
   IERC20 public immutable token;
 
   constructor(
     IVerifier _verifier,
-    IPoseidonT3 _hasher,
+    IHasher _hasher,
     uint256 _denomination,
     uint32 _merkleTreeHeight,
-    uint32 _chainID,
+    uint32 _maxRoots,
     IERC20 _token
-  ) LinkableAnchorPoseidon2(_verifier, _hasher, _denomination, _merkleTreeHeight, _chainID) {
+  ) LinkableAnchorMiMC2(_verifier, _hasher, _denomination, _merkleTreeHeight, _maxRoots) {
     token = _token;
   }
 

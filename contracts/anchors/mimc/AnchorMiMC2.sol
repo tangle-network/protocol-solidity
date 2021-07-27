@@ -5,22 +5,22 @@
 
 pragma solidity ^0.8.0;
 
-import "../../trees/MerkleTreePoseidon.sol";
+import "../../trees/MerkleTreeMiMC.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 interface IVerifier {
   function verifyProof(bytes memory _proof, uint256[8] memory _input) external returns (bool);
 }
 
-abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
+abstract contract AnchorMiMC2 is MerkleTreeMiMC, ReentrancyGuard {
   address public bridge;
   address public admin;
   address public handler;
 
   IVerifier public immutable verifier;
   uint256 public immutable denomination;
-
   uint256 public immutable chainID;
+
   struct Edge {
     uint8 chainID;
     bytes32 resourceID;
@@ -63,11 +63,11 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
   */
   constructor(
     IVerifier _verifier,
-    IPoseidonT3 _hasher,
+    IHasher _hasher,
     uint256 _denomination,
     uint32 _merkleTreeHeight,
     uint256 _chainID
-  ) MerkleTreePoseidon(_merkleTreeHeight, _hasher) {
+  ) MerkleTreeMiMC(_merkleTreeHeight, _hasher) {
     require(_denomination > 0, "denomination should be greater than 0");
     verifier = _verifier;
     denomination = _denomination;

@@ -5,16 +5,17 @@
 
 pragma solidity ^0.8.0;
 
-import "./Anchor.sol";
+import "./AnchorMiMC2.sol";
+import "../interfaces/ILinkableAnchor.sol";
 
-abstract contract LinkableAnchor is Anchor {
+abstract contract LinkableAnchorMiMC2 is AnchorMiMC2, ILinkableAnchor {
   constructor(
     IVerifier _verifier,
     IHasher _hasher,
     uint256 _denomination,
     uint32 _merkleTreeHeight,
     uint32 _maxRoots
-  ) Anchor(_verifier, _hasher, _denomination, _merkleTreeHeight, _maxRoots) {
+  ) AnchorMiMC2(_verifier, _hasher, _denomination, _merkleTreeHeight, _maxRoots) {
     // set the sender as admin & bridge & handler address
     // TODO: Properly set addresses and permissions
     bridge = msg.sender;
@@ -22,17 +23,21 @@ abstract contract LinkableAnchor is Anchor {
     handler = msg.sender;
   }
 
-  function setHandler(address _handler) onlyBridge external {
+  function setHandler(address _handler) onlyBridge override external {
     handler = _handler;
   }
 
-  function setBridge(address _bridge) onlyAdmin external {
+  function setBridge(address _bridge) onlyAdmin override external {
     bridge = _bridge;
   }
 
-  function recordHistory() external {
-    // add a new historical record by snapshotting the Anchor's current neighbors
-    bytes32[] memory history = getLatestNeighborRoots();
+  function hasEdge(uint8 _chainID) override external view returns (bool) {
+    return edgeExistsForChain[_chainID];
+  }
+
+  function recordHistory() override external {
+    // add a new historical record by snapshotting the AnchorMiMC's current neighbors
+    bytes32[1] memory history = getLatestNeighborRoots();
     rootHistory[latestHistoryIndex] = history;
     // set the next history index modulo pruning length
     latestHistoryIndex = latestHistoryIndex % pruningLength;
@@ -44,8 +49,8 @@ abstract contract LinkableAnchor is Anchor {
     bytes32 resourceID,
     bytes32 root,
     uint256 height
-  ) onlyHandler external payable nonReentrant {
-    require(edgeList.length < maxRoots, "This Anchor is at capacity");
+  ) onlyHandler override external payable nonReentrant {
+    require(edgeList.length < 2, "This AnchorMiMC is at capacity");
     edgeExistsForChain[sourceChainID] = true;
     uint index = edgeList.length;
     Edge memory edge = Edge({
@@ -58,7 +63,7 @@ abstract contract LinkableAnchor is Anchor {
     edgeIndex[resourceID] = index;
     emit EdgeAddition(sourceChainID, resourceID, height, root);
     // emit update event
-    bytes32[] memory neighbors = getLatestNeighborRoots();
+    bytes32[1] memory neighbors = getLatestNeighborRoots();
     neighbors[index] = root;
     emit RootHistoryUpdate(block.timestamp, neighbors);
     
@@ -69,7 +74,7 @@ abstract contract LinkableAnchor is Anchor {
     bytes32 resourceID,
     bytes32 root,
     uint256 height
-  ) onlyHandler external payable nonReentrant {
+  ) onlyHandler override external payable nonReentrant {
     require(edgeExistsForChain[sourceChainID], "Chain must be integrated from the bridge before updates");
     require(edgeList[edgeIndex[resourceID]].height < height, "New height must be greater");
     uint index = edgeIndex[resourceID];
@@ -82,7 +87,7 @@ abstract contract LinkableAnchor is Anchor {
     });
     emit EdgeUpdate(sourceChainID, resourceID, height, root);
     // emit update event
-    bytes32[] memory neighbors = getLatestNeighborRoots();
+    bytes32[1] memory neighbors = getLatestNeighborRoots();
     neighbors[index] = root;
     emit RootHistoryUpdate(block.timestamp, neighbors);
   }

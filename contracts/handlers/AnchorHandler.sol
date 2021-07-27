@@ -8,7 +8,7 @@ pragma experimental ABIEncoderV2;
 
 import "../interfaces/IUpdateExecute.sol";
 import "./HandlerHelpers.sol";
-import "../anchors/LinkableAnchor.sol";
+import "../anchors/interfaces/ILinkableAnchor.sol";
 import "../interfaces/IExecutor.sol";
 
 /**
@@ -98,7 +98,7 @@ contract AnchorHandler is IUpdateExecute, IExecutor, HandlerHelpers {
         address anchorAddress = _resourceIDToTokenContractAddress[resourceID];
         require(_contractWhitelist[anchorAddress], "provided tokenAddress is not whitelisted");
 
-        LinkableAnchor anchor = LinkableAnchor(anchorAddress);
+        ILinkableAnchor anchor = ILinkableAnchor(anchorAddress);
 
         if (anchor.hasEdge(sourceChainID)) {
             anchor.updateEdge(

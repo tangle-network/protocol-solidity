@@ -1,5 +1,3 @@
-include "../../node_modules/circomlib/circuits/bitify.circom";
-include "../../node_modules/circomlib/circuits/pedersen.circom";
 include "manyMerkleTree.circom";
 
 // computes Poseidon(chainID, nullifier, secret)

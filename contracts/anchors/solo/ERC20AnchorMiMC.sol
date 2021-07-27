@@ -5,11 +5,11 @@
 
 pragma solidity ^0.8.0;
 
-import "./LinkableAnchor.sol";
+import "./AnchorMiMC.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract LinkableERC20Anchor is LinkableAnchor {
+contract ERC20AnchorMiMC is AnchorMiMC {
   using SafeERC20 for IERC20;
   IERC20 public immutable token;
 
@@ -18,9 +18,8 @@ contract LinkableERC20Anchor is LinkableAnchor {
     IHasher _hasher,
     uint256 _denomination,
     uint32 _merkleTreeHeight,
-    uint32 _maxRoots,
     IERC20 _token
-  ) LinkableAnchor(_verifier, _hasher, _denomination, _merkleTreeHeight, _maxRoots) {
+  ) AnchorMiMC(_verifier, _hasher, _denomination, _merkleTreeHeight) {
     token = _token;
   }
 
