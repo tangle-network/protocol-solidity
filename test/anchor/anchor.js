@@ -9,7 +9,7 @@ const fs = require('fs')
 const path = require('path');
 const { toBN, randomHex } = require('web3-utils')
 const LinkableAnchorContract = artifacts.require('./LinkableERC20AnchorPoseidon2.sol');
-const PoseidonBridgeVerifier = artifacts.require('./PoseidonBridgeVerifier.sol');
+const VerifierPoseidonBridge = artifacts.require('./VerifierPoseidonBridge.sol');
 const Poseidon = artifacts.require('PoseidonT3');
 const Token = artifacts.require("ERC20Mock");
 
@@ -22,14 +22,14 @@ const circomlib = require('circomlib');
 const F = require('circomlib').babyJub.F;
 const Scalar = require("ffjavascript").Scalar;
 
-const MerkleTree = require('../../lib/bridgePoseidon-withdraw/MerkleTree')
-
 const utils = require("ffjavascript").utils;
 const {
-  beBuff2int,
   leBuff2int,
   leInt2Buff,
+  stringifyBigInts,
 } = utils;
+const PoseidonHasher = require('../../lib/bridgePoseidon-withdraw/Poseidon'); 
+const MerkleTree = require('../../lib/bridgePoseidon-withdraw/MerkleTree');
 
 function bigNumberToPaddedBytes(num, digits =  32) {
   var n = num.toString(16).replace(/^0x/, '');
@@ -39,6 +39,7 @@ function bigNumberToPaddedBytes(num, digits =  32) {
   return "0x" + n;
 }
 
+const poseidonHasher = new PoseidonHasher();
 const rbigint = (nbytes) => leBuff2int(crypto.randomBytes(nbytes))
 const pedersenHash = (data) => circomlib.babyJub.unpackPoint(circomlib.pedersenHash.hash(data))[0]
 const toFixedHex = (number, length = 32) =>
@@ -55,12 +56,8 @@ function generateDeposit(targetChainID = 0) {
     nullifier: rbigint(31),
   }
 
-  const preimage = Buffer.concat([
-    leInt2Buff(deposit.chainID, 1),
-    leInt2Buff(deposit.nullifier, 31),
-    leInt2Buff(deposit.secret, 31),
-  ]);
-  deposit.commitment = pedersenHash(preimage)
+  deposit.commitment = poseidonHasher.hash3([deposit.chainID, deposit.nullifier, deposit.secret]);
+  deposit.nullifierHash =   poseidonHasher.hash(null, deposit.nullifier, deposit.nullifier);
   return deposit
 }
 
@@ -88,9 +85,9 @@ contract('AnchorPoseidon2', (accounts) => {
   beforeEach(async () => {
     tree = new MerkleTree(levels, null, prefix)
     hasherInstance = await Poseidon.new();
-    verifier = await PoseidonBridgeVerifier.new();
+    verifier = await VerifierPoseidonBridge.new();
     token = await Token.new();
-    await token.mint(sender, new BN('10000000000000000000'));
+    await token.mint(sender, new BN('10000000000000000000000'));
     const balanceOfSender = await token.balanceOf.call(sender);
     anchor = await LinkableAnchorContract.new(
       verifier.address,
@@ -173,51 +170,47 @@ contract('AnchorPoseidon2', (accounts) => {
 
   // Use Node version >=12
   describe('snark proof verification on js side', () => {
-    it('should rebuild tree w/ contract hasher', async () => {
-      const chainID = 0;
-
-      const deposit = generateDeposit(chainID);
-      await tree.insert(deposit.commitment)
-      const { root, path_elements, path_index } = await tree.path(0);
-      const roots = [root, 0];
-      // console.log(root, path_elements, path_index);
-    });
-
     it('should detect tampering', async () => {
-      const chainID = 0;
+      const chainID = 122;
 
       const deposit = generateDeposit(chainID);
       await tree.insert(deposit.commitment)
       const { root, path_elements, path_index } = await tree.path(0);
       const roots = [root, 0];
-      // calculate diffs of target root to prove and roots
       const diffs = roots.map(r => {
         return F.sub(
-          Scalar.fromString(r),
-          Scalar.fromString(root),
+          Scalar.fromString(`${r}`),
+          Scalar.fromString(`${root}`),
         ).toString();
       });
-
       // mock set membership gadget computation
       for (var i = 0; i < roots.length; i++) {
         assert.strictEqual(Scalar.fromString(roots[i]), F.add(Scalar.fromString(diffs[i]), Scalar.fromString(root)));
       }
 
-      const witness = {
-        nullifierHash: pedersenHash(leInt2Buff(deposit.nullifier, 31)).toString(),
-        recipient: recipient.toString(),
-        relayer: operator.toString(),
-        fee: fee.toString(),
-        refund: refund.toString(),
-        chainID: chainID.toString(),
-        roots: roots,
-        diffs: diffs,
-        nullifier: deposit.nullifier.toString(),
-        secret: deposit.secret.toString(),
+      const input = {
+        // public
+        nullifierHash: deposit.nullifierHash,
+        recipient,
+        relayer,
+        fee,
+        refund,
+        chainID: deposit.chainID,
+        roots: [root, 0],
+        // private
+        nullifier: deposit.nullifier,
+        secret: deposit.secret,
         pathElements: path_elements,
         pathIndices: path_index,
+        diffs: [root, 0].map(r => {
+          return F.sub(
+            Scalar.fromString(`${r}`),
+            Scalar.fromString(`${root}`),
+          ).toString();
+        }),
       };
-      const wtns = await createWitness(witness);
+
+      const wtns = await createWitness(input);
 
       let res = await snarkjs.groth16.prove('build/bridge-poseidon/circuit_final.zkey', wtns);
       proof = res.proof;
@@ -231,62 +224,71 @@ contract('AnchorPoseidon2', (accounts) => {
 
       // nullifier
       publicSignals[0] = '133792158246920651341275668520530514036799294649489851421007411546007850802'
-      res = await snarkjs.plonk.verify(vKey, publicSignals, proof);
+      res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       assert.strictEqual(res, false)
       publicSignals = tempSignals;
 
       // try to cheat with recipient
       publicSignals[1] = '133738360804642228759657445999390850076318544422'
-      res = await snarkjs.plonk.verify(vKey, publicSignals, proof);
+      res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       assert.strictEqual(res, false)
       publicSignals = tempSignals;
 
       // fee
       publicSignals[2] = '1337100000000000000000'
-      res = await snarkjs.plonk.verify(vKey, publicSignals, proof);
+      res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       assert.strictEqual(res, false)
       publicSignals = tempSignals;
     })
   })
 
   describe('#withdraw', () => {
-    it('should work', async () => {
-      const deposit = generateDeposit()
+    it.only('should work', async () => {
+      const chainID = 125;
+      const deposit = generateDeposit(chainID);
       const user = accounts[4]
       await tree.insert(deposit.commitment)
 
-      const balanceUserBefore = await web3.eth.getBalance(user)
+      token.mint(user, tokenDenomination);
+      const balanceUserBefore = await token.balanceOf(user);
+      console.log(balanceUserBefore.toString());
 
       // Uncomment to measure gas usage
       // let gas = await anchor.deposit.estimateGas(toBN(deposit.commitment.toString()), { value, from: user, gasPrice: '0' })
       // console.log('deposit gas:', gas)
-      await token.approve(anchor.address, tokenDenomination)
+      await token.approve(anchor.address, tokenDenomination, { from: user });
       await anchor.deposit(toFixedHex(deposit.commitment), { from: user, gasPrice: '0' })
 
-      const balanceUserAfter = await web3.eth.getBalance(user)
+      const balanceUserAfter = await token.balanceOf(user)
       assert.strictEqual(balanceUserAfter, BN(toBN(balanceUserBefore).sub(toBN(value))));
 
       const { root, path_elements, path_index } = await tree.path(0)
 
-      // Circuit input
-      const witness = {
+      const input = {
         // public
-        root,
-        nullifierHash: pedersenHash(bigNumberToPaddedBytes(deposit.nullifier, 31)),
-        relayer: operator,
+        nullifierHash: deposit.nullifierHash,
         recipient,
+        relayer,
         fee,
         refund,
-
+        chainID: deposit.chainID,
+        roots: [root, 0],
         // private
         nullifier: deposit.nullifier,
         secret: deposit.secret,
         pathElements: path_elements,
         pathIndices: path_index,
+        diffs: [root, 0].map(r => {
+          return F.sub(
+            Scalar.fromString(`${r}`),
+            Scalar.fromString(`${root}`),
+          ).toString();
+        }),
       };
-      const wtns = await createWitness(witness);
 
-      let res = await snarkjs.groth16.prove('build/tornado/circuit_final.zkey', wtns);
+      const wtns = await createWitness(input);
+
+      let res = await snarkjs.groth16.prove('build/bridge-poseidon/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
 
@@ -337,21 +339,31 @@ contract('AnchorPoseidon2', (accounts) => {
 
       const { root, path_elements, path_index } = await tree.path(0);
 
-      const witness = {
-        root,
-        nullifierHash: pedersenHash(bigNumberToPaddedBytes(deposit.nullifier, 31)),
-        nullifier: deposit.nullifier,
-        relayer: operator,
+      const input = {
+        // public
+        nullifierHash: deposit.nullifierHash,
         recipient,
+        relayer,
         fee,
         refund,
+        chainID: deposit.chainID,
+        roots: [root, 0],
+        // private
+        nullifier: deposit.nullifier,
         secret: deposit.secret,
         pathElements: path_elements,
         pathIndices: path_index,
+        diffs: [root, 0].map(r => {
+          return F.sub(
+            Scalar.fromString(`${r}`),
+            Scalar.fromString(`${root}`),
+          ).toString();
+        }),
       };
-      const wtns = await createWitness(witness);
 
-      let res = await snarkjs.groth16.prove('build/tornado/circuit_final.zkey', wtns);
+      const wtns = await createWitness(input);
+
+      let res = await snarkjs.groth16.prove('build/bridge-poseidon/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
 
@@ -378,20 +390,31 @@ contract('AnchorPoseidon2', (accounts) => {
 
       const { root, path_elements, path_index } = await tree.path(0)
 
-      const witness = {
-        root,
-        nullifierHash: pedersenHash(bigNumberToPaddedBytes(deposit.nullifier, 31)),
-        nullifier: deposit.nullifier,
-        relayer: operator,
+      const input = {
+        // public
+        nullifierHash: deposit.nullifierHash,
         recipient,
+        relayer,
         fee,
         refund,
+        chainID: deposit.chainID,
+        roots: [root, 0],
+        // private
+        nullifier: deposit.nullifier,
         secret: deposit.secret,
         pathElements: path_elements,
         pathIndices: path_index,
+        diffs: [root, 0].map(r => {
+          return F.sub(
+            Scalar.fromString(`${r}`),
+            Scalar.fromString(`${root}`),
+          ).toString();
+        }),
       };
 
-      let res = await snarkjs.groth16.prove('build/tornado/circuit_final.zkey', wtns);
+      const wtns = await createWitness(input);
+
+      let res = await snarkjs.groth16.prove('build/bridge-poseidon/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
 
@@ -421,20 +444,32 @@ contract('AnchorPoseidon2', (accounts) => {
 
       const { root, path_elements, path_index } = await tree.path(0)
       const largeFee = new BN(`${value}`).add(bigInt(1))
-      const witness = {
-        root,
-        nullifierHash: pedersenHash(bigNumberToPaddedBytes(deposit.nullifier, 31)),
-        nullifier: deposit.nullifier,
-        relayer: operator,
+
+      const input = {
+        // public
+        nullifierHash: deposit.nullifierHash,
         recipient,
-        fee: largeFee,
+        relayer,
+        fee,
         refund,
+        chainID: deposit.chainID,
+        roots: [root, 0],
+        // private
+        nullifier: deposit.nullifier,
         secret: deposit.secret,
         pathElements: path_elements,
         pathIndices: path_index,
+        diffs: [root, 0].map(r => {
+          return F.sub(
+            Scalar.fromString(`${r}`),
+            Scalar.fromString(`${root}`),
+          ).toString();
+        }),
       };
 
-      let res = await snarkjs.groth16.prove('build/tornado/circuit_final.zkey', wtns);
+      const wtns = await createWitness(input);
+
+      let res = await snarkjs.groth16.prove('build/bridge-poseidon/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
 
@@ -460,21 +495,31 @@ contract('AnchorPoseidon2', (accounts) => {
 
       const { root, path_elements, path_index } = await tree.path(0)
 
-      const witness = {
-        nullifierHash: pedersenHash(bigNumberToPaddedBytes(deposit.nullifier, 31)),
-        root,
-        nullifier: deposit.nullifier,
-        relayer: operator,
+      const input = {
+        // public
+        nullifierHash: deposit.nullifierHash,
         recipient,
+        relayer,
         fee,
         refund,
+        chainID: deposit.chainID,
+        roots: [root, 0],
+        // private
+        nullifier: deposit.nullifier,
         secret: deposit.secret,
         pathElements: path_elements,
         pathIndices: path_index,
+        diffs: [root, 0].map(r => {
+          return F.sub(
+            Scalar.fromString(`${r}`),
+            Scalar.fromString(`${root}`),
+          ).toString();
+        }),
       };
-      const wtns = await createWitness(witness);
 
-      let res = await snarkjs.groth16.prove('build/tornado/circuit_final.zkey', wtns);
+      const wtns = await createWitness(input);
+
+      let res = await snarkjs.groth16.prove('build/bridge-poseidon/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
 
@@ -501,21 +546,31 @@ contract('AnchorPoseidon2', (accounts) => {
 
       let { root, path_elements, path_index } = await tree.path(0)
 
-      const witness = {
-        root,
-        nullifierHash: pedersenHash(bigNumberToPaddedBytes(deposit.nullifier, 31)),
-        nullifier: deposit.nullifier,
-        relayer: operator,
+      const input = {
+        // public
+        nullifierHash: deposit.nullifierHash,
         recipient,
+        relayer,
         fee,
         refund,
+        chainID: deposit.chainID,
+        roots: [root, 0],
+        // private
+        nullifier: deposit.nullifier,
         secret: deposit.secret,
         pathElements: path_elements,
         pathIndices: path_index,
+        diffs: [root, 0].map(r => {
+          return F.sub(
+            Scalar.fromString(`${r}`),
+            Scalar.fromString(`${root}`),
+          ).toString();
+        }),
       };
-      const wtns = await createWitness(witness);
 
-      let res = await snarkjs.groth16.prove('build/tornado/circuit_final.zkey', wtns);
+      const wtns = await createWitness(input);
+
+      let res = await snarkjs.groth16.prove('build/bridge-poseidon/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
 
@@ -588,21 +643,31 @@ contract('AnchorPoseidon2', (accounts) => {
 
       const { root, path_elements, path_index } = await tree.path(0)
 
-      const witness = {
-        nullifierHash: pedersenHash(bigNumberToPaddedBytes(deposit.nullifier, 31)),
-        root,
-        nullifier: deposit.nullifier,
-        relayer: operator,
+      const input = {
+        // public
+        nullifierHash: deposit.nullifierHash,
         recipient,
+        relayer,
         fee,
-        refund: new BN(`${1}`),
+        refund,
+        chainID: deposit.chainID,
+        roots: [root, 0],
+        // private
+        nullifier: deposit.nullifier,
         secret: deposit.secret,
         pathElements: path_elements,
         pathIndices: path_index,
+        diffs: [root, 0].map(r => {
+          return F.sub(
+            Scalar.fromString(`${r}`),
+            Scalar.fromString(`${root}`),
+          ).toString();
+        }),
       };
-      const wtns = await createWitness(witness);
 
-      let res = await snarkjs.groth16.prove('build/tornado/circuit_final.zkey', wtns);
+      const wtns = await createWitness(input);
+
+      let res = await snarkjs.groth16.prove('build/bridge-poseidon/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
 
@@ -633,25 +698,31 @@ contract('AnchorPoseidon2', (accounts) => {
 
       const { root, path_elements, path_index } = await tree.path(1)
 
-      // Circuit input
-      const witness = {
+      const input = {
         // public
-        root,
-        nullifierHash: pedersenHash(bigNumberToPaddedBytes(deposit2.nullifier, 31)),
-        relayer: operator,
+        nullifierHash: deposit.nullifierHash,
         recipient,
+        relayer,
         fee,
         refund,
-
+        chainID: deposit.chainID,
+        roots: [root, 0],
         // private
         nullifier: deposit2.nullifier,
         secret: deposit2.secret,
         pathElements: path_elements,
         pathIndices: path_index,
+        diffs: [root, 0].map(r => {
+          return F.sub(
+            Scalar.fromString(`${r}`),
+            Scalar.fromString(`${root}`),
+          ).toString();
+        }),
       };
-      const wtns = await createWitness(witness);
 
-      let res = await snarkjs.groth16.prove('build/tornado/circuit_final.zkey', wtns);
+      const wtns = await createWitness(input);
+
+      let res = await snarkjs.groth16.prove('build/bridge-poseidon/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
 
