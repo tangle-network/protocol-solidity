@@ -38,3 +38,10 @@ circom circuits/test/poseidon_preimage.circom \
   --sym artifacts/circuits/poseidon_preimage.sym
 echo "Done!"
 
+echo "Compiling poseidon3 preimage circuit..."
+circom circuits/test/poseidon_preimage_3.circom \
+  --r1cs artifacts/circuits/poseidon_preimage_3.r1cs \
+  --wasm artifacts/circuits/poseidon_preimage_3.wasm \
+  --sym artifacts/circuits/poseidon_preimage_3.sym
+echo "Done!"
+
