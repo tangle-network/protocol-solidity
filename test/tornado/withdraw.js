@@ -44,7 +44,7 @@ function snarkVerify(proof) {
 
 const HasherMimcContract = artifacts.require("MiMCSponge220");
 const VerifierMimcContract = artifacts.require("Verifier");
-const NativeAnchorContract = artifacts.require("NativeAnchor");
+const NativeAnchorContract = artifacts.require("NativeAnchorMiMC");
 
 contract('NativeAnchor', (accounts) => {
   let hasher;

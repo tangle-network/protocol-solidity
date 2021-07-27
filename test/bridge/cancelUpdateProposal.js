@@ -11,7 +11,7 @@
  const BridgeContract = artifacts.require("Bridge");
  const ERC20MintableContract = artifacts.require("ERC20PresetMinterPauser");
  const AnchorHandlerContract = artifacts.require("AnchorHandler");
- const LinkableAnchorContract = artifacts.require("LinkableERC20Anchor");
+ const LinkableAnchorContract = artifacts.require("LinkableERC20AnchorPoseidon2");
  const Verifier = artifacts.require("Verifier");
  const Hasher = artifacts.require("HasherMock");
  const Token = artifacts.require("ERC20Mock");

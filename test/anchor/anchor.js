@@ -170,7 +170,7 @@ contract('AnchorPoseidon2', (accounts) => {
 
   // Use Node version >=12
   describe('snark proof verification on js side', () => {
-    it.only('should detect tampering', async () => {
+    it('should detect tampering', async () => {
       const chainID = 122;
 
       const deposit = generateDeposit(chainID);
@@ -243,7 +243,7 @@ contract('AnchorPoseidon2', (accounts) => {
   })
 
   describe('#withdraw', () => {
-    it.only('should work', async () => {
+    it('should work', async () => {
       const chainID = 125;
       const deposit = generateDeposit(chainID);
       const user = accounts[4]

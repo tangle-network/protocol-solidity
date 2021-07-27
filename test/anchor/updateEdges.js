@@ -8,7 +8,7 @@
  const Helpers = require('../helpers');
  const assert = require('assert');
  
- const LinkableAnchorContract = artifacts.require("LinkableERC20Anchor");
+ const LinkableAnchorContract = artifacts.require("LinkableERC20AnchorPoseidon2");
  const Verifier = artifacts.require("Verifier");
  const Hasher = artifacts.require("HasherMock");
  const Token = artifacts.require("ERC20Mock");
