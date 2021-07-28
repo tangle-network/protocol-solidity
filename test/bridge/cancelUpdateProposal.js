@@ -15,7 +15,7 @@ const Verifier = artifacts.require("Verifier");
 const Hasher = artifacts.require("HasherMock");
 const Token = artifacts.require("ERC20Mock");
  
-contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (accounts) => {
+contract('Bridge - [CancelUpdateProposal with relayerThreshold == 3]', async (accounts) => {
     const originChainID = 1;
     const destinationChainID = 2;
     const relayer1Address = accounts[0];
@@ -41,14 +41,8 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
     let merkleRoot;
     let LinkableAnchorInstance;
     let hasher, verifier;
-    let anchor;
     let token;
     let tokenDenomination = '1000'; // 1 ether
-    // function stubs
-    let setHandler;
-    let setBridge;
-    let addEdge;
-    let updateEdge;
 
     let BridgeInstance;
     let DestinationAnchorHandlerInstance;
@@ -109,7 +103,7 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
         ]);
 
         vote = (relayer) => BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer });
-        executeProposal = (relayer) => BridgeInstance.executeProposal(originChainID, expectedUpdateNonce, data, { from: relayer });
+        executeProposal = (relayer) => BridgeInstance.executeProposal(originChainID, expectedUpdateNonce, data, resourceID, { from: relayer });
     });
 
     it('[sanity] bridge configured with threshold, relayers, and expiry', async () => {
@@ -215,15 +209,6 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
     });
 
     it("inactive proposal cannot be cancelled", async () => {
-        await TruffleAssert.reverts(BridgeInstance.cancelProposal(originChainID, expectedUpdateNonce, dataHash), "Proposal cannot be cancelled")
-    });
-
-    it("executed proposal cannot be cancelled", async () => {
-        await TruffleAssert.passes(vote(relayer1Address));
-        await TruffleAssert.passes(vote(relayer2Address));
-        await TruffleAssert.passes(vote(relayer3Address));
-
-        await TruffleAssert.passes(BridgeInstance.executeProposal(originChainID, expectedUpdateNonce, data, resourceID));
         await TruffleAssert.reverts(BridgeInstance.cancelProposal(originChainID, expectedUpdateNonce, dataHash), "Proposal cannot be cancelled")
     });
 });

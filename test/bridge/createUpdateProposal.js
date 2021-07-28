@@ -16,7 +16,6 @@ const Hasher = artifacts.require("HasherMock");
 const Token = artifacts.require("ERC20Mock");
 
 
-
 contract('Bridge - [create a update proposal (voteProposal) with relayerThreshold = 1]', async (accounts) => {
     const originChainRelayerAddress = accounts[1];
     const originChainRelayerAddress2 = accounts[4];
@@ -39,14 +38,8 @@ contract('Bridge - [create a update proposal (voteProposal) with relayerThreshol
     let LinkableAnchorInstance;
     let hasher;
     let verifier;
-    let anchor;
     let token;
     let tokenDenomination = '1000'; 
-    // function stubs
-    let setHandler;
-    let setBridge;
-    let addEdge;
-    let updateEdge;
 
     let BridgeInstance;
     let DestinationAnchorHandlerInstance;
@@ -55,7 +48,6 @@ contract('Bridge - [create a update proposal (voteProposal) with relayerThreshol
     let dataHash = '';
     let initialResourceIDs;
     let initialContractAddresses;
-    let burnableContractAddresses;
     
 
     beforeEach(async () => {
@@ -121,10 +113,10 @@ contract('Bridge - [create a update proposal (voteProposal) with relayerThreshol
             resourceID,
             dataHash,
             { from: depositerAddress }
-        ));
+        ), "sender doesn't have relayer role");
     });
 
-    it("updateProposal shouldn't be created if it has an Active status", async () => {
+    it("updateProposal shouldn't be created if it has a passedstatus", async () => {
         await TruffleAssert.passes(BridgeInstance.voteProposal(
             destinationChainID,
             expectedUpdateNonce,
@@ -139,7 +131,7 @@ contract('Bridge - [create a update proposal (voteProposal) with relayerThreshol
             resourceID,
             dataHash,
             { from: originChainRelayerAddress }
-        ));
+        ), "proposal already passed/executed/cancelled");
     });
 
     it("getProposal should be called successfully", async () => {
@@ -303,7 +295,7 @@ contract('Bridge - [create an update proposal (voteProposal) with relayerThresho
             resourceID,
             dataHash,
             { from: depositerAddress }
-        ));
+        ), "sender doesn't have relayer role");
     });
 
     it("updateProposal shouldn't be created if it has an Active status", async () => {
@@ -321,7 +313,7 @@ contract('Bridge - [create an update proposal (voteProposal) with relayerThresho
             resourceID,
             dataHash,
             { from: originChainRelayerAddress }
-        ));
+        ), "relayer already voted");
     });
 
     it('updateProposal should be created with expected values', async () => {

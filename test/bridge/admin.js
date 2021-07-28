@@ -124,8 +124,8 @@ contract('Bridge - [admin]', async accounts => {
 
         await TruffleAssert.passes(BridgeInstance.adminSetResource(
             ERC20HandlerInstance.address, resourceID, ERC20MintableInstance.address));
-        assert.equal(await ERC20HandlerInstance._resourceIDToTokenContractAddress.call(resourceID), ERC20MintableInstance.address);
-        assert.equal(await ERC20HandlerInstance._tokenContractAddressToResourceID.call(ERC20MintableInstance.address), resourceID.toLowerCase());
+        assert.equal(await ERC20HandlerInstance._resourceIDToContractAddress.call(resourceID), ERC20MintableInstance.address);
+        assert.equal(await ERC20HandlerInstance._contractAddressToResourceID.call(ERC20MintableInstance.address), resourceID.toLowerCase());
     });
 
     it('Should require admin role to set a ERC20 Resource ID and contract address', async () => {

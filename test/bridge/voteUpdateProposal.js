@@ -9,7 +9,6 @@
  const Helpers = require('../helpers');
  
  const BridgeContract = artifacts.require("Bridge");
- const ERC20MintableContract = artifacts.require("ERC20PresetMinterPauser");
  const AnchorHandlerContract = artifacts.require("AnchorHandler");
  const LinkableAnchorContract = artifacts.require("LinkableERC20Anchor");
  const Verifier = artifacts.require("Verifier");
@@ -27,38 +26,31 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
     const relayer2Bit = 1 << 1;
     const relayer3Bit = 1 << 2;
     const depositerAddress = accounts[4];
-    const expectedUpdateNonce = 1;
     const relayerThreshold = 3;
     const expectedFinalizedEventStatus = 2;
     const expectedExecutedEventStatus = 3;
     const merkleTreeHeight = 31;
-    const blockHeight = 1;
     const maxRoots = 100;
     const sender = accounts[5]
     const operator = accounts[5]
 
     let ADMIN_ROLE;
     let merkleRoot;
-    let LinkableAnchorInstance;
+    let blockHeight = 1;
+    let expectedUpdateNonce = 1;
+    let LinkableAnchorOriginChainInstance;
+    let LinkableAnchorDestChainInstance;
     let hasher, verifier;
-    let anchor;
     let token;
     let tokenDenomination = '1000'; // 1 ether
-    // function stubs
-    let setHandler;
-    let setBridge;
-    let addEdge;
-    let updateEdge;
 
     let BridgeInstance;
-    let DestinationERC20MintableInstance;
     let DestinationAnchorHandlerInstance;
     let data = '';
     let dataHash = '';
     let resourceID = '';
     let initialResourceIDs;
     let initialContractAddresses;
-    let burnableContractAddresses;
 
     let vote, executeProposal;
 
@@ -79,23 +71,30 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
             Token.new().then(instance => token = instance),
         ]);
 
-        LinkableAnchorInstance = await LinkableAnchorContract.new(
+        LinkableAnchorOriginChainInstance = await LinkableAnchorContract.new(
             verifier.address,
             hasher.address,
             tokenDenomination,
             merkleTreeHeight,
             maxRoots,
             token.address,
-        );
-
-        await token.mint(sender, tokenDenomination);
-        await token.increaseAllowance(LinkableAnchorInstance.address, 1000000000, {from: sender});
-        await LinkableAnchorInstance.deposit('0x1111111111111111111111111111111111111111111111111111111111111111', {from: sender});
-        merkleRoot = await LinkableAnchorInstance.getLastRoot();
+        {from: sender});
+        LinkableAnchorDestChainInstance = await LinkableAnchorContract.new(
+            verifier.address,
+            hasher.address,
+            tokenDenomination,
+            merkleTreeHeight,
+            maxRoots,
+            token.address,
+        {from: sender});
         
-        resourceID = Helpers.createResourceID(LinkableAnchorInstance.address, originChainID);
+        await token.mint(sender, 10 * tokenDenomination);
+        await token.increaseAllowance(LinkableAnchorOriginChainInstance.address, 1000000000, {from: sender});
+        await LinkableAnchorOriginChainInstance.deposit('0x11111', {from: sender});
+        merkleRoot = await LinkableAnchorOriginChainInstance.getLastRoot();
+        resourceID = Helpers.createResourceID(LinkableAnchorOriginChainInstance.address, originChainID);
         initialResourceIDs = [resourceID];
-        initialContractAddresses = [LinkableAnchorInstance.address];
+        initialContractAddresses = [LinkableAnchorDestChainInstance.address];
 
         DestinationAnchorHandlerInstance = await AnchorHandlerContract.new(
             BridgeInstance.address,
@@ -103,18 +102,22 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
             initialContractAddresses,
         );
 
+        await LinkableAnchorDestChainInstance.setHandler(DestinationAnchorHandlerInstance.address, {from: sender});
+        await LinkableAnchorDestChainInstance.setBridge(BridgeInstance.address, {from: sender});
+        
+
         data = Helpers.createUpdateProposalData(originChainID, blockHeight, merkleRoot);
         dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
 
         await Promise.all([
-            BridgeInstance.adminSetResource(DestinationAnchorHandlerInstance.address, resourceID, DestinationAnchorHandlerInstance.address)
+            BridgeInstance.adminSetResource(DestinationAnchorHandlerInstance.address, resourceID, LinkableAnchorDestChainInstance.address)
         ]);
 
         vote = (relayer) => BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer });
-        executeProposal = (relayer) => BridgeInstance.executeProposal(originChainID, expectedUpdateNonce, data, { from: relayer });
+        executeProposal = (relayer) => BridgeInstance.executeProposal(originChainID, expectedUpdateNonce, data, resourceID, { from: relayer });
     });
 
-    it.only('[sanity] bridge configured with threshold and relayers', async () => {
+    it('[sanity] bridge configured with threshold and relayers', async () => {
         assert.equal(await BridgeInstance._chainID(), destinationChainID)
 
         assert.equal(await BridgeInstance._relayerThreshold(), relayerThreshold)
@@ -122,7 +125,7 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
         assert.equal((await BridgeInstance._totalRelayers()).toString(), '4')
     })
 
-    it.only('[sanity] updateProposal should be created with expected values', async () => {
+    it('[sanity] updateProposal should be created with expected values', async () => {
         await TruffleAssert.passes(vote(relayer1Address));
 
         const expectedUpdateProposal = {
@@ -137,11 +140,11 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
         assert.deepInclude(Object.assign({}, updateProposal), expectedUpdateProposal);
     });
 
-    it.only('should revert because depositerAddress is not a relayer', async () => {
-        await TruffleAssert.reverts(vote(depositerAddress));
+    it('should revert because depositerAddress is not a relayer', async () => {
+        await TruffleAssert.reverts(vote(depositerAddress), "sender doesn't have relayer role");
     });
 
-    it.only("updateProposal shouldn't be voted on if it has a Passed status", async () => {
+    it("updateProposal shouldn't be voted on if it has a Passed status", async () => {
         await TruffleAssert.passes(vote(relayer1Address));
 
         await TruffleAssert.passes(vote(relayer2Address));
@@ -151,7 +154,7 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
         await TruffleAssert.reverts(vote(relayer4Address), 'proposal already passed/executed/cancelled');
     });
 
-    it.only("updateProposal shouldn't be voted on if it has a Transferred status", async () => {
+    it("updateProposal shouldn't be voted on if it has a Transferred status", async () => {
         await TruffleAssert.passes(vote(relayer1Address));
 
         await TruffleAssert.passes(vote(relayer2Address));
@@ -164,13 +167,13 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
 
     });
 
-    it.only("relayer shouldn't be able to vote on a updateProposal more than once", async () => {
+    it("relayer shouldn't be able to vote on a updateProposal more than once", async () => {
         await TruffleAssert.passes(vote(relayer1Address));
 
         await TruffleAssert.reverts(vote(relayer1Address), 'relayer already voted');
     });
 
-    it.only("Should be able to create a proposal with a different hash", async () => {
+    it("Should be able to create a proposal with a different hash", async () => {
         await TruffleAssert.passes(vote(relayer1Address));
 
         await TruffleAssert.passes(
@@ -180,7 +183,7 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
                 { from: relayer2Address }));
     });
 
-    it.only("Relayer's vote should be recorded correctly - yes vote", async () => {
+    it("Relayer's vote should be recorded correctly - yes vote", async () => {
         await TruffleAssert.passes(vote(relayer1Address));
 
         const updateProposalAfterFirstVote = await BridgeInstance.getProposal(
@@ -214,7 +217,7 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
         assert.strictEqual(updateProposalAfterExecute._status, '3');
     });
 
-    it.only("Relayer's address should be marked as voted for proposal", async () => {
+    it("Relayer's address should be marked as voted for proposal", async () => {
         await TruffleAssert.passes(vote(relayer1Address));
 
         const hasVoted = await BridgeInstance._hasVotedOnProposal.call(
@@ -222,7 +225,7 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
         assert.isTrue(hasVoted);
     });
 
-    it.only('UpdateProposalFinalized event should be emitted when proposal status updated to passed after numYes >= relayerThreshold', async () => {
+    it('UpdateProposalFinalized event should be emitted when proposal status updated to passed after numYes >= relayerThreshold', async () => {
         await TruffleAssert.passes(vote(relayer1Address));
         await TruffleAssert.passes(vote(relayer2Address));
 
@@ -230,23 +233,23 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
 
         TruffleAssert.eventEmitted(voteTx, 'ProposalEvent', (event) => {
             return event.originChainID.toNumber() === originChainID &&
-                event.depositNonce.toNumber() === expectedUpdateNonce &&
+                event.nonce.toNumber() === expectedUpdateNonce &&
                 event.status.toNumber() === expectedFinalizedEventStatus &&
                 event.dataHash === dataHash
         });
     });
 
-    it.only('UpdateProposalVote event fired when proposal vote made', async () => {
+    it('UpdateProposalVote event fired when proposal vote made', async () => {
         const voteTx = await vote(relayer1Address);
 
         TruffleAssert.eventEmitted(voteTx, 'ProposalVote', (event) => {
             return event.originChainID.toNumber() === originChainID &&
-                event.depositNonce.toNumber() === expectedUpdateNonce &&
+                event.nonce.toNumber() === expectedUpdateNonce &&
                 event.status.toNumber() === 1
         });
     });
 
-    it.only('Execution successful', async () => {
+    it('Execution successful', async () => {
         await TruffleAssert.passes(vote(relayer1Address));
 
         await TruffleAssert.passes(vote(relayer2Address));
@@ -255,7 +258,7 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
 
         TruffleAssert.eventEmitted(voteTx, 'ProposalEvent', (event) => {
             return event.originChainID.toNumber() === originChainID &&
-                event.depositNonce.toNumber() === expectedUpdateNonce &&
+                event.nonce.toNumber() === expectedUpdateNonce &&
                 event.status.toNumber() === expectedFinalizedEventStatus &&
                 event.dataHash === dataHash
         });
@@ -264,13 +267,13 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
 
         TruffleAssert.eventEmitted(executionTx, 'ProposalEvent', (event) => {
             return event.originChainID.toNumber() === originChainID &&
-            event.depositNonce.toNumber() === expectedUpdateNonce &&
+            event.nonce.toNumber() === expectedUpdateNonce &&
             event.status.toNumber() === expectedExecutedEventStatus &&
             event.dataHash === dataHash
         });
     });
 
-    it.only('Proposal cannot be executed twice', async () => {
+    it('Proposal cannot be executed twice', async () => {
         await vote(relayer1Address);
         await vote(relayer2Address);
         await vote(relayer3Address);
@@ -278,11 +281,20 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
         await TruffleAssert.reverts(executeProposal(relayer1Address), "Proposal must have Passed status");
     });
 
-    it.only('Execution requires active proposal', async () => {
+    it('Execution requires active proposal', async () => {
         await TruffleAssert.reverts(BridgeInstance.executeProposal(originChainID, expectedUpdateNonce, data, '0x0', { from: relayer1Address }), "Proposal must have Passed status");
     });
 
-    it.only('Voting requires resourceID that is mapped to a handler', async () => {
+    it('Voting requires resourceID that is mapped to a handler', async () => {
         await TruffleAssert.reverts(BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, '0x0', dataHash, { from: relayer1Address }), "no handler for resourceID");
+    });
+
+    it("executed proposal cannot be cancelled", async () => {
+        await TruffleAssert.passes(vote(relayer1Address));
+        await TruffleAssert.passes(vote(relayer2Address));
+        await TruffleAssert.passes(vote(relayer3Address));
+
+        await TruffleAssert.passes(BridgeInstance.executeProposal(originChainID, expectedUpdateNonce, data, resourceID));
+        await TruffleAssert.reverts(BridgeInstance.cancelProposal(originChainID, expectedUpdateNonce, dataHash), "Proposal cannot be cancelled")
     });
 });
