@@ -3,11 +3,11 @@ const poseidonGenContract = require('circomlib/src/poseidon_gencontract.js');
 const mimcGenContract = require('circomlib/src/mimcsponge_gencontract.js');
 
 const buildPoseidon = async (numInputs: number) => {
-	    await overwriteArtifact(`PoseidonT${numInputs + 1}`, poseidonGenContract.createCode(numInputs));
+    await overwriteArtifact(`PoseidonT${numInputs + 1}`, poseidonGenContract.createCode(numInputs));
 }
 
 const buildMiMC = async (numRounds: number) => {
-	    await overwriteArtifact(`MiMCSponge${numRounds}`, mimcGenContract.createCode('mimcsponge', numRounds));
+    await overwriteArtifact(`MiMCSponge${numRounds}`, mimcGenContract.createCode('mimcsponge', numRounds));
 }
 
 const buildPoseidonT3 = () => buildPoseidon(2);
@@ -17,17 +17,17 @@ const buildPoseidonT3 = () => buildPoseidon(2);
 const buildMiMCSponge220 = () => buildMiMC(220);
 
 if (require.main === module) {
-	    buildMiMCSponge220();
-	        buildPoseidonT3();
-		    // buildPoseidonT4();
-		        // buildPoseidonT5();
-			    // buildPoseidonT6();
+    buildMiMCSponge220();
+    buildPoseidonT3();
+    // buildPoseidonT4();
+    // buildPoseidonT5();
+    // buildPoseidonT6();
 }
 
 export {
-	    buildMiMCSponge220,
-	        buildPoseidonT3,
-		    // buildPoseidonT4,
-		        // buildPoseidonT5,
-			    // buildPoseidonT6,
+    buildMiMCSponge220,
+    buildPoseidonT3,
+    // buildPoseidonT4,
+    // buildPoseidonT5,
+    // buildPoseidonT6,
 }
