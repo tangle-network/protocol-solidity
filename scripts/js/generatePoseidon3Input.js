@@ -9,7 +9,7 @@ const {
   unstringifyBigInts,
   stringifyBigInts,
 } = utils;
-const PoseidonHasher = require('../lib/bridgePoseidon-withdraw/Poseidon'); 
+const PoseidonHasher = require('../../lib/Poseidon'); 
 const circomlib = require('circomlib')
 
 const poseidonHasher = new PoseidonHasher();
@@ -30,7 +30,8 @@ async function generatePoseidon3Input() {
     commitment: deposit.commitment
   }
 
-  await fs.writeFileSync('build/poseidon3Preimage/input.json', JSON.stringify(stringifyBigInts(input)));
+  await fs.mkdirSync('build/poseidon3');
+  await fs.writeFileSync('build/poseidon3/input.json', JSON.stringify(stringifyBigInts(input)));
 }
 
 generatePoseidon3Input();

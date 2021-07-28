@@ -1,4 +1,3 @@
-include "../../node_modules/circomlib/circuits/mimcsponge.circom";
 include "../poseidon/hasher.circom";
 
 // Set membership gadget is handled with a multiplicative trick.

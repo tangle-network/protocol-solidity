@@ -9,7 +9,7 @@ const fs = require('fs')
 const path = require('path');
 const { toBN, randomHex } = require('web3-utils')
 const LinkableAnchorContract = artifacts.require('./LinkableERC20AnchorPoseidon2.sol');
-const VerifierPoseidonBridge = artifacts.require('./VerifierPoseidonBridge.sol');
+const Verifierbridge = artifacts.require('./Verifierbridge.sol');
 const Poseidon = artifacts.require('PoseidonT3');
 const Token = artifacts.require("ERC20Mock");
 
@@ -28,8 +28,8 @@ const {
   leInt2Buff,
   stringifyBigInts,
 } = utils;
-const PoseidonHasher = require('../../lib/bridgePoseidon-withdraw/Poseidon'); 
-const MerkleTree = require('../../lib/bridgePoseidon-withdraw/MerkleTree');
+const PoseidonHasher = require('../../../lib/Poseidon'); 
+const MerkleTree = require('../../lib/MerkleTree');
 
 function bigNumberToPaddedBytes(num, digits =  32) {
   var n = num.toString(16).replace(/^0x/, '');
@@ -85,7 +85,7 @@ contract('AnchorPoseidon2', (accounts) => {
   beforeEach(async () => {
     tree = new MerkleTree(levels, null, prefix)
     hasherInstance = await Poseidon.new();
-    verifier = await VerifierPoseidonBridge.new();
+    verifier = await Verifierbridge.new();
     token = await Token.new();
     await token.mint(sender, new BN('10000000000000000000000'));
     const balanceOfSender = await token.balanceOf.call(sender);
@@ -133,7 +133,7 @@ contract('AnchorPoseidon2', (accounts) => {
     }
 
     tree = new MerkleTree(levels, null, prefix)
-    zkey_final = fs.readFileSync('build/poseidonBridge/circuit_final.zkey').buffer;
+    zkey_final = fs.readFileSync('build/bridge2/circuit_final.zkey').buffer;
   })
 
   describe('#constructor', () => {
@@ -212,12 +212,12 @@ contract('AnchorPoseidon2', (accounts) => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('build/poseidonBridge/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('build/bridge2/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
       let tempProof = proof;
       let tempSignals = publicSignals;
-      const vKey = await snarkjs.zKey.exportVerificationKey('build/poseidonBridge/circuit_final.zkey');
+      const vKey = await snarkjs.zKey.exportVerificationKey('build/bridge2/circuit_final.zkey');
 
       res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       assert.strictEqual(res, true);
@@ -288,7 +288,7 @@ contract('AnchorPoseidon2', (accounts) => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('build/poseidonBridge/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('build/bridge2/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
 
@@ -363,7 +363,7 @@ contract('AnchorPoseidon2', (accounts) => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('build/poseidonBridge/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('build/bridge2/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
 
@@ -414,7 +414,7 @@ contract('AnchorPoseidon2', (accounts) => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('build/poseidonBridge/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('build/bridge2/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
 
@@ -469,7 +469,7 @@ contract('AnchorPoseidon2', (accounts) => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('build/poseidonBridge/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('build/bridge2/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
 
@@ -519,7 +519,7 @@ contract('AnchorPoseidon2', (accounts) => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('build/poseidonBridge/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('build/bridge2/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
 
@@ -570,7 +570,7 @@ contract('AnchorPoseidon2', (accounts) => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('build/poseidonBridge/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('build/bridge2/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
 
@@ -667,7 +667,7 @@ contract('AnchorPoseidon2', (accounts) => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('build/poseidonBridge/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('build/bridge2/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
 
@@ -722,7 +722,7 @@ contract('AnchorPoseidon2', (accounts) => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('build/poseidonBridge/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('build/bridge2/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
 

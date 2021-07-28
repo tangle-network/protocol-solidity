@@ -9,8 +9,8 @@ const {
   unstringifyBigInts,
   stringifyBigInts,
 } = utils;
-const PoseidonHasher = require('../lib/bridgePoseidon-withdraw/Poseidon'); 
-const MerkleTree = require('../lib/bridgePoseidon-withdraw/MerkleTree');
+const PoseidonHasher = require('../../lib/Poseidon'); 
+const MerkleTree = require('../../lib/MerkleTree');
 const circomlib = require('circomlib')
 
 const poseidonHasher = new PoseidonHasher();
@@ -56,7 +56,8 @@ async function generatePoseidonBridgeInput() {
     }),
   }
 
-  await fs.writeFileSync('build/poseidonBridge/input.json', JSON.stringify(stringifyBigInts(input)));
+  await fs.mkdirSync('build/bridge2');
+  await fs.writeFileSync('build/bridge2/input.json', JSON.stringify(stringifyBigInts(input)));
 }
 
 generatePoseidonBridgeInput();
