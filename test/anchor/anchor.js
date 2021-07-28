@@ -752,4 +752,4 @@ contract('AnchorPoseidon2', (accounts) => {
 
 module.exports = {
   generateDeposit,
-}; */
+};
