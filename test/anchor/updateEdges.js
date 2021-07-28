@@ -64,16 +64,14 @@
      });
  
      addEdge = (edge, sender) => LinkableAnchorInstance.addEdge(
-       edge.destChainID,
-       edge.destResourceID,
+       edge.sourceChainID,
        edge.root,
        edge.height,
        { from: sender }
      )
  
      updateEdge = (edge, sender) => LinkableAnchorInstance.updateEdge(
-       edge.destChainID,
-       edge.destResourceID,
+       edge.sourceChainID,
        edge.root,
        edge.height,
        { from: sender }
@@ -98,14 +96,12 @@
 
    it('LinkableAnchor edges should be modifiable by handler only (checks newHeight > oldHeight)', async () => {
     const edge = {
-      destChainID: '0x01',
-      destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
+      sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       height: 100,
     };
     const edgeUpdated = {
-      destChainID: '0x01',
-      destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
+      sourceChainID: '0x01',
       root: '0x2222111111111111111111111111111111111111111111111111111111111111',
       height: 101,
     };
@@ -117,14 +113,12 @@
 
    it('LinkableAnchor edges should be modifiable only if edge exists beforehand', async () => {
     const edge = {
-      destChainID: '0x01',
-      destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
+      sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       height: 100,
     };
     const edgeUpdated = {
-      destChainID: '0x02',
-      destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
+      sourceChainID: '0x02',
       root: '0x2222111111111111111111111111111111111111111111111111111111111111',
       height: 101,
     };
@@ -134,14 +128,12 @@
 
    it('getLatestNeighborRoots should return updated values', async () => {
      const edge = {
-       destChainID: '0x01',
-       destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
+       sourceChainID: '0x01',
        root: '0x1111111111111111111111111111111111111111111111111111111111111111',
        height: 100,
      };
      const edgeUpdated = {
-      destChainID: '0x01',
-       destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
+      sourceChainID: '0x01',
        root: '0x2222111111111111111111111111111111111111111111111111111111111111',
        height: 101,
      };
@@ -160,14 +152,12 @@
    
    it('Updating edge should emit correct EdgeUpdate event', async () => {
     const edge = {
-      destChainID: '0x01',
-      destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
+      sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       height: 100,
     };
     const edgeUpdated = {
-      destChainID: '0x01',
-      destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
+      sourceChainID: '0x01',
       root: '0x2222111111111111111111111111111111111111111111111111111111111111',
       height: 101,
     };
@@ -175,21 +165,20 @@
     await addEdge(edge, accounts[0]);
     const result = await updateEdge(edgeUpdated, accounts[0]);
     TruffleAssert.eventEmitted(result, 'EdgeUpdate', (ev) => {
-      return ev.chainID == parseInt(edgeUpdated.destChainID, 16) && ev.destResourceID == 
-      edgeUpdated.destResourceID && ev.height == edgeUpdated.height && ev.merkleRoot == edgeUpdated.root
+      return ev.chainID == parseInt(edgeUpdated.sourceChainID, 16) && 
+      ev.height == edgeUpdated.height && ev.merkleRoot == edgeUpdated.root
     });
   });
 
   it('Updating edge should emit correct RootHistoryUpdate event', async () => {
     const edge = {  
-      destChainID: '0x01',
-      destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
+      sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       height: 100,
     };
     const edgeUpdated = {
-        destChainID: '0x01',
-        destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
+        sourceChainID: '0x01',
+
         root: '0x2222111111111111111111111111111111111111111111111111111111111111',
         height: 101,
       };

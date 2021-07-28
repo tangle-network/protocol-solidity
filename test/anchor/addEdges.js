@@ -64,16 +64,14 @@ contract('LinkableAnchor - [add edges]', async accounts => {
     });
 
     addEdge = (edge, sender) => LinkableAnchorInstance.addEdge(
-      edge.destChainID,
-      edge.destResourceID,
+      edge.sourceChainID,
       edge.root,
       edge.height,
       { from: sender }
     )
 
     updateEdge = (edge, sender) => LinkableAnchorInstance.updateEdge(
-      edge.destChainID,
-      edge.destResourceID,
+      edge.sourceChainID,
       edge.root,
       edge.height,
       { from: sender }
@@ -98,8 +96,7 @@ contract('LinkableAnchor - [add edges]', async accounts => {
 
   it('LinkableAnchor edges should be modifiable by handler only', async () => {
     const edge = {
-      destChainID: '0x01',
-      destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
+      sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       height: 1,
     };
@@ -114,42 +111,38 @@ contract('LinkableAnchor - [add edges]', async accounts => {
   
   it('LinkableAnchor edges should update edgeIndex', async () => {
     const edge = {
-      destChainID: '0x01',
-      destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
+      sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       height: 1,
     };
 
     await TruffleAssert.passes(addEdge(edge, accounts[0]));
 
-    assert(await LinkableAnchorInstance.edgeIndex(edge.destResourceID) == 0);
+    assert(await LinkableAnchorInstance.edgeIndex(edge.sourceChainID) == 0);
   });
 
   it('LinkableAnchor should fail to add an edge at capacity', async () => {
     const edge = {
-      destChainID: '0x01',
-      destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
+      sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       height: 1,
     };
 
     const edge1 = {
-      destChainID: '0x02',
-      destResourceID: '0x1100000000000000000000000000000000000000000000000000000000000010',
+      sourceChainID: '0x02',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       height: 1,
     };
 
     await TruffleAssert.passes(addEdge(edge, accounts[0]));
-    assert(await LinkableAnchorInstance.edgeIndex(edge.destResourceID) == 0);
+    assert(await LinkableAnchorInstance.edgeIndex(edge.sourceChainID) == 0);
 
     await TruffleAssert.reverts(addEdge(edge1, accounts[0], 'This Anchor is at capacity'));
   });
 
   it('latestNeighborRoots should return correct roots', async () => {
     const edge = {
-      destChainID: '0x01',
-      destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
+      sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       height: 1,
     };
@@ -163,8 +156,7 @@ contract('LinkableAnchor - [add edges]', async accounts => {
 
   it('Adding edge should emit correct EdgeAddition event', async () => {
     const edge = {
-      destChainID: '0x01',
-      destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
+      sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       height: 1,
     };
@@ -172,15 +164,14 @@ contract('LinkableAnchor - [add edges]', async accounts => {
     const result = await addEdge(edge, accounts[0]);
     
     TruffleAssert.eventEmitted(result, 'EdgeAddition', (ev) => {
-      return ev.chainID == parseInt(edge.destChainID, 16) && ev.destResourceID == edge.destResourceID &&
+      return ev.chainID == parseInt(edge.sourceChainID, 16) &&
        ev.height == edge.height && ev.merkleRoot == edge.root
     });
   });
 
   it('Adding edge should emit correct RootHistoryUpdate event', async () => {
     const edge = {
-      destChainID: '0x01',
-      destResourceID: '0x0000000000000000000000000000000000000000000000000000000000000010',
+      sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       height: 1,
     };

@@ -21,15 +21,14 @@ abstract contract Anchor is MerkleTreeMiMC, ReentrancyGuard {
   uint256 public immutable denomination;
   uint256 public immutable maxRoots;
   struct Edge {
-    uint8 chainID;
-    bytes32 resourceID;
+    uint256 chainID;
     bytes32 root;
     uint256 height;
   }
 
   // maps anchor sourceChainIDs to the index in the edge list
-  mapping(uint8 => uint256) public edgeIndex;
-  mapping(uint8 => bool) public edgeExistsForChain;
+  mapping(uint256 => uint256) public edgeIndex;
+  mapping(uint256 => bool) public edgeExistsForChain;
   Edge[] public edgeList;
 
   // map to store used nullifier hashes
@@ -48,8 +47,8 @@ abstract contract Anchor is MerkleTreeMiMC, ReentrancyGuard {
   event Deposit(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp);
   event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uint256 fee);
   // bridge events
-  event EdgeAddition(uint8 chainID, bytes32 destResourceID, uint256 height, bytes32 merkleRoot);
-  event EdgeUpdate(uint8 chainID, bytes32 destResourceID, uint256 height, bytes32 merkleRoot);
+  event EdgeAddition(uint256 chainID, uint256 height, bytes32 merkleRoot);
+  event EdgeUpdate(uint256 chainID, uint256 height, bytes32 merkleRoot);
   event RootHistoryRecorded(uint timestamp, bytes32[] roots);
   event RootHistoryUpdate(uint timestamp, bytes32[] roots);
 
@@ -160,7 +159,7 @@ abstract contract Anchor is MerkleTreeMiMC, ReentrancyGuard {
     }
   }
 
-  function hasEdge(uint8 chainID) public view returns (bool) {
+  function hasEdge(uint256 chainID) public view returns (bool) {
     return edgeExistsForChain[chainID];
   }
 

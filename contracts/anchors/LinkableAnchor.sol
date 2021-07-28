@@ -40,8 +40,7 @@ abstract contract LinkableAnchor is Anchor {
   }
 
   function addEdge(
-    uint8 sourceChainID,
-    bytes32 resourceID,
+    uint256 sourceChainID,
     bytes32 root,
     uint256 height
   ) onlyHandler external payable nonReentrant {
@@ -50,23 +49,19 @@ abstract contract LinkableAnchor is Anchor {
     uint index = edgeList.length;
     Edge memory edge = Edge({
       chainID: sourceChainID,
-      resourceID: resourceID,
       root: root,
       height: height
     });
     edgeList.push(edge);
     edgeIndex[sourceChainID] = index;
-    emit EdgeAddition(sourceChainID, resourceID, height, root);
+    emit EdgeAddition(sourceChainID, height, root);
     // emit update event
-    bytes32[] memory neighbors = getLatestNeighborRoots();
-    neighbors[index] = root;
-    emit RootHistoryUpdate(block.timestamp, neighbors);
+    emit RootHistoryUpdate(block.timestamp, getLatestNeighborRoots());
     
   }
 
   function updateEdge(
-    uint8 sourceChainID,
-    bytes32 resourceID,
+    uint256 sourceChainID,
     bytes32 root,
     uint256 height
   ) onlyHandler external payable nonReentrant {
@@ -76,14 +71,11 @@ abstract contract LinkableAnchor is Anchor {
     // update the edge in the edge list
     edgeList[index] = Edge({
       chainID: sourceChainID,
-      resourceID: resourceID,
       root: root,
       height: height
     });
-    emit EdgeUpdate(sourceChainID, resourceID, height, root);
+    emit EdgeUpdate(sourceChainID, height, root);
     // emit update event
-    bytes32[] memory neighbors = getLatestNeighborRoots();
-    neighbors[index] = root;
-    emit RootHistoryUpdate(block.timestamp, neighbors);
+    emit RootHistoryUpdate(block.timestamp, getLatestNeighborRoots());
   }
 }

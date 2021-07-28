@@ -16,7 +16,7 @@
  const Token = artifacts.require("ERC20Mock");
 
 contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (accounts) => {
-    const originChainID = 1;
+    const sourceChainID = 1;
     const destinationChainID = 2;
     const thirdChainID = 3;
     const fourthChainID = 4;
@@ -94,7 +94,7 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
         await token.increaseAllowance(LinkableAnchorOriginChainInstance.address, 1000000000, {from: sender});
         await LinkableAnchorOriginChainInstance.deposit('0x11111', {from: sender});
         merkleRoot = await LinkableAnchorOriginChainInstance.getLastRoot();
-        resourceID = Helpers.createResourceID(LinkableAnchorOriginChainInstance.address, originChainID);
+        resourceID = Helpers.createResourceID(LinkableAnchorOriginChainInstance.address, sourceChainID);
         initialResourceIDs = [resourceID];
         initialContractAddresses = [LinkableAnchorDestChainInstance.address];
 
@@ -108,15 +108,15 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
         await LinkableAnchorDestChainInstance.setBridge(BridgeInstance.address, {from: sender});
         
 
-        data = Helpers.createUpdateProposalData(originChainID, blockHeight, merkleRoot);
+        data = Helpers.createUpdateProposalData(sourceChainID, blockHeight, merkleRoot);
         dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
 
         await Promise.all([
             BridgeInstance.adminSetResource(DestinationAnchorHandlerInstance.address, resourceID, LinkableAnchorDestChainInstance.address)
         ]);
         
-        vote = (relayer) => BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer });
-        executeProposal = (relayer) => BridgeInstance.executeProposal(originChainID, expectedUpdateNonce, data, resourceID, { from: relayer });
+        vote = (relayer) => BridgeInstance.voteProposal(sourceChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer });
+        executeProposal = (relayer) => BridgeInstance.executeProposal(sourceChainID, expectedUpdateNonce, data, resourceID, { from: relayer });
     });
 
     it('[sanity] bridge configured with threshold and relayers', async () => {
@@ -137,12 +137,13 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
         };
 
         const updateProposal = await BridgeInstance.getProposal(
-            originChainID, expectedUpdateNonce, dataHash);
+            sourceChainID, expectedUpdateNonce, dataHash);
 
         assert.deepInclude(Object.assign({}, updateProposal), expectedUpdateProposal);
     });
 
     it("Executing an updateProposal should addEdge", async () => {
+        // voting on and executing an update originating from a deposit on sourceChainID
         await TruffleAssert.passes(vote(relayer1Address));
         await TruffleAssert.passes(vote(relayer2Address));
         await TruffleAssert.passes(vote(relayer3Address));
@@ -154,29 +155,33 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
         assert.strictEqual(roots[0], merkleRoot);
 
     });
-    
+
     it("Voting on a proposal with a resourceID not mapped to a handler (and AnchorContract) should fail", async () => {
-        faultyResourceID = Helpers.createResourceID(LinkableAnchorDestChainInstance.address, originChainID);
-        await TruffleAssert.reverts(BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, faultyResourceID , dataHash, { from: relayer1Address}),
+        faultyResourceID = Helpers.createResourceID(LinkableAnchorDestChainInstance.address, sourceChainID);
+        await TruffleAssert.reverts(BridgeInstance.voteProposal(sourceChainID, expectedUpdateNonce, faultyResourceID , dataHash, { from: relayer1Address}),
             "no handler for resourceID");
 
     });
 
     it("Executing an updateProposal for existing edge should updateEdge", async () => {
+        // voting on and executing an update originating from a deposit on sourceChainID
         await TruffleAssert.passes(vote(relayer1Address));
         await TruffleAssert.passes(vote(relayer2Address));
         await TruffleAssert.passes(vote(relayer3Address));
         await TruffleAssert.passes(executeProposal(relayer1Address));
 
+        // new deposit on sourceChain which changes root 
         await LinkableAnchorOriginChainInstance.deposit('0x22222', {from: sender});
         merkleRoot = await LinkableAnchorOriginChainInstance.getLastRoot();
-        data = Helpers.createUpdateProposalData(originChainID, blockHeight + 10, merkleRoot);
+        data = Helpers.createUpdateProposalData(sourceChainID, blockHeight + 10, merkleRoot);
         dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
         expectedUpdateNonce++;
-        await TruffleAssert.passes(BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer1Address }));
-        await TruffleAssert.passes(BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer2Address }));
-        await TruffleAssert.passes(BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer3Address }));
-        await TruffleAssert.passes(BridgeInstance.executeProposal(originChainID, expectedUpdateNonce, data, resourceID, { from: relayer2Address }));
+
+        // update edge proposal data is voted on
+        await TruffleAssert.passes(BridgeInstance.voteProposal(sourceChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer1Address }));
+        await TruffleAssert.passes(BridgeInstance.voteProposal(sourceChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer2Address }));
+        await TruffleAssert.passes(BridgeInstance.voteProposal(sourceChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer3Address }));
+        await TruffleAssert.passes(BridgeInstance.executeProposal(sourceChainID, expectedUpdateNonce, data, resourceID, { from: relayer2Address }));
         
         const newRoots = await LinkableAnchorDestChainInstance.getLatestNeighborRoots();
         assert.strictEqual(newRoots.length, maxRoots);
@@ -186,30 +191,35 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
     });
 
     it("Executing an updateProposal for existing edge with lesser or equal height should fail", async () => {
+        // voting on and executing an update originating from a deposit on sourceChainID
         await TruffleAssert.passes(vote(relayer1Address));
         await TruffleAssert.passes(vote(relayer2Address));
         await TruffleAssert.passes(vote(relayer3Address));
         await TruffleAssert.passes(executeProposal(relayer1Address));
-
+        
+        // new deposit on sourceChain which changes root 
         await LinkableAnchorOriginChainInstance.deposit('0x22222', {from: sender});
         merkleRoot = await LinkableAnchorOriginChainInstance.getLastRoot();
-        data = Helpers.createUpdateProposalData(originChainID, blockHeight, merkleRoot);
+        // blockHeight is not greater than last height
+        data = Helpers.createUpdateProposalData(sourceChainID, blockHeight, merkleRoot);
         dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
         expectedUpdateNonce++;
-        await TruffleAssert.passes(BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer1Address }));
-        await TruffleAssert.passes(BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer2Address }));
-        await TruffleAssert.passes(BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer3Address }));
-        await TruffleAssert.reverts(BridgeInstance.executeProposal(originChainID, expectedUpdateNonce, data, resourceID, { from: relayer2Address }),
+        await TruffleAssert.passes(BridgeInstance.voteProposal(sourceChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer1Address }));
+        await TruffleAssert.passes(BridgeInstance.voteProposal(sourceChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer2Address }));
+        await TruffleAssert.passes(BridgeInstance.voteProposal(sourceChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer3Address }));
+        await TruffleAssert.reverts(BridgeInstance.executeProposal(sourceChainID, expectedUpdateNonce, data, resourceID, { from: relayer2Address }),
             "New height must be greater");
 
     });
 
     it("updateProposal for adding 2 edges should work", async () => {
+        // voting on and executing an update originating from a deposit on sourceChainID
         await TruffleAssert.passes(vote(relayer1Address));
         await TruffleAssert.passes(vote(relayer2Address));
         await TruffleAssert.passes(vote(relayer3Address));
         await TruffleAssert.passes(executeProposal(relayer1Address));
 
+        //initializing a linkableAnchor on a third chain
         hasher = await Hasher.new();
         verifier = await Verifier.new();
         token = await Token.new();
@@ -223,19 +233,22 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
             token.address,
             {from: sender}
         );
+
+        // deposit on third chain anchor
         await token.increaseAllowance(LinkableAnchorThirdChainInstance.address, 1000000000, {from: sender});
         await LinkableAnchorThirdChainInstance.deposit('0x023888', {from: sender});
-        
+        // voting on deposit data (adding another Edge)
         newMerkleRoot = await LinkableAnchorThirdChainInstance.getLastRoot();
         data = Helpers.createUpdateProposalData(thirdChainID, blockHeight, newMerkleRoot);
         dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
         expectedUpdateNonce++;
-
+        
         await TruffleAssert.passes(BridgeInstance.voteProposal(thirdChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer1Address }));
         await TruffleAssert.passes(BridgeInstance.voteProposal(thirdChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer2Address }));
         await TruffleAssert.passes(BridgeInstance.voteProposal(thirdChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer3Address }));
         await TruffleAssert.passes(BridgeInstance.executeProposal(thirdChainID, expectedUpdateNonce, data, resourceID, { from: relayer3Address }));
         
+        //checking roots are correct for the two edges
         const newRoots = await LinkableAnchorDestChainInstance.getLatestNeighborRoots();
         assert.strictEqual(newRoots.length, maxRoots);
         assert.strictEqual(newRoots[0], merkleRoot);
@@ -244,11 +257,13 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
     });
 
     it("updateProposal for adding more edges than maxRoots (2) should fail", async () => {
+        // voting and executing an update originating from a deposit on sourceChainID
         await TruffleAssert.passes(vote(relayer1Address));
         await TruffleAssert.passes(vote(relayer2Address));
         await TruffleAssert.passes(vote(relayer3Address));
         await TruffleAssert.passes(executeProposal(relayer1Address));
 
+        // initializing a linkableAnchor on a third chain
         hasher = await Hasher.new();
         verifier = await Verifier.new();
         token = await Token.new();
@@ -262,10 +277,13 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
             token.address,
             {from: sender}
         );
+        
+        //deposit occurs on third chain
         await token.mint(sender, 1000000 * tokenDenomination);
         await token.increaseAllowance(LinkableAnchorThirdChainInstance.address, 1000000000, {from: sender});
         await LinkableAnchorThirdChainInstance.deposit('0x023888', {from: sender});
-        
+
+        // voting on deposit data to add a second edge
         newMerkleRoot = await LinkableAnchorThirdChainInstance.getLastRoot();
         data = Helpers.createUpdateProposalData(thirdChainID, blockHeight, newMerkleRoot);
         dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
@@ -276,6 +294,7 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
         await TruffleAssert.passes(BridgeInstance.voteProposal(thirdChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer3Address }));
         await TruffleAssert.passes(BridgeInstance.executeProposal(thirdChainID, expectedUpdateNonce, data, resourceID, { from: relayer3Address }));
 
+        //initializing fourth Linkable anchor instance
         LinkableAnchorFourthChainInstance = await LinkableAnchorContract.new(
             verifier.address,
             hasher.address,
@@ -285,6 +304,8 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
             token.address,
             {from: sender}
         );
+
+        // deposit occurs and voting begins to add a third edge 
         await token.increaseAllowance(LinkableAnchorFourthChainInstance.address, 1000000000, {from: sender});
         await LinkableAnchorFourthChainInstance.deposit('0x023328', {from: sender});
         
@@ -292,7 +313,8 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
         data = Helpers.createUpdateProposalData(fourthChainID, blockHeight, newMerkleRoot);
         dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
         expectedUpdateNonce++;
-
+        
+        // third edge is over the anchor capacity
         await TruffleAssert.passes(BridgeInstance.voteProposal(fourthChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer1Address }));
         await TruffleAssert.passes(BridgeInstance.voteProposal(fourthChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer2Address }));
         await TruffleAssert.passes(BridgeInstance.voteProposal(fourthChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer3Address }));
@@ -302,11 +324,13 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
     });
     
     it("updateProposal for updating an edge on anchor with 2 existing edges should work", async () => {
+        // voting and executing an update originating from a deposit on sourceChainID
         await TruffleAssert.passes(vote(relayer1Address));
         await TruffleAssert.passes(vote(relayer2Address));
         await TruffleAssert.passes(vote(relayer3Address));
         await TruffleAssert.passes(executeProposal(relayer1Address));
-
+        
+        // initializing third linkable anchor instance
         hasher = await Hasher.new();
         verifier = await Verifier.new();
         token = await Token.new();
@@ -320,10 +344,10 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
             token.address,
             {from: sender}
         );
-
+        //deposit occurs on third linkable anchor instance
         await token.increaseAllowance(LinkableAnchorThirdChainInstance.address, 1000000000, {from: sender});
         await LinkableAnchorThirdChainInstance.deposit('0x023888', {from: sender});
-        
+        // deposit is voted on and passed adding a second edge
         newMerkleRoot = await LinkableAnchorThirdChainInstance.getLastRoot();
         data = Helpers.createUpdateProposalData(thirdChainID, blockHeight, newMerkleRoot);
         dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
@@ -333,20 +357,21 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
         await TruffleAssert.passes(BridgeInstance.voteProposal(thirdChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer2Address }));
         await TruffleAssert.passes(BridgeInstance.voteProposal(thirdChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer3Address }));
         await TruffleAssert.passes(BridgeInstance.executeProposal(thirdChainID, expectedUpdateNonce, data, resourceID, { from: relayer3Address }));
-
+        
+        //original origin chain anchor receives another deposit
         await LinkableAnchorOriginChainInstance.deposit('0x22222', {from: sender});
         merkleRoot = await LinkableAnchorOriginChainInstance.getLastRoot();
-        data = Helpers.createUpdateProposalData(originChainID, blockHeight + 10, merkleRoot);
+        data = Helpers.createUpdateProposalData(sourceChainID, blockHeight + 10, merkleRoot);
         dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
         expectedUpdateNonce++;
-
-        await TruffleAssert.passes(BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer1Address }));
-        await TruffleAssert.passes(BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer2Address }));
-        await TruffleAssert.passes(BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer3Address }));
-        await TruffleAssert.passes(BridgeInstance.executeProposal(originChainID, expectedUpdateNonce, data, resourceID, { from: relayer2Address }));
+        // this deposit is voted on and executed updating the first edge
+        await TruffleAssert.passes(BridgeInstance.voteProposal(sourceChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer1Address }));
+        await TruffleAssert.passes(BridgeInstance.voteProposal(sourceChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer2Address }));
+        await TruffleAssert.passes(BridgeInstance.voteProposal(sourceChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer3Address }));
+        await TruffleAssert.passes(BridgeInstance.executeProposal(sourceChainID, expectedUpdateNonce, data, resourceID, { from: relayer2Address }));
         
         newRoots = await LinkableAnchorDestChainInstance.getLatestNeighborRoots();
-
+        // checks the roots were updated properly
         assert.strictEqual(newRoots.length, maxRoots);
         assert.strictEqual(newRoots[0], merkleRoot);
         assert.strictEqual(newRoots[1], newMerkleRoot);
