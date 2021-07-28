@@ -1,4 +1,5 @@
 const fs = require('fs')
+const mkdirp = require('mkdirp');
 const path = require('path')
 const crypto = require('crypto')
 
@@ -10,7 +11,7 @@ const {
   stringifyBigInts,
 } = utils;
 const PoseidonHasher = require('../lib/bridgePoseidon-withdraw/Poseidon'); 
-const circomlib = require('circomlib')
+const circomlib = require('circomlib');
 
 const poseidonHasher = new PoseidonHasher();
 
@@ -30,6 +31,7 @@ async function generatePoseidon3Input() {
     commitment: deposit.commitment
   }
 
+  await mkdirp('build/poseidon3Preimage');
   await fs.writeFileSync('build/poseidon3Preimage/input.json', JSON.stringify(stringifyBigInts(input)));
 }
 

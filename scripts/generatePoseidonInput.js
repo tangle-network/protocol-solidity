@@ -1,4 +1,5 @@
 const fs = require('fs')
+const mkdirp = require('mkdirp')
 const path = require('path')
 const crypto = require('crypto')
 
@@ -30,6 +31,7 @@ async function generatePoseidonInput() {
     commitment: deposit.commitment
   }
 
+  await mkdirp('build/poseidonPreimage');
   await fs.writeFileSync('build/poseidonPreimage/input.json', JSON.stringify(stringifyBigInts(input)));
 }
 

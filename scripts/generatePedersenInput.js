@@ -1,4 +1,5 @@
 const fs = require('fs')
+const mkdirp = require('mkdirp');
 const path = require('path')
 const crypto = require('crypto')
 
@@ -11,7 +12,7 @@ const {
   unstringifyBigInts,
   stringifyBigInts,
 } = utils;
-const circomlib = require('circomlib')
+const circomlib = require('circomlib');
 
 const rbigint = (nbytes) => leBuff2int(crypto.randomBytes(nbytes))
 
@@ -39,6 +40,7 @@ async function generatePedersenInput() {
     commitment: deposit.commitment
   }
 
+  await mkdirp('build/pedersenPreimage');
   await fs.writeFileSync('build/pedersenPreimage/input.json', JSON.stringify(stringifyBigInts(input)));
 }
 

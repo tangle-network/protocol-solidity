@@ -1,4 +1,5 @@
 const fs = require('fs')
+const mkdirp = require('mkdirp')
 const path = require('path')
 const crypto = require('crypto')
 
@@ -56,6 +57,7 @@ async function generatePoseidonBridgeInput() {
     }),
   }
 
+  await mkdirp('build/poseidonBridge');
   await fs.writeFileSync('build/poseidonBridge/input.json', JSON.stringify(stringifyBigInts(input)));
 }
 
