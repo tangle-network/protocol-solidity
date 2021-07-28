@@ -42,9 +42,9 @@ function snarkVerify(proof) {
   return snarkjs['groth'].isValid(verification_key, proof, proof.publicSignals)
 }
 
-const HasherMimcContract = artifacts.require("MiMCSponge220");
+const HasherContract = artifacts.require("PoseidonT3");
 const VerifierMimcContract = artifacts.require("Verifier");
-const NativeAnchorContract = artifacts.require("NativeAnchorMiMC");
+const NativeAnchorContract = artifacts.require("NativeAnchorPoseidon");
 
 contract('NativeAnchor', (accounts) => {
   let hasher;
@@ -54,7 +54,7 @@ contract('NativeAnchor', (accounts) => {
   const operator = accounts[0]
   const levels = MERKLE_TREE_HEIGHT || 30
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
-  const maxRoots = 100;
+  const maxRoots = 1;
   let prefix = 'test'
   let tree
   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString())
@@ -64,7 +64,7 @@ contract('NativeAnchor', (accounts) => {
   let createWitness
   
   beforeEach(async () => {
-    hasher = await HasherMimcContract.new();
+    hasher = await HasherContract.new();
     verifier = await VerifierMimcContract.new();
     anchor = await NativeAnchorContract.new(verifier.address, hasher.address, value, levels, maxRoots);
     tree = new MerkleTree(levels, null, prefix)
