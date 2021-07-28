@@ -30,7 +30,10 @@ async function generatePoseidon3Input() {
     commitment: deposit.commitment
   }
 
-  await fs.mkdirSync('build/poseidon3');
+  if (!fs.existsSync('build/poseidon3')) {
+    await fs.mkdirSync('build/poseidon3');
+  }
+
   await fs.writeFileSync('build/poseidon3/input.json', JSON.stringify(stringifyBigInts(input)));
 }
 

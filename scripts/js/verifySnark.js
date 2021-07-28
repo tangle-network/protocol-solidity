@@ -63,7 +63,7 @@ async function runScript()
 
   // await fs.promises.writeFile('./input.json', JSON.stringify(stringifyBigInts(input)));
 
-  const proof = await snarkjs.groth16.fullProve(input, "../artifacts/circuits/tornado/withdraw_30.wasm", "../build/tornado/circuit_final.zkey");
+  const proof = await snarkjs.groth16.fullProve(input, "../artifacts/circuits/anchor/withdraw_30.wasm", "../build/tornado/circuit_final.zkey");
   let result = await snarkVerify(proof);
   console.log(result);
   return;

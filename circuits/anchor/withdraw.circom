@@ -8,8 +8,8 @@ template CommitmentHasher() {
     signal output nullifierHash;
 
     component commitmentHasher = HashLeftRight();
-    commitmentHasher.in[0] <== nullifier;
-    commitmentHasher.in[1] <== secret;
+    commitmentHasher.left <== nullifier;
+    commitmentHasher.right <== secret;
 
     component nullifierHasher = HashLeftRight();
     nullifierHasher.left <==  nullifier;

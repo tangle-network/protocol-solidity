@@ -1,3 +1,3 @@
-include "../tornado/withdraw.circom";
+include "../anchor/withdraw.circom";
 
 component main = Withdraw(30);

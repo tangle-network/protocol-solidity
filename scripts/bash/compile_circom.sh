@@ -1,6 +1,6 @@
 mkdir -p artifacts
 mkdir -p artifacts/circuits
-mkdir -p artifacts/circuits/tornado
+mkdir -p artifacts/circuits/anchor
 mkdir -p artifacts/circuits/bridge
 
 echo "Compiling Tornado style Poseidon anchor withdrawal circuit..."

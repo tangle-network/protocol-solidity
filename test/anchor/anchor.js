@@ -9,7 +9,7 @@ const fs = require('fs')
 const path = require('path');
 const { toBN, randomHex } = require('web3-utils')
 const LinkableAnchorContract = artifacts.require('./LinkableERC20AnchorPoseidon2.sol');
-const Verifierbridge = artifacts.require('./Verifierbridge.sol');
+const VerifierPoseidonBridge = artifacts.require('./VerifierPoseidonBridge.sol');
 const Poseidon = artifacts.require('PoseidonT3');
 const Token = artifacts.require("ERC20Mock");
 
@@ -28,7 +28,7 @@ const {
   leInt2Buff,
   stringifyBigInts,
 } = utils;
-const PoseidonHasher = require('../../../lib/Poseidon'); 
+const PoseidonHasher = require('../../lib/Poseidon'); 
 const MerkleTree = require('../../lib/MerkleTree');
 
 function bigNumberToPaddedBytes(num, digits =  32) {
@@ -85,7 +85,7 @@ contract('AnchorPoseidon2', (accounts) => {
   beforeEach(async () => {
     tree = new MerkleTree(levels, null, prefix)
     hasherInstance = await Poseidon.new();
-    verifier = await Verifierbridge.new();
+    verifier = await VerifierPoseidonBridge.new();
     token = await Token.new();
     await token.mint(sender, new BN('10000000000000000000000'));
     const balanceOfSender = await token.balanceOf.call(sender);
