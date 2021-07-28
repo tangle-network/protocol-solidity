@@ -14,7 +14,7 @@
     "setup:poseidon-bridge2": "node scripts/js/generatePoseidonBridge2Input.js && ./scripts/bash/phase2_poseidon_bridge2.sh",
     "setup:poseidon2-preimage": "node scripts/js/generatePoseidon2Input.js && ./scripts/bash/phase2_poseidon.sh",
     "setup:poseidon3-preimage": "node scripts/js/generatePoseidon3Input.js && ./scripts/bash/phase2_poseidon3.sh",
-    "setup": "yarn setup:poseidon-bridge2 && yarn setup:poseidon-preimage && yarn setup:poseidon3-preimage",
+    "setup": "yarn setup:poseidon-bridge2 && yarn setup:poseidon2-preimage && yarn setup:poseidon3-preimage",
     "test:all": "yarn build && yarn setup && yarn test",
     "test:bridge": "yarn build && yarn setup:poseidon-bridge2 && yarn test",
     "test": "npx hardhat test"
