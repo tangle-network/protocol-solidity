@@ -27,8 +27,8 @@ abstract contract Anchor is MerkleTreeMiMC, ReentrancyGuard {
     uint256 height;
   }
 
-  // maps anchor resource IDs to the index in the edge list
-  mapping(bytes32 => uint256) public edgeIndex;
+  // maps anchor sourceChainIDs to the index in the edge list
+  mapping(uint8 => uint256) public edgeIndex;
   mapping(uint8 => bool) public edgeExistsForChain;
   Edge[] public edgeList;
 

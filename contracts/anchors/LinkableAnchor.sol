@@ -55,7 +55,7 @@ abstract contract LinkableAnchor is Anchor {
       height: height
     });
     edgeList.push(edge);
-    edgeIndex[resourceID] = index;
+    edgeIndex[sourceChainID] = index;
     emit EdgeAddition(sourceChainID, resourceID, height, root);
     // emit update event
     bytes32[] memory neighbors = getLatestNeighborRoots();
@@ -71,8 +71,8 @@ abstract contract LinkableAnchor is Anchor {
     uint256 height
   ) onlyHandler external payable nonReentrant {
     require(edgeExistsForChain[sourceChainID], "Chain must be integrated from the bridge before updates");
-    require(edgeList[edgeIndex[resourceID]].height < height, "New height must be greater");
-    uint index = edgeIndex[resourceID];
+    require(edgeList[edgeIndex[sourceChainID]].height < height, "New height must be greater");
+    uint index = edgeIndex[sourceChainID];
     // update the edge in the edge list
     edgeList[index] = Edge({
       chainID: sourceChainID,
