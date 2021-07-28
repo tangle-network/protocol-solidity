@@ -13,7 +13,7 @@
  const ERC20HandlerContract = artifacts.require("ERC20Handler");
  const LinkableAnchorContract = artifacts.require("LinkableERC20AnchorPoseidon2");
  const Verifier = artifacts.require("Verifier");
- const Hasher = artifacts.require("HasherMock");
+ const Hasher = artifacts.require("PoseidonT3");
  const Token = artifacts.require("ERC20Mock");
  
 

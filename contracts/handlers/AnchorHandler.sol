@@ -7,8 +7,8 @@ pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
 import "../interfaces/IUpdateExecute.sol";
+import "../interfaces/ILinkableAnchor.sol";
 import "./HandlerHelpers.sol";
-import "../anchors/interfaces/ILinkableAnchor.sol";
 import "../interfaces/IExecutor.sol";
 
 /**

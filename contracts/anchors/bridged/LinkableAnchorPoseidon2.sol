@@ -6,7 +6,7 @@
 pragma solidity ^0.8.0;
 
 import "./AnchorPoseidon2.sol";
-import "../interfaces/ILinkableAnchor.sol";
+import "../../interfaces/ILinkableAnchor.sol";
 
 abstract contract LinkableAnchorPoseidon2 is AnchorPoseidon2, ILinkableAnchor {
   constructor(

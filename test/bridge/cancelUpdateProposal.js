@@ -13,7 +13,7 @@
  const AnchorHandlerContract = artifacts.require("AnchorHandler");
  const LinkableAnchorContract = artifacts.require("LinkableERC20AnchorPoseidon2");
  const Verifier = artifacts.require("Verifier");
- const Hasher = artifacts.require("HasherMock");
+ const Hasher = artifacts.require("PoseidonT3");
  const Token = artifacts.require("ERC20Mock");
  contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (accounts) => {
      const originChainID = 1;
