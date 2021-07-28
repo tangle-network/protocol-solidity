@@ -16,10 +16,10 @@ contract HandlerHelpers is IERCHandler {
     address public _bridgeAddress;
 
     // resourceID => token contract address
-    mapping (bytes32 => address) public _resourceIDToTokenContractAddress;
+    mapping (bytes32 => address) public _resourceIDToContractAddress;
 
     // token contract address => resourceID
-    mapping (address => bytes32) public _tokenContractAddressToResourceID;
+    mapping (address => bytes32) public _contractAddressToResourceID;
 
     // token contract address => is whitelisted
     mapping (address => bool) public _contractWhitelist;
@@ -68,8 +68,8 @@ contract HandlerHelpers is IERCHandler {
     function withdraw(address tokenAddress, address recipient, uint256 amountOrTokenID) external virtual override {}
 
     function _setResource(bytes32 resourceID, address contractAddress) internal {
-        _resourceIDToTokenContractAddress[resourceID] = contractAddress;
-        _tokenContractAddressToResourceID[contractAddress] = resourceID;
+        _resourceIDToContractAddress[resourceID] = contractAddress;
+        _contractAddressToResourceID[contractAddress] = resourceID;
 
         _contractWhitelist[contractAddress] = true;
     }

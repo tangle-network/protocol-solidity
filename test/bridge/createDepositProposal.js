@@ -73,7 +73,7 @@ contract('Bridge - [create a deposit proposal (voteProposal) with relayerThresho
             resourceID,
             dataHash,
             { from: depositerAddress }
-        ));
+        ), "sender doesn't have relayer role");
     });
 
     it("depositProposal shouldn't be created if it has an Active status", async () => {
@@ -91,7 +91,7 @@ contract('Bridge - [create a deposit proposal (voteProposal) with relayerThresho
             resourceID,
             dataHash,
             { from: originChainRelayerAddress }
-        ));
+        ), "proposal already passed/executed/cancelled");
     });
 
     it("getProposal should be called successfully", async () => {
@@ -144,7 +144,7 @@ contract('Bridge - [create a deposit proposal (voteProposal) with relayerThresho
 
         TruffleAssert.eventEmitted(proposalTx, 'ProposalEvent', (event) => {
             return event.originChainID.toNumber() === originChainID &&
-                event.depositNonce.toNumber() === expectedDepositNonce &&
+                event.nonce.toNumber() === expectedDepositNonce &&
                 event.status.toNumber() === expectedCreateEventStatus &&
                 event.dataHash === dataHash
         });
@@ -215,10 +215,10 @@ contract('Bridge - [create a deposit proposal (voteProposal) with relayerThresho
             resourceID,
             dataHash,
             { from: depositerAddress }
-        ));
+        ), "sender doesn't have relayer role");
     });
 
-    it("depositProposal shouldn't be created if it has an Active status", async () => {
+    it("depositProposal shouldn't be created if it has a passed status", async () => {
         await TruffleAssert.passes(BridgeInstance.voteProposal(
             destinationChainID,
             expectedDepositNonce,
@@ -233,7 +233,7 @@ contract('Bridge - [create a deposit proposal (voteProposal) with relayerThresho
             resourceID,
             dataHash,
             { from: originChainRelayerAddress }
-        ));
+        ), "relayer already voted");
     });
 
     it('depositProposal should be created with expected values', async () => {
@@ -280,7 +280,7 @@ contract('Bridge - [create a deposit proposal (voteProposal) with relayerThresho
 
         TruffleAssert.eventEmitted(proposalTx, 'ProposalEvent', (event) => {
             return event.originChainID.toNumber() === originChainID &&
-                event.depositNonce.toNumber() === expectedDepositNonce &&
+                event.nonce.toNumber() === expectedDepositNonce &&
                 event.status.toNumber() === expectedCreateEventStatus &&
                 event.dataHash === dataHash
         });

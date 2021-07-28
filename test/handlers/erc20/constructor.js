@@ -50,10 +50,10 @@ contract('ERC20Handler - [constructor]', async () => {
         for (const resourceID of initialResourceIDs) {
             const tokenAddress = `0x` + resourceID.substr(24,40);
             
-            const retrievedTokenAddress = await ERC20HandlerInstance._resourceIDToTokenContractAddress.call(resourceID);
+            const retrievedTokenAddress = await ERC20HandlerInstance._resourceIDToContractAddress.call(resourceID);
             assert.strictEqual(Ethers.utils.getAddress(tokenAddress).toLowerCase(), retrievedTokenAddress.toLowerCase());
 
-            const retrievedResourceID = await ERC20HandlerInstance._tokenContractAddressToResourceID.call(tokenAddress);
+            const retrievedResourceID = await ERC20HandlerInstance._contractAddressToResourceID.call(tokenAddress);
             assert.strictEqual(resourceID.toLowerCase(), retrievedResourceID.toLowerCase());
         }
     });

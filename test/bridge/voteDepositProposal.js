@@ -190,7 +190,7 @@ contract('Bridge - [voteProposal with relayerThreshold == 3]', async (accounts) 
 
         TruffleAssert.eventEmitted(voteTx, 'ProposalEvent', (event) => {
             return event.originChainID.toNumber() === originChainID &&
-                event.depositNonce.toNumber() === expectedDepositNonce &&
+                event.nonce.toNumber() === expectedDepositNonce &&
                 event.status.toNumber() === expectedFinalizedEventStatus &&
                 event.dataHash === depositDataHash
         });
@@ -201,7 +201,7 @@ contract('Bridge - [voteProposal with relayerThreshold == 3]', async (accounts) 
 
         TruffleAssert.eventEmitted(voteTx, 'ProposalVote', (event) => {
             return event.originChainID.toNumber() === originChainID &&
-                event.depositNonce.toNumber() === expectedDepositNonce &&
+                event.nonce.toNumber() === expectedDepositNonce &&
                 event.status.toNumber() === 1
         });
     });
@@ -215,7 +215,7 @@ contract('Bridge - [voteProposal with relayerThreshold == 3]', async (accounts) 
 
         TruffleAssert.eventEmitted(voteTx, 'ProposalEvent', (event) => {
             return event.originChainID.toNumber() === originChainID &&
-                event.depositNonce.toNumber() === expectedDepositNonce &&
+                event.nonce.toNumber() === expectedDepositNonce &&
                 event.status.toNumber() === expectedFinalizedEventStatus &&
                 event.dataHash === depositDataHash
         });
@@ -224,7 +224,7 @@ contract('Bridge - [voteProposal with relayerThreshold == 3]', async (accounts) 
 
         TruffleAssert.eventEmitted(executionTx, 'ProposalEvent', (event) => {
             return event.originChainID.toNumber() === originChainID &&
-            event.depositNonce.toNumber() === expectedDepositNonce &&
+            event.nonce.toNumber() === expectedDepositNonce &&
             event.status.toNumber() === expectedExecutedEventStatus &&
             event.dataHash === depositDataHash
         });

@@ -9,11 +9,10 @@
  const Helpers = require('../helpers');
  
  const BridgeContract = artifacts.require("Bridge");
- const ERC20MintableContract = artifacts.require("ERC20PresetMinterPauser");
  const AnchorHandlerContract = artifacts.require("AnchorHandler");
- const LinkableAnchorContract = artifacts.require("LinkableERC20Anchor");
+ const LinkableAnchorContract = artifacts.require("LinkableERC20AnchorPoseidon2");
  const Verifier = artifacts.require("Verifier");
- const Hasher = artifacts.require("HasherMock");
+ const Hasher = artifacts.require("PoseidonT3");
  const Token = artifacts.require("ERC20Mock");
 
 contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (accounts) => {
@@ -27,92 +26,98 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
     const relayer2Bit = 1 << 1;
     const relayer3Bit = 1 << 2;
     const depositerAddress = accounts[4];
-    const expectedUpdateNonce = 1;
     const relayerThreshold = 3;
     const expectedFinalizedEventStatus = 2;
     const expectedExecutedEventStatus = 3;
     const merkleTreeHeight = 31;
-    const newLeafIndex = 1;
     const maxRoots = 100;
     const sender = accounts[5]
     const operator = accounts[5]
 
-    const linkedChainIDs = [2,3,4,5];
     let ADMIN_ROLE;
     let merkleRoot;
-    let LinkableAnchorInstance;
+    let blockHeight = 1;
+    let expectedUpdateNonce = 1;
+    let LinkableAnchorOriginChainInstance;
+    let LinkableAnchorDestChainInstance;
     let hasher, verifier;
-    let anchor;
     let token;
     let tokenDenomination = '1000'; // 1 ether
-    // function stubs
-    let setHandler;
-    let setBridge;
-    let addEdge;
-    let updateEdge;
 
     let BridgeInstance;
-    let DestinationERC20MintableInstance;
     let DestinationAnchorHandlerInstance;
     let data = '';
     let dataHash = '';
     let resourceID = '';
     let initialResourceIDs;
     let initialContractAddresses;
-    let burnableContractAddresses;
 
     let vote, executeProposal;
 
-     beforeEach(async () => {
+    beforeEach(async () => {
+        // create all contracts
         await Promise.all([
-        BridgeContract.new(destinationChainID, [
-            relayer1Address,
-            relayer2Address,
-            relayer3Address,
-            relayer4Address], 
-            relayerThreshold, 
-            0,
-            100,).then(instance => BridgeInstance = instance),
-        ERC20MintableContract.new("token", "TOK").then(instance => DestinationERC20MintableInstance = instance)
+            BridgeContract.new(destinationChainID, [
+                relayer1Address,
+                relayer2Address,
+                relayer3Address,
+                relayer4Address], 
+                relayerThreshold, 
+                0,
+                100,
+            ).then(instance => BridgeInstance = instance),
+            Hasher.new().then(instance => hasher = instance),
+            Verifier.new().then(instance => verifier = instance),
+            Token.new().then(instance => token = instance),
         ]);
-        
-        hasher = await Hasher.new();
-        verifier = await Verifier.new();
-        token = await Token.new();
-        await token.mint(sender, tokenDenomination);
-        LinkableAnchorInstance = await LinkableAnchorContract.new(
-        verifier.address,
-        hasher.address,
-        tokenDenomination,
-        merkleTreeHeight,
-        maxRoots,
-        token.address,
-        );    
-         
-        await token.increaseAllowance(LinkableAnchorInstance.address, 1000000000, {from: sender});
-        await LinkableAnchorInstance.deposit('0x1111111111111111111111111111111111111111111111111111111111111111', {from: sender});
-        merkleRoot = await LinkableAnchorInstance.getLastRoot();
-        
-        resourceID = Helpers.createResourceID(DestinationERC20MintableInstance.address, originChainID);
-        initialResourceIDs = [resourceID];
-        initialContractAddresses = [DestinationERC20MintableInstance.address];
-        burnableContractAddresses = [DestinationERC20MintableInstance.address];
 
-        DestinationAnchorHandlerInstance = await AnchorHandlerContract.new(BridgeInstance.address, initialResourceIDs, initialContractAddresses, burnableContractAddresses);
+        LinkableAnchorOriginChainInstance = await LinkableAnchorContract.new(
+            verifier.address,
+            hasher.address,
+            tokenDenomination,
+            merkleTreeHeight,
+            maxRoots,
+            token.address,
+        {from: sender});
+        LinkableAnchorDestChainInstance = await LinkableAnchorContract.new(
+            verifier.address,
+            hasher.address,
+            tokenDenomination,
+            merkleTreeHeight,
+            maxRoots,
+            token.address,
+        {from: sender});
         
-        data = Helpers.createUpdateProposalData(newLeafIndex, merkleRoot);
+        await token.mint(sender, 10 * tokenDenomination);
+        await token.increaseAllowance(LinkableAnchorOriginChainInstance.address, 1000000000, {from: sender});
+        await LinkableAnchorOriginChainInstance.deposit('0x11111', {from: sender});
+        merkleRoot = await LinkableAnchorOriginChainInstance.getLastRoot();
+        resourceID = Helpers.createResourceID(LinkableAnchorOriginChainInstance.address, originChainID);
+        initialResourceIDs = [resourceID];
+        initialContractAddresses = [LinkableAnchorDestChainInstance.address];
+
+        DestinationAnchorHandlerInstance = await AnchorHandlerContract.new(
+            BridgeInstance.address,
+            initialResourceIDs,
+            initialContractAddresses,
+        );
+
+        await LinkableAnchorDestChainInstance.setHandler(DestinationAnchorHandlerInstance.address, {from: sender});
+        await LinkableAnchorDestChainInstance.setBridge(BridgeInstance.address, {from: sender});
+        
+
+        data = Helpers.createUpdateProposalData(originChainID, blockHeight, merkleRoot);
         dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
 
         await Promise.all([
-            DestinationERC20MintableInstance.grantRole(await DestinationERC20MintableInstance.MINTER_ROLE(), DestinationAnchorHandlerInstance.address),
-            BridgeInstance.adminSetResource(DestinationAnchorHandlerInstance.address, resourceID, DestinationERC20MintableInstance.address)
+            BridgeInstance.adminSetResource(DestinationAnchorHandlerInstance.address, resourceID, LinkableAnchorDestChainInstance.address)
         ]);
 
         vote = (relayer) => BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer });
         executeProposal = (relayer) => BridgeInstance.executeProposal(originChainID, expectedUpdateNonce, data, resourceID, { from: relayer });
-     });
+    });
 
-    it ('[sanity] bridge configured with threshold and relayers', async () => {
+    it('[sanity] bridge configured with threshold and relayers', async () => {
         assert.equal(await BridgeInstance._chainID(), destinationChainID)
 
         assert.equal(await BridgeInstance._relayerThreshold(), relayerThreshold)
@@ -136,7 +141,7 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
     });
 
     it('should revert because depositerAddress is not a relayer', async () => {
-        await TruffleAssert.reverts(vote(depositerAddress));
+        await TruffleAssert.reverts(vote(depositerAddress), "sender doesn't have relayer role");
     });
 
     it("updateProposal shouldn't be voted on if it has a Passed status", async () => {
@@ -228,7 +233,7 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
 
         TruffleAssert.eventEmitted(voteTx, 'ProposalEvent', (event) => {
             return event.originChainID.toNumber() === originChainID &&
-                event.depositNonce.toNumber() === expectedUpdateNonce &&
+                event.nonce.toNumber() === expectedUpdateNonce &&
                 event.status.toNumber() === expectedFinalizedEventStatus &&
                 event.dataHash === dataHash
         });
@@ -239,7 +244,7 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
 
         TruffleAssert.eventEmitted(voteTx, 'ProposalVote', (event) => {
             return event.originChainID.toNumber() === originChainID &&
-                event.depositNonce.toNumber() === expectedUpdateNonce &&
+                event.nonce.toNumber() === expectedUpdateNonce &&
                 event.status.toNumber() === 1
         });
     });
@@ -253,7 +258,7 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
 
         TruffleAssert.eventEmitted(voteTx, 'ProposalEvent', (event) => {
             return event.originChainID.toNumber() === originChainID &&
-                event.depositNonce.toNumber() === expectedUpdateNonce &&
+                event.nonce.toNumber() === expectedUpdateNonce &&
                 event.status.toNumber() === expectedFinalizedEventStatus &&
                 event.dataHash === dataHash
         });
@@ -262,7 +267,7 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
 
         TruffleAssert.eventEmitted(executionTx, 'ProposalEvent', (event) => {
             return event.originChainID.toNumber() === originChainID &&
-            event.depositNonce.toNumber() === expectedUpdateNonce &&
+            event.nonce.toNumber() === expectedUpdateNonce &&
             event.status.toNumber() === expectedExecutedEventStatus &&
             event.dataHash === dataHash
         });
@@ -282,5 +287,14 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
 
     it('Voting requires resourceID that is mapped to a handler', async () => {
         await TruffleAssert.reverts(BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, '0x0', dataHash, { from: relayer1Address }), "no handler for resourceID");
+    });
+
+    it("executed proposal cannot be cancelled", async () => {
+        await TruffleAssert.passes(vote(relayer1Address));
+        await TruffleAssert.passes(vote(relayer2Address));
+        await TruffleAssert.passes(vote(relayer3Address));
+
+        await TruffleAssert.passes(BridgeInstance.executeProposal(originChainID, expectedUpdateNonce, data, resourceID));
+        await TruffleAssert.reverts(BridgeInstance.cancelProposal(originChainID, expectedUpdateNonce, dataHash), "Proposal cannot be cancelled")
     });
 });
