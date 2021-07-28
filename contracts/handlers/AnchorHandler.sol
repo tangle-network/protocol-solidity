@@ -6,9 +6,8 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "../interfaces/IUpdateExecute.sol";
+import "../interfaces/ILinkableAnchor.sol";
 import "./HandlerHelpers.sol";
-import "../anchors/LinkableAnchor.sol";
 import "../interfaces/IExecutor.sol";
 
 /**
@@ -91,7 +90,7 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
 
         require(_contractWhitelist[anchorAddress], "provided tokenAddress is not whitelisted");
 
-        LinkableAnchor anchor = LinkableAnchor(anchorAddress);
+        ILinkableAnchor anchor = ILinkableAnchor(anchorAddress);
 
         if (anchor.hasEdge(sourceChainId)) {
             anchor.updateEdge(

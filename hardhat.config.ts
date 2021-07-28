@@ -23,14 +23,14 @@ export default {
     // (optional) Base path for files being output, defaults to `./circuits/`
     outputBasePath: "./artifacts/circuits/",
     // (required) The final ptau file, relative to inputBasePath, from a Phase 1 ceremony
-    ptau: "./artifacts/build/bridge-poseidon/pot12_final.ptau",
+    ptau: "./artifacts/build/bridge2-poseidon/pot16_final.ptau",
     // (required) Each object in this array refers to a separate circuit
     circuits: [
       {
         // (required) The name of the circuit
         name: "bridge-poseidon-withdraw",
         // (optional) Input path for circuit file, inferred from `name` if unspecified
-        circuit: "bridgePoseidon/withdraw.circom",
+        circuit: "bridge/withdraw.circom",
         // Used when specifying `--deterministic` instead of the default of all 0s
         beacon: "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
       },

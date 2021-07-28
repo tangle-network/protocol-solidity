@@ -8,9 +8,9 @@
  const Helpers = require('../helpers');
  const assert = require('assert');
  
- const LinkableAnchorContract = artifacts.require("LinkableERC20Anchor");
+ const LinkableAnchorContract = artifacts.require("LinkableERC20AnchorPoseidon2");
  const Verifier = artifacts.require("Verifier");
- const Hasher = artifacts.require("HasherMock");
+ const Hasher = artifacts.require("PoseidonT3");
  const Token = artifacts.require("ERC20Mock");
  const USDTToken = artifacts.require('IUSDT')
  
@@ -140,14 +140,14 @@
      await TruffleAssert.passes(addEdge(edge, accounts[0]));
 
      const roots = await LinkableAnchorInstance.getLatestNeighborRoots();
-     assert(roots.length == 100);
-     assert(roots[0] == edge.root);
+     assert.strictEqual(roots.length, 1);
+     assert.strictEqual(roots[0], edge.root);
 
      await TruffleAssert.passes(updateEdge(edgeUpdated, accounts[0]));
      
      const rootsUpdated = await LinkableAnchorInstance.getLatestNeighborRoots();
-     assert(rootsUpdated.length == 100); 
-     assert(rootsUpdated[0] == edgeUpdated.root);
+     assert.strictEqual(rootsUpdated.length, 1); 
+     assert.strictEqual(rootsUpdated[0], edgeUpdated.root);
    });
    
    it('Updating edge should emit correct EdgeUpdate event', async () => {
@@ -187,7 +187,7 @@
     const roots = await LinkableAnchorInstance.getLatestNeighborRoots();
     
     TruffleAssert.eventEmitted(result, 'RootHistoryUpdate', (ev) => {
-      return ev.roots.toString().split(',')[0]  == roots[0]
+      return ev.roots[0]  == roots[0]
     });
   });
 });

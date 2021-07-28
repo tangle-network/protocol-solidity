@@ -11,8 +11,8 @@ const assert = require('assert');
 const MerkleTreeWithHistory = artifacts.require('MerkleTreePoseidonMock')
 const Poseidon = artifacts.require('PoseidonT3');
 
-const MerkleTree = require('../../lib/bridgePoseidon-withdraw/MerkleTree')
-const hasherImpl = require('../../lib/bridgePoseidon-withdraw/Poseidon')
+const MerkleTree = require('../../lib/MerkleTree')
+const hasherImpl = require('../../lib/Poseidon')
 const snarkjs = require('snarkjs');
 const { collapseTextChangeRangesAcrossMultipleVersions } = require('typescript');
 

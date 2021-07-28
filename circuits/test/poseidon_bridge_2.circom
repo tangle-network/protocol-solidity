@@ -1,3 +1,3 @@
-include "../bridgePoseidon/withdraw.circom";
+include "../bridge/withdraw.circom";
 
 component main = Withdraw(30, 2);
