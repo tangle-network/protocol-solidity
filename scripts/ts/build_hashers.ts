@@ -14,10 +14,10 @@ const buildPoseidonT3 = () => buildPoseidon(2);
 // const buildPoseidonT4 = () => buildPoseidon(3);
 // const buildPoseidonT5 = () => buildPoseidon(4);
 // const buildPoseidonT6 = () => buildPoseidon(5);
-const buildMiMCSponge220 = () => buildMiMC(220);
+// const buildMiMCSponge220 = () => buildMiMC(220);
 
 if (require.main === module) {
-    buildMiMCSponge220();
+    // buildMiMCSponge220();
     buildPoseidonT3();
     // buildPoseidonT4();
     // buildPoseidonT5();
@@ -25,7 +25,7 @@ if (require.main === module) {
 }
 
 export {
-    buildMiMCSponge220,
+    // buildMiMCSponge220,
     buildPoseidonT3,
     // buildPoseidonT4,
     // buildPoseidonT5,
