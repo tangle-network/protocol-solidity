@@ -243,7 +243,7 @@ contract('AnchorPoseidon2', (accounts) => {
   })
 
   describe('#withdraw', () => {
-    it.only('should work', async () => {
+    it('should work', async () => {
       const chainID = 125;
       const deposit = generateDeposit(chainID);
       const user = accounts[4]

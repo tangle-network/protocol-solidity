@@ -6,9 +6,8 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "../interfaces/IUpdateExecute.sol";
+import "../interfaces/ILinkableAnchor.sol";
 import "./HandlerHelpers.sol";
-import "../anchors/LinkableAnchor.sol";
 import "../interfaces/IExecutor.sol";
 
 /**
@@ -16,7 +15,7 @@ import "../interfaces/IExecutor.sol";
     @author Webb Technologies.
     @notice This contract is intended to be used with the Bridge contract.
  */
-contract AnchorHandler is IUpdateExecute, IExecutor, HandlerHelpers {
+contract AnchorHandler is IExecutor, HandlerHelpers {
     struct UpdateRecord {
         address _tokenAddress;
         uint8   _sourceChainID;
@@ -71,36 +70,6 @@ contract AnchorHandler is IUpdateExecute, IExecutor, HandlerHelpers {
     }
 
     /**
-        @notice An update is initiatied by making a deposit in the destination Anchor contract.
-        @param sourceChainID Chain ID of chain tokens are expected to be bridged to.
-        @param updateNonce This value is generated as an ID by the Bridge contract.
-        @param updater The updater address.
-        @param data Consists of: {height} and {merkleRoot}
-        @notice Data passed into the function should be constructed as follows:
-        height                      uint256     bytes   0 - 32
-        merkleRoot                  bytes32     bytes  32 - 64
-        @dev Depending if the corresponding {tokenAddress} for the parsed {resourceID} is
-        marked true in {_burnList}, deposited tokens will be burned, if not, they will be locked.
-     */
-    function update(
-        bytes32 resourceID,
-        uint8   sourceChainID,
-        uint64  updateNonce,
-        address updater,
-        bytes   calldata data
-    ) external override onlyBridge {
-        bytes32 merkleRoot;
-        uint256 height;
-
-        (height, merkleRoot) = abi.decode(data, (uint, bytes32));
-
-        address anchorAddress = _resourceIDToContractAddress[resourceID];
-        require(_contractWhitelist[anchorAddress], "provided tokenAddress is not whitelisted");
-
-
-    }
-
-    /**
         @notice Proposal execution should be initiated when a proposal is finalized in the Bridge contract.
         by a relayer on the deposit's destination chain.
         @param data Consists of {resourceID}, {chainID}, {blockHeight}, {merkleRoot} all padded to 32 bytes.
@@ -119,7 +88,7 @@ contract AnchorHandler is IUpdateExecute, IExecutor, HandlerHelpers {
 
         require(_contractWhitelist[anchorAddress], "provided tokenAddress is not whitelisted");
 
-        LinkableAnchor anchor = LinkableAnchor(anchorAddress);
+        ILinkableAnchor anchor = ILinkableAnchor(anchorAddress);
 
         if (anchor.hasEdge(chainID)) {
             anchor.updateEdge(

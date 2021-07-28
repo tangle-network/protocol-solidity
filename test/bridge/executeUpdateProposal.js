@@ -10,9 +10,9 @@
  
  const BridgeContract = artifacts.require("Bridge");
  const AnchorHandlerContract = artifacts.require("AnchorHandler");
- const LinkableAnchorContract = artifacts.require("LinkableERC20Anchor");
+ const LinkableAnchorContract = artifacts.require("LinkableERC20AnchorPoseidon2");
  const Verifier = artifacts.require("Verifier");
- const Hasher = artifacts.require("HasherMock");
+ const Hasher = artifacts.require("PoseidonT3");
  const Token = artifacts.require("ERC20Mock");
 
 contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (accounts) => {
@@ -32,7 +32,7 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
     const expectedFinalizedEventStatus = 2;
     const expectedExecutedEventStatus = 3;
     const merkleTreeHeight = 31;
-    const maxRoots = 2;
+    const maxRoots = 1;
     const sender = accounts[5]
     const operator = accounts[5]
 
@@ -78,7 +78,7 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
             hasher.address,
             tokenDenomination,
             merkleTreeHeight,
-            maxRoots,
+            originChainID,
             token.address,
         {from: sender});
         LinkableAnchorDestChainInstance = await LinkableAnchorContract.new(
@@ -86,7 +86,7 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
             hasher.address,
             tokenDenomination,
             merkleTreeHeight,
-            maxRoots,
+            originChainID,
             token.address,
         {from: sender});
         
@@ -115,8 +115,18 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
             BridgeInstance.adminSetResource(DestinationAnchorHandlerInstance.address, resourceID, LinkableAnchorDestChainInstance.address)
         ]);
         
-        vote = (relayer) => BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer });
-        executeProposal = (relayer) => BridgeInstance.executeProposal(originChainID, expectedUpdateNonce, data, resourceID, { from: relayer });
+        vote = (relayer) => BridgeInstance.voteProposal(
+            originChainID,
+            expectedUpdateNonce,
+            resourceID,
+            dataHash,
+            { from: relayer });
+        executeProposal = (relayer) => BridgeInstance.executeProposal(
+            originChainID,
+            expectedUpdateNonce,
+            data,
+            resourceID,
+            { from: relayer });
     });
 
     it('[sanity] bridge configured with threshold and relayers', async () => {
@@ -179,8 +189,8 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
         await TruffleAssert.passes(BridgeInstance.executeProposal(originChainID, expectedUpdateNonce, data, resourceID, { from: relayer2Address }));
         
         const newRoots = await LinkableAnchorDestChainInstance.getLatestNeighborRoots();
+        // bridge between ONLY 2 chains means neighbors should be length 1
         assert.strictEqual(newRoots.length, maxRoots);
-        assert.strictEqual(newRoots[1], "0x0000000000000000000000000000000000000000000000000000000000000000");
         assert.strictEqual(newRoots[0], merkleRoot);
 
     });
@@ -199,12 +209,13 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
         await TruffleAssert.passes(BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer1Address }));
         await TruffleAssert.passes(BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer2Address }));
         await TruffleAssert.passes(BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer3Address }));
-        await TruffleAssert.reverts(BridgeInstance.executeProposal(originChainID, expectedUpdateNonce, data, resourceID, { from: relayer2Address }),
+        await TruffleAssert.reverts(
+            BridgeInstance.executeProposal(originChainID, expectedUpdateNonce, data, resourceID, { from: relayer2Address }),
             "New height must be greater");
 
     });
 
-    it("updateProposal for adding 2 edges should work", async () => {
+    it("updateProposal for adding more than allowed edges should fail with capacity error", async () => {
         await TruffleAssert.passes(vote(relayer1Address));
         await TruffleAssert.passes(vote(relayer2Address));
         await TruffleAssert.passes(vote(relayer3Address));
@@ -219,7 +230,7 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
             hasher.address,
             tokenDenomination,
             merkleTreeHeight,
-            maxRoots,
+            originChainID,
             token.address,
             {from: sender}
         );
@@ -234,16 +245,19 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
         await TruffleAssert.passes(BridgeInstance.voteProposal(thirdChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer1Address }));
         await TruffleAssert.passes(BridgeInstance.voteProposal(thirdChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer2Address }));
         await TruffleAssert.passes(BridgeInstance.voteProposal(thirdChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer3Address }));
-        await TruffleAssert.passes(BridgeInstance.executeProposal(thirdChainID, expectedUpdateNonce, data, resourceID, { from: relayer3Address }));
+        await TruffleAssert.reverts(
+            BridgeInstance.executeProposal(thirdChainID, expectedUpdateNonce, data, resourceID, { from: relayer3Address }),
+            "This Anchor is at capacity"
+        );
         
         const newRoots = await LinkableAnchorDestChainInstance.getLatestNeighborRoots();
+        // bridge between ONLY 2 chains means neighbors should be length 1
         assert.strictEqual(newRoots.length, maxRoots);
         assert.strictEqual(newRoots[0], merkleRoot);
-        assert.strictEqual(newRoots[1], newMerkleRoot);
 
     });
 
-    it("updateProposal for adding more edges than maxRoots (2) should fail", async () => {
+    it("updateProposal for adding more edges than maxRoots (1) should fail", async () => {
         await TruffleAssert.passes(vote(relayer1Address));
         await TruffleAssert.passes(vote(relayer2Address));
         await TruffleAssert.passes(vote(relayer3Address));
@@ -258,7 +272,7 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
             hasher.address,
             tokenDenomination,
             merkleTreeHeight,
-            maxRoots,
+            originChainID,
             token.address,
             {from: sender}
         );
@@ -274,65 +288,17 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
         await TruffleAssert.passes(BridgeInstance.voteProposal(thirdChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer1Address }));
         await TruffleAssert.passes(BridgeInstance.voteProposal(thirdChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer2Address }));
         await TruffleAssert.passes(BridgeInstance.voteProposal(thirdChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer3Address }));
-        await TruffleAssert.passes(BridgeInstance.executeProposal(thirdChainID, expectedUpdateNonce, data, resourceID, { from: relayer3Address }));
-
-        LinkableAnchorFourthChainInstance = await LinkableAnchorContract.new(
-            verifier.address,
-            hasher.address,
-            tokenDenomination,
-            merkleTreeHeight,
-            maxRoots,
-            token.address,
-            {from: sender}
+        await TruffleAssert.reverts(
+            BridgeInstance.executeProposal(thirdChainID, expectedUpdateNonce, data, resourceID, { from: relayer3Address }),
+            "This Anchor is at capacity",
         );
-        await token.increaseAllowance(LinkableAnchorFourthChainInstance.address, 1000000000, {from: sender});
-        await LinkableAnchorFourthChainInstance.deposit('0x023328', {from: sender});
-        
-        newMerkleRoot = await LinkableAnchorFourthChainInstance.getLastRoot();
-        data = Helpers.createUpdateProposalData(fourthChainID, blockHeight, newMerkleRoot);
-        dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
-        expectedUpdateNonce++;
-
-        await TruffleAssert.passes(BridgeInstance.voteProposal(fourthChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer1Address }));
-        await TruffleAssert.passes(BridgeInstance.voteProposal(fourthChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer2Address }));
-        await TruffleAssert.passes(BridgeInstance.voteProposal(fourthChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer3Address }));
-        await TruffleAssert.reverts(BridgeInstance.executeProposal(fourthChainID, expectedUpdateNonce, data, resourceID, { from: relayer3Address }),
-            "This Anchor is at capacity");
-        
     });
     
-    it("updateProposal for updating an edge on anchor with 2 existing edges should work", async () => {
+    it("updateProposal for updating an edge on anchor with 1 existing edge should work", async () => {
         await TruffleAssert.passes(vote(relayer1Address));
         await TruffleAssert.passes(vote(relayer2Address));
         await TruffleAssert.passes(vote(relayer3Address));
         await TruffleAssert.passes(executeProposal(relayer1Address));
-
-        hasher = await Hasher.new();
-        verifier = await Verifier.new();
-        token = await Token.new();
-        await token.mint(sender, tokenDenomination);
-        LinkableAnchorThirdChainInstance = await LinkableAnchorContract.new(
-            verifier.address,
-            hasher.address,
-            tokenDenomination,
-            merkleTreeHeight,
-            maxRoots,
-            token.address,
-            {from: sender}
-        );
-
-        await token.increaseAllowance(LinkableAnchorThirdChainInstance.address, 1000000000, {from: sender});
-        await LinkableAnchorThirdChainInstance.deposit('0x023888', {from: sender});
-        
-        newMerkleRoot = await LinkableAnchorThirdChainInstance.getLastRoot();
-        data = Helpers.createUpdateProposalData(thirdChainID, blockHeight, newMerkleRoot);
-        dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
-        expectedUpdateNonce++;
-
-        await TruffleAssert.passes(BridgeInstance.voteProposal(thirdChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer1Address }));
-        await TruffleAssert.passes(BridgeInstance.voteProposal(thirdChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer2Address }));
-        await TruffleAssert.passes(BridgeInstance.voteProposal(thirdChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer3Address }));
-        await TruffleAssert.passes(BridgeInstance.executeProposal(thirdChainID, expectedUpdateNonce, data, resourceID, { from: relayer3Address }));
 
         await LinkableAnchorOriginChainInstance.deposit('0x22222', {from: sender});
         merkleRoot = await LinkableAnchorOriginChainInstance.getLastRoot();
@@ -347,9 +313,9 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
         
         newRoots = await LinkableAnchorDestChainInstance.getLatestNeighborRoots();
 
+        // bridge between ONLY 2 chains means neighbors should be length 1
         assert.strictEqual(newRoots.length, maxRoots);
         assert.strictEqual(newRoots[0], merkleRoot);
-        assert.strictEqual(newRoots[1], newMerkleRoot);
 
     });
 

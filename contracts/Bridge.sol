@@ -11,7 +11,6 @@ import "./utils/Pausable.sol";
 import "./utils/SafeMath.sol";
 import "./utils/SafeCast.sol";
 import "./interfaces/IDepositExecute.sol";
-import "./interfaces/IUpdateExecute.sol";
 import "./interfaces/IExecutor.sol";
 import "./interfaces/IERCHandler.sol";
 
