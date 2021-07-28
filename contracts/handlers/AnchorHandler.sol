@@ -95,6 +95,7 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
         if (anchor.hasEdge(sourceChainId)) {
             anchor.updateEdge(
                 sourceChainId,
+                
                 bytes32(merkleRoot),
                 blockHeight
             );

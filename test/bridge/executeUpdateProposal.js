@@ -78,7 +78,7 @@ contract('Bridge - [executeUpdateProposal with relayerThreshold == 3]', async (a
             hasher.address,
             tokenDenomination,
             merkleTreeHeight,
-            originChainID,
+            sourceChainID,
             token.address,
         {from: sender});
         LinkableAnchorDestChainInstance = await LinkableAnchorContract.new(
@@ -86,7 +86,7 @@ contract('Bridge - [executeUpdateProposal with relayerThreshold == 3]', async (a
             hasher.address,
             tokenDenomination,
             merkleTreeHeight,
-            originChainID,
+            sourceChainID,
             token.address,
         {from: sender});
         
@@ -116,13 +116,13 @@ contract('Bridge - [executeUpdateProposal with relayerThreshold == 3]', async (a
         ]);
         
         vote = (relayer) => BridgeInstance.voteProposal(
-            originChainID,
+            sourceChainID,
             expectedUpdateNonce,
             resourceID,
             dataHash,
             { from: relayer });
         executeProposal = (relayer) => BridgeInstance.executeProposal(
-            originChainID,
+            sourceChainID,
             expectedUpdateNonce,
             data,
             resourceID,
@@ -180,7 +180,7 @@ contract('Bridge - [executeUpdateProposal with relayerThreshold == 3]', async (a
         await TruffleAssert.passes(vote(relayer3Address));
         await TruffleAssert.passes(executeProposal(relayer1Address));
 
-        // new deposit on sourceChain which changes root 
+        // new deposit on sourceChain changes root 
         await LinkableAnchorOriginChainInstance.deposit('0x22222', {from: sender});
         merkleRoot = await LinkableAnchorOriginChainInstance.getLastRoot();
         data = Helpers.createUpdateProposalData(sourceChainID, blockHeight + 10, merkleRoot);
@@ -210,15 +210,15 @@ contract('Bridge - [executeUpdateProposal with relayerThreshold == 3]', async (a
         // new deposit on sourceChain which changes root 
         await LinkableAnchorOriginChainInstance.deposit('0x22222', {from: sender});
         merkleRoot = await LinkableAnchorOriginChainInstance.getLastRoot();
-        // blockHeight is not greater than last height
+        // blockHeight is not greater than last height so execution reverts
         data = Helpers.createUpdateProposalData(sourceChainID, blockHeight, merkleRoot);
         dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
         expectedUpdateNonce++;
-        await TruffleAssert.passes(BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer1Address }));
-        await TruffleAssert.passes(BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer2Address }));
-        await TruffleAssert.passes(BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer3Address }));
+        await TruffleAssert.passes(BridgeInstance.voteProposal(sourceChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer1Address }));
+        await TruffleAssert.passes(BridgeInstance.voteProposal(sourceChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer2Address }));
+        await TruffleAssert.passes(BridgeInstance.voteProposal(sourceChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer3Address }));
         await TruffleAssert.reverts(
-            BridgeInstance.executeProposal(originChainID, expectedUpdateNonce, data, resourceID, { from: relayer2Address }),
+            BridgeInstance.executeProposal(sourceChainID, expectedUpdateNonce, data, resourceID, { from: relayer2Address }),
             "New height must be greater");
 
     });
@@ -239,7 +239,7 @@ contract('Bridge - [executeUpdateProposal with relayerThreshold == 3]', async (a
             hasher.address,
             tokenDenomination,
             merkleTreeHeight,
-            originChainID,
+            sourceChainID,
             token.address,
             {from: sender}
         );
@@ -261,7 +261,7 @@ contract('Bridge - [executeUpdateProposal with relayerThreshold == 3]', async (a
             "This Anchor is at capacity"
         );
         
-        //checking roots are correct for the two edges
+        //checking roots are correct for the edge
         const newRoots = await LinkableAnchorDestChainInstance.getLatestNeighborRoots();
         // bridge between ONLY 2 chains means neighbors should be length 1
         assert.strictEqual(newRoots.length, maxRoots);

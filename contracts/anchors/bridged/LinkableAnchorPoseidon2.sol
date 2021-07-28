@@ -14,7 +14,7 @@ abstract contract LinkableAnchorPoseidon2 is AnchorPoseidon2, ILinkableAnchor {
     IPoseidonT3 _hasher,
     uint256 _denomination,
     uint32 _merkleTreeHeight,
-    uint32 _chainID
+    uint256 _chainID
   ) AnchorPoseidon2(_verifier, _hasher, _denomination, _merkleTreeHeight, _chainID) {
     // set the sender as admin & bridge & handler address
     // TODO: Properly set addresses and permissions
@@ -31,7 +31,7 @@ abstract contract LinkableAnchorPoseidon2 is AnchorPoseidon2, ILinkableAnchor {
     bridge = _bridge;
   }
 
-  function hasEdge(uint8 _chainID) override external view returns (bool) {
+  function hasEdge(uint256 _chainID) override external view returns (bool) {
     return edgeExistsForChain[_chainID];
   }
 
@@ -45,8 +45,7 @@ abstract contract LinkableAnchorPoseidon2 is AnchorPoseidon2, ILinkableAnchor {
   }
 
   function addEdge(
-    uint8 sourceChainID,
-    bytes32 resourceID,
+    uint256 sourceChainID,
     bytes32 root,
     uint256 height
   ) onlyHandler override external payable nonReentrant {
@@ -55,13 +54,12 @@ abstract contract LinkableAnchorPoseidon2 is AnchorPoseidon2, ILinkableAnchor {
     uint index = edgeList.length;
     Edge memory edge = Edge({
       chainID: sourceChainID,
-      resourceID: resourceID,
       root: root,
       height: height
     });
     edgeList.push(edge);
-    edgeIndex[resourceID] = index;
-    emit EdgeAddition(sourceChainID, resourceID, height, root);
+    edgeIndex[sourceChainID] = index;
+    emit EdgeAddition(sourceChainID, height, root);
     // emit update event
     bytes32[1] memory neighbors = getLatestNeighborRoots();
     emit RootHistoryUpdate(block.timestamp, neighbors);
@@ -69,22 +67,20 @@ abstract contract LinkableAnchorPoseidon2 is AnchorPoseidon2, ILinkableAnchor {
   }
 
   function updateEdge(
-    uint8 sourceChainID,
-    bytes32 resourceID,
+    uint256 sourceChainID,
     bytes32 root,
     uint256 height
   ) onlyHandler override external payable nonReentrant {
     require(edgeExistsForChain[sourceChainID], "Chain must be integrated from the bridge before updates");
-    require(edgeList[edgeIndex[resourceID]].height < height, "New height must be greater");
-    uint index = edgeIndex[resourceID];
+    require(edgeList[edgeIndex[sourceChainID]].height < height, "New height must be greater");
+    uint index = edgeIndex[sourceChainID];
     // update the edge in the edge list
     edgeList[index] = Edge({
       chainID: sourceChainID,
-      resourceID: resourceID,
       root: root,
       height: height
     });
-    emit EdgeUpdate(sourceChainID, resourceID, height, root);
+    emit EdgeUpdate(sourceChainID, height, root);
     // emit update event
     bytes32[1] memory neighbors = getLatestNeighborRoots();
     emit RootHistoryUpdate(block.timestamp, neighbors);
