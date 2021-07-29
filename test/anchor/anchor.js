@@ -68,18 +68,15 @@ contract('AnchorPoseidon2', (accounts) => {
   const operator = accounts[0]
   const levels = MERKLE_TREE_HEIGHT || 30
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
-  let snapshotId
   let prefix = 'poseidon-test'
   let tree
   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString())
   const refund = BigInt((new BN('0')).toString())
   const recipient = getRandomRecipient()
   const relayer = accounts[1]
-  let circuit
-  let proving_key
   let verifier;
   let tokenDenomination = '1000000000000000000' // 1 ether
-  const maxRoots = 1;
+  const chainID = 125;
 
   let createWitness;
 
@@ -95,7 +92,7 @@ contract('AnchorPoseidon2', (accounts) => {
       hasherInstance.address,
       tokenDenomination,
       levels,
-      maxRoots,
+      chainID,
       token.address,
     );
 
@@ -172,8 +169,6 @@ contract('AnchorPoseidon2', (accounts) => {
   // Use Node version >=12
   describe('snark proof verification on js side', () => {
     it.only('should detect tampering', async () => {
-      const chainID = 122;
-
       const deposit = generateDeposit(chainID);
       await tree.insert(deposit.commitment);
       const { root, path_elements, path_index } = await tree.path(0);
@@ -245,7 +240,6 @@ contract('AnchorPoseidon2', (accounts) => {
 
   describe('#withdraw', () => {
     it.only('should work', async () => {
-      const chainID = 125;
       const deposit = generateDeposit(chainID);
       const user = accounts[4]
       await tree.insert(deposit.commitment)
@@ -761,12 +755,12 @@ contract('AnchorPoseidon2', (accounts) => {
 
   describe('#isSpent', () => {
     it.only('should work', async () => {
-      const deposit1 = generateDeposit()
-      const deposit2 = generateDeposit()
+      const deposit1 = generateDeposit(chainID)
+      const deposit2 = generateDeposit(chainID)
       await tree.insert(deposit1.commitment)
       await tree.insert(deposit2.commitment)
-      await anchor.deposit(toFixedHex(deposit1.commitment), { value, gasPrice: '0' })
-      await anchor.deposit(toFixedHex(deposit2.commitment), { value, gasPrice: '0' })
+      await anchor.deposit(toFixedHex(deposit1.commitment));
+      await anchor.deposit(toFixedHex(deposit2.commitment));
 
       const { root, path_elements, path_index } = await tree.path(1)
 
@@ -797,7 +791,6 @@ contract('AnchorPoseidon2', (accounts) => {
       let res = await snarkjs.groth16.prove('build/bridge2/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
-
 
       const args = [
         toFixedHex(root),
