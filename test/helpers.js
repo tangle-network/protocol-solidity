@@ -82,6 +82,44 @@ const nonceAndId = (nonce, id) => {
     return Ethers.utils.hexZeroPad(Ethers.utils.hexlify(nonce), 8) + Ethers.utils.hexZeroPad(Ethers.utils.hexlify(id), 1).substr(2)
 }
 
+const utils = require("ffjavascript").utils;
+const {
+    leBuff2int,
+    leInt2Buff,
+    unstringifyBigInts,
+} = utils;
+
+function hexifyBigInts(o) {
+    if (typeof (o) === "bigint") {
+        let str = o.toString(16);
+        while (str.length < 64) str = "0" + str;
+        str = "0x" + str;
+        return str;
+    } else if (Array.isArray(o)) {
+        return o.map(hexifyBigInts);
+    } else if (typeof o == "object") {
+        const res = {};
+        for (let k in o) {
+            res[k] = hexifyBigInts(o[k]);
+        }
+        return res;
+    } else {
+        return o;
+    }
+}
+
+function toSolidityInput(proof, publicSignals) {
+    const result = {
+        pi_a: [proof.pi_a[0], proof.pi_a[1]],
+        pi_b: [[proof.pi_b[0][1], proof.pi_b[0][0]], [proof.pi_b[1][1], proof.pi_b[1][0]]],
+        pi_c: [proof.pi_c[0], proof.pi_c[1]],
+    };
+
+    result.publicSignals = publicSignals;
+
+    return hexifyBigInts(unstringifyBigInts(result));
+}
+
 module.exports = {
     advanceBlock,
     blankFunctionSig,
@@ -93,5 +131,6 @@ module.exports = {
     createUpdateProposalData,
     createResourceID,
     assertObjectsMatch,
-    nonceAndId
+    nonceAndId,
+    toSolidityInput,
 };

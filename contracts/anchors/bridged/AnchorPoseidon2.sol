@@ -5,6 +5,7 @@
 
 pragma solidity ^0.8.0;
 
+import "hardhat/console.sol";
 import "../../trees/MerkleTreePoseidon.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
@@ -165,7 +166,11 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
   /** @dev */
   function getLatestNeighborRoots() public view returns (bytes32[1] memory roots) {
     for (uint256 i = 0; i < 1; i++) {
-      roots[i] = edgeList[i].root;
+      if (edgeList.length >= i + 1) {
+        roots[i] = edgeList[i].root;
+      } else {
+        roots[i] = bytes32(0x0);
+      }
     }
   }
 
