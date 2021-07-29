@@ -22,15 +22,14 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
 
   uint256 public immutable chainID;
   struct Edge {
-    uint8 chainID;
-    bytes32 resourceID;
+    uint256 chainID;
     bytes32 root;
     uint256 height;
   }
 
-  // maps anchor resource IDs to the index in the edge list
-  mapping(bytes32 => uint256) public edgeIndex;
-  mapping(uint8 => bool) public edgeExistsForChain;
+  // maps sourceChainID to the index in the edge list
+  mapping(uint256 => uint256) public edgeIndex;
+  mapping(uint256 => bool) public edgeExistsForChain;
   Edge[] public edgeList;
 
   // map to store used nullifier hashes
@@ -49,8 +48,8 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
   event Deposit(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp);
   event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uint256 fee);
   // bridge events
-  event EdgeAddition(uint8 chainID, bytes32 destResourceID, uint256 height, bytes32 merkleRoot);
-  event EdgeUpdate(uint8 chainID, bytes32 destResourceID, uint256 height, bytes32 merkleRoot);
+  event EdgeAddition(uint256 chainID, uint256 height, bytes32 merkleRoot);
+  event EdgeUpdate(uint256 chainID, uint256 height, bytes32 merkleRoot);
   event RootHistoryRecorded(uint timestamp, bytes32[1] roots);
   event RootHistoryUpdate(uint timestamp, bytes32[1] roots);
 
