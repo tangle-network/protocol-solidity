@@ -621,7 +621,7 @@ contract('AnchorPoseidon2', (accounts) => {
         toFixedHex(input.refund),
       ]
       let incorrectArgs
-      const originalProof = proof.slice()
+      const originalProof = proof;
 
       // recipient
       incorrectArgs = [
@@ -759,14 +759,18 @@ contract('AnchorPoseidon2', (accounts) => {
       const deposit2 = generateDeposit(chainID)
       await tree.insert(deposit1.commitment)
       await tree.insert(deposit2.commitment)
+
+      await token.approve(anchor.address, tokenDenomination)
       await anchor.deposit(toFixedHex(deposit1.commitment));
+      
+      await token.approve(anchor.address, tokenDenomination)
       await anchor.deposit(toFixedHex(deposit2.commitment));
 
       const { root, path_elements, path_index } = await tree.path(1)
 
       const input = {
         // public
-        nullifierHash: deposit.nullifierHash,
+        nullifierHash: deposit2.nullifierHash,
         recipient,
         relayer,
         fee,
