@@ -135,14 +135,14 @@ contract('AnchorPoseidon2', (accounts) => {
   })
 
   describe('#constructor', () => {
-    it.only('should initialize', async () => {
+    it('should initialize', async () => {
       const etherDenomination = await anchor.denomination()
       assert.strictEqual(etherDenomination.toString(), toBN(value).toString());
     });
   })
 
   describe('#deposit', () => {
-    it.only('should emit event', async () => {
+    it('should emit event', async () => {
       let commitment = toFixedHex(42);
       await token.approve(anchor.address, tokenDenomination)
       let { logs } = await anchor.deposit(commitment, { from: sender })
@@ -155,7 +155,7 @@ contract('AnchorPoseidon2', (accounts) => {
       assert.strictEqual(anchorBalance.toString(), toBN(tokenDenomination).toString());
     })
 
-    it.only('should throw if there is a such commitment', async () => {
+    it('should throw if there is a such commitment', async () => {
       const commitment = toFixedHex(42)
       await token.approve(anchor.address, tokenDenomination)
       await TruffleAssert.passes(anchor.deposit(commitment, { from: sender }));
@@ -168,7 +168,7 @@ contract('AnchorPoseidon2', (accounts) => {
 
   // Use Node version >=12
   describe('snark proof verification on js side', () => {
-    it.only('should detect tampering', async () => {
+    it('should detect tampering', async () => {
       const deposit = generateDeposit(chainID);
       await tree.insert(deposit.commitment);
       const { root, path_elements, path_index } = await tree.path(0);
@@ -246,13 +246,12 @@ contract('AnchorPoseidon2', (accounts) => {
 
       await token.mint(user, tokenDenomination);
       const balanceUserBefore = await token.balanceOf(user);
-      console.log(balanceUserBefore.toString());
 
       // Uncomment to measure gas usage
-      // let gas = await anchor.deposit.estimateGas(toBN(deposit.commitment.toString()), { value, from: user, gasPrice: '0' })
+      // let gas = await anchor.deposit.estimateGas(toBN(deposit.commitment.toString()), { value, from: user })
       // console.log('deposit gas:', gas)
       await token.approve(anchor.address, tokenDenomination, { from: user });
-      await anchor.deposit(toFixedHex(deposit.commitment), { from: user, gasPrice: '0' })
+      await anchor.deposit(toFixedHex(deposit.commitment), { from: user })
 
       const balanceUserAfter = await token.balanceOf(user)
       assert.strictEqual(balanceUserAfter.toString(), BN(toBN(balanceUserBefore).sub(toBN(value))).toString());
@@ -286,7 +285,10 @@ contract('AnchorPoseidon2', (accounts) => {
       let res = await snarkjs.groth16.prove('build/bridge2/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
+      const vKey = await snarkjs.zKey.exportVerificationKey('build/bridge2/circuit_final.zkey');
 
+      res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
+      assert.strictEqual(res, true);
       const balanceAnchorBefore = await web3.eth.getBalance(anchor.address)
       const balanceRelayerBefore = await web3.eth.getBalance(relayer)
       const balanceOperatorBefore = await web3.eth.getBalance(operator)
@@ -306,14 +308,25 @@ contract('AnchorPoseidon2', (accounts) => {
         toFixedHex(input.refund),
       ];
 
+      // console.log([
+      //   toFixedHex(publicSignals[0]),
+      //   toFixedHex(publicSignals[1]),
+      //   toFixedHex(publicSignals[2]),
+      //   toFixedHex(publicSignals[3]),
+      //   toFixedHex(publicSignals[4]),
+      //   toFixedHex(publicSignals[5]),
+      //   toFixedHex(publicSignals[6]),
+      //   toFixedHex(publicSignals[7]),
+      // ]);
+
       proofHex = helpers.toSolidityInput(proof);
-      proofEncoded = `0x${[
-        ...proofHex.pi_a.map(elt => elt.substr(2)),
-        ...proofHex.pi_b[0].map(elt => elt.substr(2)),
-        ...proofHex.pi_b[1].map(elt => elt.substr(2)),
-        ...proofHex.pi_c.map(elt => elt.substr(2)),
-      ].join('')}`;
-      const { logs } = await anchor.withdraw(proofEncoded, ...args, { from: relayer, gasPrice: '0' })
+      proofEncoded = Buffer.concat([
+        ...proof.pi_a,
+        ...proof.pi_b[0],
+        ...proof.pi_b[1],
+        ...proof.pi_c,
+      ].map(elt => Buffer.from(elt.toString(16))));
+      const { logs } = await anchor.withdraw(toFixedHex(proofEncoded.toString()), ...args, { from: relayer, gasPrice: '0' })
 
       const balanceAnchorAfter = await web3.eth.getBalance(anchor.address)
       const balanceRelayerAfter = await web3.eth.getBalance(relayer)
@@ -333,7 +346,7 @@ contract('AnchorPoseidon2', (accounts) => {
       assert(isSpent);
     })
 
-    it.only('should prevent double spend', async () => {
+    it('should prevent double spend', async () => {
       const deposit = generateDeposit();
       await tree.insert(deposit.commitment);
       await token.approve(anchor.address, tokenDenomination)
@@ -379,21 +392,21 @@ contract('AnchorPoseidon2', (accounts) => {
       ];
 
       proofHex = helpers.toSolidityInput(proof);
-      proofEncoded = `0x${[
-        ...proofHex.pi_a.map(elt => elt.substr(2)),
-        ...proofHex.pi_b[0].map(elt => elt.substr(2)),
-        ...proofHex.pi_b[1].map(elt => elt.substr(2)),
-        ...proofHex.pi_c.map(elt => elt.substr(2)),
-      ].join('')}`;
+      proofEncoded = [
+        ...proof.pi_a,
+        ...proof.pi_b[0],
+        ...proof.pi_b[1],
+        ...proo.pi_c,
+      ];
 
-      await TruffleAssert.passes(anchor.withdraw(proofEncoded, ...args, { from: relayer }));
+      await TruffleAssert.passes(anchor.withdraw(proofEncoded, ...args, { from: relayer, gasPrice: '0' }));
       await TruffleAssert.reverts(
-        anchor.withdraw(proof, ...args, { from: relayer }),
+        anchor.withdraw(proofEncoded, ...args, { from: relayer, gasPrice: '0' }),
         "The note has been already spent"
       );
     })
 
-    it.only('should prevent double spend with overflow', async () => {
+    it('should prevent double spend with overflow', async () => {
       const deposit = generateDeposit()
       await tree.insert(deposit.commitment)
       await token.approve(anchor.address, tokenDenomination)
@@ -443,20 +456,20 @@ contract('AnchorPoseidon2', (accounts) => {
       ];
 
       proofHex = helpers.toSolidityInput(proof);
-      proofEncoded = `0x${[
-        ...proofHex.pi_a.map(elt => elt.substr(2)),
-        ...proofHex.pi_b[0].map(elt => elt.substr(2)),
-        ...proofHex.pi_b[1].map(elt => elt.substr(2)),
-        ...proofHex.pi_c.map(elt => elt.substr(2)),
-      ].join('')}`;
+      proofEncoded = [
+        ...proof.pi_a,
+        ...proof.pi_b[0],
+        ...proof.pi_b[1],
+        ...proo.pi_c,
+      ];
 
       await TruffleAssert.reverts(
-        anchor.withdraw(proofEncoded, ...args, { from: relayer }),
+        anchor.withdraw(proofEncoded, ...args, { from: relayer, gasPrice: '0' }),
         "verifier-gte-snark-scalar-field"
       );
     })
 
-    it.only('fee should be less or equal transfer value', async () => {
+    it('fee should be less or equal transfer value', async () => {
       const deposit = generateDeposit()
       await tree.insert(deposit.commitment)
       await token.approve(anchor.address, tokenDenomination)
@@ -503,20 +516,20 @@ contract('AnchorPoseidon2', (accounts) => {
       ]
 
       proofHex = helpers.toSolidityInput(proof);
-      proofEncoded = `0x${[
-        ...proofHex.pi_a.map(elt => elt.substr(2)),
-        ...proofHex.pi_b[0].map(elt => elt.substr(2)),
-        ...proofHex.pi_b[1].map(elt => elt.substr(2)),
-        ...proofHex.pi_c.map(elt => elt.substr(2)),
-      ].join('')}`;
+      proofEncoded = [
+        ...proof.pi_a,
+        ...proof.pi_b[0],
+        ...proof.pi_b[1],
+        ...proo.pi_c,
+      ];
 
       await TruffleAssert.reverts(
-        anchor.withdraw(proofEncoded, ...args, { from: relayer }),
+        anchor.withdraw(proofEncoded, ...args, { from: relayer, gasPrice: '0' }),
         "Fee exceeds transfer value"
       );
     })
 
-    it.only('should throw for corrupted merkle tree root', async () => {
+    it('should throw for corrupted merkle tree root', async () => {
       const deposit = generateDeposit()
       await tree.insert(deposit.commitment)
       await token.approve(anchor.address, tokenDenomination)
@@ -563,20 +576,20 @@ contract('AnchorPoseidon2', (accounts) => {
       ]
 
       proofHex = helpers.toSolidityInput(proof);
-      proofEncoded = `0x${[
-        ...proofHex.pi_a.map(elt => elt.substr(2)),
-        ...proofHex.pi_b[0].map(elt => elt.substr(2)),
-        ...proofHex.pi_b[1].map(elt => elt.substr(2)),
-        ...proofHex.pi_c.map(elt => elt.substr(2)),
-      ].join('')}`;
+      proofEncoded = [
+        ...proof.pi_a,
+        ...proof.pi_b[0],
+        ...proof.pi_b[1],
+        ...proo.pi_c,
+      ];
 
       await TruffleAssert.reverts(
-        anchor.withdraw(proofEncoded, ...args, { from: relayer }),
+        anchor.withdraw(proofEncoded, ...args, { from: relayer, gasPrice: '0' }),
         "Cannot find your merkle root"
       );
     })
 
-    it.only('should reject with tampered public inputs', async () => {
+    it('should reject with tampered public inputs', async () => {
       const deposit = generateDeposit()
       await tree.insert(deposit.commitment)
       await token.approve(anchor.address, tokenDenomination)
@@ -633,14 +646,14 @@ contract('AnchorPoseidon2', (accounts) => {
         toFixedHex(input.refund),
       ];
       let proofHex = helpers.toSolidityInput(proof);
-      let proofEncoded = `0x${[
-        ...proofHex.pi_a.map(elt => elt.substr(2)),
-        ...proofHex.pi_b[0].map(elt => elt.substr(2)),
-        ...proofHex.pi_b[1].map(elt => elt.substr(2)),
-        ...proofHex.pi_c.map(elt => elt.substr(2)),
-      ].join('')}`;
+      let proofEncoded = [
+        ...proof.pi_a,
+        ...proof.pi_b[0],
+        ...proof.pi_b[1],
+        ...proo.pi_c,
+      ];
       await TruffleAssert.reverts(
-        anchor.withdraw(proofEncoded, ...incorrectArgs, { from: relayer }),
+        anchor.withdraw(proofEncoded, ...incorrectArgs, { from: relayer, gasPrice: '0' }),
         "Invalid withdraw proof"
       );
 
@@ -654,14 +667,14 @@ contract('AnchorPoseidon2', (accounts) => {
         toFixedHex(input.refund),
       ];
       proofHex = helpers.toSolidityInput(proof);
-      proofEncoded = `0x${[
-        ...proofHex.pi_a.map(elt => elt.substr(2)),
-        ...proofHex.pi_b[0].map(elt => elt.substr(2)),
-        ...proofHex.pi_b[1].map(elt => elt.substr(2)),
-        ...proofHex.pi_c.map(elt => elt.substr(2)),
-      ].join('')}`;
+      proofEncoded = Buffer.concat([
+        ...proof.pi_a,
+        ...proof.pi_b[0],
+        ...proof.pi_b[1],
+        ...proo.pi_c,
+      ].map(elt => Buffer.from(elt.toString(16))));
       await TruffleAssert.reverts(
-        anchor.withdraw(proofEncoded, ...incorrectArgs, { from: relayer }),
+        anchor.withdraw(proofEncoded, ...incorrectArgs, { from: relayer, gasPrice: '0' }),
         "Invalid withdraw proof"
       );
 
@@ -675,26 +688,26 @@ contract('AnchorPoseidon2', (accounts) => {
         toFixedHex(input.refund),
       ];
       proofHex = helpers.toSolidityInput(proof);
-      proofEncoded = `0x${[
-        ...proofHex.pi_a.map(elt => elt.substr(2)),
-        ...proofHex.pi_b[0].map(elt => elt.substr(2)),
-        ...proofHex.pi_b[1].map(elt => elt.substr(2)),
-        ...proofHex.pi_c.map(elt => elt.substr(2)),
-      ].join('')}`;
+      proofEncoded = [
+        ...proof.pi_a,
+        ...proof.pi_b[0],
+        ...proof.pi_b[1],
+        ...proo.pi_c,
+      ];
       await TruffleAssert.reverts(
-        anchor.withdraw(proofEncoded, ...incorrectArgs, { from: relayer }),
+        anchor.withdraw(proofEncoded, ...incorrectArgs, { from: relayer, gasPrice: '0' }),
         "Invalid withdraw proof"
       );
 
       // proof itself
       proof = '0xbeef' + proof.substr(6)
-      await TruffleAssert.passes(anchor.withdraw(proof, ...args, { from: relayer }));
+      await TruffleAssert.passes(anchor.withdraw(proof, ...args, { from: relayer, gasPrice: '0' }));
 
       // should work with original values
-      await TruffleAssert.passes(anchor.withdraw(originalProof, ...args, { from: relayer }));
+      await TruffleAssert.passes(anchor.withdraw(originalProof, ...args, { from: relayer, gasPrice: '0' }));
     })
 
-    it.only('should reject with non zero refund', async () => {
+    it('should reject with non zero refund', async () => {
       const deposit = generateDeposit()
       await tree.insert(deposit.commitment)
       await token.approve(anchor.address, tokenDenomination)
@@ -740,21 +753,21 @@ contract('AnchorPoseidon2', (accounts) => {
         toFixedHex(input.refund),
       ];
       proofHex = helpers.toSolidityInput(proof);
-      proofEncoded = `0x${[
-        ...proofHex.pi_a.map(elt => elt.substr(2)),
-        ...proofHex.pi_b[0].map(elt => elt.substr(2)),
-        ...proofHex.pi_b[1].map(elt => elt.substr(2)),
-        ...proofHex.pi_c.map(elt => elt.substr(2)),
-      ].join('')}`;
+      proofEncoded = [
+        ...proof.pi_a,
+        ...proof.pi_b[0],
+        ...proof.pi_b[1],
+        ...proo.pi_c,
+      ];
       await TruffleAssert.reverts(
-        anchor.withdraw(proofEncoded, ...args, { from: relayer }),
+        anchor.withdraw(proofEncoded, ...args, { from: relayer, gasPrice: '0' }),
         "Refund value is supposed to be zero for ETH instance"
       );
     })
   })
 
   describe('#isSpent', () => {
-    it.only('should work', async () => {
+    it('should work', async () => {
       const deposit1 = generateDeposit(chainID)
       const deposit2 = generateDeposit(chainID)
       await tree.insert(deposit1.commitment)
@@ -805,12 +818,12 @@ contract('AnchorPoseidon2', (accounts) => {
         toFixedHex(input.refund),
       ]
       let proofHex = helpers.toSolidityInput(proof);
-      let proofEncoded = `0x${[
-        ...proofHex.pi_a.map(elt => elt.substr(2)),
-        ...proofHex.pi_b[0].map(elt => elt.substr(2)),
-        ...proofHex.pi_b[1].map(elt => elt.substr(2)),
-        ...proofHex.pi_c.map(elt => elt.substr(2)),
-      ].join('')}`;
+      let proofEncoded = [
+        ...proof.pi_a,
+        ...proof.pi_b[0],
+        ...proof.pi_b[1],
+        ...proo.pi_c,
+      ];
       await anchor.withdraw(proofEncoded, ...args, { from: relayer, gasPrice: '0' })
 
       const nullifierHash1 = toFixedHex(pedersenHash(bigNumberToPaddedBytes(deposit1.nullifier, 31)))

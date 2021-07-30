@@ -12,6 +12,9 @@
 //
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
+
+import "hardhat/console.sol";
+
 library Pairing {
     struct G1Point {
         uint X;
@@ -291,14 +294,46 @@ contract VerifierPoseidonBridge {
     /// @return r  bool true if proof is valid
     function verifyProof(bytes memory proof, uint[8] memory input) public view returns (bool r) {
         uint256[8] memory p = abi.decode(proof, (uint256[8]));
+        // console.log(p[0]);
+        // console.log(p[1]);
+        // console.log(p[2]);
+        // console.log(p[3]);
+        // console.log(p[4]);
+        // console.log(p[5]);
+        // console.log(p[6]);
+        // console.log(p[7]);
+        (
+            uint256[2] memory a,
+            uint256[2][2] memory b,
+            uint256[2] memory c
+        ) = unpackProof(p);
         return verifyProof(
-            [p[0], p[1]],
-            [
-                [p[2], p[3]],
-                [p[4], p[5]]
-            ],
-            [p[6], p[7]],
+            a,
+            b,
+            c,
             input
+        );
+    }
+
+    /*
+    * A helper function to convert an array of 8 uint256 values into the a, b,
+    * and c array values that the zk-SNARK verifier's verifyProof accepts.
+    */
+    function unpackProof(
+        uint256[8] memory _proof
+    ) public pure returns (
+        uint256[2] memory,
+        uint256[2][2] memory,
+        uint256[2] memory
+    ) {
+
+        return (
+            [_proof[0], _proof[1]],
+            [
+                [_proof[2], _proof[3]],
+                [_proof[4], _proof[5]]
+            ],
+            [_proof[6], _proof[7]]
         );
     }
 }

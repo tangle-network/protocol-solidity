@@ -10,7 +10,10 @@ import "../../trees/MerkleTreePoseidon.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 interface IVerifier {
-  function verifyProof(bytes memory _proof, uint256[8] memory _input) external returns (bool);
+  function verifyProof(
+      bytes memory _proof,
+      uint[8] memory input
+  ) external view returns (bool r);
 }
 
 abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
@@ -120,6 +123,16 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
     address rec = address(_recipient);
     address rel = address(_relayer);
     bytes32[1] memory neighbors = getLatestNeighborRoots();
+    // console.log(uint256(_nullifierHash));
+    // console.log(uint256(uint160(rec)));
+    // console.log(uint256(uint160(rel)));
+    // console.log(_fee);
+    // console.log(_refund);
+    // console.log(uint256(chainID));
+    // console.log(uint256(_root));
+    // console.log(uint256(neighbors[0]));
+
+    // Unpack the snark proof
     require(
       verifier.verifyProof(
         _proof,
@@ -131,7 +144,8 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
           _refund,
           uint256(chainID),
           uint256(_root),
-          uint256(neighbors[0])]
+          uint256(neighbors[0])
+        ]
       ),
       "Invalid withdraw proof"
     );
