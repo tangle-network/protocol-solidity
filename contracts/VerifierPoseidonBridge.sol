@@ -307,14 +307,14 @@ contract VerifierPoseidonBridge {
             uint256[2][2] memory b,
             uint256[2] memory c
         ) = unpackProof(p);
-        console.log(a[0]);
-        console.log(a[1]);
-        console.log(b[0][0]);
-        console.log(b[0][1]);
-        console.log(b[1][0]);
-        console.log(b[1][1]);
-        console.log(c[0]);
-        console.log(c[1]);
+        console.log(input[0]);
+        console.log(input[1]);
+        console.log(input[2]);
+        console.log(input[3]);
+        console.log(input[4]);
+        console.log(input[5]);
+        console.log(input[6]);
+        console.log(input[7]);
         return verifyProof(
             a,
             b,

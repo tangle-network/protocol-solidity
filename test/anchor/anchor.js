@@ -308,6 +308,16 @@ contract('AnchorPoseidon2', (accounts) => {
         toFixedHex(input.refund),
       ];
 
+      console.log([
+        publicSignals[0],
+        publicSignals[1],
+        publicSignals[2],
+        publicSignals[3],
+        publicSignals[4],
+        publicSignals[5],
+        publicSignals[6],
+        publicSignals[7],
+      ]);
       // console.log([
       //   toFixedHex(publicSignals[0]),
       //   toFixedHex(publicSignals[1]),
@@ -328,32 +338,32 @@ contract('AnchorPoseidon2', (accounts) => {
 
       proofHex = helpers.toSolidityInput(proof);
       // TODO: This gives: Error: VM Exception while processing transaction: invalid opcode
-      proofEncoded = [
-        toFixedHex(proof.pi_a[0], 32),
-        toFixedHex(proof.pi_a[1], 32),
-        toFixedHex(proof.pi_b[0][0], 32),
-        toFixedHex(proof.pi_b[0][1], 32),
-        toFixedHex(proof.pi_b[1][0], 32),
-        toFixedHex(proof.pi_b[1][1], 32),
-        toFixedHex(proof.pi_c[0], 32),
-        toFixedHex(proof.pi_c[1], 32),
-      ]
-      .map(elt => elt.substr(2))
-      .join('');
-
-      // TODO: This gives: Error: VM Exception while processing transaction: reverted with reason string 'Invalid withdraw proof'
       // proofEncoded = [
       //   toFixedHex(proof.pi_a[0], 32),
       //   toFixedHex(proof.pi_a[1], 32),
-      //   toFixedHex(proof.pi_b[0][1], 32),
       //   toFixedHex(proof.pi_b[0][0], 32),
-      //   toFixedHex(proof.pi_b[1][1], 32),
+      //   toFixedHex(proof.pi_b[0][1], 32),
       //   toFixedHex(proof.pi_b[1][0], 32),
+      //   toFixedHex(proof.pi_b[1][1], 32),
       //   toFixedHex(proof.pi_c[0], 32),
       //   toFixedHex(proof.pi_c[1], 32),
       // ]
       // .map(elt => elt.substr(2))
       // .join('');
+
+      // TODO: This gives: Error: VM Exception while processing transaction: reverted with reason string 'Invalid withdraw proof'
+      proofEncoded = [
+        toFixedHex(proof.pi_a[0], 32),
+        toFixedHex(proof.pi_a[1], 32),
+        toFixedHex(proof.pi_b[0][1], 32),
+        toFixedHex(proof.pi_b[0][0], 32),
+        toFixedHex(proof.pi_b[1][1], 32),
+        toFixedHex(proof.pi_b[1][0], 32),
+        toFixedHex(proof.pi_c[0], 32),
+        toFixedHex(proof.pi_c[1], 32),
+      ]
+      .map(elt => elt.substr(2))
+      .join('');
 
       console.log(proofEncoded.length);
       const { logs } = await anchor.withdraw(`0x${proofEncoded}`, ...args, { from: relayer, gasPrice: '0' })
