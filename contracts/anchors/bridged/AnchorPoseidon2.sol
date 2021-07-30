@@ -131,8 +131,7 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
     // console.log(uint256(chainID));
     // console.log(uint256(_root));
     // console.log(uint256(neighbors[0]));
-
-    // Unpack the snark proof
+    // console.logBytes(_proof);
     require(
       verifier.verifyProof(
         _proof,

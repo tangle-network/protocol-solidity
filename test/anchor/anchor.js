@@ -319,14 +319,44 @@ contract('AnchorPoseidon2', (accounts) => {
       //   toFixedHex(publicSignals[7]),
       // ]);
 
+      // console.log([
+      //   ...proof.pi_a,
+      //   ...proof.pi_b[0],
+      //   ...proof.pi_b[1],
+      //   ...proof.pi_c,
+      // ]);
+
       proofHex = helpers.toSolidityInput(proof);
-      proofEncoded = Buffer.concat([
-        ...proof.pi_a,
-        ...proof.pi_b[0],
-        ...proof.pi_b[1],
-        ...proof.pi_c,
-      ].map(elt => Buffer.from(elt.toString(16))));
-      const { logs } = await anchor.withdraw(toFixedHex(proofEncoded.toString()), ...args, { from: relayer, gasPrice: '0' })
+      // TODO: This gives: Error: VM Exception while processing transaction: invalid opcode
+      proofEncoded = [
+        toFixedHex(proof.pi_a[0], 32),
+        toFixedHex(proof.pi_a[1], 32),
+        toFixedHex(proof.pi_b[0][0], 32),
+        toFixedHex(proof.pi_b[0][1], 32),
+        toFixedHex(proof.pi_b[1][0], 32),
+        toFixedHex(proof.pi_b[1][1], 32),
+        toFixedHex(proof.pi_c[0], 32),
+        toFixedHex(proof.pi_c[1], 32),
+      ]
+      .map(elt => elt.substr(2))
+      .join('');
+
+      // TODO: This gives: Error: VM Exception while processing transaction: reverted with reason string 'Invalid withdraw proof'
+      // proofEncoded = [
+      //   toFixedHex(proof.pi_a[0], 32),
+      //   toFixedHex(proof.pi_a[1], 32),
+      //   toFixedHex(proof.pi_b[0][1], 32),
+      //   toFixedHex(proof.pi_b[0][0], 32),
+      //   toFixedHex(proof.pi_b[1][1], 32),
+      //   toFixedHex(proof.pi_b[1][0], 32),
+      //   toFixedHex(proof.pi_c[0], 32),
+      //   toFixedHex(proof.pi_c[1], 32),
+      // ]
+      // .map(elt => elt.substr(2))
+      // .join('');
+
+      console.log(proofEncoded.length);
+      const { logs } = await anchor.withdraw(`0x${proofEncoded}`, ...args, { from: relayer, gasPrice: '0' })
 
       const balanceAnchorAfter = await web3.eth.getBalance(anchor.address)
       const balanceRelayerAfter = await web3.eth.getBalance(relayer)
