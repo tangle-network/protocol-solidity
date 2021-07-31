@@ -4,7 +4,7 @@
   "main": "index.js",
   "repository": "https://github.com/webb-tools/darkwebb-solidity.git",
   "author": "Webb Technologies",
-  "license": "LGPL-3.0",
+  "license": "GPL-3.0-or-later",
   "scripts": {
     "compile": "npx hardhat compile",
     "build": "yarn compile && yarn build:circuits && yarn build:hashers && yarn build:ptau",

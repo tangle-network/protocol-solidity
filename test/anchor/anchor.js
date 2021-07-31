@@ -1,6 +1,6 @@
 /**
  * Copyright 2021 Webb Technologies
- * SPDX-License-Identifier: LGPL-3.0
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
