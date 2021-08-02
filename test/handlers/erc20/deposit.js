@@ -1,6 +1,6 @@
 /**
  * Copyright 2021 Webb Technologies
- * SPDX-License-Identifier: LGPL-3.0-only
+ * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
 const Ethers = require('ethers');

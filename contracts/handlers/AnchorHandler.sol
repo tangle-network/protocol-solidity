@@ -1,6 +1,6 @@
 /**
  * Copyright 2021 Webb Technologies
- * SPDX-License-Identifier: LGPL-3.0-only
+ * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
 pragma solidity ^0.8.0;
