@@ -2086,15 +2086,8 @@ blake2b-wasm@^1.1.0:
   dependencies:
     nanoassert "^1.0.0"
 
-"blake2b-wasm@git+https://github.com/jbaylina/blake2b-wasm.git":
-  version "2.1.0"
-  resolved "git+https://github.com/jbaylina/blake2b-wasm.git#0d5f024b212429c7f50a7f533aa3a2406b5b42b3"
-  dependencies:
-    nanoassert "^1.0.0"
-
 "blake2b-wasm@https://github.com/jbaylina/blake2b-wasm.git":
   version "2.1.0"
-  uid "0d5f024b212429c7f50a7f533aa3a2406b5b42b3"
   resolved "https://github.com/jbaylina/blake2b-wasm.git#0d5f024b212429c7f50a7f533aa3a2406b5b42b3"
   dependencies:
     nanoassert "^1.0.0"
@@ -6380,6 +6373,11 @@ maci-crypto@^0.9.1:
     circomlib "0.5.1"
     ethers "^4.0.45"
     ffjavascript "0.2.35"
+
+maci-domainobjs@^0.9.1:
+  version "0.9.1"
+  resolved "https://registry.yarnpkg.com/maci-domainobjs/-/maci-domainobjs-0.9.1.tgz#17b0c048c7030e32f4d21b71c7c1889558fd71c2"
+  integrity sha512-hTbYUbG8Oyi3ExyUpL2oi6QICY9jgJgoMsifJBL94k5kgeUWwQrwV+XvLcSndygt8XzQG3mWOIcA+s8yVnAUKw==
 
 make-error@^1.1.1:
   version "1.3.6"
