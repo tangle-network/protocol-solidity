@@ -264,7 +264,7 @@ contract('AnchorPoseidon2', (accounts) => {
         // public
         nullifierHash: deposit.nullifierHash,
         recipient,
-        relayer,
+        relayer: operator,
         fee,
         refund,
         chainID: deposit.chainID,
@@ -290,6 +290,11 @@ contract('AnchorPoseidon2', (accounts) => {
       const vKey = await snarkjs.zKey.exportVerificationKey('build/bridge2/circuit_final.zkey');
       res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       assert.strictEqual(res, true);
+
+      const balanceRelayerBefore = await token.balanceOf(relayer)
+      const balanceOperatorBefore = await token.balanceOf(operator)
+      const balanceReceiverBefore = await token.balanceOf(toFixedHex(recipient, 20))
+
       let isSpent = await anchor.isSpent(toFixedHex(input.nullifierHash))
       assert.strictEqual(isSpent, false)
 
@@ -344,28 +349,26 @@ contract('AnchorPoseidon2', (accounts) => {
       .map(elt => elt.substr(2))
       .join('');
 
-      console.log('Anchor.verify: ', await anchor.verify(`0x${proofEncoded}`, `0x${argsEncoded}`));
-
-      await TruffleAssert.passes(anchor.withdraw(`0x${proofEncoded}`, ...args, { from: relayer, gasPrice: '0' }));
+      const { logs } = await anchor.withdraw(`0x${proofEncoded}`, ...args, { from: relayer, gasPrice: '0' });
       const balanceAnchorAfter = await token.balanceOf(anchor.address)
       const balanceRelayerAfter = await token.balanceOf(relayer)
       const balanceOperatorAfter = await token.balanceOf(operator)
-      const balanceRecieverAfter = await token.balanceOf(toFixedHex(recipient, 20))
+      const balanceReceiverAfter = await token.balanceOf(toFixedHex(recipient, 20))
       const feeBN = toBN(fee.toString())
-      console.log('balanceAnchorAfter: ', balanceAnchorAfter.toString());
-      console.log('balanceRelayerAfter: ', balanceRelayerAfter.toString());
-      console.log('balanceOperatorAfter: ', balanceOperatorAfter.toString());
-      console.log('balanceRecieverAfter: ', balanceRecieverAfter.toString());
-      console.log('feeBN: ', feeBN.toString());
-      // assert.strictEqual(balanceAnchorAfter.toString(), toBN(balanceAnchorBefore).sub(toBN(value)).toString())
-      // assert.strictEqual(balanceRelayerAfter.toString(), toBN(balanceRelayerBefore).toString())
-      // assert.strictEqual(balanceOperatorAfter.toString(), toBN(balanceOperatorBefore).add(feeBN).toString())
-      // assert.strictEqual(balanceRecieverAfter.toString(), toBN(balanceRecieverBefore).add(toBN(value)).sub(feeBN).toString())
+      // console.log('balanceAnchorAfter: ', balanceAnchorAfter.toString());
+      // console.log('balanceRelayerAfter: ', balanceRelayerAfter.toString());
+      // console.log('balanceOperatorAfter: ', balanceOperatorAfter.toString());
+      // console.log('balanceReceiverAfter: ', balanceReceiverAfter.toString());
+      // console.log('feeBN: ', feeBN.toString());
+      assert.strictEqual(balanceAnchorAfter.toString(), toBN(balanceAnchorAfterDeposit).sub(toBN(value)).toString())
+      assert.strictEqual(balanceRelayerAfter.toString(), toBN(balanceRelayerBefore).toString())
+      assert.strictEqual(balanceOperatorAfter.toString(), toBN(balanceOperatorBefore).add(feeBN).toString())
+      assert.strictEqual(balanceReceiverAfter.toString(), toBN(balanceReceiverBefore).add(toBN(value)).sub(feeBN).toString())
 
-      // assert.strictEqual(logs[0].event, 'Withdrawal')
-      // assert.strictEqual(logs[0].args.nullifierHash, toFixedHex(input.nullifierHash))
-      // assert.strictEqual(logs[0].args.relayer, BN(operator));
-      // assert.strictEqual(logs[0].args.fee, BN(feeBN));
+      assert.strictEqual(logs[0].event, 'Withdrawal')
+      assert.strictEqual(logs[0].args.nullifierHash, toFixedHex(input.nullifierHash))
+      assert.strictEqual(logs[0].args.relayer, operator);
+      assert.strictEqual(logs[0].args.fee.toString(), feeBN.toString());
       isSpent = await anchor.isSpent(toFixedHex(input.nullifierHash))
       assert(isSpent);
     })

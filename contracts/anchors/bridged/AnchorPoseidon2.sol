@@ -144,7 +144,7 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
     inputs[7] = uint256(neighbors[0]);
     bytes memory encodedInputs = abi.encodePacked(inputs);
 
-    require(this.verify(_proof, encodedInputs), "Invalid withdraw proof");
+    require(verify(_proof, encodedInputs), "Invalid withdraw proof");
   
     nullifierHashes[_nullifierHash] = true;
     _processWithdraw(_recipient, _relayer, _fee, _refund);
@@ -154,7 +154,7 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
   function verify(
     bytes memory _proof,
     bytes memory _input
-  ) external view returns (bool r) {
+  ) internal view returns (bool r) {
     uint256[8] memory p = abi.decode(_proof, (uint256[8]));
     (
         uint256[2] memory a,
