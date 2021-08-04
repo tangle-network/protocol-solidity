@@ -20,6 +20,7 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
   address public bridge;
   address public admin;
   address public handler;
+  uint64 public updateNonce;
 
   IVerifier public immutable verifier;
   uint256 public immutable denomination;
@@ -49,7 +50,7 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
   uint latestHistoryIndex;
 
   // currency events
-  event Deposit(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp);
+  event Deposit(bytes32 indexed commitment, uint32 leafIndex, uint64 updateNonce, uint256 timestamp);
   event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uint256 fee);
   // bridge events
   event EdgeAddition(uint256 chainID, uint256 height, bytes32 merkleRoot);
@@ -78,6 +79,7 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
     // TODO: Handle pruning length in function signature
     pruningLength = 100;
     latestHistoryIndex = 0;
+    updateNonce = 0;
     // TODO: Parameterize max roots (length of array should be max roots)
     rootHistory[latestHistoryIndex] = new bytes32[](1);
   }
@@ -92,8 +94,9 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
     uint32 insertedIndex = _insert(_commitment);
     commitments[_commitment] = true;
     _processDeposit();
+    updateNonce++;
+    emit Deposit(_commitment, insertedIndex, updateNonce, block.timestamp);
 
-    emit Deposit(_commitment, insertedIndex, block.timestamp);
   }
 
   /** @dev this function is defined in a child contract */

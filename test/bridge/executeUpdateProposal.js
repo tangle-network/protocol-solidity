@@ -19,22 +19,15 @@ contract('Bridge - [executeUpdateProposal with relayerThreshold == 3]', async (a
     const sourceChainID = 1;
     const destinationChainID = 2;
     const thirdChainID = 3;
-    const fourthChainID = 4;
     const relayer1Address = accounts[0];
     const relayer2Address = accounts[1];
     const relayer3Address = accounts[2];
     const relayer4Address = accounts[3];
     const relayer1Bit = 1 << 0;
-    const relayer2Bit = 1 << 1;
-    const relayer3Bit = 1 << 2;
-    const depositerAddress = accounts[4];
     const relayerThreshold = 3;
-    const expectedFinalizedEventStatus = 2;
-    const expectedExecutedEventStatus = 3;
     const merkleTreeHeight = 31;
     const maxRoots = 1;
     const sender = accounts[5]
-    const operator = accounts[5]
 
     let ADMIN_ROLE;
     let merkleRoot;
@@ -44,7 +37,7 @@ contract('Bridge - [executeUpdateProposal with relayerThreshold == 3]', async (a
     let LinkableAnchorDestChainInstance;
     let hasher, verifier;
     let token;
-    let tokenDenomination = '1000'; // 1 ether
+    let tokenDenomination = '1000'; 
 
     let BridgeInstance;
     let DestinationAnchorHandlerInstance;
