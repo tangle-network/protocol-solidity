@@ -162,13 +162,11 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
         uint256[2] memory c
     ) = unpackProof(p);
     uint256[8] memory inputs = abi.decode(_input, (uint256[8]));
-    require(
-      verifier.verifyProof(
-        a, b, c,
-        inputs
-      ),
-      "Invalid withdraw proof"
+    r = verifier.verifyProof(
+      a, b, c,
+      inputs
     );
+    require(r, "Invalid withdraw proof");
     return r;
   }
 
