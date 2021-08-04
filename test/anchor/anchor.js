@@ -246,16 +246,17 @@ contract('AnchorPoseidon2', (accounts) => {
 
       await token.mint(user, tokenDenomination);
       const balanceUserBefore = await token.balanceOf(user);
+      const balanceAnchorBefore = await token.balanceOf(anchor.address);
 
       // Uncomment to measure gas usage
       // let gas = await anchor.deposit.estimateGas(toBN(deposit.commitment.toString()), { value, from: user })
       // console.log('deposit gas:', gas)
       await TruffleAssert.passes(token.approve(anchor.address, tokenDenomination, { from: user }));
-      let anchorRoot = await anchor.getLastRoot();
       await TruffleAssert.passes(anchor.deposit(toFixedHex(deposit.commitment), { from: user }));
-      anchorRoot = await anchor.getLastRoot();
-      const balanceUserAfter = await token.balanceOf(user)
-      assert.strictEqual(balanceUserAfter.toString(), BN(toBN(balanceUserBefore).sub(toBN(value))).toString());
+      const balanceUserAfterDeposit = await token.balanceOf(user)
+      const balanceAnchorAfterDeposit = await token.balanceOf(anchor.address);
+      assert.strictEqual(balanceUserAfterDeposit.toString(), BN(toBN(balanceUserBefore).sub(toBN(value))).toString());
+      assert.strictEqual(balanceAnchorAfterDeposit.toString(), toBN(value).toString());
 
       const { root, path_elements, path_index } = await tree.path(0)
 
@@ -287,13 +288,8 @@ contract('AnchorPoseidon2', (accounts) => {
       proof = res.proof;
       publicSignals = res.publicSignals;
       const vKey = await snarkjs.zKey.exportVerificationKey('build/bridge2/circuit_final.zkey');
-      console.log(vKey);
       res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       assert.strictEqual(res, true);
-      const balanceAnchorBefore = await web3.eth.getBalance(anchor.address)
-      const balanceRelayerBefore = await web3.eth.getBalance(relayer)
-      const balanceOperatorBefore = await web3.eth.getBalance(operator)
-      const balanceRecieverBefore = await web3.eth.getBalance(toFixedHex(recipient, 20))
       let isSpent = await anchor.isSpent(toFixedHex(input.nullifierHash))
       assert.strictEqual(isSpent, false)
 
@@ -310,42 +306,68 @@ contract('AnchorPoseidon2', (accounts) => {
       ];
 
       const result = await helpers.groth16ExportSolidityCallData(proof, publicSignals);
-      console.log(result);
       const fullProof = JSON.parse("[" + result + "]");
-      console.log(fullProof);
       const pi_a = fullProof[0];
       const pi_b = fullProof[1];
       const pi_c = fullProof[2];
       const inputs = fullProof[3];
-      const ress = await verifier.verifyProof(
+      await TruffleAssert.passes(verifier.verifyProof(
         pi_a,
         pi_b,
         pi_c,
         inputs,
-      );
-      console.log(ress);
-      // const ress = await anchor.verify(`0x${proofEncoded}`, `0x${argsEncoded}`);
+      ));
 
+      proofEncoded = [
+        pi_a[0],
+        pi_a[1],
+        pi_b[0][0],
+        pi_b[0][1],
+        pi_b[1][0],
+        pi_b[1][1],
+        pi_c[0],
+        pi_c[1],
+      ]
+      .map(elt => elt.substr(2))
+      .join('');
 
+      argsEncoded = [
+        inputs[0],
+        inputs[1],
+        inputs[2],
+        inputs[3],
+        inputs[4],
+        inputs[5],
+        inputs[6],
+        inputs[7],
+      ]
+      .map(elt => elt.substr(2))
+      .join('');
 
-      // const { logs } = await anchor.withdraw(`0x${proofEncoded}`, ...args, { from: relayer, gasPrice: '0' });
+      console.log('Anchor.verify: ', await anchor.verify(`0x${proofEncoded}`, `0x${argsEncoded}`));
 
-      // const balanceAnchorAfter = await web3.eth.getBalance(anchor.address)
-      // const balanceRelayerAfter = await web3.eth.getBalance(relayer)
-      // const balanceOperatorAfter = await web3.eth.getBalance(operator)
-      // const balanceRecieverAfter = await web3.eth.getBalance(toFixedHex(recipient, 20))
-      // const feeBN = toBN(fee.toString())
-      // assert.strictEqual(balanceAnchorAfter, toBN(balanceAnchorBefore).sub(toBN(value)))
-      // assert.strictEqual(balanceRelayerAfter, toBN(balanceRelayerBefore))
-      // assert.strictEqual(balanceOperatorAfter, toBN(balanceOperatorBefore).add(feeBN))
-      // assert.strictEqual(balanceRecieverAfter, toBN(balanceRecieverBefore).add(toBN(value)).sub(feeBN))
+      await TruffleAssert.passes(anchor.withdraw(`0x${proofEncoded}`, ...args, { from: relayer, gasPrice: '0' }));
+      const balanceAnchorAfter = await token.balanceOf(anchor.address)
+      const balanceRelayerAfter = await token.balanceOf(relayer)
+      const balanceOperatorAfter = await token.balanceOf(operator)
+      const balanceRecieverAfter = await token.balanceOf(toFixedHex(recipient, 20))
+      const feeBN = toBN(fee.toString())
+      console.log('balanceAnchorAfter: ', balanceAnchorAfter.toString());
+      console.log('balanceRelayerAfter: ', balanceRelayerAfter.toString());
+      console.log('balanceOperatorAfter: ', balanceOperatorAfter.toString());
+      console.log('balanceRecieverAfter: ', balanceRecieverAfter.toString());
+      console.log('feeBN: ', feeBN.toString());
+      // assert.strictEqual(balanceAnchorAfter.toString(), toBN(balanceAnchorBefore).sub(toBN(value)).toString())
+      // assert.strictEqual(balanceRelayerAfter.toString(), toBN(balanceRelayerBefore).toString())
+      // assert.strictEqual(balanceOperatorAfter.toString(), toBN(balanceOperatorBefore).add(feeBN).toString())
+      // assert.strictEqual(balanceRecieverAfter.toString(), toBN(balanceRecieverBefore).add(toBN(value)).sub(feeBN).toString())
 
       // assert.strictEqual(logs[0].event, 'Withdrawal')
       // assert.strictEqual(logs[0].args.nullifierHash, toFixedHex(input.nullifierHash))
       // assert.strictEqual(logs[0].args.relayer, BN(operator));
       // assert.strictEqual(logs[0].args.fee, BN(feeBN));
-      // isSpent = await anchor.isSpent(toFixedHex(input.nullifierHash))
-      // assert(isSpent);
+      isSpent = await anchor.isSpent(toFixedHex(input.nullifierHash))
+      assert(isSpent);
     })
 
     it('should prevent double spend', async () => {
