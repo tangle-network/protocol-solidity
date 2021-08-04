@@ -294,27 +294,12 @@ contract VerifierPoseidonBridge {
     /// @return r  bool true if proof is valid
     function verifyProof(bytes memory proof, uint[8] memory input) public view returns (bool r) {
         uint256[8] memory p = abi.decode(proof, (uint256[8]));
-        // console.log(p[0]);
-        // console.log(p[1]);
-        // console.log(p[2]);
-        // console.log(p[3]);
-        // console.log(p[4]);
-        // console.log(p[5]);
-        // console.log(p[6]);
-        // console.log(p[7]);
         (
             uint256[2] memory a,
             uint256[2][2] memory b,
             uint256[2] memory c
         ) = unpackProof(p);
-        console.log(input[0]);
-        console.log(input[1]);
-        console.log(input[2]);
-        console.log(input[3]);
-        console.log(input[4]);
-        console.log(input[5]);
-        console.log(input[6]);
-        console.log(input[7]);
+
         return verifyProof(
             a,
             b,
@@ -334,7 +319,6 @@ contract VerifierPoseidonBridge {
         uint256[2][2] memory,
         uint256[2] memory
     ) {
-
         return (
             [_proof[0], _proof[1]],
             [

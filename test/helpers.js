@@ -120,7 +120,7 @@ function toSolidityInput(proof, publicSignals) {
 function p256(n) {
   let nstr = BigInt(n).toString(16);
   while (nstr.length < 64) nstr = "0" +nstr;
-  nstr = `"0x${nstr}"`;
+  nstr = `0x${nstr}`;
 
   return nstr;
 }
@@ -155,5 +155,5 @@ module.exports = {
   assertObjectsMatch,
   nonceAndId,
   toSolidityInput,
-  groth16ExportSolidityCallData,
+  p256,
 };

@@ -252,10 +252,8 @@ contract('AnchorPoseidon2', (accounts) => {
       // console.log('deposit gas:', gas)
       await TruffleAssert.passes(token.approve(anchor.address, tokenDenomination, { from: user }));
       let anchorRoot = await anchor.getLastRoot();
-      // console.log('Before', anchorRoot);
       await TruffleAssert.passes(anchor.deposit(toFixedHex(deposit.commitment), { from: user }));
       anchorRoot = await anchor.getLastRoot();
-      // console.log('After 1st deposit', anchorRoot);
       const balanceUserAfter = await token.balanceOf(user)
       assert.strictEqual(balanceUserAfter.toString(), BN(toBN(balanceUserBefore).sub(toBN(value))).toString());
 
@@ -321,9 +319,53 @@ contract('AnchorPoseidon2', (accounts) => {
         publicSignals[6],
         publicSignals[7],
       ]);
+      // console.log([
+      //   toFixedHex(publicSignals[0]),
+      //   toFixedHex(publicSignals[1]),
+      //   toFixedHex(publicSignals[2]),
+      //   toFixedHex(publicSignals[3]),
+      //   toFixedHex(publicSignals[4]),
+      //   toFixedHex(publicSignals[5]),
+      //   toFixedHex(publicSignals[6]),
+      //   toFixedHex(publicSignals[7]),
+      // ]);
+
+      // console.log([
+      //   ...proof.pi_a,
+      //   ...proof.pi_b[0],
+      //   ...proof.pi_b[1],
+      //   ...proof.pi_c,
+      // ]);
+
+      proofHex = helpers.toSolidityInput(proof);
+      // TODO: This gives: Error: VM Exception while processing transaction: invalid opcode
+      // proofEncoded = [
+      //   toFixedHex(proof.pi_a[0], 32),
+      //   toFixedHex(proof.pi_a[1], 32),
+      //   toFixedHex(proof.pi_b[0][0], 32),
+      //   toFixedHex(proof.pi_b[0][1], 32),
+      //   toFixedHex(proof.pi_b[1][0], 32),
+      //   toFixedHex(proof.pi_b[1][1], 32),
+      //   toFixedHex(proof.pi_c[0], 32),
+      //   toFixedHex(proof.pi_c[1], 32),
+      // ]
+      // .map(elt => elt.substr(2))
+      // .join('');
 
       // TODO: This gives: Error: VM Exception while processing transaction: reverted with reason string 'Invalid withdraw proof'
-      proofEncoded = await helpers.groth16ExportSolidityCallData(proof, publicSignals);
+      proofEncoded = [
+        helpers.p256(proof.pi_a[0]),
+        helpers.p256(proof.pi_a[1]),
+        helpers.p256(proof.pi_b[0][1]),
+        helpers.p256(proof.pi_b[0][0]),
+        helpers.p256(proof.pi_b[1][1]),
+        helpers.p256(proof.pi_b[1][0]),
+        helpers.p256(proof.pi_c[0]),
+        helpers.p256(proof.pi_c[1]),
+      ]
+      .map(elt => elt.substr(2))
+      .join('');
+
       const { logs } = await anchor.withdraw(`0x${proofEncoded}`, ...args, { from: relayer, gasPrice: '0' })
 
       const balanceAnchorAfter = await web3.eth.getBalance(anchor.address)
