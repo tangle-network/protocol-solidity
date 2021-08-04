@@ -283,11 +283,7 @@ contract('AnchorPoseidon2', (accounts) => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.fullProve(
-        input,
-        'artifacts/circuits/bridge/poseidon_bridge_2.wasm',
-        'build/bridge2/circuit_final.zkey'
-      );
+      let res = await snarkjs.groth16.prove('build/bridge2/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
       const vKey = await snarkjs.zKey.exportVerificationKey('build/bridge2/circuit_final.zkey');
@@ -326,7 +322,6 @@ contract('AnchorPoseidon2', (accounts) => {
         pi_b,
         pi_c,
         inputs,
-        { from: relayer },
       );
       console.log(ress);
       // const ress = await anchor.verify(`0x${proofEncoded}`, `0x${argsEncoded}`);
