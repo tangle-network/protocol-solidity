@@ -311,7 +311,7 @@ contract('AnchorPoseidon2', (accounts) => {
       const pi_b = fullProof[1];
       const pi_c = fullProof[2];
       const inputs = fullProof[3];
-      await TruffleAssert.passes(verifier.verifyProof(
+      assert.strictEqual(true, await verifier.verifyProof(
         pi_a,
         pi_b,
         pi_c,
