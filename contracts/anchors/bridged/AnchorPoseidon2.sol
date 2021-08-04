@@ -156,6 +156,42 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
     emit Withdrawal(_recipient, _nullifierHash, _relayer, _fee);
   }
 
+  function verify(
+    bytes calldata _proof,
+    bytes calldata _input
+  ) external payable nonReentrant returns (bool r) {
+    uint256[8] memory inputs = abi.decode(_input, (uint256[8]));
+    require(
+      verifier.verifyProof(
+        _proof,
+        inputs
+      ),
+      "Invalid withdraw proof"
+    );
+    return r;
+  }
+
+    /*
+    * A helper function to convert an array of 8 uint256 values into the a, b,
+    * and c array values that the zk-SNARK verifier's verifyProof accepts.
+    */
+    function unpackProof(
+        uint256[8] memory _proof
+    ) public pure returns (
+        uint256[2] memory,
+        uint256[2][2] memory,
+        uint256[2] memory
+    ) {
+        return (
+            [_proof[0], _proof[1]],
+            [
+                [_proof[2], _proof[3]],
+                [_proof[4], _proof[5]]
+            ],
+            [_proof[6], _proof[7]]
+        );
+    }
+
   /** @dev this function is defined in a child contract */
   function _processWithdraw(
     address payable _recipient,
