@@ -336,19 +336,6 @@ contract('AnchorPoseidon2', (accounts) => {
       .map(elt => elt.substr(2))
       .join('');
 
-      argsEncoded = [
-        inputs[0],
-        inputs[1],
-        inputs[2],
-        inputs[3],
-        inputs[4],
-        inputs[5],
-        inputs[6],
-        inputs[7],
-      ]
-      .map(elt => elt.substr(2))
-      .join('');
-
       const { logs } = await anchor.withdraw(`0x${proofEncoded}`, ...args, { from: relayer, gasPrice: '0' });
       const balanceAnchorAfter = await token.balanceOf(anchor.address)
       const balanceRelayerAfter = await token.balanceOf(relayer)
