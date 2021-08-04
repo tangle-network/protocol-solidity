@@ -120,7 +120,7 @@ function toSolidityInput(proof, publicSignals) {
 function p256(n) {
   let nstr = BigInt(n).toString(16);
   while (nstr.length < 64) nstr = "0" +nstr;
-  nstr = `0x${nstr}`;
+  nstr = `"0x${nstr}"`;
 
   return nstr;
 }
@@ -131,7 +131,7 @@ async function groth16ExportSolidityCallData(proof, pub) {
     if (inputs != "") inputs = inputs + ",";
     inputs = inputs + p256(pub[i]);
   }
-  console.log(inputs);
+
   let S;
   S=`[${p256(proof.pi_a[0])}, ${p256(proof.pi_a[1])}],` +
     `[[${p256(proof.pi_b[0][1])}, ${p256(proof.pi_b[0][0])}],[${p256(proof.pi_b[1][1])}, ${p256(proof.pi_b[1][0])}]],` +
@@ -156,4 +156,5 @@ module.exports = {
   nonceAndId,
   toSolidityInput,
   p256,
+  groth16ExportSolidityCallData,
 };

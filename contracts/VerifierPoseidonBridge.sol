@@ -299,7 +299,6 @@ contract VerifierPoseidonBridge {
             uint256[2][2] memory b,
             uint256[2] memory c
         ) = unpackProof(p);
-
         return verifyProof(
             a,
             b,
