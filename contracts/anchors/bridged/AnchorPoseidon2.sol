@@ -20,7 +20,7 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
   address public bridge;
   address public admin;
   address public handler;
-  uint64 public updateNonce;
+  uint64 public depositNonce;
 
   IVerifier public immutable verifier;
   uint256 public immutable denomination;
@@ -94,7 +94,7 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
     uint32 insertedIndex = _insert(_commitment);
     commitments[_commitment] = true;
     _processDeposit();
-    updateNonce++;
+    depositNonce++;
     emit Deposit(_commitment, insertedIndex, updateNonce, block.timestamp);
 
   }
