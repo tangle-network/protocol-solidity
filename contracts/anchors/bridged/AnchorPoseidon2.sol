@@ -50,7 +50,7 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
   uint latestHistoryIndex;
 
   // currency events
-  event Deposit(bytes32 indexed commitment, uint32 leafIndex, uint64 updateNonce, uint256 timestamp);
+  event Deposit(bytes32 indexed commitment, uint32 leafIndex, uint64 nonce, uint256 timestamp);
   event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uint256 fee);
   // bridge events
   event EdgeAddition(uint256 chainID, uint256 height, bytes32 merkleRoot);
