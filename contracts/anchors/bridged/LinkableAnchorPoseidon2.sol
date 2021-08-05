@@ -63,7 +63,6 @@ abstract contract LinkableAnchorPoseidon2 is AnchorPoseidon2, ILinkableAnchor {
     // emit update event
     bytes32[1] memory neighbors = getLatestNeighborRoots();
     emit RootHistoryUpdate(block.timestamp, neighbors);
-    
   }
 
   function updateEdge(

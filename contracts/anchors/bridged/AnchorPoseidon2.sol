@@ -127,15 +127,7 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
     address rec = address(_recipient);
     address rel = address(_relayer);
     bytes32[1] memory neighbors = getLatestNeighborRoots();
-    // console.log(uint256(_nullifierHash));
-    // console.log(uint256(uint160(rec)));
-    // console.log(uint256(uint160(rel)));
-    // console.log(_fee);
-    // console.log(_refund);
-    // console.log(uint256(chainID));
-    // console.log(uint256(_root));
-    // console.log(uint256(neighbors[0]));
-    // console.logBytes(_proof);
+
     uint256[8] memory inputs;
     inputs[0] = uint256(_nullifierHash);
     inputs[1] = uint256(uint160(rec));
