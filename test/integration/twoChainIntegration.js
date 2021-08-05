@@ -785,6 +785,6 @@ contract('E2E LinkableAnchors - Two EVM Chains', async accounts => {
 
     afterEach(async () => {
         tree = new MerkleTree(levels, null, prefix)
-      })
+    })
 })
     
