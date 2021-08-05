@@ -79,7 +79,7 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
     // TODO: Handle pruning length in function signature
     pruningLength = 100;
     latestHistoryIndex = 0;
-    updateNonce = 0;
+    depositNonce = 0;
     // TODO: Parameterize max roots (length of array should be max roots)
     rootHistory[latestHistoryIndex] = new bytes32[](1);
   }
