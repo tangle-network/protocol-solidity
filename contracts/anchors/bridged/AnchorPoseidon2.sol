@@ -11,7 +11,9 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 interface IVerifier {
   function verifyProof(
-      bytes memory _proof,
+      uint[2] memory a,
+      uint[2][2] memory b,
+      uint[2] memory c,
       uint[8] memory input
   ) external view returns (bool r);
 }
@@ -134,63 +136,63 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
     // console.log(uint256(_root));
     // console.log(uint256(neighbors[0]));
     // console.logBytes(_proof);
-    require(
-      verifier.verifyProof(
-        _proof,
-        [
-          uint256(_nullifierHash),
-          uint256(uint160(rec)),
-          uint256(uint160(rel)),
-          _fee,
-          _refund,
-          uint256(chainID),
-          uint256(_root),
-          uint256(neighbors[0])
-        ]
-      ),
-      "Invalid withdraw proof"
-    );
+    uint256[8] memory inputs;
+    inputs[0] = uint256(_nullifierHash);
+    inputs[1] = uint256(uint160(rec));
+    inputs[2] = uint256(uint160(rel));
+    inputs[3] = uint256(_fee);
+    inputs[4] = uint256(_refund);
+    inputs[5] = uint256(chainID);
+    inputs[6] = uint256(_root);
+    inputs[7] = uint256(neighbors[0]);
+    bytes memory encodedInputs = abi.encodePacked(inputs);
 
+    require(verify(_proof, encodedInputs), "Invalid withdraw proof");
+  
     nullifierHashes[_nullifierHash] = true;
     _processWithdraw(_recipient, _relayer, _fee, _refund);
     emit Withdrawal(_recipient, _nullifierHash, _relayer, _fee);
   }
 
   function verify(
-    bytes calldata _proof,
-    bytes calldata _input
-  ) external payable nonReentrant returns (bool r) {
+    bytes memory _proof,
+    bytes memory _input
+  ) internal view returns (bool r) {
+    uint256[8] memory p = abi.decode(_proof, (uint256[8]));
+    (
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c
+    ) = unpackProof(p);
     uint256[8] memory inputs = abi.decode(_input, (uint256[8]));
-    require(
-      verifier.verifyProof(
-        _proof,
-        inputs
-      ),
-      "Invalid withdraw proof"
+    r = verifier.verifyProof(
+      a, b, c,
+      inputs
     );
+    require(r, "Invalid withdraw proof");
     return r;
   }
 
-    /*
-    * A helper function to convert an array of 8 uint256 values into the a, b,
-    * and c array values that the zk-SNARK verifier's verifyProof accepts.
-    */
-    function unpackProof(
-        uint256[8] memory _proof
-    ) public pure returns (
-        uint256[2] memory,
-        uint256[2][2] memory,
-        uint256[2] memory
-    ) {
-        return (
-            [_proof[0], _proof[1]],
-            [
-                [_proof[2], _proof[3]],
-                [_proof[4], _proof[5]]
-            ],
-            [_proof[6], _proof[7]]
-        );
-    }
+  /*
+  * A helper function to convert an array of 8 uint256 values into the a, b,
+  * and c array values that the zk-SNARK verifier's verifyProof accepts.
+  */
+  function unpackProof(
+      uint256[8] memory _proof
+  ) public pure returns (
+      uint256[2] memory,
+      uint256[2][2] memory,
+      uint256[2] memory
+  ) {
+    return (
+      [_proof[0], _proof[1]],
+      [
+        [_proof[2], _proof[3]],
+        [_proof[4], _proof[5]]
+      ],
+      [_proof[6], _proof[7]]
+    );
+  }
 
   /** @dev this function is defined in a child contract */
   function _processWithdraw(

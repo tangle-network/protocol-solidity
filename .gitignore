@@ -10,5 +10,4 @@ artifacts
 dist
 
 *.ptau
-*.zkey
 yarn-error.log
