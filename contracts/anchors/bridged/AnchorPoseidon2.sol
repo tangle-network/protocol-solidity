@@ -123,7 +123,7 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
   ) external payable nonReentrant {
     require(_fee <= denomination, "Fee exceeds transfer value");
     require(!nullifierHashes[_nullifierHash], "The note has been already spent");
-    require(isKnownRoot(_root), "Cannot find your merkle root"); // Make sure to use a recent one
+    require(isKnownRoot(_root), "Cannot find your merkle root"); 
     address rec = address(_recipient);
     address rel = address(_relayer);
     bytes32[1] memory neighbors = getLatestNeighborRoots();
