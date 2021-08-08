@@ -85,7 +85,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw with multiple deposits', as
       destChainID,
       destChainToken.address,
     {from: sender});
-    // create resource ID using anchor address (this follows create2 scheme)
+    // create resource ID using anchor address
     resourceID = Helpers.createResourceID(OriginChainLinkableAnchorInstance.address, 0);
     initialResourceIDs = [resourceID];
     destInitialContractAddresses = [OriginChainLinkableAnchorInstance.address];
