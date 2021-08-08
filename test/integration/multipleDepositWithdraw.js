@@ -126,7 +126,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw with multiple deposits', as
     assert.equal((await DestBridgeInstance._totalRelayers()).toString(), '2')
   })
 
-  it.only('withdrawing across bridge after two deposits should work', async () => {
+  it('withdrawing across bridge after two deposits should work', async () => {
     // minting Tokens
     await originChainToken.mint(sender, initialTokenMintAmount);
     // deposit on both chains and define nonces based on events emmited
@@ -231,13 +231,13 @@ contract('E2E LinkableAnchors - Cross chain withdraw with multiple deposits', as
       fee,
       refund,
       chainID: originDeposit.chainID,
-      roots: [destNativeRoot, destNeighborRoots],
+      roots: [destNativeRoot, ...destNeighborRoots],
       // private
       nullifier: originDeposit.nullifier,
       secret: originDeposit.secret,
       pathElements: path_elements,
       pathIndices: path_index,
-      diffs: [destNativeRoot, destNeighborRoots].map(r => {
+      diffs: [destNativeRoot, destNeighborRoots[0]].map(r => {
         return F.sub(
           Scalar.fromString(`${r}`),
           Scalar.fromString(`${destNeighborRoots}`),
