@@ -95,22 +95,18 @@ contract('E2E LinkableAnchors - Cross chain withdraw with multiple deposits', as
         .then(instance => DestAnchorHandlerInstance = instance),
     ]);
     // increase allowance and set resources for bridge
-    await Promise.all([
-      originChainToken.approve(OriginChainLinkableAnchorInstance.address, initialTokenMintAmount, { from: sender }),
-      destChainToken.approve(DestChainLinkableAnchorInstance.address, initialTokenMintAmount, { from: sender }),
-      DestBridgeInstance.adminSetResource(DestAnchorHandlerInstance.address, resourceID, DestChainLinkableAnchorInstance.address)
-    ]);
+    await DestBridgeInstance.adminSetResource(DestAnchorHandlerInstance.address, resourceID, DestChainLinkableAnchorInstance.address)
      // set bridge and handler permissions for anchor
-     await Promise.all([
+    await Promise.all([
       DestChainLinkableAnchorInstance.setHandler(DestAnchorHandlerInstance.address, {from: sender}),
       DestChainLinkableAnchorInstance.setBridge(DestBridgeInstance.address, {from: sender})
-     ]);
+    ]);
 
     createWitness = async (data) => {
       const wtns = {type: "mem"};
       await snarkjs.wtns.calculate(data, path.join(
-        "artifacts/circuits",
-        "bridge",
+        "test",
+        "fixtures",
         "poseidon_bridge_2.wasm"
       ), wtns);
       return wtns;
@@ -126,9 +122,14 @@ contract('E2E LinkableAnchors - Cross chain withdraw with multiple deposits', as
     assert.equal((await DestBridgeInstance._totalRelayers()).toString(), '2')
   })
 
-  it.only('withdrawing across bridge after two deposits should work', async () => {
+  it('withdrawing across bridge after two deposits should work', async () => {
+    /*
+    *  first deposit on origin chain
+    */
     // minting Tokens
     await originChainToken.mint(sender, initialTokenMintAmount);
+    //increase allowance
+    originChainToken.approve(OriginChainLinkableAnchorInstance.address, initialTokenMintAmount, { from: sender });
     // deposit on both chains and define nonces based on events emmited
     let firstOriginDeposit = Helpers.generateDeposit(destChainID);
     let { logs } = await OriginChainLinkableAnchorInstance.deposit(
@@ -167,15 +168,17 @@ contract('E2E LinkableAnchors - Cross chain withdraw with multiple deposits', as
         resourceID,
         { from: relayer1Address }
     ));
-      
-     // deposit on origin chain and define nonce based on events emmited
-     originDeposit = Helpers.generateDeposit(destChainID, 30);
-     ({ logs } = await OriginChainLinkableAnchorInstance.deposit(Helpers.toFixedHex(originDeposit.commitment), {from: sender}));
-     originUpdateNonce = logs[0].args.leafIndex;
-     originMerkleRoot = await OriginChainLinkableAnchorInstance.getLastRoot();
-     // create correct update proposal data for the deposit on origin chain
-     originDepositData = Helpers.createUpdateProposalData(originChainID, originBlockHeight + 10, originMerkleRoot);
-     originDepositDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originDepositData.substr(2));
+    /*
+    *  second deposit on origin chain
+    */
+    // deposit on origin chain and define nonce based on events emmited
+    originDeposit = Helpers.generateDeposit(destChainID, 30);
+    ({ logs } = await OriginChainLinkableAnchorInstance.deposit(Helpers.toFixedHex(originDeposit.commitment), {from: sender}));
+    originUpdateNonce = logs[0].args.leafIndex;
+    originMerkleRoot = await OriginChainLinkableAnchorInstance.getLastRoot();
+    // create correct update proposal data for the deposit on origin chain
+    originDepositData = Helpers.createUpdateProposalData(originChainID, originBlockHeight + 10, originMerkleRoot);
+    originDepositDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originDepositData.substr(2));
 
     // a second deposit on origin chain leads to update edge proposal on dest chain
     // relayer1 creates the deposit proposal for the deposit that occured in the before each loop
@@ -213,7 +216,9 @@ contract('E2E LinkableAnchors - Cross chain withdraw with multiple deposits', as
     // check initial balances
     let balanceOperatorBefore = await destChainToken.balanceOf(operator);
     let balanceReceiverBefore = await destChainToken.balanceOf(Helpers.toFixedHex(recipient, 20));
-    
+    /*
+    *  generate proof
+    */
     // insert two commitments into the tree
     await tree.insert(firstOriginDeposit.commitment);
     await tree.insert(originDeposit.commitment);
@@ -295,6 +300,9 @@ contract('E2E LinkableAnchors - Cross chain withdraw with multiple deposits', as
     ]
     .map(elt => elt.substr(2))
     .join('');
+    /*
+    *  withdraw
+    */
     // mint to anchor and track balance
     await destChainToken.mint(DestChainLinkableAnchorInstance.address, initialTokenMintAmount);
     let balanceDestAnchorAfterDeposits = await destChainToken.balanceOf(DestChainLinkableAnchorInstance.address);
@@ -306,13 +314,6 @@ contract('E2E LinkableAnchors - Cross chain withdraw with multiple deposits', as
     let balanceOperatorAfter = await destChainToken.balanceOf(input.relayer);
     let balanceReceiverAfter = await destChainToken.balanceOf(Helpers.toFixedHex(recipient, 20));
     const feeBN = toBN(fee.toString())
-    console.log('balanceDestAnchorAfterDeposits: ', balanceDestAnchorAfterDeposits.toString());
-    console.log('balanceOperatorBefore: ', balanceOperatorBefore.toString());
-    console.log('balanceReceiverBefore: ', balanceReceiverBefore.toString());
-    console.log('balanceDestAnchorAfter: ', balanceDestAnchorAfter.toString());
-    console.log('balanceOperatorAfter: ', balanceOperatorAfter.toString());
-    console.log('balanceReceiverAfter: ', balanceReceiverAfter.toString());
-    console.log('feeBN: ', feeBN.toString());
     assert.strictEqual(balanceDestAnchorAfter.toString(), balanceDestAnchorAfterDeposits.sub(toBN(tokenDenomination)).toString());
     assert.strictEqual(balanceOperatorAfter.toString(), balanceOperatorBefore.add(feeBN).toString());
     assert.strictEqual(balanceReceiverAfter.toString(), balanceReceiverBefore.add(toBN(tokenDenomination)).sub(feeBN).toString());

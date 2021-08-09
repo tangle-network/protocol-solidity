@@ -109,24 +109,22 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     ]);
     // increase allowance and set resources for bridge
     await Promise.all([
-      originChainToken.approve(OriginChainLinkableAnchorInstance.address, initialTokenMintAmount, { from: sender }),
-      destChainToken.approve(DestChainLinkableAnchorInstance.address, initialTokenMintAmount, { from: sender }),
       OriginBridgeInstance.adminSetResource(OriginAnchorHandlerInstance.address, resourceID, OriginChainLinkableAnchorInstance.address),
       DestBridgeInstance.adminSetResource(DestAnchorHandlerInstance.address, resourceID, DestChainLinkableAnchorInstance.address)
     ]);
      // set bridge and handler permissions for anchors
-     await Promise.all([
+    await Promise.all([
       OriginChainLinkableAnchorInstance.setHandler(OriginAnchorHandlerInstance.address, {from: sender}),
       OriginChainLinkableAnchorInstance.setBridge(OriginBridgeInstance.address, {from: sender}),
       DestChainLinkableAnchorInstance.setHandler(DestAnchorHandlerInstance.address, {from: sender}),
       DestChainLinkableAnchorInstance.setBridge(DestBridgeInstance.address, {from: sender})
-     ]);
+    ]);
 
     createWitness = async (data) => {
       const wtns = {type: "mem"};
       await snarkjs.wtns.calculate(data, path.join(
-        "artifacts/circuits",
-        "bridge",
+        "test",
+        "fixtures",
         "poseidon_bridge_2.wasm"
       ), wtns);
       return wtns;
@@ -145,19 +143,26 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     assert.equal((await DestBridgeInstance._totalRelayers()).toString(), '2')
   })
 
-  it.only('withdrawals on both chains integration', async () => {
+  it('withdrawals on both chains integration', async () => {
+    /*
+    *  Desposit on origin chain
+    */
     // minting Tokens
     await originChainToken.mint(sender, initialTokenMintAmount);
-    // generate deposit commitment
+    // increasing allowance of anchors
+    await originChainToken.approve(OriginChainLinkableAnchorInstance.address, initialTokenMintAmount, { from: sender }),
+    // generate deposit commitment targeting withdrawal on destination chain
     originDeposit = helpers.generateDeposit(destChainID);
     // deposit on origin chain and define nonce
     let { logs } = await OriginChainLinkableAnchorInstance.deposit(helpers.toFixedHex(originDeposit.commitment), {from: sender});
     originUpdateNonce = logs[0].args.leafIndex;
     originMerkleRoot = await OriginChainLinkableAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on origin chain
-    originDepositData = helpers.createUpdateProposalData(originChainID, originBlockHeight, originMerkleRoot,);
+    originDepositData = helpers.createUpdateProposalData(originChainID, originBlockHeight, originMerkleRoot);
     originDepositDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originDepositData.substr(2));
-    
+    /*
+    *  relayers vote on dest chain
+    */
     // deposit on origin chain leads to update proposal on dest chain
     // relayer1 creates the deposit proposal for the deposit
     TruffleAssert.passes(await DestBridgeInstance.voteProposal(
@@ -193,8 +198,9 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     // check initial balances
     let balanceOperatorBefore = await destChainToken.balanceOf(operator);
     let balanceReceiverBefore = await destChainToken.balanceOf(helpers.toFixedHex(recipient, 20));
-
-
+    /*
+    *  generate proof
+    */
     await tree.insert(originDeposit.commitment);
     
     let { root, path_elements, path_index } = await tree.path(0);
@@ -213,7 +219,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
       secret: originDeposit.secret,
       pathElements: path_elements,
       pathIndices: path_index,
-      diffs: [destNativeRoot, destNeighborRoots[0]].map(r => {
+      diffs: [destNativeRoot, ...destNeighborRoots].map(r => {
         return F.sub(
           Scalar.fromString(`${r}`),
           Scalar.fromString(`${destNeighborRoots[0]}`),
@@ -267,7 +273,9 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     ]
     .map(elt => elt.substr(2))
     .join('');
-    
+    /*
+    *  withdraw on dest chain
+    */
     await destChainToken.mint(DestChainLinkableAnchorInstance.address, initialTokenMintAmount);
     let balanceDestAnchorAfterDeposit = await destChainToken.balanceOf(DestChainLinkableAnchorInstance.address);
     ({ logs } = await DestChainLinkableAnchorInstance.withdraw
@@ -287,9 +295,13 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     assert.strictEqual(logs[0].args.fee.toString(), feeBN.toString());
     isSpent = await DestChainLinkableAnchorInstance.isSpent(helpers.toFixedHex(input.nullifierHash));
     assert(isSpent);
-    
+    /*
+    *  deposit on dest chain
+    */
     // minting Tokens
-    await destChainToken.mint(helpers.toFixedHex(sender, 20), initialTokenMintAmount);
+    await destChainToken.mint(sender, initialTokenMintAmount);
+    // approval
+    await destChainToken.approve(DestChainLinkableAnchorInstance.address, initialTokenMintAmount, { from: sender }),
     // generate deposit commitment
     destDeposit = helpers.generateDeposit(originChainID);
     // deposit on dest chain and define nonce
@@ -299,7 +311,9 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     // create correct update proposal data for the deposit on dest chain
     destDepositData = helpers.createUpdateProposalData(destChainID, destBlockHeight, destMerkleRoot);
     destDepositDataHash = Ethers.utils.keccak256(OriginAnchorHandlerInstance.address + destDepositData.substr(2));
-    
+    /*
+    *  relayers vote on origin chain
+    */
     // deposit on dest chain leads to update proposal on origin chain
     // relayer1 creates the deposit proposal
     TruffleAssert.passes(await OriginBridgeInstance.voteProposal(
@@ -334,7 +348,9 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     // check initial balances
     balanceOperatorBefore = await originChainToken.balanceOf(operator);
     balanceReceiverBefore = await originChainToken.balanceOf(helpers.toFixedHex(recipient, 20));
-
+    /*
+    *  generate proof
+    */
     tree = new MerkleTree(merkleTreeHeight, null, prefix)  
     await tree.insert(destDeposit.commitment);
     
@@ -408,7 +424,9 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     ]
     .map(elt => elt.substr(2))
     .join('');
-    
+    /*
+    *  withdraw on origin chain
+    */
     await originChainToken.mint(OriginChainLinkableAnchorInstance.address, initialTokenMintAmount);
     let balanceOriginAnchorAfterDeposit = await originChainToken.balanceOf(OriginChainLinkableAnchorInstance.address);
     ({ logs } = await OriginChainLinkableAnchorInstance.withdraw
