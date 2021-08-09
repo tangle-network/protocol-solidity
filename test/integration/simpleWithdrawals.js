@@ -95,7 +95,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
       destChainID,
       destChainToken.address,
     {from: sender});
-    // create resource ID using anchor address (this follows create2 scheme)
+    // create resource ID using anchor address
     resourceID = helpers.createResourceID(OriginChainLinkableAnchorInstance.address, 0);
     initialResourceIDs = [resourceID];
     originInitialContractAddresses = [DestChainLinkableAnchorInstance.address];
