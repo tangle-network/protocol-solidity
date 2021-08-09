@@ -145,7 +145,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     assert.equal((await DestBridgeInstance._totalRelayers()).toString(), '2')
   })
 
-  it('withdrawals on both chains integration', async () => {
+  it.only('withdrawals on both chains integration', async () => {
     // minting Tokens
     await originChainToken.mint(sender, initialTokenMintAmount);
     // generate deposit commitment
@@ -207,16 +207,16 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
       fee,
       refund,
       chainID: originDeposit.chainID,
-      roots: [destNativeRoot, destNeighborRoots],
+      roots: [destNativeRoot, ...destNeighborRoots],
       // private
       nullifier: originDeposit.nullifier,
       secret: originDeposit.secret,
       pathElements: path_elements,
       pathIndices: path_index,
-      diffs: [destNativeRoot, destNeighborRoots].map(r => {
+      diffs: [destNativeRoot, destNeighborRoots[0]].map(r => {
         return F.sub(
           Scalar.fromString(`${r}`),
-          Scalar.fromString(`${destNeighborRoots}`),
+          Scalar.fromString(`${destNeighborRoots[0]}`),
         ).toString();
       }),
     };
@@ -348,16 +348,16 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
       fee,
       refund,
       chainID: destDeposit.chainID,
-      roots: [originNativeRoot, originNeighborRoots],
+      roots: [originNativeRoot, ...originNeighborRoots],
       // private
       nullifier: destDeposit.nullifier,
       secret: destDeposit.secret,
       pathElements: path_elements,
       pathIndices: path_index,
-      diffs: [originNativeRoot, originNeighborRoots].map(r => {
+      diffs: [originNativeRoot, originNeighborRoots[0]].map(r => {
         return F.sub(
           Scalar.fromString(`${r}`),
-          Scalar.fromString(`${originNeighborRoots}`),
+          Scalar.fromString(`${originNeighborRoots[0]}`),
         ).toString();
       }),
     };

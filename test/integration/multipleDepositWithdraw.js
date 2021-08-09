@@ -126,12 +126,13 @@ contract('E2E LinkableAnchors - Cross chain withdraw with multiple deposits', as
     assert.equal((await DestBridgeInstance._totalRelayers()).toString(), '2')
   })
 
-  it('withdrawing across bridge after two deposits should work', async () => {
+  it.only('withdrawing across bridge after two deposits should work', async () => {
     // minting Tokens
     await originChainToken.mint(sender, initialTokenMintAmount);
     // deposit on both chains and define nonces based on events emmited
+    let firstOriginDeposit = Helpers.generateDeposit(destChainID);
     let { logs } = await OriginChainLinkableAnchorInstance.deposit(
-      Helpers.toFixedHex(Helpers.generateDeposit(destChainID).commitment), {from: sender});
+      Helpers.toFixedHex(firstOriginDeposit.commitment), {from: sender});
     originUpdateNonce = logs[0].args.leafIndex;
     originMerkleRoot = await OriginChainLinkableAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on origin chain
@@ -212,9 +213,9 @@ contract('E2E LinkableAnchors - Cross chain withdraw with multiple deposits', as
     // check initial balances
     let balanceOperatorBefore = await destChainToken.balanceOf(operator);
     let balanceReceiverBefore = await destChainToken.balanceOf(Helpers.toFixedHex(recipient, 20));
-    let balanceDestAnchorAfterDeposits = await destChainToken.balanceOf(DestChainLinkableAnchorInstance.address);
+    
     // insert two commitments into the tree
-    await tree.insert(Helpers.generateDeposit(destChainID).commitment);
+    await tree.insert(firstOriginDeposit.commitment);
     await tree.insert(originDeposit.commitment);
   
     const { root, path_elements, path_index } = await tree.path(1);
@@ -240,7 +241,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw with multiple deposits', as
       diffs: [destNativeRoot, destNeighborRoots[0]].map(r => {
         return F.sub(
           Scalar.fromString(`${r}`),
-          Scalar.fromString(`${destNeighborRoots}`),
+          Scalar.fromString(`${destNeighborRoots[0]}`),
         ).toString();
       }),
     };
@@ -294,8 +295,10 @@ contract('E2E LinkableAnchors - Cross chain withdraw with multiple deposits', as
     ]
     .map(elt => elt.substr(2))
     .join('');
+    // mint to anchor and track balance
     await destChainToken.mint(DestChainLinkableAnchorInstance.address, initialTokenMintAmount);
-    
+    let balanceDestAnchorAfterDeposits = await destChainToken.balanceOf(DestChainLinkableAnchorInstance.address);
+    // withdraw
     ({ logs } = await DestChainLinkableAnchorInstance.withdraw
       (`0x${proofEncoded}`, ...args, { from: input.relayer, gasPrice: '0' }));
     
