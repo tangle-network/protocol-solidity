@@ -141,6 +141,30 @@ async function groth16ExportSolidityCallData(proof, pub) {
   return S;
 }
 
+async function generateWithdrawProofCalldata(proof, pub) {
+
+  const result = await helpers.groth16ExportSolidityCallData(proof, pub);
+  const fullProof = JSON.parse("[" + result + "]");
+  const pi_a = fullProof[0];
+  const pi_b = fullProof[1];
+  const pi_c = fullProof[2];
+
+  let proofEncoded = [
+    pi_a[0],
+    pi_a[1],
+    pi_b[0][0],
+    pi_b[0][1],
+    pi_b[1][0],
+    pi_b[1][1],
+    pi_c[0],
+    pi_c[1],
+  ]
+  .map(elt => elt.substr(2))
+  .join('');
+
+  return JSON.stringify(proofEncoded);
+}
+
 
 module.exports = {
   advanceBlock,
@@ -157,4 +181,5 @@ module.exports = {
   toSolidityInput,
   p256,
   groth16ExportSolidityCallData,
+  generateWithdrawProofCalldata,
 };
