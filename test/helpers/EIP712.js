@@ -98,6 +98,27 @@ function digestToSign(domain, primaryType, message, types = {}) {
   );
 }
 
+const createDelegateBySigMessage = (compAddress, delegatee, expiry = 10e9, chainId = 1, nonce = 0) => {
+  const types = {
+    EIP712Domain: [
+      { name: 'name', type: 'string' },
+      { name: 'chainId', type: 'uint256' },
+      { name: 'verifyingContract', type: 'address' },
+    ],
+    Delegation: [
+      { name: 'delegatee', type: 'address' },
+      { name: 'nonce', type: 'uint256' },
+      { name: 'expiry', type: 'uint256' }
+    ]
+  };
+
+  const primaryType = 'Delegation';
+  const domain = { name: 'Webb', chainId, verifyingContract: compAddress };
+  const message = { delegatee, nonce, expiry };
+
+  return JSON.stringify({ types, primaryType, domain, message });
+};
+
 function sign(domain, primaryType, message, types = {}, privateKey) {
   const digest = digestToSign(domain, primaryType, message, types);
   return {
@@ -118,5 +139,6 @@ module.exports = {
   domainSeparator,
   structHash,
   digestToSign,
-  sign
+  sign,
+  createDelegateBySigMessage,
 };

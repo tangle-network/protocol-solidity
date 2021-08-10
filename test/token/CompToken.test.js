@@ -2,7 +2,7 @@ const EIP712 = require('../helpers/EIP712');
 const TruffleAssert = require('truffle-assertions');
 const Ethers = require('ethers');
 
-const Helpers = require('../helpers');
+const helpers = require('../helpers');
 const assert = require('assert');
 const CompToken = artifacts.require('CompToken');
 
@@ -18,22 +18,22 @@ contract('Comp-like Token', (accounts) => {
     a1 = accounts[1];
     a2 = accounts[2];
     acc = accounts.slice(3);
-    chainId = 1; // await web3.eth.net.getId(); See: https://github.com/trufflesuite/ganache-core/issues/515
+    chainId = 31337; // await web3.eth.net.getId(); See: https://github.com/trufflesuite/ganache-core/issues/515
     comp = await CompToken.new(name, symbol);
   });
 
   describe('metadata', () => {
-    it.only('has given name', async () => {
+    it('has given name', async () => {
       assert.strictEqual(await comp.name(), name);
     });
 
-    it.only('has given symbol', async () => {
+    it('has given symbol', async () => {
       assert.strictEqual(await comp.symbol(), symbol);
     });
   });
 
   describe('balanceOf', () => {
-    it.only('grants nothing to initial account', async () => {
+    it('grants nothing to initial account', async () => {
       assert.strictEqual((await comp.balanceOf(root)).toString(), '0');
     });
   });
@@ -42,6 +42,12 @@ contract('Comp-like Token', (accounts) => {
     const TypedDataUtils = require('ethers-eip712').TypedDataUtils;
     const Domain = (comp) => ({ name, version, chainId, verifyingContract: comp.address });
     const Types = {
+      EIP712Domain: [
+        {name: "name", type: "string"},
+        {name: "version", type: "string"},
+        {name: "chainId", type: "uint256"},
+        {name: "verifyingContract", type: "address"},
+      ],
       Delegation: [
         { name: 'delegatee', type: 'address' },
         { name: 'nonce', type: 'uint256' },
@@ -58,30 +64,11 @@ contract('Comp-like Token', (accounts) => {
     });
 
     it.only('reverts if the nonce is bad ', async () => {
-      const signers = await hre.ethers.getSigners()
       const delegatee = root, nonce = 1, expiry = 0;
-      const TypedData = {
-        types: {
-          EIP712Domain: [
-            {name: "name", type: "string"},
-            {name: "version", type: "string"},
-            {name: "chainId", type: "uint256"},
-            {name: "verifyingContract", type: "address"},
-          ],
-          ...Types,
-        },
-        primaryType: 'Delegation',
-        domain: Domain(comp),
-        message: {
-          delegatee,
-          nonce,
-          expiry
-        },
-      };
-      const digest = TypedDataUtils.encodeDigest(TypedData)
-      const digestHex = ethers.utils.hexlify(digest)
-      const signature = await signers[0].signMessage(digestHex)
-      let sig = ethers.utils.splitSignature(signature);
+      const signers = await hre.ethers.getSigners()
+      const msgParams = helpers.createDelegateBySigMessage(comp.address, delegatee, expiry, chainId, nonce);
+      const result = await signers[1].provider.send('eth_signTypedData_v4', [signers[1].address, msgParams])
+      let sig = ethers.utils.splitSignature(result);
       const { v, r, s } = sig;
       await TruffleAssert.reverts(
         comp.delegateBySig(delegatee, nonce, expiry, v, r, s),
@@ -89,19 +76,30 @@ contract('Comp-like Token', (accounts) => {
       );
     });
 
-    it('reverts if the signature has expired', async () => {
+    it.only('reverts if the signature has expired', async () => {
       const delegatee = root, nonce = 0, expiry = 0;
-      const { v, r, s } = EIP712.sign(Domain(comp), 'Delegation', { delegatee, nonce, expiry }, Types, privateKey);
-      await expect(send(comp, 'delegateBySig', [delegatee, nonce, expiry, v, r, s])).rejects.toRevert('revert Comp::delegateBySig: signature expired');
+      const signers = await hre.ethers.getSigners()
+      const msgParams = helpers.createDelegateBySigMessage(comp.address, delegatee, expiry, chainId, nonce);
+      const result = await signers[1].provider.send('eth_signTypedData_v4', [signers[1].address, msgParams])
+      let sig = ethers.utils.splitSignature(result);
+      const { v, r, s } = sig;
+      await TruffleAssert.reverts(
+        comp.delegateBySig(delegatee, nonce, expiry, v, r, s),
+        'Comp::delegateBySig: signature expired',
+      );
     });
 
-    it('delegates on behalf of the signatory', async () => {
+    it.only('delegates on behalf of the signatory', async () => {
       const delegatee = root, nonce = 0, expiry = 10e9;
-      const { v, r, s } = EIP712.sign(Domain(comp), 'Delegation', { delegatee, nonce, expiry }, Types, privateKey);
-      expect(await call(comp, 'delegates', [a1])).toEqual(address(0));
-      const tx = await send(comp, 'delegateBySig', [delegatee, nonce, expiry, v, r, s]);
-      expect(tx.gasUsed < 80000);
-      expect(await call(comp, 'delegates', [a1])).toEqual(root);
+      const signers = await hre.ethers.getSigners()
+      const msgParams = helpers.createDelegateBySigMessage(comp.address, delegatee, expiry, chainId, nonce);
+      const result = await signers[1].provider.send('eth_signTypedData_v4', [signers[1].address, msgParams])
+      let sig = ethers.utils.splitSignature(result);
+      const { v, r, s } = sig;
+      assert.strictEqual(await comp.delegates(a1), '0x0000000000000000000000000000000000000000');
+      const tx = await comp.delegateBySig(delegatee, nonce, expiry, v, r, s, { from: root });
+      assert(tx.receipt.gasUsed < 90000);
+      assert.strictEqual(await comp.delegates(a1), root);
     });
   });
 
