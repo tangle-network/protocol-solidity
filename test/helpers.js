@@ -28,19 +28,14 @@ const toFixedHex = (number, length = 32) =>
     .toString(16)
     .padStart(length * 2, '0')
 
-const getRandomRecipient = () => rbigint(20) 
-
-function generateDeposit(targetChainID = 0, secret = 31) {
-  let deposit = {
-    chainID: BigInt(targetChainID),
-    secret: rbigint(secret),
-    nullifier: rbigint(31)
+const arrayToFixedHex = (array) => {
+  for (let i = 0; i < array.length; i++) {
+    array[i] = toFixedHex(array[i]);
   }
+  return array;
+};
 
-  deposit.commitment = poseidonHasher.hash3([deposit.chainID, deposit.nullifier, deposit.secret]);
-  deposit.nullifierHash =   poseidonHasher.hash(null, deposit.nullifier, deposit.nullifier);
-  return deposit
-}
+const getRandomRecipient = () => rbigint(20)
 
 const abiEncode = (valueTypes, values) => {
   return AbiCoder.encode(valueTypes, values)
@@ -111,6 +106,18 @@ const nonceAndId = (nonce, id) => {
   return Ethers.utils.hexZeroPad(Ethers.utils.hexlify(nonce), 8) + Ethers.utils.hexZeroPad(Ethers.utils.hexlify(id), 1).substr(2)
 }
 
+function generateDeposit(targetChainID = 0, secret = 31) {
+  let deposit = {
+    chainID: BigInt(targetChainID),
+    secret: rbigint(secret),
+    nullifier: rbigint(31)
+  }
+
+  deposit.commitment = poseidonHasher.hash3([deposit.chainID, deposit.nullifier, deposit.secret]);
+  deposit.nullifierHash =   poseidonHasher.hash(null, deposit.nullifier, deposit.nullifier);
+  return deposit
+}
+
 function hexifyBigInts(o) {
   if (typeof (o) === "bigint") {
     let str = o.toString(16);
@@ -173,6 +180,7 @@ module.exports = {
   blankFunctionDepositerOffset,
   getRandomRecipient,
   toFixedHex,
+  arrayToFixedHex,
   toHex,
   abiEncode,
   generateDeposit,
@@ -185,5 +193,4 @@ module.exports = {
   toSolidityInput,
   p256,
   groth16ExportSolidityCallData,
-  
 };

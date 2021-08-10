@@ -278,7 +278,7 @@ contract('AnchorPoseidon2', (accounts) => {
       // gas = await anchor.withdraw.estimateGas(proof, publicSignals, { from: relayer, gasPrice: '0' })
       // console.log('withdraw gas:', gas)
       const args = [
-        helpers.toFixedHex(root),
+        helpers.arrayToFixedHex(input.roots),
         helpers.toFixedHex(input.nullifierHash),
         helpers.toFixedHex(input.recipient, 20),
         helpers.toFixedHex(input.relayer, 20),
@@ -385,7 +385,7 @@ contract('AnchorPoseidon2', (accounts) => {
         ...proof.pi_a,
         ...proof.pi_b[0],
         ...proof.pi_b[1],
-        ...proo.pi_c,
+        ...proof.pi_c,
       ];
 
       await TruffleAssert.passes(anchor.withdraw(proofEncoded, ...args, { from: relayer, gasPrice: '0' }));
@@ -449,7 +449,7 @@ contract('AnchorPoseidon2', (accounts) => {
         ...proof.pi_a,
         ...proof.pi_b[0],
         ...proof.pi_b[1],
-        ...proo.pi_c,
+        ...proof.pi_c,
       ];
 
       await TruffleAssert.reverts(
@@ -509,7 +509,7 @@ contract('AnchorPoseidon2', (accounts) => {
         ...proof.pi_a,
         ...proof.pi_b[0],
         ...proof.pi_b[1],
-        ...proo.pi_c,
+        ...proof.pi_c,
       ];
 
       await TruffleAssert.reverts(
@@ -569,7 +569,7 @@ contract('AnchorPoseidon2', (accounts) => {
         ...proof.pi_a,
         ...proof.pi_b[0],
         ...proof.pi_b[1],
-        ...proo.pi_c,
+        ...proof.pi_c,
       ];
 
       await TruffleAssert.reverts(
@@ -639,7 +639,7 @@ contract('AnchorPoseidon2', (accounts) => {
         ...proof.pi_a,
         ...proof.pi_b[0],
         ...proof.pi_b[1],
-        ...proo.pi_c,
+        ...proof.pi_c,
       ];
       await TruffleAssert.reverts(
         anchor.withdraw(proofEncoded, ...incorrectArgs, { from: relayer, gasPrice: '0' }),
@@ -660,7 +660,7 @@ contract('AnchorPoseidon2', (accounts) => {
         ...proof.pi_a,
         ...proof.pi_b[0],
         ...proof.pi_b[1],
-        ...proo.pi_c,
+        ...proof.pi_c,
       ].map(elt => Buffer.from(elt.toString(16))));
       await TruffleAssert.reverts(
         anchor.withdraw(proofEncoded, ...incorrectArgs, { from: relayer, gasPrice: '0' }),
@@ -681,7 +681,7 @@ contract('AnchorPoseidon2', (accounts) => {
         ...proof.pi_a,
         ...proof.pi_b[0],
         ...proof.pi_b[1],
-        ...proo.pi_c,
+        ...proof.pi_c,
       ];
       await TruffleAssert.reverts(
         anchor.withdraw(proofEncoded, ...incorrectArgs, { from: relayer, gasPrice: '0' }),
@@ -732,7 +732,6 @@ contract('AnchorPoseidon2', (accounts) => {
       proof = res.proof;
       publicSignals = res.publicSignals;
 
-
       const args = [
         helpers.toFixedHex(root),
         helpers.toFixedHex(input.nullifierHash),
@@ -746,7 +745,7 @@ contract('AnchorPoseidon2', (accounts) => {
         ...proof.pi_a,
         ...proof.pi_b[0],
         ...proof.pi_b[1],
-        ...proo.pi_c,
+        ...proof.pi_c,
       ];
       await TruffleAssert.reverts(
         anchor.withdraw(proofEncoded, ...args, { from: relayer, gasPrice: '0' }),
@@ -811,7 +810,7 @@ contract('AnchorPoseidon2', (accounts) => {
         ...proof.pi_a,
         ...proof.pi_b[0],
         ...proof.pi_b[1],
-        ...proo.pi_c,
+        ...proof.pi_c,
       ];
       await anchor.withdraw(proofEncoded, ...args, { from: relayer, gasPrice: '0' })
 
