@@ -96,8 +96,8 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
     uint32 insertedIndex = _insert(_commitment);
     commitments[_commitment] = true;
     _processDeposit();
-    emit Deposit(_commitment, insertedIndex, block.timestamp);
 
+    emit Deposit(_commitment, insertedIndex, block.timestamp);
   }
 
   /** @dev this function is defined in a child contract */
