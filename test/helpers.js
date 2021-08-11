@@ -3,29 +3,54 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
- const Ethers = require('ethers');
+const Ethers = require('ethers');
+const crypto = require('crypto')
+const PoseidonHasher = require('../lib/Poseidon'); 
+const utils = require("ffjavascript").utils;
 
- const blankFunctionSig = '0x00000000';
- const blankFunctionDepositerOffset = 0;
- const AbiCoder = new Ethers.utils.AbiCoder;
- const utils = require("ffjavascript").utils;
- const {
-   unstringifyBigInts,
- } = utils;
+const {
+  leBuff2int,
+  unstringifyBigInts
+} = utils;
+const rbigint = (nbytes) => leBuff2int(crypto.randomBytes(nbytes))
+const poseidonHasher = new PoseidonHasher();
+const blankFunctionSig = '0x00000000';
+const blankFunctionDepositerOffset = 0;
+const AbiCoder = new Ethers.utils.AbiCoder;
 
- const toHex = (covertThis, padding) => {
+const toHex = (covertThis, padding) => {
   return Ethers.utils.hexZeroPad(Ethers.utils.hexlify(covertThis), padding);
- };
+};
 
- const abiEncode = (valueTypes, values) => {
+const toFixedHex = (number, length = 32) =>
+  '0x' +
+  BigInt(`${number}`)
+    .toString(16)
+    .padStart(length * 2, '0')
+
+const getRandomRecipient = () => rbigint(20) 
+
+function generateDeposit(targetChainID = 0, secret = 31) {
+  let deposit = {
+    chainID: BigInt(targetChainID),
+    secret: rbigint(secret),
+    nullifier: rbigint(31)
+  }
+
+  deposit.commitment = poseidonHasher.hash3([deposit.chainID, deposit.nullifier, deposit.secret]);
+  deposit.nullifierHash =   poseidonHasher.hash(null, deposit.nullifier, deposit.nullifier);
+  return deposit
+}
+
+const abiEncode = (valueTypes, values) => {
   return AbiCoder.encode(valueTypes, values)
- };
+};
 
- const getFunctionSignature = (contractInstance, functionName) => {
+const getFunctionSignature = (contractInstance, functionName) => {
   return contractInstance.abi.filter(abiProperty => abiProperty.name === functionName)[0].signature;
- };
+};
 
- const createERCDepositData = (tokenAmountOrID, lenRecipientAddress, recipientAddress) => {
+const createERCDepositData = (tokenAmountOrID, lenRecipientAddress, recipientAddress) => {
   return '0x' +
     toHex(tokenAmountOrID, 32).substr(2) +      // Token amount or ID to deposit (32 bytes)
     toHex(lenRecipientAddress, 32).substr(2) + // len(recipientAddress)          (32 bytes)
@@ -146,8 +171,11 @@ module.exports = {
   advanceBlock,
   blankFunctionSig,
   blankFunctionDepositerOffset,
+  getRandomRecipient,
+  toFixedHex,
   toHex,
   abiEncode,
+  generateDeposit,
   getFunctionSignature,
   createERCDepositData,
   createUpdateProposalData,
@@ -157,4 +185,5 @@ module.exports = {
   toSolidityInput,
   p256,
   groth16ExportSolidityCallData,
+  
 };
