@@ -83,7 +83,7 @@ abstract contract LinkableAnchorPoseidon2 is AnchorPoseidon2, ILinkableAnchor {
       height: height
     });
      // add to root histories
-    currentNeighborRootIndex[sourceChainID] = (currentNeighborRootIndex[sourceChainID] + 1) % 30;
+    currentNeighborRootIndex[sourceChainID] = (currentNeighborRootIndex[sourceChainID] + 1) % ROOT_HISTORY_SIZE;
     uint32 neighborRootIndex = currentNeighborRootIndex[sourceChainID];
     neighborRoots[sourceChainID][neighborRootIndex] = root;
     emit EdgeUpdate(sourceChainID, height, root);
