@@ -113,21 +113,22 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
   */
   function withdraw(
     bytes calldata _proof,
-    bytes32[2] calldata _roots,
+    bytes calldata _roots,
     bytes32 _nullifierHash,
     address payable _recipient,
     address payable _relayer,
     uint256 _fee,
     uint256 _refund
   ) external payable nonReentrant {
+    bytes32[2] memory roots = abi.decode(_roots, (bytes32[2]));
     require(_fee <= denomination, "Fee exceeds transfer value");
     require(!nullifierHashes[_nullifierHash], "The note has been already spent");
-    require(isKnownRoot(_roots[0]), "Cannot find your merkle root");
-		require(_roots.length >= edgeList.length + 1, "Incorrect root array length");
-		for (uint i = 0; i < edgeList.length; i++) {
-			Edge memory _edge = edgeList[i];
-			require(isKnownNeighborRoot(_edge.chainID, _roots[i+1]), "Neighbor root not found");
-		}
+    require(isKnownRoot(roots[0]), "Cannot find your merkle root");
+    require(roots.length >= edgeList.length + 1, "Incorrect root array length");
+    for (uint i = 0; i < edgeList.length; i++) {
+      Edge memory _edge = edgeList[i];
+      require(isKnownNeighborRoot(_edge.chainID, roots[i+1]), "Neighbor root not found");
+    }
     address rec = address(_recipient);
     address rel = address(_relayer);
 
@@ -138,8 +139,8 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
     inputs[3] = uint256(_fee);
     inputs[4] = uint256(_refund);
     inputs[5] = uint256(chainID);
-    inputs[6] = uint256(_roots[0]);
-    inputs[7] = uint256(_roots[1]);
+    inputs[6] = uint256(roots[0]);
+    inputs[7] = uint256(roots[1]);
     bytes memory encodedInputs = abi.encodePacked(inputs);
 
     require(verify(_proof, encodedInputs), "Invalid withdraw proof");
@@ -225,21 +226,21 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
 
   /** @dev */
   function isKnownNeighborRoot(uint256 neighborChainID, bytes32 _root) public view returns (bool) {
-	if (_root == 0) {
+    if (_root == 0) {
+      return false;
+    }
+    uint32 _currentRootIndex = currentNeighborRootIndex[neighborChainID];
+    uint32 i = _currentRootIndex;
+    do {
+      if (_root == neighborRoots[neighborChainID][i]) {
+        return true;
+      }
+      if (i == 0) {
+        i = ROOT_HISTORY_SIZE;
+      }
+      i--;
+    } while (i != _currentRootIndex);
     return false;
-  }
-  uint32 _currentRootIndex = currentNeighborRootIndex[neighborChainID];
-  uint32 i = _currentRootIndex;
-  do {
-    if (_root == neighborRoots[neighborChainID][i]) {
-      return true;
-    }
-    if (i == 0) {
-      i = ROOT_HISTORY_SIZE;
-    }
-    i--;
-  } while (i != _currentRootIndex);
-  return false;
   }
 
   modifier onlyAdmin()  {

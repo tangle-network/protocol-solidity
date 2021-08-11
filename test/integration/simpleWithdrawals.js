@@ -143,7 +143,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     assert.equal((await DestBridgeInstance._totalRelayers()).toString(), '2')
   })
 
-  it('withdrawals on both chains integration', async () => {
+  it.only('withdrawals on both chains integration', async () => {
     /*
     *  Desposit on origin chain
     */
@@ -240,7 +240,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     assert.strictEqual(isSpent, false);
 
     let args = [
-      helpers.arrayToFixedHex(input.roots),
+      helpers.createRootsBytes(input.roots),
       helpers.toFixedHex(input.nullifierHash),
       helpers.toFixedHex(input.recipient, 20),
       helpers.toFixedHex(input.relayer, 20),
@@ -391,7 +391,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     assert.strictEqual(isSpent, false);
 
     args = [
-      helpers.arrayToFixedHex(input.roots),
+      helpers.createRootsBytes(input.roots),
       helpers.toFixedHex(input.nullifierHash),
       helpers.toFixedHex(input.recipient, 20),
       helpers.toFixedHex(input.relayer, 20),

@@ -278,7 +278,7 @@ contract('AnchorPoseidon2', (accounts) => {
       // gas = await anchor.withdraw.estimateGas(proof, publicSignals, { from: relayer, gasPrice: '0' })
       // console.log('withdraw gas:', gas)
       const args = [
-        helpers.arrayToFixedHex(input.roots),
+        helpers.createRootsBytes(input.roots),
         helpers.toFixedHex(input.nullifierHash),
         helpers.toFixedHex(input.recipient, 20),
         helpers.toFixedHex(input.relayer, 20),

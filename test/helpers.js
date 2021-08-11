@@ -48,8 +48,8 @@ const getFunctionSignature = (contractInstance, functionName) => {
 const createERCDepositData = (tokenAmountOrID, lenRecipientAddress, recipientAddress) => {
   return '0x' +
     toHex(tokenAmountOrID, 32).substr(2) +      // Token amount or ID to deposit (32 bytes)
-    toHex(lenRecipientAddress, 32).substr(2) + // len(recipientAddress)          (32 bytes)
-    recipientAddress.substr(2);               // recipientAddress               (?? bytes)
+    toHex(lenRecipientAddress, 32).substr(2) +  // len(recipientAddress)          (32 bytes)
+    recipientAddress.substr(2);                 // recipientAddress               (?? bytes)
 };
 
 const createUpdateProposalData = (sourceChainID, blockHeight, merkleRoot) => {
@@ -57,6 +57,14 @@ const createUpdateProposalData = (sourceChainID, blockHeight, merkleRoot) => {
     toHex(sourceChainID, 32).substr(2) +    // chainID (32 bytes)
     toHex(blockHeight, 32).substr(2) +      // latest block height of incoming root updates (32 bytes)
     toHex(merkleRoot, 32).substr(2);        // Updated Merkle Root (32 bytes)
+};
+
+const createRootsBytes = (rootArray) => {
+  neighborBytes = "0x";
+  for (let i = 0; i < rootArray.length; i++) {
+    neighborBytes += toFixedHex(rootArray[i]).substr(2);
+  }
+  return neighborBytes                          // root byte string (32 * array.length bytes) 
 };
 
 const advanceBlock = () => {
@@ -187,6 +195,7 @@ module.exports = {
   getFunctionSignature,
   createERCDepositData,
   createUpdateProposalData,
+  createRootsBytes,
   createResourceID,
   assertObjectsMatch,
   nonceAndId,

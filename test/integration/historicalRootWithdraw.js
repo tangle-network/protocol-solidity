@@ -217,7 +217,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     // gas = await anchor.withdraw.estimateGas(proof, publicSignals, { from: relayer, gasPrice: '0' })
     // console.log('withdraw gas:', gas)
     let args = [
-      Helpers.arrayToFixedHex(input.roots),
+      Helpers.createRootsBytes(input.roots),
       Helpers.toFixedHex(input.nullifierHash),
       Helpers.toFixedHex(input.recipient, 20),
       Helpers.toFixedHex(input.relayer, 20),
@@ -365,7 +365,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     assert.strictEqual(isSpent, false);
 
     args = [
-      Helpers.arrayToFixedHex(input.roots),
+      Helpers.createRootsBytes(input.roots),
       Helpers.toFixedHex(input.nullifierHash),
       Helpers.toFixedHex(input.recipient, 20),
       Helpers.toFixedHex(input.relayer, 20),
