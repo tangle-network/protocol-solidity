@@ -104,27 +104,39 @@ contract('Comp-like Token', (accounts) => {
   });
 
   describe('numCheckpoints', () => {
-    it('returns the number of checkpoints for a delegate', async () => {
+    it.only('returns the number of checkpoints for a delegate', async () => {
       let guy = acc[0];
-      await send(comp, 'transfer', [guy, '100']); //give an account a few tokens for readability
-      await expect(call(comp, 'numCheckpoints', [a1])).resolves.toEqual('0');
+      await comp.mint(root, 1000000);
+      await TruffleAssert.passes(comp.transfer(guy, 100));
+      assert.strictEqual((await comp.numCheckpoints(a1)).toString(), '0');
+      
+      const t1 = await comp.delegate(a1, { from: guy });
+      assert.strictEqual((await comp.numCheckpoints(a1)).toString(), '1');
 
-      const t1 = await send(comp, 'delegate', [a1], { from: guy });
-      await expect(call(comp, 'numCheckpoints', [a1])).resolves.toEqual('1');
+      const t2 = await comp.transfer(a2, 10, { from: guy });
+      assert.strictEqual((await comp.numCheckpoints(a1)).toString(), '2');
 
-      const t2 = await send(comp, 'transfer', [a2, 10], { from: guy });
-      await expect(call(comp, 'numCheckpoints', [a1])).resolves.toEqual('2');
+      const t3 = await comp.transfer(a2, 10, { from: guy });
+      assert.strictEqual((await comp.numCheckpoints(a1)).toString(), '3');
 
-      const t3 = await send(comp, 'transfer', [a2, 10], { from: guy });
-      await expect(call(comp, 'numCheckpoints', [a1])).resolves.toEqual('3');
+      const t4 = await comp.transfer(guy, 20, { from: root });
+      assert.strictEqual((await comp.numCheckpoints(a1)).toString(), '4');
 
-      const t4 = await send(comp, 'transfer', [guy, 20], { from: root });
-      await expect(call(comp, 'numCheckpoints', [a1])).resolves.toEqual('4');
+      const c1 = await comp.checkpoints(a1, 0);
+      assert.strictEqual(c1.fromBlock.toString(), t1.receipt.blockNumber.toString());
+      assert.strictEqual(c1.votes.toString(), '100');
 
-      await expect(call(comp, 'checkpoints', [a1, 0])).resolves.toEqual(expect.objectContaining({ fromBlock: t1.blockNumber.toString(), votes: '100' }));
-      await expect(call(comp, 'checkpoints', [a1, 1])).resolves.toEqual(expect.objectContaining({ fromBlock: t2.blockNumber.toString(), votes: '90' }));
-      await expect(call(comp, 'checkpoints', [a1, 2])).resolves.toEqual(expect.objectContaining({ fromBlock: t3.blockNumber.toString(), votes: '80' }));
-      await expect(call(comp, 'checkpoints', [a1, 3])).resolves.toEqual(expect.objectContaining({ fromBlock: t4.blockNumber.toString(), votes: '100' }));
+      const c2 = await comp.checkpoints(a1, 1);
+      assert.strictEqual(c2.fromBlock.toString(), t2.receipt.blockNumber.toString());
+      assert.strictEqual(c2.votes.toString(), '90');
+
+      const c3 = await comp.checkpoints(a1, 2);
+      assert.strictEqual(c3.fromBlock.toString(), t3.receipt.blockNumber.toString());
+      assert.strictEqual(c3.votes.toString(), '80');
+
+      const c4 = await comp.checkpoints(a1, 3);
+      assert.strictEqual(c4.fromBlock.toString(), t4.receipt.blockNumber.toString());
+      assert.strictEqual(c4.votes.toString(), '100');
     });
 
     it('does not add more than one checkpoint in a block', async () => {
