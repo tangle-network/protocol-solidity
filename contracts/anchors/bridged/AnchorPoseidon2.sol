@@ -94,8 +94,8 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
     uint32 insertedIndex = _insert(_commitment);
     commitments[_commitment] = true;
     _processDeposit();
-
     emit Deposit(_commitment, insertedIndex, block.timestamp);
+
   }
 
   /** @dev this function is defined in a child contract */
@@ -120,19 +120,11 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
   ) external payable nonReentrant {
     require(_fee <= denomination, "Fee exceeds transfer value");
     require(!nullifierHashes[_nullifierHash], "The note has been already spent");
-    require(isKnownRoot(_root), "Cannot find your merkle root"); // Make sure to use a recent one
+    require(isKnownRoot(_root), "Cannot find your merkle root"); 
     address rec = address(_recipient);
     address rel = address(_relayer);
     bytes32[1] memory neighbors = getLatestNeighborRoots();
-    // console.log(uint256(_nullifierHash));
-    // console.log(uint256(uint160(rec)));
-    // console.log(uint256(uint160(rel)));
-    // console.log(_fee);
-    // console.log(_refund);
-    // console.log(uint256(chainID));
-    // console.log(uint256(_root));
-    // console.log(uint256(neighbors[0]));
-    // console.logBytes(_proof);
+
     uint256[8] memory inputs;
     inputs[0] = uint256(_nullifierHash);
     inputs[1] = uint256(uint160(rec));
