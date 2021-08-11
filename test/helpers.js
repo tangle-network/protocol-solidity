@@ -162,7 +162,7 @@ async function generateWithdrawProofCalldata(proof, pub) {
   .map(elt => elt.substr(2))
   .join('');
 
-  return JSON.stringify(proofEncoded);
+  return proofEncoded;
 }
 
 
