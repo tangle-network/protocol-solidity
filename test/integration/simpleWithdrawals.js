@@ -143,7 +143,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     assert.equal((await DestBridgeInstance._totalRelayers()).toString(), '2')
   })
 
-  it.only('withdrawals on both chains integration', async () => {
+  it('withdrawals on both chains integration', async () => {
     /*
     *  Desposit on origin chain
     */

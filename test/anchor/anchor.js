@@ -211,7 +211,7 @@ contract('AnchorPoseidon2', (accounts) => {
     })
   })
 
-  describe.only('#withdraw', () => {
+  describe('#withdraw', () => {
     it('should work', async () => {
       const deposit = helpers.generateDeposit(chainID);
       const user = accounts[4]
@@ -372,7 +372,7 @@ contract('AnchorPoseidon2', (accounts) => {
       publicSignals = res.publicSignals;
 
       const args = [
-        helpers.toFixedHex(root),
+        helpers.createRootsBytes(input.roots),
         helpers.toFixedHex(input.nullifierHash),
         helpers.toFixedHex(input.recipient, 20),
         helpers.toFixedHex(input.relayer, 20),
@@ -450,7 +450,7 @@ contract('AnchorPoseidon2', (accounts) => {
       publicSignals = res.publicSignals;
 
       const args = [
-        helpers.toFixedHex(root),
+        helpers.createRootsBytes(input.roots),
         helpers.toFixedHex(
           toBN(input.nullifierHash).add(
             toBN('21888242871839275222246405745257275088548364400416034343698204186575808495617'),
@@ -532,7 +532,7 @@ contract('AnchorPoseidon2', (accounts) => {
       publicSignals = res.publicSignals;
 
       const args = [
-        helpers.toFixedHex(root),
+        helpers.createRootsBytes(input.roots),
         helpers.toFixedHex(input.nullifierHash),
         helpers.toFixedHex(input.recipient, 20),
         helpers.toFixedHex(input.relayer, 20),
@@ -608,9 +608,8 @@ contract('AnchorPoseidon2', (accounts) => {
       proof = res.proof;
       publicSignals = res.publicSignals;
 
-
       const args = [
-        helpers.toFixedHex(randomHex(32)),
+        helpers.createRootsBytes([randomHex(32), 0]),
         helpers.toFixedHex(input.nullifierHash),
         helpers.toFixedHex(input.recipient, 20),
         helpers.toFixedHex(input.relayer, 20),
@@ -687,7 +686,7 @@ contract('AnchorPoseidon2', (accounts) => {
       publicSignals = res.publicSignals;
 
       const args = [
-        helpers.toFixedHex(root),
+        helpers.createRootsBytes(input.roots),
         helpers.toFixedHex(input.nullifierHash),
         helpers.toFixedHex(input.recipient, 20),
         helpers.toFixedHex(input.relayer, 20),
@@ -697,7 +696,7 @@ contract('AnchorPoseidon2', (accounts) => {
 
       // recipient
       incorrectArgs = [
-        helpers.toFixedHex(root),
+        helpers.createRootsBytes(input.roots),
         helpers.toFixedHex(input.nullifierHash),
         helpers.toFixedHex('0x0000000000000000000000007a1f9131357404ef86d7c38dbffed2da70321337', 20),
         helpers.toFixedHex(input.relayer, 20),
@@ -737,7 +736,7 @@ contract('AnchorPoseidon2', (accounts) => {
 
       // fee
       incorrectArgs = [
-        helpers.toFixedHex(root),
+        helpers.createRootsBytes(input.roots),
         helpers.toFixedHex(input.nullifierHash),
         helpers.toFixedHex(input.recipient, 20),
         helpers.toFixedHex(input.relayer, 20),
@@ -751,7 +750,7 @@ contract('AnchorPoseidon2', (accounts) => {
 
       // nullifier
       incorrectArgs = [
-        helpers.toFixedHex(root),
+        helpers.createRootsBytes(input.roots),
         helpers.toFixedHex('0x00abdfc78211f8807b9c6504a6e537e71b8788b2f529a95f1399ce124a8642ad'),
         helpers.toFixedHex(input.recipient, 20),
         helpers.toFixedHex(input.relayer, 20),
