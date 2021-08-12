@@ -3,33 +3,53 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
- const Ethers = require('ethers');
+const Ethers = require('ethers');
+const crypto = require('crypto')
+const PoseidonHasher = require('../../lib/Poseidon'); 
+const utils = require("ffjavascript").utils;
 
- const blankFunctionSig = '0x00000000';
- const blankFunctionDepositerOffset = 0;
- const AbiCoder = new Ethers.utils.AbiCoder;
- const utils = require("ffjavascript").utils;
- const {
-   unstringifyBigInts,
- } = utils;
+const {
+  leBuff2int,
+  unstringifyBigInts
+} = utils;
+const rbigint = (nbytes) => leBuff2int(crypto.randomBytes(nbytes))
+const poseidonHasher = new PoseidonHasher();
+const blankFunctionSig = '0x00000000';
+const blankFunctionDepositerOffset = 0;
+const AbiCoder = new Ethers.utils.AbiCoder;
 
- const toHex = (covertThis, padding) => {
+const toHex = (covertThis, padding) => {
   return Ethers.utils.hexZeroPad(Ethers.utils.hexlify(covertThis), padding);
- };
+};
 
- const abiEncode = (valueTypes, values) => {
+const toFixedHex = (number, length = 32) =>
+  '0x' +
+  BigInt(`${number}`)
+    .toString(16)
+    .padStart(length * 2, '0')
+
+const arrayToFixedHex = (array) => {
+  for (let i = 0; i < array.length; i++) {
+    array[i] = toFixedHex(array[i]);
+  }
+  return array;
+};
+
+const getRandomRecipient = () => rbigint(20)
+
+const abiEncode = (valueTypes, values) => {
   return AbiCoder.encode(valueTypes, values)
- };
+};
 
- const getFunctionSignature = (contractInstance, functionName) => {
+const getFunctionSignature = (contractInstance, functionName) => {
   return contractInstance.abi.filter(abiProperty => abiProperty.name === functionName)[0].signature;
- };
+};
 
- const createERCDepositData = (tokenAmountOrID, lenRecipientAddress, recipientAddress) => {
+const createERCDepositData = (tokenAmountOrID, lenRecipientAddress, recipientAddress) => {
   return '0x' +
     toHex(tokenAmountOrID, 32).substr(2) +      // Token amount or ID to deposit (32 bytes)
-    toHex(lenRecipientAddress, 32).substr(2) + // len(recipientAddress)          (32 bytes)
-    recipientAddress.substr(2);               // recipientAddress               (?? bytes)
+    toHex(lenRecipientAddress, 32).substr(2) +  // len(recipientAddress)          (32 bytes)
+    recipientAddress.substr(2);                 // recipientAddress               (?? bytes)
 };
 
 const createUpdateProposalData = (sourceChainID, blockHeight, merkleRoot) => {
@@ -37,6 +57,14 @@ const createUpdateProposalData = (sourceChainID, blockHeight, merkleRoot) => {
     toHex(sourceChainID, 32).substr(2) +    // chainID (32 bytes)
     toHex(blockHeight, 32).substr(2) +      // latest block height of incoming root updates (32 bytes)
     toHex(merkleRoot, 32).substr(2);        // Updated Merkle Root (32 bytes)
+};
+
+const createRootsBytes = (rootArray) => {
+  neighborBytes = "0x";
+  for (let i = 0; i < rootArray.length; i++) {
+    neighborBytes += toFixedHex(rootArray[i]).substr(2);
+  }
+  return neighborBytes                          // root byte string (32 * array.length bytes) 
 };
 
 const advanceBlock = () => {
@@ -84,6 +112,18 @@ const assertObjectsMatch = (expectedObj, actualObj) => {
 //uint72 nonceAndID = (uint72(depositNonce) << 8) | uint72(chainID);
 const nonceAndId = (nonce, id) => {
   return Ethers.utils.hexZeroPad(Ethers.utils.hexlify(nonce), 8) + Ethers.utils.hexZeroPad(Ethers.utils.hexlify(id), 1).substr(2)
+}
+
+function generateDeposit(targetChainID = 0, secret = 31) {
+  let deposit = {
+    chainID: BigInt(targetChainID),
+    secret: rbigint(secret),
+    nullifier: rbigint(31)
+  }
+
+  deposit.commitment = poseidonHasher.hash3([deposit.chainID, deposit.nullifier, deposit.secret]);
+  deposit.nullifierHash =   poseidonHasher.hash(null, deposit.nullifier, deposit.nullifier);
+  return deposit
 }
 
 function hexifyBigInts(o) {
@@ -146,11 +186,16 @@ module.exports = {
   advanceBlock,
   blankFunctionSig,
   blankFunctionDepositerOffset,
+  getRandomRecipient,
+  toFixedHex,
+  arrayToFixedHex,
   toHex,
   abiEncode,
+  generateDeposit,
   getFunctionSignature,
   createERCDepositData,
   createUpdateProposalData,
+  createRootsBytes,
   createResourceID,
   assertObjectsMatch,
   nonceAndId,
