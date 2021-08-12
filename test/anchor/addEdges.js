@@ -3,37 +3,23 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 const TruffleAssert = require('truffle-assertions');
-const Ethers = require('ethers');
-
-const Helpers = require('../helpers');
 const assert = require('assert');
 
 const LinkableAnchorContract = artifacts.require("LinkableERC20AnchorPoseidon2");
 const Verifier = artifacts.require("VerifierPoseidonBridge");
 const Hasher = artifacts.require("PoseidonT3");
 const Token = artifacts.require("ERC20Mock");
-const USDTToken = artifacts.require('IUSDT')
 
-// This test does NOT include all getter methods, just 
+// This test does NOT include all getter methods, just
 // getters that should work with only the constructor called
 contract('LinkableAnchor - [add edges]', async accounts => {
-  const chainID = 1;
-  const linkedChainIDs = [2,3,4,5];
-  let ADMIN_ROLE;
-  
   let LinkableAnchorInstance;
-  let HasherFactory;
   let hasher
   let verifier
-  let anchor
   let token
-  let usdtToken
-  let badRecipient
   const merkleTreeHeight = 31;
   const maxRoots = 1;
   const sender = accounts[0]
-  const operator = accounts[0]
-  const levels = 16
   let tokenDenomination = '1000000000000000000' // 1 ether
   // function stubs
   let setHandler;
@@ -108,7 +94,7 @@ contract('LinkableAnchor - [add edges]', async accounts => {
     assert.strictEqual(roots.length, maxRoots);
     assert.strictEqual(roots[0], edge.root);
   });
-  
+
   it('LinkableAnchor edges should update edgeIndex', async () => {
     const edge = {
       sourceChainID: '0x01',
@@ -146,7 +132,7 @@ contract('LinkableAnchor - [add edges]', async accounts => {
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       height: 1,
     };
-    
+
     await TruffleAssert.passes(addEdge(edge, accounts[0]));
 
     const roots = await LinkableAnchorInstance.getLatestNeighborRoots();
@@ -162,7 +148,7 @@ contract('LinkableAnchor - [add edges]', async accounts => {
     };
 
     const result = await addEdge(edge, accounts[0]);
-    
+
     TruffleAssert.eventEmitted(result, 'EdgeAddition', (ev) => {
       return ev.chainID == parseInt(edge.sourceChainID, 16) &&
        ev.height == edge.height && ev.merkleRoot == edge.root
@@ -178,10 +164,10 @@ contract('LinkableAnchor - [add edges]', async accounts => {
 
     const result = await addEdge(edge, accounts[0]);
     const roots = await LinkableAnchorInstance.getLatestNeighborRoots();
-    
+
     TruffleAssert.eventEmitted(result, 'RootHistoryUpdate', (ev) => {
       return ev.roots[0] == roots[0]
     });
   });
-}); 
- 
+});
+

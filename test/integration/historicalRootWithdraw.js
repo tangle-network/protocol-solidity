@@ -153,20 +153,20 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     // relayer2 votes in favor of the update proposal
     // because the relayerThreshold is 2, the deposit proposal will become passed
     await TruffleAssert.passes(DestBridgeInstance.voteProposal(
-        originChainID,
-        originUpdateNonce,
-        resourceID,
-        originDepositDataHash,
-        { from: relayer2Address }
+      originChainID,
+      originUpdateNonce,
+      resourceID,
+      originDepositDataHash,
+      { from: relayer2Address }
     ));
 
     // relayer1 will execute the deposit proposal
     await TruffleAssert.passes(DestBridgeInstance.executeProposal(
-        originChainID,
-        originUpdateNonce,
-        originDepositData,
-        resourceID,
-        { from: relayer1Address }
+      originChainID,
+      originUpdateNonce,
+      originDepositData,
+      resourceID,
+      { from: relayer1Address }
     ));
 
     /*

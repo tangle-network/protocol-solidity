@@ -4121,6 +4121,11 @@ ethereumjs-wallet@0.6.5:
     utf8 "^3.0.0"
     uuid "^3.3.2"
 
+ethers-eip712@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/ethers-eip712/-/ethers-eip712-0.2.0.tgz#52973b3a9a22638f7357283bf66624994c6e91ed"
+  integrity sha512-fgS196gCIXeiLwhsWycJJuxI9nL/AoUPGSQ+yvd+8wdWR+43G+J1n69LmWVWvAON0M6qNaf2BF4/M159U8fujQ==
+
 ethers@^4.0.0-beta.1, ethers@^4.0.32:
   version "4.0.48"
   resolved "https://registry.yarnpkg.com/ethers/-/ethers-4.0.48.tgz#330c65b8133e112b0613156e57e92d9009d8fbbe"
