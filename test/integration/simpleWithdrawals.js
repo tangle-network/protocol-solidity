@@ -143,9 +143,9 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     assert.equal((await DestBridgeInstance._totalRelayers()).toString(), '2')
   })
 
-  it.only('withdrawals on both chains integration', async () => {
+  it('withdrawals on both chains integration', async () => {
     /*
-    *  Desposit on origin chain
+    *  User deposits on origin chain
     */
     // minting Tokens
     await originChainToken.mint(sender, initialTokenMintAmount);
@@ -161,7 +161,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     originDepositData = helpers.createUpdateProposalData(originChainID, originBlockHeight, originMerkleRoot);
     originDepositDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originDepositData.substr(2));
     /*
-    *  relayers vote on dest chain
+    *  Relayers vote on dest chain
     */
     // deposit on origin chain leads to update proposal on dest chain
     // relayer1 creates the deposit proposal for the deposit
@@ -199,7 +199,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     let balanceOperatorBefore = await destChainToken.balanceOf(operator);
     let balanceReceiverBefore = await destChainToken.balanceOf(helpers.toFixedHex(recipient, 20));
     /*
-    *  generate proof
+    *  User generates proof
     */
     await tree.insert(originDeposit.commitment);
     
