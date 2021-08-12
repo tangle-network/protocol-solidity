@@ -131,7 +131,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     }
 
     tree = new MerkleTree(merkleTreeHeight, null, prefix)
-    zkey_final = fs.readFileSync('build/bridge2/circuit_final.zkey').buffer;
+    zkey_final = fs.readFileSync('test/fixtures/circuit_final.zkey').buffer;
   });
 
   it('[sanity] bridges configured with threshold and relayers', async () => {

@@ -18,6 +18,14 @@ const blankFunctionSig = '0x00000000';
 const blankFunctionDepositerOffset = 0;
 const AbiCoder = new Ethers.utils.AbiCoder;
 
+function bigNumberToPaddedBytes(num, digits =  32) {
+  var n = num.toString(16).replace(/^0x/, '');
+  while (n.length < (digits * 2)) {
+      n = "0" + n;
+  }
+  return "0x" + n;
+}
+
 const toHex = (covertThis, padding) => {
   return Ethers.utils.hexZeroPad(Ethers.utils.hexlify(covertThis), padding);
 };
@@ -181,11 +189,36 @@ async function groth16ExportSolidityCallData(proof, pub) {
   return S;
 }
 
+async function generateWithdrawProofCallData(proof, pub) {
+
+  const result = await groth16ExportSolidityCallData(proof, pub);
+  const fullProof = JSON.parse("[" + result + "]");
+  const pi_a = fullProof[0];
+  const pi_b = fullProof[1];
+  const pi_c = fullProof[2];
+
+  let proofEncoded = [
+    pi_a[0],
+    pi_a[1],
+    pi_b[0][0],
+    pi_b[0][1],
+    pi_b[1][0],
+    pi_b[1][1],
+    pi_c[0],
+    pi_c[1],
+  ]
+  .map(elt => elt.substr(2))
+  .join('');
+
+  return proofEncoded;
+}
+
 
 module.exports = {
   advanceBlock,
   blankFunctionSig,
   blankFunctionDepositerOffset,
+  bigNumberToPaddedBytes,
   getRandomRecipient,
   toFixedHex,
   arrayToFixedHex,
@@ -199,7 +232,9 @@ module.exports = {
   createResourceID,
   assertObjectsMatch,
   nonceAndId,
+  poseidonHasher,
   toSolidityInput,
   p256,
   groth16ExportSolidityCallData,
+  generateWithdrawProofCallData,
 };

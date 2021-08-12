@@ -113,7 +113,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     }
 
     tree = new MerkleTree(merkleTreeHeight, null, prefix)
-    zkey_final = fs.readFileSync('build/bridge2/circuit_final.zkey').buffer;
+    zkey_final = fs.readFileSync('test/fixtures/circuit_final.zkey').buffer;
   });
 
   it('[sanity] dest chain bridge configured with threshold and relayers', async () => {
