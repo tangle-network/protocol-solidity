@@ -5,7 +5,7 @@
 
 const Ethers = require('ethers');
 const crypto = require('crypto')
-const PoseidonHasher = require('../../lib/Poseidon'); 
+const PoseidonHasher = require('../../lib/Poseidon');
 const utils = require("ffjavascript").utils;
 
 const {
