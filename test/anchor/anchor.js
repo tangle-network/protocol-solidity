@@ -274,31 +274,7 @@ contract('AnchorPoseidon2', (accounts) => {
         helpers.toFixedHex(input.refund),
       ];
 
-      const result = await helpers.groth16ExportSolidityCallData(proof, publicSignals);
-      const fullProof = JSON.parse("[" + result + "]");
-      const pi_a = fullProof[0];
-      const pi_b = fullProof[1];
-      const pi_c = fullProof[2];
-      const inputs = fullProof[3];
-      assert.strictEqual(true, await verifier.verifyProof(
-        pi_a,
-        pi_b,
-        pi_c,
-        inputs,
-      ));
-
-      proofEncoded = [
-        pi_a[0],
-        pi_a[1],
-        pi_b[0][0],
-        pi_b[0][1],
-        pi_b[1][0],
-        pi_b[1][1],
-        pi_c[0],
-        pi_c[1],
-      ]
-      .map(elt => elt.substr(2))
-      .join('');
+      proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
       const { logs } = await anchor.withdraw(`0x${proofEncoded}`, ...args, { from: relayer, gasPrice: '0' });
       const balanceAnchorAfter = await token.balanceOf(anchor.address)
       const balanceRelayerAfter = await token.balanceOf(relayer)
@@ -368,31 +344,7 @@ contract('AnchorPoseidon2', (accounts) => {
         helpers.toFixedHex(input.refund),
       ];
 
-      const result = await helpers.groth16ExportSolidityCallData(proof, publicSignals);
-      const fullProof = JSON.parse("[" + result + "]");
-      const pi_a = fullProof[0];
-      const pi_b = fullProof[1];
-      const pi_c = fullProof[2];
-      const inputs = fullProof[3];
-      assert.strictEqual(true, await verifier.verifyProof(
-        pi_a,
-        pi_b,
-        pi_c,
-        inputs,
-      ));
-
-      proofEncoded = [
-        pi_a[0],
-        pi_a[1],
-        pi_b[0][0],
-        pi_b[0][1],
-        pi_b[1][0],
-        pi_b[1][1],
-        pi_c[0],
-        pi_c[1],
-      ]
-      .map(elt => elt.substr(2))
-      .join('');
+      proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
 
       await TruffleAssert.passes(anchor.withdraw(`0x${proofEncoded}`, ...args, { from: relayer, gasPrice: '0' }));
       await TruffleAssert.reverts(
@@ -450,31 +402,7 @@ contract('AnchorPoseidon2', (accounts) => {
         helpers.toFixedHex(input.refund),
       ];
 
-      const result = await helpers.groth16ExportSolidityCallData(proof, publicSignals);
-      const fullProof = JSON.parse("[" + result + "]");
-      const pi_a = fullProof[0];
-      const pi_b = fullProof[1];
-      const pi_c = fullProof[2];
-      const inputs = fullProof[3];
-      assert.strictEqual(true, await verifier.verifyProof(
-        pi_a,
-        pi_b,
-        pi_c,
-        inputs,
-      ));
-
-      proofEncoded = [
-        pi_a[0],
-        pi_a[1],
-        pi_b[0][0],
-        pi_b[0][1],
-        pi_b[1][0],
-        pi_b[1][1],
-        pi_c[0],
-        pi_c[1],
-      ]
-      .map(elt => elt.substr(2))
-      .join('');
+      proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
 
       await TruffleAssert.reverts(
         anchor.withdraw(`0x${proofEncoded}`, ...args, { from: relayer, gasPrice: '0' }),
@@ -528,31 +456,7 @@ contract('AnchorPoseidon2', (accounts) => {
         helpers.toFixedHex(input.refund),
       ]
 
-      const result = await helpers.groth16ExportSolidityCallData(proof, publicSignals);
-      const fullProof = JSON.parse("[" + result + "]");
-      const pi_a = fullProof[0];
-      const pi_b = fullProof[1];
-      const pi_c = fullProof[2];
-      const inputs = fullProof[3];
-      assert.strictEqual(true, await verifier.verifyProof(
-        pi_a,
-        pi_b,
-        pi_c,
-        inputs,
-      ));
-
-      proofEncoded = [
-        pi_a[0],
-        pi_a[1],
-        pi_b[0][0],
-        pi_b[0][1],
-        pi_b[1][0],
-        pi_b[1][1],
-        pi_c[0],
-        pi_c[1],
-      ]
-      .map(elt => elt.substr(2))
-      .join('');
+      proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
 
       await TruffleAssert.reverts(
         anchor.withdraw(`0x${proofEncoded}`, ...args, { from: relayer, gasPrice: '0' }),
@@ -605,31 +509,7 @@ contract('AnchorPoseidon2', (accounts) => {
         helpers.toFixedHex(input.refund),
       ]
 
-      const result = await helpers.groth16ExportSolidityCallData(proof, publicSignals);
-      const fullProof = JSON.parse("[" + result + "]");
-      const pi_a = fullProof[0];
-      const pi_b = fullProof[1];
-      const pi_c = fullProof[2];
-      const inputs = fullProof[3];
-      assert.strictEqual(true, await verifier.verifyProof(
-        pi_a,
-        pi_b,
-        pi_c,
-        inputs,
-      ));
-
-      proofEncoded = [
-        pi_a[0],
-        pi_a[1],
-        pi_b[0][0],
-        pi_b[0][1],
-        pi_b[1][0],
-        pi_b[1][1],
-        pi_c[0],
-        pi_c[1],
-      ]
-      .map(elt => elt.substr(2))
-      .join('');
+      proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
 
       await TruffleAssert.reverts(
         anchor.withdraw(`0x${proofEncoded}`, ...args, { from: relayer, gasPrice: '0' }),
@@ -692,31 +572,7 @@ contract('AnchorPoseidon2', (accounts) => {
         helpers.toFixedHex(input.refund),
       ];
 
-      let result = await helpers.groth16ExportSolidityCallData(proof, publicSignals);
-      let fullProof = JSON.parse("[" + result + "]");
-      let pi_a = fullProof[0];
-      let pi_b = fullProof[1];
-      let pi_c = fullProof[2];
-      let inputs = fullProof[3];
-      assert.strictEqual(true, await verifier.verifyProof(
-        pi_a,
-        pi_b,
-        pi_c,
-        inputs,
-      ));
-
-      proofEncoded = [
-        pi_a[0],
-        pi_a[1],
-        pi_b[0][0],
-        pi_b[0][1],
-        pi_b[1][0],
-        pi_b[1][1],
-        pi_c[0],
-        pi_c[1],
-      ]
-      .map(elt => elt.substr(2))
-      .join('');
+      proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
       await TruffleAssert.reverts(
         anchor.withdraw(`0x${proofEncoded}`, ...incorrectArgs, { from: relayer, gasPrice: '0' }),
         "Invalid withdraw proof"
@@ -806,31 +662,7 @@ contract('AnchorPoseidon2', (accounts) => {
         helpers.toFixedHex(input.fee),
         helpers.toFixedHex(input.refund),
       ]
-      let result = await helpers.groth16ExportSolidityCallData(proof, publicSignals);
-      let fullProof = JSON.parse("[" + result + "]");
-      let pi_a = fullProof[0];
-      let pi_b = fullProof[1];
-      let pi_c = fullProof[2];
-      let inputs = fullProof[3];
-      assert.strictEqual(true, await verifier.verifyProof(
-        pi_a,
-        pi_b,
-        pi_c,
-        inputs,
-      ));
-
-      proofEncoded = [
-        pi_a[0],
-        pi_a[1],
-        pi_b[0][0],
-        pi_b[0][1],
-        pi_b[1][0],
-        pi_b[1][1],
-        pi_c[0],
-        pi_c[1],
-      ]
-      .map(elt => elt.substr(2))
-      .join('');
+      proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
       await anchor.withdraw(`0x${proofEncoded}`, ...args, { from: relayer, gasPrice: '0' })
 
       const dep1PaddedNullifier = helpers.bigNumberToPaddedBytes(deposit1.nullifier, 31);

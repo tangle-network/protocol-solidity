@@ -189,9 +189,9 @@ async function groth16ExportSolidityCallData(proof, pub) {
   return S;
 }
 
-async function generateWithdrawProofCalldata(proof, pub) {
+async function generateWithdrawProofCallData(proof, pub) {
 
-  const result = await helpers.groth16ExportSolidityCallData(proof, pub);
+  const result = await groth16ExportSolidityCallData(proof, pub);
   const fullProof = JSON.parse("[" + result + "]");
   const pi_a = fullProof[0];
   const pi_b = fullProof[1];
@@ -236,5 +236,5 @@ module.exports = {
   toSolidityInput,
   p256,
   groth16ExportSolidityCallData,
-  generateWithdrawProofCalldata,
+  generateWithdrawProofCallData,
 };
