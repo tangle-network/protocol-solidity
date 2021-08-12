@@ -18,6 +18,14 @@ const blankFunctionSig = '0x00000000';
 const blankFunctionDepositerOffset = 0;
 const AbiCoder = new Ethers.utils.AbiCoder;
 
+function bigNumberToPaddedBytes(num, digits =  32) {
+  var n = num.toString(16).replace(/^0x/, '');
+  while (n.length < (digits * 2)) {
+      n = "0" + n;
+  }
+  return "0x" + n;
+}
+
 const toHex = (covertThis, padding) => {
   return Ethers.utils.hexZeroPad(Ethers.utils.hexlify(covertThis), padding);
 };
@@ -210,6 +218,7 @@ module.exports = {
   advanceBlock,
   blankFunctionSig,
   blankFunctionDepositerOffset,
+  bigNumberToPaddedBytes,
   getRandomRecipient,
   toFixedHex,
   arrayToFixedHex,
@@ -223,6 +232,7 @@ module.exports = {
   createResourceID,
   assertObjectsMatch,
   nonceAndId,
+  poseidonHasher,
   toSolidityInput,
   p256,
   groth16ExportSolidityCallData,

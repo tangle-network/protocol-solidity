@@ -17,23 +17,11 @@ const { NATIVE_AMOUNT, MERKLE_TREE_HEIGHT } = process.env
 const snarkjs = require('snarkjs')
 const bigInt = require('big-integer');
 const BN = require('bn.js');
-const circomlib = require('circomlib');
 const F = require('circomlib').babyJub.F;
 const Scalar = require("ffjavascript").Scalar;
 const helpers = require('../helpers');
 
 const MerkleTree = require('../../lib/MerkleTree');
-
-function bigNumberToPaddedBytes(num, digits =  32) {
-  var n = num.toString(16).replace(/^0x/, '');
-  while (n.length < (digits * 2)) {
-      n = "0" + n;
-  }
-  return "0x" + n;
-}
-
-
-const pedersenHash = (data) => circomlib.babyJub.unpackPoint(circomlib.pedersenHash.hash(data))[0]
 
 contract('AnchorPoseidon2', (accounts) => {
   let anchor
@@ -789,7 +777,7 @@ contract('AnchorPoseidon2', (accounts) => {
         relayer,
         fee,
         refund,
-        chainID: deposit.chainID,
+        chainID: deposit2.chainID,
         roots: [root, 0],
         // private
         nullifier: deposit2.nullifier,
@@ -811,26 +799,46 @@ contract('AnchorPoseidon2', (accounts) => {
       publicSignals = res.publicSignals;
 
       const args = [
-        helpers.toFixedHex(root),
+        helpers.createRootsBytes(input.roots),
         helpers.toFixedHex(input.nullifierHash),
         helpers.toFixedHex(input.recipient, 20),
         helpers.toFixedHex(input.relayer, 20),
         helpers.toFixedHex(input.fee),
         helpers.toFixedHex(input.refund),
       ]
-      let proofHex = helpers.toSolidityInput(proof);
-      let proofEncoded = [
-        ...proof.pi_a,
-        ...proof.pi_b[0],
-        ...proof.pi_b[1],
-        ...proof.pi_c,
-      ];
-      await anchor.withdraw(proofEncoded, ...args, { from: relayer, gasPrice: '0' })
+      let result = await helpers.groth16ExportSolidityCallData(proof, publicSignals);
+      let fullProof = JSON.parse("[" + result + "]");
+      let pi_a = fullProof[0];
+      let pi_b = fullProof[1];
+      let pi_c = fullProof[2];
+      let inputs = fullProof[3];
+      assert.strictEqual(true, await verifier.verifyProof(
+        pi_a,
+        pi_b,
+        pi_c,
+        inputs,
+      ));
 
-      const nullifierHash1 = helpers.toFixedHex(pedersenHash(bigNumberToPaddedBytes(deposit1.nullifier, 31)))
-      const nullifierHash2 = helpers.toFixedHex(pedersenHash(bigNumberToPaddedBytes(depisit2.nullifier, 31)))
+      proofEncoded = [
+        pi_a[0],
+        pi_a[1],
+        pi_b[0][0],
+        pi_b[0][1],
+        pi_b[1][0],
+        pi_b[1][1],
+        pi_c[0],
+        pi_c[1],
+      ]
+      .map(elt => elt.substr(2))
+      .join('');
+      await anchor.withdraw(`0x${proofEncoded}`, ...args, { from: relayer, gasPrice: '0' })
+
+      const dep1PaddedNullifier = helpers.bigNumberToPaddedBytes(deposit1.nullifier, 31);
+      const dep2PaddedNullifier = helpers.bigNumberToPaddedBytes(deposit2.nullifier, 31);
+      const nullifierHash1 = helpers.toFixedHex(helpers.poseidonHasher.hash(null, dep1PaddedNullifier, dep1PaddedNullifier))
+      const nullifierHash2 = helpers.toFixedHex(helpers.poseidonHasher.hash(null, dep2PaddedNullifier, dep2PaddedNullifier))
       const spentArray = await anchor.isSpentArray([nullifierHash1, nullifierHash2])
-      assert.strictEqual(spentArray, [false, true])
+      assert.deepStrictEqual(spentArray, [false, true])
     })
   })
 
