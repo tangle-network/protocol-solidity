@@ -10,9 +10,7 @@ import "./utils/AccessControl.sol";
 import "./utils/Pausable.sol";
 import "./utils/SafeMath.sol";
 import "./utils/SafeCast.sol";
-import "./interfaces/IDepositExecute.sol";
 import "./interfaces/IExecutor.sol";
-import "./interfaces/IERCHandler.sol";
 
 /**
     @title Facilitates deposits, creation and voting of deposit proposals, and deposit executions.
@@ -24,7 +22,7 @@ contract Bridge is Pausable, AccessControl, SafeMath {
     // Limit relayers number because proposal can fit only so much votes
     uint256 constant public MAX_RELAYERS = 200;
 
-    uint256   public _chainID;
+    uint256 public _chainID;
     uint8   public _relayerThreshold;
     uint128 public _fee;
     uint40  public _expiry;
@@ -57,11 +55,6 @@ contract Bridge is Pausable, AccessControl, SafeMath {
     event RelayerThresholdChanged(uint256 newThreshold);
     event RelayerAdded(address relayer);
     event RelayerRemoved(address relayer);
-    event Deposit(
-        uint256   destinationChainID,
-        bytes32 resourceID,
-        uint64  nonce
-    );
     event ProposalEvent(
         uint256          originChainID,
         uint64         nonce,
@@ -74,27 +67,6 @@ contract Bridge is Pausable, AccessControl, SafeMath {
         ProposalStatus status,
         bytes32 dataHash
     );
-
-    event Update(
-        uint256   destinationChainID,
-        bytes32 resourceID,
-        uint64  updateNonce
-    );
-    event ProposalEvent(
-        AnchorProposalType t,
-        uint256          originChainID,
-        uint64         updateNonce,
-        ProposalStatus status,
-        bytes32 dataHash
-    );
-    event ProposalVote(
-        AnchorProposalType t,
-        uint256   originChainID,
-        uint64  updateNonce,
-        ProposalStatus status,
-        bytes32 dataHash
-    );
-
 
     bytes32 public constant RELAYER_ROLE = keccak256("RELAYER_ROLE");
 
@@ -139,7 +111,7 @@ contract Bridge is Pausable, AccessControl, SafeMath {
         creates and grants {initialRelayers} the relayer role.
         @param chainID ID of chain the Bridge contract exists on.
         @param initialRelayers Addresses that should be initially granted the relayer role.
-        @param initialRelayerThreshold Number of votes needed for a deposit proposal to be considered passed.
+        @param initialRelayerThreshold Number of votes needed for a update proposal to be considered passed.
      */
     constructor (uint256 chainID, address[] memory initialRelayers, uint256 initialRelayerThreshold, uint256 fee, uint256 expiry) {
         _chainID = chainID;
@@ -158,7 +130,7 @@ contract Bridge is Pausable, AccessControl, SafeMath {
         @notice Returns true if {relayer} has voted on {destNonce} {dataHash} proposal.
         @notice Naming left unchanged for backward compatibility.
         @param destNonce destinationChainID + nonce of the proposal.
-        @param dataHash Hash of data to be provided when deposit proposal is executed.
+        @param dataHash Hash of data to be provided when update proposal is executed.
         @param relayer Address to check.
      */
     function _hasVotedOnProposal(uint72 destNonce, bytes32 dataHash, address relayer) public view returns(bool) {
@@ -239,7 +211,7 @@ contract Bridge is Pausable, AccessControl, SafeMath {
     }
 
     /**
-        @notice Sets a new resource for handler contracts that use the IERCHandler interface,
+        @notice Sets a new resource for handler contracts that use the IExecutor interface,
         and maps the {handlerAddress} to {resourceID} in {_resourceIDToHandlerAddress}.
         @notice Only callable by an address that currently has the admin role.
         @param handlerAddress Address of handler resource will be set for.
@@ -248,19 +220,8 @@ contract Bridge is Pausable, AccessControl, SafeMath {
      */
     function adminSetResource(address handlerAddress, bytes32 resourceID, address executionContextAddress) external onlyAdmin {
         _resourceIDToHandlerAddress[resourceID] = handlerAddress;
-        IERCHandler handler = IERCHandler(handlerAddress);
+        IExecutor handler = IExecutor(handlerAddress);
         handler.setResource(resourceID, executionContextAddress);
-    }
-
-    /**
-        @notice Sets a resource as burnable for handler contracts that use the IERCHandler interface.
-        @notice Only callable by an address that currently has the admin role.
-        @param handlerAddress Address of handler resource will be set for.
-        @param tokenAddress Address of contract to be called when a deposit is made and a deposited is executed.
-     */
-    function adminSetBurnable(address handlerAddress, address tokenAddress) external onlyAdmin {
-        IERCHandler handler = IERCHandler(handlerAddress);
-        handler.setBurnable(tokenAddress);
     }
 
     /**
@@ -285,55 +246,6 @@ contract Bridge is Pausable, AccessControl, SafeMath {
      */
     function _totalRelayers() public view returns (uint) {
         return AccessControl.getRoleMemberCount(RELAYER_ROLE);
-    }
-
-    /**
-        @notice Changes deposit fee.
-        @notice Only callable by admin.
-        @param newFee Value {_fee} will be updated to.
-     */
-    function adminChangeFee(uint256 newFee) external onlyAdmin {
-        require(_fee != newFee, "Current fee is equal to new fee");
-        _fee = newFee.toUint128();
-    }
-
-    /**
-        @notice Used to manually withdraw funds from ERC safes.
-        @param handlerAddress Address of handler to withdraw from.
-        @param tokenAddress Address of token to withdraw.
-        @param recipient Address to withdraw tokens to.
-        @param amountOrTokenID Either the amount of ERC20 tokens or the ERC721 token ID to withdraw.
-     */
-    function adminWithdraw(
-        address handlerAddress,
-        address tokenAddress,
-        address recipient,
-        uint256 amountOrTokenID
-    ) external onlyAdmin {
-        IERCHandler handler = IERCHandler(handlerAddress);
-        handler.withdraw(tokenAddress, recipient, amountOrTokenID);
-    }
-
-    /**
-        @notice Initiates a transfer using a specified handler contract.
-        @notice Only callable when Bridge is not paused.
-        @param destinationChainID ID of chain deposit will be bridged to.
-        @param resourceID ResourceID used to find address of handler to be used for deposit.
-        @param data Additional data to be passed to specified handler.
-        @notice Emits {Deposit} event.
-     */
-    function deposit(uint8 destinationChainID, bytes32 resourceID, bytes calldata data) external payable whenNotPaused {
-        require(msg.value == _fee, "Incorrect fee supplied");
-
-        address handler = _resourceIDToHandlerAddress[resourceID];
-        require(handler != address(0), "resourceID not mapped to handler");
-
-        uint64 nonce = ++_counts[destinationChainID];
-
-        IDepositExecute depositHandler = IDepositExecute(handler);
-        depositHandler.deposit(resourceID, destinationChainID, nonce, msg.sender, data);
-
-        emit Deposit(destinationChainID, resourceID, nonce);
     }
 
     /**
@@ -439,16 +351,5 @@ contract Bridge is Pausable, AccessControl, SafeMath {
 
         emit ProposalEvent(chainID, nonce, ProposalStatus.Executed, dataHash);
     }
-
-    /**
-        @notice Transfers eth in the contract to the specified addresses. The parameters addrs and amounts are mapped 1-1.
-        This means that the address at index 0 for addrs will receive the amount (in WEI) from amounts at index 0.
-        @param addrs Array of addresses to transfer {amounts} to.
-        @param amounts Array of amonuts to transfer to {addrs}.
-     */
-    function transferFunds(address payable[] calldata addrs, uint[] calldata amounts) external onlyAdmin {
-        for (uint256 i = 0; i < addrs.length; i++) {
-            addrs[i].transfer(amounts[i]);
-        }
-    }
+    
 }
