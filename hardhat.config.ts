@@ -16,7 +16,15 @@ task("accounts", "Prints the list of accounts", async (args, hre) => {
 });
 
 export default {
-  solidity: "0.8.0",
+  solidity: {
+    version: "0.8.0",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200,
+      },
+    },
+  },
   circom: {
     // (optional) Base path for files being read, defaults to `./circuits/`
     inputBasePath: "./circuits/",

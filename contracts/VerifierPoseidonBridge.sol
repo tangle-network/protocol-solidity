@@ -270,11 +270,11 @@ contract VerifierPoseidonBridge {
     }
     /// @return r  bool true if proof is valid
     function verifyProof(
-            uint[2] memory a,
-            uint[2][2] memory b,
-            uint[2] memory c,
-            uint[8] memory input
-        ) public view returns (bool r) {
+        uint[2] memory a,
+        uint[2][2] memory b,
+        uint[2] memory c,
+        uint[8] memory input
+    ) public view returns (bool r) {
         Proof memory proof;
         proof.A = Pairing.G1Point(a[0], a[1]);
         proof.B = Pairing.G2Point([b[0][0], b[0][1]], [b[1][0], b[1][1]]);

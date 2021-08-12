@@ -23,39 +23,23 @@ contract('Comp-like Token', (accounts) => {
   });
 
   describe('metadata', () => {
-    it.only('has given name', async () => {
+    it('has given name', async () => {
       assert.strictEqual(await comp.name(), name);
     });
 
-    it.only('has given symbol', async () => {
+    it('has given symbol', async () => {
       assert.strictEqual(await comp.symbol(), symbol);
     });
   });
 
   describe('balanceOf', () => {
-    it.only('grants nothing to initial account', async () => {
+    it('grants nothing to initial account', async () => {
       assert.strictEqual((await comp.balanceOf(root)).toString(), '0');
     });
   });
 
   describe('delegateBySig', () => {
-    const TypedDataUtils = require('ethers-eip712').TypedDataUtils;
-    const Domain = (comp) => ({ name, version, chainId, verifyingContract: comp.address });
-    const Types = {
-      EIP712Domain: [
-        {name: "name", type: "string"},
-        {name: "version", type: "string"},
-        {name: "chainId", type: "uint256"},
-        {name: "verifyingContract", type: "address"},
-      ],
-      Delegation: [
-        { name: 'delegatee', type: 'address' },
-        { name: 'nonce', type: 'uint256' },
-        { name: 'expiry', type: 'uint256' }
-      ]
-    };
-
-    it.only('reverts if the signatory is invalid', async () => {
+    it('reverts if the signatory is invalid', async () => {
       const delegatee = root, nonce = 0, expiry = 0;
       await TruffleAssert.reverts(
         comp.delegateBySig(delegatee, nonce, expiry, 0, '0xbad', '0xbad'),
@@ -63,7 +47,7 @@ contract('Comp-like Token', (accounts) => {
       );
     });
 
-    it.only('reverts if the nonce is bad ', async () => {
+    it('reverts if the nonce is bad ', async () => {
       const delegatee = root, nonce = 1, expiry = 0;
       const signers = await hre.ethers.getSigners()
       const msgParams = helpers.createDelegateBySigMessage(comp.address, delegatee, expiry, chainId, nonce);
@@ -76,7 +60,7 @@ contract('Comp-like Token', (accounts) => {
       );
     });
 
-    it.only('reverts if the signature has expired', async () => {
+    it('reverts if the signature has expired', async () => {
       const delegatee = root, nonce = 0, expiry = 0;
       const signers = await hre.ethers.getSigners()
       const msgParams = helpers.createDelegateBySigMessage(comp.address, delegatee, expiry, chainId, nonce);
@@ -89,7 +73,7 @@ contract('Comp-like Token', (accounts) => {
       );
     });
 
-    it.only('delegates on behalf of the signatory', async () => {
+    it('delegates on behalf of the signatory', async () => {
       const delegatee = root, nonce = 0, expiry = 10e9;
       const signers = await hre.ethers.getSigners()
       const msgParams = helpers.createDelegateBySigMessage(comp.address, delegatee, expiry, chainId, nonce);
@@ -104,7 +88,7 @@ contract('Comp-like Token', (accounts) => {
   });
 
   describe('numCheckpoints', () => {
-    it.only('returns the number of checkpoints for a delegate', async () => {
+    it('returns the number of checkpoints for a delegate', async () => {
       let guy = acc[0];
       await comp.mint(root, '10000000000000000000000000');
       await TruffleAssert.passes(comp.transfer(guy, 100));
@@ -180,14 +164,14 @@ contract('Comp-like Token', (accounts) => {
   });
 
   describe('getPriorVotes', () => {
-    it.only('reverts if block number >= current block', async () => {
+    it('reverts if block number >= current block', async () => {
       await TruffleAssert.reverts(
         comp.getPriorVotes(a1, 5e10),
         'Comp::getPriorVotes: not yet determined',
       );
     });
 
-    it.only('returns 0 if there are no checkpoints', async () => {
+    it('returns 0 if there are no checkpoints', async () => {
       assert.strictEqual((await comp.getPriorVotes(a1, 0)).toString(), '0');
     });
 

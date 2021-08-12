@@ -31,7 +31,7 @@ abstract contract TokenWrapper is CompToken {
     function wrap(address tokenAddress, uint256 amount) public {
         require(_isValid(tokenAddress), "Invalid token address");
         // transfer liquidity to tthe token wrapper
-        ERC20PresetMinterPauser(tokenAddress).transferFrom(msg.sender, address(this), amount);
+        IERC20(tokenAddress).transferFrom(msg.sender, address(this), amount);
         // mint the wrapped token for the sender
         mint(msg.sender, amount);
     }
