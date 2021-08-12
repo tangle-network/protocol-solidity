@@ -143,7 +143,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     assert.equal((await DestBridgeInstance._totalRelayers()).toString(), '2')
   })
 
-  it('withdrawals on both chains integration', async () => {
+  it.only('withdrawals on both chains integration', async () => {
     /*
     *  Desposit on origin chain
     */
@@ -165,7 +165,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     */
     // deposit on origin chain leads to update proposal on dest chain
     // relayer1 creates the deposit proposal for the deposit
-    TruffleAssert.passes(await DestBridgeInstance.voteProposal(
+    await TruffleAssert.passes(DestBridgeInstance.voteProposal(
       originChainID,
       originUpdateNonce,
       resourceID,
@@ -175,7 +175,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
 
     // relayer2 votes in favor of the update proposal
     // because the relayerThreshold is 2, the deposit proposal will become passed
-    TruffleAssert.passes(await DestBridgeInstance.voteProposal(
+    await TruffleAssert.passes(DestBridgeInstance.voteProposal(
       originChainID,
       originUpdateNonce,
       resourceID,
@@ -184,7 +184,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     ));
 
     // relayer1 will execute the deposit proposal
-    TruffleAssert.passes(await DestBridgeInstance.executeProposal(
+    await TruffleAssert.passes(DestBridgeInstance.executeProposal(
       originChainID,
       originUpdateNonce,
       originDepositData,
@@ -240,7 +240,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     assert.strictEqual(isSpent, false);
 
     let args = [
-      helpers.toFixedHex(await DestChainLinkableAnchorInstance.getLastRoot()),
+      helpers.createRootsBytes(input.roots),
       helpers.toFixedHex(input.nullifierHash),
       helpers.toFixedHex(input.recipient, 20),
       helpers.toFixedHex(input.relayer, 20),
@@ -316,7 +316,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     */
     // deposit on dest chain leads to update proposal on origin chain
     // relayer1 creates the deposit proposal
-    TruffleAssert.passes(await OriginBridgeInstance.voteProposal(
+    await TruffleAssert.passes(OriginBridgeInstance.voteProposal(
       destChainID,
       destUpdateNonce,
       resourceID,
@@ -326,7 +326,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
 
     // relayer2 votes in favor of the update proposal
     // because the relayerThreshold is 2, the update proposal will become passed
-    TruffleAssert.passes(await OriginBridgeInstance.voteProposal(
+    await TruffleAssert.passes(OriginBridgeInstance.voteProposal(
       destChainID,
       destUpdateNonce,
       resourceID,
@@ -335,7 +335,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     ));
 
     // relayer1 will execute the update proposal
-    TruffleAssert.passes(await OriginBridgeInstance.executeProposal(
+    await TruffleAssert.passes(OriginBridgeInstance.executeProposal(
       destChainID,
       destUpdateNonce,
       destDepositData,
@@ -391,7 +391,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     assert.strictEqual(isSpent, false);
 
     args = [
-      helpers.toFixedHex(await OriginChainLinkableAnchorInstance.getLastRoot()),
+      helpers.createRootsBytes(input.roots),
       helpers.toFixedHex(input.nullifierHash),
       helpers.toFixedHex(input.recipient, 20),
       helpers.toFixedHex(input.relayer, 20),
