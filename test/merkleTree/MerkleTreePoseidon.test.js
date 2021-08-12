@@ -41,7 +41,6 @@ contract('MerkleTreePoseidon', (accounts) => {
   let tree;
 
   beforeEach(async () => {
-    const accounts = await hre.ethers.getSigners()
     hasherInstance = await Poseidon.new();
     tree = new MerkleTree(levels, null, prefix)
     merkleTreeWithHistory = await MerkleTreeWithHistory.new(levels, hasherInstance.address)
