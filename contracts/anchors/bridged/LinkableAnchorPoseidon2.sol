@@ -35,15 +35,6 @@ abstract contract LinkableAnchorPoseidon2 is AnchorPoseidon2, ILinkableAnchor {
     return edgeExistsForChain[_chainID];
   }
 
-  function recordHistory() override external {
-    // add a new historical record by snapshotting the Anchor's current neighbors
-    bytes32[1] memory history = getLatestNeighborRoots();
-    rootHistory[latestHistoryIndex] = history;
-    // set the next history index modulo pruning length
-    latestHistoryIndex = latestHistoryIndex % pruningLength;
-    emit RootHistoryRecorded(block.timestamp, history);
-  }
-
   function addEdge(
     uint256 sourceChainID,
     bytes32 root,
@@ -59,6 +50,9 @@ abstract contract LinkableAnchorPoseidon2 is AnchorPoseidon2, ILinkableAnchor {
     });
     edgeList.push(edge);
     edgeIndex[sourceChainID] = index;
+    // add to root histories
+    uint32 neighborRootIndex = 0;
+    neighborRoots[sourceChainID][neighborRootIndex] = root;
     emit EdgeAddition(sourceChainID, height, root);
     // emit update event
     bytes32[1] memory neighbors = getLatestNeighborRoots();
@@ -79,6 +73,10 @@ abstract contract LinkableAnchorPoseidon2 is AnchorPoseidon2, ILinkableAnchor {
       root: root,
       height: height
     });
+     // add to root histories
+    uint32 neighborRootIndex = (currentNeighborRootIndex[sourceChainID] + 1) % ROOT_HISTORY_SIZE;
+    currentNeighborRootIndex[sourceChainID] = neighborRootIndex;
+    neighborRoots[sourceChainID][neighborRootIndex] = root;
     emit EdgeUpdate(sourceChainID, height, root);
     // emit update event
     bytes32[1] memory neighbors = getLatestNeighborRoots();

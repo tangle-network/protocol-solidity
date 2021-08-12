@@ -8,7 +8,6 @@ pragma solidity ^0.8.0;
 interface ILinkableAnchor {
   function setHandler(address _handler) external;
   function setBridge(address _bridge) external;
-  function recordHistory() external;
   function hasEdge(uint256 _chainID) external view returns (bool);
   function addEdge(
     uint256 sourceChainID,

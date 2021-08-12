@@ -38,6 +38,11 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
   mapping(uint256 => bool) public edgeExistsForChain;
   Edge[] public edgeList;
 
+  // map to store chainID => (rootIndex => root) to track neighbor histories
+  mapping(uint256 => mapping(uint32 => bytes32)) public neighborRoots;
+  // map to store the current historical root index for a chainID
+  mapping(uint256 => uint32) public currentNeighborRootIndex;
+
   // map to store used nullifier hashes
   mapping(bytes32 => bool) public nullifierHashes;
   // map to store all commitments to prevent accidental deposits with the same commitment
@@ -45,9 +50,8 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
 
   // map to store the history of root updates
   mapping(uint => bytes32[]) public rootHistory;
-  // pruning length for root history (i.e. the # of history items to persist)
-  uint pruningLength;
-  // the latest history index that represents the next index to store history at % pruningLength
+
+  // the latest history index that represents the next index to store history
   uint latestHistoryIndex;
 
   // currency events
@@ -77,8 +81,6 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
     verifier = _verifier;
     denomination = _denomination;
     chainID = _chainID;
-    // TODO: Handle pruning length in function signature
-    pruningLength = 100;
     latestHistoryIndex = 0;
     // TODO: Parameterize max roots (length of array should be max roots)
     rootHistory[latestHistoryIndex] = new bytes32[](1);
@@ -94,8 +96,8 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
     uint32 insertedIndex = _insert(_commitment);
     commitments[_commitment] = true;
     _processDeposit();
-    emit Deposit(_commitment, insertedIndex, block.timestamp);
 
+    emit Deposit(_commitment, insertedIndex, block.timestamp);
   }
 
   /** @dev this function is defined in a child contract */
@@ -111,19 +113,24 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
   */
   function withdraw(
     bytes calldata _proof,
-    bytes32 _root,
+    bytes calldata _roots,
     bytes32 _nullifierHash,
     address payable _recipient,
     address payable _relayer,
     uint256 _fee,
     uint256 _refund
   ) external payable nonReentrant {
+    bytes32[2] memory roots = abi.decode(_roots, (bytes32[2]));
     require(_fee <= denomination, "Fee exceeds transfer value");
     require(!nullifierHashes[_nullifierHash], "The note has been already spent");
-    require(isKnownRoot(_root), "Cannot find your merkle root"); 
+    require(isKnownRoot(roots[0]), "Cannot find your merkle root");
+    require(roots.length >= edgeList.length + 1, "Incorrect root array length");
+    for (uint i = 0; i < edgeList.length; i++) {
+      Edge memory _edge = edgeList[i];
+      require(isKnownNeighborRoot(_edge.chainID, roots[i+1]), "Neighbor root not found");
+    }
     address rec = address(_recipient);
     address rel = address(_relayer);
-    bytes32[1] memory neighbors = getLatestNeighborRoots();
 
     uint256[8] memory inputs;
     inputs[0] = uint256(_nullifierHash);
@@ -132,8 +139,8 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
     inputs[3] = uint256(_fee);
     inputs[4] = uint256(_refund);
     inputs[5] = uint256(chainID);
-    inputs[6] = uint256(_root);
-    inputs[7] = uint256(neighbors[0]);
+    inputs[6] = uint256(roots[0]);
+    inputs[7] = uint256(roots[1]);
     bytes memory encodedInputs = abi.encodePacked(inputs);
 
     require(verify(_proof, encodedInputs), "Invalid withdraw proof");
@@ -205,6 +212,7 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
       }
     }
   }
+
   /** @dev */
   function getLatestNeighborRoots() public view returns (bytes32[1] memory roots) {
     for (uint256 i = 0; i < 1; i++) {
@@ -214,6 +222,25 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
         roots[i] = bytes32(0x0);
       }
     }
+  }
+
+  /** @dev */
+  function isKnownNeighborRoot(uint256 neighborChainID, bytes32 _root) public view returns (bool) {
+    if (_root == 0) {
+      return false;
+    }
+    uint32 _currentRootIndex = currentNeighborRootIndex[neighborChainID];
+    uint32 i = _currentRootIndex;
+    do {
+      if (_root == neighborRoots[neighborChainID][i]) {
+        return true;
+      }
+      if (i == 0) {
+        i = ROOT_HISTORY_SIZE;
+      }
+      i--;
+    } while (i != _currentRootIndex);
+    return false;
   }
 
   modifier onlyAdmin()  {

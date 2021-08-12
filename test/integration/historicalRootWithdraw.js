@@ -21,7 +21,7 @@ const Scalar = require("ffjavascript").Scalar;
 const MerkleTree = require('../../lib/MerkleTree');
 
 
-contract('E2E LinkableAnchors - Cross chain withdraw with multiple deposits', async accounts => {
+contract('E2E LinkableAnchors - Cross chain withdraw using historical root should work', async accounts => {
   const relayerThreshold = 2;
   const originChainID = 1;
   const destChainID = 2;
@@ -113,7 +113,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw with multiple deposits', as
     }
 
     tree = new MerkleTree(merkleTreeHeight, null, prefix)
-    zkey_final = fs.readFileSync('build/bridge2/circuit_final.zkey').buffer;
+    zkey_final = fs.readFileSync('test/fixtures/circuit_final.zkey').buffer;
   });
 
   it('[sanity] dest chain bridge configured with threshold and relayers', async () => {
@@ -135,14 +135,14 @@ contract('E2E LinkableAnchors - Cross chain withdraw with multiple deposits', as
     let { logs } = await OriginChainLinkableAnchorInstance.deposit(
       Helpers.toFixedHex(firstOriginDeposit.commitment), {from: sender});
     originUpdateNonce = logs[0].args.leafIndex;
-    originMerkleRoot = await OriginChainLinkableAnchorInstance.getLastRoot();
+    firstWithdrawlMerkleRoot = await OriginChainLinkableAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on origin chain
-    originDepositData = Helpers.createUpdateProposalData(originChainID, originBlockHeight, originMerkleRoot);
+    originDepositData = Helpers.createUpdateProposalData(originChainID, originBlockHeight, firstWithdrawlMerkleRoot);
     originDepositDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originDepositData.substr(2));
 
     // deposit on origin chain leads to update addEdge proposal on dest chain
     // relayer1 creates the deposit proposal for the deposit that occured in the before each loop
-    TruffleAssert.passes(await DestBridgeInstance.voteProposal(
+    await TruffleAssert.passes(DestBridgeInstance.voteProposal(
       originChainID,
       originUpdateNonce,
       resourceID,
@@ -152,7 +152,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw with multiple deposits', as
 
     // relayer2 votes in favor of the update proposal
     // because the relayerThreshold is 2, the deposit proposal will become passed
-    TruffleAssert.passes(await DestBridgeInstance.voteProposal(
+    await TruffleAssert.passes(DestBridgeInstance.voteProposal(
         originChainID,
         originUpdateNonce,
         resourceID,
@@ -161,102 +161,52 @@ contract('E2E LinkableAnchors - Cross chain withdraw with multiple deposits', as
     ));
 
     // relayer1 will execute the deposit proposal
-    TruffleAssert.passes(await DestBridgeInstance.executeProposal(
+    await TruffleAssert.passes(DestBridgeInstance.executeProposal(
         originChainID,
         originUpdateNonce,
         originDepositData,
         resourceID,
         { from: relayer1Address }
     ));
-    /*
-    *  second deposit on origin chain
-    */
-    // deposit on origin chain and define nonce based on events emmited
-    originDeposit = Helpers.generateDeposit(destChainID, 30);
-    ({ logs } = await OriginChainLinkableAnchorInstance.deposit(Helpers.toFixedHex(originDeposit.commitment), {from: sender}));
-    originUpdateNonce = logs[0].args.leafIndex;
-    originMerkleRoot = await OriginChainLinkableAnchorInstance.getLastRoot();
-    // create correct update proposal data for the deposit on origin chain
-    originDepositData = Helpers.createUpdateProposalData(originChainID, originBlockHeight + 10, originMerkleRoot);
-    originDepositDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originDepositData.substr(2));
 
-    // a second deposit on origin chain leads to update edge proposal on dest chain
-    // relayer1 creates the deposit proposal for the deposit that occured in the before each loop
-    TruffleAssert.passes(await DestBridgeInstance.voteProposal(
-      originChainID,
-      originUpdateNonce,
-      resourceID,
-      originDepositDataHash,
-      { from: relayer1Address }
-    ));
-
-    // relayer2 votes in favor of the update proposal
-    // because the relayerThreshold is 2, the deposit proposal will become passed
-    TruffleAssert.passes(await DestBridgeInstance.voteProposal(
-      originChainID,
-      originUpdateNonce,
-      resourceID,
-      originDepositDataHash,
-      { from: relayer2Address }
-    ));
-
-    // relayer1 will execute the deposit proposal
-    TruffleAssert.passes(await DestBridgeInstance.executeProposal(
-      originChainID,
-      originUpdateNonce,
-      originDepositData,
-      resourceID,
-      { from: relayer1Address }
-    ));
-    // check roots
-    const destNeighborRoots = await DestChainLinkableAnchorInstance.getLatestNeighborRoots();
-    assert.strictEqual(destNeighborRoots.length, maxRoots);
-    assert.strictEqual(destNeighborRoots[0], originMerkleRoot);
-
-    // check initial balances
-    let balanceOperatorBefore = await destChainToken.balanceOf(operator);
-    let balanceReceiverBefore = await destChainToken.balanceOf(Helpers.toFixedHex(recipient, 20));
     /*
     *  generate proof
     */
     // insert two commitments into the tree
     await tree.insert(firstOriginDeposit.commitment);
-    await tree.insert(originDeposit.commitment);
   
-    const { root, path_elements, path_index } = await tree.path(1);
-    
-    // verification fails (this discrepency is likley one of the reasons)
-    assert.strictEqual(destNeighborRoots[0], Helpers.toFixedHex(root))
+    let { root, path_elements, path_index } = await tree.path(0);
 
     const destNativeRoot = await DestChainLinkableAnchorInstance.getLastRoot();
-    const input = {
+    const firstWithdrawalNeighborRoots = await DestChainLinkableAnchorInstance.getLatestNeighborRoots();
+    let input = {
       // public
-      nullifierHash: originDeposit.nullifierHash,
+      nullifierHash: firstOriginDeposit.nullifierHash,
       recipient,
       relayer: operator,
       fee,
       refund,
-      chainID: originDeposit.chainID,
-      roots: [destNativeRoot, ...destNeighborRoots],
+      chainID: firstOriginDeposit.chainID,
+      roots: [destNativeRoot, ...firstWithdrawalNeighborRoots],
       // private
-      nullifier: originDeposit.nullifier,
-      secret: originDeposit.secret,
+      nullifier: firstOriginDeposit.nullifier,
+      secret: firstOriginDeposit.secret,
       pathElements: path_elements,
       pathIndices: path_index,
-      diffs: [destNativeRoot, destNeighborRoots[0]].map(r => {
+      diffs: [destNativeRoot, firstWithdrawalNeighborRoots[0]].map(r => {
         return F.sub(
           Scalar.fromString(`${r}`),
-          Scalar.fromString(`${destNeighborRoots[0]}`),
+          Scalar.fromString(`${firstWithdrawalNeighborRoots[0]}`),
         ).toString();
       }),
     };
 
-    const wtns = await createWitness(input);
+    let wtns = await createWitness(input);
 
     let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
     proof = res.proof;
     publicSignals = res.publicSignals;
-    const vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/circuit_final.zkey');
+    let vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/circuit_final.zkey');
     res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
     assert.strictEqual(res, true);
 
@@ -266,8 +216,8 @@ contract('E2E LinkableAnchors - Cross chain withdraw with multiple deposits', as
     // Uncomment to measure gas usage
     // gas = await anchor.withdraw.estimateGas(proof, publicSignals, { from: relayer, gasPrice: '0' })
     // console.log('withdraw gas:', gas)
-    const args = [
-      Helpers.toFixedHex(await DestChainLinkableAnchorInstance.getLastRoot()),
+    let args = [
+      Helpers.createRootsBytes(input.roots),
       Helpers.toFixedHex(input.nullifierHash),
       Helpers.toFixedHex(input.recipient, 20),
       Helpers.toFixedHex(input.relayer, 20),
@@ -275,12 +225,12 @@ contract('E2E LinkableAnchors - Cross chain withdraw with multiple deposits', as
       Helpers.toFixedHex(input.refund),
     ];
 
-    const result = await Helpers.groth16ExportSolidityCallData(proof, publicSignals);
-    const fullProof = JSON.parse("[" + result + "]");
-    const pi_a = fullProof[0];
-    const pi_b = fullProof[1];
-    const pi_c = fullProof[2];
-    const inputs = fullProof[3];
+    let result = await Helpers.groth16ExportSolidityCallData(proof, publicSignals);
+    let fullProof = JSON.parse("[" + result + "]");
+    let pi_a = fullProof[0];
+    let pi_b = fullProof[1];
+    let pi_c = fullProof[2];
+    let inputs = fullProof[3];
     assert.strictEqual(true, await verifier.verifyProof(
       pi_a,
       pi_b,
@@ -300,6 +250,53 @@ contract('E2E LinkableAnchors - Cross chain withdraw with multiple deposits', as
     ]
     .map(elt => elt.substr(2))
     .join('');
+
+    /*
+    *  second deposit on origin chain
+    */
+    // deposit on origin chain and define nonce based on events emmited
+    originDeposit = Helpers.generateDeposit(destChainID, 30);
+    ({ logs } = await OriginChainLinkableAnchorInstance.deposit(Helpers.toFixedHex(originDeposit.commitment), {from: sender}));
+    originUpdateNonce = logs[0].args.leafIndex;
+    secondWithdrawalMerkleRoot = await OriginChainLinkableAnchorInstance.getLastRoot();
+    // create correct update proposal data for the deposit on origin chain
+    originDepositData = Helpers.createUpdateProposalData(originChainID, originBlockHeight + 10, secondWithdrawalMerkleRoot);
+    originDepositDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originDepositData.substr(2));
+    /*
+    * Relayers vote on dest chain
+    */
+    // a second deposit on origin chain leads to update edge proposal on dest chain
+    // relayer1 creates the deposit proposal for the deposit that occured in the before each loop
+    await TruffleAssert.passes(DestBridgeInstance.voteProposal(
+      originChainID,
+      originUpdateNonce,
+      resourceID,
+      originDepositDataHash,
+      { from: relayer1Address }
+    ));
+
+    // relayer2 votes in favor of the update proposal
+    // because the relayerThreshold is 2, the deposit proposal will become passed
+    await TruffleAssert.passes(DestBridgeInstance.voteProposal(
+      originChainID,
+      originUpdateNonce,
+      resourceID,
+      originDepositDataHash,
+      { from: relayer2Address }
+    ));
+
+    // relayer1 will execute the deposit proposal
+    await TruffleAssert.passes(DestBridgeInstance.executeProposal(
+      originChainID,
+      originUpdateNonce,
+      originDepositData,
+      resourceID,
+      { from: relayer1Address }
+    ));
+
+    // check initial balances
+    let balanceOperatorBefore = await destChainToken.balanceOf(operator);
+    let balanceReceiverBefore = await destChainToken.balanceOf(Helpers.toFixedHex(recipient, 20));
     /*
     *  withdraw
     */
@@ -326,5 +323,130 @@ contract('E2E LinkableAnchors - Cross chain withdraw with multiple deposits', as
     isSpent = await DestChainLinkableAnchorInstance.isSpent(Helpers.toFixedHex(input.nullifierHash));
     assert(isSpent);
 
-    })      
+    /*
+    *  generate proof for second deposit
+    */
+    // insert second deposit in tree and get path for withdrawal proof
+    await tree.insert(originDeposit.commitment);
+    ({ root, path_elements, path_index } = await tree.path(1));
+    const secondWithdrawalNeighborRoots = await DestChainLinkableAnchorInstance.getLatestNeighborRoots();
+    input = {
+      // public
+      nullifierHash: originDeposit.nullifierHash,
+      recipient,
+      relayer: operator,
+      fee,
+      refund,
+      chainID: originDeposit.chainID,
+      roots: [destNativeRoot, ...secondWithdrawalNeighborRoots],
+      // private
+      nullifier: originDeposit.nullifier,
+      secret: originDeposit.secret,
+      pathElements: path_elements,
+      pathIndices: path_index,
+      diffs: [destNativeRoot, secondWithdrawalNeighborRoots[0]].map(r => {
+        return F.sub(
+          Scalar.fromString(`${r}`),
+          Scalar.fromString(`${secondWithdrawalNeighborRoots[0]}`),
+        ).toString();
+      }),
+    };
+
+    wtns = await createWitness(input);
+
+    res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
+    proof = res.proof;
+    publicSignals = res.publicSignals;
+    vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/circuit_final.zkey');
+    res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
+    assert.strictEqual(res, true);
+
+     isSpent = await DestChainLinkableAnchorInstance.isSpent(Helpers.toFixedHex(input.nullifierHash));
+    assert.strictEqual(isSpent, false);
+
+    args = [
+      Helpers.createRootsBytes(input.roots),
+      Helpers.toFixedHex(input.nullifierHash),
+      Helpers.toFixedHex(input.recipient, 20),
+      Helpers.toFixedHex(input.relayer, 20),
+      Helpers.toFixedHex(input.fee),
+      Helpers.toFixedHex(input.refund),
+    ];
+
+    result = await Helpers.groth16ExportSolidityCallData(proof, publicSignals);
+    fullProof = JSON.parse("[" + result + "]");
+    pi_a = fullProof[0];
+    pi_b = fullProof[1];
+    pi_c = fullProof[2];
+    inputs = fullProof[3];
+    assert.strictEqual(true, await verifier.verifyProof(
+      pi_a,
+      pi_b,
+      pi_c,
+      inputs,
+    ));
+
+    proofEncoded = [
+      pi_a[0],
+      pi_a[1],
+      pi_b[0][0],
+      pi_b[0][1],
+      pi_b[1][0],
+      pi_b[1][1],
+      pi_c[0],
+      pi_c[1],
+    ]
+    .map(elt => elt.substr(2))
+    .join('');
+
+    /*
+    *  create 30 new deposits on chain so history wraps around and forgets second deposit
+    */
+    let newBlockHeight = originBlockHeight + 100;
+    for (var i = 0; i < 30; i++) {
+      // deposit on origin chain and define nonce based on events emmited
+      originDeposit = Helpers.generateDeposit(destChainID, i);
+      ({ logs } = await OriginChainLinkableAnchorInstance.deposit(Helpers.toFixedHex(originDeposit.commitment), {from: sender}));
+      originUpdateNonce = logs[0].args.leafIndex;
+      originMerkleRoot = await OriginChainLinkableAnchorInstance.getLastRoot();
+      // create correct update proposal data for the deposit on origin chain
+      originDepositData = Helpers.createUpdateProposalData(originChainID, newBlockHeight + i, originMerkleRoot);
+      originDepositDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originDepositData.substr(2));
+      /*
+      * Relayers vote on dest chain
+      */
+      // relayer1 creates the deposit proposal for the deposit that occured in the before each loop
+      await TruffleAssert.passes(DestBridgeInstance.voteProposal(
+        originChainID,
+        originUpdateNonce,
+        resourceID,
+        originDepositDataHash,
+        { from: relayer1Address }
+      ));
+
+      // relayer2 votes in favor of the update proposal
+      // because the relayerThreshold is 2, the deposit proposal will become passed
+      await TruffleAssert.passes(DestBridgeInstance.voteProposal(
+        originChainID,
+        originUpdateNonce,
+        resourceID,
+        originDepositDataHash,
+        { from: relayer2Address }
+      ));
+
+      // relayer1 will execute the deposit proposal
+      await TruffleAssert.passes(DestBridgeInstance.executeProposal(
+        originChainID,
+        originUpdateNonce,
+        originDepositData,
+        resourceID,
+        { from: relayer1Address }
+      ));
+    }
+
+    // withdraw should revert as historical root does not exist
+    await TruffleAssert.reverts(DestChainLinkableAnchorInstance.withdraw
+      (`0x${proofEncoded}`, ...args, { from: input.relayer, gasPrice: '0' }),
+      "Neighbor root not found");
+  }).timeout(0);      
 })

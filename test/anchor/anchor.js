@@ -278,7 +278,7 @@ contract('AnchorPoseidon2', (accounts) => {
       // gas = await anchor.withdraw.estimateGas(proof, publicSignals, { from: relayer, gasPrice: '0' })
       // console.log('withdraw gas:', gas)
       const args = [
-        helpers.toFixedHex(root),
+        helpers.createRootsBytes(input.roots),
         helpers.toFixedHex(input.nullifierHash),
         helpers.toFixedHex(input.recipient, 20),
         helpers.toFixedHex(input.relayer, 20),
@@ -744,7 +744,6 @@ contract('AnchorPoseidon2', (accounts) => {
         helpers.toFixedHex('0x000000000000000000000000000000000000000000000000015345785d8a0000'),
         helpers.toFixedHex(input.refund),
       ];
-
       await TruffleAssert.reverts(
         anchor.withdraw(`0x${proofEncoded}`, ...incorrectArgs, { from: relayer, gasPrice: '0' }),
         "Invalid withdraw proof"
@@ -759,7 +758,6 @@ contract('AnchorPoseidon2', (accounts) => {
         helpers.toFixedHex(input.fee),
         helpers.toFixedHex(input.refund),
       ];
-
       await TruffleAssert.reverts(
         anchor.withdraw(`0x${proofEncoded}`, ...incorrectArgs, { from: relayer, gasPrice: '0' }),
         "Invalid withdraw proof"

@@ -28,19 +28,14 @@ const toFixedHex = (number, length = 32) =>
     .toString(16)
     .padStart(length * 2, '0')
 
-const getRandomRecipient = () => rbigint(20) 
-
-function generateDeposit(targetChainID = 0, secret = 31) {
-  let deposit = {
-    chainID: BigInt(targetChainID),
-    secret: rbigint(secret),
-    nullifier: rbigint(31)
+const arrayToFixedHex = (array) => {
+  for (let i = 0; i < array.length; i++) {
+    array[i] = toFixedHex(array[i]);
   }
+  return array;
+};
 
-  deposit.commitment = poseidonHasher.hash3([deposit.chainID, deposit.nullifier, deposit.secret]);
-  deposit.nullifierHash =   poseidonHasher.hash(null, deposit.nullifier, deposit.nullifier);
-  return deposit
-}
+const getRandomRecipient = () => rbigint(20)
 
 const abiEncode = (valueTypes, values) => {
   return AbiCoder.encode(valueTypes, values)
@@ -53,8 +48,8 @@ const getFunctionSignature = (contractInstance, functionName) => {
 const createERCDepositData = (tokenAmountOrID, lenRecipientAddress, recipientAddress) => {
   return '0x' +
     toHex(tokenAmountOrID, 32).substr(2) +      // Token amount or ID to deposit (32 bytes)
-    toHex(lenRecipientAddress, 32).substr(2) + // len(recipientAddress)          (32 bytes)
-    recipientAddress.substr(2);               // recipientAddress               (?? bytes)
+    toHex(lenRecipientAddress, 32).substr(2) +  // len(recipientAddress)          (32 bytes)
+    recipientAddress.substr(2);                 // recipientAddress               (?? bytes)
 };
 
 const createUpdateProposalData = (sourceChainID, blockHeight, merkleRoot) => {
@@ -62,6 +57,14 @@ const createUpdateProposalData = (sourceChainID, blockHeight, merkleRoot) => {
     toHex(sourceChainID, 32).substr(2) +    // chainID (32 bytes)
     toHex(blockHeight, 32).substr(2) +      // latest block height of incoming root updates (32 bytes)
     toHex(merkleRoot, 32).substr(2);        // Updated Merkle Root (32 bytes)
+};
+
+const createRootsBytes = (rootArray) => {
+  neighborBytes = "0x";
+  for (let i = 0; i < rootArray.length; i++) {
+    neighborBytes += toFixedHex(rootArray[i]).substr(2);
+  }
+  return neighborBytes                          // root byte string (32 * array.length bytes) 
 };
 
 const advanceBlock = () => {
@@ -109,6 +112,18 @@ const assertObjectsMatch = (expectedObj, actualObj) => {
 //uint72 nonceAndID = (uint72(depositNonce) << 8) | uint72(chainID);
 const nonceAndId = (nonce, id) => {
   return Ethers.utils.hexZeroPad(Ethers.utils.hexlify(nonce), 8) + Ethers.utils.hexZeroPad(Ethers.utils.hexlify(id), 1).substr(2)
+}
+
+function generateDeposit(targetChainID = 0, secret = 31) {
+  let deposit = {
+    chainID: BigInt(targetChainID),
+    secret: rbigint(secret),
+    nullifier: rbigint(31)
+  }
+
+  deposit.commitment = poseidonHasher.hash3([deposit.chainID, deposit.nullifier, deposit.secret]);
+  deposit.nullifierHash =   poseidonHasher.hash(null, deposit.nullifier, deposit.nullifier);
+  return deposit
 }
 
 function hexifyBigInts(o) {
@@ -197,12 +212,14 @@ module.exports = {
   blankFunctionDepositerOffset,
   getRandomRecipient,
   toFixedHex,
+  arrayToFixedHex,
   toHex,
   abiEncode,
   generateDeposit,
   getFunctionSignature,
   createERCDepositData,
   createUpdateProposalData,
+  createRootsBytes,
   createResourceID,
   assertObjectsMatch,
   nonceAndId,
