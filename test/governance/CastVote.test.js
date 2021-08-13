@@ -59,14 +59,14 @@ contract('governorBravo#castVote/2', (accounts) => {
     proposalId = await govImplementation.latestProposalIds(root);
   });
 
-  it.only('Revert if there does not exist a proposal with matching proposal id where the current block number is between the proposal\'s start block (exclusive) and end block (inclusive)', async () => {
+  it('Revert if there does not exist a proposal with matching proposal id where the current block number is between the proposal\'s start block (exclusive) and end block (inclusive)', async () => {
     await TruffleAssert.reverts(
       govImplementation.castVote(proposalId, 1),
       'GovernorBravo::castVoteInternal: voting is closed',
     );
   });
 
-  it.only('Revert if such proposal already has an entry in its voters set matching the sender', async () => {
+  it('Revert if such proposal already has an entry in its voters set matching the sender', async () => {
     await network.provider.send("evm_mine")
     await network.provider.send("evm_mine")
 
@@ -80,7 +80,7 @@ contract('governorBravo#castVote/2', (accounts) => {
     );
   });
 
-  it.only('Cast vote adds the sender to the proposal\'s voters set', async () => {
+  it('Cast vote adds the sender to the proposal\'s voters set', async () => {
     assert.strictEqual(((await govImplementation.getReceipt(proposalId, accounts[2])))[0], false);
     let vote = await govImplementation.castVote(proposalId, 1, { from: accounts[2] });
     assert.strictEqual((await govImplementation.getReceipt(proposalId, accounts[2]))[0], true);
@@ -88,7 +88,7 @@ contract('governorBravo#castVote/2', (accounts) => {
 
   let actor; // an account that will propose, receive tokens, delegate to self, and vote on own proposal
 
-  it.only('and we add that ForVotes', async () => {
+  it('and we add that ForVotes', async () => {
     actor = accounts[1];
     await enfranchise(comp, actor, 400001);
 
@@ -105,7 +105,7 @@ contract('governorBravo#castVote/2', (accounts) => {
     assert.strictEqual(afterFors.toString(), aFors.toString());
   })
 
-  it.only('or AgainstVotes corresponding to the caller\'s support flag.', async () => {
+  it('or AgainstVotes corresponding to the caller\'s support flag.', async () => {
     actor = accounts[3];
     await enfranchise(comp, actor, 400001);
 
@@ -122,14 +122,14 @@ contract('governorBravo#castVote/2', (accounts) => {
     assert.strictEqual(afterAgainsts.toString(), aAgainsts.toString());
   });
 
-  it.only('castVoteBySig  if the signatory is invalid', async () => {
+  it('castVoteBySig  if the signatory is invalid', async () => {
     await TruffleAssert.reverts(
       govImplementation.castVoteBySig(proposalId, 0, 0, '0xbad', '0xbad'),
       'GovernorBravo::castVoteBySig: invalid signature',
     );
   });
 
-  it.only('castVoteBySig casts vote on behalf of the signatory', async () => {
+  it('castVoteBySig casts vote on behalf of the signatory', async () => {
     await enfranchise(comp, acc[1], 400001);
     await govImplementation.propose(targets, values, signatures, callDatas, 'do nothing', { from: acc[1] });
     proposalId = await govImplementation.latestProposalIds(acc[1]);
