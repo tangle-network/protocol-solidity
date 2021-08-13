@@ -208,8 +208,8 @@ contract('AnchorPoseidon2', (accounts) => {
       await token.mint(user, tokenDenomination);
       const balanceUserBefore = await token.balanceOf(user);
       const balanceAnchorBefore = await token.balanceOf(anchor.address);
-      console.log('balanceUserBefore: ', balanceUserBefore.toString());
-      console.log('balanceAnchorBefore: ', balanceAnchorBefore.toString());
+      // console.log('balanceUserBefore: ', balanceUserBefore.toString());
+      // console.log('balanceAnchorBefore: ', balanceAnchorBefore.toString());
       // Uncomment to measure gas usage
       // let gas = await anchor.deposit.estimateGas(toBN(deposit.commitment.toString()), { value, from: user })
       // console.log('deposit gas:', gas)
@@ -217,8 +217,8 @@ contract('AnchorPoseidon2', (accounts) => {
       await TruffleAssert.passes(anchor.deposit(helpers.toFixedHex(deposit.commitment), { from: user }));
       const balanceUserAfterDeposit = await token.balanceOf(user)
       const balanceAnchorAfterDeposit = await token.balanceOf(anchor.address);
-      console.log('balanceUserAfterDeposit: ', balanceUserAfterDeposit.toString());
-      console.log('balanceAnchorAfterDeposit: ', balanceAnchorAfterDeposit.toString());
+      // console.log('balanceUserAfterDeposit: ', balanceUserAfterDeposit.toString());
+      // console.log('balanceAnchorAfterDeposit: ', balanceAnchorAfterDeposit.toString());
       assert.strictEqual(balanceUserAfterDeposit.toString(), BN(toBN(balanceUserBefore).sub(toBN(value))).toString());
       assert.strictEqual(balanceAnchorAfterDeposit.toString(), toBN(value).toString());
 
@@ -281,11 +281,11 @@ contract('AnchorPoseidon2', (accounts) => {
       const balanceOperatorAfter = await token.balanceOf(operator)
       const balanceReceiverAfter = await token.balanceOf(helpers.toFixedHex(recipient, 20))
       const feeBN = toBN(fee.toString())
-      console.log('balanceAnchorAfter: ', balanceAnchorAfter.toString());
-      console.log('balanceRelayerAfter: ', balanceRelayerAfter.toString());
-      console.log('balanceOperatorAfter: ', balanceOperatorAfter.toString());
-      console.log('balanceReceiverAfter: ', balanceReceiverAfter.toString());
-      console.log('feeBN: ', feeBN.toString());
+      // console.log('balanceAnchorAfter: ', balanceAnchorAfter.toString());
+      // console.log('balanceRelayerAfter: ', balanceRelayerAfter.toString());
+      // console.log('balanceOperatorAfter: ', balanceOperatorAfter.toString());
+      // console.log('balanceReceiverAfter: ', balanceReceiverAfter.toString());
+      // console.log('feeBN: ', feeBN.toString());
       assert.strictEqual(balanceAnchorAfter.toString(), toBN(balanceAnchorAfterDeposit).sub(toBN(value)).toString())
       assert.strictEqual(balanceRelayerAfter.toString(), toBN(balanceRelayerBefore).toString())
       assert.strictEqual(balanceOperatorAfter.toString(), toBN(balanceOperatorBefore).add(feeBN).toString())

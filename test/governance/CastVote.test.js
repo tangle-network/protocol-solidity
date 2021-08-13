@@ -137,7 +137,7 @@ contract('governorBravo#castVote/2', (accounts) => {
         );
       });
 
-      it.only('casts vote on behalf of the signatory', async () => {
+      it('casts vote on behalf of the signatory', async () => {
         await enfranchise(comp, a1, 400001);
         await govImplementation.propose(targets, values, signatures, callDatas, 'do nothing', { from: a1 });
         proposalId = await govImplementation.latestProposalIds(a1);
