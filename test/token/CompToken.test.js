@@ -74,7 +74,7 @@ contract('Comp-like Token', (accounts) => {
     });
 
     it('delegates on behalf of the signatory', async () => {
-      const delegatee = root, nonce = 0, expiry = 10e9;
+      const delegatee = root, nonce = 0, expiry = 10e10;
       const signers = await hre.ethers.getSigners()
       const msgParams = helpers.createDelegateBySigMessage(comp.address, delegatee, expiry, chainId, nonce);
       const result = await signers[1].provider.send('eth_signTypedData_v4', [signers[1].address, msgParams])

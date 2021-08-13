@@ -1,5 +1,6 @@
 const BigNumber = require('bignumber.js');
 const ethers = require('ethers');
+const { network } = require('hardhat');
 
 function UInt256Max() {
   return ethers.constants.MaxUint256;
@@ -35,21 +36,6 @@ function etherMantissa(num, scale = 1e18) {
 
 function etherUnsigned(num) {
   return new BigNumber(num);
-}
-
-function mergeInterface(into, from) {
-  const key = (item) => item.inputs ? `${item.name}/${item.inputs.length}` : item.name;
-  const existing = into.options.jsonInterface.reduce((acc, item) => {
-    acc[key(item)] = true;
-    return acc;
-  }, {});
-  const extended = from.options.jsonInterface.reduce((acc, item) => {
-    if (!(key(item) in existing))
-      acc.push(item)
-    return acc;
-  }, into.options.jsonInterface.slice());
-  into.options.jsonInterface = into.options.jsonInterface.concat(from.options.jsonInterface);
-  return into;
 }
 
 function getContractDefaults() {
@@ -112,7 +98,7 @@ async function minerStop() {
 }
 
 async function rpc(request) {
-  return new Promise((okay, fail) => web3.currentProvider.send(request, (err, res) => err ? fail(err) : okay(res)));
+  return new Promise((okay, fail) => network.provider.send(request, (err, res) => err ? fail(err) : okay(res)));
 }
 
 async function both(contract, method, args = [], opts = {}) {
@@ -135,7 +121,6 @@ module.exports = {
   etherDouble,
   etherMantissa,
   etherUnsigned,
-  mergeInterface,
   keccak256,
   unlockedAccounts,
   unlockedAccount,

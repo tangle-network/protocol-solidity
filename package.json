@@ -17,7 +17,7 @@
     "setup": "yarn setup:poseidon-bridge2 && yarn setup:poseidon2-preimage && yarn setup:poseidon3-preimage",
     "test:all": "yarn build && yarn setup && yarn test",
     "test:bridge": "yarn build && yarn setup:poseidon-bridge2 && yarn test",
-    "test": "npx hardhat test"
+    "test": "yarn build:hashers && npx hardhat test"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
