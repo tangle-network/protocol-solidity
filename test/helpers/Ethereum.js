@@ -1,5 +1,6 @@
 const BigNumber = require('bignumber.js');
 const ethers = require('ethers');
+const { network } = require('hardhat');
 
 function UInt256Max() {
   return ethers.constants.MaxUint256;
@@ -39,6 +40,7 @@ function etherUnsigned(num) {
 
 function mergeInterface(into, from) {
   const key = (item) => item.inputs ? `${item.name}/${item.inputs.length}` : item.name;
+  console.log(into);
   const existing = into.options.jsonInterface.reduce((acc, item) => {
     acc[key(item)] = true;
     return acc;
@@ -112,7 +114,7 @@ async function minerStop() {
 }
 
 async function rpc(request) {
-  return new Promise((okay, fail) => web3.currentProvider.send(request, (err, res) => err ? fail(err) : okay(res)));
+  return new Promise((okay, fail) => network.provider.send(request, (err, res) => err ? fail(err) : okay(res)));
 }
 
 async function both(contract, method, args = [], opts = {}) {
