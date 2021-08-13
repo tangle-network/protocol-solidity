@@ -33,6 +33,8 @@ contract('governorBravo#castVote/2', (accounts) => {
     acc = accounts.slice(3);
     chainId = 31337; // await web3.eth.net.getId(); See: https://github.com/trufflesuite/ganache-core/issues/515
     comp = await CompToken.new(name, symbol);
+    await comp.mint(root, '10000000000000000000000000');
+
     govDelegate = await GovernorBravoDelegateHarness.new();
     gov = await GovernorBravoDelegator.new(
       address(0),
@@ -43,8 +45,11 @@ contract('governorBravo#castVote/2', (accounts) => {
       1,
       '100000000000000000000000'
     );
+    let compAddress =  await govDelegate.comp.call();
+    console.log('Comp address from delegate', compAddress);
     await govDelegate._initiate();
-    
+    compAddress =  await govDelegate.comp();
+    console.log(compAddress);
     
     targets = [a1];
     values = ['0'];
@@ -56,7 +61,7 @@ contract('governorBravo#castVote/2', (accounts) => {
   });
 
   describe('We must revert if:', () => {
-    it.only('There does not exist a proposal with matching proposal id where the current block number is between the proposal\'s start block (exclusive) and end block (inclusive)', async () => {
+    it('There does not exist a proposal with matching proposal id where the current block number is between the proposal\'s start block (exclusive) and end block (inclusive)', async () => {
       await TruffleAssert.reverts(
         govDelegate.castVote(proposalId, 1),
         'GovernorBravo::castVoteInternal: voting is closed',
@@ -80,7 +85,7 @@ contract('governorBravo#castVote/2', (accounts) => {
   });
 
   describe('Otherwise', () => {
-    it.only('we add the sender to the proposal\'s voters set', async () => {
+    it('we add the sender to the proposal\'s voters set', async () => {
       assert.strictEqual(await govDelegate.getReceipt(proposalId, accounts[2]), { hasVoted: false });
       let vote = await govDelegate.castVote(proposalId, 1, { from: accounts[2] });
       assert.strictEqual(await govDelegate.getReceipt(proposalId, accounts[2]), { hasVoted: true });
@@ -133,7 +138,7 @@ contract('governorBravo#castVote/2', (accounts) => {
         ]
       };
 
-      it.only('reverts if the signatory is invalid', async () => {
+      it('reverts if the signatory is invalid', async () => {
         await TruffleAssert.reverts(
           govDelegate.castVoteBySig(proposalId, 0, 0, '0xbad', '0xbad'),
           'GovernorBravo::castVoteBySig: invalid signature',

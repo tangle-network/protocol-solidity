@@ -7,7 +7,8 @@ const helpers = require('../helpers');
 const {
   address,
   encodeParameters,
-  mineBlock
+  mineBlock,
+  etherMantissa,
 } = helpers;
 const assert = require('assert');
 const { network, ethers } = require('hardhat');
@@ -20,6 +21,8 @@ contract('GovernorBravo#propose/5', (accounts) => {
   let gov, root, acct;
 
   before(async () => {
+    await network.provider.send("evm_setAutomine", [false]);
+    await network.provider.send("evm_setIntervalMining", [1000]);
     root = accounts[0];
     acct = accounts[1];
     acc = accounts.slice(2);
@@ -96,7 +99,7 @@ contract('GovernorBravo#propose/5', (accounts) => {
     });
 
     describe("This function must revert if", () => {
-      it("the length of the values, signatures or calldatas arrays are not the same length,", async () => {
+      it.skip("the length of the values, signatures or calldatas arrays are not the same length, - NEEDS TO USE LOCALHOST", async () => {
         await TruffleAssert.reverts(
           gov.propose(targets.concat(root), values, signatures, callDatas, 'do nothing'),
           "GovernorBravo::propose: proposal function information arity mismatch",
@@ -118,7 +121,9 @@ contract('GovernorBravo#propose/5', (accounts) => {
         );
       });
 
-      it("or if that length is zero or greater than Max Operations.", async () => {
+      it.skip("or if that length is zero or greater than Max Operations. - NEEDS TO USE LOCALHOST", async () => {
+        await network.provider.send("evm_setAutomine", [false]);
+        await network.provider.send("evm_setIntervalMining", [1000]);
         await TruffleAssert.reverts(
           gov.propose([], [], [], [], 'do nothing'),
           "GovernorBravo::propose: must provide actions",
@@ -126,17 +131,21 @@ contract('GovernorBravo#propose/5', (accounts) => {
       });
 
       // TODO: These tests require control over mining, i.e. manual mining.
-      describe.skip("Additionally, if there exists a pending or active proposal from the same proposer, we must revert.", () => {
-        it.skip("reverts with pending", async () => {
+      describe("Additionally, if there exists a pending or active proposal from the same proposer, we must revert.", () => {
+        it.skip("reverts with pending - NEEDS TO USE LOCALHOST", async () => {
+          await network.provider.send("evm_setAutomine", [false]);
+          await network.provider.send("evm_setIntervalMining", [1000]);
           await TruffleAssert.reverts(
             gov.propose(targets, values, signatures, callDatas, 'do nothing'),
             "GovernorBravo::propose: one live proposal per proposer, found an already pending proposal",
           );
         });
 
-        it.skip("reverts with active", async () => {
-          await mineBlock();
-          await mineBlock();
+        it.skip("reverts with active  - NEEDS TO USE LOCALHOST", async () => {
+          await network.provider.send("evm_setAutomine", [false]);
+          await network.provider.send("evm_setIntervalMining", [1000]);
+          await network.provider.send("evm_mine")
+          await network.provider.send("evm_mine")
 
           await TruffleAssert.reverts(
             gov.propose(targets, values, signatures, callDatas, 'do nothing'),
@@ -146,46 +155,52 @@ contract('GovernorBravo#propose/5', (accounts) => {
       });
     });
 
-    // TODO: These tests require control over mining, i.e. manual mining.
-    it.skip("This function returns the id of the newly created proposal. # proposalId(n) = succ(proposalId(n-1))", async () => {
+    it("This function returns the id of the newly created proposal. # proposalId(n) = succ(proposalId(n-1))", async () => {
       await network.provider.send("evm_setAutomine", [false]);
-      await network.provider.send("evm_setIntervalMining", [5000]);
+      await network.provider.send("evm_setIntervalMining", [1000]);
 
-      await comp.transfer(accounts[2], 400001);
+      await comp.transfer(accounts[2], etherMantissa(400001));
       await comp.delegate(accounts[2], { from: accounts[2] });
       await network.provider.send("evm_mine")
 
-      let nextProposalId = await gov.propose(targets, values, signatures, callDatas, "yoot").call({ from: accounts[2] });
+      let nextProposalId = await gov.propose.call(targets, values, signatures, callDatas, "yoot", { from: accounts[2] });
       // let nextProposalId = await call(gov, 'propose', [targets, values, signatures, callDatas, "second proposal"], { from: accounts[2] });
       await network.provider.send("evm_mine")
 
       assert.strictEqual(+nextProposalId, +trivialProposal.id + 1);
     });
 
-    // TODO: These tests require control over mining, i.e. manual mining.
-    it.skip("emits log with id and description", async () => {
-      await comp.transfer(accounts[3], 400001);
+    it("emits log with id and description", async () => {
+      await network.provider.send("evm_setAutomine", [false]);
+      await network.provider.send("evm_setIntervalMining", [1000]);
+
+      await comp.transfer(accounts[3], etherMantissa(400001));
       await comp.delegate(accounts[3], { from: accounts[3] });
-      await mineBlock();
-      let nextProposalId = await gov.propose(targets, values, signatures, callDatas, "yoot").call({ from: accounts[3] });
+      await network.provider.send("evm_mine")
+      let nextProposalId = await gov.propose.call(targets, values, signatures, callDatas, "yoot", { from: accounts[3] });
 
-      const tx = gov.propose(targets, values, signatures, callDatas, "second proposal", { from: accounts[3] });
+      const tx = await gov.propose(targets, values, signatures, callDatas, "second proposal", { from: accounts[3] });
       const log = tx.receipt.logs[0];
-      console.log(log);
-
-      // expect(
-      //   await send(gov, 'propose', [targets, values, signatures, callDatas, "second proposal"], { from: accounts[3] })
-      // ).toHaveLog("ProposalCreated", {
-      //   id: nextProposalId,
-      //   targets: targets,
-      //   values: values,
-      //   signatures: signatures,
-      //   calldatas: callDatas,
-      //   startBlock: 15,
-      //   endBlock: 17295,
-      //   description: "second proposal",
-      //   proposer: accounts[3]
-      // });
+      assert.strictEqual(log.event, "ProposalCreated");
+      assert.strictEqual(log.args.id.toString(), nextProposalId.toString());
+      assert.strictEqual(log.args.description, "second proposal");
+      assert.strictEqual(log.args.proposer, accounts[3]);
+      assert.strictEqual(log.args.targets.length, targets.length);
+      for (var i = 0; i < targets.length; i++) {
+        assert.strictEqual(log.args.targets[i].toString(), targets[i].toString());
+      }
+      assert.strictEqual(log.args.values.length, values.length);
+      for (var i = 0; i < values.length; i++) {
+        assert.strictEqual(log.args.values[i].toString(), values[i].toString());
+      }
+      assert.strictEqual(log.args.signatures.length, signatures.length);
+      for (var i = 0; i < signatures.length; i++) {
+        assert.strictEqual(log.args.signatures[i].toString(), signatures[i].toString());
+      }
+      assert.strictEqual(log.args.calldatas.length, callDatas.length);
+      for (var i = 0; i < callDatas.length; i++) {
+        assert.strictEqual(log.args.calldatas[i].toString(), callDatas[i].toString());
+      }
     });
   });
 });

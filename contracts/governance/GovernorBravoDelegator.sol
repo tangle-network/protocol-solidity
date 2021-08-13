@@ -6,6 +6,7 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
+import "hardhat/console.sol";
 import "./GovernorBravoInterfaces.sol";
 
 contract GovernorBravoDelegator is GovernorBravoDelegatorStorage, GovernorBravoEvents {
@@ -17,19 +18,18 @@ contract GovernorBravoDelegator is GovernorBravoDelegatorStorage, GovernorBravoE
         uint votingPeriod_,
         uint votingDelay_,
         uint proposalThreshold_
-    ) public {
-    // Admin set to msg.sender for initialization
-    admin = msg.sender;
-
-    delegateTo(implementation_, abi.encodeWithSignature("initialize(address,address,uint256,uint256,uint256)",
-        timelock_,
-        comp_,
-        votingPeriod_,
-        votingDelay_,
-        proposalThreshold_)
-    );
-
-    _setImplementation(implementation_);
+    ) {
+        // Admin set to msg.sender for initialization
+        admin = msg.sender;
+        console.log('here');
+        delegateTo(implementation_, abi.encodeWithSignature("initialize(address,address,uint256,uint256,uint256)",
+            timelock_,
+            comp_,
+            votingPeriod_,
+            votingDelay_,
+            proposalThreshold_)
+        );
+        _setImplementation(implementation_);
 
 		admin = admin_;
 	}
