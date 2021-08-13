@@ -26,6 +26,9 @@ contract('governorBravo#castVote/2', (accounts) => {
   let targets, values, signatures, callDatas, proposalId;
 
   before(async () => {
+    await network.provider.send("evm_setAutomine", [false]);
+    await network.provider.send("evm_setIntervalMining", [1000]);
+  
     root = accounts[0];
     a1 = accounts[1];
     a2 = accounts[2];
@@ -46,8 +49,6 @@ contract('governorBravo#castVote/2', (accounts) => {
     );
     govImplementation = await GovernorBravoDelegateHarness.at(gov.address);
     await govImplementation._initiate();
-    let compAddress =  await govImplementation.comp();
-    console.log('Comp address from delegate', compAddress);
     
     targets = [a1];
     values = ['0'];
@@ -56,108 +57,97 @@ contract('governorBravo#castVote/2', (accounts) => {
     await comp.delegate(root);
     await govImplementation.propose(targets, values, signatures, callDatas, 'do nothing');
     proposalId = await govImplementation.latestProposalIds(root);
-
-    await network.provider.send("evm_setAutomine", [false]);
   });
 
-  describe('We must revert if:', () => {
-    it('There does not exist a proposal with matching proposal id where the current block number is between the proposal\'s start block (exclusive) and end block (inclusive)', async () => {
-      await TruffleAssert.reverts(
-        govImplementation.castVote(proposalId, 1),
-        'GovernorBravo::castVoteInternal: voting is closed',
-      );
-    });
-
-    // TODO: These tests require control over mining, i.e. manual mining.
-    it('Such proposal already has an entry in its voters set matching the sender', async () => {
-      await network.provider.send("evm_mine")
-      await network.provider.send("evm_mine")
-
-      let vote = await govImplementation.castVote(proposalId, 1, { from: accounts[4] });
-
-      let vote2 = await govImplementation.castVoteWithReason(proposalId, 1, '', { from: accounts[3] });
-
-      await TruffleAssert.reverts(
-        govImplementation.castVote(proposalId, 1, { from: accounts[4] }),
-        'GovernorBravo::castVoteInternal: voter already voted',
-      );
-    });
+  it.only('Revert if there does not exist a proposal with matching proposal id where the current block number is between the proposal\'s start block (exclusive) and end block (inclusive)', async () => {
+    await TruffleAssert.reverts(
+      govImplementation.castVote(proposalId, 1),
+      'GovernorBravo::castVoteInternal: voting is closed',
+    );
   });
 
-  describe('Otherwise', () => {
-    it('we add the sender to the proposal\'s voters set', async () => {
-      assert.strictEqual(((await govImplementation.getReceipt(proposalId, accounts[2])))[0], false);
-      let vote = await govImplementation.castVote(proposalId, 1, { from: accounts[2] });
-      assert.strictEqual((await govImplementation.getReceipt(proposalId, accounts[2]))[0], true);
-    });
+  it.only('Revert if such proposal already has an entry in its voters set matching the sender', async () => {
+    await network.provider.send("evm_mine")
+    await network.provider.send("evm_mine")
 
-    describe('and we take the balance returned by GetPriorVotes for the given sender and the proposal\'s start block, which may be zero,', () => {
-      let actor; // an account that will propose, receive tokens, delegate to self, and vote on own proposal
+    let vote = await govImplementation.castVote(proposalId, 1, { from: accounts[4] });
 
-      it('and we add that ForVotes', async () => {
-        actor = accounts[1];
-        await enfranchise(comp, actor, 400001);
+    let vote2 = await govImplementation.castVoteWithReason(proposalId, 1, '', { from: accounts[3] });
 
-        await TruffleAssert.passes(govImplementation.propose(targets, values, signatures, callDatas, 'do nothing', { from: actor }));
-        proposalId = await govImplementation.latestProposalIds(actor);
+    await TruffleAssert.reverts(
+      govImplementation.castVote(proposalId, 1, { from: accounts[4] }),
+      'GovernorBravo::castVoteInternal: voter already voted',
+    );
+  });
 
-        let beforeFors = (await govImplementation.proposals(proposalId)).forVotes;
-        await network.provider.send("evm_mine")
-        await govImplementation.castVote(proposalId, 1, { from: actor });
+  it.only('Cast vote adds the sender to the proposal\'s voters set', async () => {
+    assert.strictEqual(((await govImplementation.getReceipt(proposalId, accounts[2])))[0], false);
+    let vote = await govImplementation.castVote(proposalId, 1, { from: accounts[2] });
+    assert.strictEqual((await govImplementation.getReceipt(proposalId, accounts[2]))[0], true);
+  });
 
-        let afterFors = (await govImplementation.proposals(proposalId)).forVotes;
-        const temp = new BN(etherMantissa(400001).toFixed());
-        let aFors = beforeFors.add(temp);
-        assert.strictEqual(afterFors.toString(), aFors.toString());
-      })
+  let actor; // an account that will propose, receive tokens, delegate to self, and vote on own proposal
 
-      it('or AgainstVotes corresponding to the caller\'s support flag.', async () => {
-        actor = accounts[3];
-        await enfranchise(comp, actor, 400001);
+  it.only('and we add that ForVotes', async () => {
+    actor = accounts[1];
+    await enfranchise(comp, actor, 400001);
 
-        await TruffleAssert.passes(govImplementation.propose(targets, values, signatures, callDatas, 'do nothing', { from: actor }));
-        proposalId = await govImplementation.latestProposalIds(actor);
+    await TruffleAssert.passes(govImplementation.propose(targets, values, signatures, callDatas, 'do nothing', { from: actor }));
+    proposalId = await govImplementation.latestProposalIds(actor);
 
-        let beforeAgainsts = (await govImplementation.proposals(proposalId)).againstVotes;
-        await network.provider.send("evm_mine")
-        await govImplementation.castVote(proposalId, 0, { from: actor });
+    let beforeFors = (await govImplementation.proposals(proposalId)).forVotes;
+    await network.provider.send("evm_mine")
+    await govImplementation.castVote(proposalId, 1, { from: actor });
 
-        let afterAgainsts = (await govImplementation.proposals(proposalId)).againstVotes;
-        const temp = new BN(etherMantissa(400001).toFixed());
-        let aAgainsts = beforeAgainsts.add(temp);
-        assert.strictEqual(afterAgainsts.toString(), aAgainsts.toString());
-      });
-    });
+    let afterFors = (await govImplementation.proposals(proposalId)).forVotes;
+    const temp = new BN(etherMantissa(400001).toFixed());
+    let aFors = beforeFors.add(temp);
+    assert.strictEqual(afterFors.toString(), aFors.toString());
+  })
 
-    describe('castVoteBySig', () => {
-      it('reverts if the signatory is invalid', async () => {
-        await TruffleAssert.reverts(
-          govImplementation.castVoteBySig(proposalId, 0, 0, '0xbad', '0xbad'),
-          'GovernorBravo::castVoteBySig: invalid signature',
-        );
-      });
+  it.only('or AgainstVotes corresponding to the caller\'s support flag.', async () => {
+    actor = accounts[3];
+    await enfranchise(comp, actor, 400001);
 
-      it('casts vote on behalf of the signatory', async () => {
-        await enfranchise(comp, a1, 400001);
-        await govImplementation.propose(targets, values, signatures, callDatas, 'do nothing', { from: a1 });
-        proposalId = await govImplementation.latestProposalIds(a1);
+    await TruffleAssert.passes(govImplementation.propose(targets, values, signatures, callDatas, 'do nothing', { from: actor }));
+    proposalId = await govImplementation.latestProposalIds(actor);
 
-        const signers = await hre.ethers.getSigners()
-        const msgParams = helpers.createBallotBySigMessage(gov.address, proposalId, 1, chainId);
-        const result = await signers[1].provider.send('eth_signTypedData_v4', [signers[1].address, msgParams])
-        let sig = ethers.utils.splitSignature(result);
-        const { v, r, s } = sig;
+    let beforeAgainsts = (await govImplementation.proposals(proposalId)).againstVotes;
+    await network.provider.send("evm_mine")
+    await govImplementation.castVote(proposalId, 0, { from: actor });
 
-        let beforeFors = (await govImplementation.proposals(proposalId)).forVotes;
-        await network.provider.send("evm_mine")
-        const tx = await govImplementation.castVoteBySig(proposalId, 1, v, r, s);
-        assert(tx.receipt.gasUsed < 100000);
+    let afterAgainsts = (await govImplementation.proposals(proposalId)).againstVotes;
+    const temp = new BN(etherMantissa(400001).toFixed());
+    let aAgainsts = beforeAgainsts.add(temp);
+    assert.strictEqual(afterAgainsts.toString(), aAgainsts.toString());
+  });
 
-        let afterFors = (await govImplementation.proposals(proposalId)).forVotes;
-        console.log(afterFors, beforeFors);
-        assert.strictEqual(afterFors.toString(), beforeFors.toNumber() + 400001 + '');
-      });
-    });
+  it.only('castVoteBySig  if the signatory is invalid', async () => {
+    await TruffleAssert.reverts(
+      govImplementation.castVoteBySig(proposalId, 0, 0, '0xbad', '0xbad'),
+      'GovernorBravo::castVoteBySig: invalid signature',
+    );
+  });
+
+  it.only('castVoteBySig casts vote on behalf of the signatory', async () => {
+    await enfranchise(comp, acc[1], 400001);
+    await govImplementation.propose(targets, values, signatures, callDatas, 'do nothing', { from: acc[1] });
+    proposalId = await govImplementation.latestProposalIds(acc[1]);
+
+    const signers = await hre.ethers.getSigners()
+    const msgParams = helpers.createBallotBySigMessage(gov.address, proposalId, 1, chainId);
+    const result = await signers[4].provider.send('eth_signTypedData_v4', [signers[4].address, msgParams])
+    let sig = ethers.utils.splitSignature(result);
+    const { v, r, s } = sig;
+
+    let beforeFors = (await govImplementation.proposals(proposalId)).forVotes;
+    await network.provider.send("evm_mine")
+    const tx = await govImplementation.castVoteBySig(proposalId, 1, v, r, s);
+    assert(tx.receipt.gasUsed < 100000);
+
+    let afterFors = (await govImplementation.proposals(proposalId)).forVotes;
+    console.log(afterFors, beforeFors);
+    assert.strictEqual(afterFors.toString(), beforeFors.toNumber() + etherMantissa(400001) + '');
   });
 
   after(async () => {
