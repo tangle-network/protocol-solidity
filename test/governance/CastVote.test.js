@@ -27,6 +27,8 @@ contract('governorBravo#castVote/2', (accounts) => {
   let targets, values, signatures, callDatas, proposalId;
 
   before(async () => {
+    await network.provider.send("evm_setAutomine", [false]);
+    await network.provider.send("evm_setIntervalMining", [1000]);
     root = accounts[0];
     a1 = accounts[1];
     a2 = accounts[2];
@@ -45,6 +47,7 @@ contract('governorBravo#castVote/2', (accounts) => {
       1,
       '100000000000000000000000'
     );
+    await network.provider.send("evm_mine")
     let compAddress =  await govDelegate.comp.call();
     console.log('Comp address from delegate', compAddress);
     await govDelegate._initiate();
@@ -69,9 +72,9 @@ contract('governorBravo#castVote/2', (accounts) => {
     });
 
     // TODO: These tests require control over mining, i.e. manual mining.
-    it.skip('Such proposal already has an entry in its voters set matching the sender', async () => {
-      await mineBlock();
-      await mineBlock();
+    it.only('Such proposal already has an entry in its voters set matching the sender', async () => {
+      await network.provider.send("evm_mine")
+      await network.provider.send("evm_mine")
 
       let vote = await govDelegate.castVote(proposalId, 1, { from: accounts[4] });
 
@@ -94,7 +97,7 @@ contract('governorBravo#castVote/2', (accounts) => {
     describe('and we take the balance returned by GetPriorVotes for the given sender and the proposal\'s start block, which may be zero,', () => {
       let actor; // an account that will propose, receive tokens, delegate to self, and vote on own proposal
 
-      it.skip('and we add that ForVotes', async () => {
+      it.only('and we add that ForVotes', async () => {
         actor = accounts[1];
         await enfranchise(comp, actor, 400001);
 
@@ -102,14 +105,14 @@ contract('governorBravo#castVote/2', (accounts) => {
         proposalId = await gov.latestProposalIds(actor);
 
         let beforeFors = (await gov.proposals(proposalId)).forVotes;
-        await mineBlock();
+        await network.provider.send("evm_mine")
         await govDelegate.castVote(proposalId, 1, { from: actor });
 
         let afterFors = (await gov.proposals(proposalId)).forVotes;
         assert.strictEqual(afterFors, beforeFors + 400001);
       })
 
-      it.skip('or AgainstVotes corresponding to the caller\'s support flag.', async () => {
+      it.only('or AgainstVotes corresponding to the caller\'s support flag.', async () => {
         actor = accounts[3];
         await enfranchise(comp, actor, 400001);
 
@@ -117,7 +120,7 @@ contract('governorBravo#castVote/2', (accounts) => {
         proposalId = await gov.latestProposalIds(actor);
 
         let beforeAgainsts = (await gov.proposals(proposalId)).againstVotes;
-        await mineBlock();
+        await network.provider.send("evm_mine")
         await govDelegate.castVote(proposalId, 0, { from: actor });
 
         let afterAgainsts = (await gov.proposals(proposalId)).againstVotes;
@@ -145,7 +148,7 @@ contract('governorBravo#castVote/2', (accounts) => {
         );
       });
 
-      it.skip('casts vote on behalf of the signatory', async () => {
+      it.only('casts vote on behalf of the signatory', async () => {
         await enfranchise(comp, a1, 400001);
         await govDelegate.propose(targets, values, signatures, callDatas, 'do nothing', { from: a1 });
         proposalId = await gov.latestProposalIds(a1);
@@ -157,7 +160,7 @@ contract('governorBravo#castVote/2', (accounts) => {
         const { v, r, s } = sig;
 
         let beforeFors = (await gov.proposals(proposalId)).forVotes;
-        await mineBlock();
+        await network.provider.send("evm_mine")
         const tx = await govDelegate.castVoteBySig(proposalId, 1, v, r, s);
         assert(tx.receipt.gasUsed < 80000);
 
@@ -165,5 +168,9 @@ contract('governorBravo#castVote/2', (accounts) => {
         assert.strictEqual(afterFors.toString(), beforeFors.toNumber() + 400001 + '');
       });
     });
+  });
+
+  after(async () => {
+    await network.provider.send("evm_setAutomine", [true]);
   });
 });

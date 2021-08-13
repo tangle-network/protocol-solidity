@@ -21,7 +21,7 @@ contract GovernorBravoDelegator is GovernorBravoDelegatorStorage, GovernorBravoE
     ) {
         // Admin set to msg.sender for initialization
         admin = msg.sender;
-        console.log('here');
+
         delegateTo(implementation_, abi.encodeWithSignature("initialize(address,address,uint256,uint256,uint256)",
             timelock_,
             comp_,

@@ -203,4 +203,8 @@ contract('GovernorBravo#propose/5', (accounts) => {
       }
     });
   });
+
+  after(async () => {
+    await network.provider.send("evm_setAutomine", [true]);
+  });
 });

@@ -16,12 +16,13 @@ contract GovernorBravoDelegateHarness is GovernorBravoDelegate {
     ) override public {
         require(msg.sender == admin, "GovernorBravo::initialize: admin only");
         require(address(timelock) == address(0), "GovernorBravo::initialize: can only initialize once");
-
+        console.log('Comp before setting: %s', address(comp_));
         timelock = TimelockInterface(timelock_);
         comp = CompInterface(comp_);
         votingPeriod = votingPeriod_;
         votingDelay = votingDelay_;
         proposalThreshold = proposalThreshold_;
+        console.log('Comp: %s', address(comp));
     }
 
 	// @notice Harness initiate the GovenorBravo contract
