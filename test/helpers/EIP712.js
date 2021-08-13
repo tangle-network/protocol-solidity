@@ -119,7 +119,7 @@ const createDelegateBySigMessage = (compAddress, delegatee, expiry = 10e9, chain
   return JSON.stringify({ types, primaryType, domain, message });
 };
 
-const createBallotBySigMessage = (govAddress, proposalId, support, chainId = 1, nonce = 0) => {
+const createBallotBySigMessage = (govAddress, proposalId, support, chainId = 1) => {
   const types = {
     EIP712Domain: [
       { name: 'name', type: 'string' },
@@ -132,7 +132,7 @@ const createBallotBySigMessage = (govAddress, proposalId, support, chainId = 1, 
     ]
   };
 
-  const primaryType = 'Delegation';
+  const primaryType = 'Ballot';
   const domain = { name: 'Webb', chainId, verifyingContract: govAddress };
   const message = { proposalId, support };
 
@@ -161,4 +161,5 @@ module.exports = {
   digestToSign,
   sign,
   createDelegateBySigMessage,
+  createBallotBySigMessage,
 };

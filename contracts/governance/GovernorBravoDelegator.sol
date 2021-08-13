@@ -6,11 +6,10 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "hardhat/console.sol";
 import "./GovernorBravoInterfaces.sol";
 
 contract GovernorBravoDelegator is GovernorBravoDelegatorStorage, GovernorBravoEvents {
-	  constructor(
+      constructor(
         address timelock_,
         address comp_,
         address admin_,
@@ -21,7 +20,6 @@ contract GovernorBravoDelegator is GovernorBravoDelegatorStorage, GovernorBravoE
     ) {
         // Admin set to msg.sender for initialization
         admin = msg.sender;
-
         delegateTo(implementation_, abi.encodeWithSignature("initialize(address,address,uint256,uint256,uint256)",
             timelock_,
             comp_,
@@ -31,11 +29,11 @@ contract GovernorBravoDelegator is GovernorBravoDelegatorStorage, GovernorBravoE
         );
         _setImplementation(implementation_);
 
-		admin = admin_;
-	}
+        admin = admin_;
+    }
 
 
-	/**
+    /**
     * @notice Called by the admin to update the implementation of the delegator
     * @param implementation_ The address of the new implementation for delegation
     */
@@ -64,7 +62,7 @@ contract GovernorBravoDelegator is GovernorBravoDelegatorStorage, GovernorBravoE
       }
   }
 
-	/**
+    /**
      * @dev Delegates execution to an implementation contract.
      * It returns to the external caller whatever the implementation returns
      * or forwards reverts.
