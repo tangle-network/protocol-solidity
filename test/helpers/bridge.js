@@ -77,8 +77,8 @@ const createRootsBytes = (rootArray) => {
 
 const advanceBlock = () => {
   const time = Math.floor(Date.now() / 1000);
-  ethers.provider.send("evm_increaseTime", [time]) 
-  ethers.provider.send("evm_mine", []);
+  network.provider.send("evm_increaseTime", [time]) 
+  network.provider.send("evm_mine", []);
 }
 
 const createResourceID = (contractAddress, chainID) => {

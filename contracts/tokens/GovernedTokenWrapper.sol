@@ -5,6 +5,7 @@
  
 pragma solidity ^0.8.0;
 
+import "hardhat/console.sol";
 import "./TokenWrapper.sol";
 
 /**
@@ -12,13 +13,13 @@ import "./TokenWrapper.sol";
     @author Webb Technologies.
     @notice This contract is intended to be used with ERC20Handler contract.
  */
-contract TCRTokenWrapper is TokenWrapper {
-  address governor;
-  address[] tokens;
+contract GovernedTokenWrapper is TokenWrapper {
+  address public governor;
+  address[] public tokens;
   mapping (address => bool) valid;
 
-  constructor(string memory name, string memory symbol) TokenWrapper(name, symbol) {
-    governor = msg.sender;
+  constructor(string memory name, string memory symbol, address _governor) TokenWrapper(name, symbol) {
+    governor = _governor;
   }
 
   function setGovernor(address _governor) public onlyGovernor {
@@ -36,9 +37,12 @@ contract TCRTokenWrapper is TokenWrapper {
     valid[tokenAddress] = true;
   }
 
+  function getTokens() external view returns (address[] memory) {
+    return tokens;
+  }
+
   modifier onlyGovernor() {
-    if (msg.sender == governor) {
-      _;
-    }
+    require(msg.sender == governor, "Only governor can call this function");
+    _;
   }
 }
