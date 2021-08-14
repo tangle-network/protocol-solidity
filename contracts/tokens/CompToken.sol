@@ -6,7 +6,6 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 
 contract CompToken is ERC20PresetMinterPauser {
