@@ -53,23 +53,25 @@ contract('GovernedTokenWrapper', (accounts) => {
     await comp.delegate(root);
   });
 
-  it('should instantiate the contracts', async () => {
-    const wrapper = await GovernedTokenWrapper.new(name, symbol, gov.address);
+  it.only('should instantiate the contracts', async () => {
+    const wrapper = await GovernedTokenWrapper.new(name, symbol, gov.address, '1000000000000000000000000');
     assert.strictEqual((await wrapper.name()), name);
     assert.strictEqual((await wrapper.symbol()), symbol);
     assert.strictEqual((await wrapper.governor()), gov.address);
+    assert.strictEqual((await wrapper.wrappingLimit()).toString(), '1000000000000000000000000');
+    assert.strictEqual((await wrapper.totalSupply()).toString(), '0');
   });
 
-  it('should not allow adding a token from a non-governor', async () => {
-    const wrapper = await GovernedTokenWrapper.new(name, symbol, gov.address);
+  it.only('should not allow adding a token from a non-governor', async () => {
+    const wrapper = await GovernedTokenWrapper.new(name, symbol, gov.address, '1000000000000000000000000');
     await TruffleAssert.reverts(
       wrapper.add(address(0), { from: accounts[0] }),
       'Only governor can call this function',
     );
   });
 
-  it('should allow adding a token as governor', async () => {
-    const wrapper = await GovernedTokenWrapper.new(name, symbol, timelock.address);
+  it.only('should allow adding a token as governor', async () => {
+    const wrapper = await GovernedTokenWrapper.new(name, symbol, timelock.address, '1000000000000000000000000');
     const token = await CompToken.new('Token', 'TKN');
     targets = [wrapper.address];
     values = ['0'];
@@ -102,5 +104,52 @@ contract('GovernedTokenWrapper', (accounts) => {
     state = await gov.state(proposalId);
     assert.strictEqual(state.toString(), states['Executed']);
     assert.strictEqual((await wrapper.getTokens())[0], token.address);
+  });
+
+  it.only('should not allow adding the same token', async () => {
+    const wrapper = await GovernedTokenWrapper.new(name, symbol, timelock.address, '1000000000000000000000000');
+    const token = await CompToken.new('Token', 'TKN');
+    await helpers.addTokenToWrapper(gov, wrapper, token, root, states);
+    await TruffleAssert.reverts(
+      helpers.addTokenToWrapper(gov, wrapper, token, root, states),
+    );
+  });
+
+  it.only('should fail to wrap with no limit', async () => {
+    const wrapper = await GovernedTokenWrapper.new(name, symbol, timelock.address, '0');
+    const token = await CompToken.new('Token', 'TKN');
+
+    await token.mint(root, '10000000000000000000000000');
+    await token.approve(wrapper.address, '1000000000000000000000000');
+    await TruffleAssert.reverts(
+      wrapper.wrap(token.address, '1000000000000000000000000'),
+      'Invalid token address',
+    );
+
+    await helpers.addTokenToWrapper(gov, wrapper, token, root, states);
+    await TruffleAssert.reverts(
+      wrapper.wrap(token.address, '1000000000000000000000000'),
+      'Invalid token amount',
+    );
+  });
+
+  it.only('should wrap only after token has been whitelisted', async () => {
+    const wrapper = await GovernedTokenWrapper.new(name, symbol, timelock.address, '1000000000000000000000000');
+    const token = await CompToken.new('Token', 'TKN');
+
+    await token.mint(root, '10000000000000000000000000');
+    await token.approve(wrapper.address, '1000000000000000000000000');
+    await TruffleAssert.reverts(
+      wrapper.wrap(token.address, '1000000000000000000000000'),
+      'Invalid token address',
+    );
+
+    await helpers.addTokenToWrapper(gov, wrapper, token, root, states);
+    await TruffleAssert.passes(wrapper.wrap(token.address, '1000000000000000000000000'));
+    await TruffleAssert.reverts(
+      wrapper.wrap(token.address, '1000000000000000000000000'),
+      'Invalid token amount',
+    );
+    assert.strictEqual((await wrapper.totalSupply()).toString(), '1000000000000000000000000');
   });
 });

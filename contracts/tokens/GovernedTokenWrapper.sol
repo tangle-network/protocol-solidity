@@ -8,7 +8,7 @@ pragma solidity ^0.8.0;
 import "./TokenWrapper.sol";
 
 /**
-    @title Manages deposited ERC20s.
+    @title Governs allowable ERC20s to deposit using a governable wrapping limit.
     @author Webb Technologies.
     @notice This contract is intended to be used with ERC20Handler contract.
  */
@@ -17,23 +17,33 @@ contract GovernedTokenWrapper is TokenWrapper {
   address[] public tokens;
   mapping (address => bool) valid;
 
-  constructor(string memory name, string memory symbol, address _governor) TokenWrapper(name, symbol) {
+  uint256 public wrappingLimit;
+
+  constructor(string memory name, string memory symbol, address _governor, uint256 _limit) TokenWrapper(name, symbol) {
     governor = _governor;
+    wrappingLimit = _limit;
   }
 
   function setGovernor(address _governor) public onlyGovernor {
     governor = _governor;
   }
 
-  /** @dev this function is defined in a child contract */
-  function _isValid(address tokenAddress) override internal virtual returns (bool) {
+  function _isValidAddress(address tokenAddress) override internal virtual returns (bool) {
     return valid[tokenAddress];
   }
 
+  function _isValidAmount(uint256 amount) override internal virtual returns (bool) {
+    return amount + this.totalSupply() <= wrappingLimit;
+  }
+
   function add(address tokenAddress) public onlyGovernor {
-    require(!valid[tokenAddress], "Token not already be valid");
+    require(!valid[tokenAddress], "Token should not be valid");
     tokens.push(tokenAddress);
     valid[tokenAddress] = true;
+  }
+
+  function updateLimit(uint256 limit) public onlyGovernor {
+    wrappingLimit = limit;
   }
 
   function getTokens() external view returns (address[] memory) {
