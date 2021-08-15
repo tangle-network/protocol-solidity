@@ -53,7 +53,7 @@ contract('GovernedTokenWrapper', (accounts) => {
     await comp.delegate(root);
   });
 
-  it.only('should instantiate the contracts', async () => {
+  it('should instantiate the contracts', async () => {
     const wrapper = await GovernedTokenWrapper.new(name, symbol, gov.address, '1000000000000000000000000');
     assert.strictEqual((await wrapper.name()), name);
     assert.strictEqual((await wrapper.symbol()), symbol);
@@ -62,7 +62,7 @@ contract('GovernedTokenWrapper', (accounts) => {
     assert.strictEqual((await wrapper.totalSupply()).toString(), '0');
   });
 
-  it.only('should not allow adding a token from a non-governor', async () => {
+  it('should not allow adding a token from a non-governor', async () => {
     const wrapper = await GovernedTokenWrapper.new(name, symbol, gov.address, '1000000000000000000000000');
     await TruffleAssert.reverts(
       wrapper.add(address(0), { from: accounts[0] }),
@@ -70,7 +70,7 @@ contract('GovernedTokenWrapper', (accounts) => {
     );
   });
 
-  it.only('should allow adding a token as governor', async () => {
+  it('should allow adding a token as governor', async () => {
     const wrapper = await GovernedTokenWrapper.new(name, symbol, timelock.address, '1000000000000000000000000');
     const token = await CompToken.new('Token', 'TKN');
     targets = [wrapper.address];
@@ -106,7 +106,7 @@ contract('GovernedTokenWrapper', (accounts) => {
     assert.strictEqual((await wrapper.getTokens())[0], token.address);
   });
 
-  it.only('should not allow adding the same token', async () => {
+  it('should not allow adding the same token', async () => {
     const wrapper = await GovernedTokenWrapper.new(name, symbol, timelock.address, '1000000000000000000000000');
     const token = await CompToken.new('Token', 'TKN');
     await helpers.addTokenToWrapper(gov, wrapper, token, root, states);
@@ -115,7 +115,7 @@ contract('GovernedTokenWrapper', (accounts) => {
     );
   });
 
-  it.only('should fail to wrap with no limit', async () => {
+  it('should fail to wrap with no limit', async () => {
     const wrapper = await GovernedTokenWrapper.new(name, symbol, timelock.address, '0');
     const token = await CompToken.new('Token', 'TKN');
 
@@ -133,7 +133,7 @@ contract('GovernedTokenWrapper', (accounts) => {
     );
   });
 
-  it.only('should wrap only after token has been whitelisted', async () => {
+  it('should wrap only after token has been whitelisted', async () => {
     const wrapper = await GovernedTokenWrapper.new(name, symbol, timelock.address, '1000000000000000000000000');
     const token = await CompToken.new('Token', 'TKN');
 
