@@ -153,7 +153,7 @@ contract('GovernedTokenWrapper', (accounts) => {
     assert.strictEqual((await wrapper.totalSupply()).toString(), '1000000000000000000000000');
   });
 
-  it.only('should wrap after increasing limit', async () => {
+  it('should wrap after increasing limit', async () => {
     const wrapper = await GovernedTokenWrapper.new(name, symbol, timelock.address, '0');
     const token = await CompToken.new('Token', 'TKN');
     const amount = '1000000000000000000000000';

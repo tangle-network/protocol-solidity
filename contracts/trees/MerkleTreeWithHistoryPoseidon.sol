@@ -5,14 +5,12 @@
 
 pragma solidity ^0.8.0;
 
-interface IHasher {
-  function MiMCSponge(uint256 in_xL, uint256 in_xR, uint256 key) external view returns (uint256 xL, uint256 xR);
-}
+import "./Hashers.sol";
 
-abstract contract MerkleTreeWithHistory {
+abstract contract MerkleTreeWithHistoryPoseidon {
   uint256 public constant FIELD_SIZE = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
   uint256 public constant ZERO_VALUE = 21663839004416932945382355908790599225266501822907911457504978515578255421292; // = keccak256("tornado") % FIELD_SIZE
-  IHasher public immutable hasher;
+  IPoseidonT3 public immutable hasher;
   uint32 public immutable levels;
 
   // the following variables are made public for easier testing and debugging and
@@ -26,7 +24,7 @@ abstract contract MerkleTreeWithHistory {
   uint32 public currentRootIndex = 0;
   uint32 public nextIndex = 0;
 
-  constructor(uint32 _levels, IHasher _hasher) {
+  constructor(uint32 _levels, IPoseidonT3 _hasher) {
     require(_levels > 0, "_levels should be greater than zero");
     require(_levels < 32, "_levels should be less than 32");
     levels = _levels;
@@ -34,7 +32,7 @@ abstract contract MerkleTreeWithHistory {
   }
 
   /** @dev this function is defined in a child contract */
-  function hashLeftRight(IHasher _hasher, bytes32 _left, bytes32 _right) public virtual returns (bytes32);
+  function hashLeftRight(IPoseidonT3 _hasher, bytes32 _left, bytes32 _right) public virtual returns (bytes32);
 
   function _insert(bytes32 _leaf) internal returns (uint32 index) {
     uint32 _nextIndex = nextIndex;
