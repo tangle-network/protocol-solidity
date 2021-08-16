@@ -29,7 +29,8 @@ abstract contract TokenWrapper is CompToken {
         @param amount Amount of tokens to transfer.
      */
     function wrap(address tokenAddress, uint256 amount) public {
-        require(_isValid(tokenAddress), "Invalid token address");
+        require(_isValidAddress(tokenAddress), "Invalid token address");
+        require(_isValidAmount(amount), "Invalid token amount");
         // transfer liquidity to tthe token wrapper
         IERC20(tokenAddress).transferFrom(msg.sender, address(this), amount);
         // mint the wrapped token for the sender
@@ -42,7 +43,8 @@ abstract contract TokenWrapper is CompToken {
         @param amount Amount of tokens to burn.
      */
     function unwrap(address tokenAddress, uint256 amount) public {
-        require(_isValid(tokenAddress), "Invalid token address");
+        require(_isValidAddress(tokenAddress), "Invalid token address");
+        require(_isValidAmount(amount), "Invalid token amount");
         // burn wrapped token from sender
         burnFrom(msg.sender, amount);
         // transfer liquidity from the token wrapper to the sender
@@ -50,5 +52,8 @@ abstract contract TokenWrapper is CompToken {
     }
 
     /** @dev this function is defined in a child contract */
-    function _isValid(address tokenAddress) internal virtual returns (bool);
+    function _isValidAddress(address tokenAddress) internal virtual returns (bool);
+
+    /** @dev this function is defined in a child contract */
+    function _isValidAmount(uint256 amount) internal virtual returns (bool);
 }
