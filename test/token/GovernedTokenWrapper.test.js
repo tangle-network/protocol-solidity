@@ -152,4 +152,29 @@ contract('GovernedTokenWrapper', (accounts) => {
     );
     assert.strictEqual((await wrapper.totalSupply()).toString(), '1000000000000000000000000');
   });
+
+  it.only('should wrap after increasing limit', async () => {
+    const wrapper = await GovernedTokenWrapper.new(name, symbol, timelock.address, '0');
+    const token = await CompToken.new('Token', 'TKN');
+    const amount = '1000000000000000000000000';
+    await token.mint(root, '10000000000000000000000000');
+    await token.approve(wrapper.address, amount);
+    await TruffleAssert.reverts(
+      wrapper.wrap(token.address, amount),
+      'Invalid token address',
+    );
+
+    await helpers.addTokenToWrapper(gov, wrapper, token, root, states);
+    await TruffleAssert.reverts(
+      wrapper.wrap(token.address, amount),
+      'Invalid token amount',
+    );
+
+    await helpers.increaseWrappingLimit(gov, wrapper, amount, root, states);
+    await TruffleAssert.passes(wrapper.wrap(token.address, amount));
+    await TruffleAssert.reverts(
+      wrapper.wrap(token.address, '1000000000000000000000000'),
+      'Invalid token amount',
+    );
+  });
 });
