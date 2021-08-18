@@ -122,13 +122,13 @@ contract('GovernedTokenWrapper', (accounts) => {
     await token.mint(root, '10000000000000000000000000');
     await token.approve(wrapper.address, '1000000000000000000000000');
     await TruffleAssert.reverts(
-      wrapper.wrap(token.address, '1000000000000000000000000'),
+      wrapper.wrap(root, token.address, '1000000000000000000000000'),
       'Invalid token address',
     );
 
     await helpers.addTokenToWrapper(gov, wrapper, token, root, states);
     await TruffleAssert.reverts(
-      wrapper.wrap(token.address, '1000000000000000000000000'),
+      wrapper.wrap(root, token.address, '1000000000000000000000000'),
       'Invalid token amount',
     );
   });
@@ -140,17 +140,27 @@ contract('GovernedTokenWrapper', (accounts) => {
     await token.mint(root, '10000000000000000000000000');
     await token.approve(wrapper.address, '1000000000000000000000000');
     await TruffleAssert.reverts(
-      wrapper.wrap(token.address, '1000000000000000000000000'),
+      wrapper.wrap(root, token.address, '1000000000000000000000000'),
       'Invalid token address',
     );
 
     await helpers.addTokenToWrapper(gov, wrapper, token, root, states);
-    await TruffleAssert.passes(wrapper.wrap(token.address, '1000000000000000000000000'));
+    await TruffleAssert.passes(wrapper.wrap(root, token.address, '1000000000000000000000000'));
     await TruffleAssert.reverts(
-      wrapper.wrap(token.address, '1000000000000000000000000'),
+      wrapper.wrap(root, token.address, '1000000000000000000000000'),
       'Invalid token amount',
     );
     assert.strictEqual((await wrapper.totalSupply()).toString(), '1000000000000000000000000');
+  });
+
+  it('should fail if wrapper does not have minter role', async () => {
+    const wrapper = await GovernedTokenWrapper.new(name, symbol, timelock.address, '1000000000000000000000000', {from: accounts[9]});
+    const token = await CompToken.new('Token', 'TKN');
+
+    await token.mint(acct, '10000000000000000000000000');
+    await token.approve(wrapper.address, '1000000000000000000000000', {from: acct});
+    await helpers.addTokenToWrapper(gov, wrapper, token, root, states);
+    await TruffleAssert.reverts(wrapper.wrap(acct, token.address, '1000000000000000000000000', {from: acct}), 'ERC20PresetMinterPauser: must have minter role');
   });
 
   it('should wrap after increasing limit', async () => {
@@ -160,20 +170,20 @@ contract('GovernedTokenWrapper', (accounts) => {
     await token.mint(root, '10000000000000000000000000');
     await token.approve(wrapper.address, amount);
     await TruffleAssert.reverts(
-      wrapper.wrap(token.address, amount),
+      wrapper.wrap(root, token.address, amount),
       'Invalid token address',
     );
 
     await helpers.addTokenToWrapper(gov, wrapper, token, root, states);
     await TruffleAssert.reverts(
-      wrapper.wrap(token.address, amount),
+      wrapper.wrap(root, token.address, amount),
       'Invalid token amount',
     );
 
     await helpers.increaseWrappingLimit(gov, wrapper, amount, root, states);
-    await TruffleAssert.passes(wrapper.wrap(token.address, amount));
+    await TruffleAssert.passes(wrapper.wrap(root, token.address, amount));
     await TruffleAssert.reverts(
-      wrapper.wrap(token.address, '1000000000000000000000000'),
+      wrapper.wrap(root, token.address, '1000000000000000000000000'),
       'Invalid token amount',
     );
   });

@@ -3,12 +3,12 @@ const Ethers = require('ethers');
 const helpers = require('../helpers');
 const { toBN } = require('web3-utils')
 const assert = require('assert');
-const BridgeContract = artifacts.require("Bridge");
-const LinkableAnchorContract = artifacts.require("./LinkableERC20AnchorPoseidon2.sol");
+const BridgeContract = artifacts.require('Bridge');
+const LinkableAnchorContract = artifacts.require('./LinkableERC20AnchorPoseidon2.sol');
 const Verifier = artifacts.require('./VerifierPoseidonBridge.sol');
-const Hasher = artifacts.require("PoseidonT3");
-const Token = artifacts.require("ERC20Mock");
-const AnchorHandlerContract = artifacts.require("AnchorHandler");
+const Hasher = artifacts.require('PoseidonT3');
+const Token = artifacts.require('ERC20Mock');
+const AnchorHandlerContract = artifacts.require('AnchorHandler');
 
 const fs = require('fs')
 const path = require('path');
@@ -17,23 +17,22 @@ let prefix = 'poseidon-test'
 const snarkjs = require('snarkjs');
 const BN = require('bn.js');
 const F = require('circomlib').babyJub.F;
-const Scalar = require("ffjavascript").Scalar;
+const Scalar = require('ffjavascript').Scalar;
 const MerkleTree = require('../../lib/MerkleTree');
 
 
 contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
-  const relayerThreshold = 2;
+  const relayerThreshold = 1;
   const originChainID = 1;
   const destChainID = 2;
   const relayer1Address = accounts[3];
   const relayer2Address = accounts[4];
   const operator = accounts[6];
-
   const initialTokenMintAmount = BigInt(1e25);
+  const tokenDenomination = '1000000000000000000000'; 
   const maxRoots = 1;
   const merkleTreeHeight = 30;
   const sender = accounts[5];
-
   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
   const refund = BigInt((new BN('0')).toString());
   const recipient = helpers.getRandomRecipient();
@@ -49,7 +48,6 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
   let destChainToken;
   let originDeposit;
   let destDeposit;
-  let tokenDenomination = '1000000000000000000000'; 
   let tree;
   let createWitness;
   let OriginBridgeInstance;
@@ -70,8 +68,8 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
   beforeEach(async () => {
     await Promise.all([
       // instantiate bridges on both sides
-      BridgeContract.new(originChainID, [relayer1Address, relayer2Address], relayerThreshold, 0, 100).then(instance => OriginBridgeInstance = instance),
-      BridgeContract.new(destChainID, [relayer1Address, relayer2Address], relayerThreshold, 0, 100).then(instance => DestBridgeInstance = instance),
+      BridgeContract.new(originChainID, [relayer1Address], relayerThreshold, 0, 100).then(instance => OriginBridgeInstance = instance),
+      BridgeContract.new(destChainID, [relayer1Address], relayerThreshold, 0, 100).then(instance => DestBridgeInstance = instance),
       // create hasher, verifier, and tokens
       Hasher.new().then(instance => hasher = instance),
       Verifier.new().then(instance => verifier = instance),
@@ -121,11 +119,11 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     ]);
 
     createWitness = async (data) => {
-      const wtns = {type: "mem"};
+      const wtns = {type: 'mem'};
       await snarkjs.wtns.calculate(data, path.join(
-        "test",
-        "fixtures",
-        "poseidon_bridge_2.wasm"
+        'test',
+        'fixtures',
+        'poseidon_bridge_2.wasm'
       ), wtns);
       return wtns;
     }
@@ -137,15 +135,15 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
   it('[sanity] bridges configured with threshold and relayers', async () => {
     assert.equal(await OriginBridgeInstance._chainID(), originChainID);
     assert.equal(await OriginBridgeInstance._relayerThreshold(), relayerThreshold)
-    assert.equal((await OriginBridgeInstance._totalRelayers()).toString(), '2')
+    assert.equal((await OriginBridgeInstance._totalRelayers()).toString(), '1')
     assert.equal(await DestBridgeInstance._chainID(), destChainID)
     assert.equal(await DestBridgeInstance._relayerThreshold(), relayerThreshold)
-    assert.equal((await DestBridgeInstance._totalRelayers()).toString(), '2')
+    assert.equal((await DestBridgeInstance._totalRelayers()).toString(), '1')
   })
 
   it('withdrawals on both chains integration', async () => {
     /*
-    *  User deposits on origin chain
+    *  sender deposits on origin chain
     */
     // minting Tokens
     await originChainToken.mint(sender, initialTokenMintAmount);
@@ -172,17 +170,6 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
       originDepositDataHash,
       { from: relayer1Address }
     ));
-
-    // relayer2 votes in favor of the update proposal
-    // because the relayerThreshold is 2, the deposit proposal will become passed
-    await TruffleAssert.passes(DestBridgeInstance.voteProposal(
-      originChainID,
-      originUpdateNonce,
-      resourceID,
-      originDepositDataHash,
-      { from: relayer2Address }
-    ));
-
     // relayer1 will execute the deposit proposal
     await TruffleAssert.passes(DestBridgeInstance.executeProposal(
       originChainID,
@@ -191,7 +178,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
       resourceID,
       { from: relayer1Address }
     ));
-    
+
     const destNeighborRoots = await DestChainLinkableAnchorInstance.getLatestNeighborRoots();
     assert.strictEqual(destNeighborRoots.length, maxRoots);
     assert.strictEqual(destNeighborRoots[0], originMerkleRoot);
@@ -199,10 +186,10 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     let balanceOperatorBefore = await destChainToken.balanceOf(operator);
     let balanceReceiverBefore = await destChainToken.balanceOf(helpers.toFixedHex(recipient, 20));
     /*
-    *  User generates proof
+    *  sender generates proof
     */
     await tree.insert(originDeposit.commitment);
-    
+
     let { root, path_elements, path_index } = await tree.path(0);
     const destNativeRoot = await DestChainLinkableAnchorInstance.getLastRoot();
     let input = {
@@ -235,10 +222,6 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     let vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/circuit_final.zkey');
     res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
     assert.strictEqual(res, true);
-
-    let isSpent = await DestChainLinkableAnchorInstance.isSpent(helpers.toFixedHex(input.nullifierHash));
-    assert.strictEqual(isSpent, false);
-
     let args = [
       helpers.createRootsBytes(input.roots),
       helpers.toFixedHex(input.nullifierHash),
@@ -248,33 +231,9 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
       helpers.toFixedHex(input.refund),
     ];
 
-    let result = await helpers.groth16ExportSolidityCallData(proof, publicSignals);
-    let fullProof = JSON.parse("[" + result + "]");
-    let pi_a = fullProof[0];
-    let pi_b = fullProof[1];
-    let pi_c = fullProof[2];
-    let inputs = fullProof[3];
-    assert.strictEqual(true, await verifier.verifyProof(
-      pi_a,
-      pi_b,
-      pi_c,
-      inputs,
-    ));
-
-    proofEncoded = [
-      pi_a[0],
-      pi_a[1],
-      pi_b[0][0],
-      pi_b[0][1],
-      pi_b[1][0],
-      pi_b[1][1],
-      pi_c[0],
-      pi_c[1],
-    ]
-    .map(elt => elt.substr(2))
-    .join('');
+    let proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
     /*
-    *  withdraw on dest chain
+    *  sender withdraws on dest chain
     */
     await destChainToken.mint(DestChainLinkableAnchorInstance.address, initialTokenMintAmount);
     let balanceDestAnchorAfterDeposit = await destChainToken.balanceOf(DestChainLinkableAnchorInstance.address);
@@ -288,15 +247,11 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     assert.strictEqual(balanceDestAnchorAfter.toString(), balanceDestAnchorAfterDeposit.sub(toBN(tokenDenomination)).toString());
     assert.strictEqual(balanceOperatorAfter.toString(), balanceOperatorBefore.add(feeBN).toString());
     assert.strictEqual(balanceReceiverAfter.toString(), balanceReceiverBefore.add(toBN(tokenDenomination)).sub(feeBN).toString());
-    
-    assert.strictEqual(logs[0].event, 'Withdrawal');
-    assert.strictEqual(logs[0].args.nullifierHash, helpers.toFixedHex(input.nullifierHash));
-    assert.strictEqual(logs[0].args.relayer, operator);
-    assert.strictEqual(logs[0].args.fee.toString(), feeBN.toString());
+
     isSpent = await DestChainLinkableAnchorInstance.isSpent(helpers.toFixedHex(input.nullifierHash));
     assert(isSpent);
     /*
-    *  deposit on dest chain
+    *  sender deposit on dest chain
     */
     // minting Tokens
     await destChainToken.mint(sender, initialTokenMintAmount);
@@ -323,17 +278,6 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
       destDepositDataHash,
       { from: relayer1Address }
     ));
-
-    // relayer2 votes in favor of the update proposal
-    // because the relayerThreshold is 2, the update proposal will become passed
-    await TruffleAssert.passes(OriginBridgeInstance.voteProposal(
-      destChainID,
-      destUpdateNonce,
-      resourceID,
-      destDepositDataHash,
-      { from: relayer2Address }
-    ));
-
     // relayer1 will execute the update proposal
     await TruffleAssert.passes(OriginBridgeInstance.executeProposal(
       destChainID,
@@ -349,11 +293,11 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     balanceOperatorBefore = await originChainToken.balanceOf(operator);
     balanceReceiverBefore = await originChainToken.balanceOf(helpers.toFixedHex(recipient, 20));
     /*
-    *  generate proof
+    *  sender generates proof
     */
     tree = new MerkleTree(merkleTreeHeight, null, prefix)  
     await tree.insert(destDeposit.commitment);
-    
+
     ({ root, path_elements, path_index } = await tree.path(0));
     const originNativeRoot = await OriginChainLinkableAnchorInstance.getLastRoot();
     input = {
@@ -386,10 +330,6 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/circuit_final.zkey');
     res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
     assert.strictEqual(res, true);
-
-    isSpent = await DestChainLinkableAnchorInstance.isSpent(helpers.toFixedHex(input.nullifierHash));
-    assert.strictEqual(isSpent, false);
-
     args = [
       helpers.createRootsBytes(input.roots),
       helpers.toFixedHex(input.nullifierHash),
@@ -399,33 +339,9 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
       helpers.toFixedHex(input.refund),
     ];
 
-    result = await helpers.groth16ExportSolidityCallData(proof, publicSignals);
-    fullProof = JSON.parse("[" + result + "]");
-    pi_a = fullProof[0];
-    pi_b = fullProof[1];
-    pi_c = fullProof[2];
-    inputs = fullProof[3];
-    assert.strictEqual(true, await verifier.verifyProof(
-      pi_a,
-      pi_b,
-      pi_c,
-      inputs,
-    ));
-
-    proofEncoded = [
-      pi_a[0],
-      pi_a[1],
-      pi_b[0][0],
-      pi_b[0][1],
-      pi_b[1][0],
-      pi_b[1][1],
-      pi_c[0],
-      pi_c[1],
-    ]
-    .map(elt => elt.substr(2))
-    .join('');
+    proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
     /*
-    *  withdraw on origin chain
+    *  sender withdraws on origin chain
     */
     await originChainToken.mint(OriginChainLinkableAnchorInstance.address, initialTokenMintAmount);
     let balanceOriginAnchorAfterDeposit = await originChainToken.balanceOf(OriginChainLinkableAnchorInstance.address);
@@ -439,11 +355,6 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     assert.strictEqual(balanceOriginAnchorAfter.toString(), balanceOriginAnchorAfterDeposit.sub(toBN(tokenDenomination)).toString());
     assert.strictEqual(balanceOperatorAfter.toString(), balanceOperatorBefore.add(feeBN).toString());
     assert.strictEqual(balanceReceiverAfter.toString(), balanceReceiverBefore.add(toBN(tokenDenomination)).sub(feeBN).toString());
-    
-    assert.strictEqual(logs[0].event, 'Withdrawal');
-    assert.strictEqual(logs[0].args.nullifierHash, helpers.toFixedHex(input.nullifierHash));
-    assert.strictEqual(logs[0].args.relayer, operator);
-    assert.strictEqual(logs[0].args.fee.toString(), feeBN.toString());
     isSpent = await OriginChainLinkableAnchorInstance.isSpent(helpers.toFixedHex(input.nullifierHash));
     assert(isSpent);
 

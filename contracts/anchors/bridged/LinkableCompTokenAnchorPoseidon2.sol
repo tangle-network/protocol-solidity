@@ -5,7 +5,7 @@
 
 pragma solidity ^0.8.0;
 
-import "../../interfaces/IMintableCompToken.sol";
+import "../../tokens/TokenWrapper.sol";
 import "./LinkableAnchorPoseidon2.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -20,9 +20,17 @@ contract LinkableCompTokenAnchorPoseidon2 is LinkableAnchorPoseidon2 {
     uint256 _denomination,
     uint32 _merkleTreeHeight,
     uint32 _chainID,
-    IMintableCompToken _token
+    TokenWrapper _token
   ) LinkableAnchorPoseidon2(_verifier, _hasher, _denomination, _merkleTreeHeight, _chainID) {
     token = address(_token);
+  }
+  
+  function wrap(address tokenAddress, uint256 amount) public {
+    TokenWrapper(token).wrap(msg.sender, tokenAddress, amount);
+  }
+
+  function unwrap(address tokenAddress, uint256 amount) public {
+    TokenWrapper(token).unwrap(msg.sender, tokenAddress, amount);
   }
 
   function _processDeposit() internal override {

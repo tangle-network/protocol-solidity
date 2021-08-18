@@ -28,13 +28,14 @@ abstract contract TokenWrapper is CompToken {
         @param tokenAddress Address of ERC20 to transfer.
         @param amount Amount of tokens to transfer.
      */
-    function wrap(address tokenAddress, uint256 amount) public {
+    function wrap(address sender, address tokenAddress, uint256 amount) public {
+        require(hasRole(MINTER_ROLE, msg.sender), "ERC20PresetMinterPauser: must have minter role");
         require(_isValidAddress(tokenAddress), "Invalid token address");
         require(_isValidAmount(amount), "Invalid token amount");
-        // transfer liquidity to tthe token wrapper
-        IERC20(tokenAddress).transferFrom(msg.sender, address(this), amount);
+        // transfer liquidity to the token wrapper
+        IERC20(tokenAddress).transferFrom(sender, address(this), amount);
         // mint the wrapped token for the sender
-        mint(msg.sender, amount);
+        mint(sender, amount);
     }
 
     /**
@@ -42,13 +43,14 @@ abstract contract TokenWrapper is CompToken {
         @param tokenAddress Address of ERC20 to unwrap into.
         @param amount Amount of tokens to burn.
      */
-    function unwrap(address tokenAddress, uint256 amount) public {
+    function unwrap(address sender, address tokenAddress, uint256 amount) public {
+        require(hasRole(MINTER_ROLE, msg.sender), "ERC20PresetMinterPauser: must have minter role");
         require(_isValidAddress(tokenAddress), "Invalid token address");
         require(_isValidAmount(amount), "Invalid token amount");
         // burn wrapped token from sender
-        burnFrom(msg.sender, amount);
+        burnFrom(sender, amount);
         // transfer liquidity from the token wrapper to the sender
-        ERC20PresetMinterPauser(tokenAddress).transferFrom(address(this), msg.sender, amount);
+        IERC20(tokenAddress).transfer(sender, amount);
     }
 
     /** @dev this function is defined in a child contract */
