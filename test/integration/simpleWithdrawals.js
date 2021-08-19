@@ -26,7 +26,6 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
   const originChainID = 1;
   const destChainID = 2;
   const relayer1Address = accounts[3];
-  const relayer2Address = accounts[4];
   const operator = accounts[6];
   const initialTokenMintAmount = BigInt(1e25);
   const tokenDenomination = '1000000000000000000000'; 
@@ -179,15 +178,13 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
       { from: relayer1Address }
     ));
 
-    const destNeighborRoots = await DestChainLinkableAnchorInstance.getLatestNeighborRoots();
-    assert.strictEqual(destNeighborRoots.length, maxRoots);
-    assert.strictEqual(destNeighborRoots[0], originMerkleRoot);
     // check initial balances
     let balanceOperatorBefore = await destChainToken.balanceOf(operator);
     let balanceReceiverBefore = await destChainToken.balanceOf(helpers.toFixedHex(recipient, 20));
     /*
     *  sender generates proof
     */
+    const destNeighborRoots = await DestChainLinkableAnchorInstance.getLatestNeighborRoots();
     await tree.insert(originDeposit.commitment);
 
     let { root, path_elements, path_index } = await tree.path(0);

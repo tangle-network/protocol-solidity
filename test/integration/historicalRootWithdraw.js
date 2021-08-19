@@ -29,7 +29,6 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
   const operator = accounts[6];
   const initialTokenMintAmount = BigInt(1e25);
   const tokenDenomination = '1000000000000000000000';
-  const maxRoots = 1;
   const merkleTreeHeight = 30;
   const sender = accounts[5];
   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
@@ -154,7 +153,6 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
       resourceID,
       { from: relayer1Address }
     ));
-
     /*
     *  sender generate proof
     */

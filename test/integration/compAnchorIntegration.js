@@ -282,16 +282,13 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
         ).toString();
       }),
     };
-
     let wtns = await createWitness(input);
-
     let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
     proof = res.proof;
     publicSignals = res.publicSignals;
     let vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/circuit_final.zkey');
     res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
     assert.strictEqual(res, true);
-
     let args = [
       helpers.createRootsBytes(input.roots),
       helpers.toFixedHex(input.nullifierHash),
@@ -300,14 +297,10 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
       helpers.toFixedHex(input.fee),
       helpers.toFixedHex(input.refund),
     ];
-
     let proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
-    
     // revoke anchor permissions
     await destWrapperToken.revokeRole(MINTER_ROLE, DestChainLinkableAnchorInstance.address, {from: sender});
-    /*
-    *  user1 withdraw on dest chain
-    */
+    // user1 withdraw on dest chain
     await TruffleAssert.reverts(DestChainLinkableAnchorInstance.withdraw
       (`0x${proofEncoded}`, ...args, { from: input.relayer, gasPrice: '0' }), 'ERC20PresetMinterPauser: must have minter role');
   })
@@ -319,7 +312,9 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     *  User1 wraps originToken for originWrapperToken
     */
     await originToken.mint(user1, initialTokenMintAmount);
+    // approve wrapper to transfer user1's originTokens
     await originToken.approve(originWrapperToken.address, initialTokenMintAmount, {from: user1});
+    // approve anchor for deposit
     await originWrapperToken.approve(OriginChainLinkableAnchorInstance.address, initialTokenMintAmount, {from: user1});
     await OriginChainLinkableAnchorInstance.wrap(originToken.address, tokenDenomination, {from: user1});
     /*
