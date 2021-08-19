@@ -434,7 +434,7 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     await destWrapperToken.approve(DestChainLinkableAnchorInstance.address, initialTokenMintAmount, {from: user2});
     await DestChainLinkableAnchorInstance.wrap(destToken.address, tokenDenomination, {from: user2});
     /*
-    *  user1 uwraps destWrapperToken for destToken with new liquidity
+    *  User1 unwraps destWrapperToken for destToken with new liquidity
     */
     await DestChainLinkableAnchorInstance.unwrap(destToken.address, balanceUser1AfterUnwrap, {from: user1});
     let balanceUser1AfterUnwrapUnwrap = await destToken.balanceOf(user1);
