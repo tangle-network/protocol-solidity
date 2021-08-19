@@ -24,8 +24,8 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
 
   IVerifier public immutable verifier;
   uint256 public immutable denomination;
-
   uint256 public immutable chainID;
+
   struct Edge {
     uint256 chainID;
     bytes32 root;
@@ -47,8 +47,6 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
   // map to store all commitments to prevent accidental deposits with the same commitment
   mapping(bytes32 => bool) public commitments;
 
-  // map to store the history of root updates
-  mapping(uint => bytes32[]) public rootHistory;
 
   // the latest history index that represents the next index to store history
   uint latestHistoryIndex;
@@ -81,8 +79,6 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
     denomination = _denomination;
     chainID = _chainID;
     latestHistoryIndex = 0;
-    // TODO: Parameterize max roots (length of array should be max roots)
-    rootHistory[latestHistoryIndex] = new bytes32[](1);
   }
 
   /**
