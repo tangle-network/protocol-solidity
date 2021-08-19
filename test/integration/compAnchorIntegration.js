@@ -546,7 +546,7 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     isSpent = await OriginChainLinkableAnchorInstance.isSpent(helpers.toFixedHex(input.nullifierHash));
     assert(isSpent);
     /*
-    *  user2 uwraps originWrapperToken for originToken
+    *  User2 unwraps originWrapperToken for originToken
     */
     //increase allowance for burn
     await originWrapperToken.approve(OriginChainLinkableAnchorInstance.address, initialTokenMintAmount, {from: user2});
