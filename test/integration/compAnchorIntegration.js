@@ -217,7 +217,9 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     *  User1 wraps originToken for originWrapperToken
     */
     await originToken.mint(user1, initialTokenMintAmount);
+    // approve wrapper to transfer originToken from user1 to wrap
     await originToken.approve(originWrapperToken.address, initialTokenMintAmount, {from: user1});
+    // approve anchor to transfer originWrapperToken from user1 to itself for deposit
     await originWrapperToken.approve(OriginChainLinkableAnchorInstance.address, initialTokenMintAmount, {from: user1});
     await OriginChainLinkableAnchorInstance.wrap(originToken.address, tokenDenomination, {from: user1});
     /*
@@ -531,7 +533,6 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     /*
     *  user1 withdraw on origin chain
     */
-    let balanceOriginAnchorAfterDeposit = await originWrapperToken.balanceOf(OriginChainLinkableAnchorInstance.address);
     ({ logs } = await OriginChainLinkableAnchorInstance.withdraw
       (`0x${proofEncoded}`, ...args, { from: input.relayer, gasPrice: '0' }));
     

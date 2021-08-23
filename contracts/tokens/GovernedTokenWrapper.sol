@@ -28,11 +28,11 @@ contract GovernedTokenWrapper is TokenWrapper {
     governor = _governor;
   }
 
-  function _isValidAddress(address tokenAddress) override internal virtual returns (bool) {
+  function isValidAddress(address tokenAddress) override public virtual returns (bool) {
     return valid[tokenAddress];
   }
 
-  function _isValidAmount(uint256 amount) override internal virtual returns (bool) {
+  function isValidAmount(uint256 amount) override public virtual returns (bool) {
     return amount + this.totalSupply() <= wrappingLimit;
   }
 

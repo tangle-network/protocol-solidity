@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import "../interfaces/ITokenWrapper.sol";
 import "./CompToken.sol";
 
 /**
@@ -17,7 +18,7 @@ import "./CompToken.sol";
     @author ChainSafe Systems.
     @notice This contract is intended to be used with ERC20Handler contract.
  */
-abstract contract TokenWrapper is CompToken {
+abstract contract TokenWrapper is CompToken, ITokenWrapper {
     using SafeMath for uint256;
 
     constructor(string memory name, string memory symbol)
@@ -25,13 +26,14 @@ abstract contract TokenWrapper is CompToken {
 
     /**
         @notice Used to transfer tokens into the safe to fund proposals.
+        @param sender address which wraps and unwraps tokens
         @param tokenAddress Address of ERC20 to transfer.
         @param amount Amount of tokens to transfer.
      */
-    function wrap(address sender, address tokenAddress, uint256 amount) public {
+    function wrap(address sender, address tokenAddress, uint256 amount) public override{
         require(hasRole(MINTER_ROLE, msg.sender), "ERC20PresetMinterPauser: must have minter role");
-        require(_isValidAddress(tokenAddress), "Invalid token address");
-        require(_isValidAmount(amount), "Invalid token amount");
+        require(isValidAddress(tokenAddress), "Invalid token address");
+        require(isValidAmount(amount), "Invalid token amount");
         // transfer liquidity to the token wrapper
         IERC20(tokenAddress).transferFrom(sender, address(this), amount);
         // mint the wrapped token for the sender
@@ -39,14 +41,44 @@ abstract contract TokenWrapper is CompToken {
     }
 
     /**
+        @notice Used to transfer tokens wrapped tokens into the anchor on deposit.
+        @param sender Address anchor user.
+        @param input struct containing tokenaddress and denomination amount.
+     */
+    function wrapAndDeposit(address sender, WrapAndDepositInput memory input) public override {
+        require(hasRole(MINTER_ROLE, msg.sender), "ERC20PresetMinterPauser: must have minter role");
+        require(isValidAddress(input.tokenAddress), "Invalid token address");
+        require(isValidAmount(input.amount), "Invalid token amount");
+        // transfer liquidity to the token wrapper
+        IERC20(input.tokenAddress).transferFrom(sender, address(this), input.amount);
+        // mint the wrapped token for the sender
+        mint(msg.sender, input.amount);
+    }
+    
+    /**
         @notice Used to unwrap/burn the wrapper token.
         @param tokenAddress Address of ERC20 to unwrap into.
         @param amount Amount of tokens to burn.
      */
-    function unwrap(address sender, address tokenAddress, uint256 amount) public {
+    function unwrap(address sender, address tokenAddress, uint256 amount) public override {
         require(hasRole(MINTER_ROLE, msg.sender), "ERC20PresetMinterPauser: must have minter role");
-        require(_isValidAddress(tokenAddress), "Invalid token address");
-        require(_isValidAmount(amount), "Invalid token amount");
+        require(isValidAddress(tokenAddress), "Invalid token address");
+        require(isValidAmount(amount), "Invalid token amount");
+        // burn wrapped token from sender
+        burnFrom(sender, amount);
+        // transfer liquidity from the token wrapper to the sender
+        IERC20(tokenAddress).transfer(sender, amount);
+    }
+
+    /**
+        @notice Used to unwrap/burn the wrapper token.
+        @param tokenAddress Address of ERC20 to unwrap into.
+        @param amount Amount of tokens to burn.
+     */
+    function withdrawAndUnwrap(address sender, address tokenAddress, uint256 amount) public override {
+        require(hasRole(MINTER_ROLE, msg.sender), "ERC20PresetMinterPauser: must have minter role");
+        require(isValidAddress(tokenAddress), "Invalid token address");
+        require(isValidAmount(amount), "Invalid token amount");
         // burn wrapped token from sender
         burnFrom(sender, amount);
         // transfer liquidity from the token wrapper to the sender
@@ -54,8 +86,8 @@ abstract contract TokenWrapper is CompToken {
     }
 
     /** @dev this function is defined in a child contract */
-    function _isValidAddress(address tokenAddress) internal virtual returns (bool);
+    function isValidAddress(address tokenAddress) public virtual override returns (bool);
 
     /** @dev this function is defined in a child contract */
-    function _isValidAmount(uint256 amount) internal virtual returns (bool);
+    function isValidAmount(uint256 amount) public virtual override returns (bool);
 }
