@@ -5,7 +5,7 @@
 
 pragma solidity ^0.8.0;
 
-import "../../trees/MerkleTreePoseidon.sol";
+import "../../../trees/MerkleTreePoseidon.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 interface IVerifier {
@@ -17,7 +17,7 @@ interface IVerifier {
   ) external view returns (bool r);
 }
 
-abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
+abstract contract AnchorBase2 is MerkleTreePoseidon, ReentrancyGuard {
   address public bridge;
   address public admin;
   address public handler;

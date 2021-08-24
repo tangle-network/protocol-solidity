@@ -8,7 +8,7 @@ const assert = require('assert');
 const fs = require('fs')
 const path = require('path');
 const { toBN, randomHex } = require('web3-utils')
-const LinkableAnchorContract = artifacts.require('./LinkableERC20AnchorPoseidon2.sol');
+const Anchor = artifacts.require('./Anchor2.sol');
 const VerifierPoseidonBridge = artifacts.require('./VerifierPoseidonBridge.sol');
 const Poseidon = artifacts.require('PoseidonT3');
 const Token = artifacts.require("ERC20Mock");
@@ -23,7 +23,7 @@ const helpers = require('../helpers');
 
 const MerkleTree = require('../../lib/MerkleTree');
 
-contract('AnchorPoseidon2', (accounts) => {
+contract('Anchor2', (accounts) => {
   let anchor
   const sender = accounts[0]
   const operator = accounts[0]
@@ -48,24 +48,27 @@ contract('AnchorPoseidon2', (accounts) => {
     token = await Token.new();
     await token.mint(sender, new BN('10000000000000000000000'));
     const balanceOfSender = await token.balanceOf.call(sender);
-    anchor = await LinkableAnchorContract.new(
+    anchor = await Anchor.new(
       verifier.address,
       hasherInstance.address,
       tokenDenomination,
       levels,
       chainID,
       token.address,
+      sender,
+      sender,
+      sender,
     );
 
-    setHandler = (handler, _sender) => LinkableAnchorInstance.setHandler(handler, {
+    setHandler = (handler, _sender) => AnchorInstance.setHandler(handler, {
       from: _sender
     });
 
-    setBridge = (bridge, _sender) => LinkableAnchorInstance.setBridge(bridge, {
+    setBridge = (bridge, _sender) => AnchorInstance.setBridge(bridge, {
       from: _sender
     });
 
-    addEdge = (edge, _sender) => LinkableAnchorInstance.addEdge(
+    addEdge = (edge, _sender) => AnchorInstance.addEdge(
       edge.destChainID,
       edge.destResourceID,
       edge.root,
@@ -73,7 +76,7 @@ contract('AnchorPoseidon2', (accounts) => {
       { from: _sender }
     )
 
-    updateEdge = (edge, _sender) => LinkableAnchorInstance.updateEdge(
+    updateEdge = (edge, _sender) => AnchorInstance.updateEdge(
       edge.destChainID,
       edge.destResourceID,
       edge.root,

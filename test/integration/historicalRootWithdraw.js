@@ -4,7 +4,7 @@ const helpers = require('../helpers');
 const { toBN } = require('web3-utils')
 const assert = require('assert');
 const BridgeContract = artifacts.require('Bridge');
-const LinkableAnchorContract = artifacts.require('./LinkableERC20AnchorPoseidon2.sol');
+const Anchor = artifacts.require('./Anchor2.sol');
 const Verifier = artifacts.require('./VerifierPoseidonBridge.sol');
 const Hasher = artifacts.require('PoseidonT3');
 const Token = artifacts.require('ERC20Mock');
@@ -44,13 +44,13 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
   let originDeposit; 
   let tree;
   let createWitness;
-  let OriginChainLinkableAnchorInstance;
+  let OriginChainAnchorInstance;
   let originDepositData;
   let originDepositDataHash;
   let resourceID;
   let initialResourceIDs;
   let DestBridgeInstance;
-  let DestChainLinkableAnchorInstance
+  let DestChainAnchorInstance
   let DestAnchorHandlerInstance;
   let destInitialContractAddresses;
 
@@ -65,37 +65,43 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
       Token.new().then(instance => destChainToken = instance),
     ]);
     // initialize anchors on both chains
-    OriginChainLinkableAnchorInstance = await LinkableAnchorContract.new(
+    OriginChainAnchorInstance = await Anchor.new(
       verifier.address,
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
       originChainID,
       originChainToken.address,
+      sender,
+      sender,
+      sender,
     {from: sender});
-    DestChainLinkableAnchorInstance = await LinkableAnchorContract.new(
+    DestChainAnchorInstance = await Anchor.new(
       verifier.address,
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
       destChainID,
       destChainToken.address,
+      sender,
+      sender,
+      sender,
     {from: sender});
     // create resource ID using anchor address
-    resourceID = helpers.createResourceID(OriginChainLinkableAnchorInstance.address, 0);
+    resourceID = helpers.createResourceID(OriginChainAnchorInstance.address, 0);
     initialResourceIDs = [resourceID];
-    destInitialContractAddresses = [OriginChainLinkableAnchorInstance.address];
+    destInitialContractAddresses = [OriginChainAnchorInstance.address];
     // initialize anchorHanders 
     await Promise.all([
       AnchorHandlerContract.new(DestBridgeInstance.address, initialResourceIDs, destInitialContractAddresses)
         .then(instance => DestAnchorHandlerInstance = instance),
     ]);
     // increase allowance and set resources for bridge
-    await DestBridgeInstance.adminSetResource(DestAnchorHandlerInstance.address, resourceID, DestChainLinkableAnchorInstance.address)
+    await DestBridgeInstance.adminSetResource(DestAnchorHandlerInstance.address, resourceID, DestChainAnchorInstance.address)
      // set bridge and handler permissions for anchor
     await Promise.all([
-      DestChainLinkableAnchorInstance.setHandler(DestAnchorHandlerInstance.address, {from: sender}),
-      DestChainLinkableAnchorInstance.setBridge(DestBridgeInstance.address, {from: sender})
+      DestChainAnchorInstance.setHandler(DestAnchorHandlerInstance.address, {from: sender}),
+      DestChainAnchorInstance.setBridge(DestBridgeInstance.address, {from: sender})
     ]);
 
     createWitness = async (data) => {
@@ -125,13 +131,13 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     // minting Tokens
     await originChainToken.mint(sender, initialTokenMintAmount);
     //increase allowance
-    originChainToken.approve(OriginChainLinkableAnchorInstance.address, initialTokenMintAmount, { from: sender });
+    originChainToken.approve(OriginChainAnchorInstance.address, initialTokenMintAmount, { from: sender });
     // deposit on both chains and define nonces based on events emmited
     let firstOriginDeposit = helpers.generateDeposit(destChainID);
-    let { logs } = await OriginChainLinkableAnchorInstance.deposit(
+    let { logs } = await OriginChainAnchorInstance.deposit(
       helpers.toFixedHex(firstOriginDeposit.commitment), {from: sender});
     originUpdateNonce = logs[0].args.leafIndex;
-    firstWithdrawlMerkleRoot = await OriginChainLinkableAnchorInstance.getLastRoot();
+    firstWithdrawlMerkleRoot = await OriginChainAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on origin chain
     originDepositData = helpers.createUpdateProposalData(originChainID, originBlockHeight, firstWithdrawlMerkleRoot);
     originDepositDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originDepositData.substr(2));
@@ -161,8 +167,8 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
   
     let { root, path_elements, path_index } = await tree.path(0);
 
-    const destNativeRoot = await DestChainLinkableAnchorInstance.getLastRoot();
-    const firstWithdrawalNeighborRoots = await DestChainLinkableAnchorInstance.getLatestNeighborRoots();
+    const destNativeRoot = await DestChainAnchorInstance.getLastRoot();
+    const firstWithdrawalNeighborRoots = await DestChainAnchorInstance.getLatestNeighborRoots();
     let input = {
       // public
       nullifierHash: firstOriginDeposit.nullifierHash,
@@ -212,9 +218,9 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     */
     // deposit on origin chain and define nonce based on events emmited
     originDeposit = helpers.generateDeposit(destChainID, 30);
-    ({ logs } = await OriginChainLinkableAnchorInstance.deposit(helpers.toFixedHex(originDeposit.commitment), {from: sender}));
+    ({ logs } = await OriginChainAnchorInstance.deposit(helpers.toFixedHex(originDeposit.commitment), {from: sender}));
     originUpdateNonce = logs[0].args.leafIndex;
-    secondWithdrawalMerkleRoot = await OriginChainLinkableAnchorInstance.getLastRoot();
+    secondWithdrawalMerkleRoot = await OriginChainAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on origin chain
     originDepositData = helpers.createUpdateProposalData(originChainID, originBlockHeight + 10, secondWithdrawalMerkleRoot);
     originDepositDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originDepositData.substr(2));
@@ -246,20 +252,20 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     *  sender withdraws using first commitment
     */
     // mint to anchor and track balance
-    await destChainToken.mint(DestChainLinkableAnchorInstance.address, initialTokenMintAmount);
-    let balanceDestAnchorAfterDeposits = await destChainToken.balanceOf(DestChainLinkableAnchorInstance.address);
+    await destChainToken.mint(DestChainAnchorInstance.address, initialTokenMintAmount);
+    let balanceDestAnchorAfterDeposits = await destChainToken.balanceOf(DestChainAnchorInstance.address);
     // withdraw
-    ({ logs } = await DestChainLinkableAnchorInstance.withdraw
+    ({ logs } = await DestChainAnchorInstance.withdraw
       (`0x${proofEncoded}`, ...args, { from: input.relayer, gasPrice: '0' }));
 
-    let balanceDestAnchorAfter = await destChainToken.balanceOf(DestChainLinkableAnchorInstance.address);
+    let balanceDestAnchorAfter = await destChainToken.balanceOf(DestChainAnchorInstance.address);
     let balanceOperatorAfter = await destChainToken.balanceOf(input.relayer);
     let balanceReceiverAfter = await destChainToken.balanceOf(helpers.toFixedHex(recipient, 20));
     const feeBN = toBN(fee.toString())
     assert.strictEqual(balanceDestAnchorAfter.toString(), balanceDestAnchorAfterDeposits.sub(toBN(tokenDenomination)).toString());
     assert.strictEqual(balanceOperatorAfter.toString(), balanceOperatorBefore.add(feeBN).toString());
     assert.strictEqual(balanceReceiverAfter.toString(), balanceReceiverBefore.add(toBN(tokenDenomination)).sub(feeBN).toString());
-    isSpent = await DestChainLinkableAnchorInstance.isSpent(helpers.toFixedHex(input.nullifierHash));
+    isSpent = await DestChainAnchorInstance.isSpent(helpers.toFixedHex(input.nullifierHash));
     assert(isSpent);
 
     /*
@@ -268,7 +274,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     // insert second deposit in tree and get path for withdrawal proof
     await tree.insert(originDeposit.commitment);
     ({ root, path_elements, path_index } = await tree.path(1));
-    const secondWithdrawalNeighborRoots = await DestChainLinkableAnchorInstance.getLatestNeighborRoots();
+    const secondWithdrawalNeighborRoots = await DestChainAnchorInstance.getLatestNeighborRoots();
     input = {
       // public
       nullifierHash: originDeposit.nullifierHash,
@@ -317,9 +323,9 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     for (var i = 0; i < 30; i++) {
       // deposit on origin chain and define nonce based on events emmited
       originDeposit = helpers.generateDeposit(destChainID, i);
-      ({ logs } = await OriginChainLinkableAnchorInstance.deposit(helpers.toFixedHex(originDeposit.commitment), {from: sender}));
+      ({ logs } = await OriginChainAnchorInstance.deposit(helpers.toFixedHex(originDeposit.commitment), {from: sender}));
       originUpdateNonce = logs[0].args.leafIndex;
-      originMerkleRoot = await OriginChainLinkableAnchorInstance.getLastRoot();
+      originMerkleRoot = await OriginChainAnchorInstance.getLastRoot();
       // create correct update proposal data for the deposit on origin chain
       originDepositData = helpers.createUpdateProposalData(originChainID, newBlockHeight + i, originMerkleRoot);
       originDepositDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originDepositData.substr(2));
@@ -345,7 +351,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     }
 
     // withdraw should revert as historical root does not exist
-    await TruffleAssert.reverts(DestChainLinkableAnchorInstance.withdraw
+    await TruffleAssert.reverts(DestChainAnchorInstance.withdraw
       (`0x${proofEncoded}`, ...args, { from: input.relayer, gasPrice: '0' }),
       'Neighbor root not found');
   }).timeout(0);      

@@ -5,12 +5,13 @@
 
 pragma solidity ^0.8.0;
 
-import "../../tokens/TokenWrapper.sol";
-import "./LinkableAnchorPoseidon2.sol";
+import "../../../tokens/TokenWrapper.sol";
+import "../../../interfaces/IMintableERC20.sol";
+import "./LinkableAnchor2.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract LinkableCompTokenAnchorPoseidon2 is LinkableAnchorPoseidon2 {
+contract Anchor2 is LinkableAnchor2 {
   using SafeERC20 for IERC20;
   address public immutable token;
 
@@ -20,22 +21,25 @@ contract LinkableCompTokenAnchorPoseidon2 is LinkableAnchorPoseidon2 {
     uint256 _denomination,
     uint32 _merkleTreeHeight,
     uint32 _chainID,
-    TokenWrapper _token
-  ) LinkableAnchorPoseidon2(_verifier, _hasher, _denomination, _merkleTreeHeight, _chainID) {
+    TokenWrapper _token,
+    address _bridge,
+    address _admin,
+    address _handler
+  ) LinkableAnchor2(_verifier, _hasher, _denomination, _merkleTreeHeight, _chainID, _bridge, _admin, _handler) {
     token = address(_token);
   }
   
   function wrap(address tokenAddress, uint256 amount) public {
-    TokenWrapper(token).wrap(msg.sender, tokenAddress, amount);
+    TokenWrapper(token).wrapFor(msg.sender, tokenAddress, amount);
   }
 
   function unwrap(address tokenAddress, uint256 amount) public {
-    TokenWrapper(token).unwrap(msg.sender, tokenAddress, amount);
+    TokenWrapper(token).unwrapFor(msg.sender, tokenAddress, amount);
   }
 
   function _processDeposit() internal override {
     require(msg.value == 0, "ETH value is supposed to be 0 for ERC20 instance");
-    IMintableCompToken(token).transferFrom(msg.sender, address(this), denomination);
+    IMintableERC20(token).transferFrom(msg.sender, address(this), denomination);
   }
 
   function _processWithdraw(
@@ -46,15 +50,19 @@ contract LinkableCompTokenAnchorPoseidon2 is LinkableAnchorPoseidon2 {
   ) internal override {
     require(msg.value == _refund, "Incorrect refund amount received by the contract");
 
-    if (IERC20(token).balanceOf(address(this)) == 0) {
-      IMintableCompToken(token).mint(_recipient, denomination - _fee);
-      if (_fee > 0) {
-        IMintableCompToken(token).mint(_relayer, _fee);
-      }
-    } else {
+    uint balance = IERC20(token).balanceOf(address(this));
+    
+    if (balance >= denomination) {
+      // transfer tokens when balance exists
       IERC20(token).safeTransfer(_recipient, denomination - _fee);
       if (_fee > 0) {
         IERC20(token).safeTransfer(_relayer, _fee);
+      }
+    } else {
+      // mint tokens when not enough balance exists
+      IMintableERC20(token).mint(_recipient, denomination - _fee);
+      if (_fee > 0) {
+        IMintableERC20(token).mint(_relayer, _fee);
       }
     }
 

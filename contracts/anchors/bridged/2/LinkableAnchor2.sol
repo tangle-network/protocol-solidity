@@ -5,22 +5,23 @@
 
 pragma solidity ^0.8.0;
 
-import "./AnchorPoseidon2.sol";
-import "../../interfaces/ILinkableAnchor.sol";
+import "./AnchorBase2.sol";
+import "../../../interfaces/ILinkableAnchor.sol";
 
-abstract contract LinkableAnchorPoseidon2 is AnchorPoseidon2, ILinkableAnchor {
+abstract contract LinkableAnchor2 is AnchorBase2, ILinkableAnchor {
   constructor(
     IVerifier _verifier,
     IPoseidonT3 _hasher,
     uint256 _denomination,
     uint32 _merkleTreeHeight,
-    uint256 _chainID
-  ) AnchorPoseidon2(_verifier, _hasher, _denomination, _merkleTreeHeight, _chainID) {
-    // set the sender as admin & bridge & handler address
-    // TODO: Properly set addresses and permissions
-    bridge = msg.sender;
-    admin = msg.sender;
-    handler = msg.sender;
+    uint256 _chainID,
+    address _bridge,
+    address _admin,
+    address _handler
+  ) AnchorBase2(_verifier, _hasher, _denomination, _merkleTreeHeight, _chainID) {
+    bridge = _bridge;
+    admin = _admin;
+    handler = _handler;
   }
 
   function setHandler(address _handler) onlyBridge override external {

@@ -120,39 +120,6 @@ contract('GovernorBravo#propose/5', (accounts) => {
           "GovernorBravo::propose: proposal function information arity mismatch",
         );
       });
-
-      it.skip("or if that length is zero or greater than Max Operations. - NEEDS TO USE LOCALHOST", async () => {
-        await network.provider.send("evm_setAutomine", [false]);
-        await network.provider.send("evm_setIntervalMining", [1000]);
-        await TruffleAssert.reverts(
-          gov.propose([], [], [], [], 'do nothing'),
-          "GovernorBravo::propose: must provide actions",
-        );
-      });
-
-      // TODO: These tests require control over mining, i.e. manual mining.
-      describe("Additionally, if there exists a pending or active proposal from the same proposer, we must revert.", () => {
-        it.skip("reverts with pending - NEEDS TO USE LOCALHOST", async () => {
-          await network.provider.send("evm_setAutomine", [false]);
-          await network.provider.send("evm_setIntervalMining", [1000]);
-          await TruffleAssert.reverts(
-            gov.propose(targets, values, signatures, callDatas, 'do nothing'),
-            "GovernorBravo::propose: one live proposal per proposer, found an already pending proposal",
-          );
-        });
-
-        it.skip("reverts with active  - NEEDS TO USE LOCALHOST", async () => {
-          await network.provider.send("evm_setAutomine", [false]);
-          await network.provider.send("evm_setIntervalMining", [1000]);
-          await network.provider.send("evm_mine")
-          await network.provider.send("evm_mine")
-
-          await TruffleAssert.reverts(
-            gov.propose(targets, values, signatures, callDatas, 'do nothing'),
-            "GovernorBravo::propose: one live proposal per proposer, found an already active proposal",
-          );
-        });
-      });
     });
 
     it("This function returns the id of the newly created proposal. # proposalId(n) = succ(proposalId(n-1))", async () => {
