@@ -89,7 +89,7 @@ abstract contract AnchorPoseidon2 is MerkleTreePoseidon, ReentrancyGuard {
     @dev Deposit funds into the contract. The caller must send (for ETH) or approve (for ERC20) value equal to or `denomination` of this instance.
     @param _commitment the note commitment, which is PedersenHash(nullifier + secret)
   */
-  function deposit(bytes32 _commitment) public payable nonReentrant {
+  function deposit(bytes32 _commitment) external payable nonReentrant {
     require(!commitments[_commitment], "The commitment has been submitted");
 
     uint32 insertedIndex = _insert(_commitment);
