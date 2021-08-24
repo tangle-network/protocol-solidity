@@ -10,7 +10,7 @@ const Helpers = require('../helpers');
 
 const BridgeContract = artifacts.require("Bridge");
 const AnchorHandlerContract = artifacts.require("AnchorHandler");
-const LinkableAnchorContract = artifacts.require("LinkableERC20AnchorPoseidon2");
+const Anchor = artifacts.require("Anchor2");
 const Verifier = artifacts.require("VerifierPoseidonBridge");
 const Hasher = artifacts.require("PoseidonT3");
 const Token = artifacts.require("ERC20Mock");
@@ -36,8 +36,8 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
   let merkleRoot;
   let blockHeight = 1;
   let expectedUpdateNonce = 1;
-  let LinkableAnchorOriginChainInstance;
-  let LinkableAnchorDestChainInstance;
+  let OriginChainAnchorInstance;
+  let DestChainAnchorInstance;
   let hasher, verifier;
   let token;
   let tokenDenomination = '1000'; // 1 ether
@@ -69,30 +69,36 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
       Token.new().then(instance => token = instance),
     ]);
 
-    LinkableAnchorOriginChainInstance = await LinkableAnchorContract.new(
+    OriginChainAnchorInstance = await Anchor.new(
       verifier.address,
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
       maxRoots,
       token.address,
+      sender,
+      sender,
+      sender,
     {from: sender});
-    LinkableAnchorDestChainInstance = await LinkableAnchorContract.new(
+    DestChainAnchorInstance = await Anchor.new(
       verifier.address,
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
       maxRoots,
       token.address,
+      sender,
+      sender,
+      sender,
     {from: sender});
     
     await token.mint(sender, 10 * tokenDenomination);
-    await token.increaseAllowance(LinkableAnchorOriginChainInstance.address, 1000000000, {from: sender});
-    await LinkableAnchorOriginChainInstance.deposit('0x11111', {from: sender});
-    merkleRoot = await LinkableAnchorOriginChainInstance.getLastRoot();
-    resourceID = Helpers.createResourceID(LinkableAnchorOriginChainInstance.address, originChainID);
+    await token.increaseAllowance(OriginChainAnchorInstance.address, 1000000000, {from: sender});
+    await OriginChainAnchorInstance.deposit('0x11111', {from: sender});
+    merkleRoot = await OriginChainAnchorInstance.getLastRoot();
+    resourceID = Helpers.createResourceID(OriginChainAnchorInstance.address, originChainID);
     initialResourceIDs = [resourceID];
-    initialContractAddresses = [LinkableAnchorDestChainInstance.address];
+    initialContractAddresses = [DestChainAnchorInstance.address];
 
     DestinationAnchorHandlerInstance = await AnchorHandlerContract.new(
       BridgeInstance.address,
@@ -100,14 +106,14 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
       initialContractAddresses,
     );
 
-    await LinkableAnchorDestChainInstance.setHandler(DestinationAnchorHandlerInstance.address, {from: sender});
-    await LinkableAnchorDestChainInstance.setBridge(BridgeInstance.address, {from: sender});
+    await DestChainAnchorInstance.setHandler(DestinationAnchorHandlerInstance.address, {from: sender});
+    await DestChainAnchorInstance.setBridge(BridgeInstance.address, {from: sender});
 
     data = Helpers.createUpdateProposalData(originChainID, blockHeight, merkleRoot);
     dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
 
     await Promise.all([
-      BridgeInstance.adminSetResource(DestinationAnchorHandlerInstance.address, resourceID, LinkableAnchorDestChainInstance.address)
+      BridgeInstance.adminSetResource(DestinationAnchorHandlerInstance.address, resourceID, DestChainAnchorInstance.address)
     ]);
 
     vote = (relayer) => BridgeInstance.voteProposal(originChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer });

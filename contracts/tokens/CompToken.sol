@@ -6,10 +6,10 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "../interfaces/IMintableCompToken.sol";
+import "../interfaces/IMintableERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 
-contract CompToken is ERC20PresetMinterPauser, IMintableCompToken {
+contract CompToken is ERC20PresetMinterPauser, IMintableERC20 {
     /// @notice A record of each accounts delegate
     mapping (address => address) public delegates;
 
@@ -51,7 +51,7 @@ contract CompToken is ERC20PresetMinterPauser, IMintableCompToken {
      * @param rawAmount The number of tokens to transfer
      * @return Whether or not the transfer succeeded
      */
-    function transfer(address dst, uint rawAmount) override(ERC20, IMintableCompToken) public virtual returns (bool) {
+    function transfer(address dst, uint rawAmount) override(ERC20, IMintableERC20) public virtual returns (bool) {
         _transfer(_msgSender(), dst, rawAmount);
         _transferDelegates(_msgSender(), dst, rawAmount);
         return true;
@@ -64,7 +64,7 @@ contract CompToken is ERC20PresetMinterPauser, IMintableCompToken {
      * @param rawAmount The number of tokens to transfer
      * @return Whether or not the transfer succeeded
      */
-    function transferFrom(address src, address dst, uint rawAmount) override(ERC20, IMintableCompToken) public virtual returns (bool) {
+    function transferFrom(address src, address dst, uint rawAmount) override(ERC20, IMintableERC20) public virtual returns (bool) {
         _transfer(src, dst, rawAmount);
         _transferDelegates(src, dst, rawAmount);
 
@@ -86,7 +86,7 @@ contract CompToken is ERC20PresetMinterPauser, IMintableCompToken {
      *
      * - the caller must have the `MINTER_ROLE`.
      */
-    function mint(address to, uint256 amount) override(ERC20PresetMinterPauser, IMintableCompToken) public virtual {
+    function mint(address to, uint256 amount) override(ERC20PresetMinterPauser, IMintableERC20) public virtual {
         require(hasRole(MINTER_ROLE, _msgSender()), "ERC20PresetMinterPauser: must have minter role to mint");
         _mint(to, amount);
     }
@@ -95,7 +95,7 @@ contract CompToken is ERC20PresetMinterPauser, IMintableCompToken {
      * @notice Delegate votes from `msg.sender` to `delegatee`
      * @param delegatee The address to delegate votes to
      */
-    function delegate(address delegatee) override public {
+    function delegate(address delegatee) public {
         return _delegate(msg.sender, delegatee);
     }
 
@@ -108,7 +108,7 @@ contract CompToken is ERC20PresetMinterPauser, IMintableCompToken {
      * @param r Half of the ECDSA signature pair
      * @param s Half of the ECDSA signature pair
      */
-    function delegateBySig(address delegatee, uint nonce, uint expiry, uint8 v, bytes32 r, bytes32 s) override public {
+    function delegateBySig(address delegatee, uint nonce, uint expiry, uint8 v, bytes32 r, bytes32 s) public {
         bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name())), getChainId(), address(this)));
         bytes32 structHash = keccak256(abi.encode(DELEGATION_TYPEHASH, delegatee, nonce, expiry));
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
@@ -124,7 +124,7 @@ contract CompToken is ERC20PresetMinterPauser, IMintableCompToken {
      * @param account The address to get votes balance
      * @return The number of current votes for `account`
      */
-    function getCurrentVotes(address account) override external view returns (uint256) {
+    function getCurrentVotes(address account) external view returns (uint256) {
         uint32 nCheckpoints = numCheckpoints[account];
         return nCheckpoints > 0 ? checkpoints[account][nCheckpoints - 1].votes : 0;
     }
@@ -136,7 +136,7 @@ contract CompToken is ERC20PresetMinterPauser, IMintableCompToken {
      * @param blockNumber The block number to get the vote balance at
      * @return The number of votes the account had as of the given block
      */
-    function getPriorVotes(address account, uint blockNumber) override public view returns (uint256) {
+    function getPriorVotes(address account, uint blockNumber) public view returns (uint256) {
         require(blockNumber < block.number, "Comp::getPriorVotes: not yet determined");
 
         uint32 nCheckpoints = numCheckpoints[account];

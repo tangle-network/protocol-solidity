@@ -5,7 +5,7 @@
 
 pragma solidity ^0.8.0;
 
-import "./LinkableERC20AnchorPoseidon2.sol";
+import "./2/Anchor2.sol";
 
 contract AnchorFactoryPoseidon {
   function createAnchor2(
@@ -14,15 +14,21 @@ contract AnchorFactoryPoseidon {
     uint256 _denomination,
     uint32 _merkleTreeHeight,
     uint32 _chainID,
-    IERC20 _token
+    TokenWrapper _token,
+    address _bridge,
+    address _admin,
+    address _handler
   ) external {
-    new LinkableERC20AnchorPoseidon2(
+    new Anchor2(
       _verifier,
       _hasher,
       _denomination,
       _merkleTreeHeight,
       _chainID,
-      _token
+      _token,
+      _bridge,
+      _admin,
+      _handler
     );
   }
 
@@ -33,15 +39,21 @@ contract AnchorFactoryPoseidon {
     uint256 _denomination,
     uint32 _merkleTreeHeight,
     uint32 _chainID,
-    IERC20 _token
+    TokenWrapper _token,
+    address _bridge,
+    address _admin,
+    address _handler
   ) external {
-    new LinkableERC20AnchorPoseidon2{salt: _salt}(
+    new Anchor2{salt: _salt}(
       _verifier,
       _hasher,
       _denomination,
       _merkleTreeHeight,
       _chainID,
-      _token
+      _token,
+      _bridge,
+      _admin,
+      _handler
     );
   }
 }

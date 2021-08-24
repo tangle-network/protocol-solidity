@@ -10,25 +10,52 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
-import "./CompToken.sol";
 
 /**
     @title Manages deposited ERC20s.
     @author ChainSafe Systems.
     @notice This contract is intended to be used with ERC20Handler contract.
  */
-abstract contract TokenWrapper is CompToken {
+abstract contract TokenWrapper is ERC20PresetMinterPauser {
     using SafeMath for uint256;
 
     constructor(string memory name, string memory symbol)
-        CompToken(name, symbol) {}
+        ERC20PresetMinterPauser(name, symbol) {}
 
     /**
-        @notice Used to transfer tokens into the safe to fund proposals.
+        @notice Used to wrap tokens on behalf of a sender. Must be called by a minter role
         @param tokenAddress Address of ERC20 to transfer.
         @param amount Amount of tokens to transfer.
      */
-    function wrap(address sender, address tokenAddress, uint256 amount) public {
+    function wrap(address tokenAddress, uint256 amount) public {
+        require(_isValidAddress(tokenAddress), "Invalid token address");
+        require(_isValidAmount(amount), "Invalid token amount");
+        // transfer liquidity to the token wrapper
+        IERC20(tokenAddress).transferFrom(_msgSender(), address(this), amount);
+        // mint the wrapped token for the sender
+        _mint(_msgSender(), amount);
+    }
+
+    /**
+        @notice Used to unwrap/burn the wrapper token on behalf of a sender.
+        @param tokenAddress Address of ERC20 to unwrap into.
+        @param amount Amount of tokens to burn.
+     */
+    function unwrap(address tokenAddress, uint256 amount) public {
+        require(_isValidAddress(tokenAddress), "Invalid token address");
+        require(_isValidAmount(amount), "Invalid token amount");
+        // burn wrapped token from sender
+        _burn(_msgSender(), amount);
+        // transfer liquidity from the token wrapper to the sender
+        IERC20(tokenAddress).transfer(_msgSender(), amount);
+    }
+
+    /**
+        @notice Used to wrap tokens on behalf of a sender
+        @param tokenAddress Address of ERC20 to transfer.
+        @param amount Amount of tokens to transfer.
+     */
+    function wrapFor(address sender, address tokenAddress, uint256 amount) public {
         require(hasRole(MINTER_ROLE, msg.sender), "ERC20PresetMinterPauser: must have minter role");
         require(_isValidAddress(tokenAddress), "Invalid token address");
         require(_isValidAmount(amount), "Invalid token amount");
@@ -43,12 +70,12 @@ abstract contract TokenWrapper is CompToken {
         @param tokenAddress Address of ERC20 to unwrap into.
         @param amount Amount of tokens to burn.
      */
-    function unwrap(address sender, address tokenAddress, uint256 amount) public {
+    function unwrapFor(address sender, address tokenAddress, uint256 amount) public {
         require(hasRole(MINTER_ROLE, msg.sender), "ERC20PresetMinterPauser: must have minter role");
         require(_isValidAddress(tokenAddress), "Invalid token address");
         require(_isValidAmount(amount), "Invalid token amount");
         // burn wrapped token from sender
-        burnFrom(sender, amount);
+        _burn(sender, amount);
         // transfer liquidity from the token wrapper to the sender
         IERC20(tokenAddress).transfer(sender, amount);
     }

@@ -4,7 +4,7 @@ const helpers = require('../helpers');
 const { toBN } = require('web3-utils')
 const assert = require('assert');
 const BridgeContract = artifacts.require('Bridge');
-const LinkableAnchorContract = artifacts.require('./LinkableERC20AnchorPoseidon2.sol');
+const Anchor = artifacts.require('./Anchor2.sol');
 const Verifier = artifacts.require('./VerifierPoseidonBridge.sol');
 const Hasher = artifacts.require('PoseidonT3');
 const Token = artifacts.require('ERC20Mock');
@@ -50,7 +50,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
   let tree;
   let createWitness;
   let OriginBridgeInstance;
-  let OriginChainLinkableAnchorInstance;
+  let OriginChainAnchorInstance;
   let OriginAnchorHandlerInstance;
   let originDepositData;
   let originDepositDataHash;
@@ -58,7 +58,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
   let initialResourceIDs;
   let originInitialContractAddresses;
   let DestBridgeInstance;
-  let DestChainLinkableAnchorInstance
+  let DestChainAnchorInstance
   let DestAnchorHandlerInstance;
   let destDepositData;
   let destDepositDataHash;
@@ -76,27 +76,33 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
       Token.new().then(instance => destChainToken = instance),
     ]);
     // initialize anchors on both chains
-    OriginChainLinkableAnchorInstance = await LinkableAnchorContract.new(
+    OriginChainAnchorInstance = await Anchor.new(
       verifier.address,
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
       originChainID,
       originChainToken.address,
+      sender,
+      sender,
+      sender,
     {from: sender});
-    DestChainLinkableAnchorInstance = await LinkableAnchorContract.new(
+    DestChainAnchorInstance = await Anchor.new(
       verifier.address,
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
       destChainID,
       destChainToken.address,
+      sender,
+      sender,
+      sender,
     {from: sender});
     // create resource ID using anchor address
-    resourceID = helpers.createResourceID(OriginChainLinkableAnchorInstance.address, 0);
+    resourceID = helpers.createResourceID(OriginChainAnchorInstance.address, 0);
     initialResourceIDs = [resourceID];
-    originInitialContractAddresses = [DestChainLinkableAnchorInstance.address];
-    destInitialContractAddresses = [OriginChainLinkableAnchorInstance.address];
+    originInitialContractAddresses = [DestChainAnchorInstance.address];
+    destInitialContractAddresses = [OriginChainAnchorInstance.address];
     // initialize anchorHanders 
     await Promise.all([
       AnchorHandlerContract.new(OriginBridgeInstance.address, initialResourceIDs, originInitialContractAddresses)
@@ -106,15 +112,15 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     ]);
     // increase allowance and set resources for bridge
     await Promise.all([
-      OriginBridgeInstance.adminSetResource(OriginAnchorHandlerInstance.address, resourceID, OriginChainLinkableAnchorInstance.address),
-      DestBridgeInstance.adminSetResource(DestAnchorHandlerInstance.address, resourceID, DestChainLinkableAnchorInstance.address)
+      OriginBridgeInstance.adminSetResource(OriginAnchorHandlerInstance.address, resourceID, OriginChainAnchorInstance.address),
+      DestBridgeInstance.adminSetResource(DestAnchorHandlerInstance.address, resourceID, DestChainAnchorInstance.address)
     ]);
      // set bridge and handler permissions for anchors
     await Promise.all([
-      OriginChainLinkableAnchorInstance.setHandler(OriginAnchorHandlerInstance.address, {from: sender}),
-      OriginChainLinkableAnchorInstance.setBridge(OriginBridgeInstance.address, {from: sender}),
-      DestChainLinkableAnchorInstance.setHandler(DestAnchorHandlerInstance.address, {from: sender}),
-      DestChainLinkableAnchorInstance.setBridge(DestBridgeInstance.address, {from: sender})
+      OriginChainAnchorInstance.setHandler(OriginAnchorHandlerInstance.address, {from: sender}),
+      OriginChainAnchorInstance.setBridge(OriginBridgeInstance.address, {from: sender}),
+      DestChainAnchorInstance.setHandler(DestAnchorHandlerInstance.address, {from: sender}),
+      DestChainAnchorInstance.setBridge(DestBridgeInstance.address, {from: sender})
     ]);
 
     createWitness = async (data) => {
@@ -147,13 +153,13 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     // minting Tokens
     await originChainToken.mint(sender, initialTokenMintAmount);
     // increasing allowance of anchors
-    await originChainToken.approve(OriginChainLinkableAnchorInstance.address, initialTokenMintAmount, { from: sender }),
+    await originChainToken.approve(OriginChainAnchorInstance.address, initialTokenMintAmount, { from: sender }),
     // generate deposit commitment targeting withdrawal on destination chain
     originDeposit = helpers.generateDeposit(destChainID);
     // deposit on origin chain and define nonce
-    let { logs } = await OriginChainLinkableAnchorInstance.deposit(helpers.toFixedHex(originDeposit.commitment), {from: sender});
+    let { logs } = await OriginChainAnchorInstance.deposit(helpers.toFixedHex(originDeposit.commitment), {from: sender});
     originUpdateNonce = logs[0].args.leafIndex;
-    originMerkleRoot = await OriginChainLinkableAnchorInstance.getLastRoot();
+    originMerkleRoot = await OriginChainAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on origin chain
     originDepositData = helpers.createUpdateProposalData(originChainID, originBlockHeight, originMerkleRoot);
     originDepositDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originDepositData.substr(2));
@@ -184,11 +190,11 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     /*
     *  sender generates proof
     */
-    const destNeighborRoots = await DestChainLinkableAnchorInstance.getLatestNeighborRoots();
+    const destNeighborRoots = await DestChainAnchorInstance.getLatestNeighborRoots();
     await tree.insert(originDeposit.commitment);
 
     let { root, path_elements, path_index } = await tree.path(0);
-    const destNativeRoot = await DestChainLinkableAnchorInstance.getLastRoot();
+    const destNativeRoot = await DestChainAnchorInstance.getLastRoot();
     let input = {
       // public
       nullifierHash: originDeposit.nullifierHash,
@@ -232,12 +238,12 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     /*
     *  sender withdraws on dest chain
     */
-    await destChainToken.mint(DestChainLinkableAnchorInstance.address, initialTokenMintAmount);
-    let balanceDestAnchorAfterDeposit = await destChainToken.balanceOf(DestChainLinkableAnchorInstance.address);
-    ({ logs } = await DestChainLinkableAnchorInstance.withdraw
+    await destChainToken.mint(DestChainAnchorInstance.address, initialTokenMintAmount);
+    let balanceDestAnchorAfterDeposit = await destChainToken.balanceOf(DestChainAnchorInstance.address);
+    ({ logs } = await DestChainAnchorInstance.withdraw
       (`0x${proofEncoded}`, ...args, { from: input.relayer, gasPrice: '0' }));
     
-    let balanceDestAnchorAfter = await destChainToken.balanceOf(DestChainLinkableAnchorInstance.address);
+    let balanceDestAnchorAfter = await destChainToken.balanceOf(DestChainAnchorInstance.address);
     let balanceOperatorAfter = await destChainToken.balanceOf(input.relayer);
     let balanceReceiverAfter = await destChainToken.balanceOf(helpers.toFixedHex(recipient, 20));
     const feeBN = toBN(fee.toString())
@@ -245,7 +251,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     assert.strictEqual(balanceOperatorAfter.toString(), balanceOperatorBefore.add(feeBN).toString());
     assert.strictEqual(balanceReceiverAfter.toString(), balanceReceiverBefore.add(toBN(tokenDenomination)).sub(feeBN).toString());
 
-    isSpent = await DestChainLinkableAnchorInstance.isSpent(helpers.toFixedHex(input.nullifierHash));
+    isSpent = await DestChainAnchorInstance.isSpent(helpers.toFixedHex(input.nullifierHash));
     assert(isSpent);
     /*
     *  sender deposit on dest chain
@@ -253,13 +259,13 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     // minting Tokens
     await destChainToken.mint(sender, initialTokenMintAmount);
     // approval
-    await destChainToken.approve(DestChainLinkableAnchorInstance.address, initialTokenMintAmount, { from: sender }),
+    await destChainToken.approve(DestChainAnchorInstance.address, initialTokenMintAmount, { from: sender }),
     // generate deposit commitment
     destDeposit = helpers.generateDeposit(originChainID);
     // deposit on dest chain and define nonce
-    ({logs} = await DestChainLinkableAnchorInstance.deposit(helpers.toFixedHex(destDeposit.commitment), {from: sender}));
+    ({logs} = await DestChainAnchorInstance.deposit(helpers.toFixedHex(destDeposit.commitment), {from: sender}));
     destUpdateNonce = logs[0].args.leafIndex;
-    destMerkleRoot = await DestChainLinkableAnchorInstance.getLastRoot();
+    destMerkleRoot = await DestChainAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on dest chain
     destDepositData = helpers.createUpdateProposalData(destChainID, destBlockHeight, destMerkleRoot);
     destDepositDataHash = Ethers.utils.keccak256(OriginAnchorHandlerInstance.address + destDepositData.substr(2));
@@ -283,7 +289,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
       resourceID,
       { from: relayer1Address }
     ));
-    const originNeighborRoots = await OriginChainLinkableAnchorInstance.getLatestNeighborRoots();
+    const originNeighborRoots = await OriginChainAnchorInstance.getLatestNeighborRoots();
     assert.strictEqual(originNeighborRoots.length, maxRoots);
     assert.strictEqual(originNeighborRoots[0], destMerkleRoot);
     // check initial balances
@@ -296,7 +302,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     await tree.insert(destDeposit.commitment);
 
     ({ root, path_elements, path_index } = await tree.path(0));
-    const originNativeRoot = await OriginChainLinkableAnchorInstance.getLastRoot();
+    const originNativeRoot = await OriginChainAnchorInstance.getLastRoot();
     input = {
       // public
       nullifierHash: destDeposit.nullifierHash,
@@ -340,19 +346,19 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     /*
     *  sender withdraws on origin chain
     */
-    await originChainToken.mint(OriginChainLinkableAnchorInstance.address, initialTokenMintAmount);
-    let balanceOriginAnchorAfterDeposit = await originChainToken.balanceOf(OriginChainLinkableAnchorInstance.address);
-    ({ logs } = await OriginChainLinkableAnchorInstance.withdraw
+    await originChainToken.mint(OriginChainAnchorInstance.address, initialTokenMintAmount);
+    let balanceOriginAnchorAfterDeposit = await originChainToken.balanceOf(OriginChainAnchorInstance.address);
+    ({ logs } = await OriginChainAnchorInstance.withdraw
       (`0x${proofEncoded}`, ...args, { from: input.relayer, gasPrice: '0' }));
     
-    let balanceOriginAnchorAfter = await originChainToken.balanceOf(OriginChainLinkableAnchorInstance.address);
+    let balanceOriginAnchorAfter = await originChainToken.balanceOf(OriginChainAnchorInstance.address);
     balanceOperatorAfter = await originChainToken.balanceOf(input.relayer);
     balanceReceiverAfter = await originChainToken.balanceOf(helpers.toFixedHex(recipient, 20));
 
     assert.strictEqual(balanceOriginAnchorAfter.toString(), balanceOriginAnchorAfterDeposit.sub(toBN(tokenDenomination)).toString());
     assert.strictEqual(balanceOperatorAfter.toString(), balanceOperatorBefore.add(feeBN).toString());
     assert.strictEqual(balanceReceiverAfter.toString(), balanceReceiverBefore.add(toBN(tokenDenomination)).sub(feeBN).toString());
-    isSpent = await OriginChainLinkableAnchorInstance.isSpent(helpers.toFixedHex(input.nullifierHash));
+    isSpent = await OriginChainAnchorInstance.isSpent(helpers.toFixedHex(input.nullifierHash));
     assert(isSpent);
 
     })

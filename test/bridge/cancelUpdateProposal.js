@@ -10,7 +10,7 @@ const Helpers = require('../helpers');
 
 const BridgeContract = artifacts.require("Bridge");
 const AnchorHandlerContract = artifacts.require("AnchorHandler");
-const LinkableAnchorContract = artifacts.require("LinkableERC20AnchorPoseidon2");
+const AnchorContract = artifacts.require("Anchor2");
 const Verifier = artifacts.require("VerifierPoseidonBridge");
 const Hasher = artifacts.require("PoseidonT3");
 const Token = artifacts.require("ERC20Mock");
@@ -32,7 +32,7 @@ contract('Bridge - [CancelUpdateProposal with relayerThreshold == 3]', async (ac
   const maxRoots = 100;
   const sender = accounts[5]
   let merkleRoot;
-  let LinkableAnchorInstance;
+  let AnchorInstance;
   let hasher, verifier;
   let token;
   let tokenDenomination = '1000'; // 1 ether
@@ -64,23 +64,26 @@ contract('Bridge - [CancelUpdateProposal with relayerThreshold == 3]', async (ac
       Token.new().then(instance => token = instance),
     ]);
 
-    LinkableAnchorInstance = await LinkableAnchorContract.new(
+    AnchorInstance = await AnchorContract.new(
       verifier.address,
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
       maxRoots,
       token.address,
+      accounts[0],
+      accounts[0],
+      accounts[0],
     );
 
     await token.mint(sender, tokenDenomination);
-    await token.increaseAllowance(LinkableAnchorInstance.address, 1000000000, {from: sender});
-    await LinkableAnchorInstance.deposit('0x1111111111111111111111111111111111111111111111111111111111111111', {from: sender});
-    merkleRoot = await LinkableAnchorInstance.getLastRoot();
+    await token.increaseAllowance(AnchorInstance.address, 1000000000, {from: sender});
+    await AnchorInstance.deposit('0x1111111111111111111111111111111111111111111111111111111111111111', {from: sender});
+    merkleRoot = await AnchorInstance.getLastRoot();
     
-    resourceID = Helpers.createResourceID(LinkableAnchorInstance.address, originChainID);
+    resourceID = Helpers.createResourceID(AnchorInstance.address, originChainID);
     initialResourceIDs = [resourceID];
-    initialContractAddresses = [LinkableAnchorInstance.address];
+    initialContractAddresses = [AnchorInstance.address];
 
     DestinationAnchorHandlerInstance = await AnchorHandlerContract.new(
       BridgeInstance.address,
