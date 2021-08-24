@@ -23,7 +23,7 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser {
         ERC20PresetMinterPauser(name, symbol) {}
 
     /**
-        @notice Used to wrap tokens on behalf of a sender. Must be called by a minter role
+        @notice Used to wrap tokens on behalf of a sender. Must be called by a minter role.
         @param tokenAddress Address of ERC20 to transfer.
         @param amount Amount of tokens to transfer.
      */
