@@ -18,7 +18,7 @@ import "../interfaces/IExecutor.sol";
 contract AnchorHandler is IExecutor, HandlerHelpers {
     struct UpdateRecord {
         address _tokenAddress;
-        uint256   _sourceChainID;
+        uint256  _sourceChainID;
         bytes32 _resourceID;
         bytes32 _merkleRoot;
         uint256 _blockHeight;
@@ -95,7 +95,6 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
         if (anchor.hasEdge(sourceChainId)) {
             anchor.updateEdge(
                 sourceChainId,
-                
                 bytes32(merkleRoot),
                 blockHeight
             );
