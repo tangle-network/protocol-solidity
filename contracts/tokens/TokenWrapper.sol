@@ -5,6 +5,7 @@
  
 pragma solidity ^0.8.0;
 
+import "../interfaces/ITokenWrapper.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -16,7 +17,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
     @author ChainSafe Systems.
     @notice This contract is intended to be used with ERC20Handler contract.
  */
-abstract contract TokenWrapper is ERC20PresetMinterPauser {
+abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
     using SafeMath for uint256;
 
     constructor(string memory name, string memory symbol)
@@ -27,7 +28,7 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser {
         @param tokenAddress Address of ERC20 to transfer.
         @param amount Amount of tokens to transfer.
      */
-    function wrap(address tokenAddress, uint256 amount) public {
+    function wrap(address tokenAddress, uint256 amount) override public {
         require(_isValidAddress(tokenAddress), "Invalid token address");
         require(_isValidAmount(amount), "Invalid token amount");
         // transfer liquidity to the token wrapper
@@ -41,7 +42,7 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser {
         @param tokenAddress Address of ERC20 to unwrap into.
         @param amount Amount of tokens to burn.
      */
-    function unwrap(address tokenAddress, uint256 amount) public {
+    function unwrap(address tokenAddress, uint256 amount) override public {
         require(_isValidAddress(tokenAddress), "Invalid token address");
         require(_isValidAmount(amount), "Invalid token amount");
         // burn wrapped token from sender
@@ -55,7 +56,7 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser {
         @param tokenAddress Address of ERC20 to transfer.
         @param amount Amount of tokens to transfer.
      */
-    function wrapFor(address sender, address tokenAddress, uint256 amount) public {
+    function wrapFor(address sender, address tokenAddress, uint256 amount) override public {
         require(hasRole(MINTER_ROLE, msg.sender), "ERC20PresetMinterPauser: must have minter role");
         require(_isValidAddress(tokenAddress), "Invalid token address");
         require(_isValidAmount(amount), "Invalid token amount");
@@ -70,7 +71,7 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser {
         @param tokenAddress Address of ERC20 to unwrap into.
         @param amount Amount of tokens to burn.
      */
-    function unwrapFor(address sender, address tokenAddress, uint256 amount) public {
+    function unwrapFor(address sender, address tokenAddress, uint256 amount) override public {
         require(hasRole(MINTER_ROLE, msg.sender), "ERC20PresetMinterPauser: must have minter role");
         require(_isValidAddress(tokenAddress), "Invalid token address");
         require(_isValidAmount(amount), "Invalid token amount");
