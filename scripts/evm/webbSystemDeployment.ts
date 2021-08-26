@@ -21,7 +21,6 @@ let provider = new ethers.providers.JsonRpcProvider(`${process.env.ENDPOINT}`);
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
 
 async function run() {
-
   const chainId = await wallet.getChainId();
 
   // deploy WEBB gov token first and then add to anchor
@@ -60,7 +59,17 @@ async function run() {
   const denomination = ethers.BigNumber.from('100000000000000000');
   const merkleTreeHeight = 20;
 
-  const webbAnchor = await deployWEBBAnchor(verifierInstance.address, hasherInstance.address, denomination, merkleTreeHeight, WEBB.address, wallet.address, wallet.address, wallet.address, wallet);
+  const webbAnchor = await deployWEBBAnchor(
+    verifierInstance.address,
+    hasherInstance.address,
+    denomination,
+    merkleTreeHeight,
+    WEBB.address,
+    wallet.address,
+    wallet.address,
+    wallet.address,
+    wallet
+  );
 
   // transfer ownership of token/minting rights to the anchor
   const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
@@ -68,10 +77,10 @@ async function run() {
   await tx.wait();
 
   // Create the bridge
-  const webbBridge = await deployWebbBridge(chainId, [wallet.address], 1, "1000", 30, wallet);
+  const webbBridge = await deployWebbBridge(chainId, [wallet.address], 1, '1000', 30, wallet);
 
   let resourceID = helpers.createResourceID(webbAnchor.address, chainId);
-  
+
   const handler = await deployAnchorHandler(webbBridge.address, [resourceID], [webbAnchor.address], wallet);
 
   await setResourceId(webbBridge.address, webbAnchor.address, handler.address, wallet);

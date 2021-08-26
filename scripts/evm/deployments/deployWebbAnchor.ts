@@ -12,7 +12,7 @@ export async function deployWEBBAnchor(
   bridgeAddress: string,
   adminAddress: string,
   handlerAddress: string,
-  passedWallet: ethers.Signer,
+  passedWallet: ethers.Signer
 ): Promise<WEBBAnchor2> {
   const WEBBAnchorFactory = new WEBBAnchor2__factory(passedWallet);
   let WEBBAnchorInstance = await WEBBAnchorFactory.deploy(

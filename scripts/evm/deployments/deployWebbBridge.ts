@@ -9,7 +9,7 @@ export async function deployWebbBridge(
   initialRelayerThreshold: ethers.BigNumberish,
   fee: ethers.BigNumberish,
   expiry: ethers.BigNumberish,
-  passedWallet: ethers.Signer,
+  passedWallet: ethers.Signer
 ): Promise<Bridge> {
   const bridgeFactory = new Bridge__factory(passedWallet);
   const deployedBridge = await bridgeFactory.deploy(chainId, initialRelayers, initialRelayerThreshold, fee, expiry);

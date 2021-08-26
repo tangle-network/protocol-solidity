@@ -32,4 +32,3 @@ export async function depositAnchor(anchorAddress: string, tokenAddress: string,
 
   return deposit;
 }
-

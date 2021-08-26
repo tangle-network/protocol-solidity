@@ -10,7 +10,7 @@ export async function deployERC20(passedWallet: ethers.Signer): Promise<ERC20> {
   await erc20.deployed();
 
   // mint some token for the sender
-  await erc20.mint(await passedWallet.getAddress(), "1000000000000000000000000");
+  await erc20.mint(await passedWallet.getAddress(), '1000000000000000000000000');
 
   return erc20;
 }

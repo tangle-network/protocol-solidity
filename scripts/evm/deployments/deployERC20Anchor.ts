@@ -20,7 +20,7 @@ export async function deployERC20Anchor(
   bridgeAddress: string,
   adminAddress: string,
   handlerAddress: string,
-  passedWallet: ethers.Signer,
+  passedWallet: ethers.Signer
 ): Promise<Anchor2> {
   const ERC20AnchorFactory = new Anchor2__factory(wallet);
   let ERC20Anchor = await ERC20AnchorFactory.deploy(
