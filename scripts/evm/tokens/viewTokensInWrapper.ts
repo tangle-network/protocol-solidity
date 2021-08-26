@@ -1,6 +1,6 @@
 require('dotenv').config({ path: '../.env' });
 import { ethers } from 'ethers';
-import { GovernedTokenWrapper__factory } from '../../typechain/factories/GovernedTokenWrapper__factory';
+import { GovernedTokenWrapper__factory } from '../../../typechain/factories/GovernedTokenWrapper__factory';
 
 export async function viewTokensInWrapper(
   tokenWrapperAddress: string,

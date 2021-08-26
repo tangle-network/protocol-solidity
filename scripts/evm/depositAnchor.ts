@@ -1,8 +1,8 @@
 require('dotenv').config({ path: '../.env' });
 import { ethers } from 'ethers';
 import { AnchorBase2__factory } from '../../typechain/factories/AnchorBase2__factory';
-import { approveTokenSpend } from './utils/approveTokenSpend';
-import { getTokenAllowance } from './utils/getTokenAllowance';
+import { approveTokenSpend } from './tokens/approveTokenSpend';
+import { getTokenAllowance } from './tokens/getTokenAllowance';
 const helpers = require('../../test/helpers');
 
 export async function depositAnchor(anchorAddress: string, tokenAddress: string, passedWallet: ethers.Signer) {

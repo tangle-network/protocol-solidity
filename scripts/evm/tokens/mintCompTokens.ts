@@ -1,6 +1,6 @@
 require('dotenv').config({ path: '../.env' });
 import { ethers } from 'ethers';
-import { IMintableCompToken__factory } from '../../typechain/factories/IMintableCompToken__factory';
+import { IMintableCompToken__factory } from '../../../typechain/factories/IMintableCompToken__factory';
 
 export async function mintCompTokens(
   tokenAddress: string,
