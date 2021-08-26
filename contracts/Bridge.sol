@@ -249,6 +249,7 @@ contract Bridge is Pausable, AccessControl, SafeMath {
     }
 
     /**
+        "Creates" the proposal upon first vote.
         @notice When called, {msg.sender} will be marked as voting in favor of proposal.
         @notice Only callable by relayers when Bridge is not paused.
         @param chainID ID of chain deposit originated from. // TO BE REMOVED SINCE WE WANT PRIVACY

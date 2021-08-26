@@ -11,6 +11,7 @@
     "build:circuits": "./scripts/bash/compile_circom.sh",
     "build:hashers": "ts-node scripts/ts/build_hashers.ts",
     "build:ptau": "./scripts/bash/generate_phase1_ptau.sh",
+    "build:contracts:types": "typechain --target ethers-v5 --outDir './types/ethers' './artifacts/**/*.json'",
     "setup:poseidon-bridge2": "node scripts/js/generatePoseidonBridge2Input.js && ./scripts/bash/phase2_poseidon_bridge2.sh",
     "setup:poseidon2-preimage": "node scripts/js/generatePoseidon2Input.js && ./scripts/bash/phase2_poseidon.sh",
     "setup:poseidon3-preimage": "node scripts/js/generatePoseidon3Input.js && ./scripts/bash/phase2_poseidon3.sh",
@@ -39,18 +40,23 @@
   "dependencies": {
     "@openzeppelin/contracts": "^4.1.0",
     "@truffle/contract": "^4.3.24",
+    "@typechain/ethers-v5": "^7.0.1",
+    "@typechain/hardhat": "^2.3.0",
     "big-integer": "^1.6.48",
     "bn-chai": "^1.0.1",
     "chai-as-promised": "^7.1.1",
     "circom": "^0.5.45",
     "circom_runtime": "^0.1.9",
     "circomlib": "^0.5.2",
+    "dotenv": "^8.2.0",
     "ethers-eip712": "^0.2.0",
     "ganache-cli": "^6.12.2",
     "hardhat-artifactor": "^0.2.0",
     "hardhat-circom": "^1.0.1",
     "maci-crypto": "^0.9.1",
     "maci-domainobjs": "^0.9.1",
-    "ts-node": "^10.1.0"
+    "prettier": "^2.3.2",
+    "ts-node": "^10.1.0",
+    "typechain": "^5.1.2"
   }
 }
