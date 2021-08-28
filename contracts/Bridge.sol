@@ -11,6 +11,8 @@ import "./utils/Pausable.sol";
 import "./utils/SafeMath.sol";
 import "./utils/SafeCast.sol";
 import "./interfaces/IExecutor.sol";
+import "./interfaces/IDepositExecute.sol";
+import "./interfaces/IERCHandler.sol";
 
 /**
     @title Facilitates deposits, creation and voting of deposit proposals, and deposit executions.
@@ -55,15 +57,20 @@ contract Bridge is Pausable, AccessControl, SafeMath {
     event RelayerThresholdChanged(uint256 newThreshold);
     event RelayerAdded(address relayer);
     event RelayerRemoved(address relayer);
+    event Deposit(
+        uint256 destinationChainID,
+        bytes32 resourceID,
+        uint64  nonce
+    );
     event ProposalEvent(
-        uint256          originChainID,
-        uint64         nonce,
+        uint256  originChainID,
+        uint64   nonce,
         ProposalStatus status,
         bytes32 dataHash
     );
     event ProposalVote(
-        uint256   originChainID,
-        uint64  nonce,
+        uint256  originChainID,
+        uint64   nonce,
         ProposalStatus status,
         bytes32 dataHash
     );
@@ -220,8 +227,19 @@ contract Bridge is Pausable, AccessControl, SafeMath {
      */
     function adminSetResource(address handlerAddress, bytes32 resourceID, address executionContextAddress) external onlyAdmin {
         _resourceIDToHandlerAddress[resourceID] = handlerAddress;
-        IExecutor handler = IExecutor(handlerAddress);
+        IERCHandler handler = IERCHandler(handlerAddress);
         handler.setResource(resourceID, executionContextAddress);
+    }
+
+    /**
+        @notice Sets a resource as burnable for handler contracts that use the IERCHandler interface.
+        @notice Only callable by an address that currently has the admin role.
+        @param handlerAddress Address of handler resource will be set for.
+        @param tokenAddress Address of contract to be called when a deposit is made and a deposited is executed.
+     */
+    function adminSetBurnable(address handlerAddress, address tokenAddress) external onlyAdmin {
+        IERCHandler handler = IERCHandler(handlerAddress);
+        handler.setBurnable(tokenAddress);
     }
 
     /**
@@ -246,6 +264,54 @@ contract Bridge is Pausable, AccessControl, SafeMath {
      */
     function _totalRelayers() public view returns (uint) {
         return AccessControl.getRoleMemberCount(RELAYER_ROLE);
+    }
+    /**
+        @notice Changes deposit fee.
+        @notice Only callable by admin.
+        @param newFee Value {_fee} will be updated to.
+    */
+    function adminChangeFee(uint256 newFee) external onlyAdmin {
+        require(_fee != newFee, "Current fee is equal to new fee");
+        _fee = newFee.toUint128();
+    }
+
+    /**
+        @notice Used to manually withdraw funds from ERC safes.
+        @param handlerAddress Address of handler to withdraw from.
+        @param tokenAddress Address of token to withdraw.
+        @param recipient Address to withdraw tokens to.
+        @param amountOrTokenID Either the amount of ERC20 tokens or the ERC721 token ID to withdraw.
+     */
+    function adminWithdraw(
+        address handlerAddress,
+        address tokenAddress,
+        address recipient,
+        uint256 amountOrTokenID
+    ) external onlyAdmin {
+        IERCHandler handler = IERCHandler(handlerAddress);
+        handler.withdraw(tokenAddress, recipient, amountOrTokenID);
+    }
+
+    /**
+        @notice Initiates a transfer using a specified handler contract.
+        @notice Only callable when Bridge is not paused.
+        @param destinationChainID ID of chain deposit will be bridged to.
+        @param resourceID ResourceID used to find address of handler to be used for deposit.
+        @param data Additional data to be passed to specified handler.
+        @notice Emits {Deposit} event.
+     */
+    function deposit(uint8 destinationChainID, bytes32 resourceID, bytes calldata data) external payable whenNotPaused {
+        require(msg.value == _fee, "Incorrect fee supplied");
+
+        address handler = _resourceIDToHandlerAddress[resourceID];
+        require(handler != address(0), "resourceID not mapped to handler");
+
+        uint64 nonce = ++_counts[destinationChainID];
+
+        IDepositExecute depositHandler = IDepositExecute(handler);
+        depositHandler.deposit(resourceID, destinationChainID, nonce, msg.sender, data);
+
+        emit Deposit(destinationChainID, resourceID, nonce);
     }
 
     /**
@@ -352,4 +418,15 @@ contract Bridge is Pausable, AccessControl, SafeMath {
         emit ProposalEvent(chainID, nonce, ProposalStatus.Executed, dataHash);
     }
     
+    /**
+        @notice Transfers eth in the contract to the specified addresses. The parameters addrs and amounts are mapped 1-1.
+        This means that the address at index 0 for addrs will receive the amount (in WEI) from amounts at index 0.
+        @param addrs Array of addresses to transfer {amounts} to.
+        @param amounts Array of amonuts to transfer to {addrs}.
+    */
+    function transferFunds(address payable[] calldata addrs, uint[] calldata amounts) external onlyAdmin {
+        for (uint256 i = 0; i < addrs.length; i++) {
+            addrs[i].transfer(amounts[i]);
+        }
+    }
 }
