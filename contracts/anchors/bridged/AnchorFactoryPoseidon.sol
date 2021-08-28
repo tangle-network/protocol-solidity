@@ -14,7 +14,7 @@ contract AnchorFactoryPoseidon {
     uint256 _denomination,
     uint32 _merkleTreeHeight,
     uint32 _chainID,
-    TokenWrapper _token,
+    ITokenWrapper _token,
     address _bridge,
     address _admin,
     address _handler
@@ -39,7 +39,7 @@ contract AnchorFactoryPoseidon {
     uint256 _denomination,
     uint32 _merkleTreeHeight,
     uint32 _chainID,
-    TokenWrapper _token,
+    ITokenWrapper _token,
     address _bridge,
     address _admin,
     address _handler

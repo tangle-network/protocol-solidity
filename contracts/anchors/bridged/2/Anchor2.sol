@@ -5,7 +5,7 @@
 
 pragma solidity ^0.8.0;
 
-import "../../../tokens/TokenWrapper.sol";
+import "../../../interfaces/ITokenWrapper.sol";
 import "../../../interfaces/IMintableERC20.sol";
 import "./LinkableAnchor2.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -21,7 +21,7 @@ contract Anchor2 is LinkableAnchor2 {
     uint256 _denomination,
     uint32 _merkleTreeHeight,
     uint32 _chainID,
-    TokenWrapper _token,
+    ITokenWrapper _token,
     address _bridge,
     address _admin,
     address _handler
@@ -30,11 +30,11 @@ contract Anchor2 is LinkableAnchor2 {
   }
   
   function wrap(address tokenAddress, uint256 amount) public {
-    TokenWrapper(token).wrapFor(msg.sender, tokenAddress, amount);
+    ITokenWrapper(token).wrapFor(msg.sender, tokenAddress, amount);
   }
 
   function unwrap(address tokenAddress, uint256 amount) public {
-    TokenWrapper(token).unwrapFor(msg.sender, tokenAddress, amount);
+    ITokenWrapper(token).unwrapFor(msg.sender, tokenAddress, amount);
   }
 
   function _processDeposit() internal override {
