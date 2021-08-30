@@ -2,10 +2,12 @@ node_modules
 .vscode
 .DS_STORE
 build/
+.env
 
 #Hardhat files
 cache
 artifacts
+typechain
 
 dist
 
