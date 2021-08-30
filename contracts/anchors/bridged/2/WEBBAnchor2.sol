@@ -5,7 +5,6 @@
 
 pragma solidity ^0.8.0;
 
-import "../../../tokens/CompToken.sol";
 import "../../../interfaces/IMintableCompToken.sol";
 import "./LinkableAnchor2.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -31,7 +30,7 @@ contract WEBBAnchor2 is LinkableAnchor2 {
 
   function _processDeposit() internal override {
     require(msg.value == 0, "ETH value is supposed to be 0 for ERC20 instance");
-    IMintableERC20(token).transferFrom(msg.sender, address(this), denomination);
+    IMintableCompToken(token).transferFrom(msg.sender, address(this), denomination);
   }
 
   function _processWithdraw(
@@ -52,9 +51,9 @@ contract WEBBAnchor2 is LinkableAnchor2 {
       }
     } else {
       // mint tokens when not enough balance exists
-      IMintableERC20(token).mint(_recipient, denomination - _fee);
+      IMintableCompToken(token).mint(_recipient, denomination - _fee);
       if (_fee > 0) {
-        IMintableERC20(token).mint(_relayer, _fee);
+        IMintableCompToken(token).mint(_relayer, _fee);
       }
     }
 
