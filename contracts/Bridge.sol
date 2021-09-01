@@ -227,7 +227,7 @@ contract Bridge is Pausable, AccessControl, SafeMath {
      */
     function adminSetResource(address handlerAddress, bytes32 resourceID, address executionContextAddress) external onlyAdmin {
         _resourceIDToHandlerAddress[resourceID] = handlerAddress;
-        IERCHandler handler = IERCHandler(handlerAddress);
+        IExecutor handler = IExecutor(handlerAddress);
         handler.setResource(resourceID, executionContextAddress);
     }
 

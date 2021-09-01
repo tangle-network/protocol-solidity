@@ -8,6 +8,7 @@ pragma experimental ABIEncoderV2;
 
 import "../interfaces/IDepositExecute.sol";
 import "../interfaces/IExecutor.sol";
+import "../interfaces/IERCHandler.sol";
 import "./HandlerHelpers.sol";
 import "../tokens/ERC20Safe.sol";
 
@@ -16,7 +17,7 @@ import "../tokens/ERC20Safe.sol";
     @author ChainSafe Systems.
     @notice This contract is intended to be used with the Bridge contract.
  */
-contract ERC20Handler is IDepositExecute, IExecutor, HandlerHelpers, ERC20Safe {
+contract ERC20Handler is IDepositExecute, IExecutor, IERCHandler, HandlerHelpers, ERC20Safe {
     struct DepositRecord {
         address _tokenAddress;
         uint8   _destinationChainID;
@@ -25,6 +26,9 @@ contract ERC20Handler is IDepositExecute, IExecutor, HandlerHelpers, ERC20Safe {
         address _depositer;
         uint    _amount;
     }
+
+    // token contract address => is burnable
+    mapping (address => bool) public _burnList;
 
     // destId => depositNonce => Deposit Record
     mapping (uint8 => mapping(uint64 => DepositRecord)) public _depositRecords;
@@ -165,4 +169,20 @@ contract ERC20Handler is IDepositExecute, IExecutor, HandlerHelpers, ERC20Safe {
     function withdraw(address tokenAddress, address recipient, uint amount) external override onlyBridge {
         releaseERC20(tokenAddress, recipient, amount);
     }
+
+    /**
+        @notice First verifies {contractAddress} is whitelisted, then sets {_burnList}[{contractAddress}]
+        to true.
+        @param contractAddress Address of contract to be used when making or executing deposits.
+    */
+    function setBurnable(address contractAddress) external override onlyBridge{
+        _setBurnable(contractAddress);
+    }
+
+    function _setBurnable(address contractAddress) internal {
+        require(_contractWhitelist[contractAddress], "provided contract is not whitelisted");
+        _burnList[contractAddress] = true;
+    }
+    
+    
 }

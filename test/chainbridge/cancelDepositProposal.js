@@ -96,7 +96,7 @@ contract('Bridge - [voteProposal with relayerThreshold == 3]', async (accounts) 
     assert.deepInclude(Object.assign({}, depositProposal), expectedDepositProposal);
   });
 
-  /*
+/*
   it("voting on depositProposal after threshold results in cancelled proposal", async () => {
 
 
@@ -138,13 +138,13 @@ contract('Bridge - [voteProposal with relayerThreshold == 3]', async (accounts) 
     assert.deepInclude(Object.assign({}, depositProposal), expectedDepositProposal);
     await TruffleAssert.reverts(vote(relayer4Address), "proposal already passed/executed/cancelled")
   });
-
+  
   it("relayer cannot cancel proposal before threshold blocks have passed", async () => {
     await TruffleAssert.passes(vote(relayer2Address));
 
     await TruffleAssert.reverts(BridgeInstance.cancelProposal(originChainID, expectedDepositNonce, depositDataHash), "Proposal not at expiry threshold")
   });
-
+  
   it("admin can cancel proposal after threshold blocks have passed", async () => {
     await TruffleAssert.passes(vote(relayer3Address));
 
@@ -163,7 +163,7 @@ contract('Bridge - [voteProposal with relayerThreshold == 3]', async (accounts) 
     assert.deepInclude(Object.assign({}, depositProposal), expectedDepositProposal);
     await TruffleAssert.reverts(vote(relayer2Address), "proposal already passed/executed/cancelled")
   });
-  
+  */
   it("proposal cannot be cancelled twice", async () => {
     await TruffleAssert.passes(vote(relayer3Address));
 
@@ -174,7 +174,7 @@ contract('Bridge - [voteProposal with relayerThreshold == 3]', async (accounts) 
     await TruffleAssert.passes(BridgeInstance.cancelProposal(originChainID, expectedDepositNonce, depositDataHash))
     await TruffleAssert.reverts(BridgeInstance.cancelProposal(originChainID, expectedDepositNonce, depositDataHash), "Proposal cannot be cancelled")
   });
-  */
+  
   it("inactive proposal cannot be cancelled", async () => {
     await TruffleAssert.reverts(BridgeInstance.cancelProposal(originChainID, expectedDepositNonce, depositDataHash), "Proposal cannot be cancelled")
   });
