@@ -74,7 +74,7 @@ contract('Bridge - [voteProposal with relayerThreshold == 3]', async (accounts) 
     executeProposal = (relayer) => BridgeInstance.executeProposal(originChainID, expectedDepositNonce, depositData, resourceID, { from: relayer });
   });
 
-  it ('[sanity] bridge configured with threshold and relayers', async () => {
+  it('[sanity] bridge configured with threshold and relayers', async () => {
     assert.equal(await BridgeInstance._chainID(), destinationChainID)
 
     assert.equal(await BridgeInstance._relayerThreshold(), relayerThreshold)
