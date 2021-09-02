@@ -119,7 +119,6 @@ contract('Bridge - [voteProposal with relayerThreshold == 3]', async (accounts) 
     await TruffleAssert.reverts(vote(relayer3Address), "proposal already passed/executed/cancelled")
   });
 
-  /*
   it("relayer can cancel proposal after threshold blocks have passed", async () => {
     await TruffleAssert.passes(vote(relayer2Address));
 
@@ -163,7 +162,7 @@ contract('Bridge - [voteProposal with relayerThreshold == 3]', async (accounts) 
     assert.deepInclude(Object.assign({}, depositProposal), expectedDepositProposal);
     await TruffleAssert.reverts(vote(relayer2Address), "proposal already passed/executed/cancelled")
   });
-  */
+
   it("proposal cannot be cancelled twice", async () => {
     await TruffleAssert.passes(vote(relayer3Address));
 
