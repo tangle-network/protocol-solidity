@@ -96,7 +96,7 @@ contract('Bridge - [voteProposal with relayerThreshold == 3]', async (accounts) 
     assert.deepInclude(Object.assign({}, depositProposal), expectedDepositProposal);
   });
 
-/*
+
   it("voting on depositProposal after threshold results in cancelled proposal", async () => {
 
 
@@ -119,7 +119,7 @@ contract('Bridge - [voteProposal with relayerThreshold == 3]', async (accounts) 
     await TruffleAssert.reverts(vote(relayer3Address), "proposal already passed/executed/cancelled")
   });
 
-  
+  /*
   it("relayer can cancel proposal after threshold blocks have passed", async () => {
     await TruffleAssert.passes(vote(relayer2Address));
 
