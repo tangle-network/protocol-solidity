@@ -94,7 +94,6 @@ contract('Anchor2', (accounts) => {
       return wtns;
     }
 
-    tree = new MerkleTree(levels, null, prefix)
     zkey_final = fs.readFileSync('test/fixtures/circuit_final.zkey').buffer;
   })
 
@@ -203,7 +202,7 @@ contract('Anchor2', (accounts) => {
   })
 
   describe('#withdraw', () => {
-    it('should work', async () => {
+    it.only('should work', async () => {
       const deposit = helpers.generateDeposit(chainID);
       const user = accounts[4]
       await tree.insert(deposit.commitment)
@@ -248,6 +247,8 @@ contract('Anchor2', (accounts) => {
           ).toString();
         }),
       };
+
+      console.log(input);
 
       const wtns = await createWitness(input);
 

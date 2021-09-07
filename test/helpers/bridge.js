@@ -130,7 +130,7 @@ function generateDeposit(targetChainID = 0, secret = 31) {
   }
 
   deposit.commitment = poseidonHasher.hash3([deposit.chainID, deposit.nullifier, deposit.secret]);
-  deposit.nullifierHash =   poseidonHasher.hash(null, deposit.nullifier, deposit.nullifier);
+  deposit.nullifierHash = poseidonHasher.hash(null, deposit.nullifier, deposit.nullifier);
   return deposit
 }
 

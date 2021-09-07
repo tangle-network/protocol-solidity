@@ -15,6 +15,7 @@ import { deployWEBBAnchor } from './deployments/deployWebbAnchor';
 import { deployWebbBridge } from './deployments/deployWebbBridge';
 import { deployAnchorHandler } from './deployments/deployAnchorHandler';
 import { setResourceId } from './setResourceId';
+import { mintCompTokens } from './tokens/mintCompTokens'
 
 let provider = new ethers.providers.JsonRpcProvider(`${process.env.ENDPOINT}`);
 
@@ -86,6 +87,8 @@ async function run() {
   await setResourceId(webbBridge.address, webbAnchor.address, handler.address, wallet);
   await setLinkableAnchorHandler(webbAnchor.address, handler.address, wallet);
   await setLinkableAnchorBridge(webbAnchor.address, webbBridge.address, wallet);
+
+  await mintCompTokens(WEBB.address, wallet.address, "1000000000000000000000000", wallet);
   await depositAnchor(webbAnchor.address, WEBB.address, wallet);
 }
 

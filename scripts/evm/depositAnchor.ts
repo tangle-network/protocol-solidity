@@ -9,7 +9,7 @@ export async function depositAnchor(anchorAddress: string, tokenAddress: string,
   const chainId = await passedWallet.getChainId();
   const walletAddress = await passedWallet.getAddress();
   const deposit = helpers.generateDeposit(chainId);
-  console.log(`commitment: ${deposit.commitment}`);
+  console.log(`webb-${deposit.chainID}-${helpers.toFixedHex(deposit.secret, 31)}-${helpers.toFixedHex(deposit.nullifier, 31)}`);
 
   const anchor = AnchorBase2__factory.connect(anchorAddress, passedWallet);
   const anchorDenomination = (await anchor.functions.denomination())[0];
