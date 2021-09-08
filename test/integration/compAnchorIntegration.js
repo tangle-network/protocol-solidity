@@ -75,16 +75,16 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
   let OriginBridgeInstance;
   let OriginChainAnchorInstance;
   let OriginAnchorHandlerInstance;
-  let originDepositData;
-  let originDepositDataHash;
+  let originUpdateData;
+  let originUpdateDataHash;
   let resourceID;
   let initialResourceIDs;
   let originInitialContractAddresses;
   let DestBridgeInstance;
   let DestChainAnchorInstance
   let DestAnchorHandlerInstance;
-  let destDepositData;
-  let destDepositDataHash;
+  let destUpdateData;
+  let destUpdateDataHash;
   let destInitialContractAddresses;
 
   const name = 'Webb-1';
@@ -236,8 +236,8 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     originUpdateNonce = logs[0].args.leafIndex;
     originMerkleRoot = await OriginChainAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on origin chain
-    originDepositData = helpers.createUpdateProposalData(originChainID, originBlockHeight, originMerkleRoot);
-    originDepositDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originDepositData.substr(2));
+    originUpdateData = helpers.createUpdateProposalData(originChainID, originBlockHeight, originMerkleRoot);
+    originUpdateDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originUpdateData.substr(2));
     /*
     *  Relayers vote on dest chain
     */
@@ -247,14 +247,14 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
       originChainID,
       originUpdateNonce,
       resourceID,
-      originDepositDataHash,
+      originUpdateDataHash,
       { from: relayer1Address }
     ));
     // relayer1 will execute the deposit proposal
     await TruffleAssert.passes(DestBridgeInstance.executeProposal(
       originChainID,
       originUpdateNonce,
-      originDepositData,
+      originUpdateData,
       resourceID,
       { from: relayer1Address }
     ));
@@ -330,8 +330,8 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     originUpdateNonce = logs[0].args.leafIndex;
     originMerkleRoot = await OriginChainAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on origin chain
-    originDepositData = helpers.createUpdateProposalData(originChainID, originBlockHeight, originMerkleRoot);
-    originDepositDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originDepositData.substr(2));
+    originUpdateData = helpers.createUpdateProposalData(originChainID, originBlockHeight, originMerkleRoot);
+    originUpdateDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originUpdateData.substr(2));
     /*
     *  Relayers vote on dest chain
     */
@@ -341,14 +341,14 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
       originChainID,
       originUpdateNonce,
       resourceID,
-      originDepositDataHash,
+      originUpdateDataHash,
       { from: relayer1Address }
     ));
     // relayer1 will execute the deposit proposal
     await TruffleAssert.passes(DestBridgeInstance.executeProposal(
       originChainID,
       originUpdateNonce,
-      originDepositData,
+      originUpdateData,
       resourceID,
       { from: relayer1Address }
     ));
@@ -450,8 +450,8 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     destUpdateNonce = logs[0].args.leafIndex;
     destMerkleRoot = await DestChainAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on dest chain
-    destDepositData = helpers.createUpdateProposalData(destChainID, destBlockHeight, destMerkleRoot);
-    destDepositDataHash = Ethers.utils.keccak256(OriginAnchorHandlerInstance.address + destDepositData.substr(2));
+    destUpdateData = helpers.createUpdateProposalData(destChainID, destBlockHeight, destMerkleRoot);
+    destUpdateDataHash = Ethers.utils.keccak256(OriginAnchorHandlerInstance.address + destUpdateData.substr(2));
     /*
     *  relayers vote on origin chain
     */
@@ -461,14 +461,14 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
       destChainID,
       destUpdateNonce,
       resourceID,
-      destDepositDataHash,
+      destUpdateDataHash,
       { from: relayer1Address }
     ));
     // relayer1 will execute the update proposal
     await TruffleAssert.passes(OriginBridgeInstance.executeProposal(
       destChainID,
       destUpdateNonce,
-      destDepositData,
+      destUpdateData,
       resourceID,
       { from: relayer1Address }
     ));
