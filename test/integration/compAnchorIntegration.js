@@ -292,9 +292,6 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
     proof = res.proof;
     publicSignals = res.publicSignals;
-    let vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/circuit_final.zkey');
-    res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
-    assert.strictEqual(res, true);
     let args = [
       helpers.createRootsBytes(input.roots),
       helpers.toFixedHex(input.nullifierHash),
@@ -355,7 +352,7 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
       resourceID,
       { from: relayer1Address }
     ));
-    // check initial balances
+    // check initial balances before withdrawal
     let balanceOperatorBefore = await destWrapperToken.balanceOf(operator);
     let balanceReceiverBefore = await destWrapperToken.balanceOf(user1);
     // get roots for proof
@@ -394,9 +391,6 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
     proof = res.proof;
     publicSignals = res.publicSignals;
-    let vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/circuit_final.zkey');
-    res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
-    assert.strictEqual(res, true);
 
     let args = [
       helpers.createRootsBytes(input.roots),
@@ -478,7 +472,7 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
       resourceID,
       { from: relayer1Address }
     ));
-    // check initial balances
+    // check initial balances before withdrawal
     balanceOperatorBefore = await originWrapperToken.balanceOf(operator);
     balanceReceiverBefore = await originWrapperToken.balanceOf(user2);
     // get roots for proof
@@ -518,9 +512,6 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
     proof = res.proof;
     publicSignals = res.publicSignals;
-    vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/circuit_final.zkey');
-    res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
-    assert.strictEqual(res, true);
 
     isSpent = await DestChainAnchorInstance.isSpent(helpers.toFixedHex(input.nullifierHash));
     assert.strictEqual(isSpent, false);

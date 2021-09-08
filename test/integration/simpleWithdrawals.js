@@ -184,7 +184,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
       { from: relayer1Address }
     ));
 
-    // check initial balances
+    // check initial balances before withdrawal
     let balanceOperatorBefore = await destChainToken.balanceOf(operator);
     let balanceReceiverBefore = await destChainToken.balanceOf(helpers.toFixedHex(recipient, 20));
     /*
@@ -222,9 +222,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
     proof = res.proof;
     publicSignals = res.publicSignals;
-    let vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/circuit_final.zkey');
-    res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
-    assert.strictEqual(res, true);
+
     let args = [
       helpers.createRootsBytes(input.roots),
       helpers.toFixedHex(input.nullifierHash),
@@ -330,9 +328,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
     proof = res.proof;
     publicSignals = res.publicSignals;
-    vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/circuit_final.zkey');
-    res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
-    assert.strictEqual(res, true);
+
     args = [
       helpers.createRootsBytes(input.roots),
       helpers.toFixedHex(input.nullifierHash),

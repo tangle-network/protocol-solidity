@@ -49,8 +49,8 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
   let OriginBridgeInstance;
   let OriginChainAnchorInstance;
   let OriginAnchorHandlerInstance;
-  let originDepositData;
-  let originDepositDataHash;
+  let originUpdateData;
+  let originUpdateDataHash;
   let destinationDepositData;
   let destinationDepositProposalDataHash;
   let fixedDenomResourceID;
@@ -172,8 +172,8 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     originUpdateNonce = logs[0].args.leafIndex;
     originMerkleRoot = await OriginChainAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on origin chain
-    originDepositData = helpers.createUpdateProposalData(originChainID, originBlockHeight, originMerkleRoot);
-    originDepositDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originDepositData.substr(2));
+    originUpdateData = helpers.createUpdateProposalData(originChainID, originBlockHeight, originMerkleRoot);
+    originUpdateDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originUpdateData.substr(2));
     /*
     *  Relayers vote on dest chain
     */
@@ -183,19 +183,19 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
       originChainID,
       originUpdateNonce,
       fixedDenomResourceID,
-      originDepositDataHash,
+      originUpdateDataHash,
       { from: relayer1Address }
     ));
     // relayer1 will execute the deposit proposal
     await TruffleAssert.passes(DestBridgeInstance.executeProposal(
       originChainID,
       originUpdateNonce,
-      originDepositData,
+      originUpdateData,
       fixedDenomResourceID,
       { from: relayer1Address }
     ));
 
-    // check initial balances
+    // check initial balances before withdrawal
     let balanceOperatorBefore = await DestinationERC20MintableInstance.balanceOf(operator);
     let balanceReceiverBefore = await DestinationERC20MintableInstance.balanceOf(helpers.toFixedHex(recipient, 20));
     /*
@@ -233,9 +233,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
     proof = res.proof;
     publicSignals = res.publicSignals;
-    let vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/circuit_final.zkey');
-    res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
-    assert.strictEqual(res, true);
+
     let args = [
       helpers.createRootsBytes(input.roots),
       helpers.toFixedHex(input.nullifierHash),
@@ -249,7 +247,6 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     /*
     *  sender withdraws on dest chain
     */
-    await DestinationERC20MintableInstance.mint(DestChainAnchorInstance.address, initialTokenMintAmount);
     let balanceDestAnchorAfterDeposit = await DestinationERC20MintableInstance.balanceOf(DestChainAnchorInstance.address);
     ({ logs } = await DestChainAnchorInstance.withdraw
       (`0x${proofEncoded}`, ...args, { from: input.relayer, gasPrice: '0' }));
@@ -258,7 +255,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     let balanceOperatorAfter = await DestinationERC20MintableInstance.balanceOf(input.relayer);
     let balanceReceiverAfter = await DestinationERC20MintableInstance.balanceOf(helpers.toFixedHex(recipient, 20));
     const feeBN = toBN(fee.toString())
-    assert.strictEqual(balanceDestAnchorAfter.toString(), balanceDestAnchorAfterDeposit.sub(toBN(tokenDenomination)).toString());
+    assert.strictEqual(balanceDestAnchorAfter.toString(), balanceDestAnchorAfterDeposit.toString());
     assert.strictEqual(balanceOperatorAfter.toString(), balanceOperatorBefore.add(feeBN).toString());
     assert.strictEqual(balanceReceiverAfter.toString(), balanceReceiverBefore.add(toBN(tokenDenomination)).sub(feeBN).toString());
 
@@ -341,8 +338,9 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
       expectedDepositNonce,
       destinationDepositData,
       nonDenomResourceID,
-      { from: relayer1Address }
-    ));
-    })
+      { from: relayer1Address }),
+      'ERC20PresetMinterPauser: must have minter role to mint'
+    );
+  })
 })
 
