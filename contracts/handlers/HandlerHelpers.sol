@@ -24,9 +24,6 @@ abstract contract HandlerHelpers is IExecutor {
     // token contract address => is whitelisted
     mapping (address => bool) public _contractWhitelist;
 
-    // token contract address => is burnable
-    mapping (address => bool) public _burnList;
-
     modifier onlyBridge() {
         _onlyBridge();
         _;
@@ -56,4 +53,5 @@ abstract contract HandlerHelpers is IExecutor {
 
         _contractWhitelist[contractAddress] = true;
     }
+
 }

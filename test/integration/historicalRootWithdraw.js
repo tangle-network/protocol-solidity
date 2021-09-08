@@ -45,8 +45,8 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
   let tree;
   let createWitness;
   let OriginChainAnchorInstance;
-  let originDepositData;
-  let originDepositDataHash;
+  let originUpdateData;
+  let originUpdateDataHash;
   let resourceID;
   let initialResourceIDs;
   let DestBridgeInstance;
@@ -139,8 +139,8 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     originUpdateNonce = logs[0].args.leafIndex;
     firstWithdrawlMerkleRoot = await OriginChainAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on origin chain
-    originDepositData = helpers.createUpdateProposalData(originChainID, originBlockHeight, firstWithdrawlMerkleRoot);
-    originDepositDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originDepositData.substr(2));
+    originUpdateData = helpers.createUpdateProposalData(originChainID, originBlockHeight, firstWithdrawlMerkleRoot);
+    originUpdateDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originUpdateData.substr(2));
 
     // deposit on origin chain leads to update addEdge proposal on dest chain
     // relayer1 creates the deposit proposal for the deposit that occured in the before each loop
@@ -148,14 +148,14 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
       originChainID,
       originUpdateNonce,
       resourceID,
-      originDepositDataHash,
+      originUpdateDataHash,
       { from: relayer1Address }
     ));
     // relayer1 will execute the deposit proposal
     await TruffleAssert.passes(DestBridgeInstance.executeProposal(
       originChainID,
       originUpdateNonce,
-      originDepositData,
+      originUpdateData,
       resourceID,
       { from: relayer1Address }
     ));
@@ -196,9 +196,6 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
     proof = res.proof;
     publicSignals = res.publicSignals;
-    let vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/circuit_final.zkey');
-    res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
-    assert.strictEqual(res, true);
 
     // Uncomment to measure gas usage
     // gas = await anchor.withdraw.estimateGas(proof, publicSignals, { from: relayer, gasPrice: '0' })
@@ -222,8 +219,8 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     originUpdateNonce = logs[0].args.leafIndex;
     secondWithdrawalMerkleRoot = await OriginChainAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on origin chain
-    originDepositData = helpers.createUpdateProposalData(originChainID, originBlockHeight + 10, secondWithdrawalMerkleRoot);
-    originDepositDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originDepositData.substr(2));
+    originUpdateData = helpers.createUpdateProposalData(originChainID, originBlockHeight + 10, secondWithdrawalMerkleRoot);
+    originUpdateDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originUpdateData.substr(2));
     /*
     * Relayers vote on dest chain
     */
@@ -233,19 +230,19 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
       originChainID,
       originUpdateNonce,
       resourceID,
-      originDepositDataHash,
+      originUpdateDataHash,
       { from: relayer1Address }
     ));
     // relayer1 will execute the deposit proposal
     await TruffleAssert.passes(DestBridgeInstance.executeProposal(
       originChainID,
       originUpdateNonce,
-      originDepositData,
+      originUpdateData,
       resourceID,
       { from: relayer1Address }
     ));
 
-    // check initial balances
+    // check initial balances before withdrawal
     let balanceOperatorBefore = await destChainToken.balanceOf(operator);
     let balanceReceiverBefore = await destChainToken.balanceOf(helpers.toFixedHex(recipient, 20));
     /*
@@ -327,8 +324,8 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
       originUpdateNonce = logs[0].args.leafIndex;
       originMerkleRoot = await OriginChainAnchorInstance.getLastRoot();
       // create correct update proposal data for the deposit on origin chain
-      originDepositData = helpers.createUpdateProposalData(originChainID, newBlockHeight + i, originMerkleRoot);
-      originDepositDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originDepositData.substr(2));
+      originUpdateData = helpers.createUpdateProposalData(originChainID, newBlockHeight + i, originMerkleRoot);
+      originUpdateDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originUpdateData.substr(2));
       /*
       * Relayers vote on dest chain
       */
@@ -337,14 +334,14 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
         originChainID,
         originUpdateNonce,
         resourceID,
-        originDepositDataHash,
+        originUpdateDataHash,
         { from: relayer1Address }
       ));
       // relayer1 will execute the deposit proposal
       await TruffleAssert.passes(DestBridgeInstance.executeProposal(
         originChainID,
         originUpdateNonce,
-        originDepositData,
+        originUpdateData,
         resourceID,
         { from: relayer1Address }
       ));
