@@ -15,9 +15,10 @@ export function parseNote(noteString: string): Deposit | null {
   if (match && match.groups ) {
     const chainID = Number(match.groups.chainId);
     const secretBuf = Buffer.from(match.groups.secret, 'hex');
-    const nullifierBuf = Buffer.from(match.groups.secret, 'hex');
+    const nullifierBuf = Buffer.from(match.groups.nullifier, 'hex');
     const nullifier = leBuff2int(secretBuf);
     const secret = leBuff2int(nullifierBuf);
+    console.log(secret);
     const deposit = createDeposit(chainID, nullifier, secret);
 
     return deposit;
