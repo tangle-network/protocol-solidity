@@ -83,8 +83,8 @@ async function run() {
   const chain1Provider = new ethers.providers.JsonRpcProvider(`${process.env.CHAIN_1_ENDPOINT}`);
   const chain2Provider = new ethers.providers.JsonRpcProvider(`${process.env.CHAIN_2_ENDPOINT}`);
   const chain1Wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, chain1Provider);
-  const chain2wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, chain2Provider);
-  const options = await getAllContracts(chain1Wallet, chain2wallet);
+  const chain2Wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, chain2Provider);
+  const options = await getAllContracts(chain1Wallet, chain2Wallet);
   await depositAndProposeAndExecute({
     originAnchor: options.chain1Anchor,
     originToken: options.chain1WebbToken,
@@ -93,7 +93,18 @@ async function run() {
     destAnchor: options.chain2Anchor,
     destBridge: options.chain2Bridge,
     destAnchorHandler: options.chain2AnchorHandler,
-    destWallet: chain2wallet,
+    destWallet: chain2Wallet,
+  });
+
+  await depositAndProposeAndExecute({
+    originAnchor: options.chain2Anchor,
+    originToken: options.chain2WebbToken,
+    originAnchorHandler: options.chain2AnchorHandler,
+    originWallet: chain2Wallet,
+    destAnchor: options.chain1Anchor,
+    destBridge: options.chain1Bridge,
+    destAnchorHandler: options.chain1AnchorHandler,
+    destWallet: chain1Wallet,
   });
 }
 

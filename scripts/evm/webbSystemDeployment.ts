@@ -42,7 +42,7 @@ async function getVerifierFactory(wallet: ethers.Signer): Promise<ethers.Contrac
   return verifierFactory;
 };
 
-async function run() {
+export async function run() {
   const denomination = ethers.BigNumber.from('100000000000000000');
   // WARNING: ENSURE THIS MATCHES CIRCUIT HEIGHT
   const merkleTreeHeight = 30;
