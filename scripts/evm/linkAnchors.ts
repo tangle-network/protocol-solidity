@@ -48,7 +48,6 @@ async function depositAndProposeAndExecute({
   const data = receipt.events[2].args;
   // @ts-ignore
   const updateNonce = data[1];
-  console.log('Update nonce', updateNonce);
   const originBlockHeight = receipt.blockNumber;
 
   const originChainID = await originWallet.getChainId();
@@ -56,13 +55,10 @@ async function depositAndProposeAndExecute({
   // create correct update proposal data for the deposit on origin chain
   const updateData = helpers.createUpdateProposalData(originChainID, originBlockHeight, originMerkleRoot);
   console.log('Created update data w/ args', originChainID, originBlockHeight, originMerkleRoot, updateData)
-  const dataHash = ethers.utils.keccak256(destAnchor.address + updateData.substr(2));
+  const dataHash = ethers.utils.keccak256(destAnchorHandler.address + updateData.substr(2));
   // create destination resourceID to create proposals to update against
   const destChainId = await destWallet.getChainId();
   const resourceId = helpers.createResourceID(destAnchor.address, destChainId);
-  console.log('Resource ID', resourceId);
-  console.log('Resource ID to contract', await destAnchorHandler._resourceIDToContractAddress(resourceId), destAnchor.address);
-  console.log('Resource ID to AnchorHandler', await destBridge._resourceIDToHandlerAddress(resourceId), destAnchorHandler.address);
   let tx = await destBridge.voteProposal(
     originChainID,
     updateNonce,
@@ -71,11 +67,6 @@ async function depositAndProposeAndExecute({
     { gasLimit: '0x5B8D80' },
   );
   let result = await tx.wait();
-  console.log('Vote proposal result', result);
-  // @ts-ignore
-  result.events.forEach((event) => {
-    console.log(event.event, event.args);
-  });
   tx = await destBridge.executeProposal(
     originChainID,
     updateNonce,
@@ -84,8 +75,6 @@ async function depositAndProposeAndExecute({
     { gasLimit: '0x5B8D80' },
   );
   result = await tx.wait();
-  console.log('Execute proposal result', result);
-  
   console.log('origin merkle root', originMerkleRoot);
   console.log('destination neighbor roots', await destAnchor.getLatestNeighborRoots());
 }
