@@ -26,9 +26,9 @@ export async function depositAnchor(anchorAddress: string, tokenAddress: string,
 
   // There is enough to make the call.
   console.log(`depositing with arg: ${helpers.toFixedHex(deposit.commitment)} `);
-  let tx = await anchor.deposit(helpers.toFixedHex(deposit.commitment), { from: walletAddress, gasLimit: '0x989680' });
+  let tx = await anchor.deposit(helpers.toFixedHex(deposit.commitment), { gasLimit: '0x5B8D80' });
   let receipt = await tx.wait();
   console.log(receipt);
 
-  return deposit;
+  return receipt;
 }

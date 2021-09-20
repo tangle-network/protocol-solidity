@@ -1,12 +1,9 @@
-require('dotenv').config({ path: '../.env' });
+require('dotenv').config();
 const helpers = require('../../test/helpers');
 import { ethers } from 'ethers';
 
 import { WEBB__factory } from '../../typechain/factories/WEBB__factory';
-import { TimelockHarness__factory } from '../../typechain/factories/TimelockHarness__factory';
-import { GovernorBravoImmutable__factory } from '../../typechain/factories/GovernorBravoImmutable__factory';
-import { PoseidonT3__factory } from '../../typechain/factories/PoseidonT3__factory';
-import { VerifierPoseidonBridge__factory } from '../../typechain/factories/VerifierPoseidonBridge__factory';
+
 
 import { setLinkableAnchorBridge } from './setLinkableAnchorBridge';
 import { setLinkableAnchorHandler } from './setLinkableAnchorHandler';
@@ -16,11 +13,40 @@ import { deployWebbBridge } from './deployments/deployWebbBridge';
 import { deployAnchorHandler } from './deployments/deployAnchorHandler';
 import { setResourceId } from './setResourceId';
 
+const HasherContract = require('./json/PoseidonT3.json');
+const VerifierContract = require('./json/VerifierPoseidonBridge.json');
+
 let provider = new ethers.providers.JsonRpcProvider(`${process.env.ENDPOINT}`);
 
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
 
-async function run() {
+async function getHasherFactory(wallet: ethers.Signer): Promise<ethers.ContractFactory> {
+  const hasherContractRaw = {
+    contractName: 'PoseidonT3',
+    abi: HasherContract.abi,
+    bytecode: HasherContract.bytecode,
+  };
+
+  const hasherFactory = new ethers.ContractFactory(hasherContractRaw.abi, hasherContractRaw.bytecode, wallet);
+  return hasherFactory;
+};
+
+async function getVerifierFactory(wallet: ethers.Signer): Promise<ethers.ContractFactory> {
+  const VerifierContractRaw = {
+    contractName: 'Verifier',
+    abi: VerifierContract.abi,
+    bytecode: VerifierContract.bytecode,
+  };
+
+  const verifierFactory = new ethers.ContractFactory(VerifierContractRaw.abi, VerifierContractRaw.bytecode, wallet);
+  return verifierFactory;
+};
+
+export async function run() {
+  const denomination = ethers.BigNumber.from('100000000000000000');
+  // WARNING: ENSURE THIS MATCHES CIRCUIT HEIGHT
+  const merkleTreeHeight = 30;
+
   const chainId = await wallet.getChainId();
 
   // deploy WEBB gov token first and then add to anchor
@@ -28,36 +54,20 @@ async function run() {
   const WEBB = await WebbFactory.deploy('Webb Governance Token', 'WEBB');
   await WEBB.deployed();
   console.log(`Deployed WEBB: ${WEBB.address}`);
-  // deploy timelockHarness
-  const TimelockHarnessFactory = new TimelockHarness__factory(wallet);
-  const TimelockHarness = await TimelockHarnessFactory.deploy(wallet.address, '345600');
-  await TimelockHarness.deployed();
-  console.log(`Deployed TimelockHarness: ${TimelockHarness.address}`);
-  // deploy gov bravo
-  const GovBravoFactory = new GovernorBravoImmutable__factory(wallet);
-  const GovBravo = await GovBravoFactory.deploy(
-    TimelockHarness.address,
-    WEBB.address,
-    wallet.address,
-    '10',
-    '1',
-    '100000000000000000000000'
-  );
-  await GovBravo.deployed();
-  console.log(`Deployed GovBravo: ${GovBravo.address}`);
+  await WEBB.mint(wallet.address, '1000000000000000000000000', {
+    gasLimit: '0x5B8D80',
+  });
 
-  const hasherFactory = new PoseidonT3__factory(wallet);
+  // deploy the Hasher
+  const hasherFactory = await getHasherFactory(wallet);
   let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
   await hasherInstance.deployed();
   console.log(`Deployed Hasher: ${hasherInstance.address}`);
 
-  const verifierFactory = new VerifierPoseidonBridge__factory(wallet);
+  const verifierFactory = await getVerifierFactory(wallet);
   let verifierInstance = await verifierFactory.deploy({ gasLimit: '0x5B8D80' });
   await verifierInstance.deployed();
   console.log(`Deployed Verifier: ${verifierInstance.address}`);
-
-  const denomination = ethers.BigNumber.from('100000000000000000');
-  const merkleTreeHeight = 20;
 
   const webbAnchor = await deployWEBBAnchor(
     verifierInstance.address,
@@ -77,7 +87,7 @@ async function run() {
   await tx.wait();
 
   // Create the bridge
-  const webbBridge = await deployWebbBridge(chainId, [wallet.address], 1, '1000', 30, wallet);
+  const webbBridge = await deployWebbBridge(chainId, [wallet.address], 1, '0', 30, wallet);
 
   let resourceID = helpers.createResourceID(webbAnchor.address, chainId);
 
