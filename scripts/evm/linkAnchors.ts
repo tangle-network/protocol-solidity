@@ -4,21 +4,29 @@ import { ethers } from 'ethers';
 import { WEBB__factory } from '../../typechain/factories/WEBB__factory';
 import { WEBBAnchor2__factory } from '../../typechain/factories/WEBBAnchor2__factory';
 import { Bridge__factory } from '../../typechain/factories/Bridge__factory';
-import helpers from '../../test/helpers';
+const helpers = require('../../test/helpers');
 
 let provider = new ethers.providers.JsonRpcProvider(`${process.env.ENDPOINT}`);
 
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
 
-async function getAllContracts(originWallet, destWallet) {
+async function getAllContracts(originWallet: any, destWallet: any) {
   return {
-    chain1Anchor: WEBBAnchor2__factory.connect(process.env.CHAIN_1_WEBBAnchor, originWallet.provider),
-    chain1WebbToken: WEBB__factory.connect(process.env.CHAIN_1_WEBB, originWallet.provider),
-    chain1Bridge: Bridge__factory.connect(process.env.CHAIN_1_Bridge, originWallet.provider),
-    chain2Anchor: WEBBAnchor2__factory.connect(process.env.CHAIN_2_WEBBAnchor, destWallet.provider),
-    chain2WebbToken: WEBB__factory.connect(process.env.CHAIN_2_WEBB, destWallet.provider),
-    chain2Bridge: Bridge__factory.connect(process.env.CHAIN_2_Bridge, destWallet.provider),
+    chain1Anchor: WEBBAnchor2__factory.connect(process.env.CHAIN_1_WEBBAnchor!, originWallet.provider),
+    chain1WebbToken: WEBB__factory.connect(process.env.CHAIN_1_WEBB!, originWallet.provider),
+    chain1Bridge: Bridge__factory.connect(process.env.CHAIN_1_Bridge!, originWallet.provider),
+    chain2Anchor: WEBBAnchor2__factory.connect(process.env.CHAIN_2_WEBBAnchor!, destWallet.provider),
+    chain2WebbToken: WEBB__factory.connect(process.env.CHAIN_2_WEBB!, destWallet.provider),
+    chain2Bridge: Bridge__factory.connect(process.env.CHAIN_2_Bridge!, destWallet.provider),
   };
+}
+
+interface Options {
+  originProvider: ethers.providers.Provider;
+  originAnchor: ethers.Contract;
+  destAnchor: ethers.Contract;
+  destBridge: ethers.Contract;
+  originWallet: ethers.Wallet;
 }
 
 async function proposeAndExecute({
@@ -27,7 +35,7 @@ async function proposeAndExecute({
   destAnchor,
   destBridge,
   originWallet,
-}) {
+}: Options) {
   const originChainID = await originWallet.getChainId();
   const originBlockHeight = await originProvider.getBlockNumber();
   const originMerkleRoot = await originAnchor.getLastRoot();
