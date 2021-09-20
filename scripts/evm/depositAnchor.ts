@@ -30,5 +30,5 @@ export async function depositAnchor(anchorAddress: string, tokenAddress: string,
   let receipt = await tx.wait();
   console.log(receipt);
 
-  return deposit;
+  return receipt;
 }
