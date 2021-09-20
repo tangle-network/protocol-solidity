@@ -82,7 +82,7 @@ const advanceBlock = () => {
 }
 
 const createResourceID = (contractAddress, chainID) => {
-  return toHex(contractAddress + toHex(chainID, 1).substr(2), 32)
+  return toHex(contractAddress + toHex(chainID, 4).substr(2), 32)
 };
 
 const assertObjectsMatch = (expectedObj, actualObj) => {
