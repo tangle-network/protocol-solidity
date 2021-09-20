@@ -153,7 +153,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     // minting Tokens
     await originChainToken.mint(sender, initialTokenMintAmount);
     // increasing allowance of anchors
-    await originChainToken.approve(OriginChainAnchorInstance.address, initialTokenMintAmount, { from: sender }),
+    await originChainToken.approve(OriginChainAnchorInstance.address, initialTokenMintAmount, { from: sender });
     // generate deposit commitment targeting withdrawal on destination chain
     originDeposit = helpers.generateDeposit(destChainID);
     // deposit on origin chain and define nonce

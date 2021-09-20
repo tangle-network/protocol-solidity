@@ -1,4 +1,4 @@
-require('dotenv').config({ path: '../.env' });
+require('dotenv').config();
 const helpers = require('../../test/helpers');
 import { ethers } from 'ethers';
 
@@ -16,9 +16,22 @@ import { deployWebbBridge } from './deployments/deployWebbBridge';
 import { deployAnchorHandler } from './deployments/deployAnchorHandler';
 import { setResourceId } from './setResourceId';
 
+const HasherContract = require('./json/PoseidonT3.json');
+
 let provider = new ethers.providers.JsonRpcProvider(`${process.env.ENDPOINT}`);
 
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
+
+async function getHasherFactory(wallet) {
+  const hasherContractRaw = {
+    contractName: 'PoseidonT3',
+    abi: HasherContract.abi,
+    bytecode: HasherContract.bytecode,
+  };
+
+  const hasherFactory = new ethers.ContractFactory(hasherContractRaw.abi, hasherContractRaw.bytecode, wallet);
+  return hasherFactory;
+};
 
 async function run() {
   const chainId = await wallet.getChainId();
@@ -28,25 +41,9 @@ async function run() {
   const WEBB = await WebbFactory.deploy('Webb Governance Token', 'WEBB');
   await WEBB.deployed();
   console.log(`Deployed WEBB: ${WEBB.address}`);
-  // deploy timelockHarness
-  const TimelockHarnessFactory = new TimelockHarness__factory(wallet);
-  const TimelockHarness = await TimelockHarnessFactory.deploy(wallet.address, '345600');
-  await TimelockHarness.deployed();
-  console.log(`Deployed TimelockHarness: ${TimelockHarness.address}`);
-  // deploy gov bravo
-  const GovBravoFactory = new GovernorBravoImmutable__factory(wallet);
-  const GovBravo = await GovBravoFactory.deploy(
-    TimelockHarness.address,
-    WEBB.address,
-    wallet.address,
-    '10',
-    '1',
-    '100000000000000000000000'
-  );
-  await GovBravo.deployed();
-  console.log(`Deployed GovBravo: ${GovBravo.address}`);
 
-  const hasherFactory = new PoseidonT3__factory(wallet);
+  // deploy the Hasher
+  const hasherFactory = await getHasherFactory(wallet);
   let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
   await hasherInstance.deployed();
   console.log(`Deployed Hasher: ${hasherInstance.address}`);
