@@ -29,7 +29,6 @@ contract('Bridge - [CancelUpdateProposal with relayerThreshold == 3]', async (ac
   const relayerThreshold = 3;
   const merkleTreeHeight = 31;
   const blockHeight = 1;
-  const maxRoots = 100;
   const sender = accounts[5]
   let merkleRoot;
   let AnchorInstance;
@@ -69,7 +68,6 @@ contract('Bridge - [CancelUpdateProposal with relayerThreshold == 3]', async (ac
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      maxRoots,
       token.address,
       accounts[0],
       accounts[0],

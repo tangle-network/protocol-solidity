@@ -14,11 +14,10 @@ abstract contract LinkableAnchor2 is AnchorBase2, ILinkableAnchor {
     IPoseidonT3 _hasher,
     uint256 _denomination,
     uint32 _merkleTreeHeight,
-    uint256 _chainID,
     address _bridge,
     address _admin,
     address _handler
-  ) AnchorBase2(_verifier, _hasher, _denomination, _merkleTreeHeight, _chainID) {
+  ) AnchorBase2(_verifier, _hasher, _denomination, _merkleTreeHeight) {
     bridge = _bridge;
     admin = _admin;
     handler = _handler;

@@ -30,7 +30,6 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
   const expectedFinalizedEventStatus = 2;
   const expectedExecutedEventStatus = 3;
   const merkleTreeHeight = 31;
-  const maxRoots = 100;
   const sender = accounts[5]
 
   let merkleRoot;
@@ -74,7 +73,6 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      maxRoots,
       token.address,
       sender,
       sender,
@@ -85,7 +83,6 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      maxRoots,
       token.address,
       sender,
       sender,

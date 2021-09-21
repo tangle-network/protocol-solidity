@@ -18,7 +18,6 @@ const Token = artifacts.require("ERC20Mock");
   let verifier
   let token
   const merkleTreeHeight = 31;
-  const maxRoots = 100;
   const sender = accounts[0]
   let tokenDenomination = '1000000000000000000' // 1 ether
   // function stubs
@@ -37,7 +36,6 @@ const Token = artifacts.require("ERC20Mock");
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      maxRoots,
       token.address,
       accounts[0],
       accounts[0],

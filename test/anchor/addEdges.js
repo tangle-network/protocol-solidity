@@ -37,7 +37,6 @@ contract('LinkableAnchor - [add edges]', async accounts => {
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      maxRoots,
       token.address,
       accounts[0],
       accounts[0],

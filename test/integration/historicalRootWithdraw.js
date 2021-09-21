@@ -23,8 +23,9 @@ const MerkleTree = require('../../lib/MerkleTree');
 
 contract('E2E LinkableAnchors - Cross chain withdraw using historical root should work', async accounts => {
   const relayerThreshold = 1;
-  const originChainID = 1;
-  const destChainID = 2;
+  // Note: we have to use the same chainID for tests since Hardhat can't simulate 2 networks
+  const originChainID = 31337;
+  const destChainID = 31337;
   const relayer1Address = accounts[3];
   const operator = accounts[6];
   const initialTokenMintAmount = BigInt(1e25);
@@ -70,7 +71,6 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      originChainID,
       originChainToken.address,
       sender,
       sender,
@@ -81,7 +81,6 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      destChainID,
       destChainToken.address,
       sender,
       sender,

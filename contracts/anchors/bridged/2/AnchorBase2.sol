@@ -24,7 +24,6 @@ abstract contract AnchorBase2 is MerkleTreePoseidon, ReentrancyGuard {
 
   IVerifier public immutable verifier;
   uint256 public immutable denomination;
-  uint256 public immutable chainID;
 
   struct Edge {
     uint256 chainID;
@@ -71,13 +70,11 @@ abstract contract AnchorBase2 is MerkleTreePoseidon, ReentrancyGuard {
     IVerifier _verifier,
     IPoseidonT3 _hasher,
     uint256 _denomination,
-    uint32 _merkleTreeHeight,
-    uint256 _chainID
+    uint32 _merkleTreeHeight
   ) MerkleTreePoseidon(_merkleTreeHeight, _hasher) {
     require(_denomination > 0, "denomination should be greater than 0");
     verifier = _verifier;
     denomination = _denomination;
-    chainID = _chainID;
     latestHistoryIndex = 0;
   }
 
@@ -133,7 +130,7 @@ abstract contract AnchorBase2 is MerkleTreePoseidon, ReentrancyGuard {
     inputs[2] = uint256(uint160(rel));
     inputs[3] = uint256(_fee);
     inputs[4] = uint256(_refund);
-    inputs[5] = uint256(chainID);
+    inputs[5] = uint256(getChainId());
     inputs[6] = uint256(roots[0]);
     inputs[7] = uint256(roots[1]);
     bytes memory encodedInputs = abi.encodePacked(inputs);
@@ -251,5 +248,11 @@ abstract contract AnchorBase2 is MerkleTreePoseidon, ReentrancyGuard {
   modifier onlyHandler()  {
     require(msg.sender == handler, 'sender is not the handler');
     _;
+  }
+
+  function getChainId() internal view returns (uint) {
+    uint chainId;
+    assembly { chainId := chainid() }
+    return chainId;
   }
 }

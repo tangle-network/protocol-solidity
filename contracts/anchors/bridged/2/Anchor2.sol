@@ -20,12 +20,11 @@ contract Anchor2 is LinkableAnchor2 {
     IPoseidonT3 _hasher,
     uint256 _denomination,
     uint32 _merkleTreeHeight,
-    uint32 _chainID,
     ITokenWrapper _token,
     address _bridge,
     address _admin,
     address _handler
-  ) LinkableAnchor2(_verifier, _hasher, _denomination, _merkleTreeHeight, _chainID, _bridge, _admin, _handler) {
+  ) LinkableAnchor2(_verifier, _hasher, _denomination, _merkleTreeHeight, _bridge, _admin, _handler) {
     token = address(_token);
   }
   

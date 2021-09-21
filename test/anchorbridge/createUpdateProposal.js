@@ -28,7 +28,6 @@ contract('Bridge - [create a update proposal (voteProposal) with relayerThreshol
   const expectedCreateEventStatus = 1;
   const merkleTreeHeight = 31;
   const blockHeight = 1;
-  const maxRoots = 100;
   const sender = accounts[0]
 
   let merkleRoot;
@@ -65,7 +64,6 @@ contract('Bridge - [create a update proposal (voteProposal) with relayerThreshol
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      maxRoots,
       token.address,
       sender,
       sender,
@@ -202,7 +200,6 @@ contract('Bridge - [create an update proposal (voteProposal) with relayerThresho
   const expectedCreateEventStatus = 1;
   const merkleTreeHeight = 31;
   const blockHeight = 1;
-  const maxRoots = 100;
   const sender = accounts[0]
 
   let merkleRoot;
@@ -239,7 +236,6 @@ contract('Bridge - [create an update proposal (voteProposal) with relayerThresho
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      maxRoots,
       token.address,
       sender,
       sender,

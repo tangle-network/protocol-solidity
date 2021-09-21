@@ -38,15 +38,6 @@ contract Bridge is Pausable, AccessControl, SafeMath {
         uint40  _proposedBlock; // 1099511627775 maximum block
     }
 
-    enum AnchorProposalType {Add, Update}
-    struct AnchorProposal {
-        AnchorProposalType _type;
-        ProposalStatus _status;
-        uint200 _yesVotes;      // bitmap, 200 maximum votes
-        uint8   _yesVotesTotal;
-        uint40  _proposedBlock; // 1099511627775 maximum block
-    }
-
     // destinationChainID => number of deposits
     mapping(uint256 => uint64) public _counts;
     // resourceID => handler address
@@ -300,7 +291,7 @@ contract Bridge is Pausable, AccessControl, SafeMath {
         @param data Additional data to be passed to specified handler.
         @notice Emits {Deposit} event.
      */
-    function deposit(uint8 destinationChainID, bytes32 resourceID, bytes calldata data) external payable whenNotPaused {
+    function deposit(uint32 destinationChainID, bytes32 resourceID, bytes calldata data) external payable whenNotPaused {
         require(msg.value == _fee, "Incorrect fee supplied");
 
         address handler = _resourceIDToHandlerAddress[resourceID];
@@ -327,7 +318,6 @@ contract Bridge is Pausable, AccessControl, SafeMath {
         @notice Emits {ProposalVote} event.
      */
     function voteProposal(uint256 chainID, uint64 nonce, bytes32 resourceID, bytes32 dataHash) external onlyRelayers whenNotPaused {
-
         uint72 nonceAndID = (uint72(nonce) << 8) | uint72(chainID);
         Proposal memory proposal = _proposals[nonceAndID][dataHash];
 

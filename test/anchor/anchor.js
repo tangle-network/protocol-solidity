@@ -37,7 +37,7 @@ contract('Anchor2', (accounts) => {
   const relayer = accounts[1]
   let verifier;
   let tokenDenomination = '1000000000000000000' // 1 ether
-  const chainID = 125;
+  const chainID = 31337;
 
   let createWitness;
 
@@ -53,7 +53,6 @@ contract('Anchor2', (accounts) => {
       hasherInstance.address,
       tokenDenomination,
       levels,
-      chainID,
       token.address,
       sender,
       sender,

@@ -44,8 +44,9 @@ const states = Object.entries(statesInverted).reduce((obj, [key, value]) => ({ .
 
 contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo', async accounts => {
   const relayerThreshold = 1;
-  const originChainID = 1;
-  const destChainID = 2;
+  const originChainID = 31337;
+  // Note: we have to use the same chainID for tests since Hardhat can't simulate 2 networks
+  const destChainID = 31337;
   const bravoAdmin = accounts[0];
   const user1 = accounts[1];
   const user2 = accounts[2];
@@ -136,7 +137,6 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      originChainID,
       originWrapperToken.address,
       sender,
       sender,
@@ -147,7 +147,6 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      destChainID,
       destWrapperToken.address,
       sender,
       sender,
