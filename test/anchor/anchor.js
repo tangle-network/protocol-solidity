@@ -202,7 +202,7 @@ contract('Anchor2', (accounts) => {
   })
 
   describe('#withdraw', () => {
-    it('should work', async () => {
+    it.only('should work', async () => {
       const deposit = helpers.generateDeposit(chainID);
       const user = accounts[4]
       await tree.insert(deposit.commitment)
@@ -277,6 +277,7 @@ contract('Anchor2', (accounts) => {
       ];
 
       proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
+      console.log('proofEncoded: ', proofEncoded);
       const { logs } = await anchor.withdraw(`0x${proofEncoded}`, ...args, { from: relayer, gasPrice: '0' });
       const balanceAnchorAfter = await token.balanceOf(anchor.address)
       const balanceRelayerAfter = await token.balanceOf(relayer)
