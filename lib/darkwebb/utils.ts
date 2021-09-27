@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+const crypto = require('crypto');
 import { BigNumberish, ethers } from 'ethers';
 import { AnchorPublicSignals, AnchorWithdrawProof } from './Anchor';
 const ffjavascript = require('ffjavascript');

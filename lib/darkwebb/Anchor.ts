@@ -44,7 +44,7 @@ export type AnchorInput = {
   pathElements: string[],
   pathIndices: number[],
   diffs: string[2],
-}
+};
 
 // This convenience wrapper class is used in tests -
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
@@ -52,6 +52,7 @@ export type AnchorInput = {
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods 
 class Anchor {
   signer: ethers.Signer;
+  provider: ethers.providers.JsonRpcProvider;
   contract: Anchor2;
   tree: typeof MerkleTree;
   // hex string of the connected root
@@ -60,10 +61,12 @@ class Anchor {
 
   private constructor(
     contract: Anchor2,
+    provider: ethers.providers.JsonRpcProvider,
     signer: ethers.Signer,
   ) {
     this.signer = signer;
     this.contract = contract;
+    this.provider = provider;
     this.linkedRoot = "0x0";
     this.numberOfLeaves = 0;
   }
@@ -86,12 +89,31 @@ class Anchor {
     bridge: string,
     admin: string,
     handler: string,
+    provider: ethers.providers.JsonRpcProvider,
     signer: ethers.Signer,
   ) {
     const factory = new Anchor2__factory(signer);
     const anchor2 = await factory.deploy(verifier, hasher, denomination, merkleTreeHeight, token, bridge, admin, handler, {});
-    const createdAnchor = new Anchor(anchor2, signer);
+    await anchor2.deployed();
+    const createdAnchor = new Anchor(anchor2, provider, signer);
     createdAnchor.tree = new MerkleTree(merkleTreeHeight, null, null);
+    return createdAnchor;
+  }
+
+  public static async connect(
+    // connect via factory method
+    // build up tree by querying provider for logs
+    address: string,
+    provider: ethers.providers.Web3Provider,
+    signer: ethers.Signer,
+  ) {
+    const anchor2 = Anchor2__factory.connect(address, signer);
+    const createdAnchor = new Anchor(anchor2, provider, signer);
+
+    // fetch state from provider and build up local merkle tree
+
+    throw new Error("unimplemented");
+
     return createdAnchor;
   }
 
@@ -105,9 +127,7 @@ class Anchor {
     const hasher = new PoseidonHasher();
   
     deposit.commitment = hasher.hash3([deposit.chainID, deposit.nullifier, deposit.secret]).toString();
-    console.log('commitment: ', deposit.commitment!);
     deposit.nullifierHash = hasher.hash(null, deposit.nullifier, deposit.nullifier);
-    console.log('nullifierHash: ', deposit.nullifierHash!);
     return deposit
   }
 
@@ -168,7 +188,23 @@ class Anchor {
   //   return wtns;
   // }
 
-  // Proposal data is used to update linkedAnchors on other chains with this anchor's state
+  // 
+  public async createResourceId(): Promise<string> {
+    return toHex(this.contract.address + toHex((await this.signer.getChainId()).toString(), 4).substr(2), 32);
+  }
+
+  public async setHandler(handlerAddress: string) {
+    const tx = await this.contract.setHandler(handlerAddress);
+    await tx.wait();
+  }
+
+  public async setBridge(bridgeAddress: string) {
+    const tx = await this.contract.setBridge(bridgeAddress);
+    await tx.wait();
+  }
+
+  // Proposal data is used to update linkedAnchors via bridge proposals 
+  // on other chains with this anchor's state
   public async getProposalData(): Promise<string> {
 
     const chainId = await this.signer.getChainId();
@@ -189,24 +225,34 @@ class Anchor {
     const deposit = Anchor.generateDeposit(chainId);
     
     const tx = await this.contract.deposit(toFixedHex(deposit.commitment!), { gasLimit: '0x5B8D80' });
-    await tx.wait();
-
+    const receipt = await tx.wait();
     console.log('Deposit success');
+
+    const events = receipt.logs.map((log) => this.contract.interface.parseLog(log));
+
+    console.log(events);
+
     this.numberOfLeaves++;
     const index: number = await this.tree.insert(deposit.commitment);
 
     return { deposit, index };
   }
 
-  public async withdraw(deposit: AnchorDepositInfo, index: number, recipient: string) {
+  public async withdraw(
+    deposit: AnchorDepositInfo,
+    index: number,
+    recipient: string,
+    relayer: string,
+    fee: string,    
+  ) {
     const { root, path_elements, path_index } = await this.tree.path(index);
 
     const input = {
       // public
       nullifierHash: deposit.nullifierHash!,
-      recipient: rbigint(20),
-      relayer: recipient,
-      fee: 0,
+      recipient: recipient,
+      relayer,
+      fee,
       refund: 0,
       chainID: deposit.chainID,
       roots: [root, 0],
@@ -255,11 +301,11 @@ class Anchor {
 
     let proofEncoded = await Anchor.generateWithdrawProofCallData(proof, publicSignals);
 
-    console.log('proofEncoded: ', proofEncoded);
-
     //@ts-ignore
     let tx = await this.contract.withdraw(`0x${proofEncoded}`, ...args, { gasLimit: '0x5B8D80' });
-    await tx.wait();
+    const receipt = await tx.wait();
+
+    return receipt;
   }
 }
 

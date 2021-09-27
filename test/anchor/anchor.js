@@ -13,6 +13,9 @@ const VerifierPoseidonBridge = artifacts.require('./VerifierPoseidonBridge.sol')
 const Poseidon = artifacts.require('PoseidonT3');
 const Token = artifacts.require("ERC20Mock");
 
+const AnchorClass = require('../../lib/darkwebb/Anchor');
+const { default: MintableToken } = require('../../lib/darkwebb/MintableToken');
+
 const { NATIVE_AMOUNT, MERKLE_TREE_HEIGHT } = process.env
 const snarkjs = require('snarkjs')
 const bigInt = require('big-integer');
@@ -22,6 +25,7 @@ const Scalar = require("ffjavascript").Scalar;
 const helpers = require('../helpers');
 
 const MerkleTree = require('../../lib/MerkleTree');
+const { ethers } = require('ethers');
 
 contract('Anchor2', (accounts) => {
   let anchor
@@ -202,7 +206,7 @@ contract('Anchor2', (accounts) => {
   })
 
   describe('#withdraw', () => {
-    it.only('should work', async () => {
+    it('should work', async () => {
       const deposit = helpers.generateDeposit(chainID);
       const user = accounts[4]
       await tree.insert(deposit.commitment)
@@ -302,10 +306,80 @@ contract('Anchor2', (accounts) => {
       assert(isSpent);
     })
 
+    it.only('should work class', async () => {
+
+      const user = "0x7Bb1Af8D06495E85DDC1e0c49111C9E0Ab50266E"
+
+      // send funds to the wallet we actually care about
+      let one_eth = web3.utils.toWei('1');
+      await web3.eth.sendTransaction({from: accounts[0], to: user, value: one_eth});
+
+      provider = new ethers.providers.Web3Provider(web3.currentProvider);
+      wallet = new ethers.Wallet("1749563947452850678456352849674537239203756595873523849581626549", provider);
+
+      const tokenInstance = await MintableToken.tokenFromAddress(token.address, wallet);
+
+      const anchorInstance = await AnchorClass.default.createAnchor(
+        verifier.address,
+        hasherInstance.address,
+        tokenDenomination,
+        levels,
+        token.address,
+        sender,
+        sender,
+        sender,
+        wallet
+      )
+
+      await token.mint(user, tokenDenomination);
+      const balanceUserBefore = await token.balanceOf(user);
+      const balanceAnchorBefore = await token.balanceOf(anchorInstance.contract.address);
+      console.log('balanceUserBefore: ', balanceUserBefore.toString());
+      console.log('balanceAnchorBefore: ', balanceAnchorBefore.toString());
+
+      // await TruffleAssert.passes(token.approve(anchorInstance.contract.address, tokenDenomination, { from: user }));
+      await tokenInstance.approveSpending(anchorInstance.contract.address);
+      const { deposit, index } = await anchorInstance.deposit();
+
+      const balanceUserAfterDeposit = await token.balanceOf(user)
+      const balanceAnchorAfterDeposit = await token.balanceOf(anchorInstance.contract.address);
+      console.log('balanceUserAfterDeposit: ', balanceUserAfterDeposit.toString());
+      console.log('balanceAnchorAfterDeposit: ', balanceAnchorAfterDeposit.toString());
+      assert.strictEqual(balanceUserAfterDeposit.toString(), BN(toBN(balanceUserBefore).sub(toBN(value))).toString());
+      assert.strictEqual(balanceAnchorAfterDeposit.toString(), toBN(value).toString());
+
+      const balanceRelayerBefore = await token.balanceOf(relayer)
+      const balanceReceiverBefore = await token.balanceOf(helpers.toFixedHex(recipient, 20))
+
+      let isSpent = await anchorInstance.contract.isSpent(helpers.toFixedHex(deposit.nullifierHash))
+      assert.strictEqual(isSpent, false)
+
+      const { logs } = await anchorInstance.withdraw(deposit, index, recipient, relayer, fee.toString());
+      console.log(logs);
+
+      const balanceAnchorAfter = await token.balanceOf(anchorInstance.contract.address)
+      const balanceRelayerAfter = await token.balanceOf(relayer)
+      const balanceReceiverAfter = await token.balanceOf(helpers.toFixedHex(recipient, 20))
+      const feeBN = toBN(fee.toString())
+      console.log('balanceAnchorAfter: ', balanceAnchorAfter.toString());
+      console.log('balanceRelayerAfter: ', balanceRelayerAfter.toString());
+      console.log('balanceReceiverAfter: ', balanceReceiverAfter.toString());
+      console.log('feeBN: ', feeBN.toString());
+      assert.strictEqual(balanceAnchorAfter.toString(), toBN(balanceAnchorAfterDeposit).sub(toBN(value)).toString())
+      assert.strictEqual(balanceReceiverAfter.toString(), toBN(balanceReceiverBefore).add(toBN(value)).sub(feeBN).toString())
+      assert.strictEqual(balanceRelayerAfter.toString(), toBN(balanceRelayerBefore).add(feeBN).toString())
+
+      assert.strictEqual(logs[0].event, 'Withdrawal')
+      assert.strictEqual(logs[0].args.nullifierHash, helpers.toFixedHex(input.nullifierHash))
+      assert.strictEqual(logs[0].args.fee.toString(), feeBN.toString());
+      isSpent = await anchor.isSpent(helpers.toFixedHex(input.nullifierHash))
+      assert(isSpent);
+    })
+
     it('should prevent double spend', async () => {
       const deposit = helpers.generateDeposit(chainID);
       await tree.insert(deposit.commitment);
-      await token.approve(anchor.address, tokenDenomination)
+      await token.approve(anchor.address, tokenDenomination);
       await anchor.deposit(helpers.toFixedHex(deposit.commitment), { from: sender });
 
       const { root, path_elements, path_index } = await tree.path(0);

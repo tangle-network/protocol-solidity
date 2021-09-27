@@ -72,6 +72,7 @@ async function run() {
     wallet.address,
     wallet.address,
     wallet.address,
+    provider,
     wallet
   );
 
@@ -82,7 +83,7 @@ async function run() {
   const { deposit, index } = await webbAnchor.deposit();
 
   console.log('Deposit done');
-  await webbAnchor.withdraw(deposit, index, "0x0000000000000000000000000000000000000000");
+  await webbAnchor.withdraw(deposit, index, "0x0000000000000000000000000000000000000000", '0', '0');
   console.log('done');
 
 }
