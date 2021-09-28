@@ -131,16 +131,14 @@ describe('Anchor2', () => {
     it.only('should throw if there is a such commitment', async () => {
       const commitment = helpers.toFixedHex(42)
       await token.approve(anchor.address, tokenDenomination)
-      
-      // make a deposit
-      let tx = await anchor.deposit(commitment);
-      await tx.wait();
 
+      console.log(await anchor.getLastRoot());
       await TruffleAssert.passes(anchor.deposit(commitment));
       await TruffleAssert.reverts(
         anchor.deposit(commitment),
         'The commitment has been submitted'
       );
+      console.log(await anchor.getLastRoot());
 
       // try to make another deposit with the same commitment
       // await expect(anchor.deposit(commitment))
