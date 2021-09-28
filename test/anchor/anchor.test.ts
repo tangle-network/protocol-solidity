@@ -458,10 +458,12 @@ describe('Anchor2', () => {
       let tx = await anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' });
       await tx.wait();
 
-      //@ts-ignore
-      await expect(anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }))
-        .to.be.revertedWith('The note has been already spent');
-    })
+      await TruffleAssert.reverts(
+        //@ts-ignore
+        anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }),
+        'The note has been already spent',
+      );
+    });
 
     it('should prevent double spend with overflow', async () => {
       const signers = await ethers.getSigners();
@@ -517,9 +519,11 @@ describe('Anchor2', () => {
 
       const proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
 
-      //@ts-ignore
-      await expect(anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }))
-        .to.be.revertedWith('verifier-gte-snark-scalar-field');
+      await TruffleAssert.reverts(
+        //@ts-ignore
+        anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }),
+        'verifier-gte-snark-scalar-field',
+      );
     })
 
     it('fee should be less or equal transfer value', async () => {
@@ -573,9 +577,11 @@ describe('Anchor2', () => {
 
       const proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
 
-      //@ts-ignore
-      await expect(anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }))
-        .to.be.revertedWith('Fee exceeds transfer value');
+      await TruffleAssert.reverts(
+        //@ts-ignore
+        anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }),
+        'Fee exceeds transfer value',
+      );
     })
 
     it('should throw for corrupted merkle tree root', async () => {
@@ -628,9 +634,11 @@ describe('Anchor2', () => {
 
       const proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
 
-      //@ts-ignore
-      await expect(anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }))
-        .to.be.revertedWith('Cannot find your merkle root');
+      await TruffleAssert.reverts(
+        //@ts-ignore
+        anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }),
+        'Cannot find your merkle root'
+      );
     })
 
     it('should reject with tampered public inputs', async () => {
@@ -693,9 +701,11 @@ describe('Anchor2', () => {
 
       const proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
 
-      //@ts-ignore
-      await expect(anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }))
-        .to.be.revertedWith('Invalid withdraw proof');
+      await TruffleAssert.reverts(
+        //@ts-ignore
+        anchor.withdraw(`0x${proofEncoded}`, ...incorrectArgs, { gasPrice: '0' }),
+        'Invalid withdraw proof',
+      );
 
       // fee
       incorrectArgs = [
@@ -707,9 +717,11 @@ describe('Anchor2', () => {
         helpers.toFixedHex(input.refund),
       ];
 
-      //@ts-ignore
-      await expect(anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }))
-        .to.be.revertedWith('Invalid withdraw proof');
+      await TruffleAssert.reverts(
+        //@ts-ignore
+        anchor.withdraw(`0x${proofEncoded}`, ...incorrectArgs, { gasPrice: '0' }),
+        'Invalid withdraw proof',
+      );
 
       // nullifier
       incorrectArgs = [
@@ -721,15 +733,15 @@ describe('Anchor2', () => {
         helpers.toFixedHex(input.refund),
       ];
 
-      //@ts-ignore
-      await expect(anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }))
-        .to.be.revertedWith('Invalid withdraw proof');
+      await TruffleAssert.reverts(
+        //@ts-ignore
+        anchor.withdraw(`0x${proofEncoded}`, ...incorrectArgs, { gasPrice: '0' }),
+        'Invalid withdraw proof',
+      );
 
       // should work with original values
       //@ts-ignore
-      let tx = await anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' });
-      await tx.wait();
-      expect('withdraw').to.be.calledOnContract(anchor);
+      await TruffleAssert.passes(anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }));
     })
   })
 
