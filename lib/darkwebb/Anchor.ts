@@ -52,7 +52,6 @@ export type AnchorInput = {
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods 
 class Anchor {
   signer: ethers.Signer;
-  provider: ethers.providers.JsonRpcProvider;
   contract: Anchor2;
   tree: typeof MerkleTree;
   // hex string of the connected root
@@ -61,12 +60,10 @@ class Anchor {
 
   private constructor(
     contract: Anchor2,
-    provider: ethers.providers.JsonRpcProvider,
     signer: ethers.Signer,
   ) {
     this.signer = signer;
     this.contract = contract;
-    this.provider = provider;
     this.linkedRoot = "0x0";
     this.numberOfLeaves = 0;
   }
@@ -89,13 +86,12 @@ class Anchor {
     bridge: string,
     admin: string,
     handler: string,
-    provider: ethers.providers.JsonRpcProvider,
     signer: ethers.Signer,
   ) {
     const factory = new Anchor2__factory(signer);
     const anchor2 = await factory.deploy(verifier, hasher, denomination, merkleTreeHeight, token, bridge, admin, handler, {});
     await anchor2.deployed();
-    const createdAnchor = new Anchor(anchor2, provider, signer);
+    const createdAnchor = new Anchor(anchor2, signer);
     createdAnchor.tree = new MerkleTree(merkleTreeHeight, null, null);
     return createdAnchor;
   }
@@ -104,11 +100,10 @@ class Anchor {
     // connect via factory method
     // build up tree by querying provider for logs
     address: string,
-    provider: ethers.providers.Web3Provider,
     signer: ethers.Signer,
   ) {
     const anchor2 = Anchor2__factory.connect(address, signer);
-    const createdAnchor = new Anchor(anchor2, provider, signer);
+    const createdAnchor = new Anchor(anchor2, signer);
 
     // fetch state from provider and build up local merkle tree
 
@@ -227,10 +222,6 @@ class Anchor {
     const tx = await this.contract.deposit(toFixedHex(deposit.commitment!), { gasLimit: '0x5B8D80' });
     const receipt = await tx.wait();
     console.log('Deposit success');
-
-    const events = receipt.logs.map((log) => this.contract.interface.parseLog(log));
-
-    console.log(events);
 
     this.numberOfLeaves++;
     const index: number = await this.tree.insert(deposit.commitment);

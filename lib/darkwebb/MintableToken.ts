@@ -1,6 +1,6 @@
 import { BigNumber, BigNumberish, ContractTransaction, ethers } from "ethers";
-import { ERC20PresetMinterPauser__factory } from '../../typechain/factories/ERC20PresetMinterPauser__factory';
-import { ERC20PresetMinterPauser } from '../../typechain/ERC20PresetMinterPauser';
+import { ERC20PresetMinterPauser__factory } from '../../typechain/factories/Erc20PresetMinterPauser__factory';
+import { ERC20PresetMinterPauser } from '../../typechain/Erc20PresetMinterPauser';
 
 class MintableToken {
   contract: ERC20PresetMinterPauser;
@@ -30,9 +30,8 @@ class MintableToken {
     return this.contract.balanceOf(address);
   }
 
-  public approveSpending(spender: string): Promise<ContractTransaction> {
+  public async approveSpending(spender: string): Promise<ContractTransaction> {
     return this.contract.approve(spender, '10000000000000000000000000000000000', {
-      from: this.signer.getAddress(),
       gasLimit: '0x5B8D80',
     });
   }

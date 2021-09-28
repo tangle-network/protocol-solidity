@@ -1,4 +1,5 @@
 import { subtask, task } from "hardhat/config";
+import { HardhatUserConfig } from 'hardhat/types';
 import "hardhat-artifactor";
 import '@typechain/hardhat';
 import "@nomiclabs/hardhat-waffle";
@@ -14,14 +15,19 @@ task("accounts", "Prints the list of accounts", async (args, hre) => {
   }
 });
 
-export default {
+const config: HardhatUserConfig = {
+  defaultNetwork: 'hardhat',
   solidity: {
-    version: "0.8.0",
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 200,
-      },
-    },
+    compilers: [{
+      version: "0.8.0",
+      settings: {
+        optimizer: {
+          enabled: true,
+          runs: 200,
+        }
+      }
+    }],
   },
 };
+
+export default config;

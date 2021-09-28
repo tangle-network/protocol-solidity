@@ -2,19 +2,31 @@
  * Copyright 2021 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
+import { ethers } from 'hardhat';
+const TruffleAssert = require('truffle-assertions');
 
-const fs = require('fs')
+const fs = require('fs');
 const path = require('path');
-const { toBN, randomHex } = require('web3-utils')
-const Anchor = artifacts.require('./Anchor2.sol');
-const VerifierPoseidonBridge = artifacts.require('./VerifierPoseidonBridge.sol');
-const Poseidon = artifacts.require('PoseidonT3');
-const Token = artifacts.require("ERC20Mock");
+const { toBN, randomHex } = require('web3-utils');
 
-const AnchorClass = require('../../lib/darkwebb/Anchor');
-const { default: MintableToken } = require('../../lib/darkwebb/MintableToken');
+// Typechain generated bindings for contracts
+import {
+  Anchor2 as Anchor,
+  Anchor2__factory as Anchor2Factory,
+  PoseidonT3 as Poseidon,
+  PoseidonT3__factory as PoseidonFactory,
+  VerifierPoseidonBridge,
+  VerifierPoseidonBridge__factory as VerifierPoseidonBridgeFactory,
+  ERC20Mock as Token,
+  ERC20Mock__factory as TokenFactory,
+} from '../../typechain';
+
+// Convenience wrapper classes for contract classes
+import AnchorClass from '../../lib/darkwebb/Anchor';
+import MintableToken from '../../lib/darkwebb/MintableToken';
+
+import chai, { expect } from "chai";
 
 const { NATIVE_AMOUNT, MERKLE_TREE_HEIGHT } = process.env
 const snarkjs = require('snarkjs')
@@ -25,69 +37,62 @@ const Scalar = require("ffjavascript").Scalar;
 const helpers = require('../helpers');
 
 const MerkleTree = require('../../lib/MerkleTree');
-const { ethers } = require('ethers');
 
-contract('Anchor2', (accounts) => {
-  let anchor
-  const sender = accounts[0]
-  const operator = accounts[0]
+describe('Anchor2', () => {
+  let anchor: Anchor;
+
   const levels = MERKLE_TREE_HEIGHT || 30
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
-  let prefix = 'poseidon-test'
-  let tree
-  const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString())
-  const refund = BigInt((new BN('0')).toString())
-  const recipient = helpers.getRandomRecipient()
-  const relayer = accounts[1]
-  let verifier;
+  let tree: typeof MerkleTree;
+  const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
+  const refund = BigInt((new BN('0')).toString());
+  const recipient = helpers.getRandomRecipient();
+  let verifier: VerifierPoseidonBridge;
+  let hasherInstance: Poseidon;
+  let token: Token;
   let tokenDenomination = '1000000000000000000' // 1 ether
   const chainID = 31337;
-
-  let createWitness;
+  let createWitness: any;
 
   beforeEach(async () => {
-    tree = new MerkleTree(levels, null, prefix)
-    hasherInstance = await Poseidon.new();
-    verifier = await VerifierPoseidonBridge.new();
-    token = await Token.new();
-    await token.mint(sender, new BN('10000000000000000000000'));
-    const balanceOfSender = await token.balanceOf.call(sender);
-    anchor = await Anchor.new(
+
+    const signers = await ethers.getSigners();
+    const wallet = signers[0];
+    const sender = wallet;
+
+    tree = new MerkleTree(levels, null, null);
+
+    // create poseidon hasher
+    const hasherFactory = new PoseidonFactory(wallet);
+    hasherInstance = await hasherFactory.deploy();
+    await hasherInstance.deployed();
+
+    // create poseidon verifier
+    const verifierFactory = new VerifierPoseidonBridgeFactory(wallet);
+    verifier = await verifierFactory.deploy();
+    await verifier.deployed();
+
+    // create token
+    const tokenFactory = new TokenFactory(wallet);
+    token = await tokenFactory.deploy();
+    await token.deployed();
+    await token.mint(sender.address, '10000000000000000000000');
+
+    // create anchor
+    const anchorFactory = new Anchor2Factory(wallet);
+    anchor = await anchorFactory.deploy(
       verifier.address,
       hasherInstance.address,
       tokenDenomination,
       levels,
       token.address,
-      sender,
-      sender,
-      sender,
+      sender.address,
+      sender.address,
+      sender.address,
     );
+    await anchor.deployed();
 
-    setHandler = (handler, _sender) => AnchorInstance.setHandler(handler, {
-      from: _sender
-    });
-
-    setBridge = (bridge, _sender) => AnchorInstance.setBridge(bridge, {
-      from: _sender
-    });
-
-    addEdge = (edge, _sender) => AnchorInstance.addEdge(
-      edge.destChainID,
-      edge.destResourceID,
-      edge.root,
-      edge.height,
-      { from: _sender }
-    )
-
-    updateEdge = (edge, _sender) => AnchorInstance.updateEdge(
-      edge.destChainID,
-      edge.destResourceID,
-      edge.root,
-      edge.height,
-      { from: _sender }
-    )
-
-    createWitness = async (data) => {
+    createWitness = async (data: any) => {
       const wtns = {type: "mem"};
       await snarkjs.wtns.calculate(data, path.join(
         "test",
@@ -96,9 +101,6 @@ contract('Anchor2', (accounts) => {
       ), wtns);
       return wtns;
     }
-
-    tree = new MerkleTree(levels, null, prefix)
-    zkey_final = fs.readFileSync('test/fixtures/circuit_final.zkey').buffer;
   })
 
   describe('#constructor', () => {
@@ -111,25 +113,38 @@ contract('Anchor2', (accounts) => {
   describe('#deposit', () => {
     it('should emit event', async () => {
       let commitment = helpers.toFixedHex(42);
-      await token.approve(anchor.address, tokenDenomination)
-      let { logs } = await anchor.deposit(commitment, { from: sender })
+      await token.approve(anchor.address, tokenDenomination);
+      let tx = await anchor.deposit(commitment);
+      let receipt = await tx.wait();
 
-      assert.strictEqual(logs[0].event, 'Deposit')
-      assert.strictEqual(logs[0].args.commitment, commitment)
-      assert.strictEqual(logs[0].args.leafIndex.toString(), '0');
+      const filter = anchor.filters.Deposit(commitment, null, null);
+      const events = await anchor.queryFilter(filter, receipt.blockHash);
 
-      const anchorBalance = await token.balanceOf.call(anchor.address);
+      assert.strictEqual(events[0].event, 'Deposit')
+      assert.strictEqual(events[0].args[0], commitment)
+      assert.strictEqual(events[0].args[1], 0);
+
+      const anchorBalance = await token.balanceOf(anchor.address);
       assert.strictEqual(anchorBalance.toString(), toBN(tokenDenomination).toString());
     })
 
-    it('should throw if there is a such commitment', async () => {
+    it.only('should throw if there is a such commitment', async () => {
       const commitment = helpers.toFixedHex(42)
       await token.approve(anchor.address, tokenDenomination)
-      await TruffleAssert.passes(anchor.deposit(commitment, { from: sender }));
+      
+      // make a deposit
+      let tx = await anchor.deposit(commitment);
+      await tx.wait();
+
+      await TruffleAssert.passes(anchor.deposit(commitment));
       await TruffleAssert.reverts(
-        anchor.deposit(commitment, { from: sender }),
+        anchor.deposit(commitment),
         'The commitment has been submitted'
       );
+
+      // try to make another deposit with the same commitment
+      // await expect(anchor.deposit(commitment))
+      //   .to.be.revertedWith('The commitment has been submitted');
     })
   })
 
@@ -150,6 +165,9 @@ contract('Anchor2', (accounts) => {
       for (var i = 0; i < roots.length; i++) {
         assert.strictEqual(Scalar.fromString(roots[i]), F.add(Scalar.fromString(diffs[i]), Scalar.fromString(root)));
       }
+
+      const signers = await ethers.getSigners();
+      const relayer = signers[1].address;
 
       const input = {
         // public
@@ -176,8 +194,8 @@ contract('Anchor2', (accounts) => {
       const wtns = await createWitness(input);
 
       let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
-      proof = res.proof;
-      publicSignals = res.publicSignals;
+      const proof = res.proof;
+      let publicSignals = res.publicSignals;
       let tempProof = proof;
       let tempSignals = publicSignals;
       const vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/circuit_final.zkey');
@@ -206,35 +224,46 @@ contract('Anchor2', (accounts) => {
   })
 
   describe('#withdraw', () => {
-    it('should work', async () => {
+    it.only('should work', async () => {
+      const signers = await ethers.getSigners();
+      const user = signers[2].address;
+      const operator = signers[0];
+      const relayer = signers[1].address;
+
       const deposit = helpers.generateDeposit(chainID);
-      const user = accounts[4]
       await tree.insert(deposit.commitment)
 
       await token.mint(user, tokenDenomination);
       const balanceUserBefore = await token.balanceOf(user);
       const balanceAnchorBefore = await token.balanceOf(anchor.address);
-      // console.log('balanceUserBefore: ', balanceUserBefore.toString());
-      // console.log('balanceAnchorBefore: ', balanceAnchorBefore.toString());
+      console.log('balanceUserBefore: ', balanceUserBefore.toString());
+      console.log('balanceAnchorBefore: ', balanceAnchorBefore.toString());
       // Uncomment to measure gas usage
       // let gas = await anchor.deposit.estimateGas(toBN(deposit.commitment.toString()), { value, from: user })
       // console.log('deposit gas:', gas)
-      await TruffleAssert.passes(token.approve(anchor.address, tokenDenomination, { from: user }));
-      await TruffleAssert.passes(anchor.deposit(helpers.toFixedHex(deposit.commitment), { from: user }));
+      await token.approve(anchor.address, tokenDenomination);
+      const tx = await anchor.deposit(helpers.toFixedHex(deposit.commitment));
+      const receipt = await tx.wait();
+      console.log(receipt);
+
       const balanceUserAfterDeposit = await token.balanceOf(user)
       const balanceAnchorAfterDeposit = await token.balanceOf(anchor.address);
-      // console.log('balanceUserAfterDeposit: ', balanceUserAfterDeposit.toString());
-      // console.log('balanceAnchorAfterDeposit: ', balanceAnchorAfterDeposit.toString());
-      assert.strictEqual(balanceUserAfterDeposit.toString(), BN(toBN(balanceUserBefore).sub(toBN(value))).toString());
-      assert.strictEqual(balanceAnchorAfterDeposit.toString(), toBN(value).toString());
+      console.log('balanceUserAfterDeposit: ', balanceUserAfterDeposit.toString());
+      console.log('balanceAnchorAfterDeposit: ', balanceAnchorAfterDeposit.toString());
+      // assert.strictEqual(balanceUserAfterDeposit.toString(), BN(toBN(balanceUserBefore).sub(toBN(value))).toString());
+      // assert.strictEqual(balanceAnchorAfterDeposit.toString(), toBN(value).toString());
 
       const { root, path_elements, path_index } = await tree.path(0)
+
+      console.log('This is the root returned by the path from merkle tree', root);
+
+      console.log('last root from contract: ', await anchor.getLastRoot());
 
       const input = {
         // public
         nullifierHash: deposit.nullifierHash,
         recipient,
-        relayer: operator,
+        relayer,
         fee,
         refund,
         chainID: deposit.chainID,
@@ -255,14 +284,14 @@ contract('Anchor2', (accounts) => {
       const wtns = await createWitness(input);
 
       let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
-      proof = res.proof;
-      publicSignals = res.publicSignals;
+      const proof = res.proof;
+      const publicSignals = res.publicSignals;
       const vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/circuit_final.zkey');
       res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       assert.strictEqual(res, true);
 
       const balanceRelayerBefore = await token.balanceOf(relayer)
-      const balanceOperatorBefore = await token.balanceOf(operator)
+      const balanceOperatorBefore = await token.balanceOf(operator.address)
       const balanceReceiverBefore = await token.balanceOf(helpers.toFixedHex(recipient, 20))
 
       let isSpent = await anchor.isSpent(helpers.toFixedHex(input.nullifierHash))
@@ -280,19 +309,20 @@ contract('Anchor2', (accounts) => {
         helpers.toFixedHex(input.refund),
       ];
 
-      proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
+      const proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
       console.log('proofEncoded: ', proofEncoded);
-      const { logs } = await anchor.withdraw(`0x${proofEncoded}`, ...args, { from: relayer, gasPrice: '0' });
+      //@ts-ignore
+      const { logs } = await anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' });
       const balanceAnchorAfter = await token.balanceOf(anchor.address)
       const balanceRelayerAfter = await token.balanceOf(relayer)
-      const balanceOperatorAfter = await token.balanceOf(operator)
+      const balanceOperatorAfter = await token.balanceOf(operator.address)
       const balanceReceiverAfter = await token.balanceOf(helpers.toFixedHex(recipient, 20))
       const feeBN = toBN(fee.toString())
-      // console.log('balanceAnchorAfter: ', balanceAnchorAfter.toString());
-      // console.log('balanceRelayerAfter: ', balanceRelayerAfter.toString());
-      // console.log('balanceOperatorAfter: ', balanceOperatorAfter.toString());
-      // console.log('balanceReceiverAfter: ', balanceReceiverAfter.toString());
-      // console.log('feeBN: ', feeBN.toString());
+      console.log('balanceAnchorAfter: ', balanceAnchorAfter.toString());
+      console.log('balanceRelayerAfter: ', balanceRelayerAfter.toString());
+      console.log('balanceOperatorAfter: ', balanceOperatorAfter.toString());
+      console.log('balanceReceiverAfter: ', balanceReceiverAfter.toString());
+      console.log('feeBN: ', feeBN.toString());
       assert.strictEqual(balanceAnchorAfter.toString(), toBN(balanceAnchorAfterDeposit).sub(toBN(value)).toString())
       assert.strictEqual(balanceRelayerAfter.toString(), toBN(balanceRelayerBefore).toString())
       assert.strictEqual(balanceOperatorAfter.toString(), toBN(balanceOperatorBefore).add(feeBN).toString())
@@ -308,57 +338,56 @@ contract('Anchor2', (accounts) => {
 
     it('should work class', async () => {
 
-      const user = "0x7Bb1Af8D06495E85DDC1e0c49111C9E0Ab50266E"
+      const signers = await ethers.getSigners();
+      const user = signers[2].address;
+      const operator = signers[0];
+      const sender = operator;
+      const relayer = signers[1];
 
-      // send funds to the wallet we actually care about
-      let one_eth = web3.utils.toWei('1');
-      await web3.eth.sendTransaction({from: accounts[0], to: user, value: one_eth});
+      const tokenInstance = await MintableToken.tokenFromAddress(token.address, sender);
 
-      provider = new ethers.providers.Web3Provider(web3.currentProvider);
-      wallet = new ethers.Wallet("1749563947452850678456352849674537239203756595873523849581626549", provider);
-
-      const tokenInstance = await MintableToken.tokenFromAddress(token.address, wallet);
-
-      const anchorInstance = await AnchorClass.default.createAnchor(
+      const anchorInstance = await AnchorClass.createAnchor(
         verifier.address,
         hasherInstance.address,
         tokenDenomination,
         levels,
         token.address,
-        sender,
-        sender,
-        sender,
-        wallet
-      )
+        sender.address,
+        sender.address,
+        sender.address,
+        sender
+      );
 
-      await token.mint(user, tokenDenomination);
-      const balanceUserBefore = await token.balanceOf(user);
+      await token.mint(sender.address, tokenDenomination);
+      const balanceUserBefore = await token.balanceOf(sender.address);
       const balanceAnchorBefore = await token.balanceOf(anchorInstance.contract.address);
       console.log('balanceUserBefore: ', balanceUserBefore.toString());
       console.log('balanceAnchorBefore: ', balanceAnchorBefore.toString());
 
-      // await TruffleAssert.passes(token.approve(anchorInstance.contract.address, tokenDenomination, { from: user }));
       await tokenInstance.approveSpending(anchorInstance.contract.address);
       const { deposit, index } = await anchorInstance.deposit();
 
-      const balanceUserAfterDeposit = await token.balanceOf(user)
+      const balanceUserAfterDeposit = await token.balanceOf(sender.address)
       const balanceAnchorAfterDeposit = await token.balanceOf(anchorInstance.contract.address);
       console.log('balanceUserAfterDeposit: ', balanceUserAfterDeposit.toString());
       console.log('balanceAnchorAfterDeposit: ', balanceAnchorAfterDeposit.toString());
       assert.strictEqual(balanceUserAfterDeposit.toString(), BN(toBN(balanceUserBefore).sub(toBN(value))).toString());
       assert.strictEqual(balanceAnchorAfterDeposit.toString(), toBN(value).toString());
 
-      const balanceRelayerBefore = await token.balanceOf(relayer)
+      const balanceRelayerBefore = await token.balanceOf(relayer.address)
       const balanceReceiverBefore = await token.balanceOf(helpers.toFixedHex(recipient, 20))
 
       let isSpent = await anchorInstance.contract.isSpent(helpers.toFixedHex(deposit.nullifierHash))
       assert.strictEqual(isSpent, false)
 
-      const { logs } = await anchorInstance.withdraw(deposit, index, recipient, relayer, fee.toString());
-      console.log(logs);
+      const receipt = await anchorInstance.withdraw(deposit, index, recipient, relayer.address, fee.toString());
+
+      const filter = anchorInstance.contract.filters.Withdrawal(null, null, relayer.address, null);
+      const event = await anchorInstance.contract.queryFilter(filter, receipt.blockHash);
+      console.log(event);
 
       const balanceAnchorAfter = await token.balanceOf(anchorInstance.contract.address)
-      const balanceRelayerAfter = await token.balanceOf(relayer)
+      const balanceRelayerAfter = await token.balanceOf(relayer.address)
       const balanceReceiverAfter = await token.balanceOf(helpers.toFixedHex(recipient, 20))
       const feeBN = toBN(fee.toString())
       console.log('balanceAnchorAfter: ', balanceAnchorAfter.toString());
@@ -369,18 +398,22 @@ contract('Anchor2', (accounts) => {
       assert.strictEqual(balanceReceiverAfter.toString(), toBN(balanceReceiverBefore).add(toBN(value)).sub(feeBN).toString())
       assert.strictEqual(balanceRelayerAfter.toString(), toBN(balanceRelayerBefore).add(feeBN).toString())
 
-      assert.strictEqual(logs[0].event, 'Withdrawal')
-      assert.strictEqual(logs[0].args.nullifierHash, helpers.toFixedHex(input.nullifierHash))
-      assert.strictEqual(logs[0].args.fee.toString(), feeBN.toString());
-      isSpent = await anchor.isSpent(helpers.toFixedHex(input.nullifierHash))
+      // assert.strictEqual(log.name, 'Withdrawal')
+      // assert.strictEqual(log.args[0].nullifierHash, helpers.toFixedHex(deposit.nullifierHash))
+      // assert.strictEqual(log.args[0].toString(), feeBN.toString());
+      isSpent = await anchor.isSpent(helpers.toFixedHex(deposit.nullifierHash))
       assert(isSpent);
     })
 
     it('should prevent double spend', async () => {
+      
+      const signers = await ethers.getSigners();
+      const operator = signers[0];
+
       const deposit = helpers.generateDeposit(chainID);
       await tree.insert(deposit.commitment);
       await token.approve(anchor.address, tokenDenomination);
-      await anchor.deposit(helpers.toFixedHex(deposit.commitment), { from: sender });
+      await anchor.deposit(helpers.toFixedHex(deposit.commitment));
 
       const { root, path_elements, path_index } = await tree.path(0);
 
@@ -409,8 +442,8 @@ contract('Anchor2', (accounts) => {
       const wtns = await createWitness(input);
 
       let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
-      proof = res.proof;
-      publicSignals = res.publicSignals;
+      const proof = res.proof;
+      const publicSignals = res.publicSignals;
 
       const args = [
         helpers.createRootsBytes(input.roots),
@@ -421,20 +454,25 @@ contract('Anchor2', (accounts) => {
         helpers.toFixedHex(input.refund),
       ];
 
-      proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
+      const proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
 
-      await TruffleAssert.passes(anchor.withdraw(`0x${proofEncoded}`, ...args, { from: relayer, gasPrice: '0' }));
-      await TruffleAssert.reverts(
-        anchor.withdraw(`0x${proofEncoded}`, ...args, { from: relayer, gasPrice: '0' }),
-        "The note has been already spent"
-      );
+      //@ts-ignore
+      let tx = await anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' });
+      await tx.wait();
+
+      //@ts-ignore
+      await expect(anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }))
+        .to.be.revertedWith('The note has been already spent');
     })
 
     it('should prevent double spend with overflow', async () => {
+      const signers = await ethers.getSigners();
+      const relayer = signers[0];
+
       const deposit = helpers.generateDeposit(chainID)
       await tree.insert(deposit.commitment)
       await token.approve(anchor.address, tokenDenomination)
-      await anchor.deposit(helpers.toFixedHex(deposit.commitment), { from: sender })
+      await anchor.deposit(helpers.toFixedHex(deposit.commitment))
 
       const { root, path_elements, path_index } = await tree.path(0)
 
@@ -463,8 +501,8 @@ contract('Anchor2', (accounts) => {
       const wtns = await createWitness(input);
 
       let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
-      proof = res.proof;
-      publicSignals = res.publicSignals;
+      const proof = res.proof;
+      let publicSignals = res.publicSignals;
 
       const args = [
         helpers.createRootsBytes(input.roots),
@@ -479,19 +517,21 @@ contract('Anchor2', (accounts) => {
         helpers.toFixedHex(input.refund),
       ];
 
-      proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
+      const proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
 
-      await TruffleAssert.reverts(
-        anchor.withdraw(`0x${proofEncoded}`, ...args, { from: relayer, gasPrice: '0' }),
-        "verifier-gte-snark-scalar-field"
-      );
+      //@ts-ignore
+      await expect(anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }))
+        .to.be.revertedWith('verifier-gte-snark-scalar-field');
     })
 
     it('fee should be less or equal transfer value', async () => {
+      const signers = await ethers.getSigners();
+      const relayer = signers[0];
+
       const deposit = helpers.generateDeposit(chainID)
       await tree.insert(deposit.commitment)
       await token.approve(anchor.address, tokenDenomination)
-      await anchor.deposit(helpers.toFixedHex(deposit.commitment), { from: sender })
+      await anchor.deposit(helpers.toFixedHex(deposit.commitment))
 
       const { root, path_elements, path_index } = await tree.path(0)
       const largeFee = bigInt(value).add(bigInt(1))
@@ -521,8 +561,8 @@ contract('Anchor2', (accounts) => {
       const wtns = await createWitness(input);
 
       let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
-      proof = res.proof;
-      publicSignals = res.publicSignals;
+      const proof = res.proof;
+      let publicSignals = res.publicSignals;
 
       const args = [
         helpers.createRootsBytes(input.roots),
@@ -533,19 +573,21 @@ contract('Anchor2', (accounts) => {
         helpers.toFixedHex(input.refund),
       ]
 
-      proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
+      const proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
 
-      await TruffleAssert.reverts(
-        anchor.withdraw(`0x${proofEncoded}`, ...args, { from: relayer, gasPrice: '0' }),
-        "Fee exceeds transfer value"
-      );
+      //@ts-ignore
+      await expect(anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }))
+        .to.be.revertedWith('Fee exceeds transfer value');
     })
 
     it('should throw for corrupted merkle tree root', async () => {
+      const signers = await ethers.getSigners();
+      const relayer = signers[0];
+
       const deposit = helpers.generateDeposit(chainID)
       await tree.insert(deposit.commitment)
       await token.approve(anchor.address, tokenDenomination)
-      await anchor.deposit(helpers.toFixedHex(deposit.commitment), { from: sender })
+      await anchor.deposit(helpers.toFixedHex(deposit.commitment))
 
       const { root, path_elements, path_index } = await tree.path(0)
 
@@ -574,8 +616,8 @@ contract('Anchor2', (accounts) => {
       const wtns = await createWitness(input);
 
       let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
-      proof = res.proof;
-      publicSignals = res.publicSignals;
+      const proof = res.proof;
+      let publicSignals = res.publicSignals;
 
       const args = [
         helpers.createRootsBytes([randomHex(32), 0]),
@@ -586,19 +628,21 @@ contract('Anchor2', (accounts) => {
         helpers.toFixedHex(input.refund),
       ]
 
-      proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
+      const proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
 
-      await TruffleAssert.reverts(
-        anchor.withdraw(`0x${proofEncoded}`, ...args, { from: relayer, gasPrice: '0' }),
-        "Cannot find your merkle root"
-      );
+      //@ts-ignore
+      await expect(anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }))
+        .to.be.revertedWith('Cannot find your merkle root');
     })
 
     it('should reject with tampered public inputs', async () => {
+      const signers = await ethers.getSigners();
+      const relayer = signers[0];
+
       const deposit = helpers.generateDeposit(chainID)
       await tree.insert(deposit.commitment)
       await token.approve(anchor.address, tokenDenomination)
-      await anchor.deposit(helpers.toFixedHex(deposit.commitment), { from: sender })
+      await anchor.deposit(helpers.toFixedHex(deposit.commitment))
 
       let { root, path_elements, path_index } = await tree.path(0)
 
@@ -627,8 +671,8 @@ contract('Anchor2', (accounts) => {
       const wtns = await createWitness(input);
 
       let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
-      proof = res.proof;
-      publicSignals = res.publicSignals;
+      const proof = res.proof;
+      let publicSignals = res.publicSignals;
 
       const args = [
         helpers.createRootsBytes(input.roots),
@@ -640,7 +684,7 @@ contract('Anchor2', (accounts) => {
       ]
 
       // recipient
-      incorrectArgs = [
+      let incorrectArgs = [
         helpers.createRootsBytes(input.roots),
         helpers.toFixedHex(input.nullifierHash),
         helpers.toFixedHex('0x0000000000000000000000007a1f9131357404ef86d7c38dbffed2da70321337', 20),
@@ -649,11 +693,11 @@ contract('Anchor2', (accounts) => {
         helpers.toFixedHex(input.refund),
       ];
 
-      proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
-      await TruffleAssert.reverts(
-        anchor.withdraw(`0x${proofEncoded}`, ...incorrectArgs, { from: relayer, gasPrice: '0' }),
-        "Invalid withdraw proof"
-      );
+      const proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
+
+      //@ts-ignore
+      await expect(anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }))
+        .to.be.revertedWith('Invalid withdraw proof');
 
       // fee
       incorrectArgs = [
@@ -664,10 +708,10 @@ contract('Anchor2', (accounts) => {
         helpers.toFixedHex('0x000000000000000000000000000000000000000000000000015345785d8a0000'),
         helpers.toFixedHex(input.refund),
       ];
-      await TruffleAssert.reverts(
-        anchor.withdraw(`0x${proofEncoded}`, ...incorrectArgs, { from: relayer, gasPrice: '0' }),
-        "Invalid withdraw proof"
-      );
+
+      //@ts-ignore
+      await expect(anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }))
+        .to.be.revertedWith('Invalid withdraw proof');
 
       // nullifier
       incorrectArgs = [
@@ -678,18 +722,24 @@ contract('Anchor2', (accounts) => {
         helpers.toFixedHex(input.fee),
         helpers.toFixedHex(input.refund),
       ];
-      await TruffleAssert.reverts(
-        anchor.withdraw(`0x${proofEncoded}`, ...incorrectArgs, { from: relayer, gasPrice: '0' }),
-        "Invalid withdraw proof"
-      );
+
+      //@ts-ignore
+      await expect(anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }))
+        .to.be.revertedWith('Invalid withdraw proof');
 
       // should work with original values
-      await TruffleAssert.passes(anchor.withdraw(`0x${proofEncoded}`, ...args, { from: relayer, gasPrice: '0' }));
+      //@ts-ignore
+      let tx = await anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' });
+      await tx.wait();
+      expect('withdraw').to.be.calledOnContract(anchor);
     })
   })
 
   describe('#isSpent', () => {
     it('should work', async () => {
+      const signers = await ethers.getSigners();
+      const relayer = signers[0];
+
       const deposit1 = helpers.generateDeposit(chainID)
       const deposit2 = helpers.generateDeposit(chainID)
       await tree.insert(deposit1.commitment)
@@ -728,8 +778,8 @@ contract('Anchor2', (accounts) => {
       const wtns = await createWitness(input);
 
       let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
-      proof = res.proof;
-      publicSignals = res.publicSignals;
+      const proof = res.proof;
+      let publicSignals = res.publicSignals;
 
       const args = [
         helpers.createRootsBytes(input.roots),
@@ -739,8 +789,10 @@ contract('Anchor2', (accounts) => {
         helpers.toFixedHex(input.fee),
         helpers.toFixedHex(input.refund),
       ]
-      proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
-      await anchor.withdraw(`0x${proofEncoded}`, ...args, { from: relayer, gasPrice: '0' })
+      const proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
+      
+      //@ts-ignore
+      await anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' })
 
       const dep1PaddedNullifier = helpers.bigNumberToPaddedBytes(deposit1.nullifier, 31);
       const dep2PaddedNullifier = helpers.bigNumberToPaddedBytes(deposit2.nullifier, 31);
@@ -749,9 +801,5 @@ contract('Anchor2', (accounts) => {
       const spentArray = await anchor.isSpentArray([nullifierHash1, nullifierHash2])
       assert.deepStrictEqual(spentArray, [false, true])
     })
-  })
-
-  afterEach(async () => {
-    tree = new MerkleTree(levels, null, prefix)
   })
 })
