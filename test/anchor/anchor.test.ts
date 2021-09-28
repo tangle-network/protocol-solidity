@@ -3,19 +3,18 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 const assert = require('assert');
-import { ethers } from 'hardhat';
+import { artifacts, ethers } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
 
 const fs = require('fs');
 const path = require('path');
 const { toBN, randomHex } = require('web3-utils');
+const Poseidon = artifacts.require('PoseidonT3');
 
 // Typechain generated bindings for contracts
 import {
   Anchor2 as Anchor,
   Anchor2__factory as Anchor2Factory,
-  PoseidonT3 as Poseidon,
-  PoseidonT3__factory as PoseidonFactory,
   VerifierPoseidonBridge,
   VerifierPoseidonBridge__factory as VerifierPoseidonBridgeFactory,
   ERC20Mock as Token,
@@ -48,7 +47,7 @@ describe('Anchor2', () => {
   const refund = BigInt((new BN('0')).toString());
   const recipient = helpers.getRandomRecipient();
   let verifier: VerifierPoseidonBridge;
-  let hasherInstance: Poseidon;
+  let hasherInstance: any;
   let token: Token;
   let tokenDenomination = '1000000000000000000' // 1 ether
   const chainID = 31337;
@@ -63,9 +62,7 @@ describe('Anchor2', () => {
     tree = new MerkleTree(levels, null, null);
 
     // create poseidon hasher
-    const hasherFactory = new PoseidonFactory(wallet);
-    hasherInstance = await hasherFactory.deploy();
-    await hasherInstance.deployed();
+    hasherInstance = await Poseidon.new();
 
     // create poseidon verifier
     const verifierFactory = new VerifierPoseidonBridgeFactory(wallet);
