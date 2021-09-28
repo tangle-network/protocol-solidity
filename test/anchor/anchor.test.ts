@@ -37,8 +37,9 @@ const helpers = require('../helpers');
 
 const MerkleTree = require('../../lib/MerkleTree');
 
-describe('Anchor2', () => {
+describe.only('Anchor2', () => {
   let anchor: Anchor;
+  let deployedBlocknumber: number;
 
   const levels = MERKLE_TREE_HEIGHT || 30
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
@@ -89,6 +90,8 @@ describe('Anchor2', () => {
     );
     await anchor.deployed();
 
+    console.log(anchor);
+
     createWitness = async (data: any) => {
       const wtns = {type: "mem"};
       await snarkjs.wtns.calculate(data, path.join(
@@ -125,7 +128,7 @@ describe('Anchor2', () => {
       assert.strictEqual(anchorBalance.toString(), toBN(tokenDenomination).toString());
     })
 
-    it.only('should throw if there is a such commitment', async () => {
+    it('should throw if there is a such commitment', async () => {
       const commitment = helpers.toFixedHex(42)
       await token.approve(anchor.address, tokenDenomination)
 
@@ -219,7 +222,7 @@ describe('Anchor2', () => {
   })
 
   describe('#withdraw', () => {
-    it.only('should work', async () => {
+    it('should work', async () => {
       const signers = await ethers.getSigners();
       const user = signers[2].address;
       const operator = signers[0];
@@ -237,8 +240,8 @@ describe('Anchor2', () => {
       // let gas = await anchor.deposit.estimateGas(toBN(deposit.commitment.toString()), { value, from: user })
       // console.log('deposit gas:', gas)
       await token.approve(anchor.address, tokenDenomination);
-      const tx = await anchor.deposit(helpers.toFixedHex(deposit.commitment));
-      const receipt = await tx.wait();
+      let tx = await anchor.deposit(helpers.toFixedHex(deposit.commitment));
+      let receipt = await tx.wait();
       console.log(receipt);
 
       const balanceUserAfterDeposit = await token.balanceOf(user)
@@ -258,7 +261,7 @@ describe('Anchor2', () => {
         // public
         nullifierHash: deposit.nullifierHash,
         recipient,
-        relayer,
+        relayer: operator.address,
         fee,
         refund,
         chainID: deposit.chainID,
@@ -307,7 +310,12 @@ describe('Anchor2', () => {
       const proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
       console.log('proofEncoded: ', proofEncoded);
       //@ts-ignore
-      const { logs } = await anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' });
+      tx = await anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' });
+      receipt = await tx.wait();
+      const filter = anchor.filters.Withdrawal(null, null, operator.address, null);
+      const events = await anchor.queryFilter(filter, receipt.blockHash);
+
+      console.log('return from filter: ', events);
       const balanceAnchorAfter = await token.balanceOf(anchor.address)
       const balanceRelayerAfter = await token.balanceOf(relayer)
       const balanceOperatorAfter = await token.balanceOf(operator.address)
@@ -323,10 +331,10 @@ describe('Anchor2', () => {
       assert.strictEqual(balanceOperatorAfter.toString(), toBN(balanceOperatorBefore).add(feeBN).toString())
       assert.strictEqual(balanceReceiverAfter.toString(), toBN(balanceReceiverBefore).add(toBN(value)).sub(feeBN).toString())
 
-      assert.strictEqual(logs[0].event, 'Withdrawal')
-      assert.strictEqual(logs[0].args.nullifierHash, helpers.toFixedHex(input.nullifierHash))
-      assert.strictEqual(logs[0].args.relayer, operator);
-      assert.strictEqual(logs[0].args.fee.toString(), feeBN.toString());
+      assert.strictEqual(events[0].event, 'Withdrawal')
+      assert.strictEqual(events[0].args[1], helpers.toFixedHex(input.nullifierHash))
+      assert.strictEqual(events[0].args[2], operator.address);
+      assert.strictEqual(events[0].args[3].toString(), feeBN.toString());
       isSpent = await anchor.isSpent(helpers.toFixedHex(input.nullifierHash))
       assert(isSpent);
     })
@@ -334,9 +342,7 @@ describe('Anchor2', () => {
     it('should work class', async () => {
 
       const signers = await ethers.getSigners();
-      const user = signers[2].address;
-      const operator = signers[0];
-      const sender = operator;
+      const sender = signers[0];
       const relayer = signers[1];
 
       const tokenInstance = await MintableToken.tokenFromAddress(token.address, sender);
@@ -355,17 +361,17 @@ describe('Anchor2', () => {
 
       await token.mint(sender.address, tokenDenomination);
       const balanceUserBefore = await token.balanceOf(sender.address);
-      const balanceAnchorBefore = await token.balanceOf(anchorInstance.contract.address);
-      console.log('balanceUserBefore: ', balanceUserBefore.toString());
-      console.log('balanceAnchorBefore: ', balanceAnchorBefore.toString());
+      // const balanceAnchorBefore = await token.balanceOf(anchorInstance.contract.address);
+      // console.log('balanceUserBefore: ', balanceUserBefore.toString());
+      // console.log('balanceAnchorBefore: ', balanceAnchorBefore.toString());
 
       await tokenInstance.approveSpending(anchorInstance.contract.address);
       const { deposit, index } = await anchorInstance.deposit();
 
       const balanceUserAfterDeposit = await token.balanceOf(sender.address)
       const balanceAnchorAfterDeposit = await token.balanceOf(anchorInstance.contract.address);
-      console.log('balanceUserAfterDeposit: ', balanceUserAfterDeposit.toString());
-      console.log('balanceAnchorAfterDeposit: ', balanceAnchorAfterDeposit.toString());
+      // console.log('balanceUserAfterDeposit: ', balanceUserAfterDeposit.toString());
+      // console.log('balanceAnchorAfterDeposit: ', balanceAnchorAfterDeposit.toString());
       assert.strictEqual(balanceUserAfterDeposit.toString(), BN(toBN(balanceUserBefore).sub(toBN(value))).toString());
       assert.strictEqual(balanceAnchorAfterDeposit.toString(), toBN(value).toString());
 
@@ -375,89 +381,60 @@ describe('Anchor2', () => {
       let isSpent = await anchorInstance.contract.isSpent(helpers.toFixedHex(deposit.nullifierHash))
       assert.strictEqual(isSpent, false)
 
-      const receipt = await anchorInstance.withdraw(deposit, index, recipient, relayer.address, fee.toString());
+      let receipt = await anchorInstance.withdraw(deposit, index, recipient, relayer.address, fee.toString());
 
       const filter = anchorInstance.contract.filters.Withdrawal(null, null, relayer.address, null);
-      const event = await anchorInstance.contract.queryFilter(filter, receipt.blockHash);
-      console.log(event);
+      const events = await anchorInstance.contract.queryFilter(filter, receipt.blockHash);
 
       const balanceAnchorAfter = await token.balanceOf(anchorInstance.contract.address)
       const balanceRelayerAfter = await token.balanceOf(relayer.address)
       const balanceReceiverAfter = await token.balanceOf(helpers.toFixedHex(recipient, 20))
       const feeBN = toBN(fee.toString())
-      console.log('balanceAnchorAfter: ', balanceAnchorAfter.toString());
-      console.log('balanceRelayerAfter: ', balanceRelayerAfter.toString());
-      console.log('balanceReceiverAfter: ', balanceReceiverAfter.toString());
-      console.log('feeBN: ', feeBN.toString());
+      // console.log('balanceAnchorAfter: ', balanceAnchorAfter.toString());
+      // console.log('balanceRelayerAfter: ', balanceRelayerAfter.toString());
+      // console.log('balanceReceiverAfter: ', balanceReceiverAfter.toString());
+      // console.log('feeBN: ', feeBN.toString());
       assert.strictEqual(balanceAnchorAfter.toString(), toBN(balanceAnchorAfterDeposit).sub(toBN(value)).toString())
       assert.strictEqual(balanceReceiverAfter.toString(), toBN(balanceReceiverBefore).add(toBN(value)).sub(feeBN).toString())
       assert.strictEqual(balanceRelayerAfter.toString(), toBN(balanceRelayerBefore).add(feeBN).toString())
 
-      // assert.strictEqual(log.name, 'Withdrawal')
-      // assert.strictEqual(log.args[0].nullifierHash, helpers.toFixedHex(deposit.nullifierHash))
-      // assert.strictEqual(log.args[0].toString(), feeBN.toString());
-      isSpent = await anchor.isSpent(helpers.toFixedHex(deposit.nullifierHash))
+      assert.strictEqual(events[0].event, 'Withdrawal')
+      assert.strictEqual(events[0].args[1], helpers.toFixedHex(deposit.nullifierHash))
+      assert.strictEqual(events[0].args[3].toString(), feeBN.toString());
+      isSpent = await anchorInstance.contract.isSpent(helpers.toFixedHex(deposit.nullifierHash))
       assert(isSpent);
     })
 
-    it('should prevent double spend', async () => {
+    it.only('should prevent double spend class', async () => {
       
       const signers = await ethers.getSigners();
-      const operator = signers[0];
+      const sender = signers[0];
+      const relayer = signers[1];
 
-      const deposit = helpers.generateDeposit(chainID);
-      await tree.insert(deposit.commitment);
-      await token.approve(anchor.address, tokenDenomination);
-      await anchor.deposit(helpers.toFixedHex(deposit.commitment));
+      const tokenInstance = await MintableToken.tokenFromAddress(token.address, sender);
 
-      const { root, path_elements, path_index } = await tree.path(0);
+      const anchorInstance = await AnchorClass.createAnchor(
+        verifier.address,
+        hasherInstance.address,
+        tokenDenomination,
+        levels,
+        token.address,
+        sender.address,
+        sender.address,
+        sender.address,
+        sender
+      );
 
-      const input = {
-        // public
-        nullifierHash: deposit.nullifierHash,
-        recipient,
-        relayer: operator,
-        fee,
-        refund,
-        chainID: deposit.chainID,
-        roots: [root, 0],
-        // private
-        nullifier: deposit.nullifier,
-        secret: deposit.secret,
-        pathElements: path_elements,
-        pathIndices: path_index,
-        diffs: [root, 0].map(r => {
-          return F.sub(
-            Scalar.fromString(`${r}`),
-            Scalar.fromString(`${root}`),
-          ).toString();
-        }),
-      };
-
-      const wtns = await createWitness(input);
-
-      let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
-      const proof = res.proof;
-      const publicSignals = res.publicSignals;
-
-      const args = [
-        helpers.createRootsBytes(input.roots),
-        helpers.toFixedHex(input.nullifierHash),
-        helpers.toFixedHex(input.recipient, 20),
-        helpers.toFixedHex(input.relayer, 20),
-        helpers.toFixedHex(input.fee),
-        helpers.toFixedHex(input.refund),
-      ];
-
-      const proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
+      await tokenInstance.approveSpending(anchorInstance.contract.address);
+      await tokenInstance.mintTokens(sender.address, tokenDenomination);
+      const { deposit, index } = await anchorInstance.deposit();
 
       //@ts-ignore
-      let tx = await anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' });
-      await tx.wait();
+      let receipt = await anchorInstance.withdraw(deposit, index, sender.address, relayer.address, fee);
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }),
+        await anchorInstance.withdraw(deposit, index, sender.address, relayer.address, fee),
         'The note has been already spent',
       );
     });
@@ -477,7 +454,7 @@ describe('Anchor2', () => {
         // public
         nullifierHash: deposit.nullifierHash,
         recipient,
-        relayer,
+        relayer: relayer.address,
         fee,
         refund,
         chainID: deposit.chainID,
@@ -539,7 +516,7 @@ describe('Anchor2', () => {
         // public
         nullifierHash: deposit.nullifierHash,
         recipient,
-        relayer,
+        relayer: relayer.address,
         fee: largeFee,
         refund,
         chainID: deposit.chainID,
@@ -596,7 +573,7 @@ describe('Anchor2', () => {
         // public
         nullifierHash: deposit.nullifierHash,
         recipient,
-        relayer,
+        relayer: relayer.address,
         fee,
         refund,
         chainID: deposit.chainID,
@@ -653,7 +630,7 @@ describe('Anchor2', () => {
         // public
         nullifierHash: deposit.nullifierHash,
         recipient,
-        relayer,
+        relayer: relayer.address,
         fee,
         refund,
         chainID: deposit.chainID,
@@ -764,7 +741,7 @@ describe('Anchor2', () => {
         // public
         nullifierHash: deposit2.nullifierHash,
         recipient,
-        relayer,
+        relayer: relayer.address,
         fee,
         refund,
         chainID: deposit2.chainID,
