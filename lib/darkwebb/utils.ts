@@ -14,6 +14,12 @@ export const toHex = (covertThis: ethers.utils.BytesLike, padding: number): stri
   return ethers.utils.hexZeroPad(ethers.utils.hexlify(covertThis), padding);
 };
 
+// const toFixedHex = (number, length = 32) =>
+//   '0x' +
+//   BigInt(`${number}`)
+//     .toString(16)
+//     .padStart(length * 2, '0')
+
 export const toFixedHex = (number: string | bigint | number, length: number = 32): string =>
   '0x' +
   BigInt(`${number}`)

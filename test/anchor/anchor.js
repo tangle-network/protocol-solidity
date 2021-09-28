@@ -487,7 +487,7 @@ contract('Anchor2', (accounts) => {
       );
     })
 
-    it('fee should be less or equal transfer value', async () => {
+    it.only('fee should be less or equal transfer value', async () => {
       const deposit = helpers.generateDeposit(chainID)
       await tree.insert(deposit.commitment)
       await token.approve(anchor.address, tokenDenomination)
@@ -532,6 +532,8 @@ contract('Anchor2', (accounts) => {
         helpers.toFixedHex(input.fee),
         helpers.toFixedHex(input.refund),
       ]
+
+      console.log('fee args ', args[4]);
 
       proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
 
