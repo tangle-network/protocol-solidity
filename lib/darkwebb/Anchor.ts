@@ -287,9 +287,6 @@ class Anchor {
       toFixedHex(input.refund),
     ]
 
-    console.log('fee input ', input.fee.toString());
-    console.log('fee args ', toFixedHex(input.fee));
-
     const vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/circuit_final.zkey');
     res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
 
@@ -301,11 +298,7 @@ class Anchor {
 
     const filter = this.contract.filters.Withdrawal(null, null, relayer, null);
     const events = await this.contract.queryFilter(filter, receipt.blockHash);
-
-    console.log(events);
-    console.log('fee', events[0].args.fee.toString());
-
-    return receipt;
+    return events[0];
   }
 }
 

@@ -107,11 +107,11 @@ describe.only('Anchor2', () => {
       await token.approve(anchor.contract.address, tokenDenomination);
       let { deposit } = await anchor.deposit();
 
-      const filter = anchor.contract.filters.Deposit(deposit.commitment, null, null);
+      const filter = anchor.contract.filters.Deposit(helpers.toFixedHex(deposit.commitment), null, null);
       const events = await anchor.contract.queryFilter(filter, anchor.contract.deployTransaction.blockNumber);
 
-      assert.strictEqual(events[0].event, 'Deposit')
-      assert.strictEqual(events[0].args[0], deposit.commitment)
+      assert.strictEqual(events[0].event, 'Deposit');
+      assert.strictEqual(events[0].args[0], helpers.toFixedHex(deposit.commitment));
       assert.strictEqual(events[0].args[1], 0);
 
       const anchorBalance = await token.balanceOf(anchor.contract.address);
@@ -341,12 +341,12 @@ describe.only('Anchor2', () => {
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }),
+        anchor.contract.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }),
         'verifier-gte-snark-scalar-field',
       );
     })
 
-    it.only('fee should be less or equal transfer value', async () => {
+    it('fee should be less or equal transfer value', async () => {
       const signers = await ethers.getSigners();
       const relayer = signers[0];
 
@@ -480,7 +480,7 @@ describe.only('Anchor2', () => {
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.withdraw(`0x${proofEncoded}`, ...incorrectArgs, { gasPrice: '0' }),
+        anchor.contract.withdraw(`0x${proofEncoded}`, ...incorrectArgs, { gasPrice: '0' }),
         'Invalid withdraw proof',
       );
 
@@ -536,7 +536,10 @@ describe.only('Anchor2', () => {
       //@ts-ignore
       await anchor.withdraw(deposit1, index1, signers[0].address, relayer.address, fee);
 
-      const spentArray = await anchor.contract.isSpentArray([deposit2.nullifierHash!, deposit1.nullifierHash!])
+      const spentArray = await anchor.contract.isSpentArray([
+        helpers.toFixedHex(deposit2.nullifierHash!),
+        helpers.toFixedHex(deposit1.nullifierHash!)
+      ]);
       assert.deepStrictEqual(spentArray, [false, true])
     })
   })
