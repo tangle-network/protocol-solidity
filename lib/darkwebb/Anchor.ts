@@ -3,10 +3,10 @@ import { Anchor2__factory } from '../../typechain/factories/Anchor2__factory';
 import { Anchor2 } from '../../typechain/Anchor2';
 import { rbigint, p256 } from "./utils";
 import { toFixedHex, toHex } from '../../lib/darkwebb/utils';
+import PoseidonHasher from './Poseidon';
+import { MerkleTree } from './MerkleTree';
 
 const path = require('path');
-const PoseidonHasher = require("../Poseidon");
-const MerkleTree = require("../MerkleTree");
 const snarkjs = require('snarkjs');
 const F = require('circomlib').babyJub.F;
 const Scalar = require('ffjavascript').Scalar;
@@ -15,35 +15,8 @@ interface AnchorDepositInfo {
   chainID: BigInt,
   secret: BigInt,
   nullifier: BigInt,
-  commitment?: string,
-  nullifierHash?: string,
-};
-
-export type AnchorWithdrawProof = {
-  pi_a: string[3],
-  pi_b: string[3][2],
-  pi_c: string[3],
-  protocol: string,
-  curve: string,
-};
-
-export type AnchorPublicSignals = string[7];
-
-export type AnchorInput = {
-  // public
+  commitment: string,
   nullifierHash: string,
-  recipient: string,
-  relayer: string,
-  fee: BigNumberish,
-  refund: BigNumberish,
-  chainID: BigNumberish,
-  roots: string[2],
-  // private
-  nullifier: string,
-  secret: string,
-  pathElements: string[],
-  pathIndices: number[],
-  diffs: string[2],
 };
 
 // This convenience wrapper class is used in tests -
@@ -53,19 +26,21 @@ export type AnchorInput = {
 class Anchor {
   signer: ethers.Signer;
   contract: Anchor2;
-  tree: typeof MerkleTree;
+  tree: MerkleTree;
   // hex string of the connected root
   linkedRoot: string;
-  numberOfLeaves: number;
+  latestSyncedBlock: number;
 
   private constructor(
     contract: Anchor2,
     signer: ethers.Signer,
+    treeHeight: number,
   ) {
     this.signer = signer;
     this.contract = contract;
+    this.tree = new MerkleTree('', treeHeight);
     this.linkedRoot = "0x0";
-    this.numberOfLeaves = 0;
+    this.latestSyncedBlock = 0;
   }
 
   // public static anchorFromAddress(
@@ -81,7 +56,7 @@ class Anchor {
     verifier: string,
     hasher: string,
     denomination: BigNumberish,
-    merkleTreeHeight: BigNumberish,
+    merkleTreeHeight: number,
     token: string,
     bridge: string,
     admin: string,
@@ -91,8 +66,8 @@ class Anchor {
     const factory = new Anchor2__factory(signer);
     const anchor2 = await factory.deploy(verifier, hasher, denomination, merkleTreeHeight, token, bridge, admin, handler, {});
     await anchor2.deployed();
-    const createdAnchor = new Anchor(anchor2, signer);
-    createdAnchor.tree = new MerkleTree(merkleTreeHeight, null, null);
+    const createdAnchor = new Anchor(anchor2, signer, merkleTreeHeight);
+    createdAnchor.latestSyncedBlock = anchor2.deployTransaction.blockNumber!;
     return createdAnchor;
   }
 
@@ -103,26 +78,29 @@ class Anchor {
     signer: ethers.Signer,
   ) {
     const anchor2 = Anchor2__factory.connect(address, signer);
-    const createdAnchor = new Anchor(anchor2, signer);
-
-    // fetch state from provider and build up local merkle tree
-
-    throw new Error("unimplemented");
+    const treeHeight = await anchor2.levels();
+    const createdAnchor = new Anchor(anchor2, signer, treeHeight);
 
     return createdAnchor;
   }
 
   public static generateDeposit(destinationChainId: number, secretBytesLen: number = 31, nullifierBytesLen: number = 31): AnchorDepositInfo {
-    let deposit: AnchorDepositInfo = {
-      chainID: BigInt(destinationChainId),
-      secret: rbigint(secretBytesLen),
-      nullifier: rbigint(nullifierBytesLen),
-    };
+    let chainID = BigInt(destinationChainId);
+    let secret = rbigint(secretBytesLen);
+    let nullifier = rbigint(nullifierBytesLen);
 
     const hasher = new PoseidonHasher();
+    let commitment = hasher.hash3([chainID, nullifier, secret]).toString();
+    let nullifierHash = hasher.hash(null, nullifier, nullifier);
+
+    let deposit: AnchorDepositInfo = {
+      chainID,
+      secret,
+      nullifier,
+      commitment,
+      nullifierHash
+    };
   
-    deposit.commitment = hasher.hash3([deposit.chainID, deposit.nullifier, deposit.secret]).toString();
-    deposit.nullifierHash = hasher.hash(null, deposit.nullifier, deposit.nullifier);
     return deposit
   }
 
@@ -204,7 +182,7 @@ class Anchor {
 
     const chainId = await this.signer.getChainId();
     const blockHeight = await this.signer.provider!.getBlockNumber();
-    const merkleRoot = await this.tree.root();
+    const merkleRoot = await this.tree.get_root();
 
     return '0x' +
       toHex(chainId.toString(), 32).substr(2) + 
@@ -214,21 +192,28 @@ class Anchor {
 
   // Makes a deposit into the contract and return the parameters and index of deposit
   public async deposit(): Promise<{deposit: AnchorDepositInfo, index: number}> {
+
     const chainId = await this.signer.getChainId();
-    const userAddress = await this.signer.getAddress();
     const deposit = Anchor.generateDeposit(chainId);
     
-    const tx = await this.contract.deposit(toFixedHex(deposit.commitment!), { gasLimit: '0x5B8D80' });
-    const receipt = await tx.wait();
+    const tx = await this.contract.deposit(toFixedHex(deposit.commitment), { gasLimit: '0x5B8D80' });
+    await tx.wait();
 
-    this.numberOfLeaves++;
     const index: number = await this.tree.insert(deposit.commitment);
 
     return { deposit, index };
   }
 
-  public async update(leaves: string[]) {
+  // sync the local tree with the tree on chain.
+  // Start syncing at the given block number, otherwise zero.
+  public async update(blockNumber?: number) {
+    const filter = this.contract.filters.Deposit();
+    const currentBlockNumber = await this.signer.provider!.getBlockNumber();
+    const events = await this.contract.queryFilter(filter, blockNumber || 0);
+    const commitments = events.map((event) => event.args.commitment);
+    this.tree.batch_insert(commitments);
 
+    this.latestSyncedBlock = currentBlockNumber;
   }
 
   public async withdraw(
@@ -238,22 +223,29 @@ class Anchor {
     relayer: string,
     fee: bigint,
   ) {
-    const { root, path_elements, path_index } = await this.tree.path(index);
+    // first, check if the merkle root is known on chain - if not, then update
+    const isKnownRoot = await this.contract.isKnownRoot(toFixedHex(await this.tree.get_root()));
+    
+    if (!isKnownRoot) {
+      await this.update(this.latestSyncedBlock);
+    }
+
+    const { root, pathElements, pathIndex } = await this.tree.path(index);
 
     const input = {
       // public
-      nullifierHash: deposit.nullifierHash!,
+      nullifierHash: deposit.nullifierHash,
       recipient: recipient,
       relayer,
       fee,
       refund: BigInt(0),
       chainID: deposit.chainID,
-      roots: [root, 0],
+      roots: [root as string, '0'],
       // private
       nullifier: deposit.nullifier,
       secret: deposit.secret,
-      pathElements: path_elements,
-      pathIndices: path_index,
+      pathElements: pathElements,
+      pathIndices: pathIndex,
       diffs: [root, 0].map(r => {
         return F.sub(
           Scalar.fromString(`${r}`),

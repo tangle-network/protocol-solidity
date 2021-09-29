@@ -21,9 +21,8 @@ import {
 
 // Convenience wrapper classes for contract classes
 import Anchor from '../../lib/darkwebb/Anchor';
-import MintableToken from '../../lib/darkwebb/MintableToken';
 
-const { NATIVE_AMOUNT, MERKLE_TREE_HEIGHT } = process.env
+const { NATIVE_AMOUNT } = process.env
 const snarkjs = require('snarkjs')
 const bigInt = require('big-integer');
 const BN = require('bn.js');
@@ -33,10 +32,10 @@ const Scalar = require("ffjavascript").Scalar;
 const helpers = require('../../lib/darkwebb/utils');
 const MerkleTree = require('../../lib/MerkleTree');
 
-describe.only('Anchor2', () => {
+describe('Anchor2', () => {
   let anchor: Anchor;
 
-  const levels = MERKLE_TREE_HEIGHT || 30
+  const levels = 30;
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
   let tree: typeof MerkleTree;
   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
@@ -84,6 +83,9 @@ describe.only('Anchor2', () => {
       sender
     );
 
+    // approve the anchor to spend the minted funds
+    await token.approve(anchor.contract.address, '10000000000000000000000');
+
     createWitness = async (data: any) => {
       const wtns = {type: "mem"};
       await snarkjs.wtns.calculate(data, path.join(
@@ -104,7 +106,6 @@ describe.only('Anchor2', () => {
 
   describe('#deposit', () => {
     it('should emit event', async () => {
-      await token.approve(anchor.contract.address, tokenDenomination);
       let { deposit } = await anchor.deposit();
 
       const filter = anchor.contract.filters.Deposit(helpers.toFixedHex(deposit.commitment), null, null);
@@ -120,7 +121,6 @@ describe.only('Anchor2', () => {
 
     it('should throw if there is a such commitment', async () => {
       const commitment = helpers.toFixedHex(42)
-      await token.approve(anchor.contract.address, tokenDenomination)
 
       await TruffleAssert.passes(anchor.contract.deposit(commitment));
       await TruffleAssert.reverts(
@@ -212,12 +212,7 @@ describe.only('Anchor2', () => {
       const sender = signers[0];
       const relayer = signers[1];
 
-      const tokenInstance = await MintableToken.tokenFromAddress(token.address, sender);
-
-      await token.mint(sender.address, tokenDenomination);
       const balanceUserBefore = await token.balanceOf(sender.address);
-
-      await tokenInstance.approveSpending(anchor.contract.address);
       const { deposit, index } = await anchor.deposit();
 
       const balanceUserAfterDeposit = await token.balanceOf(sender.address)
@@ -257,24 +252,8 @@ describe.only('Anchor2', () => {
       const sender = signers[0];
       const relayer = signers[1];
 
-      const tokenInstance = await MintableToken.tokenFromAddress(token.address, sender);
-
-      const anchor = await Anchor.createAnchor(
-        verifier.address,
-        hasherInstance.address,
-        tokenDenomination,
-        levels,
-        token.address,
-        sender.address,
-        sender.address,
-        sender.address,
-        sender
-      );
-
-      await tokenInstance.approveSpending(anchor.contract.address);
-      await tokenInstance.mintTokens(sender.address, tokenDenomination);
       const { deposit, index } = await anchor.deposit();
-
+      
       //@ts-ignore
       let receipt = await anchor.withdraw(deposit, index, sender.address, relayer.address, fee);
 
@@ -291,7 +270,6 @@ describe.only('Anchor2', () => {
 
       const deposit = Anchor.generateDeposit(chainID)
       await tree.insert(deposit.commitment)
-      await token.approve(anchor.contract.address, tokenDenomination)
       await anchor.contract.deposit(helpers.toFixedHex(deposit.commitment))
 
       const { root, path_elements, path_index } = await tree.path(0)
@@ -350,7 +328,6 @@ describe.only('Anchor2', () => {
       const signers = await ethers.getSigners();
       const relayer = signers[0];
 
-      await token.approve(anchor.contract.address, tokenDenomination)
       const { deposit, index } = await anchor.deposit();
       const largeFee = bigInt(value).add(bigInt(4));
 
@@ -367,7 +344,6 @@ describe.only('Anchor2', () => {
 
       const deposit = Anchor.generateDeposit(chainID)
       await tree.insert(deposit.commitment)
-      await token.approve(anchor.contract.address, tokenDenomination)
       await anchor.contract.deposit(helpers.toFixedHex(deposit.commitment))
 
       const { root, path_elements, path_index } = await tree.path(0)
@@ -424,7 +400,6 @@ describe.only('Anchor2', () => {
 
       const deposit = Anchor.generateDeposit(chainID)
       await tree.insert(deposit.commitment)
-      await token.approve(anchor.contract.address, tokenDenomination)
       await anchor.contract.deposit(helpers.toFixedHex(deposit.commitment))
 
       let { root, path_elements, path_index } = await tree.path(0)
@@ -527,20 +502,62 @@ describe.only('Anchor2', () => {
       const signers = await ethers.getSigners();
       const relayer = signers[0];
 
-      await token.approve(anchor.contract.address, tokenDenomination)
-      const { deposit: deposit1 , index: index1 } = await anchor.deposit();
-      
-      await token.approve(anchor.contract.address, tokenDenomination)
+      const { deposit: deposit1, index: index1 } = await anchor.deposit();
       const { deposit: deposit2, index: index2 } = await anchor.deposit();
 
       //@ts-ignore
       await anchor.withdraw(deposit1, index1, signers[0].address, relayer.address, fee);
 
       const spentArray = await anchor.contract.isSpentArray([
-        helpers.toFixedHex(deposit2.nullifierHash!),
-        helpers.toFixedHex(deposit1.nullifierHash!)
+        helpers.toFixedHex(deposit2.nullifierHash),
+        helpers.toFixedHex(deposit1.nullifierHash)
       ]);
       assert.deepStrictEqual(spentArray, [false, true])
+    })
+  })
+
+  describe('#WrapperClass', () => {
+    it('should deposit without latest history', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+
+      // create a deposit on the anchor already setup
+      await anchor.deposit();
+
+      // create a new anchor by connecting to the address of the setup anchor
+      const newAnchor = await Anchor.connect(anchor.contract.address, wallet);
+
+      // make sure the deposit goes through
+      TruffleAssert.passes(newAnchor.deposit());
+      assert.strictEqual(newAnchor.latestSyncedBlock, 0);
+    })
+
+    it('should properly update to the latest on-chain', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+
+      // create a deposit on the anchor already setup
+      await anchor.deposit();
+
+      // create a new anchor by connecting to the address of the setup anchor
+      const newAnchor = await Anchor.connect(anchor.contract.address, wallet);
+      await newAnchor.update();
+
+      // check that the merkle roots are the same for both anchor instances
+      assert.strictEqual(await anchor.tree.get_root(), await newAnchor.tree.get_root());
+    })
+
+    it('should properly update before withdraw tx', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+
+      // create a deposit on the anchor already setup
+      const { deposit, index } = await anchor.deposit();
+
+      // create a new anchor by connecting to the address of the setup anchor
+      const newAnchor = await Anchor.connect(anchor.contract.address, wallet);
+      TruffleAssert.rejects()
+      TruffleAssert.passes(newAnchor.withdraw(deposit, index, recipient, signers[1].address, fee));
     })
   })
 })
