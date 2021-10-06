@@ -28,7 +28,7 @@ abstract contract AnchorBase2 is MerkleTreePoseidon, ReentrancyGuard {
   struct Edge {
     uint256 chainID;
     bytes32 root;
-    uint256 height;
+    uint256 latestLeafIndex;
   }
 
   // maps sourceChainID to the index in the edge list
@@ -54,8 +54,8 @@ abstract contract AnchorBase2 is MerkleTreePoseidon, ReentrancyGuard {
   event Deposit(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp);
   event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uint256 fee);
   // bridge events
-  event EdgeAddition(uint256 chainID, uint256 height, bytes32 merkleRoot);
-  event EdgeUpdate(uint256 chainID, uint256 height, bytes32 merkleRoot);
+  event EdgeAddition(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
+  event EdgeUpdate(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
   event RootHistoryRecorded(uint timestamp, bytes32[1] roots);
   event RootHistoryUpdate(uint timestamp, bytes32[1] roots);
 

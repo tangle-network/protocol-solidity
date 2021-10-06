@@ -7,6 +7,7 @@ const Ethers = require('ethers');
 const crypto = require('crypto')
 const PoseidonHasher = require('../../lib/Poseidon');
 const utils = require("ffjavascript").utils;
+const { isBN, isBigNumber } = require('web3-utils');
 
 const {
   leBuff2int,
@@ -60,10 +61,14 @@ const createERCDepositData = (tokenAmountOrID, lenRecipientAddress, recipientAdd
     recipientAddress.substr(2);                 // recipientAddress               (?? bytes)
 };
 
-const createUpdateProposalData = (sourceChainID, blockHeight, merkleRoot) => {
+const createUpdateProposalData = (sourceChainID, leafIndex, merkleRoot) => {
+  if (typeof leafIndex === 'object') {
+    leafIndex = leafIndex.toNumber();
+  }
+
   return '0x' +
     toHex(sourceChainID, 32).substr(2) +    // chainID (32 bytes)
-    toHex(blockHeight, 32).substr(2) +      // latest block height of incoming root updates (32 bytes)
+    toHex(leafIndex, 32).substr(2) +        // latest leaf index causing the incoming root updates (32 bytes)
     toHex(merkleRoot, 32).substr(2);        // Updated Merkle Root (32 bytes)
 };
 

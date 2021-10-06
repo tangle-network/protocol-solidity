@@ -54,14 +54,14 @@ contract('LinkableAnchor - [add edges]', async accounts => {
     addEdge = (edge, sender) => AnchorInstance.addEdge(
       edge.sourceChainID,
       edge.root,
-      edge.height,
+      edge.latestLeafIndex,
       { from: sender }
     )
 
     updateEdge = (edge, sender) => AnchorInstance.updateEdge(
       edge.sourceChainID,
       edge.root,
-      edge.height,
+      edge.latestLeafIndex,
       { from: sender }
     )
   });
@@ -86,7 +86,7 @@ contract('LinkableAnchor - [add edges]', async accounts => {
     const edge = {
       sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
-      height: 1,
+      latestLeafIndex: 1,
     };
 
     await TruffleAssert.passes(addEdge(edge, accounts[0]));
@@ -101,7 +101,7 @@ contract('LinkableAnchor - [add edges]', async accounts => {
     const edge = {
       sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
-      height: 1,
+      latestLeafIndex: 1,
     };
 
     await TruffleAssert.passes(addEdge(edge, accounts[0]));
@@ -113,13 +113,13 @@ contract('LinkableAnchor - [add edges]', async accounts => {
     const edge = {
       sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
-      height: 1,
+      latestLeafIndex: 1,
     };
 
     const edge1 = {
       sourceChainID: '0x02',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
-      height: 1,
+      latestLeafIndex: 1,
     };
 
     await TruffleAssert.passes(addEdge(edge, accounts[0]));
@@ -132,7 +132,7 @@ contract('LinkableAnchor - [add edges]', async accounts => {
     const edge = {
       sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
-      height: 1,
+      latestLeafIndex: 1,
     };
 
     await TruffleAssert.passes(addEdge(edge, accounts[0]));
@@ -146,14 +146,14 @@ contract('LinkableAnchor - [add edges]', async accounts => {
     const edge = {
       sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
-      height: 1,
+      latestLeafIndex: 1,
     };
 
     const result = await addEdge(edge, accounts[0]);
 
     TruffleAssert.eventEmitted(result, 'EdgeAddition', (ev) => {
       return ev.chainID == parseInt(edge.sourceChainID, 16) &&
-       ev.height == edge.height && ev.merkleRoot == edge.root
+       ev.latestLeafIndex == edge.latestLeafIndex && ev.merkleRoot == edge.root
     });
   });
 
@@ -161,7 +161,7 @@ contract('LinkableAnchor - [add edges]', async accounts => {
     const edge = {
       sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
-      height: 1,
+      latestLeafIndex: 1,
     };
 
     const result = await addEdge(edge, accounts[0]);
