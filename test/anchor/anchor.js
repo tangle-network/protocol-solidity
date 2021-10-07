@@ -71,7 +71,7 @@ contract('Anchor2', (accounts) => {
       edge.destChainID,
       edge.destResourceID,
       edge.root,
-      edge.height,
+      edge.latestLeafIndex,
       { from: _sender }
     )
 
@@ -79,7 +79,7 @@ contract('Anchor2', (accounts) => {
       edge.destChainID,
       edge.destResourceID,
       edge.root,
-      edge.height,
+      edge.latestLeafIndex,
       { from: _sender }
     )
 

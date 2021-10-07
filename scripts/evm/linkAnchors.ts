@@ -48,13 +48,13 @@ async function depositAndProposeAndExecute({
   const data = receipt.events[2].args;
   // @ts-ignore
   const updateNonce = data[1];
-  const originBlockHeight = receipt.blockNumber;
+  const originLatestLeafIndex = data.leafIndex;
 
   const originChainID = await originWallet.getChainId();
   const originMerkleRoot = await originAnchor.getLastRoot();
   // create correct update proposal data for the deposit on origin chain
-  const updateData = helpers.createUpdateProposalData(originChainID, originBlockHeight, originMerkleRoot);
-  console.log('Created update data w/ args', originChainID, originBlockHeight, originMerkleRoot, updateData)
+  const updateData = helpers.createUpdateProposalData(originChainID, originLatestLeafIndex, originMerkleRoot);
+  console.log('Created update data w/ args', originChainID, originLatestLeafIndex, originMerkleRoot, updateData)
   const dataHash = ethers.utils.keccak256(destAnchorHandler.address + updateData.substr(2));
   // create destination resourceID to create proposals to update against
   const destChainId = await destWallet.getChainId();

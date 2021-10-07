@@ -29,7 +29,6 @@ contract('Bridge - [executeUpdateProposal with relayerThreshold == 3]', async (a
   const sender = accounts[5]
 
   let merkleRoot;
-  let blockHeight = 1;
   let expectedUpdateNonce = 1;
   let OriginChainAnchorInstance;
   let DestChainAnchorInstance;
@@ -87,7 +86,9 @@ contract('Bridge - [executeUpdateProposal with relayerThreshold == 3]', async (a
 
     await token.mint(sender, 1000000 * tokenDenomination);
     await token.increaseAllowance(OriginChainAnchorInstance.address, 1000000000, {from: sender});
-    await OriginChainAnchorInstance.deposit('0x11111', {from: sender});
+    let { logs } = await OriginChainAnchorInstance.deposit('0x11111', {from: sender});
+    let latestLeafIndex = logs[0].args.leafIndex;
+
     merkleRoot = await OriginChainAnchorInstance.getLastRoot();
     resourceID = Helpers.createResourceID(OriginChainAnchorInstance.address, sourceChainID);
     initialResourceIDs = [resourceID];
@@ -102,7 +103,7 @@ contract('Bridge - [executeUpdateProposal with relayerThreshold == 3]', async (a
     await DestChainAnchorInstance.setHandler(DestinationAnchorHandlerInstance.address, {from: sender});
     await DestChainAnchorInstance.setBridge(BridgeInstance.address, {from: sender});
 
-    data = Helpers.createUpdateProposalData(sourceChainID, blockHeight, merkleRoot);
+    data = Helpers.createUpdateProposalData(sourceChainID, latestLeafIndex, merkleRoot);
     dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
 
     await Promise.all([
@@ -175,9 +176,10 @@ contract('Bridge - [executeUpdateProposal with relayerThreshold == 3]', async (a
     await TruffleAssert.passes(executeProposal(relayer1Address));
 
     // new deposit on sourceChain changes root 
-    await OriginChainAnchorInstance.deposit('0x22222', {from: sender});
+    let { logs } = await OriginChainAnchorInstance.deposit('0x22222', {from: sender});
+    let latestLeafIndex = logs[0].args.leafIndex;
     merkleRoot = await OriginChainAnchorInstance.getLastRoot();
-    data = Helpers.createUpdateProposalData(sourceChainID, blockHeight + 10, merkleRoot);
+    data = Helpers.createUpdateProposalData(sourceChainID, latestLeafIndex, merkleRoot);
     dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
     expectedUpdateNonce++;
 
@@ -202,10 +204,11 @@ contract('Bridge - [executeUpdateProposal with relayerThreshold == 3]', async (a
     await TruffleAssert.passes(executeProposal(relayer1Address));
 
     // new deposit on sourceChain which changes root 
-    await OriginChainAnchorInstance.deposit('0x22222', {from: sender});
+    let { logs } = await OriginChainAnchorInstance.deposit('0x22222', {from: sender});
+    let latestLeafIndex = logs[0].args.leafIndex;
     merkleRoot = await OriginChainAnchorInstance.getLastRoot();
-    // blockHeight is not greater than last height so execution reverts
-    data = Helpers.createUpdateProposalData(sourceChainID, blockHeight, merkleRoot);
+    // latestLeafIndex is not greater than last leaf index so execution reverts
+    data = Helpers.createUpdateProposalData(sourceChainID, latestLeafIndex - 1, merkleRoot);
     dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
     expectedUpdateNonce++;
     await TruffleAssert.passes(BridgeInstance.voteProposal(sourceChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer1Address }));
@@ -213,7 +216,7 @@ contract('Bridge - [executeUpdateProposal with relayerThreshold == 3]', async (a
     await TruffleAssert.passes(BridgeInstance.voteProposal(sourceChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer3Address }));
     await TruffleAssert.reverts(
       BridgeInstance.executeProposal(sourceChainID, expectedUpdateNonce, data, resourceID, { from: relayer2Address }),
-      "New height must be greater");
+      "New leaf index must be greater");
 
   });
 
@@ -241,10 +244,11 @@ contract('Bridge - [executeUpdateProposal with relayerThreshold == 3]', async (a
 
     // deposit on third chain anchor
     await token.increaseAllowance(ThirdAnchorInstance.address, 1000000000, {from: sender});
-    await ThirdAnchorInstance.deposit('0x023888', {from: sender});
+    let { logs } = await ThirdAnchorInstance.deposit('0x023888', {from: sender});
+    let latestLeafIndex = logs[0].args.leafIndex;
     // voting on deposit data (adding another Edge)
     newMerkleRoot = await ThirdAnchorInstance.getLastRoot();
-    data = Helpers.createUpdateProposalData(thirdChainID, blockHeight, newMerkleRoot);
+    data = Helpers.createUpdateProposalData(thirdChainID, latestLeafIndex, newMerkleRoot);
     dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
     expectedUpdateNonce++;
     

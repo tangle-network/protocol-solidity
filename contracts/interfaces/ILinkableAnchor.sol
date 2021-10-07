@@ -12,11 +12,11 @@ interface ILinkableAnchor {
   function addEdge(
     uint256 sourceChainID,
     bytes32 root,
-    uint256 height
+    uint256 latestLeafIndex
   ) external payable;
   function updateEdge(
     uint256 sourceChainID,
     bytes32 root,
-    uint256 height
+    uint256 latestLeafIndex
   ) external payable;
 }

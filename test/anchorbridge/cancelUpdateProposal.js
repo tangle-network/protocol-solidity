@@ -28,7 +28,6 @@ contract('Bridge - [CancelUpdateProposal with relayerThreshold == 3]', async (ac
   const expectedUpdateNonce = 1;
   const relayerThreshold = 3;
   const merkleTreeHeight = 31;
-  const blockHeight = 1;
   const sender = accounts[5]
   let merkleRoot;
   let AnchorInstance;
@@ -76,7 +75,8 @@ contract('Bridge - [CancelUpdateProposal with relayerThreshold == 3]', async (ac
 
     await token.mint(sender, tokenDenomination);
     await token.increaseAllowance(AnchorInstance.address, 1000000000, {from: sender});
-    await AnchorInstance.deposit('0x1111111111111111111111111111111111111111111111111111111111111111', {from: sender});
+    let { logs } = await AnchorInstance.deposit('0x1111111111111111111111111111111111111111111111111111111111111111', {from: sender});
+    let latestLeafIndex = logs[0].args.leafIndex;
     merkleRoot = await AnchorInstance.getLastRoot();
     
     resourceID = Helpers.createResourceID(AnchorInstance.address, originChainID);
@@ -89,7 +89,7 @@ contract('Bridge - [CancelUpdateProposal with relayerThreshold == 3]', async (ac
       initialContractAddresses,
     );
 
-    data = Helpers.createUpdateProposalData(originChainID, blockHeight, merkleRoot);
+    data = Helpers.createUpdateProposalData(originChainID, latestLeafIndex, merkleRoot);
     dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
 
     await Promise.all([

@@ -39,7 +39,6 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
   const recipient = helpers.getRandomRecipient();
 
   let originMerkleRoot;
-  let originBlockHeight = 1;
   let originUpdateNonce;
   let hasher, verifier;
   let OriginERC20MintableInstance;
@@ -168,10 +167,11 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     originDeposit = helpers.generateDeposit(destChainID);
     // deposit on origin chain and define nonce
     let { logs } = await OriginChainAnchorInstance.deposit(helpers.toFixedHex(originDeposit.commitment), {from: sender});
-    originUpdateNonce = logs[0].args.leafIndex;
+    let latestLeafIndex = logs[0].args.leafIndex;
+    originUpdateNonce = latestLeafIndex;
     originMerkleRoot = await OriginChainAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on origin chain
-    originUpdateData = helpers.createUpdateProposalData(originChainID, originBlockHeight, originMerkleRoot);
+    originUpdateData = helpers.createUpdateProposalData(originChainID, latestLeafIndex, originMerkleRoot);
     originUpdateDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originUpdateData.substr(2));
     /*
     *  Relayers vote on dest chain
