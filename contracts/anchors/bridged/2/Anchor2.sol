@@ -73,20 +73,4 @@ contract Anchor2 is LinkableAnchor2 {
       }
     }
   }
-
-
-
-
-
-
-
-
-
-
-  }
-
-
-
-
-
 }
