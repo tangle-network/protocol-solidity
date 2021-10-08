@@ -13,7 +13,7 @@ interface IVerifier {
       uint[2] memory a,
       uint[2][2] memory b,
       uint[2] memory c,
-      uint[8] memory input
+      uint[9] memory input
   ) external view returns (bool r);
 }
 
@@ -53,7 +53,7 @@ abstract contract AnchorBase2 is MerkleTreePoseidon, ReentrancyGuard {
   // currency events
   event Deposit(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp);
   event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uint256 fee);
-  event Refresh(bytes32 nullifierHash, address indexed relayer, uint256 fee);
+  event Refresh(bytes32 indexed commitment, bytes32 nullifierHash, uint32 insertedIndex);
   // bridge events
   event EdgeAddition(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
   event EdgeUpdate(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
@@ -145,11 +145,10 @@ abstract contract AnchorBase2 is MerkleTreePoseidon, ReentrancyGuard {
     if (_commitment == 0) {
       _processWithdraw(_recipient, _relayer, _fee, _refund);
       emit Withdrawal(_recipient, _nullifierHash, _relayer, _fee);
-    } else {
+    } else if (!commitments[_commitment]) {
       uint32 insertedIndex = _insert(_commitment);
       commitments[_commitment] = true;
-      _processRefresh(_relayer, _fee); 
-      emit Refresh(_nullifierHash, _relayer, _fee); 
+      emit Refresh(_commitment, _nullifierHash, insertedIndex); 
     }
     
 
@@ -165,7 +164,7 @@ abstract contract AnchorBase2 is MerkleTreePoseidon, ReentrancyGuard {
         uint256[2][2] memory b,
         uint256[2] memory c
     ) = unpackProof(p);
-    uint256[8] memory inputs = abi.decode(_input, (uint256[8]));
+    uint256[9] memory inputs = abi.decode(_input, (uint256[9]));
     r = verifier.verifyProof(
       a, b, c,
       inputs
@@ -202,6 +201,7 @@ abstract contract AnchorBase2 is MerkleTreePoseidon, ReentrancyGuard {
     uint256 _fee,
     uint256 _refund
   ) internal virtual;
+
 
   /** @dev whether a note is already spent */
   function isSpent(bytes32 _nullifierHash) public view returns (bool) {
