@@ -35,7 +35,7 @@ template Withdraw(levels, length) {
     // the set of roots to prove membership within, provided
     // as a public input from the smart contract.
     signal input roots[length];
-
+    signal input refreshCommitment; //not taking part in any computations
 
     signal private input nullifier;
     signal private input secret;
@@ -71,8 +71,11 @@ template Withdraw(levels, length) {
     signal feeSquare;
     signal relayerSquare;
     signal refundSquare;
+    signal refreshCommitmentSquare;
+
     recipientSquare <== recipient * recipient;
     feeSquare <== fee * fee;
     relayerSquare <== relayer * relayer;
     refundSquare <== refund * refund;
+    refreshCommitmentSquare <== refreshCommitment * refreshCommitment;
 }

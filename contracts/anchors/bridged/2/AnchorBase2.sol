@@ -53,6 +53,7 @@ abstract contract AnchorBase2 is MerkleTreePoseidon, ReentrancyGuard {
   // currency events
   event Deposit(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp);
   event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uint256 fee);
+  event Refresh(bytes32 nullifierHash, address indexed relayer, uint256 fee);
   // bridge events
   event EdgeAddition(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
   event EdgeUpdate(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
@@ -107,6 +108,7 @@ abstract contract AnchorBase2 is MerkleTreePoseidon, ReentrancyGuard {
     bytes calldata _proof,
     bytes calldata _roots,
     bytes32 _nullifierHash,
+    bytes32 _commitment,
     address payable _recipient,
     address payable _relayer,
     uint256 _fee,
@@ -124,7 +126,7 @@ abstract contract AnchorBase2 is MerkleTreePoseidon, ReentrancyGuard {
     address rec = address(_recipient);
     address rel = address(_relayer);
 
-    uint256[8] memory inputs;
+    uint256[9] memory inputs;
     inputs[0] = uint256(_nullifierHash);
     inputs[1] = uint256(uint160(rec));
     inputs[2] = uint256(uint160(rel));
@@ -133,13 +135,24 @@ abstract contract AnchorBase2 is MerkleTreePoseidon, ReentrancyGuard {
     inputs[5] = uint256(getChainId());
     inputs[6] = uint256(roots[0]);
     inputs[7] = uint256(roots[1]);
+    inputs[8] = uint256(_commitment);
     bytes memory encodedInputs = abi.encodePacked(inputs);
 
     require(verify(_proof, encodedInputs), "Invalid withdraw proof");
-  
+
     nullifierHashes[_nullifierHash] = true;
-    _processWithdraw(_recipient, _relayer, _fee, _refund);
-  k  emit Withdrawal(_recipient, _nullifierHash, _relayer, _fee);
+
+    if (_commitment == 0) {
+      _processWithdraw(_recipient, _relayer, _fee, _refund);
+      emit Withdrawal(_recipient, _nullifierHash, _relayer, _fee);
+    } else {
+      uint32 insertedIndex = _insert(_commitment);
+      commitments[_commitment] = true;
+      _processRefresh(_relayer, _fee); 
+      emit Refresh(_nullifierHash, _relayer, _fee); 
+    }
+    
+
   }
 
   function verify(
