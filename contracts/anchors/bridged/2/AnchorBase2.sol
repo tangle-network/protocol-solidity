@@ -139,7 +139,7 @@ abstract contract AnchorBase2 is MerkleTreePoseidon, ReentrancyGuard {
   
     nullifierHashes[_nullifierHash] = true;
     _processWithdraw(_recipient, _relayer, _fee, _refund);
-    emit Withdrawal(_recipient, _nullifierHash, _relayer, _fee);
+  k  emit Withdrawal(_recipient, _nullifierHash, _relayer, _fee);
   }
 
   function verify(
