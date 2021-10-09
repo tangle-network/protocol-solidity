@@ -87,14 +87,14 @@ contract('Anchor2', (accounts) => {
       const wtns = {type: "mem"};
       await snarkjs.wtns.calculate(data, path.join(
         "test",
-        "fixtures",
+        "fixtures/2",
         "poseidon_bridge_2.wasm"
       ), wtns);
       return wtns;
     }
 
     tree = new MerkleTree(levels, null, prefix)
-    zkey_final = fs.readFileSync('test/fixtures/circuit_final.zkey').buffer;
+    zkey_final = fs.readFileSync('test/fixtures/2/circuit_final.zkey').buffer;
   })
 
   describe('#constructor', () => {
@@ -172,12 +172,12 @@ contract('Anchor2', (accounts) => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('test/fixtures/2/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
       let tempProof = proof;
       let tempSignals = publicSignals;
-      const vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/circuit_final.zkey');
+      const vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/2/circuit_final.zkey');
 
       res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       assert.strictEqual(res, true);
@@ -252,10 +252,10 @@ contract('Anchor2', (accounts) => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('test/fixtures/2/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
-      const vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/circuit_final.zkey');
+      const vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/2/circuit_final.zkey');
       res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       assert.strictEqual(res, true);
 
@@ -337,7 +337,7 @@ contract('Anchor2', (accounts) => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('test/fixtures/2/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
 
@@ -393,7 +393,7 @@ contract('Anchor2', (accounts) => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('test/fixtures/2/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
 
@@ -453,7 +453,7 @@ contract('Anchor2', (accounts) => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('test/fixtures/2/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
 
@@ -508,7 +508,7 @@ contract('Anchor2', (accounts) => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('test/fixtures/2/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
 
@@ -563,7 +563,7 @@ contract('Anchor2', (accounts) => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('test/fixtures/2/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
 
@@ -684,7 +684,7 @@ contract('Anchor2', (accounts) => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('test/fixtures/2/circuit_final.zkey', wtns);
       proof = res.proof;
       publicSignals = res.publicSignals;
 

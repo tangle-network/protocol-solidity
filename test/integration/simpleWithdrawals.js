@@ -124,14 +124,14 @@ contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts 
       const wtns = {type: 'mem'};
       await snarkjs.wtns.calculate(data, path.join(
         'test',
-        'fixtures',
+        'fixtures/2',
         'poseidon_bridge_2.wasm'
       ), wtns);
       return wtns;
     }
 
     tree = new MerkleTree(merkleTreeHeight, null, prefix)
-    zkey_final = fs.readFileSync('test/fixtures/circuit_final.zkey').buffer;
+    zkey_final = fs.readFileSync('test/fixtures/2/circuit_final.zkey').buffer;
   });
 
   it('[sanity] bridges configured with threshold and relayers', async () => {
@@ -218,7 +218,7 @@ contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts 
 
     let wtns = await createWitness(input);
 
-    let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
+    let res = await snarkjs.groth16.prove('test/fixtures/2/circuit_final.zkey', wtns);
     proof = res.proof;
     publicSignals = res.publicSignals;
 
@@ -327,7 +327,7 @@ contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts 
 
     wtns = await createWitness(input);
 
-    res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
+    res = await snarkjs.groth16.prove('test/fixtures/2/circuit_final.zkey', wtns);
     proof = res.proof;
     publicSignals = res.publicSignals;
 
