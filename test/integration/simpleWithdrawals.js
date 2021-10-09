@@ -5,7 +5,7 @@ const { toBN } = require('web3-utils')
 const assert = require('assert');
 const BridgeContract = artifacts.require('Bridge');
 const Anchor = artifacts.require('./Anchor2.sol');
-const Verifier = artifacts.require('./VerifierPoseidonBridge.sol');
+const Verifier = artifacts.require('./Verifier2.sol');
 const Hasher = artifacts.require('PoseidonT3');
 const Token = artifacts.require('ERC20Mock');
 const AnchorHandlerContract = artifacts.require('AnchorHandler');
@@ -21,7 +21,7 @@ const Scalar = require('ffjavascript').Scalar;
 const MerkleTree = require('../../lib/MerkleTree');
 
 
-contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
+contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts => {
   const relayerThreshold = 1;
   // Note: we have to use the same chainID for tests since Hardhat can't simulate 2 networks
   const originChainID = 31337;
@@ -196,6 +196,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     let input = {
       // public
       nullifierHash: originDeposit.nullifierHash,
+      refreshCommitment: 0,
       recipient,
       relayer: operator,
       fee,
@@ -224,6 +225,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     let args = [
       helpers.createRootsBytes(input.roots),
       helpers.toFixedHex(input.nullifierHash),
+      helpers.toFixedHex(input.refreshCommitment),
       helpers.toFixedHex(input.recipient, 20),
       helpers.toFixedHex(input.relayer, 20),
       helpers.toFixedHex(input.fee),
@@ -303,6 +305,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     input = {
       // public
       nullifierHash: destDeposit.nullifierHash,
+      refreshCommitment: 0,
       recipient,
       relayer: operator,
       fee,
@@ -331,6 +334,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     args = [
       helpers.createRootsBytes(input.roots),
       helpers.toFixedHex(input.nullifierHash),
+      helpers.toFixedHex(input.refreshCommitment),
       helpers.toFixedHex(input.recipient, 20),
       helpers.toFixedHex(input.relayer, 20),
       helpers.toFixedHex(input.fee),

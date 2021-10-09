@@ -5,7 +5,7 @@ const { toBN } = require('web3-utils')
 const assert = require('assert');
 const BridgeContract = artifacts.require('Bridge');
 const Anchor = artifacts.require('./Anchor2.sol');
-const Verifier = artifacts.require('./VerifierPoseidonBridge.sol');
+const Verifier = artifacts.require('./Verifier2.sol');
 const Hasher = artifacts.require('PoseidonT3');
 const Token = artifacts.require('ERC20Mock');
 const AnchorHandlerContract = artifacts.require('AnchorHandler');
@@ -171,6 +171,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     let input = {
       // public
       nullifierHash: firstOriginDeposit.nullifierHash,
+      refreshCommitment: 0,
       recipient,
       relayer: operator,
       fee,
@@ -202,6 +203,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     let args = [
       helpers.createRootsBytes(input.roots),
       helpers.toFixedHex(input.nullifierHash),
+      helpers.toFixedHex(input.refreshCommitment),
       helpers.toFixedHex(input.recipient, 20),
       helpers.toFixedHex(input.relayer, 20),
       helpers.toFixedHex(input.fee),
@@ -275,6 +277,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     input = {
       // public
       nullifierHash: originDeposit.nullifierHash,
+      refreshCommitment: 0,
       recipient,
       relayer: operator,
       fee,
@@ -306,6 +309,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     args = [
       helpers.createRootsBytes(input.roots),
       helpers.toFixedHex(input.nullifierHash),
+      helpers.toFixedHex(input.refreshCommitment),
       helpers.toFixedHex(input.recipient, 20),
       helpers.toFixedHex(input.relayer, 20),
       helpers.toFixedHex(input.fee),

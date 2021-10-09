@@ -53,13 +53,13 @@ async function generatePoseidonBridgeInput() {
     fee: 0,
     refund: 0,
     chainID: deposit.chainID,
-    roots: [root, 0],
+    roots: [root, 0, 0, 0, 0],
     // private
     nullifier: deposit.nullifier,
     secret: deposit.secret,
     pathElements: path_elements,
     pathIndices: path_index,
-    diffs: [root, 0].map(r => {
+    diffs: [root, 0, 0, 0, 0].map(r => {
       return F.sub(
         Scalar.fromString(`${r}`),
         Scalar.fromString(`${root}`),
@@ -67,11 +67,11 @@ async function generatePoseidonBridgeInput() {
     }),
   }
 
-  if (!fs.existsSync('build/bridge2')) {
-    await fs.mkdirSync('build/bridge2');
+  if (!fs.existsSync('build/bridge5')) {
+    await fs.mkdirSync('build/bridge5');
   }
 
-  await fs.writeFileSync('build/bridge2/input.json', JSON.stringify(stringifyBigInts(input)));
+  await fs.writeFileSync('build/bridge5/input.json', JSON.stringify(stringifyBigInts(input)));
 }
 
 generatePoseidonBridgeInput();

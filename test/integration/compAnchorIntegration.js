@@ -5,7 +5,7 @@ const { toBN } = require('web3-utils')
 const assert = require('assert');
 const BridgeContract = artifacts.require('Bridge');
 const Anchor = artifacts.require('./Anchor2.sol');
-const Verifier = artifacts.require('./VerifierPoseidonBridge.sol');
+const Verifier = artifacts.require('./Verifier2.sol');
 const Hasher = artifacts.require('PoseidonT3');
 const Token = artifacts.require('ERC20Mock');
 const CompToken = artifacts.require('CompToken')
@@ -268,6 +268,7 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     let input = {
       // public
       nullifierHash: originDeposit.nullifierHash,
+      refreshCommitment: 0,
       recipient: user1,
       relayer: operator,
       fee,
@@ -293,6 +294,7 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     let args = [
       helpers.createRootsBytes(input.roots),
       helpers.toFixedHex(input.nullifierHash),
+      helpers.toFixedHex(input.refreshCommitment),
       helpers.toFixedHex(input.recipient, 20),
       helpers.toFixedHex(input.relayer, 20),
       helpers.toFixedHex(input.fee),
@@ -366,6 +368,7 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     let input = {
       // public
       nullifierHash: originDeposit.nullifierHash,
+      refreshCommitment: 0,
       recipient: user1,
       relayer: operator,
       fee,
@@ -394,6 +397,7 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     let args = [
       helpers.createRootsBytes(input.roots),
       helpers.toFixedHex(input.nullifierHash),
+      helpers.toFixedHex(input.refreshCommitment),
       helpers.toFixedHex(input.recipient, 20),
       helpers.toFixedHex(input.relayer, 20),
       helpers.toFixedHex(input.fee),
@@ -488,6 +492,7 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     input = {
       // public
       nullifierHash: destDeposit.nullifierHash,
+      refreshCommitment: 0,
       recipient: user2,
       relayer: operator,
       fee,
@@ -519,6 +524,7 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     args = [
       helpers.createRootsBytes(input.roots),
       helpers.toFixedHex(input.nullifierHash),
+      helpers.toFixedHex(input.refreshCommitment),
       helpers.toFixedHex(input.recipient, 20),
       helpers.toFixedHex(input.relayer, 20),
       helpers.toFixedHex(input.fee),

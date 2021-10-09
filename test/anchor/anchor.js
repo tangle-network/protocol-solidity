@@ -9,7 +9,7 @@ const fs = require('fs')
 const path = require('path');
 const { toBN, randomHex } = require('web3-utils')
 const Anchor = artifacts.require('./Anchor2.sol');
-const VerifierPoseidonBridge = artifacts.require('./VerifierPoseidonBridge.sol');
+const Verifier = artifacts.require('./Verifier2.sol');
 const Poseidon = artifacts.require('PoseidonT3');
 const Token = artifacts.require("ERC20Mock");
 
@@ -44,7 +44,7 @@ contract('Anchor2', (accounts) => {
   beforeEach(async () => {
     tree = new MerkleTree(levels, null, prefix)
     hasherInstance = await Poseidon.new();
-    verifier = await VerifierPoseidonBridge.new();
+    verifier = await Verifier.new();
     token = await Token.new();
     await token.mint(sender, new BN('10000000000000000000000'));
     const balanceOfSender = await token.balanceOf.call(sender);
@@ -150,6 +150,7 @@ contract('Anchor2', (accounts) => {
       const input = {
         // public
         nullifierHash: deposit.nullifierHash,
+        refreshCommitment: 0,
         recipient,
         relayer,
         fee,
@@ -229,6 +230,7 @@ contract('Anchor2', (accounts) => {
       const input = {
         // public
         nullifierHash: deposit.nullifierHash,
+        refreshCommitment: 0,
         recipient,
         relayer: operator,
         fee,
@@ -270,6 +272,7 @@ contract('Anchor2', (accounts) => {
       const args = [
         helpers.createRootsBytes(input.roots),
         helpers.toFixedHex(input.nullifierHash),
+        helpers.toFixedHex(input.refreshCommitment),
         helpers.toFixedHex(input.recipient, 20),
         helpers.toFixedHex(input.relayer, 20),
         helpers.toFixedHex(input.fee),
@@ -312,6 +315,7 @@ contract('Anchor2', (accounts) => {
       const input = {
         // public
         nullifierHash: deposit.nullifierHash,
+        refreshCommitment: 0,
         recipient,
         relayer: operator,
         fee,
@@ -340,6 +344,7 @@ contract('Anchor2', (accounts) => {
       const args = [
         helpers.createRootsBytes(input.roots),
         helpers.toFixedHex(input.nullifierHash),
+        helpers.toFixedHex(input.refreshCommitment),
         helpers.toFixedHex(input.recipient, 20),
         helpers.toFixedHex(input.relayer, 20),
         helpers.toFixedHex(input.fee),
@@ -366,6 +371,7 @@ contract('Anchor2', (accounts) => {
       const input = {
         // public
         nullifierHash: deposit.nullifierHash,
+        refreshCommitment: 0,
         recipient,
         relayer,
         fee,
@@ -398,6 +404,7 @@ contract('Anchor2', (accounts) => {
             toBN('21888242871839275222246405745257275088548364400416034343698204186575808495617'),
           ),
         ),
+        helpers.toFixedHex(input.refreshCommitment),
         helpers.toFixedHex(input.recipient, 20),
         helpers.toFixedHex(input.relayer, 20),
         helpers.toFixedHex(input.fee),
@@ -424,6 +431,7 @@ contract('Anchor2', (accounts) => {
       const input = {
         // public
         nullifierHash: deposit.nullifierHash,
+        refreshCommitment: 0,
         recipient,
         relayer,
         fee: largeFee,
@@ -452,6 +460,7 @@ contract('Anchor2', (accounts) => {
       const args = [
         helpers.createRootsBytes(input.roots),
         helpers.toFixedHex(input.nullifierHash),
+        helpers.toFixedHex(input.refreshCommitment),
         helpers.toFixedHex(input.recipient, 20),
         helpers.toFixedHex(input.relayer, 20),
         helpers.toFixedHex(input.fee),
@@ -477,6 +486,7 @@ contract('Anchor2', (accounts) => {
       const input = {
         // public
         nullifierHash: deposit.nullifierHash,
+        refreshCommitment: 0,
         recipient,
         relayer,
         fee,
@@ -505,6 +515,7 @@ contract('Anchor2', (accounts) => {
       const args = [
         helpers.createRootsBytes([randomHex(32), 0]),
         helpers.toFixedHex(input.nullifierHash),
+        helpers.toFixedHex(input.refreshCommitment),
         helpers.toFixedHex(input.recipient, 20),
         helpers.toFixedHex(input.relayer, 20),
         helpers.toFixedHex(input.fee),
@@ -530,6 +541,7 @@ contract('Anchor2', (accounts) => {
       const input = {
         // public
         nullifierHash: deposit.nullifierHash,
+        refreshCommitment: 0,
         recipient,
         relayer,
         fee,
@@ -558,6 +570,7 @@ contract('Anchor2', (accounts) => {
       const args = [
         helpers.createRootsBytes(input.roots),
         helpers.toFixedHex(input.nullifierHash),
+        helpers.toFixedHex(input.refreshCommitment),
         helpers.toFixedHex(input.recipient, 20),
         helpers.toFixedHex(input.relayer, 20),
         helpers.toFixedHex(input.fee),
@@ -568,6 +581,7 @@ contract('Anchor2', (accounts) => {
       incorrectArgs = [
         helpers.createRootsBytes(input.roots),
         helpers.toFixedHex(input.nullifierHash),
+        helpers.toFixedHex(input.refreshCommitment),
         helpers.toFixedHex('0x0000000000000000000000007a1f9131357404ef86d7c38dbffed2da70321337', 20),
         helpers.toFixedHex(input.relayer, 20),
         helpers.toFixedHex(input.fee),
@@ -584,6 +598,7 @@ contract('Anchor2', (accounts) => {
       incorrectArgs = [
         helpers.createRootsBytes(input.roots),
         helpers.toFixedHex(input.nullifierHash),
+        helpers.toFixedHex(input.refreshCommitment),
         helpers.toFixedHex(input.recipient, 20),
         helpers.toFixedHex(input.relayer, 20),
         helpers.toFixedHex('0x000000000000000000000000000000000000000000000000015345785d8a0000'),
@@ -597,6 +612,22 @@ contract('Anchor2', (accounts) => {
       // nullifier
       incorrectArgs = [
         helpers.createRootsBytes(input.roots),
+        helpers.toFixedHex('0x00abdfc78211f8807b9c6504a6e537e71b8788b2f529a95f1399ce124a8642ad'),
+        helpers.toFixedHex(input.refreshCommitment),
+        helpers.toFixedHex(input.recipient, 20),
+        helpers.toFixedHex(input.relayer, 20),
+        helpers.toFixedHex(input.fee),
+        helpers.toFixedHex(input.refund),
+      ];
+      await TruffleAssert.reverts(
+        anchor.withdraw(`0x${proofEncoded}`, ...incorrectArgs, { from: relayer, gasPrice: '0' }),
+        "Invalid withdraw proof"
+      );
+
+      // refresh commitment
+      incorrectArgs = [
+        helpers.createRootsBytes(input.roots),
+        helpers.toFixedHex(input.nullifierHash),
         helpers.toFixedHex('0x00abdfc78211f8807b9c6504a6e537e71b8788b2f529a95f1399ce124a8642ad'),
         helpers.toFixedHex(input.recipient, 20),
         helpers.toFixedHex(input.relayer, 20),
@@ -631,6 +662,7 @@ contract('Anchor2', (accounts) => {
       const input = {
         // public
         nullifierHash: deposit2.nullifierHash,
+        refreshCommitment: 0,
         recipient,
         relayer,
         fee,
@@ -659,6 +691,7 @@ contract('Anchor2', (accounts) => {
       const args = [
         helpers.createRootsBytes(input.roots),
         helpers.toFixedHex(input.nullifierHash),
+        helpers.toFixedHex(input.refreshCommitment),
         helpers.toFixedHex(input.recipient, 20),
         helpers.toFixedHex(input.relayer, 20),
         helpers.toFixedHex(input.fee),
