@@ -81,7 +81,7 @@ abstract contract AnchorBase2 is MerkleTreePoseidon, ReentrancyGuard {
 
   /**
     @dev Deposit funds into the contract. The caller must send (for ETH) or approve (for ERC20) value equal to or `denomination` of this instance.
-    @param _commitment the note commitment, which is PedersenHash(nullifier + secret)
+    @param _commitment the note commitment = Poseidon(chainId, nullifier, secret)
   */
   function deposit(bytes32 _commitment) external payable nonReentrant {
     require(!commitments[_commitment], "The commitment has been submitted");
@@ -108,7 +108,7 @@ abstract contract AnchorBase2 is MerkleTreePoseidon, ReentrancyGuard {
     bytes calldata _proof,
     bytes calldata _roots,
     bytes32 _nullifierHash,
-    bytes32 _commitment,
+    bytes32 _refreshCommitment,
     address payable _recipient,
     address payable _relayer,
     uint256 _fee,
@@ -135,23 +135,21 @@ abstract contract AnchorBase2 is MerkleTreePoseidon, ReentrancyGuard {
     inputs[5] = uint256(getChainId());
     inputs[6] = uint256(roots[0]);
     inputs[7] = uint256(roots[1]);
-    inputs[8] = uint256(_commitment);
+    inputs[8] = uint256(_refreshCommitment);
     bytes memory encodedInputs = abi.encodePacked(inputs);
 
     require(verify(_proof, encodedInputs), "Invalid withdraw proof");
 
     nullifierHashes[_nullifierHash] = true;
 
-    if (_commitment == bytes32(0x00)) {
+    if (_refreshCommitment == bytes32(0x00)) {
       _processWithdraw(_recipient, _relayer, _fee, _refund);
       emit Withdrawal(_recipient, _nullifierHash, _relayer, _fee);
-    } else if (!commitments[_commitment]) {
-      uint32 insertedIndex = _insert(_commitment);
-      commitments[_commitment] = true;
-      emit Refresh(_commitment, _nullifierHash, insertedIndex); 
+    } else if (!commitments[_refreshCommitment]) {
+      uint32 insertedIndex = _insert(_refreshCommitment);
+      commitments[_refreshCommitment] = true;
+      emit Refresh(_refreshCommitment, _nullifierHash, insertedIndex);
     }
-    
-
   }
 
   function verify(
