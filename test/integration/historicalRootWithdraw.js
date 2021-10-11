@@ -5,7 +5,7 @@ const { toBN } = require('web3-utils')
 const assert = require('assert');
 const BridgeContract = artifacts.require('Bridge');
 const Anchor = artifacts.require('./Anchor2.sol');
-const Verifier = artifacts.require('./VerifierPoseidonBridge.sol');
+const Verifier = artifacts.require('./Verifier2.sol');
 const Hasher = artifacts.require('PoseidonT3');
 const Token = artifacts.require('ERC20Mock');
 const AnchorHandlerContract = artifacts.require('AnchorHandler');
@@ -37,7 +37,6 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
   const recipient = helpers.getRandomRecipient();
 
   let originMerkleRoot;
-  let originBlockHeight = 1;
   let originUpdateNonce;
   let hasher, verifier;
   let originChainToken;
@@ -75,7 +74,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
       sender,
       sender,
       sender,
-    {from: sender});
+    { from: sender });
     DestChainAnchorInstance = await Anchor.new(
       verifier.address,
       hasher.address,
@@ -85,7 +84,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
       sender,
       sender,
       sender,
-    {from: sender});
+    { from: sender });
     // create resource ID using anchor address
     resourceID = helpers.createResourceID(OriginChainAnchorInstance.address, 0);
     initialResourceIDs = [resourceID];
@@ -99,22 +98,22 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     await DestBridgeInstance.adminSetResource(DestAnchorHandlerInstance.address, resourceID, DestChainAnchorInstance.address)
      // set bridge and handler permissions for anchor
     await Promise.all([
-      DestChainAnchorInstance.setHandler(DestAnchorHandlerInstance.address, {from: sender}),
-      DestChainAnchorInstance.setBridge(DestBridgeInstance.address, {from: sender})
+      DestChainAnchorInstance.setHandler(DestAnchorHandlerInstance.address, { from: sender }),
+      DestChainAnchorInstance.setBridge(DestBridgeInstance.address, { from: sender })
     ]);
 
     createWitness = async (data) => {
       const wtns = {type: 'mem'};
       await snarkjs.wtns.calculate(data, path.join(
         'test',
-        'fixtures',
+        'fixtures/2',
         'poseidon_bridge_2.wasm'
       ), wtns);
       return wtns;
     }
 
     tree = new MerkleTree(merkleTreeHeight, null, prefix)
-    zkey_final = fs.readFileSync('test/fixtures/circuit_final.zkey').buffer;
+    zkey_final = fs.readFileSync('test/fixtures/2/circuit_final.zkey').buffer;
   });
 
   it('[sanity] dest chain bridge configured with threshold and relayers', async () => {
@@ -134,11 +133,12 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     // deposit on both chains and define nonces based on events emmited
     let firstOriginDeposit = helpers.generateDeposit(destChainID);
     let { logs } = await OriginChainAnchorInstance.deposit(
-      helpers.toFixedHex(firstOriginDeposit.commitment), {from: sender});
-    originUpdateNonce = logs[0].args.leafIndex;
+      helpers.toFixedHex(firstOriginDeposit.commitment), { from: sender });
+    let latestLeafIndex = logs[0].args.leafIndex;
+    originUpdateNonce = latestLeafIndex;
     firstWithdrawlMerkleRoot = await OriginChainAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on origin chain
-    originUpdateData = helpers.createUpdateProposalData(originChainID, originBlockHeight, firstWithdrawlMerkleRoot);
+    originUpdateData = helpers.createUpdateProposalData(originChainID, latestLeafIndex, firstWithdrawlMerkleRoot);
     originUpdateDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originUpdateData.substr(2));
 
     // deposit on origin chain leads to update addEdge proposal on dest chain
@@ -171,6 +171,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     let input = {
       // public
       nullifierHash: firstOriginDeposit.nullifierHash,
+      refreshCommitment: 0,
       recipient,
       relayer: operator,
       fee,
@@ -192,7 +193,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
 
     let wtns = await createWitness(input);
 
-    let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
+    let res = await snarkjs.groth16.prove('test/fixtures/2/circuit_final.zkey', wtns);
     proof = res.proof;
     publicSignals = res.publicSignals;
 
@@ -202,6 +203,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     let args = [
       helpers.createRootsBytes(input.roots),
       helpers.toFixedHex(input.nullifierHash),
+      helpers.toFixedHex(input.refreshCommitment),
       helpers.toFixedHex(input.recipient, 20),
       helpers.toFixedHex(input.relayer, 20),
       helpers.toFixedHex(input.fee),
@@ -214,11 +216,12 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     */
     // deposit on origin chain and define nonce based on events emmited
     originDeposit = helpers.generateDeposit(destChainID, 30);
-    ({ logs } = await OriginChainAnchorInstance.deposit(helpers.toFixedHex(originDeposit.commitment), {from: sender}));
-    originUpdateNonce = logs[0].args.leafIndex;
+    ({ logs } = await OriginChainAnchorInstance.deposit(helpers.toFixedHex(originDeposit.commitment), { from: sender }));
+    latestLeafIndex = logs[0].args.leafIndex;
+    originUpdateNonce = latestLeafIndex;
     secondWithdrawalMerkleRoot = await OriginChainAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on origin chain
-    originUpdateData = helpers.createUpdateProposalData(originChainID, originBlockHeight + 10, secondWithdrawalMerkleRoot);
+    originUpdateData = helpers.createUpdateProposalData(originChainID, latestLeafIndex, secondWithdrawalMerkleRoot);
     originUpdateDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originUpdateData.substr(2));
     /*
     * Relayers vote on dest chain
@@ -274,6 +277,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     input = {
       // public
       nullifierHash: originDeposit.nullifierHash,
+      refreshCommitment: 0,
       recipient,
       relayer: operator,
       fee,
@@ -295,16 +299,17 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
 
     wtns = await createWitness(input);
 
-    res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
+    res = await snarkjs.groth16.prove('test/fixtures/2/circuit_final.zkey', wtns);
     proof = res.proof;
     publicSignals = res.publicSignals;
-    vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/circuit_final.zkey');
+    vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/2/circuit_final.zkey');
     res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
     assert.strictEqual(res, true);
 
     args = [
       helpers.createRootsBytes(input.roots),
       helpers.toFixedHex(input.nullifierHash),
+      helpers.toFixedHex(input.refreshCommitment),
       helpers.toFixedHex(input.recipient, 20),
       helpers.toFixedHex(input.relayer, 20),
       helpers.toFixedHex(input.fee),
@@ -315,15 +320,15 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     /*
     *  create 30 new deposits on chain so history wraps around and forgets second deposit
     */
-    let newBlockHeight = originBlockHeight + 100;
     for (var i = 0; i < 30; i++) {
       // deposit on origin chain and define nonce based on events emmited
       originDeposit = helpers.generateDeposit(destChainID, i);
-      ({ logs } = await OriginChainAnchorInstance.deposit(helpers.toFixedHex(originDeposit.commitment), {from: sender}));
-      originUpdateNonce = logs[0].args.leafIndex;
+      ({ logs } = await OriginChainAnchorInstance.deposit(helpers.toFixedHex(originDeposit.commitment), { from: sender }));
+      latestLeafIndex = logs[0].args.leafIndex;
+      originUpdateNonce = latestLeafIndex;
       originMerkleRoot = await OriginChainAnchorInstance.getLastRoot();
       // create correct update proposal data for the deposit on origin chain
-      originUpdateData = helpers.createUpdateProposalData(originChainID, newBlockHeight + i, originMerkleRoot);
+      originUpdateData = helpers.createUpdateProposalData(originChainID, latestLeafIndex, originMerkleRoot);
       originUpdateDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originUpdateData.substr(2));
       /*
       * Relayers vote on dest chain

@@ -11,7 +11,7 @@ const Helpers = require('../helpers');
 const BridgeContract = artifacts.require("Bridge");
 const AnchorHandlerContract = artifacts.require("AnchorHandler");
 const Anchor = artifacts.require("Anchor2");
-const Verifier = artifacts.require("VerifierPoseidonBridge");
+const Verifier = artifacts.require("Verifier2");
 const Hasher = artifacts.require("PoseidonT3");
 const Token = artifacts.require("ERC20Mock");
 
@@ -27,7 +27,6 @@ contract('Bridge - [create a update proposal (voteProposal) with relayerThreshol
   const relayerThreshold = 1;
   const expectedCreateEventStatus = 1;
   const merkleTreeHeight = 31;
-  const blockHeight = 1;
   const sender = accounts[0]
 
   let merkleRoot;
@@ -72,7 +71,8 @@ contract('Bridge - [create a update proposal (voteProposal) with relayerThreshol
     
     await token.mint(sender, tokenDenomination);
     await token.increaseAllowance(AnchorInstance.address, 1000000000, {from: sender});
-    await AnchorInstance.deposit('0x1111111111111111111111111111111111111111111111111111111111111111', {from: sender});
+    let { logs } = await AnchorInstance.deposit('0x1111111111111111111111111111111111111111111111111111111111111111', {from: sender});
+    let latestLeafIndex = logs[0].args.leafIndex;
     merkleRoot = await AnchorInstance.getLastRoot();
     
     resourceID = Helpers.createResourceID(AnchorInstance.address, originChainID);
@@ -85,7 +85,7 @@ contract('Bridge - [create a update proposal (voteProposal) with relayerThreshol
       initialContractAddresses,
     );
 
-    data = Helpers.createUpdateProposalData(originChainID, blockHeight, merkleRoot);
+    data = Helpers.createUpdateProposalData(originChainID, latestLeafIndex, merkleRoot);
     dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
 
     await Promise.all([
@@ -199,7 +199,6 @@ contract('Bridge - [create an update proposal (voteProposal) with relayerThresho
   const relayerThreshold = 2;
   const expectedCreateEventStatus = 1;
   const merkleTreeHeight = 31;
-  const blockHeight = 1;
   const sender = accounts[0]
 
   let merkleRoot;
@@ -244,7 +243,8 @@ contract('Bridge - [create an update proposal (voteProposal) with relayerThresho
 
     await token.mint(sender, tokenDenomination);
     await token.increaseAllowance(AnchorInstance.address, 1000000000, {from: sender});
-    await AnchorInstance.deposit('0x1111111111111111111111111111111111111111111111111111111111111111', {from: sender});
+    let { logs } = await AnchorInstance.deposit('0x1111111111111111111111111111111111111111111111111111111111111111', {from: sender});
+    let latestLeafIndex = logs[0].args.leafIndex;
     merkleRoot = await AnchorInstance.getLastRoot();
     
     resourceID = Helpers.createResourceID(AnchorInstance.address, originChainID);
@@ -257,7 +257,7 @@ contract('Bridge - [create an update proposal (voteProposal) with relayerThresho
       initialContractAddresses,
     );
 
-    data = Helpers.createUpdateProposalData(originChainID, blockHeight, merkleRoot);
+    data = Helpers.createUpdateProposalData(originChainID, latestLeafIndex, merkleRoot);
     dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
 
     await Promise.all([

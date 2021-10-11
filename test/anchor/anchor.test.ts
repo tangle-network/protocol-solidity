@@ -13,8 +13,8 @@ const Poseidon = artifacts.require('PoseidonT3');
 
 // Typechain generated bindings for contracts
 import {
-  VerifierPoseidonBridge,
-  VerifierPoseidonBridge__factory as VerifierPoseidonBridgeFactory,
+  Verifier2,
+  Verifier2__factory as Verifier2Factory,
   ERC20Mock as Token,
   ERC20Mock__factory as TokenFactory,
 } from '../../typechain';
@@ -41,7 +41,7 @@ describe('Anchor2', () => {
   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
   const refund = BigInt((new BN('0')).toString());
   let recipient = "0x1111111111111111111111111111111111111111";
-  let verifier: VerifierPoseidonBridge;
+  let verifier: Verifier2;
   let hasherInstance: any;
   let token: Token;
   let tokenDenomination = '1000000000000000000' // 1 ether
@@ -49,7 +49,6 @@ describe('Anchor2', () => {
   let createWitness: any;
 
   beforeEach(async () => {
-
     const signers = await ethers.getSigners();
     const wallet = signers[0];
     const sender = wallet;
@@ -60,7 +59,7 @@ describe('Anchor2', () => {
     hasherInstance = await Poseidon.new();
 
     // create poseidon verifier
-    const verifierFactory = new VerifierPoseidonBridgeFactory(wallet);
+    const verifierFactory = new Verifier2Factory(wallet);
     verifier = await verifierFactory.deploy();
     await verifier.deployed();
 
@@ -90,7 +89,7 @@ describe('Anchor2', () => {
       const wtns = {type: "mem"};
       await snarkjs.wtns.calculate(data, path.join(
         "test",
-        "fixtures",
+        "fixtures/2",
         "poseidon_bridge_2.wasm"
       ), wtns);
       return wtns;
@@ -117,7 +116,7 @@ describe('Anchor2', () => {
 
       const anchorBalance = await token.balanceOf(anchor.contract.address);
       assert.strictEqual(anchorBalance.toString(), toBN(tokenDenomination).toString());
-    })
+    });
 
     it('should throw if there is a such commitment', async () => {
       const commitment = helpers.toFixedHex(42)
@@ -127,7 +126,7 @@ describe('Anchor2', () => {
         anchor.contract.deposit(commitment),
         'The commitment has been submitted'
       );
-    })
+    });
   })
 
   // Use Node version >=12
@@ -154,6 +153,7 @@ describe('Anchor2', () => {
       const input = {
         // public
         nullifierHash: deposit.nullifierHash,
+        refreshCommitment: 0,
         recipient,
         relayer,
         fee,
@@ -175,12 +175,12 @@ describe('Anchor2', () => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('test/fixtures/2/circuit_final.zkey', wtns);
       const proof = res.proof;
       let publicSignals = res.publicSignals;
       let tempProof = proof;
       let tempSignals = publicSignals;
-      const vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/circuit_final.zkey');
+      const vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/2/circuit_final.zkey');
 
       res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       assert.strictEqual(res, true);
@@ -202,7 +202,7 @@ describe('Anchor2', () => {
       res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       assert.strictEqual(res, false)
       publicSignals = tempSignals;
-    })
+    });
   })
 
   describe('#withdraw', () => {
@@ -226,7 +226,7 @@ describe('Anchor2', () => {
       let isSpent = await anchor.contract.isSpent(helpers.toFixedHex(deposit.nullifierHash))
       assert.strictEqual(isSpent, false)
 
-      let receipt = await anchor.withdraw(deposit, index, recipient, relayer.address, fee);
+      let receipt = await anchor.withdraw(deposit, index, recipient, relayer.address, fee, bigInt(0));
 
       const filter = anchor.contract.filters.Withdrawal(null, null, relayer.address, null);
       const events = await anchor.contract.queryFilter(filter, receipt.blockHash);
@@ -244,7 +244,7 @@ describe('Anchor2', () => {
       assert.strictEqual(events[0].args[3].toString(), feeBN.toString());
       isSpent = await anchor.contract.isSpent(helpers.toFixedHex(deposit.nullifierHash))
       assert(isSpent);
-    })
+    });
 
     it('should prevent double spend', async () => {
       
@@ -255,11 +255,11 @@ describe('Anchor2', () => {
       const { deposit, index } = await anchor.deposit();
       
       //@ts-ignore
-      let receipt = await anchor.withdraw(deposit, index, sender.address, relayer.address, fee);
+      let receipt = await anchor.withdraw(deposit, index, sender.address, relayer.address, fee, bigInt(0));
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.withdraw(deposit, index, sender.address, relayer.address, fee),
+        anchor.withdraw(deposit, index, sender.address, relayer.address, fee, bigInt(0)),
         'The note has been already spent',
       );
     });
@@ -277,6 +277,7 @@ describe('Anchor2', () => {
       const input = {
         // public
         nullifierHash: deposit.nullifierHash,
+        refreshCommitment: 0,
         recipient,
         relayer: relayer.address,
         fee,
@@ -298,7 +299,7 @@ describe('Anchor2', () => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('test/fixtures/2/circuit_final.zkey', wtns);
       const proof = res.proof;
       let publicSignals = res.publicSignals;
 
@@ -309,6 +310,7 @@ describe('Anchor2', () => {
             toBN('21888242871839275222246405745257275088548364400416034343698204186575808495617'),
           ),
         ),
+        helpers.toFixedHex(input.refreshCommitment, 32),
         helpers.toFixedHex(input.recipient, 20),
         helpers.toFixedHex(input.relayer, 20),
         helpers.toFixedHex(input.fee),
@@ -322,21 +324,20 @@ describe('Anchor2', () => {
         anchor.contract.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }),
         'verifier-gte-snark-scalar-field',
       );
-    })
+    });
 
     it('fee should be less or equal transfer value', async () => {
       const signers = await ethers.getSigners();
       const relayer = signers[0];
 
       const { deposit, index } = await anchor.deposit();
-      const largeFee = bigInt(value).add(bigInt(4));
-
+      const largeFee = bigInt(value).add(bigInt(1_000_000));
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.withdraw(deposit, index, recipient, relayer.address, largeFee),
+        anchor.withdraw(deposit, index, recipient, relayer.address, largeFee, bigInt(0)),
         'Fee exceeds transfer value',
       );
-    })
+    });
 
     it('should throw for corrupted merkle tree root', async () => {
       const signers = await ethers.getSigners();
@@ -351,6 +352,7 @@ describe('Anchor2', () => {
       const input = {
         // public
         nullifierHash: deposit.nullifierHash,
+        refreshCommitment: 0,
         recipient,
         relayer: relayer.address,
         fee,
@@ -372,13 +374,14 @@ describe('Anchor2', () => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('test/fixtures/2/circuit_final.zkey', wtns);
       const proof = res.proof;
       let publicSignals = res.publicSignals;
 
       const args = [
         Anchor.createRootsBytes([randomHex(32), 0]),
         helpers.toFixedHex(input.nullifierHash),
+        helpers.toFixedHex(input.refreshCommitment, 32),
         helpers.toFixedHex(input.recipient, 20),
         helpers.toFixedHex(input.relayer, 20),
         helpers.toFixedHex(input.fee),
@@ -392,7 +395,7 @@ describe('Anchor2', () => {
         anchor.contract.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }),
         'Cannot find your merkle root'
       );
-    })
+    });
 
     it('should reject with tampered public inputs', async () => {
       const signers = await ethers.getSigners();
@@ -407,6 +410,7 @@ describe('Anchor2', () => {
       const input = {
         // public
         nullifierHash: deposit.nullifierHash,
+        refreshCommitment: 0,
         recipient,
         relayer: relayer.address,
         fee,
@@ -428,13 +432,14 @@ describe('Anchor2', () => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('test/fixtures/2/circuit_final.zkey', wtns);
       const proof = res.proof;
       let publicSignals = res.publicSignals;
 
       const args = [
         Anchor.createRootsBytes(input.roots),
         helpers.toFixedHex(input.nullifierHash),
+        helpers.toFixedHex(input.refreshCommitment, 32),
         helpers.toFixedHex(input.recipient, 20),
         helpers.toFixedHex(input.relayer, 20),
         helpers.toFixedHex(input.fee),
@@ -445,6 +450,7 @@ describe('Anchor2', () => {
       let incorrectArgs = [
         Anchor.createRootsBytes(input.roots),
         helpers.toFixedHex(input.nullifierHash),
+        helpers.toFixedHex(input.refreshCommitment, 32),
         helpers.toFixedHex('0x0000000000000000000000007a1f9131357404ef86d7c38dbffed2da70321337', 20),
         helpers.toFixedHex(input.relayer, 20),
         helpers.toFixedHex(input.fee),
@@ -463,6 +469,7 @@ describe('Anchor2', () => {
       incorrectArgs = [
         Anchor.createRootsBytes(input.roots),
         helpers.toFixedHex(input.nullifierHash),
+        helpers.toFixedHex(input.refreshCommitment, 32),
         helpers.toFixedHex(input.recipient, 20),
         helpers.toFixedHex(input.relayer, 20),
         helpers.toFixedHex('0x000000000000000000000000000000000000000000000000015345785d8a0000'),
@@ -479,6 +486,24 @@ describe('Anchor2', () => {
       incorrectArgs = [
         Anchor.createRootsBytes(input.roots),
         helpers.toFixedHex('0x00abdfc78211f8807b9c6504a6e537e71b8788b2f529a95f1399ce124a8642ad'),
+        helpers.toFixedHex(input.refreshCommitment, 32),
+        helpers.toFixedHex(input.recipient, 20),
+        helpers.toFixedHex(input.relayer, 20),
+        helpers.toFixedHex(input.fee),
+        helpers.toFixedHex(input.refund),
+      ];
+
+      await TruffleAssert.reverts(
+        //@ts-ignore
+        anchor.contract.withdraw(`0x${proofEncoded}`, ...incorrectArgs, { gasPrice: '0' }),
+        'Invalid withdraw proof',
+      );
+
+      // refresh commitment
+      incorrectArgs = [
+        Anchor.createRootsBytes(input.roots),
+        helpers.toFixedHex(input.nullifierHash),
+        helpers.toFixedHex('0x00abdfc78211f8807b9c6504a6e537e71b8788b2f529a95f1399ce124a8642ad'),
         helpers.toFixedHex(input.recipient, 20),
         helpers.toFixedHex(input.relayer, 20),
         helpers.toFixedHex(input.fee),
@@ -494,7 +519,7 @@ describe('Anchor2', () => {
       // should work with original values
       //@ts-ignore
       await TruffleAssert.passes(anchor.contract.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }));
-    })
+    }).timeout(60000);
   })
 
   describe('#isSpent', () => {
@@ -506,14 +531,14 @@ describe('Anchor2', () => {
       const { deposit: deposit2, index: index2 } = await anchor.deposit();
 
       //@ts-ignore
-      await anchor.withdraw(deposit1, index1, signers[0].address, relayer.address, fee);
+      await anchor.withdraw(deposit1, index1, signers[0].address, relayer.address, fee, bigInt(0));
 
       const spentArray = await anchor.contract.isSpentArray([
         helpers.toFixedHex(deposit2.nullifierHash),
         helpers.toFixedHex(deposit1.nullifierHash)
       ]);
       assert.deepStrictEqual(spentArray, [false, true])
-    })
+    });
   })
 
   describe('#WrapperClass', () => {
@@ -530,7 +555,7 @@ describe('Anchor2', () => {
       // make sure the deposit goes through
       TruffleAssert.passes(newAnchor.deposit());
       assert.strictEqual(newAnchor.latestSyncedBlock, 0);
-    })
+    });
 
     it('should properly update to the latest on-chain', async () => {
       const signers = await ethers.getSigners();
@@ -545,7 +570,7 @@ describe('Anchor2', () => {
 
       // check that the merkle roots are the same for both anchor instances
       assert.strictEqual(await anchor.tree.get_root(), await newAnchor.tree.get_root());
-    })
+    });
 
     it('should properly update before withdraw tx', async () => {
       const signers = await ethers.getSigners();
@@ -556,8 +581,21 @@ describe('Anchor2', () => {
 
       // create a new anchor by connecting to the address of the setup anchor
       const newAnchor = await Anchor.connect(anchor.contract.address, wallet);
-      TruffleAssert.rejects()
-      TruffleAssert.passes(newAnchor.withdraw(deposit, index, recipient, signers[1].address, fee));
-    })
-  })
-})
+      TruffleAssert.passes(newAnchor.withdraw(deposit, index, recipient, signers[1].address, fee, bigInt(0)));
+    });
+
+    it('should properly refresh a deposit', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+
+      // create a deposit on the anchor already setup
+      const { deposit, index } = await anchor.deposit();
+      const refreshedDestId = await wallet.getChainId();
+      const refreshedDeposit = Anchor.generateDeposit(refreshedDestId);
+      // create a new anchor by connecting to the address of the setup anchor
+      const newAnchor = await Anchor.connect(anchor.contract.address, wallet);
+      TruffleAssert.passes(newAnchor.withdraw(deposit, index, recipient, signers[1].address, fee, bigInt(refreshedDeposit.commitment)));
+      TruffleAssert.passes(newAnchor.withdraw(refreshedDeposit, index, recipient, signers[1].address, fee, bigInt(0)));
+    });
+  });
+});

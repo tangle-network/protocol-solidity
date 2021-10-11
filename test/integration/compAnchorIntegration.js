@@ -5,7 +5,7 @@ const { toBN } = require('web3-utils')
 const assert = require('assert');
 const BridgeContract = artifacts.require('Bridge');
 const Anchor = artifacts.require('./Anchor2.sol');
-const Verifier = artifacts.require('./VerifierPoseidonBridge.sol');
+const Verifier = artifacts.require('./Verifier2.sol');
 const Hasher = artifacts.require('PoseidonT3');
 const Token = artifacts.require('ERC20Mock');
 const CompToken = artifacts.require('CompToken')
@@ -62,8 +62,6 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
   let MINTER_ROLE;
   let originMerkleRoot;
   let destMerkleRoot;
-  let originBlockHeight = 1;
-  let destBlockHeight = 1;
   let originUpdateNonce;
   let destUpdateNonce;
   let hasher, verifier;
@@ -185,14 +183,14 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
       const wtns = {type: 'mem'};
       await snarkjs.wtns.calculate(data, path.join(
         'test',
-        'fixtures',
+        'fixtures/2',
         'poseidon_bridge_2.wasm'
       ), wtns);
       return wtns;
     }
 
     tree = new MerkleTree(merkleTreeHeight, null, prefix)
-    zkey_final = fs.readFileSync('test/fixtures/circuit_final.zkey').buffer;
+    zkey_final = fs.readFileSync('test/fixtures/2/circuit_final.zkey').buffer;
   });
 
   it('[sanity] bridges configured with threshold and relayers', async () => {
@@ -210,8 +208,8 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     // revoke anchor permissions
     await originWrapperToken.revokeRole(MINTER_ROLE, OriginChainAnchorInstance.address, {from: sender});
     await originToken.mint(user1, initialTokenMintAmount);
-    await originToken.approve(originWrapperToken.address, initialTokenMintAmount, {from: user1});
-    await TruffleAssert.reverts(OriginChainAnchorInstance.wrap(originToken.address, tokenDenomination, {from: user1}),
+    await originToken.approve(originWrapperToken.address, initialTokenMintAmount, { from: user1 });
+    await TruffleAssert.reverts(OriginChainAnchorInstance.wrap(originToken.address, tokenDenomination, { from: user1 }),
       'ERC20PresetMinterPauser: must have minter role');
   })
 
@@ -222,20 +220,21 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     *  User1 wraps originToken for originWrapperToken
     */
     await originToken.mint(user1, initialTokenMintAmount);
-    await originToken.approve(originWrapperToken.address, initialTokenMintAmount, {from: user1});
-    await originWrapperToken.approve(OriginChainAnchorInstance.address, initialTokenMintAmount, {from: user1});
-    await OriginChainAnchorInstance.wrap(originToken.address, tokenDenomination, {from: user1});
+    await originToken.approve(originWrapperToken.address, initialTokenMintAmount, { from: user1 });
+    await originWrapperToken.approve(OriginChainAnchorInstance.address, initialTokenMintAmount, { from: user1 });
+    await OriginChainAnchorInstance.wrap(originToken.address, tokenDenomination, { from: user1 });
     /*
     *  User1 deposits on origin chain
     */
     // generate deposit commitment targeting withdrawal on destination chain
     originDeposit = helpers.generateDeposit(destChainID);
     // deposit on origin chain and define nonce
-    let { logs } = await OriginChainAnchorInstance.deposit(helpers.toFixedHex(originDeposit.commitment), {from: user1});
-    originUpdateNonce = logs[0].args.leafIndex;
+    let { logs } = await OriginChainAnchorInstance.deposit(helpers.toFixedHex(originDeposit.commitment), { from: user1 });
+    let latestLeafIndex = logs[0].args.leafIndex;
+    originUpdateNonce = latestLeafIndex;
     originMerkleRoot = await OriginChainAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on origin chain
-    originUpdateData = helpers.createUpdateProposalData(originChainID, originBlockHeight, originMerkleRoot);
+    originUpdateData = helpers.createUpdateProposalData(originChainID, latestLeafIndex, originMerkleRoot);
     originUpdateDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originUpdateData.substr(2));
     /*
     *  Relayers vote on dest chain
@@ -269,6 +268,7 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     let input = {
       // public
       nullifierHash: originDeposit.nullifierHash,
+      refreshCommitment: 0,
       recipient: user1,
       relayer: operator,
       fee,
@@ -288,12 +288,13 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
       }),
     };
     let wtns = await createWitness(input);
-    let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
+    let res = await snarkjs.groth16.prove('test/fixtures/2/circuit_final.zkey', wtns);
     proof = res.proof;
     publicSignals = res.publicSignals;
     let args = [
       helpers.createRootsBytes(input.roots),
       helpers.toFixedHex(input.nullifierHash),
+      helpers.toFixedHex(input.refreshCommitment),
       helpers.toFixedHex(input.recipient, 20),
       helpers.toFixedHex(input.relayer, 20),
       helpers.toFixedHex(input.fee),
@@ -315,21 +316,22 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     */
     await originToken.mint(user1, initialTokenMintAmount);
     // approve wrapper to transfer user1's originTokens
-    await originToken.approve(originWrapperToken.address, initialTokenMintAmount, {from: user1});
+    await originToken.approve(originWrapperToken.address, initialTokenMintAmount, { from: user1 });
     // approve anchor for deposit
-    await originWrapperToken.approve(OriginChainAnchorInstance.address, initialTokenMintAmount, {from: user1});
-    await OriginChainAnchorInstance.wrap(originToken.address, tokenDenomination, {from: user1});
+    await originWrapperToken.approve(OriginChainAnchorInstance.address, initialTokenMintAmount, { from: user1 });
+    await OriginChainAnchorInstance.wrap(originToken.address, tokenDenomination, { from: user1 });
     /*
     *  User1 deposits on origin chain
     */
     // generate deposit commitment targeting withdrawal on destination chain
     originDeposit = helpers.generateDeposit(destChainID);
     // deposit on origin chain and define nonce
-    let { logs } = await OriginChainAnchorInstance.deposit(helpers.toFixedHex(originDeposit.commitment), {from: user1});
-    originUpdateNonce = logs[0].args.leafIndex;
+    let { logs } = await OriginChainAnchorInstance.deposit(helpers.toFixedHex(originDeposit.commitment), { from: user1 });
+    let latestLeafIndex = logs[0].args.leafIndex;
+    originUpdateNonce = latestLeafIndex;
     originMerkleRoot = await OriginChainAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on origin chain
-    originUpdateData = helpers.createUpdateProposalData(originChainID, originBlockHeight, originMerkleRoot);
+    originUpdateData = helpers.createUpdateProposalData(originChainID, latestLeafIndex, originMerkleRoot);
     originUpdateDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originUpdateData.substr(2));
     /*
     *  Relayers vote on dest chain
@@ -366,6 +368,7 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     let input = {
       // public
       nullifierHash: originDeposit.nullifierHash,
+      refreshCommitment: 0,
       recipient: user1,
       relayer: operator,
       fee,
@@ -387,13 +390,14 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
 
     let wtns = await createWitness(input);
 
-    let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
+    let res = await snarkjs.groth16.prove('test/fixtures/2/circuit_final.zkey', wtns);
     proof = res.proof;
     publicSignals = res.publicSignals;
 
     let args = [
       helpers.createRootsBytes(input.roots),
       helpers.toFixedHex(input.nullifierHash),
+      helpers.toFixedHex(input.refreshCommitment),
       helpers.toFixedHex(input.recipient, 20),
       helpers.toFixedHex(input.relayer, 20),
       helpers.toFixedHex(input.fee),
@@ -426,16 +430,16 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     */
     await destToken.mint(user2, initialTokenMintAmount);
     // approve tokenwrapper to transfer destTokens from user2
-    await destToken.approve(destWrapperToken.address, initialTokenMintAmount, {from: user2});
+    await destToken.approve(destWrapperToken.address, initialTokenMintAmount, { from: user2 });
     // increase allowance for user1 to burn
-    await destWrapperToken.approve(DestChainAnchorInstance.address, initialTokenMintAmount, {from: user1});
+    await destWrapperToken.approve(DestChainAnchorInstance.address, initialTokenMintAmount, { from: user1 });
     // increase allowance for user2 to deposit on destAnchor
-    await destWrapperToken.approve(DestChainAnchorInstance.address, initialTokenMintAmount, {from: user2});
-    await DestChainAnchorInstance.wrap(destToken.address, tokenDenomination, {from: user2});
+    await destWrapperToken.approve(DestChainAnchorInstance.address, initialTokenMintAmount, { from: user2 });
+    await DestChainAnchorInstance.wrap(destToken.address, tokenDenomination, { from: user2 });
     /*
     *  User1 unwraps destWrapperToken for destToken with new liquidity
     */
-    await DestChainAnchorInstance.unwrap(destToken.address, balanceUser1AfterUnwrap, {from: user1});
+    await DestChainAnchorInstance.unwrap(destToken.address, balanceUser1AfterUnwrap, { from: user1 });
     let balanceUser1AfterUnwrapUnwrap = await destToken.balanceOf(user1);
     assert.strictEqual(balanceUser1AfterUnwrapUnwrap.toString(), balanceUser1AfterUnwrap.toString());
     assert.strictEqual((await destWrapperToken.totalSupply()).toString(), toBN(tokenDenomination).add(feeBN).toString());
@@ -445,11 +449,12 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     // generate deposit commitment
     destDeposit = helpers.generateDeposit(originChainID);
     // deposit on dest chain and define nonce
-    ({logs} = await DestChainAnchorInstance.deposit(helpers.toFixedHex(destDeposit.commitment), {from: user2}));
-    destUpdateNonce = logs[0].args.leafIndex;
+    ({ logs } = await DestChainAnchorInstance.deposit(helpers.toFixedHex(destDeposit.commitment), { from: user2 }));
+    latestLeafIndex = logs[0].args.leafIndex;
+    destUpdateNonce = latestLeafIndex;
     destMerkleRoot = await DestChainAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on dest chain
-    destUpdateData = helpers.createUpdateProposalData(destChainID, destBlockHeight, destMerkleRoot);
+    destUpdateData = helpers.createUpdateProposalData(destChainID, latestLeafIndex, destMerkleRoot);
     destUpdateDataHash = Ethers.utils.keccak256(OriginAnchorHandlerInstance.address + destUpdateData.substr(2));
     /*
     *  relayers vote on origin chain
@@ -487,6 +492,7 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     input = {
       // public
       nullifierHash: destDeposit.nullifierHash,
+      refreshCommitment: 0,
       recipient: user2,
       relayer: operator,
       fee,
@@ -508,7 +514,7 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
 
     wtns = await createWitness(input);
 
-    res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
+    res = await snarkjs.groth16.prove('test/fixtures/2/circuit_final.zkey', wtns);
     proof = res.proof;
     publicSignals = res.publicSignals;
 
@@ -518,6 +524,7 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     args = [
       helpers.createRootsBytes(input.roots),
       helpers.toFixedHex(input.nullifierHash),
+      helpers.toFixedHex(input.refreshCommitment),
       helpers.toFixedHex(input.recipient, 20),
       helpers.toFixedHex(input.relayer, 20),
       helpers.toFixedHex(input.fee),
@@ -545,8 +552,8 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     *  User2 unwraps originWrapperToken for originToken
     */
     //increase allowance for burn
-    await originWrapperToken.approve(OriginChainAnchorInstance.address, initialTokenMintAmount, {from: user2});
-    await OriginChainAnchorInstance.unwrap(originToken.address, balanceUser2AfterWithdraw, {from: user2});
+    await originWrapperToken.approve(OriginChainAnchorInstance.address, initialTokenMintAmount, { from: user2 });
+    await OriginChainAnchorInstance.unwrap(originToken.address, balanceUser2AfterWithdraw, { from: user2 });
     let balanceUser2AfterUnwrap = await originToken.balanceOf(user2);
     assert.strictEqual(balanceUser2AfterUnwrap.toString(), balanceUser2AfterUnwrap.toString());
     assert.strictEqual((await originWrapperToken.totalSupply()).toString(), feeBN.toString());

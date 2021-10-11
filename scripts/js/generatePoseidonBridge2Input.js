@@ -27,6 +27,16 @@ async function generatePoseidonBridgeInput() {
   deposit.commitment = poseidonHasher.hash3([deposit.chainID, deposit.nullifier, deposit.secret]);
   deposit.nullifierHash =   poseidonHasher.hash(null, deposit.nullifier, deposit.nullifier);
 
+  let refreshedDeposit = {
+    chainID: 135,
+    secret: rbigint(31),
+    nullifier: rbigint(31),
+  }
+
+  refreshedDeposit.commitment = poseidonHasher.hash3([refreshedDeposit.chainID, refreshedDeposit.nullifier, refreshedDeposit.secret]);
+  refreshedDeposit.nullifierHash =   poseidonHasher.hash(null, refreshedDeposit.nullifier, refreshedDeposit.nullifier);
+
+
   const tree = new MerkleTree(30, null, 'prefix')
   await tree.insert(deposit.commitment);
   const { root, path_elements, path_index } = await tree.path(0);
@@ -37,6 +47,7 @@ async function generatePoseidonBridgeInput() {
   const input = {
     // public
     nullifierHash: deposit.nullifierHash,
+    refreshCommitment: refreshedDeposit.commitment,
     recipient: 0,
     relayer: 0,
     fee: 0,

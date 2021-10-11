@@ -5,7 +5,7 @@ const { toBN } = require('web3-utils')
 const assert = require('assert');
 const BridgeContract = artifacts.require('Bridge');
 const Anchor = artifacts.require('./Anchor2.sol');
-const Verifier = artifacts.require('./VerifierPoseidonBridge.sol');
+const Verifier = artifacts.require('./Verifier2.sol');
 const Hasher = artifacts.require('PoseidonT3');
 const Token = artifacts.require('ERC20Mock');
 const AnchorHandlerContract = artifacts.require('AnchorHandler');
@@ -21,7 +21,7 @@ const Scalar = require('ffjavascript').Scalar;
 const MerkleTree = require('../../lib/MerkleTree');
 
 
-contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
+contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts => {
   const relayerThreshold = 1;
   // Note: we have to use the same chainID for tests since Hardhat can't simulate 2 networks
   const originChainID = 31337;
@@ -39,8 +39,6 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
 
   let originMerkleRoot;
   let destMerkleRoot;
-  let originBlockHeight = 1;
-  let destBlockHeight = 1;
   let originUpdateNonce;
   let destUpdateNonce;
   let hasher, verifier;
@@ -126,14 +124,14 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
       const wtns = {type: 'mem'};
       await snarkjs.wtns.calculate(data, path.join(
         'test',
-        'fixtures',
+        'fixtures/2',
         'poseidon_bridge_2.wasm'
       ), wtns);
       return wtns;
     }
 
     tree = new MerkleTree(merkleTreeHeight, null, prefix)
-    zkey_final = fs.readFileSync('test/fixtures/circuit_final.zkey').buffer;
+    zkey_final = fs.readFileSync('test/fixtures/2/circuit_final.zkey').buffer;
   });
 
   it('[sanity] bridges configured with threshold and relayers', async () => {
@@ -157,10 +155,11 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     originDeposit = helpers.generateDeposit(destChainID);
     // deposit on origin chain and define nonce
     let { logs } = await OriginChainAnchorInstance.deposit(helpers.toFixedHex(originDeposit.commitment), {from: sender});
-    originUpdateNonce = logs[0].args.leafIndex;
+    let latestLeafIndex = logs[0].args.leafIndex;
+    originUpdateNonce = latestLeafIndex;
     originMerkleRoot = await OriginChainAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on origin chain
-    originUpdateData = helpers.createUpdateProposalData(originChainID, originBlockHeight, originMerkleRoot);
+    originUpdateData = helpers.createUpdateProposalData(originChainID, latestLeafIndex, originMerkleRoot);
     originUpdateDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originUpdateData.substr(2));
     /*
     *  Relayers vote on dest chain
@@ -197,6 +196,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     let input = {
       // public
       nullifierHash: originDeposit.nullifierHash,
+      refreshCommitment: 0,
       recipient,
       relayer: operator,
       fee,
@@ -218,13 +218,14 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
 
     let wtns = await createWitness(input);
 
-    let res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
+    let res = await snarkjs.groth16.prove('test/fixtures/2/circuit_final.zkey', wtns);
     proof = res.proof;
     publicSignals = res.publicSignals;
 
     let args = [
       helpers.createRootsBytes(input.roots),
       helpers.toFixedHex(input.nullifierHash),
+      helpers.toFixedHex(input.refreshCommitment),
       helpers.toFixedHex(input.recipient, 20),
       helpers.toFixedHex(input.relayer, 20),
       helpers.toFixedHex(input.fee),
@@ -260,11 +261,12 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     // generate deposit commitment
     destDeposit = helpers.generateDeposit(originChainID);
     // deposit on dest chain and define nonce
-    ({logs} = await DestChainAnchorInstance.deposit(helpers.toFixedHex(destDeposit.commitment), {from: sender}));
-    destUpdateNonce = logs[0].args.leafIndex;
+    ({ logs } = await DestChainAnchorInstance.deposit(helpers.toFixedHex(destDeposit.commitment), {from: sender}));
+    latestLeafIndex = logs[0].args.leafIndex;
+    destUpdateNonce = latestLeafIndex;
     destMerkleRoot = await DestChainAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on dest chain
-    destUpdateData = helpers.createUpdateProposalData(destChainID, destBlockHeight, destMerkleRoot);
+    destUpdateData = helpers.createUpdateProposalData(destChainID, latestLeafIndex, destMerkleRoot);
     destUpdateDataHash = Ethers.utils.keccak256(OriginAnchorHandlerInstance.address + destUpdateData.substr(2));
     /*
     *  relayers vote on origin chain
@@ -303,6 +305,7 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
     input = {
       // public
       nullifierHash: destDeposit.nullifierHash,
+      refreshCommitment: 0,
       recipient,
       relayer: operator,
       fee,
@@ -324,13 +327,14 @@ contract('E2E LinkableAnchors - Cross chain withdrawals', async accounts => {
 
     wtns = await createWitness(input);
 
-    res = await snarkjs.groth16.prove('test/fixtures/circuit_final.zkey', wtns);
+    res = await snarkjs.groth16.prove('test/fixtures/2/circuit_final.zkey', wtns);
     proof = res.proof;
     publicSignals = res.publicSignals;
 
     args = [
       helpers.createRootsBytes(input.roots),
       helpers.toFixedHex(input.nullifierHash),
+      helpers.toFixedHex(input.refreshCommitment),
       helpers.toFixedHex(input.recipient, 20),
       helpers.toFixedHex(input.relayer, 20),
       helpers.toFixedHex(input.fee),

@@ -6,7 +6,7 @@ const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
 
 const Anchor = artifacts.require("Anchor2");
-const Verifier = artifacts.require("VerifierPoseidonBridge");
+const Verifier = artifacts.require("Verifier2");
 const Hasher = artifacts.require("PoseidonT3");
 const Token = artifacts.require("ERC20Mock");
 
@@ -53,14 +53,14 @@ const Token = artifacts.require("ERC20Mock");
     addEdge = (edge, sender) => AnchorInstance.addEdge(
       edge.sourceChainID,
       edge.root,
-      edge.height,
+      edge.latestLeafIndex,
       { from: sender }
     )
 
     updateEdge = (edge, sender) => AnchorInstance.updateEdge(
       edge.sourceChainID,
       edge.root,
-      edge.height,
+      edge.latestLeafIndex,
       { from: sender }
     )
   });
@@ -85,12 +85,12 @@ const Token = artifacts.require("ERC20Mock");
     const edge = {
       sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
-      height: 100,
+      latestLeafIndex: 100,
     };
     const edgeUpdated = {
       sourceChainID: '0x01',
       root: '0x2222111111111111111111111111111111111111111111111111111111111111',
-      height: 101,
+      latestLeafIndex: 101,
     };
 
     await TruffleAssert.passes(addEdge(edge, accounts[0]));
@@ -102,12 +102,12 @@ const Token = artifacts.require("ERC20Mock");
     const edge = {
       sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
-      height: 100,
+      latestLeafIndex: 100,
     };
     const edgeUpdated = {
       sourceChainID: '0x02',
       root: '0x2222111111111111111111111111111111111111111111111111111111111111',
-      height: 101,
+      latestLeafIndex: 101,
     };
     await TruffleAssert.passes(addEdge(edge, accounts[0]));
     await TruffleAssert.reverts(updateEdge(edgeUpdated, accounts[0]));
@@ -117,12 +117,12 @@ const Token = artifacts.require("ERC20Mock");
     const edge = {
       sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
-      height: 100,
+      latestLeafIndex: 100,
     };
     const edgeUpdated = {
     sourceChainID: '0x01',
       root: '0x2222111111111111111111111111111111111111111111111111111111111111',
-      height: 101,
+      latestLeafIndex: 101,
     };
     await TruffleAssert.passes(addEdge(edge, accounts[0]));
 
@@ -141,12 +141,12 @@ const Token = artifacts.require("ERC20Mock");
     const edge = {
       sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
-      height: 100,
+      latestLeafIndex: 100,
     };
     const edgeUpdated = {
       sourceChainID: '0x01',
       root: '0x2222111111111111111111111111111111111111111111111111111111111111',
-      height: 101,
+      latestLeafIndex: 101,
     };
     await addEdge(edge, accounts[0]);
     const result = await updateEdge(edgeUpdated, accounts[0]);
@@ -160,12 +160,12 @@ const Token = artifacts.require("ERC20Mock");
     const edge = {
       sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
-      height: 100,
+      latestLeafIndex: 100,
     };
     const edgeUpdated = {
       sourceChainID: '0x01',
       root: '0x2222111111111111111111111111111111111111111111111111111111111111',
-      height: 101,
+      latestLeafIndex: 101,
     };
     await addEdge(edge, accounts[0]);
     const result = await updateEdge(edgeUpdated, accounts[0]);

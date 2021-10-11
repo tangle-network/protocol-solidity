@@ -21,7 +21,7 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
         uint256  _sourceChainID;
         bytes32 _resourceID;
         bytes32 _merkleRoot;
-        uint256 _blockHeight;
+        uint256 _leafIndex;
     }
 
     // sourceChainID => height => Update Record
@@ -73,18 +73,18 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
         @notice Proposal execution should be initiated when a proposal is finalized in the Bridge contract.
         by a relayer on the deposit's destination chain.
         @param resourceID ResourceID corresponding to a particular set of Anchors
-        @param data Consists of {sourceChainID}, {blockHeight}, {merkleRoot} all padded to 32 bytes.
+        @param data Consists of {sourceChainID}, {leafIndex}, {merkleRoot} all padded to 32 bytes.
         @notice Data passed into the function should be constructed as follows:
-        chainID                                  uint256       bytes  0 - 32
-        blockHeight                              uint256     bytes  32 - 64
+        chainID                                  uint256     bytes  0 - 32
+        leafIndex                                uint256     bytes  32 - 64
         merkleRoot                               uint256     bytes  64 - 96
      */
     function executeProposal(bytes32 resourceID, bytes calldata data) external override onlyBridge {
         uint256       sourceChainId;
-        uint256       blockHeight;
+        uint256       leafIndex;
         uint256       merkleRoot;
 
-        (sourceChainId, blockHeight, merkleRoot) = abi.decode(data, (uint256, uint, uint));
+        (sourceChainId, leafIndex, merkleRoot) = abi.decode(data, (uint256, uint, uint));
 
         address anchorAddress = _resourceIDToContractAddress[resourceID];
 
@@ -96,13 +96,13 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
             anchor.updateEdge(
                 sourceChainId,
                 bytes32(merkleRoot),
-                blockHeight
+                leafIndex
             );
         } else {
             anchor.addEdge(
                 sourceChainId,
                 bytes32(merkleRoot),
-                blockHeight
+                leafIndex
             );
         }
 
@@ -112,7 +112,7 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
             sourceChainId,
             resourceID,
             bytes32(merkleRoot),
-            blockHeight
+            leafIndex
         );
     }
 }
