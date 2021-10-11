@@ -13,7 +13,7 @@ interface IVerifier {
       uint[2] memory a,
       uint[2][2] memory b,
       uint[2] memory c,
-      uint[8] memory input
+      uint[9] memory input
   ) external view returns (bool r);
 }
 
@@ -53,6 +53,7 @@ abstract contract AnchorBase2 is MerkleTreePoseidon, ReentrancyGuard {
   // currency events
   event Deposit(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp);
   event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uint256 fee);
+  event Refresh(bytes32 indexed commitment, bytes32 nullifierHash, uint32 insertedIndex);
   // bridge events
   event EdgeAddition(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
   event EdgeUpdate(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
@@ -107,6 +108,7 @@ abstract contract AnchorBase2 is MerkleTreePoseidon, ReentrancyGuard {
     bytes calldata _proof,
     bytes calldata _roots,
     bytes32 _nullifierHash,
+    bytes32 _commitment,
     address payable _recipient,
     address payable _relayer,
     uint256 _fee,
@@ -124,7 +126,7 @@ abstract contract AnchorBase2 is MerkleTreePoseidon, ReentrancyGuard {
     address rec = address(_recipient);
     address rel = address(_relayer);
 
-    uint256[8] memory inputs;
+    uint256[9] memory inputs;
     inputs[0] = uint256(_nullifierHash);
     inputs[1] = uint256(uint160(rec));
     inputs[2] = uint256(uint160(rel));
@@ -133,13 +135,23 @@ abstract contract AnchorBase2 is MerkleTreePoseidon, ReentrancyGuard {
     inputs[5] = uint256(getChainId());
     inputs[6] = uint256(roots[0]);
     inputs[7] = uint256(roots[1]);
+    inputs[8] = uint256(_commitment);
     bytes memory encodedInputs = abi.encodePacked(inputs);
 
     require(verify(_proof, encodedInputs), "Invalid withdraw proof");
-  
+
     nullifierHashes[_nullifierHash] = true;
-    _processWithdraw(_recipient, _relayer, _fee, _refund);
-    emit Withdrawal(_recipient, _nullifierHash, _relayer, _fee);
+
+    if (_commitment == bytes32(0x00)) {
+      _processWithdraw(_recipient, _relayer, _fee, _refund);
+      emit Withdrawal(_recipient, _nullifierHash, _relayer, _fee);
+    } else if (!commitments[_commitment]) {
+      uint32 insertedIndex = _insert(_commitment);
+      commitments[_commitment] = true;
+      emit Refresh(_commitment, _nullifierHash, insertedIndex); 
+    }
+    
+
   }
 
   function verify(
@@ -152,7 +164,7 @@ abstract contract AnchorBase2 is MerkleTreePoseidon, ReentrancyGuard {
         uint256[2][2] memory b,
         uint256[2] memory c
     ) = unpackProof(p);
-    uint256[8] memory inputs = abi.decode(_input, (uint256[8]));
+    uint256[9] memory inputs = abi.decode(_input, (uint256[9]));
     r = verifier.verifyProof(
       a, b, c,
       inputs
@@ -189,6 +201,7 @@ abstract contract AnchorBase2 is MerkleTreePoseidon, ReentrancyGuard {
     uint256 _fee,
     uint256 _refund
   ) internal virtual;
+
 
   /** @dev whether a note is already spent */
   function isSpent(bytes32 _nullifierHash) public view returns (bool) {

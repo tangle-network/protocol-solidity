@@ -11,7 +11,7 @@ const Helpers = require('../helpers');
 const BridgeContract = artifacts.require("Bridge");
 const AnchorHandlerContract = artifacts.require("AnchorHandler");
 const Anchor = artifacts.require("Anchor2");
-const Verifier = artifacts.require("VerifierPoseidonBridge");
+const Verifier = artifacts.require("Verifier2");
 const Hasher = artifacts.require("PoseidonT3");
 const Token = artifacts.require("ERC20Mock");
 

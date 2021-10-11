@@ -6,7 +6,7 @@ const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
 
 const Anchor = artifacts.require("Anchor2");
-const Verifier = artifacts.require("VerifierPoseidonBridge");
+const Verifier = artifacts.require("Verifier2");
 const Hasher = artifacts.require("PoseidonT3");
 const Token = artifacts.require("ERC20Mock");
 
