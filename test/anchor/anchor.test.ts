@@ -10,6 +10,7 @@ const fs = require('fs');
 const path = require('path');
 const { toBN, randomHex } = require('web3-utils');
 const Poseidon = artifacts.require('PoseidonT3');
+const GovernedTokenWrapper = artifacts.require('GovernedTokenWrapper');
 
 // Typechain generated bindings for contracts
 import {
@@ -17,6 +18,8 @@ import {
   Verifier2__factory as Verifier2Factory,
   ERC20Mock as Token,
   ERC20Mock__factory as TokenFactory,
+  GovernedTokenWrapper as WrappedToken,
+  GovernedTokenWrapper__factory as WrappedTokenFactory,
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
@@ -44,6 +47,7 @@ describe('Anchor2', () => {
   let verifier: Verifier2;
   let hasherInstance: any;
   let token: Token;
+  let wrappedToken: WrappedToken;
   let tokenDenomination = '1000000000000000000' // 1 ether
   const chainID = 31337;
   let createWitness: any;
@@ -596,6 +600,42 @@ describe('Anchor2', () => {
       const newAnchor = await Anchor.connect(anchor.contract.address, wallet);
       TruffleAssert.passes(newAnchor.withdraw(deposit, index, recipient, signers[1].address, fee, bigInt(refreshedDeposit.commitment)));
       TruffleAssert.passes(newAnchor.withdraw(refreshedDeposit, index, recipient, signers[1].address, fee, bigInt(0)));
+    });
+
+    it.only('should wrap and deposit', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+      const sender = wallet;
+      // create wrapped token
+      const name = 'webbETH';
+      const symbol = 'webbETH';
+      const wrappedTokenFactory = new WrappedTokenFactory(wallet);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000');
+      await wrappedToken.deployed();
+      await wrappedToken.add(token.address);
+
+      // create Anchor for wrapped token
+      const wrappedAnchor = await Anchor.createAnchor(
+        verifier.address,
+        hasherInstance.address,
+        tokenDenomination,
+        levels,
+        wrappedToken.address,
+        sender.address,
+        sender.address,
+        sender.address,
+        sender
+      );
+
+      const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+      await wrappedToken.grantRole(MINTER_ROLE, wrappedAnchor.contract.address);
+
+      await token.approve(wrappedToken.address, '10000000000000000000000');
+
+      // create a deposit on the anchor already setup
+      const { deposit, index } = await wrappedAnchor.wrapAndDeposit(
+        token.address,
+      );
     });
   });
 });

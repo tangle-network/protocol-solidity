@@ -34,6 +34,8 @@ class Anchor {
   circuitZkeyPath: string;
   circuitWASMPath: string;
 
+  denomination?: string;
+
   private constructor(
     contract: Anchor2,
     signer: ethers.Signer,
@@ -75,6 +77,7 @@ class Anchor {
     await anchor2.deployed();
     const createdAnchor = new Anchor(anchor2, signer, merkleTreeHeight);
     createdAnchor.latestSyncedBlock = anchor2.deployTransaction.blockNumber!;
+    createdAnchor.denomination = denomination.toString();
     return createdAnchor;
   }
 
@@ -209,6 +212,17 @@ class Anchor {
     return { deposit, index };
   }
 
+  public async wrapAndDeposit(tokenAddress: string, destinationChainId?: number): Promise<{deposit: AnchorDepositInfo, index: number}> {
+    const chainId = (destinationChainId) ? destinationChainId : await this.signer.getChainId();
+    const deposit = Anchor.generateDeposit(chainId);
+    const tx = await this.contract.wrapAndDeposit(tokenAddress, toFixedHex(deposit.commitment), { gasLimit: '0x5B8D80' });
+    await tx.wait();
+
+    const index: number = await this.tree.insert(deposit.commitment);
+
+    return { deposit, index };
+  }
+
   // sync the local tree with the tree on chain.
   // Start syncing from the given block number, otherwise zero.
   public async update(blockNumber?: number) {
@@ -246,6 +260,31 @@ class Anchor {
     };
   }
 
+  public async checkKnownRoot() {
+    const isKnownRoot = await this.contract.isKnownRoot(toFixedHex(await this.tree.get_root()));
+    if (!isKnownRoot) {
+      await this.update(this.latestSyncedBlock);
+    }
+  }
+
+  public async createWitness(data: any) {
+    const wtns = {type: "mem"};
+    await snarkjs.wtns.calculate(data, path.join('.', this.circuitWASMPath), wtns);
+    return wtns;
+  }
+
+  public async proveAndVerify(wtns: any) {
+    let res = await snarkjs.groth16.prove(this.circuitZkeyPath, wtns);
+    let proof = res.proof;
+    let publicSignals = res.publicSignals;
+
+    const vKey = await snarkjs.zKey.exportVerificationKey(this.circuitZkeyPath);
+    res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
+
+    let proofEncoded = await Anchor.generateWithdrawProofCallData(proof, publicSignals);
+    return proofEncoded;
+  }
+
   public async withdraw(
     deposit: AnchorDepositInfo,
     index: number,
@@ -255,10 +294,7 @@ class Anchor {
     refreshCommitment: bigint,
   ) {
     // first, check if the merkle root is known on chain - if not, then update
-    const isKnownRoot = await this.contract.isKnownRoot(toFixedHex(await this.tree.get_root()));
-    if (!isKnownRoot) {
-      await this.update(this.latestSyncedBlock);
-    }
+    await this.checkKnownRoot();
 
     const { root, pathElements, pathIndex } = await this.tree.path(index);
 
@@ -274,17 +310,8 @@ class Anchor {
       pathIndex,
     );
 
-    const createWitness = async (data: any) => {
-      const wtns = {type: "mem"};
-      await snarkjs.wtns.calculate(data, path.join('.', this.circuitWASMPath), wtns);
-      return wtns;
-    }
-
-    const wtns = await createWitness(input);
-
-    let res = await snarkjs.groth16.prove(this.circuitZkeyPath, wtns);
-    let proof = res.proof;
-    let publicSignals = res.publicSignals;
+    const wtns = await this.createWitness(input);
+    let proofEncoded = await this.proveAndVerify(wtns);
 
     const args = [
       Anchor.createRootsBytes(input.roots),
@@ -294,15 +321,75 @@ class Anchor {
       toFixedHex(input.relayer, 20),
       toFixedHex(input.fee),
       toFixedHex(input.refund),
-    ]
-
-    const vKey = await snarkjs.zKey.exportVerificationKey(this.circuitZkeyPath);
-    res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
-
-    let proofEncoded = await Anchor.generateWithdrawProofCallData(proof, publicSignals);
+    ];
 
     //@ts-ignore
     let tx = await this.contract.withdraw(`0x${proofEncoded}`, ...args, { gasLimit: '0x5B8D80' });
+    const receipt = await tx.wait();
+
+    const filter = this.contract.filters.Withdrawal(null, null, relayer, null);
+    const events = await this.contract.queryFilter(filter, receipt.blockHash);
+    return events[0];
+  }
+
+  public async withdrawAndUnwrap(
+    deposit: AnchorDepositInfo,
+    index: number,
+    recipient: string,
+    relayer: string,
+    fee: bigint,
+    refreshCommitment: bigint,
+    tokenAddress: string,
+  ) {
+    // first, check if the merkle root is known on chain - if not, then update
+    await this.checkKnownRoot();
+
+    const { root, pathElements, pathIndex } = await this.tree.path(index);
+
+    const input = this.generateWitnessInput(
+      deposit,
+      refreshCommitment,
+      BigInt(recipient),
+      BigInt(relayer),
+      BigInt(fee),
+      BigInt(0),
+      [root as string, '0'],
+      pathElements,
+      pathIndex,
+    );
+
+    const wtns = await this.createWitness(input);
+    let proofEncoded = await this.proveAndVerify(wtns);
+
+    const args = [
+      Anchor.createRootsBytes(input.roots),
+      toFixedHex(input.nullifierHash),
+      toFixedHex(input.refreshCommitment, 32),
+      toFixedHex(input.recipient, 20),
+      toFixedHex(input.relayer, 20),
+      toFixedHex(input.fee),
+      toFixedHex(input.refund),
+    ];
+
+    const publicInputs = {
+      _nullifierHash: args[1],
+      _refreshCommitment: args[2],
+      _recipient: args[3],
+      _relayer: args[4],
+      _fee: args[5],
+      _refund: args[6],
+    }
+
+    //@ts-ignore
+    let tx = await this.contract.withdrawAndUnwrap(
+      `0x${proofEncoded}`,
+      args[0],
+      publicInputs,
+      tokenAddress,
+      {
+        gasLimit: '0x5B8D80'
+      },
+    );
     const receipt = await tx.wait();
 
     const filter = this.contract.filters.Withdrawal(null, null, relayer, null);
