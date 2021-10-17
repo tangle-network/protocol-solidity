@@ -147,8 +147,8 @@ abstract contract AnchorBase is MerkleTreePoseidon, ReentrancyGuard {
       inputs[5] = uint256(_chainId);
       inputs[6] = uint256(roots[0]);
       inputs[7] = uint256(roots[1]);
-      inputs[7] = uint256(roots[2]);
-      inputs[8] = uint256(_refreshCommitment);
+      inputs[8] = uint256(roots[2]);
+      inputs[9] = uint256(_refreshCommitment);
       encodedInput = abi.encodePacked(inputs);
     } else if (maxEdges == 3) {
       uint256[11] memory inputs;
