@@ -208,7 +208,7 @@ describe('Anchor', () => {
   })
 
   describe('#withdraw', () => {
-    it('should work', async () => {
+    it.only('should work', async () => {
       const signers = await ethers.getSigners();
       const sender = signers[0];
       const relayer = signers[1];
@@ -228,7 +228,7 @@ describe('Anchor', () => {
       assert.strictEqual(isSpent, false)
 
       let receipt = await anchor.withdraw(deposit, index, recipient, relayer.address, fee, bigInt(0));
-
+      console.log(receipt);
       const filter = anchor.contract.filters.Withdrawal(null, null, relayer.address, null);
       const events = await anchor.contract.queryFilter(filter, receipt.blockHash);
 

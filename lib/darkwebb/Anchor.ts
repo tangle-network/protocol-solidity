@@ -332,8 +332,8 @@ class Anchor {
       { gasLimit: '0x5B8D80' }
     );
     const receipt = await tx.wait();
-    
-    if (input.refreshCommitment !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
+
+    if (args[2] !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
       this.tree.insert(input.refreshCommitment);
       const filter = this.contract.filters.Refresh(null, null, null);
       const events = await this.contract.queryFilter(filter, receipt.blockHash);
