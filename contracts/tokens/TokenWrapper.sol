@@ -65,7 +65,18 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
         // mint the wrapped token for the sender
         mint(sender, amount);
     }
-
+    /**
+        @notice Used to wrap tokens and mint the wrapped tokens to a potentially different recipient
+     */
+    function wrapForAndSendTo(address sender, address tokenAddress, uint256 amount, address recipient) override public {
+        require(hasRole(MINTER_ROLE, msg.sender), "ERC20PresetMinterPauser: must have minter role");
+        require(_isValidAddress(tokenAddress), "Invalid token address");
+        require(_isValidAmount(amount), "Invalid token amount");
+        // transfer liquidity to the token wrapper
+        IERC20(tokenAddress).transferFrom(sender, address(this), amount);
+        // mint the wrapped token for the sender
+        mint(recipient, amount);
+    }
     /**
         @notice Used to unwrap/burn the wrapper token.
         @param tokenAddress Address of ERC20 to unwrap into.

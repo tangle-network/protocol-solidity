@@ -5,13 +5,13 @@
 
 pragma solidity ^0.8.0;
 
-import "../../../tokens/CompToken.sol";
-import "../../../interfaces/IMintableCompToken.sol";
-import "./LinkableAnchor2.sol";
+import "../../tokens/CompToken.sol";
+import "../../interfaces/IMintableCompToken.sol";
+import "./LinkableAnchor.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract WEBBAnchor2 is LinkableAnchor2 {
+contract WEBBAnchor is LinkableAnchor {
   using SafeERC20 for IERC20;
   address public immutable token;
 
@@ -23,8 +23,9 @@ contract WEBBAnchor2 is LinkableAnchor2 {
     IMintableCompToken _token,
     address _bridge,
     address _admin,
-    address _handler
-  ) LinkableAnchor2(_verifier, _hasher, _denomination, _merkleTreeHeight, _bridge, _admin, _handler) {
+    address _handler,
+    uint8 _maxEdges
+  ) LinkableAnchor(_verifier, _hasher, _denomination, _merkleTreeHeight, _bridge, _admin, _handler, _maxEdges) {
     token = address(_token);
   }
 

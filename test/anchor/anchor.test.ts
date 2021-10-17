@@ -10,12 +10,9 @@ const fs = require('fs');
 const path = require('path');
 const { toBN, randomHex } = require('web3-utils');
 const Poseidon = artifacts.require('PoseidonT3');
-const GovernedTokenWrapper = artifacts.require('GovernedTokenWrapper');
 
 // Typechain generated bindings for contracts
 import {
-  Verifier2,
-  Verifier2__factory as Verifier2Factory,
   ERC20Mock as Token,
   ERC20Mock__factory as TokenFactory,
   GovernedTokenWrapper as WrappedToken,
@@ -24,6 +21,7 @@ import {
 
 // Convenience wrapper classes for contract classes
 import Anchor from '../../lib/darkwebb/Anchor';
+import Verifier from '../../lib/darkwebb/Verifier';
 
 const { NATIVE_AMOUNT } = process.env
 const snarkjs = require('snarkjs')
@@ -35,7 +33,7 @@ const Scalar = require("ffjavascript").Scalar;
 const helpers = require('../../lib/darkwebb/utils');
 const MerkleTree = require('../../lib/MerkleTree');
 
-describe('Anchor2', () => {
+describe('Anchor', () => {
   let anchor: Anchor;
 
   const levels = 30;
@@ -44,12 +42,13 @@ describe('Anchor2', () => {
   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
   const refund = BigInt((new BN('0')).toString());
   let recipient = "0x1111111111111111111111111111111111111111";
-  let verifier: Verifier2;
+  let verifier: Verifier;
   let hasherInstance: any;
   let token: Token;
   let wrappedToken: WrappedToken;
   let tokenDenomination = '1000000000000000000' // 1 ether
   const chainID = 31337;
+  const MAX_EDGES = 1;
   let createWitness: any;
 
   beforeEach(async () => {
@@ -63,9 +62,7 @@ describe('Anchor2', () => {
     hasherInstance = await Poseidon.new();
 
     // create poseidon verifier
-    const verifierFactory = new Verifier2Factory(wallet);
-    verifier = await verifierFactory.deploy();
-    await verifier.deployed();
+    verifier = await Verifier.createVerifier(sender);
 
     // create token
     const tokenFactory = new TokenFactory(wallet);
@@ -75,7 +72,7 @@ describe('Anchor2', () => {
 
     // create Anchor
     anchor = await Anchor.createAnchor(
-      verifier.address,
+      verifier.contract.address,
       hasherInstance.address,
       tokenDenomination,
       levels,
@@ -83,7 +80,8 @@ describe('Anchor2', () => {
       sender.address,
       sender.address,
       sender.address,
-      sender
+      MAX_EDGES,
+      sender,
     );
 
     // approve the anchor to spend the minted funds
@@ -211,7 +209,6 @@ describe('Anchor2', () => {
 
   describe('#withdraw', () => {
     it('should work', async () => {
-
       const signers = await ethers.getSigners();
       const sender = signers[0];
       const relayer = signers[1];
@@ -251,7 +248,6 @@ describe('Anchor2', () => {
     });
 
     it('should prevent double spend', async () => {
-      
       const signers = await ethers.getSigners();
       const sender = signers[0];
       const relayer = signers[1];
@@ -322,10 +318,11 @@ describe('Anchor2', () => {
       ];
 
       const proofEncoded = await Anchor.generateWithdrawProofCallData(proof, publicSignals);
+      const publicInputs = Anchor.convertArgsArrayToStruct(args);
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }),
+        anchor.contract.withdraw(`0x${proofEncoded}`, publicInputs, { gasPrice: '0' }),
         'verifier-gte-snark-scalar-field',
       );
     });
@@ -393,10 +390,11 @@ describe('Anchor2', () => {
       ]
 
       const proofEncoded = await Anchor.generateWithdrawProofCallData(proof, publicSignals);
+      const publicInputs = Anchor.convertArgsArrayToStruct(args);
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }),
+        anchor.contract.withdraw(`0x${proofEncoded}`, publicInputs, { gasPrice: '0' }),
         'Cannot find your merkle root'
       );
     });
@@ -449,6 +447,7 @@ describe('Anchor2', () => {
         helpers.toFixedHex(input.fee),
         helpers.toFixedHex(input.refund),
       ]
+      const publicInputs = Anchor.convertArgsArrayToStruct(args);
 
       // recipient
       let incorrectArgs = [
@@ -462,10 +461,11 @@ describe('Anchor2', () => {
       ];
 
       const proofEncoded = await Anchor.generateWithdrawProofCallData(proof, publicSignals);
-
+      let incorrectPublicInputs = Anchor.convertArgsArrayToStruct(incorrectArgs);
+      
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.withdraw(`0x${proofEncoded}`, ...incorrectArgs, { gasPrice: '0' }),
+        anchor.contract.withdraw(`0x${proofEncoded}`, incorrectPublicInputs, { gasPrice: '0' }),
         'Invalid withdraw proof',
       );
 
@@ -479,10 +479,11 @@ describe('Anchor2', () => {
         helpers.toFixedHex('0x000000000000000000000000000000000000000000000000015345785d8a0000'),
         helpers.toFixedHex(input.refund),
       ];
+      incorrectPublicInputs = Anchor.convertArgsArrayToStruct(incorrectArgs);
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.withdraw(`0x${proofEncoded}`, ...incorrectArgs, { gasPrice: '0' }),
+        anchor.contract.withdraw(`0x${proofEncoded}`, incorrectPublicInputs, { gasPrice: '0' }),
         'Invalid withdraw proof',
       );
 
@@ -497,9 +498,10 @@ describe('Anchor2', () => {
         helpers.toFixedHex(input.refund),
       ];
 
+      incorrectPublicInputs = Anchor.convertArgsArrayToStruct(incorrectArgs);
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.withdraw(`0x${proofEncoded}`, ...incorrectArgs, { gasPrice: '0' }),
+        anchor.contract.withdraw(`0x${proofEncoded}`, incorrectPublicInputs, { gasPrice: '0' }),
         'Invalid withdraw proof',
       );
 
@@ -513,16 +515,21 @@ describe('Anchor2', () => {
         helpers.toFixedHex(input.fee),
         helpers.toFixedHex(input.refund),
       ];
+      incorrectPublicInputs = Anchor.convertArgsArrayToStruct(incorrectArgs);
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.withdraw(`0x${proofEncoded}`, ...incorrectArgs, { gasPrice: '0' }),
+        anchor.contract.withdraw(`0x${proofEncoded}`, incorrectPublicInputs, { gasPrice: '0' }),
         'Invalid withdraw proof',
       );
 
       // should work with original values
       //@ts-ignore
-      await TruffleAssert.passes(anchor.contract.withdraw(`0x${proofEncoded}`, ...args, { gasPrice: '0' }));
+      await TruffleAssert.passes(anchor.contract.withdraw(
+        `0x${proofEncoded}`,
+        publicInputs,
+        { gasPrice: '0' }
+      ));
     }).timeout(60000);
   })
 
@@ -557,7 +564,7 @@ describe('Anchor2', () => {
       const newAnchor = await Anchor.connect(anchor.contract.address, wallet);
 
       // make sure the deposit goes through
-      TruffleAssert.passes(newAnchor.deposit());
+      await TruffleAssert.passes(newAnchor.deposit());
       assert.strictEqual(newAnchor.latestSyncedBlock, 0);
     });
 
@@ -585,24 +592,71 @@ describe('Anchor2', () => {
 
       // create a new anchor by connecting to the address of the setup anchor
       const newAnchor = await Anchor.connect(anchor.contract.address, wallet);
-      TruffleAssert.passes(newAnchor.withdraw(deposit, index, recipient, signers[1].address, fee, bigInt(0)));
+      await TruffleAssert.passes(newAnchor.withdraw(deposit, index, recipient, signers[1].address, fee, bigInt(0)));
     });
 
     it('should properly refresh a deposit', async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
+      const relayer = signers[1].address;
 
       // create a deposit on the anchor already setup
       const { deposit, index } = await anchor.deposit();
       const refreshedDestId = await wallet.getChainId();
       const refreshedDeposit = Anchor.generateDeposit(refreshedDestId);
+
+      const { root, pathElements, pathIndex } = anchor.tree.path(0);
+      const input = {
+        // public
+        nullifierHash: deposit.nullifierHash,
+        refreshCommitment: refreshedDeposit.commitment,
+        recipient,
+        relayer,
+        fee,
+        refund,
+        chainID: deposit.chainID,
+        roots: [root, 0],
+        // private
+        nullifier: deposit.nullifier,
+        secret: deposit.secret,
+        pathElements: pathElements,
+        pathIndices: pathIndex,
+        diffs: [root, 0].map(r => {
+          return F.sub(
+            Scalar.fromString(`${r}`),
+            Scalar.fromString(`${root}`),
+          ).toString();
+        }),
+      };
+      const wtns = await createWitness(input);
+
+      let res = await snarkjs.groth16.prove('test/fixtures/2/circuit_final.zkey', wtns);
+      const vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/2/circuit_final.zkey');
+
+      res = await snarkjs.groth16.verify(vKey, res.publicSignals, res.proof);
+      assert(res);
+
       // create a new anchor by connecting to the address of the setup anchor
-      const newAnchor = await Anchor.connect(anchor.contract.address, wallet);
-      TruffleAssert.passes(newAnchor.withdraw(deposit, index, recipient, signers[1].address, fee, bigInt(refreshedDeposit.commitment)));
-      TruffleAssert.passes(newAnchor.withdraw(refreshedDeposit, index, recipient, signers[1].address, fee, bigInt(0)));
+      let newAnchor = await Anchor.connect(anchor.contract.address, wallet);
+      await TruffleAssert.passes(newAnchor.withdraw(
+        deposit,
+        index,
+        recipient,
+        signers[1].address,
+        fee,
+        refreshedDeposit.commitment
+      ));
+      await TruffleAssert.passes(newAnchor.withdraw(
+        refreshedDeposit,
+        index + 1,
+        recipient,
+        signers[1].address,
+        fee,
+        0,
+      ));
     });
 
-    it.only('should wrap and deposit', async () => {
+    it('should wrap and deposit', async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
       const sender = wallet;
@@ -616,7 +670,7 @@ describe('Anchor2', () => {
 
       // create Anchor for wrapped token
       const wrappedAnchor = await Anchor.createAnchor(
-        verifier.address,
+        verifier.contract.address,
         hasherInstance.address,
         tokenDenomination,
         levels,
@@ -624,18 +678,81 @@ describe('Anchor2', () => {
         sender.address,
         sender.address,
         sender.address,
+        MAX_EDGES,
         sender
       );
 
       const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
       await wrappedToken.grantRole(MINTER_ROLE, wrappedAnchor.contract.address);
 
-      await token.approve(wrappedToken.address, '10000000000000000000000');
-
+      await token.approve(wrappedToken.address, '1000000000000000000');
+      const balTokenBeforeDepositSender = await token.balanceOf(sender.address);
       // create a deposit on the anchor already setup
       const { deposit, index } = await wrappedAnchor.wrapAndDeposit(
         token.address,
       );
+      const balTokenAfterDepositSender = await token.balanceOf(sender.address);
+      assert.strictEqual(balTokenBeforeDepositSender.sub(balTokenAfterDepositSender).toString(), '1000000000000000000');
+
+      const balWrappedTokenAfterDepositAnchor = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
+      const balWrappedTokenAfterDepositSender = await wrappedToken.balanceOf(sender.address);
+      const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, wallet);
+      await TruffleAssert.passes(newAnchor.withdraw(deposit, index, sender.address, signers[1].address, bigInt(0), bigInt(0)));
+      const balWrappedTokenAfterWithdrawSender = await wrappedToken.balanceOf(sender.address);
+      const balWrappedTokenAfterWithdrawAnchor = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
+      assert.strictEqual(balWrappedTokenAfterWithdrawSender.sub(balWrappedTokenAfterDepositSender).toString(), '1000000000000000000');
+      assert.strictEqual(balWrappedTokenAfterDepositAnchor.sub(balWrappedTokenAfterWithdrawAnchor).toString(), '1000000000000000000');
+    });
+
+    it('should withdraw and unwrap', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+      const sender = wallet;
+      // create wrapped token
+      const name = 'webbETH';
+      const symbol = 'webbETH';
+      const wrappedTokenFactory = new WrappedTokenFactory(wallet);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000');
+      await wrappedToken.deployed();
+      await wrappedToken.add(token.address);
+
+      // create Anchor for wrapped token
+      const wrappedAnchor = await Anchor.createAnchor(
+        verifier.contract.address,
+        hasherInstance.address,
+        tokenDenomination,
+        levels,
+        wrappedToken.address,
+        sender.address,
+        sender.address,
+        sender.address,
+        MAX_EDGES,
+        sender
+      );
+
+      const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+      await wrappedToken.grantRole(MINTER_ROLE, wrappedAnchor.contract.address);
+
+      await token.approve(wrappedToken.address, '1000000000000000000');
+      const balTokenBeforeDepositSender = await token.balanceOf(sender.address);
+      // create a deposit on the anchor already setup
+      const { deposit, index } = await wrappedAnchor.wrapAndDeposit(
+        token.address,
+      );
+
+      const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, wallet);
+      await TruffleAssert.passes(newAnchor.withdrawAndUnwrap(
+        deposit,
+        index,
+        sender.address,
+        signers[1].address,
+        bigInt(0),
+        bigInt(0),
+        token.address
+      ));
+
+      const balTokenAfterWithdrawAndUnwrapSender = await token.balanceOf(sender.address);
+      assert.strictEqual(balTokenBeforeDepositSender.toString(), balTokenAfterWithdrawAndUnwrapSender.toString());
     });
   });
 });

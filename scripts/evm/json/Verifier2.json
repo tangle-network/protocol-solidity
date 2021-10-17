@@ -1,7 +1,7 @@
 {
   "_format": "hh-sol-artifact-1",
-  "contractName": "Verifier2",
-  "sourceName": "contracts/verifiers/Verifier2.sol",
+  "contractName": "Verifier",
+  "sourceName": "contracts/verifiers/Verifier.sol",
   "abi": [
     {
       "inputs": [

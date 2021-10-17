@@ -1,6 +1,6 @@
 import { BigNumber, BigNumberish, ethers } from "ethers";
-import { Anchor2__factory } from '../../typechain/factories/Anchor2__factory';
-import { Anchor2 } from '../../typechain/Anchor2';
+import { Anchor__factory } from '../../typechain/factories/Anchor__factory';
+import { Anchor as AnchorContract} from '../../typechain/Anchor';
 import { rbigint, p256 } from "./utils";
 import { toFixedHex, toHex } from '../../lib/darkwebb/utils';
 import PoseidonHasher from './Poseidon';
@@ -20,13 +20,23 @@ interface AnchorDepositInfo {
   nullifierHash: string,
 };
 
+interface IPublicInputs {
+  _roots: string;
+  _nullifierHash: string;
+  _refreshCommitment: string;
+  _recipient: string;
+  _relayer: string;
+  _fee: string;
+  _refund: string;
+}
+
 // This convenience wrapper class is used in tests -
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods 
 class Anchor {
   signer: ethers.Signer;
-  contract: Anchor2;
+  contract: AnchorContract;
   tree: MerkleTree;
   // hex string of the connected root
   linkedRoot: string;
@@ -37,7 +47,7 @@ class Anchor {
   denomination?: string;
 
   private constructor(
-    contract: Anchor2,
+    contract: AnchorContract,
     signer: ethers.Signer,
     treeHeight: number,
     circuitZkeyPath?: string,
@@ -56,11 +66,11 @@ class Anchor {
   //   contract: string,
   //   signer: ethers.Signer,
   // ) {
-  //   const anchor = Anchor2__factory.connect(contract, signer);
+  //   const anchor = Anchor__factory.connect(contract, signer);
   //   return new Anchor(anchor, signer);
   // }
 
-  // Deploys an anchor2 contract and sets the signer for deposit and withdraws on this contract.
+  // Deploys an Anchor contract and sets the signer for deposit and withdraws on this contract.
   public static async createAnchor(
     verifier: string,
     hasher: string,
@@ -70,13 +80,14 @@ class Anchor {
     bridge: string,
     admin: string,
     handler: string,
+    maxEdges: number,
     signer: ethers.Signer,
   ) {
-    const factory = new Anchor2__factory(signer);
-    const anchor2 = await factory.deploy(verifier, hasher, denomination, merkleTreeHeight, token, bridge, admin, handler, {});
-    await anchor2.deployed();
-    const createdAnchor = new Anchor(anchor2, signer, merkleTreeHeight);
-    createdAnchor.latestSyncedBlock = anchor2.deployTransaction.blockNumber!;
+    const factory = new Anchor__factory(signer);
+    const anchor = await factory.deploy(verifier, hasher, denomination, merkleTreeHeight, token, bridge, admin, handler, maxEdges, {});
+    await anchor.deployed();
+    const createdAnchor = new Anchor(anchor, signer, merkleTreeHeight);
+    createdAnchor.latestSyncedBlock = anchor.deployTransaction.blockNumber!;
     createdAnchor.denomination = denomination.toString();
     return createdAnchor;
   }
@@ -87,9 +98,9 @@ class Anchor {
     address: string,
     signer: ethers.Signer,
   ) {
-    const anchor2 = Anchor2__factory.connect(address, signer);
-    const treeHeight = await anchor2.levels();
-    const createdAnchor = new Anchor(anchor2, signer, treeHeight);
+    const anchor = Anchor__factory.connect(address, signer);
+    const treeHeight = await anchor.levels();
+    const createdAnchor = new Anchor(anchor, signer, treeHeight);
 
     return createdAnchor;
   }
@@ -161,17 +172,6 @@ class Anchor {
     return proofEncoded;
   }
 
-  // public static async createWitness(data: any): Promise<{type: string, data: Uint8Array}> {
-  //   const wtns: {type: string, data: Uint8Array} = {type: "mem", data: new Uint8Array()};
-  //   await snarkjs.wtns.calculate(data, path.join(
-  //     "test",
-  //     "fixtures",
-  //     "poseidon_bridge_2.wasm"
-  //   ), wtns);
-  //   return wtns;
-  // }
-
-  // 
   public async createResourceId(): Promise<string> {
     return toHex(this.contract.address + toHex((await this.signer.getChainId()).toString(), 4).substr(2), 32);
   }
@@ -207,7 +207,7 @@ class Anchor {
     const tx = await this.contract.deposit(toFixedHex(deposit.commitment), { gasLimit: '0x5B8D80' });
     await tx.wait();
 
-    const index: number = await this.tree.insert(deposit.commitment);
+    const index: number = this.tree.insert(deposit.commitment);
 
     return { deposit, index };
   }
@@ -237,7 +237,7 @@ class Anchor {
 
   public generateWitnessInput(
     deposit: AnchorDepositInfo,
-    refreshCommitment: BigInt,
+    refreshCommitment: string | number,
     recipient: BigInt,
     relayer: BigInt,
     fee: BigInt,
@@ -291,7 +291,7 @@ class Anchor {
     recipient: string,
     relayer: string,
     fee: bigint,
-    refreshCommitment: bigint,
+    refreshCommitment: string | number,
   ) {
     // first, check if the merkle root is known on chain - if not, then update
     await this.checkKnownRoot();
@@ -323,13 +323,26 @@ class Anchor {
       toFixedHex(input.refund),
     ];
 
-    //@ts-ignore
-    let tx = await this.contract.withdraw(`0x${proofEncoded}`, ...args, { gasLimit: '0x5B8D80' });
-    const receipt = await tx.wait();
+    const publicInputs = Anchor.convertArgsArrayToStruct(args);
 
-    const filter = this.contract.filters.Withdrawal(null, null, relayer, null);
-    const events = await this.contract.queryFilter(filter, receipt.blockHash);
-    return events[0];
+    //@ts-ignore
+    let tx = await this.contract.withdraw(
+      `0x${proofEncoded}`,
+      publicInputs,
+      { gasLimit: '0x5B8D80' }
+    );
+    const receipt = await tx.wait();
+    
+    if (input.refreshCommitment !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
+      this.tree.insert(input.refreshCommitment);
+      const filter = this.contract.filters.Refresh(null, null, null);
+      const events = await this.contract.queryFilter(filter, receipt.blockHash);
+      return events[0];
+    } else {
+      const filter = this.contract.filters.Withdrawal(null, null, relayer, null);
+      const events = await this.contract.queryFilter(filter, receipt.blockHash);
+      return events[0];
+    }
   }
 
   public async withdrawAndUnwrap(
@@ -338,7 +351,7 @@ class Anchor {
     recipient: string,
     relayer: string,
     fee: bigint,
-    refreshCommitment: bigint,
+    refreshCommitment: string,
     tokenAddress: string,
   ) {
     // first, check if the merkle root is known on chain - if not, then update
@@ -371,19 +384,10 @@ class Anchor {
       toFixedHex(input.refund),
     ];
 
-    const publicInputs = {
-      _nullifierHash: args[1],
-      _refreshCommitment: args[2],
-      _recipient: args[3],
-      _relayer: args[4],
-      _fee: args[5],
-      _refund: args[6],
-    }
-
+    const publicInputs = Anchor.convertArgsArrayToStruct(args);
     //@ts-ignore
     let tx = await this.contract.withdrawAndUnwrap(
       `0x${proofEncoded}`,
-      args[0],
       publicInputs,
       tokenAddress,
       {
@@ -395,6 +399,18 @@ class Anchor {
     const filter = this.contract.filters.Withdrawal(null, null, relayer, null);
     const events = await this.contract.queryFilter(filter, receipt.blockHash);
     return events[0];
+  }
+
+  public static convertArgsArrayToStruct(args: any[]): IPublicInputs {
+    return {
+      _roots: args[0],
+      _nullifierHash: args[1],
+      _refreshCommitment: args[2],
+      _recipient: args[3],
+      _relayer: args[4],
+      _fee: args[5],
+      _refund: args[6],
+    };
   }
 }
 

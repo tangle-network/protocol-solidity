@@ -4,9 +4,14 @@ const helpers = require('../helpers');
 const { toBN } = require('web3-utils')
 const assert = require('assert');
 const BridgeContract = artifacts.require('Bridge');
-const Anchor = artifacts.require('./Anchor2.sol');
-const Verifier = artifacts.require('./Verifier2.sol');
+const Anchor = artifacts.require('./Anchor.sol');
 const Hasher = artifacts.require('PoseidonT3');
+const Verifier = artifacts.require('Verifier');
+const Verifier2 = artifacts.require('Verifier2');
+const Verifier3 = artifacts.require('Verifier3');
+const Verifier4 = artifacts.require('Verifier4');
+const Verifier5 = artifacts.require('Verifier5');
+const Verifier6 = artifacts.require('Verifier6');
 const Token = artifacts.require('ERC20Mock');
 const CompToken = artifacts.require('CompToken')
 const AnchorHandlerContract = artifacts.require('AnchorHandler');
@@ -64,6 +69,7 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
   let destMerkleRoot;
   let originUpdateNonce;
   let destUpdateNonce;
+  let v2, v3, v4, v5, v6;
   let hasher, verifier;
   let originDeposit;
   let originWrapperToken;
@@ -95,6 +101,8 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
   let originToken;
   let destToken;
 
+  const MAX_EDGES = 1;
+
   beforeEach(async () => {
     // create tokens
     await Promise.all([ 
@@ -114,8 +122,8 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     await destGov._initiate();
     await destTimelock.harnessSetAdmin(destGov.address);
     //initialize TokenWrappers
-    originWrapperToken = await GovernedTokenWrapper.new(name, symbol, originTimelock.address, '1000000000000000000000000', {from: sender});
-    destWrapperToken = await GovernedTokenWrapper.new(name, symbol, destTimelock.address, '1000000000000000000000000', {from: sender});
+    originWrapperToken = await GovernedTokenWrapper.new(name, symbol, originTimelock.address, '1000000000000000000000000', { from: sender });
+    destWrapperToken = await GovernedTokenWrapper.new(name, symbol, destTimelock.address, '1000000000000000000000000', { from: sender });
     // delegate bravoAdmin on both chains
     await originWEBB.mint(bravoAdmin, initialTokenMintAmount)
     await destWEBB.mint(bravoAdmin, initialTokenMintAmount)
@@ -127,8 +135,20 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
       BridgeContract.new(destChainID, [relayer1Address], relayerThreshold, 0, 100).then(instance => DestBridgeInstance = instance),
       // create hasher, verifier, and tokens
       Hasher.new().then(instance => hasher = instance),
-      Verifier.new().then(instance => verifier = instance)
+      Verifier2.new().then(instance => v2 = instance),
+      Verifier3.new().then(instance => v3 = instance),
+      Verifier4.new().then(instance => v4 = instance),
+      Verifier5.new().then(instance => v5 = instance),
+      Verifier6.new().then(instance => v6 = instance),
     ]);
+    verifier = await Verifier.new(
+      v2.address,
+      v3.address,
+      v4.address,
+      v5.address,
+      v6.address
+    );
+
     // initialize anchors on both chains
     OriginChainAnchorInstance = await Anchor.new(
       verifier.address,
@@ -139,7 +159,8 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
       sender,
       sender,
       sender,
-    {from: sender});
+      MAX_EDGES,
+    { from: sender });
     DestChainAnchorInstance = await Anchor.new(
       verifier.address,
       hasher.address,
@@ -149,11 +170,12 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
       sender,
       sender,
       sender,
-    {from: sender});
+      MAX_EDGES,
+    { from: sender });
     // set Minting permissions for anchors 
     MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
-    await originWrapperToken.grantRole(MINTER_ROLE, OriginChainAnchorInstance.address, {from: sender});
-    await destWrapperToken.grantRole(MINTER_ROLE, DestChainAnchorInstance.address, {from: sender});
+    await originWrapperToken.grantRole(MINTER_ROLE, OriginChainAnchorInstance.address, { from: sender });
+    await destWrapperToken.grantRole(MINTER_ROLE, DestChainAnchorInstance.address, { from: sender });
     // create resource ID using anchor address
     resourceID = helpers.createResourceID(OriginChainAnchorInstance.address, 0);
     initialResourceIDs = [resourceID];
@@ -206,7 +228,7 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     //originToken is voted to be approved for token wrapper on origin chain
     await helpers.addTokenToWrapper(originGov, originWrapperToken, originToken, bravoAdmin, states);
     // revoke anchor permissions
-    await originWrapperToken.revokeRole(MINTER_ROLE, OriginChainAnchorInstance.address, {from: sender});
+    await originWrapperToken.revokeRole(MINTER_ROLE, OriginChainAnchorInstance.address, { from: sender });
     await originToken.mint(user1, initialTokenMintAmount);
     await originToken.approve(originWrapperToken.address, initialTokenMintAmount, { from: user1 });
     await TruffleAssert.reverts(OriginChainAnchorInstance.wrap(originToken.address, tokenDenomination, { from: user1 }),
@@ -302,10 +324,17 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     ];
     let proofEncoded = await helpers.generateWithdrawProofCallData(proof, publicSignals);
     // revoke anchor permissions
-    await destWrapperToken.revokeRole(MINTER_ROLE, DestChainAnchorInstance.address, {from: sender});
+    await destWrapperToken.revokeRole(MINTER_ROLE, DestChainAnchorInstance.address, { from: sender });
     // user1 withdraw on dest chain
-    await TruffleAssert.reverts(DestChainAnchorInstance.withdraw
-      (`0x${proofEncoded}`, ...args, { from: input.relayer, gasPrice: '0' }), 'ERC20PresetMinterPauser: must have minter role');
+    await TruffleAssert.reverts(DestChainAnchorInstance.withdraw(`0x${proofEncoded}`, {
+      _roots: args[0],
+      _nullifierHash: args[1],
+      _refreshCommitment: args[2],
+      _recipient: args[3],
+      _relayer: args[4],
+      _fee: args[5],
+      _refund: args[6],
+    }, { from: input.relayer, gasPrice: '0' }), 'ERC20PresetMinterPauser: must have minter role');
   })
 
   it('cross chain deposits and withdrawals should work', async () => {
@@ -409,8 +438,15 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     /*
     *  user1 withdraw on dest chain
     */
-    ({ logs } = await DestChainAnchorInstance.withdraw
-      (`0x${proofEncoded}`, ...args, { from: input.relayer, gasPrice: '0' }));
+    ({ logs } = await DestChainAnchorInstance.withdraw(`0x${proofEncoded}`, {
+      _roots: args[0],
+      _nullifierHash: args[1],
+      _refreshCommitment: args[2],
+      _recipient: args[3],
+      _relayer: args[4],
+      _fee: args[5],
+      _refund: args[6],
+    }, { from: input.relayer, gasPrice: '0' }));
 
     let balanceDestAnchorAfter = await destWrapperToken.balanceOf(DestChainAnchorInstance.address);
     let balanceOperatorAfter = await destWrapperToken.balanceOf(input.relayer);
@@ -535,8 +571,15 @@ contract('E2E LinkableCompTokenAnchors - Cross chain withdrawals with gov bravo'
     *  user1 withdraw on origin chain
     */
     let balanceOriginAnchorAfterDeposit = await originWrapperToken.balanceOf(OriginChainAnchorInstance.address);
-    ({ logs } = await OriginChainAnchorInstance.withdraw
-      (`0x${proofEncoded}`, ...args, { from: input.relayer, gasPrice: '0' }));
+    ({ logs } = await OriginChainAnchorInstance.withdraw(`0x${proofEncoded}`, {
+      _roots: args[0],
+      _nullifierHash: args[1],
+      _refreshCommitment: args[2],
+      _recipient: args[3],
+      _relayer: args[4],
+      _fee: args[5],
+      _refund: args[6],
+    }, { from: input.relayer, gasPrice: '0' }));
     
     let balanceOriginAnchorAfter = await originWrapperToken.balanceOf(OriginChainAnchorInstance.address);
     balanceOperatorAfter = await originWrapperToken.balanceOf(input.relayer);

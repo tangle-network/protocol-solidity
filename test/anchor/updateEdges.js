@@ -5,30 +5,50 @@
 const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
 
-const Anchor = artifacts.require("Anchor2");
-const Verifier = artifacts.require("Verifier2");
+const Anchor = artifacts.require("Anchor");
 const Hasher = artifacts.require("PoseidonT3");
+const Verifier = artifacts.require('Verifier');
+const Verifier2 = artifacts.require('Verifier2');
+const Verifier3 = artifacts.require('Verifier3');
+const Verifier4 = artifacts.require('Verifier4');
+const Verifier5 = artifacts.require('Verifier5');
+const Verifier6 = artifacts.require('Verifier6');
 const Token = artifacts.require("ERC20Mock");
 
  // This test does NOT include all getter methods, just
  // getters that should work with only the constructor called
  contract('LinkableAnchor - [update edges]', async accounts => {
   let AnchorInstance;
-  let hasher
-  let verifier
-  let token
+  let hasher;
+  let v2, v3, v4, v5, v6;
+  let verifier;
+  let token;
   const merkleTreeHeight = 31;
-  const sender = accounts[0]
+  const sender = accounts[0];
   let tokenDenomination = '1000000000000000000' // 1 ether
   // function stubs
   let setHandler;
   let setBridge;
   let addEdge;
   let updateEdge;
+  const MAX_EDGES = 1;
 
   beforeEach(async () => {
     hasher = await Hasher.new();
-    verifier = await Verifier.new();
+    await Promise.all([
+      Verifier2.new().then(instance => v2 = instance),
+      Verifier3.new().then(instance => v3 = instance),
+      Verifier4.new().then(instance => v4 = instance),
+      Verifier5.new().then(instance => v5 = instance),
+      Verifier6.new().then(instance => v6 = instance),
+    ]);
+    verifier = await Verifier.new(
+      v2.address,
+      v3.address,
+      v4.address,
+      v5.address,
+      v6.address
+    );
     token = await Token.new();
     await token.mint(sender, tokenDenomination);
     AnchorInstance = await Anchor.new(
@@ -40,6 +60,7 @@ const Token = artifacts.require("ERC20Mock");
       accounts[0],
       accounts[0],
       accounts[0],
+      MAX_EDGES,
     );
 
     setHandler = (handler, sender) => AnchorInstance.setHandler(handler, {

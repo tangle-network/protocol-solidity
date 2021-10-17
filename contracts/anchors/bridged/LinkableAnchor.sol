@@ -5,10 +5,10 @@
 
 pragma solidity ^0.8.0;
 
-import "./AnchorBase2.sol";
-import "../../../interfaces/ILinkableAnchor.sol";
+import "./AnchorBase.sol";
+import "../../interfaces/ILinkableAnchor.sol";
 
-abstract contract LinkableAnchor2 is AnchorBase2, ILinkableAnchor {
+abstract contract LinkableAnchor is AnchorBase, ILinkableAnchor {
   constructor(
     IVerifier _verifier,
     IPoseidonT3 _hasher,
@@ -16,8 +16,9 @@ abstract contract LinkableAnchor2 is AnchorBase2, ILinkableAnchor {
     uint32 _merkleTreeHeight,
     address _bridge,
     address _admin,
-    address _handler
-  ) AnchorBase2(_verifier, _hasher, _denomination, _merkleTreeHeight) {
+    address _handler,
+    uint8 _maxEdges
+  ) AnchorBase(_verifier, _hasher, _denomination, _merkleTreeHeight, _maxEdges) {
     bridge = _bridge;
     admin = _admin;
     handler = _handler;
@@ -40,7 +41,7 @@ abstract contract LinkableAnchor2 is AnchorBase2, ILinkableAnchor {
     bytes32 root,
     uint256 leafIndex
   ) onlyHandler override external payable nonReentrant {
-    require(edgeList.length < 1, "This Anchor is at capacity");
+    require(edgeList.length < maxEdges, "This Anchor is at capacity");
     edgeExistsForChain[sourceChainID] = true;
     uint index = edgeList.length;
     Edge memory edge = Edge({

@@ -14,7 +14,7 @@ import { deployAnchorHandler } from './deployments/deployAnchorHandler';
 import { setResourceId } from './setResourceId';
 
 const HasherContract = require('./json/PoseidonT3.json');
-const VerifierContract = require('./json/Verifier2.json');
+const VerifierContract = require('./json/Verifier.json');
 
 let provider = new ethers.providers.JsonRpcProvider(`${process.env.ENDPOINT}`);
 

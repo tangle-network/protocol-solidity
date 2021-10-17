@@ -5,25 +5,15 @@
 
 pragma solidity ^0.8.0;
 
-import "hardhat/console.sol";
-import "../../../interfaces/ITokenWrapper.sol";
-import "../../../interfaces/IMintableERC20.sol";
-import "./LinkableAnchor2.sol";
+import "../../interfaces/ITokenWrapper.sol";
+import "../../interfaces/IMintableERC20.sol";
+import "./LinkableAnchor.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract Anchor2 is LinkableAnchor2 {
+contract Anchor is LinkableAnchor {
   using SafeERC20 for IERC20;
   address public immutable token;
-
-  struct PublicInputs {
-    bytes32 _nullifierHash;
-    bytes32 _refreshCommitment;
-    address payable _recipient;
-    address payable _relayer;
-    uint256 _fee;
-    uint256 _refund;
-  }
 
   constructor(
     IVerifier _verifier,
@@ -33,8 +23,9 @@ contract Anchor2 is LinkableAnchor2 {
     ITokenWrapper _token,
     address _bridge,
     address _admin,
-    address _handler
-  ) LinkableAnchor2(_verifier, _hasher, _denomination, _merkleTreeHeight, _bridge, _admin, _handler) {
+    address _handler,
+    uint8 _maxEdges
+  ) LinkableAnchor(_verifier, _hasher, _denomination, _merkleTreeHeight, _bridge, _admin, _handler, _maxEdges) {
     token = address(_token);
   }
 
@@ -50,32 +41,53 @@ contract Anchor2 is LinkableAnchor2 {
     address tokenAddress,
     bytes32 _commitment
   ) public {
-    ITokenWrapper(token).wrapFor(msg.sender, tokenAddress, denomination);
-    console.log(IERC20(token).balanceOf(msg.sender));
-    this.deposit(_commitment);
+    require(!commitments[_commitment], "The commitment has been submitted");
+    // wrap the token and send directly to this contract
+    ITokenWrapper(token).wrapForAndSendTo(msg.sender, tokenAddress, denomination, address(this));
+    // insert a new commitment to the tree
+    uint32 insertedIndex = _insert(_commitment);
+    commitments[_commitment] = true;
+    // emit the deposit event
+    emit Deposit(_commitment, insertedIndex, block.timestamp);
   }
 
   function withdrawAndUnwrap(
     bytes calldata _proof,
-    bytes calldata _roots,
     PublicInputs memory _publicInputs,
     address tokenAddress
   ) external payable nonReentrant {
-    {
-      this.withdraw(
-        _proof,
-        _roots,
-        _publicInputs._nullifierHash,
-        _publicInputs._refreshCommitment,
-        payable(_publicInputs._recipient),
-        payable(_publicInputs._relayer),
-        _publicInputs._fee,
-        _publicInputs._refund
-      );
-    }
-    {
-      ITokenWrapper(token).unwrapFor(msg.sender, tokenAddress, denomination);
-    }
+    require(_publicInputs._fee <= denomination, "Fee exceeds transfer value");
+    require(!nullifierHashes[_publicInputs._nullifierHash], "The note has been already spent");
+
+    (bytes memory encodedInput, bytes32[] memory roots) = _encodeInputs(
+      _publicInputs._roots,
+      _publicInputs._nullifierHash,
+      _publicInputs._refreshCommitment,
+      address(_publicInputs._recipient),
+      address(_publicInputs._relayer),
+      _publicInputs._fee,
+      _publicInputs._refund
+    );
+    require(isValidRoots(roots), "Invalid roots");
+    require(verify(_proof, encodedInput), "Invalid withdraw proof");
+
+    nullifierHashes[_publicInputs._nullifierHash] = true;
+
+    _processWithdraw(
+      _publicInputs._recipient,
+      _publicInputs._relayer,
+      _publicInputs._fee,
+      _publicInputs._refund
+    );
+    
+    ITokenWrapper(token).unwrapFor(msg.sender, tokenAddress, denomination);
+
+    emit Withdrawal(
+      _publicInputs._recipient,
+      _publicInputs._nullifierHash,
+      _publicInputs._relayer,
+      _publicInputs._fee
+    );
   }
 
   function _processDeposit() internal override {
