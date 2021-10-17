@@ -4,9 +4,14 @@ const helpers = require('../helpers');
 const { toBN } = require('web3-utils')
 const assert = require('assert');
 const BridgeContract = artifacts.require('Bridge');
-const Anchor = artifacts.require('./Anchor2.sol');
-const Verifier = artifacts.require('./Verifier2.sol');
+const Anchor = artifacts.require('Anchor');
 const Hasher = artifacts.require('PoseidonT3');
+const Verifier = artifacts.require('Verifier');
+const Verifier2 = artifacts.require('Verifier2');
+const Verifier3 = artifacts.require('Verifier3');
+const Verifier4 = artifacts.require('Verifier4');
+const Verifier5 = artifacts.require('Verifier5');
+const Verifier6 = artifacts.require('Verifier6');
 const Token = artifacts.require('ERC20Mock');
 const AnchorHandlerContract = artifacts.require('AnchorHandler');
 
@@ -19,7 +24,6 @@ const BN = require('bn.js');
 const F = require('circomlib').babyJub.F;
 const Scalar = require('ffjavascript').Scalar;
 const MerkleTree = require('../../lib/MerkleTree');
-
 
 contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts => {
   const relayerThreshold = 1;
@@ -41,6 +45,7 @@ contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts 
   let destMerkleRoot;
   let originUpdateNonce;
   let destUpdateNonce;
+  let v2, v3, v4, v5, v6;
   let hasher, verifier;
   let originChainToken;
   let destChainToken;
@@ -63,6 +68,8 @@ contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts 
   let destUpdateDataHash;
   let destInitialContractAddresses;
 
+  const MAX_EDGES = 1;
+
   beforeEach(async () => {
     await Promise.all([
       // instantiate bridges on both sides
@@ -70,10 +77,22 @@ contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts 
       BridgeContract.new(destChainID, [relayer1Address], relayerThreshold, 0, 100).then(instance => DestBridgeInstance = instance),
       // create hasher, verifier, and tokens
       Hasher.new().then(instance => hasher = instance),
-      Verifier.new().then(instance => verifier = instance),
+      Verifier2.new().then(instance => v2 = instance),
+      Verifier3.new().then(instance => v3 = instance),
+      Verifier4.new().then(instance => v4 = instance),
+      Verifier5.new().then(instance => v5 = instance),
+      Verifier6.new().then(instance => v6 = instance),
       Token.new().then(instance => originChainToken = instance),
       Token.new().then(instance => destChainToken = instance),
     ]);
+    verifier = await Verifier.new(
+      v2.address,
+      v3.address,
+      v4.address,
+      v5.address,
+      v6.address
+    );
+
     // initialize anchors on both chains
     OriginChainAnchorInstance = await Anchor.new(
       verifier.address,
@@ -84,7 +103,8 @@ contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts 
       sender,
       sender,
       sender,
-    {from: sender});
+      MAX_EDGES,
+    { from: sender });
     DestChainAnchorInstance = await Anchor.new(
       verifier.address,
       hasher.address,
@@ -94,7 +114,8 @@ contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts 
       sender,
       sender,
       sender,
-    {from: sender});
+      MAX_EDGES,
+    { from: sender });
     // create resource ID using anchor address
     resourceID = helpers.createResourceID(OriginChainAnchorInstance.address, 0);
     initialResourceIDs = [resourceID];
@@ -154,7 +175,7 @@ contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts 
     // generate deposit commitment targeting withdrawal on destination chain
     originDeposit = helpers.generateDeposit(destChainID);
     // deposit on origin chain and define nonce
-    let { logs } = await OriginChainAnchorInstance.deposit(helpers.toFixedHex(originDeposit.commitment), {from: sender});
+    let { logs } = await OriginChainAnchorInstance.deposit(helpers.toFixedHex(originDeposit.commitment), { from: sender });
     let latestLeafIndex = logs[0].args.leafIndex;
     originUpdateNonce = latestLeafIndex;
     originMerkleRoot = await OriginChainAnchorInstance.getLastRoot();
@@ -238,8 +259,15 @@ contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts 
     */
     await destChainToken.mint(DestChainAnchorInstance.address, initialTokenMintAmount);
     let balanceDestAnchorAfterDeposit = await destChainToken.balanceOf(DestChainAnchorInstance.address);
-    ({ logs } = await DestChainAnchorInstance.withdraw
-      (`0x${proofEncoded}`, ...args, { from: input.relayer, gasPrice: '0' }));
+    ({ logs } = await DestChainAnchorInstance.withdraw(`0x${proofEncoded}`, {
+      _roots: args[0],
+      _nullifierHash: args[1],
+      _refreshCommitment: args[2],
+      _recipient: args[3],
+      _relayer: args[4],
+      _fee: args[5],
+      _refund: args[6],
+    }, { from: input.relayer, gasPrice: '0' }));
     
     let balanceDestAnchorAfter = await destChainToken.balanceOf(DestChainAnchorInstance.address);
     let balanceOperatorAfter = await destChainToken.balanceOf(input.relayer);
@@ -347,8 +375,15 @@ contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts 
     */
     await originChainToken.mint(OriginChainAnchorInstance.address, initialTokenMintAmount);
     let balanceOriginAnchorAfterDeposit = await originChainToken.balanceOf(OriginChainAnchorInstance.address);
-    ({ logs } = await OriginChainAnchorInstance.withdraw
-      (`0x${proofEncoded}`, ...args, { from: input.relayer, gasPrice: '0' }));
+    ({ logs } = await OriginChainAnchorInstance.withdraw(`0x${proofEncoded}`, {
+      _roots: args[0],
+      _nullifierHash: args[1],
+      _refreshCommitment: args[2],
+      _recipient: args[3],
+      _relayer: args[4],
+      _fee: args[5],
+      _refund: args[6],
+    }, { from: input.relayer, gasPrice: '0' }));
     
     let balanceOriginAnchorAfter = await originChainToken.balanceOf(OriginChainAnchorInstance.address);
     balanceOperatorAfter = await originChainToken.balanceOf(input.relayer);

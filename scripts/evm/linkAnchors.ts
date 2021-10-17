@@ -2,7 +2,7 @@ require('dotenv').config();
 import { ethers } from 'ethers';
 
 import { WEBB__factory } from '../../typechain/factories/WEBB__factory';
-import { WEBBAnchor2__factory } from '../../typechain/factories/WEBBAnchor2__factory';
+import { WEBBAnchor__factory } from '../../typechain/factories/WEBBAnchor__factory';
 import { Bridge__factory } from '../../typechain/factories/Bridge__factory';
 import { WEBB } from '../../typechain/WEBB';
 import { depositAnchor } from './depositAnchor';
@@ -11,11 +11,11 @@ const helpers = require('../../test/helpers');
 
 async function getAllContracts(originWallet: any, destWallet: any) {
   return {
-    chain1Anchor: WEBBAnchor2__factory.connect(process.env.CHAIN_1_WEBBAnchor!, originWallet),
+    chain1Anchor: WEBBAnchor__factory.connect(process.env.CHAIN_1_WEBBAnchor!, originWallet),
     chain1WebbToken: WEBB__factory.connect(process.env.CHAIN_1_WEBB!, originWallet),
     chain1Bridge: Bridge__factory.connect(process.env.CHAIN_1_Bridge!, originWallet),
     chain1AnchorHandler: AnchorHandler__factory.connect(process.env.CHAIN_1_AnchorHandler!, originWallet),
-    chain2Anchor: WEBBAnchor2__factory.connect(process.env.CHAIN_2_WEBBAnchor!, destWallet),
+    chain2Anchor: WEBBAnchor__factory.connect(process.env.CHAIN_2_WEBBAnchor!, destWallet),
     chain2WebbToken: WEBB__factory.connect(process.env.CHAIN_2_WEBB!, destWallet),
     chain2Bridge: Bridge__factory.connect(process.env.CHAIN_2_Bridge!, destWallet),
     chain2AnchorHandler: AnchorHandler__factory.connect(process.env.CHAIN_2_AnchorHandler!, destWallet),

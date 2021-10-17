@@ -10,9 +10,14 @@ const Helpers = require('../helpers');
 
 const BridgeContract = artifacts.require("Bridge");
 const AnchorHandlerContract = artifacts.require("AnchorHandler");
-const AnchorContract = artifacts.require("Anchor2");
-const Verifier = artifacts.require("Verifier2");
+const AnchorContract = artifacts.require("Anchor");
 const Hasher = artifacts.require("PoseidonT3");
+const Verifier = artifacts.require('Verifier');
+const Verifier2 = artifacts.require('Verifier2');
+const Verifier3 = artifacts.require('Verifier3');
+const Verifier4 = artifacts.require('Verifier4');
+const Verifier5 = artifacts.require('Verifier5');
+const Verifier6 = artifacts.require('Verifier6');
 const Token = artifacts.require("ERC20Mock");
 
 contract('Bridge - [CancelUpdateProposal with relayerThreshold == 3]', async (accounts) => {
@@ -31,6 +36,7 @@ contract('Bridge - [CancelUpdateProposal with relayerThreshold == 3]', async (ac
   const sender = accounts[5]
   let merkleRoot;
   let AnchorInstance;
+  let v2, v3, v4, v5, v6;
   let hasher, verifier;
   let token;
   let tokenDenomination = '1000'; // 1 ether
@@ -44,6 +50,7 @@ contract('Bridge - [CancelUpdateProposal with relayerThreshold == 3]', async (ac
   let initialContractAddresses;
 
   let vote;
+  const MAX_EDGES = 1;
 
   beforeEach(async () => {
     // create all contracts
@@ -58,9 +65,20 @@ contract('Bridge - [CancelUpdateProposal with relayerThreshold == 3]', async (ac
         10
       ).then(instance => BridgeInstance = instance),
       Hasher.new().then(instance => hasher = instance),
-      Verifier.new().then(instance => verifier = instance),
+      Verifier2.new().then(instance => v2 = instance),
+      Verifier3.new().then(instance => v3 = instance),
+      Verifier4.new().then(instance => v4 = instance),
+      Verifier5.new().then(instance => v5 = instance),
+      Verifier6.new().then(instance => v6 = instance),
       Token.new().then(instance => token = instance),
     ]);
+    verifier = await Verifier.new(
+      v2.address,
+      v3.address,
+      v4.address,
+      v5.address,
+      v6.address
+    );
 
     AnchorInstance = await AnchorContract.new(
       verifier.address,
@@ -71,11 +89,12 @@ contract('Bridge - [CancelUpdateProposal with relayerThreshold == 3]', async (ac
       accounts[0],
       accounts[0],
       accounts[0],
+      MAX_EDGES,
     );
 
     await token.mint(sender, tokenDenomination);
-    await token.increaseAllowance(AnchorInstance.address, 1000000000, {from: sender});
-    let { logs } = await AnchorInstance.deposit('0x1111111111111111111111111111111111111111111111111111111111111111', {from: sender});
+    await token.increaseAllowance(AnchorInstance.address, 1000000000, { from: sender });
+    let { logs } = await AnchorInstance.deposit('0x1111111111111111111111111111111111111111111111111111111111111111', { from: sender });
     let latestLeafIndex = logs[0].args.leafIndex;
     merkleRoot = await AnchorInstance.getLastRoot();
     

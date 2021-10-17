@@ -1,7 +1,7 @@
 require('dotenv').config({ path: '../.env' });
 import { ethers } from 'ethers';
-import { WEBBAnchor2__factory } from '../../../typechain/factories/WEBBAnchor2__factory';
-import { WEBBAnchor2 } from '../../../typechain/WEBBAnchor2';
+import { WEBBAnchor__factory } from '../../../typechain/factories/WEBBAnchor__factory';
+import { WEBBAnchor } from '../../../typechain/WEBBAnchor';
 
 export async function deployWEBBAnchor(
   verifierAddress: string,
@@ -13,8 +13,8 @@ export async function deployWEBBAnchor(
   adminAddress: string,
   handlerAddress: string,
   passedWallet: ethers.Signer
-): Promise<WEBBAnchor2> {
-  const WEBBAnchorFactory = new WEBBAnchor2__factory(passedWallet);
+): Promise<WEBBAnchor> {
+  const WEBBAnchorFactory = new WEBBAnchor__factory(passedWallet);
   let WEBBAnchorInstance = await WEBBAnchorFactory.deploy(
     verifierAddress,
     hasherAddress,

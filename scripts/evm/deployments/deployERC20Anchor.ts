@@ -4,8 +4,8 @@
 
 require('dotenv').config({ path: '../.env' });
 import { ethers } from 'ethers';
-import { Anchor2__factory } from '../../../typechain/factories/Anchor2__factory';
-import { Anchor2 } from '../../../typechain/Anchor2';
+import { Anchor__factory } from '../../../typechain/factories/Anchor__factory';
+import { Anchor } from '../../../typechain/Anchor';
 
 let provider = new ethers.providers.JsonRpcProvider(`${process.env.ENDPOINT}`);
 
@@ -21,8 +21,8 @@ export async function deployERC20Anchor(
   adminAddress: string,
   handlerAddress: string,
   passedWallet: ethers.Signer
-): Promise<Anchor2> {
-  const ERC20AnchorFactory = new Anchor2__factory(wallet);
+): Promise<Anchor> {
+  const ERC20AnchorFactory = new Anchor__factory(wallet);
   let ERC20Anchor = await ERC20AnchorFactory.deploy(
     verifierAddress,
     hasherAddress,

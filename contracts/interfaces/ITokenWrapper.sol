@@ -13,5 +13,6 @@ interface ITokenWrapper {
   function wrap(address tokenAddress, uint256 amount) external;
   function unwrap(address tokenAddress, uint256 amount) external;
   function wrapFor(address sender, address tokenAddress, uint256 amount) external;
+  function wrapForAndSendTo(address sender, address tokenAddress, uint256 amount, address mintRecipient) external;
   function unwrapFor(address sender, address tokenAddress, uint256 amount) external;
 }

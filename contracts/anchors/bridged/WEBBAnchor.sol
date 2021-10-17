@@ -5,13 +5,13 @@
 
 pragma solidity ^0.8.0;
 
-import "../../../interfaces/ITokenWrapper.sol";
-import "../../../interfaces/IMintableERC20.sol";
-import "./LinkableAnchor2.sol";
+import "../../tokens/CompToken.sol";
+import "../../interfaces/IMintableCompToken.sol";
+import "./LinkableAnchor.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract Anchor2 is LinkableAnchor2 {
+contract WEBBAnchor is LinkableAnchor {
   using SafeERC20 for IERC20;
   address public immutable token;
 
@@ -20,20 +20,13 @@ contract Anchor2 is LinkableAnchor2 {
     IPoseidonT3 _hasher,
     uint256 _denomination,
     uint32 _merkleTreeHeight,
-    ITokenWrapper _token,
+    IMintableCompToken _token,
     address _bridge,
     address _admin,
-    address _handler
-  ) LinkableAnchor2(_verifier, _hasher, _denomination, _merkleTreeHeight, _bridge, _admin, _handler) {
+    address _handler,
+    uint8 _maxEdges
+  ) LinkableAnchor(_verifier, _hasher, _denomination, _merkleTreeHeight, _bridge, _admin, _handler, _maxEdges) {
     token = address(_token);
-  }
-  
-  function wrap(address tokenAddress, uint256 amount) public {
-    ITokenWrapper(token).wrapFor(msg.sender, tokenAddress, amount);
-  }
-
-  function unwrap(address tokenAddress, uint256 amount) public {
-    ITokenWrapper(token).unwrapFor(msg.sender, tokenAddress, amount);
   }
 
   function _processDeposit() internal override {
