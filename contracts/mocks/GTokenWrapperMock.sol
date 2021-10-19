@@ -13,5 +13,5 @@ contract GTokenWrapperMock is GovernedTokenWrapper {
      * @notice Construct a new Comp token
      */
     constructor(string memory name, string memory symbol, address governor, uint256 limit)
-      GovernedTokenWrapper(name, symbol, governor, limit) {}
+      GovernedTokenWrapper(name, symbol, governor, limit, true) {}
 }

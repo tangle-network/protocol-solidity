@@ -17,23 +17,21 @@ contract GovernedTokenWrapper is TokenWrapper {
   address[] public tokens;
   mapping (address => bool) valid;
 
+  bool isNativeAllowed;
   uint256 public wrappingLimit;
 
-  constructor(string memory name, string memory symbol, address _governor, uint256 _limit) TokenWrapper(name, symbol) {
+  constructor(string memory name, string memory symbol, address _governor, uint256 _limit, bool _isNativeAllowed) TokenWrapper(name, symbol) {
     governor = _governor;
     wrappingLimit = _limit;
+    isNativeAllowed = _isNativeAllowed;
   }
 
   function setGovernor(address _governor) public onlyGovernor {
     governor = _governor;
   }
 
-  function _isValidAddress(address tokenAddress) override internal virtual returns (bool) {
-    return valid[tokenAddress];
-  }
-
-  function _isValidAmount(uint256 amount) override internal virtual returns (bool) {
-    return amount + this.totalSupply() <= wrappingLimit;
+  function setNativeAllowed(bool _isNativeAllowed) public onlyGovernor {
+    isNativeAllowed = _isNativeAllowed;
   }
 
   function add(address tokenAddress) public onlyGovernor {
@@ -44,6 +42,18 @@ contract GovernedTokenWrapper is TokenWrapper {
 
   function updateLimit(uint256 limit) public onlyGovernor {
     wrappingLimit = limit;
+  }
+
+  function _isValidAddress(address tokenAddress) override internal virtual returns (bool) {
+    return valid[tokenAddress];
+  }
+
+  function _isValidAmount(uint256 amount) override internal virtual returns (bool) {
+    return amount + this.totalSupply() <= wrappingLimit;
+  }
+
+  function _isNativeValid() override internal virtual returns (bool) {
+    return isNativeAllowed;
   }
 
   function getTokens() external view returns (address[] memory) {
