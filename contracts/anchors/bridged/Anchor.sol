@@ -29,21 +29,34 @@ contract Anchor is LinkableAnchor {
     token = address(_token);
   }
 
-  function wrap(address tokenAddress, uint256 amount) public {
+  function wrapToken(address tokenAddress, uint256 amount) public {
     ITokenWrapper(token).wrapFor(msg.sender, tokenAddress, amount);
   }
 
-  function unwrap(address tokenAddress, uint256 amount) public {
+  function unwrapIntoToken(address tokenAddress, uint256 amount) public {
+    ITokenWrapper(token).unwrapFor(msg.sender, tokenAddress, amount);
+  }
+
+  function wrapNative() payable public {
+    ITokenWrapper(token).wrapFor{value: msg.value}(msg.sender, address(0), 0);
+  }
+
+  function unwrapIntoNative(address tokenAddress, uint256 amount) public {
     ITokenWrapper(token).unwrapFor(msg.sender, tokenAddress, amount);
   }
 
   function wrapAndDeposit(
     address tokenAddress,
     bytes32 _commitment
-  ) public {
+  ) payable public {
     require(!commitments[_commitment], "The commitment has been submitted");
-    // wrap the token and send directly to this contract
-    ITokenWrapper(token).wrapForAndSendTo(msg.sender, tokenAddress, denomination, address(this));
+    // wrap into the token and send directly to this contract
+    ITokenWrapper(token).wrapForAndSendTo{value: msg.value}(
+        msg.sender,
+        tokenAddress,
+        denomination,
+        address(this)
+    );
     // insert a new commitment to the tree
     uint32 insertedIndex = _insert(_commitment);
     commitments[_commitment] = true;

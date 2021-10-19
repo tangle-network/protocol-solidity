@@ -28,13 +28,19 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
         @param tokenAddress Address of ERC20 to transfer.
         @param amount Amount of tokens to transfer.
      */
-    function wrap(address tokenAddress, uint256 amount) override public {
-        require(_isValidAddress(tokenAddress), "Invalid token address");
-        require(_isValidAmount(amount), "Invalid token amount");
-        // transfer liquidity to the token wrapper
-        IERC20(tokenAddress).transferFrom(_msgSender(), address(this), amount);
-        // mint the wrapped token for the sender
-        _mint(_msgSender(), amount);
+    function wrap(
+        address tokenAddress,
+        uint256 amount
+    ) override payable public isValidWrapping(tokenAddress, amount) {
+        if (tokenAddress == address(0)) {
+            // mint the native value sent to the contract
+            _mint(_msgSender(), msg.value);
+        } else {
+            // transfer liquidity to the token wrapper
+            IERC20(tokenAddress).transferFrom(_msgSender(), address(this), amount);
+            // mint the wrapped token for the sender
+            _mint(_msgSender(), amount);
+        }
     }
 
     /**
@@ -42,59 +48,122 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
         @param tokenAddress Address of ERC20 to unwrap into.
         @param amount Amount of tokens to burn.
      */
-    function unwrap(address tokenAddress, uint256 amount) override public {
-        require(_isValidAddress(tokenAddress), "Invalid token address");
-        require(_isValidAmount(amount), "Invalid token amount");
+    function unwrap(
+        address tokenAddress,
+        uint256 amount
+    ) override public isValidUnwrapping(tokenAddress, amount) {
         // burn wrapped token from sender
         _burn(_msgSender(), amount);
-        // transfer liquidity from the token wrapper to the sender
-        IERC20(tokenAddress).transfer(_msgSender(), amount);
+        // unwrap liquidity and send to the sender
+        if (tokenAddress == address(0)) {
+            // transfer native liquidity from the token wrapper to the sender
+            payable(msg.sender).transfer(amount);
+        } else {
+            // transfer ERC20 liquidity from the token wrapper to the sender
+            IERC20(tokenAddress).transfer(_msgSender(), amount);
+        }
     }
 
     /**
         @notice Used to wrap tokens on behalf of a sender
+        @param sender Address of sender where assets are sent from.
         @param tokenAddress Address of ERC20 to transfer.
         @param amount Amount of tokens to transfer.
      */
-    function wrapFor(address sender, address tokenAddress, uint256 amount) override public {
-        require(hasRole(MINTER_ROLE, msg.sender), "ERC20PresetMinterPauser: must have minter role");
-        require(_isValidAddress(tokenAddress), "Invalid token address");
-        require(_isValidAmount(amount), "Invalid token amount");
-        // transfer liquidity to the token wrapper
-        IERC20(tokenAddress).transferFrom(sender, address(this), amount);
-        // mint the wrapped token for the sender
-        mint(sender, amount);
+    function wrapFor(
+        address sender,
+        address tokenAddress,
+        uint256 amount
+    ) override payable public isMinter() isValidWrapping(tokenAddress, amount) {
+        if (tokenAddress == address(0)) {
+            mint(sender, msg.value);
+        } else {
+            // transfer liquidity to the token wrapper
+            IERC20(tokenAddress).transferFrom(sender, address(this), amount);
+            // mint the wrapped token for the sender
+            mint(sender, amount);
+        }
     }
+
     /**
-        @notice Used to wrap tokens and mint the wrapped tokens to a potentially different recipient
+        @notice Used to wrap tokens on behalf of a sender and mint to a potentially different address
+        @param sender Address of sender where assets are sent from.
+        @param tokenAddress Address of ERC20 to transfer.
+        @param amount Amount of tokens to transfer.
+        @param recipient Recipient of the wrapped tokens.
      */
-    function wrapForAndSendTo(address sender, address tokenAddress, uint256 amount, address recipient) override public {
-        require(hasRole(MINTER_ROLE, msg.sender), "ERC20PresetMinterPauser: must have minter role");
-        require(_isValidAddress(tokenAddress), "Invalid token address");
-        require(_isValidAmount(amount), "Invalid token amount");
-        // transfer liquidity to the token wrapper
-        IERC20(tokenAddress).transferFrom(sender, address(this), amount);
-        // mint the wrapped token for the sender
-        mint(recipient, amount);
+    function wrapForAndSendTo(
+        address sender,
+        address tokenAddress,
+        uint256 amount,
+        address recipient
+    ) override payable public isMinter() isValidWrapping(tokenAddress, amount) {
+        if (tokenAddress == address(0)) {
+            mint(recipient, msg.value);
+        } else {
+            // transfer liquidity to the token wrapper
+            IERC20(tokenAddress).transferFrom(sender, address(this), amount);
+            // mint the wrapped token for the recipient
+            mint(recipient, amount);
+        }
     }
+
     /**
         @notice Used to unwrap/burn the wrapper token.
         @param tokenAddress Address of ERC20 to unwrap into.
         @param amount Amount of tokens to burn.
      */
-    function unwrapFor(address sender, address tokenAddress, uint256 amount) override public {
-        require(hasRole(MINTER_ROLE, msg.sender), "ERC20PresetMinterPauser: must have minter role");
-        require(_isValidAddress(tokenAddress), "Invalid token address");
-        require(_isValidAmount(amount), "Invalid token amount");
+    function unwrapFor(
+        address sender,
+        address tokenAddress,
+        uint256 amount
+    ) override public isMinter() isValidUnwrapping(tokenAddress, amount) {
         // burn wrapped token from sender
         _burn(sender, amount);
-        // transfer liquidity from the token wrapper to the sender
-        IERC20(tokenAddress).transfer(sender, amount);
+        if (tokenAddress == address(0)) {
+            payable(sender).transfer(amount);
+        } else {
+            // transfer liquidity from the token wrapper to the sender
+            IERC20(tokenAddress).transfer(sender, amount);
+        }
     }
 
     /** @dev this function is defined in a child contract */
     function _isValidAddress(address tokenAddress) internal virtual returns (bool);
 
     /** @dev this function is defined in a child contract */
+    function _isNativeValid() internal virtual returns (bool);
+
+    /** @dev this function is defined in a child contract */
     function _isValidAmount(uint256 amount) internal virtual returns (bool);
+
+    modifier isMinter() {
+        require(hasRole(MINTER_ROLE, msg.sender), "ERC20PresetMinterPauser: must have minter role");
+        _;
+    }
+
+    modifier isValidWrapping(address tokenAddress, uint256 amount) {
+        if (tokenAddress == address(0)) {
+            require(amount == 0, "Invalid amount provided for native wrapping");
+            require(_isNativeValid(), "Native wrapping is not allowed for this token wrapper");
+        } else {
+            require(msg.value == 0, "Invalid value sent for wrapping");
+            require(_isValidAddress(tokenAddress), "Invalid token address");
+        }
+        
+        require(_isValidAmount(amount), "Invalid token amount");
+        _;
+    }
+
+    modifier isValidUnwrapping(address tokenAddress, uint256 amount) {
+        if (tokenAddress == address(0)) {
+            require(address(this).balance >= amount, "Insufficient native balance");
+            require(_isNativeValid(), "Native unwrapping is not allowed for this token wrapper");
+        } else {
+            require(IERC20(tokenAddress).balanceOf(address(this)) >= amount, "Insufficient ERC20 balance");
+            require(_isValidAddress(tokenAddress), "Invalid token address");
+        }
+
+        _;
+    }
 }
