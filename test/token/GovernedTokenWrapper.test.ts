@@ -13,7 +13,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
  
  const helpers = require('../../lib/darkwebb/utils');
  
- describe('Anchor', () => {
+ describe('GovernedTokenWrapper', () => {
   let token: ERC20Class;
   let wrappedToken: GovernedTokenWrapperClass;
   let tokenDenomination = '1000000000000000000' // 1 ether
@@ -40,7 +40,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
   });
  
   describe('#constructor', () => {
-    it.only('should initialize', async () => {
+    it('should initialize', async () => {
       assert.strictEqual((await wrappedToken.contract.name()), wrappedTokenName);
       assert.strictEqual((await wrappedToken.contract.symbol()), wrappedTokenSymbol);
       assert.strictEqual((await wrappedToken.contract.governor()), sender.address);
