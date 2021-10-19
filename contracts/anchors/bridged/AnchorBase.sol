@@ -7,9 +7,10 @@ pragma solidity ^0.8.0;
 
 import "../../trees/MerkleTreePoseidon.sol";
 import "../../interfaces/IVerifier.sol";
+import "../../interfaces/IAnchor.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-abstract contract AnchorBase is MerkleTreePoseidon, ReentrancyGuard {
+abstract contract AnchorBase is MerkleTreePoseidon, ReentrancyGuard, IAnchor {
   address public bridge;
   address public admin;
   address public handler;
@@ -17,16 +18,6 @@ abstract contract AnchorBase is MerkleTreePoseidon, ReentrancyGuard {
   IVerifier public immutable verifier;
   uint256 public immutable denomination;
   uint8 public immutable maxEdges;
-
-  struct PublicInputs {
-    bytes _roots;
-    bytes32 _nullifierHash;
-    bytes32 _refreshCommitment;
-    address payable _recipient;
-    address payable _relayer;
-    uint256 _fee;
-    uint256 _refund;
-  }
 
   struct Edge {
     uint256 chainID;
@@ -88,7 +79,7 @@ abstract contract AnchorBase is MerkleTreePoseidon, ReentrancyGuard {
     @dev Deposit funds into the contract. The caller must send (for ETH) or approve (for ERC20) value equal to or `denomination` of this instance.
     @param _commitment the note commitment = Poseidon(chainId, nullifier, secret)
   */
-  function deposit(bytes32 _commitment) external payable nonReentrant {
+  function deposit(bytes32 _commitment) override external payable nonReentrant {
     require(!commitments[_commitment], "The commitment has been submitted");
 
     uint32 insertedIndex = _insert(_commitment);
@@ -237,7 +228,7 @@ abstract contract AnchorBase is MerkleTreePoseidon, ReentrancyGuard {
   function withdraw(
     bytes calldata _proof,
     PublicInputs calldata _publicInputs
-  ) external payable nonReentrant {
+  ) override external payable nonReentrant {
     require(_publicInputs._fee <= denomination, "Fee exceeds transfer value");
     require(!nullifierHashes[_publicInputs._nullifierHash], "The note has been already spent");
 
@@ -404,4 +395,11 @@ abstract contract AnchorBase is MerkleTreePoseidon, ReentrancyGuard {
     assembly { chainId := chainid() }
     return chainId;
   }
+
+  function getDenomination() override  external view returns (uint) {
+    return denomination;
+  }
+
+
+
 }

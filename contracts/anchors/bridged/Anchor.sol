@@ -127,4 +127,8 @@ contract Anchor is LinkableAnchor {
       }
     }
   }
+
+  function getToken() override external view returns (address) {
+    return token;
+  }
 }
