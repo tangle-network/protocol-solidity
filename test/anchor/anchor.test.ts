@@ -228,7 +228,6 @@ describe('Anchor', () => {
       assert.strictEqual(isSpent, false)
 
       let receipt = await anchor.withdraw(deposit, index, recipient, relayer.address, fee, bigInt(0));
-
       const filter = anchor.contract.filters.Withdrawal(null, null, relayer.address, null);
       const events = await anchor.contract.queryFilter(filter, receipt.blockHash);
 

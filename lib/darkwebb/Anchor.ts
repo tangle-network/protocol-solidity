@@ -12,7 +12,7 @@ const snarkjs = require('snarkjs');
 const F = require('circomlib').babyJub.F;
 const Scalar = require('ffjavascript').Scalar;
 
-interface AnchorDepositInfo {
+export interface AnchorDepositInfo {
   chainID: BigInt,
   secret: BigInt,
   nullifier: BigInt,
@@ -20,7 +20,7 @@ interface AnchorDepositInfo {
   nullifierHash: string,
 };
 
-interface IPublicInputs {
+export interface IPublicInputs {
   _roots: string;
   _nullifierHash: string;
   _refreshCommitment: string;
@@ -44,6 +44,7 @@ class Anchor {
   circuitZkeyPath: string;
   circuitWASMPath: string;
 
+  token?: string;
   denomination?: string;
 
   private constructor(
@@ -89,6 +90,7 @@ class Anchor {
     const createdAnchor = new Anchor(anchor, signer, merkleTreeHeight);
     createdAnchor.latestSyncedBlock = anchor.deployTransaction.blockNumber!;
     createdAnchor.denomination = denomination.toString();
+    createdAnchor.token = token;
     return createdAnchor;
   }
 
@@ -101,7 +103,7 @@ class Anchor {
     const anchor = Anchor__factory.connect(address, signer);
     const treeHeight = await anchor.levels();
     const createdAnchor = new Anchor(anchor, signer, treeHeight);
-
+    createdAnchor.token = await anchor.token();
     return createdAnchor;
   }
 
@@ -285,7 +287,7 @@ class Anchor {
     return proofEncoded;
   }
 
-  public async withdraw(
+  public async setupWithdraw(
     deposit: AnchorDepositInfo,
     index: number,
     recipient: string,
@@ -324,7 +326,30 @@ class Anchor {
     ];
 
     const publicInputs = Anchor.convertArgsArrayToStruct(args);
+    return {
+      input,
+      args,
+      proofEncoded,
+      publicInputs,
+    };
+  }
 
+  public async withdraw(
+    deposit: AnchorDepositInfo,
+    index: number,
+    recipient: string,
+    relayer: string,
+    fee: bigint,
+    refreshCommitment: string | number,
+  ) {
+    const { args, input, proofEncoded, publicInputs } = await this.setupWithdraw(
+      deposit,
+      index,
+      recipient,
+      relayer,
+      fee,
+      refreshCommitment,
+    );
     //@ts-ignore
     let tx = await this.contract.withdraw(
       `0x${proofEncoded}`,
