@@ -10,9 +10,9 @@ pragma solidity ^0.8.0;
     @author Webb Technologies.
  */
 interface ITokenWrapper {
-  function wrap(address tokenAddress, uint256 amount) external;
+  function wrap(address tokenAddress, uint256 amount) payable external;
   function unwrap(address tokenAddress, uint256 amount) external;
-  function wrapFor(address sender, address tokenAddress, uint256 amount) external;
-  function wrapForAndSendTo(address sender, address tokenAddress, uint256 amount, address mintRecipient) external;
+  function wrapFor(address sender, address tokenAddress, uint256 amount) payable external;
+  function wrapForAndSendTo(address sender, address tokenAddress, uint256 amount, address mintRecipient) payable external;
   function unwrapFor(address sender, address tokenAddress, uint256 amount) external;
 }

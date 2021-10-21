@@ -228,7 +228,6 @@ describe('Anchor', () => {
       assert.strictEqual(isSpent, false)
 
       let receipt = await anchor.withdraw(deposit, index, recipient, relayer.address, fee, bigInt(0));
-      //console.log(receipt);
       const filter = anchor.contract.filters.Withdrawal(null, null, relayer.address, null);
       const events = await anchor.contract.queryFilter(filter, receipt.blockHash);
 
@@ -664,7 +663,7 @@ describe('Anchor', () => {
       const name = 'webbETH';
       const symbol = 'webbETH';
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
-      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000');
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
       await wrappedToken.add(token.address);
 
@@ -712,7 +711,7 @@ describe('Anchor', () => {
       const name = 'webbETH';
       const symbol = 'webbETH';
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
-      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000');
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
       await wrappedToken.add(token.address);
 
