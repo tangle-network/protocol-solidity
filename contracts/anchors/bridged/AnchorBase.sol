@@ -5,6 +5,7 @@
 
 pragma solidity ^0.8.0;
 
+import "hardhat/console.sol";
 import "../../trees/MerkleTreePoseidon.sol";
 import "../../interfaces/IVerifier.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -60,8 +61,6 @@ abstract contract AnchorBase is MerkleTreePoseidon, ReentrancyGuard {
   // bridge events
   event EdgeAddition(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
   event EdgeUpdate(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
-  event RootHistoryRecorded(uint timestamp, bytes32[1] roots);
-  event RootHistoryUpdate(uint timestamp, bytes32[1] roots);
 
   /**
     @dev The constructor
@@ -238,6 +237,7 @@ abstract contract AnchorBase is MerkleTreePoseidon, ReentrancyGuard {
     bytes calldata _proof,
     PublicInputs calldata _publicInputs
   ) external payable nonReentrant {
+    console.logBytes( _publicInputs._roots);
     require(_publicInputs._fee <= denomination, "Fee exceeds transfer value");
     require(!nullifierHashes[_publicInputs._nullifierHash], "The note has been already spent");
 
@@ -250,6 +250,8 @@ abstract contract AnchorBase is MerkleTreePoseidon, ReentrancyGuard {
       _publicInputs._fee,
       _publicInputs._refund
     );
+
+    console.logBytes32(roots[0]);
 
     require(isValidRoots(roots), "Invalid roots");
     require(verify(_proof, encodedInput), "Invalid withdraw proof");
@@ -345,14 +347,17 @@ abstract contract AnchorBase is MerkleTreePoseidon, ReentrancyGuard {
   }
 
   /** @dev */
-  function getLatestNeighborRoots() public view returns (bytes32[1] memory roots) {
-    for (uint256 i = 0; i < 1; i++) {
+  function getLatestNeighborRoots() public view returns (bytes32[] memory roots) {
+    roots = new bytes32[](maxEdges);
+    for (uint256 i = 0; i < maxEdges; i++) {
       if (edgeList.length >= i + 1) {
         roots[i] = edgeList[i].root;
       } else {
-        roots[i] = bytes32(0x0);
+        // merkle tree height for zeros
+        roots[i] = zeros(levels);
       }
     }
+    
   }
 
   /** @dev */

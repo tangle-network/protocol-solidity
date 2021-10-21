@@ -167,6 +167,10 @@ export class MerkleTree {
     return index;
   }
 
+  number_of_elements() {
+    return this.totalElements;
+  }
+
   path(index: number) {
     const traverser = new PathTraverser(this.prefix, this.storage, this.zeroValues);
     const root = this.storage.getOrDefault(
@@ -178,9 +182,9 @@ export class MerkleTree {
 
     this.traverse(index, traverser);
     return {
-      root,
+      merkleRoot: root,
       pathElements: traverser.pathElements,
-      pathIndex: traverser.pathIndex,
+      pathIndices: traverser.pathIndex,
       element,
     };
   }

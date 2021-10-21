@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 import { ERC20__factory } from '../../../typechain/factories/ERC20__factory';
-require('dotenv').config({ path: '../.env' });
+require('dotenv').config();
 
 export async function getTokenBalance(
   tokenAddress: string,

@@ -176,24 +176,4 @@ const Token = artifacts.require("ERC20Mock");
       ev.height == edgeUpdated.height && ev.merkleRoot == edgeUpdated.root
     });
   });
-
-  it('Updating edge should emit correct RootHistoryUpdate event', async () => {
-    const edge = {
-      sourceChainID: '0x01',
-      root: '0x1111111111111111111111111111111111111111111111111111111111111111',
-      latestLeafIndex: 100,
-    };
-    const edgeUpdated = {
-      sourceChainID: '0x01',
-      root: '0x2222111111111111111111111111111111111111111111111111111111111111',
-      latestLeafIndex: 101,
-    };
-    await addEdge(edge, accounts[0]);
-    const result = await updateEdge(edgeUpdated, accounts[0]);
-    const roots = await AnchorInstance.getLatestNeighborRoots();
-
-    TruffleAssert.eventEmitted(result, 'RootHistoryUpdate', (ev) => {
-      return ev.roots[0]  == roots[0]
-    });
-  });
 });
