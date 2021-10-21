@@ -935,7 +935,7 @@ describe('Anchor for 4 max edges', () => {
     }
   })
 
-  it.only('should withdraw successfully', async () => {
+  it('should withdraw successfully', async () => {
     const signers = await ethers.getSigners();
     const sender = signers[0];
     const relayer = signers[1];

@@ -954,7 +954,7 @@ describe('multichain tests', () => {
       await bridge.deposit(31337, webbTokenName, '1000000000000000000', ganacheWallet4);
     })
 
-    it.only('should withdraw successfully from latest deposits on all chains', async () => {
+    it('should withdraw successfully from latest deposits on all chains', async () => {
       // Fetch information about the anchor to be updated.
       const signers = await ethers.getSigners();
       const anchorSize = '1000000000000000000';
