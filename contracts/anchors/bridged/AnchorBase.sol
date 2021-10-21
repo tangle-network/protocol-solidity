@@ -399,7 +399,4 @@ abstract contract AnchorBase is MerkleTreePoseidon, ReentrancyGuard, IAnchor {
   function getDenomination() override  external view returns (uint) {
     return denomination;
   }
-
-
-
 }

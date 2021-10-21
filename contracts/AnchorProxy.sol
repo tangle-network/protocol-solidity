@@ -13,8 +13,11 @@ contract AnchorProxy {
   using SafeERC20 for IERC20;
 
   event InstanceStateUpdated(IAnchor indexed instance, InstanceState state);
+  event AnchorProxyDeposit(IAnchor indexed anchor, bytes32 indexed commitment, uint256 timestamp);
 
   enum InstanceState { DISABLED, ENABLED, MINEABLE }
+
+  event EncryptedNote(address indexed sender, bytes encryptedNote);
   
   struct Instance {
     IERC20 token;
@@ -50,8 +53,8 @@ contract AnchorProxy {
 
   function deposit(
     IAnchor _anchor,
-    bytes32 _commitment
-    //bytes calldata _encryptedNote
+    bytes32 _commitment,
+    bytes calldata _encryptedNote
   ) public payable virtual {
     Instance memory instance = instances[_anchor];
     require(instance.state != InstanceState.DISABLED, "The instance is not supported");
@@ -64,7 +67,8 @@ contract AnchorProxy {
     if (instance.state == InstanceState.MINEABLE) {
       anchorTrees.registerDeposit(address(_anchor), _commitment);
     }
-    //emit EncryptedNote(msg.sender, _encryptedNote);
+    emit EncryptedNote(msg.sender, _encryptedNote);
+    emit AnchorProxyDeposit(_anchor, _commitment, block.timestamp);
   }
 
 
@@ -94,8 +98,13 @@ contract AnchorProxy {
     } else if (_anchor.instance.state == InstanceState.DISABLED && allowance != 0) {
         token.safeApprove(address(_anchor.addr), 0);
     }
-    
     emit InstanceStateUpdated(_anchor.addr, _anchor.instance.state);
   }
 
+  function backupNotes(bytes[] calldata _encryptedNotes) external virtual {
+    for (uint256 i = 0; i < _encryptedNotes.length; i++) {
+      emit EncryptedNote(msg.sender, _encryptedNotes[i]);
+    }
+  }
+  
 }
