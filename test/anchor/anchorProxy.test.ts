@@ -133,14 +133,14 @@
     })
   
     describe('#constructor', () => {
-      it.only('should initialize', async () => {
+      it('should initialize', async () => {
         const governanceAddress = await anchorProxy.contract.governance()
         assert.strictEqual(governanceAddress.toString(), governanceDummyAddress.toString());
       });
     })
 
     describe('#deposit', () => {
-      it.only('should emit event, balances should be correct', async () => {
+      it('should emit event, balances should be correct', async () => {
           let { deposit, index } = await anchorProxy.deposit(anchor1.contract.address, chainID);
 
           const filter = anchorProxy.contract.filters.AnchorProxyDeposit(null, helpers.toFixedHex(deposit.commitment), null);
@@ -159,7 +159,7 @@
           assert.strictEqual(anchor2Balance.toString(), zero.toString());
       });
 
-      it.only('should throw if there is a such commitment', async () => {
+      it('should throw if there is a such commitment', async () => {
         const commitment = helpers.toFixedHex(42)
   
         await TruffleAssert.passes(anchorProxy.contract.deposit(anchor1.contract.address, commitment, '0x000000'));
@@ -181,7 +181,7 @@
     })
 
     describe('#withdraw', () => {
-      it.only('should work', async () => {
+      it('should work', async () => {
         const signers = await ethers.getSigners();
         const sender = signers[0];
         const relayer = signers[1];
@@ -201,9 +201,6 @@
         assert.strictEqual(isSpent, false)
   
         let receipt = await anchorProxy.withdraw(anchor1.contract.address, deposit, index, recipient, relayer.address, fee, bigInt(0));
-        //console.log(receipt);
-        //const filter = anchor1.contract.filters.Withdrawal(null, null, relayer.address, null);
-        //const events = await anchor1.contract.queryFilter(filter, receipt.blockHash);
   
         const balanceAnchorAfter = await token.balanceOf(anchor1.contract.address)
         const balanceRelayerAfter = await token.balanceOf(relayer.address)
@@ -213,9 +210,6 @@
         assert.strictEqual(balanceReceiverAfter.toString(), toBN(balanceReceiverBefore).add(toBN(value)).sub(feeBN).toString())
         assert.strictEqual(balanceRelayerAfter.toString(), toBN(balanceRelayerBefore).add(feeBN).toString())
   
-        // assert.strictEqual(events[0].event, 'Withdrawal')
-        // assert.strictEqual(events[0].args[1], helpers.toFixedHex(deposit.nullifierHash))
-        // assert.strictEqual(events[0].args[3].toString(), feeBN.toString());
         isSpent = await anchor1.contract.isSpent(helpers.toFixedHex(deposit.nullifierHash))
         assert(isSpent);
       });  
