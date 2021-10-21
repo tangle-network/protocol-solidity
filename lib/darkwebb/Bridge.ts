@@ -15,6 +15,24 @@ type AnchorIdentifier = {
   chainId: number;
 };
 
+// The AnchorMetadata holds information about anchors such as:
+//   - The amount they hold
+// type AnchorMetadata = {
+//   tokenType: TokenType,
+//   depositedAmount: ethers.BigNumberish,
+// }
+
+// type AnchorWithMetadata = {
+//   metadata: AnchorWithMetadata;
+//   anchor: Anchor;
+// }
+
+// enum TokenType {
+//   webb,
+//   erc20,
+//   native,
+// };
+
 type AnchorQuery = {
   tokenName?: string;
   anchorSize?: ethers.BigNumberish;
@@ -27,19 +45,6 @@ type TokenIdentifier = {
   chainId: number;
 }
 
-type NewAssetDetails = {
-  assetName: string;
-  assetSymbol: string;
-};
-
-export type NewAssetInput = {
-  // The name of the asset that will be created for the bridge.
-  // It will be ERC20 compliant - 18 decimals
-  asset: NewAssetDetails;
-  // An array for anchors which should be created with given size for the asset
-  anchorSizes: ethers.BigNumberish[];
-};
-
 export type ExistingAssetInput = {
   // A record of chainId => address
   asset: Record<number, string>;
@@ -50,7 +55,7 @@ export type ExistingAssetInput = {
 export type BridgeInput = {
 
   // The tokens and anchors which should be supported after deploying from this bridge input
-  anchorInputs: (NewAssetInput|ExistingAssetInput)[],
+  anchorInputs: ExistingAssetInput[],
 
   // The IDs of the chains to deploy to
   chainIDs: number[],
@@ -60,7 +65,7 @@ export type BridgeConfig = {
 
   // The addresses of tokens available to be transferred over this bridge config
   // {tokenIdentifier} => tokenAddress
-  tokenAddresses: Map<string, string>;
+  webbTokenAddresses: Map<string, string>;
 
   // The addresses of the anchors for a token
   // {anchorIdentifier} => anchorAddress
@@ -77,7 +82,10 @@ class Bridge {
     public bridgeSides: Map<number, BridgeSide>,
 
     // {tokenIdentifier} => tokenAddress
-    public tokenAddresses: Map<string, string>,
+    public webbTokenAddresses: Map<string, string>,
+
+    // erc20 token addresses
+    private tokenAddresses: Map<string, string>,
 
     // Mapping of resourceID => linkedAnchor[]; so we know which
     // anchors need updating when the anchor for resourceID changes state.
@@ -85,6 +93,7 @@ class Bridge {
 
     // Mapping of anchorIdString => Anchor for easy anchor access
     public anchors: Map<string, Anchor>,
+
   ) {}
 
   public static createAnchorIdString(anchorIdentifier: AnchorIdentifier): string {
@@ -159,12 +168,12 @@ class Bridge {
     }
 
     const linkedAnchors = await Bridge.createLinkedAnchorMap(groupLinkedAnchors);
-    return new Bridge(bridgeConfig.bridgeSides, bridgeConfig.tokenAddresses, linkedAnchors, bridgeConfig.anchors);
+    return new Bridge(bridgeConfig.bridgeSides, bridgeConfig.webbTokenAddresses, linkedAnchors, bridgeConfig.anchors);
   }
 
   public static async deployBridge(bridgeInput: BridgeInput, deployers: DeployerConfig): Promise<Bridge> {
     
-    let tokenAddresses: Map<string, string> = new Map();
+    let webbTokenAddresses: Map<string, string> = new Map();
     let bridgeSides: Map<number, BridgeSide> = new Map();
     let anchors: Map<string, Anchor> = new Map();
     // createdAnchors have the form of [[Anchors created on chainID], [...]]
@@ -195,20 +204,11 @@ class Bridge {
 
       // loop through all the tokens defined in the config
       for (let token of bridgeInput.anchorInputs) {
-        let originalToken: MintableToken | null = null;
-        let tokenInstance: MintableToken;
-        if ("assetName" in token.asset) {
-          tokenInstance = await MintableToken.createToken(token.asset.assetName, token.asset.assetSymbol, deployers[chainID]);
-        }
-        else {
-          // Should create the new webbToken, and pass this address down to the Anchor.
-          // Set some flag on the Anchor to mark it to use wrapAndDeposit / withdrawAndUnwrap
-          originalToken = await MintableToken.tokenFromAddress(token.asset[chainID], deployers[chainID]);
-          tokenInstance = await MintableToken.createToken(`webb${originalToken.name}`, `webb${originalToken.symbol}`, deployers[chainID])
-        }
+        let originalToken: MintableToken = await MintableToken.tokenFromAddress(token.asset[chainID], deployers[chainID]);
+        let tokenInstance: MintableToken = await MintableToken.createToken(`webb${originalToken.name}`, `webb${originalToken.symbol}`, deployers[chainID])
 
         // append each token
-        tokenAddresses.set(
+        webbTokenAddresses.set(
           Bridge.createTokenIdString({tokenName: tokenInstance.name, chainId: chainID}),
           tokenInstance.contract.address
         )
@@ -232,15 +232,13 @@ class Bridge {
           // grant minting rights to the anchor
           await tokenInstance.grantMinterRole(anchorInstance.contract.address); 
 
-          if (originalToken != null) {
-            // Set the anchor to wrap/unwrap mode.
-          }
-
           chainGroupedAnchors.push(anchorInstance);
           anchors.set(
             Bridge.createAnchorIdString({tokenName: tokenInstance.name, anchorSize, chainId: chainID}),
             anchorInstance
           );
+          // Also set the original anchor 
+
         }
 
         await Bridge.setPermissions(bridgeInstance, chainGroupedAnchors);
@@ -262,7 +260,7 @@ class Bridge {
 
     // finally, link the anchors
     const linkedAnchorMap = await Bridge.createLinkedAnchorMap(groupLinkedAnchors);
-    return new Bridge(bridgeSides, tokenAddresses, linkedAnchorMap, anchors);
+    return new Bridge(bridgeSides, webbTokenAddresses, linkedAnchorMap, anchors);
   }
 
   // The setPermissions method accepts initialized bridgeSide and anchors.
@@ -319,14 +317,31 @@ class Bridge {
   }
 
   public getAnchor(chainID: number, tokenName: string, anchorSize: ethers.BigNumberish) {
-    return this.anchors.get(Bridge.createAnchorIdString({tokenName, anchorSize, chainId: chainID}));
+    let intendedAnchor: Anchor | undefined = undefined;
+    intendedAnchor = this.anchors.get(Bridge.createAnchorIdString({tokenName, anchorSize, chainId: chainID}));
+
+    if (!intendedAnchor) {
+      intendedAnchor = this.anchors.get(Bridge.createAnchorIdString({tokenName: `webb${tokenName}`, anchorSize, chainId: chainID}))
+    }
+    
+    return intendedAnchor;
   }
+
+  // Returns the address of the webbToken which wraps the given token name.
+  public getWebbTokenAddress(chainID: number, tokenName: string): string | undefined {
+    let tokenIdentifier = Bridge.createTokenIdString({ tokenName: `webb${tokenName}`, chainId: chainID });
+    return this.webbTokenAddresses.get(tokenIdentifier);
+  }
+
+  // public queryAnchors(query: AnchorQuery): Anchor[] {
+    
+  // }
 
   // export type BridgeConfig = {
 
   //   // The addresses of tokens available to be transferred over this bridge config
   //   // {tokenIdentifier} => tokenAddress
-  //   tokenAddresses: Map<string, string>;
+  //   webbTokenAddresses: Map<string, string>;
   
   //   // The addresses of the anchors for a token
   //   // {anchorIdentifier} => anchorAddress
@@ -338,7 +353,7 @@ class Bridge {
 
   public exportConfig(): BridgeConfig {
     return {
-      tokenAddresses: this.tokenAddresses,
+      webbTokenAddresses: this.webbTokenAddresses,
       anchors: this.anchors,
       bridgeSides: this.bridgeSides
     };
@@ -352,7 +367,7 @@ class Bridge {
       throw new Error("Anchor is not supported for the given token and size");
     }
 
-    const tokenAddress = this.tokenAddresses.get(Bridge.createTokenIdString({tokenName, chainId}));
+    const tokenAddress = this.webbTokenAddresses.get(Bridge.createTokenIdString({tokenName, chainId}));
 
     if (!tokenAddress) {
       throw new Error("Token not supported");
@@ -409,7 +424,7 @@ class Bridge {
     }
 
     const chainId = await signer.getChainId();
-    const tokenAddress = this.tokenAddresses.get(Bridge.createTokenIdString({tokenName, chainId}));
+    const tokenAddress = this.webbTokenAddresses.get(Bridge.createTokenIdString({tokenName, chainId}));
     
     await anchorToWithdraw.bridgedWithdraw(depositInfo, merkleProof, recipient, relayer, '0', '0', '0', tokenAddress!);
     return true;

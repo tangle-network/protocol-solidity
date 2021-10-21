@@ -9,12 +9,12 @@ let provider = new ethers.providers.JsonRpcProvider(`${process.env.ENDPOINT}`);
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
 
 async function run() {
-  // const tokenTx = await mintCompTokens('0x7Cec2Bf7D9c4C3C96Da8a0BfeBAB1E84b8212394', "0x3396173a181fa10754E33bDf6BA2aAFb3b065238", '1000000000000000000000', wallet);
+  const tokenTx = await mintCompTokens('0x7Cec2Bf7D9c4C3C96Da8a0BfeBAB1E84b8212394', "0xe219d359eF20932FB67aec166E9F7207fEe29907", '1000000000000000000000', wallet);
   // const tokenTx = await mintCompTokens('0x9d609F54536Cef34f5F612BD976ca632F1fa208E', "0x3396173a181fa10754E33bDf6BA2aAFb3b065238", '1000000000000000000000', wallet);
   // const tokenTx = await getTokenBalance('0x9d609F54536Cef34f5F612BD976ca632F1fa208E', '0xc2eb6995266649D2C8bbD228fc41e232C8BEca3C', provider);
-  // const tokenTx = await getTokenBalance('0x7Cec2Bf7D9c4C3C96Da8a0BfeBAB1E84b8212394', '0x3396173a181fa10754E33bDf6BA2aAFb3b065238', provider);
+  // const tokenTx = await getTokenBalance('0x7Cec2Bf7D9c4C3C96Da8a0BfeBAB1E84b8212394', '0xe219d359eF20932FB67aec166E9F7207fEe29907', provider);
 
-  // console.log(tokenTx);
+  console.log(tokenTx);
 
   // proof A: 17350698142559001214880382136348963015577541706695542029947611426813027028032, 2373710872387703943676126229905835152505799943196356061973477761862511371423
   // proof B[0]: [14301315696914358659165422848346154379560200873304469565663684441630383632621, 14130237330231434321987208502728250197312393050915494503167551296940431385154]
@@ -48,9 +48,9 @@ async function run() {
   //   console.log(toFixedHex(val));
   // }
 
-  const number = BigInt(0x23ab323453748129f2765f79615022f5bebd6f4096a796300aab049a60b0f187);
+  // const number = BigInt(0x23ab323453748129f2765f79615022f5bebd6f4096a796300aab049a60b0f187);
 
-  console.log(number.toString());
+  // console.log(number.toString());
 }
 
 run();

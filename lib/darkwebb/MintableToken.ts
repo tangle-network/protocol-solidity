@@ -1,6 +1,6 @@
 import { BigNumber, BigNumberish, ContractTransaction, ethers } from "ethers";
-import { ERC20PresetMinterPauser__factory } from '../../typechain/factories/Erc20PresetMinterPauser__factory';
-import { ERC20PresetMinterPauser } from '../../typechain/Erc20PresetMinterPauser';
+import { ERC20PresetMinterPauser__factory } from '../../typechain/factories/ERC20PresetMinterPauser__factory';
+import { ERC20PresetMinterPauser } from '../../typechain/ERC20PresetMinterPauser';
 
 class MintableToken {
   contract: ERC20PresetMinterPauser;
