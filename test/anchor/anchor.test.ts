@@ -21,6 +21,7 @@ import {
 
 // Convenience wrapper classes for contract classes
 import Anchor from '../../lib/darkwebb/Anchor';
+import { getHasherFactory } from '../../lib/darkwebb/utils';
 import Verifier from '../../lib/darkwebb/Verifier';
 
 const { NATIVE_AMOUNT } = process.env
@@ -33,7 +34,7 @@ const Scalar = require("ffjavascript").Scalar;
 const helpers = require('../../lib/darkwebb/utils');
 const MerkleTree = require('../../lib/MerkleTree');
 
-describe('Anchor', () => {
+describe('Anchor for 2 max edges', () => {
   let anchor: Anchor;
 
   const levels = 30;
@@ -59,7 +60,9 @@ describe('Anchor', () => {
     tree = new MerkleTree(levels, null, null);
 
     // create poseidon hasher
-    hasherInstance = await Poseidon.new();
+    const hasherFactory = await getHasherFactory(wallet);
+    hasherInstance = await hasherFactory.deploy();
+    await hasherInstance.deployed();
 
     // create poseidon verifier
     verifier = await Verifier.createVerifier(sender);
@@ -604,7 +607,7 @@ describe('Anchor', () => {
       const refreshedDestId = await wallet.getChainId();
       const refreshedDeposit = Anchor.generateDeposit(refreshedDestId);
 
-      const { root, pathElements, pathIndex } = anchor.tree.path(0);
+      const { merkleRoot, pathElements, pathIndices } = anchor.tree.path(0);
       const input = {
         // public
         nullifierHash: deposit.nullifierHash,
@@ -614,16 +617,16 @@ describe('Anchor', () => {
         fee,
         refund,
         chainID: deposit.chainID,
-        roots: [root, 0],
+        roots: [merkleRoot, 0],
         // private
         nullifier: deposit.nullifier,
         secret: deposit.secret,
         pathElements: pathElements,
-        pathIndices: pathIndex,
-        diffs: [root, 0].map(r => {
+        pathIndices: pathIndices,
+        diffs: [merkleRoot, 0].map(r => {
           return F.sub(
             Scalar.fromString(`${r}`),
-            Scalar.fromString(`${root}`),
+            Scalar.fromString(`${merkleRoot}`),
           ).toString();
         }),
       };
@@ -735,13 +738,16 @@ describe('Anchor', () => {
       await token.approve(wrappedToken.address, '1000000000000000000');
       const balTokenBeforeDepositSender = await token.balanceOf(sender.address);
       // create a deposit on the anchor already setup
-      const { deposit, index } = await wrappedAnchor.wrapAndDeposit(
+      const { deposit, index, originChainId } = await wrappedAnchor.wrapAndDeposit(
         token.address,
       );
+
+      console.log('sender address in test', sender.address);
 
       const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, wallet);
       await TruffleAssert.passes(newAnchor.withdrawAndUnwrap(
         deposit,
+        originChainId,
         index,
         sender.address,
         signers[1].address,
@@ -754,4 +760,216 @@ describe('Anchor', () => {
       assert.strictEqual(balTokenBeforeDepositSender.toString(), balTokenAfterWithdrawAndUnwrapSender.toString());
     });
   });
+});
+
+// Test deposit and withdraw on the same anchor - but it's 3 roots to pass in.
+describe('Anchor for 3 max edges', () => {
+  let anchor: Anchor;
+
+  const levels = 30;
+  const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
+  let tree: typeof MerkleTree;
+  const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
+  const refund = BigInt((new BN('0')).toString());
+  let recipient = "0x1111111111111111111111111111111111111111";
+  let verifier: Verifier;
+  let hasherInstance: any;
+  let token: Token;
+  let wrappedToken: WrappedToken;
+  let tokenDenomination = '1000000000000000000' // 1 ether
+  const MAX_EDGES = 2;
+  let createWitness: any;
+
+  beforeEach(async () => {
+    const signers = await ethers.getSigners();
+    const wallet = signers[0];
+    const sender = wallet;
+
+    tree = new MerkleTree(levels, null, null);
+
+    // create poseidon hasher
+    const hasherFactory = await getHasherFactory(wallet);
+    hasherInstance = await hasherFactory.deploy();
+    await hasherInstance.deployed();
+
+    // create poseidon verifier
+    verifier = await Verifier.createVerifier(sender);
+
+    // create token
+    const tokenFactory = new TokenFactory(wallet);
+    token = await tokenFactory.deploy();
+    await token.deployed();
+    await token.mint(sender.address, '10000000000000000000000');
+
+    // create Anchor
+    anchor = await Anchor.createAnchor(
+      verifier.contract.address,
+      hasherInstance.address,
+      tokenDenomination,
+      levels,
+      token.address,
+      sender.address,
+      sender.address,
+      sender.address,
+      MAX_EDGES,
+      sender,
+    );
+
+    // approve the anchor to spend the minted funds
+    await token.approve(anchor.contract.address, '10000000000000000000000');
+
+    createWitness = async (data: any) => {
+      const wtns = {type: "mem"};
+      await snarkjs.wtns.calculate(data, path.join(
+        "test",
+        "fixtures/3",
+        "poseidon_bridge_3.wasm"
+      ), wtns);
+      return wtns;
+    }
+  })
+
+  it.skip('should withdraw successfully', async () => {
+    const signers = await ethers.getSigners();
+    const sender = signers[0];
+    const relayer = signers[1];
+
+    const balanceUserBefore = await token.balanceOf(sender.address);
+    const { deposit, index } = await anchor.deposit();
+
+    const balanceUserAfterDeposit = await token.balanceOf(sender.address)
+    const balanceAnchorAfterDeposit = await token.balanceOf(anchor.contract.address);
+    assert.strictEqual(balanceUserAfterDeposit.toString(), BN(toBN(balanceUserBefore).sub(toBN(value))).toString());
+    assert.strictEqual(balanceAnchorAfterDeposit.toString(), toBN(value).toString());
+
+    const balanceRelayerBefore = await token.balanceOf(relayer.address)
+    const balanceReceiverBefore = await token.balanceOf(helpers.toFixedHex(recipient, 20))
+
+    let isSpent = await anchor.contract.isSpent(helpers.toFixedHex(deposit.nullifierHash))
+    assert.strictEqual(isSpent, false)
+
+    let receipt = await anchor.withdraw(deposit, index, recipient, relayer.address, fee, bigInt(0));
+    const filter = anchor.contract.filters.Withdrawal(null, null, relayer.address, null);
+    const events = await anchor.contract.queryFilter(filter, receipt.blockHash);
+
+    const balanceAnchorAfter = await token.balanceOf(anchor.contract.address)
+    const balanceRelayerAfter = await token.balanceOf(relayer.address)
+    const balanceReceiverAfter = await token.balanceOf(helpers.toFixedHex(recipient, 20))
+    const feeBN = toBN(fee.toString())
+    assert.strictEqual(balanceAnchorAfter.toString(), toBN(balanceAnchorAfterDeposit).sub(toBN(value)).toString())
+    assert.strictEqual(balanceReceiverAfter.toString(), toBN(balanceReceiverBefore).add(toBN(value)).sub(feeBN).toString())
+    assert.strictEqual(balanceRelayerAfter.toString(), toBN(balanceRelayerBefore).add(feeBN).toString())
+
+    assert.strictEqual(events[0].event, 'Withdrawal')
+    assert.strictEqual(events[0].args[1], helpers.toFixedHex(deposit.nullifierHash))
+    assert.strictEqual(events[0].args[3].toString(), feeBN.toString());
+    isSpent = await anchor.contract.isSpent(helpers.toFixedHex(deposit.nullifierHash))
+    assert(isSpent);
+  })
+});
+
+// Test deposit and withdraw on the same anchor - but it's 4 roots to pass in.
+describe('Anchor for 4 max edges', () => {
+  let anchor: Anchor;
+
+  const levels = 30;
+  const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
+  let tree: typeof MerkleTree;
+  const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
+  const refund = BigInt((new BN('0')).toString());
+  let recipient = "0x1111111111111111111111111111111111111111";
+  let verifier: Verifier;
+  let hasherInstance: any;
+  let token: Token;
+  let wrappedToken: WrappedToken;
+  let tokenDenomination = '1000000000000000000' // 1 ether
+  const MAX_EDGES = 3;
+  let createWitness: any;
+
+  beforeEach(async () => {
+    const signers = await ethers.getSigners();
+    const wallet = signers[0];
+    const sender = wallet;
+
+    tree = new MerkleTree(levels, null, null);
+
+    // create poseidon hasher
+    const hasherFactory = await getHasherFactory(wallet);
+    hasherInstance = await hasherFactory.deploy();
+    await hasherInstance.deployed();
+
+    // create poseidon verifier
+    verifier = await Verifier.createVerifier(sender);
+
+    // create token
+    const tokenFactory = new TokenFactory(wallet);
+    token = await tokenFactory.deploy();
+    await token.deployed();
+    await token.mint(sender.address, '10000000000000000000000');
+
+    // create Anchor
+    anchor = await Anchor.createAnchor(
+      verifier.contract.address,
+      hasherInstance.address,
+      tokenDenomination,
+      levels,
+      token.address,
+      sender.address,
+      sender.address,
+      sender.address,
+      MAX_EDGES,
+      sender,
+    );
+
+    // approve the anchor to spend the minted funds
+    await token.approve(anchor.contract.address, '10000000000000000000000');
+
+    createWitness = async (data: any) => {
+      const wtns = {type: "mem"};
+      await snarkjs.wtns.calculate(data, path.join(
+        "test",
+        "fixtures/4",
+        "poseidon_bridge_4.wasm"
+      ), wtns);
+      return wtns;
+    }
+  })
+
+  it('should withdraw successfully', async () => {
+    const signers = await ethers.getSigners();
+    const sender = signers[0];
+    const relayer = signers[1];
+
+    const balanceUserBefore = await token.balanceOf(sender.address);
+    const { deposit, index } = await anchor.deposit();
+
+    const balanceUserAfterDeposit = await token.balanceOf(sender.address)
+    const balanceAnchorAfterDeposit = await token.balanceOf(anchor.contract.address);
+    assert.strictEqual(balanceUserAfterDeposit.toString(), BN(toBN(balanceUserBefore).sub(toBN(value))).toString());
+    assert.strictEqual(balanceAnchorAfterDeposit.toString(), toBN(value).toString());
+
+    const balanceRelayerBefore = await token.balanceOf(relayer.address)
+    const balanceReceiverBefore = await token.balanceOf(helpers.toFixedHex(recipient, 20))
+
+    let isSpent = await anchor.contract.isSpent(helpers.toFixedHex(deposit.nullifierHash))
+    assert.strictEqual(isSpent, false)
+
+    let receipt = await anchor.withdraw(deposit, index, recipient, relayer.address, fee, bigInt(0));
+    const filter = anchor.contract.filters.Withdrawal(null, null, relayer.address, null);
+    const events = await anchor.contract.queryFilter(filter, receipt.blockHash);
+
+    const balanceAnchorAfter = await token.balanceOf(anchor.contract.address)
+    const balanceRelayerAfter = await token.balanceOf(relayer.address)
+    const balanceReceiverAfter = await token.balanceOf(helpers.toFixedHex(recipient, 20))
+    const feeBN = toBN(fee.toString())
+    assert.strictEqual(balanceAnchorAfter.toString(), toBN(balanceAnchorAfterDeposit).sub(toBN(value)).toString())
+    assert.strictEqual(balanceReceiverAfter.toString(), toBN(balanceReceiverBefore).add(toBN(value)).sub(feeBN).toString())
+    assert.strictEqual(balanceRelayerAfter.toString(), toBN(balanceRelayerBefore).add(feeBN).toString())
+
+    assert.strictEqual(events[0].event, 'Withdrawal')
+    assert.strictEqual(events[0].args[1], helpers.toFixedHex(deposit.nullifierHash))
+    assert.strictEqual(events[0].args[3].toString(), feeBN.toString());
+    isSpent = await anchor.contract.isSpent(helpers.toFixedHex(deposit.nullifierHash))
+    assert(isSpent);
+  })
 });

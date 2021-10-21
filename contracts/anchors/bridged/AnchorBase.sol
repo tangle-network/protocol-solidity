@@ -51,8 +51,6 @@ abstract contract AnchorBase is MerkleTreePoseidon, ReentrancyGuard, IAnchor {
   // bridge events
   event EdgeAddition(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
   event EdgeUpdate(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
-  event RootHistoryRecorded(uint timestamp, bytes32[1] roots);
-  event RootHistoryUpdate(uint timestamp, bytes32[1] roots);
 
   /**
     @dev The constructor
@@ -336,14 +334,17 @@ abstract contract AnchorBase is MerkleTreePoseidon, ReentrancyGuard, IAnchor {
   }
 
   /** @dev */
-  function getLatestNeighborRoots() public view returns (bytes32[1] memory roots) {
-    for (uint256 i = 0; i < 1; i++) {
+  function getLatestNeighborRoots() public view returns (bytes32[] memory roots) {
+    roots = new bytes32[](maxEdges);
+    for (uint256 i = 0; i < maxEdges; i++) {
       if (edgeList.length >= i + 1) {
         roots[i] = edgeList[i].root;
       } else {
-        roots[i] = bytes32(0x0);
+        // merkle tree height for zeros
+        roots[i] = zeros(levels);
       }
     }
+    
   }
 
   /** @dev */
