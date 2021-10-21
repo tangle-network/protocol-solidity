@@ -25,7 +25,7 @@ export interface AnchorDeposit {
   originChainId: number;
 };
 
-interface IPublicInputs {
+export interface IPublicInputs {
   _roots: string;
   _nullifierHash: string;
   _refreshCommitment: string;
@@ -50,6 +50,7 @@ class Anchor {
 
   // The depositHistory stores leafIndex => information to create proposals (new root)
   depositHistory: Record<number, string>;
+  token?: string;
   denomination?: string;
 
   private constructor(
@@ -121,6 +122,7 @@ class Anchor {
     const createdAnchor = new Anchor(anchor, signer, merkleTreeHeight, maxEdges);
     createdAnchor.latestSyncedBlock = anchor.deployTransaction.blockNumber!;
     createdAnchor.denomination = denomination.toString();
+    createdAnchor.token = token;
     return createdAnchor;
   }
 
@@ -134,7 +136,7 @@ class Anchor {
     const maxEdges = await anchor.maxEdges()
     const treeHeight = await anchor.levels();
     const createdAnchor = new Anchor(anchor, signer, treeHeight, maxEdges);
-
+    createdAnchor.token = await anchor.token();
     return createdAnchor;
   }
 
@@ -359,7 +361,7 @@ class Anchor {
     return proofEncoded;
   }
 
-  public async withdraw(
+  public async setupWithdraw(
     deposit: AnchorDepositInfo,
     index: number,
     recipient: string,
@@ -402,7 +404,30 @@ class Anchor {
     ];
 
     const publicInputs = Anchor.convertArgsArrayToStruct(args);
+    return {
+      input,
+      args,
+      proofEncoded,
+      publicInputs,
+    };
+  }
 
+  public async withdraw(
+    deposit: AnchorDepositInfo,
+    index: number,
+    recipient: string,
+    relayer: string,
+    fee: bigint,
+    refreshCommitment: string | number,
+  ) {
+    const { args, input, proofEncoded, publicInputs } = await this.setupWithdraw(
+      deposit,
+      index,
+      recipient,
+      relayer,
+      fee,
+      refreshCommitment,
+    );
     //@ts-ignore
     let tx = await this.contract.withdraw(
       `0x${proofEncoded}`,
