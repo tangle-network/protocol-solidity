@@ -215,7 +215,7 @@ describe('multichain tests', () => {
       assert.notEqual(sourceAnchorRootAfter, sourceAnchorRootBefore);
       assert.deepStrictEqual(destAnchorEdge2After.latestLeafIndex, destAnchorEdge3After.latestLeafIndex);
       assert.deepStrictEqual(destAnchorEdge2After.root, destAnchorEdge3After.root);
-    });
+    }).timeout(50000);
 
     it('create 2 side bridge for existing token', async () => {
       const signers = await ethers.getSigners();
@@ -302,7 +302,7 @@ describe('multichain tests', () => {
       assert.deepStrictEqual(destAnchorEdge2After.latestLeafIndex, destAnchorEdge3After.latestLeafIndex);
       assert.deepStrictEqual(destAnchorEdge2After.root, destAnchorEdge3After.root);
     });
-  });
+  }).timeout(50000);
 
   describe('Bridge connection and sync', () => {
 
