@@ -11,8 +11,6 @@
 //
 //
 // SPDX-License-Identifier: GPL-3.0
-import "hardhat/console.sol";
-
 pragma solidity ^0.8.0;
 library Pairing {
     struct G1Point {
@@ -280,25 +278,11 @@ contract Verifier2 {
             uint[2] memory c,
             uint[9] memory input
         ) public view returns (bool r) {
-        console.log("input[0]: %s", input[0]);
-        console.log("input[1]: %s", input[1]);
-        console.log("input[2]: %s", input[2]);
-        console.log("input[3]: %s", input[3]);
-        console.log("input[4]: %s", input[4]);
-        console.log("input[5]: %s", input[5]);
-        console.log("input[6]: %s", input[6]);
-        console.log("input[7]: %s", input[7]);
-        console.log("input[8]: %s", input[8]);
-
         Proof memory proof;
         proof.A = Pairing.G1Point(a[0], a[1]);
         proof.B = Pairing.G2Point([b[0][0], b[0][1]], [b[1][0], b[1][1]]);
         proof.C = Pairing.G1Point(c[0], c[1]);
         uint[] memory inputValues = new uint[](input.length);
-        console.log('proof A: %s, %s', a[0], a[1]);
-        console.log('proof B[0]: [%s, %s]', b[0][0], b[0][1]);
-        console.log('proof B[1]: [%s, %s]', b[1][0], b[1][1]);
-        console.log('proof C: %s, %s', c[0], c[1]);
         for(uint i = 0; i < input.length; i++){
             inputValues[i] = input[i];
         }

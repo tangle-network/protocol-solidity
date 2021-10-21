@@ -5,7 +5,6 @@
 
 pragma solidity ^0.8.0;
 
-import "hardhat/console.sol";
 import "../../trees/MerkleTreePoseidon.sol";
 import "../../interfaces/IVerifier.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -237,7 +236,6 @@ abstract contract AnchorBase is MerkleTreePoseidon, ReentrancyGuard {
     bytes calldata _proof,
     PublicInputs calldata _publicInputs
   ) external payable nonReentrant {
-    console.logBytes( _publicInputs._roots);
     require(_publicInputs._fee <= denomination, "Fee exceeds transfer value");
     require(!nullifierHashes[_publicInputs._nullifierHash], "The note has been already spent");
 
@@ -250,8 +248,6 @@ abstract contract AnchorBase is MerkleTreePoseidon, ReentrancyGuard {
       _publicInputs._fee,
       _publicInputs._refund
     );
-
-    console.logBytes32(roots[0]);
 
     require(isValidRoots(roots), "Invalid roots");
     require(verify(_proof, encodedInput), "Invalid withdraw proof");

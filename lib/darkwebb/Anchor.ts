@@ -184,7 +184,6 @@ class Anchor {
   
   public static async generateWithdrawProofCallData(proof: any, publicSignals: any) {
     const result = await Anchor.groth16ExportSolidityCallData(proof, publicSignals);
-    console.log('output from groth16ExportSolidityCallData', result);
     const fullProof = JSON.parse("[" + result + "]");
     const pi_a = fullProof[0];
     const pi_b = fullProof[1];
@@ -353,13 +352,10 @@ class Anchor {
     let proof = res.proof;
     let publicSignals = res.publicSignals;
 
-    console.log('publicSignals passed to generateWithdrawProofCallData: ', publicSignals);
-
     const vKey = await snarkjs.zKey.exportVerificationKey(this.circuitZkeyPath);
     res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
 
     let proofEncoded = await Anchor.generateWithdrawProofCallData(proof, publicSignals);
-    console.log('proofEncoded: ', proofEncoded);
     return proofEncoded;
   }
 
@@ -457,8 +453,6 @@ class Anchor {
       pathIndices,
     );
 
-    console.log('anchor input', input);
-
     const wtns = await this.createWitness(input);
     let proofEncoded = await this.proveAndVerify(wtns);
 
@@ -473,8 +467,6 @@ class Anchor {
     ];
 
     const publicInputs = Anchor.convertArgsArrayToStruct(args);
-
-    console.log('args from normal withdraw', args);
 
     //@ts-ignore
     let tx = await this.contract.withdrawAndUnwrap(`0x${proofEncoded}`, publicInputs, tokenAddress, { gasLimit: '0x5B8D80' });
@@ -497,7 +489,6 @@ class Anchor {
     tokenAddress: string,
   ) {
     const { pathElements, pathIndices, merkleRoot } = merkleProof;
-    console.log('merkle root: ', toFixedHex(merkleRoot));
     const isKnownNeighborRoot = await this.contract.isKnownNeighborRoot(deposit.originChainId, toFixedHex(merkleRoot));
     if (!isKnownNeighborRoot) {
       throw new Error("Neighbor root not found");
@@ -505,10 +496,8 @@ class Anchor {
     refreshCommitment = (refreshCommitment) ? refreshCommitment : '0';
 
     const lastRoot = await this.tree.get_root();
-    console.log('lastRoot: ', toFixedHex(lastRoot));
 
     const roots = await this.populateRootsForProof();
-    console.log('roots from anchor bridged withdraw: ', roots);
 
     const input = await this.generateWitnessInput(
       deposit.deposit,
@@ -522,8 +511,6 @@ class Anchor {
       pathElements,
       pathIndices,
     );
-
-    console.log('input: ', input);
 
     const wtns = await this.createWitness(input);
     let proofEncoded = await this.proveAndVerify(wtns);
@@ -539,8 +526,6 @@ class Anchor {
     ];
 
     const publicInputs = Anchor.convertArgsArrayToStruct(args);
-
-    console.log('public inputs: ', publicInputs);
 
     //@ts-ignore
     let tx = await this.contract.withdraw(
