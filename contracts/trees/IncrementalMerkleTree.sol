@@ -25,7 +25,12 @@ contract IncrementalQuinTree is Ownable, Hasher {
     uint256 public root;
 
     // The zero value per level
-    mapping (uint256 => uint256) internal zeros;
+    mapping (uint256 => uint256) internal _zeros;
+
+    mapping(uint256 => bytes32) public roots;
+    uint32 public constant ROOT_HISTORY_SIZE = 30;
+    uint32 public currentRootIndex = 0;
+    uint32 public nextIndex = 0;
 
     // Allows you to compute the path to the element (but it's not the path to
     // the elements). Caching these values is essential to efficient appends.
@@ -72,7 +77,7 @@ contract IncrementalQuinTree is Ownable, Hasher {
                 temp[j] = currentZero;
             }
 
-            zeros[i] = currentZero;
+            _zeros[i] = currentZero;
             currentZero = hash5(temp);
         }
 
@@ -115,7 +120,7 @@ contract IncrementalQuinTree is Ownable, Hasher {
             // filledSubtrees
             if (m == 0) {
                 for (uint8 j = 1; j < LEAVES_PER_NODE; j ++) {
-                    filledSubtrees[i][j] = zeros[i];
+                    filledSubtrees[i][j] = _zeros[i];
                 }
             }
 
@@ -136,6 +141,9 @@ contract IncrementalQuinTree is Ownable, Hasher {
         root = currentLevelHash;
         rootHistory[root] = true; 
 
+        uint32 newRootIndex = (currentRootIndex + 1) % ROOT_HISTORY_SIZE;
+        currentRootIndex = newRootIndex;
+        roots[newRootIndex] = bytes32(root);
 
         uint256 n = nextLeafIndex;
         nextLeafIndex += 1;
@@ -144,4 +152,31 @@ contract IncrementalQuinTree is Ownable, Hasher {
 
         return currentIndex;
     }
+
+    /**
+        @dev Whether the root is present in the root history
+    */
+    function isKnownRoot(bytes32 _root) public view returns (bool) {
+        if (_root == 0) {
+            return false;
+        }
+        uint32 _currentRootIndex = currentRootIndex;
+        uint32 i = _currentRootIndex;
+        do {
+            if (_root == roots[i]) {
+                return true;
+            }
+            if (i == 0) {
+                i = ROOT_HISTORY_SIZE;
+            }
+            i--;
+        } while (i != _currentRootIndex);
+
+        return false;
+    }
+
+  /// @dev provides Zero (Empty) elements for a Poseidon MerkleTree. Up to 32 levels
+  function zeroes(uint256 i) public view returns (bytes32) {
+    return bytes32(_zeros[i]);
+  }
 }

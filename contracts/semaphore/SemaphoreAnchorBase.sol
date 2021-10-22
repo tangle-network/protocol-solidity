@@ -1,12 +1,17 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import "../verifiers/SemaphoreVerifier.sol";
+import "../interfaces/ISemaphoreVerifier.sol";
 import { IncrementalQuinTree } from "../trees/IncrementalMerkleTree.sol";
 import "../utils/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
+contract SemaphoreAnchorBase is Ownable, IncrementalQuinTree, ReentrancyGuard {
+    ISemaphoreVerifier public immutable verifier;
+	address public bridge;
+	address public admin;
+	address public handler;
 
-contract Semaphore is Verifier, Ownable, IncrementalQuinTree {
     // The external nullifier helps to prevent double-signalling by the same
     // user. An external nullifier can be active or deactivated.
 
@@ -17,20 +22,27 @@ contract Semaphore is Verifier, Ownable, IncrementalQuinTree {
         bool isActive;
     }
 
-
-    //Each Semaphore Anchor has a list of edges 
+    uint8 public immutable maxEdges;
+    // Each Semaphore Anchor has a list of edges 
     struct Edge {
         uint256 chainID;
         bytes32 root;
         uint256 latestLeafIndex;
     }
 
+    // maps sourceChainID to the index in the edge list
+    mapping(uint256 => uint256) public edgeIndex;
+    mapping(uint256 => bool) public edgeExistsForChain;
     Edge[] public edgeList;
+
+    // map to store chainID => (rootIndex => root) to track neighbor histories
+    mapping(uint256 => mapping(uint32 => bytes32)) public neighborRoots;
+    // map to store the current historical root index for a chainID
+    mapping(uint256 => uint32) public currentNeighborRootIndex;
 
     // bridge events
     event EdgeAddition(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
     event EdgeUpdate(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
-
 
     // We store the external nullifiers using a mapping of the form:
     // enA => { next external nullifier; if enA exists; if enA is active }
@@ -86,11 +98,18 @@ contract Semaphore is Verifier, Ownable, IncrementalQuinTree {
      * @param _treeLevels The depth of the identity tree.
      * @param _firstExternalNullifier The first identity nullifier to add.
      */
-    constructor(uint8 _treeLevels, uint232 _firstExternalNullifier)
+    constructor(
+        ISemaphoreVerifier _verifier,
+        uint8 _treeLevels,
+        uint232 _firstExternalNullifier,
+        uint8 _maxEdges
+    )
         IncrementalQuinTree(_treeLevels, NOTHING_UP_MY_SLEEVE_ZERO)
         Ownable()
         {
             addEn(_firstExternalNullifier, true);
+            verifier = _verifier;
+            maxEdges = _maxEdges;
     }
 
     /*
@@ -212,17 +231,26 @@ contract Semaphore is Verifier, Ownable, IncrementalQuinTree {
      *                    matches.
      * @param _externalNullifier The external nullifier
      */
-    function preBroadcastCheck (
+    function preBroadcastCheck(
         bytes memory _signal,
         uint256[8] memory _proof,
-        uint256 _root,
+        bytes memory _roots,
         uint256 _nullifiersHash,
         uint256 _signalHash,
         uint232 _externalNullifier
     ) public view returns (bool) {
+        (bytes memory encodedInput, bytes32[] memory roots) = _encodeInputs(
+            _roots,
+            _nullifiersHash,
+            _signalHash,
+            _externalNullifier
+        );
 
-        uint256[4] memory publicSignals =
-            [_root, _nullifiersHash, _signalHash, _externalNullifier];
+        for (uint i = 0; i < _roots.length; i++) {
+            if (uint256(roots[i]) >= SNARK_SCALAR_FIELD) return false;
+        }
+
+        if (!isValidRoots(roots)) return false;
 
         (uint256[2] memory a, uint256[2][2] memory b, uint256[2] memory c) = 
             unpackProof(_proof);
@@ -231,11 +259,9 @@ contract Semaphore is Verifier, Ownable, IncrementalQuinTree {
             hashSignal(_signal) == _signalHash &&
             _signalHash == hashSignal(_signal) &&
             isExternalNullifierActive(_externalNullifier) &&
-            rootHistory[_root] &&
             areAllValidFieldElements(_proof) &&
-            _root < SNARK_SCALAR_FIELD &&
             _nullifiersHash < SNARK_SCALAR_FIELD &&
-            verifyProof(a, b, c, publicSignals);
+            verifier.verifyProof(a, b, c, encodedInput, maxEdges);
     }
 
     /*
@@ -250,7 +276,7 @@ contract Semaphore is Verifier, Ownable, IncrementalQuinTree {
     modifier isValidSignalAndProof (
         bytes memory _signal,
         uint256[8] memory _proof,
-        uint256 _root,
+        bytes memory _roots,
         uint256 _nullifiersHash,
         uint232 _externalNullifier
     ) {
@@ -274,10 +300,7 @@ contract Semaphore is Verifier, Ownable, IncrementalQuinTree {
             "Semaphore: external nullifier not found"
         );
 
-        // Check whether the given Merkle root has been seen previously
-        require(rootHistory[_root], "Semaphore: root not seen");
-
-        uint256 signalHash = hashSignal(_signal);
+        uint256 _signalHash = hashSignal(_signal);
 
         // Check whether _nullifiersHash is a valid field element.
         require(
@@ -285,14 +308,21 @@ contract Semaphore is Verifier, Ownable, IncrementalQuinTree {
             "Semaphore: the nullifiers hash must be lt the snark scalar field"
         );
 
-        uint256[4] memory publicSignals =
-            [_root, _nullifiersHash, signalHash, _externalNullifier];
+        (bytes memory encodedInput, bytes32[] memory roots) = _encodeInputs(
+            _roots,
+            _nullifiersHash,
+            _signalHash,
+            _externalNullifier
+        );
+
+        // Check whether all the roots provided are known in the history
+        require(isValidRoots(roots), "Invalid roots");
 
         (uint256[2] memory a, uint256[2][2] memory b, uint256[2] memory c) =
             unpackProof(_proof);
 
         require(
-            verifyProof(a, b, c, publicSignals),
+            verifier.verifyProof(a, b, c, encodedInput, maxEdges),
             "Semaphore: invalid proof"
         );
 
@@ -314,13 +344,13 @@ contract Semaphore is Verifier, Ownable, IncrementalQuinTree {
     function broadcastSignal(
         bytes memory _signal,
         uint256[8] memory _proof,
-        uint256 _root,
+        bytes memory _roots,
         uint256 _nullifiersHash,
         uint232 _externalNullifier
     ) public 
         onlyOwnerIfPermissioned
         isValidSignalAndProof(
-            _signal, _proof, _root, _nullifiersHash, _externalNullifier
+            _signal, _proof, _roots, _nullifiersHash, _externalNullifier
         )
     {
         // Client contracts should be responsible for storing the signal and/or
@@ -478,4 +508,170 @@ contract Semaphore is Verifier, Ownable, IncrementalQuinTree {
 
       emit PermissionSet(_newPermission);
     }
+
+    function getChainId() public view returns (uint) {
+        uint chainId;
+        assembly { chainId := chainid() }
+        return chainId;
+    }
+
+	/** @dev */
+	function getLatestNeighborRoots() public view returns (bytes32[] memory roots) {
+		roots = new bytes32[](maxEdges);
+		for (uint256 i = 0; i < maxEdges; i++) {
+			if (edgeList.length >= i + 1) {
+				roots[i] = edgeList[i].root;
+			} else {
+				// merkle tree height for zeroes
+				roots[i] = zeroes(treeLevels);
+			}
+		}
+		
+	}
+
+	/** @dev */
+	function isKnownNeighborRoot(uint256 neighborChainID, bytes32 _root) public view returns (bool) {
+		if (_root == 0) {
+			return false;
+		}
+		uint32 _currentRootIndex = currentNeighborRootIndex[neighborChainID];
+		uint32 i = _currentRootIndex;
+		do {
+			if (_root == neighborRoots[neighborChainID][i]) {
+				return true;
+			}
+			if (i == 0) {
+				i = ROOT_HISTORY_SIZE;
+			}
+			i--;
+		} while (i != _currentRootIndex);
+		return false;
+	}
+
+	function isValidRoots(bytes32[] memory roots) public view returns (bool) {
+		require(isKnownRoot(roots[0]), "Cannot find your merkle root");
+		require(roots.length == maxEdges + 1, "Incorrect root array length");
+		for (uint i = 0; i < edgeList.length; i++) {
+			Edge memory _edge = edgeList[i];
+			require(isKnownNeighborRoot(_edge.chainID, roots[i+1]), "Neighbor root not found");
+		}
+		return true;
+	}
+
+    function _encodeInputs(
+        bytes memory _roots,
+        uint256 _nullifiersHash,
+        uint256 _signalHash,
+        uint232 _externalNullifier
+    ) internal view returns (bytes memory, bytes32[] memory) {
+        uint256 _chainId = getChainId();
+        bytes32[] memory result = new bytes32[](maxEdges + 1);
+        bytes memory encodedInput;
+
+        if (maxEdges == 1) {
+            uint256[9] memory inputs;
+            bytes32[2] memory roots = abi.decode(_roots, (bytes32[2]));
+            // assign roots
+            result[0] = roots[0];
+            result[1] = roots[1];
+            // assign input
+            inputs[0] = _nullifiersHash;
+            inputs[1] = _signalHash;
+            inputs[2] = _externalNullifier;
+            inputs[3] = uint256(roots[0]);
+            inputs[4] = uint256(roots[1]);
+            encodedInput = abi.encodePacked(inputs);
+        } else if (maxEdges == 2) {
+            uint256[10] memory inputs;
+            bytes32[3] memory roots = abi.decode(_roots, (bytes32[3]));
+            // assign roots
+            result[0] = roots[0];
+            result[1] = roots[1];
+            result[2] = roots[2];
+            // assign input
+            inputs[0] = _nullifiersHash;
+            inputs[1] = _signalHash;
+            inputs[2] = _externalNullifier;
+            inputs[3] = uint256(roots[0]);
+            inputs[4] = uint256(roots[1]);
+            inputs[5] = uint256(roots[2]);
+            encodedInput = abi.encodePacked(inputs);
+        } else if (maxEdges == 3) {
+            uint256[11] memory inputs;
+            bytes32[4] memory roots = abi.decode(_roots, (bytes32[4]));
+            // assign roots
+            result[0] = roots[0];
+            result[1] = roots[1];
+            result[2] = roots[2];
+            result[3] = roots[3];
+            // assign input
+            inputs[0] = _nullifiersHash;
+            inputs[1] = _signalHash;
+            inputs[2] = _externalNullifier;
+            inputs[3] = uint256(roots[0]);
+            inputs[4] = uint256(roots[1]);
+            inputs[5] = uint256(roots[2]);
+            inputs[6] = uint256(roots[3]);
+            encodedInput = abi.encodePacked(inputs);
+        } else if (maxEdges == 4) {
+            uint256[12] memory inputs;
+            bytes32[5] memory roots = abi.decode(_roots, (bytes32[5]));
+            // assign roots
+            result[0] = roots[0];
+            result[1] = roots[1];
+            result[2] = roots[2];
+            result[3] = roots[3];
+            result[4] = roots[4];
+            // assign input
+            inputs[0] = _nullifiersHash;
+            inputs[1] = _signalHash;
+            inputs[2] = _externalNullifier;
+            inputs[3] = uint256(roots[0]);
+            inputs[4] = uint256(roots[1]);
+            inputs[5] = uint256(roots[2]);
+            inputs[6] = uint256(roots[3]);
+            inputs[7] = uint256(roots[4]);
+            encodedInput = abi.encodePacked(inputs);
+        } else if (maxEdges == 5) {
+            uint256[13] memory inputs;
+            bytes32[6] memory roots = abi.decode(_roots, (bytes32[6]));
+            // assign roots
+            result[0] = roots[0];
+            result[1] = roots[1];
+            result[2] = roots[2];
+            result[3] = roots[3];
+            result[4] = roots[4];
+            result[5] = roots[5];
+            // assign input
+            inputs[0] = _nullifiersHash;
+            inputs[1] = _signalHash;
+            inputs[2] = _externalNullifier;
+            inputs[3] = uint256(roots[0]);
+            inputs[4] = uint256(roots[1]);
+            inputs[5] = uint256(roots[2]);
+            inputs[6] = uint256(roots[3]);
+            inputs[7] = uint256(roots[4]);
+            inputs[8] = uint256(roots[5]);
+            encodedInput = abi.encodePacked(inputs);
+        } else {
+            require(false, "Invalid edges");
+        }
+
+        return (encodedInput, result);
+    }
+
+	modifier onlyAdmin()  {
+		require(msg.sender == admin, 'sender is not the admin');
+		_;
+	}
+
+	modifier onlyBridge()  {
+		require(msg.sender == bridge, 'sender is not the bridge');
+		_;
+	}
+
+	modifier onlyHandler()  {
+		require(msg.sender == handler, 'sender is not the handler');
+		_;
+	}
 }
