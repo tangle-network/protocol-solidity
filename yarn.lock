@@ -2704,10 +2704,26 @@ circom@0.5.33:
     tmp-promise "^2.0.2"
     wasmbuilder "0.0.10"
 
-circom@0.5.45, circom@^0.5.45:
+circom@0.5.45:
   version "0.5.45"
   resolved "https://registry.yarnpkg.com/circom/-/circom-0.5.45.tgz#82931882c5d38022ccb8be9c4a6314ea94bc511e"
   integrity sha512-5Ixp6UjwrhBWnnFBO/mTns+eeEDOpi5UoN4znAUWy5rklCUWYt2Ezl9QVUswBXjMP5kpfEtGUY2XSsYRAp6uMg==
+  dependencies:
+    chai "^4.2.0"
+    circom_runtime "0.1.12"
+    fastfile "0.0.18"
+    ffiasm "0.1.1"
+    ffjavascript "0.2.22"
+    ffwasm "0.0.7"
+    fnv-plus "^1.3.1"
+    r1csfile "0.0.16"
+    tmp-promise "^2.0.2"
+    wasmbuilder "0.0.10"
+
+circom@^0.5.46:
+  version "0.5.46"
+  resolved "https://registry.yarnpkg.com/circom/-/circom-0.5.46.tgz#031e96b1d83744103c0054eb1561bf191c6e8cdd"
+  integrity sha512-clvfqJudyBlHAubTu4dKY04dVgst8OxGS7SAxdbXKbGO2c6XGOzP2TSygNUmYHanLDvUgJpOqQYe/AkLt9x/1g==
   dependencies:
     chai "^4.2.0"
     circom_runtime "0.1.12"
@@ -2773,15 +2789,15 @@ circomlib@^0.2.4:
     circom "0.5.21"
     ffjavascript "0.1.0"
 
-circomlib@^0.5.2:
-  version "0.5.2"
-  resolved "https://registry.yarnpkg.com/circomlib/-/circomlib-0.5.2.tgz#5bfd47466cffcb215d707f36c8b8f76de7c703e0"
-  integrity sha512-xH1XLTQp6i1ifK13ZG4BbtjpaNkrfK8iK5ipqpi490aAxjK/P9nTidZaPTW6OtIODy1LzJSIGcr9TkyEgwK1Ag==
+circomlib@^0.5.5:
+  version "0.5.5"
+  resolved "https://registry.yarnpkg.com/circomlib/-/circomlib-0.5.5.tgz#aa2f91100b2bbc5208201f381e2c04b843f73890"
+  integrity sha512-5FUw6AnEw+65suAgEQCucVepxOm96wnIo89vBldeX1DjeSV8zpP88Tje3BLBTLz0C1U6SkRnwqULrtiA5IVtZQ==
   dependencies:
     blake-hash "^1.1.0"
     blake2b "^2.1.3"
     circom "0.5.33"
-    ffjavascript "0.1.0"
+    ffjavascript "0.2.38"
     web3-utils "^1.3.0"
 
 class-is@^1.1.0:
@@ -4543,6 +4559,15 @@ ffjavascript@0.2.37, ffjavascript@^0.2.30:
     wasmcurves "0.0.14"
     web-worker "^1.0.0"
 
+ffjavascript@0.2.38, ffjavascript@^0.2.38:
+  version "0.2.38"
+  resolved "https://registry.yarnpkg.com/ffjavascript/-/ffjavascript-0.2.38.tgz#920832795be1e60a12832da80692b6c86259f3b7"
+  integrity sha512-b4dobcci6QxxUvNYFCHw2ONhXwtgSHCzqxbH6c7ipWMOzyoG+MPRMZgAqnUREYX8UC6zqA7AiRmiIB76nxt2TQ==
+  dependencies:
+    big-integer "^1.6.48"
+    wasmcurves "0.0.14"
+    web-worker "^1.0.0"
+
 ffjavascript@0.2.4:
   version "0.2.4"
   resolved "https://registry.yarnpkg.com/ffjavascript/-/ffjavascript-0.2.4.tgz#97675a592517aefc1d418d491fcb3ac9447597c7"
@@ -4551,15 +4576,6 @@ ffjavascript@0.2.4:
     big-integer "^1.6.48"
     wasmcurves "0.0.4"
     worker-threads "^1.0.0"
-
-ffjavascript@^0.2.38:
-  version "0.2.38"
-  resolved "https://registry.yarnpkg.com/ffjavascript/-/ffjavascript-0.2.38.tgz#920832795be1e60a12832da80692b6c86259f3b7"
-  integrity sha512-b4dobcci6QxxUvNYFCHw2ONhXwtgSHCzqxbH6c7ipWMOzyoG+MPRMZgAqnUREYX8UC6zqA7AiRmiIB76nxt2TQ==
-  dependencies:
-    big-integer "^1.6.48"
-    wasmcurves "0.0.14"
-    web-worker "^1.0.0"
 
 ffwasm@0.0.7:
   version "0.0.7"
