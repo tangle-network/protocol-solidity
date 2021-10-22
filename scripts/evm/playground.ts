@@ -2,55 +2,33 @@ require('dotenv').config();
 import { ethers } from 'ethers';
 import { mintCompTokens } from './tokens/mintCompTokens';
 import { getTokenBalance } from './tokens/getTokenBalance';
+import { deployERC20 } from './deployments/deployERC20Token';
 import { toFixedHex } from '../../lib/darkwebb/utils';
 
-let provider = new ethers.providers.JsonRpcProvider(`${process.env.ENDPOINT}`);
+let providerRinkeby = new ethers.providers.JsonRpcProvider(`https://rinkeby.infura.io/v3/fff68ca474dd4764a8d54dd14fa5519e`);
+const walletRinkeby = new ethers.Wallet(process.env.PRIVATE_KEY!, providerRinkeby);
 
-const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
+let providerRinkeby = new ethers.providers.JsonRpcProvider(`https://api.s0.b.hmny.io`);
+const walletRinkeby = new ethers.Wallet(process.env.PRIVATE_KEY!, providerRinkeby);
+
+let providerRinkeby = new ethers.providers.JsonRpcProvider(`https://api.s1.b.hmny.io`);
+const walletRinkeby = new ethers.Wallet(process.env.PRIVATE_KEY!, providerRinkeby);
+
+let providerRinkeby = new ethers.providers.JsonRpcProvider(`https://rinkeby.infura.io/v3/fff68ca474dd4764a8d54dd14fa5519e`);
+const walletRinkeby = new ethers.Wallet(process.env.PRIVATE_KEY!, providerRinkeby);
 
 async function run() {
-  const tokenTx = await mintCompTokens('0x7Cec2Bf7D9c4C3C96Da8a0BfeBAB1E84b8212394', "0xe219d359eF20932FB67aec166E9F7207fEe29907", '1000000000000000000000', wallet);
+  // const tokenTx = await mintCompTokens('0x7Cec2Bf7D9c4C3C96Da8a0BfeBAB1E84b8212394', "0xe219d359eF20932FB67aec166E9F7207fEe29907", '1000000000000000000000', wallet);
   // const tokenTx = await mintCompTokens('0x9d609F54536Cef34f5F612BD976ca632F1fa208E', "0x3396173a181fa10754E33bDf6BA2aAFb3b065238", '1000000000000000000000', wallet);
   // const tokenTx = await getTokenBalance('0x9d609F54536Cef34f5F612BD976ca632F1fa208E', '0xc2eb6995266649D2C8bbD228fc41e232C8BEca3C', provider);
   // const tokenTx = await getTokenBalance('0x7Cec2Bf7D9c4C3C96Da8a0BfeBAB1E84b8212394', '0xe219d359eF20932FB67aec166E9F7207fEe29907', provider);
 
-  console.log(tokenTx);
+  // create the tokens to bridge together
+  const erc20Rinkeby = await deployERC20(walletRinkeby);
+  console.log(erc20Rinkeby.address);
 
-  // proof A: 17350698142559001214880382136348963015577541706695542029947611426813027028032, 2373710872387703943676126229905835152505799943196356061973477761862511371423
-  // proof B[0]: [14301315696914358659165422848346154379560200873304469565663684441630383632621, 14130237330231434321987208502728250197312393050915494503167551296940431385154]
-  // proof B[1]: [8014360620359749048519360067243214543494170368652941346183378339712720929768, 17165264195141151040627368740835661137202250282824418787269264164027237757091]
-  // proof C: 16260743742011923043390149789087350901937406862040272178918165005836325691907, 16882954993289697017520943692793347339102234214613663306920502380133865514725
 
-  // ["0x2e319a7777ebf31f237267c469810f0e0dd899572b4cd2dd88c3544d3f334d64",
-  // "0x00000000000000000000000070997970c51812dc3a010c7d01b50e0d17dc79c8",
-  // "0x00000000000000000000000070997970c51812dc3a010c7d01b50e0d17dc79c8",
-  // "0x0000000000000000000000000000000000000000000000000000000000000000",
-  // "0x0000000000000000000000000000000000000000000000000000000000000000",
-  // "0x0000000000000000000000000000000000000000000000000000000000007a69",
-  // "0x0cb3f27b37fb5e7b6df9643ab6d8605794a2f861a8f3125a694e0d2b0e707952",
-  // "0x112a7bbe977e2652b7eae20ffbf679fa0f74f430534d8280e91fc39202a89ec2",
-  // "0x20a40e722c604282ea53cd9c88d582d269966056726d50edfe4d9ee81da25b27",
-  // "0x0000000000000000000000000000000000000000000000000000000000000000"]
 
-  // const vals: string[] = [
-  //     '4444448639422497203216775363550211866171712690360749970661329097610068714591',
-  //     '642829559307850963015472508762062935916233390536',
-  //     '642829559307850963015472508762062935916233390536',
-  //     '0',
-  //     '0',
-  //     '31337',
-  //     '17162165794390815315283801744731112367900887899637543466589703126237214287731',
-  //     '392628365945216736455780452696210976011443618614002847503183839032861278169',
-  //     '0'
-  // ];
-
-  // for (const val of vals) {
-  //   console.log(toFixedHex(val));
-  // }
-
-  // const number = BigInt(0x23ab323453748129f2765f79615022f5bebd6f4096a796300aab049a60b0f187);
-
-  // console.log(number.toString());
 }
 
 run();

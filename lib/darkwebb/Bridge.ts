@@ -81,7 +81,7 @@ class Bridge {
     // Mapping of chainId => bridgeSide
     public bridgeSides: Map<number, BridgeSide>,
 
-    // {tokenIdentifier} => tokenAddress
+    // {tokenIdentifier with name of } => tokenAddress
     public webbTokenAddresses: Map<string, string>,
 
     // erc20 token addresses

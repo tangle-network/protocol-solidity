@@ -400,7 +400,7 @@ abstract contract AnchorBase is MerkleTreePoseidon, ReentrancyGuard {
     _;
   }
 
-  function getChainId() internal view returns (uint) {
+  function getChainId() public view returns (uint) {
     uint chainId;
     assembly { chainId := chainid() }
     return chainId;
