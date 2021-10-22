@@ -1,3 +1,3 @@
 include "../semaphore/semaphore-webb-base.circom";
 
-component main = Semaphore(20, 3);
+component main = Semaphore(20, 2);

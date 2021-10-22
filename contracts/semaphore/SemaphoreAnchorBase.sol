@@ -17,6 +17,21 @@ contract Semaphore is Verifier, Ownable, IncrementalQuinTree {
         bool isActive;
     }
 
+
+    //Each Semaphore Anchor has a list of edges 
+    struct Edge {
+        uint256 chainID;
+        bytes32 root;
+        uint256 latestLeafIndex;
+    }
+
+    Edge[] public edgeList;
+
+    // bridge events
+    event EdgeAddition(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
+    event EdgeUpdate(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
+
+
     // We store the external nullifiers using a mapping of the form:
     // enA => { next external nullifier; if enA exists; if enA is active }
     // Think of it as a linked list.
