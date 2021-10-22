@@ -177,20 +177,5 @@ contract('LinkableAnchor - [add edges]', async accounts => {
        ev.latestLeafIndex == edge.latestLeafIndex && ev.merkleRoot == edge.root
     });
   });
-
-  it('Adding edge should emit correct RootHistoryUpdate event', async () => {
-    const edge = {
-      sourceChainID: '0x01',
-      root: '0x1111111111111111111111111111111111111111111111111111111111111111',
-      latestLeafIndex: 1,
-    };
-
-    const result = await addEdge(edge, accounts[0]);
-    const roots = await AnchorInstance.getLatestNeighborRoots();
-
-    TruffleAssert.eventEmitted(result, 'RootHistoryUpdate', (ev) => {
-      return ev.roots[0] == roots[0]
-    });
-  });
 });
 

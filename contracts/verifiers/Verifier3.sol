@@ -283,6 +283,7 @@ contract Verifier3 {
             uint[2] memory c,
             uint[10] memory input
         ) public view returns (bool r) {
+
         Proof memory proof;
         proof.A = Pairing.G1Point(a[0], a[1]);
         proof.B = Pairing.G2Point([b[0][0], b[0][1]], [b[1][0], b[1][1]]);

@@ -55,9 +55,6 @@ abstract contract LinkableAnchor is AnchorBase, ILinkableAnchor {
     uint32 neighborRootIndex = 0;
     neighborRoots[sourceChainID][neighborRootIndex] = root;
     emit EdgeAddition(sourceChainID, leafIndex, root);
-    // emit update event
-    bytes32[1] memory neighbors = getLatestNeighborRoots();
-    emit RootHistoryUpdate(block.timestamp, neighbors);
   }
 
   function updateEdge(
@@ -79,8 +76,5 @@ abstract contract LinkableAnchor is AnchorBase, ILinkableAnchor {
     currentNeighborRootIndex[sourceChainID] = neighborRootIndex;
     neighborRoots[sourceChainID][neighborRootIndex] = root;
     emit EdgeUpdate(sourceChainID, leafIndex, root);
-    // emit update event
-    bytes32[1] memory neighbors = getLatestNeighborRoots();
-    emit RootHistoryUpdate(block.timestamp, neighbors);
   }
 }
