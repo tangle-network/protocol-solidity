@@ -60,7 +60,7 @@ template SetMembership(length) {
     product[i + 1] <== product[i] * diffs[i];
   }
 
-  product[length] === 0
+  product[length] === 0;
 }
 
 // n_levels must be < 32

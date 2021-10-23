@@ -1,7 +1,7 @@
-include "./poseidonHashT3.circom"
-include "./poseidonHashT4.circom"
-include "./poseidonHashT5.circom"
-include "./poseidonHashT6.circom"
+include "./poseidonHashT3.circom";
+include "./poseidonHashT4.circom";
+include "./poseidonHashT5.circom";
+include "./poseidonHashT6.circom";
 
 template Hasher3() {
     var length = 3;
