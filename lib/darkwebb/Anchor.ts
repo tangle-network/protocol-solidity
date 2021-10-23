@@ -481,7 +481,7 @@ class Anchor {
   }
 
   // A bridgedWithdraw needs the merkle proof to be generated from an anchor other than this one,
-  public async bridgedWithdraw(
+  public async bridgedWithdrawAndUnwrap(
     deposit: AnchorDeposit,
     merkleProof: any,
     recipient: string,
@@ -564,7 +564,7 @@ class Anchor {
     };
   }
 
-  public async bridgedWithdrawAndUnwrap(
+  public async bridgedWithdraw(
     deposit: AnchorDeposit,
     merkleProof: any,
     recipient: string,

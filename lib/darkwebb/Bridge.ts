@@ -494,7 +494,7 @@ class Bridge {
     const chainId = await signer.getChainId();
     const tokenAddress = this.tokenAddresses.get(Bridge.createTokenIdString({tokenName, chainId}));
     console.log('Token address passed for withdraw: ', tokenAddress);
-    await anchorToWithdraw.bridgedWithdraw(depositInfo, merkleProof, recipient, relayer, '0', '0', '0', tokenAddress!);
+    await anchorToWithdraw.bridgedWithdraw(depositInfo, merkleProof, recipient, relayer, '0', '0', '0');
     return true;
   }
 
@@ -506,7 +506,31 @@ class Bridge {
     relayer: string,
     signer: ethers.Signer
   ) {
-    
+    // Construct the proof from the origin anchor
+    const anchorToProve = this.getAnchor(depositInfo.originChainId, tokenName, anchorSize);
+    if (!anchorToProve) {
+      throw new Error("Could not find anchor to prove against");
+    }
+
+    const merkleProof = anchorToProve.tree.path(depositInfo.index);
+
+    // Submit the proof and arguments on the destination anchor
+    console.log('Before fetching anchor to withdraw: ');
+    const anchorToWithdraw = this.getAnchor(Number(depositInfo.deposit.chainID.toString()), tokenName, anchorSize);
+
+    if (!anchorToWithdraw) {
+      throw new Error("Could not find anchor to withdraw from");
+    }
+
+    if (!(await anchorToWithdraw.setSigner(signer))) {
+      throw new Error("Could not set signer");
+    }
+
+    const chainId = await signer.getChainId();
+    const tokenAddress = this.tokenAddresses.get(Bridge.createTokenIdString({tokenName, chainId}));
+    console.log('Token address passed for withdraw: ', tokenAddress);
+    await anchorToWithdraw.bridgedWithdrawAndUnwrap(depositInfo, merkleProof, recipient, relayer, '0', '0', '0', tokenAddress!);
+    return true;
   }
 }
 

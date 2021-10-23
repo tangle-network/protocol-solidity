@@ -311,8 +311,8 @@ describe('multichain tests', () => {
       bridge = await Bridge.deployBridge(existingTokenBridgeConfig, deploymentConfig);
 
       // make one deposit so the edge exists
-      await bridge.deposit(destChainID2, tokenName, '1000000000000000000', signers[1]);
-      await bridge.deposit(31337, tokenName, '1000000000000000000', ganacheWallet2);
+      await bridge.wrapAndDeposit(destChainID2, tokenName, '1000000000000000000', signers[1]);
+      await bridge.wrapAndDeposit(31337, tokenName, '1000000000000000000', ganacheWallet2);
     })
 
     describe('#bridging', () => {
@@ -328,21 +328,21 @@ describe('multichain tests', () => {
         const startingBalanceDest = await token.getBalance(signers[1].address);
 
         // Make a deposit
-        const depositNote1 = await bridge.deposit(destChainID2, tokenName, anchorSize, signers[1]);
+        const depositNote1 = await bridge.wrapAndDeposit(destChainID2, tokenName, anchorSize, signers[1]);
 
         // Check the leaf index is incremented
         const destAnchorEdge2After = await controlledAnchor2.contract.edgeList(edgeIndex);
         assert.deepStrictEqual(destAnchorEdge2Before.latestLeafIndex.add(1), destAnchorEdge2After.latestLeafIndex);
 
         // Withdraw from the bridge
-        await bridge.withdraw(depositNote1!, tokenName, anchorSize, signers[1].address, signers[1].address, ganacheWallet2);
+        await bridge.withdrawAndUnwrap(depositNote1!, tokenName, anchorSize, signers[1].address, signers[1].address, ganacheWallet2);
 
         // Check the balance of the signer
         const endingBalanceDest = await token.getBalance(signers[1].address);
         assert.deepStrictEqual(endingBalanceDest, startingBalanceDest.add(anchorSize));
       })
 
-      it('should withdraw on hardhat from ganache deposit', async () => {
+      it.only('should withdraw on hardhat from ganache deposit', async () => {
         // Fetch information about the anchor to be updated.
         const signers = await ethers.getSigners();
         const anchorSize = '1000000000000000000';
@@ -354,14 +354,14 @@ describe('multichain tests', () => {
         const startingBalanceDest = await token.getBalance(signers[1].address);
 
         // Make a deposit
-        const depositNote1 = await bridge.deposit(chainId1, tokenName, anchorSize, ganacheWallet2);
+        const depositNote1 = await bridge.wrapAndDeposit(chainId1, tokenName, anchorSize, ganacheWallet2);
 
         // Check the leaf index is incremented
         const destAnchorEdge2After = await controlledAnchor2.contract.edgeList(edgeIndex);
         assert.deepStrictEqual(destAnchorEdge2Before.latestLeafIndex.add(1), destAnchorEdge2After.latestLeafIndex);
 
         // Withdraw from the bridge
-        await bridge.withdraw(depositNote1!, tokenName, anchorSize, signers[1].address, signers[1].address, signers[1]);
+        await bridge.withdrawAndUnwrap(depositNote1!, tokenName, anchorSize, signers[1].address, signers[1].address, signers[1]);
 
         // Check the balance of the signer
         const endingBalanceDest = await token.getBalance(signers[1].address);
