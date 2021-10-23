@@ -1,1 +1,1 @@
-contract Verifier {}
+// contract Verifier {}

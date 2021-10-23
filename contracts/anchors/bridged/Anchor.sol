@@ -5,6 +5,7 @@
 
 pragma solidity ^0.8.0;
 
+import "hardhat/console.sol";
 import "../../interfaces/ITokenWrapper.sol";
 import "../../interfaces/IMintableERC20.sol";
 import "./LinkableAnchor.sol";
@@ -50,6 +51,7 @@ contract Anchor is LinkableAnchor {
     bytes32 _commitment
   ) payable public {
     require(!commitments[_commitment], "The commitment has been submitted");
+    console.log('token: %s tokenAddress: %s', token, tokenAddress);
     // wrap into the token and send directly to this contract
     ITokenWrapper(token).wrapForAndSendTo{value: msg.value}(
         msg.sender,
