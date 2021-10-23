@@ -1,3 +1,5 @@
+pragma circom 2.0.0;
+
 include "../poseidon/hasher.circom";
 
 // Set membership gadget is handled with a multiplicative trick.
@@ -21,7 +23,7 @@ template SetMembership(length) {
     product[i + 1] <== product[i] * diffs[i];
   }
 
-  product[length] === 0
+  product[length] === 0;
 }
 
 // if s == 0 returns [in[0], in[1]]
@@ -31,7 +33,7 @@ template DualMux() {
     signal input s;
     signal output out[2];
 
-    s * (1 - s) === 0
+    s * (1 - s) === 0;
     out[0] <== (in[1] - in[0])*s + in[0];
     out[1] <== (in[0] - in[1])*s + in[1];
 }

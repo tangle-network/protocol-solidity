@@ -1,11 +1,11 @@
 // //SPDX-License-Identifier: Unlicense
 // pragma solidity ^0.8.0;
 
-// import { Semaphore } from './Semaphore.sol';
+import { SemaphoreAnchorBase } from './SemaphoreAnchorBase.sol';
 
-// contract SemaphoreClient {
-//     // A mapping of all signals broadcasted
-//     mapping (uint256 => bytes) public signalIndexToSignal;
+contract SemaphoreAnchorClient {
+    // A mapping of all signals broadcasted
+    mapping (uint256 => bytes) public signalIndexToSignal;
 
 //     // A mapping between signal indices to external nullifiers
 //     mapping (uint256 => uint256) public signalIndexToExternalNullifier;
@@ -13,22 +13,22 @@
 //     // The next index of the `signalIndexToSignal` mapping
 //     uint256 public nextSignalIndex = 0;
 
-//     Semaphore public semaphore;
+    SemaphoreAnchorBase public semaphore;
 
 //     event SignalBroadcastByClient(uint256 indexed signalIndex);
 
-//     constructor(Semaphore _semaphore) {
-//         semaphore = _semaphore;
-//     }
+    constructor(SemaphoreAnchorBase _semaphore) {
+        semaphore = _semaphore;
+    }
 
-//     function broadcastSignal(
-//         bytes memory _signal,
-//         uint256[8] memory _proof,
-//         uint256 _root,
-//         uint256 _nullifiersHash,
-//         uint232 _externalNullifier
-//     ) public {
-//         uint256 signalIndex = nextSignalIndex;
+    function broadcastSignal(
+        bytes memory _signal,
+        uint256[8] memory _proof,
+        bytes memory _roots,
+        uint256 _nullifiersHash,
+        uint232 _externalNullifier
+    ) public {
+        uint256 signalIndex = nextSignalIndex;
 
 //         // store the signal
 //         signalIndexToSignal[nextSignalIndex] = _signal;
@@ -39,8 +39,8 @@
 //         // increment the signal index
 //         nextSignalIndex ++;
 
-//         // broadcast the signal
-//         semaphore.broadcastSignal(_signal, _proof, _root, _nullifiersHash, _externalNullifier);
+        // broadcast the signal
+        semaphore.broadcastSignal(_signal, _proof, _roots, _nullifiersHash, _externalNullifier);
 
 //         emit SignalBroadcastByClient(signalIndex);
 //     }

@@ -1,3 +1,5 @@
+pragma circom 2.0.0;
+
 include "manyMerkleTree.circom";
 
 // computes Poseidon(chainID, nullifier, secret)
@@ -37,13 +39,13 @@ template Withdraw(levels, length) {
     signal input roots[length];
     signal input refreshCommitment;         // not taking part in any computations
 
-    signal private input nullifier;
-    signal private input secret;
-    signal private input pathElements[levels];
-    signal private input pathIndices[levels];
+    signal input nullifier;
+    signal input secret;
+    signal input pathElements[levels];
+    signal input pathIndices[levels];
     // the differences of the root one is proving against and
     // all the roots provided as a public input in the `roots` signal.
-    signal private input diffs[length];
+    signal input diffs[length];
 
     component hasher = CommitmentHasher();
     hasher.chainID <== chainID;

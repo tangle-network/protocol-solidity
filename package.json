@@ -19,11 +19,11 @@
     "setup:poseidon-bridge4": "node scripts/js/generatePoseidonBridge4Input.js && ./scripts/bash/phase2_poseidon_bridge4.sh",
     "setup:poseidon-bridge5": "node scripts/js/generatePoseidonBridge5Input.js && ./scripts/bash/phase2_poseidon_bridge5.sh",
     "setup:poseidon-bridge6": "node scripts/js/generatePoseidonBridge6Input.js && ./scripts/bash/phase2_poseidon_bridge6.sh",
-    "setup:semaphore_bridge_2": "./scripts/bash/phase2_semaphore_bridge_2.sh",
+    "setup:semaphore-bridge2": "./scripts/bash/phase2_semaphore_bridge_2.sh",
     "setup:all-bridges": "yarn setup:poseidon-bridge2 && yarn setup:poseidon-bridge3 && yarn setup:poseidon-bridge4 && yarn setup:poseidon-bridge5 && yarn setup:poseidon-bridge6",
     "setup:poseidon2-preimage": "node scripts/js/generatePoseidon2Input.js && ./scripts/bash/phase2_poseidon.sh",
     "setup:poseidon3-preimage": "node scripts/js/generatePoseidon3Input.js && ./scripts/bash/phase2_poseidon3.sh",
-    "setup": "yarn setup:poseidon-bridge2 && yarn setup:poseidon2-preimage && yarn setup:poseidon3-preimage",
+    "setup": "yarn setup:poseidon-bridge2 && yarn setup:poseidon2-preimage && yarn setup:poseidon3-preimage && yarn setup:semaphore-bridge2",
     "test:all": "yarn build && yarn setup && yarn test",
     "test:bridge": "yarn build && yarn setup:poseidon-bridge2 && yarn test",
     "test": "yarn build:hashers && npx hardhat test"
@@ -56,9 +56,7 @@
     "big-integer": "^1.6.48",
     "bn-chai": "^1.0.1",
     "chai-as-promised": "^7.1.1",
-    "circom": "^0.5.46",
-    "circom_runtime": "^0.1.9",
-    "circomlib": "^0.5.5",
+    "circomlib": "^2.0.1",
     "dotenv": "^8.2.0",
     "ethers-eip712": "^0.2.0",
     "hardhat-artifactor": "^0.2.0",
@@ -66,6 +64,7 @@
     "maci-crypto": "^0.9.1",
     "maci-domainobjs": "^0.9.1",
     "prettier": "^2.3.2",
+    "prettier-plugin-solidity": "^1.0.0-beta.18",
     "ts-node": "^10.1.0",
     "typechain": "^5.1.2"
   }
