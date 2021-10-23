@@ -4,7 +4,7 @@ mkdir -p artifacts/circuits/{anchor,bridge,semaphore}
 
 compile () {
     local outdir="$1" circuit="$2"
-    circom --r1cs --wasm --sym \
+    ~/.cargo/bin/circom --r1cs --wasm --sym \
         -o artifacts/circuits/$outdir \
         circuits/test/$circuit.circom
     echo -e "Done!\n"
