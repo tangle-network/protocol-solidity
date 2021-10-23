@@ -95,7 +95,7 @@ contract Anchor is LinkableAnchor {
       _publicInputs._refund
     );
     
-    ITokenWrapper(token).unwrapFor(msg.sender, tokenAddress, denomination);
+    ITokenWrapper(token).unwrapAndSendTo(tokenAddress, denomination, msg.sender);
 
     emit Withdrawal(
       _publicInputs._recipient,
