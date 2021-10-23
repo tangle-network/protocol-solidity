@@ -121,5 +121,5 @@ template Semaphore(n_levels, length) {
     signal signal_hash_squared;
     signal_hash_squared <== signal_hash * signal_hash;
 
-    nullifierHash === calculateNullifierHash.out;
+    nullifier_hash === calculateNullifierHash.out;
 }
