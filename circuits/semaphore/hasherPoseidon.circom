@@ -2,7 +2,7 @@ pragma circom 2.0.0;
 
 template PoseidonHashT6() {
     var nInputs = 5;
-    signal input inputs[nInputs];
+    signal input inputs[nInputs]; // private 
     signal output out;
 
     component hasher = Poseidon(nInputs);
@@ -14,7 +14,7 @@ template PoseidonHashT6() {
 
 template Hasher5() {
     var length = 5;
-    signal input in[length];
+    signal input in[length]; // private
     signal output hash;
 
     component hasher = PoseidonHashT6();

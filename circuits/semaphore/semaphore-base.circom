@@ -6,8 +6,8 @@ include "./tree.circom";
 
 
 template CalculateSecret() {
-    signal input identity_nullifier;
-    signal input identity_trapdoor;
+    signal input identity_nullifier; // private
+    signal input identity_trapdoor; // private
 
     signal output out;
 
@@ -18,7 +18,7 @@ template CalculateSecret() {
 }
 
 template CalculateIdentityCommitment() {
-    signal input secret_hash;
+    signal input secret_hash; // private
 
     signal output out;
 
@@ -28,16 +28,16 @@ template CalculateIdentityCommitment() {
 }
 
 template CalculateNullifierHash() {
-    signal input external_nullifier;
-    signal input identity_nullifier;
-    signal input n_levels;
+    signal input external_nullifier; // private
+    signal input identity_nullifier; // private
+    signal input n_levels; // private
 
     signal output out;
 
     component hasher = Poseidon(3);
-    hasher.inputs[0] <== external_nullifier;
-    hasher.inputs[1] <== identity_nullifier;
-    hasher.inputs[2] <== n_levels;
+    hasher.inputs[0] <== external_nullifier; 
+    hasher.inputs[1] <== identity_nullifier; 
+    hasher.inputs[2] <== n_levels; 
     out <== hasher.out;
 }
 
@@ -51,9 +51,9 @@ template CalculateNullifierHash() {
 // anything else should be 0. The prove can't lie by adding a zero into the diffs set
 // because we constrain those to match all elements in the set respectively.
 template SetMembership(length) {
-  signal input element;
-  signal input set[length];
-  signal input diffs[length];
+  signal input element; // private
+  signal input set[length]; // private
+  signal input diffs[length]; // private
 
   signal product[length + 1];
   product[0] <== element;
@@ -71,17 +71,17 @@ template Semaphore(n_levels, length) {
     var LEAVES_PER_NODE = 5;
     var LEAVES_PER_PATH_LEVEL = LEAVES_PER_NODE - 1;
 
-    signal input nullifier_hash;
-    signal input signal_hash;
-    signal input external_nullifier;
-    signal input roots[length];
+    signal input nullifier_hash; // public 
+    signal input signal_hash; // public
+    signal input external_nullifier; // public
+    signal input roots[length]; // public
 
 
-    signal input identity_nullifier;
-    signal input identity_trapdoor;
-    signal input identity_path_index[n_levels];
-    signal input path_elements[n_levels][LEAVES_PER_PATH_LEVEL];
-    signal input diffs[length];
+    signal input identity_nullifier; // private
+    signal input identity_trapdoor; // private
+    signal input identity_path_index[n_levels]; // private
+    signal input path_elements[n_levels][LEAVES_PER_PATH_LEVEL]; // private
+    signal input diffs[length]; // private
 
     component secret = CalculateSecret();
     secret.identity_nullifier <== identity_nullifier;

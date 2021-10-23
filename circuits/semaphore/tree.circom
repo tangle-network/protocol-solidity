@@ -4,7 +4,7 @@ include "./hasherPoseidon.circom";
 include "../../node_modules/circomlib/circuits/mux1.circom";
 
 template CalculateTotal(n) {
-    signal input nums[n];
+    signal input nums[n]; // private 
     signal output sum;
 
     signal sums[n];
@@ -19,9 +19,9 @@ template CalculateTotal(n) {
 
 
 template QuinSelector(choices) {
-    signal input in[choices];
-    signal input index;
-    signal output out;
+    signal input in[choices]; // private
+    signal input index; // private
+    signal output out; 
     
     component lessThan = LessThan(3);
     lessThan.in[0] <== index;
@@ -45,9 +45,9 @@ template Splicer(numItems) {
 
     var NUM_OUTPUT_ITEMS = numItems + 1;
 
-    signal input in[numItems];
-    signal input leaf;
-    signal input index;
+    signal input in[numItems]; // private
+    signal input leaf; // private
+    signal input index; // private
     signal output out[NUM_OUTPUT_ITEMS];
 
     component greaterThan[NUM_OUTPUT_ITEMS];
@@ -87,10 +87,10 @@ template QuinTreeInclusionProof(levels) {
     var LEAVES_PER_NODE = 5;
     var LEAVES_PER_PATH_LEVEL = LEAVES_PER_NODE - 1;
 
-    signal input leaf;
-    signal input path_index[levels];
-    signal input path_elements[levels][LEAVES_PER_PATH_LEVEL];
-    signal output root;
+    signal input leaf; // private
+    signal input path_index[levels]; // private
+    signal input path_elements[levels][LEAVES_PER_PATH_LEVEL]; // private
+    signal output root; 
 
     var i;
     var j;

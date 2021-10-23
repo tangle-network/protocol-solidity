@@ -5,8 +5,8 @@ include "../poseidon/hasher.circom";
 // if s == 0 returns [in[0], in[1]]
 // if s == 1 returns [in[1], in[0]]
 template DualMux() {
-    signal input in[2];
-    signal input s;
+    signal input in[2]; // private
+    signal input s; // private
     signal output out[2];
 
     s * (1 - s) === 0;
@@ -17,10 +17,10 @@ template DualMux() {
 // Verifies that merkle proof is correct for given merkle root and a leaf
 // pathIndices input is an array of 0/1 selectors telling whether given pathElement is on the left or right side of merkle path
 template MerkleTreeChecker(levels) {
-    signal input leaf;
-    signal input root;
-    signal input pathElements[levels];
-    signal input pathIndices[levels];
+    signal input leaf; // private 
+    signal input root; // private
+    signal input pathElements[levels]; // private
+    signal input pathIndices[levels]; // private
 
     component selectors[levels];
     component hashers[levels];
