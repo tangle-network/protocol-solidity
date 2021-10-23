@@ -533,7 +533,8 @@ class Anchor {
     const wrappedTokenBalance = await wrappedToken.getBalance(this.contract.address);
     console.log(`wrapped token balance on anchor: ${wrappedTokenBalance}`);
     const originalToken = await MintableToken.tokenFromAddress(tokenAddress, this.signer);
-    const originalTokenBalance = await.
+    const originalTokenBalance = await originalToken.getBalance(anchorTokenWrapper);
+    console.log(`original token balance on anchor token wrapper: ${originalTokenBalance}`);
 
     //@ts-ignore
     let tx = await this.contract.withdrawAndUnwrap(
@@ -563,7 +564,7 @@ class Anchor {
     };
   }
 
-  public async bridgedWithdrawWebbTokens(
+  public async bridgedWithdrawAndUnwrap(
     deposit: AnchorDeposit,
     merkleProof: any,
     recipient: string,
@@ -571,7 +572,6 @@ class Anchor {
     fee: string,
     refund: string,
     refreshCommitment: string,
-    tokenAddress: string,
   ) {
     const { pathElements, pathIndices, merkleRoot } = merkleProof;
     const isKnownNeighborRoot = await this.contract.isKnownNeighborRoot(deposit.originChainId, toFixedHex(merkleRoot));

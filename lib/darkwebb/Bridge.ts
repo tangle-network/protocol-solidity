@@ -384,7 +384,7 @@ class Bridge {
   public async deposit(destinationChainId: number, webbTokenName: string, anchorSize: ethers.BigNumberish, signer: ethers.Signer) {
     const chainId = await signer.getChainId();
     const signerAddress = await signer.getAddress();
-    const anchor = this.getAnchor(chainId, tokenName, anchorSize);
+    const anchor = this.getAnchor(chainId, webbTokenName, anchorSize);
     if (!anchor) {
       throw new Error("Anchor is not supported for the given token and size");
     }
@@ -402,40 +402,7 @@ class Bridge {
     console.log('webbTokenInstance address: ', tokenInstance.contract.address);
 
     if (userTokenBalance.lt(anchorSize)) {
-      // No webb tokens to deposit, so see if we can wrapAndDeposit
-      const originTokenAddress = this.tokenAddresses.get(Bridge.createTokenIdString({tokenName, chainId}));
-      if (!originTokenAddress) {
-        throw new Error("Origin token not found");
-      }
-
-      const originTokenInstance = await MintableToken.tokenFromAddress(originTokenAddress, signer);
-      const userOriginTokenBalance = await originTokenInstance.getBalance(signerAddress);
-      console.log(`originTokenInstance address: ${originTokenAddress} on chain ${chainId}`);
-
-      if (userOriginTokenBalance.lt(anchorSize)) {
-        throw new Error("Not enough balance in webbTokens or original ERC20");
-      }
-
-      // Continue with deposit flow for wrapAndDeposit:
-      // Approve spending if needed
-      let userOriginTokenAllowance = await originTokenInstance.getAllowance(signerAddress, anchor.contract.address);
-      console.log('original Allowance: ', userOriginTokenAllowance);
-      if (userOriginTokenAllowance.lt(anchorSize)) {
-        // const originTokenUser = await originTokenInstance.signer.getAddress();
-        // console.log(`approving token ${originTokenInstance.contract.address} spending for: ${anchor.contract.address} from ${originTokenUser}`);
-        const tx = await originTokenInstance.approveSpending(tokenInstance.contract.address);
-        await tx.wait();
-        // userOriginTokenAllowance = await originTokenInstance.getAllowance(signerAddress, anchor.contract.address);
-        // console.log('after approving spending allowance: ', userOriginTokenAllowance);
-      }
-      // return some error code value for deposit note if signer invalid
-      if (!(await anchor.setSigner(signer))) {
-        throw new Error("Invalid signer for deposit, check the signer's chainID");
-      }
-
-      const deposit = await anchor.wrapAndDeposit(originTokenInstance.contract.address, destinationChainId);
-      await this.updateLinkedAnchors(anchor);
-      return deposit;
+      throw new Error("Not enough balance in webbTokens");
     }
 
     // Approve spending if needed
@@ -454,7 +421,46 @@ class Bridge {
   }
 
   public async wrapAndDeposit(destinationChainId: number, tokenName: string, anchorSize: ethers.BigNumberish, signer: ethers.Signer) {
-    
+    const chainId = await signer.getChainId();
+    const signerAddress = await signer.getAddress();
+    const anchor = this.getAnchor(chainId, tokenName, anchorSize);
+    if (!anchor) {
+      throw new Error("Anchor is not supported for the given token and size");
+    }
+
+    // get the original erc20 token address
+    const originTokenAddress = this.tokenAddresses.get(Bridge.createTokenIdString({tokenName, chainId}));
+    if (!originTokenAddress) {
+      throw new Error("Origin token not found");
+    }
+
+    // Check if appropriate balance from user
+    const originTokenInstance = await MintableToken.tokenFromAddress(originTokenAddress, signer);
+    const userOriginTokenBalance = await originTokenInstance.getBalance(signerAddress);
+    console.log(`originTokenInstance address: ${originTokenAddress} on chain ${chainId}`);
+
+    if (userOriginTokenBalance.lt(anchorSize)) {
+      throw new Error("Not enough balance in webbTokens or original ERC20");
+    }
+
+    // Continue with deposit flow for wrapAndDeposit:
+    // Approve spending if needed
+    let userOriginTokenAllowance = await originTokenInstance.getAllowance(signerAddress, anchor.contract.address);
+    console.log('original Allowance: ', userOriginTokenAllowance);
+    if (userOriginTokenAllowance.lt(anchorSize)) {
+      const wrapperTokenAddress = await anchor.contract.token();
+      const tx = await originTokenInstance.approveSpending(wrapperTokenAddress);
+      await tx.wait();
+    }
+
+    // return some error code value for deposit note if signer invalid
+    if (!(await anchor.setSigner(signer))) {
+      throw new Error("Invalid signer for deposit, check the signer's chainID");
+    }
+
+    const deposit = await anchor.wrapAndDeposit(originTokenInstance.contract.address, destinationChainId);
+    await this.updateLinkedAnchors(anchor);
+    return deposit;
   }
 
   public async withdraw(
@@ -490,6 +496,17 @@ class Bridge {
     console.log('Token address passed for withdraw: ', tokenAddress);
     await anchorToWithdraw.bridgedWithdraw(depositInfo, merkleProof, recipient, relayer, '0', '0', '0', tokenAddress!);
     return true;
+  }
+
+  public async withdrawAndUnwrap(
+    depositInfo: AnchorDeposit,
+    tokenName: string,
+    anchorSize: ethers.BigNumberish,
+    recipient: string,
+    relayer: string,
+    signer: ethers.Signer
+  ) {
+    
   }
 }
 
