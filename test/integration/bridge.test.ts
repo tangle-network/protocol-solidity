@@ -334,6 +334,14 @@ describe('multichain tests', () => {
         const destAnchorEdge2After = await anchor2.contract.edgeList(edgeIndex);
         assert.deepStrictEqual(destAnchorEdge2Before.latestLeafIndex.add(1), destAnchorEdge2After.latestLeafIndex);
 
+        // Check that the anchor has the appropriate amount of wrapped token balance
+        const wrappedTokenAddress = bridge.webbTokenAddresses.get((Bridge.createTokenIdString({tokenName: `webb${tokenName}`, chainId: chainId2})));
+        const wrappedToken = await MintableToken.tokenFromAddress(wrappedTokenAddress!, signers[1]);
+        const anchorWrappedTokenBalance = await wrappedToken.getBalance(anchor2.contract.address);
+        assert.deepStrictEqual(anchorWrappedTokenBalance.toString(), anchorSize);
+
+        // Check that the anchor's token wrapper has the appropriate amount of token balance
+
         // Withdraw from the bridge
         await bridge.withdrawAndUnwrap(depositNote1!, tokenName, anchorSize, signers[2].address, signers[2].address, ganacheWallet2);
 
