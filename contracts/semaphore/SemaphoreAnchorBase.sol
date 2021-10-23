@@ -15,12 +15,12 @@ contract SemaphoreAnchorBase is Ownable, IncrementalQuinTree, ReentrancyGuard {
     // The external nullifier helps to prevent double-signalling by the same
     // user. An external nullifier can be active or deactivated.
 
-//     // Each node in the linked list
-//     struct ExternalNullifierNode {
-//         uint232 next;
-//         bool exists;
-//         bool isActive;
-//     }
+    // Each node in the linked list
+    struct ExternalNullifierNode {
+        uint232 next;
+        bool exists;
+        bool isActive;
+    }
 
     uint8 public immutable maxEdges;
     // Each Semaphore Anchor has a list of edges 
@@ -50,49 +50,49 @@ contract SemaphoreAnchorBase is Ownable, IncrementalQuinTree, ReentrancyGuard {
     mapping (uint232 => ExternalNullifierNode) public
         externalNullifierLinkedList;
 
-//     uint256 public numExternalNullifiers = 0;
+    uint256 public numExternalNullifiers = 0;
     
-//     // First and last external nullifiers for linked list enumeration
-//     uint232 public firstExternalNullifier = 0;
-//     uint232 public lastExternalNullifier = 0;
+    // First and last external nullifiers for linked list enumeration
+    uint232 public firstExternalNullifier = 0;
+    uint232 public lastExternalNullifier = 0;
 
-//     // Whether broadcastSignal() can only be called by the owner of this
-//     // contract. This is the case as a safe default.
-//     bool public isBroadcastPermissioned = true;
+    // Whether broadcastSignal() can only be called by the owner of this
+    // contract. This is the case as a safe default.
+    bool public isBroadcastPermissioned = true;
 
-//     // Whether the contract has already seen a particular nullifier hash
-//     mapping (uint256 => bool) public nullifierHashHistory;
+    // Whether the contract has already seen a particular nullifier hash
+    mapping (uint256 => bool) public nullifierHashHistory;
 
-//     event PermissionSet(bool indexed newPermission);
-//     event ExternalNullifierAdd(uint232 indexed externalNullifier);
-//     event ExternalNullifierChangeStatus(
-//         uint232 indexed externalNullifier,
-//         bool indexed active
-//     );
+    event PermissionSet(bool indexed newPermission);
+    event ExternalNullifierAdd(uint232 indexed externalNullifier);
+    event ExternalNullifierChangeStatus(
+        uint232 indexed externalNullifier,
+        bool indexed active
+    );
 
-//     // This value should be equal to
-//     // 0x7d10c03d1f7884c85edee6353bd2b2ffbae9221236edde3778eac58089912bc0
-//     // which you can calculate using the following ethersjs code:
-//     // ethers.utils.solidityKeccak256(['bytes'], [ethers.utils.toUtf8Bytes('Semaphore')])
-//     // By setting the value of unset (empty) tree leaves to this
-//     // nothing-up-my-sleeve value, the authors hope to demonstrate that they do
-//     // not have its preimage and therefore cannot spend funds they do not own.
+    // This value should be equal to
+    // 0x7d10c03d1f7884c85edee6353bd2b2ffbae9221236edde3778eac58089912bc0
+    // which you can calculate using the following ethersjs code:
+    // ethers.utils.solidityKeccak256(['bytes'], [ethers.utils.toUtf8Bytes('Semaphore')])
+    // By setting the value of unset (empty) tree leaves to this
+    // nothing-up-my-sleeve value, the authors hope to demonstrate that they do
+    // not have its preimage and therefore cannot spend funds they do not own.
 
-//     uint256 public NOTHING_UP_MY_SLEEVE_ZERO = 
-//         uint256(keccak256(abi.encodePacked('Semaphore'))) % SNARK_SCALAR_FIELD;
+    uint256 public NOTHING_UP_MY_SLEEVE_ZERO =
+        uint256(keccak256(abi.encodePacked('Semaphore'))) % SNARK_SCALAR_FIELD;
 
-//     /*
-//      * If broadcastSignal is permissioned, check if msg.sender is the contract
-//      * owner
-//      */
-//     modifier onlyOwnerIfPermissioned() {
-//         require(
-//             !isBroadcastPermissioned || isOwner(),
-//             "Semaphore: broadcast permission denied"
-//         );
+    /*
+     * If broadcastSignal is permissioned, check if msg.sender is the contract
+     * owner
+     */
+    modifier onlyOwnerIfPermissioned() {
+        require(
+            !isBroadcastPermissioned || isOwner(),
+            "Semaphore: broadcast permission denied"
+        );
 
-//         _;
-//     }
+        _;
+    }
     
     /*
      * @param _treeLevels The depth of the identity tree.
