@@ -1,8 +1,10 @@
+pragma circom 2.0.0;
+
 include "../poseidon/poseidonHashT3.circom"
 
 template HashLeftRight() {
-    signal private input left;
-    signal private input right;
+    signal input left;
+    signal input right;
     signal input commitment
 
     component hasher = PoseidonHashT3();

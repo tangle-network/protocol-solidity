@@ -1,3 +1,5 @@
+pragma circom 2.0.0;
+
 include "./poseidonHashT3.circom";
 include "./poseidonHashT4.circom";
 include "./poseidonHashT5.circom";

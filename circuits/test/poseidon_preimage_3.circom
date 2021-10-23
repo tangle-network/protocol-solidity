@@ -1,9 +1,10 @@
+pragma circom 2.0.0;
 
 include "../poseidon/hasher.circom";
 
 template Poseidon3Hasher() {
     var length = 3;
-    signal private input inputs[length];
+    signal input inputs[length];
     signal input commitment;
 
     component hasher = Hasher3();

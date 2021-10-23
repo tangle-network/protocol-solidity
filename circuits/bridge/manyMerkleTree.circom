@@ -1,3 +1,5 @@
+pragma circom 2.0.0;
+
 include "../poseidon/hasher.circom";
 
 // Set membership gadget is handled with a multiplicative trick.
