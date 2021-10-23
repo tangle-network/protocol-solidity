@@ -325,7 +325,7 @@ describe('multichain tests', () => {
         let edgeIndex = await anchor2.contract.edgeIndex(chainId1);
         const destAnchorEdge2Before = await anchor2.contract.edgeList(edgeIndex);
         const token = await MintableToken.tokenFromAddress(existingToken2.contract.address, ganacheWallet2);
-        const startingBalanceDest = await token.getBalance(signers[1].address);
+        const startingBalanceDest = await token.getBalance(signers[2].address);
 
         // Make a deposit
         const depositNote1 = await bridge.wrapAndDeposit(chainId2, tokenName, anchorSize, signers[1]);
@@ -335,10 +335,10 @@ describe('multichain tests', () => {
         assert.deepStrictEqual(destAnchorEdge2Before.latestLeafIndex.add(1), destAnchorEdge2After.latestLeafIndex);
 
         // Withdraw from the bridge
-        await bridge.withdrawAndUnwrap(depositNote1!, tokenName, anchorSize, signers[1].address, signers[1].address, ganacheWallet2);
+        await bridge.withdrawAndUnwrap(depositNote1!, tokenName, anchorSize, signers[2].address, signers[2].address, ganacheWallet2);
 
         // Check the balance of the signer
-        const endingBalanceDest = await token.getBalance(signers[1].address);
+        const endingBalanceDest = await token.getBalance(signers[2].address);
         assert.deepStrictEqual(endingBalanceDest, startingBalanceDest.add(anchorSize));
       })
 
