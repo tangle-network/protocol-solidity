@@ -1,3 +1,5 @@
+pragma circom 2.0.0;
+
 include "../../node_modules/circomlib/circuits/poseidon.circom";
 include "../../node_modules/circomlib/circuits/babyjub.circom";
 include "./tree.circom";
@@ -60,7 +62,7 @@ template SetMembership(length) {
     product[i + 1] <== product[i] * diffs[i];
   }
 
-  product[length] === 0
+  product[length] === 0;
 }
 
 // n_levels must be < 32
@@ -73,13 +75,13 @@ template Semaphore(n_levels, length) {
     signal input signal_hash;
     signal input external_nullifier;
     signal input roots[length];
-    
 
-    signal private input identity_nullifier;
-    signal private input identity_trapdoor;
-    signal private input identity_path_index[n_levels];
-    signal private input path_elements[n_levels][LEAVES_PER_PATH_LEVEL];
-    signal private input diffs[length];
+
+    signal input identity_nullifier;
+    signal input identity_trapdoor;
+    signal input identity_path_index[n_levels];
+    signal input path_elements[n_levels][LEAVES_PER_PATH_LEVEL];
+    signal input diffs[length];
 
     component secret = CalculateSecret();
     secret.identity_nullifier <== identity_nullifier;
@@ -121,5 +123,5 @@ template Semaphore(n_levels, length) {
     signal signal_hash_squared;
     signal_hash_squared <== signal_hash * signal_hash;
 
-    nullifierHash === calculateNullifierHash.out;
+    nullifier_hash === calculateNullifierHash.out;
 }
