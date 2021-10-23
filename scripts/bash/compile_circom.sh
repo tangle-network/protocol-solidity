@@ -1,3 +1,5 @@
+#!/bin/bash
+
 mkdir -p artifacts
 mkdir -p artifacts/circuits
 mkdir -p artifacts/circuits/anchor
