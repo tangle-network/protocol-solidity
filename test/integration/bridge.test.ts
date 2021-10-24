@@ -41,12 +41,12 @@ describe('multichain tests', () => {
   // setup ganache networks
   let ganacheServer2: any;
   let ganacheServer3: any;
-  // let ganacheServer4: any;
+  let ganacheServer4: any;
 
   before('setup networks', async () => {
     ganacheServer2 = startGanacheServer(8545, 1337, 'congress island collect purity dentist team gas unlock nuclear pig combine sight');
     ganacheServer3 = startGanacheServer(9999, 9999, 'aspect biology suit thought bottom popular custom rebuild recall sauce endless local');
-    // ganacheServer4 = startGanacheServer(4444, 4444, 'harvest useful giraffe swim rail ostrich public awful provide amazing tank weapon');
+    ganacheServer4 = startGanacheServer(4444, 4444, 'harvest useful giraffe swim rail ostrich public awful provide amazing tank weapon');
     await sleep(2000);
   });
 
@@ -254,7 +254,7 @@ describe('multichain tests', () => {
     })
   });
 
-  describe.only('2 sided bridge existing token use', () => {
+  describe('2 sided bridge existing token use', () => {
 
     // ERC20 compliant contracts that can easily create balances for test
     let tokenName = 'existingERC20';
@@ -316,7 +316,7 @@ describe('multichain tests', () => {
     })
 
     describe('#bridging', () => {
-      it.only('should withdraw successfully from latest deposit', async () => {
+      it('should withdraw successfully from latest deposit', async () => {
         // Fetch information about the anchor to be updated.
         const signers = await ethers.getSigners();
         const anchorSize = '1000000000000000000';
@@ -341,6 +341,9 @@ describe('multichain tests', () => {
         assert.deepStrictEqual(anchorWrappedTokenBalance.toString(), anchorSize);
 
         // Check that the anchor's token wrapper has the appropriate amount of token balance
+        const anchorTokenWrapper = await anchor2.contract.token();
+        const anchorTokenWrapperBalance = token.getBalance(anchorTokenWrapper);
+        assert.deepStrictEqual(anchorTokenWrapperBalance.toString(), anchorSize);
 
         // Withdraw from the bridge
         await bridge.withdrawAndUnwrap(depositNote1!, tokenName, anchorSize, signers[2].address, signers[2].address, ganacheWallet2);
@@ -350,7 +353,7 @@ describe('multichain tests', () => {
         assert.deepStrictEqual(endingBalanceDest, startingBalanceDest.add(anchorSize));
       })
 
-      it.only('should withdraw on hardhat from ganache deposit', async () => {
+      it('should withdraw on hardhat from ganache deposit', async () => {
         // Fetch information about the anchor to be updated.
         const signers = await ethers.getSigners();
         const anchorSize = '1000000000000000000';

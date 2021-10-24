@@ -23,6 +23,7 @@ import {
 import Anchor from '../../lib/darkwebb/Anchor';
 import { getHasherFactory } from '../../lib/darkwebb/utils';
 import Verifier from '../../lib/darkwebb/Verifier';
+import MintableToken from '../../lib/darkwebb/MintableToken';
 
 const { NATIVE_AMOUNT } = process.env
 const snarkjs = require('snarkjs')
@@ -706,7 +707,7 @@ describe('Anchor for 2 max edges', () => {
       assert.strictEqual(balWrappedTokenAfterDepositAnchor.sub(balWrappedTokenAfterWithdrawAnchor).toString(), '1000000000000000000');
     });
 
-    it('should withdraw and unwrap', async () => {
+    it.only('should withdraw and unwrap', async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
       const sender = wallet;
@@ -743,6 +744,15 @@ describe('Anchor for 2 max edges', () => {
       );
 
       console.log('sender address in test', sender.address);
+
+      // Check that the anchor has the appropriate amount of wrapped token balance
+      const anchorWrappedTokenBalance = await wrappedToken.balanceOf(anchor.contract.address);
+      assert.deepStrictEqual(anchorWrappedTokenBalance.toString(), tokenDenomination);
+
+      // Check that the anchor's token wrapper has the appropriate amount of token balance
+      const anchorTokenWrapper = await anchor.contract.token();
+      const anchorTokenWrapperBalance = token.balanceOf(anchorTokenWrapper);
+      assert.deepStrictEqual(anchorTokenWrapperBalance.toString(), tokenDenomination);
 
       const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, wallet);
       await TruffleAssert.passes(newAnchor.withdrawAndUnwrap(
