@@ -30,6 +30,7 @@ template Withdraw(levels, length) {
     signal input relayer;                   // not taking part in any computations
     signal input fee;                       // not taking part in any computations
     signal input refund;                    // not taking part in any computations
+    signal input refreshCommitment;         // not taking part in any computations
 
     // chainID fixes a withdrawal proof to the destination since
     // this will be taken as a public input from the smart contract.
@@ -37,7 +38,7 @@ template Withdraw(levels, length) {
     // the set of roots to prove membership within, provided
     // as a public input from the smart contract.
     signal input roots[length];
-    signal input refreshCommitment;         // not taking part in any computations
+    
 
     signal input nullifier;
     signal input secret;
