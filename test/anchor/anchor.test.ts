@@ -756,6 +756,8 @@ describe('Anchor for 2 max edges', () => {
       const anchorTokenWrapperBalance = await token.balanceOf(anchorTokenWrapper);
       assert.deepStrictEqual(anchorTokenWrapperBalance.toString(), tokenDenomination);
 
+      console.log('wrapped token has the appropriate amount of token balance');
+
       const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, wallet);
       await TruffleAssert.passes(newAnchor.withdrawAndUnwrap(
         deposit,
