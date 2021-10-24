@@ -25,27 +25,27 @@ template CommitmentHasher() {
 
 // Verifies that commitment that corresponds to given secret and nullifier is included in the merkle tree of deposits
 template Withdraw(levels, length) {
-    signal input nullifierHash; // public
-    signal input recipient;  // public                  // not taking part in any computations
-    signal input relayer;    // public                  // not taking part in any computations
-    signal input fee;        // public                  // not taking part in any computations
-    signal input refund;     // public                  // not taking part in any computations
+    signal input nullifierHash;         // public
+    signal input recipient;             // public - not taking part in any computations
+    signal input relayer;               // public - not taking part in any computations
+    signal input fee;                   // public - not taking part in any computations
+    signal input refund;                // public - not taking part in any computations
 
     // chainID fixes a withdrawal proof to the destination since
     // this will be taken as a public input from the smart contract.
     signal input chainID; // public 
     // the set of roots to prove membership within, provided
     // as a public input from the smart contract.
-    signal input roots[length]; // public 
-    signal input refreshCommitment;  // public      // not taking part in any computations
+    signal input roots[length];         // public
+    signal input refreshCommitment;     // public - not taking part in any computations
 
     signal input nullifier; // private 
     signal input secret; // private 
-    signal input pathElements[levels]; // private 
-    signal input pathIndices[levels]; // private
+    signal input pathElements[levels];  // private
+    signal input pathIndices[levels];   // private
     // the differences of the root one is proving against and
     // all the roots provided as a public input in the `roots` signal.
-    signal input diffs[length]; // private
+    signal input diffs[length];         // private
 
     component hasher = CommitmentHasher();
     hasher.chainID <== chainID;
