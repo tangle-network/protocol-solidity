@@ -14,15 +14,15 @@ copy_to_fixtures () {
     local outdir="$1" circuit="$2" size="$3"
     cp artifacts/circuits/$outdir/$circuit.sym test/fixtures/$size/$circuit.sym
     cp artifacts/circuits/$outdir/$circuit.r1cs test/fixtures/$size/$circuit.r1cs
-    cp artifacts/circuits/$outdir/$circuit_js/$circuit.wasm test/fixtures/$size/$circuit_js/$circuit.wasm
+    cp artifacts/circuits/$outdir/$circuit\_js/$circuit.wasm test/fixtures/$size/$circuit.wasm
 }
 
-###
-# TORNADO TORNADOS
-###
+# ###
+# # TORNADO TORNADOS
+# ###
 
-echo "Compiling Tornado style Poseidon anchor withdrawal circuit..."
-compile anchor anchor_withdraw_30
+# echo "Compiling Tornado style Poseidon anchor withdrawal circuit..."
+# compile anchor anchor_withdraw_30
 
 ###
 # WEBB BRIDGES
@@ -47,23 +47,6 @@ copy_to_fixtures bridge poseidon_bridge_5 5
 echo "Compiling Webb style Poseidon bridge 6 withdrawal circuit..."
 compile bridge poseidon_bridge_6
 copy_to_fixtures bridge poseidon_bridge_6 6
-
-###
-# POSEIDON PREIMAGES
-###
-
-echo "Compiling poseidon preimage circuit..."
-compile poseidon_preimage
-
-echo "Compiling poseidon3 preimage circuit..."
-compile bridge poseidon_preimage_3
-
-###
-# SET MEMBERSHIP
-###
-
-echo "Compiling Set membership of length 5 circuit..."
-# compile bridge set_membership_5
 
 ###
 # WEBB SEMPAHORES

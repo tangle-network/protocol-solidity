@@ -5,7 +5,7 @@
 
 pragma solidity ^0.8.0;
 
-import "../interfaces/IVerifier.sol";
+import "../../interfaces/IVerifier.sol";
 
 contract Verifier is IVerifier {
 	IVerifier2 public v2;
