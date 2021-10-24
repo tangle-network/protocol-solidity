@@ -746,12 +746,14 @@ describe('Anchor for 2 max edges', () => {
       console.log('sender address in test', sender.address);
 
       // Check that the anchor has the appropriate amount of wrapped token balance
-      const anchorWrappedTokenBalance = await wrappedToken.balanceOf(anchor.contract.address);
+      const anchorWrappedTokenBalance = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
       assert.deepStrictEqual(anchorWrappedTokenBalance.toString(), tokenDenomination);
 
+      console.log('anchor has the appropriate amount of wrapped token balance');
+
       // Check that the anchor's token wrapper has the appropriate amount of token balance
-      const anchorTokenWrapper = await anchor.contract.token();
-      const anchorTokenWrapperBalance = token.balanceOf(anchorTokenWrapper);
+      const anchorTokenWrapper = await wrappedAnchor.contract.token();
+      const anchorTokenWrapperBalance = await token.balanceOf(anchorTokenWrapper);
       assert.deepStrictEqual(anchorTokenWrapperBalance.toString(), tokenDenomination);
 
       const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, wallet);
