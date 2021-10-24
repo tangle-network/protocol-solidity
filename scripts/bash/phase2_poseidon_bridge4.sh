@@ -14,4 +14,4 @@ snarkjs zkey export solidityverifier ./build/bridge4/circuit_final.zkey ./build/
 
 npx snarkjs wtns calculate ./artifacts/circuits/bridge/poseidon_bridge_4.wasm ./build/bridge4/input.json ./build/bridge4/witness.wtns
 
-npx snarkjs wtns debug ./artifacts/circuits/bridge/poseidon_bridge_4.wasm ./build/bridge4/input.json ./build/bridge4/witness.wtns ./artifacts/circuits/bridge/poseidon_bridge_4.sym --trigger --get --set
+#npx snarkjs wtns debug ./artifacts/circuits/bridge/poseidon_bridge_4.wasm ./build/bridge4/input.json ./build/bridge4/witness.wtns ./artifacts/circuits/bridge/poseidon_bridge_4.sym --trigger --get --set

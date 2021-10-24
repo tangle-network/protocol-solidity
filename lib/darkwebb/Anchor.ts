@@ -8,7 +8,7 @@ import { MerkleTree } from './MerkleTree';
 
 const path = require('path');
 const snarkjs = require('snarkjs');
-const F = require('circomlib').babyJub.F;
+const F = require('circomlibjs').babyjub.F;
 const Scalar = require('ffjavascript').Scalar;
 
 export interface AnchorDepositInfo {
