@@ -51,7 +51,7 @@ compile bridge poseidon_preimage_3
 ###
 
 echo "Compiling Set membership of length 5 circuit..."
-compile bridge set_membership_5
+# compile bridge set_membership_5
 
 ###
 # WEBB SEMPAHORES
