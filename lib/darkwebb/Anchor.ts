@@ -53,6 +53,7 @@ class Anchor {
   depositHistory: Record<number, string>;
   token?: string;
   denomination?: string;
+  witnessCalculator: any;
 
   private constructor(
     contract: AnchorContract,
@@ -65,32 +66,39 @@ class Anchor {
     this.tree = new MerkleTree('', treeHeight);
     this.latestSyncedBlock = 0;
     this.depositHistory = {};
+    this.witnessCalculator = {};
 
     // set the circuit zkey and wasm depending upon max edges
     switch (maxEdges) {
       case 1:
         this.circuitWASMPath = 'test/fixtures/2/poseidon_bridge_2.wasm';
         this.circuitZkeyPath = 'test/fixtures/2/circuit_final.zkey';
+        this.witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_2_js/witness_calculator.js");
         break;
       case 2:
         this.circuitWASMPath = 'test/fixtures/3/poseidon_bridge_3.wasm';
         this.circuitZkeyPath = 'test/fixtures/3/circuit_final.zkey';
+        this.witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_3_js/witness_calculator.js");
         break;
       case 3:
         this.circuitWASMPath = 'test/fixtures/4/poseidon_bridge_4.wasm';
         this.circuitZkeyPath = 'test/fixtures/4/circuit_final.zkey';
+        this.witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_4_js/witness_calculator.js");
         break;
       case 4:
         this.circuitWASMPath = 'test/fixtures/5/poseidon_bridge_5.wasm';
         this.circuitZkeyPath = 'test/fixtures/5/circuit_final.zkey';
+        this.witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_5_js/witness_calculator.js");
         break;
       case 5:
         this.circuitWASMPath = 'test/fixtures/6/poseidon_bridge_6.wasm';
         this.circuitZkeyPath = 'test/fixtures/6/circuit_final.zkey';
+        this.witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_6_js/witness_calculator.js");
         break;
       default:
         this.circuitWASMPath = 'test/fixtures/2/poseidon_bridge_2.wasm';
         this.circuitZkeyPath = 'test/fixtures/2/circuit_final.zkey';
+        this.witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_2_js/witness_calculator.js");
         break;
     }
 
@@ -347,9 +355,10 @@ class Anchor {
   }
 
   public async createWitness(data: any) {
-    const wtns = {type: "mem"};
-    await snarkjs.wtns.calculate(data, path.join('.', this.circuitWASMPath), wtns);
-    return wtns;
+    const fileBuf = require('fs').readFileSync(this.circuitWASMPath);
+    const witnessCalculator = await this.witnessCalculator(fileBuf)
+    const buff = await witnessCalculator.calculateWTNSBin(data,0);
+    return buff;
   }
 
   public async proveAndVerify(wtns: any) {

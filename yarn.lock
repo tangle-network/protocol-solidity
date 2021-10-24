@@ -2183,6 +2183,13 @@ blake2b-wasm@^1.1.0:
   dependencies:
     nanoassert "^1.0.0"
 
+blake2b-wasm@^2.3.0:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/blake2b-wasm/-/blake2b-wasm-2.3.0.tgz#d8da788f9dd4cb64a801a67bb6ae0d1b9c887bf0"
+  integrity sha512-opFKx7sIXpKiG2/N24km9mJObgLOpu0JRf8CDgE/orn8LI/F7pUOSuZVSdZTJ7BMyFJunNdqoSInjwx1ty/z8A==
+  dependencies:
+    nanoassert "^2.0.0"
+
 "blake2b-wasm@https://github.com/jbaylina/blake2b-wasm.git":
   version "2.1.0"
   resolved "https://github.com/jbaylina/blake2b-wasm.git#0d5f024b212429c7f50a7f533aa3a2406b5b42b3"
@@ -2809,6 +2816,14 @@ circom_runtime@0.1.13:
   integrity sha512-vmv19/0p5OTe5uCI7PWqPtB5vPoYWjczqKYnabaC5HOxX99R4K1MuNqEXsNEAoEfZrmfAQd7vXLcATN9NVnsPA==
   dependencies:
     ffjavascript "0.2.35"
+    fnv-plus "^1.3.1"
+
+circom_runtime@0.1.14:
+  version "0.1.14"
+  resolved "https://registry.yarnpkg.com/circom_runtime/-/circom_runtime-0.1.14.tgz#c9a4d9a277d0bb76ec8635f853f588299990eca7"
+  integrity sha512-MLbHHZVkYuWyZiYErLmT5y0qbTRXDD1NhaDyLhQNF0JCb6brx8r/VJDevwne7sT1re7qHpHCQAL5rhqByQ7obQ==
+  dependencies:
+    ffjavascript "0.2.39"
     fnv-plus "^1.3.1"
 
 circom_runtime@0.1.4:
@@ -4651,10 +4666,10 @@ ffjavascript@0.2.35:
     wasmcurves "0.0.14"
     web-worker "^1.0.0"
 
-ffjavascript@0.2.37:
-  version "0.2.37"
-  resolved "https://registry.npmjs.org/ffjavascript/-/ffjavascript-0.2.37.tgz"
-  integrity sha512-wWOkQB07d6eKFRMMtryTVsWrMsR4ImdikhEuu6ZcFYaxufJaBKUiQHYxsPzZEScPa+okkHzf1/2YVPU7xUIHMQ==
+ffjavascript@0.2.39:
+  version "0.2.39"
+  resolved "https://registry.yarnpkg.com/ffjavascript/-/ffjavascript-0.2.39.tgz#15acd07e0b4cfb323b9a84446a9bea5ca103f591"
+  integrity sha512-9ewb5keKHL1owKTxCK7sDuA34SPJxnznWqdJgwBW51moCvg+wf9L0W5mcxm8qMUxt2OE/KjBQUKmYLaKyNNrPw==
   dependencies:
     big-integer "^1.6.48"
     wasmcurves "0.0.14"
@@ -7136,6 +7151,11 @@ nanoassert@^1.0.0:
   resolved "https://registry.npmjs.org/nanoassert/-/nanoassert-1.1.0.tgz"
   integrity sha1-TzFS4JVA/eKMdvRLGbvNHVpCR40=
 
+nanoassert@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/nanoassert/-/nanoassert-2.0.0.tgz#a05f86de6c7a51618038a620f88878ed1e490c09"
+  integrity sha512-7vO7n28+aYO4J+8w96AzhmU8G+Y/xpPDJz/se19ICsqj/momRbb9mh9ZUtkoJ5X3nTnPdhEJyc0qnM6yAsHBaA==
+
 nanoid@3.1.20:
   version "3.1.20"
   resolved "https://registry.npmjs.org/nanoid/-/nanoid-3.1.20.tgz"
@@ -8026,6 +8046,16 @@ r1csfile@0.0.32:
     fastfile "0.0.19"
     ffjavascript "0.2.35"
 
+r1csfile@0.0.33:
+  version "0.0.33"
+  resolved "https://registry.yarnpkg.com/r1csfile/-/r1csfile-0.0.33.tgz#88c36f383ba5d4ee8f8b0e22006c2f40894a12c6"
+  integrity sha512-aSZa/Vy6avJ146MOewUNRYdDLJCDINZ7aqSt0Zhw4uVrd4TijOz6gBfmckr7tPILaT3RNp7THVpUzeW0++OlJw==
+  dependencies:
+    "@iden3/bigarray" "0.0.2"
+    "@iden3/binfileutils" "0.0.8"
+    fastfile "0.0.19"
+    ffjavascript "0.2.39"
+
 randombytes@^2.0.0, randombytes@^2.0.1, randombytes@^2.0.5, randombytes@^2.0.6, randombytes@^2.1.0:
   version "2.1.0"
   resolved "https://registry.npmjs.org/randombytes/-/randombytes-2.1.0.tgz"
@@ -8669,20 +8699,20 @@ snarkjs@^0.3.60:
     r1csfile "0.0.32"
     readline "^1.3.0"
 
-snarkjs@^0.4.6:
-  version "0.4.6"
-  resolved "https://registry.npmjs.org/snarkjs/-/snarkjs-0.4.6.tgz"
-  integrity sha512-DioPEaDKD/MrYX4kKAtlFRkCIkkiELi89N1DvosoHLeX1MuA9LQVAoOTAbJgwkTMHgCZPio5bOwk6JjZl6Z/Pw==
+snarkjs@^0.4.10:
+  version "0.4.10"
+  resolved "https://registry.yarnpkg.com/snarkjs/-/snarkjs-0.4.10.tgz#5a8048e691af8f3e6016014ba2cb0e916f508be1"
+  integrity sha512-YWgxso7CGcSfkyDGraVjPuBJtq6GEsZ16YBJj2eD0TFum2D5BxnawvyTo4p/7UpctAT0r05DoHo80zgaWnbIKA==
   dependencies:
     "@iden3/binfileutils" "0.0.8"
-    blake2b-wasm "https://github.com/jbaylina/blake2b-wasm.git"
-    circom_runtime "0.1.13"
+    blake2b-wasm "^2.3.0"
+    circom_runtime "0.1.14"
     ejs "^3.1.6"
     fastfile "0.0.19"
-    ffjavascript "0.2.37"
+    ffjavascript "0.2.39"
     js-sha3 "^0.8.0"
     logplease "^1.2.15"
-    r1csfile "0.0.32"
+    r1csfile "0.0.33"
     readline "^1.3.0"
 
 solc@0.7.3:
