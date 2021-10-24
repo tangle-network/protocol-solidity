@@ -49,7 +49,7 @@ contract ERC20Handler is IDepositExecute, IExecutor, IERCHandler, HandlerHelpers
         bytes32[] memory initialResourceIDs,
         address[] memory initialContractAddresses,
         address[] memory burnableContractAddresses
-    ) public {
+    ) {
         require(initialResourceIDs.length == initialContractAddresses.length,
             "initialResourceIDs and initialContractAddresses len mismatch");
 
