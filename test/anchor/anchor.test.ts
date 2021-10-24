@@ -28,7 +28,7 @@ const { NATIVE_AMOUNT } = process.env
 const snarkjs = require('snarkjs')
 const bigInt = require('big-integer');
 const BN = require('bn.js');
-const F = require('circomlib').babyJub.F;
+const F = require('circomlibjs').babyjub.F;
 const Scalar = require("ffjavascript").Scalar;
 
 const helpers = require('../../lib/darkwebb/utils');

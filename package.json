@@ -57,6 +57,7 @@
     "bn-chai": "^1.0.1",
     "chai-as-promised": "^7.1.1",
     "circomlib": "^2.0.1",
+    "circomlibjs": "^0.0.8",
     "dotenv": "^8.2.0",
     "ethers-eip712": "^0.2.0",
     "hardhat-artifactor": "^0.2.0",

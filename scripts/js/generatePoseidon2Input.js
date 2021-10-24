@@ -10,7 +10,7 @@ const {
   stringifyBigInts,
 } = utils;
 const PoseidonHasher = require('../../lib/Poseidon'); 
-const circomlib = require('circomlib')
+const circomlib = require('circomlibjs')
 
 const poseidonHasher = new PoseidonHasher();
 

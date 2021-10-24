@@ -22,7 +22,7 @@ const { NATIVE_AMOUNT } = process.env
 let prefix = 'poseidon-test'
 const snarkjs = require('snarkjs');
 const BN = require('bn.js');
-const F = require('circomlib').babyJub.F;
+const F = require('circomlibjs').babyjub.F;
 const Scalar = require('ffjavascript').Scalar;
 const MerkleTree = require('../../lib/MerkleTree');
 

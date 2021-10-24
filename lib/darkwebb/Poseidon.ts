@@ -1,4 +1,4 @@
-const circomlib = require('circomlib');
+const circomlib = require('circomlibjs');
 const maci = require('maci-crypto');
 
 class PoseidonHasher {
