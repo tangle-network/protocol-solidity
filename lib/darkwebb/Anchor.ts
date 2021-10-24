@@ -272,7 +272,6 @@ class Anchor {
     const chainId = (destinationChainId) ? destinationChainId : originChainId;
     const deposit = Anchor.generateDeposit(chainId);
     const signerAddress = await this.signer.getAddress();
-    console.log(`inside anchor: signer is ${signerAddress}, tokenAddress: ${tokenAddress}`);
     const tx = await this.contract.wrapAndDeposit(tokenAddress, toFixedHex(deposit.commitment), { gasLimit: '0x5B8D80' });
     await tx.wait();
 
@@ -527,14 +526,6 @@ class Anchor {
     ];
 
     const publicInputs = Anchor.convertArgsArrayToStruct(args);
-
-    const anchorTokenWrapper = await this.contract.token();
-    const wrappedToken = await MintableToken.tokenFromAddress(anchorTokenWrapper, this.signer);
-    const wrappedTokenBalance = await wrappedToken.getBalance(this.contract.address);
-    console.log(`wrapped token balance on anchor: ${wrappedTokenBalance}`);
-    const originalToken = await MintableToken.tokenFromAddress(tokenAddress, this.signer);
-    const originalTokenBalance = await originalToken.getBalance(anchorTokenWrapper);
-    console.log(`original token balance on anchor token wrapper: ${originalTokenBalance}`);
 
     //@ts-ignore
     let tx = await this.contract.withdrawAndUnwrap(

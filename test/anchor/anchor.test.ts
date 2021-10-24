@@ -707,7 +707,7 @@ describe('Anchor for 2 max edges', () => {
       assert.strictEqual(balWrappedTokenAfterDepositAnchor.sub(balWrappedTokenAfterWithdrawAnchor).toString(), '1000000000000000000');
     });
 
-    it.only('should withdraw and unwrap', async () => {
+    it('should withdraw and unwrap', async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
       const sender = wallet;
@@ -743,22 +743,14 @@ describe('Anchor for 2 max edges', () => {
         token.address,
       );
 
-      console.log('sender address in test', sender.address);
-
       // Check that the anchor has the appropriate amount of wrapped token balance
       const anchorWrappedTokenBalance = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
       assert.deepStrictEqual(anchorWrappedTokenBalance.toString(), tokenDenomination);
 
-      console.log('anchor address is: ', wrappedAnchor.contract.address);
-      console.log('anchor balance: ', anchorWrappedTokenBalance.toString());
-
       // Check that the anchor's token wrapper has the appropriate amount of token balance
       const tokenWrapper = await wrappedAnchor.contract.token();
       const tokenWrapperBalanceOfToken = await token.balanceOf(tokenWrapper);
-      console.log('token wrapper balance of token: ', tokenWrapperBalanceOfToken.toString());
       assert.deepStrictEqual(tokenWrapperBalanceOfToken.toString(), tokenDenomination);
-
-      console.log('wrapped token has the appropriate amount of token balance');
 
       const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, wallet);
       await TruffleAssert.passes(newAnchor.withdrawAndUnwrap(

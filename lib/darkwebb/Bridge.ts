@@ -195,7 +195,6 @@ class Bridge {
       );
 
       bridgeSides.set(chainID, bridgeInstance);
-      console.log(`bridgeSide address on ${chainID}: ${bridgeInstance.contract.address}`);
 
       // Create the Hasher and Verifier for the chain
       const hasherFactory = await getHasherFactory(deployers[chainID]);
@@ -220,10 +219,9 @@ class Bridge {
 
         await tokenInstance.contract.add(originalToken.contract.address);
 
-        console.log(`token address of name: ${webbTokenName} on ${chainID}: ${tokenInstance.contract.address}`);
         // append each token
         webbTokenAddresses.set(
-          Bridge.createTokenIdString({tokenName: webbTokenName, chainId: chainID}),
+          Bridge.createTokenIdString({tokenName: originalToken.name, chainId: chainID}),
           tokenInstance.contract.address
         );
 
@@ -248,8 +246,6 @@ class Bridge {
             bridgeInput.chainIDs.length-1,
             deployers[chainID]
           );
-
-          console.log(`anchor address on ${chainID}: ${anchorInstance.contract.address}`);
 
           // grant minting rights to the anchor
           await tokenInstance.grantMinterRole(anchorInstance.contract.address); 
@@ -334,24 +330,24 @@ class Bridge {
     await this.updateLinkedAnchors(anchor);
   }
 
-  public getBridgeSide(chainID: number) {
-    return this.bridgeSides.get(chainID);
+  public getBridgeSide(chainId: number) {
+    return this.bridgeSides.get(chainId);
   }
 
-  public getAnchor(chainID: number, tokenName: string, anchorSize: ethers.BigNumberish) {
+  public getAnchor(chainId: number, tokenName: string, anchorSize: ethers.BigNumberish) {
     let intendedAnchor: Anchor | undefined = undefined;
-    intendedAnchor = this.anchors.get(Bridge.createAnchorIdString({tokenName, anchorSize, chainId: chainID}));
+    intendedAnchor = this.anchors.get(Bridge.createAnchorIdString({tokenName, anchorSize, chainId}));
 
     if (!intendedAnchor) {
-      intendedAnchor = this.anchors.get(Bridge.createAnchorIdString({tokenName: `webb${tokenName}`, anchorSize, chainId: chainID}))
+      intendedAnchor = this.anchors.get(Bridge.createAnchorIdString({tokenName: `webb${tokenName}`, anchorSize, chainId}))
     }
     
     return intendedAnchor;
   }
 
   // Returns the address of the webbToken which wraps the given token name.
-  public getWebbTokenAddress(chainID: number, tokenName: string): string | undefined {
-    let tokenIdentifier = Bridge.createTokenIdString({ tokenName: `webb${tokenName}`, chainId: chainID });
+  public getWebbTokenAddress(chainId: number, tokenName: string): string | undefined {
+    let tokenIdentifier = Bridge.createTokenIdString({ tokenName, chainId: chainId });
     return this.webbTokenAddresses.get(tokenIdentifier);
   }
 
@@ -399,8 +395,6 @@ class Bridge {
     // Check if appropriate balance from user
     const tokenInstance = await MintableToken.tokenFromAddress(tokenAddress, signer);
     const userTokenBalance = await tokenInstance.getBalance(signerAddress);
-    console.log('webbTokenInstance address: ', tokenInstance.contract.address);
-
     if (userTokenBalance.lt(anchorSize)) {
       throw new Error("Not enough balance in webbTokens");
     }
@@ -437,8 +431,6 @@ class Bridge {
     // Check if appropriate balance from user
     const originTokenInstance = await MintableToken.tokenFromAddress(originTokenAddress, signer);
     const userOriginTokenBalance = await originTokenInstance.getBalance(signerAddress);
-    console.log(`originTokenInstance address: ${originTokenAddress} on chain ${chainId}`);
-
     if (userOriginTokenBalance.lt(anchorSize)) {
       throw new Error("Not enough balance in webbTokens or original ERC20");
     }
@@ -446,7 +438,6 @@ class Bridge {
     // Continue with deposit flow for wrapAndDeposit:
     // Approve spending if needed
     let userOriginTokenAllowance = await originTokenInstance.getAllowance(signerAddress, anchor.contract.address);
-    console.log('original Allowance: ', userOriginTokenAllowance);
     if (userOriginTokenAllowance.lt(anchorSize)) {
       const wrapperTokenAddress = await anchor.contract.token();
       const tx = await originTokenInstance.approveSpending(wrapperTokenAddress);
@@ -465,14 +456,14 @@ class Bridge {
 
   public async withdraw(
     depositInfo: AnchorDeposit,
-    tokenName: string,
+    webbTokenName: string,
     anchorSize: ethers.BigNumberish,
     recipient: string,
     relayer: string,
     signer: ethers.Signer
   ) {
     // Construct the proof from the origin anchor
-    const anchorToProve = this.getAnchor(depositInfo.originChainId, tokenName, anchorSize);
+    const anchorToProve = this.getAnchor(depositInfo.originChainId, webbTokenName, anchorSize);
     if (!anchorToProve) {
       throw new Error("Could not find anchor to prove against");
     }
@@ -480,8 +471,7 @@ class Bridge {
     const merkleProof = anchorToProve.tree.path(depositInfo.index);
 
     // Submit the proof and arguments on the destination anchor
-    console.log('Before fetching anchor to withdraw: ');
-    const anchorToWithdraw = this.getAnchor(Number(depositInfo.deposit.chainID.toString()), tokenName, anchorSize);
+    const anchorToWithdraw = this.getAnchor(Number(depositInfo.deposit.chainID.toString()), webbTokenName, anchorSize);
 
     if (!anchorToWithdraw) {
       throw new Error("Could not find anchor to withdraw from");
@@ -492,8 +482,6 @@ class Bridge {
     }
 
     const chainId = await signer.getChainId();
-    const tokenAddress = this.tokenAddresses.get(Bridge.createTokenIdString({tokenName, chainId}));
-    console.log('Token address passed for withdraw: ', tokenAddress);
     await anchorToWithdraw.bridgedWithdraw(depositInfo, merkleProof, recipient, relayer, '0', '0', '0');
     return true;
   }
@@ -506,8 +494,9 @@ class Bridge {
     relayer: string,
     signer: ethers.Signer
   ) {
+    const webbTokenName = `webb${tokenName}`;
     // Construct the proof from the origin anchor
-    const anchorToProve = this.getAnchor(depositInfo.originChainId, tokenName, anchorSize);
+    const anchorToProve = this.getAnchor(depositInfo.originChainId, webbTokenName, anchorSize);
     if (!anchorToProve) {
       throw new Error("Could not find anchor to prove against");
     }
@@ -515,8 +504,7 @@ class Bridge {
     const merkleProof = anchorToProve.tree.path(depositInfo.index);
 
     // Submit the proof and arguments on the destination anchor
-    console.log('Before fetching anchor to withdraw: ');
-    const anchorToWithdraw = this.getAnchor(Number(depositInfo.deposit.chainID.toString()), tokenName, anchorSize);
+    const anchorToWithdraw = this.getAnchor(Number(depositInfo.deposit.chainID.toString()), webbTokenName, anchorSize);
 
     if (!anchorToWithdraw) {
       throw new Error("Could not find anchor to withdraw from");
@@ -528,7 +516,6 @@ class Bridge {
 
     const chainId = await signer.getChainId();
     const tokenAddress = this.tokenAddresses.get(Bridge.createTokenIdString({tokenName, chainId}));
-    console.log('Token address passed for withdraw: ', tokenAddress);
     await anchorToWithdraw.bridgedWithdrawAndUnwrap(depositInfo, merkleProof, recipient, relayer, '0', '0', '0', tokenAddress!);
     return true;
   }

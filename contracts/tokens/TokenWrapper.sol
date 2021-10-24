@@ -76,10 +76,6 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
         address recipient
     ) override public isValidUnwrapping(tokenAddress, amount) {
         // burn wrapped token from sender
-        console.log('this wrapped token address: %s', address(this));
-        console.log('msg.sender is: %s', _msgSender());
-        console.log('msg.sender balance is: %s', balanceOf(_msgSender()));
-        console.log('balance is: %s', balanceOf(address(0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82)));
         _burn(_msgSender(), amount);
         // unwrap liquidity and send to the sender
         if (tokenAddress == address(0)) {
@@ -125,7 +121,6 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
         uint256 amount,
         address recipient
     ) override payable public isMinter() isValidWrapping(tokenAddress, amount) {
-        console.log('tokenAddress %s, sender: %s, amount: %s', tokenAddress, sender, amount);
         if (tokenAddress == address(0)) {
             mint(recipient, msg.value);
         } else {
