@@ -749,6 +749,7 @@ describe('Anchor for 2 max edges', () => {
       const anchorWrappedTokenBalance = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
       assert.deepStrictEqual(anchorWrappedTokenBalance.toString(), tokenDenomination);
 
+      console.log('anchor address is: ', wrappedAnchor.contract.address);
       console.log('anchor has the appropriate amount of wrapped token balance');
 
       // Check that the anchor's token wrapper has the appropriate amount of token balance
