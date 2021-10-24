@@ -750,12 +750,13 @@ describe('Anchor for 2 max edges', () => {
       assert.deepStrictEqual(anchorWrappedTokenBalance.toString(), tokenDenomination);
 
       console.log('anchor address is: ', wrappedAnchor.contract.address);
-      console.log('anchor has the appropriate amount of wrapped token balance');
+      console.log('anchor balance: ', anchorWrappedTokenBalance.toString());
 
       // Check that the anchor's token wrapper has the appropriate amount of token balance
-      const anchorTokenWrapper = await wrappedAnchor.contract.token();
-      const anchorTokenWrapperBalance = await token.balanceOf(anchorTokenWrapper);
-      assert.deepStrictEqual(anchorTokenWrapperBalance.toString(), tokenDenomination);
+      const tokenWrapper = await wrappedAnchor.contract.token();
+      const tokenWrapperBalanceOfToken = await token.balanceOf(tokenWrapper);
+      console.log('token wrapper balance of token: ', tokenWrapperBalanceOfToken.toString());
+      assert.deepStrictEqual(tokenWrapperBalanceOfToken.toString(), tokenDenomination);
 
       console.log('wrapped token has the appropriate amount of token balance');
 

@@ -89,13 +89,17 @@ contract Anchor is LinkableAnchor {
     nullifierHashes[_publicInputs._nullifierHash] = true;
 
     _processWithdraw(
-      _publicInputs._recipient,
+      payable(address(this)),
       _publicInputs._relayer,
       _publicInputs._fee,
       _publicInputs._refund
     );
     
-    ITokenWrapper(token).unwrapAndSendTo(tokenAddress, denomination, address(_publicInputs._recipient));
+    ITokenWrapper(token).unwrapAndSendTo(
+      tokenAddress,
+      denomination - _publicInputs._fee,
+      address(_publicInputs._recipient)
+    );
 
     emit Withdrawal(
       _publicInputs._recipient,
