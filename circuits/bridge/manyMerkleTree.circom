@@ -31,7 +31,7 @@ template SetMembership(length) {
 template DualMux() {
     signal input in[2];
     signal input s;
-    signal output out[2];
+    signal output out[2]; 
 
     s * (1 - s) === 0;
     out[0] <== (in[1] - in[0])*s + in[0];

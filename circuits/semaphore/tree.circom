@@ -21,7 +21,7 @@ template CalculateTotal(n) {
 template QuinSelector(choices) {
     signal input in[choices];
     signal input index;
-    signal output out;
+    signal output out; 
     
     component lessThan = LessThan(3);
     lessThan.in[0] <== index;
@@ -90,7 +90,7 @@ template QuinTreeInclusionProof(levels) {
     signal input leaf;
     signal input path_index[levels];
     signal input path_elements[levels][LEAVES_PER_PATH_LEVEL];
-    signal output root;
+    signal output root; 
 
     var i;
     var j;
