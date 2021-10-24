@@ -564,7 +564,6 @@ contract SemaphoreAnchorBase is Ownable, IncrementalQuinTree, ReentrancyGuard {
         uint256 _signalHash,
         uint232 _externalNullifier
     ) internal view returns (bytes memory, bytes32[] memory) {
-        uint256 _chainId = getChainId();
         bytes32[] memory result = new bytes32[](maxEdges + 1);
         bytes memory encodedInput;
 
