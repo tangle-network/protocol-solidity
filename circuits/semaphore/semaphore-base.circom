@@ -6,8 +6,8 @@ include "./tree.circom";
 
 
 template CalculateSecret() {
-    signal input identity_nullifier;    // private
-    signal input identity_trapdoor;     // private
+    signal input identity_nullifier;
+    signal input identity_trapdoor; 
 
     signal output out;
 
@@ -18,7 +18,7 @@ template CalculateSecret() {
 }
 
 template CalculateIdentityCommitment() {
-    signal input secret_hash;           // private
+    signal input secret_hash;
 
     signal output out;
 
@@ -28,8 +28,8 @@ template CalculateIdentityCommitment() {
 }
 
 template CalculateNullifierHash() {
-    signal input external_nullifier;    // private
-    signal input identity_nullifier;    // private
+    signal input external_nullifier;
+    signal input identity_nullifier;
     signal input n_levels; // private
 
     signal output out;
@@ -51,9 +51,9 @@ template CalculateNullifierHash() {
 // anything else should be 0. The prove can't lie by adding a zero into the diffs set
 // because we constrain those to match all elements in the set respectively.
 template SetMembership(length) {
-  signal input element;                 // private
-  signal input set[length];             // private
-  signal input diffs[length];           // private
+  signal input element;
+  signal input set[length];
+  signal input diffs[length];
 
   signal product[length + 1];
   product[0] <== element;

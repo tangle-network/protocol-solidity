@@ -4,9 +4,9 @@ include "merkleTree.circom";
 
 // computes Poseidon(chainID, nullifier, secret)
 template CommitmentHasher() {
-    signal input nullifier; // private
-    signal input secret; // private 
-    signal output commitment; 
+    signal input nullifier;
+    signal input secret; 
+    signal output commitment;
     signal output nullifierHash;
 
     component commitmentHasher = HashLeftRight();

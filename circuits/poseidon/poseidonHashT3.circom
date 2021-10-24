@@ -4,7 +4,7 @@ include "../../node_modules/circomlib/circuits/poseidon.circom";
 
 template PoseidonHashT3() {
     var nInputs = 2;
-    signal input inputs[nInputs]; // private
+    signal input inputs[nInputs];
     signal output out;
 
     component hasher = Poseidon(nInputs);

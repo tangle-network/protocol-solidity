@@ -12,9 +12,9 @@ include "../poseidon/hasher.circom";
 // anything else should be 0. The prove can't lie by adding a zero into the diffs set
 // because we constrain those to match all elements in the set respectively.
 template SetMembership(length) {
-  signal input element; // private 
-  signal input set[length]; // private
-  signal input diffs[length]; // private
+  signal input element;
+  signal input set[length];
+  signal input diffs[length];
 
   signal product[length + 1];
   product[0] <== element;
@@ -29,8 +29,8 @@ template SetMembership(length) {
 // if s == 0 returns [in[0], in[1]]
 // if s == 1 returns [in[1], in[0]]
 template DualMux() {
-    signal input in[2]; // private
-    signal input s; // private
+    signal input in[2];
+    signal input s;
     signal output out[2]; 
 
     s * (1 - s) === 0;
@@ -41,11 +41,11 @@ template DualMux() {
 // Verifies that merkle proof is correct for given merkle root and a leaf
 // pathIndices input is an array of 0/1 selectors telling whether given pathElement is on the left or right side of merkle path
 template ManyMerkleTreeChecker(levels, length) {
-    signal input leaf; // private
-    signal input pathElements[levels]; // private
-    signal input pathIndices[levels]; // private
-    signal input roots[length]; // private
-    signal input diffs[length]; // private 
+    signal input leaf;
+    signal input pathElements[levels];
+    signal input pathIndices[levels];
+    signal input roots[length];
+    signal input diffs[length];
 
     component selectors[levels];
     component hashers[levels];

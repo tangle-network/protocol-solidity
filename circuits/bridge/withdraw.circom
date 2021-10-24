@@ -4,9 +4,9 @@ include "manyMerkleTree.circom";
 
 // computes Poseidon(chainID, nullifier, secret)
 template CommitmentHasher() {
-    signal input chainID; // private 
-    signal input nullifier; // private
-    signal input secret; // private
+    signal input chainID;
+    signal input nullifier;
+    signal input secret;
     signal output commitment; 
     signal output nullifierHash;
 
@@ -33,14 +33,14 @@ template Withdraw(levels, length) {
 
     // chainID fixes a withdrawal proof to the destination since
     // this will be taken as a public input from the smart contract.
-    signal input chainID; // public 
+    signal input chainID;               // public 
     // the set of roots to prove membership within, provided
     // as a public input from the smart contract.
     signal input roots[length];         // public
     signal input refreshCommitment;     // public - not taking part in any computations
 
-    signal input nullifier; // private 
-    signal input secret; // private 
+    signal input nullifier;             // private 
+    signal input secret;                // private 
     signal input pathElements[levels];  // private
     signal input pathIndices[levels];   // private
     // the differences of the root one is proving against and

@@ -7,7 +7,7 @@ include "./poseidonHashT6.circom";
 
 template Hasher3() {
     var length = 3;
-    signal input in[length]; // private
+    signal input in[length];
     signal output hash;
 
     component hasher = PoseidonHashT4();
@@ -21,7 +21,7 @@ template Hasher3() {
 
 template Hasher4() {
     var length = 4;
-    signal input in[length]; // private
+    signal input in[length];
     signal output hash;
 
     component hasher = PoseidonHashT5();
@@ -35,7 +35,7 @@ template Hasher4() {
 
 template Hasher5() {
     var length = 5;
-    signal input in[length]; // private
+    signal input in[length];
     signal output hash;
 
     component hasher = PoseidonHashT6();
@@ -48,8 +48,8 @@ template Hasher5() {
 }
 
 template HashLeftRight() {
-    signal input left; // private
-    signal input right; // private
+    signal input left;
+    signal input right;
 
     signal output hash;
 

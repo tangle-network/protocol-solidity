@@ -3,8 +3,8 @@ pragma circom 2.0.0;
 include "../../node_modules/circomlib/circuits/comparators.circom";
 
 template SetMembership(length) {
-    signal input element; // private
-    signal input set[length]; // private
+    signal input element;
+    signal input set[length];
 
     signal product[length + 1];
     product[0] <== 1;
