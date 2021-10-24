@@ -1,0 +1,1 @@
+yarn setup:poseidon-bridge2 && yarn setup:poseidon-bridge3 && yarn setup:poseidon-bridge4 && yarn setup:poseidon-bridge5 && yarn setup:poseidon-bridge6 && yarn setup:semaphore-bridge2

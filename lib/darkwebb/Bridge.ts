@@ -5,6 +5,7 @@ import AnchorHandler from "./AnchorHandler";
 import MintableToken from "./MintableToken";
 import { getHasherFactory, getVerifierFactory } from './utils';
 import Verifier from "./Verifier";
+import GovernedTokenWrapper from "./GovernedTokenWrapper";
 
 // Deployer config matches the chainId to the signer for that chain
 export type DeployerConfig = Record<number, ethers.Signer>;
@@ -81,11 +82,11 @@ class Bridge {
     // Mapping of chainId => bridgeSide
     public bridgeSides: Map<number, BridgeSide>,
 
-    // {tokenIdentifier with name of } => tokenAddress
+    // {tokenIdentifier with name prefixed with 'webb'} => webbTokenAddress
     public webbTokenAddresses: Map<string, string>,
 
-    // erc20 token addresses
-    private tokenAddresses: Map<string, string>,
+    // tokenIdentifier => erc20TokenAddress
+    public tokenAddresses: Map<string, string>,
 
     // Mapping of resourceID => linkedAnchor[]; so we know which
     // anchors need updating when the anchor for resourceID changes state.
@@ -93,7 +94,6 @@ class Bridge {
 
     // Mapping of anchorIdString => Anchor for easy anchor access
     public anchors: Map<string, Anchor>,
-
   ) {}
 
   public static createAnchorIdString(anchorIdentifier: AnchorIdentifier): string {
@@ -139,41 +139,43 @@ class Bridge {
     return linkedAnchorMap;
   }
 
-  public static async connectBridge(bridgeConfig: BridgeConfig) {
-    // Parse the anchorIdStrings into achor identifiers
-    let identifiedAnchors: AnchorIdentifier[] = [];
-    for (const key of bridgeConfig.anchors.keys()) {
-      const createdAnchorIdentifier = Bridge.createAnchorIdentifier(key);
-      if (createdAnchorIdentifier) {
-        identifiedAnchors.push(createdAnchorIdentifier);
-      }
-    }
+  // public static async connectBridge(bridgeConfig: BridgeConfig) {
+  //   // Parse the anchorIdStrings into achor identifiers
+  //   let identifiedAnchors: AnchorIdentifier[] = [];
+  //   for (const key of bridgeConfig.anchors.keys()) {
+  //     const createdAnchorIdentifier = Bridge.createAnchorIdentifier(key);
+  //     if (createdAnchorIdentifier) {
+  //       identifiedAnchors.push(createdAnchorIdentifier);
+  //     }
+  //   }
 
-    // loop through and group anchors by their identifiers
-    let groupLinkedAnchors: Anchor[][] = [];
+  //   // loop through and group anchors by their identifiers
+  //   let groupLinkedAnchors: Anchor[][] = [];
 
-    for (const anchor of identifiedAnchors) {
-      let anchorGroup: Anchor[] = [];
+  //   for (const anchor of identifiedAnchors) {
+  //     let anchorGroup: Anchor[] = [];
 
-      for (const linkableAnchor of identifiedAnchors) {
-        if (
-          anchor.tokenName == linkableAnchor.tokenName && 
-          anchor.anchorSize == linkableAnchor.anchorSize
-        ) {
-          anchorGroup.push(bridgeConfig.anchors.get(Bridge.createAnchorIdString(linkableAnchor))!);
-        }
-      }
+  //     for (const linkableAnchor of identifiedAnchors) {
+  //       if (
+  //         anchor.tokenName == linkableAnchor.tokenName && 
+  //         anchor.anchorSize == linkableAnchor.anchorSize
+  //       ) {
+  //         anchorGroup.push(bridgeConfig.anchors.get(Bridge.createAnchorIdString(linkableAnchor))!);
+  //       }
+  //     }
 
-      groupLinkedAnchors.push(anchorGroup);
-    }
+  //     groupLinkedAnchors.push(anchorGroup);
+  //   }
 
-    const linkedAnchors = await Bridge.createLinkedAnchorMap(groupLinkedAnchors);
-    return new Bridge(bridgeConfig.bridgeSides, bridgeConfig.webbTokenAddresses, linkedAnchors, bridgeConfig.anchors);
-  }
+  //   const linkedAnchors = await Bridge.createLinkedAnchorMap(groupLinkedAnchors);
+    
+  //   return new Bridge(bridgeConfig.bridgeSides, bridgeConfig.webbTokenAddresses, linkedAnchors, bridgeConfig.anchors);
+  // }
 
   public static async deployBridge(bridgeInput: BridgeInput, deployers: DeployerConfig): Promise<Bridge> {
     
     let webbTokenAddresses: Map<string, string> = new Map();
+    let tokenAddresses: Map<string, string> = new Map();
     let bridgeSides: Map<number, BridgeSide> = new Map();
     let anchors: Map<string, Anchor> = new Map();
     // createdAnchors have the form of [[Anchors created on chainID], [...]]
@@ -193,6 +195,7 @@ class Bridge {
       );
 
       bridgeSides.set(chainID, bridgeInstance);
+      console.log(`bridgeSide address on ${chainID}: ${bridgeInstance.contract.address}`);
 
       // Create the Hasher and Verifier for the chain
       const hasherFactory = await getHasherFactory(deployers[chainID]);
@@ -205,13 +208,29 @@ class Bridge {
       // loop through all the tokens defined in the config
       for (let token of bridgeInput.anchorInputs) {
         let originalToken: MintableToken = await MintableToken.tokenFromAddress(token.asset[chainID], deployers[chainID]);
-        let tokenInstance: MintableToken = await MintableToken.createToken(`webb${originalToken.name}`, `webb${originalToken.symbol}`, deployers[chainID])
+        let tokenInstance: GovernedTokenWrapper = await GovernedTokenWrapper.createGovernedTokenWrapper(
+          `webb${originalToken.name}`,
+          `webb${originalToken.symbol}`,
+          await deployers[chainID].getAddress(),
+          '10000000000000000000000000',
+          false,
+          deployers[chainID],
+        );
+        const webbTokenName = await tokenInstance.contract.name();
 
+        await tokenInstance.contract.add(originalToken.contract.address);
+
+        console.log(`token address of name: ${webbTokenName} on ${chainID}: ${tokenInstance.contract.address}`);
         // append each token
         webbTokenAddresses.set(
-          Bridge.createTokenIdString({tokenName: tokenInstance.name, chainId: chainID}),
+          Bridge.createTokenIdString({tokenName: webbTokenName, chainId: chainID}),
           tokenInstance.contract.address
-        )
+        );
+
+        tokenAddresses.set(
+          Bridge.createTokenIdString({tokenName: originalToken.name, chainId: chainID}),
+          originalToken.contract.address
+        );
         
         let chainGroupedAnchors: Anchor[] = [];
 
@@ -227,14 +246,17 @@ class Bridge {
             adminAddress,
             adminAddress,
             bridgeInput.chainIDs.length-1,
-            deployers[chainID]);
+            deployers[chainID]
+          );
+
+          console.log(`anchor address on ${chainID}: ${anchorInstance.contract.address}`);
 
           // grant minting rights to the anchor
           await tokenInstance.grantMinterRole(anchorInstance.contract.address); 
 
           chainGroupedAnchors.push(anchorInstance);
           anchors.set(
-            Bridge.createAnchorIdString({tokenName: tokenInstance.name, anchorSize, chainId: chainID}),
+            Bridge.createAnchorIdString({tokenName: webbTokenName, anchorSize, chainId: chainID}),
             anchorInstance
           );
           // Also set the original anchor 
@@ -260,7 +282,7 @@ class Bridge {
 
     // finally, link the anchors
     const linkedAnchorMap = await Bridge.createLinkedAnchorMap(groupLinkedAnchors);
-    return new Bridge(bridgeSides, webbTokenAddresses, linkedAnchorMap, anchors);
+    return new Bridge(bridgeSides, webbTokenAddresses, tokenAddresses, linkedAnchorMap, anchors);
   }
 
   // The setPermissions method accepts initialized bridgeSide and anchors.
@@ -359,15 +381,16 @@ class Bridge {
     };
   }
 
-  public async deposit(destinationChainId: number, tokenName: string, anchorSize: ethers.BigNumberish, signer: ethers.Signer) {
+  public async deposit(destinationChainId: number, webbTokenName: string, anchorSize: ethers.BigNumberish, signer: ethers.Signer) {
     const chainId = await signer.getChainId();
     const signerAddress = await signer.getAddress();
-    const anchor = this.getAnchor(chainId, tokenName, anchorSize);
+    const anchor = this.getAnchor(chainId, webbTokenName, anchorSize);
     if (!anchor) {
       throw new Error("Anchor is not supported for the given token and size");
     }
 
-    const tokenAddress = this.webbTokenAddresses.get(Bridge.createTokenIdString({tokenName, chainId}));
+    const tokenAddress = await anchor.contract.token();
+    // const tokenAddress = this.webbTokenAddresses.get(Bridge.createTokenIdString({tokenName, chainId}));
 
     if (!tokenAddress) {
       throw new Error("Token not supported");
@@ -376,8 +399,10 @@ class Bridge {
     // Check if appropriate balance from user
     const tokenInstance = await MintableToken.tokenFromAddress(tokenAddress, signer);
     const userTokenBalance = await tokenInstance.getBalance(signerAddress);
+    console.log('webbTokenInstance address: ', tokenInstance.contract.address);
+
     if (userTokenBalance.lt(anchorSize)) {
-      throw new Error("Not enough token balance");
+      throw new Error("Not enough balance in webbTokens");
     }
 
     // Approve spending if needed
@@ -391,6 +416,49 @@ class Bridge {
       throw new Error("Invalid signer for deposit, check the signer's chainID");
     }
     const deposit = await anchor.deposit(destinationChainId);
+    await this.updateLinkedAnchors(anchor);
+    return deposit;
+  }
+
+  public async wrapAndDeposit(destinationChainId: number, tokenName: string, anchorSize: ethers.BigNumberish, signer: ethers.Signer) {
+    const chainId = await signer.getChainId();
+    const signerAddress = await signer.getAddress();
+    const anchor = this.getAnchor(chainId, tokenName, anchorSize);
+    if (!anchor) {
+      throw new Error("Anchor is not supported for the given token and size");
+    }
+
+    // get the original erc20 token address
+    const originTokenAddress = this.tokenAddresses.get(Bridge.createTokenIdString({tokenName, chainId}));
+    if (!originTokenAddress) {
+      throw new Error("Origin token not found");
+    }
+
+    // Check if appropriate balance from user
+    const originTokenInstance = await MintableToken.tokenFromAddress(originTokenAddress, signer);
+    const userOriginTokenBalance = await originTokenInstance.getBalance(signerAddress);
+    console.log(`originTokenInstance address: ${originTokenAddress} on chain ${chainId}`);
+
+    if (userOriginTokenBalance.lt(anchorSize)) {
+      throw new Error("Not enough balance in webbTokens or original ERC20");
+    }
+
+    // Continue with deposit flow for wrapAndDeposit:
+    // Approve spending if needed
+    let userOriginTokenAllowance = await originTokenInstance.getAllowance(signerAddress, anchor.contract.address);
+    console.log('original Allowance: ', userOriginTokenAllowance);
+    if (userOriginTokenAllowance.lt(anchorSize)) {
+      const wrapperTokenAddress = await anchor.contract.token();
+      const tx = await originTokenInstance.approveSpending(wrapperTokenAddress);
+      await tx.wait();
+    }
+
+    // return some error code value for deposit note if signer invalid
+    if (!(await anchor.setSigner(signer))) {
+      throw new Error("Invalid signer for deposit, check the signer's chainID");
+    }
+
+    const deposit = await anchor.wrapAndDeposit(originTokenInstance.contract.address, destinationChainId);
     await this.updateLinkedAnchors(anchor);
     return deposit;
   }
@@ -410,9 +478,9 @@ class Bridge {
     }
     
     const merkleProof = anchorToProve.tree.path(depositInfo.index);
-    const roots = await anchorToProve.populateRootsForProof();
 
     // Submit the proof and arguments on the destination anchor
+    console.log('Before fetching anchor to withdraw: ');
     const anchorToWithdraw = this.getAnchor(Number(depositInfo.deposit.chainID.toString()), tokenName, anchorSize);
 
     if (!anchorToWithdraw) {
@@ -424,9 +492,44 @@ class Bridge {
     }
 
     const chainId = await signer.getChainId();
-    const tokenAddress = this.webbTokenAddresses.get(Bridge.createTokenIdString({tokenName, chainId}));
-    
-    await anchorToWithdraw.bridgedWithdraw(depositInfo, merkleProof, recipient, relayer, '0', '0', '0', tokenAddress!);
+    const tokenAddress = this.tokenAddresses.get(Bridge.createTokenIdString({tokenName, chainId}));
+    console.log('Token address passed for withdraw: ', tokenAddress);
+    await anchorToWithdraw.bridgedWithdraw(depositInfo, merkleProof, recipient, relayer, '0', '0', '0');
+    return true;
+  }
+
+  public async withdrawAndUnwrap(
+    depositInfo: AnchorDeposit,
+    tokenName: string,
+    anchorSize: ethers.BigNumberish,
+    recipient: string,
+    relayer: string,
+    signer: ethers.Signer
+  ) {
+    // Construct the proof from the origin anchor
+    const anchorToProve = this.getAnchor(depositInfo.originChainId, tokenName, anchorSize);
+    if (!anchorToProve) {
+      throw new Error("Could not find anchor to prove against");
+    }
+
+    const merkleProof = anchorToProve.tree.path(depositInfo.index);
+
+    // Submit the proof and arguments on the destination anchor
+    console.log('Before fetching anchor to withdraw: ');
+    const anchorToWithdraw = this.getAnchor(Number(depositInfo.deposit.chainID.toString()), tokenName, anchorSize);
+
+    if (!anchorToWithdraw) {
+      throw new Error("Could not find anchor to withdraw from");
+    }
+
+    if (!(await anchorToWithdraw.setSigner(signer))) {
+      throw new Error("Could not set signer");
+    }
+
+    const chainId = await signer.getChainId();
+    const tokenAddress = this.tokenAddresses.get(Bridge.createTokenIdString({tokenName, chainId}));
+    console.log('Token address passed for withdraw: ', tokenAddress);
+    await anchorToWithdraw.bridgedWithdrawAndUnwrap(depositInfo, merkleProof, recipient, relayer, '0', '0', '0', tokenAddress!);
     return true;
   }
 }

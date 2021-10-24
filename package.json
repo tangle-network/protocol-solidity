@@ -8,7 +8,7 @@
   "scripts": {
     "compile": "npx hardhat compile",
     "build": "yarn compile && yarn build:circuits && yarn build:hashers && yarn build:ptau",
-    "build:circuits": "./scripts/bash/compile_circom.sh",
+    "build:circuits": "./scripts/bash/build_circuits.sh",
     "build:hashers": "ts-node scripts/ts/build_hashers.ts",
     "build:ptau": "./scripts/bash/generate_phase1_ptau.sh",
     "run:deploy-webb": "ts-node ./scripts/evm/webbSystemDeployment.ts",
@@ -23,7 +23,7 @@
     "setup:all-bridges": "yarn setup:poseidon-bridge2 && yarn setup:poseidon-bridge3 && yarn setup:poseidon-bridge4 && yarn setup:poseidon-bridge5 && yarn setup:poseidon-bridge6",
     "setup:poseidon2-preimage": "node scripts/js/generatePoseidon2Input.js && ./scripts/bash/phase2_poseidon.sh",
     "setup:poseidon3-preimage": "node scripts/js/generatePoseidon3Input.js && ./scripts/bash/phase2_poseidon3.sh",
-    "setup": "yarn setup:poseidon-bridge2 && yarn setup:poseidon2-preimage && yarn setup:poseidon3-preimage && yarn setup:semaphore-bridge2",
+    "setup": "./scripts/bash/setup_verifiers.sh",
     "test:all": "yarn build && yarn setup && yarn test",
     "test:bridge": "yarn build && yarn setup:poseidon-bridge2 && yarn test",
     "test": "yarn build:hashers && npx hardhat test"
@@ -49,7 +49,7 @@
     "web3-utils": "^1.2.11"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.1.0",
+    "@openzeppelin/contracts": "^4.3.2",
     "@truffle/contract": "^4.3.24",
     "@typechain/ethers-v5": "^7.0.1",
     "@typechain/hardhat": "^2.3.0",

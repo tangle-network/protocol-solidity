@@ -32,6 +32,11 @@ class GovernedTokenWrapper {
     const handler = new GovernedTokenWrapper(contract);
     return handler;
   }
+
+  public grantMinterRole(address: string) {
+    const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+    return this.contract.grantRole(MINTER_ROLE, address);
+  }
 }
 
 export default GovernedTokenWrapper;
