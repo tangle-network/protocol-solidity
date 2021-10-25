@@ -4,7 +4,6 @@ import { ethers } from 'ethers';
 
 import { WEBB__factory } from '../../typechain/factories/WEBB__factory';
 
-
 import { setLinkableAnchorBridge } from './setLinkableAnchorBridge';
 import { setLinkableAnchorHandler } from './setLinkableAnchorHandler';
 import { depositAnchor } from './depositAnchor';

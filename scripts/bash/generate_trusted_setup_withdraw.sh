@@ -18,12 +18,12 @@ if [ ! -f $OUTPUT_DIR/pot16_0001.ptau ]; then
     wait 500
 fi
 
-# Verify phase 1
+# # Verify phase 1
 echo "snarkjs powersoftau verify $OUTPUT_DIR/pot16_0001.ptau\n"
 snarkjs powersoftau verify $OUTPUT_DIR/pot16_0001.ptau
 wait 500
 
-# Apply random beacon
+# # Apply random beacon
 if [ ! -f $OUTPUT_DIR/pot16_beacon.ptau ]; then
     echo "snarkjs powersoftau beacon $OUTPUT_DIR/pot16_0001.ptau $OUTPUT_DIR/pot16_beacon.ptau 0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f 10 -n="Final Beacon"\n"
     snarkjs powersoftau beacon $OUTPUT_DIR/pot16_0001.ptau $OUTPUT_DIR/pot16_beacon.ptau 0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f 10 -n="Final Beacon"

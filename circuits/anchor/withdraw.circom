@@ -1,9 +1,11 @@
+pragma circom 2.0.0;
+
 include "merkleTree.circom";
 
 // computes Poseidon(chainID, nullifier, secret)
 template CommitmentHasher() {
     signal input nullifier;
-    signal input secret;
+    signal input secret; 
     signal output commitment;
     signal output nullifierHash;
 
@@ -21,16 +23,16 @@ template CommitmentHasher() {
 
 // Verifies that commitment that corresponds to given secret and nullifier is included in the merkle tree of deposits
 template Withdraw(levels) {
-    signal input root;
-    signal input nullifierHash;
-    signal input recipient; // not taking part in any computations
-    signal input relayer;  // not taking part in any computations
-    signal input fee;      // not taking part in any computations
-    signal input refund;   // not taking part in any computations
-    signal private input nullifier;
-    signal private input secret;
-    signal private input pathElements[levels];
-    signal private input pathIndices[levels];
+    signal input root;                  // public
+    signal input nullifierHash;         // public
+    signal input recipient;             // public - not taking part in any computations
+    signal input relayer;               // public - not taking part in any computations
+    signal input fee;                   // public - not taking part in any computations
+    signal input refund;                // public - not taking part in any computations
+    signal input nullifier;             // private
+    signal input secret;                // private
+    signal input pathElements[levels];  // private
+    signal input pathIndices[levels];   // private
 
     component hasher = CommitmentHasher();
     hasher.nullifier <== nullifier;

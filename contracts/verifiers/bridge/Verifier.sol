@@ -3,7 +3,9 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
-import "../interfaces/IVerifier.sol";
+pragma solidity ^0.8.0;
+
+import "../../interfaces/IVerifier.sol";
 
 contract Verifier is IVerifier {
 	IVerifier2 public v2;

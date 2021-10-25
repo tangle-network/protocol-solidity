@@ -23,12 +23,13 @@ import {
 import Anchor from '../../lib/darkwebb/Anchor';
 import { getHasherFactory } from '../../lib/darkwebb/utils';
 import Verifier from '../../lib/darkwebb/Verifier';
+import MintableToken from '../../lib/darkwebb/MintableToken';
 
 const { NATIVE_AMOUNT } = process.env
 const snarkjs = require('snarkjs')
 const bigInt = require('big-integer');
 const BN = require('bn.js');
-const F = require('circomlib').babyJub.F;
+const F = require('circomlibjs').babyjub.F;
 const Scalar = require("ffjavascript").Scalar;
 
 const helpers = require('../../lib/darkwebb/utils');
@@ -91,12 +92,10 @@ describe('Anchor for 2 max edges', () => {
     await token.approve(anchor.contract.address, '10000000000000000000000');
 
     createWitness = async (data: any) => {
-      const wtns = {type: "mem"};
-      await snarkjs.wtns.calculate(data, path.join(
-        "test",
-        "fixtures/2",
-        "poseidon_bridge_2.wasm"
-      ), wtns);
+      const witnessCalculator = require("../fixtures/2/witness_calculator.js");
+      const fileBuf = require('fs').readFileSync('./test/fixtures/2/poseidon_bridge_2.wasm');
+      const wtnsCalc = await witnessCalculator(fileBuf)
+      const wtns = await wtnsCalc.calculateWTNSBin(data,0);
       return wtns;
     }
   })
@@ -742,7 +741,14 @@ describe('Anchor for 2 max edges', () => {
         token.address,
       );
 
-      console.log('sender address in test', sender.address);
+      // Check that the anchor has the appropriate amount of wrapped token balance
+      const anchorWrappedTokenBalance = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
+      assert.deepStrictEqual(anchorWrappedTokenBalance.toString(), tokenDenomination);
+
+      // Check that the anchor's token wrapper has the appropriate amount of token balance
+      const tokenWrapper = await wrappedAnchor.contract.token();
+      const tokenWrapperBalanceOfToken = await token.balanceOf(tokenWrapper);
+      assert.deepStrictEqual(tokenWrapperBalanceOfToken.toString(), tokenDenomination);
 
       const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, wallet);
       await TruffleAssert.passes(newAnchor.withdrawAndUnwrap(
@@ -763,7 +769,7 @@ describe('Anchor for 2 max edges', () => {
 });
 
 // Test deposit and withdraw on the same anchor - but it's 3 roots to pass in.
-describe('Anchor for 3 max edges', () => {
+describe('Anchor for 2 max edges (3-sided bridge)', () => {
   let anchor: Anchor;
 
   const levels = 30;
@@ -819,17 +825,15 @@ describe('Anchor for 3 max edges', () => {
     await token.approve(anchor.contract.address, '10000000000000000000000');
 
     createWitness = async (data: any) => {
-      const wtns = {type: "mem"};
-      await snarkjs.wtns.calculate(data, path.join(
-        "test",
-        "fixtures/3",
-        "poseidon_bridge_3.wasm"
-      ), wtns);
+      const witnessCalculator = require("../fixtures/3/witness_calculator.js");
+      const fileBuf = require('fs').readFileSync('./test/fixtures/3/poseidon_bridge_3.wasm');
+      const wtnsCalc = await witnessCalculator(fileBuf)
+      const wtns = await wtnsCalc.calculateWTNSBin(data,0);
       return wtns;
     }
   })
 
-  it.skip('should withdraw successfully', async () => {
+  it('should withdraw successfully', async () => {
     const signers = await ethers.getSigners();
     const sender = signers[0];
     const relayer = signers[1];
@@ -869,7 +873,7 @@ describe('Anchor for 3 max edges', () => {
 });
 
 // Test deposit and withdraw on the same anchor - but it's 4 roots to pass in.
-describe('Anchor for 4 max edges', () => {
+describe('Anchor for 3 max edges (4-sided bridge)', () => {
   let anchor: Anchor;
 
   const levels = 30;
@@ -925,12 +929,114 @@ describe('Anchor for 4 max edges', () => {
     await token.approve(anchor.contract.address, '10000000000000000000000');
 
     createWitness = async (data: any) => {
-      const wtns = {type: "mem"};
-      await snarkjs.wtns.calculate(data, path.join(
-        "test",
-        "fixtures/4",
-        "poseidon_bridge_4.wasm"
-      ), wtns);
+      const witnessCalculator = require("../fixtures/4/witness_calculator.js");
+      const fileBuf = require('fs').readFileSync('./test/fixtures/4/poseidon_bridge_4.wasm');
+      const wtnsCalc = await witnessCalculator(fileBuf)
+      const wtns = await wtnsCalc.calculateWTNSBin(data,0);
+      return wtns;
+    }
+  })
+
+  it('should withdraw successfully', async () => {
+    const signers = await ethers.getSigners();
+    const sender = signers[0];
+    const relayer = signers[1];
+
+    const balanceUserBefore = await token.balanceOf(sender.address);
+    const { deposit, index } = await anchor.deposit();
+
+    const balanceUserAfterDeposit = await token.balanceOf(sender.address)
+    const balanceAnchorAfterDeposit = await token.balanceOf(anchor.contract.address);
+    assert.strictEqual(balanceUserAfterDeposit.toString(), BN(toBN(balanceUserBefore).sub(toBN(value))).toString());
+    assert.strictEqual(balanceAnchorAfterDeposit.toString(), toBN(value).toString());
+
+    const balanceRelayerBefore = await token.balanceOf(relayer.address)
+    const balanceReceiverBefore = await token.balanceOf(helpers.toFixedHex(recipient, 20))
+
+    let isSpent = await anchor.contract.isSpent(helpers.toFixedHex(deposit.nullifierHash))
+    assert.strictEqual(isSpent, false)
+
+    let receipt = await anchor.withdraw(deposit, index, recipient, relayer.address, fee, bigInt(0));
+    const filter = anchor.contract.filters.Withdrawal(null, null, relayer.address, null);
+    const events = await anchor.contract.queryFilter(filter, receipt.blockHash);
+
+    const balanceAnchorAfter = await token.balanceOf(anchor.contract.address)
+    const balanceRelayerAfter = await token.balanceOf(relayer.address)
+    const balanceReceiverAfter = await token.balanceOf(helpers.toFixedHex(recipient, 20))
+    const feeBN = toBN(fee.toString())
+    assert.strictEqual(balanceAnchorAfter.toString(), toBN(balanceAnchorAfterDeposit).sub(toBN(value)).toString())
+    assert.strictEqual(balanceReceiverAfter.toString(), toBN(balanceReceiverBefore).add(toBN(value)).sub(feeBN).toString())
+    assert.strictEqual(balanceRelayerAfter.toString(), toBN(balanceRelayerBefore).add(feeBN).toString())
+
+    assert.strictEqual(events[0].event, 'Withdrawal')
+    assert.strictEqual(events[0].args[1], helpers.toFixedHex(deposit.nullifierHash))
+    assert.strictEqual(events[0].args[3].toString(), feeBN.toString());
+    isSpent = await anchor.contract.isSpent(helpers.toFixedHex(deposit.nullifierHash))
+    assert(isSpent);
+  })
+});
+
+// Test deposit and withdraw on the same anchor - but it's 4 roots to pass in.
+describe('Anchor for 4 max edges (5-sided bridge)', () => {
+  let anchor: Anchor;
+
+  const levels = 30;
+  const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
+  let tree: typeof MerkleTree;
+  const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
+  const refund = BigInt((new BN('0')).toString());
+  let recipient = "0x1111111111111111111111111111111111111111";
+  let verifier: Verifier;
+  let hasherInstance: any;
+  let token: Token;
+  let wrappedToken: WrappedToken;
+  let tokenDenomination = '1000000000000000000' // 1 ether
+  const MAX_EDGES = 4;
+  let createWitness: any;
+
+  beforeEach(async () => {
+    const signers = await ethers.getSigners();
+    const wallet = signers[0];
+    const sender = wallet;
+
+    tree = new MerkleTree(levels, null, null);
+
+    // create poseidon hasher
+    const hasherFactory = await getHasherFactory(wallet);
+    hasherInstance = await hasherFactory.deploy();
+    await hasherInstance.deployed();
+
+    // create poseidon verifier
+    verifier = await Verifier.createVerifier(sender);
+
+    // create token
+    const tokenFactory = new TokenFactory(wallet);
+    token = await tokenFactory.deploy();
+    await token.deployed();
+    await token.mint(sender.address, '10000000000000000000000');
+
+    // create Anchor
+    anchor = await Anchor.createAnchor(
+      verifier.contract.address,
+      hasherInstance.address,
+      tokenDenomination,
+      levels,
+      token.address,
+      sender.address,
+      sender.address,
+      sender.address,
+      MAX_EDGES,
+      sender,
+    );
+
+    // approve the anchor to spend the minted funds
+    await token.approve(anchor.contract.address, '10000000000000000000000');
+
+    createWitness = async (data: any) => {
+      const witnessCalculator = require("../fixtures/5/witness_calculator.js");
+      const fileBuf = require('fs').readFileSync('./test/fixtures/5/poseidon_bridge_5.wasm');
+      const wtnsCalc = await witnessCalculator(fileBuf)
+      const wtns = await wtnsCalc.calculateWTNSBin(data,0);
       return wtns;
     }
   })

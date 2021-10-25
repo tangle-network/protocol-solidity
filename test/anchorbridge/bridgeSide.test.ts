@@ -9,10 +9,10 @@ import { ethers } from 'hardhat';
 import BridgeSide from '../../lib/darkwebb/BridgeSide';
 import Anchor from '../../lib/darkwebb/Anchor';
 import MintableToken from '../../lib/darkwebb/MintableToken';
-import { getVerifierFactory, getHasherFactory } from '../../lib/darkwebb/utils';
+import Verifier from '../../lib/darkwebb/Verifier';
+import { getHasherFactory } from '../../lib/darkwebb/utils';
 
 describe('BridgeSideConstruction', () => {
-
   it('should create the bridge side which can affect the anchor state', async () => {
     const signers = await ethers.getSigners();
     const admin = signers[1];
@@ -26,15 +26,13 @@ describe('BridgeSideConstruction', () => {
     let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
     await hasherInstance.deployed();
 
-    const verifierFactory = await getVerifierFactory(admin);
-    let verifierInstance = await verifierFactory.deploy({ gasLimit: '0x5B8D80' });
-    await verifierInstance.deployed();
+    const verifier = await Verifier.createVerifier(admin);
 
     const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
     await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
 
     const anchor = await Anchor.createAnchor(
-      verifierInstance.address,
+      verifier.contract.address,
       hasherInstance.address,
       '1000000000000',
       30,

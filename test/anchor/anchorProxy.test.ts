@@ -31,7 +31,7 @@
  const snarkjs = require('snarkjs')
  const bigInt = require('big-integer');
  const BN = require('bn.js');
- const F = require('circomlib').babyJub.F;
+ const F = require('circomlibjs').babyjub.F;
  const Scalar = require("ffjavascript").Scalar;
  
  
@@ -122,12 +122,10 @@
       await token.approve(anchorProxy.contract.address, '10000000000000000000000');
   
       createWitness = async (data: any) => {
-        const wtns = {type: "mem"};
-        await snarkjs.wtns.calculate(data, path.join(
-          "test",
-          "fixtures/2",
-          "poseidon_bridge_2.wasm"
-        ), wtns);
+        const witnessCalculator = require("../fixtures/2/witness_calculator.js");
+        const fileBuf = require('fs').readFileSync('./test/fixtures/2/poseidon_bridge_2.wasm');
+        const wtnsCalc = await witnessCalculator(fileBuf)
+        const wtns = await wtnsCalc.calculateWTNSBin(data,0);
         return wtns;
       }
     })
@@ -168,16 +166,6 @@
           'The commitment has been submitted'
         );
       });
-
-      // it.only('same commitment onto different anchors should throw', async () => { //not sure about this ask drew
-      //   const commitment = helpers.toFixedHex(42)
-  
-      //   await TruffleAssert.passes(anchorProxy.contract.deposit(anchor1.contract.address, commitment));
-      //   await TruffleAssert.reverts(
-      //     anchorProxy.contract.deposit(anchor2.contract.address, commitment),
-      //     'The commitment has been submitted'
-      //   );
-      // });
     })
 
     describe('#withdraw', () => {

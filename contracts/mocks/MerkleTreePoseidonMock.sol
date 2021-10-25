@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "../trees/MerkleTreePoseidon.sol";
-import "../trees/Hashers.sol";
+import "../trees/Hasher.sol";
 
 contract MerkleTreePoseidonMock is MerkleTreePoseidon {
   constructor(uint32 _treeLevels, IPoseidonT3 _hasher) MerkleTreePoseidon(_treeLevels, _hasher) {}

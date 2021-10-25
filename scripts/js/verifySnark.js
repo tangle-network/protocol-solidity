@@ -3,7 +3,7 @@ const path = require('path')
 
 const snarkjs = require('snarkjs')
 const crypto = require('crypto')
-const circomlib = require('circomlib')
+const circomlib = require('circomlibjs')
 const MerkleTree = require('../lib/tornado-withdraw/MerkleTree')
 const bigInt = BigInt;
 const utils = require("ffjavascript").utils;

@@ -1,3 +1,5 @@
+pragma circom 2.0.0;
+
 include "manyMerkleTree.circom";
 
 // computes Poseidon(chainID, nullifier, secret)
@@ -5,7 +7,7 @@ template CommitmentHasher() {
     signal input chainID;
     signal input nullifier;
     signal input secret;
-    signal output commitment;
+    signal output commitment; 
     signal output nullifierHash;
 
     component poseidon3Hasher = Hasher3();
@@ -28,22 +30,23 @@ template Withdraw(levels, length) {
     signal input relayer;                   // not taking part in any computations
     signal input fee;                       // not taking part in any computations
     signal input refund;                    // not taking part in any computations
+    signal input refreshCommitment;         // not taking part in any computations
 
     // chainID fixes a withdrawal proof to the destination since
     // this will be taken as a public input from the smart contract.
-    signal input chainID;
+    signal input chainID;               // public 
     // the set of roots to prove membership within, provided
     // as a public input from the smart contract.
     signal input roots[length];
-    signal input refreshCommitment;         // not taking part in any computations
+    
 
-    signal private input nullifier;
-    signal private input secret;
-    signal private input pathElements[levels];
-    signal private input pathIndices[levels];
+    signal input nullifier;             // private 
+    signal input secret;                // private 
+    signal input pathElements[levels];  // private
+    signal input pathIndices[levels];   // private
     // the differences of the root one is proving against and
     // all the roots provided as a public input in the `roots` signal.
-    signal private input diffs[length];
+    signal input diffs[length];         // private
 
     component hasher = CommitmentHasher();
     hasher.chainID <== chainID;

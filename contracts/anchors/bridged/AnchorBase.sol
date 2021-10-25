@@ -115,10 +115,10 @@ abstract contract AnchorBase is MerkleTreePoseidon, ReentrancyGuard, IAnchor {
       inputs[2] = uint256(uint160(_relayer));
       inputs[3] = uint256(_fee);
       inputs[4] = uint256(_refund);
-      inputs[5] = uint256(_chainId);
-      inputs[6] = uint256(roots[0]);
-      inputs[7] = uint256(roots[1]);
-      inputs[8] = uint256(_refreshCommitment);
+	  inputs[5] = uint256(_refreshCommitment);
+      inputs[6] = uint256(_chainId);
+      inputs[7] = uint256(roots[0]);
+      inputs[8] = uint256(roots[1]);
       encodedInput = abi.encodePacked(inputs);
     } else if (maxEdges == 2) {
       uint256[10] memory inputs;
@@ -133,11 +133,11 @@ abstract contract AnchorBase is MerkleTreePoseidon, ReentrancyGuard, IAnchor {
       inputs[2] = uint256(uint160(_relayer));
       inputs[3] = uint256(_fee);
       inputs[4] = uint256(_refund);
-      inputs[5] = uint256(_chainId);
-      inputs[6] = uint256(roots[0]);
-      inputs[7] = uint256(roots[1]);
-      inputs[8] = uint256(roots[2]);
-      inputs[9] = uint256(_refreshCommitment);
+	  inputs[5] = uint256(_refreshCommitment);
+      inputs[6] = uint256(_chainId);
+      inputs[7] = uint256(roots[0]);
+      inputs[8] = uint256(roots[1]);
+      inputs[9] = uint256(roots[2]);
       encodedInput = abi.encodePacked(inputs);
     } else if (maxEdges == 3) {
       uint256[11] memory inputs;
@@ -153,12 +153,12 @@ abstract contract AnchorBase is MerkleTreePoseidon, ReentrancyGuard, IAnchor {
       inputs[2] = uint256(uint160(_relayer));
       inputs[3] = uint256(_fee);
       inputs[4] = uint256(_refund);
-      inputs[5] = uint256(_chainId);
-      inputs[6] = uint256(roots[0]);
-      inputs[7] = uint256(roots[1]);
-      inputs[8] = uint256(roots[2]);
-      inputs[9] = uint256(roots[3]);
-      inputs[10] = uint256(_refreshCommitment);
+	  inputs[5] = uint256(_refreshCommitment);
+      inputs[6] = uint256(_chainId);
+      inputs[7] = uint256(roots[0]);
+      inputs[8] = uint256(roots[1]);
+      inputs[9] = uint256(roots[2]);
+      inputs[10] = uint256(roots[3]);
       encodedInput = abi.encodePacked(inputs);
     } else if (maxEdges == 4) {
       uint256[12] memory inputs;
@@ -175,13 +175,13 @@ abstract contract AnchorBase is MerkleTreePoseidon, ReentrancyGuard, IAnchor {
       inputs[2] = uint256(uint160(_relayer));
       inputs[3] = uint256(_fee);
       inputs[4] = uint256(_refund);
-      inputs[5] = uint256(_chainId);
-      inputs[6] = uint256(roots[0]);
-      inputs[7] = uint256(roots[1]);
-      inputs[8] = uint256(roots[2]);
-      inputs[9] = uint256(roots[3]);
-      inputs[10] = uint256(roots[4]);
-      inputs[11] = uint256(_refreshCommitment);
+	  inputs[5] = uint256(_refreshCommitment);
+      inputs[6] = uint256(_chainId);
+      inputs[7] = uint256(roots[0]);
+      inputs[8] = uint256(roots[1]);
+      inputs[9] = uint256(roots[2]);
+      inputs[10] = uint256(roots[3]);
+      inputs[11] = uint256(roots[4]);
       encodedInput = abi.encodePacked(inputs);
     } else if (maxEdges == 5) {
       uint256[13] memory inputs;
@@ -199,14 +199,14 @@ abstract contract AnchorBase is MerkleTreePoseidon, ReentrancyGuard, IAnchor {
       inputs[2] = uint256(uint160(_relayer));
       inputs[3] = uint256(_fee);
       inputs[4] = uint256(_refund);
-      inputs[5] = uint256(_chainId);
-      inputs[6] = uint256(roots[0]);
-      inputs[7] = uint256(roots[1]);
-      inputs[8] = uint256(roots[2]);
-      inputs[9] = uint256(roots[3]);
-      inputs[10] = uint256(roots[4]);
-      inputs[11] = uint256(roots[5]);
-      inputs[12] = uint256(_refreshCommitment);
+	  inputs[5] = uint256(_refreshCommitment);
+      inputs[6] = uint256(_chainId);
+      inputs[7] = uint256(roots[0]);
+      inputs[8] = uint256(roots[1]);
+      inputs[9] = uint256(roots[2]);
+      inputs[10] = uint256(roots[3]);
+      inputs[11] = uint256(roots[4]);
+      inputs[12] = uint256(roots[5]);
       encodedInput = abi.encodePacked(inputs);
     } else {
       require(false, "Invalid edges");

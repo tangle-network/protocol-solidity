@@ -11,7 +11,6 @@ const {
 } = utils;
 const PoseidonHasher = require('../../lib/Poseidon'); 
 const MerkleTree = require('../../lib/MerkleTree');
-const circomlib = require('circomlib')
 
 const poseidonHasher = new PoseidonHasher();
 
@@ -41,7 +40,7 @@ async function generatePoseidonBridgeInput() {
   await tree.insert(deposit.commitment);
   const { root, path_elements, path_index } = await tree.path(0);
 
-  const F = require('circomlib').babyJub.F;
+  const F = require('circomlibjs').babyjub.F;
   const Scalar = require("ffjavascript").Scalar;
 
   const input = {
