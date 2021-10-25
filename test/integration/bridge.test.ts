@@ -186,7 +186,7 @@ describe('multichain tests', () => {
       assert.deepStrictEqual(destAnchorEdge2After.latestLeafIndex, destAnchorEdge3After.latestLeafIndex);
       assert.deepStrictEqual(destAnchorEdge2After.root, destAnchorEdge3After.root);
     });
-  });
+  }).timeout(50000);
 
   describe('Bridge connection and sync', () => {
 
