@@ -769,7 +769,7 @@ describe('Anchor for 2 max edges', () => {
 });
 
 // Test deposit and withdraw on the same anchor - but it's 3 roots to pass in.
-describe('Anchor for 3 max edges', () => {
+describe('Anchor for 2 max edges (3-sided bridge)', () => {
   let anchor: Anchor;
 
   const levels = 30;
@@ -873,7 +873,7 @@ describe('Anchor for 3 max edges', () => {
 });
 
 // Test deposit and withdraw on the same anchor - but it's 4 roots to pass in.
-describe('Anchor for 4 max edges', () => {
+describe('Anchor for 3 max edges (4-sided bridge)', () => {
   let anchor: Anchor;
 
   const levels = 30;
@@ -977,7 +977,7 @@ describe('Anchor for 4 max edges', () => {
 });
 
 // Test deposit and withdraw on the same anchor - but it's 4 roots to pass in.
-describe('Anchor for 5 max edges', () => {
+describe('Anchor for 4 max edges (5-sided bridge)', () => {
   let anchor: Anchor;
 
   const levels = 30;
