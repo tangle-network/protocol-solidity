@@ -5,6 +5,7 @@
  
 pragma solidity ^0.8.0;
 
+import "hardhat/console.sol";
 import "../interfaces/ITokenWrapper.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -61,6 +62,28 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
         } else {
             // transfer ERC20 liquidity from the token wrapper to the sender
             IERC20(tokenAddress).transfer(_msgSender(), amount);
+        }
+    }
+
+    /**
+        @notice Used to unwrap/burn the wrapper token on behalf of a sender.
+        @param tokenAddress Address of ERC20 to unwrap into.
+        @param amount Amount of tokens to burn.
+     */
+    function unwrapAndSendTo(
+        address tokenAddress,
+        uint256 amount,
+        address recipient
+    ) override public isValidUnwrapping(tokenAddress, amount) {
+        // burn wrapped token from sender
+        _burn(_msgSender(), amount);
+        // unwrap liquidity and send to the sender
+        if (tokenAddress == address(0)) {
+            // transfer native liquidity from the token wrapper to the sender
+            payable(recipient).transfer(amount);
+        } else {
+            // transfer ERC20 liquidity from the token wrapper to the sender
+            IERC20(tokenAddress).transfer(recipient, amount);
         }
     }
 

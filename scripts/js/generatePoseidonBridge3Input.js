@@ -11,7 +11,6 @@ const {
 } = utils;
 const PoseidonHasher = require('../../lib/Poseidon'); 
 const MerkleTree = require('../../lib/MerkleTree');
-const circomlibjs = require('circomlibjs')
 
 const poseidonHasher = new PoseidonHasher();
 

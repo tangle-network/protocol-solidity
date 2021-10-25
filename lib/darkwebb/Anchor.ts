@@ -282,7 +282,6 @@ class Anchor {
     const chainId = (destinationChainId) ? destinationChainId : originChainId;
     const deposit = Anchor.generateDeposit(chainId);
     const signerAddress = await this.signer.getAddress();
-    console.log(`inside anchor: signer is ${signerAddress}, tokenAddress: ${tokenAddress}`);
     const tx = await this.contract.wrapAndDeposit(tokenAddress, toFixedHex(deposit.commitment), { gasLimit: '0x5B8D80' });
     await tx.wait();
 

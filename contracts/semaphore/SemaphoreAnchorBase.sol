@@ -1,5 +1,5 @@
-//SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.0;
+// //SPDX-License-Identifier: Unlicense
+// pragma solidity ^0.8.0;
 
 import "../interfaces/ISemaphoreVerifier.sol";
 import { IncrementalQuinTree } from "../trees/IncrementalMerkleTree.sol";
@@ -78,7 +78,7 @@ contract SemaphoreAnchorBase is Ownable, IncrementalQuinTree, ReentrancyGuard {
     // nothing-up-my-sleeve value, the authors hope to demonstrate that they do
     // not have its preimage and therefore cannot spend funds they do not own.
 
-    uint256 public NOTHING_UP_MY_SLEEVE_ZERO = 
+    uint256 public NOTHING_UP_MY_SLEEVE_ZERO =
         uint256(keccak256(abi.encodePacked('Semaphore'))) % SNARK_SCALAR_FIELD;
 
     /*
