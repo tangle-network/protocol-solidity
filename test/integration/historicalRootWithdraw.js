@@ -125,7 +125,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     ]);
 
     createWitness = async (data) => {
-      const witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_2_js/witness_calculator.js");
+      const witnessCalculator = require("/test/fixtures/2/witness_calculator.js");
       const fileBuf = require('fs').readFileSync('./test/fixtures/2/poseidon_bridge_2.wasm');
       const wtnsCalc = await witnessCalculator(fileBuf)
       const wtns = await wtnsCalc.calculateWTNSBin(data,0);

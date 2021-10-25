@@ -73,32 +73,32 @@ class Anchor {
       case 1:
         this.circuitWASMPath = 'test/fixtures/2/poseidon_bridge_2.wasm';
         this.circuitZkeyPath = 'test/fixtures/2/circuit_final.zkey';
-        this.witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_2_js/witness_calculator.js");
+        this.witnessCalculator = require("test/fixes/2/witness_calculator.js");
         break;
       case 2:
         this.circuitWASMPath = 'test/fixtures/3/poseidon_bridge_3.wasm';
         this.circuitZkeyPath = 'test/fixtures/3/circuit_final.zkey';
-        this.witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_3_js/witness_calculator.js");
+        this.witnessCalculator = require("test/fixes/3/witness_calculator.js");
         break;
       case 3:
         this.circuitWASMPath = 'test/fixtures/4/poseidon_bridge_4.wasm';
         this.circuitZkeyPath = 'test/fixtures/4/circuit_final.zkey';
-        this.witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_4_js/witness_calculator.js");
+        this.witnessCalculator = require("test/fixes/4/witness_calculator.js");
         break;
       case 4:
         this.circuitWASMPath = 'test/fixtures/5/poseidon_bridge_5.wasm';
         this.circuitZkeyPath = 'test/fixtures/5/circuit_final.zkey';
-        this.witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_5_js/witness_calculator.js");
+        this.witnessCalculator = require("test/fixes/5/witness_calculator.js");
         break;
       case 5:
         this.circuitWASMPath = 'test/fixtures/6/poseidon_bridge_6.wasm';
         this.circuitZkeyPath = 'test/fixtures/6/circuit_final.zkey';
-        this.witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_6_js/witness_calculator.js");
+        this.witnessCalculator = require("test/fixes/6/witness_calculator.js");
         break;
       default:
         this.circuitWASMPath = 'test/fixtures/2/poseidon_bridge_2.wasm';
         this.circuitZkeyPath = 'test/fixtures/2/circuit_final.zkey';
-        this.witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_2_js/witness_calculator.js");
+        this.witnessCalculator = require("test/fixes/2/witness_calculator.js");
         break;
     }
 
