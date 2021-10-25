@@ -92,7 +92,7 @@ describe('Anchor for 2 max edges', () => {
     await token.approve(anchor.contract.address, '10000000000000000000000');
 
     createWitness = async (data: any) => {
-      const witnessCalculator = require("./test/fixtures/2/witness_calculator.js");
+      const witnessCalculator = require("../fixtures/2/witness_calculator.js");
       const fileBuf = require('fs').readFileSync('./test/fixtures/2/poseidon_bridge_2.wasm');
       const wtnsCalc = await witnessCalculator(fileBuf)
       const wtns = await wtnsCalc.calculateWTNSBin(data,0);
@@ -825,7 +825,7 @@ describe('Anchor for 2 max edges (3-sided bridge)', () => {
     await token.approve(anchor.contract.address, '10000000000000000000000');
 
     createWitness = async (data: any) => {
-      const witnessCalculator = require("./test/fixtures/3/witness_calculator.js");
+      const witnessCalculator = require("../fixtures/3/witness_calculator.js");
       const fileBuf = require('fs').readFileSync('./test/fixtures/3/poseidon_bridge_3.wasm');
       const wtnsCalc = await witnessCalculator(fileBuf)
       const wtns = await wtnsCalc.calculateWTNSBin(data,0);
@@ -929,7 +929,7 @@ describe('Anchor for 3 max edges (4-sided bridge)', () => {
     await token.approve(anchor.contract.address, '10000000000000000000000');
 
     createWitness = async (data: any) => {
-      const witnessCalculator = require("./test/fixtures/4/witness_calculator.js");
+      const witnessCalculator = require("../fixtures/4/witness_calculator.js");
       const fileBuf = require('fs').readFileSync('./test/fixtures/4/poseidon_bridge_4.wasm');
       const wtnsCalc = await witnessCalculator(fileBuf)
       const wtns = await wtnsCalc.calculateWTNSBin(data,0);
@@ -1033,7 +1033,7 @@ describe('Anchor for 4 max edges (5-sided bridge)', () => {
     await token.approve(anchor.contract.address, '10000000000000000000000');
 
     createWitness = async (data: any) => {
-      const witnessCalculator = require("./test/fixtures/5/witness_calculator.js");
+      const witnessCalculator = require("../fixtures/5/witness_calculator.js");
       const fileBuf = require('fs').readFileSync('./test/fixtures/5/poseidon_bridge_5.wasm');
       const wtnsCalc = await witnessCalculator(fileBuf)
       const wtns = await wtnsCalc.calculateWTNSBin(data,0);

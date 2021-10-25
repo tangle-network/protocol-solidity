@@ -616,7 +616,7 @@ describe('multichain tests', () => {
       );
 
       const createWitness = async (data: any) => {
-        const witnessCalculator = require("./test/fixtures/3/witness_calculator.js");
+        const witnessCalculator = require("../fixtures/3/witness_calculator.js");
         const fileBuf = require('fs').readFileSync('./test/fixtures/3/poseidon_bridge_3.wasm');
         const wtnsCalc = await witnessCalculator(fileBuf)
         const wtns = await wtnsCalc.calculateWTNSBin(data,0);
@@ -674,7 +674,7 @@ describe('multichain tests', () => {
       );
 
       const createWitness = async (data: any) => {
-        const witnessCalculator = require("./test/fixtures/3/witness_calculator.js");
+        const witnessCalculator = require("../fixtures/3/witness_calculator.js");
         const fileBuf = require('fs').readFileSync('./test/fixtures/3/poseidon_bridge_3.wasm');
         const wtnsCalc = await witnessCalculator(fileBuf)
         const wtns = await wtnsCalc.calculateWTNSBin(data,0);

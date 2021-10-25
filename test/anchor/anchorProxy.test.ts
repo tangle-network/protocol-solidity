@@ -122,7 +122,7 @@
       await token.approve(anchorProxy.contract.address, '10000000000000000000000');
   
       createWitness = async (data: any) => {
-        const witnessCalculator = require("./test/fixtures/2/witness_calculator.js");
+        const witnessCalculator = require("../fixtures/2/witness_calculator.js");
         const fileBuf = require('fs').readFileSync('./test/fixtures/2/poseidon_bridge_2.wasm');
         const wtnsCalc = await witnessCalculator(fileBuf)
         const wtns = await wtnsCalc.calculateWTNSBin(data,0);
@@ -166,16 +166,6 @@
           'The commitment has been submitted'
         );
       });
-
-      // it.only('same commitment onto different anchors should throw', async () => { //not sure about this ask drew
-      //   const commitment = helpers.toFixedHex(42)
-  
-      //   await TruffleAssert.passes(anchorProxy.contract.deposit(anchor1.contract.address, commitment));
-      //   await TruffleAssert.reverts(
-      //     anchorProxy.contract.deposit(anchor2.contract.address, commitment),
-      //     'The commitment has been submitted'
-      //   );
-      // });
     })
 
     describe('#withdraw', () => {
