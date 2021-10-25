@@ -1,4 +1,4 @@
-const circomlib = require('circomlib');
+const circomlibjs = require('circomlibjs');
 const maci = require('maci-crypto');
 
 class PoseidonHasher {
@@ -8,7 +8,7 @@ class PoseidonHasher {
 
   hash3(inputs: any) {
     if (inputs.length !== 3) throw new Error('panic');
-    return circomlib.poseidon(inputs);
+    return circomlibjs.poseidon(inputs);
   }
 }
 

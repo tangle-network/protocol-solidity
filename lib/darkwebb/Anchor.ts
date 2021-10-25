@@ -5,10 +5,11 @@ import { rbigint, p256 } from "./utils";
 import { toFixedHex, toHex } from '../../lib/darkwebb/utils';
 import PoseidonHasher from './Poseidon';
 import { MerkleTree } from './MerkleTree';
+import MintableToken from "./MintableToken";
 
 const path = require('path');
 const snarkjs = require('snarkjs');
-const F = require('circomlib').babyJub.F;
+const F = require('circomlibjs').babyjub.F;
 const Scalar = require('ffjavascript').Scalar;
 
 export interface AnchorDepositInfo {
@@ -50,7 +51,9 @@ class Anchor {
 
   // The depositHistory stores leafIndex => information to create proposals (new root)
   depositHistory: Record<number, string>;
+  token?: string;
   denomination?: string;
+  witnessCalculator: any;
 
   private constructor(
     contract: AnchorContract,
@@ -63,32 +66,39 @@ class Anchor {
     this.tree = new MerkleTree('', treeHeight);
     this.latestSyncedBlock = 0;
     this.depositHistory = {};
+    this.witnessCalculator = {};
 
     // set the circuit zkey and wasm depending upon max edges
     switch (maxEdges) {
       case 1:
         this.circuitWASMPath = 'test/fixtures/2/poseidon_bridge_2.wasm';
         this.circuitZkeyPath = 'test/fixtures/2/circuit_final.zkey';
+        this.witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_2_js/witness_calculator.js");
         break;
       case 2:
         this.circuitWASMPath = 'test/fixtures/3/poseidon_bridge_3.wasm';
         this.circuitZkeyPath = 'test/fixtures/3/circuit_final.zkey';
+        this.witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_3_js/witness_calculator.js");
         break;
       case 3:
         this.circuitWASMPath = 'test/fixtures/4/poseidon_bridge_4.wasm';
         this.circuitZkeyPath = 'test/fixtures/4/circuit_final.zkey';
+        this.witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_4_js/witness_calculator.js");
         break;
       case 4:
         this.circuitWASMPath = 'test/fixtures/5/poseidon_bridge_5.wasm';
         this.circuitZkeyPath = 'test/fixtures/5/circuit_final.zkey';
+        this.witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_5_js/witness_calculator.js");
         break;
       case 5:
         this.circuitWASMPath = 'test/fixtures/6/poseidon_bridge_6.wasm';
         this.circuitZkeyPath = 'test/fixtures/6/circuit_final.zkey';
+        this.witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_6_js/witness_calculator.js");
         break;
       default:
         this.circuitWASMPath = 'test/fixtures/2/poseidon_bridge_2.wasm';
         this.circuitZkeyPath = 'test/fixtures/2/circuit_final.zkey';
+        this.witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_2_js/witness_calculator.js");
         break;
     }
 
@@ -121,6 +131,7 @@ class Anchor {
     const createdAnchor = new Anchor(anchor, signer, merkleTreeHeight, maxEdges);
     createdAnchor.latestSyncedBlock = anchor.deployTransaction.blockNumber!;
     createdAnchor.denomination = denomination.toString();
+    createdAnchor.token = token;
     return createdAnchor;
   }
 
@@ -134,7 +145,7 @@ class Anchor {
     const maxEdges = await anchor.maxEdges()
     const treeHeight = await anchor.levels();
     const createdAnchor = new Anchor(anchor, signer, treeHeight, maxEdges);
-
+    createdAnchor.token = await anchor.token();
     return createdAnchor;
   }
 
@@ -270,6 +281,7 @@ class Anchor {
     const originChainId = await this.signer.getChainId();
     const chainId = (destinationChainId) ? destinationChainId : originChainId;
     const deposit = Anchor.generateDeposit(chainId);
+    const signerAddress = await this.signer.getAddress();
     const tx = await this.contract.wrapAndDeposit(tokenAddress, toFixedHex(deposit.commitment), { gasLimit: '0x5B8D80' });
     await tx.wait();
 
@@ -342,9 +354,10 @@ class Anchor {
   }
 
   public async createWitness(data: any) {
-    const wtns = {type: "mem"};
-    await snarkjs.wtns.calculate(data, path.join('.', this.circuitWASMPath), wtns);
-    return wtns;
+    const fileBuf = require('fs').readFileSync(this.circuitWASMPath);
+    const witnessCalculator = await this.witnessCalculator(fileBuf)
+    const buff = await witnessCalculator.calculateWTNSBin(data,0);
+    return buff;
   }
 
   public async proveAndVerify(wtns: any) {
@@ -478,7 +491,7 @@ class Anchor {
   }
 
   // A bridgedWithdraw needs the merkle proof to be generated from an anchor other than this one,
-  public async bridgedWithdraw(
+  public async bridgedWithdrawAndUnwrap(
     deposit: AnchorDeposit,
     merkleProof: any,
     recipient: string,
@@ -487,6 +500,88 @@ class Anchor {
     refund: string,
     refreshCommitment: string,
     tokenAddress: string,
+  ) {
+    const { pathElements, pathIndices, merkleRoot } = merkleProof;
+    const isKnownNeighborRoot = await this.contract.isKnownNeighborRoot(deposit.originChainId, toFixedHex(merkleRoot));
+    if (!isKnownNeighborRoot) {
+      throw new Error("Neighbor root not found");
+    }
+    refreshCommitment = (refreshCommitment) ? refreshCommitment : '0';
+
+    const roots = await this.populateRootsForProof();
+
+    const input = await this.generateWitnessInput(
+      deposit.deposit,
+      deposit.originChainId,
+      refreshCommitment,
+      BigInt(recipient),
+      BigInt(relayer),
+      BigInt(fee),
+      BigInt(refund),
+      roots,
+      pathElements,
+      pathIndices,
+    );
+
+    const wtns = await this.createWitness(input);
+    let proofEncoded = await this.proveAndVerify(wtns);
+
+    const args = [
+      Anchor.createRootsBytes(input.roots),
+      toFixedHex(input.nullifierHash),
+      toFixedHex(input.refreshCommitment, 32),
+      toFixedHex(input.recipient, 20),
+      toFixedHex(input.relayer, 20),
+      toFixedHex(input.fee),
+      toFixedHex(input.refund),
+    ];
+
+    const publicInputs = Anchor.convertArgsArrayToStruct(args);
+
+    const anchorTokenWrapper = await this.contract.token();
+    const wrappedToken = await MintableToken.tokenFromAddress(anchorTokenWrapper, this.signer);
+    const wrappedTokenBalance = await wrappedToken.getBalance(this.contract.address);
+    console.log(`wrapped token balance on anchor: ${wrappedTokenBalance}`);
+    const originalToken = await MintableToken.tokenFromAddress(tokenAddress, this.signer);
+    const originalTokenBalance = await originalToken.getBalance(anchorTokenWrapper);
+    console.log(`original token balance on anchor token wrapper: ${originalTokenBalance}`);
+
+    //@ts-ignore
+    let tx = await this.contract.withdrawAndUnwrap(
+      `0x${proofEncoded}`,
+      publicInputs,
+      tokenAddress,
+      {
+        gasLimit: '0x5B8D80'
+      },
+    );
+    const receipt = await tx.wait();
+
+    const filter = this.contract.filters.Withdrawal(null, null, relayer, null);
+    const events = await this.contract.queryFilter(filter, receipt.blockHash);
+    return events[0];
+  }
+
+  public static convertArgsArrayToStruct(args: any[]): IPublicInputs {
+    return {
+      _roots: args[0],
+      _nullifierHash: args[1],
+      _refreshCommitment: args[2],
+      _recipient: args[3],
+      _relayer: args[4],
+      _fee: args[5],
+      _refund: args[6],
+    };
+  }
+
+  public async bridgedWithdraw(
+    deposit: AnchorDeposit,
+    merkleProof: any,
+    recipient: string,
+    relayer: string,
+    fee: string,
+    refund: string,
+    refreshCommitment: string,
   ) {
     const { pathElements, pathIndices, merkleRoot } = merkleProof;
     const isKnownNeighborRoot = await this.contract.isKnownNeighborRoot(deposit.originChainId, toFixedHex(merkleRoot));
@@ -542,15 +637,54 @@ class Anchor {
     return events[0];
   }
 
-  public static convertArgsArrayToStruct(args: any[]): IPublicInputs {
+  public async setupWithdraw(
+    deposit: AnchorDepositInfo,
+    index: number,
+    recipient: string,
+    relayer: string,
+    fee: bigint,
+    refreshCommitment: string | number,
+  ) {
+    // first, check if the merkle root is known on chain - if not, then update
+    await this.checkKnownRoot();
+
+    const { merkleRoot, pathElements, pathIndices } = await this.tree.path(index);
+    const chainId = await this.signer.getChainId();
+
+    const roots = await this.populateRootsForProof();
+
+    const input = await this.generateWitnessInput(
+      deposit,
+      chainId,
+      refreshCommitment,
+      BigInt(recipient),
+      BigInt(relayer),
+      BigInt(fee),
+      BigInt(0),
+      roots,
+      pathElements,
+      pathIndices,
+    );
+
+    const wtns = await this.createWitness(input);
+    let proofEncoded = await this.proveAndVerify(wtns);
+
+    const args = [
+      Anchor.createRootsBytes(input.roots),
+      toFixedHex(input.nullifierHash),
+      toFixedHex(input.refreshCommitment, 32),
+      toFixedHex(input.recipient, 20),
+      toFixedHex(input.relayer, 20),
+      toFixedHex(input.fee),
+      toFixedHex(input.refund),
+    ];
+
+    const publicInputs = Anchor.convertArgsArrayToStruct(args);
     return {
-      _roots: args[0],
-      _nullifierHash: args[1],
-      _refreshCommitment: args[2],
-      _recipient: args[3],
-      _relayer: args[4],
-      _fee: args[5],
-      _refund: args[6],
+      input,
+      args,
+      proofEncoded,
+      publicInputs,
     };
   }
 }
