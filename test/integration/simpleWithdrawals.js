@@ -142,12 +142,10 @@ contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts 
     ]);
 
     createWitness = async (data) => {
-      const wtns = {type: 'mem'};
-      await snarkjs.wtns.calculate(data, path.join(
-        'test',
-        'fixtures/2',
-        'poseidon_bridge_2.wasm'
-      ), wtns);
+      const witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_2_js/witness_calculator.js");
+      const fileBuf = require('fs').readFileSync('./test/fixtures/2/poseidon_bridge_2.wasm');
+      const wtnsCalc = await witnessCalculator(fileBuf)
+      const wtns = await wtnsCalc.calculateWTNSBin(data,0);
       return wtns;
     }
 

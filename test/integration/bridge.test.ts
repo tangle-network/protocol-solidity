@@ -636,14 +636,12 @@
        );
  
        const createWitness = async (data: any) => {
-         const wtns = {type: "mem"};
-         await snarkjs.wtns.calculate(data, path.join(
-           "test",
-           "fixtures/3",
-           "poseidon_bridge_3.wasm"
-         ), wtns);
-         return wtns;
-       }
+        const witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_3_js/witness_calculator.js");
+        const fileBuf = require('fs').readFileSync('./test/fixtures/3/poseidon_bridge_3.wasm');
+        const wtnsCalc = await witnessCalculator(fileBuf)
+        const wtns = await wtnsCalc.calculateWTNSBin(data,0);
+        return wtns;
+      }
        
        const wtns = await createWitness(input);
  
@@ -696,14 +694,12 @@
        );
  
        const createWitness = async (data: any) => {
-         const wtns = {type: "mem"};
-         await snarkjs.wtns.calculate(data, path.join(
-           "test",
-           "fixtures/3",
-           "poseidon_bridge_3.wasm"
-         ), wtns);
-         return wtns;
-       }
+        const witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_3_js/witness_calculator.js");
+        const fileBuf = require('fs').readFileSync('./test/fixtures/3/poseidon_bridge_3.wasm');
+        const wtnsCalc = await witnessCalculator(fileBuf)
+        const wtns = await wtnsCalc.calculateWTNSBin(data,0);
+        return wtns;
+      }
        
        const wtns = await createWitness(input);
  

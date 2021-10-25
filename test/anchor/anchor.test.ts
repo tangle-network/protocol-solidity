@@ -91,12 +91,10 @@ describe('Anchor for 2 max edges', () => {
     await token.approve(anchor.contract.address, '10000000000000000000000');
 
     createWitness = async (data: any) => {
-      const wtns = {type: "mem"};
-      await snarkjs.wtns.calculate(data, path.join(
-        "test",
-        "fixtures/2",
-        "poseidon_bridge_2.wasm"
-      ), wtns);
+      const witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_2_js/witness_calculator.js");
+      const fileBuf = require('fs').readFileSync('./test/fixtures/2/poseidon_bridge_2.wasm');
+      const wtnsCalc = await witnessCalculator(fileBuf)
+      const wtns = await wtnsCalc.calculateWTNSBin(data,0);
       return wtns;
     }
   })
@@ -819,12 +817,10 @@ describe('Anchor for 3 max edges', () => {
     await token.approve(anchor.contract.address, '10000000000000000000000');
 
     createWitness = async (data: any) => {
-      const wtns = {type: "mem"};
-      await snarkjs.wtns.calculate(data, path.join(
-        "test",
-        "fixtures/3",
-        "poseidon_bridge_3.wasm"
-      ), wtns);
+      const witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_3_js/witness_calculator.js");
+      const fileBuf = require('fs').readFileSync('./test/fixtures/3/poseidon_bridge_3.wasm');
+      const wtnsCalc = await witnessCalculator(fileBuf)
+      const wtns = await wtnsCalc.calculateWTNSBin(data,0);
       return wtns;
     }
   })
@@ -925,12 +921,10 @@ describe('Anchor for 4 max edges', () => {
     await token.approve(anchor.contract.address, '10000000000000000000000');
 
     createWitness = async (data: any) => {
-      const wtns = {type: "mem"};
-      await snarkjs.wtns.calculate(data, path.join(
-        "test",
-        "fixtures/4",
-        "poseidon_bridge_4.wasm"
-      ), wtns);
+      const witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_4_js/witness_calculator.js");
+      const fileBuf = require('fs').readFileSync('./test/fixtures/4/poseidon_bridge_4.wasm');
+      const wtnsCalc = await witnessCalculator(fileBuf)
+      const wtns = await wtnsCalc.calculateWTNSBin(data,0);
       return wtns;
     }
   })
@@ -1031,12 +1025,10 @@ describe('Anchor for 5 max edges', () => {
     await token.approve(anchor.contract.address, '10000000000000000000000');
 
     createWitness = async (data: any) => {
-      const wtns = {type: "mem"};
-      await snarkjs.wtns.calculate(data, path.join(
-        "test",
-        "fixtures/5",
-        "poseidon_bridge_5.wasm"
-      ), wtns);
+      const witnessCalculator = require("../../artifacts/circuits/bridge/poseidon_bridge_5_js/witness_calculator.js");
+      const fileBuf = require('fs').readFileSync('./test/fixtures/5/poseidon_bridge_5.wasm');
+      const wtnsCalc = await witnessCalculator(fileBuf)
+      const wtns = await wtnsCalc.calculateWTNSBin(data,0);
       return wtns;
     }
   })
