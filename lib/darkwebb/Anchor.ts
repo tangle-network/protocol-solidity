@@ -659,57 +659,6 @@ class Anchor {
     const events = await this.contract.queryFilter(filter, receipt.blockHash);
     return events[0];
   }
-
-  public async setupWithdraw(
-    deposit: AnchorDepositInfo,
-    index: number,
-    recipient: string,
-    relayer: string,
-    fee: bigint,
-    refreshCommitment: string | number,
-  ) {
-    // first, check if the merkle root is known on chain - if not, then update
-    await this.checkKnownRoot();
-
-    const { merkleRoot, pathElements, pathIndices } = await this.tree.path(index);
-    const chainId = await this.signer.getChainId();
-
-    const roots = await this.populateRootsForProof();
-
-    const input = await this.generateWitnessInput(
-      deposit,
-      chainId,
-      refreshCommitment,
-      BigInt(recipient),
-      BigInt(relayer),
-      BigInt(fee),
-      BigInt(0),
-      roots,
-      pathElements,
-      pathIndices,
-    );
-
-    const wtns = await this.createWitness(input);
-    let proofEncoded = await this.proveAndVerify(wtns);
-
-    const args = [
-      Anchor.createRootsBytes(input.roots),
-      toFixedHex(input.nullifierHash),
-      toFixedHex(input.refreshCommitment, 32),
-      toFixedHex(input.recipient, 20),
-      toFixedHex(input.relayer, 20),
-      toFixedHex(input.fee),
-      toFixedHex(input.refund),
-    ];
-
-    const publicInputs = Anchor.convertArgsArrayToStruct(args);
-    return {
-      input,
-      args,
-      proofEncoded,
-      publicInputs,
-    };
-  }
 }
 
 export default Anchor;
