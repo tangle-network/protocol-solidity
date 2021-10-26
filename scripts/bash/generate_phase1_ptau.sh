@@ -1,4 +1,5 @@
 # Make necessary directories if they don't exist
+
 mkdir -p build/ptau
 
 # Start a new powers of tau ceremony
