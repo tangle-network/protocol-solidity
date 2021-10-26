@@ -6,7 +6,6 @@ compile_phase2 () {
     echo "Outputting circuit_final.zkey and verifier.sol to $1"
 
     npx snarkjs plonk setup "$3/$2.r1cs" ./build/ptau/pot$4_final.ptau "$1/circuit_final.zkey"
-    #npx snarkjs zkey verify "$3/$2.r1cs" ./build/ptau/pot$4_final.ptau "$1/circuit_final.zkey"
     npx snarkjs zkey export verificationkey "$1/circuit_final.zkey" "$1/verification_key.json"  
     snarkjs zkey export solidityverifier "$1/circuit_final.zkey" $1/verifier.sol
     # npx snarkjs wtns calculate "$3/$2_js/$2.wasm" "$1/input.json" "$1/witness.wtns"
