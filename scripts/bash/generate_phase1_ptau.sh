@@ -42,6 +42,3 @@ compile_phase1 () {
 }
 
 compile_phase1
-
-
-
