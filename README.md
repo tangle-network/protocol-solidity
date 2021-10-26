@@ -1,7 +1,7 @@
-<h1 align="center">Darkwebb Solidity</h1>
+<h1 align="center">Webb Protocol Solidity</h1>
 
 <p align="center">
-    <strong>🕸️  Darkwebb Solidity  ⧫</strong>
+    <strong>🕸️  Webb Protocol Solidity  ⧫</strong>
     <br />
     <sub> ⚠️ Beta Software ⚠️ </sub>
 </p>
@@ -12,7 +12,7 @@
 
 - `yarn build`
 
-This command will build the darkwebb system, performing the following build steps:
+This command will build the Solidity system, performing the following build steps:
 
 1. Compile the smart contracts and generate appropriate typescript bindings in a folder `typechain` at the root directory.
 
