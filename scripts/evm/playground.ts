@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 import { mintCompTokens } from './tokens/mintCompTokens';
 import { getTokenBalance } from './tokens/getTokenBalance';
 import { deployERC20 } from './deployments/deployERC20Token';
-import { toFixedHex } from '../../lib/darkwebb/utils';
+import { toFixedHex } from '../../lib/bridge/utils';
 
 const providerRinkeby = new ethers.providers.JsonRpcProvider(`https://rinkeby.infura.io/v3/fff68ca474dd4764a8d54dd14fa5519e`);
 const walletRinkeby = new ethers.Wallet(process.env.PRIVATE_KEY!, providerRinkeby);
