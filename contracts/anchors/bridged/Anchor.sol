@@ -51,12 +51,22 @@ contract Anchor is LinkableAnchor {
   ) payable public {
     require(!commitments[_commitment], "The commitment has been submitted");
     // wrap into the token and send directly to this contract
-    ITokenWrapper(token).wrapForAndSendTo{value: msg.value}(
-        msg.sender,
-        tokenAddress,
-        denomination,
-        address(this)
-    );
+    if (tokenAddress == address(0)) {
+        ITokenWrapper(token).wrapForAndSendTo{value: msg.value}(
+            msg.sender,
+            tokenAddress,
+            0,
+            address(this)
+        );
+    }
+    else {
+        ITokenWrapper(token).wrapForAndSendTo(
+            msg.sender,
+            tokenAddress,
+            denomination,
+            address(this)
+        );
+    }
     // insert a new commitment to the tree
     uint32 insertedIndex = _insert(_commitment);
     commitments[_commitment] = true;

@@ -12,6 +12,15 @@ const snarkjs = require('snarkjs');
 const F = require('circomlibjs').babyjub.F;
 const Scalar = require('ffjavascript').Scalar;
 
+const zeroAddress = "0x0000000000000000000000000000000000000000";
+
+function checkNativeAddress(tokenAddress: string): boolean {
+  if (tokenAddress === zeroAddress || tokenAddress === '0') {
+    return true;
+  }
+  return false;
+}
+
 export interface AnchorDepositInfo {
   chainID: BigInt,
   secret: BigInt,
@@ -282,7 +291,17 @@ class Anchor {
     const chainId = (destinationChainId) ? destinationChainId : originChainId;
     const deposit = Anchor.generateDeposit(chainId);
     const signerAddress = await this.signer.getAddress();
-    const tx = await this.contract.wrapAndDeposit(tokenAddress, toFixedHex(deposit.commitment), { gasLimit: '0x5B8D80' });
+    let tx;
+    if (checkNativeAddress(tokenAddress)) {
+      tx = await this.contract.wrapAndDeposit(tokenAddress, toFixedHex(deposit.commitment), {
+        value: this.denomination,
+        gasLimit: '0x5B8D80'
+      });
+    } else {
+      tx = await this.contract.wrapAndDeposit(tokenAddress, toFixedHex(deposit.commitment), {
+        gasLimit: '0x5B8D80'
+      });
+    }
     await tx.wait();
 
     const index: number = await this.tree.insert(deposit.commitment);
@@ -560,14 +579,6 @@ class Anchor {
     ];
 
     const publicInputs = Anchor.convertArgsArrayToStruct(args);
-
-    const anchorTokenWrapper = await this.contract.token();
-    const wrappedToken = await MintableToken.tokenFromAddress(anchorTokenWrapper, this.signer);
-    const wrappedTokenBalance = await wrappedToken.getBalance(this.contract.address);
-    console.log(`wrapped token balance on anchor: ${wrappedTokenBalance}`);
-    const originalToken = await MintableToken.tokenFromAddress(tokenAddress, this.signer);
-    const originalTokenBalance = await originalToken.getBalance(anchorTokenWrapper);
-    console.log(`original token balance on anchor token wrapper: ${originalTokenBalance}`);
 
     //@ts-ignore
     let tx = await this.contract.withdrawAndUnwrap(
