@@ -4,6 +4,7 @@ mkdir -p artifacts/circuits/{anchor,bridge,semaphore}
 
 compile () {
     local outdir="$1" circuit="$2"
+    mkdir -p $outdir
     ~/.cargo/bin/circom --r1cs --wasm --sym \
         -o artifacts/circuits/$outdir \
         circuits/test/$circuit.circom
@@ -28,30 +29,37 @@ copy_to_fixtures () {
 # WEBB BRIDGES
 ###
 
-echo "Compiling Webb style Poseidon bridge 2 withdrawal circuit..."
-compile bridge poseidon_bridge_2
-copy_to_fixtures bridge poseidon_bridge_2 2
+# echo "Compiling Webb style Poseidon bridge 2 withdrawal circuit..."
+# compile bridge poseidon_bridge_2
+# copy_to_fixtures bridge poseidon_bridge_2 2
 
-echo "Compiling Webb style Poseidon bridge 3 withdrawal circuit..."
-compile bridge poseidon_bridge_3
-copy_to_fixtures bridge poseidon_bridge_3 3
+# echo "Compiling Webb style Poseidon bridge 3 withdrawal circuit..."
+# compile bridge poseidon_bridge_3
+# copy_to_fixtures bridge poseidon_bridge_3 3
 
-echo "Compiling Webb style Poseidon bridge 4 withdrawal circuit..."
-compile bridge poseidon_bridge_4
-copy_to_fixtures bridge poseidon_bridge_4 4
+# echo "Compiling Webb style Poseidon bridge 4 withdrawal circuit..."
+# compile bridge poseidon_bridge_4
+# copy_to_fixtures bridge poseidon_bridge_4 4
 
-echo "Compiling Webb style Poseidon bridge 5 withdrawal circuit..."
-compile bridge poseidon_bridge_5
-copy_to_fixtures bridge poseidon_bridge_5 5
+# echo "Compiling Webb style Poseidon bridge 5 withdrawal circuit..."
+# compile bridge poseidon_bridge_5
+# copy_to_fixtures bridge poseidon_bridge_5 5
 
-echo "Compiling Webb style Poseidon bridge 6 withdrawal circuit..."
-compile bridge poseidon_bridge_6
-copy_to_fixtures bridge poseidon_bridge_6 6
+# echo "Compiling Webb style Poseidon bridge 6 withdrawal circuit..."
+# compile bridge poseidon_bridge_6
+# copy_to_fixtures bridge poseidon_bridge_6 6
 
-###
-# WEBB SEMPAHORES
-###
-echo "Compiling Webb style Semaphore bridge 2 withdrawal circuit..."
-compile semaphore semaphore_bridge_2
-copy_to_fixtures semaphore semaphore_bridge_2 2
+# ###
+# # WEBB SEMPAHORES
+# ###
+# echo "Compiling Webb style Semaphore bridge 2 withdrawal circuit..."
+# compile semaphore semaphore_bridge_2
+# copy_to_fixtures semaphore semaphore_bridge_2 2
 
+echo "Compiling Webb style variable Poseidon bridge 2 circuit w/ 16 inputs"
+compile vbridge poseidon_vbridge_2_16
+#copy_to_fixtures vbridge transaction16 2
+
+echo "Compiling Webb style variable Poseidon bridge 2 circuit w/ 2 inputs"
+compile vbridge poseidon_vbridge_2_2
+#copy_to_fixtures vbridge transaction2 2
