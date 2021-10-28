@@ -1,4 +1,4 @@
 source ./scripts/bash/phase2_circuit.sh
 
 compile_phase2 ./build/bridge5 poseidon_bridge_5 ./artifacts/circuits/bridge
-move_verifiers_and_metadata ./build/bridge5 5
+move_verifiers_and_metadata ./build/bridge5 5 bridge

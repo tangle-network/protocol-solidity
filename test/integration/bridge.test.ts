@@ -616,8 +616,8 @@ describe('multichain tests', () => {
       );
 
       const createWitness = async (data: any) => {
-        const witnessCalculator = require("../fixtures/3/witness_calculator.js");
-        const fileBuf = require('fs').readFileSync('./test/fixtures/3/poseidon_bridge_3.wasm');
+        const witnessCalculator = require("../fixtures/bridge/3/witness_calculator.js");
+        const fileBuf = require('fs').readFileSync('./test/fixtures/bridge/3/poseidon_bridge_3.wasm');
         const wtnsCalc = await witnessCalculator(fileBuf)
         const wtns = await wtnsCalc.calculateWTNSBin(data,0);
         return wtns;
@@ -625,12 +625,12 @@ describe('multichain tests', () => {
       
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('test/fixtures/3/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('test/fixtures/bridge/3/circuit_final.zkey', wtns);
       const proof = res.proof;
       let publicSignals = res.publicSignals;
       let tempProof = proof;
       let tempSignals = publicSignals;
-      const vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/3/circuit_final.zkey');
+      const vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/bridge/3/circuit_final.zkey');
 
       res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       assert.strictEqual(res, true);
@@ -674,8 +674,8 @@ describe('multichain tests', () => {
       );
 
       const createWitness = async (data: any) => {
-        const witnessCalculator = require("../fixtures/3/witness_calculator.js");
-        const fileBuf = require('fs').readFileSync('./test/fixtures/3/poseidon_bridge_3.wasm');
+        const witnessCalculator = require("../fixtures/bridge/3/witness_calculator.js");
+        const fileBuf = require('fs').readFileSync('./test/fixtures/bridge/3/poseidon_bridge_3.wasm');
         const wtnsCalc = await witnessCalculator(fileBuf)
         const wtns = await wtnsCalc.calculateWTNSBin(data,0);
         return wtns;
@@ -683,12 +683,12 @@ describe('multichain tests', () => {
       
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('test/fixtures/3/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('test/fixtures/bridge/3/circuit_final.zkey', wtns);
       const proof = res.proof;
       let publicSignals = res.publicSignals;
       let tempProof = proof;
       let tempSignals = publicSignals;
-      const vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/3/circuit_final.zkey');
+      const vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/bridge/3/circuit_final.zkey');
 
       res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       

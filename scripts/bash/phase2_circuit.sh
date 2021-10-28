@@ -13,13 +13,14 @@ compile_phase2 () {
     npx snarkjs zkey export verificationkey "$1/circuit_final.zkey" "$1/verification_key.json"  
 
     snarkjs zkey export solidityverifier "$1/circuit_final.zkey" $1/verifier.sol
-    # npx snarkjs wtns calculate "$3/$2_js/$2.wasm" "$1/input.json" "$1/witness.wtns"
+    #npx snarkjs wtns calculate "$3/$2_js/$2.wasm" "$1/input.json" "$1/witness.wtns"
     #npx snarkjs wtns debug "$3/$2_js/$2.wasm" "$1/input.json" "$1/witness.wtns" "$3/$2_js/$2.sym" --trigger --get --set
     echo -e "Done!\n"
 }
 
 move_verifiers_and_metadata () {
-    local outdir="$1" size="$2"
-    cp $1/circuit_final.zkey test/fixtures/$2/circuit_final.zkey
-    cp $1/verifier.sol contracts/verifiers/bridge/"Verifier$2.sol"
+    local outdir="$1" size="$2" bridgeType="$3"
+    # cp $1/circuit_final.zkey test/fixtures/$bridgeType/$2/circuit_final.zkey
+    #cp $1/verifier.sol contracts/verifiers/bridge/"Verifier$2.sol"
 }
+
