@@ -13,10 +13,10 @@ const path = require('path');
 const ganache = require('ganache-cli');
 
 // Convenience wrapper classes for contract classes
-import Bridge, { BridgeInput } from '../../lib/darkwebb/Bridge';
-import Anchor from '../../lib/darkwebb/Anchor';
-import MintableToken from '../../lib/darkwebb/MintableToken';
-import { toFixedHex } from '../../lib/darkwebb/utils';
+import Bridge, { BridgeInput } from '../../lib/bridge/Bridge';
+import Anchor from '../../lib/bridge/Anchor';
+import MintableToken from '../../lib/bridge/MintableToken';
+import { toFixedHex } from '../../lib/bridge/utils';
 import { BigNumber } from '@ethersproject/bignumber';
 import { Signer } from '@ethersproject/abstract-signer';
 

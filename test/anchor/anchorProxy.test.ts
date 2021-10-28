@@ -21,11 +21,11 @@
  } from '../../typechain';
  
  // Convenience wrapper classes for contract classes
- import Anchor from '../../lib/darkwebb/Anchor';
- import AnchorProxy from '../../lib/darkwebb/AnchorProxy';
- import Verifier from '../../lib/darkwebb/Verifier';
+ import Anchor from '../../lib/bridge/Anchor';
+ import AnchorProxy from '../../lib/bridge/AnchorProxy';
+ import Verifier from '../../lib/bridge/Verifier';
 
- const helpers = require('../../lib/darkwebb/utils');
+ const helpers = require('../../lib/bridge/utils');
 
  const { NATIVE_AMOUNT } = process.env
  const snarkjs = require('snarkjs')

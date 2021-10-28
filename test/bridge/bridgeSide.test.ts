@@ -6,11 +6,11 @@ const assert = require('assert');
 import { ethers } from 'hardhat';
 
 // Convenience wrapper classes for contract classes
-import BridgeSide from '../../lib/darkwebb/BridgeSide';
-import Anchor from '../../lib/darkwebb/Anchor';
-import MintableToken from '../../lib/darkwebb/MintableToken';
-import Verifier from '../../lib/darkwebb/Verifier';
-import { getHasherFactory } from '../../lib/darkwebb/utils';
+import BridgeSide from '../../lib/bridge/BridgeSide';
+import Anchor from '../../lib/bridge/Anchor';
+import MintableToken from '../../lib/bridge/MintableToken';
+import Verifier from '../../lib/bridge/Verifier';
+import { getHasherFactory } from '../../lib/bridge/utils';
 
 describe('BridgeSideConstruction', () => {
   it('should create the bridge side which can affect the anchor state', async () => {

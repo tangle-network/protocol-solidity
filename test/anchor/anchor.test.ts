@@ -20,10 +20,10 @@ import {
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
-import Anchor from '../../lib/darkwebb/Anchor';
-import { getHasherFactory } from '../../lib/darkwebb/utils';
-import Verifier from '../../lib/darkwebb/Verifier';
-import MintableToken from '../../lib/darkwebb/MintableToken';
+import Anchor from '../../lib/bridge/Anchor';
+import { getHasherFactory } from '../../lib/bridge/utils';
+import Verifier from '../../lib/bridge/Verifier';
+import MintableToken from '../../lib/bridge/MintableToken';
 
 const { NATIVE_AMOUNT } = process.env
 const snarkjs = require('snarkjs')
@@ -32,7 +32,7 @@ const BN = require('bn.js');
 const F = require('circomlibjs').babyjub.F;
 const Scalar = require("ffjavascript").Scalar;
 
-const helpers = require('../../lib/darkwebb/utils');
+const helpers = require('../../lib/bridge/utils');
 const MerkleTree = require('../../lib/MerkleTree');
 
 describe('Anchor for 2 max edges', () => {
