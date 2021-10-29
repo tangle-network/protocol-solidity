@@ -21,7 +21,7 @@ export interface RootInfo {
   chainId: BigNumberish;
 }
 
-async function getProof({ roots, inputs, outputs, tree, extAmount, fee, recipient, relayer, isL1Withdrawal }) {
+async function getProof({ roots, chainId, inputs, outputs, tree, extAmount, fee, recipient, relayer, isL1Withdrawal }) {
   inputs = shuffle(inputs)
   outputs = shuffle(outputs)
 
@@ -55,7 +55,8 @@ async function getProof({ roots, inputs, outputs, tree, extAmount, fee, recipien
   const extDataHash = getExtDataHash(extData)
   let input = {
     roots: roots.map((x) => x.merkleRoot),
-    diffs: [inputs.map((x) => x.getDiffs(roots))],
+    diffs: [inputs.map((x) => x.getDiffs(roots, chainId))],
+    chainId: chainId,
     inputNullifier: inputs.map((x) => x.getNullifier()),
     outputCommitment: outputs.map((x) => x.getCommitment()),
     publicAmount: BigNumber.from(extAmount).sub(fee).add(FIELD_SIZE).mod(FIELD_SIZE).toString(),
@@ -69,6 +70,7 @@ async function getProof({ roots, inputs, outputs, tree, extAmount, fee, recipien
     inPathElements: inputMerklePathElements,
 
     // data for 2 transaction outputs
+    outputChainID: outputs.map((x) => x.chainId),
     outAmount: outputs.map((x) => x.amount),
     outBlinding: outputs.map((x) => x.blinding),
     outPubkey: outputs.map((x) => x.keypair.pubkey),

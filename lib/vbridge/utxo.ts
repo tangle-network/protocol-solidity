@@ -65,9 +65,10 @@ class Utxo {
     return this._nullifier
   }
 
-  getDiffs(roots: RootInfo[]): BigNumberish[] {
+  getDiffs(roots: RootInfo[], chainId: BigNumberish): BigNumberish[] {
+    if (this.chainId !== chainId) throw new Error('Chain Id mismatch');
     const diffs = []
-    const targetRoot = roots.find(root => root.chainId === this.chainId);
+    const targetRoot = roots.find(root => root.chainId === chainId);
     return roots.map(diff => {
       return BigNumber.from(diff.merkleRoot).sub(BigNumber.from(targetRoot.merkleRoot));
     });
