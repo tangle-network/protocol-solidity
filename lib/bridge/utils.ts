@@ -13,7 +13,7 @@ export const toHex = (covertThis: ethers.utils.BytesLike | number | bigint, padd
   return ethers.utils.hexZeroPad(ethers.utils.hexlify(covertThis), padding);
 };
 
-export const toFixedHex = (number: string | bigint | number, length: number = 32): string =>
+export const toFixedHex = (number: BigNumberish, length: number = 32): string =>
   '0x' +
   BigInt(`${number}`)
     .toString(16)

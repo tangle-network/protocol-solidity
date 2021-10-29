@@ -7,7 +7,7 @@ const { BigNumber } = ethers
 
 
 
-class Utxo {
+export class Utxo {
   chainId: BigNumberish;
   amount: BigNumberish;
   blinding: BigNumberish;

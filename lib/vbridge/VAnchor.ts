@@ -1,30 +1,39 @@
 import { BigNumber, BigNumberish, ethers } from "ethers";
-import { Anchor__factory } from '../../typechain/factories/Anchor__factory';
-import { Anchor as AnchorContract} from '../../typechain/Anchor';
+import { VAnchor__factory } from '../../typechain/factories/VAnchor__factory';
+import { VAnchor as VAnchorContract} from '../../typechain/VAnchor';
 import { rbigint, p256 } from "../bridge/utils";
 import { toFixedHex, toHex } from '../../lib/bridge/utils';
 import PoseidonHasher from '../bridge/Poseidon';
 import { MerkleTree } from './MerkleTree';
 import MintableToken from "../bridge/MintableToken";
+import { RootInfo } from ".";
+import { poseidonHash2, randomBN } from "./utils";
+import { Utxo } from './utxo';
+import { Keypair } from "./keypair";
 
 const path = require('path');
 const snarkjs = require('snarkjs');
 const F = require('circomlibjs').babyjub.F;
 const Scalar = require('ffjavascript').Scalar;
 
-export interface VAnchorDepositInfo {
-  chainID: BigInt,
-  secret: BigInt,
-  nullifier: BigInt,
-  commitment: string,
-  nullifierHash: string,
-};
+export interface IVerifiers {
+  verifier2: string;
+  verifier16: string;
+}
 
-export interface AnchorDeposit {
-  deposit: VAnchorDepositInfo,
-  index: number,
-  originChainId: number;
-};
+export interface IPermissionedAccounts {
+  bridge: string;
+  admin: string;
+  handler: string;
+}
+
+export interface IUTXOInputs {
+  chainId?: BigNumber;
+  amount?: BigNumber;
+  keypair?: Keypair;
+  blinding?: BigNumber;
+  index?: BigNumber;
+}
 
 export interface IPublicInputs {
   _roots: string;
@@ -42,7 +51,7 @@ export interface IPublicInputs {
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods 
 class VAnchor {
   signer: ethers.Signer;
-  contract: AnchorContract;
+  contract: VAnchorContract;
   tree: MerkleTree;
   // hex string of the connected root
   latestSyncedBlock: number;
@@ -56,14 +65,14 @@ class VAnchor {
   witnessCalculator: any;
 
   private constructor(
-    contract: AnchorContract,
+    contract: VAnchorContract,
     signer: ethers.Signer,
     treeHeight: number,
     maxEdges: number,
   ) {
     this.signer = signer;
     this.contract = contract;
-    this.tree = new MerkleTree('', treeHeight);
+    this.tree = new MerkleTree(treeHeight, [], { hashFunction: poseidonHash2 });
     this.latestSyncedBlock = 0;
     this.depositHistory = {};
     this.witnessCalculator = {};
@@ -108,31 +117,42 @@ class VAnchor {
   //   contract: string,
   //   signer: ethers.Signer,
   // ) {
-  //   const anchor = Anchor__factory.connect(contract, signer);
+  //   const anchor = VAnchor__factory.connect(contract, signer);
   //   return new Anchor(anchor, signer);
   // }
 
   // Deploys an Anchor contract and sets the signer for deposit and withdraws on this contract.
-  public static async createAnchor(
-    verifier: string,
+/*
+    Verifiers memory _verifiers,
+    uint32 _levels,
+    address _hasher,
+    IERC6777 _token,
+    address _omniBridge,
+    address _l1Unwrapper,
+    uint256 _l1ChainId,
+    PermissionedAccounts memory _permissions,
+    uint8 _maxEdges
+*/
+
+  public static async createVAnchor(
+    verifiers: IVerifiers,
+    levels: BigNumberish,
     hasher: string,
-    denomination: BigNumberish,
-    merkleTreeHeight: number,
     token: string,
-    bridge: string,
-    admin: string,
-    handler: string,
+    omniBridge: string,
+    l1Unwrapper: string,
+    l1ChainId: BigNumberish,
+    permissions: IPermissionedAccounts,
     maxEdges: number,
     signer: ethers.Signer,
   ) {
-    const factory = new Anchor__factory(signer);
-    const anchor = await factory.deploy(verifier, hasher, denomination, merkleTreeHeight, token, bridge, admin, handler, maxEdges, {});
-    await anchor.deployed();
-    const createdAnchor = new Anchor(anchor, signer, merkleTreeHeight, maxEdges);
-    createdAnchor.latestSyncedBlock = anchor.deployTransaction.blockNumber!;
-    createdAnchor.denomination = denomination.toString();
-    createdAnchor.token = token;
-    return createdAnchor;
+    const factory = new VAnchor__factory(signer);
+    const vAnchor = await factory.deploy(verifiers, levels, hasher, token, omniBridge, l1Unwrapper, l1ChainId, permissions, maxEdges, {});
+    await vAnchor.deployed();
+    const createdVAnchor = new VAnchor(vAnchor, signer, BigNumber.from(levels).toNumber(), maxEdges);
+    createdVAnchor.latestSyncedBlock = vAnchor.deployTransaction.blockNumber!;
+    createdVAnchor.token = token;
+    return createdVAnchor;
   }
 
   public static async connect(
@@ -141,32 +161,16 @@ class VAnchor {
     address: string,
     signer: ethers.Signer,
   ) {
-    const anchor = Anchor__factory.connect(address, signer);
+    const anchor = VAnchor__factory.connect(address, signer);
     const maxEdges = await anchor.maxEdges()
     const treeHeight = await anchor.levels();
-    const createdAnchor = new Anchor(anchor, signer, treeHeight, maxEdges);
+    const createdAnchor = new VAnchor(anchor, signer, treeHeight, maxEdges);
     createdAnchor.token = await anchor.token();
     return createdAnchor;
   }
 
-  public static generateDeposit(destinationChainId: number, secretBytesLen: number = 31, nullifierBytesLen: number = 31): VAnchorDepositInfo {
-    const chainID = BigInt(destinationChainId);
-    const secret = rbigint(secretBytesLen);
-    const nullifier = rbigint(nullifierBytesLen);
-
-    const hasher = new PoseidonHasher();
-    const commitment = hasher.hash3([chainID, nullifier, secret]).toString();
-    const nullifierHash = hasher.hash(null, nullifier, nullifier);
-
-    const deposit: VAnchorDepositInfo = {
-      chainID,
-      secret,
-      nullifier,
-      commitment,
-      nullifierHash
-    };
-  
-    return deposit
+  public static generateUTXO(utxoInputs: IUTXOInputs): Utxo {
+    return new Utxo(utxoInputs);
   }
 
   public static createRootsBytes(rootArray: string[]) {
@@ -194,7 +198,7 @@ class VAnchor {
   }
   
   public static async generateWithdrawProofCallData(proof: any, publicSignals: any) {
-    const result = await Anchor.groth16ExportSolidityCallData(proof, publicSignals);
+    const result = await VAnchor.groth16ExportSolidityCallData(proof, publicSignals);
     const fullProof = JSON.parse("[" + result + "]");
     const pi_a = fullProof[0];
     const pi_b = fullProof[1];
@@ -214,6 +218,18 @@ class VAnchor {
     .join('');
 
     return proofEncoded;
+  }
+
+  // sync the local tree with the tree on chain.
+  // Start syncing from the given block number, otherwise zero.
+  public async update(blockNumber?: number) {
+    // const filter = this.contract.filters.Deposit();
+    // const currentBlockNumber = await this.signer.provider!.getBlockNumber();
+    // const events = await this.contract.queryFilter(filter, blockNumber || 0);
+    // const commitments = events.map((event) => event.args.commitment);
+    // this.tree.batch_insert(commitments);
+
+    // this.latestSyncedBlock = currentBlockNumber;
   }
 
   public async createResourceId(): Promise<string> {
@@ -260,55 +276,20 @@ class VAnchor {
       toHex(merkleRoot, 32).substr(2);
   }
 
-  // Makes a deposit into the contract and return the parameters and index of deposit
-  public async deposit(destinationChainId?: number): Promise<AnchorDeposit> {
-    const originChainId = await this.signer.getChainId();
-    const destChainId = (destinationChainId) ? destinationChainId : originChainId;
-    const deposit = Anchor.generateDeposit(destChainId);
-    
-    const tx = await this.contract.deposit(toFixedHex(deposit.commitment), { gasLimit: '0x5B8D80' });
-    const receipt = await tx.wait();
-
-    const index: number = this.tree.insert(deposit.commitment);
-    this.depositHistory[index] = await this.contract.getLastRoot();
-
-    const root = await this.contract.getLastRoot();
-
-    return { deposit, index, originChainId };
-  }
-
-  public async wrapAndDeposit(tokenAddress: string, destinationChainId?: number): Promise<AnchorDeposit> {
-    const originChainId = await this.signer.getChainId();
-    const chainId = (destinationChainId) ? destinationChainId : originChainId;
-    const deposit = Anchor.generateDeposit(chainId);
-    const signerAddress = await this.signer.getAddress();
-    const tx = await this.contract.wrapAndDeposit(tokenAddress, toFixedHex(deposit.commitment), { gasLimit: '0x5B8D80' });
-    await tx.wait();
-
-    const index: number = await this.tree.insert(deposit.commitment);
-
-    const root = await this.contract.getLastRoot();
-
-    this.depositHistory[index] = root;
-
-    return { deposit, index, originChainId };
-  }
-
-  // sync the local tree with the tree on chain.
-  // Start syncing from the given block number, otherwise zero.
-  public async update(blockNumber?: number) {
-    const filter = this.contract.filters.Deposit();
-    const currentBlockNumber = await this.signer.provider!.getBlockNumber();
-    const events = await this.contract.queryFilter(filter, blockNumber || 0);
-    const commitments = events.map((event) => event.args.commitment);
-    this.tree.batch_insert(commitments);
-
-    this.latestSyncedBlock = currentBlockNumber;
-  }
-
-  public async populateRootsForProof(): Promise<string[]> {
-    const neighborRoots = await this.contract.getLatestNeighborRoots();
-    return [await this.contract.getLastRoot(), ...neighborRoots];
+  public async populateRootInfosForProof(): Promise<RootInfo[]> {
+    const neighborEdges = await this.contract.getLatestNeighborEdges();
+    const neighborRootInfos = neighborEdges.map((rootData) => {
+      return {
+        merkleRoot: rootData.root,
+        chainId: rootData.chainID,
+      }
+    });
+    const thisRoot = await this.contract.getLastRoot();
+    const thisChainId = await this.signer.getChainId();
+    return [{
+      merkleRoot: thisRoot,
+      chainId: thisChainId,
+    }, ...neighborRootInfos];
   }
 
   public async generateWitnessInput(
@@ -347,7 +328,7 @@ class VAnchor {
   }
 
   public async checkKnownRoot() {
-    const isKnownRoot = await this.contract.isKnownRoot(toFixedHex(await this.tree.get_root()));
+    const isKnownRoot = await this.contract.isKnownRoot(toFixedHex(this.tree.root()));
     if (!isKnownRoot) {
       await this.update(this.latestSyncedBlock);
     }
@@ -457,132 +438,6 @@ class VAnchor {
       const events = await this.contract.queryFilter(filter, receipt.blockHash);
       return events[0];
     }
-  }
-
-  public async withdrawAndUnwrap(
-    deposit: VAnchorDepositInfo,
-    originChainId: number,
-    index: number,
-    recipient: string,
-    relayer: string,
-    fee: bigint,
-    refreshCommitment: string,
-    tokenAddress: string,
-  ) {
-    // first, check if the merkle root is known on chain - if not, then update
-    await this.checkKnownRoot();
-
-    const { merkleRoot, pathElements, pathIndices } = await this.tree.path(index);
-
-    const roots = await this.populateRootsForProof();
-
-    const input = await this.generateWitnessInput(
-      deposit,
-      originChainId,
-      refreshCommitment,
-      BigInt(recipient),
-      BigInt(relayer),
-      BigInt(fee),
-      BigInt(0),
-      roots,
-      pathElements,
-      pathIndices,
-    );
-
-    const wtns = await this.createWitness(input);
-    let proofEncoded = await this.proveAndVerify(wtns);
-
-    const args = [
-      Anchor.createRootsBytes(input.roots),
-      toFixedHex(input.nullifierHash),
-      toFixedHex(input.refreshCommitment, 32),
-      toFixedHex(input.recipient, 20),
-      toFixedHex(input.relayer, 20),
-      toFixedHex(input.fee),
-      toFixedHex(input.refund),
-    ];
-
-    const publicInputs = Anchor.convertArgsArrayToStruct(args);
-
-    //@ts-ignore
-    let tx = await this.contract.withdrawAndUnwrap(`0x${proofEncoded}`, publicInputs, tokenAddress, { gasLimit: '0x5B8D80' });
-    const receipt = await tx.wait();
-
-    const filter = this.contract.filters.Withdrawal(null, null, null, null);
-    const events = await this.contract.queryFilter(filter, receipt.blockHash);
-    return events[0];
-  }
-
-  // A bridgedWithdraw needs the merkle proof to be generated from an anchor other than this one,
-  public async bridgedWithdrawAndUnwrap(
-    deposit: AnchorDeposit,
-    merkleProof: any,
-    recipient: string,
-    relayer: string,
-    fee: string,
-    refund: string,
-    refreshCommitment: string,
-    tokenAddress: string,
-  ) {
-    const { pathElements, pathIndices, merkleRoot } = merkleProof;
-    const isKnownNeighborRoot = await this.contract.isKnownNeighborRoot(deposit.originChainId, toFixedHex(merkleRoot));
-    if (!isKnownNeighborRoot) {
-      throw new Error("Neighbor root not found");
-    }
-    refreshCommitment = (refreshCommitment) ? refreshCommitment : '0';
-
-    const roots = await this.populateRootsForProof();
-
-    const input = await this.generateWitnessInput(
-      deposit.deposit,
-      deposit.originChainId,
-      refreshCommitment,
-      BigInt(recipient),
-      BigInt(relayer),
-      BigInt(fee),
-      BigInt(refund),
-      roots,
-      pathElements,
-      pathIndices,
-    );
-
-    const wtns = await this.createWitness(input);
-    let proofEncoded = await this.proveAndVerify(wtns);
-
-    const args = [
-      Anchor.createRootsBytes(input.roots),
-      toFixedHex(input.nullifierHash),
-      toFixedHex(input.refreshCommitment, 32),
-      toFixedHex(input.recipient, 20),
-      toFixedHex(input.relayer, 20),
-      toFixedHex(input.fee),
-      toFixedHex(input.refund),
-    ];
-
-    const publicInputs = Anchor.convertArgsArrayToStruct(args);
-
-    const anchorTokenWrapper = await this.contract.token();
-    const wrappedToken = await MintableToken.tokenFromAddress(anchorTokenWrapper, this.signer);
-    const wrappedTokenBalance = await wrappedToken.getBalance(this.contract.address);
-    console.log(`wrapped token balance on anchor: ${wrappedTokenBalance}`);
-    const originalToken = await MintableToken.tokenFromAddress(tokenAddress, this.signer);
-    const originalTokenBalance = await originalToken.getBalance(anchorTokenWrapper);
-    console.log(`original token balance on anchor token wrapper: ${originalTokenBalance}`);
-
-    //@ts-ignore
-    let tx = await this.contract.withdrawAndUnwrap(
-      `0x${proofEncoded}`,
-      publicInputs,
-      tokenAddress,
-      {
-        gasLimit: '0x5B8D80'
-      },
-    );
-    const receipt = await tx.wait();
-
-    const filter = this.contract.filters.Withdrawal(null, null, relayer, null);
-    const events = await this.contract.queryFilter(filter, receipt.blockHash);
-    return events[0];
   }
 
   public static convertArgsArrayToStruct(args: any[]): IPublicInputs {

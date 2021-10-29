@@ -269,6 +269,24 @@ contract VAnchorBase is VMerkleTreeWithHistory, IERC20Receiver, ReentrancyGuard,
   }
 
   /** @dev */
+  function getLatestNeighborEdges() public view returns (Edge[] memory edges) {
+    edges = new Edge[](maxEdges);
+    for (uint256 i = 0; i < maxEdges; i++) {
+      if (edgeList.length >= i + 1) {
+        edges[i] = edgeList[i];
+      } else {
+        edges[i] = Edge({
+          // merkle tree height for zeros
+          root: zeros(levels),
+          chainID: 0,
+          latestLeafIndex: 0
+        });
+      }
+    }
+    
+  }
+
+  /** @dev */
   function isKnownNeighborRoot(uint256 neighborChainID, bytes32 _root) public view returns (bool) {
     if (_root == 0) {
       return false;

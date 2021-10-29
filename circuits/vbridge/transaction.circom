@@ -15,7 +15,7 @@ Utxo structure:
 }
 
 commitment = hash(chainID, amount, blinding, pubKey)
-nullifier = hash(commitment, privKey, merklePath)
+nullifier = hash(commitment, pathIndices, privKey)
 */
 
 // Universal JoinSplit transaction with nIns inputs and 2 outputs
@@ -36,7 +36,7 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
 
     // data for transaction outputs
     signal input outputCommitment[nOuts];
-    signal input outputChainID[nOuts];
+    signal input outChainID[nOuts];
     signal input outAmount[nOuts];
     signal input outBlinding[nOuts];
     signal input outPubkey[nOuts];

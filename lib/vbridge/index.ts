@@ -70,7 +70,7 @@ async function getProof({ roots, chainId, inputs, outputs, tree, extAmount, fee,
     inPathElements: inputMerklePathElements,
 
     // data for 2 transaction outputs
-    outputChainID: outputs.map((x) => x.chainId),
+    outChainID: outputs.map((x) => x.chainId),
     outAmount: outputs.map((x) => x.amount),
     outBlinding: outputs.map((x) => x.blinding),
     outPubkey: outputs.map((x) => x.keypair.pubkey),
@@ -78,9 +78,10 @@ async function getProof({ roots, chainId, inputs, outputs, tree, extAmount, fee,
 
   const proof = await prove(input, `./artifacts/circuits/transaction${inputs.length}`)
 
+  // public inputs to the contract
   const args = {
     proof,
-    root: toFixedHex(input.root),
+    roots: roots.map((x) => toFixedHex(x.merkleRoot)),
     inputNullifiers: inputs.map((x) => toFixedHex(x.getNullifier())),
     outputCommitments: outputs.map((x) => toFixedHex(x.getCommitment())),
     publicAmount: toFixedHex(input.publicAmount),
@@ -96,6 +97,8 @@ async function getProof({ roots, chainId, inputs, outputs, tree, extAmount, fee,
 
 async function prepareTransaction({
   tornadoPool,
+  roots = [],
+  chainId = BigNumber.from(0),
   inputs = [],
   outputs = [],
   fee = 0,
@@ -118,6 +121,8 @@ async function prepareTransaction({
     .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
 
   const { args, extData } = await getProof({
+    roots,
+    chainId,
     inputs,
     outputs,
     tree: await buildMerkleTree({ tornadoPool }),
