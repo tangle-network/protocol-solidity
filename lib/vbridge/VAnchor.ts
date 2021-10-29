@@ -293,18 +293,37 @@ class VAnchor {
   }
 
   public async generateWitnessInput(
-    deposit: VAnchorDepositInfo,
-    originChain: number,
-    refreshCommitment: string | number,
-    recipient: BigInt,
-    relayer: BigInt,
-    fee: BigInt,
-    refund: BigInt,
-    roots: string[],
-    pathElements: any[],
-    pathIndices: any[],
+    utxo: IUTXOInputs,
+    roots, 
+    chainId, 
+    inputs, 
+    outputs, 
+    tree, 
+    extAmount, 
+    fee,
+    recipient, 
+    relayer, 
+    isL1Withdrawal
   ): Promise<any> {
-    const { chainID, nullifierHash, nullifier, secret } = deposit;
+
+    let inputMerklePathIndices = []
+    let inputMerklePathElements = []
+
+    for (const input of inputs) {
+      if (input.amount > 0) {
+        input.index = tree.indexOf(toFixedHex(input.getCommitment()))
+        if (input.index < 0) {
+          throw new Error(`Input commitment ${toFixedHex(input.getCommitment())} was not found`)
+        }
+        inputMerklePathIndices.push(input.index)
+        inputMerklePathElements.push(tree.path(input.index).pathElements)
+      } else {
+        inputMerklePathIndices.push(0)
+        inputMerklePathElements.push(new Array(tree.levels).fill(0))
+      }
+    }
+
+    const {chainId, amount, keypair, blinding, index } = utxo;
     let rootDiffIndex: number;
     // read the origin chain's index into the roots array
     if (chainID == BigInt(originChain)) {
@@ -316,9 +335,9 @@ class VAnchor {
     
     return {
       // public
-      nullifierHash, refreshCommitment, recipient, relayer, fee, refund, chainID, roots,
+      
       // private
-      nullifier, secret, pathElements, pathIndices, diffs: roots.map(r => {
+      , diffs: roots.map(r => {
         return F.sub(
           Scalar.fromString(`${r}`),
           Scalar.fromString(`${roots[rootDiffIndex]}`),
