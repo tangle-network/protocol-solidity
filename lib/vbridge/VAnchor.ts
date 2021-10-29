@@ -349,7 +349,7 @@ class VAnchor {
     const vKey = await snarkjs.zKey.exportVerificationKey(this.circuitZkeyPath);
     res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
 
-    let proofEncoded = await Anchor.generateWithdrawProofCallData(proof, publicSignals);
+    let proofEncoded = await VAnchor.generateWithdrawProofCallData(proof, publicSignals);
     return proofEncoded;
   }
 
@@ -367,7 +367,7 @@ class VAnchor {
     const { merkleRoot, pathElements, pathIndices } = await this.tree.path(index);
     const chainId = await this.signer.getChainId();
 
-    const roots = await this.populateRootsForProof();
+    const roots = await this.populateRootInfosForProof();
 
     const input = await this.generateWitnessInput(
       deposit,
@@ -386,7 +386,7 @@ class VAnchor {
     let proofEncoded = await this.proveAndVerify(wtns);
 
     const args = [
-      Anchor.createRootsBytes(input.roots),
+      VAnchor.createRootsBytes(input.roots),
       toFixedHex(input.nullifierHash),
       toFixedHex(input.refreshCommitment, 32),
       toFixedHex(input.recipient, 20),
@@ -395,7 +395,7 @@ class VAnchor {
       toFixedHex(input.refund),
     ];
 
-    const publicInputs = Anchor.convertArgsArrayToStruct(args);
+    const publicInputs = VAnchor.convertArgsArrayToStruct(args);
     return {
       input,
       args,
@@ -427,17 +427,6 @@ class VAnchor {
       { gasLimit: '0x5B8D80' }
     );
     const receipt = await tx.wait();
-
-    if (args[2] !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
-      this.tree.insert(input.refreshCommitment);
-      const filter = this.contract.filters.Refresh(null, null, null);
-      const events = await this.contract.queryFilter(filter, receipt.blockHash);
-      return events[0];
-    } else {
-      const filter = this.contract.filters.Withdrawal(null, null, relayer, null);
-      const events = await this.contract.queryFilter(filter, receipt.blockHash);
-      return events[0];
-    }
   }
 
   public static convertArgsArrayToStruct(args: any[]): IPublicInputs {
@@ -468,9 +457,9 @@ class VAnchor {
     }
     refreshCommitment = (refreshCommitment) ? refreshCommitment : '0';
 
-    const lastRoot = await this.tree.get_root();
+    const lastRoot = await this.tree.root();
 
-    const roots = await this.populateRootsForProof();
+    const roots = await this.populateRootInfosForProof();
 
     const input = await this.generateWitnessInput(
       deposit.deposit,
@@ -489,7 +478,7 @@ class VAnchor {
     let proofEncoded = await this.proveAndVerify(wtns);
 
     const args = [
-      Anchor.createRootsBytes(input.roots),
+      VAnchor.createRootsBytes(input.roots),
       toFixedHex(input.nullifierHash),
       toFixedHex(input.refreshCommitment, 32),
       toFixedHex(input.recipient, 20),
@@ -498,7 +487,7 @@ class VAnchor {
       toFixedHex(input.refund),
     ];
 
-    const publicInputs = Anchor.convertArgsArrayToStruct(args);
+    const publicInputs = VAnchor.convertArgsArrayToStruct(args);
 
     //@ts-ignore
     let tx = await this.contract.withdraw(
@@ -510,10 +499,8 @@ class VAnchor {
     );
     const receipt = await tx.wait();
 
-    const filter = this.contract.filters.Withdrawal(null, null, relayer, null);
-    const events = await this.contract.queryFilter(filter, receipt.blockHash);
-    return events[0];
+    return [];
   }
 }
 
-export default Anchor;
+export default VAnchor;
