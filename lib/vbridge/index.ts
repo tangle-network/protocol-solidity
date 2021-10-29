@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { MerkleTree } from './MerkleTree';
-import { ethers } from 'ethers';
+import { BigNumberish, ethers } from 'ethers';
 const { BigNumber } = ethers
 import { toFixedHex, poseidonHash2, getExtDataHash, FIELD_SIZE, shuffle } from './utils';
 const Utxo = require('./utxo')
@@ -16,7 +16,12 @@ async function buildMerkleTree({ tornadoPool }) {
   return new MerkleTree(MERKLE_TREE_HEIGHT, leaves, { hashFunction: poseidonHash2 })
 }
 
-async function getProof({ inputs, outputs, tree, extAmount, fee, recipient, relayer, isL1Withdrawal }) {
+export interface RootInfo {
+  merkleRoot: BigNumberish;
+  chainId: BigNumberish;
+}
+
+async function getProof({ roots, inputs, outputs, tree, extAmount, fee, recipient, relayer, isL1Withdrawal }) {
   inputs = shuffle(inputs)
   outputs = shuffle(outputs)
 
@@ -49,7 +54,8 @@ async function getProof({ inputs, outputs, tree, extAmount, fee, recipient, rela
 
   const extDataHash = getExtDataHash(extData)
   let input = {
-    root: tree.root(),
+    roots: roots.map((x) => x.merkleRoot),
+    diffs: [inputs.map((x) => x.getDiffs(roots))],
     inputNullifier: inputs.map((x) => x.getNullifier()),
     outputCommitment: outputs.map((x) => x.getCommitment()),
     publicAmount: BigNumber.from(extAmount).sub(fee).add(FIELD_SIZE).mod(FIELD_SIZE).toString(),

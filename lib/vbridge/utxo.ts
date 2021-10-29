@@ -1,12 +1,14 @@
 import { BigNumberish, ethers } from 'ethers';
 import { randomBN, poseidonHash, toBuffer } from './utils';
 import { Keypair } from './keypair';
+import { RootInfo } from '.';
 
 const { BigNumber } = ethers
 
 
 
 class Utxo {
+  chainId: BigNumberish;
   amount: BigNumberish;
   blinding: BigNumberish;
   keypair: Keypair;
@@ -16,12 +18,14 @@ class Utxo {
 
   /** Initialize a new UTXO - unspent transaction output or input. Note, a full TX consists of 2/16 inputs and 2 outputs
    *
+   * @param {BigNumber | BigInt | number | string} chainId The destination chain Id
    * @param {BigNumber | BigInt | number | string} amount UTXO amount
    * @param {BigNumber | BigInt | number | string} blinding Blinding factor
    * @param {Keypair} keypair
    * @param {number|null} index UTXO index in the merkle tree
    */
-  constructor({ amount = BigNumber.from(0), keypair = new Keypair(), blinding = randomBN(), index = null } = {}) {
+  constructor({ chainId = BigNumber.from(0), amount = BigNumber.from(0), keypair = new Keypair(), blinding = randomBN(), index = null } = {}) {
+    this.chainId = BigNumber.from(chainId);
     this.amount = BigNumber.from(amount)
     this.blinding = BigNumber.from(blinding)
     this.keypair = keypair
@@ -35,7 +39,7 @@ class Utxo {
    */
   getCommitment() {
     if (!this._commitment) {
-      this._commitment = poseidonHash([this.amount, this.blinding, this.keypair.pubkey])
+      this._commitment = poseidonHash([this.chainId, this.amount, this.blinding, this.keypair.pubkey])
     }
     return this._commitment
   }
@@ -59,6 +63,14 @@ class Utxo {
       this._nullifier = poseidonHash([this.getCommitment(), this.index || 0, this.keypair.privkey || 0])
     }
     return this._nullifier
+  }
+
+  getDiffs(roots: RootInfo[]): BigNumberish[] {
+    const diffs = []
+    const targetRoot = roots.find(root => root.chainId === this.chainId);
+    return roots.map(diff => {
+      return BigNumber.from(diff.merkleRoot).sub(BigNumber.from(targetRoot.merkleRoot));
+    });
   }
 
   /**
