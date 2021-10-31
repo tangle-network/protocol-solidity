@@ -149,8 +149,10 @@ export class MerkleTree {
       index >>= 1
     }
     return {
+      merkleRoot: this.root(),
       pathElements,
       pathIndices,
+      element: this._layers[0][index],
     }
   }
 
@@ -160,7 +162,7 @@ export class MerkleTree {
    * @param comparator A function that checks leaf value equality
    * @returns {number} Index if element is found, otherwise -1
    */
-  indexOf(element, comparator) {
+  indexOf(element, comparator?) {
     if (comparator) {
       return this._layers[0].findIndex((el) => comparator(element, el))
     } else {

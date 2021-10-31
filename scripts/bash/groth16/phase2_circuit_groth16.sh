@@ -12,22 +12,24 @@ compile_phase2 () {
     npx snarkjs zkey verify "$3/$2.r1cs" ./build/ptau/pot16_final.ptau "$1/circuit_final.zkey"
     npx snarkjs zkey export verificationkey "$1/circuit_final.zkey" "$1/verification_key.json"  
 
-    snarkjs zkey export solidityverifier "$1/circuit_final.zkey" $1/verifier.sol
-    #node "$3/$2_js/generate_witness.js" "$3/$2_js/$2.wasm" "$1/input.json" "$1/witness.wtns"
-    # npx snarkjs wtns debug "$3/$2_js/$2.wasm" "$1/input.json" "$1/witness.wtns" "$3/$2_js/$2.sym" --trigger --get --set
-    # echo -e "Done!\n"
+    npx snarkjs zkey export solidityverifier "$1/circuit_final.zkey" $1/verifier.sol
+    # echo "Generating witness\n"
+    # node "$3/$2_js/generate_witness.js" "$3/$2_js/$2.wasm" "$1/input.json" "$1/witness.wtns"
+    # echo "Debugging witness\n"
+    # npx snarkjs wtns debug "$3/$2_js/$2.wasm" "$1/input.json" "$1/witness.wtns" "$3/$2.sym" --trigger --get --set
+    echo "Done!\n"
 }
 
 move_verifiers_and_metadata () {
     local outdir="$1" size="$2" bridgeType="$3"
-    cp $1/circuit_final.zkey test/fixtures/$bridgeType/$2/circuit_final.zkey
-    cp $1/verifier.sol contracts/verifiers/$bridgetype/"Verifier$2.sol"
+    cp $1/circuit_final.zkey test/fixtures/$bridgeType/$size/circuit_final.zkey
+    cp $1/verifier.sol contracts/verifiers/$bridgetype/"Verifier$size.sol"
 }
 
 move_verifiers_and_metadata_vbridge () {
-    local outdir="$1" size="$2" bridgeType="$3" nIns="$4"
-    cp $1/circuit_final.zkey test/fixtures/$3/$2/circuit_final.zkey
-    cp $1/verifier.sol contracts/verifiers/$3/"Verifier$2_$4.sol"
-}
+    local indir="$1" size="$2" bridgeType="$3" nIns="$4"
+    cp $indir/circuit_final.zkey test/fixtures/$bridgeType/$size/circuit_final.zkey
 
-#the problem is there will be 2 verifier 2's for 
+    mkdir -p contracts/verifiers/$bridgeType
+    cp $indir/verifier.sol contracts/verifiers/$bridgeType/"Verifier$size"\_"$nIns.sol"
+}

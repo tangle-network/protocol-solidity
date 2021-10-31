@@ -99,7 +99,7 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
     // verify correctness of transaction outputs
     for (var tx = 0; tx < nOuts; tx++) {
         outUtxoHasher[tx] = Poseidon(4);
-        outUtxoHasher[tx].inputs[0] <== outputChainID[tx];
+        outUtxoHasher[tx].inputs[0] <== outChainID[tx];
         outUtxoHasher[tx].inputs[1] <== outAmount[tx];
         outUtxoHasher[tx].inputs[2] <== outBlinding[tx];
         outUtxoHasher[tx].inputs[3] <== outPubkey[tx];

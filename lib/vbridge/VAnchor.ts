@@ -7,7 +7,7 @@ import PoseidonHasher from '../bridge/Poseidon';
 import { MerkleTree } from './MerkleTree';
 import MintableToken from "../bridge/MintableToken";
 import { RootInfo } from ".";
-import { poseidonHash2, randomBN } from "./utils";
+import { FIELD_SIZE, getExtDataHash, poseidonHash2, randomBN, shuffle } from "./utils";
 import { Utxo } from './utxo';
 import { Keypair } from "./keypair";
 
@@ -27,6 +27,12 @@ export interface IPermissionedAccounts {
   handler: string;
 }
 
+export interface IMerkleProofData {
+  pathElements: BigNumberish[],
+  pathIndex: BigNumberish,
+  merkleRoot: BigNumberish;
+}
+
 export interface IUTXOInputs {
   chainId?: BigNumber;
   amount?: BigNumber;
@@ -36,13 +42,48 @@ export interface IUTXOInputs {
 }
 
 export interface IPublicInputs {
-  _roots: string;
-  _nullifierHash: string;
-  _refreshCommitment: string;
-  _recipient: string;
-  _relayer: string;
-  _fee: string;
-  _refund: string;
+  proof: string;
+  roots: string;
+  inputNullifiers: string[];
+  outputCommitments: string[];
+  publicAmount: string;
+  extDataHash: string;
+}
+
+export interface IExtData {
+  recipient: string;
+  extAmount: string;
+  relayer: string;
+  fee: string;
+  encryptedOutput1: string;
+  encryptedOutput2: string;
+  isL1Withdrawal: boolean;
+}
+
+export interface IWitnessInput {
+  input: {
+    roots: BigNumberish[],
+    diffs: BigNumberish[][],
+    chainId: BigNumberish,
+    inputNullifier: BigNumberish[],
+    outputCommitment: BigNumberish[],
+    publicAmount: BigNumberish,
+    extDataHash: BigNumberish,
+
+    // data for 2 transaction inputs
+    inAmount: BigNumberish[],
+    inPrivateKey: string[],
+    inBlinding: BigNumberish[],
+    inPathIndices: BigNumberish[],
+    inPathElements: BigNumberish[][],
+
+    // data for 2 transaction outputs
+    outChainID: BigNumberish[],
+    outAmount: BigNumberish[],
+    outBlinding: BigNumberish[],
+    outPubkey: BigNumberish[],
+  };
+  extData: IExtData
 }
 
 // This convenience wrapper class is used in tests -
@@ -292,58 +333,105 @@ class VAnchor {
     }, ...neighborRootInfos];
   }
 
-  public async generateWitnessInput(
-    utxo: IUTXOInputs,
-    roots, 
-    chainId, 
-    inputs, 
-    outputs, 
-    tree, 
-    extAmount, 
-    fee,
-    recipient, 
-    relayer, 
-    isL1Withdrawal
-  ): Promise<any> {
+  /**
+   * 
+   * @param input A UTXO object that is inside the tree
+   * @returns 
+   */
+  public getMerkleProof(input: Utxo): IMerkleProofData {
+    let inputMerklePathIndex;
+    let inputMerklePathElements;
 
-    let inputMerklePathIndices = []
-    let inputMerklePathElements = []
-
-    for (const input of inputs) {
-      if (input.amount > 0) {
-        input.index = tree.indexOf(toFixedHex(input.getCommitment()))
-        if (input.index < 0) {
-          throw new Error(`Input commitment ${toFixedHex(input.getCommitment())} was not found`)
-        }
-        inputMerklePathIndices.push(input.index)
-        inputMerklePathElements.push(tree.path(input.index).pathElements)
-      } else {
-        inputMerklePathIndices.push(0)
-        inputMerklePathElements.push(new Array(tree.levels).fill(0))
+    if (input.amount > 0) {
+      input.index = this.tree.indexOf(toFixedHex(input.getCommitment()))
+      if (input.index < 0) {
+        throw new Error(`Input commitment ${toFixedHex(input.getCommitment())} was not found`)
       }
+      inputMerklePathIndex = input.index;
+      inputMerklePathElements = this.tree.path(input.index).pathElements
+    } else {
+      inputMerklePathIndex = 0;
+      inputMerklePathElements = new Array(this.tree.levels).fill(0);
     }
 
-    const {chainId, amount, keypair, blinding, index } = utxo;
-    let rootDiffIndex: number;
-    // read the origin chain's index into the roots array
-    if (chainID == BigInt(originChain)) {
-      rootDiffIndex = 0;
-    } else {
-      const edgeIndex = await this.contract.edgeIndex(originChain);
-      rootDiffIndex = edgeIndex.toNumber() + 1;
-    }
-    
     return {
-      // public
-      
-      // private
-      , diffs: roots.map(r => {
-        return F.sub(
-          Scalar.fromString(`${r}`),
-          Scalar.fromString(`${roots[rootDiffIndex]}`),
-        ).toString();
-      }),
+      pathElements: inputMerklePathElements,
+      pathIndex: inputMerklePathIndex,
+      merkleRoot: this.tree.root(),
+    }
+  }
+
+  public async generateWitnessInput(
+    roots: RootInfo[], 
+    chainId: BigNumberish, 
+    inputs: Utxo[], 
+    outputs: Utxo[], 
+    extAmount: BigNumberish, 
+    fee: BigNumberish,
+    recipient: string, 
+    relayer: string,
+    isL1Withdrawal: boolean,
+    externalMerkleProofs: any[],
+  ): Promise<IWitnessInput> {
+    const extData = {
+      recipient: toFixedHex(recipient, 20),
+      extAmount: toFixedHex(extAmount),
+      relayer: toFixedHex(relayer, 20),
+      fee: toFixedHex(fee),
+      encryptedOutput1: outputs[0].encrypt(),
+      encryptedOutput2: outputs[1].encrypt(),
+      isL1Withdrawal,
+    }
+  
+    const extDataHash = getExtDataHash(extData)
+    let input = {
+      roots: roots.map((x) => x.merkleRoot),
+      diffs: inputs.map((x) => x.getDiffs(roots, chainId)),
+      chainId: chainId,
+      inputNullifier: inputs.map((x) => x.getNullifier()),
+      outputCommitment: outputs.map((x) => x.getCommitment()),
+      publicAmount: BigNumber.from(extAmount).sub(fee).add(FIELD_SIZE).mod(FIELD_SIZE).toString(),
+      extDataHash,
+  
+      // data for 2 transaction inputs
+      inAmount: inputs.map((x) => x.amount),
+      inPrivateKey: inputs.map((x) => x.keypair.privkey),
+      inBlinding: inputs.map((x) => x.blinding),
+      inPathIndices: externalMerkleProofs.map((x) => x.pathIndex),
+      inPathElements: externalMerkleProofs.map((x) => x.pathElements),
+  
+      // data for 2 transaction outputs
+      outChainID: outputs.map((x) => x.chainId),
+      outAmount: outputs.map((x) => x.amount),
+      outBlinding: outputs.map((x) => x.blinding),
+      outPubkey: outputs.map((x) => x.keypair.pubkey),
+    }
+
+    return {
+      input,
+      extData,
     };
+  }
+
+  public generatePublicInputs(
+    proof: any,
+    roots: RootInfo[],
+    inputs: Utxo[],
+    outputs: Utxo[],
+    publicAmount: BigNumberish,
+    extDataHash: string,
+  ): IPublicInputs {
+    // public inputs to the contract
+    const args: IPublicInputs = {
+      proof,
+      roots: `0x${roots.map((x) => toFixedHex(x.merkleRoot).slice(2)).join('')}`,
+      inputNullifiers: inputs.map((x) => toFixedHex(x.getNullifier())),
+      outputCommitments: outputs.map((x) => toFixedHex(x.getCommitment())),
+      publicAmount: toFixedHex(publicAmount),
+      extDataHash: toFixedHex(extDataHash),
+    };
+
+    return args;
   }
 
   public async checkKnownRoot() {
@@ -372,153 +460,125 @@ class VAnchor {
     return proofEncoded;
   }
 
-  public async setupWithdraw(
-    deposit: VAnchorDepositInfo,
-    index: number,
-    recipient: string,
+  public async setupTransaction(
+    inputs: Utxo[], 
+    outputs: Utxo[], 
+    extAmount: BigNumberish, 
+    fee: BigNumberish,
+    recipient: string, 
     relayer: string,
-    fee: bigint,
-    refreshCommitment: string | number,
+    isL1Withdrawal: boolean,
+    merkleProofsForInputs: any[],
   ) {
     // first, check if the merkle root is known on chain - if not, then update
     await this.checkKnownRoot();
-
-    const { merkleRoot, pathElements, pathIndices } = await this.tree.path(index);
     const chainId = await this.signer.getChainId();
-
     const roots = await this.populateRootInfosForProof();
 
-    const input = await this.generateWitnessInput(
-      deposit,
-      chainId,
-      refreshCommitment,
-      BigInt(recipient),
-      BigInt(relayer),
-      BigInt(fee),
-      BigInt(0),
+    const { input, extData } = await this.generateWitnessInput(
       roots,
-      pathElements,
-      pathIndices,
+      chainId,
+      inputs,
+      outputs,
+      extAmount,
+      fee,
+      recipient,
+      relayer,
+      isL1Withdrawal,
+      merkleProofsForInputs
     );
 
     const wtns = await this.createWitness(input);
     let proofEncoded = await this.proveAndVerify(wtns);
 
-    const args = [
-      VAnchor.createRootsBytes(input.roots),
-      toFixedHex(input.nullifierHash),
-      toFixedHex(input.refreshCommitment, 32),
-      toFixedHex(input.recipient, 20),
-      toFixedHex(input.relayer, 20),
-      toFixedHex(input.fee),
-      toFixedHex(input.refund),
-    ];
-
-    const publicInputs = VAnchor.convertArgsArrayToStruct(args);
-    return {
-      input,
-      args,
+    const publicInputs: IPublicInputs = this.generatePublicInputs(
       proofEncoded,
+      roots,
+      inputs,
+      outputs,
+      input.publicAmount,
+      input.extDataHash.toString()
+    );
+
+    return {
+      extData,
       publicInputs,
     };
   }
 
-  public async withdraw(
-    deposit: VAnchorDepositInfo,
-    index: number,
-    recipient: string,
+  public async transact(
+    inputs: Utxo[], 
+    outputs: Utxo[], 
+    extAmount: BigNumberish, 
+    fee: BigNumberish,
+    recipient: string, 
     relayer: string,
-    fee: bigint,
-    refreshCommitment: string | number,
+    isL1Withdrawal: boolean,
   ) {
-    const { args, input, proofEncoded, publicInputs } = await this.setupWithdraw(
-      deposit,
-      index,
+    const merkleProofsForInputs = inputs.map((x) => this.getMerkleProof(x));
+    const { extData, publicInputs } = await this.setupTransaction(
+      inputs,
+      outputs,
+      extAmount,
+      fee,
       recipient,
       relayer,
-      fee,
-      refreshCommitment,
+      isL1Withdrawal,
+      merkleProofsForInputs,
     );
-    //@ts-ignore
-    let tx = await this.contract.withdraw(
-      `0x${proofEncoded}`,
-      publicInputs,
+    let tx = await this.contract.transact(
+      {
+        ...publicInputs,
+        outputCommitments: [
+          publicInputs.outputCommitments[0],
+          publicInputs.outputCommitments[1],
+        ]
+      },
+      extData,
       { gasLimit: '0x5B8D80' }
     );
     const receipt = await tx.wait();
-  }
-
-  public static convertArgsArrayToStruct(args: any[]): IPublicInputs {
-    return {
-      _roots: args[0],
-      _nullifierHash: args[1],
-      _refreshCommitment: args[2],
-      _recipient: args[3],
-      _relayer: args[4],
-      _fee: args[5],
-      _refund: args[6],
-    };
+    return receipt;
   }
 
   public async bridgedWithdraw(
-    deposit: AnchorDeposit,
-    merkleProof: any,
+    inputs: Utxo[],
+    outputs: Utxo[],
+    extAmount: BigNumberish,
+    fee: BigNumberish,
     recipient: string,
     relayer: string,
-    fee: string,
-    refund: string,
-    refreshCommitment: string,
+    isL1Withdrawal: boolean,
+    merkleProofsForInputs: any[]
   ) {
-    const { pathElements, pathIndices, merkleRoot } = merkleProof;
-    const isKnownNeighborRoot = await this.contract.isKnownNeighborRoot(deposit.originChainId, toFixedHex(merkleRoot));
-    if (!isKnownNeighborRoot) {
-      throw new Error("Neighbor root not found");
+    // const { pathElements, pathIndices, merkleRoot } = merkleProofsForInputs;
+    if (merkleProofsForInputs.length !== inputs.length) {
+      throw new Error('Merkle proofs has different length than inputs');
     }
-    refreshCommitment = (refreshCommitment) ? refreshCommitment : '0';
-
-    const lastRoot = await this.tree.root();
-
-    const roots = await this.populateRootInfosForProof();
-
-    const input = await this.generateWitnessInput(
-      deposit.deposit,
-      deposit.originChainId,
-      refreshCommitment,
-      BigInt(recipient),
-      BigInt(relayer),
-      BigInt(fee),
-      BigInt(refund),
-      roots,
-      pathElements,
-      pathIndices,
+    const { extData, publicInputs } = await this.setupTransaction(
+      inputs,
+      outputs,
+      extAmount,
+      fee,
+      recipient,
+      relayer,
+      isL1Withdrawal,
+      merkleProofsForInputs,
     );
 
-    const wtns = await this.createWitness(input);
-    let proofEncoded = await this.proveAndVerify(wtns);
-
-    const args = [
-      VAnchor.createRootsBytes(input.roots),
-      toFixedHex(input.nullifierHash),
-      toFixedHex(input.refreshCommitment, 32),
-      toFixedHex(input.recipient, 20),
-      toFixedHex(input.relayer, 20),
-      toFixedHex(input.fee),
-      toFixedHex(input.refund),
-    ];
-
-    const publicInputs = VAnchor.convertArgsArrayToStruct(args);
-
-    //@ts-ignore
-    let tx = await this.contract.withdraw(
-      `0x${proofEncoded}`,
-      publicInputs,
+    let tx = await this.contract.transact(
       {
-        gasLimit: '0x5B8D80'
+        ...publicInputs,
+        outputCommitments: [
+          publicInputs.outputCommitments[0],
+          publicInputs.outputCommitments[1],
+        ]
       },
+      extData,
+      { gasLimit: '0x5B8D80' }
     );
     const receipt = await tx.wait();
-
-    return [];
+    return receipt;
   }
 }
 

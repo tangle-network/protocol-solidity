@@ -81,7 +81,7 @@ async function getProof({ roots, chainId, inputs, outputs, tree, extAmount, fee,
   // public inputs to the contract
   const args = {
     proof,
-    roots: roots.map((x) => toFixedHex(x.merkleRoot)),
+    roots: `0x${roots.map((x) => toFixedHex(x.merkleRoot).slice(2)).join('')}`,
     inputNullifiers: inputs.map((x) => toFixedHex(x.getNullifier())),
     outputCommitments: outputs.map((x) => toFixedHex(x.getCommitment())),
     publicAmount: toFixedHex(input.publicAmount),
