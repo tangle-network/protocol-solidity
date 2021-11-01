@@ -61,7 +61,7 @@ describe('multichain tests', () => {
   describe('BridgeConstruction', () => {
     let bridge2WebbEthInput: BridgeInput;
 
-    it('create 2 side bridge for native token', async () => {
+    it.only('create 2 side bridge for native token', async () => {
       bridge2WebbEthInput = {
         anchorInputs: {
           asset: {
@@ -118,7 +118,7 @@ describe('multichain tests', () => {
       const nativeStartingBalance = await signers[2].getBalance();
 
       // wrap and deposit on the bridge
-      const depositNote2 = await bridge.wrapAndDeposit(chainId2, '0x0000000000000000000000000000000000000000', anchorSize, signers[2]);
+      const depositNative = await bridge.wrapAndDeposit(chainId2, '0x0000000000000000000000000000000000000000', anchorSize, signers[2]);
 
       // Check the native token has been taken from the depositor's account
       const nativeEndingBalance = await signers[2].getBalance();
@@ -130,7 +130,18 @@ describe('multichain tests', () => {
       assert.deepStrictEqual(ethers.BigNumber.from(1), destAnchorEdgeAfter.latestLeafIndex);
 
       // deposit on the other side of the bridge
-      const 
+      const depositNativeOther = await bridge.wrapAndDeposit(chainId1, '0x0000000000000000000000000000000000000000', anchorSize, ganacheWallet2);
+
+      // withdraw and unwrap from the first native deposit
+      const nativeOtherStartingBalance = await ganacheProvider2.getBalance(signers[2].address);
+      console.log(`nativeOtherStartingBalance: ${nativeOtherStartingBalance}`);
+
+      const event = await bridge.withdrawAndUnwrap(depositNative, '0x0000000000000000000000000000000000000000', anchorSize, signers[2].address, signers[2].address, ganacheWallet2);
+      console.log(`event from withdraw: ${event}`);
+      const nativeOtherEndingBalance = await ganacheProvider2.getBalance(signers[2].address);
+      console.log(`nativeOtherEndingBalance: ${nativeOtherEndingBalance}`);
+      assert.equal(nativeOtherEndingBalance.eq(nativeOtherStartingBalance.add(anchorSize)), true);
+
 
     })
   })
