@@ -263,8 +263,6 @@ class Anchor {
     const chainID = await this.signer.getChainId();
     const merkleRoot = this.depositHistory[leafIndex];
 
-    console.log(`chainID: ${chainID}, leafIndex: ${leafIndex}, merkleRoot: ${merkleRoot}`);
-
     return '0x' +
       toHex(chainID, 32).substr(2) + 
       toHex(leafIndex, 32).substr(2) + 

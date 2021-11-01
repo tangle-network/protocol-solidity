@@ -90,7 +90,6 @@ describe('multichain tests', () => {
 
       // Should be able to retrieve the token address (so we can mint tokens for test scenario)
       const webbTokenAddress = bridge.getWebbTokenAddress(chainId1);
-      console.log('webbTokenAddress: ', webbTokenAddress);
       const webbToken = await MintableToken.tokenFromAddress(webbTokenAddress!, signers[1]);
       const tx = await webbToken.mintTokens(signers[2].address, '100000000000000000000000');
       const wrappedStartingBalance = await webbToken.getBalance(signers[2].address);
@@ -122,8 +121,6 @@ describe('multichain tests', () => {
 
       // Check the native token has been taken from the depositor's account
       const nativeEndingBalance = await signers[2].getBalance();
-      console.log(`nativeEndingBalance: ${nativeEndingBalance}`);
-      console.log(`nativeStartingBalance: ${nativeStartingBalance}`);
       assert.equal(nativeEndingBalance.lt(nativeStartingBalance.sub(anchorSize)), true);
 
       destAnchorEdgeAfter = await anchor2.contract.edgeList(edgeIndex);
@@ -134,15 +131,9 @@ describe('multichain tests', () => {
 
       // withdraw and unwrap from the first native deposit
       const nativeOtherStartingBalance = await ganacheProvider2.getBalance(signers[2].address);
-      console.log(`nativeOtherStartingBalance: ${nativeOtherStartingBalance}`);
-
       const event = await bridge.withdrawAndUnwrap(depositNative, '0x0000000000000000000000000000000000000000', anchorSize, signers[2].address, signers[2].address, ganacheWallet2);
-      console.log(`event from withdraw: ${event}`);
       const nativeOtherEndingBalance = await ganacheProvider2.getBalance(signers[2].address);
-      console.log(`nativeOtherEndingBalance: ${nativeOtherEndingBalance}`);
       assert.equal(nativeOtherEndingBalance.eq(nativeOtherStartingBalance.add(anchorSize)), true);
-
-
     })
   })
 
