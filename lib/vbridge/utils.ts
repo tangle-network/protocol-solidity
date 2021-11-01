@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import ethers, { BigNumber, BigNumberish } from 'ethers';
+import { BigNumber, BigNumberish, ethers } from 'ethers';
 // import { poseidon } from 'circomlibjs';
 const { poseidon } = require('circomlibjs');
 
@@ -26,7 +26,7 @@ export function getExtDataHash({
   encryptedOutput2,
   isL1Withdrawal,
 }: any) {
-  const abi = new ethers.utils.AbiCoder()
+  const abi = new ethers.utils.AbiCoder();
 
   const encodedData = abi.encode(
     [
@@ -43,7 +43,7 @@ export function getExtDataHash({
         isL1Withdrawal: isL1Withdrawal,
       },
     ],
-  )
+  );
   const hash = ethers.utils.keccak256(encodedData)
   return BigNumber.from(hash).mod(FIELD_SIZE)
 }

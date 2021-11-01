@@ -1,13 +1,12 @@
 import { BigNumber, BigNumberish, ethers } from "ethers";
 import { VAnchor__factory } from '../../typechain/factories/VAnchor__factory';
 import { VAnchor as VAnchorContract} from '../../typechain/VAnchor';
-import { rbigint, p256 } from "../bridge/utils";
-import { toFixedHex, toHex } from '../../lib/bridge/utils';
+import { rbigint, p256, toHex } from "../bridge/utils";
 import PoseidonHasher from '../bridge/Poseidon';
 import { MerkleTree } from './MerkleTree';
 import MintableToken from "../bridge/MintableToken";
 import { RootInfo } from ".";
-import { FIELD_SIZE, getExtDataHash, poseidonHash2, randomBN, shuffle } from "./utils";
+import { FIELD_SIZE, getExtDataHash, poseidonHash2, randomBN, shuffle, toFixedHex } from "./utils";
 import { Utxo } from './utxo';
 import { Keypair } from "./keypair";
 import { IVAnchorVerifier } from "../../typechain";
@@ -134,9 +133,9 @@ class VAnchor {
         this.smallCircuitWASMPath = 'test/fixtures/vanchor_2/8/poseidon_vbridge_8_2.wasm';
         this.smallCircuitZkeyPath = 'test/fixtures/vanchor_2/8/circuit_final.zkey';
         this.smallWitnessCalculator = require("../../test/fixtures/vanchor_2/8/witness_calculator.js");
-        this.largeCircuitWASMPath = 'test/fixtures/vanchor_2/8/poseidon_vbridge_8_2.wasm';
-        this.largeCircuitZkeyPath = 'test/fixtures/vanchor_2/8/circuit_final.zkey';
-        this.largeWitnessCalculator = require("../../test/fixtures/vanchor_2/8/witness_calculator.js");
+        this.largeCircuitWASMPath = 'test/fixtures/vanchor_16/8/poseidon_vbridge_16_8.wasm';
+        this.largeCircuitZkeyPath = 'test/fixtures/vanchor_16/8/circuit_final.zkey';
+        this.largeWitnessCalculator = require("../../test/fixtures/vanchor_16/8/witness_calculator.js");
         break;
       default:
         this.smallCircuitWASMPath = 'test/fixtures/vanchor_2/2/poseidon_vbridge_2_2.wasm';
@@ -463,7 +462,7 @@ class VAnchor {
     await this.checkKnownRoot();
     const chainId = await this.signer.getChainId();
     const roots = await this.populateRootInfosForProof();
-
+    console.log(chainId, roots);
     const { input, extData } = await this.generateWitnessInput(
       roots,
       chainId,
