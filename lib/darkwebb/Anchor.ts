@@ -155,6 +155,7 @@ class Anchor {
     const treeHeight = await anchor.levels();
     const createdAnchor = new Anchor(anchor, signer, treeHeight, maxEdges);
     createdAnchor.token = await anchor.token();
+    createdAnchor.denomination = (await anchor.denomination()).toString();
     return createdAnchor;
   }
 

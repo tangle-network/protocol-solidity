@@ -19,6 +19,7 @@ import MintableToken from '../../lib/darkwebb/MintableToken';
 import { toFixedHex } from '../../lib/darkwebb/utils';
 import { BigNumber } from '@ethersproject/bignumber';
 import { Signer } from '@ethersproject/abstract-signer';
+import GovernedTokenWrapper from '../../lib/darkwebb/GovernedTokenWrapper';
 
 function startGanacheServer(port: number, networkId: number, mnemonic: string) {
   const ganacheServer = ganache.server({
@@ -61,7 +62,7 @@ describe('multichain tests', () => {
   describe('BridgeConstruction', () => {
     let bridge2WebbEthInput: BridgeInput;
 
-    it.only('create 2 side bridge for native token', async () => {
+    it('create 2 side bridge for native token', async () => {
       bridge2WebbEthInput = {
         anchorInputs: {
           asset: {
@@ -88,31 +89,6 @@ describe('multichain tests', () => {
       const anchor1: Anchor = bridge.getAnchor(chainId1, anchorSize)!;
       const anchor2: Anchor = bridge.getAnchor(chainId2, anchorSize)!;
 
-      // Should be able to retrieve the token address (so we can mint tokens for test scenario)
-      const webbTokenAddress = bridge.getWebbTokenAddress(chainId1);
-      const webbToken = await MintableToken.tokenFromAddress(webbTokenAddress!, signers[1]);
-      const tx = await webbToken.mintTokens(signers[2].address, '100000000000000000000000');
-      const wrappedStartingBalance = await webbToken.getBalance(signers[2].address);
-
-      // get the state of anchors before deposit
-      const sourceAnchorRootBefore = await anchor1.contract.getLastRoot();
-
-      // Deposit on the bridge
-      const depositNote = await bridge.deposit(chainId2, anchorSize, signers[2]);
-
-      const wrappedEndingBalance = await webbToken.getBalance(signers[2].address);
-      assert.deepStrictEqual(wrappedEndingBalance, wrappedStartingBalance.sub(anchorSize));
-
-      // Check the state of anchors after deposit
-      let edgeIndex = await anchor2.contract.edgeIndex(chainId1);
-
-      const sourceAnchorRootAfter = await anchor1.contract.getLastRoot();
-      let destAnchorEdgeAfter = await anchor2.contract.edgeList(edgeIndex);
-
-      // make sure the edge exists on the anchor
-      assert.notEqual(sourceAnchorRootAfter, sourceAnchorRootBefore);
-      assert.deepStrictEqual(ethers.BigNumber.from(0), destAnchorEdgeAfter.latestLeafIndex);
-
       // get the balance of native token for the signer
       const nativeStartingBalance = await signers[2].getBalance();
 
@@ -123,8 +99,17 @@ describe('multichain tests', () => {
       const nativeEndingBalance = await signers[2].getBalance();
       assert.equal(nativeEndingBalance.lt(nativeStartingBalance.sub(anchorSize)), true);
 
-      destAnchorEdgeAfter = await anchor2.contract.edgeList(edgeIndex);
-      assert.deepStrictEqual(ethers.BigNumber.from(1), destAnchorEdgeAfter.latestLeafIndex);
+      // Check the edge of the linked anchor is updated
+      let edgeIndex = await anchor2.contract.edgeIndex(chainId1);
+      let destAnchorEdgeAfter = await anchor2.contract.edgeList(edgeIndex);
+      assert.deepStrictEqual(ethers.BigNumber.from(0), destAnchorEdgeAfter.latestLeafIndex);
+
+      // Check the wrapped token has been added to the anchor's account
+      const wrappedTokenAddress = bridge.getWebbTokenAddress(chainId1);
+      const wrappedToken = GovernedTokenWrapper.connect(wrappedTokenAddress!, signers[2]);
+      const wrappedTokenAnchorBalance = await wrappedToken.contract.balanceOf(anchor1.contract.address);
+      console.log(`wrappedTokenAnchorBalance: ${wrappedTokenAnchorBalance}`);
+      assert.equal(wrappedTokenAnchorBalance.eq(anchorSize), true);
 
       // deposit on the other side of the bridge
       const depositNativeOther = await bridge.wrapAndDeposit(chainId1, '0x0000000000000000000000000000000000000000', anchorSize, ganacheWallet2);
@@ -137,7 +122,7 @@ describe('multichain tests', () => {
     })
   })
 
-  // describe('2 sided bridge native only use', () => {
+  // describe.only('2 sided bridge native only use', () => {
 
   //   let bridge2WebbEthInput = {
   //     anchorInputs: {

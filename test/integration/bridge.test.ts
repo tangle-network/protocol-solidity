@@ -79,7 +79,7 @@ describe('multichain tests', () => {
       await tokenInstance1.mintTokens(signers[1].address, '100000000000000000000000000');
     });
 
-    it.only('create 2 side bridge for one token', async () => {
+    it('create 2 side bridge for one token', async () => {
       bridge2WebbEthInput = {
         anchorInputs: {
           asset: {
