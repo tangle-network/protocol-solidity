@@ -208,8 +208,8 @@ class Bridge {
       }
 
       let tokenInstance: GovernedTokenWrapper = await GovernedTokenWrapper.createGovernedTokenWrapper(
-        `webbToken`,
-        `webbTKN`,
+        `webbETH-test-1`,
+        `webbETH-test-1`,
         await deployers[chainID].getAddress(),
         '10000000000000000000000000',
         allowedNative,

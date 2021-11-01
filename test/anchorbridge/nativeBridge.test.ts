@@ -128,6 +128,10 @@ describe('multichain tests', () => {
 
       destAnchorEdgeAfter = await anchor2.contract.edgeList(edgeIndex);
       assert.deepStrictEqual(ethers.BigNumber.from(1), destAnchorEdgeAfter.latestLeafIndex);
+
+      // deposit on the other side of the bridge
+      const 
+
     })
   })
 

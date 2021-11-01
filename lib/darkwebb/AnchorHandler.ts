@@ -24,6 +24,15 @@ class AnchorHandler {
     const handler = new AnchorHandler(contract);
     return handler;
   }
+
+  public static async connect(
+    handlerAddress: string,
+    signer: ethers.Signer,
+  ) {
+    const handlerContract = AnchorHandler__factory.connect(handlerAddress, signer);
+    const handler = new AnchorHandler(handlerContract);
+    return handler;
+  }
 }
 
 export default AnchorHandler;

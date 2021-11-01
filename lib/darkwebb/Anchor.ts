@@ -263,6 +263,8 @@ class Anchor {
     const chainID = await this.signer.getChainId();
     const merkleRoot = this.depositHistory[leafIndex];
 
+    console.log(`chainID: ${chainID}, leafIndex: ${leafIndex}, merkleRoot: ${merkleRoot}`);
+
     return '0x' +
       toHex(chainID, 32).substr(2) + 
       toHex(leafIndex, 32).substr(2) + 
@@ -290,7 +292,6 @@ class Anchor {
     const originChainId = await this.signer.getChainId();
     const chainId = (destinationChainId) ? destinationChainId : originChainId;
     const deposit = Anchor.generateDeposit(chainId);
-    const signerAddress = await this.signer.getAddress();
     let tx;
     if (checkNativeAddress(tokenAddress)) {
       tx = await this.contract.wrapAndDeposit(tokenAddress, toFixedHex(deposit.commitment), {
@@ -320,7 +321,13 @@ class Anchor {
     const currentBlockNumber = await this.signer.provider!.getBlockNumber();
     const events = await this.contract.queryFilter(filter, blockNumber || 0);
     const commitments = events.map((event) => event.args.commitment);
-    this.tree.batch_insert(commitments);
+
+    let index = 0;
+    for (const commitment of commitments) {
+      this.tree.insert(commitment);
+      this.depositHistory[index] = toFixedHex(this.tree.get_root());
+      index++;
+    }
 
     this.latestSyncedBlock = currentBlockNumber;
   }
