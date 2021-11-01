@@ -98,7 +98,7 @@ describe('VAnchor for 2 max edges', () => {
 
     create2InputWitness = async (data: any) => {
       const witnessCalculator = require("../fixtures/vanchor_2/2/witness_calculator.js");
-      const fileBuf = require('fs').readFileSync('./test/fixtures/vanchor_16/2/poseidon_bridge_2.wasm');
+      const fileBuf = require('fs').readFileSync("../fixtures/vanchor_2/2/poseidon_vbridge_2_2.wasm");
       const wtnsCalc = await witnessCalculator(fileBuf)
       const wtns = await wtnsCalc.calculateWTNSBin(data,0);
       return wtns;
@@ -106,7 +106,7 @@ describe('VAnchor for 2 max edges', () => {
 
     create16InputWitness = async (data: any) => {
       const witnessCalculator = require("../fixtures/vanchor_16/2/witness_calculator.js");
-      const fileBuf = require('fs').readFileSync('./test/fixtures/vanchor_16/2/poseidon_bridge_2.wasm');
+      const fileBuf = require('fs').readFileSync("../fixtures/vanchor_16/2/poseidon_vbridge_16_2.wasm");
       const wtnsCalc = await witnessCalculator(fileBuf)
       const wtns = await wtnsCalc.calculateWTNSBin(data,0);
       return wtns;

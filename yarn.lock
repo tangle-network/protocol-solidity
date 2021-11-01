@@ -1042,6 +1042,13 @@
   resolved "https://registry.npmjs.org/@types/chai/-/chai-4.2.21.tgz"
   integrity sha512-yd+9qKmJxm496BOV9CMNaey8TWsikaZOwMRwPHQIjcOJM9oV+fi9ZMNw3JsVnbEEbo2gRTDnGEBv8pjyn67hNg==
 
+"@types/eth-sig-util@^2.1.1":
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/@types/eth-sig-util/-/eth-sig-util-2.1.1.tgz#839f784da04c8d2e12add9b37692c3f05a80603a"
+  integrity sha512-vYP1UD19i0532+eQY7vXHfAKCzAQiI6aoLvomqu+ZewzUX/jvDSr41JGl8zQ9dMbfiHPDhMFY26bScCyZ7vzlg==
+  dependencies:
+    "@types/node" "*"
+
 "@types/level-errors@*":
   version "3.0.0"
   resolved "https://registry.npmjs.org/@types/level-errors/-/level-errors-3.0.0.tgz"
