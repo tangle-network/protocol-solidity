@@ -52,6 +52,7 @@ contract Anchor is LinkableAnchor {
     require(!commitments[_commitment], "The commitment has been submitted");
     // wrap into the token and send directly to this contract
     if (tokenAddress == address(0)) {
+        require(msg.value == denomination);
         ITokenWrapper(token).wrapForAndSendTo{value: msg.value}(
             msg.sender,
             tokenAddress,

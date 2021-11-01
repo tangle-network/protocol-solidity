@@ -62,7 +62,7 @@ describe('multichain tests', () => {
   describe('BridgeConstruction', () => {
     let bridge2WebbEthInput: BridgeInput;
 
-    it.only('create 2 side bridge for native token', async () => {
+    it('create 2 side bridge for native token', async () => {
       bridge2WebbEthInput = {
         anchorInputs: {
           asset: {
@@ -122,7 +122,7 @@ describe('multichain tests', () => {
     })
   })
 
-  // describe('2 sided bridge native only use', () => {
+  // describe.only('2 sided bridge native only use', () => {
 
   //   let bridge2WebbEthInput = {
   //     anchorInputs: {

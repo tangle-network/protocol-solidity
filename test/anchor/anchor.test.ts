@@ -765,6 +765,69 @@ describe('Anchor for 2 max edges', () => {
       const balTokenAfterWithdrawAndUnwrapSender = await token.balanceOf(sender.address);
       assert.strictEqual(balTokenBeforeDepositSender.toString(), balTokenAfterWithdrawAndUnwrapSender.toString());
     });
+
+    it('should native deposit appropriate amount after connection', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+      const sender = wallet;
+      // create wrapped token
+      const name = 'webbETH';
+      const symbol = 'webbETH';
+      const wrappedTokenFactory = new WrappedTokenFactory(wallet);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      await wrappedToken.deployed();
+      await wrappedToken.add(token.address);
+
+      // create Anchor for wrapped token
+      const wrappedAnchor = await Anchor.createAnchor(
+        verifier.contract.address,
+        hasherInstance.address,
+        tokenDenomination,
+        levels,
+        wrappedToken.address,
+        sender.address,
+        sender.address,
+        sender.address,
+        MAX_EDGES,
+        sender
+      );
+
+      const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+      await wrappedToken.grantRole(MINTER_ROLE, wrappedAnchor.contract.address);
+
+      await token.approve(wrappedToken.address, '1000000000000000000');
+      const balTokenBeforeDepositSender = await token.balanceOf(sender.address);
+
+      const anchorUnderTest = await Anchor.connect(wrappedAnchor.contract.address, wallet);
+
+      // create a deposit on the anchor already setup
+      const { deposit, index, originChainId } = await anchorUnderTest.wrapAndDeposit(
+        token.address,
+      );
+
+      // Check that the anchor has the appropriate amount of wrapped token balance
+      const anchorWrappedTokenBalance = await wrappedToken.balanceOf(anchorUnderTest.contract.address);
+      assert.deepStrictEqual(anchorWrappedTokenBalance.toString(), tokenDenomination);
+
+      // Check that the anchor's token wrapper has the appropriate amount of token balance
+      const tokenWrapper = await anchorUnderTest.contract.token();
+      const tokenWrapperBalanceOfToken = await token.balanceOf(tokenWrapper);
+      assert.deepStrictEqual(tokenWrapperBalanceOfToken.toString(), tokenDenomination);
+
+      await TruffleAssert.passes(anchorUnderTest.withdrawAndUnwrap(
+        deposit,
+        originChainId,
+        index,
+        sender.address,
+        signers[1].address,
+        bigInt(0),
+        bigInt(0),
+        token.address
+      ));
+
+      const balTokenAfterWithdrawAndUnwrapSender = await token.balanceOf(sender.address);
+      assert.strictEqual(balTokenBeforeDepositSender.toString(), balTokenAfterWithdrawAndUnwrapSender.toString());
+    });
   });
 });
 
