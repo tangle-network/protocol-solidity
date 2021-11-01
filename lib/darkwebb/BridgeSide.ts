@@ -43,6 +43,12 @@ class BridgeSide {
     return bridgeSide;
   }
 
+  public static async connect(address: string, admin: ethers.Signer) {
+    const deployedBridge = Bridge__factory.connect(address, admin);
+    const bridgeSide = new BridgeSide(deployedBridge, admin);
+    return bridgeSide;
+  }
+
   /** Update proposals are created so that changes to an anchor's root chain Y can
   *** make its way to the neighbor root of the linked anchor on chain X.
   *** @param linkedAnchorInstance: the anchor instance on the opposite chain

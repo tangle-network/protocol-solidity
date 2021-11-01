@@ -3,14 +3,6 @@ import Anchor from '../../lib/darkwebb/Anchor';
 
 import { WEBB__factory } from '../../typechain/factories/WEBB__factory';
 
-import { setLinkableAnchorBridge } from './setLinkableAnchorBridge';
-import { setLinkableAnchorHandler } from './setLinkableAnchorHandler';
-import { depositAnchor } from './depositAnchor';
-import { deployWEBBAnchor } from './deployments/deployWebbAnchor';
-import { deployWebbBridge } from './deployments/deployWebbBridge';
-import { deployAnchorHandler } from './deployments/deployAnchorHandler';
-import { setResourceId } from './setResourceId';
-
 const HasherContract = require('./json/PoseidonT3.json');
 const VerifierContract = require('./json/VerifierPoseidonBridge.json');
 

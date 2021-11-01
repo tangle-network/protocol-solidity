@@ -58,8 +58,10 @@ describe('multichain tests', () => {
     let bridge2WebbEthInput: BridgeInput;
     let bridge3WebbEthInput: BridgeInput;
     let tokenName: string = 'existingERC20';
-    let webbTokenName = `webb${tokenName}`;
     let tokenAbbreviation: string = 'EXIST';
+    let tokenInstance1: MintableToken;
+    let tokenInstance2: MintableToken;
+    let tokenInstance3: MintableToken;
 
     let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:8545');
     let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
@@ -70,42 +72,25 @@ describe('multichain tests', () => {
       const signers = await ethers.getSigners();
 
       // Create a token to test bridge construction support for existing tokens
-      const tokenInstance1 = await MintableToken.createToken(tokenName, tokenAbbreviation, signers[7]);
-      const tokenInstance2 = await MintableToken.createToken(tokenName, tokenAbbreviation, ganacheWallet2);
-      const tokenInstance3 = await MintableToken.createToken(tokenName, tokenAbbreviation, ganacheWallet3);
+      tokenInstance1 = await MintableToken.createToken(tokenName, tokenAbbreviation, signers[7]);
+      tokenInstance2 = await MintableToken.createToken(tokenName, tokenAbbreviation, ganacheWallet2);
+      tokenInstance3 = await MintableToken.createToken(tokenName, tokenAbbreviation, ganacheWallet3);
 
       await tokenInstance1.mintTokens(signers[1].address, '100000000000000000000000000');
-
-      bridge2WebbEthInput = {
-        anchorInputs: [
-          {
-            asset: {
-              31337: tokenInstance1.contract.address,
-              1337: tokenInstance2.contract.address,
-            },
-            anchorSizes: ['1000000000000000000', '100000000000000000000', '10000000000000000000000'],
-          }
-        ],
-        chainIDs: [31337, 1337]
-      };
-
-      bridge3WebbEthInput = {
-        anchorInputs: [
-          {
-            asset: {
-              31337: tokenInstance1.contract.address,
-              1337: tokenInstance2.contract.address,
-              9999: tokenInstance3.contract.address,
-            },
-            anchorSizes: ['1000000000000000000', '100000000000000000000', '10000000000000000000000'],
-          }
-        ],
-        chainIDs: [31337, 1337, 9999]
-      };
-
     });
 
-    it('create 2 side bridge for existing token', async () => {
+    it.only('create 2 side bridge for one token', async () => {
+      bridge2WebbEthInput = {
+        anchorInputs: {
+          asset: {
+            31337: [tokenInstance1.contract.address],
+            1337: [tokenInstance2.contract.address],
+          },
+          anchorSizes: ['1000000000000000000', '100000000000000000000', '10000000000000000000000'],
+        },
+        chainIDs: [31337, 1337]
+      };
+      
       const signers = await ethers.getSigners();
 
       const deploymentConfig = {
@@ -118,20 +103,19 @@ describe('multichain tests', () => {
       const chainId1 = 31337;
       const chainId2 = 1337;
       const anchorSize = '1000000000000000000';
-      const anchor1: Anchor = bridge.getAnchor(chainId1, webbTokenName, anchorSize)!;
-      const anchor2: Anchor = bridge.getAnchor(chainId2, webbTokenName, anchorSize)!;
+      const anchor1: Anchor = bridge.getAnchor(chainId1, anchorSize)!;
+      const anchor2: Anchor = bridge.getAnchor(chainId2, anchorSize)!;
 
       // Should be able to retrieve the token address (so we can mint tokens for test scenario)
-      const webbTokenAddress = bridge.getWebbTokenAddress(chainId1, tokenName);
+      const webbTokenAddress = bridge.getWebbTokenAddress(chainId1);
       const webbToken = await MintableToken.tokenFromAddress(webbTokenAddress!, signers[1]);
       const tx = await webbToken.mintTokens(signers[2].address, '100000000000000000000000');
 
       // get the state of anchors before deposit
       const sourceAnchorRootBefore = await anchor1.contract.getLastRoot();
-      const destAnchorNeighborRoot = await anchor2.contract.getLatestNeighborRoots();
 
       // Deposit on the bridge
-      const depositNote = await bridge.deposit(chainId2, webbTokenName, anchorSize, signers[2]);
+      const depositNote = await bridge.deposit(chainId2, anchorSize, signers[2]);
       
       // Check the state of anchors after deposit
       let edgeIndex = await anchor2.contract.edgeIndex(chainId1);
@@ -142,9 +126,29 @@ describe('multichain tests', () => {
       // make sure the roots / anchors state have changed
       assert.notEqual(sourceAnchorRootAfter, sourceAnchorRootBefore);
       assert.deepStrictEqual(ethers.BigNumber.from(0), destAnchorEdgeAfter.latestLeafIndex);
+
+      await bridge.withdraw(depositNote, anchorSize, signers[1].address, signers[1].address, ganacheWallet2);
+
+      const webbTokenAddress2 = bridge.getWebbTokenAddress(chainId2);
+      const webbToken2 = await MintableToken.tokenFromAddress(webbTokenAddress2!, ganacheWallet2);
+      const webbTokenBalance2 = await webbToken2.getBalance(signers[1].address);
+
+      assert.deepStrictEqual(webbTokenBalance2, ethers.BigNumber.from(anchorSize));
     });
 
-    it('create 3 side bridge for existing token', async () => {
+    it('create 3 side bridge for one token', async () => {
+      bridge3WebbEthInput = {
+        anchorInputs: {
+          asset: {
+            31337: [tokenInstance1.contract.address],
+            1337: [tokenInstance2.contract.address],
+            9999: [tokenInstance3.contract.address],
+          },
+          anchorSizes: ['1000000000000000000', '100000000000000000000', '10000000000000000000000'],
+        },
+        chainIDs: [31337, 1337, 9999]
+      };
+      
       const signers = await ethers.getSigners();
 
       const deploymentConfig = {
@@ -159,20 +163,20 @@ describe('multichain tests', () => {
       const chainId2 = 1337;
       const chainId3 = 9999;
       const anchorSize = '1000000000000000000';
-      const anchor1: Anchor = bridge.getAnchor(chainId1, tokenName, anchorSize)!;
-      const anchor2: Anchor = bridge.getAnchor(chainId2, tokenName, anchorSize)!;
-      const anchor3: Anchor = bridge.getAnchor(chainId3, tokenName, anchorSize)!;
+      const anchor1: Anchor = bridge.getAnchor(chainId1, anchorSize)!;
+      const anchor2: Anchor = bridge.getAnchor(chainId2, anchorSize)!;
+      const anchor3: Anchor = bridge.getAnchor(chainId3, anchorSize)!;
 
       // get the state of anchors before deposit
       const sourceAnchorRootBefore = await anchor1.contract.getLastRoot();
 
       // Should be able to retrieve the token address (so we can mint tokens for test scenario)
-      const webbTokenAddress = bridge.webbTokenAddresses.get(Bridge.createTokenIdString({tokenName, chainId: chainId1}));
+      const webbTokenAddress = bridge.webbTokenAddresses.get(chainId1);
       const webbToken = await MintableToken.tokenFromAddress(webbTokenAddress!, signers[1]);
       const tx = await webbToken.mintTokens(signers[2].address, '100000000000000000000000');
 
       // Deposit on the bridge with dest chainID and 
-      const depositNote = await bridge.deposit(chainId2, webbTokenName, anchorSize, signers[2]);
+      const depositNote = await bridge.deposit(chainId2, anchorSize, signers[2]);
       
       // Check the state of anchors after deposit
       const sourceAnchorRootAfter = await anchor1.contract.getLastRoot();
@@ -185,6 +189,32 @@ describe('multichain tests', () => {
       assert.notEqual(sourceAnchorRootAfter, sourceAnchorRootBefore);
       assert.deepStrictEqual(destAnchorEdge2After.latestLeafIndex, destAnchorEdge3After.latestLeafIndex);
       assert.deepStrictEqual(destAnchorEdge2After.root, destAnchorEdge3After.root);
+    });
+
+    it.skip('create 2 side bridge for multiple tokens', async () => {
+      bridge2WebbEthInput = {
+        anchorInputs: {
+          asset: {
+            31337: [tokenInstance1.contract.address],
+            1337: [tokenInstance2.contract.address],
+          },
+          anchorSizes: ['1000000000000000000', '100000000000000000000', '10000000000000000000000'],
+        },
+        chainIDs: [31337, 1337]
+      };
+    });
+
+    it.skip('create 2 side bridge for native and erc20 token', async () => {
+      bridge2WebbEthInput = {
+        anchorInputs: {
+          asset: {
+            31337: [tokenInstance1.contract.address, '0'],
+            1337: [tokenInstance2.contract.address, '0x0000000000000000000000000000000000000000'],
+          },
+          anchorSizes: ['1000000000000000000', '100000000000000000000', '10000000000000000000000'],
+        },
+        chainIDs: [31337, 1337]
+      };
     });
   }).timeout(50000);
 
@@ -203,15 +233,13 @@ describe('multichain tests', () => {
       const mintableToken2 = await MintableToken.createToken('usdc', 'USDC', ganacheWallet2);
 
       let bridge2Input = {
-        anchorInputs: [
-          {
-            asset: {
-              31337: mintableToken1.contract.address,
-              1337: mintableToken2.contract.address,
-            },
-            anchorSizes: ['100000000000000000', '1000000000000000000', '10000000000000000000'],
-          }
-        ],
+        anchorInputs: {
+          asset: {
+            31337: [mintableToken1.contract.address],
+            1337: [mintableToken2.contract.address],
+          },
+          anchorSizes: ['100000000000000000', '1000000000000000000', '10000000000000000000'],
+        },
         chainIDs: [31337, 1337]
       };
 
@@ -261,8 +289,6 @@ describe('multichain tests', () => {
   describe('2 sided bridge existing token use', () => {
 
     // ERC20 compliant contracts that can easily create balances for test
-    let tokenName = 'existingERC20';
-    let webbTokenName = `webb${tokenName}`;
     let existingToken1: MintableToken;
     let existingToken2: MintableToken;
 
@@ -275,9 +301,9 @@ describe('multichain tests', () => {
     before(async () => {
       const signers = await ethers.getSigners();
 
-      existingToken1 = await MintableToken.createToken(tokenName, 'EXIST', signers[1]);
+      existingToken1 = await MintableToken.createToken('existingERC20', 'EXIST', signers[1]);
       // Use some other signer with provider on other chain
-      existingToken2 = await MintableToken.createToken(tokenName, 'EXIST', ganacheWallet2);
+      existingToken2 = await MintableToken.createToken('existingERC20', 'EXIST', ganacheWallet2);
 
       // mint some tokens to the user of the bridge
       await existingToken1.mintTokens(signers[1].address, '100000000000000000000000000');
@@ -289,15 +315,13 @@ describe('multichain tests', () => {
 
       // create the config for the bridge
       const existingTokenBridgeConfig = {
-        anchorInputs: [
-          {
-            asset: {
-              [chainId1]: existingToken1.contract.address,
-              [chainId2]: existingToken2.contract.address,
-            },
-            anchorSizes: ['1000000000000000000', '100000000000000000000', '10000000000000000000000'],
-          }
-        ],
+        anchorInputs: {
+          asset: {
+            [chainId1]: [existingToken1.contract.address],
+            [chainId2]: [existingToken2.contract.address],
+          },
+          anchorSizes: ['1000000000000000000', '100000000000000000000', '10000000000000000000000'],
+        },
         chainIDs: [chainId1, chainId2]
       };
 
@@ -311,8 +335,8 @@ describe('multichain tests', () => {
       bridge = await Bridge.deployBridge(existingTokenBridgeConfig, deploymentConfig);
 
       // make one deposit so the edge exists
-      await bridge.wrapAndDeposit(chainId2, tokenName, '1000000000000000000', signers[1]);
-      await bridge.wrapAndDeposit(chainId1, tokenName, '1000000000000000000', ganacheWallet2);
+      await bridge.wrapAndDeposit(chainId2, existingToken1.contract.address, '1000000000000000000', signers[1]);
+      await bridge.wrapAndDeposit(chainId1, existingToken2.contract.address, '1000000000000000000', ganacheWallet2);
     })
 
     describe('#bridging', () => {
@@ -321,22 +345,22 @@ describe('multichain tests', () => {
         const signers = await ethers.getSigners();
         const anchorSize = '1000000000000000000';
 
-        const anchor2: Anchor = bridge.getAnchor(chainId2, webbTokenName, anchorSize)!;
-        const anchor1: Anchor = bridge.getAnchor(chainId1, webbTokenName, anchorSize)!;
+        const anchor2: Anchor = bridge.getAnchor(chainId2, anchorSize)!;
+        const anchor1: Anchor = bridge.getAnchor(chainId1, anchorSize)!;
         let edgeIndex = await anchor2.contract.edgeIndex(chainId1);
         const destAnchorEdge2Before = await anchor2.contract.edgeList(edgeIndex);
         const token = await MintableToken.tokenFromAddress(existingToken2.contract.address, ganacheWallet2);
         const startingBalanceDest = await token.getBalance(signers[2].address);
 
         // Make a deposit
-        const depositNote1 = await bridge.wrapAndDeposit(chainId2, tokenName, anchorSize, signers[1]);
+        const depositNote1 = await bridge.wrapAndDeposit(chainId2, existingToken1.contract.address, anchorSize, signers[1]);
 
         // Check the leaf index is incremented
         const destAnchorEdge2After = await anchor2.contract.edgeList(edgeIndex);
         assert.deepStrictEqual(destAnchorEdge2Before.latestLeafIndex.add(1), destAnchorEdge2After.latestLeafIndex);
 
         // Check that the anchor has the appropriate amount of wrapped token balance
-        const wrappedTokenAddress = bridge.getWebbTokenAddress(chainId1, tokenName);
+        const wrappedTokenAddress = bridge.getWebbTokenAddress(chainId1);
         const wrappedToken = await MintableToken.tokenFromAddress(wrappedTokenAddress!, signers[1]);
         const anchorWrappedTokenBalance = await wrappedToken.getBalance(anchor1.contract.address);
         assert.deepStrictEqual(anchorWrappedTokenBalance, (ethers.BigNumber.from(anchorSize)).mul(2));
@@ -347,7 +371,7 @@ describe('multichain tests', () => {
         assert.deepStrictEqual(anchorTokenWrapperBalance, (ethers.BigNumber.from(anchorSize)).mul(2));
 
         // Withdraw from the bridge
-        await bridge.withdrawAndUnwrap(depositNote1!, tokenName, anchorSize, signers[2].address, signers[2].address, ganacheWallet2);
+        await bridge.withdrawAndUnwrap(depositNote1!, existingToken2.contract.address, anchorSize, signers[2].address, signers[2].address, ganacheWallet2);
 
         // Check the balance of the signer
         const endingBalanceDest = await token.getBalance(signers[2].address);
@@ -359,21 +383,21 @@ describe('multichain tests', () => {
         const signers = await ethers.getSigners();
         const anchorSize = '1000000000000000000';
 
-        const anchor1: Anchor = bridge.getAnchor(chainId1, webbTokenName, anchorSize)!;
+        const anchor1: Anchor = bridge.getAnchor(chainId1, anchorSize)!;
         let edgeIndex = await anchor1.contract.edgeIndex(chainId2);
         const destAnchorEdge2Before = await anchor1.contract.edgeList(edgeIndex);
         const token = await MintableToken.tokenFromAddress(existingToken1.contract.address, signers[1]);
         const startingBalanceDest = await token.getBalance(signers[2].address);
 
         // Make a deposit
-        const depositNote1 = await bridge.wrapAndDeposit(chainId1, tokenName, anchorSize, ganacheWallet2);
+        const depositNote1 = await bridge.wrapAndDeposit(chainId1, existingToken2.contract.address, anchorSize, ganacheWallet2);
 
         // Check the leaf index is incremented
         const destAnchorEdge2After = await anchor1.contract.edgeList(edgeIndex);
         assert.deepStrictEqual(destAnchorEdge2Before.latestLeafIndex.add(1), destAnchorEdge2After.latestLeafIndex);
 
         // Withdraw from the bridge
-        await bridge.withdrawAndUnwrap(depositNote1!, tokenName, anchorSize, signers[2].address, signers[2].address, signers[1]);
+        await bridge.withdrawAndUnwrap(depositNote1!, existingToken1.contract.address, anchorSize, signers[2].address, signers[2].address, signers[1]);
 
         // Check the balance of the signer
         const endingBalanceDest = await token.getBalance(signers[2].address);
@@ -385,22 +409,22 @@ describe('multichain tests', () => {
         const signers = await ethers.getSigners();
         const anchorSize = '1000000000000000000';
 
-        const anchor2: Anchor = bridge.getAnchor(chainId2, webbTokenName, anchorSize)!;
+        const anchor2: Anchor = bridge.getAnchor(chainId2, anchorSize)!;
         let edgeIndex = await anchor2.contract.edgeIndex(chainId1);
         const destAnchorEdge2Before = await anchor2.contract.edgeList(edgeIndex);
         const webbToken = await MintableToken.tokenFromAddress(existingToken2.contract.address, ganacheWallet2);
         const startingBalanceDest = await webbToken.getBalance(signers[1].address);
 
         // Make two deposits
-        const depositNote1 = await bridge.wrapAndDeposit(chainId2, tokenName, anchorSize, signers[1]);
-        const depositNote2 = await bridge.wrapAndDeposit(chainId2, tokenName, anchorSize, signers[1]);
+        const depositNote1 = await bridge.wrapAndDeposit(chainId2, existingToken1.contract.address, anchorSize, signers[1]);
+        const depositNote2 = await bridge.wrapAndDeposit(chainId2, existingToken1.contract.address, anchorSize, signers[1]);
 
         // Check the leaf index is incremented by two
         const destAnchorEdge2After = await anchor2.contract.edgeList(edgeIndex);
         assert.deepStrictEqual(destAnchorEdge2Before.latestLeafIndex.add(2), destAnchorEdge2After.latestLeafIndex);
 
         // Withdraw from the bridge with older deposit note
-        await bridge.withdrawAndUnwrap(depositNote1!, tokenName, anchorSize, signers[1].address, signers[1].address, ganacheWallet2);
+        await bridge.withdrawAndUnwrap(depositNote1!, existingToken2.contract.address, anchorSize, signers[1].address, signers[1].address, ganacheWallet2);
 
         // Check the balance of the other_signer.
         const endingBalanceDest = await webbToken.getBalance(signers[1].address);
@@ -412,22 +436,22 @@ describe('multichain tests', () => {
         const signers = await ethers.getSigners();
         const anchorSize = '1000000000000000000';
 
-        const anchor2: Anchor = bridge.getAnchor(chainId1, webbTokenName, anchorSize)!;
+        const anchor2: Anchor = bridge.getAnchor(chainId1, anchorSize)!;
         let edgeIndex = await anchor2.contract.edgeIndex(chainId2);
         const destAnchorEdge2Before = await anchor2.contract.edgeList(edgeIndex);
         const webbToken = await MintableToken.tokenFromAddress(existingToken1.contract.address, signers[1]);
         const startingBalanceDest = await webbToken.getBalance(signers[1].address);
 
         // Make two deposits
-        const depositNote1 = await bridge.wrapAndDeposit(chainId1, tokenName, anchorSize, ganacheWallet2);
-        const depositNote2 = await bridge.wrapAndDeposit(chainId1, tokenName, anchorSize, ganacheWallet2);
+        const depositNote1 = await bridge.wrapAndDeposit(chainId1, existingToken2.contract.address, anchorSize, ganacheWallet2);
+        const depositNote2 = await bridge.wrapAndDeposit(chainId1, existingToken2.contract.address, anchorSize, ganacheWallet2);
 
         // Check the leaf index is incremented by two
         const destAnchorEdge2After = await anchor2.contract.edgeList(edgeIndex);
         assert.deepStrictEqual(destAnchorEdge2Before.latestLeafIndex.add(2), destAnchorEdge2After.latestLeafIndex);
 
         // Withdraw from the bridge with older deposit note
-        await bridge.withdrawAndUnwrap(depositNote1!, tokenName, anchorSize, signers[1].address, signers[1].address, signers[1]);
+        await bridge.withdrawAndUnwrap(depositNote1!, existingToken1.contract.address, anchorSize, signers[1].address, signers[1].address, signers[1]);
 
         // Check the balance of the other_signer.
         const endingBalanceDest = await webbToken.getBalance(signers[1].address);
@@ -453,268 +477,258 @@ describe('multichain tests', () => {
     });
   });
 
-  describe.skip('3 sided bridge existing token use', () => {
-    // ERC20 compliant contracts that can easily create balances for test
-    let tokenName = 'existingERC20';
-    let existingTokenSrc1: MintableToken;
-    let existingTokenSrc2: MintableToken;
-    let existingTokenSrc3: MintableToken;
+  // describe.skip('3 sided bridge existing token use', () => {
+  //   // ERC20 compliant contracts that can easily create balances for test
+  //   let tokenName = 'existingERC20';
+  //   let existingTokenSrc1: MintableToken;
+  //   let existingTokenSrc2: MintableToken;
+  //   let existingTokenSrc3: MintableToken;
 
-    // TODO: Remove these variables when contracts updated with wrap/unwrap functionality
-    let webbTokenName = 'ERC20';
-    let webbTokenSrc1: string;
-    let webbTokenSrc2: string;
-    let webbTokenSrc3: string;
+  //   let bridge: Bridge;
+  //   const chainId1 = 31337;
+  //   const chainId2 = 1337;
+  //   const chainId3 = 9999;
 
-    let bridge: Bridge;
-    const chainId1 = 31337;
-    const chainId2 = 1337;
-    const chainId3 = 9999;
+  //   let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:8545');
+  //   let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
 
-    let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:8545');
-    let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
+  //   let ganacheProvider3 = new ethers.providers.JsonRpcProvider('http://localhost:9999');
+  //   let ganacheWallet3 = new ethers.Wallet('745ee040ef2b087f075dc7d314fa06797ed2ffd4ab59a4cc35c0a33e8d2b7791', ganacheProvider3);
 
-    let ganacheProvider3 = new ethers.providers.JsonRpcProvider('http://localhost:9999');
-    let ganacheWallet3 = new ethers.Wallet('745ee040ef2b087f075dc7d314fa06797ed2ffd4ab59a4cc35c0a33e8d2b7791', ganacheProvider3);
+  //   before(async () => {
+  //     const signers = await ethers.getSigners();
 
-    before(async () => {
-      const signers = await ethers.getSigners();
+  //     existingTokenSrc1 = await MintableToken.createToken(tokenName, 'EXIST', signers[7]);
+  //     existingTokenSrc2 = await MintableToken.createToken(tokenName, 'EXIST', ganacheWallet2);
+  //     existingTokenSrc3 = await MintableToken.createToken(tokenName, 'EXIST', ganacheWallet3);
 
-      existingTokenSrc1 = await MintableToken.createToken(tokenName, 'EXIST', signers[7]);
-      existingTokenSrc2 = await MintableToken.createToken(tokenName, 'EXIST', ganacheWallet2);
-      existingTokenSrc3 = await MintableToken.createToken(tokenName, 'EXIST', ganacheWallet3);
+  //     // mint some tokens to the user of the bridge
+  //     await existingTokenSrc1.mintTokens(signers[1].address, '100000000000000000000000000');
+  //     await existingTokenSrc2.mintTokens(ganacheWallet2.address, '100000000000000000000000000');
+  //     await existingTokenSrc3.mintTokens(ganacheWallet3.address, '100000000000000000000000000');
+  //   })
 
-      // mint some tokens to the user of the bridge
-      await existingTokenSrc1.mintTokens(signers[1].address, '100000000000000000000000000');
-      await existingTokenSrc2.mintTokens(ganacheWallet2.address, '100000000000000000000000000');
-      await existingTokenSrc3.mintTokens(ganacheWallet3.address, '100000000000000000000000000');
-    })
+  //   beforeEach(async () => {
+  //     const signers = await ethers.getSigners();
 
-    beforeEach(async () => {
-      const signers = await ethers.getSigners();
+  //     // create the config for the bridge
+  //     const existingTokenBridgeConfig: BridgeInput = {
+  //       anchorInputs: {
+  //         asset: {
+  //           [chainId1]: [existingTokenSrc1.contract.address],
+  //           [chainId2]: [existingTokenSrc2.contract.address],
+  //           [chainId3]: [existingTokenSrc3.contract.address],
+  //         },
+  //         anchorSizes: ['1000000000000000000', '100000000000000000000', '10000000000000000000000'],
+  //       },
+  //       chainIDs: [chainId1, chainId2, chainId3]
+  //     };
 
-      // create the config for the bridge
-      const existingTokenBridgeConfig = {
-        anchorInputs: [
-          {
-            asset: {
-              [chainId1]: existingTokenSrc1.contract.address,
-              [chainId2]: existingTokenSrc2.contract.address,
-              [chainId3]: existingTokenSrc3.contract.address,
-            },
-            anchorSizes: ['1000000000000000000', '100000000000000000000', '10000000000000000000000'],
-          }
-        ],
-        chainIDs: [chainId1, chainId2, chainId3]
-      };
-
-      // setup the config for deployers of contracts (admins)
-      const deploymentConfig = {
-        [chainId1]: signers[1],
-        [chainId2]: ganacheWallet2,
-        [chainId3]: ganacheWallet3,
-      }
+  //     // setup the config for deployers of contracts (admins)
+  //     const deploymentConfig = {
+  //       [chainId1]: signers[1],
+  //       [chainId2]: ganacheWallet2,
+  //       [chainId3]: ganacheWallet3,
+  //     }
       
-      // deploy the bridge
-      bridge = await Bridge.deployBridge(existingTokenBridgeConfig, deploymentConfig);
+  //     // deploy the bridge
+  //     bridge = await Bridge.deployBridge(existingTokenBridgeConfig, deploymentConfig);
 
-      // Should be able to retrieve the token address (so we can mint tokens for test scenario)
-      webbTokenSrc1 = bridge.webbTokenAddresses.get(Bridge.createTokenIdString({tokenName: webbTokenName, chainId: chainId1}))!;
-      let webbToken = await MintableToken.tokenFromAddress(webbTokenSrc1, signers[1]);
-      await webbToken.mintTokens(signers[1].address, '100000000000000000000000');
-      webbTokenSrc2 = bridge.webbTokenAddresses.get(Bridge.createTokenIdString({tokenName: webbTokenName, chainId: chainId2}))!;
-      webbToken = await MintableToken.tokenFromAddress(webbTokenSrc2, ganacheWallet2);
-      await webbToken.mintTokens(ganacheWallet2.address, '100000000000000000000000');
-      webbTokenSrc3 = bridge.webbTokenAddresses.get(Bridge.createTokenIdString({tokenName: webbTokenName, chainId: chainId3}))!;
-      webbToken = await MintableToken.tokenFromAddress(webbTokenSrc3, ganacheWallet3);
-      await webbToken.mintTokens(ganacheWallet3.address, '100000000000000000000000');
+  //     // Should be able to retrieve the token address (so we can mint tokens for test scenario)
+  //     webbTokenSrc1 = bridge.webbTokenAddresses.get(Bridge.createTokenIdString({tokenName: webbTokenName, chainId: chainId1}))!;
+  //     let webbToken = await MintableToken.tokenFromAddress(webbTokenSrc1, signers[1]);
+  //     await webbToken.mintTokens(signers[1].address, '100000000000000000000000');
+  //     webbTokenSrc2 = bridge.webbTokenAddresses.get(Bridge.createTokenIdString({tokenName: webbTokenName, chainId: chainId2}))!;
+  //     webbToken = await MintableToken.tokenFromAddress(webbTokenSrc2, ganacheWallet2);
+  //     await webbToken.mintTokens(ganacheWallet2.address, '100000000000000000000000');
+  //     webbTokenSrc3 = bridge.webbTokenAddresses.get(Bridge.createTokenIdString({tokenName: webbTokenName, chainId: chainId3}))!;
+  //     webbToken = await MintableToken.tokenFromAddress(webbTokenSrc3, ganacheWallet3);
+  //     await webbToken.mintTokens(ganacheWallet3.address, '100000000000000000000000');
 
-      // make deposits so edges exists
-      await bridge.deposit(chainId2, webbTokenName, '1000000000000000000', signers[1]);
-      await bridge.deposit(chainId3, webbTokenName, '1000000000000000000', ganacheWallet2);
-      await bridge.deposit(31337, webbTokenName, '1000000000000000000', ganacheWallet3);
-    })
+  //     // make deposits so edges exists
+  //     await bridge.deposit(chainId2, webbTokenName, '1000000000000000000', signers[1]);
+  //     await bridge.deposit(chainId3, webbTokenName, '1000000000000000000', ganacheWallet2);
+  //     await bridge.deposit(31337, webbTokenName, '1000000000000000000', ganacheWallet3);
+  //   })
 
-    it.skip('should withdraw successfully from latest deposits on all chains', async () => {
-      // Fetch information about the anchor to be updated.
-      const signers = await ethers.getSigners();
-      const anchorSize = '1000000000000000000';
+  //   it.skip('should withdraw successfully from latest deposits on all chains', async () => {
+  //     // Fetch information about the anchor to be updated.
+  //     const signers = await ethers.getSigners();
+  //     const anchorSize = '1000000000000000000';
 
-      const anchor1: Anchor = bridge.getAnchor(chainId1, webbTokenName, anchorSize)!;
-      let edgeIndex = await anchor1.contract.edgeIndex(chainId1);
-      const destAnchorEdge1Before = await anchor1.contract.edgeList(edgeIndex);
-      const webbToken = await MintableToken.tokenFromAddress(webbTokenSrc1, signers[1]);
-      const startingBalanceDest = await webbToken.getBalance(signers[1].address);
+  //     const anchor1: Anchor = bridge.getAnchor(chainId1, webbTokenName, anchorSize)!;
+  //     let edgeIndex = await anchor1.contract.edgeIndex(chainId1);
+  //     const destAnchorEdge1Before = await anchor1.contract.edgeList(edgeIndex);
+  //     const webbToken = await MintableToken.tokenFromAddress(webbTokenSrc1, signers[1]);
+  //     const startingBalanceDest = await webbToken.getBalance(signers[1].address);
 
-      // Make a deposit on both chains
-      const depositNote1 = await bridge.deposit(chainId1, webbTokenName, anchorSize, ganacheWallet2);
+  //     // Make a deposit on both chains
+  //     const depositNote1 = await bridge.deposit(chainId1, webbTokenName, anchorSize, ganacheWallet2);
 
-      // Check the leaf index is incremented
-      const destAnchorEdge1After = await anchor1.contract.edgeList(edgeIndex);
-      assert.deepStrictEqual(destAnchorEdge1Before.latestLeafIndex.add(1), destAnchorEdge1After.latestLeafIndex);
+  //     // Check the leaf index is incremented
+  //     const destAnchorEdge1After = await anchor1.contract.edgeList(edgeIndex);
+  //     assert.deepStrictEqual(destAnchorEdge1Before.latestLeafIndex.add(1), destAnchorEdge1After.latestLeafIndex);
 
-      // Withdraw from the bridge
-      await bridge.withdraw(depositNote1!, webbTokenName, anchorSize, signers[1].address, signers[1].address, signers[1]);
+  //     // Withdraw from the bridge
+  //     await bridge.withdraw(depositNote1!, webbTokenName, anchorSize, signers[1].address, signers[1].address, signers[1]);
 
-      // Check the balance of the signer
-      const endingBalanceAfterOneWithdraw = await webbToken.getBalance(signers[1].address);
-      assert.deepStrictEqual(endingBalanceAfterOneWithdraw, startingBalanceDest.add(anchorSize));
+  //     // Check the balance of the signer
+  //     const endingBalanceAfterOneWithdraw = await webbToken.getBalance(signers[1].address);
+  //     assert.deepStrictEqual(endingBalanceAfterOneWithdraw, startingBalanceDest.add(anchorSize));
 
-      // make another deposit and withdraw from the third connected chain
-      edgeIndex = await anchor1.contract.edgeIndex(chainId3);
-      const destAnchorEdge3Before = await anchor1.contract.edgeList(edgeIndex);
+  //     // make another deposit and withdraw from the third connected chain
+  //     edgeIndex = await anchor1.contract.edgeIndex(chainId3);
+  //     const destAnchorEdge3Before = await anchor1.contract.edgeList(edgeIndex);
 
-      const depositNote3 = await bridge.deposit(chainId1, webbTokenName, anchorSize, ganacheWallet3);
+  //     const depositNote3 = await bridge.deposit(chainId1, webbTokenName, anchorSize, ganacheWallet3);
 
-      // Check the leaf index is incremented
-      const destAnchorEdge3After = await anchor1.contract.edgeList(edgeIndex);
-      assert.deepStrictEqual(destAnchorEdge3Before.latestLeafIndex.add(1), destAnchorEdge3After.latestLeafIndex);
+  //     // Check the leaf index is incremented
+  //     const destAnchorEdge3After = await anchor1.contract.edgeList(edgeIndex);
+  //     assert.deepStrictEqual(destAnchorEdge3Before.latestLeafIndex.add(1), destAnchorEdge3After.latestLeafIndex);
 
-      // Withdraw from the bridge
-      await bridge.withdraw(depositNote3!, webbTokenName, anchorSize, signers[1].address, signers[1].address, signers[1]);
+  //     // Withdraw from the bridge
+  //     await bridge.withdraw(depositNote3!, webbTokenName, anchorSize, signers[1].address, signers[1].address, signers[1]);
 
-      // Check the balance of the signer
-      const endingBalanceAfterTwoWithdraw = await webbToken.getBalance(signers[1].address);
-      assert.deepStrictEqual(endingBalanceAfterTwoWithdraw, endingBalanceAfterOneWithdraw.add(anchorSize));
-    }).timeout(60000);
+  //     // Check the balance of the signer
+  //     const endingBalanceAfterTwoWithdraw = await webbToken.getBalance(signers[1].address);
+  //     assert.deepStrictEqual(endingBalanceAfterTwoWithdraw, endingBalanceAfterOneWithdraw.add(anchorSize));
+  //   }).timeout(60000);
 
-    it.skip('should verify snarkjs on 3 side build', async () => {
-      // Fetch information about the anchor to be updated.
-      const signers = await ethers.getSigners();
-      const anchorSize = '1000000000000000000';
+  //   it.skip('should verify snarkjs on 3 side build', async () => {
+  //     // Fetch information about the anchor to be updated.
+  //     const signers = await ethers.getSigners();
+  //     const anchorSize = '1000000000000000000';
 
-      const anchor2: Anchor = bridge.getAnchor(chainId2, webbTokenName, anchorSize)!;
-      let edgeIndex = await anchor2.contract.edgeIndex(chainId1);
-      const destAnchorEdge1Before = await anchor2.contract.edgeList(edgeIndex);
-      const webbToken = await MintableToken.tokenFromAddress(webbTokenSrc2, ganacheWallet2);
-      const startingBalanceDest = await webbToken.getBalance(signers[1].address);
+  //     const anchor2: Anchor = bridge.getAnchor(chainId2, webbTokenName, anchorSize)!;
+  //     let edgeIndex = await anchor2.contract.edgeIndex(chainId1);
+  //     const destAnchorEdge1Before = await anchor2.contract.edgeList(edgeIndex);
+  //     const webbToken = await MintableToken.tokenFromAddress(webbTokenSrc2, ganacheWallet2);
+  //     const startingBalanceDest = await webbToken.getBalance(signers[1].address);
 
-      // Make a deposit
-      const depositNote1 = await bridge.deposit(chainId2, webbTokenName, anchorSize, signers[1]);
+  //     // Make a deposit
+  //     const depositNote1 = await bridge.deposit(chainId2, webbTokenName, anchorSize, signers[1]);
 
-      // start making a proof for the anchor:
-      // get the merkle proof from anchor1.
-      const anchor1 = bridge.getAnchor(chainId1, webbTokenName, anchorSize)!;
-      const anchor1Roots = await anchor1.populateRootsForProof();
+  //     // start making a proof for the anchor:
+  //     // get the merkle proof from anchor1.
+  //     const anchor1 = bridge.getAnchor(chainId1, webbTokenName, anchorSize)!;
+  //     const anchor1Roots = await anchor1.populateRootsForProof();
 
-      const { merkleRoot, pathElements, pathIndices } = anchor1.tree.path(depositNote1.index);
+  //     const { merkleRoot, pathElements, pathIndices } = anchor1.tree.path(depositNote1.index);
 
-      const roots = await anchor2.populateRootsForProof();
+  //     const roots = await anchor2.populateRootsForProof();
 
-      // populate the rest of the proof from anchor2
-      const input = await anchor2.generateWitnessInput(
-        depositNote1.deposit,
-        depositNote1.originChainId,
-        '0',
-        BigInt(0),
-        BigInt(0),
-        BigInt(0),
-        BigInt(0),
-        roots,
-        pathElements,
-        pathIndices
-      );
+  //     // populate the rest of the proof from anchor2
+  //     const input = await anchor2.generateWitnessInput(
+  //       depositNote1.deposit,
+  //       depositNote1.originChainId,
+  //       '0',
+  //       BigInt(0),
+  //       BigInt(0),
+  //       BigInt(0),
+  //       BigInt(0),
+  //       roots,
+  //       pathElements,
+  //       pathIndices
+  //     );
 
-      const createWitness = async (data: any) => {
-        const witnessCalculator = require("../fixtures/3/witness_calculator.js");
-        const fileBuf = require('fs').readFileSync('./test/fixtures/3/poseidon_bridge_3.wasm');
-        const wtnsCalc = await witnessCalculator(fileBuf)
-        const wtns = await wtnsCalc.calculateWTNSBin(data,0);
-        return wtns;
-      }
+  //     const createWitness = async (data: any) => {
+  //       const witnessCalculator = require("../fixtures/3/witness_calculator.js");
+  //       const fileBuf = require('fs').readFileSync('./test/fixtures/3/poseidon_bridge_3.wasm');
+  //       const wtnsCalc = await witnessCalculator(fileBuf)
+  //       const wtns = await wtnsCalc.calculateWTNSBin(data,0);
+  //       return wtns;
+  //     }
       
-      const wtns = await createWitness(input);
+  //     const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('test/fixtures/3/circuit_final.zkey', wtns);
-      const proof = res.proof;
-      let publicSignals = res.publicSignals;
-      let tempProof = proof;
-      let tempSignals = publicSignals;
-      const vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/3/circuit_final.zkey');
+  //     let res = await snarkjs.groth16.prove('test/fixtures/3/circuit_final.zkey', wtns);
+  //     const proof = res.proof;
+  //     let publicSignals = res.publicSignals;
+  //     let tempProof = proof;
+  //     let tempSignals = publicSignals;
+  //     const vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/3/circuit_final.zkey');
 
-      res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
-      assert.strictEqual(res, true);
-    }).timeout(60000);
+  //     res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
+  //     assert.strictEqual(res, true);
+  //   }).timeout(60000);
 
-    it.skip('should verify snarkjs on 3 side build with parsed solidity', async () => {
-      // Fetch information about the anchor to be updated.
-      const signers = await ethers.getSigners();
-      const anchorSize = '1000000000000000000';
+  //   it.skip('should verify snarkjs on 3 side build with parsed solidity', async () => {
+  //     // Fetch information about the anchor to be updated.
+  //     const signers = await ethers.getSigners();
+  //     const anchorSize = '1000000000000000000';
 
-      const anchor2: Anchor = bridge.getAnchor(chainId2, webbTokenName, anchorSize)!;
-      let edgeIndex = await anchor2.contract.edgeIndex(chainId1);
-      const destAnchorEdge1Before = await anchor2.contract.edgeList(edgeIndex);
-      const webbToken = await MintableToken.tokenFromAddress(webbTokenSrc2, ganacheWallet2);
-      const startingBalanceDest = await webbToken.getBalance(signers[1].address);
+  //     const anchor2: Anchor = bridge.getAnchor(chainId2, webbTokenName, anchorSize)!;
+  //     let edgeIndex = await anchor2.contract.edgeIndex(chainId1);
+  //     const destAnchorEdge1Before = await anchor2.contract.edgeList(edgeIndex);
+  //     const webbToken = await MintableToken.tokenFromAddress(webbTokenSrc2, ganacheWallet2);
+  //     const startingBalanceDest = await webbToken.getBalance(signers[1].address);
 
-      // Make a deposit
-      const depositNote1 = await bridge.deposit(chainId2, webbTokenName, anchorSize, signers[1]);
+  //     // Make a deposit
+  //     const depositNote1 = await bridge.deposit(chainId2, webbTokenName, anchorSize, signers[1]);
 
-      // start making a proof for the anchor:
-      // get the merkle proof from anchor1.
-      const anchor1 = bridge.getAnchor(chainId1, webbTokenName, anchorSize)!;
-      const anchor1Roots = await anchor1.populateRootsForProof();
+  //     // start making a proof for the anchor:
+  //     // get the merkle proof from anchor1.
+  //     const anchor1 = bridge.getAnchor(chainId1, webbTokenName, anchorSize)!;
+  //     const anchor1Roots = await anchor1.populateRootsForProof();
 
-      const { merkleRoot, pathElements, pathIndices } = anchor1.tree.path(depositNote1.index);
+  //     const { merkleRoot, pathElements, pathIndices } = anchor1.tree.path(depositNote1.index);
 
-      const roots = await anchor2.populateRootsForProof();
+  //     const roots = await anchor2.populateRootsForProof();
 
-      // populate the rest of the proof from anchor2
-      const input = await anchor2.generateWitnessInput(
-        depositNote1.deposit,
-        depositNote1.originChainId,
-        '0',
-        BigInt(0),
-        BigInt(0),
-        BigInt(0),
-        BigInt(0),
-        roots,
-        pathElements,
-        pathIndices
-      );
+  //     // populate the rest of the proof from anchor2
+  //     const input = await anchor2.generateWitnessInput(
+  //       depositNote1.deposit,
+  //       depositNote1.originChainId,
+  //       '0',
+  //       BigInt(0),
+  //       BigInt(0),
+  //       BigInt(0),
+  //       BigInt(0),
+  //       roots,
+  //       pathElements,
+  //       pathIndices
+  //     );
 
-      const createWitness = async (data: any) => {
-        const witnessCalculator = require("../fixtures/3/witness_calculator.js");
-        const fileBuf = require('fs').readFileSync('./test/fixtures/3/poseidon_bridge_3.wasm');
-        const wtnsCalc = await witnessCalculator(fileBuf)
-        const wtns = await wtnsCalc.calculateWTNSBin(data,0);
-        return wtns;
-      }
+  //     const createWitness = async (data: any) => {
+  //       const witnessCalculator = require("../fixtures/3/witness_calculator.js");
+  //       const fileBuf = require('fs').readFileSync('./test/fixtures/3/poseidon_bridge_3.wasm');
+  //       const wtnsCalc = await witnessCalculator(fileBuf)
+  //       const wtns = await wtnsCalc.calculateWTNSBin(data,0);
+  //       return wtns;
+  //     }
       
-      const wtns = await createWitness(input);
+  //     const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('test/fixtures/3/circuit_final.zkey', wtns);
-      const proof = res.proof;
-      let publicSignals = res.publicSignals;
-      let tempProof = proof;
-      let tempSignals = publicSignals;
-      const vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/3/circuit_final.zkey');
+  //     let res = await snarkjs.groth16.prove('test/fixtures/3/circuit_final.zkey', wtns);
+  //     const proof = res.proof;
+  //     let publicSignals = res.publicSignals;
+  //     let tempProof = proof;
+  //     let tempSignals = publicSignals;
+  //     const vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/3/circuit_final.zkey');
 
-      res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
+  //     res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       
-      // assert native verification before solidity export data
-      assert.strictEqual(res, true);
+  //     // assert native verification before solidity export data
+  //     assert.strictEqual(res, true);
 
-      // convert the proof to groth 16 solidity calldata
-      const groth16ProofCallData = await Anchor.groth16ExportSolidityCallData(tempProof, tempSignals);
+  //     // convert the proof to groth 16 solidity calldata
+  //     const groth16ProofCallData = await Anchor.groth16ExportSolidityCallData(tempProof, tempSignals);
 
-      // convert the proof to solidityWithdrawCalldata
-      const withdrawProofCalldata = await Anchor.generateWithdrawProofCallData(groth16ProofCallData, tempSignals);
+  //     // convert the proof to solidityWithdrawCalldata
+  //     const withdrawProofCalldata = await Anchor.generateWithdrawProofCallData(groth16ProofCallData, tempSignals);
 
-      // parse the (proof, signals) back from solidity to typescript
-      // const { parsedProof: proof, parsedSignals: signals } = await Anchor.parseProofCalldata(proofCallData);
+  //     // parse the (proof, signals) back from solidity to typescript
+  //     // const { parsedProof: proof, parsedSignals: signals } = await Anchor.parseProofCalldata(proofCallData);
 
 
 
-      // check the groth16 verification again
+  //     // check the groth16 verification again
 
-    }).timeout(60000);
-  });
+  //   }).timeout(60000);
+  // });
 
   describe('4 sided bridge wrap/unwrap token use', () => {
     // ERC20 compliant contracts that can easily create balances for test
-    let tokenName = 'existingERC20';
-    let webbTokenName = `webb${tokenName}`;
     let existingTokenSrc: MintableToken;
     let existingTokenSrc2: MintableToken;
     let existingTokenSrc3: MintableToken;
@@ -739,28 +753,26 @@ describe('multichain tests', () => {
     before(async () => {
       const signers = await ethers.getSigners();
 
-      existingTokenSrc = await MintableToken.createToken(tokenName, 'EXIST', signers[7]);
-      existingTokenSrc2 = await MintableToken.createToken(tokenName, 'EXIST', ganacheWallet2);
-      existingTokenSrc3 = await MintableToken.createToken(tokenName, 'EXIST', ganacheWallet3);
-      existingTokenSrc4 = await MintableToken.createToken(tokenName, 'EXIST', ganacheWallet4);
+      existingTokenSrc = await MintableToken.createToken('existingERC20', 'EXIST', signers[7]);
+      existingTokenSrc2 = await MintableToken.createToken('existingERC20', 'EXIST', ganacheWallet2);
+      existingTokenSrc3 = await MintableToken.createToken('existingERC20', 'EXIST', ganacheWallet3);
+      existingTokenSrc4 = await MintableToken.createToken('existingERC20', 'EXIST', ganacheWallet4);
     })
 
     beforeEach(async () => {
       const signers = await ethers.getSigners();
 
       // create the config for the bridge
-      const existingTokenBridgeConfig = {
-        anchorInputs: [
-          {
-            asset: {
-              [chainId1]: existingTokenSrc.contract.address,
-              [chainId2]: existingTokenSrc2.contract.address,
-              [chainId3]: existingTokenSrc3.contract.address,
-              [chainId4]: existingTokenSrc4.contract.address,
-            },
-            anchorSizes: ['1000000000000000000', '100000000000000000000'],
-          }
-        ],
+      const existingTokenBridgeConfig: BridgeInput = {
+        anchorInputs: {
+          asset: {
+            [chainId1]: [existingTokenSrc.contract.address],
+            [chainId2]: [existingTokenSrc2.contract.address],
+            [chainId3]: [existingTokenSrc3.contract.address],
+            [chainId4]: [existingTokenSrc4.contract.address],
+          },
+          anchorSizes: ['1000000000000000000', '100000000000000000000'],
+        },
         chainIDs: [chainId1, chainId2, chainId3, chainId4]
       };
 
@@ -794,31 +806,31 @@ describe('multichain tests', () => {
       const signers = await ethers.getSigners();
 
       // make deposits so edges exists
-      await bridge.wrapAndDeposit(chainId2, tokenName, '1000000000000000000', signers[1]);
-      await bridge.wrapAndDeposit(chainId3, tokenName, '1000000000000000000', ganacheWallet2);
-      await bridge.wrapAndDeposit(chainId4, tokenName, '1000000000000000000', ganacheWallet3);
-      await bridge.wrapAndDeposit(chainId1, tokenName, '1000000000000000000', ganacheWallet4);
+      await bridge.wrapAndDeposit(chainId2, existingTokenSrc.contract.address, '1000000000000000000', signers[1]);
+      await bridge.wrapAndDeposit(chainId3, existingTokenSrc2.contract.address, '1000000000000000000', ganacheWallet2);
+      await bridge.wrapAndDeposit(chainId4, existingTokenSrc3.contract.address, '1000000000000000000', ganacheWallet3);
+      await bridge.wrapAndDeposit(chainId1, existingTokenSrc4.contract.address, '1000000000000000000', ganacheWallet4);
 
       // Fetch information about the anchor to be updated.
       const anchorSize = '1000000000000000000';
-      const webbTokenAddress1 = bridge.getWebbTokenAddress(chainId1, tokenName)!;
+      const webbTokenAddress1 = bridge.getWebbTokenAddress(chainId1)!;
       const tokenAddress1 = existingTokenSrc.contract.address;
 
-      const anchor1: Anchor = bridge.getAnchor(chainId1, webbTokenName, anchorSize)!;
+      const anchor1: Anchor = bridge.getAnchor(chainId1, anchorSize)!;
       let edgeIndex = await anchor1.contract.edgeIndex(chainId1);
       const destAnchorEdge1Before = await anchor1.contract.edgeList(edgeIndex);
       let cumulativeBalance = await calculateCumulativeBalance(signers[1].address, tokenAddress1, webbTokenAddress1, signers[1]);
       let currentBalance = cumulativeBalance;
 
       // Make a deposit on the second chain
-      const depositNote1 = await bridge.wrapAndDeposit(chainId1, tokenName, anchorSize, ganacheWallet2);
+      const depositNote1 = await bridge.wrapAndDeposit(chainId1, existingTokenSrc2.contract.address, anchorSize, ganacheWallet2);
 
       // Check the leaf index is incremented
       const destAnchorEdge1After = await anchor1.contract.edgeList(edgeIndex);
       assert.deepStrictEqual(destAnchorEdge1Before.latestLeafIndex.add(1), destAnchorEdge1After.latestLeafIndex);
 
       // Withdraw from the first chain
-      await bridge.withdrawAndUnwrap(depositNote1!, tokenName, anchorSize, signers[1].address, signers[1].address, signers[1]);
+      await bridge.withdrawAndUnwrap(depositNote1!, existingTokenSrc.contract.address, anchorSize, signers[1].address, signers[1].address, signers[1]);
 
       // Check the balance of the signer
       cumulativeBalance = await calculateCumulativeBalance(signers[1].address, tokenAddress1, webbTokenAddress1, signers[1]);
@@ -828,7 +840,7 @@ describe('multichain tests', () => {
       // make a deposit from the third connected chain
       edgeIndex = await anchor1.contract.edgeIndex(chainId3);
       const destAnchorEdge3Before = await anchor1.contract.edgeList(edgeIndex);
-      const depositNote3 = await bridge.wrapAndDeposit(chainId1, tokenName, anchorSize, ganacheWallet3);
+      const depositNote3 = await bridge.wrapAndDeposit(chainId1, existingTokenSrc3.contract.address, anchorSize, ganacheWallet3);
 
       // Check the leaf index is incremented
       const destAnchorEdge3After = await anchor1.contract.edgeList(edgeIndex);
@@ -836,8 +848,8 @@ describe('multichain tests', () => {
 
       // Attempting to withdraw and unwrap should fail because this anchor side does not currently have
       //      enough ERC20 token balance
-      await TruffleAssert.reverts(bridge.withdrawAndUnwrap(depositNote3!, tokenName, anchorSize, signers[1].address, signers[1].address, signers[1]));
-      await bridge.withdraw(depositNote3!, webbTokenName, anchorSize, signers[1].address, signers[1].address, signers[1]);
+      await TruffleAssert.reverts(bridge.withdrawAndUnwrap(depositNote3!, existingTokenSrc.contract.address, anchorSize, signers[1].address, signers[1].address, signers[1]));
+      await bridge.withdraw(depositNote3!, anchorSize, signers[1].address, signers[1].address, signers[1]);
 
       cumulativeBalance = await calculateCumulativeBalance(signers[1].address, tokenAddress1, webbTokenAddress1, signers[1]);
       assert.deepStrictEqual(cumulativeBalance, currentBalance.add(anchorSize));
@@ -846,14 +858,14 @@ describe('multichain tests', () => {
       // make a deposit from the fourth connected chain
       edgeIndex = await anchor1.contract.edgeIndex(chainId4);
       const destAnchorEdge4Before = await anchor1.contract.edgeList(edgeIndex);
-      const depositNote4 = await bridge.wrapAndDeposit(chainId1, tokenName, anchorSize, ganacheWallet4);
+      const depositNote4 = await bridge.wrapAndDeposit(chainId1, existingTokenSrc4.contract.address, anchorSize, ganacheWallet4);
 
       // Check the leaf index is incremented
       const destAnchorEdge4After = await anchor1.contract.edgeList(edgeIndex);
       assert.deepStrictEqual(destAnchorEdge4Before.latestLeafIndex.add(1), destAnchorEdge4After.latestLeafIndex);
 
       // Withdraw from the third connected chain
-      await bridge.withdraw(depositNote4!, webbTokenName, anchorSize, signers[1].address, signers[1].address, signers[1]);
+      await bridge.withdraw(depositNote4!, anchorSize, signers[1].address, signers[1].address, signers[1]);
 
       // Check the balance of the signer
       const endingBalanceAfterThreeWithdraw = await existingTokenSrc.getBalance(signers[1].address);
@@ -866,5 +878,6 @@ describe('multichain tests', () => {
   after('terminate networks', () => {
     ganacheServer2.close(console.error);
     ganacheServer3.close(console.error);
+    ganacheServer4.close(console.error);
   });
 });
