@@ -1,5 +1,5 @@
-yarn setup:vbridge2 \
-  && yarn setup:vbridge8
+yarn setup:vanchor2 \
+  && yarn setup:vanchor8
   # && yarn setup:bridge2
   # && yarn setup:bridge3
   # && yarn setup:bridge4

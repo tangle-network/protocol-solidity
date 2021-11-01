@@ -14,9 +14,9 @@ pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import { IERC20Receiver, IERC6777, IOmniBridge } from "../interfaces/IVBridge.sol";
+import { IERC20Receiver, IERC6777, IOmniBridge } from "../interfaces/IVAnchor.sol";
 import { CrossChainGuard } from "../utils/CrossChainGuard.sol";
-import { IVerifier } from "../interfaces/IVerifier.sol";
+import { IVAnchorVerifier } from "../interfaces/IVAnchorVerifier.sol";
 import "../trees/VMerkleTreeWithHistory.sol";
 
 
@@ -32,11 +32,6 @@ contract VAnchorBase is VMerkleTreeWithHistory, IERC20Receiver, ReentrancyGuard,
     address bridge;
     address admin;
     address handler;
-  }
-
-  struct Verifiers {
-    IVerifier verifier2;
-    IVerifier verifier16;
   }
 
   struct Edge {
@@ -64,7 +59,7 @@ contract VAnchorBase is VMerkleTreeWithHistory, IERC20Receiver, ReentrancyGuard,
   int256 public constant MAX_EXT_AMOUNT = 2**248;
   uint256 public constant MAX_FEE = 2**248;
 
-  Verifiers public verifiers;
+  IVAnchorVerifier public verifier;
   IERC6777 public immutable token;
   address public immutable omniBridge;
   address public immutable l1Unwrapper;
@@ -109,7 +104,7 @@ contract VAnchorBase is VMerkleTreeWithHistory, IERC20Receiver, ReentrancyGuard,
 
   /**
     @dev The constructor
-    @param _verifiers the addresses of SNARK verifiers for 2 inputs and 16 inputs
+    @param _verifier the addresses of SNARK verifiers for 2 inputs and 16 inputs
     @param _levels hight of the commitments merkle tree
     @param _hasher hasher address for the merkle tree
     @param _token token address for the pool
@@ -118,7 +113,7 @@ contract VAnchorBase is VMerkleTreeWithHistory, IERC20Receiver, ReentrancyGuard,
     @param _l1ChainId chain id of L1
   */
   constructor(
-    Verifiers memory _verifiers,
+    IVAnchorVerifier _verifier,
     uint32 _levels,
     address _hasher,
     IERC6777 _token,
@@ -131,7 +126,7 @@ contract VAnchorBase is VMerkleTreeWithHistory, IERC20Receiver, ReentrancyGuard,
     VMerkleTreeWithHistory(_levels, _hasher)
     CrossChainGuard(address(IOmniBridge(_omniBridge).bridgeContract()), _l1ChainId, _permissions.admin)
   {
-    verifiers = _verifiers;
+    verifier = _verifier;
     token = _token;
     omniBridge = _omniBridge;
     l1Unwrapper = _l1Unwrapper;
@@ -325,10 +320,11 @@ contract VAnchorBase is VMerkleTreeWithHistory, IERC20Receiver, ReentrancyGuard,
         uint256[2][2] memory b,
         uint256[2] memory c
     ) = unpackProof(p);
-    r = verifiers.verifier2.verifyProof(
+    r = verifier.verifyProof(
       a, b, c,
       _input,
-      maxEdges
+      maxEdges,
+      true
     );
     require(r, "Invalid withdraw proof");
     return r;
@@ -350,10 +346,11 @@ contract VAnchorBase is VMerkleTreeWithHistory, IERC20Receiver, ReentrancyGuard,
         uint256[2][2] memory b,
         uint256[2] memory c
     ) = unpackProof(p);
-    r = verifiers.verifier16.verifyProof(
+    r = verifier.verifyProof(
       a, b, c,
       _input,
-      maxEdges
+      maxEdges,
+      false
     );
     require(r, "Invalid withdraw proof");
     return r;

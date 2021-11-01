@@ -26,7 +26,7 @@ move_verifiers_and_metadata () {
     cp $1/verifier.sol contracts/verifiers/$bridgetype/"Verifier$size.sol"
 }
 
-move_verifiers_and_metadata_vbridge () {
+move_verifiers_and_metadata_vanchor () {
     local indir="$1" size="$2" bridgeType="$3" nIns="$4"
     cp $indir/circuit_final.zkey test/fixtures/$bridgeType/$size/circuit_final.zkey
 

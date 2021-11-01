@@ -15,7 +15,7 @@ contract VAnchor is LinkableVAnchor {
   using SafeERC20 for IERC20;
 
   constructor(
-    Verifiers memory _verifiers,
+    IVAnchorVerifier _verifier,
     uint32 _levels,
     address _hasher,
     IERC6777 _token,
@@ -25,7 +25,7 @@ contract VAnchor is LinkableVAnchor {
     PermissionedAccounts memory _permissions,
     uint8 _maxEdges
   ) LinkableVAnchor(
-    _verifiers,
+    _verifier,
     _levels,
     _hasher,
     _token,

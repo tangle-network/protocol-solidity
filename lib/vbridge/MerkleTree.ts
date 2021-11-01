@@ -1,8 +1,8 @@
 // keccak256("tornado") % BN254_FIELD_SIZE
 const DEFAULT_ZERO = '21663839004416932945382355908790599225266501822907911457504978515578255421292'
 import { BigNumberish } from 'ethers';
-import { poseidonHash } from './utils';
-const defaultHash = poseidonHash;
+import { poseidonHash2 } from './utils';
+const defaultHash = poseidonHash2;
 
 // todo ensure consistent types in tree and inserted elements?
 // todo make sha3 default hasher (and update tests) to get rid of mimc/snarkjs/circomlib dependency
@@ -76,7 +76,7 @@ export class MerkleTree {
    * Insert new element into the tree
    * @param element Element to insert
    */
-  insert(element) {
+  insert(element: any) {
     if (this._layers[0].length >= this.capacity) {
       throw new Error('Tree is full')
     }
@@ -87,7 +87,7 @@ export class MerkleTree {
    * Insert multiple elements into the tree.
    * @param {Array} elements Elements to insert
    */
-  bulkInsert(elements) {
+  bulkInsert(elements: any) {
     if (this._layers[0].length + elements.length > this.capacity) {
       throw new Error('Tree is full')
     }
@@ -115,7 +115,7 @@ export class MerkleTree {
    * @param {number} index Index of element to change
    * @param element Updated element value
    */
-  update(index, element) {
+  update(index: number, element: any) {
     if (isNaN(Number(index)) || index < 0 || index > this._layers[0].length || index >= this.capacity) {
       throw new Error('Insert index out of bounds: ' + index)
     }
@@ -136,7 +136,7 @@ export class MerkleTree {
    * @param {number} index Leaf index to generate path for
    * @returns {{pathElements: Object[], pathIndex: number[]}} An object containing adjacent elements and left-right index
    */
-  path(index) {
+  path(index: number) {
     if (isNaN(Number(index)) || index < 0 || index >= this._layers[0].length) {
       throw new Error('Index out of bounds: ' + index)
     }
@@ -162,7 +162,7 @@ export class MerkleTree {
    * @param comparator A function that checks leaf value equality
    * @returns {number} Index if element is found, otherwise -1
    */
-  indexOf(element, comparator?) {
+  indexOf(element: any, comparator?: any): number {
     if (comparator) {
       return this._layers[0].findIndex((el) => comparator(element, el))
     } else {
@@ -212,7 +212,7 @@ export class MerkleTree {
    * @param hashFunction
    * @returns {MerkleTree}
    */
-  static deserialize(data, hashFunction) {
+  static deserialize(data: any, hashFunction: any) {
     const instance = Object.assign(Object.create(this.prototype), data)
     instance._hash = hashFunction || defaultHash
     instance.capacity = 2 ** instance.levels

@@ -1,12 +1,14 @@
 import crypto from 'crypto';
-import ethers, { BigNumberish } from 'ethers';
-import { poseidon } from 'circomlib';
+import ethers, { BigNumber, BigNumberish } from 'ethers';
+// import { poseidon } from 'circomlibjs';
+const { poseidon } = require('circomlibjs');
 
-export const BigNumber = ethers.BigNumber
-
-
-export const poseidonHash = (items: BigNumberish[]) => BigNumber.from(poseidon(items).toString())
-export const poseidonHash2 = (a: BigNumberish, b: BigNumberish) => poseidonHash([a, b])
+export const poseidonHash = (items: BigNumberish[]) => {
+  return BigNumber.from(poseidon(items).toString());
+}
+export const poseidonHash2 = (a: any, b: any) => {
+  return poseidonHash([a, b]);
+}
 
 export const FIELD_SIZE = BigNumber.from(
   '21888242871839275222246405745257275088548364400416034343698204186575808495617',
@@ -23,7 +25,7 @@ export function getExtDataHash({
   encryptedOutput1,
   encryptedOutput2,
   isL1Withdrawal,
-}) {
+}: any) {
   const abi = new ethers.utils.AbiCoder()
 
   const encodedData = abi.encode(
@@ -47,7 +49,7 @@ export function getExtDataHash({
 }
 
 /** BigNumber to hex string of specified length */
-export function toFixedHex(number, length = 32) {
+export function toFixedHex(number: BigNumberish, length = 32) {
   let result =
     '0x' +
     (number instanceof Buffer
@@ -61,7 +63,7 @@ export function toFixedHex(number, length = 32) {
 }
 
 /** Convert value into buffer of specified byte length */
-export const toBuffer = (value, length) =>
+export const toBuffer = (value: BigNumberish, length: number) =>
   Buffer.from(
     BigNumber.from(value)
       .toHexString()
@@ -70,7 +72,7 @@ export const toBuffer = (value, length) =>
     'hex',
   )
 
-export function shuffle(array) {
+export function shuffle(array: any[]) {
   let currentIndex = array.length
   let randomIndex
 

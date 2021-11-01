@@ -10,7 +10,7 @@ import "../interfaces/ILinkableAnchor.sol";
 
 abstract contract LinkableVAnchor is VAnchorBase, ILinkableAnchor {
   constructor(
-    Verifiers memory _verifiers,
+    IVAnchorVerifier _verifier,
     uint32 _levels,
     address _hasher,
     IERC6777 _token,
@@ -20,7 +20,7 @@ abstract contract LinkableVAnchor is VAnchorBase, ILinkableAnchor {
     PermissionedAccounts memory _permissions,
     uint8 _maxEdges
   ) VAnchorBase(
-    _verifiers,
+    _verifier,
     _levels,
     _hasher,
     _token,

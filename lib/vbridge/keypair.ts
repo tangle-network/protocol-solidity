@@ -4,7 +4,7 @@ import { poseidonHash, toFixedHex } from './utils';
 const { BigNumber } = ethers
 
 
-export function packEncryptedMessage(encryptedMessage) {
+export function packEncryptedMessage(encryptedMessage: any) {
   const nonceBuf = Buffer.from(encryptedMessage.nonce, 'base64')
   const ephemPublicKeyBuf = Buffer.from(encryptedMessage.ephemPublicKey, 'base64')
   const ciphertextBuf = Buffer.from(encryptedMessage.ciphertext, 'base64')
@@ -18,7 +18,7 @@ export function packEncryptedMessage(encryptedMessage) {
   return '0x' + messageBuff.toString('hex')
 }
 
-export function unpackEncryptedMessage(encryptedMessage) {
+export function unpackEncryptedMessage(encryptedMessage: any) {
   if (encryptedMessage.slice(0, 2) === '0x') {
     encryptedMessage = encryptedMessage.slice(2)
   }
@@ -69,7 +69,7 @@ export class Keypair {
    * @param str
    * @returns {Keypair}
    */
-  static fromString(str) {
+  static fromString(str: string) {
     if (str.length === 130) {
       str = str.slice(2)
     }
@@ -89,7 +89,7 @@ export class Keypair {
    * @param {Buffer} bytes
    * @returns {string} a hex string with encrypted data
    */
-  encrypt(bytes) {
+  encrypt(bytes: Buffer) {
     return packEncryptedMessage(
       encrypt(this.encryptionKey, { data: bytes.toString('base64') }, 'x25519-xsalsa20-poly1305'),
     )
@@ -101,7 +101,7 @@ export class Keypair {
    * @param {string} data a hex string with data
    * @returns {Buffer}
    */
-  decrypt(data) {
+  decrypt(data: string) {
     return Buffer.from(decrypt(unpackEncryptedMessage(data), this.privkey.slice(2)), 'base64')
   }
 }

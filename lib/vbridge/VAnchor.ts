@@ -10,16 +10,12 @@ import { RootInfo } from ".";
 import { FIELD_SIZE, getExtDataHash, poseidonHash2, randomBN, shuffle } from "./utils";
 import { Utxo } from './utxo';
 import { Keypair } from "./keypair";
+import { IVAnchorVerifier } from "../../typechain";
 
 const path = require('path');
 const snarkjs = require('snarkjs');
 const F = require('circomlibjs').babyjub.F;
 const Scalar = require('ffjavascript').Scalar;
-
-export interface IVerifiers {
-  verifier2: string;
-  verifier16: string;
-}
 
 export interface IPermissionedAccounts {
   bridge: string;
@@ -33,12 +29,12 @@ export interface IMerkleProofData {
   merkleRoot: BigNumberish;
 }
 
-export interface IUTXOInputs {
-  chainId?: BigNumber;
-  amount?: BigNumber;
-  keypair?: Keypair;
-  blinding?: BigNumber;
-  index?: BigNumber;
+export interface IUTXOInput {
+  chainId: BigNumber;
+  amount: BigNumber;
+  keypair: Keypair;
+  blinding: BigNumber;
+  index: number;
 }
 
 export interface IPublicInputs {
@@ -96,14 +92,19 @@ class VAnchor {
   tree: MerkleTree;
   // hex string of the connected root
   latestSyncedBlock: number;
-  circuitZkeyPath: string;
-  circuitWASMPath: string;
+  smallCircuitZkeyPath: string;
+  smallCircuitWASMPath: string;
+  smallWitnessCalculator: any;
+
+  largeCircuitZkeyPath: string;
+  largeCircuitWASMPath: string;
+  largeWitnessCalculator: any;
 
   // The depositHistory stores leafIndex => information to create proposals (new root)
   depositHistory: Record<number, string>;
   token?: string;
   denomination?: string;
-  witnessCalculator: any;
+  
 
   private constructor(
     contract: VAnchorContract,
@@ -113,70 +114,44 @@ class VAnchor {
   ) {
     this.signer = signer;
     this.contract = contract;
-    this.tree = new MerkleTree(treeHeight, [], { hashFunction: poseidonHash2 });
+    this.tree = new MerkleTree(treeHeight);
     this.latestSyncedBlock = 0;
     this.depositHistory = {};
-    this.witnessCalculator = {};
+    this.smallWitnessCalculator = {};
+    this.largeWitnessCalculator = {};
 
     // set the circuit zkey and wasm depending upon max edges
     switch (maxEdges) {
       case 1:
-        this.circuitWASMPath = 'test/fixtures/bridge/2/poseidon_bridge_2.wasm';
-        this.circuitZkeyPath = 'test/fixtures/bridge/2/circuit_final.zkey';
-        this.witnessCalculator = require("../../test/fixtures/bridge/2/witness_calculator.js");
+        this.smallCircuitWASMPath = 'test/fixtures/vanchor_2/2/poseidon_vbridge_2_2.wasm';
+        this.smallCircuitZkeyPath = 'test/fixtures/vanchor_2/2/circuit_final.zkey';
+        this.smallWitnessCalculator = require("../../test/fixtures/vanchor_2/2/witness_calculator.js");
+        this.largeCircuitWASMPath = 'test/fixtures/vanchor_16/2/poseidon_vbridge_16_2.wasm';
+        this.largeCircuitZkeyPath = 'test/fixtures/vanchor_16/2/circuit_final.zkey';
+        this.largeWitnessCalculator = require("../../test/fixtures/vanchor_16/2/witness_calculator.js");
         break;
-      case 2:
-        this.circuitWASMPath = 'test/fixtures/bridge/3/poseidon_bridge_3.wasm';
-        this.circuitZkeyPath = 'test/fixtures/bridge/3/circuit_final.zkey';
-        this.witnessCalculator = require("../../test/fixtures/bridge/3/witness_calculator.js");
-        break;
-      case 3:
-        this.circuitWASMPath = 'test/fixtures/bridge/4/poseidon_bridge_4.wasm';
-        this.circuitZkeyPath = 'test/fixtures/bridge/4/circuit_final.zkey';
-        this.witnessCalculator = require("../../test/fixtures/bridge/4/witness_calculator.js");
-        break;
-      case 4:
-        this.circuitWASMPath = 'test/fixtures/bridge/5/poseidon_bridge_5.wasm';
-        this.circuitZkeyPath = 'test/fixtures/bridge/5/circuit_final.zkey';
-        this.witnessCalculator = require("../../test/fixtures/bridge/5/witness_calculator.js");
-        break;
-      case 5:
-        this.circuitWASMPath = 'test/fixtures/bridge/6/poseidon_bridge_6.wasm';
-        this.circuitZkeyPath = 'test/fixtures/bridge/6/circuit_final.zkey';
-        this.witnessCalculator = require("../../test/fixtures/bridge/6/witness_calculator.js");
+      case 7:
+        this.smallCircuitWASMPath = 'test/fixtures/vanchor_2/8/poseidon_vbridge_8_2.wasm';
+        this.smallCircuitZkeyPath = 'test/fixtures/vanchor_2/8/circuit_final.zkey';
+        this.smallWitnessCalculator = require("../../test/fixtures/vanchor_2/8/witness_calculator.js");
+        this.largeCircuitWASMPath = 'test/fixtures/vanchor_2/8/poseidon_vbridge_8_2.wasm';
+        this.largeCircuitZkeyPath = 'test/fixtures/vanchor_2/8/circuit_final.zkey';
+        this.largeWitnessCalculator = require("../../test/fixtures/vanchor_2/8/witness_calculator.js");
         break;
       default:
-        this.circuitWASMPath = 'test/fixtures/bridge/2/poseidon_bridge_2.wasm';
-        this.circuitZkeyPath = 'test/fixtures/bridge/2/circuit_final.zkey';
-        this.witnessCalculator = require("../../test/fixtures/bridge/2/witness_calculator.js");
+        this.smallCircuitWASMPath = 'test/fixtures/vanchor_2/2/poseidon_vbridge_2_2.wasm';
+        this.smallCircuitZkeyPath = 'test/fixtures/vanchor_2/2/circuit_final.zkey';
+        this.smallWitnessCalculator = require("../../test/fixtures/vanchor_2/2/witness_calculator.js");
+        this.largeCircuitWASMPath = 'test/fixtures/vanchor_16/2/poseidon_vbridge_16_2.wasm';
+        this.largeCircuitZkeyPath = 'test/fixtures/vanchor_16/2/circuit_final.zkey';
+        this.largeWitnessCalculator = require("../../test/fixtures/vanchor_16/2/witness_calculator.js");
         break;
     }
 
   }
 
-  // public static anchorFromAddress(
-  //   contract: string,
-  //   signer: ethers.Signer,
-  // ) {
-  //   const anchor = VAnchor__factory.connect(contract, signer);
-  //   return new Anchor(anchor, signer);
-  // }
-
-  // Deploys an Anchor contract and sets the signer for deposit and withdraws on this contract.
-/*
-    Verifiers memory _verifiers,
-    uint32 _levels,
-    address _hasher,
-    IERC6777 _token,
-    address _omniBridge,
-    address _l1Unwrapper,
-    uint256 _l1ChainId,
-    PermissionedAccounts memory _permissions,
-    uint8 _maxEdges
-*/
-
   public static async createVAnchor(
-    verifiers: IVerifiers,
+    verifier: string,
     levels: BigNumberish,
     hasher: string,
     token: string,
@@ -188,7 +163,7 @@ class VAnchor {
     signer: ethers.Signer,
   ) {
     const factory = new VAnchor__factory(signer);
-    const vAnchor = await factory.deploy(verifiers, levels, hasher, token, omniBridge, l1Unwrapper, l1ChainId, permissions, maxEdges, {});
+    const vAnchor = await factory.deploy(verifier, levels, hasher, token, omniBridge, l1Unwrapper, l1ChainId, permissions, maxEdges, {});
     await vAnchor.deployed();
     const createdVAnchor = new VAnchor(vAnchor, signer, BigNumber.from(levels).toNumber(), maxEdges);
     createdVAnchor.latestSyncedBlock = vAnchor.deployTransaction.blockNumber!;
@@ -210,8 +185,14 @@ class VAnchor {
     return createdAnchor;
   }
 
-  public static generateUTXO(utxoInputs: IUTXOInputs): Utxo {
-    return new Utxo(utxoInputs);
+  public static generateUTXO(utxoInputs: IUTXOInput): Utxo {
+    return new Utxo({
+      chainId: utxoInputs.chainId,
+      amount: utxoInputs.amount,
+      blinding: utxoInputs.blinding,
+      keypair: utxoInputs.keypair,
+      index: undefined,
+    });
   }
 
   public static createRootsBytes(rootArray: string[]) {
@@ -441,19 +422,27 @@ class VAnchor {
     }
   }
 
-  public async createWitness(data: any) {
-    const fileBuf = require('fs').readFileSync(this.circuitWASMPath);
-    const witnessCalculator = await this.witnessCalculator(fileBuf)
+  public async createWitness(data: any, small: boolean) {
+    const fileBuf = require('fs').readFileSync(small ? this.smallCircuitZkeyPath : this.largeCircuitZkeyPath);
+    const witnessCalculator = small
+      ? await this.smallWitnessCalculator(fileBuf)
+      : await this.largeWitnessCalculator(fileBuf)
     const buff = await witnessCalculator.calculateWTNSBin(data,0);
     return buff;
   }
 
-  public async proveAndVerify(wtns: any) {
-    let res = await snarkjs.groth16.prove(this.circuitZkeyPath, wtns);
+  public async proveAndVerify(wtns: any, small: boolean) {
+    let res = await snarkjs.groth16.prove(small
+      ? this.smallCircuitZkeyPath
+      : this.largeCircuitZkeyPath, wtns
+    );
     let proof = res.proof;
     let publicSignals = res.publicSignals;
 
-    const vKey = await snarkjs.zKey.exportVerificationKey(this.circuitZkeyPath);
+    const vKey = await snarkjs.zKey.exportVerificationKey(small
+      ? this.smallCircuitZkeyPath
+      : this.largeCircuitZkeyPath
+    );
     res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
 
     let proofEncoded = await VAnchor.generateWithdrawProofCallData(proof, publicSignals);
@@ -488,8 +477,8 @@ class VAnchor {
       merkleProofsForInputs
     );
 
-    const wtns = await this.createWitness(input);
-    let proofEncoded = await this.proveAndVerify(wtns);
+    const wtns = await this.createWitness(input, inputs.length == 2);
+    let proofEncoded = await this.proveAndVerify(wtns, inputs.length == 2);
 
     const publicInputs: IPublicInputs = this.generatePublicInputs(
       proofEncoded,
@@ -509,13 +498,23 @@ class VAnchor {
   public async transact(
     inputs: Utxo[], 
     outputs: Utxo[], 
-    extAmount: BigNumberish, 
     fee: BigNumberish,
     recipient: string, 
     relayer: string,
     isL1Withdrawal: boolean,
   ) {
     const merkleProofsForInputs = inputs.map((x) => this.getMerkleProof(x));
+
+    if (outputs.length < 2) {
+      while (outputs.length < 2) {
+        outputs.push(new Utxo());
+      }
+    }
+
+    let extAmount = BigNumber.from(fee)
+      .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+      .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+
     const { extData, publicInputs } = await this.setupTransaction(
       inputs,
       outputs,
@@ -541,10 +540,9 @@ class VAnchor {
     return receipt;
   }
 
-  public async bridgedWithdraw(
+  public async bridgedTransact(
     inputs: Utxo[],
     outputs: Utxo[],
-    extAmount: BigNumberish,
     fee: BigNumberish,
     recipient: string,
     relayer: string,
@@ -555,6 +553,17 @@ class VAnchor {
     if (merkleProofsForInputs.length !== inputs.length) {
       throw new Error('Merkle proofs has different length than inputs');
     }
+
+    if (outputs.length < 2) {
+      while (outputs.length < 2) {
+        outputs.push(new Utxo());
+      }
+    }
+
+    let extAmount = BigNumber.from(fee)
+      .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+      .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+
     const { extData, publicInputs } = await this.setupTransaction(
       inputs,
       outputs,
@@ -574,6 +583,53 @@ class VAnchor {
           publicInputs.outputCommitments[1],
         ]
       },
+      extData,
+      { gasLimit: '0x5B8D80' }
+    );
+    const receipt = await tx.wait();
+    return receipt;
+  }
+
+  public async registerAndTransact(
+    owner: string,
+    publicKey: string,
+    inputs: Utxo[] = [],
+    outputs: Utxo[] = [],
+    fee: BigNumberish = 0,
+    recipient: string = '0',
+    relayer: string = '0',
+    isL1Withdrawal: boolean = false,
+    merkleProofsForInputs: any[] = []
+  ) {
+    // const { pathElements, pathIndices, merkleRoot } = merkleProofsForInputs;
+    if (merkleProofsForInputs.length !== inputs.length) {
+      throw new Error('Merkle proofs has different length than inputs');
+    }
+
+    if (outputs.length < 2) {
+      while (outputs.length < 2) {
+        outputs.push(new Utxo());
+      }
+    }
+
+    let extAmount = BigNumber.from(fee)
+      .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+      .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+
+    const { extData, publicInputs } = await this.setupTransaction(
+      inputs,
+      outputs,
+      extAmount,
+      fee,
+      recipient,
+      relayer,
+      isL1Withdrawal,
+      merkleProofsForInputs,
+    );
+
+    let tx = await this.contract.registerAndTransact(
+      { owner, publicKey },
+      { ...publicInputs, outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]] },
       extData,
       { gasLimit: '0x5B8D80' }
     );

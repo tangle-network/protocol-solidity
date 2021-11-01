@@ -5,16 +5,14 @@ import { RootInfo } from '.';
 
 const { BigNumber } = ethers
 
-
-
 export class Utxo {
   chainId: BigNumberish;
   amount: BigNumberish;
   blinding: BigNumberish;
   keypair: Keypair;
   index: number | null;
-  _commitment: BigNumberish | null;
-  _nullifier: BigNumberish | null;
+  _commitment?: BigNumberish;
+  _nullifier?: BigNumberish;
 
   /** Initialize a new UTXO - unspent transaction output or input. Note, a full TX consists of 2/16 inputs and 2 outputs
    *
@@ -70,7 +68,7 @@ export class Utxo {
     const diffs = []
     const targetRoot = roots.find(root => root.chainId === chainId);
     return roots.map(diff => {
-      return BigNumber.from(diff.merkleRoot).sub(BigNumber.from(targetRoot.merkleRoot));
+      return BigNumber.from(diff.merkleRoot).sub(BigNumber.from(targetRoot?.merkleRoot));
     });
   }
 
@@ -92,15 +90,14 @@ export class Utxo {
    * @param {number} index UTXO index in merkle tree
    * @returns {Utxo}
    */
-  static decrypt(keypair, data, index) {
+  static decrypt(keypair: Keypair, data: string, index: number) {
     const buf = keypair.decrypt(data)
-    return new Utxo({
+    const utxo = new Utxo({
       blinding: BigNumber.from('0x' + buf.slice(0, 31).toString('hex')),
       amount: BigNumber.from('0x' + buf.slice(31, 62).toString('hex')),
       keypair,
-      index,
-    })
+    });
+    utxo.index = index;
+    return utxo;
   }
 }
-
-module.exports = Utxo

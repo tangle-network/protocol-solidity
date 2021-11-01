@@ -210,7 +210,7 @@ describe('Anchor for 2 max edges', () => {
   })
 
   describe('#withdraw', () => {
-    it.only('should work', async () => {
+    it('should work', async () => {
       const signers = await ethers.getSigners();
       const sender = signers[0];
       const relayer = signers[1];

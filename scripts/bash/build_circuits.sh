@@ -1,6 +1,6 @@
 #!/bin/bash
 
-mkdir -p artifacts/circuits/{anchor,bridge,semaphore,vbridge_2,vbridge_16}
+mkdir -p artifacts/circuits/{anchor,bridge,semaphore,vanchor_2,vanchor_16}
 
 compile () {
     local outdir="$1" circuit="$2" size="$3"
@@ -65,17 +65,17 @@ compile semaphore semaphore_bridge_2 2
 copy_to_fixtures semaphore semaphore_bridge_2 2 semaphore
 
 echo "Compiling Webb style variable Poseidon bridge 2 circuit w/ 2 inputs"
-compile vbridge_2 poseidon_vbridge_2_2 2
-copy_to_fixtures vbridge_2 poseidon_vbridge_2_2 2 vbridge_2
+compile vanchor_2 poseidon_vanchor_2_2 2
+copy_to_fixtures vanchor_2 poseidon_vanchor_2_2 2 vanchor_2
 
 echo "Compiling Webb style variable Poseidon bridge 2 circuit w/ 16 inputs"
-compile vbridge_16 poseidon_vbridge_16_2 2
-copy_to_fixtures vbridge_16 poseidon_vbridge_16_2 2 vbridge_16
+compile vanchor_16 poseidon_vanchor_16_2 2
+copy_to_fixtures vanchor_16 poseidon_vanchor_16_2 2 vanchor_16
 
 echo "Compiling Webb style variable Poseidon bridge 8 circuit w/ 2 inputs"
-compile vbridge_2 poseidon_vbridge_2_8 8
-copy_to_fixtures vbridge_2 poseidon_vbridge_2_8 8 vbridge_2
+compile vanchor_2 poseidon_vanchor_2_8 8
+copy_to_fixtures vanchor_2 poseidon_vanchor_2_8 8 vanchor_2
 
 echo "Compiling Webb style variable Poseidon bridge 8 circuit w/ 16 inputs"
-compile vbridge_16 poseidon_vbridge_16_8 8
-copy_to_fixtures vbridge_16 poseidon_vbridge_16_8 8 vbridge_16
+compile vanchor_16 poseidon_vanchor_16_8 8
+copy_to_fixtures vanchor_16 poseidon_vanchor_16_8 8 vanchor_16
