@@ -122,26 +122,26 @@ class VAnchor {
     // set the circuit zkey and wasm depending upon max edges
     switch (maxEdges) {
       case 1:
-        this.smallCircuitWASMPath = 'test/fixtures/vanchor_2/2/poseidon_vbridge_2_2.wasm';
+        this.smallCircuitWASMPath = 'test/fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm';
         this.smallCircuitZkeyPath = 'test/fixtures/vanchor_2/2/circuit_final.zkey';
         this.smallWitnessCalculator = require("../../test/fixtures/vanchor_2/2/witness_calculator.js");
-        this.largeCircuitWASMPath = 'test/fixtures/vanchor_16/2/poseidon_vbridge_16_2.wasm';
+        this.largeCircuitWASMPath = 'test/fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm';
         this.largeCircuitZkeyPath = 'test/fixtures/vanchor_16/2/circuit_final.zkey';
         this.largeWitnessCalculator = require("../../test/fixtures/vanchor_16/2/witness_calculator.js");
         break;
       case 7:
-        this.smallCircuitWASMPath = 'test/fixtures/vanchor_2/8/poseidon_vbridge_8_2.wasm';
+        this.smallCircuitWASMPath = 'test/fixtures/vanchor_2/8/poseidon_vanchor_8_2.wasm';
         this.smallCircuitZkeyPath = 'test/fixtures/vanchor_2/8/circuit_final.zkey';
         this.smallWitnessCalculator = require("../../test/fixtures/vanchor_2/8/witness_calculator.js");
-        this.largeCircuitWASMPath = 'test/fixtures/vanchor_16/8/poseidon_vbridge_16_8.wasm';
+        this.largeCircuitWASMPath = 'test/fixtures/vanchor_16/8/poseidon_vanchor_16_8.wasm';
         this.largeCircuitZkeyPath = 'test/fixtures/vanchor_16/8/circuit_final.zkey';
         this.largeWitnessCalculator = require("../../test/fixtures/vanchor_16/8/witness_calculator.js");
         break;
       default:
-        this.smallCircuitWASMPath = 'test/fixtures/vanchor_2/2/poseidon_vbridge_2_2.wasm';
+        this.smallCircuitWASMPath = 'test/fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm';
         this.smallCircuitZkeyPath = 'test/fixtures/vanchor_2/2/circuit_final.zkey';
         this.smallWitnessCalculator = require("../../test/fixtures/vanchor_2/2/witness_calculator.js");
-        this.largeCircuitWASMPath = 'test/fixtures/vanchor_16/2/poseidon_vbridge_16_2.wasm';
+        this.largeCircuitWASMPath = 'test/fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm';
         this.largeCircuitZkeyPath = 'test/fixtures/vanchor_16/2/circuit_final.zkey';
         this.largeWitnessCalculator = require("../../test/fixtures/vanchor_16/2/witness_calculator.js");
         break;
