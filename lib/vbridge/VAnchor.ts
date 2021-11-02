@@ -422,7 +422,7 @@ class VAnchor {
   }
 
   public async createWitness(data: any, small: boolean) {
-    const fileBuf = require('fs').readFileSync(small ? this.smallCircuitZkeyPath : this.largeCircuitZkeyPath);
+    const fileBuf = require('fs').readFileSync(small ? this.smallCircuitWASMPath : this.largeCircuitWASMPath);
     const witnessCalculator = small
       ? await this.smallWitnessCalculator(fileBuf)
       : await this.largeWitnessCalculator(fileBuf)
