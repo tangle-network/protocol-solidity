@@ -78,7 +78,7 @@ export class Utxo {
    * @returns {string} `0x`-prefixed hex string with data
    */
   encrypt() {
-    const bytes = Buffer.concat([toBuffer(this.blinding, 31), toBuffer(this.amount, 31)])
+    const bytes = Buffer.concat([toBuffer(this.amount, 31), toBuffer(this.blinding, 31)])
     return this.keypair.encrypt(bytes)
   }
 
@@ -93,8 +93,8 @@ export class Utxo {
   static decrypt(keypair: Keypair, data: string, index: number) {
     const buf = keypair.decrypt(data)
     const utxo = new Utxo({
-      blinding: BigNumber.from('0x' + buf.slice(0, 31).toString('hex')),
-      amount: BigNumber.from('0x' + buf.slice(31, 62).toString('hex')),
+      amount: BigNumber.from('0x' + buf.slice(0, 31).toString('hex')),
+      blinding: BigNumber.from('0x' + buf.slice(31, 62).toString('hex')),
       keypair,
     });
     utxo.index = index;

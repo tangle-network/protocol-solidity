@@ -6,6 +6,7 @@ compile () {
     local outdir="$1" circuit="$2" size="$3"
     mkdir -p build/$outdir
     mkdir -p build/$outdir/$size
+    echo "$circuits/test/$circuit.circom"
     ~/.cargo/bin/circom --r1cs --wasm --sym \
         -o artifacts/circuits/$outdir \
         circuits/test/$circuit.circom
@@ -60,9 +61,9 @@ copy_to_fixtures () {
 # ###
 # # WEBB SEMPAHORES
 # ###
-echo "Compiling Webb style Semaphore bridge 2 withdrawal circuit..."
-compile semaphore semaphore_bridge_2 2
-copy_to_fixtures semaphore semaphore_bridge_2 2 semaphore
+# echo "Compiling Webb style Semaphore bridge 2 withdrawal circuit..."
+# compile semaphore semaphore_bridge_2 2
+# copy_to_fixtures semaphore semaphore_bridge_2 2 semaphore
 
 echo "Compiling Webb style variable Poseidon bridge 2 circuit w/ 2 inputs"
 compile vanchor_2 poseidon_vanchor_2_2 2
