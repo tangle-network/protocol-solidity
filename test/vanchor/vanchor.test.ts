@@ -128,6 +128,8 @@ describe('VAnchor for 2 max edges', () => {
       await anchor.registerAndTransact(
         sender.address,
         aliceDepositUtxo.keypair.address(),
+        [],
+        [aliceDepositUtxo],
       );
     })
   })

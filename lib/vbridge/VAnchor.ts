@@ -368,23 +368,23 @@ class VAnchor {
       roots: roots.map((x) => x.merkleRoot),
       diffs: inputs.map((x) => x.getDiffs(roots, chainId)),
       chainId: chainId,
-      inputNullifier: inputs.map((x) => x.getNullifier()),
-      outputCommitment: outputs.map((x) => x.getCommitment()),
+      inputNullifier: inputs.map((x) => x.getNullifier().toString()),
+      outputCommitment: outputs.map((x) => x.getCommitment().toString()),
       publicAmount: BigNumber.from(extAmount).sub(fee).add(FIELD_SIZE).mod(FIELD_SIZE).toString(),
-      extDataHash,
+      extDataHash: extDataHash.toString(),
   
       // data for 2 transaction inputs
-      inAmount: inputs.map((x) => x.amount),
-      inPrivateKey: inputs.map((x) => x.keypair.privkey),
-      inBlinding: inputs.map((x) => x.blinding),
+      inAmount: inputs.map((x) => x.amount.toString()),
+      inPrivateKey: inputs.map((x) => x.keypair.privkey.toString()),
+      inBlinding: inputs.map((x) => x.blinding.toString()),
       inPathIndices: externalMerkleProofs.map((x) => x.pathIndex),
       inPathElements: externalMerkleProofs.map((x) => x.pathElements),
   
       // data for 2 transaction outputs
-      outChainID: outputs.map((x) => x.chainId),
-      outAmount: outputs.map((x) => x.amount),
-      outBlinding: outputs.map((x) => x.blinding),
-      outPubkey: outputs.map((x) => x.keypair.pubkey),
+      outChainID: outputs.map((x) => x.chainId.toString()),
+      outAmount: outputs.map((x) => x.amount.toString()),
+      outBlinding: outputs.map((x) => x.blinding.toString()),
+      outPubkey: outputs.map((x) => x.keypair.pubkey.toString()),
     }
 
     return {
@@ -462,7 +462,6 @@ class VAnchor {
     await this.checkKnownRoot();
     const chainId = await this.signer.getChainId();
     const roots = await this.populateRootInfosForProof();
-    console.log(chainId, roots);
     const { input, extData } = await this.generateWitnessInput(
       roots,
       chainId,
@@ -475,7 +474,7 @@ class VAnchor {
       isL1Withdrawal,
       merkleProofsForInputs
     );
-
+    console.log(input, extData);
     const wtns = await this.createWitness(input, inputs.length == 2);
     let proofEncoded = await this.proveAndVerify(wtns, inputs.length == 2);
 
