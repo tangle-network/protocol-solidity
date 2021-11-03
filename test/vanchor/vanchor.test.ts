@@ -196,9 +196,4 @@ describe('VAnchor for 2 max edges', () => {
 
     });
   })
-
-
-
-
-
 });
