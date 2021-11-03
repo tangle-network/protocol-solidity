@@ -306,10 +306,6 @@ class VAnchor {
       }
     });
     let thisRoot = await this.contract.getLastRoot();
-    // if (thisRoot === '0x0000000000000000000000000000000000000000000000000000000000000000') {
-    //   thisRoot = await this.contract.zeros(this.tree.levels);
-    //   console.log(thisRoot);
-    // }
     const thisChainId = await this.signer.getChainId();
     return [{
       merkleRoot: thisRoot,

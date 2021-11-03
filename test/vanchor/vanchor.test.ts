@@ -31,6 +31,8 @@ const BN = require('bn.js');
 
 const MerkleTree = require('../../lib/MerkleTree');
 
+const snarkjs = require('snarkjs')
+
 describe('VAnchor for 2 max edges', () => {
   let anchor: VAnchor;
 
@@ -54,6 +56,7 @@ describe('VAnchor for 2 max edges', () => {
   beforeEach(async () => {
     const signers = await ethers.getSigners();
     const wallet = signers[0];
+    
     sender = wallet;
 
     tree = new MerkleTree(levels);
@@ -112,7 +115,7 @@ describe('VAnchor for 2 max edges', () => {
 
     create2InputWitness = async (data: any) => {
       const witnessCalculator = require("../fixtures/vanchor_2/2/witness_calculator.js");
-      const fileBuf = require('fs').readFileSync("./test/fixtures/vanchor_2/2/poseidon_vbridge_2_2.wasm");
+      const fileBuf = require('fs').readFileSync('test/fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm');
       const wtnsCalc = await witnessCalculator(fileBuf)
       const wtns = await wtnsCalc.calculateWTNSBin(data,0);
       return wtns;
@@ -120,7 +123,7 @@ describe('VAnchor for 2 max edges', () => {
 
     create16InputWitness = async (data: any) => {
       const witnessCalculator = require("../fixtures/vanchor_16/2/witness_calculator.js");
-      const fileBuf = require('fs').readFileSync("./test/fixtures/vanchor_16/2/poseidon_vbridge_16_2.wasm");
+      const fileBuf = require('fs').readFileSync("test/fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm");
       const wtnsCalc = await witnessCalculator(fileBuf)
       const wtns = await wtnsCalc.calculateWTNSBin(data,0);
       return wtns;
@@ -128,14 +131,14 @@ describe('VAnchor for 2 max edges', () => {
   })
 
   describe('#constructor', () => {
-    it.only('should initialize', async () => {
+    it('should initialize', async () => {
       const maxEdges = await anchor.contract.maxEdges();
       assert.strictEqual(maxEdges.toString(), `${MAX_EDGES}`);
     });
   });
 
   describe('#transact', () => {
-    it.only('should transact', async () => {
+    it('should transact', async () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = new Utxo({
@@ -151,4 +154,51 @@ describe('VAnchor for 2 max edges', () => {
       );
     })
   })
+
+  describe('snark proof verification on js side', () => {
+    it.only('should work', async () => {
+      const relayer = "0x2111111111111111111111111111111111111111";
+      const extAmount = 1e7;
+      const isL1Withdrawal = false;
+      const roots = await anchor.populateRootInfosForProof();
+      const inputs = [new Utxo(), new Utxo()];
+      const aliceDepositAmount = 1e7;
+      const outputs = [new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount)
+      }), new Utxo()];
+      const merkleProofsForInputs = inputs.map((x) => anchor.getMerkleProof(x));
+
+      const { input, extData } = await anchor.generateWitnessInput(
+        roots,
+        chainID,
+        inputs,
+        outputs,
+        extAmount,
+        fee,
+        recipient,
+        relayer,
+        isL1Withdrawal,
+        merkleProofsForInputs
+      );
+
+      const wtns = await create2InputWitness(input);
+      let res = await snarkjs.groth16.prove('test/fixtures/vanchor_2/2/circuit_final.zkey', wtns);
+      const proof = res.proof;
+      let publicSignals = res.publicSignals;
+      let tempProof = proof;
+      let tempSignals = publicSignals;
+      const vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/vanchor_2/2/circuit_final.zkey');
+
+      res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
+      assert.strictEqual(res, true);
+
+    });
+  })
+
+
+
+
+
 });
