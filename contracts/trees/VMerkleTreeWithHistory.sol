@@ -41,15 +41,22 @@ contract VMerkleTreeWithHistory is Initializable {
     require(_levels < 32, "_levels should be less than 32");
     levels = _levels;
     hasher = IHasher(_hasher);
-  }
-
-  function _initialize() internal {
-    for (uint32 i = 0; i < levels; i++) {
+    for (uint32 i = 0; i < _levels; i++) {
       filledSubtrees[i] = zeros(i);
     }
 
-    roots[0] = zeros(levels);
+    roots[0] = zeros(_levels);
   }
+
+  function _initialize() internal{}
+
+  // function _initialize() internal {
+  //   for (uint32 i = 0; i < levels; i++) {
+  //     filledSubtrees[i] = zeros(i);
+  //   }
+
+  //   roots[0] = zeros(levels);
+  // }
 
   /**
     @dev Hash 2 tree leaves, returns Poseidon(_left, _right)

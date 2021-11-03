@@ -306,9 +306,10 @@ class VAnchor {
       }
     });
     let thisRoot = await this.contract.getLastRoot();
-    if (thisRoot === '0x0000000000000000000000000000000000000000000000000000000000000000') {
-      thisRoot = await this.contract.zeros(this.tree.levels);
-    }
+    // if (thisRoot === '0x0000000000000000000000000000000000000000000000000000000000000000') {
+    //   thisRoot = await this.contract.zeros(this.tree.levels);
+    //   console.log(thisRoot);
+    // }
     const thisChainId = await this.signer.getChainId();
     return [{
       merkleRoot: thisRoot,
@@ -367,7 +368,7 @@ class VAnchor {
     }
   
     const extDataHash = getExtDataHash(extData)
-    console.log(roots);
+    //console.log(roots);
     let input = {
       roots: roots.map((x) => BigNumber.from(x.merkleRoot).toString()),
       diffs: inputs.map((x) => x.getDiffs(roots)),
@@ -496,10 +497,10 @@ class VAnchor {
       isL1Withdrawal,
       merkleProofsForInputs
     );
-    console.log(input);
+    //console.log(input);
     const wtns = await this.createWitness(input, inputs.length == 2);
     let proofEncoded = await this.proveAndVerify(wtns, inputs.length == 2);
-    console.log(proofEncoded);
+    //console.log(proofEncoded);
     const publicInputs: IPublicInputs = this.generatePublicInputs(
       proofEncoded,
       roots,
@@ -652,7 +653,7 @@ class VAnchor {
       { ...publicInputs, outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]] },
       extData,
     ];
-    console.log(args);
+    //console.log(args);
     let tx = await this.contract.registerAndTransact(
       { owner, publicKey },
       { ...publicInputs, outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]] },
