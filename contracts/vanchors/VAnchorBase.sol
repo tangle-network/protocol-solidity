@@ -178,7 +178,7 @@ contract VAnchorBase is VMerkleTreeWithHistory, IERC20Receiver, ReentrancyGuard,
     _transact(_args, _extData);
   }
 
-  function configureLimits(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmount) public onlyGovernance {
+  function configureLimits(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmount) public onlyAdmin {
     _configureLimits(_minimalWithdrawalAmount, _maximumDepositAmount);
   }
 

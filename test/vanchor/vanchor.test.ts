@@ -11,8 +11,9 @@ import {
   ERC20Mock as Token,
   ERC20Mock__factory as TokenFactory,
   ERC20PresetMinterPauser__factory as MintableTokenFactory,
-  GovernedTokenWrapper as WrappedToken,
-  GovernedTokenWrapper__factory as WrappedTokenFactory,
+  GTokenWrapperMock as WrappedToken,
+  GTokenWrapperMock__factory,
+  GTokenWrapperMock__factory as WrappedTokenFactory,
   MockAMB__factory as AMBFactory,
   MockOmniBridge__factory as OmniBridgeFactory,
 } from '../../typechain';
@@ -65,10 +66,16 @@ describe('VAnchor for 2 max edges', () => {
     verifier = await Verifier.createVerifier(sender);
 
     // create token
-    const tokenFactory = new MintableTokenFactory(wallet);
-    token = await tokenFactory.deploy("Webb Wrapped Token", "webbTKN");
+    const tokenFactory = new GTokenWrapperMock__factory(wallet);
+    token = await tokenFactory.deploy(
+      "Webb Wrapped Token",
+      "webbTKN",
+      sender.address,
+      BigNumber.from(tokenDenomination).mul(100)
+    );
     await token.deployed();
     await token.mint(sender.address, '10000000000000000000000');
+    
 
     // create token
     const ambFactory = new AMBFactory(wallet);
@@ -95,6 +102,13 @@ describe('VAnchor for 2 max edges', () => {
       1,
       sender,
     );
+
+    await anchor.contract.configureLimits(
+      BigNumber.from(0),
+      BigNumber.from(tokenDenomination).mul(1_000_000),
+    )
+
+    await token.approve(anchor.contract.address, '10000000000000000000000');
 
     create2InputWitness = async (data: any) => {
       const witnessCalculator = require("../fixtures/vanchor_2/2/witness_calculator.js");

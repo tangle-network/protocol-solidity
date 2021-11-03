@@ -393,6 +393,13 @@ class VAnchor {
         return new Array(roots.length).fill('0');
       })];
     }
+
+    if (input.inputNullifier.length === 0) {
+      input.inputNullifier = [...[0,1].map((_r) => {
+        return '0';
+      })];
+    }
+
     return {
       input,
       extData,
@@ -416,6 +423,12 @@ class VAnchor {
       publicAmount: toFixedHex(publicAmount),
       extDataHash: toFixedHex(extDataHash),
     };
+
+    if (args.inputNullifiers.length === 0) {
+      args.inputNullifiers = [...[0,1].map((_r) => {
+        return '0';
+      })];
+    }
 
     return args;
   }
