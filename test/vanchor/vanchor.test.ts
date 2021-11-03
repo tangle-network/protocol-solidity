@@ -124,7 +124,11 @@ describe('VAnchor for 2 max edges', () => {
     it.only('should transact', async () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 1e7;
-      const aliceDepositUtxo = new Utxo({ amount: BigNumber.from(aliceDepositAmount) });
+      const aliceDepositUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount)
+      });
       await anchor.registerAndTransact(
         sender.address,
         aliceDepositUtxo.keypair.address(),

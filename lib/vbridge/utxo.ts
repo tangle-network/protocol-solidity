@@ -10,6 +10,7 @@ export class Utxo {
   amount: BigNumberish;
   blinding: BigNumberish;
   keypair: Keypair;
+  originChainId: BigNumberish;
   index: number | null;
   _commitment?: BigNumberish;
   _nullifier?: BigNumberish;
@@ -22,12 +23,20 @@ export class Utxo {
    * @param {Keypair} keypair
    * @param {number|null} index UTXO index in the merkle tree
    */
-  constructor({ chainId = BigNumber.from(0), amount = BigNumber.from(0), keypair = new Keypair(), blinding = randomBN(), index = null } = {}) {
+  constructor({
+    chainId = BigNumber.from(0),
+    amount = BigNumber.from(0),
+    keypair = new Keypair(),
+    blinding = randomBN(),
+    originChainId = BigNumber.from(0),
+    index = null
+  } = {}) {
     this.chainId = BigNumber.from(chainId);
-    this.amount = BigNumber.from(amount)
-    this.blinding = BigNumber.from(blinding)
-    this.keypair = keypair
-    this.index = index
+    this.amount = BigNumber.from(amount);
+    this.blinding = BigNumber.from(blinding);
+    this.keypair = keypair;
+    this.originChainId = originChainId;
+    this.index = index;
   }
 
   /**
@@ -63,10 +72,8 @@ export class Utxo {
     return this._nullifier
   }
 
-  getDiffs(roots: RootInfo[], chainId: BigNumberish): BigNumberish[] {
-    if (this.chainId !== chainId) throw new Error('Chain Id mismatch');
-    const diffs = []
-    const targetRoot = roots.find(root => root.chainId === chainId);
+  getDiffs(roots: RootInfo[]): BigNumberish[] {
+    const targetRoot = roots.find(root => root.chainId.toString() === this.originChainId.toString());
     return roots.map(diff => {
       return BigNumber.from(diff.merkleRoot).sub(BigNumber.from(targetRoot?.merkleRoot));
     });
@@ -78,7 +85,7 @@ export class Utxo {
    * @returns {string} `0x`-prefixed hex string with data
    */
   encrypt() {
-    const bytes = Buffer.concat([toBuffer(this.amount, 31), toBuffer(this.blinding, 31)])
+    const bytes = Buffer.concat([toBuffer(this.chainId, 16), toBuffer(this.amount, 31), toBuffer(this.blinding, 31)])
     return this.keypair.encrypt(bytes)
   }
 
@@ -93,8 +100,9 @@ export class Utxo {
   static decrypt(keypair: Keypair, data: string, index: number) {
     const buf = keypair.decrypt(data)
     const utxo = new Utxo({
-      amount: BigNumber.from('0x' + buf.slice(0, 31).toString('hex')),
-      blinding: BigNumber.from('0x' + buf.slice(31, 62).toString('hex')),
+      chainId: BigNumber.from('0x' + buf.slice(0, 16).toString('hex')),
+      amount: BigNumber.from('0x' + buf.slice(16, 16 + 31).toString('hex')),
+      blinding: BigNumber.from('0x' + buf.slice(16 + 31, 16 + 62).toString('hex')),
       keypair,
     });
     utxo.index = index;

@@ -24,5 +24,5 @@ template ForceSetMembershipIfEnabled(length) {
     product[i + 1] <== product[i] * diffs[i];
   }
 
-  product[length]*enabled === 0;
+  product[length] * enabled === 0;
 }

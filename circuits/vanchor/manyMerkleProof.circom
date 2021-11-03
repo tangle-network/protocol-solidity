@@ -36,10 +36,10 @@ template ManyMerkleProof(levels, length) {
     // verify that the resultant hash (computed merkle root)
     // is in the set of roots
     component set = ForceSetMembershipIfEnabled(length);
-    set.element <== hasher[levels - 1].out;
     set.enabled <== isEnabled;
     for (var i = 0; i < length; i++) {
         set.set[i] <== roots[i];
         set.diffs[i] <== diffs[i];
     }
+    set.element <== hasher[levels - 1].out;
 }

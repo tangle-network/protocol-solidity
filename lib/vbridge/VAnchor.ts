@@ -364,10 +364,11 @@ class VAnchor {
     }
   
     const extDataHash = getExtDataHash(extData)
+    console.log(roots);
     let input = {
-      roots: roots.map((x) => x.merkleRoot),
-      diffs: inputs.map((x) => x.getDiffs(roots, chainId)),
-      chainId: chainId,
+      roots: roots.map((x) => BigNumber.from(x.merkleRoot).toString()),
+      diffs: inputs.map((x) => x.getDiffs(roots)),
+      chainId: chainId.toString(),
       inputNullifier: inputs.map((x) => x.getNullifier().toString()),
       outputCommitment: outputs.map((x) => x.getCommitment().toString()),
       publicAmount: BigNumber.from(extAmount).sub(fee).add(FIELD_SIZE).mod(FIELD_SIZE).toString(),
@@ -387,6 +388,11 @@ class VAnchor {
       outPubkey: outputs.map((x) => x.keypair.pubkey.toString()),
     }
 
+    if (input.diffs.length === 0) {
+      input.diffs = [...roots.map((_r) => {
+        return new Array(roots.length).fill('0');
+      })];
+    }
     return {
       input,
       extData,
@@ -474,7 +480,7 @@ class VAnchor {
       isL1Withdrawal,
       merkleProofsForInputs
     );
-    console.log(input, extData);
+    console.log(input);
     const wtns = await this.createWitness(input, inputs.length == 2);
     let proofEncoded = await this.proveAndVerify(wtns, inputs.length == 2);
 
