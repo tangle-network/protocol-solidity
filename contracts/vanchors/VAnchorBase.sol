@@ -218,6 +218,7 @@ contract VAnchorBase is VMerkleTreeWithHistory, IERC20Receiver, ReentrancyGuard,
     }
 
     for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
+      // sets the nullifier for the input UTXO to spent
       nullifierHashes[_args.inputNullifiers[i]] = true;
     }
 

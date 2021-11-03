@@ -305,7 +305,10 @@ class VAnchor {
         chainId: rootData.chainID,
       }
     });
-    const thisRoot = await this.contract.getLastRoot();
+    let thisRoot = await this.contract.getLastRoot();
+    if (thisRoot === '0x0000000000000000000000000000000000000000000000000000000000000000') {
+      thisRoot = await this.contract.zeros(this.tree.levels);
+    }
     const thisChainId = await this.signer.getChainId();
     return [{
       merkleRoot: thisRoot,

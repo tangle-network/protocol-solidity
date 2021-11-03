@@ -6,7 +6,7 @@ include "./manyMerkleProof.circom";
 include "./keypair.circom";
 
 /*
-Utxo structure:
+UTXO structure:
 {
     chainID, // destination chain identifier
     amount,
@@ -14,17 +14,17 @@ Utxo structure:
     blinding, // random number
 }
 
-commitment = hash(amount, pubKey, blinding)
+commitment = hash(chainID, amount, pubKey, blinding)
 nullifier = hash(commitment, merklePath, privKey)
 */
 
-// Universal JoinSplit transaction with nIns inputs and 2 outputs
+// Universal JoinSplit transaction with nIns inputs and 2 outputs (2-2 & 16-2)
 template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
     // extAmount = external amount used for deposits and withdrawals
     // correct extAmount range is enforced on the smart contract
     // publicAmount = extAmount - fee
     signal input publicAmount;
-    signal input extDataHash;
+    signal input extDataHash; // arbitrary
 
     // data for transaction inputs
     signal input inputNullifier[nIns];
@@ -87,7 +87,6 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
         // We don't need to range check input amounts, since all inputs are valid UTXOs that
         // were already checked as outputs in the previous transaction (or zero amount UTXOs that don't
         // need to be checked either).
-
         sumIns += inAmount[tx];
     }
 
