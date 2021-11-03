@@ -390,13 +390,13 @@ class VAnchor {
 
     if (input.diffs.length === 0) {
       input.diffs = [...roots.map((_r) => {
-        return new Array(roots.length).fill('0');
+        return new Array(roots.length).fill('0x0000000000000000000000000000000000000000000000000000000000000000');
       })];
     }
 
     if (input.inputNullifier.length === 0) {
       input.inputNullifier = [...[0,1].map((_r) => {
-        return '0';
+        return '0x0000000000000000000000000000000000000000000000000000000000000000';
       })];
     }
 
@@ -426,7 +426,7 @@ class VAnchor {
 
     if (args.inputNullifiers.length === 0) {
       args.inputNullifiers = [...[0,1].map((_r) => {
-        return '0';
+        return '0x0000000000000000000000000000000000000000000000000000000000000000';
       })];
     }
 
@@ -644,6 +644,12 @@ class VAnchor {
       merkleProofsForInputs,
     );
 
+    const args = [
+      { owner, publicKey },
+      { ...publicInputs, outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]] },
+      extData,
+    ];
+    console.log(args);
     let tx = await this.contract.registerAndTransact(
       { owner, publicKey },
       { ...publicInputs, outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]] },
