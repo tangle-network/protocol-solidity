@@ -50,7 +50,6 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
     component inUtxoHasher[nIns];
     component nullifierHasher[nIns];
     component tree[nIns];
-    component checkRoot[nIns];
     var sumIns = 0;
 
     // verify correctness of transaction inputs
