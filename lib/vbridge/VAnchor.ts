@@ -59,7 +59,7 @@ export interface IWitnessInput {
   input: {
     roots: BigNumberish[],
     diffs: BigNumberish[][],
-    chainId: BigNumberish,
+    chainID: BigNumberish,
     inputNullifier: BigNumberish[],
     outputCommitment: BigNumberish[],
     publicAmount: BigNumberish,
@@ -368,7 +368,7 @@ class VAnchor {
     let input = {
       roots: roots.map((x) => BigNumber.from(x.merkleRoot).toString()),
       diffs: inputs.map((x) => x.getDiffs(roots)),
-      chainId: chainId.toString(),
+      chainID: chainId.toString(),
       inputNullifier: inputs.map((x) => x.getNullifier().toString()),
       outputCommitment: outputs.map((x) => x.getCommitment().toString()),
       publicAmount: BigNumber.from(extAmount).sub(fee).add(FIELD_SIZE).mod(FIELD_SIZE).toString(),
@@ -409,7 +409,7 @@ class VAnchor {
   ): IPublicInputs {
     // public inputs to the contract
     const args: IPublicInputs = {
-      proof,
+      proof: `0x${proof}`,
       roots: `0x${roots.map((x) => toFixedHex(x.merkleRoot).slice(2)).join('')}`,
       inputNullifiers: inputs.map((x) => toFixedHex(x.getNullifier())),
       outputCommitments: outputs.map((x) => toFixedHex(x.getCommitment())),
@@ -483,7 +483,7 @@ class VAnchor {
     console.log(input);
     const wtns = await this.createWitness(input, inputs.length == 2);
     let proofEncoded = await this.proveAndVerify(wtns, inputs.length == 2);
-
+    console.log(proofEncoded);
     const publicInputs: IPublicInputs = this.generatePublicInputs(
       proofEncoded,
       roots,
