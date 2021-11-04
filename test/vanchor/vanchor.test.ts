@@ -39,7 +39,7 @@ describe('VAnchor for 2 max edges', () => {
   const levels = 30;
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
   let tree: typeof MerkleTree;
-  const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
+  let fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
   const refund = BigInt((new BN('0')).toString());
   let recipient = "0x1111111111111111111111111111111111111111";
   let verifier: Verifier;
@@ -47,7 +47,7 @@ describe('VAnchor for 2 max edges', () => {
   let token: Token;
   let wrappedToken: WrappedToken;
   let tokenDenomination = '1000000000000000000' // 1 ether
-  const chainID = 31337;
+  let chainID = 31337;
   const MAX_EDGES = 1;
   let create2InputWitness: any;
   let create16InputWitness: any;
@@ -169,11 +169,13 @@ describe('VAnchor for 2 max edges', () => {
         amount: BigNumber.from(aliceDepositAmount)
       }), new Utxo()];
       const merkleProofsForInputs = inputs.map((x) => anchor.getMerkleProof(x));
+      fee = BigInt(0);
+      chainID = 0;
 
       const { input, extData } = await anchor.generateWitnessInput(
         roots,
         chainID,
-        inputs,
+        inputs, 
         outputs,
         extAmount,
         fee,
@@ -182,11 +184,12 @@ describe('VAnchor for 2 max edges', () => {
         isL1Withdrawal,
         merkleProofsForInputs
       );
-
+     
       const wtns = await create2InputWitness(input);
       let res = await snarkjs.groth16.prove('test/fixtures/vanchor_2/2/circuit_final.zkey', wtns);
       const proof = res.proof;
       let publicSignals = res.publicSignals;
+      console.log(publicSignals);
       let tempProof = proof;
       let tempSignals = publicSignals;
       const vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/vanchor_2/2/circuit_final.zkey');
