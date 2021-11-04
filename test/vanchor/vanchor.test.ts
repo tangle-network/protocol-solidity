@@ -36,7 +36,7 @@ const snarkjs = require('snarkjs')
 describe('VAnchor for 2 max edges', () => {
   let anchor: VAnchor;
 
-  const levels = 30;
+  const levels = 5;
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
   let tree: typeof MerkleTree;
   let fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
@@ -165,7 +165,7 @@ describe('VAnchor for 2 max edges', () => {
   })
 
   describe('snark proof verification on js side', () => {
-    it('should work', async () => {
+    it.only('should work', async () => {
       const relayer = "0x2111111111111111111111111111111111111111";
       const extAmount = 1e7;
       const isL1Withdrawal = false;
@@ -208,7 +208,7 @@ describe('VAnchor for 2 max edges', () => {
 
     });
 
-    it.only('poseidon4 isolated gadget test', async () => {
+    it('poseidon4 isolated gadget test', async () => {
       const relayer = "0x2111111111111111111111111111111111111111";
       const extAmount = 1e7;
       const isL1Withdrawal = false;
@@ -239,9 +239,6 @@ describe('VAnchor for 2 max edges', () => {
       }
 
       const wtns = await createInputWitnessPoseidon4(input);
-    
-
-
     });
   })
 });
