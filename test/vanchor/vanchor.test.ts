@@ -47,7 +47,7 @@ describe('VAnchor for 2 max edges', () => {
   let token: Token;
   let wrappedToken: WrappedToken;
   let tokenDenomination = '1000000000000000000' // 1 ether
-  let chainID = 31337;
+  const chainID = 31337;
   const MAX_EDGES = 1;
   let create2InputWitness: any;
   let create16InputWitness: any;
@@ -161,7 +161,7 @@ describe('VAnchor for 2 max edges', () => {
       const extAmount = 1e7;
       const isL1Withdrawal = false;
       const roots = await anchor.populateRootInfosForProof();
-      const inputs = [new Utxo(), new Utxo()];
+      const inputs = [new Utxo({chainId: BigNumber.from(chainID)}), new Utxo({chainId: BigNumber.from(chainID)})];
       const aliceDepositAmount = 1e7;
       const outputs = [new Utxo({
         chainId: BigNumber.from(chainID),
@@ -170,7 +170,7 @@ describe('VAnchor for 2 max edges', () => {
       }), new Utxo()];
       const merkleProofsForInputs = inputs.map((x) => anchor.getMerkleProof(x));
       fee = BigInt(0);
-      chainID = 0;
+      
 
       const { input, extData } = await anchor.generateWitnessInput(
         roots,
