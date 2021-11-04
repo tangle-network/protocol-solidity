@@ -48,7 +48,19 @@ export class Utxo {
     if (!this._commitment) {
       this._commitment = poseidonHash([this.chainId, this.amount, this.keypair.pubkey, this.blinding])
     }
-    return this._commitment
+
+    // console.log("chainId")
+    // console.log(this.chainId);
+    // console.log("amount");
+    // console.log(this.amount);
+    // console.log("pubkey");
+    // console.log(this.keypair.pubkey);
+    // console.log("blinding");
+    // console.log(this.blinding);
+    // console.log("commitment");
+    // console.log(this._commitment);
+    
+    return this._commitment;
   }
 
   /**
@@ -74,9 +86,6 @@ export class Utxo {
 
   getDiffs(roots: RootInfo[]): BigNumberish[] {
     const targetRoot = roots.find(root => root.chainId.toString() === this.originChainId.toString());
-    console.log(roots.map(diff => {
-      return BigNumber.from(diff.merkleRoot).sub(BigNumber.from(targetRoot?.merkleRoot));
-    }));
     return roots.map(diff => {
       return BigNumber.from(diff.merkleRoot).sub(BigNumber.from(targetRoot?.merkleRoot));
     });

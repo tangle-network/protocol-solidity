@@ -341,6 +341,10 @@ class VAnchor {
     }
   }
 
+  public async generateWitnessInputPoseidon4 () {
+    
+  }
+
   public async generateWitnessInput(
     roots: RootInfo[], 
     chainId: BigNumberish, 
@@ -384,9 +388,11 @@ class VAnchor {
       // data for 2 transaction outputs
       outChainID: outputs.map((x) => x.chainId.toString()),
       outAmount: outputs.map((x) => x.amount.toString()),
-      outBlinding: outputs.map((x) => x.blinding.toString()),
-      outPubkey: outputs.map((x) => x.keypair.pubkey.toString()),
+      outPubkey: outputs.map((x) => toFixedHex(x.keypair.pubkey).toString()),
+      outBlinding: outputs.map((x) => x.blinding.toString())
     }
+
+    console.log(input);
 
     if (input.diffs.length === 0) {
       input.diffs = [...roots.map((_r) => {
