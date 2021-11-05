@@ -147,7 +147,7 @@ describe('VAnchor for 2 max edges', () => {
   });
 
   describe('#transact', () => {
-    it('should transact', async () => {
+    it.only('should transact', async () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = new Utxo({
@@ -155,17 +155,24 @@ describe('VAnchor for 2 max edges', () => {
         originChainId: BigNumber.from(chainID),
         amount: BigNumber.from(aliceDepositAmount)
       });
+      const inputs = [new Utxo({chainId: BigNumber.from(chainID)}), new Utxo({chainId: BigNumber.from(chainID)})];
+      const merkleProofsForInputs = inputs.map((x) => anchor.getMerkleProof(x));
       await anchor.registerAndTransact(
         sender.address,
         aliceDepositUtxo.keypair.address(),
-        [],
+        inputs,
         [aliceDepositUtxo],
+        BigInt(0),
+        '0',
+        '0',
+        false,
+        merkleProofsForInputs
       );
     })
   })
 
   describe('snark proof verification on js side', () => {
-    it.only('should work', async () => {
+    it('should work', async () => {
       const relayer = "0x2111111111111111111111111111111111111111";
       const extAmount = 1e7;
       const isL1Withdrawal = false;
