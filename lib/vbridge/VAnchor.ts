@@ -392,7 +392,7 @@ class VAnchor {
       outBlinding: outputs.map((x) => x.blinding.toString())
     }
 
-    console.log(input);
+    //console.log(input);
 
     if (input.diffs.length === 0) {
       input.diffs = [...roots.map((_r) => {
@@ -625,9 +625,9 @@ class VAnchor {
     merkleProofsForInputs: any[] = []
   ) {
     // const { pathElements, pathIndices, merkleRoot } = merkleProofsForInputs;
-    // if (merkleProofsForInputs.length !== inputs.length) {
-    //   throw new Error('Merkle proofs has different length than inputs');
-    // }
+    if (merkleProofsForInputs.length !== inputs.length) {
+      throw new Error('Merkle proofs has different length than inputs');
+    }
 
     if (outputs.length < 2) {
       while (outputs.length < 2) {
