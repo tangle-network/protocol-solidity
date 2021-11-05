@@ -20,7 +20,7 @@ template ForceSetMembershipIfEnabled(length) {
   signal product[length + 1];
   product[0] <== element;
   for (var i = 0; i < length; i++) {
-    (set[i] + element - diffs[i]) * enabled === 0;
+    (set[i] - element - diffs[i]) * enabled === 0;
     product[i + 1] <== product[i] * diffs[i];
   }
 
