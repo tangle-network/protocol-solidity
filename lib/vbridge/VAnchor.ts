@@ -313,6 +313,10 @@ class VAnchor {
     }, ...neighborRootInfos];
   }
 
+  public async getClassAndContractRoots() {
+    return [this.tree.root(), await this.contract.getLastRoot()];
+  }
+
   /**
    * 
    * @param input A UTXO object that is inside the tree
@@ -392,7 +396,13 @@ class VAnchor {
       outBlinding: outputs.map((x) => x.blinding.toString())
     }
 
-    //console.log(input);
+    // console.log("printing input");
+    // console.log(input);
+    // console.log("printing input commitment");
+    // const inputCommitment =inputs.map((x) => [x.getCommitment(), x.amount]);
+    // console.log(inputCommitment);
+    // console.log("printing tree root")
+    // console.log(this.tree.root().toString());
 
     if (input.diffs.length === 0) {
       input.diffs = [...roots.map((_r) => {
@@ -499,6 +509,7 @@ class VAnchor {
       isL1Withdrawal,
       merkleProofsForInputs
     );
+ 
     //console.log(input);
     const wtns = await this.createWitness(input, inputs.length == 2);
     let proofEncoded = await this.proveAndVerify(wtns, inputs.length == 2);
@@ -512,6 +523,12 @@ class VAnchor {
       input.extDataHash.toString()
     );
 
+    outputs.forEach((x) => {
+      if (x.amount > 0) {
+        this.tree.insert(toFixedHex(x.getCommitment()));
+      }
+    });
+
     return {
       extData,
       publicInputs,
@@ -521,11 +538,17 @@ class VAnchor {
   public async transact(
     inputs: Utxo[], 
     outputs: Utxo[], 
-    fee: BigNumberish,
-    recipient: string, 
-    relayer: string,
-    isL1Withdrawal: boolean,
+    fee: BigNumberish = 0,
+    recipient: string = '0', 
+    relayer: string = '0',
+    isL1Withdrawal: boolean = false,
   ) {
+    if (inputs.length < 2) {
+      while (inputs.length < 2) {
+        //do something
+        inputs.push(new Utxo({chainId: BigNumber.from(31337)}));
+      }
+    }
     const merkleProofsForInputs = inputs.map((x) => this.getMerkleProof(x));
 
     if (outputs.length < 2) {
@@ -625,10 +648,18 @@ class VAnchor {
     merkleProofsForInputs: any[] = []
   ) {
     // const { pathElements, pathIndices, merkleRoot } = merkleProofsForInputs;
+    if (inputs.length < 2) {
+      while (inputs.length < 2) {
+        //do something
+        inputs.push(new Utxo({chainId: BigNumber.from(31337)}));
+      }
+    }
+    merkleProofsForInputs = inputs.map((x) => this.getMerkleProof(x));
+    
     if (merkleProofsForInputs.length !== inputs.length) {
       throw new Error('Merkle proofs has different length than inputs');
     }
-
+    
     if (outputs.length < 2) {
       while (outputs.length < 2) {
         outputs.push(new Utxo());
@@ -639,6 +670,8 @@ class VAnchor {
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
 
+    //console.log("hi");
+    //console.log(outputs);
     const { extData, publicInputs } = await this.setupTransaction(
       inputs,
       outputs,

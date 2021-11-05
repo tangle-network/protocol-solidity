@@ -146,32 +146,7 @@ describe('VAnchor for 2 max edges', () => {
     });
   });
 
-  describe('#transact', () => {
-    it.only('should transact', async () => {
-      // Alice deposits into tornado pool
-      const aliceDepositAmount = 1e7;
-      const aliceDepositUtxo = new Utxo({
-        chainId: BigNumber.from(chainID),
-        originChainId: BigNumber.from(chainID),
-        amount: BigNumber.from(aliceDepositAmount)
-      });
-      const inputs = [new Utxo({chainId: BigNumber.from(chainID)}), new Utxo({chainId: BigNumber.from(chainID)})];
-      const merkleProofsForInputs = inputs.map((x) => anchor.getMerkleProof(x));
-      await anchor.registerAndTransact(
-        sender.address,
-        aliceDepositUtxo.keypair.address(),
-        inputs,
-        [aliceDepositUtxo],
-        BigInt(0),
-        '0',
-        '0',
-        false,
-        merkleProofsForInputs
-      );
-    })
-  })
-
-  describe('snark proof verification on js side', () => {
+  describe('snark proof native verification on js side', () => {
     it('should work', async () => {
       const relayer = "0x2111111111111111111111111111111111111111";
       const extAmount = 1e7;
@@ -248,4 +223,63 @@ describe('VAnchor for 2 max edges', () => {
       const wtns = await createInputWitnessPoseidon4(input);
     });
   })
+
+  describe('#transact', () => {
+    it('should transact', async () => {
+      // Alice deposits into tornado pool
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount)
+      });
+      
+      await anchor.registerAndTransact(
+        sender.address,
+        aliceDepositUtxo.keypair.address(),
+        [],
+        [aliceDepositUtxo]
+      );
+    })
+    
+    it.only('should spend input utxo and create output utxo', async () => {
+      // Alice deposits into tornado pool
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount)
+      });
+      
+      await anchor.registerAndTransact(
+        sender.address,
+        aliceDepositUtxo.keypair.address(),
+        [],
+        [aliceDepositUtxo]
+      );
+
+      // const aliceSplitAmount = 5e6;
+      // const aliceSplitUtxo1 = new Utxo({
+      //   chainId: BigNumber.from(chainID),
+      //   amount: BigNumber.from(aliceSplitAmount)
+      // });
+
+      // const aliceSplitUtxo2 = new Utxo({
+      //   chainId: BigNumber.from(chainID),
+      //   amount: BigNumber.from(aliceSplitAmount)
+      // });
+
+      const aliceDepositUtxo2 = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount)
+      });
+
+      await anchor.transact(
+        [aliceDepositUtxo],
+        [aliceDepositUtxo2]
+      );
+    })
+  })
 });
+
