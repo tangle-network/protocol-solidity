@@ -257,27 +257,52 @@ describe('VAnchor for 2 max edges', () => {
         [],
         [aliceDepositUtxo]
       );
-
-      // const aliceSplitAmount = 5e6;
-      // const aliceSplitUtxo1 = new Utxo({
-      //   chainId: BigNumber.from(chainID),
-      //   amount: BigNumber.from(aliceSplitAmount)
-      // });
-
-      // const aliceSplitUtxo2 = new Utxo({
-      //   chainId: BigNumber.from(chainID),
-      //   amount: BigNumber.from(aliceSplitAmount)
-      // });
-
-      const aliceDepositUtxo2 = new Utxo({
+     
+      const aliceTransferUtxo = new Utxo({
         chainId: BigNumber.from(chainID),
         originChainId: BigNumber.from(chainID),
-        amount: BigNumber.from(aliceDepositAmount)
+        amount: BigNumber.from(aliceDepositAmount),
+        keypair: aliceDepositUtxo.keypair
       });
 
       await anchor.transact(
         [aliceDepositUtxo],
-        [aliceDepositUtxo2]
+        [aliceTransferUtxo],
+      );
+    })
+
+    it.only('should spend input utxo and split', async () => {
+      // Alice deposits into tornado pool
+      const aliceDepositAmount = 10;
+      const aliceDepositUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount)
+      });
+      
+      await anchor.registerAndTransact(
+        sender.address,
+        aliceDepositUtxo.keypair.address(),
+        [],
+        [aliceDepositUtxo]
+      );
+
+      const aliceSplitAmount = 5;
+      const aliceSplitUtxo1 = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceSplitAmount)
+      });
+
+      const aliceSplitUtxo2 = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceSplitAmount)
+      });
+
+      await anchor.transact(
+        [aliceDepositUtxo],
+        [aliceSplitUtxo1, aliceSplitUtxo2]
       );
     })
   })

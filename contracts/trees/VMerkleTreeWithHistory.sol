@@ -161,6 +161,6 @@ contract VMerkleTreeWithHistory is Initializable {
     else if (i == 29) return bytes32(0x23ab323453748129f2765f79615022f5bebd6f4096a796300aab049a60b0f187);
     else if (i == 30) return bytes32(0x1f15585f8947e378bcf8bd918716799da909acdb944c57150b1eb4565fda8aa0);
     else if (i == 31) return bytes32(0x1eb064b21055ac6a350cf41eb30e4ce2cb19680217df3a243617c2838185ad06);
-    else revert("Index out of bounds");   
+    else revert("Index out of bounds");
   }
 }

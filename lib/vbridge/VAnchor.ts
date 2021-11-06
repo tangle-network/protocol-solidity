@@ -496,6 +496,7 @@ class VAnchor {
     // first, check if the merkle root is known on chain - if not, then update
     await this.checkKnownRoot();
     const chainId = await this.signer.getChainId();
+    console.log(`chain id is ${chainId}`);
     const roots = await this.populateRootInfosForProof();
     const { input, extData } = await this.generateWitnessInput(
       roots,
@@ -509,9 +510,12 @@ class VAnchor {
       isL1Withdrawal,
       merkleProofsForInputs
     );
- 
-    //console.log(input);
+    // console.log("hi1");
+    // console.log(`input length is ${inputs.length}`);
+    console.log(`Witness Input is`);
+    console.log(input);
     const wtns = await this.createWitness(input, inputs.length == 2);
+    console.log("hi2");
     let proofEncoded = await this.proveAndVerify(wtns, inputs.length == 2);
     //console.log(proofEncoded);
     const publicInputs: IPublicInputs = this.generatePublicInputs(
@@ -522,12 +526,11 @@ class VAnchor {
       input.publicAmount,
       input.extDataHash.toString()
     );
-
+    console.log(`current root (class) is ${toFixedHex(this.tree.root())}`);
     outputs.forEach((x) => {
-      if (x.amount > 0) {
-        this.tree.insert(toFixedHex(x.getCommitment()));
-      }
+      this.tree.insert(toFixedHex(x.getCommitment()));
     });
+    console.log(`updated root (class) is ${toFixedHex(this.tree.root())}`);
 
     return {
       extData,
@@ -543,24 +546,27 @@ class VAnchor {
     relayer: string = '0',
     isL1Withdrawal: boolean = false,
   ) {
+    console.log(`current root (transact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
+    
     if (inputs.length < 2) {
       while (inputs.length < 2) {
         //do something
         inputs.push(new Utxo({chainId: BigNumber.from(31337)}));
       }
     }
+    
     const merkleProofsForInputs = inputs.map((x) => this.getMerkleProof(x));
-
+    
     if (outputs.length < 2) {
       while (outputs.length < 2) {
-        outputs.push(new Utxo());
+        outputs.push(new Utxo({chainId: BigNumber.from(31337)}));
       }
     }
-
+    
     let extAmount = BigNumber.from(fee)
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
-
+    
     const { extData, publicInputs } = await this.setupTransaction(
       inputs,
       outputs,
@@ -571,6 +577,7 @@ class VAnchor {
       isL1Withdrawal,
       merkleProofsForInputs,
     );
+
     let tx = await this.contract.transact(
       {
         ...publicInputs,
@@ -583,6 +590,7 @@ class VAnchor {
       { gasLimit: '0x5B8D80' }
     );
     const receipt = await tx.wait();
+    console.log(`updated root (transact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
     return receipt;
   }
 
@@ -647,6 +655,7 @@ class VAnchor {
     isL1Withdrawal: boolean = false,
     merkleProofsForInputs: any[] = []
   ) {
+    console.log(`current root (registertransact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
     // const { pathElements, pathIndices, merkleRoot } = merkleProofsForInputs;
     if (inputs.length < 2) {
       while (inputs.length < 2) {
@@ -662,7 +671,7 @@ class VAnchor {
     
     if (outputs.length < 2) {
       while (outputs.length < 2) {
-        outputs.push(new Utxo());
+        outputs.push(new Utxo({chainId: BigNumber.from(31337)}));
       }
     }
 
@@ -696,6 +705,7 @@ class VAnchor {
       { gasLimit: '0x5B8D80' }
     );
     const receipt = await tx.wait();
+    console.log(`updated root (registertransact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
     return receipt;
   }
 }

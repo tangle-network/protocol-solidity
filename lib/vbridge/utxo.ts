@@ -28,7 +28,7 @@ export class Utxo {
     amount = BigNumber.from(0),
     keypair = new Keypair(),
     blinding = randomBN(),
-    originChainId = BigNumber.from(0),
+    originChainId = BigNumber.from(31337),
     index = null
   } = {}) {
     this.chainId = BigNumber.from(chainId);
@@ -85,6 +85,8 @@ export class Utxo {
   }
 
   getDiffs(roots: RootInfo[]): BigNumberish[] {
+    console.log("roots is:");
+    console.log(roots);
     const targetRoot = roots.find(root => root.chainId.toString() === this.originChainId.toString());
     return roots.map(diff => {
       return BigNumber.from(diff.merkleRoot).sub(BigNumber.from(targetRoot?.merkleRoot));
