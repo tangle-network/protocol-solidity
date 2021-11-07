@@ -4,6 +4,8 @@ import { Keypair } from './keypair';
 import { RootInfo } from '.';
 
 const { BigNumber } = ethers
+const F = require('circomlibjs').babyjub.F;
+const Scalar = require('ffjavascript').Scalar;
 
 export class Utxo {
   chainId: BigNumberish;
@@ -85,12 +87,19 @@ export class Utxo {
   }
 
   getDiffs(roots: RootInfo[]): BigNumberish[] {
-    console.log("roots is:");
-    console.log(roots);
+    // console.log("roots is:");
+    // console.log(roots);
     const targetRoot = roots.find(root => root.chainId.toString() === this.originChainId.toString());
+    // console.log("target root is:");
+    // console.log(targetRoot);
+    // console.log("diffs is");
+    // console.log(roots.map(diff => {
+    //   return BigNumber.from(diff.merkleRoot).sub(BigNumber.from(targetRoot?.merkleRoot));
+    // }));
     return roots.map(diff => {
-      return BigNumber.from(diff.merkleRoot).sub(BigNumber.from(targetRoot?.merkleRoot));
+      return BigNumber.from(F.sub(Scalar.fromString(diff.merkleRoot.toString()), Scalar.fromString(targetRoot?.merkleRoot.toString())).toString())
     });
+   
   }
 
   /**

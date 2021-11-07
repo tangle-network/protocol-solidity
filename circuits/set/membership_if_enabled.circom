@@ -1,8 +1,6 @@
 pragma circom 2.0.0;
 
 include "../../node_modules/circomlib/circuits/comparators.circom";
-include "../../node_modules/circomlib/circuits/bitify.circom";
-include "../../node_modules/circomlib/circuits/compconstant.circom";
 
 // Set membership gadget is handled with a multiplicative trick.
 //
@@ -18,12 +16,28 @@ template ForceSetMembershipIfEnabled(length) {
   signal input set[length];
   signal input diffs[length];
   signal input enabled;
+  
+  signal int1[length];
+  signal int2[length];
+  signal int3[length];
+ 
+  signal bool;
 
   signal product[length + 1];
-  product[0] <== element;
   
-  for (var i = 0; i < length; i++) {
-    (set[i] - element - diffs[i]) * enabled === 0;
+
+  product[0] <== element;
+
+  component isz = IsZero();
+  isz.in <== enabled;
+  bool <== 1 - isz.out;
+  bool * (1 - bool) === 0; //sanity check
+  
+  for (var i = 0; i < length; i++) { 
+    int1[i] <== set[i] * bool;
+    int2[i] <== (diffs[i] + element);
+    int3[i] <== int2[i] * bool;
+    int1[i] === int3[i];
     product[i + 1] <== product[i] * diffs[i];
   }
 

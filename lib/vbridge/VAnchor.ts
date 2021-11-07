@@ -496,7 +496,7 @@ class VAnchor {
     // first, check if the merkle root is known on chain - if not, then update
     await this.checkKnownRoot();
     const chainId = await this.signer.getChainId();
-    console.log(`chain id is ${chainId}`);
+    //console.log(`chain id is ${chainId}`);
     const roots = await this.populateRootInfosForProof();
     const { input, extData } = await this.generateWitnessInput(
       roots,
@@ -512,10 +512,9 @@ class VAnchor {
     );
     // console.log("hi1");
     // console.log(`input length is ${inputs.length}`);
-    console.log(`Witness Input is`);
-    console.log(input);
+    // console.log(`Witness Input is`);
+    // console.log(input);
     const wtns = await this.createWitness(input, inputs.length == 2);
-    console.log("hi2");
     let proofEncoded = await this.proveAndVerify(wtns, inputs.length == 2);
     //console.log(proofEncoded);
     const publicInputs: IPublicInputs = this.generatePublicInputs(
@@ -526,11 +525,11 @@ class VAnchor {
       input.publicAmount,
       input.extDataHash.toString()
     );
-    console.log(`current root (class) is ${toFixedHex(this.tree.root())}`);
+    //console.log(`current root (class) is ${toFixedHex(this.tree.root())}`);
     outputs.forEach((x) => {
       this.tree.insert(toFixedHex(x.getCommitment()));
     });
-    console.log(`updated root (class) is ${toFixedHex(this.tree.root())}`);
+    //console.log(`updated root (class) is ${toFixedHex(this.tree.root())}`);
 
     return {
       extData,
@@ -546,7 +545,7 @@ class VAnchor {
     relayer: string = '0',
     isL1Withdrawal: boolean = false,
   ) {
-    console.log(`current root (transact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
+    //console.log(`current root (transact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
     
     if (inputs.length < 2) {
       while (inputs.length < 2) {
@@ -590,7 +589,7 @@ class VAnchor {
       { gasLimit: '0x5B8D80' }
     );
     const receipt = await tx.wait();
-    console.log(`updated root (transact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
+    //console.log(`updated root (transact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
     return receipt;
   }
 
@@ -655,7 +654,7 @@ class VAnchor {
     isL1Withdrawal: boolean = false,
     merkleProofsForInputs: any[] = []
   ) {
-    console.log(`current root (registertransact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
+    //console.log(`current root (registertransact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
     // const { pathElements, pathIndices, merkleRoot } = merkleProofsForInputs;
     if (inputs.length < 2) {
       while (inputs.length < 2) {
@@ -705,7 +704,7 @@ class VAnchor {
       { gasLimit: '0x5B8D80' }
     );
     const receipt = await tx.wait();
-    console.log(`updated root (registertransact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
+    //console.log(`updated root (registertransact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
     return receipt;
   }
 }
