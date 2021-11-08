@@ -328,7 +328,7 @@ describe('Anchor for 2 max edges', () => {
       );
     });
 
-    it('fee should be less or equal transfer value', async () => {
+    it('fee should be less or equal to transfer value', async () => {
       const signers = await ethers.getSigners();
       const relayer = signers[0];
 

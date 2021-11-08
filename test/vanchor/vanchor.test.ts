@@ -32,6 +32,7 @@ const BN = require('bn.js');
 const MerkleTree = require('../../lib/MerkleTree');
 
 const snarkjs = require('snarkjs')
+const { toBN } = require('web3-utils');
 
 describe('VAnchor for 2 max edges', () => {
   let anchor: VAnchor;
@@ -40,7 +41,7 @@ describe('VAnchor for 2 max edges', () => {
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
   let tree: typeof MerkleTree;
   let fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
-  const refund = BigInt((new BN('0')).toString());
+  const refund = BigInt((new BN('0')).toString());  
   let recipient = "0x1111111111111111111111111111111111111111";
   let verifier: Verifier;
   let hasherInstance: any;
@@ -306,7 +307,7 @@ describe('VAnchor for 2 max edges', () => {
       );
     })
 
-    it.only('should join and spend (test passes but should not)', async () => {
+    it('should join and spend', async () => {
       const aliceDepositAmount1 = 1e7;
       const aliceDepositUtxo1 = new Utxo({
         chainId: BigNumber.from(chainID),
@@ -334,19 +335,90 @@ describe('VAnchor for 2 max edges', () => {
         [aliceDepositUtxo2]
       );
       
-      const aliceJoinAmount = 3e15;
+      const aliceJoinAmount = 2e7;
       const aliceJoinUtxo = new Utxo({
         chainId: BigNumber.from(chainID),
         originChainId: BigNumber.from(chainID),
         amount: BigNumber.from(aliceJoinAmount),
-        keypair: aliceDepositUtxo1.keypair
+        //keypair: aliceDepositUtxo1.keypair
       });
 
       await anchor.transact(
         [aliceDepositUtxo1, aliceDepositUtxo2],
         [aliceJoinUtxo]
       );
+      
     })
+
+    it.only('should withdraw', async () => {
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount)
+      });
+      
+      await anchor.registerAndTransact(
+        sender.address,
+        aliceDepositUtxo.keypair.address(),
+        [],
+        [aliceDepositUtxo]
+      );
+
+      const aliceWithdrawAmount = 5e6;
+      const aliceChangeUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceWithdrawAmount),
+        keypair: aliceDepositUtxo.keypair
+      });
+      const aliceETHAddress = '0xDeaD00000000000000000000000000000000BEEf';
+    
+      await anchor.transact(
+        [aliceDepositUtxo],
+        [aliceChangeUtxo],
+        0,
+        aliceETHAddress
+      )
+      assert.strictEqual(aliceWithdrawAmount.toString(), await (await token.balanceOf(aliceETHAddress)).toString());
+    });
+
+    it('should prevent double spend', async () => {
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount)
+      });
+      
+      await anchor.registerAndTransact(
+        sender.address,
+        aliceDepositUtxo.keypair.address(),
+        [],
+        [aliceDepositUtxo]
+      );
+     
+      const aliceTransferUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount),
+        keypair: aliceDepositUtxo.keypair
+      });
+
+      await anchor.transact(
+        [aliceDepositUtxo],
+        [aliceTransferUtxo],
+      );
+      
+      await TruffleAssert.reverts(
+        //@ts-ignore
+        anchor.transact(
+          [aliceDepositUtxo],
+          [aliceTransferUtxo],
+        ),
+        'Input is already spent'
+      )
+    });
   })
 });
 
