@@ -2,7 +2,7 @@
  * Copyright 2021 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
- 
+
 pragma solidity ^0.8.0;
 
 import "./TokenWrapper.sol";
@@ -17,7 +17,7 @@ contract GovernedTokenWrapper is TokenWrapper {
   address[] public tokens;
   mapping (address => bool) valid;
 
-  bool isNativeAllowed;
+  bool public isNativeAllowed;
   uint256 public wrappingLimit;
 
   constructor(string memory name, string memory symbol, address _governor, uint256 _limit, bool _isNativeAllowed) TokenWrapper(name, symbol) {
