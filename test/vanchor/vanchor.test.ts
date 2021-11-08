@@ -242,7 +242,7 @@ describe('VAnchor for 2 max edges', () => {
       );
     })
     
-    it.only('should spend input utxo and create output utxo', async () => {
+    it('should spend input utxo and create output utxo', async () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = new Utxo({
@@ -271,7 +271,7 @@ describe('VAnchor for 2 max edges', () => {
       );
     })
 
-    it.only('should spend input utxo and split', async () => {
+    it('should spend input utxo and split', async () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 10;
       const aliceDepositUtxo = new Utxo({
@@ -303,6 +303,48 @@ describe('VAnchor for 2 max edges', () => {
       await anchor.transact(
         [aliceDepositUtxo],
         [aliceSplitUtxo1, aliceSplitUtxo2]
+      );
+    })
+
+    it.only('should join and spend (test passes but should not)', async () => {
+      const aliceDepositAmount1 = 1e7;
+      const aliceDepositUtxo1 = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount1)
+      });
+      
+      await anchor.registerAndTransact(
+        sender.address,
+        aliceDepositUtxo1.keypair.address(),
+        [],
+        [aliceDepositUtxo1]
+      );
+      
+      const aliceDepositAmount2 = 1e7;
+      const aliceDepositUtxo2 = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount2),
+        keypair: aliceDepositUtxo1.keypair
+      });
+
+      await anchor.transact(
+        [],
+        [aliceDepositUtxo2]
+      );
+      
+      const aliceJoinAmount = 3e15;
+      const aliceJoinUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceJoinAmount),
+        keypair: aliceDepositUtxo1.keypair
+      });
+
+      await anchor.transact(
+        [aliceDepositUtxo1, aliceDepositUtxo2],
+        [aliceJoinUtxo]
       );
     })
   })

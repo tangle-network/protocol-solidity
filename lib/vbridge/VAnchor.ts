@@ -395,8 +395,8 @@ class VAnchor {
       outPubkey: outputs.map((x) => toFixedHex(x.keypair.pubkey).toString()),
       outBlinding: outputs.map((x) => x.blinding.toString())
     }
-
-    // console.log("printing input");
+    console.log(`public amount is ${input.publicAmount}`);
+    //console.log("printing input");
     // console.log(input);
     // console.log("printing input commitment");
     // const inputCommitment =inputs.map((x) => [x.getCommitment(), x.amount]);
@@ -566,6 +566,7 @@ class VAnchor {
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
     
+    console.log(`extAmount is ${extAmount}`);
     const { extData, publicInputs } = await this.setupTransaction(
       inputs,
       outputs,
@@ -677,7 +678,7 @@ class VAnchor {
     let extAmount = BigNumber.from(fee)
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
-
+    console.log(`extAmount is ${extAmount}`);
     //console.log("hi");
     //console.log(outputs);
     const { extData, publicInputs } = await this.setupTransaction(
