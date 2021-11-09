@@ -26,6 +26,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'yarn'
+      - run: git submodule update --init --recursive
       - run: yarn install --production=false
       - run: yarn compile
       - run: yarn build:hashers
