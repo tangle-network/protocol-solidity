@@ -14,8 +14,7 @@ pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import { IERC20Receiver, IERC6777, IOmniBridge } from "../interfaces/IVAnchor.sol";
-import { CrossChainGuard } from "../utils/CrossChainGuard.sol";
+import { IERC20Receiver, IERC6777 } from "../interfaces/IVAnchor.sol";
 import { IVAnchorVerifier } from "../interfaces/IVAnchorVerifier.sol";
 import "../trees/VMerkleTreeWithHistory.sol";
 
@@ -24,7 +23,7 @@ import "../trees/VMerkleTreeWithHistory.sol";
 /** @dev This contract(pool) allows deposit of an arbitrary amount to it, shielded transfer to another registered user inside the pool
  * and withdrawal from the pool. Project utilizes UTXO model to handle users' funds.
  */
-contract VAnchorBase is VMerkleTreeWithHistory, IERC20Receiver, ReentrancyGuard, CrossChainGuard {
+contract VAnchorBase is VMerkleTreeWithHistory, IERC20Receiver, ReentrancyGuard {
   PermissionedAccounts public permissions;
   uint8 public immutable maxEdges;
 
@@ -61,8 +60,6 @@ contract VAnchorBase is VMerkleTreeWithHistory, IERC20Receiver, ReentrancyGuard,
 
   IVAnchorVerifier public verifier;
   IERC6777 public immutable token;
-  address public immutable omniBridge;
-  address public immutable l1Unwrapper;
 
   uint256 public lastBalance;
   uint256 public minimalWithdrawalAmount;
@@ -76,7 +73,6 @@ contract VAnchorBase is VMerkleTreeWithHistory, IERC20Receiver, ReentrancyGuard,
     uint256 fee;
     bytes encryptedOutput1;
     bytes encryptedOutput2;
-    bool isL1Withdrawal;
   }
 
   struct Proof {
@@ -97,10 +93,10 @@ contract VAnchorBase is VMerkleTreeWithHistory, IERC20Receiver, ReentrancyGuard,
   event NewNullifier(bytes32 nullifier);
   event PublicKey(address indexed owner, bytes key);
 
-  modifier onlyGovernance() {
-    require(isCalledByOwner(), "only governance");
-    _;
-  }
+  // modifier onlyGovernance() {
+  //   require(isCalledByOwner(), "only governance");
+  //   _;
+  // }
 
   /**
     @dev The constructor
@@ -108,28 +104,19 @@ contract VAnchorBase is VMerkleTreeWithHistory, IERC20Receiver, ReentrancyGuard,
     @param _levels hight of the commitments merkle tree
     @param _hasher hasher address for the merkle tree
     @param _token token address for the pool
-    @param _omniBridge omniBridge address for specified token
-    @param _l1Unwrapper address of the L1Helper
-    @param _l1ChainId chain id of L1
   */
   constructor(
     IVAnchorVerifier _verifier,
     uint32 _levels,
     address _hasher,
     IERC6777 _token,
-    address _omniBridge,
-    address _l1Unwrapper,
-    uint256 _l1ChainId,
     PermissionedAccounts memory _permissions,
     uint8 _maxEdges
   )
     VMerkleTreeWithHistory(_levels, _hasher)
-    CrossChainGuard(address(IOmniBridge(_omniBridge).bridgeContract()), _l1ChainId, _permissions.admin)
   {
     verifier = _verifier;
     token = _token;
-    omniBridge = _omniBridge;
-    l1Unwrapper = _l1Unwrapper;
     maxEdges = _maxEdges;
   }
 
@@ -171,7 +158,6 @@ contract VAnchorBase is VMerkleTreeWithHistory, IERC20Receiver, ReentrancyGuard,
   ) external override {
     (Proof memory _args, ExtData memory _extData) = abi.decode(_data, (Proof, ExtData));
     require(_token == token, "provided token is not supported");
-    require(msg.sender == omniBridge, "only omni bridge");
     require(_amount >= uint256(_extData.extAmount), "amount from bridge is incorrect");
     require(token.balanceOf(address(this)) >= uint256(_extData.extAmount) + lastBalance, "bridge did not send enough tokens");
     require(uint256(_extData.extAmount) <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
@@ -224,11 +210,7 @@ contract VAnchorBase is VMerkleTreeWithHistory, IERC20Receiver, ReentrancyGuard,
 
     if (_extData.extAmount < 0) {
       require(_extData.recipient != address(0), "Can't withdraw to zero address");
-      if (_extData.isL1Withdrawal) {
-        token.transferAndCall(omniBridge, uint256(-_extData.extAmount), abi.encodePacked(l1Unwrapper, _extData.recipient));
-      } else {
-        token.transfer(_extData.recipient, uint256(-_extData.extAmount));
-      }
+      token.transfer(_extData.recipient, uint256(-_extData.extAmount));
       require(uint256(-_extData.extAmount) >= minimalWithdrawalAmount, "amount is less than minimalWithdrawalAmount"); // prevents ddos attack to Bridge
     }
     if (_extData.fee > 0) {

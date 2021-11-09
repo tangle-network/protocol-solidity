@@ -52,7 +52,6 @@ export interface IExtData {
   fee: string;
   encryptedOutput1: string;
   encryptedOutput2: string;
-  isL1Withdrawal: boolean;
 }
 
 export interface IWitnessInput {
@@ -154,15 +153,12 @@ class VAnchor {
     levels: BigNumberish,
     hasher: string,
     token: string,
-    omniBridge: string,
-    l1Unwrapper: string,
-    l1ChainId: BigNumberish,
     permissions: IPermissionedAccounts,
     maxEdges: number,
     signer: ethers.Signer,
   ) {
     const factory = new VAnchor__factory(signer);
-    const vAnchor = await factory.deploy(verifier, levels, hasher, token, omniBridge, l1Unwrapper, l1ChainId, permissions, maxEdges, {});
+    const vAnchor = await factory.deploy(verifier, levels, hasher, token, permissions, maxEdges, {});
     await vAnchor.deployed();
     const createdVAnchor = new VAnchor(vAnchor, signer, BigNumber.from(levels).toNumber(), maxEdges);
     createdVAnchor.latestSyncedBlock = vAnchor.deployTransaction.blockNumber!;
@@ -236,8 +232,7 @@ class VAnchor {
       relayer: args[2],
       fee: args[3],
       encryptedOutput1: args[4],
-      encryptedOutput2: args[5],
-      isL1Withdrawal: args[6],
+      encryptedOutput2: args[5]
     };
   }
   
@@ -377,7 +372,6 @@ class VAnchor {
     fee: BigNumberish,
     recipient: string, 
     relayer: string,
-    isL1Withdrawal: boolean,
     externalMerkleProofs: any[],
   ): Promise<IWitnessInput> {
     const extData = {
@@ -386,8 +380,7 @@ class VAnchor {
       relayer: toFixedHex(relayer, 20),
       fee: toFixedHex(fee),
       encryptedOutput1: outputs[0].encrypt(),
-      encryptedOutput2: outputs[1].encrypt(),
-      isL1Withdrawal,
+      encryptedOutput2: outputs[1].encrypt()
     }
   
     const extDataHash = getExtDataHash(extData)
@@ -509,7 +502,6 @@ class VAnchor {
     fee: BigNumberish,
     recipient: string, 
     relayer: string,
-    isL1Withdrawal: boolean,
     merkleProofsForInputs: any[],
   ) {
     // first, check if the merkle root is known on chain - if not, then update
@@ -526,7 +518,6 @@ class VAnchor {
       fee,
       recipient,
       relayer,
-      isL1Withdrawal,
       merkleProofsForInputs
     );
     // console.log("hi1");
@@ -561,16 +552,12 @@ class VAnchor {
     outputs: Utxo[], 
     fee: BigNumberish = 0,
     recipient: string = '0', 
-    relayer: string = '0',
-    isL1Withdrawal: boolean = false,
+    relayer: string = '0'
   ) {
     //console.log(`current root (transact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
     
-    if (inputs.length < 2) {
-      while (inputs.length < 2) {
-        //do something
-        inputs.push(new Utxo({chainId: BigNumber.from(31337)}));
-      }
+    while (inputs.length !== 2 && inputs.length < 16) {
+      inputs.push(new Utxo({chainId: BigNumber.from(31337)}));
     }
     
     const merkleProofsForInputs = inputs.map((x) => this.getMerkleProof(x));
@@ -593,7 +580,6 @@ class VAnchor {
       fee,
       recipient,
       relayer,
-      isL1Withdrawal,
       merkleProofsForInputs,
     );
 
@@ -619,7 +605,6 @@ class VAnchor {
     fee: BigNumberish,
     recipient: string,
     relayer: string,
-    isL1Withdrawal: boolean,
     merkleProofsForInputs: any[]
   ) {
     // const { pathElements, pathIndices, merkleRoot } = merkleProofsForInputs;
@@ -644,7 +629,6 @@ class VAnchor {
       fee,
       recipient,
       relayer,
-      isL1Withdrawal,
       merkleProofsForInputs,
     );
 
@@ -671,17 +655,15 @@ class VAnchor {
     fee: BigNumberish = 0,
     recipient: string = '0',
     relayer: string = '0',
-    isL1Withdrawal: boolean = false,
     merkleProofsForInputs: any[] = []
   ) {
     //console.log(`current root (registertransact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
     // const { pathElements, pathIndices, merkleRoot } = merkleProofsForInputs;
-    if (inputs.length < 2) {
-      while (inputs.length < 2) {
-        //do something
-        inputs.push(new Utxo({chainId: BigNumber.from(31337)}));
-      }
+
+    while (inputs.length !== 2 && inputs.length < 16) {
+      inputs.push(new Utxo({chainId: BigNumber.from(31337)}));
     }
+
     merkleProofsForInputs = inputs.map((x) => this.getMerkleProof(x));
     
     if (merkleProofsForInputs.length !== inputs.length) {
@@ -707,7 +689,6 @@ class VAnchor {
       fee,
       recipient,
       relayer,
-      isL1Withdrawal,
       merkleProofsForInputs,
     );
 

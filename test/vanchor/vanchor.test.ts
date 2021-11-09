@@ -13,9 +13,7 @@ import {
   ERC20PresetMinterPauser__factory as MintableTokenFactory,
   GTokenWrapperMock as WrappedToken,
   GTokenWrapperMock__factory,
-  GTokenWrapperMock__factory as WrappedTokenFactory,
-  MockAMB__factory as AMBFactory,
-  MockOmniBridge__factory as OmniBridgeFactory,
+  GTokenWrapperMock__factory as WrappedTokenFactory
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
@@ -81,24 +79,12 @@ describe('VAnchor for 2 max edges', () => {
     await token.deployed();
     await token.mint(sender.address, '10000000000000000000000');
     
-
-    // create token
-    const ambFactory = new AMBFactory(wallet);
-    const amb = await ambFactory.deploy(sender.address, 1);
-    await amb.deployed();
-    // create token
-    const omniBridgeFactory = new OmniBridgeFactory(wallet);
-    const omniBridge = await omniBridgeFactory.deploy(amb.address);
-    await omniBridge.deployed();
     // create Anchor
     anchor = await VAnchor.createVAnchor(
       verifier.contract.address,
       levels,
       hasherInstance.address,
       token.address,
-      omniBridge.address,
-      sender.address,
-      1,
       {
         bridge: sender.address,
         admin: sender.address,
@@ -141,14 +127,14 @@ describe('VAnchor for 2 max edges', () => {
   })
 
   describe('#constructor', () => {
-    it('should initialize', async () => {
+    it.only('should initialize', async () => {
       const maxEdges = await anchor.contract.maxEdges();
       assert.strictEqual(maxEdges.toString(), `${MAX_EDGES}`);
     });
   });
 
   describe('snark proof native verification on js side', () => {
-    it('should work', async () => {
+    it.only('should work', async () => {
       const relayer = "0x2111111111111111111111111111111111111111";
       const extAmount = 1e7;
       const isL1Withdrawal = false;
@@ -173,7 +159,6 @@ describe('VAnchor for 2 max edges', () => {
         fee,
         recipient,
         relayer,
-        isL1Withdrawal,
         merkleProofsForInputs
       );
      
@@ -181,7 +166,7 @@ describe('VAnchor for 2 max edges', () => {
       let res = await snarkjs.groth16.prove('test/fixtures/vanchor_2/2/circuit_final.zkey', wtns);
       const proof = res.proof;
       let publicSignals = res.publicSignals;
-      console.log(publicSignals);
+      //console.log(publicSignals);
       let tempProof = proof;
       let tempSignals = publicSignals;
       const vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/vanchor_2/2/circuit_final.zkey');
@@ -243,7 +228,7 @@ describe('VAnchor for 2 max edges', () => {
       );
     })
     
-    it('should spend input utxo and create output utxo', async () => {
+    it.only('should spend input utxo and create output utxo', async () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = new Utxo({
@@ -272,7 +257,7 @@ describe('VAnchor for 2 max edges', () => {
       );
     })
 
-    it('should spend input utxo and split', async () => {
+    it.only('should spend input utxo and split', async () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 10;
       const aliceDepositUtxo = new Utxo({
@@ -307,7 +292,7 @@ describe('VAnchor for 2 max edges', () => {
       );
     })
 
-    it('should join and spend', async () => {
+    it.only('should join and spend', async () => {
       const aliceDepositAmount1 = 1e7;
       const aliceDepositUtxo1 = new Utxo({
         chainId: BigNumber.from(chainID),
@@ -349,7 +334,7 @@ describe('VAnchor for 2 max edges', () => {
       );
     })
 
-    it('should withdraw', async () => {
+    it.only('should withdraw', async () => {
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = new Utxo({
         chainId: BigNumber.from(chainID),
@@ -382,7 +367,7 @@ describe('VAnchor for 2 max edges', () => {
       assert.strictEqual(aliceWithdrawAmount.toString(), await (await token.balanceOf(aliceETHAddress)).toString());
     });
 
-    it('should prevent double spend', async () => {
+    it.only('should prevent double spend', async () => {
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = new Utxo({
         chainId: BigNumber.from(chainID),
@@ -419,7 +404,7 @@ describe('VAnchor for 2 max edges', () => {
       )
     });
 
-    it('should prevent increasing UTXO amount without depositing', async () => {
+    it.only('should prevent increasing UTXO amount without depositing', async () => {
       const signers = await ethers.getSigners();
       const alice= signers[0];
 
@@ -485,7 +470,6 @@ describe('VAnchor for 2 max edges', () => {
         fee,
         recipient,
         relayer,
-        isL1Withdrawal,
         merkleProofsForInputs
       );
      
@@ -511,8 +495,7 @@ describe('VAnchor for 2 max edges', () => {
         toFixedHex(extData.relayer, 20),
         toFixedHex(extData.fee),
         extData.encryptedOutput1,
-        extData.encryptedOutput2,
-        extData.isL1Withdrawal
+        extData.encryptedOutput2
       ];
 
       // public amount
@@ -597,8 +580,7 @@ describe('VAnchor for 2 max edges', () => {
         toFixedHex('0x0000000000000000000000007a1f9131357404ef86d7c38dbffed2da70321337', 20),
         toFixedHex(extData.fee),
         extData.encryptedOutput1,
-        extData.encryptedOutput2,
-        extData.isL1Withdrawal
+        extData.encryptedOutput2
       ];
 
       let correctPublicInputs = VAnchor.convertToPublicInputsStruct(publicInputArgs);
@@ -617,8 +599,7 @@ describe('VAnchor for 2 max edges', () => {
         toFixedHex(extData.relayer, 20),
         toFixedHex(extData.fee),
         extData.encryptedOutput1,
-        extData.encryptedOutput2,
-        extData.isL1Withdrawal
+        extData.encryptedOutput2
       ];
 
       incorrectExtAmountInputs = VAnchor.convertToExtDataStruct(incorrectExtDataArgs)
@@ -636,8 +617,7 @@ describe('VAnchor for 2 max edges', () => {
         toFixedHex(extData.relayer, 20),
         toFixedHex('0x000000000000000000000000000000000000000000000000015345785d8a0000'),
         extData.encryptedOutput1,
-        extData.encryptedOutput2,
-        extData.isL1Withdrawal
+        extData.encryptedOutput2
       ];
 
       incorrectExtAmountInputs = VAnchor.convertToExtDataStruct(incorrectExtDataArgs)
@@ -648,6 +628,58 @@ describe('VAnchor for 2 max edges', () => {
         'Incorrect external data hash',
       );
     });
+
+    // it.only('transact should work with 16 inputs', async () => {
+    //   const aliceDepositAmount1 = 4e7;
+    //   const aliceDepositUtxo1 = new Utxo({
+    //     chainId: BigNumber.from(chainID),
+    //     originChainId: BigNumber.from(chainID),
+    //     amount: BigNumber.from(aliceDepositAmount1)
+    //   });
+      
+    //   const aliceDepositAmount2 = 4e7;
+    //   const aliceDepositUtxo2 = new Utxo({
+    //     chainId: BigNumber.from(chainID),
+    //     originChainId: BigNumber.from(chainID),
+    //     amount: BigNumber.from(aliceDepositAmount2),
+    //     keypair: aliceDepositUtxo1.keypair
+    //   });
+
+    //   const aliceDepositAmount3 = 4e7;
+    //   const aliceDepositUtxo3 = new Utxo({
+    //     chainId: BigNumber.from(chainID),
+    //     originChainId: BigNumber.from(chainID),
+    //     amount: BigNumber.from(aliceDepositAmount3),
+    //     keypair: aliceDepositUtxo1.keypair
+    //   });
+
+    //   await anchor.registerAndTransact(
+    //     sender.address,
+    //     aliceDepositUtxo1.keypair.address(),
+    //     [],
+    //     [aliceDepositUtxo1, aliceDepositUtxo2, aliceDepositUtxo3]
+    //   );
+      
+      
+
+      // await anchor.transact(
+      //   [],
+      //   [aliceDepositUtxo2]
+      // );
+      
+      // const aliceJoinAmount = 2e7;
+      // const aliceJoinUtxo = new Utxo({
+      //   chainId: BigNumber.from(chainID),
+      //   originChainId: BigNumber.from(chainID),
+      //   amount: BigNumber.from(aliceJoinAmount),
+      //   //keypair: aliceDepositUtxo1.keypair
+      // });
+
+      // await anchor.transact(
+      //   [aliceDepositUtxo1, aliceDepositUtxo2],
+      //   [aliceJoinUtxo]
+      // );
+    // });
   })
 });
 

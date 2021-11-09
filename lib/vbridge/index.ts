@@ -21,7 +21,7 @@ export interface RootInfo {
   chainId: BigNumberish;
 }
 
-async function getProof({ roots, chainId, inputs, outputs, tree, extAmount, fee, recipient, relayer, isL1Withdrawal }) {
+async function getProof({ roots, chainId, inputs, outputs, tree, extAmount, fee, recipient, relayer }) {
   inputs = shuffle(inputs)
   outputs = shuffle(outputs)
 
@@ -48,8 +48,7 @@ async function getProof({ roots, chainId, inputs, outputs, tree, extAmount, fee,
     relayer: toFixedHex(relayer, 20),
     fee: toFixedHex(fee),
     encryptedOutput1: outputs[0].encrypt(),
-    encryptedOutput2: outputs[1].encrypt(),
-    isL1Withdrawal,
+    encryptedOutput2: outputs[1].encrypt()
   }
 
   const extDataHash = getExtDataHash(extData)
@@ -103,8 +102,7 @@ async function prepareTransaction({
   outputs = [],
   fee = 0,
   recipient = 0,
-  relayer = 0,
-  isL1Withdrawal = false,
+  relayer = 0
 }) {
   if (inputs.length > 16 || outputs.length > 2) {
     throw new Error('Incorrect inputs/outputs count')
@@ -129,8 +127,7 @@ async function prepareTransaction({
     extAmount,
     fee,
     recipient,
-    relayer,
-    isL1Withdrawal,
+    relayer
   })
 
   return {

@@ -14,9 +14,6 @@ abstract contract LinkableVAnchor is VAnchorBase, ILinkableAnchor {
     uint32 _levels,
     address _hasher,
     IERC6777 _token,
-    address _omniBridge,
-    address _l1Unwrapper,
-    uint256 _l1ChainId,
     PermissionedAccounts memory _permissions,
     uint8 _maxEdges
   ) VAnchorBase(
@@ -24,9 +21,6 @@ abstract contract LinkableVAnchor is VAnchorBase, ILinkableAnchor {
     _levels,
     _hasher,
     _token,
-    _omniBridge,
-    _l1Unwrapper,
-    _l1ChainId,
     _permissions,
     _maxEdges
   ) {

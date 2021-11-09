@@ -23,14 +23,13 @@ export function getExtDataHash({
   relayer,
   fee,
   encryptedOutput1,
-  encryptedOutput2,
-  isL1Withdrawal,
+  encryptedOutput2
 }: any) {
   const abi = new ethers.utils.AbiCoder();
 
   const encodedData = abi.encode(
     [
-      'tuple(address recipient,int256 extAmount,address relayer,uint256 fee,bytes encryptedOutput1,bytes encryptedOutput2,bool isL1Withdrawal)',
+      'tuple(address recipient,int256 extAmount,address relayer,uint256 fee,bytes encryptedOutput1,bytes encryptedOutput2)',
     ],
     [
       {
@@ -40,7 +39,6 @@ export function getExtDataHash({
         fee: toFixedHex(fee),
         encryptedOutput1: encryptedOutput1,
         encryptedOutput2: encryptedOutput2,
-        isL1Withdrawal: isL1Withdrawal,
       },
     ],
   );
