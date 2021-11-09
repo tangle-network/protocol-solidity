@@ -41,7 +41,7 @@ describe('VAnchor for 2 max edges', () => {
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
   let tree: typeof MerkleTree;
   let fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
-  const refund = BigInt((new BN('0')).toString());  
+  const refund = BigInt((new BN('0')).toString()); 
   let recipient = "0x1111111111111111111111111111111111111111";
   let verifier: Verifier;
   let hasherInstance: any;
@@ -347,10 +347,9 @@ describe('VAnchor for 2 max edges', () => {
         [aliceDepositUtxo1, aliceDepositUtxo2],
         [aliceJoinUtxo]
       );
-      
     })
 
-    it.only('should withdraw', async () => {
+    it('should withdraw', async () => {
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = new Utxo({
         chainId: BigNumber.from(chainID),
@@ -418,6 +417,236 @@ describe('VAnchor for 2 max edges', () => {
         ),
         'Input is already spent'
       )
+    });
+
+    it('should prevent increasing UTXO amount without depositing', async () => {
+      const signers = await ethers.getSigners();
+      const alice= signers[0];
+
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount)
+      });
+      //Step 1: Alice deposits into Tornado Pool
+      const aliceBalanceBeforeDeposit = await token.balanceOf(alice.address);
+      await anchor.registerAndTransact(
+        alice.address,
+        aliceDepositUtxo.keypair.address(),
+        [],
+        [aliceDepositUtxo]
+      );
+
+      //Step 2: Check Alice's balance
+      const aliceBalanceAfterDeposit = await token.balanceOf(alice.address);
+      assert.strictEqual(aliceBalanceAfterDeposit.toString(), BN(toBN(aliceBalanceBeforeDeposit).sub(toBN(aliceDepositAmount))).toString())
+      
+      //Step 3: Alice tries to create a UTXO with more funds than she has in her account
+      const aliceOutputAmount = '100000000000000000000000';
+      const aliceOutputUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceOutputAmount),
+        keypair: aliceDepositUtxo.keypair
+      });
+      //Step 4: Check that step 3 fails
+      await TruffleAssert.reverts(
+        //@ts-ignore
+        anchor.transact(
+          [aliceDepositUtxo],
+          [aliceOutputUtxo]
+        ),
+        'ERC20: transfer amount exceeds balance'
+      )
+    });
+
+    it.only('should reject tampering with public inputs', async () => {
+      const relayer = "0x2111111111111111111111111111111111111111";
+      const extAmount = 1e7;
+      const isL1Withdrawal = false;
+      const roots = await anchor.populateRootInfosForProof();
+      const inputs = [new Utxo({chainId: BigNumber.from(chainID)}), new Utxo({chainId: BigNumber.from(chainID)})];
+      const aliceDepositAmount = 1e7;
+      const outputs = [new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount)
+      }), new Utxo({chainId: BigNumber.from(chainID)})];
+      const merkleProofsForInputs = inputs.map((x) => anchor.getMerkleProof(x));
+      fee = BigInt(0);
+      
+      const { input, extData } = await anchor.generateWitnessInput(
+        roots,
+        chainID,
+        inputs, 
+        outputs,
+        extAmount,
+        fee,
+        recipient,
+        relayer,
+        isL1Withdrawal,
+        merkleProofsForInputs
+      );
+     
+      const wtns = await create2InputWitness(input);
+      let res = await snarkjs.groth16.prove('test/fixtures/vanchor_2/2/circuit_final.zkey', wtns);
+      const proof = res.proof;
+      let publicSignals = res.publicSignals;
+      const proofEncoded = await VAnchor.generateWithdrawProofCallData(proof, publicSignals);
+
+      //correct public inputs
+      let publicInputArgs:[string, string, string[], [any, any], string, string] = [
+        `0x${proofEncoded}`,
+        VAnchor.createRootsBytes(input.roots.map((x) => x.toString())),
+        input.inputNullifier.map((x) => toFixedHex(x)),
+        [toFixedHex(input.outputCommitment[0]), toFixedHex(input.outputCommitment[1])],
+        toFixedHex(input.publicAmount),
+        toFixedHex(input.extDataHash)
+      ];
+
+      let extDataArgs = [
+        toFixedHex(extData.recipient, 20),
+        toFixedHex(extData.extAmount),  
+        toFixedHex(extData.relayer, 20),
+        toFixedHex(extData.fee),
+        extData.encryptedOutput1,
+        extData.encryptedOutput2,
+        extData.isL1Withdrawal
+      ];
+
+      // public amount
+      let incorrectPublicInputArgs:[string, string, string[], [any, any], string, string] = [
+        `0x${proofEncoded}`,
+        VAnchor.createRootsBytes(input.roots.map((x) => x.toString())),
+        input.inputNullifier.map((x) => toFixedHex(x)),
+        [toFixedHex(input.outputCommitment[0]), toFixedHex(input.outputCommitment[1])],
+        toFixedHex(BigNumber.from(input.publicAmount).add(1)),
+        toFixedHex(input.extDataHash)
+      ];
+
+      let incorrectPublicInputs = VAnchor.convertToPublicInputsStruct(incorrectPublicInputArgs);
+      let extAmountInputs = VAnchor.convertToExtDataStruct(extDataArgs)
+
+      //anchor.contract.transact(incorrectPublicInputs, extAmountInputs, { gasPrice: '0' });
+      
+      await TruffleAssert.reverts(
+        //@ts-ignore
+        anchor.contract.transact(incorrectPublicInputs, extAmountInputs, { gasPrice: '0' }),
+        'Invalid public amount',
+      );
+
+      // extdatahash
+      incorrectPublicInputArgs = [
+        `0x${proofEncoded}`,
+        VAnchor.createRootsBytes(input.roots.map((x) => x.toString())),
+        input.inputNullifier.map((x) => toFixedHex(x)),
+        [toFixedHex(input.outputCommitment[0]), toFixedHex(input.outputCommitment[1])],
+        toFixedHex(input.publicAmount),
+        toFixedHex(BigNumber.from(input.extDataHash).add(1))
+      ];
+
+      incorrectPublicInputs = VAnchor.convertToPublicInputsStruct(incorrectPublicInputArgs);
+
+      await TruffleAssert.reverts(
+        //@ts-ignore
+        anchor.contract.transact(incorrectPublicInputs, extAmountInputs, { gasPrice: '0' }),
+        'Incorrect external data hash',
+      );
+
+      // output commitment
+      incorrectPublicInputArgs = [
+        `0x${proofEncoded}`,
+        VAnchor.createRootsBytes(input.roots.map((x) => x.toString())),
+        input.inputNullifier.map((x) => toFixedHex(x)),
+        [toFixedHex(BigNumber.from(input.outputCommitment[0]).add(1)), toFixedHex(input.outputCommitment[1])],
+        toFixedHex(input.publicAmount),
+        toFixedHex(input.extDataHash)
+      ];
+
+      incorrectPublicInputs = VAnchor.convertToPublicInputsStruct(incorrectPublicInputArgs);
+
+      await TruffleAssert.reverts(
+        //@ts-ignore
+        anchor.contract.transact(incorrectPublicInputs, extAmountInputs, { gasPrice: '0' }),
+        'Invalid withdraw proof',
+      );
+
+      // input nullifier
+      incorrectPublicInputArgs = [
+        `0x${proofEncoded}`,
+        VAnchor.createRootsBytes(input.roots.map((x) => x.toString())),
+        input.inputNullifier.map((x) => toFixedHex(BigNumber.from(x).add(1))),
+        [toFixedHex(input.outputCommitment[0]), toFixedHex(input.outputCommitment[1])],
+        toFixedHex(input.publicAmount),
+        toFixedHex(input.extDataHash)
+      ];
+
+      incorrectPublicInputs = VAnchor.convertToPublicInputsStruct(incorrectPublicInputArgs);
+
+      await TruffleAssert.reverts(
+        //@ts-ignore
+        anchor.contract.transact(incorrectPublicInputs, extAmountInputs, { gasPrice: '0' }),
+        'Invalid withdraw proof',
+      );
+
+      //relayer
+      let incorrectExtDataArgs = [
+        toFixedHex(extData.recipient, 20),
+        toFixedHex(extData.extAmount),  
+        toFixedHex('0x0000000000000000000000007a1f9131357404ef86d7c38dbffed2da70321337', 20),
+        toFixedHex(extData.fee),
+        extData.encryptedOutput1,
+        extData.encryptedOutput2,
+        extData.isL1Withdrawal
+      ];
+
+      let correctPublicInputs = VAnchor.convertToPublicInputsStruct(publicInputArgs);
+      let incorrectExtAmountInputs = VAnchor.convertToExtDataStruct(incorrectExtDataArgs)
+
+      await TruffleAssert.reverts(
+        //@ts-ignore
+        anchor.contract.transact(correctPublicInputs, incorrectExtAmountInputs, { gasPrice: '0' }),
+        'Incorrect external data hash',
+      );
+
+      //recipient
+      incorrectExtDataArgs = [
+        toFixedHex('0x0000000000000000000000007a1f9131357404ef86d7c38dbffed2da70321337', 20),
+        toFixedHex(extData.extAmount),  
+        toFixedHex(extData.relayer, 20),
+        toFixedHex(extData.fee),
+        extData.encryptedOutput1,
+        extData.encryptedOutput2,
+        extData.isL1Withdrawal
+      ];
+
+      incorrectExtAmountInputs = VAnchor.convertToExtDataStruct(incorrectExtDataArgs)
+
+      await TruffleAssert.reverts(
+        //@ts-ignore
+        anchor.contract.transact(correctPublicInputs, incorrectExtAmountInputs, { gasPrice: '0' }),
+        'Incorrect external data hash',
+      );
+
+      //fee
+      incorrectExtDataArgs = [
+        toFixedHex(extData.recipient, 20),
+        toFixedHex(extData.extAmount),  
+        toFixedHex(extData.relayer, 20),
+        toFixedHex('0x000000000000000000000000000000000000000000000000015345785d8a0000'),
+        extData.encryptedOutput1,
+        extData.encryptedOutput2,
+        extData.isL1Withdrawal
+      ];
+
+      incorrectExtAmountInputs = VAnchor.convertToExtDataStruct(incorrectExtDataArgs)
+
+      await TruffleAssert.reverts(
+        //@ts-ignore
+        anchor.contract.transact(correctPublicInputs, incorrectExtAmountInputs, { gasPrice: '0' }),
+        'Incorrect external data hash',
+      );
     });
   })
 });

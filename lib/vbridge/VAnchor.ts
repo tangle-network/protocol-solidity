@@ -40,7 +40,7 @@ export interface IPublicInputs {
   proof: string;
   roots: string;
   inputNullifiers: string[];
-  outputCommitments: string[];
+  outputCommitments: [string, string];
   publicAmount: string;
   extDataHash: string;
 }
@@ -217,6 +217,29 @@ class VAnchor {
   
     return S;
   }
+
+  public static convertToPublicInputsStruct(args: any[]): IPublicInputs {
+    return {
+      proof: args[0],
+      roots: args[1],
+      inputNullifiers: args[2],
+      outputCommitments: args[3],
+      publicAmount: args[4],
+      extDataHash: args[5]
+    };
+  }
+
+  public static convertToExtDataStruct(args: any[]): IExtData {
+    return {
+      recipient: args[0],
+      extAmount: args[1],
+      relayer: args[2],
+      fee: args[3],
+      encryptedOutput1: args[4],
+      encryptedOutput2: args[5],
+      isL1Withdrawal: args[6],
+    };
+  }
   
   public static async generateWithdrawProofCallData(proof: any, publicSignals: any) {
     const result = await VAnchor.groth16ExportSolidityCallData(proof, publicSignals);
@@ -345,10 +368,6 @@ class VAnchor {
     }
   }
 
-  public async generateWitnessInputPoseidon4 () {
-    
-  }
-
   public async generateWitnessInput(
     roots: RootInfo[], 
     chainId: BigNumberish, 
@@ -395,8 +414,8 @@ class VAnchor {
       outPubkey: outputs.map((x) => toFixedHex(x.keypair.pubkey).toString()),
       outBlinding: outputs.map((x) => x.blinding.toString())
     }
-    console.log(`public amount is ${input.publicAmount}`);
-    //console.log("printing input");
+    // console.log(`public amount is ${input.publicAmount}`);
+    // console.log("printing input");
     // console.log(input);
     // console.log("printing input commitment");
     // const inputCommitment =inputs.map((x) => [x.getCommitment(), x.amount]);
@@ -435,7 +454,7 @@ class VAnchor {
       proof: `0x${proof}`,
       roots: `0x${roots.map((x) => toFixedHex(x.merkleRoot).slice(2)).join('')}`,
       inputNullifiers: inputs.map((x) => toFixedHex(x.getNullifier())),
-      outputCommitments: outputs.map((x) => toFixedHex(x.getCommitment())),
+      outputCommitments: [toFixedHex(outputs[0].getCommitment()), toFixedHex(outputs[1].getCommitment())],
       publicAmount: toFixedHex(publicAmount),
       extDataHash: toFixedHex(extDataHash),
     };
@@ -566,7 +585,7 @@ class VAnchor {
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
     
-    console.log(`extAmount is ${extAmount}`);
+    //console.log(`extAmount is ${extAmount}`);
     const { extData, publicInputs } = await this.setupTransaction(
       inputs,
       outputs,
@@ -678,7 +697,7 @@ class VAnchor {
     let extAmount = BigNumber.from(fee)
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
-    console.log(`extAmount is ${extAmount}`);
+    //console.log(`extAmount is ${extAmount}`);
     //console.log("hi");
     //console.log(outputs);
     const { extData, publicInputs } = await this.setupTransaction(
