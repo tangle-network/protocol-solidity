@@ -15,6 +15,6 @@ compile_phase2 () {
 
 move_verifiers_and_metadata () {
     local outdir="$1" size="$2"
-    cp $1/circuit_final.zkey test/fixtures/$2/plonk/circuit_final.zkey
+    cp $1/circuit_final.zkey protocol-solidity-fixtures/fixtures/$2/plonk/circuit_final.zkey
     cp $1/verifier.sol contracts/verifiers/bridge/plonk/"Verifier$2.sol"
 }

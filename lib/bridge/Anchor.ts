@@ -71,34 +71,34 @@ class Anchor {
     // set the circuit zkey and wasm depending upon max edges
     switch (maxEdges) {
       case 1:
-        this.circuitWASMPath = 'test/fixtures/bridge/2/poseidon_bridge_2.wasm';
-        this.circuitZkeyPath = 'test/fixtures/bridge/2/circuit_final.zkey';
-        this.witnessCalculator = require("../../test/fixtures/bridge/2/witness_calculator.js");
+        this.circuitWASMPath = 'protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm';
+        this.circuitZkeyPath = 'protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey';
+        this.witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js");
         break;
       case 2:
-        this.circuitWASMPath = 'test/fixtures/bridge/3/poseidon_bridge_3.wasm';
-        this.circuitZkeyPath = 'test/fixtures/bridge/3/circuit_final.zkey';
-        this.witnessCalculator = require("../../test/fixtures/bridge/3/witness_calculator.js");
+        this.circuitWASMPath = 'protocol-solidity-fixtures/fixtures/bridge/3/poseidon_bridge_3.wasm';
+        this.circuitZkeyPath = 'protocol-solidity-fixtures/fixtures/bridge/3/circuit_final.zkey';
+        this.witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/bridge/3/witness_calculator.js");
         break;
       case 3:
-        this.circuitWASMPath = 'test/fixtures/bridge/4/poseidon_bridge_4.wasm';
-        this.circuitZkeyPath = 'test/fixtures/bridge/4/circuit_final.zkey';
-        this.witnessCalculator = require("../../test/fixtures/bridge/4/witness_calculator.js");
+        this.circuitWASMPath = 'protocol-solidity-fixtures/fixtures/bridge/4/poseidon_bridge_4.wasm';
+        this.circuitZkeyPath = 'protocol-solidity-fixtures/fixtures/bridge/4/circuit_final.zkey';
+        this.witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/bridge/4/witness_calculator.js");
         break;
       case 4:
-        this.circuitWASMPath = 'test/fixtures/bridge/5/poseidon_bridge_5.wasm';
-        this.circuitZkeyPath = 'test/fixtures/bridge/5/circuit_final.zkey';
-        this.witnessCalculator = require("../../test/fixtures/bridge/5/witness_calculator.js");
+        this.circuitWASMPath = 'protocol-solidity-fixtures/fixtures/bridge/5/poseidon_bridge_5.wasm';
+        this.circuitZkeyPath = 'protocol-solidity-fixtures/fixtures/bridge/5/circuit_final.zkey';
+        this.witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/bridge/5/witness_calculator.js");
         break;
       case 5:
-        this.circuitWASMPath = 'test/fixtures/bridge/6/poseidon_bridge_6.wasm';
-        this.circuitZkeyPath = 'test/fixtures/bridge/6/circuit_final.zkey';
-        this.witnessCalculator = require("../../test/fixtures/bridge/6/witness_calculator.js");
+        this.circuitWASMPath = 'protocol-solidity-fixtures/fixtures/bridge/6/poseidon_bridge_6.wasm';
+        this.circuitZkeyPath = 'protocol-solidity-fixtures/fixtures/bridge/6/circuit_final.zkey';
+        this.witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/bridge/6/witness_calculator.js");
         break;
       default:
-        this.circuitWASMPath = 'test/fixtures/bridge/2/poseidon_bridge_2.wasm';
-        this.circuitZkeyPath = 'test/fixtures/bridge/2/circuit_final.zkey';
-        this.witnessCalculator = require("../../test/fixtures/bridge/2/witness_calculator.js");
+        this.circuitWASMPath = 'protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm';
+        this.circuitZkeyPath = 'protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey';
+        this.witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js");
         break;
     }
 

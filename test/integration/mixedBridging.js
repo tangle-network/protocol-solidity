@@ -154,15 +154,15 @@ contract('E2E LinkableAnchors - Mixed cross chain withdrawals', async accounts =
     ]);
 
     createWitness = async (data) => {
-      const witnessCalculator = require("../fixtures/bridge/2/witness_calculator.js");
-      const fileBuf = require('fs').readFileSync('./test/fixtures/bridge/2/poseidon_bridge_2.wasm');
+      const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js");
+      const fileBuf = require('fs').readFileSync('./protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm');
       const wtnsCalc = await witnessCalculator(fileBuf)
       const wtns = await wtnsCalc.calculateWTNSBin(data,0);
       return wtns;
     }
 
     tree = new MerkleTree(merkleTreeHeight, null, prefix)
-    zkey_final = fs.readFileSync('test/fixtures/bridge/2/circuit_final.zkey').buffer;
+    zkey_final = fs.readFileSync('protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey').buffer;
   });
 
   it('[sanity] bridges configured with threshold and relayers', async () => {
@@ -249,7 +249,7 @@ contract('E2E LinkableAnchors - Mixed cross chain withdrawals', async accounts =
 
     let wtns = await createWitness(input);
 
-    let res = await snarkjs.groth16.prove('test/fixtures/bridge/2/circuit_final.zkey', wtns);
+    let res = await snarkjs.groth16.prove('protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey', wtns);
     proof = res.proof;
     publicSignals = res.publicSignals;
 

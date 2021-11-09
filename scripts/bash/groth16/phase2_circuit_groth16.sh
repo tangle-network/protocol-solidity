@@ -22,13 +22,13 @@ compile_phase2 () {
 
 move_verifiers_and_metadata () {
     local outdir="$1" size="$2" bridgeType="$3"
-    cp $1/circuit_final.zkey test/fixtures/$bridgeType/$size/circuit_final.zkey
+    cp $1/circuit_final.zkey protocol-solidity-fixtures/fixtures/$bridgeType/$size/circuit_final.zkey
     cp $1/verifier.sol contracts/verifiers/$bridgetype/"Verifier$size.sol"
 }
 
 move_verifiers_and_metadata_vanchor () {
     local indir="$1" size="$2" bridgeType="$3" nIns="$4"
-    cp $indir/circuit_final.zkey test/fixtures/$bridgeType/$size/circuit_final.zkey
+    cp $indir/circuit_final.zkey protocol-solidity-fixtures/fixtures/$bridgeType/$size/circuit_final.zkey
 
     mkdir -p contracts/verifiers/$bridgeType
     cp $indir/verifier.sol contracts/verifiers/$bridgeType/"Verifier$size"\_"$nIns.sol"

@@ -15,12 +15,12 @@ compile () {
 
 copy_to_fixtures () {
     local outdir="$1" circuit="$2" size="$3" bridgeType="$4" 
-    mkdir -p test/fixtures/$bridgeType
-    mkdir -p test/fixtures/$bridgeType/$size
-    cp artifacts/circuits/$outdir/$circuit.sym test/fixtures/$bridgeType/$size/$circuit.sym
-    cp artifacts/circuits/$outdir/$circuit.r1cs test/fixtures/$bridgeType/$size/$circuit.r1cs
-    cp artifacts/circuits/$outdir/$circuit\_js/$circuit.wasm test/fixtures/$bridgeType/$size/$circuit.wasm
-    cp artifacts/circuits/$outdir/$circuit\_js/witness_calculator.js test/fixtures/$bridgeType/$size/witness_calculator.js
+    mkdir -p protocol-solidity-fixtures/fixtures/$bridgeType
+    mkdir -p protocol-solidity-fixtures/fixtures/$bridgeType/$size
+    cp artifacts/circuits/$outdir/$circuit.sym protocol-solidity-fixtures/fixtures/$bridgeType/$size/$circuit.sym
+    cp artifacts/circuits/$outdir/$circuit.r1cs protocol-solidity-fixtures/fixtures/$bridgeType/$size/$circuit.r1cs
+    cp artifacts/circuits/$outdir/$circuit\_js/$circuit.wasm protocol-solidity-fixtures/fixtures/$bridgeType/$size/$circuit.wasm
+    cp artifacts/circuits/$outdir/$circuit\_js/witness_calculator.js protocol-solidity-fixtures/fixtures/$bridgeType/$size/witness_calculator.js
 }
 
 # ###

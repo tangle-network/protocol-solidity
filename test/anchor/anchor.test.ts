@@ -92,8 +92,8 @@ describe('Anchor for 2 max edges', () => {
     await token.approve(anchor.contract.address, '10000000000000000000000');
 
     createWitness = async (data: any) => {
-      const witnessCalculator = require("../fixtures/bridge/2/witness_calculator.js");
-      const fileBuf = require('fs').readFileSync('./test/fixtures/bridge/2/poseidon_bridge_2.wasm');
+      const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js");
+      const fileBuf = require('fs').readFileSync('./protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm');
       const wtnsCalc = await witnessCalculator(fileBuf)
       const wtns = await wtnsCalc.calculateWTNSBin(data,0);
       return wtns;
@@ -179,12 +179,12 @@ describe('Anchor for 2 max edges', () => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('test/fixtures/bridge/2/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey', wtns);
       const proof = res.proof;
       let publicSignals = res.publicSignals;
       let tempProof = proof;
       let tempSignals = publicSignals;
-      const vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/bridge/2/circuit_final.zkey');
+      const vKey = await snarkjs.zKey.exportVerificationKey('protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey');
 
       res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       assert.strictEqual(res, true);
@@ -300,7 +300,7 @@ describe('Anchor for 2 max edges', () => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('test/fixtures/bridge/2/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey', wtns);
       const proof = res.proof;
       let publicSignals = res.publicSignals;
 
@@ -376,7 +376,7 @@ describe('Anchor for 2 max edges', () => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('test/fixtures/bridge/2/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey', wtns);
       const proof = res.proof;
       let publicSignals = res.publicSignals;
 
@@ -435,7 +435,7 @@ describe('Anchor for 2 max edges', () => {
 
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('test/fixtures/bridge/2/circuit_final.zkey', wtns);
+      let res = await snarkjs.groth16.prove('protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey', wtns);
       const proof = res.proof;
       let publicSignals = res.publicSignals;
 
@@ -631,8 +631,8 @@ describe('Anchor for 2 max edges', () => {
       };
       const wtns = await createWitness(input);
 
-      let res = await snarkjs.groth16.prove('test/fixtures/bridge/2/circuit_final.zkey', wtns);
-      const vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/bridge/2/circuit_final.zkey');
+      let res = await snarkjs.groth16.prove('protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey', wtns);
+      const vKey = await snarkjs.zKey.exportVerificationKey('protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey');
 
       res = await snarkjs.groth16.verify(vKey, res.publicSignals, res.proof);
       assert(res);
@@ -825,8 +825,8 @@ describe('Anchor for 2 max edges (3-sided bridge)', () => {
     await token.approve(anchor.contract.address, '10000000000000000000000');
 
     createWitness = async (data: any) => {
-      const witnessCalculator = require("../fixtures/bridge/3/witness_calculator.js");
-      const fileBuf = require('fs').readFileSync('./test/fixtures/bridge/3/poseidon_bridge_3.wasm');
+      const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/bridge/3/witness_calculator.js");
+      const fileBuf = require('fs').readFileSync('./protocol-solidity-fixtures/fixtures/bridge/3/poseidon_bridge_3.wasm');
       const wtnsCalc = await witnessCalculator(fileBuf)
       const wtns = await wtnsCalc.calculateWTNSBin(data,0);
       return wtns;
@@ -929,8 +929,8 @@ describe('Anchor for 3 max edges (4-sided bridge)', () => {
     await token.approve(anchor.contract.address, '10000000000000000000000');
 
     createWitness = async (data: any) => {
-      const witnessCalculator = require("../fixtures/bridge/4/witness_calculator.js");
-      const fileBuf = require('fs').readFileSync('./test/fixtures/bridge/4/poseidon_bridge_4.wasm');
+      const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/bridge/4/witness_calculator.js");
+      const fileBuf = require('fs').readFileSync('./protocol-solidity-fixtures/fixtures/bridge/4/poseidon_bridge_4.wasm');
       const wtnsCalc = await witnessCalculator(fileBuf)
       const wtns = await wtnsCalc.calculateWTNSBin(data,0);
       return wtns;
@@ -1033,8 +1033,8 @@ describe('Anchor for 4 max edges (5-sided bridge)', () => {
     await token.approve(anchor.contract.address, '10000000000000000000000');
 
     createWitness = async (data: any) => {
-      const witnessCalculator = require("../fixtures/bridge/5/witness_calculator.js");
-      const fileBuf = require('fs').readFileSync('./test/fixtures/bridge/5/poseidon_bridge_5.wasm');
+      const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/bridge/5/witness_calculator.js");
+      const fileBuf = require('fs').readFileSync('./protocol-solidity-fixtures/fixtures/bridge/5/poseidon_bridge_5.wasm');
       const wtnsCalc = await witnessCalculator(fileBuf)
       const wtns = await wtnsCalc.calculateWTNSBin(data,0);
       return wtns;
