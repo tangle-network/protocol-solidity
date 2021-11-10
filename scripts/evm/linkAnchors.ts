@@ -5,7 +5,7 @@ import { WEBB__factory } from '../../typechain/factories/WEBB__factory';
 import { WEBBAnchor__factory } from '../../typechain/factories/WEBBAnchor__factory';
 import { Bridge__factory } from '../../typechain/factories/Bridge__factory';
 import { WEBB } from '../../typechain/WEBB';
-import { depositAnchor } from './depositAnchor';
+import { depositWebbTokenAnchor } from './deposits/depositWebbTokenAnchor';
 import { AnchorHandler__factory } from '../../typechain/factories/AnchorHandler__factory';
 const helpers = require('../../test/helpers');
 
@@ -43,7 +43,7 @@ async function depositAndProposeAndExecute({
   destAnchorHandler,
   destWallet,
 }: Options) {
-  let receipt = await depositAnchor(originAnchor.address, originToken.address, originWallet);
+  let receipt = await depositWebbTokenAnchor(originAnchor.address, originToken.address, originWallet);
   // @ts-ignore
   const data = receipt.events[2].args;
   // @ts-ignore

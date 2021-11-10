@@ -422,8 +422,8 @@ class VAnchor {
       outPubkey: outputs.map((x) => toFixedHex(x.keypair.pubkey).toString()),
       outBlinding: outputs.map((x) => x.blinding.toString())
     }
-    console.log(input.outPubkey.map((x) => toFixedHex(x)));
-    console.log(input.inputNullifier);
+    //console.log(input.outPubkey.map((x) => toFixedHex(x)));
+    //console.log(input.inputNullifier);
     // console.log(`public amount is ${input.publicAmount}`);
     // console.log("printing input");
     // console.log(input);
