@@ -125,15 +125,15 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     ]);
 
     createWitness = async (data) => {
-      const witnessCalculator = require("../fixtures/2/witness_calculator.js");
-      const fileBuf = require('fs').readFileSync('./test/fixtures/2/poseidon_bridge_2.wasm');
+      const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js");
+      const fileBuf = require('fs').readFileSync('./protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm');
       const wtnsCalc = await witnessCalculator(fileBuf)
       const wtns = await wtnsCalc.calculateWTNSBin(data,0);
       return wtns;
     }
 
     tree = new MerkleTree(merkleTreeHeight, null, prefix)
-    zkey_final = fs.readFileSync('test/fixtures/2/circuit_final.zkey').buffer;
+    zkey_final = fs.readFileSync('protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey').buffer;
   });
 
   it('[sanity] dest chain bridge configured with threshold and relayers', async () => {
@@ -213,7 +213,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
 
     let wtns = await createWitness(input);
 
-    let res = await snarkjs.groth16.prove('test/fixtures/2/circuit_final.zkey', wtns);
+    let res = await snarkjs.groth16.prove('protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey', wtns);
     proof = res.proof;
     publicSignals = res.publicSignals;
 
@@ -326,10 +326,10 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
 
     wtns = await createWitness(input);
 
-    res = await snarkjs.groth16.prove('test/fixtures/2/circuit_final.zkey', wtns);
+    res = await snarkjs.groth16.prove('protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey', wtns);
     proof = res.proof;
     publicSignals = res.publicSignals;
-    vKey = await snarkjs.zKey.exportVerificationKey('test/fixtures/2/circuit_final.zkey');
+    vKey = await snarkjs.zKey.exportVerificationKey('protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey');
     res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
     assert.strictEqual(res, true);
 

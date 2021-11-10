@@ -21,11 +21,11 @@
  } from '../../typechain';
  
  // Convenience wrapper classes for contract classes
- import Anchor from '../../lib/darkwebb/Anchor';
- import AnchorProxy from '../../lib/darkwebb/AnchorProxy';
- import Verifier from '../../lib/darkwebb/Verifier';
+ import Anchor from '../../lib/bridge/Anchor';
+ import AnchorProxy from '../../lib/bridge/AnchorProxy';
+ import Verifier from '../../lib/bridge/Verifier';
 
- const helpers = require('../../lib/darkwebb/utils');
+ const helpers = require('../../lib/bridge/utils');
 
  const { NATIVE_AMOUNT } = process.env
  const snarkjs = require('snarkjs')
@@ -122,8 +122,8 @@
       await token.approve(anchorProxy.contract.address, '10000000000000000000000');
   
       createWitness = async (data: any) => {
-        const witnessCalculator = require("../fixtures/2/witness_calculator.js");
-        const fileBuf = require('fs').readFileSync('./test/fixtures/2/poseidon_bridge_2.wasm');
+        const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js");
+        const fileBuf = require('fs').readFileSync('./protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm');
         const wtnsCalc = await witnessCalculator(fileBuf)
         const wtns = await wtnsCalc.calculateWTNSBin(data,0);
         return wtns;

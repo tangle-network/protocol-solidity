@@ -66,11 +66,11 @@ async function generatePoseidonBridgeInput() {
     }),
   }
 
-  if (!fs.existsSync('build/bridge6')) {
-    await fs.mkdirSync('build/bridge6');
+  if (!fs.existsSync('build/bridge/6')) {
+    await fs.mkdirSync('build/bridge/6');
   }
 
-  await fs.writeFileSync('build/bridge6/input.json', JSON.stringify(stringifyBigInts(input)));
+  await fs.writeFileSync('build/bridge/6/input.json', JSON.stringify(stringifyBigInts(input)));
 }
 
 generatePoseidonBridgeInput();
