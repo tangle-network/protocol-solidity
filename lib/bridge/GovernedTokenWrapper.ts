@@ -33,6 +33,12 @@ class GovernedTokenWrapper {
     return handler;
   }
 
+  public static connect(address: string, signer: ethers.Signer) {
+    const contract = GovernedTokenWrapper__factory.connect(address, signer);
+    const tokenWrapper = new GovernedTokenWrapper(contract);
+    return tokenWrapper;
+  }
+
   public grantMinterRole(address: string) {
     const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
     return this.contract.grantRole(MINTER_ROLE, address);

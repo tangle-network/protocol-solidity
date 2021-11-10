@@ -17,7 +17,7 @@ contract GovernedTokenWrapper is TokenWrapper {
   address[] public tokens;
   mapping (address => bool) valid;
 
-  bool isNativeAllowed;
+  bool public isNativeAllowed;
   uint256 public wrappingLimit;
 
   constructor(string memory name, string memory symbol, address _governor, uint256 _limit, bool _isNativeAllowed) TokenWrapper(name, symbol) {
