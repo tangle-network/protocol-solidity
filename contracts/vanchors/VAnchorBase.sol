@@ -14,7 +14,7 @@ pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import { IERC20Receiver, IERC6777 } from "../interfaces/IVAnchor.sol";
+import { IERC6777 } from "../interfaces/IVAnchor.sol";
 import { IVAnchorVerifier } from "../interfaces/IVAnchorVerifier.sol";
 import "../trees/VMerkleTreeWithHistory.sol";
 
@@ -23,7 +23,7 @@ import "../trees/VMerkleTreeWithHistory.sol";
 /** @dev This contract(pool) allows deposit of an arbitrary amount to it, shielded transfer to another registered user inside the pool
  * and withdrawal from the pool. Project utilizes UTXO model to handle users' funds.
  */
-contract VAnchorBase is VMerkleTreeWithHistory, IERC20Receiver, ReentrancyGuard {
+contract VAnchorBase is VMerkleTreeWithHistory, ReentrancyGuard {
   PermissionedAccounts public permissions;
   uint8 public immutable maxEdges;
 
@@ -149,19 +149,6 @@ contract VAnchorBase is VMerkleTreeWithHistory, IERC20Receiver, ReentrancyGuard 
   ) public {
     register(_account);
     transact(_proofArgs, _extData);
-  }
-
-  function onTokenBridged(
-    IERC6777 _token,
-    uint256 _amount,
-    bytes calldata _data
-  ) external override {
-    (Proof memory _args, ExtData memory _extData) = abi.decode(_data, (Proof, ExtData));
-    require(_token == token, "provided token is not supported");
-    require(_amount >= uint256(_extData.extAmount), "amount from bridge is incorrect");
-    require(token.balanceOf(address(this)) >= uint256(_extData.extAmount) + lastBalance, "bridge did not send enough tokens");
-    require(uint256(_extData.extAmount) <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
-    _transact(_args, _extData);
   }
 
   function configureLimits(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmount) public onlyAdmin {

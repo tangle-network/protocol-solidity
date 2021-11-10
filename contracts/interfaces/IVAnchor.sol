@@ -9,11 +9,3 @@ interface IERC6777 is IERC20 {
     bytes calldata
   ) external returns (bool);
 }
-
-interface IERC20Receiver {
-  function onTokenBridged(
-    IERC6777 token,
-    uint256 value,
-    bytes calldata data
-  ) external;
-}
