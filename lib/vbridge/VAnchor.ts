@@ -198,6 +198,21 @@ class VAnchor {
     return rootsBytes; // root byte string (32 * array.length bytes) 
   };
 
+    // Convert a hex string to a byte array
+  public static hexStringToByte(str: string) {
+    if (!str) {
+      return new Uint8Array();
+    }
+    
+    var a = [];
+    for (var i = 0, len = str.length; i < len; i+=2) {
+      // @ts-ignore
+      a.push(parseInt(str.substr(i,2),16));
+    }
+    
+    return new Uint8Array(a);
+  }
+
   public static async groth16ExportSolidityCallData(proof: any, pub: any) {
     let inputs = "";
     for (let i = 0; i < pub.length; i++) {
@@ -407,6 +422,8 @@ class VAnchor {
       outPubkey: outputs.map((x) => toFixedHex(x.keypair.pubkey).toString()),
       outBlinding: outputs.map((x) => x.blinding.toString())
     }
+    console.log(input.outPubkey.map((x) => toFixedHex(x)));
+    console.log(input.inputNullifier);
     // console.log(`public amount is ${input.publicAmount}`);
     // console.log("printing input");
     // console.log(input);
