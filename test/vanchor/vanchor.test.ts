@@ -23,6 +23,7 @@ import Verifier from '../../lib/vbridge/Verifier';
 import { Utxo } from '../../lib/vbridge/utxo';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { poseidonHash, poseidonHash2 } from '../../lib/vbridge/utils';
 
 const { NATIVE_AMOUNT } = process.env
 const BN = require('bn.js');
@@ -629,48 +630,57 @@ describe('VAnchor for 2 max edges', () => {
       );
     });
 
-    // it('values for hossein', async () => {
-    //   const aliceDepositAmount = 1e7;
-    //   const utxo = new Utxo({
-    //     chainId: BigNumber.from(chainID),
-    //     originChainId: BigNumber.from(chainID),
-    //     amount: BigNumber.from(aliceDepositAmount)
-    //   });
+    // it.only('values for hossein', async () => {
+    //   const zero1 = '0x0000000000000000000000000000000000000000000000000000000000000000';
+    //   const zero2 = '0xb2ac10dccfb5a5712d632464a359668bb513e80e9d145ab5a88381de83af1046';
+    //   const chainid = '0x0000000000000000000000000000000000000000000000000000000000007a69'
+    //   const amount = '0x0000000000000000000000000000000000000000000000000000000000989680'
+    //   const publickey = '0x07a1f74bf9feda741e1e9099012079df28b504fc7a19a02288435b8e02ae21fa';
+    //   const blinding = '0x00a668ba0dcb34960aca597f433d0d3289c753046afa26d97e1613148c05f2c0';
+    //   const commitment = '0x15206d966a7fb3e3fbbb7f4d7b623ca1c7c9b5c6e6d0a3348df428189441a1e4';
+    //   const path = '0x0000000000000000000000000000000000000000000000000000000000000000';
+    //   console.log(poseidonHash([zero1]));
+      // const aliceDepositAmount = 1e7;
+      // const utxo = new Utxo({
+      //   chainId: BigNumber.from(chainID),
+      //   originChainId: BigNumber.from(chainID),
+      //   amount: BigNumber.from(aliceDepositAmount)
+      // });
 
-    //   const utxo2 = new Utxo({
-    //     chainId: BigNumber.from(chainID),
-    //     originChainId: BigNumber.from(chainID),
-    //     amount: BigNumber.from(aliceDepositAmount),
-    //     keypair: utxo.keypair
-    //   });
+      // const utxo2 = new Utxo({
+      //   chainId: BigNumber.from(chainID),
+      //   originChainId: BigNumber.from(chainID),
+      //   amount: BigNumber.from(aliceDepositAmount),
+      //   keypair: utxo.keypair
+      // });
 
-    //   await anchor.registerAndTransact(
-    //     sender.address,
-    //     utxo.keypair.address(),
-    //     [],
-    //     [utxo]
-    //   );
+      // await anchor.registerAndTransact(
+      //   sender.address,
+      //   utxo.keypair.address(),
+      //   [],
+      //   [utxo]
+      // );
 
-    //   await anchor.transact(
-    //     [utxo],
-    //     [utxo2]
-    //   )
-    //   console.log("keypair");
-    //   console.log(`keypair private key is ${VAnchor.hexStringToByte(toFixedHex(utxo.keypair.privkey))}`);
-    //   console.log(`keypair public key is ${toFixedHex(utxo.keypair.pubkey)}`);
+      // await anchor.transact(
+      //   [utxo],
+      //   [utxo2]
+      // )
+      // console.log("keypair");
+      // console.log(`keypair private key is ${VAnchor.hexStringToByte(toFixedHex(utxo.keypair.privkey))}`);
+      // console.log(`keypair public key is ${toFixedHex(utxo.keypair.pubkey)}`);
 
-    //   console.log("leaf commitment");
-    //   console.log(`chainId is ${toFixedHex(utxo.chainId)}`);
-    //   console.log(`amount is ${toFixedHex(utxo.amount)}`);
-    //   console.log(`public key is ${toFixedHex(utxo.keypair.pubkey)}`);
-    //   console.log(`blinding is ${toFixedHex(utxo.blinding)}`);
-    //   console.log(`commitment is ${toFixedHex(utxo.getCommitment())}`);
+      // console.log("leaf commitment");
+      // console.log(`chainId is ${toFixedHex(utxo.chainId)}`);
+      // console.log(`amount is ${toFixedHex(utxo.amount)}`);
+      // console.log(`public key is ${toFixedHex(utxo.keypair.pubkey)}`);
+      // console.log(`blinding is ${toFixedHex(utxo.blinding)}`);
+      // console.log(`commitment is ${toFixedHex(utxo.getCommitment())}`);
 
-    //   console.log("nullifier");
-    //   console.log(`commitment is ${toFixedHex(utxo.getCommitment())}`);
-    //   console.log(`pathIndices is ${toFixedHex(utxo.index!.toString())}`);
-    //   console.log(`private key is ${toFixedHex(utxo.keypair.privkey)}`);
-    //   console.log(`nullifier is ${toFixedHex(utxo.getNullifier())}`);
+      // console.log("nullifier");
+      // console.log(`commitment is ${toFixedHex(utxo.getCommitment())}`);
+      // console.log(`pathIndices is ${toFixedHex(utxo.index!.toString())}`);
+      // console.log(`private key is ${toFixedHex(utxo.keypair.privkey)}`);
+      // console.log(`nullifier is ${toFixedHex(utxo.getNullifier())}`);
     // });
 
     // it('transact should work with 16 inputs', async () => {
