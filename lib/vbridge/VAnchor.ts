@@ -639,8 +639,6 @@ class VAnchor {
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
 
-    console.log("hi2");
-
     const { extData, publicInputs } = await this.setupTransaction(
       inputs,
       outputs,
@@ -651,7 +649,6 @@ class VAnchor {
       merkleProofsForInputs,
     );
 
-    console.log("hi3");
     let tx = await this.contract.transact(
       {
         ...publicInputs,

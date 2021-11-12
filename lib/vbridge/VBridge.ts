@@ -406,21 +406,12 @@ class VBridge {
     if (!tokenAddress) {
       throw new Error("Token not supported");
     }
-    console.log("check native");
-    console.log(tokenAddress);
-    console.log(checkNativeAddress(tokenAddress));
-    console.log(await signer.getBalance());
 
     const tokenInstance = await MintableToken.tokenFromAddress(tokenAddress, signer);
-    const webbTokenBalance2 = await tokenInstance.getBalance(signerAddress);
-    console.log('jidn');
-    console.log(webbTokenBalance2.toString());
-    // const userTokenAllowance1 = await tokenInstance.getAllowance(signerAddress, vAnchor.contract.address);
-    // console.log(`user token allowance is ${userTokenAllowance1}`);
-    // //if balance less than deposit amount do something...
-    // await tokenInstance.approveSpending(vAnchor.contract.address);
-    // const userTokenAllowance2 = await tokenInstance.getAllowance(signerAddress, vAnchor.contract.address);
-    // console.log(`user token allowance is ${userTokenAllowance2}`);
+    const tokenBalance = await tokenInstance.getBalance(signerAddress);
+
+    //do some checks with tokenBalance
+
     //Make Merkle proof
     const merkleProof = inputs.map((x) => this.getVAnchor(Number(x.originChainId))!.getMerkleProof(x));
   

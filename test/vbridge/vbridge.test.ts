@@ -107,7 +107,7 @@ import { Utxo } from '../../lib/vbridge/utxo';
  
        // Should be able to retrieve the token address (so we can mint tokens for test scenario)
        const webbTokenAddress = vBridge.getWebbTokenAddress(chainId1);
-       console.log(`webbTokenAddress is ${webbTokenAddress}`);
+       console.log(`webtokad ${webbTokenAddress}`);
        const webbToken = await MintableToken.tokenFromAddress(webbTokenAddress!, signers[1]);
        const tx = await webbToken.mintTokens(signers[2].address, '100000000000000000000000');
  
@@ -117,7 +117,7 @@ import { Utxo } from '../../lib/vbridge/utxo';
 
        //Define inputs for transact function
        const inputs = [new Utxo({chainId: BigNumber.from(chainId1)}), new Utxo({chainId: BigNumber.from(chainId1)})];
-       const outputs = [new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId1)})];
+       const outputs = [new Utxo({amount: BigNumber.from(1), originChainId: BigNumber.from(chainId1)})];
 
        //Transact on the bridge
        await vBridge.transact(inputs, outputs, 0, '0', '0', signers[2]); 
