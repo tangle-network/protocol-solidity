@@ -58,7 +58,7 @@ export type BridgeConfig = {
 
   // The addresses of tokens available to be transferred over this bridge config
   // chainId => GovernedTokenWrapperAddress
-  webbTokenAddresses: Map<number, string>;
+  webbTokenAddresses: Map<number, string | undefined>;
 
   // The addresses of the anchors for the GovernedTokenWrapper
   // {anchorIdentifier} => anchorAddress
@@ -163,7 +163,7 @@ class VBridge {
   //   return new Bridge(bridgeConfig.bridgeSides, bridgeConfig.webbTokenAddresses, linkedAnchors, bridgeConfig.anchors);
   // }
 
-  public static async deployVBridge(vBridgeInput: VBridgeInput, deployers: DeployerConfig): Promise<VBridge> {
+  public static async deployVBridge(vBridgeInput: VBridgeInput, deployers: DeployerConfig, tokenInstance?: GovernedTokenWrapper): Promise<VBridge> {
     
     let webbTokenAddresses: Map<number, string> = new Map();
     let vBridgeSides: Map<number, VBridgeSide> = new Map();
@@ -204,30 +204,34 @@ class VBridge {
         }
       }
 
-      let tokenInstance: GovernedTokenWrapper = await GovernedTokenWrapper.createGovernedTokenWrapper(
-        `webbETH-test-1`,
-        `webbETH-test-1`,
-        await deployers[chainID].getAddress(),
-        '10000000000000000000000000',
-        allowedNative,
-        deployers[chainID],
-      );
+      if (!tokenInstance) {
+        console.log("hello");
+        tokenInstance = await GovernedTokenWrapper.createGovernedTokenWrapper(
+          `webbETH-test-1`,
+          `webbETH-test-1`,
+          await deployers[chainID].getAddress(),
+          '10000000000000000000000000',
+          allowedNative,
+          deployers[chainID],
+        );
+      }
+
       
-      console.log(`created GovernedTokenWrapper on ${chainID}: ${tokenInstance.contract.address}`);
+      console.log(`created GovernedTokenWrapper on ${chainID}: ${tokenInstance?.contract.address}`);
 
       // Add all token addresses to the governed token instance.
       for (const tokenToBeWrapped of vBridgeInput.vAnchorInputs.asset[chainID]!) {
         // if the address is not '0', then add it
         if (!checkNativeAddress(tokenToBeWrapped)) {
-          const tx = await tokenInstance.contract.add(tokenToBeWrapped);
-          const receipt = await tx.wait();
+          const tx = await tokenInstance?.contract.add(tokenToBeWrapped);
+          const receipt = await tx?.wait();
         }
       }
 
       // append each token
       webbTokenAddresses.set(
         chainID,
-        tokenInstance.contract.address
+        tokenInstance!.contract.address
       );
       
       let chainGroupedVAnchors: VAnchor[] = [];
@@ -238,7 +242,7 @@ class VBridge {
           verifierInstance.address,
           5,
           hasherInstance.address,
-          tokenInstance.contract.address,
+          tokenInstance!.contract.address,
           {
             bridge: adminAddress,
             admin: adminAddress,
@@ -248,10 +252,16 @@ class VBridge {
           deployers[chainID]
       );
 
+      let tokenDenomination = '1000000000000000000' // 1 ether
+      await vAnchorInstance.contract.configureLimits(
+        BigNumber.from(0),
+        BigNumber.from(tokenDenomination).mul(1_000_000),
+      )
+
       console.log(`createdVAnchor: ${vAnchorInstance.contract.address}`);
 
       // grant minting rights to the anchor
-      await tokenInstance.grantMinterRole(vAnchorInstance.contract.address); 
+      await tokenInstance?.grantMinterRole(vAnchorInstance.contract.address); 
 
       chainGroupedVAnchors.push(vAnchorInstance);
       vAnchors.set(
@@ -302,9 +312,9 @@ class VBridge {
   }
 
   /** Update the state of BridgeSides and Anchors, when
-  *** state changes for the @param linkedAnchor 
+  *** state changes for the @param linkedVAnchor 
   **/
-  public async updateLinkedAnchors(linkedVAnchor: VAnchor) {
+  public async updateLinkedVAnchors(linkedVAnchor: VAnchor) {
     // Find the bridge sides that are connected to this Anchor
     const linkedResourceID = await linkedVAnchor.createResourceId();
     const vAnchorsToUpdate = this.linkedVAnchors.get(linkedResourceID);
@@ -323,11 +333,11 @@ class VBridge {
   };
 
   public async update(chainId: number, anchorSize: ethers.BigNumberish) {
-    const anchor = this.getVAnchor(chainId);
-    if (!anchor) {
+    const vAnchor = this.getVAnchor(chainId);
+    if (!vAnchor) {
       return;
     }
-    await this.updateLinkedAnchors(anchor);
+    await this.updateLinkedVAnchors(vAnchor);
   }
 
   public getVBridgeSide(chainId: number) {
@@ -374,21 +384,18 @@ class VBridge {
        throw new Error("VAnchor does not exist on this chain");
     }
     vAnchor.setSigner(signer);
+
+    if (inputs.length < 2) {
+      while (inputs.length < 2) {
+        inputs.push(new Utxo({chainId: BigNumber.from(await signer.getChainId())}));
+      }
+    }
     
-    let tokenDenomination = '1000000000000000000' // 1 ether
-    await vAnchor.contract.configureLimits(
-      BigNumber.from(0),
-      BigNumber.from(tokenDenomination).mul(1_000_000),
-    )
     //do we have to check if amount is greater than 0 before the checks?????
     //Check that input dest chain is this chain
     for (let i=0; i<inputs.length; i++) {
       if (inputs[i].chainId.toString() !== chainId.toString()) {
         throw new Error("Trying to withdraw an input with wrong destination chainId");
-      }
-      let originVAnchor = this.getVAnchor(Number(inputs[i].originChainId))
-      if (!originVAnchor) {
-        throw new Error("Trying to withdraw an input with non-existent origin chain")
       }
     }
 
@@ -398,15 +405,6 @@ class VBridge {
         throw new Error("Trying to form an output with the wrong originChainId")
       }
     }
-
-    //if deposit check that signer has enough balance 
-
-    const extAmount = BigNumber.from(fee)
-    .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
-    .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
-    
-    const publicAmount = extAmount.sub(fee);
-    console.log(`public amount is ${extAmount}`);
     
     const tokenAddress = await vAnchor.contract.token();
 
@@ -415,16 +413,24 @@ class VBridge {
     }
 
     const tokenInstance = await MintableToken.tokenFromAddress(tokenAddress, signer);
-    const tokenBalance = await tokenInstance.getBalance(signerAddress);
-    await tokenInstance.approveSpending(vAnchor.contract.address);
 
-    //do some checks with tokenBalance
+    const extAmount = BigNumber.from(fee)
+    .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+    .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+
+    const publicAmount = extAmount.sub(fee);
+    // Approve spending if needed
+    const userTokenAllowance = await tokenInstance.getAllowance(signerAddress, vAnchor.contract.address);
+    if (userTokenAllowance.lt(publicAmount)) {
+      await tokenInstance.approveSpending(vAnchor.contract.address);
+    }
 
     //Make Merkle proof
     const merkleProof = inputs.map((x) => this.getVAnchor(Number(x.originChainId))!.getMerkleProof(x));
-  
+    //console.log((await tokenInstance.getBalance(signerAddress)).toString());
     await vAnchor.bridgedTransact(inputs, outputs, fee, recipient, relayer, merkleProof);
-    console.log((await tokenInstance.getBalance(signerAddress)).toString());
+    //console.log((await tokenInstance.getBalance(signerAddress)).toString());
+    await this.updateLinkedVAnchors(vAnchor);
   }
 
   // public async deposit(destinationChainId: number, anchorSize: ethers.BigNumberish, signer: ethers.Signer) {

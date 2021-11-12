@@ -315,15 +315,17 @@ class VAnchor {
   // Proposal data is used to update linkedAnchors via bridge proposals 
   // on other chains with this anchor's state
   public async getProposalData(leafIndex?: number): Promise<string> {
-
+    // console.log("get proposal data");
+    // console.log(`leafIndex is ${leafIndex}`);
     // If no leaf index passed in, set it to the most recent one.
     if (!leafIndex) {
       leafIndex = this.tree.number_of_elements() - 1;
     }
-
+    // console.log(`leafIndex is ${leafIndex}`);
     const chainID = await this.signer.getChainId();
-    const merkleRoot = this.depositHistory[leafIndex];
-
+    const merkleRoot = this.depositHistory[leafIndex]; //bridgedTransact should update deposithistory
+    // console.log(`chainid is ${chainID}`);
+    // console.log(`merkle root is ${merkleRoot}`);
     return '0x' +
       toHex(chainID, 32).substr(2) + 
       toHex(leafIndex, 32).substr(2) + 
@@ -553,9 +555,12 @@ class VAnchor {
       input.extDataHash.toString()
     );
     //console.log(`current root (class) is ${toFixedHex(this.tree.root())}`);
-    outputs.forEach((x) => {
+    outputs.forEach(async (x) => {
       this.tree.insert(toFixedHex(x.getCommitment()));
+      let numOfElements = this.tree.number_of_elements();
+      this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
     });
+    
     //console.log(`updated root (class) is ${toFixedHex(this.tree.root())}`);
 
     return {
@@ -639,8 +644,6 @@ class VAnchor {
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
 
-    console.log(`extAmount is ${extAmount}`);
-
     const { extData, publicInputs } = await this.setupTransaction(
       inputs,
       outputs,
@@ -650,6 +653,7 @@ class VAnchor {
       relayer,
       merkleProofsForInputs,
     );
+
 
     let tx = await this.contract.transact(
       {

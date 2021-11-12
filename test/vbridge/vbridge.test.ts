@@ -19,7 +19,7 @@
  import { toFixedHex } from '../../lib/bridge/utils';
  import { BigNumber } from '@ethersproject/bignumber';
  import { Signer } from '@ethersproject/abstract-signer';
-import { Utxo } from '../../lib/vbridge/utxo';
+ import { Utxo } from '../../lib/vbridge/utxo';
  
  function startGanacheServer(port: number, networkId: number, mnemonic: string) {
    const ganacheServer = ganache.server({
@@ -119,7 +119,7 @@ import { Utxo } from '../../lib/vbridge/utxo';
        const outputs = [new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId1)})];
 
        //Transact on the bridge
-       await vBridge.transact(inputs, outputs, 0, '0', '0', signers[2]); 
+       await vBridge.transact([], outputs, 0, '0', '0', signers[2]); 
  
     //    // Deposit on the bridge
     //    const depositNote = await bridge.deposit(chainId2, anchorSize, signers[2]);
