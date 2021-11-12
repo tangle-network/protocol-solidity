@@ -631,13 +631,15 @@ class VAnchor {
 
     if (outputs.length < 2) {
       while (outputs.length < 2) {
-        outputs.push(new Utxo());
+        outputs.push(new Utxo({originChainId: BigNumber.from(await this.signer.getChainId())}));
       }
     }
 
     let extAmount = BigNumber.from(fee)
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+
+    console.log("hi2");
 
     const { extData, publicInputs } = await this.setupTransaction(
       inputs,
@@ -649,6 +651,7 @@ class VAnchor {
       merkleProofsForInputs,
     );
 
+    console.log("hi3");
     let tx = await this.contract.transact(
       {
         ...publicInputs,

@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { ethers, BigNumber, BigNumberish  } from "ethers";
 import VBridgeSide from './VBridgeSide';
 import VAnchor from './VAnchor';
 import AnchorHandler from "../bridge/AnchorHandler";
@@ -6,6 +6,8 @@ import MintableToken from "../bridge/MintableToken";
 import { getHasherFactory } from '../bridge/utils';
 import Verifier from "./Verifier";
 import GovernedTokenWrapper from "../bridge/GovernedTokenWrapper";
+import { Utxo } from "./utxo";
+import { TokenWrapper } from "../../typechain";
 
 // Deployer config matches the chainId to the signer for that chain
 export type DeployerConfig = Record<number, ethers.Signer>;
@@ -355,16 +357,74 @@ class VBridge {
     };
   }
 
-  public async transact(destinationChainId:number, signer:ethers.Signer) {
+  public async transact(
+    inputs:Utxo[], 
+    outputs:Utxo[], 
+    fee: BigNumberish, 
+    recipient: string,
+    relayer: string,
+    signer:ethers.Signer
+    ) {
     const chainId = await signer.getChainId();
     const signerAddress = await signer.getAddress();
     const vAnchor = this.getVAnchor(chainId);
 
     if (!vAnchor) {
-       throw new Error("VAnchor does not exist");
+       throw new Error("VAnchor does not exist on this chain");
     }
 
+    //do we have to check if amount is greater than 0 before the checks?????
+    //Check that input dest chain is this chain
+    for (let i=0; i<inputs.length; i++) {
+      if (inputs[i].chainId.toString() !== chainId.toString()) {
+        throw new Error("Trying to withdraw an input with wrong destination chainId");
+      }
+      let originVAnchor = this.getVAnchor(Number(inputs[i].originChainId))
+      if (!originVAnchor) {
+        throw new Error("Trying to withdraw an input with non-existent origin chain")
+      }
+    }
 
+    //check that output origin chain is this chain
+    for (let i=0; i<outputs.length; i++) {
+      if (outputs[i].originChainId.toString() !== chainId.toString()) {
+        throw new Error("Trying to form an output with the wrong originChainId")
+      }
+    }
+
+    //if deposit check that signer has enough balance 
+
+    const extAmount = BigNumber.from(fee)
+    .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+    .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
+    
+    const publicAmount = extAmount.sub(fee);
+    console.log(`public amount is ${publicAmount}`);
+    
+    const tokenAddress = await vAnchor.contract.token();
+
+    if (!tokenAddress) {
+      throw new Error("Token not supported");
+    }
+    console.log("check native");
+    console.log(tokenAddress);
+    console.log(checkNativeAddress(tokenAddress));
+    console.log(await signer.getBalance());
+
+    const tokenInstance = await MintableToken.tokenFromAddress(tokenAddress, signer);
+    const webbTokenBalance2 = await tokenInstance.getBalance(signerAddress);
+    console.log('jidn');
+    console.log(webbTokenBalance2.toString());
+    // const userTokenAllowance1 = await tokenInstance.getAllowance(signerAddress, vAnchor.contract.address);
+    // console.log(`user token allowance is ${userTokenAllowance1}`);
+    // //if balance less than deposit amount do something...
+    // await tokenInstance.approveSpending(vAnchor.contract.address);
+    // const userTokenAllowance2 = await tokenInstance.getAllowance(signerAddress, vAnchor.contract.address);
+    // console.log(`user token allowance is ${userTokenAllowance2}`);
+    //Make Merkle proof
+    const merkleProof = inputs.map((x) => this.getVAnchor(Number(x.originChainId))!.getMerkleProof(x));
+  
+    await vAnchor.bridgedTransact(inputs, outputs, fee, recipient, relayer, merkleProof);
   }
 
   // public async deposit(destinationChainId: number, anchorSize: ethers.BigNumberish, signer: ethers.Signer) {

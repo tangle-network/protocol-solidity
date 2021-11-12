@@ -19,6 +19,7 @@
  import { toFixedHex } from '../../lib/bridge/utils';
  import { BigNumber } from '@ethersproject/bignumber';
  import { Signer } from '@ethersproject/abstract-signer';
+import { Utxo } from '../../lib/vbridge/utxo';
  
  function startGanacheServer(port: number, networkId: number, mnemonic: string) {
    const ganacheServer = ganache.server({
@@ -106,12 +107,20 @@
  
        // Should be able to retrieve the token address (so we can mint tokens for test scenario)
        const webbTokenAddress = vBridge.getWebbTokenAddress(chainId1);
+       console.log(`webbTokenAddress is ${webbTokenAddress}`);
        const webbToken = await MintableToken.tokenFromAddress(webbTokenAddress!, signers[1]);
        const tx = await webbToken.mintTokens(signers[2].address, '100000000000000000000000');
  
        // get the state of anchors before deposit
        const sourceAnchorRootBefore = await vAnchor1.contract.getLastRoot();
-       console.log(sourceAnchorRootBefore);
+       //console.log(sourceAnchorRootBefore);
+
+       //Define inputs for transact function
+       const inputs = [new Utxo({chainId: BigNumber.from(chainId1)}), new Utxo({chainId: BigNumber.from(chainId1)})];
+       const outputs = [new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId1)})];
+
+       //Transact on the bridge
+       await vBridge.transact(inputs, outputs, 0, '0', '0', signers[2]); 
  
     //    // Deposit on the bridge
     //    const depositNote = await bridge.deposit(chainId2, anchorSize, signers[2]);
