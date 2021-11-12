@@ -365,6 +365,7 @@ class VBridge {
     relayer: string,
     signer:ethers.Signer
     ) {
+    
     const chainId = await signer.getChainId();
     const signerAddress = await signer.getAddress();
     const vAnchor = this.getVAnchor(chainId);
@@ -372,7 +373,13 @@ class VBridge {
     if (!vAnchor) {
        throw new Error("VAnchor does not exist on this chain");
     }
-
+    vAnchor.setSigner(signer);
+    
+    let tokenDenomination = '1000000000000000000' // 1 ether
+    await vAnchor.contract.configureLimits(
+      BigNumber.from(0),
+      BigNumber.from(tokenDenomination).mul(1_000_000),
+    )
     //do we have to check if amount is greater than 0 before the checks?????
     //Check that input dest chain is this chain
     for (let i=0; i<inputs.length; i++) {
@@ -399,7 +406,7 @@ class VBridge {
     .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
     
     const publicAmount = extAmount.sub(fee);
-    console.log(`public amount is ${publicAmount}`);
+    console.log(`public amount is ${extAmount}`);
     
     const tokenAddress = await vAnchor.contract.token();
 
@@ -409,6 +416,7 @@ class VBridge {
 
     const tokenInstance = await MintableToken.tokenFromAddress(tokenAddress, signer);
     const tokenBalance = await tokenInstance.getBalance(signerAddress);
+    await tokenInstance.approveSpending(vAnchor.contract.address);
 
     //do some checks with tokenBalance
 
@@ -416,6 +424,7 @@ class VBridge {
     const merkleProof = inputs.map((x) => this.getVAnchor(Number(x.originChainId))!.getMerkleProof(x));
   
     await vAnchor.bridgedTransact(inputs, outputs, fee, recipient, relayer, merkleProof);
+    console.log((await tokenInstance.getBalance(signerAddress)).toString());
   }
 
   // public async deposit(destinationChainId: number, anchorSize: ethers.BigNumberish, signer: ethers.Signer) {

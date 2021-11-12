@@ -639,6 +639,8 @@ class VAnchor {
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
 
+    console.log(`extAmount is ${extAmount}`);
+
     const { extData, publicInputs } = await this.setupTransaction(
       inputs,
       outputs,
