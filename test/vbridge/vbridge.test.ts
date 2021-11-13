@@ -114,26 +114,29 @@
        const sourceAnchorRootBefore = await vAnchor1.contract.getLastRoot();
        //console.log(sourceAnchorRootBefore);
 
-       //Define inputs for transact function
-       const inputs = [new Utxo({chainId: BigNumber.from(chainId1)}), new Utxo({chainId: BigNumber.from(chainId1)})];
-       const outputs = [new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId1)})];
+       //Define inputs/outputs for transact function
+       const depositUtxo = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId1), chainId: BigNumber.from(chainId1)})
 
        //Transact on the bridge
-       await vBridge.transact([], outputs, 0, '0', '0', signers[2]); 
- 
-    //    // Deposit on the bridge
-    //    const depositNote = await bridge.deposit(chainId2, anchorSize, signers[2]);
+       await vBridge.transact([], [depositUtxo], 0, '0', '0', signers[2]); 
        
-    //    // Check the state of anchors after deposit
-    //    let edgeIndex = await anchor2.contract.edgeIndex(chainId1);
+       // Check the state of anchors after deposit
+       let edgeIndex = await vAnchor2.contract.edgeIndex(chainId1);
  
-    //    const sourceAnchorRootAfter = await anchor1.contract.getLastRoot();
-    //    const destAnchorEdgeAfter = await anchor2.contract.edgeList(edgeIndex);
+       const sourceAnchorRootAfter = await vAnchor1.contract.getLastRoot();
+       const destAnchorEdgeAfter = await vAnchor2.contract.edgeList(edgeIndex);
  
-    //    // make sure the roots / anchors state have changed
-    //    assert.notEqual(sourceAnchorRootAfter, sourceAnchorRootBefore);
-    //    assert.deepStrictEqual(ethers.BigNumber.from(0), destAnchorEdgeAfter.latestLeafIndex);
+       // make sure the roots / anchors state have changed
+       assert.notEqual(sourceAnchorRootAfter, sourceAnchorRootBefore);
+       assert.deepStrictEqual(ethers.BigNumber.from(1), destAnchorEdgeAfter.latestLeafIndex);
  
+       const transferUtxo = new Utxo({
+        originChainId: BigNumber.from(chainId1),
+        amount: BigNumber.from(1e6),
+        keypair: depositUtxo.keypair
+      });
+
+      await vBridge.transact([depositUtxo], [transferUtxo], 0, '0', '0', signers[2]);
     //    await bridge.withdraw(depositNote, anchorSize, signers[1].address, signers[1].address, ganacheWallet2);
  
     //    const webbTokenAddress2 = bridge.getWebbTokenAddress(chainId2);

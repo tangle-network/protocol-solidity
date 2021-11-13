@@ -395,10 +395,10 @@ class VBridge {
     //Check that input dest chain is this chain
     for (let i=0; i<inputs.length; i++) {
       if (inputs[i].chainId.toString() !== chainId.toString()) {
-        throw new Error("Trying to withdraw an input with wrong destination chainId");
+        throw new Error("Trying to spend an input with wrong destination chainId");
       }
     }
-
+    
     //check that output origin chain is this chain
     for (let i=0; i<outputs.length; i++) {
       if (outputs[i].originChainId.toString() !== chainId.toString()) {
