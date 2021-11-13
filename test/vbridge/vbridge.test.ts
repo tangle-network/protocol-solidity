@@ -20,6 +20,8 @@
  import { BigNumber } from '@ethersproject/bignumber';
  import { Signer } from '@ethersproject/abstract-signer';
  import { Utxo } from '../../lib/vbridge/utxo';
+ //import { GovernedTokenWrapper } from '../../typechain';
+ import GovernedTokenWrapper from "../../lib/bridge/GovernedTokenWrapper";
  
  function startGanacheServer(port: number, networkId: number, mnemonic: string) {
    const ganacheServer = ganache.server({
@@ -81,6 +83,9 @@
      });
  
      it.only('create 2 side bridge for one token', async () => {
+       let webbTokens1 = new Map<number, GovernedTokenWrapper | undefined>();
+       webbTokens1.set(31337, null!);
+       webbTokens1.set(1337, null!);
        bridge2WebbEthInput = {
          vAnchorInputs: {
            asset: {
@@ -88,7 +93,8 @@
              1337: [tokenInstance2.contract.address],
            }
         },
-         chainIDs: [31337, 1337]
+         chainIDs: [31337, 1337],
+         webbTokens: webbTokens1
        };
        
        const signers = await ethers.getSigners();
@@ -132,7 +138,7 @@
  
        const transferUtxo = new Utxo({
         originChainId: BigNumber.from(chainId1),
-        amount: BigNumber.from(1e6),
+        amount: BigNumber.from(1e7),
         keypair: depositUtxo.keypair
       });
 

@@ -52,6 +52,8 @@ export type VBridgeInput = {
 
   // The IDs of the chains to deploy to
   chainIDs: number[],
+
+  webbTokens: Map<number, GovernedTokenWrapper | undefined>;
 };
 
 export type BridgeConfig = {
@@ -163,7 +165,7 @@ class VBridge {
   //   return new Bridge(bridgeConfig.bridgeSides, bridgeConfig.webbTokenAddresses, linkedAnchors, bridgeConfig.anchors);
   // }
 
-  public static async deployVBridge(vBridgeInput: VBridgeInput, deployers: DeployerConfig, tokenInstance?: GovernedTokenWrapper): Promise<VBridge> {
+  public static async deployVBridge(vBridgeInput: VBridgeInput, deployers: DeployerConfig): Promise<VBridge> {
     
     let webbTokenAddresses: Map<number, string> = new Map();
     let vBridgeSides: Map<number, VBridgeSide> = new Map();
@@ -203,8 +205,8 @@ class VBridge {
           allowedNative = true;
         }
       }
-
-      if (!tokenInstance) {
+      let tokenInstance: GovernedTokenWrapper;
+      if (!vBridgeInput.webbTokens.get(chainID)) {
         console.log("hello");
         tokenInstance = await GovernedTokenWrapper.createGovernedTokenWrapper(
           `webbETH-test-1`,
@@ -214,6 +216,8 @@ class VBridge {
           allowedNative,
           deployers[chainID],
         );
+      } else {
+        tokenInstance = vBridgeInput.webbTokens.get(chainID)!;
       }
 
       
