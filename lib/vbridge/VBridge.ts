@@ -382,7 +382,6 @@ class VBridge {
     const chainId = await signer.getChainId();
     const signerAddress = await signer.getAddress();
     const vAnchor = this.getVAnchor(chainId);
-
     if (!vAnchor) {
        throw new Error("VAnchor does not exist on this chain");
     }
@@ -422,6 +421,7 @@ class VBridge {
     .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
 
     const publicAmount = extAmount.sub(fee);
+    // console.log(`public amount is ${publicAmount}`);
     // Approve spending if needed
     const userTokenAllowance = await tokenInstance.getAllowance(signerAddress, vAnchor.contract.address);
     if (userTokenAllowance.lt(publicAmount)) {

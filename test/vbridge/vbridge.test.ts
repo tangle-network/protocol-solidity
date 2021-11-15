@@ -22,6 +22,7 @@
  import { Utxo } from '../../lib/vbridge/utxo';
  //import { GovernedTokenWrapper } from '../../typechain';
  import GovernedTokenWrapper from "../../lib/bridge/GovernedTokenWrapper";
+import { TokenWrapper } from '../../typechain';
  
  function startGanacheServer(port: number, networkId: number, mnemonic: string) {
    const ganacheServer = ganache.server({
@@ -197,8 +198,8 @@
         vBridge = await VBridge.deployVBridge(vBridgeInput, deploymentConfig);
   
         // make one deposit so the  edge exists
-        const depositUtxo1 = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId1), chainId: BigNumber.from(chainId2)})
-        const depositUtxo2 = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId2), chainId: BigNumber.from(chainId1)})
+        const depositUtxo1 = new Utxo({amount: BigNumber.from(2e7), originChainId: BigNumber.from(chainId1), chainId: BigNumber.from(chainId2)})
+        const depositUtxo2 = new Utxo({amount: BigNumber.from(2e7), originChainId: BigNumber.from(chainId2), chainId: BigNumber.from(chainId1)})
 
         // Should be able to retrieve the token address (so we can mint tokens for test scenario)
        const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainId1);
@@ -216,31 +217,79 @@
       })
 
       describe('#bridging', () => {
-        it.only('ganache deposit should withdraw on hardhat', async () => {
-           // Fetch information about the anchor to be updated.
-         const signers = await ethers.getSigners();
- 
-         const vAnchor1: VAnchor = vBridge.getVAnchor(chainId1)!;
-         let edgeIndex = await vAnchor1.contract.edgeIndex(chainId2);
-         const destAnchorEdge2Before = await vAnchor1.contract.edgeList(edgeIndex);
-         const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainId1);
-         const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
-         const signers2BalanceBefore = await webbToken1.getBalance(await signers[2].getAddress());
+        it('basic ganache deposit should withdraw on hardhat', async () => {
+          // Fetch information about the anchor to be updated.
+          const signers = await ethers.getSigners();
+  
+          const vAnchor1: VAnchor = vBridge.getVAnchor(chainId1)!;
+          let edgeIndex = await vAnchor1.contract.edgeIndex(chainId2);
+          const destAnchorEdge2Before = await vAnchor1.contract.edgeList(edgeIndex);
+          const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainId1);
+          const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
+          const signers2BalanceBefore = await webbToken1.getBalance(await signers[2].getAddress());
 
-         //ganacheWallet2 makes a deposit with dest chain chainId1
-         const ganacheDepositUtxo = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId2), chainId: BigNumber.from(chainId1)});
+          //ganacheWallet2 makes a deposit with dest chain chainId1
+          const ganacheDepositUtxo = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId2), chainId: BigNumber.from(chainId1)});
 
-         await vBridge.transact([], [ganacheDepositUtxo], 0, '0', '0', ganacheWallet2);
+          await vBridge.transact([], [ganacheDepositUtxo], 0, '0', '0', ganacheWallet2);
 
-         //check latest leaf index is incremented
-         const destAnchorEdge2After = await vAnchor1.contract.edgeList(edgeIndex);
-         assert.deepStrictEqual(destAnchorEdge2Before.latestLeafIndex.add(2), destAnchorEdge2After.latestLeafIndex);
+          //check latest leaf index is incremented
+          const destAnchorEdge2After = await vAnchor1.contract.edgeList(edgeIndex);
+          assert.deepStrictEqual(destAnchorEdge2Before.latestLeafIndex.add(2), destAnchorEdge2After.latestLeafIndex);
 
-         //withdraw ganacheWallet2 deposit on chainId1 to signers[2] address
-         const hardhatWithdrawUtxo = new Utxo({amount: BigNumber.from(5e6), originChainId: BigNumber.from(chainId1), chainId: BigNumber.from(chainId1)})
-         await vBridge.transact([ganacheDepositUtxo], [hardhatWithdrawUtxo], 0, await signers[2].getAddress(), '0', signers[2]); 
-         const signers2BalanceAfter = await webbToken1.getBalance(await signers[2].getAddress());
-         assert.strictEqual(signers2BalanceBefore.add(5e6).toString(), signers2BalanceAfter.toString());
+          //withdraw ganacheWallet2 deposit on chainId1 to signers[2] address
+          const hardhatWithdrawUtxo = new Utxo({amount: BigNumber.from(5e6), originChainId: BigNumber.from(chainId1), chainId: BigNumber.from(chainId1)})
+          await vBridge.transact([ganacheDepositUtxo], [hardhatWithdrawUtxo], 0, await signers[2].getAddress(), '0', signers[2]); 
+          const signers2BalanceAfter = await webbToken1.getBalance(await signers[2].getAddress());
+          assert.strictEqual(signers2BalanceBefore.add(5e6).toString(), signers2BalanceAfter.toString());
+        })
+
+        it.only('join and split ganache deposits and withdraw on hardhat', async () => {
+          const signers = await ethers.getSigners();
+  
+          const vAnchor1: VAnchor = vBridge.getVAnchor(chainId1)!;
+          let edgeIndex = await vAnchor1.contract.edgeIndex(chainId2);
+          const destAnchorEdge2Before = await vAnchor1.contract.edgeList(edgeIndex);
+          const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainId1);
+          const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
+          const signers2BalanceBefore = await webbToken1.getBalance(await signers[2].getAddress());
+
+          //ganacheWallet2 makes a deposit with dest chain chainId1
+          const ganacheDepositUtxo1 = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId2), chainId: BigNumber.from(chainId1)});
+          const ganacheDepositUtxo2 = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId2), chainId: BigNumber.from(chainId1), keypair: ganacheDepositUtxo1.keypair});
+
+          await vBridge.transact([], [ganacheDepositUtxo1], 0, '0', '0', ganacheWallet2);
+          await vBridge.transact([], [ganacheDepositUtxo2], 0, '0', '0', ganacheWallet2);
+
+          //check latest leaf index is incremented
+          const destAnchorEdge2After = await vAnchor1.contract.edgeList(edgeIndex);
+          assert.deepStrictEqual(destAnchorEdge2Before.latestLeafIndex.add(4), destAnchorEdge2After.latestLeafIndex);
+          
+          //withdraw ganacheWallet2 deposit on chainId1 to signers[2] address
+          const hardhatWithdrawUtxo = new Utxo({amount: BigNumber.from(5e6), originChainId: BigNumber.from(chainId1), chainId: BigNumber.from(chainId1)})
+          await vBridge.transact([ganacheDepositUtxo1, ganacheDepositUtxo2], [hardhatWithdrawUtxo], 0, await signers[2].getAddress(), '0', signers[2]); 
+          
+          const signers2BalanceAfter = await webbToken1.getBalance(await signers[2].getAddress());
+          assert.strictEqual(signers2BalanceBefore.add(1.5e7).toString(), signers2BalanceAfter.toString());
+        })
+
+        it.skip('should update multiple deposits and withdraw historic deposit from ganache', async () => {
+        })
+
+        it('prevent cross-chain double spending', async () => {
+          const signers = await ethers.getSigners();
+
+          //ganacheWallet2 makes a deposit with dest chain chainId1
+          const ganacheDepositUtxo = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId2), chainId: BigNumber.from(chainId1)});
+
+          const hardhatUtxo = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId1), chainId: BigNumber.from(chainId1)});
+
+          await vBridge.transact([], [ganacheDepositUtxo], 0, '0', '0', ganacheWallet2);
+          await vBridge.transact([ganacheDepositUtxo], [hardhatUtxo], 0, '0', '0', signers[2]);
+          await TruffleAssert.reverts(
+            vBridge.transact([ganacheDepositUtxo], [hardhatUtxo], 0, '0', '0', signers[2]),
+            'Input is already spent'
+          );
         })
       })
     })
