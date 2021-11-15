@@ -207,7 +207,6 @@ class VBridge {
       }
       let tokenInstance: GovernedTokenWrapper;
       if (!vBridgeInput.webbTokens.get(chainID)) {
-        console.log("hello");
         tokenInstance = await GovernedTokenWrapper.createGovernedTokenWrapper(
           `webbETH-test-1`,
           `webbETH-test-1`,
@@ -436,6 +435,8 @@ class VBridge {
     //console.log((await tokenInstance.getBalance(signerAddress)).toString());
     await this.updateLinkedVAnchors(vAnchor);
   }
+
+  //Probably also need a wrapAndTransact function...
 
   // public async deposit(destinationChainId: number, anchorSize: ethers.BigNumberish, signer: ethers.Signer) {
   //   const chainId = await signer.getChainId();

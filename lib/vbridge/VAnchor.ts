@@ -555,7 +555,7 @@ class VAnchor {
       input.extDataHash.toString()
     );
     //console.log(`current root (class) is ${toFixedHex(this.tree.root())}`);
-    outputs.forEach(async (x) => {
+    outputs.forEach((x) => {
       this.tree.insert(toFixedHex(x.getCommitment()));
       let numOfElements = this.tree.number_of_elements();
       this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
