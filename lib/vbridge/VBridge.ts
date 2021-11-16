@@ -437,6 +437,11 @@ class VBridge {
   }
 
   //Probably also need a wrapAndTransact function...
+  public async transactWrap(
+
+  ) {
+    
+  }
 
   // public async deposit(destinationChainId: number, anchorSize: ethers.BigNumberish, signer: ethers.Signer) {
   //   const chainId = await signer.getChainId();

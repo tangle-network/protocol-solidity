@@ -274,6 +274,30 @@ import { TokenWrapper } from '../../typechain';
         })
 
         it.skip('should update multiple deposits and withdraw historic deposit from ganache', async () => {
+          // Fetch information about the anchor to be updated.
+          const signers = await ethers.getSigners();
+          const anchorSize = '1000000000000000000';
+  
+          const anchor2: Anchor = bridge.getAnchor(chainId1, anchorSize)!;
+          let edgeIndex = await anchor2.contract.edgeIndex(chainId2);
+          const destAnchorEdge2Before = await anchor2.contract.edgeList(edgeIndex);
+          const webbToken = await MintableToken.tokenFromAddress(existingToken1.contract.address, signers[1]);
+          const startingBalanceDest = await webbToken.getBalance(signers[1].address);
+  
+          // Make two deposits
+          const depositNote1 = await bridge.wrapAndDeposit(chainId1, existingToken2.contract.address, anchorSize, ganacheWallet2);
+          const depositNote2 = await bridge.wrapAndDeposit(chainId1, existingToken2.contract.address, anchorSize, ganacheWallet2);
+  
+          // Check the leaf index is incremented by two
+          const destAnchorEdge2After = await anchor2.contract.edgeList(edgeIndex);
+          assert.deepStrictEqual(destAnchorEdge2Before.latestLeafIndex.add(2), destAnchorEdge2After.latestLeafIndex);
+  
+          // Withdraw from the bridge with older deposit note
+          await bridge.withdrawAndUnwrap(depositNote1!, existingToken1.contract.address, anchorSize, signers[1].address, signers[1].address, signers[1]);
+  
+          // Check the balance of the other_signer.
+          const endingBalanceDest = await webbToken.getBalance(signers[1].address);
+          assert.deepStrictEqual(endingBalanceDest, startingBalanceDest.add(anchorSize));
         })
 
         it('prevent cross-chain double spending', async () => {
