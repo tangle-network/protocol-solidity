@@ -228,6 +228,38 @@ describe('VAnchor for 2 max edges', () => {
         [aliceDepositUtxo]
       );
     })
+
+    it('should process fee', async () => {
+      const signers = await ethers.getSigners();
+      const alice= signers[0];
+
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount)
+      });
+      //Step 1: Alice deposits into Tornado Pool
+      const aliceBalanceBeforeDeposit = await token.balanceOf(alice.address);
+      const relayer = "0x2111111111111111111111111111111111111111";
+      const fee = 1e6;
+      await anchor.registerAndTransact(
+        sender.address,
+        aliceDepositUtxo.keypair.address(),
+        [],
+        [aliceDepositUtxo],
+        BigNumber.from(fee),
+        '0',
+        relayer
+      );
+
+      //Step 2: Check Alice's balance
+      const aliceBalanceAfterDeposit = await token.balanceOf(alice.address);
+      assert.strictEqual(aliceBalanceAfterDeposit.toString(), BN(toBN(aliceBalanceBeforeDeposit).sub(toBN(aliceDepositAmount)).sub(toBN(fee))).toString());
+
+      //Step 3 Check relayers balance
+      assert.strictEqual((await token.balanceOf(relayer)).toString(), BigNumber.from(fee).toString());
+    })
     
     it('should spend input utxo and create output utxo', async () => {
       // Alice deposits into tornado pool
