@@ -30,6 +30,96 @@ contract VAnchor is LinkableVAnchor {
     _maxEdges
   ) {token = _token;}
 
+
+  function wrapAndDeposit(
+    address tokenAddress,
+    uint256 _extAmount
+  ) payable public {
+    // wrap into the token and send directly to this contract
+    if (tokenAddress == address(0)) {
+        require(msg.value == _extAmount);
+        ITokenWrapper(token).wrapForAndSendTo{value: msg.value}(
+            msg.sender,
+            tokenAddress,
+            0,
+            address(this)
+        );
+    }
+    else {
+        ITokenWrapper(token).wrapForAndSendTo(
+            msg.sender,
+            tokenAddress,
+            _extAmount,
+            address(this)
+        );
+    }
+    //Any events that need to be emitted
+  }
+
+  function withdrawAndUnwrap(
+    address tokenAddress,
+    address recipient,
+    uint256 _minusExtAmount
+  ) public payable nonReentrant {
+    ITokenWrapper(token).unwrapAndSendTo(
+    tokenAddress,
+    _minusExtAmount,
+    recipient
+    );
+  }
+
+  function transactWrap(
+    Proof memory _args,
+    ExtData memory _extData,
+    address tokenAddress
+  ) external payable nonReentrant {
+    for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
+      require(!isSpent(_args.inputNullifiers[i]), "Input is already spent");
+    }
+    require(uint256(_args.extDataHash) == uint256(keccak256(abi.encode(_extData))) % FIELD_SIZE, "Incorrect external data hash");
+    require(_args.publicAmount == calculatePublicAmount(_extData.extAmount, _extData.fee), "Invalid public amount");
+
+    if (_args.inputNullifiers.length == 2) {
+      (bytes memory encodedInput, bytes32[] memory roots) = _encodeInputs2(_args);
+      require(isValidRoots(roots), "Invalid roots");
+      require(verify2(_args.proof, encodedInput), "Invalid transaction proof");
+    } else if (_args.inputNullifiers.length == 16) {
+      (bytes memory encodedInput, bytes32[] memory roots) = _encodeInputs16(_args);
+      require(isValidRoots(roots), "Invalid roots");
+      require(verify16(_args.proof, encodedInput), "Invalid transaction proof");
+    } else {
+      revert("unsupported input count");
+    }
+
+    for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
+      // sets the nullifier for the input UTXO to spent
+      nullifierHashes[_args.inputNullifiers[i]] = true;
+    }
+
+    //Check if extAmount > 0, call wrapAndDeposit
+    if (_extData.extAmount > 0) {
+      //wrapAndDeposit
+      wrapAndDeposit(tokenAddress, uint256(_extData.extAmount));
+    } 
+    //Otherwise, check if extAmount < 0, call withdrawAndUnwrap
+    if (_extData.extAmount < 0) {
+      //withdrawAndUnwrap
+      withdrawAndUnwrap(tokenAddress, _extData.recipient, uint256(-_extData.extAmount));
+    }
+
+    if (_extData.fee > 0) {
+      //Do something
+      _processFee(_extData.relayer, _extData.fee);
+    }
+
+    _insert(_args.outputCommitments[0], _args.outputCommitments[1]);
+    emit NewCommitment(_args.outputCommitments[0], nextIndex - 2, _extData.encryptedOutput1);
+    emit NewCommitment(_args.outputCommitments[1], nextIndex - 1, _extData.encryptedOutput2);
+    for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
+      emit NewNullifier(_args.inputNullifiers[i]);
+    }
+  }
+
   function _processDeposit(uint256 _extAmount) internal override {
     require(msg.value == 0, "ETH value is supposed to be 0 for ERC20 instance");
     IMintableERC20(token).transferFrom(msg.sender, address(this), _extAmount);

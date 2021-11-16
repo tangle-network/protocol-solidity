@@ -436,12 +436,69 @@ class VBridge {
     await this.updateLinkedVAnchors(vAnchor);
   }
 
-  //Probably also need a wrapAndTransact function...
-  public async transactWrap(
 
-  ) {
+  public async transactWrap(
+    tokenAddress: string,
+    inputs:Utxo[], 
+    outputs:Utxo[], 
+    fee: BigNumberish, 
+    recipient: string,
+    relayer: string,
+    signer:ethers.Signer
+    ) {
     
+    const chainId = await signer.getChainId();
+    const signerAddress = await signer.getAddress();
+    const vAnchor = this.getVAnchor(chainId);
+    if (!vAnchor) {
+       throw new Error("VAnchor does not exist on this chain");
+    }
+    vAnchor.setSigner(signer);
+
+    if (inputs.length < 2) {
+      while (inputs.length < 2) {
+        inputs.push(new Utxo({chainId: BigNumber.from(await signer.getChainId())}));
+      }
+    }
+    
+    //do we have to check if amount is greater than 0 before the checks?????
+    //Check that input dest chain is this chain
+    for (let i=0; i<inputs.length; i++) {
+      if (inputs[i].chainId.toString() !== chainId.toString()) {
+        throw new Error("Trying to spend an input with wrong destination chainId");
+      }
+    }
+    
+    //check that output origin chain is this chain
+    for (let i=0; i<outputs.length; i++) {
+      if (outputs[i].originChainId.toString() !== chainId.toString()) {
+        throw new Error("Trying to form an output with the wrong originChainId")
+      }
+    }
+
+    const tokenInstance = await MintableToken.tokenFromAddress(tokenAddress, signer);
+
+    const extAmount = BigNumber.from(fee)
+    .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+    .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+
+    const publicAmount = extAmount.sub(fee);
+    // console.log(`public amount is ${publicAmount}`);
+    // Approve spending if needed
+    const userTokenAllowance = await tokenInstance.getAllowance(signerAddress, vAnchor.contract.address);
+    if (userTokenAllowance.lt(publicAmount)) {
+      await tokenInstance.approveSpending(vAnchor.contract.address);
+    }
+
+    //Make Merkle proof
+    const merkleProof = inputs.map((x) => this.getVAnchor(Number(x.originChainId))!.getMerkleProof(x));
+    //console.log((await tokenInstance.getBalance(signerAddress)).toString());
+    await vAnchor.bridgedTransactWrap(tokenAddress, inputs, outputs, fee, recipient, relayer, merkleProof);
+    //console.log((await tokenInstance.getBalance(signerAddress)).toString());
+    await this.updateLinkedVAnchors(vAnchor);
   }
+  
+  
 
   // public async deposit(destinationChainId: number, anchorSize: ethers.BigNumberish, signer: ethers.Signer) {
   //   const chainId = await signer.getChainId();
