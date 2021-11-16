@@ -13,14 +13,12 @@ abstract contract LinkableVAnchor is VAnchorBase, ILinkableAnchor {
     IVAnchorVerifier _verifier,
     uint32 _levels,
     address _hasher,
-    IERC6777 _token,
     PermissionedAccounts memory _permissions,
     uint8 _maxEdges
   ) VAnchorBase(
     _verifier,
     _levels,
     _hasher,
-    _token,
     _permissions,
     _maxEdges
   ) {
