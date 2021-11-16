@@ -217,17 +217,18 @@ import { TokenWrapper } from '../../typechain';
       })
 
       describe('#bridging', () => {
-        it('basic ganache deposit should withdraw on hardhat', async () => {
+        it.only('basic ganache deposit should withdraw on hardhat', async () => {
           // Fetch information about the anchor to be updated.
           const signers = await ethers.getSigners();
   
           const vAnchor1: VAnchor = vBridge.getVAnchor(chainId1)!;
+          const vAnchor1Address = vAnchor1.contract.address;
           let edgeIndex = await vAnchor1.contract.edgeIndex(chainId2);
           const destAnchorEdge2Before = await vAnchor1.contract.edgeList(edgeIndex);
           const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainId1);
           const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
           const signers2BalanceBefore = await webbToken1.getBalance(await signers[2].getAddress());
-
+          
           //ganacheWallet2 makes a deposit with dest chain chainId1
           const ganacheDepositUtxo = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId2), chainId: BigNumber.from(chainId1)});
 
