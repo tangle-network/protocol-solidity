@@ -14,16 +14,17 @@ pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import { IERC6777 } from "../interfaces/IVAnchor.sol";
+//import { IERC6777 } from "../interfaces/IVAnchor.sol";
 import { IVAnchorVerifier } from "../interfaces/IVAnchorVerifier.sol";
 import "../trees/VMerkleTreeWithHistory.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
 
 /** @dev This contract(pool) allows deposit of an arbitrary amount to it, shielded transfer to another registered user inside the pool
  * and withdrawal from the pool. Project utilizes UTXO model to handle users' funds.
  */
-contract VAnchorBase is VMerkleTreeWithHistory, ReentrancyGuard {
+abstract contract VAnchorBase is VMerkleTreeWithHistory, ReentrancyGuard {
   PermissionedAccounts public permissions;
   uint8 public immutable maxEdges;
 
@@ -59,7 +60,6 @@ contract VAnchorBase is VMerkleTreeWithHistory, ReentrancyGuard {
   uint256 public constant MAX_FEE = 2**248;
 
   IVAnchorVerifier public verifier;
-  IERC6777 public immutable token;
 
   uint256 public lastBalance;
   uint256 public minimalWithdrawalAmount;
@@ -103,20 +103,17 @@ contract VAnchorBase is VMerkleTreeWithHistory, ReentrancyGuard {
     @param _verifier the addresses of SNARK verifiers for 2 inputs and 16 inputs
     @param _levels hight of the commitments merkle tree
     @param _hasher hasher address for the merkle tree
-    @param _token token address for the pool
   */
   constructor(
     IVAnchorVerifier _verifier,
     uint32 _levels,
     address _hasher,
-    IERC6777 _token,
     PermissionedAccounts memory _permissions,
     uint8 _maxEdges
   )
     VMerkleTreeWithHistory(_levels, _hasher)
   {
     verifier = _verifier;
-    token = _token;
     maxEdges = _maxEdges;
   }
 
@@ -125,12 +122,17 @@ contract VAnchorBase is VMerkleTreeWithHistory, ReentrancyGuard {
     super._initialize();
   }
 
+  /** @dev this function is defined in a child contract */
+  function _processDeposit(
+    uint256 _extAmount
+  ) internal virtual;
+
   /** @dev Main function that allows deposits, transfers and withdrawal.
    */
   function transact(Proof memory _args, ExtData memory _extData) public {
     if (_extData.extAmount > 0) {
       // for deposits from L2
-      token.transferFrom(msg.sender, address(this), uint256(_extData.extAmount));
+      _processDeposit(uint256(_extData.extAmount));
       require(uint256(_extData.extAmount) <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
     }
 
@@ -171,6 +173,19 @@ contract VAnchorBase is VMerkleTreeWithHistory, ReentrancyGuard {
     emit PublicKey(_account.owner, _account.publicKey);
   }
 
+  /** @dev this function is defined in a child contract */
+  //removed payable from address might need to add it back if things don't work
+  function _processWithdraw(
+    address  _recipient,
+    uint256 _minusExtAmount
+  ) internal virtual;
+
+  /** similar to _processWithdraw. Is defined in a child contract */
+  function _processFee(
+    address  _relayer,
+    uint256 _fee
+  ) internal virtual;
+
   function _transact(Proof memory _args, ExtData memory _extData) internal nonReentrant {
     for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
       require(!isSpent(_args.inputNullifiers[i]), "Input is already spent");
@@ -197,14 +212,14 @@ contract VAnchorBase is VMerkleTreeWithHistory, ReentrancyGuard {
 
     if (_extData.extAmount < 0) {
       require(_extData.recipient != address(0), "Can't withdraw to zero address");
-      token.transfer(_extData.recipient, uint256(-_extData.extAmount));
       require(uint256(-_extData.extAmount) >= minimalWithdrawalAmount, "amount is less than minimalWithdrawalAmount"); // prevents ddos attack to Bridge
+      _processWithdraw(_extData.recipient, uint256(-_extData.extAmount));
     }
     if (_extData.fee > 0) {
-      token.transfer(_extData.relayer, _extData.fee);
+      _processFee(_extData.relayer, _extData.fee);
     }
 
-    lastBalance = token.balanceOf(address(this));
+    //lastBalance = token.balanceOf(address(this));
     _insert(_args.outputCommitments[0], _args.outputCommitments[1]);
     emit NewCommitment(_args.outputCommitments[0], nextIndex - 2, _extData.encryptedOutput1);
     emit NewCommitment(_args.outputCommitments[1], nextIndex - 1, _extData.encryptedOutput2);
