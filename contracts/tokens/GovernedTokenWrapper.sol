@@ -13,6 +13,8 @@ import "./TokenWrapper.sol";
     @notice This contract is intended to be used with ERC20Handler contract.
  */
 contract GovernedTokenWrapper is TokenWrapper {
+  using SafeMath for uint256;
+  
   address public governor;
   address[] public tokens;
   mapping (address => bool) valid;
@@ -58,6 +60,10 @@ contract GovernedTokenWrapper is TokenWrapper {
 
   function getTokens() external view returns (address[] memory) {
     return tokens;
+  }
+
+  function getFee(uint amountToWrap, uint feePercentage) override external pure returns (uint) {
+		return amountToWrap.mul(feePercentage).div(100);
   }
 
   modifier onlyGovernor() {

@@ -10,10 +10,13 @@ import "../../interfaces/IMintableERC20.sol";
 import "./LinkableAnchor.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 contract Anchor is LinkableAnchor {
   using SafeERC20 for IERC20;
+  using SafeMath for uint256;
   address public immutable token;
+  uint feePercentage;
 
   constructor(
     IVerifier _verifier,
@@ -45,15 +48,20 @@ contract Anchor is LinkableAnchor {
     ITokenWrapper(token).unwrapFor(msg.sender, tokenAddress, amount);
   }
 
+  function setFeeAnchor(uint feePercentage) public {
+    ITokenWrapper(token).setFee(feePercentage);
+  }
+
   function wrapAndDeposit(
     address tokenAddress,
     bytes32 _commitment
   ) payable public {
     require(!commitments[_commitment], "The commitment has been submitted");
     // wrap into the token and send directly to this contract
+    uint fee = ITokenWrapper(token).getFee(msg.value, 1);
     if (tokenAddress == address(0)) {
         require(msg.value == denomination);
-        ITokenWrapper(token).wrapForAndSendTo{value: msg.value}(
+        ITokenWrapper(token).wrapForAndSendTo{value: msg.value.sub(fee)}(
             msg.sender,
             tokenAddress,
             0,
@@ -64,7 +72,7 @@ contract Anchor is LinkableAnchor {
         ITokenWrapper(token).wrapForAndSendTo(
             msg.sender,
             tokenAddress,
-            denomination,
+            denomination.sub(fee),
             address(this)
         );
     }

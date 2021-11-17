@@ -10,9 +10,11 @@ import "../interfaces/IMintableERC20.sol";
 import "./LinkableVAnchor.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 contract VAnchor is LinkableVAnchor {
   using SafeERC20 for IERC20;
+  using SafeMath for uint256;
   address public immutable token;
 
   constructor(
@@ -36,9 +38,10 @@ contract VAnchor is LinkableVAnchor {
     uint256 _extAmount
   ) payable public {
     // wrap into the token and send directly to this contract
+    uint fee = ITokenWrapper(token).getFee(msg.value, 1);
     if (tokenAddress == address(0)) {
         require(msg.value == _extAmount);
-        ITokenWrapper(token).wrapForAndSendTo{value: msg.value}(
+        ITokenWrapper(token).wrapForAndSendTo{value: msg.value.sub(fee)}(
             msg.sender,
             tokenAddress,
             0,
@@ -49,7 +52,7 @@ contract VAnchor is LinkableVAnchor {
         ITokenWrapper(token).wrapForAndSendTo(
             msg.sender,
             tokenAddress,
-            _extAmount,
+            _extAmount.sub(fee),
             address(this)
         );
     }

@@ -16,4 +16,6 @@ interface ITokenWrapper {
   function wrapFor(address sender, address tokenAddress, uint256 amount) payable external;
   function wrapForAndSendTo(address sender, address tokenAddress, uint256 amount, address mintRecipient) payable external;
   function unwrapFor(address sender, address tokenAddress, uint256 amount) external;
+  function getFee(uint amountToWrap, uint feePercentage) external pure returns (uint);
+  function setFee(uint feePercentage) external;
 }
