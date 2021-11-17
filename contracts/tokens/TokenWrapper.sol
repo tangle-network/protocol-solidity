@@ -20,6 +20,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
  */
 abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
     using SafeMath for uint256;
+    uint8 feePercentage;
 
     constructor(string memory name, string memory symbol)
         ERC20PresetMinterPauser(name, symbol) {}
@@ -33,6 +34,11 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
         address tokenAddress,
         uint256 amount
     ) override payable public isValidWrapping(tokenAddress, amount) {
+        uint costToWrap = getFeeFromAmount(tokenAddress == address(0)
+            ? msg.value
+            : amount
+        );
+        uint leftover = amount.sub(costToWrap);
         if (tokenAddress == address(0)) {
             // mint the native value sent to the contract
             _mint(_msgSender(), msg.value);
@@ -189,4 +195,8 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
 
         _;
     }
+
+  function getFeeFromAmount(uint amountToWrap) external pure returns (uint) {
+		return amountToWrap.mul(feePercentage).div(100);
+  }
 }

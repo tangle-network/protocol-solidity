@@ -48,10 +48,6 @@ contract Anchor is LinkableAnchor {
     ITokenWrapper(token).unwrapFor(msg.sender, tokenAddress, amount);
   }
 
-  function setFeeAnchor(uint feePercentage) public {
-    ITokenWrapper(token).setFee(feePercentage);
-  }
-
   function wrapAndDeposit(
     address tokenAddress,
     bytes32 _commitment

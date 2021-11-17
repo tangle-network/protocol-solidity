@@ -62,12 +62,8 @@ contract GovernedTokenWrapper is TokenWrapper {
     return tokens;
   }
 
-  function getFee(uint amountToWrap, uint feePercentage) override external pure returns (uint) {
-		return amountToWrap.mul(feePercentage).div(100);
-  }
-
-  function setFee(uint feePercentage) override external onlyGovernor {
-    
+  function setFee(uint _feePercentage) override external onlyGovernor {
+    feePercentage = _feePercentage;
   }
 
   modifier onlyGovernor() {
