@@ -14,7 +14,7 @@ import "./TokenWrapper.sol";
  */
 contract GovernedTokenWrapper is TokenWrapper {
   using SafeMath for uint256;
-  
+
   address public governor;
   address[] public tokens;
   mapping (address => bool) valid;
@@ -64,6 +64,10 @@ contract GovernedTokenWrapper is TokenWrapper {
 
   function getFee(uint amountToWrap, uint feePercentage) override external pure returns (uint) {
 		return amountToWrap.mul(feePercentage).div(100);
+  }
+
+  function setFee(uint feePercentage) override external onlyGovernor {
+    
   }
 
   modifier onlyGovernor() {
