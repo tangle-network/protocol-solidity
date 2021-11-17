@@ -41,12 +41,12 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
         uint leftover = amount.sub(costToWrap);
         if (tokenAddress == address(0)) {
             // mint the native value sent to the contract
-            _mint(_msgSender(), msg.value);
+            _mint(_msgSender(), leftover);
         } else {
             // transfer liquidity to the token wrapper
             IERC20(tokenAddress).transferFrom(_msgSender(), address(this), amount);
             // mint the wrapped token for the sender
-            _mint(_msgSender(), amount);
+            _mint(_msgSender(), leftover);
         }
     }
 
