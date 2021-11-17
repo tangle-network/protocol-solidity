@@ -46,6 +46,10 @@ contract GovernedTokenWrapper is TokenWrapper {
     wrappingLimit = limit;
   }
 
+  function setFee(uint _feePercentage) override external onlyGovernor {
+    feePercentage = _feePercentage;
+  }
+
   function _isValidAddress(address tokenAddress) override internal virtual returns (bool) {
     return valid[tokenAddress];
   }
@@ -60,10 +64,6 @@ contract GovernedTokenWrapper is TokenWrapper {
 
   function getTokens() external view returns (address[] memory) {
     return tokens;
-  }
-
-  function setFee(uint _feePercentage) override external onlyGovernor {
-    feePercentage = _feePercentage;
   }
 
   modifier onlyGovernor() {
