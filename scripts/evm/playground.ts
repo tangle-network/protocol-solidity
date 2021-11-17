@@ -1,7 +1,7 @@
 require('dotenv').config();
 import { ethers } from 'ethers';
-import Anchor from '../../lib/darkwebb/Anchor';
-import { AnchorDeposit } from '../../lib/darkwebb/Anchor';
+import Anchor from '../../lib/bridge/Anchor';
+import { AnchorDeposit } from '../../lib/bridge/Anchor';
 import { depositNativeTokenAnchor } from './deposits/depositNativeTokenAnchor';
 import { withdrawNativeToken } from './withdrawals/withdrawNativeToken';
 import { wrapToken } from './tokens/wrapToken';

@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import Anchor from '../../lib/darkwebb/Anchor';
+import Anchor from '../../lib/bridge/Anchor';
 
 import { WEBB__factory } from '../../typechain/factories/WEBB__factory';
 
