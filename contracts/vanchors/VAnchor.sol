@@ -32,16 +32,30 @@ contract VAnchor is LinkableVAnchor {
     _maxEdges
   ) {token = _token;}
 
+  function wrapToken(address tokenAddress, uint256 amount) public {
+    ITokenWrapper(token).wrapFor(msg.sender, tokenAddress, amount);
+  }
 
+  function unwrapIntoToken(address tokenAddress, uint256 amount) public {
+    ITokenWrapper(token).unwrapFor(msg.sender, tokenAddress, amount);
+  }
+
+  function wrapNative() payable public {
+    ITokenWrapper(token).wrapFor{value: msg.value}(msg.sender, address(0), 0);
+  }
+
+  function unwrapIntoNative(address tokenAddress, uint256 amount) public {
+    ITokenWrapper(token).unwrapFor(msg.sender, tokenAddress, amount);
+  }
+  
   function wrapAndDeposit(
     address tokenAddress,
     uint256 _extAmount
   ) payable public {
     // wrap into the token and send directly to this contract
-    uint fee = ITokenWrapper(token).getFee(msg.value, 1);
     if (tokenAddress == address(0)) {
         require(msg.value == _extAmount);
-        ITokenWrapper(token).wrapForAndSendTo{value: msg.value.sub(fee)}(
+        ITokenWrapper(token).wrapForAndSendTo{value: msg.value}(
             msg.sender,
             tokenAddress,
             0,
@@ -52,7 +66,7 @@ contract VAnchor is LinkableVAnchor {
         ITokenWrapper(token).wrapForAndSendTo(
             msg.sender,
             tokenAddress,
-            _extAmount.sub(fee),
+            _extAmount,
             address(this)
         );
     }

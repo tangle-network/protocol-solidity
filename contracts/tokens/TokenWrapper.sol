@@ -25,6 +25,10 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
     constructor(string memory name, string memory symbol)
         ERC20PresetMinterPauser(name, symbol) {}
 
+    function getFeeFromAmount(uint amountToWrap) override public view returns (uint) {
+		return amountToWrap.mul(feePercentage).div(100);
+    }
+
     /**
         @notice Used to wrap tokens on behalf of a sender. Must be called by a minter role.
         @param tokenAddress Address of ERC20 to transfer.
@@ -104,13 +108,18 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
         address tokenAddress,
         uint256 amount
     ) override payable public isMinter() isValidWrapping(tokenAddress, amount) {
+        uint costToWrap = getFeeFromAmount(tokenAddress == address(0)
+            ? msg.value
+            : amount
+        );
+        uint leftover = amount.sub(costToWrap);
         if (tokenAddress == address(0)) {
-            mint(sender, msg.value);
+            mint(sender, leftover);
         } else {
             // transfer liquidity to the token wrapper
             IERC20(tokenAddress).transferFrom(sender, address(this), amount);
             // mint the wrapped token for the sender
-            mint(sender, amount);
+            mint(sender, leftover);
         }
     }
 
@@ -127,13 +136,18 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
         uint256 amount,
         address recipient
     ) override payable public isMinter() isValidWrapping(tokenAddress, amount) {
+        uint costToWrap = getFeeFromAmount(tokenAddress == address(0)
+            ? msg.value
+            : amount
+        );
+        uint leftover = amount.sub(costToWrap);
         if (tokenAddress == address(0)) {
-            mint(recipient, msg.value);
+            mint(recipient, leftover);
         } else {
             // transfer liquidity to the token wrapper
             IERC20(tokenAddress).transferFrom(sender, address(this), amount);
             // mint the wrapped token for the recipient
-            mint(recipient, amount);
+            mint(recipient, leftover);
         }
     }
 
@@ -195,8 +209,4 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
 
         _;
     }
-
-  function getFeeFromAmount(uint amountToWrap) external pure returns (uint) {
-		return amountToWrap.mul(feePercentage).div(100);
-  }
 }

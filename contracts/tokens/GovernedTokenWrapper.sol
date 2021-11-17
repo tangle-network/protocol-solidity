@@ -46,7 +46,7 @@ contract GovernedTokenWrapper is TokenWrapper {
     wrappingLimit = limit;
   }
 
-  function setFee(uint _feePercentage) override external onlyGovernor {
+  function setFee(uint8 _feePercentage) override external onlyGovernor {
     feePercentage = _feePercentage;
   }
 

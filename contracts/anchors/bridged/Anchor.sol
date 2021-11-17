@@ -54,10 +54,9 @@ contract Anchor is LinkableAnchor {
   ) payable public {
     require(!commitments[_commitment], "The commitment has been submitted");
     // wrap into the token and send directly to this contract
-    uint fee = ITokenWrapper(token).getFee(msg.value, 1);
     if (tokenAddress == address(0)) {
         require(msg.value == denomination);
-        ITokenWrapper(token).wrapForAndSendTo{value: msg.value.sub(fee)}(
+        ITokenWrapper(token).wrapForAndSendTo{value: msg.value}(
             msg.sender,
             tokenAddress,
             0,
@@ -68,7 +67,7 @@ contract Anchor is LinkableAnchor {
         ITokenWrapper(token).wrapForAndSendTo(
             msg.sender,
             tokenAddress,
-            denomination.sub(fee),
+            denomination,
             address(this)
         );
     }
