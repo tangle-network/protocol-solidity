@@ -210,7 +210,7 @@ describe('Anchor for 2 max edges', () => {
   })
 
   describe('#withdraw', () => {
-    it('should work', async () => {
+    it.only('should work', async () => {
       const signers = await ethers.getSigners();
       const sender = signers[0];
       const relayer = signers[1];
@@ -553,7 +553,7 @@ describe('Anchor for 2 max edges', () => {
     });
   })
 
-  describe('#WrapperClass', () => {
+  describe.only('#WrapperClass', () => {
     it('should deposit without latest history', async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
@@ -595,6 +595,26 @@ describe('Anchor for 2 max edges', () => {
       const newAnchor = await Anchor.connect(anchor.contract.address, wallet);
       await TruffleAssert.passes(newAnchor.withdraw(deposit, index, recipient, signers[1].address, fee, bigInt(0)));
     });
+
+    it('Should properly create withdraw proof to use directly in contract', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+
+      // create a deposit on the anchor already setup
+      const { deposit, index } = await anchor.deposit();
+
+      const newAnchor = await Anchor.connect(anchor.contract.address, wallet);
+      await newAnchor.update();
+
+      const withdrawSetup = await newAnchor.setupWithdraw(deposit, index, recipient, signers[1].address, fee, bigInt(0));
+      
+      const proof = `0x${withdrawSetup.proofEncoded}`;
+      const args = withdrawSetup.args;
+
+      const publicInputs = Anchor.convertArgsArrayToStruct(args);
+
+      await TruffleAssert.passes(newAnchor.contract.withdraw(proof, publicInputs));
+    })
 
     it('should properly refresh a deposit', async () => {
       const signers = await ethers.getSigners();
@@ -896,7 +916,7 @@ describe('Anchor for 2 max edges (3-sided bridge)', () => {
     }
   })
 
-  it('should withdraw successfully', async () => {
+  it.only('should withdraw successfully', async () => {
     const signers = await ethers.getSigners();
     const sender = signers[0];
     const relayer = signers[1];
