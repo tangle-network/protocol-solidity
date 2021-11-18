@@ -1,5 +1,7 @@
 const crypto = require('crypto');
 import { BigNumberish, ethers } from 'ethers';
+import { ZkComponents } from './types';
+const path = require('path');
 const ffjavascript = require('ffjavascript');
 const utils = ffjavascript.utils;
 const {
@@ -53,3 +55,18 @@ export async function getVerifierFactory(wallet: ethers.Signer): Promise<ethers.
   const verifierFactory = new ethers.ContractFactory(VerifierContractRaw.abi, VerifierContractRaw.bytecode, wallet);
   return verifierFactory;
 };
+
+export async function fetchComponentsFromFilePaths(wasmPath: string, witnessCalculatorPath: string, zkeyPath: string): Promise<ZkComponents> {
+  const wasm: Buffer = require('fs').readFileSync(path.resolve(__dirname, wasmPath));
+  const witnessCalculatorGenerator = require(witnessCalculatorPath);
+  const witnessCalculator = await witnessCalculatorGenerator(wasm);
+  const zkeyBuffer: Buffer = require('fs').readFileSync(path.resolve(__dirname, zkeyPath));
+  const zkey: Uint8Array = new Uint8Array(zkeyBuffer.buffer.slice(zkeyBuffer.byteOffset, zkeyBuffer.byteOffset + zkeyBuffer.byteLength));
+
+  return {
+    wasm,
+    witnessCalculator,
+    zkey
+  };
+}
+

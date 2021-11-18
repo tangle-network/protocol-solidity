@@ -10,9 +10,21 @@ import BridgeSide from '../../lib/bridge/BridgeSide';
 import Anchor from '../../lib/bridge/Anchor';
 import MintableToken from '../../lib/bridge/MintableToken';
 import Verifier from '../../lib/bridge/Verifier';
-import { getHasherFactory } from '../../lib/bridge/utils';
+import { fetchComponentsFromFilePaths, getHasherFactory } from '../../lib/bridge/utils';
+import { ZkComponents } from '../../lib/bridge/types';
 
 describe('BridgeSideConstruction', () => {
+
+  let zkComponents: ZkComponents;
+
+  before(async () => {
+    zkComponents = await fetchComponentsFromFilePaths(
+      '../../protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm',
+      '../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js',
+      '../../protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey',
+    );
+  })
+
   it('should create the bridge side which can affect the anchor state', async () => {
     const signers = await ethers.getSigners();
     const admin = signers[1];
@@ -41,6 +53,7 @@ describe('BridgeSideConstruction', () => {
       admin.address,
       admin.address,
       5,
+      zkComponents,
       admin
     );
 

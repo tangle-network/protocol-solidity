@@ -2,6 +2,7 @@ import { BigNumber, BigNumberish, ethers } from "ethers";
 import { Anchor__factory } from '../../typechain/factories/Anchor__factory';
 import { Anchor as AnchorContract} from '../../typechain/Anchor';
 import { rbigint, p256 } from "./utils";
+import { ZkComponents } from './types';
 import { toFixedHex, toHex } from '../../lib/bridge/utils';
 import PoseidonHasher from './Poseidon';
 import { MerkleTree } from './MerkleTree';
@@ -22,16 +23,16 @@ function checkNativeAddress(tokenAddress: string): boolean {
 }
 
 export interface AnchorDepositInfo {
-  chainID: BigInt,
-  secret: BigInt,
-  nullifier: BigInt,
-  commitment: string,
-  nullifierHash: string,
+  chainID: BigInt;
+  secret: BigInt;
+  nullifier: BigInt;
+  commitment: string;
+  nullifierHash: string;
 };
 
 export interface AnchorDeposit {
-  deposit: AnchorDepositInfo,
-  index: number,
+  deposit: AnchorDepositInfo;
+  index: number;
   originChainId: number;
 };
 
@@ -55,62 +56,26 @@ class Anchor {
   tree: MerkleTree;
   // hex string of the connected root
   latestSyncedBlock: number;
-  circuitZkeyPath: string;
-  circuitWASMPath: string;
+  zkComponents: ZkComponents;
 
   // The depositHistory stores leafIndex => information to create proposals (new root)
   depositHistory: Record<number, string>;
   token?: string;
   denomination?: string;
-  witnessCalculator: any;
 
   private constructor(
     contract: AnchorContract,
     signer: ethers.Signer,
     treeHeight: number,
     maxEdges: number,
+    zkComponents: ZkComponents,
   ) {
     this.signer = signer;
     this.contract = contract;
     this.tree = new MerkleTree('', treeHeight);
     this.latestSyncedBlock = 0;
     this.depositHistory = {};
-    this.witnessCalculator = {};
-
-    // set the circuit zkey and wasm depending upon max edges
-    switch (maxEdges) {
-      case 1:
-        this.circuitWASMPath = 'protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm';
-        this.circuitZkeyPath = 'protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey';
-        this.witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js");
-        break;
-      case 2:
-        this.circuitWASMPath = 'protocol-solidity-fixtures/fixtures/bridge/3/poseidon_bridge_3.wasm';
-        this.circuitZkeyPath = 'protocol-solidity-fixtures/fixtures/bridge/3/circuit_final.zkey';
-        this.witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/bridge/3/witness_calculator.js");
-        break;
-      case 3:
-        this.circuitWASMPath = 'protocol-solidity-fixtures/fixtures/bridge/4/poseidon_bridge_4.wasm';
-        this.circuitZkeyPath = 'protocol-solidity-fixtures/fixtures/bridge/4/circuit_final.zkey';
-        this.witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/bridge/4/witness_calculator.js");
-        break;
-      case 4:
-        this.circuitWASMPath = 'protocol-solidity-fixtures/fixtures/bridge/5/poseidon_bridge_5.wasm';
-        this.circuitZkeyPath = 'protocol-solidity-fixtures/fixtures/bridge/5/circuit_final.zkey';
-        this.witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/bridge/5/witness_calculator.js");
-        break;
-      case 5:
-        this.circuitWASMPath = 'protocol-solidity-fixtures/fixtures/bridge/6/poseidon_bridge_6.wasm';
-        this.circuitZkeyPath = 'protocol-solidity-fixtures/fixtures/bridge/6/circuit_final.zkey';
-        this.witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/bridge/6/witness_calculator.js");
-        break;
-      default:
-        this.circuitWASMPath = 'protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm';
-        this.circuitZkeyPath = 'protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey';
-        this.witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js");
-        break;
-    }
-
+    this.zkComponents = zkComponents;
   }
 
   // public static anchorFromAddress(
@@ -132,12 +97,13 @@ class Anchor {
     admin: string,
     handler: string,
     maxEdges: number,
+    zkComponents: ZkComponents,
     signer: ethers.Signer,
   ) {
     const factory = new Anchor__factory(signer);
     const anchor = await factory.deploy(verifier, hasher, denomination, merkleTreeHeight, token, bridge, admin, handler, maxEdges, {});
     await anchor.deployed();
-    const createdAnchor = new Anchor(anchor, signer, merkleTreeHeight, maxEdges);
+    const createdAnchor = new Anchor(anchor, signer, merkleTreeHeight, maxEdges, zkComponents);
     createdAnchor.latestSyncedBlock = anchor.deployTransaction.blockNumber!;
     createdAnchor.denomination = denomination.toString();
     createdAnchor.token = token;
@@ -148,12 +114,13 @@ class Anchor {
     // connect via factory method
     // build up tree by querying provider for logs
     address: string,
+    zkFiles: ZkComponents,
     signer: ethers.Signer,
   ) {
     const anchor = Anchor__factory.connect(address, signer);
     const maxEdges = await anchor.maxEdges()
     const treeHeight = await anchor.levels();
-    const createdAnchor = new Anchor(anchor, signer, treeHeight, maxEdges);
+    const createdAnchor = new Anchor(anchor, signer, treeHeight, maxEdges, zkFiles);
     createdAnchor.token = await anchor.token();
     createdAnchor.denomination = (await anchor.denomination()).toString();
     return createdAnchor;
@@ -379,18 +346,16 @@ class Anchor {
   }
 
   public async createWitness(data: any) {
-    const fileBuf = require('fs').readFileSync(this.circuitWASMPath);
-    const witnessCalculator = await this.witnessCalculator(fileBuf)
-    const buff = await witnessCalculator.calculateWTNSBin(data,0);
+    const buff = await this.zkComponents.witnessCalculator.calculateWTNSBin(data,0);
     return buff;
   }
 
   public async proveAndVerify(wtns: any) {
-    let res = await snarkjs.groth16.prove(this.circuitZkeyPath, wtns);
+    let res = await snarkjs.groth16.prove(this.zkComponents.zkey, wtns);
     let proof = res.proof;
     let publicSignals = res.publicSignals;
 
-    const vKey = await snarkjs.zKey.exportVerificationKey(this.circuitZkeyPath);
+    const vKey = await snarkjs.zKey.exportVerificationKey(this.zkComponents.zkey);
     res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
 
     let proofEncoded = await Anchor.generateWithdrawProofCallData(proof, publicSignals);

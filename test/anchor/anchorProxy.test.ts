@@ -24,6 +24,8 @@
  import Anchor from '../../lib/bridge/Anchor';
  import AnchorProxy from '../../lib/bridge/AnchorProxy';
  import Verifier from '../../lib/bridge/Verifier';
+import { ZkComponents } from '../../lib/bridge/types';
+import { fetchComponentsFromFilePaths } from '../../lib/bridge/utils';
 
  const helpers = require('../../lib/bridge/utils');
 
@@ -41,6 +43,7 @@
     let anchorProxy: AnchorProxy;
     let anchor1: Anchor;
     let anchor2: Anchor;
+    let zkComponents: ZkComponents;
   
     const levels = 30;
     const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
@@ -61,6 +64,14 @@
     let anchorTreesDummyAddress = "0x2111111111111111111111111111111111111111"
     let governanceDummyAddress = "0x3111111111111111111111111111111111111111"
   
+    before(async () => {
+      zkComponents = await fetchComponentsFromFilePaths(
+        '../../protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm',
+        '../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js',
+        '../../protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey',
+      );
+    })
+
     beforeEach(async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
@@ -92,6 +103,7 @@
         sender.address,
         sender.address,
         MAX_EDGES,
+        zkComponents,
         sender,
       );
 
@@ -105,6 +117,7 @@
         sender.address,
         sender.address,
         MAX_EDGES,
+        zkComponents,
         sender,
       );
       

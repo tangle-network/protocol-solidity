@@ -20,8 +20,9 @@ import {
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
+import { ZkComponents } from '../../lib/bridge/types';
 import Anchor from '../../lib/bridge/Anchor';
-import { getHasherFactory } from '../../lib/bridge/utils';
+import { fetchComponentsFromFilePaths, getHasherFactory } from '../../lib/bridge/utils';
 import Verifier from '../../lib/bridge/Verifier';
 import MintableToken from '../../lib/bridge/MintableToken';
 
@@ -37,6 +38,7 @@ const MerkleTree = require('../../lib/MerkleTree');
 
 describe('Anchor for 2 max edges', () => {
   let anchor: Anchor;
+  let zkComponents: ZkComponents;
 
   const levels = 30;
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
@@ -52,6 +54,15 @@ describe('Anchor for 2 max edges', () => {
   const chainID = 31337;
   const MAX_EDGES = 1;
   let createWitness: any;
+
+  before(async () => {
+    // Grab the zero knowledge components
+    zkComponents = await fetchComponentsFromFilePaths(
+      '../../protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm',
+      '../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js',
+      '../../protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey'
+    );
+  })
 
   beforeEach(async () => {
     const signers = await ethers.getSigners();
@@ -85,6 +96,7 @@ describe('Anchor for 2 max edges', () => {
       sender.address,
       sender.address,
       MAX_EDGES,
+      zkComponents,
       sender,
     );
 
@@ -210,7 +222,7 @@ describe('Anchor for 2 max edges', () => {
   })
 
   describe('#withdraw', () => {
-    it.only('should work', async () => {
+    it('should work', async () => {
       const signers = await ethers.getSigners();
       const sender = signers[0];
       const relayer = signers[1];
@@ -553,7 +565,7 @@ describe('Anchor for 2 max edges', () => {
     });
   })
 
-  describe.only('#WrapperClass', () => {
+  describe('#WrapperClass', () => {
     it('should deposit without latest history', async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
@@ -562,7 +574,7 @@ describe('Anchor for 2 max edges', () => {
       await anchor.deposit();
 
       // create a new anchor by connecting to the address of the setup anchor
-      const newAnchor = await Anchor.connect(anchor.contract.address, wallet);
+      const newAnchor = await Anchor.connect(anchor.contract.address, zkComponents, wallet);
 
       // make sure the deposit goes through
       await TruffleAssert.passes(newAnchor.deposit());
@@ -577,7 +589,7 @@ describe('Anchor for 2 max edges', () => {
       await anchor.deposit();
 
       // create a new anchor by connecting to the address of the setup anchor
-      const newAnchor = await Anchor.connect(anchor.contract.address, wallet);
+      const newAnchor = await Anchor.connect(anchor.contract.address, zkComponents, wallet);
       await newAnchor.update();
 
       // check that the merkle roots are the same for both anchor instances
@@ -592,7 +604,7 @@ describe('Anchor for 2 max edges', () => {
       const { deposit, index } = await anchor.deposit();
 
       // create a new anchor by connecting to the address of the setup anchor
-      const newAnchor = await Anchor.connect(anchor.contract.address, wallet);
+      const newAnchor = await Anchor.connect(anchor.contract.address, zkComponents, wallet);
       await TruffleAssert.passes(newAnchor.withdraw(deposit, index, recipient, signers[1].address, fee, bigInt(0)));
     });
 
@@ -603,7 +615,7 @@ describe('Anchor for 2 max edges', () => {
       // create a deposit on the anchor already setup
       const { deposit, index } = await anchor.deposit();
 
-      const newAnchor = await Anchor.connect(anchor.contract.address, wallet);
+      const newAnchor = await Anchor.connect(anchor.contract.address, zkComponents, wallet);
       await newAnchor.update();
 
       const withdrawSetup = await newAnchor.setupWithdraw(deposit, index, recipient, signers[1].address, fee, bigInt(0));
@@ -658,7 +670,7 @@ describe('Anchor for 2 max edges', () => {
       assert(res);
 
       // create a new anchor by connecting to the address of the setup anchor
-      let newAnchor = await Anchor.connect(anchor.contract.address, wallet);
+      let newAnchor = await Anchor.connect(anchor.contract.address, zkComponents, wallet);
       await TruffleAssert.passes(newAnchor.withdraw(
         deposit,
         index,
@@ -700,6 +712,7 @@ describe('Anchor for 2 max edges', () => {
         sender.address,
         sender.address,
         MAX_EDGES,
+        zkComponents,
         sender
       );
 
@@ -717,7 +730,7 @@ describe('Anchor for 2 max edges', () => {
 
       const balWrappedTokenAfterDepositAnchor = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
       const balWrappedTokenAfterDepositSender = await wrappedToken.balanceOf(sender.address);
-      const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, wallet);
+      const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, zkComponents, wallet);
       await TruffleAssert.passes(newAnchor.withdraw(deposit, index, sender.address, signers[1].address, bigInt(0), bigInt(0)));
       const balWrappedTokenAfterWithdrawSender = await wrappedToken.balanceOf(sender.address);
       const balWrappedTokenAfterWithdrawAnchor = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
@@ -748,6 +761,7 @@ describe('Anchor for 2 max edges', () => {
         sender.address,
         sender.address,
         MAX_EDGES,
+        zkComponents,
         sender
       );
 
@@ -770,7 +784,7 @@ describe('Anchor for 2 max edges', () => {
       const tokenWrapperBalanceOfToken = await token.balanceOf(tokenWrapper);
       assert.deepStrictEqual(tokenWrapperBalanceOfToken.toString(), tokenDenomination);
 
-      const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, wallet);
+      const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, zkComponents, wallet);
       await TruffleAssert.passes(newAnchor.withdrawAndUnwrap(
         deposit,
         originChainId,
@@ -809,6 +823,7 @@ describe('Anchor for 2 max edges', () => {
         sender.address,
         sender.address,
         MAX_EDGES,
+        zkComponents,
         sender
       );
 
@@ -818,7 +833,7 @@ describe('Anchor for 2 max edges', () => {
       await token.approve(wrappedToken.address, '1000000000000000000');
       const balTokenBeforeDepositSender = await token.balanceOf(sender.address);
 
-      const anchorUnderTest = await Anchor.connect(wrappedAnchor.contract.address, wallet);
+      const anchorUnderTest = await Anchor.connect(wrappedAnchor.contract.address, zkComponents, wallet);
 
       // create a deposit on the anchor already setup
       const { deposit, index, originChainId } = await anchorUnderTest.wrapAndDeposit(
@@ -854,6 +869,7 @@ describe('Anchor for 2 max edges', () => {
 // Test deposit and withdraw on the same anchor - but it's 3 roots to pass in.
 describe('Anchor for 2 max edges (3-sided bridge)', () => {
   let anchor: Anchor;
+  let zkComponents: ZkComponents;
 
   const levels = 30;
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
@@ -868,6 +884,14 @@ describe('Anchor for 2 max edges (3-sided bridge)', () => {
   let tokenDenomination = '1000000000000000000' // 1 ether
   const MAX_EDGES = 2;
   let createWitness: any;
+
+  before(async () => {
+    zkComponents = await fetchComponentsFromFilePaths(
+      '../../protocol-solidity-fixtures/fixtures/bridge/3/poseidon_bridge_3.wasm',
+      '../../protocol-solidity-fixtures/fixtures/bridge/3/witness_calculator.js',
+      '../../protocol-solidity-fixtures/fixtures/bridge/3/circuit_final.zkey',
+    );
+  })
 
   beforeEach(async () => {
     const signers = await ethers.getSigners();
@@ -901,6 +925,7 @@ describe('Anchor for 2 max edges (3-sided bridge)', () => {
       sender.address,
       sender.address,
       MAX_EDGES,
+      zkComponents,
       sender,
     );
 
@@ -916,7 +941,7 @@ describe('Anchor for 2 max edges (3-sided bridge)', () => {
     }
   })
 
-  it.only('should withdraw successfully', async () => {
+  it('should withdraw successfully', async () => {
     const signers = await ethers.getSigners();
     const sender = signers[0];
     const relayer = signers[1];
@@ -958,6 +983,7 @@ describe('Anchor for 2 max edges (3-sided bridge)', () => {
 // Test deposit and withdraw on the same anchor - but it's 4 roots to pass in.
 describe('Anchor for 3 max edges (4-sided bridge)', () => {
   let anchor: Anchor;
+  let zkComponents: ZkComponents;
 
   const levels = 30;
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
@@ -972,6 +998,14 @@ describe('Anchor for 3 max edges (4-sided bridge)', () => {
   let tokenDenomination = '1000000000000000000' // 1 ether
   const MAX_EDGES = 3;
   let createWitness: any;
+
+  before(async () => {
+    zkComponents = await fetchComponentsFromFilePaths(
+      '../../protocol-solidity-fixtures/fixtures/bridge/4/poseidon_bridge_4.wasm',
+      '../../protocol-solidity-fixtures/fixtures/bridge/4/witness_calculator.js',
+      '../../protocol-solidity-fixtures/fixtures/bridge/4/circuit_final.zkey',
+    );
+  })
 
   beforeEach(async () => {
     const signers = await ethers.getSigners();
@@ -1005,6 +1039,7 @@ describe('Anchor for 3 max edges (4-sided bridge)', () => {
       sender.address,
       sender.address,
       MAX_EDGES,
+      zkComponents,
       sender,
     );
 
@@ -1062,6 +1097,7 @@ describe('Anchor for 3 max edges (4-sided bridge)', () => {
 // Test deposit and withdraw on the same anchor - but it's 4 roots to pass in.
 describe('Anchor for 4 max edges (5-sided bridge)', () => {
   let anchor: Anchor;
+  let zkComponents: ZkComponents;
 
   const levels = 30;
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
@@ -1076,6 +1112,14 @@ describe('Anchor for 4 max edges (5-sided bridge)', () => {
   let tokenDenomination = '1000000000000000000' // 1 ether
   const MAX_EDGES = 4;
   let createWitness: any;
+
+  before(async () => {
+    zkComponents = await fetchComponentsFromFilePaths(
+      '../../protocol-solidity-fixtures/fixtures/bridge/5/poseidon_bridge_5.wasm',
+      '../../protocol-solidity-fixtures/fixtures/bridge/5/witness_calculator.js',
+      '../../protocol-solidity-fixtures/fixtures/bridge/5/circuit_final.zkey',
+    );
+  })
 
   beforeEach(async () => {
     const signers = await ethers.getSigners();
@@ -1109,6 +1153,7 @@ describe('Anchor for 4 max edges (5-sided bridge)', () => {
       sender.address,
       sender.address,
       MAX_EDGES,
+      zkComponents,
       sender,
     );
 
