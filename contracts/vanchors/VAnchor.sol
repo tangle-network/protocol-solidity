@@ -115,10 +115,14 @@ contract VAnchor is LinkableVAnchor {
     //Check if extAmount > 0, call wrapAndDeposit
     if (_extData.extAmount > 0) {
       //wrapAndDeposit
+      require(uint256(_extData.extAmount) <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
       wrapAndDeposit(tokenAddress, uint256(_extData.extAmount));
     } 
     //Otherwise, check if extAmount < 0, call withdrawAndUnwrap
     if (_extData.extAmount < 0) {
+      require(_extData.recipient != address(0), "Can't withdraw to zero address");
+      require(uint256(-_extData.extAmount) >= minimalWithdrawalAmount, "amount is less than minimalWithdrawalAmount"); 
+      // prevents ddos attack to Bridge
       //withdrawAndUnwrap
       withdrawAndUnwrap(tokenAddress, _extData.recipient, uint256(-_extData.extAmount));
     }

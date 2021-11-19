@@ -789,6 +789,11 @@ describe('VAnchor for 2 max edges', () => {
         sender
       );
 
+      await wrappedAnchor.contract.configureLimits(
+        BigNumber.from(0),
+        BigNumber.from(tokenDenomination).mul(1_000_000),
+      );
+
       const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
       await wrappedToken.grantRole(MINTER_ROLE, wrappedAnchor.contract.address);
 
@@ -818,65 +823,78 @@ describe('VAnchor for 2 max edges', () => {
       assert.strictEqual(balWrappedTokenAfterDepositSender.toString(), '0');
     });
 
-    it('should withdraw and unwrap', async () => {
-      // const signers = await ethers.getSigners();
-      // const wallet = signers[0];
-      // const sender = wallet;
-      // // create wrapped token
-      // const name = 'webbETH';
-      // const symbol = 'webbETH';
-      // const wrappedTokenFactory = new WrappedTokenFactory(wallet);
-      // wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
-      // await wrappedToken.deployed();
-      // await wrappedToken.add(token.address);
+    it.only('should withdraw and unwrap', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+      const sender = wallet;
+      // create wrapped token
+      const name = 'webbETH';
+      const symbol = 'webbETH';
+      const wrappedTokenFactory = new WrappedTokenFactory(wallet);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      await wrappedToken.deployed();
+      await wrappedToken.add(token.address);
 
-      // // create Anchor for wrapped token
-      // const wrappedAnchor = await Anchor.createAnchor(
-      //   verifier.contract.address,
-      //   hasherInstance.address,
-      //   tokenDenomination,
-      //   levels,
-      //   wrappedToken.address,
-      //   sender.address,
-      //   sender.address,
-      //   sender.address,
-      //   MAX_EDGES,
-      //   sender
-      // );
+      // create Anchor for wrapped token
+      const wrappedVAnchor = await VAnchor.createVAnchor(
+        verifier.contract.address,
+        5,
+        hasherInstance.address,
+        wrappedToken.address,
+        {
+          bridge: sender.address,
+          admin: sender.address,
+          handler: sender.address,
+        },
+        1,
+        sender
+      );
 
-      // const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
-      // await wrappedToken.grantRole(MINTER_ROLE, wrappedAnchor.contract.address);
+      await wrappedVAnchor.contract.configureLimits(
+        BigNumber.from(0),
+        BigNumber.from(tokenDenomination).mul(1_000_000),
+      );
+      
+      const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+      await wrappedToken.grantRole(MINTER_ROLE, wrappedVAnchor.contract.address);
+      await token.approve(wrappedToken.address, '1000000000000000000');
+      //Check that vAnchor has the right amount of wrapped token balance
+      assert.strictEqual((await wrappedToken.balanceOf(wrappedVAnchor.contract.address)).toString(), BigNumber.from(0).toString());
+      const balTokenBeforeDepositSender = await token.balanceOf(sender.address);
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount)
+      });
+      //create a deposit on the anchor already setup
+      await wrappedVAnchor.transactWrap(
+        token.address,
+        [],
+        [aliceDepositUtxo],
+      );
 
-      // await token.approve(wrappedToken.address, '1000000000000000000');
-      // const balTokenBeforeDepositSender = await token.balanceOf(sender.address);
-      // // create a deposit on the anchor already setup
-      // const { deposit, index, originChainId } = await wrappedAnchor.wrapAndDeposit(
-      //   token.address,
-      // );
+      //Check that vAnchor has the right amount of wrapped token balance
+      assert.strictEqual((await wrappedToken.balanceOf(wrappedVAnchor.contract.address)).toString(), BigNumber.from(1e7).toString());
 
-      // // Check that the anchor has the appropriate amount of wrapped token balance
-      // const anchorWrappedTokenBalance = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
-      // assert.deepStrictEqual(anchorWrappedTokenBalance.toString(), tokenDenomination);
+      const aliceChangeAmount = 0;
+      const aliceChangeUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceChangeAmount)
+      });
 
-      // // Check that the anchor's token wrapper has the appropriate amount of token balance
-      // const tokenWrapper = await wrappedAnchor.contract.token();
-      // const tokenWrapperBalanceOfToken = await token.balanceOf(tokenWrapper);
-      // assert.deepStrictEqual(tokenWrapperBalanceOfToken.toString(), tokenDenomination);
+      await wrappedVAnchor.transactWrap(
+        token.address,
+        [aliceDepositUtxo],
+        [aliceChangeUtxo],
+        0,
+        sender.address,
+        '0'
+      );
 
-      // const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, wallet);
-      // await TruffleAssert.passes(newAnchor.withdrawAndUnwrap(
-      //   deposit,
-      //   originChainId,
-      //   index,
-      //   sender.address,
-      //   signers[1].address,
-      //   bigInt(0),
-      //   bigInt(0),
-      //   token.address
-      // ));
-
-      // const balTokenAfterWithdrawAndUnwrapSender = await token.balanceOf(sender.address);
-      // assert.strictEqual(balTokenBeforeDepositSender.toString(), balTokenAfterWithdrawAndUnwrapSender.toString());
+      const balTokenAfterWithdrawAndUnwrapSender = await token.balanceOf(sender.address);
+      assert.strictEqual(balTokenBeforeDepositSender.toString(), balTokenAfterWithdrawAndUnwrapSender.toString());
     });
 
     it('wrapping fee should work correctly with transactWrap', async () => {
@@ -907,6 +925,11 @@ describe('VAnchor for 2 max edges', () => {
         1,
         sender
       );
+
+      await wrappedVAnchor.contract.configureLimits(
+        BigNumber.from(0),
+        BigNumber.from(tokenDenomination).mul(1_000_000),
+      )
 
       const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
       await wrappedToken.grantRole(MINTER_ROLE, wrappedVAnchor.contract.address);

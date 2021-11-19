@@ -322,7 +322,7 @@ import { TokenWrapper } from '../../typechain';
           );
         })
 
-        it.only('mintable token task test', async () => {
+        it('mintable token task test', async () => {
           // Fetch information about the anchor to be updated.
           const signers = await ethers.getSigners();
   
