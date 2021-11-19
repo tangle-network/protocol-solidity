@@ -1,9 +1,9 @@
 import { ethers } from "ethers";
 import BridgeSide from './BridgeSide';
-import Anchor, { AnchorDeposit } from './Anchor';
+import Anchor from './Anchor';
 import AnchorHandler from "./AnchorHandler";
 import MintableToken from "../tokens/MintableToken";
-import { ZkComponents } from './types';
+import { ZkComponents, AnchorDeposit } from './types';
 import { getHasherFactory } from '../utils';
 import Verifier from "./Verifier";
 import GovernedTokenWrapper from "../tokens/GovernedTokenWrapper";

@@ -37,7 +37,7 @@ import { fetchComponentsFromFilePaths } from '../../lib/bridge/utils';
  const Scalar = require("ffjavascript").Scalar;
  
  
- const MerkleTree = require('../../lib/MerkleTree');
+ const MerkleTree = require('../../lib/fixed-bridge/MerkleTree');
 
  describe('AnchorProxy', () => {
     let anchorProxy: AnchorProxy;

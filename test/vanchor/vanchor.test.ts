@@ -27,7 +27,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 const { NATIVE_AMOUNT } = process.env
 const BN = require('bn.js');
 
-const MerkleTree = require('../../lib/MerkleTree');
+const MerkleTree = require('../../lib/vbridge/MerkleTree');
 
 const snarkjs = require('snarkjs')
 const { toBN } = require('web3-utils');

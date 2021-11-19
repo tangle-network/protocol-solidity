@@ -4,20 +4,21 @@ import '@typechain/hardhat';
 import '@nomiclabs/hardhat-ethers'
 import "@nomiclabs/hardhat-truffle5";
 import { extendConfig, subtask, task, types } from 'hardhat/config'
-import { TASK_CLEAN, TASK_COMPILE, TASK_COMPILE_SOLIDITY_COMPILE_JOBS } from 'hardhat/builtin-tasks/task-names'
+
 const poseidonGenContract = require('circomlibjs/src/poseidon_gencontract.js');
-const { overwriteArtifact } = require('hardhat');
 
 const buildPoseidon = async (numInputs: number) => {
+  //@ts-ignore
   await overwriteArtifact(`PoseidonT${numInputs + 1}`, poseidonGenContract.createCode(numInputs));
 }
 
-subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS, 'Compiles the entire project, building all artifacts').setAction(
-  async (taskArgs, { run }, runSuper) => {
-    const compileSolOutput = await runSuper(taskArgs)
+subtask('typechain-generate-types',
+  async (taskArgs, hre, runSuper) => {
+
+    // overwrite the artifact before generating types
     await buildPoseidon(2);
-    return compileSolOutput
-  },
+    await runSuper();
+  }
 )
 
 const config: HardhatUserConfig = {

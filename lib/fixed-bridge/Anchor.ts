@@ -1,11 +1,10 @@
-import { BigNumber, BigNumberish, ethers } from "ethers";
+import { BigNumberish, ethers } from "ethers";
 import { Anchor__factory } from '../../typechain/factories/Anchor__factory';
 import { Anchor as AnchorContract} from '../../typechain/Anchor';
-import { ZkComponents } from './types';
+import { ZkComponents, AnchorDeposit, AnchorDepositInfo, IPublicInputs } from './types';
 import { toFixedHex, toHex, rbigint, p256 } from '../utils';
 import PoseidonHasher from '../Poseidon';
 import { MerkleTree } from './MerkleTree';
-import MintableToken from "../tokens/MintableToken";
 
 const path = require('path');
 const snarkjs = require('snarkjs');
@@ -19,30 +18,6 @@ function checkNativeAddress(tokenAddress: string): boolean {
     return true;
   }
   return false;
-}
-
-export interface AnchorDepositInfo {
-  chainID: BigInt;
-  secret: BigInt;
-  nullifier: BigInt;
-  commitment: string;
-  nullifierHash: string;
-};
-
-export interface AnchorDeposit {
-  deposit: AnchorDepositInfo;
-  index: number;
-  originChainId: number;
-};
-
-export interface IPublicInputs {
-  _roots: string;
-  _nullifierHash: string;
-  _refreshCommitment: string;
-  _recipient: string;
-  _relayer: string;
-  _fee: string;
-  _refund: string;
 }
 
 // This convenience wrapper class is used in tests -

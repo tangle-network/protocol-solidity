@@ -23,7 +23,7 @@ const snarkjs = require('snarkjs');
 const BN = require('bn.js');
 const F = require('circomlibjs').babyjub.F;
 const Scalar = require('ffjavascript').Scalar;
-const MerkleTree = require('../../lib/MerkleTree');
+const MerkleTree = require('../../lib/fixed-bridge/MerkleTree');
 
 contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts => {
   const relayerThreshold = 1;

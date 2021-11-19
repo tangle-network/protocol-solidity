@@ -33,7 +33,7 @@ const F = require('circomlibjs').babyjub.F;
 const Scalar = require("ffjavascript").Scalar;
 
 const helpers = require('../../lib/bridge/utils');
-const MerkleTree = require('../../lib/MerkleTree');
+const MerkleTree = require('../../lib/fixed-bridge/MerkleTree');
 
 describe('Anchor for 2 max edges', () => {
   let anchor: Anchor;
