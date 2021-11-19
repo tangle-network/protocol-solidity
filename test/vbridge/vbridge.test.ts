@@ -274,31 +274,36 @@ import { TokenWrapper } from '../../typechain';
           assert.strictEqual(signers2BalanceBefore.add(1.5e7).toString(), signers2BalanceAfter.toString());
         })
 
-        it.skip('should update multiple deposits and withdraw historic deposit from ganache', async () => {
-          // // Fetch information about the anchor to be updated.
-          // const signers = await ethers.getSigners();
-          // const anchorSize = '1000000000000000000';
+        it('should update multiple deposits and withdraw historic deposit from ganache', async () => {
+          // Fetch information about the anchor to be updated.
+          const signers = await ethers.getSigners();
   
-          // const anchor2: Anchor = bridge.getAnchor(chainId1, anchorSize)!;
-          // let edgeIndex = await anchor2.contract.edgeIndex(chainId2);
-          // const destAnchorEdge2Before = await anchor2.contract.edgeList(edgeIndex);
-          // const webbToken = await MintableToken.tokenFromAddress(existingToken1.contract.address, signers[1]);
-          // const startingBalanceDest = await webbToken.getBalance(signers[1].address);
+          const anchor1: VAnchor = vBridge.getVAnchor(chainId1)!;
+          let edgeIndex = await anchor1.contract.edgeIndex(chainId2);
+          const destAnchorEdge2Before = await anchor1.contract.edgeList(edgeIndex);
+          const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainId1);
+          const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
+          const startingBalanceDest = await webbToken1.getBalance(signers[1].address);
   
-          // // Make two deposits
-          // const depositNote1 = await bridge.wrapAndDeposit(chainId1, existingToken2.contract.address, anchorSize, ganacheWallet2);
-          // const depositNote2 = await bridge.wrapAndDeposit(chainId1, existingToken2.contract.address, anchorSize, ganacheWallet2);
+          //ganacheWallet2 makes a deposit with dest chain chainId1
+          const ganacheDepositUtxo1 = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId2), chainId: BigNumber.from(chainId1)});
+
+          const ganacheDepositUtxo2 = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId2), chainId: BigNumber.from(chainId1)});
+
+          await vBridge.transact([], [ganacheDepositUtxo1], 0, '0', '0', ganacheWallet2);
+          await vBridge.transact([], [ganacheDepositUtxo2], 0, '0', '0', ganacheWallet2);
   
-          // // Check the leaf index is incremented by two
-          // const destAnchorEdge2After = await anchor2.contract.edgeList(edgeIndex);
-          // assert.deepStrictEqual(destAnchorEdge2Before.latestLeafIndex.add(2), destAnchorEdge2After.latestLeafIndex);
+          // Check the leaf index is incremented by two
+          const destAnchorEdge2After = await anchor1.contract.edgeList(edgeIndex);
+          assert.deepStrictEqual(destAnchorEdge2Before.latestLeafIndex.add(4), destAnchorEdge2After.latestLeafIndex);
   
-          // // Withdraw from the bridge with older deposit note
-          // await bridge.withdrawAndUnwrap(depositNote1!, existingToken1.contract.address, anchorSize, signers[1].address, signers[1].address, signers[1]);
+          //withdraw ganacheWallet2 deposit on chainId1 to signers[2] address
+          const hardhatWithdrawUtxo = new Utxo({amount: BigNumber.from(5e6), originChainId: BigNumber.from(chainId1), chainId: BigNumber.from(chainId1)})
+          await vBridge.transact([ganacheDepositUtxo1], [hardhatWithdrawUtxo], 0, await signers[1].getAddress(), '0', signers[2]); 
   
-          // // Check the balance of the other_signer.
-          // const endingBalanceDest = await webbToken.getBalance(signers[1].address);
-          // assert.deepStrictEqual(endingBalanceDest, startingBalanceDest.add(anchorSize));
+          // // Check balances
+          const endingBalanceDest = await webbToken1.getBalance(signers[1].address);
+          assert.deepStrictEqual(endingBalanceDest, startingBalanceDest.add(5e6));
         })
 
         it('prevent cross-chain double spending', async () => {
@@ -315,6 +320,45 @@ import { TokenWrapper } from '../../typechain';
             vBridge.transact([ganacheDepositUtxo], [hardhatUtxo], 0, '0', '0', signers[2]),
             'Input is already spent'
           );
+        })
+
+        it.only('mintable token task test', async () => {
+          // Fetch information about the anchor to be updated.
+          const signers = await ethers.getSigners();
+  
+          const vAnchor1: VAnchor = vBridge.getVAnchor(chainId1)!;
+          const vAnchor1Address = vAnchor1.contract.address;
+          let edgeIndex = await vAnchor1.contract.edgeIndex(chainId2);
+          const destAnchorEdge2Before = await vAnchor1.contract.edgeList(edgeIndex);
+          const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainId1);
+          const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
+          const signers2BalanceBefore = await webbToken1.getBalance(await signers[2].getAddress());
+          
+          //ganacheWallet2 makes a deposit with dest chain chainId1
+          const ganacheDepositUtxo = new Utxo({amount: BigNumber.from(5e7), originChainId: BigNumber.from(chainId2), chainId: BigNumber.from(chainId1)});
+
+          await vBridge.transact([], [ganacheDepositUtxo], 0, '0', '0', ganacheWallet2);
+
+          //Check that deposit went through
+          const vAnchor2: VAnchor = vBridge.getVAnchor(chainId2)!;
+          const vAnchor2Address = vAnchor2.contract.address;
+          const webbTokenAddress2 = vBridge.getWebbTokenAddress(chainId2);
+          const webbToken2 = await MintableToken.tokenFromAddress(webbTokenAddress2!, ganacheWallet2);
+          assert.strictEqual((await webbToken2.getBalance(vAnchor2Address)).toString(), BigNumber.from(6e7).toString());
+
+          //Balance in VAnchor1 is 1e7
+          assert.strictEqual((await webbToken1.getBalance(vAnchor1Address)).toString(), BigNumber.from(1e7).toString());
+
+          //check latest leaf index is incremented
+          const destAnchorEdge2After = await vAnchor1.contract.edgeList(edgeIndex);
+          assert.deepStrictEqual(destAnchorEdge2Before.latestLeafIndex.add(2), destAnchorEdge2After.latestLeafIndex);
+
+          //withdrawing 3e7 from ganacheWallet2 deposit on chainId1 should work despite vanchor1 only having 1e7 webb tokens...this indicates that it minted 2e7 webb tokens to make up the balance
+          const hardhatWithdrawUtxo = new Utxo({amount: BigNumber.from(2e7), originChainId: BigNumber.from(chainId1), chainId: BigNumber.from(chainId1)})
+          await vBridge.transact([ganacheDepositUtxo], [hardhatWithdrawUtxo], 0, await signers[2].getAddress(), '0', signers[2]); 
+          const signers2BalanceAfter = await webbToken1.getBalance(await signers[2].getAddress());
+          assert.strictEqual(signers2BalanceBefore.add(3e7).toString(), signers2BalanceAfter.toString());
+          assert.strictEqual((await webbToken1.getBalance(vAnchor1Address)).toString(), BigNumber.from(1e7).toString());
         })
       })
     })
