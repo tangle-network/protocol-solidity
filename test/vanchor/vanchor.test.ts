@@ -879,7 +879,7 @@ describe('VAnchor for 2 max edges', () => {
       // assert.strictEqual(balTokenBeforeDepositSender.toString(), balTokenAfterWithdrawAndUnwrapSender.toString());
     });
 
-    it.only('wrapping fee should work correctly with transactWrap', async () => {
+    it('wrapping fee should work correctly with transactWrap', async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
       const sender = wallet;
@@ -950,8 +950,16 @@ describe('VAnchor for 2 max edges', () => {
         keypair: aliceDepositUtxo.keypair
       });
 
-      const aliceETHAddress = '0xDeaD00000000000000000000000000000000BEEf';
-      await wrappedVAnchor.transactWrap(token.address, [aliceDepositUtxo], [aliceChangeUtxo], 0, aliceETHAddress, '0');
+      await wrappedVAnchor.transactWrap(token.address, [aliceDepositUtxo], [aliceChangeUtxo], 0, sender.address, '0');
+
+      const balUnwrappedTokenAfterWithdrawSender = await token.balanceOf(sender.address);
+      assert.strictEqual(balUnwrappedTokenAfterWithdrawSender.sub(balUnwrappedTokenAfterDepositSender).toString(), BigNumber.from(1e7).toString());
+
+      const balWrappedTokenAfterWithdrawAnchor = await wrappedToken.balanceOf(wrappedVAnchor.contract.address);
+      assert.strictEqual(balWrappedTokenAfterDepositAnchor.sub(balWrappedTokenAfterWithdrawAnchor).toString(), BigNumber.from(1e7).toString())
+
+      const balUnwrappedTokenAfterWithdrawWrapper = await token.balanceOf(wrappedToken.address);
+      assert.strictEqual(balUnwrappedTokenAfterDepositWrapper.sub(balUnwrappedTokenAfterWithdrawWrapper).toString(), BigNumber.from(1e7).toString());
     });
 
     it('non-governor setting fee should fail', async () => {

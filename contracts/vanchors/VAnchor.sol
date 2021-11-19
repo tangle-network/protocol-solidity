@@ -70,7 +70,6 @@ contract VAnchor is LinkableVAnchor {
             address(this)
         );
     }
-    //Any events that need to be emitted
   }
 
   function withdrawAndUnwrap(
@@ -89,7 +88,7 @@ contract VAnchor is LinkableVAnchor {
     Proof memory _args,
     ExtData memory _extData,
     address tokenAddress
-  ) external payable nonReentrant {
+  ) external payable {
     for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
       require(!isSpent(_args.inputNullifiers[i]), "Input is already spent");
     }
