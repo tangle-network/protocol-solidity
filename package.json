@@ -7,9 +7,8 @@
   "license": "GPL-3.0-or-later",
   "scripts": {
     "compile": "npx hardhat compile",
-    "build": "yarn compile && yarn build:circuits && yarn build:hashers && yarn build:ptau",
+    "build": "yarn compile && yarn build:circuits && yarn build:ptau",
     "build:circuits": "./scripts/bash/build_circuits.sh",
-    "build:hashers": "ts-node scripts/ts/build_hashers.ts",
     "build:ptau": "./scripts/bash/generate_phase1_ptau.sh",
     "run:deploy-webb": "ts-node ./scripts/evm/webbSystemDeployment.ts",
     "run:inspect-webb": "ts-node ./scripts/evm/inspectWebbInstance.ts",
@@ -23,7 +22,7 @@
     "setup:vanchor8": "./scripts/bash/groth16/vanchor/phase2_poseidon_vanchor8.sh",
     "setup:semaphore-bridge2": "./scripts/bash/groth16/semaphore/phase2_semaphore_bridge_2.sh",
     "setup": "./scripts/bash/setup_verifiers.sh",
-    "test": "yarn build:hashers && npx hardhat test"
+    "test": "npx hardhat test"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
