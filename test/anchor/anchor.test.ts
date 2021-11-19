@@ -709,7 +709,7 @@ describe('Anchor for 2 max edges', () => {
       assert.strictEqual(balWrappedTokenAfterDepositAnchor.sub(balWrappedTokenAfterWithdrawAnchor).toString(), '1000000000000000000');
     });
 
-    it.only('wrapping fee should work correctly with wrap and deposit', async () => {
+    it('wrapping fee should work correctly with wrap and deposit', async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
       const sender = wallet;
@@ -772,6 +772,52 @@ describe('Anchor for 2 max edges', () => {
 
       const balUnwrappedTokenAfterWithdrawSender = await token.balanceOf(sender.address);
       assert.strictEqual(balUnwrappedTokenBeforeWithdrawSender.add(tokenDenomination).toString(), balUnwrappedTokenAfterWithdrawSender.toString());
+    });
+
+    it.only('wrapping fee should work correctly with wrap and deposit', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+      const sender = wallet;
+      // create wrapped token
+      const name = 'webbETH';
+      const symbol = 'webbETH';
+      const wrappedTokenFactory = new WrappedTokenFactory(wallet);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      await wrappedToken.deployed();
+      await wrappedToken.add(token.address);
+      const wrapFee = 5;
+      await wrappedToken.setFee(wrapFee);
+
+      // create Anchor for wrapped token
+      const wrappedAnchor = await Anchor.createAnchor(
+        verifier.contract.address,
+        hasherInstance.address,
+        tokenDenomination,
+        levels,
+        wrappedToken.address,
+        sender.address,
+        sender.address,
+        sender.address,
+        MAX_EDGES,
+        sender
+      );
+
+      const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+      await wrappedToken.grantRole(MINTER_ROLE, wrappedAnchor.contract.address);
+
+      await token.approve(wrappedToken.address, '10000000000000000000');
+      await wrappedToken.approve(wrappedAnchor.contract.address, '10000000000000000000');
+      const amountToWrap = BigNumber.from(tokenDenomination).mul(100).div(100 - wrapFee);
+      const amountToWrap2 = BigNumber.from(tokenDenomination);
+      await TruffleAssert.reverts(
+        wrappedAnchor.deposit(31337),
+        'ERC20: transfer amount exceeds balance'
+      );
+
+      await wrappedAnchor.contract.wrapToken(token.address, amountToWrap);
+      await TruffleAssert.passes(
+        wrappedAnchor.deposit(31337)
+      )
     });
 
     it('non-governor setting fee should fail', async () => {
@@ -888,7 +934,7 @@ describe('Anchor for 2 max edges', () => {
       // Check that the anchor has the appropriate amount of wrapped token balance
       const anchorWrappedTokenBalance = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
       assert.deepStrictEqual(anchorWrappedTokenBalance.toString(), tokenDenomination);
-        
+
       // Check that the anchor's token wrapper has the appropriate amount of token balance
       const tokenWrapper = await wrappedAnchor.contract.token();
       
