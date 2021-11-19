@@ -879,6 +879,81 @@ describe('VAnchor for 2 max edges', () => {
       // assert.strictEqual(balTokenBeforeDepositSender.toString(), balTokenAfterWithdrawAndUnwrapSender.toString());
     });
 
+    it.only('wrapping fee should work correctly with transactWrap', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+      const sender = wallet;
+      // create wrapped token
+      const name = 'webbETH';
+      const symbol = 'webbETH';
+      const wrappedTokenFactory = new WrappedTokenFactory(wallet);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      await wrappedToken.deployed();
+      await wrappedToken.add(token.address);
+      const wrapFee = 5;
+      await wrappedToken.setFee(wrapFee);
+
+      // create Anchor for wrapped token
+      const wrappedVAnchor = await VAnchor.createVAnchor(
+        verifier.contract.address,
+        5,
+        hasherInstance.address,
+        wrappedToken.address,
+        {
+          bridge: sender.address,
+          admin: sender.address,
+          handler: sender.address,
+        },
+        1,
+        sender
+      );
+
+      const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+      await wrappedToken.grantRole(MINTER_ROLE, wrappedVAnchor.contract.address);
+
+      await token.approve(wrappedToken.address, '10000000000000000000');
+      
+      //Should take a fee when depositing
+      //Deposit 2e7 and Check Relevant Balances
+      const aliceDepositAmount = 2e7;
+      const aliceDepositUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount)
+      });
+
+      const balWrappedTokenBeforeDepositAnchor = await wrappedToken.balanceOf(wrappedVAnchor.contract.address);
+      const balUnwrappedTokenBeforeDepositSender = await token.balanceOf(sender.address);
+      const balUnwrappedTokenBeforeDepositWrapper = await token.balanceOf(wrappedToken.address);
+
+      await wrappedVAnchor.transactWrap(token.address, [], [aliceDepositUtxo], 0, '0', '0');
+
+      //Balance of VAnchor wrapped token should be 2e7 - fee
+      const balWrappedTokenAfterDepositAnchor = await wrappedToken.balanceOf(wrappedVAnchor.contract.address);
+      assert.strictEqual(balWrappedTokenAfterDepositAnchor.toString(), BigNumber.from(2e7).sub(BigNumber.from(2e7).mul(wrapFee).div(100)).toString());
+
+      //Balance of sender unwrapped token should have gone down by 2e7
+      const balUnwrappedTokenAfterDepositSender = await token.balanceOf(sender.address);
+      assert.strictEqual(balUnwrappedTokenBeforeDepositSender.sub(balUnwrappedTokenAfterDepositSender).toString(), BigNumber.from(2e7).toString());
+
+      //Balance of TokenWrapper unwrapped should have gone up by 2e7
+      const balUnwrappedTokenAfterDepositWrapper = await token.balanceOf(wrappedToken.address);
+      assert.strictEqual(balUnwrappedTokenAfterDepositWrapper.sub(balUnwrappedTokenBeforeDepositWrapper).toString(), BigNumber.from(2e7).toString());
+
+      //Withdraw 1e7 and check relevant balances
+      const aliceWithdrawAmount = 1e7;
+
+      const aliceChangeUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceWithdrawAmount),
+        keypair: aliceDepositUtxo.keypair
+      });
+
+      const aliceETHAddress = '0xDeaD00000000000000000000000000000000BEEf';
+      await wrappedVAnchor.transactWrap(token.address, [aliceDepositUtxo], [aliceChangeUtxo], 0, aliceETHAddress, '0');
+    });
+
     it('non-governor setting fee should fail', async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];

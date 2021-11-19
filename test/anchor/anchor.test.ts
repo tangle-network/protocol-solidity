@@ -774,7 +774,7 @@ describe('Anchor for 2 max edges', () => {
       assert.strictEqual(balUnwrappedTokenBeforeWithdrawSender.add(tokenDenomination).toString(), balUnwrappedTokenAfterWithdrawSender.toString());
     });
 
-    it.only('wrapping fee should work correctly with wrap and deposit', async () => {
+    it('wrapping fee should work correctly with wrap and deposit', async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
       const sender = wallet;
