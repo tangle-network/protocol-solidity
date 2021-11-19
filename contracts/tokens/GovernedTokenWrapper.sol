@@ -47,6 +47,7 @@ contract GovernedTokenWrapper is TokenWrapper {
   }
 
   function setFee(uint8 _feePercentage) override external onlyGovernor {
+    require(0 <= _feePercentage && _feePercentage <= 100, "invalid fee percentage");
     feePercentage = _feePercentage;
   }
 

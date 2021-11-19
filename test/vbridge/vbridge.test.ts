@@ -217,7 +217,7 @@ import { TokenWrapper } from '../../typechain';
       })
 
       describe('#bridging', () => {
-        it.only('basic ganache deposit should withdraw on hardhat', async () => {
+        it('basic ganache deposit should withdraw on hardhat', async () => {
           // Fetch information about the anchor to be updated.
           const signers = await ethers.getSigners();
   

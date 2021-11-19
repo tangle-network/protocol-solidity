@@ -29,6 +29,10 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
 		return amountToWrap.mul(feePercentage).div(100);
     }
 
+    function getAmountToWrap(uint deposit) override public view returns (uint) {
+		return deposit.mul(100).div(100 - feePercentage);
+    }
+
     /**
         @notice Used to wrap tokens on behalf of a sender. Must be called by a minter role.
         @param tokenAddress Address of ERC20 to transfer.
