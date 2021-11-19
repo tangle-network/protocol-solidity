@@ -7,7 +7,7 @@ build/
 #Hardhat files
 cache
 artifacts
-typechain
+/typechain
 
 dist
 

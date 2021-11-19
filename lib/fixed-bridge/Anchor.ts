@@ -1,12 +1,11 @@
 import { BigNumber, BigNumberish, ethers } from "ethers";
 import { Anchor__factory } from '../../typechain/factories/Anchor__factory';
 import { Anchor as AnchorContract} from '../../typechain/Anchor';
-import { rbigint, p256 } from "./utils";
 import { ZkComponents } from './types';
-import { toFixedHex, toHex } from '../../lib/bridge/utils';
-import PoseidonHasher from './Poseidon';
+import { toFixedHex, toHex, rbigint, p256 } from '../utils';
+import PoseidonHasher from '../Poseidon';
 import { MerkleTree } from './MerkleTree';
-import MintableToken from "./MintableToken";
+import MintableToken from "../tokens/MintableToken";
 
 const path = require('path');
 const snarkjs = require('snarkjs');

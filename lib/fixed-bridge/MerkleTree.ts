@@ -1,5 +1,5 @@
-import Poseidon from './Poseidon';
-import { Storage } from './Storage';
+import Poseidon from '../Poseidon';
+import { Storage } from '../Storage';
 
 export interface Hasher {
   hash(level: any, left: any, right: any): any;

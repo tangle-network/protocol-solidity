@@ -2,11 +2,11 @@ import { ethers } from "ethers";
 import BridgeSide from './BridgeSide';
 import Anchor, { AnchorDeposit } from './Anchor';
 import AnchorHandler from "./AnchorHandler";
-import MintableToken from "./MintableToken";
+import MintableToken from "../tokens/MintableToken";
 import { ZkComponents } from './types';
-import { getHasherFactory } from './utils';
+import { getHasherFactory } from '../utils';
 import Verifier from "./Verifier";
-import GovernedTokenWrapper from "./GovernedTokenWrapper";
+import GovernedTokenWrapper from "../tokens/GovernedTokenWrapper";
 
 // Deployer config matches the chainId to the signer for that chain
 export type DeployerConfig = Record<number, ethers.Signer>;
