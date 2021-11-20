@@ -1,9 +1,9 @@
 {
-  "name": "test-webb-solidity",
+  "name": "webb-solidity",
   "version": "0.1.7",
   "main": "index.js",
-  "repository": "https://github.com/nepoche/protocol-solidity.git",
-  "author": "Nepoche",
+  "repository": "https://github.com/webb-tools/protocol-solidity.git",
+  "author": "Webb Technologies",
   "license": "GPL-3.0-or-later",
   "scripts": {
     "compile": "npx hardhat compile",

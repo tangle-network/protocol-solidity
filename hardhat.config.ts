@@ -3,7 +3,7 @@ import "hardhat-artifactor";
 import '@typechain/hardhat';
 import '@nomiclabs/hardhat-ethers'
 import "@nomiclabs/hardhat-truffle5";
-import { extendConfig, subtask, task, types } from 'hardhat/config'
+import { subtask } from 'hardhat/config'
 
 const poseidonGenContract = require('circomlibjs/src/poseidon_gencontract.js');
 
