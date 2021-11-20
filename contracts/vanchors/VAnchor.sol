@@ -77,10 +77,12 @@ contract VAnchor is LinkableVAnchor {
     address recipient,
     uint256 _minusExtAmount
   ) public payable nonReentrant {
+    _processWithdraw(payable(address(this)), _minusExtAmount);
+
     ITokenWrapper(token).unwrapAndSendTo(
-    tokenAddress,
-    _minusExtAmount,
-    recipient
+      tokenAddress,
+      _minusExtAmount,
+      recipient
     );
   }
 
@@ -149,7 +151,6 @@ contract VAnchor is LinkableVAnchor {
     address _recipient,
     uint256 _minusExtAmount
   ) internal override {
-
     uint balance = IERC20(token).balanceOf(address(this));
     if (balance >= _minusExtAmount) {
       // transfer tokens when balance exists
