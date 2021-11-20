@@ -7,7 +7,7 @@ const path = require('path');
 import { ethers } from 'hardhat';
 
 // Convenience wrapper classes for contract classes
-import BridgeSide from '../../lib/fixed-bridge/bridgeSide';
+import BridgeSide from '../../lib/fixed-bridge/BridgeSide';
 import Anchor from '../../lib/fixed-bridge/Anchor';
 import MintableToken from '../../lib/tokens/MintableToken';
 import Verifier from '../../lib/fixed-bridge/Verifier';
