@@ -451,7 +451,7 @@ import { TokenWrapper } from '../../typechain';
           const vAnchor2Balance = await webbToken2.getBalance(vAnchor2Address);
           assert.strictEqual(vAnchor2Balance.toString(), BigNumber.from(1e7).toString());
         })
-        it.only('wrap and deposit, withdraw and unwrap works via transactWrap', async () => {
+        it.only('wrap and deposit, withdraw and unwrap works join split via transactWrap', async () => {
           const signers = await ethers.getSigners();
 
           const vAnchor1: VAnchor = vBridge.getVAnchor(chainId1)!;
@@ -462,9 +462,10 @@ import { TokenWrapper } from '../../typechain';
           const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
 
           //Deposit UTXO
-          const ganacheDepositUtxo = new Utxo({amount: BigNumber.from(5e7), originChainId: BigNumber.from(chainId2), chainId: BigNumber.from(chainId1)});
+          const ganacheDepositUtxo1 = new Utxo({amount: BigNumber.from(2.5e7), originChainId: BigNumber.from(chainId2), chainId: BigNumber.from(chainId1)});
+          const ganacheDepositUtxo2 = new Utxo({amount: BigNumber.from(2.5e7), originChainId: BigNumber.from(chainId2), chainId: BigNumber.from(chainId1)});
 
-          await vBridge.transactWrap(existingToken2.contract.address, [], [ganacheDepositUtxo], 0, '0', '0', ganacheWallet2); 
+          await vBridge.transactWrap(existingToken2.contract.address, [], [ganacheDepositUtxo1, ganacheDepositUtxo2], 0, '0', '0', ganacheWallet2); 
 
           const webbTokenAddress2 = vBridge.getWebbTokenAddress(chainId2);
           const webbToken2 = await MintableToken.tokenFromAddress(webbTokenAddress2!, ganacheWallet2);
@@ -475,16 +476,16 @@ import { TokenWrapper } from '../../typechain';
           const vAnchor1TokenAddr = await vAnchor1.contract.token()
           await existingToken1.mintTokens(vAnchor1TokenAddr, '100000000');
           const balWrapper1UnwrappedBefore = await existingToken1.contract.balanceOf(vAnchor1TokenAddr);
-          const hardhatWithdrawUtxo = new Utxo({amount: BigNumber.from(2e7), originChainId: BigNumber.from(chainId1), chainId: BigNumber.from(chainId1)})
-          await vBridge.transactWrap(existingToken1.contract.address, [ganacheDepositUtxo], [hardhatWithdrawUtxo], 0, await signers[2].getAddress(), '0', signers[1]);
+          const hardhatWithdrawUtxo = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId1), chainId: BigNumber.from(chainId1)})
+          await vBridge.transactWrap(existingToken1.contract.address, [ganacheDepositUtxo1, ganacheDepositUtxo2], [hardhatWithdrawUtxo], 0, await signers[2].getAddress(), '0', signers[1]);
 
           //Check relevant balances
           //Unwrapped Balance of signers[2] should be 3e7
           const balSigners2Unwrapped = await existingToken1.contract.balanceOf(await signers[2].getAddress());
-          assert.strictEqual(balSigners2Unwrapped.toString(), BigNumber.from(3e7).toString());
+          assert.strictEqual(balSigners2Unwrapped.toString(), BigNumber.from(4e7).toString());
           //Unwrapped balance of vanchor1tokenaddr should be
           const balWrapper1UnwrappedAfter = await existingToken1.contract.balanceOf(vAnchor1TokenAddr);
-          assert.strictEqual(balWrapper1UnwrappedBefore.sub(BigNumber.from(3e7)).toString(), balWrapper1UnwrappedAfter.toString());
+          assert.strictEqual(balWrapper1UnwrappedBefore.sub(BigNumber.from(4e7)).toString(), balWrapper1UnwrappedAfter.toString());
           //wrapped balance of vanchor1 should be 1e7
           const balVAnchor1Wrapped = await webbToken1.getBalance(vAnchor1.contract.address);
           assert.strictEqual(balVAnchor1Wrapped.toString(), BigNumber.from(1e7).toString());
