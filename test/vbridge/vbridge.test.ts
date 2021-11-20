@@ -363,6 +363,126 @@ import { TokenWrapper } from '../../typechain';
       })
     })
 
+    describe('2 sided bridge existing token test wrapping functionality', () => {
+ 
+      // ERC20 compliant contracts that can easily create balances for test
+      let existingToken1: MintableToken;
+      let existingToken2: MintableToken;
+  
+      let vBridge: VBridge;
+      const chainId1 = 31337;
+      const chainId2 = 1337;
+      let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:8545');
+      let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
+  
+      before(async () => {
+        const signers = await ethers.getSigners();
+  
+        existingToken1 = await MintableToken.createToken('existingERC20', 'EXIST', signers[1]);
+        // Use some other signer with provider on other chain
+        existingToken2 = await MintableToken.createToken('existingERC20', 'EXIST', ganacheWallet2);
+  
+        // mint some tokens to the user of the bridge
+        await existingToken1.mintTokens(signers[1].address, '100000000000000000000000000');
+        await existingToken2.mintTokens(ganacheWallet2.address, '100000000000000000000000000');
+      })
+  
+      beforeEach(async () => {
+        const signers = await ethers.getSigners();
+        let webbTokens1 = new Map<number, GovernedTokenWrapper | undefined>();
+        webbTokens1.set(31337, null!);
+        webbTokens1.set(1337, null!);
+        // create the config for the bridge
+        const vBridgeInput = {
+          vAnchorInputs: {
+            asset: {
+              31337: [existingToken1.contract.address],
+              1337: [existingToken2.contract.address],
+            }
+         },
+          chainIDs: [31337, 1337],
+          webbTokens: webbTokens1
+      }
+  
+        // setup the config for deployers of contracts (admins)
+        const deploymentConfig = {
+          [chainId1]: signers[1],
+          [chainId2]: ganacheWallet2,
+        }
+  
+        // deploy the bridge
+        vBridge = await VBridge.deployVBridge(vBridgeInput, deploymentConfig);
+  
+        // make one deposit so the  edge exists
+        const depositUtxo1 = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId1), chainId: BigNumber.from(chainId2)});
+        const depositUtxo2 = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId2), chainId: BigNumber.from(chainId1)});
+
+        //Transact on the bridge
+        await vBridge.transactWrap(existingToken1.contract.address, [], [depositUtxo1], 0, '0', '0', signers[1]); 
+        await vBridge.transactWrap(existingToken2.contract.address, [], [depositUtxo2], 0, '0', '0', ganacheWallet2); 
+        //Now there is a bidirectional edge between chain1 and chain2
+      })
+
+      describe('#bridging wrapping/unwrapping', () => {
+        it('check there is a bidirectional bridge between the two chains', async () => {
+          //Fetch information about the anchor to be updated.
+          const signers = await ethers.getSigners();
+
+          const vAnchor1: VAnchor = vBridge.getVAnchor(chainId1)!;
+          const vAnchor1Address = vAnchor1.contract.address;
+          const vAnchor2: VAnchor = vBridge.getVAnchor(chainId2)!;
+          const vAnchor2Address = vAnchor2.contract.address;
+          let edgeIndex12 = await vAnchor1.contract.edgeIndex(chainId2);
+          const destAnchorEdge2Before = await vAnchor1.contract.edgeList(edgeIndex12);
+          assert.strictEqual(destAnchorEdge2Before.root.toString(), (await vAnchor2.contract.getLastRoot()).toString());
+          let edgeIndex21 = await vAnchor2.contract.edgeIndex(chainId1);
+          const destAnchorEdge1Before = await vAnchor2.contract.edgeList(edgeIndex21);
+          assert.strictEqual(destAnchorEdge1Before.root.toString(), (await vAnchor1.contract.getLastRoot()).toString());
+
+          const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainId1);
+          const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
+
+          const vAnchor1Balance = await webbToken1.getBalance(vAnchor1Address);
+          assert.strictEqual(vAnchor1Balance.toString(), BigNumber.from(1e7).toString());
+
+          const webbTokenAddress2 = vBridge.getWebbTokenAddress(chainId2);
+          const webbToken2 = await MintableToken.tokenFromAddress(webbTokenAddress2!, ganacheWallet2);
+
+          const vAnchor2Balance = await webbToken2.getBalance(vAnchor2Address);
+          assert.strictEqual(vAnchor2Balance.toString(), BigNumber.from(1e7).toString());
+        })
+        it.only('wrap and deposit, withdraw and unwrap works via transactWrap', async () => {
+          const signers = await ethers.getSigners();
+
+          const vAnchor1: VAnchor = vBridge.getVAnchor(chainId1)!;
+          const vAnchor1Address = vAnchor1.contract.address;
+          const vAnchor2: VAnchor = vBridge.getVAnchor(chainId2)!;
+          const vAnchor2Address = vAnchor2.contract.address;
+          const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainId1);
+          const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
+
+          //Deposit UTXO
+          const ganacheDepositUtxo = new Utxo({amount: BigNumber.from(5e7), originChainId: BigNumber.from(chainId2), chainId: BigNumber.from(chainId1)});
+
+          await vBridge.transactWrap(existingToken2.contract.address, [], [ganacheDepositUtxo], 0, '0', '0', ganacheWallet2); 
+
+          const webbTokenAddress2 = vBridge.getWebbTokenAddress(chainId2);
+          const webbToken2 = await MintableToken.tokenFromAddress(webbTokenAddress2!, ganacheWallet2);
+          assert.strictEqual((await webbToken2.getBalance(vAnchor2Address)).toString(), BigNumber.from(6e7).toString());
+
+
+          //Withdraw UTXO 
+          const vAnchor1TokenAddr = await vAnchor1.contract.token()
+          await existingToken1.mintTokens(vAnchor1TokenAddr, '100000000');
+          const hardhatWithdrawUtxo = new Utxo({amount: BigNumber.from(2e7), originChainId: BigNumber.from(chainId1), chainId: BigNumber.from(chainId1)})
+          await vBridge.transactWrap(existingToken1.contract.address, [ganacheDepositUtxo], [hardhatWithdrawUtxo], 0, await signers[2].getAddress(), '0', signers[1]);
+
+          // console.log((await existingToken1.contract.balanceOf(await signers[2].getAddress())).toString());
+         
+        });
+      })
+    })
+
     after('terminate networks', () => {
       ganacheServer2.close(console.error);
       ganacheServer3.close(console.error);

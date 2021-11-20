@@ -823,7 +823,7 @@ describe('VAnchor for 2 max edges', () => {
       assert.strictEqual(balWrappedTokenAfterDepositSender.toString(), '0');
     });
 
-    it.only('should withdraw and unwrap', async () => {
+    it('should withdraw and unwrap', async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
       const sender = wallet;

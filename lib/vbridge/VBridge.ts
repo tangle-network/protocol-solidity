@@ -436,7 +436,7 @@ class VBridge {
     await this.updateLinkedVAnchors(vAnchor);
   }
 
-
+  //token address is address of unwrapped erc20
   public async transactWrap(
     tokenAddress: string,
     inputs:Utxo[], 
@@ -476,6 +476,7 @@ class VBridge {
       }
     }
 
+    const tokenInstanceAddress = await vAnchor.contract.token();
     const tokenInstance = await MintableToken.tokenFromAddress(tokenAddress, signer);
 
     const extAmount = BigNumber.from(fee)
@@ -487,7 +488,7 @@ class VBridge {
     // Approve spending if needed
     const userTokenAllowance = await tokenInstance.getAllowance(signerAddress, vAnchor.contract.address);
     if (userTokenAllowance.lt(publicAmount)) {
-      await tokenInstance.approveSpending(vAnchor.contract.address);
+      await tokenInstance.approveSpending(tokenInstanceAddress);
     }
 
     //Make Merkle proof

@@ -751,6 +751,7 @@ class VAnchor {
     return receipt;
   }
 
+  //token address is address of underlying unwrapped ERC20
   public async bridgedTransactWrap(
     tokenAddress: string,
     inputs: Utxo[],
