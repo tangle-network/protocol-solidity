@@ -1,19 +1,10 @@
 require('dotenv').config();
+const path = require('path');
 import { ethers } from 'ethers';
-import Anchor from '../../lib/bridge/Anchor';
-import { AnchorDeposit } from '../../lib/bridge/Anchor';
-import { depositNativeTokenAnchor } from './deposits/depositNativeTokenAnchor';
-import { withdrawNativeToken } from './withdrawals/withdrawNativeToken';
-import { wrapToken } from './tokens/wrapToken';
-import { mintCompTokens } from './tokens/mintCompTokens';
-import { viewAnchorHandler } from './viewActions/viewAnchorHandler';
-import AnchorHandler from '../../lib/darkwebb/AnchorHandler';
-import BridgeSide from '../../lib/darkwebb/BridgeSide';
-import { depositErc20TokenAnchor } from './deposits/depositErc20TokenAnchor';
+import Anchor from '../../lib/fixed-bridge/Anchor';
 import { bridgedWithdrawErc20Token } from './withdrawals/bridgedWithdrawErc20Token';
 import { depositAndBridgedWithdraw } from './bridgeActions/depositAndBridgedWithdraw';
-import GovernedTokenWrapper from '../../lib/darkwebb/GovernedTokenWrapper';
-import { getTokenBalance } from './tokens/getTokenBalance';
+import { fetchComponentsFromFilePaths } from '../../lib/utils';
 
 const providerRinkeby = new ethers.providers.JsonRpcProvider(`https://rinkeby.infura.io/v3/fff68ca474dd4764a8d54dd14fa5519e`);
 const walletRinkeby = new ethers.Wallet(process.env.PRIVATE_KEY!, providerRinkeby);
@@ -30,6 +21,12 @@ const walletGoerli = new ethers.Wallet(process.env.PRIVATE_KEY!, providerGoerli)
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function run() {
+
+  const zkComponents = await fetchComponentsFromFilePaths(
+    path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm'),
+    path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js'),
+    path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey')
+  );
 
   // const mintableToken = await GovernedTokenWrapper.connect('0xD81F2Fdad6ef7Dc5951de7724C0aaCF097c39A27', walletRinkeby);
 
@@ -70,12 +67,10 @@ async function run() {
   // depositAndBridgedWithdraw(anchorRinkeby, anchorHarmony, walletRinkeby, walletHarmonyTestnet0, '0x7Bb1Af8D06495E85DDC1e0c49111C9E0Ab50266E');
 
 
-
-
-  const anchorGoerli = await Anchor.connect('0xD24Eea4f4e17f7a708b2b156D3B90C921659BE80', walletGoerli);
+  const anchorGoerli = await Anchor.connect('0xD24Eea4f4e17f7a708b2b156D3B90C921659BE80', zkComponents, walletGoerli);
   await anchorGoerli.update(5825165);
 
-  const anchorRinkeby = await Anchor.connect('0x8431fDec940555becED3f4C04374c1D60b4ac07e', walletRinkeby);
+  const anchorRinkeby = await Anchor.connect('0x8431fDec940555becED3f4C04374c1D60b4ac07e', zkComponents, walletRinkeby);
   await anchorRinkeby.update(9617980);
 
   await depositAndBridgedWithdraw(anchorGoerli, anchorRinkeby, walletGoerli, walletRinkeby, '0x7Bb1Af8D06495E85DDC1e0c49111C9E0Ab50266E');

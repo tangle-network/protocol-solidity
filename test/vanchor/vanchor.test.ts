@@ -13,21 +13,21 @@ import {
   ERC20PresetMinterPauser__factory as MintableTokenFactory,
   GTokenWrapperMock as WrappedToken,
   GTokenWrapperMock__factory,
-  GTokenWrapperMock__factory as WrappedTokenFactory
+  GTokenWrapperMock__factory as WrappedTokenFactory,
+  PoseidonT3__factory
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
 import VAnchor from '../../lib/vbridge/VAnchor';
-import { getHasherFactory, toFixedHex } from '../../lib/bridge/utils';
+import { toFixedHex } from '../../lib/utils';
 import Verifier from '../../lib/vbridge/Verifier';
 import { Utxo } from '../../lib/vbridge/utxo';
+import { MerkleTree } from '../../lib/vbridge/MerkleTree';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 const { NATIVE_AMOUNT } = process.env
 const BN = require('bn.js');
-
-const MerkleTree = require('../../lib/vbridge/MerkleTree');
 
 const snarkjs = require('snarkjs')
 const { toBN } = require('web3-utils');
@@ -37,7 +37,7 @@ describe('VAnchor for 2 max edges', () => {
 
   const levels = 5;
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
-  let tree: typeof MerkleTree;
+  let tree: MerkleTree;
   let fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
   const refund = BigInt((new BN('0')).toString()); 
   let recipient = "0x1111111111111111111111111111111111111111";
@@ -61,7 +61,7 @@ describe('VAnchor for 2 max edges', () => {
 
     tree = new MerkleTree(levels);
     // create poseidon hasher
-    const hasherFactory = await getHasherFactory(wallet);
+    const hasherFactory = new PoseidonT3__factory(wallet);
     hasherInstance = await hasherFactory.deploy();
     await hasherInstance.deployed();
 

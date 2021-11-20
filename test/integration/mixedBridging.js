@@ -24,7 +24,7 @@ const snarkjs = require('snarkjs');
 const BN = require('bn.js');
 const F = require('circomlibjs').babyjub.F;
 const Scalar = require('ffjavascript').Scalar;
-const MerkleTree = require('../../lib/fixed-bridge/MerkleTree');
+const MerkleTree = require('../../lib/fixed-bridge/MerkleTree').MerkleTree;
 
 contract('E2E LinkableAnchors - Mixed cross chain withdrawals', async accounts => {
   const relayerThreshold = 1;
@@ -161,7 +161,7 @@ contract('E2E LinkableAnchors - Mixed cross chain withdrawals', async accounts =
       return wtns;
     }
 
-    tree = new MerkleTree(merkleTreeHeight, null, prefix)
+    tree = new MerkleTree(prefix, merkleTreeHeight)
     zkey_final = fs.readFileSync('protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey').buffer;
   });
 
@@ -222,7 +222,7 @@ contract('E2E LinkableAnchors - Mixed cross chain withdrawals', async accounts =
     const destNeighborRoots = await DestChainAnchorInstance.getLatestNeighborRoots();
     await tree.insert(originDeposit.commitment);
 
-    let { root, path_elements, path_index } = await tree.path(0);
+    let { pathElements, pathIndices } = await tree.path(0);
     const destNativeRoot = await DestChainAnchorInstance.getLastRoot();
     let input = {
       // public
@@ -237,8 +237,8 @@ contract('E2E LinkableAnchors - Mixed cross chain withdrawals', async accounts =
       // private
       nullifier: originDeposit.nullifier,
       secret: originDeposit.secret,
-      pathElements: path_elements,
-      pathIndices: path_index,
+      pathElements,
+      pathIndices,
       diffs: [destNativeRoot, ...destNeighborRoots].map(r => {
         return F.sub(
           Scalar.fromString(`${r}`),

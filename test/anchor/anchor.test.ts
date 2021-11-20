@@ -9,7 +9,6 @@ const TruffleAssert = require('truffle-assertions');
 const fs = require('fs');
 const path = require('path');
 const { toBN, randomHex } = require('web3-utils');
-const Poseidon = artifacts.require('PoseidonT3');
 
 // Typechain generated bindings for contracts
 import {
@@ -17,12 +16,14 @@ import {
   ERC20Mock__factory as TokenFactory,
   GovernedTokenWrapper as WrappedToken,
   GovernedTokenWrapper__factory as WrappedTokenFactory,
+  PoseidonT3__factory,
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
 import { ZkComponents } from '../../lib/fixed-bridge/types';
 import Anchor from '../../lib/fixed-bridge/Anchor';
-import { fetchComponentsFromFilePaths, getHasherFactory } from '../../lib/utils';
+import { MerkleTree } from '../../lib/fixed-bridge/MerkleTree';
+import { fetchComponentsFromFilePaths } from '../../lib/utils';
 import Verifier from '../../lib/fixed-bridge/Verifier';
 
 const { NATIVE_AMOUNT } = process.env
@@ -32,8 +33,7 @@ const BN = require('bn.js');
 const F = require('circomlibjs').babyjub.F;
 const Scalar = require("ffjavascript").Scalar;
 
-const helpers = require('../../lib/bridge/utils');
-const MerkleTree = require('../../lib/fixed-bridge/MerkleTree');
+const helpers = require('../../lib/utils');
 
 describe('Anchor for 2 max edges', () => {
   let anchor: Anchor;
@@ -41,7 +41,7 @@ describe('Anchor for 2 max edges', () => {
 
   const levels = 30;
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
-  let tree: typeof MerkleTree;
+  let tree: MerkleTree;
   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
   const refund = BigInt((new BN('0')).toString());
   let recipient = "0x1111111111111111111111111111111111111111";
@@ -68,10 +68,10 @@ describe('Anchor for 2 max edges', () => {
     const wallet = signers[0];
     const sender = wallet;
 
-    tree = new MerkleTree(levels, null, null);
+    tree = new MerkleTree('', levels);
 
     // create poseidon hasher
-    const hasherFactory = await getHasherFactory(wallet);
+    const hasherFactory = new PoseidonT3__factory(wallet);
     hasherInstance = await hasherFactory.deploy();
     await hasherInstance.deployed();
 
@@ -149,17 +149,17 @@ describe('Anchor for 2 max edges', () => {
     it('should detect tampering', async () => {
       const deposit = Anchor.generateDeposit(chainID);
       await tree.insert(deposit.commitment);
-      const { root, path_elements, path_index } = await tree.path(0);
-      const roots = [root, 0];
+      const { merkleRoot, pathElements, pathIndices } = await tree.path(0);
+      const roots = [merkleRoot, 0];
       const diffs = roots.map(r => {
         return F.sub(
           Scalar.fromString(`${r}`),
-          Scalar.fromString(`${root}`),
+          Scalar.fromString(`${merkleRoot}`),
         ).toString();
       });
       // mock set membership gadget computation
       for (var i = 0; i < roots.length; i++) {
-        assert.strictEqual(Scalar.fromString(roots[i]), F.add(Scalar.fromString(diffs[i]), Scalar.fromString(root)));
+        assert.strictEqual(Scalar.fromString(roots[i]), F.add(Scalar.fromString(diffs[i]), Scalar.fromString(merkleRoot)));
       }
 
       const signers = await ethers.getSigners();
@@ -174,16 +174,16 @@ describe('Anchor for 2 max edges', () => {
         fee,
         refund,
         chainID: deposit.chainID,
-        roots: [root, 0],
+        roots: [merkleRoot, 0],
         // private
         nullifier: deposit.nullifier,
         secret: deposit.secret,
-        pathElements: path_elements,
-        pathIndices: path_index,
-        diffs: [root, 0].map(r => {
+        pathElements: pathElements,
+        pathIndices: pathIndices,
+        diffs: [merkleRoot, 0].map(r => {
           return F.sub(
             Scalar.fromString(`${r}`),
-            Scalar.fromString(`${root}`),
+            Scalar.fromString(`${merkleRoot}`),
           ).toString();
         }),
       };
@@ -284,7 +284,7 @@ describe('Anchor for 2 max edges', () => {
       await tree.insert(deposit.commitment)
       await anchor.contract.deposit(helpers.toFixedHex(deposit.commitment))
 
-      const { root, path_elements, path_index } = await tree.path(0)
+      const { merkleRoot, pathElements, pathIndices } = await tree.path(0)
 
       const input = {
         // public
@@ -295,16 +295,16 @@ describe('Anchor for 2 max edges', () => {
         fee,
         refund,
         chainID: deposit.chainID,
-        roots: [root, 0],
+        roots: [merkleRoot, '0'],
         // private
         nullifier: deposit.nullifier,
         secret: deposit.secret,
-        pathElements: path_elements,
-        pathIndices: path_index,
-        diffs: [root, 0].map(r => {
+        pathElements: pathElements,
+        pathIndices: pathIndices,
+        diffs: [merkleRoot, 0].map(r => {
           return F.sub(
             Scalar.fromString(`${r}`),
-            Scalar.fromString(`${root}`),
+            Scalar.fromString(`${merkleRoot}`),
           ).toString();
         }),
       };
@@ -360,7 +360,7 @@ describe('Anchor for 2 max edges', () => {
       await tree.insert(deposit.commitment)
       await anchor.contract.deposit(helpers.toFixedHex(deposit.commitment))
 
-      const { root, path_elements, path_index } = await tree.path(0)
+      const { merkleRoot, pathElements, pathIndices } = await tree.path(0)
 
       const input = {
         // public
@@ -371,16 +371,16 @@ describe('Anchor for 2 max edges', () => {
         fee,
         refund,
         chainID: deposit.chainID,
-        roots: [root, 0],
+        roots: [merkleRoot, 0],
         // private
         nullifier: deposit.nullifier,
         secret: deposit.secret,
-        pathElements: path_elements,
-        pathIndices: path_index,
-        diffs: [root, 0].map(r => {
+        pathElements: pathElements,
+        pathIndices: pathIndices,
+        diffs: [merkleRoot, 0].map(r => {
           return F.sub(
             Scalar.fromString(`${r}`),
-            Scalar.fromString(`${root}`),
+            Scalar.fromString(`${merkleRoot}`),
           ).toString();
         }),
       };
@@ -419,7 +419,7 @@ describe('Anchor for 2 max edges', () => {
       await tree.insert(deposit.commitment)
       await anchor.contract.deposit(helpers.toFixedHex(deposit.commitment))
 
-      let { root, path_elements, path_index } = await tree.path(0)
+      let { merkleRoot, pathElements, pathIndices } = await tree.path(0)
 
       const input = {
         // public
@@ -430,16 +430,16 @@ describe('Anchor for 2 max edges', () => {
         fee,
         refund,
         chainID: deposit.chainID,
-        roots: [root, 0],
+        roots: [merkleRoot, '0'],
         // private
         nullifier: deposit.nullifier,
         secret: deposit.secret,
-        pathElements: path_elements,
-        pathIndices: path_index,
-        diffs: [root, 0].map(r => {
+        pathElements: pathElements,
+        pathIndices: pathIndices,
+        diffs: [merkleRoot, 0].map(r => {
           return F.sub(
             Scalar.fromString(`${r}`),
-            Scalar.fromString(`${root}`),
+            Scalar.fromString(`${merkleRoot}`),
           ).toString();
         }),
       };
@@ -872,7 +872,7 @@ describe('Anchor for 2 max edges (3-sided bridge)', () => {
 
   const levels = 30;
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
-  let tree: typeof MerkleTree;
+  let tree: MerkleTree;
   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
   const refund = BigInt((new BN('0')).toString());
   let recipient = "0x1111111111111111111111111111111111111111";
@@ -897,10 +897,10 @@ describe('Anchor for 2 max edges (3-sided bridge)', () => {
     const wallet = signers[0];
     const sender = wallet;
 
-    tree = new MerkleTree(levels, null, null);
+    tree = new MerkleTree('', levels);
 
     // create poseidon hasher
-    const hasherFactory = await getHasherFactory(wallet);
+    const hasherFactory = new PoseidonT3__factory(wallet);
     hasherInstance = await hasherFactory.deploy();
     await hasherInstance.deployed();
 
@@ -986,7 +986,7 @@ describe('Anchor for 3 max edges (4-sided bridge)', () => {
 
   const levels = 30;
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
-  let tree: typeof MerkleTree;
+  let tree: MerkleTree;
   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
   const refund = BigInt((new BN('0')).toString());
   let recipient = "0x1111111111111111111111111111111111111111";
@@ -1011,10 +1011,10 @@ describe('Anchor for 3 max edges (4-sided bridge)', () => {
     const wallet = signers[0];
     const sender = wallet;
 
-    tree = new MerkleTree(levels, null, null);
+    tree = new MerkleTree('', levels);
 
     // create poseidon hasher
-    const hasherFactory = await getHasherFactory(wallet);
+    const hasherFactory = new PoseidonT3__factory(wallet);
     hasherInstance = await hasherFactory.deploy();
     await hasherInstance.deployed();
 
@@ -1100,7 +1100,7 @@ describe('Anchor for 4 max edges (5-sided bridge)', () => {
 
   const levels = 30;
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
-  let tree: typeof MerkleTree;
+  let tree: MerkleTree;
   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
   const refund = BigInt((new BN('0')).toString());
   let recipient = "0x1111111111111111111111111111111111111111";
@@ -1125,10 +1125,10 @@ describe('Anchor for 4 max edges (5-sided bridge)', () => {
     const wallet = signers[0];
     const sender = wallet;
 
-    tree = new MerkleTree(levels, null, null);
+    tree = new MerkleTree('', levels);
 
     // create poseidon hasher
-    const hasherFactory = await getHasherFactory(wallet);
+    const hasherFactory = new PoseidonT3__factory(wallet);
     hasherInstance = await hasherFactory.deploy();
     await hasherInstance.deployed();
 

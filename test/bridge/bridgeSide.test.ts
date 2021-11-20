@@ -3,25 +3,27 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 const assert = require('assert');
+const path = require('path');
 import { ethers } from 'hardhat';
 
 // Convenience wrapper classes for contract classes
-import BridgeSide from '../../lib/bridge/BridgeSide';
-import Anchor from '../../lib/bridge/Anchor';
-import MintableToken from '../../lib/bridge/MintableToken';
-import Verifier from '../../lib/bridge/Verifier';
-import { fetchComponentsFromFilePaths, getHasherFactory } from '../../lib/bridge/utils';
-import { ZkComponents } from '../../lib/bridge/types';
+import BridgeSide from '../../lib/fixed-bridge/bridgeSide';
+import Anchor from '../../lib/fixed-bridge/Anchor';
+import MintableToken from '../../lib/tokens/MintableToken';
+import Verifier from '../../lib/fixed-bridge/Verifier';
+import { fetchComponentsFromFilePaths } from '../../lib/utils';
+import { ZkComponents } from '../../lib/fixed-bridge/types';
+import { PoseidonT3__factory } from '../../typechain';
 
 describe('BridgeSideConstruction', () => {
 
   let zkComponents: ZkComponents;
 
   before(async () => {
-    zkComponents = await fetchComponentsFromFilePaths(
-      '../../protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm',
-      '../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js',
-      '../../protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey',
+    const zkComponents = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey')
     );
   })
 
@@ -34,7 +36,7 @@ describe('BridgeSideConstruction', () => {
     const bridgeSide = BridgeSide.createBridgeSide([relayer.address], 1, 0, 100, admin);
 
     // Create the Hasher and Verifier for the chain
-    const hasherFactory = await getHasherFactory(admin);
+    const hasherFactory = new PoseidonT3__factory(admin);
     let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
     await hasherInstance.deployed();
 

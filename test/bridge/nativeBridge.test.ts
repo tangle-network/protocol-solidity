@@ -2,25 +2,19 @@
  * Copyright 2021 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
-import { ethers, network } from 'hardhat';
+import { ethers } from 'hardhat';
 
-const snarkjs = require('snarkjs')
-const fs = require('fs');
 const path = require('path');
 
 const ganache = require('ganache-cli');
 
 // Convenience wrapper classes for contract classes
-import Bridge, { BridgeInput } from '../../lib/bridge/Bridge';
-import Anchor from '../../lib/bridge/Anchor';
-import MintableToken from '../../lib/bridge/MintableToken';
-import { fetchComponentsFromFilePaths, toFixedHex } from '../../lib/bridge/utils';
-import { BigNumber } from '@ethersproject/bignumber';
-import { Signer } from '@ethersproject/abstract-signer';
-import GovernedTokenWrapper from '../../lib/bridge/GovernedTokenWrapper';
-import { ZkComponents } from '../../lib/bridge/types';
+import Bridge, { BridgeInput } from '../../lib/fixed-bridge/Bridge';
+import Anchor from '../../lib/fixed-bridge/Anchor';
+import { fetchComponentsFromFilePaths } from '../../lib/utils';
+import GovernedTokenWrapper from '../../lib/tokens/GovernedTokenWrapper';
+import { ZkComponents } from '../../lib/fixed-bridge/types';
 
 function startGanacheServer(port: number, networkId: number, mnemonic: string) {
   const ganacheServer = ganache.server({
@@ -55,9 +49,9 @@ describe('multichain tests', () => {
     await sleep(2000);
 
     zkComponents = await fetchComponentsFromFilePaths(
-      '../../protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm',
-      '../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js',
-      '../../protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey',
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey')
     );
   });
 

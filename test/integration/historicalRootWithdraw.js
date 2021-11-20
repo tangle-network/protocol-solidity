@@ -24,7 +24,7 @@ const BN = require('bn.js');
 const F = require('circomlibjs').babyjub.F;
 const Scalar = require('ffjavascript').Scalar;
 
-const MerkleTree = require('../../lib/fixed-bridge/MerkleTree');
+const MerkleTree = require('../../lib/fixed-bridge/MerkleTree').MerkleTree;
 
 contract('E2E LinkableAnchors - Cross chain withdraw using historical root should work', async accounts => {
   const relayerThreshold = 1;
@@ -132,7 +132,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
       return wtns;
     }
 
-    tree = new MerkleTree(merkleTreeHeight, null, prefix)
+    tree = new MerkleTree(prefix, merkleTreeHeight)
     zkey_final = fs.readFileSync('protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey').buffer;
   });
 
@@ -184,7 +184,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     // insert two commitments into the tree
     await tree.insert(firstOriginDeposit.commitment);
   
-    let { root, path_elements, path_index } = await tree.path(0);
+    let { pathElements, pathIndices } = await tree.path(0);
 
     const destNativeRoot = await DestChainAnchorInstance.getLastRoot();
     const firstWithdrawalNeighborRoots = await DestChainAnchorInstance.getLatestNeighborRoots();
@@ -201,8 +201,8 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
       // private
       nullifier: firstOriginDeposit.nullifier,
       secret: firstOriginDeposit.secret,
-      pathElements: path_elements,
-      pathIndices: path_index,
+      pathElements,
+      pathIndices,
       diffs: [destNativeRoot, firstWithdrawalNeighborRoots[0]].map(r => {
         return F.sub(
           Scalar.fromString(`${r}`),
@@ -299,7 +299,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     */
     // insert second deposit in tree and get path for withdrawal proof
     await tree.insert(originDeposit.commitment);
-    ({ root, path_elements, path_index } = await tree.path(1));
+    ({ root, pathElements, pathIndices } = await tree.path(1));
     const secondWithdrawalNeighborRoots = await DestChainAnchorInstance.getLatestNeighborRoots();
     input = {
       // public
@@ -314,8 +314,8 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
       // private
       nullifier: originDeposit.nullifier,
       secret: originDeposit.secret,
-      pathElements: path_elements,
-      pathIndices: path_index,
+      pathElements,
+      pathIndices,
       diffs: [destNativeRoot, secondWithdrawalNeighborRoots[0]].map(r => {
         return F.sub(
           Scalar.fromString(`${r}`),

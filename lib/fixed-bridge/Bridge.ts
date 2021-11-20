@@ -4,9 +4,9 @@ import Anchor from './Anchor';
 import AnchorHandler from "./AnchorHandler";
 import MintableToken from "../tokens/MintableToken";
 import { ZkComponents, AnchorDeposit } from './types';
-import { getHasherFactory } from '../utils';
 import Verifier from "./Verifier";
 import GovernedTokenWrapper from "../tokens/GovernedTokenWrapper";
+import { PoseidonT3__factory } from "../../typechain";
 
 // Deployer config matches the chainId to the signer for that chain
 export type DeployerConfig = Record<number, ethers.Signer>;
@@ -141,7 +141,7 @@ class Bridge {
       console.log(`bridgeSide address on ${chainID}: ${bridgeInstance.contract.address}`);
 
       // Create the Hasher and Verifier for the chain
-      const hasherFactory = await getHasherFactory(deployers[chainID]);
+      const hasherFactory = new PoseidonT3__factory(deployers[chainID]);
       let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
       await hasherInstance.deployed();
 

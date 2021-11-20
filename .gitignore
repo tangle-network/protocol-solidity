@@ -8,6 +8,7 @@ build/
 cache
 artifacts
 /typechain
+/src
 
 dist
 
