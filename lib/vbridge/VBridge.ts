@@ -387,10 +387,8 @@ class VBridge {
     }
     vAnchor.setSigner(signer);
 
-    if (inputs.length < 2) {
-      while (inputs.length < 2) {
-        inputs.push(new Utxo({chainId: BigNumber.from(await signer.getChainId())}));
-      }
+    while (inputs.length !== 2 && inputs.length < 16) {
+      inputs.push(new Utxo({chainId: BigNumber.from(await signer.getChainId())}));
     }
     
     //do we have to check if amount is greater than 0 before the checks?????
@@ -455,12 +453,10 @@ class VBridge {
     }
     vAnchor.setSigner(signer);
 
-    if (inputs.length < 2) {
-      while (inputs.length < 2) {
-        inputs.push(new Utxo({chainId: BigNumber.from(await signer.getChainId())}));
-      }
+    while (inputs.length !== 2 && inputs.length < 16) {
+      inputs.push(new Utxo({chainId: BigNumber.from(await signer.getChainId())}));
     }
-    
+    //console.log(inputs.length);
     //do we have to check if amount is greater than 0 before the checks?????
     //Check that input dest chain is this chain
     for (let i=0; i<inputs.length; i++) {

@@ -361,6 +361,61 @@ describe('VAnchor for 2 max edges', () => {
       );
     })
 
+    it.only('should join and spend with 16 inputs', async () => {
+      const aliceDepositAmount1 = 1e7;
+      const aliceDepositUtxo1 = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount1)
+      });
+      
+      await anchor.registerAndTransact(
+        sender.address,
+        aliceDepositUtxo1.keypair.address(),
+        [],
+        [aliceDepositUtxo1]
+      );
+      
+      const aliceDepositAmount2 = 1e7;
+      const aliceDepositUtxo2 = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount2),
+        keypair: aliceDepositUtxo1.keypair
+      });
+
+      await anchor.transact(
+        [],
+        [aliceDepositUtxo2]
+      );
+
+      const aliceDepositAmount3 = 1e7;
+      const aliceDepositUtxo3 = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount3),
+        keypair: aliceDepositUtxo1.keypair
+      });
+
+      await anchor.transact(
+        [],
+        [aliceDepositUtxo3]
+      );
+      
+      const aliceJoinAmount = 3e7;
+      const aliceJoinUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceJoinAmount),
+        //keypair: aliceDepositUtxo1.keypair
+      });
+
+      await anchor.transact(
+        [aliceDepositUtxo1, aliceDepositUtxo2, aliceDepositUtxo3],
+        [aliceJoinUtxo]
+      );
+    })
+
     it('should withdraw', async () => {
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = new Utxo({

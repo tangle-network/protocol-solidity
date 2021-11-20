@@ -372,6 +372,7 @@ class VAnchor {
     if (input.amount > 0) {
       input.index = this.tree.indexOf(toFixedHex(input.getCommitment()))
       if (input.index < 0) {
+        console.log(`${toFixedHex(input.getCommitment())}, ${input.amount}`);
         throw new Error(`Input commitment ${toFixedHex(input.getCommitment())} was not found`)
       }
       inputMerklePathIndex = input.index;
@@ -771,7 +772,7 @@ class VAnchor {
         outputs.push(new Utxo({originChainId: BigNumber.from(await this.signer.getChainId())}));
       }
     }
-
+    
     let extAmount = BigNumber.from(fee)
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
@@ -785,7 +786,7 @@ class VAnchor {
       relayer,
       merkleProofsForInputs,
     );
-
+    
     let tx;
     if (extAmount.gt(0) && checkNativeAddress(tokenAddress)) {
       tx = await this.contract.transactWrap(
@@ -804,6 +805,9 @@ class VAnchor {
         }
       );
     } else {
+      if (inputs.length == 16) {
+        console.log("kamehameha2");
+      }
       tx = await this.contract.transactWrap(
         {
           ...publicInputs,
@@ -816,8 +820,10 @@ class VAnchor {
         tokenAddress,
         { gasLimit: '0x5B8D80' }
       );
+      if (inputs.length == 16) {
+        console.log("kamehameha3");
+      }
     }
-    
     const receipt = await tx.wait();
     return receipt;
   }
