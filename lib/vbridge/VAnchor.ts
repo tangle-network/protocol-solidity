@@ -166,7 +166,7 @@ class VAnchor {
     signer: ethers.Signer,
   ) {
     const factory = new VAnchor__factory(signer);
-    const vAnchor = await factory.deploy(verifier, levels, hasher, token, permissions, maxEdges, {});
+    const vAnchor = await factory.deploy(verifier, levels, hasher, token, permissions, maxEdges, {gasLimit: '0xBDF8D0'});
     await vAnchor.deployed();
     const createdVAnchor = new VAnchor(vAnchor, signer, BigNumber.from(levels).toNumber(), maxEdges);
     createdVAnchor.latestSyncedBlock = vAnchor.deployTransaction.blockNumber!;
@@ -372,7 +372,6 @@ class VAnchor {
     if (input.amount > 0) {
       input.index = this.tree.indexOf(toFixedHex(input.getCommitment()))
       if (input.index < 0) {
-        console.log(`${toFixedHex(input.getCommitment())}, ${input.amount}`);
         throw new Error(`Input commitment ${toFixedHex(input.getCommitment())} was not found`)
       }
       inputMerklePathIndex = input.index;
@@ -535,7 +534,6 @@ class VAnchor {
     // first, check if the merkle root is known on chain - if not, then update
     await this.checkKnownRoot();
     const chainId = await this.signer.getChainId();
-    //console.log(`chain id is ${chainId}`);
     const roots = await this.populateRootInfosForProof();
     const { input, extData } = await this.generateWitnessInput(
       roots,
@@ -623,7 +621,7 @@ class VAnchor {
         ]
       },
       extData,
-      { gasLimit: '0x5B8D80' }
+      { gasLimit: '0xBB8D80' }
     );
     const receipt = await tx.wait();
     //console.log(`updated root (transact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);

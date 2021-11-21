@@ -56,7 +56,6 @@ describe('VAnchor for 2 max edges', () => {
   beforeEach(async () => {
     const signers = await ethers.getSigners();
     const wallet = signers[0];
-    
     sender = wallet;
 
     tree = new MerkleTree(levels);
@@ -73,7 +72,7 @@ describe('VAnchor for 2 max edges', () => {
     token = await tokenFactory.deploy();
     await token.deployed();
     await token.mint(sender.address, '10000000000000000000000');
-    
+
     // create Anchor
     anchor = await VAnchor.createVAnchor(
       verifier.contract.address,
@@ -88,12 +87,12 @@ describe('VAnchor for 2 max edges', () => {
       1,
       sender,
     );
-
+   
     await anchor.contract.configureLimits(
       BigNumber.from(0),
       BigNumber.from(tokenDenomination).mul(1_000_000),
     )
-
+    
     await token.approve(anchor.contract.address, '10000000000000000000000');
 
     createInputWitnessPoseidon4 = async (data: any) => {
@@ -119,6 +118,7 @@ describe('VAnchor for 2 max edges', () => {
       const wtns = await wtnsCalc.calculateWTNSBin(data,0);
       return wtns;
     }
+    
   })
 
   describe('#constructor', () => {
@@ -361,21 +361,13 @@ describe('VAnchor for 2 max edges', () => {
       );
     })
 
-    it.only('should join and spend with 16 inputs', async () => {
+    it('should join and spend with 16 inputs', async () => {
       const aliceDepositAmount1 = 1e7;
       const aliceDepositUtxo1 = new Utxo({
         chainId: BigNumber.from(chainID),
         originChainId: BigNumber.from(chainID),
         amount: BigNumber.from(aliceDepositAmount1)
       });
-      
-      await anchor.registerAndTransact(
-        sender.address,
-        aliceDepositUtxo1.keypair.address(),
-        [],
-        [aliceDepositUtxo1]
-      );
-      
       const aliceDepositAmount2 = 1e7;
       const aliceDepositUtxo2 = new Utxo({
         chainId: BigNumber.from(chainID),
@@ -383,11 +375,20 @@ describe('VAnchor for 2 max edges', () => {
         amount: BigNumber.from(aliceDepositAmount2),
         keypair: aliceDepositUtxo1.keypair
       });
-
-      await anchor.transact(
+      
+      await anchor.registerAndTransact(
+        sender.address,
+        aliceDepositUtxo1.keypair.address(),
         [],
-        [aliceDepositUtxo2]
+        [aliceDepositUtxo1, aliceDepositUtxo2]
       );
+      
+  
+
+      // await anchor.transact(
+      //   [],
+      //   [aliceDepositUtxo2]
+      // );
 
       const aliceDepositAmount3 = 1e7;
       const aliceDepositUtxo3 = new Utxo({
@@ -407,7 +408,7 @@ describe('VAnchor for 2 max edges', () => {
         chainId: BigNumber.from(chainID),
         originChainId: BigNumber.from(chainID),
         amount: BigNumber.from(aliceJoinAmount),
-        //keypair: aliceDepositUtxo1.keypair
+        keypair: aliceDepositUtxo1.keypair
       });
 
       await anchor.transact(
@@ -871,9 +872,9 @@ describe('VAnchor for 2 max edges', () => {
       assert.strictEqual(balTokenBeforeDepositSender.sub(balTokenAfterDepositSender).toString(), '10000000');
 
       const balWrappedTokenAfterDepositAnchor = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
-      console.log(balWrappedTokenAfterDepositAnchor.toString());
+      //console.log(balWrappedTokenAfterDepositAnchor.toString());
       const balWrappedTokenAfterDepositSender = await wrappedToken.balanceOf(sender.address);
-      console.log(balWrappedTokenAfterDepositSender.toString());
+      //console.log(balWrappedTokenAfterDepositSender.toString());
       assert.strictEqual(balWrappedTokenAfterDepositAnchor.toString(), '10000000');
       assert.strictEqual(balWrappedTokenAfterDepositSender.toString(), '0');
     });
