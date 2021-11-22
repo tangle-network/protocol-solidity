@@ -186,7 +186,7 @@ contract('GovernedTokenWrapper', (accounts) => {
     );
   });
 
-  it('should be able to wrap & unwrap both a native token', async () => {
+  it.only('should be able to wrap & unwrap both a native token', async () => {
     const wrappedToken = await GovernedTokenWrapper.new(name, symbol, accounts[0], '1000000000000000000000000', true);
     assert.strictEqual((await wrappedToken.totalSupply()).toString(), '0');
 
@@ -211,7 +211,7 @@ contract('GovernedTokenWrapper', (accounts) => {
     );
   });
 
-  it('should be able to wrap & unwrap both a native and non-native token', async () => {
+  it.only('should be able to wrap & unwrap both a native and non-native token', async () => {
     const wrappedToken = await GovernedTokenWrapper.new(name, symbol, accounts[0], '1000000000000000000000000', true);
     const token = await MintableToken.new('Token', 'TKN');
     assert.strictEqual((await wrappedToken.totalSupply()).toString(), '0');

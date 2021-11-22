@@ -166,7 +166,7 @@ class VAnchor {
     signer: ethers.Signer,
   ) {
     const factory = new VAnchor__factory(signer);
-    const vAnchor = await factory.deploy(verifier, levels, hasher, token, permissions, maxEdges, {gasLimit: '0xBDF8D0'});
+    const vAnchor = await factory.deploy(verifier, levels, hasher, token, permissions, maxEdges, {});
     await vAnchor.deployed();
     const createdVAnchor = new VAnchor(vAnchor, signer, BigNumber.from(levels).toNumber(), maxEdges);
     createdVAnchor.latestSyncedBlock = vAnchor.deployTransaction.blockNumber!;

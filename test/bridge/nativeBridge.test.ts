@@ -62,7 +62,7 @@ describe('multichain tests', () => {
   describe('BridgeConstruction', () => {
     let bridge2WebbEthInput: BridgeInput;
 
-    it('create 2 side bridge for native token', async () => {
+    it.only('create 2 side bridge for native token', async () => {
       bridge2WebbEthInput = {
         anchorInputs: {
           asset: {
