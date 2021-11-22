@@ -22,7 +22,7 @@ library VAnchorEncodeInputs {
   function _encodeInputs2(
     Proof memory _args,
     uint8 maxEdges
-  ) internal view returns (bytes memory, bytes32[] memory) {
+  ) public view returns (bytes memory, bytes32[] memory) {
     uint256 _chainId = getChainId();
     bytes32[] memory result = new bytes32[](maxEdges + 1);
     bytes memory encodedInput;
@@ -144,7 +144,7 @@ library VAnchorEncodeInputs {
   function _encodeInputs16(
     Proof memory _args,
     uint8 maxEdges
-  ) internal view returns (bytes memory, bytes32[] memory) {
+  ) public view returns (bytes memory, bytes32[] memory) {
     uint256 _chainId = getChainId();
     bytes32[] memory result = new bytes32[](maxEdges + 1);
     bytes memory encodedInput;

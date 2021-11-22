@@ -10,6 +10,7 @@ import { FIELD_SIZE, getExtDataHash, poseidonHash2, randomBN, shuffle, toFixedHe
 import { Utxo } from './utxo';
 import { Keypair } from "./keypair";
 import { GTokenWrapperMock, IVAnchorVerifier } from "../../typechain";
+import { VAnchorEncodeInputs } from "../../typechain";
 
 const path = require('path');
 const snarkjs = require('snarkjs');
