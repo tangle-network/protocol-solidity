@@ -87,7 +87,7 @@ contract VAnchor is LinkableVAnchor {
   }
 
   function transactWrap(
-    Proof memory _args,
+    VAnchorEncodeInputs.Proof memory _args,
     ExtData memory _extData,
     address tokenAddress
   ) external payable {
@@ -98,11 +98,11 @@ contract VAnchor is LinkableVAnchor {
     require(_args.publicAmount == calculatePublicAmount(_extData.extAmount, _extData.fee), "Invalid public amount");
 
     if (_args.inputNullifiers.length == 2) {
-      (bytes memory encodedInput, bytes32[] memory roots) = _encodeInputs2(_args);
+      (bytes memory encodedInput, bytes32[] memory roots) = VAnchorEncodeInputs._encodeInputs2(_args, maxEdges);
       require(isValidRoots(roots), "Invalid roots");
       require(verify2(_args.proof, encodedInput), "Invalid transaction proof");
     } else if (_args.inputNullifiers.length == 16) {
-      (bytes memory encodedInput, bytes32[] memory roots) = _encodeInputs16(_args);
+      (bytes memory encodedInput, bytes32[] memory roots) = VAnchorEncodeInputs._encodeInputs16(_args, maxEdges);
       require(isValidRoots(roots), "Invalid roots");
       require(verify16(_args.proof, encodedInput), "Invalid transaction proof");
     } else {
