@@ -1,9 +1,9 @@
 import { BigNumberish, ethers } from "ethers";
 import { Anchor__factory } from '../../typechain/factories/Anchor__factory';
 import { Anchor as AnchorContract} from '../../typechain/Anchor';
-import { ZkComponents, AnchorDeposit, AnchorDepositInfo, IPublicInputs } from './types';
-import { toFixedHex, toHex, rbigint, p256 } from '../utils';
-import PoseidonHasher from '../Poseidon';
+import { AnchorDeposit, AnchorDepositInfo, IPublicInputs } from './types';
+import { toFixedHex, toHex, rbigint, p256 } from '../utils/src';
+import PoseidonHasher from '../utils/Poseidon';
 import { MerkleTree } from './MerkleTree';
 
 const path = require('path');

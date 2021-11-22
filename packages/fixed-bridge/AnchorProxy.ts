@@ -3,7 +3,7 @@ import { AnchorProxy as AnchorProxyContract} from '../../typechain/AnchorProxy';
 import { AnchorProxy__factory } from "../../typechain/factories/AnchorProxy__factory";
 import Anchor from './Anchor';
 import { AnchorDepositInfo } from './types';
-import { toFixedHex } from "../utils";
+import { toFixedHex } from "../utils/src";
 
 enum InstanceState {
   ENABLED,

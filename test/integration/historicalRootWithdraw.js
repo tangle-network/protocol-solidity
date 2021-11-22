@@ -24,7 +24,7 @@ const BN = require('bn.js');
 const F = require('circomlibjs').babyjub.F;
 const Scalar = require('ffjavascript').Scalar;
 
-const MerkleTree = require('../../lib/fixed-bridge/MerkleTree').MerkleTree;
+const MerkleTree = require('../../packages/fixed-bridge/MerkleTree').MerkleTree;
 
 contract('E2E LinkableAnchors - Cross chain withdraw using historical root should work', async accounts => {
   const relayerThreshold = 1;

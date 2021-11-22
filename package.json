@@ -1,10 +1,9 @@
 {
   "name": "test-webb-solidity",
-  "version": "0.1.12",
-  "main": "index.js",
   "repository": "https://github.com/nepoche/protocol-solidity.git",
   "author": "Nepoche",
   "license": "GPL-3.0-or-later",
+  "private": true,
   "scripts": {
     "compile": "npx hardhat compile",
     "build": "yarn compile && yarn build:circuits && yarn build:ptau",
@@ -68,6 +67,5 @@
     "snarkjs": "^0.4.10",
     "ts-node": "^10.1.0",
     "typechain": "^5.1.2"
-  },
-  "files": ["src/**/*"]
+  }
 }

@@ -2,7 +2,7 @@ import { BigNumber, BigNumberish, ethers } from "ethers";
 import { VAnchor__factory } from '../../typechain/factories/VAnchor__factory';
 import { VAnchor as VAnchorContract} from '../../typechain/VAnchor';
 import { rbigint, p256, toHex } from "../utils";
-import PoseidonHasher from '../Poseidon';
+import PoseidonHasher from '../utils/src/Poseidon';
 import { MerkleTree } from './MerkleTree';
 import MintableToken from "../tokens/MintableToken";
 import { RootInfo } from ".";

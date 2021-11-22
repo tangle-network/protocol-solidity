@@ -4,6 +4,10 @@ node_modules
 build/
 .env
 
+#Packages
+packages/*/node_modules
+packages/*/lib
+
 #Hardhat files
 cache
 artifacts

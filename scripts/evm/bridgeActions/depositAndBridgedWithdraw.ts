@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import Anchor from "../../../lib/darkwebb/Anchor";
+import Anchor from "../../../packages/fixed-bridge/Anchor";
 import { depositErc20TokenAnchor } from "../deposits/depositErc20TokenAnchor";
 import { bridgedWithdrawErc20Token } from "../withdrawals/bridgedWithdrawErc20Token";
 

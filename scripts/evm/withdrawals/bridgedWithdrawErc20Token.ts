@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
-import Anchor, { AnchorDeposit } from '../../../lib/darkwebb/Anchor';
+import Anchor from '../../../packages/fixed-bridge/Anchor';
+import { AnchorDeposit } from '../../../packages/fixed-bridge/types';
 
 export async function bridgedWithdrawErc20Token(
   anchor: Anchor,

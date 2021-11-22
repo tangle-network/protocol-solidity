@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 import { BigNumberish, ethers } from 'ethers';
-import { ZkComponents } from './fixed-bridge/types';
+import { ZkComponents } from './types';
 const path = require('path');
 const ffjavascript = require('ffjavascript');
 const utils = ffjavascript.utils;
