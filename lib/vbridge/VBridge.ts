@@ -1,11 +1,11 @@
 import { ethers, BigNumber, BigNumberish  } from "ethers";
 import VBridgeSide from './VBridgeSide';
 import VAnchor from './VAnchor';
-import AnchorHandler from "../bridge/AnchorHandler";
-import MintableToken from "../bridge/MintableToken";
-import { getHasherFactory } from '../bridge/utils';
+import AnchorHandler from "../fixed-bridge/AnchorHandler";
+import MintableToken from "../tokens/MintableToken";
+import { PoseidonT3__factory } from "../../typechain";
 import Verifier from "./Verifier";
-import GovernedTokenWrapper from "../bridge/GovernedTokenWrapper";
+import GovernedTokenWrapper from "../tokens/GovernedTokenWrapper";
 import { Utxo } from "./utxo";
 import { TokenWrapper } from "../../typechain";
 
@@ -190,7 +190,7 @@ class VBridge {
       console.log(`vBridgeSide address on ${chainID}: ${vBridgeInstance.contract.address}`);
 
       // Create the Hasher and Verifier for the chain
-      const hasherFactory = await getHasherFactory(deployers[chainID]);
+      const hasherFactory = new PoseidonT3__factory(deployers[chainID]);
       let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
       await hasherInstance.deployed();
 

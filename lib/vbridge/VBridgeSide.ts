@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import { Bridge } from '../../typechain/Bridge';
 import VAnchor from './VAnchor';
 import { Bridge__factory } from '../../typechain/factories/Bridge__factory';
-import AnchorHandler from "../bridge/AnchorHandler";
+import AnchorHandler from "../fixed-bridge/AnchorHandler";
 
 type Proposal = {
   data: string,

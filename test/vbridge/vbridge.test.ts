@@ -15,13 +15,13 @@
  // Convenience wrapper classes for contract classes
  import VBridge, { VBridgeInput } from '../../lib/vbridge/VBridge';
  import VAnchor from '../../lib/vbridge/VAnchor';
- import MintableToken from '../../lib/bridge/MintableToken';
- import { toFixedHex } from '../../lib/bridge/utils';
+ import MintableToken from '../../lib/tokens/MintableToken';
+ import { toFixedHex } from '../../lib/utils';
  import { BigNumber } from '@ethersproject/bignumber';
  import { Signer } from '@ethersproject/abstract-signer';
  import { Utxo } from '../../lib/vbridge/utxo';
  //import { GovernedTokenWrapper } from '../../typechain';
- import GovernedTokenWrapper from "../../lib/bridge/GovernedTokenWrapper";
+ import GovernedTokenWrapper from "../../lib/tokens/GovernedTokenWrapper";
 import { TokenWrapper } from '../../typechain';
  
  function startGanacheServer(port: number, networkId: number, mnemonic: string) {
