@@ -7,6 +7,6 @@
     "outDir": "src",
     "sourceMap": true,
   },
-  "include": ["./typechain", "./lib"],
+  "include": ["./typechain", "./lib", "./test"],
   "files": ["./hardhat.config.ts"]
 }

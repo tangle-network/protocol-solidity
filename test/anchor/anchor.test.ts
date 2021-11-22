@@ -9,6 +9,8 @@ const TruffleAssert = require('truffle-assertions');
 const fs = require('fs');
 const path = require('path');
 const { toBN, randomHex } = require('web3-utils');
+const Poseidon = artifacts.require('PoseidonT3');
+import { BigNumber } from 'ethers';
 
 // Typechain generated bindings for contracts
 import {
@@ -720,6 +722,7 @@ describe('Anchor for 2 max edges', () => {
 
       await token.approve(wrappedToken.address, '1000000000000000000');
       const balTokenBeforeDepositSender = await token.balanceOf(sender.address);
+
       // create a deposit on the anchor already setup
       const { deposit, index } = await wrappedAnchor.wrapAndDeposit(
         token.address,
@@ -728,6 +731,7 @@ describe('Anchor for 2 max edges', () => {
       assert.strictEqual(balTokenBeforeDepositSender.sub(balTokenAfterDepositSender).toString(), '1000000000000000000');
 
       const balWrappedTokenAfterDepositAnchor = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
+      console.log(balWrappedTokenAfterDepositAnchor.toString());
       const balWrappedTokenAfterDepositSender = await wrappedToken.balanceOf(sender.address);
       const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, zkComponents, wallet);
       await TruffleAssert.passes(newAnchor.withdraw(deposit, index, sender.address, signers[1].address, bigInt(0), bigInt(0)));
@@ -735,6 +739,194 @@ describe('Anchor for 2 max edges', () => {
       const balWrappedTokenAfterWithdrawAnchor = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
       assert.strictEqual(balWrappedTokenAfterWithdrawSender.sub(balWrappedTokenAfterDepositSender).toString(), '1000000000000000000');
       assert.strictEqual(balWrappedTokenAfterDepositAnchor.sub(balWrappedTokenAfterWithdrawAnchor).toString(), '1000000000000000000');
+    });
+
+    it('wrapping fee should work correctly with wrap and deposit', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+      const sender = wallet;
+      // create wrapped token
+      const name = 'webbETH';
+      const symbol = 'webbETH';
+      const wrappedTokenFactory = new WrappedTokenFactory(wallet);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      await wrappedToken.deployed();
+      await wrappedToken.add(token.address);
+      const wrapFee = 5;
+      await wrappedToken.setFee(wrapFee);
+
+      // create Anchor for wrapped token
+      const wrappedAnchor = await Anchor.createAnchor(
+        verifier.contract.address,
+        hasherInstance.address,
+        tokenDenomination,
+        levels,
+        wrappedToken.address,
+        sender.address,
+        sender.address,
+        sender.address,
+        MAX_EDGES,
+        zkComponents,
+        sender
+      );
+
+      const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+      await wrappedToken.grantRole(MINTER_ROLE, wrappedAnchor.contract.address);
+
+      await token.approve(wrappedToken.address, '10000000000000000000');
+      const balTokenBeforeDepositSender = await token.balanceOf(sender.address);
+
+      const balUnwrappedTokenBeforeDepositWrapper = await token.balanceOf(wrappedToken.address);
+      // create a deposit on the anchor already setup
+      const { deposit, index } = await wrappedAnchor.wrapAndDeposit(
+        token.address,
+      );
+
+      const balTokenAfterDepositSender = await token.balanceOf(sender.address);
+      assert.strictEqual(balTokenBeforeDepositSender.sub(balTokenAfterDepositSender).toString(), BigNumber.from('1000000000000000000').mul(100).div(100 - wrapFee).toString());
+
+      // anchor should recieve webb tokens
+      const balWrappedTokenAfterDepositAnchor = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
+      assert.strictEqual(balWrappedTokenAfterDepositAnchor.toString(), tokenDenomination);
+      
+      //token wrapper should receieve erc20 liquidity
+      const balUnwrappedTokenAfterDepositWrapper = await token.balanceOf(wrappedToken.address);
+      assert.strictEqual(balUnwrappedTokenAfterDepositWrapper.sub(balUnwrappedTokenBeforeDepositWrapper).toString(), BigNumber.from('1000000000000000000').mul(100).div(100 - wrapFee).toString());
+
+      const balUnwrappedTokenBeforeWithdrawSender = await token.balanceOf(sender.address);
+
+      const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, zkComponents, wallet);
+      await TruffleAssert.passes(newAnchor.withdrawAndUnwrap(deposit, 31337, index, sender.address, signers[1].address, bigInt(0), bigInt(0), token.address));
+      const balWrappedTokenAfterWithdrawAnchor = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
+      assert.strictEqual(balWrappedTokenAfterWithdrawAnchor.toString(), '0');
+
+      const balUnwrappedTokenAfterWithdrawWrapper = await token.balanceOf(wrappedToken.address);
+      assert.strictEqual(BigNumber.from('1000000000000000000').mul(100).div(100 - wrapFee).sub(BigNumber.from('1000000000000000000')).toString(), balUnwrappedTokenAfterWithdrawWrapper.toString());
+
+      const balUnwrappedTokenAfterWithdrawSender = await token.balanceOf(sender.address);
+      assert.strictEqual(balUnwrappedTokenBeforeWithdrawSender.add(tokenDenomination).toString(), balUnwrappedTokenAfterWithdrawSender.toString());
+    });
+
+    it('wrapping fee should work correctly with wrap and deposit', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+      const sender = wallet;
+      // create wrapped token
+      const name = 'webbETH';
+      const symbol = 'webbETH';
+      const wrappedTokenFactory = new WrappedTokenFactory(wallet);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      await wrappedToken.deployed();
+      await wrappedToken.add(token.address);
+      const wrapFee = 5;
+      await wrappedToken.setFee(wrapFee);
+
+      // create Anchor for wrapped token
+      const wrappedAnchor = await Anchor.createAnchor(
+        verifier.contract.address,
+        hasherInstance.address,
+        tokenDenomination,
+        levels,
+        wrappedToken.address,
+        sender.address,
+        sender.address,
+        sender.address,
+        MAX_EDGES,
+        zkComponents,
+        sender
+      );
+
+      const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+      await wrappedToken.grantRole(MINTER_ROLE, wrappedAnchor.contract.address);
+
+      await token.approve(wrappedToken.address, '10000000000000000000');
+      await wrappedToken.approve(wrappedAnchor.contract.address, '10000000000000000000');
+      const amountToWrap = BigNumber.from(tokenDenomination).mul(100).div(100 - wrapFee);
+      const amountToWrap2 = BigNumber.from(tokenDenomination);
+      await TruffleAssert.reverts(
+        wrappedAnchor.deposit(31337),
+        'ERC20: transfer amount exceeds balance'
+      );
+
+      await wrappedAnchor.contract.wrapToken(token.address, amountToWrap);
+      await TruffleAssert.passes(
+        wrappedAnchor.deposit(31337)
+      )
+    });
+
+    it('non-governor setting fee should fail', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+      const sender = wallet;
+      // create wrapped token
+      const name = 'webbETH';
+      const symbol = 'webbETH';
+      const wrappedTokenFactory = new WrappedTokenFactory(wallet);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      await wrappedToken.deployed();
+      await wrappedToken.add(token.address);
+      const wrapFee = 5;
+      const otherSender = signers[1];
+      assert
+      await TruffleAssert.reverts(
+        wrappedToken.connect(otherSender).setFee(wrapFee),
+        'Only governor can call this function'
+      );
+    });
+
+    it('fee percentage cannot be greater than 100', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+      const sender = wallet;
+      // create wrapped token
+      const name = 'webbETH';
+      const symbol = 'webbETH';
+      const wrappedTokenFactory = new WrappedTokenFactory(wallet);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      await wrappedToken.deployed();
+      await wrappedToken.add(token.address);
+      const wrapFee = 101;
+      assert
+      await TruffleAssert.reverts(
+        wrappedToken.setFee(wrapFee),
+        'invalid fee percentage'
+      );
+    });
+
+    it('fee percentage cannot be negative', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+      const sender = wallet;
+      // create wrapped token
+      const name = 'webbETH';
+      const symbol = 'webbETH';
+      const wrappedTokenFactory = new WrappedTokenFactory(wallet);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      await wrappedToken.deployed();
+      await wrappedToken.add(token.address);
+      const wrapFee = -1;
+      assert
+      await TruffleAssert.fails(
+        wrappedToken.setFee(wrapFee)
+      );
+    });
+
+    it('fee percentage cannot be non-integer', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+      const sender = wallet;
+      // create wrapped token
+      const name = 'webbETH';
+      const symbol = 'webbETH';
+      const wrappedTokenFactory = new WrappedTokenFactory(wallet);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      await wrappedToken.deployed();
+      await wrappedToken.add(token.address);
+      const wrapFee = 2.5;
+      assert
+      await TruffleAssert.fails(
+        wrappedToken.setFee(wrapFee)
+      );
     });
 
     it('should withdraw and unwrap', async () => {
@@ -780,6 +972,7 @@ describe('Anchor for 2 max edges', () => {
 
       // Check that the anchor's token wrapper has the appropriate amount of token balance
       const tokenWrapper = await wrappedAnchor.contract.token();
+      
       const tokenWrapperBalanceOfToken = await token.balanceOf(tokenWrapper);
       assert.deepStrictEqual(tokenWrapperBalanceOfToken.toString(), tokenDenomination);
 

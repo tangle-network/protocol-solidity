@@ -14,16 +14,16 @@ pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import { IERC6777 } from "../interfaces/IVAnchor.sol";
+//import { IERC6777 } from "../interfaces/IVAnchor.sol";
 import { IVAnchorVerifier } from "../interfaces/IVAnchorVerifier.sol";
 import "../trees/VMerkleTreeWithHistory.sol";
-
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
 /** @dev This contract(pool) allows deposit of an arbitrary amount to it, shielded transfer to another registered user inside the pool
  * and withdrawal from the pool. Project utilizes UTXO model to handle users' funds.
  */
-contract VAnchorBase is VMerkleTreeWithHistory, ReentrancyGuard {
+abstract contract VAnchorBase is VMerkleTreeWithHistory, ReentrancyGuard {
   PermissionedAccounts public permissions;
   uint8 public immutable maxEdges;
 
@@ -59,7 +59,6 @@ contract VAnchorBase is VMerkleTreeWithHistory, ReentrancyGuard {
   uint256 public constant MAX_FEE = 2**248;
 
   IVAnchorVerifier public verifier;
-  IERC6777 public immutable token;
 
   uint256 public lastBalance;
   uint256 public minimalWithdrawalAmount;
@@ -103,20 +102,17 @@ contract VAnchorBase is VMerkleTreeWithHistory, ReentrancyGuard {
     @param _verifier the addresses of SNARK verifiers for 2 inputs and 16 inputs
     @param _levels hight of the commitments merkle tree
     @param _hasher hasher address for the merkle tree
-    @param _token token address for the pool
   */
   constructor(
     IVAnchorVerifier _verifier,
     uint32 _levels,
     address _hasher,
-    IERC6777 _token,
     PermissionedAccounts memory _permissions,
     uint8 _maxEdges
   )
     VMerkleTreeWithHistory(_levels, _hasher)
   {
     verifier = _verifier;
-    token = _token;
     maxEdges = _maxEdges;
   }
 
@@ -125,12 +121,17 @@ contract VAnchorBase is VMerkleTreeWithHistory, ReentrancyGuard {
     super._initialize();
   }
 
+  /** @dev this function is defined in a child contract */
+  function _processDeposit(
+    uint256 _extAmount
+  ) internal virtual;
+
   /** @dev Main function that allows deposits, transfers and withdrawal.
    */
   function transact(Proof memory _args, ExtData memory _extData) public {
     if (_extData.extAmount > 0) {
       // for deposits from L2
-      token.transferFrom(msg.sender, address(this), uint256(_extData.extAmount));
+      _processDeposit(uint256(_extData.extAmount));
       require(uint256(_extData.extAmount) <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
     }
 
@@ -171,6 +172,19 @@ contract VAnchorBase is VMerkleTreeWithHistory, ReentrancyGuard {
     emit PublicKey(_account.owner, _account.publicKey);
   }
 
+  /** @dev this function is defined in a child contract */
+  //removed payable from address might need to add it back if things don't work
+  function _processWithdraw(
+    address  _recipient,
+    uint256 _minusExtAmount
+  ) internal virtual;
+
+  /** similar to _processWithdraw. Is defined in a child contract */
+  function _processFee(
+    address  _relayer,
+    uint256 _fee
+  ) internal virtual;
+
   function _transact(Proof memory _args, ExtData memory _extData) internal nonReentrant {
     for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
       require(!isSpent(_args.inputNullifiers[i]), "Input is already spent");
@@ -197,14 +211,14 @@ contract VAnchorBase is VMerkleTreeWithHistory, ReentrancyGuard {
 
     if (_extData.extAmount < 0) {
       require(_extData.recipient != address(0), "Can't withdraw to zero address");
-      token.transfer(_extData.recipient, uint256(-_extData.extAmount));
       require(uint256(-_extData.extAmount) >= minimalWithdrawalAmount, "amount is less than minimalWithdrawalAmount"); // prevents ddos attack to Bridge
+      _processWithdraw(_extData.recipient, uint256(-_extData.extAmount));
     }
     if (_extData.fee > 0) {
-      token.transfer(_extData.relayer, _extData.fee);
+      _processFee(_extData.relayer, _extData.fee);
     }
 
-    lastBalance = token.balanceOf(address(this));
+    //lastBalance = token.balanceOf(address(this));
     _insert(_args.outputCommitments[0], _args.outputCommitments[1]);
     emit NewCommitment(_args.outputCommitments[0], nextIndex - 2, _extData.encryptedOutput1);
     emit NewCommitment(_args.outputCommitments[1], nextIndex - 1, _extData.encryptedOutput2);
@@ -372,93 +386,93 @@ contract VAnchorBase is VMerkleTreeWithHistory, ReentrancyGuard {
       inputs[8] = uint256(roots[1]);
       encodedInput = abi.encodePacked(inputs);
     } else if (maxEdges == 2) {
-      uint256[10] memory inputs;
-      bytes32[3] memory roots = abi.decode(_args.roots, (bytes32[3]));
-      // assign roots
-      result[0] = roots[0];
-      result[1] = roots[1];
-      result[2] = roots[2];
-      // assign input
-      //encodedInput = abi.encodePacked(inputs);
-      inputs[0] = uint256(_args.publicAmount);
-      inputs[1] = uint256(_args.extDataHash);
-      inputs[2] = uint256(_args.inputNullifiers[0]);
-      inputs[3] = uint256(_args.inputNullifiers[1]);
-      inputs[4] = uint256(_args.outputCommitments[0]);
-      inputs[5] = uint256(_args.outputCommitments[1]);
-      inputs[6] = uint256(_chainId);
-      inputs[7] = uint256(roots[0]);
-      inputs[8] = uint256(roots[1]);
-      inputs[9] = uint256(roots[2]);
-    } else if (maxEdges == 3) {
-      uint256[11] memory inputs;
-      bytes32[4] memory roots = abi.decode(_args.roots, (bytes32[4]));
-      // assign roots
-      result[0] = roots[0];
-      result[1] = roots[1];
-      result[2] = roots[2];
-      result[3] = roots[3];
-      // assign input
-      //encodedInput = abi.encodePacked(inputs);
-      inputs[0] = uint256(_args.publicAmount);
-      inputs[1] = uint256(_args.extDataHash);
-      inputs[2] = uint256(_args.inputNullifiers[0]);
-      inputs[3] = uint256(_args.inputNullifiers[1]);
-      inputs[4] = uint256(_args.outputCommitments[0]);
-      inputs[5] = uint256(_args.outputCommitments[1]);
-      inputs[6] = uint256(_chainId);
-      inputs[7] = uint256(roots[0]);
-      inputs[8] = uint256(roots[1]);
-      inputs[9] = uint256(roots[2]);
-      inputs[10] = uint256(roots[3]);
-    } else if (maxEdges == 4) {
-      uint256[12] memory inputs;
-      bytes32[5] memory roots = abi.decode(_args.roots, (bytes32[5]));
-      // assign roots
-      result[0] = roots[0];
-      result[1] = roots[1];
-      result[2] = roots[2];
-      result[3] = roots[3];
-      result[4] = roots[4];
-      // assign input
-      //encodedInput = abi.encodePacked(inputs);
-      inputs[0] = uint256(_args.publicAmount);
-      inputs[1] = uint256(_args.extDataHash);
-      inputs[2] = uint256(_args.inputNullifiers[0]);
-      inputs[3] = uint256(_args.inputNullifiers[1]);
-      inputs[4] = uint256(_args.outputCommitments[0]);
-      inputs[5] = uint256(_args.outputCommitments[1]);
-      inputs[6] = uint256(_chainId);
-      inputs[7] = uint256(roots[0]);
-      inputs[8] = uint256(roots[1]);
-      inputs[9] = uint256(roots[2]);
-      inputs[10] = uint256(roots[3]);
-      inputs[11] = uint256(roots[4]);
-    } else if (maxEdges == 5) {
-      uint256[13] memory inputs;
-      bytes32[6] memory roots = abi.decode(_args.roots, (bytes32[6]));
-      // assign roots
-      result[0] = roots[0];
-      result[1] = roots[1];
-      result[2] = roots[2];
-      result[3] = roots[3];
-      result[4] = roots[4];
-      result[5] = roots[5];
-      // assign input
-      //encodedInput = abi.encodePacked(inputs);
-      inputs[0] = uint256(_args.publicAmount);
-      inputs[1] = uint256(_args.extDataHash);
-      inputs[2] = uint256(_args.inputNullifiers[0]);
-      inputs[3] = uint256(_args.inputNullifiers[1]);
-      inputs[4] = uint256(_args.outputCommitments[0]);
-      inputs[5] = uint256(_args.outputCommitments[1]);
-      inputs[6] = uint256(_chainId);
-      inputs[7] = uint256(roots[0]);
-      inputs[8] = uint256(roots[1]);
-      inputs[9] = uint256(roots[2]);
-      inputs[10] = uint256(roots[3]);
-      inputs[11] = uint256(roots[4]);
-      inputs[12] = uint256(roots[5]);
+    //   uint256[10] memory inputs;
+    //   bytes32[3] memory roots = abi.decode(_args.roots, (bytes32[3]));
+    //   // assign roots
+    //   result[0] = roots[0];
+    //   result[1] = roots[1];
+    //   result[2] = roots[2];
+    //   // assign input
+    //   //encodedInput = abi.encodePacked(inputs);
+    //   inputs[0] = uint256(_args.publicAmount);
+    //   inputs[1] = uint256(_args.extDataHash);
+    //   inputs[2] = uint256(_args.inputNullifiers[0]);
+    //   inputs[3] = uint256(_args.inputNullifiers[1]);
+    //   inputs[4] = uint256(_args.outputCommitments[0]);
+    //   inputs[5] = uint256(_args.outputCommitments[1]);
+    //   inputs[6] = uint256(_chainId);
+    //   inputs[7] = uint256(roots[0]);
+    //   inputs[8] = uint256(roots[1]);
+    //   inputs[9] = uint256(roots[2]);
+    // } else if (maxEdges == 3) {
+    //   uint256[11] memory inputs;
+    //   bytes32[4] memory roots = abi.decode(_args.roots, (bytes32[4]));
+    //   // assign roots
+    //   result[0] = roots[0];
+    //   result[1] = roots[1];
+    //   result[2] = roots[2];
+    //   result[3] = roots[3];
+    //   // assign input
+    //   //encodedInput = abi.encodePacked(inputs);
+    //   inputs[0] = uint256(_args.publicAmount);
+    //   inputs[1] = uint256(_args.extDataHash);
+    //   inputs[2] = uint256(_args.inputNullifiers[0]);
+    //   inputs[3] = uint256(_args.inputNullifiers[1]);
+    //   inputs[4] = uint256(_args.outputCommitments[0]);
+    //   inputs[5] = uint256(_args.outputCommitments[1]);
+    //   inputs[6] = uint256(_chainId);
+    //   inputs[7] = uint256(roots[0]);
+    //   inputs[8] = uint256(roots[1]);
+    //   inputs[9] = uint256(roots[2]);
+    //   inputs[10] = uint256(roots[3]);
+    // } else if (maxEdges == 4) {
+    //   uint256[12] memory inputs;
+    //   bytes32[5] memory roots = abi.decode(_args.roots, (bytes32[5]));
+    //   // assign roots
+    //   result[0] = roots[0];
+    //   result[1] = roots[1];
+    //   result[2] = roots[2];
+    //   result[3] = roots[3];
+    //   result[4] = roots[4];
+    //   // assign input
+    //   //encodedInput = abi.encodePacked(inputs);
+    //   inputs[0] = uint256(_args.publicAmount);
+    //   inputs[1] = uint256(_args.extDataHash);
+    //   inputs[2] = uint256(_args.inputNullifiers[0]);
+    //   inputs[3] = uint256(_args.inputNullifiers[1]);
+    //   inputs[4] = uint256(_args.outputCommitments[0]);
+    //   inputs[5] = uint256(_args.outputCommitments[1]);
+    //   inputs[6] = uint256(_chainId);
+    //   inputs[7] = uint256(roots[0]);
+    //   inputs[8] = uint256(roots[1]);
+    //   inputs[9] = uint256(roots[2]);
+    //   inputs[10] = uint256(roots[3]);
+    //   inputs[11] = uint256(roots[4]);
+    // } else if (maxEdges == 5) {
+    //   uint256[13] memory inputs;
+    //   bytes32[6] memory roots = abi.decode(_args.roots, (bytes32[6]));
+    //   // assign roots
+    //   result[0] = roots[0];
+    //   result[1] = roots[1];
+    //   result[2] = roots[2];
+    //   result[3] = roots[3];
+    //   result[4] = roots[4];
+    //   result[5] = roots[5];
+    //   // assign input
+    //   //encodedInput = abi.encodePacked(inputs);
+    //   inputs[0] = uint256(_args.publicAmount);
+    //   inputs[1] = uint256(_args.extDataHash);
+    //   inputs[2] = uint256(_args.inputNullifiers[0]);
+    //   inputs[3] = uint256(_args.inputNullifiers[1]);
+    //   inputs[4] = uint256(_args.outputCommitments[0]);
+    //   inputs[5] = uint256(_args.outputCommitments[1]);
+    //   inputs[6] = uint256(_chainId);
+    //   inputs[7] = uint256(roots[0]);
+    //   inputs[8] = uint256(roots[1]);
+    //   inputs[9] = uint256(roots[2]);
+    //   inputs[10] = uint256(roots[3]);
+    //   inputs[11] = uint256(roots[4]);
+    //   inputs[12] = uint256(roots[5]);
     } else {
       require(false, "Invalid edges");
     }
@@ -474,7 +488,7 @@ contract VAnchorBase is VMerkleTreeWithHistory, ReentrancyGuard {
     bytes memory encodedInput;
 
     if (maxEdges == 1) {
-      uint256[9] memory inputs;
+      uint256[23] memory inputs;
       bytes32[2] memory roots = abi.decode(_args.roots, (bytes32[2]));
       // assign roots
       result[0] = roots[0];
@@ -485,104 +499,174 @@ contract VAnchorBase is VMerkleTreeWithHistory, ReentrancyGuard {
       inputs[1] = uint256(_args.extDataHash);
       inputs[2] = uint256(_args.inputNullifiers[0]);
       inputs[3] = uint256(_args.inputNullifiers[1]);
-      inputs[4] = uint256(_args.outputCommitments[0]);
-      inputs[5] = uint256(_args.outputCommitments[1]);
-      inputs[6] = uint256(_chainId);
-      inputs[7] = uint256(roots[0]);
-      inputs[8] = uint256(roots[1]);
-
+      inputs[4] = uint256(_args.inputNullifiers[2]);
+      inputs[5] = uint256(_args.inputNullifiers[3]);
+      inputs[6] = uint256(_args.inputNullifiers[4]);
+      inputs[7] = uint256(_args.inputNullifiers[5]);
+      inputs[8] = uint256(_args.inputNullifiers[6]);
+      inputs[9] = uint256(_args.inputNullifiers[7]);
+      inputs[10] = uint256(_args.inputNullifiers[8]);
+      inputs[11] = uint256(_args.inputNullifiers[9]);
+      inputs[12] = uint256(_args.inputNullifiers[10]);
+      inputs[13] = uint256(_args.inputNullifiers[11]);
+      inputs[14] = uint256(_args.inputNullifiers[12]);
+      inputs[15] = uint256(_args.inputNullifiers[13]);
+      inputs[16] = uint256(_args.inputNullifiers[14]);
+      inputs[17] = uint256(_args.inputNullifiers[15]);
+      inputs[18] = uint256(_args.outputCommitments[0]);
+      inputs[19] = uint256(_args.outputCommitments[1]);
+      inputs[20] = uint256(_chainId);
+      inputs[21] = uint256(roots[0]);
+      inputs[22] = uint256(roots[1]);
+      encodedInput = abi.encodePacked(inputs);
     } else if (maxEdges == 2) {
-      uint256[10] memory inputs;
-      bytes32[3] memory roots = abi.decode(_args.roots, (bytes32[3]));
-      // assign roots
-      result[0] = roots[0];
-      result[1] = roots[1];
-      result[2] = roots[2];
-      // assign input
-      //encodedInput = abi.encodePacked(inputs);
-      inputs[0] = uint256(_args.publicAmount);
-      inputs[1] = uint256(_args.extDataHash);
-      inputs[2] = uint256(_args.inputNullifiers[0]);
-      inputs[3] = uint256(_args.inputNullifiers[1]);
-      inputs[4] = uint256(_args.outputCommitments[0]);
-      inputs[5] = uint256(_args.outputCommitments[1]);
-      inputs[6] = uint256(_chainId);
-      inputs[7] = uint256(roots[0]);
-      inputs[8] = uint256(roots[1]);
-      inputs[9] = uint256(roots[2]);
-    } else if (maxEdges == 3) {
-      uint256[11] memory inputs;
-      bytes32[4] memory roots = abi.decode(_args.roots, (bytes32[4]));
-      // assign roots
-      result[0] = roots[0];
-      result[1] = roots[1];
-      result[2] = roots[2];
-      result[3] = roots[3];
-      // assign input
-      //encodedInput = abi.encodePacked(inputs);
-      inputs[0] = uint256(_args.publicAmount);
-      inputs[1] = uint256(_args.extDataHash);
-      inputs[2] = uint256(_args.inputNullifiers[0]);
-      inputs[3] = uint256(_args.inputNullifiers[1]);
-      inputs[4] = uint256(_args.outputCommitments[0]);
-      inputs[5] = uint256(_args.outputCommitments[1]);
-      inputs[6] = uint256(_chainId);
-      inputs[7] = uint256(roots[0]);
-      inputs[8] = uint256(roots[1]);
-      inputs[9] = uint256(roots[2]);
-      inputs[10] = uint256(roots[3]);
-    } else if (maxEdges == 4) {
-      uint256[12] memory inputs;
-      bytes32[5] memory roots = abi.decode(_args.roots, (bytes32[5]));
-      // assign roots
-      result[0] = roots[0];
-      result[1] = roots[1];
-      result[2] = roots[2];
-      result[3] = roots[3];
-      result[4] = roots[4];
-      // assign input
-      //encodedInput = abi.encodePacked(inputs);
-      inputs[0] = uint256(_args.publicAmount);
-      inputs[1] = uint256(_args.extDataHash);
-      inputs[2] = uint256(_args.inputNullifiers[0]);
-      inputs[3] = uint256(_args.inputNullifiers[1]);
-      inputs[4] = uint256(_args.outputCommitments[0]);
-      inputs[5] = uint256(_args.outputCommitments[1]);
-      inputs[6] = uint256(_chainId);
-      inputs[7] = uint256(roots[0]);
-      inputs[8] = uint256(roots[1]);
-      inputs[9] = uint256(roots[2]);
-      inputs[10] = uint256(roots[3]);
-      inputs[11] = uint256(roots[4]);
-    } else if (maxEdges == 5) {
-      uint256[13] memory inputs;
-      bytes32[6] memory roots = abi.decode(_args.roots, (bytes32[6]));
-      // assign roots
-      result[0] = roots[0];
-      result[1] = roots[1];
-      result[2] = roots[2];
-      result[3] = roots[3];
-      result[4] = roots[4];
-      result[5] = roots[5];
-      // assign input
-      //encodedInput = abi.encodePacked(inputs);
-      inputs[0] = uint256(_args.publicAmount);
-      inputs[1] = uint256(_args.extDataHash);
-      inputs[2] = uint256(_args.inputNullifiers[0]);
-      inputs[3] = uint256(_args.inputNullifiers[1]);
-      inputs[4] = uint256(_args.outputCommitments[0]);
-      inputs[5] = uint256(_args.outputCommitments[1]);
-      inputs[6] = uint256(_chainId);
-      inputs[7] = uint256(roots[0]);
-      inputs[8] = uint256(roots[1]);
-      inputs[9] = uint256(roots[2]);
-      inputs[10] = uint256(roots[3]);
-      inputs[11] = uint256(roots[4]);
-      inputs[12] = uint256(roots[5]);
+    //   uint256[24] memory inputs;
+    //   bytes32[3] memory roots = abi.decode(_args.roots, (bytes32[3]));
+    //   // assign roots
+    //   result[0] = roots[0];
+    //   result[1] = roots[1];
+    //   result[2] = roots[2];
+    //   // assign input
+    //   //encodedInput = abi.encodePacked(inputs);
+    //   inputs[0] = uint256(_args.publicAmount);
+    //   inputs[1] = uint256(_args.extDataHash);
+    //   inputs[2] = uint256(_args.inputNullifiers[0]);
+    //   inputs[3] = uint256(_args.inputNullifiers[1]);
+    //   inputs[4] = uint256(_args.inputNullifiers[2]);
+    //   inputs[5] = uint256(_args.inputNullifiers[3]);
+    //   inputs[6] = uint256(_args.inputNullifiers[4]);
+    //   inputs[7] = uint256(_args.inputNullifiers[5]);
+    //   inputs[8] = uint256(_args.inputNullifiers[6]);
+    //   inputs[9] = uint256(_args.inputNullifiers[7]);
+    //   inputs[10] = uint256(_args.inputNullifiers[8]);
+    //   inputs[11] = uint256(_args.inputNullifiers[9]);
+    //   inputs[12] = uint256(_args.inputNullifiers[10]);
+    //   inputs[13] = uint256(_args.inputNullifiers[11]);
+    //   inputs[14] = uint256(_args.inputNullifiers[12]);
+    //   inputs[15] = uint256(_args.inputNullifiers[13]);
+    //   inputs[16] = uint256(_args.inputNullifiers[14]);
+    //   inputs[17] = uint256(_args.inputNullifiers[15]);
+    //   inputs[18] = uint256(_args.outputCommitments[0]);
+    //   inputs[19] = uint256(_args.outputCommitments[1]);
+    //   inputs[20] = uint256(_chainId);
+    //   inputs[21] = uint256(roots[0]);
+    //   inputs[22] = uint256(roots[1]);
+    //   inputs[23] = uint256(roots[2]);
+    // } else if (maxEdges == 3) {
+    //   uint256[25] memory inputs;
+    //   bytes32[4] memory roots = abi.decode(_args.roots, (bytes32[4]));
+    //   // assign roots
+    //   result[0] = roots[0];
+    //   result[1] = roots[1];
+    //   result[2] = roots[2];
+    //   result[3] = roots[3];
+    //   // assign input
+    //   //encodedInput = abi.encodePacked(inputs);
+    //   inputs[0] = uint256(_args.publicAmount);
+    //   inputs[1] = uint256(_args.extDataHash);
+    //   inputs[2] = uint256(_args.inputNullifiers[0]);
+    //   inputs[3] = uint256(_args.inputNullifiers[1]);
+    //   inputs[4] = uint256(_args.inputNullifiers[2]);
+    //   inputs[5] = uint256(_args.inputNullifiers[3]);
+    //   inputs[6] = uint256(_args.inputNullifiers[4]);
+    //   inputs[7] = uint256(_args.inputNullifiers[5]);
+    //   inputs[8] = uint256(_args.inputNullifiers[6]);
+    //   inputs[9] = uint256(_args.inputNullifiers[7]);
+    //   inputs[10] = uint256(_args.inputNullifiers[8]);
+    //   inputs[11] = uint256(_args.inputNullifiers[9]);
+    //   inputs[12] = uint256(_args.inputNullifiers[10]);
+    //   inputs[13] = uint256(_args.inputNullifiers[11]);
+    //   inputs[14] = uint256(_args.inputNullifiers[12]);
+    //   inputs[15] = uint256(_args.inputNullifiers[13]);
+    //   inputs[16] = uint256(_args.inputNullifiers[14]);
+    //   inputs[17] = uint256(_args.inputNullifiers[15]);
+    //   inputs[18] = uint256(_args.outputCommitments[0]);
+    //   inputs[19] = uint256(_args.outputCommitments[1]);
+    //   inputs[20] = uint256(_chainId);
+    //   inputs[21] = uint256(roots[0]);
+    //   inputs[22] = uint256(roots[1]);
+    //   inputs[23] = uint256(roots[2]);
+    //   inputs[24] = uint256(roots[3]);
+    // } else if (maxEdges == 4) {
+    //   uint256[26] memory inputs;
+    //   bytes32[5] memory roots = abi.decode(_args.roots, (bytes32[5]));
+    //   // assign roots
+    //   result[0] = roots[0];
+    //   result[1] = roots[1];
+    //   result[2] = roots[2];
+    //   result[3] = roots[3];
+    //   result[4] = roots[4];
+    //   // assign input
+    //   //encodedInput = abi.encodePacked(inputs);
+    //   inputs[0] = uint256(_args.publicAmount);
+    //   inputs[1] = uint256(_args.extDataHash);
+    //   inputs[2] = uint256(_args.inputNullifiers[0]);
+    //   inputs[3] = uint256(_args.inputNullifiers[1]);
+    //   inputs[4] = uint256(_args.inputNullifiers[2]);
+    //   inputs[5] = uint256(_args.inputNullifiers[3]);
+    //   inputs[6] = uint256(_args.inputNullifiers[4]);
+    //   inputs[7] = uint256(_args.inputNullifiers[5]);
+    //   inputs[8] = uint256(_args.inputNullifiers[6]);
+    //   inputs[9] = uint256(_args.inputNullifiers[7]);
+    //   inputs[10] = uint256(_args.inputNullifiers[8]);
+    //   inputs[11] = uint256(_args.inputNullifiers[9]);
+    //   inputs[12] = uint256(_args.inputNullifiers[10]);
+    //   inputs[13] = uint256(_args.inputNullifiers[11]);
+    //   inputs[14] = uint256(_args.inputNullifiers[12]);
+    //   inputs[15] = uint256(_args.inputNullifiers[13]);
+    //   inputs[16] = uint256(_args.inputNullifiers[14]);
+    //   inputs[17] = uint256(_args.inputNullifiers[15]);
+    //   inputs[18] = uint256(_args.outputCommitments[0]);
+    //   inputs[19] = uint256(_args.outputCommitments[1]);
+    //   inputs[20] = uint256(_chainId);
+    //   inputs[21] = uint256(roots[0]);
+    //   inputs[22] = uint256(roots[1]);
+    //   inputs[23] = uint256(roots[2]);
+    //   inputs[24] = uint256(roots[3]);
+    //   inputs[25] = uint256(roots[4]);
+    // } else if (maxEdges == 5) {
+    //   uint256[27] memory inputs;
+    //   bytes32[6] memory roots = abi.decode(_args.roots, (bytes32[6]));
+    //   // assign roots
+    //   result[0] = roots[0];
+    //   result[1] = roots[1];
+    //   result[2] = roots[2];
+    //   result[3] = roots[3];
+    //   result[4] = roots[4];
+    //   result[5] = roots[5];
+    //   // assign input
+    //   //encodedInput = abi.encodePacked(inputs);
+    //   inputs[0] = uint256(_args.publicAmount);
+    //   inputs[1] = uint256(_args.extDataHash);
+    //   inputs[2] = uint256(_args.inputNullifiers[0]);
+    //   inputs[3] = uint256(_args.inputNullifiers[1]);
+    //   inputs[4] = uint256(_args.inputNullifiers[2]);
+    //   inputs[5] = uint256(_args.inputNullifiers[3]);
+    //   inputs[6] = uint256(_args.inputNullifiers[4]);
+    //   inputs[7] = uint256(_args.inputNullifiers[5]);
+    //   inputs[8] = uint256(_args.inputNullifiers[6]);
+    //   inputs[9] = uint256(_args.inputNullifiers[7]);
+    //   inputs[10] = uint256(_args.inputNullifiers[8]);
+    //   inputs[11] = uint256(_args.inputNullifiers[9]);
+    //   inputs[12] = uint256(_args.inputNullifiers[10]);
+    //   inputs[13] = uint256(_args.inputNullifiers[11]);
+    //   inputs[14] = uint256(_args.inputNullifiers[12]);
+    //   inputs[15] = uint256(_args.inputNullifiers[13]);
+    //   inputs[16] = uint256(_args.inputNullifiers[14]);
+    //   inputs[17] = uint256(_args.inputNullifiers[15]);
+    //   inputs[18] = uint256(_args.outputCommitments[0]);
+    //   inputs[19] = uint256(_args.outputCommitments[1]);
+    //   inputs[20] = uint256(_chainId);
+    //   inputs[21] = uint256(roots[0]);
+    //   inputs[22] = uint256(roots[1]);
+    //   inputs[23] = uint256(roots[2]);
+    //   inputs[24] = uint256(roots[3]);
+    //   inputs[25] = uint256(roots[4]);
+    //   inputs[26] = uint256(roots[5]);
     } else {
       require(false, "Invalid edges");
     }
 
-    return (encodedInput, result);
+      return (encodedInput, result);
   }
 }

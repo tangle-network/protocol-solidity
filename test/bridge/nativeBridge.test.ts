@@ -104,7 +104,6 @@ describe('multichain tests', () => {
       const wrappedTokenAddress = bridge.getWebbTokenAddress(chainId1);
       const wrappedToken = GovernedTokenWrapper.connect(wrappedTokenAddress!, signers[2]);
       const wrappedTokenAnchorBalance = await wrappedToken.contract.balanceOf(anchor1.contract.address);
-      console.log(`wrappedTokenAnchorBalance: ${wrappedTokenAnchorBalance}`);
       assert.equal(wrappedTokenAnchorBalance.eq(anchorSize), true);
 
       // deposit on the other side of the bridge

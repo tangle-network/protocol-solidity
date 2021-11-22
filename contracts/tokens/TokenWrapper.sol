@@ -12,7 +12,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
-
 /**
     @title Manages deposited ERC20s.
     @author ChainSafe Systems.
@@ -20,9 +19,18 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
  */
 abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
     using SafeMath for uint256;
+    uint8 feePercentage;
 
     constructor(string memory name, string memory symbol)
         ERC20PresetMinterPauser(name, symbol) {}
+
+    function getFeeFromAmount(uint amountToWrap) override public view returns (uint) {
+		return amountToWrap.mul(feePercentage).div(100);
+    }
+
+    function getAmountToWrap(uint deposit) override public view returns (uint) {
+		return deposit.mul(100).div(100 - feePercentage);
+    }
 
     /**
         @notice Used to wrap tokens on behalf of a sender. Must be called by a minter role.
@@ -33,14 +41,23 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
         address tokenAddress,
         uint256 amount
     ) override payable public isValidWrapping(tokenAddress, amount) {
+        uint costToWrap = getFeeFromAmount(tokenAddress == address(0)
+            ? msg.value
+            : amount
+        );
+
+         uint leftover = tokenAddress == address(0)
+            ? uint(msg.value).sub(costToWrap)
+            : amount.sub(costToWrap);
+        
         if (tokenAddress == address(0)) {
             // mint the native value sent to the contract
-            _mint(_msgSender(), msg.value);
+            _mint(_msgSender(), leftover);
         } else {
             // transfer liquidity to the token wrapper
             IERC20(tokenAddress).transferFrom(_msgSender(), address(this), amount);
             // mint the wrapped token for the sender
-            _mint(_msgSender(), amount);
+            _mint(_msgSender(), leftover);
         }
     }
 
@@ -98,13 +115,20 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
         address tokenAddress,
         uint256 amount
     ) override payable public isMinter() isValidWrapping(tokenAddress, amount) {
+        uint costToWrap = getFeeFromAmount(tokenAddress == address(0)
+            ? msg.value
+            : amount
+        );
+        uint leftover = tokenAddress == address(0)
+            ? uint(msg.value).sub(costToWrap)
+            : amount.sub(costToWrap);
         if (tokenAddress == address(0)) {
-            mint(sender, msg.value);
+            mint(sender, leftover);
         } else {
             // transfer liquidity to the token wrapper
             IERC20(tokenAddress).transferFrom(sender, address(this), amount);
             // mint the wrapped token for the sender
-            mint(sender, amount);
+            mint(sender, leftover);
         }
     }
 
@@ -121,13 +145,20 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
         uint256 amount,
         address recipient
     ) override payable public isMinter() isValidWrapping(tokenAddress, amount) {
+        uint costToWrap = getFeeFromAmount(tokenAddress == address(0)
+            ? msg.value
+            : amount
+        );
+        uint leftover = tokenAddress == address(0)
+            ? uint(msg.value).sub(costToWrap)
+            : amount.sub(costToWrap);
         if (tokenAddress == address(0)) {
-            mint(recipient, msg.value);
+            mint(recipient, leftover);
         } else {
             // transfer liquidity to the token wrapper
             IERC20(tokenAddress).transferFrom(sender, address(this), amount);
             // mint the wrapped token for the recipient
-            mint(recipient, amount);
+            mint(recipient, leftover);
         }
     }
 

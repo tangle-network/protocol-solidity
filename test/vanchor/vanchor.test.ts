@@ -11,9 +11,8 @@ import {
   ERC20Mock as Token,
   ERC20Mock__factory as TokenFactory,
   ERC20PresetMinterPauser__factory as MintableTokenFactory,
-  GTokenWrapperMock as WrappedToken,
-  GTokenWrapperMock__factory,
-  GTokenWrapperMock__factory as WrappedTokenFactory,
+  GovernedTokenWrapper as WrappedToken,
+  GovernedTokenWrapper__factory as WrappedTokenFactory,
   PoseidonT3__factory
 } from '../../typechain';
 
@@ -25,6 +24,7 @@ import { Utxo } from '../../lib/vbridge/utxo';
 import { MerkleTree } from '../../lib/vbridge/MerkleTree';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { poseidonHash, poseidonHash2 } from '../../lib/vbridge/utils';
 
 const { NATIVE_AMOUNT } = process.env
 const BN = require('bn.js');
@@ -56,7 +56,6 @@ describe('VAnchor for 2 max edges', () => {
   beforeEach(async () => {
     const signers = await ethers.getSigners();
     const wallet = signers[0];
-    
     sender = wallet;
 
     tree = new MerkleTree(levels);
@@ -69,16 +68,11 @@ describe('VAnchor for 2 max edges', () => {
     verifier = await Verifier.createVerifier(sender);
 
     // create token
-    const tokenFactory = new GTokenWrapperMock__factory(wallet);
-    token = await tokenFactory.deploy(
-      "Webb Wrapped Token",
-      "webbTKN",
-      sender.address,
-      BigNumber.from(tokenDenomination).mul(100)
-    );
+    const tokenFactory = new TokenFactory(wallet);
+    token = await tokenFactory.deploy();
     await token.deployed();
     await token.mint(sender.address, '10000000000000000000000');
-    
+
     // create Anchor
     anchor = await VAnchor.createVAnchor(
       verifier.contract.address,
@@ -93,12 +87,12 @@ describe('VAnchor for 2 max edges', () => {
       1,
       sender,
     );
-
+   
     await anchor.contract.configureLimits(
       BigNumber.from(0),
       BigNumber.from(tokenDenomination).mul(1_000_000),
     )
-
+    
     await token.approve(anchor.contract.address, '10000000000000000000000');
 
     createInputWitnessPoseidon4 = async (data: any) => {
@@ -124,6 +118,7 @@ describe('VAnchor for 2 max edges', () => {
       const wtns = await wtnsCalc.calculateWTNSBin(data,0);
       return wtns;
     }
+    
   })
 
   describe('#constructor', () => {
@@ -226,6 +221,38 @@ describe('VAnchor for 2 max edges', () => {
         [],
         [aliceDepositUtxo]
       );
+    })
+
+    it('should process fee', async () => {
+      const signers = await ethers.getSigners();
+      const alice= signers[0];
+
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount)
+      });
+      //Step 1: Alice deposits into Tornado Pool
+      const aliceBalanceBeforeDeposit = await token.balanceOf(alice.address);
+      const relayer = "0x2111111111111111111111111111111111111111";
+      const fee = 1e6;
+      await anchor.registerAndTransact(
+        sender.address,
+        aliceDepositUtxo.keypair.address(),
+        [],
+        [aliceDepositUtxo],
+        BigNumber.from(fee),
+        '0',
+        relayer
+      );
+
+      //Step 2: Check Alice's balance
+      const aliceBalanceAfterDeposit = await token.balanceOf(alice.address);
+      assert.strictEqual(aliceBalanceAfterDeposit.toString(), BN(toBN(aliceBalanceBeforeDeposit).sub(toBN(aliceDepositAmount)).sub(toBN(fee))).toString());
+
+      //Step 3 Check relayers balance
+      assert.strictEqual((await token.balanceOf(relayer)).toString(), BigNumber.from(fee).toString());
     })
     
     it('should spend input utxo and create output utxo', async () => {
@@ -330,6 +357,62 @@ describe('VAnchor for 2 max edges', () => {
 
       await anchor.transact(
         [aliceDepositUtxo1, aliceDepositUtxo2],
+        [aliceJoinUtxo]
+      );
+    })
+
+    it('should join and spend with 16 inputs', async () => {
+      const aliceDepositAmount1 = 1e7;
+      const aliceDepositUtxo1 = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount1)
+      });
+      const aliceDepositAmount2 = 1e7;
+      const aliceDepositUtxo2 = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount2),
+        keypair: aliceDepositUtxo1.keypair
+      });
+      
+      await anchor.registerAndTransact(
+        sender.address,
+        aliceDepositUtxo1.keypair.address(),
+        [],
+        [aliceDepositUtxo1, aliceDepositUtxo2]
+      );
+      
+  
+
+      // await anchor.transact(
+      //   [],
+      //   [aliceDepositUtxo2]
+      // );
+
+      const aliceDepositAmount3 = 1e7;
+      const aliceDepositUtxo3 = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount3),
+        keypair: aliceDepositUtxo1.keypair
+      });
+
+      await anchor.transact(
+        [],
+        [aliceDepositUtxo3]
+      );
+      
+      const aliceJoinAmount = 3e7;
+      const aliceJoinUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceJoinAmount),
+        keypair: aliceDepositUtxo1.keypair
+      });
+
+      await anchor.transact(
+        [aliceDepositUtxo1, aliceDepositUtxo2, aliceDepositUtxo3],
         [aliceJoinUtxo]
       );
     })
@@ -629,48 +712,57 @@ describe('VAnchor for 2 max edges', () => {
       );
     });
 
-    // it('values for hossein', async () => {
-    //   const aliceDepositAmount = 1e7;
-    //   const utxo = new Utxo({
-    //     chainId: BigNumber.from(chainID),
-    //     originChainId: BigNumber.from(chainID),
-    //     amount: BigNumber.from(aliceDepositAmount)
-    //   });
+    // it.only('values for hossein', async () => {
+    //   const zero1 = '0x0000000000000000000000000000000000000000000000000000000000000000';
+    //   const zero2 = '0xb2ac10dccfb5a5712d632464a359668bb513e80e9d145ab5a88381de83af1046';
+    //   const chainid = '0x0000000000000000000000000000000000000000000000000000000000007a69'
+    //   const amount = '0x0000000000000000000000000000000000000000000000000000000000989680'
+    //   const publickey = '0x07a1f74bf9feda741e1e9099012079df28b504fc7a19a02288435b8e02ae21fa';
+    //   const blinding = '0x00a668ba0dcb34960aca597f433d0d3289c753046afa26d97e1613148c05f2c0';
+    //   const commitment = '0x15206d966a7fb3e3fbbb7f4d7b623ca1c7c9b5c6e6d0a3348df428189441a1e4';
+    //   const path = '0x0000000000000000000000000000000000000000000000000000000000000000';
+    //   console.log(poseidonHash([zero1]));
+      // const aliceDepositAmount = 1e7;
+      // const utxo = new Utxo({
+      //   chainId: BigNumber.from(chainID),
+      //   originChainId: BigNumber.from(chainID),
+      //   amount: BigNumber.from(aliceDepositAmount)
+      // });
 
-    //   const utxo2 = new Utxo({
-    //     chainId: BigNumber.from(chainID),
-    //     originChainId: BigNumber.from(chainID),
-    //     amount: BigNumber.from(aliceDepositAmount),
-    //     keypair: utxo.keypair
-    //   });
+      // const utxo2 = new Utxo({
+      //   chainId: BigNumber.from(chainID),
+      //   originChainId: BigNumber.from(chainID),
+      //   amount: BigNumber.from(aliceDepositAmount),
+      //   keypair: utxo.keypair
+      // });
 
-    //   await anchor.registerAndTransact(
-    //     sender.address,
-    //     utxo.keypair.address(),
-    //     [],
-    //     [utxo]
-    //   );
+      // await anchor.registerAndTransact(
+      //   sender.address,
+      //   utxo.keypair.address(),
+      //   [],
+      //   [utxo]
+      // );
 
-    //   await anchor.transact(
-    //     [utxo],
-    //     [utxo2]
-    //   )
-    //   console.log("keypair");
-    //   console.log(`keypair private key is ${VAnchor.hexStringToByte(toFixedHex(utxo.keypair.privkey))}`);
-    //   console.log(`keypair public key is ${toFixedHex(utxo.keypair.pubkey)}`);
+      // await anchor.transact(
+      //   [utxo],
+      //   [utxo2]
+      // )
+      // console.log("keypair");
+      // console.log(`keypair private key is ${VAnchor.hexStringToByte(toFixedHex(utxo.keypair.privkey))}`);
+      // console.log(`keypair public key is ${toFixedHex(utxo.keypair.pubkey)}`);
 
-    //   console.log("leaf commitment");
-    //   console.log(`chainId is ${toFixedHex(utxo.chainId)}`);
-    //   console.log(`amount is ${toFixedHex(utxo.amount)}`);
-    //   console.log(`public key is ${toFixedHex(utxo.keypair.pubkey)}`);
-    //   console.log(`blinding is ${toFixedHex(utxo.blinding)}`);
-    //   console.log(`commitment is ${toFixedHex(utxo.getCommitment())}`);
+      // console.log("leaf commitment");
+      // console.log(`chainId is ${toFixedHex(utxo.chainId)}`);
+      // console.log(`amount is ${toFixedHex(utxo.amount)}`);
+      // console.log(`public key is ${toFixedHex(utxo.keypair.pubkey)}`);
+      // console.log(`blinding is ${toFixedHex(utxo.blinding)}`);
+      // console.log(`commitment is ${toFixedHex(utxo.getCommitment())}`);
 
-    //   console.log("nullifier");
-    //   console.log(`commitment is ${toFixedHex(utxo.getCommitment())}`);
-    //   console.log(`pathIndices is ${toFixedHex(utxo.index!.toString())}`);
-    //   console.log(`private key is ${toFixedHex(utxo.keypair.privkey)}`);
-    //   console.log(`nullifier is ${toFixedHex(utxo.getNullifier())}`);
+      // console.log("nullifier");
+      // console.log(`commitment is ${toFixedHex(utxo.getCommitment())}`);
+      // console.log(`pathIndices is ${toFixedHex(utxo.index!.toString())}`);
+      // console.log(`private key is ${toFixedHex(utxo.keypair.privkey)}`);
+      // console.log(`nullifier is ${toFixedHex(utxo.getNullifier())}`);
     // });
 
     // it('transact should work with 16 inputs', async () => {
@@ -725,5 +817,304 @@ describe('VAnchor for 2 max edges', () => {
       // );
     // });
   })
+  describe('#wrapping tests', () => {
+    it('should wrap and deposit', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+      const sender = wallet;
+      // create wrapped token
+      const name = 'webbETH';
+      const symbol = 'webbETH';
+      const wrappedTokenFactory = new WrappedTokenFactory(wallet);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      await wrappedToken.deployed();
+      await wrappedToken.add(token.address);
+
+      // create Anchor for wrapped token
+      const wrappedAnchor = await VAnchor.createVAnchor(
+        verifier.contract.address,
+        5,
+        hasherInstance.address,
+        wrappedToken.address,
+        {
+          bridge: sender.address,
+          admin: sender.address,
+          handler: sender.address,
+        },
+        1,
+        sender
+      );
+
+      await wrappedAnchor.contract.configureLimits(
+        BigNumber.from(0),
+        BigNumber.from(tokenDenomination).mul(1_000_000),
+      );
+
+      const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+      await wrappedToken.grantRole(MINTER_ROLE, wrappedAnchor.contract.address);
+
+      await token.approve(wrappedToken.address, '1000000000000000000');
+      const balTokenBeforeDepositSender = await token.balanceOf(sender.address);
+    
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount)
+      });
+      //create a deposit on the anchor already setup
+      await wrappedAnchor.transactWrap(
+        token.address,
+        [],
+        [aliceDepositUtxo],
+      );
+      const balTokenAfterDepositSender = await token.balanceOf(sender.address);
+      assert.strictEqual(balTokenBeforeDepositSender.sub(balTokenAfterDepositSender).toString(), '10000000');
+
+      const balWrappedTokenAfterDepositAnchor = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
+      //console.log(balWrappedTokenAfterDepositAnchor.toString());
+      const balWrappedTokenAfterDepositSender = await wrappedToken.balanceOf(sender.address);
+      //console.log(balWrappedTokenAfterDepositSender.toString());
+      assert.strictEqual(balWrappedTokenAfterDepositAnchor.toString(), '10000000');
+      assert.strictEqual(balWrappedTokenAfterDepositSender.toString(), '0');
+    });
+
+    it('should withdraw and unwrap', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+      const sender = wallet;
+      // create wrapped token
+      const name = 'webbETH';
+      const symbol = 'webbETH';
+      const wrappedTokenFactory = new WrappedTokenFactory(wallet);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      await wrappedToken.deployed();
+      await wrappedToken.add(token.address);
+
+      // create Anchor for wrapped token
+      const wrappedVAnchor = await VAnchor.createVAnchor(
+        verifier.contract.address,
+        5,
+        hasherInstance.address,
+        wrappedToken.address,
+        {
+          bridge: sender.address,
+          admin: sender.address,
+          handler: sender.address,
+        },
+        1,
+        sender
+      );
+
+      await wrappedVAnchor.contract.configureLimits(
+        BigNumber.from(0),
+        BigNumber.from(tokenDenomination).mul(1_000_000),
+      );
+      
+      const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+      await wrappedToken.grantRole(MINTER_ROLE, wrappedVAnchor.contract.address);
+      await token.approve(wrappedToken.address, '1000000000000000000');
+      //Check that vAnchor has the right amount of wrapped token balance
+      assert.strictEqual((await wrappedToken.balanceOf(wrappedVAnchor.contract.address)).toString(), BigNumber.from(0).toString());
+      const balTokenBeforeDepositSender = await token.balanceOf(sender.address);
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount)
+      });
+      //create a deposit on the anchor already setup
+      await wrappedVAnchor.transactWrap(
+        token.address,
+        [],
+        [aliceDepositUtxo],
+      );
+
+      //Check that vAnchor has the right amount of wrapped token balance
+      assert.strictEqual((await wrappedToken.balanceOf(wrappedVAnchor.contract.address)).toString(), BigNumber.from(1e7).toString());
+
+      const aliceChangeAmount = 0;
+      const aliceChangeUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceChangeAmount)
+      });
+
+      await wrappedVAnchor.transactWrap(
+        token.address,
+        [aliceDepositUtxo],
+        [aliceChangeUtxo],
+        0,
+        sender.address,
+        '0'
+      );
+
+      const balTokenAfterWithdrawAndUnwrapSender = await token.balanceOf(sender.address);
+      assert.strictEqual(balTokenBeforeDepositSender.toString(), balTokenAfterWithdrawAndUnwrapSender.toString());
+    });
+
+    it('wrapping fee should work correctly with transactWrap', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+      const sender = wallet;
+      // create wrapped token
+      const name = 'webbETH';
+      const symbol = 'webbETH';
+      const wrappedTokenFactory = new WrappedTokenFactory(wallet);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      await wrappedToken.deployed();
+      await wrappedToken.add(token.address);
+      const wrapFee = 5;
+      await wrappedToken.setFee(wrapFee);
+
+      // create Anchor for wrapped token
+      const wrappedVAnchor = await VAnchor.createVAnchor(
+        verifier.contract.address,
+        5,
+        hasherInstance.address,
+        wrappedToken.address,
+        {
+          bridge: sender.address,
+          admin: sender.address,
+          handler: sender.address,
+        },
+        1,
+        sender
+      );
+
+      await wrappedVAnchor.contract.configureLimits(
+        BigNumber.from(0),
+        BigNumber.from(tokenDenomination).mul(1_000_000),
+      )
+
+      const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+      await wrappedToken.grantRole(MINTER_ROLE, wrappedVAnchor.contract.address);
+
+      await token.approve(wrappedToken.address, '10000000000000000000');
+      
+      //Should take a fee when depositing
+      //Deposit 2e7 and Check Relevant Balances
+      const aliceDepositAmount = 2e7;
+      const aliceDepositUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount)
+      });
+
+      const balWrappedTokenBeforeDepositAnchor = await wrappedToken.balanceOf(wrappedVAnchor.contract.address);
+      const balUnwrappedTokenBeforeDepositSender = await token.balanceOf(sender.address);
+      const balUnwrappedTokenBeforeDepositWrapper = await token.balanceOf(wrappedToken.address);
+
+      await wrappedVAnchor.transactWrap(token.address, [], [aliceDepositUtxo], 0, '0', '0');
+
+      //Balance of VAnchor wrapped token should be 2e7 - fee
+      const balWrappedTokenAfterDepositAnchor = await wrappedToken.balanceOf(wrappedVAnchor.contract.address);
+      assert.strictEqual(balWrappedTokenAfterDepositAnchor.toString(), BigNumber.from(2e7).sub(BigNumber.from(2e7).mul(wrapFee).div(100)).toString());
+
+      //Balance of sender unwrapped token should have gone down by 2e7
+      const balUnwrappedTokenAfterDepositSender = await token.balanceOf(sender.address);
+      assert.strictEqual(balUnwrappedTokenBeforeDepositSender.sub(balUnwrappedTokenAfterDepositSender).toString(), BigNumber.from(2e7).toString());
+
+      //Balance of TokenWrapper unwrapped should have gone up by 2e7
+      const balUnwrappedTokenAfterDepositWrapper = await token.balanceOf(wrappedToken.address);
+      assert.strictEqual(balUnwrappedTokenAfterDepositWrapper.sub(balUnwrappedTokenBeforeDepositWrapper).toString(), BigNumber.from(2e7).toString());
+
+      //Withdraw 1e7 and check relevant balances
+      const aliceWithdrawAmount = 1e7;
+
+      const aliceChangeUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceWithdrawAmount),
+        keypair: aliceDepositUtxo.keypair
+      });
+
+      await wrappedVAnchor.transactWrap(token.address, [aliceDepositUtxo], [aliceChangeUtxo], 0, sender.address, '0');
+
+      const balUnwrappedTokenAfterWithdrawSender = await token.balanceOf(sender.address);
+      assert.strictEqual(balUnwrappedTokenAfterWithdrawSender.sub(balUnwrappedTokenAfterDepositSender).toString(), BigNumber.from(1e7).toString());
+
+      const balWrappedTokenAfterWithdrawAnchor = await wrappedToken.balanceOf(wrappedVAnchor.contract.address);
+      assert.strictEqual(balWrappedTokenAfterDepositAnchor.sub(balWrappedTokenAfterWithdrawAnchor).toString(), BigNumber.from(1e7).toString())
+
+      const balUnwrappedTokenAfterWithdrawWrapper = await token.balanceOf(wrappedToken.address);
+      assert.strictEqual(balUnwrappedTokenAfterDepositWrapper.sub(balUnwrappedTokenAfterWithdrawWrapper).toString(), BigNumber.from(1e7).toString());
+    });
+
+    it('non-governor setting fee should fail', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+      const sender = wallet;
+      // create wrapped token
+      const name = 'webbETH';
+      const symbol = 'webbETH';
+      const wrappedTokenFactory = new WrappedTokenFactory(wallet);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      await wrappedToken.deployed();
+      await wrappedToken.add(token.address);
+      const wrapFee = 5;
+      const otherSender = signers[1];
+      assert
+      await TruffleAssert.reverts(
+        wrappedToken.connect(otherSender).setFee(wrapFee),
+        'Only governor can call this function'
+      );
+    });
+
+    it('fee percentage cannot be greater than 100', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+      const sender = wallet;
+      // create wrapped token
+      const name = 'webbETH';
+      const symbol = 'webbETH';
+      const wrappedTokenFactory = new WrappedTokenFactory(wallet);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      await wrappedToken.deployed();
+      await wrappedToken.add(token.address);
+      const wrapFee = 101;
+      assert
+      await TruffleAssert.reverts(
+        wrappedToken.setFee(wrapFee),
+        'invalid fee percentage'
+      );
+    });
+
+    it('fee percentage cannot be negative', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+      const sender = wallet;
+      // create wrapped token
+      const name = 'webbETH';
+      const symbol = 'webbETH';
+      const wrappedTokenFactory = new WrappedTokenFactory(wallet);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      await wrappedToken.deployed();
+      await wrappedToken.add(token.address);
+      const wrapFee = -1;
+      assert
+      await TruffleAssert.fails(
+        wrappedToken.setFee(wrapFee)
+      );
+    });
+
+    it('fee percentage cannot be non-integer', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+      const sender = wallet;
+      // create wrapped token
+      const name = 'webbETH';
+      const symbol = 'webbETH';
+      const wrappedTokenFactory = new WrappedTokenFactory(wallet);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      await wrappedToken.deployed();
+      await wrappedToken.add(token.address);
+      const wrapFee = 2.5;
+      assert
+      await TruffleAssert.fails(
+        wrappedToken.setFee(wrapFee)
+      );
+    });
+  }) 
 });
 

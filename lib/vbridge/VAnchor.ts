@@ -9,7 +9,7 @@ import { RootInfo } from ".";
 import { FIELD_SIZE, getExtDataHash, poseidonHash2, randomBN, shuffle, toFixedHex } from "./utils";
 import { Utxo } from './utxo';
 import { Keypair } from "./keypair";
-import { IVAnchorVerifier } from "../../typechain";
+import { GTokenWrapperMock, IVAnchorVerifier } from "../../typechain";
 
 const path = require('path');
 const snarkjs = require('snarkjs');
@@ -78,6 +78,14 @@ export interface IWitnessInput {
     outPubkey: BigNumberish[],
   };
   extData: IExtData
+}
+
+const zeroAddress = "0x0000000000000000000000000000000000000000";
+function checkNativeAddress(tokenAddress: string): boolean {
+  if (tokenAddress === zeroAddress || tokenAddress === '0') {
+    return true;
+  }
+  return false;
 }
 
 // This convenience wrapper class is used in tests -
@@ -315,15 +323,17 @@ class VAnchor {
   // Proposal data is used to update linkedAnchors via bridge proposals 
   // on other chains with this anchor's state
   public async getProposalData(leafIndex?: number): Promise<string> {
-
+    // console.log("get proposal data");
+    // console.log(`leafIndex is ${leafIndex}`);
     // If no leaf index passed in, set it to the most recent one.
     if (!leafIndex) {
       leafIndex = this.tree.number_of_elements() - 1;
     }
-
+    // console.log(`leafIndex is ${leafIndex}`);
     const chainID = await this.signer.getChainId();
-    const merkleRoot = this.depositHistory[leafIndex];
-
+    const merkleRoot = this.depositHistory[leafIndex]; //bridgedTransact should update deposithistory
+    // console.log(`chainid is ${chainID}`);
+    // console.log(`merkle root is ${merkleRoot}`);
     return '0x' +
       toHex(chainID, 32).substr(2) + 
       toHex(leafIndex, 32).substr(2) + 
@@ -524,7 +534,6 @@ class VAnchor {
     // first, check if the merkle root is known on chain - if not, then update
     await this.checkKnownRoot();
     const chainId = await this.signer.getChainId();
-    //console.log(`chain id is ${chainId}`);
     const roots = await this.populateRootInfosForProof();
     const { input, extData } = await this.generateWitnessInput(
       roots,
@@ -555,7 +564,10 @@ class VAnchor {
     //console.log(`current root (class) is ${toFixedHex(this.tree.root())}`);
     outputs.forEach((x) => {
       this.tree.insert(toFixedHex(x.getCommitment()));
+      let numOfElements = this.tree.number_of_elements();
+      this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
     });
+    
     //console.log(`updated root (class) is ${toFixedHex(this.tree.root())}`);
 
     return {
@@ -609,8 +621,81 @@ class VAnchor {
         ]
       },
       extData,
-      { gasLimit: '0x5B8D80' }
+      { gasLimit: '0xBB8D80' }
     );
+    const receipt = await tx.wait();
+    //console.log(`updated root (transact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
+    return receipt;
+  }
+  
+  public async transactWrap(
+    tokenAddress: string,
+    inputs: Utxo[], 
+    outputs: Utxo[], 
+    fee: BigNumberish = 0,
+    recipient: string = '0', 
+    relayer: string = '0'
+  ) {
+    //console.log(`current root (transact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
+    
+    while (inputs.length !== 2 && inputs.length < 16) {
+      inputs.push(new Utxo({chainId: BigNumber.from(31337)}));
+    }
+    
+    const merkleProofsForInputs = inputs.map((x) => this.getMerkleProof(x));
+    
+    if (outputs.length < 2) {
+      while (outputs.length < 2) {
+        outputs.push(new Utxo({chainId: BigNumber.from(31337)}));
+      }
+    }
+    
+    let extAmount = BigNumber.from(fee)
+      .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+      .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+    
+    //console.log(`extAmount is ${extAmount}`);
+    const { extData, publicInputs } = await this.setupTransaction(
+      inputs,
+      outputs,
+      extAmount,
+      fee,
+      recipient,
+      relayer,
+      merkleProofsForInputs,
+    );
+    let tx;
+    if (extAmount.gt(0) && checkNativeAddress(tokenAddress)) {
+      tx = await this.contract.transactWrap(
+        {
+          ...publicInputs,
+          outputCommitments: [
+            publicInputs.outputCommitments[0],
+            publicInputs.outputCommitments[1],
+          ]
+        },
+        extData,
+        tokenAddress,
+        { 
+          value: extAmount,
+          gasLimit: '0x5B8D80' 
+        }
+      );
+    } else {
+      tx = await this.contract.transactWrap(
+        {
+          ...publicInputs,
+          outputCommitments: [
+            publicInputs.outputCommitments[0],
+            publicInputs.outputCommitments[1],
+          ]
+        },
+        extData,
+        tokenAddress,
+        { gasLimit: '0x5B8D80' }
+      );
+    }
+
     const receipt = await tx.wait();
     //console.log(`updated root (transact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
     return receipt;
@@ -631,7 +716,7 @@ class VAnchor {
 
     if (outputs.length < 2) {
       while (outputs.length < 2) {
-        outputs.push(new Utxo());
+        outputs.push(new Utxo({originChainId: BigNumber.from(await this.signer.getChainId())}));
       }
     }
 
@@ -649,6 +734,7 @@ class VAnchor {
       merkleProofsForInputs,
     );
 
+
     let tx = await this.contract.transact(
       {
         ...publicInputs,
@@ -660,6 +746,76 @@ class VAnchor {
       extData,
       { gasLimit: '0x5B8D80' }
     );
+    const receipt = await tx.wait();
+    return receipt;
+  }
+
+  //token address is address of underlying unwrapped ERC20
+  public async bridgedTransactWrap(
+    tokenAddress: string,
+    inputs: Utxo[],
+    outputs: Utxo[],
+    fee: BigNumberish,
+    recipient: string,
+    relayer: string,
+    merkleProofsForInputs: any[]
+  ) {
+    // const { pathElements, pathIndices, merkleRoot } = merkleProofsForInputs;
+    if (merkleProofsForInputs.length !== inputs.length) {
+      throw new Error('Merkle proofs has different length than inputs');
+    }
+
+    if (outputs.length < 2) {
+      while (outputs.length < 2) {
+        outputs.push(new Utxo({originChainId: BigNumber.from(await this.signer.getChainId())}));
+      }
+    }
+
+    let extAmount = BigNumber.from(fee)
+      .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+      .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+
+    const { extData, publicInputs } = await this.setupTransaction(
+      inputs,
+      outputs,
+      extAmount,
+      fee,
+      recipient,
+      relayer,
+      merkleProofsForInputs,
+    );
+    
+    let tx;
+    if (extAmount.gt(0) && checkNativeAddress(tokenAddress)) {
+      tx = await this.contract.transactWrap(
+        {
+          ...publicInputs,
+          outputCommitments: [
+            publicInputs.outputCommitments[0],
+            publicInputs.outputCommitments[1],
+          ]
+        },
+        extData,
+        tokenAddress,
+        { 
+          value: extAmount,
+          gasLimit: '0x5B8D80' 
+        }
+      );
+    } else {
+      tx = await this.contract.transactWrap(
+        {
+          ...publicInputs,
+          outputCommitments: [
+            publicInputs.outputCommitments[0],
+            publicInputs.outputCommitments[1],
+          ]
+        },
+        extData,
+        tokenAddress,
+        { gasLimit: '0x5B8D80' }
+      );
+    }
     const receipt = await tx.wait();
     return receipt;
   }
