@@ -535,7 +535,7 @@ import { TokenWrapper } from '../../typechain';
           //wrapped balance of vanchor1 should be 1e7
           const balVAnchor1Wrapped = await webbToken1.getBalance(vAnchor1.contract.address);
           assert.strictEqual(balVAnchor1Wrapped.toString(), BigNumber.from(1e7).toString());
-        });
+        }).timeout(40000);
       });
     });
 
