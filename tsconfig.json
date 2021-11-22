@@ -5,8 +5,8 @@
     "strict": true,
     "esModuleInterop": true,
     "outDir": "src",
-    "sourceMap": true,
+    "declaration": true
   },
-  "include": ["./typechain", "./lib"],
-  "files": ["./hardhat.config.ts"]
+  "include": ["./typechain", "./lib/fixed-bridge", "./lib/tokens"],
+  "files": ["./lib/index.ts", "./lib/Poseidon.ts", "./lib/Storage.ts", "./lib/utils.ts", "./index.ts"]
 }
