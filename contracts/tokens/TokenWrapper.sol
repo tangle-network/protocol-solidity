@@ -12,7 +12,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
-
 /**
     @title Manages deposited ERC20s.
     @author ChainSafe Systems.
@@ -46,7 +45,11 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
             ? msg.value
             : amount
         );
-        uint leftover = amount.sub(costToWrap);
+
+         uint leftover = tokenAddress == address(0)
+            ? uint(msg.value).sub(costToWrap)
+            : amount.sub(costToWrap);
+        
         if (tokenAddress == address(0)) {
             // mint the native value sent to the contract
             _mint(_msgSender(), leftover);
@@ -116,7 +119,9 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
             ? msg.value
             : amount
         );
-        uint leftover = amount.sub(costToWrap);
+        uint leftover = tokenAddress == address(0)
+            ? uint(msg.value).sub(costToWrap)
+            : amount.sub(costToWrap);
         if (tokenAddress == address(0)) {
             mint(sender, leftover);
         } else {
@@ -144,7 +149,9 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
             ? msg.value
             : amount
         );
-        uint leftover = amount.sub(costToWrap);
+        uint leftover = tokenAddress == address(0)
+            ? uint(msg.value).sub(costToWrap)
+            : amount.sub(costToWrap);
         if (tokenAddress == address(0)) {
             mint(recipient, leftover);
         } else {
