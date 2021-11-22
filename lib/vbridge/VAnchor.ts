@@ -1,5 +1,5 @@
 import { BigNumber, BigNumberish, ethers } from "ethers";
-import { VAnchor__factory } from '../../typechain/factories/VAnchor__factory';
+import { VAnchor__factory, VAnchorLibraryAddresses } from '../../typechain/factories/VAnchor__factory';
 import { VAnchor as VAnchorContract} from '../../typechain/VAnchor';
 import { rbigint, p256, toHex } from "../utils";
 import PoseidonHasher from '../Poseidon';
@@ -11,6 +11,7 @@ import { Utxo } from './utxo';
 import { Keypair } from "./keypair";
 import { GTokenWrapperMock, IVAnchorVerifier } from "../../typechain";
 import { VAnchorEncodeInputs } from "../../typechain";
+import { VAnchorEncodeInputs__factory } from '../../typechain/factories/VAnchorEncodeInputs__factory';
 
 const path = require('path');
 const snarkjs = require('snarkjs');
@@ -166,7 +167,9 @@ class VAnchor {
     maxEdges: number,
     signer: ethers.Signer,
   ) {
-    const factory = new VAnchor__factory(signer);
+    const encodeLibraryFactory = new VAnchorEncodeInputs__factory(signer);
+    const encodeLibrary = await encodeLibraryFactory.deploy();
+    const factory = new VAnchor__factory({["contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs"]: encodeLibrary.address}, signer);
     const vAnchor = await factory.deploy(verifier, levels, hasher, token, permissions, maxEdges, {});
     await vAnchor.deployed();
     const createdVAnchor = new VAnchor(vAnchor, signer, BigNumber.from(levels).toNumber(), maxEdges);
