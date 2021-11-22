@@ -8,41 +8,26 @@ const BN = require('bn.js');
 const helpers = require('../helpers');
 const assert = require('assert');
 
+const Poseidon = artifacts.require('PoseidonT3')
 const MerkleTreeWithHistory = artifacts.require('MerkleTreePoseidonMock')
-const Poseidon = artifacts.require('PoseidonT3');
-
-const MerkleTree = require('../../lib/MerkleTree')
-const hasherImpl = require('../../lib/Poseidon')
-const snarkjs = require('snarkjs');
-const { collapseTextChangeRangesAcrossMultipleVersions } = require('typescript');
+const MerkleTree = require('../../lib/fixed-bridge/MerkleTree').MerkleTree
+const poseidonHasher = require('../../lib/Poseidon').default;
 
 const { ETH_AMOUNT, MERKLE_TREE_HEIGHT } = process.env
 
-// eslint-disable-next-line no-unused-vars
-function BNArrayToStringArray(array) {
-  const arrayToPrint = []
-  array.forEach((item) => {
-    arrayToPrint.push(item.toString())
-  })
-  return arrayToPrint
-}
-
 contract('MerkleTreePoseidon', (accounts) => {
-  let web3;
   let merkleTreeWithHistory;
-  let HasherFactory;
   let hasherInstance;
   let levels = MERKLE_TREE_HEIGHT || 30;
   const sender = accounts[0];
   // eslint-disable-next-line no-unused-vars
   const value = ETH_AMOUNT || '1000000000000000000';
-  let snapshotId;
   let prefix = 'test';
   let tree;
 
   beforeEach(async () => {
     hasherInstance = await Poseidon.new();
-    tree = new MerkleTree(levels, null, prefix)
+    tree = new MerkleTree(prefix, levels)
     merkleTreeWithHistory = await MerkleTreeWithHistory.new(levels, hasherInstance.address)
   })
 
@@ -58,32 +43,32 @@ contract('MerkleTreePoseidon', (accounts) => {
   });
 
   describe('merkleTreeLib', () => {
-    it('index_to_key', () => {
-      assert(MerkleTree.index_to_key('test', 5, 20) == 'test_tree_5_20')
+    it('keyFormat', () => {
+      assert(MerkleTree.keyFormat('test', 5, 20) == 'test_tree_5_20')
     });
 
     it('tests insert', async () => {
-      hasher = new hasherImpl()
-      tree = new MerkleTree(2, null, prefix)
+      hasher = new poseidonHasher()
+      tree = new MerkleTree(prefix, 2)
       await tree.insert(helpers.toFixedHex('5'))
-      let { root, path_elements } = await tree.path(0);
+      let { merkleRoot, pathElements } = await tree.path(0);
       const calculated_root = hasher.hash(
         null,
-        hasher.hash(null, '5', path_elements[0]),
-        path_elements[1]
+        hasher.hash(null, '5', pathElements[0]),
+        pathElements[1]
       );
       // console.log(root)
-      assert(root == calculated_root)
+      assert(merkleRoot == calculated_root)
     });
 
     it('creation odd elements count', async () => {
-      tree = new MerkleTree(levels, null, prefix)
+      tree = new MerkleTree(prefix, levels)
       const elements = [12, 13, 14, 15, 16, 17, 18, 19, 20]
       for (const [, el] of Object.entries(elements)) {
         await tree.insert(el)
       }
 
-      const batchTree = new MerkleTree(levels, elements, prefix)
+      const batchTree = new MerkleTree(prefix, levels, elements)
       for (const [i] of Object.entries(elements)) {
         const pathViaConstructor = await batchTree.path(i)
         const pathViaUpdate = await tree.path(i)
@@ -92,7 +77,7 @@ contract('MerkleTreePoseidon', (accounts) => {
     });
 
     it('should find an element', async () => {
-      tree = new MerkleTree(levels, null, prefix)
+      tree = new MerkleTree(prefix, levels)
       const elements = [12, 13, 14, 15, 16, 17, 18, 19, 20]
       for (const [, el] of Object.entries(elements)) {
         await tree.insert(el)
@@ -114,13 +99,13 @@ contract('MerkleTreePoseidon', (accounts) => {
     })
 
     it('creation even elements count', async () => {
-      const tree = new MerkleTree(levels, null, prefix)
+      const tree = new MerkleTree(prefix, levels)
       const elements = [12, 13, 14, 15, 16, 17]
       for (const [, el] of Object.entries(elements)) {
         await tree.insert(el)
       }
 
-      const batchTree = new MerkleTree(levels, elements, prefix)
+      const batchTree = new MerkleTree(prefix, levels, elements)
       for (const [i] of Object.entries(elements)) {
         const pathViaConstructor = await batchTree.path(i)
         const pathViaUpdate = await tree.path(i)
@@ -134,7 +119,7 @@ contract('MerkleTreePoseidon', (accounts) => {
         elements.push(i)
       }
       console.time('MerkleTree')
-      tree = new MerkleTree(levels, elements, prefix)
+      tree = new MerkleTree(prefix, levels)
       console.timeEnd('MerkleTree')
       // 2,7 GHz Intel Core i7
       // 1000 : 1949.084ms
@@ -145,7 +130,7 @@ contract('MerkleTreePoseidon', (accounts) => {
 
   describe('#hash', () => {
     it('should hash', async () => {
-      hasher = new hasherImpl()
+      hasher = new poseidonHasher()
       let contractResult = await hasherInstance.poseidon([10, 10]);
       let result = hasher.hash(null, 10, 10);
       assert.strictEqual(result.toString(), contractResult.toString());
@@ -169,9 +154,9 @@ contract('MerkleTreePoseidon', (accounts) => {
       for (let i = 1; i < 11; i++) {
         await merkleTreeWithHistory.insert(helpers.toFixedHex(i), { from: sender })
         await tree.insert(i)
-        let { root } = await tree.path(i - 1)
+        let { merkleRoot } = await tree.path(i - 1)
         rootFromContract = await merkleTreeWithHistory.getLastRoot();
-        assert.strictEqual(helpers.toFixedHex(root), rootFromContract.toString());
+        assert.strictEqual(helpers.toFixedHex(merkleRoot), rootFromContract.toString());
       }
     });
 
@@ -212,13 +197,13 @@ contract('MerkleTreePoseidon', (accounts) => {
         TruffleAssert.passes(await merkleTreeWithHistory.insert(helpers.toFixedHex(i), { from: sender }))
         await tree.insert(i)
         path = await tree.path(i - 1)
-        let isKnown = await merkleTreeWithHistory.isKnownRoot(helpers.toFixedHex(path.root))
+        let isKnown = await merkleTreeWithHistory.isKnownRoot(helpers.toFixedHex(path.merkleRoot))
         assert(isKnown);
       }
 
       TruffleAssert.passes(await merkleTreeWithHistory.insert(helpers.toFixedHex(42), { from: sender }));
       // check outdated root
-      let isKnown = await merkleTreeWithHistory.isKnownRoot(helpers.toFixedHex(path.root))
+      let isKnown = await merkleTreeWithHistory.isKnownRoot(helpers.toFixedHex(path.merkleRoot))
       assert(isKnown);
     });
 
@@ -235,15 +220,15 @@ contract('MerkleTreePoseidon', (accounts) => {
       const deposit = helpers.generateDeposit();
       const commitment = deposit.commitment;
       await tree.insert(commitment);
-      const { root, path_elements, path_index } = await tree.path(0);
+      const { merkleRoot, pathElements, pathIndices } = await tree.path(0);
       await merkleTreeWithHistory.insert(helpers.toFixedHex(commitment), { from: sender });
       rootFromContract = await merkleTreeWithHistory.getLastRoot();
-      assert.strictEqual(helpers.toFixedHex(root), rootFromContract.toString());
+      assert.strictEqual(helpers.toFixedHex(merkleRoot), rootFromContract.toString());
 
       let curr = deposit.commitment;
-      for (var i = 0; i < path_elements.length; i++) {
-        let elt = path_elements[i];
-        let side = path_index[i];
+      for (var i = 0; i < pathElements.length; i++) {
+        let elt = pathElements[i];
+        let side = pathIndices[i];
         if (side === 0) {
           let contractResult = await hasherInstance.poseidon([curr, elt]);
           curr = contractResult;
@@ -253,7 +238,7 @@ contract('MerkleTreePoseidon', (accounts) => {
         }
       }
 
-      assert.strictEqual(helpers.toFixedHex(curr), helpers.toFixedHex(root));
+      assert.strictEqual(helpers.toFixedHex(curr), helpers.toFixedHex(merkleRoot));
     });
   });
 });

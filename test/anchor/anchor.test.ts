@@ -9,7 +9,6 @@ const TruffleAssert = require('truffle-assertions');
 const fs = require('fs');
 const path = require('path');
 const { toBN, randomHex } = require('web3-utils');
-const Poseidon = artifacts.require('PoseidonT3');
 
 // Typechain generated bindings for contracts
 import {
@@ -17,13 +16,15 @@ import {
   ERC20Mock__factory as TokenFactory,
   GovernedTokenWrapper as WrappedToken,
   GovernedTokenWrapper__factory as WrappedTokenFactory,
+  PoseidonT3__factory,
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
-import Anchor from '../../lib/bridge/Anchor';
-import { getHasherFactory } from '../../lib/bridge/utils';
-import Verifier from '../../lib/bridge/Verifier';
-import MintableToken from '../../lib/bridge/MintableToken';
+import { ZkComponents } from '../../lib/fixed-bridge/types';
+import Anchor from '../../lib/fixed-bridge/Anchor';
+import { MerkleTree } from '../../lib/fixed-bridge/MerkleTree';
+import { fetchComponentsFromFilePaths } from '../../lib/utils';
+import Verifier from '../../lib/fixed-bridge/Verifier';
 
 const { NATIVE_AMOUNT } = process.env
 const snarkjs = require('snarkjs')
@@ -32,15 +33,15 @@ const BN = require('bn.js');
 const F = require('circomlibjs').babyjub.F;
 const Scalar = require("ffjavascript").Scalar;
 
-const helpers = require('../../lib/bridge/utils');
-const MerkleTree = require('../../lib/MerkleTree');
+const helpers = require('../../lib/utils');
 
 describe('Anchor for 2 max edges', () => {
   let anchor: Anchor;
+  let zkComponents: ZkComponents;
 
   const levels = 30;
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
-  let tree: typeof MerkleTree;
+  let tree: MerkleTree;
   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
   const refund = BigInt((new BN('0')).toString());
   let recipient = "0x1111111111111111111111111111111111111111";
@@ -53,15 +54,24 @@ describe('Anchor for 2 max edges', () => {
   const MAX_EDGES = 1;
   let createWitness: any;
 
+  before(async () => {
+    // Grab the zero knowledge components
+    zkComponents = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey')
+    );
+  })
+
   beforeEach(async () => {
     const signers = await ethers.getSigners();
     const wallet = signers[0];
     const sender = wallet;
 
-    tree = new MerkleTree(levels, null, null);
+    tree = new MerkleTree('', levels);
 
     // create poseidon hasher
-    const hasherFactory = await getHasherFactory(wallet);
+    const hasherFactory = new PoseidonT3__factory(wallet);
     hasherInstance = await hasherFactory.deploy();
     await hasherInstance.deployed();
 
@@ -85,6 +95,7 @@ describe('Anchor for 2 max edges', () => {
       sender.address,
       sender.address,
       MAX_EDGES,
+      zkComponents,
       sender,
     );
 
@@ -138,17 +149,17 @@ describe('Anchor for 2 max edges', () => {
     it('should detect tampering', async () => {
       const deposit = Anchor.generateDeposit(chainID);
       await tree.insert(deposit.commitment);
-      const { root, path_elements, path_index } = await tree.path(0);
-      const roots = [root, 0];
+      const { merkleRoot, pathElements, pathIndices } = await tree.path(0);
+      const roots = [merkleRoot, 0];
       const diffs = roots.map(r => {
         return F.sub(
           Scalar.fromString(`${r}`),
-          Scalar.fromString(`${root}`),
+          Scalar.fromString(`${merkleRoot}`),
         ).toString();
       });
       // mock set membership gadget computation
       for (var i = 0; i < roots.length; i++) {
-        assert.strictEqual(Scalar.fromString(roots[i]), F.add(Scalar.fromString(diffs[i]), Scalar.fromString(root)));
+        assert.strictEqual(Scalar.fromString(roots[i]), F.add(Scalar.fromString(diffs[i]), Scalar.fromString(merkleRoot)));
       }
 
       const signers = await ethers.getSigners();
@@ -163,16 +174,16 @@ describe('Anchor for 2 max edges', () => {
         fee,
         refund,
         chainID: deposit.chainID,
-        roots: [root, 0],
+        roots: [merkleRoot, 0],
         // private
         nullifier: deposit.nullifier,
         secret: deposit.secret,
-        pathElements: path_elements,
-        pathIndices: path_index,
-        diffs: [root, 0].map(r => {
+        pathElements: pathElements,
+        pathIndices: pathIndices,
+        diffs: [merkleRoot, 0].map(r => {
           return F.sub(
             Scalar.fromString(`${r}`),
-            Scalar.fromString(`${root}`),
+            Scalar.fromString(`${merkleRoot}`),
           ).toString();
         }),
       };
@@ -273,7 +284,7 @@ describe('Anchor for 2 max edges', () => {
       await tree.insert(deposit.commitment)
       await anchor.contract.deposit(helpers.toFixedHex(deposit.commitment))
 
-      const { root, path_elements, path_index } = await tree.path(0)
+      const { merkleRoot, pathElements, pathIndices } = await tree.path(0)
 
       const input = {
         // public
@@ -284,16 +295,16 @@ describe('Anchor for 2 max edges', () => {
         fee,
         refund,
         chainID: deposit.chainID,
-        roots: [root, 0],
+        roots: [merkleRoot, '0'],
         // private
         nullifier: deposit.nullifier,
         secret: deposit.secret,
-        pathElements: path_elements,
-        pathIndices: path_index,
-        diffs: [root, 0].map(r => {
+        pathElements: pathElements,
+        pathIndices: pathIndices,
+        diffs: [merkleRoot, 0].map(r => {
           return F.sub(
             Scalar.fromString(`${r}`),
-            Scalar.fromString(`${root}`),
+            Scalar.fromString(`${merkleRoot}`),
           ).toString();
         }),
       };
@@ -349,7 +360,7 @@ describe('Anchor for 2 max edges', () => {
       await tree.insert(deposit.commitment)
       await anchor.contract.deposit(helpers.toFixedHex(deposit.commitment))
 
-      const { root, path_elements, path_index } = await tree.path(0)
+      const { merkleRoot, pathElements, pathIndices } = await tree.path(0)
 
       const input = {
         // public
@@ -360,16 +371,16 @@ describe('Anchor for 2 max edges', () => {
         fee,
         refund,
         chainID: deposit.chainID,
-        roots: [root, 0],
+        roots: [merkleRoot, 0],
         // private
         nullifier: deposit.nullifier,
         secret: deposit.secret,
-        pathElements: path_elements,
-        pathIndices: path_index,
-        diffs: [root, 0].map(r => {
+        pathElements: pathElements,
+        pathIndices: pathIndices,
+        diffs: [merkleRoot, 0].map(r => {
           return F.sub(
             Scalar.fromString(`${r}`),
-            Scalar.fromString(`${root}`),
+            Scalar.fromString(`${merkleRoot}`),
           ).toString();
         }),
       };
@@ -408,7 +419,7 @@ describe('Anchor for 2 max edges', () => {
       await tree.insert(deposit.commitment)
       await anchor.contract.deposit(helpers.toFixedHex(deposit.commitment))
 
-      let { root, path_elements, path_index } = await tree.path(0)
+      let { merkleRoot, pathElements, pathIndices } = await tree.path(0)
 
       const input = {
         // public
@@ -419,16 +430,16 @@ describe('Anchor for 2 max edges', () => {
         fee,
         refund,
         chainID: deposit.chainID,
-        roots: [root, 0],
+        roots: [merkleRoot, '0'],
         // private
         nullifier: deposit.nullifier,
         secret: deposit.secret,
-        pathElements: path_elements,
-        pathIndices: path_index,
-        diffs: [root, 0].map(r => {
+        pathElements: pathElements,
+        pathIndices: pathIndices,
+        diffs: [merkleRoot, 0].map(r => {
           return F.sub(
             Scalar.fromString(`${r}`),
-            Scalar.fromString(`${root}`),
+            Scalar.fromString(`${merkleRoot}`),
           ).toString();
         }),
       };
@@ -562,7 +573,7 @@ describe('Anchor for 2 max edges', () => {
       await anchor.deposit();
 
       // create a new anchor by connecting to the address of the setup anchor
-      const newAnchor = await Anchor.connect(anchor.contract.address, wallet);
+      const newAnchor = await Anchor.connect(anchor.contract.address, zkComponents, wallet);
 
       // make sure the deposit goes through
       await TruffleAssert.passes(newAnchor.deposit());
@@ -577,7 +588,7 @@ describe('Anchor for 2 max edges', () => {
       await anchor.deposit();
 
       // create a new anchor by connecting to the address of the setup anchor
-      const newAnchor = await Anchor.connect(anchor.contract.address, wallet);
+      const newAnchor = await Anchor.connect(anchor.contract.address, zkComponents, wallet);
       await newAnchor.update();
 
       // check that the merkle roots are the same for both anchor instances
@@ -592,9 +603,29 @@ describe('Anchor for 2 max edges', () => {
       const { deposit, index } = await anchor.deposit();
 
       // create a new anchor by connecting to the address of the setup anchor
-      const newAnchor = await Anchor.connect(anchor.contract.address, wallet);
+      const newAnchor = await Anchor.connect(anchor.contract.address, zkComponents, wallet);
       await TruffleAssert.passes(newAnchor.withdraw(deposit, index, recipient, signers[1].address, fee, bigInt(0)));
     });
+
+    it('Should properly create withdraw proof to use directly in contract', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+
+      // create a deposit on the anchor already setup
+      const { deposit, index } = await anchor.deposit();
+
+      const newAnchor = await Anchor.connect(anchor.contract.address, zkComponents, wallet);
+      await newAnchor.update();
+
+      const withdrawSetup = await newAnchor.setupWithdraw(deposit, index, recipient, signers[1].address, fee, bigInt(0));
+      
+      const proof = `0x${withdrawSetup.proofEncoded}`;
+      const args = withdrawSetup.args;
+
+      const publicInputs = Anchor.convertArgsArrayToStruct(args);
+
+      await TruffleAssert.passes(newAnchor.contract.withdraw(proof, publicInputs));
+    })
 
     it('should properly refresh a deposit', async () => {
       const signers = await ethers.getSigners();
@@ -638,7 +669,7 @@ describe('Anchor for 2 max edges', () => {
       assert(res);
 
       // create a new anchor by connecting to the address of the setup anchor
-      let newAnchor = await Anchor.connect(anchor.contract.address, wallet);
+      let newAnchor = await Anchor.connect(anchor.contract.address, zkComponents, wallet);
       await TruffleAssert.passes(newAnchor.withdraw(
         deposit,
         index,
@@ -680,6 +711,7 @@ describe('Anchor for 2 max edges', () => {
         sender.address,
         sender.address,
         MAX_EDGES,
+        zkComponents,
         sender
       );
 
@@ -697,7 +729,7 @@ describe('Anchor for 2 max edges', () => {
 
       const balWrappedTokenAfterDepositAnchor = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
       const balWrappedTokenAfterDepositSender = await wrappedToken.balanceOf(sender.address);
-      const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, wallet);
+      const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, zkComponents, wallet);
       await TruffleAssert.passes(newAnchor.withdraw(deposit, index, sender.address, signers[1].address, bigInt(0), bigInt(0)));
       const balWrappedTokenAfterWithdrawSender = await wrappedToken.balanceOf(sender.address);
       const balWrappedTokenAfterWithdrawAnchor = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
@@ -728,6 +760,7 @@ describe('Anchor for 2 max edges', () => {
         sender.address,
         sender.address,
         MAX_EDGES,
+        zkComponents,
         sender
       );
 
@@ -750,7 +783,7 @@ describe('Anchor for 2 max edges', () => {
       const tokenWrapperBalanceOfToken = await token.balanceOf(tokenWrapper);
       assert.deepStrictEqual(tokenWrapperBalanceOfToken.toString(), tokenDenomination);
 
-      const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, wallet);
+      const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, zkComponents, wallet);
       await TruffleAssert.passes(newAnchor.withdrawAndUnwrap(
         deposit,
         originChainId,
@@ -789,6 +822,7 @@ describe('Anchor for 2 max edges', () => {
         sender.address,
         sender.address,
         MAX_EDGES,
+        zkComponents,
         sender
       );
 
@@ -798,7 +832,7 @@ describe('Anchor for 2 max edges', () => {
       await token.approve(wrappedToken.address, '1000000000000000000');
       const balTokenBeforeDepositSender = await token.balanceOf(sender.address);
 
-      const anchorUnderTest = await Anchor.connect(wrappedAnchor.contract.address, wallet);
+      const anchorUnderTest = await Anchor.connect(wrappedAnchor.contract.address, zkComponents, wallet);
 
       // create a deposit on the anchor already setup
       const { deposit, index, originChainId } = await anchorUnderTest.wrapAndDeposit(
@@ -834,10 +868,11 @@ describe('Anchor for 2 max edges', () => {
 // Test deposit and withdraw on the same anchor - but it's 3 roots to pass in.
 describe('Anchor for 2 max edges (3-sided bridge)', () => {
   let anchor: Anchor;
+  let zkComponents: ZkComponents;
 
   const levels = 30;
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
-  let tree: typeof MerkleTree;
+  let tree: MerkleTree;
   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
   const refund = BigInt((new BN('0')).toString());
   let recipient = "0x1111111111111111111111111111111111111111";
@@ -849,15 +884,23 @@ describe('Anchor for 2 max edges (3-sided bridge)', () => {
   const MAX_EDGES = 2;
   let createWitness: any;
 
+  before(async () => {
+    zkComponents = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/3/poseidon_bridge_3.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/3/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/3/circuit_final.zkey')
+    );
+  })
+
   beforeEach(async () => {
     const signers = await ethers.getSigners();
     const wallet = signers[0];
     const sender = wallet;
 
-    tree = new MerkleTree(levels, null, null);
+    tree = new MerkleTree('', levels);
 
     // create poseidon hasher
-    const hasherFactory = await getHasherFactory(wallet);
+    const hasherFactory = new PoseidonT3__factory(wallet);
     hasherInstance = await hasherFactory.deploy();
     await hasherInstance.deployed();
 
@@ -881,6 +924,7 @@ describe('Anchor for 2 max edges (3-sided bridge)', () => {
       sender.address,
       sender.address,
       MAX_EDGES,
+      zkComponents,
       sender,
     );
 
@@ -938,10 +982,11 @@ describe('Anchor for 2 max edges (3-sided bridge)', () => {
 // Test deposit and withdraw on the same anchor - but it's 4 roots to pass in.
 describe('Anchor for 3 max edges (4-sided bridge)', () => {
   let anchor: Anchor;
+  let zkComponents: ZkComponents;
 
   const levels = 30;
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
-  let tree: typeof MerkleTree;
+  let tree: MerkleTree;
   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
   const refund = BigInt((new BN('0')).toString());
   let recipient = "0x1111111111111111111111111111111111111111";
@@ -953,15 +998,23 @@ describe('Anchor for 3 max edges (4-sided bridge)', () => {
   const MAX_EDGES = 3;
   let createWitness: any;
 
+  before(async () => {
+    zkComponents = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/4/poseidon_bridge_4.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/4/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/4/circuit_final.zkey'),
+    );
+  })
+
   beforeEach(async () => {
     const signers = await ethers.getSigners();
     const wallet = signers[0];
     const sender = wallet;
 
-    tree = new MerkleTree(levels, null, null);
+    tree = new MerkleTree('', levels);
 
     // create poseidon hasher
-    const hasherFactory = await getHasherFactory(wallet);
+    const hasherFactory = new PoseidonT3__factory(wallet);
     hasherInstance = await hasherFactory.deploy();
     await hasherInstance.deployed();
 
@@ -985,6 +1038,7 @@ describe('Anchor for 3 max edges (4-sided bridge)', () => {
       sender.address,
       sender.address,
       MAX_EDGES,
+      zkComponents,
       sender,
     );
 
@@ -1042,10 +1096,11 @@ describe('Anchor for 3 max edges (4-sided bridge)', () => {
 // Test deposit and withdraw on the same anchor - but it's 4 roots to pass in.
 describe('Anchor for 4 max edges (5-sided bridge)', () => {
   let anchor: Anchor;
+  let zkComponents: ZkComponents;
 
   const levels = 30;
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
-  let tree: typeof MerkleTree;
+  let tree: MerkleTree;
   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
   const refund = BigInt((new BN('0')).toString());
   let recipient = "0x1111111111111111111111111111111111111111";
@@ -1057,15 +1112,23 @@ describe('Anchor for 4 max edges (5-sided bridge)', () => {
   const MAX_EDGES = 4;
   let createWitness: any;
 
+  before(async () => {
+    zkComponents = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/5/poseidon_bridge_5.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/5/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/5/circuit_final.zkey'),
+    );
+  })
+
   beforeEach(async () => {
     const signers = await ethers.getSigners();
     const wallet = signers[0];
     const sender = wallet;
 
-    tree = new MerkleTree(levels, null, null);
+    tree = new MerkleTree('', levels);
 
     // create poseidon hasher
-    const hasherFactory = await getHasherFactory(wallet);
+    const hasherFactory = new PoseidonT3__factory(wallet);
     hasherInstance = await hasherFactory.deploy();
     await hasherInstance.deployed();
 
@@ -1089,6 +1152,7 @@ describe('Anchor for 4 max edges (5-sided bridge)', () => {
       sender.address,
       sender.address,
       MAX_EDGES,
+      zkComponents,
       sender,
     );
 

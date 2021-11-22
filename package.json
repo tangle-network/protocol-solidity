@@ -1,8 +1,8 @@
 {
-  "name": "darkwebb-solidity",
-  "version": "0.1.0",
+  "name": "webb-solidity",
+  "version": "0.1.7",
   "main": "index.js",
-  "repository": "https://github.com/webb-tools/darkwebb-solidity.git",
+  "repository": "https://github.com/webb-tools/protocol-solidity.git",
   "author": "Webb Technologies",
   "license": "GPL-3.0-or-later",
   "scripts": {
@@ -10,6 +10,7 @@
     "build": "yarn compile && yarn build:circuits && yarn build:ptau",
     "build:circuits": "./scripts/bash/build_circuits.sh",
     "build:ptau": "./scripts/bash/generate_phase1_ptau.sh",
+    "prepublishOnly": "tsc && ./scripts/bash/npm/prepublish.sh",
     "run:deploy-webb": "ts-node ./scripts/evm/webbSystemDeployment.ts",
     "run:inspect-webb": "ts-node ./scripts/evm/inspectWebbInstance.ts",
     "run:link-webbs": "ts-node ./scripts/evm/linkAnchors.ts",
@@ -67,5 +68,6 @@
     "prettier-plugin-solidity": "^1.0.0-beta.18",
     "ts-node": "^10.1.0",
     "typechain": "^5.1.2"
-  }
+  },
+  "files": ["src/**/*"]
 }

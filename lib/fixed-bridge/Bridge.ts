@@ -1,11 +1,12 @@
 import { ethers } from "ethers";
 import BridgeSide from './BridgeSide';
-import Anchor, { AnchorDeposit } from './Anchor';
+import Anchor from './Anchor';
 import AnchorHandler from "./AnchorHandler";
-import MintableToken from "./MintableToken";
-import { getHasherFactory } from './utils';
+import MintableToken from "../tokens/MintableToken";
+import { ZkComponents, AnchorDeposit } from './types';
 import Verifier from "./Verifier";
-import GovernedTokenWrapper from "./GovernedTokenWrapper";
+import GovernedTokenWrapper from "../tokens/GovernedTokenWrapper";
+import { PoseidonT3__factory } from "../../typechain";
 
 // Deployer config matches the chainId to the signer for that chain
 export type DeployerConfig = Record<number, ethers.Signer>;
@@ -14,24 +15,6 @@ type AnchorIdentifier = {
   anchorSize: ethers.BigNumberish;
   chainId: number;
 };
-
-// The AnchorMetadata holds information about anchors such as:
-//   - The amount they hold
-// type AnchorMetadata = {
-//   tokenType: TokenType,
-//   depositedAmount: ethers.BigNumberish,
-// }
-
-// type AnchorWithMetadata = {
-//   metadata: AnchorWithMetadata;
-//   anchor: Anchor;
-// }
-
-// enum TokenType {
-//   webb,
-//   erc20,
-//   native,
-// };
 
 type AnchorQuery = {
   anchorSize?: ethers.BigNumberish;
@@ -133,40 +116,7 @@ class Bridge {
     return linkedAnchorMap;
   }
 
-  // public static async connectBridge(bridgeConfig: BridgeConfig) {
-  //   // Parse the anchorIdStrings into achor identifiers
-  //   let identifiedAnchors: AnchorIdentifier[] = [];
-  //   for (const key of bridgeConfig.anchors.keys()) {
-  //     const createdAnchorIdentifier = Bridge.createAnchorIdentifier(key);
-  //     if (createdAnchorIdentifier) {
-  //       identifiedAnchors.push(createdAnchorIdentifier);
-  //     }
-  //   }
-
-  //   // loop through and group anchors by their identifiers
-  //   let groupLinkedAnchors: Anchor[][] = [];
-
-  //   for (const anchor of identifiedAnchors) {
-  //     let anchorGroup: Anchor[] = [];
-
-  //     for (const linkableAnchor of identifiedAnchors) {
-  //       if (
-  //         anchor.tokenName == linkableAnchor.tokenName && 
-  //         anchor.anchorSize == linkableAnchor.anchorSize
-  //       ) {
-  //         anchorGroup.push(bridgeConfig.anchors.get(Bridge.createAnchorIdString(linkableAnchor))!);
-  //       }
-  //     }
-
-  //     groupLinkedAnchors.push(anchorGroup);
-  //   }
-
-  //   const linkedAnchors = await Bridge.createLinkedAnchorMap(groupLinkedAnchors);
-    
-  //   return new Bridge(bridgeConfig.bridgeSides, bridgeConfig.webbTokenAddresses, linkedAnchors, bridgeConfig.anchors);
-  // }
-
-  public static async deployBridge(bridgeInput: BridgeInput, deployers: DeployerConfig): Promise<Bridge> {
+  public static async deployBridge(bridgeInput: BridgeInput, deployers: DeployerConfig, zkComponents: ZkComponents): Promise<Bridge> {
     
     let webbTokenAddresses: Map<number, string> = new Map();
     let bridgeSides: Map<number, BridgeSide> = new Map();
@@ -191,7 +141,7 @@ class Bridge {
       console.log(`bridgeSide address on ${chainID}: ${bridgeInstance.contract.address}`);
 
       // Create the Hasher and Verifier for the chain
-      const hasherFactory = await getHasherFactory(deployers[chainID]);
+      const hasherFactory = new PoseidonT3__factory(deployers[chainID]);
       let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
       await hasherInstance.deployed();
 
@@ -247,6 +197,7 @@ class Bridge {
           adminAddress,
           adminAddress,
           bridgeInput.chainIDs.length-1,
+          zkComponents,
           deployers[chainID]
         );
 

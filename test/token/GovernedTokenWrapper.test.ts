@@ -8,10 +8,10 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
  const TruffleAssert = require('truffle-assertions');
  
  // Convenience wrapper classes for contract classes
- import ERC20Class from '../../lib/bridge/ERC20';
- import GovernedTokenWrapperClass from '../../lib/bridge/GovernedTokenWrapper';
+ import ERC20Class from '../../lib/tokens/ERC20';
+ import GovernedTokenWrapperClass from '../../lib/tokens/GovernedTokenWrapper';
  
- const helpers = require('../../lib/bridge/utils');
+ const helpers = require('../../lib/utils');
  
  describe('GovernedTokenWrapper', () => {
   let token: ERC20Class;

@@ -10,7 +10,7 @@ const {
   stringifyBigInts,
 } = utils;
 const PoseidonHasher = require('../../lib/Poseidon'); 
-const MerkleTree = require('../../lib/MerkleTree');
+const MerkleTree = require('../../lib/fixed-bridge/MerkleTree');
 
 const poseidonHasher = new PoseidonHasher();
 

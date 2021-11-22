@@ -6,25 +6,27 @@ export async function run() {
 
   const providerRinkeby = new ethers.providers.JsonRpcProvider(`https://rinkeby.infura.io/v3/fff68ca474dd4764a8d54dd14fa5519e`);
   const walletRinkeby = new ethers.Wallet(process.env.PRIVATE_KEY!, providerRinkeby);
-  const providerHarmonyTestnet0 = new ethers.providers.JsonRpcProvider(`https://api.s0.b.hmny.io`);
-  const walletHarmonyTestnet0 = new ethers.Wallet(process.env.PRIVATE_KEY!, providerHarmonyTestnet0);
+  const providerKovan = new ethers.providers.JsonRpcProvider(`https://kovan.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161`);
+  const walletKovan = new ethers.Wallet(process.env.PRIVATE_KEY!, providerKovan);
+  const providerGoerli = new ethers.providers.JsonRpcProvider(`https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161`);
+  const walletGoerli = new ethers.Wallet(process.env.PRIVATE_KEY!, providerGoerli);
 
   const bridgeInput: BridgeInput = {
     anchorInputs: {
       asset: {
-        4: ['0x7Cec2Bf7D9c4C3C96Da8a0BfeBAB1E84b8212394'],
-        1666700000: ['0x9d609F54536Cef34f5F612BD976ca632F1fa208E'],
+        4: ['0x65fd9f7e75Abaa40fD349948e52291Bb0108eE0B'],
+        5: ['0x72277b0eae5c965f735cde6c54d6d7ab177186e6'],
       },
       anchorSizes: ['100000000000000000'],
     },
-    chainIDs: [4, 1666700000],
+    chainIDs: [4, 5],
   };
 
   //Record<number, ethers.Signer>;
   const deployers: DeployerConfig = {
     // 3: walletRopsten,
     4: walletRinkeby,
-    1666700000: walletHarmonyTestnet0,
+    5: walletGoerli,
   };
 
   const bridge = await Bridge.deployBridge(bridgeInput, deployers);
