@@ -4,9 +4,9 @@
     "module": "commonjs",
     "strict": true,
     "esModuleInterop": true,
-    "outDir": "dist",
+    "outDir": "src",
     "sourceMap": true,
   },
-  "include": ["./scripts", "./test", "./typechain"],
+  "include": ["./typechain", "./lib", "./test"],
   "files": ["./hardhat.config.ts"]
 }

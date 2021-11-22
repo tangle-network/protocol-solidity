@@ -2,24 +2,19 @@
  * Copyright 2021 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
-import { ethers, network } from 'hardhat';
+import { ethers } from 'hardhat';
 
-const snarkjs = require('snarkjs')
-const fs = require('fs');
 const path = require('path');
 
 const ganache = require('ganache-cli');
 
 // Convenience wrapper classes for contract classes
-import Bridge, { BridgeInput } from '../../lib/bridge/Bridge';
-import Anchor from '../../lib/bridge/Anchor';
-import MintableToken from '../../lib/bridge/MintableToken';
-import { toFixedHex } from '../../lib/bridge/utils';
-import { BigNumber } from '@ethersproject/bignumber';
-import { Signer } from '@ethersproject/abstract-signer';
-import GovernedTokenWrapper from '../../lib/bridge/GovernedTokenWrapper';
+import Bridge, { BridgeInput } from '../../lib/fixed-bridge/Bridge';
+import Anchor from '../../lib/fixed-bridge/Anchor';
+import { fetchComponentsFromFilePaths } from '../../lib/utils';
+import GovernedTokenWrapper from '../../lib/tokens/GovernedTokenWrapper';
+import { ZkComponents } from '../../lib/fixed-bridge/types';
 
 function startGanacheServer(port: number, networkId: number, mnemonic: string) {
   const ganacheServer = ganache.server({
@@ -44,19 +39,20 @@ describe('multichain tests', () => {
 
   // setup ganache networks
   let ganacheServer2: any;
-  let ganacheServer3: any;
-  let ganacheServer4: any;
+  let zkComponents: ZkComponents;
 
   let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:8545');
   let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
-  let ganacheProvider3 = new ethers.providers.JsonRpcProvider('http://localhost:9999');
-  let ganacheWallet3 = new ethers.Wallet('745ee040ef2b087f075dc7d314fa06797ed2ffd4ab59a4cc35c0a33e8d2b7791', ganacheProvider3);
 
   before('setup networks', async () => {
     ganacheServer2 = startGanacheServer(8545, 1337, 'congress island collect purity dentist team gas unlock nuclear pig combine sight');
-    ganacheServer3 = startGanacheServer(9999, 9999, 'aspect biology suit thought bottom popular custom rebuild recall sauce endless local');
-    ganacheServer4 = startGanacheServer(4444, 4444, 'harvest useful giraffe swim rail ostrich public awful provide amazing tank weapon');
     await sleep(2000);
+
+    zkComponents = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey')
+    );
   });
 
   describe('BridgeConstruction', () => {
@@ -80,7 +76,7 @@ describe('multichain tests', () => {
         31337: signers[1],
         1337: ganacheWallet2,
       };
-      const bridge = await Bridge.deployBridge(bridge2WebbEthInput, deploymentConfig);
+      const bridge = await Bridge.deployBridge(bridge2WebbEthInput, deploymentConfig, zkComponents);
 
       // Should be able to retrieve individual anchors
       const chainId1 = 31337;
@@ -121,37 +117,7 @@ describe('multichain tests', () => {
     })
   })
 
-  // describe.only('2 sided bridge native only use', () => {
-
-  //   let bridge2WebbEthInput = {
-  //     anchorInputs: {
-  //       asset: {
-  //         31337: ['0'],
-  //         1337: ['0x0000000000000000000000000000000000000000'],
-  //       },
-  //       anchorSizes: ['1000000000000000000', '100000000000000000000', '10000000000000000000000'],
-  //     },
-  //     chainIDs: [31337, 1337]
-  //   };
-
-  //   let bridge: Bridge;
-  //   const chainId1 = 31337;
-  //   const chainId2 = 1337;
-
-  //   beforeEach('deploy and deposit native: ', async () => {
-  //     const signers = await ethers.getSigners();
-
-  //     const deploymentConfig = {
-  //       31337: signers[1],
-  //       1337: ganacheWallet2,
-  //     };
-  //     bridge = await Bridge.deployBridge(bridge2WebbEthInput, deploymentConfig);
-  //   })
-  // })
-
   after('terminate networks', () => {
     ganacheServer2.close(console.error);
-    ganacheServer3.close(console.error);
-    ganacheServer4.close(console.error);
   });
 })

@@ -1,5 +1,5 @@
-import Poseidon from './Poseidon';
-import { Storage } from './Storage';
+import Poseidon from '../Poseidon';
+import { Storage } from '../Storage';
 
 export interface Hasher {
   hash(level: any, left: any, right: any): any;
@@ -182,10 +182,20 @@ export class MerkleTree {
 
     this.traverse(index, traverser);
     return {
-      merkleRoot: root,
+      merkleRoot: root as string,
       pathElements: traverser.pathElements,
       pathIndices: traverser.pathIndex,
-      element,
+      element: element as number,
     };
+  }
+
+  getIndexByElement(element: any) {
+    for (let i = this.totalElements - 1; i >= 0; i--) {
+      const elementFromTree = this.storage.get(MerkleTree.keyFormat(this.prefix, 0, i))
+      if (elementFromTree === element) {
+        return i
+      }
+    }
+    return false
   }
 }

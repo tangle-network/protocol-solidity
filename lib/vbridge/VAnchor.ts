@@ -1,10 +1,10 @@
 import { BigNumber, BigNumberish, ethers } from "ethers";
 import { VAnchor__factory } from '../../typechain/factories/VAnchor__factory';
 import { VAnchor as VAnchorContract} from '../../typechain/VAnchor';
-import { rbigint, p256, toHex } from "../bridge/utils";
-import PoseidonHasher from '../bridge/Poseidon';
+import { rbigint, p256, toHex } from "../utils";
+import PoseidonHasher from '../Poseidon';
 import { MerkleTree } from './MerkleTree';
-import MintableToken from "../bridge/MintableToken";
+import MintableToken from "../tokens/MintableToken";
 import { RootInfo } from ".";
 import { FIELD_SIZE, getExtDataHash, poseidonHash2, randomBN, shuffle, toFixedHex } from "./utils";
 import { Utxo } from './utxo';

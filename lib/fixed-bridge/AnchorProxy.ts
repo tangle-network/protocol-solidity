@@ -1,8 +1,9 @@
 import { ethers } from "ethers";
 import { AnchorProxy as AnchorProxyContract} from '../../typechain/AnchorProxy';
 import { AnchorProxy__factory } from "../../typechain/factories/AnchorProxy__factory";
-import Anchor, { AnchorDepositInfo } from './Anchor';
-import { toFixedHex } from "./utils";
+import Anchor from './Anchor';
+import { AnchorDepositInfo } from './types';
+import { toFixedHex } from "../utils";
 
 enum InstanceState {
   ENABLED,
