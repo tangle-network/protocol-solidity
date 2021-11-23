@@ -5,7 +5,7 @@
   "name": "test-webb-solidity",
   "dependencies": {
     "@nepoche/contracts": "1.1.2",
-    "@nepoche/fixed-bridge": "1.1.2",
+    "@nepoche/fixed-bridge": "1.1.3",
     "@nepoche/tokens": "1.1.2",
     "@nepoche/utils": "1.1.2"
   },
@@ -17,5 +17,5 @@
     "type": "git",
     "url": "git://github.com/nepoche/protocol-solidity.git"
   },
-  "version": "1.1.2"
+  "version": "1.1.3"
 }
