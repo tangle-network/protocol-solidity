@@ -3,8 +3,14 @@
   "license": "GPL-3.0-or-later",
   "author": "Nepoche",
   "name": "@nepoche/contracts",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@nomiclabs/hardhat-web3": "^2.0.0"
+  },
   "dependencies": {
-    "ethers": "^5.3.1"
+    "ethers": "^5.3.1",
+    "@typechain/ethers-v5": "^7.0.1",
+    "@typechain/hardhat": "^2.3.0"
   },
   "publishConfig": {
     "access": "public"

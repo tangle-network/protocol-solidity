@@ -17,14 +17,11 @@ import {
   GovernedTokenWrapper as WrappedToken,
   GovernedTokenWrapper__factory as WrappedTokenFactory,
   PoseidonT3__factory,
-} from '../../typechain';
+} from '../../typechain-types';
 
 // Convenience wrapper classes for contract classes
-import { ZkComponents } from '../../lib/fixed-bridge/types';
-import Anchor from '../../lib/fixed-bridge/Anchor';
-import { MerkleTree } from '../../lib/fixed-bridge/MerkleTree';
-import { fetchComponentsFromFilePaths } from '../../lib/utils';
-import Verifier from '../../lib/fixed-bridge/Verifier';
+import { Anchor, MerkleTree, Verifier } from '../../packages/fixed-bridge';
+import { fetchComponentsFromFilePaths, ZkComponents } from '../../packages/utils';
 
 const { NATIVE_AMOUNT } = process.env
 const snarkjs = require('snarkjs')

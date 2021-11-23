@@ -3,18 +3,18 @@
 
   },
   "references": [
-    // {
-    //   "path": "./packages/contracts"
-    // },
-    // {
-    //   "path": "./packages/fixed-bridge"
-    // },
-    // {
-    //   "path": "./packages/tokens"
-    // },
-    // {
-    //   "path": "./packages/utils"
-    // },
+    {
+      "path": "./packages/contracts"
+    },
+    {
+      "path": "./packages/fixed-bridge"
+    },
+    {
+      "path": "./packages/tokens"
+    },
+    {
+      "path": "./packages/utils"
+    },
     {
       "path": "./packages/webb-solidity"
     }

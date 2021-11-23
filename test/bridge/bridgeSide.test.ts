@@ -7,13 +7,10 @@ const path = require('path');
 import { ethers } from 'hardhat';
 
 // Convenience wrapper classes for contract classes
-import BridgeSide from '../../lib/fixed-bridge/bridgeSide';
-import Anchor from '../../lib/fixed-bridge/Anchor';
-import MintableToken from '../../lib/tokens/MintableToken';
-import Verifier from '../../lib/fixed-bridge/Verifier';
-import { fetchComponentsFromFilePaths } from '../../lib/utils';
-import { ZkComponents } from '../../lib/fixed-bridge/types';
-import { PoseidonT3__factory } from '../../typechain';
+import { Anchor, BridgeSide, Verifier } from '../../packages/fixed-bridge';
+import { MintableToken } from '../../packages/tokens';
+import { fetchComponentsFromFilePaths, ZkComponents } from '../../packages/utils';
+import { PoseidonT3__factory } from '../../typechain-types';
 
 describe('BridgeSideConstruction', () => {
 
