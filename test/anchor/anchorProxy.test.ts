@@ -21,14 +21,10 @@ import {
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
-import Anchor from '../../lib/fixed-bridge/Anchor';
-import AnchorProxy from '../../lib/fixed-bridge/AnchorProxy';
-import Verifier from '../../lib/fixed-bridge/Verifier';
-import { ZkComponents } from '../../lib/fixed-bridge/types';
-import { fetchComponentsFromFilePaths } from '../../lib/utils';
-import { MerkleTree } from '../../lib/fixed-bridge/MerkleTree';
+import { Anchor, AnchorProxy, MerkleTree, Verifier } from '../../packages/fixed-bridge'
+import { fetchComponentsFromFilePaths, ZkComponents } from '../../packages/utils';
 
-const helpers = require('../../lib/utils');
+const helpers = require('../../packages/utils');
 
 const { NATIVE_AMOUNT } = process.env
 const snarkjs = require('snarkjs')

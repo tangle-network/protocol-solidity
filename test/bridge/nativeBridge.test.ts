@@ -10,11 +10,9 @@ const path = require('path');
 const ganache = require('ganache-cli');
 
 // Convenience wrapper classes for contract classes
-import Bridge, { BridgeInput } from '../../lib/fixed-bridge/Bridge';
-import Anchor from '../../lib/fixed-bridge/Anchor';
-import { fetchComponentsFromFilePaths } from '../../lib/utils';
-import GovernedTokenWrapper from '../../lib/tokens/GovernedTokenWrapper';
-import { ZkComponents } from '../../lib/fixed-bridge/types';
+import { Bridge, BridgeInput, Anchor} from '../../packages/fixed-bridge'
+import { fetchComponentsFromFilePaths, ZkComponents } from '../../packages/utils';
+import { GovernedTokenWrapper } from '../../packages/tokens';
 
 function startGanacheServer(port: number, networkId: number, mnemonic: string) {
   const ganacheServer = ganache.server({
@@ -93,19 +91,19 @@ describe('multichain tests', () => {
 
       // Check the native token has been taken from the depositor's account
       const nativeEndingBalance = await signers[2].getBalance();
-      assert.equal(nativeEndingBalance.lt(nativeStartingBalance.sub(anchorSize)), true);
+      assert.deepEqual(nativeEndingBalance.lt(nativeStartingBalance.sub(anchorSize)), true);
 
       // Check the edge of the linked anchor is updated
       let edgeIndex = await anchor2.contract.edgeIndex(chainId1);
       let destAnchorEdgeAfter = await anchor2.contract.edgeList(edgeIndex);
-      assert.deepStrictEqual(ethers.BigNumber.from(0), destAnchorEdgeAfter.latestLeafIndex);
+      assert.deepEqual(ethers.BigNumber.from(0), destAnchorEdgeAfter.latestLeafIndex);
 
       // Check the wrapped token has been added to the anchor's account
       const wrappedTokenAddress = bridge.getWebbTokenAddress(chainId1);
       const wrappedToken = GovernedTokenWrapper.connect(wrappedTokenAddress!, signers[2]);
       const wrappedTokenAnchorBalance = await wrappedToken.contract.balanceOf(anchor1.contract.address);
       console.log(`wrappedTokenAnchorBalance: ${wrappedTokenAnchorBalance}`);
-      assert.equal(wrappedTokenAnchorBalance.eq(anchorSize), true);
+      assert.deepEqual(wrappedTokenAnchorBalance.eq(anchorSize), true);
 
       // deposit on the other side of the bridge
       const depositNativeOther = await bridge.wrapAndDeposit(chainId1, '0x0000000000000000000000000000000000000000', anchorSize, ganacheWallet2);
@@ -114,7 +112,7 @@ describe('multichain tests', () => {
       const nativeOtherStartingBalance = await ganacheProvider2.getBalance(signers[2].address);
       const event = await bridge.withdrawAndUnwrap(depositNative, '0x0000000000000000000000000000000000000000', anchorSize, signers[2].address, signers[2].address, ganacheWallet2);
       const nativeOtherEndingBalance = await ganacheProvider2.getBalance(signers[2].address);
-      assert.equal(nativeOtherEndingBalance.eq(nativeOtherStartingBalance.add(anchorSize)), true);
+      assert.deepEqual(nativeOtherEndingBalance.eq(nativeOtherStartingBalance.add(anchorSize)), true);
     })
   })
 

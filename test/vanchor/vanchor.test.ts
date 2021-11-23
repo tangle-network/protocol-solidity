@@ -18,11 +18,11 @@ import {
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
-import VAnchor from '../../lib/vbridge/VAnchor';
-import { toFixedHex } from '../../lib/utils';
-import Verifier from '../../lib/vbridge/Verifier';
-import { Utxo } from '../../lib/vbridge/utxo';
-import { MerkleTree } from '../../lib/vbridge/MerkleTree';
+import VAnchor from '../../packages/vbridge/VAnchor';
+import { toFixedHex } from '../../packages/utils';
+import Verifier from '../../packages/vbridge/Verifier';
+import { Utxo } from '../../packages/vbridge/utxo';
+import { MerkleTree } from '../../packages/vbridge/MerkleTree';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
@@ -511,11 +511,11 @@ describe('VAnchor for 2 max edges', () => {
       let incorrectPublicInputs = VAnchor.convertToPublicInputsStruct(incorrectPublicInputArgs);
       let extAmountInputs = VAnchor.convertToExtDataStruct(extDataArgs)
 
-      //anchor.contract.transact(incorrectPublicInputs, extAmountInputs, { gasPrice: '0' });
+      //anchor.contract.transact(incorrectPublicInputs, extAmountInputs, { gasPrice: '100' });
       
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.transact(incorrectPublicInputs, extAmountInputs, { gasPrice: '0' }),
+        anchor.contract.transact(incorrectPublicInputs, extAmountInputs, { gasPrice: '100' }),
         'Invalid public amount',
       );
 
@@ -533,7 +533,7 @@ describe('VAnchor for 2 max edges', () => {
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.transact(incorrectPublicInputs, extAmountInputs, { gasPrice: '0' }),
+        anchor.contract.transact(incorrectPublicInputs, extAmountInputs, { gasPrice: '100' }),
         'Incorrect external data hash',
       );
 
@@ -551,7 +551,7 @@ describe('VAnchor for 2 max edges', () => {
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.transact(incorrectPublicInputs, extAmountInputs, { gasPrice: '0' }),
+        anchor.contract.transact(incorrectPublicInputs, extAmountInputs, { gasPrice: '100' }),
         'Invalid withdraw proof',
       );
 
@@ -569,7 +569,7 @@ describe('VAnchor for 2 max edges', () => {
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.transact(incorrectPublicInputs, extAmountInputs, { gasPrice: '0' }),
+        anchor.contract.transact(incorrectPublicInputs, extAmountInputs, { gasPrice: '100' }),
         'Invalid withdraw proof',
       );
 
@@ -588,7 +588,7 @@ describe('VAnchor for 2 max edges', () => {
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.transact(correctPublicInputs, incorrectExtAmountInputs, { gasPrice: '0' }),
+        anchor.contract.transact(correctPublicInputs, incorrectExtAmountInputs, { gasPrice: '100' }),
         'Incorrect external data hash',
       );
 
@@ -606,7 +606,7 @@ describe('VAnchor for 2 max edges', () => {
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.transact(correctPublicInputs, incorrectExtAmountInputs, { gasPrice: '0' }),
+        anchor.contract.transact(correctPublicInputs, incorrectExtAmountInputs, { gasPrice: '100' }),
         'Incorrect external data hash',
       );
 
@@ -624,7 +624,7 @@ describe('VAnchor for 2 max edges', () => {
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.transact(correctPublicInputs, incorrectExtAmountInputs, { gasPrice: '0' }),
+        anchor.contract.transact(correctPublicInputs, incorrectExtAmountInputs, { gasPrice: '100' }),
         'Incorrect external data hash',
       );
     });

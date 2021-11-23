@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 const assert = require('assert');
-import { artifacts, ethers } from 'hardhat';
+import { ethers } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
 
 const fs = require('fs');
@@ -17,7 +17,7 @@ import {
   GovernedTokenWrapper as WrappedToken,
   GovernedTokenWrapper__factory as WrappedTokenFactory,
   PoseidonT3__factory,
-} from '../../typechain-types';
+} from '../../typechain';
 
 // Convenience wrapper classes for contract classes
 import { Anchor, MerkleTree, Verifier } from '../../packages/fixed-bridge';
@@ -30,7 +30,7 @@ const BN = require('bn.js');
 const F = require('circomlibjs').babyjub.F;
 const Scalar = require("ffjavascript").Scalar;
 
-const helpers = require('../../lib/utils');
+const helpers = require('../../packages/utils');
 
 describe('Anchor for 2 max edges', () => {
   let anchor: Anchor;
@@ -331,7 +331,7 @@ describe('Anchor for 2 max edges', () => {
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.withdraw(`0x${proofEncoded}`, publicInputs, { gasPrice: '0' }),
+        anchor.contract.withdraw(`0x${proofEncoded}`, publicInputs, { gasPrice: '100' }),
         'verifier-gte-snark-scalar-field',
       );
     });
@@ -403,7 +403,7 @@ describe('Anchor for 2 max edges', () => {
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.withdraw(`0x${proofEncoded}`, publicInputs, { gasPrice: '0' }),
+        anchor.contract.withdraw(`0x${proofEncoded}`, publicInputs, { gasPrice: '100' }),
         'Cannot find your merkle root'
       );
     });
@@ -474,7 +474,7 @@ describe('Anchor for 2 max edges', () => {
       
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.withdraw(`0x${proofEncoded}`, incorrectPublicInputs, { gasPrice: '0' }),
+        anchor.contract.withdraw(`0x${proofEncoded}`, incorrectPublicInputs, { gasPrice: '100' }),
         'Invalid withdraw proof',
       );
 
@@ -492,7 +492,7 @@ describe('Anchor for 2 max edges', () => {
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.withdraw(`0x${proofEncoded}`, incorrectPublicInputs, { gasPrice: '0' }),
+        anchor.contract.withdraw(`0x${proofEncoded}`, incorrectPublicInputs, { gasPrice: '100' }),
         'Invalid withdraw proof',
       );
 
@@ -510,7 +510,7 @@ describe('Anchor for 2 max edges', () => {
       incorrectPublicInputs = Anchor.convertArgsArrayToStruct(incorrectArgs);
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.withdraw(`0x${proofEncoded}`, incorrectPublicInputs, { gasPrice: '0' }),
+        anchor.contract.withdraw(`0x${proofEncoded}`, incorrectPublicInputs, { gasPrice: '100' }),
         'Invalid withdraw proof',
       );
 
@@ -528,7 +528,7 @@ describe('Anchor for 2 max edges', () => {
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.withdraw(`0x${proofEncoded}`, incorrectPublicInputs, { gasPrice: '0' }),
+        anchor.contract.withdraw(`0x${proofEncoded}`, incorrectPublicInputs, { gasPrice: '100' }),
         'Invalid withdraw proof',
       );
 
@@ -537,7 +537,7 @@ describe('Anchor for 2 max edges', () => {
       await TruffleAssert.passes(anchor.contract.withdraw(
         `0x${proofEncoded}`,
         publicInputs,
-        { gasPrice: '0' }
+        { gasPrice: '100' }
       ));
     }).timeout(60000);
   })

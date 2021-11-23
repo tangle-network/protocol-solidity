@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import Anchor, { AnchorDeposit } from '../../../lib/darkwebb/Anchor';
+import { Anchor, AnchorDeposit } from '../../../packages/fixed-bridge';
 
 export async function withdrawNativeToken(
   anchorAddress: string,

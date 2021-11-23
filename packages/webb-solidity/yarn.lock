@@ -378,38 +378,40 @@
   resolved "https://registry.yarnpkg.com/@iden3/bigarray/-/bigarray-0.0.2.tgz#6fc4ba5be18daf8a26ee393f2fb62b80d98c05e9"
   integrity sha512-Xzdyxqm1bOFF6pdIsiHLLl3HkSLjbhqJHVyqaTxXt3RqXBEnmsUmEW47H7VOi/ak7TdkRpNkxjyK5Zbkm+y52g==
 
-"@nepoche/contracts@1.0.7":
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/@nepoche/contracts/-/contracts-1.0.7.tgz#1f5697cc0514051f29e56eb497a504d1fdfdba69"
-  integrity sha512-z15tmHarArPKinycCyj/tNVBYwu1MIpG3f8hFY3ZodzwXSPBZJ81Y9lR5srNXBcNU/K8stmZOcx9LeBVNcBTKQ==
+"@nepoche/contracts@1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@nepoche/contracts/-/contracts-1.1.2.tgz#bbd1dc1f392fb07762a5238b2023f9f3d7d8d7f8"
+  integrity sha512-KHOQv7aNIrBcCy7hqRdg2EgN+rU8a8WeTvIQ8Fk7KkmOqGRxJSevfM4bKGIVQQ8vzBH8CyoIVDbM1uAfmGhAig==
   dependencies:
-    ethers "^5.3.1"
+    "@typechain/ethers-v5" "^7.0.1"
+    "@typechain/hardhat" "^2.3.0"
+    ethers "5.5.1"
 
-"@nepoche/fixed-bridge@1.0.7":
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/@nepoche/fixed-bridge/-/fixed-bridge-1.0.7.tgz#e408d6e1cf5d607df219d73c88618122e90c37ec"
-  integrity sha512-/dgaLW9AC48dRwDgoC+xQWr+b/3VTJgi2XMTC2Fc9fUvu1FezEpzlLK6rvlrDQtvFOtCU0jydB9ymkyJKnYgug==
+"@nepoche/fixed-bridge@1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@nepoche/fixed-bridge/-/fixed-bridge-1.1.2.tgz#5ce0e69797aa0e7e2cda3838cee59d514af21afe"
+  integrity sha512-FC+j7MwjkH5Ebs2RcTiLUSOTmeYVZcmHVACJdDrO0A7D4lKRd3hEHndybUOmu5x1E5fNTdkgK0QSVYYn5ljsaQ==
   dependencies:
-    "@nepoche/contracts" "1.0.7"
-    "@nepoche/tokens" "1.0.7"
-    "@nepoche/utils" "1.0.7"
-    ethers "^5.3.1"
+    "@nepoche/contracts" "1.1.2"
+    "@nepoche/tokens" "1.1.2"
+    "@nepoche/utils" "1.1.2"
+    ethers "5.5.1"
 
-"@nepoche/tokens@1.0.7":
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/@nepoche/tokens/-/tokens-1.0.7.tgz#d4c1a183f54b101c5b3a957f60898e07ead288c0"
-  integrity sha512-drnnpJb376CBe+hx0Dd/S3h/5ceUu3F1sImHLUxb4fbbcEefSxdrFC0D8bwzOQJtyHhvC2Rfyvk2pp79hPF55A==
+"@nepoche/tokens@1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@nepoche/tokens/-/tokens-1.1.2.tgz#b1f0372a36d5ed85ccf17f816338fb18384daff2"
+  integrity sha512-Mi/2RAqklmyY2eDXVZ5rmaFJfzL7uUEi9hf5hdLek44rNqTaUj/ycCwKATHk/JIN24OcO/8X9mmgpWjAcQvc4g==
   dependencies:
-    "@nepoche/contracts" "1.0.7"
-    ethers "^5.3.1"
+    "@nepoche/contracts" "1.1.2"
+    ethers "5.5.1"
 
-"@nepoche/utils@1.0.7":
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/@nepoche/utils/-/utils-1.0.7.tgz#980e178fe73eb140ee2623d46a7e698ca78be2f9"
-  integrity sha512-fPnHFQUDbHq167micDnoevNbsg5vwLGDhxJwazKRkrEPrmsU6UhTFbrMGdoXkqwnzoR4lWur1spWSS954k8AiA==
+"@nepoche/utils@1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@nepoche/utils/-/utils-1.1.2.tgz#449d5c40ea507e157d0249ed8eec8222560a3291"
+  integrity sha512-VH8X8fxkG+bP4svw1XVpfuapOJnsREfK+FJc/wnzj6LzRJdytO9pUiPluR/R823NRDAgdXUy+vJtz/krX+CK6g==
   dependencies:
     circomlibjs "^0.0.8"
-    ethers "^5.3.1"
+    ethers "5.5.1"
     ffjavascript "^0.2.43"
     maci-crypto "^0.9.1"
 
@@ -424,6 +426,21 @@
   integrity sha512-XIB2XbzHTN6ieIjfIMV9hlVcfPU26s2vafYWQcZHWXHOxiaRZYEDKEwdl129Zyg50+foYV2jCgtrqSA6qNuNSA==
   dependencies:
     defer-to-connect "^1.0.1"
+
+"@typechain/ethers-v5@^7.0.1":
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/@typechain/ethers-v5/-/ethers-v5-7.2.0.tgz#d559cffe0efe6bdbc20e644b817f6fa8add5e8f8"
+  integrity sha512-jfcmlTvaaJjng63QsT49MT6R1HFhtO/TBMWbyzPFSzMmVIqb2tL6prnKBs4ZJrSvmgIXWy+ttSjpaxCTq8D/Tw==
+  dependencies:
+    lodash "^4.17.15"
+    ts-essentials "^7.0.1"
+
+"@typechain/hardhat@^2.3.0":
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/@typechain/hardhat/-/hardhat-2.3.1.tgz#1e8a6e3795e115a5d5348526282b5c597fab0b78"
+  integrity sha512-BQV8OKQi0KAzLXCdsPO0pZBNQQ6ra8A2ucC26uFX/kquRBtJu1yEyWnVSmtr07b5hyRoJRpzUeINLnyqz4/MAw==
+  dependencies:
+    fs-extra "^9.1.0"
 
 "@types/bn.js@^4.11.5":
   version "4.11.6"
@@ -551,6 +568,11 @@ asynckit@^0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
   integrity sha1-x57Zf380y48robyXkLzDZkdLS3k=
+
+at-least-node@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/at-least-node/-/at-least-node-1.0.0.tgz#602cd4b46e844ad4effc92a8011a3c46e0238dc2"
+  integrity sha512-+q/t7Ekv1EDY2l6Gda6LLiX14rU9TV20Wa3ofeQmwPFZbOMo9DXrLbOjFaaclkXKWidIaopwAObQDqwWtGUjqg==
 
 available-typed-arrays@^1.0.5:
   version "1.0.5"
@@ -1389,22 +1411,7 @@ ethereumjs-util@^7.0.10, ethereumjs-util@^7.1.0, ethereumjs-util@^7.1.3:
     ethereum-cryptography "^0.1.3"
     rlp "^2.2.4"
 
-ethers@^4.0.45:
-  version "4.0.49"
-  resolved "https://registry.yarnpkg.com/ethers/-/ethers-4.0.49.tgz#0eb0e9161a0c8b4761be547396bbe2fb121a8894"
-  integrity sha512-kPltTvWiyu+OktYy1IStSO16i2e7cS9D9OxZ81q2UUaiNPVrm/RTcbxamCXF9VUSKzJIdJV68EAIhTEVBalRWg==
-  dependencies:
-    aes-js "3.0.0"
-    bn.js "^4.11.9"
-    elliptic "6.5.4"
-    hash.js "1.1.3"
-    js-sha3 "0.5.7"
-    scrypt-js "2.0.4"
-    setimmediate "1.0.4"
-    uuid "2.0.1"
-    xmlhttprequest "1.8.0"
-
-ethers@^5.3.1:
+ethers@5.5.1:
   version "5.5.1"
   resolved "https://registry.yarnpkg.com/ethers/-/ethers-5.5.1.tgz#d3259a95a42557844aa543906c537106c0406fbf"
   integrity sha512-RodEvUFZI+EmFcE6bwkuJqpCYHazdzeR1nMzg+YWQSmQEsNtfl1KHGfp/FWZYl48bI/g7cgBeP2IlPthjiVngw==
@@ -1439,6 +1446,21 @@ ethers@^5.3.1:
     "@ethersproject/wallet" "5.5.0"
     "@ethersproject/web" "5.5.0"
     "@ethersproject/wordlists" "5.5.0"
+
+ethers@^4.0.45:
+  version "4.0.49"
+  resolved "https://registry.yarnpkg.com/ethers/-/ethers-4.0.49.tgz#0eb0e9161a0c8b4761be547396bbe2fb121a8894"
+  integrity sha512-kPltTvWiyu+OktYy1IStSO16i2e7cS9D9OxZ81q2UUaiNPVrm/RTcbxamCXF9VUSKzJIdJV68EAIhTEVBalRWg==
+  dependencies:
+    aes-js "3.0.0"
+    bn.js "^4.11.9"
+    elliptic "6.5.4"
+    hash.js "1.1.3"
+    js-sha3 "0.5.7"
+    scrypt-js "2.0.4"
+    setimmediate "1.0.4"
+    uuid "2.0.1"
+    xmlhttprequest "1.8.0"
 
 ethjs-unit@0.1.6:
   version "0.1.6"
@@ -1676,6 +1698,16 @@ fs-extra@^4.0.2:
     jsonfile "^4.0.0"
     universalify "^0.1.0"
 
+fs-extra@^9.1.0:
+  version "9.1.0"
+  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-9.1.0.tgz#5954460c764a8da2094ba3554bf839e6b9a7c86d"
+  integrity sha512-hcg3ZmepS30/7BSFqRvoo3DOMQu7IjqxO5nCDt+zM9XWjb33Wg7ziNT+Qvqbuc3+gWpzO02JubVyk2G4Zvo1OQ==
+  dependencies:
+    at-least-node "^1.0.0"
+    graceful-fs "^4.2.0"
+    jsonfile "^6.0.1"
+    universalify "^2.0.0"
+
 fs-minipass@^1.2.7:
   version "1.2.7"
   resolved "https://registry.yarnpkg.com/fs-minipass/-/fs-minipass-1.2.7.tgz#ccff8570841e7fe4265693da88936c55aed7f7c7"
@@ -1803,7 +1835,7 @@ got@^7.1.0:
     url-parse-lax "^1.0.0"
     url-to-options "^1.0.1"
 
-graceful-fs@^4.1.2, graceful-fs@^4.1.6:
+graceful-fs@^4.1.2, graceful-fs@^4.1.6, graceful-fs@^4.2.0:
   version "4.2.8"
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.8.tgz#e412b8d33f5e006593cbd3cee6df9f2cebbe802a"
   integrity sha512-qkIilPUYcNhJpd33n0GBXTB1MMPp14TxEsEs0pTrsSVucApsYzW5V+Q8Qxhik6KU3evy+qkAAowTByymK0avdg==
@@ -2192,6 +2224,15 @@ jsonfile@^4.0.0:
   optionalDependencies:
     graceful-fs "^4.1.6"
 
+jsonfile@^6.0.1:
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/jsonfile/-/jsonfile-6.1.0.tgz#bc55b2634793c679ec6403094eb13698a6ec0aae"
+  integrity sha512-5dgndWOriYSm5cnYaJNhalLNDKOqFwyDB/rr1E9ZsGciGvKPs8R2xYGCacuf3z6K1YKDz182fd+fY3cn3pMqXQ==
+  dependencies:
+    universalify "^2.0.0"
+  optionalDependencies:
+    graceful-fs "^4.1.6"
+
 jsprim@^1.2.2:
   version "1.4.1"
   resolved "https://registry.yarnpkg.com/jsprim/-/jsprim-1.4.1.tgz#313e66bc1e5cc06e438bc1b7499c2e5c56acb6a2"
@@ -2224,6 +2265,11 @@ locate-path@^5.0.0:
   integrity sha512-t7hw9pI+WvuwNJXwk5zVHpyhIqzg2qTlklJOf0mVxGSbe3Fp2VieZcduNYjaLDoy6p9uGpQEGWG87WpMKlNq8g==
   dependencies:
     p-locate "^4.1.0"
+
+lodash@^4.17.15:
+  version "4.17.21"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
+  integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
 
 lowercase-keys@^1.0.0, lowercase-keys@^1.0.1:
   version "1.0.1"
@@ -3084,6 +3130,11 @@ tough-cookie@~2.5.0:
     psl "^1.1.28"
     punycode "^2.1.1"
 
+ts-essentials@^7.0.1:
+  version "7.0.3"
+  resolved "https://registry.yarnpkg.com/ts-essentials/-/ts-essentials-7.0.3.tgz#686fd155a02133eedcc5362dc8b5056cde3e5a38"
+  integrity sha512-8+gr5+lqO3G84KdiTSMRLtuyJ+nTBVRKuCrK4lidMPdVeEp0uqC875uE5NMcaA7YYMN7XsNiFQuMvasF8HT/xQ==
+
 tunnel-agent@^0.6.0:
   version "0.6.0"
   resolved "https://registry.yarnpkg.com/tunnel-agent/-/tunnel-agent-0.6.0.tgz#27a5dea06b36b04a0a9966774b290868f0fc40fd"
@@ -3145,6 +3196,11 @@ universalify@^0.1.0:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/universalify/-/universalify-0.1.2.tgz#b646f69be3942dabcecc9d6639c80dc105efaa66"
   integrity sha512-rBJeI5CXAlmy1pV+617WB9J63U6XcazHHF2f2dbJix4XzpUF0RS3Zbj0FGIOCAva5P/d/GBOYaACQ1w+0azUkg==
+
+universalify@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/universalify/-/universalify-2.0.0.tgz#75a4984efedc4b08975c5aeb73f530d02df25717"
+  integrity sha512-hAZsKq7Yy11Zu1DE0OzWjw7nnLZmJZYTDZZyEFHZdUhV8FkH5MCfoU1XMaxXovpyW5nq5scPqq0ZDP9Zyl04oQ==
 
 unpipe@1.0.0, unpipe@~1.0.0:
   version "1.0.0"

@@ -3,11 +3,15 @@
   "license": "GPL-3.0-or-later",
   "author": "Nepoche",
   "name": "@nepoche/fixed-bridge",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "2.0.2",
+    "hardhat": "^2.6.8"
+  },
   "dependencies": {
-    "@nepoche/contracts": "1.0.7",
-    "@nepoche/tokens": "1.0.7",
-    "@nepoche/utils": "1.0.7",
-    "ethers": "^5.3.1"
+    "@nepoche/contracts": "1.1.2",
+    "@nepoche/tokens": "1.1.2",
+    "@nepoche/utils": "1.1.2",
+    "ethers": "5.5.1"
   },
   "publishConfig": {
     "access": "public"
@@ -17,5 +21,5 @@
     "type": "git",
     "url": "git://github.com/nepoche/protocol-solidity.git"
   },
-  "version": "1.0.7"
+  "version": "1.1.2"
 }

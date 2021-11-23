@@ -13,13 +13,11 @@ const path = require('path');
 const ganache = require('ganache-cli');
 
 // Convenience wrapper classes for contract classes
-import Bridge, { BridgeInput } from '../../lib/fixed-bridge/Bridge';
-import Anchor from '../../lib/fixed-bridge/Anchor';
-import MintableToken from '../../lib/tokens/MintableToken';
-import { fetchComponentsFromFilePaths } from '../../lib/utils';
+import { Bridge, BridgeInput, Anchor } from '../../packages/fixed-bridge';
+import { MintableToken } from '../../packages/tokens';
+import { fetchComponentsFromFilePaths, ZkComponents } from '../../packages/utils';
 import { BigNumber } from '@ethersproject/bignumber';
-import { Signer } from '@ethersproject/abstract-signer';
-import { ZkComponents } from '../../lib/fixed-bridge/types';
+import { Signer } from 'ethers';
  
 function startGanacheServer(port: number, networkId: number, mnemonic: string) {
   const ganacheServer = ganache.server({
@@ -146,7 +144,7 @@ describe('multichain tests', () => {
 
       // make sure the roots / anchors state have changed
       assert.notEqual(sourceAnchorRootAfter, sourceAnchorRootBefore);
-      assert.deepStrictEqual(ethers.BigNumber.from(0), destAnchorEdgeAfter.latestLeafIndex);
+      assert.deepEqual(ethers.BigNumber.from(0), destAnchorEdgeAfter.latestLeafIndex);
 
       await bridge.withdraw(depositNote, anchorSize, signers[1].address, signers[1].address, ganacheWallet2);
 
@@ -154,7 +152,7 @@ describe('multichain tests', () => {
       const webbToken2 = await MintableToken.tokenFromAddress(webbTokenAddress2!, ganacheWallet2);
       const webbTokenBalance2 = await webbToken2.getBalance(signers[1].address);
 
-      assert.deepStrictEqual(webbTokenBalance2, ethers.BigNumber.from(anchorSize));
+      assert.deepEqual(webbTokenBalance2, ethers.BigNumber.from(anchorSize));
     });
 
     it('create 3 side bridge for one token', async () => {
@@ -378,25 +376,25 @@ describe('multichain tests', () => {
 
         // Check the leaf index is incremented
         const destAnchorEdge2After = await anchor2.contract.edgeList(edgeIndex);
-        assert.deepStrictEqual(destAnchorEdge2Before.latestLeafIndex.add(1), destAnchorEdge2After.latestLeafIndex);
+        assert.deepEqual(destAnchorEdge2Before.latestLeafIndex.add(1), destAnchorEdge2After.latestLeafIndex);
 
         // Check that the anchor has the appropriate amount of wrapped token balance
         const wrappedTokenAddress = bridge.getWebbTokenAddress(chainId1);
         const wrappedToken = await MintableToken.tokenFromAddress(wrappedTokenAddress!, signers[1]);
         const anchorWrappedTokenBalance = await wrappedToken.getBalance(anchor1.contract.address);
-        assert.deepStrictEqual(anchorWrappedTokenBalance, (ethers.BigNumber.from(anchorSize)).mul(2));
+        assert.deepEqual(anchorWrappedTokenBalance, (ethers.BigNumber.from(anchorSize)).mul(2));
 
         // Check that the anchor's token wrapper has the appropriate amount of token balance
         const anchorTokenWrapper = await anchor1.contract.token();
         const anchorTokenWrapperBalance = await existingToken1.getBalance(anchorTokenWrapper);
-        assert.deepStrictEqual(anchorTokenWrapperBalance, (ethers.BigNumber.from(anchorSize)).mul(2));
+        assert.deepEqual(anchorTokenWrapperBalance, (ethers.BigNumber.from(anchorSize)).mul(2));
 
         // Withdraw from the bridge
         await bridge.withdrawAndUnwrap(depositNote1!, existingToken2.contract.address, anchorSize, signers[2].address, signers[2].address, ganacheWallet2);
 
         // Check the balance of the signer
         const endingBalanceDest = await token.getBalance(signers[2].address);
-        assert.deepStrictEqual(endingBalanceDest, startingBalanceDest.add(anchorSize));
+        assert.deepEqual(endingBalanceDest, startingBalanceDest.add(anchorSize));
       })
 
       it('should withdraw on hardhat from ganache deposit', async () => {

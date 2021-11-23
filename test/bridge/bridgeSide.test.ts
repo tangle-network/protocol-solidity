@@ -10,14 +10,14 @@ import { ethers } from 'hardhat';
 import { Anchor, BridgeSide, Verifier } from '../../packages/fixed-bridge';
 import { MintableToken } from '../../packages/tokens';
 import { fetchComponentsFromFilePaths, ZkComponents } from '../../packages/utils';
-import { PoseidonT3__factory } from '../../typechain-types';
+import { PoseidonT3__factory } from '../../typechain';
 
 describe('BridgeSideConstruction', () => {
 
   let zkComponents: ZkComponents;
 
   before(async () => {
-    const zkComponents = await fetchComponentsFromFilePaths(
+    zkComponents = await fetchComponentsFromFilePaths(
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm'),
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js'),
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey')

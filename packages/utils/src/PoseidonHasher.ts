@@ -12,4 +12,4 @@ class PoseidonHasher {
   }
 }
 
-export default PoseidonHasher;
+export { PoseidonHasher };

@@ -4,8 +4,8 @@
   "author": "Nepoche",
   "name": "@nepoche/tokens",
   "dependencies": {
-    "@nepoche/contracts": "1.0.7",
-    "ethers": "^5.3.1"
+    "@nepoche/contracts": "1.1.2",
+    "ethers": "5.5.1"
   },
   "publishConfig": {
     "access": "public"
@@ -15,5 +15,5 @@
     "type": "git",
     "url": "git://github.com/nepoche/protocol-solidity.git"
   },
-  "version": "1.0.7"
+  "version": "1.1.2"
 }
