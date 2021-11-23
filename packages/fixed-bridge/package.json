@@ -11,7 +11,10 @@
     "@nepoche/contracts": "1.1.2",
     "@nepoche/tokens": "1.1.2",
     "@nepoche/utils": "1.1.2",
-    "ethers": "5.5.1"
+    "circomlibjs": "^0.0.8",
+    "ethers": "5.5.1",
+    "ffjavascript": "^0.2.38",
+    "snarkjs": "0.4.10"
   },
   "publishConfig": {
     "access": "public"
@@ -21,5 +24,5 @@
     "type": "git",
     "url": "git://github.com/nepoche/protocol-solidity.git"
   },
-  "version": "1.1.2"
+  "version": "1.1.3"
 }
