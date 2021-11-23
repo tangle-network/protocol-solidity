@@ -999,15 +999,18 @@
   dependencies:
     ethers "^5.0.2"
 
-"@typechain/ethers-v5@^7.0.1":
-  version "7.0.1"
-  resolved "https://registry.npmjs.org/@typechain/ethers-v5/-/ethers-v5-7.0.1.tgz"
-  integrity sha512-mXEJ7LG0pOYO+MRPkHtbf30Ey9X2KAsU0wkeoVvjQIn7iAY6tB3k3s+82bbmJAUMyENbQ04RDOZit36CgSG6Gg==
+"@typechain/ethers-v5@^8.0.4":
+  version "8.0.4"
+  resolved "https://registry.yarnpkg.com/@typechain/ethers-v5/-/ethers-v5-8.0.4.tgz#b5492554e5d907b5632d74a150eec1d07eb72388"
+  integrity sha512-778WF5PUsnftVjFp16TMMDgii2if8+WNx+BeVZffPtKhk8Qxg2GD1+5RulR2c7XxxmqWM6H/cla+1oA8qQdjBw==
+  dependencies:
+    lodash "^4.17.15"
+    ts-essentials "^7.0.1"
 
-"@typechain/hardhat@^2.3.0":
-  version "2.3.0"
-  resolved "https://registry.npmjs.org/@typechain/hardhat/-/hardhat-2.3.0.tgz"
-  integrity sha512-zERrtNol86L4DX60ktnXxP7Cq8rSZHPaQvsChyiQQVuvVs2FTLm24Yi+MYnfsIdbUBIXZG7SxDWhtCF5I0tJNQ==
+"@typechain/hardhat@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@typechain/hardhat/-/hardhat-3.0.0.tgz#a94396855506d42b98d6e7c09f87ca14180d6c64"
+  integrity sha512-FpnIIXkDXm54XCHI/Z2iOet7h1MrFSvZfuljX9Uzc6FEjEfb01Tuzu8ywe2iquD3g5JXqovgdv+M54L/2Z6jkg==
   dependencies:
     fs-extra "^9.1.0"
 
@@ -9497,10 +9500,10 @@ typechain@^3.0.0:
     ts-essentials "^6.0.3"
     ts-generator "^0.1.1"
 
-typechain@^5.1.2:
-  version "5.1.2"
-  resolved "https://registry.npmjs.org/typechain/-/typechain-5.1.2.tgz"
-  integrity sha512-FuaCxJd7BD3ZAjVJoO+D6TnqKey3pQdsqOBsC83RKYWKli5BDhdf0TPkwfyjt20TUlZvOzJifz+lDwXsRkiSKA==
+typechain@^6.0.4:
+  version "6.0.4"
+  resolved "https://registry.yarnpkg.com/typechain/-/typechain-6.0.4.tgz#deee38a4813e3f86a8f46daeb1d3d2caa9c4e3e1"
+  integrity sha512-EnFqSLBIggmCzIL7OF3ogRCgRRf/TRE2HmG4WGmRpP0x+kqiLYW9nOQKjo2Hm3caS4/Ktr5R0FUiNGwSWtfBGg==
   dependencies:
     "@types/prettier" "^2.1.1"
     command-line-args "^4.0.7"

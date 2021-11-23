@@ -1,6 +1,5 @@
 import { ethers } from "ethers";
-import { ERC20 as ERC20Contract} from '../../typechain/ERC20';
-import { ERC20__factory } from "../../typechain/factories/ERC20__factory";
+import { ERC20 as ERC20Contract, ERC20__factory } from '@nepoche/contracts';
 
 class ERC20 {
   contract: ERC20Contract;
@@ -28,4 +27,4 @@ class ERC20 {
   }
 }
 
-export default ERC20;
+export { ERC20 };

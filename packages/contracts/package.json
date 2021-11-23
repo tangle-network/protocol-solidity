@@ -2,10 +2,9 @@
   "main": "./lib/index.js",
   "license": "GPL-3.0-or-later",
   "author": "Nepoche",
-  "name": "@test-webb-solidity/contracts",
+  "name": "@nepoche/contracts",
   "dependencies": {
-    "ethers": "^5.3.1",
-    "typechain": "^5.1.2"
+    "ethers": "^5.3.1"
   },
   "publishConfig": {
     "access": "public"
@@ -15,5 +14,5 @@
     "type": "git",
     "url": "git://github.com/nepoche/protocol-solidity.git"
   },
-  "version": "1.0.0"
+  "version": "1.0.7"
 }

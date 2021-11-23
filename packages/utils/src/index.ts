@@ -1,4 +1,4 @@
-export { default as Poseidon } from './Poseidon';
+export { default as PoseidonHasher } from './PoseidonHasher';
 export { Storage } from './Storage';
 export { ZkComponents } from './types';
-export * from './utils';
+export { toFixedHex, toHex, p256, rbigint, fetchComponentsFromFilePaths } from './utils';

@@ -2,7 +2,7 @@
   "main": "./lib/index.js",
   "license": "GPL-3.0-or-later",
   "author": "Nepoche",
-  "name": "@test-webb-solidity/utils",
+  "name": "@nepoche/utils",
   "dependencies": {
     "circomlibjs": "^0.0.8",
     "ethers": "^5.3.1",
@@ -17,5 +17,5 @@
     "type": "git",
     "url": "git://github.com/nepoche/protocol-solidity.git"
   },
-  "version": "1.0.0"
+  "version": "1.0.7"
 }

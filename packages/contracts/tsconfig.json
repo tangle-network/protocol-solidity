@@ -7,5 +7,6 @@
   "extends": "../../tsconfig.package.json",
   "include": [
     "./src/*.ts",
+    "./src/factories/*.ts"
   ]
 }

@@ -7,11 +7,13 @@ build/
 #Packages
 packages/*/node_modules
 packages/*/lib
+packages/*/tsconfig.tsbuildinfo
 
 #Hardhat files
 cache
 artifacts
 /typechain
+/typechain-types
 /src
 
 dist

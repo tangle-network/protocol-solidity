@@ -2,20 +2,18 @@
   "main": "./lib/index.js",
   "license": "GPL-3.0-or-later",
   "author": "Nepoche",
-  "name": "@test-webb-solidity/utils",
+  "name": "@nepoche/tokens",
   "dependencies": {
-    "circomlibjs": "^0.0.8",
-    "ethers": "^5.3.1",
-    "ffjavascript": "^0.2.43",
-    "maci-crypto": "^0.9.1"
+    "@nepoche/contracts": "1.0.7",
+    "ethers": "^5.3.1"
   },
   "publishConfig": {
     "access": "public"
   },
   "repository": {
-    "directory": "packages/utils",
+    "directory": "packages/tokens",
     "type": "git",
     "url": "git://github.com/nepoche/protocol-solidity.git"
   },
-  "version": "1.0.0"
+  "version": "1.0.7"
 }

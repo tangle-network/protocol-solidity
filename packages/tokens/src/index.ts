@@ -1,3 +1,3 @@
-export {default as GovernedTokenWrapper} from './GovernedTokenWrapper';
-export {default as MintableToken} from './MintableToken';
-export {default as ERC20} from './ERC20';
+export { GovernedTokenWrapper } from './GovernedTokenWrapper';
+export { MintableToken } from './MintableToken';
+export { ERC20 } from './ERC20';

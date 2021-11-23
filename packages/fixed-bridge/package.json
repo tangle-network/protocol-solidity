@@ -1,0 +1,21 @@
+{
+  "main": "./lib/index.js",
+  "license": "GPL-3.0-or-later",
+  "author": "Nepoche",
+  "name": "@nepoche/fixed-bridge",
+  "dependencies": {
+    "@nepoche/contracts": "1.0.7",
+    "@nepoche/tokens": "1.0.7",
+    "@nepoche/utils": "1.0.7",
+    "ethers": "^5.3.1"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "directory": "packages/fixed-bridge",
+    "type": "git",
+    "url": "git://github.com/nepoche/protocol-solidity.git"
+  },
+  "version": "1.0.7"
+}

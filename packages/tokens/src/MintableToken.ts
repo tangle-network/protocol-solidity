@@ -1,6 +1,5 @@
 import { BigNumber, BigNumberish, ContractTransaction, ethers } from "ethers";
-import { ERC20PresetMinterPauser__factory } from '../../typechain/factories/ERC20PresetMinterPauser__factory';
-import { ERC20PresetMinterPauser } from '../../typechain/ERC20PresetMinterPauser';
+import { ERC20PresetMinterPauser, ERC20PresetMinterPauser__factory } from '@nepoche/contracts';
 
 class MintableToken {
   contract: ERC20PresetMinterPauser;
@@ -65,7 +64,6 @@ class MintableToken {
     const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
     return this.contract.grantRole(MINTER_ROLE, address);
   }
-
 }
 
-export default MintableToken;
+export { MintableToken };

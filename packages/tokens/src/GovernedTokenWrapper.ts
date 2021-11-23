@@ -1,6 +1,5 @@
 import { ethers } from "ethers";
-import { GovernedTokenWrapper as GovernedTokenWrapperContract} from '../../typechain/GovernedTokenWrapper';
-import { GovernedTokenWrapper__factory } from "../../typechain/factories/GovernedTokenWrapper__factory";
+import { GovernedTokenWrapper as GovernedTokenWrapperContract, GovernedTokenWrapper__factory } from '@nepoche/contracts';
 
 class GovernedTokenWrapper {
   contract: GovernedTokenWrapperContract;
@@ -45,4 +44,4 @@ class GovernedTokenWrapper {
   }
 }
 
-export default GovernedTokenWrapper;
+export { GovernedTokenWrapper };
