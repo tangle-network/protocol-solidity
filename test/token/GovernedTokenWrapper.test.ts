@@ -5,12 +5,9 @@
 const assert = require('assert');
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
-const TruffleAssert = require('truffle-assertions');
 
 // Convenience wrapper classes for contract classes
-import { ERC20 as ERC20Class, GovernedTokenWrapper as GovernedTokenWrapperClass } from '../../packages/tokens';
-
-const helpers = require('../../packages/utils');
+import { ERC20 as ERC20Class, GovernedTokenWrapper as GovernedTokenWrapperClass } from '../../packages/tokens/src';
 
 describe('GovernedTokenWrapper', () => {
   let token: ERC20Class;

@@ -21,8 +21,8 @@ import {
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
-import { Anchor, AnchorProxy, MerkleTree, Verifier } from '../../packages/fixed-bridge'
-import { fetchComponentsFromFilePaths, ZkComponents } from '../../packages/utils';
+import { Anchor, AnchorProxy, MerkleTree, Verifier } from '../../packages/fixed-bridge/src'
+import { fetchComponentsFromFilePaths, ZkComponents } from '../../packages/utils/src';
 
 const helpers = require('../../packages/utils');
 

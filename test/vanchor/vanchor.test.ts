@@ -515,7 +515,7 @@ describe('VAnchor for 2 max edges', () => {
       
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.transact(incorrectPublicInputs, extAmountInputs, { gasPrice: '100' }),
+        anchor.contract.transact(incorrectPublicInputs, extAmountInputs),
         'Invalid public amount',
       );
 
@@ -533,7 +533,7 @@ describe('VAnchor for 2 max edges', () => {
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.transact(incorrectPublicInputs, extAmountInputs, { gasPrice: '100' }),
+        anchor.contract.transact(incorrectPublicInputs, extAmountInputs),
         'Incorrect external data hash',
       );
 
@@ -551,7 +551,7 @@ describe('VAnchor for 2 max edges', () => {
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.transact(incorrectPublicInputs, extAmountInputs, { gasPrice: '100' }),
+        anchor.contract.transact(incorrectPublicInputs, extAmountInputs),
         'Invalid withdraw proof',
       );
 
@@ -569,7 +569,7 @@ describe('VAnchor for 2 max edges', () => {
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.transact(incorrectPublicInputs, extAmountInputs, { gasPrice: '100' }),
+        anchor.contract.transact(incorrectPublicInputs, extAmountInputs),
         'Invalid withdraw proof',
       );
 
@@ -588,7 +588,7 @@ describe('VAnchor for 2 max edges', () => {
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.transact(correctPublicInputs, incorrectExtAmountInputs, { gasPrice: '100' }),
+        anchor.contract.transact(correctPublicInputs, incorrectExtAmountInputs),
         'Incorrect external data hash',
       );
 
@@ -606,7 +606,7 @@ describe('VAnchor for 2 max edges', () => {
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.transact(correctPublicInputs, incorrectExtAmountInputs, { gasPrice: '100' }),
+        anchor.contract.transact(correctPublicInputs, incorrectExtAmountInputs),
         'Incorrect external data hash',
       );
 
@@ -624,7 +624,7 @@ describe('VAnchor for 2 max edges', () => {
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.transact(correctPublicInputs, incorrectExtAmountInputs, { gasPrice: '100' }),
+        anchor.contract.transact(correctPublicInputs, incorrectExtAmountInputs),
         'Incorrect external data hash',
       );
     });

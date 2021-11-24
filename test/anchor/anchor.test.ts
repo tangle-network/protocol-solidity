@@ -20,8 +20,9 @@ import {
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
-import { Anchor, MerkleTree, Verifier } from '../../packages/fixed-bridge';
-import { fetchComponentsFromFilePaths, ZkComponents } from '../../packages/utils';
+import { Anchor, MerkleTree, Verifier } from '../../packages/fixed-bridge/src';
+import { GovernedTokenWrapper } from '../../packages/tokens/src';
+import { fetchComponentsFromFilePaths, ZkComponents } from '../../packages/utils/src';
 
 const { NATIVE_AMOUNT } = process.env
 const snarkjs = require('snarkjs')
@@ -331,7 +332,7 @@ describe('Anchor for 2 max edges', () => {
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.withdraw(`0x${proofEncoded}`, publicInputs, { gasPrice: '100' }),
+        anchor.contract.withdraw(`0x${proofEncoded}`, publicInputs),
         'verifier-gte-snark-scalar-field',
       );
     });
@@ -403,7 +404,7 @@ describe('Anchor for 2 max edges', () => {
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.withdraw(`0x${proofEncoded}`, publicInputs, { gasPrice: '100' }),
+        anchor.contract.withdraw(`0x${proofEncoded}`, publicInputs),
         'Cannot find your merkle root'
       );
     });
@@ -474,7 +475,7 @@ describe('Anchor for 2 max edges', () => {
       
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.withdraw(`0x${proofEncoded}`, incorrectPublicInputs, { gasPrice: '100' }),
+        anchor.contract.withdraw(`0x${proofEncoded}`, incorrectPublicInputs),
         'Invalid withdraw proof',
       );
 
@@ -492,7 +493,7 @@ describe('Anchor for 2 max edges', () => {
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.withdraw(`0x${proofEncoded}`, incorrectPublicInputs, { gasPrice: '100' }),
+        anchor.contract.withdraw(`0x${proofEncoded}`, incorrectPublicInputs),
         'Invalid withdraw proof',
       );
 
@@ -510,7 +511,7 @@ describe('Anchor for 2 max edges', () => {
       incorrectPublicInputs = Anchor.convertArgsArrayToStruct(incorrectArgs);
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.withdraw(`0x${proofEncoded}`, incorrectPublicInputs, { gasPrice: '100' }),
+        anchor.contract.withdraw(`0x${proofEncoded}`, incorrectPublicInputs),
         'Invalid withdraw proof',
       );
 
@@ -528,7 +529,7 @@ describe('Anchor for 2 max edges', () => {
 
       await TruffleAssert.reverts(
         //@ts-ignore
-        anchor.contract.withdraw(`0x${proofEncoded}`, incorrectPublicInputs, { gasPrice: '100' }),
+        anchor.contract.withdraw(`0x${proofEncoded}`, incorrectPublicInputs),
         'Invalid withdraw proof',
       );
 
@@ -537,7 +538,6 @@ describe('Anchor for 2 max edges', () => {
       await TruffleAssert.passes(anchor.contract.withdraw(
         `0x${proofEncoded}`,
         publicInputs,
-        { gasPrice: '100' }
       ));
     }).timeout(60000);
   })
@@ -612,7 +612,6 @@ describe('Anchor for 2 max edges', () => {
       const { deposit, index } = await anchor.deposit();
 
       const newAnchor = await Anchor.connect(anchor.contract.address, zkComponents, wallet);
-      await newAnchor.update();
 
       const withdrawSetup = await newAnchor.setupWithdraw(deposit, index, recipient, signers[1].address, fee, bigInt(0));
       

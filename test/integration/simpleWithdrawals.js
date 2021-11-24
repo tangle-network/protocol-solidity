@@ -23,7 +23,7 @@ const snarkjs = require('snarkjs');
 const BN = require('bn.js');
 const F = require('circomlibjs').babyjub.F;
 const Scalar = require('ffjavascript').Scalar;
-const MerkleTree = require('../../packages/fixed-bridge').MerkleTree;
+const MerkleTree = require('../../packages/fixed-bridge/src').MerkleTree;
 
 contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts => {
   const relayerThreshold = 1;
@@ -265,7 +265,7 @@ contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts 
       _relayer: args[4],
       _fee: args[5],
       _refund: args[6],
-    }, { from: input.relayer, gasPrice: '100' }));
+    }, { from: input.relayer }));
     
     let balanceDestAnchorAfter = await destChainToken.balanceOf(DestChainAnchorInstance.address);
     let balanceOperatorAfter = await destChainToken.balanceOf(input.relayer);
@@ -381,7 +381,7 @@ contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts 
       _relayer: args[4],
       _fee: args[5],
       _refund: args[6],
-    }, { from: input.relayer, gasPrice: '100' }));
+    }, { from: input.relayer }));
     
     let balanceOriginAnchorAfter = await originChainToken.balanceOf(OriginChainAnchorInstance.address);
     balanceOperatorAfter = await originChainToken.balanceOf(input.relayer);

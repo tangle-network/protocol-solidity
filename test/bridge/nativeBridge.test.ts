@@ -10,9 +10,9 @@ const path = require('path');
 const ganache = require('ganache-cli');
 
 // Convenience wrapper classes for contract classes
-import { Bridge, BridgeInput, Anchor} from '../../packages/fixed-bridge'
-import { fetchComponentsFromFilePaths, ZkComponents } from '../../packages/utils';
-import { GovernedTokenWrapper } from '../../packages/tokens';
+import { Bridge, BridgeInput, Anchor} from '../../packages/fixed-bridge/src'
+import { fetchComponentsFromFilePaths, ZkComponents } from '../../packages/utils/src';
+import { GovernedTokenWrapper } from '../../packages/tokens/src';
 
 function startGanacheServer(port: number, networkId: number, mnemonic: string) {
   const ganacheServer = ganache.server({
