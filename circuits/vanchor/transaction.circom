@@ -73,7 +73,7 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
         inNullifierHasher[tx] = Poseidon(3);
         inNullifierHasher[tx].inputs[0] <== inCommitmentHasher[tx].out;
         inNullifierHasher[tx].inputs[1] <== inPathIndices[tx];
-        inNullifierHasher[tx].inputs[2] <== inPrivateKey[tx];
+        inNullifierHasher[tx].inputs[2] <== inSignature[tx].out;
         inNullifierHasher[tx].out === inputNullifier[tx];
 
         inTree[tx] = ManyMerkleProof(levels, length);
