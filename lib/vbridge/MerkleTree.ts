@@ -1,6 +1,7 @@
 // keccak256("tornado") % BN254_FIELD_SIZE
 const DEFAULT_ZERO = '21663839004416932945382355908790599225266501822907911457504978515578255421292'
-import { BigNumberish } from 'ethers';
+import { BigNumberish, BigNumber } from 'ethers';
+import { stringToHex } from 'web3-utils';
 import { poseidonHash2 } from './utils';
 const defaultHash = poseidonHash2;
 
@@ -32,7 +33,7 @@ export class MerkleTree {
    * @param {hashFunction} [options.hashFunction] Function used to hash 2 leaves
    * @param [options.zeroElement] Value for non-existent leaves
    */
-  constructor(levels: number, elements: BigNumberish[] = [], { hashFunction = null, zeroElement = DEFAULT_ZERO } = {}) { 
+  constructor(levels: number, elements: BigNumberish[] = [], { hashFunction = defaultHash, zeroElement = DEFAULT_ZERO } = {}) { 
     this.levels = levels;
     this.capacity = 2 ** levels;
     if (elements.length > this.capacity) {

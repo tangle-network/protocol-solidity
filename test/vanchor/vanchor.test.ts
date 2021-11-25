@@ -26,6 +26,7 @@ import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { poseidonHash, poseidonHash2 } from '../../lib/vbridge/utils';
 
+
 const { NATIVE_AMOUNT } = process.env
 const BN = require('bn.js');
 
@@ -711,6 +712,78 @@ describe('VAnchor for 2 max edges', () => {
         'Incorrect external data hash',
       );
     });
+
+    it('should be compliant', async function () {
+      // basically verifier should check if a commitment and a nullifier hash are on chain
+      const [sender] = await ethers.getSigners();
+
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount)
+      });
+  
+      await anchor.transact(
+        [], 
+        [aliceDepositUtxo]
+      );
+
+  
+      // withdrawal
+      await anchor.transact(
+        [aliceDepositUtxo],
+        [],
+        0,
+        sender.address
+      );
+
+      //build merkle tree start
+      const filter = anchor.contract.filters.NewCommitment()
+      const events = await anchor.contract.queryFilter(filter, 0)
+    
+      const leaves = events.sort((a:any, b:any) => a.args.index - b.args.index).map((e) => toFixedHex(e.args.commitment))
+      const tree = new MerkleTree(levels, leaves, { hashFunction: poseidonHash2 })
+
+      //build merkle tree end
+      const commitment = aliceDepositUtxo.getCommitment()
+      const index = tree.indexOf(toFixedHex(commitment)) // it's the same as merklePath and merklePathIndexes and index in the tree
+      aliceDepositUtxo.index = index
+      const nullifier = aliceDepositUtxo.getNullifier()
+  
+      // commitment = hash(amount, pubKey, blinding)
+      // nullifier = hash(commitment, merklePath, sign(merklePath, privKey))
+      const dataForVerifier = {
+        commitment: {
+          chainId: 31337,
+          amount: aliceDepositUtxo.amount,
+          pubkey: aliceDepositUtxo.keypair.pubkey,
+          blinding: aliceDepositUtxo.blinding,
+        },
+        nullifier: {
+          commitment,
+          merklePath: index,
+          signature: aliceDepositUtxo.keypair.sign(BigNumber.from(commitment), index),
+        },
+      }
+  
+      // generateReport(dataForVerifier) -> compliance report
+      // on the verifier side we compute commitment and nullifier and then check them onchain
+      const commitmentV = poseidonHash([...Object.values(dataForVerifier.commitment)])
+      const nullifierV = poseidonHash([
+        commitmentV,
+        dataForVerifier.nullifier.merklePath,
+        dataForVerifier.nullifier.signature,
+      ])
+  
+      assert.strictEqual(commitmentV.toString(), commitment.toString());
+      assert.strictEqual(nullifierV.toString(), nullifier.toString());
+      assert.strictEqual(await anchor.contract.nullifierHashes(nullifierV.toHexString()), true);
+      // expect commitmentV present onchain (it will be in NewCommitment events)
+  
+      // in report we can see the tx with NewCommitment event (this is how alice got money)
+      // and the tx with NewNullifier event is where alice spent the UTXO
+    })
 
     // it.only('values for hossein', async () => {
     //   const zero1 = '0x0000000000000000000000000000000000000000000000000000000000000000';
