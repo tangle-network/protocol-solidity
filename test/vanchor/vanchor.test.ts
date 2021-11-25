@@ -449,7 +449,7 @@ describe('VAnchor for 2 max edges', () => {
         aliceETHAddress
       )
       assert.strictEqual(aliceWithdrawAmount.toString(), await (await token.balanceOf(aliceETHAddress)).toString());
-    });
+    }).timeout(40000);
 
     it('should prevent double spend', async () => {
       const aliceDepositAmount = 1e7;
@@ -728,7 +728,6 @@ describe('VAnchor for 2 max edges', () => {
         [], 
         [aliceDepositUtxo]
       );
-
   
       // withdrawal
       await anchor.transact(
