@@ -713,7 +713,7 @@ describe('VAnchor for 2 max edges', () => {
       );
     });
 
-    it('should be compliant', async function () {
+    it.only('should be compliant', async function () {
       // basically verifier should check if a commitment and a nullifier hash are on chain
       const [sender] = await ethers.getSigners();
 
@@ -778,7 +778,7 @@ describe('VAnchor for 2 max edges', () => {
   
       assert.strictEqual(commitmentV.toString(), commitment.toString());
       assert.strictEqual(nullifierV.toString(), nullifier.toString());
-      assert.strictEqual(await anchor.contract.nullifierHashes(nullifierV.toHexString()), true);
+      assert.strictEqual(await anchor.contract.nullifierHashes(toFixedHex(nullifierV)), true);
       // expect commitmentV present onchain (it will be in NewCommitment events)
   
       // in report we can see the tx with NewCommitment event (this is how alice got money)
