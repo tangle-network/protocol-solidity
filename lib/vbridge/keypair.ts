@@ -1,7 +1,7 @@
 import { encrypt, decrypt, getEncryptionPublicKey } from 'eth-sig-util';
-import { ethers } from 'ethers';
+import { ethers, BigNumber } from 'ethers';
 import { poseidonHash, toFixedHex } from './utils';
-const { BigNumber } = ethers
+//const { BigNumber } = ethers
 
 
 export function packEncryptedMessage(encryptedMessage: any) {
@@ -104,7 +104,19 @@ export class Keypair {
   decrypt(data: string) {
     return Buffer.from(decrypt(unpackEncryptedMessage(data), this.privkey.slice(2)), 'base64')
   }
+
+  /**
+   * Sign a message using keypair private key
+   *
+   * @param {string|number|BigNumber} commitment a hex string with commitment
+   * @param {string|number|BigNumber} merklePath a hex string with merkle path
+   * @returns {BigNumber} a hex string with signature
+   */
+   sign(commitment: string|number|BigNumber, merklePath: string|number|BigNumber) {
+    return poseidonHash([this.privkey, commitment, merklePath])
+  }
 }
+
 
 module.exports = {
   Keypair,

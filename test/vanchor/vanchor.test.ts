@@ -26,6 +26,7 @@ import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { poseidonHash, poseidonHash2 } from '../../lib/vbridge/utils';
 
+
 const { NATIVE_AMOUNT } = process.env
 const BN = require('bn.js');
 
@@ -448,7 +449,7 @@ describe('VAnchor for 2 max edges', () => {
         aliceETHAddress
       )
       assert.strictEqual(aliceWithdrawAmount.toString(), await (await token.balanceOf(aliceETHAddress)).toString());
-    });
+    }).timeout(40000);
 
     it('should prevent double spend', async () => {
       const aliceDepositAmount = 1e7;
@@ -712,110 +713,76 @@ describe('VAnchor for 2 max edges', () => {
       );
     });
 
-    // it.only('values for hossein', async () => {
-    //   const zero1 = '0x0000000000000000000000000000000000000000000000000000000000000000';
-    //   const zero2 = '0xb2ac10dccfb5a5712d632464a359668bb513e80e9d145ab5a88381de83af1046';
-    //   const chainid = '0x0000000000000000000000000000000000000000000000000000000000007a69'
-    //   const amount = '0x0000000000000000000000000000000000000000000000000000000000989680'
-    //   const publickey = '0x07a1f74bf9feda741e1e9099012079df28b504fc7a19a02288435b8e02ae21fa';
-    //   const blinding = '0x00a668ba0dcb34960aca597f433d0d3289c753046afa26d97e1613148c05f2c0';
-    //   const commitment = '0x15206d966a7fb3e3fbbb7f4d7b623ca1c7c9b5c6e6d0a3348df428189441a1e4';
-    //   const path = '0x0000000000000000000000000000000000000000000000000000000000000000';
-    //   console.log(poseidonHash([zero1]));
-      // const aliceDepositAmount = 1e7;
-      // const utxo = new Utxo({
-      //   chainId: BigNumber.from(chainID),
-      //   originChainId: BigNumber.from(chainID),
-      //   amount: BigNumber.from(aliceDepositAmount)
-      // });
+    it('should be compliant', async function () {
+      // basically verifier should check if a commitment and a nullifier hash are on chain
+      const [sender] = await ethers.getSigners();
 
-      // const utxo2 = new Utxo({
-      //   chainId: BigNumber.from(chainID),
-      //   originChainId: BigNumber.from(chainID),
-      //   amount: BigNumber.from(aliceDepositAmount),
-      //   keypair: utxo.keypair
-      // });
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = new Utxo({
+        chainId: BigNumber.from(chainID),
+        originChainId: BigNumber.from(chainID),
+        amount: BigNumber.from(aliceDepositAmount)
+      });
+  
+      await anchor.transact(
+        [], 
+        [aliceDepositUtxo]
+      );
+  
+      // withdrawal
+      await anchor.transact(
+        [aliceDepositUtxo],
+        [],
+        0,
+        sender.address
+      );
 
-      // await anchor.registerAndTransact(
-      //   sender.address,
-      //   utxo.keypair.address(),
-      //   [],
-      //   [utxo]
-      // );
+      //build merkle tree start
+      const filter = anchor.contract.filters.NewCommitment()
+      const events = await anchor.contract.queryFilter(filter, 0)
+    
+      const leaves = events.sort((a:any, b:any) => a.args.index - b.args.index).map((e) => toFixedHex(e.args.commitment))
+      const tree = new MerkleTree(levels, leaves, { hashFunction: poseidonHash2 })
 
-      // await anchor.transact(
-      //   [utxo],
-      //   [utxo2]
-      // )
-      // console.log("keypair");
-      // console.log(`keypair private key is ${VAnchor.hexStringToByte(toFixedHex(utxo.keypair.privkey))}`);
-      // console.log(`keypair public key is ${toFixedHex(utxo.keypair.pubkey)}`);
-
-      // console.log("leaf commitment");
-      // console.log(`chainId is ${toFixedHex(utxo.chainId)}`);
-      // console.log(`amount is ${toFixedHex(utxo.amount)}`);
-      // console.log(`public key is ${toFixedHex(utxo.keypair.pubkey)}`);
-      // console.log(`blinding is ${toFixedHex(utxo.blinding)}`);
-      // console.log(`commitment is ${toFixedHex(utxo.getCommitment())}`);
-
-      // console.log("nullifier");
-      // console.log(`commitment is ${toFixedHex(utxo.getCommitment())}`);
-      // console.log(`pathIndices is ${toFixedHex(utxo.index!.toString())}`);
-      // console.log(`private key is ${toFixedHex(utxo.keypair.privkey)}`);
-      // console.log(`nullifier is ${toFixedHex(utxo.getNullifier())}`);
-    // });
-
-    // it('transact should work with 16 inputs', async () => {
-    //   const aliceDepositAmount1 = 4e7;
-    //   const aliceDepositUtxo1 = new Utxo({
-    //     chainId: BigNumber.from(chainID),
-    //     originChainId: BigNumber.from(chainID),
-    //     amount: BigNumber.from(aliceDepositAmount1)
-    //   });
-      
-    //   const aliceDepositAmount2 = 4e7;
-    //   const aliceDepositUtxo2 = new Utxo({
-    //     chainId: BigNumber.from(chainID),
-    //     originChainId: BigNumber.from(chainID),
-    //     amount: BigNumber.from(aliceDepositAmount2),
-    //     keypair: aliceDepositUtxo1.keypair
-    //   });
-
-    //   const aliceDepositAmount3 = 4e7;
-    //   const aliceDepositUtxo3 = new Utxo({
-    //     chainId: BigNumber.from(chainID),
-    //     originChainId: BigNumber.from(chainID),
-    //     amount: BigNumber.from(aliceDepositAmount3),
-    //     keypair: aliceDepositUtxo1.keypair
-    //   });
-
-    //   await anchor.registerAndTransact(
-    //     sender.address,
-    //     aliceDepositUtxo1.keypair.address(),
-    //     [],
-    //     [aliceDepositUtxo1, aliceDepositUtxo2, aliceDepositUtxo3]
-    //   );
-      
-      
-
-      // await anchor.transact(
-      //   [],
-      //   [aliceDepositUtxo2]
-      // );
-      
-      // const aliceJoinAmount = 2e7;
-      // const aliceJoinUtxo = new Utxo({
-      //   chainId: BigNumber.from(chainID),
-      //   originChainId: BigNumber.from(chainID),
-      //   amount: BigNumber.from(aliceJoinAmount),
-      //   //keypair: aliceDepositUtxo1.keypair
-      // });
-
-      // await anchor.transact(
-      //   [aliceDepositUtxo1, aliceDepositUtxo2],
-      //   [aliceJoinUtxo]
-      // );
-    // });
+      //build merkle tree end
+      const commitment = aliceDepositUtxo.getCommitment()
+      const index = tree.indexOf(toFixedHex(commitment)) // it's the same as merklePath and merklePathIndexes and index in the tree
+      aliceDepositUtxo.index = index
+      const nullifier = aliceDepositUtxo.getNullifier()
+  
+      // commitment = hash(amount, pubKey, blinding)
+      // nullifier = hash(commitment, merklePath, sign(merklePath, privKey))
+      const dataForVerifier = {
+        commitment: {
+          chainId: 31337,
+          amount: aliceDepositUtxo.amount,
+          pubkey: aliceDepositUtxo.keypair.pubkey,
+          blinding: aliceDepositUtxo.blinding,
+        },
+        nullifier: {
+          commitment,
+          merklePath: index,
+          signature: aliceDepositUtxo.keypair.sign(BigNumber.from(commitment), index),
+        },
+      }
+  
+      // generateReport(dataForVerifier) -> compliance report
+      // on the verifier side we compute commitment and nullifier and then check them onchain
+      const commitmentV = poseidonHash([...Object.values(dataForVerifier.commitment)])
+      const nullifierV = poseidonHash([
+        commitmentV,
+        dataForVerifier.nullifier.merklePath,
+        dataForVerifier.nullifier.signature,
+      ])
+  
+      assert.strictEqual(commitmentV.toString(), commitment.toString());
+      assert.strictEqual(nullifierV.toString(), nullifier.toString());
+      assert.strictEqual(await anchor.contract.nullifierHashes(toFixedHex(nullifierV)), true);
+      // expect commitmentV present onchain (it will be in NewCommitment events)
+  
+      // in report we can see the tx with NewCommitment event (this is how alice got money)
+      // and the tx with NewNullifier event is where alice spent the UTXO
+    })
   })
   describe('#wrapping tests', () => {
     it('should wrap and deposit', async () => {

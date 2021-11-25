@@ -81,7 +81,8 @@ export class Utxo {
       ) {
         throw new Error('Can not compute nullifier without utxo index or private key')
       }
-      this._nullifier = poseidonHash([this.getCommitment(), this.index || 0, this.keypair.privkey || 0])
+      const signature = this.keypair.privkey ? this.keypair.sign(BigNumber.from(this.getCommitment()), this.index || 0) : 0
+      this._nullifier = poseidonHash([this.getCommitment(), this.index || 0, signature])
     }
     return this._nullifier
   }
