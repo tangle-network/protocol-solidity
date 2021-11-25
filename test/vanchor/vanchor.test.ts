@@ -713,7 +713,7 @@ describe('VAnchor for 2 max edges', () => {
       );
     });
 
-    it.only('should be compliant', async function () {
+    it('should be compliant', async function () {
       // basically verifier should check if a commitment and a nullifier hash are on chain
       const [sender] = await ethers.getSigners();
 
