@@ -34,7 +34,6 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     "edgeIndex(uint256)": FunctionFragment;
     "edgeList(uint256)": FunctionFragment;
     "filledSubtrees(uint256)": FunctionFragment;
-    "getChainId()": FunctionFragment;
     "getLastRoot()": FunctionFragment;
     "getLatestNeighborEdges()": FunctionFragment;
     "hashLeftRight(bytes32,bytes32)": FunctionFragment;
@@ -56,7 +55,6 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     "register((address,bytes))": FunctionFragment;
     "registerAndTransact((address,bytes),(bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes))": FunctionFragment;
     "roots(uint256)": FunctionFragment;
-    "token()": FunctionFragment;
     "transact((bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes))": FunctionFragment;
     "unpackProof(uint256[8])": FunctionFragment;
     "verifier()": FunctionFragment;
@@ -111,10 +109,6 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "filledSubtrees",
     values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getChainId",
-    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getLastRoot",
@@ -200,7 +194,6 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     ]
   ): string;
   encodeFunctionData(functionFragment: "roots", values: [BigNumberish]): string;
-  encodeFunctionData(functionFragment: "token", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "transact",
     values: [
@@ -277,7 +270,6 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     functionFragment: "filledSubtrees",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "getChainId", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getLastRoot",
     data: BytesLike
@@ -338,7 +330,6 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "roots", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "token", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "transact", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "unpackProof",
@@ -491,8 +482,6 @@ export class VAnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    getChainId(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     getLastRoot(overrides?: CallOverrides): Promise<[string]>;
 
     getLatestNeighborEdges(
@@ -609,8 +598,6 @@ export class VAnchorBase extends BaseContract {
 
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
-    token(overrides?: CallOverrides): Promise<[string]>;
-
     transact(
       _args: {
         proof: BytesLike;
@@ -707,8 +694,6 @@ export class VAnchorBase extends BaseContract {
     arg0: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string>;
-
-  getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
   getLastRoot(overrides?: CallOverrides): Promise<string>;
 
@@ -809,8 +794,6 @@ export class VAnchorBase extends BaseContract {
 
   roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
-  token(overrides?: CallOverrides): Promise<string>;
-
   transact(
     _args: {
       proof: BytesLike;
@@ -910,8 +893,6 @@ export class VAnchorBase extends BaseContract {
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
-
-    getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
     getLastRoot(overrides?: CallOverrides): Promise<string>;
 
@@ -1017,8 +998,6 @@ export class VAnchorBase extends BaseContract {
     ): Promise<void>;
 
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
-
-    token(overrides?: CallOverrides): Promise<string>;
 
     transact(
       _args: {
@@ -1186,8 +1165,6 @@ export class VAnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getChainId(overrides?: CallOverrides): Promise<BigNumber>;
-
     getLastRoot(overrides?: CallOverrides): Promise<BigNumber>;
 
     getLatestNeighborEdges(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1280,8 +1257,6 @@ export class VAnchorBase extends BaseContract {
 
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
-    token(overrides?: CallOverrides): Promise<BigNumber>;
-
     transact(
       _args: {
         proof: BytesLike;
@@ -1370,8 +1345,6 @@ export class VAnchorBase extends BaseContract {
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    getChainId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getLastRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1473,8 +1446,6 @@ export class VAnchorBase extends BaseContract {
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    token(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transact(
       _args: {

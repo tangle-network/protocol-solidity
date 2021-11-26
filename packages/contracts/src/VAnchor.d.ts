@@ -36,7 +36,6 @@ interface VAnchorInterface extends ethers.utils.Interface {
     "edgeIndex(uint256)": FunctionFragment;
     "edgeList(uint256)": FunctionFragment;
     "filledSubtrees(uint256)": FunctionFragment;
-    "getChainId()": FunctionFragment;
     "getLastRoot()": FunctionFragment;
     "getLatestNeighborEdges()": FunctionFragment;
     "hasEdge(uint256)": FunctionFragment;
@@ -63,9 +62,16 @@ interface VAnchorInterface extends ethers.utils.Interface {
     "setHandler(address)": FunctionFragment;
     "token()": FunctionFragment;
     "transact((bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes))": FunctionFragment;
+    "transactWrap((bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes),address)": FunctionFragment;
     "unpackProof(uint256[8])": FunctionFragment;
+    "unwrapIntoNative(address,uint256)": FunctionFragment;
+    "unwrapIntoToken(address,uint256)": FunctionFragment;
     "updateEdge(uint256,bytes32,uint256)": FunctionFragment;
     "verifier()": FunctionFragment;
+    "withdrawAndUnwrap(address,address,uint256)": FunctionFragment;
+    "wrapAndDeposit(address,uint256)": FunctionFragment;
+    "wrapNative()": FunctionFragment;
+    "wrapToken(address,uint256)": FunctionFragment;
     "zeros(uint256)": FunctionFragment;
   };
 
@@ -121,10 +127,6 @@ interface VAnchorInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "filledSubtrees",
     values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getChainId",
-    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getLastRoot",
@@ -239,6 +241,28 @@ interface VAnchorInterface extends ethers.utils.Interface {
     ]
   ): string;
   encodeFunctionData(
+    functionFragment: "transactWrap",
+    values: [
+      {
+        proof: BytesLike;
+        roots: BytesLike;
+        inputNullifiers: BytesLike[];
+        outputCommitments: [BytesLike, BytesLike];
+        publicAmount: BigNumberish;
+        extDataHash: BytesLike;
+      },
+      {
+        recipient: string;
+        extAmount: BigNumberish;
+        relayer: string;
+        fee: BigNumberish;
+        encryptedOutput1: BytesLike;
+        encryptedOutput2: BytesLike;
+      },
+      string
+    ]
+  ): string;
+  encodeFunctionData(
     functionFragment: "unpackProof",
     values: [
       [
@@ -254,10 +278,34 @@ interface VAnchorInterface extends ethers.utils.Interface {
     ]
   ): string;
   encodeFunctionData(
+    functionFragment: "unwrapIntoNative",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "unwrapIntoToken",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "updateEdge",
     values: [BigNumberish, BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "verifier", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "withdrawAndUnwrap",
+    values: [string, string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "wrapAndDeposit",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "wrapNative",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "wrapToken",
+    values: [string, BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "zeros", values: [BigNumberish]): string;
 
   decodeFunctionResult(functionFragment: "FIELD_SIZE", data: BytesLike): Result;
@@ -298,7 +346,6 @@ interface VAnchorInterface extends ethers.utils.Interface {
     functionFragment: "filledSubtrees",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "getChainId", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getLastRoot",
     data: BytesLike
@@ -365,11 +412,33 @@ interface VAnchorInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "token", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "transact", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "transactWrap",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "unpackProof",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "unwrapIntoNative",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "unwrapIntoToken",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "updateEdge", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "verifier", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawAndUnwrap",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "wrapAndDeposit",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "wrapNative", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "wrapToken", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "zeros", data: BytesLike): Result;
 
   events: {
@@ -522,8 +591,6 @@ export class VAnchor extends BaseContract {
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
-
-    getChainId(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     getLastRoot(overrides?: CallOverrides): Promise<[string]>;
 
@@ -678,6 +745,27 @@ export class VAnchor extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    transactWrap(
+      _args: {
+        proof: BytesLike;
+        roots: BytesLike;
+        inputNullifiers: BytesLike[];
+        outputCommitments: [BytesLike, BytesLike];
+        publicAmount: BigNumberish;
+        extDataHash: BytesLike;
+      },
+      _extData: {
+        recipient: string;
+        extAmount: BigNumberish;
+        relayer: string;
+        fee: BigNumberish;
+        encryptedOutput1: BytesLike;
+        encryptedOutput2: BytesLike;
+      },
+      tokenAddress: string,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     unpackProof(
       _proof: [
         BigNumberish,
@@ -698,6 +786,18 @@ export class VAnchor extends BaseContract {
       ]
     >;
 
+    unwrapIntoNative(
+      tokenAddress: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    unwrapIntoToken(
+      tokenAddress: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     updateEdge(
       sourceChainID: BigNumberish,
       root: BytesLike,
@@ -706,6 +806,29 @@ export class VAnchor extends BaseContract {
     ): Promise<ContractTransaction>;
 
     verifier(overrides?: CallOverrides): Promise<[string]>;
+
+    withdrawAndUnwrap(
+      tokenAddress: string,
+      recipient: string,
+      _minusExtAmount: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    wrapAndDeposit(
+      tokenAddress: string,
+      _extAmount: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    wrapNative(
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    wrapToken(
+      tokenAddress: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     zeros(i: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
   };
@@ -768,8 +891,6 @@ export class VAnchor extends BaseContract {
     arg0: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string>;
-
-  getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
   getLastRoot(overrides?: CallOverrides): Promise<string>;
 
@@ -904,6 +1025,27 @@ export class VAnchor extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  transactWrap(
+    _args: {
+      proof: BytesLike;
+      roots: BytesLike;
+      inputNullifiers: BytesLike[];
+      outputCommitments: [BytesLike, BytesLike];
+      publicAmount: BigNumberish;
+      extDataHash: BytesLike;
+    },
+    _extData: {
+      recipient: string;
+      extAmount: BigNumberish;
+      relayer: string;
+      fee: BigNumberish;
+      encryptedOutput1: BytesLike;
+      encryptedOutput2: BytesLike;
+    },
+    tokenAddress: string,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   unpackProof(
     _proof: [
       BigNumberish,
@@ -924,6 +1066,18 @@ export class VAnchor extends BaseContract {
     ]
   >;
 
+  unwrapIntoNative(
+    tokenAddress: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  unwrapIntoToken(
+    tokenAddress: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   updateEdge(
     sourceChainID: BigNumberish,
     root: BytesLike,
@@ -932,6 +1086,29 @@ export class VAnchor extends BaseContract {
   ): Promise<ContractTransaction>;
 
   verifier(overrides?: CallOverrides): Promise<string>;
+
+  withdrawAndUnwrap(
+    tokenAddress: string,
+    recipient: string,
+    _minusExtAmount: BigNumberish,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  wrapAndDeposit(
+    tokenAddress: string,
+    _extAmount: BigNumberish,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  wrapNative(
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  wrapToken(
+    tokenAddress: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   zeros(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
@@ -997,8 +1174,6 @@ export class VAnchor extends BaseContract {
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
-
-    getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
     getLastRoot(overrides?: CallOverrides): Promise<string>;
 
@@ -1136,6 +1311,27 @@ export class VAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    transactWrap(
+      _args: {
+        proof: BytesLike;
+        roots: BytesLike;
+        inputNullifiers: BytesLike[];
+        outputCommitments: [BytesLike, BytesLike];
+        publicAmount: BigNumberish;
+        extDataHash: BytesLike;
+      },
+      _extData: {
+        recipient: string;
+        extAmount: BigNumberish;
+        relayer: string;
+        fee: BigNumberish;
+        encryptedOutput1: BytesLike;
+        encryptedOutput2: BytesLike;
+      },
+      tokenAddress: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     unpackProof(
       _proof: [
         BigNumberish,
@@ -1156,6 +1352,18 @@ export class VAnchor extends BaseContract {
       ]
     >;
 
+    unwrapIntoNative(
+      tokenAddress: string,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    unwrapIntoToken(
+      tokenAddress: string,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     updateEdge(
       sourceChainID: BigNumberish,
       root: BytesLike,
@@ -1164,6 +1372,27 @@ export class VAnchor extends BaseContract {
     ): Promise<void>;
 
     verifier(overrides?: CallOverrides): Promise<string>;
+
+    withdrawAndUnwrap(
+      tokenAddress: string,
+      recipient: string,
+      _minusExtAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    wrapAndDeposit(
+      tokenAddress: string,
+      _extAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    wrapNative(overrides?: CallOverrides): Promise<void>;
+
+    wrapToken(
+      tokenAddress: string,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     zeros(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
   };
@@ -1296,8 +1525,6 @@ export class VAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getChainId(overrides?: CallOverrides): Promise<BigNumber>;
-
     getLastRoot(overrides?: CallOverrides): Promise<BigNumber>;
 
     getLatestNeighborEdges(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1427,6 +1654,27 @@ export class VAnchor extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    transactWrap(
+      _args: {
+        proof: BytesLike;
+        roots: BytesLike;
+        inputNullifiers: BytesLike[];
+        outputCommitments: [BytesLike, BytesLike];
+        publicAmount: BigNumberish;
+        extDataHash: BytesLike;
+      },
+      _extData: {
+        recipient: string;
+        extAmount: BigNumberish;
+        relayer: string;
+        fee: BigNumberish;
+        encryptedOutput1: BytesLike;
+        encryptedOutput2: BytesLike;
+      },
+      tokenAddress: string,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     unpackProof(
       _proof: [
         BigNumberish,
@@ -1441,6 +1689,18 @@ export class VAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    unwrapIntoNative(
+      tokenAddress: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    unwrapIntoToken(
+      tokenAddress: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     updateEdge(
       sourceChainID: BigNumberish,
       root: BytesLike,
@@ -1449,6 +1709,29 @@ export class VAnchor extends BaseContract {
     ): Promise<BigNumber>;
 
     verifier(overrides?: CallOverrides): Promise<BigNumber>;
+
+    withdrawAndUnwrap(
+      tokenAddress: string,
+      recipient: string,
+      _minusExtAmount: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    wrapAndDeposit(
+      tokenAddress: string,
+      _extAmount: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    wrapNative(
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    wrapToken(
+      tokenAddress: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     zeros(i: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
   };
@@ -1509,8 +1792,6 @@ export class VAnchor extends BaseContract {
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    getChainId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getLastRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1650,6 +1931,27 @@ export class VAnchor extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    transactWrap(
+      _args: {
+        proof: BytesLike;
+        roots: BytesLike;
+        inputNullifiers: BytesLike[];
+        outputCommitments: [BytesLike, BytesLike];
+        publicAmount: BigNumberish;
+        extDataHash: BytesLike;
+      },
+      _extData: {
+        recipient: string;
+        extAmount: BigNumberish;
+        relayer: string;
+        fee: BigNumberish;
+        encryptedOutput1: BytesLike;
+        encryptedOutput2: BytesLike;
+      },
+      tokenAddress: string,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     unpackProof(
       _proof: [
         BigNumberish,
@@ -1664,6 +1966,18 @@ export class VAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    unwrapIntoNative(
+      tokenAddress: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    unwrapIntoToken(
+      tokenAddress: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     updateEdge(
       sourceChainID: BigNumberish,
       root: BytesLike,
@@ -1672,6 +1986,29 @@ export class VAnchor extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     verifier(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    withdrawAndUnwrap(
+      tokenAddress: string,
+      recipient: string,
+      _minusExtAmount: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    wrapAndDeposit(
+      tokenAddress: string,
+      _extAmount: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    wrapNative(
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    wrapToken(
+      tokenAddress: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     zeros(
       i: BigNumberish,

@@ -14,6 +14,31 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
+        indexed: true,
+        internalType: "bytes32",
+        name: "commitment",
+        type: "bytes32",
+      },
+      {
+        indexed: false,
+        internalType: "uint32",
+        name: "leafIndex",
+        type: "uint32",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "timestamp",
+        type: "uint256",
+      },
+    ],
+    name: "Deposit",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: false,
         internalType: "uint256",
         name: "chainID",
@@ -65,87 +90,60 @@ const _abi = [
     inputs: [
       {
         indexed: true,
-        internalType: "uint232",
-        name: "externalNullifier",
-        type: "uint232",
+        internalType: "bytes32",
+        name: "commitment",
+        type: "bytes32",
+      },
+      {
+        indexed: false,
+        internalType: "bytes32",
+        name: "nullifierHash",
+        type: "bytes32",
+      },
+      {
+        indexed: false,
+        internalType: "uint32",
+        name: "insertedIndex",
+        type: "uint32",
       },
     ],
-    name: "ExternalNullifierAdd",
+    name: "Refresh",
     type: "event",
   },
   {
     anonymous: false,
     inputs: [
       {
-        indexed: true,
-        internalType: "uint232",
-        name: "externalNullifier",
-        type: "uint232",
-      },
-      {
-        indexed: true,
-        internalType: "bool",
-        name: "active",
-        type: "bool",
-      },
-    ],
-    name: "ExternalNullifierChangeStatus",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "uint256",
-        name: "leaf",
-        type: "uint256",
-      },
-      {
-        indexed: true,
-        internalType: "uint256",
-        name: "leafIndex",
-        type: "uint256",
-      },
-    ],
-    name: "LeafInsertion",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
+        indexed: false,
         internalType: "address",
-        name: "previousOwner",
+        name: "to",
         type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "bytes32",
+        name: "nullifierHash",
+        type: "bytes32",
       },
       {
         indexed: true,
         internalType: "address",
-        name: "newOwner",
+        name: "relayer",
         type: "address",
       },
-    ],
-    name: "OwnershipTransferred",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
       {
-        indexed: true,
-        internalType: "bool",
-        name: "newPermission",
-        type: "bool",
+        indexed: false,
+        internalType: "uint256",
+        name: "fee",
+        type: "uint256",
       },
     ],
-    name: "PermissionSet",
+    name: "Withdrawal",
     type: "event",
   },
   {
     inputs: [],
-    name: "NOTHING_UP_MY_SLEEVE_ZERO",
+    name: "FIELD_SIZE",
     outputs: [
       {
         internalType: "uint256",
@@ -164,6 +162,19 @@ const _abi = [
         internalType: "uint32",
         name: "",
         type: "uint32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "ZERO_VALUE",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -190,19 +201,6 @@ const _abi = [
     name: "addEdge",
     outputs: [],
     stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint232",
-        name: "_externalNullifier",
-        type: "uint232",
-      },
-    ],
-    name: "addExternalNullifier",
-    outputs: [],
-    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -234,34 +232,20 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "bytes",
-        name: "_signal",
-        type: "bytes",
-      },
-      {
-        internalType: "uint256[8]",
-        name: "_proof",
-        type: "uint256[8]",
-      },
-      {
-        internalType: "bytes",
-        name: "_roots",
-        type: "bytes",
-      },
-      {
-        internalType: "uint256",
-        name: "_nullifiersHash",
-        type: "uint256",
-      },
-      {
-        internalType: "uint232",
-        name: "_externalNullifier",
-        type: "uint232",
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
       },
     ],
-    name: "broadcastSignal",
-    outputs: [],
-    stateMutability: "nonpayable",
+    name: "commitments",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -297,16 +281,29 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [
+    inputs: [],
+    name: "denomination",
+    outputs: [
       {
-        internalType: "uint232",
-        name: "_externalNullifier",
-        type: "uint232",
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
-    name: "deactivateExternalNullifier",
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "_commitment",
+        type: "bytes32",
+      },
+    ],
+    name: "deposit",
     outputs: [],
-    stateMutability: "nonpayable",
+    stateMutability: "payable",
     type: "function",
   },
   {
@@ -379,40 +376,17 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "uint232",
+        internalType: "uint256",
         name: "",
-        type: "uint232",
+        type: "uint256",
       },
     ],
-    name: "externalNullifierLinkedList",
+    name: "filledSubtrees",
     outputs: [
       {
-        internalType: "uint232",
-        name: "next",
-        type: "uint232",
-      },
-      {
-        internalType: "bool",
-        name: "exists",
-        type: "bool",
-      },
-      {
-        internalType: "bool",
-        name: "isActive",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "firstExternalNullifier",
-    outputs: [
-      {
-        internalType: "uint232",
+        internalType: "bytes32",
         name: "",
-        type: "uint232",
+        type: "bytes32",
       },
     ],
     stateMutability: "view",
@@ -433,6 +407,32 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "getDenomination",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getLastRoot",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "getLatestNeighborRoots",
     outputs: [
       {
@@ -445,32 +445,13 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint232",
-        name: "_externalNullifier",
-        type: "uint232",
-      },
-    ],
-    name: "getNextExternalNullifier",
-    outputs: [
-      {
-        internalType: "uint232",
-        name: "",
-        type: "uint232",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [],
-    name: "getNumIdentityCommitments",
+    name: "getToken",
     outputs: [
       {
-        internalType: "uint256",
+        internalType: "address",
         name: "",
-        type: "uint256",
+        type: "address",
       },
     ],
     stateMutability: "view",
@@ -511,130 +492,40 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "uint256[]",
-        name: "array",
-        type: "uint256[]",
+        internalType: "contract IPoseidonT3",
+        name: "_hasher",
+        type: "address",
       },
-    ],
-    name: "hash11",
-    outputs: [
       {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "pure",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256[5]",
-        name: "array",
-        type: "uint256[5]",
-      },
-    ],
-    name: "hash5",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "pure",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
+        internalType: "bytes32",
         name: "_left",
-        type: "uint256",
+        type: "bytes32",
       },
       {
-        internalType: "uint256",
+        internalType: "bytes32",
         name: "_right",
-        type: "uint256",
+        type: "bytes32",
       },
     ],
     name: "hashLeftRight",
     outputs: [
       {
-        internalType: "uint256",
+        internalType: "bytes32",
         name: "",
-        type: "uint256",
+        type: "bytes32",
       },
     ],
     stateMutability: "pure",
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "_identityCommitment",
-        type: "uint256",
-      },
-    ],
-    name: "insertIdentity",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "_leaf",
-        type: "uint256",
-      },
-    ],
-    name: "insertLeaf",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [],
-    name: "isBroadcastPermissioned",
+    name: "hasher",
     outputs: [
       {
-        internalType: "bool",
+        internalType: "contract IPoseidonT3",
         name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint232",
-        name: "_externalNullifier",
-        type: "uint232",
-      },
-    ],
-    name: "isExternalNullifierActive",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
+        type: "address",
       },
     ],
     stateMutability: "view",
@@ -684,13 +575,38 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "isOwner",
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "_nullifierHash",
+        type: "bytes32",
+      },
+    ],
+    name: "isSpent",
     outputs: [
       {
         internalType: "bool",
         name: "",
         type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32[]",
+        name: "_nullifierHashes",
+        type: "bytes32[]",
+      },
+    ],
+    name: "isSpentArray",
+    outputs: [
+      {
+        internalType: "bool[]",
+        name: "spent",
+        type: "bool[]",
       },
     ],
     stateMutability: "view",
@@ -717,12 +633,12 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "lastExternalNullifier",
+    name: "levels",
     outputs: [
       {
-        internalType: "uint232",
+        internalType: "uint32",
         name: "",
-        type: "uint232",
+        type: "uint32",
       },
     ],
     stateMutability: "view",
@@ -781,163 +697,12 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "uint256",
+        internalType: "bytes32",
         name: "",
-        type: "uint256",
+        type: "bytes32",
       },
     ],
-    name: "nullifierHashHistory",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "numExternalNullifiers",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "owner",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256[2]",
-        name: "_a",
-        type: "uint256[2]",
-      },
-      {
-        internalType: "uint256[2][2]",
-        name: "_b",
-        type: "uint256[2][2]",
-      },
-      {
-        internalType: "uint256[2]",
-        name: "_c",
-        type: "uint256[2]",
-      },
-    ],
-    name: "packProof",
-    outputs: [
-      {
-        internalType: "uint256[8]",
-        name: "",
-        type: "uint256[8]",
-      },
-    ],
-    stateMutability: "pure",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes",
-        name: "_signal",
-        type: "bytes",
-      },
-      {
-        internalType: "uint256[8]",
-        name: "_proof",
-        type: "uint256[8]",
-      },
-      {
-        internalType: "bytes",
-        name: "_roots",
-        type: "bytes",
-      },
-      {
-        internalType: "uint256",
-        name: "_nullifiersHash",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "_signalHash",
-        type: "uint256",
-      },
-      {
-        internalType: "uint232",
-        name: "_externalNullifier",
-        type: "uint232",
-      },
-    ],
-    name: "preBroadcastCheck",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint232",
-        name: "_externalNullifier",
-        type: "uint232",
-      },
-    ],
-    name: "reactivateExternalNullifier",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "renounceOwnership",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "root",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    name: "rootHistory",
+    name: "nullifierHashes",
     outputs: [
       {
         internalType: "bool",
@@ -989,32 +754,6 @@ const _abi = [
       },
     ],
     name: "setHandler",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bool",
-        name: "_newPermission",
-        type: "bool",
-      },
-    ],
-    name: "setPermissioning",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "newOwner",
-        type: "address",
-      },
-    ],
-    name: "transferOwnership",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -1076,7 +815,7 @@ const _abi = [
     name: "verifier",
     outputs: [
       {
-        internalType: "contract ISemaphoreVerifier",
+        internalType: "contract IVerifier",
         name: "",
         type: "address",
       },
@@ -1087,12 +826,67 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "bytes",
+        name: "_proof",
+        type: "bytes",
+      },
+      {
+        components: [
+          {
+            internalType: "bytes",
+            name: "_roots",
+            type: "bytes",
+          },
+          {
+            internalType: "bytes32",
+            name: "_nullifierHash",
+            type: "bytes32",
+          },
+          {
+            internalType: "bytes32",
+            name: "_refreshCommitment",
+            type: "bytes32",
+          },
+          {
+            internalType: "address payable",
+            name: "_recipient",
+            type: "address",
+          },
+          {
+            internalType: "address payable",
+            name: "_relayer",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "_fee",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "_refund",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct IAnchor.PublicInputs",
+        name: "_publicInputs",
+        type: "tuple",
+      },
+    ],
+    name: "withdraw",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "uint256",
         name: "i",
         type: "uint256",
       },
     ],
-    name: "zeroes",
+    name: "zeros",
     outputs: [
       {
         internalType: "bytes32",
@@ -1100,7 +894,7 @@ const _abi = [
         type: "bytes32",
       },
     ],
-    stateMutability: "view",
+    stateMutability: "pure",
     type: "function",
   },
 ];

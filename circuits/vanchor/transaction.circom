@@ -15,7 +15,7 @@ UTXO structure:
 }
 
 commitment = hash(chainID, amount, pubKey, blinding)
-nullifier = hash(commitment, merklePath, privKey)
+nullifier = hash(commitment, merklePath, sign(privKey, commitment, merklePath))
 */
 
 // Universal JoinSplit transaction with nIns inputs and 2 outputs (2-2 & 16-2)
@@ -47,9 +47,11 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
     signal input diffs[nIns][length];
 
     component inKeypair[nIns];
-    component inUtxoHasher[nIns];
-    component nullifierHasher[nIns];
-    component tree[nIns];
+    component inSignature[nIns];
+    component inCommitmentHasher[nIns];
+    component inNullifierHasher[nIns];
+    component inTree[nIns];
+    component inCheckRoot[nIns];
     var sumIns = 0;
 
     // verify correctness of transaction inputs
@@ -57,31 +59,36 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
         inKeypair[tx] = Keypair();
         inKeypair[tx].privateKey <== inPrivateKey[tx];
 
-        inUtxoHasher[tx] = Poseidon(4);
-        inUtxoHasher[tx].inputs[0] <== chainID;
-        inUtxoHasher[tx].inputs[1] <== inAmount[tx];
-        inUtxoHasher[tx].inputs[2] <== inKeypair[tx].publicKey;
-        inUtxoHasher[tx].inputs[3] <== inBlinding[tx];
+        inCommitmentHasher[tx] = Poseidon(4);
+        inCommitmentHasher[tx].inputs[0] <== chainID;
+        inCommitmentHasher[tx].inputs[1] <== inAmount[tx];
+        inCommitmentHasher[tx].inputs[2] <== inKeypair[tx].publicKey;
+        inCommitmentHasher[tx].inputs[3] <== inBlinding[tx];
 
-        nullifierHasher[tx] = Poseidon(3);
-        nullifierHasher[tx].inputs[0] <== inUtxoHasher[tx].out;
-        nullifierHasher[tx].inputs[1] <== inPathIndices[tx];
-        nullifierHasher[tx].inputs[2] <== inPrivateKey[tx];
-        nullifierHasher[tx].out === inputNullifier[tx];
+        inSignature[tx] = Signature();
+        inSignature[tx].privateKey <== inPrivateKey[tx];
+        inSignature[tx].commitment <== inCommitmentHasher[tx].out;
+        inSignature[tx].merklePath <== inPathIndices[tx];
 
-        tree[tx] = ManyMerkleProof(levels, length);
-        tree[tx].leaf <== inUtxoHasher[tx].out;
-        tree[tx].pathIndices <== inPathIndices[tx];
+        inNullifierHasher[tx] = Poseidon(3);
+        inNullifierHasher[tx].inputs[0] <== inCommitmentHasher[tx].out;
+        inNullifierHasher[tx].inputs[1] <== inPathIndices[tx];
+        inNullifierHasher[tx].inputs[2] <== inSignature[tx].out;
+        inNullifierHasher[tx].out === inputNullifier[tx];
+
+        inTree[tx] = ManyMerkleProof(levels, length);
+        inTree[tx].leaf <== inCommitmentHasher[tx].out;
+        inTree[tx].pathIndices <== inPathIndices[tx];
 
         // add the roots and diffs signals to the bridge circuit
         for (var i = 0; i < length; i++) {
-            tree[tx].roots[i] <== roots[i];
-            tree[tx].diffs[i] <== diffs[tx][i];
+            inTree[tx].roots[i] <== roots[i];
+            inTree[tx].diffs[i] <== diffs[tx][i];
         }
 
-        tree[tx].isEnabled <== inAmount[tx];
+        inTree[tx].isEnabled <== inAmount[tx];
         for (var i = 0; i < levels; i++) {
-            tree[tx].pathElements[i] <== inPathElements[tx][i];
+            inTree[tx].pathElements[i] <== inPathElements[tx][i];
         }
 
         // We don't need to range check input amounts, since all inputs are valid UTXOs that
@@ -90,18 +97,18 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
         sumIns += inAmount[tx];
     }
 
-    component outUtxoHasher[nOuts];
+    component outCommitmentHasher[nOuts];
     component outAmountCheck[nOuts];
     var sumOuts = 0;
 
     // verify correctness of transaction outputs
     for (var tx = 0; tx < nOuts; tx++) {
-        outUtxoHasher[tx] = Poseidon(4);
-        outUtxoHasher[tx].inputs[0] <== outChainID[tx];
-        outUtxoHasher[tx].inputs[1] <== outAmount[tx];
-        outUtxoHasher[tx].inputs[2] <== outPubkey[tx];
-        outUtxoHasher[tx].inputs[3] <== outBlinding[tx];
-        outUtxoHasher[tx].out === outputCommitment[tx];
+        outCommitmentHasher[tx] = Poseidon(4);
+        outCommitmentHasher[tx].inputs[0] <== outChainID[tx];
+        outCommitmentHasher[tx].inputs[1] <== outAmount[tx];
+        outCommitmentHasher[tx].inputs[2] <== outPubkey[tx];
+        outCommitmentHasher[tx].inputs[3] <== outBlinding[tx];
+        outCommitmentHasher[tx].out === outputCommitment[tx];
 
         // Check that amount fits into 248 bits to prevent overflow
         outAmountCheck[tx] = Num2Bits(248);

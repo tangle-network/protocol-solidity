@@ -367,19 +367,6 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "getChainId",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
     name: "getLastRoot",
     outputs: [
       {
@@ -797,7 +784,7 @@ const _abi = [
             type: "bytes32",
           },
         ],
-        internalType: "struct VAnchorBase.Proof",
+        internalType: "struct VAnchorEncodeInputs.Proof",
         name: "_proofArgs",
         type: "tuple",
       },
@@ -890,19 +877,6 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "token",
-    outputs: [
-      {
-        internalType: "contract IERC6777",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [
       {
         components: [
@@ -937,7 +911,7 @@ const _abi = [
             type: "bytes32",
           },
         ],
-        internalType: "struct VAnchorBase.Proof",
+        internalType: "struct VAnchorEncodeInputs.Proof",
         name: "_args",
         type: "tuple",
       },

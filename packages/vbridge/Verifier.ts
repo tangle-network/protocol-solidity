@@ -28,15 +28,15 @@ class Verifier {
     const v22 = await v22Factory.deploy(); 
     await v22.deployed();
 
-    const v82Factory = new Verifier22__factory(signer);
+    const v82Factory = new Verifier82__factory(signer);
     const v82 = await v82Factory.deploy(); 
     await v82.deployed();
 
-    const v216Factory = new Verifier22__factory(signer);
+    const v216Factory = new Verifier216__factory(signer);
     const v216 = await v216Factory.deploy(); 
     await v216.deployed();
 
-    const v816Factory = new Verifier22__factory(signer);
+    const v816Factory = new Verifier816__factory(signer);
     const v816 = await v816Factory.deploy(); 
     await v816.deployed();
 

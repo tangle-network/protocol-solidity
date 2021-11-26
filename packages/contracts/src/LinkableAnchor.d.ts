@@ -22,64 +22,52 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface LinkableAnchorInterface extends ethers.utils.Interface {
   functions: {
-    "NOTHING_UP_MY_SLEEVE_ZERO()": FunctionFragment;
+    "FIELD_SIZE()": FunctionFragment;
     "ROOT_HISTORY_SIZE()": FunctionFragment;
+    "ZERO_VALUE()": FunctionFragment;
     "addEdge(uint256,bytes32,uint256)": FunctionFragment;
-    "addExternalNullifier(uint232)": FunctionFragment;
     "admin()": FunctionFragment;
     "bridge()": FunctionFragment;
-    "broadcastSignal(bytes,uint256[8],bytes,uint256,uint232)": FunctionFragment;
+    "commitments(bytes32)": FunctionFragment;
     "currentNeighborRootIndex(uint256)": FunctionFragment;
     "currentRootIndex()": FunctionFragment;
-    "deactivateExternalNullifier(uint232)": FunctionFragment;
+    "denomination()": FunctionFragment;
+    "deposit(bytes32)": FunctionFragment;
     "edgeExistsForChain(uint256)": FunctionFragment;
     "edgeIndex(uint256)": FunctionFragment;
     "edgeList(uint256)": FunctionFragment;
-    "externalNullifierLinkedList(uint232)": FunctionFragment;
-    "firstExternalNullifier()": FunctionFragment;
+    "filledSubtrees(uint256)": FunctionFragment;
     "getChainId()": FunctionFragment;
+    "getDenomination()": FunctionFragment;
+    "getLastRoot()": FunctionFragment;
     "getLatestNeighborRoots()": FunctionFragment;
-    "getNextExternalNullifier(uint232)": FunctionFragment;
-    "getNumIdentityCommitments()": FunctionFragment;
+    "getToken()": FunctionFragment;
     "handler()": FunctionFragment;
     "hasEdge(uint256)": FunctionFragment;
-    "hash11(uint256[])": FunctionFragment;
-    "hash5(uint256[5])": FunctionFragment;
-    "hashLeftRight(uint256,uint256)": FunctionFragment;
-    "insertIdentity(uint256)": FunctionFragment;
-    "insertLeaf(uint256)": FunctionFragment;
-    "isBroadcastPermissioned()": FunctionFragment;
-    "isExternalNullifierActive(uint232)": FunctionFragment;
+    "hashLeftRight(address,bytes32,bytes32)": FunctionFragment;
+    "hasher()": FunctionFragment;
     "isKnownNeighborRoot(uint256,bytes32)": FunctionFragment;
     "isKnownRoot(bytes32)": FunctionFragment;
-    "isOwner()": FunctionFragment;
+    "isSpent(bytes32)": FunctionFragment;
+    "isSpentArray(bytes32[])": FunctionFragment;
     "isValidRoots(bytes32[])": FunctionFragment;
-    "lastExternalNullifier()": FunctionFragment;
+    "levels()": FunctionFragment;
     "maxEdges()": FunctionFragment;
     "neighborRoots(uint256,uint32)": FunctionFragment;
     "nextIndex()": FunctionFragment;
-    "nullifierHashHistory(uint256)": FunctionFragment;
-    "numExternalNullifiers()": FunctionFragment;
-    "owner()": FunctionFragment;
-    "packProof(uint256[2],uint256[2][2],uint256[2])": FunctionFragment;
-    "preBroadcastCheck(bytes,uint256[8],bytes,uint256,uint256,uint232)": FunctionFragment;
-    "reactivateExternalNullifier(uint232)": FunctionFragment;
-    "renounceOwnership()": FunctionFragment;
-    "root()": FunctionFragment;
-    "rootHistory(uint256)": FunctionFragment;
+    "nullifierHashes(bytes32)": FunctionFragment;
     "roots(uint256)": FunctionFragment;
     "setBridge(address)": FunctionFragment;
     "setHandler(address)": FunctionFragment;
-    "setPermissioning(bool)": FunctionFragment;
-    "transferOwnership(address)": FunctionFragment;
     "unpackProof(uint256[8])": FunctionFragment;
     "updateEdge(uint256,bytes32,uint256)": FunctionFragment;
     "verifier()": FunctionFragment;
-    "zeroes(uint256)": FunctionFragment;
+    "withdraw(bytes,(bytes,bytes32,bytes32,address,address,uint256,uint256))": FunctionFragment;
+    "zeros(uint256)": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "NOTHING_UP_MY_SLEEVE_ZERO",
+    functionFragment: "FIELD_SIZE",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -87,33 +75,18 @@ interface LinkableAnchorInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "addEdge",
-    values: [BigNumberish, BytesLike, BigNumberish]
+    functionFragment: "ZERO_VALUE",
+    values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "addExternalNullifier",
-    values: [BigNumberish]
+    functionFragment: "addEdge",
+    values: [BigNumberish, BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "admin", values?: undefined): string;
   encodeFunctionData(functionFragment: "bridge", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "broadcastSignal",
-    values: [
-      BytesLike,
-      [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-      ],
-      BytesLike,
-      BigNumberish,
-      BigNumberish
-    ]
+    functionFragment: "commitments",
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "currentNeighborRootIndex",
@@ -124,9 +97,10 @@ interface LinkableAnchorInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "deactivateExternalNullifier",
-    values: [BigNumberish]
+    functionFragment: "denomination",
+    values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "deposit", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "edgeExistsForChain",
     values: [BigNumberish]
@@ -140,64 +114,36 @@ interface LinkableAnchorInterface extends ethers.utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "externalNullifierLinkedList",
+    functionFragment: "filledSubtrees",
     values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "firstExternalNullifier",
-    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getChainId",
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "getDenomination",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getLastRoot",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "getLatestNeighborRoots",
     values?: undefined
   ): string;
-  encodeFunctionData(
-    functionFragment: "getNextExternalNullifier",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getNumIdentityCommitments",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "getToken", values?: undefined): string;
   encodeFunctionData(functionFragment: "handler", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "hasEdge",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "hash11",
-    values: [BigNumberish[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "hash5",
-    values: [
-      [BigNumberish, BigNumberish, BigNumberish, BigNumberish, BigNumberish]
-    ]
-  ): string;
-  encodeFunctionData(
     functionFragment: "hashLeftRight",
-    values: [BigNumberish, BigNumberish]
+    values: [string, BytesLike, BytesLike]
   ): string;
-  encodeFunctionData(
-    functionFragment: "insertIdentity",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "insertLeaf",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isBroadcastPermissioned",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isExternalNullifierActive",
-    values: [BigNumberish]
-  ): string;
+  encodeFunctionData(functionFragment: "hasher", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "isKnownNeighborRoot",
     values: [BigNumberish, BytesLike]
@@ -206,15 +152,16 @@ interface LinkableAnchorInterface extends ethers.utils.Interface {
     functionFragment: "isKnownRoot",
     values: [BytesLike]
   ): string;
-  encodeFunctionData(functionFragment: "isOwner", values?: undefined): string;
+  encodeFunctionData(functionFragment: "isSpent", values: [BytesLike]): string;
+  encodeFunctionData(
+    functionFragment: "isSpentArray",
+    values: [BytesLike[]]
+  ): string;
   encodeFunctionData(
     functionFragment: "isValidRoots",
     values: [BytesLike[]]
   ): string;
-  encodeFunctionData(
-    functionFragment: "lastExternalNullifier",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "levels", values?: undefined): string;
   encodeFunctionData(functionFragment: "maxEdges", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "neighborRoots",
@@ -222,66 +169,12 @@ interface LinkableAnchorInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "nextIndex", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "nullifierHashHistory",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "numExternalNullifiers",
-    values?: undefined
-  ): string;
-  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "packProof",
-    values: [
-      [BigNumberish, BigNumberish],
-      [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]],
-      [BigNumberish, BigNumberish]
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "preBroadcastCheck",
-    values: [
-      BytesLike,
-      [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-      ],
-      BytesLike,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "reactivateExternalNullifier",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "renounceOwnership",
-    values?: undefined
-  ): string;
-  encodeFunctionData(functionFragment: "root", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "rootHistory",
-    values: [BigNumberish]
+    functionFragment: "nullifierHashes",
+    values: [BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "roots", values: [BigNumberish]): string;
   encodeFunctionData(functionFragment: "setBridge", values: [string]): string;
   encodeFunctionData(functionFragment: "setHandler", values: [string]): string;
-  encodeFunctionData(
-    functionFragment: "setPermissioning",
-    values: [boolean]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [string]
-  ): string;
   encodeFunctionData(
     functionFragment: "unpackProof",
     values: [
@@ -303,27 +196,33 @@ interface LinkableAnchorInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "verifier", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "zeroes",
-    values: [BigNumberish]
+    functionFragment: "withdraw",
+    values: [
+      BytesLike,
+      {
+        _roots: BytesLike;
+        _nullifierHash: BytesLike;
+        _refreshCommitment: BytesLike;
+        _recipient: string;
+        _relayer: string;
+        _fee: BigNumberish;
+        _refund: BigNumberish;
+      }
+    ]
   ): string;
+  encodeFunctionData(functionFragment: "zeros", values: [BigNumberish]): string;
 
-  decodeFunctionResult(
-    functionFragment: "NOTHING_UP_MY_SLEEVE_ZERO",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "FIELD_SIZE", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "ROOT_HISTORY_SIZE",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "ZERO_VALUE", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "addEdge", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "addExternalNullifier",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "admin", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "bridge", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "broadcastSignal",
+    functionFragment: "commitments",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -335,9 +234,10 @@ interface LinkableAnchorInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "deactivateExternalNullifier",
+    functionFragment: "denomination",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "edgeExistsForChain",
     data: BytesLike
@@ -345,47 +245,30 @@ interface LinkableAnchorInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "edgeIndex", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "edgeList", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "externalNullifierLinkedList",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "firstExternalNullifier",
+    functionFragment: "filledSubtrees",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getChainId", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "getDenomination",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getLastRoot",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getLatestNeighborRoots",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "getNextExternalNullifier",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getNumIdentityCommitments",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "getToken", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "handler", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "hasEdge", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "hash11", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "hash5", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "hashLeftRight",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "insertIdentity",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "insertLeaf", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "isBroadcastPermissioned",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "isExternalNullifierActive",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "hasher", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "isKnownNeighborRoot",
     data: BytesLike
@@ -394,15 +277,16 @@ interface LinkableAnchorInterface extends ethers.utils.Interface {
     functionFragment: "isKnownRoot",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "isOwner", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "isSpent", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "isSpentArray",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "isValidRoots",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "lastExternalNullifier",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "levels", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "maxEdges", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "neighborRoots",
@@ -410,71 +294,43 @@ interface LinkableAnchorInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "nextIndex", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "nullifierHashHistory",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "numExternalNullifiers",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "packProof", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "preBroadcastCheck",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "reactivateExternalNullifier",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "renounceOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "root", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "rootHistory",
+    functionFragment: "nullifierHashes",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "roots", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setBridge", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setHandler", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "setPermissioning",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "unpackProof",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "updateEdge", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "verifier", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "zeroes", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "zeros", data: BytesLike): Result;
 
   events: {
+    "Deposit(bytes32,uint32,uint256)": EventFragment;
     "EdgeAddition(uint256,uint256,bytes32)": EventFragment;
     "EdgeUpdate(uint256,uint256,bytes32)": EventFragment;
-    "ExternalNullifierAdd(uint232)": EventFragment;
-    "ExternalNullifierChangeStatus(uint232,bool)": EventFragment;
-    "LeafInsertion(uint256,uint256)": EventFragment;
-    "OwnershipTransferred(address,address)": EventFragment;
-    "PermissionSet(bool)": EventFragment;
+    "Refresh(bytes32,bytes32,uint32)": EventFragment;
+    "Withdrawal(address,bytes32,address,uint256)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "Deposit"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "EdgeAddition"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "EdgeUpdate"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ExternalNullifierAdd"): EventFragment;
-  getEvent(
-    nameOrSignatureOrTopic: "ExternalNullifierChangeStatus"
-  ): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "LeafInsertion"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "PermissionSet"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Refresh"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Withdrawal"): EventFragment;
 }
+
+export type DepositEvent = TypedEvent<
+  [string, number, BigNumber] & {
+    commitment: string;
+    leafIndex: number;
+    timestamp: BigNumber;
+  }
+>;
 
 export type EdgeAdditionEvent = TypedEvent<
   [BigNumber, BigNumber, string] & {
@@ -492,24 +348,21 @@ export type EdgeUpdateEvent = TypedEvent<
   }
 >;
 
-export type ExternalNullifierAddEvent = TypedEvent<
-  [BigNumber] & { externalNullifier: BigNumber }
+export type RefreshEvent = TypedEvent<
+  [string, string, number] & {
+    commitment: string;
+    nullifierHash: string;
+    insertedIndex: number;
+  }
 >;
 
-export type ExternalNullifierChangeStatusEvent = TypedEvent<
-  [BigNumber, boolean] & { externalNullifier: BigNumber; active: boolean }
->;
-
-export type LeafInsertionEvent = TypedEvent<
-  [BigNumber, BigNumber] & { leaf: BigNumber; leafIndex: BigNumber }
->;
-
-export type OwnershipTransferredEvent = TypedEvent<
-  [string, string] & { previousOwner: string; newOwner: string }
->;
-
-export type PermissionSetEvent = TypedEvent<
-  [boolean] & { newPermission: boolean }
+export type WithdrawalEvent = TypedEvent<
+  [string, string, string, BigNumber] & {
+    to: string;
+    nullifierHash: string;
+    relayer: string;
+    fee: BigNumber;
+  }
 >;
 
 export class LinkableAnchor extends BaseContract {
@@ -556,9 +409,11 @@ export class LinkableAnchor extends BaseContract {
   interface: LinkableAnchorInterface;
 
   functions: {
-    NOTHING_UP_MY_SLEEVE_ZERO(overrides?: CallOverrides): Promise<[BigNumber]>;
+    FIELD_SIZE(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     ROOT_HISTORY_SIZE(overrides?: CallOverrides): Promise<[number]>;
+
+    ZERO_VALUE(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     addEdge(
       sourceChainID: BigNumberish,
@@ -567,32 +422,11 @@ export class LinkableAnchor extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    addExternalNullifier(
-      _externalNullifier: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     admin(overrides?: CallOverrides): Promise<[string]>;
 
     bridge(overrides?: CallOverrides): Promise<[string]>;
 
-    broadcastSignal(
-      _signal: BytesLike,
-      _proof: [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-      ],
-      _roots: BytesLike,
-      _nullifiersHash: BigNumberish,
-      _externalNullifier: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<[boolean]>;
 
     currentNeighborRootIndex(
       arg0: BigNumberish,
@@ -601,9 +435,11 @@ export class LinkableAnchor extends BaseContract {
 
     currentRootIndex(overrides?: CallOverrides): Promise<[number]>;
 
-    deactivateExternalNullifier(
-      _externalNullifier: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+    denomination(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    deposit(
+      _commitment: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     edgeExistsForChain(
@@ -627,31 +463,22 @@ export class LinkableAnchor extends BaseContract {
       }
     >;
 
-    externalNullifierLinkedList(
+    filledSubtrees(
       arg0: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, boolean, boolean] & {
-        next: BigNumber;
-        exists: boolean;
-        isActive: boolean;
-      }
-    >;
-
-    firstExternalNullifier(overrides?: CallOverrides): Promise<[BigNumber]>;
+    ): Promise<[string]>;
 
     getChainId(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    getDenomination(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    getLastRoot(overrides?: CallOverrides): Promise<[string]>;
 
     getLatestNeighborRoots(
       overrides?: CallOverrides
     ): Promise<[string[]] & { roots: string[] }>;
 
-    getNextExternalNullifier(
-      _externalNullifier: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    getNumIdentityCommitments(overrides?: CallOverrides): Promise<[BigNumber]>;
+    getToken(overrides?: CallOverrides): Promise<[string]>;
 
     handler(overrides?: CallOverrides): Promise<[string]>;
 
@@ -660,44 +487,14 @@ export class LinkableAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    hash11(
-      array: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    hash5(
-      array: [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-      ],
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     hashLeftRight(
-      _left: BigNumberish,
-      _right: BigNumberish,
+      _hasher: string,
+      _left: BytesLike,
+      _right: BytesLike,
       overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    ): Promise<[string]>;
 
-    insertIdentity(
-      _identityCommitment: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    insertLeaf(
-      _leaf: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    isBroadcastPermissioned(overrides?: CallOverrides): Promise<[boolean]>;
-
-    isExternalNullifierActive(
-      _externalNullifier: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    hasher(overrides?: CallOverrides): Promise<[string]>;
 
     isKnownNeighborRoot(
       neighborChainID: BigNumberish,
@@ -710,14 +507,22 @@ export class LinkableAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    isOwner(overrides?: CallOverrides): Promise<[boolean]>;
+    isSpent(
+      _nullifierHash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    isSpentArray(
+      _nullifierHashes: BytesLike[],
+      overrides?: CallOverrides
+    ): Promise<[boolean[]] & { spent: boolean[] }>;
 
     isValidRoots(
       roots: BytesLike[],
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    lastExternalNullifier(overrides?: CallOverrides): Promise<[BigNumber]>;
+    levels(overrides?: CallOverrides): Promise<[number]>;
 
     maxEdges(overrides?: CallOverrides): Promise<[number]>;
 
@@ -729,67 +534,8 @@ export class LinkableAnchor extends BaseContract {
 
     nextIndex(overrides?: CallOverrides): Promise<[number]>;
 
-    nullifierHashHistory(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    numExternalNullifiers(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    owner(overrides?: CallOverrides): Promise<[string]>;
-
-    packProof(
-      _a: [BigNumberish, BigNumberish],
-      _b: [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]],
-      _c: [BigNumberish, BigNumberish],
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        [
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          BigNumber
-        ]
-      ]
-    >;
-
-    preBroadcastCheck(
-      _signal: BytesLike,
-      _proof: [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-      ],
-      _roots: BytesLike,
-      _nullifiersHash: BigNumberish,
-      _signalHash: BigNumberish,
-      _externalNullifier: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    reactivateExternalNullifier(
-      _externalNullifier: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    root(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    rootHistory(
-      arg0: BigNumberish,
+    nullifierHashes(
+      arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
@@ -802,16 +548,6 @@ export class LinkableAnchor extends BaseContract {
 
     setHandler(
       _handler: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    setPermissioning(
-      _newPermission: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    transferOwnership(
-      newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -844,12 +580,28 @@ export class LinkableAnchor extends BaseContract {
 
     verifier(overrides?: CallOverrides): Promise<[string]>;
 
-    zeroes(i: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
+    withdraw(
+      _proof: BytesLike,
+      _publicInputs: {
+        _roots: BytesLike;
+        _nullifierHash: BytesLike;
+        _refreshCommitment: BytesLike;
+        _recipient: string;
+        _relayer: string;
+        _fee: BigNumberish;
+        _refund: BigNumberish;
+      },
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    zeros(i: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
   };
 
-  NOTHING_UP_MY_SLEEVE_ZERO(overrides?: CallOverrides): Promise<BigNumber>;
+  FIELD_SIZE(overrides?: CallOverrides): Promise<BigNumber>;
 
   ROOT_HISTORY_SIZE(overrides?: CallOverrides): Promise<number>;
+
+  ZERO_VALUE(overrides?: CallOverrides): Promise<BigNumber>;
 
   addEdge(
     sourceChainID: BigNumberish,
@@ -858,32 +610,11 @@ export class LinkableAnchor extends BaseContract {
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  addExternalNullifier(
-    _externalNullifier: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   admin(overrides?: CallOverrides): Promise<string>;
 
   bridge(overrides?: CallOverrides): Promise<string>;
 
-  broadcastSignal(
-    _signal: BytesLike,
-    _proof: [
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish
-    ],
-    _roots: BytesLike,
-    _nullifiersHash: BigNumberish,
-    _externalNullifier: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
   currentNeighborRootIndex(
     arg0: BigNumberish,
@@ -892,9 +623,11 @@ export class LinkableAnchor extends BaseContract {
 
   currentRootIndex(overrides?: CallOverrides): Promise<number>;
 
-  deactivateExternalNullifier(
-    _externalNullifier: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+  denomination(overrides?: CallOverrides): Promise<BigNumber>;
+
+  deposit(
+    _commitment: BytesLike,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   edgeExistsForChain(
@@ -915,69 +648,33 @@ export class LinkableAnchor extends BaseContract {
     }
   >;
 
-  externalNullifierLinkedList(
+  filledSubtrees(
     arg0: BigNumberish,
     overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, boolean, boolean] & {
-      next: BigNumber;
-      exists: boolean;
-      isActive: boolean;
-    }
-  >;
-
-  firstExternalNullifier(overrides?: CallOverrides): Promise<BigNumber>;
+  ): Promise<string>;
 
   getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
+  getDenomination(overrides?: CallOverrides): Promise<BigNumber>;
+
+  getLastRoot(overrides?: CallOverrides): Promise<string>;
+
   getLatestNeighborRoots(overrides?: CallOverrides): Promise<string[]>;
 
-  getNextExternalNullifier(
-    _externalNullifier: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  getNumIdentityCommitments(overrides?: CallOverrides): Promise<BigNumber>;
+  getToken(overrides?: CallOverrides): Promise<string>;
 
   handler(overrides?: CallOverrides): Promise<string>;
 
   hasEdge(_chainID: BigNumberish, overrides?: CallOverrides): Promise<boolean>;
 
-  hash11(array: BigNumberish[], overrides?: CallOverrides): Promise<BigNumber>;
-
-  hash5(
-    array: [
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish
-    ],
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   hashLeftRight(
-    _left: BigNumberish,
-    _right: BigNumberish,
+    _hasher: string,
+    _left: BytesLike,
+    _right: BytesLike,
     overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  ): Promise<string>;
 
-  insertIdentity(
-    _identityCommitment: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  insertLeaf(
-    _leaf: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  isBroadcastPermissioned(overrides?: CallOverrides): Promise<boolean>;
-
-  isExternalNullifierActive(
-    _externalNullifier: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+  hasher(overrides?: CallOverrides): Promise<string>;
 
   isKnownNeighborRoot(
     neighborChainID: BigNumberish,
@@ -987,11 +684,19 @@ export class LinkableAnchor extends BaseContract {
 
   isKnownRoot(_root: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
-  isOwner(overrides?: CallOverrides): Promise<boolean>;
+  isSpent(
+    _nullifierHash: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  isSpentArray(
+    _nullifierHashes: BytesLike[],
+    overrides?: CallOverrides
+  ): Promise<boolean[]>;
 
   isValidRoots(roots: BytesLike[], overrides?: CallOverrides): Promise<boolean>;
 
-  lastExternalNullifier(overrides?: CallOverrides): Promise<BigNumber>;
+  levels(overrides?: CallOverrides): Promise<number>;
 
   maxEdges(overrides?: CallOverrides): Promise<number>;
 
@@ -1003,64 +708,7 @@ export class LinkableAnchor extends BaseContract {
 
   nextIndex(overrides?: CallOverrides): Promise<number>;
 
-  nullifierHashHistory(
-    arg0: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  numExternalNullifiers(overrides?: CallOverrides): Promise<BigNumber>;
-
-  owner(overrides?: CallOverrides): Promise<string>;
-
-  packProof(
-    _a: [BigNumberish, BigNumberish],
-    _b: [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]],
-    _c: [BigNumberish, BigNumberish],
-    overrides?: CallOverrides
-  ): Promise<
-    [
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber
-    ]
-  >;
-
-  preBroadcastCheck(
-    _signal: BytesLike,
-    _proof: [
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish
-    ],
-    _roots: BytesLike,
-    _nullifiersHash: BigNumberish,
-    _signalHash: BigNumberish,
-    _externalNullifier: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  reactivateExternalNullifier(
-    _externalNullifier: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  renounceOwnership(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  root(overrides?: CallOverrides): Promise<BigNumber>;
-
-  rootHistory(arg0: BigNumberish, overrides?: CallOverrides): Promise<boolean>;
+  nullifierHashes(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
   roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
@@ -1071,16 +719,6 @@ export class LinkableAnchor extends BaseContract {
 
   setHandler(
     _handler: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  setPermissioning(
-    _newPermission: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  transferOwnership(
-    newOwner: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1113,12 +751,28 @@ export class LinkableAnchor extends BaseContract {
 
   verifier(overrides?: CallOverrides): Promise<string>;
 
-  zeroes(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
+  withdraw(
+    _proof: BytesLike,
+    _publicInputs: {
+      _roots: BytesLike;
+      _nullifierHash: BytesLike;
+      _refreshCommitment: BytesLike;
+      _recipient: string;
+      _relayer: string;
+      _fee: BigNumberish;
+      _refund: BigNumberish;
+    },
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  zeros(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
-    NOTHING_UP_MY_SLEEVE_ZERO(overrides?: CallOverrides): Promise<BigNumber>;
+    FIELD_SIZE(overrides?: CallOverrides): Promise<BigNumber>;
 
     ROOT_HISTORY_SIZE(overrides?: CallOverrides): Promise<number>;
+
+    ZERO_VALUE(overrides?: CallOverrides): Promise<BigNumber>;
 
     addEdge(
       sourceChainID: BigNumberish,
@@ -1127,32 +781,11 @@ export class LinkableAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    addExternalNullifier(
-      _externalNullifier: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     admin(overrides?: CallOverrides): Promise<string>;
 
     bridge(overrides?: CallOverrides): Promise<string>;
 
-    broadcastSignal(
-      _signal: BytesLike,
-      _proof: [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-      ],
-      _roots: BytesLike,
-      _nullifiersHash: BigNumberish,
-      _externalNullifier: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
     currentNeighborRootIndex(
       arg0: BigNumberish,
@@ -1161,10 +794,9 @@ export class LinkableAnchor extends BaseContract {
 
     currentRootIndex(overrides?: CallOverrides): Promise<number>;
 
-    deactivateExternalNullifier(
-      _externalNullifier: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    denomination(overrides?: CallOverrides): Promise<BigNumber>;
+
+    deposit(_commitment: BytesLike, overrides?: CallOverrides): Promise<void>;
 
     edgeExistsForChain(
       arg0: BigNumberish,
@@ -1187,29 +819,20 @@ export class LinkableAnchor extends BaseContract {
       }
     >;
 
-    externalNullifierLinkedList(
+    filledSubtrees(
       arg0: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, boolean, boolean] & {
-        next: BigNumber;
-        exists: boolean;
-        isActive: boolean;
-      }
-    >;
-
-    firstExternalNullifier(overrides?: CallOverrides): Promise<BigNumber>;
+    ): Promise<string>;
 
     getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getDenomination(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getLastRoot(overrides?: CallOverrides): Promise<string>;
+
     getLatestNeighborRoots(overrides?: CallOverrides): Promise<string[]>;
 
-    getNextExternalNullifier(
-      _externalNullifier: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getNumIdentityCommitments(overrides?: CallOverrides): Promise<BigNumber>;
+    getToken(overrides?: CallOverrides): Promise<string>;
 
     handler(overrides?: CallOverrides): Promise<string>;
 
@@ -1218,44 +841,14 @@ export class LinkableAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    hash11(
-      array: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    hash5(
-      array: [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-      ],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     hashLeftRight(
-      _left: BigNumberish,
-      _right: BigNumberish,
+      _hasher: string,
+      _left: BytesLike,
+      _right: BytesLike,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<string>;
 
-    insertIdentity(
-      _identityCommitment: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    insertLeaf(
-      _leaf: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    isBroadcastPermissioned(overrides?: CallOverrides): Promise<boolean>;
-
-    isExternalNullifierActive(
-      _externalNullifier: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+    hasher(overrides?: CallOverrides): Promise<string>;
 
     isKnownNeighborRoot(
       neighborChainID: BigNumberish,
@@ -1265,14 +858,22 @@ export class LinkableAnchor extends BaseContract {
 
     isKnownRoot(_root: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
-    isOwner(overrides?: CallOverrides): Promise<boolean>;
+    isSpent(
+      _nullifierHash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    isSpentArray(
+      _nullifierHashes: BytesLike[],
+      overrides?: CallOverrides
+    ): Promise<boolean[]>;
 
     isValidRoots(
       roots: BytesLike[],
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    lastExternalNullifier(overrides?: CallOverrides): Promise<BigNumber>;
+    levels(overrides?: CallOverrides): Promise<number>;
 
     maxEdges(overrides?: CallOverrides): Promise<number>;
 
@@ -1284,63 +885,8 @@ export class LinkableAnchor extends BaseContract {
 
     nextIndex(overrides?: CallOverrides): Promise<number>;
 
-    nullifierHashHistory(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    numExternalNullifiers(overrides?: CallOverrides): Promise<BigNumber>;
-
-    owner(overrides?: CallOverrides): Promise<string>;
-
-    packProof(
-      _a: [BigNumberish, BigNumberish],
-      _b: [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]],
-      _c: [BigNumberish, BigNumberish],
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber
-      ]
-    >;
-
-    preBroadcastCheck(
-      _signal: BytesLike,
-      _proof: [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-      ],
-      _roots: BytesLike,
-      _nullifiersHash: BigNumberish,
-      _signalHash: BigNumberish,
-      _externalNullifier: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    reactivateExternalNullifier(
-      _externalNullifier: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    renounceOwnership(overrides?: CallOverrides): Promise<void>;
-
-    root(overrides?: CallOverrides): Promise<BigNumber>;
-
-    rootHistory(
-      arg0: BigNumberish,
+    nullifierHashes(
+      arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -1349,16 +895,6 @@ export class LinkableAnchor extends BaseContract {
     setBridge(_bridge: string, overrides?: CallOverrides): Promise<void>;
 
     setHandler(_handler: string, overrides?: CallOverrides): Promise<void>;
-
-    setPermissioning(
-      _newPermission: boolean,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     unpackProof(
       _proof: [
@@ -1389,10 +925,42 @@ export class LinkableAnchor extends BaseContract {
 
     verifier(overrides?: CallOverrides): Promise<string>;
 
-    zeroes(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
+    withdraw(
+      _proof: BytesLike,
+      _publicInputs: {
+        _roots: BytesLike;
+        _nullifierHash: BytesLike;
+        _refreshCommitment: BytesLike;
+        _recipient: string;
+        _relayer: string;
+        _fee: BigNumberish;
+        _refund: BigNumberish;
+      },
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    zeros(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
+    "Deposit(bytes32,uint32,uint256)"(
+      commitment?: BytesLike | null,
+      leafIndex?: null,
+      timestamp?: null
+    ): TypedEventFilter<
+      [string, number, BigNumber],
+      { commitment: string; leafIndex: number; timestamp: BigNumber }
+    >;
+
+    Deposit(
+      commitment?: BytesLike | null,
+      leafIndex?: null,
+      timestamp?: null
+    ): TypedEventFilter<
+      [string, number, BigNumber],
+      { commitment: string; leafIndex: number; timestamp: BigNumber }
+    >;
+
     "EdgeAddition(uint256,uint256,bytes32)"(
       chainID?: null,
       latestLeafIndex?: null,
@@ -1429,75 +997,51 @@ export class LinkableAnchor extends BaseContract {
       { chainID: BigNumber; latestLeafIndex: BigNumber; merkleRoot: string }
     >;
 
-    "ExternalNullifierAdd(uint232)"(
-      externalNullifier?: BigNumberish | null
-    ): TypedEventFilter<[BigNumber], { externalNullifier: BigNumber }>;
-
-    ExternalNullifierAdd(
-      externalNullifier?: BigNumberish | null
-    ): TypedEventFilter<[BigNumber], { externalNullifier: BigNumber }>;
-
-    "ExternalNullifierChangeStatus(uint232,bool)"(
-      externalNullifier?: BigNumberish | null,
-      active?: boolean | null
+    "Refresh(bytes32,bytes32,uint32)"(
+      commitment?: BytesLike | null,
+      nullifierHash?: null,
+      insertedIndex?: null
     ): TypedEventFilter<
-      [BigNumber, boolean],
-      { externalNullifier: BigNumber; active: boolean }
+      [string, string, number],
+      { commitment: string; nullifierHash: string; insertedIndex: number }
     >;
 
-    ExternalNullifierChangeStatus(
-      externalNullifier?: BigNumberish | null,
-      active?: boolean | null
+    Refresh(
+      commitment?: BytesLike | null,
+      nullifierHash?: null,
+      insertedIndex?: null
     ): TypedEventFilter<
-      [BigNumber, boolean],
-      { externalNullifier: BigNumber; active: boolean }
+      [string, string, number],
+      { commitment: string; nullifierHash: string; insertedIndex: number }
     >;
 
-    "LeafInsertion(uint256,uint256)"(
-      leaf?: BigNumberish | null,
-      leafIndex?: BigNumberish | null
+    "Withdrawal(address,bytes32,address,uint256)"(
+      to?: null,
+      nullifierHash?: null,
+      relayer?: string | null,
+      fee?: null
     ): TypedEventFilter<
-      [BigNumber, BigNumber],
-      { leaf: BigNumber; leafIndex: BigNumber }
+      [string, string, string, BigNumber],
+      { to: string; nullifierHash: string; relayer: string; fee: BigNumber }
     >;
 
-    LeafInsertion(
-      leaf?: BigNumberish | null,
-      leafIndex?: BigNumberish | null
+    Withdrawal(
+      to?: null,
+      nullifierHash?: null,
+      relayer?: string | null,
+      fee?: null
     ): TypedEventFilter<
-      [BigNumber, BigNumber],
-      { leaf: BigNumber; leafIndex: BigNumber }
+      [string, string, string, BigNumber],
+      { to: string; nullifierHash: string; relayer: string; fee: BigNumber }
     >;
-
-    "OwnershipTransferred(address,address)"(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): TypedEventFilter<
-      [string, string],
-      { previousOwner: string; newOwner: string }
-    >;
-
-    OwnershipTransferred(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): TypedEventFilter<
-      [string, string],
-      { previousOwner: string; newOwner: string }
-    >;
-
-    "PermissionSet(bool)"(
-      newPermission?: boolean | null
-    ): TypedEventFilter<[boolean], { newPermission: boolean }>;
-
-    PermissionSet(
-      newPermission?: boolean | null
-    ): TypedEventFilter<[boolean], { newPermission: boolean }>;
   };
 
   estimateGas: {
-    NOTHING_UP_MY_SLEEVE_ZERO(overrides?: CallOverrides): Promise<BigNumber>;
+    FIELD_SIZE(overrides?: CallOverrides): Promise<BigNumber>;
 
     ROOT_HISTORY_SIZE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    ZERO_VALUE(overrides?: CallOverrides): Promise<BigNumber>;
 
     addEdge(
       sourceChainID: BigNumberish,
@@ -1506,32 +1050,11 @@ export class LinkableAnchor extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    addExternalNullifier(
-      _externalNullifier: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     admin(overrides?: CallOverrides): Promise<BigNumber>;
 
     bridge(overrides?: CallOverrides): Promise<BigNumber>;
 
-    broadcastSignal(
-      _signal: BytesLike,
-      _proof: [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-      ],
-      _roots: BytesLike,
-      _nullifiersHash: BigNumberish,
-      _externalNullifier: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
     currentNeighborRootIndex(
       arg0: BigNumberish,
@@ -1540,9 +1063,11 @@ export class LinkableAnchor extends BaseContract {
 
     currentRootIndex(overrides?: CallOverrides): Promise<BigNumber>;
 
-    deactivateExternalNullifier(
-      _externalNullifier: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+    denomination(overrides?: CallOverrides): Promise<BigNumber>;
+
+    deposit(
+      _commitment: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     edgeExistsForChain(
@@ -1557,23 +1082,20 @@ export class LinkableAnchor extends BaseContract {
 
     edgeList(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
-    externalNullifierLinkedList(
+    filledSubtrees(
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    firstExternalNullifier(overrides?: CallOverrides): Promise<BigNumber>;
-
     getChainId(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getDenomination(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getLastRoot(overrides?: CallOverrides): Promise<BigNumber>;
 
     getLatestNeighborRoots(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getNextExternalNullifier(
-      _externalNullifier: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getNumIdentityCommitments(overrides?: CallOverrides): Promise<BigNumber>;
+    getToken(overrides?: CallOverrides): Promise<BigNumber>;
 
     handler(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1582,44 +1104,14 @@ export class LinkableAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    hash11(
-      array: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    hash5(
-      array: [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-      ],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     hashLeftRight(
-      _left: BigNumberish,
-      _right: BigNumberish,
+      _hasher: string,
+      _left: BytesLike,
+      _right: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    insertIdentity(
-      _identityCommitment: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    insertLeaf(
-      _leaf: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    isBroadcastPermissioned(overrides?: CallOverrides): Promise<BigNumber>;
-
-    isExternalNullifierActive(
-      _externalNullifier: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    hasher(overrides?: CallOverrides): Promise<BigNumber>;
 
     isKnownNeighborRoot(
       neighborChainID: BigNumberish,
@@ -1632,14 +1124,22 @@ export class LinkableAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    isOwner(overrides?: CallOverrides): Promise<BigNumber>;
+    isSpent(
+      _nullifierHash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    isSpentArray(
+      _nullifierHashes: BytesLike[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     isValidRoots(
       roots: BytesLike[],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    lastExternalNullifier(overrides?: CallOverrides): Promise<BigNumber>;
+    levels(overrides?: CallOverrides): Promise<BigNumber>;
 
     maxEdges(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1651,54 +1151,8 @@ export class LinkableAnchor extends BaseContract {
 
     nextIndex(overrides?: CallOverrides): Promise<BigNumber>;
 
-    nullifierHashHistory(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    numExternalNullifiers(overrides?: CallOverrides): Promise<BigNumber>;
-
-    owner(overrides?: CallOverrides): Promise<BigNumber>;
-
-    packProof(
-      _a: [BigNumberish, BigNumberish],
-      _b: [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]],
-      _c: [BigNumberish, BigNumberish],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    preBroadcastCheck(
-      _signal: BytesLike,
-      _proof: [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-      ],
-      _roots: BytesLike,
-      _nullifiersHash: BigNumberish,
-      _signalHash: BigNumberish,
-      _externalNullifier: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    reactivateExternalNullifier(
-      _externalNullifier: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    root(overrides?: CallOverrides): Promise<BigNumber>;
-
-    rootHistory(
-      arg0: BigNumberish,
+    nullifierHashes(
+      arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1711,16 +1165,6 @@ export class LinkableAnchor extends BaseContract {
 
     setHandler(
       _handler: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    setPermissioning(
-      _newPermission: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    transferOwnership(
-      newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1747,15 +1191,29 @@ export class LinkableAnchor extends BaseContract {
 
     verifier(overrides?: CallOverrides): Promise<BigNumber>;
 
-    zeroes(i: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+    withdraw(
+      _proof: BytesLike,
+      _publicInputs: {
+        _roots: BytesLike;
+        _nullifierHash: BytesLike;
+        _refreshCommitment: BytesLike;
+        _recipient: string;
+        _relayer: string;
+        _fee: BigNumberish;
+        _refund: BigNumberish;
+      },
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    zeros(i: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    NOTHING_UP_MY_SLEEVE_ZERO(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    FIELD_SIZE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     ROOT_HISTORY_SIZE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    ZERO_VALUE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     addEdge(
       sourceChainID: BigNumberish,
@@ -1764,31 +1222,13 @@ export class LinkableAnchor extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    addExternalNullifier(
-      _externalNullifier: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     admin(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     bridge(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    broadcastSignal(
-      _signal: BytesLike,
-      _proof: [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-      ],
-      _roots: BytesLike,
-      _nullifiersHash: BigNumberish,
-      _externalNullifier: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+    commitments(
+      arg0: BytesLike,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     currentNeighborRootIndex(
@@ -1798,9 +1238,11 @@ export class LinkableAnchor extends BaseContract {
 
     currentRootIndex(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    deactivateExternalNullifier(
-      _externalNullifier: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+    denomination(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    deposit(
+      _commitment: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     edgeExistsForChain(
@@ -1818,29 +1260,22 @@ export class LinkableAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    externalNullifierLinkedList(
+    filledSubtrees(
       arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    firstExternalNullifier(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getChainId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    getDenomination(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getLastRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     getLatestNeighborRoots(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getNextExternalNullifier(
-      _externalNullifier: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getNumIdentityCommitments(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     handler(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1849,46 +1284,14 @@ export class LinkableAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    hash11(
-      array: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    hash5(
-      array: [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-      ],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     hashLeftRight(
-      _left: BigNumberish,
-      _right: BigNumberish,
+      _hasher: string,
+      _left: BytesLike,
+      _right: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    insertIdentity(
-      _identityCommitment: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    insertLeaf(
-      _leaf: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    isBroadcastPermissioned(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    isExternalNullifierActive(
-      _externalNullifier: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    hasher(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     isKnownNeighborRoot(
       neighborChainID: BigNumberish,
@@ -1901,16 +1304,22 @@ export class LinkableAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    isOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    isSpent(
+      _nullifierHash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    isSpentArray(
+      _nullifierHashes: BytesLike[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     isValidRoots(
       roots: BytesLike[],
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    lastExternalNullifier(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    levels(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     maxEdges(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1922,56 +1331,8 @@ export class LinkableAnchor extends BaseContract {
 
     nextIndex(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    nullifierHashHistory(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    numExternalNullifiers(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    packProof(
-      _a: [BigNumberish, BigNumberish],
-      _b: [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]],
-      _c: [BigNumberish, BigNumberish],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    preBroadcastCheck(
-      _signal: BytesLike,
-      _proof: [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-      ],
-      _roots: BytesLike,
-      _nullifiersHash: BigNumberish,
-      _signalHash: BigNumberish,
-      _externalNullifier: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    reactivateExternalNullifier(
-      _externalNullifier: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    root(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    rootHistory(
-      arg0: BigNumberish,
+    nullifierHashes(
+      arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1987,16 +1348,6 @@ export class LinkableAnchor extends BaseContract {
 
     setHandler(
       _handler: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setPermissioning(
-      _newPermission: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    transferOwnership(
-      newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -2023,7 +1374,21 @@ export class LinkableAnchor extends BaseContract {
 
     verifier(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    zeroes(
+    withdraw(
+      _proof: BytesLike,
+      _publicInputs: {
+        _roots: BytesLike;
+        _nullifierHash: BytesLike;
+        _refreshCommitment: BytesLike;
+        _recipient: string;
+        _relayer: string;
+        _fee: BigNumberish;
+        _refund: BigNumberish;
+      },
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    zeros(
       i: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;

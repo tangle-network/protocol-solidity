@@ -10,6 +10,57 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "uint256",
+        name: "deposit",
+        type: "uint256",
+      },
+    ],
+    name: "getAmountToWrap",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "amountToWrap",
+        type: "uint256",
+      },
+    ],
+    name: "getFeeFromAmount",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint8",
+        name: "feePercentage",
+        type: "uint8",
+      },
+    ],
+    name: "setFee",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "address",
         name: "tokenAddress",
         type: "address",

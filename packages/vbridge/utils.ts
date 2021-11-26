@@ -26,6 +26,12 @@ export function getExtDataHash({
   encryptedOutput2
 }: any) {
   const abi = new ethers.utils.AbiCoder();
+  // console.log(`recipient is ${recipient}`);
+  // console.log(`extAmount is ${extAmount}`)
+  // console.log(`relayer is ${relayer}`);
+  // console.log(`fee is ${fee}`);
+  // console.log(`encryptedOutput1 is ${encryptedOutput1}`);
+  // console.log(`encryptedOutput2 is ${encryptedOutput2}`);
 
   const encodedData = abi.encode(
     [
@@ -43,6 +49,7 @@ export function getExtDataHash({
     ],
   );
   const hash = ethers.utils.keccak256(encodedData)
+  // console.log(`keccak hash is ${hash}`);
   return BigNumber.from(hash).mod(FIELD_SIZE)
 }
 

@@ -269,6 +269,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IVerifier6__factory>;
     getContractFactory(
+      name: "VAnchorEncodeInputs",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.VAnchorEncodeInputs__factory>;
+    getContractFactory(
       name: "BadRecipient",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.BadRecipient__factory>;
@@ -392,6 +396,10 @@ declare module "hardhat/types/runtime" {
       name: "AccessControl",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.AccessControl__factory>;
+    getContractFactory(
+      name: "Governable",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Governable__factory>;
     getContractFactory(
       name: "Ownable",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -786,6 +794,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IVerifier6>;
     getContractAt(
+      name: "VAnchorEncodeInputs",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.VAnchorEncodeInputs>;
+    getContractAt(
       name: "BadRecipient",
       address: string,
       signer?: ethers.Signer
@@ -940,6 +953,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.AccessControl>;
+    getContractAt(
+      name: "Governable",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Governable>;
     getContractAt(
       name: "Ownable",
       address: string,

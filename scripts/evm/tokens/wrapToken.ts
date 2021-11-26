@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import GovernedTokenWrapper from '../../../lib/darkwebb/GovernedTokenWrapper';
+import GovernedTokenWrapper from '../../../lib/bridge/GovernedTokenWrapper';
 
 export async function wrapToken(tokenToWrapAddress: string, amount: ethers.BigNumberish, tokenWrapperContractAddress: string, passedWallet: ethers.Signer) {
   const tokenWrapperContract = GovernedTokenWrapper.connect(tokenWrapperContractAddress, passedWallet);

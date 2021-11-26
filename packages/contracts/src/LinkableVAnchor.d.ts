@@ -36,7 +36,6 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
     "edgeIndex(uint256)": FunctionFragment;
     "edgeList(uint256)": FunctionFragment;
     "filledSubtrees(uint256)": FunctionFragment;
-    "getChainId()": FunctionFragment;
     "getLastRoot()": FunctionFragment;
     "getLatestNeighborEdges()": FunctionFragment;
     "hasEdge(uint256)": FunctionFragment;
@@ -61,7 +60,6 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
     "roots(uint256)": FunctionFragment;
     "setBridge(address)": FunctionFragment;
     "setHandler(address)": FunctionFragment;
-    "token()": FunctionFragment;
     "transact((bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes))": FunctionFragment;
     "unpackProof(uint256[8])": FunctionFragment;
     "updateEdge(uint256,bytes32,uint256)": FunctionFragment;
@@ -121,10 +119,6 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "filledSubtrees",
     values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getChainId",
-    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getLastRoot",
@@ -216,7 +210,6 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "roots", values: [BigNumberish]): string;
   encodeFunctionData(functionFragment: "setBridge", values: [string]): string;
   encodeFunctionData(functionFragment: "setHandler", values: [string]): string;
-  encodeFunctionData(functionFragment: "token", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "transact",
     values: [
@@ -298,7 +291,6 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
     functionFragment: "filledSubtrees",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "getChainId", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getLastRoot",
     data: BytesLike
@@ -362,7 +354,6 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "roots", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setBridge", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setHandler", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "token", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "transact", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "unpackProof",
@@ -523,8 +514,6 @@ export class LinkableVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    getChainId(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     getLastRoot(overrides?: CallOverrides): Promise<[string]>;
 
     getLatestNeighborEdges(
@@ -656,8 +645,6 @@ export class LinkableVAnchor extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    token(overrides?: CallOverrides): Promise<[string]>;
-
     transact(
       _args: {
         proof: BytesLike;
@@ -769,8 +756,6 @@ export class LinkableVAnchor extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  getChainId(overrides?: CallOverrides): Promise<BigNumber>;
-
   getLastRoot(overrides?: CallOverrides): Promise<string>;
 
   getLatestNeighborEdges(
@@ -881,8 +866,6 @@ export class LinkableVAnchor extends BaseContract {
     _handler: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
-
-  token(overrides?: CallOverrides): Promise<string>;
 
   transact(
     _args: {
@@ -998,8 +981,6 @@ export class LinkableVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    getChainId(overrides?: CallOverrides): Promise<BigNumber>;
-
     getLastRoot(overrides?: CallOverrides): Promise<string>;
 
     getLatestNeighborEdges(
@@ -1113,8 +1094,6 @@ export class LinkableVAnchor extends BaseContract {
     setBridge(_bridge: string, overrides?: CallOverrides): Promise<void>;
 
     setHandler(_handler: string, overrides?: CallOverrides): Promise<void>;
-
-    token(overrides?: CallOverrides): Promise<string>;
 
     transact(
       _args: {
@@ -1296,8 +1275,6 @@ export class LinkableVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getChainId(overrides?: CallOverrides): Promise<BigNumber>;
-
     getLastRoot(overrides?: CallOverrides): Promise<BigNumber>;
 
     getLatestNeighborEdges(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1405,8 +1382,6 @@ export class LinkableVAnchor extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    token(overrides?: CallOverrides): Promise<BigNumber>;
-
     transact(
       _args: {
         proof: BytesLike;
@@ -1509,8 +1484,6 @@ export class LinkableVAnchor extends BaseContract {
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    getChainId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getLastRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1627,8 +1600,6 @@ export class LinkableVAnchor extends BaseContract {
       _handler: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
-
-    token(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transact(
       _args: {

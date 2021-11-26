@@ -22,6 +22,9 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface ITokenWrapperInterface extends ethers.utils.Interface {
   functions: {
+    "getAmountToWrap(uint256)": FunctionFragment;
+    "getFeeFromAmount(uint256)": FunctionFragment;
+    "setFee(uint8)": FunctionFragment;
     "unwrap(address,uint256)": FunctionFragment;
     "unwrapAndSendTo(address,uint256,address)": FunctionFragment;
     "unwrapFor(address,address,uint256)": FunctionFragment;
@@ -30,6 +33,18 @@ interface ITokenWrapperInterface extends ethers.utils.Interface {
     "wrapForAndSendTo(address,address,uint256,address)": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "getAmountToWrap",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getFeeFromAmount",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setFee",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "unwrap",
     values: [string, BigNumberish]
@@ -55,6 +70,15 @@ interface ITokenWrapperInterface extends ethers.utils.Interface {
     values: [string, string, BigNumberish, string]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "getAmountToWrap",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getFeeFromAmount",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "setFee", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "unwrap", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "unwrapAndSendTo",
@@ -115,6 +139,21 @@ export class ITokenWrapper extends BaseContract {
   interface: ITokenWrapperInterface;
 
   functions: {
+    getAmountToWrap(
+      deposit: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    getFeeFromAmount(
+      amountToWrap: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    setFee(
+      feePercentage: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     unwrap(
       tokenAddress: string,
       amount: BigNumberish,
@@ -156,6 +195,21 @@ export class ITokenWrapper extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
+
+  getAmountToWrap(
+    deposit: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getFeeFromAmount(
+    amountToWrap: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  setFee(
+    feePercentage: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   unwrap(
     tokenAddress: string,
@@ -199,6 +253,21 @@ export class ITokenWrapper extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    getAmountToWrap(
+      deposit: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getFeeFromAmount(
+      amountToWrap: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    setFee(
+      feePercentage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     unwrap(
       tokenAddress: string,
       amount: BigNumberish,
@@ -244,6 +313,21 @@ export class ITokenWrapper extends BaseContract {
   filters: {};
 
   estimateGas: {
+    getAmountToWrap(
+      deposit: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getFeeFromAmount(
+      amountToWrap: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    setFee(
+      feePercentage: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     unwrap(
       tokenAddress: string,
       amount: BigNumberish,
@@ -287,6 +371,21 @@ export class ITokenWrapper extends BaseContract {
   };
 
   populateTransaction: {
+    getAmountToWrap(
+      deposit: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getFeeFromAmount(
+      amountToWrap: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    setFee(
+      feePercentage: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     unwrap(
       tokenAddress: string,
       amount: BigNumberish,
