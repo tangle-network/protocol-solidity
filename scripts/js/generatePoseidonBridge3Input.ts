@@ -1,6 +1,6 @@
 const fs = require('fs')
 const path = require('path')
-const crypto = require('crypto')
+import * as crypto from 'crypto';
 
 const utils = require("ffjavascript").utils;
 const {
@@ -14,10 +14,10 @@ const MerkleTree = require('../../lib/fixed-bridge/MerkleTree');
 
 const poseidonHasher = new PoseidonHasher();
 
-const rbigint = (nbytes) => leBuff2int(crypto.randomBytes(nbytes))
+const rbigint = (nbytes:number) => leBuff2int(crypto.randomBytes(nbytes))
 
 async function generatePoseidonBridgeInput() {
-  let deposit = {
+  let deposit:any = {
     chainID: 135,
     secret: rbigint(31),
     nullifier: rbigint(31),
@@ -26,7 +26,7 @@ async function generatePoseidonBridgeInput() {
   deposit.commitment = poseidonHasher.hash3([deposit.chainID, deposit.nullifier, deposit.secret]);
   deposit.nullifierHash =   poseidonHasher.hash(null, deposit.nullifier, deposit.nullifier);
 
-  let refreshedDeposit = {
+  let refreshedDeposit:any = {
     chainID: 135,
     secret: rbigint(31),
     nullifier: rbigint(31),

@@ -1,6 +1,6 @@
 const fs = require('fs')
 const path = require('path')
-const crypto = require('crypto')
+import * as crypto from 'crypto';
 
 const utils = require("ffjavascript").utils;
 const {
@@ -9,15 +9,15 @@ const {
   unstringifyBigInts,
   stringifyBigInts,
 } = utils;
-const PoseidonHasher = require('../../lib/Poseidon').default; 
+const PoseidonHasher = require('../../lib/Poseidon'); 
 const MerkleTree = require('../../lib/fixed-bridge/MerkleTree');
 
 const poseidonHasher = new PoseidonHasher();
 
-const rbigint = (nbytes) => leBuff2int(crypto.randomBytes(nbytes))
+const rbigint = (nbytes:number) => leBuff2int(crypto.randomBytes(nbytes))
 
 async function generatePoseidonBridgeInput() {
-  let deposit = {
+  let deposit:any = {
     chainID: 135,
     secret: rbigint(31),
     nullifier: rbigint(31),
@@ -26,7 +26,7 @@ async function generatePoseidonBridgeInput() {
   deposit.commitment = poseidonHasher.hash3([deposit.chainID, deposit.nullifier, deposit.secret]);
   deposit.nullifierHash =   poseidonHasher.hash(null, deposit.nullifier, deposit.nullifier);
 
-  let refreshedDeposit = {
+  let refreshedDeposit:any = {
     chainID: 135,
     secret: rbigint(31),
     nullifier: rbigint(31),
@@ -52,13 +52,13 @@ async function generatePoseidonBridgeInput() {
     fee: 0,
     refund: 0,
     chainID: deposit.chainID,
-    roots: [root, 0],
+    roots: [root, 0, 0, 0, 0, 0],
     // private
     nullifier: deposit.nullifier,
     secret: deposit.secret,
     pathElements: path_elements,
     pathIndices: path_index,
-    diffs: [root, 0].map(r => {
+    diffs: [root, 0, 0, 0, 0, 0].map(r => {
       return F.sub(
         Scalar.fromString(`${r}`),
         Scalar.fromString(`${root}`),
@@ -66,11 +66,11 @@ async function generatePoseidonBridgeInput() {
     }),
   }
 
-  if (!fs.existsSync('build/bridge/2')) {
-    await fs.mkdirSync('build/bridge/2');
+  if (!fs.existsSync('build/bridge/6')) {
+    await fs.mkdirSync('build/bridge/6');
   }
 
-  await fs.writeFileSync('build/bridge/2/input.json', JSON.stringify(stringifyBigInts(input)));
+  await fs.writeFileSync('build/bridge/6/input.json', JSON.stringify(stringifyBigInts(input)));
 }
 
 generatePoseidonBridgeInput();
