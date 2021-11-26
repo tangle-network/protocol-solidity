@@ -6,8 +6,8 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
-import "./interfaces/IAnchor.sol";
-import "./interfaces/IAnchorTrees.sol";
+import "../interfaces/IAnchor.sol";
+import "../interfaces/IAnchorTrees.sol";
 
 contract AnchorProxy {
   using SafeERC20 for IERC20;
