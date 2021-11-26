@@ -1,6 +1,6 @@
 <h1 align="center">Webb Solidity</h1>
 
-Wrapper classes and utilities for deploying and interacting with zero-knowledge bridges.
+Wrapper classes and utilities for deploying and interacting with zero-knowledge bridges in solidity.
 
 ## License
 

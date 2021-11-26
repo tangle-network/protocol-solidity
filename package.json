@@ -15,6 +15,7 @@
     "build:ptau": "./scripts/bash/generate_phase1_ptau.sh",
     "clean": "rm -rf artifacts typechain && yarn clean:packages",
     "clean:packages": "lerna run clean",
+    "publish:packages": "lerna run build && lerna run publish",
     "run:deploy-webb": "ts-node ./scripts/evm/webbSystemDeployment.ts",
     "run:inspect-webb": "ts-node ./scripts/evm/inspectWebbInstance.ts",
     "run:link-webbs": "ts-node ./scripts/evm/linkAnchors.ts",

@@ -1,6 +1,6 @@
 <h1 align="center">Webb Solidity Utils</h1>
 
-This sub-module is for defining common functionality / types used across other packages in webb solidity
+This sub-module is for defining common functionality / types used across other packages in webb solidity.
 
 ## License
 

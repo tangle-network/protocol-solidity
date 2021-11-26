@@ -1,6 +1,6 @@
 <h1 align="center">Webb Solidity Tokens</h1>
 
-This sub-module is for defining fixed-bridge functionality in webb solidity
+This sub-module is for defining fixed-bridge functionality in webb solidity.
 
 ## License
 
