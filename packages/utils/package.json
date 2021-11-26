@@ -3,6 +3,11 @@
   "license": "GPL-3.0-or-later",
   "author": "Nepoche",
   "name": "@nepoche/utils",
+  "scripts": {
+    "build": "yarn run clean && yarn run compile",
+    "clean": "rimraf -rf ./lib",
+    "compile": "tsc -p tsconfig.build.json"
+  },
   "dependencies": {
     "circomlibjs": "^0.0.8",
     "ethers": "5.5.1",

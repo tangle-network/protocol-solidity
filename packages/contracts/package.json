@@ -3,6 +3,11 @@
   "license": "GPL-3.0-or-later",
   "author": "Nepoche",
   "name": "@nepoche/contracts",
+  "scripts": {
+    "build": "yarn run clean && yarn run compile",
+    "clean": "rimraf -rf ./lib",
+    "compile": "tsc -p tsconfig.build.json && sh ./copyTypes.sh"
+  },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-web3": "^2.0.0"

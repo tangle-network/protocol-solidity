@@ -1,0 +1,33 @@
+{
+  "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@nepoche/contracts": [
+        "packages/contracts/src"
+      ],
+      "@nepoche/contracts/*": [
+        "packages/contracts/src/*"
+      ],
+      "@nepoche/fixed-bridge": [
+        "packages/fixed-bridge/src"
+      ],
+      "@nepoche/fixed-bridge/*": [
+        "packages/fixed-bridge/src/*"
+      ],
+      "@nepoche/tokens": [
+        "packages/tokens/src"
+      ],
+      "@nepoche/tokens/*": [
+        "packages/tokens/src/*"
+      ],
+      "@nepoche/utils": [
+        "packages/utils/src"
+      ],
+      "@nepoche/utils/*": [
+        "packages/utils/src/*"
+      ],
+    },
+    "noEmit": true
+  }
+}

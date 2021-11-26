@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { AnchorProxy as AnchorProxyContract, AnchorProxy__factory } from '@nepoche/contracts';
-import { WithdrawalEvent, RefreshEvent } from '@nepoche/contracts/lib/AnchorBase';
+import { WithdrawalEvent, RefreshEvent } from '@nepoche/contracts/src/AnchorBase';
 import { Anchor } from './Anchor';
 import { AnchorDepositInfo } from './types';
 import { toFixedHex } from "@nepoche/utils";

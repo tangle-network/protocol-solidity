@@ -3,6 +3,11 @@
   "license": "GPL-3.0-or-later",
   "author": "Nepoche",
   "name": "@nepoche/tokens",
+  "scripts": {
+    "build": "yarn run clean && yarn run compile",
+    "clean": "rimraf -rf ./lib",
+    "compile": "tsc -p tsconfig.build.json"
+  },
   "dependencies": {
     "@nepoche/contracts": "1.1.2",
     "ethers": "5.5.1"

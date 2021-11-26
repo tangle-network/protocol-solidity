@@ -1,12 +1,3 @@
 {
-  "compilerOptions": {
-    "outDir": "./lib/",
-    "rootDir": "./src"
-  },
-  "exclude": [],
-  "extends": "../../tsconfig.package.json",
-  "include": [
-    "./src/*.ts",
-    "./src/factories/*.ts"
-  ]
+  "extends": "../../tsconfig.json"
 }
