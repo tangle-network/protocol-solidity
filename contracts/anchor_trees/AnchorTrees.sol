@@ -10,10 +10,15 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 /// @dev This contract holds a merkle tree of all tornado cash deposit and withdrawal events
 contract AnchorTrees is Initializable {
   address public immutable governance;
-  bytes32 public depositRoot;
-  bytes32 public previousDepositRoot;
-  bytes32 public withdrawalRoot;
-  bytes32 public previousWithdrawalRoot;
+  //Roots Stuff
+  mapping(uint256 => bytes32) public roots;
+  uint32 public constant ROOT_HISTORY_SIZE = 30;
+  uint32 public currentRootIndex = 0;
+  // bytes32 public depositRoot;
+  // bytes32 public previousDepositRoot;
+  // bytes32 public withdrawalRoot;
+  // bytes32 public previousWithdrawalRoot;
+  //End Roots Stuff
   address public anchorProxy;
   IBatchTreeUpdateVerifier public treeUpdateVerifier;
   IAnchorTreesV1 public immutable anchorTreesV1;
@@ -34,10 +39,33 @@ contract AnchorTrees is Initializable {
   uint256 public lastProcessedWithdrawalLeaf;
   uint256 public immutable withdrawalsV1Length;
 
+  //Start Edge Information
+  uint8 public immutable maxEdges;
+
+  struct Edge {
+    uint256 chainID;
+    bytes32 depositRoot;
+    bytes32 withdrawalRoot;
+    uint256 latestLeafIndex;
+  }
+
+  // maps sourceChainID to the index in the edge list
+  mapping(uint256 => uint256) public edgeIndex;
+  mapping(uint256 => bool) public edgeExistsForChain;
+  Edge[] public edgeList;
+
+  // map to store chainID => (rootIndex => [depositRoot, withdrawalRoot]) to track neighbor histories
+  mapping(uint256 => mapping(uint32 => bytes32[2])) public neighborRoots;
+  // map to store the current historical [depositRoot, withdrawalRoot] index for a chainID
+  mapping(uint256 => uint32[2]) public currentNeighborRootIndex;
+  //End Edge Information
+
   event DepositData(address instance, bytes32 indexed hash, uint256 block, uint256 index);
   event WithdrawalData(address instance, bytes32 indexed hash, uint256 block, uint256 index);
   event VerifierUpdated(address newVerifier);
   event ProxyUpdated(address newProxy);
+  event EdgeAddition(uint256 chainID, uint256 latestLeafIndex, bytes32 depositRoot, bytes32 withdrawalRoot);
+  event EdgeUpdate(uint256 chainID, uint256 latestLeafIndex, bytes32 depositRoot, bytes32 withdrawalRoot);
 
   struct TreeLeaf {
     bytes32 hash;
@@ -65,10 +93,12 @@ contract AnchorTrees is Initializable {
   constructor(
     address _governance,
     IAnchorTreesV1 _anchorTreesV1,
-    SearchParams memory _searchParams
+    SearchParams memory _searchParams,
+    uint8 _maxEdges
   ) public {
     governance = _governance;
     anchorTreesV1 = _anchorTreesV1;
+    maxEdges = _maxEdges;
 
     depositsV1Length = findArrayLength(
       _anchorTreesV1,
@@ -220,6 +250,78 @@ contract AnchorTrees is Initializable {
     previousWithdrawalRoot = _currentRoot;
     withdrawalRoot = _newRoot;
     lastProcessedWithdrawalLeaf = offset + CHUNK_SIZE;
+  }
+
+    /**
+    @dev Whether the root is present in the root history
+  */
+  function isKnownRoot(bytes32 _root) public view returns (bool) {
+    if (_root == 0) {
+      return false;
+    }
+    uint32 _currentRootIndex = currentRootIndex;
+    uint32 i = _currentRootIndex;
+    do {
+      if (_root == roots[i]) {
+        return true;
+      }
+      if (i == 0) {
+        i = ROOT_HISTORY_SIZE;
+      }
+      i--;
+    } while (i != _currentRootIndex);
+    return false;
+  }
+
+    /** @dev */
+  function getLatestNeighborRoots() public view returns (bytes32[] memory roots) {
+    roots = new bytes32[](maxEdges);
+    for (uint256 i = 0; i < maxEdges; i++) {
+      if (edgeList.length >= i + 1) {
+        roots[i] = edgeList[i].root;
+      } else {
+        // merkle tree height for zeros
+        roots[i] = 0; //was previously zeros(levels);
+      }
+    }
+  }
+
+  /** @dev */
+  function isKnownNeighborDepositRoot(uint256 neighborChainID, bytes32 _depositRoot) public view returns (bool) {
+    if (_depositRoot == 0) {
+      return false;
+    }
+    uint32 _currentRootIndex = currentNeighborRootIndex[neighborChainID][0];
+    uint32 i = _currentRootIndex;
+    do {
+      if (_depositRoot == neighborRoots[neighborChainID][i][0]) {
+        return true;
+      }
+      if (i == 0) {
+        i = ROOT_HISTORY_SIZE;
+      }
+      i--;
+    } while (i != _currentRootIndex);
+    return false;
+  }
+
+    /** @dev */
+  function isKnownNeighborWithdrawalRoot(uint256 neighborChainID, bytes32 _withdrawalRoot) public view returns (bool) {
+    if (_withdrawalRoot == 0) {
+      return false;
+    }
+    uint32 _currentRootIndex = currentNeighborRootIndex[neighborChainID][1];
+    uint32 i = _currentRootIndex;
+    do {
+      if (_withdrawalRoot == neighborRoots[neighborChainID][i][1]) {
+        return true;
+      }
+      if (i == 0) {
+        i = ROOT_HISTORY_SIZE;
+      }
+      i--;
+    } while (i != _currentRootIndex);
+    return false;
   }
 
   function validateRoots(bytes32 _depositRoot, bytes32 _withdrawalRoot) public view {
