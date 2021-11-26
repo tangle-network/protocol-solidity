@@ -298,12 +298,14 @@ class Anchor {
       const edgeIndex = await this.contract.edgeIndex(originChain);
       rootDiffIndex = edgeIndex.toNumber() + 1;
     }
+
+    const rootsHash = 0;
     
     return {
       // public
-      nullifierHash, refreshCommitment, recipient, relayer, fee, refund, chainID, roots,
+      nullifierHash, refreshCommitment, recipient, relayer, fee, refund, chainID, rootsHash,
       // private
-      nullifier, secret, pathElements, pathIndices, diffs: roots.map(r => {
+      nullifier, secret, pathElements, pathIndices, roots, diffs: roots.map(r => {
         return F.sub(
           Scalar.fromString(`${r}`),
           Scalar.fromString(`${roots[rootDiffIndex]}`),
@@ -369,13 +371,13 @@ class Anchor {
     let proofEncoded = await this.proveAndVerify(wtns);
 
     const args = [
-      Anchor.createRootsBytes(input.roots),
       toFixedHex(input.nullifierHash),
       toFixedHex(input.refreshCommitment, 32),
       toFixedHex(input.recipient, 20),
       toFixedHex(input.relayer, 20),
       toFixedHex(input.fee),
       toFixedHex(input.refund),
+      toFixedHex(input.rootsHash)
     ];
 
     const publicInputs = Anchor.convertArgsArrayToStruct(args);

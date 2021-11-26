@@ -288,116 +288,22 @@ abstract contract AnchorBase is MerkleTreePoseidon, ReentrancyGuard, IAnchor {
     uint256 _chainId = getChainId();
     bytes32[] memory result = new bytes32[](maxEdges + 1);
     bytes memory encodedInput;
-
-    if (maxEdges == 1) {
-      uint256[9] memory inputs;
-      bytes32[2] memory roots = abi.decode(_roots, (bytes32[2]));
-      // assign roots
-      result[0] = roots[0];
-      result[1] = roots[1];
-      // assign input
-      inputs[0] = uint256(_nullifierHash);
-      inputs[1] = uint256(uint160(_recipient));
-      inputs[2] = uint256(uint160(_relayer));
-      inputs[3] = uint256(_fee);
-      inputs[4] = uint256(_refund);
-      inputs[5] = uint256(_refreshCommitment);
-      inputs[6] = uint256(_chainId);
-      inputs[7] = uint256(roots[0]);
-      inputs[8] = uint256(roots[1]);
-      encodedInput = abi.encodePacked(inputs);
-    } else if (maxEdges == 2) {
-      uint256[10] memory inputs;
-      bytes32[3] memory roots = abi.decode(_roots, (bytes32[3]));
-      // assign roots
-      result[0] = roots[0];
-      result[1] = roots[1];
-      result[2] = roots[2];
-      // assign input
-      inputs[0] = uint256(_nullifierHash);
-      inputs[1] = uint256(uint160(_recipient));
-      inputs[2] = uint256(uint160(_relayer));
-      inputs[3] = uint256(_fee);
-      inputs[4] = uint256(_refund);
-      inputs[5] = uint256(_refreshCommitment);
-      inputs[6] = uint256(_chainId);
-      inputs[7] = uint256(roots[0]);
-      inputs[8] = uint256(roots[1]);
-      inputs[9] = uint256(roots[2]);
-      encodedInput = abi.encodePacked(inputs);
-    } else if (maxEdges == 3) {
-      uint256[11] memory inputs;
-      bytes32[4] memory roots = abi.decode(_roots, (bytes32[4]));
-      // assign roots
-      result[0] = roots[0];
-      result[1] = roots[1];
-      result[2] = roots[2];
-      result[3] = roots[3];
-      // assign input
-      inputs[0] = uint256(_nullifierHash);
-      inputs[1] = uint256(uint160(_recipient));
-      inputs[2] = uint256(uint160(_relayer));
-      inputs[3] = uint256(_fee);
-      inputs[4] = uint256(_refund);
-      inputs[5] = uint256(_refreshCommitment);
-      inputs[6] = uint256(_chainId);
-      inputs[7] = uint256(roots[0]);
-      inputs[8] = uint256(roots[1]);
-      inputs[9] = uint256(roots[2]);
-      inputs[10] = uint256(roots[3]);
-      encodedInput = abi.encodePacked(inputs);
-    } else if (maxEdges == 4) {
-      uint256[12] memory inputs;
-      bytes32[5] memory roots = abi.decode(_roots, (bytes32[5]));
-      // assign roots
-      result[0] = roots[0];
-      result[1] = roots[1];
-      result[2] = roots[2];
-      result[3] = roots[3];
-      result[4] = roots[4];
-      // assign input
-      inputs[0] = uint256(_nullifierHash);
-      inputs[1] = uint256(uint160(_recipient));
-      inputs[2] = uint256(uint160(_relayer));
-      inputs[3] = uint256(_fee);
-      inputs[4] = uint256(_refund);
-      inputs[5] = uint256(_refreshCommitment);
-      inputs[6] = uint256(_chainId);
-      inputs[7] = uint256(roots[0]);
-      inputs[8] = uint256(roots[1]);
-      inputs[9] = uint256(roots[2]);
-      inputs[10] = uint256(roots[3]);
-      inputs[11] = uint256(roots[4]);
-      encodedInput = abi.encodePacked(inputs);
-    } else if (maxEdges == 5) {
-      uint256[13] memory inputs;
-      bytes32[6] memory roots = abi.decode(_roots, (bytes32[6]));
-      // assign roots
-      result[0] = roots[0];
-      result[1] = roots[1];
-      result[2] = roots[2];
-      result[3] = roots[3];
-      result[4] = roots[4];
-      result[5] = roots[5];
-      // assign input
-      inputs[0] = uint256(_nullifierHash);
-      inputs[1] = uint256(uint160(_recipient));
-      inputs[2] = uint256(uint160(_relayer));
-      inputs[3] = uint256(_fee);
-      inputs[4] = uint256(_refund);
-      inputs[5] = uint256(_refreshCommitment);
-      inputs[6] = uint256(_chainId);
-      inputs[7] = uint256(roots[0]);
-      inputs[8] = uint256(roots[1]);
-      inputs[9] = uint256(roots[2]);
-      inputs[10] = uint256(roots[3]);
-      inputs[11] = uint256(roots[4]);
-      inputs[12] = uint256(roots[5]);
-      encodedInput = abi.encodePacked(inputs);
-    } else {
-      require(false, "Invalid edges");
-    }
-
+    
+    uint256[8] memory inputs;
+    bytes32[2] memory roots = abi.decode(_roots, (bytes32[2]));
+    bytes rootHash = keccak256(_roots);
+    // assign roots
+    result[0] = roots[0];
+    result[1] = roots[1];
+    // assign input
+    inputs[0] = uint256(_nullifierHash);
+    inputs[1] = uint256(uint160(_recipient));
+    inputs[2] = uint256(uint160(_relayer));
+    inputs[3] = uint256(_fee);
+    inputs[4] = uint256(_refund);
+    inputs[5] = uint256(_refreshCommitment);
+    inputs[6] = uint256(_chainId);
+    inputs[7] = uint256(rootsHash);
+    encodedInput = abi.encodePacked(inputs);
     return (encodedInput, result);
-  }
 }

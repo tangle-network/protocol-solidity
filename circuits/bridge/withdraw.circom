@@ -1,6 +1,7 @@
 pragma circom 2.0.0;
 
 include "manyMerkleTree.circom";
+include "../sha256/HashInputs.circom";
 
 // computes Poseidon(chainID, nullifier, secret)
 template CommitmentHasher() {
@@ -26,19 +27,18 @@ template CommitmentHasher() {
 // Verifies that commitment that corresponds to given secret and nullifier is included in the merkle tree of deposits
 template Withdraw(levels, length) {
     signal input nullifierHash;
+    signal input refreshCommitment;         // not taking part in any computations
     signal input recipient;                 // not taking part in any computations
     signal input relayer;                   // not taking part in any computations
     signal input fee;                       // not taking part in any computations
     signal input refund;                    // not taking part in any computations
-    signal input refreshCommitment;         // not taking part in any computations
 
     // chainID fixes a withdrawal proof to the destination since
     // this will be taken as a public input from the smart contract.
     signal input chainID;               // public 
-    // the set of roots to prove membership within, provided
-    // as a public input from the smart contract.
-    signal input roots[length];
+    // the set of roots to prove membership within is a private input (railgun)
     
+    signal input rootsHash; //publicInput
 
     signal input nullifier;             // private 
     signal input secret;                // private 
@@ -46,7 +46,15 @@ template Withdraw(levels, length) {
     signal input pathIndices[levels];   // private
     // the differences of the root one is proving against and
     // all the roots provided as a public input in the `roots` signal.
+    signal input roots[length]; //private
     signal input diffs[length];         // private
+
+    //Check hash of roots is rootsHash
+    component hashInputs = HashInputs(length);
+    for (var i = 0; i < length; i++) {
+        hashInputs.in[i] <== roots[i];
+    }
+    rootsHash === hashInputs.out;
 
     component hasher = CommitmentHasher();
     hasher.chainID <== chainID;
