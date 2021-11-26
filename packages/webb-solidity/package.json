@@ -9,10 +9,10 @@
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@nepoche/contracts": "1.1.2",
-    "@nepoche/fixed-bridge": "1.1.3",
-    "@nepoche/tokens": "1.1.2",
-    "@nepoche/utils": "1.1.2"
+    "@nepoche/contracts": "^1.1.3",
+    "@nepoche/fixed-bridge": "^1.1.4",
+    "@nepoche/tokens": "^1.1.3",
+    "@nepoche/utils": "^1.1.3"
   },
   "publishConfig": {
     "access": "public"
@@ -22,5 +22,5 @@
     "type": "git",
     "url": "git://github.com/nepoche/protocol-solidity.git"
   },
-  "version": "1.1.3"
+  "version": "1.1.4"
 }
