@@ -8,7 +8,7 @@
     "packages/*"
   ],
   "scripts": {
-    "compile": "npx hardhat compile",
+    "compile": "npx hardhat compile && sh ./scripts/bash/copyTypechain.sh",
     "build": "yarn compile && yarn build:circuits && yarn build:packages && yarn build:ptau",
     "build:circuits": "./scripts/bash/build_circuits.sh",
     "build:packages": "lerna run build",
