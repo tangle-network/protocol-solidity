@@ -6,7 +6,7 @@ export { Verifier } from './Verifier';
 export { Utxo } from './utxo';
 export {poseidonHash2, poseidonHash} from './utils';
 
-import { BigNumberish, ethers } from 'ethers';
+import { BigNumberish } from 'ethers';
 export interface RootInfo {
   merkleRoot: BigNumberish;
   chainId: BigNumberish;
