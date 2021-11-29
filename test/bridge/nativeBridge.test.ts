@@ -56,7 +56,7 @@ describe('multichain tests for native', () => {
   describe('BridgeConstruction', () => {
     let bridge2WebbEthInput: BridgeInput;
 
-    it('create 2 side bridge for native token', async () => {
+    it.only('create 2 side bridge for native token', async () => {
       bridge2WebbEthInput = {
         anchorInputs: {
           asset: {
@@ -113,7 +113,7 @@ describe('multichain tests for native', () => {
       const event = await bridge.withdrawAndUnwrap(depositNative, '0x0000000000000000000000000000000000000000', anchorSize, signers[2].address, signers[2].address, ganacheWallet2);
       const nativeOtherEndingBalance = await ganacheProvider2.getBalance(signers[2].address);
       assert.deepEqual(nativeOtherEndingBalance.eq(nativeOtherStartingBalance.add(anchorSize)), true);
-    })
+    }).timeout(30000);
   })
 
   after('terminate networks', () => {
