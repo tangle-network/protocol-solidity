@@ -7,13 +7,18 @@ import { ethers } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
 
 // Typechain generated bindings for contracts
+// These contracts are included in packages, so should be tested
 import {
-  ERC20Mock as Token,
-  ERC20Mock__factory as TokenFactory,
   GovernedTokenWrapper as WrappedToken,
   GovernedTokenWrapper__factory as WrappedTokenFactory,
   PoseidonT3__factory
 } from '@nepoche/contracts';
+
+// These contracts are not included in the package, so can use generated typechain
+import {
+  ERC20Mock as Token,
+  ERC20Mock__factory as TokenFactory,
+} from '../../typechain';
 
 // Convenience wrapper classes for contract classes
 import VAnchor from '../../packages/vbridge/VAnchor';

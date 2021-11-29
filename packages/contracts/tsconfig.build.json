@@ -5,6 +5,6 @@
   "exclude": [],
   "extends": "../../tsconfig.build.json",
   "include": [
-    "./src/**/*.ts",
+    "./src/**/*.ts", "index.ts"
   ]
 }
