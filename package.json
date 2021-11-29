@@ -1,7 +1,7 @@
 {
-  "name": "test-webb-solidity",
-  "repository": "https://github.com/nepoche/protocol-solidity.git",
-  "author": "Nepoche",
+  "name": "protocol-solidity",
+  "repository": "git://github.com/webb-tools/protocol-solidity.git",
+  "author": "Webb Developers <drew@webb.tools>",
   "license": "GPL-3.0-or-later",
   "private": true,
   "workspaces": [
