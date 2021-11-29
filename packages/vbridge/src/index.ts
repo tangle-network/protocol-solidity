@@ -26,7 +26,7 @@ export { VBridge, BridgeConfig, VBridgeInput, DeployerConfig, ExistingAssetInput
 export { VBridgeSide } from './VBridgeSide';
 export { MerkleTree } from './MerkleTree';
 export { Verifier } from './Verifier';
-export { Utxo } from './Utxo';
+export { Utxo } from './utxo';
 export {poseidonHash2, poseidonHash} from './utils';
  //END Exports
 
