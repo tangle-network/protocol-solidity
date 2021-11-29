@@ -2,18 +2,14 @@
  * Copyright 2021 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
- const assert = require('assert');
+const assert = require('assert');
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
- import { ethers } from 'hardhat';
- const TruffleAssert = require('truffle-assertions');
- 
- // Convenience wrapper classes for contract classes
- import ERC20Class from '../../lib/tokens/ERC20';
- import GovernedTokenWrapperClass from '../../lib/tokens/GovernedTokenWrapper';
- 
- const helpers = require('../../lib/utils');
- 
- describe('GovernedTokenWrapper', () => {
+import { ethers } from 'hardhat';
+
+// Convenience wrapper classes for contract classes
+import { ERC20 as ERC20Class, GovernedTokenWrapper as GovernedTokenWrapperClass } from '../../packages/tokens/src';
+
+describe('GovernedTokenWrapper', () => {
   let token: ERC20Class;
   let wrappedToken: GovernedTokenWrapperClass;
   let tokenDenomination = '1000000000000000000' // 1 ether
@@ -48,4 +44,4 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
       assert.strictEqual((await wrappedToken.contract.totalSupply()).toString(), '0');
     });
   });
- });
+});

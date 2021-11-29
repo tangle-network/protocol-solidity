@@ -7,12 +7,9 @@ const path = require('path');
 import { ethers } from 'hardhat';
 
 // Convenience wrapper classes for contract classes
-import BridgeSide from '../../lib/fixed-bridge/BridgeSide';
-import Anchor from '../../lib/fixed-bridge/Anchor';
-import MintableToken from '../../lib/tokens/MintableToken';
-import Verifier from '../../lib/fixed-bridge/Verifier';
-import { fetchComponentsFromFilePaths } from '../../lib/utils';
-import { ZkComponents } from '../../lib/fixed-bridge/types';
+import { Anchor, BridgeSide, Verifier } from '@webb-tools/fixed-bridge';
+import { MintableToken } from '@webb-tools/tokens';
+import { fetchComponentsFromFilePaths, ZkComponents } from '@webb-tools/utils';
 import { PoseidonT3__factory } from '../../typechain';
 
 describe('BridgeSideConstruction', () => {
@@ -20,7 +17,7 @@ describe('BridgeSideConstruction', () => {
   let zkComponents: ZkComponents;
 
   before(async () => {
-    const zkComponents = await fetchComponentsFromFilePaths(
+    zkComponents = await fetchComponentsFromFilePaths(
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm'),
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js'),
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey')

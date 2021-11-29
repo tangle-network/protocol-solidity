@@ -24,7 +24,7 @@ const BN = require('bn.js');
 const F = require('circomlibjs').babyjub.F;
 const Scalar = require('ffjavascript').Scalar;
 
-const MerkleTree = require('../../lib/fixed-bridge/MerkleTree').MerkleTree;
+const MerkleTree = require('../../packages/fixed-bridge/src').MerkleTree;
 
 contract('E2E LinkableAnchors - Cross chain withdraw using historical root should work', async accounts => {
   const relayerThreshold = 1;
@@ -218,7 +218,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     publicSignals = res.publicSignals;
 
     // Uncomment to measure gas usage
-    // gas = await anchor.withdraw.estimateGas(proof, publicSignals, { from: relayer, gasPrice: '0' })
+    // gas = await anchor.withdraw.estimateGas(proof, publicSignals, { from: relayer, gasPrice: '100' })
     // console.log('withdraw gas:', gas)
     let args = [
       helpers.createRootsBytes(input.roots),
@@ -282,7 +282,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
       _relayer: args[4],
       _fee: args[5],
       _refund: args[6],
-    }, { from: input.relayer, gasPrice: '0' }));
+    }, { from: input.relayer }));
 
     let balanceDestAnchorAfter = await destChainToken.balanceOf(DestChainAnchorInstance.address);
     let balanceOperatorAfter = await destChainToken.balanceOf(input.relayer);
@@ -387,7 +387,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
       _relayer: args[4],
       _fee: args[5],
       _refund: args[6],
-    }, { from: input.relayer, gasPrice: '0' }),
+    }, { from: input.relayer }),
       'Neighbor root not found');
   }).timeout(0);      
 })

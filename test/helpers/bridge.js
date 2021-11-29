@@ -5,7 +5,7 @@
 
 const Ethers = require('ethers');
 const crypto = require('crypto')
-const PoseidonHasher = require('../../lib/Poseidon').default;
+const PoseidonHasher = require('../../packages/utils/src').PoseidonHasher;
 const utils = require("ffjavascript").utils;
 const { isBN, isBigNumber } = require('web3-utils');
 

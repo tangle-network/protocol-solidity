@@ -29,4 +29,5 @@ jobs:
       - run: git submodule update --init --recursive
       - run: yarn install --production=false
       - run: yarn compile
+      - run: yarn build:packages
       - run: yarn test

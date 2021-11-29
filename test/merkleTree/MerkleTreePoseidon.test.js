@@ -10,8 +10,9 @@ const assert = require('assert');
 
 const Poseidon = artifacts.require('PoseidonT3')
 const MerkleTreeWithHistory = artifacts.require('MerkleTreePoseidonMock')
-const MerkleTree = require('../../lib/fixed-bridge/MerkleTree').MerkleTree
-const poseidonHasher = require('../../lib/Poseidon').default;
+
+const PoseidonHasher = require('../../packages/utils/src').PoseidonHasher;
+const MerkleTree = require('../../packages/fixed-bridge/src').MerkleTree;
 
 const { ETH_AMOUNT, MERKLE_TREE_HEIGHT } = process.env
 
@@ -48,7 +49,7 @@ contract('MerkleTreePoseidon', (accounts) => {
     });
 
     it('tests insert', async () => {
-      hasher = new poseidonHasher()
+      hasher = new PoseidonHasher()
       tree = new MerkleTree(prefix, 2)
       await tree.insert(helpers.toFixedHex('5'))
       let { merkleRoot, pathElements } = await tree.path(0);
@@ -130,7 +131,7 @@ contract('MerkleTreePoseidon', (accounts) => {
 
   describe('#hash', () => {
     it('should hash', async () => {
-      hasher = new poseidonHasher()
+      hasher = new PoseidonHasher()
       let contractResult = await hasherInstance.poseidon([10, 10]);
       let result = hasher.hash(null, 10, 10);
       assert.strictEqual(result.toString(), contractResult.toString());
@@ -177,7 +178,7 @@ contract('MerkleTreePoseidon', (accounts) => {
         merkleTreeWithHistory.insert(helpers.toFixedHex(1)),
         'Merkle tree is full. No more leaves can be added'
       );
-    })
+    }).timeout(30000);
 
     it.skip('hasher gas', async () => {
       const levels = 6

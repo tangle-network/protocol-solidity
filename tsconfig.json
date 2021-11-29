@@ -1,12 +1,33 @@
 {
+  "extends": "./tsconfig.build.json",
   "compilerOptions": {
-    "target": "es2018",
-    "module": "commonjs",
-    "strict": true,
-    "esModuleInterop": true,
-    "outDir": "src",
-    "sourceMap": true,
-  },
-  "include": ["./typechain", "./lib", "./test"],
-  "files": ["./hardhat.config.ts"]
+    "baseUrl": ".",
+    "paths": {
+      "@webb-tools/contracts": [
+        "packages/contracts/src"
+      ],
+      "@webb-tools/contracts/*": [
+        "packages/contracts/src/*"
+      ],
+      "@webb-tools/fixed-bridge": [
+        "packages/fixed-bridge/src"
+      ],
+      "@webb-tools/fixed-bridge/*": [
+        "packages/fixed-bridge/src/*"
+      ],
+      "@webb-tools/tokens": [
+        "packages/tokens/src"
+      ],
+      "@webb-tools/tokens/*": [
+        "packages/tokens/src/*"
+      ],
+      "@webb-tools/utils": [
+        "packages/utils/src"
+      ],
+      "@webb-tools/utils/*": [
+        "packages/utils/src/*"
+      ],
+    },
+    "noEmit": true
+  }
 }

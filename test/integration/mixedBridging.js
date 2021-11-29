@@ -24,7 +24,7 @@ const snarkjs = require('snarkjs');
 const BN = require('bn.js');
 const F = require('circomlibjs').babyjub.F;
 const Scalar = require('ffjavascript').Scalar;
-const MerkleTree = require('../../lib/fixed-bridge/MerkleTree').MerkleTree;
+const MerkleTree = require('../../packages/fixed-bridge/src').MerkleTree;
 
 contract('E2E LinkableAnchors - Mixed cross chain withdrawals', async accounts => {
   const relayerThreshold = 1;
@@ -276,7 +276,7 @@ contract('E2E LinkableAnchors - Mixed cross chain withdrawals', async accounts =
       _relayer: args[4],
       _fee: args[5],
       _refund: args[6],
-    }, { from: input.relayer, gasPrice: '0' }));
+    }, { from: input.relayer }));
     
     let balanceDestAnchorAfter = await DestinationERC20MintableInstance.balanceOf(DestChainAnchorInstance.address);
     let balanceOperatorAfter = await DestinationERC20MintableInstance.balanceOf(input.relayer);

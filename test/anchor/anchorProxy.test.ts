@@ -21,14 +21,8 @@ import {
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
-import Anchor from '../../lib/fixed-bridge/Anchor';
-import AnchorProxy from '../../lib/fixed-bridge/AnchorProxy';
-import Verifier from '../../lib/fixed-bridge/Verifier';
-import { ZkComponents } from '../../lib/fixed-bridge/types';
-import { fetchComponentsFromFilePaths } from '../../lib/utils';
-import { MerkleTree } from '../../lib/fixed-bridge/MerkleTree';
-
-const helpers = require('../../lib/utils');
+import { Anchor, AnchorProxy, MerkleTree, Verifier } from '@webb-tools/fixed-bridge'
+import { fetchComponentsFromFilePaths, ZkComponents, toFixedHex } from '@webb-tools/utils';
 
 const { NATIVE_AMOUNT } = process.env
 const snarkjs = require('snarkjs')
@@ -153,11 +147,11 @@ describe('AnchorProxy', () => {
     it('should emit event, balances should be correct', async () => {
         let { deposit, index } = await anchorProxy.deposit(anchor1.contract.address, chainID);
 
-        const filter = anchorProxy.contract.filters.AnchorProxyDeposit(null, helpers.toFixedHex(deposit.commitment), null);
+        const filter = anchorProxy.contract.filters.AnchorProxyDeposit(null, toFixedHex(deposit.commitment), null);
         const events = await anchorProxy.contract.queryFilter(filter, anchorProxy.contract.deployTransaction.blockNumber);
 
         assert.strictEqual(events[0].event, 'AnchorProxyDeposit');
-        assert.strictEqual(events[0].args[1], helpers.toFixedHex(deposit.commitment));
+        assert.strictEqual(events[0].args[1], toFixedHex(deposit.commitment));
         assert.strictEqual(events[0].args[0], anchor1.contract.address);
 
         const anchor1Balance = await token.balanceOf(anchor1.contract.address);
@@ -170,7 +164,7 @@ describe('AnchorProxy', () => {
     });
 
     it('should throw if there is a such commitment', async () => {
-      const commitment = helpers.toFixedHex(42)
+      const commitment = toFixedHex(42)
 
       await TruffleAssert.passes(anchorProxy.contract.deposit(anchor1.contract.address, commitment, '0x000000'));
       await TruffleAssert.reverts(
@@ -195,22 +189,22 @@ describe('AnchorProxy', () => {
       assert.strictEqual(balanceAnchorAfterDeposit.toString(), toBN(value).toString());
 
       const balanceRelayerBefore = await token.balanceOf(relayer.address)
-      const balanceReceiverBefore = await token.balanceOf(helpers.toFixedHex(recipient, 20))
+      const balanceReceiverBefore = await token.balanceOf(toFixedHex(recipient, 20))
 
-      let isSpent = await anchor1.contract.isSpent(helpers.toFixedHex(deposit.nullifierHash))
+      let isSpent = await anchor1.contract.isSpent(toFixedHex(deposit.nullifierHash))
       assert.strictEqual(isSpent, false)
 
       let receipt = await anchorProxy.withdraw(anchor1.contract.address, deposit, index, recipient, relayer.address, fee, bigInt(0));
 
       const balanceAnchorAfter = await token.balanceOf(anchor1.contract.address)
       const balanceRelayerAfter = await token.balanceOf(relayer.address)
-      const balanceReceiverAfter = await token.balanceOf(helpers.toFixedHex(recipient, 20))
+      const balanceReceiverAfter = await token.balanceOf(toFixedHex(recipient, 20))
       const feeBN = toBN(fee.toString())
       assert.strictEqual(balanceAnchorAfter.toString(), toBN(balanceAnchorAfterDeposit).sub(toBN(value)).toString())
       assert.strictEqual(balanceReceiverAfter.toString(), toBN(balanceReceiverBefore).add(toBN(value)).sub(feeBN).toString())
       assert.strictEqual(balanceRelayerAfter.toString(), toBN(balanceRelayerBefore).add(feeBN).toString())
 
-      isSpent = await anchor1.contract.isSpent(helpers.toFixedHex(deposit.nullifierHash))
+      isSpent = await anchor1.contract.isSpent(toFixedHex(deposit.nullifierHash))
       assert(isSpent);
     });  
   })

@@ -1,6 +1,6 @@
 require('dotenv').config();
 import { ethers } from 'ethers';
-import Bridge, { BridgeInput, DeployerConfig } from '../../lib/darkwebb/Bridge';
+import { Bridge, BridgeInput, DeployerConfig } from '../../packages/fixed-bridge';
 
 export async function run() {
 
