@@ -11,7 +11,7 @@ const ganache = require('ganache-cli');
 // Convenience wrapper classes for contract classes
 import VBridge, { VBridgeInput } from '../../packages/vbridge/VBridge';
 import VAnchor from '../../packages/vbridge/VAnchor';
-import { MintableToken, GovernedTokenWrapper } from '@nepoche/tokens';
+import { MintableToken, GovernedTokenWrapper } from '@webb-tools/tokens';
 import { BigNumber } from 'ethers';
 import { Utxo } from '../../packages/vbridge/utxo';
 

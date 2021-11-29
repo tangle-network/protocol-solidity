@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { AnchorHandler as AnchorHandlerContract, AnchorHandler__factory } from '@nepoche/contracts';
+import { AnchorHandler as AnchorHandlerContract, AnchorHandler__factory } from '@webb-tools/contracts';
 
 export class AnchorHandler {
   contract: AnchorHandlerContract;

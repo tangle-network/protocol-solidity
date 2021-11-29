@@ -342,15 +342,6 @@
     "@ethersproject/properties" "^5.5.0"
     "@ethersproject/strings" "^5.5.0"
 
-"@nepoche/contracts@1.1.2":
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/@nepoche/contracts/-/contracts-1.1.2.tgz#bbd1dc1f392fb07762a5238b2023f9f3d7d8d7f8"
-  integrity sha512-KHOQv7aNIrBcCy7hqRdg2EgN+rU8a8WeTvIQ8Fk7KkmOqGRxJSevfM4bKGIVQQ8vzBH8CyoIVDbM1uAfmGhAig==
-  dependencies:
-    "@typechain/ethers-v5" "^7.0.1"
-    "@typechain/hardhat" "^2.3.0"
-    ethers "5.5.1"
-
 "@typechain/ethers-v5@^7.0.1":
   version "7.2.0"
   resolved "https://registry.yarnpkg.com/@typechain/ethers-v5/-/ethers-v5-7.2.0.tgz#d559cffe0efe6bdbc20e644b817f6fa8add5e8f8"

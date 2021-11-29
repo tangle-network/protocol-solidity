@@ -1,9 +1,9 @@
 import { ethers, BigNumber, BigNumberish  } from "ethers";
 import VBridgeSide from './VBridgeSide';
 import VAnchor from './VAnchor';
-import { AnchorHandler } from "@nepoche/fixed-bridge";
-import { MintableToken, GovernedTokenWrapper } from "@nepoche/tokens";
-import { PoseidonT3__factory } from "@nepoche/contracts";
+import { AnchorHandler } from "@webb-tools/fixed-bridge";
+import { MintableToken, GovernedTokenWrapper } from "@webb-tools/tokens";
+import { PoseidonT3__factory } from "@webb-tools/contracts";
 import Verifier from "./Verifier";
 import { Utxo } from "./utxo";
 

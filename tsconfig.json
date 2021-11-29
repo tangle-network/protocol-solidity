@@ -3,28 +3,28 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@nepoche/contracts": [
+      "@webb-tools/contracts": [
         "packages/contracts/src"
       ],
-      "@nepoche/contracts/*": [
+      "@webb-tools/contracts/*": [
         "packages/contracts/src/*"
       ],
-      "@nepoche/fixed-bridge": [
+      "@webb-tools/fixed-bridge": [
         "packages/fixed-bridge/src"
       ],
-      "@nepoche/fixed-bridge/*": [
+      "@webb-tools/fixed-bridge/*": [
         "packages/fixed-bridge/src/*"
       ],
-      "@nepoche/tokens": [
+      "@webb-tools/tokens": [
         "packages/tokens/src"
       ],
-      "@nepoche/tokens/*": [
+      "@webb-tools/tokens/*": [
         "packages/tokens/src/*"
       ],
-      "@nepoche/utils": [
+      "@webb-tools/utils": [
         "packages/utils/src"
       ],
-      "@nepoche/utils/*": [
+      "@webb-tools/utils/*": [
         "packages/utils/src/*"
       ],
     },

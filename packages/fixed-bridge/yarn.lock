@@ -439,33 +439,6 @@
     fastfile "0.0.19"
     ffjavascript "^0.2.30"
 
-"@nepoche/contracts@1.1.2":
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/@nepoche/contracts/-/contracts-1.1.2.tgz#bbd1dc1f392fb07762a5238b2023f9f3d7d8d7f8"
-  integrity sha512-KHOQv7aNIrBcCy7hqRdg2EgN+rU8a8WeTvIQ8Fk7KkmOqGRxJSevfM4bKGIVQQ8vzBH8CyoIVDbM1uAfmGhAig==
-  dependencies:
-    "@typechain/ethers-v5" "^7.0.1"
-    "@typechain/hardhat" "^2.3.0"
-    ethers "5.5.1"
-
-"@nepoche/tokens@1.1.2":
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/@nepoche/tokens/-/tokens-1.1.2.tgz#b1f0372a36d5ed85ccf17f816338fb18384daff2"
-  integrity sha512-Mi/2RAqklmyY2eDXVZ5rmaFJfzL7uUEi9hf5hdLek44rNqTaUj/ycCwKATHk/JIN24OcO/8X9mmgpWjAcQvc4g==
-  dependencies:
-    "@nepoche/contracts" "1.1.2"
-    ethers "5.5.1"
-
-"@nepoche/utils@1.1.2":
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/@nepoche/utils/-/utils-1.1.2.tgz#449d5c40ea507e157d0249ed8eec8222560a3291"
-  integrity sha512-VH8X8fxkG+bP4svw1XVpfuapOJnsREfK+FJc/wnzj6LzRJdytO9pUiPluR/R823NRDAgdXUy+vJtz/krX+CK6g==
-  dependencies:
-    circomlibjs "^0.0.8"
-    ethers "5.5.1"
-    ffjavascript "^0.2.43"
-    maci-crypto "^0.9.1"
-
 "@nomiclabs/hardhat-ethers@2.0.2":
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/@nomiclabs/hardhat-ethers/-/hardhat-ethers-2.0.2.tgz#c472abcba0c5185aaa4ad4070146e95213c68511"

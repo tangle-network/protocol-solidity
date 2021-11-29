@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { GovernedTokenWrapper as GovernedTokenWrapperContract, GovernedTokenWrapper__factory } from '@nepoche/contracts';
+import { GovernedTokenWrapper as GovernedTokenWrapperContract, GovernedTokenWrapper__factory } from '@webb-tools/contracts';
 
 class GovernedTokenWrapper {
   contract: GovernedTokenWrapperContract;

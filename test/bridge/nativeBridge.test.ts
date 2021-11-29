@@ -10,9 +10,9 @@ const path = require('path');
 const ganache = require('ganache-cli');
 
 // Convenience wrapper classes for contract classes
-import { Bridge, BridgeInput, Anchor} from '@nepoche/fixed-bridge'
-import { fetchComponentsFromFilePaths, ZkComponents } from '@nepoche/utils';
-import { GovernedTokenWrapper } from '@nepoche/tokens';
+import { Bridge, BridgeInput, Anchor} from '@webb-tools/fixed-bridge'
+import { fetchComponentsFromFilePaths, ZkComponents } from '@webb-tools/utils';
+import { GovernedTokenWrapper } from '@webb-tools/tokens';
 
 function startGanacheServer(port: number, networkId: number, mnemonic: string) {
   const ganacheServer = ganache.server({

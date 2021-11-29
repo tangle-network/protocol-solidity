@@ -12,7 +12,7 @@ import {
   GovernedTokenWrapper as WrappedToken,
   GovernedTokenWrapper__factory as WrappedTokenFactory,
   PoseidonT3__factory
-} from '@nepoche/contracts';
+} from '@webb-tools/contracts';
 
 // These contracts are not included in the package, so can use generated typechain
 import {
@@ -22,7 +22,7 @@ import {
 
 // Convenience wrapper classes for contract classes
 import VAnchor from '../../packages/vbridge/VAnchor';
-import { toFixedHex } from '@nepoche/utils';
+import { toFixedHex } from '@webb-tools/utils';
 import Verifier from '../../packages/vbridge/Verifier';
 import { Utxo } from '../../packages/vbridge/utxo';
 import { MerkleTree } from '../../packages/vbridge/MerkleTree';

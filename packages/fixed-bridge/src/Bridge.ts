@@ -2,11 +2,11 @@ import { ethers } from "ethers";
 import { BridgeSide } from './BridgeSide';
 import { Anchor } from './Anchor';
 import { AnchorHandler } from "./AnchorHandler";
-import { MintableToken, GovernedTokenWrapper } from "@nepoche/tokens";
+import { MintableToken, GovernedTokenWrapper } from "@webb-tools/tokens";
 import { AnchorDeposit } from './types';
 import { Verifier } from "./Verifier";
-import { ZkComponents } from "@nepoche/utils";
-import { PoseidonT3__factory } from "@nepoche/contracts";
+import { ZkComponents } from "@webb-tools/utils";
+import { PoseidonT3__factory } from "@webb-tools/contracts";
 
 // Deployer config matches the chainId to the signer for that chain
 export type DeployerConfig = Record<number, ethers.Signer>;

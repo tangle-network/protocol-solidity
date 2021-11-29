@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import { Bridge } from '../../typechain/Bridge';
 import VAnchor from './VAnchor';
 import { Bridge__factory } from '../../typechain/factories/Bridge__factory';
-import { AnchorHandler } from "@nepoche/fixed-bridge";
+import { AnchorHandler } from "@webb-tools/fixed-bridge";
 
 type Proposal = {
   data: string,

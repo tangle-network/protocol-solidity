@@ -1,8 +1,8 @@
 import { BigNumberish, ethers } from "ethers";
-import { Anchor as AnchorContract, Anchor__factory } from '@nepoche/contracts'
-import { RefreshEvent, WithdrawalEvent } from '@nepoche/contracts/src/AnchorBase'
+import { Anchor as AnchorContract, Anchor__factory } from '@webb-tools/contracts'
+import { RefreshEvent, WithdrawalEvent } from '@webb-tools/contracts/src/AnchorBase'
 import { AnchorDeposit, AnchorDepositInfo, IPublicInputs } from './types';
-import { toFixedHex, toHex, rbigint, p256, PoseidonHasher, ZkComponents } from '@nepoche/utils';
+import { toFixedHex, toHex, rbigint, p256, PoseidonHasher, ZkComponents } from '@webb-tools/utils';
 import { MerkleTree } from './MerkleTree';
 
 const snarkjs = require('snarkjs');

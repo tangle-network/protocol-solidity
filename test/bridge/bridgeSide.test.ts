@@ -7,9 +7,9 @@ const path = require('path');
 import { ethers } from 'hardhat';
 
 // Convenience wrapper classes for contract classes
-import { Anchor, BridgeSide, Verifier } from '@nepoche/fixed-bridge';
-import { MintableToken } from '@nepoche/tokens';
-import { fetchComponentsFromFilePaths, ZkComponents } from '@nepoche/utils';
+import { Anchor, BridgeSide, Verifier } from '@webb-tools/fixed-bridge';
+import { MintableToken } from '@webb-tools/tokens';
+import { fetchComponentsFromFilePaths, ZkComponents } from '@webb-tools/utils';
 import { PoseidonT3__factory } from '../../typechain';
 
 describe('BridgeSideConstruction', () => {

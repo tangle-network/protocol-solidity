@@ -1,4 +1,4 @@
-import { PoseidonHasher, Storage } from '@nepoche/utils';
+import { PoseidonHasher, Storage } from '@webb-tools/utils';
 
 export interface Hasher {
   hash(level: any, left: any, right: any): any;

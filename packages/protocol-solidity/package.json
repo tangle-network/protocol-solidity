@@ -9,10 +9,10 @@
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@nepoche/contracts": "^0.0.1",
-    "@nepoche/fixed-bridge": "^0.0.1",
-    "@nepoche/tokens": "^0.0.1",
-    "@nepoche/utils": "^0.0.1"
+    "@webb-tools/contracts": "^0.0.1",
+    "@webb-tools/fixed-bridge": "^0.0.1",
+    "@webb-tools/tokens": "^0.0.1",
+    "@webb-tools/utils": "^0.0.1"
   },
   "publishConfig": {
     "access": "public"

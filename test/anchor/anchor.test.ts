@@ -21,8 +21,8 @@ import {
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
-import { Anchor, MerkleTree, Verifier } from '@nepoche/fixed-bridge';
-import { fetchComponentsFromFilePaths, ZkComponents, toFixedHex } from '@nepoche/utils';
+import { Anchor, MerkleTree, Verifier } from '@webb-tools/fixed-bridge';
+import { fetchComponentsFromFilePaths, ZkComponents, toFixedHex } from '@webb-tools/utils';
 
 const { NATIVE_AMOUNT } = process.env
 const snarkjs = require('snarkjs')

@@ -1,5 +1,5 @@
 import { BigNumber, BigNumberish, ethers } from "ethers";
-import { VAnchor as VAnchorContract, VAnchor__factory, VAnchorEncodeInputs__factory } from '@nepoche/contracts';
+import { VAnchor as VAnchorContract, VAnchor__factory, VAnchorEncodeInputs__factory } from '@webb-tools/contracts';
 import { p256, toHex } from "../utils";
 import { MerkleTree } from './MerkleTree';
 import { RootInfo } from ".";

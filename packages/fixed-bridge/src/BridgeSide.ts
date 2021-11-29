@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { Bridge, Bridge__factory } from '@nepoche/contracts';
+import { Bridge, Bridge__factory } from '@webb-tools/contracts';
 import { Anchor } from './Anchor';
 import { AnchorHandler } from "./AnchorHandler";
 

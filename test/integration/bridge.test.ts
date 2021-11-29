@@ -13,9 +13,9 @@ const path = require('path');
 const ganache = require('ganache-cli');
 
 // Convenience wrapper classes for contract classes
-import { Bridge, BridgeInput, Anchor } from '@nepoche/fixed-bridge';
-import { MintableToken } from '@nepoche/tokens';
-import { fetchComponentsFromFilePaths, ZkComponents } from '@nepoche/utils';
+import { Bridge, BridgeInput, Anchor } from '@webb-tools/fixed-bridge';
+import { MintableToken } from '@webb-tools/tokens';
+import { fetchComponentsFromFilePaths, ZkComponents } from '@webb-tools/utils';
 import { BigNumber } from '@ethersproject/bignumber';
 import { Signer } from 'ethers';
  

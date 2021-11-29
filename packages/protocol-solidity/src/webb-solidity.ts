@@ -1,7 +1,7 @@
-import * as contracts from '@nepoche/contracts';
-import * as fixedBridge from '@nepoche/fixed-bridge';
-import * as tokens from '@nepoche/tokens';
-import * as utils from '@nepoche/utils';
+import * as contracts from '@webb-tools/contracts';
+import * as fixedBridge from '@webb-tools/fixed-bridge';
+import * as tokens from '@webb-tools/tokens';
+import * as utils from '@webb-tools/utils';
 
 export {
   contracts,
