@@ -1,6 +1,6 @@
 import { BigNumber, BigNumberish, ethers } from "ethers";
 import { VAnchor as VAnchorContract, VAnchor__factory, VAnchorEncodeInputs__factory } from '@webb-tools/contracts';
-import { p256, toHex } from "../utils";
+import { p256, toHex } from '@webb-tools/utils';
 import { MerkleTree } from './MerkleTree';
 import { RootInfo } from ".";
 import { FIELD_SIZE, getExtDataHash, toFixedHex } from "./utils";
@@ -85,7 +85,7 @@ function checkNativeAddress(tokenAddress: string): boolean {
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods 
-class VAnchor {
+export class VAnchor {
   signer: ethers.Signer;
   contract: VAnchorContract;
   tree: MerkleTree;

@@ -1,14 +1,17 @@
 import { ethers } from "ethers";
-import { VAnchorVerifier__factory } from '../../typechain/factories/VAnchorVerifier__factory';
-import { Verifier22__factory } from '../../typechain/factories/Verifier22__factory';
-import { Verifier82__factory } from '../../typechain/factories/Verifier82__factory';
-import { Verifier216__factory } from '../../typechain/factories/Verifier216__factory';
-import { Verifier816__factory } from '../../typechain/factories/Verifier816__factory';
-import { VAnchorVerifier as VerifierContract} from '../../typechain/VAnchorVerifier';
+
+import {
+  VAnchorVerifier__factory,
+  Verifier22__factory,
+  Verifier82__factory,
+  Verifier216__factory,
+  Verifier816__factory,
+  VAnchorVerifier as VerifierContract
+} from '@webb-tools/contracts'
 
 // This convenience wrapper class is used in tests -
 // It represents a deployed contract throughout its life (e.g. maintains all verifiers)
-class Verifier {
+export class Verifier {
   signer: ethers.Signer;
   contract: VerifierContract;
 

@@ -9,11 +9,11 @@ import { ethers } from 'hardhat';
 const ganache = require('ganache-cli');
 
 // Convenience wrapper classes for contract classes
-import VBridge, { VBridgeInput } from '../../packages/vbridge/VBridge';
-import VAnchor from '../../packages/vbridge/VAnchor';
+import { VBridge, VBridgeInput } from '@webb-tools/vbridge';
+import { VAnchor } from '@webb-tools/vbridge';
 import { MintableToken, GovernedTokenWrapper } from '@webb-tools/tokens';
 import { BigNumber } from 'ethers';
-import { Utxo } from '../../packages/vbridge/utxo';
+import { Utxo } from '@webb-tools/vbridge';
 
 function startGanacheServer(port: number, networkId: number, mnemonic: string) {
   const ganacheServer = ganache.server({

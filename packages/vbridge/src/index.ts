@@ -5,7 +5,7 @@ const { BigNumber } = ethers
 import { toFixedHex, poseidonHash2, getExtDataHash, FIELD_SIZE, shuffle } from './utils';
 const Utxo = require('./utxo')
 
-const { prove } = require('./prover')
+//const { prove } = require('./prover')
 const MERKLE_TREE_HEIGHT = 5
 
 async function buildMerkleTree({ tornadoPool }) {
@@ -15,6 +15,20 @@ async function buildMerkleTree({ tornadoPool }) {
   const leaves = events.sort((a, b) => a.args.index - b.args.index).map((e) => toFixedHex(e.args.commitment))
   return new MerkleTree(MERKLE_TREE_HEIGHT, leaves, { hashFunction: poseidonHash2 })
 }
+
+/**
+ * 
+ *This is a bit messy but have to put exports here
+ */
+
+export { VAnchor } from './VAnchor';
+export { VBridge, BridgeConfig, VBridgeInput, DeployerConfig, ExistingAssetInput} from './VBridge';
+export { VBridgeSide } from './VBridgeSide';
+export { MerkleTree } from './MerkleTree';
+export { Verifier } from './Verifier';
+export { Utxo } from './Utxo';
+export {poseidonHash2, poseidonHash} from './utils';
+ //END Exports
 
 export interface RootInfo {
   merkleRoot: BigNumberish;
@@ -75,8 +89,8 @@ async function getProof({ roots, chainId, inputs, outputs, tree, extAmount, fee,
     outPubkey: outputs.map((x) => x.keypair.pubkey),
   }
 
-  const proof = await prove(input, `./artifacts/circuits/transaction${inputs.length}`)
-
+  //const proof = await prove(input, `./artifacts/circuits/transaction${inputs.length}`)
+  const proof = 0;
   // public inputs to the contract
   const args = {
     proof,

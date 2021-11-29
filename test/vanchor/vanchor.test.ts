@@ -21,15 +21,18 @@ import {
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
-import VAnchor from '../../packages/vbridge/VAnchor';
 import { toFixedHex } from '@webb-tools/utils';
-import Verifier from '../../packages/vbridge/Verifier';
-import { Utxo } from '../../packages/vbridge/utxo';
-import { MerkleTree } from '../../packages/vbridge/MerkleTree';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { poseidonHash, poseidonHash2 } from '../../packages/vbridge/utils';
 
+import {
+  VAnchor,
+  Verifier,
+  Utxo,
+  MerkleTree,
+  poseidonHash,
+  poseidonHash2
+} from "@webb-tools/vbridge"
 
 const { NATIVE_AMOUNT } = process.env
 const BN = require('bn.js');
