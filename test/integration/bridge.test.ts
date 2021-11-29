@@ -38,7 +38,7 @@ function startGanacheServer(port: number, networkId: number, mnemonic: string) {
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-describe('multichain tests', () => {
+describe('multichain tests for erc20 bridges', () => {
   // setup ganache networks
   let ganacheServer2: any;
   let ganacheServer3: any;

@@ -34,7 +34,7 @@ function startGanacheServer(port: number, networkId: number, mnemonic: string) {
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-describe('multichain tests', () => {
+describe('multichain tests for vbridge', () => {
 
   // setup ganache networks
   let ganacheServer2: any;
