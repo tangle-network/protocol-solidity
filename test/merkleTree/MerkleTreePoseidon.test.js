@@ -178,7 +178,7 @@ contract('MerkleTreePoseidon', (accounts) => {
         merkleTreeWithHistory.insert(helpers.toFixedHex(1)),
         'Merkle tree is full. No more leaves can be added'
       );
-    })
+    }).timeout(30000);
 
     it.skip('hasher gas', async () => {
       const levels = 6

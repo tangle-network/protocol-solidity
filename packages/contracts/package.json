@@ -1,8 +1,8 @@
 {
+  "name": "@webb-tools/contracts",
   "main": "./lib/index.js",
   "license": "GPL-3.0-or-later",
-  "author": "Nepoche",
-  "name": "@nepoche/contracts",
+  "author": "Webb Developers <drew@webb.tools>",
   "scripts": {
     "build": "yarn run clean && yarn run compile",
     "clean": "rimraf -rf ./lib",
@@ -25,5 +25,5 @@
     "type": "git",
     "url": "git://github.com/nepoche/protocol-solidity.git"
   },
-  "version": "1.2.1"
+  "version": "0.0.1"
 }

@@ -1,15 +1,15 @@
 {
+  "name": "@webb-tools/tokens",
   "main": "./lib/index.js",
   "license": "GPL-3.0-or-later",
-  "author": "Nepoche",
-  "name": "@nepoche/tokens",
+  "author": "Webb Developers <drew@webb.tools>",
   "scripts": {
     "build": "yarn run clean && yarn run compile",
     "clean": "rimraf -rf ./lib",
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@nepoche/contracts": "^1.2.1",
+    "@webb-tools/contracts": "^0.0.1",
     "ethers": "5.5.1"
   },
   "publishConfig": {
@@ -20,5 +20,5 @@
     "type": "git",
     "url": "git://github.com/nepoche/protocol-solidity.git"
   },
-  "version": "1.2.1"
+  "version": "0.0.1"
 }
