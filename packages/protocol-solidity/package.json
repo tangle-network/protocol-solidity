@@ -18,9 +18,9 @@
     "access": "public"
   },
   "repository": {
-    "directory": "packages/webb-solidity",
+    "directory": "packages/protocol-solidity",
     "type": "git",
     "url": "git://github.com/webb-tools/protocol-solidity.git"
   },
-  "version": "0.0.1"
+  "version": "0.0.2"
 }
