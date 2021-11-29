@@ -20,7 +20,7 @@
   "repository": {
     "directory": "packages/webb-solidity",
     "type": "git",
-    "url": "git://github.com/nepoche/protocol-solidity.git"
+    "url": "git://github.com/webb-tools/protocol-solidity.git"
   },
   "version": "0.0.1"
 }
