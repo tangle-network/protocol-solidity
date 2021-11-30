@@ -1,8 +1,7 @@
 import { ethers } from "ethers";
-import { Bridge } from '../../typechain/Bridge';
+import { Bridge, Bridge__factory  } from '@webb-tools/contracts';
 import VAnchor from './VAnchor';
-import { Bridge__factory } from '../../typechain/factories/Bridge__factory';
-import { AnchorHandler } from "@webb-tools/fixed-bridge";
+import { AnchorHandler } from "./AnchorHandler";
 
 type Proposal = {
   data: string,
@@ -12,7 +11,7 @@ type Proposal = {
   leafIndex: number,
 }
 
-class VBridgeSide {
+export class VBridgeSide {
   contract: Bridge;
   admin: ethers.Signer;
   handler: AnchorHandler | null;

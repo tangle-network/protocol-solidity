@@ -1,7 +1,7 @@
 import { ethers, BigNumber, BigNumberish  } from "ethers";
 import VBridgeSide from './VBridgeSide';
 import VAnchor from './VAnchor';
-import { AnchorHandler } from "@webb-tools/fixed-bridge";
+import { AnchorHandler } from "./AnchorHandler";
 import { MintableToken, GovernedTokenWrapper } from "@webb-tools/tokens";
 import { PoseidonT3__factory } from "@webb-tools/contracts";
 import Verifier from "./Verifier";
@@ -78,7 +78,7 @@ function checkNativeAddress(tokenAddress: string): boolean {
 }
 
 // A bridge is 
-class VBridge {
+export class VBridge {
   private constructor(
     // Mapping of chainId => vBridgeSide
     public vBridgeSides: Map<number, VBridgeSide>,

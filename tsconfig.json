@@ -27,6 +27,12 @@
       "@webb-tools/utils/*": [
         "packages/utils/src/*"
       ],
+      "@webb-tools/vbridge": [
+        "packages/vbridge/src"
+      ],
+      "@webb-tools/vbridge/*": [
+        "packages/vbridge/src/*"
+      ],
     },
     "noEmit": true
   }
