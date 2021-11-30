@@ -21,15 +21,18 @@ import {
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
-import VAnchor from '../../packages/vbridge/VAnchor';
 import { toFixedHex } from '@webb-tools/utils';
-import Verifier from '../../packages/vbridge/Verifier';
-import { Utxo } from '../../packages/vbridge/utxo';
-import { MerkleTree } from '../../packages/vbridge/MerkleTree';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { poseidonHash, poseidonHash2 } from '../../packages/vbridge/utils';
 
+import {
+  VAnchor,
+  Verifier,
+  Utxo,
+  MerkleTree,
+  poseidonHash,
+  poseidonHash2
+} from "@webb-tools/vbridge"
 
 const { NATIVE_AMOUNT } = process.env
 const BN = require('bn.js');
@@ -62,13 +65,12 @@ describe('VAnchor for 2 max edges', () => {
     const signers = await ethers.getSigners();
     const wallet = signers[0];
     sender = wallet;
-
     tree = new MerkleTree(levels);
     // create poseidon hasher
     const hasherFactory = new PoseidonT3__factory(wallet);
     hasherInstance = await hasherFactory.deploy();
     await hasherInstance.deployed();
-
+      
     // create bridge verifier
     verifier = await Verifier.createVerifier(sender);
 
@@ -92,12 +94,12 @@ describe('VAnchor for 2 max edges', () => {
       1,
       sender,
     );
-   
+
     await anchor.contract.configureLimits(
       BigNumber.from(0),
       BigNumber.from(tokenDenomination).mul(1_000_000),
     )
-    
+
     await token.approve(anchor.contract.address, '10000000000000000000000');
 
     createInputWitnessPoseidon4 = async (data: any) => {
