@@ -1,6 +1,6 @@
 #!/bin/bash
 
-mkdir -p artifacts/circuits/{anchor,bridge,semaphore,vanchor_2,vanchor_16}
+mkdir -p artifacts/circuits/{anchor,bridge,keypair,semaphore,signature,vanchor_2,vanchor_16}
 
 compile () {
     local outdir="$1" circuit="$2" size="$3"
@@ -34,25 +34,25 @@ copy_to_fixtures () {
 # WEBB BRIDGES
 ###
 
-echo "Compiling Webb style Poseidon bridge 2 withdrawal circuit..."
-compile bridge poseidon_bridge_2 2
-copy_to_fixtures bridge poseidon_bridge_2 2 bridge
+# echo "Compiling Webb style Poseidon bridge 2 withdrawal circuit..."
+# compile bridge poseidon_bridge_2 2
+# copy_to_fixtures bridge poseidon_bridge_2 2 bridge
 
-echo "Compiling Webb style Poseidon bridge 3 withdrawal circuit..."
-compile bridge poseidon_bridge_3 3
-copy_to_fixtures bridge poseidon_bridge_3 3 bridge
+# echo "Compiling Webb style Poseidon bridge 3 withdrawal circuit..."
+# compile bridge poseidon_bridge_3 3
+# copy_to_fixtures bridge poseidon_bridge_3 3 bridge
 
-echo "Compiling Webb style Poseidon bridge 4 withdrawal circuit..."
-compile bridge poseidon_bridge_4 4
-copy_to_fixtures bridge poseidon_bridge_4 4 bridge
+# echo "Compiling Webb style Poseidon bridge 4 withdrawal circuit..."
+# compile bridge poseidon_bridge_4 4
+# copy_to_fixtures bridge poseidon_bridge_4 4 bridge
 
-echo "Compiling Webb style Poseidon bridge 5 withdrawal circuit..."
-compile bridge poseidon_bridge_5 5
-copy_to_fixtures bridge poseidon_bridge_5 5 bridge
+# echo "Compiling Webb style Poseidon bridge 5 withdrawal circuit..."
+# compile bridge poseidon_bridge_5 5
+# copy_to_fixtures bridge poseidon_bridge_5 5 bridge
 
-echo "Compiling Webb style Poseidon bridge 6 withdrawal circuit..."
-compile bridge poseidon_bridge_6 6
-copy_to_fixtures bridge poseidon_bridge_6 6 bridge
+# echo "Compiling Webb style Poseidon bridge 6 withdrawal circuit..."
+# compile bridge poseidon_bridge_6 6
+# copy_to_fixtures bridge poseidon_bridge_6 6 bridge
 
 # echo "Compiling Webb style Poseidon bridge 32 withdrawal circuit..."
 # compile bridge poseidon_bridge_32 32
@@ -84,3 +84,13 @@ copy_to_fixtures bridge poseidon_bridge_6 6 bridge
 # echo "Compiling Poseidon4 test gadget"
 # compile poseidon4 poseidon4_test 4
 # copy_to_fixtures poseidon4 poseidon4_test 4 none
+
+# Keypair and Signature Circuits
+
+# echo "Compiling Keypair Circuit"
+# compile keypair keypair_test 0
+# copy_to_fixtures keypair keypair_test 0 none
+
+# echo "Compiling Signature Circuit"
+# compile signature signature_test
+# copy_to_fixtures signature signature_test 0 none
