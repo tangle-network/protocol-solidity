@@ -4,6 +4,7 @@
 export type { ERC20 } from "./ERC20";
 export type { ERC20PresetMinterPauser } from "./ERC20PresetMinterPauser";
 export type { AnchorProxy } from "./AnchorProxy";
+export type { AnchorTrees } from "./AnchorTrees";
 export type { Anchor } from "./Anchor";
 export type { AnchorBase } from "./AnchorBase";
 export type { LinkableAnchor } from "./LinkableAnchor";
@@ -34,6 +35,7 @@ export type { VAnchorVerifier } from "./VAnchorVerifier";
 export { ERC20__factory } from "./factories/ERC20__factory";
 export { ERC20PresetMinterPauser__factory } from "./factories/ERC20PresetMinterPauser__factory";
 export { AnchorProxy__factory } from "./factories/AnchorProxy__factory";
+export { AnchorTrees__factory } from "./factories/AnchorTrees__factory";
 export { Anchor__factory } from "./factories/Anchor__factory";
 export { AnchorBase__factory } from "./factories/AnchorBase__factory";
 export { LinkableAnchor__factory } from "./factories/LinkableAnchor__factory";

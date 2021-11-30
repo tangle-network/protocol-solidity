@@ -26,7 +26,6 @@ export class AnchorProxy {
   contract: AnchorProxyContract;
   // An AnchorProxy can proxy for multiple anchors so we have a map from address to Anchor Class
   anchorProxyMap: Map<string, Anchor>; 
-
   
   constructor(
     contract: AnchorProxyContract,
@@ -72,7 +71,6 @@ export class AnchorProxy {
     if (encryptedNote) {
       const _encryptedNote: string = encryptedNote;
     } 
-
 
     const tx = await this.contract.deposit(
       anchorAddr,
