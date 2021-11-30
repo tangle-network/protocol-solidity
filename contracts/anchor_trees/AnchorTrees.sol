@@ -12,8 +12,11 @@ contract AnchorTrees is Initializable {
   address public immutable governance;
   //Roots Stuff
   mapping(uint256 => bytes32) public roots;
-  uint32 public constant ROOT_HISTORY_SIZE = 30;
-  uint32 public currentRootIndex = 0;
+  uint32 public constant ROOT_HISTORY_SIZE = 5;
+  uint32 public currentDepositRootIndex = 0;
+  uint32 public currentWithdrawalRootIndex = 0;
+  mapping(uint256 => bytes32) public depositRoots;
+  mapping(uint256 => bytes32) public withdrawalRoots;
   // bytes32 public depositRoot;
   // bytes32 public previousDepositRoot;
   // bytes32 public withdrawalRoot;
@@ -55,9 +58,11 @@ contract AnchorTrees is Initializable {
   Edge[] public edgeList;
 
   // map to store chainID => (rootIndex => [depositRoot, withdrawalRoot]) to track neighbor histories
-  mapping(uint256 => mapping(uint32 => bytes32[2])) public neighborRoots;
+  mapping(uint256 => mapping(uint32 => bytes32)) public neighborDepositRoots;
+  mapping(uint256 => mapping(uint32 => bytes32)) public neighborWithdrawalRoots;
   // map to store the current historical [depositRoot, withdrawalRoot] index for a chainID
-  mapping(uint256 => uint32[2]) public currentNeighborRootIndex;
+  mapping(uint256 => uint32) public currentNeighborDepositRootIndex;
+  mapping(uint256 => uint32) public currentNeighborWithdrawalRootIndex;
   //End Edge Information
 
   event DepositData(address instance, bytes32 indexed hash, uint256 block, uint256 index);
@@ -119,13 +124,13 @@ contract AnchorTrees is Initializable {
     anchorProxy = _anchorProxy;
     treeUpdateVerifier = _treeUpdateVerifier;
 
-    depositRoot = anchorTreesV1.depositRoot();
+    depositRoots[0] = anchorTreesV1.depositRoot();
     uint256 lastDepositLeaf = anchorTreesV1.lastProcessedDepositLeaf();
     require(lastDepositLeaf % CHUNK_SIZE == 0, "Incorrect AnchorTrees state");
     lastProcessedDepositLeaf = lastDepositLeaf;
     depositsLength = depositsV1Length;
 
-    withdrawalRoot = anchorTreesV1.withdrawalRoot();
+    withdrawalRoots[0] = anchorTreesV1.withdrawalRoot();
     uint256 lastWithdrawalLeaf = anchorTreesV1.lastProcessedWithdrawalLeaf();
     require(lastWithdrawalLeaf % CHUNK_SIZE == 0, "Incorrect AnchorTrees state");
     lastProcessedWithdrawalLeaf = lastWithdrawalLeaf;
