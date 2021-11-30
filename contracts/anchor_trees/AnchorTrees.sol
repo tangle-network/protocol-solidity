@@ -99,7 +99,7 @@ contract AnchorTrees is Initializable {
     IAnchorTreesV1 _anchorTreesV1,
     SearchParams memory _searchParams,
     uint8 _maxEdges
-  ) public {
+  ) {
     governance = _governance;
     anchorTreesV1 = _anchorTreesV1;
     maxEdges = _maxEdges;
