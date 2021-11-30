@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+import { Overrides } from "@webb-tools/utils";
 import { GovernedTokenWrapper as GovernedTokenWrapperContract, GovernedTokenWrapper__factory } from '@webb-tools/contracts';
 
 class GovernedTokenWrapper {
@@ -16,7 +17,8 @@ class GovernedTokenWrapper {
     governor: string,
     limit: string,
     isNativeAllowed: boolean,
-    deployer: ethers.Signer
+    deployer: ethers.Signer,
+    overrides?: Overrides,
   ) {
     const factory = new GovernedTokenWrapper__factory(deployer);
     const contract = await factory.deploy(
@@ -24,7 +26,8 @@ class GovernedTokenWrapper {
       symbol,
       governor,
       limit,
-      isNativeAllowed
+      isNativeAllowed,
+      overrides
     );
     await contract.deployed();
 
@@ -38,9 +41,9 @@ class GovernedTokenWrapper {
     return tokenWrapper;
   }
 
-  public grantMinterRole(address: string) {
+  public grantMinterRole(address: string, overrides?: Overrides) {
     const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
-    return this.contract.grantRole(MINTER_ROLE, address);
+    return this.contract.grantRole(MINTER_ROLE, address, overrides);
   }
 }
 

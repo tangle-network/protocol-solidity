@@ -1,4 +1,5 @@
 import { BigNumber, BigNumberish, ContractTransaction, ethers } from "ethers";
+import { Overrides } from "@webb-tools/utils";
 import { ERC20PresetMinterPauser, ERC20PresetMinterPauser__factory } from '@webb-tools/contracts';
 
 class MintableToken {
@@ -22,10 +23,11 @@ class MintableToken {
   public static async createToken(
     name: string,
     symbol: string,
-    creator: ethers.Signer
+    creator: ethers.Signer,
+    overrides?: Overrides,
   ) {
     const factory = new ERC20PresetMinterPauser__factory(creator);
-    const token = await factory.deploy(name, symbol);
+    const token = await factory.deploy(name, symbol, overrides);
     await token.deployed();
     return new MintableToken(token, name, symbol, creator);
   }
@@ -48,21 +50,19 @@ class MintableToken {
     return this.contract.balanceOf(address);
   }
 
-  public async approveSpending(spender: string): Promise<ContractTransaction> {
-    return this.contract.approve(spender, '10000000000000000000000000000000000', {
-      gasLimit: '0x5B8D80',
-    });
+  public async approveSpending(spender: string, overrides?: Overrides): Promise<ContractTransaction> {
+    return this.contract.approve(spender, '10000000000000000000000000000000000', overrides);
   }
 
-  public async mintTokens(address: string, amount: BigNumberish) {
-    const tx = await this.contract.mint(address, amount);
+  public async mintTokens(address: string, amount: BigNumberish, overrides?: Overrides) {
+    const tx = await this.contract.mint(address, amount, overrides);
     await tx.wait();
     return;
   }
 
-  public grantMinterRole(address: string) {
+  public grantMinterRole(address: string, overrides?: Overrides) {
     const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
-    return this.contract.grantRole(MINTER_ROLE, address);
+    return this.contract.grantRole(MINTER_ROLE, address, overrides);
   }
 }
 

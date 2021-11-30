@@ -70,7 +70,8 @@ export class BridgeSide {
     }
 
     const resourceId = await anchor.createResourceId();
-    await this.contract.adminSetResource(this.handler.contract.address, resourceId, anchor.contract.address, overrides);
+    const tx = await this.contract.adminSetResource(this.handler.contract.address, resourceId, anchor.contract.address, overrides);
+    await tx.wait();
     // await this.handler.setResource(resourceId, anchor.contract.address); covered in above call
     await anchor.setHandler(this.handler.contract.address, overrides);
     await anchor.setBridge(this.contract.address, overrides);

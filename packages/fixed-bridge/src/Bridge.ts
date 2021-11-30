@@ -5,11 +5,14 @@ import { AnchorHandler } from "./AnchorHandler";
 import { MintableToken, GovernedTokenWrapper } from "@webb-tools/tokens";
 import { AnchorDeposit } from './types';
 import { Verifier } from "./Verifier";
-import { ZkComponents } from "@webb-tools/utils";
+import { Overrides, ZkComponents } from "@webb-tools/utils";
 import { PoseidonT3__factory } from "@webb-tools/contracts";
 
 // Deployer config matches the chainId to the signer for that chain
-export type DeployerConfig = Record<number, ethers.Signer>;
+export type DeployerConfig = {
+  wallets: Record<number, ethers.Signer>;
+  gasLimits?: Record<number, ethers.BigNumberish>;
+};
 
 type AnchorIdentifier = {
   anchorSize: ethers.BigNumberish;
@@ -126,7 +129,7 @@ export class Bridge {
     let createdAnchors: Anchor[][] = [];
 
     for (let chainID of bridgeInput.chainIDs) {
-      const adminAddress = await deployers[chainID].getAddress();
+      const adminAddress = await deployers.wallets[chainID].getAddress();
 
       // Create the bridgeSide
       const bridgeInstance = await BridgeSide.createBridgeSide(
@@ -134,18 +137,19 @@ export class Bridge {
         1,
         0,
         100,
-        deployers[chainID],
+        deployers.wallets[chainID],
+        { gasLimit: deployers.gasLimits[chainID] }
       );
 
       bridgeSides.set(chainID, bridgeInstance);
       console.log(`bridgeSide address on ${chainID}: ${bridgeInstance.contract.address}`);
 
       // Create the Hasher and Verifier for the chain
-      const hasherFactory = new PoseidonT3__factory(deployers[chainID]);
-      let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
+      const hasherFactory = new PoseidonT3__factory(deployers.wallets[chainID]);
+      let hasherInstance = await hasherFactory.deploy({ gasLimit: deployers.gasLimits[chainID] });
       await hasherInstance.deployed();
 
-      const verifier = await Verifier.createVerifier(deployers[chainID]);
+      const verifier = await Verifier.createVerifier(deployers.wallets[chainID], { gasLimit: deployers.gasLimits[chainID] });
       let verifierInstance = verifier.contract;
 
       // Check the addresses of the asset. If it is zero, deploy a native token wrapper
@@ -160,10 +164,11 @@ export class Bridge {
       let tokenInstance: GovernedTokenWrapper = await GovernedTokenWrapper.createGovernedTokenWrapper(
         `webbETH-test-1`,
         `webbETH-test-1`,
-        await deployers[chainID].getAddress(),
+        await deployers.wallets[chainID].getAddress(),
         '10000000000000000000000000',
         allowedNative,
-        deployers[chainID],
+        deployers.wallets[chainID],
+        { gasLimit: deployers.gasLimits[chainID] }
       );
       
       console.log(`created GovernedTokenWrapper on ${chainID}: ${tokenInstance.contract.address}`);
@@ -172,7 +177,7 @@ export class Bridge {
       for (const tokenToBeWrapped of bridgeInput.anchorInputs.asset[chainID]!) {
         // if the address is not '0', then add it
         if (!checkNativeAddress(tokenToBeWrapped)) {
-          const tx = await tokenInstance.contract.add(tokenToBeWrapped);
+          const tx = await tokenInstance.contract.add(tokenToBeWrapped, { gasLimit: deployers.gasLimits[chainID] });
           const receipt = await tx.wait();
         }
       }
@@ -198,13 +203,15 @@ export class Bridge {
           adminAddress,
           bridgeInput.chainIDs.length-1,
           zkComponents,
-          deployers[chainID]
+          deployers.wallets[chainID],
+          { gasLimit: deployers.gasLimits[chainID] }
         );
 
         console.log(`createdAnchor: ${anchorInstance.contract.address}`);
 
         // grant minting rights to the anchor
-        await tokenInstance.grantMinterRole(anchorInstance.contract.address); 
+        const tx = await tokenInstance.grantMinterRole(anchorInstance.contract.address, { gasLimit: deployers.gasLimits[chainID] }); 
+        await tx.wait();
 
         chainGroupedAnchors.push(anchorInstance);
         anchors.set(
@@ -213,7 +220,7 @@ export class Bridge {
         );
       }
 
-      await Bridge.setPermissions(bridgeInstance, chainGroupedAnchors);
+      await Bridge.setPermissions(bridgeInstance, chainGroupedAnchors, { gasLimit: deployers.gasLimits[chainID] });
       createdAnchors.push(chainGroupedAnchors);
     }
 
@@ -237,7 +244,7 @@ export class Bridge {
   // The setPermissions method accepts initialized bridgeSide and anchors.
   // it creates the anchor handler and sets the appropriate permissions
   // for the bridgeSide/anchorHandler/anchor
-  public static async setPermissions(bridgeSide: BridgeSide, anchors: Anchor[]): Promise<void> {
+  public static async setPermissions(bridgeSide: BridgeSide, anchors: Anchor[], overrides?: Overrides): Promise<void> {
 
     let resourceIDs: string[] = [];
     let anchorAddresses: string[] = [];
@@ -246,18 +253,18 @@ export class Bridge {
       anchorAddresses.push(anchor.contract.address);
     }
 
-    const handler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, resourceIDs, anchorAddresses, bridgeSide.admin);
+    const handler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, resourceIDs, anchorAddresses, bridgeSide.admin, overrides);
     await bridgeSide.setAnchorHandler(handler);
     
     for (let anchor of anchors) {
-      await bridgeSide.connectAnchor(anchor);
+      await bridgeSide.connectAnchor(anchor, overrides);
     }
   }
 
   /** Update the state of BridgeSides and Anchors, when
   *** state changes for the @param linkedAnchor 
   **/
-  public async updateLinkedAnchors(linkedAnchor: Anchor) {
+  public async updateLinkedAnchors(linkedAnchor: Anchor, overrides?: Overrides) {
     // Find the bridge sides that are connected to this Anchor
     const linkedResourceID = await linkedAnchor.createResourceId();
     const anchorsToUpdate = this.linkedAnchors.get(linkedResourceID);
@@ -270,8 +277,8 @@ export class Bridge {
       // get the bridge side which corresponds to this anchor
       const chainId = await anchor.signer.getChainId();
       const bridgeSide = this.bridgeSides.get(chainId);
-      await bridgeSide!.voteProposal(linkedAnchor, anchor);
-      await bridgeSide!.executeProposal(linkedAnchor, anchor);
+      await bridgeSide!.voteProposal(linkedAnchor, anchor, overrides);
+      await bridgeSide!.executeProposal(linkedAnchor, anchor, overrides);
     }
   };
 
@@ -310,7 +317,7 @@ export class Bridge {
     };
   }
 
-  public async deposit(destinationChainId: number, anchorSize: ethers.BigNumberish, signer: ethers.Signer) {
+  public async deposit(destinationChainId: number, anchorSize: ethers.BigNumberish, signer: ethers.Signer, overrides?: Overrides) {
     const chainId = await signer.getChainId();
     const signerAddress = await signer.getAddress();
     const anchor = this.getAnchor(chainId, anchorSize);
@@ -342,12 +349,12 @@ export class Bridge {
     if (!(await anchor.setSigner(signer))) {
       throw new Error("Invalid signer for deposit, check the signer's chainID");
     }
-    const deposit = await anchor.deposit(destinationChainId);
+    const deposit = await anchor.deposit(destinationChainId, overrides);
     await this.updateLinkedAnchors(anchor);
     return deposit;
   }
 
-  public async wrapAndDeposit(destinationChainId: number, tokenAddress: string, anchorSize: ethers.BigNumberish, signer: ethers.Signer) {
+  public async wrapAndDeposit(destinationChainId: number, tokenAddress: string, anchorSize: ethers.BigNumberish, signer: ethers.Signer, overrides?: Overrides) {
     const chainId = await signer.getChainId();
     const signerAddress = await signer.getAddress();
     const anchor = this.getAnchor(chainId, anchorSize);
@@ -366,7 +373,7 @@ export class Bridge {
       if (!(await anchor.setSigner(signer))) {
         throw new Error("Invalid signer for deposit, check the signer's chainID");
       }
-      const deposit = await anchor.wrapAndDeposit(zeroAddress, destinationChainId);
+      const deposit = await anchor.wrapAndDeposit(zeroAddress, destinationChainId, overrides);
       await this.updateLinkedAnchors(anchor);
       return deposit;
     }
@@ -383,7 +390,7 @@ export class Bridge {
       let userOriginTokenAllowance = await originTokenInstance.getAllowance(signerAddress, anchor.contract.address);
       if (userOriginTokenAllowance.lt(anchorSize)) {
         const wrapperTokenAddress = await anchor.contract.token();
-        const tx = await originTokenInstance.approveSpending(wrapperTokenAddress);
+        const tx = await originTokenInstance.approveSpending(wrapperTokenAddress, overrides);
         await tx.wait();
       }
 
@@ -392,7 +399,7 @@ export class Bridge {
         throw new Error("Invalid signer for deposit, check the signer's chainID");
       }
 
-      const deposit = await anchor.wrapAndDeposit(originTokenInstance.contract.address, destinationChainId);
+      const deposit = await anchor.wrapAndDeposit(originTokenInstance.contract.address, destinationChainId, overrides);
       await this.updateLinkedAnchors(anchor);
       return deposit;
     }
@@ -403,7 +410,8 @@ export class Bridge {
     anchorSize: ethers.BigNumberish,
     recipient: string,
     relayer: string,
-    signer: ethers.Signer
+    signer: ethers.Signer,
+    overrides?: Overrides,
   ) {
     // Construct the proof from the origin anchor
     const anchorToProve = this.getAnchor(depositInfo.originChainId, anchorSize);
@@ -424,7 +432,7 @@ export class Bridge {
       throw new Error("Could not set signer");
     }
 
-    await anchorToWithdraw.bridgedWithdraw(depositInfo, merkleProof, recipient, relayer, '0', '0', '0');
+    await anchorToWithdraw.bridgedWithdraw(depositInfo, merkleProof, recipient, relayer, '0', '0', '0', overrides);
     return true;
   }
 
@@ -434,7 +442,8 @@ export class Bridge {
     anchorSize: ethers.BigNumberish,
     recipient: string,
     relayer: string,
-    signer: ethers.Signer
+    signer: ethers.Signer,
+    overrides?: Overrides,
   ) {
     // Construct the proof from the origin anchor
     const anchorToProve = this.getAnchor(depositInfo.originChainId, anchorSize);
@@ -455,7 +464,7 @@ export class Bridge {
       throw new Error("Could not set signer");
     }
 
-    await anchorToWithdraw.bridgedWithdrawAndUnwrap(depositInfo, merkleProof, recipient, relayer, '0', '0', '0', tokenAddress);
+    await anchorToWithdraw.bridgedWithdrawAndUnwrap(depositInfo, merkleProof, recipient, relayer, '0', '0', '0', tokenAddress, overrides);
     return true;
   }
 }
