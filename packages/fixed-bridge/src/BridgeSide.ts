@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { ethers, Overrides } from "ethers";
 import { Bridge, Bridge__factory } from '@webb-tools/contracts';
 import { Anchor } from './Anchor';
 import { AnchorHandler } from "./AnchorHandler";
@@ -32,11 +32,12 @@ export class BridgeSide {
     initialRelayerThreshold: ethers.BigNumberish,
     fee: ethers.BigNumberish,
     expiry: ethers.BigNumberish,
-    admin: ethers.Signer
+    admin: ethers.Signer,
+    overrides?: Overrides
   ): Promise<BridgeSide> {
     const bridgeFactory = new Bridge__factory(admin);
     const chainId = await admin.getChainId();
-    const deployedBridge = await bridgeFactory.deploy(chainId, initialRelayers, initialRelayerThreshold, fee, expiry);
+    const deployedBridge = await bridgeFactory.deploy(chainId, initialRelayers, initialRelayerThreshold, fee, expiry, overrides);
     await deployedBridge.deployed();
     const bridgeSide = new BridgeSide(deployedBridge, admin);
     return bridgeSide;
@@ -63,16 +64,16 @@ export class BridgeSide {
 
   // Connects the bridgeSide, anchor handler, and anchor.
   // Returns the resourceID used to connect them all
-  public async connectAnchor(anchor: Anchor): Promise<string> {
+  public async connectAnchor(anchor: Anchor, overrides?: Overrides): Promise<string> {
     if (!this.handler) {
       throw new Error("Cannot connect an anchor without a handler");
     }
 
     const resourceId = await anchor.createResourceId();
-    await this.contract.adminSetResource(this.handler.contract.address, resourceId, anchor.contract.address);
+    await this.contract.adminSetResource(this.handler.contract.address, resourceId, anchor.contract.address, overrides);
     // await this.handler.setResource(resourceId, anchor.contract.address); covered in above call
-    await anchor.setHandler(this.handler.contract.address);
-    await anchor.setBridge(this.contract.address);
+    await anchor.setHandler(this.handler.contract.address, overrides);
+    await anchor.setBridge(this.contract.address, overrides);
 
     return resourceId;
   }
@@ -83,7 +84,7 @@ export class BridgeSide {
   // chainId from linked anchor
   // resourceId for this anchor
   // dataHash is combo of keccak('anchor handler for this bridge' + (chainID linkedAnchor + leafIndex linkedAnchor + root linkedAnchor))
-  public async voteProposal(linkedAnchor: Anchor, thisAnchor: Anchor) {
+  public async voteProposal(linkedAnchor: Anchor, thisAnchor: Anchor, overrides?: Overrides) {
     if (!this.handler) {
       throw new Error("Cannot connect an anchor without a handler");
     }
@@ -94,14 +95,14 @@ export class BridgeSide {
     const chainId = await linkedAnchor.signer.getChainId();
     const nonce = linkedAnchor.tree.number_of_elements() - 1;
 
-    const tx = await this.contract.voteProposal(chainId, nonce, resourceId, dataHash);
+    const tx = await this.contract.voteProposal(chainId, nonce, resourceId, dataHash, overrides);
     const receipt = await tx.wait();
     
     return receipt;
   }
 
   // emit ProposalEvent(chainID, nonce, ProposalStatus.Executed, dataHash);
-  public async executeProposal(linkedAnchor: Anchor, thisAnchor: Anchor) {
+  public async executeProposal(linkedAnchor: Anchor, thisAnchor: Anchor, overrides?: Overrides) {
     if (!this.handler) {
       throw new Error("Cannot connect an anchor without a handler");
     }
@@ -111,7 +112,7 @@ export class BridgeSide {
     const chainId = await linkedAnchor.signer.getChainId();
     const nonce = linkedAnchor.tree.number_of_elements() - 1;
 
-    const tx = await this.contract.executeProposal(chainId, nonce, proposalData, resourceId);
+    const tx = await this.contract.executeProposal(chainId, nonce, proposalData, resourceId, overrides);
     const receipt = await tx.wait();
     
     return receipt;

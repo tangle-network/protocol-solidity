@@ -2,7 +2,7 @@ import { BigNumberish, ethers } from "ethers";
 import { Anchor as AnchorContract, Anchor__factory } from '@webb-tools/contracts'
 import { RefreshEvent, WithdrawalEvent } from '@webb-tools/contracts/src/AnchorBase'
 import { AnchorDeposit, AnchorDepositInfo, IPublicInputs } from './types';
-import { toFixedHex, toHex, rbigint, p256, PoseidonHasher, ZkComponents } from '@webb-tools/utils';
+import { toFixedHex, toHex, rbigint, p256, PoseidonHasher, ZkComponents, Overrides } from '@webb-tools/utils';
 import { MerkleTree } from './MerkleTree';
 
 const snarkjs = require('snarkjs');
@@ -71,9 +71,10 @@ class Anchor {
     maxEdges: number,
     zkComponents: ZkComponents,
     signer: ethers.Signer,
+    overrides?: Overrides
   ) {
     const factory = new Anchor__factory(signer);
-    const anchor = await factory.deploy(verifier, hasher, denomination, merkleTreeHeight, token, bridge, admin, handler, maxEdges, {});
+    const anchor = await factory.deploy(verifier, hasher, denomination, merkleTreeHeight, token, bridge, admin, handler, maxEdges, overrides);
     await anchor.deployed();
     const createdAnchor = new Anchor(anchor, signer, merkleTreeHeight, maxEdges, zkComponents);
     createdAnchor.latestSyncedBlock = anchor.deployTransaction.blockNumber!;
@@ -169,13 +170,13 @@ class Anchor {
     return toHex(this.contract.address + toHex((await this.signer.getChainId()), 4).substr(2), 32);
   }
 
-  public async setHandler(handlerAddress: string) {
-    const tx = await this.contract.setHandler(handlerAddress);
+  public async setHandler(handlerAddress: string, overrides?: Overrides) {
+    const tx = await this.contract.setHandler(handlerAddress, overrides);
     await tx.wait();
   }
 
-  public async setBridge(bridgeAddress: string) {
-    const tx = await this.contract.setBridge(bridgeAddress);
+  public async setBridge(bridgeAddress: string, overrides?: Overrides) {
+    const tx = await this.contract.setBridge(bridgeAddress, overrides);
     await tx.wait();
   }
 
@@ -210,12 +211,12 @@ class Anchor {
   }
 
   // Makes a deposit into the contract and return the parameters and index of deposit
-  public async deposit(destinationChainId?: number): Promise<AnchorDeposit> {
+  public async deposit(destinationChainId?: number, overrides?: Overrides): Promise<AnchorDeposit> {
     const originChainId = await this.signer.getChainId();
     const destChainId = (destinationChainId) ? destinationChainId : originChainId;
     const deposit = Anchor.generateDeposit(destChainId);
     
-    const tx = await this.contract.deposit(toFixedHex(deposit.commitment), { gasLimit: '0x5B8D80' });
+    const tx = await this.contract.deposit(toFixedHex(deposit.commitment), overrides);
     const receipt = await tx.wait();
 
     const index: number = this.tree.insert(deposit.commitment);
@@ -226,20 +227,18 @@ class Anchor {
     return { deposit, index, originChainId };
   }
 
-  public async wrapAndDeposit(tokenAddress: string, destinationChainId?: number): Promise<AnchorDeposit> {
+  public async wrapAndDeposit(tokenAddress: string, destinationChainId?: number, overrides?: Overrides): Promise<AnchorDeposit> {
     const originChainId = await this.signer.getChainId();
     const chainId = (destinationChainId) ? destinationChainId : originChainId;
     const deposit = Anchor.generateDeposit(chainId);
     let tx;
     if (checkNativeAddress(tokenAddress)) {
       tx = await this.contract.wrapAndDeposit(tokenAddress, toFixedHex(deposit.commitment), {
+        ...overrides,
         value: this.denomination,
-        gasLimit: '0x5B8D80'
       });
     } else {
-      tx = await this.contract.wrapAndDeposit(tokenAddress, toFixedHex(deposit.commitment), {
-        gasLimit: '0x5B8D80'
-      });
+      tx = await this.contract.wrapAndDeposit(tokenAddress, toFixedHex(deposit.commitment), overrides);
     }
     await tx.wait();
 
@@ -392,6 +391,7 @@ class Anchor {
     relayer: string,
     fee: bigint,
     refreshCommitment: string | number,
+    overrides?: Overrides
   ): Promise<RefreshEvent | WithdrawalEvent> {
     const { args, input, proofEncoded, publicInputs } = await this.setupWithdraw(
       deposit,
@@ -405,7 +405,7 @@ class Anchor {
     let tx = await this.contract.withdraw(
       `0x${proofEncoded}`,
       publicInputs,
-      { gasLimit: '0x5B8D80' }
+      overrides,
     );
     const receipt = await tx.wait();
 
@@ -430,6 +430,7 @@ class Anchor {
     fee: bigint,
     refreshCommitment: string,
     tokenAddress: string,
+    overrides?: Overrides
   ): Promise<WithdrawalEvent> {
     // first, check if the merkle root is known on chain - if not, then update
     await this.checkKnownRoot();
@@ -467,7 +468,7 @@ class Anchor {
     const publicInputs = Anchor.convertArgsArrayToStruct(args);
 
     //@ts-ignore
-    let tx = await this.contract.withdrawAndUnwrap(`0x${proofEncoded}`, publicInputs, tokenAddress, { gasLimit: '0x5B8D80' });
+    let tx = await this.contract.withdrawAndUnwrap(`0x${proofEncoded}`, publicInputs, tokenAddress, overrides);
     const receipt = await tx.wait();
 
     const filter = this.contract.filters.Withdrawal(null, null, null, null);
@@ -485,6 +486,7 @@ class Anchor {
     refund: string,
     refreshCommitment: string,
     tokenAddress: string,
+    overrides?: Overrides
   ): Promise<WithdrawalEvent> {
     const { pathElements, pathIndices, merkleRoot } = merkleProof;
     const isKnownNeighborRoot = await this.contract.isKnownNeighborRoot(deposit.originChainId, toFixedHex(merkleRoot));
@@ -528,9 +530,7 @@ class Anchor {
       `0x${proofEncoded}`,
       publicInputs,
       tokenAddress,
-      {
-        gasLimit: '0x5B8D80'
-      },
+      overrides,
     );
     const receipt = await tx.wait();
 
@@ -559,6 +559,7 @@ class Anchor {
     fee: string,
     refund: string,
     refreshCommitment: string,
+    overrides?: Overrides
   ): Promise<WithdrawalEvent> {
     const { pathElements, pathIndices, merkleRoot } = merkleProof;
     const isKnownNeighborRoot = await this.contract.isKnownNeighborRoot(deposit.originChainId, toFixedHex(merkleRoot));
@@ -603,9 +604,7 @@ class Anchor {
     let tx = await this.contract.withdraw(
       `0x${proofEncoded}`,
       publicInputs,
-      {
-        gasLimit: '0x5B8D80'
-      },
+      overrides,
     );
     const receipt = await tx.wait();
 
