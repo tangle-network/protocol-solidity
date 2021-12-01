@@ -138,7 +138,7 @@ export class Bridge {
         0,
         100,
         deployers.wallets[chainID],
-        { gasLimit: deployers.gasLimits[chainID] }
+        { gasLimit: deployers.gasLimits ? deployers.gasLimits[chainID] || '0x5B8D80' : '0x5B8D80' }
       );
 
       bridgeSides.set(chainID, bridgeInstance);
@@ -146,10 +146,15 @@ export class Bridge {
 
       // Create the Hasher and Verifier for the chain
       const hasherFactory = new PoseidonT3__factory(deployers.wallets[chainID]);
-      let hasherInstance = await hasherFactory.deploy({ gasLimit: deployers.gasLimits[chainID] });
+      let hasherInstance = await hasherFactory.deploy(
+        { gasLimit: deployers.gasLimits ? deployers.gasLimits[chainID] || '0x5B8D80' : '0x5B8D80' }
+      );
       await hasherInstance.deployed();
 
-      const verifier = await Verifier.createVerifier(deployers.wallets[chainID], { gasLimit: deployers.gasLimits[chainID] });
+      const verifier = await Verifier.createVerifier(
+        deployers.wallets[chainID],
+        { gasLimit: deployers.gasLimits ? deployers.gasLimits[chainID] || '0x5B8D80' : '0x5B8D80' }
+      );
       let verifierInstance = verifier.contract;
 
       // Check the addresses of the asset. If it is zero, deploy a native token wrapper
@@ -168,7 +173,7 @@ export class Bridge {
         '10000000000000000000000000',
         allowedNative,
         deployers.wallets[chainID],
-        { gasLimit: deployers.gasLimits[chainID] }
+        { gasLimit: deployers.gasLimits ? deployers.gasLimits[chainID] || '0x5B8D80' : '0x5B8D80' }
       );
       
       console.log(`created GovernedTokenWrapper on ${chainID}: ${tokenInstance.contract.address}`);
@@ -177,7 +182,10 @@ export class Bridge {
       for (const tokenToBeWrapped of bridgeInput.anchorInputs.asset[chainID]!) {
         // if the address is not '0', then add it
         if (!checkNativeAddress(tokenToBeWrapped)) {
-          const tx = await tokenInstance.contract.add(tokenToBeWrapped, { gasLimit: deployers.gasLimits[chainID] });
+          const tx = await tokenInstance.contract.add(
+            tokenToBeWrapped,
+            { gasLimit: deployers.gasLimits ? deployers.gasLimits[chainID] || '0x5B8D80' : '0x5B8D80' }
+          );
           const receipt = await tx.wait();
         }
       }
@@ -204,13 +212,16 @@ export class Bridge {
           bridgeInput.chainIDs.length-1,
           zkComponents,
           deployers.wallets[chainID],
-          { gasLimit: deployers.gasLimits[chainID] }
+          { gasLimit: deployers.gasLimits ? deployers.gasLimits[chainID] || '0x5B8D80' : '0x5B8D80' }
         );
 
         console.log(`createdAnchor: ${anchorInstance.contract.address}`);
 
         // grant minting rights to the anchor
-        const tx = await tokenInstance.grantMinterRole(anchorInstance.contract.address, { gasLimit: deployers.gasLimits[chainID] }); 
+        const tx = await tokenInstance.grantMinterRole(
+          anchorInstance.contract.address,
+          { gasLimit: deployers.gasLimits ? deployers.gasLimits[chainID] || '0x5B8D80' : '0x5B8D80' }
+        ); 
         await tx.wait();
 
         chainGroupedAnchors.push(anchorInstance);
@@ -220,7 +231,11 @@ export class Bridge {
         );
       }
 
-      await Bridge.setPermissions(bridgeInstance, chainGroupedAnchors, { gasLimit: deployers.gasLimits[chainID] });
+      await Bridge.setPermissions(
+        bridgeInstance,
+        chainGroupedAnchors,
+        { gasLimit: deployers.gasLimits ? deployers.gasLimits[chainID] || '0x5B8D80' : '0x5B8D80' }
+      );
       createdAnchors.push(chainGroupedAnchors);
     }
 
