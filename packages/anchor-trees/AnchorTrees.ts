@@ -94,10 +94,10 @@ export class AnchorTrees {
     pathIndices = bitsToNumber(pathIndices.slice(batchHeight)).toString()
 
     const input:any = {
-      oldRoot,
-      newRoot,
-      pathIndices,
-      pathElements,
+      oldRoot: oldRoot,
+      newRoot: newRoot,
+      pathIndices: pathIndices,
+      pathElements: pathElements,
       instances: events.map((e) => BigNumber.from(e.instance).toString()),
       hashes: events.map((e) => BigNumber.from(e.hash).toString()),
       blocks: events.map((e) => BigNumber.from(e.block).toString()),
@@ -182,10 +182,6 @@ export class AnchorTrees {
     return proofEncoded;
   }
 
-  public async generateWitnessInput() {
-
-  }
-
   //TODO: need to define WASMPath and witnessCalculator
   public async createWitness(data: any) {
     const fileBuf = require('fs').readFileSync(this.WASMPath);
@@ -199,13 +195,12 @@ export class AnchorTrees {
 
     //Generating Proof
     //Step 1: Generate the witness input
-    const wtnsInput = this.generateWitnessInput();
+    //This is already done by the batchTreeUpdate method taken from tornado so we can skip.
 
     //Step 2: Create the witness
-    const wtns = this.createWitness(wtnsInput);
+    const wtns = this.createWitness(input);
 
     //Step 3: Use the wtns to generate a proof
-
     let proofEncoded = await this.proveAndVerify(wtns);
 
     //End generating Proof
@@ -214,7 +209,23 @@ export class AnchorTrees {
     tx.wait();
   }
 
+  public async updateWithdrawalTree(events) {
+    const {input, args} = AnchorTrees.batchTreeUpdate(this.withdrawalTree, events);
+
+    //Generating Proof
+    //Step 1: Generate the witness input
+    //This is already done by the batchTreeUpdate method taken from tornado so we can skip.
+
+    //Step 2: Create the witness
+    const wtns = this.createWitness(input);
+
+    //Step 3: Use the wtns to generate a proof
+    let proofEncoded = await this.proveAndVerify(wtns);
+
+    //End generating Proof
+
+    const tx = await this.contract.updateDepositTree(proofEncoded, ...args); 
+    tx.wait();
+  }
   
-
-
 }

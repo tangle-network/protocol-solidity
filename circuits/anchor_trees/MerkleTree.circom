@@ -62,12 +62,12 @@ template MerkleTree(levels) {
     component indexBits = Num2Bits(levels);
     indexBits.in <== pathIndices;
 
-    component tree = RawMerkleTree(levels)
+    component tree = RawMerkleTree(levels);
     tree.leaf <== leaf;
     for (var i = 0; i < levels; i++) {
         tree.pathIndices[i] <== indexBits.out[i];
         tree.pathElements[i] <== pathElements[i];
     }
 
-    root <== tree.root
+    root <== tree.root;
 }

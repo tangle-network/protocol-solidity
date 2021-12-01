@@ -1,6 +1,6 @@
 #!/bin/bash
 
-mkdir -p artifacts/circuits/{anchor,bridge,keypair,semaphore,signature,vanchor_2,vanchor_16}
+mkdir -p artifacts/circuits/{anchor,anchor_trees,bridge,keypair,semaphore,signature,vanchor_2,vanchor_16}
 
 compile () {
     local outdir="$1" circuit="$2" size="$3"
@@ -94,3 +94,7 @@ copy_to_fixtures () {
 # echo "Compiling Signature Circuit"
 # compile signature signature_test
 # copy_to_fixtures signature signature_test 0 none
+
+# Anchor Trees BatchUpdateVerifier Circuit
+compile anchor_trees anchor_trees_test
+copy_to_fixtures anchor_trees anchor_trees_test 0 anchor_trees
