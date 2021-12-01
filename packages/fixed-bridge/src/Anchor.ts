@@ -585,6 +585,8 @@ class Anchor {
       pathIndices,
     );
 
+    console.log('input to witness: ', input);
+
     const wtns = await this.createWitness(input);
     let proofEncoded = await this.proveAndVerify(wtns);
 

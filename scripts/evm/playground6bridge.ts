@@ -21,7 +21,9 @@ async function run() {
   );
 
   const rinkebyAnchor = await Anchor.connect('0x99285189A0DA76dce5D3Da6Cf71aD3f2b498DC88', zkComponents, walletRinkeby);
+  await rinkebyAnchor.checkKnownRoot();
   const ropstenAnchor = await Anchor.connect('0x8DB24d0Df8cc4CEbF275528f7725E560F50329bf', zkComponents, walletRopsten);
+  await ropstenAnchor.checkKnownRoot();
 
   await depositNativeAndBridgedWithdraw(rinkebyAnchor, ropstenAnchor, walletRinkeby, walletRopsten, '0x7Bb1Af8D06495E85DDC1e0c49111C9E0Ab50266E');
 }
