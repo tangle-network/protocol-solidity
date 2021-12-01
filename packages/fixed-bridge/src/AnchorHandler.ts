@@ -18,7 +18,7 @@ export class AnchorHandler {
     overrides?: Overrides
   ) {
     const factory = new AnchorHandler__factory(deployer);
-    const contract = await factory.deploy(bridgeAddress, initResourceIds, initContractAddresses, overrides);
+    const contract = await factory.deploy(bridgeAddress, initResourceIds, initContractAddresses, overrides || {});
     await contract.deployed();
 
     const handler = new AnchorHandler(contract);

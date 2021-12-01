@@ -27,7 +27,7 @@ class GovernedTokenWrapper {
       governor,
       limit,
       isNativeAllowed,
-      overrides
+      overrides || {}
     );
     await contract.deployed();
 
@@ -43,7 +43,7 @@ class GovernedTokenWrapper {
 
   public grantMinterRole(address: string, overrides?: Overrides) {
     const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
-    return this.contract.grantRole(MINTER_ROLE, address, overrides);
+    return this.contract.grantRole(MINTER_ROLE, address, overrides || {});
   }
 }
 

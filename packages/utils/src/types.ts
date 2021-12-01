@@ -6,4 +6,7 @@ export type ZkComponents = {
   witnessCalculator: any;
 };
 
-export type Overrides = ethers.Overrides & { from?: string | Promise<string> }
+export type Overrides = {
+  from?: string,
+  gasLimit?: ethers.BigNumberish | Promise<ethers.BigNumberish>,
+}

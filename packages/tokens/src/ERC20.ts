@@ -21,7 +21,7 @@ class ERC20 {
     const contract = await factory.deploy(
       name,
       symbol,
-      overrides,
+      overrides || {},
     );
     await contract.deployed();
 

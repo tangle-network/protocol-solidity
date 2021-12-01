@@ -37,7 +37,7 @@ export class BridgeSide {
   ): Promise<BridgeSide> {
     const bridgeFactory = new Bridge__factory(admin);
     const chainId = await admin.getChainId();
-    const deployedBridge = await bridgeFactory.deploy(chainId, initialRelayers, initialRelayerThreshold, fee, expiry, overrides);
+    const deployedBridge = await bridgeFactory.deploy(chainId, initialRelayers, initialRelayerThreshold, fee, expiry, overrides || {});
     await deployedBridge.deployed();
     const bridgeSide = new BridgeSide(deployedBridge, admin);
     return bridgeSide;
@@ -70,7 +70,7 @@ export class BridgeSide {
     }
 
     const resourceId = await anchor.createResourceId();
-    const tx = await this.contract.adminSetResource(this.handler.contract.address, resourceId, anchor.contract.address, overrides);
+    const tx = await this.contract.adminSetResource(this.handler.contract.address, resourceId, anchor.contract.address, overrides || {});
     await tx.wait();
     // await this.handler.setResource(resourceId, anchor.contract.address); covered in above call
     await anchor.setHandler(this.handler.contract.address, overrides);
@@ -96,7 +96,7 @@ export class BridgeSide {
     const chainId = await linkedAnchor.signer.getChainId();
     const nonce = linkedAnchor.tree.number_of_elements() - 1;
 
-    const tx = await this.contract.voteProposal(chainId, nonce, resourceId, dataHash, overrides);
+    const tx = await this.contract.voteProposal(chainId, nonce, resourceId, dataHash, overrides || {});
     const receipt = await tx.wait();
     
     return receipt;
@@ -113,7 +113,7 @@ export class BridgeSide {
     const chainId = await linkedAnchor.signer.getChainId();
     const nonce = linkedAnchor.tree.number_of_elements() - 1;
 
-    const tx = await this.contract.executeProposal(chainId, nonce, proposalData, resourceId, overrides);
+    const tx = await this.contract.executeProposal(chainId, nonce, proposalData, resourceId, overrides || {});
     const receipt = await tx.wait();
     
     return receipt;

@@ -74,7 +74,7 @@ class Anchor {
     overrides?: Overrides
   ) {
     const factory = new Anchor__factory(signer);
-    const anchor = await factory.deploy(verifier, hasher, denomination, merkleTreeHeight, token, bridge, admin, handler, maxEdges, overrides);
+    const anchor = await factory.deploy(verifier, hasher, denomination, merkleTreeHeight, token, bridge, admin, handler, maxEdges, overrides || {});
     await anchor.deployed();
     const createdAnchor = new Anchor(anchor, signer, merkleTreeHeight, maxEdges, zkComponents);
     createdAnchor.latestSyncedBlock = anchor.deployTransaction.blockNumber!;
@@ -171,12 +171,12 @@ class Anchor {
   }
 
   public async setHandler(handlerAddress: string, overrides?: Overrides) {
-    const tx = await this.contract.setHandler(handlerAddress, overrides);
+    const tx = await this.contract.setHandler(handlerAddress, overrides || {});
     await tx.wait();
   }
 
   public async setBridge(bridgeAddress: string, overrides?: Overrides) {
-    const tx = await this.contract.setBridge(bridgeAddress, overrides);
+    const tx = await this.contract.setBridge(bridgeAddress, overrides || {});
     await tx.wait();
   }
 
@@ -216,7 +216,7 @@ class Anchor {
     const destChainId = (destinationChainId) ? destinationChainId : originChainId;
     const deposit = Anchor.generateDeposit(destChainId);
     
-    const tx = await this.contract.deposit(toFixedHex(deposit.commitment), overrides);
+    const tx = await this.contract.deposit(toFixedHex(deposit.commitment), overrides || {});
     const receipt = await tx.wait();
 
     const index: number = this.tree.insert(deposit.commitment);
@@ -238,7 +238,7 @@ class Anchor {
         value: this.denomination,
       });
     } else {
-      tx = await this.contract.wrapAndDeposit(tokenAddress, toFixedHex(deposit.commitment), overrides);
+      tx = await this.contract.wrapAndDeposit(tokenAddress, toFixedHex(deposit.commitment), overrides || {});
     }
     await tx.wait();
 
@@ -405,7 +405,7 @@ class Anchor {
     let tx = await this.contract.withdraw(
       `0x${proofEncoded}`,
       publicInputs,
-      overrides,
+      overrides || {},
     );
     const receipt = await tx.wait();
 
@@ -468,7 +468,7 @@ class Anchor {
     const publicInputs = Anchor.convertArgsArrayToStruct(args);
 
     //@ts-ignore
-    let tx = await this.contract.withdrawAndUnwrap(`0x${proofEncoded}`, publicInputs, tokenAddress, overrides);
+    let tx = await this.contract.withdrawAndUnwrap(`0x${proofEncoded}`, publicInputs, tokenAddress, overrides || {});
     const receipt = await tx.wait();
 
     const filter = this.contract.filters.Withdrawal(null, null, null, null);
@@ -530,7 +530,7 @@ class Anchor {
       `0x${proofEncoded}`,
       publicInputs,
       tokenAddress,
-      overrides,
+      overrides || {},
     );
     const receipt = await tx.wait();
 
@@ -604,7 +604,7 @@ class Anchor {
     let tx = await this.contract.withdraw(
       `0x${proofEncoded}`,
       publicInputs,
-      overrides,
+      overrides || {},
     );
     const receipt = await tx.wait();
 

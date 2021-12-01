@@ -59,7 +59,7 @@ export class AnchorProxy {
         },
       }
     });
-    const contract = await factory.deploy(_anchorTrees, _governance, instances, overrides); //edit this
+    const contract = await factory.deploy(_anchorTrees, _governance, instances, overrides || {}); //edit this
     await contract.deployed();
 
     const handler = new AnchorProxy(contract, deployer, _anchorList);
@@ -78,7 +78,7 @@ export class AnchorProxy {
       anchorAddr,
       toFixedHex(deposit.commitment),
       _encryptedNote,
-      overrides
+      overrides || {}
     );
   
     await tx.wait();
@@ -119,7 +119,7 @@ export class AnchorProxy {
       anchorAddr,
       `0x${proofEncoded}`,
       publicInputs,
-      overrides
+      overrides || {}
     );
     const receipt = await tx.wait();
 

@@ -113,8 +113,10 @@ describe('multichain tests for erc20 bridges', () => {
       const signers = await ethers.getSigners();
 
       const deploymentConfig = {
-        31337: signers[1],
-        1337: ganacheWallet2,
+        wallets: {
+          31337: signers[1],
+          1337: ganacheWallet2,
+        }
       };
       const bridge = await Bridge.deployBridge(bridge2WebbEthInput, deploymentConfig, zkComponents2);
 
@@ -171,9 +173,11 @@ describe('multichain tests for erc20 bridges', () => {
       const signers = await ethers.getSigners();
 
       const deploymentConfig = {
-        31337: signers[1],
-        1337: ganacheWallet2,
-        9999: ganacheWallet3,
+        wallets: {
+          31337: signers[1],
+          1337: ganacheWallet2,
+          9999: ganacheWallet3,
+        }
       };
       const bridge = await Bridge.deployBridge(bridge3WebbEthInput, deploymentConfig, zkComponents3);
 
@@ -263,8 +267,10 @@ describe('multichain tests for erc20 bridges', () => {
       };
 
       const deploymentConfig = {
-        31337: signers[1],
-        1337: ganacheWallet2,
+        wallets: {
+          31337: signers[1],
+          1337: ganacheWallet2,
+        }
       }
 
       const createdBridge = await Bridge.deployBridge(bridge2Input, deploymentConfig, zkComponents2);
@@ -346,8 +352,10 @@ describe('multichain tests for erc20 bridges', () => {
 
       // setup the config for deployers of contracts (admins)
       const deploymentConfig = {
-        [chainId1]: signers[1],
-        [chainId2]: ganacheWallet2,
+        wallets: {
+          [chainId1]: signers[1],
+          [chainId2]: ganacheWallet2,
+        }
       }
 
       // deploy the bridge
@@ -530,10 +538,12 @@ describe('multichain tests for erc20 bridges', () => {
 
       // setup the config for deployers of contracts (admins)
       const deploymentConfig = {
-        [chainId1]: signers[1],
-        [chainId2]: ganacheWallet2,
-        [chainId3]: ganacheWallet3,
-        [chainId4]: ganacheWallet4,
+        wallets: {
+          [chainId1]: signers[1],
+          [chainId2]: ganacheWallet2,
+          [chainId3]: ganacheWallet3,
+          [chainId4]: ganacheWallet4,
+        }
       }
       
       // deploy the bridge

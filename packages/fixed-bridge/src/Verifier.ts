@@ -30,19 +30,19 @@ export class Verifier {
     overrides?: Overrides,
   ) {
     const v2Factory = new Verifier2__factory(signer);
-    const v2 = await v2Factory.deploy(overrides); 
+    const v2 = await v2Factory.deploy(overrides || {}); 
     await v2.deployed();
     const v3Factory = new Verifier3__factory(signer);
-    const v3 = await v3Factory.deploy(overrides); 
+    const v3 = await v3Factory.deploy(overrides || {}); 
     await v3.deployed();
     const v4Factory = new Verifier4__factory(signer);
-    const v4 = await v4Factory.deploy(overrides);
+    const v4 = await v4Factory.deploy(overrides || {});
     await v4.deployed();
     const v5Factory = new Verifier5__factory(signer);
-    const v5 = await v5Factory.deploy(overrides);
+    const v5 = await v5Factory.deploy(overrides || {});
     await v5.deployed();
     const v6Factory = new Verifier6__factory(signer);
-    const v6 = await v6Factory.deploy(overrides);
+    const v6 = await v6Factory.deploy(overrides || {});
     await v6.deployed();
 
     const factory = new Verifier__factory(signer);
@@ -52,7 +52,7 @@ export class Verifier {
       v4.address,
       v5.address,
       v6.address,
-      overrides
+      overrides || {}
     );
     await verifier.deployed();
     const createdVerifier = new Verifier(verifier, signer);

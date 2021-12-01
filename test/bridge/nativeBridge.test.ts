@@ -71,8 +71,10 @@ describe('multichain tests for native', () => {
       const signers = await ethers.getSigners();
 
       const deploymentConfig = {
-        31337: signers[1],
-        1337: ganacheWallet2,
+        wallets: {
+          31337: signers[1],
+          1337: ganacheWallet2,
+        }
       };
       const bridge = await Bridge.deployBridge(bridge2WebbEthInput, deploymentConfig, zkComponents);
 

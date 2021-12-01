@@ -31,7 +31,7 @@ const BN = require('bn.js');
 const F = require('circomlibjs').babyjub.F;
 const Scalar = require("ffjavascript").Scalar;
 
-describe('Anchor for 2 max edges', () => {
+describe.only('Anchor for 2 max edges', () => {
   let anchor: Anchor;
   let zkComponents: ZkComponents;
 
