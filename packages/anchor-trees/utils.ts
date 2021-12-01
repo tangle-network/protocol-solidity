@@ -3,7 +3,7 @@ const ethers = require('ethers')
 const BigNumber = ethers.BigNumber
 const { poseidon } = require('circomlib')
 
-const poseidonHash = (items) => BigNumber.from(poseidon(items).toString())
+export const poseidonHash = (items) => BigNumber.from(poseidon(items).toString())
 
 export const poseidonHash2 = (a, b) => poseidonHash([a, b])
 
@@ -11,14 +11,14 @@ export const poseidonHash2 = (a, b) => poseidonHash([a, b])
 const randomBN = (nbytes = 31) => BigNumber.from(crypto.randomBytes(nbytes))
 
 /** BigNumber to hex string of specified length */
-const toFixedHex = (number, length = 32) =>
+export const toFixedHex = (number, length = 32) =>
   '0x' +
   (number instanceof Buffer
     ? number.toString('hex')
     : BigNumber.from(number).toHexString().slice(2)
   ).padStart(length * 2, '0')
 
-const toBuffer = (value, length) =>
+export const toBuffer = (value, length) =>
   Buffer.from(
     BigNumber.from(value)
       .toHexString()
@@ -27,7 +27,7 @@ const toBuffer = (value, length) =>
     'hex',
   )
 
-function bitsToNumber(bits) {
+export function bitsToNumber(bits) {
   let result = 0
   for (const item of bits.slice().reverse()) {
     result = (result << 1) + item
