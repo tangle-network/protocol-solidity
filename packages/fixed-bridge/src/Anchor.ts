@@ -269,9 +269,15 @@ class Anchor {
     this.latestSyncedBlock = currentBlockNumber;
   }
 
-  public async populateRootsForProof(): Promise<string[]> {
+  // Used to populate the roots for a bridged withdraw
+  public async populateNeighborRootsForProof(chainId: number, root: string): Promise<string[]> {
     const neighborRoots = await this.contract.getLatestNeighborRoots();
-    return [await this.contract.getLastRoot(), ...neighborRoots];
+    let proofRoots = [await this.contract.getLastRoot(), ...neighborRoots];
+
+    // get the index of the desired neighbor root to overrwrite
+    let sourceRootIndex = (await this.contract.edgeIndex(chainId)).toNumber();
+    proofRoots[sourceRootIndex+1] = root;
+    return proofRoots;
   }
 
   public async generateWitnessInput(
@@ -347,7 +353,8 @@ class Anchor {
     const { merkleRoot, pathElements, pathIndices } = await this.tree.path(index);
     const chainId = await this.signer.getChainId();
 
-    const roots = await this.populateRootsForProof();
+    const neighborRoots = await this.contract.getLatestNeighborRoots();
+    const roots = [await this.contract.getLastRoot(), ...neighborRoots];
 
     const input = await this.generateWitnessInput(
       deposit,
@@ -423,7 +430,6 @@ class Anchor {
 
   public async withdrawAndUnwrap(
     deposit: AnchorDepositInfo,
-    originChainId: number,
     index: number,
     recipient: string,
     relayer: string,
@@ -432,40 +438,14 @@ class Anchor {
     tokenAddress: string,
     overrides?: Overrides
   ): Promise<WithdrawalEvent> {
-    // first, check if the merkle root is known on chain - if not, then update
-    await this.checkKnownRoot();
-
-    const { merkleRoot, pathElements, pathIndices } = await this.tree.path(index);
-
-    const roots = await this.populateRootsForProof();
-
-    const input = await this.generateWitnessInput(
+    const { proofEncoded, publicInputs } = await this.setupWithdraw(
       deposit,
-      originChainId,
+      index,
+      recipient,
+      relayer,
+      fee,
       refreshCommitment,
-      BigInt(recipient),
-      BigInt(relayer),
-      BigInt(fee),
-      BigInt(0),
-      roots,
-      pathElements,
-      pathIndices,
     );
-
-    const wtns = await this.createWitness(input);
-    let proofEncoded = await this.proveAndVerify(wtns);
-
-    const args = [
-      Anchor.createRootsBytes(input.roots),
-      toFixedHex(input.nullifierHash),
-      toFixedHex(input.refreshCommitment, 32),
-      toFixedHex(input.recipient, 20),
-      toFixedHex(input.relayer, 20),
-      toFixedHex(input.fee),
-      toFixedHex(input.refund),
-    ];
-
-    const publicInputs = Anchor.convertArgsArrayToStruct(args);
 
     //@ts-ignore
     let tx = await this.contract.withdrawAndUnwrap(`0x${proofEncoded}`, publicInputs, tokenAddress, overrides || {});
@@ -495,7 +475,7 @@ class Anchor {
     }
     refreshCommitment = (refreshCommitment) ? refreshCommitment : '0';
 
-    const roots = await this.populateRootsForProof();
+    const roots = await this.populateNeighborRootsForProof(deposit.originChainId, merkleRoot);
 
     const input = await this.generateWitnessInput(
       deposit.deposit,
@@ -570,7 +550,7 @@ class Anchor {
 
     const lastRoot = await this.tree.get_root();
 
-    const roots = await this.populateRootsForProof();
+    const roots = await this.populateNeighborRootsForProof(deposit.originChainId, merkleRoot);
 
     const input = await this.generateWitnessInput(
       deposit.deposit,

@@ -484,6 +484,27 @@ describe('multichain tests for erc20 bridges', () => {
         const endingBalanceDest = await webbToken.getBalance(signers[1].address);
         assert.deepStrictEqual(endingBalanceDest, startingBalanceDest.add(anchorSize));
       });
+
+      it('should withdraw successfully if deposit occurs after merkle proof generation', async () => {
+        // Fetch information about the anchor to be updated.
+        const signers = await ethers.getSigners();
+        const anchorSize = '1000000000000000000';
+  
+        const depositNote1 = await bridge.wrapAndDeposit(chainId1, existingToken2.contract.address, anchorSize, ganacheWallet2);
+  
+        const anchorSrc: Anchor = bridge.getAnchor(chainId2, anchorSize);
+
+        // generate the merkle proof for the deposit
+        const merkleProof = anchorSrc.tree.path(depositNote1.index);
+
+        // another deposit comes in
+        const depositNote2 = await bridge.wrapAndDeposit(chainId2, existingToken2.contract.address, anchorSize, ganacheWallet2);
+
+        // use the original, valid merkle proof to withdraw
+        const anchorDest: Anchor = bridge.getAnchor(chainId1, anchorSize);
+        
+        await TruffleAssert.passes(anchorDest.bridgedWithdraw(depositNote1, merkleProof, signers[1].address, signers[1].address, '0', '0', '0x0000000000000000000000000000000000000000000000000000000000000000'));
+      });
     });
   });
 
@@ -634,7 +655,7 @@ describe('multichain tests for erc20 bridges', () => {
       cumulativeBalance = await calculateCumulativeBalance(signers[1].address, tokenAddress1, webbTokenAddress1, signers[1]);
       assert.deepStrictEqual(cumulativeBalance, currentBalance.add(anchorSize));
       currentBalance = cumulativeBalance;
-    }).timeout(60000);
+    }).timeout(90000);
   });
 
   after('terminate networks', () => {

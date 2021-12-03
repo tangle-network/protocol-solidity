@@ -788,7 +788,7 @@ describe('Anchor for 2 max edges', () => {
       const balUnwrappedTokenBeforeWithdrawSender = await token.balanceOf(sender.address);
 
       const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, zkComponents, wallet);
-      await TruffleAssert.passes(newAnchor.withdrawAndUnwrap(deposit, 31337, index, sender.address, signers[1].address, bigInt(0), bigInt(0), token.address));
+      await TruffleAssert.passes(newAnchor.withdrawAndUnwrap(deposit, index, sender.address, signers[1].address, bigInt(0), bigInt(0), token.address));
       const balWrappedTokenAfterWithdrawAnchor = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
       assert.strictEqual(balWrappedTokenAfterWithdrawAnchor.toString(), '0');
 
@@ -971,7 +971,6 @@ describe('Anchor for 2 max edges', () => {
       const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, zkComponents, wallet);
       await TruffleAssert.passes(newAnchor.withdrawAndUnwrap(
         deposit,
-        originChainId,
         index,
         sender.address,
         signers[1].address,
@@ -1035,7 +1034,6 @@ describe('Anchor for 2 max edges', () => {
 
       await TruffleAssert.passes(anchorUnderTest.withdrawAndUnwrap(
         deposit,
-        originChainId,
         index,
         sender.address,
         signers[1].address,

@@ -15,7 +15,7 @@ import { startGanacheServer } from '../helpers/startGanacheServer';
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-describe.only('multichain tests for native', () => {
+describe('multichain tests for native', () => {
   describe('two sided bridge tests', () => {
     // setup ganache networks
     let PRIVATE_KEY = '0xc0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e'
@@ -263,7 +263,7 @@ describe.only('multichain tests for native', () => {
         const webbToken = await MintableToken.tokenFromAddress(webbTokenAddress, signers[2]);
         const webbStartingBalance = await webbToken.getBalance(signers[2].address);
 
-        // withdraw and unwrap from the first native deposit
+        // withdraw from the first native deposit
         const event = await bridge.withdraw(nativeDeposit, anchorSize, signers[2].address, signers[2].address, signers[1]);
         const webbEndingBalance = await webbToken.getBalance(signers[2].address);
         assert.deepEqual(webbEndingBalance.eq(webbStartingBalance.add(anchorSize)), true);
