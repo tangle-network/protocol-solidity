@@ -7,6 +7,7 @@ contract Governable {
     address private _governor;
 
     event GovernanceOwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    event RecoveredAddress(address recovered);
 
     mapping (bytes32 => bool) private _usedHashes;
 
@@ -62,12 +63,30 @@ contract Governable {
      * Can only be called by the current owner.
      */
     function transferOwnershipWithSignature(address newOwner, bytes memory sig, bytes memory data) public onlyGovernor {
+        // bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        // bytes32 prefixedHash = keccak256(prefix, hash);
         bytes32 hashedData = keccak256(data);
-        require(_usedHashes[hashedData] == false, "Governable: data has already been used");
+        // require(_usedHashes[hashedData] == false, "Governable: data has already been used");
         address signer = ECDSA.recover(hashedData, sig);
         require(signer == governor(), "Governable: caller is not the governor");
         _transferOwnership(newOwner);
-        _usedHashes[hashedData] = true;
+        // _usedHashes[hashedData] = true;
+    }
+
+    function verify(bytes32 hash, uint8 v, bytes32 r, bytes32 s) public view returns(bool) {
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, hash));
+        return ecrecover(prefixedHash, v, r, s) == governor();
+    }
+
+    function checkPubKey(bytes calldata pubkey) public view returns (bool){
+        return (uint(keccak256(pubkey)) & 0x00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) == uint256(uint160(msg.sender));
+    }
+
+    function recover(bytes memory data, bytes memory sig) public {
+        bytes32 hashedData = keccak256(data);
+        address signer = ECDSA.recover(hashedData, sig);
+        emit RecoveredAddress(signer);
     }
 
     /**
