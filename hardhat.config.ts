@@ -35,6 +35,9 @@ const config: HardhatUserConfig = {
       }
     }],
   },
+  dodoc: {
+  include: ["AnchorPoseidon", "ERC20AnchorPoseidon", "NativeAnchorPoseidon", "Anchor", "AnchorBase", "LinkableAnchor", "AnchorHandler", "IAnchor", "IAnchorTrees", "ILinkableAnchor", "VAnchorEncodeInputs", "GovernedTokenWrapper", "Hasher", "IncrementalQuinTree", "MerkleTreePoseidon", "MerkleTreeWithHistoryPoseidon", "Poseidon", "SnarkConstants", "VMerkleTreeWithHistory", "LinkableVAnchor", "VAnchor", "VAnchorBase", "AnchorProxy", "Bridge"]
+  }
 };
 
 export default config;
