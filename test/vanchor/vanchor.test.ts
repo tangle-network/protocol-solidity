@@ -230,7 +230,7 @@ describe('VAnchor for 2 max edges', () => {
       );
     })
 
-    it('should process fee', async () => {
+    it('should process fee on deposit', async () => {
       const signers = await ethers.getSigners();
       const alice= signers[0];
 
