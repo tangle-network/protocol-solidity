@@ -6,4 +6,3 @@
   && yarn setup:bridge4 \
   && yarn setup:bridge5 \
   && yarn setup:bridge6
-  # && yarn setup:semaphore-bridge2
