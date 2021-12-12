@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "hardhat/console.sol";
 
 contract Governable {
     address private _governor;
@@ -83,9 +84,16 @@ contract Governable {
         return (uint(keccak256(pubkey)) & 0x00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) == uint256(uint160(msg.sender));
     }
 
-    function recover(bytes memory data, bytes memory sig) public {
-        bytes32 hashedData = keccak256(data);
+    // function recover(bytes memory data, bytes memory sig) public {
+    //     bytes32 hashedData = keccak256(data);
+    //     address signer = ECDSA.recover(hashedData, sig);
+    //     console.log(signer);
+    //     emit RecoveredAddress(signer);
+    // }
+
+    function recover(bytes32 hashedData, bytes memory sig) public {
         address signer = ECDSA.recover(hashedData, sig);
+        console.log(signer);
         emit RecoveredAddress(signer);
     }
 
