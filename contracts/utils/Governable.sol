@@ -64,14 +64,10 @@ contract Governable {
      * Can only be called by the current owner.
      */
     function transferOwnershipWithSignature(address newOwner, bytes memory sig, bytes memory data) public {
-        // bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        // bytes32 prefixedHash = keccak256(prefix, hash);
         bytes32 hashedData = keccak256(data);
-        // require(_usedHashes[hashedData] == false, "Governable: data has already been used");
         address signer = ECDSA.recover(hashedData, sig);
         require(signer == governor(), "Governable: caller is not the governor");
         _transferOwnership(newOwner);
-        // _usedHashes[hashedData] = true;
     }
 
     function verify(bytes32 hash, uint8 v, bytes32 r, bytes32 s) public view returns(bool) {
