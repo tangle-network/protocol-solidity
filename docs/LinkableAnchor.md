@@ -10,10 +10,10 @@
 
 ## Methods
 
-### NOTHING_UP_MY_SLEEVE_ZERO
+### FIELD_SIZE
 
 ```solidity
-function NOTHING_UP_MY_SLEEVE_ZERO() external view returns (uint256)
+function FIELD_SIZE() external view returns (uint256)
 ```
 
 
@@ -44,6 +44,23 @@ function ROOT_HISTORY_SIZE() external view returns (uint32)
 |---|---|---|
 | _0 | uint32 | undefined
 
+### ZERO_VALUE
+
+```solidity
+function ZERO_VALUE() external view returns (uint256)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
 ### addEdge
 
 ```solidity
@@ -61,22 +78,6 @@ function addEdge(uint256 sourceChainID, bytes32 root, uint256 leafIndex) externa
 | sourceChainID | uint256 | undefined
 | root | bytes32 | undefined
 | leafIndex | uint256 | undefined
-
-### addExternalNullifier
-
-```solidity
-function addExternalNullifier(uint232 _externalNullifier) external nonpayable
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _externalNullifier | uint232 | undefined
 
 ### admin
 
@@ -112,10 +113,10 @@ function bridge() external view returns (address)
 |---|---|---|
 | _0 | address | undefined
 
-### broadcastSignal
+### commitments
 
 ```solidity
-function broadcastSignal(bytes _signal, uint256[8] _proof, bytes _roots, uint256 _nullifiersHash, uint232 _externalNullifier) external nonpayable
+function commitments(bytes32) external view returns (bool)
 ```
 
 
@@ -126,11 +127,13 @@ function broadcastSignal(bytes _signal, uint256[8] _proof, bytes _roots, uint256
 
 | Name | Type | Description |
 |---|---|---|
-| _signal | bytes | undefined
-| _proof | uint256[8] | undefined
-| _roots | bytes | undefined
-| _nullifiersHash | uint256 | undefined
-| _externalNullifier | uint232 | undefined
+| _0 | bytes32 | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bool | undefined
 
 ### currentNeighborRootIndex
 
@@ -171,21 +174,38 @@ function currentRootIndex() external view returns (uint32)
 |---|---|---|
 | _0 | uint32 | undefined
 
-### deactivateExternalNullifier
+### denomination
 
 ```solidity
-function deactivateExternalNullifier(uint232 _externalNullifier) external nonpayable
+function denomination() external view returns (uint256)
 ```
 
 
 
 
 
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
+### deposit
+
+```solidity
+function deposit(bytes32 _commitment) external payable
+```
+
+
+
+*Deposit funds into the contract. The caller must send (for ETH) or approve (for ERC20) value equal to or `denomination` of this instance.*
+
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| _externalNullifier | uint232 | undefined
+| _commitment | bytes32 | the note commitment = Poseidon(chainId, nullifier, secret)
 
 ### edgeExistsForChain
 
@@ -255,10 +275,10 @@ function edgeList(uint256) external view returns (uint256 chainID, bytes32 root,
 | root | bytes32 | undefined
 | latestLeafIndex | uint256 | undefined
 
-### externalNullifierLinkedList
+### filledSubtrees
 
 ```solidity
-function externalNullifierLinkedList(uint232) external view returns (uint232 next, bool exists, bool isActive)
+function filledSubtrees(uint256) external view returns (bytes32)
 ```
 
 
@@ -269,32 +289,13 @@ function externalNullifierLinkedList(uint232) external view returns (uint232 nex
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint232 | undefined
+| _0 | uint256 | undefined
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| next | uint232 | undefined
-| exists | bool | undefined
-| isActive | bool | undefined
-
-### firstExternalNullifier
-
-```solidity
-function firstExternalNullifier() external view returns (uint232)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint232 | undefined
+| _0 | bytes32 | undefined
 
 ### getChainId
 
@@ -313,6 +314,40 @@ function getChainId() external view returns (uint256)
 |---|---|---|
 | _0 | uint256 | undefined
 
+### getDenomination
+
+```solidity
+function getDenomination() external view returns (uint256)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
+### getLastRoot
+
+```solidity
+function getLastRoot() external view returns (bytes32)
+```
+
+
+
+*Returns the last root*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bytes32 | undefined
+
 ### getLatestNeighborRoots
 
 ```solidity
@@ -330,32 +365,10 @@ function getLatestNeighborRoots() external view returns (bytes32[] roots)
 |---|---|---|
 | roots | bytes32[] | undefined
 
-### getNextExternalNullifier
+### getToken
 
 ```solidity
-function getNextExternalNullifier(uint232 _externalNullifier) external view returns (uint232)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _externalNullifier | uint232 | undefined
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint232 | undefined
-
-### getNumIdentityCommitments
-
-```solidity
-function getNumIdentityCommitments() external view returns (uint256)
+function getToken() external view returns (address)
 ```
 
 
@@ -367,7 +380,7 @@ function getNumIdentityCommitments() external view returns (uint256)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256 | undefined
+| _0 | address | undefined
 
 ### handler
 
@@ -408,121 +421,34 @@ function hasEdge(uint256 _chainID) external view returns (bool)
 |---|---|---|
 | _0 | bool | undefined
 
-### hash11
-
-```solidity
-function hash11(uint256[] array) external pure returns (uint256)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| array | uint256[] | undefined
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined
-
-### hash5
-
-```solidity
-function hash5(uint256[5] array) external pure returns (uint256)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| array | uint256[5] | undefined
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined
-
 ### hashLeftRight
 
 ```solidity
-function hashLeftRight(uint256 _left, uint256 _right) external pure returns (uint256)
+function hashLeftRight(contract IPoseidonT3 _hasher, bytes32 _left, bytes32 _right) external pure returns (bytes32)
 ```
 
 
 
-
+*Hash 2 tree leaves, returns PoseidonT3([_left, _right])*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| _left | uint256 | undefined
-| _right | uint256 | undefined
+| _hasher | contract IPoseidonT3 | undefined
+| _left | bytes32 | undefined
+| _right | bytes32 | undefined
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256 | undefined
+| _0 | bytes32 | undefined
 
-### insertIdentity
-
-```solidity
-function insertIdentity(uint256 _identityCommitment) external nonpayable returns (uint256)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _identityCommitment | uint256 | undefined
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined
-
-### insertLeaf
+### hasher
 
 ```solidity
-function insertLeaf(uint256 _leaf) external nonpayable returns (uint256)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _leaf | uint256 | undefined
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined
-
-### isBroadcastPermissioned
-
-```solidity
-function isBroadcastPermissioned() external view returns (bool)
+function hasher() external view returns (contract IPoseidonT3)
 ```
 
 
@@ -534,29 +460,7 @@ function isBroadcastPermissioned() external view returns (bool)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | bool | undefined
-
-### isExternalNullifierActive
-
-```solidity
-function isExternalNullifierActive(uint232 _externalNullifier) external view returns (bool)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _externalNullifier | uint232 | undefined
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined
+| _0 | contract IPoseidonT3 | undefined
 
 ### isKnownNeighborRoot
 
@@ -603,22 +507,49 @@ function isKnownRoot(bytes32 _root) external view returns (bool)
 |---|---|---|
 | _0 | bool | undefined
 
-### isOwner
+### isSpent
 
 ```solidity
-function isOwner() external view returns (bool)
+function isSpent(bytes32 _nullifierHash) external view returns (bool)
 ```
 
 
 
-*Returns true if the caller is the current owner.*
+*whether a note is already spent *
 
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _nullifierHash | bytes32 | undefined
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
 | _0 | bool | undefined
+
+### isSpentArray
+
+```solidity
+function isSpentArray(bytes32[] _nullifierHashes) external view returns (bool[] spent)
+```
+
+
+
+*whether an array of notes is already spent *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _nullifierHashes | bytes32[] | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| spent | bool[] | undefined
 
 ### isValidRoots
 
@@ -642,10 +573,10 @@ function isValidRoots(bytes32[] roots) external view returns (bool)
 |---|---|---|
 | _0 | bool | undefined
 
-### lastExternalNullifier
+### levels
 
 ```solidity
-function lastExternalNullifier() external view returns (uint232)
+function levels() external view returns (uint32)
 ```
 
 
@@ -657,7 +588,7 @@ function lastExternalNullifier() external view returns (uint232)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint232 | undefined
+| _0 | uint32 | undefined
 
 ### maxEdges
 
@@ -716,10 +647,10 @@ function nextIndex() external view returns (uint32)
 |---|---|---|
 | _0 | uint32 | undefined
 
-### nullifierHashHistory
+### nullifierHashes
 
 ```solidity
-function nullifierHashHistory(uint256) external view returns (bool)
+function nullifierHashes(bytes32) external view returns (bool)
 ```
 
 
@@ -730,158 +661,7 @@ function nullifierHashHistory(uint256) external view returns (bool)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256 | undefined
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined
-
-### numExternalNullifiers
-
-```solidity
-function numExternalNullifiers() external view returns (uint256)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined
-
-### owner
-
-```solidity
-function owner() external view returns (address)
-```
-
-
-
-*Returns the address of the current owner.*
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | address | undefined
-
-### packProof
-
-```solidity
-function packProof(uint256[2] _a, uint256[2][2] _b, uint256[2] _c) external pure returns (uint256[8])
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _a | uint256[2] | undefined
-| _b | uint256[2][2] | undefined
-| _c | uint256[2] | undefined
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256[8] | undefined
-
-### preBroadcastCheck
-
-```solidity
-function preBroadcastCheck(bytes _signal, uint256[8] _proof, bytes _roots, uint256 _nullifiersHash, uint256 _signalHash, uint232 _externalNullifier) external view returns (bool)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _signal | bytes | undefined
-| _proof | uint256[8] | undefined
-| _roots | bytes | undefined
-| _nullifiersHash | uint256 | undefined
-| _signalHash | uint256 | undefined
-| _externalNullifier | uint232 | undefined
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined
-
-### reactivateExternalNullifier
-
-```solidity
-function reactivateExternalNullifier(uint232 _externalNullifier) external nonpayable
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _externalNullifier | uint232 | undefined
-
-### renounceOwnership
-
-```solidity
-function renounceOwnership() external nonpayable
-```
-
-
-
-*Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. &gt; Note: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner.*
-
-
-### root
-
-```solidity
-function root() external view returns (uint256)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined
-
-### rootHistory
-
-```solidity
-function rootHistory(uint256) external view returns (bool)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined
+| _0 | bytes32 | undefined
 
 #### Returns
 
@@ -943,38 +723,6 @@ function setHandler(address _handler) external nonpayable
 |---|---|---|
 | _handler | address | undefined
 
-### setPermissioning
-
-```solidity
-function setPermissioning(bool _newPermission) external nonpayable
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _newPermission | bool | undefined
-
-### transferOwnership
-
-```solidity
-function transferOwnership(address newOwner) external nonpayable
-```
-
-
-
-*Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| newOwner | address | undefined
-
 ### unpackProof
 
 ```solidity
@@ -1020,7 +768,7 @@ function updateEdge(uint256 sourceChainID, bytes32 root, uint256 leafIndex) exte
 ### verifier
 
 ```solidity
-function verifier() external view returns (contract ISemaphoreVerifier)
+function verifier() external view returns (contract IVerifier)
 ```
 
 
@@ -1032,12 +780,29 @@ function verifier() external view returns (contract ISemaphoreVerifier)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | contract ISemaphoreVerifier | undefined
+| _0 | contract IVerifier | undefined
 
-### zeroes
+### withdraw
 
 ```solidity
-function zeroes(uint256 i) external view returns (bytes32)
+function withdraw(bytes _proof, IAnchor.PublicInputs _publicInputs) external payable
+```
+
+
+
+*Withdraw a deposit from the contract. `proof` is a zkSNARK proof data, and input is an array of circuit public inputs `input` array consists of: - merkle root of all deposits in the contract - hash of unique deposit nullifier to prevent double spends - the recipient of funds - optional fee that goes to the transaction sender (usually a relay)*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _proof | bytes | undefined
+| _publicInputs | IAnchor.PublicInputs | undefined
+
+### zeros
+
+```solidity
+function zeros(uint256 i) external pure returns (bytes32)
 ```
 
 
@@ -1059,6 +824,24 @@ function zeroes(uint256 i) external view returns (bytes32)
 
 
 ## Events
+
+### Deposit
+
+```solidity
+event Deposit(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| commitment `indexed` | bytes32 | undefined |
+| leafIndex  | uint32 | undefined |
+| timestamp  | uint256 | undefined |
 
 ### EdgeAddition
 
@@ -1096,10 +879,10 @@ event EdgeUpdate(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot)
 | latestLeafIndex  | uint256 | undefined |
 | merkleRoot  | bytes32 | undefined |
 
-### ExternalNullifierAdd
+### Refresh
 
 ```solidity
-event ExternalNullifierAdd(uint232 indexed externalNullifier)
+event Refresh(bytes32 indexed commitment, bytes32 nullifierHash, uint32 insertedIndex)
 ```
 
 
@@ -1110,12 +893,14 @@ event ExternalNullifierAdd(uint232 indexed externalNullifier)
 
 | Name | Type | Description |
 |---|---|---|
-| externalNullifier `indexed` | uint232 | undefined |
+| commitment `indexed` | bytes32 | undefined |
+| nullifierHash  | bytes32 | undefined |
+| insertedIndex  | uint32 | undefined |
 
-### ExternalNullifierChangeStatus
+### Withdrawal
 
 ```solidity
-event ExternalNullifierChangeStatus(uint232 indexed externalNullifier, bool indexed active)
+event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uint256 fee)
 ```
 
 
@@ -1126,58 +911,10 @@ event ExternalNullifierChangeStatus(uint232 indexed externalNullifier, bool inde
 
 | Name | Type | Description |
 |---|---|---|
-| externalNullifier `indexed` | uint232 | undefined |
-| active `indexed` | bool | undefined |
-
-### LeafInsertion
-
-```solidity
-event LeafInsertion(uint256 indexed leaf, uint256 indexed leafIndex)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| leaf `indexed` | uint256 | undefined |
-| leafIndex `indexed` | uint256 | undefined |
-
-### OwnershipTransferred
-
-```solidity
-event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| previousOwner `indexed` | address | undefined |
-| newOwner `indexed` | address | undefined |
-
-### PermissionSet
-
-```solidity
-event PermissionSet(bool indexed newPermission)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| newPermission `indexed` | bool | undefined |
+| to  | address | undefined |
+| nullifierHash  | bytes32 | undefined |
+| relayer `indexed` | address | undefined |
+| fee  | uint256 | undefined |
 
 
 
