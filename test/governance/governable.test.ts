@@ -5,25 +5,21 @@
  const assert = require('assert');
  const path = require('path');
  import { ethers } from 'hardhat';
- import { BigNumber } from 'ethers';
+ import { BigNumber, Signer } from 'ethers';
  import { toFixedHex } from '@webb-tools/utils';
+ const TruffleAssert = require('truffle-assertions');
  
  // Convenience wrapper classes for contract classes
  import { GovernedTokenWrapper } from '@webb-tools/tokens';
  import { Governable__factory } from '../../typechain';
-
- let elliptic = require('elliptic');
- let sha3 = require('js-sha3');
- let ec = new elliptic.ec('secp256k1');
  
  describe('Governable Contract', () => {
   let governableInstance;
   let sender;
   let nextGovernor;
 
-  before(async () => {
+  beforeEach(async () => {
     const signers = await ethers.getSigners();
-    signers[0].signMessage
     const wallet = signers[0];
     sender = wallet;
     nextGovernor = signers[1];
@@ -33,53 +29,91 @@
     await governableInstance.deployed();
   });
  
-  it.only('should check governor', async () => {
+  it('should check governor', async () => {
     assert.strictEqual((await governableInstance.governor()), sender.address);
   });
 
-  it.only('should recover signer', async () => {
-    let elliptic = require('elliptic');
-    let sha3 = require('js-sha3');
-    let ec = new elliptic.ec('secp256k1');
+  it('should recover signer', async () => {
+    const msg = 'message to sign';
+    const signedMessage = await sender.signMessage(msg);
 
-    // let keyPair = ec.genKeyPair();
-    sender.privateKey; 
-    let keyPair = ec.keyFromPrivate("97ddae0f3a25b92268175400149d65d6887b9cefaf28ea2c078e05cdc15a3c0a");
-    let privKey = keyPair.getPrivate("hex");
-    let pubKey = keyPair.getPublic();
-    console.log(`Private key: ${privKey}`);
-    console.log("Public key :", pubKey.encode("hex").substr(2));
-    console.log("Public key (compressed):",
-        pubKey.encodeCompressed("hex"));
+    const prefixedMsg = "\x19Ethereum Signed Message:\n" + msg.length + msg;
+    var msgBuffer = [];
+    var buffer = new Buffer(prefixedMsg, 'utf8');
+    for (var i = 0; i < buffer.length; i++) {
+      msgBuffer.push(buffer[i]);
+    }
 
-    console.log();
-
-    let msg = 'Message for signing';
-    let msgHash = sha3.keccak256(msg);
-    let signature = ec.sign(msgHash, privKey, "hex", {canonical: true});
-    console.log(`Msg: ${msg}`);
-    console.log(`Msg hash: ${msgHash}`);
-    console.log("Signature:", signature);
-
-    console.log();
-
-    let hexToDecimal = (x) => ec.keyFromPrivate(x, "hex").getPrivate().toString(10);
-    let pubKeyRecovered = ec.recoverPubKey(
-        hexToDecimal(msgHash), signature, signature.recoveryParam, "hex");
-    console.log("Recovered pubKey:", pubKeyRecovered.encodeCompressed("hex"));
-
-    let validSig = ec.verify(msgHash, signature, pubKeyRecovered);
-    console.log("Signature valid?", validSig);
-   
-    await governableInstance.recover(BigNumber.from('0x' + msgHash.toString()), toFixedHex(signature.r) + toFixedHex(signature.s).slice(2) + '01');
-    //console.log(sender.address);
+    await governableInstance.recover(msgBuffer, signedMessage);
+    const filter = governableInstance.filters.RecoveredAddress();
+    const events = await governableInstance.queryFilter(filter);
+    assert.strictEqual(sender.address, events[0].args.recovered);
   });
 
   it('should check ownership is transferred to new governor', async () => {
+    const msg = 'message to sign';
+    const signedMessage = await sender.signMessage(msg);
+
+    const prefixedMsg = "\x19Ethereum Signed Message:\n" + msg.length + msg;
+    var msgBuffer = [];
+    var buffer = new Buffer(prefixedMsg, 'utf8');
+    for (var i = 0; i < buffer.length; i++) {
+      msgBuffer.push(buffer[i]);
+    }
+
+    await governableInstance.transferOwnershipWithSignature(nextGovernor.address, signedMessage, msgBuffer);
+    assert.strictEqual((await governableInstance.governor()), nextGovernor.address);
   });
 
-  it('failing test: old governor should not be able to call onlyGovernor function', async () => {
+  it('failing test: non-governor should not be able to transfer ownership', async() => {
+    const msg = 'message to sign';
+    const signedMessage = await nextGovernor.signMessage(msg);
 
+    const prefixedMsg = "\x19Ethereum Signed Message:\n" + msg.length + msg;
+    var msgBuffer = [];
+    var buffer = new Buffer(prefixedMsg, 'utf8');
+    for (var i = 0; i < buffer.length; i++) {
+      msgBuffer.push(buffer[i]);
+    }
+
+    await TruffleAssert.reverts(
+      governableInstance.connect(nextGovernor).transferOwnership(nextGovernor.address),
+      'Governable: caller is not the governor',
+    );
+    
+    await TruffleAssert.reverts(
+      governableInstance.transferOwnershipWithSignature(nextGovernor.address, signedMessage, msgBuffer),
+      'Governable: caller is not the governor',
+    );
+  });
+
+  it('failing test: old governor should not be able to call an onlyGovernor function', async () => {
+    const msg = 'message to sign';
+    const signedMessage = await sender.signMessage(msg);
+
+    const prefixedMsg = "\x19Ethereum Signed Message:\n" + msg.length + msg;
+    var msgBuffer = [];
+    var buffer = new Buffer(prefixedMsg, 'utf8');
+    for (var i = 0; i < buffer.length; i++) {
+      msgBuffer.push(buffer[i]);
+    }
+
+    await governableInstance.transferOwnershipWithSignature(nextGovernor.address, signedMessage, msgBuffer);
+    
+    await TruffleAssert.reverts(
+      governableInstance.connect(sender).transferOwnership(nextGovernor.address),
+      'Governable: caller is not the governor',
+    );
+  });
+
+  it('test renounce ownership', async() => {
+    await governableInstance.renounceOwnership();
+    assert.strictEqual((await governableInstance.governor()).toString(), '0x0000000000000000000000000000000000000000');
+
+    await TruffleAssert.reverts(
+      governableInstance.connect(sender).transferOwnership(nextGovernor.address),
+      'Governable: caller is not the governor',
+    );
   });
 
  });

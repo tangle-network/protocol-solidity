@@ -8,7 +8,7 @@ contract Governable {
     address private _governor;
 
     event GovernanceOwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-    event RecoveredAddress(address recovered);
+    event RecoveredAddress(address indexed recovered);
 
     mapping (bytes32 => bool) private _usedHashes;
 
@@ -63,7 +63,7 @@ contract Governable {
      * @dev Transfers ownership of the contract to a new account (`newOwner`).
      * Can only be called by the current owner.
      */
-    function transferOwnershipWithSignature(address newOwner, bytes memory sig, bytes memory data) public onlyGovernor {
+    function transferOwnershipWithSignature(address newOwner, bytes memory sig, bytes memory data) public {
         // bytes memory prefix = "\x19Ethereum Signed Message:\n32";
         // bytes32 prefixedHash = keccak256(prefix, hash);
         bytes32 hashedData = keccak256(data);
@@ -84,16 +84,9 @@ contract Governable {
         return (uint(keccak256(pubkey)) & 0x00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) == uint256(uint160(msg.sender));
     }
 
-    // function recover(bytes memory data, bytes memory sig) public {
-    //     bytes32 hashedData = keccak256(data);
-    //     address signer = ECDSA.recover(hashedData, sig);
-    //     console.log(signer);
-    //     emit RecoveredAddress(signer);
-    // }
-
-    function recover(bytes32 hashedData, bytes memory sig) public {
+    function recover(bytes memory data, bytes memory sig) public {
+        bytes32 hashedData = keccak256(data);
         address signer = ECDSA.recover(hashedData, sig);
-        console.log(signer);
         emit RecoveredAddress(signer);
     }
 
