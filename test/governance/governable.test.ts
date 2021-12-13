@@ -17,12 +17,14 @@
   let governableInstance;
   let sender;
   let nextGovernor;
+  let arbSigner;
 
   beforeEach(async () => {
     const signers = await ethers.getSigners();
     const wallet = signers[0];
     sender = wallet;
     nextGovernor = signers[1];
+    arbSigner = signers[2];
     // create poseidon hasher
     const govFactory = new Governable__factory(wallet);
     governableInstance = await govFactory.deploy();
@@ -102,6 +104,25 @@
     
     await TruffleAssert.reverts(
       governableInstance.connect(sender).transferOwnership(nextGovernor.address),
+      'Governable: caller is not the governor',
+    );
+  });
+
+  it('failing test replay attack', async () => {
+    const msg = 'message to sign';
+    const signedMessage = await sender.signMessage(msg);
+
+    const prefixedMsg = "\x19Ethereum Signed Message:\n" + msg.length + msg;
+    var msgBuffer = [];
+    var buffer = new Buffer(prefixedMsg, 'utf8');
+    for (var i = 0; i < buffer.length; i++) {
+      msgBuffer.push(buffer[i]);
+    }
+
+    await governableInstance.transferOwnershipWithSignature(nextGovernor.address, signedMessage, msgBuffer);
+    
+    await TruffleAssert.reverts(
+      governableInstance.connect(arbSigner).transferOwnershipWithSignature(arbSigner.address, signedMessage, msgBuffer),
       'Governable: caller is not the governor',
     );
   });
