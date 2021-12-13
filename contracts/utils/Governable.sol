@@ -12,8 +12,8 @@ contract Governable {
 
     mapping (bytes32 => bool) private _usedHashes;
 
-    constructor () {
-        _governor = msg.sender;
+    constructor (address governor) {
+        _governor = governor;
         emit GovernanceOwnershipTransferred(address(0), _governor);
     }
 
@@ -40,6 +40,15 @@ contract Governable {
     }
 
     /**
+     * @dev Returns true if the signature is signed by the current governor.
+     */
+    function isSignatureFromGovernor(bytes memory data, bytes memory sig) public view returns (bool) {
+        bytes32 hashedData = keccak256(data);
+        address signer = ECDSA.recover(hashedData, sig);
+        return signer == governor();
+    }
+
+    /**
      * @dev Leaves the contract without owner. It will not be possible to call
      * `onlyGovernor` functions anymore. Can only be called by the current owner.
      *
@@ -63,10 +72,8 @@ contract Governable {
      * @dev Transfers ownership of the contract to a new account (`newOwner`).
      * Can only be called by the current owner.
      */
-    function transferOwnershipWithSignature(address newOwner, bytes memory sig, bytes memory data) public {
-        bytes32 hashedData = keccak256(data);
-        address signer = ECDSA.recover(hashedData, sig);
-        require(signer == governor(), "Governable: caller is not the governor");
+    function transferOwnershipWithSignature(address newOwner, bytes memory sig) public {
+        require(isSignatureFromGovernor(abi.encodePacked(newOwner), sig), "Governable: caller is not the governor");
         _transferOwnership(newOwner);
     }
 
