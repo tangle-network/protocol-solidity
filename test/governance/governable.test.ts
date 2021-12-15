@@ -32,16 +32,6 @@
     const govFactory = new Governable__factory(wallet);
     governableInstance = await govFactory.deploy(sender.address);
     await governableInstance.deployed();
-
-    const messagePrefix = "\x19Ethereum Signed Message:\n";
-    hashMessage = (message: Bytes | string): any => {
-      if (typeof(message) === "string") { message = toUtf8Bytes(message); }
-      return concat([
-          toUtf8Bytes(messagePrefix),
-          toUtf8Bytes(String(message.length)),
-          message
-      ]);
-    }
   });
  
   it('should check governor', async () => {
@@ -65,7 +55,7 @@
     assert.strictEqual(sender.address, events[0].args.recovered);
   });
 
-  it.only('should check ownership is transferred to new governor', async () => {
+  it('should check ownership is transferred to new governor', async () => {
     const msg = ethers.utils.arrayify(nextGovernor.address);
     const signedMessage = await sender.signMessage(msg);
     await governableInstance.transferOwnershipWithSignature(nextGovernor.address, signedMessage);
@@ -78,11 +68,6 @@
 
     await TruffleAssert.reverts(
       governableInstance.connect(nextGovernor).transferOwnership(nextGovernor.address),
-      'Governable: caller is not the governor',
-    );
-    
-    await TruffleAssert.reverts(
-      governableInstance.connect(nextGovernor).transferOwnershipWithSignature(nextGovernor.address, signedMessage),
       'Governable: caller is not the governor',
     );
   });
