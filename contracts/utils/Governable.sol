@@ -73,7 +73,8 @@ contract Governable {
      * Can only be called by the current owner.
      */
     function transferOwnershipWithSignature(address newOwner, bytes memory sig) public {
-        require(isSignatureFromGovernor(abi.encodePacked(newOwner), sig), "Governable: caller is not the governor");
+        bytes memory prefix = "\x19Ethereum Signed Message:\n20";
+        require(isSignatureFromGovernor(abi.encodePacked(prefix, abi.encodePacked(newOwner)), sig), "Governable: caller is not the governor");
         _transferOwnership(newOwner);
     }
 
