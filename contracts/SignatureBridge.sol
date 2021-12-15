@@ -19,7 +19,7 @@ import "./interfaces/IERCHandler.sol";
     @title Facilitates deposits, creation and voting of deposit proposals, and deposit executions.
     @author ChainSafe Systems & Webb Technologies.
  */
-contract ThresholdBridge is Pausable, SafeMath, Governable {
+contract SignatureBridge is Pausable, SafeMath, Governable {
     using SafeCast for *;
 
     uint256 public _chainID;
