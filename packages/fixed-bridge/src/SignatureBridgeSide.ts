@@ -2,6 +2,7 @@ import { BigNumberish, ethers } from "ethers";
 import { SignatureBridge, SignatureBridge__factory } from '../../../typechain';
 import { Anchor } from './Anchor';
 import { AnchorHandler } from "./AnchorHandler";
+import { toFixedHex } from "@webb-tools/utils";
 
 export type Proposal = {
   data: string,
@@ -84,13 +85,6 @@ export class SignatureBridgeSide {
       throw new Error("Cannot connect an anchor without a handler");
     }
     const resourceId = await anchor.createResourceId();
-    
-    // TODO: Ensure properly packed, abi.encodePacked(handlerAddress, resourceID, executionContextAddress)
-    // const unsignedData = ethers.utils.defaultAbiCoder.encode([ "address", "bytes32", "address" ], [
-    //   this.handler.contract.address,
-    //   resourceId,
-    //   anchor.contract.address
-    // ]);
 
     const unsignedData = this.handler.contract.address + resourceId.slice(2) + anchor.contract.address.slice(2);
     const unsignedMsg = ethers.utils.arrayify(unsignedData);
@@ -100,8 +94,9 @@ export class SignatureBridgeSide {
   }
 
   public async changeFeeWithSignature(fee: BigNumberish): Promise<void> {
-    const sig = await this.signingSystemSignFn(fee);
-    await this.contract.adminChangeFeeWithSignature(fee, sig);
+    const feeMsg = ethers.utils.arrayify(toFixedHex(fee));
+    const sig = await this.signingSystemSignFn(feeMsg);
+    await this.contract.adminChangeFeeWithSignature(feeMsg, sig);
     return;
   }
 

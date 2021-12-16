@@ -48,9 +48,15 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
 
     bytes32 public constant RELAYER_ROLE = keccak256("RELAYER_ROLE");
 
-    modifier signedByGovernor(bytes memory data, bytes memory sig) {
+    modifier signedByGovernorResource(bytes memory data, bytes memory sig) {
         bytes memory prefix = "\x19Ethereum Signed Message:\n72";
-        require(isSignatureFromGovernor(abi.encodePacked(prefix, data), sig));
+        require(isSignatureFromGovernor(abi.encodePacked(prefix, data), sig), "signed by governor: Not valid sig from governor");
+        _;
+    }
+
+    modifier signedByGovernorFee(bytes memory data, bytes memory sig) {
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        require(isSignatureFromGovernor(abi.encodePacked(prefix, data), sig), "signed by governor: Not valid sig from governor");
         _;
     }
 
@@ -79,7 +85,7 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
       bytes32 resourceID,
       address executionContextAddress,
       bytes memory sig
-    ) external signedByGovernor(abi.encodePacked(handlerAddress, resourceID, executionContextAddress), sig) {
+    ) external signedByGovernorResource(abi.encodePacked(handlerAddress, resourceID, executionContextAddress), sig) {
         _resourceIDToHandlerAddress[resourceID] = handlerAddress;
         IExecutor handler = IExecutor(handlerAddress);
         handler.setResource(resourceID, executionContextAddress);
@@ -93,7 +99,7 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
     function adminChangeFeeWithSignature(
       uint256 newFee,
       bytes memory sig
-    ) external signedByGovernor(abi.encodePacked(newFee), sig) {
+    ) external signedByGovernorFee(abi.encodePacked(newFee), sig) {
         require(_fee != newFee, "Current fee is equal to new fee");
         _fee = newFee.toUint128();
     }
@@ -115,7 +121,7 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
       bytes calldata data,
       bytes32 resourceID,
       bytes memory sig
-    ) external signedByGovernor(data, sig) {
+    ) external signedByGovernorFee(data, sig) {
         address handler = _resourceIDToHandlerAddress[resourceID];
         bytes32 dataHash = keccak256(abi.encodePacked(handler, data));
 

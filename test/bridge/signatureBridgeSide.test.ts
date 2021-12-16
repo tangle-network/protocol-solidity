@@ -26,43 +26,88 @@
      );
    })
  
-   it.only('should create the signature bridge side which can affect the anchor state', async () => {
+   it('should create the signature bridge side which can affect the anchor state', async () => {
      const signers = await ethers.getSigners();
      const initialGovernor = signers[1];
      const admin = signers[1];
      const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, 0, 100, admin);
- 
-     // Create the Hasher and Verifier for the chain
-     const hasherFactory = new PoseidonT3__factory(admin);
-     let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
-     await hasherInstance.deployed();
- 
-     const verifier = await Verifier.createVerifier(admin);
- 
-     const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
-     await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
- 
-     const anchor = await Anchor.createAnchor(
-       verifier.contract.address,
-       hasherInstance.address,
-       '1000000000000',
-       30,
-       tokenInstance.contract.address,
-       admin.address,
-       admin.address,
-       admin.address,
-       5,
-       zkComponents,
-       admin
-     );
-
-     await tokenInstance.approveSpending(anchor.contract.address);
-
-     const anchorHandler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, [], [], admin);
- 
-     await bridgeSide.setAnchorHandler(anchorHandler);
-
-     await bridgeSide.connectAnchorWithSignature(anchor);
    })
+
+   it('should set resource with signature', async () => {
+    const signers = await ethers.getSigners();
+    const initialGovernor = signers[1];
+    const admin = signers[1];
+    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, 0, 100, admin);
+
+    // Create the Hasher and Verifier for the chain
+    const hasherFactory = new PoseidonT3__factory(admin);
+    let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
+    await hasherInstance.deployed();
+
+    const verifier = await Verifier.createVerifier(admin);
+
+    const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
+    await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
+
+    const anchor = await Anchor.createAnchor(
+      verifier.contract.address,
+      hasherInstance.address,
+      '1000000000000',
+      30,
+      tokenInstance.contract.address,
+      admin.address,
+      admin.address,
+      admin.address,
+      5,
+      zkComponents,
+      admin
+    );
+
+    await tokenInstance.approveSpending(anchor.contract.address);
+
+    const anchorHandler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, [], [], admin);
+
+    await bridgeSide.setAnchorHandler(anchorHandler);
+    //Function call below sets resource with signature
+    await bridgeSide.connectAnchorWithSignature(anchor);
+  })
+
+  it('should set fee with signature', async () => {
+    const signers = await ethers.getSigners();
+    const initialGovernor = signers[1];
+    const admin = signers[1];
+    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, 0, 100, admin);
+
+    // Create the Hasher and Verifier for the chain
+    const hasherFactory = new PoseidonT3__factory(admin);
+    let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
+    await hasherInstance.deployed();
+
+    const verifier = await Verifier.createVerifier(admin);
+
+    const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
+    await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
+
+    const anchor = await Anchor.createAnchor(
+      verifier.contract.address,
+      hasherInstance.address,
+      '1000000000000',
+      30,
+      tokenInstance.contract.address,
+      admin.address,
+      admin.address,
+      admin.address,
+      5,
+      zkComponents,
+      admin
+    );
+
+    await tokenInstance.approveSpending(anchor.contract.address);
+
+    const anchorHandler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, [], [], admin);
+
+    await bridgeSide.setAnchorHandler(anchorHandler);
+    await bridgeSide.changeFeeWithSignature(5);
+  })
  
  })
