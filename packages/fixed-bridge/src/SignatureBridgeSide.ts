@@ -110,7 +110,8 @@ export class SignatureBridgeSide {
     const resourceId = await thisAnchor.createResourceId();
     const chainId = await linkedAnchor.signer.getChainId();
     const nonce = linkedAnchor.tree.number_of_elements() - 1;
-    const sig = await this.signingSystemSignFn(proposalData);
+    const proposalMsg = ethers.utils.arrayify(proposalData);
+    const sig = await this.signingSystemSignFn(proposalMsg);
     const tx = await this.contract.executeProposalWithSignature(chainId, nonce, proposalData, resourceId, sig);
     const receipt = await tx.wait();
     

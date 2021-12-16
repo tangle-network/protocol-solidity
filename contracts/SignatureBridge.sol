@@ -60,6 +60,12 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
         _;
     }
 
+    modifier signedByGovernorExecuteProposal(bytes memory data, bytes memory sig) {
+        bytes memory prefix = "\x19Ethereum Signed Message:\n96";
+        require(isSignatureFromGovernor(abi.encodePacked(prefix, data), sig), "signed by governor: Not valid sig from governor");
+        _;
+    }
+
     /**
         @notice Initializes Bridge, creates and grants {msg.sender} the admin role,
         creates and grants {initialGovernor} the relayer role.
@@ -121,10 +127,9 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
       bytes calldata data,
       bytes32 resourceID,
       bytes memory sig
-    ) external signedByGovernorFee(data, sig) {
+    ) external signedByGovernorExecuteProposal(data, sig) {
         address handler = _resourceIDToHandlerAddress[resourceID];
         bytes32 dataHash = keccak256(abi.encodePacked(handler, data));
-
         IExecutor executionHandler = IExecutor(handler);
         executionHandler.executeProposal(resourceID, data);
 
