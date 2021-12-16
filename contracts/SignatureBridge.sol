@@ -49,7 +49,8 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
     bytes32 public constant RELAYER_ROLE = keccak256("RELAYER_ROLE");
 
     modifier signedByGovernor(bytes memory data, bytes memory sig) {
-        require(isSignatureFromGovernor(data, sig));
+        bytes memory prefix = "\x19Ethereum Signed Message:\n96";
+        require(isSignatureFromGovernor(abi.encodePacked(prefix, data), sig));
         _;
     }
 
