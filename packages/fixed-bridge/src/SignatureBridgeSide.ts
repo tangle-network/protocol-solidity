@@ -1,8 +1,7 @@
 import { BigNumberish, ethers } from "ethers";
-import { Bridge, Bridge__factory } from '@webb-tools/contracts';
+import { SignatureBridge, SignatureBridge__factory } from '../../../typechain';
 import { Anchor } from './Anchor';
 import { AnchorHandler } from "./AnchorHandler";
-import { SignatureBridge, SignatureBridge__factory } from "typechain";
 
 export type Proposal = {
   data: string,
@@ -92,7 +91,8 @@ export class SignatureBridgeSide {
       resourceId,
       anchor.contract.address
     ]);
-    const sig = await this.signingSystemSignFn(unsignedData);
+    const unsignedMsg = ethers.utils.arrayify(unsignedData);
+    const sig = await this.signingSystemSignFn(unsignedMsg);
     await this.contract.adminSetResourceWithSignature(this.handler.contract.address, resourceId, anchor.contract.address, sig);
     return resourceId;
   }

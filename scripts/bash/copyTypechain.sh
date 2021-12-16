@@ -9,6 +9,7 @@ cp ./typechain/AnchorBase.d.ts ./packages/contracts/src/AnchorBase.d.ts
 cp ./typechain/AnchorHandler.d.ts ./packages/contracts/src/AnchorHandler.d.ts
 cp ./typechain/AnchorProxy.d.ts ./packages/contracts/src/AnchorProxy.d.ts
 cp ./typechain/Bridge.d.ts ./packages/contracts/src/Bridge.d.ts
+cp ./typechain/SignatureBridge.d.ts ./packages/contracts/src/SignatureBridge.d.ts
 cp ./typechain/common.d.ts ./packages/contracts/src/common.d.ts
 cp ./typechain/ERC20.d.ts ./packages/contracts/src/ERC20.d.ts
 cp ./typechain/ERC20Handler.d.ts ./packages/contracts/src/ERC20Handler.d.ts
@@ -40,6 +41,7 @@ cp ./typechain/factories/AnchorBase__factory.ts ./packages/contracts/src/factori
 cp ./typechain/factories/AnchorHandler__factory.ts ./packages/contracts/src/factories/AnchorHandler__factory.ts
 cp ./typechain/factories/AnchorProxy__factory.ts ./packages/contracts/src/factories/AnchorProxy__factory.ts
 cp ./typechain/factories/Bridge__factory.ts ./packages/contracts/src/factories/Bridge__factory.ts
+cp ./typechain/factories/SignatureBridge__factory.ts ./packages/contracts/src/factories/SignatureBridge__factory.ts
 cp ./typechain/factories/ERC20__factory.ts ./packages/contracts/src/factories/ERC20__factory.ts
 cp ./typechain/factories/ERC20Handler__factory.ts ./packages/contracts/src/factories/ERC20Handler__factory.ts
 cp ./typechain/factories/ERC20PresetMinterPauser__factory.ts ./packages/contracts/src/factories/ERC20PresetMinterPauser__factory.ts
