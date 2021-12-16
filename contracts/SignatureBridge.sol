@@ -78,7 +78,7 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
       bytes32 resourceID,
       address executionContextAddress,
       bytes memory sig
-    ) external signedByGovernor(abi.encodePacked(handlerAddress, resourceID, executionContextAddress), sig) {
+    ) external signedByGovernor(abi.encode(handlerAddress, resourceID, executionContextAddress), sig) {
         _resourceIDToHandlerAddress[resourceID] = handlerAddress;
         IExecutor handler = IExecutor(handlerAddress);
         handler.setResource(resourceID, executionContextAddress);
