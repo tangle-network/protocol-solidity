@@ -49,7 +49,7 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
     bytes32 public constant RELAYER_ROLE = keccak256("RELAYER_ROLE");
 
     modifier signedByGovernor(bytes memory data, bytes memory sig) {
-        bytes memory prefix = "\x19Ethereum Signed Message:\n96";
+        bytes memory prefix = "\x19Ethereum Signed Message:\n72";
         require(isSignatureFromGovernor(abi.encodePacked(prefix, data), sig));
         _;
     }
@@ -79,7 +79,7 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
       bytes32 resourceID,
       address executionContextAddress,
       bytes memory sig
-    ) external signedByGovernor(abi.encode(handlerAddress, resourceID, executionContextAddress), sig) {
+    ) external signedByGovernor(abi.encodePacked(handlerAddress, resourceID, executionContextAddress), sig) {
         _resourceIDToHandlerAddress[resourceID] = handlerAddress;
         IExecutor handler = IExecutor(handlerAddress);
         handler.setResource(resourceID, executionContextAddress);

@@ -86,11 +86,13 @@ export class SignatureBridgeSide {
     const resourceId = await anchor.createResourceId();
     
     // TODO: Ensure properly packed, abi.encodePacked(handlerAddress, resourceID, executionContextAddress)
-    const unsignedData = ethers.utils.defaultAbiCoder.encode([ "address", "bytes32", "address" ], [
-      this.handler.contract.address,
-      resourceId,
-      anchor.contract.address
-    ]);
+    // const unsignedData = ethers.utils.defaultAbiCoder.encode([ "address", "bytes32", "address" ], [
+    //   this.handler.contract.address,
+    //   resourceId,
+    //   anchor.contract.address
+    // ]);
+
+    const unsignedData = this.handler.contract.address + resourceId.slice(2) + anchor.contract.address.slice(2);
     const unsignedMsg = ethers.utils.arrayify(unsignedData);
     const sig = await this.signingSystemSignFn(unsignedMsg);
     await this.contract.adminSetResourceWithSignature(this.handler.contract.address, resourceId, anchor.contract.address, sig);
