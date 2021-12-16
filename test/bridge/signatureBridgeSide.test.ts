@@ -49,6 +49,8 @@
     const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
     await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
 
+    const anchorHandler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, [], [], admin);
+
     const anchor = await Anchor.createAnchor(
       verifier.contract.address,
       hasherInstance.address,
@@ -64,8 +66,6 @@
     );
 
     await tokenInstance.approveSpending(anchor.contract.address);
-
-    const anchorHandler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, [], [], admin);
 
     await bridgeSide.setAnchorHandler(anchorHandler);
     //Function call below sets resource with signature
@@ -88,15 +88,17 @@
     const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
     await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
 
+    const anchorHandler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, [], [], admin);
+
     const anchor = await Anchor.createAnchor(
       verifier.contract.address,
       hasherInstance.address,
       '1000000000000',
       30,
       tokenInstance.contract.address,
+      bridgeSide.contract.address,
       admin.address,
-      admin.address,
-      admin.address,
+      anchorHandler.contract.address,
       5,
       zkComponents,
       admin
@@ -104,15 +106,13 @@
 
     await tokenInstance.approveSpending(anchor.contract.address);
 
-    const anchorHandler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, [], [], admin);
-
     await bridgeSide.setAnchorHandler(anchorHandler);
     await bridgeSide.changeFeeWithSignature(5);
     //Check that new fee is actually 5
     assert.strictEqual((await bridgeSide.contract._fee()).toString(), '5');
   })
  
-  it.only('execute proposal (but not really since it is on', async () => {
+  it('execute proposal (but not really since it is on', async () => {
     const signers = await ethers.getSigners();
     const initialGovernor = signers[1];
     const admin = signers[1];

@@ -62,7 +62,7 @@ function checkNativeAddress(tokenAddress: string): boolean {
 }
 
 // A bridge is 
-export class Bridge {
+export class SignatureBridge {
   private constructor(
     // Mapping of chainId => bridgeSide
     public bridgeSides: Map<number, SignatureBridgeSide>,
@@ -116,7 +116,7 @@ export class Bridge {
     return linkedAnchorMap;
   }
 
-  public static async deployBridge(bridgeInput: BridgeInput, deployers: DeployerConfig, zkComponents: ZkComponents): Promise<Bridge> {
+  public static async deployBridge(bridgeInput: BridgeInput, deployers: DeployerConfig, zkComponents: ZkComponents): Promise<SignatureBridge> {
     
     let webbTokenAddresses: Map<number, string> = new Map();
     let bridgeSides: Map<number, SignatureBridgeSide> = new Map();
@@ -207,12 +207,12 @@ export class Bridge {
 
         chainGroupedAnchors.push(anchorInstance);
         anchors.set(
-          Bridge.createAnchorIdString({anchorSize, chainId: chainID}),
+          SignatureBridge.createAnchorIdString({anchorSize, chainId: chainID}),
           anchorInstance
         );
       }
 
-      await Bridge.setPermissions(bridgeInstance, chainGroupedAnchors);
+      await SignatureBridge.setPermissions(bridgeInstance, chainGroupedAnchors);
       createdAnchors.push(chainGroupedAnchors);
     }
 
@@ -229,8 +229,8 @@ export class Bridge {
     }
 
     // finally, link the anchors
-    const linkedAnchorMap = await Bridge.createLinkedAnchorMap(groupLinkedAnchors);
-    return new Bridge(bridgeSides, webbTokenAddresses, linkedAnchorMap, anchors);
+    const linkedAnchorMap = await SignatureBridge.createLinkedAnchorMap(groupLinkedAnchors);
+    return new SignatureBridge(bridgeSides, webbTokenAddresses, linkedAnchorMap, anchors);
   }
 
   // The setPermissions method accepts initialized bridgeSide and anchors.
@@ -287,7 +287,7 @@ export class Bridge {
 
   public getAnchor(chainId: number, anchorSize: ethers.BigNumberish) {
     let intendedAnchor: Anchor | undefined = undefined;
-    intendedAnchor = this.anchors.get(Bridge.createAnchorIdString({anchorSize, chainId}));
+    intendedAnchor = this.anchors.get(SignatureBridge.createAnchorIdString({anchorSize, chainId}));
     return intendedAnchor;
   }
 
