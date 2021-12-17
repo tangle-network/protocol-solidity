@@ -8,6 +8,8 @@
  import { BigNumber, Signer } from 'ethers';
  import { toFixedHex } from '@webb-tools/utils';
  const TruffleAssert = require('truffle-assertions');
+ import { Bytes, concat } from "@ethersproject/bytes";
+ import { toUtf8Bytes, toUtf8String } from "@ethersproject/strings";
  
  // Convenience wrapper classes for contract classes
  import { GovernedTokenWrapper } from '@webb-tools/tokens';
@@ -18,6 +20,7 @@
   let sender;
   let nextGovernor;
   let arbSigner;
+  let hashMessage;
 
   beforeEach(async () => {
     const signers = await ethers.getSigners();
@@ -27,7 +30,7 @@
     arbSigner = signers[2];
     // create poseidon hasher
     const govFactory = new Governable__factory(wallet);
-    governableInstance = await govFactory.deploy();
+    governableInstance = await govFactory.deploy(sender.address);
     await governableInstance.deployed();
   });
  
@@ -53,54 +56,27 @@
   });
 
   it('should check ownership is transferred to new governor', async () => {
-    const msg = 'message to sign';
+    const msg = ethers.utils.arrayify(nextGovernor.address);
     const signedMessage = await sender.signMessage(msg);
-
-    const prefixedMsg = "\x19Ethereum Signed Message:\n" + msg.length + msg;
-    var msgBuffer = [];
-    var buffer = new Buffer(prefixedMsg, 'utf8');
-    for (var i = 0; i < buffer.length; i++) {
-      msgBuffer.push(buffer[i]);
-    }
-
-    await governableInstance.transferOwnershipWithSignature(nextGovernor.address, signedMessage, msgBuffer);
+    await governableInstance.transferOwnershipWithSignature(nextGovernor.address, signedMessage);
     assert.strictEqual((await governableInstance.governor()), nextGovernor.address);
   });
 
   it('failing test: non-governor should not be able to transfer ownership', async() => {
-    const msg = 'message to sign';
-    const signedMessage = await nextGovernor.signMessage(msg);
-
-    const prefixedMsg = "\x19Ethereum Signed Message:\n" + msg.length + msg;
-    var msgBuffer = [];
-    var buffer = new Buffer(prefixedMsg, 'utf8');
-    for (var i = 0; i < buffer.length; i++) {
-      msgBuffer.push(buffer[i]);
-    }
+    const msg = ethers.utils.arrayify(nextGovernor.address);
+    const signedMessage = await sender.signMessage(msg);
 
     await TruffleAssert.reverts(
       governableInstance.connect(nextGovernor).transferOwnership(nextGovernor.address),
       'Governable: caller is not the governor',
     );
-    
-    await TruffleAssert.reverts(
-      governableInstance.transferOwnershipWithSignature(nextGovernor.address, signedMessage, msgBuffer),
-      'Governable: caller is not the governor',
-    );
   });
 
   it('failing test: old governor should not be able to call an onlyGovernor function', async () => {
-    const msg = 'message to sign';
+    const msg = ethers.utils.arrayify(nextGovernor.address);
     const signedMessage = await sender.signMessage(msg);
 
-    const prefixedMsg = "\x19Ethereum Signed Message:\n" + msg.length + msg;
-    var msgBuffer = [];
-    var buffer = new Buffer(prefixedMsg, 'utf8');
-    for (var i = 0; i < buffer.length; i++) {
-      msgBuffer.push(buffer[i]);
-    }
-
-    await governableInstance.transferOwnershipWithSignature(nextGovernor.address, signedMessage, msgBuffer);
+    await governableInstance.transferOwnershipWithSignature(nextGovernor.address, signedMessage);
     
     await TruffleAssert.reverts(
       governableInstance.connect(sender).transferOwnership(nextGovernor.address),
@@ -109,20 +85,13 @@
   });
 
   it('failing test replay attack', async () => {
-    const msg = 'message to sign';
+    const msg = ethers.utils.arrayify(nextGovernor.address);
     const signedMessage = await sender.signMessage(msg);
 
-    const prefixedMsg = "\x19Ethereum Signed Message:\n" + msg.length + msg;
-    var msgBuffer = [];
-    var buffer = new Buffer(prefixedMsg, 'utf8');
-    for (var i = 0; i < buffer.length; i++) {
-      msgBuffer.push(buffer[i]);
-    }
-
-    await governableInstance.transferOwnershipWithSignature(nextGovernor.address, signedMessage, msgBuffer);
+    await governableInstance.transferOwnershipWithSignature(nextGovernor.address, signedMessage);
     
     await TruffleAssert.reverts(
-      governableInstance.connect(arbSigner).transferOwnershipWithSignature(arbSigner.address, signedMessage, msgBuffer),
+      governableInstance.connect(arbSigner).transferOwnershipWithSignature(arbSigner.address, signedMessage),
       'Governable: caller is not the governor',
     );
   });
