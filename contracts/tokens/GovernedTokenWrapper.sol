@@ -21,6 +21,7 @@ contract GovernedTokenWrapper is TokenWrapper {
 
   bool public isNativeAllowed;
   uint256 public wrappingLimit;
+  uint public storageNonce = 0;
 
   constructor(string memory name, string memory symbol, address _governor, uint256 _limit, bool _isNativeAllowed) TokenWrapper(name, symbol) {
     governor = _governor;
@@ -35,20 +36,24 @@ contract GovernedTokenWrapper is TokenWrapper {
   function setNativeAllowed(bool _isNativeAllowed) public onlyGovernor {
     isNativeAllowed = _isNativeAllowed;
   }
-
-  function add(address tokenAddress) public onlyGovernor {
+      
+  function add(address tokenAddress, uint nonce) public onlyGovernor {
     require(!valid[tokenAddress], "Token should not be valid");
+    require(storageNonce < nonce, "Invalid nonce");
     tokens.push(tokenAddress);
     valid[tokenAddress] = true;
+    storageNonce = nonce;
   }
 
   function updateLimit(uint256 limit) public onlyGovernor {
     wrappingLimit = limit;
   }
 
-  function setFee(uint8 _feePercentage) override external onlyGovernor {
+  function setFee(uint8 _feePercentage, uint nonce) override external onlyGovernor {
     require(0 <= _feePercentage && _feePercentage <= 100, "invalid fee percentage");
+    require(storageNonce < nonce, "Invalid nonce");
     feePercentage = _feePercentage;
+    storageNonce = nonce;
   }
 
   function _isValidAddress(address tokenAddress) override internal virtual returns (bool) {

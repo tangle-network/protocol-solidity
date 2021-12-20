@@ -64,7 +64,7 @@ function PAUSER_ROLE() external view returns (bytes32)
 ### add
 
 ```solidity
-function add(address tokenAddress) external nonpayable
+function add(address tokenAddress, uint256 nonce) external nonpayable
 ```
 
 
@@ -76,6 +76,7 @@ function add(address tokenAddress) external nonpayable
 | Name | Type | Description |
 |---|---|---|
 | tokenAddress | address | undefined
+| nonce | uint256 | undefined
 
 ### allowance
 
@@ -542,7 +543,7 @@ function revokeRole(bytes32 role, address account) external nonpayable
 ### setFee
 
 ```solidity
-function setFee(uint8 _feePercentage) external nonpayable
+function setFee(uint8 _feePercentage, uint256 nonce) external nonpayable
 ```
 
 
@@ -554,6 +555,7 @@ function setFee(uint8 _feePercentage) external nonpayable
 | Name | Type | Description |
 |---|---|---|
 | _feePercentage | uint8 | undefined
+| nonce | uint256 | undefined
 
 ### setGovernor
 
@@ -586,6 +588,23 @@ function setNativeAllowed(bool _isNativeAllowed) external nonpayable
 | Name | Type | Description |
 |---|---|---|
 | _isNativeAllowed | bool | undefined
+
+### storageNonce
+
+```solidity
+function storageNonce() external view returns (uint256)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
 
 ### supportsInterface
 
