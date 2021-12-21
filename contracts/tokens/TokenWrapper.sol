@@ -185,6 +185,9 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
     function _isValidAddress(address tokenAddress) internal virtual returns (bool);
 
     /** @dev this function is defined in a child contract */
+    function _isValidHistoricalAddress(address tokenAddress) internal virtual returns (bool);
+
+    /** @dev this function is defined in a child contract */
     function _isNativeValid() internal virtual returns (bool);
 
     /** @dev this function is defined in a child contract */
@@ -214,7 +217,7 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
             require(_isNativeValid(), "Native unwrapping is not allowed for this token wrapper");
         } else {
             require(IERC20(tokenAddress).balanceOf(address(this)) >= amount, "Insufficient ERC20 balance");
-            require(_isValidAddress(tokenAddress), "Invalid token address");
+            require(_isValidHistoricalAddress(tokenAddress), "Invalid historical token address");
         }
 
         _;

@@ -404,6 +404,28 @@ function hasRole(bytes32 role, address account) external view returns (bool)
 |---|---|---|
 | _0 | bool | undefined
 
+### historicalTokens
+
+```solidity
+function historicalTokens(uint256) external view returns (address)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined
+
 ### increaseAllowance
 
 ```solidity
@@ -505,6 +527,22 @@ function paused() external view returns (bool)
 | Name | Type | Description |
 |---|---|---|
 | _0 | bool | undefined
+
+### remove
+
+```solidity
+function remove(address tokenAddress) external nonpayable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| tokenAddress | address | undefined
 
 ### renounceRole
 
