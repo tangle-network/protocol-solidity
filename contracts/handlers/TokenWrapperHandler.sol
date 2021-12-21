@@ -94,7 +94,7 @@ contract TokenWrapperHandler is IExecutor, HandlerHelpers {
         if (functionSig == bytes4(keccak256("setFee(uint,uint)"))) {
             // send fee update
             governedToken.setFee(uint8(bytes1(updateValue)), nonce);
-        } else if (functionSig == bytes4(keccak256("add(address)"))) {
+        } else if (functionSig == bytes4(keccak256("add(address,uint)"))) {
             // validate token address is correct/real/etc.
             // send add
             governedToken.add(address(bytes20(updateValue)), nonce);

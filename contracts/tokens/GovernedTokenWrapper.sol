@@ -40,6 +40,7 @@ contract GovernedTokenWrapper is TokenWrapper {
   function add(address tokenAddress, uint nonce) public onlyGovernor {
     require(!valid[tokenAddress], "Token should not be valid");
     require(storageNonce < nonce, "Invalid nonce");
+    require(nonce <= storageNonce + 1, "Nonce must increment by 1");
     tokens.push(tokenAddress);
     valid[tokenAddress] = true;
     storageNonce = nonce;
@@ -52,6 +53,7 @@ contract GovernedTokenWrapper is TokenWrapper {
   function setFee(uint8 _feePercentage, uint nonce) override external onlyGovernor {
     require(0 <= _feePercentage && _feePercentage <= 100, "invalid fee percentage");
     require(storageNonce < nonce, "Invalid nonce");
+    require(nonce <= storageNonce + 1, "Nonce must increment by 1");
     feePercentage = _feePercentage;
     storageNonce = nonce;
   }

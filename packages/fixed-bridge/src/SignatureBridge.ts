@@ -171,7 +171,7 @@ export class SignatureBridge {
       for (const tokenToBeWrapped of bridgeInput.anchorInputs.asset[chainID]!) {
         // if the address is not '0', then add it
         if (!checkNativeAddress(tokenToBeWrapped)) {
-          const tx = await tokenInstance.contract.add(tokenToBeWrapped);
+          const tx = await tokenInstance.contract.add(tokenToBeWrapped, (await tokenInstance.contract.storageNonce()).add(1));
           const receipt = await tx.wait();
         }
       }

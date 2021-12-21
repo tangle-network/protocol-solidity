@@ -25,7 +25,7 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
     "DEFAULT_ADMIN_ROLE()": FunctionFragment;
     "MINTER_ROLE()": FunctionFragment;
     "PAUSER_ROLE()": FunctionFragment;
-    "add(address)": FunctionFragment;
+    "add(address,uint256)": FunctionFragment;
     "allowance(address,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
@@ -50,9 +50,10 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
     "paused()": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
-    "setFee(uint8)": FunctionFragment;
+    "setFee(uint8,uint256)": FunctionFragment;
     "setGovernor(address)": FunctionFragment;
     "setNativeAllowed(bool)": FunctionFragment;
+    "storageNonce()": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
     "symbol()": FunctionFragment;
     "tokens(uint256)": FunctionFragment;
@@ -82,7 +83,10 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
     functionFragment: "PAUSER_ROLE",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "add", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "add",
+    values: [string, BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "allowance",
     values: [string, string]
@@ -157,12 +161,16 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setFee",
-    values: [BigNumberish]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "setGovernor", values: [string]): string;
   encodeFunctionData(
     functionFragment: "setNativeAllowed",
     values: [boolean]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "storageNonce",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
@@ -290,6 +298,10 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setNativeAllowed",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "storageNonce",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -432,6 +444,7 @@ export class GovernedTokenWrapper extends BaseContract {
 
     add(
       tokenAddress: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -543,6 +556,7 @@ export class GovernedTokenWrapper extends BaseContract {
 
     setFee(
       _feePercentage: BigNumberish,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -555,6 +569,8 @@ export class GovernedTokenWrapper extends BaseContract {
       _isNativeAllowed: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    storageNonce(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     supportsInterface(
       interfaceId: BytesLike,
@@ -641,6 +657,7 @@ export class GovernedTokenWrapper extends BaseContract {
 
   add(
     tokenAddress: string,
+    nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -752,6 +769,7 @@ export class GovernedTokenWrapper extends BaseContract {
 
   setFee(
     _feePercentage: BigNumberish,
+    nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -764,6 +782,8 @@ export class GovernedTokenWrapper extends BaseContract {
     _isNativeAllowed: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  storageNonce(overrides?: CallOverrides): Promise<BigNumber>;
 
   supportsInterface(
     interfaceId: BytesLike,
@@ -848,7 +868,11 @@ export class GovernedTokenWrapper extends BaseContract {
 
     PAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
 
-    add(tokenAddress: string, overrides?: CallOverrides): Promise<void>;
+    add(
+      tokenAddress: string,
+      nonce: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     allowance(
       owner: string,
@@ -953,6 +977,7 @@ export class GovernedTokenWrapper extends BaseContract {
 
     setFee(
       _feePercentage: BigNumberish,
+      nonce: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -962,6 +987,8 @@ export class GovernedTokenWrapper extends BaseContract {
       _isNativeAllowed: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    storageNonce(overrides?: CallOverrides): Promise<BigNumber>;
 
     supportsInterface(
       interfaceId: BytesLike,
@@ -1148,6 +1175,7 @@ export class GovernedTokenWrapper extends BaseContract {
 
     add(
       tokenAddress: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1262,6 +1290,7 @@ export class GovernedTokenWrapper extends BaseContract {
 
     setFee(
       _feePercentage: BigNumberish,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1274,6 +1303,8 @@ export class GovernedTokenWrapper extends BaseContract {
       _isNativeAllowed: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    storageNonce(overrides?: CallOverrides): Promise<BigNumber>;
 
     supportsInterface(
       interfaceId: BytesLike,
@@ -1363,6 +1394,7 @@ export class GovernedTokenWrapper extends BaseContract {
 
     add(
       tokenAddress: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1480,6 +1512,7 @@ export class GovernedTokenWrapper extends BaseContract {
 
     setFee(
       _feePercentage: BigNumberish,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1492,6 +1525,8 @@ export class GovernedTokenWrapper extends BaseContract {
       _isNativeAllowed: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    storageNonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     supportsInterface(
       interfaceId: BytesLike,

@@ -692,7 +692,7 @@ describe('Anchor for 2 max edges', () => {
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
-      await wrappedToken.add(token.address);
+      await wrappedToken.add(token.address, (await wrappedToken.storageNonce()).add(1));
 
       // create Anchor for wrapped token
       const wrappedAnchor = await Anchor.createAnchor(
@@ -743,9 +743,9 @@ describe('Anchor for 2 max edges', () => {
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
-      await wrappedToken.add(token.address);
+      await wrappedToken.add(token.address, (await wrappedToken.storageNonce()).add(1));
       const wrapFee = 5;
-      await wrappedToken.setFee(wrapFee);
+      await wrappedToken.setFee(wrapFee, (await wrappedToken.storageNonce()).add(1));
 
       // create Anchor for wrapped token
       const wrappedAnchor = await Anchor.createAnchor(
@@ -809,9 +809,9 @@ describe('Anchor for 2 max edges', () => {
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
-      await wrappedToken.add(token.address);
+      await wrappedToken.add(token.address, (await wrappedToken.storageNonce()).add(1));
       const wrapFee = 5;
-      await wrappedToken.setFee(wrapFee);
+      await wrappedToken.setFee(wrapFee, (await wrappedToken.storageNonce()).add(1));
 
       // create Anchor for wrapped token
       const wrappedAnchor = await Anchor.createAnchor(
@@ -856,12 +856,12 @@ describe('Anchor for 2 max edges', () => {
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
-      await wrappedToken.add(token.address);
+      await wrappedToken.add(token.address,(await wrappedToken.storageNonce()).add(1));
       const wrapFee = 5;
       const otherSender = signers[1];
       assert
       await TruffleAssert.reverts(
-        wrappedToken.connect(otherSender).setFee(wrapFee),
+        wrappedToken.connect(otherSender).setFee(wrapFee, (await wrappedToken.storageNonce()).add(1)),
         'Only governor can call this function'
       );
     });
@@ -876,11 +876,11 @@ describe('Anchor for 2 max edges', () => {
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
-      await wrappedToken.add(token.address);
+      await wrappedToken.add(token.address, (await wrappedToken.storageNonce()).add(1));
       const wrapFee = 101;
       assert
       await TruffleAssert.reverts(
-        wrappedToken.setFee(wrapFee),
+        wrappedToken.setFee(wrapFee, (await wrappedToken.storageNonce()).add(1)),
         'invalid fee percentage'
       );
     });
@@ -895,11 +895,11 @@ describe('Anchor for 2 max edges', () => {
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
-      await wrappedToken.add(token.address);
+      await wrappedToken.add(token.address, (await wrappedToken.storageNonce()).add(1));
       const wrapFee = -1;
       assert
       await TruffleAssert.fails(
-        wrappedToken.setFee(wrapFee)
+        wrappedToken.setFee(wrapFee, (await wrappedToken.storageNonce()).add(1))
       );
     });
 
@@ -913,11 +913,11 @@ describe('Anchor for 2 max edges', () => {
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
-      await wrappedToken.add(token.address);
+      await wrappedToken.add(token.address, (await wrappedToken.storageNonce()).add(1));
       const wrapFee = 2.5;
       assert
       await TruffleAssert.fails(
-        wrappedToken.setFee(wrapFee)
+        wrappedToken.setFee(wrapFee, (await wrappedToken.storageNonce()).add(1))
       );
     });
 
@@ -931,7 +931,7 @@ describe('Anchor for 2 max edges', () => {
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
-      await wrappedToken.add(token.address);
+      await wrappedToken.add(token.address, (await wrappedToken.storageNonce()).add(1));
 
       // create Anchor for wrapped token
       const wrappedAnchor = await Anchor.createAnchor(
@@ -994,7 +994,7 @@ describe('Anchor for 2 max edges', () => {
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
-      await wrappedToken.add(token.address);
+      await wrappedToken.add(token.address, (await wrappedToken.storageNonce()).add(1));
 
       // create Anchor for wrapped token
       const wrappedAnchor = await Anchor.createAnchor(
