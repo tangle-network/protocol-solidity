@@ -44,6 +44,7 @@ contract GovernedTokenWrapper is TokenWrapper {
 
     if (!historicallyValid[tokenAddress]) {
       historicalTokens.push(tokenAddress);
+      historicallyValid[tokenAddress] = true;
     }
     valid[tokenAddress] = true;
   }

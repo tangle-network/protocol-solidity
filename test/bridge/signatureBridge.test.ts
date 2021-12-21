@@ -98,7 +98,7 @@
        await tokenInstance1.mintTokens(signers[1].address, '100000000000000000000000000');
      });
  
-     it.only('create 2 side bridge for one token', async () => {
+     it('create 2 side bridge for one token', async () => {
  
        bridge2WebbEthInput = {
          anchorInputs: {
@@ -156,7 +156,7 @@
        assert.deepEqual(webbTokenBalance2, ethers.BigNumber.from(anchorSize));
      });
  
-     it.only('create 3 side bridge for one token', async () => {
+     it('create 3 side bridge for one token', async () => {
        bridge3WebbEthInput = {
          anchorInputs: {
            asset: {
@@ -277,7 +277,7 @@
        // bridge = await SignatureBridge.connectBridge(bridgeConfig);
      })
  
-     it.only('should properly deposit and withdraw after connecting', async () => {
+     it('should properly deposit and withdraw after connecting', async () => {
        // // Fetch information about the anchor to be updated.
        // const signers = await ethers.getSigners();
        // const tokenName = 'webbEthereum';
@@ -360,7 +360,7 @@
      })
  
      describe('#bridging', () => {
-       it.only('should withdraw successfully from latest deposit', async () => {
+       it('should withdraw successfully from latest deposit', async () => {
          // Fetch information about the anchor to be updated.
          const signers = await ethers.getSigners();
          const anchorSize = '1000000000000000000';
@@ -398,7 +398,7 @@
          assert.deepEqual(endingBalanceDest, startingBalanceDest.add(anchorSize));
        })
  
-       it.only('should withdraw on hardhat from ganache deposit', async () => {
+       it('should withdraw on hardhat from ganache deposit', async () => {
          // Fetch information about the anchor to be updated.
          const signers = await ethers.getSigners();
          const anchorSize = '1000000000000000000';
@@ -424,7 +424,7 @@
          assert.deepStrictEqual(endingBalanceDest, startingBalanceDest.add(anchorSize));
        })
  
-       it.only('should update multiple deposits and withdraw historic deposit', async () => {
+       it('should update multiple deposits and withdraw historic deposit', async () => {
          // Fetch information about the anchor to be updated.
          const signers = await ethers.getSigners();
          const anchorSize = '1000000000000000000';
@@ -451,7 +451,7 @@
          assert.deepStrictEqual(endingBalanceDest, startingBalanceDest.add(anchorSize));
        });
  
-       it.only('should update multiple deposits and withdraw historic deposit from ganache', async () => {
+       it('should update multiple deposits and withdraw historic deposit from ganache', async () => {
          // Fetch information about the anchor to be updated.
          const signers = await ethers.getSigners();
          const anchorSize = '1000000000000000000';
@@ -555,7 +555,7 @@
        }
      })
  
-     it.only('should withdraw successfully from latest deposits on all chains', async () => {
+     it('should withdraw successfully from latest deposits on all chains', async () => {
        const signers = await ethers.getSigners();
  
        // make deposits so edges exists
