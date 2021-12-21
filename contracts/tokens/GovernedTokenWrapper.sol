@@ -17,7 +17,9 @@ contract GovernedTokenWrapper is TokenWrapper {
 
   address public governor;
   address[] public tokens;
+  address[] public historicalTokens;
   mapping (address => bool) valid;
+  mapping (address => bool) historicallyValid;
 
   bool public isNativeAllowed;
   uint256 public wrappingLimit;
@@ -39,7 +41,31 @@ contract GovernedTokenWrapper is TokenWrapper {
   function add(address tokenAddress) public onlyGovernor {
     require(!valid[tokenAddress], "Token should not be valid");
     tokens.push(tokenAddress);
+
+    if (!historicallyValid[tokenAddress]) {
+      historicalTokens.push(tokenAddress);
+    }
     valid[tokenAddress] = true;
+  }
+
+  function remove(address tokenAddress) public onlyGovernor {
+    require(valid[tokenAddress], "Token should be valid");
+    uint index = 0;
+    for (uint i = 0; i < tokens.length; i++) {
+      if (tokens[i] == tokenAddress) {
+        index = i;
+        break;
+      }
+    }
+    
+    valid[tokenAddress] = false;
+    removeTokenAtIndex(index);
+  }
+
+  function removeTokenAtIndex(uint index) internal {
+    require(index < tokens.length);
+    tokens[index] = tokens[tokens.length-1];
+    tokens.pop();
   }
 
   function updateLimit(uint256 limit) public onlyGovernor {
@@ -53,6 +79,10 @@ contract GovernedTokenWrapper is TokenWrapper {
 
   function _isValidAddress(address tokenAddress) override internal virtual returns (bool) {
     return valid[tokenAddress];
+  }
+  
+  function _isValidHistoricalAddress(address tokenAddress) override internal virtual returns (bool) {
+    return historicallyValid[tokenAddress];
   }
 
   function _isValidAmount(uint256 amount) override internal virtual returns (bool) {
