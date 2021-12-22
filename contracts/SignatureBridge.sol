@@ -55,7 +55,7 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
     }
 
     modifier signedByGovernorExecuteProposal(bytes memory data, bytes memory sig) {
-        bytes memory prefix = "\x19Ethereum Signed Message:\n96";
+        bytes memory prefix = "\x19Ethereum Signed Message:\n128";
         require(isSignatureFromGovernor(abi.encodePacked(prefix, data), sig), "signed by governor: Not valid sig from governor");
         _;
     }
@@ -113,7 +113,7 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
         bytes32 dataHash = keccak256(abi.encodePacked(handler, data));
         IExecutor executionHandler = IExecutor(handler);
         executionHandler.executeProposal(resourceID, data);
-
+        
         emit ProposalEvent(chainID, nonce, ProposalStatus.Executed, dataHash);
     }
 }

@@ -17,7 +17,6 @@ import "../interfaces/IExecutor.sol";
  */
 contract AnchorHandler is IExecutor, HandlerHelpers {
     struct UpdateRecord {
-        bytes4 functionSig;
         address _tokenAddress;
         uint256  _sourceChainID;
         bytes32 _resourceID;
@@ -81,17 +80,15 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
         merkleRoot                               uint256     bytes  64 - 96
      */
     function executeProposal(bytes32 resourceID, bytes calldata data) external override onlyBridge {
-        bytes4        functionSig;
         uint256       sourceChainId;
         uint256       leafIndex;
         uint256       merkleRoot;
 
-        (functionSig, sourceChainId, leafIndex, merkleRoot) = abi.decode(data, (bytes4, uint256, uint, uint));
+        (sourceChainId, leafIndex, merkleRoot) = abi.decode(data, (uint256, uint, uint));
 
         address anchorAddress = _resourceIDToContractAddress[resourceID];
 
         require(_contractWhitelist[anchorAddress], "provided tokenAddress is not whitelisted");
-        require(functionSig == bytes4(keccak256("updateEdge(uint256,bytes32,uint256)")), "Invalid function sig");
 
         ILinkableAnchor anchor = ILinkableAnchor(anchorAddress);
 
@@ -111,7 +108,6 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
 
         uint nonce = ++_counts[sourceChainId];
         _updateRecords[sourceChainId][nonce] = UpdateRecord(
-            functionSig,
             anchorAddress,
             sourceChainId,
             resourceID,

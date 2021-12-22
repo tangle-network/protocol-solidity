@@ -52,39 +52,40 @@ class GovernedTokenWrapper {
   }
 
   public async getAddTokenProposalData(tokenAddress: string): Promise<string> {
-    const functionSig = 0 // abi.encodeFunctionSignature("updateEdge(uint256,bytes32,uint256)");
-    //console.log('functionSig', functionSig);
+    //First 4 bytes of keccak hash is encoded function sig...
+    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("add(address,uint256)")).slice(0, 10) + '00000000000000000000000000000000000000000000000000000000';
     const chainID = await this.signer.getChainId();
     const nonce = (await this.contract.storageNonce()).add(1).toNumber();
 
     return '0x' +
-      toHex(functionSig, 32).substr(2) +
+      functionSig.slice(2) +
       toHex(chainID, 32).substr(2) + 
       toHex(nonce, 32).substr(2) + 
       toHex(tokenAddress, 32).substr(2);
   }
 
   public async getRemoveTokenProposalData(tokenAddress: string): Promise<string> {
-    const functionSig = 0 // abi.encodeFunctionSignature("updateEdge(uint256,bytes32,uint256)");
-    //console.log('functionSig', functionSig);
+    //First 4 bytes of keccak hash is encoded function sig...
+    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("remove(address,uint256)")).slice(0, 10) + '00000000000000000000000000000000000000000000000000000000';
     const chainID = await this.signer.getChainId();
     const nonce = (await this.contract.storageNonce()).add(1).toNumber();
 
     return '0x' +
-      toHex(functionSig, 32).substr(2) +
+      functionSig.slice(2) +
       toHex(chainID, 32).substr(2) + 
       toHex(nonce, 32).substr(2) + 
       toHex(tokenAddress, 32).substr(2);
   }
 
   public async getFeeProposalData(fee: number): Promise<string> {
-    const functionSig = 0 // abi.encodeFunctionSignature("updateEdge(uint256,bytes32,uint256)");
-    //console.log('functionSig', functionSig);
+    //First 4 bytes of keccak hash is encoded function sig...
+    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("setFee(uint8,uint256)")).slice(0, 10) + '00000000000000000000000000000000000000000000000000000000';
+    console.log(functionSig);
     const chainID = await this.signer.getChainId();
     const nonce = (await this.contract.storageNonce()).add(1).toNumber();
 
     return '0x' +
-      toHex(functionSig, 32).substr(2) +
+      functionSig.slice(2) +
       toHex(chainID, 32).substr(2) + 
       toHex(nonce, 32).substr(2) + 
       toHex(fee, 32).substr(2);

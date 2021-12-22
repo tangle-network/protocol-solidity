@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { TokenWrapperHandler as TokenWrapperHandlerContract, TokenWrapperHandler__factory } from '@webb-tools/contracts';
+import { TokenWrapperHandler as TokenWrapperHandlerContract, TokenWrapperHandler__factory } from '../../../typechain';
 
 export class TokenWrapperHandler {
   contract: TokenWrapperHandlerContract;

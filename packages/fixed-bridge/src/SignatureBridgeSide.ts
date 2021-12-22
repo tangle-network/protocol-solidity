@@ -4,6 +4,7 @@ import { Anchor } from './Anchor';
 import { AnchorHandler } from "./AnchorHandler";
 import { toFixedHex } from "@webb-tools/utils";
 import { GovernedTokenWrapper } from "@webb-tools/tokens";
+import { TokenWrapperHandler } from "packages/tokens/src/index";
 
 export type Proposal = {
   data: string,
@@ -16,7 +17,7 @@ export type Proposal = {
 export class SignatureBridgeSide {
   contract: SignatureBridge;
   admin: ethers.Signer;
-  handler: AnchorHandler;
+  handler: AnchorHandler | TokenWrapperHandler;
   proposals: Proposal[];
   signingSystemSignFn: (data: any) => Promise<string>;
 
@@ -67,12 +68,26 @@ export class SignatureBridgeSide {
     return proposalData;
   }
 
+  public async createFeeUpdateProposalData(governedToken: GovernedTokenWrapper, fee: number) {
+    const proposalData = await governedToken.getFeeProposalData(fee);
+    return proposalData;
+  }
+
   public async createAddTokenUpdateProposalData(governedToken: GovernedTokenWrapper, tokenAddress: string) {
     const proposalData = await governedToken.getAddTokenProposalData(tokenAddress);
     return proposalData;
   }
 
+  public async createRemoveTokenUpdateProposalData(governedToken: GovernedTokenWrapper, tokenAddress: string) {
+    const proposalData = await governedToken.getRemoveTokenProposalData(tokenAddress);
+    return proposalData;
+  }
+
   public async setAnchorHandler(handler: AnchorHandler) {
+    this.handler = handler;
+  }
+
+  public async setTokenWrapperHandler(handler: TokenWrapperHandler) {
     this.handler = handler;
   }
 
@@ -99,12 +114,18 @@ export class SignatureBridgeSide {
     return resourceId;
   }
 
-  // public async changeFeeWithSignature(fee: BigNumberish): Promise<void> {
-  //   const feeMsg = ethers.utils.arrayify(toFixedHex(fee));
-  //   const sig = await this.signingSystemSignFn(feeMsg);
-  //   await this.contract.adminChangeFeeWithSignature(feeMsg, sig);
-  //   return;
-  // }
+  public async setGTResourceWithSignature(governedToken: GovernedTokenWrapper): Promise<string> {
+    if (!this.handler) {
+      throw new Error("Cannot connect an anchor without a handler");
+    }
+    const resourceId = await governedToken.createResourceId();
+
+    const unsignedData = this.handler.contract.address + resourceId.slice(2) + governedToken.contract.address.slice(2);
+    const unsignedMsg = ethers.utils.arrayify(unsignedData);
+    const sig = await this.signingSystemSignFn(unsignedMsg);
+    await this.contract.adminSetResourceWithSignature(this.handler.contract.address, resourceId, governedToken.contract.address, sig);
+    return resourceId;
+  }
 
   // emit ProposalEvent(chainID, nonce, ProposalStatus.Executed, dataHash);
   public async executeAnchorProposalWithSig(linkedAnchor: Anchor, thisAnchor: Anchor) {
@@ -124,12 +145,31 @@ export class SignatureBridgeSide {
     return receipt;
   }
 
-  public async executeAddTokenProposalWithSig(governedToken: GovernedTokenWrapper, tokenAddress: string) {
+  public async executeFeeProposalWithSig(governedToken: GovernedTokenWrapper, fee: number) {
     if (!this.handler) {
-      throw new Error("Cannot connect add token without a handler");
+      throw new Error("Cannot connect to token wrapper without a handler");
+    }
+    const proposalData = await this.createFeeUpdateProposalData(governedToken, fee);
+    const resourceId = await governedToken.createResourceId();
+    const chainId = await governedToken.signer.getChainId();
+    const nonce = 0;
+    const proposalMsg = ethers.utils.arrayify(proposalData);
+    console.log(proposalData, proposalMsg.length);
+    const sig = await this.signingSystemSignFn(proposalMsg);
+    console.log("hb1");
+    const tx = await this.contract.executeProposalWithSignature(chainId, nonce, proposalData, resourceId, sig);
+    console.log("hb2");
+    const receipt = await tx.wait();
+    
+    return receipt;
+  }
+
+  public async executeRemoveTokenProposalWithSig(governedToken: GovernedTokenWrapper, tokenAddress: string) {
+    if (!this.handler) {
+      throw new Error("Cannot connect to token wrapper without a handler");
     }
 
-    const proposalData = await this.createAddTokenUpdateProposalData(governedToken, tokenAddress);
+    const proposalData = await this.createRemoveTokenUpdateProposalData(governedToken, tokenAddress);
     const resourceId = await governedToken.createResourceId();
     const chainId = await governedToken.signer.getChainId();
     const nonce = 0;
@@ -140,7 +180,4 @@ export class SignatureBridgeSide {
     
     return receipt;
   }
-
-  
-  
 }

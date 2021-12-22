@@ -9,6 +9,7 @@ pragma experimental ABIEncoderV2;
 import "../tokens/GovernedTokenWrapper.sol"; //There is probably a better way using an interface than importing this contract
 import "./HandlerHelpers.sol";
 import "../interfaces/IExecutor.sol";
+import "hardhat/console.sol";
 
 /**
     @title Handles GovernedTokenWrapper fee and token updates
@@ -81,24 +82,24 @@ contract TokenWrapperHandler is IExecutor, HandlerHelpers {
         merkleRoot                               uint256     bytes  64 - 96
      */
     function executeProposal(bytes32 resourceID, bytes calldata data) external override onlyBridge {
-        bytes4       functionSig;
+        bytes32       functionSig;
         uint256      executionChainID;
         uint256      nonce;
         bytes32      updateValue;
 
-        (functionSig, executionChainID, nonce, updateValue) = abi.decode(data, (bytes4, uint256, uint256, bytes32));
+        (functionSig, executionChainID, nonce, updateValue) = abi.decode(data, (bytes32, uint256, uint256, bytes32));
 
         address governedTokenAddress = _resourceIDToContractAddress[resourceID];
         GovernedTokenWrapper governedToken = GovernedTokenWrapper(governedTokenAddress); 
-
-        if (functionSig == bytes4(keccak256("setFee(uint8,uint256)"))) {
+        console.logBytes4(bytes4(functionSig));
+        if (bytes4(functionSig) == bytes4(keccak256("setFee(uint8,uint256)"))) {
             // send fee update
             governedToken.setFee(uint8(bytes1(updateValue)), nonce);
-        } else if (functionSig == bytes4(keccak256("add(address,uint256)"))) {
+        } else if (bytes4(functionSig) == bytes4(keccak256("add(address,uint256)"))) {
             // validate token address is correct/real/etc.
             // send add
             governedToken.add(address(bytes20(updateValue)), nonce);
-        } else if (functionSig == bytes4(keccak256("add(address,uint256)"))) {
+        } else if (bytes4(functionSig) == bytes4(keccak256("remove(address,uint256)"))) {
             governedToken.remove(address(bytes20(updateValue)), nonce);
         } else {
             revert("Invalid function sig");
@@ -111,7 +112,7 @@ contract TokenWrapperHandler is IExecutor, HandlerHelpers {
             governedTokenAddress,
             executionChainID,
             nonce,
-            functionSig,
+            bytes4(functionSig),
             resourceID,
             updateValue
         );

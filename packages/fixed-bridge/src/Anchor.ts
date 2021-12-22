@@ -203,11 +203,8 @@ class Anchor {
 
     const chainID = await this.signer.getChainId();
     const merkleRoot = this.depositHistory[leafIndex];
-    const functionSig = 0 // abi.encodeFunctionSignature("updateEdge(uint256,bytes32,uint256)");
-    //console.log('functionSig', functionSig);
 
     return '0x' +
-      toHex(functionSig, 32).substr(2) +
       toHex(chainID, 32).substr(2) + 
       toHex(leafIndex, 32).substr(2) + 
       toHex(merkleRoot, 32).substr(2);
