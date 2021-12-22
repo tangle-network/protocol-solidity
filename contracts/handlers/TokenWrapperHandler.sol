@@ -98,6 +98,8 @@ contract TokenWrapperHandler is IExecutor, HandlerHelpers {
         } else if (bytes4(functionSig) == bytes4(keccak256("add(address,uint256)"))) {
             // validate token address is correct/real/etc.
             // send add
+            console.log("bytes20");
+            console.logBytes20(bytes20(updateValue));
             governedToken.add(address(bytes20(updateValue)), nonce);
         } else if (bytes4(functionSig) == bytes4(keccak256("remove(address,uint256)"))) {
             governedToken.remove(address(bytes20(updateValue)), nonce);

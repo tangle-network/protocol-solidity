@@ -156,9 +156,7 @@ export class SignatureBridgeSide {
     const proposalMsg = ethers.utils.arrayify(proposalData);
     console.log(proposalData, proposalMsg.length);
     const sig = await this.signingSystemSignFn(proposalMsg);
-    console.log("hb1");
     const tx = await this.contract.executeProposalWithSignature(chainId, nonce, proposalData, resourceId, sig);
-    console.log("hb2");
     const receipt = await tx.wait();
     
     return receipt;

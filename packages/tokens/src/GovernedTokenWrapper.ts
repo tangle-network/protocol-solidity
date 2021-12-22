@@ -56,12 +56,13 @@ class GovernedTokenWrapper {
     const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("add(address,uint256)")).slice(0, 10).padEnd(66, '0');
     const chainID = await this.signer.getChainId();
     const nonce = (await this.contract.storageNonce()).add(1).toNumber();
-
+    console.log("token address", tokenAddress);
+  
     return '0x' +
       functionSig.slice(2) +
       toHex(chainID, 32).substr(2) + 
       toHex(nonce, 32).substr(2) + 
-      toHex(tokenAddress, 32).substr(2);
+      tokenAddress.padEnd(66, '0').slice(2);
   }
 
   public async getRemoveTokenProposalData(tokenAddress: string): Promise<string> {
@@ -74,7 +75,7 @@ class GovernedTokenWrapper {
       functionSig.slice(2) +
       toHex(chainID, 32).substr(2) + 
       toHex(nonce, 32).substr(2) + 
-      toHex(tokenAddress, 32).substr(2);
+      tokenAddress.padEnd(66, '0').slice(2);
   }
 
   public async getFeeProposalData(fee: number): Promise<string> {

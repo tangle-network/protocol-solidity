@@ -16,6 +16,7 @@
  import { TokenWrapperHandler } from '../../packages/tokens/src/TokenWrapperHandler';
  //import { AnchorHandler as AnchorHandlerContract } from '@webb-tools/contracts';
  
+ 
  describe('BridgeSideConstruction', () => {
  
    let zkComponents: ZkComponents;
@@ -128,7 +129,7 @@
     await bridgeSide.executeAnchorProposalWithSig(sourceAnchor, destAnchor);
   })
 
-  it.only('execute fee proposal', async () => {
+  it('execute fee proposal', async () => {
     const signers = await ethers.getSigners();
     const initialGovernor = signers[1];
     const admin = signers[1];
@@ -186,11 +187,60 @@
     await bridgeSide.setGTResourceWithSignature(governedToken);
 
     //Create an ERC20 Token
-    
+    const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
+    await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
 
     //Execute Proposal to add that token to the governedToken
+    await bridgeSide.executeAddTokenProposalWithSig(governedToken, tokenInstance.contract.address);
 
     //Check that governedToken contains the added token
+    assert((await governedToken.contract.getTokens()).includes(tokenInstance.contract.address));
+  })
+
+  it.only('execute remove token proposal', async () => {
+    const signers = await ethers.getSigners();
+    const initialGovernor = signers[1];
+    const admin = signers[1];
+    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, 0, 100, admin);
+
+    //Deploy TokenWrapperHandler
+    const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
+
+    //Create a GovernedTokenWrapper
+    const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
+      `webbETH-test-1`,
+      `webbETH-test-1`,
+      tokenWrapperHandler.contract.address,
+      '10000000000000000000000000',
+      false,
+      admin,
+    );
+
+
+    //Set bridgeSide handler to tokenWrapperHandler
+    bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
+
+    //Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
+    await bridgeSide.setGTResourceWithSignature(governedToken);
+
+
+    // Add a Token---------
+
+    //Create an ERC20 Token
+    const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
+    await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
+
+    //Execute Proposal to add that token to the governedToken
+    await bridgeSide.executeAddTokenProposalWithSig(governedToken, tokenInstance.contract.address);
+
+    //Check that governedToken contains the added token
+    assert((await governedToken.contract.getTokens()).includes(tokenInstance.contract.address));
+    //End Add a Token--------
+
+    //Remove a Token
+    await bridgeSide.executeRemoveTokenProposalWithSig(governedToken, tokenInstance.contract.address);
+
+    assert((await governedToken.contract.getTokens()).length === 0);  
   })
 
  })
