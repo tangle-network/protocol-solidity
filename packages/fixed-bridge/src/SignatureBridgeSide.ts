@@ -152,13 +152,30 @@ export class SignatureBridgeSide {
     const proposalData = await this.createFeeUpdateProposalData(governedToken, fee);
     const resourceId = await governedToken.createResourceId();
     const chainId = await governedToken.signer.getChainId();
-    const nonce = 0;
+    const nonce = (await governedToken.contract.storageNonce()).add(1);
     const proposalMsg = ethers.utils.arrayify(proposalData);
     console.log(proposalData, proposalMsg.length);
     const sig = await this.signingSystemSignFn(proposalMsg);
     console.log("hb1");
     const tx = await this.contract.executeProposalWithSignature(chainId, nonce, proposalData, resourceId, sig);
     console.log("hb2");
+    const receipt = await tx.wait();
+    
+    return receipt;
+  }
+
+  public async executeAddTokenProposalWithSig(governedToken: GovernedTokenWrapper, tokenAddress: string) {
+    if (!this.handler) {
+      throw new Error("Cannot connect to token wrapper without a handler");
+    }
+
+    const proposalData = await this.createAddTokenUpdateProposalData(governedToken, tokenAddress);
+    const resourceId = await governedToken.createResourceId();
+    const chainId = await governedToken.signer.getChainId();
+    const nonce = (await governedToken.contract.storageNonce()).add(1);
+    const proposalMsg = ethers.utils.arrayify(proposalData);
+    const sig = await this.signingSystemSignFn(proposalMsg);
+    const tx = await this.contract.executeProposalWithSignature(chainId, nonce, proposalData, resourceId, sig);
     const receipt = await tx.wait();
     
     return receipt;
@@ -172,7 +189,7 @@ export class SignatureBridgeSide {
     const proposalData = await this.createRemoveTokenUpdateProposalData(governedToken, tokenAddress);
     const resourceId = await governedToken.createResourceId();
     const chainId = await governedToken.signer.getChainId();
-    const nonce = 0;
+    const nonce = (await governedToken.contract.storageNonce()).add(1);
     const proposalMsg = ethers.utils.arrayify(proposalData);
     const sig = await this.signingSystemSignFn(proposalMsg);
     const tx = await this.contract.executeProposalWithSignature(chainId, nonce, proposalData, resourceId, sig);

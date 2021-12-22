@@ -160,4 +160,37 @@
     assert.strictEqual((await governedToken.contract.getFee()).toString(), '5');
   })
 
+  it('execute add token proposal', async () => {
+    const signers = await ethers.getSigners();
+    const initialGovernor = signers[1];
+    const admin = signers[1];
+    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, 0, 100, admin);
+
+    //Deploy TokenWrapperHandler
+    const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
+
+    //Create a GovernedTokenWrapper
+    const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
+      `webbETH-test-1`,
+      `webbETH-test-1`,
+      tokenWrapperHandler.contract.address,
+      '10000000000000000000000000',
+      false,
+      admin,
+    );
+
+    //Set bridgeSide handler to tokenWrapperHandler
+    bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
+
+    //Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
+    await bridgeSide.setGTResourceWithSignature(governedToken);
+
+    //Create an ERC20 Token
+    
+
+    //Execute Proposal to add that token to the governedToken
+
+    //Check that governedToken contains the added token
+  })
+
  })
