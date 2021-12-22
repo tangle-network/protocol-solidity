@@ -19,7 +19,7 @@ contract TokenWrapperHandler is IExecutor, HandlerHelpers {
     struct UpdateRecord {
         address _tokenWrapperAddress;
         uint256  _executionChainID;
-        uint _nonce;
+        uint256 _nonce;
         bytes4 functionSig;
         bytes32 _resourceID;
         bytes32 _updateValue;
@@ -83,22 +83,26 @@ contract TokenWrapperHandler is IExecutor, HandlerHelpers {
     function executeProposal(bytes32 resourceID, bytes calldata data) external override onlyBridge {
         bytes4       functionSig;
         uint256      executionChainID;
-        uint         nonce;
+        uint256      nonce;
         bytes32      updateValue;
 
-        (functionSig, executionChainID, nonce, updateValue) = abi.decode(data, (bytes4, uint256, uint, bytes32));
+        (functionSig, executionChainID, nonce, updateValue) = abi.decode(data, (bytes4, uint256, uint256, bytes32));
 
         address governedTokenAddress = _resourceIDToContractAddress[resourceID];
         GovernedTokenWrapper governedToken = GovernedTokenWrapper(governedTokenAddress); 
 
-        if (functionSig == bytes4(keccak256("setFee(uint,uint)"))) {
+        if (functionSig == bytes4(keccak256("setFee(uint8,uint256)"))) {
             // send fee update
             governedToken.setFee(uint8(bytes1(updateValue)), nonce);
-        } else if (functionSig == bytes4(keccak256("add(address,uint)"))) {
+        } else if (functionSig == bytes4(keccak256("add(address,uint256)"))) {
             // validate token address is correct/real/etc.
             // send add
             governedToken.add(address(bytes20(updateValue)), nonce);
-        } 
+        } else if (functionSig == bytes4(keccak256("add(address,uint256)"))) {
+            governedToken.remove(address(bytes20(updateValue)), nonce);
+        } else {
+            revert("Invalid function sig");
+        }
 
         require(_contractWhitelist[governedTokenAddress], "provided governed token address is not whitelisted");
 

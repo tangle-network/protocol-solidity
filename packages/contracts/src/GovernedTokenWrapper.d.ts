@@ -49,7 +49,7 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
     "name()": FunctionFragment;
     "pause()": FunctionFragment;
     "paused()": FunctionFragment;
-    "remove(address)": FunctionFragment;
+    "remove(address,uint256)": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
     "setFee(uint8,uint256)": FunctionFragment;
@@ -157,7 +157,10 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(functionFragment: "pause", values?: undefined): string;
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
-  encodeFunctionData(functionFragment: "remove", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "remove",
+    values: [string, BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "renounceRole",
     values: [BytesLike, string]
@@ -561,6 +564,7 @@ export class GovernedTokenWrapper extends BaseContract {
 
     remove(
       tokenAddress: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -784,6 +788,7 @@ export class GovernedTokenWrapper extends BaseContract {
 
   remove(
     tokenAddress: string,
+    nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1000,7 +1005,11 @@ export class GovernedTokenWrapper extends BaseContract {
 
     paused(overrides?: CallOverrides): Promise<boolean>;
 
-    remove(tokenAddress: string, overrides?: CallOverrides): Promise<void>;
+    remove(
+      tokenAddress: string,
+      nonce: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     renounceRole(
       role: BytesLike,
@@ -1322,6 +1331,7 @@ export class GovernedTokenWrapper extends BaseContract {
 
     remove(
       tokenAddress: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1554,6 +1564,7 @@ export class GovernedTokenWrapper extends BaseContract {
 
     remove(
       tokenAddress: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

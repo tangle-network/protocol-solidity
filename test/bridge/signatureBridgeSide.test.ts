@@ -7,7 +7,7 @@
  import { ethers } from 'hardhat';
  
  // Convenience wrapper classes for contract classes
- import { Anchor, AnchorHandler, Verifier } from '@webb-tools/fixed-bridge';
+ import { Anchor, AnchorHandler, Verifier } from '../../packages/fixed-bridge/src';
  import { SignatureBridgeSide } from '../../packages/fixed-bridge/src/SignatureBridgeSide'
  import { MintableToken } from '@webb-tools/tokens';
  import { fetchComponentsFromFilePaths, ZkComponents } from '@webb-tools/utils';
@@ -71,48 +71,8 @@
     //Function call below sets resource with signature
     await bridgeSide.connectAnchorWithSignature(anchor);
   })
-
-  it('should set fee with signature', async () => {
-    const signers = await ethers.getSigners();
-    const initialGovernor = signers[1];
-    const admin = signers[1];
-    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, 0, 100, admin);
-
-    // Create the Hasher and Verifier for the chain
-    const hasherFactory = new PoseidonT3__factory(admin);
-    let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
-    await hasherInstance.deployed();
-
-    const verifier = await Verifier.createVerifier(admin);
-
-    const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
-    await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
-
-    const anchorHandler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, [], [], admin);
-
-    const anchor = await Anchor.createAnchor(
-      verifier.contract.address,
-      hasherInstance.address,
-      '1000000000000',
-      30,
-      tokenInstance.contract.address,
-      bridgeSide.contract.address,
-      admin.address,
-      anchorHandler.contract.address,
-      5,
-      zkComponents,
-      admin
-    );
-
-    await tokenInstance.approveSpending(anchor.contract.address);
-
-    await bridgeSide.setAnchorHandler(anchorHandler);
-    await bridgeSide.changeFeeWithSignature(5);
-    //Check that new fee is actually 5
-    assert.strictEqual((await bridgeSide.contract._fee()).toString(), '5');
-  })
  
-  it('execute proposal (but not really since it is on', async () => {
+  it.only('execute proposal', async () => {
     const signers = await ethers.getSigners();
     const initialGovernor = signers[1];
     const admin = signers[1];
@@ -163,6 +123,8 @@
     await bridgeSide.setAnchorHandler(anchorHandler);
     bridgeSide.setResourceWithSignature(destAnchor);
     await sourceAnchor.deposit(await admin.getChainId());
-    await bridgeSide.executeProposalWithSig(sourceAnchor, destAnchor);
+    await bridgeSide.executeAnchorProposalWithSig(sourceAnchor, destAnchor);
   })
+
+
  })

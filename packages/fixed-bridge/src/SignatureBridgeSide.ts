@@ -3,6 +3,7 @@ import { SignatureBridge, SignatureBridge__factory } from '../../../typechain';
 import { Anchor } from './Anchor';
 import { AnchorHandler } from "./AnchorHandler";
 import { toFixedHex } from "@webb-tools/utils";
+import { GovernedTokenWrapper } from "@webb-tools/tokens";
 
 export type Proposal = {
   data: string,
@@ -61,8 +62,13 @@ export class SignatureBridgeSide {
   *** make its way to the neighbor root of the linked anchor on chain X.
   *** @param linkedAnchorInstance: the anchor instance on the opposite chain
   ***/
-  public async createUpdateProposalData(linkedAnchorInstance: Anchor) {
+  public async createAnchorUpdateProposalData(linkedAnchorInstance: Anchor) {
     const proposalData = await linkedAnchorInstance.getProposalData();
+    return proposalData;
+  }
+
+  public async createAddTokenUpdateProposalData(governedToken: GovernedTokenWrapper, tokenAddress: string) {
+    const proposalData = await governedToken.getAddTokenProposalData(tokenAddress);
     return proposalData;
   }
 
@@ -93,20 +99,20 @@ export class SignatureBridgeSide {
     return resourceId;
   }
 
-  public async changeFeeWithSignature(fee: BigNumberish): Promise<void> {
-    const feeMsg = ethers.utils.arrayify(toFixedHex(fee));
-    const sig = await this.signingSystemSignFn(feeMsg);
-    await this.contract.adminChangeFeeWithSignature(feeMsg, sig);
-    return;
-  }
+  // public async changeFeeWithSignature(fee: BigNumberish): Promise<void> {
+  //   const feeMsg = ethers.utils.arrayify(toFixedHex(fee));
+  //   const sig = await this.signingSystemSignFn(feeMsg);
+  //   await this.contract.adminChangeFeeWithSignature(feeMsg, sig);
+  //   return;
+  // }
 
   // emit ProposalEvent(chainID, nonce, ProposalStatus.Executed, dataHash);
-  public async executeProposalWithSig(linkedAnchor: Anchor, thisAnchor: Anchor) {
+  public async executeAnchorProposalWithSig(linkedAnchor: Anchor, thisAnchor: Anchor) {
     if (!this.handler) {
       throw new Error("Cannot connect an anchor without a handler");
     }
 
-    const proposalData = await this.createUpdateProposalData(linkedAnchor);
+    const proposalData = await this.createAnchorUpdateProposalData(linkedAnchor);
     const resourceId = await thisAnchor.createResourceId();
     const chainId = await linkedAnchor.signer.getChainId();
     const nonce = linkedAnchor.tree.number_of_elements() - 1;
@@ -117,4 +123,24 @@ export class SignatureBridgeSide {
     
     return receipt;
   }
+
+  public async executeAddTokenProposalWithSig(governedToken: GovernedTokenWrapper, tokenAddress: string) {
+    if (!this.handler) {
+      throw new Error("Cannot connect add token without a handler");
+    }
+
+    const proposalData = await this.createAddTokenUpdateProposalData(governedToken, tokenAddress);
+    const resourceId = await governedToken.createResourceId();
+    const chainId = await governedToken.signer.getChainId();
+    const nonce = 0;
+    const proposalMsg = ethers.utils.arrayify(proposalData);
+    const sig = await this.signingSystemSignFn(proposalMsg);
+    const tx = await this.contract.executeProposalWithSignature(chainId, nonce, proposalData, resourceId, sig);
+    const receipt = await tx.wait();
+    
+    return receipt;
+  }
+
+  
+  
 }

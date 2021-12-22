@@ -53,8 +53,10 @@ contract GovernedTokenWrapper is TokenWrapper {
     storageNonce = nonce;
   }
 
-  function remove(address tokenAddress) public onlyGovernor {
+  function remove(address tokenAddress, uint nonce) public onlyGovernor {
     require(valid[tokenAddress], "Token should be valid");
+    require(storageNonce < nonce, "Invalid nonce");
+    require(nonce <= storageNonce + 1, "Nonce must increment by 1");
     uint index = 0;
     for (uint i = 0; i < tokens.length; i++) {
       if (tokens[i] == tokenAddress) {
@@ -62,13 +64,13 @@ contract GovernedTokenWrapper is TokenWrapper {
         break;
       }
     }
-    
+    require(index < tokens.length, "token not found");
     valid[tokenAddress] = false;
+    storageNonce = nonce;
     removeTokenAtIndex(index);
   }
 
   function removeTokenAtIndex(uint index) internal {
-    require(index < tokens.length);
     tokens[index] = tokens[tokens.length-1];
     tokens.pop();
   }

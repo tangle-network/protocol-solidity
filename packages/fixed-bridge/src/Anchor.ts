@@ -8,6 +8,7 @@ import { MerkleTree } from './MerkleTree';
 const snarkjs = require('snarkjs');
 const F = require('circomlibjs').babyjub.F;
 const Scalar = require('ffjavascript').Scalar;
+//const abi = require("web3").eth.abi
 
 const zeroAddress = "0x0000000000000000000000000000000000000000";
 
@@ -202,8 +203,11 @@ class Anchor {
 
     const chainID = await this.signer.getChainId();
     const merkleRoot = this.depositHistory[leafIndex];
+    const functionSig = 0 // abi.encodeFunctionSignature("updateEdge(uint256,bytes32,uint256)");
+    //console.log('functionSig', functionSig);
 
     return '0x' +
+      toHex(functionSig, 32).substr(2) +
       toHex(chainID, 32).substr(2) + 
       toHex(leafIndex, 32).substr(2) + 
       toHex(merkleRoot, 32).substr(2);

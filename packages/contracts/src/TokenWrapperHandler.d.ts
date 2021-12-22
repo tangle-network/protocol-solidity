@@ -19,7 +19,7 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-interface AnchorHandlerInterface extends ethers.utils.Interface {
+interface TokenWrapperHandlerInterface extends ethers.utils.Interface {
   functions: {
     "_bridgeAddress()": FunctionFragment;
     "_contractAddressToResourceID(address)": FunctionFragment;
@@ -28,7 +28,7 @@ interface AnchorHandlerInterface extends ethers.utils.Interface {
     "_resourceIDToContractAddress(bytes32)": FunctionFragment;
     "_updateRecords(uint256,uint256)": FunctionFragment;
     "executeProposal(bytes32,bytes)": FunctionFragment;
-    "getUpdateRecord(uint64,uint256)": FunctionFragment;
+    "getUpdateRecord(uint256,uint256)": FunctionFragment;
     "setResource(bytes32,address)": FunctionFragment;
   };
 
@@ -106,7 +106,7 @@ interface AnchorHandlerInterface extends ethers.utils.Interface {
   events: {};
 }
 
-export class AnchorHandler extends BaseContract {
+export class TokenWrapperHandler extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -147,7 +147,7 @@ export class AnchorHandler extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: AnchorHandlerInterface;
+  interface: TokenWrapperHandlerInterface;
 
   functions: {
     _bridgeAddress(overrides?: CallOverrides): Promise<[string]>;
@@ -177,13 +177,13 @@ export class AnchorHandler extends BaseContract {
       arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [string, string, BigNumber, string, string, BigNumber] & {
+      [string, BigNumber, BigNumber, string, string, string] & {
+        _tokenWrapperAddress: string;
+        _executionChainID: BigNumber;
+        _nonce: BigNumber;
         functionSig: string;
-        _tokenAddress: string;
-        _sourceChainID: BigNumber;
         _resourceID: string;
-        _merkleRoot: string;
-        _leafIndex: BigNumber;
+        _updateValue: string;
       }
     >;
 
@@ -195,17 +195,17 @@ export class AnchorHandler extends BaseContract {
 
     getUpdateRecord(
       updateNonce: BigNumberish,
-      sourceChainId: BigNumberish,
+      executionChainId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
       [
-        [string, string, BigNumber, string, string, BigNumber] & {
+        [string, BigNumber, BigNumber, string, string, string] & {
+          _tokenWrapperAddress: string;
+          _executionChainID: BigNumber;
+          _nonce: BigNumber;
           functionSig: string;
-          _tokenAddress: string;
-          _sourceChainID: BigNumber;
           _resourceID: string;
-          _merkleRoot: string;
-          _leafIndex: BigNumber;
+          _updateValue: string;
         }
       ]
     >;
@@ -238,13 +238,13 @@ export class AnchorHandler extends BaseContract {
     arg1: BigNumberish,
     overrides?: CallOverrides
   ): Promise<
-    [string, string, BigNumber, string, string, BigNumber] & {
+    [string, BigNumber, BigNumber, string, string, string] & {
+      _tokenWrapperAddress: string;
+      _executionChainID: BigNumber;
+      _nonce: BigNumber;
       functionSig: string;
-      _tokenAddress: string;
-      _sourceChainID: BigNumber;
       _resourceID: string;
-      _merkleRoot: string;
-      _leafIndex: BigNumber;
+      _updateValue: string;
     }
   >;
 
@@ -256,16 +256,16 @@ export class AnchorHandler extends BaseContract {
 
   getUpdateRecord(
     updateNonce: BigNumberish,
-    sourceChainId: BigNumberish,
+    executionChainId: BigNumberish,
     overrides?: CallOverrides
   ): Promise<
-    [string, string, BigNumber, string, string, BigNumber] & {
+    [string, BigNumber, BigNumber, string, string, string] & {
+      _tokenWrapperAddress: string;
+      _executionChainID: BigNumber;
+      _nonce: BigNumber;
       functionSig: string;
-      _tokenAddress: string;
-      _sourceChainID: BigNumber;
       _resourceID: string;
-      _merkleRoot: string;
-      _leafIndex: BigNumber;
+      _updateValue: string;
     }
   >;
 
@@ -300,13 +300,13 @@ export class AnchorHandler extends BaseContract {
       arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [string, string, BigNumber, string, string, BigNumber] & {
+      [string, BigNumber, BigNumber, string, string, string] & {
+        _tokenWrapperAddress: string;
+        _executionChainID: BigNumber;
+        _nonce: BigNumber;
         functionSig: string;
-        _tokenAddress: string;
-        _sourceChainID: BigNumber;
         _resourceID: string;
-        _merkleRoot: string;
-        _leafIndex: BigNumber;
+        _updateValue: string;
       }
     >;
 
@@ -318,16 +318,16 @@ export class AnchorHandler extends BaseContract {
 
     getUpdateRecord(
       updateNonce: BigNumberish,
-      sourceChainId: BigNumberish,
+      executionChainId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [string, string, BigNumber, string, string, BigNumber] & {
+      [string, BigNumber, BigNumber, string, string, string] & {
+        _tokenWrapperAddress: string;
+        _executionChainID: BigNumber;
+        _nonce: BigNumber;
         functionSig: string;
-        _tokenAddress: string;
-        _sourceChainID: BigNumber;
         _resourceID: string;
-        _merkleRoot: string;
-        _leafIndex: BigNumber;
+        _updateValue: string;
       }
     >;
 
@@ -374,7 +374,7 @@ export class AnchorHandler extends BaseContract {
 
     getUpdateRecord(
       updateNonce: BigNumberish,
-      sourceChainId: BigNumberish,
+      executionChainId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -422,7 +422,7 @@ export class AnchorHandler extends BaseContract {
 
     getUpdateRecord(
       updateNonce: BigNumberish,
-      sourceChainId: BigNumberish,
+      executionChainId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

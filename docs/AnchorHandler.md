@@ -118,7 +118,7 @@ function _resourceIDToContractAddress(bytes32) external view returns (address)
 ### _updateRecords
 
 ```solidity
-function _updateRecords(uint256, uint256) external view returns (address _tokenAddress, uint256 _sourceChainID, bytes32 _resourceID, bytes32 _merkleRoot, uint256 _leafIndex)
+function _updateRecords(uint256, uint256) external view returns (bytes4 functionSig, address _tokenAddress, uint256 _sourceChainID, bytes32 _resourceID, bytes32 _merkleRoot, uint256 _leafIndex)
 ```
 
 
@@ -136,6 +136,7 @@ function _updateRecords(uint256, uint256) external view returns (address _tokenA
 
 | Name | Type | Description |
 |---|---|---|
+| functionSig | bytes4 | undefined
 | _tokenAddress | address | undefined
 | _sourceChainID | uint256 | undefined
 | _resourceID | bytes32 | undefined

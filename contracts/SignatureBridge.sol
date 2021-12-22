@@ -54,12 +54,6 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
         _;
     }
 
-    modifier signedByGovernorFee(bytes memory data, bytes memory sig) {
-        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        require(isSignatureFromGovernor(abi.encodePacked(prefix, data), sig), "signed by governor: Not valid sig from governor");
-        _;
-    }
-
     modifier signedByGovernorExecuteProposal(bytes memory data, bytes memory sig) {
         bytes memory prefix = "\x19Ethereum Signed Message:\n96";
         require(isSignatureFromGovernor(abi.encodePacked(prefix, data), sig), "signed by governor: Not valid sig from governor");
@@ -95,19 +89,6 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
         _resourceIDToHandlerAddress[resourceID] = handlerAddress;
         IExecutor handler = IExecutor(handlerAddress);
         handler.setResource(resourceID, executionContextAddress);
-    }
-
-    /**
-        @notice Changes deposit fee.
-        @notice Only callable by admin.
-        @param newFee Value {_fee} will be updated to.
-    */
-    function adminChangeFeeWithSignature(
-      uint256 newFee,
-      bytes memory sig
-    ) external signedByGovernorFee(abi.encodePacked(newFee), sig) {
-        require(_fee != newFee, "Current fee is equal to new fee");
-        _fee = newFee.toUint128();
     }
 
     /**

@@ -531,7 +531,7 @@ function paused() external view returns (bool)
 ### remove
 
 ```solidity
-function remove(address tokenAddress) external nonpayable
+function remove(address tokenAddress, uint256 nonce) external nonpayable
 ```
 
 
@@ -543,6 +543,7 @@ function remove(address tokenAddress) external nonpayable
 | Name | Type | Description |
 |---|---|---|
 | tokenAddress | address | undefined
+| nonce | uint256 | undefined
 
 ### renounceRole
 

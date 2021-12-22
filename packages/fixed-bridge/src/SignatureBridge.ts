@@ -269,7 +269,7 @@ export class SignatureBridge {
       // get the bridge side which corresponds to this anchor
       const chainId = await anchor.signer.getChainId();
       const bridgeSide = this.bridgeSides.get(chainId);
-      await bridgeSide!.executeProposalWithSig(linkedAnchor, anchor);
+      await bridgeSide!.executeAnchorProposalWithSig(linkedAnchor, anchor);
     }
   };
 
