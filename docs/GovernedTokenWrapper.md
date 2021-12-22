@@ -241,6 +241,23 @@ function getAmountToWrap(uint256 deposit) external view returns (uint256)
 |---|---|---|
 | _0 | uint256 | undefined
 
+### getFee
+
+```solidity
+function getFee() external view returns (uint8)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint8 | undefined
+
 ### getFeeFromAmount
 
 ```solidity

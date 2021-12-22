@@ -88,7 +88,7 @@ contract TokenWrapperHandler is IExecutor, HandlerHelpers {
         bytes32      updateValue;
 
         (functionSig, executionChainID, nonce, updateValue) = abi.decode(data, (bytes32, uint256, uint256, bytes32));
-
+        require(getChainId() == executionChainID, "not executing on correct chain");
         address governedTokenAddress = _resourceIDToContractAddress[resourceID];
         GovernedTokenWrapper governedToken = GovernedTokenWrapper(governedTokenAddress); 
         console.logBytes4(bytes4(functionSig));
@@ -116,5 +116,11 @@ contract TokenWrapperHandler is IExecutor, HandlerHelpers {
             resourceID,
             updateValue
         );
+    }
+
+    function getChainId() public view returns (uint) {
+        uint chainId;
+        assembly { chainId := chainid() }
+        return chainId;
     }
 }

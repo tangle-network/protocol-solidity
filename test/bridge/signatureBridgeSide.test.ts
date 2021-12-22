@@ -157,7 +157,7 @@
     await bridgeSide.executeFeeProposalWithSig(governedToken, 5);
 
     //Check that fee actually changed
-    //assert.strictEqual(governedToken.contract.get().toString(), 5);
+    assert.strictEqual((await governedToken.contract.getFee()).toString(), '5');
   })
 
  })

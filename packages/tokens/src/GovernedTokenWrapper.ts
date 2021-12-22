@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { toFixedHex, toHex } from '@webb-tools/utils';
-import { GovernedTokenWrapper as GovernedTokenWrapperContract, GovernedTokenWrapper__factory } from '@webb-tools/contracts';
+import { GovernedTokenWrapper as GovernedTokenWrapperContract, GovernedTokenWrapper__factory } from '../../../typechain';
 
 class GovernedTokenWrapper {
   contract: GovernedTokenWrapperContract;
@@ -53,7 +53,7 @@ class GovernedTokenWrapper {
 
   public async getAddTokenProposalData(tokenAddress: string): Promise<string> {
     //First 4 bytes of keccak hash is encoded function sig...
-    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("add(address,uint256)")).slice(0, 10) + '00000000000000000000000000000000000000000000000000000000';
+    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("add(address,uint256)")).slice(0, 10).padEnd(66, '0');
     const chainID = await this.signer.getChainId();
     const nonce = (await this.contract.storageNonce()).add(1).toNumber();
 
@@ -66,7 +66,7 @@ class GovernedTokenWrapper {
 
   public async getRemoveTokenProposalData(tokenAddress: string): Promise<string> {
     //First 4 bytes of keccak hash is encoded function sig...
-    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("remove(address,uint256)")).slice(0, 10) + '00000000000000000000000000000000000000000000000000000000';
+    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("remove(address,uint256)")).slice(0, 10).padEnd(66, '0');
     const chainID = await this.signer.getChainId();
     const nonce = (await this.contract.storageNonce()).add(1).toNumber();
 
@@ -79,16 +79,18 @@ class GovernedTokenWrapper {
 
   public async getFeeProposalData(fee: number): Promise<string> {
     //First 4 bytes of keccak hash is encoded function sig...
-    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("setFee(uint8,uint256)")).slice(0, 10) + '00000000000000000000000000000000000000000000000000000000';
+    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("setFee(uint8,uint256)")).slice(0, 10).padEnd(66, '0');
     console.log(functionSig);
     const chainID = await this.signer.getChainId();
+    console.log(chainID, "chainID");
     const nonce = (await this.contract.storageNonce()).add(1).toNumber();
+    const feeString = toHex(fee, 1).padEnd(66, '0');
 
     return '0x' +
       functionSig.slice(2) +
       toHex(chainID, 32).substr(2) + 
       toHex(nonce, 32).substr(2) + 
-      toHex(fee, 32).substr(2);
+      feeString.slice(2);
   }
 
 }

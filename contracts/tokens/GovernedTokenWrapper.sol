@@ -6,6 +6,7 @@
 pragma solidity ^0.8.0;
 
 import "./TokenWrapper.sol";
+import "hardhat/console.sol";
 
 /**
     @title Governs allowable ERC20s to deposit using a governable wrapping limit.
@@ -84,7 +85,14 @@ contract GovernedTokenWrapper is TokenWrapper {
     require(storageNonce < nonce, "Invalid nonce");
     require(nonce <= storageNonce + 1, "Nonce must increment by 1");
     feePercentage = _feePercentage;
+    console.log(feePercentage);
+    console.log(_feePercentage);
+    console.log("feePercentage");
     storageNonce = nonce;
+  }
+
+  function getFee() view external returns (uint8) {
+    return feePercentage;
   }
 
   function _isValidAddress(address tokenAddress) override internal virtual returns (bool) {
