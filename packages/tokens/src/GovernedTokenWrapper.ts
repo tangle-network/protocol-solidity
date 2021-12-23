@@ -59,9 +59,9 @@ class GovernedTokenWrapper {
     console.log("token address", tokenAddress);
   
     return '0x' +
-      functionSig.slice(2) +
       toHex(chainID, 32).substr(2) + 
-      toHex(nonce, 32).substr(2) + 
+      toHex(nonce, 32).substr(2) +
+      functionSig.slice(2) + 
       tokenAddress.padEnd(66, '0').slice(2);
   }
 
@@ -72,9 +72,9 @@ class GovernedTokenWrapper {
     const nonce = (await this.contract.storageNonce()).add(1).toNumber();
 
     return '0x' +
-      functionSig.slice(2) +
       toHex(chainID, 32).substr(2) + 
       toHex(nonce, 32).substr(2) + 
+      functionSig.slice(2) +
       tokenAddress.padEnd(66, '0').slice(2);
   }
 
@@ -88,9 +88,9 @@ class GovernedTokenWrapper {
     const feeString = toHex(fee, 1).padEnd(66, '0');
 
     return '0x' +
-      functionSig.slice(2) +
       toHex(chainID, 32).substr(2) + 
       toHex(nonce, 32).substr(2) + 
+      functionSig.slice(2) +
       feeString.slice(2);
   }
 
