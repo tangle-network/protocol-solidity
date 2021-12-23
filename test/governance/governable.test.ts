@@ -106,7 +106,7 @@
     );
   });
 
-  it.only('should check ownership is transferred to new governor via signed public key', async () => {
+  it('should check ownership is transferred to new governor via signed public key', async () => {
     const publicKey = '0x91a27f998f3971e5b62bbde231264271faf91f837c506fde88c4bfb9c533f1c2c7b40c9fdca6815d43b315c8b039ecda1ba7eabd97794496c3023730581d7d63'; //from Artem's Notion
     const msg = ethers.utils.arrayify(publicKey);
     const signedMessage = await sender.signMessage(msg);
