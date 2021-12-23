@@ -5,6 +5,7 @@
 const assert = require('assert');
 const path = require('path');
 import { ethers } from 'hardhat';
+const TruffleAssert = require('truffle-assertions');
 
 // Convenience wrapper classes for contract classes
 import { Anchor, Verifier } from '@webb-tools/fixed-bridge';
@@ -96,6 +97,39 @@ describe('BridgeSideConstruction', () => {
     assert.strictEqual((await governedToken.contract.getFee()).toString(), '5');
   })
 
+  it('cannot set fee > 100 bridgeside', async () => {
+    const signers = await ethers.getSigners();
+    const admin = signers[1];
+    const bridgeSide = await BridgeSide.createBridgeSide([admin.address], 1, 0, 100, admin);
+
+    //Deploy TokenWrapperHandler
+    const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
+
+    //Create a GovernedTokenWrapper
+    const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
+      `webbETH-test-1`,
+      `webbETH-test-1`,
+      tokenWrapperHandler.contract.address,
+      '10000000000000000000000000',
+      false,
+      admin,
+    );
+
+    //Set bridgeSide handler to tokenWrapperHandler
+    bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
+
+    //Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
+    await bridgeSide.setGovernedTokenResource(governedToken);
+
+    //Vote on fee Proposal
+    await bridgeSide.voteFeeProposal(governedToken, 101);
+
+    await TruffleAssert.reverts(
+      bridgeSide.executeFeeProposal(governedToken, 101),
+      'invalid fee percentage'
+    );
+  })
+
   it('execute add token proposal bridgeside', async () => {
     const signers = await ethers.getSigners();
     const admin = signers[1];
@@ -134,7 +168,7 @@ describe('BridgeSideConstruction', () => {
     assert((await governedToken.contract.getTokens()).includes(tokenInstance.contract.address));
   })
 
-  it.only('execute remove token proposal bridgeside', async () => {
+  it('execute remove token proposal bridgeside', async () => {
     const signers = await ethers.getSigners();
     const admin = signers[1];
     const bridgeSide = await BridgeSide.createBridgeSide([admin.address], 1, 0, 100, admin);
@@ -178,6 +212,65 @@ describe('BridgeSideConstruction', () => {
     await bridgeSide.executeRemoveTokenProposal(governedToken, tokenInstance.contract.address);
 
     assert((await governedToken.contract.getTokens()).length === 0);  
+  })
+
+  it('check nonce is incrementing across multiple executions bridgeside', async () => {
+    const signers = await ethers.getSigners();
+    const admin = signers[1];
+    const bridgeSide = await BridgeSide.createBridgeSide([admin.address], 1, 0, 100, admin);
+
+    //Deploy TokenWrapperHandler
+    const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
+
+    //Create a GovernedTokenWrapper
+    const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
+      `webbETH-test-1`,
+      `webbETH-test-1`,
+      tokenWrapperHandler.contract.address,
+      '10000000000000000000000000',
+      false,
+      admin,
+    );
+
+    //Set bridgeSide handler to tokenWrapperHandler
+    bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
+
+    //Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
+    await bridgeSide.setGovernedTokenResource(governedToken);
+
+    //Vote on fee Proposal
+    await bridgeSide.voteFeeProposal(governedToken, 5);
+
+    //Execute change fee proposal
+    await bridgeSide.executeFeeProposal(governedToken, 5);
+
+    //Check that fee actually changed
+    assert.strictEqual((await governedToken.contract.getFee()).toString(), '5');
+    //Check nonce
+    assert.strictEqual((await governedToken.contract.storageNonce()).toString(), '1');
+
+    //Create an ERC20 Token
+    const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
+    await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
+
+    //Vote on fee Proposal
+    await bridgeSide.voteAddTokenProposal(governedToken, tokenInstance.contract.address);
+
+    //Execute Proposal to add that token to the governedToken
+    await bridgeSide.executeAddTokenProposal(governedToken, tokenInstance.contract.address);
+
+    //Check that governedToken contains the added token
+    assert((await governedToken.contract.getTokens()).includes(tokenInstance.contract.address));
+    assert.strictEqual((await governedToken.contract.storageNonce()).toString(), '2');
+
+    //Vote on remove token Proposal
+    await bridgeSide.voteRemoveTokenProposal(governedToken, tokenInstance.contract.address);
+
+    //Execute Proposal to add that token to the governedToken
+    await bridgeSide.executeRemoveTokenProposal(governedToken, tokenInstance.contract.address);
+
+    assert((await governedToken.contract.getTokens()).length === 0);  
+    assert.strictEqual((await governedToken.contract.storageNonce()).toString(), '3');
   })
 
 })

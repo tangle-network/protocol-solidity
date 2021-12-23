@@ -124,26 +124,26 @@ export class VAnchor {
       case 1:
         this.smallCircuitWASMPath = 'protocol-solidity-fixtures/fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm';
         this.smallCircuitZkeyPath = 'protocol-solidity-fixtures/fixtures/vanchor_2/2/circuit_final.zkey';
-        this.smallWitnessCalculator = require("../../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.js");
+        this.smallWitnessCalculator = require("../../../../../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.js");
         this.largeCircuitWASMPath = 'protocol-solidity-fixtures/fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm';
         this.largeCircuitZkeyPath = 'protocol-solidity-fixtures/fixtures/vanchor_16/2/circuit_final.zkey';
-        this.largeWitnessCalculator = require("../../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.js");
+        this.largeWitnessCalculator = require("../../../../../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.js");
         break;
       case 7:
         this.smallCircuitWASMPath = 'protocol-solidity-fixtures/fixtures/vanchor_2/8/poseidon_vanchor_8_2.wasm';
         this.smallCircuitZkeyPath = 'protocol-solidity-fixtures/fixtures/vanchor_2/8/circuit_final.zkey';
-        this.smallWitnessCalculator = require("../../../protocol-solidity-fixtures/fixtures/vanchor_2/8/witness_calculator.js");
+        this.smallWitnessCalculator = require("../../../../../../protocol-solidity-fixtures/fixtures/vanchor_2/8/witness_calculator.js");
         this.largeCircuitWASMPath = 'protocol-solidity-fixtures/fixtures/vanchor_16/8/poseidon_vanchor_16_8.wasm';
         this.largeCircuitZkeyPath = 'protocol-solidity-fixtures/fixtures/vanchor_16/8/circuit_final.zkey';
-        this.largeWitnessCalculator = require("../../../protocol-solidity-fixtures/fixtures/vanchor_16/8/witness_calculator.js");
+        this.largeWitnessCalculator = require("../../../../../../protocol-solidity-fixtures/fixtures/vanchor_16/8/witness_calculator.js");
         break;
       default:
         this.smallCircuitWASMPath = 'protocol-solidity-fixtures/fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm';
         this.smallCircuitZkeyPath = 'protocol-solidity-fixtures/fixtures/vanchor_2/2/circuit_final.zkey';
-        this.smallWitnessCalculator = require("../../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.js");
+        this.smallWitnessCalculator = require("../../../../../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.js");
         this.largeCircuitWASMPath = 'protocol-solidity-fixtures/fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm';
         this.largeCircuitZkeyPath = 'protocol-solidity-fixtures/fixtures/vanchor_16/2/circuit_final.zkey';
-        this.largeWitnessCalculator = require("../../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.js");
+        this.largeWitnessCalculator = require("../../../../../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.js");
         break;
     }
 

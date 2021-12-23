@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import { BridgeSide } from './BridgeSide';
 import { Anchor } from './Anchor';
 import { AnchorHandler } from "./AnchorHandler";
-import { MintableToken, GovernedTokenWrapper } from "@webb-tools/tokens";
+import { MintableToken, GovernedTokenWrapper } from "../../tokens/src/index";
 import { AnchorDeposit } from './types';
 import { Verifier } from "./Verifier";
 import { ZkComponents } from "@webb-tools/utils";

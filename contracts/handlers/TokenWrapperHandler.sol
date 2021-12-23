@@ -9,7 +9,6 @@ pragma experimental ABIEncoderV2;
 import "../tokens/GovernedTokenWrapper.sol"; 
 import "./HandlerHelpers.sol";
 import "../interfaces/IExecutor.sol";
-import "hardhat/console.sol";
 
 /**
     @title Handles GovernedTokenWrapper fee and token updates
@@ -92,15 +91,13 @@ contract TokenWrapperHandler is IExecutor, HandlerHelpers {
         require(getChainId() == executionChainID, "not executing on correct chain");
         address governedTokenAddress = _resourceIDToContractAddress[resourceID];
         GovernedTokenWrapper governedToken = GovernedTokenWrapper(governedTokenAddress); 
-        console.logBytes4(bytes4(functionSig));
+
         if (bytes4(functionSig) == bytes4(keccak256("setFee(uint8,uint256)"))) {
             // send fee update
             governedToken.setFee(uint8(bytes1(updateValue)), nonce);
         } else if (bytes4(functionSig) == bytes4(keccak256("add(address,uint256)"))) {
             // validate token address is correct/real/etc.
             // send add
-            console.log("bytes20");
-            console.logBytes20(bytes20(updateValue));
             governedToken.add(address(bytes20(updateValue)), nonce);
         } else if (bytes4(functionSig) == bytes4(keccak256("remove(address,uint256)"))) {
             governedToken.remove(address(bytes20(updateValue)), nonce);

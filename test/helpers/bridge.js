@@ -67,6 +67,7 @@ const createUpdateProposalData = (sourceChainID, leafIndex, merkleRoot) => {
   }
 
   return '0x' +
+    toHex(0, 32).substr(2) +
     toHex(sourceChainID, 32).substr(2) +    // chainID (32 bytes)
     toHex(leafIndex, 32).substr(2) +        // latest leaf index causing the incoming root updates (32 bytes)
     toHex(merkleRoot, 32).substr(2);        // Updated Merkle Root (32 bytes)

@@ -177,8 +177,7 @@ export class AnchorHandler extends BaseContract {
       arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [string, string, BigNumber, string, string, BigNumber] & {
-        functionSig: string;
+      [string, BigNumber, string, string, BigNumber] & {
         _tokenAddress: string;
         _sourceChainID: BigNumber;
         _resourceID: string;
@@ -199,8 +198,7 @@ export class AnchorHandler extends BaseContract {
       overrides?: CallOverrides
     ): Promise<
       [
-        [string, string, BigNumber, string, string, BigNumber] & {
-          functionSig: string;
+        [string, BigNumber, string, string, BigNumber] & {
           _tokenAddress: string;
           _sourceChainID: BigNumber;
           _resourceID: string;
@@ -238,8 +236,7 @@ export class AnchorHandler extends BaseContract {
     arg1: BigNumberish,
     overrides?: CallOverrides
   ): Promise<
-    [string, string, BigNumber, string, string, BigNumber] & {
-      functionSig: string;
+    [string, BigNumber, string, string, BigNumber] & {
       _tokenAddress: string;
       _sourceChainID: BigNumber;
       _resourceID: string;
@@ -259,8 +256,7 @@ export class AnchorHandler extends BaseContract {
     sourceChainId: BigNumberish,
     overrides?: CallOverrides
   ): Promise<
-    [string, string, BigNumber, string, string, BigNumber] & {
-      functionSig: string;
+    [string, BigNumber, string, string, BigNumber] & {
       _tokenAddress: string;
       _sourceChainID: BigNumber;
       _resourceID: string;
@@ -300,8 +296,7 @@ export class AnchorHandler extends BaseContract {
       arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [string, string, BigNumber, string, string, BigNumber] & {
-        functionSig: string;
+      [string, BigNumber, string, string, BigNumber] & {
         _tokenAddress: string;
         _sourceChainID: BigNumber;
         _resourceID: string;
@@ -321,8 +316,7 @@ export class AnchorHandler extends BaseContract {
       sourceChainId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [string, string, BigNumber, string, string, BigNumber] & {
-        functionSig: string;
+      [string, BigNumber, string, string, BigNumber] & {
         _tokenAddress: string;
         _sourceChainID: BigNumber;
         _resourceID: string;

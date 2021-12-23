@@ -73,7 +73,7 @@
      );
    });
  
-   describe('BridgeConstruction', () => {
+   describe('SignatureBridgeConstruction', () => {
      let bridge2WebbEthInput: BridgeInput;
      let bridge3WebbEthInput: BridgeInput;
      let tokenName: string = 'existingERC20';

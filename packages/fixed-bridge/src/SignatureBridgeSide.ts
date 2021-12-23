@@ -2,8 +2,8 @@ import { BigNumberish, ethers } from "ethers";
 import { SignatureBridge, SignatureBridge__factory } from '../../../typechain';
 import { Anchor } from './Anchor';
 import { AnchorHandler } from "./AnchorHandler";
-import { GovernedTokenWrapper } from "@webb-tools/tokens";
-import { TokenWrapperHandler } from "packages/tokens/src/index";
+import { GovernedTokenWrapper } from "../../tokens/src/index";
+import { TokenWrapperHandler } from "../../tokens/src/index";
 
 export type Proposal = {
   data: string,
@@ -153,7 +153,6 @@ export class SignatureBridgeSide {
     const chainId = await governedToken.signer.getChainId();
     const nonce = (await governedToken.contract.storageNonce()).add(1);
     const proposalMsg = ethers.utils.arrayify(proposalData);
-    console.log(proposalData, proposalMsg.length);
     const sig = await this.signingSystemSignFn(proposalMsg);
     const tx = await this.contract.executeProposalWithSignature(chainId, nonce, proposalData, resourceId, sig);
     const receipt = await tx.wait();

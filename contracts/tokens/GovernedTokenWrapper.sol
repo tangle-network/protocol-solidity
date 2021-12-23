@@ -6,7 +6,6 @@
 pragma solidity ^0.8.0;
 
 import "./TokenWrapper.sol";
-import "hardhat/console.sol";
 
 /**
     @title Governs allowable ERC20s to deposit using a governable wrapping limit.
@@ -39,8 +38,8 @@ contract GovernedTokenWrapper is TokenWrapper {
   function setNativeAllowed(bool _isNativeAllowed) public onlyGovernor {
     isNativeAllowed = _isNativeAllowed;
   }
-      
-  function add(address tokenAddress, uint nonce) public onlyGovernor {
+
+  function add(address tokenAddress, uint256 nonce) public onlyGovernor {
     require(!valid[tokenAddress], "Token should not be valid");
     require(storageNonce < nonce, "Invalid nonce");
     require(nonce <= storageNonce + 1, "Nonce must increment by 1");
@@ -54,7 +53,7 @@ contract GovernedTokenWrapper is TokenWrapper {
     storageNonce = nonce;
   }
 
-  function remove(address tokenAddress, uint nonce) public onlyGovernor {
+  function remove(address tokenAddress, uint256 nonce) public onlyGovernor {
     require(valid[tokenAddress], "Token should be valid");
     require(storageNonce < nonce, "Invalid nonce");
     require(nonce <= storageNonce + 1, "Nonce must increment by 1");
@@ -80,14 +79,11 @@ contract GovernedTokenWrapper is TokenWrapper {
     wrappingLimit = limit;
   }
 
-  function setFee(uint8 _feePercentage, uint nonce) override external onlyGovernor {
+  function setFee(uint8 _feePercentage, uint256 nonce) override external onlyGovernor {
     require(0 <= _feePercentage && _feePercentage <= 100, "invalid fee percentage");
     require(storageNonce < nonce, "Invalid nonce");
     require(nonce <= storageNonce + 1, "Nonce must increment by 1");
     feePercentage = _feePercentage;
-    console.log(feePercentage);
-    console.log(_feePercentage);
-    console.log("feePercentage");
     storageNonce = nonce;
   }
 

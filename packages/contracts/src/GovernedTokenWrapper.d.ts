@@ -34,6 +34,7 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
     "decimals()": FunctionFragment;
     "decreaseAllowance(address,uint256)": FunctionFragment;
     "getAmountToWrap(uint256)": FunctionFragment;
+    "getFee()": FunctionFragment;
     "getFeeFromAmount(uint256)": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
     "getRoleMember(bytes32,uint256)": FunctionFragment;
@@ -112,6 +113,7 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
     functionFragment: "getAmountToWrap",
     values: [BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "getFee", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getFeeFromAmount",
     values: [BigNumberish]
@@ -264,6 +266,7 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
     functionFragment: "getAmountToWrap",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getFee", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getFeeFromAmount",
     data: BytesLike
@@ -501,6 +504,8 @@ export class GovernedTokenWrapper extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    getFee(overrides?: CallOverrides): Promise<[number]>;
+
     getFeeFromAmount(
       amountToWrap: BigNumberish,
       overrides?: CallOverrides
@@ -725,6 +730,8 @@ export class GovernedTokenWrapper extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  getFee(overrides?: CallOverrides): Promise<number>;
+
   getFeeFromAmount(
     amountToWrap: BigNumberish,
     overrides?: CallOverrides
@@ -945,6 +952,8 @@ export class GovernedTokenWrapper extends BaseContract {
       deposit: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    getFee(overrides?: CallOverrides): Promise<number>;
 
     getFeeFromAmount(
       amountToWrap: BigNumberish,
@@ -1265,6 +1274,8 @@ export class GovernedTokenWrapper extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getFee(overrides?: CallOverrides): Promise<BigNumber>;
+
     getFeeFromAmount(
       amountToWrap: BigNumberish,
       overrides?: CallOverrides
@@ -1497,6 +1508,8 @@ export class GovernedTokenWrapper extends BaseContract {
       deposit: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    getFee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getFeeFromAmount(
       amountToWrap: BigNumberish,

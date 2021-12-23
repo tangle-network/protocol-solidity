@@ -2,8 +2,8 @@ import { ethers } from "ethers";
 import { Bridge, Bridge__factory } from '@webb-tools/contracts';
 import { Anchor } from './Anchor';
 import { AnchorHandler } from "./AnchorHandler";
-import { GovernedTokenWrapper } from "@webb-tools/tokens";
-import { TokenWrapperHandler } from "packages/tokens/src/index";
+import { GovernedTokenWrapper } from "../../tokens/src/index";
+import { TokenWrapperHandler } from "../../tokens/src/index";
 
 export type Proposal = {
   data: string,

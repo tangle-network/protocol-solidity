@@ -18,5 +18,5 @@ interface ITokenWrapper {
   function unwrapFor(address sender, address tokenAddress, uint256 amount) external;
   function getFeeFromAmount(uint amountToWrap) external view returns (uint);
   function getAmountToWrap(uint deposit) external view returns (uint);
-  function setFee(uint8 feePercentage, uint nonce) external;
+  function setFee(uint8 feePercentage, uint256 nonce) external;
 }
