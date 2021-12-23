@@ -330,6 +330,7 @@ export class VAnchor {
     // console.log(`chainid is ${chainID}`);
     // console.log(`merkle root is ${merkleRoot}`);
     return '0x' +
+      toHex(0, 32).substr(2) +
       toHex(chainID, 32).substr(2) + 
       toHex(leafIndex, 32).substr(2) + 
       toHex(merkleRoot, 32).substr(2);

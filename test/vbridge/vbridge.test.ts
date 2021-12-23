@@ -88,7 +88,6 @@ describe('multichain tests for vbridge', () => {
         chainIDs: [31337, 1337],
         webbTokens: webbTokens1
       };
-      
       const signers = await ethers.getSigners();
 
       const deploymentConfig = {
@@ -96,28 +95,22 @@ describe('multichain tests for vbridge', () => {
         1337: ganacheWallet2,
       };
       const vBridge = await VBridge.deployVBridge(bridge2WebbEthInput, deploymentConfig);
-
       // Should be able to retrieve individual anchors
       const chainId1 = 31337;
       const chainId2 = 1337;
       const vAnchor1: VAnchor = vBridge.getVAnchor(chainId1)!;
       const vAnchor2: VAnchor = vBridge.getVAnchor(chainId2)!;
-
       // Should be able to retrieve the token address (so we can mint tokens for test scenario)
       const webbTokenAddress = vBridge.getWebbTokenAddress(chainId1);
       const webbToken = await MintableToken.tokenFromAddress(webbTokenAddress!, signers[1]);
       const tx = await webbToken.mintTokens(signers[2].address, '100000000000000000000000');
-
       // get the state of anchors before deposit
       const sourceAnchorRootBefore = await vAnchor1.contract.getLastRoot();
       //console.log(sourceAnchorRootBefore);
-
       //Define inputs/outputs for transact function
       const depositUtxo = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId1), chainId: BigNumber.from(chainId1)})
-
       //Transact on the bridge
       await vBridge.transact([], [depositUtxo], 0, '0', '0', signers[2]); 
-      
       // Check the state of anchors after deposit
       let edgeIndex = await vAnchor2.contract.edgeIndex(chainId1);
 
