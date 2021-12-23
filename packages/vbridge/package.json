@@ -1,6 +1,6 @@
 {
     "name": "@webb-tools/vbridge",
-    "main": "./lib/index.js",
+    "main": "./lib/packages/vbridge/src/index.js",
     "license": "GPL-3.0-or-later",
     "author": "Webb Developers <drew@webb.tools>",
     "scripts": {

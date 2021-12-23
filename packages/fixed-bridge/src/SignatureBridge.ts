@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import { SignatureBridgeSide } from './SignatureBridgeSide';
 import { Anchor } from './Anchor';
 import { AnchorHandler } from "./AnchorHandler";
-import { MintableToken, GovernedTokenWrapper } from "@webb-tools/tokens";
+import { MintableToken, GovernedTokenWrapper } from "../../tokens/src/index";
 import { AnchorDeposit } from './types';
 import { Verifier } from "./Verifier";
 import { ZkComponents } from "@webb-tools/utils";
@@ -171,7 +171,7 @@ export class SignatureBridge {
       for (const tokenToBeWrapped of bridgeInput.anchorInputs.asset[chainID]!) {
         // if the address is not '0', then add it
         if (!checkNativeAddress(tokenToBeWrapped)) {
-          const tx = await tokenInstance.contract.add(tokenToBeWrapped);
+          const tx = await tokenInstance.contract.add(tokenToBeWrapped, (await tokenInstance.contract.storageNonce()).add(1));
           const receipt = await tx.wait();
         }
       }
@@ -269,7 +269,7 @@ export class SignatureBridge {
       // get the bridge side which corresponds to this anchor
       const chainId = await anchor.signer.getChainId();
       const bridgeSide = this.bridgeSides.get(chainId);
-      await bridgeSide!.executeProposalWithSig(linkedAnchor, anchor);
+      await bridgeSide!.executeAnchorProposalWithSig(linkedAnchor, anchor);
     }
   };
 

@@ -105,12 +105,11 @@ export class VBridgeSide {
     if (!this.handler) {
       throw new Error("Cannot connect an anchor without a handler");
     }
-
+    
     const proposalData = await this.createUpdateProposalData(linkedAnchor);
     const resourceId = await thisAnchor.createResourceId();
     const chainId = await linkedAnchor.signer.getChainId();
     const nonce = linkedAnchor.tree.number_of_elements() - 1;
-
     const tx = await this.contract.executeProposal(chainId, nonce, proposalData, resourceId);
     const receipt = await tx.wait();
     

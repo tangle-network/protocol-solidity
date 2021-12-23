@@ -23,6 +23,7 @@ contract GovernedTokenWrapper is TokenWrapper {
 
   bool public isNativeAllowed;
   uint256 public wrappingLimit;
+  uint public storageNonce = 0;
 
   constructor(string memory name, string memory symbol, address _governor, uint256 _limit, bool _isNativeAllowed) TokenWrapper(name, symbol) {
     governor = _governor;
@@ -38,8 +39,10 @@ contract GovernedTokenWrapper is TokenWrapper {
     isNativeAllowed = _isNativeAllowed;
   }
 
-  function add(address tokenAddress) public onlyGovernor {
+  function add(address tokenAddress, uint256 nonce) public onlyGovernor {
     require(!valid[tokenAddress], "Token should not be valid");
+    require(storageNonce < nonce, "Invalid nonce");
+    require(nonce <= storageNonce + 1, "Nonce must increment by 1");
     tokens.push(tokenAddress);
 
     if (!historicallyValid[tokenAddress]) {
@@ -47,10 +50,13 @@ contract GovernedTokenWrapper is TokenWrapper {
       historicallyValid[tokenAddress] = true;
     }
     valid[tokenAddress] = true;
+    storageNonce = nonce;
   }
 
-  function remove(address tokenAddress) public onlyGovernor {
+  function remove(address tokenAddress, uint256 nonce) public onlyGovernor {
     require(valid[tokenAddress], "Token should be valid");
+    require(storageNonce < nonce, "Invalid nonce");
+    require(nonce <= storageNonce + 1, "Nonce must increment by 1");
     uint index = 0;
     for (uint i = 0; i < tokens.length; i++) {
       if (tokens[i] == tokenAddress) {
@@ -58,13 +64,13 @@ contract GovernedTokenWrapper is TokenWrapper {
         break;
       }
     }
-    
+    require(index < tokens.length, "token not found");
     valid[tokenAddress] = false;
+    storageNonce = nonce;
     removeTokenAtIndex(index);
   }
 
   function removeTokenAtIndex(uint index) internal {
-    require(index < tokens.length);
     tokens[index] = tokens[tokens.length-1];
     tokens.pop();
   }
@@ -73,9 +79,16 @@ contract GovernedTokenWrapper is TokenWrapper {
     wrappingLimit = limit;
   }
 
-  function setFee(uint8 _feePercentage) override external onlyGovernor {
+  function setFee(uint8 _feePercentage, uint256 nonce) override external onlyGovernor {
     require(0 <= _feePercentage && _feePercentage <= 100, "invalid fee percentage");
+    require(storageNonce < nonce, "Invalid nonce");
+    require(nonce <= storageNonce + 1, "Nonce must increment by 1");
     feePercentage = _feePercentage;
+    storageNonce = nonce;
+  }
+
+  function getFee() view external returns (uint8) {
+    return feePercentage;
   }
 
   function _isValidAddress(address tokenAddress) override internal virtual returns (bool) {

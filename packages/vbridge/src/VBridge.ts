@@ -2,7 +2,7 @@ import { ethers, BigNumber, BigNumberish  } from "ethers";
 import VBridgeSide from './VBridgeSide';
 import VAnchor from './VAnchor';
 import { AnchorHandler } from "./AnchorHandler";
-import { MintableToken, GovernedTokenWrapper } from "@webb-tools/tokens";
+import { MintableToken, GovernedTokenWrapper } from "../../tokens/src/index";
 import { PoseidonT3__factory } from "@webb-tools/contracts";
 import Verifier from "./Verifier";
 import { Utxo } from "./utxo";
@@ -224,7 +224,7 @@ export class VBridge {
       for (const tokenToBeWrapped of vBridgeInput.vAnchorInputs.asset[chainID]!) {
         // if the address is not '0', then add it
         if (!checkNativeAddress(tokenToBeWrapped)) {
-          const tx = await tokenInstance?.contract.add(tokenToBeWrapped);
+          const tx = await tokenInstance?.contract.add(tokenToBeWrapped, (await tokenInstance?.contract.storageNonce()).add(1));
           const receipt = await tx?.wait();
         }
       }

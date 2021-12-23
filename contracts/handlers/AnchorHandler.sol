@@ -80,11 +80,12 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
         merkleRoot                               uint256     bytes  64 - 96
      */
     function executeProposal(bytes32 resourceID, bytes calldata data) external override onlyBridge {
+        bytes32       zeros;
         uint256       sourceChainId;
         uint256       leafIndex;
         uint256       merkleRoot;
 
-        (sourceChainId, leafIndex, merkleRoot) = abi.decode(data, (uint256, uint, uint));
+        (zeros, sourceChainId, leafIndex, merkleRoot) = abi.decode(data, (bytes32, uint256, uint, uint));
 
         address anchorAddress = _resourceIDToContractAddress[resourceID];
 

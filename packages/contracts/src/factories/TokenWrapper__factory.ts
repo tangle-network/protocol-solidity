@@ -592,6 +592,11 @@ const _abi = [
         name: "feePercentage",
         type: "uint8",
       },
+      {
+        internalType: "uint256",
+        name: "nonce",
+        type: "uint256",
+      },
     ],
     name: "setFee",
     outputs: [],

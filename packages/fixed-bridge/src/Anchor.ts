@@ -8,6 +8,7 @@ import { MerkleTree } from './MerkleTree';
 const snarkjs = require('snarkjs');
 const F = require('circomlibjs').babyjub.F;
 const Scalar = require('ffjavascript').Scalar;
+//const abi = require("web3").eth.abi
 
 const zeroAddress = "0x0000000000000000000000000000000000000000";
 
@@ -204,6 +205,7 @@ class Anchor {
     const merkleRoot = this.depositHistory[leafIndex];
 
     return '0x' +
+      toHex(0, 32).slice(2) +
       toHex(chainID, 32).substr(2) + 
       toHex(leafIndex, 32).substr(2) + 
       toHex(merkleRoot, 32).substr(2);

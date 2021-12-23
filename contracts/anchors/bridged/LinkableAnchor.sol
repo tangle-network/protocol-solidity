@@ -64,6 +64,7 @@ abstract contract LinkableAnchor is AnchorBase, ILinkableAnchor {
   ) onlyHandler override external payable nonReentrant {
     require(edgeExistsForChain[sourceChainID], "Chain must be integrated from the bridge before updates");
     require(edgeList[edgeIndex[sourceChainID]].latestLeafIndex < leafIndex, "New leaf index must be greater");
+    require(leafIndex < edgeList[edgeIndex[sourceChainID]].latestLeafIndex + (65_536), "New leaf index must within 2^16 updates");
     uint index = edgeIndex[sourceChainID];
     // update the edge in the edge list
     edgeList[index] = Edge({

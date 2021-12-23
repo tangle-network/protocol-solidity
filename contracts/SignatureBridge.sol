@@ -54,14 +54,8 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
         _;
     }
 
-    modifier signedByGovernorFee(bytes memory data, bytes memory sig) {
-        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        require(isSignatureFromGovernor(abi.encodePacked(prefix, data), sig), "signed by governor: Not valid sig from governor");
-        _;
-    }
-
     modifier signedByGovernorExecuteProposal(bytes memory data, bytes memory sig) {
-        bytes memory prefix = "\x19Ethereum Signed Message:\n96";
+        bytes memory prefix = "\x19Ethereum Signed Message:\n128";
         require(isSignatureFromGovernor(abi.encodePacked(prefix, data), sig), "signed by governor: Not valid sig from governor");
         _;
     }
@@ -98,19 +92,6 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
     }
 
     /**
-        @notice Changes deposit fee.
-        @notice Only callable by admin.
-        @param newFee Value {_fee} will be updated to.
-    */
-    function adminChangeFeeWithSignature(
-      uint256 newFee,
-      bytes memory sig
-    ) external signedByGovernorFee(abi.encodePacked(newFee), sig) {
-        require(_fee != newFee, "Current fee is equal to new fee");
-        _fee = newFee.toUint128();
-    }
-
-    /**
         @notice Executes a deposit proposal that is considered passed using a specified handler contract.
         @notice Only callable by relayers when Bridge is not paused.
         @param chainID ID of chain deposit originated from.
@@ -132,7 +113,7 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
         bytes32 dataHash = keccak256(abi.encodePacked(handler, data));
         IExecutor executionHandler = IExecutor(handler);
         executionHandler.executeProposal(resourceID, data);
-
+        
         emit ProposalEvent(chainID, nonce, ProposalStatus.Executed, dataHash);
     }
 }
