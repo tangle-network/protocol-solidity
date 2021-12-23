@@ -29,7 +29,6 @@ const Token = artifacts.require("ERC20Mock");
   // function stubs
   let setHandler;
   let setBridge;
-  let addEdge;
   let updateEdge;
   const MAX_EDGES = 1;
 
@@ -71,13 +70,6 @@ const Token = artifacts.require("ERC20Mock");
       from: sender
     });
 
-    addEdge = (edge, sender) => AnchorInstance.addEdge(
-      edge.sourceChainID,
-      edge.root,
-      edge.latestLeafIndex,
-      { from: sender }
-    )
-
     updateEdge = (edge, sender) => AnchorInstance.updateEdge(
       edge.sourceChainID,
       edge.root,
@@ -114,7 +106,7 @@ const Token = artifacts.require("ERC20Mock");
       latestLeafIndex: 101,
     };
 
-    await TruffleAssert.passes(addEdge(edge, accounts[0]));
+    await TruffleAssert.passes(updateEdge(edge, accounts[0]));
     await TruffleAssert.passes(updateEdge(edgeUpdated, accounts[0]));
     await TruffleAssert.reverts(updateEdge(edgeUpdated, accounts[1]), "sender is not the handler");
   });
@@ -130,7 +122,7 @@ const Token = artifacts.require("ERC20Mock");
       root: '0x2222111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 101,
     };
-    await TruffleAssert.passes(addEdge(edge, accounts[0]));
+    await TruffleAssert.passes(updateEdge(edge, accounts[0]));
     await TruffleAssert.reverts(updateEdge(edgeUpdated, accounts[0]));
   });
 
@@ -145,7 +137,7 @@ const Token = artifacts.require("ERC20Mock");
       root: '0x2222111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 101,
     };
-    await TruffleAssert.passes(addEdge(edge, accounts[0]));
+    await TruffleAssert.passes(updateEdge(edge, accounts[0]));
 
     const roots = await AnchorInstance.getLatestNeighborRoots();
     assert.strictEqual(roots.length, 1);
@@ -169,7 +161,7 @@ const Token = artifacts.require("ERC20Mock");
       root: '0x2222111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 101,
     };
-    await addEdge(edge, accounts[0]);
+    await updateEdge(edge, accounts[0]);
     const result = await updateEdge(edgeUpdated, accounts[0]);
     TruffleAssert.eventEmitted(result, 'EdgeUpdate', (ev) => {
       return ev.chainID == parseInt(edgeUpdated.sourceChainID, 16) &&
