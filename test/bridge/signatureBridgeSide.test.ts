@@ -152,7 +152,7 @@
     bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
 
     //Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
-    await bridgeSide.setGTResourceWithSignature(governedToken);
+    await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
 
     //Execute change fee proposal
     await bridgeSide.executeFeeProposalWithSig(governedToken, 5);
@@ -184,7 +184,7 @@
     bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
 
     //Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
-    await bridgeSide.setGTResourceWithSignature(governedToken);
+    await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
 
     //Create an ERC20 Token
     const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
@@ -197,7 +197,7 @@
     assert((await governedToken.contract.getTokens()).includes(tokenInstance.contract.address));
   })
 
-  it.only('execute remove token proposal', async () => {
+  it('execute remove token proposal', async () => {
     const signers = await ethers.getSigners();
     const initialGovernor = signers[1];
     const admin = signers[1];
@@ -221,7 +221,7 @@
     bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
 
     //Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
-    await bridgeSide.setGTResourceWithSignature(governedToken);
+    await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
 
 
     // Add a Token---------
@@ -242,5 +242,4 @@
 
     assert((await governedToken.contract.getTokens()).length === 0);  
   })
-
  })

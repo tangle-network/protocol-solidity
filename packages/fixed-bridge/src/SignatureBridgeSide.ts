@@ -2,7 +2,6 @@ import { BigNumberish, ethers } from "ethers";
 import { SignatureBridge, SignatureBridge__factory } from '../../../typechain';
 import { Anchor } from './Anchor';
 import { AnchorHandler } from "./AnchorHandler";
-import { toFixedHex } from "@webb-tools/utils";
 import { GovernedTokenWrapper } from "@webb-tools/tokens";
 import { TokenWrapperHandler } from "packages/tokens/src/index";
 
@@ -114,7 +113,7 @@ export class SignatureBridgeSide {
     return resourceId;
   }
 
-  public async setGTResourceWithSignature(governedToken: GovernedTokenWrapper): Promise<string> {
+  public async setGovernedTokenResourceWithSignature(governedToken: GovernedTokenWrapper): Promise<string> {
     if (!this.handler) {
       throw new Error("Cannot connect an anchor without a handler");
     }

@@ -270,8 +270,8 @@ export class Bridge {
       // get the bridge side which corresponds to this anchor
       const chainId = await anchor.signer.getChainId();
       const bridgeSide = this.bridgeSides.get(chainId);
-      await bridgeSide!.voteProposal(linkedAnchor, anchor);
-      await bridgeSide!.executeProposal(linkedAnchor, anchor);
+      await bridgeSide!.voteAnchorProposal(linkedAnchor, anchor);
+      await bridgeSide!.executeAnchorProposal(linkedAnchor, anchor);
     }
   };
 
