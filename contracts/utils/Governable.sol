@@ -77,6 +77,17 @@ contract Governable {
         _transferOwnership(newOwner);
     }
 
+    /**
+     * @dev Transfers ownership of the contract to a new account associated with the publicKey    * input
+     */
+    function transferOwnershipWithSignaturePubKey(bytes memory publicKey, bytes memory sig) public {
+        bytes memory prefix = "\x19Ethereum Signed Message:\n64"; 
+        bytes32 pubKeyHash = keccak256(publicKey);
+        address newOwner = address(uint160(uint256(pubKeyHash)));
+        require(isSignatureFromGovernor(abi.encodePacked(prefix, publicKey), sig), "Governable: caller is not the governor");
+        _transferOwnership(newOwner);
+    }
+
     function verify(bytes32 hash, uint8 v, bytes32 r, bytes32 s) public view returns(bool) {
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
         bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, hash));
