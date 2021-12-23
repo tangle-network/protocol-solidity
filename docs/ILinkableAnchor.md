@@ -10,24 +10,6 @@
 
 ## Methods
 
-### addEdge
-
-```solidity
-function addEdge(uint256 sourceChainID, bytes32 root, uint256 latestLeafIndex) external payable
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| sourceChainID | uint256 | undefined
-| root | bytes32 | undefined
-| latestLeafIndex | uint256 | undefined
-
 ### hasEdge
 
 ```solidity

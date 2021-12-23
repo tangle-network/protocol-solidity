@@ -93,19 +93,12 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
 
         ILinkableAnchor anchor = ILinkableAnchor(anchorAddress);
 
-        if (anchor.hasEdge(sourceChainId)) {
-            anchor.updateEdge(
-                sourceChainId,
-                bytes32(merkleRoot),
-                leafIndex
-            );
-        } else {
-            anchor.addEdge(
-                sourceChainId,
-                bytes32(merkleRoot),
-                leafIndex
-            );
-        }
+        anchor.updateEdge(
+            sourceChainId,
+            bytes32(merkleRoot),
+            leafIndex
+        );
+        
 
         uint nonce = ++_counts[sourceChainId];
         _updateRecords[sourceChainId][nonce] = UpdateRecord(

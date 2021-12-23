@@ -9,11 +9,6 @@ interface ILinkableAnchor {
   function setHandler(address _handler) external;
   function setBridge(address _bridge) external;
   function hasEdge(uint256 _chainID) external view returns (bool);
-  function addEdge(
-    uint256 sourceChainID,
-    bytes32 root,
-    uint256 latestLeafIndex
-  ) external payable;
   function updateEdge(
     uint256 sourceChainID,
     bytes32 root,

@@ -95,24 +95,6 @@ function ZERO_VALUE() external view returns (uint256)
 |---|---|---|
 | _0 | uint256 | undefined
 
-### addEdge
-
-```solidity
-function addEdge(uint256 sourceChainID, bytes32 root, uint256 leafIndex) external payable
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| sourceChainID | uint256 | undefined
-| root | bytes32 | undefined
-| leafIndex | uint256 | undefined
-
 ### calculatePublicAmount
 
 ```solidity

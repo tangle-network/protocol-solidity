@@ -30,7 +30,6 @@ contract('LinkableAnchor - [add edges]', async accounts => {
   // function stubs
   let setHandler;
   let setBridge;
-  let addEdge;
   let updateEdge;
   const MAX_EDGES = 1;
 
@@ -72,12 +71,6 @@ contract('LinkableAnchor - [add edges]', async accounts => {
       from: sender
     });
 
-    addEdge = (edge, sender) => AnchorInstance.addEdge(
-      edge.sourceChainID,
-      edge.root,
-      edge.latestLeafIndex,
-      { from: sender }
-    )
 
     updateEdge = (edge, sender) => AnchorInstance.updateEdge(
       edge.sourceChainID,
@@ -110,8 +103,8 @@ contract('LinkableAnchor - [add edges]', async accounts => {
       latestLeafIndex: 1,
     };
 
-    await TruffleAssert.passes(addEdge(edge, accounts[0]));
-    await TruffleAssert.reverts(addEdge(edge, accounts[1]), "sender is not the handler");
+    await TruffleAssert.passes(updateEdge(edge, accounts[0]));
+    await TruffleAssert.reverts(updateEdge(edge, accounts[1]), "sender is not the handler");
 
     const roots = await AnchorInstance.getLatestNeighborRoots();
     assert.strictEqual(roots.length, maxRoots);
@@ -125,7 +118,7 @@ contract('LinkableAnchor - [add edges]', async accounts => {
       latestLeafIndex: 1,
     };
 
-    await TruffleAssert.passes(addEdge(edge, accounts[0]));
+    await TruffleAssert.passes(updateEdge(edge, accounts[0]));
 
     assert(await AnchorInstance.edgeIndex(edge.sourceChainID) == 0);
   });
@@ -143,10 +136,10 @@ contract('LinkableAnchor - [add edges]', async accounts => {
       latestLeafIndex: 1,
     };
 
-    await TruffleAssert.passes(addEdge(edge, accounts[0]));
+    await TruffleAssert.passes(updateEdge(edge, accounts[0]));
     assert(await AnchorInstance.edgeIndex(edge.sourceChainID) == 0);
 
-    await TruffleAssert.reverts(addEdge(edge1, accounts[0], 'This Anchor is at capacity'));
+    await TruffleAssert.reverts(updateEdge(edge1, accounts[0], 'This Anchor is at capacity'));
   });
 
   it('latestNeighborRoots should return correct roots', async () => {
@@ -156,7 +149,7 @@ contract('LinkableAnchor - [add edges]', async accounts => {
       latestLeafIndex: 1,
     };
 
-    await TruffleAssert.passes(addEdge(edge, accounts[0]));
+    await TruffleAssert.passes(updateEdge(edge, accounts[0]));
 
     const roots = await AnchorInstance.getLatestNeighborRoots();
     assert.strictEqual(roots.length, maxRoots);
@@ -170,7 +163,7 @@ contract('LinkableAnchor - [add edges]', async accounts => {
       latestLeafIndex: 1,
     };
 
-    const result = await addEdge(edge, accounts[0]);
+    const result = await updateEdge(edge, accounts[0]);
 
     TruffleAssert.eventEmitted(result, 'EdgeAddition', (ev) => {
       return ev.chainID == parseInt(edge.sourceChainID, 16) &&
