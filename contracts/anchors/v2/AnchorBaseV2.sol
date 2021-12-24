@@ -9,7 +9,7 @@ import "../../trees/MerkleTreePoseidon.sol";
 import "../../interfaces/IVerifier.sol";
 import "./LinkableTree.sol";
 
-abstract contract AnchorBase is LinkableTree {
+abstract contract AnchorBaseV2 is LinkableTree {
   IVerifier public immutable verifier;
 
   // map to store used nullifier hashes

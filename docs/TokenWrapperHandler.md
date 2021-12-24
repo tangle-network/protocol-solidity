@@ -200,6 +200,22 @@ function getUpdateRecord(uint256 updateNonce, uint256 executionChainId) external
 |---|---|---|
 | _0 | TokenWrapperHandler.UpdateRecord | UpdateRecord which consists of: - address _tokenWrapperAddress; - uint256  _executionChainID; - uint256 _nonce; - bytes4 functionSig; - bytes32 _resourceID; - bytes32 _updateValue;
 
+### migrateBridge
+
+```solidity
+function migrateBridge(address newBridge) external nonpayable
+```
+
+Migrates the bridge to a new bridge address
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newBridge | address | New bridge address
+
 ### setResource
 
 ```solidity

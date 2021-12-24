@@ -25,7 +25,6 @@ interface LinkableAnchorInterface extends ethers.utils.Interface {
     "FIELD_SIZE()": FunctionFragment;
     "ROOT_HISTORY_SIZE()": FunctionFragment;
     "ZERO_VALUE()": FunctionFragment;
-    "addEdge(uint256,bytes32,uint256)": FunctionFragment;
     "admin()": FunctionFragment;
     "bridge()": FunctionFragment;
     "commitments(bytes32)": FunctionFragment;
@@ -77,10 +76,6 @@ interface LinkableAnchorInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "ZERO_VALUE",
     values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "addEdge",
-    values: [BigNumberish, BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "admin", values?: undefined): string;
   encodeFunctionData(functionFragment: "bridge", values?: undefined): string;
@@ -218,7 +213,6 @@ interface LinkableAnchorInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "ZERO_VALUE", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "addEdge", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "admin", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "bridge", data: BytesLike): Result;
   decodeFunctionResult(
@@ -415,13 +409,6 @@ export class LinkableAnchor extends BaseContract {
 
     ZERO_VALUE(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    addEdge(
-      sourceChainID: BigNumberish,
-      root: BytesLike,
-      leafIndex: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     admin(overrides?: CallOverrides): Promise<[string]>;
 
     bridge(overrides?: CallOverrides): Promise<[string]>;
@@ -603,13 +590,6 @@ export class LinkableAnchor extends BaseContract {
 
   ZERO_VALUE(overrides?: CallOverrides): Promise<BigNumber>;
 
-  addEdge(
-    sourceChainID: BigNumberish,
-    root: BytesLike,
-    leafIndex: BigNumberish,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   admin(overrides?: CallOverrides): Promise<string>;
 
   bridge(overrides?: CallOverrides): Promise<string>;
@@ -773,13 +753,6 @@ export class LinkableAnchor extends BaseContract {
     ROOT_HISTORY_SIZE(overrides?: CallOverrides): Promise<number>;
 
     ZERO_VALUE(overrides?: CallOverrides): Promise<BigNumber>;
-
-    addEdge(
-      sourceChainID: BigNumberish,
-      root: BytesLike,
-      leafIndex: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     admin(overrides?: CallOverrides): Promise<string>;
 
@@ -1043,13 +1016,6 @@ export class LinkableAnchor extends BaseContract {
 
     ZERO_VALUE(overrides?: CallOverrides): Promise<BigNumber>;
 
-    addEdge(
-      sourceChainID: BigNumberish,
-      root: BytesLike,
-      leafIndex: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     admin(overrides?: CallOverrides): Promise<BigNumber>;
 
     bridge(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1214,13 +1180,6 @@ export class LinkableAnchor extends BaseContract {
     ROOT_HISTORY_SIZE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     ZERO_VALUE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    addEdge(
-      sourceChainID: BigNumberish,
-      root: BytesLike,
-      leafIndex: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
 
     admin(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

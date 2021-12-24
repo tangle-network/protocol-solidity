@@ -6,14 +6,14 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
-import "./interfaces/IAnchor.sol";
+import "./interfaces/IFixedDepositAnchor.sol";
 import "./interfaces/IAnchorTrees.sol";
 
 contract AnchorProxy {
   using SafeERC20 for IERC20;
 
-  event InstanceStateUpdated(IAnchor indexed instance, InstanceState state);
-  event AnchorProxyDeposit(IAnchor indexed anchor, bytes32 indexed commitment, uint256 timestamp);
+  event InstanceStateUpdated(IFixedDepositAnchor indexed instance, InstanceState state);
+  event AnchorProxyDeposit(IFixedDepositAnchor indexed anchor, bytes32 indexed commitment, uint256 timestamp);
 
   enum InstanceState { DISABLED, ENABLED, MINEABLE }
 
@@ -25,12 +25,12 @@ contract AnchorProxy {
   }
 
   struct AnchorStruct {
-    IAnchor addr;
+    IFixedDepositAnchor addr;
     Instance instance;
   }
 
   IAnchorTrees public anchorTrees;
-  mapping(IAnchor => Instance) public instances;
+  mapping(IFixedDepositAnchor => Instance) public instances;
   address public immutable governance;
 
   modifier onlyGovernance() {
@@ -52,7 +52,7 @@ contract AnchorProxy {
   }
 
   function deposit(
-    IAnchor _anchor,
+    IFixedDepositAnchor _anchor,
     bytes32 _commitment,
     bytes calldata _encryptedNote
   ) public payable virtual {
@@ -73,9 +73,9 @@ contract AnchorProxy {
 
 
   function withdraw(
-    IAnchor _anchor,
+    IFixedDepositAnchor _anchor,
     bytes calldata _proof,
-    IAnchor.PublicInputs calldata _publicInputs
+    IFixedDepositAnchor.PublicInputs calldata _publicInputs
   ) public payable virtual {
     Instance memory instance = instances[_anchor];
     require(instance.state != InstanceState.DISABLED, "The instance is not supported");

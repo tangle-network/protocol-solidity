@@ -149,7 +149,16 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard {
   function decodeRoots(bytes calldata roots) internal view returns (bytes32[] memory decodedRoots) {
     decodedRoots = new bytes32[](maxEdges + 1);
     for (uint i = 0; i < maxEdges; i++) {
-      decodedRoots[i] = bytes32(roots[(i * 32):((i + 1) * 32)]);
+      decodedRoots[i] = bytesToBytes32(roots, i * 32);
     }
+  }
+
+  function bytesToBytes32(bytes memory b, uint offset) internal pure returns (bytes32) {
+    bytes32 out;
+
+    for (uint i = 0; i < 32; i++) {
+      out |= bytes32(b[offset + i] & 0xFF) >> (i * 8);
+    }
+    return out;
   }
 }

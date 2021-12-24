@@ -30,6 +30,7 @@ interface TokenWrapperHandlerInterface extends ethers.utils.Interface {
     "executeProposal(bytes32,bytes)": FunctionFragment;
     "getChainId()": FunctionFragment;
     "getUpdateRecord(uint256,uint256)": FunctionFragment;
+    "migrateBridge(address)": FunctionFragment;
     "setResource(bytes32,address)": FunctionFragment;
   };
 
@@ -70,6 +71,10 @@ interface TokenWrapperHandlerInterface extends ethers.utils.Interface {
     values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "migrateBridge",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "setResource",
     values: [BytesLike, string]
   ): string;
@@ -102,6 +107,10 @@ interface TokenWrapperHandlerInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "getChainId", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getUpdateRecord",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "migrateBridge",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -218,6 +227,11 @@ export class TokenWrapperHandler extends BaseContract {
       ]
     >;
 
+    migrateBridge(
+      newBridge: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     setResource(
       resourceID: BytesLike,
       contractAddress: string,
@@ -278,6 +292,11 @@ export class TokenWrapperHandler extends BaseContract {
       _updateValue: string;
     }
   >;
+
+  migrateBridge(
+    newBridge: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   setResource(
     resourceID: BytesLike,
@@ -343,6 +362,8 @@ export class TokenWrapperHandler extends BaseContract {
       }
     >;
 
+    migrateBridge(newBridge: string, overrides?: CallOverrides): Promise<void>;
+
     setResource(
       resourceID: BytesLike,
       contractAddress: string,
@@ -390,6 +411,11 @@ export class TokenWrapperHandler extends BaseContract {
       updateNonce: BigNumberish,
       executionChainId: BigNumberish,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    migrateBridge(
+      newBridge: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setResource(
@@ -440,6 +466,11 @@ export class TokenWrapperHandler extends BaseContract {
       updateNonce: BigNumberish,
       executionChainId: BigNumberish,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    migrateBridge(
+      newBridge: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setResource(

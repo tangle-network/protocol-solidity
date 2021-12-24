@@ -12,9 +12,9 @@ import "../../interfaces/IFixedDepositAnchor.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "./AnchorBase.sol";
+import "./AnchorBaseV2.sol";
 
-abstract contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
+abstract contract FixedDepositAnchorV2 is AnchorBaseV2, IFixedDepositAnchor {
   using SafeERC20 for IERC20;
   using SafeMath for uint256;
 
@@ -39,7 +39,7 @@ abstract contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
     uint256 _denomination,
     uint32 _merkleTreeHeight,
     uint8 _maxEdges
-  ) AnchorBase(_verifier, _hasher, _merkleTreeHeight, _maxEdges) {
+  ) AnchorBaseV2(_verifier, _hasher, _merkleTreeHeight, _maxEdges) {
     require(_denomination > 0, "denomination should be greater than 0");
     denomination = _denomination;
     token = address(_token);

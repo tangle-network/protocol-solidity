@@ -818,7 +818,7 @@ function verifier() external view returns (contract IVerifier)
 ### withdraw
 
 ```solidity
-function withdraw(bytes _proof, IAnchor.PublicInputs _publicInputs) external payable
+function withdraw(bytes _proof, IFixedDepositAnchor.PublicInputs _publicInputs) external payable
 ```
 
 
@@ -830,12 +830,12 @@ function withdraw(bytes _proof, IAnchor.PublicInputs _publicInputs) external pay
 | Name | Type | Description |
 |---|---|---|
 | _proof | bytes | undefined
-| _publicInputs | IAnchor.PublicInputs | undefined
+| _publicInputs | IFixedDepositAnchor.PublicInputs | undefined
 
 ### withdrawAndUnwrap
 
 ```solidity
-function withdrawAndUnwrap(bytes _proof, IAnchor.PublicInputs _publicInputs, address tokenAddress) external payable
+function withdrawAndUnwrap(bytes _proof, IFixedDepositAnchor.PublicInputs _publicInputs, address tokenAddress) external payable
 ```
 
 
@@ -847,7 +847,7 @@ function withdrawAndUnwrap(bytes _proof, IAnchor.PublicInputs _publicInputs, add
 | Name | Type | Description |
 |---|---|---|
 | _proof | bytes | undefined
-| _publicInputs | IAnchor.PublicInputs | undefined
+| _publicInputs | IFixedDepositAnchor.PublicInputs | undefined
 | tokenAddress | address | undefined
 
 ### wrapAndDeposit

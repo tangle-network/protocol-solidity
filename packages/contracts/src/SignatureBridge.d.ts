@@ -27,6 +27,7 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     "_expiry()": FunctionFragment;
     "_fee()": FunctionFragment;
     "_resourceIDToHandlerAddress(bytes32)": FunctionFragment;
+    "adminMigrateBridgeWithSignature(bytes32[],address,bytes)": FunctionFragment;
     "adminSetResourceWithSignature(address,bytes32,address,bytes)": FunctionFragment;
     "checkPubKey(bytes)": FunctionFragment;
     "executeProposalWithSignature(uint256,uint64,bytes,bytes32,bytes)": FunctionFragment;
@@ -38,6 +39,7 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     "renounceOwnership()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "transferOwnershipWithSignature(address,bytes)": FunctionFragment;
+    "transferOwnershipWithSignaturePubKey(bytes,bytes)": FunctionFragment;
     "verify(bytes32,uint8,bytes32,bytes32)": FunctionFragment;
   };
 
@@ -55,6 +57,10 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "_resourceIDToHandlerAddress",
     values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "adminMigrateBridgeWithSignature",
+    values: [BytesLike[], string, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "adminSetResourceWithSignature",
@@ -95,6 +101,10 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     values: [string, BytesLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "transferOwnershipWithSignaturePubKey",
+    values: [BytesLike, BytesLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "verify",
     values: [BytesLike, BigNumberish, BytesLike, BytesLike]
   ): string;
@@ -109,6 +119,10 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "_fee", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "_resourceIDToHandlerAddress",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "adminMigrateBridgeWithSignature",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -141,6 +155,10 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnershipWithSignature",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "transferOwnershipWithSignaturePubKey",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "verify", data: BytesLike): Result;
@@ -256,6 +274,13 @@ export class SignatureBridge extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
+    adminMigrateBridgeWithSignature(
+      resourceIDs: BytesLike[],
+      newBridge: string,
+      sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     adminSetResourceWithSignature(
       handlerAddress: string,
       resourceID: BytesLike,
@@ -311,6 +336,12 @@ export class SignatureBridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    transferOwnershipWithSignaturePubKey(
+      publicKey: BytesLike,
+      sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     verify(
       hash: BytesLike,
       v: BigNumberish,
@@ -334,6 +365,13 @@ export class SignatureBridge extends BaseContract {
     arg0: BytesLike,
     overrides?: CallOverrides
   ): Promise<string>;
+
+  adminMigrateBridgeWithSignature(
+    resourceIDs: BytesLike[],
+    newBridge: string,
+    sig: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   adminSetResourceWithSignature(
     handlerAddress: string,
@@ -387,6 +425,12 @@ export class SignatureBridge extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  transferOwnershipWithSignaturePubKey(
+    publicKey: BytesLike,
+    sig: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   verify(
     hash: BytesLike,
     v: BigNumberish,
@@ -410,6 +454,13 @@ export class SignatureBridge extends BaseContract {
       arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
+
+    adminMigrateBridgeWithSignature(
+      resourceIDs: BytesLike[],
+      newBridge: string,
+      sig: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     adminSetResourceWithSignature(
       handlerAddress: string,
@@ -457,6 +508,12 @@ export class SignatureBridge extends BaseContract {
 
     transferOwnershipWithSignature(
       newOwner: string,
+      sig: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    transferOwnershipWithSignaturePubKey(
+      publicKey: BytesLike,
       sig: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -584,6 +641,13 @@ export class SignatureBridge extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    adminMigrateBridgeWithSignature(
+      resourceIDs: BytesLike[],
+      newBridge: string,
+      sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     adminSetResourceWithSignature(
       handlerAddress: string,
       resourceID: BytesLike,
@@ -639,6 +703,12 @@ export class SignatureBridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    transferOwnershipWithSignaturePubKey(
+      publicKey: BytesLike,
+      sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     verify(
       hash: BytesLike,
       v: BigNumberish,
@@ -665,6 +735,13 @@ export class SignatureBridge extends BaseContract {
     _resourceIDToHandlerAddress(
       arg0: BytesLike,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    adminMigrateBridgeWithSignature(
+      resourceIDs: BytesLike[],
+      newBridge: string,
+      sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     adminSetResourceWithSignature(
@@ -718,6 +795,12 @@ export class SignatureBridge extends BaseContract {
 
     transferOwnershipWithSignature(
       newOwner: string,
+      sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    transferOwnershipWithSignaturePubKey(
+      publicKey: BytesLike,
       sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
