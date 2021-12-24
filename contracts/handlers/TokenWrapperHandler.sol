@@ -9,6 +9,7 @@ pragma experimental ABIEncoderV2;
 import "../tokens/GovernedTokenWrapper.sol"; 
 import "./HandlerHelpers.sol";
 import "../interfaces/IExecutor.sol";
+import "hardhat/console.sol";
 
 /**
     @title Handles GovernedTokenWrapper fee and token updates
@@ -82,30 +83,32 @@ contract TokenWrapperHandler is IExecutor, HandlerHelpers {
         updateValue                                       bytes32     bytes  96 - 128  
      */
     function executeProposal(bytes32 resourceID, bytes calldata data) external override onlyBridge {
-        uint256      executionChainID;
-        uint256      nonce;
-        bytes32      functionSig;
-        bytes32      updateValue;
-
-        (executionChainID, nonce, functionSig, updateValue) = abi.decode(data, (uint256, uint256, bytes32, bytes32));
-        require(getChainId() == executionChainID, "not executing on correct chain");
+        bytes32         resourceId;
+        bytes4          functionSig;
+        bytes  calldata arguments;
+    
+        resourceId = bytes32(data[0:32]);
+        functionSig = bytes4(data[32:36]);
+        arguments = data[36:];
+    
         address governedTokenAddress = _resourceIDToContractAddress[resourceID];
         GovernedTokenWrapper governedToken = GovernedTokenWrapper(governedTokenAddress); 
+ 
 
-        if (bytes4(functionSig) == bytes4(keccak256("setFee(uint8,uint256)"))) {
-            governedToken.setFee(uint8(bytes1(updateValue)), nonce);
-        } else if (bytes4(functionSig) == bytes4(keccak256("add(address,uint256)"))) {
-            governedToken.add(address(bytes20(updateValue)), nonce);
-        } else if (bytes4(functionSig) == bytes4(keccak256("remove(address,uint256)"))) {
-            governedToken.remove(address(bytes20(updateValue)), nonce);
+        if (functionSig == bytes4(keccak256("setFee(uint8,uint256)"))) {  
+            uint32 nonce = uint32(bytes4(arguments[0:4])); 
+            uint8 newFee = uint8(bytes1(arguments[4:5]));
+            governedToken.setFee(newFee, nonce);
+        } else if (functionSig == bytes4(keccak256("add(address,uint256)"))) {
+            uint32 nonce = uint32(bytes4(arguments[0:4]));
+            address tokenAddress = address(bytes20(arguments[4:24]));
+            governedToken.add(tokenAddress, nonce);
+        } else if (functionSig == bytes4(keccak256("remove(address,uint256)"))) {
+            uint32 nonce = uint32(bytes4(arguments[0:4]));
+            address tokenAddress = address(bytes20(arguments[4:24]));
+            governedToken.remove(tokenAddress, nonce);
         } else {
             revert("Invalid function sig");
         }
-    }
-
-    function getChainId() public view returns (uint) {
-        uint chainId;
-        assembly { chainId := chainid() }
-        return chainId;
     }
 }

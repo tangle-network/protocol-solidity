@@ -30,7 +30,8 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     "adminMigrateBridgeWithSignature(bytes32[],address,bytes)": FunctionFragment;
     "adminSetResourceWithSignature(address,bytes32,address,bytes)": FunctionFragment;
     "checkPubKey(bytes)": FunctionFragment;
-    "executeProposalWithSignature(uint256,uint64,bytes,bytes32,bytes)": FunctionFragment;
+    "executeProposalWithSignature(uint256,bytes,bytes)": FunctionFragment;
+    "getChainId()": FunctionFragment;
     "governor()": FunctionFragment;
     "isGovernor()": FunctionFragment;
     "isSignatureFromGovernor(bytes,bytes)": FunctionFragment;
@@ -72,7 +73,11 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "executeProposalWithSignature",
-    values: [BigNumberish, BigNumberish, BytesLike, BytesLike, BytesLike]
+    values: [BigNumberish, BytesLike, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getChainId",
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "governor", values?: undefined): string;
   encodeFunctionData(
@@ -137,6 +142,7 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     functionFragment: "executeProposalWithSignature",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getChainId", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "governor", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "isGovernor", data: BytesLike): Result;
   decodeFunctionResult(
@@ -166,7 +172,7 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
   events: {
     "GovernanceOwnershipTransferred(address,address)": EventFragment;
     "Paused(address)": EventFragment;
-    "ProposalEvent(uint256,uint64,uint8,bytes32)": EventFragment;
+    "ProposalEvent(uint256,uint8,bytes32,bytes)": EventFragment;
     "ProposalVote(uint256,uint64,uint8,bytes32)": EventFragment;
     "RecoveredAddress(address)": EventFragment;
     "Unpaused(address)": EventFragment;
@@ -189,11 +195,11 @@ export type GovernanceOwnershipTransferredEvent = TypedEvent<
 export type PausedEvent = TypedEvent<[string] & { account: string }>;
 
 export type ProposalEventEvent = TypedEvent<
-  [BigNumber, BigNumber, number, string] & {
+  [BigNumber, number, string, string] & {
     originChainID: BigNumber;
-    nonce: BigNumber;
     status: number;
     dataHash: string;
+    sig: string;
   }
 >;
 
@@ -296,12 +302,12 @@ export class SignatureBridge extends BaseContract {
 
     executeProposalWithSignature(
       chainID: BigNumberish,
-      nonce: BigNumberish,
       data: BytesLike,
-      resourceID: BytesLike,
       sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    getChainId(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     governor(overrides?: CallOverrides): Promise<[string]>;
 
@@ -385,12 +391,12 @@ export class SignatureBridge extends BaseContract {
 
   executeProposalWithSignature(
     chainID: BigNumberish,
-    nonce: BigNumberish,
     data: BytesLike,
-    resourceID: BytesLike,
     sig: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
   governor(overrides?: CallOverrides): Promise<string>;
 
@@ -474,12 +480,12 @@ export class SignatureBridge extends BaseContract {
 
     executeProposalWithSignature(
       chainID: BigNumberish,
-      nonce: BigNumberish,
       data: BytesLike,
-      resourceID: BytesLike,
       sig: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
     governor(overrides?: CallOverrides): Promise<string>;
 
@@ -550,33 +556,33 @@ export class SignatureBridge extends BaseContract {
 
     Paused(account?: null): TypedEventFilter<[string], { account: string }>;
 
-    "ProposalEvent(uint256,uint64,uint8,bytes32)"(
+    "ProposalEvent(uint256,uint8,bytes32,bytes)"(
       originChainID?: null,
-      nonce?: null,
       status?: null,
-      dataHash?: null
+      dataHash?: null,
+      sig?: null
     ): TypedEventFilter<
-      [BigNumber, BigNumber, number, string],
+      [BigNumber, number, string, string],
       {
         originChainID: BigNumber;
-        nonce: BigNumber;
         status: number;
         dataHash: string;
+        sig: string;
       }
     >;
 
     ProposalEvent(
       originChainID?: null,
-      nonce?: null,
       status?: null,
-      dataHash?: null
+      dataHash?: null,
+      sig?: null
     ): TypedEventFilter<
-      [BigNumber, BigNumber, number, string],
+      [BigNumber, number, string, string],
       {
         originChainID: BigNumber;
-        nonce: BigNumber;
         status: number;
         dataHash: string;
+        sig: string;
       }
     >;
 
@@ -663,12 +669,12 @@ export class SignatureBridge extends BaseContract {
 
     executeProposalWithSignature(
       chainID: BigNumberish,
-      nonce: BigNumberish,
       data: BytesLike,
-      resourceID: BytesLike,
       sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
     governor(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -759,12 +765,12 @@ export class SignatureBridge extends BaseContract {
 
     executeProposalWithSignature(
       chainID: BigNumberish,
-      nonce: BigNumberish,
       data: BytesLike,
-      resourceID: BytesLike,
       sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    getChainId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     governor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

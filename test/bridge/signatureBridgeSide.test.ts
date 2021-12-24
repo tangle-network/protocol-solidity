@@ -76,7 +76,7 @@
     await bridgeSide.connectAnchorWithSignature(anchor);
   })
  
-  it('execute anchor proposal', async () => {
+  it.only('execute anchor proposal', async () => {
     const signers = await ethers.getSigners();
     const initialGovernor = signers[1];
     const admin = signers[1];
@@ -151,13 +151,10 @@
 
     //Set bridgeSide handler to tokenWrapperHandler
     bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
-
     //Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
     await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
-
     //Execute change fee proposal
     await bridgeSide.executeFeeProposalWithSig(governedToken, 5);
-
     //Check that fee actually changed
     assert.strictEqual((await governedToken.contract.getFee()).toString(), '5');
   })
@@ -202,7 +199,6 @@
 
     //Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
-
     //Create a GovernedTokenWrapper
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
@@ -248,7 +244,6 @@
       false,
       admin,
     );
-
 
     //Set bridgeSide handler to tokenWrapperHandler
     bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);

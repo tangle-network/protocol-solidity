@@ -105,9 +105,10 @@ export class SignatureBridgeSide {
       throw new Error("Cannot connect an anchor without a handler");
     }
     const resourceId = await anchor.createResourceId();
-
+    console.log("resourceID", resourceId);
+    console.log("handler address", this.handler.contract.address);
     const unsignedData = this.handler.contract.address + resourceId.slice(2) + anchor.contract.address.slice(2);
-    const unsignedMsg = ethers.utils.arrayify(unsignedData);
+    const unsignedMsg = ethers.utils.arrayify(ethers.utils.keccak256(unsignedData).toString());
     const sig = await this.signingSystemSignFn(unsignedMsg);
     await this.contract.adminSetResourceWithSignature(this.handler.contract.address, resourceId, anchor.contract.address, sig);
     return resourceId;
@@ -118,9 +119,8 @@ export class SignatureBridgeSide {
       throw new Error("Cannot connect an anchor without a handler");
     }
     const resourceId = await governedToken.createResourceId();
-
     const unsignedData = this.handler.contract.address + resourceId.slice(2) + governedToken.contract.address.slice(2);
-    const unsignedMsg = ethers.utils.arrayify(unsignedData);
+    const unsignedMsg = ethers.utils.arrayify(ethers.utils.keccak256(unsignedData).toString());
     const sig = await this.signingSystemSignFn(unsignedMsg);
     await this.contract.adminSetResourceWithSignature(this.handler.contract.address, resourceId, governedToken.contract.address, sig);
     return resourceId;
@@ -136,9 +136,9 @@ export class SignatureBridgeSide {
     const resourceId = await thisAnchor.createResourceId();
     const chainId = await linkedAnchor.signer.getChainId();
     const nonce = linkedAnchor.tree.number_of_elements() - 1;
-    const proposalMsg = ethers.utils.arrayify(proposalData);
+    const proposalMsg = ethers.utils.arrayify(ethers.utils.keccak256(proposalData).toString());
     const sig = await this.signingSystemSignFn(proposalMsg);
-    const tx = await this.contract.executeProposalWithSignature(chainId, nonce, proposalData, resourceId, sig);
+    const tx = await this.contract.executeProposalWithSignature(chainId, proposalData, sig);
     const receipt = await tx.wait();
     
     return receipt;
@@ -152,9 +152,9 @@ export class SignatureBridgeSide {
     const resourceId = await governedToken.createResourceId();
     const chainId = await governedToken.signer.getChainId();
     const nonce = (await governedToken.contract.storageNonce()).add(1);
-    const proposalMsg = ethers.utils.arrayify(proposalData);
+    const proposalMsg = ethers.utils.arrayify(ethers.utils.keccak256(proposalData).toString());
     const sig = await this.signingSystemSignFn(proposalMsg);
-    const tx = await this.contract.executeProposalWithSignature(chainId, nonce, proposalData, resourceId, sig);
+    const tx = await this.contract.executeProposalWithSignature(chainId, proposalData, sig);
     const receipt = await tx.wait();
     
     return receipt;
@@ -169,9 +169,9 @@ export class SignatureBridgeSide {
     const resourceId = await governedToken.createResourceId();
     const chainId = await governedToken.signer.getChainId();
     const nonce = (await governedToken.contract.storageNonce()).add(1);
-    const proposalMsg = ethers.utils.arrayify(proposalData);
+    const proposalMsg = ethers.utils.arrayify(ethers.utils.keccak256(proposalData).toString());
     const sig = await this.signingSystemSignFn(proposalMsg);
-    const tx = await this.contract.executeProposalWithSignature(chainId, nonce, proposalData, resourceId, sig);
+    const tx = await this.contract.executeProposalWithSignature(chainId, proposalData, sig);
     const receipt = await tx.wait();
     
     return receipt;
@@ -186,9 +186,9 @@ export class SignatureBridgeSide {
     const resourceId = await governedToken.createResourceId();
     const chainId = await governedToken.signer.getChainId();
     const nonce = (await governedToken.contract.storageNonce()).add(1);
-    const proposalMsg = ethers.utils.arrayify(proposalData);
+    const proposalMsg = ethers.utils.arrayify(ethers.utils.keccak256(proposalData).toString());
     const sig = await this.signingSystemSignFn(proposalMsg);
-    const tx = await this.contract.executeProposalWithSignature(chainId, nonce, proposalData, resourceId, sig);
+    const tx = await this.contract.executeProposalWithSignature(chainId, proposalData, sig);
     const receipt = await tx.wait();
     
     return receipt;

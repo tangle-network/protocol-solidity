@@ -80,27 +80,29 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
         merkleRoot                               uint256     bytes  64 - 96
      */
     function executeProposal(bytes32 resourceID, bytes calldata data) external override onlyBridge {
-        bytes32       resourceId;
-        uint256       nonce;
-        bytes32       functionSig;
-        bytes memory  arguments;
+        bytes32        resourceId;
+        bytes4         functionSig;
+        bytes calldata arguments;
 
-        (resourceId, nonce, functionSig, arguments) = abi.decode(data, (bytes32, uint256, bytes32, bytes));
+        resourceId = bytes32(data[0:32]);
+        functionSig = bytes4(data[32:36]);
+        arguments = data[36:];
 
         address anchorAddress = _resourceIDToContractAddress[resourceID];
 
         require(_contractWhitelist[anchorAddress], "provided tokenAddress is not whitelisted");
         ILinkableAnchor anchor = ILinkableAnchor(anchorAddress);
 
-        if (bytes4(functionSig) == bytes4(keccak256("setHandler(address)"))) {
-            address newHandler = abi.decode(arguments, (address));
+        if (functionSig == bytes4(keccak256("setHandler(address)"))) {
+            uint32 nonce = uint32(bytes4(arguments[0:4]));
+            address newHandler = address(bytes20(arguments[4:24]));
             anchor.setHandler(newHandler);
-        } else if (bytes4(functionSig) == bytes4(keccak256("updateEdge(uint256,bytes32,uint256)"))) {
-            uint256 sourceChainId;
-            uint256 leafIndex;
-            bytes32 merkleRoot;
-            (sourceChainId, leafIndex, merkleRoot) = abi.decode(arguments, (uint256, uint256, bytes32));
-            anchor.updateEdge(sourceChainId, bytes32(merkleRoot), leafIndex);
+        } else if (functionSig == bytes4(keccak256("updateEdge(uint256,bytes32,uint256)"))) {
+            uint32 nonce = uint32(bytes4(arguments[0:4]));
+            uint32 sourceChainId = uint32(bytes4(arguments[4:8]));
+            uint32 leafIndex = uint32(bytes4(arguments[8:12]));
+            bytes32 merkleRoot = bytes32(arguments[12:44]);
+            anchor.updateEdge(sourceChainId, merkleRoot, leafIndex);
         } else {
             revert("Invalid function sig");
         }
