@@ -48,15 +48,12 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
 
     bytes32 public constant RELAYER_ROLE = keccak256("RELAYER_ROLE");
 
-    modifier signedByGovernorResource(bytes memory data, bytes memory sig) {
-        bytes memory prefix = "\x19Ethereum Signed Message:\n72";
-        require(isSignatureFromGovernor(abi.encodePacked(prefix, data), sig), "signed by governor: Not valid sig from governor");
-        _;
-    }
-
-    modifier signedByGovernorExecuteProposal(bytes memory data, bytes memory sig) {
-        bytes memory prefix = "\x19Ethereum Signed Message:\n128";
-        require(isSignatureFromGovernor(abi.encodePacked(prefix, data), sig), "signed by governor: Not valid sig from governor");
+    /**
+        Verifying signature of 
+     */
+    modifier signedByGovernor(bytes32 dataHash, bytes memory sig) {
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        require(isSignatureFromGovernor(abi.encodePacked(prefix, dataHash), sig), "signed by governor: Not valid sig from governor");
         _;
     }
 
@@ -85,10 +82,27 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
       bytes32 resourceID,
       address executionContextAddress,
       bytes memory sig
-    ) external signedByGovernorResource(abi.encodePacked(handlerAddress, resourceID, executionContextAddress), sig) {
+    ) external signedByGovernor(keccak256(abi.encodePacked(handlerAddress, resourceID, executionContextAddress)), sig) {
         _resourceIDToHandlerAddress[resourceID] = handlerAddress;
         IExecutor handler = IExecutor(handlerAddress);
         handler.setResource(resourceID, executionContextAddress);
+    }
+
+    /**
+        @notice Migrates the handlers to a new bridge.
+        @notice Expects the new bridge to have the same resourceID to handler mapping as the old bridge.
+        @param resourceIDs ResourceID array to migrate all active handlers to the new bridge
+        @param newBridge New bridge address to migrate handlers to.
+     */
+    function adminMigrateBridgeWithSignature(
+      bytes32[] calldata resourceIDs,
+      address newBridge,
+      bytes memory sig
+    ) external signedByGovernor(keccak256(abi.encodePacked(resourceIDs, newBridge)), sig) {
+        for (uint i = 0; i < resourceIDs.length; i++) {
+            IExecutor handler = IExecutor(_resourceIDToHandlerAddress[resourceIDs[i]]);
+            handler.migrateBridge(newBridge);
+        }
     }
 
     /**
@@ -108,7 +122,7 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
       bytes calldata data,
       bytes32 resourceID,
       bytes memory sig
-    ) external signedByGovernorExecuteProposal(data, sig) {
+    ) external signedByGovernor(keccak256(data), sig) {
         // TODO: Remove nonce and resource ID from function (can get from data)
         // TODO: Parse resourceID from the data
         // TODO: Parse chain ID from the resource ID
