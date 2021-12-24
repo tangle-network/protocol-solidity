@@ -80,33 +80,29 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
         merkleRoot                               uint256     bytes  64 - 96
      */
     function executeProposal(bytes32 resourceID, bytes calldata data) external override onlyBridge {
-        bytes32       zeros;
-        uint256       sourceChainId;
-        uint256       leafIndex;
-        uint256       merkleRoot;
+        bytes32       resourceId;
+        uint256       nonce;
+        bytes32       functionSig;
+        bytes memory  arguments;
 
-        (zeros, sourceChainId, leafIndex, merkleRoot) = abi.decode(data, (bytes32, uint256, uint, uint));
+        (resourceId, nonce, functionSig, arguments) = abi.decode(data, (bytes32, uint256, bytes32, bytes));
 
         address anchorAddress = _resourceIDToContractAddress[resourceID];
 
         require(_contractWhitelist[anchorAddress], "provided tokenAddress is not whitelisted");
-
         ILinkableAnchor anchor = ILinkableAnchor(anchorAddress);
 
-        anchor.updateEdge(
-            sourceChainId,
-            bytes32(merkleRoot),
-            leafIndex
-        );
-        
-
-        uint nonce = ++_counts[sourceChainId];
-        _updateRecords[sourceChainId][nonce] = UpdateRecord(
-            anchorAddress,
-            sourceChainId,
-            resourceID,
-            bytes32(merkleRoot),
-            leafIndex
-        );
+        if (bytes4(functionSig) == bytes4(keccak256("setHandler(address)"))) {
+            address newHandler = abi.decode(arguments, (address));
+            anchor.setHandler(newHandler);
+        } else if (bytes4(functionSig) == bytes4(keccak256("updateEdge(uint256,bytes32,uint256)"))) {
+            uint256 sourceChainId;
+            uint256 leafIndex;
+            bytes32 merkleRoot;
+            (sourceChainId, leafIndex, merkleRoot) = abi.decode(arguments, (uint256, uint256, bytes32));
+            anchor.updateEdge(sourceChainId, bytes32(merkleRoot), leafIndex);
+        } else {
+            revert("Invalid function sig");
+        }
     }
 }

@@ -109,6 +109,10 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
       bytes32 resourceID,
       bytes memory sig
     ) external signedByGovernorExecuteProposal(data, sig) {
+        // TODO: Remove nonce and resource ID from function (can get from data)
+        // TODO: Parse resourceID from the data
+        // TODO: Parse chain ID from the resource ID
+        // TODO: Verify current chain matches chain ID from resource ID
         address handler = _resourceIDToHandlerAddress[resourceID];
         bytes32 dataHash = keccak256(abi.encodePacked(handler, data));
         IExecutor executionHandler = IExecutor(handler);

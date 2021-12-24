@@ -93,29 +93,14 @@ contract TokenWrapperHandler is IExecutor, HandlerHelpers {
         GovernedTokenWrapper governedToken = GovernedTokenWrapper(governedTokenAddress); 
 
         if (bytes4(functionSig) == bytes4(keccak256("setFee(uint8,uint256)"))) {
-            // send fee update
             governedToken.setFee(uint8(bytes1(updateValue)), nonce);
         } else if (bytes4(functionSig) == bytes4(keccak256("add(address,uint256)"))) {
-            // validate token address is correct/real/etc.
-            // send add
             governedToken.add(address(bytes20(updateValue)), nonce);
         } else if (bytes4(functionSig) == bytes4(keccak256("remove(address,uint256)"))) {
             governedToken.remove(address(bytes20(updateValue)), nonce);
         } else {
             revert("Invalid function sig");
         }
-
-        require(_contractWhitelist[governedTokenAddress], "provided governed token address is not whitelisted");
-
-        uint updateNonce = ++_counts[executionChainID];
-        _updateRecords[executionChainID][updateNonce] = UpdateRecord(
-            governedTokenAddress,
-            executionChainID,
-            nonce,
-            bytes4(functionSig),
-            resourceID,
-            updateValue
-        );
     }
 
     function getChainId() public view returns (uint) {

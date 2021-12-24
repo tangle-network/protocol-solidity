@@ -6,8 +6,7 @@
 pragma solidity ^0.8.0;
 
 
-interface IAnchor {
-
+interface IFixedDepositAnchor {
 	struct PublicInputs {
 		bytes _roots;
 		bytes32 _nullifierHash;
