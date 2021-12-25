@@ -84,7 +84,6 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
       address executionContextAddress,
       bytes memory sig
     ) external signedByGovernor(keccak256(abi.encodePacked(handlerAddress, resourceID, executionContextAddress)), sig){
-        console.log(handlerAddress);
         _resourceIDToHandlerAddress[resourceID] = handlerAddress;
         IExecutor handler = IExecutor(handlerAddress);
         handler.setResource(resourceID, executionContextAddress);
@@ -128,9 +127,7 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
         bytes4 executionChainID = bytes4(resourceIDBytes[28:32]);
         // Verify current chain matches chain ID from resource ID
         require(uint32(getChainId()) == uint32(executionChainID), "executing on wrong chain");
-        console.logBytes32(resourceID);
         address handler = _resourceIDToHandlerAddress[resourceID];
-        console.log("hhh %s", handler);
         bytes32 dataHash = keccak256(abi.encodePacked(handler, data));
         IExecutor executionHandler = IExecutor(handler);
         executionHandler.executeProposal(resourceID, data);
