@@ -376,7 +376,6 @@ export class VBridge {
     relayer: string,
     signer:ethers.Signer
     ) {
-    
     const chainId = await signer.getChainId();
     const signerAddress = await signer.getAddress();
     const vAnchor = this.getVAnchor(chainId);
@@ -396,7 +395,7 @@ export class VBridge {
         throw new Error("Trying to spend an input with wrong destination chainId");
       }
     }
-    
+
     //check that output origin chain is this chain
     for (let i=0; i<outputs.length; i++) {
       if (outputs[i].originChainId.toString() !== chainId.toString()) {
@@ -423,7 +422,6 @@ export class VBridge {
     if (userTokenAllowance.lt(publicAmount)) {
       await tokenInstance.approveSpending(vAnchor.contract.address);
     }
-
     //Make Merkle proof
     const merkleProof = inputs.map((x) => this.getVAnchor(Number(x.originChainId))!.getMerkleProof(x));
     //console.log((await tokenInstance.getBalance(signerAddress)).toString());

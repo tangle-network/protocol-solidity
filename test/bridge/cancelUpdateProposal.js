@@ -108,7 +108,7 @@ contract('Bridge - [CancelUpdateProposal with relayerThreshold == 3]', async (ac
       initialContractAddresses,
     );
 
-    data = Helpers.createUpdateProposalData(originChainID, latestLeafIndex, merkleRoot);
+    data = Helpers.createUpdateProposalData(originChainID, latestLeafIndex, merkleRoot, '0x1111111111111111111111111111111111111111', destinationChainID);
     dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
 
     await Promise.all([

@@ -190,7 +190,7 @@ contract('E2E LinkableAnchors - Mixed cross chain withdrawals', async accounts =
     originUpdateNonce = latestLeafIndex;
     originMerkleRoot = await OriginChainAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on origin chain
-    originUpdateData = helpers.createUpdateProposalData(originChainID, latestLeafIndex, originMerkleRoot);
+    originUpdateData = helpers.createUpdateProposalData(originChainID, latestLeafIndex, originMerkleRoot, DestChainAnchorInstance.address, Ethers.BigNumber.from((await DestChainAnchorInstance.getChainId()).toString()));
     originUpdateDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originUpdateData.substr(2));
     /*
     *  Relayers vote on dest chain

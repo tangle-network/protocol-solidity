@@ -76,7 +76,7 @@
     await bridgeSide.connectAnchorWithSignature(anchor);
   })
  
-  it.only('execute anchor proposal', async () => {
+  it('execute anchor proposal', async () => {
     const signers = await ethers.getSigners();
     const initialGovernor = signers[1];
     const admin = signers[1];
@@ -121,6 +121,7 @@
       zkComponents,
       admin
     );
+
     await tokenInstance.approveSpending(destAnchor.contract.address);
     await tokenInstance.approveSpending(sourceAnchor.contract.address);
 

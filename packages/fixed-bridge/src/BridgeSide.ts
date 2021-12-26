@@ -54,8 +54,8 @@ export class BridgeSide {
   *** make its way to the neighbor root of the linked anchor on chain X.
   *** @param linkedAnchorInstance: the anchor instance on the opposite chain
   ***/
-  public async createAnchorUpdateProposalData(linkedAnchorInstance: Anchor) {
-    const proposalData = await linkedAnchorInstance.getProposalData();
+  public async createAnchorUpdateProposalData(linkedAnchorInstance: Anchor, thisAnchorInstance: Anchor) {
+    const proposalData = await linkedAnchorInstance.getProposalData(thisAnchorInstance);
     return proposalData;
   }
 
@@ -119,7 +119,7 @@ export class BridgeSide {
       throw new Error("Cannot connect an anchor without a handler");
     }
 
-    const proposalData = await this.createAnchorUpdateProposalData(linkedAnchor);
+    const proposalData = await this.createAnchorUpdateProposalData(linkedAnchor, thisAnchor);
     const dataHash = ethers.utils.keccak256(this.handler.contract.address + proposalData.substr(2));
     const resourceId = await thisAnchor.createResourceId();
     const chainId = await linkedAnchor.signer.getChainId();
@@ -137,7 +137,7 @@ export class BridgeSide {
       throw new Error("Cannot connect an anchor without a handler");
     }
 
-    const proposalData = await this.createAnchorUpdateProposalData(linkedAnchor);
+    const proposalData = await this.createAnchorUpdateProposalData(linkedAnchor, thisAnchor);
     const resourceId = await thisAnchor.createResourceId();
     const chainId = await linkedAnchor.signer.getChainId();
     const nonce = linkedAnchor.tree.number_of_elements() - 1;

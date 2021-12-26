@@ -94,11 +94,11 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
         ILinkableAnchor anchor = ILinkableAnchor(anchorAddress);
 
         if (functionSig == bytes4(keccak256("setHandler(address)"))) {
-            uint32 nonce = uint32(bytes4(arguments[0:4]));
+            //uint32 nonce = uint32(bytes4(arguments[0:4]));
             address newHandler = address(bytes20(arguments[4:24]));
             anchor.setHandler(newHandler);
         } else if (functionSig == bytes4(keccak256("updateEdge(uint256,bytes32,uint256)"))) {
-            uint32 nonce = uint32(bytes4(arguments[0:4]));
+            //uint32 nonce = uint32(bytes4(arguments[0:4]));
             uint32 sourceChainId = uint32(bytes4(arguments[4:8]));
             uint32 leafIndex = uint32(bytes4(arguments[8:12]));
             bytes32 merkleRoot = bytes32(arguments[12:44]);

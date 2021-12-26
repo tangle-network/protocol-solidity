@@ -52,8 +52,8 @@ export class VBridgeSide {
   *** make its way to the neighbor root of the linked anchor on chain X.
   *** @param linkedAnchorInstance: the anchor instance on the opposite chain
   ***/
-  public async createUpdateProposalData(linkedAnchorInstance: VAnchor) {
-    const proposalData = await linkedAnchorInstance.getProposalData();
+  public async createUpdateProposalData(linkedAnchorInstance: VAnchor, thisAnchorInstance: VAnchor) {
+    const proposalData = await linkedAnchorInstance.getProposalData(thisAnchorInstance);
     return proposalData;
   }
 
@@ -88,7 +88,7 @@ export class VBridgeSide {
       throw new Error("Cannot connect an anchor without a handler");
     }
 
-    const proposalData = await this.createUpdateProposalData(linkedAnchor);
+    const proposalData = await this.createUpdateProposalData(linkedAnchor, thisAnchor);
     const dataHash = ethers.utils.keccak256(this.handler.contract.address + proposalData.substr(2));
     const resourceId = await thisAnchor.createResourceId();
     const chainId = await linkedAnchor.signer.getChainId();
@@ -106,7 +106,7 @@ export class VBridgeSide {
       throw new Error("Cannot connect an anchor without a handler");
     }
     
-    const proposalData = await this.createUpdateProposalData(linkedAnchor);
+    const proposalData = await this.createUpdateProposalData(linkedAnchor, thisAnchor);
     const resourceId = await thisAnchor.createResourceId();
     const chainId = await linkedAnchor.signer.getChainId();
     const nonce = linkedAnchor.tree.number_of_elements() - 1;
