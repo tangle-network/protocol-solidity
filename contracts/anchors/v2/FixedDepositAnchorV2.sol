@@ -21,11 +21,11 @@ contract FixedDepositAnchorV2 is AnchorBaseV2, IFixedDepositAnchor {
   address public immutable token;
   uint256 public immutable denomination;
   // currency events
-  event Deposit(address sender, uint256 timestamp);
+  event Deposit(address sender, bytes32 indexed commitment, uint256 timestamp);
   event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uint256 fee);
   event Refresh(bytes32 indexed commitment, bytes32 nullifierHash, uint32 insertedIndex);
 
-  struct EncodeDataInput {
+  struct EncodeInputsData {
     bytes32 _nullifierHash;
     bytes32 _refreshCommitment;
     address _recipient;
@@ -53,15 +53,15 @@ contract FixedDepositAnchorV2 is AnchorBaseV2, IFixedDepositAnchor {
     token = address(_token);
   }
 
-  function deposit(bytes32 _commitment) override public payable nonReentrant {
+  function deposit(bytes32 _commitment) override public payable {
     insert(_commitment);
+    emit Deposit(msg.sender, _commitment, block.timestamp);
   }
 
 
   function _processInsertion() internal override {
     require(msg.value == 0, "ETH value is supposed to be 0 for ERC20 instance");
     IMintableERC20(token).transferFrom(msg.sender, address(this), denomination);
-    emit Deposit(msg.sender, block.timestamp);
   }
 
   /**
@@ -81,7 +81,7 @@ contract FixedDepositAnchorV2 is AnchorBaseV2, IFixedDepositAnchor {
 
     (bytes memory encodedInput, bytes32[] memory roots) = _encodeInputs(
       _publicInputs._roots,
-      EncodeDataInput(
+      EncodeInputsData(
         _publicInputs._nullifierHash,
         _publicInputs._refreshCommitment,
         address(_publicInputs._recipient),
@@ -153,6 +153,102 @@ contract FixedDepositAnchorV2 is AnchorBaseV2, IFixedDepositAnchor {
     }
   }
 
+  function wrapToken(address tokenAddress, uint256 amount) public {
+    ITokenWrapper(token).wrapFor(msg.sender, tokenAddress, amount);
+  }
+
+  function unwrapIntoToken(address tokenAddress, uint256 amount) public {
+    ITokenWrapper(token).unwrapFor(msg.sender, tokenAddress, amount);
+  }
+
+  function wrapNative() payable public {
+    ITokenWrapper(token).wrapFor{value: msg.value}(msg.sender, address(0), 0);
+  }
+
+  function unwrapIntoNative(address tokenAddress, uint256 amount) public {
+    ITokenWrapper(token).unwrapFor(msg.sender, tokenAddress, amount);
+  }
+
+  function wrapAndDeposit(
+    address tokenAddress,
+    bytes32 _commitment
+  ) payable public {
+    require(!commitments[_commitment], "The commitment has been submitted");
+    // wrap into the token and send directly to this contract
+    if (tokenAddress == address(0)) {
+        require(msg.value == ITokenWrapper(token).getAmountToWrap(denomination));
+        ITokenWrapper(token).wrapForAndSendTo{value: msg.value}(
+            msg.sender,
+            tokenAddress,
+            0,
+            address(this)
+        );
+    }
+    else {
+        ITokenWrapper(token).wrapForAndSendTo(
+            msg.sender,
+            tokenAddress,
+            ITokenWrapper(token).getAmountToWrap(denomination),
+            address(this)
+        );
+    }
+    // insert a new commitment to the tree
+    uint32 insertedIndex = _insert(_commitment);
+    commitments[_commitment] = true;
+    // emit the deposit event
+    emit Deposit(msg.sender, _commitment, block.timestamp);
+  }
+
+  function withdrawAndUnwrap(
+    bytes calldata _proof,
+    PublicInputs calldata _publicInputs,
+    address tokenAddress
+  ) external payable nonReentrant {
+    require(_publicInputs._fee <= denomination, "Fee exceeds transfer value");
+    require(!nullifierHashes[_publicInputs._nullifierHash], "The note has been already spent");
+
+    (bytes memory encodedInput, bytes32[] memory roots) = _encodeInputs(
+      _publicInputs._roots,
+      EncodeInputsData(
+        _publicInputs._nullifierHash,
+        _publicInputs._refreshCommitment,
+        address(_publicInputs._recipient),
+        address(_publicInputs._relayer),
+        _publicInputs._fee,
+        _publicInputs._refund
+      )
+    );
+
+    require(isValidRoots(roots), "Invalid roots");
+    require(verify(_proof, encodedInput), "Invalid withdraw proof");
+
+    nullifierHashes[_publicInputs._nullifierHash] = true;
+
+    processWithdraw(
+      payable(address(this)),
+      _publicInputs._relayer,
+      _publicInputs._fee,
+      _publicInputs._refund
+    );
+    
+    ITokenWrapper(token).unwrapAndSendTo(
+      tokenAddress,
+      denomination - _publicInputs._fee,
+      address(_publicInputs._recipient)
+    );
+
+    emit Withdrawal(
+      _publicInputs._recipient,
+      _publicInputs._nullifierHash,
+      _publicInputs._relayer,
+      _publicInputs._fee
+    );
+  }
+
+  
+
+  
+
 
   /** @dev whether a note is already spent */
   function isSpent(bytes32 _nullifierHash) public view returns (bool) {
@@ -179,7 +275,7 @@ contract FixedDepositAnchorV2 is AnchorBaseV2, IFixedDepositAnchor {
 
   function _encodeInputs(
     bytes calldata _roots,
-    EncodeDataInput memory encodeDataInput
+    EncodeInputsData memory encodeDataInput
   ) internal view returns (bytes memory, bytes32[] memory) {
     bytes memory encodedInput = abi.encodePacked(
       uint256(encodeDataInput._nullifierHash),
@@ -195,10 +291,5 @@ contract FixedDepositAnchorV2 is AnchorBaseV2, IFixedDepositAnchor {
     bytes32[] memory result = decodeRoots(_roots);
 
     return (encodedInput, result);
-  }
-
-  function setHandler(address newHandler) onlyHandler external {
-    require(newHandler != address(0), "Handler cannot be 0");
-    handler = newHandler;
   }
 }

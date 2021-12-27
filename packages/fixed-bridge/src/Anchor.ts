@@ -1,5 +1,5 @@
 import { BigNumberish, ethers } from "ethers";
-import { Anchor as AnchorContract, Anchor__factory } from '@webb-tools/contracts'
+import { FixedDepositAnchorV2 as AnchorContract, FixedDepositAnchorV2__factory as Anchor__factory} from '../../../typechain'
 import { RefreshEvent, WithdrawalEvent } from '@webb-tools/contracts/src/AnchorBase'
 import { AnchorDeposit, AnchorDepositInfo, IPublicInputs } from './types';
 import { toFixedHex, toHex, rbigint, p256, PoseidonHasher, ZkComponents } from '@webb-tools/utils';
@@ -74,7 +74,7 @@ class Anchor {
     signer: ethers.Signer,
   ) {
     const factory = new Anchor__factory(signer);
-    const anchor = await factory.deploy(verifier, hasher, denomination, merkleTreeHeight, token, bridge, admin, handler, maxEdges, {});
+    const anchor = await factory.deploy(token, verifier, hasher, denomination, merkleTreeHeight, maxEdges, {});
     await anchor.deployed();
     const createdAnchor = new Anchor(anchor, signer, merkleTreeHeight, maxEdges, zkComponents);
     createdAnchor.latestSyncedBlock = anchor.deployTransaction.blockNumber!;
@@ -172,11 +172,6 @@ class Anchor {
 
   public async setHandler(handlerAddress: string) {
     const tx = await this.contract.setHandler(handlerAddress);
-    await tx.wait();
-  }
-
-  public async setBridge(bridgeAddress: string) {
-    const tx = await this.contract.setBridge(bridgeAddress);
     await tx.wait();
   }
 

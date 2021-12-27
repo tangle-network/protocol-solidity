@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import { BridgeSide } from './BridgeSide';
 import { Anchor } from './Anchor';
-import { AnchorHandler } from "./AnchorHandler";
+import { LinkableTreeHandler } from "./LinkableTreeHandler";
 import { MintableToken, GovernedTokenWrapper } from "../../tokens/src/index";
 import { AnchorDeposit } from './types';
 import { Verifier } from "./Verifier";
@@ -235,7 +235,7 @@ export class Bridge {
 
   // The setPermissions method accepts initialized bridgeSide and anchors.
   // it creates the anchor handler and sets the appropriate permissions
-  // for the bridgeSide/anchorHandler/anchor
+  // for the bridgeSide/LinkableTreeHandler/anchor
   public static async setPermissions(bridgeSide: BridgeSide, anchors: Anchor[]): Promise<void> {
     let resourceIDs: string[] = [];
     let anchorAddresses: string[] = [];
@@ -244,8 +244,8 @@ export class Bridge {
       anchorAddresses.push(anchor.contract.address);
     }
 
-    const handler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, resourceIDs, anchorAddresses, bridgeSide.admin);
-    await bridgeSide.setAnchorHandler(handler);
+    const handler = await LinkableTreeHandler.createLinkableTreeHandler(bridgeSide.contract.address, resourceIDs, anchorAddresses, bridgeSide.admin);
+    await bridgeSide.setLinkableTreeHandler(handler);
     
     for (let anchor of anchors) {
       await bridgeSide.connectAnchor(anchor);

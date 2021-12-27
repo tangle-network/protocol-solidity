@@ -8,14 +8,14 @@
  const TruffleAssert = require('truffle-assertions');
  
  // Convenience wrapper classes for contract classes
- import { Anchor, AnchorHandler, Verifier } from '../../packages/fixed-bridge/src';
+ import { Anchor, LinkableTreeHandler, Verifier } from '../../packages/fixed-bridge/src';
  import { SignatureBridgeSide } from '../../packages/fixed-bridge/src/SignatureBridgeSide'
  import { MintableToken } from '@webb-tools/tokens';
  import { fetchComponentsFromFilePaths, ZkComponents } from '@webb-tools/utils';
  import { PoseidonT3__factory } from '../../typechain';
  import { GovernedTokenWrapper } from '../../packages/tokens/src/GovernedTokenWrapper';
  import { TokenWrapperHandler } from '../../packages/tokens/src/TokenWrapperHandler';
- //import { AnchorHandler as AnchorHandlerContract } from '@webb-tools/contracts';
+ //import { LinkableTreeHandler as LinkableTreeHandlerContract } from '@webb-tools/contracts';
  
  
  describe('SignatureBridgeSideConstruction', () => {
@@ -53,7 +53,7 @@
     const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
     await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
 
-    const anchorHandler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, [], [], admin);
+    const linkableTreeHandler = await LinkableTreeHandler.createLinkableTreeHandler(bridgeSide.contract.address, [], [], admin);
 
     const anchor = await Anchor.createAnchor(
       verifier.contract.address,
@@ -71,8 +71,8 @@
 
     await tokenInstance.approveSpending(anchor.contract.address);
 
-    await bridgeSide.setAnchorHandler(anchorHandler);
-    //Function call below sets resource with signature
+    await bridgeSide.setLinkableTreeHandler(linkableTreeHandler);
+    // //Function call below sets resource with signature
     await bridgeSide.connectAnchorWithSignature(anchor);
   })
  
@@ -92,7 +92,7 @@
     const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
     await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
 
-    const anchorHandler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, [], [], admin);
+    const linkableTreeHandler = await LinkableTreeHandler.createLinkableTreeHandler(bridgeSide.contract.address, [], [], admin);
 
     const sourceAnchor = await Anchor.createAnchor(
       verifier.contract.address,
@@ -116,7 +116,7 @@
       tokenInstance.contract.address,
       bridgeSide.contract.address,
       admin.address,
-      anchorHandler.contract.address,
+      linkableTreeHandler.contract.address,
       5,
       zkComponents,
       admin
@@ -125,7 +125,7 @@
     await tokenInstance.approveSpending(destAnchor.contract.address);
     await tokenInstance.approveSpending(sourceAnchor.contract.address);
 
-    await bridgeSide.setAnchorHandler(anchorHandler);
+    await bridgeSide.setLinkableTreeHandler(linkableTreeHandler);
     bridgeSide.setResourceWithSignature(destAnchor);
     await sourceAnchor.deposit(await admin.getChainId());
     const destResourceID = await destAnchor.createResourceId();

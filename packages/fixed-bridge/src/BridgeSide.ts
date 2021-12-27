@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import { Bridge, Bridge__factory } from '@webb-tools/contracts';
 import { Anchor } from './Anchor';
-import { AnchorHandler } from "./AnchorHandler";
+import { LinkableTreeHandler } from "./LinkableTreeHandler";
 import { GovernedTokenWrapper } from "../../tokens/src/index";
 import { TokenWrapperHandler } from "../../tokens/src/index";
 
@@ -16,7 +16,7 @@ export type Proposal = {
 export class BridgeSide {
   contract: Bridge;
   admin: ethers.Signer;
-  handler: AnchorHandler | TokenWrapperHandler | null;
+  handler: LinkableTreeHandler | TokenWrapperHandler | null;
   proposals: Proposal[];
 
   private constructor(
@@ -85,7 +85,7 @@ export class BridgeSide {
     return proposalData;
   }
 
-  public async setAnchorHandler(handler: AnchorHandler) {
+  public async setLinkableTreeHandler(handler: LinkableTreeHandler) {
     this.handler = handler;
   }
 
@@ -103,9 +103,8 @@ export class BridgeSide {
     const resourceId = await anchor.createResourceId();
     await this.contract.adminSetResource(this.handler.contract.address, resourceId, anchor.contract.address);
     // await this.handler.setResource(resourceId, anchor.contract.address); covered in above call
-    await anchor.setHandler(this.handler.contract.address);
-    await anchor.setBridge(this.contract.address);
-
+    await anchor.contract.connect(this.handler.contract.address).setHandler(this.handler.contract.address);
+    
     return resourceId;
   }
 

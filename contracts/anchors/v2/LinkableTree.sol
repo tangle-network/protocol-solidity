@@ -136,6 +136,11 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard {
     _;
   }
 
+  function setHandler(address newHandler) onlyHandler external {
+    require(newHandler != address(0), "Handler cannot be 0");
+    handler = newHandler;
+  }
+
   function getChainId() public view returns (uint) {
     uint chainId;
     assembly { chainId := chainid() }
