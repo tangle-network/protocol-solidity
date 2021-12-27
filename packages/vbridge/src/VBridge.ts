@@ -312,12 +312,15 @@ export class VBridge {
     }
   }
 
-  /** Update the state of BridgeSides and Anchors, when
-  *** state changes for the @param linkedVAnchor 
-  **/
-  public async updateLinkedVAnchors(linkedVAnchor: VAnchor) {
+  /**
+  * Updates the state of the BridgeSides and Anchors with
+  * the new state of the @param srcAnchor.
+  * @param srcAnchor The anchor that has updated.
+  * @returns 
+  */
+   public async updateLinkedVAnchors(srcAnchor: VAnchor) {
     // Find the bridge sides that are connected to this Anchor
-    const linkedResourceID = await linkedVAnchor.createResourceId();
+    const linkedResourceID = await srcAnchor.createResourceId();
     const vAnchorsToUpdate = this.linkedVAnchors.get(linkedResourceID);
     if (!vAnchorsToUpdate) {
       return;
@@ -327,9 +330,10 @@ export class VBridge {
     for (let vAnchor of vAnchorsToUpdate) {
       // get the bridge side which corresponds to this anchor
       const chainId = await vAnchor.signer.getChainId();
+      const resourceID = await vAnchor.createResourceId();
       const vBridgeSide = this.vBridgeSides.get(chainId);
-      await vBridgeSide!.voteProposal(linkedVAnchor, vAnchor);
-      await vBridgeSide!.executeProposal(linkedVAnchor, vAnchor);
+      await vBridgeSide!.voteAnchorProposal(srcAnchor, resourceID);
+      await vBridgeSide!.executeProposal(srcAnchor, resourceID);
     }
   };
 
