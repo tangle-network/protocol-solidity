@@ -46,7 +46,7 @@ function backupNotes(bytes[] _encryptedNotes) external nonpayable
 ### deposit
 
 ```solidity
-function deposit(contract IAnchor _anchor, bytes32 _commitment, bytes _encryptedNote) external payable
+function deposit(contract IFixedDepositAnchor _anchor, bytes32 _commitment, bytes _encryptedNote) external payable
 ```
 
 
@@ -57,7 +57,7 @@ function deposit(contract IAnchor _anchor, bytes32 _commitment, bytes _encrypted
 
 | Name | Type | Description |
 |---|---|---|
-| _anchor | contract IAnchor | undefined
+| _anchor | contract IFixedDepositAnchor | undefined
 | _commitment | bytes32 | undefined
 | _encryptedNote | bytes | undefined
 
@@ -81,7 +81,7 @@ function governance() external view returns (address)
 ### instances
 
 ```solidity
-function instances(contract IAnchor) external view returns (contract IERC20 token, enum AnchorProxy.InstanceState state)
+function instances(contract IFixedDepositAnchor) external view returns (contract IERC20 token, enum AnchorProxy.InstanceState state)
 ```
 
 
@@ -92,7 +92,7 @@ function instances(contract IAnchor) external view returns (contract IERC20 toke
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | contract IAnchor | undefined
+| _0 | contract IFixedDepositAnchor | undefined
 
 #### Returns
 
@@ -104,7 +104,7 @@ function instances(contract IAnchor) external view returns (contract IERC20 toke
 ### withdraw
 
 ```solidity
-function withdraw(contract IAnchor _anchor, bytes _proof, IAnchor.PublicInputs _publicInputs) external payable
+function withdraw(contract IFixedDepositAnchor _anchor, bytes _proof, IFixedDepositAnchor.PublicInputs _publicInputs) external payable
 ```
 
 
@@ -115,9 +115,9 @@ function withdraw(contract IAnchor _anchor, bytes _proof, IAnchor.PublicInputs _
 
 | Name | Type | Description |
 |---|---|---|
-| _anchor | contract IAnchor | undefined
+| _anchor | contract IFixedDepositAnchor | undefined
 | _proof | bytes | undefined
-| _publicInputs | IAnchor.PublicInputs | undefined
+| _publicInputs | IFixedDepositAnchor.PublicInputs | undefined
 
 
 
@@ -126,7 +126,7 @@ function withdraw(contract IAnchor _anchor, bytes _proof, IAnchor.PublicInputs _
 ### AnchorProxyDeposit
 
 ```solidity
-event AnchorProxyDeposit(contract IAnchor indexed anchor, bytes32 indexed commitment, uint256 timestamp)
+event AnchorProxyDeposit(contract IFixedDepositAnchor indexed anchor, bytes32 indexed commitment, uint256 timestamp)
 ```
 
 
@@ -137,7 +137,7 @@ event AnchorProxyDeposit(contract IAnchor indexed anchor, bytes32 indexed commit
 
 | Name | Type | Description |
 |---|---|---|
-| anchor `indexed` | contract IAnchor | undefined |
+| anchor `indexed` | contract IFixedDepositAnchor | undefined |
 | commitment `indexed` | bytes32 | undefined |
 | timestamp  | uint256 | undefined |
 
@@ -161,7 +161,7 @@ event EncryptedNote(address indexed sender, bytes encryptedNote)
 ### InstanceStateUpdated
 
 ```solidity
-event InstanceStateUpdated(contract IAnchor indexed instance, enum AnchorProxy.InstanceState state)
+event InstanceStateUpdated(contract IFixedDepositAnchor indexed instance, enum AnchorProxy.InstanceState state)
 ```
 
 
@@ -172,7 +172,7 @@ event InstanceStateUpdated(contract IAnchor indexed instance, enum AnchorProxy.I
 
 | Name | Type | Description |
 |---|---|---|
-| instance `indexed` | contract IAnchor | undefined |
+| instance `indexed` | contract IFixedDepositAnchor | undefined |
 | state  | enum AnchorProxy.InstanceState | undefined |
 
 

@@ -21,15 +21,13 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface SignatureBridgeInterface extends ethers.utils.Interface {
   functions: {
-    "RELAYER_ROLE()": FunctionFragment;
-    "_chainID()": FunctionFragment;
     "_counts(uint256)": FunctionFragment;
-    "_expiry()": FunctionFragment;
-    "_fee()": FunctionFragment;
     "_resourceIDToHandlerAddress(bytes32)": FunctionFragment;
+    "adminMigrateBridgeWithSignature(bytes32[],address,bytes)": FunctionFragment;
     "adminSetResourceWithSignature(address,bytes32,address,bytes)": FunctionFragment;
     "checkPubKey(bytes)": FunctionFragment;
-    "executeProposalWithSignature(uint256,uint64,bytes,bytes32,bytes)": FunctionFragment;
+    "executeProposalWithSignature(bytes,bytes)": FunctionFragment;
+    "getChainId()": FunctionFragment;
     "governor()": FunctionFragment;
     "isGovernor()": FunctionFragment;
     "isSignatureFromGovernor(bytes,bytes)": FunctionFragment;
@@ -38,23 +36,21 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     "renounceOwnership()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "transferOwnershipWithSignature(address,bytes)": FunctionFragment;
+    "transferOwnershipWithSignaturePubKey(bytes,bytes)": FunctionFragment;
     "verify(bytes32,uint8,bytes32,bytes32)": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "RELAYER_ROLE",
-    values?: undefined
-  ): string;
-  encodeFunctionData(functionFragment: "_chainID", values?: undefined): string;
-  encodeFunctionData(
     functionFragment: "_counts",
     values: [BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "_expiry", values?: undefined): string;
-  encodeFunctionData(functionFragment: "_fee", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "_resourceIDToHandlerAddress",
     values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "adminMigrateBridgeWithSignature",
+    values: [BytesLike[], string, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "adminSetResourceWithSignature",
@@ -66,7 +62,11 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "executeProposalWithSignature",
-    values: [BigNumberish, BigNumberish, BytesLike, BytesLike, BytesLike]
+    values: [BytesLike, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getChainId",
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "governor", values?: undefined): string;
   encodeFunctionData(
@@ -95,20 +95,21 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     values: [string, BytesLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "transferOwnershipWithSignaturePubKey",
+    values: [BytesLike, BytesLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "verify",
     values: [BytesLike, BigNumberish, BytesLike, BytesLike]
   ): string;
 
-  decodeFunctionResult(
-    functionFragment: "RELAYER_ROLE",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "_chainID", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "_counts", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "_expiry", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "_fee", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "_resourceIDToHandlerAddress",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "adminMigrateBridgeWithSignature",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -123,6 +124,7 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     functionFragment: "executeProposalWithSignature",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getChainId", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "governor", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "isGovernor", data: BytesLike): Result;
   decodeFunctionResult(
@@ -143,13 +145,15 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     functionFragment: "transferOwnershipWithSignature",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "transferOwnershipWithSignaturePubKey",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "verify", data: BytesLike): Result;
 
   events: {
     "GovernanceOwnershipTransferred(address,address)": EventFragment;
     "Paused(address)": EventFragment;
-    "ProposalEvent(uint256,uint64,uint8,bytes32)": EventFragment;
-    "ProposalVote(uint256,uint64,uint8,bytes32)": EventFragment;
     "RecoveredAddress(address)": EventFragment;
     "Unpaused(address)": EventFragment;
   };
@@ -158,8 +162,6 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     nameOrSignatureOrTopic: "GovernanceOwnershipTransferred"
   ): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ProposalEvent"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ProposalVote"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RecoveredAddress"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Unpaused"): EventFragment;
 }
@@ -169,24 +171,6 @@ export type GovernanceOwnershipTransferredEvent = TypedEvent<
 >;
 
 export type PausedEvent = TypedEvent<[string] & { account: string }>;
-
-export type ProposalEventEvent = TypedEvent<
-  [BigNumber, BigNumber, number, string] & {
-    originChainID: BigNumber;
-    nonce: BigNumber;
-    status: number;
-    dataHash: string;
-  }
->;
-
-export type ProposalVoteEvent = TypedEvent<
-  [BigNumber, BigNumber, number, string] & {
-    originChainID: BigNumber;
-    nonce: BigNumber;
-    status: number;
-    dataHash: string;
-  }
->;
 
 export type RecoveredAddressEvent = TypedEvent<
   [string] & { recovered: string }
@@ -238,23 +222,22 @@ export class SignatureBridge extends BaseContract {
   interface: SignatureBridgeInterface;
 
   functions: {
-    RELAYER_ROLE(overrides?: CallOverrides): Promise<[string]>;
-
-    _chainID(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     _counts(
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    _expiry(overrides?: CallOverrides): Promise<[number]>;
-
-    _fee(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     _resourceIDToHandlerAddress(
       arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string]>;
+
+    adminMigrateBridgeWithSignature(
+      resourceIDs: BytesLike[],
+      newBridge: string,
+      sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     adminSetResourceWithSignature(
       handlerAddress: string,
@@ -270,13 +253,12 @@ export class SignatureBridge extends BaseContract {
     ): Promise<[boolean]>;
 
     executeProposalWithSignature(
-      chainID: BigNumberish,
-      nonce: BigNumberish,
       data: BytesLike,
-      resourceID: BytesLike,
       sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    getChainId(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     governor(overrides?: CallOverrides): Promise<[string]>;
 
@@ -311,6 +293,12 @@ export class SignatureBridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    transferOwnershipWithSignaturePubKey(
+      publicKey: BytesLike,
+      sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     verify(
       hash: BytesLike,
       v: BigNumberish,
@@ -320,20 +308,19 @@ export class SignatureBridge extends BaseContract {
     ): Promise<[boolean]>;
   };
 
-  RELAYER_ROLE(overrides?: CallOverrides): Promise<string>;
-
-  _chainID(overrides?: CallOverrides): Promise<BigNumber>;
-
   _counts(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-
-  _expiry(overrides?: CallOverrides): Promise<number>;
-
-  _fee(overrides?: CallOverrides): Promise<BigNumber>;
 
   _resourceIDToHandlerAddress(
     arg0: BytesLike,
     overrides?: CallOverrides
   ): Promise<string>;
+
+  adminMigrateBridgeWithSignature(
+    resourceIDs: BytesLike[],
+    newBridge: string,
+    sig: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   adminSetResourceWithSignature(
     handlerAddress: string,
@@ -346,13 +333,12 @@ export class SignatureBridge extends BaseContract {
   checkPubKey(pubkey: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
   executeProposalWithSignature(
-    chainID: BigNumberish,
-    nonce: BigNumberish,
     data: BytesLike,
-    resourceID: BytesLike,
     sig: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
   governor(overrides?: CallOverrides): Promise<string>;
 
@@ -387,6 +373,12 @@ export class SignatureBridge extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  transferOwnershipWithSignaturePubKey(
+    publicKey: BytesLike,
+    sig: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   verify(
     hash: BytesLike,
     v: BigNumberish,
@@ -396,20 +388,19 @@ export class SignatureBridge extends BaseContract {
   ): Promise<boolean>;
 
   callStatic: {
-    RELAYER_ROLE(overrides?: CallOverrides): Promise<string>;
-
-    _chainID(overrides?: CallOverrides): Promise<BigNumber>;
-
     _counts(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-
-    _expiry(overrides?: CallOverrides): Promise<number>;
-
-    _fee(overrides?: CallOverrides): Promise<BigNumber>;
 
     _resourceIDToHandlerAddress(
       arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
+
+    adminMigrateBridgeWithSignature(
+      resourceIDs: BytesLike[],
+      newBridge: string,
+      sig: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     adminSetResourceWithSignature(
       handlerAddress: string,
@@ -422,13 +413,12 @@ export class SignatureBridge extends BaseContract {
     checkPubKey(pubkey: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
     executeProposalWithSignature(
-      chainID: BigNumberish,
-      nonce: BigNumberish,
       data: BytesLike,
-      resourceID: BytesLike,
       sig: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
     governor(overrides?: CallOverrides): Promise<string>;
 
@@ -457,6 +447,12 @@ export class SignatureBridge extends BaseContract {
 
     transferOwnershipWithSignature(
       newOwner: string,
+      sig: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    transferOwnershipWithSignaturePubKey(
+      publicKey: BytesLike,
       sig: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -493,66 +489,6 @@ export class SignatureBridge extends BaseContract {
 
     Paused(account?: null): TypedEventFilter<[string], { account: string }>;
 
-    "ProposalEvent(uint256,uint64,uint8,bytes32)"(
-      originChainID?: null,
-      nonce?: null,
-      status?: null,
-      dataHash?: null
-    ): TypedEventFilter<
-      [BigNumber, BigNumber, number, string],
-      {
-        originChainID: BigNumber;
-        nonce: BigNumber;
-        status: number;
-        dataHash: string;
-      }
-    >;
-
-    ProposalEvent(
-      originChainID?: null,
-      nonce?: null,
-      status?: null,
-      dataHash?: null
-    ): TypedEventFilter<
-      [BigNumber, BigNumber, number, string],
-      {
-        originChainID: BigNumber;
-        nonce: BigNumber;
-        status: number;
-        dataHash: string;
-      }
-    >;
-
-    "ProposalVote(uint256,uint64,uint8,bytes32)"(
-      originChainID?: null,
-      nonce?: null,
-      status?: null,
-      dataHash?: null
-    ): TypedEventFilter<
-      [BigNumber, BigNumber, number, string],
-      {
-        originChainID: BigNumber;
-        nonce: BigNumber;
-        status: number;
-        dataHash: string;
-      }
-    >;
-
-    ProposalVote(
-      originChainID?: null,
-      nonce?: null,
-      status?: null,
-      dataHash?: null
-    ): TypedEventFilter<
-      [BigNumber, BigNumber, number, string],
-      {
-        originChainID: BigNumber;
-        nonce: BigNumber;
-        status: number;
-        dataHash: string;
-      }
-    >;
-
     "RecoveredAddress(address)"(
       recovered?: string | null
     ): TypedEventFilter<[string], { recovered: string }>;
@@ -569,19 +505,18 @@ export class SignatureBridge extends BaseContract {
   };
 
   estimateGas: {
-    RELAYER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
-
-    _chainID(overrides?: CallOverrides): Promise<BigNumber>;
-
     _counts(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-
-    _expiry(overrides?: CallOverrides): Promise<BigNumber>;
-
-    _fee(overrides?: CallOverrides): Promise<BigNumber>;
 
     _resourceIDToHandlerAddress(
       arg0: BytesLike,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    adminMigrateBridgeWithSignature(
+      resourceIDs: BytesLike[],
+      newBridge: string,
+      sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     adminSetResourceWithSignature(
@@ -598,13 +533,12 @@ export class SignatureBridge extends BaseContract {
     ): Promise<BigNumber>;
 
     executeProposalWithSignature(
-      chainID: BigNumberish,
-      nonce: BigNumberish,
       data: BytesLike,
-      resourceID: BytesLike,
       sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
     governor(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -639,6 +573,12 @@ export class SignatureBridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    transferOwnershipWithSignaturePubKey(
+      publicKey: BytesLike,
+      sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     verify(
       hash: BytesLike,
       v: BigNumberish,
@@ -649,22 +589,21 @@ export class SignatureBridge extends BaseContract {
   };
 
   populateTransaction: {
-    RELAYER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    _chainID(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     _counts(
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    _expiry(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    _fee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     _resourceIDToHandlerAddress(
       arg0: BytesLike,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    adminMigrateBridgeWithSignature(
+      resourceIDs: BytesLike[],
+      newBridge: string,
+      sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     adminSetResourceWithSignature(
@@ -681,13 +620,12 @@ export class SignatureBridge extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     executeProposalWithSignature(
-      chainID: BigNumberish,
-      nonce: BigNumberish,
       data: BytesLike,
-      resourceID: BytesLike,
       sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    getChainId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     governor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -718,6 +656,12 @@ export class SignatureBridge extends BaseContract {
 
     transferOwnershipWithSignature(
       newOwner: string,
+      sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    transferOwnershipWithSignaturePubKey(
+      publicKey: BytesLike,
       sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;

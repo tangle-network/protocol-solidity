@@ -61,16 +61,22 @@ const createERCDepositData = (tokenAmountOrID, lenRecipientAddress, recipientAdd
     recipientAddress.substr(2);                 // recipientAddress               (?? bytes)
 };
 
-const createUpdateProposalData = (sourceChainID, leafIndex, merkleRoot) => {
+const createUpdateProposalData = (sourceChainID, leafIndex, merkleRoot, thisAnchorAddress, thisAnchorChainID) => {
   if (typeof leafIndex === 'object') {
     leafIndex = leafIndex.toNumber();
   }
 
+  const resourceID = createResourceID(thisAnchorAddress, thisAnchorChainID)
+  const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("updateEdge(uint256,bytes32,uint256)")).slice(0, 10).padEnd(10, '0');
+  const dummyNonce = 1;
+
   return '0x' +
-    toHex(0, 32).substr(2) +
-    toHex(sourceChainID, 32).substr(2) +    // chainID (32 bytes)
-    toHex(leafIndex, 32).substr(2) +        // latest leaf index causing the incoming root updates (32 bytes)
-    toHex(merkleRoot, 32).substr(2);        // Updated Merkle Root (32 bytes)
+    toHex(resourceID, 32).substr(2)+ 
+    functionSig.slice(2) + 
+    toHex(dummyNonce,4).substr(2) +
+    toHex(sourceChainID, 4).substr(2) + // chainID (32 bytes)
+    toHex(leafIndex, 4).substr(2) +  // latest leaf index causing the incoming root 
+    toHex(merkleRoot, 32).substr(2); // Updated Merkle Root (32 bytes)      
 };
 
 const createRootsBytes = (rootArray) => {

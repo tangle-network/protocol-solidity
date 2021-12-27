@@ -4,7 +4,7 @@
 
 > Governs allowable ERC20s to deposit using a governable wrapping limit.
 
-This contract is intended to be used with ERC20Handler contract.
+This contract is intended to be used with TokenHandler contract.
 
 
 
@@ -545,6 +545,23 @@ function paused() external view returns (bool)
 |---|---|---|
 | _0 | bool | undefined
 
+### proposalNonce
+
+```solidity
+function proposalNonce() external view returns (uint256)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
 ### remove
 
 ```solidity
@@ -644,23 +661,6 @@ function setNativeAllowed(bool _isNativeAllowed) external nonpayable
 | Name | Type | Description |
 |---|---|---|
 | _isNativeAllowed | bool | undefined
-
-### storageNonce
-
-```solidity
-function storageNonce() external view returns (uint256)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined
 
 ### supportsInterface
 

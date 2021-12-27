@@ -7,10 +7,10 @@ pragma solidity ^0.8.0;
 
 import "../../trees/MerkleTreePoseidon.sol";
 import "../../interfaces/IVerifier.sol";
-import "../../interfaces/IAnchor.sol";
+import "../../interfaces/IFixedDepositAnchor.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-abstract contract AnchorBase is MerkleTreePoseidon, ReentrancyGuard, IAnchor {
+abstract contract AnchorBase is MerkleTreePoseidon, ReentrancyGuard, IFixedDepositAnchor {
   address public bridge;
   address public admin;
   address public handler;

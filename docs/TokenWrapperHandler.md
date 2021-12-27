@@ -160,23 +160,6 @@ Proposal execution should be initiated when a proposal is finalized in the Bridg
 | resourceID | bytes32 | ResourceID corresponding to a particular set of GovernedTokenWrapper contracts
 | data | bytes | Consists of {executionChainID}, {nonce}, {functionSig} {updateValue} all padded to 32 bytes.
 
-### getChainId
-
-```solidity
-function getChainId() external view returns (uint256)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined
-
 ### getUpdateRecord
 
 ```solidity
@@ -199,6 +182,22 @@ function getUpdateRecord(uint256 updateNonce, uint256 executionChainId) external
 | Name | Type | Description |
 |---|---|---|
 | _0 | TokenWrapperHandler.UpdateRecord | UpdateRecord which consists of: - address _tokenWrapperAddress; - uint256  _executionChainID; - uint256 _nonce; - bytes4 functionSig; - bytes32 _resourceID; - bytes32 _updateValue;
+
+### migrateBridge
+
+```solidity
+function migrateBridge(address newBridge) external nonpayable
+```
+
+Migrates the bridge to a new bridge address
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newBridge | address | New bridge address
 
 ### setResource
 

@@ -46,7 +46,7 @@ export class SignatureBridgeSide {
   ): Promise<SignatureBridgeSide> {
     const bridgeFactory = new SignatureBridge__factory(admin);
     const chainId = await admin.getChainId();
-    const deployedBridge = await bridgeFactory.deploy(chainId, initialGovernor, fee, expiry);
+    const deployedBridge = await bridgeFactory.deploy(initialGovernor);
     await deployedBridge.deployed();
     const bridgeSide = new SignatureBridgeSide(deployedBridge, admin);
     return bridgeSide;
@@ -58,16 +58,27 @@ export class SignatureBridgeSide {
     return bridgeSide;
   }
 
-  /** Update proposals are created so that changes to an anchor's root chain Y can
-  *** make its way to the neighbor root of the linked anchor on chain X.
-  *** @param linkedAnchorInstance: the anchor instance on the opposite chain
-  ***/
-  public async createAnchorUpdateProposalData(linkedAnchorInstance: Anchor) {
-    const proposalData = await linkedAnchorInstance.getProposalData();
+  /**
+   * Creates the proposal data for updating an execution anchor
+   * with the latest state of a source anchor (i.e. most recent deposit).
+   * @param srcAnchor The anchor instance whose state has updated.
+   * @param executionResourceId The resource id of the execution anchor instance.
+   * @returns Promise<string>
+   */
+   public async createAnchorUpdateProposalData(srcAnchor: Anchor, executionResourceID: string): Promise<string> {
+    const proposalData = await srcAnchor.getProposalData(executionResourceID);
     return proposalData;
   }
 
-  public async createFeeUpdateProposalData(governedToken: GovernedTokenWrapper, fee: number) {
+  /**
+   * Creates the proposal data for updating the wrapping fee
+   * of a governed token wrapper.
+   * @param governedToken The governed token wrapper whose fee will be updated.
+   * @param fee The new fee percentage
+   * @returns Promise<string>
+   */
+   public async createFeeUpdateProposalData(governedToken: GovernedTokenWrapper, fee: number): Promise<string> {
+    // TODO: Validate fee is between [0, 100]
     const proposalData = await governedToken.getFeeProposalData(fee);
     return proposalData;
   }
@@ -105,9 +116,10 @@ export class SignatureBridgeSide {
       throw new Error("Cannot connect an anchor without a handler");
     }
     const resourceId = await anchor.createResourceId();
-
+    //console.log("resourceID", resourceId);
+    //console.log("handler address", this.handler.contract.address);
     const unsignedData = this.handler.contract.address + resourceId.slice(2) + anchor.contract.address.slice(2);
-    const unsignedMsg = ethers.utils.arrayify(unsignedData);
+    const unsignedMsg = ethers.utils.arrayify(ethers.utils.keccak256(unsignedData).toString());
     const sig = await this.signingSystemSignFn(unsignedMsg);
     await this.contract.adminSetResourceWithSignature(this.handler.contract.address, resourceId, anchor.contract.address, sig);
     return resourceId;
@@ -118,27 +130,23 @@ export class SignatureBridgeSide {
       throw new Error("Cannot connect an anchor without a handler");
     }
     const resourceId = await governedToken.createResourceId();
-
     const unsignedData = this.handler.contract.address + resourceId.slice(2) + governedToken.contract.address.slice(2);
-    const unsignedMsg = ethers.utils.arrayify(unsignedData);
+    const unsignedMsg = ethers.utils.arrayify(ethers.utils.keccak256(unsignedData).toString());
     const sig = await this.signingSystemSignFn(unsignedMsg);
     await this.contract.adminSetResourceWithSignature(this.handler.contract.address, resourceId, governedToken.contract.address, sig);
     return resourceId;
   }
 
   // emit ProposalEvent(chainID, nonce, ProposalStatus.Executed, dataHash);
-  public async executeAnchorProposalWithSig(linkedAnchor: Anchor, thisAnchor: Anchor) {
+  public async executeAnchorProposalWithSig(srcAnchor: Anchor, executionResourceID: string) {
     if (!this.handler) {
       throw new Error("Cannot connect an anchor without a handler");
     }
 
-    const proposalData = await this.createAnchorUpdateProposalData(linkedAnchor);
-    const resourceId = await thisAnchor.createResourceId();
-    const chainId = await linkedAnchor.signer.getChainId();
-    const nonce = linkedAnchor.tree.number_of_elements() - 1;
-    const proposalMsg = ethers.utils.arrayify(proposalData);
+    const proposalData = await this.createAnchorUpdateProposalData(srcAnchor, executionResourceID);
+    const proposalMsg = ethers.utils.arrayify(ethers.utils.keccak256(proposalData).toString());
     const sig = await this.signingSystemSignFn(proposalMsg);
-    const tx = await this.contract.executeProposalWithSignature(chainId, nonce, proposalData, resourceId, sig);
+    const tx = await this.contract.executeProposalWithSignature(proposalData, sig);
     const receipt = await tx.wait();
     
     return receipt;
@@ -149,12 +157,9 @@ export class SignatureBridgeSide {
       throw new Error("Cannot connect to token wrapper without a handler");
     }
     const proposalData = await this.createFeeUpdateProposalData(governedToken, fee);
-    const resourceId = await governedToken.createResourceId();
-    const chainId = await governedToken.signer.getChainId();
-    const nonce = (await governedToken.contract.storageNonce()).add(1);
-    const proposalMsg = ethers.utils.arrayify(proposalData);
+    const proposalMsg = ethers.utils.arrayify(ethers.utils.keccak256(proposalData).toString());
     const sig = await this.signingSystemSignFn(proposalMsg);
-    const tx = await this.contract.executeProposalWithSignature(chainId, nonce, proposalData, resourceId, sig);
+    const tx = await this.contract.executeProposalWithSignature(proposalData, sig);
     const receipt = await tx.wait();
     
     return receipt;
@@ -166,12 +171,9 @@ export class SignatureBridgeSide {
     }
 
     const proposalData = await this.createAddTokenUpdateProposalData(governedToken, tokenAddress);
-    const resourceId = await governedToken.createResourceId();
-    const chainId = await governedToken.signer.getChainId();
-    const nonce = (await governedToken.contract.storageNonce()).add(1);
-    const proposalMsg = ethers.utils.arrayify(proposalData);
+    const proposalMsg = ethers.utils.arrayify(ethers.utils.keccak256(proposalData).toString());
     const sig = await this.signingSystemSignFn(proposalMsg);
-    const tx = await this.contract.executeProposalWithSignature(chainId, nonce, proposalData, resourceId, sig);
+    const tx = await this.contract.executeProposalWithSignature(proposalData, sig);
     const receipt = await tx.wait();
     
     return receipt;
@@ -185,10 +187,10 @@ export class SignatureBridgeSide {
     const proposalData = await this.createRemoveTokenUpdateProposalData(governedToken, tokenAddress);
     const resourceId = await governedToken.createResourceId();
     const chainId = await governedToken.signer.getChainId();
-    const nonce = (await governedToken.contract.storageNonce()).add(1);
-    const proposalMsg = ethers.utils.arrayify(proposalData);
+    const nonce = (await governedToken.contract.proposalNonce()).add(1);
+    const proposalMsg = ethers.utils.arrayify(ethers.utils.keccak256(proposalData).toString());
     const sig = await this.signingSystemSignFn(proposalMsg);
-    const tx = await this.contract.executeProposalWithSignature(chainId, nonce, proposalData, resourceId, sig);
+    const tx = await this.contract.executeProposalWithSignature(proposalData, sig);
     const receipt = await tx.wait();
     
     return receipt;

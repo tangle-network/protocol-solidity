@@ -123,8 +123,8 @@ contract('Bridge - [executeUpdateProposal with relayerThreshold == 3]', async (a
 
     await DestChainAnchorInstance.setHandler(DestinationAnchorHandlerInstance.address, { from: sender });
     await DestChainAnchorInstance.setBridge(BridgeInstance.address, { from: sender });
-
-    data = Helpers.createUpdateProposalData(sourceChainID, latestLeafIndex, merkleRoot);
+    
+    data = Helpers.createUpdateProposalData(sourceChainID, latestLeafIndex, merkleRoot, DestChainAnchorInstance.address, destinationChainID);
     dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
 
     await Promise.all([
@@ -200,7 +200,7 @@ contract('Bridge - [executeUpdateProposal with relayerThreshold == 3]', async (a
     let { logs } = await OriginChainAnchorInstance.deposit('0x22222', { from: sender });
     let latestLeafIndex = logs[0].args.leafIndex;
     merkleRoot = await OriginChainAnchorInstance.getLastRoot();
-    data = Helpers.createUpdateProposalData(sourceChainID, latestLeafIndex, merkleRoot);
+    data = Helpers.createUpdateProposalData(sourceChainID, latestLeafIndex, merkleRoot, DestChainAnchorInstance.address, destinationChainID);
     dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
     expectedUpdateNonce++;
 
@@ -229,7 +229,7 @@ contract('Bridge - [executeUpdateProposal with relayerThreshold == 3]', async (a
     let latestLeafIndex = logs[0].args.leafIndex;
     merkleRoot = await OriginChainAnchorInstance.getLastRoot();
     // latestLeafIndex is not greater than last leaf index so execution reverts
-    data = Helpers.createUpdateProposalData(sourceChainID, latestLeafIndex - 1, merkleRoot);
+    data = Helpers.createUpdateProposalData(sourceChainID, latestLeafIndex - 1, merkleRoot, DestChainAnchorInstance.address, destinationChainID);
     dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
     expectedUpdateNonce++;
     await TruffleAssert.passes(BridgeInstance.voteProposal(sourceChainID, expectedUpdateNonce, resourceID, dataHash, { from: relayer1Address }));
@@ -276,7 +276,7 @@ contract('Bridge - [executeUpdateProposal with relayerThreshold == 3]', async (a
     let latestLeafIndex = logs[0].args.leafIndex;
     // voting on deposit data (adding another Edge)
     newMerkleRoot = await ThirdAnchorInstance.getLastRoot();
-    data = Helpers.createUpdateProposalData(thirdChainID, latestLeafIndex, newMerkleRoot);
+    data = Helpers.createUpdateProposalData(thirdChainID, latestLeafIndex, newMerkleRoot, DestChainAnchorInstance.address, destinationChainID);
     dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
     expectedUpdateNonce++;
     

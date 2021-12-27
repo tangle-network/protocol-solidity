@@ -29,6 +29,7 @@ interface AnchorHandlerInterface extends ethers.utils.Interface {
     "_updateRecords(uint256,uint256)": FunctionFragment;
     "executeProposal(bytes32,bytes)": FunctionFragment;
     "getUpdateRecord(uint64,uint256)": FunctionFragment;
+    "migrateBridge(address)": FunctionFragment;
     "setResource(bytes32,address)": FunctionFragment;
   };
 
@@ -65,6 +66,10 @@ interface AnchorHandlerInterface extends ethers.utils.Interface {
     values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "migrateBridge",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "setResource",
     values: [BytesLike, string]
   ): string;
@@ -96,6 +101,10 @@ interface AnchorHandlerInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getUpdateRecord",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "migrateBridge",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -208,6 +217,11 @@ export class AnchorHandler extends BaseContract {
       ]
     >;
 
+    migrateBridge(
+      newBridge: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     setResource(
       resourceID: BytesLike,
       contractAddress: string,
@@ -264,6 +278,11 @@ export class AnchorHandler extends BaseContract {
       _leafIndex: BigNumber;
     }
   >;
+
+  migrateBridge(
+    newBridge: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   setResource(
     resourceID: BytesLike,
@@ -325,6 +344,8 @@ export class AnchorHandler extends BaseContract {
       }
     >;
 
+    migrateBridge(newBridge: string, overrides?: CallOverrides): Promise<void>;
+
     setResource(
       resourceID: BytesLike,
       contractAddress: string,
@@ -370,6 +391,11 @@ export class AnchorHandler extends BaseContract {
       updateNonce: BigNumberish,
       sourceChainId: BigNumberish,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    migrateBridge(
+      newBridge: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setResource(
@@ -418,6 +444,11 @@ export class AnchorHandler extends BaseContract {
       updateNonce: BigNumberish,
       sourceChainId: BigNumberish,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    migrateBridge(
+      newBridge: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setResource(

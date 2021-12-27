@@ -31,6 +31,7 @@ interface ERC20HandlerInterface extends ethers.utils.Interface {
     "executeProposal(bytes32,bytes)": FunctionFragment;
     "fundERC20(address,address,uint256)": FunctionFragment;
     "getDepositRecord(uint64,uint8)": FunctionFragment;
+    "migrateBridge(address)": FunctionFragment;
     "setBurnable(address)": FunctionFragment;
     "setResource(bytes32,address)": FunctionFragment;
     "withdraw(address,address,uint256)": FunctionFragment;
@@ -73,6 +74,10 @@ interface ERC20HandlerInterface extends ethers.utils.Interface {
     functionFragment: "getDepositRecord",
     values: [BigNumberish, BigNumberish]
   ): string;
+  encodeFunctionData(
+    functionFragment: "migrateBridge",
+    values: [string]
+  ): string;
   encodeFunctionData(functionFragment: "setBurnable", values: [string]): string;
   encodeFunctionData(
     functionFragment: "setResource",
@@ -112,6 +117,10 @@ interface ERC20HandlerInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "fundERC20", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getDepositRecord",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "migrateBridge",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -244,6 +253,11 @@ export class ERC20Handler extends BaseContract {
       ]
     >;
 
+    migrateBridge(
+      newBridge: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     setBurnable(
       contractAddress: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -330,6 +344,11 @@ export class ERC20Handler extends BaseContract {
       _amount: BigNumber;
     }
   >;
+
+  migrateBridge(
+    newBridge: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   setBurnable(
     contractAddress: string,
@@ -421,6 +440,8 @@ export class ERC20Handler extends BaseContract {
       }
     >;
 
+    migrateBridge(newBridge: string, overrides?: CallOverrides): Promise<void>;
+
     setBurnable(
       contractAddress: string,
       overrides?: CallOverrides
@@ -494,6 +515,11 @@ export class ERC20Handler extends BaseContract {
       depositNonce: BigNumberish,
       destId: BigNumberish,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    migrateBridge(
+      newBridge: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setBurnable(
@@ -570,6 +596,11 @@ export class ERC20Handler extends BaseContract {
       depositNonce: BigNumberish,
       destId: BigNumberish,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    migrateBridge(
+      newBridge: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setBurnable(

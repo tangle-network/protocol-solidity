@@ -182,6 +182,22 @@ function getUpdateRecord(uint64 updateNonce, uint256 sourceChainId) external vie
 |---|---|---|
 | _0 | AnchorHandler.UpdateRecord | UpdateRecord which consists of: - _tokenAddress Address used when {deposit} was executed. - _sourceChainID ChainID deposit originated from. - _resourceID ResourceID used when {deposit} was executed. - _destinationRecipientAddress Address tokens are intended to be deposited to on desitnation chain. - _depositer Address that initially called {deposit} in the Bridge contract. - _amount Amount of tokens that were deposited.
 
+### migrateBridge
+
+```solidity
+function migrateBridge(address newBridge) external nonpayable
+```
+
+Migrates the bridge to a new bridge address
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newBridge | address | New bridge address
+
 ### setResource
 
 ```solidity

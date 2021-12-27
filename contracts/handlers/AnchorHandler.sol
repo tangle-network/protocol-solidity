@@ -80,33 +80,29 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
         merkleRoot                               uint256     bytes  64 - 96
      */
     function executeProposal(bytes32 resourceID, bytes calldata data) external override onlyBridge {
-        bytes32       zeros;
-        uint256       sourceChainId;
-        uint256       leafIndex;
-        uint256       merkleRoot;
+        bytes32        resourceId;
+        bytes4         functionSig;
+        bytes calldata arguments;
 
-        (zeros, sourceChainId, leafIndex, merkleRoot) = abi.decode(data, (bytes32, uint256, uint, uint));
+        resourceId = bytes32(data[0:32]);
+        functionSig = bytes4(data[32:36]);
+        arguments = data[36:];
 
         address anchorAddress = _resourceIDToContractAddress[resourceID];
 
         require(_contractWhitelist[anchorAddress], "provided tokenAddress is not whitelisted");
-
         ILinkableAnchor anchor = ILinkableAnchor(anchorAddress);
 
-        anchor.updateEdge(
-            sourceChainId,
-            bytes32(merkleRoot),
-            leafIndex
-        );
-        
-
-        uint nonce = ++_counts[sourceChainId];
-        _updateRecords[sourceChainId][nonce] = UpdateRecord(
-            anchorAddress,
-            sourceChainId,
-            resourceID,
-            bytes32(merkleRoot),
-            leafIndex
-        );
+        if (functionSig == bytes4(keccak256("setHandler(address)"))) {
+            address newHandler = address(bytes20(arguments[4:24]));
+            anchor.setHandler(newHandler);
+        } else if (functionSig == bytes4(keccak256("updateEdge(uint256,bytes32,uint256)"))) {
+            uint32 sourceChainId = uint32(bytes4(arguments[4:8]));
+            uint32 leafIndex = uint32(bytes4(arguments[8:12]));
+            bytes32 merkleRoot = bytes32(arguments[12:44]);
+            anchor.updateEdge(sourceChainId, merkleRoot, leafIndex);
+        } else {
+            revert("Invalid function sig");
+        }
     }
 }

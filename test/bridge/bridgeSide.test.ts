@@ -247,7 +247,7 @@ describe('BridgeSideConstruction', () => {
     //Check that fee actually changed
     assert.strictEqual((await governedToken.contract.getFee()).toString(), '5');
     //Check nonce
-    assert.strictEqual((await governedToken.contract.storageNonce()).toString(), '1');
+    assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '1');
 
     //Create an ERC20 Token
     const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
@@ -261,7 +261,7 @@ describe('BridgeSideConstruction', () => {
 
     //Check that governedToken contains the added token
     assert((await governedToken.contract.getTokens()).includes(tokenInstance.contract.address));
-    assert.strictEqual((await governedToken.contract.storageNonce()).toString(), '2');
+    assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '2');
 
     //Vote on remove token Proposal
     await bridgeSide.voteRemoveTokenProposal(governedToken, tokenInstance.contract.address);
@@ -270,7 +270,7 @@ describe('BridgeSideConstruction', () => {
     await bridgeSide.executeRemoveTokenProposal(governedToken, tokenInstance.contract.address);
 
     assert((await governedToken.contract.getTokens()).length === 0);  
-    assert.strictEqual((await governedToken.contract.storageNonce()).toString(), '3');
+    assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '3');
   })
 
 })

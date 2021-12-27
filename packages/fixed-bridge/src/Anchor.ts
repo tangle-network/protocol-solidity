@@ -194,20 +194,24 @@ class Anchor {
 
   // Proposal data is used to update linkedAnchors via bridge proposals 
   // on other chains with this anchor's state
-  public async getProposalData(leafIndex?: number): Promise<string> {
+  public async getProposalData(resourceID: string, leafIndex?: number): Promise<string> {
 
     // If no leaf index passed in, set it to the most recent one.
     if (!leafIndex) {
       leafIndex = this.tree.number_of_elements() - 1;
     }
 
+    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("updateEdge(uint256,bytes32,uint256)")).slice(0, 10).padEnd(10, '0');
+    const dummyNonce = 1;
     const chainID = await this.signer.getChainId();
     const merkleRoot = this.depositHistory[leafIndex];
 
     return '0x' +
-      toHex(0, 32).slice(2) +
-      toHex(chainID, 32).substr(2) + 
-      toHex(leafIndex, 32).substr(2) + 
+      toHex(resourceID, 32).substr(2)+ 
+      functionSig.slice(2) + 
+      toHex(dummyNonce,4).substr(2) +
+      toHex(chainID, 4).substr(2) + 
+      toHex(leafIndex, 4).substr(2) + 
       toHex(merkleRoot, 32).substr(2);
   }
 

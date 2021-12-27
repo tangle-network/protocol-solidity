@@ -14,7 +14,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 /**
     @title Manages deposited ERC20s.
     @author ChainSafe Systems.
-    @notice This contract is intended to be used with ERC20Handler contract.
+    @notice This contract is intended to be used with TokenHandler contract.
  */
 abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
     using SafeMath for uint256;

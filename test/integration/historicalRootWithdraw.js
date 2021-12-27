@@ -158,7 +158,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     originUpdateNonce = latestLeafIndex;
     firstWithdrawlMerkleRoot = await OriginChainAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on origin chain
-    originUpdateData = helpers.createUpdateProposalData(originChainID, latestLeafIndex, firstWithdrawlMerkleRoot);
+    originUpdateData = helpers.createUpdateProposalData(originChainID, latestLeafIndex, firstWithdrawlMerkleRoot, DestChainAnchorInstance.address, destChainID);
     originUpdateDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originUpdateData.substr(2));
 
     // deposit on origin chain leads to update addEdge proposal on dest chain
@@ -241,7 +241,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     originUpdateNonce = latestLeafIndex;
     secondWithdrawalMerkleRoot = await OriginChainAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on origin chain
-    originUpdateData = helpers.createUpdateProposalData(originChainID, latestLeafIndex, secondWithdrawalMerkleRoot);
+    originUpdateData = helpers.createUpdateProposalData(originChainID, latestLeafIndex, secondWithdrawalMerkleRoot, DestChainAnchorInstance.address, destChainID);
     originUpdateDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originUpdateData.substr(2));
     /*
     * Relayers vote on dest chain
@@ -355,7 +355,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
       originUpdateNonce = latestLeafIndex;
       originMerkleRoot = await OriginChainAnchorInstance.getLastRoot();
       // create correct update proposal data for the deposit on origin chain
-      originUpdateData = helpers.createUpdateProposalData(originChainID, latestLeafIndex, originMerkleRoot);
+      originUpdateData = helpers.createUpdateProposalData(originChainID, latestLeafIndex, originMerkleRoot, DestChainAnchorInstance.address, destChainID);
       originUpdateDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originUpdateData.substr(2));
       /*
       * Relayers vote on dest chain

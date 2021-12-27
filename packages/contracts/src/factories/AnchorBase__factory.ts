@@ -774,7 +774,7 @@ const _abi = [
             type: "uint256",
           },
         ],
-        internalType: "struct IAnchor.PublicInputs",
+        internalType: "struct IFixedDepositAnchor.PublicInputs",
         name: "_publicInputs",
         type: "tuple",
       },

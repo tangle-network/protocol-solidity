@@ -26,6 +26,7 @@ interface HandlerHelpersInterface extends ethers.utils.Interface {
     "_contractWhitelist(address)": FunctionFragment;
     "_resourceIDToContractAddress(bytes32)": FunctionFragment;
     "executeProposal(bytes32,bytes)": FunctionFragment;
+    "migrateBridge(address)": FunctionFragment;
     "setResource(bytes32,address)": FunctionFragment;
   };
 
@@ -50,6 +51,10 @@ interface HandlerHelpersInterface extends ethers.utils.Interface {
     values: [BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "migrateBridge",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "setResource",
     values: [BytesLike, string]
   ): string;
@@ -72,6 +77,10 @@ interface HandlerHelpersInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "executeProposal",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "migrateBridge",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -149,6 +158,11 @@ export class HandlerHelpers extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    migrateBridge(
+      newBridge: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     setResource(
       resourceID: BytesLike,
       contractAddress: string,
@@ -173,6 +187,11 @@ export class HandlerHelpers extends BaseContract {
   executeProposal(
     resourceID: BytesLike,
     data: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  migrateBridge(
+    newBridge: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -205,6 +224,8 @@ export class HandlerHelpers extends BaseContract {
       data: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    migrateBridge(newBridge: string, overrides?: CallOverrides): Promise<void>;
 
     setResource(
       resourceID: BytesLike,
@@ -239,6 +260,11 @@ export class HandlerHelpers extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    migrateBridge(
+      newBridge: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     setResource(
       resourceID: BytesLike,
       contractAddress: string,
@@ -267,6 +293,11 @@ export class HandlerHelpers extends BaseContract {
     executeProposal(
       resourceID: BytesLike,
       data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    migrateBridge(
+      newBridge: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
