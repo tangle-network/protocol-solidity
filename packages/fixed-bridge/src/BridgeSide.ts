@@ -55,7 +55,7 @@ export class BridgeSide {
   *** @param linkedAnchorInstance: the anchor instance on the opposite chain
   ***/
   public async createAnchorUpdateProposalData(linkedAnchorInstance: Anchor, thisAnchorInstance: Anchor) {
-    const proposalData = await linkedAnchorInstance.getProposalData(thisAnchorInstance);
+    const proposalData = await linkedAnchorInstance.getProposalData(await thisAnchorInstance.createResourceId());
     return proposalData;
   }
 

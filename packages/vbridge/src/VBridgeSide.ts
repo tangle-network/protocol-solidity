@@ -53,7 +53,7 @@ export class VBridgeSide {
   *** @param linkedAnchorInstance: the anchor instance on the opposite chain
   ***/
   public async createUpdateProposalData(linkedAnchorInstance: VAnchor, thisAnchorInstance: VAnchor) {
-    const proposalData = await linkedAnchorInstance.getProposalData(thisAnchorInstance);
+    const proposalData = await linkedAnchorInstance.getProposalData(await thisAnchorInstance.createResourceId());
     return proposalData;
   }
 

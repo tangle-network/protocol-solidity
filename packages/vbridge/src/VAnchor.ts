@@ -317,7 +317,7 @@ export class VAnchor {
 
   // Proposal data is used to update linkedAnchors via bridge proposals 
   // on other chains with this anchor's state
-  public async getProposalData(thisVAnchor: VAnchor, leafIndex?: number): Promise<string> {
+  public async getProposalData(resourceID: string, leafIndex?: number): Promise<string> {
     // console.log("get proposal data");
     // console.log(`leafIndex is ${leafIndex}`);
     // If no leaf index passed in, set it to the most recent one.
@@ -328,7 +328,6 @@ export class VAnchor {
     const chainID = await this.signer.getChainId();
     const merkleRoot = this.depositHistory[leafIndex]; //bridgedTransact should update deposithistory
     const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("updateEdge(uint256,bytes32,uint256)")).slice(0, 10).padEnd(10, '0');
-    const resourceID = await thisVAnchor.createResourceId();
     const dummyNonce = 1;
 
     return '0x' +
