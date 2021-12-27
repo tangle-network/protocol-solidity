@@ -14,7 +14,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./AnchorBaseV2.sol";
 
-abstract contract FixedDepositAnchorV2 is AnchorBaseV2, IFixedDepositAnchor {
+contract FixedDepositAnchorV2 is AnchorBaseV2, IFixedDepositAnchor {
   using SafeERC20 for IERC20;
   using SafeMath for uint256;
 
@@ -25,6 +25,14 @@ abstract contract FixedDepositAnchorV2 is AnchorBaseV2, IFixedDepositAnchor {
   event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uint256 fee);
   event Refresh(bytes32 indexed commitment, bytes32 nullifierHash, uint32 insertedIndex);
 
+  struct EncodeDataInput {
+    bytes32 _nullifierHash;
+    bytes32 _refreshCommitment;
+    address _recipient;
+    address _relayer;
+    uint256 _fee;
+    uint256 _refund;
+  }
   /**
     @dev The constructor
     @param _verifier the address of SNARK verifier for this contract
@@ -44,6 +52,11 @@ abstract contract FixedDepositAnchorV2 is AnchorBaseV2, IFixedDepositAnchor {
     denomination = _denomination;
     token = address(_token);
   }
+
+  function deposit(bytes32 _commitment) override public payable nonReentrant {
+    insert(_commitment);
+  }
+
 
   function _processInsertion() internal override {
     require(msg.value == 0, "ETH value is supposed to be 0 for ERC20 instance");
@@ -68,12 +81,14 @@ abstract contract FixedDepositAnchorV2 is AnchorBaseV2, IFixedDepositAnchor {
 
     (bytes memory encodedInput, bytes32[] memory roots) = _encodeInputs(
       _publicInputs._roots,
-      _publicInputs._nullifierHash,
-      _publicInputs._refreshCommitment,
-      address(_publicInputs._recipient),
-      address(_publicInputs._relayer),
-      _publicInputs._fee,
-      _publicInputs._refund
+      EncodeDataInput(
+        _publicInputs._nullifierHash,
+        _publicInputs._refreshCommitment,
+        address(_publicInputs._recipient),
+        address(_publicInputs._relayer),
+        _publicInputs._fee,
+        _publicInputs._refund
+      )
     );
 
     require(isValidRoots(roots), "Invalid roots");
@@ -158,24 +173,22 @@ abstract contract FixedDepositAnchorV2 is AnchorBaseV2, IFixedDepositAnchor {
     return denomination;
   }
 
+  function getToken() override  external view returns (address) {
+    return token;
+  }
+
   function _encodeInputs(
     bytes calldata _roots,
-    bytes32 _nullifierHash,
-    bytes32 _refreshCommitment,
-    address _recipient,
-    address _relayer,
-    uint256 _fee,
-    uint256 _refund
+    EncodeDataInput memory encodeDataInput
   ) internal view returns (bytes memory, bytes32[] memory) {
-    uint256 _chainId = getChainId();
     bytes memory encodedInput = abi.encodePacked(
-      uint256(_nullifierHash),
-      uint256(uint160(_recipient)),
-      uint256(uint160(_relayer)),
-      uint256(_fee),
-      uint256(_refund),
-      uint256(_refreshCommitment),
-      uint256(_chainId),
+      uint256(encodeDataInput._nullifierHash),
+      uint256(uint160(encodeDataInput._recipient)),
+      uint256(uint160(encodeDataInput._relayer)),
+      uint256(encodeDataInput._fee),
+      uint256(encodeDataInput._refund),
+      uint256(encodeDataInput._refreshCommitment),
+      uint256(getChainId()),
       _roots
     );
 

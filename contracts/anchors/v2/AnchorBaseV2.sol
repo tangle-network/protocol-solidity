@@ -38,7 +38,7 @@ abstract contract AnchorBaseV2 is LinkableTree {
     @dev Inserts a commitment into the tree
     @param _commitment the note commitment = Poseidon(chainId, nullifier, secret)
   */
-  function insert(bytes32 _commitment) external payable nonReentrant {
+  function insert(bytes32 _commitment) public payable nonReentrant {
     require(!commitments[_commitment], "The commitment has been submitted");
 
     uint32 insertedIndex = _insert(_commitment);
