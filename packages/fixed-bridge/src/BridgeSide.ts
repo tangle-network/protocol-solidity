@@ -49,17 +49,28 @@ export class BridgeSide {
     const bridgeSide = new BridgeSide(deployedBridge, admin);
     return bridgeSide;
   }
-
-  /** Update proposals are created so that changes to an anchor's root chain Y can
-  *** make its way to the neighbor root of the linked anchor on chain X.
-  *** @param linkedAnchorInstance: the anchor instance on the opposite chain
-  ***/
-  public async createAnchorUpdateProposalData(linkedAnchorInstance: Anchor, thisAnchorInstance: Anchor) {
-    const proposalData = await linkedAnchorInstance.getProposalData(await thisAnchorInstance.createResourceId());
+ 
+  /**
+   * Creates the proposal data for updating an execution anchor
+   * with the latest state of a source anchor (i.e. most recent deposit).
+   * @param srcAnchor The anchor instance whose state has updated.
+   * @param executionResourceId The resource id of the execution anchor instance.
+   * @returns Promise<string>
+   */
+  public async createAnchorUpdateProposalData(srcAnchor: Anchor, executionResourceID: string): Promise<string> {
+    const proposalData = await srcAnchor.getProposalData(executionResourceID);
     return proposalData;
   }
 
-  public async createFeeUpdateProposalData(governedToken: GovernedTokenWrapper, fee: number) {
+  /**
+   * Creates the proposal data for updating the wrapping fee
+   * of a governed token wrapper.
+   * @param governedToken The governed token wrapper whose fee will be updated.
+   * @param fee The new fee percentage
+   * @returns Promise<string>
+   */
+  public async createFeeUpdateProposalData(governedToken: GovernedTokenWrapper, fee: number): Promise<string> {
+    // TODO: Validate fee is between [0, 100]
     const proposalData = await governedToken.getFeeProposalData(fee);
     return proposalData;
   }
@@ -108,41 +119,46 @@ export class BridgeSide {
     return resourceId;
   }
 
-  // the 'linkedAnchor' is the anchor which exists on a chain other than this bridge's
-  // the 'thisAnchor' is the anchor on the same chain as this bridge.
-  // nonce is leafIndex from linkedAnchor
-  // chainId from linked anchor
-  // resourceId for this anchor
-  // dataHash is combo of keccak('anchor handler for this bridge' + (chainID linkedAnchor + leafIndex linkedAnchor + root linkedAnchor))
-  public async voteAnchorProposal(linkedAnchor: Anchor, thisAnchor: Anchor) {
+  /**
+   * Votes on an anchor proposal by creating the proposal data and submitting it to the bridge.
+   * @param srcAnchor The anchor instance whose state has updated.
+   * @param executionResourceID The resource id of the execution anchor instance.
+   * @returns 
+   */
+  public async voteAnchorProposal(srcAnchor: Anchor, executionResourceID: string) {
     if (!this.handler) {
       throw new Error("Cannot connect an anchor without a handler");
     }
 
-    const proposalData = await this.createAnchorUpdateProposalData(linkedAnchor, thisAnchor);
+    const proposalData = await this.createAnchorUpdateProposalData(srcAnchor, executionResourceID);
     const dataHash = ethers.utils.keccak256(this.handler.contract.address + proposalData.substr(2));
-    const resourceId = await thisAnchor.createResourceId();
-    const chainId = await linkedAnchor.signer.getChainId();
-    const nonce = linkedAnchor.tree.number_of_elements() - 1;
+    
+    const chainId = await srcAnchor.signer.getChainId();
+    const nonce = srcAnchor.tree.number_of_elements() - 1;
 
-    const tx = await this.contract.voteProposal(chainId, nonce, resourceId, dataHash);
+    const tx = await this.contract.voteProposal(chainId, nonce, executionResourceID, dataHash);
     const receipt = await tx.wait();
     
     return receipt;
   }
 
-  // emit ProposalEvent(chainID, nonce, ProposalStatus.Executed, dataHash);
-  public async executeAnchorProposal(linkedAnchor: Anchor, thisAnchor: Anchor) {
+  /**
+   * Executes a proposal by calling the bridge's executeProposal function
+   * with the anchor update proposal data.
+   * @param srcAnchor The anchor instance whose state has updated.
+   * @param executionResourceID The resource id of the execution anchor instance.
+   * @returns 
+   */
+  public async executeAnchorProposal(srcAnchor: Anchor, executionResourceID: string) {
     if (!this.handler) {
       throw new Error("Cannot connect an anchor without a handler");
     }
 
-    const proposalData = await this.createAnchorUpdateProposalData(linkedAnchor, thisAnchor);
-    const resourceId = await thisAnchor.createResourceId();
-    const chainId = await linkedAnchor.signer.getChainId();
-    const nonce = linkedAnchor.tree.number_of_elements() - 1;
+    const proposalData = await this.createAnchorUpdateProposalData(srcAnchor, executionResourceID);
+    const chainId = await srcAnchor.signer.getChainId();
+    const nonce = srcAnchor.tree.number_of_elements() - 1;
 
-    const tx = await this.contract.executeProposal(chainId, nonce, proposalData, resourceId);
+    const tx = await this.contract.executeProposal(chainId, nonce, proposalData, executionResourceID);
     const receipt = await tx.wait();
     
     return receipt;
@@ -157,7 +173,7 @@ export class BridgeSide {
     const dataHash = ethers.utils.keccak256(this.handler.contract.address + proposalData.substr(2));
     const resourceId = await governedToken.createResourceId();
     const chainId = await governedToken.signer.getChainId();
-    const nonce = (await governedToken.contract.storageNonce()).add(1);
+    const nonce = (await governedToken.contract.proposalNonce()).add(1);
 
     const tx = await this.contract.voteProposal(chainId, nonce, resourceId, dataHash);
     const receipt = await tx.wait();
@@ -172,7 +188,7 @@ export class BridgeSide {
     const proposalData = await this.createFeeUpdateProposalData(governedToken, fee);
     const resourceId = await governedToken.createResourceId();
     const chainId = await governedToken.signer.getChainId();
-    const nonce = (await governedToken.contract.storageNonce()).add(1);
+    const nonce = (await governedToken.contract.proposalNonce()).add(1);
     const tx = await this.contract.executeProposal(chainId, nonce, proposalData, resourceId);
     const receipt = await tx.wait();
     
@@ -188,7 +204,7 @@ export class BridgeSide {
     const dataHash = ethers.utils.keccak256(this.handler.contract.address + proposalData.substr(2));
     const resourceId = await governedToken.createResourceId();
     const chainId = await governedToken.signer.getChainId();
-    const nonce = (await governedToken.contract.storageNonce()).add(1);
+    const nonce = (await governedToken.contract.proposalNonce()).add(1);
 
     const tx = await this.contract.voteProposal(chainId, nonce, resourceId, dataHash);
     const receipt = await tx.wait();
@@ -204,7 +220,7 @@ export class BridgeSide {
     const proposalData = await this.createAddTokenUpdateProposalData(governedToken, tokenAddress);
     const resourceId = await governedToken.createResourceId();
     const chainId = await governedToken.signer.getChainId();
-    const nonce = (await governedToken.contract.storageNonce()).add(1);
+    const nonce = (await governedToken.contract.proposalNonce()).add(1);
     const tx = await this.contract.executeProposal(chainId, nonce, proposalData, resourceId);
     const receipt = await tx.wait();
     
@@ -220,7 +236,7 @@ export class BridgeSide {
     const dataHash = ethers.utils.keccak256(this.handler.contract.address + proposalData.substr(2));
     const resourceId = await governedToken.createResourceId();
     const chainId = await governedToken.signer.getChainId();
-    const nonce = (await governedToken.contract.storageNonce()).add(1);
+    const nonce = (await governedToken.contract.proposalNonce()).add(1);
 
     const tx = await this.contract.voteProposal(chainId, nonce, resourceId, dataHash);
     const receipt = await tx.wait();
@@ -236,7 +252,7 @@ export class BridgeSide {
     const proposalData = await this.createRemoveTokenUpdateProposalData(governedToken, tokenAddress);
     const resourceId = await governedToken.createResourceId();
     const chainId = await governedToken.signer.getChainId();
-    const nonce = (await governedToken.contract.storageNonce()).add(1);
+    const nonce = (await governedToken.contract.proposalNonce()).add(1);
     const tx = await this.contract.executeProposal(chainId, nonce, proposalData, resourceId);
     const receipt = await tx.wait();
     

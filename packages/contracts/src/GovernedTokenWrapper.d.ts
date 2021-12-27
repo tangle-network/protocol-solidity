@@ -50,13 +50,13 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
     "name()": FunctionFragment;
     "pause()": FunctionFragment;
     "paused()": FunctionFragment;
+    "proposalNonce()": FunctionFragment;
     "remove(address,uint256)": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
     "setFee(uint8,uint256)": FunctionFragment;
     "setGovernor(address)": FunctionFragment;
     "setNativeAllowed(bool)": FunctionFragment;
-    "storageNonce()": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
     "symbol()": FunctionFragment;
     "tokens(uint256)": FunctionFragment;
@@ -160,6 +160,10 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "pause", values?: undefined): string;
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "proposalNonce",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "remove",
     values: [string, BigNumberish]
   ): string;
@@ -179,10 +183,6 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "setNativeAllowed",
     values: [boolean]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "storageNonce",
-    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
@@ -303,6 +303,10 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "proposalNonce",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "remove", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "renounceRole",
@@ -316,10 +320,6 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setNativeAllowed",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "storageNonce",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -567,6 +567,8 @@ export class GovernedTokenWrapper extends BaseContract {
 
     paused(overrides?: CallOverrides): Promise<[boolean]>;
 
+    proposalNonce(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     remove(
       tokenAddress: string,
       nonce: BigNumberish,
@@ -600,8 +602,6 @@ export class GovernedTokenWrapper extends BaseContract {
       _isNativeAllowed: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    storageNonce(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     supportsInterface(
       interfaceId: BytesLike,
@@ -793,6 +793,8 @@ export class GovernedTokenWrapper extends BaseContract {
 
   paused(overrides?: CallOverrides): Promise<boolean>;
 
+  proposalNonce(overrides?: CallOverrides): Promise<BigNumber>;
+
   remove(
     tokenAddress: string,
     nonce: BigNumberish,
@@ -826,8 +828,6 @@ export class GovernedTokenWrapper extends BaseContract {
     _isNativeAllowed: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
-
-  storageNonce(overrides?: CallOverrides): Promise<BigNumber>;
 
   supportsInterface(
     interfaceId: BytesLike,
@@ -1014,6 +1014,8 @@ export class GovernedTokenWrapper extends BaseContract {
 
     paused(overrides?: CallOverrides): Promise<boolean>;
 
+    proposalNonce(overrides?: CallOverrides): Promise<BigNumber>;
+
     remove(
       tokenAddress: string,
       nonce: BigNumberish,
@@ -1044,8 +1046,6 @@ export class GovernedTokenWrapper extends BaseContract {
       _isNativeAllowed: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    storageNonce(overrides?: CallOverrides): Promise<BigNumber>;
 
     supportsInterface(
       interfaceId: BytesLike,
@@ -1340,6 +1340,8 @@ export class GovernedTokenWrapper extends BaseContract {
 
     paused(overrides?: CallOverrides): Promise<BigNumber>;
 
+    proposalNonce(overrides?: CallOverrides): Promise<BigNumber>;
+
     remove(
       tokenAddress: string,
       nonce: BigNumberish,
@@ -1373,8 +1375,6 @@ export class GovernedTokenWrapper extends BaseContract {
       _isNativeAllowed: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
-
-    storageNonce(overrides?: CallOverrides): Promise<BigNumber>;
 
     supportsInterface(
       interfaceId: BytesLike,
@@ -1575,6 +1575,8 @@ export class GovernedTokenWrapper extends BaseContract {
 
     paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    proposalNonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     remove(
       tokenAddress: string,
       nonce: BigNumberish,
@@ -1608,8 +1610,6 @@ export class GovernedTokenWrapper extends BaseContract {
       _isNativeAllowed: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
-
-    storageNonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     supportsInterface(
       interfaceId: BytesLike,

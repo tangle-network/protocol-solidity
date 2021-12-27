@@ -55,7 +55,7 @@ class GovernedTokenWrapper {
     //First 4 bytes of keccak hash is encoded function sig...
     const resourceID = await this.createResourceId();
     const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("add(address,uint256)")).slice(0, 10).padEnd(10, '0');
-    const nonce = (await this.contract.storageNonce()).add(1).toNumber();
+    const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
   
     return '0x' +
     toHex(resourceID, 32).substr(2) + 
@@ -68,7 +68,7 @@ class GovernedTokenWrapper {
     //First 4 bytes of keccak hash is encoded function sig...
     const resourceID = await this.createResourceId();
     const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("remove(address,uint256)")).slice(0, 10).padEnd(10, '0');
-    const nonce = (await this.contract.storageNonce()).add(1).toNumber();
+    const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
 
     return '0x' +
       toHex(resourceID, 32).substr(2) + 
@@ -79,7 +79,7 @@ class GovernedTokenWrapper {
 
   public async getFeeProposalData(fee: number): Promise<string> {
     const resourceID = await this.createResourceId();
-    const nonce = (await this.contract.storageNonce()).add(1).toNumber();
+    const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
     const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("setFee(uint8,uint256)")).slice(0, 10).padEnd(10, '0');
     const feeString = toHex(fee, 1);
 

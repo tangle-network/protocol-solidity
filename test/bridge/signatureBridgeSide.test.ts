@@ -128,7 +128,8 @@
     await bridgeSide.setAnchorHandler(anchorHandler);
     bridgeSide.setResourceWithSignature(destAnchor);
     await sourceAnchor.deposit(await admin.getChainId());
-    await bridgeSide.executeAnchorProposalWithSig(sourceAnchor, destAnchor);
+    const destResourceID = await destAnchor.createResourceId();
+    await bridgeSide.executeAnchorProposalWithSig(sourceAnchor, destResourceID);
   })
 
   it('execute fee proposal', async () => {
@@ -302,7 +303,7 @@
 
     //Check that fee actually changed
     assert.strictEqual((await governedToken.contract.getFee()).toString(), '5');
-    assert.strictEqual((await governedToken.contract.storageNonce()).toString(), '1');
+    assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '1');
 
     //Create an ERC20 Token
     const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
@@ -314,12 +315,12 @@
     //Check that governedToken contains the added token
     assert((await governedToken.contract.getTokens()).includes(tokenInstance.contract.address));
     //End Add a Token--------
-assert.strictEqual((await governedToken.contract.storageNonce()).toString(), '2');
+assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '2');
 
     //Remove a Token
     await bridgeSide.executeRemoveTokenProposalWithSig(governedToken, tokenInstance.contract.address);
 
     assert((await governedToken.contract.getTokens()).length === 0);  
-    assert.strictEqual((await governedToken.contract.storageNonce()).toString(), '3');
+    assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '3');
   })
  })

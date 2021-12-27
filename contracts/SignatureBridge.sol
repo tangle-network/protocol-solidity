@@ -21,36 +21,13 @@ import "hardhat/console.sol";
     @author ChainSafe Systems & Webb Technologies.
  */
 contract SignatureBridge is Pausable, SafeMath, Governable {
-    using SafeCast for *;
-
-    uint256 public _chainID;
-    uint128 public _fee;
-    uint40  public _expiry;
-
-    enum ProposalStatus {Inactive, Active, Passed, Executed, Cancelled}
-
     // destinationChainID => number of deposits
     mapping(uint256 => uint64) public _counts;
     // resourceID => handler address
     mapping(bytes32 => address) public _resourceIDToHandlerAddress;
 
-    event ProposalEvent(
-        uint256  originChainID,
-        ProposalStatus status,
-        bytes32 dataHash,
-        bytes sig
-    );
-    event ProposalVote(
-        uint256  originChainID,
-        uint64   nonce,
-        ProposalStatus status,
-        bytes32 dataHash
-    );
-
-    bytes32 public constant RELAYER_ROLE = keccak256("RELAYER_ROLE");
-
     /**
-        Verifying signature of 
+        Verifying signature of governor over some datahash
      */
     modifier signedByGovernor(bytes32 dataHash, bytes memory sig) {
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
@@ -59,15 +36,10 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
     }
 
     /**
-        @notice Initializes Bridge, creates and grants {msg.sender} the admin role,
-        creates and grants {initialGovernor} the relayer role.
-        @param chainID ID of chain the Bridge contract exists on.
+        @notice Initializes SignatureBridge with a governor
         @param initialGovernor Addresses that should be initially granted the relayer role.
      */
-    constructor (uint256 chainID, address initialGovernor, uint256 fee, uint256 expiry) Governable(initialGovernor) {
-        _chainID = chainID;
-        _fee = fee.toUint128();
-        _expiry = expiry.toUint40();
+    constructor (address initialGovernor) Governable(initialGovernor) {
     }
 
     /**
@@ -79,10 +51,10 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
         @param executionContextAddress Address of contract to be called when a proposal is ready to execute on it
      */
     function adminSetResourceWithSignature(
-      address handlerAddress,
-      bytes32 resourceID,
-      address executionContextAddress,
-      bytes memory sig
+        address handlerAddress,
+        bytes32 resourceID,
+        address executionContextAddress,
+        bytes memory sig
     ) external signedByGovernor(keccak256(abi.encodePacked(handlerAddress, resourceID, executionContextAddress)), sig){
         _resourceIDToHandlerAddress[resourceID] = handlerAddress;
         IExecutor handler = IExecutor(handlerAddress);
@@ -96,9 +68,9 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
         @param newBridge New bridge address to migrate handlers to.
      */
     function adminMigrateBridgeWithSignature(
-      bytes32[] calldata resourceIDs,
-      address newBridge,
-      bytes memory sig
+        bytes32[] calldata resourceIDs,
+        address newBridge,
+        bytes memory sig
     ) external signedByGovernor(keccak256(abi.encodePacked(resourceIDs, newBridge)), sig) {
         for (uint i = 0; i < resourceIDs.length; i++) {
             IExecutor handler = IExecutor(_resourceIDToHandlerAddress[resourceIDs[i]]);
@@ -107,18 +79,12 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
     }
 
     /**
-        @notice Executes a deposit proposal that is considered passed using a specified handler contract.
-        @notice Only callable by relayers when Bridge is not paused.
-        @param chainID ID of chain deposit originated from.
-        @param data Data originally provided when deposit was made.
-        @notice Proposal must have Passed status.
-        @notice Hash of {data} must equal proposal's {dataHash}.
-        @notice Emits {ProposalEvent} event with status {Executed}.
+        @notice Executes a proposal signed by the governor.
+        @param data Data meant for execution by execution handlers.
      */
     function executeProposalWithSignature(
-      uint256 chainID,
-      bytes calldata data,
-      bytes memory sig
+        bytes calldata data,
+        bytes memory sig
     ) external signedByGovernor(keccak256(data), sig) {
         //Parse resourceID from the data
         bytes calldata resourceIDBytes = data[0:32];
@@ -128,11 +94,8 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
         // Verify current chain matches chain ID from resource ID
         require(uint32(getChainId()) == uint32(executionChainID), "executing on wrong chain");
         address handler = _resourceIDToHandlerAddress[resourceID];
-        bytes32 dataHash = keccak256(abi.encodePacked(handler, data));
         IExecutor executionHandler = IExecutor(handler);
         executionHandler.executeProposal(resourceID, data);
-        
-        emit ProposalEvent(chainID, ProposalStatus.Executed, dataHash, sig);
     }
 
     function getChainId() public view returns (uint) {

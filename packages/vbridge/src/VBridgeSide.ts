@@ -48,12 +48,15 @@ export class VBridgeSide {
     return vBridgeSide;
   }
 
-  /** Update proposals are created so that changes to an anchor's root chain Y can
-  *** make its way to the neighbor root of the linked anchor on chain X.
-  *** @param linkedAnchorInstance: the anchor instance on the opposite chain
-  ***/
-  public async createUpdateProposalData(linkedAnchorInstance: VAnchor, thisAnchorInstance: VAnchor) {
-    const proposalData = await linkedAnchorInstance.getProposalData(await thisAnchorInstance.createResourceId());
+  /**
+   * Creates the proposal data for updating an execution anchor
+   * with the latest state of a source anchor (i.e. most recent deposit).
+   * @param srcAnchor The anchor instance whose state has updated.
+   * @param executionResourceId The resource id of the execution anchor instance.
+   * @returns Promise<string>
+   */
+   public async createAnchorUpdateProposalData(srcAnchor: VAnchor, executionResourceID: string): Promise<string> {
+    const proposalData = await srcAnchor.getProposalData(executionResourceID);
     return proposalData;
   }
 
@@ -77,40 +80,38 @@ export class VBridgeSide {
     return resourceId;
   }
 
-  // the 'linkedAnchor' is the anchor which exists on a chain other than this bridge's
-  // the 'thisAnchor' is the anchor on the same chain as this bridge.
-  // nonce is leafIndex from linkedAnchor
-  // chainId from linked anchor
-  // resourceId for this anchor
-  // dataHash is combo of keccak('anchor handler for this bridge' + (chainID linkedAnchor + leafIndex linkedAnchor + root linkedAnchor))
-  public async voteProposal(linkedAnchor: VAnchor, thisAnchor: VAnchor) {
+  /**
+   * Votes on an anchor proposal by creating the proposal data and submitting it to the bridge.
+   * @param srcAnchor The anchor instance whose state has updated.
+   * @param executionResourceID The resource id of the execution anchor instance.
+   * @returns 
+   */
+  public async voteAnchorProposal(srcAnchor: VAnchor, executionResourceID: string) {
     if (!this.handler) {
       throw new Error("Cannot connect an anchor without a handler");
     }
 
-    const proposalData = await this.createUpdateProposalData(linkedAnchor, thisAnchor);
+    const proposalData = await this.createAnchorUpdateProposalData(srcAnchor, executionResourceID);
     const dataHash = ethers.utils.keccak256(this.handler.contract.address + proposalData.substr(2));
-    const resourceId = await thisAnchor.createResourceId();
-    const chainId = await linkedAnchor.signer.getChainId();
-    const nonce = linkedAnchor.tree.number_of_elements() - 1;
+    const chainId = await srcAnchor.signer.getChainId();
+    const nonce = srcAnchor.tree.number_of_elements() - 1;
 
-    const tx = await this.contract.voteProposal(chainId, nonce, resourceId, dataHash);
+    const tx = await this.contract.voteProposal(chainId, nonce, executionResourceID, dataHash);
     const receipt = await tx.wait();
     
     return receipt;
   }
 
   // emit ProposalEvent(chainID, nonce, ProposalStatus.Executed, dataHash);
-  public async executeProposal(linkedAnchor: VAnchor, thisAnchor: VAnchor) {
+  public async executeProposal(srcAnchor: VAnchor, executionResourceId: string) {
     if (!this.handler) {
       throw new Error("Cannot connect an anchor without a handler");
     }
     
-    const proposalData = await this.createUpdateProposalData(linkedAnchor, thisAnchor);
-    const resourceId = await thisAnchor.createResourceId();
-    const chainId = await linkedAnchor.signer.getChainId();
-    const nonce = linkedAnchor.tree.number_of_elements() - 1;
-    const tx = await this.contract.executeProposal(chainId, nonce, proposalData, resourceId);
+    const proposalData = await this.createAnchorUpdateProposalData(srcAnchor, executionResourceId);
+    const chainId = await srcAnchor.signer.getChainId();
+    const nonce = srcAnchor.tree.number_of_elements() - 1;
+    const tx = await this.contract.executeProposal(chainId, nonce, proposalData, executionResourceId);
     const receipt = await tx.wait();
     
     return receipt;

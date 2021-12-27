@@ -224,7 +224,7 @@ export class VBridge {
       for (const tokenToBeWrapped of vBridgeInput.vAnchorInputs.asset[chainID]!) {
         // if the address is not '0', then add it
         if (!checkNativeAddress(tokenToBeWrapped)) {
-          const tx = await tokenInstance?.contract.add(tokenToBeWrapped, (await tokenInstance?.contract.storageNonce()).add(1));
+          const tx = await tokenInstance?.contract.add(tokenToBeWrapped, (await tokenInstance?.contract.proposalNonce()).add(1));
           const receipt = await tx?.wait();
         }
       }

@@ -171,7 +171,7 @@ export class SignatureBridge {
       for (const tokenToBeWrapped of bridgeInput.anchorInputs.asset[chainID]!) {
         // if the address is not '0', then add it
         if (!checkNativeAddress(tokenToBeWrapped)) {
-          const tx = await tokenInstance.contract.add(tokenToBeWrapped, (await tokenInstance.contract.storageNonce()).add(1));
+          const tx = await tokenInstance.contract.add(tokenToBeWrapped, (await tokenInstance.contract.proposalNonce()).add(1));
           const receipt = await tx.wait();
         }
       }
@@ -253,12 +253,15 @@ export class SignatureBridge {
     }
   }
 
-  /** Update the state of BridgeSides and Anchors, when
-  *** state changes for the @param linkedAnchor 
-  **/
-  public async updateLinkedAnchors(linkedAnchor: Anchor) {
+ /**
+  * Updates the state of the SignatureBridgeSides and Anchors with
+  * the new state of the @param srcAnchor.
+  * @param srcAnchor The anchor that has updated.
+  * @returns 
+  */
+  public async updateLinkedAnchors(srcAnchor: Anchor) {
     // Find the bridge sides that are connected to this Anchor
-    const linkedResourceID = await linkedAnchor.createResourceId();
+    const linkedResourceID = await srcAnchor.createResourceId();
     const anchorsToUpdate = this.linkedAnchors.get(linkedResourceID);
     if (!anchorsToUpdate) {
       return;
@@ -267,9 +270,10 @@ export class SignatureBridge {
     // update the sides
     for (let anchor of anchorsToUpdate) {
       // get the bridge side which corresponds to this anchor
+      const resourceID = await anchor.createResourceId();
       const chainId = await anchor.signer.getChainId();
       const bridgeSide = this.bridgeSides.get(chainId);
-      await bridgeSide!.executeAnchorProposalWithSig(linkedAnchor, anchor);
+      await bridgeSide!.executeAnchorProposalWithSig(srcAnchor, resourceID);
     }
   };
 

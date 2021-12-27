@@ -117,7 +117,6 @@ export class Bridge {
   }
 
   public static async deployBridge(bridgeInput: BridgeInput, deployers: DeployerConfig, zkComponents: ZkComponents): Promise<Bridge> {
-    
     let webbTokenAddresses: Map<number, string> = new Map();
     let bridgeSides: Map<number, BridgeSide> = new Map();
     let anchors: Map<string, Anchor> = new Map();
@@ -172,7 +171,7 @@ export class Bridge {
       for (const tokenToBeWrapped of bridgeInput.anchorInputs.asset[chainID]!) {
         // if the address is not '0', then add it
         if (!checkNativeAddress(tokenToBeWrapped)) {
-          const tx = await tokenInstance.contract.add(tokenToBeWrapped, (await tokenInstance.contract.storageNonce()).add(1));
+          const tx = await tokenInstance.contract.add(tokenToBeWrapped, (await tokenInstance.contract.proposalNonce()).add(1));
           const receipt = await tx.wait();
         }
       }
@@ -238,7 +237,6 @@ export class Bridge {
   // it creates the anchor handler and sets the appropriate permissions
   // for the bridgeSide/anchorHandler/anchor
   public static async setPermissions(bridgeSide: BridgeSide, anchors: Anchor[]): Promise<void> {
-
     let resourceIDs: string[] = [];
     let anchorAddresses: string[] = [];
     for (let anchor of anchors) {
@@ -254,12 +252,15 @@ export class Bridge {
     }
   }
 
-  /** Update the state of BridgeSides and Anchors, when
-  *** state changes for the @param linkedAnchor 
-  **/
-  public async updateLinkedAnchors(linkedAnchor: Anchor) {
+ /**
+  * Updates the state of the BridgeSides and Anchors with
+  * the new state of the @param srcAnchor.
+  * @param srcAnchor The anchor that has updated.
+  * @returns 
+  */
+  public async updateLinkedAnchors(srcAnchor: Anchor) {
     // Find the bridge sides that are connected to this Anchor
-    const linkedResourceID = await linkedAnchor.createResourceId();
+    const linkedResourceID = await srcAnchor.createResourceId();
     const anchorsToUpdate = this.linkedAnchors.get(linkedResourceID);
     if (!anchorsToUpdate) {
       return;
@@ -269,9 +270,10 @@ export class Bridge {
     for (let anchor of anchorsToUpdate) {
       // get the bridge side which corresponds to this anchor
       const chainId = await anchor.signer.getChainId();
+      const resourceID = await anchor.createResourceId();
       const bridgeSide = this.bridgeSides.get(chainId);
-      await bridgeSide!.voteAnchorProposal(linkedAnchor, anchor);
-      await bridgeSide!.executeAnchorProposal(linkedAnchor, anchor);
+      await bridgeSide!.voteAnchorProposal(srcAnchor, resourceID);
+      await bridgeSide!.executeAnchorProposal(srcAnchor, resourceID);
     }
   };
 
