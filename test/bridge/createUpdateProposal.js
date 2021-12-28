@@ -260,12 +260,12 @@ contract('Bridge - [create an update proposal (voteProposal) with relayerThresho
     );
 
     AnchorInstance = await Anchor.new(
+      sender,
+      token.address,
       verifier.address,
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      token.address,
-      sender,
       MAX_EDGES,
     );
 
