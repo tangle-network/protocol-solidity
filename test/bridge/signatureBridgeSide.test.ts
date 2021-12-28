@@ -36,7 +36,7 @@
      const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, 0, 100, admin);
    })
 
-   it('should set resource with signature', async () => {
+   it.only('should set resource with signature', async () => {
     const signers = await ethers.getSigners();
     const initialGovernor = signers[1];
     const admin = signers[1];

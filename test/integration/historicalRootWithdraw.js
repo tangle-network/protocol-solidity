@@ -173,6 +173,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
       resourceID,
       { from: relayer1Address }
     ));
+
     /*
     *  sender generate proof
     */
@@ -258,7 +259,6 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
       resourceID,
       { from: relayer1Address }
     ));
-
     // check initial balances before withdrawal
     let balanceOperatorBefore = await destChainToken.balanceOf(operator);
     let balanceReceiverBefore = await destChainToken.balanceOf(helpers.toFixedHex(recipient, 20));
@@ -278,7 +278,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
       _fee: args[5],
       _refund: args[6],
     }, { from: input.relayer }));
-
+ 
     let balanceDestAnchorAfter = await destChainToken.balanceOf(DestChainAnchorInstance.address);
     let balanceOperatorAfter = await destChainToken.balanceOf(input.relayer);
     let balanceReceiverAfter = await destChainToken.balanceOf(helpers.toFixedHex(recipient, 20));
@@ -288,7 +288,6 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     assert.strictEqual(balanceReceiverAfter.toString(), balanceReceiverBefore.add(toBN(tokenDenomination)).sub(feeBN).toString());
     isSpent = await DestChainAnchorInstance.isSpent(helpers.toFixedHex(input.nullifierHash));
     assert(isSpent);
-
     /*
     *  generate proof for second deposit
     */
@@ -372,7 +371,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
         { from: relayer1Address }
       ));
     }
-
+    
     // withdraw should revert as historical root does not exist
     await TruffleAssert.reverts(DestChainAnchorInstance.withdraw(`0x${proofEncoded}`, {
       _roots: args[0],

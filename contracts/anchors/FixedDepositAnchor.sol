@@ -13,6 +13,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./AnchorBase.sol";
+import "hardhat/console.sol";
 
 contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
   using SafeERC20 for IERC20;
@@ -91,7 +92,6 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
         _publicInputs._refund
       )
     );
-
     require(isValidRoots(roots), "Invalid roots");
     require(verify(_proof, encodedInput), "Invalid withdraw proof");
 
@@ -256,15 +256,15 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
 
   function _encodeInputs(
     bytes calldata _roots,
-    EncodeInputsData memory encodeDataInput
+    EncodeInputsData memory encodeInputsData
   ) internal view returns (bytes memory, bytes32[] memory) {
     bytes memory encodedInput = abi.encodePacked(
-      uint256(encodeDataInput._nullifierHash),
-      uint256(uint160(encodeDataInput._recipient)),
-      uint256(uint160(encodeDataInput._relayer)),
-      uint256(encodeDataInput._fee),
-      uint256(encodeDataInput._refund),
-      uint256(encodeDataInput._refreshCommitment),
+      uint256(encodeInputsData._nullifierHash),
+      uint256(uint160(encodeInputsData._recipient)),
+      uint256(uint160(encodeInputsData._relayer)),
+      uint256(encodeInputsData._fee),
+      uint256(encodeInputsData._refund),
+      uint256(encodeInputsData._refreshCommitment),
       uint256(getChainId()),
       _roots
     );
