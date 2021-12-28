@@ -9,7 +9,7 @@ const Helpers = require('../helpers');
 
 const BridgeContract = artifacts.require("Bridge");
 const AnchorHandlerContract = artifacts.require("AnchorHandler");
-const Anchor = artifacts.require("Anchor");
+const Anchor = artifacts.require("FixedDepositAnchor");
 const Hasher = artifacts.require("PoseidonT3");
 const Verifier = artifacts.require('Verifier');
 const Verifier2 = artifacts.require('Verifier2');

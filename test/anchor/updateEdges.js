@@ -5,7 +5,7 @@
 const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
 
-const Anchor = artifacts.require("Anchor");
+const Anchor = artifacts.require("FixedDepositAnchor");
 const Hasher = artifacts.require("PoseidonT3");
 const Verifier = artifacts.require('Verifier');
 const Verifier2 = artifacts.require('Verifier2');
