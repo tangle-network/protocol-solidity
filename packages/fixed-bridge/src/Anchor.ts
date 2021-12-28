@@ -210,6 +210,19 @@ class Anchor {
       toHex(merkleRoot, 32).substr(2);
   }
 
+  public async getHandlerProposalData(newHandler: string): Promise<string> {
+    const resourceID = await this.createResourceId();
+    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("setHandler(address)")).slice(0, 10).padEnd(10, '0');
+    const dummyNonce = 1;
+    const chainID = await this.signer.getChainId();
+
+    return '0x' +
+      toHex(resourceID, 32).substr(2)+ 
+      functionSig.slice(2) + 
+      toHex(dummyNonce,4).substr(2) +
+      toHex(newHandler, 20).substr(2) 
+  }
+
   // Makes a deposit into the contract and return the parameters and index of deposit
   public async deposit(destinationChainId?: number): Promise<AnchorDeposit> {
     const originChainId = await this.signer.getChainId();
