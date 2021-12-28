@@ -117,7 +117,6 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
      // set bridge and handler permissions for anchor
     await Promise.all([
       DestChainAnchorInstance.setHandler(DestAnchorHandlerInstance.address, { from: sender }),
-      DestChainAnchorInstance.setBridge(DestBridgeInstance.address, { from: sender })
     ]);
 
     createWitness = async (data) => {
