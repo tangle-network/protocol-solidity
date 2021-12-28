@@ -688,22 +688,6 @@ function roots(uint256) external view returns (bytes32)
 |---|---|---|
 | _0 | bytes32 | undefined
 
-### setBridge
-
-```solidity
-function setBridge(address _bridge) external nonpayable
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _bridge | address | undefined
-
 ### setHandler
 
 ```solidity
@@ -719,6 +703,22 @@ function setHandler(address _handler) external nonpayable
 | Name | Type | Description |
 |---|---|---|
 | _handler | address | undefined
+
+### setVerifier
+
+```solidity
+function setVerifier(address newVerifier) external nonpayable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newVerifier | address | undefined
 
 ### transact
 

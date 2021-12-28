@@ -50,14 +50,6 @@ contract VMerkleTreeWithHistory is Initializable {
 
   function _initialize() internal{}
 
-  // function _initialize() internal {
-  //   for (uint32 i = 0; i < levels; i++) {
-  //     filledSubtrees[i] = zeros(i);
-  //   }
-
-  //   roots[0] = zeros(levels);
-  // }
-
   /**
     @dev Hash 2 tree leaves, returns Poseidon(_left, _right)
   */

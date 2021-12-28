@@ -1,7 +1,7 @@
 import { BigNumberish, ethers } from "ethers";
 import { SignatureBridge, SignatureBridge__factory } from '../../../typechain';
 import { Anchor } from './Anchor';
-import { LinkableTreeHandler } from "./LinkableTreeHandler";
+import { AnchorHandler } from "./AnchorHandler";
 import { GovernedTokenWrapper } from "../../tokens/src/index";
 import { TokenWrapperHandler } from "../../tokens/src/index";
 
@@ -16,7 +16,7 @@ export type Proposal = {
 export class SignatureBridgeSide {
   contract: SignatureBridge;
   admin: ethers.Signer;
-  handler: LinkableTreeHandler | TokenWrapperHandler;
+  handler: AnchorHandler | TokenWrapperHandler;
   proposals: Proposal[];
   signingSystemSignFn: (data: any) => Promise<string>;
 
@@ -100,7 +100,7 @@ export class SignatureBridgeSide {
     return proposalData;
   }
 
-  public async setLinkableTreeHandler(handler: LinkableTreeHandler) {
+  public async setAnchorHandler(handler: AnchorHandler) {
     this.handler = handler;
   }
 

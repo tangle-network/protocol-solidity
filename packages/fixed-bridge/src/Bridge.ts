@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import { BridgeSide } from './BridgeSide';
 import { Anchor } from './Anchor';
-import { LinkableTreeHandler } from "./LinkableTreeHandler";
+import { AnchorHandler } from "./AnchorHandler";
 import { MintableToken, GovernedTokenWrapper } from "../../tokens/src/index";
 import { AnchorDeposit } from './types';
 import { Verifier } from "./Verifier";
@@ -192,8 +192,7 @@ export class Bridge {
           anchorSize,
           30,
           tokenInstance.contract.address,
-          adminAddress,
-          adminAddress,
+          // TODO: Use handler address
           adminAddress,
           bridgeInput.chainIDs.length-1,
           zkComponents,
@@ -235,7 +234,7 @@ export class Bridge {
 
   // The setPermissions method accepts initialized bridgeSide and anchors.
   // it creates the anchor handler and sets the appropriate permissions
-  // for the bridgeSide/LinkableTreeHandler/anchor
+  // for the bridgeSide/AnchorHandler/anchor
   public static async setPermissions(bridgeSide: BridgeSide, anchors: Anchor[]): Promise<void> {
     let resourceIDs: string[] = [];
     let anchorAddresses: string[] = [];
@@ -244,8 +243,8 @@ export class Bridge {
       anchorAddresses.push(anchor.contract.address);
     }
 
-    const handler = await LinkableTreeHandler.createLinkableTreeHandler(bridgeSide.contract.address, resourceIDs, anchorAddresses, bridgeSide.admin);
-    await bridgeSide.setLinkableTreeHandler(handler);
+    const handler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, resourceIDs, anchorAddresses, bridgeSide.admin);
+    await bridgeSide.setAnchorHandler(handler);
     
     for (let anchor of anchors) {
       await bridgeSide.connectAnchor(anchor);

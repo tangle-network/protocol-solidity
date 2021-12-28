@@ -20,49 +20,54 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-interface LinkableVAnchorInterface extends ethers.utils.Interface {
+interface FixedDepositAnchorInterface extends ethers.utils.Interface {
   functions: {
     "FIELD_SIZE()": FunctionFragment;
-    "MAX_EXT_AMOUNT()": FunctionFragment;
-    "MAX_FEE()": FunctionFragment;
     "ROOT_HISTORY_SIZE()": FunctionFragment;
     "ZERO_VALUE()": FunctionFragment;
-    "calculatePublicAmount(int256,uint256)": FunctionFragment;
-    "configureLimits(uint256,uint256)": FunctionFragment;
+    "commitments(bytes32)": FunctionFragment;
     "currentNeighborRootIndex(uint256)": FunctionFragment;
     "currentRootIndex()": FunctionFragment;
+    "denomination()": FunctionFragment;
+    "deposit(bytes32)": FunctionFragment;
     "edgeExistsForChain(uint256)": FunctionFragment;
     "edgeIndex(uint256)": FunctionFragment;
     "edgeList(uint256)": FunctionFragment;
     "filledSubtrees(uint256)": FunctionFragment;
+    "getChainId()": FunctionFragment;
+    "getDenomination()": FunctionFragment;
     "getLastRoot()": FunctionFragment;
-    "getLatestNeighborEdges()": FunctionFragment;
+    "getLatestNeighborRoots()": FunctionFragment;
+    "getToken()": FunctionFragment;
+    "handler()": FunctionFragment;
     "hasEdge(uint256)": FunctionFragment;
-    "hashLeftRight(bytes32,bytes32)": FunctionFragment;
+    "hashLeftRight(address,bytes32,bytes32)": FunctionFragment;
     "hasher()": FunctionFragment;
-    "initialize(uint256,uint256)": FunctionFragment;
+    "insert(bytes32)": FunctionFragment;
     "isKnownNeighborRoot(uint256,bytes32)": FunctionFragment;
     "isKnownRoot(bytes32)": FunctionFragment;
     "isSpent(bytes32)": FunctionFragment;
+    "isSpentArray(bytes32[])": FunctionFragment;
     "isValidRoots(bytes32[])": FunctionFragment;
-    "lastBalance()": FunctionFragment;
     "levels()": FunctionFragment;
     "maxEdges()": FunctionFragment;
-    "maximumDepositAmount()": FunctionFragment;
-    "minimalWithdrawalAmount()": FunctionFragment;
     "neighborRoots(uint256,uint32)": FunctionFragment;
     "nextIndex()": FunctionFragment;
     "nullifierHashes(bytes32)": FunctionFragment;
-    "permissions()": FunctionFragment;
-    "register((address,bytes))": FunctionFragment;
-    "registerAndTransact((address,bytes),(bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes))": FunctionFragment;
     "roots(uint256)": FunctionFragment;
     "setHandler(address)": FunctionFragment;
     "setVerifier(address)": FunctionFragment;
-    "transact((bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes))": FunctionFragment;
+    "token()": FunctionFragment;
     "unpackProof(uint256[8])": FunctionFragment;
+    "unwrapIntoNative(address,uint256)": FunctionFragment;
+    "unwrapIntoToken(address,uint256)": FunctionFragment;
     "updateEdge(uint256,bytes32,uint256)": FunctionFragment;
     "verifier()": FunctionFragment;
+    "withdraw(bytes,(bytes,bytes32,bytes32,address,address,uint256,uint256))": FunctionFragment;
+    "withdrawAndUnwrap(bytes,(bytes,bytes32,bytes32,address,address,uint256,uint256),address)": FunctionFragment;
+    "wrapAndDeposit(address,bytes32)": FunctionFragment;
+    "wrapNative()": FunctionFragment;
+    "wrapToken(address,uint256)": FunctionFragment;
     "zeros(uint256)": FunctionFragment;
   };
 
@@ -70,11 +75,6 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
     functionFragment: "FIELD_SIZE",
     values?: undefined
   ): string;
-  encodeFunctionData(
-    functionFragment: "MAX_EXT_AMOUNT",
-    values?: undefined
-  ): string;
-  encodeFunctionData(functionFragment: "MAX_FEE", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "ROOT_HISTORY_SIZE",
     values?: undefined
@@ -84,12 +84,8 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "calculatePublicAmount",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "configureLimits",
-    values: [BigNumberish, BigNumberish]
+    functionFragment: "commitments",
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "currentNeighborRootIndex",
@@ -99,6 +95,11 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
     functionFragment: "currentRootIndex",
     values?: undefined
   ): string;
+  encodeFunctionData(
+    functionFragment: "denomination",
+    values?: undefined
+  ): string;
+  encodeFunctionData(functionFragment: "deposit", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "edgeExistsForChain",
     values: [BigNumberish]
@@ -116,26 +117,33 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "getChainId",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getDenomination",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "getLastRoot",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getLatestNeighborEdges",
+    functionFragment: "getLatestNeighborRoots",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "getToken", values?: undefined): string;
+  encodeFunctionData(functionFragment: "handler", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "hasEdge",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "hashLeftRight",
-    values: [BytesLike, BytesLike]
+    values: [string, BytesLike, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "hasher", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "initialize",
-    values: [BigNumberish, BigNumberish]
-  ): string;
+  encodeFunctionData(functionFragment: "insert", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "isKnownNeighborRoot",
     values: [BigNumberish, BytesLike]
@@ -146,23 +154,15 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "isSpent", values: [BytesLike]): string;
   encodeFunctionData(
-    functionFragment: "isValidRoots",
+    functionFragment: "isSpentArray",
     values: [BytesLike[]]
   ): string;
   encodeFunctionData(
-    functionFragment: "lastBalance",
-    values?: undefined
+    functionFragment: "isValidRoots",
+    values: [BytesLike[]]
   ): string;
   encodeFunctionData(functionFragment: "levels", values?: undefined): string;
   encodeFunctionData(functionFragment: "maxEdges", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "maximumDepositAmount",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "minimalWithdrawalAmount",
-    values?: undefined
-  ): string;
   encodeFunctionData(
     functionFragment: "neighborRoots",
     values: [BigNumberish, BigNumberish]
@@ -172,60 +172,10 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
     functionFragment: "nullifierHashes",
     values: [BytesLike]
   ): string;
-  encodeFunctionData(
-    functionFragment: "permissions",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "register",
-    values: [{ owner: string; publicKey: BytesLike }]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "registerAndTransact",
-    values: [
-      { owner: string; publicKey: BytesLike },
-      {
-        proof: BytesLike;
-        roots: BytesLike;
-        inputNullifiers: BytesLike[];
-        outputCommitments: [BytesLike, BytesLike];
-        publicAmount: BigNumberish;
-        extDataHash: BytesLike;
-      },
-      {
-        recipient: string;
-        extAmount: BigNumberish;
-        relayer: string;
-        fee: BigNumberish;
-        encryptedOutput1: BytesLike;
-        encryptedOutput2: BytesLike;
-      }
-    ]
-  ): string;
   encodeFunctionData(functionFragment: "roots", values: [BigNumberish]): string;
   encodeFunctionData(functionFragment: "setHandler", values: [string]): string;
   encodeFunctionData(functionFragment: "setVerifier", values: [string]): string;
-  encodeFunctionData(
-    functionFragment: "transact",
-    values: [
-      {
-        proof: BytesLike;
-        roots: BytesLike;
-        inputNullifiers: BytesLike[];
-        outputCommitments: [BytesLike, BytesLike];
-        publicAmount: BigNumberish;
-        extDataHash: BytesLike;
-      },
-      {
-        recipient: string;
-        extAmount: BigNumberish;
-        relayer: string;
-        fee: BigNumberish;
-        encryptedOutput1: BytesLike;
-        encryptedOutput2: BytesLike;
-      }
-    ]
-  ): string;
+  encodeFunctionData(functionFragment: "token", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "unpackProof",
     values: [
@@ -242,29 +192,71 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
     ]
   ): string;
   encodeFunctionData(
+    functionFragment: "unwrapIntoNative",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "unwrapIntoToken",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "updateEdge",
     values: [BigNumberish, BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "verifier", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "withdraw",
+    values: [
+      BytesLike,
+      {
+        _roots: BytesLike;
+        _nullifierHash: BytesLike;
+        _refreshCommitment: BytesLike;
+        _recipient: string;
+        _relayer: string;
+        _fee: BigNumberish;
+        _refund: BigNumberish;
+      }
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "withdrawAndUnwrap",
+    values: [
+      BytesLike,
+      {
+        _roots: BytesLike;
+        _nullifierHash: BytesLike;
+        _refreshCommitment: BytesLike;
+        _recipient: string;
+        _relayer: string;
+        _fee: BigNumberish;
+        _refund: BigNumberish;
+      },
+      string
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "wrapAndDeposit",
+    values: [string, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "wrapNative",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "wrapToken",
+    values: [string, BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "zeros", values: [BigNumberish]): string;
 
   decodeFunctionResult(functionFragment: "FIELD_SIZE", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "MAX_EXT_AMOUNT",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "MAX_FEE", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "ROOT_HISTORY_SIZE",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "ZERO_VALUE", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "calculatePublicAmount",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "configureLimits",
+    functionFragment: "commitments",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -276,6 +268,11 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "denomination",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
+  decodeFunctionResult(
     functionFragment: "edgeExistsForChain",
     data: BytesLike
   ): Result;
@@ -285,21 +282,28 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
     functionFragment: "filledSubtrees",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getChainId", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getDenomination",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getLastRoot",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getLatestNeighborEdges",
+    functionFragment: "getLatestNeighborRoots",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getToken", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "handler", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "hasEdge", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "hashLeftRight",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "hasher", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "insert", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "isKnownNeighborRoot",
     data: BytesLike
@@ -310,23 +314,15 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "isSpent", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "isValidRoots",
+    functionFragment: "isSpentArray",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "lastBalance",
+    functionFragment: "isValidRoots",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "levels", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "maxEdges", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "maximumDepositAmount",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "minimalWithdrawalAmount",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "neighborRoots",
     data: BytesLike
@@ -336,44 +332,65 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
     functionFragment: "nullifierHashes",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "permissions",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "register", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "registerAndTransact",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "roots", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setHandler", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setVerifier",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "transact", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "token", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "unpackProof",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "unwrapIntoNative",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "unwrapIntoToken",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "updateEdge", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "verifier", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawAndUnwrap",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "wrapAndDeposit",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "wrapNative", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "wrapToken", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "zeros", data: BytesLike): Result;
 
   events: {
+    "Deposit(address,uint32,bytes32,uint256)": EventFragment;
     "EdgeAddition(uint256,uint256,bytes32)": EventFragment;
     "EdgeUpdate(uint256,uint256,bytes32)": EventFragment;
-    "NewCommitment(bytes32,uint256,bytes)": EventFragment;
-    "NewNullifier(bytes32)": EventFragment;
-    "PublicKey(address,bytes)": EventFragment;
+    "Insertion(bytes32,uint32,uint256)": EventFragment;
+    "Refresh(bytes32,bytes32,uint32)": EventFragment;
+    "Withdrawal(address,bytes32,address,uint256)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "Deposit"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "EdgeAddition"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "EdgeUpdate"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "NewCommitment"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "NewNullifier"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "PublicKey"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Insertion"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Refresh"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Withdrawal"): EventFragment;
 }
+
+export type DepositEvent = TypedEvent<
+  [string, number, string, BigNumber] & {
+    sender: string;
+    leafIndex: number;
+    commitment: string;
+    timestamp: BigNumber;
+  }
+>;
 
 export type EdgeAdditionEvent = TypedEvent<
   [BigNumber, BigNumber, string] & {
@@ -391,21 +408,32 @@ export type EdgeUpdateEvent = TypedEvent<
   }
 >;
 
-export type NewCommitmentEvent = TypedEvent<
-  [string, BigNumber, string] & {
+export type InsertionEvent = TypedEvent<
+  [string, number, BigNumber] & {
     commitment: string;
-    index: BigNumber;
-    encryptedOutput: string;
+    leafIndex: number;
+    timestamp: BigNumber;
   }
 >;
 
-export type NewNullifierEvent = TypedEvent<[string] & { nullifier: string }>;
-
-export type PublicKeyEvent = TypedEvent<
-  [string, string] & { owner: string; key: string }
+export type RefreshEvent = TypedEvent<
+  [string, string, number] & {
+    commitment: string;
+    nullifierHash: string;
+    insertedIndex: number;
+  }
 >;
 
-export class LinkableVAnchor extends BaseContract {
+export type WithdrawalEvent = TypedEvent<
+  [string, string, string, BigNumber] & {
+    to: string;
+    nullifierHash: string;
+    relayer: string;
+    fee: BigNumber;
+  }
+>;
+
+export class FixedDepositAnchor extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -446,30 +474,16 @@ export class LinkableVAnchor extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: LinkableVAnchorInterface;
+  interface: FixedDepositAnchorInterface;
 
   functions: {
     FIELD_SIZE(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    MAX_EXT_AMOUNT(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    MAX_FEE(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     ROOT_HISTORY_SIZE(overrides?: CallOverrides): Promise<[number]>;
 
     ZERO_VALUE(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    calculatePublicAmount(
-      _extAmount: BigNumberish,
-      _fee: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    configureLimits(
-      _minimalWithdrawalAmount: BigNumberish,
-      _maximumDepositAmount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<[boolean]>;
 
     currentNeighborRootIndex(
       arg0: BigNumberish,
@@ -477,6 +491,13 @@ export class LinkableVAnchor extends BaseContract {
     ): Promise<[number]>;
 
     currentRootIndex(overrides?: CallOverrides): Promise<[number]>;
+
+    denomination(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    deposit(
+      _commitment: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     edgeExistsForChain(
       arg0: BigNumberish,
@@ -504,25 +525,19 @@ export class LinkableVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
+    getChainId(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    getDenomination(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     getLastRoot(overrides?: CallOverrides): Promise<[string]>;
 
-    getLatestNeighborEdges(
+    getLatestNeighborRoots(
       overrides?: CallOverrides
-    ): Promise<
-      [
-        ([BigNumber, string, BigNumber] & {
-          chainID: BigNumber;
-          root: string;
-          latestLeafIndex: BigNumber;
-        })[]
-      ] & {
-        edges: ([BigNumber, string, BigNumber] & {
-          chainID: BigNumber;
-          root: string;
-          latestLeafIndex: BigNumber;
-        })[];
-      }
-    >;
+    ): Promise<[string[]] & { roots: string[] }>;
+
+    getToken(overrides?: CallOverrides): Promise<[string]>;
+
+    handler(overrides?: CallOverrides): Promise<[string]>;
 
     hasEdge(
       _chainID: BigNumberish,
@@ -530,6 +545,7 @@ export class LinkableVAnchor extends BaseContract {
     ): Promise<[boolean]>;
 
     hashLeftRight(
+      _hasher: string,
       _left: BytesLike,
       _right: BytesLike,
       overrides?: CallOverrides
@@ -537,10 +553,9 @@ export class LinkableVAnchor extends BaseContract {
 
     hasher(overrides?: CallOverrides): Promise<[string]>;
 
-    initialize(
-      _minimalWithdrawalAmount: BigNumberish,
-      _maximumDepositAmount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+    insert(
+      _commitment: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     isKnownNeighborRoot(
@@ -559,20 +574,19 @@ export class LinkableVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
+    isSpentArray(
+      _nullifierHashes: BytesLike[],
+      overrides?: CallOverrides
+    ): Promise<[boolean[]] & { spent: boolean[] }>;
+
     isValidRoots(
       roots: BytesLike[],
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    lastBalance(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     levels(overrides?: CallOverrides): Promise<[number]>;
 
     maxEdges(overrides?: CallOverrides): Promise<[number]>;
-
-    maximumDepositAmount(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    minimalWithdrawalAmount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     neighborRoots(
       arg0: BigNumberish,
@@ -587,46 +601,10 @@ export class LinkableVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    permissions(
-      overrides?: CallOverrides
-    ): Promise<
-      [string, string, string] & {
-        bridge: string;
-        admin: string;
-        handler: string;
-      }
-    >;
-
-    register(
-      _account: { owner: string; publicKey: BytesLike },
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    registerAndTransact(
-      _account: { owner: string; publicKey: BytesLike },
-      _proofArgs: {
-        proof: BytesLike;
-        roots: BytesLike;
-        inputNullifiers: BytesLike[];
-        outputCommitments: [BytesLike, BytesLike];
-        publicAmount: BigNumberish;
-        extDataHash: BytesLike;
-      },
-      _extData: {
-        recipient: string;
-        extAmount: BigNumberish;
-        relayer: string;
-        fee: BigNumberish;
-        encryptedOutput1: BytesLike;
-        encryptedOutput2: BytesLike;
-      },
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
     setHandler(
-      _handler: string,
+      newHandler: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -635,25 +613,7 @@ export class LinkableVAnchor extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    transact(
-      _args: {
-        proof: BytesLike;
-        roots: BytesLike;
-        inputNullifiers: BytesLike[];
-        outputCommitments: [BytesLike, BytesLike];
-        publicAmount: BigNumberish;
-        extDataHash: BytesLike;
-      },
-      _extData: {
-        recipient: string;
-        extAmount: BigNumberish;
-        relayer: string;
-        fee: BigNumberish;
-        encryptedOutput1: BytesLike;
-        encryptedOutput2: BytesLike;
-      },
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    token(overrides?: CallOverrides): Promise<[string]>;
 
     unpackProof(
       _proof: [
@@ -675,6 +635,18 @@ export class LinkableVAnchor extends BaseContract {
       ]
     >;
 
+    unwrapIntoNative(
+      tokenAddress: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    unwrapIntoToken(
+      tokenAddress: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     updateEdge(
       sourceChainID: BigNumberish,
       root: BytesLike,
@@ -684,30 +656,61 @@ export class LinkableVAnchor extends BaseContract {
 
     verifier(overrides?: CallOverrides): Promise<[string]>;
 
+    withdraw(
+      _proof: BytesLike,
+      _publicInputs: {
+        _roots: BytesLike;
+        _nullifierHash: BytesLike;
+        _refreshCommitment: BytesLike;
+        _recipient: string;
+        _relayer: string;
+        _fee: BigNumberish;
+        _refund: BigNumberish;
+      },
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    withdrawAndUnwrap(
+      _proof: BytesLike,
+      _publicInputs: {
+        _roots: BytesLike;
+        _nullifierHash: BytesLike;
+        _refreshCommitment: BytesLike;
+        _recipient: string;
+        _relayer: string;
+        _fee: BigNumberish;
+        _refund: BigNumberish;
+      },
+      tokenAddress: string,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    wrapAndDeposit(
+      tokenAddress: string,
+      _commitment: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    wrapNative(
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    wrapToken(
+      tokenAddress: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     zeros(i: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
   };
 
   FIELD_SIZE(overrides?: CallOverrides): Promise<BigNumber>;
 
-  MAX_EXT_AMOUNT(overrides?: CallOverrides): Promise<BigNumber>;
-
-  MAX_FEE(overrides?: CallOverrides): Promise<BigNumber>;
-
   ROOT_HISTORY_SIZE(overrides?: CallOverrides): Promise<number>;
 
   ZERO_VALUE(overrides?: CallOverrides): Promise<BigNumber>;
 
-  calculatePublicAmount(
-    _extAmount: BigNumberish,
-    _fee: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  configureLimits(
-    _minimalWithdrawalAmount: BigNumberish,
-    _maximumDepositAmount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
   currentNeighborRootIndex(
     arg0: BigNumberish,
@@ -715,6 +718,13 @@ export class LinkableVAnchor extends BaseContract {
   ): Promise<number>;
 
   currentRootIndex(overrides?: CallOverrides): Promise<number>;
+
+  denomination(overrides?: CallOverrides): Promise<BigNumber>;
+
+  deposit(
+    _commitment: BytesLike,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   edgeExistsForChain(
     arg0: BigNumberish,
@@ -739,21 +749,22 @@ export class LinkableVAnchor extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
+  getChainId(overrides?: CallOverrides): Promise<BigNumber>;
+
+  getDenomination(overrides?: CallOverrides): Promise<BigNumber>;
+
   getLastRoot(overrides?: CallOverrides): Promise<string>;
 
-  getLatestNeighborEdges(
-    overrides?: CallOverrides
-  ): Promise<
-    ([BigNumber, string, BigNumber] & {
-      chainID: BigNumber;
-      root: string;
-      latestLeafIndex: BigNumber;
-    })[]
-  >;
+  getLatestNeighborRoots(overrides?: CallOverrides): Promise<string[]>;
+
+  getToken(overrides?: CallOverrides): Promise<string>;
+
+  handler(overrides?: CallOverrides): Promise<string>;
 
   hasEdge(_chainID: BigNumberish, overrides?: CallOverrides): Promise<boolean>;
 
   hashLeftRight(
+    _hasher: string,
     _left: BytesLike,
     _right: BytesLike,
     overrides?: CallOverrides
@@ -761,10 +772,9 @@ export class LinkableVAnchor extends BaseContract {
 
   hasher(overrides?: CallOverrides): Promise<string>;
 
-  initialize(
-    _minimalWithdrawalAmount: BigNumberish,
-    _maximumDepositAmount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
+  insert(
+    _commitment: BytesLike,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   isKnownNeighborRoot(
@@ -780,17 +790,16 @@ export class LinkableVAnchor extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  isValidRoots(roots: BytesLike[], overrides?: CallOverrides): Promise<boolean>;
+  isSpentArray(
+    _nullifierHashes: BytesLike[],
+    overrides?: CallOverrides
+  ): Promise<boolean[]>;
 
-  lastBalance(overrides?: CallOverrides): Promise<BigNumber>;
+  isValidRoots(roots: BytesLike[], overrides?: CallOverrides): Promise<boolean>;
 
   levels(overrides?: CallOverrides): Promise<number>;
 
   maxEdges(overrides?: CallOverrides): Promise<number>;
-
-  maximumDepositAmount(overrides?: CallOverrides): Promise<BigNumber>;
-
-  minimalWithdrawalAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
   neighborRoots(
     arg0: BigNumberish,
@@ -802,46 +811,10 @@ export class LinkableVAnchor extends BaseContract {
 
   nullifierHashes(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
-  permissions(
-    overrides?: CallOverrides
-  ): Promise<
-    [string, string, string] & {
-      bridge: string;
-      admin: string;
-      handler: string;
-    }
-  >;
-
-  register(
-    _account: { owner: string; publicKey: BytesLike },
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  registerAndTransact(
-    _account: { owner: string; publicKey: BytesLike },
-    _proofArgs: {
-      proof: BytesLike;
-      roots: BytesLike;
-      inputNullifiers: BytesLike[];
-      outputCommitments: [BytesLike, BytesLike];
-      publicAmount: BigNumberish;
-      extDataHash: BytesLike;
-    },
-    _extData: {
-      recipient: string;
-      extAmount: BigNumberish;
-      relayer: string;
-      fee: BigNumberish;
-      encryptedOutput1: BytesLike;
-      encryptedOutput2: BytesLike;
-    },
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   setHandler(
-    _handler: string,
+    newHandler: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -850,25 +823,7 @@ export class LinkableVAnchor extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  transact(
-    _args: {
-      proof: BytesLike;
-      roots: BytesLike;
-      inputNullifiers: BytesLike[];
-      outputCommitments: [BytesLike, BytesLike];
-      publicAmount: BigNumberish;
-      extDataHash: BytesLike;
-    },
-    _extData: {
-      recipient: string;
-      extAmount: BigNumberish;
-      relayer: string;
-      fee: BigNumberish;
-      encryptedOutput1: BytesLike;
-      encryptedOutput2: BytesLike;
-    },
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  token(overrides?: CallOverrides): Promise<string>;
 
   unpackProof(
     _proof: [
@@ -890,6 +845,18 @@ export class LinkableVAnchor extends BaseContract {
     ]
   >;
 
+  unwrapIntoNative(
+    tokenAddress: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  unwrapIntoToken(
+    tokenAddress: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   updateEdge(
     sourceChainID: BigNumberish,
     root: BytesLike,
@@ -899,30 +866,61 @@ export class LinkableVAnchor extends BaseContract {
 
   verifier(overrides?: CallOverrides): Promise<string>;
 
+  withdraw(
+    _proof: BytesLike,
+    _publicInputs: {
+      _roots: BytesLike;
+      _nullifierHash: BytesLike;
+      _refreshCommitment: BytesLike;
+      _recipient: string;
+      _relayer: string;
+      _fee: BigNumberish;
+      _refund: BigNumberish;
+    },
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  withdrawAndUnwrap(
+    _proof: BytesLike,
+    _publicInputs: {
+      _roots: BytesLike;
+      _nullifierHash: BytesLike;
+      _refreshCommitment: BytesLike;
+      _recipient: string;
+      _relayer: string;
+      _fee: BigNumberish;
+      _refund: BigNumberish;
+    },
+    tokenAddress: string,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  wrapAndDeposit(
+    tokenAddress: string,
+    _commitment: BytesLike,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  wrapNative(
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  wrapToken(
+    tokenAddress: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   zeros(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     FIELD_SIZE(overrides?: CallOverrides): Promise<BigNumber>;
 
-    MAX_EXT_AMOUNT(overrides?: CallOverrides): Promise<BigNumber>;
-
-    MAX_FEE(overrides?: CallOverrides): Promise<BigNumber>;
-
     ROOT_HISTORY_SIZE(overrides?: CallOverrides): Promise<number>;
 
     ZERO_VALUE(overrides?: CallOverrides): Promise<BigNumber>;
 
-    calculatePublicAmount(
-      _extAmount: BigNumberish,
-      _fee: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    configureLimits(
-      _minimalWithdrawalAmount: BigNumberish,
-      _maximumDepositAmount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
     currentNeighborRootIndex(
       arg0: BigNumberish,
@@ -930,6 +928,10 @@ export class LinkableVAnchor extends BaseContract {
     ): Promise<number>;
 
     currentRootIndex(overrides?: CallOverrides): Promise<number>;
+
+    denomination(overrides?: CallOverrides): Promise<BigNumber>;
+
+    deposit(_commitment: BytesLike, overrides?: CallOverrides): Promise<void>;
 
     edgeExistsForChain(
       arg0: BigNumberish,
@@ -957,17 +959,17 @@ export class LinkableVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
+    getChainId(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getDenomination(overrides?: CallOverrides): Promise<BigNumber>;
+
     getLastRoot(overrides?: CallOverrides): Promise<string>;
 
-    getLatestNeighborEdges(
-      overrides?: CallOverrides
-    ): Promise<
-      ([BigNumber, string, BigNumber] & {
-        chainID: BigNumber;
-        root: string;
-        latestLeafIndex: BigNumber;
-      })[]
-    >;
+    getLatestNeighborRoots(overrides?: CallOverrides): Promise<string[]>;
+
+    getToken(overrides?: CallOverrides): Promise<string>;
+
+    handler(overrides?: CallOverrides): Promise<string>;
 
     hasEdge(
       _chainID: BigNumberish,
@@ -975,6 +977,7 @@ export class LinkableVAnchor extends BaseContract {
     ): Promise<boolean>;
 
     hashLeftRight(
+      _hasher: string,
       _left: BytesLike,
       _right: BytesLike,
       overrides?: CallOverrides
@@ -982,11 +985,7 @@ export class LinkableVAnchor extends BaseContract {
 
     hasher(overrides?: CallOverrides): Promise<string>;
 
-    initialize(
-      _minimalWithdrawalAmount: BigNumberish,
-      _maximumDepositAmount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    insert(_commitment: BytesLike, overrides?: CallOverrides): Promise<number>;
 
     isKnownNeighborRoot(
       neighborChainID: BigNumberish,
@@ -1001,20 +1000,19 @@ export class LinkableVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    isSpentArray(
+      _nullifierHashes: BytesLike[],
+      overrides?: CallOverrides
+    ): Promise<boolean[]>;
+
     isValidRoots(
       roots: BytesLike[],
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    lastBalance(overrides?: CallOverrides): Promise<BigNumber>;
-
     levels(overrides?: CallOverrides): Promise<number>;
 
     maxEdges(overrides?: CallOverrides): Promise<number>;
-
-    maximumDepositAmount(overrides?: CallOverrides): Promise<BigNumber>;
-
-    minimalWithdrawalAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
     neighborRoots(
       arg0: BigNumberish,
@@ -1029,67 +1027,13 @@ export class LinkableVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    permissions(
-      overrides?: CallOverrides
-    ): Promise<
-      [string, string, string] & {
-        bridge: string;
-        admin: string;
-        handler: string;
-      }
-    >;
-
-    register(
-      _account: { owner: string; publicKey: BytesLike },
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    registerAndTransact(
-      _account: { owner: string; publicKey: BytesLike },
-      _proofArgs: {
-        proof: BytesLike;
-        roots: BytesLike;
-        inputNullifiers: BytesLike[];
-        outputCommitments: [BytesLike, BytesLike];
-        publicAmount: BigNumberish;
-        extDataHash: BytesLike;
-      },
-      _extData: {
-        recipient: string;
-        extAmount: BigNumberish;
-        relayer: string;
-        fee: BigNumberish;
-        encryptedOutput1: BytesLike;
-        encryptedOutput2: BytesLike;
-      },
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
-    setHandler(_handler: string, overrides?: CallOverrides): Promise<void>;
+    setHandler(newHandler: string, overrides?: CallOverrides): Promise<void>;
 
     setVerifier(newVerifier: string, overrides?: CallOverrides): Promise<void>;
 
-    transact(
-      _args: {
-        proof: BytesLike;
-        roots: BytesLike;
-        inputNullifiers: BytesLike[];
-        outputCommitments: [BytesLike, BytesLike];
-        publicAmount: BigNumberish;
-        extDataHash: BytesLike;
-      },
-      _extData: {
-        recipient: string;
-        extAmount: BigNumberish;
-        relayer: string;
-        fee: BigNumberish;
-        encryptedOutput1: BytesLike;
-        encryptedOutput2: BytesLike;
-      },
-      overrides?: CallOverrides
-    ): Promise<void>;
+    token(overrides?: CallOverrides): Promise<string>;
 
     unpackProof(
       _proof: [
@@ -1111,6 +1055,18 @@ export class LinkableVAnchor extends BaseContract {
       ]
     >;
 
+    unwrapIntoNative(
+      tokenAddress: string,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    unwrapIntoToken(
+      tokenAddress: string,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     updateEdge(
       sourceChainID: BigNumberish,
       root: BytesLike,
@@ -1120,10 +1076,83 @@ export class LinkableVAnchor extends BaseContract {
 
     verifier(overrides?: CallOverrides): Promise<string>;
 
+    withdraw(
+      _proof: BytesLike,
+      _publicInputs: {
+        _roots: BytesLike;
+        _nullifierHash: BytesLike;
+        _refreshCommitment: BytesLike;
+        _recipient: string;
+        _relayer: string;
+        _fee: BigNumberish;
+        _refund: BigNumberish;
+      },
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    withdrawAndUnwrap(
+      _proof: BytesLike,
+      _publicInputs: {
+        _roots: BytesLike;
+        _nullifierHash: BytesLike;
+        _refreshCommitment: BytesLike;
+        _recipient: string;
+        _relayer: string;
+        _fee: BigNumberish;
+        _refund: BigNumberish;
+      },
+      tokenAddress: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    wrapAndDeposit(
+      tokenAddress: string,
+      _commitment: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    wrapNative(overrides?: CallOverrides): Promise<void>;
+
+    wrapToken(
+      tokenAddress: string,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     zeros(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
+    "Deposit(address,uint32,bytes32,uint256)"(
+      sender?: null,
+      leafIndex?: BigNumberish | null,
+      commitment?: BytesLike | null,
+      timestamp?: null
+    ): TypedEventFilter<
+      [string, number, string, BigNumber],
+      {
+        sender: string;
+        leafIndex: number;
+        commitment: string;
+        timestamp: BigNumber;
+      }
+    >;
+
+    Deposit(
+      sender?: null,
+      leafIndex?: BigNumberish | null,
+      commitment?: BytesLike | null,
+      timestamp?: null
+    ): TypedEventFilter<
+      [string, number, string, BigNumber],
+      {
+        sender: string;
+        leafIndex: number;
+        commitment: string;
+        timestamp: BigNumber;
+      }
+    >;
+
     "EdgeAddition(uint256,uint256,bytes32)"(
       chainID?: null,
       latestLeafIndex?: null,
@@ -1160,65 +1189,71 @@ export class LinkableVAnchor extends BaseContract {
       { chainID: BigNumber; latestLeafIndex: BigNumber; merkleRoot: string }
     >;
 
-    "NewCommitment(bytes32,uint256,bytes)"(
-      commitment?: null,
-      index?: null,
-      encryptedOutput?: null
+    "Insertion(bytes32,uint32,uint256)"(
+      commitment?: BytesLike | null,
+      leafIndex?: null,
+      timestamp?: null
     ): TypedEventFilter<
-      [string, BigNumber, string],
-      { commitment: string; index: BigNumber; encryptedOutput: string }
+      [string, number, BigNumber],
+      { commitment: string; leafIndex: number; timestamp: BigNumber }
     >;
 
-    NewCommitment(
-      commitment?: null,
-      index?: null,
-      encryptedOutput?: null
+    Insertion(
+      commitment?: BytesLike | null,
+      leafIndex?: null,
+      timestamp?: null
     ): TypedEventFilter<
-      [string, BigNumber, string],
-      { commitment: string; index: BigNumber; encryptedOutput: string }
+      [string, number, BigNumber],
+      { commitment: string; leafIndex: number; timestamp: BigNumber }
     >;
 
-    "NewNullifier(bytes32)"(
-      nullifier?: null
-    ): TypedEventFilter<[string], { nullifier: string }>;
+    "Refresh(bytes32,bytes32,uint32)"(
+      commitment?: BytesLike | null,
+      nullifierHash?: null,
+      insertedIndex?: null
+    ): TypedEventFilter<
+      [string, string, number],
+      { commitment: string; nullifierHash: string; insertedIndex: number }
+    >;
 
-    NewNullifier(
-      nullifier?: null
-    ): TypedEventFilter<[string], { nullifier: string }>;
+    Refresh(
+      commitment?: BytesLike | null,
+      nullifierHash?: null,
+      insertedIndex?: null
+    ): TypedEventFilter<
+      [string, string, number],
+      { commitment: string; nullifierHash: string; insertedIndex: number }
+    >;
 
-    "PublicKey(address,bytes)"(
-      owner?: string | null,
-      key?: null
-    ): TypedEventFilter<[string, string], { owner: string; key: string }>;
+    "Withdrawal(address,bytes32,address,uint256)"(
+      to?: null,
+      nullifierHash?: null,
+      relayer?: string | null,
+      fee?: null
+    ): TypedEventFilter<
+      [string, string, string, BigNumber],
+      { to: string; nullifierHash: string; relayer: string; fee: BigNumber }
+    >;
 
-    PublicKey(
-      owner?: string | null,
-      key?: null
-    ): TypedEventFilter<[string, string], { owner: string; key: string }>;
+    Withdrawal(
+      to?: null,
+      nullifierHash?: null,
+      relayer?: string | null,
+      fee?: null
+    ): TypedEventFilter<
+      [string, string, string, BigNumber],
+      { to: string; nullifierHash: string; relayer: string; fee: BigNumber }
+    >;
   };
 
   estimateGas: {
     FIELD_SIZE(overrides?: CallOverrides): Promise<BigNumber>;
 
-    MAX_EXT_AMOUNT(overrides?: CallOverrides): Promise<BigNumber>;
-
-    MAX_FEE(overrides?: CallOverrides): Promise<BigNumber>;
-
     ROOT_HISTORY_SIZE(overrides?: CallOverrides): Promise<BigNumber>;
 
     ZERO_VALUE(overrides?: CallOverrides): Promise<BigNumber>;
 
-    calculatePublicAmount(
-      _extAmount: BigNumberish,
-      _fee: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    configureLimits(
-      _minimalWithdrawalAmount: BigNumberish,
-      _maximumDepositAmount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
     currentNeighborRootIndex(
       arg0: BigNumberish,
@@ -1226,6 +1261,13 @@ export class LinkableVAnchor extends BaseContract {
     ): Promise<BigNumber>;
 
     currentRootIndex(overrides?: CallOverrides): Promise<BigNumber>;
+
+    denomination(overrides?: CallOverrides): Promise<BigNumber>;
+
+    deposit(
+      _commitment: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     edgeExistsForChain(
       arg0: BigNumberish,
@@ -1244,9 +1286,17 @@ export class LinkableVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getChainId(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getDenomination(overrides?: CallOverrides): Promise<BigNumber>;
+
     getLastRoot(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getLatestNeighborEdges(overrides?: CallOverrides): Promise<BigNumber>;
+    getLatestNeighborRoots(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getToken(overrides?: CallOverrides): Promise<BigNumber>;
+
+    handler(overrides?: CallOverrides): Promise<BigNumber>;
 
     hasEdge(
       _chainID: BigNumberish,
@@ -1254,6 +1304,7 @@ export class LinkableVAnchor extends BaseContract {
     ): Promise<BigNumber>;
 
     hashLeftRight(
+      _hasher: string,
       _left: BytesLike,
       _right: BytesLike,
       overrides?: CallOverrides
@@ -1261,10 +1312,9 @@ export class LinkableVAnchor extends BaseContract {
 
     hasher(overrides?: CallOverrides): Promise<BigNumber>;
 
-    initialize(
-      _minimalWithdrawalAmount: BigNumberish,
-      _maximumDepositAmount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+    insert(
+      _commitment: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     isKnownNeighborRoot(
@@ -1283,20 +1333,19 @@ export class LinkableVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    isSpentArray(
+      _nullifierHashes: BytesLike[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     isValidRoots(
       roots: BytesLike[],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    lastBalance(overrides?: CallOverrides): Promise<BigNumber>;
-
     levels(overrides?: CallOverrides): Promise<BigNumber>;
 
     maxEdges(overrides?: CallOverrides): Promise<BigNumber>;
-
-    maximumDepositAmount(overrides?: CallOverrides): Promise<BigNumber>;
-
-    minimalWithdrawalAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
     neighborRoots(
       arg0: BigNumberish,
@@ -1311,38 +1360,10 @@ export class LinkableVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    permissions(overrides?: CallOverrides): Promise<BigNumber>;
-
-    register(
-      _account: { owner: string; publicKey: BytesLike },
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    registerAndTransact(
-      _account: { owner: string; publicKey: BytesLike },
-      _proofArgs: {
-        proof: BytesLike;
-        roots: BytesLike;
-        inputNullifiers: BytesLike[];
-        outputCommitments: [BytesLike, BytesLike];
-        publicAmount: BigNumberish;
-        extDataHash: BytesLike;
-      },
-      _extData: {
-        recipient: string;
-        extAmount: BigNumberish;
-        relayer: string;
-        fee: BigNumberish;
-        encryptedOutput1: BytesLike;
-        encryptedOutput2: BytesLike;
-      },
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     setHandler(
-      _handler: string,
+      newHandler: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1351,25 +1372,7 @@ export class LinkableVAnchor extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    transact(
-      _args: {
-        proof: BytesLike;
-        roots: BytesLike;
-        inputNullifiers: BytesLike[];
-        outputCommitments: [BytesLike, BytesLike];
-        publicAmount: BigNumberish;
-        extDataHash: BytesLike;
-      },
-      _extData: {
-        recipient: string;
-        extAmount: BigNumberish;
-        relayer: string;
-        fee: BigNumberish;
-        encryptedOutput1: BytesLike;
-        encryptedOutput2: BytesLike;
-      },
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    token(overrides?: CallOverrides): Promise<BigNumber>;
 
     unpackProof(
       _proof: [
@@ -1385,6 +1388,18 @@ export class LinkableVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    unwrapIntoNative(
+      tokenAddress: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    unwrapIntoToken(
+      tokenAddress: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     updateEdge(
       sourceChainID: BigNumberish,
       root: BytesLike,
@@ -1394,30 +1409,64 @@ export class LinkableVAnchor extends BaseContract {
 
     verifier(overrides?: CallOverrides): Promise<BigNumber>;
 
+    withdraw(
+      _proof: BytesLike,
+      _publicInputs: {
+        _roots: BytesLike;
+        _nullifierHash: BytesLike;
+        _refreshCommitment: BytesLike;
+        _recipient: string;
+        _relayer: string;
+        _fee: BigNumberish;
+        _refund: BigNumberish;
+      },
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    withdrawAndUnwrap(
+      _proof: BytesLike,
+      _publicInputs: {
+        _roots: BytesLike;
+        _nullifierHash: BytesLike;
+        _refreshCommitment: BytesLike;
+        _recipient: string;
+        _relayer: string;
+        _fee: BigNumberish;
+        _refund: BigNumberish;
+      },
+      tokenAddress: string,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    wrapAndDeposit(
+      tokenAddress: string,
+      _commitment: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    wrapNative(
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    wrapToken(
+      tokenAddress: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     zeros(i: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
     FIELD_SIZE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    MAX_EXT_AMOUNT(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    MAX_FEE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     ROOT_HISTORY_SIZE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     ZERO_VALUE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    calculatePublicAmount(
-      _extAmount: BigNumberish,
-      _fee: BigNumberish,
+    commitments(
+      arg0: BytesLike,
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    configureLimits(
-      _minimalWithdrawalAmount: BigNumberish,
-      _maximumDepositAmount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     currentNeighborRootIndex(
@@ -1426,6 +1475,13 @@ export class LinkableVAnchor extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     currentRootIndex(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    denomination(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    deposit(
+      _commitment: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     edgeExistsForChain(
       arg0: BigNumberish,
@@ -1447,11 +1503,19 @@ export class LinkableVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    getChainId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getDenomination(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     getLastRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    getLatestNeighborEdges(
+    getLatestNeighborRoots(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    getToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    handler(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     hasEdge(
       _chainID: BigNumberish,
@@ -1459,6 +1523,7 @@ export class LinkableVAnchor extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     hashLeftRight(
+      _hasher: string,
       _left: BytesLike,
       _right: BytesLike,
       overrides?: CallOverrides
@@ -1466,10 +1531,9 @@ export class LinkableVAnchor extends BaseContract {
 
     hasher(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    initialize(
-      _minimalWithdrawalAmount: BigNumberish,
-      _maximumDepositAmount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+    insert(
+      _commitment: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     isKnownNeighborRoot(
@@ -1488,24 +1552,19 @@ export class LinkableVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    isSpentArray(
+      _nullifierHashes: BytesLike[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     isValidRoots(
       roots: BytesLike[],
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    lastBalance(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     levels(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     maxEdges(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    maximumDepositAmount(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    minimalWithdrawalAmount(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     neighborRoots(
       arg0: BigNumberish,
@@ -1520,41 +1579,13 @@ export class LinkableVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    permissions(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    register(
-      _account: { owner: string; publicKey: BytesLike },
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    registerAndTransact(
-      _account: { owner: string; publicKey: BytesLike },
-      _proofArgs: {
-        proof: BytesLike;
-        roots: BytesLike;
-        inputNullifiers: BytesLike[];
-        outputCommitments: [BytesLike, BytesLike];
-        publicAmount: BigNumberish;
-        extDataHash: BytesLike;
-      },
-      _extData: {
-        recipient: string;
-        extAmount: BigNumberish;
-        relayer: string;
-        fee: BigNumberish;
-        encryptedOutput1: BytesLike;
-        encryptedOutput2: BytesLike;
-      },
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     roots(
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     setHandler(
-      _handler: string,
+      newHandler: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1563,25 +1594,7 @@ export class LinkableVAnchor extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    transact(
-      _args: {
-        proof: BytesLike;
-        roots: BytesLike;
-        inputNullifiers: BytesLike[];
-        outputCommitments: [BytesLike, BytesLike];
-        publicAmount: BigNumberish;
-        extDataHash: BytesLike;
-      },
-      _extData: {
-        recipient: string;
-        extAmount: BigNumberish;
-        relayer: string;
-        fee: BigNumberish;
-        encryptedOutput1: BytesLike;
-        encryptedOutput2: BytesLike;
-      },
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+    token(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     unpackProof(
       _proof: [
@@ -1597,6 +1610,18 @@ export class LinkableVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    unwrapIntoNative(
+      tokenAddress: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    unwrapIntoToken(
+      tokenAddress: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     updateEdge(
       sourceChainID: BigNumberish,
       root: BytesLike,
@@ -1605,6 +1630,51 @@ export class LinkableVAnchor extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     verifier(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    withdraw(
+      _proof: BytesLike,
+      _publicInputs: {
+        _roots: BytesLike;
+        _nullifierHash: BytesLike;
+        _refreshCommitment: BytesLike;
+        _recipient: string;
+        _relayer: string;
+        _fee: BigNumberish;
+        _refund: BigNumberish;
+      },
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdrawAndUnwrap(
+      _proof: BytesLike,
+      _publicInputs: {
+        _roots: BytesLike;
+        _nullifierHash: BytesLike;
+        _refreshCommitment: BytesLike;
+        _recipient: string;
+        _relayer: string;
+        _fee: BigNumberish;
+        _refund: BigNumberish;
+      },
+      tokenAddress: string,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    wrapAndDeposit(
+      tokenAddress: string,
+      _commitment: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    wrapNative(
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    wrapToken(
+      tokenAddress: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     zeros(
       i: BigNumberish,

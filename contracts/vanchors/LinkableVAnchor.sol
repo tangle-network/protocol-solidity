@@ -25,15 +25,16 @@ abstract contract LinkableVAnchor is VAnchorBase, ILinkableAnchor {
     permissions = _permissions;
   }
 
-  function setHandler(address _handler) onlyBridge override external {
+  function setVerifier(address newVerifier) onlyHandler override external {
+    require(newVerifier != address(0), "Handler cannot be 0");
+    verifier = IVAnchorVerifier(newVerifier);
+  }
+
+  function setHandler(address _handler) onlyHandler override external {
     permissions.handler = _handler;
   }
 
-  function setBridge(address _bridge) onlyAdmin override external {
-    permissions.bridge = _bridge;
-  }
-
-  function hasEdge(uint256 _chainID) override external view returns (bool) {
+  function hasEdge(uint256 _chainID) external view returns (bool) {
     return edgeExistsForChain[_chainID];
   }
 

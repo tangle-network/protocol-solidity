@@ -4,7 +4,7 @@
 # cp -a ./typechain/. packages/contracts/src/
 mkdir -p packages/contracts/src/factories
 
-cp ./typechain/Anchor.d.ts ./packages/contracts/src/Anchor.d.ts
+cp ./typechain/FixedDepositAnchor.d.ts ./packages/contracts/src/FixedDepositAnchor.d.ts
 cp ./typechain/AnchorBase.d.ts ./packages/contracts/src/AnchorBase.d.ts
 cp ./typechain/AnchorHandler.d.ts ./packages/contracts/src/AnchorHandler.d.ts
 cp ./typechain/AnchorProxy.d.ts ./packages/contracts/src/AnchorProxy.d.ts
@@ -17,7 +17,6 @@ cp ./typechain/GovernedTokenWrapper.d.ts ./packages/contracts/src/GovernedTokenW
 cp ./typechain/HandlerHelpers.d.ts ./packages/contracts/src/HandlerHelpers.d.ts
 cp ./typechain/Hasher.d.ts ./packages/contracts/src/Hasher.d.ts
 cp ./typechain/LinkableAnchor.d.ts ./packages/contracts/src/LinkableAnchor.d.ts
-cp ./typechain/LinkableTreeHandler.d.ts ./packages/contracts/src/LinkableTreeHandler.d.ts
 cp ./typechain/LinkableVAnchor.d.ts ./packages/contracts/src/LinkableVAnchor.d.ts
 cp ./typechain/PoseidonT3.d.ts ./packages/contracts/src/PoseidonT3.d.ts
 cp ./typechain/TokenWrapper.d.ts ./packages/contracts/src/TokenWrapper.d.ts
@@ -37,7 +36,7 @@ cp ./typechain/Verifier82.d.ts ./packages/contracts/src/Verifier82.d.ts
 cp ./typechain/Verifier216.d.ts ./packages/contracts/src/Verifier216.d.ts
 cp ./typechain/Verifier816.d.ts ./packages/contracts/src/Verifier816.d.ts
 
-cp ./typechain/factories/Anchor__factory.ts ./packages/contracts/src/factories/Anchor__factory.ts
+cp ./typechain/factories/FixedDepositAnchor__factory.ts ./packages/contracts/src/factories/FixedDepositAnchor__factory.ts
 cp ./typechain/factories/AnchorBase__factory.ts ./packages/contracts/src/factories/AnchorBase__factory.ts
 cp ./typechain/factories/AnchorHandler__factory.ts ./packages/contracts/src/factories/AnchorHandler__factory.ts
 cp ./typechain/factories/AnchorProxy__factory.ts ./packages/contracts/src/factories/AnchorProxy__factory.ts
@@ -49,7 +48,6 @@ cp ./typechain/factories/GovernedTokenWrapper__factory.ts ./packages/contracts/s
 cp ./typechain/factories/HandlerHelpers__factory.ts ./packages/contracts/src/factories/HandlerHelpers__factory.ts
 cp ./typechain/factories/Hasher__factory.ts ./packages/contracts/src/factories/Hasher__factory.ts
 cp ./typechain/factories/LinkableAnchor__factory.ts ./packages/contracts/src/factories/LinkableAnchor__factory.ts
-cp ./typechain/factories/LinkableTreeHandler__factory.ts ./packages/contracts/src/factories/LinkableTreeHandler__factory.ts
 cp ./typechain/factories/LinkableVAnchor__factory.ts ./packages/contracts/src/factories/LinkableVAnchor__factory.ts
 cp ./typechain/factories/PoseidonT3__factory.ts ./packages/contracts/src/factories/PoseidonT3__factory.ts
 cp ./typechain/factories/TokenWrapper__factory.ts ./packages/contracts/src/factories/TokenWrapper__factory.ts

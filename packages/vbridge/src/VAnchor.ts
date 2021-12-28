@@ -293,13 +293,13 @@ export class VAnchor {
     return toHex(this.contract.address + toHex((await this.signer.getChainId()), 4).substr(2), 32);
   }
 
-  public async setHandler(handlerAddress: string) {
-    const tx = await this.contract.setHandler(handlerAddress);
+  public async setVerifier(verifierAddress: string) {
+    const tx = await this.contract.setVerifier(verifierAddress);
     await tx.wait();
   }
 
-  public async setBridge(bridgeAddress: string) {
-    const tx = await this.contract.setBridge(bridgeAddress);
+  public async setHandler(handlerAddress: string) {
+    const tx = await this.contract.setHandler(handlerAddress);
     await tx.wait();
   }
 

@@ -57,8 +57,8 @@ interface VAnchorInterface extends ethers.utils.Interface {
     "register((address,bytes))": FunctionFragment;
     "registerAndTransact((address,bytes),(bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes))": FunctionFragment;
     "roots(uint256)": FunctionFragment;
-    "setBridge(address)": FunctionFragment;
     "setHandler(address)": FunctionFragment;
+    "setVerifier(address)": FunctionFragment;
     "token()": FunctionFragment;
     "transact((bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes))": FunctionFragment;
     "transactWrap((bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes),address)": FunctionFragment;
@@ -211,8 +211,8 @@ interface VAnchorInterface extends ethers.utils.Interface {
     ]
   ): string;
   encodeFunctionData(functionFragment: "roots", values: [BigNumberish]): string;
-  encodeFunctionData(functionFragment: "setBridge", values: [string]): string;
   encodeFunctionData(functionFragment: "setHandler", values: [string]): string;
+  encodeFunctionData(functionFragment: "setVerifier", values: [string]): string;
   encodeFunctionData(functionFragment: "token", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "transact",
@@ -401,8 +401,11 @@ interface VAnchorInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "roots", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "setBridge", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setHandler", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "setVerifier",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "token", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "transact", data: BytesLike): Result;
   decodeFunctionResult(
@@ -700,13 +703,13 @@ export class VAnchor extends BaseContract {
 
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
-    setBridge(
-      _bridge: string,
+    setHandler(
+      _handler: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setHandler(
-      _handler: string,
+    setVerifier(
+      newVerifier: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -973,13 +976,13 @@ export class VAnchor extends BaseContract {
 
   roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
-  setBridge(
-    _bridge: string,
+  setHandler(
+    _handler: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setHandler(
-    _handler: string,
+  setVerifier(
+    newVerifier: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1258,9 +1261,9 @@ export class VAnchor extends BaseContract {
 
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
-    setBridge(_bridge: string, overrides?: CallOverrides): Promise<void>;
-
     setHandler(_handler: string, overrides?: CallOverrides): Promise<void>;
+
+    setVerifier(newVerifier: string, overrides?: CallOverrides): Promise<void>;
 
     token(overrides?: CallOverrides): Promise<string>;
 
@@ -1588,13 +1591,13 @@ export class VAnchor extends BaseContract {
 
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
-    setBridge(
-      _bridge: string,
+    setHandler(
+      _handler: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setHandler(
-      _handler: string,
+    setVerifier(
+      newVerifier: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1858,13 +1861,13 @@ export class VAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    setBridge(
-      _bridge: string,
+    setHandler(
+      _handler: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    setHandler(
-      _handler: string,
+    setVerifier(
+      newVerifier: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

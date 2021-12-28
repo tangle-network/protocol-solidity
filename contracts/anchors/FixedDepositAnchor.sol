@@ -5,23 +5,23 @@
 
 pragma solidity ^0.8.0;
 
-import "../../interfaces/ITokenWrapper.sol";
-import "../../interfaces/IMintableERC20.sol";
-import "../../interfaces/IVerifier.sol";
-import "../../interfaces/IFixedDepositAnchor.sol";
+import "../interfaces/ITokenWrapper.sol";
+import "../interfaces/IMintableERC20.sol";
+import "../interfaces/IVerifier.sol";
+import "../interfaces/IFixedDepositAnchor.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "./AnchorBaseV2.sol";
+import "./AnchorBase.sol";
 
-contract FixedDepositAnchorV2 is AnchorBaseV2, IFixedDepositAnchor {
+contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
   using SafeERC20 for IERC20;
   using SafeMath for uint256;
 
   address public immutable token;
   uint256 public immutable denomination;
   // currency events
-  event Deposit(address sender, bytes32 indexed commitment, uint256 timestamp);
+  event Deposit(address sender, uint32 indexed leafIndex, bytes32 indexed commitment, uint256 timestamp);
   event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uint256 fee);
   event Refresh(bytes32 indexed commitment, bytes32 nullifierHash, uint32 insertedIndex);
 
@@ -41,21 +41,22 @@ contract FixedDepositAnchorV2 is AnchorBaseV2, IFixedDepositAnchor {
     @param _merkleTreeHeight the height of deposits' Merkle Tree
   */
   constructor(
+    address _handler,
     ITokenWrapper _token,
     IVerifier _verifier,
     IPoseidonT3 _hasher,
     uint256 _denomination,
     uint32 _merkleTreeHeight,
     uint8 _maxEdges
-  ) AnchorBaseV2(_verifier, _hasher, _merkleTreeHeight, _maxEdges) {
+  ) AnchorBase(_handler, _verifier, _hasher, _merkleTreeHeight, _maxEdges) {
     require(_denomination > 0, "denomination should be greater than 0");
     denomination = _denomination;
     token = address(_token);
   }
 
   function deposit(bytes32 _commitment) override public payable {
-    insert(_commitment);
-    emit Deposit(msg.sender, _commitment, block.timestamp);
+    uint32 insertedIndex = insert(_commitment);
+    emit Deposit(msg.sender, insertedIndex, _commitment, block.timestamp);
   }
 
 
@@ -196,7 +197,7 @@ contract FixedDepositAnchorV2 is AnchorBaseV2, IFixedDepositAnchor {
     uint32 insertedIndex = _insert(_commitment);
     commitments[_commitment] = true;
     // emit the deposit event
-    emit Deposit(msg.sender, _commitment, block.timestamp);
+    emit Deposit(msg.sender, insertedIndex, _commitment, block.timestamp);
   }
 
   function withdrawAndUnwrap(
@@ -243,26 +244,6 @@ contract FixedDepositAnchorV2 is AnchorBaseV2, IFixedDepositAnchor {
       _publicInputs._relayer,
       _publicInputs._fee
     );
-  }
-
-  
-
-  
-
-
-  /** @dev whether a note is already spent */
-  function isSpent(bytes32 _nullifierHash) public view returns (bool) {
-    return nullifierHashes[_nullifierHash];
-  }
-
-  /** @dev whether an array of notes is already spent */
-  function isSpentArray(bytes32[] calldata _nullifierHashes) external view returns (bool[] memory spent) {
-    spent = new bool[](_nullifierHashes.length);
-    for (uint256 i = 0; i < _nullifierHashes.length; i++) {
-      if (isSpent(_nullifierHashes[i])) {
-        spent[i] = true;
-      }
-    }
   }
 
   function getDenomination() override  external view returns (uint) {

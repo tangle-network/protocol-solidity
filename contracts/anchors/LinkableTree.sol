@@ -5,8 +5,8 @@
 
 pragma solidity ^0.8.0;
 
-import "../../trees/MerkleTreePoseidon.sol";
-import "../../interfaces/IVerifier.sol";
+import "../trees/MerkleTreePoseidon.sol";
+import "../interfaces/IVerifier.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard {
@@ -41,10 +41,12 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard {
     @param _maxEdges the maximum # of edges this linkable tree connects to
   */
   constructor(
+    address _handler,
     IPoseidonT3 _hasher,
     uint32 _merkleTreeHeight,
     uint8 _maxEdges
   ) MerkleTreePoseidon(_merkleTreeHeight, _hasher) {
+    handler = _handler;
     maxEdges = _maxEdges;
   }
 
@@ -89,7 +91,6 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard {
     }
   }
 
-  /** @dev */
   function getLatestNeighborRoots() public view returns (bytes32[] memory roots) {
     roots = new bytes32[](maxEdges);
     for (uint256 i = 0; i < maxEdges; i++) {
@@ -102,7 +103,6 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard {
     }
   }
 
-  /** @dev */
   function isKnownNeighborRoot(uint256 neighborChainID, bytes32 _root) public view returns (bool) {
     if (_root == 0) {
       return false;
@@ -134,11 +134,6 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard {
   modifier onlyHandler()  {
     require(msg.sender == handler, 'sender is not the handler');
     _;
-  }
-
-  function setHandler(address newHandler) onlyHandler external {
-    require(newHandler != address(0), "Handler cannot be 0");
-    handler = newHandler;
   }
 
   function getChainId() public view returns (uint) {

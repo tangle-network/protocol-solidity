@@ -1,6 +1,6 @@
 import { BigNumberish, ethers } from "ethers";
-import { FixedDepositAnchorV2 as AnchorContract, FixedDepositAnchorV2__factory as Anchor__factory} from '../../../typechain'
-import { RefreshEvent, WithdrawalEvent } from '@webb-tools/contracts/src/AnchorBase'
+import { FixedDepositAnchor as AnchorContract, FixedDepositAnchor__factory as Anchor__factory} from '../../../typechain'
+import { RefreshEvent, WithdrawalEvent } from '@webb-tools/contracts/src/FixedDepositAnchor';
 import { AnchorDeposit, AnchorDepositInfo, IPublicInputs } from './types';
 import { toFixedHex, toHex, rbigint, p256, PoseidonHasher, ZkComponents } from '@webb-tools/utils';
 import { MerkleTree } from './MerkleTree';
@@ -66,15 +66,13 @@ class Anchor {
     denomination: BigNumberish,
     merkleTreeHeight: number,
     token: string,
-    bridge: string,
-    admin: string,
     handler: string,
     maxEdges: number,
     zkComponents: ZkComponents,
     signer: ethers.Signer,
   ) {
     const factory = new Anchor__factory(signer);
-    const anchor = await factory.deploy(token, verifier, hasher, denomination, merkleTreeHeight, maxEdges, {});
+    const anchor = await factory.deploy(handler, token, verifier, hasher, denomination, merkleTreeHeight, maxEdges, {});
     await anchor.deployed();
     const createdAnchor = new Anchor(anchor, signer, merkleTreeHeight, maxEdges, zkComponents);
     createdAnchor.latestSyncedBlock = anchor.deployTransaction.blockNumber!;

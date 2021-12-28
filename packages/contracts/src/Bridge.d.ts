@@ -12,7 +12,6 @@ import {
   BaseContract,
   ContractTransaction,
   Overrides,
-  PayableOverrides,
   CallOverrides,
 } from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
@@ -38,12 +37,9 @@ interface BridgeInterface extends ethers.utils.Interface {
     "adminChangeRelayerThreshold(uint256)": FunctionFragment;
     "adminPauseTransfers()": FunctionFragment;
     "adminRemoveRelayer(address)": FunctionFragment;
-    "adminSetBurnable(address,address)": FunctionFragment;
     "adminSetResource(address,bytes32,address)": FunctionFragment;
     "adminUnpauseTransfers()": FunctionFragment;
-    "adminWithdraw(address,address,address,uint256)": FunctionFragment;
     "cancelProposal(uint256,uint64,bytes32)": FunctionFragment;
-    "deposit(uint32,bytes32,bytes)": FunctionFragment;
     "executeProposal(uint256,uint64,bytes,bytes32)": FunctionFragment;
     "getProposal(uint256,uint64,bytes32)": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
@@ -117,10 +113,6 @@ interface BridgeInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
-    functionFragment: "adminSetBurnable",
-    values: [string, string]
-  ): string;
-  encodeFunctionData(
     functionFragment: "adminSetResource",
     values: [string, BytesLike, string]
   ): string;
@@ -129,16 +121,8 @@ interface BridgeInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "adminWithdraw",
-    values: [string, string, string, BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "cancelProposal",
     values: [BigNumberish, BigNumberish, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "deposit",
-    values: [BigNumberish, BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "executeProposal",
@@ -248,10 +232,6 @@ interface BridgeInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "adminSetBurnable",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "adminSetResource",
     data: BytesLike
   ): Result;
@@ -260,14 +240,9 @@ interface BridgeInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "adminWithdraw",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "cancelProposal",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "executeProposal",
     data: BytesLike
@@ -486,12 +461,6 @@ export class Bridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    adminSetBurnable(
-      handlerAddress: string,
-      tokenAddress: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     adminSetResource(
       handlerAddress: string,
       resourceID: BytesLike,
@@ -503,26 +472,11 @@ export class Bridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    adminWithdraw(
-      handlerAddress: string,
-      tokenAddress: string,
-      recipient: string,
-      amountOrTokenID: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     cancelProposal(
       chainID: BigNumberish,
       nonce: BigNumberish,
       dataHash: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    deposit(
-      destinationChainID: BigNumberish,
-      resourceID: BytesLike,
-      data: BytesLike,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     executeProposal(
@@ -670,12 +624,6 @@ export class Bridge extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  adminSetBurnable(
-    handlerAddress: string,
-    tokenAddress: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   adminSetResource(
     handlerAddress: string,
     resourceID: BytesLike,
@@ -687,26 +635,11 @@ export class Bridge extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  adminWithdraw(
-    handlerAddress: string,
-    tokenAddress: string,
-    recipient: string,
-    amountOrTokenID: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   cancelProposal(
     chainID: BigNumberish,
     nonce: BigNumberish,
     dataHash: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  deposit(
-    destinationChainID: BigNumberish,
-    resourceID: BytesLike,
-    data: BytesLike,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   executeProposal(
@@ -850,12 +783,6 @@ export class Bridge extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    adminSetBurnable(
-      handlerAddress: string,
-      tokenAddress: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     adminSetResource(
       handlerAddress: string,
       resourceID: BytesLike,
@@ -865,25 +792,10 @@ export class Bridge extends BaseContract {
 
     adminUnpauseTransfers(overrides?: CallOverrides): Promise<void>;
 
-    adminWithdraw(
-      handlerAddress: string,
-      tokenAddress: string,
-      recipient: string,
-      amountOrTokenID: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     cancelProposal(
       chainID: BigNumberish,
       nonce: BigNumberish,
       dataHash: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    deposit(
-      destinationChainID: BigNumberish,
-      resourceID: BytesLike,
-      data: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1180,12 +1092,6 @@ export class Bridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    adminSetBurnable(
-      handlerAddress: string,
-      tokenAddress: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     adminSetResource(
       handlerAddress: string,
       resourceID: BytesLike,
@@ -1197,26 +1103,11 @@ export class Bridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    adminWithdraw(
-      handlerAddress: string,
-      tokenAddress: string,
-      recipient: string,
-      amountOrTokenID: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     cancelProposal(
       chainID: BigNumberish,
       nonce: BigNumberish,
       dataHash: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    deposit(
-      destinationChainID: BigNumberish,
-      resourceID: BytesLike,
-      data: BytesLike,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     executeProposal(
@@ -1364,12 +1255,6 @@ export class Bridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    adminSetBurnable(
-      handlerAddress: string,
-      tokenAddress: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     adminSetResource(
       handlerAddress: string,
       resourceID: BytesLike,
@@ -1381,26 +1266,11 @@ export class Bridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    adminWithdraw(
-      handlerAddress: string,
-      tokenAddress: string,
-      recipient: string,
-      amountOrTokenID: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     cancelProposal(
       chainID: BigNumberish,
       nonce: BigNumberish,
       dataHash: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    deposit(
-      destinationChainID: BigNumberish,
-      resourceID: BytesLike,
-      data: BytesLike,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     executeProposal(
