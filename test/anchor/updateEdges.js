@@ -50,12 +50,12 @@ const Token = artifacts.require("ERC20Mock");
     token = await Token.new();
     await token.mint(sender, tokenDenomination);
     AnchorInstance = await Anchor.new(
+      sender,
+      token.address,
       verifier.address,
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      token.address,
-      accounts[0],
       MAX_EDGES,
     );
 
@@ -75,9 +75,9 @@ const Token = artifacts.require("ERC20Mock");
     assert(await AnchorInstance.handler() == accounts[0]);
   });
 
-  it('LinkableAnchor handler should only be updatable by bridge only', async () => {
+  it('LinkableAnchor handler should only be updatable by handler only', async () => {
     await TruffleAssert.passes(setHandler(accounts[1], accounts[0]));
-    await TruffleAssert.reverts(setHandler(accounts[0], accounts[1]), "sender is not the bridge");
+    await TruffleAssert.reverts(setHandler(accounts[0], accounts[0]), "sender is not the handler");
   });
 
   it('LinkableAnchor edges should be modifiable by handler only (checks newHeight > oldHeight)', async () => {
