@@ -68,7 +68,7 @@
 
     await tokenInstance.approveSpending(anchor.contract.address);
 
-    await bridgeSide.setAnchorHandler(AnchorHandler);
+    await bridgeSide.setAnchorHandler(anchorHandler);
     // //Function call below sets resource with signature
     await bridgeSide.connectAnchorWithSignature(anchor);
   })
@@ -118,7 +118,7 @@
     await tokenInstance.approveSpending(destAnchor.contract.address);
     await tokenInstance.approveSpending(sourceAnchor.contract.address);
 
-    await bridgeSide.setAnchorHandler(AnchorHandler);
+    await bridgeSide.setAnchorHandler(anchorHandler);
     bridgeSide.setResourceWithSignature(destAnchor);
     await sourceAnchor.deposit(await admin.getChainId());
     const destResourceID = await destAnchor.createResourceId();
