@@ -86,21 +86,21 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
 
     // initialize anchors on both chains
     OriginChainAnchorInstance = await Anchor.new(
+      sender,
+      originChainToken.address,
       verifier.address,
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      originChainToken.address,
-      sender,
       MAX_EDGES,
     { from: sender });
     DestChainAnchorInstance = await Anchor.new(
+      sender,
+      destChainToken.address,
       verifier.address,
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      destChainToken.address,
-      sender,
       MAX_EDGES,
     { from: sender });
     // create resource ID using anchor address

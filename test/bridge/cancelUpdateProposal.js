@@ -81,12 +81,12 @@ contract('Bridge - [CancelUpdateProposal with relayerThreshold == 3]', async (ac
     );
 
     AnchorInstance = await AnchorContract.new(
+      sender,
+      originChainToken.address,
       verifier.address,
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      token.address,
-      accounts[0],
       MAX_EDGES,
     );
 

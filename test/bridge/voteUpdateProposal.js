@@ -87,21 +87,21 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
     );
 
     OriginChainAnchorInstance = await Anchor.new(
+      sender,
+      token.address,
       verifier.address,
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      token.address,
-      sender,
       MAX_EDGES,
     { from: sender });
     DestChainAnchorInstance = await Anchor.new(
+      sender,
+      token.address,
       verifier.address,
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      token.address,
-      sender,
       MAX_EDGES,
     { from: sender });
     

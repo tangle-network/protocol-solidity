@@ -51,13 +51,13 @@ contract('LinkableAnchor - [add edges]', async accounts => {
     token = await Token.new();
     await token.mint(sender, tokenDenomination);
     AnchorInstance = await Anchor.new(
+      sender,
+      token.address,
       verifier.address,
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      token.address,
-      accounts[0],
-      MAX_EDGES
+      MAX_EDGES,
     );
 
     setHandler = (handler, sender) => AnchorInstance.setHandler(handler, {
