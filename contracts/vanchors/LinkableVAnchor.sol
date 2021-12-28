@@ -10,7 +10,7 @@ import "../interfaces/ILinkableAnchor.sol";
 
 abstract contract LinkableVAnchor is VAnchorBase, ILinkableAnchor {
   constructor(
-    IVAnchorVerifier _verifier,
+    IAnchorVerifier _verifier,
     uint32 _levels,
     address _hasher,
     PermissionedAccounts memory _permissions,
@@ -19,7 +19,6 @@ abstract contract LinkableVAnchor is VAnchorBase, ILinkableAnchor {
     _verifier,
     _levels,
     _hasher,
-    _permissions,
     _maxEdges
   ) {
     permissions = _permissions;
@@ -27,7 +26,7 @@ abstract contract LinkableVAnchor is VAnchorBase, ILinkableAnchor {
 
   function setVerifier(address newVerifier) onlyHandler override external {
     require(newVerifier != address(0), "Handler cannot be 0");
-    verifier = IVAnchorVerifier(newVerifier);
+    verifier = IAnchorVerifier(newVerifier);
   }
 
   function setHandler(address _handler) onlyHandler override external {

@@ -18,7 +18,7 @@ contract VAnchor is LinkableVAnchor {
   address public immutable token;
 
   constructor(
-    IVAnchorVerifier _verifier,
+    IAnchorVerifier _verifier,
     uint32 _levels,
     address _hasher,
     address _token,

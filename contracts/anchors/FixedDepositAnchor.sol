@@ -43,7 +43,7 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
   constructor(
     address _handler,
     ITokenWrapper _token,
-    IVerifier _verifier,
+    IAnchorVerifier _verifier,
     IPoseidonT3 _hasher,
     uint256 _denomination,
     uint32 _merkleTreeHeight,

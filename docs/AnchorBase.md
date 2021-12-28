@@ -671,7 +671,7 @@ function updateEdge(uint256 sourceChainID, bytes32 root, uint256 leafIndex) exte
 ### verifier
 
 ```solidity
-function verifier() external view returns (contract IVerifier)
+function verifier() external view returns (contract IAnchorVerifier)
 ```
 
 
@@ -683,7 +683,7 @@ function verifier() external view returns (contract IVerifier)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | contract IVerifier | undefined
+| _0 | contract IAnchorVerifier | undefined
 
 ### zeros
 

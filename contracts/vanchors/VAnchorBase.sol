@@ -7,7 +7,7 @@ pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import { IVAnchorVerifier } from "../interfaces/IVAnchorVerifier.sol";
+import { IAnchorVerifier } from "../interfaces/IAnchorVerifier.sol";
 import "../trees/VMerkleTreeWithHistory.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../libs/VAnchorEncodeInputs.sol";
@@ -52,7 +52,7 @@ abstract contract VAnchorBase is VMerkleTreeWithHistory, ReentrancyGuard {
   int256 public constant MAX_EXT_AMOUNT = 2**248;
   uint256 public constant MAX_FEE = 2**248;
 
-  IVAnchorVerifier public verifier;
+  IAnchorVerifier public verifier;
 
   uint256 public lastBalance;
   uint256 public minimalWithdrawalAmount;
@@ -89,10 +89,9 @@ abstract contract VAnchorBase is VMerkleTreeWithHistory, ReentrancyGuard {
     @param _hasher hasher address for the merkle tree
   */
   constructor(
-    IVAnchorVerifier _verifier,
+    IAnchorVerifier _verifier,
     uint32 _levels,
     address _hasher,
-    PermissionedAccounts memory _permissions,
     uint8 _maxEdges
   )
     VMerkleTreeWithHistory(_levels, _hasher)

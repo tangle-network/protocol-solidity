@@ -992,7 +992,7 @@ const _abi = [
     name: "verifier",
     outputs: [
       {
-        internalType: "contract IVAnchorVerifier",
+        internalType: "contract IAnchorVerifier",
         name: "",
         type: "address",
       },

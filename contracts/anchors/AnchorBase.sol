@@ -6,12 +6,12 @@
 pragma solidity ^0.8.0;
 
 import "../trees/MerkleTreePoseidon.sol";
-import "../interfaces/IVerifier.sol";
+import "../interfaces/IAnchorVerifier.sol";
 import "../interfaces/ILinkableAnchor.sol";
 import "./LinkableTree.sol";
 
 abstract contract AnchorBase is LinkableTree {
-  IVerifier public verifier;
+  IAnchorVerifier public verifier;
 
   // map to store used nullifier hashes
   mapping(bytes32 => bool) public nullifierHashes;
@@ -28,7 +28,7 @@ abstract contract AnchorBase is LinkableTree {
   */
   constructor(
     address _handler,
-    IVerifier _verifier,
+    IAnchorVerifier _verifier,
     IPoseidonT3 _hasher,
     uint32 _merkleTreeHeight,
     uint8 _maxEdges
@@ -68,7 +68,8 @@ abstract contract AnchorBase is LinkableTree {
     r = verifier.verifyProof(
       a, b, c,
       _input,
-      maxEdges
+      maxEdges,
+      true
     );
     require(r, "Invalid withdraw proof");
     return r;
@@ -117,6 +118,6 @@ abstract contract AnchorBase is LinkableTree {
 
   function setVerifier(address newVerifier) onlyHandler external {
     require(newVerifier != address(0), "Handler cannot be 0");
-    verifier = IVerifier(newVerifier);
+    verifier = IAnchorVerifier(newVerifier);
   }
 }
