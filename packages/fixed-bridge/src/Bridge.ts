@@ -136,6 +136,9 @@ export class Bridge {
         deployers[chainID],
       );
 
+      const handler = await AnchorHandler.createAnchorHandler(bridgeInstance.contract.address, [],[], bridgeInstance.admin);
+      await bridgeInstance.setAnchorHandler(handler);
+
       bridgeSides.set(chainID, bridgeInstance);
       console.log(`bridgeSide address on ${chainID}: ${bridgeInstance.contract.address}`);
 
@@ -193,7 +196,7 @@ export class Bridge {
           30,
           tokenInstance.contract.address,
           // TODO: Use handler address
-          adminAddress,
+          handler.contract.address,
           bridgeInput.chainIDs.length-1,
           zkComponents,
           deployers[chainID]
@@ -235,17 +238,7 @@ export class Bridge {
   // The setPermissions method accepts initialized bridgeSide and anchors.
   // it creates the anchor handler and sets the appropriate permissions
   // for the bridgeSide/AnchorHandler/anchor
-  public static async setPermissions(bridgeSide: BridgeSide, anchors: Anchor[]): Promise<void> {
-    let resourceIDs: string[] = [];
-    let anchorAddresses: string[] = [];
-    for (let anchor of anchors) {
-      resourceIDs.push(await anchor.createResourceId());
-      anchorAddresses.push(anchor.contract.address);
-    }
-
-    const handler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, resourceIDs, anchorAddresses, bridgeSide.admin);
-    await bridgeSide.setAnchorHandler(handler);
-    
+  public static async setPermissions(bridgeSide: BridgeSide, anchors: Anchor[]): Promise<void> {  
     for (let anchor of anchors) {
       await bridgeSide.connectAnchor(anchor);
     }

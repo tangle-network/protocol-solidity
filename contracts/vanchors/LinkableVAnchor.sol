@@ -9,6 +9,8 @@ import "./VAnchorBase.sol";
 import "../interfaces/ILinkableAnchor.sol";
 
 abstract contract LinkableVAnchor is VAnchorBase, ILinkableAnchor {
+  uint32 proposalNonce = 0;
+
   constructor(
     IAnchorVerifier _verifier,
     uint32 _levels,
@@ -29,7 +31,7 @@ abstract contract LinkableVAnchor is VAnchorBase, ILinkableAnchor {
     verifier = IAnchorVerifier(newVerifier);
   }
 
-  function setHandler(address _handler) onlyHandler override external {
+  function setHandler(address _handler, uint32 nonce) onlyHandler override external {
     permissions.handler = _handler;
   }
 

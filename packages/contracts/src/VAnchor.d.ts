@@ -37,6 +37,7 @@ interface VAnchorInterface extends ethers.utils.Interface {
     "filledSubtrees(uint256)": FunctionFragment;
     "getLastRoot()": FunctionFragment;
     "getLatestNeighborEdges()": FunctionFragment;
+    "getProposalNonce()": FunctionFragment;
     "hasEdge(uint256)": FunctionFragment;
     "hashLeftRight(bytes32,bytes32)": FunctionFragment;
     "hasher()": FunctionFragment;
@@ -57,7 +58,7 @@ interface VAnchorInterface extends ethers.utils.Interface {
     "register((address,bytes))": FunctionFragment;
     "registerAndTransact((address,bytes),(bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes))": FunctionFragment;
     "roots(uint256)": FunctionFragment;
-    "setHandler(address)": FunctionFragment;
+    "setHandler(address,uint32)": FunctionFragment;
     "setVerifier(address)": FunctionFragment;
     "token()": FunctionFragment;
     "transact((bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes))": FunctionFragment;
@@ -129,6 +130,10 @@ interface VAnchorInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getLatestNeighborEdges",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getProposalNonce",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -211,7 +216,10 @@ interface VAnchorInterface extends ethers.utils.Interface {
     ]
   ): string;
   encodeFunctionData(functionFragment: "roots", values: [BigNumberish]): string;
-  encodeFunctionData(functionFragment: "setHandler", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "setHandler",
+    values: [string, BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "setVerifier", values: [string]): string;
   encodeFunctionData(functionFragment: "token", values?: undefined): string;
   encodeFunctionData(
@@ -346,6 +354,10 @@ interface VAnchorInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getLatestNeighborEdges",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getProposalNonce",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "hasEdge", data: BytesLike): Result;
@@ -602,6 +614,8 @@ export class VAnchor extends BaseContract {
       }
     >;
 
+    getProposalNonce(overrides?: CallOverrides): Promise<[number]>;
+
     hasEdge(
       _chainID: BigNumberish,
       overrides?: CallOverrides
@@ -705,6 +719,7 @@ export class VAnchor extends BaseContract {
 
     setHandler(
       _handler: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -887,6 +902,8 @@ export class VAnchor extends BaseContract {
     })[]
   >;
 
+  getProposalNonce(overrides?: CallOverrides): Promise<number>;
+
   hasEdge(_chainID: BigNumberish, overrides?: CallOverrides): Promise<boolean>;
 
   hashLeftRight(
@@ -978,6 +995,7 @@ export class VAnchor extends BaseContract {
 
   setHandler(
     _handler: string,
+    nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1163,6 +1181,8 @@ export class VAnchor extends BaseContract {
       })[]
     >;
 
+    getProposalNonce(overrides?: CallOverrides): Promise<number>;
+
     hasEdge(
       _chainID: BigNumberish,
       overrides?: CallOverrides
@@ -1261,7 +1281,11 @@ export class VAnchor extends BaseContract {
 
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
-    setHandler(_handler: string, overrides?: CallOverrides): Promise<void>;
+    setHandler(
+      _handler: string,
+      nonce: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     setVerifier(newVerifier: string, overrides?: CallOverrides): Promise<void>;
 
@@ -1498,6 +1522,8 @@ export class VAnchor extends BaseContract {
 
     getLatestNeighborEdges(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getProposalNonce(overrides?: CallOverrides): Promise<BigNumber>;
+
     hasEdge(
       _chainID: BigNumberish,
       overrides?: CallOverrides
@@ -1593,6 +1619,7 @@ export class VAnchor extends BaseContract {
 
     setHandler(
       _handler: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1761,6 +1788,8 @@ export class VAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    getProposalNonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     hasEdge(
       _chainID: BigNumberish,
       overrides?: CallOverrides
@@ -1863,6 +1892,7 @@ export class VAnchor extends BaseContract {
 
     setHandler(
       _handler: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

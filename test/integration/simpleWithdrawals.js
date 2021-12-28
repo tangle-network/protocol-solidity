@@ -131,8 +131,8 @@ contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts 
     ]);
      // set bridge and handler permissions for anchors
     await Promise.all([
-      OriginChainAnchorInstance.setHandler(OriginAnchorHandlerInstance.address, {from: sender}),
-      DestChainAnchorInstance.setHandler(DestAnchorHandlerInstance.address, {from: sender}),
+      OriginChainAnchorInstance.setHandler(OriginAnchorHandlerInstance.address, await OriginChainAnchorInstance.getProposalNonce() + 1, {from: sender}),
+      DestChainAnchorInstance.setHandler(DestAnchorHandlerInstance.address, await DestChainAnchorInstance.getProposalNonce() + 1, {from: sender}),
     ]);
 
     createWitness = async (data) => {

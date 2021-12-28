@@ -597,7 +597,7 @@ function roots(uint256) external view returns (bytes32)
 ### setHandler
 
 ```solidity
-function setHandler(address newHandler) external nonpayable
+function setHandler(address newHandler, uint32 nonce) external nonpayable
 ```
 
 
@@ -609,6 +609,7 @@ function setHandler(address newHandler) external nonpayable
 | Name | Type | Description |
 |---|---|---|
 | newHandler | address | undefined
+| nonce | uint32 | undefined
 
 ### setVerifier
 

@@ -60,7 +60,8 @@ contract('LinkableAnchor - [add edges]', async accounts => {
       MAX_EDGES,
     );
 
-    setHandler = (handler, sender) => AnchorInstance.setHandler(handler, {
+    setHandler = (handler, sender, proposalNonce) => AnchorInstance.setHandler(handler, proposalNonce + 1, 
+    {
       from: sender
     });
 

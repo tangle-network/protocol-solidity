@@ -120,7 +120,7 @@ contract('Bridge - [voteUpdateProposal with relayerThreshold == 3]', async (acco
       initialContractAddresses,
     );
 
-    await DestChainAnchorInstance.setHandler(DestinationAnchorHandlerInstance.address, { from: sender });
+    await DestChainAnchorInstance.setHandler(DestinationAnchorHandlerInstance.address, await DestChainAnchorInstance.getProposalNonce() + 1, { from: sender });
 
     data = Helpers.createUpdateProposalData(originChainID, latestLeafIndex, merkleRoot, DestChainAnchorInstance.address, destinationChainID);
     dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));

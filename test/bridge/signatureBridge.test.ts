@@ -177,6 +177,8 @@
          9999: ganacheWallet3,
        };
        const bridge = await SignatureBridge.deployBridge(bridge3WebbEthInput, deploymentConfig, zkComponents3);
+
+       
  
        // Should be able to retrieve individual anchors
        const chainId1 = 31337;

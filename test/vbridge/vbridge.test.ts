@@ -227,7 +227,7 @@ describe('multichain tests for vbridge', () => {
         await vBridge.transact([ganacheDepositUtxo], [hardhatWithdrawUtxo], 0, await signers[2].getAddress(), '0', signers[2]); 
         const signers2BalanceAfter = await webbToken1.getBalance(await signers[2].getAddress());
         assert.strictEqual(signers2BalanceBefore.add(5e6).toString(), signers2BalanceAfter.toString());
-      })
+      }).timeout(40000)
 
       it('join and split ganache deposits and withdraw on hardhat', async () => {
         const signers = await ethers.getSigners();
@@ -395,8 +395,9 @@ describe('multichain tests for vbridge', () => {
       }
 
       // deploy the bridge
+      
       vBridge = await VBridge.deployVBridge(vBridgeInput, deploymentConfig);
-
+     
       // make one deposit so the  edge exists
       const depositUtxo1 = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId1), chainId: BigNumber.from(chainId2)});
       const depositUtxo2 = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId2), chainId: BigNumber.from(chainId1)});

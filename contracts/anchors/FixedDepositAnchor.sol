@@ -60,7 +60,6 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
     emit Deposit(msg.sender, insertedIndex, _commitment, block.timestamp);
   }
 
-
   function _processInsertion() internal override {
     require(msg.value == 0, "ETH value is supposed to be 0 for ERC20 instance");
     IMintableERC20(token).transferFrom(msg.sender, address(this), denomination);
@@ -272,5 +271,9 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
     bytes32[] memory result = decodeRoots(_roots);
 
     return (encodedInput, result);
+  }
+
+  function getProposalNonce() public view returns (uint32) {
+    return proposalNonce;
   }
 }

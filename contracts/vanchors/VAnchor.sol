@@ -176,4 +176,8 @@ contract VAnchor is LinkableVAnchor {
       }
     }
   }
+
+  function getProposalNonce() public view returns (uint32) {
+    return proposalNonce;
+  }
 }

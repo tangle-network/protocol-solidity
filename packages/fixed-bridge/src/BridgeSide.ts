@@ -62,6 +62,11 @@ export class BridgeSide {
     return proposalData;
   }
 
+  public async createHandlerUpdateProposalData(anchor: Anchor, newHandler: string) {
+    const proposalData = await anchor.getHandlerProposalData(newHandler);
+    return proposalData;
+  }
+
   /**
    * Creates the proposal data for updating the wrapping fee
    * of a governed token wrapper.
@@ -103,7 +108,8 @@ export class BridgeSide {
     const resourceId = await anchor.createResourceId();
     await this.contract.adminSetResource(this.handler.contract.address, resourceId, anchor.contract.address);
     // await this.handler.setResource(resourceId, anchor.contract.address); covered in above call
-    await anchor.contract.connect(this.handler.contract.address).setHandler(this.handler.contract.address);
+    await this.voteHandlerProposal(anchor, this.handler.contract.address);
+    await this.executeHandlerProposal(anchor, this.handler.contract.address);
     
     return resourceId;
   }
@@ -158,6 +164,38 @@ export class BridgeSide {
     const nonce = srcAnchor.tree.number_of_elements() - 1;
 
     const tx = await this.contract.executeProposal(chainId, nonce, proposalData, executionResourceID);
+    const receipt = await tx.wait();
+    
+    return receipt;
+  }
+
+  public async voteHandlerProposal(anchor: Anchor, newHandler: string) {
+    if (!this.handler) {
+      throw new Error("Cannot connect an anchor without a handler");
+    }
+
+    const proposalData = await this.createHandlerUpdateProposalData(anchor, newHandler);
+    const dataHash = ethers.utils.keccak256(this.handler.contract.address + proposalData.substr(2));
+    
+    const chainId = await anchor.signer.getChainId();
+    const nonce = 1;
+    const resourceID = await anchor.createResourceId();
+    const tx = await this.contract.voteProposal(chainId, nonce, resourceID, dataHash);
+    const receipt = await tx.wait();
+    
+    return receipt;
+  }
+
+  public async executeHandlerProposal(anchor: Anchor, newHandler: string) {
+    if (!this.handler) {
+      throw new Error("Cannot connect an anchor without a handler");
+    }
+
+    const proposalData = await this.createHandlerUpdateProposalData(anchor, newHandler);
+    const chainId = await anchor.signer.getChainId();
+    const nonce = 1;
+    const resourceID = await anchor.createResourceId()
+    const tx = await this.contract.executeProposal(chainId, nonce, proposalData, resourceID);
     const receipt = await tx.wait();
     
     return receipt;

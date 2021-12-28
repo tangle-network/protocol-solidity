@@ -58,8 +58,8 @@ const Token = artifacts.require("ERC20Mock");
       merkleTreeHeight,
       MAX_EDGES,
     );
-
-    setHandler = (handler, sender) => AnchorInstance.setHandler(handler, {
+    
+    setHandler = (handler, sender, proposalNonce) => AnchorInstance.setHandler(handler, proposalNonce + 1, {
       from: sender
     });
 
@@ -76,8 +76,8 @@ const Token = artifacts.require("ERC20Mock");
   });
 
   it('LinkableAnchor handler should only be updatable by handler only', async () => {
-    await TruffleAssert.passes(setHandler(accounts[1], accounts[0]));
-    await TruffleAssert.reverts(setHandler(accounts[0], accounts[0]), "sender is not the handler");
+    await TruffleAssert.passes(setHandler(accounts[1], accounts[0], await AnchorInstance.getProposalNonce()));
+    await TruffleAssert.reverts(setHandler(accounts[0], accounts[0], await AnchorInstance.getProposalNonce()), "sender is not the handler");
   });
 
   it('LinkableAnchor edges should be modifiable by handler only (checks newHeight > oldHeight)', async () => {

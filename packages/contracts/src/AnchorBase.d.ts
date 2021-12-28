@@ -51,7 +51,7 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
     "nextIndex()": FunctionFragment;
     "nullifierHashes(bytes32)": FunctionFragment;
     "roots(uint256)": FunctionFragment;
-    "setHandler(address)": FunctionFragment;
+    "setHandler(address,uint32)": FunctionFragment;
     "setVerifier(address)": FunctionFragment;
     "unpackProof(uint256[8])": FunctionFragment;
     "updateEdge(uint256,bytes32,uint256)": FunctionFragment;
@@ -151,7 +151,10 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "roots", values: [BigNumberish]): string;
-  encodeFunctionData(functionFragment: "setHandler", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "setHandler",
+    values: [string, BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "setVerifier", values: [string]): string;
   encodeFunctionData(
     functionFragment: "unpackProof",
@@ -458,6 +461,7 @@ export class AnchorBase extends BaseContract {
 
     setHandler(
       newHandler: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -598,6 +602,7 @@ export class AnchorBase extends BaseContract {
 
   setHandler(
     newHandler: string,
+    nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -745,7 +750,11 @@ export class AnchorBase extends BaseContract {
 
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
-    setHandler(newHandler: string, overrides?: CallOverrides): Promise<void>;
+    setHandler(
+      newHandler: string,
+      nonce: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     setVerifier(newVerifier: string, overrides?: CallOverrides): Promise<void>;
 
@@ -944,6 +953,7 @@ export class AnchorBase extends BaseContract {
 
     setHandler(
       newHandler: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1096,6 +1106,7 @@ export class AnchorBase extends BaseContract {
 
     setHandler(
       newHandler: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

@@ -299,7 +299,7 @@ export class VAnchor {
   }
 
   public async setHandler(handlerAddress: string) {
-    const tx = await this.contract.setHandler(handlerAddress);
+    const tx = await this.contract.setHandler(handlerAddress, BigNumber.from((await this.contract.getProposalNonce())).add(1));
     await tx.wait();
   }
 

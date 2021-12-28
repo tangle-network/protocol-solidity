@@ -12,6 +12,7 @@ import "./LinkableTree.sol";
 
 abstract contract AnchorBase is LinkableTree {
   IAnchorVerifier public verifier;
+  uint32 proposalNonce = 0;
 
   // map to store used nullifier hashes
   mapping(bytes32 => bool) public nullifierHashes;
@@ -111,8 +112,10 @@ abstract contract AnchorBase is LinkableTree {
     }
   }
 
-  function setHandler(address newHandler) onlyHandler external {
+  function setHandler(address newHandler, uint32 nonce) onlyHandler external {
     require(newHandler != address(0), "Handler cannot be 0");
+    require(proposalNonce < nonce, "Invalid nonce");
+    require(nonce <= proposalNonce + 1, "Nonce must increment by 1");
     handler = newHandler;
   }
 

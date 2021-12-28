@@ -298,6 +298,23 @@ function getLatestNeighborEdges() external view returns (struct VAnchorBase.Edge
 |---|---|---|
 | edges | VAnchorBase.Edge[] | undefined
 
+### getProposalNonce
+
+```solidity
+function getProposalNonce() external view returns (uint32)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint32 | undefined
+
 ### hasEdge
 
 ```solidity
@@ -691,7 +708,7 @@ function roots(uint256) external view returns (bytes32)
 ### setHandler
 
 ```solidity
-function setHandler(address _handler) external nonpayable
+function setHandler(address _handler, uint32 nonce) external nonpayable
 ```
 
 
@@ -703,6 +720,7 @@ function setHandler(address _handler) external nonpayable
 | Name | Type | Description |
 |---|---|---|
 | _handler | address | undefined
+| nonce | uint32 | undefined
 
 ### setVerifier
 

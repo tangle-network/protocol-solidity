@@ -1,4 +1,4 @@
-import { BigNumberish, ethers } from "ethers";
+import { BigNumberish, ethers, BigNumber } from "ethers";
 import { FixedDepositAnchor as AnchorContract, FixedDepositAnchor__factory as Anchor__factory} from '../../../typechain'
 import { RefreshEvent, WithdrawalEvent } from '@webb-tools/contracts/src/FixedDepositAnchor';
 import { AnchorDeposit, AnchorDepositInfo, IPublicInputs } from './types';
@@ -169,7 +169,7 @@ class Anchor {
   }
 
   public async setHandler(handlerAddress: string) {
-    const tx = await this.contract.setHandler(handlerAddress);
+    const tx = await this.contract.setHandler(handlerAddress, BigNumber.from((await this.contract.getProposalNonce())).add(1));
     await tx.wait();
   }
 
@@ -210,7 +210,7 @@ class Anchor {
 
   public async getHandlerProposalData(newHandler: string): Promise<string> {
     const resourceID = await this.createResourceId();
-    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("setHandler(address)")).slice(0, 10).padEnd(10, '0');
+    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("setHandler(address,uint32)")).slice(0, 10).padEnd(10, '0');
     const dummyNonce = 1;
     const chainID = await this.signer.getChainId();
 

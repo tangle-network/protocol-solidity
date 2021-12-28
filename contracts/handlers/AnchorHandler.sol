@@ -93,9 +93,10 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
         require(_contractWhitelist[anchorAddress], "provided tokenAddress is not whitelisted");
         ILinkableAnchor anchor = ILinkableAnchor(anchorAddress);
 
-        if (functionSig == bytes4(keccak256("setHandler(address)"))) {
+        if (functionSig == bytes4(keccak256("setHandler(address,uint32)"))) {
+            uint32 nonce = uint32(bytes4(arguments[0:4])); 
             address newHandler = address(bytes20(arguments[4:24]));
-            anchor.setHandler(newHandler);
+            anchor.setHandler(newHandler, nonce);
         } else if (functionSig == bytes4(keccak256("setVerifier(address)"))) {
             address newVerifier = address(bytes20(arguments[4:24]));
             anchor.setVerifier(newVerifier);

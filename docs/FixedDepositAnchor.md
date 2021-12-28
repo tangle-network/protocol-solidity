@@ -313,6 +313,23 @@ function getLatestNeighborRoots() external view returns (bytes32[] roots)
 |---|---|---|
 | roots | bytes32[] | undefined
 
+### getProposalNonce
+
+```solidity
+function getProposalNonce() external view returns (uint32)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint32 | undefined
+
 ### getToken
 
 ```solidity
@@ -664,7 +681,7 @@ function roots(uint256) external view returns (bytes32)
 ### setHandler
 
 ```solidity
-function setHandler(address newHandler) external nonpayable
+function setHandler(address newHandler, uint32 nonce) external nonpayable
 ```
 
 
@@ -676,6 +693,7 @@ function setHandler(address newHandler) external nonpayable
 | Name | Type | Description |
 |---|---|---|
 | newHandler | address | undefined
+| nonce | uint32 | undefined
 
 ### setVerifier
 
