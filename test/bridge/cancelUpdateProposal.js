@@ -82,7 +82,7 @@ contract('Bridge - [CancelUpdateProposal with relayerThreshold == 3]', async (ac
 
     AnchorInstance = await AnchorContract.new(
       sender,
-      originChainToken.address,
+      token.address,
       verifier.address,
       hasher.address,
       tokenDenomination,
