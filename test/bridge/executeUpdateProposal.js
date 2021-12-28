@@ -118,7 +118,6 @@ contract('Bridge - [executeUpdateProposal with relayerThreshold == 3]', async (a
     );
 
     await DestChainAnchorInstance.setHandler(DestinationAnchorHandlerInstance.address, { from: sender });
-    await DestChainAnchorInstance.setBridge(BridgeInstance.address, { from: sender });
     
     data = Helpers.createUpdateProposalData(sourceChainID, latestLeafIndex, merkleRoot, DestChainAnchorInstance.address, destinationChainID);
     dataHash = Ethers.utils.keccak256(DestinationAnchorHandlerInstance.address + data.substr(2));
@@ -255,12 +254,12 @@ contract('Bridge - [executeUpdateProposal with relayerThreshold == 3]', async (a
     token = await Token.new();
     await token.mint(sender, tokenDenomination);
     ThirdAnchorInstance = await Anchor.new(
+      sender,
+      token.address,
       verifier.address,
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      token.address,
-      sender,
       MAX_EDGES,
     { from: sender });
 
