@@ -87,8 +87,6 @@ contract('Bridge - [CancelUpdateProposal with relayerThreshold == 3]', async (ac
       merkleTreeHeight,
       token.address,
       accounts[0],
-      accounts[0],
-      accounts[0],
       MAX_EDGES,
     );
 

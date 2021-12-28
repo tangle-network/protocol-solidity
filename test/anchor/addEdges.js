@@ -29,7 +29,6 @@ contract('LinkableAnchor - [add edges]', async accounts => {
   let tokenDenomination = '1000000000000000000'; // 1 ether
   // function stubs
   let setHandler;
-  let setBridge;
   let updateEdge;
   const MAX_EDGES = 1;
 
@@ -58,19 +57,12 @@ contract('LinkableAnchor - [add edges]', async accounts => {
       merkleTreeHeight,
       token.address,
       accounts[0],
-      accounts[0],
-      accounts[0],
       MAX_EDGES
     );
 
     setHandler = (handler, sender) => AnchorInstance.setHandler(handler, {
       from: sender
     });
-
-    setBridge = (bridge, sender) => AnchorInstance.setBridge(bridge, {
-      from: sender
-    });
-
 
     updateEdge = (edge, sender) => AnchorInstance.updateEdge(
       edge.sourceChainID,
@@ -81,19 +73,7 @@ contract('LinkableAnchor - [add edges]', async accounts => {
   });
 
   it('LinkableAnchor should have same bridge & admin & handler on init', async () => {
-    assert(await AnchorInstance.admin() == accounts[0]);
-    assert(await AnchorInstance.bridge() == accounts[0]);
     assert(await AnchorInstance.handler() == accounts[0]);
-  });
-
-  it('LinkableAnchor handler should only be updatable by bridge only', async () => {
-    await TruffleAssert.passes(setHandler(accounts[1], accounts[0]));
-    await TruffleAssert.reverts(setHandler(accounts[0], accounts[1]), "sender is not the bridge");
-  });
-
-  it('LinkableAnchor bridge should only be updatable by admin only', async () => {
-    await TruffleAssert.passes(setBridge(accounts[1], accounts[0]));
-    await TruffleAssert.reverts(setBridge(accounts[0], accounts[1]), "sender is not the admin");
   });
 
   it('LinkableAnchor edges should be modifiable by handler only', async () => {
