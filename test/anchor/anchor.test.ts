@@ -119,7 +119,7 @@ describe('Anchor for 2 max edges', () => {
       const filter = anchor.contract.filters.Deposit(null, toFixedHex(deposit.commitment), null);
       const events = await anchor.contract.queryFilter(filter, anchor.contract.deployTransaction.blockNumber);
 
-      assert.strictEqual(events[0].event, 'Deposit');
+      assert.strictEqual(events[0].event, 'Insertion');
       assert.strictEqual(events[0].args[1], toFixedHex(deposit.commitment));
 
       const anchorBalance = await token.balanceOf(anchor.contract.address);

@@ -89,8 +89,6 @@ contract('Bridge - [executeUpdateProposal with relayerThreshold == 3]', async (a
       merkleTreeHeight,
       token.address,
       sender,
-      sender,
-      sender,
       MAX_EDGES,
     { from: sender });
     DestChainAnchorInstance = await Anchor.new(
@@ -99,8 +97,6 @@ contract('Bridge - [executeUpdateProposal with relayerThreshold == 3]', async (a
       tokenDenomination,
       merkleTreeHeight,
       token.address,
-      sender,
-      sender,
       sender,
       MAX_EDGES,
     { from: sender });
@@ -264,8 +260,6 @@ contract('Bridge - [executeUpdateProposal with relayerThreshold == 3]', async (a
       tokenDenomination,
       merkleTreeHeight,
       token.address,
-      sender,
-      sender,
       sender,
       MAX_EDGES,
     { from: sender });

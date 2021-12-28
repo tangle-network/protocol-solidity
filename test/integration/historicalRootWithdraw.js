@@ -92,8 +92,6 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
       merkleTreeHeight,
       originChainToken.address,
       sender,
-      sender,
-      sender,
       MAX_EDGES,
     { from: sender });
     DestChainAnchorInstance = await Anchor.new(
@@ -102,8 +100,6 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
       tokenDenomination,
       merkleTreeHeight,
       destChainToken.address,
-      sender,
-      sender,
       sender,
       MAX_EDGES,
     { from: sender });

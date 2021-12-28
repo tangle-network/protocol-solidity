@@ -101,8 +101,6 @@ contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts 
       merkleTreeHeight,
       originChainToken.address,
       sender,
-      sender,
-      sender,
       MAX_EDGES,
     { from: sender });
     DestChainAnchorInstance = await Anchor.new(
@@ -111,8 +109,6 @@ contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts 
       tokenDenomination,
       merkleTreeHeight,
       destChainToken.address,
-      sender,
-      sender,
       sender,
       MAX_EDGES,
     { from: sender });

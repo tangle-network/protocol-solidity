@@ -82,8 +82,6 @@ contract('Bridge - [create a update proposal (voteProposal) with relayerThreshol
       merkleTreeHeight,
       token.address,
       sender,
-      sender,
-      sender,
       MAX_EDGES,
     );
     
@@ -267,8 +265,6 @@ contract('Bridge - [create an update proposal (voteProposal) with relayerThresho
       tokenDenomination,
       merkleTreeHeight,
       token.address,
-      sender,
-      sender,
       sender,
       MAX_EDGES,
     );
