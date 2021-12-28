@@ -4,7 +4,7 @@ const helpers = require('../helpers');
 const { toBN } = require('web3-utils')
 const assert = require('assert');
 const BridgeContract = artifacts.require('Bridge');
-const Anchor = artifacts.require('./Anchor.sol');
+const Anchor = artifacts.require('FixedDepositAnchor');
 const Hasher = artifacts.require('PoseidonT3');
 const Verifier = artifacts.require('Verifier');
 const Verifier2 = artifacts.require('Verifier2');
@@ -86,25 +86,21 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
 
     // initialize anchors on both chains
     OriginChainAnchorInstance = await Anchor.new(
+      sender,
+      originChainToken.address,
       verifier.address,
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      originChainToken.address,
-      sender,
-      sender,
-      sender,
       MAX_EDGES,
     { from: sender });
     DestChainAnchorInstance = await Anchor.new(
+      sender,
+      destChainToken.address,
       verifier.address,
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      destChainToken.address,
-      sender,
-      sender,
-      sender,
       MAX_EDGES,
     { from: sender });
     // create resource ID using anchor address
@@ -120,8 +116,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     await DestBridgeInstance.adminSetResource(DestAnchorHandlerInstance.address, resourceID, DestChainAnchorInstance.address)
      // set bridge and handler permissions for anchor
     await Promise.all([
-      DestChainAnchorInstance.setHandler(DestAnchorHandlerInstance.address, { from: sender }),
-      DestChainAnchorInstance.setBridge(DestBridgeInstance.address, { from: sender })
+      DestChainAnchorInstance.setHandler(DestAnchorHandlerInstance.address, await DestChainAnchorInstance.getProposalNonce() + 1, { from: sender }),
     ]);
 
     createWitness = async (data) => {
@@ -178,6 +173,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
       resourceID,
       { from: relayer1Address }
     ));
+
     /*
     *  sender generate proof
     */
@@ -263,7 +259,6 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
       resourceID,
       { from: relayer1Address }
     ));
-
     // check initial balances before withdrawal
     let balanceOperatorBefore = await destChainToken.balanceOf(operator);
     let balanceReceiverBefore = await destChainToken.balanceOf(helpers.toFixedHex(recipient, 20));
@@ -283,7 +278,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
       _fee: args[5],
       _refund: args[6],
     }, { from: input.relayer }));
-
+ 
     let balanceDestAnchorAfter = await destChainToken.balanceOf(DestChainAnchorInstance.address);
     let balanceOperatorAfter = await destChainToken.balanceOf(input.relayer);
     let balanceReceiverAfter = await destChainToken.balanceOf(helpers.toFixedHex(recipient, 20));
@@ -293,7 +288,6 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
     assert.strictEqual(balanceReceiverAfter.toString(), balanceReceiverBefore.add(toBN(tokenDenomination)).sub(feeBN).toString());
     isSpent = await DestChainAnchorInstance.isSpent(helpers.toFixedHex(input.nullifierHash));
     assert(isSpent);
-
     /*
     *  generate proof for second deposit
     */
@@ -377,7 +371,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
         { from: relayer1Address }
       ));
     }
-
+    
     // withdraw should revert as historical root does not exist
     await TruffleAssert.reverts(DestChainAnchorInstance.withdraw(`0x${proofEncoded}`, {
       _roots: args[0],

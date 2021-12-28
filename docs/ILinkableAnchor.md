@@ -10,48 +10,10 @@
 
 ## Methods
 
-### hasEdge
-
-```solidity
-function hasEdge(uint256 _chainID) external view returns (bool)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _chainID | uint256 | undefined
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined
-
-### setBridge
-
-```solidity
-function setBridge(address _bridge) external nonpayable
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _bridge | address | undefined
-
 ### setHandler
 
 ```solidity
-function setHandler(address _handler) external nonpayable
+function setHandler(address _handler, uint32 nonce) external nonpayable
 ```
 
 
@@ -63,6 +25,23 @@ function setHandler(address _handler) external nonpayable
 | Name | Type | Description |
 |---|---|---|
 | _handler | address | undefined
+| nonce | uint32 | undefined
+
+### setVerifier
+
+```solidity
+function setVerifier(address _verifier) external nonpayable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _verifier | address | undefined
 
 ### updateEdge
 

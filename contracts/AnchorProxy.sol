@@ -59,7 +59,6 @@ contract AnchorProxy {
     Instance memory instance = instances[_anchor];
     require(instance.state != InstanceState.DISABLED, "The instance is not supported");
 
-    
     instance.token.safeTransferFrom(msg.sender, address(this), _anchor.getDenomination()); //is .denomination correct?
     
     _anchor.deposit{ value: msg.value }(_commitment);

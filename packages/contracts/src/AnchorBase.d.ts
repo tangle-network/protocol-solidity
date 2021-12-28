@@ -11,6 +11,7 @@ import {
   PopulatedTransaction,
   BaseContract,
   ContractTransaction,
+  Overrides,
   PayableOverrides,
   CallOverrides,
 } from "ethers";
@@ -24,25 +25,21 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
     "FIELD_SIZE()": FunctionFragment;
     "ROOT_HISTORY_SIZE()": FunctionFragment;
     "ZERO_VALUE()": FunctionFragment;
-    "admin()": FunctionFragment;
-    "bridge()": FunctionFragment;
     "commitments(bytes32)": FunctionFragment;
     "currentNeighborRootIndex(uint256)": FunctionFragment;
     "currentRootIndex()": FunctionFragment;
-    "denomination()": FunctionFragment;
-    "deposit(bytes32)": FunctionFragment;
     "edgeExistsForChain(uint256)": FunctionFragment;
     "edgeIndex(uint256)": FunctionFragment;
     "edgeList(uint256)": FunctionFragment;
     "filledSubtrees(uint256)": FunctionFragment;
     "getChainId()": FunctionFragment;
-    "getDenomination()": FunctionFragment;
     "getLastRoot()": FunctionFragment;
     "getLatestNeighborRoots()": FunctionFragment;
-    "getToken()": FunctionFragment;
     "handler()": FunctionFragment;
+    "hasEdge(uint256)": FunctionFragment;
     "hashLeftRight(address,bytes32,bytes32)": FunctionFragment;
     "hasher()": FunctionFragment;
+    "insert(bytes32)": FunctionFragment;
     "isKnownNeighborRoot(uint256,bytes32)": FunctionFragment;
     "isKnownRoot(bytes32)": FunctionFragment;
     "isSpent(bytes32)": FunctionFragment;
@@ -54,9 +51,11 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
     "nextIndex()": FunctionFragment;
     "nullifierHashes(bytes32)": FunctionFragment;
     "roots(uint256)": FunctionFragment;
+    "setHandler(address,uint32)": FunctionFragment;
+    "setVerifier(address)": FunctionFragment;
     "unpackProof(uint256[8])": FunctionFragment;
+    "updateEdge(uint256,bytes32,uint256)": FunctionFragment;
     "verifier()": FunctionFragment;
-    "withdraw(bytes,(bytes,bytes32,bytes32,address,address,uint256,uint256))": FunctionFragment;
     "zeros(uint256)": FunctionFragment;
   };
 
@@ -72,8 +71,6 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
     functionFragment: "ZERO_VALUE",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "admin", values?: undefined): string;
-  encodeFunctionData(functionFragment: "bridge", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "commitments",
     values: [BytesLike]
@@ -86,11 +83,6 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
     functionFragment: "currentRootIndex",
     values?: undefined
   ): string;
-  encodeFunctionData(
-    functionFragment: "denomination",
-    values?: undefined
-  ): string;
-  encodeFunctionData(functionFragment: "deposit", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "edgeExistsForChain",
     values: [BigNumberish]
@@ -112,10 +104,6 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getDenomination",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "getLastRoot",
     values?: undefined
   ): string;
@@ -123,13 +111,17 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
     functionFragment: "getLatestNeighborRoots",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "getToken", values?: undefined): string;
   encodeFunctionData(functionFragment: "handler", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "hasEdge",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "hashLeftRight",
     values: [string, BytesLike, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "hasher", values?: undefined): string;
+  encodeFunctionData(functionFragment: "insert", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "isKnownNeighborRoot",
     values: [BigNumberish, BytesLike]
@@ -160,6 +152,11 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "roots", values: [BigNumberish]): string;
   encodeFunctionData(
+    functionFragment: "setHandler",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(functionFragment: "setVerifier", values: [string]): string;
+  encodeFunctionData(
     functionFragment: "unpackProof",
     values: [
       [
@@ -174,22 +171,11 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
       ]
     ]
   ): string;
-  encodeFunctionData(functionFragment: "verifier", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "withdraw",
-    values: [
-      BytesLike,
-      {
-        _roots: BytesLike;
-        _nullifierHash: BytesLike;
-        _refreshCommitment: BytesLike;
-        _recipient: string;
-        _relayer: string;
-        _fee: BigNumberish;
-        _refund: BigNumberish;
-      }
-    ]
+    functionFragment: "updateEdge",
+    values: [BigNumberish, BytesLike, BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "verifier", values?: undefined): string;
   encodeFunctionData(functionFragment: "zeros", values: [BigNumberish]): string;
 
   decodeFunctionResult(functionFragment: "FIELD_SIZE", data: BytesLike): Result;
@@ -198,8 +184,6 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "ZERO_VALUE", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "admin", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "bridge", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "commitments",
     data: BytesLike
@@ -213,11 +197,6 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "denomination",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
-  decodeFunctionResult(
     functionFragment: "edgeExistsForChain",
     data: BytesLike
   ): Result;
@@ -229,10 +208,6 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "getChainId", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "getDenomination",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "getLastRoot",
     data: BytesLike
   ): Result;
@@ -240,13 +215,14 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
     functionFragment: "getLatestNeighborRoots",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "getToken", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "handler", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "hasEdge", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "hashLeftRight",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "hasher", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "insert", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "isKnownNeighborRoot",
     data: BytesLike
@@ -276,36 +252,29 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "roots", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setHandler", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "setVerifier",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "unpackProof",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "updateEdge", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "verifier", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "zeros", data: BytesLike): Result;
 
   events: {
-    "Deposit(bytes32,uint32,uint256)": EventFragment;
     "EdgeAddition(uint256,uint256,bytes32)": EventFragment;
     "EdgeUpdate(uint256,uint256,bytes32)": EventFragment;
-    "Refresh(bytes32,bytes32,uint32)": EventFragment;
-    "Withdrawal(address,bytes32,address,uint256)": EventFragment;
+    "Insertion(bytes32,uint32,uint256)": EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "Deposit"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "EdgeAddition"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "EdgeUpdate"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Refresh"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Withdrawal"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Insertion"): EventFragment;
 }
-
-export type DepositEvent = TypedEvent<
-  [string, number, BigNumber] & {
-    commitment: string;
-    leafIndex: number;
-    timestamp: BigNumber;
-  }
->;
 
 export type EdgeAdditionEvent = TypedEvent<
   [BigNumber, BigNumber, string] & {
@@ -323,20 +292,11 @@ export type EdgeUpdateEvent = TypedEvent<
   }
 >;
 
-export type RefreshEvent = TypedEvent<
-  [string, string, number] & {
+export type InsertionEvent = TypedEvent<
+  [string, number, BigNumber] & {
     commitment: string;
-    nullifierHash: string;
-    insertedIndex: number;
-  }
->;
-
-export type WithdrawalEvent = TypedEvent<
-  [string, string, string, BigNumber] & {
-    to: string;
-    nullifierHash: string;
-    relayer: string;
-    fee: BigNumber;
+    leafIndex: number;
+    timestamp: BigNumber;
   }
 >;
 
@@ -390,10 +350,6 @@ export class AnchorBase extends BaseContract {
 
     ZERO_VALUE(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    admin(overrides?: CallOverrides): Promise<[string]>;
-
-    bridge(overrides?: CallOverrides): Promise<[string]>;
-
     commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<[boolean]>;
 
     currentNeighborRootIndex(
@@ -402,13 +358,6 @@ export class AnchorBase extends BaseContract {
     ): Promise<[number]>;
 
     currentRootIndex(overrides?: CallOverrides): Promise<[number]>;
-
-    denomination(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    deposit(
-      _commitment: BytesLike,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
 
     edgeExistsForChain(
       arg0: BigNumberish,
@@ -438,17 +387,18 @@ export class AnchorBase extends BaseContract {
 
     getChainId(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    getDenomination(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     getLastRoot(overrides?: CallOverrides): Promise<[string]>;
 
     getLatestNeighborRoots(
       overrides?: CallOverrides
     ): Promise<[string[]] & { roots: string[] }>;
 
-    getToken(overrides?: CallOverrides): Promise<[string]>;
-
     handler(overrides?: CallOverrides): Promise<[string]>;
+
+    hasEdge(
+      _chainID: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
     hashLeftRight(
       _hasher: string,
@@ -458,6 +408,11 @@ export class AnchorBase extends BaseContract {
     ): Promise<[string]>;
 
     hasher(overrides?: CallOverrides): Promise<[string]>;
+
+    insert(
+      _commitment: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     isKnownNeighborRoot(
       neighborChainID: BigNumberish,
@@ -504,6 +459,17 @@ export class AnchorBase extends BaseContract {
 
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
+    setHandler(
+      newHandler: string,
+      nonce: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setVerifier(
+      newVerifier: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     unpackProof(
       _proof: [
         BigNumberish,
@@ -524,21 +490,14 @@ export class AnchorBase extends BaseContract {
       ]
     >;
 
-    verifier(overrides?: CallOverrides): Promise<[string]>;
-
-    withdraw(
-      _proof: BytesLike,
-      _publicInputs: {
-        _roots: BytesLike;
-        _nullifierHash: BytesLike;
-        _refreshCommitment: BytesLike;
-        _recipient: string;
-        _relayer: string;
-        _fee: BigNumberish;
-        _refund: BigNumberish;
-      },
+    updateEdge(
+      sourceChainID: BigNumberish,
+      root: BytesLike,
+      leafIndex: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    verifier(overrides?: CallOverrides): Promise<[string]>;
 
     zeros(i: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
   };
@@ -549,10 +508,6 @@ export class AnchorBase extends BaseContract {
 
   ZERO_VALUE(overrides?: CallOverrides): Promise<BigNumber>;
 
-  admin(overrides?: CallOverrides): Promise<string>;
-
-  bridge(overrides?: CallOverrides): Promise<string>;
-
   commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
   currentNeighborRootIndex(
@@ -561,13 +516,6 @@ export class AnchorBase extends BaseContract {
   ): Promise<number>;
 
   currentRootIndex(overrides?: CallOverrides): Promise<number>;
-
-  denomination(overrides?: CallOverrides): Promise<BigNumber>;
-
-  deposit(
-    _commitment: BytesLike,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
 
   edgeExistsForChain(
     arg0: BigNumberish,
@@ -594,15 +542,13 @@ export class AnchorBase extends BaseContract {
 
   getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
-  getDenomination(overrides?: CallOverrides): Promise<BigNumber>;
-
   getLastRoot(overrides?: CallOverrides): Promise<string>;
 
   getLatestNeighborRoots(overrides?: CallOverrides): Promise<string[]>;
 
-  getToken(overrides?: CallOverrides): Promise<string>;
-
   handler(overrides?: CallOverrides): Promise<string>;
+
+  hasEdge(_chainID: BigNumberish, overrides?: CallOverrides): Promise<boolean>;
 
   hashLeftRight(
     _hasher: string,
@@ -612,6 +558,11 @@ export class AnchorBase extends BaseContract {
   ): Promise<string>;
 
   hasher(overrides?: CallOverrides): Promise<string>;
+
+  insert(
+    _commitment: BytesLike,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   isKnownNeighborRoot(
     neighborChainID: BigNumberish,
@@ -649,6 +600,17 @@ export class AnchorBase extends BaseContract {
 
   roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
+  setHandler(
+    newHandler: string,
+    nonce: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setVerifier(
+    newVerifier: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   unpackProof(
     _proof: [
       BigNumberish,
@@ -669,21 +631,14 @@ export class AnchorBase extends BaseContract {
     ]
   >;
 
-  verifier(overrides?: CallOverrides): Promise<string>;
-
-  withdraw(
-    _proof: BytesLike,
-    _publicInputs: {
-      _roots: BytesLike;
-      _nullifierHash: BytesLike;
-      _refreshCommitment: BytesLike;
-      _recipient: string;
-      _relayer: string;
-      _fee: BigNumberish;
-      _refund: BigNumberish;
-    },
+  updateEdge(
+    sourceChainID: BigNumberish,
+    root: BytesLike,
+    leafIndex: BigNumberish,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  verifier(overrides?: CallOverrides): Promise<string>;
 
   zeros(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
@@ -694,10 +649,6 @@ export class AnchorBase extends BaseContract {
 
     ZERO_VALUE(overrides?: CallOverrides): Promise<BigNumber>;
 
-    admin(overrides?: CallOverrides): Promise<string>;
-
-    bridge(overrides?: CallOverrides): Promise<string>;
-
     commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
     currentNeighborRootIndex(
@@ -706,10 +657,6 @@ export class AnchorBase extends BaseContract {
     ): Promise<number>;
 
     currentRootIndex(overrides?: CallOverrides): Promise<number>;
-
-    denomination(overrides?: CallOverrides): Promise<BigNumber>;
-
-    deposit(_commitment: BytesLike, overrides?: CallOverrides): Promise<void>;
 
     edgeExistsForChain(
       arg0: BigNumberish,
@@ -739,15 +686,16 @@ export class AnchorBase extends BaseContract {
 
     getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getDenomination(overrides?: CallOverrides): Promise<BigNumber>;
-
     getLastRoot(overrides?: CallOverrides): Promise<string>;
 
     getLatestNeighborRoots(overrides?: CallOverrides): Promise<string[]>;
 
-    getToken(overrides?: CallOverrides): Promise<string>;
-
     handler(overrides?: CallOverrides): Promise<string>;
+
+    hasEdge(
+      _chainID: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     hashLeftRight(
       _hasher: string,
@@ -757,6 +705,8 @@ export class AnchorBase extends BaseContract {
     ): Promise<string>;
 
     hasher(overrides?: CallOverrides): Promise<string>;
+
+    insert(_commitment: BytesLike, overrides?: CallOverrides): Promise<number>;
 
     isKnownNeighborRoot(
       neighborChainID: BigNumberish,
@@ -800,6 +750,14 @@ export class AnchorBase extends BaseContract {
 
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
+    setHandler(
+      newHandler: string,
+      nonce: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setVerifier(newVerifier: string, overrides?: CallOverrides): Promise<void>;
+
     unpackProof(
       _proof: [
         BigNumberish,
@@ -820,44 +778,19 @@ export class AnchorBase extends BaseContract {
       ]
     >;
 
-    verifier(overrides?: CallOverrides): Promise<string>;
-
-    withdraw(
-      _proof: BytesLike,
-      _publicInputs: {
-        _roots: BytesLike;
-        _nullifierHash: BytesLike;
-        _refreshCommitment: BytesLike;
-        _recipient: string;
-        _relayer: string;
-        _fee: BigNumberish;
-        _refund: BigNumberish;
-      },
+    updateEdge(
+      sourceChainID: BigNumberish,
+      root: BytesLike,
+      leafIndex: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    verifier(overrides?: CallOverrides): Promise<string>;
 
     zeros(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
-    "Deposit(bytes32,uint32,uint256)"(
-      commitment?: BytesLike | null,
-      leafIndex?: null,
-      timestamp?: null
-    ): TypedEventFilter<
-      [string, number, BigNumber],
-      { commitment: string; leafIndex: number; timestamp: BigNumber }
-    >;
-
-    Deposit(
-      commitment?: BytesLike | null,
-      leafIndex?: null,
-      timestamp?: null
-    ): TypedEventFilter<
-      [string, number, BigNumber],
-      { commitment: string; leafIndex: number; timestamp: BigNumber }
-    >;
-
     "EdgeAddition(uint256,uint256,bytes32)"(
       chainID?: null,
       latestLeafIndex?: null,
@@ -894,42 +827,22 @@ export class AnchorBase extends BaseContract {
       { chainID: BigNumber; latestLeafIndex: BigNumber; merkleRoot: string }
     >;
 
-    "Refresh(bytes32,bytes32,uint32)"(
+    "Insertion(bytes32,uint32,uint256)"(
       commitment?: BytesLike | null,
-      nullifierHash?: null,
-      insertedIndex?: null
+      leafIndex?: null,
+      timestamp?: null
     ): TypedEventFilter<
-      [string, string, number],
-      { commitment: string; nullifierHash: string; insertedIndex: number }
+      [string, number, BigNumber],
+      { commitment: string; leafIndex: number; timestamp: BigNumber }
     >;
 
-    Refresh(
+    Insertion(
       commitment?: BytesLike | null,
-      nullifierHash?: null,
-      insertedIndex?: null
+      leafIndex?: null,
+      timestamp?: null
     ): TypedEventFilter<
-      [string, string, number],
-      { commitment: string; nullifierHash: string; insertedIndex: number }
-    >;
-
-    "Withdrawal(address,bytes32,address,uint256)"(
-      to?: null,
-      nullifierHash?: null,
-      relayer?: string | null,
-      fee?: null
-    ): TypedEventFilter<
-      [string, string, string, BigNumber],
-      { to: string; nullifierHash: string; relayer: string; fee: BigNumber }
-    >;
-
-    Withdrawal(
-      to?: null,
-      nullifierHash?: null,
-      relayer?: string | null,
-      fee?: null
-    ): TypedEventFilter<
-      [string, string, string, BigNumber],
-      { to: string; nullifierHash: string; relayer: string; fee: BigNumber }
+      [string, number, BigNumber],
+      { commitment: string; leafIndex: number; timestamp: BigNumber }
     >;
   };
 
@@ -940,10 +853,6 @@ export class AnchorBase extends BaseContract {
 
     ZERO_VALUE(overrides?: CallOverrides): Promise<BigNumber>;
 
-    admin(overrides?: CallOverrides): Promise<BigNumber>;
-
-    bridge(overrides?: CallOverrides): Promise<BigNumber>;
-
     commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
     currentNeighborRootIndex(
@@ -952,13 +861,6 @@ export class AnchorBase extends BaseContract {
     ): Promise<BigNumber>;
 
     currentRootIndex(overrides?: CallOverrides): Promise<BigNumber>;
-
-    denomination(overrides?: CallOverrides): Promise<BigNumber>;
-
-    deposit(
-      _commitment: BytesLike,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
 
     edgeExistsForChain(
       arg0: BigNumberish,
@@ -979,15 +881,16 @@ export class AnchorBase extends BaseContract {
 
     getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getDenomination(overrides?: CallOverrides): Promise<BigNumber>;
-
     getLastRoot(overrides?: CallOverrides): Promise<BigNumber>;
 
     getLatestNeighborRoots(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getToken(overrides?: CallOverrides): Promise<BigNumber>;
-
     handler(overrides?: CallOverrides): Promise<BigNumber>;
+
+    hasEdge(
+      _chainID: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     hashLeftRight(
       _hasher: string,
@@ -997,6 +900,11 @@ export class AnchorBase extends BaseContract {
     ): Promise<BigNumber>;
 
     hasher(overrides?: CallOverrides): Promise<BigNumber>;
+
+    insert(
+      _commitment: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     isKnownNeighborRoot(
       neighborChainID: BigNumberish,
@@ -1043,6 +951,17 @@ export class AnchorBase extends BaseContract {
 
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
+    setHandler(
+      newHandler: string,
+      nonce: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setVerifier(
+      newVerifier: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     unpackProof(
       _proof: [
         BigNumberish,
@@ -1057,21 +976,14 @@ export class AnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    verifier(overrides?: CallOverrides): Promise<BigNumber>;
-
-    withdraw(
-      _proof: BytesLike,
-      _publicInputs: {
-        _roots: BytesLike;
-        _nullifierHash: BytesLike;
-        _refreshCommitment: BytesLike;
-        _recipient: string;
-        _relayer: string;
-        _fee: BigNumberish;
-        _refund: BigNumberish;
-      },
+    updateEdge(
+      sourceChainID: BigNumberish,
+      root: BytesLike,
+      leafIndex: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    verifier(overrides?: CallOverrides): Promise<BigNumber>;
 
     zeros(i: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
   };
@@ -1082,10 +994,6 @@ export class AnchorBase extends BaseContract {
     ROOT_HISTORY_SIZE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     ZERO_VALUE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    admin(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    bridge(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     commitments(
       arg0: BytesLike,
@@ -1098,13 +1006,6 @@ export class AnchorBase extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     currentRootIndex(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    denomination(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    deposit(
-      _commitment: BytesLike,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
 
     edgeExistsForChain(
       arg0: BigNumberish,
@@ -1128,17 +1029,18 @@ export class AnchorBase extends BaseContract {
 
     getChainId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    getDenomination(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     getLastRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getLatestNeighborRoots(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     handler(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    hasEdge(
+      _chainID: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     hashLeftRight(
       _hasher: string,
@@ -1148,6 +1050,11 @@ export class AnchorBase extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     hasher(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    insert(
+      _commitment: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     isKnownNeighborRoot(
       neighborChainID: BigNumberish,
@@ -1197,6 +1104,17 @@ export class AnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    setHandler(
+      newHandler: string,
+      nonce: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setVerifier(
+      newVerifier: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     unpackProof(
       _proof: [
         BigNumberish,
@@ -1211,21 +1129,14 @@ export class AnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    verifier(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    withdraw(
-      _proof: BytesLike,
-      _publicInputs: {
-        _roots: BytesLike;
-        _nullifierHash: BytesLike;
-        _refreshCommitment: BytesLike;
-        _recipient: string;
-        _relayer: string;
-        _fee: BigNumberish;
-        _refund: BigNumberish;
-      },
+    updateEdge(
+      sourceChainID: BigNumberish,
+      root: BytesLike,
+      leafIndex: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    verifier(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     zeros(
       i: BigNumberish,

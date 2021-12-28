@@ -5,12 +5,14 @@
 
 pragma solidity ^0.8.0;
 
-import "../../trees/MerkleTreePoseidon.sol";
-import "../../interfaces/IVerifier.sol";
+import "../trees/MerkleTreePoseidon.sol";
+import "../interfaces/IAnchorVerifier.sol";
+import "../interfaces/ILinkableAnchor.sol";
 import "./LinkableTree.sol";
 
-abstract contract AnchorBaseV2 is LinkableTree {
-  IVerifier public immutable verifier;
+abstract contract AnchorBase is LinkableTree {
+  IAnchorVerifier public verifier;
+  uint32 proposalNonce = 0;
 
   // map to store used nullifier hashes
   mapping(bytes32 => bool) public nullifierHashes;
@@ -26,11 +28,12 @@ abstract contract AnchorBaseV2 is LinkableTree {
     @param _merkleTreeHeight the height of deposits' Merkle Tree
   */
   constructor(
-    IVerifier _verifier,
+    address _handler,
+    IAnchorVerifier _verifier,
     IPoseidonT3 _hasher,
     uint32 _merkleTreeHeight,
     uint8 _maxEdges
-  ) LinkableTree(_hasher, _merkleTreeHeight, _maxEdges) {
+  ) LinkableTree(_handler, _hasher, _merkleTreeHeight, _maxEdges) {
     verifier = _verifier;
   }
 
@@ -38,7 +41,7 @@ abstract contract AnchorBaseV2 is LinkableTree {
     @dev Inserts a commitment into the tree
     @param _commitment the note commitment = Poseidon(chainId, nullifier, secret)
   */
-  function insert(bytes32 _commitment) external payable nonReentrant {
+  function insert(bytes32 _commitment) public payable nonReentrant returns(uint32) {
     require(!commitments[_commitment], "The commitment has been submitted");
 
     uint32 insertedIndex = _insert(_commitment);
@@ -46,6 +49,8 @@ abstract contract AnchorBaseV2 is LinkableTree {
     _processInsertion();
 
     emit Insertion(_commitment, insertedIndex, block.timestamp);
+
+    return insertedIndex;
   }
 
   /** @dev this function is defined in a child contract */
@@ -64,7 +69,8 @@ abstract contract AnchorBaseV2 is LinkableTree {
     r = verifier.verifyProof(
       a, b, c,
       _input,
-      maxEdges
+      maxEdges,
+      true
     );
     require(r, "Invalid withdraw proof");
     return r;
@@ -89,5 +95,32 @@ abstract contract AnchorBaseV2 is LinkableTree {
       ],
       [_proof[6], _proof[7]]
     );
+  }
+
+  /** @dev whether a note is already spent */
+  function isSpent(bytes32 _nullifierHash) public view returns (bool) {
+    return nullifierHashes[_nullifierHash];
+  }
+
+  /** @dev whether an array of notes is already spent */
+  function isSpentArray(bytes32[] calldata _nullifierHashes) external view returns (bool[] memory spent) {
+    spent = new bool[](_nullifierHashes.length);
+    for (uint256 i = 0; i < _nullifierHashes.length; i++) {
+      if (isSpent(_nullifierHashes[i])) {
+        spent[i] = true;
+      }
+    }
+  }
+
+  function setHandler(address newHandler, uint32 nonce) onlyHandler external {
+    require(newHandler != address(0), "Handler cannot be 0");
+    require(proposalNonce < nonce, "Invalid nonce");
+    require(nonce <= proposalNonce + 1, "Nonce must increment by 1");
+    handler = newHandler;
+  }
+
+  function setVerifier(address newVerifier) onlyHandler external {
+    require(newVerifier != address(0), "Handler cannot be 0");
+    verifier = IAnchorVerifier(newVerifier);
   }
 }

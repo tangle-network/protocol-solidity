@@ -10,7 +10,7 @@ const Helpers = require('../helpers');
 
 const BridgeContract = artifacts.require("Bridge");
 const AnchorHandlerContract = artifacts.require("AnchorHandler");
-const Anchor = artifacts.require("Anchor");
+const Anchor = artifacts.require("FixedDepositAnchor");
 const Hasher = artifacts.require("PoseidonT3");
 const Verifier = artifacts.require('Verifier');
 const Verifier2 = artifacts.require('Verifier2');
@@ -76,14 +76,12 @@ contract('Bridge - [create a update proposal (voteProposal) with relayerThreshol
       v6.address
     );
     AnchorInstance = await Anchor.new(
+      sender,
+      token.address,
       verifier.address,
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      token.address,
-      sender,
-      sender,
-      sender,
       MAX_EDGES,
     );
     
@@ -262,14 +260,12 @@ contract('Bridge - [create an update proposal (voteProposal) with relayerThresho
     );
 
     AnchorInstance = await Anchor.new(
+      sender,
+      token.address,
       verifier.address,
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      token.address,
-      sender,
-      sender,
-      sender,
       MAX_EDGES,
     );
 

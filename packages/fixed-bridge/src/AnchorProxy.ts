@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { AnchorProxy as AnchorProxyContract, AnchorProxy__factory } from '@webb-tools/contracts';
-import { WithdrawalEvent, RefreshEvent } from '@webb-tools/contracts/src/AnchorBase';
+import { WithdrawalEvent, RefreshEvent } from '@webb-tools/contracts/src/FixedDepositAnchor';
 import { Anchor } from './Anchor';
 import { AnchorDepositInfo } from './types';
 import { toFixedHex } from "@webb-tools/utils";

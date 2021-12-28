@@ -75,7 +75,6 @@ export class VBridgeSide {
     await this.contract.adminSetResource(this.handler.contract.address, resourceId, anchor.contract.address);
     // await this.handler.setResource(resourceId, anchor.contract.address); covered in above call
     await anchor.setHandler(this.handler.contract.address);
-    await anchor.setBridge(this.contract.address);
 
     return resourceId;
   }

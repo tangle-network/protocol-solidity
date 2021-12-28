@@ -117,13 +117,14 @@ export class SignatureBridge {
   }
 
   public static async deployBridge(bridgeInput: BridgeInput, deployers: DeployerConfig, zkComponents: ZkComponents): Promise<SignatureBridge> {
-    
     let webbTokenAddresses: Map<number, string> = new Map();
     let bridgeSides: Map<number, SignatureBridgeSide> = new Map();
     let anchors: Map<string, Anchor> = new Map();
     // createdAnchors have the form of [[Anchors created on chainID], [...]]
     // and anchors in the subArrays of thhe same index should be linked together
     let createdAnchors: Anchor[][] = [];
+
+    
 
     for (let chainID of bridgeInput.chainIDs) {
       const adminAddress = await deployers[chainID].getAddress();
@@ -135,6 +136,9 @@ export class SignatureBridge {
         100,
         deployers[chainID],
       );
+
+      const handler = await AnchorHandler.createAnchorHandler(bridgeInstance.contract.address, [],[], bridgeInstance.admin);
+      await bridgeInstance.setAnchorHandler(handler);
 
       bridgeSides.set(chainID, bridgeInstance);
       console.log(`bridgeSide address on ${chainID}: ${bridgeInstance.contract.address}`);
@@ -184,6 +188,7 @@ export class SignatureBridge {
       
       let chainGroupedAnchors: Anchor[] = [];
 
+      //
       // loop through all the anchor sizes on the token
       for (let anchorSize of bridgeInput.anchorInputs.anchorSizes) {
         const anchorInstance = await Anchor.createAnchor(
@@ -192,9 +197,8 @@ export class SignatureBridge {
           anchorSize,
           30,
           tokenInstance.contract.address,
-          adminAddress,
-          adminAddress,
-          adminAddress,
+          // TODO: Replace with anchor handler address
+          handler.contract.address,
           bridgeInput.chainIDs.length-1,
           zkComponents,
           deployers[chainID]
@@ -211,7 +215,6 @@ export class SignatureBridge {
           anchorInstance
         );
       }
-
       await SignatureBridge.setPermissions(bridgeInstance, chainGroupedAnchors);
       createdAnchors.push(chainGroupedAnchors);
     }
@@ -235,18 +238,11 @@ export class SignatureBridge {
 
   // The setPermissions method accepts initialized bridgeSide and anchors.
   // it creates the anchor handler and sets the appropriate permissions
-  // for the bridgeSide/anchorHandler/anchor
+  // for the bridgeSide/AnchorHandler/anchor
   public static async setPermissions(bridgeSide: SignatureBridgeSide, anchors: Anchor[]): Promise<void> {
-
-    let resourceIDs: string[] = [];
-    let anchorAddresses: string[] = [];
     for (let anchor of anchors) {
-      resourceIDs.push(await anchor.createResourceId());
-      anchorAddresses.push(anchor.contract.address);
+      await bridgeSide.setResourceWithSignature(anchor);
     }
-
-    const handler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, resourceIDs, anchorAddresses, bridgeSide.admin);
-    await bridgeSide.setAnchorHandler(handler);
     
     for (let anchor of anchors) {
       await bridgeSide.connectAnchorWithSignature(anchor);

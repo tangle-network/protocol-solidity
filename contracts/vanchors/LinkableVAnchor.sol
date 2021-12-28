@@ -9,8 +9,10 @@ import "./VAnchorBase.sol";
 import "../interfaces/ILinkableAnchor.sol";
 
 abstract contract LinkableVAnchor is VAnchorBase, ILinkableAnchor {
+  uint32 proposalNonce = 0;
+
   constructor(
-    IVAnchorVerifier _verifier,
+    IAnchorVerifier _verifier,
     uint32 _levels,
     address _hasher,
     PermissionedAccounts memory _permissions,
@@ -19,21 +21,21 @@ abstract contract LinkableVAnchor is VAnchorBase, ILinkableAnchor {
     _verifier,
     _levels,
     _hasher,
-    _permissions,
     _maxEdges
   ) {
     permissions = _permissions;
   }
 
-  function setHandler(address _handler) onlyBridge override external {
+  function setVerifier(address newVerifier) onlyHandler override external {
+    require(newVerifier != address(0), "Handler cannot be 0");
+    verifier = IAnchorVerifier(newVerifier);
+  }
+
+  function setHandler(address _handler, uint32 nonce) onlyHandler override external {
     permissions.handler = _handler;
   }
 
-  function setBridge(address _bridge) onlyAdmin override external {
-    permissions.bridge = _bridge;
-  }
-
-  function hasEdge(uint256 _chainID) override external view returns (bool) {
+  function hasEdge(uint256 _chainID) external view returns (bool) {
     return edgeExistsForChain[_chainID];
   }
 

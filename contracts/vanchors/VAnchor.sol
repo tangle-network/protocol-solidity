@@ -18,7 +18,7 @@ contract VAnchor is LinkableVAnchor {
   address public immutable token;
 
   constructor(
-    IVAnchorVerifier _verifier,
+    IAnchorVerifier _verifier,
     uint32 _levels,
     address _hasher,
     address _token,
@@ -175,5 +175,9 @@ contract VAnchor is LinkableVAnchor {
         IMintableERC20(token).mint(_relayer, _fee);
       }
     }
+  }
+
+  function getProposalNonce() public view returns (uint32) {
+    return proposalNonce;
   }
 }

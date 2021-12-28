@@ -53,8 +53,6 @@ describe('BridgeSideConstruction', () => {
       30,
       tokenInstance.contract.address,
       admin.address,
-      admin.address,
-      admin.address,
       5,
       zkComponents,
       admin

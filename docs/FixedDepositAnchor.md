@@ -1,4 +1,4 @@
-# AnchorBase
+# FixedDepositAnchor
 
 
 
@@ -122,6 +122,39 @@ function currentRootIndex() external view returns (uint32)
 |---|---|---|
 | _0 | uint32 | undefined
 
+### denomination
+
+```solidity
+function denomination() external view returns (uint256)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
+### deposit
+
+```solidity
+function deposit(bytes32 _commitment) external payable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _commitment | bytes32 | undefined
+
 ### edgeExistsForChain
 
 ```solidity
@@ -229,6 +262,23 @@ function getChainId() external view returns (uint256)
 |---|---|---|
 | _0 | uint256 | undefined
 
+### getDenomination
+
+```solidity
+function getDenomination() external view returns (uint256)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
 ### getLastRoot
 
 ```solidity
@@ -262,6 +312,40 @@ function getLatestNeighborRoots() external view returns (bytes32[] roots)
 | Name | Type | Description |
 |---|---|---|
 | roots | bytes32[] | undefined
+
+### getProposalNonce
+
+```solidity
+function getProposalNonce() external view returns (uint32)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint32 | undefined
+
+### getToken
+
+```solidity
+function getToken() external view returns (address)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined
 
 ### handler
 
@@ -627,6 +711,23 @@ function setVerifier(address newVerifier) external nonpayable
 |---|---|---|
 | newVerifier | address | undefined
 
+### token
+
+```solidity
+function token() external view returns (address)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined
+
 ### unpackProof
 
 ```solidity
@@ -650,6 +751,40 @@ function unpackProof(uint256[8] _proof) external pure returns (uint256[2], uint2
 | _0 | uint256[2] | undefined
 | _1 | uint256[2][2] | undefined
 | _2 | uint256[2] | undefined
+
+### unwrapIntoNative
+
+```solidity
+function unwrapIntoNative(address tokenAddress, uint256 amount) external nonpayable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| tokenAddress | address | undefined
+| amount | uint256 | undefined
+
+### unwrapIntoToken
+
+```solidity
+function unwrapIntoToken(address tokenAddress, uint256 amount) external nonpayable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| tokenAddress | address | undefined
+| amount | uint256 | undefined
 
 ### updateEdge
 
@@ -686,6 +821,86 @@ function verifier() external view returns (contract IAnchorVerifier)
 |---|---|---|
 | _0 | contract IAnchorVerifier | undefined
 
+### withdraw
+
+```solidity
+function withdraw(bytes _proof, IFixedDepositAnchor.PublicInputs _publicInputs) external payable
+```
+
+
+
+*Withdraw a deposit from the contract. `proof` is a zkSNARK proof data, and input is an array of circuit public inputs `input` array consists of: - merkle root of all deposits in the contract - hash of unique deposit nullifier to prevent double spends - the recipient of funds - optional fee that goes to the transaction sender (usually a relay)*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _proof | bytes | undefined
+| _publicInputs | IFixedDepositAnchor.PublicInputs | undefined
+
+### withdrawAndUnwrap
+
+```solidity
+function withdrawAndUnwrap(bytes _proof, IFixedDepositAnchor.PublicInputs _publicInputs, address tokenAddress) external payable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _proof | bytes | undefined
+| _publicInputs | IFixedDepositAnchor.PublicInputs | undefined
+| tokenAddress | address | undefined
+
+### wrapAndDeposit
+
+```solidity
+function wrapAndDeposit(address tokenAddress, bytes32 _commitment) external payable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| tokenAddress | address | undefined
+| _commitment | bytes32 | undefined
+
+### wrapNative
+
+```solidity
+function wrapNative() external payable
+```
+
+
+
+
+
+
+### wrapToken
+
+```solidity
+function wrapToken(address tokenAddress, uint256 amount) external nonpayable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| tokenAddress | address | undefined
+| amount | uint256 | undefined
+
 ### zeros
 
 ```solidity
@@ -711,6 +926,25 @@ function zeros(uint256 i) external pure returns (bytes32)
 
 
 ## Events
+
+### Deposit
+
+```solidity
+event Deposit(address sender, uint32 indexed leafIndex, bytes32 indexed commitment, uint256 timestamp)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| sender  | address | undefined |
+| leafIndex `indexed` | uint32 | undefined |
+| commitment `indexed` | bytes32 | undefined |
+| timestamp  | uint256 | undefined |
 
 ### EdgeAddition
 
@@ -765,6 +999,43 @@ event Insertion(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp)
 | commitment `indexed` | bytes32 | undefined |
 | leafIndex  | uint32 | undefined |
 | timestamp  | uint256 | undefined |
+
+### Refresh
+
+```solidity
+event Refresh(bytes32 indexed commitment, bytes32 nullifierHash, uint32 insertedIndex)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| commitment `indexed` | bytes32 | undefined |
+| nullifierHash  | bytes32 | undefined |
+| insertedIndex  | uint32 | undefined |
+
+### Withdrawal
+
+```solidity
+event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uint256 fee)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| to  | address | undefined |
+| nullifierHash  | bytes32 | undefined |
+| relayer `indexed` | address | undefined |
+| fee  | uint256 | undefined |
 
 
 

@@ -688,26 +688,10 @@ function roots(uint256) external view returns (bytes32)
 |---|---|---|
 | _0 | bytes32 | undefined
 
-### setBridge
-
-```solidity
-function setBridge(address _bridge) external nonpayable
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _bridge | address | undefined
-
 ### setHandler
 
 ```solidity
-function setHandler(address _handler) external nonpayable
+function setHandler(address _handler, uint32 nonce) external nonpayable
 ```
 
 
@@ -719,6 +703,23 @@ function setHandler(address _handler) external nonpayable
 | Name | Type | Description |
 |---|---|---|
 | _handler | address | undefined
+| nonce | uint32 | undefined
+
+### setVerifier
+
+```solidity
+function setVerifier(address newVerifier) external nonpayable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newVerifier | address | undefined
 
 ### transact
 
@@ -782,7 +783,7 @@ function updateEdge(uint256 sourceChainID, bytes32 root, uint256 leafIndex) exte
 ### verifier
 
 ```solidity
-function verifier() external view returns (contract IVAnchorVerifier)
+function verifier() external view returns (contract IAnchorVerifier)
 ```
 
 
@@ -794,7 +795,7 @@ function verifier() external view returns (contract IVAnchorVerifier)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | contract IVAnchorVerifier | undefined
+| _0 | contract IAnchorVerifier | undefined
 
 ### zeros
 

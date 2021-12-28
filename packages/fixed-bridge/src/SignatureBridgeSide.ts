@@ -70,6 +70,12 @@ export class SignatureBridgeSide {
     return proposalData;
   }
 
+  public async createHandlerUpdateProposalData(anchor: Anchor, newHandler: string) {
+    const proposalData = await anchor.getHandlerProposalData(newHandler);
+    return proposalData;
+  }
+
+
   /**
    * Creates the proposal data for updating the wrapping fee
    * of a governed token wrapper.
@@ -83,6 +89,7 @@ export class SignatureBridgeSide {
     return proposalData;
   }
 
+ 
   public async createAddTokenUpdateProposalData(governedToken: GovernedTokenWrapper, tokenAddress: string) {
     const proposalData = await governedToken.getAddTokenProposalData(tokenAddress);
     return proposalData;
@@ -105,8 +112,7 @@ export class SignatureBridgeSide {
   // Returns the resourceID used to connect them all
   public async connectAnchorWithSignature(anchor: Anchor): Promise<string> {
     const resourceId = await this.setResourceWithSignature(anchor);
-    await anchor.setHandler(this.handler.contract.address);
-    await anchor.setBridge(this.contract.address);
+    await this.executeHandlerProposalWithSig(anchor, this.handler.contract.address);
 
     return resourceId;
   }
@@ -137,6 +143,16 @@ export class SignatureBridgeSide {
     return resourceId;
   }
 
+  public async executeHandlerProposalWithSig(anchor: Anchor, newHandler: string) {
+    const proposalData = await this.createHandlerUpdateProposalData(anchor, newHandler);
+    const proposalMsg = ethers.utils.arrayify(ethers.utils.keccak256(proposalData).toString());
+    const sig = await this.signingSystemSignFn(proposalMsg);
+    const tx = await this.contract.executeProposalWithSignature(proposalData, sig);
+    const receipt = await tx.wait();
+    
+    return receipt;
+  }
+
   // emit ProposalEvent(chainID, nonce, ProposalStatus.Executed, dataHash);
   public async executeAnchorProposalWithSig(srcAnchor: Anchor, executionResourceID: string) {
     if (!this.handler) {
@@ -151,6 +167,7 @@ export class SignatureBridgeSide {
     
     return receipt;
   }
+
 
   public async executeFeeProposalWithSig(governedToken: GovernedTokenWrapper, fee: number) {
     if (!this.handler) {

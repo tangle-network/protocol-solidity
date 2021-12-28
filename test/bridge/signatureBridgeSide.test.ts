@@ -15,7 +15,6 @@
  import { PoseidonT3__factory } from '../../typechain';
  import { GovernedTokenWrapper } from '../../packages/tokens/src/GovernedTokenWrapper';
  import { TokenWrapperHandler } from '../../packages/tokens/src/TokenWrapperHandler';
- //import { AnchorHandler as AnchorHandlerContract } from '@webb-tools/contracts';
  
  
  describe('SignatureBridgeSideConstruction', () => {
@@ -61,9 +60,7 @@
       '1000000000000',
       30,
       tokenInstance.contract.address,
-      admin.address,
-      admin.address,
-      admin.address,
+      anchorHandler.contract.address,
       5,
       zkComponents,
       admin
@@ -72,7 +69,7 @@
     await tokenInstance.approveSpending(anchor.contract.address);
 
     await bridgeSide.setAnchorHandler(anchorHandler);
-    //Function call below sets resource with signature
+    // //Function call below sets resource with signature
     await bridgeSide.connectAnchorWithSignature(anchor);
   })
  
@@ -100,9 +97,7 @@
       '1000000000000',
       30,
       tokenInstance.contract.address,
-      admin.address,
-      admin.address,
-      admin.address,
+      anchorHandler.contract.address,
       5,
       zkComponents,
       admin
@@ -114,8 +109,6 @@
       '1000000000000',
       30,
       tokenInstance.contract.address,
-      bridgeSide.contract.address,
-      admin.address,
       anchorHandler.contract.address,
       5,
       zkComponents,

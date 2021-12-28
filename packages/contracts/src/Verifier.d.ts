@@ -25,7 +25,7 @@ interface VerifierInterface extends ethers.utils.Interface {
     "v4()": FunctionFragment;
     "v5()": FunctionFragment;
     "v6()": FunctionFragment;
-    "verifyProof(uint256[2],uint256[2][2],uint256[2],bytes,uint8)": FunctionFragment;
+    "verifyProof(uint256[2],uint256[2][2],uint256[2],bytes,uint8,bool)": FunctionFragment;
   };
 
   encodeFunctionData(functionFragment: "v2", values?: undefined): string;
@@ -40,7 +40,8 @@ interface VerifierInterface extends ethers.utils.Interface {
       [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]],
       [BigNumberish, BigNumberish],
       BytesLike,
-      BigNumberish
+      BigNumberish,
+      boolean
     ]
   ): string;
 
@@ -117,6 +118,7 @@ export class Verifier extends BaseContract {
       c: [BigNumberish, BigNumberish],
       input: BytesLike,
       maxEdges: BigNumberish,
+      _unused: boolean,
       overrides?: CallOverrides
     ): Promise<[boolean] & { r: boolean }>;
   };
@@ -137,6 +139,7 @@ export class Verifier extends BaseContract {
     c: [BigNumberish, BigNumberish],
     input: BytesLike,
     maxEdges: BigNumberish,
+    _unused: boolean,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
@@ -157,6 +160,7 @@ export class Verifier extends BaseContract {
       c: [BigNumberish, BigNumberish],
       input: BytesLike,
       maxEdges: BigNumberish,
+      _unused: boolean,
       overrides?: CallOverrides
     ): Promise<boolean>;
   };
@@ -180,6 +184,7 @@ export class Verifier extends BaseContract {
       c: [BigNumberish, BigNumberish],
       input: BytesLike,
       maxEdges: BigNumberish,
+      _unused: boolean,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
@@ -201,6 +206,7 @@ export class Verifier extends BaseContract {
       c: [BigNumberish, BigNumberish],
       input: BytesLike,
       maxEdges: BigNumberish,
+      _unused: boolean,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };

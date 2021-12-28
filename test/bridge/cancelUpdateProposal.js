@@ -10,7 +10,7 @@ const Helpers = require('../helpers');
 
 const BridgeContract = artifacts.require("Bridge");
 const AnchorHandlerContract = artifacts.require("AnchorHandler");
-const AnchorContract = artifacts.require("Anchor");
+const AnchorContract = artifacts.require("FixedDepositAnchor");
 const Hasher = artifacts.require("PoseidonT3");
 const Verifier = artifacts.require('Verifier');
 const Verifier2 = artifacts.require('Verifier2');
@@ -81,14 +81,12 @@ contract('Bridge - [CancelUpdateProposal with relayerThreshold == 3]', async (ac
     );
 
     AnchorInstance = await AnchorContract.new(
+      sender,
+      token.address,
       verifier.address,
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      token.address,
-      accounts[0],
-      accounts[0],
-      accounts[0],
       MAX_EDGES,
     );
 

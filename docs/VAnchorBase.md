@@ -710,7 +710,7 @@ function unpackProof(uint256[8] _proof) external pure returns (uint256[2], uint2
 ### verifier
 
 ```solidity
-function verifier() external view returns (contract IVAnchorVerifier)
+function verifier() external view returns (contract IAnchorVerifier)
 ```
 
 
@@ -722,7 +722,7 @@ function verifier() external view returns (contract IVAnchorVerifier)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | contract IVAnchorVerifier | undefined
+| _0 | contract IAnchorVerifier | undefined
 
 ### zeros
 

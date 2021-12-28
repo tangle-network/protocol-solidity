@@ -831,11 +831,16 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "_bridge",
+        name: "_handler",
         type: "address",
       },
+      {
+        internalType: "uint32",
+        name: "nonce",
+        type: "uint32",
+      },
     ],
-    name: "setBridge",
+    name: "setHandler",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -844,11 +849,11 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "_handler",
+        name: "newVerifier",
         type: "address",
       },
     ],
-    name: "setHandler",
+    name: "setVerifier",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -992,7 +997,7 @@ const _abi = [
     name: "verifier",
     outputs: [
       {
-        internalType: "contract IVAnchorVerifier",
+        internalType: "contract IAnchorVerifier",
         name: "",
         type: "address",
       },
