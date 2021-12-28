@@ -210,7 +210,7 @@ describe('multichain tests for erc20 bridges', () => {
       assert.deepStrictEqual(destAnchorEdge2After.root, destAnchorEdge3After.root);
     });
 
-    it.skip('create 2 side bridge for multiple tokens', async () => {
+    it.only('create 2 side bridge for multiple tokens', async () => {
       bridge2WebbEthInput = {
         anchorInputs: {
           asset: {
@@ -223,7 +223,7 @@ describe('multichain tests for erc20 bridges', () => {
       };
     });
 
-    it.skip('create 2 side bridge for native and erc20 token', async () => {
+    it.only('create 2 side bridge for native and erc20 token', async () => {
       bridge2WebbEthInput = {
         anchorInputs: {
           asset: {
