@@ -164,7 +164,7 @@ contract VAnchor is VAnchorBase {
     }
     require(uint256(_args.extDataHash) == uint256(keccak256(abi.encode(_extData))) % FIELD_SIZE, "Incorrect external data hash");
     require(_args.publicAmount == calculatePublicAmount(_extData.extAmount, _extData.fee), "Invalid public amount");
-    require(_executeVerification(_args), "Invalid transaction proof");
+    _executeVerification(_args);
 
     for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
       // sets the nullifier for the input UTXO to spent
@@ -172,7 +172,7 @@ contract VAnchor is VAnchorBase {
     }
   }
 
-  function _executeVerification(VAnchorEncodeInputs.Proof memory _args) internal returns (bool) {
+  function _executeVerification(VAnchorEncodeInputs.Proof memory _args) view internal {
     if (_args.inputNullifiers.length == 2) {
       (bytes memory encodedInput, bytes32[] memory roots) = VAnchorEncodeInputs._encodeInputs2(_args, maxEdges);
       require(isValidRoots(roots), "Invalid roots");
