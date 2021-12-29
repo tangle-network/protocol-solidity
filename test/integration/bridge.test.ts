@@ -31,7 +31,7 @@ function startGanacheServer(port: number, networkId: number, mnemonic: string) {
   });
 
   ganacheServer.listen(port);
-  console.log(`Ganache Started on http://127.0.0.1:${port} ..`);
+  //console.log(`Ganache Started on http://127.0.0.1:${port} ..`);
 
   return ganacheServer;
 }

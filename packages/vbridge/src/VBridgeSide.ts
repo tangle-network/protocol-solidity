@@ -83,7 +83,6 @@ export class VBridgeSide {
 
     const resourceId = await anchor.createResourceId();
     await this.contract.adminSetResource(this.handler.contract.address, resourceId, anchor.contract.address);
-    console.log(resourceId, this.handler.contract.address);
     await this.voteHandlerProposal(anchor, this.handler.contract.address);
     await this.executeHandlerProposal(anchor, this.handler.contract.address);
 

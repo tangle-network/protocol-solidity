@@ -140,7 +140,7 @@ export class Bridge {
       await bridgeInstance.setAnchorHandler(handler);
 
       bridgeSides.set(chainID, bridgeInstance);
-      console.log(`bridgeSide address on ${chainID}: ${bridgeInstance.contract.address}`);
+      //(`bridgeSide address on ${chainID}: ${bridgeInstance.contract.address}`);
 
       // Create the Hasher and Verifier for the chain
       const hasherFactory = new PoseidonT3__factory(deployers[chainID]);
@@ -168,7 +168,7 @@ export class Bridge {
         deployers[chainID],
       );
       
-      console.log(`created GovernedTokenWrapper on ${chainID}: ${tokenInstance.contract.address}`);
+      //console.log(`created GovernedTokenWrapper on ${chainID}: ${tokenInstance.contract.address}`);
 
       // Add all token addresses to the governed token instance.
       for (const tokenToBeWrapped of bridgeInput.anchorInputs.asset[chainID]!) {
@@ -202,7 +202,7 @@ export class Bridge {
           deployers[chainID]
         );
 
-        console.log(`createdAnchor: ${anchorInstance.contract.address}`);
+        //console.log(`createdAnchor: ${anchorInstance.contract.address}`);
 
         // grant minting rights to the anchor
         await tokenInstance.grantMinterRole(anchorInstance.contract.address); 

@@ -188,7 +188,7 @@ export class VBridge {
       await vBridgeInstance.setAnchorHandler(handler);
 
       vBridgeSides.set(chainID, vBridgeInstance);
-      console.log(`vBridgeSide address on ${chainID}: ${vBridgeInstance.contract.address}`);
+      //console.log(`vBridgeSide address on ${chainID}: ${vBridgeInstance.contract.address}`);
 
       // Create the Hasher and Verifier for the chain
       const hasherFactory = new PoseidonT3__factory(deployers[chainID]);
@@ -221,7 +221,7 @@ export class VBridge {
       }
 
       
-      console.log(`created GovernedTokenWrapper on ${chainID}: ${tokenInstance?.contract.address}`);
+      //console.log(`created GovernedTokenWrapper on ${chainID}: ${tokenInstance?.contract.address}`);
 
       // Add all token addresses to the governed token instance.
       for (const tokenToBeWrapped of vBridgeInput.vAnchorInputs.asset[chainID]!) {
@@ -252,7 +252,7 @@ export class VBridge {
           deployers[chainID]
       );
 
-      console.log(`createdVAnchor: ${vAnchorInstance.contract.address}`);
+      //console.log(`createdVAnchor: ${vAnchorInstance.contract.address}`);
 
       // grant minting rights to the anchor
       await tokenInstance?.grantMinterRole(vAnchorInstance.contract.address); 
