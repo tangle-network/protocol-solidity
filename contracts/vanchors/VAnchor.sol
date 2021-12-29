@@ -158,7 +158,7 @@ contract VAnchor is VAnchorBase {
     _executeInsertions(_args, _extData);
   }
 
-  function _executeValidationAndVerification(VAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) internal returns (bool) {
+  function _executeValidationAndVerification(VAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) internal {
     for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
       require(!isSpent(_args.inputNullifiers[i]), "Input is already spent");
     }
