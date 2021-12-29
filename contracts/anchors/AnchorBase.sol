@@ -46,15 +46,10 @@ abstract contract AnchorBase is LinkableTree {
 
     uint32 insertedIndex = _insert(_commitment);
     commitments[_commitment] = true;
-    _processInsertion();
-
     emit Insertion(_commitment, insertedIndex, block.timestamp);
 
     return insertedIndex;
   }
-
-  /** @dev this function is defined in a child contract */
-  function _processInsertion() internal virtual;
 
   function verify(
     bytes memory _proof,

@@ -384,7 +384,7 @@ interface FixedDepositAnchorInterface extends ethers.utils.Interface {
     "EdgeUpdate(uint256,uint256,bytes32)": EventFragment;
     "Insertion(bytes32,uint32,uint256)": EventFragment;
     "Refresh(bytes32,bytes32,uint32)": EventFragment;
-    "Withdrawal(address,bytes32,address,uint256)": EventFragment;
+    "Withdrawal(address,address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Deposit"): EventFragment;
@@ -437,12 +437,7 @@ export type RefreshEvent = TypedEvent<
 >;
 
 export type WithdrawalEvent = TypedEvent<
-  [string, string, string, BigNumber] & {
-    to: string;
-    nullifierHash: string;
-    relayer: string;
-    fee: BigNumber;
-  }
+  [string, string, BigNumber] & { to: string; relayer: string; fee: BigNumber }
 >;
 
 export class FixedDepositAnchor extends BaseContract {
@@ -1249,24 +1244,22 @@ export class FixedDepositAnchor extends BaseContract {
       { commitment: string; nullifierHash: string; insertedIndex: number }
     >;
 
-    "Withdrawal(address,bytes32,address,uint256)"(
+    "Withdrawal(address,address,uint256)"(
       to?: null,
-      nullifierHash?: null,
       relayer?: string | null,
       fee?: null
     ): TypedEventFilter<
-      [string, string, string, BigNumber],
-      { to: string; nullifierHash: string; relayer: string; fee: BigNumber }
+      [string, string, BigNumber],
+      { to: string; relayer: string; fee: BigNumber }
     >;
 
     Withdrawal(
       to?: null,
-      nullifierHash?: null,
       relayer?: string | null,
       fee?: null
     ): TypedEventFilter<
-      [string, string, string, BigNumber],
-      { to: string; nullifierHash: string; relayer: string; fee: BigNumber }
+      [string, string, BigNumber],
+      { to: string; relayer: string; fee: BigNumber }
     >;
   };
 

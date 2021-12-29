@@ -61,6 +61,31 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
+        indexed: true,
+        internalType: "bytes32",
+        name: "commitment",
+        type: "bytes32",
+      },
+      {
+        indexed: false,
+        internalType: "uint32",
+        name: "leafIndex",
+        type: "uint32",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "timestamp",
+        type: "uint256",
+      },
+    ],
+    name: "Insertion",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: false,
         internalType: "bytes32",
         name: "commitment",
@@ -201,6 +226,25 @@ const _abi = [
       },
     ],
     stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    name: "commitments",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -473,6 +517,25 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "bytes32",
+        name: "_commitment",
+        type: "bytes32",
+      },
+    ],
+    name: "insert",
+    outputs: [
+      {
+        internalType: "uint32",
+        name: "",
+        type: "uint32",
+      },
+    ],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "uint256",
         name: "neighborChainID",
         type: "uint256",
@@ -527,6 +590,25 @@ const _abi = [
         internalType: "bool",
         name: "",
         type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32[]",
+        name: "_nullifierHashes",
+        type: "bytes32[]",
+      },
+    ],
+    name: "isSpentArray",
+    outputs: [
+      {
+        internalType: "bool[]",
+        name: "spent",
+        type: "bool[]",
       },
     ],
     stateMutability: "view",
@@ -700,105 +782,6 @@ const _abi = [
   {
     inputs: [
       {
-        components: [
-          {
-            internalType: "address",
-            name: "owner",
-            type: "address",
-          },
-          {
-            internalType: "bytes",
-            name: "publicKey",
-            type: "bytes",
-          },
-        ],
-        internalType: "struct VAnchorBase.Account",
-        name: "_account",
-        type: "tuple",
-      },
-      {
-        components: [
-          {
-            internalType: "bytes",
-            name: "proof",
-            type: "bytes",
-          },
-          {
-            internalType: "bytes",
-            name: "roots",
-            type: "bytes",
-          },
-          {
-            internalType: "bytes32[]",
-            name: "inputNullifiers",
-            type: "bytes32[]",
-          },
-          {
-            internalType: "bytes32[2]",
-            name: "outputCommitments",
-            type: "bytes32[2]",
-          },
-          {
-            internalType: "uint256",
-            name: "publicAmount",
-            type: "uint256",
-          },
-          {
-            internalType: "bytes32",
-            name: "extDataHash",
-            type: "bytes32",
-          },
-        ],
-        internalType: "struct VAnchorEncodeInputs.Proof",
-        name: "_proofArgs",
-        type: "tuple",
-      },
-      {
-        components: [
-          {
-            internalType: "address",
-            name: "recipient",
-            type: "address",
-          },
-          {
-            internalType: "int256",
-            name: "extAmount",
-            type: "int256",
-          },
-          {
-            internalType: "address",
-            name: "relayer",
-            type: "address",
-          },
-          {
-            internalType: "uint256",
-            name: "fee",
-            type: "uint256",
-          },
-          {
-            internalType: "bytes",
-            name: "encryptedOutput1",
-            type: "bytes",
-          },
-          {
-            internalType: "bytes",
-            name: "encryptedOutput2",
-            type: "bytes",
-          },
-        ],
-        internalType: "struct VAnchorBase.ExtData",
-        name: "_extData",
-        type: "tuple",
-      },
-    ],
-    name: "registerAndTransact",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
         internalType: "uint256",
         name: "",
         type: "uint256",
@@ -819,7 +802,7 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "_handler",
+        name: "newHandler",
         type: "address",
       },
       {
@@ -842,88 +825,6 @@ const _abi = [
       },
     ],
     name: "setVerifier",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        components: [
-          {
-            internalType: "bytes",
-            name: "proof",
-            type: "bytes",
-          },
-          {
-            internalType: "bytes",
-            name: "roots",
-            type: "bytes",
-          },
-          {
-            internalType: "bytes32[]",
-            name: "inputNullifiers",
-            type: "bytes32[]",
-          },
-          {
-            internalType: "bytes32[2]",
-            name: "outputCommitments",
-            type: "bytes32[2]",
-          },
-          {
-            internalType: "uint256",
-            name: "publicAmount",
-            type: "uint256",
-          },
-          {
-            internalType: "bytes32",
-            name: "extDataHash",
-            type: "bytes32",
-          },
-        ],
-        internalType: "struct VAnchorEncodeInputs.Proof",
-        name: "_args",
-        type: "tuple",
-      },
-      {
-        components: [
-          {
-            internalType: "address",
-            name: "recipient",
-            type: "address",
-          },
-          {
-            internalType: "int256",
-            name: "extAmount",
-            type: "int256",
-          },
-          {
-            internalType: "address",
-            name: "relayer",
-            type: "address",
-          },
-          {
-            internalType: "uint256",
-            name: "fee",
-            type: "uint256",
-          },
-          {
-            internalType: "bytes",
-            name: "encryptedOutput1",
-            type: "bytes",
-          },
-          {
-            internalType: "bytes",
-            name: "encryptedOutput2",
-            type: "bytes",
-          },
-        ],
-        internalType: "struct VAnchorBase.ExtData",
-        name: "_extData",
-        type: "tuple",
-      },
-    ],
-    name: "transact",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

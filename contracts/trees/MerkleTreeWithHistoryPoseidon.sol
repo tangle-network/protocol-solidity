@@ -94,5 +94,5 @@ abstract contract MerkleTreeWithHistoryPoseidon is Initializable {
   /** @dev this function is defined in a child contract */
   function zeros(uint256 i) public virtual pure returns (bytes32);
 
-  function _initialize() internal{}
+  function _initialize() internal {}
 }

@@ -834,11 +834,6 @@ const _abi = [
         name: "_handler",
         type: "address",
       },
-      {
-        internalType: "uint32",
-        name: "nonce",
-        type: "uint32",
-      },
     ],
     name: "setHandler",
     outputs: [],

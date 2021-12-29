@@ -21,6 +21,7 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
 
   address public immutable token;
   uint256 public immutable denomination;
+
   // currency events
   event Deposit(address sender, uint32 indexed leafIndex, bytes32 indexed commitment, uint256 timestamp);
   event Withdrawal(address to, address indexed relayer, uint256 fee);
@@ -34,6 +35,7 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
     uint256 _fee;
     uint256 _refund;
   }
+
   /**
     @dev The constructor
     @param _verifier the address of SNARK verifier for this contract
@@ -56,13 +58,10 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
   }
 
   function deposit(bytes32 _commitment) override public payable {
-    uint32 insertedIndex = insert(_commitment);
-    emit Deposit(msg.sender, insertedIndex, _commitment, block.timestamp);
-  }
-
-  function _processInsertion() internal override {
     require(msg.value == 0, "ETH value is supposed to be 0 for ERC20 instance");
+    uint32 insertedIndex = insert(_commitment);
     IMintableERC20(token).transferFrom(msg.sender, address(this), denomination);
+    emit Deposit(msg.sender, insertedIndex, _commitment, block.timestamp);
   }
 
   /**

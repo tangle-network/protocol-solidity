@@ -28,6 +28,7 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     "ROOT_HISTORY_SIZE()": FunctionFragment;
     "ZERO_VALUE()": FunctionFragment;
     "calculatePublicAmount(int256,uint256)": FunctionFragment;
+    "commitments(bytes32)": FunctionFragment;
     "configureLimits(uint256,uint256)": FunctionFragment;
     "currentNeighborRootIndex(uint256)": FunctionFragment;
     "currentRootIndex()": FunctionFragment;
@@ -43,9 +44,11 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     "hashLeftRight(address,bytes32,bytes32)": FunctionFragment;
     "hasher()": FunctionFragment;
     "initialize(uint256,uint256)": FunctionFragment;
+    "insert(bytes32)": FunctionFragment;
     "isKnownNeighborRoot(uint256,bytes32)": FunctionFragment;
     "isKnownRoot(bytes32)": FunctionFragment;
     "isSpent(bytes32)": FunctionFragment;
+    "isSpentArray(bytes32[])": FunctionFragment;
     "isValidRoots(bytes32[])": FunctionFragment;
     "lastBalance()": FunctionFragment;
     "levels()": FunctionFragment;
@@ -56,11 +59,9 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     "nextIndex()": FunctionFragment;
     "nullifierHashes(bytes32)": FunctionFragment;
     "register((address,bytes))": FunctionFragment;
-    "registerAndTransact((address,bytes),(bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes))": FunctionFragment;
     "roots(uint256)": FunctionFragment;
     "setHandler(address,uint32)": FunctionFragment;
     "setVerifier(address)": FunctionFragment;
-    "transact((bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes))": FunctionFragment;
     "unpackProof(uint256[8])": FunctionFragment;
     "updateEdge(uint256,bytes32,uint256)": FunctionFragment;
     "verifier()": FunctionFragment;
@@ -87,6 +88,10 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "calculatePublicAmount",
     values: [BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "commitments",
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "configureLimits",
@@ -142,6 +147,7 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     functionFragment: "initialize",
     values: [BigNumberish, BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "insert", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "isKnownNeighborRoot",
     values: [BigNumberish, BytesLike]
@@ -151,6 +157,10 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "isSpent", values: [BytesLike]): string;
+  encodeFunctionData(
+    functionFragment: "isSpentArray",
+    values: [BytesLike[]]
+  ): string;
   encodeFunctionData(
     functionFragment: "isValidRoots",
     values: [BytesLike[]]
@@ -182,55 +192,12 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     functionFragment: "register",
     values: [{ owner: string; publicKey: BytesLike }]
   ): string;
-  encodeFunctionData(
-    functionFragment: "registerAndTransact",
-    values: [
-      { owner: string; publicKey: BytesLike },
-      {
-        proof: BytesLike;
-        roots: BytesLike;
-        inputNullifiers: BytesLike[];
-        outputCommitments: [BytesLike, BytesLike];
-        publicAmount: BigNumberish;
-        extDataHash: BytesLike;
-      },
-      {
-        recipient: string;
-        extAmount: BigNumberish;
-        relayer: string;
-        fee: BigNumberish;
-        encryptedOutput1: BytesLike;
-        encryptedOutput2: BytesLike;
-      }
-    ]
-  ): string;
   encodeFunctionData(functionFragment: "roots", values: [BigNumberish]): string;
   encodeFunctionData(
     functionFragment: "setHandler",
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "setVerifier", values: [string]): string;
-  encodeFunctionData(
-    functionFragment: "transact",
-    values: [
-      {
-        proof: BytesLike;
-        roots: BytesLike;
-        inputNullifiers: BytesLike[];
-        outputCommitments: [BytesLike, BytesLike];
-        publicAmount: BigNumberish;
-        extDataHash: BytesLike;
-      },
-      {
-        recipient: string;
-        extAmount: BigNumberish;
-        relayer: string;
-        fee: BigNumberish;
-        encryptedOutput1: BytesLike;
-        encryptedOutput2: BytesLike;
-      }
-    ]
-  ): string;
   encodeFunctionData(
     functionFragment: "unpackProof",
     values: [
@@ -266,6 +233,10 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "ZERO_VALUE", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "calculatePublicAmount",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "commitments",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -307,6 +278,7 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "hasher", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "insert", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "isKnownNeighborRoot",
     data: BytesLike
@@ -316,6 +288,10 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "isSpent", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "isSpentArray",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "isValidRoots",
     data: BytesLike
@@ -344,17 +320,12 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "register", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "registerAndTransact",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "roots", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setHandler", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setVerifier",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "transact", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "unpackProof",
     data: BytesLike
@@ -366,6 +337,7 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
   events: {
     "EdgeAddition(uint256,uint256,bytes32)": EventFragment;
     "EdgeUpdate(uint256,uint256,bytes32)": EventFragment;
+    "Insertion(bytes32,uint32,uint256)": EventFragment;
     "NewCommitment(bytes32,uint256,bytes)": EventFragment;
     "NewNullifier(bytes32)": EventFragment;
     "PublicKey(address,bytes)": EventFragment;
@@ -373,6 +345,7 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
 
   getEvent(nameOrSignatureOrTopic: "EdgeAddition"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "EdgeUpdate"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Insertion"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewCommitment"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewNullifier"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "PublicKey"): EventFragment;
@@ -391,6 +364,14 @@ export type EdgeUpdateEvent = TypedEvent<
     chainID: BigNumber;
     latestLeafIndex: BigNumber;
     merkleRoot: string;
+  }
+>;
+
+export type InsertionEvent = TypedEvent<
+  [string, number, BigNumber] & {
+    commitment: string;
+    leafIndex: number;
+    timestamp: BigNumber;
   }
 >;
 
@@ -468,6 +449,8 @@ export class VAnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<[boolean]>;
+
     configureLimits(
       _minimalWithdrawalAmount: BigNumberish,
       _maximumDepositAmount: BigNumberish,
@@ -537,6 +520,11 @@ export class VAnchorBase extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    insert(
+      _commitment: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     isKnownNeighborRoot(
       neighborChainID: BigNumberish,
       _root: BytesLike,
@@ -552,6 +540,11 @@ export class VAnchorBase extends BaseContract {
       _nullifierHash: BytesLike,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
+
+    isSpentArray(
+      _nullifierHashes: BytesLike[],
+      overrides?: CallOverrides
+    ): Promise<[boolean[]] & { spent: boolean[] }>;
 
     isValidRoots(
       roots: BytesLike[],
@@ -586,57 +579,16 @@ export class VAnchorBase extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    registerAndTransact(
-      _account: { owner: string; publicKey: BytesLike },
-      _proofArgs: {
-        proof: BytesLike;
-        roots: BytesLike;
-        inputNullifiers: BytesLike[];
-        outputCommitments: [BytesLike, BytesLike];
-        publicAmount: BigNumberish;
-        extDataHash: BytesLike;
-      },
-      _extData: {
-        recipient: string;
-        extAmount: BigNumberish;
-        relayer: string;
-        fee: BigNumberish;
-        encryptedOutput1: BytesLike;
-        encryptedOutput2: BytesLike;
-      },
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
     setHandler(
-      _handler: string,
+      newHandler: string,
       nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setVerifier(
       newVerifier: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    transact(
-      _args: {
-        proof: BytesLike;
-        roots: BytesLike;
-        inputNullifiers: BytesLike[];
-        outputCommitments: [BytesLike, BytesLike];
-        publicAmount: BigNumberish;
-        extDataHash: BytesLike;
-      },
-      _extData: {
-        recipient: string;
-        extAmount: BigNumberish;
-        relayer: string;
-        fee: BigNumberish;
-        encryptedOutput1: BytesLike;
-        encryptedOutput2: BytesLike;
-      },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -687,6 +639,8 @@ export class VAnchorBase extends BaseContract {
     _fee: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
+
+  commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
   configureLimits(
     _minimalWithdrawalAmount: BigNumberish,
@@ -749,6 +703,11 @@ export class VAnchorBase extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  insert(
+    _commitment: BytesLike,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   isKnownNeighborRoot(
     neighborChainID: BigNumberish,
     _root: BytesLike,
@@ -761,6 +720,11 @@ export class VAnchorBase extends BaseContract {
     _nullifierHash: BytesLike,
     overrides?: CallOverrides
   ): Promise<boolean>;
+
+  isSpentArray(
+    _nullifierHashes: BytesLike[],
+    overrides?: CallOverrides
+  ): Promise<boolean[]>;
 
   isValidRoots(roots: BytesLike[], overrides?: CallOverrides): Promise<boolean>;
 
@@ -789,57 +753,16 @@ export class VAnchorBase extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  registerAndTransact(
-    _account: { owner: string; publicKey: BytesLike },
-    _proofArgs: {
-      proof: BytesLike;
-      roots: BytesLike;
-      inputNullifiers: BytesLike[];
-      outputCommitments: [BytesLike, BytesLike];
-      publicAmount: BigNumberish;
-      extDataHash: BytesLike;
-    },
-    _extData: {
-      recipient: string;
-      extAmount: BigNumberish;
-      relayer: string;
-      fee: BigNumberish;
-      encryptedOutput1: BytesLike;
-      encryptedOutput2: BytesLike;
-    },
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   setHandler(
-    _handler: string,
+    newHandler: string,
     nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setVerifier(
     newVerifier: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  transact(
-    _args: {
-      proof: BytesLike;
-      roots: BytesLike;
-      inputNullifiers: BytesLike[];
-      outputCommitments: [BytesLike, BytesLike];
-      publicAmount: BigNumberish;
-      extDataHash: BytesLike;
-    },
-    _extData: {
-      recipient: string;
-      extAmount: BigNumberish;
-      relayer: string;
-      fee: BigNumberish;
-      encryptedOutput1: BytesLike;
-      encryptedOutput2: BytesLike;
-    },
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -890,6 +813,8 @@ export class VAnchorBase extends BaseContract {
       _fee: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
     configureLimits(
       _minimalWithdrawalAmount: BigNumberish,
@@ -958,6 +883,8 @@ export class VAnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    insert(_commitment: BytesLike, overrides?: CallOverrides): Promise<number>;
+
     isKnownNeighborRoot(
       neighborChainID: BigNumberish,
       _root: BytesLike,
@@ -970,6 +897,11 @@ export class VAnchorBase extends BaseContract {
       _nullifierHash: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    isSpentArray(
+      _nullifierHashes: BytesLike[],
+      overrides?: CallOverrides
+    ): Promise<boolean[]>;
 
     isValidRoots(
       roots: BytesLike[],
@@ -1004,56 +936,15 @@ export class VAnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    registerAndTransact(
-      _account: { owner: string; publicKey: BytesLike },
-      _proofArgs: {
-        proof: BytesLike;
-        roots: BytesLike;
-        inputNullifiers: BytesLike[];
-        outputCommitments: [BytesLike, BytesLike];
-        publicAmount: BigNumberish;
-        extDataHash: BytesLike;
-      },
-      _extData: {
-        recipient: string;
-        extAmount: BigNumberish;
-        relayer: string;
-        fee: BigNumberish;
-        encryptedOutput1: BytesLike;
-        encryptedOutput2: BytesLike;
-      },
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
     setHandler(
-      _handler: string,
+      newHandler: string,
       nonce: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     setVerifier(newVerifier: string, overrides?: CallOverrides): Promise<void>;
-
-    transact(
-      _args: {
-        proof: BytesLike;
-        roots: BytesLike;
-        inputNullifiers: BytesLike[];
-        outputCommitments: [BytesLike, BytesLike];
-        publicAmount: BigNumberish;
-        extDataHash: BytesLike;
-      },
-      _extData: {
-        recipient: string;
-        extAmount: BigNumberish;
-        relayer: string;
-        fee: BigNumberish;
-        encryptedOutput1: BytesLike;
-        encryptedOutput2: BytesLike;
-      },
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     unpackProof(
       _proof: [
@@ -1124,6 +1015,24 @@ export class VAnchorBase extends BaseContract {
       { chainID: BigNumber; latestLeafIndex: BigNumber; merkleRoot: string }
     >;
 
+    "Insertion(bytes32,uint32,uint256)"(
+      commitment?: BytesLike | null,
+      leafIndex?: null,
+      timestamp?: null
+    ): TypedEventFilter<
+      [string, number, BigNumber],
+      { commitment: string; leafIndex: number; timestamp: BigNumber }
+    >;
+
+    Insertion(
+      commitment?: BytesLike | null,
+      leafIndex?: null,
+      timestamp?: null
+    ): TypedEventFilter<
+      [string, number, BigNumber],
+      { commitment: string; leafIndex: number; timestamp: BigNumber }
+    >;
+
     "NewCommitment(bytes32,uint256,bytes)"(
       commitment?: null,
       index?: null,
@@ -1177,6 +1086,8 @@ export class VAnchorBase extends BaseContract {
       _fee: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
     configureLimits(
       _minimalWithdrawalAmount: BigNumberish,
@@ -1236,6 +1147,11 @@ export class VAnchorBase extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    insert(
+      _commitment: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     isKnownNeighborRoot(
       neighborChainID: BigNumberish,
       _root: BytesLike,
@@ -1249,6 +1165,11 @@ export class VAnchorBase extends BaseContract {
 
     isSpent(
       _nullifierHash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    isSpentArray(
+      _nullifierHashes: BytesLike[],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1285,57 +1206,16 @@ export class VAnchorBase extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    registerAndTransact(
-      _account: { owner: string; publicKey: BytesLike },
-      _proofArgs: {
-        proof: BytesLike;
-        roots: BytesLike;
-        inputNullifiers: BytesLike[];
-        outputCommitments: [BytesLike, BytesLike];
-        publicAmount: BigNumberish;
-        extDataHash: BytesLike;
-      },
-      _extData: {
-        recipient: string;
-        extAmount: BigNumberish;
-        relayer: string;
-        fee: BigNumberish;
-        encryptedOutput1: BytesLike;
-        encryptedOutput2: BytesLike;
-      },
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     setHandler(
-      _handler: string,
+      newHandler: string,
       nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setVerifier(
       newVerifier: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    transact(
-      _args: {
-        proof: BytesLike;
-        roots: BytesLike;
-        inputNullifiers: BytesLike[];
-        outputCommitments: [BytesLike, BytesLike];
-        publicAmount: BigNumberish;
-        extDataHash: BytesLike;
-      },
-      _extData: {
-        recipient: string;
-        extAmount: BigNumberish;
-        relayer: string;
-        fee: BigNumberish;
-        encryptedOutput1: BytesLike;
-        encryptedOutput2: BytesLike;
-      },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1379,6 +1259,11 @@ export class VAnchorBase extends BaseContract {
     calculatePublicAmount(
       _extAmount: BigNumberish,
       _fee: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    commitments(
+      arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1445,6 +1330,11 @@ export class VAnchorBase extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    insert(
+      _commitment: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     isKnownNeighborRoot(
       neighborChainID: BigNumberish,
       _root: BytesLike,
@@ -1458,6 +1348,11 @@ export class VAnchorBase extends BaseContract {
 
     isSpent(
       _nullifierHash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    isSpentArray(
+      _nullifierHashes: BytesLike[],
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1498,60 +1393,19 @@ export class VAnchorBase extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    registerAndTransact(
-      _account: { owner: string; publicKey: BytesLike },
-      _proofArgs: {
-        proof: BytesLike;
-        roots: BytesLike;
-        inputNullifiers: BytesLike[];
-        outputCommitments: [BytesLike, BytesLike];
-        publicAmount: BigNumberish;
-        extDataHash: BytesLike;
-      },
-      _extData: {
-        recipient: string;
-        extAmount: BigNumberish;
-        relayer: string;
-        fee: BigNumberish;
-        encryptedOutput1: BytesLike;
-        encryptedOutput2: BytesLike;
-      },
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     roots(
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     setHandler(
-      _handler: string,
+      newHandler: string,
       nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setVerifier(
       newVerifier: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    transact(
-      _args: {
-        proof: BytesLike;
-        roots: BytesLike;
-        inputNullifiers: BytesLike[];
-        outputCommitments: [BytesLike, BytesLike];
-        publicAmount: BigNumberish;
-        extDataHash: BytesLike;
-      },
-      _extData: {
-        recipient: string;
-        extAmount: BigNumberish;
-        relayer: string;
-        fee: BigNumberish;
-        encryptedOutput1: BytesLike;
-        encryptedOutput2: BytesLike;
-      },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

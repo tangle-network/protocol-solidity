@@ -1021,7 +1021,7 @@ event Refresh(bytes32 indexed commitment, bytes32 nullifierHash, uint32 inserted
 ### Withdrawal
 
 ```solidity
-event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uint256 fee)
+event Withdrawal(address to, address indexed relayer, uint256 fee)
 ```
 
 
@@ -1033,7 +1033,6 @@ event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uin
 | Name | Type | Description |
 |---|---|---|
 | to  | address | undefined |
-| nullifierHash  | bytes32 | undefined |
 | relayer `indexed` | address | undefined |
 | fee  | uint256 | undefined |
 

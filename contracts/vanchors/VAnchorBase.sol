@@ -8,7 +8,7 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import { IAnchorVerifier } from "../interfaces/IAnchorVerifier.sol";
-import "../trees/VMerkleTreeWithHistory.sol";
+import "../anchors/AnchorBase.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../libs/VAnchorEncodeInputs.sol";
 import "../anchors/LinkableTree.sol";
@@ -16,17 +16,13 @@ import "../anchors/LinkableTree.sol";
 /** @dev This contract(pool) allows deposit of an arbitrary amount to it, shielded transfer to another registered user inside the pool
  * and withdrawal from the pool. Project utilizes UTXO model to handle users' funds.
  */
-abstract contract VAnchorBase is LinkableTree {
-  uint32 proposalNonce = 0;
+abstract contract VAnchorBase is AnchorBase {
   int256 public constant MAX_EXT_AMOUNT = 2**248;
   uint256 public constant MAX_FEE = 2**248;
-
-  IAnchorVerifier public verifier;
 
   uint256 public lastBalance;
   uint256 public minimalWithdrawalAmount;
   uint256 public maximumDepositAmount;
-  mapping(bytes32 => bool) public nullifierHashes;
 
   struct ExtData {
     address recipient;
@@ -63,54 +59,17 @@ abstract contract VAnchorBase is LinkableTree {
     address _handler,
     uint8 _maxEdges
   )
-    LinkableTree(_handler, _hasher, _levels, _maxEdges)
-  {
-    verifier = _verifier;
-  }
+    AnchorBase(_handler, _verifier, _hasher, _levels, _maxEdges)
+  {}
 
   function initialize(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmount) external initializer {
     _configureLimits(_minimalWithdrawalAmount, _maximumDepositAmount);
     super._initialize();
   }
 
-  function setVerifier(address newVerifier) onlyHandler external {
-    require(newVerifier != address(0), "Handler cannot be 0");
-    verifier = IAnchorVerifier(newVerifier);
-  }
-
-  function setHandler(address _handler, uint32 nonce) onlyHandler external {
-    handler = _handler;
-  }
-
-  /** @dev this function is defined in a child contract */
-  function _processDeposit(
-    uint256 _extAmount
-  ) internal virtual;
-
-  /** @dev Main function that allows deposits, transfers and withdrawal.
-   */
-  function transact(VAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) public {
-    if (_extData.extAmount > 0) {
-      // for deposits from L2
-      _processDeposit(uint256(_extData.extAmount));
-      require(uint256(_extData.extAmount) <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
-    }
-
-    _transact(_args, _extData);
-  }
-
   function register(Account memory _account) public {
     require(_account.owner == msg.sender, "only owner can be registered");
     _register(_account);
-  }
-
-  function registerAndTransact(
-    Account memory _account,
-    VAnchorEncodeInputs.Proof memory _proofArgs,
-    ExtData memory _extData
-  ) public {
-    register(_account);
-    transact(_proofArgs, _extData);
   }
 
   function configureLimits(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmount) public onlyHandler {
@@ -122,11 +81,6 @@ abstract contract VAnchorBase is LinkableTree {
     require(_extAmount > -MAX_EXT_AMOUNT && _extAmount < MAX_EXT_AMOUNT, "Invalid ext amount");
     int256 publicAmount = _extAmount - int256(_fee);
     return (publicAmount >= 0) ? uint256(publicAmount) : FIELD_SIZE - uint256(-publicAmount);
-  }
-
-  /** @dev whether a note is already spent */
-  function isSpent(bytes32 _nullifierHash) public view returns (bool) {
-    return nullifierHashes[_nullifierHash];
   }
 
   function _register(Account memory _account) internal {
@@ -146,48 +100,7 @@ abstract contract VAnchorBase is LinkableTree {
     uint256 _fee
   ) internal virtual;
 
-  function _transact(VAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) internal nonReentrant {
-    for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
-      require(!isSpent(_args.inputNullifiers[i]), "Input is already spent");
-    }
-    require(uint256(_args.extDataHash) == uint256(keccak256(abi.encode(_extData))) % FIELD_SIZE, "Incorrect external data hash");
-    require(_args.publicAmount == calculatePublicAmount(_extData.extAmount, _extData.fee), "Invalid public amount");
 
-    if (_args.inputNullifiers.length == 2) {
-      (bytes memory encodedInput, bytes32[] memory roots) = VAnchorEncodeInputs._encodeInputs2(_args, maxEdges);
-      require(isValidRoots(roots), "Invalid roots");
-      require(verify2(_args.proof, encodedInput), "Invalid transaction proof");
-    } else if (_args.inputNullifiers.length == 16) {
-      (bytes memory encodedInput, bytes32[] memory roots) = VAnchorEncodeInputs._encodeInputs16(_args, maxEdges);
-      require(isValidRoots(roots), "Invalid roots");
-      require(verify16(_args.proof, encodedInput), "Invalid transaction proof");
-    } else {
-      revert("unsupported input count");
-    }
-
-    for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
-      // sets the nullifier for the input UTXO to spent
-      nullifierHashes[_args.inputNullifiers[i]] = true;
-    }
-
-    if (_extData.extAmount < 0) {
-      require(_extData.recipient != address(0), "Can't withdraw to zero address");
-      require(uint256(-_extData.extAmount) >= minimalWithdrawalAmount, "amount is less than minimalWithdrawalAmount"); // prevents ddos attack to Bridge
-      _processWithdraw(_extData.recipient, uint256(-_extData.extAmount));
-    }
-    if (_extData.fee > 0) {
-      _processFee(_extData.relayer, _extData.fee);
-    }
-
-    //lastBalance = token.balanceOf(address(this));
-    _insert(_args.outputCommitments[0]);
-    _insert(_args.outputCommitments[1]);
-    emit NewCommitment(_args.outputCommitments[0], nextIndex - 2, _extData.encryptedOutput1);
-    emit NewCommitment(_args.outputCommitments[1], nextIndex - 1, _extData.encryptedOutput2);
-    for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
-      emit NewNullifier(_args.inputNullifiers[i]);
-    }
-  }
 
   function _configureLimits(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmount) internal {
     minimalWithdrawalAmount = _minimalWithdrawalAmount;
@@ -232,26 +145,5 @@ abstract contract VAnchorBase is LinkableTree {
     );
     require(r, "Invalid withdraw proof");
     return r;
-  }
-
-  /*
-  * A helper function to convert an array of 8 uint256 values into the a, b,
-  * and c array values that the zk-SNARK verifier's verifyProof accepts.
-  */
-  function unpackProof(
-      uint256[8] memory _proof
-  ) public pure returns (
-      uint256[2] memory,
-      uint256[2][2] memory,
-      uint256[2] memory
-  ) {
-    return (
-      [_proof[0], _proof[1]],
-      [
-        [_proof[2], _proof[3]],
-        [_proof[4], _proof[5]]
-      ],
-      [_proof[6], _proof[7]]
-    );
   }
 }

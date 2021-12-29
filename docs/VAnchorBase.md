@@ -118,6 +118,28 @@ function calculatePublicAmount(int256 _extAmount, uint256 _fee) external pure re
 |---|---|---|
 | _0 | uint256 | undefined
 
+### commitments
+
+```solidity
+function commitments(bytes32) external view returns (bool)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bytes32 | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bool | undefined
+
 ### configureLimits
 
 ```solidity
@@ -412,6 +434,28 @@ function initialize(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmo
 | _minimalWithdrawalAmount | uint256 | undefined
 | _maximumDepositAmount | uint256 | undefined
 
+### insert
+
+```solidity
+function insert(bytes32 _commitment) external payable returns (uint32)
+```
+
+
+
+*Inserts a commitment into the tree*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _commitment | bytes32 | the note commitment = Poseidon(chainId, nullifier, secret)
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint32 | undefined
+
 ### isKnownNeighborRoot
 
 ```solidity
@@ -478,6 +522,28 @@ function isSpent(bytes32 _nullifierHash) external view returns (bool)
 | Name | Type | Description |
 |---|---|---|
 | _0 | bool | undefined
+
+### isSpentArray
+
+```solidity
+function isSpentArray(bytes32[] _nullifierHashes) external view returns (bool[] spent)
+```
+
+
+
+*whether an array of notes is already spent *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _nullifierHashes | bytes32[] | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| spent | bool[] | undefined
 
 ### isValidRoots
 
@@ -664,24 +730,6 @@ function register(VAnchorBase.Account _account) external nonpayable
 |---|---|---|
 | _account | VAnchorBase.Account | undefined
 
-### registerAndTransact
-
-```solidity
-function registerAndTransact(VAnchorBase.Account _account, VAnchorEncodeInputs.Proof _proofArgs, VAnchorBase.ExtData _extData) external nonpayable
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _account | VAnchorBase.Account | undefined
-| _proofArgs | VAnchorEncodeInputs.Proof | undefined
-| _extData | VAnchorBase.ExtData | undefined
-
 ### roots
 
 ```solidity
@@ -707,7 +755,7 @@ function roots(uint256) external view returns (bytes32)
 ### setHandler
 
 ```solidity
-function setHandler(address _handler, uint32 nonce) external nonpayable
+function setHandler(address newHandler, uint32 nonce) external nonpayable
 ```
 
 
@@ -718,7 +766,7 @@ function setHandler(address _handler, uint32 nonce) external nonpayable
 
 | Name | Type | Description |
 |---|---|---|
-| _handler | address | undefined
+| newHandler | address | undefined
 | nonce | uint32 | undefined
 
 ### setVerifier
@@ -736,23 +784,6 @@ function setVerifier(address newVerifier) external nonpayable
 | Name | Type | Description |
 |---|---|---|
 | newVerifier | address | undefined
-
-### transact
-
-```solidity
-function transact(VAnchorEncodeInputs.Proof _args, VAnchorBase.ExtData _extData) external nonpayable
-```
-
-
-
-*Main function that allows deposits, transfers and withdrawal.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _args | VAnchorEncodeInputs.Proof | undefined
-| _extData | VAnchorBase.ExtData | undefined
 
 ### unpackProof
 
@@ -874,6 +905,24 @@ event EdgeUpdate(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot)
 | chainID  | uint256 | undefined |
 | latestLeafIndex  | uint256 | undefined |
 | merkleRoot  | bytes32 | undefined |
+
+### Insertion
+
+```solidity
+event Insertion(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| commitment `indexed` | bytes32 | undefined |
+| leafIndex  | uint32 | undefined |
+| timestamp  | uint256 | undefined |
 
 ### NewCommitment
 
