@@ -6,8 +6,9 @@
 pragma solidity ^0.8.0;
 
 import "./Poseidon.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-abstract contract MerkleTreeWithHistoryPoseidon {
+abstract contract MerkleTreeWithHistoryPoseidon is Initializable {
   uint256 public constant FIELD_SIZE = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
   uint256 public constant ZERO_VALUE = 21663839004416932945382355908790599225266501822907911457504978515578255421292; // = keccak256("tornado") % FIELD_SIZE
   IPoseidonT3 public immutable hasher;
@@ -92,4 +93,6 @@ abstract contract MerkleTreeWithHistoryPoseidon {
 
   /** @dev this function is defined in a child contract */
   function zeros(uint256 i) public virtual pure returns (bytes32);
+
+  function _initialize() internal{}
 }

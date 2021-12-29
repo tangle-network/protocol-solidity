@@ -35,11 +35,13 @@ interface VAnchorInterface extends ethers.utils.Interface {
     "edgeIndex(uint256)": FunctionFragment;
     "edgeList(uint256)": FunctionFragment;
     "filledSubtrees(uint256)": FunctionFragment;
+    "getChainId()": FunctionFragment;
     "getLastRoot()": FunctionFragment;
-    "getLatestNeighborEdges()": FunctionFragment;
+    "getLatestNeighborRoots()": FunctionFragment;
     "getProposalNonce()": FunctionFragment;
+    "handler()": FunctionFragment;
     "hasEdge(uint256)": FunctionFragment;
-    "hashLeftRight(bytes32,bytes32)": FunctionFragment;
+    "hashLeftRight(address,bytes32,bytes32)": FunctionFragment;
     "hasher()": FunctionFragment;
     "initialize(uint256,uint256)": FunctionFragment;
     "isKnownNeighborRoot(uint256,bytes32)": FunctionFragment;
@@ -54,7 +56,6 @@ interface VAnchorInterface extends ethers.utils.Interface {
     "neighborRoots(uint256,uint32)": FunctionFragment;
     "nextIndex()": FunctionFragment;
     "nullifierHashes(bytes32)": FunctionFragment;
-    "permissions()": FunctionFragment;
     "register((address,bytes))": FunctionFragment;
     "registerAndTransact((address,bytes),(bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes))": FunctionFragment;
     "roots(uint256)": FunctionFragment;
@@ -125,24 +126,29 @@ interface VAnchorInterface extends ethers.utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "getChainId",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "getLastRoot",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getLatestNeighborEdges",
+    functionFragment: "getLatestNeighborRoots",
     values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getProposalNonce",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "handler", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "hasEdge",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "hashLeftRight",
-    values: [BytesLike, BytesLike]
+    values: [string, BytesLike, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "hasher", values?: undefined): string;
   encodeFunctionData(
@@ -184,10 +190,6 @@ interface VAnchorInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "nullifierHashes",
     values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "permissions",
-    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "register",
@@ -348,18 +350,20 @@ interface VAnchorInterface extends ethers.utils.Interface {
     functionFragment: "filledSubtrees",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getChainId", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getLastRoot",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getLatestNeighborEdges",
+    functionFragment: "getLatestNeighborRoots",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getProposalNonce",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "handler", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "hasEdge", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "hashLeftRight",
@@ -401,10 +405,6 @@ interface VAnchorInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "nextIndex", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "nullifierHashes",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "permissions",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "register", data: BytesLike): Result;
@@ -594,27 +594,17 @@ export class VAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
+    getChainId(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     getLastRoot(overrides?: CallOverrides): Promise<[string]>;
 
-    getLatestNeighborEdges(
+    getLatestNeighborRoots(
       overrides?: CallOverrides
-    ): Promise<
-      [
-        ([BigNumber, string, BigNumber] & {
-          chainID: BigNumber;
-          root: string;
-          latestLeafIndex: BigNumber;
-        })[]
-      ] & {
-        edges: ([BigNumber, string, BigNumber] & {
-          chainID: BigNumber;
-          root: string;
-          latestLeafIndex: BigNumber;
-        })[];
-      }
-    >;
+    ): Promise<[string[]] & { roots: string[] }>;
 
     getProposalNonce(overrides?: CallOverrides): Promise<[number]>;
+
+    handler(overrides?: CallOverrides): Promise<[string]>;
 
     hasEdge(
       _chainID: BigNumberish,
@@ -622,6 +612,7 @@ export class VAnchor extends BaseContract {
     ): Promise<[boolean]>;
 
     hashLeftRight(
+      _hasher: string,
       _left: BytesLike,
       _right: BytesLike,
       overrides?: CallOverrides
@@ -678,16 +669,6 @@ export class VAnchor extends BaseContract {
       arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
-
-    permissions(
-      overrides?: CallOverrides
-    ): Promise<
-      [string, string, string] & {
-        bridge: string;
-        admin: string;
-        handler: string;
-      }
-    >;
 
     register(
       _account: { owner: string; publicKey: BytesLike },
@@ -890,23 +871,20 @@ export class VAnchor extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
+  getChainId(overrides?: CallOverrides): Promise<BigNumber>;
+
   getLastRoot(overrides?: CallOverrides): Promise<string>;
 
-  getLatestNeighborEdges(
-    overrides?: CallOverrides
-  ): Promise<
-    ([BigNumber, string, BigNumber] & {
-      chainID: BigNumber;
-      root: string;
-      latestLeafIndex: BigNumber;
-    })[]
-  >;
+  getLatestNeighborRoots(overrides?: CallOverrides): Promise<string[]>;
 
   getProposalNonce(overrides?: CallOverrides): Promise<number>;
+
+  handler(overrides?: CallOverrides): Promise<string>;
 
   hasEdge(_chainID: BigNumberish, overrides?: CallOverrides): Promise<boolean>;
 
   hashLeftRight(
+    _hasher: string,
     _left: BytesLike,
     _right: BytesLike,
     overrides?: CallOverrides
@@ -954,16 +932,6 @@ export class VAnchor extends BaseContract {
   nextIndex(overrides?: CallOverrides): Promise<number>;
 
   nullifierHashes(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
-
-  permissions(
-    overrides?: CallOverrides
-  ): Promise<
-    [string, string, string] & {
-      bridge: string;
-      admin: string;
-      handler: string;
-    }
-  >;
 
   register(
     _account: { owner: string; publicKey: BytesLike },
@@ -1169,19 +1137,15 @@ export class VAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
+    getChainId(overrides?: CallOverrides): Promise<BigNumber>;
+
     getLastRoot(overrides?: CallOverrides): Promise<string>;
 
-    getLatestNeighborEdges(
-      overrides?: CallOverrides
-    ): Promise<
-      ([BigNumber, string, BigNumber] & {
-        chainID: BigNumber;
-        root: string;
-        latestLeafIndex: BigNumber;
-      })[]
-    >;
+    getLatestNeighborRoots(overrides?: CallOverrides): Promise<string[]>;
 
     getProposalNonce(overrides?: CallOverrides): Promise<number>;
+
+    handler(overrides?: CallOverrides): Promise<string>;
 
     hasEdge(
       _chainID: BigNumberish,
@@ -1189,6 +1153,7 @@ export class VAnchor extends BaseContract {
     ): Promise<boolean>;
 
     hashLeftRight(
+      _hasher: string,
       _left: BytesLike,
       _right: BytesLike,
       overrides?: CallOverrides
@@ -1242,16 +1207,6 @@ export class VAnchor extends BaseContract {
       arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
-
-    permissions(
-      overrides?: CallOverrides
-    ): Promise<
-      [string, string, string] & {
-        bridge: string;
-        admin: string;
-        handler: string;
-      }
-    >;
 
     register(
       _account: { owner: string; publicKey: BytesLike },
@@ -1518,11 +1473,15 @@ export class VAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getChainId(overrides?: CallOverrides): Promise<BigNumber>;
+
     getLastRoot(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getLatestNeighborEdges(overrides?: CallOverrides): Promise<BigNumber>;
+    getLatestNeighborRoots(overrides?: CallOverrides): Promise<BigNumber>;
 
     getProposalNonce(overrides?: CallOverrides): Promise<BigNumber>;
+
+    handler(overrides?: CallOverrides): Promise<BigNumber>;
 
     hasEdge(
       _chainID: BigNumberish,
@@ -1530,6 +1489,7 @@ export class VAnchor extends BaseContract {
     ): Promise<BigNumber>;
 
     hashLeftRight(
+      _hasher: string,
       _left: BytesLike,
       _right: BytesLike,
       overrides?: CallOverrides
@@ -1586,8 +1546,6 @@ export class VAnchor extends BaseContract {
       arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    permissions(overrides?: CallOverrides): Promise<BigNumber>;
 
     register(
       _account: { owner: string; publicKey: BytesLike },
@@ -1782,13 +1740,17 @@ export class VAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    getChainId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     getLastRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    getLatestNeighborEdges(
+    getLatestNeighborRoots(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getProposalNonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    handler(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     hasEdge(
       _chainID: BigNumberish,
@@ -1796,6 +1758,7 @@ export class VAnchor extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     hashLeftRight(
+      _hasher: string,
       _left: BytesLike,
       _right: BytesLike,
       overrides?: CallOverrides
@@ -1856,8 +1819,6 @@ export class VAnchor extends BaseContract {
       arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    permissions(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     register(
       _account: { owner: string; publicKey: BytesLike },

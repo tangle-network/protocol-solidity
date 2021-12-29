@@ -11,44 +11,13 @@ import { IAnchorVerifier } from "../interfaces/IAnchorVerifier.sol";
 import "../trees/VMerkleTreeWithHistory.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../libs/VAnchorEncodeInputs.sol";
-
+import "../anchors/LinkableTree.sol";
 
 /** @dev This contract(pool) allows deposit of an arbitrary amount to it, shielded transfer to another registered user inside the pool
  * and withdrawal from the pool. Project utilizes UTXO model to handle users' funds.
  */
-abstract contract VAnchorBase is VMerkleTreeWithHistory, ReentrancyGuard {
-
-  PermissionedAccounts public permissions;
-  uint8 public immutable maxEdges;
-
-  struct PermissionedAccounts {
-    address bridge;
-    address admin;
-    address handler;
-  }
-
-  struct Edge {
-    uint256 chainID;
-    bytes32 root;
-    uint256 latestLeafIndex;
-  }
-
-  // maps sourceChainID to the index in the edge list
-  mapping(uint256 => uint256) public edgeIndex;
-  mapping(uint256 => bool) public edgeExistsForChain;
-  Edge[] public edgeList;
-
-  // map to store chainID => (rootIndex => root) to track neighbor histories
-  mapping(uint256 => mapping(uint32 => bytes32)) public neighborRoots;
-  // map to store the current historical root index for a chainID
-  mapping(uint256 => uint32) public currentNeighborRootIndex;
-
-  // bridge events
-  event EdgeAddition(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
-  event EdgeUpdate(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
-
-  //end of new stuff
-
+abstract contract VAnchorBase is LinkableTree {
+  uint32 proposalNonce = 0;
   int256 public constant MAX_EXT_AMOUNT = 2**248;
   uint256 public constant MAX_FEE = 2**248;
 
@@ -85,24 +54,32 @@ abstract contract VAnchorBase is VMerkleTreeWithHistory, ReentrancyGuard {
   /**
     @dev The constructor
     @param _verifier the addresses of SNARK verifiers for 2 inputs and 16 inputs
-    @param _levels hight of the commitments merkle tree
     @param _hasher hasher address for the merkle tree
   */
   constructor(
     IAnchorVerifier _verifier,
     uint32 _levels,
-    address _hasher,
+    IPoseidonT3 _hasher,
+    address _handler,
     uint8 _maxEdges
   )
-    VMerkleTreeWithHistory(_levels, _hasher)
+    LinkableTree(_handler, _hasher, _levels, _maxEdges)
   {
     verifier = _verifier;
-    maxEdges = _maxEdges;
   }
 
   function initialize(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmount) external initializer {
     _configureLimits(_minimalWithdrawalAmount, _maximumDepositAmount);
     super._initialize();
+  }
+
+  function setVerifier(address newVerifier) onlyHandler external {
+    require(newVerifier != address(0), "Handler cannot be 0");
+    verifier = IAnchorVerifier(newVerifier);
+  }
+
+  function setHandler(address _handler, uint32 nonce) onlyHandler external {
+    handler = _handler;
   }
 
   /** @dev this function is defined in a child contract */
@@ -136,7 +113,7 @@ abstract contract VAnchorBase is VMerkleTreeWithHistory, ReentrancyGuard {
     transact(_proofArgs, _extData);
   }
 
-  function configureLimits(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmount) public onlyAdmin {
+  function configureLimits(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmount) public onlyHandler {
     _configureLimits(_minimalWithdrawalAmount, _maximumDepositAmount);
   }
 
@@ -203,7 +180,8 @@ abstract contract VAnchorBase is VMerkleTreeWithHistory, ReentrancyGuard {
     }
 
     //lastBalance = token.balanceOf(address(this));
-    _insert(_args.outputCommitments[0], _args.outputCommitments[1]);
+    _insert(_args.outputCommitments[0]);
+    _insert(_args.outputCommitments[1]);
     emit NewCommitment(_args.outputCommitments[0], nextIndex - 2, _extData.encryptedOutput1);
     emit NewCommitment(_args.outputCommitments[1], nextIndex - 1, _extData.encryptedOutput2);
     for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
@@ -214,68 +192,6 @@ abstract contract VAnchorBase is VMerkleTreeWithHistory, ReentrancyGuard {
   function _configureLimits(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmount) internal {
     minimalWithdrawalAmount = _minimalWithdrawalAmount;
     maximumDepositAmount = _maximumDepositAmount;
-  }
-
-  modifier onlyAdmin()  {
-    require(msg.sender == permissions.admin, 'sender is not the admin');
-    _;
-  }
-
-  modifier onlyBridge()  {
-    require(msg.sender == permissions.bridge, 'sender is not the bridge');
-    _;
-  }
-
-  modifier onlyHandler()  {
-    require(msg.sender == permissions.handler, 'sender is not the handler');
-    _;
-  }
-
-  /** @dev */
-  function getLatestNeighborEdges() public view returns (Edge[] memory edges) {
-    edges = new Edge[](maxEdges);
-    for (uint256 i = 0; i < maxEdges; i++) {
-      if (edgeList.length >= i + 1) {
-        edges[i] = edgeList[i];
-      } else {
-        edges[i] = Edge({
-          // merkle tree height for zeros
-          root: zeros(levels),
-          chainID: 0,
-          latestLeafIndex: 0
-        });
-      }
-    }
-    
-  }
-
-  /** @dev */
-  function isKnownNeighborRoot(uint256 neighborChainID, bytes32 _root) public view returns (bool) {
-    if (_root == 0) {
-      return false;
-    }
-    uint32 _currentRootIndex = currentNeighborRootIndex[neighborChainID];
-    uint32 i = _currentRootIndex;
-    do {
-      if (_root == neighborRoots[neighborChainID][i]) {
-        return true;
-      }
-      if (i == 0) {
-        i = ROOT_HISTORY_SIZE;
-      }
-      i--;
-    } while (i != _currentRootIndex);
-    return false;
-  }
-
-  function isValidRoots(bytes32[] memory roots) public view returns (bool) {
-    require(isKnownRoot(roots[0]), "Cannot find your merkle root");
-    require(roots.length == maxEdges + 1, "Incorrect root array length");
-    for (uint i = 0; i < edgeList.length; i++) {
-      Edge memory _edge = edgeList[i];
-      require(isKnownNeighborRoot(_edge.chainID, roots[i+1]), "Neighbor root not found");
-    }
-    return true;
   }
 
   function verify2(

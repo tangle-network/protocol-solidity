@@ -264,6 +264,23 @@ function filledSubtrees(uint256) external view returns (bytes32)
 |---|---|---|
 | _0 | bytes32 | undefined
 
+### getChainId
+
+```solidity
+function getChainId() external view returns (uint256)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
 ### getLastRoot
 
 ```solidity
@@ -281,10 +298,10 @@ function getLastRoot() external view returns (bytes32)
 |---|---|---|
 | _0 | bytes32 | undefined
 
-### getLatestNeighborEdges
+### getLatestNeighborRoots
 
 ```solidity
-function getLatestNeighborEdges() external view returns (struct VAnchorBase.Edge[] edges)
+function getLatestNeighborRoots() external view returns (bytes32[] roots)
 ```
 
 
@@ -296,7 +313,7 @@ function getLatestNeighborEdges() external view returns (struct VAnchorBase.Edge
 
 | Name | Type | Description |
 |---|---|---|
-| edges | VAnchorBase.Edge[] | undefined
+| roots | bytes32[] | undefined
 
 ### getProposalNonce
 
@@ -314,6 +331,23 @@ function getProposalNonce() external view returns (uint32)
 | Name | Type | Description |
 |---|---|---|
 | _0 | uint32 | undefined
+
+### handler
+
+```solidity
+function handler() external view returns (address)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined
 
 ### hasEdge
 
@@ -340,17 +374,18 @@ function hasEdge(uint256 _chainID) external view returns (bool)
 ### hashLeftRight
 
 ```solidity
-function hashLeftRight(bytes32 _left, bytes32 _right) external view returns (bytes32)
+function hashLeftRight(contract IPoseidonT3 _hasher, bytes32 _left, bytes32 _right) external pure returns (bytes32)
 ```
 
 
 
-*Hash 2 tree leaves, returns Poseidon(_left, _right)*
+*Hash 2 tree leaves, returns PoseidonT3([_left, _right])*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
+| _hasher | contract IPoseidonT3 | undefined
 | _left | bytes32 | undefined
 | _right | bytes32 | undefined
 
@@ -363,7 +398,7 @@ function hashLeftRight(bytes32 _left, bytes32 _right) external view returns (byt
 ### hasher
 
 ```solidity
-function hasher() external view returns (contract IHasher)
+function hasher() external view returns (contract IPoseidonT3)
 ```
 
 
@@ -375,7 +410,7 @@ function hasher() external view returns (contract IHasher)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | contract IHasher | undefined
+| _0 | contract IPoseidonT3 | undefined
 
 ### initialize
 
@@ -629,25 +664,6 @@ function nullifierHashes(bytes32) external view returns (bool)
 | Name | Type | Description |
 |---|---|---|
 | _0 | bool | undefined
-
-### permissions
-
-```solidity
-function permissions() external view returns (address bridge, address admin, address handler)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| bridge | address | undefined
-| admin | address | undefined
-| handler | address | undefined
 
 ### register
 
@@ -954,7 +970,7 @@ function zeros(uint256 i) external pure returns (bytes32)
 
 
 
-*provides Zero (Empty) elements for a MiMC MerkleTree. Up to 32 levels*
+*provides Zero (Empty) elements for a Poseidon MerkleTree. Up to 32 levels*
 
 #### Parameters
 

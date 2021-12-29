@@ -7,12 +7,12 @@ pragma solidity ^0.8.0;
 
 import "../interfaces/ITokenWrapper.sol";
 import "../interfaces/IMintableERC20.sol";
-import "./LinkableVAnchor.sol";
+import "./VAnchorBase.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-contract VAnchor is LinkableVAnchor {
+contract VAnchor is VAnchorBase {
   using SafeERC20 for IERC20;
   using SafeMath for uint256;
   address public immutable token;
@@ -20,15 +20,15 @@ contract VAnchor is LinkableVAnchor {
   constructor(
     IAnchorVerifier _verifier,
     uint32 _levels,
-    address _hasher,
+    IPoseidonT3 _hasher,
+    address _handler,
     address _token,
-    PermissionedAccounts memory _permissions,
     uint8 _maxEdges
-  ) LinkableVAnchor(
+  ) VAnchorBase (
     _verifier,
     _levels,
     _hasher,
-    _permissions,
+    _handler,
     _maxEdges
   ) {token = _token;}
 
@@ -134,7 +134,8 @@ contract VAnchor is LinkableVAnchor {
       _processFee(_extData.relayer, _extData.fee);
     }
 
-    _insert(_args.outputCommitments[0], _args.outputCommitments[1]);
+    _insert(_args.outputCommitments[0]);
+    _insert(_args.outputCommitments[1]);
     emit NewCommitment(_args.outputCommitments[0], nextIndex - 2, _extData.encryptedOutput1);
     emit NewCommitment(_args.outputCommitments[1], nextIndex - 1, _extData.encryptedOutput2);
     for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {

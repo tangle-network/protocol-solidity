@@ -341,6 +341,19 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "getChainId",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "getLastRoot",
     outputs: [
       {
@@ -354,29 +367,25 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "getLatestNeighborEdges",
+    name: "getLatestNeighborRoots",
     outputs: [
       {
-        components: [
-          {
-            internalType: "uint256",
-            name: "chainID",
-            type: "uint256",
-          },
-          {
-            internalType: "bytes32",
-            name: "root",
-            type: "bytes32",
-          },
-          {
-            internalType: "uint256",
-            name: "latestLeafIndex",
-            type: "uint256",
-          },
-        ],
-        internalType: "struct VAnchorBase.Edge[]",
-        name: "edges",
-        type: "tuple[]",
+        internalType: "bytes32[]",
+        name: "roots",
+        type: "bytes32[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "handler",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
       },
     ],
     stateMutability: "view",
@@ -384,6 +393,30 @@ const _abi = [
   },
   {
     inputs: [
+      {
+        internalType: "uint256",
+        name: "_chainID",
+        type: "uint256",
+      },
+    ],
+    name: "hasEdge",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "contract IPoseidonT3",
+        name: "_hasher",
+        type: "address",
+      },
       {
         internalType: "bytes32",
         name: "_left",
@@ -403,7 +436,7 @@ const _abi = [
         type: "bytes32",
       },
     ],
-    stateMutability: "view",
+    stateMutability: "pure",
     type: "function",
   },
   {
@@ -411,7 +444,7 @@ const _abi = [
     name: "hasher",
     outputs: [
       {
-        internalType: "contract IHasher",
+        internalType: "contract IPoseidonT3",
         name: "",
         type: "address",
       },
@@ -640,29 +673,6 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "permissions",
-    outputs: [
-      {
-        internalType: "address",
-        name: "bridge",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "admin",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "handler",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [
       {
         components: [
@@ -808,6 +818,37 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "_handler",
+        type: "address",
+      },
+      {
+        internalType: "uint32",
+        name: "nonce",
+        type: "uint32",
+      },
+    ],
+    name: "setHandler",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "newVerifier",
+        type: "address",
+      },
+    ],
+    name: "setVerifier",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         components: [
           {
             internalType: "bytes",
@@ -914,6 +955,29 @@ const _abi = [
       },
     ],
     stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "sourceChainID",
+        type: "uint256",
+      },
+      {
+        internalType: "bytes32",
+        name: "root",
+        type: "bytes32",
+      },
+      {
+        internalType: "uint256",
+        name: "leafIndex",
+        type: "uint256",
+      },
+    ],
+    name: "updateEdge",
+    outputs: [],
+    stateMutability: "payable",
     type: "function",
   },
   {
