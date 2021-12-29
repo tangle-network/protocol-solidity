@@ -211,7 +211,7 @@
        assert.notEqual(sourceAnchorRootAfter, sourceAnchorRootBefore);
        assert.deepStrictEqual(destAnchorEdge2After.latestLeafIndex, destAnchorEdge3After.latestLeafIndex);
        assert.deepStrictEqual(destAnchorEdge2After.root, destAnchorEdge3After.root);
-     });
+     }).timeout(40000);
  
      it('create 2 side bridge for multiple tokens', async () => {
        bridge2WebbEthInput = {
