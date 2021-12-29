@@ -57,7 +57,7 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
     "register((address,bytes))": FunctionFragment;
     "registerAndTransact((address,bytes),(bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes))": FunctionFragment;
     "roots(uint256)": FunctionFragment;
-    "setHandler(address)": FunctionFragment;
+    "setHandler(address,uint32)": FunctionFragment;
     "setVerifier(address)": FunctionFragment;
     "transact((bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes))": FunctionFragment;
     "unpackProof(uint256[8])": FunctionFragment;
@@ -203,7 +203,10 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
     ]
   ): string;
   encodeFunctionData(functionFragment: "roots", values: [BigNumberish]): string;
-  encodeFunctionData(functionFragment: "setHandler", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "setHandler",
+    values: [string, BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "setVerifier", values: [string]): string;
   encodeFunctionData(
     functionFragment: "transact",
@@ -627,6 +630,7 @@ export class LinkableVAnchor extends BaseContract {
 
     setHandler(
       _handler: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -842,6 +846,7 @@ export class LinkableVAnchor extends BaseContract {
 
   setHandler(
     _handler: string,
+    nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1067,7 +1072,11 @@ export class LinkableVAnchor extends BaseContract {
 
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
-    setHandler(_handler: string, overrides?: CallOverrides): Promise<void>;
+    setHandler(
+      _handler: string,
+      nonce: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     setVerifier(newVerifier: string, overrides?: CallOverrides): Promise<void>;
 
@@ -1343,6 +1352,7 @@ export class LinkableVAnchor extends BaseContract {
 
     setHandler(
       _handler: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1555,6 +1565,7 @@ export class LinkableVAnchor extends BaseContract {
 
     setHandler(
       _handler: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

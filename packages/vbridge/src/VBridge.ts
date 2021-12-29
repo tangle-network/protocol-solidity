@@ -184,6 +184,9 @@ export class VBridge {
         deployers[chainID],
       );
 
+      const handler = await AnchorHandler.createAnchorHandler(vBridgeInstance.contract.address, [], [], vBridgeInstance.admin);
+      await vBridgeInstance.setAnchorHandler(handler);
+
       vBridgeSides.set(chainID, vBridgeInstance);
       console.log(`vBridgeSide address on ${chainID}: ${vBridgeInstance.contract.address}`);
 
@@ -243,21 +246,11 @@ export class VBridge {
           verifierInstance.address,
           5,
           hasherInstance.address,
+          handler.contract.address,
           tokenInstance!.contract.address,
-          {
-            bridge: adminAddress,
-            admin: adminAddress,
-            handler: adminAddress
-          },
           vBridgeInput.chainIDs.length-1,
           deployers[chainID]
       );
-
-      let tokenDenomination = '1000000000000000000' // 1 ether
-      await vAnchorInstance.contract.configureLimits(
-        BigNumber.from(0),
-        BigNumber.from(tokenDenomination).mul(1_000_000),
-      )
 
       console.log(`createdVAnchor: ${vAnchorInstance.contract.address}`);
 
@@ -296,19 +289,13 @@ export class VBridge {
   // it creates the anchor handler and sets the appropriate permissions
   // for the bridgeSide/anchorHandler/anchor
   public static async setPermissions(vBridgeSide: VBridgeSide, vAnchors: VAnchor[]): Promise<void> {
-
-    let resourceIDs: string[] = [];
-    let vAnchorAddresses: string[] = [];
-    for (let vAnchor of vAnchors) {
-      resourceIDs.push(await vAnchor.createResourceId());
-      vAnchorAddresses.push(vAnchor.contract.address);
-    }
-           
-    const handler = await AnchorHandler.createAnchorHandler(vBridgeSide.contract.address, resourceIDs, vAnchorAddresses, vBridgeSide.admin);
-    await vBridgeSide.setAnchorHandler(handler);
-    
+    let tokenDenomination = '1000000000000000000' // 1 ether
     for (let vAnchor of vAnchors) {
       await vBridgeSide.connectAnchor(vAnchor);
+
+      await vBridgeSide.voteConfigLimitsProposal(vAnchor, BigNumber.from(0).toString(), BigNumber.from(tokenDenomination).mul(1_000_000).toString());
+
+      await vBridgeSide.executeConfigLimitsProposal(vAnchor, BigNumber.from(0).toString(), BigNumber.from(tokenDenomination).mul(1_000_000).toString());
     }
   }
 

@@ -38,13 +38,13 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     "filledSubtrees(uint256)": FunctionFragment;
     "getChainId()": FunctionFragment;
     "getLastRoot()": FunctionFragment;
+    "getLatestNeighborEdges()": FunctionFragment;
     "getLatestNeighborRoots()": FunctionFragment;
     "handler()": FunctionFragment;
     "hasEdge(uint256)": FunctionFragment;
     "hashLeftRight(address,bytes32,bytes32)": FunctionFragment;
     "hasher()": FunctionFragment;
     "initialize(uint256,uint256)": FunctionFragment;
-    "insert(bytes32)": FunctionFragment;
     "isKnownNeighborRoot(uint256,bytes32)": FunctionFragment;
     "isKnownRoot(bytes32)": FunctionFragment;
     "isSpent(bytes32)": FunctionFragment;
@@ -130,6 +130,10 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "getLatestNeighborEdges",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "getLatestNeighborRoots",
     values?: undefined
   ): string;
@@ -147,7 +151,6 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     functionFragment: "initialize",
     values: [BigNumberish, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "insert", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "isKnownNeighborRoot",
     values: [BigNumberish, BytesLike]
@@ -267,6 +270,10 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "getLatestNeighborEdges",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getLatestNeighborRoots",
     data: BytesLike
   ): Result;
@@ -278,7 +285,6 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "hasher", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "insert", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "isKnownNeighborRoot",
     data: BytesLike
@@ -494,6 +500,24 @@ export class VAnchorBase extends BaseContract {
 
     getLastRoot(overrides?: CallOverrides): Promise<[string]>;
 
+    getLatestNeighborEdges(
+      overrides?: CallOverrides
+    ): Promise<
+      [
+        ([BigNumber, string, BigNumber] & {
+          chainID: BigNumber;
+          root: string;
+          latestLeafIndex: BigNumber;
+        })[]
+      ] & {
+        edges: ([BigNumber, string, BigNumber] & {
+          chainID: BigNumber;
+          root: string;
+          latestLeafIndex: BigNumber;
+        })[];
+      }
+    >;
+
     getLatestNeighborRoots(
       overrides?: CallOverrides
     ): Promise<[string[]] & { roots: string[] }>;
@@ -518,11 +542,6 @@ export class VAnchorBase extends BaseContract {
       _minimalWithdrawalAmount: BigNumberish,
       _maximumDepositAmount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    insert(
-      _commitment: BytesLike,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     isKnownNeighborRoot(
@@ -682,6 +701,16 @@ export class VAnchorBase extends BaseContract {
 
   getLastRoot(overrides?: CallOverrides): Promise<string>;
 
+  getLatestNeighborEdges(
+    overrides?: CallOverrides
+  ): Promise<
+    ([BigNumber, string, BigNumber] & {
+      chainID: BigNumber;
+      root: string;
+      latestLeafIndex: BigNumber;
+    })[]
+  >;
+
   getLatestNeighborRoots(overrides?: CallOverrides): Promise<string[]>;
 
   handler(overrides?: CallOverrides): Promise<string>;
@@ -701,11 +730,6 @@ export class VAnchorBase extends BaseContract {
     _minimalWithdrawalAmount: BigNumberish,
     _maximumDepositAmount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  insert(
-    _commitment: BytesLike,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   isKnownNeighborRoot(
@@ -859,6 +883,16 @@ export class VAnchorBase extends BaseContract {
 
     getLastRoot(overrides?: CallOverrides): Promise<string>;
 
+    getLatestNeighborEdges(
+      overrides?: CallOverrides
+    ): Promise<
+      ([BigNumber, string, BigNumber] & {
+        chainID: BigNumber;
+        root: string;
+        latestLeafIndex: BigNumber;
+      })[]
+    >;
+
     getLatestNeighborRoots(overrides?: CallOverrides): Promise<string[]>;
 
     handler(overrides?: CallOverrides): Promise<string>;
@@ -882,8 +916,6 @@ export class VAnchorBase extends BaseContract {
       _maximumDepositAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    insert(_commitment: BytesLike, overrides?: CallOverrides): Promise<number>;
 
     isKnownNeighborRoot(
       neighborChainID: BigNumberish,
@@ -1123,6 +1155,8 @@ export class VAnchorBase extends BaseContract {
 
     getLastRoot(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getLatestNeighborEdges(overrides?: CallOverrides): Promise<BigNumber>;
+
     getLatestNeighborRoots(overrides?: CallOverrides): Promise<BigNumber>;
 
     handler(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1145,11 +1179,6 @@ export class VAnchorBase extends BaseContract {
       _minimalWithdrawalAmount: BigNumberish,
       _maximumDepositAmount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    insert(
-      _commitment: BytesLike,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     isKnownNeighborRoot(
@@ -1304,6 +1333,10 @@ export class VAnchorBase extends BaseContract {
 
     getLastRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    getLatestNeighborEdges(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getLatestNeighborRoots(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -1328,11 +1361,6 @@ export class VAnchorBase extends BaseContract {
       _minimalWithdrawalAmount: BigNumberish,
       _maximumDepositAmount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    insert(
-      _commitment: BytesLike,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     isKnownNeighborRoot(

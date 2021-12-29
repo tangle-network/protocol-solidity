@@ -187,8 +187,7 @@ contract VAnchor is VAnchorBase {
   }
 
   function _executeInsertions(VAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) internal {
-    insert(_args.outputCommitments[0]);
-    insert(_args.outputCommitments[1]);
+    insertTwo(_args.outputCommitments[0], _args.outputCommitments[1]);
     emit NewCommitment(_args.outputCommitments[0], nextIndex - 2, _extData.encryptedOutput1);
     emit NewCommitment(_args.outputCommitments[1], nextIndex - 1, _extData.encryptedOutput2);
     for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {

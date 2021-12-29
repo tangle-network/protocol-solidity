@@ -85,12 +85,8 @@ describe('VAnchor for 2 max edges', () => {
       verifier.contract.address,
       levels,
       hasherInstance.address,
+      sender.address,
       token.address,
-      {
-        bridge: sender.address,
-        admin: sender.address,
-        handler: sender.address,
-      },
       1,
       sender,
     );
@@ -808,12 +804,8 @@ describe('VAnchor for 2 max edges', () => {
         verifier.contract.address,
         5,
         hasherInstance.address,
+        sender.address,
         wrappedToken.address,
-        {
-          bridge: sender.address,
-          admin: sender.address,
-          handler: sender.address,
-        },
         1,
         sender
       );
@@ -869,12 +861,8 @@ describe('VAnchor for 2 max edges', () => {
         verifier.contract.address,
         5,
         hasherInstance.address,
+        sender.address,
         wrappedToken.address,
-        {
-          bridge: sender.address,
-          admin: sender.address,
-          handler: sender.address,
-        },
         1,
         sender
       );
@@ -945,12 +933,8 @@ describe('VAnchor for 2 max edges', () => {
         verifier.contract.address,
         5,
         hasherInstance.address,
+        sender.address,
         wrappedToken.address,
-        {
-          bridge: sender.address,
-          admin: sender.address,
-          handler: sender.address,
-        },
         1,
         sender
       );

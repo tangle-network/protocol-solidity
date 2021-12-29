@@ -105,6 +105,10 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
             uint32 leafIndex = uint32(bytes4(arguments[8:12]));
             bytes32 merkleRoot = bytes32(arguments[12:44]);
             anchor.updateEdge(sourceChainId, merkleRoot, leafIndex);
+        } else if (functionSig == bytes4(keccak256("configureLimits(uint256,uint256)"))) {
+            uint256 _minimalWithdrawalAmount = uint256(bytes32(arguments[4:36]));
+            uint256 _maximumDepositAmount = uint256(bytes32(arguments[36:68]));
+            anchor.configureLimits(_minimalWithdrawalAmount, _maximumDepositAmount);
         } else {
             revert("Invalid function sig");
         }

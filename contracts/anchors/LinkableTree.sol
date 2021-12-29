@@ -92,6 +92,23 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard {
     }
   }
 
+  /** @dev */
+  function getLatestNeighborEdges() public view returns (Edge[] memory edges) {
+    edges = new Edge[](maxEdges);
+    for (uint256 i = 0; i < maxEdges; i++) {
+      if (edgeList.length >= i + 1) {
+        edges[i] = edgeList[i];
+      } else {
+        edges[i] = Edge({
+          // merkle tree height for zeros
+          root: zeros(levels),
+          chainID: 0,
+          latestLeafIndex: 0
+        });
+      }
+    }
+  }
+
   function getLatestNeighborRoots() public view returns (bytes32[] memory roots) {
     roots = new bytes32[](maxEdges);
     for (uint256 i = 0; i < maxEdges; i++) {
