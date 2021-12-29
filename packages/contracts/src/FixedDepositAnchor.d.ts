@@ -45,6 +45,7 @@ interface FixedDepositAnchorInterface extends ethers.utils.Interface {
     "hasEdge(uint256)": FunctionFragment;
     "hashLeftRight(address,bytes32,bytes32)": FunctionFragment;
     "hasher()": FunctionFragment;
+    "insert(bytes32)": FunctionFragment;
     "isKnownNeighborRoot(uint256,bytes32)": FunctionFragment;
     "isKnownRoot(bytes32)": FunctionFragment;
     "isSpent(bytes32)": FunctionFragment;
@@ -152,6 +153,7 @@ interface FixedDepositAnchorInterface extends ethers.utils.Interface {
     values: [string, BytesLike, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "hasher", values?: undefined): string;
+  encodeFunctionData(functionFragment: "insert", values: [BytesLike]): string;
   encodeFunctionData(
     functionFragment: "isKnownNeighborRoot",
     values: [BigNumberish, BytesLike]
@@ -322,6 +324,7 @@ interface FixedDepositAnchorInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "hasher", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "insert", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "isKnownNeighborRoot",
     data: BytesLike
@@ -586,6 +589,11 @@ export class FixedDepositAnchor extends BaseContract {
 
     hasher(overrides?: CallOverrides): Promise<[string]>;
 
+    insert(
+      _commitment: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     isKnownNeighborRoot(
       neighborChainID: BigNumberish,
       _root: BytesLike,
@@ -813,6 +821,11 @@ export class FixedDepositAnchor extends BaseContract {
 
   hasher(overrides?: CallOverrides): Promise<string>;
 
+  insert(
+    _commitment: BytesLike,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   isKnownNeighborRoot(
     neighborChainID: BigNumberish,
     _root: BytesLike,
@@ -1033,6 +1046,8 @@ export class FixedDepositAnchor extends BaseContract {
     ): Promise<string>;
 
     hasher(overrides?: CallOverrides): Promise<string>;
+
+    insert(_commitment: BytesLike, overrides?: CallOverrides): Promise<number>;
 
     isKnownNeighborRoot(
       neighborChainID: BigNumberish,
@@ -1365,6 +1380,11 @@ export class FixedDepositAnchor extends BaseContract {
 
     hasher(overrides?: CallOverrides): Promise<BigNumber>;
 
+    insert(
+      _commitment: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     isKnownNeighborRoot(
       neighborChainID: BigNumberish,
       _root: BytesLike,
@@ -1585,6 +1605,11 @@ export class FixedDepositAnchor extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     hasher(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    insert(
+      _commitment: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     isKnownNeighborRoot(
       neighborChainID: BigNumberish,

@@ -404,6 +404,25 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "bytes32",
+        name: "_commitment",
+        type: "bytes32",
+      },
+    ],
+    name: "insert",
+    outputs: [
+      {
+        internalType: "uint32",
+        name: "",
+        type: "uint32",
+      },
+    ],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "uint256",
         name: "neighborChainID",
         type: "uint256",
