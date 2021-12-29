@@ -100,8 +100,6 @@ abstract contract VAnchorBase is AnchorBase {
     uint256 _fee
   ) internal virtual;
 
-
-
   function _configureLimits(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmount) internal {
     minimalWithdrawalAmount = _minimalWithdrawalAmount;
     maximumDepositAmount = _maximumDepositAmount;
