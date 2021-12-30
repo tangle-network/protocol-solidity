@@ -60,6 +60,16 @@ export class VBridgeSide {
     return proposalData;
   }
 
+  public async createHandlerUpdateProposalData(vAnchor: VAnchor, newHandler: string) {
+    const proposalData = await vAnchor.getHandlerProposalData(newHandler);
+    return proposalData;
+  }
+
+  public async createConfigLimitsProposalData(vAnchor: VAnchor, _minimalWithdrawalAmount: string, _maximumDepositAmount: string) {
+    const proposalData = await vAnchor.getConfigLimitsProposalData(_minimalWithdrawalAmount,_maximumDepositAmount);
+    return proposalData;
+  }
+
   public async setAnchorHandler(handler: AnchorHandler) {
     this.handler = handler;
   }
@@ -73,8 +83,8 @@ export class VBridgeSide {
 
     const resourceId = await anchor.createResourceId();
     await this.contract.adminSetResource(this.handler.contract.address, resourceId, anchor.contract.address);
-    // await this.handler.setResource(resourceId, anchor.contract.address); covered in above call
-    await anchor.setHandler(this.handler.contract.address);
+    await this.voteHandlerProposal(anchor, this.handler.contract.address);
+    await this.executeHandlerProposal(anchor, this.handler.contract.address);
 
     return resourceId;
   }
@@ -111,6 +121,70 @@ export class VBridgeSide {
     const chainId = await srcAnchor.signer.getChainId();
     const nonce = srcAnchor.tree.number_of_elements() - 1;
     const tx = await this.contract.executeProposal(chainId, nonce, proposalData, executionResourceId);
+    const receipt = await tx.wait();
+    
+    return receipt;
+  }
+
+  public async voteHandlerProposal(anchor: VAnchor, newHandler: string) {
+    if (!this.handler) {
+      throw new Error("Cannot connect an anchor without a handler");
+    }
+
+    const proposalData = await this.createHandlerUpdateProposalData(anchor, newHandler);
+    const dataHash = ethers.utils.keccak256(this.handler.contract.address + proposalData.substr(2));
+    
+    const chainId = await anchor.signer.getChainId();
+    const nonce = 1;
+    const resourceID = await anchor.createResourceId();
+    const tx = await this.contract.voteProposal(chainId, nonce, resourceID, dataHash);
+    const receipt = await tx.wait();
+    
+    return receipt;
+  }
+
+  public async executeHandlerProposal(anchor: VAnchor, newHandler: string) {
+    if (!this.handler) {
+      throw new Error("Cannot connect an anchor without a handler");
+    }
+
+    const proposalData = await this.createHandlerUpdateProposalData(anchor, newHandler);
+    const chainId = await anchor.signer.getChainId();
+    const nonce = 1;
+    const resourceID = await anchor.createResourceId()
+    const tx = await this.contract.executeProposal(chainId, nonce, proposalData, resourceID);
+    const receipt = await tx.wait();
+    
+    return receipt;
+  }
+
+  public async voteConfigLimitsProposal(anchor: VAnchor, _minimalWithdrawalAmount: string, _maximumDepositAmount: string) {
+    if (!this.handler) {
+      throw new Error("Cannot connect an anchor without a handler");
+    }
+
+    const proposalData = await this.createConfigLimitsProposalData(anchor, _minimalWithdrawalAmount, _maximumDepositAmount);
+    const dataHash = ethers.utils.keccak256(this.handler.contract.address + proposalData.substr(2));
+    
+    const chainId = await anchor.signer.getChainId();
+    const nonce = 1;
+    const resourceID = await anchor.createResourceId();
+    const tx = await this.contract.voteProposal(chainId, nonce, resourceID, dataHash);
+    const receipt = await tx.wait();
+    
+    return receipt;
+  }
+
+  public async executeConfigLimitsProposal(anchor: VAnchor, _minimalWithdrawalAmount: string, _maximumDepositAmount: string) {
+    if (!this.handler) {
+      throw new Error("Cannot connect an anchor without a handler");
+    }
+
+    const proposalData = await this.createConfigLimitsProposalData(anchor, _minimalWithdrawalAmount,_maximumDepositAmount);
+    const chainId = await anchor.signer.getChainId();
+    const nonce = 1;
+    const resourceID = await anchor.createResourceId()
+    const tx = await this.contract.executeProposal(chainId, nonce, proposalData, resourceID);
     const receipt = await tx.wait();
     
     return receipt;

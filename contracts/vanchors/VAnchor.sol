@@ -7,12 +7,12 @@ pragma solidity ^0.8.0;
 
 import "../interfaces/ITokenWrapper.sol";
 import "../interfaces/IMintableERC20.sol";
-import "./LinkableVAnchor.sol";
+import "./VAnchorBase.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-contract VAnchor is LinkableVAnchor {
+contract VAnchor is VAnchorBase {
   using SafeERC20 for IERC20;
   using SafeMath for uint256;
   address public immutable token;
@@ -20,15 +20,15 @@ contract VAnchor is LinkableVAnchor {
   constructor(
     IAnchorVerifier _verifier,
     uint32 _levels,
-    address _hasher,
+    IPoseidonT3 _hasher,
+    address _handler,
     address _token,
-    PermissionedAccounts memory _permissions,
     uint8 _maxEdges
-  ) LinkableVAnchor(
+  ) VAnchorBase (
     _verifier,
     _levels,
     _hasher,
-    _permissions,
+    _handler,
     _maxEdges
   ) {token = _token;}
 
@@ -48,6 +48,7 @@ contract VAnchor is LinkableVAnchor {
     ITokenWrapper(token).unwrapFor(msg.sender, tokenAddress, amount);
   }
   
+  // TODO: Rename to _executeWrapping
   function wrapAndDeposit(
     address tokenAddress,
     uint256 _extAmount
@@ -72,11 +73,13 @@ contract VAnchor is LinkableVAnchor {
     }
   }
 
+  // TODO: Rename _executeUnwrapping
   function withdrawAndUnwrap(
     address tokenAddress,
     address recipient,
     uint256 _minusExtAmount
   ) public payable nonReentrant {
+    // TODO: Why is process withdraw first
     _processWithdraw(payable(address(this)), _minusExtAmount);
 
     ITokenWrapper(token).unwrapAndSendTo(
@@ -86,35 +89,53 @@ contract VAnchor is LinkableVAnchor {
     );
   }
 
+  function registerAndTransact(
+    Account memory _account,
+    VAnchorEncodeInputs.Proof memory _proofArgs,
+    ExtData memory _extData
+  ) public {
+    register(_account);
+    transact(_proofArgs, _extData);
+  }
+
+  function registerAndTransactWrap(
+    Account memory _account,
+    VAnchorEncodeInputs.Proof memory _proofArgs,
+    ExtData memory _extData,
+    address tokenAddress
+  ) public {
+    register(_account);
+    transactWrap(_proofArgs, _extData, tokenAddress);
+  }
+
+  function transact(VAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) public nonReentrant {
+    _executeValidationAndVerification(_args, _extData);
+
+    if (_extData.extAmount > 0) {
+      IMintableERC20(token).transferFrom(msg.sender, address(this), uint256(_extData.extAmount));
+      require(uint256(_extData.extAmount) <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
+    }
+
+    if (_extData.extAmount < 0) {
+      require(_extData.recipient != address(0), "Can't withdraw to zero address");
+      require(uint256(-_extData.extAmount) >= minimalWithdrawalAmount, "amount is less than minimalWithdrawalAmount"); // prevents ddos attack to Bridge
+      _processWithdraw(_extData.recipient, uint256(-_extData.extAmount));
+    }
+    if (_extData.fee > 0) {
+      _processFee(_extData.relayer, _extData.fee);
+    }
+
+    _executeInsertions(_args, _extData);
+  }
+
   function transactWrap(
     VAnchorEncodeInputs.Proof memory _args,
     ExtData memory _extData,
     address tokenAddress
-  ) external payable {
-    for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
-      require(!isSpent(_args.inputNullifiers[i]), "Input is already spent");
-    }
-    require(uint256(_args.extDataHash) == uint256(keccak256(abi.encode(_extData))) % FIELD_SIZE, "Incorrect external data hash");
-    require(_args.publicAmount == calculatePublicAmount(_extData.extAmount, _extData.fee), "Invalid public amount");
+  ) public payable {
+    _executeValidationAndVerification(_args, _extData);
 
-    if (_args.inputNullifiers.length == 2) {
-      (bytes memory encodedInput, bytes32[] memory roots) = VAnchorEncodeInputs._encodeInputs2(_args, maxEdges);
-      require(isValidRoots(roots), "Invalid roots");
-      require(verify2(_args.proof, encodedInput), "Invalid transaction proof");
-    } else if (_args.inputNullifiers.length == 16) {
-      (bytes memory encodedInput, bytes32[] memory roots) = VAnchorEncodeInputs._encodeInputs16(_args, maxEdges);
-      require(isValidRoots(roots), "Invalid roots");
-      require(verify16(_args.proof, encodedInput), "Invalid transaction proof");
-    } else {
-      revert("unsupported input count");
-    }
-
-    for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
-      // sets the nullifier for the input UTXO to spent
-      nullifierHashes[_args.inputNullifiers[i]] = true;
-    }
-
-    //Check if extAmount > 0, call wrapAndDeposit
+    // Check if extAmount > 0, call wrapAndDeposit
     if (_extData.extAmount > 0) {
       //wrapAndDeposit
       require(uint256(_extData.extAmount) <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
@@ -134,17 +155,44 @@ contract VAnchor is LinkableVAnchor {
       _processFee(_extData.relayer, _extData.fee);
     }
 
-    _insert(_args.outputCommitments[0], _args.outputCommitments[1]);
+    _executeInsertions(_args, _extData);
+  }
+
+  function _executeValidationAndVerification(VAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) internal {
+    for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
+      require(!isSpent(_args.inputNullifiers[i]), "Input is already spent");
+    }
+    require(uint256(_args.extDataHash) == uint256(keccak256(abi.encode(_extData))) % FIELD_SIZE, "Incorrect external data hash");
+    require(_args.publicAmount == calculatePublicAmount(_extData.extAmount, _extData.fee), "Invalid public amount");
+    _executeVerification(_args);
+
+    for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
+      // sets the nullifier for the input UTXO to spent
+      nullifierHashes[_args.inputNullifiers[i]] = true;
+    }
+  }
+
+  function _executeVerification(VAnchorEncodeInputs.Proof memory _args) view internal {
+    if (_args.inputNullifiers.length == 2) {
+      (bytes memory encodedInput, bytes32[] memory roots) = VAnchorEncodeInputs._encodeInputs2(_args, maxEdges);
+      require(isValidRoots(roots), "Invalid roots");
+      require(verify2(_args.proof, encodedInput), "Invalid transaction proof");
+    } else if (_args.inputNullifiers.length == 16) {
+      (bytes memory encodedInput, bytes32[] memory roots) = VAnchorEncodeInputs._encodeInputs16(_args, maxEdges);
+      require(isValidRoots(roots), "Invalid roots");
+      require(verify16(_args.proof, encodedInput), "Invalid transaction proof");
+    } else {
+      revert("unsupported input count");
+    }
+  }
+
+  function _executeInsertions(VAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) internal {
+    insertTwo(_args.outputCommitments[0], _args.outputCommitments[1]);
     emit NewCommitment(_args.outputCommitments[0], nextIndex - 2, _extData.encryptedOutput1);
     emit NewCommitment(_args.outputCommitments[1], nextIndex - 1, _extData.encryptedOutput2);
     for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
       emit NewNullifier(_args.inputNullifiers[i]);
     }
-  }
-
-  function _processDeposit(uint256 _extAmount) internal override {
-    require(msg.value == 0, "ETH value is supposed to be 0 for ERC20 instance");
-    IMintableERC20(token).transferFrom(msg.sender, address(this), _extAmount);
   }
 
   function _processWithdraw(

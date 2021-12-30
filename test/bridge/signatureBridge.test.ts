@@ -32,7 +32,7 @@
    });
  
    ganacheServer.listen(port);
-   console.log(`Ganache Started on http://127.0.0.1:${port} ..`);
+   //console.log(`Ganache Started on http://127.0.0.1:${port} ..`);
  
    return ganacheServer;
  }
@@ -211,9 +211,9 @@
        assert.notEqual(sourceAnchorRootAfter, sourceAnchorRootBefore);
        assert.deepStrictEqual(destAnchorEdge2After.latestLeafIndex, destAnchorEdge3After.latestLeafIndex);
        assert.deepStrictEqual(destAnchorEdge2After.root, destAnchorEdge3After.root);
-     });
+     }).timeout(40000);
  
-     it.skip('create 2 side bridge for multiple tokens', async () => {
+     it('create 2 side bridge for multiple tokens', async () => {
        bridge2WebbEthInput = {
          anchorInputs: {
            asset: {
@@ -226,7 +226,7 @@
        };
      });
  
-     it.skip('create 2 side bridge for native and erc20 token', async () => {
+     it('create 2 side bridge for native and erc20 token', async () => {
        bridge2WebbEthInput = {
          anchorInputs: {
            asset: {

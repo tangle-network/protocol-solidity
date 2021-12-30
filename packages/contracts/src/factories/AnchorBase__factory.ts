@@ -286,6 +286,36 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "getLatestNeighborEdges",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "chainID",
+            type: "uint256",
+          },
+          {
+            internalType: "bytes32",
+            name: "root",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint256",
+            name: "latestLeafIndex",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct LinkableTree.Edge[]",
+        name: "edges",
+        type: "tuple[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "getLatestNeighborRoots",
     outputs: [
       {

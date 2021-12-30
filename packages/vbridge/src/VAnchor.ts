@@ -9,12 +9,6 @@ import { Keypair } from "./keypair";
 
 const snarkjs = require('snarkjs');
 
-export interface IPermissionedAccounts {
-  bridge: string;
-  admin: string;
-  handler: string;
-}
-
 export interface IMerkleProofData {
   pathElements: BigNumberish[],
   pathIndex: BigNumberish,
@@ -153,15 +147,15 @@ export class VAnchor {
     verifier: string,
     levels: BigNumberish,
     hasher: string,
+    handler: string,
     token: string,
-    permissions: IPermissionedAccounts,
     maxEdges: number,
     signer: ethers.Signer,
   ) {
     const encodeLibraryFactory = new VAnchorEncodeInputs__factory(signer);
     const encodeLibrary = await encodeLibraryFactory.deploy();
     const factory = new VAnchor__factory({["contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs"]: encodeLibrary.address}, signer);
-    const vAnchor = await factory.deploy(verifier, levels, hasher, token, permissions, maxEdges, {});
+    const vAnchor = await factory.deploy(verifier, levels, hasher, handler, token, maxEdges, {});
     await vAnchor.deployed();
     const createdVAnchor = new VAnchor(vAnchor, signer, BigNumber.from(levels).toNumber(), maxEdges);
     createdVAnchor.latestSyncedBlock = vAnchor.deployTransaction.blockNumber!;
@@ -337,6 +331,30 @@ export class VAnchor {
       toHex(chainID, 4).substr(2) + 
       toHex(leafIndex, 4).substr(2) + 
       toHex(merkleRoot, 32).substr(2);
+  }
+
+  public async getHandlerProposalData(newHandler: string): Promise<string> {
+    const resourceID = await this.createResourceId();
+    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("setHandler(address,uint32)")).slice(0, 10).padEnd(10, '0');
+    const nonce = (await this.contract.getProposalNonce()) + 1;
+
+    return '0x' +
+      toHex(resourceID, 32).substr(2)+ 
+      functionSig.slice(2) + 
+      toHex(nonce,4).substr(2) +
+      toHex(newHandler, 20).substr(2) 
+  }
+
+  public async getConfigLimitsProposalData(_minimalWithdrawalAmount: string, _maximumDepositAmount: string): Promise<string> {
+    const resourceID = await this.createResourceId();
+    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("configureLimits(uint256,uint256)")).slice(0, 10).padEnd(10, '0');
+    const nonce = (await this.contract.getProposalNonce()) + 1;;
+    return '0x' +
+      toHex(resourceID, 32).substr(2)+ 
+      functionSig.slice(2) + 
+      toHex(nonce, 4).substr(2) +
+      toFixedHex(_minimalWithdrawalAmount).substr(2) +
+      toFixedHex(_maximumDepositAmount).substr(2) 
   }
 
   public async populateRootInfosForProof(): Promise<RootInfo[]> {

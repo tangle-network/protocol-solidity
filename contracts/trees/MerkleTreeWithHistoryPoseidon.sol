@@ -6,8 +6,9 @@
 pragma solidity ^0.8.0;
 
 import "./Poseidon.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-abstract contract MerkleTreeWithHistoryPoseidon {
+abstract contract MerkleTreeWithHistoryPoseidon is Initializable {
   uint256 public constant FIELD_SIZE = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
   uint256 public constant ZERO_VALUE = 21663839004416932945382355908790599225266501822907911457504978515578255421292; // = keccak256("tornado") % FIELD_SIZE
   IPoseidonT3 public immutable hasher;
@@ -62,6 +63,34 @@ abstract contract MerkleTreeWithHistoryPoseidon {
     return _nextIndex;
   }
 
+  // Modified to insert pairs of leaves for better efficiency
+  function _insertTwo(bytes32 _leaf1, bytes32 _leaf2) internal returns (uint32 index) {
+    uint32 _nextIndex = nextIndex;
+    require(_nextIndex != uint32(2)**levels, "Merkle tree is full. No more leaves can be added");
+    uint32 currentIndex = _nextIndex / 2;
+    bytes32 currentLevelHash = hashLeftRight(hasher, _leaf1, _leaf2);
+    bytes32 left;
+    bytes32 right;
+    for (uint32 i = 1; i < levels; i++) {
+      if (currentIndex % 2 == 0) {
+        left = currentLevelHash;
+        right = zeros(i);
+        filledSubtrees[i] = currentLevelHash;
+      } else {
+        left = filledSubtrees[i];
+        right = currentLevelHash;
+      }
+      currentLevelHash = hashLeftRight(hasher, left, right);
+      currentIndex /= 2;
+    }
+    
+    uint32 newRootIndex = (currentRootIndex + 1) % ROOT_HISTORY_SIZE;
+    currentRootIndex = newRootIndex;
+    roots[newRootIndex] = currentLevelHash;
+    nextIndex = _nextIndex + 2;
+    return _nextIndex;
+  }
+
   /**
     @dev Whether the root is present in the root history
   */
@@ -92,4 +121,6 @@ abstract contract MerkleTreeWithHistoryPoseidon {
 
   /** @dev this function is defined in a child contract */
   function zeros(uint256 i) public virtual pure returns (bytes32);
+
+  function _initialize() internal {}
 }

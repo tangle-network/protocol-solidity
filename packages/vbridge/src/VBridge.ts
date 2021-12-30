@@ -184,8 +184,11 @@ export class VBridge {
         deployers[chainID],
       );
 
+      const handler = await AnchorHandler.createAnchorHandler(vBridgeInstance.contract.address, [], [], vBridgeInstance.admin);
+      await vBridgeInstance.setAnchorHandler(handler);
+
       vBridgeSides.set(chainID, vBridgeInstance);
-      console.log(`vBridgeSide address on ${chainID}: ${vBridgeInstance.contract.address}`);
+      //console.log(`vBridgeSide address on ${chainID}: ${vBridgeInstance.contract.address}`);
 
       // Create the Hasher and Verifier for the chain
       const hasherFactory = new PoseidonT3__factory(deployers[chainID]);
@@ -218,7 +221,7 @@ export class VBridge {
       }
 
       
-      console.log(`created GovernedTokenWrapper on ${chainID}: ${tokenInstance?.contract.address}`);
+      //console.log(`created GovernedTokenWrapper on ${chainID}: ${tokenInstance?.contract.address}`);
 
       // Add all token addresses to the governed token instance.
       for (const tokenToBeWrapped of vBridgeInput.vAnchorInputs.asset[chainID]!) {
@@ -243,23 +246,13 @@ export class VBridge {
           verifierInstance.address,
           5,
           hasherInstance.address,
+          handler.contract.address,
           tokenInstance!.contract.address,
-          {
-            bridge: adminAddress,
-            admin: adminAddress,
-            handler: adminAddress
-          },
           vBridgeInput.chainIDs.length-1,
           deployers[chainID]
       );
 
-      let tokenDenomination = '1000000000000000000' // 1 ether
-      await vAnchorInstance.contract.configureLimits(
-        BigNumber.from(0),
-        BigNumber.from(tokenDenomination).mul(1_000_000),
-      )
-
-      console.log(`createdVAnchor: ${vAnchorInstance.contract.address}`);
+      //console.log(`createdVAnchor: ${vAnchorInstance.contract.address}`);
 
       // grant minting rights to the anchor
       await tokenInstance?.grantMinterRole(vAnchorInstance.contract.address); 
@@ -296,19 +289,13 @@ export class VBridge {
   // it creates the anchor handler and sets the appropriate permissions
   // for the bridgeSide/anchorHandler/anchor
   public static async setPermissions(vBridgeSide: VBridgeSide, vAnchors: VAnchor[]): Promise<void> {
-
-    let resourceIDs: string[] = [];
-    let vAnchorAddresses: string[] = [];
-    for (let vAnchor of vAnchors) {
-      resourceIDs.push(await vAnchor.createResourceId());
-      vAnchorAddresses.push(vAnchor.contract.address);
-    }
-           
-    const handler = await AnchorHandler.createAnchorHandler(vBridgeSide.contract.address, resourceIDs, vAnchorAddresses, vBridgeSide.admin);
-    await vBridgeSide.setAnchorHandler(handler);
-    
+    let tokenDenomination = '1000000000000000000' // 1 ether
     for (let vAnchor of vAnchors) {
       await vBridgeSide.connectAnchor(vAnchor);
+
+      await vBridgeSide.voteConfigLimitsProposal(vAnchor, BigNumber.from(0).toString(), BigNumber.from(tokenDenomination).mul(1_000_000).toString());
+
+      await vBridgeSide.executeConfigLimitsProposal(vAnchor, BigNumber.from(0).toString(), BigNumber.from(tokenDenomination).mul(1_000_000).toString());
     }
   }
 

@@ -128,7 +128,7 @@ export class AnchorProxy {
       const events = await anchor.contract.queryFilter(filter, receipt.blockHash);
       return events[0];
     } else {
-      const filter = anchor.contract.filters.Withdrawal(null, null, relayer, null);
+      const filter = anchor.contract.filters.Withdrawal(null, relayer, null);
       const events = await anchor.contract.queryFilter(filter, receipt.blockHash);
       return events[0];
     }

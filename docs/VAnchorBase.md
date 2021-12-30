@@ -118,6 +118,28 @@ function calculatePublicAmount(int256 _extAmount, uint256 _fee) external pure re
 |---|---|---|
 | _0 | uint256 | undefined
 
+### commitments
+
+```solidity
+function commitments(bytes32) external view returns (bool)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bytes32 | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bool | undefined
+
 ### configureLimits
 
 ```solidity
@@ -264,6 +286,23 @@ function filledSubtrees(uint256) external view returns (bytes32)
 |---|---|---|
 | _0 | bytes32 | undefined
 
+### getChainId
+
+```solidity
+function getChainId() external view returns (uint256)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
 ### getLastRoot
 
 ```solidity
@@ -284,7 +323,7 @@ function getLastRoot() external view returns (bytes32)
 ### getLatestNeighborEdges
 
 ```solidity
-function getLatestNeighborEdges() external view returns (struct VAnchorBase.Edge[] edges)
+function getLatestNeighborEdges() external view returns (struct LinkableTree.Edge[] edges)
 ```
 
 
@@ -296,22 +335,79 @@ function getLatestNeighborEdges() external view returns (struct VAnchorBase.Edge
 
 | Name | Type | Description |
 |---|---|---|
-| edges | VAnchorBase.Edge[] | undefined
+| edges | LinkableTree.Edge[] | undefined
 
-### hashLeftRight
+### getLatestNeighborRoots
 
 ```solidity
-function hashLeftRight(bytes32 _left, bytes32 _right) external view returns (bytes32)
+function getLatestNeighborRoots() external view returns (bytes32[] roots)
 ```
 
 
 
-*Hash 2 tree leaves, returns Poseidon(_left, _right)*
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| roots | bytes32[] | undefined
+
+### handler
+
+```solidity
+function handler() external view returns (address)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined
+
+### hasEdge
+
+```solidity
+function hasEdge(uint256 _chainID) external view returns (bool)
+```
+
+
+
+
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
+| _chainID | uint256 | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bool | undefined
+
+### hashLeftRight
+
+```solidity
+function hashLeftRight(contract IPoseidonT3 _hasher, bytes32 _left, bytes32 _right) external pure returns (bytes32)
+```
+
+
+
+*Hash 2 tree leaves, returns PoseidonT3([_left, _right])*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _hasher | contract IPoseidonT3 | undefined
 | _left | bytes32 | undefined
 | _right | bytes32 | undefined
 
@@ -324,7 +420,7 @@ function hashLeftRight(bytes32 _left, bytes32 _right) external view returns (byt
 ### hasher
 
 ```solidity
-function hasher() external view returns (contract IHasher)
+function hasher() external view returns (contract IPoseidonT3)
 ```
 
 
@@ -336,7 +432,7 @@ function hasher() external view returns (contract IHasher)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | contract IHasher | undefined
+| _0 | contract IPoseidonT3 | undefined
 
 ### initialize
 
@@ -421,6 +517,28 @@ function isSpent(bytes32 _nullifierHash) external view returns (bool)
 | Name | Type | Description |
 |---|---|---|
 | _0 | bool | undefined
+
+### isSpentArray
+
+```solidity
+function isSpentArray(bytes32[] _nullifierHashes) external view returns (bool[] spent)
+```
+
+
+
+*whether an array of notes is already spent *
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _nullifierHashes | bytes32[] | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| spent | bool[] | undefined
 
 ### isValidRoots
 
@@ -591,25 +709,6 @@ function nullifierHashes(bytes32) external view returns (bool)
 |---|---|---|
 | _0 | bool | undefined
 
-### permissions
-
-```solidity
-function permissions() external view returns (address bridge, address admin, address handler)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| bridge | address | undefined
-| admin | address | undefined
-| handler | address | undefined
-
 ### register
 
 ```solidity
@@ -625,24 +724,6 @@ function register(VAnchorBase.Account _account) external nonpayable
 | Name | Type | Description |
 |---|---|---|
 | _account | VAnchorBase.Account | undefined
-
-### registerAndTransact
-
-```solidity
-function registerAndTransact(VAnchorBase.Account _account, VAnchorEncodeInputs.Proof _proofArgs, VAnchorBase.ExtData _extData) external nonpayable
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _account | VAnchorBase.Account | undefined
-| _proofArgs | VAnchorEncodeInputs.Proof | undefined
-| _extData | VAnchorBase.ExtData | undefined
 
 ### roots
 
@@ -666,22 +747,38 @@ function roots(uint256) external view returns (bytes32)
 |---|---|---|
 | _0 | bytes32 | undefined
 
-### transact
+### setHandler
 
 ```solidity
-function transact(VAnchorEncodeInputs.Proof _args, VAnchorBase.ExtData _extData) external nonpayable
+function setHandler(address newHandler, uint32 nonce) external nonpayable
 ```
 
 
 
-*Main function that allows deposits, transfers and withdrawal.*
+
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| _args | VAnchorEncodeInputs.Proof | undefined
-| _extData | VAnchorBase.ExtData | undefined
+| newHandler | address | undefined
+| nonce | uint32 | undefined
+
+### setVerifier
+
+```solidity
+function setVerifier(address newVerifier) external nonpayable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newVerifier | address | undefined
 
 ### unpackProof
 
@@ -706,6 +803,24 @@ function unpackProof(uint256[8] _proof) external pure returns (uint256[2], uint2
 | _0 | uint256[2] | undefined
 | _1 | uint256[2][2] | undefined
 | _2 | uint256[2] | undefined
+
+### updateEdge
+
+```solidity
+function updateEdge(uint256 sourceChainID, bytes32 root, uint256 leafIndex) external payable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| sourceChainID | uint256 | undefined
+| root | bytes32 | undefined
+| leafIndex | uint256 | undefined
 
 ### verifier
 
@@ -732,7 +847,7 @@ function zeros(uint256 i) external pure returns (bytes32)
 
 
 
-*provides Zero (Empty) elements for a MiMC MerkleTree. Up to 32 levels*
+*provides Zero (Empty) elements for a Poseidon MerkleTree. Up to 32 levels*
 
 #### Parameters
 
@@ -785,6 +900,24 @@ event EdgeUpdate(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot)
 | chainID  | uint256 | undefined |
 | latestLeafIndex  | uint256 | undefined |
 | merkleRoot  | bytes32 | undefined |
+
+### Insertion
+
+```solidity
+event Insertion(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| commitment `indexed` | bytes32 | undefined |
+| leafIndex  | uint32 | undefined |
+| timestamp  | uint256 | undefined |
 
 ### NewCommitment
 

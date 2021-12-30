@@ -234,7 +234,7 @@ describe('Anchor for 2 max edges', () => {
       assert.strictEqual(isSpent, false)
 
       let receipt = await anchor.withdraw(deposit, index, recipient, relayer.address, fee, bigInt(0));
-      const filter = anchor.contract.filters.Withdrawal(null, null, relayer.address, null);
+      const filter = anchor.contract.filters.Withdrawal(null, relayer.address, null);
       const events = await anchor.contract.queryFilter(filter, receipt.blockHash);
 
       const balanceAnchorAfter = await token.balanceOf(anchor.contract.address)
@@ -246,8 +246,7 @@ describe('Anchor for 2 max edges', () => {
       assert.strictEqual(balanceRelayerAfter.toString(), toBN(balanceRelayerBefore).add(feeBN).toString())
 
       assert.strictEqual(events[0].event, 'Withdrawal')
-      assert.strictEqual(events[0].args[1], toFixedHex(deposit.nullifierHash))
-      assert.strictEqual(events[0].args[3].toString(), feeBN.toString());
+      assert.strictEqual(events[0].args[2].toString(), feeBN.toString());
       isSpent = await anchor.contract.isSpent(toFixedHex(deposit.nullifierHash))
       assert(isSpent);
     });
@@ -718,7 +717,6 @@ describe('Anchor for 2 max edges', () => {
       assert.strictEqual(balTokenBeforeDepositSender.sub(balTokenAfterDepositSender).toString(), '1000000000000000000');
 
       const balWrappedTokenAfterDepositAnchor = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
-      console.log(balWrappedTokenAfterDepositAnchor.toString());
       const balWrappedTokenAfterDepositSender = await wrappedToken.balanceOf(sender.address);
       const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, zkComponents, wallet);
       await TruffleAssert.passes(newAnchor.withdraw(deposit, index, sender.address, signers[1].address, bigInt(0), bigInt(0)));
@@ -1130,7 +1128,7 @@ describe('Anchor for 2 max edges (3-sided bridge)', () => {
     assert.strictEqual(isSpent, false)
 
     let receipt = await anchor.withdraw(deposit, index, recipient, relayer.address, fee, bigInt(0));
-    const filter = anchor.contract.filters.Withdrawal(null, null, relayer.address, null);
+    const filter = anchor.contract.filters.Withdrawal(null, relayer.address, null);
     const events = await anchor.contract.queryFilter(filter, receipt.blockHash);
 
     const balanceAnchorAfter = await token.balanceOf(anchor.contract.address)
@@ -1142,8 +1140,7 @@ describe('Anchor for 2 max edges (3-sided bridge)', () => {
     assert.strictEqual(balanceRelayerAfter.toString(), toBN(balanceRelayerBefore).add(feeBN).toString())
 
     assert.strictEqual(events[0].event, 'Withdrawal')
-    assert.strictEqual(events[0].args[1], toFixedHex(deposit.nullifierHash))
-    assert.strictEqual(events[0].args[3].toString(), feeBN.toString());
+    assert.strictEqual(events[0].args[2].toString(), feeBN.toString());
     isSpent = await anchor.contract.isSpent(toFixedHex(deposit.nullifierHash))
     assert(isSpent);
   })
@@ -1242,7 +1239,7 @@ describe('Anchor for 3 max edges (4-sided bridge)', () => {
     assert.strictEqual(isSpent, false)
 
     let receipt = await anchor.withdraw(deposit, index, recipient, relayer.address, fee, bigInt(0));
-    const filter = anchor.contract.filters.Withdrawal(null, null, relayer.address, null);
+    const filter = anchor.contract.filters.Withdrawal(null, relayer.address, null);
     const events = await anchor.contract.queryFilter(filter, receipt.blockHash);
 
     const balanceAnchorAfter = await token.balanceOf(anchor.contract.address)
@@ -1254,8 +1251,7 @@ describe('Anchor for 3 max edges (4-sided bridge)', () => {
     assert.strictEqual(balanceRelayerAfter.toString(), toBN(balanceRelayerBefore).add(feeBN).toString())
 
     assert.strictEqual(events[0].event, 'Withdrawal')
-    assert.strictEqual(events[0].args[1], toFixedHex(deposit.nullifierHash))
-    assert.strictEqual(events[0].args[3].toString(), feeBN.toString());
+    assert.strictEqual(events[0].args[2].toString(), feeBN.toString());
     isSpent = await anchor.contract.isSpent(toFixedHex(deposit.nullifierHash))
     assert(isSpent);
   })
@@ -1354,7 +1350,7 @@ describe('Anchor for 4 max edges (5-sided bridge)', () => {
     assert.strictEqual(isSpent, false)
 
     let receipt = await anchor.withdraw(deposit, index, recipient, relayer.address, fee, bigInt(0));
-    const filter = anchor.contract.filters.Withdrawal(null, null, relayer.address, null);
+    const filter = anchor.contract.filters.Withdrawal(null, relayer.address, null);
     const events = await anchor.contract.queryFilter(filter, receipt.blockHash);
 
     const balanceAnchorAfter = await token.balanceOf(anchor.contract.address)
@@ -1366,8 +1362,7 @@ describe('Anchor for 4 max edges (5-sided bridge)', () => {
     assert.strictEqual(balanceRelayerAfter.toString(), toBN(balanceRelayerBefore).add(feeBN).toString())
 
     assert.strictEqual(events[0].event, 'Withdrawal')
-    assert.strictEqual(events[0].args[1], toFixedHex(deposit.nullifierHash))
-    assert.strictEqual(events[0].args[3].toString(), feeBN.toString());
+    assert.strictEqual(events[0].args[2].toString(), feeBN.toString());
     isSpent = await anchor.contract.isSpent(toFixedHex(deposit.nullifierHash))
     assert(isSpent);
   })

@@ -21,9 +21,10 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
 
   address public immutable token;
   uint256 public immutable denomination;
+
   // currency events
   event Deposit(address sender, uint32 indexed leafIndex, bytes32 indexed commitment, uint256 timestamp);
-  event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uint256 fee);
+  event Withdrawal(address to, address indexed relayer, uint256 fee);
   event Refresh(bytes32 indexed commitment, bytes32 nullifierHash, uint32 insertedIndex);
 
   struct EncodeInputsData {
@@ -34,6 +35,7 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
     uint256 _fee;
     uint256 _refund;
   }
+
   /**
     @dev The constructor
     @param _verifier the address of SNARK verifier for this contract
@@ -56,13 +58,10 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
   }
 
   function deposit(bytes32 _commitment) override public payable {
-    uint32 insertedIndex = insert(_commitment);
-    emit Deposit(msg.sender, insertedIndex, _commitment, block.timestamp);
-  }
-
-  function _processInsertion() internal override {
     require(msg.value == 0, "ETH value is supposed to be 0 for ERC20 instance");
+    uint32 insertedIndex = insert(_commitment);
     IMintableERC20(token).transferFrom(msg.sender, address(this), denomination);
+    emit Deposit(msg.sender, insertedIndex, _commitment, block.timestamp);
   }
 
   /**
@@ -80,17 +79,8 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
     require(_publicInputs._fee <= denomination, "Fee exceeds transfer value");
     require(!isSpent(_publicInputs._nullifierHash), "The note has been already spent");
 
-    (bytes memory encodedInput, bytes32[] memory roots) = _encodeInputs(
-      _publicInputs._roots,
-      EncodeInputsData(
-        _publicInputs._nullifierHash,
-        _publicInputs._refreshCommitment,
-        address(_publicInputs._recipient),
-        address(_publicInputs._relayer),
-        _publicInputs._fee,
-        _publicInputs._refund
-      )
-    );
+    (bytes memory encodedInput, bytes32[] memory roots) = _encodeInputsWithPublicInputs(_publicInputs);
+
     require(isValidRoots(roots), "Invalid roots");
     require(verify(_proof, encodedInput), "Invalid withdraw proof");
 
@@ -102,11 +92,6 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
         _publicInputs._relayer,
         _publicInputs._fee,
         _publicInputs._refund
-      );
-      emit Withdrawal(_publicInputs._recipient,
-        _publicInputs._nullifierHash,
-        _publicInputs._relayer,
-        _publicInputs._fee
       );
     } else {
       require(!commitments[_publicInputs._refreshCommitment], "The commitment has been submitted");
@@ -143,6 +128,8 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
         IMintableERC20(token).mint(_relayer, _fee);
       }
     }
+
+    emit Withdrawal(_recipient, _relayer, _fee);
 
     if (_refund > 0) {
       (bool success, ) = _recipient.call{ value: _refund }("");
@@ -207,17 +194,7 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
     require(_publicInputs._fee <= denomination, "Fee exceeds transfer value");
     require(!nullifierHashes[_publicInputs._nullifierHash], "The note has been already spent");
 
-    (bytes memory encodedInput, bytes32[] memory roots) = _encodeInputs(
-      _publicInputs._roots,
-      EncodeInputsData(
-        _publicInputs._nullifierHash,
-        _publicInputs._refreshCommitment,
-        address(_publicInputs._recipient),
-        address(_publicInputs._relayer),
-        _publicInputs._fee,
-        _publicInputs._refund
-      )
-    );
+    (bytes memory encodedInput, bytes32[] memory roots) = _encodeInputsWithPublicInputs(_publicInputs);
 
     require(isValidRoots(roots), "Invalid roots");
     require(verify(_proof, encodedInput), "Invalid withdraw proof");
@@ -236,13 +213,6 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
       denomination - _publicInputs._fee,
       address(_publicInputs._recipient)
     );
-
-    emit Withdrawal(
-      _publicInputs._recipient,
-      _publicInputs._nullifierHash,
-      _publicInputs._relayer,
-      _publicInputs._fee
-    );
   }
 
   function getDenomination() override  external view returns (uint) {
@@ -251,6 +221,22 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
 
   function getToken() override  external view returns (address) {
     return token;
+  }
+
+  function _encodeInputsWithPublicInputs(
+    PublicInputs calldata _publicInputs
+  ) internal view returns (bytes memory encodedInput, bytes32[] memory roots) {
+    return _encodeInputs(
+      _publicInputs._roots,
+      EncodeInputsData(
+        _publicInputs._nullifierHash,
+        _publicInputs._refreshCommitment,
+        address(_publicInputs._recipient),
+        address(_publicInputs._relayer),
+        _publicInputs._fee,
+        _publicInputs._refund
+      )
+    );
   }
 
   function _encodeInputs(

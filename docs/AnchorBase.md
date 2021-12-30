@@ -246,6 +246,23 @@ function getLastRoot() external view returns (bytes32)
 |---|---|---|
 | _0 | bytes32 | undefined
 
+### getLatestNeighborEdges
+
+```solidity
+function getLatestNeighborEdges() external view returns (struct LinkableTree.Edge[] edges)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| edges | LinkableTree.Edge[] | undefined
+
 ### getLatestNeighborRoots
 
 ```solidity
@@ -342,28 +359,6 @@ function hasher() external view returns (contract IPoseidonT3)
 | Name | Type | Description |
 |---|---|---|
 | _0 | contract IPoseidonT3 | undefined
-
-### insert
-
-```solidity
-function insert(bytes32 _commitment) external payable returns (uint32)
-```
-
-
-
-*Inserts a commitment into the tree*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _commitment | bytes32 | the note commitment = Poseidon(chainId, nullifier, secret)
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint32 | undefined
 
 ### isKnownNeighborRoot
 

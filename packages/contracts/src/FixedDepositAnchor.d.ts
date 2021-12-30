@@ -37,6 +37,7 @@ interface FixedDepositAnchorInterface extends ethers.utils.Interface {
     "getChainId()": FunctionFragment;
     "getDenomination()": FunctionFragment;
     "getLastRoot()": FunctionFragment;
+    "getLatestNeighborEdges()": FunctionFragment;
     "getLatestNeighborRoots()": FunctionFragment;
     "getProposalNonce()": FunctionFragment;
     "getToken()": FunctionFragment;
@@ -127,6 +128,10 @@ interface FixedDepositAnchorInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getLastRoot",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getLatestNeighborEdges",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -300,6 +305,10 @@ interface FixedDepositAnchorInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "getLatestNeighborEdges",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getLatestNeighborRoots",
     data: BytesLike
   ): Result;
@@ -384,7 +393,7 @@ interface FixedDepositAnchorInterface extends ethers.utils.Interface {
     "EdgeUpdate(uint256,uint256,bytes32)": EventFragment;
     "Insertion(bytes32,uint32,uint256)": EventFragment;
     "Refresh(bytes32,bytes32,uint32)": EventFragment;
-    "Withdrawal(address,bytes32,address,uint256)": EventFragment;
+    "Withdrawal(address,address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Deposit"): EventFragment;
@@ -437,12 +446,7 @@ export type RefreshEvent = TypedEvent<
 >;
 
 export type WithdrawalEvent = TypedEvent<
-  [string, string, string, BigNumber] & {
-    to: string;
-    nullifierHash: string;
-    relayer: string;
-    fee: BigNumber;
-  }
+  [string, string, BigNumber] & { to: string; relayer: string; fee: BigNumber }
 >;
 
 export class FixedDepositAnchor extends BaseContract {
@@ -542,6 +546,24 @@ export class FixedDepositAnchor extends BaseContract {
     getDenomination(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     getLastRoot(overrides?: CallOverrides): Promise<[string]>;
+
+    getLatestNeighborEdges(
+      overrides?: CallOverrides
+    ): Promise<
+      [
+        ([BigNumber, string, BigNumber] & {
+          chainID: BigNumber;
+          root: string;
+          latestLeafIndex: BigNumber;
+        })[]
+      ] & {
+        edges: ([BigNumber, string, BigNumber] & {
+          chainID: BigNumber;
+          root: string;
+          latestLeafIndex: BigNumber;
+        })[];
+      }
+    >;
 
     getLatestNeighborRoots(
       overrides?: CallOverrides
@@ -770,6 +792,16 @@ export class FixedDepositAnchor extends BaseContract {
 
   getLastRoot(overrides?: CallOverrides): Promise<string>;
 
+  getLatestNeighborEdges(
+    overrides?: CallOverrides
+  ): Promise<
+    ([BigNumber, string, BigNumber] & {
+      chainID: BigNumber;
+      root: string;
+      latestLeafIndex: BigNumber;
+    })[]
+  >;
+
   getLatestNeighborRoots(overrides?: CallOverrides): Promise<string[]>;
 
   getProposalNonce(overrides?: CallOverrides): Promise<number>;
@@ -982,6 +1014,16 @@ export class FixedDepositAnchor extends BaseContract {
     getDenomination(overrides?: CallOverrides): Promise<BigNumber>;
 
     getLastRoot(overrides?: CallOverrides): Promise<string>;
+
+    getLatestNeighborEdges(
+      overrides?: CallOverrides
+    ): Promise<
+      ([BigNumber, string, BigNumber] & {
+        chainID: BigNumber;
+        root: string;
+        latestLeafIndex: BigNumber;
+      })[]
+    >;
 
     getLatestNeighborRoots(overrides?: CallOverrides): Promise<string[]>;
 
@@ -1249,24 +1291,22 @@ export class FixedDepositAnchor extends BaseContract {
       { commitment: string; nullifierHash: string; insertedIndex: number }
     >;
 
-    "Withdrawal(address,bytes32,address,uint256)"(
+    "Withdrawal(address,address,uint256)"(
       to?: null,
-      nullifierHash?: null,
       relayer?: string | null,
       fee?: null
     ): TypedEventFilter<
-      [string, string, string, BigNumber],
-      { to: string; nullifierHash: string; relayer: string; fee: BigNumber }
+      [string, string, BigNumber],
+      { to: string; relayer: string; fee: BigNumber }
     >;
 
     Withdrawal(
       to?: null,
-      nullifierHash?: null,
       relayer?: string | null,
       fee?: null
     ): TypedEventFilter<
-      [string, string, string, BigNumber],
-      { to: string; nullifierHash: string; relayer: string; fee: BigNumber }
+      [string, string, BigNumber],
+      { to: string; relayer: string; fee: BigNumber }
     >;
   };
 
@@ -1315,6 +1355,8 @@ export class FixedDepositAnchor extends BaseContract {
     getDenomination(overrides?: CallOverrides): Promise<BigNumber>;
 
     getLastRoot(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getLatestNeighborEdges(overrides?: CallOverrides): Promise<BigNumber>;
 
     getLatestNeighborRoots(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1535,6 +1577,10 @@ export class FixedDepositAnchor extends BaseContract {
     getDenomination(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getLastRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getLatestNeighborEdges(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     getLatestNeighborRoots(
       overrides?: CallOverrides

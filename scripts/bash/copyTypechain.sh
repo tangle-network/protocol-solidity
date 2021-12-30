@@ -16,7 +16,6 @@ cp ./typechain/ERC20PresetMinterPauser.d.ts ./packages/contracts/src/ERC20Preset
 cp ./typechain/GovernedTokenWrapper.d.ts ./packages/contracts/src/GovernedTokenWrapper.d.ts
 cp ./typechain/HandlerHelpers.d.ts ./packages/contracts/src/HandlerHelpers.d.ts
 cp ./typechain/Hasher.d.ts ./packages/contracts/src/Hasher.d.ts
-cp ./typechain/LinkableVAnchor.d.ts ./packages/contracts/src/LinkableVAnchor.d.ts
 cp ./typechain/PoseidonT3.d.ts ./packages/contracts/src/PoseidonT3.d.ts
 cp ./typechain/TokenWrapper.d.ts ./packages/contracts/src/TokenWrapper.d.ts
 cp ./typechain/TokenWrapperHandler.d.ts ./packages/contracts/src/TokenWrapperHandler.d.ts
@@ -46,7 +45,6 @@ cp ./typechain/factories/ERC20PresetMinterPauser__factory.ts ./packages/contract
 cp ./typechain/factories/GovernedTokenWrapper__factory.ts ./packages/contracts/src/factories/GovernedTokenWrapper__factory.ts
 cp ./typechain/factories/HandlerHelpers__factory.ts ./packages/contracts/src/factories/HandlerHelpers__factory.ts
 cp ./typechain/factories/Hasher__factory.ts ./packages/contracts/src/factories/Hasher__factory.ts
-cp ./typechain/factories/LinkableVAnchor__factory.ts ./packages/contracts/src/factories/LinkableVAnchor__factory.ts
 cp ./typechain/factories/PoseidonT3__factory.ts ./packages/contracts/src/factories/PoseidonT3__factory.ts
 cp ./typechain/factories/TokenWrapper__factory.ts ./packages/contracts/src/factories/TokenWrapper__factory.ts
 cp ./typechain/factories/TokenWrapperHandler__factory.ts ./packages/contracts/src/factories/TokenWrapperHandler__factory.ts

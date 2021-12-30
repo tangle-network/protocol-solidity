@@ -34,6 +34,7 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
     "filledSubtrees(uint256)": FunctionFragment;
     "getChainId()": FunctionFragment;
     "getLastRoot()": FunctionFragment;
+    "getLatestNeighborEdges()": FunctionFragment;
     "getLatestNeighborRoots()": FunctionFragment;
     "handler()": FunctionFragment;
     "hasEdge(uint256)": FunctionFragment;
@@ -105,6 +106,10 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getLastRoot",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getLatestNeighborEdges",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -209,6 +214,10 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "getChainId", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getLastRoot",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getLatestNeighborEdges",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -389,6 +398,24 @@ export class AnchorBase extends BaseContract {
 
     getLastRoot(overrides?: CallOverrides): Promise<[string]>;
 
+    getLatestNeighborEdges(
+      overrides?: CallOverrides
+    ): Promise<
+      [
+        ([BigNumber, string, BigNumber] & {
+          chainID: BigNumber;
+          root: string;
+          latestLeafIndex: BigNumber;
+        })[]
+      ] & {
+        edges: ([BigNumber, string, BigNumber] & {
+          chainID: BigNumber;
+          root: string;
+          latestLeafIndex: BigNumber;
+        })[];
+      }
+    >;
+
     getLatestNeighborRoots(
       overrides?: CallOverrides
     ): Promise<[string[]] & { roots: string[] }>;
@@ -544,6 +571,16 @@ export class AnchorBase extends BaseContract {
 
   getLastRoot(overrides?: CallOverrides): Promise<string>;
 
+  getLatestNeighborEdges(
+    overrides?: CallOverrides
+  ): Promise<
+    ([BigNumber, string, BigNumber] & {
+      chainID: BigNumber;
+      root: string;
+      latestLeafIndex: BigNumber;
+    })[]
+  >;
+
   getLatestNeighborRoots(overrides?: CallOverrides): Promise<string[]>;
 
   handler(overrides?: CallOverrides): Promise<string>;
@@ -687,6 +724,16 @@ export class AnchorBase extends BaseContract {
     getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
     getLastRoot(overrides?: CallOverrides): Promise<string>;
+
+    getLatestNeighborEdges(
+      overrides?: CallOverrides
+    ): Promise<
+      ([BigNumber, string, BigNumber] & {
+        chainID: BigNumber;
+        root: string;
+        latestLeafIndex: BigNumber;
+      })[]
+    >;
 
     getLatestNeighborRoots(overrides?: CallOverrides): Promise<string[]>;
 
@@ -883,6 +930,8 @@ export class AnchorBase extends BaseContract {
 
     getLastRoot(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getLatestNeighborEdges(overrides?: CallOverrides): Promise<BigNumber>;
+
     getLatestNeighborRoots(overrides?: CallOverrides): Promise<BigNumber>;
 
     handler(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1030,6 +1079,10 @@ export class AnchorBase extends BaseContract {
     getChainId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getLastRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getLatestNeighborEdges(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     getLatestNeighborRoots(
       overrides?: CallOverrides
