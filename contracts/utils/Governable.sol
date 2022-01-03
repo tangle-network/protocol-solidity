@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "hardhat/console.sol";
 
 contract Governable {
     address private _governor;
@@ -80,7 +79,6 @@ contract Governable {
         require(refreshNonce < nonce, "Invalid nonce");
         require(nonce <= refreshNonce + 1, "Nonce must increment by 1");
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        console.logBytes(abi.encodePacked(nonce, newOwner));
         bytes32 newOwnerHash = keccak256(abi.encodePacked(nonce, newOwner));
         require(isSignatureFromGovernor(abi.encodePacked(prefix, abi.encodePacked(newOwnerHash)), sig), "Governable: caller is not the governor");
         _transferOwnership(newOwner);
