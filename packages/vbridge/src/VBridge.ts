@@ -1,5 +1,6 @@
 import { ethers, BigNumber, BigNumberish  } from "ethers";
 import VBridgeSide from './VBridgeSide';
+import { SignatureBridgeSide } from '../../fixed-bridge/src/SignatureBridgeSide';
 import VAnchor from './VAnchor';
 import { AnchorHandler } from "./AnchorHandler";
 import { MintableToken, GovernedTokenWrapper } from "../../tokens/src/index";
@@ -65,7 +66,7 @@ export type BridgeConfig = {
   vAnchors: Map<string, VAnchor>,
 
   // The addresses of the Bridge contracts (bridgeSides) to interact with
-  vBridgeSides: Map<number, VBridgeSide>,
+  vBridgeSides: Map<number, VBridgeSide | SignatureBridgeSide>,
 }
 
 const zeroAddress = "0x0000000000000000000000000000000000000000";
@@ -81,7 +82,7 @@ function checkNativeAddress(tokenAddress: string): boolean {
 export class VBridge {
   private constructor(
     // Mapping of chainId => vBridgeSide
-    public vBridgeSides: Map<number, VBridgeSide>,
+    public vBridgeSides: Map<number, VBridgeSide | SignatureBridgeSide>,
 
     // chainID => GovernedTokenWrapper (webbToken) address
     public webbTokenAddresses: Map<number, string>,
@@ -130,43 +131,10 @@ export class VBridge {
     return linkedVAnchorMap;
   }
 
-  // public static async connectBridge(bridgeConfig: BridgeConfig) {
-  //   // Parse the anchorIdStrings into achor identifiers
-  //   let identifiedAnchors: AnchorIdentifier[] = [];
-  //   for (const key of bridgeConfig.anchors.keys()) {
-  //     const createdAnchorIdentifier = Bridge.createAnchorIdentifier(key);
-  //     if (createdAnchorIdentifier) {
-  //       identifiedAnchors.push(createdAnchorIdentifier);
-  //     }
-  //   }
-
-  //   // loop through and group anchors by their identifiers
-  //   let groupLinkedAnchors: Anchor[][] = [];
-
-  //   for (const anchor of identifiedAnchors) {
-  //     let anchorGroup: Anchor[] = [];
-
-  //     for (const linkableAnchor of identifiedAnchors) {
-  //       if (
-  //         anchor.tokenName == linkableAnchor.tokenName && 
-  //         anchor.anchorSize == linkableAnchor.anchorSize
-  //       ) {
-  //         anchorGroup.push(bridgeConfig.anchors.get(Bridge.createAnchorIdString(linkableAnchor))!);
-  //       }
-  //     }
-
-  //     groupLinkedAnchors.push(anchorGroup);
-  //   }
-
-  //   const linkedAnchors = await Bridge.createLinkedAnchorMap(groupLinkedAnchors);
-    
-  //   return new Bridge(bridgeConfig.bridgeSides, bridgeConfig.webbTokenAddresses, linkedAnchors, bridgeConfig.anchors);
-  // }
-
-  public static async deployVBridge(vBridgeInput: VBridgeInput, deployers: DeployerConfig): Promise<VBridge> {
+  public static async deployVBridge(vBridgeInput: VBridgeInput, deployers: DeployerConfig, isVBridgeSide: boolean): Promise<VBridge> {
     
     let webbTokenAddresses: Map<number, string> = new Map();
-    let vBridgeSides: Map<number, VBridgeSide> = new Map();
+    let vBridgeSides: Map<number, VBridgeSide | SignatureBridgeSide> = new Map();
     let vAnchors: Map<string, VAnchor> = new Map();
     // createdAnchors have the form of [[Anchors created on chainID], [...]]
     // and anchors in the subArrays of thhe same index should be linked together
@@ -174,15 +142,25 @@ export class VBridge {
 
     for (let chainID of vBridgeInput.chainIDs) {
       const adminAddress = await deployers[chainID].getAddress();
-
+      let vBridgeInstance;
       // Create the bridgeSide
-      const vBridgeInstance = await VBridgeSide.createVBridgeSide(
-        [adminAddress],
-        1,
-        0,
-        100,
-        deployers[chainID],
-      );
+      if (isVBridgeSide) {
+        vBridgeInstance = await VBridgeSide.createVBridgeSide(
+          [adminAddress],
+          1,
+          0,
+          100,
+          deployers[chainID],
+        );
+      } else {
+        vBridgeInstance = await SignatureBridgeSide.createBridgeSide(
+          adminAddress,
+          0,
+          100,
+          deployers[chainID],
+        );
+      }
+
 
       const handler = await AnchorHandler.createAnchorHandler(vBridgeInstance.contract.address, [], [], vBridgeInstance.admin);
       await vBridgeInstance.setAnchorHandler(handler);
@@ -288,14 +266,20 @@ export class VBridge {
   // The setPermissions method accepts initialized bridgeSide and anchors.
   // it creates the anchor handler and sets the appropriate permissions
   // for the bridgeSide/anchorHandler/anchor
-  public static async setPermissions(vBridgeSide: VBridgeSide, vAnchors: VAnchor[]): Promise<void> {
+  public static async setPermissions(vBridgeSide: VBridgeSide | SignatureBridgeSide, vAnchors: VAnchor[]): Promise<void> {
     let tokenDenomination = '1000000000000000000' // 1 ether
     for (let vAnchor of vAnchors) {
-      await vBridgeSide.connectAnchor(vAnchor);
+      if (vBridgeSide instanceof VBridgeSide) {
+        await vBridgeSide.connectAnchor(vAnchor);
 
-      await vBridgeSide.voteConfigLimitsProposal(vAnchor, BigNumber.from(0).toString(), BigNumber.from(tokenDenomination).mul(1_000_000).toString());
+        await vBridgeSide.voteConfigLimitsProposal(vAnchor, BigNumber.from(0).toString(), BigNumber.from(tokenDenomination).mul(1_000_000).toString());
+  
+        await vBridgeSide.executeConfigLimitsProposal(vAnchor, BigNumber.from(0).toString(), BigNumber.from(tokenDenomination).mul(1_000_000).toString());
+      } else {
+        await vBridgeSide.connectAnchorWithSignature(vAnchor);
 
-      await vBridgeSide.executeConfigLimitsProposal(vAnchor, BigNumber.from(0).toString(), BigNumber.from(tokenDenomination).mul(1_000_000).toString());
+        await vBridgeSide.executeConfigLimitsProposalWithSig(vAnchor, BigNumber.from(0).toString(), BigNumber.from(tokenDenomination).mul(1_000_000).toString());
+      }  
     }
   }
 
@@ -319,8 +303,13 @@ export class VBridge {
       const chainId = await vAnchor.signer.getChainId();
       const resourceID = await vAnchor.createResourceId();
       const vBridgeSide = this.vBridgeSides.get(chainId);
-      await vBridgeSide!.voteAnchorProposal(srcAnchor, resourceID);
-      await vBridgeSide!.executeProposal(srcAnchor, resourceID);
+      if (vBridgeSide instanceof VBridgeSide) {
+        await vBridgeSide!.voteAnchorProposal(srcAnchor, resourceID);
+        await vBridgeSide!.executeProposal(srcAnchor, resourceID);
+      } else {
+        await vBridgeSide!.executeAnchorProposalWithSig(srcAnchor, resourceID);
+      }
+      
     }
   };
 

@@ -1,6 +1,7 @@
 import { BigNumberish, ethers } from "ethers";
 import { SignatureBridge, SignatureBridge__factory } from '../../../typechain';
 import { Anchor } from './Anchor';
+import { VAnchor } from '../../vbridge/src/VAnchor';
 import { AnchorHandler } from "./AnchorHandler";
 import { GovernedTokenWrapper } from "../../tokens/src/index";
 import { TokenWrapperHandler } from "../../tokens/src/index";
@@ -65,12 +66,12 @@ export class SignatureBridgeSide {
    * @param executionResourceId The resource id of the execution anchor instance.
    * @returns Promise<string>
    */
-   public async createAnchorUpdateProposalData(srcAnchor: Anchor, executionResourceID: string): Promise<string> {
+   public async createAnchorUpdateProposalData(srcAnchor: Anchor | VAnchor, executionResourceID: string): Promise<string> {
     const proposalData = await srcAnchor.getProposalData(executionResourceID);
     return proposalData;
   }
 
-  public async createHandlerUpdateProposalData(anchor: Anchor, newHandler: string) {
+  public async createHandlerUpdateProposalData(anchor: Anchor | VAnchor, newHandler: string) {
     const proposalData = await anchor.getHandlerProposalData(newHandler);
     return proposalData;
   }
@@ -100,6 +101,11 @@ export class SignatureBridgeSide {
     return proposalData;
   }
 
+  public async createConfigLimitsProposalData(vAnchor: VAnchor, _minimalWithdrawalAmount: string, _maximumDepositAmount: string) {
+    const proposalData = await vAnchor.getConfigLimitsProposalData(_minimalWithdrawalAmount,_maximumDepositAmount);
+    return proposalData;
+  }
+
   public async setAnchorHandler(handler: AnchorHandler) {
     this.handler = handler;
   }
@@ -110,14 +116,14 @@ export class SignatureBridgeSide {
 
   // Connects the bridgeSide, anchor handler, and anchor.
   // Returns the resourceID used to connect them all
-  public async connectAnchorWithSignature(anchor: Anchor): Promise<string> {
+  public async connectAnchorWithSignature(anchor: Anchor | VAnchor): Promise<string> {
     const resourceId = await this.setResourceWithSignature(anchor);
     await this.executeHandlerProposalWithSig(anchor, this.handler.contract.address);
 
     return resourceId;
   }
 
-  public async setResourceWithSignature(anchor: Anchor): Promise<string> {
+  public async setResourceWithSignature(anchor: Anchor | VAnchor): Promise<string> {
     if (!this.handler) {
       throw new Error("Cannot connect an anchor without a handler");
     }
@@ -143,7 +149,7 @@ export class SignatureBridgeSide {
     return resourceId;
   }
 
-  public async executeHandlerProposalWithSig(anchor: Anchor, newHandler: string) {
+  public async executeHandlerProposalWithSig(anchor: Anchor | VAnchor, newHandler: string) {
     const proposalData = await this.createHandlerUpdateProposalData(anchor, newHandler);
     const proposalMsg = ethers.utils.arrayify(ethers.utils.keccak256(proposalData).toString());
     const sig = await this.signingSystemSignFn(proposalMsg);
@@ -154,7 +160,7 @@ export class SignatureBridgeSide {
   }
 
   // emit ProposalEvent(chainID, nonce, ProposalStatus.Executed, dataHash);
-  public async executeAnchorProposalWithSig(srcAnchor: Anchor, executionResourceID: string) {
+  public async executeAnchorProposalWithSig(srcAnchor: Anchor | VAnchor, executionResourceID: string) {
     if (!this.handler) {
       throw new Error("Cannot connect an anchor without a handler");
     }
@@ -205,6 +211,21 @@ export class SignatureBridgeSide {
     const resourceId = await governedToken.createResourceId();
     const chainId = await governedToken.signer.getChainId();
     const nonce = (await governedToken.contract.proposalNonce()).add(1);
+    const proposalMsg = ethers.utils.arrayify(ethers.utils.keccak256(proposalData).toString());
+    const sig = await this.signingSystemSignFn(proposalMsg);
+    const tx = await this.contract.executeProposalWithSignature(proposalData, sig);
+    const receipt = await tx.wait();
+    
+    return receipt;
+  }
+
+  public async executeConfigLimitsProposalWithSig(anchor: VAnchor, _minimalWithdrawalAmount: string, _maximumDepositAmount: string) {
+    if (!this.handler) {
+      throw new Error("Cannot connect an anchor without a handler");
+    }
+
+    const proposalData = await this.createConfigLimitsProposalData(anchor, _minimalWithdrawalAmount,_maximumDepositAmount);
+    ;
     const proposalMsg = ethers.utils.arrayify(ethers.utils.keccak256(proposalData).toString());
     const sig = await this.signingSystemSignFn(proposalMsg);
     const tx = await this.contract.executeProposalWithSignature(proposalData, sig);
