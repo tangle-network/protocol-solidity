@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 contract Governable {
     address private _governor;
+    uint32 public refreshNonce = 0;
 
     event GovernanceOwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event RecoveredAddress(address indexed recovered);
@@ -63,30 +64,40 @@ contract Governable {
      * @dev Transfers ownership of the contract to a new account (`newOwner`).
      * Can only be called by the current owner.
      */
-    function transferOwnership(address newOwner) public onlyGovernor {
+    function transferOwnership(address newOwner, uint32 nonce) public onlyGovernor {
+        require(refreshNonce < nonce, "Invalid nonce");
+        require(nonce <= refreshNonce + 1, "Nonce must increment by 1");
         _transferOwnership(newOwner);
+        refreshNonce = nonce;
     }
 
     /**
      * @dev Transfers ownership of the contract to a new account (`newOwner`).
      * Can only be called by the current owner.
      */
-    function transferOwnershipWithSignature(address newOwner, bytes memory sig) public {
+    function transferOwnershipWithSignature(address newOwner, uint32 nonce, bytes memory sig) public {
+        require(refreshNonce < nonce, "Invalid nonce");
+        require(nonce <= refreshNonce + 1, "Nonce must increment by 1");
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        bytes32 newOwnerHash = keccak256(abi.encodePacked(newOwner));
+        bytes32 newOwnerHash = keccak256(abi.encodePacked(nonce, newOwner));
         require(isSignatureFromGovernor(abi.encodePacked(prefix, abi.encodePacked(newOwnerHash)), sig), "Governable: caller is not the governor");
         _transferOwnership(newOwner);
+        refreshNonce = nonce;
     }
 
     /**
      * @dev Transfers ownership of the contract to a new account associated with the publicKey    * input
      */
-    function transferOwnershipWithSignaturePubKey(bytes memory publicKey, bytes memory sig) public {
+    function transferOwnershipWithSignaturePubKey(bytes memory publicKey, uint32 nonce, bytes memory sig) public {
+        require(refreshNonce < nonce, "Invalid nonce");
+        require(nonce <= refreshNonce + 1, "Nonce must increment by 1");
         bytes memory prefix = "\x19Ethereum Signed Message:\n32"; 
         bytes32 pubKeyHash = keccak256(publicKey);
+        bytes32 pubKeyNonceHash = keccak256(abi.encodePacked(nonce, publicKey));
         address newOwner = address(uint160(uint256(pubKeyHash)));
-        require(isSignatureFromGovernor(abi.encodePacked(prefix, abi.encodePacked(pubKeyHash)), sig), "Governable: caller is not the governor");
+        require(isSignatureFromGovernor(abi.encodePacked(prefix, abi.encodePacked(pubKeyNonceHash)), sig), "Governable: caller is not the governor");
         _transferOwnership(newOwner);
+        refreshNonce = nonce;
     }
 
     function verify(bytes32 hash, uint8 v, bytes32 r, bytes32 s) public view returns(bool) {

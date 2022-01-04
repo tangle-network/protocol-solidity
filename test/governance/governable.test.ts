@@ -6,7 +6,7 @@
  const path = require('path');
  import { ethers } from 'hardhat';
  import { BigNumber, Signer } from 'ethers';
- import { toFixedHex } from '@webb-tools/utils';
+ import { toFixedHex, toHex } from '@webb-tools/utils';
  const TruffleAssert = require('truffle-assertions');
  import { Bytes, concat } from "@ethersproject/bytes";
  import { toUtf8Bytes, toUtf8String } from "@ethersproject/strings";
@@ -56,42 +56,42 @@
   });
 
   it('should check ownership is transferred to new governor', async () => {
-    const msg = ethers.utils.arrayify(ethers.utils.keccak256(nextGovernor.address).toString());
+    const nonceString = toHex(1, 4);
+    const msg = ethers.utils.arrayify(ethers.utils.keccak256(nonceString + nextGovernor.address.slice(2)).toString());
     const signedMessage = await sender.signMessage(msg);
-    await governableInstance.transferOwnershipWithSignature(nextGovernor.address, signedMessage);
+    await governableInstance.transferOwnershipWithSignature(nextGovernor.address, 1, signedMessage);
     assert.strictEqual((await governableInstance.governor()), nextGovernor.address);
   });
 
   it('failing test: non-governor should not be able to transfer ownership', async() => {
-    const msg = ethers.utils.arrayify(ethers.utils.keccak256(nextGovernor.address).toString());
-    const signedMessage = await sender.signMessage(msg);
-
     await TruffleAssert.reverts(
-      governableInstance.connect(nextGovernor).transferOwnership(nextGovernor.address),
+      governableInstance.connect(nextGovernor).transferOwnership(nextGovernor.address, 1),
       'Governable: caller is not the governor',
     );
   });
 
   it('failing test: old governor should not be able to call an onlyGovernor function', async () => {
-    const msg = ethers.utils.arrayify(ethers.utils.keccak256(nextGovernor.address).toString());
+    const nonceString = toHex(1, 4);
+    const msg = ethers.utils.arrayify(ethers.utils.keccak256(nonceString + nextGovernor.address.slice(2)).toString());
     const signedMessage = await sender.signMessage(msg);
 
-    await governableInstance.transferOwnershipWithSignature(nextGovernor.address, signedMessage);
+    await governableInstance.transferOwnershipWithSignature(nextGovernor.address, 1, signedMessage);
     
     await TruffleAssert.reverts(
-      governableInstance.connect(sender).transferOwnership(nextGovernor.address),
+      governableInstance.connect(sender).transferOwnership(nextGovernor.address, 2),
       'Governable: caller is not the governor',
     );
   });
 
   it('failing test replay attack', async () => {
-    const msg = ethers.utils.arrayify(ethers.utils.keccak256(nextGovernor.address).toString());
+    const nonceString = toHex(1, 4);
+    const msg = ethers.utils.arrayify(ethers.utils.keccak256(nonceString + nextGovernor.address.slice(2)).toString());
     const signedMessage = await sender.signMessage(msg);
 
-    await governableInstance.transferOwnershipWithSignature(nextGovernor.address, signedMessage);
+    await governableInstance.transferOwnershipWithSignature(nextGovernor.address, 1, signedMessage);
     
     await TruffleAssert.reverts(
-      governableInstance.connect(arbSigner).transferOwnershipWithSignature(arbSigner.address, signedMessage),
+      governableInstance.connect(arbSigner).transferOwnershipWithSignature(arbSigner.address, 2, signedMessage),
       'Governable: caller is not the governor',
     );
   });
@@ -101,16 +101,17 @@
     assert.strictEqual((await governableInstance.governor()).toString(), '0x0000000000000000000000000000000000000000');
 
     await TruffleAssert.reverts(
-      governableInstance.connect(sender).transferOwnership(nextGovernor.address),
+      governableInstance.connect(sender).transferOwnership(nextGovernor.address, 1),
       'Governable: caller is not the governor',
     );
   });
 
   it('should check ownership is transferred to new governor via signed public key', async () => {
+    const nonceString = toHex(1, 4);
     const publicKey = '0x91a27f998f3971e5b62bbde231264271faf91f837c506fde88c4bfb9c533f1c2c7b40c9fdca6815d43b315c8b039ecda1ba7eabd97794496c3023730581d7d63'; //from Artem's Notion
-    const msg = ethers.utils.arrayify(ethers.utils.keccak256(publicKey).toString());
+    const msg = ethers.utils.arrayify(ethers.utils.keccak256(nonceString + publicKey.slice(2)).toString());
     const signedMessage = await sender.signMessage(msg);
-    await governableInstance.transferOwnershipWithSignaturePubKey(publicKey, signedMessage);
+    await governableInstance.transferOwnershipWithSignaturePubKey(publicKey, 1, signedMessage);
     const nextGovernorAddress = ethers.utils.getAddress('0x' + ethers.utils.keccak256(publicKey).slice(-40));
     assert.strictEqual((await governableInstance.governor()), nextGovernorAddress);
 

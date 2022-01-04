@@ -33,10 +33,11 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     "isSignatureFromGovernor(bytes,bytes)": FunctionFragment;
     "paused()": FunctionFragment;
     "recover(bytes,bytes)": FunctionFragment;
+    "refreshNonce()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
-    "transferOwnership(address)": FunctionFragment;
-    "transferOwnershipWithSignature(address,bytes)": FunctionFragment;
-    "transferOwnershipWithSignaturePubKey(bytes,bytes)": FunctionFragment;
+    "transferOwnership(address,uint32)": FunctionFragment;
+    "transferOwnershipWithSignature(address,uint32,bytes)": FunctionFragment;
+    "transferOwnershipWithSignaturePubKey(bytes,uint32,bytes)": FunctionFragment;
     "verify(bytes32,uint8,bytes32,bytes32)": FunctionFragment;
   };
 
@@ -83,20 +84,24 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     values: [BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "refreshNonce",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
-    values: [string]
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnershipWithSignature",
-    values: [string, BytesLike]
+    values: [string, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnershipWithSignaturePubKey",
-    values: [BytesLike, BytesLike]
+    values: [BytesLike, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "verify",
@@ -133,6 +138,10 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "recover", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "refreshNonce",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
     data: BytesLike
@@ -278,23 +287,28 @@ export class SignatureBridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    refreshNonce(overrides?: CallOverrides): Promise<[number]>;
+
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     transferOwnership(
       newOwner: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     transferOwnershipWithSignature(
       newOwner: string,
+      nonce: BigNumberish,
       sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     transferOwnershipWithSignaturePubKey(
       publicKey: BytesLike,
+      nonce: BigNumberish,
       sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -358,23 +372,28 @@ export class SignatureBridge extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  refreshNonce(overrides?: CallOverrides): Promise<number>;
+
   renounceOwnership(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   transferOwnership(
     newOwner: string,
+    nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   transferOwnershipWithSignature(
     newOwner: string,
+    nonce: BigNumberish,
     sig: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   transferOwnershipWithSignaturePubKey(
     publicKey: BytesLike,
+    nonce: BigNumberish,
     sig: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -438,21 +457,26 @@ export class SignatureBridge extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    refreshNonce(overrides?: CallOverrides): Promise<number>;
+
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
     transferOwnership(
       newOwner: string,
+      nonce: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     transferOwnershipWithSignature(
       newOwner: string,
+      nonce: BigNumberish,
       sig: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
     transferOwnershipWithSignaturePubKey(
       publicKey: BytesLike,
+      nonce: BigNumberish,
       sig: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -558,23 +582,28 @@ export class SignatureBridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    refreshNonce(overrides?: CallOverrides): Promise<BigNumber>;
+
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     transferOwnership(
       newOwner: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     transferOwnershipWithSignature(
       newOwner: string,
+      nonce: BigNumberish,
       sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     transferOwnershipWithSignaturePubKey(
       publicKey: BytesLike,
+      nonce: BigNumberish,
       sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -645,23 +674,28 @@ export class SignatureBridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    refreshNonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     transferOwnership(
       newOwner: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     transferOwnershipWithSignature(
       newOwner: string,
+      nonce: BigNumberish,
       sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     transferOwnershipWithSignaturePubKey(
       publicKey: BytesLike,
+      nonce: BigNumberish,
       sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
