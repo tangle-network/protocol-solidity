@@ -821,7 +821,7 @@ function setHandler(address newHandler, uint32 nonce) external nonpayable
 ### setVerifier
 
 ```solidity
-function setVerifier(address newVerifier) external nonpayable
+function setVerifier(address newVerifier, uint32 nonce) external nonpayable
 ```
 
 
@@ -833,6 +833,7 @@ function setVerifier(address newVerifier) external nonpayable
 | Name | Type | Description |
 |---|---|---|
 | newVerifier | address | undefined
+| nonce | uint32 | undefined
 
 ### token
 

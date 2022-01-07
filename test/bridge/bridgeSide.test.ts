@@ -8,7 +8,7 @@ import { ethers } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
 
 // Convenience wrapper classes for contract classes
-import { Anchor, Verifier } from '@webb-tools/fixed-bridge';
+import { Anchor, Verifier, AnchorHandler } from '@webb-tools/fixed-bridge';
 import { BridgeSide } from '../../packages/fixed-bridge/src/BridgeSide'
 import { MintableToken } from '@webb-tools/tokens';
 import { fetchComponentsFromFilePaths, ZkComponents } from '@webb-tools/utils';
@@ -34,7 +34,7 @@ describe('BridgeSideConstruction', () => {
     const relayer = signers[1];
     const recipient = signers[1];
 
-    const bridgeSide = BridgeSide.createBridgeSide([relayer.address], 1, 0, 100, admin);
+    const bridgeSide = await BridgeSide.createBridgeSide([relayer.address], 1, 0, 100, admin);
 
     // Create the Hasher and Verifier for the chain
     const hasherFactory = new PoseidonT3__factory(admin);
@@ -46,19 +46,27 @@ describe('BridgeSideConstruction', () => {
     const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
     await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
 
+    const anchorHandler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, [], [], admin);
+
     const anchor = await Anchor.createAnchor(
       verifier.contract.address,
       hasherInstance.address,
       '1000000000000',
       30,
       tokenInstance.contract.address,
-      admin.address,
+      anchorHandler.contract.address,
       5,
       zkComponents,
       admin
     );
 
     await tokenInstance.approveSpending(anchor.contract.address);
+
+    await bridgeSide.setAnchorHandler(anchorHandler);
+    // //Function call below sets resource with signature
+    await bridgeSide.connectAnchor(anchor);
+    //Check that proposal nonce is updated on anchor contract since handler prposal has been executed
+    assert.strictEqual(await anchor.contract.getProposalNonce(), 1);
   })
 
   it('execute fee proposal bridgeside', async () => {
@@ -269,6 +277,55 @@ describe('BridgeSideConstruction', () => {
 
     assert((await governedToken.contract.getTokens()).length === 0);  
     assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '3');
+  })
+
+  it('nonce should update upon handler proposal executing', async () => {
+    const signers = await ethers.getSigners();
+    const admin = signers[1];
+    const relayer = signers[1];
+
+    const bridgeSide = await BridgeSide.createBridgeSide([relayer.address], 1, 0, 100, admin);
+
+    // Create the Hasher and Verifier for the chain
+    const hasherFactory = new PoseidonT3__factory(admin);
+    let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
+    await hasherInstance.deployed();
+
+    const verifier = await Verifier.createVerifier(admin);
+
+    const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
+    await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
+
+    const anchorHandler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, [], [], admin);
+
+    const anchor = await Anchor.createAnchor(
+      verifier.contract.address,
+      hasherInstance.address,
+      '1000000000000',
+      30,
+      tokenInstance.contract.address,
+      anchorHandler.contract.address,
+      5,
+      zkComponents,
+      admin
+    );
+
+    await tokenInstance.approveSpending(anchor.contract.address);
+
+    await bridgeSide.setAnchorHandler(anchorHandler);
+    // //Function call below sets resource with signature
+    await bridgeSide.connectAnchor(anchor);
+    //Check that proposal nonce is updated on anchor contract since handler prposal has been executed
+    assert.strictEqual(await anchor.contract.getProposalNonce(), 1);
+
+    await bridgeSide.connectAnchor(anchor);
+    assert.strictEqual(await anchor.contract.getProposalNonce(), 2);
+
+    await bridgeSide.connectAnchor(anchor);
+    assert.strictEqual(await anchor.contract.getProposalNonce(), 3);
+
+    await bridgeSide.connectAnchor(anchor);
+    assert.strictEqual(await anchor.contract.getProposalNonce(), 4);
   })
 
 })

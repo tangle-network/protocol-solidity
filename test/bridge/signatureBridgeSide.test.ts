@@ -71,6 +71,8 @@
     await bridgeSide.setAnchorHandler(anchorHandler);
     // //Function call below sets resource with signature
     await bridgeSide.connectAnchorWithSignature(anchor);
+    //Check that proposal nonce is updated on anchor contract since handler prposal has been executed
+    assert.strictEqual(await anchor.contract.getProposalNonce(), 1);
   })
  
   it('execute anchor proposal', async () => {
@@ -316,4 +318,58 @@ assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '2
     assert((await governedToken.contract.getTokens()).length === 0);  
     assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '3');
   })
+
+
+  it('nonce should update upon handler proposal executing', async () => {
+    const signers = await ethers.getSigners();
+    const initialGovernor = signers[1];
+    const admin = signers[1];
+    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, 0, 100, admin);
+
+    // Create the Hasher and Verifier for the chain
+    const hasherFactory = new PoseidonT3__factory(admin);
+    let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
+    await hasherInstance.deployed();
+
+    const verifier = await Verifier.createVerifier(admin);
+
+    const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
+    await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
+
+    const anchorHandler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, [], [], admin);
+
+    const anchor = await Anchor.createAnchor(
+      verifier.contract.address,
+      hasherInstance.address,
+      '1000000000000',
+      30,
+      tokenInstance.contract.address,
+      anchorHandler.contract.address,
+      5,
+      zkComponents,
+      admin
+    );
+
+    await tokenInstance.approveSpending(anchor.contract.address);
+
+    await bridgeSide.setAnchorHandler(anchorHandler);
+    // //Function call below sets resource with signature
+    await bridgeSide.connectAnchorWithSignature(anchor);
+    //Check that proposal nonce is updated on anchor contract since handler prposal has been executed
+    assert.strictEqual(await anchor.contract.getProposalNonce(), 1);
+
+    await bridgeSide.connectAnchorWithSignature(anchor);
+    assert.strictEqual(await anchor.contract.getProposalNonce(), 2);
+
+    await bridgeSide.connectAnchorWithSignature(anchor);
+    assert.strictEqual(await anchor.contract.getProposalNonce(), 3);
+
+    await bridgeSide.connectAnchorWithSignature(anchor);
+    assert.strictEqual(await anchor.contract.getProposalNonce(), 4);
+
+    await bridgeSide.connectAnchorWithSignature(anchor);
+    assert.strictEqual(await anchor.contract.getProposalNonce(), 5);
+  })
+
+
  })
