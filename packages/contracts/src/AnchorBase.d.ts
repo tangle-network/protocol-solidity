@@ -52,7 +52,7 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
     "nullifierHashes(bytes32)": FunctionFragment;
     "roots(uint256)": FunctionFragment;
     "setHandler(address,uint32)": FunctionFragment;
-    "setVerifier(address)": FunctionFragment;
+    "setVerifier(address,uint32)": FunctionFragment;
     "unpackProof(uint256[8])": FunctionFragment;
     "updateEdge(uint256,bytes32,uint256)": FunctionFragment;
     "verifier()": FunctionFragment;
@@ -158,7 +158,10 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
     functionFragment: "setHandler",
     values: [string, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "setVerifier", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "setVerifier",
+    values: [string, BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "unpackProof",
     values: [
@@ -486,6 +489,7 @@ export class AnchorBase extends BaseContract {
 
     setVerifier(
       newVerifier: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -632,6 +636,7 @@ export class AnchorBase extends BaseContract {
 
   setVerifier(
     newVerifier: string,
+    nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -788,7 +793,11 @@ export class AnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setVerifier(newVerifier: string, overrides?: CallOverrides): Promise<void>;
+    setVerifier(
+      newVerifier: string,
+      nonce: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     unpackProof(
       _proof: [
@@ -988,6 +997,7 @@ export class AnchorBase extends BaseContract {
 
     setVerifier(
       newVerifier: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1140,6 +1150,7 @@ export class AnchorBase extends BaseContract {
 
     setVerifier(
       newVerifier: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

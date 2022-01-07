@@ -57,7 +57,7 @@ interface FixedDepositAnchorInterface extends ethers.utils.Interface {
     "nullifierHashes(bytes32)": FunctionFragment;
     "roots(uint256)": FunctionFragment;
     "setHandler(address,uint32)": FunctionFragment;
-    "setVerifier(address)": FunctionFragment;
+    "setVerifier(address,uint32)": FunctionFragment;
     "token()": FunctionFragment;
     "unpackProof(uint256[8])": FunctionFragment;
     "unwrapIntoNative(address,uint256)": FunctionFragment;
@@ -185,7 +185,10 @@ interface FixedDepositAnchorInterface extends ethers.utils.Interface {
     functionFragment: "setHandler",
     values: [string, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "setVerifier", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "setVerifier",
+    values: [string, BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "token", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "unpackProof",
@@ -639,6 +642,7 @@ export class FixedDepositAnchor extends BaseContract {
 
     setVerifier(
       newVerifier: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -857,6 +861,7 @@ export class FixedDepositAnchor extends BaseContract {
 
   setVerifier(
     newVerifier: string,
+    nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1082,7 +1087,11 @@ export class FixedDepositAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setVerifier(newVerifier: string, overrides?: CallOverrides): Promise<void>;
+    setVerifier(
+      newVerifier: string,
+      nonce: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     token(overrides?: CallOverrides): Promise<string>;
 
@@ -1418,6 +1427,7 @@ export class FixedDepositAnchor extends BaseContract {
 
     setVerifier(
       newVerifier: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1642,6 +1652,7 @@ export class FixedDepositAnchor extends BaseContract {
 
     setVerifier(
       newVerifier: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

@@ -288,7 +288,7 @@ export class VAnchor {
   }
 
   public async setVerifier(verifierAddress: string) {
-    const tx = await this.contract.setVerifier(verifierAddress);
+    const tx = await this.contract.setVerifier(verifierAddress, BigNumber.from((await this.contract.getProposalNonce())).add(1));
     await tx.wait();
   }
 

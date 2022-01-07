@@ -834,6 +834,11 @@ const _abi = [
         name: "newVerifier",
         type: "address",
       },
+      {
+        internalType: "uint32",
+        name: "nonce",
+        type: "uint32",
+      },
     ],
     name: "setVerifier",
     outputs: [],

@@ -64,7 +64,7 @@ interface VAnchorInterface extends ethers.utils.Interface {
     "registerAndTransactWrap((address,bytes),(bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes),address)": FunctionFragment;
     "roots(uint256)": FunctionFragment;
     "setHandler(address,uint32)": FunctionFragment;
-    "setVerifier(address)": FunctionFragment;
+    "setVerifier(address,uint32)": FunctionFragment;
     "token()": FunctionFragment;
     "transact((bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes))": FunctionFragment;
     "transactWrap((bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes),address)": FunctionFragment;
@@ -261,7 +261,10 @@ interface VAnchorInterface extends ethers.utils.Interface {
     functionFragment: "setHandler",
     values: [string, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "setVerifier", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "setVerifier",
+    values: [string, BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "token", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "transact",
@@ -818,6 +821,7 @@ export class VAnchor extends BaseContract {
 
     setVerifier(
       newVerifier: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -1120,6 +1124,7 @@ export class VAnchor extends BaseContract {
 
   setVerifier(
     newVerifier: string,
+    nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1432,7 +1437,11 @@ export class VAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setVerifier(newVerifier: string, overrides?: CallOverrides): Promise<void>;
+    setVerifier(
+      newVerifier: string,
+      nonce: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     token(overrides?: CallOverrides): Promise<string>;
 
@@ -1822,6 +1831,7 @@ export class VAnchor extends BaseContract {
 
     setVerifier(
       newVerifier: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -2134,6 +2144,7 @@ export class VAnchor extends BaseContract {
 
     setVerifier(
       newVerifier: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

@@ -112,6 +112,32 @@ describe('Anchor for 2 max edges', () => {
     });
   })
 
+  describe ('Setting Handler/Verifier Address Negative Tests', () => {
+    it('should revert (setting handler) with improper nonce', async() => {
+      const signers = await ethers.getSigners();
+      await TruffleAssert.reverts(
+        anchor.contract.setHandler(signers[1].address, 0),
+        'Invalid nonce'
+      )
+      await TruffleAssert.reverts(
+        anchor.contract.setHandler(signers[1].address, 2),
+        'Nonce must increment by 1'
+      )
+    });
+
+    it('should revert (setting verifier) with improper nonce', async() => {
+      const signers = await ethers.getSigners();
+      await TruffleAssert.reverts(
+        anchor.contract.setVerifier(signers[1].address, 0),
+        'Invalid nonce'
+      )
+      await TruffleAssert.reverts(
+        anchor.contract.setVerifier(signers[1].address, 2),
+        'Nonce must increment by 1'
+      )
+    });
+  })
+
   describe('#deposit', () => {
     it('should emit event', async () => {
       let { deposit } = await anchor.deposit();
