@@ -27,7 +27,6 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
     "MAX_FEE()": FunctionFragment;
     "ROOT_HISTORY_SIZE()": FunctionFragment;
     "ZERO_VALUE()": FunctionFragment;
-    "addEdge(uint256,bytes32,uint256)": FunctionFragment;
     "calculatePublicAmount(int256,uint256)": FunctionFragment;
     "configureLimits(uint256,uint256)": FunctionFragment;
     "currentNeighborRootIndex(uint256)": FunctionFragment;
@@ -58,8 +57,8 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
     "register((address,bytes))": FunctionFragment;
     "registerAndTransact((address,bytes),(bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes))": FunctionFragment;
     "roots(uint256)": FunctionFragment;
-    "setBridge(address)": FunctionFragment;
-    "setHandler(address)": FunctionFragment;
+    "setHandler(address,uint32)": FunctionFragment;
+    "setVerifier(address)": FunctionFragment;
     "transact((bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes))": FunctionFragment;
     "unpackProof(uint256[8])": FunctionFragment;
     "updateEdge(uint256,bytes32,uint256)": FunctionFragment;
@@ -83,10 +82,6 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "ZERO_VALUE",
     values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "addEdge",
-    values: [BigNumberish, BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "calculatePublicAmount",
@@ -208,8 +203,11 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
     ]
   ): string;
   encodeFunctionData(functionFragment: "roots", values: [BigNumberish]): string;
-  encodeFunctionData(functionFragment: "setBridge", values: [string]): string;
-  encodeFunctionData(functionFragment: "setHandler", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "setHandler",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(functionFragment: "setVerifier", values: [string]): string;
   encodeFunctionData(
     functionFragment: "transact",
     values: [
@@ -264,7 +262,6 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "ZERO_VALUE", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "addEdge", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "calculatePublicAmount",
     data: BytesLike
@@ -352,8 +349,11 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "roots", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "setBridge", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setHandler", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "setVerifier",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "transact", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "unpackProof",
@@ -461,13 +461,6 @@ export class LinkableVAnchor extends BaseContract {
     ROOT_HISTORY_SIZE(overrides?: CallOverrides): Promise<[number]>;
 
     ZERO_VALUE(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    addEdge(
-      sourceChainID: BigNumberish,
-      root: BytesLike,
-      leafIndex: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
 
     calculatePublicAmount(
       _extAmount: BigNumberish,
@@ -635,13 +628,14 @@ export class LinkableVAnchor extends BaseContract {
 
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
-    setBridge(
-      _bridge: string,
+    setHandler(
+      _handler: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setHandler(
-      _handler: string,
+    setVerifier(
+      newVerifier: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -706,13 +700,6 @@ export class LinkableVAnchor extends BaseContract {
   ROOT_HISTORY_SIZE(overrides?: CallOverrides): Promise<number>;
 
   ZERO_VALUE(overrides?: CallOverrides): Promise<BigNumber>;
-
-  addEdge(
-    sourceChainID: BigNumberish,
-    root: BytesLike,
-    leafIndex: BigNumberish,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
 
   calculatePublicAmount(
     _extAmount: BigNumberish,
@@ -857,13 +844,14 @@ export class LinkableVAnchor extends BaseContract {
 
   roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
-  setBridge(
-    _bridge: string,
+  setHandler(
+    _handler: string,
+    nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setHandler(
-    _handler: string,
+  setVerifier(
+    newVerifier: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -928,13 +916,6 @@ export class LinkableVAnchor extends BaseContract {
     ROOT_HISTORY_SIZE(overrides?: CallOverrides): Promise<number>;
 
     ZERO_VALUE(overrides?: CallOverrides): Promise<BigNumber>;
-
-    addEdge(
-      sourceChainID: BigNumberish,
-      root: BytesLike,
-      leafIndex: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     calculatePublicAmount(
       _extAmount: BigNumberish,
@@ -1091,9 +1072,13 @@ export class LinkableVAnchor extends BaseContract {
 
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
-    setBridge(_bridge: string, overrides?: CallOverrides): Promise<void>;
+    setHandler(
+      _handler: string,
+      nonce: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
-    setHandler(_handler: string, overrides?: CallOverrides): Promise<void>;
+    setVerifier(newVerifier: string, overrides?: CallOverrides): Promise<void>;
 
     transact(
       _args: {
@@ -1232,13 +1217,6 @@ export class LinkableVAnchor extends BaseContract {
 
     ZERO_VALUE(overrides?: CallOverrides): Promise<BigNumber>;
 
-    addEdge(
-      sourceChainID: BigNumberish,
-      root: BytesLike,
-      leafIndex: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     calculatePublicAmount(
       _extAmount: BigNumberish,
       _fee: BigNumberish,
@@ -1372,13 +1350,14 @@ export class LinkableVAnchor extends BaseContract {
 
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
-    setBridge(
-      _bridge: string,
+    setHandler(
+      _handler: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setHandler(
-      _handler: string,
+    setVerifier(
+      newVerifier: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1438,13 +1417,6 @@ export class LinkableVAnchor extends BaseContract {
     ROOT_HISTORY_SIZE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     ZERO_VALUE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    addEdge(
-      sourceChainID: BigNumberish,
-      root: BytesLike,
-      leafIndex: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
 
     calculatePublicAmount(
       _extAmount: BigNumberish,
@@ -1591,13 +1563,14 @@ export class LinkableVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    setBridge(
-      _bridge: string,
+    setHandler(
+      _handler: string,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    setHandler(
-      _handler: string,
+    setVerifier(
+      newVerifier: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

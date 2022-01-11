@@ -1,6 +1,6 @@
-import { BigNumberish, ethers } from "ethers";
-import { Anchor as AnchorContract, Anchor__factory } from '@webb-tools/contracts'
-import { RefreshEvent, WithdrawalEvent } from '@webb-tools/contracts/src/AnchorBase'
+import { BigNumberish, ethers, BigNumber } from "ethers";
+import { FixedDepositAnchor as AnchorContract, FixedDepositAnchor__factory as Anchor__factory} from '../../../typechain'
+import { RefreshEvent, WithdrawalEvent } from '@webb-tools/contracts/src/FixedDepositAnchor';
 import { AnchorDeposit, AnchorDepositInfo, IPublicInputs } from './types';
 import { toFixedHex, toHex, rbigint, p256, PoseidonHasher, ZkComponents, Overrides } from '@webb-tools/utils';
 import { MerkleTree } from './MerkleTree';
@@ -8,6 +8,7 @@ import { MerkleTree } from './MerkleTree';
 const snarkjs = require('snarkjs');
 const F = require('circomlibjs').babyjub.F;
 const Scalar = require('ffjavascript').Scalar;
+//const abi = require("web3").eth.abi
 
 const zeroAddress = "0x0000000000000000000000000000000000000000";
 
@@ -65,8 +66,6 @@ class Anchor {
     denomination: BigNumberish,
     merkleTreeHeight: number,
     token: string,
-    bridge: string,
-    admin: string,
     handler: string,
     maxEdges: number,
     zkComponents: ZkComponents,
@@ -74,7 +73,7 @@ class Anchor {
     overrides?: Overrides
   ) {
     const factory = new Anchor__factory(signer);
-    const anchor = await factory.deploy(verifier, hasher, denomination, merkleTreeHeight, token, bridge, admin, handler, maxEdges, overrides || {});
+    const anchor = await factory.deploy(handler, token, verifier, hasher, denomination, merkleTreeHeight, maxEdges, overrides || {});
     await anchor.deployed();
     const createdAnchor = new Anchor(anchor, signer, merkleTreeHeight, maxEdges, zkComponents);
     createdAnchor.latestSyncedBlock = anchor.deployTransaction.blockNumber!;
@@ -171,12 +170,7 @@ class Anchor {
   }
 
   public async setHandler(handlerAddress: string, overrides?: Overrides) {
-    const tx = await this.contract.setHandler(handlerAddress, overrides || {});
-    await tx.wait();
-  }
-
-  public async setBridge(bridgeAddress: string, overrides?: Overrides) {
-    const tx = await this.contract.setBridge(bridgeAddress, overrides || {});
+    const tx = await this.contract.setHandler(handlerAddress, BigNumber.from((await this.contract.getProposalNonce())).add(1), overrides || {});
     await tx.wait();
   }
 
@@ -194,20 +188,38 @@ class Anchor {
 
   // Proposal data is used to update linkedAnchors via bridge proposals 
   // on other chains with this anchor's state
-  public async getProposalData(leafIndex?: number): Promise<string> {
+  public async getProposalData(resourceID: string, leafIndex?: number): Promise<string> {
 
     // If no leaf index passed in, set it to the most recent one.
     if (!leafIndex) {
       leafIndex = this.tree.number_of_elements() - 1;
     }
 
+    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("updateEdge(uint256,bytes32,uint256)")).slice(0, 10).padEnd(10, '0');
+    const dummyNonce = 1;
     const chainID = await this.signer.getChainId();
     const merkleRoot = this.depositHistory[leafIndex];
 
     return '0x' +
-      toHex(chainID, 32).substr(2) + 
-      toHex(leafIndex, 32).substr(2) + 
+      toHex(resourceID, 32).substr(2)+ 
+      functionSig.slice(2) + 
+      toHex(dummyNonce,4).substr(2) +
+      toHex(chainID, 4).substr(2) + 
+      toHex(leafIndex, 4).substr(2) + 
       toHex(merkleRoot, 32).substr(2);
+  }
+
+  public async getHandlerProposalData(newHandler: string): Promise<string> {
+    const resourceID = await this.createResourceId();
+    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("setHandler(address,uint32)")).slice(0, 10).padEnd(10, '0');  
+    const nonce = (await this.contract.getProposalNonce()) + 1;;
+    const chainID = await this.signer.getChainId();
+
+    return '0x' +
+      toHex(resourceID, 32).substr(2)+ 
+      functionSig.slice(2) + 
+      toHex(nonce,4).substr(2) +
+      toHex(newHandler, 20).substr(2) 
   }
 
   // Makes a deposit into the contract and return the parameters and index of deposit
@@ -422,7 +434,7 @@ class Anchor {
       const events = await this.contract.queryFilter(filter, receipt.blockHash);
       return events[0];
     } else {
-      const filter = this.contract.filters.Withdrawal(null, null, relayer, null);
+      const filter = this.contract.filters.Withdrawal(null, relayer, null);
       const events = await this.contract.queryFilter(filter, receipt.blockHash);
       return events[0];
     }
@@ -451,7 +463,7 @@ class Anchor {
     let tx = await this.contract.withdrawAndUnwrap(`0x${proofEncoded}`, publicInputs, tokenAddress, overrides || {});
     const receipt = await tx.wait();
 
-    const filter = this.contract.filters.Withdrawal(null, null, null, null);
+    const filter = this.contract.filters.Withdrawal(null, null, null);
     const events = await this.contract.queryFilter(filter, receipt.blockHash);
     return events[0];
   }
@@ -514,7 +526,7 @@ class Anchor {
     );
     const receipt = await tx.wait();
 
-    const filter = this.contract.filters.Withdrawal(null, null, relayer, null);
+    const filter = this.contract.filters.Withdrawal(null, relayer, null);
     const events = await this.contract.queryFilter(filter, receipt.blockHash);
     return events[0];
   }
@@ -590,7 +602,7 @@ class Anchor {
     );
     const receipt = await tx.wait();
 
-    const filter = this.contract.filters.Withdrawal(null, null, relayer, null);
+    const filter = this.contract.filters.Withdrawal(null, relayer, null);
     const events = await this.contract.queryFilter(filter, receipt.blockHash);
     return events[0];
   }

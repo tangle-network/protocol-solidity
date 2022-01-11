@@ -4,7 +4,7 @@ const helpers = require('../helpers');
 const { toBN } = require('web3-utils')
 const assert = require('assert');
 const BridgeContract = artifacts.require('Bridge');
-const Anchor = artifacts.require('Anchor');
+const Anchor = artifacts.require('FixedDepositAnchor');
 const Hasher = artifacts.require('PoseidonT3');
 const Verifier = artifacts.require('Verifier');
 const Verifier2 = artifacts.require('Verifier2');
@@ -95,25 +95,21 @@ contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts 
 
     // initialize anchors on both chains
     OriginChainAnchorInstance = await Anchor.new(
+      sender,
+      originChainToken.address,
       verifier.address,
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      originChainToken.address,
-      sender,
-      sender,
-      sender,
       MAX_EDGES,
     { from: sender });
     DestChainAnchorInstance = await Anchor.new(
+      sender,
+      destChainToken.address,
       verifier.address,
       hasher.address,
       tokenDenomination,
       merkleTreeHeight,
-      destChainToken.address,
-      sender,
-      sender,
-      sender,
       MAX_EDGES,
     { from: sender });
     // create resource ID using anchor address
@@ -135,10 +131,8 @@ contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts 
     ]);
      // set bridge and handler permissions for anchors
     await Promise.all([
-      OriginChainAnchorInstance.setHandler(OriginAnchorHandlerInstance.address, {from: sender}),
-      OriginChainAnchorInstance.setBridge(OriginBridgeInstance.address, {from: sender}),
-      DestChainAnchorInstance.setHandler(DestAnchorHandlerInstance.address, {from: sender}),
-      DestChainAnchorInstance.setBridge(DestBridgeInstance.address, {from: sender})
+      OriginChainAnchorInstance.setHandler(OriginAnchorHandlerInstance.address, await OriginChainAnchorInstance.getProposalNonce() + 1, {from: sender}),
+      DestChainAnchorInstance.setHandler(DestAnchorHandlerInstance.address, await DestChainAnchorInstance.getProposalNonce() + 1, {from: sender}),
     ]);
 
     createWitness = async (data) => {
@@ -178,7 +172,7 @@ contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts 
     originUpdateNonce = latestLeafIndex;
     originMerkleRoot = await OriginChainAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on origin chain
-    originUpdateData = helpers.createUpdateProposalData(originChainID, latestLeafIndex, originMerkleRoot);
+    originUpdateData = helpers.createUpdateProposalData(originChainID, latestLeafIndex, originMerkleRoot, DestChainAnchorInstance.address, destChainID);
     originUpdateDataHash = Ethers.utils.keccak256(DestAnchorHandlerInstance.address + originUpdateData.substr(2));
     /*
     *  Relayers vote on dest chain
@@ -292,7 +286,7 @@ contract('E2E LinkableAnchors - Simple cross chain withdrawals', async accounts 
     destUpdateNonce = latestLeafIndex;
     destMerkleRoot = await DestChainAnchorInstance.getLastRoot();
     // create correct update proposal data for the deposit on dest chain
-    destUpdateData = helpers.createUpdateProposalData(destChainID, latestLeafIndex, destMerkleRoot);
+    destUpdateData = helpers.createUpdateProposalData(destChainID, latestLeafIndex, destMerkleRoot, OriginChainAnchorInstance.address, originChainID);
     destUpdateDataHash = Ethers.utils.keccak256(OriginAnchorHandlerInstance.address + destUpdateData.substr(2));
     /*
     *  relayers vote on origin chain

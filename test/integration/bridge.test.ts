@@ -31,7 +31,7 @@ function startGanacheServer(port: number, networkId: number, mnemonic: string) {
   });
 
   ganacheServer.listen(port);
-  console.log(`Ganache Started on http://127.0.0.1:${port} ..`);
+  //console.log(`Ganache Started on http://127.0.0.1:${port} ..`);
 
   return ganacheServer;
 }
@@ -214,7 +214,7 @@ describe('multichain tests for erc20 bridges', () => {
       assert.deepStrictEqual(destAnchorEdge2After.root, destAnchorEdge3After.root);
     });
 
-    it.skip('create 2 side bridge for multiple tokens', async () => {
+    it('create 2 side bridge for multiple tokens', async () => {
       bridge2WebbEthInput = {
         anchorInputs: {
           asset: {
@@ -227,7 +227,7 @@ describe('multichain tests for erc20 bridges', () => {
       };
     });
 
-    it.skip('create 2 side bridge for native and erc20 token', async () => {
+    it('create 2 side bridge for native and erc20 token', async () => {
       bridge2WebbEthInput = {
         anchorInputs: {
           asset: {
@@ -240,76 +240,6 @@ describe('multichain tests for erc20 bridges', () => {
       };
     });
   }).timeout(50000);
-
-  describe('Bridge connection and sync', () => {
-
-    let bridge: Bridge;
-
-    let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:8545');
-    let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
-
-    beforeEach('connection-tests', async () => {
-      // Create the bridge,
-      const signers = await ethers.getSigners();
-      
-      const mintableToken1 = await MintableToken.createToken('usdc', 'USDC', signers[1]);
-      const mintableToken2 = await MintableToken.createToken('usdc', 'USDC', ganacheWallet2);
-
-      let bridge2Input = {
-        anchorInputs: {
-          asset: {
-            31337: [mintableToken1.contract.address],
-            1337: [mintableToken2.contract.address],
-          },
-          anchorSizes: ['100000000000000000', '1000000000000000000', '10000000000000000000'],
-        },
-        chainIDs: [31337, 1337]
-      };
-
-      const deploymentConfig = {
-        wallets: {
-          31337: signers[1],
-          1337: ganacheWallet2,
-        }
-      }
-
-      const createdBridge = await Bridge.deployBridge(bridge2Input, deploymentConfig, zkComponents2);
-
-      // Export the config for connecting to the bridge
-      const bridgeConfig = createdBridge.exportConfig();
-
-      // Connect to the bridge
-      // bridge = await Bridge.connectBridge(bridgeConfig);
-    })
-
-    it('should properly deposit and withdraw after connecting', async () => {
-      // // Fetch information about the anchor to be updated.
-      // const signers = await ethers.getSigners();
-      // const tokenName = 'webbEthereum';
-      // const anchorSize = '1000000000000000000';
-
-      // const controlledAnchor2: Anchor = bridge.getAnchor(chainId1, tokenName, anchorSize)!;
-      // let edgeIndex = await controlledAnchor2.contract.edgeIndex(destChainID2);
-      // const destAnchorEdge2Before = await controlledAnchor2.contract.edgeList(edgeIndex);
-      // const webbToken = await MintableToken.tokenFromAddress(webbTokenSrc, signers[1]);
-      // const startingBalanceDest = await webbToken.getBalance(signers[1].address);
-
-      // // Make a deposit
-      // const depositNote1 = await bridge.deposit(chainId1, webbTokenName, anchorSize, ganacheWallet2);
-
-      // // Check the leaf index is incremented
-      // const destAnchorEdge2After = await controlledAnchor2.contract.edgeList(edgeIndex);
-      // assert.deepStrictEqual(destAnchorEdge2Before.latestLeafIndex.add(1), destAnchorEdge2After.latestLeafIndex);
-
-      // // Withdraw from the bridge
-      // console.log('deposit: ', depositNote1);
-      // await bridge.withdraw(depositNote1!, webbTokenName, anchorSize, signers[1].address, signers[1].address, signers[1]);
-
-      // // Check the balance of the signer
-      // const endingBalanceDest = await webbToken.getBalance(signers[1].address);
-      // assert.deepStrictEqual(endingBalanceDest, startingBalanceDest.add(anchorSize));
-    })
-  });
 
   describe('2 sided bridge existing token use', () => {
 

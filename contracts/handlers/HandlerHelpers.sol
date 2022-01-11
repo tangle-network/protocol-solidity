@@ -43,7 +43,6 @@ abstract contract HandlerHelpers is IExecutor {
         @param contractAddress Address of contract to be called when a deposit is made and a deposited is executed.
      */
     function setResource(bytes32 resourceID, address contractAddress) external override onlyBridge {
-
         _setResource(resourceID, contractAddress);
     }
 
@@ -54,4 +53,7 @@ abstract contract HandlerHelpers is IExecutor {
         _contractWhitelist[contractAddress] = true;
     }
 
+    function migrateBridge(address newBridge) external override onlyBridge {
+        _bridgeAddress = newBridge;
+    }
 }

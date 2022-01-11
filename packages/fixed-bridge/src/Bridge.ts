@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import { BridgeSide } from './BridgeSide';
 import { Anchor } from './Anchor';
 import { AnchorHandler } from "./AnchorHandler";
-import { MintableToken, GovernedTokenWrapper } from "@webb-tools/tokens";
+import { MintableToken, GovernedTokenWrapper } from "../../tokens/src/index";
 import { AnchorDeposit } from './types';
 import { Verifier } from "./Verifier";
 import { Overrides, ZkComponents } from "@webb-tools/utils";
@@ -120,7 +120,6 @@ export class Bridge {
   }
 
   public static async deployBridge(bridgeInput: BridgeInput, deployers: DeployerConfig, zkComponents: ZkComponents): Promise<Bridge> {
-    
     let webbTokenAddresses: Map<number, string> = new Map();
     let bridgeSides: Map<number, BridgeSide> = new Map();
     let anchors: Map<string, Anchor> = new Map();
@@ -141,8 +140,11 @@ export class Bridge {
         { gasLimit: deployers.gasLimits ? deployers.gasLimits[chainID] || '0x5B8D80' : '0x5B8D80' }
       );
 
+      const handler = await AnchorHandler.createAnchorHandler(bridgeInstance.contract.address, [],[], bridgeInstance.admin);
+      await bridgeInstance.setAnchorHandler(handler);
+
       bridgeSides.set(chainID, bridgeInstance);
-      console.log(`bridgeSide address on ${chainID}: ${bridgeInstance.contract.address}`);
+      //(`bridgeSide address on ${chainID}: ${bridgeInstance.contract.address}`);
 
       // Create the Hasher and Verifier for the chain
       const hasherFactory = new PoseidonT3__factory(deployers.wallets[chainID]);
@@ -176,7 +178,7 @@ export class Bridge {
         { gasLimit: deployers.gasLimits ? deployers.gasLimits[chainID] || '0x5B8D80' : '0x5B8D80' }
       );
       
-      console.log(`created GovernedTokenWrapper on ${chainID}: ${tokenInstance.contract.address}`);
+      //console.log(`created GovernedTokenWrapper on ${chainID}: ${tokenInstance.contract.address}`);
 
       // Add all token addresses to the governed token instance.
       for (const tokenToBeWrapped of bridgeInput.anchorInputs.asset[chainID]!) {
@@ -184,6 +186,7 @@ export class Bridge {
         if (!checkNativeAddress(tokenToBeWrapped)) {
           const tx = await tokenInstance.contract.add(
             tokenToBeWrapped,
+            (await tokenInstance.contract.proposalNonce()).add(1),
             { gasLimit: deployers.gasLimits ? deployers.gasLimits[chainID] || '0x5B8D80' : '0x5B8D80' }
           );
           const receipt = await tx.wait();
@@ -206,16 +209,15 @@ export class Bridge {
           anchorSize,
           30,
           tokenInstance.contract.address,
-          adminAddress,
-          adminAddress,
-          adminAddress,
+          // TODO: Use handler address
+          handler.contract.address,
           bridgeInput.chainIDs.length-1,
           zkComponents,
           deployers.wallets[chainID],
           { gasLimit: deployers.gasLimits ? deployers.gasLimits[chainID] || '0x5B8D80' : '0x5B8D80' }
         );
 
-        console.log(`createdAnchor: ${anchorInstance.contract.address}`);
+        //console.log(`createdAnchor: ${anchorInstance.contract.address}`);
 
         // grant minting rights to the anchor
         const tx = await tokenInstance.grantMinterRole(
@@ -258,30 +260,22 @@ export class Bridge {
 
   // The setPermissions method accepts initialized bridgeSide and anchors.
   // it creates the anchor handler and sets the appropriate permissions
-  // for the bridgeSide/anchorHandler/anchor
-  public static async setPermissions(bridgeSide: BridgeSide, anchors: Anchor[], overrides?: Overrides): Promise<void> {
-
-    let resourceIDs: string[] = [];
-    let anchorAddresses: string[] = [];
-    for (let anchor of anchors) {
-      resourceIDs.push(await anchor.createResourceId());
-      anchorAddresses.push(anchor.contract.address);
-    }
-
-    const handler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, resourceIDs, anchorAddresses, bridgeSide.admin, overrides);
-    await bridgeSide.setAnchorHandler(handler);
-    
+  // for the bridgeSide/AnchorHandler/anchor
+  public static async setPermissions(bridgeSide: BridgeSide, anchors: Anchor[], overrides?: Overrides): Promise<void> {  
     for (let anchor of anchors) {
       await bridgeSide.connectAnchor(anchor, overrides);
     }
   }
 
-  /** Update the state of BridgeSides and Anchors, when
-  *** state changes for the @param linkedAnchor 
-  **/
-  public async updateLinkedAnchors(linkedAnchor: Anchor, overrides?: Overrides) {
+ /**
+  * Updates the state of the BridgeSides and Anchors with
+  * the new state of the @param srcAnchor.
+  * @param srcAnchor The anchor that has updated.
+  * @returns 
+  */
+  public async updateLinkedAnchors(srcAnchor: Anchor, overrides?: Overrides) {
     // Find the bridge sides that are connected to this Anchor
-    const linkedResourceID = await linkedAnchor.createResourceId();
+    const linkedResourceID = await srcAnchor.createResourceId();
     const anchorsToUpdate = this.linkedAnchors.get(linkedResourceID);
     if (!anchorsToUpdate) {
       return;
@@ -291,9 +285,10 @@ export class Bridge {
     for (let anchor of anchorsToUpdate) {
       // get the bridge side which corresponds to this anchor
       const chainId = await anchor.signer.getChainId();
+      const resourceID = await anchor.createResourceId();
       const bridgeSide = this.bridgeSides.get(chainId);
-      await bridgeSide!.voteProposal(linkedAnchor, anchor, overrides);
-      await bridgeSide!.executeProposal(linkedAnchor, anchor, overrides);
+      await bridgeSide!.voteAnchorProposal(srcAnchor, resourceID, overrides);
+      await bridgeSide!.executeAnchorProposal(srcAnchor, resourceID, overrides);
     }
   };
 

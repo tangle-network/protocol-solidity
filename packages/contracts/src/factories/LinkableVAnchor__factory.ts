@@ -185,29 +185,6 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "uint256",
-        name: "sourceChainID",
-        type: "uint256",
-      },
-      {
-        internalType: "bytes32",
-        name: "root",
-        type: "bytes32",
-      },
-      {
-        internalType: "uint256",
-        name: "leafIndex",
-        type: "uint256",
-      },
-    ],
-    name: "addEdge",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
         internalType: "int256",
         name: "_extAmount",
         type: "int256",
@@ -854,11 +831,16 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "_bridge",
+        name: "_handler",
         type: "address",
       },
+      {
+        internalType: "uint32",
+        name: "nonce",
+        type: "uint32",
+      },
     ],
-    name: "setBridge",
+    name: "setHandler",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -867,11 +849,11 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "_handler",
+        name: "newVerifier",
         type: "address",
       },
     ],
-    name: "setHandler",
+    name: "setVerifier",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -1015,7 +997,7 @@ const _abi = [
     name: "verifier",
     outputs: [
       {
-        internalType: "contract IVAnchorVerifier",
+        internalType: "contract IAnchorVerifier",
         name: "",
         type: "address",
       },

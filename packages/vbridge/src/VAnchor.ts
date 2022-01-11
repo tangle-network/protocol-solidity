@@ -9,12 +9,6 @@ import { Keypair } from "./keypair";
 
 const snarkjs = require('snarkjs');
 
-export interface IPermissionedAccounts {
-  bridge: string;
-  admin: string;
-  handler: string;
-}
-
 export interface IMerkleProofData {
   pathElements: BigNumberish[],
   pathIndex: BigNumberish,
@@ -124,26 +118,26 @@ export class VAnchor {
       case 1:
         this.smallCircuitWASMPath = 'protocol-solidity-fixtures/fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm';
         this.smallCircuitZkeyPath = 'protocol-solidity-fixtures/fixtures/vanchor_2/2/circuit_final.zkey';
-        this.smallWitnessCalculator = require("../../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.js");
+        this.smallWitnessCalculator = require("../../../../../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.js");
         this.largeCircuitWASMPath = 'protocol-solidity-fixtures/fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm';
         this.largeCircuitZkeyPath = 'protocol-solidity-fixtures/fixtures/vanchor_16/2/circuit_final.zkey';
-        this.largeWitnessCalculator = require("../../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.js");
+        this.largeWitnessCalculator = require("../../../../../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.js");
         break;
       case 7:
         this.smallCircuitWASMPath = 'protocol-solidity-fixtures/fixtures/vanchor_2/8/poseidon_vanchor_8_2.wasm';
         this.smallCircuitZkeyPath = 'protocol-solidity-fixtures/fixtures/vanchor_2/8/circuit_final.zkey';
-        this.smallWitnessCalculator = require("../../../protocol-solidity-fixtures/fixtures/vanchor_2/8/witness_calculator.js");
+        this.smallWitnessCalculator = require("../../../../../../protocol-solidity-fixtures/fixtures/vanchor_2/8/witness_calculator.js");
         this.largeCircuitWASMPath = 'protocol-solidity-fixtures/fixtures/vanchor_16/8/poseidon_vanchor_16_8.wasm';
         this.largeCircuitZkeyPath = 'protocol-solidity-fixtures/fixtures/vanchor_16/8/circuit_final.zkey';
-        this.largeWitnessCalculator = require("../../../protocol-solidity-fixtures/fixtures/vanchor_16/8/witness_calculator.js");
+        this.largeWitnessCalculator = require("../../../../../../protocol-solidity-fixtures/fixtures/vanchor_16/8/witness_calculator.js");
         break;
       default:
         this.smallCircuitWASMPath = 'protocol-solidity-fixtures/fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm';
         this.smallCircuitZkeyPath = 'protocol-solidity-fixtures/fixtures/vanchor_2/2/circuit_final.zkey';
-        this.smallWitnessCalculator = require("../../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.js");
+        this.smallWitnessCalculator = require("../../../../../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.js");
         this.largeCircuitWASMPath = 'protocol-solidity-fixtures/fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm';
         this.largeCircuitZkeyPath = 'protocol-solidity-fixtures/fixtures/vanchor_16/2/circuit_final.zkey';
-        this.largeWitnessCalculator = require("../../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.js");
+        this.largeWitnessCalculator = require("../../../../../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.js");
         break;
     }
 
@@ -153,15 +147,15 @@ export class VAnchor {
     verifier: string,
     levels: BigNumberish,
     hasher: string,
+    handler: string,
     token: string,
-    permissions: IPermissionedAccounts,
     maxEdges: number,
     signer: ethers.Signer,
   ) {
     const encodeLibraryFactory = new VAnchorEncodeInputs__factory(signer);
     const encodeLibrary = await encodeLibraryFactory.deploy();
     const factory = new VAnchor__factory({["contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs"]: encodeLibrary.address}, signer);
-    const vAnchor = await factory.deploy(verifier, levels, hasher, token, permissions, maxEdges, {});
+    const vAnchor = await factory.deploy(verifier, levels, hasher, handler, token, maxEdges, {});
     await vAnchor.deployed();
     const createdVAnchor = new VAnchor(vAnchor, signer, BigNumber.from(levels).toNumber(), maxEdges);
     createdVAnchor.latestSyncedBlock = vAnchor.deployTransaction.blockNumber!;
@@ -293,13 +287,13 @@ export class VAnchor {
     return toHex(this.contract.address + toHex((await this.signer.getChainId()), 4).substr(2), 32);
   }
 
-  public async setHandler(handlerAddress: string) {
-    const tx = await this.contract.setHandler(handlerAddress);
+  public async setVerifier(verifierAddress: string) {
+    const tx = await this.contract.setVerifier(verifierAddress, BigNumber.from((await this.contract.getProposalNonce())).add(1));
     await tx.wait();
   }
 
-  public async setBridge(bridgeAddress: string) {
-    const tx = await this.contract.setBridge(bridgeAddress);
+  public async setHandler(handlerAddress: string) {
+    const tx = await this.contract.setHandler(handlerAddress, BigNumber.from((await this.contract.getProposalNonce())).add(1));
     await tx.wait();
   }
 
@@ -317,22 +311,50 @@ export class VAnchor {
 
   // Proposal data is used to update linkedAnchors via bridge proposals 
   // on other chains with this anchor's state
-  public async getProposalData(leafIndex?: number): Promise<string> {
+  public async getProposalData(resourceID: string, leafIndex?: number): Promise<string> {
     // console.log("get proposal data");
     // console.log(`leafIndex is ${leafIndex}`);
     // If no leaf index passed in, set it to the most recent one.
     if (!leafIndex) {
       leafIndex = this.tree.number_of_elements() - 1;
     }
-    // console.log(`leafIndex is ${leafIndex}`);
+
     const chainID = await this.signer.getChainId();
     const merkleRoot = this.depositHistory[leafIndex]; //bridgedTransact should update deposithistory
-    // console.log(`chainid is ${chainID}`);
-    // console.log(`merkle root is ${merkleRoot}`);
+    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("updateEdge(uint256,bytes32,uint256)")).slice(0, 10).padEnd(10, '0');
+    const dummyNonce = 1;
+
     return '0x' +
-      toHex(chainID, 32).substr(2) + 
-      toHex(leafIndex, 32).substr(2) + 
+      toHex(resourceID, 32).substr(2)+ 
+      functionSig.slice(2) + 
+      toHex(dummyNonce,4).substr(2) +
+      toHex(chainID, 4).substr(2) + 
+      toHex(leafIndex, 4).substr(2) + 
       toHex(merkleRoot, 32).substr(2);
+  }
+
+  public async getHandlerProposalData(newHandler: string): Promise<string> {
+    const resourceID = await this.createResourceId();
+    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("setHandler(address,uint32)")).slice(0, 10).padEnd(10, '0');
+    const nonce = (await this.contract.getProposalNonce()) + 1;
+
+    return '0x' +
+      toHex(resourceID, 32).substr(2)+ 
+      functionSig.slice(2) + 
+      toHex(nonce,4).substr(2) +
+      toHex(newHandler, 20).substr(2) 
+  }
+
+  public async getConfigLimitsProposalData(_minimalWithdrawalAmount: string, _maximumDepositAmount: string): Promise<string> {
+    const resourceID = await this.createResourceId();
+    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("configureLimits(uint256,uint256)")).slice(0, 10).padEnd(10, '0');
+    const nonce = (await this.contract.getProposalNonce()) + 1;;
+    return '0x' +
+      toHex(resourceID, 32).substr(2)+ 
+      functionSig.slice(2) + 
+      toHex(nonce, 4).substr(2) +
+      toFixedHex(_minimalWithdrawalAmount).substr(2) +
+      toFixedHex(_maximumDepositAmount).substr(2) 
   }
 
   public async populateRootInfosForProof(): Promise<RootInfo[]> {

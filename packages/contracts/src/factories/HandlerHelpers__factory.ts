@@ -101,6 +101,19 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "newBridge",
+        type: "address",
+      },
+    ],
+    name: "migrateBridge",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "bytes32",
         name: "resourceID",
         type: "bytes32",

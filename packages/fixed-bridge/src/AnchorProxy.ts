@@ -1,6 +1,6 @@
 import { ethers, Overrides } from "ethers";
 import { AnchorProxy as AnchorProxyContract, AnchorProxy__factory } from '@webb-tools/contracts';
-import { WithdrawalEvent, RefreshEvent } from '@webb-tools/contracts/src/AnchorBase';
+import { WithdrawalEvent, RefreshEvent } from '@webb-tools/contracts/src/FixedDepositAnchor';
 import { Anchor } from './Anchor';
 import { AnchorDepositInfo } from './types';
 import { toFixedHex } from "@webb-tools/utils";
@@ -129,7 +129,7 @@ export class AnchorProxy {
       const events = await anchor.contract.queryFilter(filter, receipt.blockHash);
       return events[0];
     } else {
-      const filter = anchor.contract.filters.Withdrawal(null, null, relayer, null);
+      const filter = anchor.contract.filters.Withdrawal(null, relayer, null);
       const events = await anchor.contract.queryFilter(filter, receipt.blockHash);
       return events[0];
     }

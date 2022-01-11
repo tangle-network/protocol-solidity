@@ -5,7 +5,6 @@
  
 pragma solidity ^0.8.0;
 
-import "hardhat/console.sol";
 import "../interfaces/ITokenWrapper.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -15,7 +14,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 /**
     @title Manages deposited ERC20s.
     @author ChainSafe Systems.
-    @notice This contract is intended to be used with ERC20Handler contract.
+    @notice This contract is intended to be used with TokenHandler contract.
  */
 abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
     using SafeMath for uint256;
@@ -186,6 +185,9 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
     function _isValidAddress(address tokenAddress) internal virtual returns (bool);
 
     /** @dev this function is defined in a child contract */
+    function _isValidHistoricalAddress(address tokenAddress) internal virtual returns (bool);
+
+    /** @dev this function is defined in a child contract */
     function _isNativeValid() internal virtual returns (bool);
 
     /** @dev this function is defined in a child contract */
@@ -215,7 +217,7 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
             require(_isNativeValid(), "Native unwrapping is not allowed for this token wrapper");
         } else {
             require(IERC20(tokenAddress).balanceOf(address(this)) >= amount, "Insufficient ERC20 balance");
-            require(_isValidAddress(tokenAddress), "Invalid token address");
+            require(_isValidHistoricalAddress(tokenAddress), "Invalid historical token address");
         }
 
         _;

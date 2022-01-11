@@ -46,7 +46,7 @@ interface TokenWrapperInterface extends ethers.utils.Interface {
     "paused()": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
-    "setFee(uint8)": FunctionFragment;
+    "setFee(uint8,uint256)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
     "symbol()": FunctionFragment;
     "totalSupply()": FunctionFragment;
@@ -141,7 +141,7 @@ interface TokenWrapperInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setFee",
-    values: [BigNumberish]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
@@ -475,6 +475,7 @@ export class TokenWrapper extends BaseContract {
 
     setFee(
       feePercentage: BigNumberish,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -654,6 +655,7 @@ export class TokenWrapper extends BaseContract {
 
   setFee(
     feePercentage: BigNumberish,
+    nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -828,6 +830,7 @@ export class TokenWrapper extends BaseContract {
 
     setFee(
       feePercentage: BigNumberish,
+      nonce: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1113,6 +1116,7 @@ export class TokenWrapper extends BaseContract {
 
     setFee(
       feePercentage: BigNumberish,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1301,6 +1305,7 @@ export class TokenWrapper extends BaseContract {
 
     setFee(
       feePercentage: BigNumberish,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

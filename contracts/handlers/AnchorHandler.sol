@@ -80,39 +80,38 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
         merkleRoot                               uint256     bytes  64 - 96
      */
     function executeProposal(bytes32 resourceID, bytes calldata data) external override onlyBridge {
-        uint256       sourceChainId;
-        uint256       leafIndex;
-        uint256       merkleRoot;
+        bytes32        resourceId;
+        bytes4         functionSig;
+        bytes calldata arguments;
 
-        (sourceChainId, leafIndex, merkleRoot) = abi.decode(data, (uint256, uint, uint));
+        resourceId = bytes32(data[0:32]);
+        functionSig = bytes4(data[32:36]);
+        arguments = data[36:];
 
         address anchorAddress = _resourceIDToContractAddress[resourceID];
 
         require(_contractWhitelist[anchorAddress], "provided tokenAddress is not whitelisted");
-
         ILinkableAnchor anchor = ILinkableAnchor(anchorAddress);
 
-        if (anchor.hasEdge(sourceChainId)) {
-            anchor.updateEdge(
-                sourceChainId,
-                bytes32(merkleRoot),
-                leafIndex
-            );
+        if (functionSig == bytes4(keccak256("setHandler(address,uint32)"))) {
+            uint32 nonce = uint32(bytes4(arguments[0:4])); 
+            address newHandler = address(bytes20(arguments[4:24]));
+            anchor.setHandler(newHandler, nonce);
+        } else if (functionSig == bytes4(keccak256("setVerifier(address,uint32)"))) {
+            uint32 nonce = uint32(bytes4(arguments[0:4])); 
+            address newVerifier = address(bytes20(arguments[4:24]));
+            anchor.setVerifier(newVerifier, nonce);
+        } else if (functionSig == bytes4(keccak256("updateEdge(uint256,bytes32,uint256)"))) {
+            uint32 sourceChainId = uint32(bytes4(arguments[4:8]));
+            uint32 leafIndex = uint32(bytes4(arguments[8:12]));
+            bytes32 merkleRoot = bytes32(arguments[12:44]);
+            anchor.updateEdge(sourceChainId, merkleRoot, leafIndex);
+        } else if (functionSig == bytes4(keccak256("configureLimits(uint256,uint256)"))) {
+            uint256 _minimalWithdrawalAmount = uint256(bytes32(arguments[4:36]));
+            uint256 _maximumDepositAmount = uint256(bytes32(arguments[36:68]));
+            anchor.configureLimits(_minimalWithdrawalAmount, _maximumDepositAmount);
         } else {
-            anchor.addEdge(
-                sourceChainId,
-                bytes32(merkleRoot),
-                leafIndex
-            );
+            revert("Invalid function sig");
         }
-
-        uint nonce = ++_counts[sourceChainId];
-        _updateRecords[sourceChainId][nonce] = UpdateRecord(
-            anchorAddress,
-            sourceChainId,
-            resourceID,
-            bytes32(merkleRoot),
-            leafIndex
-        );
     }
 }

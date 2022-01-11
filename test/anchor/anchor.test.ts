@@ -88,8 +88,6 @@ describe('Anchor for 2 max edges', () => {
       levels,
       token.address,
       sender.address,
-      sender.address,
-      sender.address,
       MAX_EDGES,
       zkComponents,
       sender,
@@ -114,16 +112,41 @@ describe('Anchor for 2 max edges', () => {
     });
   })
 
+  describe ('Setting Handler/Verifier Address Negative Tests', () => {
+    it('should revert (setting handler) with improper nonce', async() => {
+      const signers = await ethers.getSigners();
+      await TruffleAssert.reverts(
+        anchor.contract.setHandler(signers[1].address, 0),
+        'Invalid nonce'
+      )
+      await TruffleAssert.reverts(
+        anchor.contract.setHandler(signers[1].address, 2),
+        'Nonce must increment by 1'
+      )
+    });
+
+    it('should revert (setting verifier) with improper nonce', async() => {
+      const signers = await ethers.getSigners();
+      await TruffleAssert.reverts(
+        anchor.contract.setVerifier(signers[1].address, 0),
+        'Invalid nonce'
+      )
+      await TruffleAssert.reverts(
+        anchor.contract.setVerifier(signers[1].address, 2),
+        'Nonce must increment by 1'
+      )
+    });
+  })
+
   describe('#deposit', () => {
     it('should emit event', async () => {
       let { deposit } = await anchor.deposit();
 
-      const filter = anchor.contract.filters.Deposit(toFixedHex(deposit.commitment), null, null);
+      const filter = anchor.contract.filters.Deposit(null, null, toFixedHex(deposit.commitment), null);
       const events = await anchor.contract.queryFilter(filter, anchor.contract.deployTransaction.blockNumber);
 
       assert.strictEqual(events[0].event, 'Deposit');
-      assert.strictEqual(events[0].args[0], toFixedHex(deposit.commitment));
-      assert.strictEqual(events[0].args[1], 0);
+      assert.strictEqual(events[0].args[2], toFixedHex(deposit.commitment));
 
       const anchorBalance = await token.balanceOf(anchor.contract.address);
       assert.strictEqual(anchorBalance.toString(), toBN(tokenDenomination).toString());
@@ -237,7 +260,7 @@ describe('Anchor for 2 max edges', () => {
       assert.strictEqual(isSpent, false)
 
       let receipt = await anchor.withdraw(deposit, index, recipient, relayer.address, fee, bigInt(0));
-      const filter = anchor.contract.filters.Withdrawal(null, null, relayer.address, null);
+      const filter = anchor.contract.filters.Withdrawal(null, relayer.address, null);
       const events = await anchor.contract.queryFilter(filter, receipt.blockHash);
 
       const balanceAnchorAfter = await token.balanceOf(anchor.contract.address)
@@ -249,8 +272,7 @@ describe('Anchor for 2 max edges', () => {
       assert.strictEqual(balanceRelayerAfter.toString(), toBN(balanceRelayerBefore).add(feeBN).toString())
 
       assert.strictEqual(events[0].event, 'Withdrawal')
-      assert.strictEqual(events[0].args[1], toFixedHex(deposit.nullifierHash))
-      assert.strictEqual(events[0].args[3].toString(), feeBN.toString());
+      assert.strictEqual(events[0].args[2].toString(), feeBN.toString());
       isSpent = await anchor.contract.isSpent(toFixedHex(deposit.nullifierHash))
       assert(isSpent);
     });
@@ -692,7 +714,7 @@ describe('Anchor for 2 max edges', () => {
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
-      await wrappedToken.add(token.address);
+      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
 
       // create Anchor for wrapped token
       const wrappedAnchor = await Anchor.createAnchor(
@@ -701,8 +723,6 @@ describe('Anchor for 2 max edges', () => {
         tokenDenomination,
         levels,
         wrappedToken.address,
-        sender.address,
-        sender.address,
         sender.address,
         MAX_EDGES,
         zkComponents,
@@ -723,7 +743,6 @@ describe('Anchor for 2 max edges', () => {
       assert.strictEqual(balTokenBeforeDepositSender.sub(balTokenAfterDepositSender).toString(), '1000000000000000000');
 
       const balWrappedTokenAfterDepositAnchor = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
-      console.log(balWrappedTokenAfterDepositAnchor.toString());
       const balWrappedTokenAfterDepositSender = await wrappedToken.balanceOf(sender.address);
       const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, zkComponents, wallet);
       await TruffleAssert.passes(newAnchor.withdraw(deposit, index, sender.address, signers[1].address, bigInt(0), bigInt(0)));
@@ -743,9 +762,9 @@ describe('Anchor for 2 max edges', () => {
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
-      await wrappedToken.add(token.address);
+      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
       const wrapFee = 5;
-      await wrappedToken.setFee(wrapFee);
+      await wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1));
 
       // create Anchor for wrapped token
       const wrappedAnchor = await Anchor.createAnchor(
@@ -754,8 +773,6 @@ describe('Anchor for 2 max edges', () => {
         tokenDenomination,
         levels,
         wrappedToken.address,
-        sender.address,
-        sender.address,
         sender.address,
         MAX_EDGES,
         zkComponents,
@@ -809,9 +826,9 @@ describe('Anchor for 2 max edges', () => {
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
-      await wrappedToken.add(token.address);
+      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
       const wrapFee = 5;
-      await wrappedToken.setFee(wrapFee);
+      await wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1));
 
       // create Anchor for wrapped token
       const wrappedAnchor = await Anchor.createAnchor(
@@ -820,8 +837,6 @@ describe('Anchor for 2 max edges', () => {
         tokenDenomination,
         levels,
         wrappedToken.address,
-        sender.address,
-        sender.address,
         sender.address,
         MAX_EDGES,
         zkComponents,
@@ -856,12 +871,12 @@ describe('Anchor for 2 max edges', () => {
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
-      await wrappedToken.add(token.address);
+      await wrappedToken.add(token.address,(await wrappedToken.proposalNonce()).add(1));
       const wrapFee = 5;
       const otherSender = signers[1];
       assert
       await TruffleAssert.reverts(
-        wrappedToken.connect(otherSender).setFee(wrapFee),
+        wrappedToken.connect(otherSender).setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1)),
         'Only governor can call this function'
       );
     });
@@ -876,11 +891,11 @@ describe('Anchor for 2 max edges', () => {
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
-      await wrappedToken.add(token.address);
+      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
       const wrapFee = 101;
       assert
       await TruffleAssert.reverts(
-        wrappedToken.setFee(wrapFee),
+        wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1)),
         'invalid fee percentage'
       );
     });
@@ -895,11 +910,11 @@ describe('Anchor for 2 max edges', () => {
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
-      await wrappedToken.add(token.address);
+      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
       const wrapFee = -1;
       assert
       await TruffleAssert.fails(
-        wrappedToken.setFee(wrapFee)
+        wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1))
       );
     });
 
@@ -913,11 +928,11 @@ describe('Anchor for 2 max edges', () => {
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
-      await wrappedToken.add(token.address);
+      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
       const wrapFee = 2.5;
       assert
       await TruffleAssert.fails(
-        wrappedToken.setFee(wrapFee)
+        wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1))
       );
     });
 
@@ -931,7 +946,7 @@ describe('Anchor for 2 max edges', () => {
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
-      await wrappedToken.add(token.address);
+      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
 
       // create Anchor for wrapped token
       const wrappedAnchor = await Anchor.createAnchor(
@@ -940,8 +955,6 @@ describe('Anchor for 2 max edges', () => {
         tokenDenomination,
         levels,
         wrappedToken.address,
-        sender.address,
-        sender.address,
         sender.address,
         MAX_EDGES,
         zkComponents,
@@ -993,7 +1006,7 @@ describe('Anchor for 2 max edges', () => {
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
-      await wrappedToken.add(token.address);
+      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
 
       // create Anchor for wrapped token
       const wrappedAnchor = await Anchor.createAnchor(
@@ -1002,8 +1015,6 @@ describe('Anchor for 2 max edges', () => {
         tokenDenomination,
         levels,
         wrappedToken.address,
-        sender.address,
-        sender.address,
         sender.address,
         MAX_EDGES,
         zkComponents,
@@ -1104,8 +1115,6 @@ describe('Anchor for 2 max edges (3-sided bridge)', () => {
       levels,
       token.address,
       sender.address,
-      sender.address,
-      sender.address,
       MAX_EDGES,
       zkComponents,
       sender,
@@ -1143,7 +1152,7 @@ describe('Anchor for 2 max edges (3-sided bridge)', () => {
     assert.strictEqual(isSpent, false)
 
     let receipt = await anchor.withdraw(deposit, index, recipient, relayer.address, fee, bigInt(0));
-    const filter = anchor.contract.filters.Withdrawal(null, null, relayer.address, null);
+    const filter = anchor.contract.filters.Withdrawal(null, relayer.address, null);
     const events = await anchor.contract.queryFilter(filter, receipt.blockHash);
 
     const balanceAnchorAfter = await token.balanceOf(anchor.contract.address)
@@ -1155,8 +1164,7 @@ describe('Anchor for 2 max edges (3-sided bridge)', () => {
     assert.strictEqual(balanceRelayerAfter.toString(), toBN(balanceRelayerBefore).add(feeBN).toString())
 
     assert.strictEqual(events[0].event, 'Withdrawal')
-    assert.strictEqual(events[0].args[1], toFixedHex(deposit.nullifierHash))
-    assert.strictEqual(events[0].args[3].toString(), feeBN.toString());
+    assert.strictEqual(events[0].args[2].toString(), feeBN.toString());
     isSpent = await anchor.contract.isSpent(toFixedHex(deposit.nullifierHash))
     assert(isSpent);
   })
@@ -1218,8 +1226,6 @@ describe('Anchor for 3 max edges (4-sided bridge)', () => {
       levels,
       token.address,
       sender.address,
-      sender.address,
-      sender.address,
       MAX_EDGES,
       zkComponents,
       sender,
@@ -1257,7 +1263,7 @@ describe('Anchor for 3 max edges (4-sided bridge)', () => {
     assert.strictEqual(isSpent, false)
 
     let receipt = await anchor.withdraw(deposit, index, recipient, relayer.address, fee, bigInt(0));
-    const filter = anchor.contract.filters.Withdrawal(null, null, relayer.address, null);
+    const filter = anchor.contract.filters.Withdrawal(null, relayer.address, null);
     const events = await anchor.contract.queryFilter(filter, receipt.blockHash);
 
     const balanceAnchorAfter = await token.balanceOf(anchor.contract.address)
@@ -1269,8 +1275,7 @@ describe('Anchor for 3 max edges (4-sided bridge)', () => {
     assert.strictEqual(balanceRelayerAfter.toString(), toBN(balanceRelayerBefore).add(feeBN).toString())
 
     assert.strictEqual(events[0].event, 'Withdrawal')
-    assert.strictEqual(events[0].args[1], toFixedHex(deposit.nullifierHash))
-    assert.strictEqual(events[0].args[3].toString(), feeBN.toString());
+    assert.strictEqual(events[0].args[2].toString(), feeBN.toString());
     isSpent = await anchor.contract.isSpent(toFixedHex(deposit.nullifierHash))
     assert(isSpent);
   })
@@ -1332,8 +1337,6 @@ describe('Anchor for 4 max edges (5-sided bridge)', () => {
       levels,
       token.address,
       sender.address,
-      sender.address,
-      sender.address,
       MAX_EDGES,
       zkComponents,
       sender,
@@ -1371,7 +1374,7 @@ describe('Anchor for 4 max edges (5-sided bridge)', () => {
     assert.strictEqual(isSpent, false)
 
     let receipt = await anchor.withdraw(deposit, index, recipient, relayer.address, fee, bigInt(0));
-    const filter = anchor.contract.filters.Withdrawal(null, null, relayer.address, null);
+    const filter = anchor.contract.filters.Withdrawal(null, relayer.address, null);
     const events = await anchor.contract.queryFilter(filter, receipt.blockHash);
 
     const balanceAnchorAfter = await token.balanceOf(anchor.contract.address)
@@ -1383,8 +1386,7 @@ describe('Anchor for 4 max edges (5-sided bridge)', () => {
     assert.strictEqual(balanceRelayerAfter.toString(), toBN(balanceRelayerBefore).add(feeBN).toString())
 
     assert.strictEqual(events[0].event, 'Withdrawal')
-    assert.strictEqual(events[0].args[1], toFixedHex(deposit.nullifierHash))
-    assert.strictEqual(events[0].args[3].toString(), feeBN.toString());
+    assert.strictEqual(events[0].args[2].toString(), feeBN.toString());
     isSpent = await anchor.contract.isSpent(toFixedHex(deposit.nullifierHash))
     assert(isSpent);
   })

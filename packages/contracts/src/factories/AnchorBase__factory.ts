@@ -11,31 +11,6 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
-        indexed: true,
-        internalType: "bytes32",
-        name: "commitment",
-        type: "bytes32",
-      },
-      {
-        indexed: false,
-        internalType: "uint32",
-        name: "leafIndex",
-        type: "uint32",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "timestamp",
-        type: "uint256",
-      },
-    ],
-    name: "Deposit",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
         indexed: false,
         internalType: "uint256",
         name: "chainID",
@@ -93,49 +68,18 @@ const _abi = [
       },
       {
         indexed: false,
-        internalType: "bytes32",
-        name: "nullifierHash",
-        type: "bytes32",
-      },
-      {
-        indexed: false,
         internalType: "uint32",
-        name: "insertedIndex",
+        name: "leafIndex",
         type: "uint32",
-      },
-    ],
-    name: "Refresh",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "bytes32",
-        name: "nullifierHash",
-        type: "bytes32",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "relayer",
-        type: "address",
       },
       {
         indexed: false,
         internalType: "uint256",
-        name: "fee",
+        name: "timestamp",
         type: "uint256",
       },
     ],
-    name: "Withdrawal",
+    name: "Insertion",
     type: "event",
   },
   {
@@ -172,32 +116,6 @@ const _abi = [
         internalType: "uint256",
         name: "",
         type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "admin",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "bridge",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
       },
     ],
     stateMutability: "view",
@@ -252,32 +170,6 @@ const _abi = [
       },
     ],
     stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "denomination",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "_commitment",
-        type: "bytes32",
-      },
-    ],
-    name: "deposit",
-    outputs: [],
-    stateMutability: "payable",
     type: "function",
   },
   {
@@ -381,12 +273,12 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "getDenomination",
+    name: "getLastRoot",
     outputs: [
       {
-        internalType: "uint256",
+        internalType: "bytes32",
         name: "",
-        type: "uint256",
+        type: "bytes32",
       },
     ],
     stateMutability: "view",
@@ -394,12 +286,29 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "getLastRoot",
+    name: "getLatestNeighborEdges",
     outputs: [
       {
-        internalType: "bytes32",
-        name: "",
-        type: "bytes32",
+        components: [
+          {
+            internalType: "uint256",
+            name: "chainID",
+            type: "uint256",
+          },
+          {
+            internalType: "bytes32",
+            name: "root",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint256",
+            name: "latestLeafIndex",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct LinkableTree.Edge[]",
+        name: "edges",
+        type: "tuple[]",
       },
     ],
     stateMutability: "view",
@@ -420,7 +329,7 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "getToken",
+    name: "handler",
     outputs: [
       {
         internalType: "address",
@@ -432,13 +341,19 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "handler",
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_chainID",
+        type: "uint256",
+      },
+    ],
+    name: "hasEdge",
     outputs: [
       {
-        internalType: "address",
+        internalType: "bool",
         name: "",
-        type: "address",
+        type: "bool",
       },
     ],
     stateMutability: "view",
@@ -690,6 +605,42 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "newHandler",
+        type: "address",
+      },
+      {
+        internalType: "uint32",
+        name: "nonce",
+        type: "uint32",
+      },
+    ],
+    name: "setHandler",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "newVerifier",
+        type: "address",
+      },
+      {
+        internalType: "uint32",
+        name: "nonce",
+        type: "uint32",
+      },
+    ],
+    name: "setVerifier",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "uint256[8]",
         name: "_proof",
         type: "uint256[8]",
@@ -717,71 +668,39 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "sourceChainID",
+        type: "uint256",
+      },
+      {
+        internalType: "bytes32",
+        name: "root",
+        type: "bytes32",
+      },
+      {
+        internalType: "uint256",
+        name: "leafIndex",
+        type: "uint256",
+      },
+    ],
+    name: "updateEdge",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "verifier",
     outputs: [
       {
-        internalType: "contract IVerifier",
+        internalType: "contract IAnchorVerifier",
         name: "",
         type: "address",
       },
     ],
     stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes",
-        name: "_proof",
-        type: "bytes",
-      },
-      {
-        components: [
-          {
-            internalType: "bytes",
-            name: "_roots",
-            type: "bytes",
-          },
-          {
-            internalType: "bytes32",
-            name: "_nullifierHash",
-            type: "bytes32",
-          },
-          {
-            internalType: "bytes32",
-            name: "_refreshCommitment",
-            type: "bytes32",
-          },
-          {
-            internalType: "address payable",
-            name: "_recipient",
-            type: "address",
-          },
-          {
-            internalType: "address payable",
-            name: "_relayer",
-            type: "address",
-          },
-          {
-            internalType: "uint256",
-            name: "_fee",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "_refund",
-            type: "uint256",
-          },
-        ],
-        internalType: "struct IAnchor.PublicInputs",
-        name: "_publicInputs",
-        type: "tuple",
-      },
-    ],
-    name: "withdraw",
-    outputs: [],
-    stateMutability: "payable",
     type: "function",
   },
   {

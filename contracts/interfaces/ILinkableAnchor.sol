@@ -6,14 +6,10 @@
 pragma solidity ^0.8.0;
 
 interface ILinkableAnchor {
-  function setHandler(address _handler) external;
-  function setBridge(address _bridge) external;
-  function hasEdge(uint256 _chainID) external view returns (bool);
-  function addEdge(
-    uint256 sourceChainID,
-    bytes32 root,
-    uint256 latestLeafIndex
-  ) external payable;
+  function setHandler(address _handler, uint32 nonce) external;
+  function setVerifier(address _verifier, uint32 nonce) external;
+  function configureLimits(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmount) external;
+  
   function updateEdge(
     uint256 sourceChainID,
     bytes32 root,

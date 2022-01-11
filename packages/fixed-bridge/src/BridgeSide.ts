@@ -2,6 +2,8 @@ import { ethers, Overrides } from "ethers";
 import { Bridge, Bridge__factory } from '@webb-tools/contracts';
 import { Anchor } from './Anchor';
 import { AnchorHandler } from "./AnchorHandler";
+import { GovernedTokenWrapper } from "../../tokens/src/index";
+import { TokenWrapperHandler } from "../../tokens/src/index";
 
 export type Proposal = {
   data: string,
@@ -14,7 +16,7 @@ export type Proposal = {
 export class BridgeSide {
   contract: Bridge;
   admin: ethers.Signer;
-  handler: AnchorHandler | null;
+  handler: AnchorHandler | TokenWrapperHandler | null;
   proposals: Proposal[];
 
   private constructor(
@@ -48,17 +50,52 @@ export class BridgeSide {
     const bridgeSide = new BridgeSide(deployedBridge, admin);
     return bridgeSide;
   }
+ 
+  /**
+   * Creates the proposal data for updating an execution anchor
+   * with the latest state of a source anchor (i.e. most recent deposit).
+   * @param srcAnchor The anchor instance whose state has updated.
+   * @param executionResourceId The resource id of the execution anchor instance.
+   * @returns Promise<string>
+   */
+  public async createAnchorUpdateProposalData(srcAnchor: Anchor, executionResourceID: string): Promise<string> {
+    const proposalData = await srcAnchor.getProposalData(executionResourceID);
+    return proposalData;
+  }
 
-  /** Update proposals are created so that changes to an anchor's root chain Y can
-  *** make its way to the neighbor root of the linked anchor on chain X.
-  *** @param linkedAnchorInstance: the anchor instance on the opposite chain
-  ***/
-  public async createUpdateProposalData(linkedAnchorInstance: Anchor) {
-    const proposalData = await linkedAnchorInstance.getProposalData();
+  public async createHandlerUpdateProposalData(anchor: Anchor, newHandler: string) {
+    const proposalData = await anchor.getHandlerProposalData(newHandler);
+    return proposalData;
+  }
+
+  /**
+   * Creates the proposal data for updating the wrapping fee
+   * of a governed token wrapper.
+   * @param governedToken The governed token wrapper whose fee will be updated.
+   * @param fee The new fee percentage
+   * @returns Promise<string>
+   */
+  public async createFeeUpdateProposalData(governedToken: GovernedTokenWrapper, fee: number): Promise<string> {
+    // TODO: Validate fee is between [0, 100]
+    const proposalData = await governedToken.getFeeProposalData(fee);
+    return proposalData;
+  }
+
+  public async createAddTokenUpdateProposalData(governedToken: GovernedTokenWrapper, tokenAddress: string) {
+    const proposalData = await governedToken.getAddTokenProposalData(tokenAddress);
+    return proposalData;
+  }
+
+  public async createRemoveTokenUpdateProposalData(governedToken: GovernedTokenWrapper, tokenAddress: string) {
+    const proposalData = await governedToken.getRemoveTokenProposalData(tokenAddress);
     return proposalData;
   }
 
   public async setAnchorHandler(handler: AnchorHandler) {
+    this.handler = handler;
+  }
+
+  public async setTokenWrapperHandler(handler: TokenWrapperHandler) {
     this.handler = handler;
   }
 
@@ -73,28 +110,109 @@ export class BridgeSide {
     const tx = await this.contract.adminSetResource(this.handler.contract.address, resourceId, anchor.contract.address, overrides || {});
     await tx.wait();
     // await this.handler.setResource(resourceId, anchor.contract.address); covered in above call
-    await anchor.setHandler(this.handler.contract.address, overrides);
-    await anchor.setBridge(this.contract.address, overrides);
-
+    await this.voteHandlerProposal(anchor, this.handler.contract.address, overrides);
+    await this.executeHandlerProposal(anchor, this.handler.contract.address, overrides);
+    
     return resourceId;
   }
 
-  // the 'linkedAnchor' is the anchor which exists on a chain other than this bridge's
-  // the 'thisAnchor' is the anchor on the same chain as this bridge.
-  // nonce is leafIndex from linkedAnchor
-  // chainId from linked anchor
-  // resourceId for this anchor
-  // dataHash is combo of keccak('anchor handler for this bridge' + (chainID linkedAnchor + leafIndex linkedAnchor + root linkedAnchor))
-  public async voteProposal(linkedAnchor: Anchor, thisAnchor: Anchor, overrides?: Overrides) {
+  public async setGovernedTokenResource(governedToken: GovernedTokenWrapper, overrides?: Overrides): Promise<string> {
+    if (!this.handler) {
+      throw new Error("Cannot connect an anchor without a handler");
+    }
+    const resourceId = await governedToken.createResourceId();
+
+    await this.contract.adminSetResource(this.handler.contract.address, resourceId, governedToken.contract.address, overrides || {});
+    return resourceId;
+  }
+
+  /**
+   * Votes on an anchor proposal by creating the proposal data and submitting it to the bridge.
+   * @param srcAnchor The anchor instance whose state has updated.
+   * @param executionResourceID The resource id of the execution anchor instance.
+   * @returns 
+   */
+  public async voteAnchorProposal(srcAnchor: Anchor, executionResourceID: string, overrides?: Overrides) {
     if (!this.handler) {
       throw new Error("Cannot connect an anchor without a handler");
     }
 
-    const proposalData = await this.createUpdateProposalData(linkedAnchor);
+    const proposalData = await this.createAnchorUpdateProposalData(srcAnchor, executionResourceID);
     const dataHash = ethers.utils.keccak256(this.handler.contract.address + proposalData.substr(2));
-    const resourceId = await thisAnchor.createResourceId();
-    const chainId = await linkedAnchor.signer.getChainId();
-    const nonce = linkedAnchor.tree.number_of_elements() - 1;
+    
+    const chainId = await srcAnchor.signer.getChainId();
+    const nonce = srcAnchor.tree.number_of_elements() - 1;
+
+    const tx = await this.contract.voteProposal(chainId, nonce, executionResourceID, dataHash, overrides || {});
+    const receipt = await tx.wait();
+    
+    return receipt;
+  }
+
+  /**
+   * Executes a proposal by calling the bridge's executeProposal function
+   * with the anchor update proposal data.
+   * @param srcAnchor The anchor instance whose state has updated.
+   * @param executionResourceID The resource id of the execution anchor instance.
+   * @returns 
+   */
+  public async executeAnchorProposal(srcAnchor: Anchor, executionResourceID: string, overrides?: Overrides) {
+    if (!this.handler) {
+      throw new Error("Cannot connect an anchor without a handler");
+    }
+
+    const proposalData = await this.createAnchorUpdateProposalData(srcAnchor, executionResourceID);
+    const chainId = await srcAnchor.signer.getChainId();
+    const nonce = srcAnchor.tree.number_of_elements() - 1;
+
+    const tx = await this.contract.executeProposal(chainId, nonce, proposalData, executionResourceID, overrides || {});
+    const receipt = await tx.wait();
+    
+    return receipt;
+  }
+
+  public async voteHandlerProposal(anchor: Anchor, newHandler: string, overrides?: Overrides) {
+    if (!this.handler) {
+      throw new Error("Cannot connect an anchor without a handler");
+    }
+
+    const proposalData = await this.createHandlerUpdateProposalData(anchor, newHandler);
+    const dataHash = ethers.utils.keccak256(this.handler.contract.address + proposalData.substr(2));
+    
+    const chainId = await anchor.signer.getChainId();
+    const nonce = 1;
+    const resourceID = await anchor.createResourceId();
+    const tx = await this.contract.voteProposal(chainId, nonce, resourceID, dataHash, overrides || {});
+    const receipt = await tx.wait();
+    
+    return receipt;
+  }
+
+  public async executeHandlerProposal(anchor: Anchor, newHandler: string, overrides?: Overrides) {
+    if (!this.handler) {
+      throw new Error("Cannot connect an anchor without a handler");
+    }
+
+    const proposalData = await this.createHandlerUpdateProposalData(anchor, newHandler);
+    const chainId = await anchor.signer.getChainId();
+    const nonce = 1;
+    const resourceID = await anchor.createResourceId()
+    const tx = await this.contract.executeProposal(chainId, nonce, proposalData, resourceID, overrides || {});
+    const receipt = await tx.wait();
+    
+    return receipt;
+  }
+
+  public async voteFeeProposal(governedToken: GovernedTokenWrapper, fee: number, overrides?: Overrides) {
+    if (!this.handler) {
+      throw new Error("Cannot connect an anchor without a handler");
+    }
+
+    const proposalData = await this.createFeeUpdateProposalData(governedToken, fee);
+    const dataHash = ethers.utils.keccak256(this.handler.contract.address + proposalData.substr(2));
+    const resourceId = await governedToken.createResourceId();
+    const chainId = await governedToken.signer.getChainId();
+    const nonce = (await governedToken.contract.proposalNonce()).add(1);
 
     const tx = await this.contract.voteProposal(chainId, nonce, resourceId, dataHash, overrides || {});
     const receipt = await tx.wait();
@@ -102,17 +220,78 @@ export class BridgeSide {
     return receipt;
   }
 
-  // emit ProposalEvent(chainID, nonce, ProposalStatus.Executed, dataHash);
-  public async executeProposal(linkedAnchor: Anchor, thisAnchor: Anchor, overrides?: Overrides) {
+  public async executeFeeProposal(governedToken: GovernedTokenWrapper, fee: number, overrides?: Overrides) {
+    if (!this.handler) {
+      throw new Error("Cannot connect to token wrapper without a handler");
+    }
+    const proposalData = await this.createFeeUpdateProposalData(governedToken, fee);
+    const resourceId = await governedToken.createResourceId();
+    const chainId = await governedToken.signer.getChainId();
+    const nonce = (await governedToken.contract.proposalNonce()).add(1);
+    const tx = await this.contract.executeProposal(chainId, nonce, proposalData, resourceId, overrides || {});
+    const receipt = await tx.wait();
+    
+    return receipt;
+  }
+
+  public async voteAddTokenProposal(governedToken: GovernedTokenWrapper, tokenAddress: string, overrides?: Overrides) {
     if (!this.handler) {
       throw new Error("Cannot connect an anchor without a handler");
     }
 
-    const proposalData = await this.createUpdateProposalData(linkedAnchor);
-    const resourceId = await thisAnchor.createResourceId();
-    const chainId = await linkedAnchor.signer.getChainId();
-    const nonce = linkedAnchor.tree.number_of_elements() - 1;
+    const proposalData = await this.createAddTokenUpdateProposalData(governedToken, tokenAddress);
+    const dataHash = ethers.utils.keccak256(this.handler.contract.address + proposalData.substr(2));
+    const resourceId = await governedToken.createResourceId();
+    const chainId = await governedToken.signer.getChainId();
+    const nonce = (await governedToken.contract.proposalNonce()).add(1);
 
+    const tx = await this.contract.voteProposal(chainId, nonce, resourceId, dataHash, overrides || {});
+    const receipt = await tx.wait();
+    
+    return receipt;
+  }
+
+  public async executeAddTokenProposal(governedToken: GovernedTokenWrapper, tokenAddress: string, overrides?: Overrides) {
+    if (!this.handler) {
+      throw new Error("Cannot connect to token wrapper without a handler");
+    }
+
+    const proposalData = await this.createAddTokenUpdateProposalData(governedToken, tokenAddress);
+    const resourceId = await governedToken.createResourceId();
+    const chainId = await governedToken.signer.getChainId();
+    const nonce = (await governedToken.contract.proposalNonce()).add(1);
+    const tx = await this.contract.executeProposal(chainId, nonce, proposalData, resourceId);
+    const receipt = await tx.wait();
+    
+    return receipt;
+  }
+
+  public async voteRemoveTokenProposal(governedToken: GovernedTokenWrapper, tokenAddress: string, overrides?: Overrides) {
+    if (!this.handler) {
+      throw new Error("Cannot connect an anchor without a handler");
+    }
+
+    const proposalData = await this.createRemoveTokenUpdateProposalData(governedToken, tokenAddress);
+    const dataHash = ethers.utils.keccak256(this.handler.contract.address + proposalData.substr(2));
+    const resourceId = await governedToken.createResourceId();
+    const chainId = await governedToken.signer.getChainId();
+    const nonce = (await governedToken.contract.proposalNonce()).add(1);
+
+    const tx = await this.contract.voteProposal(chainId, nonce, resourceId, dataHash);
+    const receipt = await tx.wait();
+    
+    return receipt;
+  }
+
+  public async executeRemoveTokenProposal(governedToken: GovernedTokenWrapper, tokenAddress: string, overrides?: Overrides) {
+    if (!this.handler) {
+      throw new Error("Cannot connect to token wrapper without a handler");
+    }
+
+    const proposalData = await this.createRemoveTokenUpdateProposalData(governedToken, tokenAddress);
+    const resourceId = await governedToken.createResourceId();
+    const chainId = await governedToken.signer.getChainId();
+    const nonce = (await governedToken.contract.proposalNonce()).add(1);
     const tx = await this.contract.executeProposal(chainId, nonce, proposalData, resourceId, overrides || {});
     const receipt = await tx.wait();
     

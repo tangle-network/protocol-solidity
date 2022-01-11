@@ -181,29 +181,6 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "sourceChainID",
-        type: "uint256",
-      },
-      {
-        internalType: "bytes32",
-        name: "root",
-        type: "bytes32",
-      },
-      {
-        internalType: "uint256",
-        name: "leafIndex",
-        type: "uint256",
-      },
-    ],
-    name: "addEdge",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
     inputs: [],
     name: "admin",
     outputs: [
@@ -868,7 +845,7 @@ const _abi = [
             type: "uint256",
           },
         ],
-        internalType: "struct IAnchor.PublicInputs",
+        internalType: "struct IFixedDepositAnchor.PublicInputs",
         name: "_publicInputs",
         type: "tuple",
       },

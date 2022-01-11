@@ -27,7 +27,7 @@ function startGanacheServer(port: number, networkId: number, mnemonic: string) {
   });
 
   ganacheServer.listen(port);
-  console.log(`Ganache Started on http://127.0.0.1:${port} ..`);
+  //console.log(`Ganache Started on http://127.0.0.1:${port} ..`);
 
   return ganacheServer;
 }
@@ -88,36 +88,29 @@ describe('multichain tests for vbridge', () => {
         chainIDs: [31337, 1337],
         webbTokens: webbTokens1
       };
-      
       const signers = await ethers.getSigners();
 
       const deploymentConfig = {
         31337: signers[1],
         1337: ganacheWallet2,
       };
-      const vBridge = await VBridge.deployVBridge(bridge2WebbEthInput, deploymentConfig);
-
+      const vBridge = await VBridge.deployVBridge(bridge2WebbEthInput, deploymentConfig, true);
       // Should be able to retrieve individual anchors
       const chainId1 = 31337;
       const chainId2 = 1337;
       const vAnchor1: VAnchor = vBridge.getVAnchor(chainId1)!;
       const vAnchor2: VAnchor = vBridge.getVAnchor(chainId2)!;
-
       // Should be able to retrieve the token address (so we can mint tokens for test scenario)
       const webbTokenAddress = vBridge.getWebbTokenAddress(chainId1);
       const webbToken = await MintableToken.tokenFromAddress(webbTokenAddress!, signers[1]);
       const tx = await webbToken.mintTokens(signers[2].address, '100000000000000000000000');
-
       // get the state of anchors before deposit
       const sourceAnchorRootBefore = await vAnchor1.contract.getLastRoot();
       //console.log(sourceAnchorRootBefore);
-
       //Define inputs/outputs for transact function
       const depositUtxo = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId1), chainId: BigNumber.from(chainId1)})
-
       //Transact on the bridge
       await vBridge.transact([], [depositUtxo], 0, '0', '0', signers[2]); 
-      
       // Check the state of anchors after deposit
       let edgeIndex = await vAnchor2.contract.edgeIndex(chainId1);
 
@@ -186,7 +179,7 @@ describe('multichain tests for vbridge', () => {
       }
 
       // deploy the bridge
-      vBridge = await VBridge.deployVBridge(vBridgeInput, deploymentConfig);
+      vBridge = await VBridge.deployVBridge(vBridgeInput, deploymentConfig, true);
 
       // make one deposit so the  edge exists
       const depositUtxo1 = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId1), chainId: BigNumber.from(chainId2)})
@@ -234,7 +227,7 @@ describe('multichain tests for vbridge', () => {
         await vBridge.transact([ganacheDepositUtxo], [hardhatWithdrawUtxo], 0, await signers[2].getAddress(), '0', signers[2]); 
         const signers2BalanceAfter = await webbToken1.getBalance(await signers[2].getAddress());
         assert.strictEqual(signers2BalanceBefore.add(5e6).toString(), signers2BalanceAfter.toString());
-      })
+      }).timeout(40000)
 
       it('join and split ganache deposits and withdraw on hardhat', async () => {
         const signers = await ethers.getSigners();
@@ -402,8 +395,9 @@ describe('multichain tests for vbridge', () => {
       }
 
       // deploy the bridge
-      vBridge = await VBridge.deployVBridge(vBridgeInput, deploymentConfig);
-
+      
+      vBridge = await VBridge.deployVBridge(vBridgeInput, deploymentConfig, true);
+     
       // make one deposit so the  edge exists
       const depositUtxo1 = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId1), chainId: BigNumber.from(chainId2)});
       const depositUtxo2 = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId2), chainId: BigNumber.from(chainId1)});

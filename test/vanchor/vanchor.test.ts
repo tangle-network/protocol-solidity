@@ -85,12 +85,8 @@ describe('VAnchor for 2 max edges', () => {
       verifier.contract.address,
       levels,
       hasherInstance.address,
+      sender.address,
       token.address,
-      {
-        bridge: sender.address,
-        admin: sender.address,
-        handler: sender.address,
-      },
       1,
       sender,
     );
@@ -212,6 +208,32 @@ describe('VAnchor for 2 max edges', () => {
     });
   })
 
+  describe ('Setting Handler/Verifier Address Negative Tests', () => {
+    it('should revert (setting handler) with improper nonce', async() => {
+      const signers = await ethers.getSigners();
+      await TruffleAssert.reverts(
+        anchor.contract.setHandler(signers[1].address, 0),
+        'Invalid nonce'
+      )
+      await TruffleAssert.reverts(
+        anchor.contract.setHandler(signers[1].address, 2),
+        'Nonce must increment by 1'
+      )
+    });
+
+    it('should revert (setting verifier) with improper nonce', async() => {
+      const signers = await ethers.getSigners();
+      await TruffleAssert.reverts(
+        anchor.contract.setVerifier(signers[1].address, 0),
+        'Invalid nonce'
+      )
+      await TruffleAssert.reverts(
+        anchor.contract.setVerifier(signers[1].address, 2),
+        'Nonce must increment by 1'
+      )
+    });
+  })
+
   describe('#transact', () => {
     it('should transact', async () => {
       // Alice deposits into tornado pool
@@ -230,7 +252,7 @@ describe('VAnchor for 2 max edges', () => {
       );
     })
 
-    it('should process fee', async () => {
+    it('should process fee on deposit', async () => {
       const signers = await ethers.getSigners();
       const alice= signers[0];
 
@@ -801,19 +823,15 @@ describe('VAnchor for 2 max edges', () => {
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
-      await wrappedToken.add(token.address);
+      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
 
       // create Anchor for wrapped token
       const wrappedAnchor = await VAnchor.createVAnchor(
         verifier.contract.address,
         5,
         hasherInstance.address,
+        sender.address,
         wrappedToken.address,
-        {
-          bridge: sender.address,
-          admin: sender.address,
-          handler: sender.address,
-        },
         1,
         sender
       );
@@ -862,19 +880,15 @@ describe('VAnchor for 2 max edges', () => {
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
-      await wrappedToken.add(token.address);
+      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
 
       // create Anchor for wrapped token
       const wrappedVAnchor = await VAnchor.createVAnchor(
         verifier.contract.address,
         5,
         hasherInstance.address,
+        sender.address,
         wrappedToken.address,
-        {
-          bridge: sender.address,
-          admin: sender.address,
-          handler: sender.address,
-        },
         1,
         sender
       );
@@ -936,21 +950,17 @@ describe('VAnchor for 2 max edges', () => {
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
-      await wrappedToken.add(token.address);
+      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
       const wrapFee = 5;
-      await wrappedToken.setFee(wrapFee);
+      await wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1));
 
       // create Anchor for wrapped token
       const wrappedVAnchor = await VAnchor.createVAnchor(
         verifier.contract.address,
         5,
         hasherInstance.address,
+        sender.address,
         wrappedToken.address,
-        {
-          bridge: sender.address,
-          admin: sender.address,
-          handler: sender.address,
-        },
         1,
         sender
       );
@@ -1024,12 +1034,12 @@ describe('VAnchor for 2 max edges', () => {
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
-      await wrappedToken.add(token.address);
+      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
       const wrapFee = 5;
       const otherSender = signers[1];
       assert
       await TruffleAssert.reverts(
-        wrappedToken.connect(otherSender).setFee(wrapFee),
+        wrappedToken.connect(otherSender).setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1)),
         'Only governor can call this function'
       );
     });
@@ -1044,11 +1054,11 @@ describe('VAnchor for 2 max edges', () => {
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
-      await wrappedToken.add(token.address);
+      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
       const wrapFee = 101;
       assert
       await TruffleAssert.reverts(
-        wrappedToken.setFee(wrapFee),
+        wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1)),
         'invalid fee percentage'
       );
     });
@@ -1063,11 +1073,11 @@ describe('VAnchor for 2 max edges', () => {
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
-      await wrappedToken.add(token.address);
+      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
       const wrapFee = -1;
       assert
       await TruffleAssert.fails(
-        wrappedToken.setFee(wrapFee)
+        wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1))
       );
     });
 
@@ -1081,11 +1091,11 @@ describe('VAnchor for 2 max edges', () => {
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
-      await wrappedToken.add(token.address);
+      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
       const wrapFee = 2.5;
       assert
       await TruffleAssert.fails(
-        wrappedToken.setFee(wrapFee)
+        wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1))
       );
     });
   }) 

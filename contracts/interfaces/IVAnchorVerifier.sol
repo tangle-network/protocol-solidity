@@ -5,17 +5,6 @@
 
 pragma solidity ^0.8.0;
 
-interface IVAnchorVerifier {
-  function verifyProof(
-    uint[2] memory a,
-    uint[2][2] memory b,
-    uint[2] memory c,
-    bytes memory input,
-    uint8 maxEdges,
-    bool smallInputs
-  ) external view returns (bool r);
-}
-
 interface IVAnchorVerifier2_2 {
   function verifyProof(
     uint[2] memory a,

@@ -113,20 +113,6 @@ contract('MerkleTreePoseidon', (accounts) => {
         assert.deepStrictEqual(pathViaConstructor, pathViaUpdate);
       }
     })
-
-    it.skip('creation using 30000 elements', () => {
-      const elements = []
-      for (let i = 1000; i < 31001; i++) {
-        elements.push(i)
-      }
-      console.time('MerkleTree')
-      tree = new MerkleTree(prefix, levels)
-      console.timeEnd('MerkleTree')
-      // 2,7 GHz Intel Core i7
-      // 1000 : 1949.084ms
-      // 10000: 19456.220ms
-      // 30000: 63406.679ms
-    })
   })
 
   describe('#hash', () => {
@@ -179,15 +165,6 @@ contract('MerkleTreePoseidon', (accounts) => {
         'Merkle tree is full. No more leaves can be added'
       );
     }).timeout(30000);
-
-    it.skip('hasher gas', async () => {
-      const levels = 6
-      const merkleTreeWithHistory = await MerkleTreeWithHistory.new(levels)
-      const zeroValue = await merkleTreeWithHistory.zeroValue()
-
-      const gas = await merkleTreeWithHistory.hashLeftRight.estimateGas(zeroValue, zeroValue)
-      console.log('gas', gas - 21000)
-    })
   })
 
   describe('#isKnownRoot', () => {

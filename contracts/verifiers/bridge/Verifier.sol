@@ -5,9 +5,10 @@
 
 pragma solidity ^0.8.0;
 
+import "../../interfaces/IAnchorVerifier.sol";
 import "../../interfaces/IVerifier.sol";
 
-contract Verifier is IVerifier {
+contract Verifier is IAnchorVerifier {
 	IVerifier2 public v2;
 	IVerifier3 public v3;
 	IVerifier4 public v4;
@@ -32,7 +33,8 @@ contract Verifier is IVerifier {
 		uint[2][2] memory b,
 		uint[2] memory c,
 		bytes memory input,
-		uint8 maxEdges
+		uint8 maxEdges,
+		bool _unused
 	) override external view returns (bool r) {
 		if (maxEdges == 1) {
 			uint256[9] memory _inputs = abi.decode(input, (uint256[9]));
