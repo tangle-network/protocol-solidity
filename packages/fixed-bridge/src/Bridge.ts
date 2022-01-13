@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { ethers } from 'ethers';
 import { BridgeSide } from './BridgeSide';
 import { Anchor } from './Anchor';
 import { AnchorHandler } from "./AnchorHandler";
