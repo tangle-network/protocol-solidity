@@ -7,29 +7,11 @@ import { ethers } from 'hardhat';
 
 const path = require('path');
 
-const ganache = require('ganache-cli');
-
 // Convenience wrapper classes for contract classes
 import { Bridge, BridgeInput, Anchor} from '@webb-tools/fixed-bridge'
 import { fetchComponentsFromFilePaths, ZkComponents } from '@webb-tools/utils';
 import { GovernedTokenWrapper } from '@webb-tools/tokens';
-
-function startGanacheServer(port: number, networkId: number, mnemonic: string) {
-  const ganacheServer = ganache.server({
-    port: port,
-    network_id: networkId,
-    _chainId: networkId,
-    chainId: networkId,
-    _chainIdRpc: networkId,
-    mnemonic:
-      mnemonic,
-  });
-
-  ganacheServer.listen(port);
-  console.log(`Ganache Started on http://127.0.0.1:${port} ..`);
-
-  return ganacheServer;
-}
+import { startGanacheServer } from '../helpers/startGanacheServer';
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -39,11 +21,12 @@ describe('multichain tests for native', () => {
   let ganacheServer2: any;
   let zkComponents: ZkComponents;
 
-  let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:8545');
+  let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:1337');
+  ganacheProvider2.pollingInterval = 1;
   let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
 
   before('setup networks', async () => {
-    ganacheServer2 = startGanacheServer(8545, 1337, 'congress island collect purity dentist team gas unlock nuclear pig combine sight');
+    ganacheServer2 = await startGanacheServer(1337, 1337, 'congress island collect purity dentist team gas unlock nuclear pig combine sight');
     await sleep(2000);
 
     zkComponents = await fetchComponentsFromFilePaths(
@@ -115,7 +98,7 @@ describe('multichain tests for native', () => {
     }).timeout(30000);
   })
 
-  after('terminate networks', () => {
-    ganacheServer2.close(console.error);
+  after('terminate networks', async () => {
+    await ganacheServer2.close();
   });
 })

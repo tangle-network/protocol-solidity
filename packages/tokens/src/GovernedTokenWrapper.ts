@@ -42,9 +42,11 @@ class GovernedTokenWrapper {
     return tokenWrapper;
   }
 
-  public grantMinterRole(address: string) {
+  public async grantMinterRole(address: string) {
     const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
-    return this.contract.grantRole(MINTER_ROLE, address);
+    const tx = await this.contract.grantRole(MINTER_ROLE, address);
+    await tx.wait();
+    return;
   }
 
   public async createResourceId(): Promise<string> {

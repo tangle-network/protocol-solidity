@@ -6,31 +6,13 @@ const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
 import { ethers } from 'hardhat';
 
-const ganache = require('ganache-cli');
-
 // Convenience wrapper classes for contract classes
 import { VBridge, VBridgeInput } from '@webb-tools/vbridge';
 import { VAnchor } from '@webb-tools/vbridge';
 import { MintableToken, GovernedTokenWrapper } from '@webb-tools/tokens';
 import { BigNumber } from 'ethers';
 import { Utxo } from '@webb-tools/vbridge';
-
-function startGanacheServer(port: number, networkId: number, mnemonic: string) {
-  const ganacheServer = ganache.server({
-    port: port,
-    network_id: networkId,
-    _chainId: networkId,
-    chainId: networkId,
-    _chainIdRpc: networkId,
-    mnemonic:
-      mnemonic,
-  });
-
-  ganacheServer.listen(port);
-  //console.log(`Ganache Started on http://127.0.0.1:${port} ..`);
-
-  return ganacheServer;
-}
+import { startGanacheServer } from '../helpers/startGanacheServer';
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -42,9 +24,9 @@ describe('multichain tests for vbridge', () => {
   let ganacheServer4: any;
 
   before('setup networks', async () => {
-    ganacheServer2 = startGanacheServer(8545, 1337, 'congress island collect purity dentist team gas unlock nuclear pig combine sight');
-    ganacheServer3 = startGanacheServer(9999, 9999, 'aspect biology suit thought bottom popular custom rebuild recall sauce endless local');
-    ganacheServer4 = startGanacheServer(4444, 4444, 'harvest useful giraffe swim rail ostrich public awful provide amazing tank weapon');
+    ganacheServer2 = await startGanacheServer(1337, 1337, 'congress island collect purity dentist team gas unlock nuclear pig combine sight');
+    ganacheServer3 = await startGanacheServer(9999, 9999, 'aspect biology suit thought bottom popular custom rebuild recall sauce endless local');
+    ganacheServer4 = await startGanacheServer(4444, 4444, 'harvest useful giraffe swim rail ostrich public awful provide amazing tank weapon');
     await sleep(2000);
   });
 
@@ -58,9 +40,11 @@ describe('multichain tests for vbridge', () => {
     let tokenInstance2: MintableToken;
     let tokenInstance3: MintableToken;
 
-    let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:8545');
+    let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:1337');
+    ganacheProvider2.pollingInterval = 1;
     let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
     let ganacheProvider3 = new ethers.providers.JsonRpcProvider('http://localhost:9999');
+    ganacheProvider3.pollingInterval = 1;
     let ganacheWallet3 = new ethers.Wallet('745ee040ef2b087f075dc7d314fa06797ed2ffd4ab59a4cc35c0a33e8d2b7791', ganacheProvider3);
 
     before('construction-tests', async () => {
@@ -140,7 +124,8 @@ describe('multichain tests for vbridge', () => {
     let vBridge: VBridge;
     const chainId1 = 31337;
     const chainId2 = 1337;
-    let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:8545');
+    let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:1337');
+    ganacheProvider2.pollingInterval = 1;
     let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
 
     before(async () => {
@@ -356,7 +341,8 @@ describe('multichain tests for vbridge', () => {
     let vBridge: VBridge;
     const chainId1 = 31337;
     const chainId2 = 1337;
-    let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:8545');
+    let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:1337');
+    ganacheProvider2.pollingInterval = 1;
     let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
 
     before(async () => {
@@ -524,9 +510,9 @@ describe('multichain tests for vbridge', () => {
     });
   });
 
-  after('terminate networks', () => {
-    ganacheServer2.close(console.error);
-    ganacheServer3.close(console.error);
-    ganacheServer4.close(console.error);
+  after('terminate networks', async () => {
+    await ganacheServer2.close();
+    await ganacheServer3.close();
+    await ganacheServer4.close();
   });
 });

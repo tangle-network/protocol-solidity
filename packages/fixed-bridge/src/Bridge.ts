@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { ethers } from 'ethers';
 import { BridgeSide } from './BridgeSide';
 import { Anchor } from './Anchor';
 import { AnchorHandler } from "./AnchorHandler";
@@ -137,10 +137,9 @@ export class Bridge {
       );
 
       const handler = await AnchorHandler.createAnchorHandler(bridgeInstance.contract.address, [],[], bridgeInstance.admin);
-      await bridgeInstance.setAnchorHandler(handler);
+      bridgeInstance.setAnchorHandler(handler);
 
       bridgeSides.set(chainID, bridgeInstance);
-      //(`bridgeSide address on ${chainID}: ${bridgeInstance.contract.address}`);
 
       // Create the Hasher and Verifier for the chain
       const hasherFactory = new PoseidonT3__factory(deployers[chainID]);
