@@ -163,7 +163,7 @@ export class VBridge {
 
 
       const handler = await AnchorHandler.createAnchorHandler(vBridgeInstance.contract.address, [], [], vBridgeInstance.admin);
-      await vBridgeInstance.setAnchorHandler(handler);
+      vBridgeInstance.setAnchorHandler(handler);
 
       vBridgeSides.set(chainID, vBridgeInstance);
       //console.log(`vBridgeSide address on ${chainID}: ${vBridgeInstance.contract.address}`);

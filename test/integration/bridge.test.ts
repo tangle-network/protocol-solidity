@@ -64,8 +64,10 @@ describe('multichain tests for erc20 bridges', () => {
     let tokenInstance3: MintableToken;
 
     let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:1337');
+    ganacheProvider2.pollingInterval = 1;
     let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
     let ganacheProvider3 = new ethers.providers.JsonRpcProvider('http://localhost:9999');
+    ganacheProvider3.pollingInterval = 1;
     let ganacheWallet3 = new ethers.Wallet('745ee040ef2b087f075dc7d314fa06797ed2ffd4ab59a4cc35c0a33e8d2b7791', ganacheProvider3);
 
     before('construction-tests', async () => {
@@ -229,6 +231,7 @@ describe('multichain tests for erc20 bridges', () => {
     const chainId1 = 31337;
     const chainId2 = 1337;
     let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:1337');
+    ganacheProvider2.pollingInterval = 1;
     let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
 
     before(async () => {
@@ -406,12 +409,15 @@ describe('multichain tests for erc20 bridges', () => {
     const chainId3 = 9999;
     const chainId4 = 4444;
     let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:1337');
+    ganacheProvider2.pollingInterval = 1;
     let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
 
     let ganacheProvider3 = new ethers.providers.JsonRpcProvider('http://localhost:9999');
+    ganacheProvider3.pollingInterval = 1;
     let ganacheWallet3 = new ethers.Wallet('745ee040ef2b087f075dc7d314fa06797ed2ffd4ab59a4cc35c0a33e8d2b7791', ganacheProvider3);
 
     let ganacheProvider4 = new ethers.providers.JsonRpcProvider('http://localhost:4444');
+    ganacheProvider4.pollingInterval = 1;
     let ganacheWallet4 = new ethers.Wallet('d897ca733460ea2c7cda5150926ade4a40e6828bb1cb0d38f097102530b3ef42', ganacheProvider4);
 
     let calculateCumulativeBalance: (userAddress: string, tokenAddress: string, webbTokenAddress: string, signer: Signer) => Promise<BigNumber>;

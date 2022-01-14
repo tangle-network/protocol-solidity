@@ -70,7 +70,7 @@ export class VBridgeSide {
     return proposalData;
   }
 
-  public async setAnchorHandler(handler: AnchorHandler) {
+  public setAnchorHandler(handler: AnchorHandler) {
     this.handler = handler;
   }
 
@@ -82,7 +82,8 @@ export class VBridgeSide {
     }
 
     const resourceId = await anchor.createResourceId();
-    await this.contract.adminSetResource(this.handler.contract.address, resourceId, anchor.contract.address);
+    const tx = await this.contract.adminSetResource(this.handler.contract.address, resourceId, anchor.contract.address);
+    await tx.wait();
     await this.voteHandlerProposal(anchor, this.handler.contract.address);
     await this.executeHandlerProposal(anchor, this.handler.contract.address);
 

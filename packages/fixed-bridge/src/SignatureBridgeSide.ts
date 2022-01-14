@@ -133,7 +133,8 @@ export class SignatureBridgeSide {
     const unsignedData = this.handler.contract.address + resourceId.slice(2) + anchor.contract.address.slice(2);
     const unsignedMsg = ethers.utils.arrayify(ethers.utils.keccak256(unsignedData).toString());
     const sig = await this.signingSystemSignFn(unsignedMsg);
-    await this.contract.adminSetResourceWithSignature(this.handler.contract.address, resourceId, anchor.contract.address, sig);
+    const tx = await this.contract.adminSetResourceWithSignature(this.handler.contract.address, resourceId, anchor.contract.address, sig);
+    await tx.wait();
     return resourceId;
   }
 
