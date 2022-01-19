@@ -1,10 +1,9 @@
-import { ethers } from "ethers";
+import { ethers } from 'ethers';
 import { SignatureBridge, SignatureBridge__factory } from '@webb-tools/contracts';
 import { GovernedTokenWrapper } from "@webb-tools/tokens";
 import { TokenWrapperHandler } from "@webb-tools/tokens";
 import { AnchorHandler } from "@webb-tools/anchors";
-import { IAnchor, Proposal } from "@webb-tools/interfaces";
-import { IBridgeSide } from "@webb-tools/interfaces/IBridgeSide";
+import { IAnchor, IBridgeSide, Proposal } from "@webb-tools/interfaces";
 
 export class SignatureBridgeSide implements IBridgeSide {
   contract: SignatureBridge;

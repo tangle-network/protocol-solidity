@@ -1,4 +1,4 @@
-import { ethers, BigNumber, BigNumberish  } from "ethers";
+import { ethers, BigNumber, BigNumberish  } from 'ethers';
 import VBridgeSide from './VBridgeSide';
 import { SignatureBridgeSide } from '@webb-tools/bridges';
 import { MintableToken, GovernedTokenWrapper } from "@webb-tools/tokens";

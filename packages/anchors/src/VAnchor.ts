@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish, ethers } from "ethers";
+import { BigNumber, BigNumberish, ethers } from 'ethers';
 import { VAnchor as VAnchorContract, VAnchor__factory, VAnchorEncodeInputs__factory } from '@webb-tools/contracts';
 import { p256, toHex, RootInfo, Keypair, FIELD_SIZE, getExtDataHash, toFixedHex, Utxo } from '@webb-tools/utils';
 import { IAnchorDeposit, IAnchor, IExtData, IMerkleProofData, IUTXOInput, IVariableAnchorPublicInputs, IWitnessInput } from '@webb-tools/interfaces';

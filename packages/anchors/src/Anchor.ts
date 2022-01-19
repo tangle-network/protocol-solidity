@@ -1,4 +1,4 @@
-import { BigNumberish, ethers, BigNumber } from "ethers";
+import { BigNumberish, ethers, BigNumber } from 'ethers';
 import { FixedDepositAnchor as AnchorContract, FixedDepositAnchor__factory as Anchor__factory} from '@webb-tools/contracts'
 import { RefreshEvent, WithdrawalEvent } from '@webb-tools/contracts/src/FixedDepositAnchor';
 import { IAnchorDeposit, IAnchorDepositInfo, IAnchor, IFixedAnchorPublicInputs, IMerkleProofData } from '@webb-tools/interfaces';

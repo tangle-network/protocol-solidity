@@ -1,6 +1,6 @@
 {
   "name": "@webb-tools/tokens",
-  "main": "./lib/packages/tokens/src/index.js",
+  "main": "./lib/index.js",
   "license": "GPL-3.0-or-later",
   "author": "Webb Developers <drew@webb.tools>",
   "scripts": {

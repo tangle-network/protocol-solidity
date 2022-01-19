@@ -12,7 +12,6 @@
     "@webb-tools/contracts": "^0.1.0",
     "@webb-tools/interfaces": "^0.1.0",
     "@webb-tools/merkle-tree": "^0.1.0",
-    "@webb-tools/tokens": "^0.1.0",
     "@webb-tools/utils": "^0.1.0"
   },
   "publishConfig": {
