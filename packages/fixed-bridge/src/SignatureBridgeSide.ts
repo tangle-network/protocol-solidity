@@ -1,4 +1,4 @@
-import { BigNumberish, ethers } from "ethers";
+import { BigNumber, BigNumberish, ethers } from "ethers";
 import { SignatureBridge, SignatureBridge__factory } from '../../../typechain';
 import { Anchor } from './Anchor';
 import { VAnchor } from '../../vbridge/src/VAnchor';
@@ -98,6 +98,11 @@ export class SignatureBridgeSide {
 
   public async createRemoveTokenUpdateProposalData(governedToken: GovernedTokenWrapper, tokenAddress: string) {
     const proposalData = await governedToken.getRemoveTokenProposalData(tokenAddress);
+    return proposalData;
+  }
+
+  public async createRescueTokensUpdateProposalData(governedToken: GovernedTokenWrapper, tokenAddress: string, to, amountToRescue) {
+    const proposalData = await governedToken.getRescueTokensProposalData(tokenAddress, to, amountToRescue);
     return proposalData;
   }
 
@@ -212,6 +217,21 @@ export class SignatureBridgeSide {
     const resourceId = await governedToken.createResourceId();
     const chainId = await governedToken.signer.getChainId();
     const nonce = (await governedToken.contract.proposalNonce()).add(1);
+    const proposalMsg = ethers.utils.arrayify(ethers.utils.keccak256(proposalData).toString());
+    const sig = await this.signingSystemSignFn(proposalMsg);
+    const tx = await this.contract.executeProposalWithSignature(proposalData, sig);
+    const receipt = await tx.wait();
+    
+    return receipt;
+  }
+
+  public async executeRescueTokensProposalWithSig(governedToken: GovernedTokenWrapper, tokenAddress: string, to: string, amountToRescue: BigNumber) {
+    if (!this.handler) {
+      throw new Error("Cannot connect to token wrapper without a handler");
+    }
+
+    const proposalData = await this.createRescueTokensUpdateProposalData(governedToken, tokenAddress, to, amountToRescue);
+
     const proposalMsg = ethers.utils.arrayify(ethers.utils.keccak256(proposalData).toString());
     const sig = await this.signingSystemSignFn(proposalMsg);
     const tx = await this.contract.executeProposalWithSignature(proposalData, sig);

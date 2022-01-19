@@ -310,7 +310,7 @@
     //Check that governedToken contains the added token
     assert((await governedToken.contract.getTokens()).includes(tokenInstance.contract.address));
     //End Add a Token--------
-assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '2');
+    assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '2');
 
     //Remove a Token
     await bridgeSide.executeRemoveTokenProposalWithSig(governedToken, tokenInstance.contract.address);
@@ -355,7 +355,7 @@ assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '2
     await bridgeSide.setAnchorHandler(anchorHandler);
     // //Function call below sets resource with signature
     await bridgeSide.connectAnchorWithSignature(anchor);
-    //Check that proposal nonce is updated on anchor contract since handler prposal has been executed
+    //Check that proposal nonce is updated on anchor contract since handler proposal has been executed
     assert.strictEqual(await anchor.contract.getProposalNonce(), 1);
 
     await bridgeSide.connectAnchorWithSignature(anchor);
@@ -371,5 +371,119 @@ assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '2
     assert.strictEqual(await anchor.contract.getProposalNonce(), 5);
   })
 
+ })
+
+ describe('Rescue Tokens Tests', () => {
+  let zkComponents: ZkComponents;
+  let sourceAnchor: Anchor;
+  let destAnchor: Anchor;
+  let anchorHandler: AnchorHandler;
+  let erc20TokenInstance: MintableToken;
+  let bridgeSide: SignatureBridgeSide;
+ 
+  before(async () => {
+    zkComponents = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey')
+    );
+  })
+
+  beforeEach(async() => {
+    const signers = await ethers.getSigners();
+    const initialGovernor = signers[1];
+    const admin = signers[1];
+    bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, 0, 100, admin);
+
+    // Deploy TokenWrapperHandler
+    const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
+
+    // Create ERC20 Token
+    erc20TokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
+    await erc20TokenInstance.mintTokens(admin.address, '100000000000000000000000');
+
+    // Create a GovernedTokenWrapper
+    const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
+      `webbETH-test-1`,
+      `webbETH-test-1`,
+      tokenWrapperHandler.contract.address,
+      '10000000000000000000000000',
+      true,
+      admin,
+    );
+
+    // Set bridgeSide handler to tokenWrapperHandler
+    bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
+
+    // Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
+    await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
+
+    // Execute change fee proposal
+    await bridgeSide.executeFeeProposalWithSig(governedToken, 10);
+
+    // Check that fee actually changed
+    assert.strictEqual((await governedToken.contract.getFee()).toString(), '10');
+    assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '1');
+
+    // Execute Proposal to add that token to the governedToken
+    await bridgeSide.executeAddTokenProposalWithSig(governedToken, erc20TokenInstance.contract.address);
+
+    // Check that governedToken contains the added token
+    assert((await governedToken.contract.getTokens()).includes(erc20TokenInstance.contract.address));
+    
+    assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '2');
+
+    // -------- Anchor Stuff ------------
+
+    // Create the Hasher and Verifier for the chain
+    const hasherFactory = new PoseidonT3__factory(admin);
+    let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
+    await hasherInstance.deployed();
+
+    const verifier = await Verifier.createVerifier(admin);
+
+    anchorHandler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, [], [], admin);
+
+    sourceAnchor = await Anchor.createAnchor(
+      verifier.contract.address,
+      hasherInstance.address,
+      '1000000000000',
+      30,
+      governedToken.contract.address,
+      anchorHandler.contract.address,
+      5,
+      zkComponents,
+      admin
+    );
+
+    destAnchor = await Anchor.createAnchor(
+      verifier.contract.address,
+      hasherInstance.address,
+      '1000000000000',
+      30,
+      governedToken.contract.address,
+      anchorHandler.contract.address,
+      5,
+      zkComponents,
+      admin
+    );
+
+    await governedToken.grantMinterRole(sourceAnchor.contract.address);
+    await erc20TokenInstance.approveSpending(governedToken.contract.address);
+    await erc20TokenInstance.approveSpending(sourceAnchor.contract.address);
+
+    await bridgeSide.setAnchorHandler(anchorHandler);
+    bridgeSide.setResourceWithSignature(destAnchor);
+
+    await sourceAnchor.wrapAndDeposit(erc20TokenInstance.contract.address, await admin.getChainId());
+    const destResourceID = await destAnchor.createResourceId();
+    await bridgeSide.executeAnchorProposalWithSig(sourceAnchor, destResourceID);
+    console.log((await erc20TokenInstance.getBalance(governedToken.contract.address)).toString());
+    console.log((await erc20TokenInstance.getBalance(sourceAnchor.contract.address)).toString());
+  })
+
+  it.only('should rescue tokens', async () => {
+    
+  })
 
  })

@@ -107,6 +107,12 @@ contract TokenWrapperHandler is IExecutor, HandlerHelpers {
             uint32 nonce = uint32(bytes4(arguments[0:4]));
             address tokenAddress = address(bytes20(arguments[4:24]));
             governedToken.remove(tokenAddress, nonce);
+        } else if (functionSig == bytes4(keccak256("rescueTokens(address,address,uint256,uint256)"))) {
+            uint32 nonce = uint32(bytes4(arguments[0:4]));
+            address tokenAddress = address(bytes20(arguments[4:24]));
+            address payable to = payable(address(bytes20(arguments[24:44])));
+            uint256 amountToRescue = uint256(bytes32(arguments[44:76]));
+            governedToken.rescueTokens(tokenAddress, to, amountToRescue, nonce);
         } else {
             revert("Invalid function sig");
         }

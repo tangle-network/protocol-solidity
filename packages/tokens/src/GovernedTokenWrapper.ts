@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { BigNumberish, ethers } from "ethers";
 import { toFixedHex, toHex } from '@webb-tools/utils';
 import { GovernedTokenWrapper as GovernedTokenWrapperContract, GovernedTokenWrapper__factory } from '../../../typechain';
 
@@ -90,6 +90,21 @@ class GovernedTokenWrapper {
       functionSig.slice(2) +
       toHex(nonce, 4).substr(2) + 
       feeString.slice(2);
+  }
+
+  public async getRescueTokensProposalData(tokenAddress: string, to: string, amountToRescue: BigNumberish) {
+    const resourceID = await this.createResourceId();
+    const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
+    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("rescueTokens(address,address,uint256,uint256)")).slice(0, 10).padEnd(10, '0');
+    
+
+    return '0x' +
+    resourceID.substr(2) + 
+    functionSig.slice(2) +
+    toHex(nonce, 4).substr(2) + 
+    tokenAddress.slice(2) +
+    to.slice(2) +
+    toFixedHex(amountToRescue).slice(2);
   }
 
 }

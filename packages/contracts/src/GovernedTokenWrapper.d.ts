@@ -53,6 +53,7 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
     "proposalNonce()": FunctionFragment;
     "remove(address,uint256)": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
+    "rescueTokens(address,address,uint256,uint256)": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
     "setFee(uint8,uint256)": FunctionFragment;
     "setGovernor(address)": FunctionFragment;
@@ -170,6 +171,10 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "renounceRole",
     values: [BytesLike, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "rescueTokens",
+    values: [string, string, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "revokeRole",
@@ -310,6 +315,10 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "remove", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "renounceRole",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "rescueTokens",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
@@ -581,6 +590,14 @@ export class GovernedTokenWrapper extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    rescueTokens(
+      tokenAddress: string,
+      to: string,
+      amountToRescue: BigNumberish,
+      nonce: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     revokeRole(
       role: BytesLike,
       account: string,
@@ -807,6 +824,14 @@ export class GovernedTokenWrapper extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  rescueTokens(
+    tokenAddress: string,
+    to: string,
+    amountToRescue: BigNumberish,
+    nonce: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   revokeRole(
     role: BytesLike,
     account: string,
@@ -1025,6 +1050,14 @@ export class GovernedTokenWrapper extends BaseContract {
     renounceRole(
       role: BytesLike,
       account: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    rescueTokens(
+      tokenAddress: string,
+      to: string,
+      amountToRescue: BigNumberish,
+      nonce: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1354,6 +1387,14 @@ export class GovernedTokenWrapper extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    rescueTokens(
+      tokenAddress: string,
+      to: string,
+      amountToRescue: BigNumberish,
+      nonce: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     revokeRole(
       role: BytesLike,
       account: string,
@@ -1586,6 +1627,14 @@ export class GovernedTokenWrapper extends BaseContract {
     renounceRole(
       role: BytesLike,
       account: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    rescueTokens(
+      tokenAddress: string,
+      to: string,
+      amountToRescue: BigNumberish,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
