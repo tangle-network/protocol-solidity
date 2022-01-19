@@ -8,7 +8,7 @@ import { ethers } from 'hardhat';
 const path = require('path');
 
 // Convenience wrapper classes for contract classes
-import { Bridge, BridgeInput, Anchor} from '@webb-tools/fixed-bridge'
+import { Bridge, BridgeInput, Anchor} from '@webb-tools/bridges'
 import { fetchComponentsFromFilePaths, ZkComponents } from '@webb-tools/utils';
 import { GovernedTokenWrapper } from '@webb-tools/tokens';
 import { startGanacheServer } from '../helpers/startGanacheServer';
@@ -57,7 +57,7 @@ describe('multichain tests for native', () => {
         31337: signers[1],
         1337: ganacheWallet2,
       };
-      const bridge = await Bridge.deployBridge(bridge2WebbEthInput, deploymentConfig, zkComponents);
+      const bridge = await Bridge.deployFixedDepositBridge(bridge2WebbEthInput, deploymentConfig, zkComponents);
 
       // Should be able to retrieve individual anchors
       const chainId1 = 31337;

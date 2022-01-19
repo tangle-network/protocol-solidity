@@ -1,6 +1,6 @@
 require('dotenv').config();
 import { ethers } from 'ethers';
-import Bridge, { BridgeInput, DeployerConfig } from '../../lib/darkwebb/Bridge';
+import { Bridge, BridgeInput, DeployerConfig } from '@webb-tools/bridges';
 
 export async function run() {
 
@@ -42,7 +42,7 @@ export async function run() {
     421611: walletArbitrum,
   };
 
-  const bridge = await Bridge.deployBridge(bridgeInput, deployers);
+  const bridge = await Bridge.deployFixedDepositBridge(bridgeInput, deployers);
 
   // print out all the info for the addresses to run 
   const bridgeConfig = await bridge.exportConfig();

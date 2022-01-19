@@ -8,8 +8,8 @@
  const TruffleAssert = require('truffle-assertions');
  
  // Convenience wrapper classes for contract classes
- import { Anchor, AnchorHandler, Verifier } from '../../packages/fixed-bridge/src';
- import { SignatureBridgeSide } from '../../packages/fixed-bridge/src/SignatureBridgeSide'
+ import { Anchor, AnchorHandler, Verifier } from '../../packages/bridges/src';
+ import { SignatureBridgeSide } from '../../packages/bridges/src/SignatureBridgeSide'
  import { MintableToken } from '@webb-tools/tokens';
  import { fetchComponentsFromFilePaths, ZkComponents } from '@webb-tools/utils';
  import { PoseidonT3__factory } from '../../typechain';

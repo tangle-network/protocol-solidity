@@ -3,17 +3,35 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "@webb-tools/anchors": [
+        "packages/anchors/src"
+      ],
+      "@webb-tools/anchors/*": [
+        "packages/anchors/src/*"
+      ],
+      "@webb-tools/interfaces": [
+        "packages/interfaces/src"
+      ],
+      "@webb-tools/interfaces/*": [
+        "packages/interfaces/src/*"
+      ],
+      "@webb-tools/merkle-tree": [
+        "packages/merkle-tree/src"
+      ],
+      "@webb-tools/merkle-tree/*": [
+        "packages/merkle-tree/src/*"
+      ],
       "@webb-tools/contracts": [
         "packages/contracts/src"
       ],
       "@webb-tools/contracts/*": [
         "packages/contracts/src/*"
       ],
-      "@webb-tools/fixed-bridge": [
-        "packages/fixed-bridge/src"
+      "@webb-tools/bridges": [
+        "packages/bridges/src"
       ],
-      "@webb-tools/fixed-bridge/*": [
-        "packages/fixed-bridge/src/*"
+      "@webb-tools/bridges/*": [
+        "packages/bridges/src/*"
       ],
       "@webb-tools/tokens": [
         "packages/tokens/src"

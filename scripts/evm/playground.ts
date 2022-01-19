@@ -1,7 +1,7 @@
 require('dotenv').config();
 const path = require('path');
 import { ethers } from 'ethers';
-import { Anchor } from '../../packages/fixed-bridge';
+import { Anchor } from '../../packages/bridges';
 import { bridgedWithdrawErc20Token } from './withdrawals/bridgedWithdrawErc20Token';
 import { depositAndBridgedWithdraw } from './bridgeActions/depositAndBridgedWithdraw';
 import { fetchComponentsFromFilePaths } from '../../packages/utils';

@@ -12,7 +12,7 @@ const Poseidon = artifacts.require('PoseidonT3')
 const MerkleTreeWithHistory = artifacts.require('MerkleTreePoseidonMock')
 
 const PoseidonHasher = require('../../packages/utils/src').PoseidonHasher;
-const MerkleTree = require('../../packages/fixed-bridge/src').MerkleTree;
+const MerkleTree = require('../../packages/bridges/src').MerkleTree;
 
 const { ETH_AMOUNT, MERKLE_TREE_HEIGHT } = process.env
 

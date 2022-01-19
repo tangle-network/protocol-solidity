@@ -13,9 +13,10 @@
     "hardhat": "^2.6.8"
   },
   "dependencies": {
-    "@webb-tools/contracts": "^0.0.3",
-    "@webb-tools/tokens": "^0.0.3",
-    "@webb-tools/utils": "^0.0.2",
+    "@webb-tools/contracts": "^0.1.0",
+    "@webb-tools/tokens": "^0.1.0",
+    "@webb-tools/bridges": "^0.1.0",
+    "@webb-tools/utils": "^0.1.0",
     "circomlibjs": "^0.0.8",
     "ethers": "5.5.1",
     "ffjavascript": "^0.2.38",
@@ -29,5 +30,5 @@
     "type": "git",
     "url": "git://github.com/webb-tools/protocol-solidity.git"
   },
-  "version": "0.0.3"
+  "version": "0.1.0"
 }

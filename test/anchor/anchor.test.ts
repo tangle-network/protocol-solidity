@@ -21,7 +21,7 @@ import {
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
-import { Anchor, MerkleTree, Verifier } from '@webb-tools/fixed-bridge';
+import { Anchor, MerkleTree, Verifier } from '@webb-tools/bridges';
 import { fetchComponentsFromFilePaths, ZkComponents, toFixedHex } from '@webb-tools/utils';
 
 const { NATIVE_AMOUNT } = process.env

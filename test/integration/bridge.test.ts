@@ -11,7 +11,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Convenience wrapper classes for contract classes
-import { Bridge, BridgeInput, Anchor } from '@webb-tools/fixed-bridge';
+import { Bridge, BridgeInput, Anchor } from '@webb-tools/bridges';
 import { MintableToken } from '@webb-tools/tokens';
 import { fetchComponentsFromFilePaths, ZkComponents } from '@webb-tools/utils';
 import { BigNumber } from '@ethersproject/bignumber';
@@ -100,7 +100,7 @@ describe('multichain tests for erc20 bridges', () => {
         31337: signers[1],
         1337: ganacheWallet2,
       };
-      const bridge = await Bridge.deployBridge(bridge2WebbEthInput, deploymentConfig, zkComponents2);
+      const bridge = await Bridge.deployFixedDepositBridge(bridge2WebbEthInput, deploymentConfig, zkComponents2);
 
       // Should be able to retrieve individual anchors
       const chainId1 = 31337;
@@ -159,7 +159,7 @@ describe('multichain tests for erc20 bridges', () => {
         1337: ganacheWallet2,
         9999: ganacheWallet3,
       };
-      const bridge = await Bridge.deployBridge(bridge3WebbEthInput, deploymentConfig, zkComponents3);
+      const bridge = await Bridge.deployFixedDepositBridge(bridge3WebbEthInput, deploymentConfig, zkComponents3);
 
       // Should be able to retrieve individual anchors
       const chainId1 = 31337;
@@ -268,7 +268,7 @@ describe('multichain tests for erc20 bridges', () => {
       }
 
       // deploy the bridge
-      bridge = await Bridge.deployBridge(existingTokenBridgeConfig, deploymentConfig, zkComponents2);
+      bridge = await Bridge.deployFixedDepositBridge(existingTokenBridgeConfig, deploymentConfig, zkComponents2);
 
       // make one deposit so the edge exists
       await bridge.wrapAndDeposit(chainId2, existingToken1.contract.address, '1000000000000000000', signers[1]);
@@ -457,7 +457,7 @@ describe('multichain tests for erc20 bridges', () => {
       }
       
       // deploy the bridge
-      bridge = await Bridge.deployBridge(existingTokenBridgeConfig, deploymentConfig, zkComponents4);
+      bridge = await Bridge.deployFixedDepositBridge(existingTokenBridgeConfig, deploymentConfig, zkComponents4);
 
       // Should mint tokens for test purposes
       await existingTokenSrc.mintTokens(signers[1].address, '100000000000000000000000');

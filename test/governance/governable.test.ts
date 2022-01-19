@@ -120,7 +120,4 @@
     assert.strictEqual(nextGovernorAddress, events[1].args.newOwner);
     assert.strictEqual(sender.address, events[1].args.previousOwner);
   });
-
-
- });
- 
+});

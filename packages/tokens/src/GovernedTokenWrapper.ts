@@ -1,6 +1,6 @@
-import { ethers } from "ethers";
-import { toFixedHex, toHex } from '@webb-tools/utils';
-import { GovernedTokenWrapper as GovernedTokenWrapperContract, GovernedTokenWrapper__factory } from '../../../typechain';
+import { ethers } from 'ethers';
+import { toHex } from '@webb-tools/utils';
+import { GovernedTokenWrapper as GovernedTokenWrapperContract, GovernedTokenWrapper__factory } from '@webb-tools/contracts';
 
 class GovernedTokenWrapper {
   contract: GovernedTokenWrapperContract;

@@ -8,6 +8,7 @@ export type { FixedDepositAnchor } from "./FixedDepositAnchor";
 export type { AnchorBase } from "./AnchorBase";
 export type { LinkableAnchor } from "./LinkableAnchor";
 export type { Bridge } from "./Bridge";
+export type { SignatureBridge } from "./SignatureBridge";
 export type { AnchorHandler } from "./AnchorHandler";
 export type { HandlerHelpers } from "./HandlerHelpers";
 export type { VAnchorEncodeInputs } from "./VAnchorEncodeInputs";
@@ -38,6 +39,7 @@ export { FixedDepositAnchor__factory } from "./factories/FixedDepositAnchor__fac
 export { AnchorBase__factory } from "./factories/AnchorBase__factory";
 export { LinkableAnchor__factory } from "./factories/LinkableAnchor__factory";
 export { Bridge__factory } from "./factories/Bridge__factory";
+export { SignatureBridge__factory } from "./factories/SignatureBridge__factory";
 export { AnchorHandler__factory } from "./factories/AnchorHandler__factory";
 export { HandlerHelpers__factory } from "./factories/HandlerHelpers__factory";
 export { VAnchorEncodeInputs__factory } from "./factories/VAnchorEncodeInputs__factory";
