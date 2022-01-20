@@ -1,6 +1,6 @@
-<h1 align="center">Webb Solidity</h1>
+<h1 align="center">Webb Merkle Tree</h1>
 
-Wrapper classes and utilities for deploying and interacting with zero-knowledge bridges in solidity.
+Merkle tree class taken from Tornado Pool.
 
 ## License
 

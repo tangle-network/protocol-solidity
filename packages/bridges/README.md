@@ -1,6 +1,6 @@
-<h1 align="center">Webb Solidity Tokens</h1>
+<h1 align="center">Webb Bridges</h1>
 
-This sub-module is for defining bridges functionality in webb solidity.
+Wrapper classes and utilities for deploying and interacting with zero-knowledge Bridges in solidity.
 
 ## License
 

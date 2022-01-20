@@ -1,6 +1,6 @@
-<h1 align="center">Webb Solidity Tokens</h1>
+<h1 align="center">Webb Variable Bridge</h1>
 
-This sub-module is for defining variable-bridge (vbridge) functionality in webb solidity.
+This sub-module is for defining variable-bridge (vbridge) classes and functionality.
 
 ## License
 
