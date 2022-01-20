@@ -95,7 +95,7 @@ contract GovernedTokenWrapper is TokenWrapper {
      */
     function rescueTokens(address tokenAddress, address payable to, uint256 amountToRescue, uint256 nonce) public onlyGovernor {
         require(to != address(0), "Cannot send liquidity to zero address");
-        require(tokenAddress != address(this), "Cannot rescue wrapped asset");
+        require(tokenAddress != address(this), "Invalid rescue address");
         require(proposalNonce < nonce, "Invalid nonce");
         require(nonce <= proposalNonce + 1, "Nonce must increment by 1");
 
