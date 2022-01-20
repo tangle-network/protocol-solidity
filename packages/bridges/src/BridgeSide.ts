@@ -7,7 +7,7 @@ import { IAnchor, IBridgeSide, Proposal } from "@webb-tools/interfaces";
 export class BridgeSide implements IBridgeSide {
   contract: Bridge;
   admin: ethers.Signer;
-  handler: AnchorHandler | TokenWrapperHandler | null;
+  handler: AnchorHandler | TokenWrapperHandler;
   proposals: Proposal[];
 
   private constructor(
