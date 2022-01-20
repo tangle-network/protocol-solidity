@@ -25,14 +25,10 @@ import { toFixedHex } from '@webb-tools/utils';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
-import {
-  VAnchor,
-  Verifier,
-  Utxo,
-  MerkleTree,
-  poseidonHash,
-  poseidonHash2
-} from "@webb-tools/vbridge"
+import { MerkleTree } from '@webb-tools/merkle-tree';
+import { Utxo, poseidonHash, poseidonHash2 } from '@webb-tools/utils';
+import { VAnchor } from '@webb-tools/anchors';
+import { Verifier } from "@webb-tools/vbridge"
 
 const { NATIVE_AMOUNT } = process.env
 const BN = require('bn.js');

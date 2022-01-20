@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { Anchor, AnchorDeposit } from '../../../packages/fixed-bridge';
+import { Anchor, AnchorDeposit } from '../../../packages/bridges';
 import { WithdrawalEvent } from '../../../packages/contracts/lib/AnchorBase'
 import { ZkComponents } from '../../../packages/utils/lib';
 

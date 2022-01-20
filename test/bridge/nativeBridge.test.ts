@@ -8,10 +8,12 @@ import { ethers } from 'hardhat';
 const path = require('path');
 
 // Convenience wrapper classes for contract classes
-import { Bridge, BridgeInput, Anchor} from '@webb-tools/fixed-bridge'
+import { Bridge } from '@webb-tools/bridges'
+import { Anchor } from '@webb-tools/anchors';
 import { fetchComponentsFromFilePaths, ZkComponents } from '@webb-tools/utils';
 import { GovernedTokenWrapper } from '@webb-tools/tokens';
 import { startGanacheServer } from '../helpers/startGanacheServer';
+import { BridgeInput } from '@webb-tools/interfaces';
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -57,14 +59,14 @@ describe('multichain tests for native', () => {
         31337: signers[1],
         1337: ganacheWallet2,
       };
-      const bridge = await Bridge.deployBridge(bridge2WebbEthInput, deploymentConfig, zkComponents);
+      const bridge = await Bridge.deployFixedDepositBridge(bridge2WebbEthInput, deploymentConfig, zkComponents);
 
       // Should be able to retrieve individual anchors
       const chainId1 = 31337;
       const chainId2 = 1337;
       const anchorSize = '1000000000000000000';
-      const anchor1: Anchor = bridge.getAnchor(chainId1, anchorSize)!;
-      const anchor2: Anchor = bridge.getAnchor(chainId2, anchorSize)!;
+      const anchor1: Anchor = bridge.getAnchor(chainId1, anchorSize)! as Anchor;
+      const anchor2: Anchor = bridge.getAnchor(chainId2, anchorSize)! as Anchor;
 
       // get the balance of native token for the signer
       const nativeStartingBalance = await signers[2].getBalance();

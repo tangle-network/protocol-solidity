@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish, ContractTransaction, ethers } from "ethers";
+import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
 import { ERC20PresetMinterPauser, ERC20PresetMinterPauser__factory } from '@webb-tools/contracts';
 
 class MintableToken {

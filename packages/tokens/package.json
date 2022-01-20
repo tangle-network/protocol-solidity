@@ -1,6 +1,6 @@
 {
   "name": "@webb-tools/tokens",
-  "main": "./lib/packages/tokens/src/index.js",
+  "main": "./lib/index.js",
   "license": "GPL-3.0-or-later",
   "author": "Webb Developers <drew@webb.tools>",
   "scripts": {
@@ -9,7 +9,8 @@
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@webb-tools/contracts": "^0.0.3",
+    "@webb-tools/contracts": "^0.1.0",
+    "@webb-tools/utils": "^0.1.0",
     "ethers": "5.5.1"
   },
   "publishConfig": {
@@ -20,5 +21,5 @@
     "type": "git",
     "url": "git://github.com/webb-tools/protocol-solidity.git"
   },
-  "version": "0.0.3"
+  "version": "0.1.0"
 }
