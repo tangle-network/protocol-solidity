@@ -91,7 +91,7 @@ contract('MerkleTreePoseidon', (accounts) => {
       assert(index == 8);
 
       index = tree.getIndexByElement(42)
-      assert(index == false);
+      assert(index == -1);
     })
 
     it('creation even elements count', async () => {

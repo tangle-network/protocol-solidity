@@ -204,7 +204,7 @@ export class MerkleTree {
     return this._layers[0].length;
   }
 
-  getIndexByElement(element: any) {
+  getIndexByElement(element: any): number {
     return this.indexOf(element);
   }
 

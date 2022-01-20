@@ -27,11 +27,19 @@ export const toHex = (covertThis: ethers.utils.BytesLike | number | bigint, padd
   return ethers.utils.hexZeroPad(ethers.utils.hexlify(covertThis), padding);
 };
 
-export const toFixedHex = (number: BigNumberish, length: number = 32): string =>
-  '0x' +
-  BigInt(`${number}`)
-    .toString(16)
-    .padStart(length * 2, '0');
+/** BigNumber to hex string of specified length */
+export function toFixedHex(number: BigNumberish, length: number = 32): string {
+  let result =
+    '0x' +
+    (number instanceof Buffer
+      ? number.toString('hex')
+      : BigNumber.from(number).toHexString().replace('0x', '')
+    ).padStart(length * 2, '0')
+  if (result.indexOf('-') > -1) {
+    result = '-' + result.replace('-', '')
+  }
+  return result
+}
 
 /** Pad the bigint to 256 bits (32 bytes) */
 export function p256(n: bigint) {
