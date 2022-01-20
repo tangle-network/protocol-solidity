@@ -56,9 +56,12 @@ const getFunctionSignature = (contractInstance, functionName) => {
 
 const createERCDepositData = (tokenAmountOrID, lenRecipientAddress, recipientAddress) => {
   return '0x' +
-    toHex(tokenAmountOrID, 32).substr(2) +      // Token amount or ID to deposit (32 bytes)
-    toHex(lenRecipientAddress, 32).substr(2) +  // len(recipientAddress)          (32 bytes)
-    recipientAddress.substr(2);                 // recipientAddress               (?? bytes)
+    // Token amount or ID to deposit  (32 bytes)
+    toHex(tokenAmountOrID, 32).substr(2) +
+    // len(recipientAddress)          (32 bytes)
+    toHex(lenRecipientAddress, 32).substr(2) +
+    // recipientAddress               (20 bytes)
+    recipientAddress.substr(2);                 
 };
 
 const createUpdateProposalData = (sourceChainID, leafIndex, merkleRoot, thisAnchorAddress, thisAnchorChainID) => {
@@ -74,9 +77,12 @@ const createUpdateProposalData = (sourceChainID, leafIndex, merkleRoot, thisAnch
     toHex(resourceID, 32).substr(2)+ 
     functionSig.slice(2) + 
     toHex(dummyNonce,4).substr(2) +
-    toHex(sourceChainID, 4).substr(2) + // chainID (32 bytes)
-    toHex(leafIndex, 4).substr(2) +  // latest leaf index causing the incoming root 
-    toHex(merkleRoot, 32).substr(2); // Updated Merkle Root (32 bytes)      
+    // chainID (32 bytes)
+    toHex(sourceChainID, 4).substr(2) +
+    // latest leaf index causing the incoming root 
+    toHex(leafIndex, 4).substr(2) +
+    // Updated Merkle Root (32 bytes)
+    toHex(merkleRoot, 32).substr(2);
 };
 
 const createRootsBytes = (rootArray) => {
@@ -84,7 +90,8 @@ const createRootsBytes = (rootArray) => {
   for (let i = 0; i < rootArray.length; i++) {
     neighborBytes += toFixedHex(rootArray[i]).substr(2);
   }
-  return neighborBytes                          // root byte string (32 * array.length bytes) 
+  // root byte string (32 * array.length bytes) 
+  return neighborBytes;
 };
 
 const advanceBlock = () => {

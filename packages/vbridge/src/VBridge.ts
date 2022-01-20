@@ -1,42 +1,15 @@
-import { ethers, BigNumber, BigNumberish  } from "ethers";
+import { ethers, BigNumber, BigNumberish  } from 'ethers';
 import VBridgeSide from './VBridgeSide';
-import { SignatureBridgeSide } from '../../fixed-bridge/src/SignatureBridgeSide';
-import VAnchor from './VAnchor';
-import { AnchorHandler } from "./AnchorHandler";
-import { MintableToken, GovernedTokenWrapper } from "../../tokens/src/index";
+import { SignatureBridgeSide } from '@webb-tools/bridges';
+import { MintableToken, GovernedTokenWrapper } from "@webb-tools/tokens";
 import { PoseidonT3__factory } from "@webb-tools/contracts";
 import Verifier from "./Verifier";
-import { Utxo } from "./utxo";
+import { AnchorIdentifier, IAnchor } from "@webb-tools/interfaces";
+import { AnchorHandler, VAnchor } from "@webb-tools/anchors";
+import { Utxo } from "@webb-tools/utils";
 
 // Deployer config matches the chainId to the signer for that chain
 export type DeployerConfig = Record<number, ethers.Signer>;
-
-type VAnchorIdentifier = {
-  chainId: number;
-};
-
-// The AnchorMetadata holds information about anchors such as:
-//   - The amount they hold
-// type AnchorMetadata = {
-//   tokenType: TokenType,
-//   depositedAmount: ethers.BigNumberish,
-// }
-
-// type AnchorWithMetadata = {
-//   metadata: AnchorWithMetadata;
-//   anchor: Anchor;
-// }
-
-// enum TokenType {
-//   webb,
-//   erc20,
-//   native,
-// };
-
-type AnchorQuery = {
-  chainId?: number;
-  tokenAddress?: string;
-}
 
 export type ExistingAssetInput = {
   // A record of chainId => address
@@ -45,7 +18,6 @@ export type ExistingAssetInput = {
 
 // Users define an input for a completely new bridge
 export type VBridgeInput = {
-
   // The tokens and anchors which should be supported after deploying from this bridge input
   vAnchorInputs: ExistingAssetInput,
 
@@ -63,7 +35,7 @@ export type BridgeConfig = {
 
   // The addresses of the anchors for the GovernedTokenWrapper
   // {anchorIdentifier} => anchorAddress
-  vAnchors: Map<string, VAnchor>,
+  vAnchors: Map<string, IAnchor>,
 
   // The addresses of the Bridge contracts (bridgeSides) to interact with
   vBridgeSides: Map<number, VBridgeSide | SignatureBridgeSide>,
@@ -89,18 +61,18 @@ export class VBridge {
 
     // Mapping of resourceID => linkedVAnchor[]; so we know which
     // vanchors need updating when the anchor for resourceID changes state.
-    public linkedVAnchors: Map<string, VAnchor[]>,
+    public linkedVAnchors: Map<string, IAnchor[]>,
 
     // Mapping of anchorIdString => Anchor for easy anchor access
-    public vAnchors: Map<string, VAnchor>,
+    public vAnchors: Map<string, IAnchor>,
   ) {}
 
   //might need some editing depending on whether anchor identifier structure changes
-  public static createVAnchorIdString(vAnchorIdentifier: VAnchorIdentifier): string {
+  public static createVAnchorIdString(vAnchorIdentifier: AnchorIdentifier): string {
     return `${vAnchorIdentifier.chainId.toString()}`;
   }
 
-  public static createVAnchorIdentifier(vAnchorString: string): VAnchorIdentifier | null {
+  public static createVAnchorIdentifier(vAnchorString: string): AnchorIdentifier | null {
     // const identifyingInfo = anchorString.split('-');
     // if (identifyingInfo.length != 2) {
     //   return null;
@@ -112,8 +84,8 @@ export class VBridge {
 
   // Takes as input a 2D array [[anchors to link together], [...]]
   // And returns a map of resourceID => linkedAnchor[]
-  public static async createLinkedVAnchorMap(createdVAnchors: VAnchor[][]): Promise<Map<string, VAnchor[]>> {
-    let linkedVAnchorMap = new Map<string, VAnchor[]>();
+  public static async createLinkedVAnchorMap(createdVAnchors: IAnchor[][]): Promise<Map<string, IAnchor[]>> {
+    let linkedVAnchorMap = new Map<string, IAnchor[]>();
     for (let groupedVAnchors of createdVAnchors) {
       for (let i=0; i<groupedVAnchors.length; i++) {
         // create the resourceID of this anchor
@@ -131,14 +103,14 @@ export class VBridge {
     return linkedVAnchorMap;
   }
 
-  public static async deployVBridge(vBridgeInput: VBridgeInput, deployers: DeployerConfig, isVBridgeSide: boolean): Promise<VBridge> {
+  public static async deployVariableAnchorBridge(vBridgeInput: VBridgeInput, deployers: DeployerConfig, isVBridgeSide: boolean): Promise<VBridge> {
     
     let webbTokenAddresses: Map<number, string> = new Map();
     let vBridgeSides: Map<number, VBridgeSide | SignatureBridgeSide> = new Map();
-    let vAnchors: Map<string, VAnchor> = new Map();
+    let vAnchors: Map<string, IAnchor> = new Map();
     // createdAnchors have the form of [[Anchors created on chainID], [...]]
     // and anchors in the subArrays of thhe same index should be linked together
-    let createdVAnchors: VAnchor[][] = [];
+    let createdVAnchors: IAnchor[][] = [];
 
     for (let chainID of vBridgeInput.chainIDs) {
       const adminAddress = await deployers[chainID].getAddress();
@@ -216,7 +188,7 @@ export class VBridge {
         tokenInstance!.contract.address
       );
       
-      let chainGroupedVAnchors: VAnchor[] = [];
+      let chainGroupedVAnchors: IAnchor[] = [];
 
       // loop through all the anchor sizes on the token
       
@@ -247,11 +219,11 @@ export class VBridge {
     }
 
     // All anchors created, massage data to group anchors which should be linked together
-    let groupLinkedVAnchors: VAnchor[][] = [];
+    let groupLinkedVAnchors: IAnchor[][] = [];
 
     // all subarrays will have the same number of elements
     for(let i=0; i<createdVAnchors[0].length; i++) {
-      let linkedAnchors: VAnchor[] = [];
+      let linkedAnchors: IAnchor[] = [];
       for(let j=0; j<createdVAnchors.length; j++) {
         linkedAnchors.push(createdVAnchors[j][i]);
       }
@@ -266,7 +238,7 @@ export class VBridge {
   // The setPermissions method accepts initialized bridgeSide and anchors.
   // it creates the anchor handler and sets the appropriate permissions
   // for the bridgeSide/anchorHandler/anchor
-  public static async setPermissions(vBridgeSide: VBridgeSide | SignatureBridgeSide, vAnchors: VAnchor[]): Promise<void> {
+  public static async setPermissions(vBridgeSide: VBridgeSide | SignatureBridgeSide, vAnchors: IAnchor[]): Promise<void> {
     let tokenDenomination = '1000000000000000000' // 1 ether
     for (let vAnchor of vAnchors) {
       if (vBridgeSide instanceof VBridgeSide) {
@@ -289,7 +261,7 @@ export class VBridge {
   * @param srcAnchor The anchor that has updated.
   * @returns 
   */
-   public async updateLinkedVAnchors(srcAnchor: VAnchor) {
+   public async updateLinkedVAnchors(srcAnchor: IAnchor) {
     // Find the bridge sides that are connected to this Anchor
     const linkedResourceID = await srcAnchor.createResourceId();
     const vAnchorsToUpdate = this.linkedVAnchors.get(linkedResourceID);
@@ -326,7 +298,7 @@ export class VBridge {
   }
 
   public getVAnchor(chainId: number) {
-    let intendedAnchor: VAnchor | undefined = undefined;
+    let intendedAnchor: IAnchor | undefined = undefined;
     intendedAnchor = this.vAnchors.get(VBridge.createVAnchorIdString({chainId}));
     return intendedAnchor;
   }
@@ -335,10 +307,6 @@ export class VBridge {
   public getWebbTokenAddress(chainId: number): string | undefined {
     return this.webbTokenAddresses.get(chainId);
   }
-
-  // public queryAnchors(query: AnchorQuery): Anchor[] {
-    
-  // }
 
   public exportConfig(): BridgeConfig {
     return {

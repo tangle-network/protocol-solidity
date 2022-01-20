@@ -1,8 +1,8 @@
-import { ethers } from "ethers";
-import { toFixedHex, toHex } from '@webb-tools/utils';
-import { GovernedTokenWrapper as GovernedTokenWrapperContract, GovernedTokenWrapper__factory } from '../../../typechain';
+import { ethers } from 'ethers';
+import { toHex } from '@webb-tools/utils';
+import { GovernedTokenWrapper as GovernedTokenWrapperContract, GovernedTokenWrapper__factory } from '@webb-tools/contracts';
 
-class GovernedTokenWrapper {
+export class GovernedTokenWrapper {
   contract: GovernedTokenWrapperContract;
   signer: ethers.Signer;
   
@@ -91,7 +91,4 @@ class GovernedTokenWrapper {
       toHex(nonce, 4).substr(2) + 
       feeString.slice(2);
   }
-
 }
-
-export { GovernedTokenWrapper };

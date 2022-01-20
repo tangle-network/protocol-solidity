@@ -1,6 +1,6 @@
 require('dotenv').config();
 import { ethers } from 'ethers';
-import { Bridge, BridgeInput, DeployerConfig } from '../../packages/fixed-bridge';
+import { Bridge, BridgeInput, DeployerConfig } from '../../packages/bridges';
 
 export async function run() {
 
@@ -27,7 +27,7 @@ export async function run() {
     1666700000: walletHarmonyTestnet0,
   };
 
-  const bridge = await Bridge.deployBridge(bridgeInput, deployers);
+  const bridge = await Bridge.deployFixedDepositBridge(bridgeInput, deployers);
 
   // print out all the info for the addresses to run 
   const bridgeConfig = await bridge.exportConfig();

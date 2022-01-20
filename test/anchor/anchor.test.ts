@@ -9,7 +9,8 @@ const TruffleAssert = require('truffle-assertions');
 const fs = require('fs');
 const path = require('path');
 const { toBN, randomHex } = require('web3-utils');
-import { BigNumber } from 'ethers';
+import { BigNumber, BigNumberish } from 'ethers';
+import BN from 'bn.js';
 
 // Typechain generated bindings for contracts
 import {
@@ -21,13 +22,14 @@ import {
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
-import { Anchor, MerkleTree, Verifier } from '@webb-tools/fixed-bridge';
+import { Verifier } from '@webb-tools/bridges';
+import { Anchor } from '@webb-tools/anchors';
+import { MerkleTree } from '@webb-tools/merkle-tree';
 import { fetchComponentsFromFilePaths, ZkComponents, toFixedHex } from '@webb-tools/utils';
 
 const { NATIVE_AMOUNT } = process.env
 const snarkjs = require('snarkjs')
 const bigInt = require('big-integer');
-const BN = require('bn.js');
 const F = require('circomlibjs').babyjub.F;
 const Scalar = require("ffjavascript").Scalar;
 
@@ -64,7 +66,7 @@ describe('Anchor for 2 max edges', () => {
     const wallet = signers[0];
     const sender = wallet;
 
-    tree = new MerkleTree('', levels);
+    tree = new MerkleTree(levels);
 
     // create poseidon hasher
     const hasherFactory = new PoseidonT3__factory(wallet);
@@ -250,7 +252,7 @@ describe('Anchor for 2 max edges', () => {
 
       const balanceUserAfterDeposit = await token.balanceOf(sender.address)
       const balanceAnchorAfterDeposit = await token.balanceOf(anchor.contract.address);
-      assert.strictEqual(balanceUserAfterDeposit.toString(), BN(toBN(balanceUserBefore).sub(toBN(value))).toString());
+      assert.strictEqual(balanceUserAfterDeposit.toString(), (new BN(toBN(balanceUserBefore).sub(toBN(value)))).toString());
       assert.strictEqual(balanceAnchorAfterDeposit.toString(), toBN(value).toString());
 
       const balanceRelayerBefore = await token.balanceOf(relayer.address)
@@ -609,7 +611,10 @@ describe('Anchor for 2 max edges', () => {
       await newAnchor.update();
 
       // check that the merkle roots are the same for both anchor instances
-      assert.strictEqual(await anchor.tree.get_root(), await newAnchor.tree.get_root());
+      assert.strictEqual(
+        (await anchor.tree.root()).toString(),
+        (await newAnchor.tree.root()).toString()
+      );
     });
 
     it('should properly update before withdraw tx', async () => {
@@ -1093,7 +1098,7 @@ describe('Anchor for 2 max edges (3-sided bridge)', () => {
     const wallet = signers[0];
     const sender = wallet;
 
-    tree = new MerkleTree('', levels);
+    tree = new MerkleTree(levels);
 
     // create poseidon hasher
     const hasherFactory = new PoseidonT3__factory(wallet);
@@ -1144,7 +1149,7 @@ describe('Anchor for 2 max edges (3-sided bridge)', () => {
 
     const balanceUserAfterDeposit = await token.balanceOf(sender.address)
     const balanceAnchorAfterDeposit = await token.balanceOf(anchor.contract.address);
-    assert.strictEqual(balanceUserAfterDeposit.toString(), BN(toBN(balanceUserBefore).sub(toBN(value))).toString());
+    assert.strictEqual(balanceUserAfterDeposit.toString(), (new BN(toBN(balanceUserBefore).sub(toBN(value)))).toString());
     assert.strictEqual(balanceAnchorAfterDeposit.toString(), toBN(value).toString());
 
     const balanceRelayerBefore = await token.balanceOf(relayer.address)
@@ -1204,7 +1209,7 @@ describe('Anchor for 3 max edges (4-sided bridge)', () => {
     const wallet = signers[0];
     const sender = wallet;
 
-    tree = new MerkleTree('', levels);
+    tree = new MerkleTree(levels);
 
     // create poseidon hasher
     const hasherFactory = new PoseidonT3__factory(wallet);
@@ -1255,7 +1260,7 @@ describe('Anchor for 3 max edges (4-sided bridge)', () => {
 
     const balanceUserAfterDeposit = await token.balanceOf(sender.address)
     const balanceAnchorAfterDeposit = await token.balanceOf(anchor.contract.address);
-    assert.strictEqual(balanceUserAfterDeposit.toString(), BN(toBN(balanceUserBefore).sub(toBN(value))).toString());
+    assert.strictEqual(balanceUserAfterDeposit.toString(), (new BN(toBN(balanceUserBefore).sub(toBN(value)))).toString());
     assert.strictEqual(balanceAnchorAfterDeposit.toString(), toBN(value).toString());
 
     const balanceRelayerBefore = await token.balanceOf(relayer.address)
@@ -1315,7 +1320,7 @@ describe('Anchor for 4 max edges (5-sided bridge)', () => {
     const wallet = signers[0];
     const sender = wallet;
 
-    tree = new MerkleTree('', levels);
+    tree = new MerkleTree(levels);
 
     // create poseidon hasher
     const hasherFactory = new PoseidonT3__factory(wallet);
@@ -1366,7 +1371,7 @@ describe('Anchor for 4 max edges (5-sided bridge)', () => {
 
     const balanceUserAfterDeposit = await token.balanceOf(sender.address)
     const balanceAnchorAfterDeposit = await token.balanceOf(anchor.contract.address);
-    assert.strictEqual(balanceUserAfterDeposit.toString(), BN(toBN(balanceUserBefore).sub(toBN(value))).toString());
+    assert.strictEqual(balanceUserAfterDeposit.toString(), (new BN(toBN(balanceUserBefore).sub(toBN(value)))).toString());
     assert.strictEqual(balanceAnchorAfterDeposit.toString(), toBN(value).toString());
 
     const balanceRelayerBefore = await token.balanceOf(relayer.address)

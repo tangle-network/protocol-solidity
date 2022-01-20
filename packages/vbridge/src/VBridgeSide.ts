@@ -1,15 +1,7 @@
-import { ethers } from "ethers";
+import { ethers } from 'ethers';
 import { Bridge, Bridge__factory  } from '@webb-tools/contracts';
-import VAnchor from './VAnchor';
-import { AnchorHandler } from "./AnchorHandler";
-
-type Proposal = {
-  data: string,
-  dataHash: string,
-  resourceId: string,
-  chainId: number,
-  leafIndex: number,
-}
+import { AnchorHandler } from '@webb-tools/anchors';
+import { IAnchor, Proposal } from '@webb-tools/interfaces';
 
 export class VBridgeSide {
   contract: Bridge;
@@ -55,17 +47,17 @@ export class VBridgeSide {
    * @param executionResourceId The resource id of the execution anchor instance.
    * @returns Promise<string>
    */
-   public async createAnchorUpdateProposalData(srcAnchor: VAnchor, executionResourceID: string): Promise<string> {
+   public async createAnchorUpdateProposalData(srcAnchor: IAnchor, executionResourceID: string): Promise<string> {
     const proposalData = await srcAnchor.getProposalData(executionResourceID);
     return proposalData;
   }
 
-  public async createHandlerUpdateProposalData(vAnchor: VAnchor, newHandler: string) {
+  public async createHandlerUpdateProposalData(vAnchor: IAnchor, newHandler: string) {
     const proposalData = await vAnchor.getHandlerProposalData(newHandler);
     return proposalData;
   }
 
-  public async createConfigLimitsProposalData(vAnchor: VAnchor, _minimalWithdrawalAmount: string, _maximumDepositAmount: string) {
+  public async createConfigLimitsProposalData(vAnchor: IAnchor, _minimalWithdrawalAmount: string, _maximumDepositAmount: string) {
     const proposalData = await vAnchor.getConfigLimitsProposalData(_minimalWithdrawalAmount,_maximumDepositAmount);
     return proposalData;
   }
@@ -76,7 +68,7 @@ export class VBridgeSide {
 
   // Connects the vBridgeSide, anchor handler, and anchor.
   // Returns the resourceID used to connect them all
-  public async connectAnchor(anchor: VAnchor): Promise<string> {
+  public async connectAnchor(anchor: IAnchor): Promise<string> {
     if (!this.handler) {
       throw new Error("Cannot connect an anchor without a handler");
     }
@@ -96,7 +88,7 @@ export class VBridgeSide {
    * @param executionResourceID The resource id of the execution anchor instance.
    * @returns 
    */
-  public async voteAnchorProposal(srcAnchor: VAnchor, executionResourceID: string) {
+  public async voteAnchorProposal(srcAnchor: IAnchor, executionResourceID: string) {
     if (!this.handler) {
       throw new Error("Cannot connect an anchor without a handler");
     }
@@ -113,7 +105,7 @@ export class VBridgeSide {
   }
 
   // emit ProposalEvent(chainID, nonce, ProposalStatus.Executed, dataHash);
-  public async executeProposal(srcAnchor: VAnchor, executionResourceId: string) {
+  public async executeProposal(srcAnchor: IAnchor, executionResourceId: string) {
     if (!this.handler) {
       throw new Error("Cannot connect an anchor without a handler");
     }
@@ -127,7 +119,7 @@ export class VBridgeSide {
     return receipt;
   }
 
-  public async voteHandlerProposal(anchor: VAnchor, newHandler: string) {
+  public async voteHandlerProposal(anchor: IAnchor, newHandler: string) {
     if (!this.handler) {
       throw new Error("Cannot connect an anchor without a handler");
     }
@@ -144,7 +136,7 @@ export class VBridgeSide {
     return receipt;
   }
 
-  public async executeHandlerProposal(anchor: VAnchor, newHandler: string) {
+  public async executeHandlerProposal(anchor: IAnchor, newHandler: string) {
     if (!this.handler) {
       throw new Error("Cannot connect an anchor without a handler");
     }
@@ -159,7 +151,7 @@ export class VBridgeSide {
     return receipt;
   }
 
-  public async voteConfigLimitsProposal(anchor: VAnchor, _minimalWithdrawalAmount: string, _maximumDepositAmount: string) {
+  public async voteConfigLimitsProposal(anchor: IAnchor, _minimalWithdrawalAmount: string, _maximumDepositAmount: string) {
     if (!this.handler) {
       throw new Error("Cannot connect an anchor without a handler");
     }
@@ -176,7 +168,7 @@ export class VBridgeSide {
     return receipt;
   }
 
-  public async executeConfigLimitsProposal(anchor: VAnchor, _minimalWithdrawalAmount: string, _maximumDepositAmount: string) {
+  public async executeConfigLimitsProposal(anchor: IAnchor, _minimalWithdrawalAmount: string, _maximumDepositAmount: string) {
     if (!this.handler) {
       throw new Error("Cannot connect an anchor without a handler");
     }

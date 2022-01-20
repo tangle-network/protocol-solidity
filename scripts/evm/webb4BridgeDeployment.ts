@@ -33,7 +33,7 @@ export async function run() {
     421611: walletArbitrum,
   };
 
-  const bridge = await Bridge.deployBridge(bridgeInput, deployers);
+  const bridge = await Bridge.deployFixedDepositBridge(bridgeInput, deployers);
 }
 
 run();

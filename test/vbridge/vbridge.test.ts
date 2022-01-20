@@ -8,10 +8,10 @@ import { ethers } from 'hardhat';
 
 // Convenience wrapper classes for contract classes
 import { VBridge, VBridgeInput } from '@webb-tools/vbridge';
-import { VAnchor } from '@webb-tools/vbridge';
+import { VAnchor } from '@webb-tools/anchors';
 import { MintableToken, GovernedTokenWrapper } from '@webb-tools/tokens';
 import { BigNumber } from 'ethers';
-import { Utxo } from '@webb-tools/vbridge';
+import { Utxo } from '@webb-tools/utils';
 import { startGanacheServer } from '../helpers/startGanacheServer';
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -31,7 +31,6 @@ describe('multichain tests for vbridge', () => {
   });
 
   describe('BridgeConstruction', () => {
-
     let bridge2WebbEthInput: VBridgeInput;
     let bridge3WebbEthInput: VBridgeInput;
     let tokenName: string = 'existingERC20';
@@ -78,12 +77,12 @@ describe('multichain tests for vbridge', () => {
         31337: signers[1],
         1337: ganacheWallet2,
       };
-      const vBridge = await VBridge.deployVBridge(bridge2WebbEthInput, deploymentConfig, true);
+      const vBridge = await VBridge.deployVariableAnchorBridge(bridge2WebbEthInput, deploymentConfig, true);
       // Should be able to retrieve individual anchors
       const chainId1 = 31337;
       const chainId2 = 1337;
-      const vAnchor1: VAnchor = vBridge.getVAnchor(chainId1)!;
-      const vAnchor2: VAnchor = vBridge.getVAnchor(chainId2)!;
+      const vAnchor1: VAnchor = vBridge.getVAnchor(chainId1)! as VAnchor;
+      const vAnchor2: VAnchor = vBridge.getVAnchor(chainId2)! as VAnchor;
       // Should be able to retrieve the token address (so we can mint tokens for test scenario)
       const webbTokenAddress = vBridge.getWebbTokenAddress(chainId1);
       const webbToken = await MintableToken.tokenFromAddress(webbTokenAddress!, signers[1]);
@@ -164,7 +163,7 @@ describe('multichain tests for vbridge', () => {
       }
 
       // deploy the bridge
-      vBridge = await VBridge.deployVBridge(vBridgeInput, deploymentConfig, true);
+      vBridge = await VBridge.deployVariableAnchorBridge(vBridgeInput, deploymentConfig, true);
 
       // make one deposit so the  edge exists
       const depositUtxo1 = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId1), chainId: BigNumber.from(chainId2)})
@@ -190,7 +189,7 @@ describe('multichain tests for vbridge', () => {
         // Fetch information about the anchor to be updated.
         const signers = await ethers.getSigners();
 
-        const vAnchor1: VAnchor = vBridge.getVAnchor(chainId1)!;
+        const vAnchor1: VAnchor = vBridge.getVAnchor(chainId1)! as VAnchor;
         const vAnchor1Address = vAnchor1.contract.address;
         let edgeIndex = await vAnchor1.contract.edgeIndex(chainId2);
         const destAnchorEdge2Before = await vAnchor1.contract.edgeList(edgeIndex);
@@ -217,7 +216,7 @@ describe('multichain tests for vbridge', () => {
       it('join and split ganache deposits and withdraw on hardhat', async () => {
         const signers = await ethers.getSigners();
 
-        const vAnchor1: VAnchor = vBridge.getVAnchor(chainId1)!;
+        const vAnchor1: VAnchor = vBridge.getVAnchor(chainId1)! as VAnchor;
         let edgeIndex = await vAnchor1.contract.edgeIndex(chainId2);
         const destAnchorEdge2Before = await vAnchor1.contract.edgeList(edgeIndex);
         const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainId1);
@@ -247,9 +246,9 @@ describe('multichain tests for vbridge', () => {
         // Fetch information about the anchor to be updated.
         const signers = await ethers.getSigners();
 
-        const anchor1: VAnchor = vBridge.getVAnchor(chainId1)!;
-        let edgeIndex = await anchor1.contract.edgeIndex(chainId2);
-        const destAnchorEdge2Before = await anchor1.contract.edgeList(edgeIndex);
+        const vAnchor1: VAnchor = vBridge.getVAnchor(chainId1)! as VAnchor;
+        let edgeIndex = await vAnchor1.contract.edgeIndex(chainId2);
+        const destAnchorEdge2Before = await vAnchor1.contract.edgeList(edgeIndex);
         const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainId1);
         const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
         const startingBalanceDest = await webbToken1.getBalance(signers[1].address);
@@ -263,7 +262,7 @@ describe('multichain tests for vbridge', () => {
         await vBridge.transact([], [ganacheDepositUtxo2], 0, '0', '0', ganacheWallet2);
 
         // Check the leaf index is incremented by two
-        const destAnchorEdge2After = await anchor1.contract.edgeList(edgeIndex);
+        const destAnchorEdge2After = await vAnchor1.contract.edgeList(edgeIndex);
         assert.deepStrictEqual(destAnchorEdge2Before.latestLeafIndex.add(4), destAnchorEdge2After.latestLeafIndex);
 
         //withdraw ganacheWallet2 deposit on chainId1 to signers[2] address
@@ -295,7 +294,7 @@ describe('multichain tests for vbridge', () => {
         // Fetch information about the anchor to be updated.
         const signers = await ethers.getSigners();
 
-        const vAnchor1: VAnchor = vBridge.getVAnchor(chainId1)!;
+        const vAnchor1: VAnchor = vBridge.getVAnchor(chainId1)! as VAnchor;
         const vAnchor1Address = vAnchor1.contract.address;
         let edgeIndex = await vAnchor1.contract.edgeIndex(chainId2);
         const destAnchorEdge2Before = await vAnchor1.contract.edgeList(edgeIndex);
@@ -309,7 +308,7 @@ describe('multichain tests for vbridge', () => {
         await vBridge.transact([], [ganacheDepositUtxo], 0, '0', '0', ganacheWallet2);
 
         //Check that deposit went through
-        const vAnchor2: VAnchor = vBridge.getVAnchor(chainId2)!;
+        const vAnchor2: VAnchor = vBridge.getVAnchor(chainId2)! as VAnchor;
         const vAnchor2Address = vAnchor2.contract.address;
         const webbTokenAddress2 = vBridge.getWebbTokenAddress(chainId2);
         const webbToken2 = await MintableToken.tokenFromAddress(webbTokenAddress2!, ganacheWallet2);
@@ -333,7 +332,6 @@ describe('multichain tests for vbridge', () => {
   })
 
   describe('2 sided bridge existing token test wrapping functionality', () => {
-
     // ERC20 compliant contracts that can easily create balances for test
     let existingToken1: MintableToken;
     let existingToken2: MintableToken;
@@ -382,7 +380,7 @@ describe('multichain tests for vbridge', () => {
 
       // deploy the bridge
       
-      vBridge = await VBridge.deployVBridge(vBridgeInput, deploymentConfig, true);
+      vBridge = await VBridge.deployVariableAnchorBridge(vBridgeInput, deploymentConfig, true);
      
       // make one deposit so the  edge exists
       const depositUtxo1 = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainId1), chainId: BigNumber.from(chainId2)});
@@ -399,9 +397,9 @@ describe('multichain tests for vbridge', () => {
         //Fetch information about the anchor to be updated.
         const signers = await ethers.getSigners();
 
-        const vAnchor1: VAnchor = vBridge.getVAnchor(chainId1)!;
+        const vAnchor1: VAnchor = vBridge.getVAnchor(chainId1)! as VAnchor;
         const vAnchor1Address = vAnchor1.contract.address;
-        const vAnchor2: VAnchor = vBridge.getVAnchor(chainId2)!;
+        const vAnchor2: VAnchor = vBridge.getVAnchor(chainId2)! as VAnchor;
         const vAnchor2Address = vAnchor2.contract.address;
         let edgeIndex12 = await vAnchor1.contract.edgeIndex(chainId2);
         const destAnchorEdge2Before = await vAnchor1.contract.edgeList(edgeIndex12);
@@ -425,9 +423,9 @@ describe('multichain tests for vbridge', () => {
       it('wrap and deposit, withdraw and unwrap works join split via transactWrap', async () => {
         const signers = await ethers.getSigners();
 
-        const vAnchor1: VAnchor = vBridge.getVAnchor(chainId1)!;
+        const vAnchor1: VAnchor = vBridge.getVAnchor(chainId1)! as VAnchor;
         const vAnchor1Address = vAnchor1.contract.address;
-        const vAnchor2: VAnchor = vBridge.getVAnchor(chainId2)!;
+        const vAnchor2: VAnchor = vBridge.getVAnchor(chainId2)! as VAnchor;
         const vAnchor2Address = vAnchor2.contract.address;
         const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainId1);
         const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
@@ -465,9 +463,9 @@ describe('multichain tests for vbridge', () => {
       it('wrap and deposit, withdraw and unwrap works join split 16 input via transactWrap', async () => {
         const signers = await ethers.getSigners();
 
-        const vAnchor1: VAnchor = vBridge.getVAnchor(chainId1)!;
+        const vAnchor1: VAnchor = vBridge.getVAnchor(chainId1)! as VAnchor;
         const vAnchor1Address = vAnchor1.contract.address;
-        const vAnchor2: VAnchor = vBridge.getVAnchor(chainId2)!;
+        const vAnchor2: VAnchor = vBridge.getVAnchor(chainId2)! as VAnchor;
         const vAnchor2Address = vAnchor2.contract.address;
         const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainId1);
         const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);

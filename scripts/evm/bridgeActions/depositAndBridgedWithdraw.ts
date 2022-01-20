@@ -1,5 +1,5 @@
-import { ethers } from "ethers";
-import Anchor from "../../../packages/fixed-bridge/Anchor";
+import { ethers } from 'ethers';
+import Anchor from "../../../packages/bridges/Anchor";
 import { depositErc20TokenAnchor } from "../deposits/depositErc20TokenAnchor";
 import { bridgedWithdrawErc20Token } from "../withdrawals/bridgedWithdrawErc20Token";
 
