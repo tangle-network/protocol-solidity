@@ -33,7 +33,7 @@ export function toFixedHex(number: BigNumberish, length: number = 32): string {
     '0x' +
     (number instanceof Buffer
       ? number.toString('hex')
-      : BigNumber.from(number).toHexString().replace('0x', '')
+      : BigNumber.from(number.toString()).toHexString().replace('0x', '')
     ).padStart(length * 2, '0')
   if (result.indexOf('-') > -1) {
     result = '-' + result.replace('-', '')
@@ -87,10 +87,10 @@ export function getExtDataHash({
   const encodedData = abi.encode(
     ['tuple(address recipient,int256 extAmount,address relayer,uint256 fee,bytes encryptedOutput1,bytes encryptedOutput2)'],
     [{
-      recipient: toFixedHex(recipient, 20),
-      extAmount: toFixedHex(extAmount),
-      relayer: toFixedHex(relayer, 20),
-      fee: toFixedHex(fee),
+      recipient: recipient,
+      extAmount: extAmount,
+      relayer: relayer,
+      fee: fee,
       encryptedOutput1: encryptedOutput1,
       encryptedOutput2: encryptedOutput2,
     }],

@@ -9,7 +9,8 @@ const TruffleAssert = require('truffle-assertions');
 const fs = require('fs');
 const path = require('path');
 const { toBN, randomHex } = require('web3-utils');
-import { BigNumber } from 'ethers';
+import { BigNumber, BigNumberish } from 'ethers';
+import BN from 'bn.js';
 
 // Typechain generated bindings for contracts
 import {
@@ -29,7 +30,6 @@ import { fetchComponentsFromFilePaths, ZkComponents, toFixedHex } from '@webb-to
 const { NATIVE_AMOUNT } = process.env
 const snarkjs = require('snarkjs')
 const bigInt = require('big-integer');
-const BN = require('bn.js');
 const F = require('circomlibjs').babyjub.F;
 const Scalar = require("ffjavascript").Scalar;
 
@@ -252,7 +252,7 @@ describe('Anchor for 2 max edges', () => {
 
       const balanceUserAfterDeposit = await token.balanceOf(sender.address)
       const balanceAnchorAfterDeposit = await token.balanceOf(anchor.contract.address);
-      assert.strictEqual(balanceUserAfterDeposit.toString(), BN(toBN(balanceUserBefore).sub(toBN(value))).toString());
+      assert.strictEqual(balanceUserAfterDeposit.toString(), (new BN(toBN(balanceUserBefore).sub(toBN(value)))).toString());
       assert.strictEqual(balanceAnchorAfterDeposit.toString(), toBN(value).toString());
 
       const balanceRelayerBefore = await token.balanceOf(relayer.address)
@@ -1149,7 +1149,7 @@ describe('Anchor for 2 max edges (3-sided bridge)', () => {
 
     const balanceUserAfterDeposit = await token.balanceOf(sender.address)
     const balanceAnchorAfterDeposit = await token.balanceOf(anchor.contract.address);
-    assert.strictEqual(balanceUserAfterDeposit.toString(), BN(toBN(balanceUserBefore).sub(toBN(value))).toString());
+    assert.strictEqual(balanceUserAfterDeposit.toString(), (new BN(toBN(balanceUserBefore).sub(toBN(value)))).toString());
     assert.strictEqual(balanceAnchorAfterDeposit.toString(), toBN(value).toString());
 
     const balanceRelayerBefore = await token.balanceOf(relayer.address)
@@ -1260,7 +1260,7 @@ describe('Anchor for 3 max edges (4-sided bridge)', () => {
 
     const balanceUserAfterDeposit = await token.balanceOf(sender.address)
     const balanceAnchorAfterDeposit = await token.balanceOf(anchor.contract.address);
-    assert.strictEqual(balanceUserAfterDeposit.toString(), BN(toBN(balanceUserBefore).sub(toBN(value))).toString());
+    assert.strictEqual(balanceUserAfterDeposit.toString(), (new BN(toBN(balanceUserBefore).sub(toBN(value)))).toString());
     assert.strictEqual(balanceAnchorAfterDeposit.toString(), toBN(value).toString());
 
     const balanceRelayerBefore = await token.balanceOf(relayer.address)
@@ -1371,7 +1371,7 @@ describe('Anchor for 4 max edges (5-sided bridge)', () => {
 
     const balanceUserAfterDeposit = await token.balanceOf(sender.address)
     const balanceAnchorAfterDeposit = await token.balanceOf(anchor.contract.address);
-    assert.strictEqual(balanceUserAfterDeposit.toString(), BN(toBN(balanceUserBefore).sub(toBN(value))).toString());
+    assert.strictEqual(balanceUserAfterDeposit.toString(), (new BN(toBN(balanceUserBefore).sub(toBN(value)))).toString());
     assert.strictEqual(balanceAnchorAfterDeposit.toString(), toBN(value).toString());
 
     const balanceRelayerBefore = await token.balanceOf(relayer.address)
