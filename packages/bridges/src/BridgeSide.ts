@@ -7,8 +7,12 @@ import { IAnchor, IBridgeSide, Proposal } from "@webb-tools/interfaces";
 export class BridgeSide implements IBridgeSide {
   contract: Bridge;
   admin: ethers.Signer;
-  handler: AnchorHandler | TokenWrapperHandler;
+  anchorHandler: AnchorHandler;
+  tokenHandler: TokenWrapperHandler;
   proposals: Proposal[];
+
+  ANCHOR_HANDLER_MISSING_ERROR = new Error("Cannot connect an anchor without a handler");
+  TOKEN_HANDLER_MISSING_ERROR = new Error("Cannot connect to a token wrapper without a handler");
 
   private constructor(
     contract: Bridge,
@@ -16,7 +20,8 @@ export class BridgeSide implements IBridgeSide {
   ) {
     this.contract = contract;
     this.admin = signer;
-    this.handler = null;
+    this.anchorHandler = null;
+    this.tokenHandler = null;
     this.proposals = [];
   }
 
@@ -82,37 +87,34 @@ export class BridgeSide implements IBridgeSide {
   }
 
   public setAnchorHandler(handler: AnchorHandler) {
-    this.handler = handler;
+    this.anchorHandler = handler;
   }
 
   public setTokenWrapperHandler(handler: TokenWrapperHandler) {
-    this.handler = handler;
+    this.tokenHandler = handler;
   }
 
   // Connects the bridgeSide, anchor handler, and anchor.
   // Returns the resourceID used to connect them all
   public async connectAnchor(anchor: IAnchor): Promise<string> {
-    if (!this.handler) {
-      throw new Error("Cannot connect an anchor without a handler");
-    }
+    if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
 
     const resourceId = await anchor.createResourceId();
-    const tx = await this.contract.adminSetResource(this.handler.contract.address, resourceId, anchor.contract.address);
+    const tx = await this.contract.adminSetResource(this.anchorHandler.contract.address, resourceId, anchor.contract.address);
     await tx.wait();
-    // await this.handler.setResource(resourceId, anchor.contract.address); covered in above call
-    await this.voteHandlerProposal(anchor, this.handler.contract.address);
-    await this.executeHandlerProposal(anchor, this.handler.contract.address);
-    
+
+    await this.voteHandlerProposal(anchor, this.anchorHandler.contract.address);
+    await this.executeHandlerProposal(anchor, this.anchorHandler.contract.address);
+
     return resourceId;
   }
 
   public async setGovernedTokenResource(governedToken: GovernedTokenWrapper): Promise<string> {
-    if (!this.handler) {
-      throw new Error("Cannot connect an anchor without a handler");
-    }
+    if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
+
     const resourceId = await governedToken.createResourceId();
 
-    await this.contract.adminSetResource(this.handler.contract.address, resourceId, governedToken.contract.address);
+    await this.contract.adminSetResource(this.anchorHandler.contract.address, resourceId, governedToken.contract.address);
     return resourceId;
   }
 
@@ -123,19 +125,17 @@ export class BridgeSide implements IBridgeSide {
    * @returns 
    */
   public async voteAnchorProposal(srcAnchor: IAnchor, executionResourceID: string) {
-    if (!this.handler) {
-      throw new Error("Cannot connect an anchor without a handler");
-    }
+    if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
 
     const proposalData = await this.createAnchorUpdateProposalData(srcAnchor, executionResourceID);
-    const dataHash = ethers.utils.keccak256(this.handler.contract.address + proposalData.substr(2));
+    const dataHash = ethers.utils.keccak256(this.anchorHandler.contract.address + proposalData.substr(2));
     
     const chainId = await srcAnchor.signer.getChainId();
     const nonce = srcAnchor.tree.number_of_elements() - 1;
 
     const tx = await this.contract.voteProposal(chainId, nonce, executionResourceID, dataHash);
     const receipt = await tx.wait();
-    
+
     return receipt;
   }
 
@@ -147,9 +147,7 @@ export class BridgeSide implements IBridgeSide {
    * @returns 
    */
   public async executeAnchorProposal(srcAnchor: IAnchor, executionResourceID: string) {
-    if (!this.handler) {
-      throw new Error("Cannot connect an anchor without a handler");
-    }
+    if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
 
     const proposalData = await this.createAnchorUpdateProposalData(srcAnchor, executionResourceID);
     const chainId = await srcAnchor.signer.getChainId();
@@ -157,17 +155,15 @@ export class BridgeSide implements IBridgeSide {
 
     const tx = await this.contract.executeProposal(chainId, nonce, proposalData, executionResourceID);
     const receipt = await tx.wait();
-    
+
     return receipt;
   }
 
   public async voteHandlerProposal(anchor: IAnchor, newHandler: string) {
-    if (!this.handler) {
-      throw new Error("Cannot connect an anchor without a handler");
-    }
+    if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
 
     const proposalData = await this.createHandlerUpdateProposalData(anchor, newHandler);
-    const dataHash = ethers.utils.keccak256(this.handler.contract.address + proposalData.substr(2));
+    const dataHash = ethers.utils.keccak256(this.anchorHandler.contract.address + proposalData.substr(2));
     
     const chainId = await anchor.signer.getChainId();
     const nonce = 1;
@@ -179,9 +175,7 @@ export class BridgeSide implements IBridgeSide {
   }
 
   public async executeHandlerProposal(anchor: IAnchor, newHandler: string) {
-    if (!this.handler) {
-      throw new Error("Cannot connect an anchor without a handler");
-    }
+    if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
 
     const proposalData = await this.createHandlerUpdateProposalData(anchor, newHandler);
     const chainId = await anchor.signer.getChainId();
@@ -194,12 +188,10 @@ export class BridgeSide implements IBridgeSide {
   }
 
   public async voteFeeProposal(governedToken: GovernedTokenWrapper, fee: number) {
-    if (!this.handler) {
-      throw new Error("Cannot connect an anchor without a handler");
-    }
+    if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
 
     const proposalData = await this.createFeeUpdateProposalData(governedToken, fee);
-    const dataHash = ethers.utils.keccak256(this.handler.contract.address + proposalData.substr(2));
+    const dataHash = ethers.utils.keccak256(this.tokenHandler.contract.address + proposalData.substr(2));
     const resourceId = await governedToken.createResourceId();
     const chainId = await governedToken.signer.getChainId();
     const nonce = (await governedToken.contract.proposalNonce()).add(1);
@@ -211,40 +203,35 @@ export class BridgeSide implements IBridgeSide {
   }
 
   public async executeFeeProposal(governedToken: GovernedTokenWrapper, fee: number) {
-    if (!this.handler) {
-      throw new Error("Cannot connect to token wrapper without a handler");
-    }
+    if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
+
     const proposalData = await this.createFeeUpdateProposalData(governedToken, fee);
     const resourceId = await governedToken.createResourceId();
     const chainId = await governedToken.signer.getChainId();
     const nonce = (await governedToken.contract.proposalNonce()).add(1);
     const tx = await this.contract.executeProposal(chainId, nonce, proposalData, resourceId);
     const receipt = await tx.wait();
-    
+
     return receipt;
   }
 
   public async voteAddTokenProposal(governedToken: GovernedTokenWrapper, tokenAddress: string) {
-    if (!this.handler) {
-      throw new Error("Cannot connect an anchor without a handler");
-    }
+    if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
 
     const proposalData = await this.createAddTokenUpdateProposalData(governedToken, tokenAddress);
-    const dataHash = ethers.utils.keccak256(this.handler.contract.address + proposalData.substr(2));
+    const dataHash = ethers.utils.keccak256(this.tokenHandler.contract.address + proposalData.substr(2));
     const resourceId = await governedToken.createResourceId();
     const chainId = await governedToken.signer.getChainId();
     const nonce = (await governedToken.contract.proposalNonce()).add(1);
 
     const tx = await this.contract.voteProposal(chainId, nonce, resourceId, dataHash);
     const receipt = await tx.wait();
-    
+
     return receipt;
   }
 
   public async executeAddTokenProposal(governedToken: GovernedTokenWrapper, tokenAddress: string) {
-    if (!this.handler) {
-      throw new Error("Cannot connect to token wrapper without a handler");
-    }
+    if (!this.tokenHandler) this.TOKEN_HANDLER_MISSING_ERROR;
 
     const proposalData = await this.createAddTokenUpdateProposalData(governedToken, tokenAddress);
     const resourceId = await governedToken.createResourceId();
@@ -252,31 +239,27 @@ export class BridgeSide implements IBridgeSide {
     const nonce = (await governedToken.contract.proposalNonce()).add(1);
     const tx = await this.contract.executeProposal(chainId, nonce, proposalData, resourceId);
     const receipt = await tx.wait();
-    
+
     return receipt;
   }
 
   public async voteRemoveTokenProposal(governedToken: GovernedTokenWrapper, tokenAddress: string) {
-    if (!this.handler) {
-      throw new Error("Cannot connect an anchor without a handler");
-    }
+    if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
 
     const proposalData = await this.createRemoveTokenUpdateProposalData(governedToken, tokenAddress);
-    const dataHash = ethers.utils.keccak256(this.handler.contract.address + proposalData.substr(2));
+    const dataHash = ethers.utils.keccak256(this.tokenHandler.contract.address + proposalData.substr(2));
     const resourceId = await governedToken.createResourceId();
     const chainId = await governedToken.signer.getChainId();
     const nonce = (await governedToken.contract.proposalNonce()).add(1);
 
     const tx = await this.contract.voteProposal(chainId, nonce, resourceId, dataHash);
     const receipt = await tx.wait();
-    
+
     return receipt;
   }
 
   public async executeRemoveTokenProposal(governedToken: GovernedTokenWrapper, tokenAddress: string) {
-    if (!this.handler) {
-      throw new Error("Cannot connect to token wrapper without a handler");
-    }
+    if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
 
     const proposalData = await this.createRemoveTokenUpdateProposalData(governedToken, tokenAddress);
     const resourceId = await governedToken.createResourceId();
@@ -284,7 +267,7 @@ export class BridgeSide implements IBridgeSide {
     const nonce = (await governedToken.contract.proposalNonce()).add(1);
     const tx = await this.contract.executeProposal(chainId, nonce, proposalData, resourceId);
     const receipt = await tx.wait();
-    
+
     return receipt;
   }
 }
