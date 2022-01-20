@@ -5,14 +5,10 @@
  const assert = require('assert');
  const path = require('path');
  import { ethers } from 'hardhat';
- import { BigNumber, Signer } from 'ethers';
- import { toFixedHex, toHex } from '@webb-tools/utils';
+ import { toHex } from '@webb-tools/utils';
  const TruffleAssert = require('truffle-assertions');
- import { Bytes, concat } from "@ethersproject/bytes";
- import { toUtf8Bytes, toUtf8String } from "@ethersproject/strings";
  
  // Convenience wrapper classes for contract classes
- import { GovernedTokenWrapper } from '@webb-tools/tokens';
  import { Governable__factory } from '../../typechain';
  
  describe('Governable Contract', () => {

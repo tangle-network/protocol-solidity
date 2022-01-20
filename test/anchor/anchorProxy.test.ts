@@ -21,8 +21,10 @@ import {
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
-import { Anchor, AnchorProxy, MerkleTree, Verifier } from '@webb-tools/bridges'
+import { Verifier } from '@webb-tools/bridges'
 import { fetchComponentsFromFilePaths, ZkComponents, toFixedHex } from '@webb-tools/utils';
+import { Anchor, AnchorProxy } from '@webb-tools/anchors';
+import { MerkleTree } from '@webb-tools/merkle-tree';
 
 const { NATIVE_AMOUNT } = process.env
 const snarkjs = require('snarkjs')
@@ -69,7 +71,7 @@ describe('AnchorProxy', () => {
     const wallet = signers[0];
     const sender = wallet;
 
-    tree = new MerkleTree('', levels);
+    tree = new MerkleTree(levels);
 
     // create poseidon hasher
     const hasherFactory = new PoseidonT3__factory(sender);

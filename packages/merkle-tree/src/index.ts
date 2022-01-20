@@ -32,7 +32,8 @@ export class MerkleTree {
    * @param {hashFunction} [options.hashFunction] Function used to hash 2 leaves
    * @param [options.zeroElement] Value for non-existent leaves
    */
-  constructor(levels: number, elements: BigNumberish[] = [], { hashFunction = defaultHash, zeroElement = DEFAULT_ZERO } = {}) { 
+  constructor(levels: number | string, elements: BigNumberish[] = [], { hashFunction = defaultHash, zeroElement = DEFAULT_ZERO } = {}) { 
+    levels = Number(levels);
     this.levels = levels;
     this.capacity = 2 ** levels;
     if (elements.length > this.capacity) {
@@ -201,6 +202,10 @@ export class MerkleTree {
 
   number_of_elements() {
     return this._layers[0].length;
+  }
+
+  getIndexByElement(element: any) {
+    return this.indexOf(element);
   }
 
   /**

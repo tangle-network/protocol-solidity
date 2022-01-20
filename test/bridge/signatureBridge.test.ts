@@ -10,7 +10,8 @@ const path = require('path');
 
 // Convenience wrapper classes for contract classes
 import { Anchor } from '@webb-tools/anchors';
-import { SignatureBridge, BridgeInput } from '@webb-tools/bridges'; 
+import { SignatureBridge } from '@webb-tools/bridges'; 
+import { BridgeInput } from '@webb-tools/interfaces';
 import { MintableToken } from '@webb-tools/tokens';
 import { fetchComponentsFromFilePaths, ZkComponents } from '@webb-tools/utils';
 import { BigNumber } from '@ethersproject/bignumber';

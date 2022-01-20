@@ -21,7 +21,9 @@ import {
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
-import { Anchor, MerkleTree, Verifier } from '@webb-tools/bridges';
+import { Verifier } from '@webb-tools/bridges';
+import { Anchor } from '@webb-tools/anchors';
+import { MerkleTree } from '@webb-tools/merkle-tree';
 import { fetchComponentsFromFilePaths, ZkComponents, toFixedHex } from '@webb-tools/utils';
 
 const { NATIVE_AMOUNT } = process.env
@@ -64,7 +66,7 @@ describe('Anchor for 2 max edges', () => {
     const wallet = signers[0];
     const sender = wallet;
 
-    tree = new MerkleTree('', levels);
+    tree = new MerkleTree(levels);
 
     // create poseidon hasher
     const hasherFactory = new PoseidonT3__factory(wallet);
@@ -609,7 +611,10 @@ describe('Anchor for 2 max edges', () => {
       await newAnchor.update();
 
       // check that the merkle roots are the same for both anchor instances
-      assert.strictEqual(await anchor.tree.get_root(), await newAnchor.tree.get_root());
+      assert.strictEqual(
+        (await anchor.tree.root()).toString(),
+        (await newAnchor.tree.root()).toString()
+      );
     });
 
     it('should properly update before withdraw tx', async () => {
@@ -1093,7 +1098,7 @@ describe('Anchor for 2 max edges (3-sided bridge)', () => {
     const wallet = signers[0];
     const sender = wallet;
 
-    tree = new MerkleTree('', levels);
+    tree = new MerkleTree(levels);
 
     // create poseidon hasher
     const hasherFactory = new PoseidonT3__factory(wallet);
@@ -1204,7 +1209,7 @@ describe('Anchor for 3 max edges (4-sided bridge)', () => {
     const wallet = signers[0];
     const sender = wallet;
 
-    tree = new MerkleTree('', levels);
+    tree = new MerkleTree(levels);
 
     // create poseidon hasher
     const hasherFactory = new PoseidonT3__factory(wallet);
@@ -1315,7 +1320,7 @@ describe('Anchor for 4 max edges (5-sided bridge)', () => {
     const wallet = signers[0];
     const sender = wallet;
 
-    tree = new MerkleTree('', levels);
+    tree = new MerkleTree(levels);
 
     // create poseidon hasher
     const hasherFactory = new PoseidonT3__factory(wallet);

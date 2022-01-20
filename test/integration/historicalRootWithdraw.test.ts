@@ -1,4 +1,5 @@
 import { artifacts, contract } from "hardhat";
+import { MerkleTree } from "@webb-tools/merkle-tree";
 const TruffleAssert = require('truffle-assertions');
 const Ethers = require('ethers');
 const helpers = require('../helpers');
@@ -24,8 +25,6 @@ const snarkjs = require('snarkjs');
 const BN = require('bn.js');
 const F = require('circomlibjs').babyjub.F;
 const Scalar = require('ffjavascript').Scalar;
-
-const MerkleTree = require('../../packages/bridges/src').MerkleTree;
 
 contract('E2E LinkableAnchors - Cross chain withdraw using historical root should work', async accounts => {
   const relayerThreshold = 1;
@@ -128,7 +127,7 @@ contract('E2E LinkableAnchors - Cross chain withdraw using historical root shoul
       return wtns;
     }
 
-    tree = new MerkleTree(prefix, merkleTreeHeight)
+    tree = new MerkleTree(merkleTreeHeight)
   });
 
   it('[sanity] dest chain bridge configured with threshold and relayers', async () => {

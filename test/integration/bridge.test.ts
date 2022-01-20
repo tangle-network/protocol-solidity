@@ -11,7 +11,9 @@ const fs = require('fs');
 const path = require('path');
 
 // Convenience wrapper classes for contract classes
-import { Bridge, BridgeInput, Anchor } from '@webb-tools/bridges';
+import { Bridge } from '@webb-tools/bridges';
+import { Anchor } from '@webb-tools/anchors';
+import { BridgeInput } from '@webb-tools/interfaces';
 import { MintableToken } from '@webb-tools/tokens';
 import { fetchComponentsFromFilePaths, ZkComponents } from '@webb-tools/utils';
 import { BigNumber } from '@ethersproject/bignumber';
@@ -106,8 +108,8 @@ describe('multichain tests for erc20 bridges', () => {
       const chainId1 = 31337;
       const chainId2 = 1337;
       const anchorSize = '1000000000000000000';
-      const anchor1: Anchor = bridge.getAnchor(chainId1, anchorSize)!;
-      const anchor2: Anchor = bridge.getAnchor(chainId2, anchorSize)!;
+      const anchor1: Anchor = bridge.getAnchor(chainId1, anchorSize)! as Anchor;
+      const anchor2: Anchor = bridge.getAnchor(chainId2, anchorSize)! as Anchor;
 
       // Should be able to retrieve the token address (so we can mint tokens for test scenario)
       const webbTokenAddress = bridge.getWebbTokenAddress(chainId1);
@@ -166,9 +168,9 @@ describe('multichain tests for erc20 bridges', () => {
       const chainId2 = 1337;
       const chainId3 = 9999;
       const anchorSize = '1000000000000000000';
-      const anchor1: Anchor = bridge.getAnchor(chainId1, anchorSize)!;
-      const anchor2: Anchor = bridge.getAnchor(chainId2, anchorSize)!;
-      const anchor3: Anchor = bridge.getAnchor(chainId3, anchorSize)!;
+      const anchor1: Anchor = bridge.getAnchor(chainId1, anchorSize)! as Anchor;
+      const anchor2: Anchor = bridge.getAnchor(chainId2, anchorSize)! as Anchor;
+      const anchor3: Anchor = bridge.getAnchor(chainId3, anchorSize)! as Anchor;
 
       // get the state of anchors before deposit
       const sourceAnchorRootBefore = await anchor1.contract.getLastRoot();
@@ -281,8 +283,8 @@ describe('multichain tests for erc20 bridges', () => {
         const signers = await ethers.getSigners();
         const anchorSize = '1000000000000000000';
 
-        const anchor2: Anchor = bridge.getAnchor(chainId2, anchorSize)!;
-        const anchor1: Anchor = bridge.getAnchor(chainId1, anchorSize)!;
+        const anchor2: Anchor = bridge.getAnchor(chainId2, anchorSize)! as Anchor;
+        const anchor1: Anchor = bridge.getAnchor(chainId1, anchorSize)! as Anchor;
         let edgeIndex = await anchor2.contract.edgeIndex(chainId1);
         const destAnchorEdge2Before = await anchor2.contract.edgeList(edgeIndex);
         const token = await MintableToken.tokenFromAddress(existingToken2.contract.address, ganacheWallet2);
@@ -319,7 +321,7 @@ describe('multichain tests for erc20 bridges', () => {
         const signers = await ethers.getSigners();
         const anchorSize = '1000000000000000000';
 
-        const anchor1: Anchor = bridge.getAnchor(chainId1, anchorSize)!;
+        const anchor1: Anchor = bridge.getAnchor(chainId1, anchorSize)! as Anchor;
         let edgeIndex = await anchor1.contract.edgeIndex(chainId2);
         const destAnchorEdge2Before = await anchor1.contract.edgeList(edgeIndex);
         const token = await MintableToken.tokenFromAddress(existingToken1.contract.address, signers[1]);
@@ -345,7 +347,7 @@ describe('multichain tests for erc20 bridges', () => {
         const signers = await ethers.getSigners();
         const anchorSize = '1000000000000000000';
 
-        const anchor2: Anchor = bridge.getAnchor(chainId2, anchorSize)!;
+        const anchor2: Anchor = bridge.getAnchor(chainId2, anchorSize)! as Anchor;
         let edgeIndex = await anchor2.contract.edgeIndex(chainId1);
         const destAnchorEdge2Before = await anchor2.contract.edgeList(edgeIndex);
         const webbToken = await MintableToken.tokenFromAddress(existingToken2.contract.address, ganacheWallet2);
@@ -372,7 +374,7 @@ describe('multichain tests for erc20 bridges', () => {
         const signers = await ethers.getSigners();
         const anchorSize = '1000000000000000000';
 
-        const anchor2: Anchor = bridge.getAnchor(chainId1, anchorSize)!;
+        const anchor2: Anchor = bridge.getAnchor(chainId1, anchorSize)! as Anchor;
         let edgeIndex = await anchor2.contract.edgeIndex(chainId2);
         const destAnchorEdge2Before = await anchor2.contract.edgeList(edgeIndex);
         const webbToken = await MintableToken.tokenFromAddress(existingToken1.contract.address, signers[1]);
@@ -488,7 +490,7 @@ describe('multichain tests for erc20 bridges', () => {
       const webbTokenAddress1 = bridge.getWebbTokenAddress(chainId1)!;
       const tokenAddress1 = existingTokenSrc.contract.address;
 
-      const anchor1: Anchor = bridge.getAnchor(chainId1, anchorSize)!;
+      const anchor1: Anchor = bridge.getAnchor(chainId1, anchorSize)! as Anchor;
       let edgeIndex = await anchor1.contract.edgeIndex(chainId1);
       const destAnchorEdge1Before = await anchor1.contract.edgeList(edgeIndex);
       let cumulativeBalance = await calculateCumulativeBalance(signers[1].address, tokenAddress1, webbTokenAddress1, signers[1]);

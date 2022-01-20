@@ -134,7 +134,7 @@ class Anchor implements IAnchor {
     return deposit
   }
 
-  public static createRootsBytes(rootArray: string[]) {
+  public static createRootsBytes(rootArray: string[] | BigNumberish[]) {
     let rootsBytes = "0x";
     for (let i = 0; i < rootArray.length; i++) {
       rootsBytes += toFixedHex(rootArray[i]).substr(2);
