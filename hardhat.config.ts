@@ -3,7 +3,7 @@ import "hardhat-artifactor";
 import '@typechain/hardhat';
 import '@nomiclabs/hardhat-ethers'
 import "@nomiclabs/hardhat-truffle5";
-// import '@primitivefi/hardhat-dodoc';
+import '@primitivefi/hardhat-dodoc';
 import { subtask } from 'hardhat/config'
 
 const poseidonGenContract = require('circomlibjs/src/poseidon_gencontract.js');
@@ -36,9 +36,9 @@ const config: HardhatUserConfig = {
     }],
   },
   // @ts-ignore
-  // dodoc: {
-  // include: ["FixedDepositAnchor", "AnchorBase", "LinkableAnchor", "AnchorHandler", "IAnchor", "IAnchorTrees", "ILinkableAnchor", "VAnchorEncodeInputs", "GovernedTokenWrapper", "TokenWrapperHandler", "Hasher", , "MerkleTreePoseidon", "MerkleTreeWithHistoryPoseidon", "Poseidon", "SnarkConstants", "LinkableVAnchor", "VAnchor", "VAnchorBase", "AnchorProxy", "Bridge"]
-  // }
+  dodoc: {
+  include: ["FixedDepositAnchor", "AnchorBase", "LinkableAnchor", "AnchorHandler", "IAnchor", "IAnchorTrees", "ILinkableAnchor", "VAnchorEncodeInputs", "GovernedTokenWrapper", "TokenWrapperHandler", "Hasher", , "MerkleTreePoseidon", "MerkleTreeWithHistoryPoseidon", "Poseidon", "SnarkConstants", "LinkableVAnchor", "VAnchor", "VAnchorBase", "AnchorProxy", "Bridge"]
+  }
 };
 
 export default config;

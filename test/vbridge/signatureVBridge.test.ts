@@ -16,7 +16,7 @@ import { startGanacheServer } from '../helpers/startGanacheServer';
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-describe('multichain tests for vbridge', () => {
+describe('multichain tests for signature vbridge', () => {
 
   // setup ganache networks
   let ganacheServer2: any;

@@ -31,7 +31,6 @@ describe('multichain tests for vbridge', () => {
   });
 
   describe('BridgeConstruction', () => {
-
     let bridge2WebbEthInput: VBridgeInput;
     let bridge3WebbEthInput: VBridgeInput;
     let tokenName: string = 'existingERC20';
@@ -333,7 +332,6 @@ describe('multichain tests for vbridge', () => {
   })
 
   describe('2 sided bridge existing token test wrapping functionality', () => {
-
     // ERC20 compliant contracts that can easily create balances for test
     let existingToken1: MintableToken;
     let existingToken2: MintableToken;
