@@ -5,6 +5,7 @@
  const assert = require('assert');
  const path = require('path');
  import { ethers } from 'hardhat';
+ import { BigNumber } from 'ethers';
  const TruffleAssert = require('truffle-assertions');
  
  // Convenience wrapper classes for contract classes
@@ -378,6 +379,9 @@
   let anchorHandler: AnchorHandler;
   let erc20TokenInstance: MintableToken;
   let bridgeSide: SignatureBridgeSide;
+  let wrappingFee: number;
+  let signers;
+  let governedToken;
  
   before(async () => {
     zkComponents = await fetchComponentsFromFilePaths(
@@ -388,7 +392,7 @@
   })
 
   beforeEach(async() => {
-    const signers = await ethers.getSigners();
+    signers = await ethers.getSigners();
     const initialGovernor = signers[1];
     const admin = signers[1];
     bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, 0, 100, admin);
@@ -401,7 +405,7 @@
     await erc20TokenInstance.mintTokens(admin.address, '100000000000000000000000');
 
     // Create a GovernedTokenWrapper
-    const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
+    governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
       tokenWrapperHandler.contract.address,
@@ -416,8 +420,9 @@
     // Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
     await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
 
+    wrappingFee = 10;
     // Execute change fee proposal
-    await bridgeSide.executeFeeProposalWithSig(governedToken, 10);
+    await bridgeSide.executeFeeProposalWithSig(governedToken, wrappingFee);
 
     // Check that fee actually changed
     assert.strictEqual((await governedToken.contract.getFee()).toString(), '10');
@@ -431,7 +436,8 @@
     
     assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '2');
 
-    // -------- Anchor Stuff ------------
+    // Create an anchor whose token is the governedToken
+    // Wrap and Deposit ERC20 liquidity into that anchor
 
     // Create the Hasher and Verifier for the chain
     const hasherFactory = new PoseidonT3__factory(admin);
@@ -442,22 +448,11 @@
 
     anchorHandler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, [], [], admin);
 
+    let anchorDenomination = 1000000000000;
     sourceAnchor = await Anchor.createAnchor(
       verifier.contract.address,
       hasherInstance.address,
-      '1000000000000',
-      30,
-      governedToken.contract.address,
-      anchorHandler.contract.address,
-      5,
-      zkComponents,
-      admin
-    );
-
-    destAnchor = await Anchor.createAnchor(
-      verifier.contract.address,
-      hasherInstance.address,
-      '1000000000000',
+      anchorDenomination.toString(),
       30,
       governedToken.contract.address,
       anchorHandler.contract.address,
@@ -470,18 +465,19 @@
     await erc20TokenInstance.approveSpending(governedToken.contract.address);
     await erc20TokenInstance.approveSpending(sourceAnchor.contract.address);
 
-    await bridgeSide.setAnchorHandler(anchorHandler);
-    bridgeSide.setResourceWithSignature(destAnchor);
-
     await sourceAnchor.wrapAndDeposit(erc20TokenInstance.contract.address, await admin.getChainId());
-    const destResourceID = await destAnchor.createResourceId();
-    await bridgeSide.executeAnchorProposalWithSig(sourceAnchor, destResourceID);
-    console.log((await erc20TokenInstance.getBalance(governedToken.contract.address)).toString());
-    console.log((await erc20TokenInstance.getBalance(sourceAnchor.contract.address)).toString());
+    
+    assert.strictEqual((await erc20TokenInstance.getBalance(governedToken.contract.address)).toString(), parseInt((anchorDenomination * (100 / (100 - wrappingFee))).toString()).toString());
+    assert.strictEqual((await governedToken.contract.balanceOf(sourceAnchor.contract.address)).toString(), anchorDenomination.toString());
   })
 
   it.only('should rescue tokens', async () => {
-    
+    let to = signers[0].address;
+    let balTokenWrapperBeforeRescue = erc20TokenInstance.getBalance(governedToken.contract.address);
+    let balToBeforeRescue = erc20TokenInstance.getBalance(to);
+    await bridgeSide.executeRescueTokensProposalWithSig(governedToken, erc20TokenInstance.contract.address, to, BigNumber.from('500'));
+
   })
+
 
  })

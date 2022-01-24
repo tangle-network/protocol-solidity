@@ -87,37 +87,11 @@ contract GovernedTokenWrapper is TokenWrapper {
         proposalNonce = nonce;
     }
 
-    /**
-        @notice Used to unlock ETH and ERC20 transferred to the TokenWrapper
-        @param tokenAddress Address of ERC20 to transfer. Will be 0 in case of native ETH rescue.
-        @param to address to transfer the rescued tokens to.
-        @param amountToRescue Number of tokens or amount of ETH to rescue
-     */
-    function rescueTokens(address tokenAddress, address payable to, uint256 amountToRescue, uint256 nonce) public onlyGovernor {
-        require(to != address(0), "Cannot send liquidity to zero address");
-        require(tokenAddress != address(this), "Invalid rescue address");
+    function setFeeRecipient(address payable _feeRecipient, uint256 nonce) public onlyGovernor {
         require(proposalNonce < nonce, "Invalid nonce");
         require(nonce <= proposalNonce + 1, "Nonce must increment by 1");
-
-        if (tokenAddress == address(0)) {
-            // Native Ether 
-            uint256 ethBalance = address(this).balance;
-            if(ethBalance >= amountToRescue) {
-                to.transfer(amountToRescue);
-            } else {
-                to.transfer(ethBalance);
-            }
-            
-        } else {
-            // ERC20 Token
-            uint256 erc20Balance = IERC20(tokenAddress).balanceOf(address(this));
-            if(erc20Balance >= amountToRescue) {
-                IERC20(tokenAddress).transfer(to, amountToRescue);
-            } else {
-                IERC20(tokenAddress).transfer(to, erc20Balance);
-            }  
-        }
-
+        require(_feeRecipient != address(0), "Fee Recipient cannot be zero address");
+        feeRecipient = _feeRecipient;
         proposalNonce = nonce;
     }
 
