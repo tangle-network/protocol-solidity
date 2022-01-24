@@ -53,9 +53,9 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
     "proposalNonce()": FunctionFragment;
     "remove(address,uint256)": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
-    "rescueTokens(address,address,uint256,uint256)": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
     "setFee(uint8,uint256)": FunctionFragment;
+    "setFeeRecipient(address,uint256)": FunctionFragment;
     "setGovernor(address)": FunctionFragment;
     "setNativeAllowed(bool)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
@@ -173,16 +173,16 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
     values: [BytesLike, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "rescueTokens",
-    values: [string, string, BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "revokeRole",
     values: [BytesLike, string]
   ): string;
   encodeFunctionData(
     functionFragment: "setFee",
     values: [BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setFeeRecipient",
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "setGovernor", values: [string]): string;
   encodeFunctionData(
@@ -317,12 +317,12 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
     functionFragment: "renounceRole",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "rescueTokens",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setFee", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "setFeeRecipient",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "setGovernor",
     data: BytesLike
@@ -590,14 +590,6 @@ export class GovernedTokenWrapper extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    rescueTokens(
-      tokenAddress: string,
-      to: string,
-      amountToRescue: BigNumberish,
-      nonce: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     revokeRole(
       role: BytesLike,
       account: string,
@@ -606,6 +598,12 @@ export class GovernedTokenWrapper extends BaseContract {
 
     setFee(
       _feePercentage: BigNumberish,
+      nonce: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setFeeRecipient(
+      _feeRecipient: string,
       nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -824,14 +822,6 @@ export class GovernedTokenWrapper extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  rescueTokens(
-    tokenAddress: string,
-    to: string,
-    amountToRescue: BigNumberish,
-    nonce: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   revokeRole(
     role: BytesLike,
     account: string,
@@ -840,6 +830,12 @@ export class GovernedTokenWrapper extends BaseContract {
 
   setFee(
     _feePercentage: BigNumberish,
+    nonce: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setFeeRecipient(
+    _feeRecipient: string,
     nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -1053,14 +1049,6 @@ export class GovernedTokenWrapper extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    rescueTokens(
-      tokenAddress: string,
-      to: string,
-      amountToRescue: BigNumberish,
-      nonce: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     revokeRole(
       role: BytesLike,
       account: string,
@@ -1069,6 +1057,12 @@ export class GovernedTokenWrapper extends BaseContract {
 
     setFee(
       _feePercentage: BigNumberish,
+      nonce: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setFeeRecipient(
+      _feeRecipient: string,
       nonce: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -1387,14 +1381,6 @@ export class GovernedTokenWrapper extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    rescueTokens(
-      tokenAddress: string,
-      to: string,
-      amountToRescue: BigNumberish,
-      nonce: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     revokeRole(
       role: BytesLike,
       account: string,
@@ -1403,6 +1389,12 @@ export class GovernedTokenWrapper extends BaseContract {
 
     setFee(
       _feePercentage: BigNumberish,
+      nonce: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setFeeRecipient(
+      _feeRecipient: string,
       nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1630,14 +1622,6 @@ export class GovernedTokenWrapper extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    rescueTokens(
-      tokenAddress: string,
-      to: string,
-      amountToRescue: BigNumberish,
-      nonce: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     revokeRole(
       role: BytesLike,
       account: string,
@@ -1646,6 +1630,12 @@ export class GovernedTokenWrapper extends BaseContract {
 
     setFee(
       _feePercentage: BigNumberish,
+      nonce: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setFeeRecipient(
+      _feeRecipient: string,
       nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;

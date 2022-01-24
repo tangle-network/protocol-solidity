@@ -596,25 +596,6 @@ function renounceRole(bytes32 role, address account) external nonpayable
 | role | bytes32 | undefined
 | account | address | undefined
 
-### rescueTokens
-
-```solidity
-function rescueTokens(address tokenAddress, address payable to, uint256 amountToRescue, uint256 nonce) external nonpayable
-```
-
-Used to unlock ETH and ERC20 transferred to the TokenWrapper
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| tokenAddress | address | Address of ERC20 to transfer. Will be 0 in case of native ETH rescue.
-| to | address payable | address to transfer the rescued tokens to.
-| amountToRescue | uint256 | Number of tokens or amount of ETH to rescue
-| nonce | uint256 | undefined
-
 ### revokeRole
 
 ```solidity
@@ -647,6 +628,23 @@ function setFee(uint8 _feePercentage, uint256 nonce) external nonpayable
 | Name | Type | Description |
 |---|---|---|
 | _feePercentage | uint8 | undefined
+| nonce | uint256 | undefined
+
+### setFeeRecipient
+
+```solidity
+function setFeeRecipient(address payable _feeRecipient, uint256 nonce) external nonpayable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _feeRecipient | address payable | undefined
 | nonce | uint256 | undefined
 
 ### setGovernor

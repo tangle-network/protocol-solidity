@@ -95,6 +95,18 @@ export class SignatureBridgeSide implements IBridgeSide {
     return proposalData;
   }
 
+  /**
+   * Creates the proposal data for updating the fee recipient
+   * of a governed token wrapper.
+   * @param governedToken The governed token wrapper whose fee will be updated.
+   * @param feeRecipient The new fee recipient
+   * @returns Promise<string>
+   */
+  public async createFeeRecipientUpdateProposalData(governedToken: GovernedTokenWrapper, feeRecipient: string): Promise<string> {
+    const proposalData = await governedToken.getFeeRecipientProposalData(feeRecipient);
+    return proposalData;
+  }
+
  
   public async createAddTokenUpdateProposalData(governedToken: GovernedTokenWrapper, tokenAddress: string) {
     const proposalData = await governedToken.getAddTokenProposalData(tokenAddress);
@@ -103,11 +115,6 @@ export class SignatureBridgeSide implements IBridgeSide {
 
   public async createRemoveTokenUpdateProposalData(governedToken: GovernedTokenWrapper, tokenAddress: string) {
     const proposalData = await governedToken.getRemoveTokenProposalData(tokenAddress);
-    return proposalData;
-  }
-
-  public async createRescueTokensUpdateProposalData(governedToken: GovernedTokenWrapper, tokenAddress: string, to, amountToRescue) {
-    const proposalData = await governedToken.getRescueTokensProposalData(tokenAddress, to, amountToRescue);
     return proposalData;
   }
 
@@ -187,10 +194,10 @@ export class SignatureBridgeSide implements IBridgeSide {
     return this.execute(proposalData);
   }
 
-  public async executeRescueTokensProposalWithSig(governedToken: GovernedTokenWrapper, tokenAddress: string, to: string, amountToRescue: BigNumber) {
+  public async executeFeeRecipientProposalWithSig(governedToken: GovernedTokenWrapper, feeRecipient: string) {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
 
-    const proposalData = await this.createRescueTokensUpdateProposalData(governedToken, tokenAddress, to, amountToRescue);
+    const proposalData = await this.createFeeRecipientUpdateProposalData(governedToken, feeRecipient);
     return this.execute(proposalData);
   }
 

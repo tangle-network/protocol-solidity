@@ -9,7 +9,7 @@ export class GovernedTokenWrapper {
   ADD_TOKEN_SIGNATURE = "add(address,uint256)";
   REMOVE_TOKEN_SIGNATURE = "remove(address,uint256)";
   SET_FEE_SIGNATURE = "setFee(uint8,uint256)";
-  RESCUE_TOKENS_SIGNATURE = "rescueTokens(address,address,uint256,uint256)";
+  FEE_RECIPIENT_SIGNATURE = "setFeeRecipient(address,uint256)";
 
   constructor(
     contract: GovernedTokenWrapperContract,
@@ -97,18 +97,17 @@ export class GovernedTokenWrapper {
       feeString.slice(2);
   }
 
-  public async getRescueTokensProposalData(tokenAddress: string, to: string, amountToRescue: BigNumberish) {
-    const resourceID = await this.createResourceId();
-    const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
-    const functionSig = generateFunctionSigHash(this.RESCUE_TOKENS_SIGNATURE);
+  public async getFeeRecipientProposalData(feeRecipient: string): Promise<string> {
+      //First 4 bytes of keccak hash is encoded function sig...
+      const resourceID = await this.createResourceId();
+      const functionSig = generateFunctionSigHash(this.FEE_RECIPIENT_SIGNATURE);
+      const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
 
-    return '0x' +
-      resourceID.substr(2) + 
-      functionSig.slice(2) +
-      toHex(nonce, 4).substr(2) + 
-      tokenAddress.slice(2) +
-      to.slice(2) +
-      toFixedHex(amountToRescue).slice(2);
+      return '0x' +
+        toHex(resourceID, 32).substr(2) + 
+        functionSig.slice(2) +
+        toHex(nonce,4).substr(2) + 
+        feeRecipient.padEnd(42, '0').slice(2);
   }
 
 }
