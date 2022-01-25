@@ -183,10 +183,7 @@
     await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
 
     //Execute change fee proposal
-    await TruffleAssert.reverts(
-      bridgeSide.executeFeeProposalWithSig(governedToken, 101),
-      'invalid fee percentage'
-    );
+    assert.rejects(async () => await bridgeSide.executeFeeProposalWithSig(governedToken, 101), Error, /Invalid fee/);
   })
 
   it('execute add token proposal', async () => {

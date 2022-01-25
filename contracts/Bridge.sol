@@ -368,4 +368,6 @@ contract Bridge is Pausable, AccessControl, SafeMath {
             addrs[i].transfer(amounts[i]);
         }
     }
+
+    receive() external payable {}
 }

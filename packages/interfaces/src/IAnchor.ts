@@ -24,7 +24,7 @@ export interface IAnchor {
   
   // FixedDepositAnchor methods
   deposit(destinationChainId: number);
-  wrapAndDeposit(tokenAddress: string, destinationChainId?: number): Promise<IAnchorDeposit>;
+  wrapAndDeposit(tokenAddress: string, destinationChainId?: number, wrappingFee?: number): Promise<IAnchorDeposit>;
   bridgedWithdrawAndUnwrap(
     deposit: IAnchorDeposit,
     merkleProof: any,

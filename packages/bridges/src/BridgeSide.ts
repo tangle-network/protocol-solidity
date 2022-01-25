@@ -110,11 +110,11 @@ export class BridgeSide implements IBridgeSide {
   }
 
   public async setGovernedTokenResource(governedToken: GovernedTokenWrapper): Promise<string> {
-    if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
+    if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
 
     const resourceId = await governedToken.createResourceId();
 
-    await this.contract.adminSetResource(this.anchorHandler.contract.address, resourceId, governedToken.contract.address);
+    await this.contract.adminSetResource(this.tokenHandler.contract.address, resourceId, governedToken.contract.address);
     return resourceId;
   }
 
