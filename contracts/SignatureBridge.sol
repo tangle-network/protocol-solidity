@@ -13,6 +13,7 @@ import "./utils/SafeCast.sol";
 import "./utils/Governable.sol";
 import "./interfaces/IExecutor.sol";
 import "hardhat/console.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
     @title Facilitates deposits, creation and voting of deposit proposals, and deposit executions.
@@ -24,6 +25,8 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
     // resourceID => handler address
     mapping(bytes32 => address) public _resourceIDToHandlerAddress;
 
+    // The proposal nonce for rescue tokens proposal
+    uint256 rescueTokensNonce = 0;
     /**
         Verifying signature of governor over some datahash
      */
@@ -100,5 +103,57 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
         uint chainId;
         assembly { chainId := chainid() }
         return chainId;
+    }
+
+    /** 
+        @notice Rescues tokens that have been locked in the bridge contract from the wrapping fee
+        @param data The proposal data
+        @param sig Signature of the data 
+     */
+    function rescueTokens(
+        bytes calldata data, 
+        bytes memory sig
+    ) external signedByGovernor(keccak256(data), sig) {
+        uint32 nonce;
+        address tokenAddress;
+        address payable to;
+        uint256 amountToRescue;
+
+        bytes calldata resourceIDBytes = data[0:32];
+        // Parse chain ID from the resource ID
+        bytes4 executionChainID = bytes4(resourceIDBytes[28:32]);
+        // Verify current chain matches chain ID from resource ID
+        require(uint32(getChainId()) == uint32(executionChainID), "executing on wrong chain");
+
+        nonce = uint32(bytes4(data[36:40]));
+        tokenAddress = address(bytes20(data[40:60]));
+        to = payable(address(bytes20(data[60:80])));
+        amountToRescue = uint256(bytes32(data[80:112]));
+
+        require(to != address(0), "Cannot send liquidity to zero address");
+        require(tokenAddress != address(this), "Cannot rescue wrapped asset");
+        require(rescueTokensNonce < nonce, "Invalid nonce");
+        require(nonce <= rescueTokensNonce + 1, "Nonce must increment by 1");
+
+        if (tokenAddress == address(0)) {
+            // Native Ether 
+            uint256 ethBalance = address(this).balance;
+            if(ethBalance >= amountToRescue) {
+                to.transfer(amountToRescue);
+            } else {
+                to.transfer(ethBalance);
+            }
+            
+        } else {
+            // ERC20 Token
+            uint256 erc20Balance = IERC20(tokenAddress).balanceOf(address(this));
+            if(erc20Balance >= amountToRescue) {
+                IERC20(tokenAddress).transfer(to, amountToRescue);
+            } else {
+                IERC20(tokenAddress).transfer(to, erc20Balance);
+            }  
+        }
+
+        rescueTokensNonce = nonce;
     }
 }
