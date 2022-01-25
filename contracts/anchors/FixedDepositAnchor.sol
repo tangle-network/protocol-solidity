@@ -163,7 +163,7 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
     require(!commitments[_commitment], "The commitment has been submitted");
     // wrap into the token and send directly to this contract
     if (tokenAddress == address(0)) {
-        require(msg.value == ITokenWrapper(token).getAmountToWrap(denomination));
+        require(msg.value == ITokenWrapper(token).getAmountToWrap(denomination), "msg.value is wrong");
         ITokenWrapper(token).wrapForAndSendTo{value: msg.value}(
             msg.sender,
             tokenAddress,

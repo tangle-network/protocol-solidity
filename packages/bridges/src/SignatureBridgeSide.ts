@@ -147,7 +147,7 @@ export class SignatureBridgeSide implements IBridgeSide {
       toHex(nonce,4).substr(2) + 
       tokenAddress.padEnd(42, '0').slice(2) +
       to.padEnd(42, '0').slice(2) +
-      toFixedHex(amountToRescue);
+      toFixedHex(amountToRescue).slice(2);
   }
 
   public async setAnchorHandler(handler: AnchorHandler) {
@@ -195,7 +195,7 @@ export class SignatureBridgeSide implements IBridgeSide {
     const proposalData = await this.getRescueTokensProposalData(tokenAddress, to, amountToRescue);
     const proposalMsg = ethers.utils.arrayify(ethers.utils.keccak256(proposalData).toString());
     const sig = await this.signingSystemSignFn(proposalMsg);
-    const tx = await this.contract.executeProposalWithSignature(proposalData, sig);
+    const tx = await this.contract.rescueTokens(proposalData, sig);
     const receipt = await tx.wait();
     
     return receipt;

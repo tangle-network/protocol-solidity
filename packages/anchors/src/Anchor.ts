@@ -261,14 +261,18 @@ class Anchor implements IAnchor {
     return { deposit, index, originChainId };
   }
 
-  public async wrapAndDeposit(tokenAddress: string, destinationChainId?: number): Promise<IAnchorDeposit> {
+  public getAmountToWrap(wrappingFee: number) {
+    return BigNumber.from(this.denomination).mul(100).div(100 - wrappingFee);
+  }
+
+  public async wrapAndDeposit(tokenAddress: string, destinationChainId?: number, wrappingFee?: number): Promise<IAnchorDeposit> {
     const originChainId = await this.signer.getChainId();
     const chainId = (destinationChainId) ? destinationChainId : originChainId;
     const deposit = Anchor.generateDeposit(chainId);
     let tx;
     if (checkNativeAddress(tokenAddress)) {
       tx = await this.contract.wrapAndDeposit(tokenAddress, toFixedHex(deposit.commitment), {
-        value: this.denomination,
+        value: this.getAmountToWrap(wrappingFee),
         gasLimit: '0x5B8D80'
       });
     } else {

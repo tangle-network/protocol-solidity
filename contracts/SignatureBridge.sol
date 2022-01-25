@@ -156,4 +156,6 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
 
         rescueTokensNonce = nonce;
     }
+
+    receive() external payable {}
 }

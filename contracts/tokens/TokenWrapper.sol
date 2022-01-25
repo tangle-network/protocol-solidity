@@ -11,6 +11,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import "hardhat/console.sol";
 /**
     @title Manages deposited ERC20s.
     @author ChainSafe Systems.
@@ -153,7 +154,7 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
         address tokenAddress,
         uint256 amount,
         address recipient
-    ) override payable public isMinter() isValidWrapping(tokenAddress, feeRecipient, amount) {
+    ) override payable public isMinter() isValidWrapping(tokenAddress,   feeRecipient, amount) {
         uint costToWrap = getFeeFromAmount(tokenAddress == address(0)
             ? msg.value
             : amount
@@ -216,12 +217,12 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
         if (tokenAddress == address(0)) {
             require(amount == 0, "Invalid amount provided for native wrapping");
             require(_isNativeValid(), "Native wrapping is not allowed for this token wrapper");
-        } else if (_feeRecipient == address(0)) {
-            revert("Fee Recipient cannot be zero address");
         } else {
             require(msg.value == 0, "Invalid value sent for wrapping");
             require(_isValidAddress(tokenAddress), "Invalid token address");
         }
+
+        require(_feeRecipient != address(0), "Fee Recipient cannot be zero address");
         
         require(_isValidAmount(amount), "Invalid token amount");
         _;
