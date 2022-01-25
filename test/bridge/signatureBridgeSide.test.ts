@@ -139,6 +139,7 @@
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      bridgeSide.contract.address,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
       false,
@@ -168,6 +169,7 @@
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      bridgeSide.contract.address,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
       false,
@@ -199,6 +201,7 @@
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      bridgeSide.contract.address,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
       false,
@@ -235,6 +238,7 @@
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      bridgeSide.contract.address,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
       false,
@@ -280,6 +284,7 @@
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      bridgeSide.contract.address,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
       false,
@@ -382,6 +387,8 @@
    let wrappingFee: number;
    let signers;
    let governedToken;
+   const zeroAddress = "0x0000000000000000000000000000000000000000";
+
   
    before(async () => {
      zkComponents = await fetchComponentsFromFilePaths(
@@ -408,6 +415,7 @@
      governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
        `webbETH-test-1`,
        `webbETH-test-1`,
+       zeroAddress,
        tokenWrapperHandler.contract.address,
        '10000000000000000000000000',
        true,
@@ -498,6 +506,8 @@
     assert.strictEqual(balBridgeSideBeforeRescue.sub(balBridgeSideAfterRescue).toString(),'500');
 
     assert.strictEqual(balToAfterRescue.sub(balToBeforeRescue).toString(),'500');
+
+    assert.strictEqual((await bridgeSide.contract.rescueTokensNonce()).toString(), '1');
    })
    
    it('should rescue all tokens when amount to rescue is larger than treasury balance', async () => {
@@ -515,6 +525,8 @@
 
     // Should be balBridgeSideBeforeRescue, since all tokens are transferred to the to address
     assert.strictEqual(balToAfterRescue.sub(balToBeforeRescue).toString(),balBridgeSideBeforeRescue.toString());
+
+    assert.strictEqual((await bridgeSide.contract.rescueTokensNonce()).toString(), '1');
    })
  })
 
@@ -555,6 +567,7 @@
     governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      zeroAddress,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
       true,
@@ -623,7 +636,7 @@
     assert.strictEqual((await governedToken.contract.balanceOf(sourceAnchor.contract.address)).toString(), anchorDenomination.toString());
   })
 
-  it.only('should rescue native eth', async () => {
+  it('should rescue native eth', async () => {
     let balBridgeSideBeforeRescue = await ethers.provider.getBalance(bridgeSide.contract.address);
     let to = signers[2].address;
     let balToBeforeRescue = await ethers.provider.getBalance(to);
@@ -636,9 +649,11 @@
     assert.strictEqual(balBridgeSideBeforeRescue.sub(balBridgeSideAfterRescue).toString(),'500');
 
     assert.strictEqual(balToAfterRescue.sub(balToBeforeRescue).toString(),'500');
+
+    assert.strictEqual((await bridgeSide.contract.rescueTokensNonce()).toString(), '1');
   })
 
-  it.only('should rescue all native eth when amountToRescue greater than treasury balance', async () => {
+  it('should rescue all native eth when amountToRescue greater than treasury balance', async () => {
     let balBridgeSideBeforeRescue = await ethers.provider.getBalance(bridgeSide.contract.address);
     let to = signers[2].address;
     let balToBeforeRescue = await ethers.provider.getBalance(to);
@@ -653,5 +668,7 @@
 
     // Should be balBridgeSideBeforeRescue, since all tokens are transferred to the to address
     assert.strictEqual(balToAfterRescue.sub(balToBeforeRescue).toString(),balBridgeSideBeforeRescue.toString());
+
+    assert.strictEqual((await bridgeSide.contract.rescueTokensNonce()).toString(), '1');
   })
 })

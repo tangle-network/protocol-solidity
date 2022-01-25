@@ -716,8 +716,9 @@ describe('Anchor for 2 max edges', () => {
       // create wrapped token
       const name = 'webbETH';
       const symbol = 'webbETH';
+      const dummyFeeRecipient = "0x0000000000000000000000000000010000000000";
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
-      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, dummyFeeRecipient, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
       await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
 
@@ -764,8 +765,9 @@ describe('Anchor for 2 max edges', () => {
       // create wrapped token
       const name = 'webbETH';
       const symbol = 'webbETH';
+      const dummyFeeRecipient = "0x0000000000000000000000000000010000000000";
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
-      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, dummyFeeRecipient, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
       await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
       const wrapFee = 5;
@@ -805,7 +807,7 @@ describe('Anchor for 2 max edges', () => {
       
       //token wrapper should receieve erc20 liquidity
       const balUnwrappedTokenAfterDepositWrapper = await token.balanceOf(wrappedToken.address);
-      assert.strictEqual(balUnwrappedTokenAfterDepositWrapper.sub(balUnwrappedTokenBeforeDepositWrapper).toString(), BigNumber.from('1000000000000000000').mul(100).div(100 - wrapFee).toString());
+      assert.strictEqual(balUnwrappedTokenAfterDepositWrapper.sub(balUnwrappedTokenBeforeDepositWrapper).toString(), BigNumber.from('1000000000000000000').toString());
 
       const balUnwrappedTokenBeforeWithdrawSender = await token.balanceOf(sender.address);
 
@@ -815,7 +817,7 @@ describe('Anchor for 2 max edges', () => {
       assert.strictEqual(balWrappedTokenAfterWithdrawAnchor.toString(), '0');
 
       const balUnwrappedTokenAfterWithdrawWrapper = await token.balanceOf(wrappedToken.address);
-      assert.strictEqual(BigNumber.from('1000000000000000000').mul(100).div(100 - wrapFee).sub(BigNumber.from('1000000000000000000')).toString(), balUnwrappedTokenAfterWithdrawWrapper.toString());
+      assert.strictEqual(BigNumber.from('0').toString(), balUnwrappedTokenAfterWithdrawWrapper.toString());
 
       const balUnwrappedTokenAfterWithdrawSender = await token.balanceOf(sender.address);
       assert.strictEqual(balUnwrappedTokenBeforeWithdrawSender.add(tokenDenomination).toString(), balUnwrappedTokenAfterWithdrawSender.toString());
@@ -828,8 +830,9 @@ describe('Anchor for 2 max edges', () => {
       // create wrapped token
       const name = 'webbETH';
       const symbol = 'webbETH';
+      const dummyFeeRecipient = "0x0000000000000000000000000000010000000000";
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
-      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, dummyFeeRecipient, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
       await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
       const wrapFee = 5;
@@ -873,8 +876,9 @@ describe('Anchor for 2 max edges', () => {
       // create wrapped token
       const name = 'webbETH';
       const symbol = 'webbETH';
+      const dummyFeeRecipient = "0x0000000000000000000000000000010000000000";
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
-      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, dummyFeeRecipient, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
       await wrappedToken.add(token.address,(await wrappedToken.proposalNonce()).add(1));
       const wrapFee = 5;
@@ -893,8 +897,9 @@ describe('Anchor for 2 max edges', () => {
       // create wrapped token
       const name = 'webbETH';
       const symbol = 'webbETH';
+      const dummyFeeRecipient = "0x0000000000000000000000000000010000000000";
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
-      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, dummyFeeRecipient, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
       await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
       const wrapFee = 101;
@@ -912,8 +917,9 @@ describe('Anchor for 2 max edges', () => {
       // create wrapped token
       const name = 'webbETH';
       const symbol = 'webbETH';
+      const dummyFeeRecipient = "0x0000000000000000000000000000010000000000";
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
-      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, dummyFeeRecipient, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
       await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
       const wrapFee = -1;
@@ -930,8 +936,9 @@ describe('Anchor for 2 max edges', () => {
       // create wrapped token
       const name = 'webbETH';
       const symbol = 'webbETH';
+      const dummyFeeRecipient = "0x0000000000000000000000000000010000000000";
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
-      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, dummyFeeRecipient, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
       await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
       const wrapFee = 2.5;
@@ -948,8 +955,9 @@ describe('Anchor for 2 max edges', () => {
       // create wrapped token
       const name = 'webbETH';
       const symbol = 'webbETH';
+      const dummyFeeRecipient = "0x0000000000000000000000000000010000000000";
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
-      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, dummyFeeRecipient, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
       await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
 
@@ -1009,8 +1017,9 @@ describe('Anchor for 2 max edges', () => {
       // create wrapped token
       const name = 'webbETH';
       const symbol = 'webbETH';
+      const dummyFeeRecipient = "0x0000000000000000000000000000010000000000";
       const wrappedTokenFactory = new WrappedTokenFactory(wallet);
-      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, sender.address, '10000000000000000000000000', true);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, dummyFeeRecipient, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
       await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
 

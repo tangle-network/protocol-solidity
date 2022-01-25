@@ -143,6 +143,7 @@ export class SignatureBridge {
       let tokenInstance: GovernedTokenWrapper = await GovernedTokenWrapper.createGovernedTokenWrapper(
         `webbETH-test-1`,
         `webbETH-test-1`,
+        bridgeInstance.contract.address,
         await deployers[chainID].getAddress(),
         '10000000000000000000000000',
         allowedNative,

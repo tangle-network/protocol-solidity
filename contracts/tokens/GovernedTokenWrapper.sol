@@ -25,7 +25,7 @@ contract GovernedTokenWrapper is TokenWrapper {
     uint256 public wrappingLimit;
     uint256 public proposalNonce = 0;
 
-    constructor(string memory name, string memory symbol, address _governor, uint256 _limit, bool _isNativeAllowed) TokenWrapper(name, symbol) {
+    constructor(string memory name, string memory symbol, address payable _feeRecipient, address _governor, uint256 _limit, bool _isNativeAllowed) TokenWrapper(name, symbol, _feeRecipient) {
         governor = _governor;
         wrappingLimit = _limit;
         isNativeAllowed = _isNativeAllowed;

@@ -16,6 +16,7 @@ describe('GovernedTokenWrapper', () => {
   let sender: SignerWithAddress;
   const tokenName = 'Token';
   const tokenSymbol = 'TKN';
+  const dummyFeeRecipient = "0x0000000000000000001000000000000000000000";
   const wrappedTokenName = 'Wrapped Token';
   const wrappedTokenSymbol = 'wTKN';
   
@@ -28,6 +29,7 @@ describe('GovernedTokenWrapper', () => {
     wrappedToken = await GovernedTokenWrapperClass.createGovernedTokenWrapper(
       wrappedTokenName,
       wrappedTokenSymbol,
+      dummyFeeRecipient,
       sender.address,
       tokenDenomination,
       false,

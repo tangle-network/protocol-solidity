@@ -22,8 +22,10 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
     uint8 feePercentage;
     address payable feeRecipient;
 
-    constructor(string memory name, string memory symbol)
-        ERC20PresetMinterPauser(name, symbol) {}
+    constructor(string memory name, string memory symbol, address payable _feeRecipient)
+        ERC20PresetMinterPauser(name, symbol) {
+            feeRecipient = _feeRecipient;
+        }
 
     function getFeeFromAmount(uint amountToWrap) override public view returns (uint) {
 		return amountToWrap.mul(feePercentage).div(100);

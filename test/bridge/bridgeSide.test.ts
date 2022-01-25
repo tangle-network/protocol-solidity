@@ -82,6 +82,7 @@ describe('BridgeSideConstruction', () => {
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      bridgeSide.contract.address,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
       false,
@@ -116,6 +117,7 @@ describe('BridgeSideConstruction', () => {
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      bridgeSide.contract.address,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
       false,
@@ -149,6 +151,7 @@ describe('BridgeSideConstruction', () => {
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      bridgeSide.contract.address,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
       false,
@@ -187,6 +190,7 @@ describe('BridgeSideConstruction', () => {
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      bridgeSide.contract.address,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
       false,
@@ -233,6 +237,7 @@ describe('BridgeSideConstruction', () => {
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      bridgeSide.contract.address,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
       false,
