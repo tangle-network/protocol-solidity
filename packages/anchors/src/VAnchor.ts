@@ -238,7 +238,11 @@ export class VAnchor implements IAnchor {
   }
 
   public async createResourceId(): Promise<string> {
-    return toHex(this.contract.address + toHex((await this.signer.getChainId()), 4).substr(2), 32);
+    return toHex(
+      this.contract.address
+        + toHex(1, 2).substr(2)
+        + toHex((await this.signer.getChainId()), 4).substr(2),
+      32);
   }
 
   public async setVerifier(verifierAddress: string) {
