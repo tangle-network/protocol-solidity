@@ -2,7 +2,6 @@ import { encrypt, decrypt, getEncryptionPublicKey } from 'eth-sig-util';
 import { ethers, BigNumber } from 'ethers';
 import { poseidonHash, toFixedHex } from './utils';
 
-
 export function packEncryptedMessage(encryptedMessage: any) {
   const nonceBuf = Buffer.from(encryptedMessage.nonce, 'base64')
   const ephemPublicKeyBuf = Buffer.from(encryptedMessage.ephemPublicKey, 'base64')
