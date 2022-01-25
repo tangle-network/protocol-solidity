@@ -35,6 +35,8 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     "recover(bytes,bytes)": FunctionFragment;
     "refreshNonce()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
+    "rescueTokens(bytes,bytes)": FunctionFragment;
+    "rescueTokensNonce()": FunctionFragment;
     "transferOwnership(address,uint32)": FunctionFragment;
     "transferOwnershipWithSignature(address,uint32,bytes)": FunctionFragment;
     "transferOwnershipWithSignaturePubKey(bytes,uint32,bytes)": FunctionFragment;
@@ -92,6 +94,14 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "rescueTokens",
+    values: [BytesLike, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "rescueTokensNonce",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "transferOwnership",
     values: [string, BigNumberish]
   ): string;
@@ -144,6 +154,14 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "rescueTokens",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "rescueTokensNonce",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -293,6 +311,14 @@ export class SignatureBridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    rescueTokens(
+      data: BytesLike,
+      sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    rescueTokensNonce(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     transferOwnership(
       newOwner: string,
       nonce: BigNumberish,
@@ -378,6 +404,14 @@ export class SignatureBridge extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  rescueTokens(
+    data: BytesLike,
+    sig: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  rescueTokensNonce(overrides?: CallOverrides): Promise<BigNumber>;
+
   transferOwnership(
     newOwner: string,
     nonce: BigNumberish,
@@ -460,6 +494,14 @@ export class SignatureBridge extends BaseContract {
     refreshNonce(overrides?: CallOverrides): Promise<number>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
+    rescueTokens(
+      data: BytesLike,
+      sig: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    rescueTokensNonce(overrides?: CallOverrides): Promise<BigNumber>;
 
     transferOwnership(
       newOwner: string,
@@ -588,6 +630,14 @@ export class SignatureBridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    rescueTokens(
+      data: BytesLike,
+      sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    rescueTokensNonce(overrides?: CallOverrides): Promise<BigNumber>;
+
     transferOwnership(
       newOwner: string,
       nonce: BigNumberish,
@@ -679,6 +729,14 @@ export class SignatureBridge extends BaseContract {
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    rescueTokens(
+      data: BytesLike,
+      sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    rescueTokensNonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transferOwnership(
       newOwner: string,

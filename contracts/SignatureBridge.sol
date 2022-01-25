@@ -26,7 +26,7 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
     mapping(bytes32 => address) public _resourceIDToHandlerAddress;
 
     // The proposal nonce for rescue tokens proposal
-    uint256 rescueTokensNonce = 0;
+    uint256 public rescueTokensNonce = 0;
     /**
         Verifying signature of governor over some datahash
      */

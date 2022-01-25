@@ -1,5 +1,6 @@
 import { BigNumber, ethers } from 'ethers';
 import { SignatureBridge, SignatureBridge__factory } from '@webb-tools/contracts';
+import { toHex, generateFunctionSigHash, toFixedHex } from '@webb-tools/utils';
 import { GovernedTokenWrapper } from "@webb-tools/tokens";
 import { TokenWrapperHandler } from "@webb-tools/tokens";
 import { AnchorHandler } from "@webb-tools/anchors";
@@ -15,6 +16,7 @@ export class SignatureBridgeSide implements IBridgeSide {
 
   ANCHOR_HANDLER_MISSING_ERROR = new Error("Cannot connect an anchor without a handler");
   TOKEN_HANDLER_MISSING_ERROR = new Error("Cannot connect to a token wrapper without a handler");
+  RESCUE_TOKENS_SIGNATURE: string = "rescueTokens(bytes,bytes)";
 
   private constructor(
     contract: SignatureBridge,
@@ -76,11 +78,11 @@ export class SignatureBridgeSide implements IBridgeSide {
     return proposalData;
   }
 
+
   public async createHandlerUpdateProposalData(anchor: IAnchor, newHandler: string) {
     const proposalData = await anchor.getHandlerProposalData(newHandler);
     return proposalData;
   }
-
 
   /**
    * Creates the proposal data for updating the wrapping fee
@@ -123,6 +125,31 @@ export class SignatureBridgeSide implements IBridgeSide {
     return proposalData;
   }
 
+  /**
+   * 
+   * @returns resourceID associated with SignatureBridge contract
+   */
+  public async createResourceId(): Promise<string> {
+    return toHex(this.contract.address + toHex((await this.admin.getChainId()), 4).substr(2), 32);
+  }
+
+  /**
+   * @returns Proposal data for rescue tokens proposal
+   */
+  public async getRescueTokensProposalData(tokenAddress: string, to: string, amountToRescue: BigNumber): Promise<string> {
+    const resourceID = await this.createResourceId();
+    const functionSig = generateFunctionSigHash(this.RESCUE_TOKENS_SIGNATURE)
+    const nonce = (await this.contract.rescueTokensNonce()).add(1).toNumber();
+  
+    return '0x' +
+      toHex(resourceID, 32).substr(2) + 
+      functionSig.slice(2) +
+      toHex(nonce,4).substr(2) + 
+      tokenAddress.padEnd(42, '0').slice(2) +
+      to.padEnd(42, '0').slice(2) +
+      toFixedHex(amountToRescue);
+  }
+
   public async setAnchorHandler(handler: AnchorHandler) {
     this.anchorHandler = handler;
   }
@@ -162,6 +189,16 @@ export class SignatureBridgeSide implements IBridgeSide {
     const sig = await this.signingSystemSignFn(unsignedMsg);
     await this.contract.adminSetResourceWithSignature(this.tokenHandler.contract.address, resourceId, governedToken.contract.address, sig);
     return resourceId;
+  }
+
+  public async rescueTokensWithSig(tokenAddress: string, to: string, amountToRescue: BigNumber) {
+    const proposalData = await this.getRescueTokensProposalData(tokenAddress, to, amountToRescue);
+    const proposalMsg = ethers.utils.arrayify(ethers.utils.keccak256(proposalData).toString());
+    const sig = await this.signingSystemSignFn(proposalMsg);
+    const tx = await this.contract.executeProposalWithSignature(proposalData, sig);
+    const receipt = await tx.wait();
+    
+    return receipt;
   }
 
   public async executeHandlerProposalWithSig(anchor: IAnchor, newHandler: string) {
