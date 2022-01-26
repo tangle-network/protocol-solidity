@@ -19,17 +19,11 @@ export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 describe('multichain tests for signature vbridge', () => {
   const chainID1 = getChainIdType(31337);
   const chainID2 = getChainIdType(1337);
-  const chainID3 = getChainIdType(9999);
-  const chainID4 = getChainIdType(4444);
   // setup ganache networks
   let ganacheServer2: any;
-  let ganacheServer3: any;
-  let ganacheServer4: any;
 
   before('setup networks', async () => {
     ganacheServer2 = await startGanacheServer(1337, 1337, 'congress island collect purity dentist team gas unlock nuclear pig combine sight');
-    ganacheServer3 = await startGanacheServer(9999, 9999, 'aspect biology suit thought bottom popular custom rebuild recall sauce endless local');
-    ganacheServer4 = await startGanacheServer(4444, 4444, 'harvest useful giraffe swim rail ostrich public awful provide amazing tank weapon');
   });
 
   describe('BridgeConstruction', () => {
@@ -61,7 +55,7 @@ describe('multichain tests for signature vbridge', () => {
       await tokenInstance1.mintTokens(signers[2].address, '100000000000000000000000000');
     });
 
-    it.only('create 2 side bridge for one token', async () => {
+    it('create 2 side bridge for one token', async () => {
       let webbTokens1 = new Map<number, GovernedTokenWrapper | undefined>();
       webbTokens1.set(chainID1, null!);
       webbTokens1.set(chainID2, null!);
@@ -188,7 +182,7 @@ describe('multichain tests for signature vbridge', () => {
     })
 
     describe('#bridging', () => {
-      it.only('basic ganache deposit should withdraw on hardhat', async () => {
+      it('basic ganache deposit should withdraw on hardhat', async () => {
         // Fetch information about the anchor to be updated.
         const signers = await ethers.getSigners();
 
@@ -216,7 +210,7 @@ describe('multichain tests for signature vbridge', () => {
         assert.strictEqual(signers2BalanceBefore.add(5e6).toString(), signers2BalanceAfter.toString());
       }).timeout(40000)
 
-      it.only('join and split ganache deposits and withdraw on hardhat', async () => {
+      it('join and split ganache deposits and withdraw on hardhat', async () => {
         const signers = await ethers.getSigners();
 
         const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
@@ -245,7 +239,7 @@ describe('multichain tests for signature vbridge', () => {
         assert.strictEqual(signers2BalanceBefore.add(1.5e7).toString(), signers2BalanceAfter.toString());
       })
 
-      it.only('should update multiple deposits and withdraw historic deposit from ganache', async () => {
+      it('should update multiple deposits and withdraw historic deposit from ganache', async () => {
         // Fetch information about the anchor to be updated.
         const signers = await ethers.getSigners();
 
@@ -277,7 +271,7 @@ describe('multichain tests for signature vbridge', () => {
         assert.deepStrictEqual(endingBalanceDest, startingBalanceDest.add(5e6));
       })
 
-      it.only('prevent cross-chain double spending', async () => {
+      it('prevent cross-chain double spending', async () => {
         const signers = await ethers.getSigners();
 
         //ganacheWallet2 makes a deposit with dest chain chainID1
@@ -293,7 +287,7 @@ describe('multichain tests for signature vbridge', () => {
         );
       })
 
-      it.only('mintable token task test', async () => {
+      it('mintable token task test', async () => {
         // Fetch information about the anchor to be updated.
         const signers = await ethers.getSigners();
 
@@ -340,7 +334,7 @@ describe('multichain tests for signature vbridge', () => {
     let existingToken2: MintableToken;
 
     let vBridge: VBridge;
-    let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:chainID2');
+    let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:1337');
     ganacheProvider2.pollingInterval = 1;
     let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
 
@@ -393,7 +387,7 @@ describe('multichain tests for signature vbridge', () => {
     })
 
     describe('#bridging wrapping/unwrapping', () => {
-      it.only('check there is a bidirectional bridge between the two chains', async () => {
+      it('check there is a bidirectional bridge between the two chains', async () => {
         //Fetch information about the anchor to be updated.
         const signers = await ethers.getSigners();
 
@@ -419,8 +413,9 @@ describe('multichain tests for signature vbridge', () => {
 
         const vAnchor2Balance = await webbToken2.getBalance(vAnchor2Address);
         assert.strictEqual(vAnchor2Balance.toString(), BigNumber.from(1e7).toString());
-      })
-      it.only('wrap and deposit, withdraw and unwrap works join split via transactWrap', async () => {
+      });
+
+      it('wrap and deposit, withdraw and unwrap works join split via transactWrap', async () => {
         const signers = await ethers.getSigners();
 
         const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
@@ -460,7 +455,7 @@ describe('multichain tests for signature vbridge', () => {
         assert.strictEqual(balVAnchor1Wrapped.toString(), BigNumber.from(1e7).toString());
       });
 
-      it.only('wrap and deposit, withdraw and unwrap works join split 16 input via transactWrap', async () => {
+      it('wrap and deposit, withdraw and unwrap works join split 16 input via transactWrap', async () => {
         const signers = await ethers.getSigners();
 
         const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
@@ -510,7 +505,5 @@ describe('multichain tests for signature vbridge', () => {
 
   after('terminate networks', async () => {
     await ganacheServer2.close();
-    await ganacheServer3.close();
-    await ganacheServer4.close();
   });
 });
