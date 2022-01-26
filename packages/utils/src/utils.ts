@@ -98,3 +98,14 @@ export function getExtDataHash({
   const hash = ethers.utils.keccak256(encodedData)
   return BigNumber.from(hash).mod(FIELD_SIZE)
 }
+
+/**
+ * Computes the updated chain ID with chain type.
+ * @param chainID Chain ID to encode into augmented chain ID Type, defaults to hardhat's chain ID.
+ * @returns 
+ */
+export const getChainIdType = async (chainID: number = 31337): Promise<bigint> => {
+  const CHAIN_TYPE = '0x0100';
+  const chainIdType = CHAIN_TYPE + toFixedHex(chainID, 4).substr(2);
+  return BigInt(chainIdType);
+}

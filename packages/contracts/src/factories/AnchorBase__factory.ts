@@ -84,6 +84,19 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "EVM_CHAIN_ID_TYPE",
+    outputs: [
+      {
+        internalType: "bytes2",
+        name: "",
+        type: "bytes2",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "FIELD_SIZE",
     outputs: [
       {
@@ -266,6 +279,19 @@ const _abi = [
         internalType: "uint256",
         name: "",
         type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getChainIdType",
+    outputs: [
+      {
+        internalType: "uint48",
+        name: "",
+        type: "uint48",
       },
     ],
     stateMutability: "view",

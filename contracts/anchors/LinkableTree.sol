@@ -17,24 +17,24 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard {
   uint8 public immutable maxEdges;
 
   struct Edge {
-    uint64 chainID;
+    uint256 chainID;
     bytes32 root;
     uint256 latestLeafIndex;
   }
 
   // maps sourceChainID to the index in the edge list
-  mapping(uint64 => uint256) public edgeIndex;
-  mapping(uint64 => bool) public edgeExistsForChain;
+  mapping(uint256 => uint256) public edgeIndex;
+  mapping(uint256 => bool) public edgeExistsForChain;
   Edge[] public edgeList;
 
   // map to store chainID => (rootIndex => root) to track neighbor histories
-  mapping(uint64 => mapping(uint32 => bytes32)) public neighborRoots;
+  mapping(uint256 => mapping(uint32 => bytes32)) public neighborRoots;
   // map to store the current historical root index for a chainID
-  mapping(uint64 => uint32) public currentNeighborRootIndex;
+  mapping(uint256 => uint32) public currentNeighborRootIndex;
 
   // linking events
-  event EdgeAddition(uint64 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
-  event EdgeUpdate(uint64 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
+  event EdgeAddition(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
+  event EdgeUpdate(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
 
   /**
     @dev The constructor
@@ -53,7 +53,7 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard {
   }
 
   function updateEdge(
-    uint64 sourceChainID,
+    uint256 sourceChainID,
     bytes32 root,
     uint256 leafIndex
   ) onlyHandler external payable nonReentrant {
@@ -122,7 +122,7 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard {
     }
   }
 
-  function isKnownNeighborRoot(uint64 neighborChainID, bytes32 _root) public view returns (bool) {
+  function isKnownNeighborRoot(uint256 neighborChainID, bytes32 _root) public view returns (bool) {
     if (_root == 0) {
       return false;
     }
@@ -174,7 +174,7 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard {
     return uint48(bytes6(chainIdWithType));
   }
 
-  function hasEdge(uint64 _chainID) external view returns (bool) {
+  function hasEdge(uint256 _chainID) external view returns (bool) {
     return edgeExistsForChain[_chainID];
   }
 

@@ -81,7 +81,7 @@ describe('multichain tests for erc20 bridges', () => {
       await tokenInstance1.mintTokens(signers[1].address, '100000000000000000000000000');
     });
 
-    it('create 2 side bridge for one token', async () => {
+    it.only('create 2 side bridge for one token', async () => {
 
       bridge2WebbEthInput = {
         anchorInputs: {
