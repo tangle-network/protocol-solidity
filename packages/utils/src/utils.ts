@@ -104,8 +104,8 @@ export function getExtDataHash({
  * @param chainID Chain ID to encode into augmented chain ID Type, defaults to hardhat's chain ID.
  * @returns 
  */
-export const getChainIdType = async (chainID: number = 31337): Promise<bigint> => {
+export const getChainIdType = (chainID: number = 31337): number => {
   const CHAIN_TYPE = '0x0100';
   const chainIdType = CHAIN_TYPE + toFixedHex(chainID, 4).substr(2);
-  return BigInt(chainIdType);
+  return Number(BigInt(chainIdType));
 }
