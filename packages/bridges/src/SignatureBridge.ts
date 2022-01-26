@@ -104,8 +104,6 @@ export class SignatureBridge {
     // and anchors in the subArrays of thhe same index should be linked together
     let createdAnchors: IAnchor[][] = [];
 
-    
-
     for (let chainID of bridgeInput.chainIDs) {
       const adminAddress = await deployers[chainID].getAddress();
 
