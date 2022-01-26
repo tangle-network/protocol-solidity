@@ -1,3 +1,8 @@
-export { VBridge, BridgeConfig, VBridgeInput, DeployerConfig, ExistingAssetInput} from './VBridge';
-export { VBridgeSide } from './VBridgeSide';
+export {
+    VBridge,
+    BridgeConfig,
+    VBridgeInput,
+    DeployerConfig,
+    ExistingAssetInput
+} from './VBridge';
 export { Verifier } from './Verifier';

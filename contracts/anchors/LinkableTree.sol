@@ -16,7 +16,7 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard {
   uint8 public immutable maxEdges;
 
   struct Edge {
-    uint256 chainID;
+    uint64 chainID;
     bytes32 root;
     uint256 latestLeafIndex;
   }
@@ -32,8 +32,8 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard {
   mapping(uint256 => uint32) public currentNeighborRootIndex;
 
   // linking events
-  event EdgeAddition(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
-  event EdgeUpdate(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
+  event EdgeAddition(uint64 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
+  event EdgeUpdate(uint64 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
 
   /**
     @dev The constructor
