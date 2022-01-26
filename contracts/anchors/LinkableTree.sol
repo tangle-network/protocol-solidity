@@ -11,6 +11,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "hardhat/console.sol";
 
 abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard {
+  bytes2 public constant EVM_CHAIN_ID_TYPE = 0x0100;
   address public handler;
 
   uint8 public immutable maxEdges;
@@ -22,14 +23,14 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard {
   }
 
   // maps sourceChainID to the index in the edge list
-  mapping(uint256 => uint256) public edgeIndex;
-  mapping(uint256 => bool) public edgeExistsForChain;
+  mapping(uint64 => uint256) public edgeIndex;
+  mapping(uint64 => bool) public edgeExistsForChain;
   Edge[] public edgeList;
 
   // map to store chainID => (rootIndex => root) to track neighbor histories
-  mapping(uint256 => mapping(uint32 => bytes32)) public neighborRoots;
+  mapping(uint64 => mapping(uint32 => bytes32)) public neighborRoots;
   // map to store the current historical root index for a chainID
-  mapping(uint256 => uint32) public currentNeighborRootIndex;
+  mapping(uint64 => uint32) public currentNeighborRootIndex;
 
   // linking events
   event EdgeAddition(uint64 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
@@ -52,7 +53,7 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard {
   }
 
   function updateEdge(
-    uint256 sourceChainID,
+    uint64 sourceChainID,
     bytes32 root,
     uint256 leafIndex
   ) onlyHandler external payable nonReentrant {
@@ -121,7 +122,7 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard {
     }
   }
 
-  function isKnownNeighborRoot(uint256 neighborChainID, bytes32 _root) public view returns (bool) {
+  function isKnownNeighborRoot(uint64 neighborChainID, bytes32 _root) public view returns (bool) {
     if (_root == 0) {
       return false;
     }
@@ -160,7 +161,20 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard {
     return chainId;
   }
 
-  function hasEdge(uint256 _chainID) external view returns (bool) {
+  function getChainIdType() public view returns (uint48) {
+    // The chain ID and type pair is 6 bytes in length
+    // The first 2 bytes are reserved for the chain type.
+    // The last 4 bytes are reserved for a u32 (uint32) chain ID.
+    bytes4 chainID = bytes4(uint32(getChainId()));
+    bytes2 chainType = EVM_CHAIN_ID_TYPE;
+    // We encode the chain ID and type pair into packed bytes which
+    // should be 6 bytes using the encode packed method. We will
+    // cast this as a bytes32 in order to encode as a uint256 for zkp verification.
+    bytes memory chainIdWithType = abi.encodePacked(chainType, chainID);
+    return uint48(bytes6(chainIdWithType));
+  }
+
+  function hasEdge(uint64 _chainID) external view returns (bool) {
     return edgeExistsForChain[_chainID];
   }
 
