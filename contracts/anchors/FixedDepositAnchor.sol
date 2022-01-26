@@ -250,7 +250,7 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
       uint256(encodeInputsData._fee),
       uint256(encodeInputsData._refund),
       uint256(encodeInputsData._refreshCommitment),
-      uint256(getChainId()),
+      uint256(getChainIdType()),
       _roots
     );
 

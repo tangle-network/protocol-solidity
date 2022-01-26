@@ -1,6 +1,6 @@
 import { BigNumber, BigNumberish, ethers } from 'ethers';
 import { VAnchor as VAnchorContract, VAnchor__factory, VAnchorEncodeInputs__factory } from '@webb-tools/contracts';
-import { p256, toHex, RootInfo, Keypair, FIELD_SIZE, getExtDataHash, toFixedHex, Utxo } from '@webb-tools/utils';
+import { p256, toHex, RootInfo, Keypair, FIELD_SIZE, getExtDataHash, toFixedHex, Utxo, getChainIdType } from '@webb-tools/utils';
 import { IAnchorDeposit, IAnchor, IExtData, IMerkleProofData, IUTXOInput, IVariableAnchorPublicInputs, IWitnessInput } from '@webb-tools/interfaces';
 import { MerkleTree } from '@webb-tools/merkle-tree';
 
@@ -240,8 +240,7 @@ export class VAnchor implements IAnchor {
   public async createResourceId(): Promise<string> {
     return toHex(
       this.contract.address
-        + toHex(1, 2).substr(2)
-        + toHex((await this.signer.getChainId()), 4).substr(2),
+        + toHex(getChainIdType(await this.signer.getChainId()), 6).substr(2),
       32);
   }
 
@@ -277,17 +276,17 @@ export class VAnchor implements IAnchor {
       leafIndex = this.tree.number_of_elements() - 1;
     }
 
-    const chainID = await this.signer.getChainId();
+    const chainID = getChainIdType(await this.signer.getChainId());
     const merkleRoot = this.depositHistory[leafIndex]; //bridgedTransact should update deposithistory
     const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("updateEdge(uint256,bytes32,uint256)")).slice(0, 10).padEnd(10, '0');
     const dummyNonce = 1;
 
     return '0x' +
-      toHex(resourceID, 32).substr(2)+ 
-      functionSig.slice(2) + 
+      toHex(resourceID, 32).substr(2) +
+      functionSig.slice(2) +
       toHex(dummyNonce,4).substr(2) +
-      toHex(chainID, 4).substr(2) + 
-      toHex(leafIndex, 4).substr(2) + 
+      toHex(chainID, 6).substr(2) +
+      toHex(leafIndex, 4).substr(2) +
       toHex(merkleRoot, 32).substr(2);
   }
 
@@ -324,7 +323,7 @@ export class VAnchor implements IAnchor {
       }
     });
     let thisRoot = await this.contract.getLastRoot();
-    const thisChainId = await this.signer.getChainId();
+    const thisChainId = getChainIdType(await this.signer.getChainId());
     return [{
       merkleRoot: thisRoot,
       chainId: thisChainId,
@@ -492,7 +491,6 @@ export class VAnchor implements IAnchor {
       : this.largeCircuitZkeyPath
     );
     res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
-
     let proofEncoded = await VAnchor.generateWithdrawProofCallData(proof, publicSignals);
     return proofEncoded;
   }
@@ -508,7 +506,7 @@ export class VAnchor implements IAnchor {
   ) {
     // first, check if the merkle root is known on chain - if not, then update
     await this.checkKnownRoot();
-    const chainId = await this.signer.getChainId();
+    const chainId = getChainIdType(await this.signer.getChainId());
     const roots = await this.populateRootInfosForProof();
     const { input, extData } = await this.generateWitnessInput(
       roots,
@@ -561,14 +559,18 @@ export class VAnchor implements IAnchor {
     //console.log(`current root (transact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
     
     while (inputs.length !== 2 && inputs.length < 16) {
-      inputs.push(new Utxo({chainId: BigNumber.from(31337)}));
+      inputs.push(new Utxo({
+        chainId: BigNumber.from(getChainIdType(31337))
+      }));
     }
     
     const merkleProofsForInputs = inputs.map((x) => this.getMerkleProof(x));
     
     if (outputs.length < 2) {
       while (outputs.length < 2) {
-        outputs.push(new Utxo({chainId: BigNumber.from(31337)}));
+        outputs.push(new Utxo({
+          chainId: BigNumber.from(getChainIdType(31337))
+        }));
       }
     }
     
@@ -614,14 +616,18 @@ export class VAnchor implements IAnchor {
     //console.log(`current root (transact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
     
     while (inputs.length !== 2 && inputs.length < 16) {
-      inputs.push(new Utxo({chainId: BigNumber.from(31337)}));
+      inputs.push(new Utxo({
+        chainId: BigNumber.from(getChainIdType(31337))
+      }));
     }
     
     const merkleProofsForInputs = inputs.map((x) => this.getMerkleProof(x));
     
     if (outputs.length < 2) {
       while (outputs.length < 2) {
-        outputs.push(new Utxo({chainId: BigNumber.from(31337)}));
+        outputs.push(new Utxo({
+          chainId: BigNumber.from(getChainIdType(31337))
+        }));
       }
     }
     
@@ -691,7 +697,9 @@ export class VAnchor implements IAnchor {
 
     if (outputs.length < 2) {
       while (outputs.length < 2) {
-        outputs.push(new Utxo({originChainId: BigNumber.from(await this.signer.getChainId())}));
+        outputs.push(new Utxo({
+          originChainId: BigNumber.from(getChainIdType(await this.signer.getChainId()))
+        }));
       }
     }
 
@@ -742,7 +750,9 @@ export class VAnchor implements IAnchor {
 
     if (outputs.length < 2) {
       while (outputs.length < 2) {
-        outputs.push(new Utxo({originChainId: BigNumber.from(await this.signer.getChainId())}));
+        outputs.push(new Utxo({
+          originChainId: BigNumber.from(getChainIdType(await this.signer.getChainId()))
+        }));
       }
     }
 
@@ -809,7 +819,9 @@ export class VAnchor implements IAnchor {
     // const { pathElements, pathIndices, merkleRoot } = merkleProofsForInputs;
 
     while (inputs.length !== 2 && inputs.length < 16) {
-      inputs.push(new Utxo({chainId: BigNumber.from(31337)}));
+      inputs.push(new Utxo({
+        chainId: BigNumber.from(getChainIdType(31337))
+      }));
     }
 
     merkleProofsForInputs = inputs.map((x) => this.getMerkleProof(x));
@@ -820,16 +832,16 @@ export class VAnchor implements IAnchor {
     
     if (outputs.length < 2) {
       while (outputs.length < 2) {
-        outputs.push(new Utxo({chainId: BigNumber.from(31337)}));
+        outputs.push(new Utxo({
+          chainId: BigNumber.from(getChainIdType(31337))
+        }));
       }
     }
 
     let extAmount = BigNumber.from(fee)
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
-    //console.log(`extAmount is ${extAmount}`);
-    //console.log("hi");
-    //console.log(outputs);
+
     const { extData, publicInputs } = await this.setupTransaction(
       inputs,
       outputs,

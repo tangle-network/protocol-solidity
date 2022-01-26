@@ -21,13 +21,14 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface SignatureBridgeInterface extends ethers.utils.Interface {
   functions: {
+    "EVM_CHAIN_ID_TYPE()": FunctionFragment;
     "_counts(uint256)": FunctionFragment;
     "_resourceIDToHandlerAddress(bytes32)": FunctionFragment;
-    "adminMigrateBridgeWithSignature(bytes32[],address,bytes)": FunctionFragment;
     "adminSetResourceWithSignature(address,bytes32,address,bytes)": FunctionFragment;
     "checkPubKey(bytes)": FunctionFragment;
     "executeProposalWithSignature(bytes,bytes)": FunctionFragment;
     "getChainId()": FunctionFragment;
+    "getChainIdType()": FunctionFragment;
     "governor()": FunctionFragment;
     "isGovernor()": FunctionFragment;
     "isSignatureFromGovernor(bytes,bytes)": FunctionFragment;
@@ -42,16 +43,16 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
   };
 
   encodeFunctionData(
+    functionFragment: "EVM_CHAIN_ID_TYPE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "_counts",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "_resourceIDToHandlerAddress",
     values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "adminMigrateBridgeWithSignature",
-    values: [BytesLike[], string, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "adminSetResourceWithSignature",
@@ -67,6 +68,10 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getChainId",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getChainIdType",
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "governor", values?: undefined): string;
@@ -108,13 +113,13 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     values: [BytesLike, BigNumberish, BytesLike, BytesLike]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "EVM_CHAIN_ID_TYPE",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "_counts", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "_resourceIDToHandlerAddress",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "adminMigrateBridgeWithSignature",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -130,6 +135,10 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getChainId", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getChainIdType",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "governor", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "isGovernor", data: BytesLike): Result;
   decodeFunctionResult(
@@ -231,6 +240,8 @@ export class SignatureBridge extends BaseContract {
   interface: SignatureBridgeInterface;
 
   functions: {
+    EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<[string]>;
+
     _counts(
       arg0: BigNumberish,
       overrides?: CallOverrides
@@ -240,13 +251,6 @@ export class SignatureBridge extends BaseContract {
       arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string]>;
-
-    adminMigrateBridgeWithSignature(
-      resourceIDs: BytesLike[],
-      newBridge: string,
-      sig: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
 
     adminSetResourceWithSignature(
       handlerAddress: string,
@@ -268,6 +272,8 @@ export class SignatureBridge extends BaseContract {
     ): Promise<ContractTransaction>;
 
     getChainId(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    getChainIdType(overrides?: CallOverrides): Promise<[number]>;
 
     governor(overrides?: CallOverrides): Promise<[string]>;
 
@@ -322,19 +328,14 @@ export class SignatureBridge extends BaseContract {
     ): Promise<[boolean]>;
   };
 
+  EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<string>;
+
   _counts(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
   _resourceIDToHandlerAddress(
     arg0: BytesLike,
     overrides?: CallOverrides
   ): Promise<string>;
-
-  adminMigrateBridgeWithSignature(
-    resourceIDs: BytesLike[],
-    newBridge: string,
-    sig: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
 
   adminSetResourceWithSignature(
     handlerAddress: string,
@@ -353,6 +354,8 @@ export class SignatureBridge extends BaseContract {
   ): Promise<ContractTransaction>;
 
   getChainId(overrides?: CallOverrides): Promise<BigNumber>;
+
+  getChainIdType(overrides?: CallOverrides): Promise<number>;
 
   governor(overrides?: CallOverrides): Promise<string>;
 
@@ -407,19 +410,14 @@ export class SignatureBridge extends BaseContract {
   ): Promise<boolean>;
 
   callStatic: {
+    EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<string>;
+
     _counts(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     _resourceIDToHandlerAddress(
       arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
-
-    adminMigrateBridgeWithSignature(
-      resourceIDs: BytesLike[],
-      newBridge: string,
-      sig: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     adminSetResourceWithSignature(
       handlerAddress: string,
@@ -438,6 +436,8 @@ export class SignatureBridge extends BaseContract {
     ): Promise<void>;
 
     getChainId(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getChainIdType(overrides?: CallOverrides): Promise<number>;
 
     governor(overrides?: CallOverrides): Promise<string>;
 
@@ -529,18 +529,13 @@ export class SignatureBridge extends BaseContract {
   };
 
   estimateGas: {
+    EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<BigNumber>;
+
     _counts(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     _resourceIDToHandlerAddress(
       arg0: BytesLike,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    adminMigrateBridgeWithSignature(
-      resourceIDs: BytesLike[],
-      newBridge: string,
-      sig: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     adminSetResourceWithSignature(
@@ -563,6 +558,8 @@ export class SignatureBridge extends BaseContract {
     ): Promise<BigNumber>;
 
     getChainId(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getChainIdType(overrides?: CallOverrides): Promise<BigNumber>;
 
     governor(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -618,6 +615,8 @@ export class SignatureBridge extends BaseContract {
   };
 
   populateTransaction: {
+    EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     _counts(
       arg0: BigNumberish,
       overrides?: CallOverrides
@@ -626,13 +625,6 @@ export class SignatureBridge extends BaseContract {
     _resourceIDToHandlerAddress(
       arg0: BytesLike,
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    adminMigrateBridgeWithSignature(
-      resourceIDs: BytesLike[],
-      newBridge: string,
-      sig: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     adminSetResourceWithSignature(
@@ -655,6 +647,8 @@ export class SignatureBridge extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getChainId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getChainIdType(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     governor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
-import { MerkleTree } from '@webb-tools/merkle-tree';
-import { PoseidonHasher } from '@webb-tools/utils';
+import { MerkleTree } from '../../packages/merkle-tree/src';
+import { PoseidonHasher } from '../../packages/utils/src';
 import { artifacts, contract } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
 const helpers = require('../helpers');

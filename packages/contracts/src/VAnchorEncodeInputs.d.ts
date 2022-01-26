@@ -20,11 +20,17 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface VAnchorEncodeInputsInterface extends ethers.utils.Interface {
   functions: {
+    "EVM_CHAIN_ID_TYPE()": FunctionFragment;
     "_encodeInputs16((bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),uint8)": FunctionFragment;
     "_encodeInputs2((bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),uint8)": FunctionFragment;
     "getChainId()": FunctionFragment;
+    "getChainIdType()": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "EVM_CHAIN_ID_TYPE",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "_encodeInputs16",
     values: [
@@ -57,7 +63,15 @@ interface VAnchorEncodeInputsInterface extends ethers.utils.Interface {
     functionFragment: "getChainId",
     values?: undefined
   ): string;
+  encodeFunctionData(
+    functionFragment: "getChainIdType",
+    values?: undefined
+  ): string;
 
+  decodeFunctionResult(
+    functionFragment: "EVM_CHAIN_ID_TYPE",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "_encodeInputs16",
     data: BytesLike
@@ -67,6 +81,10 @@ interface VAnchorEncodeInputsInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getChainId", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getChainIdType",
+    data: BytesLike
+  ): Result;
 
   events: {};
 }
@@ -115,6 +133,8 @@ export class VAnchorEncodeInputs extends BaseContract {
   interface: VAnchorEncodeInputsInterface;
 
   functions: {
+    EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<[string]>;
+
     _encodeInputs16(
       _args: {
         proof: BytesLike;
@@ -142,7 +162,11 @@ export class VAnchorEncodeInputs extends BaseContract {
     ): Promise<[string, string[]]>;
 
     getChainId(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    getChainIdType(overrides?: CallOverrides): Promise<[number]>;
   };
+
+  EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<string>;
 
   _encodeInputs16(
     _args: {
@@ -172,7 +196,11 @@ export class VAnchorEncodeInputs extends BaseContract {
 
   getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
+  getChainIdType(overrides?: CallOverrides): Promise<number>;
+
   callStatic: {
+    EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<string>;
+
     _encodeInputs16(
       _args: {
         proof: BytesLike;
@@ -200,11 +228,15 @@ export class VAnchorEncodeInputs extends BaseContract {
     ): Promise<[string, string[]]>;
 
     getChainId(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getChainIdType(overrides?: CallOverrides): Promise<number>;
   };
 
   filters: {};
 
   estimateGas: {
+    EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<BigNumber>;
+
     _encodeInputs16(
       _args: {
         proof: BytesLike;
@@ -232,9 +264,13 @@ export class VAnchorEncodeInputs extends BaseContract {
     ): Promise<BigNumber>;
 
     getChainId(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getChainIdType(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     _encodeInputs16(
       _args: {
         proof: BytesLike;
@@ -262,5 +298,7 @@ export class VAnchorEncodeInputs extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getChainId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getChainIdType(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

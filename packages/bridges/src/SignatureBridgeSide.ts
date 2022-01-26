@@ -32,12 +32,9 @@ export class SignatureBridgeSide implements IBridgeSide {
 
   public static async createBridgeSide(
     initialGovernor: string,
-    fee: ethers.BigNumberish,
-    expiry: ethers.BigNumberish,
     admin: ethers.Signer
   ): Promise<SignatureBridgeSide> {
     const bridgeFactory = new SignatureBridge__factory(admin);
-    const chainId = await admin.getChainId();
     const deployedBridge = await bridgeFactory.deploy(initialGovernor);
     await deployedBridge.deployed();
     const bridgeSide = new SignatureBridgeSide(deployedBridge, admin);

@@ -102,14 +102,14 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
             address newVerifier = address(bytes20(arguments[4:24]));
             anchor.setVerifier(newVerifier, nonce);
         } else if (functionSig == bytes4(keccak256("updateEdge(uint256,bytes32,uint256)"))) {
-            uint32 sourceChainId = uint32(bytes4(arguments[4:8]));
-            uint32 leafIndex = uint32(bytes4(arguments[8:12]));
-            bytes32 merkleRoot = bytes32(arguments[12:44]);
+            uint256 sourceChainId = uint48(bytes6(arguments[4:10]));
+            uint32 leafIndex = uint32(bytes4(arguments[10:14]));
+            bytes32 merkleRoot = bytes32(arguments[14:46]);
             anchor.updateEdge(sourceChainId, merkleRoot, leafIndex);
         } else if (functionSig == bytes4(keccak256("configureLimits(uint256,uint256)"))) {
-            uint256 _minimalWithdrawalAmount = uint256(bytes32(arguments[4:36]));
-            uint256 _maximumDepositAmount = uint256(bytes32(arguments[36:68]));
-            anchor.configureLimits(_minimalWithdrawalAmount, _maximumDepositAmount);
+            uint256 minimalWithdrawalAmount = uint256(bytes32(arguments[4:36]));
+            uint256 maximumDepositAmount = uint256(bytes32(arguments[36:68]));
+            anchor.configureLimits(minimalWithdrawalAmount, maximumDepositAmount);
         } else {
             revert("Invalid function sig");
         }

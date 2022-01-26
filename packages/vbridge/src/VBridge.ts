@@ -5,7 +5,7 @@ import { PoseidonT3__factory } from "@webb-tools/contracts";
 import Verifier from "./Verifier";
 import { AnchorIdentifier, IAnchor } from "@webb-tools/interfaces";
 import { AnchorHandler, VAnchor } from "@webb-tools/anchors";
-import { Utxo } from "@webb-tools/utils";
+import { getChainIdType, Utxo } from "@webb-tools/utils";
 
 // Deployer config matches the chainId to the signer for that chain
 export type DeployerConfig = Record<number, ethers.Signer>;
@@ -72,10 +72,6 @@ export class VBridge {
   }
 
   public static createVAnchorIdentifier(vAnchorString: string): AnchorIdentifier | null {
-    // const identifyingInfo = anchorString.split('-');
-    // if (identifyingInfo.length != 2) {
-    //   return null;
-    // }
     return {
       chainId: Number(vAnchorString)
     }
@@ -117,8 +113,6 @@ export class VBridge {
       // Create the bridgeSide
       vBridgeInstance = await SignatureBridgeSide.createBridgeSide(
         adminAddress,
-        0,
-        100,
         deployers[chainID],
       );
 
@@ -198,7 +192,7 @@ export class VBridge {
 
       chainGroupedVAnchors.push(vAnchorInstance);
       vAnchors.set(
-          VBridge.createVAnchorIdString({chainId: chainID}),
+          VBridge.createVAnchorIdString({ chainId: chainID }),
           vAnchorInstance
       );
       
@@ -256,7 +250,7 @@ export class VBridge {
     // update the sides
     for (let vAnchor of vAnchorsToUpdate) {
       // get the bridge side which corresponds to this anchor
-      const chainId = await vAnchor.signer.getChainId();
+      const chainId = getChainIdType(await vAnchor.signer.getChainId());
       const resourceID = await vAnchor.createResourceId();
       const vBridgeSide = this.vBridgeSides.get(chainId);
       await vBridgeSide!.executeAnchorProposalWithSig(srcAnchor, resourceID);
@@ -276,8 +270,8 @@ export class VBridge {
   }
 
   public getVAnchor(chainId: number) {
-    let intendedAnchor: IAnchor | undefined = undefined;
-    intendedAnchor = this.vAnchors.get(VBridge.createVAnchorIdString({chainId}));
+    let intendedAnchor: IAnchor = undefined;
+    intendedAnchor = this.vAnchors.get(VBridge.createVAnchorIdString({ chainId }));
     return intendedAnchor;
   }
 
@@ -295,14 +289,14 @@ export class VBridge {
   }
 
   public async transact(
-    inputs:Utxo[], 
-    outputs:Utxo[], 
+    inputs: Utxo[], 
+    outputs: Utxo[], 
     fee: BigNumberish, 
     recipient: string,
     relayer: string,
     signer:ethers.Signer
-    ) {
-    const chainId = await signer.getChainId();
+  ) {
+    const chainId = getChainIdType(await signer.getChainId());
     const signerAddress = await signer.getAddress();
     const vAnchor = this.getVAnchor(chainId);
     if (!vAnchor) {
@@ -311,11 +305,13 @@ export class VBridge {
     vAnchor.setSigner(signer);
 
     while (inputs.length !== 2 && inputs.length < 16) {
-      inputs.push(new Utxo({chainId: BigNumber.from(await signer.getChainId())}));
+      inputs.push(new Utxo({
+        chainId: BigNumber.from(chainId)
+      }));
     }
-    
+
     //do we have to check if amount is greater than 0 before the checks?????
-    //Check that input dest chain is this chain
+    // Check that input dest chain is this chain
     for (let i=0; i<inputs.length; i++) {
       if (inputs[i].chainId.toString() !== chainId.toString()) {
         throw new Error("Trying to spend an input with wrong destination chainId");
@@ -348,7 +344,7 @@ export class VBridge {
     if (userTokenAllowance.lt(publicAmount)) {
       await tokenInstance.approveSpending(vAnchor.contract.address);
     }
-    //Make Merkle proof
+    // Make Merkle proof
     const merkleProof = inputs.map((x) => this.getVAnchor(Number(x.originChainId))!.getMerkleProof(x));
     //console.log((await tokenInstance.getBalance(signerAddress)).toString());
     await vAnchor.bridgedTransact(inputs, outputs, fee, recipient, relayer, merkleProof);
@@ -367,7 +363,7 @@ export class VBridge {
     signer:ethers.Signer
     ) {
     
-    const chainId = await signer.getChainId();
+    const chainId = getChainIdType(await signer.getChainId());
     const signerAddress = await signer.getAddress();
     const vAnchor = this.getVAnchor(chainId);
     if (!vAnchor) {
@@ -376,7 +372,9 @@ export class VBridge {
     vAnchor.setSigner(signer);
 
     while (inputs.length !== 2 && inputs.length < 16) {
-      inputs.push(new Utxo({chainId: BigNumber.from(await signer.getChainId())}));
+      inputs.push(new Utxo({
+        chainId: BigNumber.from(chainId)
+      }));
     }
     //console.log(inputs.length);
     //do we have to check if amount is greater than 0 before the checks?????

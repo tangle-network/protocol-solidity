@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { ZkComponents } from "@webb-tools/utils";
+import { getChainIdType, ZkComponents } from "@webb-tools/utils";
 import { PoseidonT3__factory } from "@webb-tools/contracts";
 import { MintableToken, GovernedTokenWrapper } from "@webb-tools/tokens";
 import { BridgeInput, DeployerConfig, IAnchor, IAnchorDeposit } from "@webb-tools/interfaces";
@@ -110,8 +110,6 @@ export class SignatureBridge {
       // Create the bridgeSide
       const bridgeInstance = await SignatureBridgeSide.createBridgeSide(
         adminAddress,
-        0,
-        100,
         deployers[chainID],
       );
 
@@ -245,7 +243,7 @@ export class SignatureBridge {
     for (let anchor of anchorsToUpdate) {
       // get the bridge side which corresponds to this anchor
       const resourceID = await anchor.createResourceId();
-      const chainId = await anchor.signer.getChainId();
+      const chainId = getChainIdType(await anchor.signer.getChainId());
       const bridgeSide = this.bridgeSides.get(chainId);
       await bridgeSide!.executeAnchorProposalWithSig(srcAnchor, resourceID);
     }
@@ -287,7 +285,7 @@ export class SignatureBridge {
   }
 
   public async deposit(destinationChainId: number, anchorSize: ethers.BigNumberish, signer: ethers.Signer) {
-    const chainId = await signer.getChainId();
+    const chainId = getChainIdType(await signer.getChainId());
     const signerAddress = await signer.getAddress();
     const anchor = this.getAnchor(chainId, anchorSize);
     if (!anchor) {
@@ -324,7 +322,7 @@ export class SignatureBridge {
   }
 
   public async wrapAndDeposit(destinationChainId: number, tokenAddress: string, anchorSize: ethers.BigNumberish, signer: ethers.Signer) {
-    const chainId = await signer.getChainId();
+    const chainId = getChainIdType(await signer.getChainId());
     const signerAddress = await signer.getAddress();
     const anchor = this.getAnchor(chainId, anchorSize);
     if (!anchor) {

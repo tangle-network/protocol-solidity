@@ -21,10 +21,10 @@ import {
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
-import { Verifier } from '@webb-tools/bridges'
-import { fetchComponentsFromFilePaths, ZkComponents, toFixedHex } from '@webb-tools/utils';
-import { Anchor, AnchorProxy } from '@webb-tools/anchors';
-import { MerkleTree } from '@webb-tools/merkle-tree';
+import { Verifier } from '../../packages/bridges/src'
+import { fetchComponentsFromFilePaths, ZkComponents, toFixedHex } from '../../packages/utils/src';
+import { Anchor, AnchorProxy } from '../../packages/anchors/src';
+import { MerkleTree } from '../../packages/merkle-tree/src';
 
 const { NATIVE_AMOUNT } = process.env
 const snarkjs = require('snarkjs')
