@@ -119,14 +119,14 @@ describe('VAnchor for 2 max edges', () => {
   })
 
   describe('#constructor', () => {
-    it'should initialize', async () => {
+    it('should initialize', async () => {
       const maxEdges = await anchor.contract.maxEdges();
       assert.strictEqual(maxEdges.toString(), `${MAX_EDGES}`);
     });
   });
 
   describe('snark proof native verification on js side', () => {
-    it'should work', async () => {
+    it('should work', async () => {
       const relayer = "0x2111111111111111111111111111111111111111";
       const extAmount = 1e7;
       const isL1Withdrawal = false;
@@ -168,7 +168,7 @@ describe('VAnchor for 2 max edges', () => {
 
     });
 
-    it'poseidon4 isolated gadget test', async () => {
+    it('poseidon4 isolated gadget test', async () => {
       const relayer = "0x2111111111111111111111111111111111111111";
       const extAmount = 1e7;
       const isL1Withdrawal = false;
@@ -203,7 +203,7 @@ describe('VAnchor for 2 max edges', () => {
   })
 
   describe ('Setting Handler/Verifier Address Negative Tests', () => {
-    it'should revert (setting handler) with improper nonce', async() => {
+    it('should revert (setting handler) with improper nonce', async() => {
       const signers = await ethers.getSigners();
       await TruffleAssert.reverts(
         anchor.contract.setHandler(signers[1].address, 0),
@@ -215,7 +215,7 @@ describe('VAnchor for 2 max edges', () => {
       )
     });
 
-    it'should revert (setting verifier) with improper nonce', async() => {
+    it('should revert (setting verifier) with improper nonce', async() => {
       const signers = await ethers.getSigners();
       await TruffleAssert.reverts(
         anchor.contract.setVerifier(signers[1].address, 0),
@@ -229,7 +229,7 @@ describe('VAnchor for 2 max edges', () => {
   })
 
   describe('#transact', () => {
-    it'should transact', async () => {
+    it('should transact', async () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = new Utxo({
@@ -246,7 +246,7 @@ describe('VAnchor for 2 max edges', () => {
       );
     })
 
-    it'should process fee on deposit', async () => {
+    it('should process fee on deposit', async () => {
       const signers = await ethers.getSigners();
       const alice= signers[0];
 
@@ -278,7 +278,7 @@ describe('VAnchor for 2 max edges', () => {
       assert.strictEqual((await token.balanceOf(relayer)).toString(), BigNumber.from(fee).toString());
     })
     
-    it'should spend input utxo and create output utxo', async () => {
+    it('should spend input utxo and create output utxo', async () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = new Utxo({
@@ -307,7 +307,7 @@ describe('VAnchor for 2 max edges', () => {
       );
     })
 
-    it'should spend input utxo and split', async () => {
+    it('should spend input utxo and split', async () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 10;
       const aliceDepositUtxo = new Utxo({
@@ -342,7 +342,7 @@ describe('VAnchor for 2 max edges', () => {
       );
     })
 
-    it'should join and spend', async () => {
+    it('should join and spend', async () => {
       const aliceDepositAmount1 = 1e7;
       const aliceDepositUtxo1 = new Utxo({
         chainId: BigNumber.from(chainID),
@@ -384,7 +384,7 @@ describe('VAnchor for 2 max edges', () => {
       );
     })
 
-    it'should join and spend with 16 inputs', async () => {
+    it('should join and spend with 16 inputs', async () => {
       const aliceDepositAmount1 = 1e7;
       const aliceDepositUtxo1 = new Utxo({
         chainId: BigNumber.from(chainID),
@@ -440,7 +440,7 @@ describe('VAnchor for 2 max edges', () => {
       );
     }).timeout(40000);
 
-    it'should withdraw', async () => {
+    it('should withdraw', async () => {
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = new Utxo({
         chainId: BigNumber.from(chainID),
@@ -473,7 +473,7 @@ describe('VAnchor for 2 max edges', () => {
       assert.strictEqual(aliceWithdrawAmount.toString(), await (await token.balanceOf(aliceETHAddress)).toString());
     }).timeout(40000);
 
-    it'should prevent double spend', async () => {
+    it('should prevent double spend', async () => {
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = new Utxo({
         chainId: BigNumber.from(chainID),
@@ -510,7 +510,7 @@ describe('VAnchor for 2 max edges', () => {
       )
     });
 
-    it'should prevent increasing UTXO amount without depositing', async () => {
+    it('should prevent increasing UTXO amount without depositing', async () => {
       const signers = await ethers.getSigners();
       const alice= signers[0];
 
@@ -552,7 +552,7 @@ describe('VAnchor for 2 max edges', () => {
       )
     });
 
-    it'should reject tampering with public inputs', async () => {
+    it('should reject tampering with public inputs', async () => {
       const relayer = "0x2111111111111111111111111111111111111111";
       const extAmount = 1e7;
       const isL1Withdrawal = false;
@@ -735,7 +735,7 @@ describe('VAnchor for 2 max edges', () => {
       );
     });
 
-    it'should be compliant', async function () {
+    it('should be compliant', async function () {
       // basically verifier should check if a commitment and a nullifier hash are on chain
       const [sender] = await ethers.getSigners();
 
@@ -807,7 +807,7 @@ describe('VAnchor for 2 max edges', () => {
     })
   })
   describe('#wrapping tests', () => {
-    it'should wrap and deposit', async () => {
+    it('should wrap and deposit', async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
       const sender = wallet;
@@ -864,7 +864,7 @@ describe('VAnchor for 2 max edges', () => {
       assert.strictEqual(balWrappedTokenAfterDepositSender.toString(), '0');
     });
 
-    it'should withdraw and unwrap', async () => {
+    it('should withdraw and unwrap', async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
       const sender = wallet;
@@ -934,7 +934,7 @@ describe('VAnchor for 2 max edges', () => {
       assert.strictEqual(balTokenBeforeDepositSender.toString(), balTokenAfterWithdrawAndUnwrapSender.toString());
     });
 
-    it'wrapping fee should work correctly with transactWrap', async () => {
+    it('wrapping fee should work correctly with transactWrap', async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
       const sender = wallet;
@@ -1018,7 +1018,7 @@ describe('VAnchor for 2 max edges', () => {
       assert.strictEqual(balUnwrappedTokenAfterDepositWrapper.sub(balUnwrappedTokenAfterWithdrawWrapper).toString(), BigNumber.from(1e7).toString());
     });
 
-    it'non-governor setting fee should fail', async () => {
+    it('non-governor setting fee should fail', async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
       const sender = wallet;
@@ -1038,7 +1038,7 @@ describe('VAnchor for 2 max edges', () => {
       );
     });
 
-    it'fee percentage cannot be greater than 100', async () => {
+    it('fee percentage cannot be greater than 100', async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
       const sender = wallet;
@@ -1057,7 +1057,7 @@ describe('VAnchor for 2 max edges', () => {
       );
     });
 
-    it'fee percentage cannot be negative', async () => {
+    it('fee percentage cannot be negative', async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
       const sender = wallet;
@@ -1075,7 +1075,7 @@ describe('VAnchor for 2 max edges', () => {
       );
     });
 
-    it'fee percentage cannot be non-integer', async () => {
+    it('fee percentage cannot be non-integer', async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
       const sender = wallet;
