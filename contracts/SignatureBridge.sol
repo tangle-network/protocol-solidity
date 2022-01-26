@@ -118,6 +118,7 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
         address tokenAddress;
         address payable to;
         uint256 amountToRescue;
+        bytes4 functionSig;
 
         bytes calldata resourceIDBytes = data[0:32];
         // Parse chain ID from the resource ID
@@ -125,11 +126,13 @@ contract SignatureBridge is Pausable, SafeMath, Governable {
         // Verify current chain matches chain ID from resource ID
         require(uint32(getChainId()) == uint32(executionChainID), "executing on wrong chain");
 
+        functionSig = bytes4(data[32:36]);
         nonce = uint32(bytes4(data[36:40]));
         tokenAddress = address(bytes20(data[40:60]));
         to = payable(address(bytes20(data[60:80])));
         amountToRescue = uint256(bytes32(data[80:112]));
 
+        require(functionSig == bytes4(keccak256("rescueTokens(bytes,bytes)")), "wrong function sig");
         require(to != address(0), "Cannot send liquidity to zero address");
         require(tokenAddress != address(this), "Cannot rescue wrapped asset");
         require(rescueTokensNonce < nonce, "Invalid nonce");

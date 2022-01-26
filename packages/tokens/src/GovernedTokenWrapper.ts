@@ -100,7 +100,6 @@ export class GovernedTokenWrapper {
   }
 
   public async getFeeRecipientProposalData(feeRecipient: string): Promise<string> {
-      //First 4 bytes of keccak hash is encoded function sig...
       const resourceID = await this.createResourceId();
       const functionSig = generateFunctionSigHash(this.FEE_RECIPIENT_SIGNATURE);
       const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
@@ -111,5 +110,4 @@ export class GovernedTokenWrapper {
         toHex(nonce,4).substr(2) + 
         feeRecipient.padEnd(42, '0').slice(2);
   }
-
 }
