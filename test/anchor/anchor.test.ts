@@ -655,7 +655,7 @@ describe('Anchor for 2 max edges', () => {
 
       // create a deposit on the anchor already setup
       const { deposit, index } = await anchor.deposit();
-      const refreshedDestId = await wallet.getChainId();
+      const refreshedDestId = getChainIdType(await wallet.getChainId());
       const refreshedDeposit = Anchor.generateDeposit(refreshedDestId);
 
       const { merkleRoot, pathElements, pathIndices } = anchor.tree.path(0);
