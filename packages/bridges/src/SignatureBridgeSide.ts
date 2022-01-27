@@ -172,11 +172,7 @@ export class SignatureBridgeSide implements IBridgeSide {
   public async setResourceWithSignature(anchor: IAnchor): Promise<string> {
     if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
     const resourceId = await anchor.createResourceId();
-    const unsignedData = this.anchorHandler.contract.address + resourceId.slice(2) + anchor.contract.address.slice(2);
-    const unsignedMsg = ethers.utils.arrayify(ethers.utils.keccak256(unsignedData).toString());
-    const sig = await this.signingSystemSignFn(unsignedMsg);
-    const tx = await this.contract.adminSetResourceWithSignature(this.anchorHandler.contract.address, resourceId, anchor.contract.address, sig);
-    await tx.wait();
+    await this.executeAdminSetResourceProposalWithSig(this.anchorHandler.contract.address, resourceId, anchor.contract.address);
     return resourceId;
   }
 
@@ -184,10 +180,7 @@ export class SignatureBridgeSide implements IBridgeSide {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
 
     const resourceId = await governedToken.createResourceId();
-    const unsignedData = this.tokenHandler.contract.address + resourceId.slice(2) + governedToken.contract.address.slice(2);
-    const unsignedMsg = ethers.utils.arrayify(ethers.utils.keccak256(unsignedData).toString());
-    const sig = await this.signingSystemSignFn(unsignedMsg);
-    await this.contract.adminSetResourceWithSignature(this.tokenHandler.contract.address, resourceId, governedToken.contract.address, sig);
+    await this.executeAdminSetResourceProposalWithSig(this.tokenHandler.contract.address, resourceId, governedToken.contract.address);
     return resourceId;
   }
 
@@ -198,6 +191,20 @@ export class SignatureBridgeSide implements IBridgeSide {
     const receipt = await tx.wait();
     
     return receipt;
+  }
+
+  public async executeAdminSetResourceProposalWithSig(handlerAddress: string, newResourceID: string, executionContextAddress: string) {
+    if (!this.bridgeHandler) throw this.BRIDGE_HANDLER_MISSING_ERROR;
+
+    const proposalData = await this.getAdminSetResourceProposalData(handlerAddress, newResourceID, executionContextAddress);
+    return this.execute(proposalData);
+  }
+
+  public async executeRescueTokensProposalWithSig(tokenAddress: string, to: string, amountToRescue: BigNumberish) {
+    if (!this.bridgeHandler) throw this.BRIDGE_HANDLER_MISSING_ERROR;
+
+    const proposalData = await this.getRescueTokensProposalData(tokenAddress, to, amountToRescue);
+    return this.execute(proposalData);
   }
 
   public async executeHandlerProposalWithSig(anchor: IAnchor, newHandler: string) {

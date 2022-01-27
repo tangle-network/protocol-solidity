@@ -139,6 +139,7 @@ export class SignatureBridge {
       let tokenInstance: GovernedTokenWrapper = await GovernedTokenWrapper.createGovernedTokenWrapper(
         `webbETH-test-1`,
         `webbETH-test-1`,
+        bridgeInstance.contract.address,
         await deployers[chainID].getAddress(),
         '10000000000000000000000000',
         allowedNative,
@@ -213,7 +214,8 @@ export class SignatureBridge {
   }
 
   // The setPermissions method accepts initialized bridgeSide and anchors.
-  // it creates the anchor handler and sets the appropriate permissions
+  // it creates the anchor 
+  // handler and sets the appropriate permissions
   // for the bridgeSide/AnchorHandler/anchor
   public static async setPermissions(bridgeSide: SignatureBridgeSide, anchors: IAnchor[]): Promise<void> {
     for (let anchor of anchors) {
