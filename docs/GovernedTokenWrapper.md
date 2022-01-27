@@ -630,6 +630,23 @@ function setFee(uint8 _feePercentage, uint256 nonce) external nonpayable
 | _feePercentage | uint8 | undefined
 | nonce | uint256 | undefined
 
+### setFeeRecipient
+
+```solidity
+function setFeeRecipient(address payable _feeRecipient, uint256 nonce) external nonpayable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _feeRecipient | address payable | undefined
+| nonce | uint256 | undefined
+
 ### setGovernor
 
 ```solidity

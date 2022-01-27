@@ -25,7 +25,7 @@ contract GovernedTokenWrapper is TokenWrapper {
     uint256 public wrappingLimit;
     uint256 public proposalNonce = 0;
 
-    constructor(string memory name, string memory symbol, address _governor, uint256 _limit, bool _isNativeAllowed) TokenWrapper(name, symbol) {
+    constructor(string memory name, string memory symbol, address payable _feeRecipient, address _governor, uint256 _limit, bool _isNativeAllowed) TokenWrapper(name, symbol, _feeRecipient) {
         governor = _governor;
         wrappingLimit = _limit;
         isNativeAllowed = _isNativeAllowed;
@@ -84,6 +84,14 @@ contract GovernedTokenWrapper is TokenWrapper {
         require(proposalNonce < nonce, "Invalid nonce");
         require(nonce <= proposalNonce + 1, "Nonce must increment by 1");
         feePercentage = _feePercentage;
+        proposalNonce = nonce;
+    }
+
+    function setFeeRecipient(address payable _feeRecipient, uint256 nonce) public onlyGovernor {
+        require(proposalNonce < nonce, "Invalid nonce");
+        require(nonce <= proposalNonce + 1, "Nonce must increment by 1");
+        require(_feeRecipient != address(0), "Fee Recipient cannot be zero address");
+        feeRecipient = _feeRecipient;
         proposalNonce = nonce;
     }
 

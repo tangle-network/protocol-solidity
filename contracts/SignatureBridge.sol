@@ -13,13 +13,14 @@ import "./utils/SafeCast.sol";
 import "./utils/Governable.sol";
 import "./utils/ChainIdWithType.sol";
 import "./interfaces/IExecutor.sol";
+import "./interfaces/ISignatureBridge.sol";
 import "hardhat/console.sol";
 
 /**
     @title Facilitates deposits, creation and voting of deposit proposals, and deposit executions.
     @author ChainSafe Systems & Webb Technologies.
  */
-contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType {
+contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType, ISignatureBridge {
     // destinationChainID => number of deposits
     mapping(uint256 => uint64) public _counts;
     // resourceID => handler address
@@ -48,16 +49,18 @@ contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType {
         @param resourceID Secondary resourceID begin mapped to a handler address.
         @param executionContextAddress Address of contract to be called when a proposal is ready to execute on it
      */
-    function adminSetResourceWithSignature(
+    function adminSetResource(
         address handlerAddress,
         bytes32 resourceID,
         address executionContextAddress,
-        bytes memory sig
-    ) external signedByGovernor(keccak256(abi.encodePacked(handlerAddress, resourceID, executionContextAddress)), sig){
+        uint256 nonce
+    ) override external {
         _resourceIDToHandlerAddress[resourceID] = handlerAddress;
         IExecutor handler = IExecutor(handlerAddress);
         handler.setResource(resourceID, executionContextAddress);
     }
+
+    function rescueTokens(address tokenAddress, address payable to, uint256 amountToRescue, uint256 nonce) override external {}
 
     /**
         @notice Executes a proposal signed by the governor.
@@ -66,7 +69,7 @@ contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType {
     function executeProposalWithSignature(
         bytes calldata data,
         bytes memory sig
-    ) external signedByGovernor(keccak256(data), sig) {
+    ) override external signedByGovernor(keccak256(data), sig) {
         //Parse resourceID from the data
         bytes calldata resourceIDBytes = data[0:32];
         bytes32 resourceID = bytes32(resourceIDBytes);
@@ -78,4 +81,9 @@ contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType {
         IExecutor executionHandler = IExecutor(handler);
         executionHandler.executeProposal(resourceID, data);
     }
+
+    /**
+        @notice Function that allows SignatureBridge contract to receive funds and act as a treasury
+     */
+    receive() external payable {}
 }

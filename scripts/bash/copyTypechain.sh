@@ -7,6 +7,7 @@ mkdir -p packages/contracts/src/factories
 cp ./typechain/FixedDepositAnchor.d.ts ./packages/contracts/src/FixedDepositAnchor.d.ts
 cp ./typechain/AnchorBase.d.ts ./packages/contracts/src/AnchorBase.d.ts
 cp ./typechain/AnchorHandler.d.ts ./packages/contracts/src/AnchorHandler.d.ts
+cp ./typechain/BridgeHandler.d.ts ./packages/contracts/src/BridgeHandler.d.ts
 cp ./typechain/AnchorProxy.d.ts ./packages/contracts/src/AnchorProxy.d.ts
 cp ./typechain/SignatureBridge.d.ts ./packages/contracts/src/SignatureBridge.d.ts
 cp ./typechain/common.d.ts ./packages/contracts/src/common.d.ts
@@ -36,6 +37,7 @@ cp ./typechain/Verifier816.d.ts ./packages/contracts/src/Verifier816.d.ts
 cp ./typechain/factories/FixedDepositAnchor__factory.ts ./packages/contracts/src/factories/FixedDepositAnchor__factory.ts
 cp ./typechain/factories/AnchorBase__factory.ts ./packages/contracts/src/factories/AnchorBase__factory.ts
 cp ./typechain/factories/AnchorHandler__factory.ts ./packages/contracts/src/factories/AnchorHandler__factory.ts
+cp ./typechain/factories/BridgeHandler__factory.ts ./packages/contracts/src/factories/BridgeHandler__factory.ts
 cp ./typechain/factories/AnchorProxy__factory.ts ./packages/contracts/src/factories/AnchorProxy__factory.ts
 cp ./typechain/factories/SignatureBridge__factory.ts ./packages/contracts/src/factories/SignatureBridge__factory.ts
 cp ./typechain/factories/ERC20__factory.ts ./packages/contracts/src/factories/ERC20__factory.ts

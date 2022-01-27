@@ -24,7 +24,7 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     "EVM_CHAIN_ID_TYPE()": FunctionFragment;
     "_counts(uint256)": FunctionFragment;
     "_resourceIDToHandlerAddress(bytes32)": FunctionFragment;
-    "adminSetResourceWithSignature(address,bytes32,address,bytes)": FunctionFragment;
+    "adminSetResource(address,bytes32,address,uint256)": FunctionFragment;
     "checkPubKey(bytes)": FunctionFragment;
     "executeProposalWithSignature(bytes,bytes)": FunctionFragment;
     "getChainId()": FunctionFragment;
@@ -36,6 +36,7 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     "recover(bytes,bytes)": FunctionFragment;
     "refreshNonce()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
+    "rescueTokens(address,address,uint256,uint256)": FunctionFragment;
     "transferOwnership(address,uint32)": FunctionFragment;
     "transferOwnershipWithSignature(address,uint32,bytes)": FunctionFragment;
     "transferOwnershipWithSignaturePubKey(bytes,uint32,bytes)": FunctionFragment;
@@ -55,8 +56,8 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "adminSetResourceWithSignature",
-    values: [string, BytesLike, string, BytesLike]
+    functionFragment: "adminSetResource",
+    values: [string, BytesLike, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "checkPubKey",
@@ -97,6 +98,10 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "rescueTokens",
+    values: [string, string, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "transferOwnership",
     values: [string, BigNumberish]
   ): string;
@@ -123,7 +128,7 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "adminSetResourceWithSignature",
+    functionFragment: "adminSetResource",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -153,6 +158,10 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "rescueTokens",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -252,11 +261,11 @@ export class SignatureBridge extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    adminSetResourceWithSignature(
+    adminSetResource(
       handlerAddress: string,
       resourceID: BytesLike,
       executionContextAddress: string,
-      sig: BytesLike,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -299,6 +308,14 @@ export class SignatureBridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    rescueTokens(
+      tokenAddress: string,
+      to: string,
+      amountToRescue: BigNumberish,
+      nonce: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     transferOwnership(
       newOwner: string,
       nonce: BigNumberish,
@@ -337,11 +354,11 @@ export class SignatureBridge extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  adminSetResourceWithSignature(
+  adminSetResource(
     handlerAddress: string,
     resourceID: BytesLike,
     executionContextAddress: string,
-    sig: BytesLike,
+    nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -378,6 +395,14 @@ export class SignatureBridge extends BaseContract {
   refreshNonce(overrides?: CallOverrides): Promise<number>;
 
   renounceOwnership(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  rescueTokens(
+    tokenAddress: string,
+    to: string,
+    amountToRescue: BigNumberish,
+    nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -419,11 +444,11 @@ export class SignatureBridge extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    adminSetResourceWithSignature(
+    adminSetResource(
       handlerAddress: string,
       resourceID: BytesLike,
       executionContextAddress: string,
-      sig: BytesLike,
+      nonce: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -460,6 +485,14 @@ export class SignatureBridge extends BaseContract {
     refreshNonce(overrides?: CallOverrides): Promise<number>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
+    rescueTokens(
+      tokenAddress: string,
+      to: string,
+      amountToRescue: BigNumberish,
+      nonce: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     transferOwnership(
       newOwner: string,
@@ -538,11 +571,11 @@ export class SignatureBridge extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    adminSetResourceWithSignature(
+    adminSetResource(
       handlerAddress: string,
       resourceID: BytesLike,
       executionContextAddress: string,
-      sig: BytesLike,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -582,6 +615,14 @@ export class SignatureBridge extends BaseContract {
     refreshNonce(overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    rescueTokens(
+      tokenAddress: string,
+      to: string,
+      amountToRescue: BigNumberish,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -627,11 +668,11 @@ export class SignatureBridge extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    adminSetResourceWithSignature(
+    adminSetResource(
       handlerAddress: string,
       resourceID: BytesLike,
       executionContextAddress: string,
-      sig: BytesLike,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -671,6 +712,14 @@ export class SignatureBridge extends BaseContract {
     refreshNonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     renounceOwnership(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    rescueTokens(
+      tokenAddress: string,
+      to: string,
+      amountToRescue: BigNumberish,
+      nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
