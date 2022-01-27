@@ -24,6 +24,9 @@ export { SignatureBridge__factory } from "./factories/SignatureBridge__factory";
 export type { AnchorHandler } from "./AnchorHandler";
 export { AnchorHandler__factory } from "./factories/AnchorHandler__factory";
 
+export type { BridgeHandler } from "./BridgeHandler";
+export { BridgeHandler__factory } from "./factories/BridgeHandler__factory";
+
 export type { HandlerHelpers } from "./HandlerHelpers";
 export { HandlerHelpers__factory } from "./factories/HandlerHelpers__factory";
 
