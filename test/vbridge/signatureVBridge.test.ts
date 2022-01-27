@@ -33,7 +33,6 @@ describe('multichain tests for signature vbridge', () => {
     let tokenAbbreviation: string = 'EXIST';
     let tokenInstance1: MintableToken;
     let tokenInstance2: MintableToken;
-    let tokenInstance3: MintableToken;
 
     let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:1337');
     ganacheProvider2.pollingInterval = 1;
@@ -44,14 +43,10 @@ describe('multichain tests for signature vbridge', () => {
 
     before('construction-tests', async () => {
       const signers = await ethers.getSigners();
-
       await ganacheProvider2.ready;
-
       // Create a token to test bridge construction support for existing tokens
       tokenInstance1 = await MintableToken.createToken(tokenName, tokenAbbreviation, signers[7]);
       tokenInstance2 = await MintableToken.createToken(tokenName, tokenAbbreviation, ganacheWallet2);
-      tokenInstance3 = await MintableToken.createToken(tokenName, tokenAbbreviation, ganacheWallet3);
-
       await tokenInstance1.mintTokens(signers[2].address, '100000000000000000000000000');
     });
 
