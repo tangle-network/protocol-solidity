@@ -2,6 +2,7 @@ import { BigNumberish, ethers } from 'ethers';
 import { randomBN, poseidonHash, toBuffer } from './utils';
 import { Keypair } from './Keypair';
 import { RootInfo } from './types';
+import { getChainIdType } from '.';
 
 const { BigNumber } = ethers
 const F = require('circomlibjs').babyjub.F;
@@ -30,7 +31,7 @@ export class Utxo {
     amount = BigNumber.from(0),
     keypair = new Keypair(),
     blinding = randomBN(),
-    originChainId = BigNumber.from(31337),
+    originChainId = BigNumber.from(getChainIdType(31337)),
     index = null
   } = {}) {
     this.chainId = BigNumber.from(chainId);

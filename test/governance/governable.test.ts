@@ -5,7 +5,7 @@
  const assert = require('assert');
  const path = require('path');
  import { ethers } from 'hardhat';
- import { toHex } from '@webb-tools/utils';
+ import { toHex } from '../../packages/utils/src';
  const TruffleAssert = require('truffle-assertions');
  
  // Convenience wrapper classes for contract classes

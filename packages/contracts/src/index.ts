@@ -18,9 +18,6 @@ export { AnchorBase__factory } from "./factories/AnchorBase__factory";
 export type { LinkableAnchor } from "./LinkableAnchor";
 export { LinkableAnchor__factory } from "./factories/LinkableAnchor__factory";
 
-export type { Bridge } from "./Bridge";
-export { Bridge__factory } from "./factories/Bridge__factory";
-
 export type { SignatureBridge } from "./SignatureBridge";
 export { SignatureBridge__factory } from "./factories/SignatureBridge__factory";
 

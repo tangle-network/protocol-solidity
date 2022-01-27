@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { toHex } from '@webb-tools/utils';
+import { getChainIdType, toHex } from '@webb-tools/utils';
 import { GovernedTokenWrapper as GovernedTokenWrapperContract, GovernedTokenWrapper__factory } from '@webb-tools/contracts';
 
 export class GovernedTokenWrapper {
@@ -50,7 +50,7 @@ export class GovernedTokenWrapper {
   }
 
   public async createResourceId(): Promise<string> {
-    return toHex(this.contract.address + toHex((await this.signer.getChainId()), 4).substr(2), 32);
+    return toHex(this.contract.address + toHex(getChainIdType(await this.signer.getChainId()), 6).substr(2), 32);
   }
 
   public async getAddTokenProposalData(tokenAddress: string): Promise<string> {

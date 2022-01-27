@@ -12,7 +12,7 @@ import {
   GovernedTokenWrapper as WrappedToken,
   GovernedTokenWrapper__factory as WrappedTokenFactory,
   PoseidonT3__factory
-} from '@webb-tools/contracts';
+} from '../../packages/contracts';
 
 // These contracts are not included in the package, so can use generated typechain
 import {
@@ -21,14 +21,14 @@ import {
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
-import { toFixedHex } from '@webb-tools/utils';
+import { getChainIdType, toFixedHex } from '../../packages/utils/src';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
-import { MerkleTree } from '@webb-tools/merkle-tree';
-import { Utxo, poseidonHash, poseidonHash2 } from '@webb-tools/utils';
-import { VAnchor } from '@webb-tools/anchors';
-import { Verifier } from "@webb-tools/vbridge"
+import { MerkleTree } from '../../packages/merkle-tree/src';
+import { Utxo, poseidonHash, poseidonHash2 } from '../../packages/utils/src';
+import { VAnchor } from '../../packages/anchors/src';
+import { Verifier } from "../../packages/vbridge"
 
 const { NATIVE_AMOUNT } = process.env
 const BN = require('bn.js');
@@ -40,17 +40,15 @@ describe('VAnchor for 2 max edges', () => {
   let anchor: VAnchor;
 
   const levels = 5;
-  const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
   let tree: MerkleTree;
   let fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
-  const refund = BigInt((new BN('0')).toString()); 
   let recipient = "0x1111111111111111111111111111111111111111";
   let verifier: Verifier;
   let hasherInstance: any;
   let token: Token;
   let wrappedToken: WrappedToken;
   let tokenDenomination = '1000000000000000000' // 1 ether
-  const chainID = 31337;
+  const chainID = getChainIdType(31337);
   const MAX_EDGES = 1;
   let create2InputWitness: any;
   let create16InputWitness: any;
@@ -189,11 +187,11 @@ describe('VAnchor for 2 max edges', () => {
       // const input = await anchor.generateWitnessInputPoseidon4(
      
       // );
-      const output = new Utxo({chainId: BigNumber.from(31337), amount: BigNumber.from(0), 
+      const output = new Utxo({chainId: BigNumber.from(chainID), amount: BigNumber.from(0), 
         blinding: BigNumber.from(13)})
       const input = {
         // data for 2 transaction outputs
-      outChainID: 31337,
+      outChainID: chainID,
       outAmount: 0,
       outPubkey: output.keypair.pubkey,
       outBlinding: toFixedHex(13),
@@ -778,7 +776,7 @@ describe('VAnchor for 2 max edges', () => {
       // nullifier = hash(commitment, merklePath, sign(merklePath, privKey))
       const dataForVerifier = {
         commitment: {
-          chainId: 31337,
+          chainId: chainID,
           amount: aliceDepositUtxo.amount,
           pubkey: aliceDepositUtxo.keypair.pubkey,
           blinding: aliceDepositUtxo.blinding,

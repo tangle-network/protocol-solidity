@@ -8,12 +8,12 @@
  const TruffleAssert = require('truffle-assertions');
  
  // Convenience wrapper classes for contract classes
- import { Verifier, SignatureBridgeSide } from '@webb-tools/bridges';
- import { Anchor, AnchorHandler } from '@webb-tools/anchors';
- import { MintableToken } from '@webb-tools/tokens';
- import { fetchComponentsFromFilePaths, ZkComponents } from '@webb-tools/utils';
- import { PoseidonT3__factory } from '@webb-tools/contracts';
- import { GovernedTokenWrapper, TokenWrapperHandler } from '@webb-tools/tokens';
+ import { Verifier, SignatureBridgeSide } from '../../packages/bridges/src';
+ import { Anchor, AnchorHandler } from '../../packages/anchors/src';
+ import { MintableToken } from '../../packages/tokens/src';
+ import { fetchComponentsFromFilePaths, ZkComponents } from '../../packages/utils/src';
+ import { PoseidonT3__factory } from '../../packages/contracts';
+ import { GovernedTokenWrapper, TokenWrapperHandler } from '../../packages/tokens/src';
  
  describe('SignatureBridgeSideConstruction', () => {
  
@@ -31,14 +31,14 @@
      const signers = await ethers.getSigners();
      const initialGovernor = signers[1];
      const admin = signers[1];
-     const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, 0, 100, admin);
+     const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, admin);
    })
 
    it('should set resource with signature', async () => {
     const signers = await ethers.getSigners();
     const initialGovernor = signers[1];
     const admin = signers[1];
-    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, 0, 100, admin);
+    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, admin);
 
     // Create the Hasher and Verifier for the chain
     const hasherFactory = new PoseidonT3__factory(admin);
@@ -77,7 +77,7 @@
     const signers = await ethers.getSigners();
     const initialGovernor = signers[1];
     const admin = signers[1];
-    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, 0, 100, admin);
+    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, admin);
 
     // Create the Hasher and Verifier for the chain
     const hasherFactory = new PoseidonT3__factory(admin);
@@ -129,7 +129,7 @@
     const signers = await ethers.getSigners();
     const initialGovernor = signers[1];
     const admin = signers[1];
-    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, 0, 100, admin);
+    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, admin);
 
     //Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
@@ -158,7 +158,7 @@
     const signers = await ethers.getSigners();
     const initialGovernor = signers[1];
     const admin = signers[1];
-    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, 0, 100, admin);
+    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, admin);
 
     //Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
@@ -190,7 +190,7 @@
     const signers = await ethers.getSigners();
     const initialGovernor = signers[1];
     const admin = signers[1];
-    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, 0, 100, admin);
+    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, admin);
 
     //Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
@@ -225,7 +225,7 @@
     const signers = await ethers.getSigners();
     const initialGovernor = signers[1];
     const admin = signers[1];
-    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, 0, 100, admin);
+    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, admin);
 
     //Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
@@ -270,7 +270,7 @@
     const signers = await ethers.getSigners();
     const initialGovernor = signers[1];
     const admin = signers[1];
-    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, 0, 100, admin);
+    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, admin);
 
     //Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
@@ -322,7 +322,7 @@ assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '2
     const signers = await ethers.getSigners();
     const initialGovernor = signers[1];
     const admin = signers[1];
-    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, 0, 100, admin);
+    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, admin);
 
     // Create the Hasher and Verifier for the chain
     const hasherFactory = new PoseidonT3__factory(admin);

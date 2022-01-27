@@ -7,10 +7,11 @@ pragma solidity ^0.8.0;
 
 import "../trees/MerkleTreePoseidon.sol";
 import "../interfaces/IVerifier.sol";
+import "../utils/ChainIdWithType.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "hardhat/console.sol";
 
-abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard {
+abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard, ChainIdWithType {
   address public handler;
 
   uint8 public immutable maxEdges;
@@ -152,12 +153,6 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard {
   modifier onlyHandler()  {
     require(msg.sender == handler, 'sender is not the handler');
     _;
-  }
-
-  function getChainId() public view returns (uint) {
-    uint chainId;
-    assembly { chainId := chainid() }
-    return chainId;
   }
 
   function hasEdge(uint256 _chainID) external view returns (bool) {

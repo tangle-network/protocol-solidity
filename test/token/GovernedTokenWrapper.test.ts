@@ -7,7 +7,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
 
 // Convenience wrapper classes for contract classes
-import { ERC20 as ERC20Class, GovernedTokenWrapper as GovernedTokenWrapperClass } from '@webb-tools/tokens';
+import { ERC20 as ERC20Class, GovernedTokenWrapper as GovernedTokenWrapperClass } from '../../packages/tokens/src';
 
 describe('GovernedTokenWrapper', () => {
   let token: ERC20Class;

@@ -22,10 +22,10 @@ import {
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
-import { Verifier } from '@webb-tools/bridges';
-import { Anchor } from '@webb-tools/anchors';
-import { MerkleTree } from '@webb-tools/merkle-tree';
-import { fetchComponentsFromFilePaths, ZkComponents, toFixedHex } from '@webb-tools/utils';
+import { Verifier } from '../../packages/bridges/src';
+import { Anchor } from '../../packages/anchors/src';
+import { MerkleTree } from '../../packages/merkle-tree/src';
+import { fetchComponentsFromFilePaths, ZkComponents, toFixedHex, getChainIdType } from '../../packages/utils/src';
 
 const { NATIVE_AMOUNT } = process.env
 const snarkjs = require('snarkjs')
@@ -48,7 +48,7 @@ describe('Anchor for 2 max edges', () => {
   let token: Token;
   let wrappedToken: WrappedToken;
   let tokenDenomination = '1000000000000000000' // 1 ether
-  const chainID = 31337;
+  const chainID = getChainIdType(31337);
   const MAX_EDGES = 1;
   let createWitness: any;
 
@@ -655,7 +655,7 @@ describe('Anchor for 2 max edges', () => {
 
       // create a deposit on the anchor already setup
       const { deposit, index } = await anchor.deposit();
-      const refreshedDestId = await wallet.getChainId();
+      const refreshedDestId = getChainIdType(await wallet.getChainId());
       const refreshedDeposit = Anchor.generateDeposit(refreshedDestId);
 
       const { merkleRoot, pathElements, pathIndices } = anchor.tree.path(0);
@@ -810,7 +810,7 @@ describe('Anchor for 2 max edges', () => {
       const balUnwrappedTokenBeforeWithdrawSender = await token.balanceOf(sender.address);
 
       const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, zkComponents, wallet);
-      await TruffleAssert.passes(newAnchor.withdrawAndUnwrap(deposit, 31337, index, sender.address, signers[1].address, bigInt(0), bigInt(0), token.address));
+      await TruffleAssert.passes(newAnchor.withdrawAndUnwrap(deposit, getChainIdType(31337), index, sender.address, signers[1].address, bigInt(0), bigInt(0), token.address));
       const balWrappedTokenAfterWithdrawAnchor = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
       assert.strictEqual(balWrappedTokenAfterWithdrawAnchor.toString(), '0');
 

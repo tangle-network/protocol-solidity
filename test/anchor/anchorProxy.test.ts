@@ -21,10 +21,10 @@ import {
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
-import { Verifier } from '@webb-tools/bridges'
-import { fetchComponentsFromFilePaths, ZkComponents, toFixedHex } from '@webb-tools/utils';
-import { Anchor, AnchorProxy } from '@webb-tools/anchors';
-import { MerkleTree } from '@webb-tools/merkle-tree';
+import { Verifier } from '../../packages/bridges/src'
+import { fetchComponentsFromFilePaths, ZkComponents, toFixedHex, getChainIdType } from '../../packages/utils/src';
+import { Anchor, AnchorProxy } from '../../packages/anchors/src';
+import { MerkleTree } from '../../packages/merkle-tree/src';
 
 const { NATIVE_AMOUNT } = process.env
 const snarkjs = require('snarkjs')
@@ -50,7 +50,7 @@ describe('AnchorProxy', () => {
   let token: Token;
   let wrappedToken: WrappedToken;
   let tokenDenomination = '1000000000000000000' // 1 ether
-  const chainID = 31337;
+  const chainID = getChainIdType(31337);
   const MAX_EDGES = 1;
   let createWitness: any;
   

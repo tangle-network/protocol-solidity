@@ -2,7 +2,7 @@ import { BigNumberish, ethers, BigNumber } from 'ethers';
 import { FixedDepositAnchor as AnchorContract, FixedDepositAnchor__factory as Anchor__factory} from '@webb-tools/contracts'
 import { RefreshEvent, WithdrawalEvent } from '@webb-tools/contracts/src/FixedDepositAnchor';
 import { IAnchorDeposit, IAnchorDepositInfo, IAnchor, IFixedAnchorPublicInputs, IMerkleProofData } from '@webb-tools/interfaces';
-import { toFixedHex, toHex, rbigint, p256, PoseidonHasher, ZkComponents, Utxo } from '@webb-tools/utils';
+import { toFixedHex, toHex, rbigint, p256, PoseidonHasher, ZkComponents, Utxo, getChainIdType } from '@webb-tools/utils';
 import { MerkleTree } from '@webb-tools/merkle-tree';
 
 const snarkjs = require('snarkjs');
@@ -184,8 +184,7 @@ class Anchor implements IAnchor {
   public async createResourceId(): Promise<string> {
     return toHex(
       this.contract.address
-        + toHex(1, 2).substr(2)
-        + toHex((await this.signer.getChainId()), 4).substr(2),
+        + toHex(getChainIdType(await this.signer.getChainId()), 6).substr(2),
       32
     );
   }
@@ -218,14 +217,14 @@ class Anchor implements IAnchor {
 
     const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("updateEdge(uint256,bytes32,uint256)")).slice(0, 10).padEnd(10, '0');
     const dummyNonce = 1;
-    const chainID = await this.signer.getChainId();
+    const chainID = getChainIdType(await this.signer.getChainId());
     const merkleRoot = this.depositHistory[leafIndex];
 
     return '0x' +
       toHex(resourceID, 32).substr(2)+ 
       functionSig.slice(2) + 
       toHex(dummyNonce,4).substr(2) +
-      toHex(chainID, 4).substr(2) + 
+      toHex(chainID, 6).substr(2) + 
       toHex(leafIndex, 4).substr(2) + 
       toHex(merkleRoot, 32).substr(2);
   }
@@ -234,7 +233,6 @@ class Anchor implements IAnchor {
     const resourceID = await this.createResourceId();
     const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("setHandler(address,uint32)")).slice(0, 10).padEnd(10, '0');  
     const nonce = (await this.contract.getProposalNonce()) + 1;;
-    const chainID = await this.signer.getChainId();
 
     return '0x' +
       toHex(resourceID, 32).substr(2)+ 
@@ -250,7 +248,7 @@ class Anchor implements IAnchor {
    * @returns 
    */
   public async deposit(destinationChainId?: number): Promise<IAnchorDeposit> {
-    const originChainId = await this.signer.getChainId();
+    const originChainId = getChainIdType(await this.signer.getChainId());
     const destChainId = (destinationChainId) ? destinationChainId : originChainId;
     const deposit = Anchor.generateDeposit(destChainId);
     
@@ -267,7 +265,7 @@ class Anchor implements IAnchor {
   }
 
   public async wrapAndDeposit(tokenAddress: string, destinationChainId?: number): Promise<IAnchorDeposit> {
-    const originChainId = await this.signer.getChainId();
+    const originChainId = getChainIdType(await this.signer.getChainId());
     const chainId = (destinationChainId) ? destinationChainId : originChainId;
     const deposit = Anchor.generateDeposit(chainId);
     let tx;
@@ -369,6 +367,9 @@ class Anchor implements IAnchor {
 
     const vKey = await snarkjs.zKey.exportVerificationKey(this.zkComponents.zkey);
     res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
+    if (!res) {
+      throw new Error('Verification failed');
+    }
 
     let proofEncoded = await Anchor.generateWithdrawProofCallData(proof, publicSignals);
     return proofEncoded;
@@ -386,7 +387,7 @@ class Anchor implements IAnchor {
     await this.checkKnownRoot();
 
     const { merkleRoot, pathElements, pathIndices } = await this.tree.path(index);
-    const chainId = await this.signer.getChainId();
+    const chainId = getChainIdType(await this.signer.getChainId());
 
     const roots = await this.populateRootsForProof();
 
