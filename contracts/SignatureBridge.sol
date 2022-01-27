@@ -14,6 +14,7 @@ import "./utils/Governable.sol";
 import "./utils/ChainIdWithType.sol";
 import "./interfaces/IExecutor.sol";
 import "./interfaces/ISignatureBridge.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "hardhat/console.sol";
 
 /**
@@ -25,7 +26,7 @@ contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType, ISi
     mapping(uint256 => uint64) public _counts;
     // resourceID => handler address
     mapping(bytes32 => address) public _resourceIDToHandlerAddress;
-
+    uint256 public proposalNonce = 0;
     /**
         Verifying signature of governor over some datahash
      */
@@ -54,13 +55,41 @@ contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType, ISi
         bytes32 resourceID,
         address executionContextAddress,
         uint256 nonce
-    ) override external {
+    ) override external onlyGovernor {
+        require(proposalNonce < nonce, "Invalid nonce");
+        require(nonce <= proposalNonce + 1, "Nonce must increment by 1");
         _resourceIDToHandlerAddress[resourceID] = handlerAddress;
         IExecutor handler = IExecutor(handlerAddress);
         handler.setResource(resourceID, executionContextAddress);
+        proposalNonce = nonce;
     }
 
-    function rescueTokens(address tokenAddress, address payable to, uint256 amountToRescue, uint256 nonce) override external {}
+    function rescueTokens(address tokenAddress, address payable to, uint256 amountToRescue, uint256 nonce) override external onlyGovernor {
+        require(to != address(0), "Cannot send liquidity to zero address");
+        require(tokenAddress != address(this), "Cannot rescue wrapped asset");
+        require(proposalNonce < nonce, "Invalid nonce");
+        require(nonce <= proposalNonce + 1, "Nonce must increment by 1");
+
+        if (tokenAddress == address(0)) {
+            // Native Ether 
+            uint256 ethBalance = address(this).balance;
+            if(ethBalance >= amountToRescue) {
+                to.transfer(amountToRescue);
+            } else {
+                to.transfer(ethBalance);
+            }
+            
+        } else {
+            // ERC20 Token
+            uint256 erc20Balance = IERC20(tokenAddress).balanceOf(address(this));
+            if(erc20Balance >= amountToRescue) {
+                IERC20(tokenAddress).transfer(to, amountToRescue);
+            } else {
+                IERC20(tokenAddress).transfer(to, erc20Balance);
+            }  
+        }
+        proposalNonce = nonce;
+    }
 
     /**
         @notice Executes a proposal signed by the governor.

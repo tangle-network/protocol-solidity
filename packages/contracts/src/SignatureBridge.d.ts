@@ -33,6 +33,7 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     "isGovernor()": FunctionFragment;
     "isSignatureFromGovernor(bytes,bytes)": FunctionFragment;
     "paused()": FunctionFragment;
+    "proposalNonce()": FunctionFragment;
     "recover(bytes,bytes)": FunctionFragment;
     "refreshNonce()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
@@ -85,6 +86,10 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     values: [BytesLike, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "proposalNonce",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "recover",
     values: [BytesLike, BytesLike]
@@ -151,6 +156,10 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "proposalNonce",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "recover", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "refreshNonce",
@@ -296,6 +305,8 @@ export class SignatureBridge extends BaseContract {
 
     paused(overrides?: CallOverrides): Promise<[boolean]>;
 
+    proposalNonce(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     recover(
       data: BytesLike,
       sig: BytesLike,
@@ -386,6 +397,8 @@ export class SignatureBridge extends BaseContract {
 
   paused(overrides?: CallOverrides): Promise<boolean>;
 
+  proposalNonce(overrides?: CallOverrides): Promise<BigNumber>;
+
   recover(
     data: BytesLike,
     sig: BytesLike,
@@ -475,6 +488,8 @@ export class SignatureBridge extends BaseContract {
     ): Promise<boolean>;
 
     paused(overrides?: CallOverrides): Promise<boolean>;
+
+    proposalNonce(overrides?: CallOverrides): Promise<BigNumber>;
 
     recover(
       data: BytesLike,
@@ -606,6 +621,8 @@ export class SignatureBridge extends BaseContract {
 
     paused(overrides?: CallOverrides): Promise<BigNumber>;
 
+    proposalNonce(overrides?: CallOverrides): Promise<BigNumber>;
+
     recover(
       data: BytesLike,
       sig: BytesLike,
@@ -702,6 +719,8 @@ export class SignatureBridge extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    proposalNonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     recover(
       data: BytesLike,
