@@ -25,7 +25,7 @@ import {
 import { Verifier } from '../../packages/bridges/src';
 import { Anchor } from '../../packages/anchors/src';
 import { MerkleTree } from '../../packages/merkle-tree/src';
-import { fetchComponentsFromFilePaths, ZkComponents, toFixedHex } from '../../packages/utils/src';
+import { fetchComponentsFromFilePaths, ZkComponents, toFixedHex, getChainIdType } from '../../packages/utils/src';
 
 const { NATIVE_AMOUNT } = process.env
 const snarkjs = require('snarkjs')
@@ -48,7 +48,7 @@ describe('Anchor for 2 max edges', () => {
   let token: Token;
   let wrappedToken: WrappedToken;
   let tokenDenomination = '1000000000000000000' // 1 ether
-  const chainID = 31337;
+  const chainID = getChainIdType(31337);
   const MAX_EDGES = 1;
   let createWitness: any;
 
