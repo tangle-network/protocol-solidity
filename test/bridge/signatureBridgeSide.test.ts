@@ -34,7 +34,7 @@
      const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor.address, admin);
    })
 
-   it.only('should set resource with signature', async () => {
+   it('should set resource with signature', async () => {
     const signers = await ethers.getSigners();
     const initialGovernor = signers[1];
     const admin = signers[1];
@@ -64,21 +64,13 @@
       admin
     );
 
-    const bridgeHandler = await BridgeHandler.createBridgeHandler(bridgeSide.contract.address, [], [], admin);
+    await tokenInstance.approveSpending(anchor.contract.address);
 
-    //set the bridge handler in the class
-    await bridgeSide.setBridgeHandler(bridgeHandler);
-
-    // set the bridge handler in the contract
-    await bridgeSide.executeBridgeHandlerProposalWithSig(bridgeHandler.contract.address);
-
-    // await tokenInstance.approveSpending(anchor.contract.address);
-
-    // await bridgeSide.setAnchorHandler(anchorHandler);
-    // // //Function call below sets resource with signature
-    // await bridgeSide.connectAnchorWithSignature(anchor);
-    // //Check that proposal nonce is updated on anchor contract since handler prposal has been executed
-    // assert.strictEqual(await anchor.contract.getProposalNonce(), 1);
+    await bridgeSide.setAnchorHandler(anchorHandler);
+    // //Function call below sets resource with signature
+    await bridgeSide.connectAnchorWithSignature(anchor);
+    //Check that proposal nonce is updated on anchor contract since handler prposal has been executed
+    assert.strictEqual(await anchor.contract.getProposalNonce(), 1);
   })
  
   it('execute anchor proposal', async () => {

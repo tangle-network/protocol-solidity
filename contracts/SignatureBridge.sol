@@ -87,7 +87,7 @@ contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType, ISi
 
         _resourceIDToHandlerAddress[newResourceID] = handlerAddress;
         IExecutor handler = IExecutor(handlerAddress);
-        handler.setResource(resourceID, executionContextAddress);
+        handler.setResource(newResourceID, executionContextAddress);
 
         proposalNonce = nonce;
     }
@@ -137,7 +137,6 @@ contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType, ISi
         require(uint256(getChainIdType()) == uint256(executionChainIdType), "executing on wrong chain");
         address handler = _resourceIDToHandlerAddress[resourceID];
         IExecutor executionHandler = IExecutor(handler);
-        console.log(handler);
         executionHandler.executeProposal(resourceID, data);
     }
 
