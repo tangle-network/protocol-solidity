@@ -58,23 +58,40 @@ contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType, ISi
         @notice Sets a new resource for handler contracts that use the IExecutor interface,
         and maps the {handlerAddress} to {resourceID} in {_resourceIDToHandlerAddress}.
         @notice Only callable by an address that currently has the admin role.
-        @param handlerAddress Address of handler resource will be set for.
-        @param resourceID Secondary resourceID begin mapped to a handler address.
-        @param executionContextAddress Address of contract to be called when a proposal is ready to execute on it
+        @param data is (resourceId, functionSig, nonce, newResourceId, handlerAddress, executionContextAddress)
+        @param sig DKG signature
      */
-    function adminSetResource(
-        address handlerAddress,
-        bytes32 resourceID,
-        address executionContextAddress,
-        uint256 nonce
-    ) override external onlyBridgeHandler {
+    function adminSetResourceWithSignature(
+        bytes calldata data,
+        bytes memory sig
+    ) external override signedByGovernor(keccak256(data), sig) {
+        //Parse resourceID from the data
+        bytes calldata resourceIDBytes = data[0:32];
+        bytes32 resourceID = bytes32(resourceIDBytes);
+        // Parse chain ID + chain type from the resource ID
+        uint48 executionChainIdType = uint48(bytes6(resourceIDBytes[26:32]));
+        // Verify current chain matches chain ID from resource ID
+        require(uint256(getChainIdType()) == uint256(executionChainIdType), "executing on wrong chain");
+
+        bytes4 functionSig = bytes4(data[32:36]);
+        require(functionSig == bytes4(keccak256("adminSetResourceWithSignature(bytes,bytes)")), "functionSig is incorrect for setting the resource with signature");
+
+        bytes calldata arguments = data[36:]; 
+        uint32 nonce = uint32(bytes4(arguments[0:4]));
         require(proposalNonce < nonce, "Invalid nonce");
         require(nonce <= proposalNonce + 1, "Nonce must increment by 1");
-        _resourceIDToHandlerAddress[resourceID] = handlerAddress;
+
+        bytes32 newResourceID = bytes32(arguments[4:36]);
+        address handlerAddress = address(bytes20(arguments[36:56]));
+        address executionContextAddress = address(bytes20(arguments[56:76])); 
+
+        _resourceIDToHandlerAddress[newResourceID] = handlerAddress;
         IExecutor handler = IExecutor(handlerAddress);
         handler.setResource(resourceID, executionContextAddress);
+
         proposalNonce = nonce;
     }
+
 
     function rescueTokens(address tokenAddress, address payable to, uint256 amountToRescue, uint256 nonce) override external onlyBridgeHandler {
         require(to != address(0), "Cannot send liquidity to zero address");

@@ -22,6 +22,7 @@ export class SignatureBridgeSide implements IBridgeSide {
 
   RESCUE_TOKENS_SIGNATURE = "rescueTokens(address,address,uint256,uint256)";
   ADMIN_SET_RESOURCE_SIGNATURE = "adminSetResource(address,bytes32,address,uint256)";
+  SET_BRIDGE_HANDLER_SIGNATURE = "setBridgeHandler(address,uint32)";
 
   private constructor(
     contract: SignatureBridge,
@@ -93,6 +94,18 @@ export class SignatureBridgeSide implements IBridgeSide {
       tokenAddress.padEnd(42, '0').slice(2) +
       to.padEnd(42, '0').slice(2) +
       toFixedHex(amountToRescue).slice(2);
+  }
+
+  public async getBridgeHandlerProposalData(newHandler: string): Promise<string> {
+    const resourceID = await this.createResourceId();
+    const functionSig = generateFunctionSigHash(this.SET_BRIDGE_HANDLER_SIGNATURE);  
+    const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
+
+    return '0x' +
+      toHex(resourceID, 32).substr(2)+ 
+      functionSig.slice(2) + 
+      toHex(nonce,4).substr(2) +
+      toHex(newHandler, 20).substr(2) 
   }
 
   /**
@@ -210,6 +223,11 @@ export class SignatureBridgeSide implements IBridgeSide {
 
   public async executeHandlerProposalWithSig(anchor: IAnchor, newHandler: string) {
     const proposalData = await this.createHandlerUpdateProposalData(anchor, newHandler);
+    return this.execute(proposalData);
+  }
+
+  public async executeBridgeHandlerProposalWithSig(newHandler: string) {
+    const proposalData = await this.getBridgeHandlerProposalData(newHandler);
     return this.execute(proposalData);
   }
 

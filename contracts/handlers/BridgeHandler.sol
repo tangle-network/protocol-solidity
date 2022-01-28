@@ -92,13 +92,7 @@ contract BridgeHandler is IExecutor, HandlerHelpers {
         address signatureBridgeAddress = _resourceIDToContractAddress[resourceID];
         ISignatureBridge signatureBridge = ISignatureBridge(signatureBridgeAddress); 
  
-        if (functionSig == bytes4(keccak256("adminSetResource(address,bytes32,address,uint256)"))) {  
-            uint32 nonce = uint32(bytes4(arguments[0:4])); 
-            address handlerAddress = address(bytes20(arguments[4:24]));
-            bytes32 newResourceId = bytes32(arguments[24:56]);
-            address executionContextAddress = address(bytes20(arguments[56:76]));
-            signatureBridge.adminSetResource(handlerAddress,newResourceId, executionContextAddress, nonce);
-        } else if (functionSig == bytes4(keccak256("rescueTokens(address,address,uint256,uint256)"))) {
+        if (functionSig == bytes4(keccak256("rescueTokens(address,address,uint256,uint256)"))) {
             uint32 nonce = uint32(bytes4(arguments[0:4]));
             address tokenAddress = address(bytes20(arguments[4:24]));
             address payable to = payable(address(bytes20(arguments[24:44])));
