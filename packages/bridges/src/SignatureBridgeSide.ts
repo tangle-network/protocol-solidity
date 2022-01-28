@@ -21,7 +21,7 @@ export class SignatureBridgeSide implements IBridgeSide {
   BRIDGE_HANDLER_MISSING_ERROR = new Error("Cannot connect to bridge without handler"); 
 
   RESCUE_TOKENS_SIGNATURE = "rescueTokens(address,address,uint256,uint256)";
-  ADMIN_SET_RESOURCE_SIGNATURE = "adminSetResource(address,bytes32,address,uint256)";
+  ADMIN_SET_RESOURCE_SIGNATURE = "adminSetResourceWithSignature(bytes,bytes)";
   SET_BRIDGE_HANDLER_SIGNATURE = "setBridgeHandler(address,uint32)";
 
   private constructor(
@@ -74,8 +74,8 @@ export class SignatureBridgeSide implements IBridgeSide {
     toHex(resourceID, 32).substr(2) + 
     functionSig.slice(2) +
     toHex(nonce,4).substr(2) + 
-    handlerAddress.padEnd(42, '0').slice(2) +
     toHex(newResourceID, 32).slice(2) +
+    handlerAddress.padEnd(42, '0').slice(2) +
     executionContextAddress.padEnd(42, '0').slice(2);
   }
 
@@ -184,8 +184,14 @@ export class SignatureBridgeSide implements IBridgeSide {
 
   public async setResourceWithSignature(anchor: IAnchor): Promise<string> {
     if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
+
     const resourceId = await anchor.createResourceId();
-    await this.executeAdminSetResourceProposalWithSig(this.anchorHandler.contract.address, resourceId, anchor.contract.address);
+
+    const unsignedData = await this.getAdminSetResourceProposalData(this.anchorHandler.contract.address, resourceId, anchor.contract.address);
+    const unsignedMsg = ethers.utils.arrayify(ethers.utils.keccak256(unsignedData).toString());
+    const sig = await this.signingSystemSignFn(unsignedMsg);
+    const tx = await this.contract.adminSetResourceWithSignature(unsignedData, sig);
+    await tx.wait();
     return resourceId;
   }
 
@@ -193,7 +199,10 @@ export class SignatureBridgeSide implements IBridgeSide {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
 
     const resourceId = await governedToken.createResourceId();
-    await this.executeAdminSetResourceProposalWithSig(this.tokenHandler.contract.address, resourceId, governedToken.contract.address);
+    const unsignedData = await this.getAdminSetResourceProposalData(this.tokenHandler.contract.address, resourceId, governedToken.contract.address);
+    const unsignedMsg = ethers.utils.arrayify(ethers.utils.keccak256(unsignedData).toString());
+    const sig = await this.signingSystemSignFn(unsignedMsg);
+    await this.contract.adminSetResourceWithSignature(unsignedData, sig);
     return resourceId;
   }
 
@@ -204,14 +213,6 @@ export class SignatureBridgeSide implements IBridgeSide {
     const receipt = await tx.wait();
     
     return receipt;
-  }
-
-  public async executeAdminSetResourceProposalWithSig(handlerAddress: string, newResourceID: string, executionContextAddress: string) {
-    if (!this.bridgeHandler) throw this.BRIDGE_HANDLER_MISSING_ERROR;
-
-    const proposalData = await this.getAdminSetResourceProposalData(handlerAddress, newResourceID, executionContextAddress);
-    console.log("setting something")
-    return this.execute(proposalData);
   }
 
   public async executeRescueTokensProposalWithSig(tokenAddress: string, to: string, amountToRescue: BigNumberish) {

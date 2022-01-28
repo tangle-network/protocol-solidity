@@ -23,7 +23,7 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
   functions: {
     "EVM_CHAIN_ID_TYPE()": FunctionFragment;
     "_resourceIDToHandlerAddress(bytes32)": FunctionFragment;
-    "adminSetResource(address,bytes32,address,uint256)": FunctionFragment;
+    "adminSetResourceWithSignature(bytes,bytes)": FunctionFragment;
     "bridgeHandler()": FunctionFragment;
     "checkPubKey(bytes)": FunctionFragment;
     "executeProposalWithSignature(bytes,bytes)": FunctionFragment;
@@ -54,8 +54,8 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "adminSetResource",
-    values: [string, BytesLike, string, BigNumberish]
+    functionFragment: "adminSetResourceWithSignature",
+    values: [BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "bridgeHandler",
@@ -137,7 +137,7 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "adminSetResource",
+    functionFragment: "adminSetResourceWithSignature",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -277,11 +277,9 @@ export class SignatureBridge extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    adminSetResource(
-      handlerAddress: string,
-      resourceID: BytesLike,
-      executionContextAddress: string,
-      nonce: BigNumberish,
+    adminSetResourceWithSignature(
+      data: BytesLike,
+      sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -378,11 +376,9 @@ export class SignatureBridge extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  adminSetResource(
-    handlerAddress: string,
-    resourceID: BytesLike,
-    executionContextAddress: string,
-    nonce: BigNumberish,
+  adminSetResourceWithSignature(
+    data: BytesLike,
+    sig: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -476,11 +472,9 @@ export class SignatureBridge extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    adminSetResource(
-      handlerAddress: string,
-      resourceID: BytesLike,
-      executionContextAddress: string,
-      nonce: BigNumberish,
+    adminSetResourceWithSignature(
+      data: BytesLike,
+      sig: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -611,11 +605,9 @@ export class SignatureBridge extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    adminSetResource(
-      handlerAddress: string,
-      resourceID: BytesLike,
-      executionContextAddress: string,
-      nonce: BigNumberish,
+    adminSetResourceWithSignature(
+      data: BytesLike,
+      sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -713,11 +705,9 @@ export class SignatureBridge extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    adminSetResource(
-      handlerAddress: string,
-      resourceID: BytesLike,
-      executionContextAddress: string,
-      nonce: BigNumberish,
+    adminSetResourceWithSignature(
+      data: BytesLike,
+      sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
