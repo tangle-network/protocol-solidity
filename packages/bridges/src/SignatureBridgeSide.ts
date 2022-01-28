@@ -197,6 +197,7 @@ export class SignatureBridgeSide implements IBridgeSide {
     if (!this.bridgeHandler) throw this.BRIDGE_HANDLER_MISSING_ERROR;
 
     const proposalData = await this.getAdminSetResourceProposalData(handlerAddress, newResourceID, executionContextAddress);
+    console.log("setting something")
     return this.execute(proposalData);
   }
 

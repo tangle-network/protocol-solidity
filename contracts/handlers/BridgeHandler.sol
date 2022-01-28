@@ -104,6 +104,10 @@ contract BridgeHandler is IExecutor, HandlerHelpers {
             address payable to = payable(address(bytes20(arguments[24:44])));
             uint256 amountToRescue = uint256(bytes32(arguments[44:76])); 
             signatureBridge.rescueTokens(tokenAddress, to, amountToRescue, nonce);
+        } else if (functionSig == bytes4(keccak256("setBridgeHandler(address,uint32)"))) {
+            uint32 nonce = uint32(bytes4(arguments[0:4])); 
+            address newHandler = address(bytes20(arguments[4:24]));
+            signatureBridge.setBridgeHandler(newHandler, nonce);
         } else {
             revert("Invalid function sig");
         }

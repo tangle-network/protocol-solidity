@@ -23,11 +23,12 @@ describe('GovernedTokenWrapper', () => {
     const signers = await ethers.getSigners();
     const wallet = signers[0];
     sender = wallet;
-
+    const dummyFeeRecipient = "0x0000000010000000000000000000000000000000";
     token = await ERC20Class.createERC20(tokenName, tokenSymbol, wallet);
     wrappedToken = await GovernedTokenWrapperClass.createGovernedTokenWrapper(
       wrappedTokenName,
       wrappedTokenSymbol,
+      dummyFeeRecipient,
       sender.address,
       tokenDenomination,
       false,

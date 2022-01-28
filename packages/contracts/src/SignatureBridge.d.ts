@@ -22,9 +22,9 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 interface SignatureBridgeInterface extends ethers.utils.Interface {
   functions: {
     "EVM_CHAIN_ID_TYPE()": FunctionFragment;
-    "_counts(uint256)": FunctionFragment;
     "_resourceIDToHandlerAddress(bytes32)": FunctionFragment;
     "adminSetResource(address,bytes32,address,uint256)": FunctionFragment;
+    "bridgeHandler()": FunctionFragment;
     "checkPubKey(bytes)": FunctionFragment;
     "executeProposalWithSignature(bytes,bytes)": FunctionFragment;
     "getChainId()": FunctionFragment;
@@ -38,6 +38,7 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     "refreshNonce()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "rescueTokens(address,address,uint256,uint256)": FunctionFragment;
+    "setBridgeHandler(address,uint32)": FunctionFragment;
     "transferOwnership(address,uint32)": FunctionFragment;
     "transferOwnershipWithSignature(address,uint32,bytes)": FunctionFragment;
     "transferOwnershipWithSignaturePubKey(bytes,uint32,bytes)": FunctionFragment;
@@ -49,16 +50,16 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "_counts",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "_resourceIDToHandlerAddress",
     values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "adminSetResource",
     values: [string, BytesLike, string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "bridgeHandler",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "checkPubKey",
@@ -107,6 +108,10 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     values: [string, string, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "setBridgeHandler",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "transferOwnership",
     values: [string, BigNumberish]
   ): string;
@@ -127,13 +132,16 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     functionFragment: "EVM_CHAIN_ID_TYPE",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "_counts", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "_resourceIDToHandlerAddress",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "adminSetResource",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "bridgeHandler",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -171,6 +179,10 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "rescueTokens",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setBridgeHandler",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -260,11 +272,6 @@ export class SignatureBridge extends BaseContract {
   functions: {
     EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<[string]>;
 
-    _counts(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     _resourceIDToHandlerAddress(
       arg0: BytesLike,
       overrides?: CallOverrides
@@ -277,6 +284,8 @@ export class SignatureBridge extends BaseContract {
       nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    bridgeHandler(overrides?: CallOverrides): Promise<[string]>;
 
     checkPubKey(
       pubkey: BytesLike,
@@ -327,6 +336,12 @@ export class SignatureBridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    setBridgeHandler(
+      newHandler: string,
+      nonce: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     transferOwnership(
       newOwner: string,
       nonce: BigNumberish,
@@ -358,8 +373,6 @@ export class SignatureBridge extends BaseContract {
 
   EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<string>;
 
-  _counts(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-
   _resourceIDToHandlerAddress(
     arg0: BytesLike,
     overrides?: CallOverrides
@@ -372,6 +385,8 @@ export class SignatureBridge extends BaseContract {
     nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  bridgeHandler(overrides?: CallOverrides): Promise<string>;
 
   checkPubKey(pubkey: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
@@ -419,6 +434,12 @@ export class SignatureBridge extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  setBridgeHandler(
+    newHandler: string,
+    nonce: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   transferOwnership(
     newOwner: string,
     nonce: BigNumberish,
@@ -450,8 +471,6 @@ export class SignatureBridge extends BaseContract {
   callStatic: {
     EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<string>;
 
-    _counts(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-
     _resourceIDToHandlerAddress(
       arg0: BytesLike,
       overrides?: CallOverrides
@@ -464,6 +483,8 @@ export class SignatureBridge extends BaseContract {
       nonce: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    bridgeHandler(overrides?: CallOverrides): Promise<string>;
 
     checkPubKey(pubkey: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
@@ -505,6 +526,12 @@ export class SignatureBridge extends BaseContract {
       tokenAddress: string,
       to: string,
       amountToRescue: BigNumberish,
+      nonce: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setBridgeHandler(
+      newHandler: string,
       nonce: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -579,8 +606,6 @@ export class SignatureBridge extends BaseContract {
   estimateGas: {
     EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<BigNumber>;
 
-    _counts(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-
     _resourceIDToHandlerAddress(
       arg0: BytesLike,
       overrides?: CallOverrides
@@ -593,6 +618,8 @@ export class SignatureBridge extends BaseContract {
       nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    bridgeHandler(overrides?: CallOverrides): Promise<BigNumber>;
 
     checkPubKey(
       pubkey: BytesLike,
@@ -643,6 +670,12 @@ export class SignatureBridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    setBridgeHandler(
+      newHandler: string,
+      nonce: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     transferOwnership(
       newOwner: string,
       nonce: BigNumberish,
@@ -675,11 +708,6 @@ export class SignatureBridge extends BaseContract {
   populateTransaction: {
     EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    _counts(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     _resourceIDToHandlerAddress(
       arg0: BytesLike,
       overrides?: CallOverrides
@@ -692,6 +720,8 @@ export class SignatureBridge extends BaseContract {
       nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    bridgeHandler(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     checkPubKey(
       pubkey: BytesLike,
@@ -738,6 +768,12 @@ export class SignatureBridge extends BaseContract {
       tokenAddress: string,
       to: string,
       amountToRescue: BigNumberish,
+      nonce: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setBridgeHandler(
+      newHandler: string,
       nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;

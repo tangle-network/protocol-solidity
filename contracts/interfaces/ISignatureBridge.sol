@@ -13,4 +13,5 @@ interface ISignatureBridge {
   function executeProposalWithSignature(bytes calldata data, bytes memory sig) external;
   function adminSetResource(address handlerAddress, bytes32 resourceID, address executionContextAddress, uint256 nonce) external;
   function rescueTokens(address tokenAddress, address payable to, uint256 amountToRescue, uint256 nonce) external;
+  function setBridgeHandler(address newHandler, uint32 nonce) external;
 }

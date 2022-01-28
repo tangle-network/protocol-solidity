@@ -22,11 +22,10 @@ import "hardhat/console.sol";
     @author ChainSafe Systems & Webb Technologies.
  */
 contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType, ISignatureBridge {
-    // destinationChainID => number of deposits
-    mapping(uint256 => uint64) public _counts;
     // resourceID => handler address
     mapping(bytes32 => address) public _resourceIDToHandlerAddress;
     uint256 public proposalNonce = 0;
+    address public bridgeHandler;
     /**
         Verifying signature of governor over some datahash
      */
@@ -36,11 +35,24 @@ contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType, ISi
         _;
     }
 
+    modifier onlyBridgeHandler()  {
+        require(msg.sender == bridgeHandler, 'sender is not the bridge handler');
+        _;
+    }
+
     /**
         @notice Initializes SignatureBridge with a governor
         @param initialGovernor Addresses that should be initially granted the relayer role.
      */
     constructor (address initialGovernor) Governable(initialGovernor) {}
+
+    function setBridgeHandler(address newHandler, uint32 nonce) onlyBridgeHandler override external {
+        require(newHandler != address(0), "Handler cannot be 0");
+        require(proposalNonce < nonce, "Invalid nonce");
+        require(nonce <= proposalNonce + 1, "Nonce must increment by 1");
+        bridgeHandler = newHandler;
+        proposalNonce = nonce;
+    }
 
     /**
         @notice Sets a new resource for handler contracts that use the IExecutor interface,
@@ -55,7 +67,7 @@ contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType, ISi
         bytes32 resourceID,
         address executionContextAddress,
         uint256 nonce
-    ) override external onlyGovernor {
+    ) override external onlyBridgeHandler {
         require(proposalNonce < nonce, "Invalid nonce");
         require(nonce <= proposalNonce + 1, "Nonce must increment by 1");
         _resourceIDToHandlerAddress[resourceID] = handlerAddress;
@@ -64,7 +76,7 @@ contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType, ISi
         proposalNonce = nonce;
     }
 
-    function rescueTokens(address tokenAddress, address payable to, uint256 amountToRescue, uint256 nonce) override external onlyGovernor {
+    function rescueTokens(address tokenAddress, address payable to, uint256 amountToRescue, uint256 nonce) override external onlyBridgeHandler {
         require(to != address(0), "Cannot send liquidity to zero address");
         require(tokenAddress != address(this), "Cannot rescue wrapped asset");
         require(proposalNonce < nonce, "Invalid nonce");
@@ -108,6 +120,7 @@ contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType, ISi
         require(uint256(getChainIdType()) == uint256(executionChainIdType), "executing on wrong chain");
         address handler = _resourceIDToHandlerAddress[resourceID];
         IExecutor executionHandler = IExecutor(handler);
+        console.log(handler);
         executionHandler.executeProposal(resourceID, data);
     }
 

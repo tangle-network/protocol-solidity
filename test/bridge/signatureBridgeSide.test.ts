@@ -73,7 +73,7 @@
     assert.strictEqual(await anchor.contract.getProposalNonce(), 1);
   })
  
-  it('execute anchor proposal', async () => {
+  it.only('execute anchor proposal', async () => {
     const signers = await ethers.getSigners();
     const initialGovernor = signers[1];
     const admin = signers[1];
@@ -138,6 +138,7 @@
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      bridgeSide.contract.address,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
       false,
@@ -167,6 +168,7 @@
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      bridgeSide.contract.address,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
       false,
@@ -198,6 +200,7 @@
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      bridgeSide.contract.address,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
       false,
@@ -234,6 +237,7 @@
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      bridgeSide.contract.address,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
       false,
@@ -279,6 +283,7 @@
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      bridgeSide.contract.address,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
       false,
