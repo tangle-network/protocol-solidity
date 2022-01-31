@@ -167,45 +167,45 @@ export class SignatureBridgeSide implements IBridgeSide {
 
   public async executeHandlerProposalWithSig(anchor: IAnchor, newHandler: string) {
     const proposalData = await this.createHandlerUpdateProposalData(anchor, newHandler);
-    this.execute(proposalData);
+    return this.execute(proposalData);
   }
 
   // emit ProposalEvent(chainID, nonce, ProposalStatus.Executed, dataHash);
   public async executeAnchorProposalWithSig(srcAnchor: IAnchor, executionResourceID: string) {
     if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
     const proposalData = await this.createAnchorUpdateProposalData(srcAnchor, executionResourceID);
-    this.execute(proposalData);
+    return this.execute(proposalData);
   }
 
 
   public async executeFeeProposalWithSig(governedToken: GovernedTokenWrapper, fee: number) {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
     const proposalData = await this.createFeeUpdateProposalData(governedToken, fee);
-    this.execute(proposalData);
+    return this.execute(proposalData);
   }
 
   public async executeAddTokenProposalWithSig(governedToken: GovernedTokenWrapper, tokenAddress: string) {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
     const proposalData = await this.createAddTokenUpdateProposalData(governedToken, tokenAddress);
-    this.execute(proposalData);
+    return this.execute(proposalData);
   }
 
   public async executeRemoveTokenProposalWithSig(governedToken: GovernedTokenWrapper, tokenAddress: string) {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR; 
     const proposalData = await this.createRemoveTokenUpdateProposalData(governedToken, tokenAddress);
-    this.execute(proposalData);
+    return this.execute(proposalData);
   }
 
   public async executeTreasuryHandlerProposalWithSig(treasury: Treasury, newHandler: string) {
     if (!this.treasuryHandler) throw this.TREASURY_HANDLER_MISSING_ERROR; 
     const proposalData = await this.createTreasuryHandlerUpdateProposalData(treasury, newHandler);
-    this.execute(proposalData);
+    return this.execute(proposalData);
   }
 
   public async executeRescueTokensProposalWithSig(treasury: Treasury, tokenAddress: string, to: string, amountToRescue: BigNumber) {
     if (!this.treasuryHandler) throw this.TREASURY_HANDLER_MISSING_ERROR; 
     const proposalData = await this.createRescueTokensProposalData(treasury, tokenAddress, to, amountToRescue);
-    this.execute(proposalData);
+    return this.execute(proposalData);
   }
 
 
@@ -213,6 +213,6 @@ export class SignatureBridgeSide implements IBridgeSide {
     if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
     const proposalData = await this.createConfigLimitsProposalData(anchor, _minimalWithdrawalAmount,_maximumDepositAmount);
     ;
-    this.execute(proposalData);
+    return this.execute(proposalData);
   }
 }

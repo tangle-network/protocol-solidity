@@ -10,7 +10,7 @@
  // Convenience wrapper classes for contract classes
  import { Verifier, SignatureBridgeSide } from '../../packages/bridges/src';
  import { Anchor, AnchorHandler } from '../../packages/anchors/src';
- import { MintableToken } from '../../packages/tokens/src';
+ import { MintableToken, Treasury, TreasuryHandler } from '../../packages/tokens/src';
  import { fetchComponentsFromFilePaths, ZkComponents } from '../../packages/utils/src';
  import { PoseidonT3__factory } from '../../packages/contracts';
  import { GovernedTokenWrapper, TokenWrapperHandler } from '../../packages/tokens/src';
@@ -134,10 +134,16 @@
     //Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
 
-    //Create a GovernedTokenWrapper
+    // Create Treasury and TreasuryHandler
+    const treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeSide.contract.address, [],[], admin);
+    const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, admin);
+    bridgeSide.setTreasuryHandler(treasuryHandler);
+
+    // Create a GovernedTokenWrapper
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      treasury.contract.address,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
       false,
@@ -163,10 +169,15 @@
     //Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
 
+    // Create Treasury and TreasuryHandler
+    const treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeSide.contract.address, [],[], admin);
+    const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, bridgeSide.admin);
+
     //Create a GovernedTokenWrapper
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      treasury.contract.address,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
       false,
@@ -194,10 +205,16 @@
 
     //Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
+
+    // Create Treasury and TreasuryHandler
+    const treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeSide.contract.address, [],[], bridgeSide.admin);
+    const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, bridgeSide.admin);
+    
     //Create a GovernedTokenWrapper
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      treasury.contract.address,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
       false,
@@ -230,10 +247,15 @@
     //Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
 
+    // Create Treasury and TreasuryHandler
+    const treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeSide.contract.address, [],[], bridgeSide.admin);
+    const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, bridgeSide.admin);
+
     //Create a GovernedTokenWrapper
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      treasury.contract.address,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
       false,
@@ -275,10 +297,15 @@
     //Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
 
+    // Create Treasury and TreasuryHandler
+    const treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeSide.contract.address, [],[], bridgeSide.admin);
+    const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, bridgeSide.admin);
+
     //Create a GovernedTokenWrapper
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      treasury.contract.address,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
       false,
