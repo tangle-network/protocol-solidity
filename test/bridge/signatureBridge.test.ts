@@ -200,6 +200,7 @@ describe('multichain tests for erc20 bridges', () => {
     let existingToken2: MintableToken;
 
     let bridge: SignatureBridge;
+    let wrappingFee = 0;
     let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:1337');
     ganacheProvider2.pollingInterval = 1;
     let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
@@ -241,8 +242,8 @@ describe('multichain tests for erc20 bridges', () => {
       bridge = await SignatureBridge.deployFixedDepositBridge(existingTokenBridgeConfig, deploymentConfig, zkComponents2);
 
       // make one deposit so the edge exists
-      await bridge.wrapAndDeposit(chainID2, existingToken1.contract.address, '1000000000000000000', signers[1]);
-      await bridge.wrapAndDeposit(chainID1, existingToken2.contract.address, '1000000000000000000', ganacheWallet2);
+      await bridge.wrapAndDeposit(chainID2, existingToken1.contract.address, '1000000000000000000', wrappingFee, signers[1]);
+      await bridge.wrapAndDeposit(chainID1, existingToken2.contract.address, '1000000000000000000', wrappingFee, ganacheWallet2);
     })
 
     describe('#bridging', () => {
@@ -259,7 +260,7 @@ describe('multichain tests for erc20 bridges', () => {
         const startingBalanceDest = await token.getBalance(signers[2].address);
 
         // Make a deposit
-        const depositNote1 = await bridge.wrapAndDeposit(chainID2, existingToken1.contract.address, anchorSize, signers[1]);
+        const depositNote1 = await bridge.wrapAndDeposit(chainID2, existingToken1.contract.address, anchorSize, wrappingFee, signers[1]);
 
         // Check the leaf index is incremented
         const destAnchorEdge2After = await anchor2.contract.edgeList(edgeIndex);
@@ -296,7 +297,7 @@ describe('multichain tests for erc20 bridges', () => {
         const startingBalanceDest = await token.getBalance(signers[2].address);
 
         // Make a deposit
-        const depositNote1 = await bridge.wrapAndDeposit(chainID1, existingToken2.contract.address, anchorSize, ganacheWallet2);
+        const depositNote1 = await bridge.wrapAndDeposit(chainID1, existingToken2.contract.address, anchorSize, wrappingFee, ganacheWallet2);
 
         // Check the leaf index is incremented
         const destAnchorEdge2After = await anchor1.contract.edgeList(edgeIndex);
@@ -322,8 +323,8 @@ describe('multichain tests for erc20 bridges', () => {
         const startingBalanceDest = await webbToken.getBalance(signers[1].address);
 
         // Make two deposits
-        const depositNote1 = await bridge.wrapAndDeposit(chainID2, existingToken1.contract.address, anchorSize, signers[1]);
-        const depositNote2 = await bridge.wrapAndDeposit(chainID2, existingToken1.contract.address, anchorSize, signers[1]);
+        const depositNote1 = await bridge.wrapAndDeposit(chainID2, existingToken1.contract.address, anchorSize, wrappingFee, signers[1]);
+        const depositNote2 = await bridge.wrapAndDeposit(chainID2, existingToken1.contract.address, anchorSize, wrappingFee, signers[1]);
 
         // Check the leaf index is incremented by two
         const destAnchorEdge2After = await anchor2.contract.edgeList(edgeIndex);
@@ -349,8 +350,8 @@ describe('multichain tests for erc20 bridges', () => {
         const startingBalanceDest = await webbToken.getBalance(signers[1].address);
 
         // Make two deposits
-        const depositNote1 = await bridge.wrapAndDeposit(chainID1, existingToken2.contract.address, anchorSize, ganacheWallet2);
-        const depositNote2 = await bridge.wrapAndDeposit(chainID1, existingToken2.contract.address, anchorSize, ganacheWallet2);
+        const depositNote1 = await bridge.wrapAndDeposit(chainID1, existingToken2.contract.address, anchorSize, wrappingFee, ganacheWallet2);
+        const depositNote2 = await bridge.wrapAndDeposit(chainID1, existingToken2.contract.address, anchorSize, wrappingFee,ganacheWallet2);
 
         // Check the leaf index is incremented by two
         const destAnchorEdge2After = await anchor2.contract.edgeList(edgeIndex);
@@ -372,6 +373,8 @@ describe('multichain tests for erc20 bridges', () => {
     let existingTokenSrc2: MintableToken;
     let existingTokenSrc3: MintableToken;
     let existingTokenSrc4: MintableToken;
+
+    let wrappingFee = 0;
 
     let bridge: SignatureBridge;
     let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:1337');
@@ -444,10 +447,10 @@ describe('multichain tests for erc20 bridges', () => {
       const signers = await ethers.getSigners();
 
       // make deposits so edges exists
-      await bridge.wrapAndDeposit(chainID2, existingTokenSrc.contract.address, '1000000000000000000', signers[1]);
-      await bridge.wrapAndDeposit(chainID3, existingTokenSrc2.contract.address, '1000000000000000000', ganacheWallet2);
-      await bridge.wrapAndDeposit(chainID4, existingTokenSrc3.contract.address, '1000000000000000000', ganacheWallet3);
-      await bridge.wrapAndDeposit(chainID1, existingTokenSrc4.contract.address, '1000000000000000000', ganacheWallet4);
+      await bridge.wrapAndDeposit(chainID2, existingTokenSrc.contract.address, '1000000000000000000', wrappingFee, signers[1]);
+      await bridge.wrapAndDeposit(chainID3, existingTokenSrc2.contract.address, '1000000000000000000', wrappingFee, ganacheWallet2);
+      await bridge.wrapAndDeposit(chainID4, existingTokenSrc3.contract.address, '1000000000000000000', wrappingFee, ganacheWallet3);
+      await bridge.wrapAndDeposit(chainID1, existingTokenSrc4.contract.address, '1000000000000000000', wrappingFee, ganacheWallet4);
 
       // Fetch information about the anchor to be updated.
       const anchorSize = '1000000000000000000';
@@ -461,7 +464,7 @@ describe('multichain tests for erc20 bridges', () => {
       let currentBalance = cumulativeBalance;
 
       // Make a deposit on the second chain
-      const depositNote1 = await bridge.wrapAndDeposit(chainID1, existingTokenSrc2.contract.address, anchorSize, ganacheWallet2);
+      const depositNote1 = await bridge.wrapAndDeposit(chainID1, existingTokenSrc2.contract.address, anchorSize, wrappingFee, ganacheWallet2);
 
       // Check the leaf index is incremented
       const destAnchorEdge1After = await anchor1.contract.edgeList(edgeIndex);
@@ -478,7 +481,7 @@ describe('multichain tests for erc20 bridges', () => {
       // make a deposit from the third connected chain
       edgeIndex = await anchor1.contract.edgeIndex(chainID3);
       const destAnchorEdge3Before = await anchor1.contract.edgeList(edgeIndex);
-      const depositNote3 = await bridge.wrapAndDeposit(chainID1, existingTokenSrc3.contract.address, anchorSize, ganacheWallet3);
+      const depositNote3 = await bridge.wrapAndDeposit(chainID1, existingTokenSrc3.contract.address, anchorSize, wrappingFee, ganacheWallet3);
 
       // Check the leaf index is incremented
       const destAnchorEdge3After = await anchor1.contract.edgeList(edgeIndex);
@@ -496,7 +499,7 @@ describe('multichain tests for erc20 bridges', () => {
       // make a deposit from the fourth connected chain
       edgeIndex = await anchor1.contract.edgeIndex(chainID4);
       const destAnchorEdge4Before = await anchor1.contract.edgeList(edgeIndex);
-      const depositNote4 = await bridge.wrapAndDeposit(chainID1, existingTokenSrc4.contract.address, anchorSize, ganacheWallet4);
+      const depositNote4 = await bridge.wrapAndDeposit(chainID1, existingTokenSrc4.contract.address, anchorSize, wrappingFee, ganacheWallet4);
 
       // Check the leaf index is incremented
       const destAnchorEdge4After = await anchor1.contract.edgeList(edgeIndex);

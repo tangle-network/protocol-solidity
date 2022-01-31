@@ -11,7 +11,7 @@
  import { Verifier, SignatureBridgeSide } from '../../packages/bridges/src';
  import { Anchor, AnchorHandler } from '../../packages/anchors/src';
  import { MintableToken, Treasury, TreasuryHandler } from '../../packages/tokens/src';
- import { fetchComponentsFromFilePaths, ZkComponents } from '../../packages/utils/src';
+ import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '../../packages/utils/src';
  import { PoseidonT3__factory } from '../../packages/contracts';
  import { GovernedTokenWrapper, TokenWrapperHandler } from '../../packages/tokens/src';
 import { BigNumber } from 'ethers';
@@ -503,7 +503,7 @@ import { BigNumber } from 'ethers';
     await erc20TokenInstance.approveSpending(sourceAnchor.contract.address);
     
     await TruffleAssert.reverts(
-     sourceAnchor.wrapAndDeposit(erc20TokenInstance.contract.address, await admin.getChainId()),
+     sourceAnchor.wrapAndDeposit(erc20TokenInstance.contract.address, wrappingFee, getChainIdType(await admin.getChainId())),
      'Fee Recipient cannot be zero address'
     ); 
 
@@ -511,7 +511,7 @@ import { BigNumber } from 'ethers';
     await bridgeSide.executeFeeRecipientProposalWithSig(governedToken, treasury.contract.address);
 
     // For ERC20 Tests
-    await sourceAnchor.wrapAndDeposit(erc20TokenInstance.contract.address, await admin.getChainId());
+    await sourceAnchor.wrapAndDeposit(erc20TokenInstance.contract.address, wrappingFee, getChainIdType(await admin.getChainId()));
 
     // Anchor Denomination amount should go to TokenWrapper
     assert.strictEqual((await erc20TokenInstance.getBalance(governedToken.contract.address)).toString(), anchorDenomination.toString());
@@ -596,10 +596,6 @@ describe('Rescue Tokens Tests for Native ETH', () => {
    bridgeSide.setTreasuryHandler(treasuryHandler);
    bridgeSide.setTreasuryResourceWithSignature(treasury);
 
-   // Create ERC20 Token
-   erc20TokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
-   await erc20TokenInstance.mintTokens(admin.address, '100000000000000000000000');
-
    // Create a GovernedTokenWrapper
    governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
      `webbETH-test-1`,
@@ -652,7 +648,7 @@ describe('Rescue Tokens Tests for Native ETH', () => {
    await governedToken.grantMinterRole(sourceAnchor.contract.address);
 
    await TruffleAssert.reverts(
-    sourceAnchor.wrapAndDeposit(zeroAddress, await admin.getChainId(), wrappingFee),
+    sourceAnchor.wrapAndDeposit(zeroAddress, wrappingFee, getChainIdType(await admin.getChainId())),
     'Fee Recipient cannot be zero address'
    ); 
 
@@ -660,7 +656,7 @@ describe('Rescue Tokens Tests for Native ETH', () => {
    await bridgeSide.executeFeeRecipientProposalWithSig(governedToken, treasury.contract.address);
 
    // For Native ETH Tests
-   await sourceAnchor.wrapAndDeposit(zeroAddress, await admin.getChainId(), wrappingFee);
+   await sourceAnchor.wrapAndDeposit(zeroAddress, wrappingFee, getChainIdType(await admin.getChainId()));
 
    console.log();
 

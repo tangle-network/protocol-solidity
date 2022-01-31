@@ -327,7 +327,7 @@ export class SignatureBridge {
     return deposit;
   }
 
-  public async wrapAndDeposit(destinationChainId: number, tokenAddress: string, anchorSize: ethers.BigNumberish, signer: ethers.Signer) {
+  public async wrapAndDeposit(destinationChainId: number, tokenAddress: string, anchorSize: ethers.BigNumberish, wrappingFee: number = 0, signer: ethers.Signer) {
     const chainId = getChainIdType(await signer.getChainId());
     const signerAddress = await signer.getAddress();
     const anchor = this.getAnchor(chainId, anchorSize);
@@ -346,7 +346,7 @@ export class SignatureBridge {
       if (!(await anchor.setSigner(signer))) {
         throw new Error("Invalid signer for deposit, check the signer's chainID");
       }
-      const deposit = await anchor.wrapAndDeposit(zeroAddress, destinationChainId);
+      const deposit = await anchor.wrapAndDeposit(zeroAddress, wrappingFee, destinationChainId);
       await this.updateLinkedAnchors(anchor);
       return deposit;
     }
@@ -372,7 +372,7 @@ export class SignatureBridge {
         throw new Error("Invalid signer for deposit, check the signer's chainID");
       }
 
-      const deposit = await anchor.wrapAndDeposit(originTokenInstance.contract.address, destinationChainId);
+      const deposit = await anchor.wrapAndDeposit(originTokenInstance.contract.address, wrappingFee, destinationChainId);
       await this.updateLinkedAnchors(anchor);
       return deposit;
     }
