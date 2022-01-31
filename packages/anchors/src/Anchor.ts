@@ -268,8 +268,8 @@ class Anchor implements IAnchor {
     return BigNumber.from(this.denomination).mul(100).div(100 - wrappingFee);
   }
 
-  public async wrapAndDeposit(tokenAddress: string, destinationChainId?: number, wrappingFee: number = 0): Promise<IAnchorDeposit> {
-    const originChainId = await this.signer.getChainId();
+  public async wrapAndDeposit(tokenAddress: string, wrappingFee: number = 0,destinationChainId?: number): Promise<IAnchorDeposit> {
+    const originChainId = getChainIdType(await this.signer.getChainId());
     const chainId = (destinationChainId) ? destinationChainId : originChainId;
     const deposit = Anchor.generateDeposit(chainId);
     let tx;

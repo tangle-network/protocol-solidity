@@ -795,7 +795,8 @@
        const balUnwrappedTokenBeforeDepositWrapper = await token.balanceOf(wrappedToken.address);
        // create a deposit on the anchor already setup
        const { deposit, index } = await wrappedAnchor.wrapAndDeposit(
-         token.address,
+         token.address, 
+         wrapFee,
        );
  
        const balTokenAfterDepositSender = await token.balanceOf(sender.address);
