@@ -107,6 +107,18 @@ export class SignatureBridgeSide implements IBridgeSide {
     return proposalData;
   }
 
+  /**
+   * Creates the proposal data for updating the fee recipient
+   * of a governed token wrapper.
+   * @param governedToken The governed token wrapper whose fee will be updated.
+   * @param feeRecipient The new fee recipient
+   * @returns Promise<string>
+   */
+   public async createFeeRecipientUpdateProposalData(governedToken: GovernedTokenWrapper, feeRecipient: string): Promise<string> {
+    const proposalData = await governedToken.getFeeRecipientProposalData(feeRecipient);
+    return proposalData;
+  }
+
   public async createConfigLimitsProposalData(vAnchor: IAnchor, _minimalWithdrawalAmount: string, _maximumDepositAmount: string) {
     const proposalData = await vAnchor.getConfigLimitsProposalData(_minimalWithdrawalAmount,_maximumDepositAmount);
     return proposalData;
@@ -156,6 +168,16 @@ export class SignatureBridgeSide implements IBridgeSide {
     return resourceId;
   }
 
+  public async setTreasuryResourceWithSignature(treasury: Treasury): Promise<string> {
+    if (!this.treasuryHandler) throw this.TREASURY_HANDLER_MISSING_ERROR;
+    const resourceId = await treasury.createResourceId();
+    const unsignedData = this.treasuryHandler.contract.address + resourceId.slice(2) + treasury.contract.address.slice(2);
+    const unsignedMsg = ethers.utils.arrayify(ethers.utils.keccak256(unsignedData).toString());
+    const sig = await this.signingSystemSignFn(unsignedMsg);
+    await this.contract.adminSetResourceWithSignature(this.treasuryHandler.contract.address, resourceId, treasury.contract.address, sig);
+    return resourceId;
+  }
+
   public async execute(proposalData: string) {
     const proposalMsg = ethers.utils.arrayify(ethers.utils.keccak256(proposalData).toString());
     const sig = await this.signingSystemSignFn(proposalMsg);
@@ -193,6 +215,13 @@ export class SignatureBridgeSide implements IBridgeSide {
   public async executeRemoveTokenProposalWithSig(governedToken: GovernedTokenWrapper, tokenAddress: string) {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR; 
     const proposalData = await this.createRemoveTokenUpdateProposalData(governedToken, tokenAddress);
+    return this.execute(proposalData);
+  }
+
+  public async executeFeeRecipientProposalWithSig(governedToken: GovernedTokenWrapper, feeRecipient: string) {
+    if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
+
+    const proposalData = await this.createFeeRecipientUpdateProposalData(governedToken, feeRecipient);
     return this.execute(proposalData);
   }
 
