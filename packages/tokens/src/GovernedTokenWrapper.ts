@@ -17,6 +17,7 @@ export class GovernedTokenWrapper {
   public static async createGovernedTokenWrapper(
     name: string,
     symbol: string,
+    feeRecipient: string,
     governor: string,
     limit: string,
     isNativeAllowed: boolean,
@@ -26,6 +27,7 @@ export class GovernedTokenWrapper {
     const contract = await factory.deploy(
       name,
       symbol,
+      feeRecipient,
       governor,
       limit,
       isNativeAllowed
