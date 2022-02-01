@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import { getChainIdType, ZkComponents } from "@webb-tools/utils";
 import { PoseidonT3__factory } from "@webb-tools/contracts";
-import { MintableToken, GovernedTokenWrapper } from "@webb-tools/tokens";
+import { MintableToken, GovernedTokenWrapper, Treasury, TreasuryHandler } from "@webb-tools/tokens";
 import { BridgeInput, DeployerConfig, IAnchor, IAnchorDeposit } from "@webb-tools/interfaces";
 import { Anchor, AnchorHandler } from '@webb-tools/anchors';
 import { SignatureBridgeSide } from './SignatureBridgeSide';
@@ -119,6 +119,11 @@ export class SignatureBridge {
       bridgeSides.set(chainID, bridgeInstance);
       //console.log(`bridgeSide address on ${chainID}: ${bridgeInstance.contract.address}`);
 
+      // Create Treasury and TreasuryHandler
+      const treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeInstance.contract.address, [],[], bridgeInstance.admin);
+
+      const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, bridgeInstance.admin);
+
       // Create the Hasher and Verifier for the chain
       const hasherFactory = new PoseidonT3__factory(deployers[chainID]);
       let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
@@ -139,6 +144,7 @@ export class SignatureBridge {
       let tokenInstance: GovernedTokenWrapper = await GovernedTokenWrapper.createGovernedTokenWrapper(
         `webbETH-test-1`,
         `webbETH-test-1`,
+        treasury.contract.address,
         await deployers[chainID].getAddress(),
         '10000000000000000000000000',
         allowedNative,
@@ -321,7 +327,7 @@ export class SignatureBridge {
     return deposit;
   }
 
-  public async wrapAndDeposit(destinationChainId: number, tokenAddress: string, anchorSize: ethers.BigNumberish, signer: ethers.Signer) {
+  public async wrapAndDeposit(destinationChainId: number, tokenAddress: string, anchorSize: ethers.BigNumberish, wrappingFee: number = 0, signer: ethers.Signer) {
     const chainId = getChainIdType(await signer.getChainId());
     const signerAddress = await signer.getAddress();
     const anchor = this.getAnchor(chainId, anchorSize);
@@ -340,7 +346,7 @@ export class SignatureBridge {
       if (!(await anchor.setSigner(signer))) {
         throw new Error("Invalid signer for deposit, check the signer's chainID");
       }
-      const deposit = await anchor.wrapAndDeposit(zeroAddress, destinationChainId);
+      const deposit = await anchor.wrapAndDeposit(zeroAddress, wrappingFee, destinationChainId);
       await this.updateLinkedAnchors(anchor);
       return deposit;
     }
@@ -366,7 +372,7 @@ export class SignatureBridge {
         throw new Error("Invalid signer for deposit, check the signer's chainID");
       }
 
-      const deposit = await anchor.wrapAndDeposit(originTokenInstance.contract.address, destinationChainId);
+      const deposit = await anchor.wrapAndDeposit(originTokenInstance.contract.address, wrappingFee, destinationChainId);
       await this.updateLinkedAnchors(anchor);
       return deposit;
     }

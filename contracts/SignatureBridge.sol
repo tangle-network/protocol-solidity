@@ -13,7 +13,6 @@ import "./utils/SafeCast.sol";
 import "./utils/Governable.sol";
 import "./utils/ChainIdWithType.sol";
 import "./interfaces/IExecutor.sol";
-import "hardhat/console.sol";
 
 /**
     @title Facilitates deposits, creation and voting of deposit proposals, and deposit executions.

@@ -1,6 +1,6 @@
 import { ethers, BigNumber, BigNumberish  } from 'ethers';
 import { SignatureBridgeSide } from '@webb-tools/bridges';
-import { MintableToken, GovernedTokenWrapper } from "@webb-tools/tokens";
+import { MintableToken, GovernedTokenWrapper, TreasuryHandler, Treasury } from "@webb-tools/tokens";
 import { PoseidonT3__factory } from "@webb-tools/contracts";
 import Verifier from "./Verifier";
 import { AnchorIdentifier, IAnchor } from "@webb-tools/interfaces";
@@ -116,6 +116,10 @@ export class VBridge {
         deployers[chainID],
       );
 
+      // Create Treasury and TreasuryHandler
+      const treasuryHandler = await TreasuryHandler.createTreasuryHandler(vBridgeInstance.contract.address, [],[], vBridgeInstance.admin);
+
+      const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, vBridgeInstance.admin);
 
       const handler = await AnchorHandler.createAnchorHandler(vBridgeInstance.contract.address, [], [], vBridgeInstance.admin);
       vBridgeInstance.setAnchorHandler(handler);
@@ -144,6 +148,7 @@ export class VBridge {
         tokenInstance = await GovernedTokenWrapper.createGovernedTokenWrapper(
           `webbETH-test-1`,
           `webbETH-test-1`,
+          treasury.contract.address,
           await deployers[chainID].getAddress(),
           '10000000000000000000000000',
           allowedNative,
