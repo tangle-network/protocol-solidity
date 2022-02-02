@@ -5,7 +5,10 @@
  const assert = require('assert');
  const path = require('path');
  import { ethers } from 'hardhat';
+ import BN from 'bn.js';
  import { toHex } from '../../packages/utils/src';
+ import EC from 'elliptic';
+ const ec = new EC.ec('secp256k1');
  const TruffleAssert = require('truffle-assertions');
  
  // Convenience wrapper classes for contract classes
@@ -84,10 +87,9 @@
   });
 
   it.only('should check ownership is transferred to new governor via signed public key', async () => {
-    const EC = require('elliptic').ec;
-    const ec = new EC('secp256k1');
+    const wallet = ethers.Wallet.createRandom();
     // raw keypair
-    const key = ec.genKeyPair();
+    const key = ec.keyFromPrivate(wallet.privateKey, 'hex');
     // uncompressed pub key
     const pubkey = key.getPublic().encode('hex').slice(2);
     // Set next governor to pub key
@@ -98,21 +100,28 @@
     await governableInstance.transferOwnershipWithSignaturePubKey(publicKey, 1, signedMessage);
     let nextGovernorAddress = ethers.utils.getAddress('0x' + ethers.utils.keccak256(publicKey).slice(-40));
     assert.strictEqual((await governableInstance.governor()), nextGovernorAddress);
-    console.log('Set first governor');
     // Set next governor to the same pub key for posterity
     nonceString = toHex(2, 4);
     // msg to be signed is hash(nonce + pubkey)
     msg = ethers.utils.arrayify(ethers.utils.keccak256(nonceString + pubkey).toString());
     const prefix = Buffer.from(`\u0019Ethereum Signed Message:\n32`, 'utf-8')
     const prefixedMsgHash = ethers.utils.keccak256(Buffer.concat([prefix, msg]));
-    const signature = key.sign(ethers.utils.arrayify(prefixedMsgHash));
-    const expandedSig = {
+    let signature = key.sign(ethers.utils.arrayify(prefixedMsgHash));
+    let expandedSig = {
       r: '0x' + signature.r.toString('hex'),
       s: '0x' + signature.s.toString('hex'),
       v: signature.recoveryParam + 27,
     }
 
-    const sig = ethers.utils.joinSignature(expandedSig)
+    let sig;
+    // Transaction malleability fix if s is too large (Bitcoin allows it, Ethereum rejects it)
+    try {
+      sig = ethers.utils.joinSignature(expandedSig)
+    } catch (e) {
+      expandedSig.s = '0x' + (new BN(ec.curve.n).sub(signature.s)).toString('hex');
+      expandedSig.v = (expandedSig.v === 27) ? 28 : 27;
+      sig = ethers.utils.joinSignature(expandedSig)
+    }
 
     await governableInstance.transferOwnershipWithSignaturePubKey(publicKey, 2, sig);
     nextGovernorAddress = ethers.utils.getAddress('0x' + ethers.utils.keccak256(publicKey).slice(-40));
