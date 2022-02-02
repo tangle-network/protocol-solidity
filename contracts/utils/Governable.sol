@@ -77,11 +77,9 @@ contract Governable {
     function transferOwnershipWithSignaturePubKey(bytes memory publicKey, uint32 nonce, bytes memory sig) public {
         require(refreshNonce < nonce, "Invalid nonce");
         require(nonce <= refreshNonce + 1, "Nonce must increment by 1");
-        bytes memory prefix = "\x19Ethereum Signed Message:\n32"; 
         bytes32 pubKeyHash = keccak256(publicKey);
-        bytes32 pubKeyNonceHash = keccak256(abi.encodePacked(nonce, publicKey));
         address newOwner = address(uint160(uint256(pubKeyHash)));
-        require(isSignatureFromGovernor(abi.encodePacked(prefix, abi.encodePacked(pubKeyNonceHash)), sig), "Governable: caller is not the governor");
+        require(isSignatureFromGovernor(abi.encodePacked(nonce, publicKey), sig), "Governable: caller is not the governor");
         _transferOwnership(newOwner);
         refreshNonce = nonce;
     }

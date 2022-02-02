@@ -28,9 +28,8 @@ contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType {
     /**
         Verifying signature of governor over some datahash
      */
-    modifier signedByGovernor(bytes32 dataHash, bytes memory sig) {
-        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        require(isSignatureFromGovernor(abi.encodePacked(prefix, dataHash), sig), "signed by governor: Not valid sig from governor");
+    modifier signedByGovernor(bytes memory data, bytes memory sig) {
+        require(isSignatureFromGovernor(data, sig), "signed by governor: Not valid sig from governor");
         _;
     }
 
@@ -53,7 +52,13 @@ contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType {
         bytes32 resourceID,
         address executionContextAddress,
         bytes memory sig
-    ) external signedByGovernor(keccak256(abi.encodePacked(handlerAddress, resourceID, executionContextAddress)), sig){
+    ) external signedByGovernor(
+        abi.encodePacked(
+            handlerAddress,
+            resourceID,
+            executionContextAddress
+        ), sig
+    ){
         _resourceIDToHandlerAddress[resourceID] = handlerAddress;
         IExecutor handler = IExecutor(handlerAddress);
         handler.setResource(resourceID, executionContextAddress);
@@ -66,7 +71,7 @@ contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType {
     function executeProposalWithSignature(
         bytes calldata data,
         bytes memory sig
-    ) external signedByGovernor(keccak256(data), sig) {
+    ) external signedByGovernor(data, sig) {
         //Parse resourceID from the data
         bytes calldata resourceIDBytes = data[0:32];
         bytes32 resourceID = bytes32(resourceIDBytes);
