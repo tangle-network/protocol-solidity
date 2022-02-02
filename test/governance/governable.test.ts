@@ -90,17 +90,13 @@
     const key = ec.genKeyPair();
     // uncompressed pub key
     const pubkey = key.getPublic().encode('hex').slice(2);
-    const nonceString = toHex(1, 4);
+    const nonceString = ethers.utils.hexZeroPad(ethers.utils.hexlify(1), 4);
     // msg to be signed is hash(nonce + pubkey)
-    const msg = ethers.utils.keccak256(nonceString + pubkey).toString();
-    const prefix = "\x19Ethereum Signed Message:\n32";
-    var buffer = new Buffer(prefix, 'utf8');
-    console.log(buffer.toString('hex'));
-    console.log(buffer.toString('hex') + msg.slice(2));
-    const prefixedMsgHash = ethers.utils.keccak256('0x' + buffer.toString('hex') + msg.slice(2));
-    const signature = key.sign(ethers.utils.arrayify(prefixedMsgHash.slice(2)));
-
-
+    const msg = ethers.utils.arrayify(ethers.utils.keccak256(nonceString + pubkey).toString());
+    const prefix = Buffer.from(`\u0019Ethereum Signed Message:\n32`, 'utf-8')
+    const prefixedMsgHash = ethers.utils.keccak256(Buffer.concat([prefix, msg]));
+    const signature = key.sign(ethers.utils.arrayify(prefixedMsgHash));
+    console.log(signature);
     await governableInstance.transferOwnershipWithSignaturePubKey(pubkey, 1, signature);
     const nextGovernorAddress = ethers.utils.getAddress('0x' + ethers.utils.keccak256(pubkey).slice(-40));
     assert.strictEqual((await governableInstance.governor()), nextGovernorAddress);
