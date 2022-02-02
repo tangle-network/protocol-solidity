@@ -70,7 +70,7 @@ contract Governable {
         _transferOwnership(newOwner);
         refreshNonce = nonce;
     }
-
+    
     /**
      * @dev Transfers ownership of the contract to a new account associated with the publicKey    * input
      */
@@ -84,6 +84,12 @@ contract Governable {
         require(isSignatureFromGovernor(abi.encodePacked(prefix, abi.encodePacked(pubKeyNonceHash)), sig), "Governable: caller is not the governor");
         _transferOwnership(newOwner);
         refreshNonce = nonce;
+    }
+
+    function recover(bytes memory data, bytes memory sig) public {
+        bytes32 hashedData = keccak256(data);
+        address signer = ECDSA.recover(hashedData, sig);
+        emit RecoveredAddress(signer);
     }
 
     /**
