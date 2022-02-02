@@ -111,11 +111,11 @@
       s: '0x' + signature.s.toString('hex'),
       v: signature.recoveryParam + 27,
     }
-    console.log(expandedSig);
+
     const sig = ethers.utils.joinSignature(expandedSig)
 
     await governableInstance.transferOwnershipWithSignaturePubKey(publicKey, 2, sig);
-    nextGovernorAddress = ethers.utils.getAddress('0x' + ethers.utils.keccak256(pubkey).slice(-40));
+    nextGovernorAddress = ethers.utils.getAddress('0x' + ethers.utils.keccak256(publicKey).slice(-40));
     assert.strictEqual((await governableInstance.governor()), nextGovernorAddress);
 
     const filter = governableInstance.filters.GovernanceOwnershipTransferred();
