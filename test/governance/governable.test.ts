@@ -90,15 +90,32 @@
     const key = ec.genKeyPair();
     // uncompressed pub key
     const pubkey = key.getPublic().encode('hex').slice(2);
-    const nonceString = ethers.utils.hexZeroPad(ethers.utils.hexlify(1), 4);
+    // Set next governor to pub key
+    let nonceString = toHex(1, 4);
+    const publicKey = '0x' + pubkey;
+    let msg = ethers.utils.arrayify(ethers.utils.keccak256(nonceString + publicKey.slice(2)).toString());
+    const signedMessage = await sender.signMessage(msg);
+    await governableInstance.transferOwnershipWithSignaturePubKey(publicKey, 1, signedMessage);
+    let nextGovernorAddress = ethers.utils.getAddress('0x' + ethers.utils.keccak256(publicKey).slice(-40));
+    assert.strictEqual((await governableInstance.governor()), nextGovernorAddress);
+    console.log('Set first governor');
+    // Set next governor to the same pub key for posterity
+    nonceString = toHex(2, 4);
     // msg to be signed is hash(nonce + pubkey)
-    const msg = ethers.utils.arrayify(ethers.utils.keccak256(nonceString + pubkey).toString());
+    msg = ethers.utils.arrayify(ethers.utils.keccak256(nonceString + pubkey).toString());
     const prefix = Buffer.from(`\u0019Ethereum Signed Message:\n32`, 'utf-8')
     const prefixedMsgHash = ethers.utils.keccak256(Buffer.concat([prefix, msg]));
     const signature = key.sign(ethers.utils.arrayify(prefixedMsgHash));
-    console.log(signature);
-    await governableInstance.transferOwnershipWithSignaturePubKey(pubkey, 1, signature);
-    const nextGovernorAddress = ethers.utils.getAddress('0x' + ethers.utils.keccak256(pubkey).slice(-40));
+    const expandedSig = {
+      r: '0x' + signature.r.toString('hex'),
+      s: '0x' + signature.s.toString('hex'),
+      v: signature.recoveryParam + 27,
+    }
+    console.log(expandedSig);
+    const sig = ethers.utils.joinSignature(expandedSig)
+
+    await governableInstance.transferOwnershipWithSignaturePubKey(publicKey, 2, sig);
+    nextGovernorAddress = ethers.utils.getAddress('0x' + ethers.utils.keccak256(pubkey).slice(-40));
     assert.strictEqual((await governableInstance.governor()), nextGovernorAddress);
 
     const filter = governableInstance.filters.GovernanceOwnershipTransferred();
