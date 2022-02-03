@@ -125,6 +125,7 @@
     }
     console.log('Signature', sig);
     console.log('wallet address:', wallet.address);
-    await governableInstance.recover(data, sig);
+    const signer = await governableInstance.recover(data, sig);
+    assert.strictEqual(signer, wallet.address);
   });
 });
