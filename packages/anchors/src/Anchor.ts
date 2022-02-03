@@ -229,6 +229,10 @@ class Anchor implements IAnchor {
       toHex(merkleRoot, 32).substr(2);
   }
 
+  public async getHandler(): Promise<string> {
+    return this.contract.handler();
+  }
+
   public async getHandlerProposalData(newHandler: string): Promise<string> {
     const resourceID = await this.createResourceId();
     const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("setHandler(address,uint32)")).slice(0, 10).padEnd(10, '0');  

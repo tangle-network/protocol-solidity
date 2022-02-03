@@ -56,6 +56,7 @@
 
   it.only('should check ownership is transferred to new governor via signed public key', async () => {
     const wallet = ethers.Wallet.createRandom();
+    const dummy = ethers.Wallet.createRandom();
     // raw keypair
     const key = ec.keyFromPrivate(wallet.privateKey, 'hex');
     // uncompressed pub key
@@ -68,10 +69,8 @@
     // Set next governor to the same pub key for posterity
     let nonceString = toHex(2, 4);
     // msg to be signed is hash(nonce + pubkey)
-    let msg = ethers.utils.arrayify(ethers.utils.keccak256(nonceString + pubkey).toString());
-    // const prefix = Buffer.from(`\u0019Ethereum Signed Message:\n32`, 'utf-8')
-    // const prefixedMsgHash = ethers.utils.keccak256(Buffer.concat([prefix, msg]));
-    // let signature = key.sign(ethers.utils.arrayify(prefixedMsgHash));
+    const dummyPubkey = ec.keyFromPrivate(dummy.privateKey, 'hex').getPublic().encode('hex').slice(2);
+    let msg = ethers.utils.arrayify(ethers.utils.keccak256(nonceString + dummyPubkey).toString());
     let signature = key.sign(ethers.utils.arrayify(msg));
     let expandedSig = {
       r: '0x' + signature.r.toString('hex'),
@@ -81,6 +80,7 @@
 
     let sig;
     // Transaction malleability fix if s is too large (Bitcoin allows it, Ethereum rejects it)
+    // https://ethereum.stackexchange.com/questions/55245/why-is-s-in-transaction-signature-limited-to-n-21
     try {
       sig = ethers.utils.joinSignature(expandedSig)
     } catch (e) {
@@ -89,13 +89,14 @@
       sig = ethers.utils.joinSignature(expandedSig)
     }
 
-    await governableInstance.transferOwnershipWithSignaturePubKey(publicKey, 2, sig);
-    nextGovernorAddress = ethers.utils.getAddress('0x' + ethers.utils.keccak256(publicKey).slice(-40));
+    await governableInstance.transferOwnershipWithSignaturePubKey('0x' + dummyPubkey, 2, sig);
+    nextGovernorAddress = ethers.utils.getAddress('0x' + ethers.utils.keccak256('0x' + dummyPubkey).slice(-40));
     assert.strictEqual((await governableInstance.governor()), nextGovernorAddress);
 
     const filter = governableInstance.filters.GovernanceOwnershipTransferred();
     const events = await governableInstance.queryFilter(filter);
-    assert.strictEqual(nextGovernorAddress, events[1].args.newOwner);
-    assert.strictEqual(sender.address, events[1].args.previousOwner);
+    console.log(events);
+    assert.strictEqual(nextGovernorAddress, events[2].args.newOwner);
+    assert.strictEqual(sender.address, events[2].args.previousOwner);
   });
 });

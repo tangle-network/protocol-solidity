@@ -17,6 +17,7 @@ export interface IAnchor {
 
   setSigner(signer: ethers.Signer);
   getProposalData(resourceID: string, leafIndex?: number): Promise<string>;
+  getHandler(): Promise<string>;
   getHandlerProposalData(newHandler: string): Promise<string>;
   getAddress(): string;
   getConfigLimitsProposalData(_minimalWithdrawalAmount: string, _maximumDepositAmount: string): Promise<string>;

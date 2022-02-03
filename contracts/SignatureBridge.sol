@@ -19,6 +19,7 @@ import "./interfaces/IExecutor.sol";
     @author ChainSafe Systems & Webb Technologies.
  */
 contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType {
+    uint256 public proposalNonce = 0;
     // destinationChainID => number of deposits
     mapping(uint256 => uint64) public _counts;
     // resourceID => handler address
@@ -40,27 +41,42 @@ contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType {
 
     /**
         @notice Sets a new resource for handler contracts that use the IExecutor interface,
-        and maps the {handlerAddress} to {resourceID} in {_resourceIDToHandlerAddress}.
+        and maps the {handlerAddress} to {newResourceID} in {_resourceIDToHandlerAddress}.
         @notice Only callable by an address that currently has the admin role.
         @param handlerAddress Address of handler resource will be set for.
-        @param resourceID Secondary resourceID begin mapped to a handler address.
+        @param newResourceID Secondary resourceID begin mapped to a handler address.
         @param executionContextAddress Address of contract to be called when a proposal is ready to execute on it
      */
     function adminSetResourceWithSignature(
-        address handlerAddress,
         bytes32 resourceID,
+        bytes4 functionSig,
+        uint32 nonce,
+        bytes32 newResourceID,
+        address handlerAddress,
         address executionContextAddress,
         bytes memory sig
     ) external signedByGovernor(
         abi.encodePacked(
-            handlerAddress,
             resourceID,
+            functionSig,
+            nonce,
+            newResourceID,
+            handlerAddress,
             executionContextAddress
         ), sig
     ){
-        _resourceIDToHandlerAddress[resourceID] = handlerAddress;
+        require(proposalNonce < nonce, "Invalid nonce");
+        require(nonce <= proposalNonce + 1, "Nonce must increment by 1");
+        require(
+            functionSig == bytes4(keccak256(
+                "adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,address,bytes)"
+            )),
+            "adminSetResourceWithSignature: Invalid function signature"
+        );
+        _resourceIDToHandlerAddress[newResourceID] = handlerAddress;
         IExecutor handler = IExecutor(handlerAddress);
-        handler.setResource(resourceID, executionContextAddress);
+        handler.setResource(newResourceID, executionContextAddress);
+        proposalNonce = nonce;
     }
 
     /**
