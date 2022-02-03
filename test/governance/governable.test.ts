@@ -54,7 +54,7 @@
     );
   });
 
-  it.only('should check ownership is transferred to new governor via signed public key', async () => {
+  it('should check ownership is transferred to new governor via signed public key', async () => {
     const wallet = ethers.Wallet.createRandom();
     const dummy = ethers.Wallet.createRandom();
     // raw keypair
@@ -98,5 +98,33 @@
     console.log(events);
     assert.strictEqual(nextGovernorAddress, events[2].args.newOwner);
     assert.strictEqual(sender.address, events[2].args.previousOwner);
+  });
+
+  it.only('test with custom data...recover function on governable', async () => {
+    const data = '0x000001'
+    const wallet = ethers.Wallet.createRandom();
+    const key = ec.keyFromPrivate(wallet.privateKey, 'hex');
+    const hash = ethers.utils.keccak256(data);
+    const hashedData = ethers.utils.arrayify(hash); 
+    let signature = key.sign(hashedData);
+    console.log(wallet.privateKey, 'hex');
+    let expandedSig = {
+      r: '0x' + signature.r.toString('hex'),
+      s: '0x' + signature.s.toString('hex'),
+      v: signature.recoveryParam + 27,
+    }
+    let sig;
+    // Transaction malleability fix if s is too large (Bitcoin allows it, Ethereum rejects it)
+    try {
+      sig = ethers.utils.joinSignature(expandedSig)
+    } catch (e) {
+      console.log("catch...");
+      expandedSig.s = '0x' + (new BN(ec.curve.n).sub(signature.s)).toString('hex');
+      expandedSig.v = (expandedSig.v === 27) ? 28 : 27;
+      sig = ethers.utils.joinSignature(expandedSig)
+    }
+    console.log('Signature', sig);
+    console.log('wallet address:', wallet.address);
+    await governableInstance.recover(data, sig);
   });
 });

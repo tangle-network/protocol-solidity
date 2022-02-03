@@ -94,6 +94,10 @@ contract Governable {
     function recover(bytes memory data, bytes memory sig) public {
         bytes32 hashedData = keccak256(data);
         address signer = ECDSA.recover(hashedData, sig);
+        console.log("start recover function on governable");
+        console.log(governor());
+        console.log(signer);
+        console.log("end recover function on governable");
         emit RecoveredAddress(signer);
     }
 

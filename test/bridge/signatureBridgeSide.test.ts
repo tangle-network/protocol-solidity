@@ -36,7 +36,7 @@ import { BigNumber } from 'ethers';
      const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor, admin);
    })
 
-   it.only('should set resource with signature', async () => {
+   it('should set resource with signature', async () => {
     const wallet = ethers.Wallet.createRandom();
     const initialGovernor = wallet;
     const signers = await ethers.getSigners();
