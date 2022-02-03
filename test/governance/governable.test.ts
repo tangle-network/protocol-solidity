@@ -54,7 +54,7 @@
     );
   });
 
-  it.only('should check ownership is transferred to new governor via signed public key', async () => {
+  it('should check ownership is transferred to new governor via signed public key', async () => {
     const wallet = ethers.Wallet.createRandom();
     const key = ec.keyFromPrivate(wallet.privateKey.slice(2), 'hex');
     const pubkey = key.getPublic().encode('hex').slice(2);
