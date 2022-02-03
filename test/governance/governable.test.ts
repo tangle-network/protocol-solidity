@@ -54,7 +54,7 @@
     );
   });
 
-  it('should check ownership is transferred to new governor via signed public key', async () => {
+  it.only('should check ownership is transferred to new governor via signed public key', async () => {
     const wallet = ethers.Wallet.createRandom();
     const dummy = ethers.Wallet.createRandom();
     // raw keypair
@@ -64,6 +64,7 @@
     // Set next governor to pub key address by hashing the pub key
     const publicKey = '0x' + pubkey;
     let nextGovernorAddress = ethers.utils.getAddress('0x' + ethers.utils.keccak256(publicKey).slice(-40));
+    let firstRotationKey = nextGovernorAddress;
     await governableInstance.transferOwnership(nextGovernorAddress, 1);
     assert.strictEqual((await governableInstance.governor()), nextGovernorAddress);
     // Set next governor to the same pub key for posterity
@@ -95,9 +96,8 @@
 
     const filter = governableInstance.filters.GovernanceOwnershipTransferred();
     const events = await governableInstance.queryFilter(filter);
-    console.log(events);
     assert.strictEqual(nextGovernorAddress, events[2].args.newOwner);
-    assert.strictEqual(sender.address, events[2].args.previousOwner);
+    assert.strictEqual(firstRotationKey, events[2].args.previousOwner);
   });
 
   it.only('test with custom data...recover function on governable', async () => {
