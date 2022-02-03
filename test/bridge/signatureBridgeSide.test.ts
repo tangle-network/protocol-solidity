@@ -2,41 +2,44 @@
  * Copyright 2021 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
- const assert = require('assert');
- const path = require('path');
- import { ethers } from 'hardhat';
- const TruffleAssert = require('truffle-assertions');
+
+const assert = require('assert');
+const path = require('path');
+import { ethers } from 'hardhat';
+import EC from 'elliptic';
+const ec = new EC.ec('secp256k1');
+const TruffleAssert = require('truffle-assertions');
  
- // Convenience wrapper classes for contract classes
- import { Verifier, SignatureBridgeSide } from '../../packages/bridges/src';
- import { Anchor, AnchorHandler } from '../../packages/anchors/src';
- import { MintableToken, Treasury, TreasuryHandler } from '../../packages/tokens/src';
- import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '../../packages/utils/src';
- import { PoseidonT3__factory } from '../../packages/contracts';
- import { GovernedTokenWrapper, TokenWrapperHandler } from '../../packages/tokens/src';
+// Convenience wrapper classes for contract classes
+import { Verifier, SignatureBridgeSide } from '../../packages/bridges/src';
+import { Anchor, AnchorHandler } from '../../packages/anchors/src';
+import { MintableToken, Treasury, TreasuryHandler } from '../../packages/tokens/src';
+import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '../../packages/utils/src';
+import { PoseidonT3__factory } from '../../packages/contracts';
+import { GovernedTokenWrapper, TokenWrapperHandler } from '../../packages/tokens/src';
 import { BigNumber } from 'ethers';
  
- describe('SignatureBridgeSideConstruction', () => {
+describe('SignatureBridgeSideConstruction', () => {
  
-   let zkComponents: ZkComponents;
+  let zkComponents: ZkComponents;
  
-   before(async () => {
-     zkComponents = await fetchComponentsFromFilePaths(
-       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm'),
-       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js'),
-       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey')
-     );
-   })
- 
-   it('should create the signature bridge side which can affect the anchor state', async () => {
-     const wallet = ethers.Wallet.createRandom();
-     const initialGovernor = wallet;
-     const signers = await ethers.getSigners();
-     const admin = signers[1];
-     const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor, admin);
-   })
+  before(async () => {
+    zkComponents = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey')
+    );
+  })
 
-   it('should set resource with signature', async () => {
+  it('should create the signature bridge side which can affect the anchor state', async () => {
+    const wallet = ethers.Wallet.createRandom();
+    const initialGovernor = wallet;
+    const signers = await ethers.getSigners();
+    const admin = signers[1];
+    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor, admin);
+  })
+
+  it.only('should set resource with signature', async () => {
     const wallet = ethers.Wallet.createRandom();
     const initialGovernor = wallet;
     const signers = await ethers.getSigners();
@@ -72,9 +75,9 @@ import { BigNumber } from 'ethers';
     // //Function call below sets resource with signature
     await bridgeSide.connectAnchorWithSignature(anchor);
     //Check that proposal nonce is updated on anchor contract since handler prposal has been executed
-    assert.strictEqual(await anchor.contract.getProposalNonce(), 1);
+    assert.strictEqual((await bridgeSide.contract.proposalNonce()).toNumber(), 1);
   })
- })
+})
  
 //   it('execute anchor proposal', async () => {
 //     const signers = await ethers.getSigners();

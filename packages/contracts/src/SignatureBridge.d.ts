@@ -283,8 +283,8 @@ export class SignatureBridge extends BaseContract {
     recover(
       data: BytesLike,
       sig: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
     refreshNonce(overrides?: CallOverrides): Promise<[number]>;
 
@@ -353,8 +353,8 @@ export class SignatureBridge extends BaseContract {
   recover(
     data: BytesLike,
     sig: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+    overrides?: CallOverrides
+  ): Promise<string>;
 
   refreshNonce(overrides?: CallOverrides): Promise<number>;
 
@@ -424,7 +424,7 @@ export class SignatureBridge extends BaseContract {
       data: BytesLike,
       sig: BytesLike,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<string>;
 
     refreshNonce(overrides?: CallOverrides): Promise<number>;
 
@@ -530,7 +530,7 @@ export class SignatureBridge extends BaseContract {
     recover(
       data: BytesLike,
       sig: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     refreshNonce(overrides?: CallOverrides): Promise<BigNumber>;
@@ -604,7 +604,7 @@ export class SignatureBridge extends BaseContract {
     recover(
       data: BytesLike,
       sig: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     refreshNonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;

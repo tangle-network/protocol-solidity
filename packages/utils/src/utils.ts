@@ -120,13 +120,10 @@ export const generateFunctionSigHash = (functionSignature: string): string => {
 }
 
 export const signMessage = (wallet, data) => {
-  const key = ec.keyFromPrivate(wallet.privateKey, 'hex');
+  const key = ec.keyFromPrivate(wallet.privateKey.slice(2), 'hex');
   const hash = ethers.utils.keccak256(data);
   const hashedData = ethers.utils.arrayify(hash); 
   let signature = key.sign(hashedData);
-  console.log(wallet.privateKey, 'hex');
-  console.log('unsigned data', data);
-  console.log('hashed data', hash);
   let expandedSig = {
     r: '0x' + signature.r.toString('hex'),
     s: '0x' + signature.s.toString('hex'),
@@ -141,6 +138,6 @@ export const signMessage = (wallet, data) => {
     expandedSig.v = (expandedSig.v === 27) ? 28 : 27;
     sig = ethers.utils.joinSignature(expandedSig)
   }
-  console.log('Signature', sig);
+
   return sig;
 };
