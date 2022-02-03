@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "hardhat/console.sol";
 
 contract Governable {
     address private _governor;
@@ -43,8 +44,12 @@ contract Governable {
      * @dev Returns true if the signature is signed by the current governor.
      */
     function isSignatureFromGovernor(bytes memory data, bytes memory sig) public view returns (bool) {
+        console.logBytes(data);
         bytes32 hashedData = keccak256(data);
+        console.logBytes32(hashedData);
         address signer = ECDSA.recover(hashedData, sig);
+        console.log(governor());
+        console.log(signer);
         return signer == governor();
     }
 

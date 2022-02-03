@@ -5,6 +5,7 @@ import { TokenWrapperHandler } from "@webb-tools/tokens";
 import { AnchorHandler } from "@webb-tools/anchors";
 import { IAnchor, IBridgeSide, Proposal } from "@webb-tools/interfaces";
 import { TreasuryHandler } from "@webb-tools/tokens";
+import { signMessage } from '@webb-tools/utils';
 
 export class SignatureBridgeSide implements IBridgeSide {
   contract: SignatureBridge;
@@ -21,6 +22,7 @@ export class SignatureBridgeSide implements IBridgeSide {
 
   private constructor(
     contract: SignatureBridge,
+    initialGovernor: ethers.Wallet,
     signer: ethers.Signer,
     signingSystemSignFn?: (data: any) => Promise<string>,
   ) {
@@ -34,25 +36,26 @@ export class SignatureBridgeSide implements IBridgeSide {
       this.signingSystemSignFn = signingSystemSignFn;
     } else {
       this.signingSystemSignFn = (data: any) => {
-        return signer.signMessage(data)
+        return signMessage(initialGovernor, data)
       };
     }
   }
 
   public static async createBridgeSide(
-    initialGovernor: string,
+    initialGovernor: ethers.Wallet,
     admin: ethers.Signer
   ): Promise<SignatureBridgeSide> {
+    console.log(initialGovernor);
     const bridgeFactory = new SignatureBridge__factory(admin);
-    const deployedBridge = await bridgeFactory.deploy(initialGovernor);
+    const deployedBridge = await bridgeFactory.deploy(initialGovernor.address);
     await deployedBridge.deployed();
-    const bridgeSide = new SignatureBridgeSide(deployedBridge, admin);
+    const bridgeSide = new SignatureBridgeSide(deployedBridge, initialGovernor, admin);
     return bridgeSide;
   }
 
-  public static async connect(address: string, admin: ethers.Signer) {
+  public static async connect(address: string, initialGovernor: ethers.Wallet, admin: ethers.Wallet) {
     const deployedBridge = SignatureBridge__factory.connect(address, admin);
-    const bridgeSide = new SignatureBridgeSide(deployedBridge, admin);
+    const bridgeSide = new SignatureBridgeSide(deployedBridge, initialGovernor, admin);
     return bridgeSide;
   }
 
@@ -151,8 +154,10 @@ export class SignatureBridgeSide implements IBridgeSide {
     //console.log("resourceID", resourceId);
     //console.log("handler address", this.handler.contract.address);
     const unsignedData = this.anchorHandler.contract.address + resourceId.slice(2) + anchor.contract.address.slice(2);
-    const unsignedMsg = ethers.utils.arrayify(ethers.utils.keccak256(unsignedData).toString());
-    const sig = await this.signingSystemSignFn(unsignedMsg);
+    console.log('unsigned data', unsignedData);
+    const unsignedMsg = ethers.utils.keccak256(unsignedData).toString();
+    console.log('hashed data', unsignedMsg);
+    const sig = await this.signingSystemSignFn(unsignedData);
     const tx = await this.contract.adminSetResourceWithSignature(this.anchorHandler.contract.address, resourceId, anchor.contract.address, sig);
     await tx.wait();
     return resourceId;
@@ -162,8 +167,7 @@ export class SignatureBridgeSide implements IBridgeSide {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
     const resourceId = await governedToken.createResourceId();
     const unsignedData = this.tokenHandler.contract.address + resourceId.slice(2) + governedToken.contract.address.slice(2);
-    const unsignedMsg = ethers.utils.arrayify(ethers.utils.keccak256(unsignedData).toString());
-    const sig = await this.signingSystemSignFn(unsignedMsg);
+    const sig = await this.signingSystemSignFn(unsignedData);
     await this.contract.adminSetResourceWithSignature(this.tokenHandler.contract.address, resourceId, governedToken.contract.address, sig);
     return resourceId;
   }
@@ -172,15 +176,13 @@ export class SignatureBridgeSide implements IBridgeSide {
     if (!this.treasuryHandler) throw this.TREASURY_HANDLER_MISSING_ERROR;
     const resourceId = await treasury.createResourceId();
     const unsignedData = this.treasuryHandler.contract.address + resourceId.slice(2) + treasury.contract.address.slice(2);
-    const unsignedMsg = ethers.utils.arrayify(ethers.utils.keccak256(unsignedData).toString());
-    const sig = await this.signingSystemSignFn(unsignedMsg);
+    const sig = await this.signingSystemSignFn(unsignedData);
     await this.contract.adminSetResourceWithSignature(this.treasuryHandler.contract.address, resourceId, treasury.contract.address, sig);
     return resourceId;
   }
 
   public async execute(proposalData: string) {
-    const proposalMsg = ethers.utils.arrayify(ethers.utils.keccak256(proposalData).toString());
-    const sig = await this.signingSystemSignFn(proposalMsg);
+    const sig = await this.signingSystemSignFn(proposalData);
     const tx = await this.contract.executeProposalWithSignature(proposalData, sig);
     const receipt = await tx.wait();
     

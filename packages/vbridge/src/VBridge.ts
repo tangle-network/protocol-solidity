@@ -108,12 +108,12 @@ export class VBridge {
     let createdVAnchors: IAnchor[][] = [];
 
     for (let chainID of vBridgeInput.chainIDs) {
-      const adminAddress = await deployers[chainID].getAddress();
+      const initialGovernor = ethers.Wallet.createRandom();
       let vBridgeInstance;
       // Create the bridgeSide
       vBridgeInstance = await SignatureBridgeSide.createBridgeSide(
-        adminAddress,
-        deployers[chainID],
+       initialGovernor,
+       deployers[chainID],
       );
 
       // Create Treasury and TreasuryHandler

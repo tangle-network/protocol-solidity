@@ -105,11 +105,11 @@ export class SignatureBridge {
     let createdAnchors: IAnchor[][] = [];
 
     for (let chainID of bridgeInput.chainIDs) {
-      const adminAddress = await deployers[chainID].getAddress();
+      const initialGovernor = ethers.Wallet.createRandom();
 
       // Create the bridgeSide
       const bridgeInstance = await SignatureBridgeSide.createBridgeSide(
-        adminAddress,
+        initialGovernor,
         deployers[chainID],
       );
 

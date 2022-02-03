@@ -2,6 +2,9 @@ import crypto from 'crypto';
 import path from 'path';
 import { BigNumber, BigNumberish, ethers } from 'ethers';
 import { ZkComponents } from './types';
+import BN from 'bn.js';
+import EC from 'elliptic';
+const ec = new EC.ec('secp256k1');
 
 const { poseidon } = require('circomlibjs');
 const ffjavascript = require('ffjavascript');
@@ -115,3 +118,24 @@ export const generateFunctionSigHash = (functionSignature: string): string => {
     ethers.utils.toUtf8Bytes(functionSignature)
   ).slice(0, 10).padEnd(10, '0');
 }
+
+export const signMessage = (wallet, data) => {
+  const key = ec.keyFromPrivate(wallet.privateKey, 'hex');
+  const hashedData = ethers.utils.arrayify(ethers.utils.keccak256(data)); 
+  let signature = key.sign(hashedData);
+  let expandedSig = {
+    r: '0x' + signature.r.toString('hex'),
+    s: '0x' + signature.s.toString('hex'),
+    v: signature.recoveryParam + 27,
+  }
+  let sig;
+  // Transaction malleability fix if s is too large (Bitcoin allows it, Ethereum rejects it)
+  try {
+    sig = ethers.utils.joinSignature(expandedSig)
+  } catch (e) {
+    expandedSig.s = '0x' + (new BN(ec.curve.n).sub(signature.s)).toString('hex');
+    expandedSig.v = (expandedSig.v === 27) ? 28 : 27;
+    sig = ethers.utils.joinSignature(expandedSig)
+  }
+  return sig;
+};
