@@ -109,3 +109,9 @@ export const getChainIdType = (chainID: number = 31337): number => {
   const chainIdType = CHAIN_TYPE + toFixedHex(chainID, 4).substr(2);
   return Number(BigInt(chainIdType));
 }
+
+export const generateFunctionSigHash = (functionSignature: string): string => {
+  return ethers.utils.keccak256(
+    ethers.utils.toUtf8Bytes(functionSignature)
+  ).slice(0, 10).padEnd(10, '0');
+}

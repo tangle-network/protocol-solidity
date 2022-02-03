@@ -39,6 +39,12 @@ export { TokenWrapper__factory } from "./factories/TokenWrapper__factory";
 export type { TokenWrapperHandler } from "./TokenWrapperHandler";
 export { TokenWrapperHandler__factory } from "./factories/TokenWrapperHandler__factory";
 
+export type { Treasury } from "./Treasury";
+export { Treasury__factory } from "./factories/Treasury__factory";
+
+export type { TreasuryHandler } from "./TreasuryHandler";
+export { TreasuryHandler__factory } from "./factories/TreasuryHandler__factory";
+
 export type { Hasher } from "./Hasher";
 export { Hasher__factory } from "./factories/Hasher__factory";
 
