@@ -10,6 +10,7 @@ import { getChainIdType, signMessage, toHex } from '@webb-tools/utils';
 export class SignatureBridgeSide implements IBridgeSide {
   contract: SignatureBridge;
   admin: ethers.Signer;
+  governor: ethers.Wallet;
   anchorHandler: AnchorHandler;
   tokenHandler: TokenWrapperHandler;
   treasuryHandler: TreasuryHandler;
@@ -28,6 +29,7 @@ export class SignatureBridgeSide implements IBridgeSide {
   ) {
     this.contract = contract;
     this.admin = signer;
+    this.governor = initialGovernor;
     this.anchorHandler = null;
     this.tokenHandler = null;
     this.treasuryHandler = null;
@@ -36,7 +38,6 @@ export class SignatureBridgeSide implements IBridgeSide {
       this.signingSystemSignFn = signingSystemSignFn;
     } else {
       this.signingSystemSignFn = (data: any) => {
-        console.log('Initial governor: ', initialGovernor.address);
         return signMessage(initialGovernor, data)
       };
     }
@@ -57,6 +58,15 @@ export class SignatureBridgeSide implements IBridgeSide {
     const deployedBridge = SignatureBridge__factory.connect(address, admin);
     const bridgeSide = new SignatureBridgeSide(deployedBridge, initialGovernor, admin);
     return bridgeSide;
+  }
+
+  /**
+   * Transfers ownership directly from the current governor to the new governor.
+   * Note that this requires an externally-signed transaction from the current governor.
+   * @param newOwner The new owner of the bridge
+   */
+  public async transferOwnership(newOwner: string, nonce: number) {
+    return this.contract.transferOwnership(newOwner, nonce);
   }
 
   /**
@@ -183,7 +193,6 @@ export class SignatureBridgeSide implements IBridgeSide {
       + toHex(anchor.contract.address, 20).substr(2);
 
     const sig = await this.signingSystemSignFn(unsignedData);
-    console.log(sig);
     const tx = await this.contract.adminSetResourceWithSignature(
       resourceId,
       functionSig,

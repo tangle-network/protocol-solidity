@@ -2,47 +2,60 @@
  * Copyright 2021 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
- const assert = require('assert');
- const path = require('path');
- import { ethers } from 'hardhat';
- const TruffleAssert = require('truffle-assertions');
+
+const assert = require('assert');
+const path = require('path');
+import { ethers } from 'hardhat';
+import EC from 'elliptic';
+const ec = new EC.ec('secp256k1');
+const TruffleAssert = require('truffle-assertions');
  
- // Convenience wrapper classes for contract classes
- import { Verifier, SignatureBridgeSide } from '../../packages/bridges/src';
- import { Anchor, AnchorHandler } from '../../packages/anchors/src';
- import { MintableToken, Treasury, TreasuryHandler } from '../../packages/tokens/src';
- import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '../../packages/utils/src';
- import { PoseidonT3__factory } from '../../packages/contracts';
- import { GovernedTokenWrapper, TokenWrapperHandler } from '../../packages/tokens/src';
+// Convenience wrapper classes for contract classes
+import { Verifier, SignatureBridgeSide } from '../../packages/bridges/src';
+import { Anchor, AnchorHandler } from '../../packages/anchors/src';
+import { MintableToken, Treasury, TreasuryHandler } from '../../packages/tokens/src';
+import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '../../packages/utils/src';
+import { PoseidonT3__factory } from '../../packages/contracts';
+import { GovernedTokenWrapper, TokenWrapperHandler } from '../../packages/tokens/src';
 import { BigNumber } from 'ethers';
  
- describe('SignatureBridgeSideConstruction', () => {
+describe('SignatureBridgeSideConstruction', () => {
  
-   let zkComponents: ZkComponents;
+  let zkComponents: ZkComponents;
  
-   before(async () => {
-     zkComponents = await fetchComponentsFromFilePaths(
-       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm'),
-       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js'),
-       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey')
-     );
-   })
- 
-   it('should create the signature bridge side which can affect the anchor state', async () => {
-     const wallet = ethers.Wallet.createRandom();
-     const initialGovernor = wallet;
-     const signers = await ethers.getSigners();
-     const admin = signers[1];
-     const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor, admin);
-   })
+  before(async () => {
+    zkComponents = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey')
+    );
+  })
 
-   it('should set resource with signature', async () => {
+  it('should create the signature bridge side which can affect the anchor state', async () => {
     const wallet = ethers.Wallet.createRandom();
     const initialGovernor = wallet;
     const signers = await ethers.getSigners();
     const admin = signers[1];
     const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor, admin);
+  })
 
+  it.only('should set resource with signature', async () => {
+    const wallet = ethers.Wallet.createRandom();
+    const key = ec.keyFromPrivate(wallet.privateKey, 'hex');
+    const pubkey = key.getPublic().encode('hex').slice(2);
+    const publicKey = '0x' + pubkey;
+    const addressToTransferOwnershipTo = ethers
+      .utils
+      .getAddress('0x' + ethers.utils.keccak256(publicKey)
+      .slice(-40));
+
+    const initialGovernor = wallet;
+    const signers = await ethers.getSigners();
+    const admin = signers[1];
+    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor, admin);
+
+    const result = await bridgeSide.transferOwnership(addressToTransferOwnershipTo, 1);
+    console.log(result);
     // Create the Hasher and Verifier for the chain
     const hasherFactory = new PoseidonT3__factory(admin);
     let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
@@ -74,7 +87,7 @@ import { BigNumber } from 'ethers';
     //Check that proposal nonce is updated on anchor contract since handler prposal has been executed
     assert.strictEqual(await anchor.contract.getProposalNonce(), 1);
   })
- })
+})
  
 //   it('execute anchor proposal', async () => {
 //     const signers = await ethers.getSigners();
