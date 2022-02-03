@@ -41,21 +41,11 @@ describe('SignatureBridgeSideConstruction', () => {
 
   it.only('should set resource with signature', async () => {
     const wallet = ethers.Wallet.createRandom();
-    const key = ec.keyFromPrivate(wallet.privateKey, 'hex');
-    const pubkey = key.getPublic().encode('hex').slice(2);
-    const publicKey = '0x' + pubkey;
-    const addressToTransferOwnershipTo = ethers
-      .utils
-      .getAddress('0x' + ethers.utils.keccak256(publicKey)
-      .slice(-40));
-
     const initialGovernor = wallet;
     const signers = await ethers.getSigners();
     const admin = signers[1];
     const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor, admin);
 
-    const result = await bridgeSide.transferOwnership(addressToTransferOwnershipTo, 1);
-    console.log(result);
     // Create the Hasher and Verifier for the chain
     const hasherFactory = new PoseidonT3__factory(admin);
     let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
@@ -85,7 +75,7 @@ describe('SignatureBridgeSideConstruction', () => {
     // //Function call below sets resource with signature
     await bridgeSide.connectAnchorWithSignature(anchor);
     //Check that proposal nonce is updated on anchor contract since handler prposal has been executed
-    assert.strictEqual(await anchor.contract.getProposalNonce(), 1);
+    assert.strictEqual((await bridgeSide.contract.proposalNonce()).toNumber(), 1);
   })
 })
  

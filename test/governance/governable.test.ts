@@ -54,9 +54,9 @@
     );
   });
 
-  it('should check ownership is transferred to new governor via signed public key', async () => {
+  it.only('should check ownership is transferred to new governor via signed public key', async () => {
     const wallet = ethers.Wallet.createRandom();
-    const key = ec.keyFromPrivate(wallet.privateKey, 'hex');
+    const key = ec.keyFromPrivate(wallet.privateKey.slice(2), 'hex');
     const pubkey = key.getPublic().encode('hex').slice(2);
     const publicKey = '0x' + pubkey;
     let nextGovernorAddress = ethers.utils.getAddress('0x' + ethers.utils.keccak256(publicKey).slice(-40));
@@ -93,11 +93,4 @@
     assert.strictEqual(nextGovernorAddress, events[2].args.newOwner);
     assert.strictEqual(firstRotationKey, events[2].args.previousOwner);
   });
-
-  it('raw', async () => {
-    let sig = '0x776bebe24eebf75990a7158aeb4f4fa563c71d14a6876b36ec1087f6e78afddb074a88f798e48ae32cf3f4c518223c3dd7d89182672de9b2bb6c17ce03c4d3ef1b'
-    let data = '0x00000002d3d646965dd86228efdbc95029cdf6129ac8b79780fa8074f74dcf2f85e0f91fe961b448783fff507cd469ead2c3a31552c213ab7490770e50e520676a4bdc2d'
-    let address = '0x1b0eA47E1ff1c2859AD8e998B1AbC51B6b341b7c'
-    console.log(address, await governableInstance.recover(data, sig));
-  })
 });

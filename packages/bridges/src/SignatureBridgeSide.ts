@@ -6,6 +6,8 @@ import { AnchorHandler } from "@webb-tools/anchors";
 import { IAnchor, IBridgeSide, Proposal } from "@webb-tools/interfaces";
 import { TreasuryHandler } from "@webb-tools/tokens";
 import { getChainIdType, signMessage, toHex } from '@webb-tools/utils';
+import EC from 'elliptic';
+const ec = new EC.ec('secp256k1');
 
 export class SignatureBridgeSide implements IBridgeSide {
   contract: SignatureBridge;
