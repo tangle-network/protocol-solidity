@@ -70,7 +70,13 @@ describe('multichain tests for signature vbridge', () => {
         [chainID1]: signers[1],
         [chainID2]: ganacheWallet2,
       };
-      const vBridge = await VBridge.deployVariableAnchorBridge(bridge2WebbEthInput, deploymentConfig);
+
+      const initialGovernorsConfig = {
+        [chainID1]: ethers.Wallet.createRandom(),
+        [chainID2]: ethers.Wallet.createRandom(),
+      };
+
+      const vBridge = await VBridge.deployVariableAnchorBridge(bridge2WebbEthInput, deploymentConfig, initialGovernorsConfig);
       // Should be able to retrieve individual anchors
       const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
       const vAnchor2: VAnchor = vBridge.getVAnchor(chainID2)! as VAnchor;
@@ -154,8 +160,13 @@ describe('multichain tests for signature vbridge', () => {
         [chainID2]: ganacheWallet2,
       }
 
+      const initialGovernorsConfig = {
+        [chainID1]: ethers.Wallet.createRandom(),
+        [chainID2]: ethers.Wallet.createRandom(),
+      };
+
       // deploy the bridge
-      vBridge = await VBridge.deployVariableAnchorBridge(vBridgeInput, deploymentConfig);
+      vBridge = await VBridge.deployVariableAnchorBridge(vBridgeInput, deploymentConfig, initialGovernorsConfig);
 
       // make one deposit so the  edge exists
       const depositUtxo1 = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainID1), chainId: BigNumber.from(chainID2)})
@@ -368,8 +379,13 @@ describe('multichain tests for signature vbridge', () => {
         [chainID2]: ganacheWallet2,
       }
 
+      const initialGovernorsConfig = {
+        [chainID1]: ethers.Wallet.createRandom(),
+        [chainID2]: ethers.Wallet.createRandom(),
+      };
+
       // deploy the bridge
-      vBridge = await VBridge.deployVariableAnchorBridge(vBridgeInput, deploymentConfig);
+      vBridge = await VBridge.deployVariableAnchorBridge(vBridgeInput, deploymentConfig, initialGovernorsConfig);
     
       // make one deposit so the  edge exists
       const depositUtxo1 = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainID1), chainId: BigNumber.from(chainID2)});

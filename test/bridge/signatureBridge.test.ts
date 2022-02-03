@@ -103,7 +103,13 @@ describe('multichain tests for erc20 bridges', () => {
         [chainID1]: signers[1],
         [chainID2]: ganacheWallet2,
       };
-      const bridge = await SignatureBridge.deployFixedDepositBridge(bridge2WebbEthInput, deploymentConfig, zkComponents2);
+
+      const initialGovernorsConfig = {
+        [chainID1]: ethers.Wallet.createRandom(),
+        [chainID2]: ethers.Wallet.createRandom(),
+      };
+
+      const bridge = await SignatureBridge.deployFixedDepositBridge(bridge2WebbEthInput, deploymentConfig, initialGovernorsConfig, zkComponents2);
 
       // Should be able to retrieve individual anchors
       const anchorSize = '1000000000000000000';
@@ -160,7 +166,14 @@ describe('multichain tests for erc20 bridges', () => {
         [chainID2]: ganacheWallet2,
         [chainID3]: ganacheWallet3,
       };
-      const bridge = await SignatureBridge.deployFixedDepositBridge(bridge3WebbEthInput, deploymentConfig, zkComponents3);
+
+      const initialGovernorsConfig = {
+        [chainID1]: ethers.Wallet.createRandom(),
+        [chainID2]: ethers.Wallet.createRandom(),
+        [chainID3]: ethers.Wallet.createRandom(),
+      };
+
+      const bridge = await SignatureBridge.deployFixedDepositBridge(bridge3WebbEthInput, deploymentConfig, initialGovernorsConfig, zkComponents3);
 
       // Should be able to retrieve individual anchors
       const anchorSize = '1000000000000000000';
@@ -238,8 +251,13 @@ describe('multichain tests for erc20 bridges', () => {
         [chainID2]: ganacheWallet2,
       }
 
+      const initialGovernorsConfig = {
+        [chainID1]: ethers.Wallet.createRandom(),
+        [chainID2]: ethers.Wallet.createRandom(),
+      };
+
       // deploy the bridge
-      bridge = await SignatureBridge.deployFixedDepositBridge(existingTokenBridgeConfig, deploymentConfig, zkComponents2);
+      bridge = await SignatureBridge.deployFixedDepositBridge(existingTokenBridgeConfig, deploymentConfig, initialGovernorsConfig, zkComponents2);
 
       // make one deposit so the edge exists
       await bridge.wrapAndDeposit(chainID2, existingToken1.contract.address, '1000000000000000000', wrappingFee, signers[1]);
@@ -424,9 +442,16 @@ describe('multichain tests for erc20 bridges', () => {
         [chainID3]: ganacheWallet3,
         [chainID4]: ganacheWallet4,
       }
+
+      const initialGovernorsConfig = {
+        [chainID1]: ethers.Wallet.createRandom(),
+        [chainID2]: ethers.Wallet.createRandom(),
+        [chainID3]: ethers.Wallet.createRandom(),
+        [chainID4]: ethers.Wallet.createRandom(),
+      };
       
       // deploy the bridge
-      bridge = await SignatureBridge.deployFixedDepositBridge(existingTokenBridgeConfig, deploymentConfig, zkComponents4);
+      bridge = await SignatureBridge.deployFixedDepositBridge(existingTokenBridgeConfig, deploymentConfig, initialGovernorsConfig, zkComponents4);
 
       // Should mint tokens for test purposes
       await existingTokenSrc.mintTokens(signers[1].address, '100000000000000000000000');

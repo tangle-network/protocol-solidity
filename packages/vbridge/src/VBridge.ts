@@ -3,7 +3,7 @@ import { SignatureBridgeSide } from '@webb-tools/bridges';
 import { MintableToken, GovernedTokenWrapper, TreasuryHandler, Treasury } from "@webb-tools/tokens";
 import { PoseidonT3__factory } from "@webb-tools/contracts";
 import Verifier from "./Verifier";
-import { AnchorIdentifier, IAnchor } from "@webb-tools/interfaces";
+import { AnchorIdentifier, GovernorConfig, IAnchor } from "@webb-tools/interfaces";
 import { AnchorHandler, VAnchor } from "@webb-tools/anchors";
 import { getChainIdType, Utxo } from "@webb-tools/utils";
 
@@ -98,7 +98,7 @@ export class VBridge {
     return linkedVAnchorMap;
   }
 
-  public static async deployVariableAnchorBridge(vBridgeInput: VBridgeInput, deployers: DeployerConfig): Promise<VBridge> {
+  public static async deployVariableAnchorBridge(vBridgeInput: VBridgeInput, deployers: DeployerConfig, initialGovernors: GovernorConfig): Promise<VBridge> {
     
     let webbTokenAddresses: Map<number, string> = new Map();
     let vBridgeSides: Map<number, SignatureBridgeSide> = new Map();
@@ -108,7 +108,7 @@ export class VBridge {
     let createdVAnchors: IAnchor[][] = [];
 
     for (let chainID of vBridgeInput.chainIDs) {
-      const initialGovernor = ethers.Wallet.createRandom();
+      const initialGovernor = initialGovernors[chainID];
       let vBridgeInstance;
       // Create the bridgeSide
       vBridgeInstance = await SignatureBridgeSide.createBridgeSide(

@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 import { getChainIdType, ZkComponents } from "@webb-tools/utils";
 import { PoseidonT3__factory } from "@webb-tools/contracts";
 import { MintableToken, GovernedTokenWrapper, Treasury, TreasuryHandler } from "@webb-tools/tokens";
-import { BridgeInput, DeployerConfig, IAnchor, IAnchorDeposit } from "@webb-tools/interfaces";
+import { BridgeInput, DeployerConfig, GovernorConfig, IAnchor, IAnchorDeposit } from "@webb-tools/interfaces";
 import { Anchor, AnchorHandler } from '@webb-tools/anchors';
 import { SignatureBridgeSide } from './SignatureBridgeSide';
 import { Verifier } from "./Verifier";
@@ -96,7 +96,7 @@ export class SignatureBridge {
     return linkedAnchorMap;
   }
 
-  public static async deployFixedDepositBridge(bridgeInput: BridgeInput, deployers: DeployerConfig, zkComponents: ZkComponents): Promise<SignatureBridge> {
+  public static async deployFixedDepositBridge(bridgeInput: BridgeInput, deployers: DeployerConfig, initialGovernors: GovernorConfig, zkComponents: ZkComponents): Promise<SignatureBridge> {
     let webbTokenAddresses: Map<number, string> = new Map();
     let bridgeSides: Map<number, SignatureBridgeSide> = new Map();
     let anchors: Map<string, IAnchor> = new Map();
@@ -105,7 +105,8 @@ export class SignatureBridge {
     let createdAnchors: IAnchor[][] = [];
 
     for (let chainID of bridgeInput.chainIDs) {
-      const initialGovernor = ethers.Wallet.createRandom();
+      // From the initial governors from the GovernorConfig
+      const initialGovernor = initialGovernors[chainID];
 
       // Create the bridgeSide
       const bridgeInstance = await SignatureBridgeSide.createBridgeSide(
