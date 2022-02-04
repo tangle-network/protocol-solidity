@@ -5,10 +5,14 @@ import { TokenWrapperHandler } from "@webb-tools/tokens";
 import { AnchorHandler } from "@webb-tools/anchors";
 import { IAnchor, IBridgeSide, Proposal } from "@webb-tools/interfaces";
 import { TreasuryHandler } from "@webb-tools/tokens";
+import { getChainIdType, signMessage, toHex } from '@webb-tools/utils';
+import EC from 'elliptic';
+const ec = new EC.ec('secp256k1');
 
 export class SignatureBridgeSide implements IBridgeSide {
   contract: SignatureBridge;
   admin: ethers.Signer;
+  governor: ethers.Wallet;
   anchorHandler: AnchorHandler;
   tokenHandler: TokenWrapperHandler;
   treasuryHandler: TreasuryHandler;
@@ -21,11 +25,13 @@ export class SignatureBridgeSide implements IBridgeSide {
 
   private constructor(
     contract: SignatureBridge,
+    initialGovernor: ethers.Wallet,
     signer: ethers.Signer,
     signingSystemSignFn?: (data: any) => Promise<string>,
   ) {
     this.contract = contract;
     this.admin = signer;
+    this.governor = initialGovernor;
     this.anchorHandler = null;
     this.tokenHandler = null;
     this.treasuryHandler = null;
@@ -34,26 +40,35 @@ export class SignatureBridgeSide implements IBridgeSide {
       this.signingSystemSignFn = signingSystemSignFn;
     } else {
       this.signingSystemSignFn = (data: any) => {
-        return signer.signMessage(data)
+        return signMessage(initialGovernor, data)
       };
     }
   }
 
   public static async createBridgeSide(
-    initialGovernor: string,
+    initialGovernor: ethers.Wallet,
     admin: ethers.Signer
   ): Promise<SignatureBridgeSide> {
     const bridgeFactory = new SignatureBridge__factory(admin);
-    const deployedBridge = await bridgeFactory.deploy(initialGovernor);
+    const deployedBridge = await bridgeFactory.deploy(initialGovernor.address);
     await deployedBridge.deployed();
-    const bridgeSide = new SignatureBridgeSide(deployedBridge, admin);
+    const bridgeSide = new SignatureBridgeSide(deployedBridge, initialGovernor, admin);
     return bridgeSide;
   }
 
-  public static async connect(address: string, admin: ethers.Signer) {
+  public static async connect(address: string, initialGovernor: ethers.Wallet, admin: ethers.Wallet) {
     const deployedBridge = SignatureBridge__factory.connect(address, admin);
-    const bridgeSide = new SignatureBridgeSide(deployedBridge, admin);
+    const bridgeSide = new SignatureBridgeSide(deployedBridge, initialGovernor, admin);
     return bridgeSide;
+  }
+
+  /**
+   * Transfers ownership directly from the current governor to the new governor.
+   * Note that this requires an externally-signed transaction from the current governor.
+   * @param newOwner The new owner of the bridge
+   */
+  public async transferOwnership(newOwner: string, nonce: number) {
+    return this.contract.transferOwnership(newOwner, nonce);
   }
 
   /**
@@ -85,7 +100,6 @@ export class SignatureBridgeSide implements IBridgeSide {
     const proposalData = await governedToken.getFeeProposalData(fee);
     return proposalData;
   }
-
  
   public async createAddTokenUpdateProposalData(governedToken: GovernedTokenWrapper, tokenAddress: string) {
     const proposalData = await governedToken.getAddTokenProposalData(tokenAddress);
@@ -137,50 +151,134 @@ export class SignatureBridgeSide implements IBridgeSide {
   }
 
   // Connects the bridgeSide, anchor handler, and anchor.
-  // Returns the resourceID used to connect them all
+  // Returns the resourceId of the anchor instance that connects
+  // the anchor handler to the anchor (execution) contract.
   public async connectAnchorWithSignature(anchor: IAnchor): Promise<string> {
     const resourceId = await this.setResourceWithSignature(anchor);
-    await this.executeHandlerProposalWithSig(anchor, this.anchorHandler.contract.address);
+    if (this.anchorHandler.contract.address !== await anchor.getHandler()) {
+      await this.executeHandlerProposalWithSig(anchor, this.anchorHandler.contract.address);
+    }
 
     return resourceId;
+  }
+
+  public async createResourceId(): Promise<string> {
+    return toHex(
+      this.contract.address
+        + toHex(getChainIdType(Number(await this.contract.getChainId())), 6).substr(2),
+      32
+    );
   }
 
   public async setResourceWithSignature(anchor: IAnchor): Promise<string> {
     if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
-    const resourceId = await anchor.createResourceId();
-    //console.log("resourceID", resourceId);
-    //console.log("handler address", this.handler.contract.address);
-    const unsignedData = this.anchorHandler.contract.address + resourceId.slice(2) + anchor.contract.address.slice(2);
-    const unsignedMsg = ethers.utils.arrayify(ethers.utils.keccak256(unsignedData).toString());
-    const sig = await this.signingSystemSignFn(unsignedMsg);
-    const tx = await this.contract.adminSetResourceWithSignature(this.anchorHandler.contract.address, resourceId, anchor.contract.address, sig);
+
+    const resourceId = await this.createResourceId();
+    const newResourceId = await anchor.createResourceId();
+    // const unsignedData = this.anchorHandler.contract.address + newResourceId.slice(2) + anchor.contract.address.slice(2);
+
+    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(
+      "adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,address,bytes)"
+    )).slice(0, 10).padEnd(10, '0');  
+    const nonce = Number(await this.contract.proposalNonce()) + 1;;
+
+    const unsignedData = '0x'
+      // A resource Id for the bridge contract
+      + toHex(resourceId, 32).substr(2)
+      + functionSig.slice(2)
+      + toHex(nonce,4).substr(2)
+      // The resource ID mapping the resource Id to handler and 
+      // the handler to the execution contract (in the handler's storage)
+      + toHex(newResourceId, 32).substr(2)
+      // Setting the handler for the anchor to be the handler set in the bridge side class
+      + toHex(this.anchorHandler.contract.address, 20).substr(2)
+      + toHex(anchor.contract.address, 20).substr(2);
+
+    const sig = await this.signingSystemSignFn(unsignedData);
+    const tx = await this.contract.adminSetResourceWithSignature(
+      resourceId,
+      functionSig,
+      nonce,
+      newResourceId,
+      this.anchorHandler.contract.address,
+      anchor.contract.address,
+      sig
+    );
     await tx.wait();
-    return resourceId;
+    return newResourceId;
   }
 
   public async setGovernedTokenResourceWithSignature(governedToken: GovernedTokenWrapper): Promise<string> {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
-    const resourceId = await governedToken.createResourceId();
-    const unsignedData = this.tokenHandler.contract.address + resourceId.slice(2) + governedToken.contract.address.slice(2);
-    const unsignedMsg = ethers.utils.arrayify(ethers.utils.keccak256(unsignedData).toString());
-    const sig = await this.signingSystemSignFn(unsignedMsg);
-    await this.contract.adminSetResourceWithSignature(this.tokenHandler.contract.address, resourceId, governedToken.contract.address, sig);
+
+    const resourceId = await this.createResourceId();
+    const newResourceId = await governedToken.createResourceId();
+    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(
+      "adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,address,bytes)"
+    )).slice(0, 10).padEnd(10, '0');  
+    const nonce = Number(await this.contract.proposalNonce()) + 1;;
+
+    const unsignedData = '0x'
+      // A resource Id for the bridge contract
+      + toHex(resourceId, 32).substr(2)
+      + functionSig.slice(2)
+      + toHex(nonce,4).substr(2)
+      // The resource ID mapping the resource Id to handler and 
+      // the handler to the execution contract (in the handler's storage)
+      + toHex(newResourceId, 32).substr(2)
+      + toHex(this.tokenHandler.contract.address, 20).substr(2)
+      + toHex(governedToken.contract.address, 20).substr(2);
+
+    const sig = await this.signingSystemSignFn(unsignedData);
+    const tx = await this.contract.adminSetResourceWithSignature(
+      resourceId,
+      functionSig,
+      nonce,
+      newResourceId,
+      this.tokenHandler.contract.address,
+      governedToken.contract.address,
+      sig
+    );
     return resourceId;
   }
 
   public async setTreasuryResourceWithSignature(treasury: Treasury): Promise<string> {
     if (!this.treasuryHandler) throw this.TREASURY_HANDLER_MISSING_ERROR;
-    const resourceId = await treasury.createResourceId();
-    const unsignedData = this.treasuryHandler.contract.address + resourceId.slice(2) + treasury.contract.address.slice(2);
-    const unsignedMsg = ethers.utils.arrayify(ethers.utils.keccak256(unsignedData).toString());
-    const sig = await this.signingSystemSignFn(unsignedMsg);
-    await this.contract.adminSetResourceWithSignature(this.treasuryHandler.contract.address, resourceId, treasury.contract.address, sig);
+
+    const resourceId = await this.createResourceId();
+    const newResourceId = await treasury.createResourceId();
+    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(
+      "adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,address,bytes)"
+    )).slice(0, 10).padEnd(10, '0');  
+    const nonce = Number(await this.contract.proposalNonce()) + 1;;
+
+    const unsignedData = '0x'
+      // A resource Id for the bridge contract
+      + toHex(resourceId, 32).substr(2)
+      + functionSig.slice(2)
+      + toHex(nonce,4).substr(2)
+      // The resource ID mapping the resource Id to handler and 
+      // the handler to the execution contract (in the handler's storage)
+      + toHex(newResourceId, 32).substr(2)
+      + toHex(this.treasuryHandler.contract.address, 20).substr(2)
+      + toHex(treasury.contract.address, 20).substr(2);
+
+
+    const sig = await this.signingSystemSignFn(unsignedData);
+    const tx = await this.contract.adminSetResourceWithSignature(
+      resourceId,
+      functionSig,
+      nonce,
+      newResourceId,
+      this.treasuryHandler.contract.address,
+      treasury.contract.address,
+      sig
+    );
     return resourceId;
   }
 
   public async execute(proposalData: string) {
-    const proposalMsg = ethers.utils.arrayify(ethers.utils.keccak256(proposalData).toString());
-    const sig = await this.signingSystemSignFn(proposalMsg);
+    const sig = await this.signingSystemSignFn(proposalData);
     const tx = await this.contract.executeProposalWithSignature(proposalData, sig);
     const receipt = await tx.wait();
     

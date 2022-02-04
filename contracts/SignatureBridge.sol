@@ -19,6 +19,7 @@ import "./interfaces/IExecutor.sol";
     @author ChainSafe Systems & Webb Technologies.
  */
 contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType {
+    uint256 public proposalNonce = 0;
     // destinationChainID => number of deposits
     mapping(uint256 => uint64) public _counts;
     // resourceID => handler address
@@ -27,9 +28,8 @@ contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType {
     /**
         Verifying signature of governor over some datahash
      */
-    modifier signedByGovernor(bytes32 dataHash, bytes memory sig) {
-        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        require(isSignatureFromGovernor(abi.encodePacked(prefix, dataHash), sig), "signed by governor: Not valid sig from governor");
+    modifier signedByGovernor(bytes memory data, bytes memory sig) {
+        require(isSignatureFromGovernor(data, sig), "signed by governor: Not valid sig from governor");
         _;
     }
 
@@ -41,21 +41,42 @@ contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType {
 
     /**
         @notice Sets a new resource for handler contracts that use the IExecutor interface,
-        and maps the {handlerAddress} to {resourceID} in {_resourceIDToHandlerAddress}.
+        and maps the {handlerAddress} to {newResourceID} in {_resourceIDToHandlerAddress}.
         @notice Only callable by an address that currently has the admin role.
         @param handlerAddress Address of handler resource will be set for.
-        @param resourceID Secondary resourceID begin mapped to a handler address.
+        @param newResourceID Secondary resourceID begin mapped to a handler address.
         @param executionContextAddress Address of contract to be called when a proposal is ready to execute on it
      */
     function adminSetResourceWithSignature(
-        address handlerAddress,
         bytes32 resourceID,
+        bytes4 functionSig,
+        uint32 nonce,
+        bytes32 newResourceID,
+        address handlerAddress,
         address executionContextAddress,
         bytes memory sig
-    ) external signedByGovernor(keccak256(abi.encodePacked(handlerAddress, resourceID, executionContextAddress)), sig){
-        _resourceIDToHandlerAddress[resourceID] = handlerAddress;
+    ) external signedByGovernor(
+        abi.encodePacked(
+            resourceID,
+            functionSig,
+            nonce,
+            newResourceID,
+            handlerAddress,
+            executionContextAddress
+        ), sig
+    ){
+        require(proposalNonce < nonce, "Invalid nonce");
+        require(nonce <= proposalNonce + 1, "Nonce must increment by 1");
+        require(
+            functionSig == bytes4(keccak256(
+                "adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,address,bytes)"
+            )),
+            "adminSetResourceWithSignature: Invalid function signature"
+        );
+        _resourceIDToHandlerAddress[newResourceID] = handlerAddress;
         IExecutor handler = IExecutor(handlerAddress);
-        handler.setResource(resourceID, executionContextAddress);
+        handler.setResource(newResourceID, executionContextAddress);
+        proposalNonce = nonce;
     }
 
     /**
@@ -65,7 +86,7 @@ contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType {
     function executeProposalWithSignature(
         bytes calldata data,
         bytes memory sig
-    ) external signedByGovernor(keccak256(data), sig) {
+    ) external signedByGovernor(data, sig) {
         //Parse resourceID from the data
         bytes calldata resourceIDBytes = data[0:32];
         bytes32 resourceID = bytes32(resourceIDBytes);

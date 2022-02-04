@@ -61,6 +61,7 @@
     "circomlib": "^2.0.1",
     "circomlibjs": "^0.0.8",
     "dotenv": "^8.2.0",
+    "elliptic": "^6.5.3",
     "eth-sig-util": "^3.0.1",
     "ethers-eip712": "^0.2.0",
     "hardhat-artifactor": "^0.2.0",
