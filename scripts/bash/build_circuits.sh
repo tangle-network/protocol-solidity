@@ -1,12 +1,12 @@
 #!/bin/bash
 
-mkdir -p artifacts/circuits/{anchor,bridge,keypair,semaphore,signature,vanchor_2,vanchor_16}
+mkdir -p artifacts/circuits/{anchor,bridge,keypair,membership,semaphore,signature,vanchor_2,vanchor_16}
 
 compile () {
     local outdir="$1" circuit="$2" size="$3"
     mkdir -p build/$outdir
     mkdir -p build/$outdir/$size
-    echo "$circuits/test/$circuit.circom"
+    echo "circuits/test/$circuit.circom"
     ~/.cargo/bin/circom --r1cs --wasm --sym \
         -o artifacts/circuits/$outdir \
         circuits/test/$circuit.circom

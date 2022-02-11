@@ -41,10 +41,9 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
     signal input outPubkey[nOuts];
     signal input outBlinding[nOuts];
 
-    // roots and diffs for interoperability, one-of-many merkle membership proof
+    // roots for interoperability, one-of-many merkle membership proof
     signal input chainID;
     signal input roots[length];
-    signal input diffs[nIns][length];
 
     component inKeypair[nIns];
     component inSignature[nIns];
@@ -83,7 +82,6 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
         // add the roots and diffs signals to the bridge circuit
         for (var i = 0; i < length; i++) {
             inTree[tx].roots[i] <== roots[i];
-            inTree[tx].diffs[i] <== diffs[tx][i];
         }
 
         inTree[tx].isEnabled <== inAmount[tx];
