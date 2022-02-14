@@ -36,7 +36,6 @@ export interface IExtData {
 export interface IWitnessInput {
   input: {
     roots: BigNumberish[],
-    diffs: BigNumberish[][],
     chainID: BigNumberish,
     inputNullifier: BigNumberish[],
     outputCommitment: BigNumberish[],

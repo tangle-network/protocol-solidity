@@ -333,25 +333,12 @@ class Anchor implements IAnchor {
     pathIndices: any[],
   ): Promise<any> {
     const { chainID, nullifierHash, nullifier, secret } = deposit;
-    let rootDiffIndex: number;
-    // read the origin chain's index into the roots array
-    if (chainID == BigInt(originChain)) {
-      rootDiffIndex = 0;
-    } else {
-      const edgeIndex = await this.contract.edgeIndex(originChain);
-      rootDiffIndex = edgeIndex.toNumber() + 1;
-    }
     
     return {
       // public
       nullifierHash, refreshCommitment, recipient, relayer, fee, refund, chainID, roots,
       // private
-      nullifier, secret, pathElements, pathIndices, diffs: roots.map(r => {
-        return F.sub(
-          Scalar.fromString(`${r}`),
-          Scalar.fromString(`${roots[rootDiffIndex]}`),
-        ).toString();
-      }),
+      nullifier, secret, pathElements, pathIndices,
     };
   }
 

@@ -14,15 +14,15 @@ include "../../node_modules/circomlib/circuits/comparators.circom";
 template ForceSetMembershipIfEnabled(length) {
   signal input element;
   signal input set[length];
-  signal input diffs[length];
   signal input enabled;
 
+  signal diffs[length];
   signal product[length + 1];
   
   product[0] <== element;
   
   for (var i = 0; i < length; i++) { 
-    (set[i] - diffs[i] - element) * enabled === 0;
+    diffs[i] <== set[i] - element;
     product[i + 1] <== product[i] * diffs[i];
   }
 

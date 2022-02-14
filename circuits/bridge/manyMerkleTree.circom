@@ -22,7 +22,6 @@ template ManyMerkleTreeChecker(levels, length) {
     signal input pathElements[levels];
     signal input pathIndices[levels];
     signal input roots[length];
-    signal input diffs[length];
 
     component selectors[levels];
     component hashers[levels];
@@ -44,6 +43,5 @@ template ManyMerkleTreeChecker(levels, length) {
     set.element <== hashers[levels - 1].hash;
     for (var i = 0; i < length; i++) {
         set.set[i] <== roots[i];
-        set.diffs[i] <== diffs[i];
     }
 }
