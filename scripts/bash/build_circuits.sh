@@ -34,29 +34,29 @@ copy_to_fixtures () {
 # WEBB BRIDGES
 ###
 
-# echo "Compiling Webb style Poseidon bridge 2 withdrawal circuit..."
-# compile bridge poseidon_bridge_2 2
-# copy_to_fixtures bridge poseidon_bridge_2 2 bridge
+echo "Compiling Webb style Poseidon bridge 2 withdrawal circuit..."
+compile bridge poseidon_bridge_2 2
+copy_to_fixtures bridge poseidon_bridge_2 2 bridge
 
-# echo "Compiling Webb style Poseidon bridge 3 withdrawal circuit..."
-# compile bridge poseidon_bridge_3 3
-# copy_to_fixtures bridge poseidon_bridge_3 3 bridge
+echo "Compiling Webb style Poseidon bridge 3 withdrawal circuit..."
+compile bridge poseidon_bridge_3 3
+copy_to_fixtures bridge poseidon_bridge_3 3 bridge
 
-# echo "Compiling Webb style Poseidon bridge 4 withdrawal circuit..."
-# compile bridge poseidon_bridge_4 4
-# copy_to_fixtures bridge poseidon_bridge_4 4 bridge
+echo "Compiling Webb style Poseidon bridge 4 withdrawal circuit..."
+compile bridge poseidon_bridge_4 4
+copy_to_fixtures bridge poseidon_bridge_4 4 bridge
 
-# echo "Compiling Webb style Poseidon bridge 5 withdrawal circuit..."
-# compile bridge poseidon_bridge_5 5
-# copy_to_fixtures bridge poseidon_bridge_5 5 bridge
+echo "Compiling Webb style Poseidon bridge 5 withdrawal circuit..."
+compile bridge poseidon_bridge_5 5
+copy_to_fixtures bridge poseidon_bridge_5 5 bridge
 
-# echo "Compiling Webb style Poseidon bridge 6 withdrawal circuit..."
-# compile bridge poseidon_bridge_6 6
-# copy_to_fixtures bridge poseidon_bridge_6 6 bridge
+echo "Compiling Webb style Poseidon bridge 6 withdrawal circuit..."
+compile bridge poseidon_bridge_6 6
+copy_to_fixtures bridge poseidon_bridge_6 6 bridge
 
-# echo "Compiling Webb style Poseidon bridge 32 withdrawal circuit..."
-# compile bridge poseidon_bridge_32 32
-# copy_to_fixtures bridge poseidon_bridge_32 32 bridge
+echo "Compiling Webb style Poseidon bridge 32 withdrawal circuit..."
+compile bridge poseidon_bridge_32 32
+copy_to_fixtures bridge poseidon_bridge_32 32 bridge
 
 # ###
 # # WEBB SEMPAHORES
@@ -65,21 +65,25 @@ copy_to_fixtures () {
 # compile semaphore semaphore_bridge_2 2
 # copy_to_fixtures semaphore semaphore_bridge_2 2 semaphore
 
-# echo "Compiling Webb style variable Poseidon bridge 2 circuit w/ 2 inputs"
-# compile vanchor_2 poseidon_vanchor_2_2 2
-# copy_to_fixtures vanchor_2 poseidon_vanchor_2_2 2 vanchor_2
+###
+# WEBB VANCHORS
+###
 
-# echo "Compiling Webb style variable Poseidon bridge 2 circuit w/ 16 inputs"
-# compile vanchor_16 poseidon_vanchor_16_2 2
-# copy_to_fixtures vanchor_16 poseidon_vanchor_16_2 2 vanchor_16
+echo "Compiling Webb style variable Poseidon bridge 2 circuit w/ 2 inputs"
+compile vanchor_2 poseidon_vanchor_2_2 2
+copy_to_fixtures vanchor_2 poseidon_vanchor_2_2 2 vanchor_2
 
-# echo "Compiling Webb style variable Poseidon bridge 8 circuit w/ 2 inputs"
-# compile vanchor_2 poseidon_vanchor_2_8 8
-# copy_to_fixtures vanchor_2 poseidon_vanchor_2_8 8 vanchor_2
+echo "Compiling Webb style variable Poseidon bridge 2 circuit w/ 16 inputs"
+compile vanchor_16 poseidon_vanchor_16_2 2
+copy_to_fixtures vanchor_16 poseidon_vanchor_16_2 2 vanchor_16
 
-# echo "Compiling Webb style variable Poseidon bridge 8 circuit w/ 16 inputs"
-# compile vanchor_16 poseidon_vanchor_16_8 8
-# copy_to_fixtures vanchor_16 poseidon_vanchor_16_8 8 vanchor_16
+echo "Compiling Webb style variable Poseidon bridge 8 circuit w/ 2 inputs"
+compile vanchor_2 poseidon_vanchor_2_8 8
+copy_to_fixtures vanchor_2 poseidon_vanchor_2_8 8 vanchor_2
+
+echo "Compiling Webb style variable Poseidon bridge 8 circuit w/ 16 inputs"
+compile vanchor_16 poseidon_vanchor_16_8 8
+copy_to_fixtures vanchor_16 poseidon_vanchor_16_8 8 vanchor_16
 
 # echo "Compiling Poseidon4 test gadget"
 # compile poseidon4 poseidon4_test 4

@@ -172,16 +172,6 @@
        await tree.insert(deposit.commitment);
        const { merkleRoot, pathElements, pathIndices } = await tree.path(0);
        const roots = [merkleRoot, 0];
-       const diffs = roots.map(r => {
-         return F.sub(
-           Scalar.fromString(`${r}`),
-           Scalar.fromString(`${merkleRoot}`),
-         ).toString();
-       });
-       // mock set membership gadget computation
-       for (var i = 0; i < roots.length; i++) {
-         assert.strictEqual(Scalar.fromString(roots[i]), F.add(Scalar.fromString(diffs[i]), Scalar.fromString(merkleRoot)));
-       }
  
        const signers = await ethers.getSigners();
        const relayer = signers[1].address;
@@ -201,12 +191,6 @@
          secret: deposit.secret,
          pathElements: pathElements,
          pathIndices: pathIndices,
-         diffs: [merkleRoot, 0].map(r => {
-           return F.sub(
-             Scalar.fromString(`${r}`),
-             Scalar.fromString(`${merkleRoot}`),
-           ).toString();
-         }),
        };
  
        const wtns = await createWitness(input);
@@ -321,12 +305,6 @@
          secret: deposit.secret,
          pathElements: pathElements,
          pathIndices: pathIndices,
-         diffs: [merkleRoot, 0].map(r => {
-           return F.sub(
-             Scalar.fromString(`${r}`),
-             Scalar.fromString(`${merkleRoot}`),
-           ).toString();
-         }),
        };
  
        const wtns = await createWitness(input);
@@ -397,12 +375,6 @@
          secret: deposit.secret,
          pathElements: pathElements,
          pathIndices: pathIndices,
-         diffs: [merkleRoot, 0].map(r => {
-           return F.sub(
-             Scalar.fromString(`${r}`),
-             Scalar.fromString(`${merkleRoot}`),
-           ).toString();
-         }),
        };
  
        const wtns = await createWitness(input);
@@ -456,12 +428,6 @@
          secret: deposit.secret,
          pathElements: pathElements,
          pathIndices: pathIndices,
-         diffs: [merkleRoot, 0].map(r => {
-           return F.sub(
-             Scalar.fromString(`${r}`),
-             Scalar.fromString(`${merkleRoot}`),
-           ).toString();
-         }),
        };
  
        const wtns = await createWitness(input);
@@ -674,12 +640,6 @@
          secret: deposit.secret,
          pathElements: pathElements,
          pathIndices: pathIndices,
-         diffs: [merkleRoot, 0].map(r => {
-           return F.sub(
-             Scalar.fromString(`${r}`),
-             Scalar.fromString(`${merkleRoot}`),
-           ).toString();
-         }),
        };
        const wtns = await createWitness(input);
  
