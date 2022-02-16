@@ -1,22 +1,16 @@
-import ganache from 'ganache-cli';
-
-type GanacheAccounts = {
-  balance: string,
-  secretKey: string,
-};
-
-export function startGanacheServer(port: number, networkId: number, populatedAccounts: GanacheAccounts[]) {
+import ganache from 'ganache';
+ 
+export async function startGanacheServer(port: number, networkId: number, mnemonic: string) {
   const ganacheServer = ganache.server({
-    accounts: populatedAccounts,
-    port: port,
     network_id: networkId,
-    _chainId: networkId,
+    instamine: 'strict',
     chainId: networkId,
-    _chainIdRpc: networkId,
+    quiet: true,
+    mnemonic:
+      mnemonic,
   });
 
-  ganacheServer.listen(port);
-  console.log(`Ganache Started on http://127.0.0.1:${port} ..`);
-
+  await ganacheServer.listen(port);
+  //console.log(`Ganache Started on http://127.0.0.1:${port} ..`);
   return ganacheServer;
 }

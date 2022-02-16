@@ -46,7 +46,6 @@ template Withdraw(levels, length) {
     signal input pathIndices[levels];   // private
     // the differences of the root one is proving against and
     // all the roots provided as a public input in the `roots` signal.
-    signal input diffs[length];         // private
 
     component hasher = CommitmentHasher();
     hasher.chainID <== chainID;
@@ -61,10 +60,9 @@ template Withdraw(levels, length) {
         tree.pathIndices[i] <== pathIndices[i];
     }
 
-    // add the roots and diffs signals to the bridge circuit
+    // add the roots signals to the bridge circuit
     for (var i = 0; i < length; i++) {
         tree.roots[i] <== roots[i];
-        tree.diffs[i] <== diffs[i];
     }
 
     // Add hidden signals to make sure that tampering with recipient or fee will invalidate the snark proof

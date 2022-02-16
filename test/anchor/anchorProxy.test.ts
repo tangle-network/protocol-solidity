@@ -21,8 +21,10 @@ import {
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
-import { Anchor, AnchorProxy, MerkleTree, Verifier } from '@webb-tools/fixed-bridge'
-import { fetchComponentsFromFilePaths, ZkComponents, toFixedHex } from '@webb-tools/utils';
+import { Verifier } from '../../packages/bridges/src'
+import { fetchComponentsFromFilePaths, ZkComponents, toFixedHex, getChainIdType } from '../../packages/utils/src';
+import { Anchor, AnchorProxy } from '../../packages/anchors/src';
+import { MerkleTree } from '../../packages/merkle-tree/src';
 
 const { NATIVE_AMOUNT } = process.env
 const snarkjs = require('snarkjs')
@@ -48,7 +50,7 @@ describe('AnchorProxy', () => {
   let token: Token;
   let wrappedToken: WrappedToken;
   let tokenDenomination = '1000000000000000000' // 1 ether
-  const chainID = 31337;
+  const chainID = getChainIdType(31337);
   const MAX_EDGES = 1;
   let createWitness: any;
   
@@ -69,7 +71,7 @@ describe('AnchorProxy', () => {
     const wallet = signers[0];
     const sender = wallet;
 
-    tree = new MerkleTree('', levels);
+    tree = new MerkleTree(levels);
 
     // create poseidon hasher
     const hasherFactory = new PoseidonT3__factory(sender);

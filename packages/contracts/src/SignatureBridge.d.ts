@@ -21,26 +21,29 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface SignatureBridgeInterface extends ethers.utils.Interface {
   functions: {
+    "EVM_CHAIN_ID_TYPE()": FunctionFragment;
     "_counts(uint256)": FunctionFragment;
     "_resourceIDToHandlerAddress(bytes32)": FunctionFragment;
-    "adminMigrateBridgeWithSignature(bytes32[],address,bytes)": FunctionFragment;
-    "adminSetResourceWithSignature(address,bytes32,address,bytes)": FunctionFragment;
-    "checkPubKey(bytes)": FunctionFragment;
+    "adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,address,bytes)": FunctionFragment;
     "executeProposalWithSignature(bytes,bytes)": FunctionFragment;
     "getChainId()": FunctionFragment;
+    "getChainIdType()": FunctionFragment;
     "governor()": FunctionFragment;
     "isGovernor()": FunctionFragment;
     "isSignatureFromGovernor(bytes,bytes)": FunctionFragment;
     "paused()": FunctionFragment;
+    "proposalNonce()": FunctionFragment;
     "recover(bytes,bytes)": FunctionFragment;
     "refreshNonce()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "transferOwnership(address,uint32)": FunctionFragment;
-    "transferOwnershipWithSignature(address,uint32,bytes)": FunctionFragment;
     "transferOwnershipWithSignaturePubKey(bytes,uint32,bytes)": FunctionFragment;
-    "verify(bytes32,uint8,bytes32,bytes32)": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "EVM_CHAIN_ID_TYPE",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "_counts",
     values: [BigNumberish]
@@ -50,16 +53,16 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "adminMigrateBridgeWithSignature",
-    values: [BytesLike[], string, BytesLike]
-  ): string;
-  encodeFunctionData(
     functionFragment: "adminSetResourceWithSignature",
-    values: [string, BytesLike, string, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "checkPubKey",
-    values: [BytesLike]
+    values: [
+      BytesLike,
+      BytesLike,
+      BigNumberish,
+      BytesLike,
+      string,
+      string,
+      BytesLike
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "executeProposalWithSignature",
@@ -67,6 +70,10 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getChainId",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getChainIdType",
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "governor", values?: undefined): string;
@@ -79,6 +86,10 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     values: [BytesLike, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "proposalNonce",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "recover",
     values: [BytesLike, BytesLike]
@@ -96,25 +107,17 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "transferOwnershipWithSignature",
-    values: [string, BigNumberish, BytesLike]
-  ): string;
-  encodeFunctionData(
     functionFragment: "transferOwnershipWithSignaturePubKey",
     values: [BytesLike, BigNumberish, BytesLike]
   ): string;
-  encodeFunctionData(
-    functionFragment: "verify",
-    values: [BytesLike, BigNumberish, BytesLike, BytesLike]
-  ): string;
 
+  decodeFunctionResult(
+    functionFragment: "EVM_CHAIN_ID_TYPE",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "_counts", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "_resourceIDToHandlerAddress",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "adminMigrateBridgeWithSignature",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -122,14 +125,14 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "checkPubKey",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "executeProposalWithSignature",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getChainId", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getChainIdType",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "governor", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "isGovernor", data: BytesLike): Result;
   decodeFunctionResult(
@@ -137,6 +140,10 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "proposalNonce",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "recover", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "refreshNonce",
@@ -151,14 +158,9 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "transferOwnershipWithSignature",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "transferOwnershipWithSignaturePubKey",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "verify", data: BytesLike): Result;
 
   events: {
     "GovernanceOwnershipTransferred(address,address)": EventFragment;
@@ -231,6 +233,8 @@ export class SignatureBridge extends BaseContract {
   interface: SignatureBridgeInterface;
 
   functions: {
+    EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<[string]>;
+
     _counts(
       arg0: BigNumberish,
       overrides?: CallOverrides
@@ -241,25 +245,16 @@ export class SignatureBridge extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    adminMigrateBridgeWithSignature(
-      resourceIDs: BytesLike[],
-      newBridge: string,
-      sig: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     adminSetResourceWithSignature(
-      handlerAddress: string,
       resourceID: BytesLike,
+      functionSig: BytesLike,
+      nonce: BigNumberish,
+      newResourceID: BytesLike,
+      handlerAddress: string,
       executionContextAddress: string,
       sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    checkPubKey(
-      pubkey: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
 
     executeProposalWithSignature(
       data: BytesLike,
@@ -268,6 +263,8 @@ export class SignatureBridge extends BaseContract {
     ): Promise<ContractTransaction>;
 
     getChainId(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    getChainIdType(overrides?: CallOverrides): Promise<[number]>;
 
     governor(overrides?: CallOverrides): Promise<[string]>;
 
@@ -281,11 +278,13 @@ export class SignatureBridge extends BaseContract {
 
     paused(overrides?: CallOverrides): Promise<[boolean]>;
 
+    proposalNonce(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     recover(
       data: BytesLike,
       sig: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
     refreshNonce(overrides?: CallOverrides): Promise<[number]>;
 
@@ -299,28 +298,15 @@ export class SignatureBridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    transferOwnershipWithSignature(
-      newOwner: string,
-      nonce: BigNumberish,
-      sig: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     transferOwnershipWithSignaturePubKey(
       publicKey: BytesLike,
       nonce: BigNumberish,
       sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    verify(
-      hash: BytesLike,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
   };
+
+  EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<string>;
 
   _counts(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -329,22 +315,16 @@ export class SignatureBridge extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  adminMigrateBridgeWithSignature(
-    resourceIDs: BytesLike[],
-    newBridge: string,
-    sig: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   adminSetResourceWithSignature(
-    handlerAddress: string,
     resourceID: BytesLike,
+    functionSig: BytesLike,
+    nonce: BigNumberish,
+    newResourceID: BytesLike,
+    handlerAddress: string,
     executionContextAddress: string,
     sig: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
-
-  checkPubKey(pubkey: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
   executeProposalWithSignature(
     data: BytesLike,
@@ -353,6 +333,8 @@ export class SignatureBridge extends BaseContract {
   ): Promise<ContractTransaction>;
 
   getChainId(overrides?: CallOverrides): Promise<BigNumber>;
+
+  getChainIdType(overrides?: CallOverrides): Promise<number>;
 
   governor(overrides?: CallOverrides): Promise<string>;
 
@@ -366,11 +348,13 @@ export class SignatureBridge extends BaseContract {
 
   paused(overrides?: CallOverrides): Promise<boolean>;
 
+  proposalNonce(overrides?: CallOverrides): Promise<BigNumber>;
+
   recover(
     data: BytesLike,
     sig: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+    overrides?: CallOverrides
+  ): Promise<string>;
 
   refreshNonce(overrides?: CallOverrides): Promise<number>;
 
@@ -384,13 +368,6 @@ export class SignatureBridge extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  transferOwnershipWithSignature(
-    newOwner: string,
-    nonce: BigNumberish,
-    sig: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   transferOwnershipWithSignaturePubKey(
     publicKey: BytesLike,
     nonce: BigNumberish,
@@ -398,15 +375,9 @@ export class SignatureBridge extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  verify(
-    hash: BytesLike,
-    v: BigNumberish,
-    r: BytesLike,
-    s: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
   callStatic: {
+    EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<string>;
+
     _counts(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     _resourceIDToHandlerAddress(
@@ -414,22 +385,16 @@ export class SignatureBridge extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    adminMigrateBridgeWithSignature(
-      resourceIDs: BytesLike[],
-      newBridge: string,
-      sig: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     adminSetResourceWithSignature(
-      handlerAddress: string,
       resourceID: BytesLike,
+      functionSig: BytesLike,
+      nonce: BigNumberish,
+      newResourceID: BytesLike,
+      handlerAddress: string,
       executionContextAddress: string,
       sig: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    checkPubKey(pubkey: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
     executeProposalWithSignature(
       data: BytesLike,
@@ -438,6 +403,8 @@ export class SignatureBridge extends BaseContract {
     ): Promise<void>;
 
     getChainId(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getChainIdType(overrides?: CallOverrides): Promise<number>;
 
     governor(overrides?: CallOverrides): Promise<string>;
 
@@ -451,11 +418,13 @@ export class SignatureBridge extends BaseContract {
 
     paused(overrides?: CallOverrides): Promise<boolean>;
 
+    proposalNonce(overrides?: CallOverrides): Promise<BigNumber>;
+
     recover(
       data: BytesLike,
       sig: BytesLike,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<string>;
 
     refreshNonce(overrides?: CallOverrides): Promise<number>;
 
@@ -467,27 +436,12 @@ export class SignatureBridge extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    transferOwnershipWithSignature(
-      newOwner: string,
-      nonce: BigNumberish,
-      sig: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     transferOwnershipWithSignaturePubKey(
       publicKey: BytesLike,
       nonce: BigNumberish,
       sig: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    verify(
-      hash: BytesLike,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
   };
 
   filters: {
@@ -529,6 +483,8 @@ export class SignatureBridge extends BaseContract {
   };
 
   estimateGas: {
+    EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<BigNumber>;
+
     _counts(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     _resourceIDToHandlerAddress(
@@ -536,24 +492,15 @@ export class SignatureBridge extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    adminMigrateBridgeWithSignature(
-      resourceIDs: BytesLike[],
-      newBridge: string,
-      sig: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     adminSetResourceWithSignature(
-      handlerAddress: string,
       resourceID: BytesLike,
+      functionSig: BytesLike,
+      nonce: BigNumberish,
+      newResourceID: BytesLike,
+      handlerAddress: string,
       executionContextAddress: string,
       sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    checkPubKey(
-      pubkey: BytesLike,
-      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     executeProposalWithSignature(
@@ -563,6 +510,8 @@ export class SignatureBridge extends BaseContract {
     ): Promise<BigNumber>;
 
     getChainId(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getChainIdType(overrides?: CallOverrides): Promise<BigNumber>;
 
     governor(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -576,10 +525,12 @@ export class SignatureBridge extends BaseContract {
 
     paused(overrides?: CallOverrides): Promise<BigNumber>;
 
+    proposalNonce(overrides?: CallOverrides): Promise<BigNumber>;
+
     recover(
       data: BytesLike,
       sig: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     refreshNonce(overrides?: CallOverrides): Promise<BigNumber>;
@@ -594,30 +545,17 @@ export class SignatureBridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    transferOwnershipWithSignature(
-      newOwner: string,
-      nonce: BigNumberish,
-      sig: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     transferOwnershipWithSignaturePubKey(
       publicKey: BytesLike,
       nonce: BigNumberish,
       sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
-
-    verify(
-      hash: BytesLike,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     _counts(
       arg0: BigNumberish,
       overrides?: CallOverrides
@@ -628,24 +566,15 @@ export class SignatureBridge extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    adminMigrateBridgeWithSignature(
-      resourceIDs: BytesLike[],
-      newBridge: string,
-      sig: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     adminSetResourceWithSignature(
-      handlerAddress: string,
       resourceID: BytesLike,
+      functionSig: BytesLike,
+      nonce: BigNumberish,
+      newResourceID: BytesLike,
+      handlerAddress: string,
       executionContextAddress: string,
       sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    checkPubKey(
-      pubkey: BytesLike,
-      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     executeProposalWithSignature(
@@ -655,6 +584,8 @@ export class SignatureBridge extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getChainId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getChainIdType(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     governor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -668,10 +599,12 @@ export class SignatureBridge extends BaseContract {
 
     paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    proposalNonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     recover(
       data: BytesLike,
       sig: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     refreshNonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -686,26 +619,11 @@ export class SignatureBridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    transferOwnershipWithSignature(
-      newOwner: string,
-      nonce: BigNumberish,
-      sig: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     transferOwnershipWithSignaturePubKey(
       publicKey: BytesLike,
       nonce: BigNumberish,
       sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    verify(
-      hash: BytesLike,
-      v: BigNumberish,
-      r: BytesLike,
-      s: BytesLike,
-      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
 }

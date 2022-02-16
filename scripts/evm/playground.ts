@@ -2,8 +2,10 @@ require('dotenv').config();
 const path = require('path');
 import { fetchComponentsFromFilePaths } from '@webb-tools/utils';
 import { ethers } from 'ethers';
-import { Anchor } from '@webb-tools/fixed-bridge';
-import { viewEdgeList } from './viewActions/viewEdgeList';
+import { Anchor } from '../../packages/bridges';
+import { bridgedWithdrawErc20Token } from './withdrawals/bridgedWithdrawErc20Token';
+import { depositAndBridgedWithdraw } from './bridgeActions/depositAndBridgedWithdraw';
+import { fetchComponentsFromFilePaths } from '../../packages/utils';
 
 const providerRinkeby = new ethers.providers.JsonRpcProvider(`https://rinkeby.infura.io/v3/fff68ca474dd4764a8d54dd14fa5519e`);
 const walletRinkeby = new ethers.Wallet(process.env.PRIVATE_KEY!, providerRinkeby);

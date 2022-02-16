@@ -1,8 +1,8 @@
 require('dotenv').config();
 import { ethers } from 'ethers';
-import { Bridge, BridgeInput, DeployerConfig } from '@webb-tools/fixed-bridge';
-import { fetchComponentsFromFilePaths } from '@webb-tools/utils';
+import { fetchComponentsFromFilePaths, Overrides } from '@webb-tools/utils';
 import path from "path";
+import { Bridge, BridgeInput, DeployerConfig } from '@webb-tools/bridges';
 
 export async function run() {
 
@@ -62,7 +62,7 @@ export async function run() {
     }
   };
 
-  const bridge = await Bridge.deployBridge(bridgeInput, deployers, zkComponents);
+  const bridge = await Bridge.deployFixedDepositBridge(bridgeInput, deployers);
 
   // print out all the info for the addresses to run 
   const bridgeConfig = await bridge.exportConfig();

@@ -1,11 +1,16 @@
-import { ethers } from "ethers";
-import { Overrides, toHex } from "@webb-tools/utils";
+import { ethers } from 'ethers';
+import { getChainIdType, toHex, generateFunctionSigHash, Overrides } from '@webb-tools/utils';
 import { GovernedTokenWrapper as GovernedTokenWrapperContract, GovernedTokenWrapper__factory } from '@webb-tools/contracts';
 
-class GovernedTokenWrapper {
+export class GovernedTokenWrapper {
   contract: GovernedTokenWrapperContract;
   signer: ethers.Signer;
   
+  ADD_TOKEN_SIGNATURE = "add(address,uint256)";
+  REMOVE_TOKEN_SIGNATURE = "remove(address,uint256)";
+  SET_FEE_SIGNATURE = "setFee(uint8,uint256)";
+  FEE_RECIPIENT_SIGNATURE = "setFeeRecipient(address,uint256)";
+
   constructor(
     contract: GovernedTokenWrapperContract,
     signer: ethers.Signer
@@ -17,6 +22,7 @@ class GovernedTokenWrapper {
   public static async createGovernedTokenWrapper(
     name: string,
     symbol: string,
+    feeRecipient: string,
     governor: string,
     limit: string,
     isNativeAllowed: boolean,
@@ -27,6 +33,7 @@ class GovernedTokenWrapper {
     const contract = await factory.deploy(
       name,
       symbol,
+      feeRecipient,
       governor,
       limit,
       isNativeAllowed,
@@ -44,19 +51,20 @@ class GovernedTokenWrapper {
     return tokenWrapper;
   }
 
-  public grantMinterRole(address: string, overrides?: Overrides) {
+  public async grantMinterRole(address: string) {
     const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
-    return this.contract.grantRole(MINTER_ROLE, address, overrides || {});
+    const tx = await this.contract.grantRole(MINTER_ROLE, address);
+    await tx.wait();
+    return;
   }
 
   public async createResourceId(): Promise<string> {
-    return toHex(this.contract.address + toHex((await this.signer.getChainId()), 4).substr(2), 32);
+    return toHex(this.contract.address + toHex(getChainIdType(await this.signer.getChainId()), 6).substr(2), 32);
   }
 
   public async getAddTokenProposalData(tokenAddress: string): Promise<string> {
-    //First 4 bytes of keccak hash is encoded function sig...
     const resourceID = await this.createResourceId();
-    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("add(address,uint256)")).slice(0, 10).padEnd(10, '0');
+    const functionSig = generateFunctionSigHash(this.ADD_TOKEN_SIGNATURE);
     const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
   
     return '0x' +
@@ -67,9 +75,8 @@ class GovernedTokenWrapper {
   }
 
   public async getRemoveTokenProposalData(tokenAddress: string): Promise<string> {
-    //First 4 bytes of keccak hash is encoded function sig...
     const resourceID = await this.createResourceId();
-    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("remove(address,uint256)")).slice(0, 10).padEnd(10, '0');
+    const functionSig = generateFunctionSigHash(this.REMOVE_TOKEN_SIGNATURE);
     const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
 
     return '0x' +
@@ -82,7 +89,7 @@ class GovernedTokenWrapper {
   public async getFeeProposalData(fee: number): Promise<string> {
     const resourceID = await this.createResourceId();
     const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
-    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("setFee(uint8,uint256)")).slice(0, 10).padEnd(10, '0');
+    const functionSig = generateFunctionSigHash(this.SET_FEE_SIGNATURE);
     const feeString = toHex(fee, 1);
 
     return '0x' +
@@ -92,6 +99,15 @@ class GovernedTokenWrapper {
       feeString.slice(2);
   }
 
-}
+  public async getFeeRecipientProposalData(feeRecipient: string): Promise<string> {
+    const resourceID = await this.createResourceId();
+    const functionSig = generateFunctionSigHash(this.FEE_RECIPIENT_SIGNATURE);
+    const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
 
-export { GovernedTokenWrapper };
+    return '0x' +
+      toHex(resourceID, 32).substr(2) + 
+      functionSig.slice(2) +
+      toHex(nonce,4).substr(2) + 
+      feeRecipient.padEnd(42, '0').slice(2);
+  }
+}

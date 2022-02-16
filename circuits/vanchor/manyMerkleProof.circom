@@ -13,7 +13,6 @@ template ManyMerkleProof(levels, length) {
     signal input pathElements[levels];
     signal input pathIndices;
     signal input roots[length];
-    signal input diffs[length];
     signal input isEnabled;
 
     component switcher[levels];
@@ -39,7 +38,6 @@ template ManyMerkleProof(levels, length) {
     set.enabled <== isEnabled;
     for (var i = 0; i < length; i++) {
         set.set[i] <== roots[i];
-        set.diffs[i] <== diffs[i];
     }
     set.element <== hasher[levels - 1].out;
 }

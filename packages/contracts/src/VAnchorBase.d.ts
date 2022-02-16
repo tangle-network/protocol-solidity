@@ -22,6 +22,7 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface VAnchorBaseInterface extends ethers.utils.Interface {
   functions: {
+    "EVM_CHAIN_ID_TYPE()": FunctionFragment;
     "FIELD_SIZE()": FunctionFragment;
     "MAX_EXT_AMOUNT()": FunctionFragment;
     "MAX_FEE()": FunctionFragment;
@@ -37,6 +38,7 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     "edgeList(uint256)": FunctionFragment;
     "filledSubtrees(uint256)": FunctionFragment;
     "getChainId()": FunctionFragment;
+    "getChainIdType()": FunctionFragment;
     "getLastRoot()": FunctionFragment;
     "getLatestNeighborEdges()": FunctionFragment;
     "getLatestNeighborRoots()": FunctionFragment;
@@ -68,6 +70,10 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     "zeros(uint256)": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "EVM_CHAIN_ID_TYPE",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "FIELD_SIZE",
     values?: undefined
@@ -123,6 +129,10 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getChainId",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getChainIdType",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -226,6 +236,10 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "verifier", values?: undefined): string;
   encodeFunctionData(functionFragment: "zeros", values: [BigNumberish]): string;
 
+  decodeFunctionResult(
+    functionFragment: "EVM_CHAIN_ID_TYPE",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "FIELD_SIZE", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "MAX_EXT_AMOUNT",
@@ -268,6 +282,10 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getChainId", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getChainIdType",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getLastRoot",
     data: BytesLike
@@ -442,6 +460,8 @@ export class VAnchorBase extends BaseContract {
   interface: VAnchorBaseInterface;
 
   functions: {
+    EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<[string]>;
+
     FIELD_SIZE(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     MAX_EXT_AMOUNT(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -500,6 +520,8 @@ export class VAnchorBase extends BaseContract {
     ): Promise<[string]>;
 
     getChainId(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    getChainIdType(overrides?: CallOverrides): Promise<[number]>;
 
     getLastRoot(overrides?: CallOverrides): Promise<[string]>;
 
@@ -647,6 +669,8 @@ export class VAnchorBase extends BaseContract {
     zeros(i: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
   };
 
+  EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<string>;
+
   FIELD_SIZE(overrides?: CallOverrides): Promise<BigNumber>;
 
   MAX_EXT_AMOUNT(overrides?: CallOverrides): Promise<BigNumber>;
@@ -702,6 +726,8 @@ export class VAnchorBase extends BaseContract {
   ): Promise<string>;
 
   getChainId(overrides?: CallOverrides): Promise<BigNumber>;
+
+  getChainIdType(overrides?: CallOverrides): Promise<number>;
 
   getLastRoot(overrides?: CallOverrides): Promise<string>;
 
@@ -827,6 +853,8 @@ export class VAnchorBase extends BaseContract {
   zeros(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
+    EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<string>;
+
     FIELD_SIZE(overrides?: CallOverrides): Promise<BigNumber>;
 
     MAX_EXT_AMOUNT(overrides?: CallOverrides): Promise<BigNumber>;
@@ -885,6 +913,8 @@ export class VAnchorBase extends BaseContract {
     ): Promise<string>;
 
     getChainId(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getChainIdType(overrides?: CallOverrides): Promise<number>;
 
     getLastRoot(overrides?: CallOverrides): Promise<string>;
 
@@ -1112,6 +1142,8 @@ export class VAnchorBase extends BaseContract {
   };
 
   estimateGas: {
+    EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<BigNumber>;
+
     FIELD_SIZE(overrides?: CallOverrides): Promise<BigNumber>;
 
     MAX_EXT_AMOUNT(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1161,6 +1193,8 @@ export class VAnchorBase extends BaseContract {
     ): Promise<BigNumber>;
 
     getChainId(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getChainIdType(overrides?: CallOverrides): Promise<BigNumber>;
 
     getLastRoot(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1285,6 +1319,8 @@ export class VAnchorBase extends BaseContract {
   };
 
   populateTransaction: {
+    EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     FIELD_SIZE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     MAX_EXT_AMOUNT(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1340,6 +1376,8 @@ export class VAnchorBase extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getChainId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getChainIdType(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getLastRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

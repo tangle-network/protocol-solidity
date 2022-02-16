@@ -8,7 +8,6 @@ cp ./typechain/FixedDepositAnchor.d.ts ./packages/contracts/src/FixedDepositAnch
 cp ./typechain/AnchorBase.d.ts ./packages/contracts/src/AnchorBase.d.ts
 cp ./typechain/AnchorHandler.d.ts ./packages/contracts/src/AnchorHandler.d.ts
 cp ./typechain/AnchorProxy.d.ts ./packages/contracts/src/AnchorProxy.d.ts
-cp ./typechain/Bridge.d.ts ./packages/contracts/src/Bridge.d.ts
 cp ./typechain/SignatureBridge.d.ts ./packages/contracts/src/SignatureBridge.d.ts
 cp ./typechain/common.d.ts ./packages/contracts/src/common.d.ts
 cp ./typechain/ERC20.d.ts ./packages/contracts/src/ERC20.d.ts
@@ -19,6 +18,8 @@ cp ./typechain/Hasher.d.ts ./packages/contracts/src/Hasher.d.ts
 cp ./typechain/PoseidonT3.d.ts ./packages/contracts/src/PoseidonT3.d.ts
 cp ./typechain/TokenWrapper.d.ts ./packages/contracts/src/TokenWrapper.d.ts
 cp ./typechain/TokenWrapperHandler.d.ts ./packages/contracts/src/TokenWrapperHandler.d.ts
+cp ./typechain/Treasury.d.ts ./packages/contracts/src/Treasury.d.ts
+cp ./typechain/TreasuryHandler.d.ts ./packages/contracts/src/TreasuryHandler.d.ts
 cp ./typechain/VAnchor.d.ts ./packages/contracts/src/VAnchor.d.ts
 cp ./typechain/VAnchorBase.d.ts ./packages/contracts/src/VAnchorBase.d.ts
 cp ./typechain/VAnchorEncodeInputs.d.ts ./packages/contracts/src/VAnchorEncodeInputs.d.ts
@@ -38,7 +39,6 @@ cp ./typechain/factories/FixedDepositAnchor__factory.ts ./packages/contracts/src
 cp ./typechain/factories/AnchorBase__factory.ts ./packages/contracts/src/factories/AnchorBase__factory.ts
 cp ./typechain/factories/AnchorHandler__factory.ts ./packages/contracts/src/factories/AnchorHandler__factory.ts
 cp ./typechain/factories/AnchorProxy__factory.ts ./packages/contracts/src/factories/AnchorProxy__factory.ts
-cp ./typechain/factories/Bridge__factory.ts ./packages/contracts/src/factories/Bridge__factory.ts
 cp ./typechain/factories/SignatureBridge__factory.ts ./packages/contracts/src/factories/SignatureBridge__factory.ts
 cp ./typechain/factories/ERC20__factory.ts ./packages/contracts/src/factories/ERC20__factory.ts
 cp ./typechain/factories/ERC20PresetMinterPauser__factory.ts ./packages/contracts/src/factories/ERC20PresetMinterPauser__factory.ts
@@ -48,6 +48,8 @@ cp ./typechain/factories/Hasher__factory.ts ./packages/contracts/src/factories/H
 cp ./typechain/factories/PoseidonT3__factory.ts ./packages/contracts/src/factories/PoseidonT3__factory.ts
 cp ./typechain/factories/TokenWrapper__factory.ts ./packages/contracts/src/factories/TokenWrapper__factory.ts
 cp ./typechain/factories/TokenWrapperHandler__factory.ts ./packages/contracts/src/factories/TokenWrapperHandler__factory.ts
+cp ./typechain/factories/Treasury__factory.ts ./packages/contracts/src/factories/Treasury__factory.ts
+cp ./typechain/factories/TreasuryHandler__factory.ts ./packages/contracts/src/factories/TreasuryHandler__factory.ts
 cp ./typechain/factories/VAnchor__factory.ts ./packages/contracts/src/factories/VAnchor__factory.ts
 cp ./typechain/factories/VAnchorBase__factory.ts ./packages/contracts/src/factories/VAnchorBase__factory.ts
 cp ./typechain/factories/VAnchorEncodeInputs__factory.ts ./packages/contracts/src/factories/VAnchorEncodeInputs__factory.ts

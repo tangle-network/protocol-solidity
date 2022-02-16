@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { Anchor } from '@webb-tools/fixed-bridge';
+import Anchor from '../../../packages/bridges/Anchor';
 import { approveTokenSpend } from '../tokens/approveTokenSpend';
 import { getTokenAllowance } from '../tokens/getTokenAllowance';
 

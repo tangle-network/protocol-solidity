@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { BigNumberish } from 'ethers';
 
 export type ZkComponents = {
   wasm: Buffer;
@@ -9,4 +9,8 @@ export type ZkComponents = {
 export type Overrides = {
   from?: string,
   gasLimit?: ethers.BigNumberish | Promise<ethers.BigNumberish>,
+}
+export interface RootInfo {
+  merkleRoot: BigNumberish;
+  chainId: BigNumberish;
 }

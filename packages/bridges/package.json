@@ -1,0 +1,35 @@
+{
+  "name": "@webb-tools/bridges",
+  "main": "./lib/index.js",
+  "license": "GPL-3.0-or-later",
+  "author": "Webb Developers <drew@webb.tools>",
+  "scripts": {
+    "build": "yarn run clean && yarn run compile",
+    "clean": "rimraf -rf ./lib",
+    "compile": "tsc -p tsconfig.build.json"
+  },
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "2.0.2",
+    "hardhat": "^2.6.8"
+  },
+  "dependencies": {
+    "@webb-tools/anchors": "^0.1.2",
+    "@webb-tools/contracts": "^0.1.2",
+    "@webb-tools/interfaces": "^0.1.2",
+    "@webb-tools/tokens": "^0.1.2",
+    "@webb-tools/utils": "^0.1.3",
+    "circomlibjs": "^0.0.8",
+    "ethers": "5.5.1",
+    "ffjavascript": "^0.2.38",
+    "snarkjs": "0.4.10"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "directory": "packages/bridges",
+    "type": "git",
+    "url": "git://github.com/webb-tools/protocol-solidity.git"
+  },
+  "version": "0.1.2"
+}

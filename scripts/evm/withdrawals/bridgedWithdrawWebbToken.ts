@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
-import { Anchor, AnchorDeposit } from '@webb-tools/fixed-bridge';
+import Anchor from '../../../packages/bridges/Anchor';
+import { AnchorDeposit } from '../../../packages/bridges/types';
 
 export async function bridgedWithdrawWebbToken(
   anchor: Anchor,
