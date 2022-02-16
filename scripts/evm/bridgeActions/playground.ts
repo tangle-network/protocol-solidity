@@ -1,32 +1,40 @@
 require('dotenv').config();
+const path = require('path');
 import { ethers } from 'ethers';
-import Anchor from '../../../lib/darkwebb/Anchor';
-import AnchorHandler from '../../../lib/darkwebb/AnchorHandler';
-import BridgeSide from '../../../lib/darkwebb/BridgeSide';
-import { toFixedHex } from '../../../lib/darkwebb/utils'
+import { Anchor } from '@webb-tools/anchors';
+import { fetchComponentsFromFilePaths, toFixedHex } from '@webb-tools/utils';
+import { viewRootAcrossBridge } from '../viewActions/viewRootAcrossBridge';
+
 
 const providerRinkeby = new ethers.providers.JsonRpcProvider(`https://rinkeby.infura.io/v3/fff68ca474dd4764a8d54dd14fa5519e`);
 const walletRinkeby = new ethers.Wallet(process.env.PRIVATE_KEY!, providerRinkeby);
-
+const providerKovan = new ethers.providers.JsonRpcProvider(`https://kovan.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161`);
+const walletKovan = new ethers.Wallet(process.env.PRIVATE_KEY!, providerKovan);
+const providerRopsten = new ethers.providers.JsonRpcProvider(`https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161`);
+const walletRopsten = new ethers.Wallet(process.env.PRIVATE_KEY!, providerRopsten);
 const providerGoerli = new ethers.providers.JsonRpcProvider(`https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161`);
 const walletGoerli = new ethers.Wallet(process.env.PRIVATE_KEY!, providerGoerli);
+const providerOptimism = new ethers.providers.JsonRpcProvider('https://kovan.optimism.io');
+const walletOptimism = new ethers.Wallet(process.env.PRIVATE_KEY!, providerOptimism);
+const providerArbitrum = new ethers.providers.JsonRpcProvider('https://rinkeby.arbitrum.io/rpc');
+const walletArbitrum = new ethers.Wallet(process.env.PRIVATE_KEY!, providerArbitrum);
 
 async function run() { 
-  const goerliBridgeSide = await BridgeSide.connect('0x626FEc5Ffa7Bf1EE8CEd7daBdE545630473E3ABb', walletGoerli);
-  const rinkebyAnchor = await Anchor.connect('0x626Bd0a80a55293252d50976ec2f93CbAF0945C8', walletRinkeby);
+  let zkComponents6 = await fetchComponentsFromFilePaths(
+    path.resolve(__dirname, '../../../protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm'),
+    path.resolve(__dirname, '../../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js'),
+    path.resolve(__dirname, '../../../protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey')
+  );
+  // const goerliBridgeSide = await BridgeSide.connect('0x6464BCd6eD9E73B4858bcD519DC89f257B23b8B6', walletGoerli);
+  const ropstenAnchor = await Anchor.connect('0x97747a4De7302Ff7Ee3334e33138879469BFEcf8', zkComponents6, walletRopsten);
+  await ropstenAnchor.update(11795573);
+  const rinkebyAnchor = await Anchor.connect('0x09B722aA809A076027FA51902e431a8C03e3f8dF', zkComponents6, walletRinkeby);
 
-  await rinkebyAnchor.update(9544900);
-  const rinkebyLastRoot = await rinkebyAnchor.contract.getLastRoot();
+  viewRootAcrossBridge(ropstenAnchor, rinkebyAnchor);
 
-  console.log('Rinkeby anchor latest root in local tree: ', toFixedHex(rinkebyAnchor.tree.get_root()));
-  console.log('Rinkeby anchor latest root on chain: ', rinkebyLastRoot);
-
-  const goerliAnchor = await Anchor.connect('0x67fB9B056a991Bc9a37DB4355cF5cc2C4Aa9CB2D', walletGoerli);
-  const goerliHandler = await AnchorHandler.connect('0x8d2e2Aa87307E99151b970759D38ca24e6Cf85e8', walletGoerli);
-
-  await goerliBridgeSide.setAnchorHandler(goerliHandler);
-  await goerliBridgeSide.voteProposal(rinkebyAnchor, goerliAnchor);
-  await goerliBridgeSide.executeProposal(rinkebyAnchor, goerliAnchor);
+  // await goerliBridgeSide.setAnchorHandler(goerliHandler);
+  // await goerliBridgeSide.voteProposal(rinkebyAnchor, goerliAnchor);
+  // await goerliBridgeSide.executeProposal(rinkebyAnchor, goerliAnchor);
 }
 
 run();
