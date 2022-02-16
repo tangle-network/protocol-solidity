@@ -27,7 +27,9 @@ class MintableToken {
     overrides?: Overrides,
   ) {
     const factory = new ERC20PresetMinterPauser__factory(creator);
-    const token = await factory.deploy(name, symbol, overrides || {});
+    const token = await factory.deploy(name, symbol, overrides || {
+      gasLimit: '0x5B8D80',
+    });
     await token.deployed();
     return new MintableToken(token, name, symbol, creator);
   }
@@ -51,18 +53,24 @@ class MintableToken {
   }
 
   public async approveSpending(spender: string, overrides?: Overrides): Promise<ContractTransaction> {
-    return this.contract.approve(spender, '10000000000000000000000000000000000', overrides || {});
+    return this.contract.approve(spender, '10000000000000000000000000000000000', overrides || {
+      gasLimit: '0x5B8D80',
+    });
   }
 
   public async mintTokens(address: string, amount: BigNumberish, overrides?: Overrides) {
-    const tx = await this.contract.mint(address, amount, overrides || {});
+    const tx = await this.contract.mint(address, amount, overrides || {
+      gasLimit: '0x5B8D80',
+    });
     await tx.wait();
     return;
   }
 
   public grantMinterRole(address: string, overrides?: Overrides) {
     const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
-    return this.contract.grantRole(MINTER_ROLE, address, overrides || {});
+    return this.contract.grantRole(MINTER_ROLE, address, overrides || {
+      gasLimit: '0x5B8D80',
+    });
   }
 }
 

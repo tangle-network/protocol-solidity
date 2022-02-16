@@ -111,26 +111,26 @@ export class SignatureBridge {
       // Create the bridgeSide
       const bridgeInstance = await SignatureBridgeSide.createBridgeSide(
         initialGovernor,
-        deployers[chainID],
+        deployers.wallets[chainID],
       );
 
-      const handler = await AnchorHandler.createAnchorHandler(bridgeInstance.contract.address, [],[], bridgeInstance.admin);
+      const handler = await AnchorHandler.createAnchorHandler(bridgeInstance.contract.address, [],[], bridgeInstance.admin, deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'});
       await bridgeInstance.setAnchorHandler(handler);
 
       bridgeSides.set(chainID, bridgeInstance);
       //console.log(`bridgeSide address on ${chainID}: ${bridgeInstance.contract.address}`);
 
       // Create Treasury and TreasuryHandler
-      const treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeInstance.contract.address, [],[], bridgeInstance.admin);
+      const treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeInstance.contract.address, [],[], bridgeInstance.admin, deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'});
 
-      const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, bridgeInstance.admin);
+      const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, bridgeInstance.admin, deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'});
 
       // Create the Hasher and Verifier for the chain
-      const hasherFactory = new PoseidonT3__factory(deployers[chainID]);
-      let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
+      const hasherFactory = new PoseidonT3__factory(deployers.wallets[chainID]);
+      let hasherInstance = await hasherFactory.deploy(deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'});
       await hasherInstance.deployed();
 
-      const verifier = await Verifier.createVerifier(deployers[chainID]);
+      const verifier = await Verifier.createVerifier(deployers.wallets[chainID], deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'});
       let verifierInstance = verifier.contract;
 
       // Check the addresses of the asset. If it is zero, deploy a native token wrapper
@@ -146,10 +146,11 @@ export class SignatureBridge {
         `webbETH-test-1`,
         `webbETH-test-1`,
         treasury.contract.address,
-        await deployers[chainID].getAddress(),
+        await deployers.wallets[chainID].getAddress(),
         '10000000000000000000000000',
         allowedNative,
-        deployers[chainID],
+        deployers.wallets[chainID],
+        deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'}
       );
       
       //console.log(`created GovernedTokenWrapper on ${chainID}: ${tokenInstance.contract.address}`);
@@ -184,7 +185,8 @@ export class SignatureBridge {
           handler.contract.address,
           bridgeInput.chainIDs.length-1,
           zkComponents,
-          deployers[chainID]
+          deployers.wallets[chainID],
+          deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'}
         );
 
         //console.log(`createdAnchor: ${anchorInstance.contract.address}`);

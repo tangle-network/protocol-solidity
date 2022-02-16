@@ -8,7 +8,7 @@ export type ZkComponents = {
 
 export type Overrides = {
   from?: string,
-  gasLimit?: ethers.BigNumberish | Promise<ethers.BigNumberish>,
+  gasLimit?: BigNumberish | Promise<BigNumberish>,
 }
 export interface RootInfo {
   merkleRoot: BigNumberish;

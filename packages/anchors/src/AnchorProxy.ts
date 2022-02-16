@@ -78,7 +78,7 @@ export class AnchorProxy {
       anchorAddr,
       toFixedHex(deposit.commitment),
       _encryptedNote,
-      overrides || {}
+      overrides || { gasLimit: '0x5B8D80' }
     );
   
     await tx.wait();
@@ -120,7 +120,7 @@ export class AnchorProxy {
       anchorAddr,
       `0x${proofEncoded}`,
       publicInputs,
-      overrides || {}
+      overrides || { gasLimit: '0x5B8D80' }
     );
     const receipt = await tx.wait();
 
