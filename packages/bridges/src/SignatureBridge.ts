@@ -393,6 +393,11 @@ export class SignatureBridge {
     if (!anchorToProve) {
       throw new Error("Could not find anchor to prove against");
     }
+
+    // if the signer has the same chain ID as the origin, do a same-side withdraw
+    if (depositInfo.originChainId == (await signer.getChainId())) {
+
+    }
     
     const merkleProof = anchorToProve.tree.path(depositInfo.index);
 

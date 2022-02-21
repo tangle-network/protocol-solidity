@@ -1,4 +1,4 @@
-import { BigNumber, ethers } from 'ethers';
+import { BigNumber, ethers, Overrides } from 'ethers';
 import { SignatureBridge, SignatureBridge__factory } from '@webb-tools/contracts';
 import { GovernedTokenWrapper, Treasury } from "@webb-tools/tokens";
 import { TokenWrapperHandler } from "@webb-tools/tokens";
@@ -25,13 +25,13 @@ export class SignatureBridgeSide implements IBridgeSide {
 
   private constructor(
     contract: SignatureBridge,
-    initialGovernor: ethers.Wallet,
+    governor: ethers.Wallet,
     signer: ethers.Signer,
     signingSystemSignFn?: (data: any) => Promise<string>,
   ) {
     this.contract = contract;
     this.admin = signer;
-    this.governor = initialGovernor;
+    this.governor = governor;
     this.anchorHandler = null;
     this.tokenHandler = null;
     this.treasuryHandler = null;
@@ -40,7 +40,7 @@ export class SignatureBridgeSide implements IBridgeSide {
       this.signingSystemSignFn = signingSystemSignFn;
     } else {
       this.signingSystemSignFn = (data: any) => {
-        return signMessage(initialGovernor, data)
+        return signMessage(governor, data)
       };
     }
   }
@@ -56,9 +56,9 @@ export class SignatureBridgeSide implements IBridgeSide {
     return bridgeSide;
   }
 
-  public static async connect(address: string, initialGovernor: ethers.Wallet, admin: ethers.Wallet) {
+  public static async connect(address: string, governor: ethers.Wallet, admin: ethers.Wallet) {
     const deployedBridge = SignatureBridge__factory.connect(address, admin);
-    const bridgeSide = new SignatureBridgeSide(deployedBridge, initialGovernor, admin);
+    const bridgeSide = new SignatureBridgeSide(deployedBridge, governor, admin);
     return bridgeSide;
   }
 
@@ -67,8 +67,8 @@ export class SignatureBridgeSide implements IBridgeSide {
    * Note that this requires an externally-signed transaction from the current governor.
    * @param newOwner The new owner of the bridge
    */
-  public async transferOwnership(newOwner: string, nonce: number) {
-    return this.contract.transferOwnership(newOwner, nonce);
+  public async transferOwnership(newOwner: string, nonce: number, overrides?: Overrides) {
+    return this.contract.transferOwnership(newOwner, nonce, overrides);
   }
 
   /**
@@ -279,6 +279,7 @@ export class SignatureBridgeSide implements IBridgeSide {
 
   public async execute(proposalData: string) {
     const sig = await this.signingSystemSignFn(proposalData);
+    console.log('signature in execute: ', sig);
     const tx = await this.contract.executeProposalWithSignature(proposalData, sig);
     const receipt = await tx.wait();
     
@@ -294,6 +295,7 @@ export class SignatureBridgeSide implements IBridgeSide {
   public async executeAnchorProposalWithSig(srcAnchor: IAnchor, executionResourceID: string) {
     if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
     const proposalData = await this.createAnchorUpdateProposalData(srcAnchor, executionResourceID);
+    console.log('Proposal data in executeAnchorProposalWithSig: ', proposalData);
     return this.execute(proposalData);
   }
 

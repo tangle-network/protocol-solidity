@@ -20,7 +20,7 @@ import { startGanacheServer } from '../helpers/startGanacheServer';
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-describe.only('multichain tests for erc20 bridges', () => {
+describe('multichain tests for erc20 bridges', () => {
   const chainID1 = getChainIdType(31337);
   const chainID2 = getChainIdType(1337);
   const chainID3 = getChainIdType(9999);

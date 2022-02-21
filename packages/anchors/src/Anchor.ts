@@ -6,8 +6,6 @@ import { toFixedHex, toHex, rbigint, p256, PoseidonHasher, ZkComponents, Utxo, g
 import { MerkleTree } from '@webb-tools/merkle-tree';
 
 const snarkjs = require('snarkjs');
-const F = require('circomlibjs').babyjub.F;
-const Scalar = require('ffjavascript').Scalar;
 //const abi = require("web3").eth.abi
 
 const zeroAddress = "0x0000000000000000000000000000000000000000";

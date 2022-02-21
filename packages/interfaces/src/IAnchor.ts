@@ -1,7 +1,7 @@
-import { IAnchorDeposit } from './anchor';
+import { IAnchorDeposit, IAnchorDepositInfo } from './anchor';
 import { IMerkleProofData } from './vanchor';
 import { Utxo } from "@webb-tools/utils";
-import { BigNumberish, ethers } from 'ethers';
+import { BigNumberish, ethers, Event, Overrides } from 'ethers';
 
 export interface IAnchor {
   signer: ethers.Signer;
@@ -24,7 +24,24 @@ export interface IAnchor {
   createResourceId(): Promise<string>;
   
   // FixedDepositAnchor methods
-  deposit(destinationChainId: number);
+  deposit(destinationChainId: number): Promise<IAnchorDeposit>;
+  setupWithdraw(
+    deposit: IAnchorDepositInfo,
+    index: number,
+    recipient: string,
+    relayer: string,
+    fee: bigint,
+    refreshCommitment: string | number,
+  );
+  withdraw(
+    deposit: IAnchorDepositInfo,
+    index: number,
+    recipient: string,
+    relayer: string,
+    fee: bigint,
+    refreshCommitment: string | number,
+    overrides?: Overrides
+  ): Promise<ethers.Event>
   wrapAndDeposit(tokenAddress: string, wrappingFee: number, destinationChainId?: number): Promise<IAnchorDeposit>;
   bridgedWithdrawAndUnwrap(
     deposit: IAnchorDeposit,
