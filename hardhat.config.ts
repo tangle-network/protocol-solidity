@@ -6,11 +6,11 @@ import "@nomiclabs/hardhat-truffle5";
 import '@primitivefi/hardhat-dodoc';
 import { subtask } from 'hardhat/config'
 
-const poseidonGenContract = require('circomlibjs/src/poseidon_gencontract.js');
+import poseidonContract from "circomlibjs/src/poseidon_gencontract.js";
 
 const buildPoseidon = async (numInputs: number) => {
   //@ts-ignore
-  await overwriteArtifact(`PoseidonT${numInputs + 1}`, poseidonGenContract.createCode(numInputs));
+  await overwriteArtifact(`PoseidonT${numInputs + 1}`, poseidonContract.createCode(numInputs));
 }
 
 subtask('typechain-generate-types',
