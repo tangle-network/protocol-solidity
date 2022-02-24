@@ -59,7 +59,7 @@
     "bn-chai": "^1.0.1",
     "chai-as-promised": "^7.1.1",
     "circomlib": "^2.0.3",
-    "circomlibjs": "^0.1.0",
+    "circomlibjs": "^0.0.8",
     "dotenv": "^8.2.0",
     "elliptic": "^6.5.3",
     "eth-sig-util": "^3.0.1",
