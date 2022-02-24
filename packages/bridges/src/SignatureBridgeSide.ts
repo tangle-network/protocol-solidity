@@ -239,6 +239,7 @@ export class SignatureBridgeSide implements IBridgeSide {
       governedToken.contract.address,
       sig
     );
+    await tx.wait();
     return resourceId;
   }
 
@@ -274,6 +275,7 @@ export class SignatureBridgeSide implements IBridgeSide {
       treasury.contract.address,
       sig
     );
+    await tx.wait()
     return resourceId;
   }
 

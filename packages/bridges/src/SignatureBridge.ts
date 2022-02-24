@@ -125,8 +125,8 @@ export class SignatureBridge {
 
       const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, bridgeInstance.admin);
 
-      bridgeInstance.setTreasuryHandler(treasuryHandler);
-      bridgeInstance.setTreasuryResourceWithSignature(treasury);
+      await bridgeInstance.setTreasuryHandler(treasuryHandler);
+      await bridgeInstance.setTreasuryResourceWithSignature(treasury);
 
       // Create the Hasher and Verifier for the chain
       const hasherFactory = new PoseidonT3__factory(deployers[chainID]);
@@ -144,7 +144,7 @@ export class SignatureBridge {
           allowedNative = true;
         }
       }
-
+      // Deploy TokenWrapperHandler
       const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeInstance.contract.address, [], [], bridgeInstance.admin);
 
       let tokenInstance: GovernedTokenWrapper = await GovernedTokenWrapper.createGovernedTokenWrapper(
@@ -156,18 +156,17 @@ export class SignatureBridge {
         allowedNative,
         deployers[chainID],
       );
-
-      bridgeInstance.setTokenWrapperHandler(tokenWrapperHandler);
-      bridgeInstance.setGovernedTokenResourceWithSignature(tokenInstance);
       
       //console.log(`created GovernedTokenWrapper on ${chainID}: ${tokenInstance.contract.address}`);
+
+      await bridgeInstance.setTokenWrapperHandler(tokenWrapperHandler);
+      await bridgeInstance.setGovernedTokenResourceWithSignature(tokenInstance);
 
       // Add all token addresses to the governed token instance.
       for (const tokenToBeWrapped of bridgeInput.anchorInputs.asset[chainID]!) {
         // if the address is not '0', then add it
         if (!checkNativeAddress(tokenToBeWrapped)) {
-          const tx = await tokenInstance.contract.add(tokenToBeWrapped, (await tokenInstance.contract.proposalNonce()).add(1));
-          const receipt = await tx.wait();
+          const tx = await bridgeInstance.executeAddTokenProposalWithSig(tokenInstance, tokenToBeWrapped);
         }
       }
 
