@@ -21,28 +21,28 @@
 
 pragma solidity >=0.7.0 <0.9.0;
 
-contract PlonkVerifier6 {
+contract PlonkVerifier8 {
     
-    uint16 constant n =   131072;
-    uint16 constant nPublic =  13;
-    uint16 constant nLagrange = 13;
+    uint16 constant n =   524288;
+    uint16 constant nPublic =  29;
+    uint16 constant nLagrange = 29;
     
-    uint256 constant Qmx = 18057928395650924788751189620838248406066031921645656231497445574064308586564;
-    uint256 constant Qmy = 19092705053902512305953790558783171748633867555307871914892201418194405233084;
-    uint256 constant Qlx = 15762206312980660018734078633445991365792473766581341012876576141219448199490;
-    uint256 constant Qly = 15017525086453431969958435131755203397683319837716004883853931471584624089232;
-    uint256 constant Qrx = 12679895843726767055331268397944154290678598763185627092176011278727232884850;
-    uint256 constant Qry = 16325391895280296889291860828733146837012458885411181708897276971067224995572;
-    uint256 constant Qox = 16220417447276918074352868611809153155176582065899241361944705098543680871572;
-    uint256 constant Qoy = 8214633514546483550267513042239134438756745799440740207594133182419465722981;
-    uint256 constant Qcx = 6109673402711521312329500841078385255248977128890950368208598608119082710217;
-    uint256 constant Qcy = 19180201569107211508452020632152454159039676536231823625711574519890149876912;
-    uint256 constant S1x = 21293017814508276013286178694030751268471389943384520181527745556489139948367;
-    uint256 constant S1y = 12006262362167468591159793739954620387514272314910733088316132065321260370863;
-    uint256 constant S2x = 8608425672171980891479274522083105154840190746511718539329709533569369219859;
-    uint256 constant S2y = 2314667306543639803446822064843624855098475335045186883871492193916534887637;
-    uint256 constant S3x = 10600118216051583196577412278530712185694280482439307630459567290967765470749;
-    uint256 constant S3y = 2258707771614680976212668810592020187176542993918904313434169741015403591175;
+    uint256 constant Qmx = 3000965004443226944070777849157880215869410299491652665692519031025352882320;
+    uint256 constant Qmy = 8942608012989281270047418552698046098333044290665202806486313218361686856260;
+    uint256 constant Qlx = 978393903797547449203917818266600970563396448653766880194186422199439606860;
+    uint256 constant Qly = 6413295863989943593875508055454217865813986284873407468327648645052940647621;
+    uint256 constant Qrx = 14583870497452141335026037753224248613516758397268285088191160863260881746792;
+    uint256 constant Qry = 6086617481861552187157955972044014169587202980755083760499452520436870923333;
+    uint256 constant Qox = 10356389303556701827474581826877599074791503353648835114812105976951922819591;
+    uint256 constant Qoy = 2387100125437643609131892925439616973832539396777019647343902622686544029512;
+    uint256 constant Qcx = 11753780733309176746854421061636718501995955887406834998422453820499071964994;
+    uint256 constant Qcy = 13511661592543017198165115817428070418606823776987034380417111176530790735059;
+    uint256 constant S1x = 18976047251462597396187621099009078117565984798462455682503235504152654702156;
+    uint256 constant S1y = 10118077983737759292388700038917836569620414260048307413093118960812456016303;
+    uint256 constant S2x = 19817773590205473259668597876195419275928458964944310826685279175607850747923;
+    uint256 constant S2y = 9055922106238054770514928376276241355376160440998038956155991204484920016285;
+    uint256 constant S3x = 29231382342245785061993545055051037124843534055671180709431044347168699134;
+    uint256 constant S3y = 3541660014514005228344429843877885215366734484210110776977434718632784995543;
     uint256 constant k1 = 2;
     uint256 constant k2 = 3;
     uint256 constant X2x1 = 20503439728070048729767433401264826339593183665695447670058998977220450083027;
@@ -52,7 +52,7 @@ contract PlonkVerifier6 {
     
     uint256 constant q = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
     uint256 constant qf = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
-    uint256 constant w1 = 12650941915662020058015862023665998998969191525479888727406889100124684769509;    
+    uint256 constant w1 = 15549849457946371566896172786938980432421851627449396898353380550861104573629;    
     
     uint256 constant G1x = 1;
     uint256 constant G1y = 2;
@@ -123,9 +123,41 @@ contract PlonkVerifier6 {
     
     uint16 constant pEval_l13 = 1056;
     
+    uint16 constant pEval_l14 = 1088;
+    
+    uint16 constant pEval_l15 = 1120;
+    
+    uint16 constant pEval_l16 = 1152;
+    
+    uint16 constant pEval_l17 = 1184;
+    
+    uint16 constant pEval_l18 = 1216;
+    
+    uint16 constant pEval_l19 = 1248;
+    
+    uint16 constant pEval_l20 = 1280;
+    
+    uint16 constant pEval_l21 = 1312;
+    
+    uint16 constant pEval_l22 = 1344;
+    
+    uint16 constant pEval_l23 = 1376;
+    
+    uint16 constant pEval_l24 = 1408;
+    
+    uint16 constant pEval_l25 = 1440;
+    
+    uint16 constant pEval_l26 = 1472;
+    
+    uint16 constant pEval_l27 = 1504;
+    
+    uint16 constant pEval_l28 = 1536;
+    
+    uint16 constant pEval_l29 = 1568;
     
     
-    uint16 constant lastMem = 1088;
+    
+    uint16 constant lastMem = 1600;
 
 
     function verifyProof(bytes memory proof, uint[] memory pubSignals) public view returns (bool) {
@@ -236,6 +268,10 @@ contract PlonkVerifier6 {
                 a := mod(keccak256(add(pProof, pT1), 192), q)
                 mstore( add(pMem, pXi), a)
                 mstore( add(pMem, pBetaXi), mulmod(b, a, q))
+                
+                a:= mulmod(a, a, q)
+                
+                a:= mulmod(a, a, q)
                 
                 a:= mulmod(a, a, q)
                 
@@ -566,9 +602,345 @@ contract PlonkVerifier6 {
                     )
                 )
                 
+                w := mulmod(w, w1, q)
                 
                 
-                inverseArray(add(pMem, pZhInv), 14 )
+                mstore(
+                    add(pMem, pEval_l14), 
+                    mulmod(
+                        n, 
+                        mod(
+                            add(
+                                sub(
+                                    mload(add(pMem, pXi)), 
+                                    w
+                                ), 
+                                q
+                            ),
+                            q
+                        ), 
+                        q
+                    )
+                )
+                
+                w := mulmod(w, w1, q)
+                
+                
+                mstore(
+                    add(pMem, pEval_l15), 
+                    mulmod(
+                        n, 
+                        mod(
+                            add(
+                                sub(
+                                    mload(add(pMem, pXi)), 
+                                    w
+                                ), 
+                                q
+                            ),
+                            q
+                        ), 
+                        q
+                    )
+                )
+                
+                w := mulmod(w, w1, q)
+                
+                
+                mstore(
+                    add(pMem, pEval_l16), 
+                    mulmod(
+                        n, 
+                        mod(
+                            add(
+                                sub(
+                                    mload(add(pMem, pXi)), 
+                                    w
+                                ), 
+                                q
+                            ),
+                            q
+                        ), 
+                        q
+                    )
+                )
+                
+                w := mulmod(w, w1, q)
+                
+                
+                mstore(
+                    add(pMem, pEval_l17), 
+                    mulmod(
+                        n, 
+                        mod(
+                            add(
+                                sub(
+                                    mload(add(pMem, pXi)), 
+                                    w
+                                ), 
+                                q
+                            ),
+                            q
+                        ), 
+                        q
+                    )
+                )
+                
+                w := mulmod(w, w1, q)
+                
+                
+                mstore(
+                    add(pMem, pEval_l18), 
+                    mulmod(
+                        n, 
+                        mod(
+                            add(
+                                sub(
+                                    mload(add(pMem, pXi)), 
+                                    w
+                                ), 
+                                q
+                            ),
+                            q
+                        ), 
+                        q
+                    )
+                )
+                
+                w := mulmod(w, w1, q)
+                
+                
+                mstore(
+                    add(pMem, pEval_l19), 
+                    mulmod(
+                        n, 
+                        mod(
+                            add(
+                                sub(
+                                    mload(add(pMem, pXi)), 
+                                    w
+                                ), 
+                                q
+                            ),
+                            q
+                        ), 
+                        q
+                    )
+                )
+                
+                w := mulmod(w, w1, q)
+                
+                
+                mstore(
+                    add(pMem, pEval_l20), 
+                    mulmod(
+                        n, 
+                        mod(
+                            add(
+                                sub(
+                                    mload(add(pMem, pXi)), 
+                                    w
+                                ), 
+                                q
+                            ),
+                            q
+                        ), 
+                        q
+                    )
+                )
+                
+                w := mulmod(w, w1, q)
+                
+                
+                mstore(
+                    add(pMem, pEval_l21), 
+                    mulmod(
+                        n, 
+                        mod(
+                            add(
+                                sub(
+                                    mload(add(pMem, pXi)), 
+                                    w
+                                ), 
+                                q
+                            ),
+                            q
+                        ), 
+                        q
+                    )
+                )
+                
+                w := mulmod(w, w1, q)
+                
+                
+                mstore(
+                    add(pMem, pEval_l22), 
+                    mulmod(
+                        n, 
+                        mod(
+                            add(
+                                sub(
+                                    mload(add(pMem, pXi)), 
+                                    w
+                                ), 
+                                q
+                            ),
+                            q
+                        ), 
+                        q
+                    )
+                )
+                
+                w := mulmod(w, w1, q)
+                
+                
+                mstore(
+                    add(pMem, pEval_l23), 
+                    mulmod(
+                        n, 
+                        mod(
+                            add(
+                                sub(
+                                    mload(add(pMem, pXi)), 
+                                    w
+                                ), 
+                                q
+                            ),
+                            q
+                        ), 
+                        q
+                    )
+                )
+                
+                w := mulmod(w, w1, q)
+                
+                
+                mstore(
+                    add(pMem, pEval_l24), 
+                    mulmod(
+                        n, 
+                        mod(
+                            add(
+                                sub(
+                                    mload(add(pMem, pXi)), 
+                                    w
+                                ), 
+                                q
+                            ),
+                            q
+                        ), 
+                        q
+                    )
+                )
+                
+                w := mulmod(w, w1, q)
+                
+                
+                mstore(
+                    add(pMem, pEval_l25), 
+                    mulmod(
+                        n, 
+                        mod(
+                            add(
+                                sub(
+                                    mload(add(pMem, pXi)), 
+                                    w
+                                ), 
+                                q
+                            ),
+                            q
+                        ), 
+                        q
+                    )
+                )
+                
+                w := mulmod(w, w1, q)
+                
+                
+                mstore(
+                    add(pMem, pEval_l26), 
+                    mulmod(
+                        n, 
+                        mod(
+                            add(
+                                sub(
+                                    mload(add(pMem, pXi)), 
+                                    w
+                                ), 
+                                q
+                            ),
+                            q
+                        ), 
+                        q
+                    )
+                )
+                
+                w := mulmod(w, w1, q)
+                
+                
+                mstore(
+                    add(pMem, pEval_l27), 
+                    mulmod(
+                        n, 
+                        mod(
+                            add(
+                                sub(
+                                    mload(add(pMem, pXi)), 
+                                    w
+                                ), 
+                                q
+                            ),
+                            q
+                        ), 
+                        q
+                    )
+                )
+                
+                w := mulmod(w, w1, q)
+                
+                
+                mstore(
+                    add(pMem, pEval_l28), 
+                    mulmod(
+                        n, 
+                        mod(
+                            add(
+                                sub(
+                                    mload(add(pMem, pXi)), 
+                                    w
+                                ), 
+                                q
+                            ),
+                            q
+                        ), 
+                        q
+                    )
+                )
+                
+                w := mulmod(w, w1, q)
+                
+                
+                mstore(
+                    add(pMem, pEval_l29), 
+                    mulmod(
+                        n, 
+                        mod(
+                            add(
+                                sub(
+                                    mload(add(pMem, pXi)), 
+                                    w
+                                ), 
+                                q
+                            ),
+                            q
+                        ), 
+                        q
+                    )
+                )
+                
+                
+                
+                inverseArray(add(pMem, pZhInv), 30 )
                 
                 let zh := mload(add(pMem, pZh))
                 w := 1
@@ -800,6 +1172,294 @@ contract PlonkVerifier6 {
                 )
                 
                 
+                w := mulmod(w, w1, q)
+                
+                
+                
+                mstore(
+                    add(pMem, pEval_l14), 
+                    mulmod(
+                        w,
+                        mulmod(
+                            mload(add(pMem, pEval_l14)),
+                            zh,
+                            q
+                        ),
+                        q
+                    )
+                )
+                
+                
+                w := mulmod(w, w1, q)
+                
+                
+                
+                mstore(
+                    add(pMem, pEval_l15), 
+                    mulmod(
+                        w,
+                        mulmod(
+                            mload(add(pMem, pEval_l15)),
+                            zh,
+                            q
+                        ),
+                        q
+                    )
+                )
+                
+                
+                w := mulmod(w, w1, q)
+                
+                
+                
+                mstore(
+                    add(pMem, pEval_l16), 
+                    mulmod(
+                        w,
+                        mulmod(
+                            mload(add(pMem, pEval_l16)),
+                            zh,
+                            q
+                        ),
+                        q
+                    )
+                )
+                
+                
+                w := mulmod(w, w1, q)
+                
+                
+                
+                mstore(
+                    add(pMem, pEval_l17), 
+                    mulmod(
+                        w,
+                        mulmod(
+                            mload(add(pMem, pEval_l17)),
+                            zh,
+                            q
+                        ),
+                        q
+                    )
+                )
+                
+                
+                w := mulmod(w, w1, q)
+                
+                
+                
+                mstore(
+                    add(pMem, pEval_l18), 
+                    mulmod(
+                        w,
+                        mulmod(
+                            mload(add(pMem, pEval_l18)),
+                            zh,
+                            q
+                        ),
+                        q
+                    )
+                )
+                
+                
+                w := mulmod(w, w1, q)
+                
+                
+                
+                mstore(
+                    add(pMem, pEval_l19), 
+                    mulmod(
+                        w,
+                        mulmod(
+                            mload(add(pMem, pEval_l19)),
+                            zh,
+                            q
+                        ),
+                        q
+                    )
+                )
+                
+                
+                w := mulmod(w, w1, q)
+                
+                
+                
+                mstore(
+                    add(pMem, pEval_l20), 
+                    mulmod(
+                        w,
+                        mulmod(
+                            mload(add(pMem, pEval_l20)),
+                            zh,
+                            q
+                        ),
+                        q
+                    )
+                )
+                
+                
+                w := mulmod(w, w1, q)
+                
+                
+                
+                mstore(
+                    add(pMem, pEval_l21), 
+                    mulmod(
+                        w,
+                        mulmod(
+                            mload(add(pMem, pEval_l21)),
+                            zh,
+                            q
+                        ),
+                        q
+                    )
+                )
+                
+                
+                w := mulmod(w, w1, q)
+                
+                
+                
+                mstore(
+                    add(pMem, pEval_l22), 
+                    mulmod(
+                        w,
+                        mulmod(
+                            mload(add(pMem, pEval_l22)),
+                            zh,
+                            q
+                        ),
+                        q
+                    )
+                )
+                
+                
+                w := mulmod(w, w1, q)
+                
+                
+                
+                mstore(
+                    add(pMem, pEval_l23), 
+                    mulmod(
+                        w,
+                        mulmod(
+                            mload(add(pMem, pEval_l23)),
+                            zh,
+                            q
+                        ),
+                        q
+                    )
+                )
+                
+                
+                w := mulmod(w, w1, q)
+                
+                
+                
+                mstore(
+                    add(pMem, pEval_l24), 
+                    mulmod(
+                        w,
+                        mulmod(
+                            mload(add(pMem, pEval_l24)),
+                            zh,
+                            q
+                        ),
+                        q
+                    )
+                )
+                
+                
+                w := mulmod(w, w1, q)
+                
+                
+                
+                mstore(
+                    add(pMem, pEval_l25), 
+                    mulmod(
+                        w,
+                        mulmod(
+                            mload(add(pMem, pEval_l25)),
+                            zh,
+                            q
+                        ),
+                        q
+                    )
+                )
+                
+                
+                w := mulmod(w, w1, q)
+                
+                
+                
+                mstore(
+                    add(pMem, pEval_l26), 
+                    mulmod(
+                        w,
+                        mulmod(
+                            mload(add(pMem, pEval_l26)),
+                            zh,
+                            q
+                        ),
+                        q
+                    )
+                )
+                
+                
+                w := mulmod(w, w1, q)
+                
+                
+                
+                mstore(
+                    add(pMem, pEval_l27), 
+                    mulmod(
+                        w,
+                        mulmod(
+                            mload(add(pMem, pEval_l27)),
+                            zh,
+                            q
+                        ),
+                        q
+                    )
+                )
+                
+                
+                w := mulmod(w, w1, q)
+                
+                
+                
+                mstore(
+                    add(pMem, pEval_l28), 
+                    mulmod(
+                        w,
+                        mulmod(
+                            mload(add(pMem, pEval_l28)),
+                            zh,
+                            q
+                        ),
+                        q
+                    )
+                )
+                
+                
+                w := mulmod(w, w1, q)
+                
+                
+                
+                mstore(
+                    add(pMem, pEval_l29), 
+                    mulmod(
+                        w,
+                        mulmod(
+                            mload(add(pMem, pEval_l29)),
+                            zh,
+                            q
+                        ),
+                        q
+                    )
+                )
+                
+                
                 
 
 
@@ -996,6 +1656,246 @@ contract PlonkVerifier6 {
                             mulmod(
                                 mload(add(pMem, pEval_l13)),
                                 mload(add(pPub, 416)),
+                                q
+                            )
+                        ),
+                        q
+                    ),
+                    q
+                )
+                 
+                pl := mod(
+                    add(
+                        sub(
+                            pl,  
+                            mulmod(
+                                mload(add(pMem, pEval_l14)),
+                                mload(add(pPub, 448)),
+                                q
+                            )
+                        ),
+                        q
+                    ),
+                    q
+                )
+                 
+                pl := mod(
+                    add(
+                        sub(
+                            pl,  
+                            mulmod(
+                                mload(add(pMem, pEval_l15)),
+                                mload(add(pPub, 480)),
+                                q
+                            )
+                        ),
+                        q
+                    ),
+                    q
+                )
+                 
+                pl := mod(
+                    add(
+                        sub(
+                            pl,  
+                            mulmod(
+                                mload(add(pMem, pEval_l16)),
+                                mload(add(pPub, 512)),
+                                q
+                            )
+                        ),
+                        q
+                    ),
+                    q
+                )
+                 
+                pl := mod(
+                    add(
+                        sub(
+                            pl,  
+                            mulmod(
+                                mload(add(pMem, pEval_l17)),
+                                mload(add(pPub, 544)),
+                                q
+                            )
+                        ),
+                        q
+                    ),
+                    q
+                )
+                 
+                pl := mod(
+                    add(
+                        sub(
+                            pl,  
+                            mulmod(
+                                mload(add(pMem, pEval_l18)),
+                                mload(add(pPub, 576)),
+                                q
+                            )
+                        ),
+                        q
+                    ),
+                    q
+                )
+                 
+                pl := mod(
+                    add(
+                        sub(
+                            pl,  
+                            mulmod(
+                                mload(add(pMem, pEval_l19)),
+                                mload(add(pPub, 608)),
+                                q
+                            )
+                        ),
+                        q
+                    ),
+                    q
+                )
+                 
+                pl := mod(
+                    add(
+                        sub(
+                            pl,  
+                            mulmod(
+                                mload(add(pMem, pEval_l20)),
+                                mload(add(pPub, 640)),
+                                q
+                            )
+                        ),
+                        q
+                    ),
+                    q
+                )
+                 
+                pl := mod(
+                    add(
+                        sub(
+                            pl,  
+                            mulmod(
+                                mload(add(pMem, pEval_l21)),
+                                mload(add(pPub, 672)),
+                                q
+                            )
+                        ),
+                        q
+                    ),
+                    q
+                )
+                 
+                pl := mod(
+                    add(
+                        sub(
+                            pl,  
+                            mulmod(
+                                mload(add(pMem, pEval_l22)),
+                                mload(add(pPub, 704)),
+                                q
+                            )
+                        ),
+                        q
+                    ),
+                    q
+                )
+                 
+                pl := mod(
+                    add(
+                        sub(
+                            pl,  
+                            mulmod(
+                                mload(add(pMem, pEval_l23)),
+                                mload(add(pPub, 736)),
+                                q
+                            )
+                        ),
+                        q
+                    ),
+                    q
+                )
+                 
+                pl := mod(
+                    add(
+                        sub(
+                            pl,  
+                            mulmod(
+                                mload(add(pMem, pEval_l24)),
+                                mload(add(pPub, 768)),
+                                q
+                            )
+                        ),
+                        q
+                    ),
+                    q
+                )
+                 
+                pl := mod(
+                    add(
+                        sub(
+                            pl,  
+                            mulmod(
+                                mload(add(pMem, pEval_l25)),
+                                mload(add(pPub, 800)),
+                                q
+                            )
+                        ),
+                        q
+                    ),
+                    q
+                )
+                 
+                pl := mod(
+                    add(
+                        sub(
+                            pl,  
+                            mulmod(
+                                mload(add(pMem, pEval_l26)),
+                                mload(add(pPub, 832)),
+                                q
+                            )
+                        ),
+                        q
+                    ),
+                    q
+                )
+                 
+                pl := mod(
+                    add(
+                        sub(
+                            pl,  
+                            mulmod(
+                                mload(add(pMem, pEval_l27)),
+                                mload(add(pPub, 864)),
+                                q
+                            )
+                        ),
+                        q
+                    ),
+                    q
+                )
+                 
+                pl := mod(
+                    add(
+                        sub(
+                            pl,  
+                            mulmod(
+                                mload(add(pMem, pEval_l28)),
+                                mload(add(pPub, 896)),
+                                q
+                            )
+                        ),
+                        q
+                    ),
+                    q
+                )
+                 
+                pl := mod(
+                    add(
+                        sub(
+                            pl,  
+                            mulmod(
+                                mload(add(pMem, pEval_l29)),
+                                mload(add(pPub, 928)),
                                 q
                             )
                         ),
