@@ -15,6 +15,8 @@ compile_phase2 () {
 
 move_verifiers_and_metadata () {
     local outdir="$1" size="$2"
-    cp $1/circuit_final.zkey protocol-solidity-fixtures/fixtures/$2/plonk/circuit_final.zkey
-    cp $1/verifier.sol contracts/verifiers/bridge/plonk/"Verifier$2.sol"
+    cp $outdir/circuit_final.zkey protocol-solidity-fixtures/fixtures/$size/plonk/circuit_final.zkey
+    cp $outdir/verifier.sol contracts/verifiers/bridge/plonk/"Verifier$size.sol"
+    sed -i s/'pragma solidity ^0.6.11;'/'pragma solidity ^0.8.0;'/ contracts/verifiers/bridge/plonk/"Verifier$size.sol
+    sed -i s/"contract Verifier {"/"contract Verifier$size {"/ contracts/verifiers/Verifier$size.sol
 }
