@@ -33,7 +33,7 @@
     "setup:plonk:vanchor2": "./scripts/bash/plonk/vanchor/phase2_poseidon_vanchor2.sh",
     "setup:plonk:vanchor8": "./scripts/bash/plonk/vanchor/phase2_poseidon_vanchor8.sh",
     "setup:plonk:semaphore-anchor2": "./scripts/bash/plonk/semaphore/phase2_semaphore_anchor_2.sh",
-    "setup:plonk": "./scripts/bash/setup_verifiers_groth16.sh",
+    "setup:plonk": "./scripts/bash/setup_verifiers_plonk.sh",
     "test": "npx hardhat test"
   },
   "devDependencies": {
