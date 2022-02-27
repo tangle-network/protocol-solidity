@@ -1,8 +1,8 @@
 require('dotenv').config();
-import { getTokenBalance } from './getTokenBalance'
 import { ethers } from 'ethers';
-import { providerAthena, walletHermes, walletAthena } from '../ethersGovernorWallets';
-import { viewEdgeList } from '../viewActions/viewEdgeList';
+import { providerAthena, walletHermes, walletAthena, walletRinkeby } from '../ethersGovernorWallets';
+import { viewEdgeList } from './viewEdgeList';
+import { viewRootHistory } from './viewRootHistory';
 import { Anchor } from '@webb-tools/anchors';
 import { fetchComponentsFromFilePaths } from '@webb-tools/utils';
 const path = require('path');
@@ -24,12 +24,14 @@ async function run() {
   console.log('Hermes elements: ', anchorHermes.tree.elements());
   console.log('Edge list of Athena on Hermes: ');
   await viewEdgeList(anchorHermes, 5002);
+  await viewRootHistory(anchorHermes);
 
   console.log('num of elements in athena: ', anchorAthena.tree.number_of_elements());
-  console.log('root of anchor athena: ', anchorAthena.tree.root());
+  console.log('root of anchor athena: ', anchorAthena.tree.root()); 
   console.log('Athena elements: ', anchorAthena.tree.elements());
   console.log('Edge list of Hermes on Athena: ');
   await viewEdgeList(anchorAthena, 5001);
+  await viewRootHistory(anchorAthena);
 }
 
 run();

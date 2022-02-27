@@ -124,6 +124,7 @@ export const signMessage = (wallet, data) => {
   const key = ec.keyFromPrivate(wallet.privateKey.slice(2), 'hex');
   const hash = ethers.utils.keccak256(data);
   const hashedData = ethers.utils.arrayify(hash); 
+  console.log('hashed data: ', hashedData);
   let signature = key.sign(hashedData);
   let expandedSig = {
     r: '0x' + signature.r.toString('hex'),
