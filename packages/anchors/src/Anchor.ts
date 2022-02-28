@@ -64,7 +64,10 @@ class Anchor implements IAnchor {
   bridgedTransact(inputs: Utxo[], outputs: Utxo[], fee: BigNumberish, recipient: string, relayer: string, merkleProofsForInputs: any[]): Promise<ethers.ContractReceipt> {
     throw new Error("Method not implemented.");
   }
-  getConfigLimitsProposalData(_minimalWithdrawalAmount: string, _maximumDepositAmount: string): Promise<string> {
+  getMinWithdrawalLimitProposalData(_minimalWithdrawalAmount: string): Promise<string> {
+    throw new Error("Method not implemented.");
+  }
+  getMaxDepositLimitProposalData(_maximumDepositAmount: string): Promise<string> {
     throw new Error("Method not implemented.");
   }
 
