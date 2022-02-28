@@ -5,7 +5,6 @@ import { GovernedTokenWrapper as GovernedTokenWrapperContract, GovernedTokenWrap
 export class GovernedTokenWrapper {
   contract: GovernedTokenWrapperContract;
   signer: ethers.Signer;
-  feeRecipient?: string;
   
   ADD_TOKEN_SIGNATURE = "add(address,uint256)";
   REMOVE_TOKEN_SIGNATURE = "remove(address,uint256)";
@@ -41,7 +40,6 @@ export class GovernedTokenWrapper {
     await contract.deployed();
 
     const createdGovernedTokenWrapper = new GovernedTokenWrapper(contract, deployer);
-    createdGovernedTokenWrapper.feeRecipient = feeRecipient;
 
     return createdGovernedTokenWrapper;
   }
@@ -49,7 +47,6 @@ export class GovernedTokenWrapper {
   public static async connect(address: string, signer: ethers.Signer) {
     const contract = GovernedTokenWrapper__factory.connect(address, signer);
     const tokenWrapper = new GovernedTokenWrapper(contract, signer);
-    tokenWrapper.feeRecipient = await contract.feeRecipient();
     return tokenWrapper;
   }
 
@@ -58,6 +55,10 @@ export class GovernedTokenWrapper {
     const tx = await this.contract.grantRole(MINTER_ROLE, address);
     await tx.wait();
     return;
+  }
+
+  public async getFeeRecipientAddress(): Promise<string> {
+    return await this.contract.feeRecipient();
   }
 
   public async createResourceId(): Promise<string> {
