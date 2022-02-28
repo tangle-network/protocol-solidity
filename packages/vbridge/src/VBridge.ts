@@ -230,9 +230,12 @@ export class VBridge {
     let tokenDenomination = '1000000000000000000' // 1 ether
     for (let vAnchor of vAnchors) {
       await vBridgeSide.connectAnchorWithSignature(vAnchor);
-      await vBridgeSide.executeConfigLimitsProposalWithSig(
+      await vBridgeSide.executeMinWithdrawalLimitProposalWithSig(
         vAnchor,
         BigNumber.from(0).toString(),
+      ); 
+      await vBridgeSide.executeMaxDepositLimitProposalWithSig(
+        vAnchor,
         BigNumber.from(tokenDenomination).mul(1_000_000).toString()
       ); 
     }
