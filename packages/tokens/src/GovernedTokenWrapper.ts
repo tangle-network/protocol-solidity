@@ -44,7 +44,7 @@ export class GovernedTokenWrapper {
     return createdGovernedTokenWrapper;
   }
 
-  public static async connect(address: string, signer: ethers.Signer) {
+  public static connect(address: string, signer: ethers.Signer) {
     const contract = GovernedTokenWrapper__factory.connect(address, signer);
     const tokenWrapper = new GovernedTokenWrapper(contract, signer);
     return tokenWrapper;
