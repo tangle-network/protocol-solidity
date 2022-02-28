@@ -157,10 +157,26 @@ function commitments(bytes32) external view returns (bool)
 |---|---|---|
 | _0 | bool | undefined
 
-### configureLimits
+### configureMaximumDepositLimit
 
 ```solidity
-function configureLimits(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmount) external nonpayable
+function configureMaximumDepositLimit(uint256 _maximumDepositAmount) external nonpayable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _maximumDepositAmount | uint256 | undefined
+
+### configureMinimalWithdawalLimit
+
+```solidity
+function configureMinimalWithdawalLimit(uint256 _minimalWithdrawalAmount) external nonpayable
 ```
 
 
@@ -172,7 +188,6 @@ function configureLimits(uint256 _minimalWithdrawalAmount, uint256 _maximumDepos
 | Name | Type | Description |
 |---|---|---|
 | _minimalWithdrawalAmount | uint256 | undefined
-| _maximumDepositAmount | uint256 | undefined
 
 ### currentNeighborRootIndex
 

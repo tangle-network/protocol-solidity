@@ -86,10 +86,12 @@ describe('VAnchor for 2 max edges', () => {
       sender,
     );
 
-    await anchor.contract.configureLimits(
+    await anchor.contract.configureMinimalWithdawalLimit(
       BigNumber.from(0),
+    );
+    await anchor.contract.configureMaximumDepositLimit(
       BigNumber.from(tokenDenomination).mul(1_000_000),
-    )
+    );
 
     await token.approve(anchor.contract.address, '10000000000000000000000');
 
@@ -832,8 +834,10 @@ describe('VAnchor for 2 max edges', () => {
         sender
       );
 
-      await wrappedAnchor.contract.configureLimits(
+      await wrappedAnchor.contract.configureMinimalWithdawalLimit(
         BigNumber.from(0),
+      );
+      await wrappedAnchor.contract.configureMaximumDepositLimit(
         BigNumber.from(tokenDenomination).mul(1_000_000),
       );
 
@@ -890,8 +894,10 @@ describe('VAnchor for 2 max edges', () => {
         sender
       );
 
-      await wrappedVAnchor.contract.configureLimits(
+      await wrappedVAnchor.contract.configureMinimalWithdawalLimit(
         BigNumber.from(0),
+      );
+      await wrappedVAnchor.contract.configureMaximumDepositLimit(
         BigNumber.from(tokenDenomination).mul(1_000_000),
       );
       
@@ -963,10 +969,12 @@ describe('VAnchor for 2 max edges', () => {
         sender
       );
 
-      await wrappedVAnchor.contract.configureLimits(
+      await wrappedVAnchor.contract.configureMinimalWithdawalLimit(
         BigNumber.from(0),
+      );
+      await wrappedVAnchor.contract.configureMaximumDepositLimit(
         BigNumber.from(tokenDenomination).mul(1_000_000),
-      )
+      );
 
       const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
       await wrappedToken.grantRole(MINTER_ROLE, wrappedVAnchor.contract.address);

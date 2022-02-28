@@ -133,8 +133,13 @@ export class SignatureBridgeSide implements IBridgeSide {
     return proposalData;
   }
 
-  public async createConfigLimitsProposalData(vAnchor: IAnchor, _minimalWithdrawalAmount: string, _maximumDepositAmount: string) {
-    const proposalData = await vAnchor.getConfigLimitsProposalData(_minimalWithdrawalAmount,_maximumDepositAmount);
+  public async createMinWithdrawalLimitProposalData(vAnchor: IAnchor, _minimalWithdrawalAmount: string) {
+    const proposalData = await vAnchor.getMinWithdrawalLimitProposalData(_minimalWithdrawalAmount);
+    return proposalData;
+  }
+
+  public async createMaxDepositLimitProposalData(vAnchor: IAnchor, _maximumDepositAmount: string) {
+    const proposalData = await vAnchor.getMaxDepositLimitProposalData(_maximumDepositAmount);
     return proposalData;
   }
 
@@ -239,6 +244,7 @@ export class SignatureBridgeSide implements IBridgeSide {
       governedToken.contract.address,
       sig
     );
+    await tx.wait();
     return resourceId;
   }
 
@@ -274,6 +280,7 @@ export class SignatureBridgeSide implements IBridgeSide {
       treasury.contract.address,
       sig
     );
+    await tx.wait()
     return resourceId;
   }
 
@@ -336,9 +343,16 @@ export class SignatureBridgeSide implements IBridgeSide {
   }
 
 
-  public async executeConfigLimitsProposalWithSig(anchor: IAnchor, _minimalWithdrawalAmount: string, _maximumDepositAmount: string) {
+  public async executeMinWithdrawalLimitProposalWithSig(anchor: IAnchor, _minimalWithdrawalAmount: string) {
     if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
-    const proposalData = await this.createConfigLimitsProposalData(anchor, _minimalWithdrawalAmount,_maximumDepositAmount);
+    const proposalData = await this.createMinWithdrawalLimitProposalData(anchor, _minimalWithdrawalAmount);
+    ;
+    return this.execute(proposalData);
+  }
+
+  public async executeMaxDepositLimitProposalWithSig(anchor: IAnchor, _maximumDepositAmount: string) {
+    if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
+    const proposalData = await this.createMaxDepositLimitProposalData(anchor,_maximumDepositAmount);
     ;
     return this.execute(proposalData);
   }
