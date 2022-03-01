@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import { getChainIdType, ZkComponents, Overrides } from "@webb-tools/utils";
 import { PoseidonT3__factory } from "@webb-tools/contracts";
-import { MintableToken, GovernedTokenWrapper, Treasury, TreasuryHandler } from "@webb-tools/tokens";
+import { MintableToken, GovernedTokenWrapper, Treasury, TreasuryHandler, TokenWrapperHandler } from "@webb-tools/tokens";
 import { BridgeInput, DeployerConfig, GovernorConfig, IAnchor, IAnchorDeposit } from "@webb-tools/interfaces";
 import { Anchor, AnchorHandler } from '@webb-tools/anchors';
 import { SignatureBridgeSide } from './SignatureBridgeSide';
@@ -125,6 +125,9 @@ export class SignatureBridge {
 
       const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, bridgeInstance.admin, deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'});
 
+      await bridgeInstance.setTreasuryHandler(treasuryHandler);
+      await bridgeInstance.setTreasuryResourceWithSignature(treasury);
+
       // Create the Hasher and Verifier for the chain
       const hasherFactory = new PoseidonT3__factory(deployers.wallets[chainID]);
       let hasherInstance = await hasherFactory.deploy(deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'});
@@ -141,12 +144,14 @@ export class SignatureBridge {
           allowedNative = true;
         }
       }
+      // Deploy TokenWrapperHandler
+      const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeInstance.contract.address, [], [], bridgeInstance.admin);
 
       let tokenInstance: GovernedTokenWrapper = await GovernedTokenWrapper.createGovernedTokenWrapper(
         `webbETH-test-1`,
         `webbETH-test-1`,
         treasury.contract.address,
-        await deployers.wallets[chainID].getAddress(),
+        tokenWrapperHandler.contract.address,
         '10000000000000000000000000',
         allowedNative,
         deployers.wallets[chainID],
@@ -155,12 +160,14 @@ export class SignatureBridge {
       
       //console.log(`created GovernedTokenWrapper on ${chainID}: ${tokenInstance.contract.address}`);
 
+      await bridgeInstance.setTokenWrapperHandler(tokenWrapperHandler);
+      await bridgeInstance.setGovernedTokenResourceWithSignature(tokenInstance);
+
       // Add all token addresses to the governed token instance.
       for (const tokenToBeWrapped of bridgeInput.anchorInputs.asset[chainID]!) {
         // if the address is not '0', then add it
         if (!checkNativeAddress(tokenToBeWrapped)) {
-          const tx = await tokenInstance.contract.add(tokenToBeWrapped, (await tokenInstance.contract.proposalNonce()).add(1));
-          const receipt = await tx.wait();
+          const tx = await bridgeInstance.executeAddTokenProposalWithSig(tokenInstance, tokenToBeWrapped);
         }
       }
 

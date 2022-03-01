@@ -29,6 +29,7 @@ import { MerkleTree } from '../../packages/merkle-tree/src';
 import { Utxo, poseidonHash, poseidonHash2 } from '../../packages/utils/src';
 import { VAnchor } from '../../packages/anchors/src';
 import { Verifier } from "../../packages/vbridge"
+import { writeFileSync } from "fs";
 
 const { NATIVE_AMOUNT } = process.env
 const BN = require('bn.js');
@@ -85,10 +86,12 @@ describe('VAnchor for 2 max edges', () => {
       sender,
     );
 
-    await anchor.contract.configureLimits(
+    await anchor.contract.configureMinimalWithdawalLimit(
       BigNumber.from(0),
+    );
+    await anchor.contract.configureMaximumDepositLimit(
       BigNumber.from(tokenDenomination).mul(1_000_000),
-    )
+    );
 
     await token.approve(anchor.contract.address, '10000000000000000000000');
 
@@ -831,8 +834,10 @@ describe('VAnchor for 2 max edges', () => {
         sender
       );
 
-      await wrappedAnchor.contract.configureLimits(
+      await wrappedAnchor.contract.configureMinimalWithdawalLimit(
         BigNumber.from(0),
+      );
+      await wrappedAnchor.contract.configureMaximumDepositLimit(
         BigNumber.from(tokenDenomination).mul(1_000_000),
       );
 
@@ -889,8 +894,10 @@ describe('VAnchor for 2 max edges', () => {
         sender
       );
 
-      await wrappedVAnchor.contract.configureLimits(
+      await wrappedVAnchor.contract.configureMinimalWithdawalLimit(
         BigNumber.from(0),
+      );
+      await wrappedVAnchor.contract.configureMaximumDepositLimit(
         BigNumber.from(tokenDenomination).mul(1_000_000),
       );
       
@@ -962,10 +969,12 @@ describe('VAnchor for 2 max edges', () => {
         sender
       );
 
-      await wrappedVAnchor.contract.configureLimits(
+      await wrappedVAnchor.contract.configureMinimalWithdawalLimit(
         BigNumber.from(0),
+      );
+      await wrappedVAnchor.contract.configureMaximumDepositLimit(
         BigNumber.from(tokenDenomination).mul(1_000_000),
-      )
+      );
 
       const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
       await wrappedToken.grantRole(MINTER_ROLE, wrappedVAnchor.contract.address);
@@ -1099,6 +1108,15 @@ describe('VAnchor for 2 max edges', () => {
         wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1))
       );
     });
+    it('should print/save benchmarks', async () => {
+      // Alice deposits into tornado pool
+      const gasBenchmark = await anchor.getGasBenchmark()
+      const proofTimeBenchmark = await anchor.getProofTimeBenchmark()
+      console.log("Gas benchmark:\n", gasBenchmark);
+      console.log("Proof time benchmark:\n", proofTimeBenchmark);
+      writeFileSync("./metrics/gas-metrics.json", JSON.stringify(gasBenchmark));
+      writeFileSync("./metrics/proof-time-metrics.json", JSON.stringify(proofTimeBenchmark));
+    })
   }) 
 });
 

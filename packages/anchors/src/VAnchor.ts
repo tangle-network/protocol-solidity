@@ -1,6 +1,7 @@
-import { BigNumber, BigNumberish, ethers, Overrides } from 'ethers';
+import { BigNumber, BigNumberish, ethers } from 'ethers';
+import { performance } from 'perf_hooks';
 import { VAnchor as VAnchorContract, VAnchor__factory, VAnchorEncodeInputs__factory } from '@webb-tools/contracts';
-import { p256, toHex, RootInfo, Keypair, FIELD_SIZE, getExtDataHash, toFixedHex, Utxo, getChainIdType } from '@webb-tools/utils';
+import { p256, toHex, RootInfo, Keypair, FIELD_SIZE, getExtDataHash, toFixedHex, Utxo, getChainIdType, median, mean, max, min, Overrides } from '@webb-tools/utils';
 import { IAnchorDeposit, IAnchor, IExtData, IMerkleProofData, IUTXOInput, IVariableAnchorPublicInputs, IWitnessInput, IAnchorDepositInfo } from '@webb-tools/interfaces';
 import { MerkleTree } from '@webb-tools/merkle-tree';
 
@@ -14,6 +15,8 @@ function checkNativeAddress(tokenAddress: string): boolean {
   return false;
 }
 
+export var gasBenchmark = [];
+export var proofTimeBenchmark = [];
 // This convenience wrapper class is used in tests -
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
@@ -327,15 +330,25 @@ export class VAnchor implements IAnchor {
       toHex(newHandler, 20).substr(2) 
   }
 
-  public async getConfigLimitsProposalData(_minimalWithdrawalAmount: string, _maximumDepositAmount: string): Promise<string> {
+  public async getMinWithdrawalLimitProposalData(_minimalWithdrawalAmount: string): Promise<string> {
     const resourceID = await this.createResourceId();
-    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("configureLimits(uint256,uint256)")).slice(0, 10).padEnd(10, '0');
+    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("configureMinimalWithdawalLimit(uint256)")).slice(0, 10).padEnd(10, '0');
     const nonce = (await this.contract.getProposalNonce()) + 1;;
     return '0x' +
       toHex(resourceID, 32).substr(2)+ 
       functionSig.slice(2) + 
       toHex(nonce, 4).substr(2) +
-      toFixedHex(_minimalWithdrawalAmount).substr(2) +
+      toFixedHex(_minimalWithdrawalAmount).substr(2) 
+  }
+
+  public async getMaxDepositLimitProposalData(_maximumDepositAmount: string): Promise<string> {
+    const resourceID = await this.createResourceId();
+    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("configureMaximumDepositLimit(uint256)")).slice(0, 10).padEnd(10, '0');
+    const nonce = (await this.contract.getProposalNonce()) + 1;;
+    return '0x' +
+      toHex(resourceID, 32).substr(2)+ 
+      functionSig.slice(2) + 
+      toHex(nonce, 4).substr(2) +
       toFixedHex(_maximumDepositAmount).substr(2) 
   }
 
@@ -497,10 +510,15 @@ export class VAnchor implements IAnchor {
   }
 
   public async proveAndVerify(wtns: any, small: boolean) {
+    let start = performance.now();
     let res = await snarkjs.groth16.prove(small
       ? this.smallCircuitZkeyPath
       : this.largeCircuitZkeyPath, wtns
     );
+    let proof_time = (performance.now() - start)/1000;
+
+    proofTimeBenchmark.push(proof_time)
+    // console.log("Proof gen took: ", proof_time, "s");
     let proof = res.proof;
     let publicSignals = res.publicSignals;
 
@@ -511,6 +529,35 @@ export class VAnchor implements IAnchor {
     res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
     let proofEncoded = await VAnchor.generateWithdrawProofCallData(proof, publicSignals);
     return proofEncoded;
+  }
+
+  public async getGasBenchmark() {
+    const gasValues = gasBenchmark.map(Number)
+    const meanGas = mean(gasValues);
+    const medianGas = median(gasValues);
+    const maxGas = max(gasValues);
+    const minGas = min(gasValues);
+    return {
+        gasValues,
+        meanGas,
+        medianGas,
+        maxGas,
+        minGas,
+    };
+    // return gasBenchmark;
+  }
+  public async getProofTimeBenchmark() {
+    const meanTime = mean(proofTimeBenchmark);
+    const medianTime = median(proofTimeBenchmark);
+    const maxTime = max(proofTimeBenchmark);
+    const minTime = min(proofTimeBenchmark);
+    return {
+        proofTimeBenchmark,
+        meanTime,
+        medianTime,
+        maxTime,
+        minTime,
+      }
   }
 
   public async setupTransaction(
@@ -620,6 +667,9 @@ export class VAnchor implements IAnchor {
     );
     const receipt = await tx.wait();
     //console.log(`updated root (transact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
+    // console.log("gas used: ", receipt.gasUsed.toString());
+    gasBenchmark.push(receipt.gasUsed.toString());
+
     return receipt;
   }
   

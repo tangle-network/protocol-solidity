@@ -21,6 +21,16 @@ export const FIELD_SIZE = BigNumber.from(
   '21888242871839275222246405745257275088548364400416034343698204186575808495617',
 )
 
+export const median = (arr: number[]): number => {
+  if (!arr.length) return undefined;
+  const s = [...arr].sort((a, b) => a - b);
+  const mid = Math.floor(s.length / 2);
+  return s.length % 2 === 0 ? ((s[mid - 1] + s[mid]) / 2) : s[mid];
+};
+export const mean = arr => arr.reduce( ( p, c ) => p + c, 0 )  / arr.length;
+export const max = arr => arr.reduce((a,b)=>a>b?a:b);
+export const min = arr => arr.reduce((a,b)=> a<=b?a:b);
+
 /** Generate random number of specified byte length */
 export const randomBN = (nbytes = 31) => BigNumber.from(crypto.randomBytes(nbytes))
 

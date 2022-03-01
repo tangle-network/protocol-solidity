@@ -20,7 +20,8 @@ export interface IAnchor {
   getHandler(): Promise<string>;
   getHandlerProposalData(newHandler: string): Promise<string>;
   getAddress(): string;
-  getConfigLimitsProposalData(_minimalWithdrawalAmount: string, _maximumDepositAmount: string): Promise<string>;
+  getMinWithdrawalLimitProposalData(_minimalWithdrawalAmount: string): Promise<string>;
+  getMaxDepositLimitProposalData(_maximumDepositAmount: string): Promise<string>;
   createResourceId(): Promise<string>;
   
   // FixedDepositAnchor methods

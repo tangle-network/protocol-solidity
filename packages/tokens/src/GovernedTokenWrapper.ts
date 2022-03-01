@@ -41,8 +41,9 @@ export class GovernedTokenWrapper {
     );
     await contract.deployed();
 
-    const handler = new GovernedTokenWrapper(contract, deployer);
-    return handler;
+    const createdGovernedTokenWrapper = new GovernedTokenWrapper(contract, deployer);
+
+    return createdGovernedTokenWrapper;
   }
 
   public static connect(address: string, signer: ethers.Signer) {
@@ -56,6 +57,10 @@ export class GovernedTokenWrapper {
     const tx = await this.contract.grantRole(MINTER_ROLE, address);
     await tx.wait();
     return;
+  }
+
+  public async getFeeRecipientAddress(): Promise<string> {
+    return await this.contract.feeRecipient();
   }
 
   public async createResourceId(): Promise<string> {
