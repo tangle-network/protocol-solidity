@@ -6,10 +6,6 @@ import { toFixedHex, toHex, rbigint, p256, PoseidonHasher, ZkComponents, Utxo, g
 import { MerkleTree } from '@webb-tools/merkle-tree';
 
 const snarkjs = require('snarkjs');
-const F = require('circomlibjs').babyjub.F;
-const Scalar = require('ffjavascript').Scalar;
-//const abi = require("web3").eth.abi
-
 const zeroAddress = "0x0000000000000000000000000000000000000000";
 
 function checkNativeAddress(tokenAddress: string): boolean {
@@ -207,6 +203,33 @@ class Anchor implements IAnchor {
       return true;
     }
     return false;
+  }
+
+  // given a list of leaves and a latest synced block, update internal tree state
+  // The function will create a new tree, and check on chain root before updating its member variable
+  // If the passed leaves match on chain data, 
+  //      update this instance and return true
+  // else
+  //      return false
+  public async setWithLeaves(leaves: string[], syncedBlock?: number): Promise<Boolean> {
+    let newTree = new MerkleTree(this.tree.levels, leaves);
+    let root = toFixedHex(newTree.root());
+    let validTree = await this.contract.isKnownRoot(root);
+
+    if (validTree) {
+      let index = 0;
+      for (const leaf of newTree.elements()) {
+        this.depositHistory[index] = toFixedHex(this.tree.root());
+        index++;
+      }
+      if (!syncedBlock) {
+        syncedBlock = await this.signer.provider.getBlockNumber();
+      }
+      this.tree = newTree;
+      return true;
+    } else {
+      return false;
+    }
   }
 
   // Proposal data is used to update linkedAnchors via bridge proposals 
