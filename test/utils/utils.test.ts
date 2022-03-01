@@ -3,7 +3,7 @@ import { expect } from "chai";
 
 describe('Utils tests', () => {
 
-  it.only('PoseidonHasher3 should hash correctly', async () => {
+  it('PoseidonHasher3 should hash correctly', async () => {
     const hasher = new PoseidonHasher();
     const hash = hasher.hash3([
       Number('0x010000001389'),

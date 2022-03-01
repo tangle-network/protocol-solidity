@@ -1,7 +1,7 @@
 import { IAnchorDeposit, IAnchorDepositInfo } from './anchor';
 import { IMerkleProofData } from './vanchor';
 import { Utxo } from "@webb-tools/utils";
-import { BigNumberish, ethers, Event, Overrides } from 'ethers';
+import { BigNumberish, ethers, Overrides } from 'ethers';
 
 export interface IAnchor {
   signer: ethers.Signer;

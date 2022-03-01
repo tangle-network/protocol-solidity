@@ -286,7 +286,6 @@ export class SignatureBridgeSide implements IBridgeSide {
 
   public async execute(proposalData: string) {
     const sig = await this.signingSystemSignFn(proposalData);
-    console.log('signature in execute: ', sig);
     const tx = await this.contract.executeProposalWithSignature(proposalData, sig);
     const receipt = await tx.wait();
     
@@ -302,7 +301,6 @@ export class SignatureBridgeSide implements IBridgeSide {
   public async executeAnchorProposalWithSig(srcAnchor: IAnchor, executionResourceID: string) {
     if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
     const proposalData = await this.createAnchorUpdateProposalData(srcAnchor, executionResourceID);
-    console.log('Proposal data in executeAnchorProposalWithSig: ', proposalData);
     return this.execute(proposalData);
   }
 
