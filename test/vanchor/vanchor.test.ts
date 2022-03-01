@@ -21,7 +21,7 @@ import {
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
-import { getChainIdType, toFixedHex } from '../../packages/utils/src';
+import { fetchComponentsFromFilePaths, getChainIdType, toFixedHex, ZkComponents } from '../../packages/utils/src';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
@@ -33,6 +33,8 @@ import { writeFileSync } from "fs";
 
 const { NATIVE_AMOUNT } = process.env
 const BN = require('bn.js');
+
+const path = require('path');
 
 const snarkjs = require('snarkjs')
 const { toBN } = require('web3-utils');
@@ -55,6 +57,23 @@ describe('VAnchor for 2 max edges', () => {
   let create16InputWitness: any;
   let createInputWitnessPoseidon4: any;
   let sender: SignerWithAddress;
+  // setup zero knowledge components
+  let zkComponents2_2: ZkComponents;
+  let zkComponents16_2: ZkComponents;
+
+  before('instantiate zkcomponents', async () => {
+    zkComponents2_2 = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/circuit_final.zkey')
+    );
+
+    zkComponents16_2 = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/circuit_final.zkey')
+    );
+  });
 
   beforeEach(async () => {
     const signers = await ethers.getSigners();
@@ -83,6 +102,8 @@ describe('VAnchor for 2 max edges', () => {
       sender.address,
       token.address,
       1,
+      zkComponents2_2,
+      zkComponents16_2,
       sender,
     );
 
@@ -831,6 +852,8 @@ describe('VAnchor for 2 max edges', () => {
         sender.address,
         wrappedToken.address,
         1,
+        zkComponents2_2,
+        zkComponents16_2,
         sender
       );
 
@@ -891,6 +914,8 @@ describe('VAnchor for 2 max edges', () => {
         sender.address,
         wrappedToken.address,
         1,
+        zkComponents2_2,
+        zkComponents16_2,
         sender
       );
 
@@ -966,6 +991,8 @@ describe('VAnchor for 2 max edges', () => {
         sender.address,
         wrappedToken.address,
         1,
+        zkComponents2_2,
+        zkComponents16_2,
         sender
       );
 

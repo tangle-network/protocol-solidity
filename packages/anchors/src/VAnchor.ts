@@ -1,7 +1,7 @@
 import { BigNumber, BigNumberish, ethers } from 'ethers';
 import { performance } from 'perf_hooks';
 import { VAnchor as VAnchorContract, VAnchor__factory, VAnchorEncodeInputs__factory } from '@webb-tools/contracts';
-import { p256, toHex, RootInfo, Keypair, FIELD_SIZE, getExtDataHash, toFixedHex, Utxo, getChainIdType, median, mean, max, min } from '@webb-tools/utils';
+import { p256, toHex, RootInfo, Keypair, FIELD_SIZE, getExtDataHash, toFixedHex, Utxo, getChainIdType, median, mean, max, min, ZkComponents } from '@webb-tools/utils';
 import { IAnchorDeposit, IAnchor, IExtData, IMerkleProofData, IUTXOInput, IVariableAnchorPublicInputs, IWitnessInput } from '@webb-tools/interfaces';
 import { MerkleTree } from '@webb-tools/merkle-tree';
 
@@ -27,13 +27,8 @@ export class VAnchor implements IAnchor {
   tree: MerkleTree;
   // hex string of the connected root
   latestSyncedBlock: number;
-  smallCircuitZkeyPath: string;
-  smallCircuitWASMPath: string;
-  smallWitnessCalculator: any;
-
-  largeCircuitZkeyPath: string;
-  largeCircuitWASMPath: string;
-  largeWitnessCalculator: any;
+  smallCircuitZkComponents: ZkComponents;
+  largeCircuitZkComponents: ZkComponents;
 
   // The depositHistory stores leafIndex => information to create proposals (new root)
   depositHistory: Record<number, string>;
@@ -46,43 +41,16 @@ export class VAnchor implements IAnchor {
     signer: ethers.Signer,
     treeHeight: number,
     maxEdges: number,
+    smallCircuitZkComponents: ZkComponents,
+    largeCircuitZkComponents: ZkComponents,
   ) {
     this.signer = signer;
     this.contract = contract;
     this.tree = new MerkleTree(treeHeight);
     this.latestSyncedBlock = 0;
     this.depositHistory = {};
-    this.smallWitnessCalculator = {};
-    this.largeWitnessCalculator = {};
-
-    // set the circuit zkey and wasm depending upon max edges
-    switch (maxEdges) {
-      case 1:
-        this.smallCircuitWASMPath = 'protocol-solidity-fixtures/fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm';
-        this.smallCircuitZkeyPath = 'protocol-solidity-fixtures/fixtures/vanchor_2/2/circuit_final.zkey';
-        this.smallWitnessCalculator = require("../../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.js");
-        this.largeCircuitWASMPath = 'protocol-solidity-fixtures/fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm';
-        this.largeCircuitZkeyPath = 'protocol-solidity-fixtures/fixtures/vanchor_16/2/circuit_final.zkey';
-        this.largeWitnessCalculator = require("../../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.js");
-        break;
-      case 7:
-        this.smallCircuitWASMPath = 'protocol-solidity-fixtures/fixtures/vanchor_2/8/poseidon_vanchor_8_2.wasm';
-        this.smallCircuitZkeyPath = 'protocol-solidity-fixtures/fixtures/vanchor_2/8/circuit_final.zkey';
-        this.smallWitnessCalculator = require("../../../protocol-solidity-fixtures/fixtures/vanchor_2/8/witness_calculator.js");
-        this.largeCircuitWASMPath = 'protocol-solidity-fixtures/fixtures/vanchor_16/8/poseidon_vanchor_16_8.wasm';
-        this.largeCircuitZkeyPath = 'protocol-solidity-fixtures/fixtures/vanchor_16/8/circuit_final.zkey';
-        this.largeWitnessCalculator = require("../../../protocol-solidity-fixtures/fixtures/vanchor_16/8/witness_calculator.js");
-        break;
-      default:
-        this.smallCircuitWASMPath = 'protocol-solidity-fixtures/fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm';
-        this.smallCircuitZkeyPath = 'protocol-solidity-fixtures/fixtures/vanchor_2/2/circuit_final.zkey';
-        this.smallWitnessCalculator = require("../../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.js");
-        this.largeCircuitWASMPath = 'protocol-solidity-fixtures/fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm';
-        this.largeCircuitZkeyPath = 'protocol-solidity-fixtures/fixtures/vanchor_16/2/circuit_final.zkey';
-        this.largeWitnessCalculator = require("../../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.js");
-        break;
-    }
-
+    this.smallCircuitZkComponents = smallCircuitZkComponents;
+    this.largeCircuitZkComponents = largeCircuitZkComponents;
   }
   deposit(destinationChainId: number) {
     throw new Error("Method not implemented.");
@@ -107,6 +75,8 @@ export class VAnchor implements IAnchor {
     handler: string,
     token: string,
     maxEdges: number,
+    smallCircuitZkComponents: ZkComponents,
+    largeCircuitZkComponents: ZkComponents,
     signer: ethers.Signer,
   ) {
     const encodeLibraryFactory = new VAnchorEncodeInputs__factory(signer);
@@ -114,7 +84,7 @@ export class VAnchor implements IAnchor {
     const factory = new VAnchor__factory({["contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs"]: encodeLibrary.address}, signer);
     const vAnchor = await factory.deploy(verifier, levels, hasher, handler, token, maxEdges, {});
     await vAnchor.deployed();
-    const createdVAnchor = new VAnchor(vAnchor, signer, BigNumber.from(levels).toNumber(), maxEdges);
+    const createdVAnchor = new VAnchor(vAnchor, signer, BigNumber.from(levels).toNumber(), maxEdges, smallCircuitZkComponents, largeCircuitZkComponents);
     createdVAnchor.latestSyncedBlock = vAnchor.deployTransaction.blockNumber!;
     createdVAnchor.token = token;
     return createdVAnchor;
@@ -124,12 +94,14 @@ export class VAnchor implements IAnchor {
     // connect via factory method
     // build up tree by querying provider for logs
     address: string,
+    smallCircuitZkComponents: ZkComponents,
+    largeCircuitZkComponents: ZkComponents,
     signer: ethers.Signer,
   ) {
     const anchor = VAnchor__factory.connect(address, signer);
     const maxEdges = await anchor.maxEdges()
     const treeHeight = await anchor.levels();
-    const createdAnchor = new VAnchor(anchor, signer, treeHeight, maxEdges);
+    const createdAnchor = new VAnchor(anchor, signer, treeHeight, maxEdges, smallCircuitZkComponents, largeCircuitZkComponents);
     createdAnchor.token = await anchor.token();
     return createdAnchor;
   }
@@ -480,10 +452,9 @@ export class VAnchor implements IAnchor {
   }
 
   public async createWitness(data: any, small: boolean) {
-    const fileBuf = require('fs').readFileSync(small ? this.smallCircuitWASMPath : this.largeCircuitWASMPath);
     const witnessCalculator = small
-      ? await this.smallWitnessCalculator(fileBuf)
-      : await this.largeWitnessCalculator(fileBuf)
+      ? this.smallCircuitZkComponents.witnessCalculator
+      : this.largeCircuitZkComponents.witnessCalculator;
     const buff = await witnessCalculator.calculateWTNSBin(data,0);
     return buff;
   }
@@ -491,8 +462,8 @@ export class VAnchor implements IAnchor {
   public async proveAndVerify(wtns: any, small: boolean) {
     let start = performance.now();
     let res = await snarkjs.groth16.prove(small
-      ? this.smallCircuitZkeyPath
-      : this.largeCircuitZkeyPath, wtns
+      ? this.smallCircuitZkComponents.zkey
+      : this.largeCircuitZkComponents.zkey, wtns
     );
     let proof_time = (performance.now() - start)/1000;
 
@@ -502,8 +473,8 @@ export class VAnchor implements IAnchor {
     let publicSignals = res.publicSignals;
 
     const vKey = await snarkjs.zKey.exportVerificationKey(small
-      ? this.smallCircuitZkeyPath
-      : this.largeCircuitZkeyPath
+      ? this.smallCircuitZkComponents.zkey
+      : this.largeCircuitZkComponents.zkey
     );
     res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
     let proofEncoded = await VAnchor.generateWithdrawProofCallData(proof, publicSignals);
