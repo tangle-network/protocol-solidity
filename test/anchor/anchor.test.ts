@@ -40,7 +40,7 @@
    const levels = 30;
    const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
    let tree: MerkleTree;
-   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
+   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN('100000000000000000')).toString());
    const refund = BigInt((new BN('0')).toString());
    let recipient = "0x1111111111111111111111111111111111111111";
    let verifier: Verifier;
@@ -998,7 +998,7 @@
    const levels = 30;
    const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
    let tree: MerkleTree;
-   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
+   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`100000000000000000`)).toString());
    const refund = BigInt((new BN('0')).toString());
    let recipient = "0x1111111111111111111111111111111111111111";
    let verifier: Verifier;
@@ -1109,7 +1109,7 @@
    const levels = 30;
    const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
    let tree: MerkleTree;
-   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
+   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`100000000000000000`)).toString());
    const refund = BigInt((new BN('0')).toString());
    let recipient = "0x1111111111111111111111111111111111111111";
    let verifier: Verifier;

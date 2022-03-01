@@ -398,6 +398,8 @@ export class SignatureBridge {
     if (!anchorToProve) {
       throw new Error("Could not find anchor to prove against");
     }
+
+    //TODO: if the signer has the same chain ID as the origin, do a same-side withdraw
     
     const merkleProof = anchorToProve.tree.path(depositInfo.index);
 
@@ -429,6 +431,8 @@ export class SignatureBridge {
     if (!anchorToProve) {
       throw new Error("Could not find anchor to prove against");
     }
+
+    //TODO: if the signer has the same chain ID as the origin, do a same-side withdraw
 
     const merkleProof = anchorToProve.tree.path(depositInfo.index);
 
