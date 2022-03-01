@@ -42,7 +42,7 @@ describe('VAnchor for 2 max edges', () => {
 
   const levels = 5;
   let tree: MerkleTree;
-  let fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
+  let fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`100000000000000000`)).toString());
   let recipient = "0x1111111111111111111111111111111111111111";
   let verifier: Verifier;
   let hasherInstance: any;

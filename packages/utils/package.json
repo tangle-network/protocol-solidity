@@ -9,7 +9,7 @@
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "bn.js": "5.1.3",
+    "bn.js": "4.11.6",
     "circomlibjs": "^0.0.8",
     "elliptic": "^6.5.3",
     "eth-sig-util": "^3.0.1",
