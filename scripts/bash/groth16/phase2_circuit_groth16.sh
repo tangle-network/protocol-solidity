@@ -14,10 +14,6 @@ compile_phase2 () {
     npx snarkjs zkey export verificationkey "$outdir/circuit_final.zkey" "$outdir/verification_key.json"  
 
     npx snarkjs zkey export solidityverifier "$outdir/circuit_final.zkey" $outdir/verifier.sol
-    # echo "Generating witness\n"
-    # node "$3/$2_js/generate_witness.js" "$3/$2_js/$2.wasm" "$1/input.json" "$1/witness.wtns"
-    # echo "Debugging witness\n"
-    # npx snarkjs wtns debug "$3/$2_js/$2.wasm" "$1/input.json" "$1/witness.wtns" "$3/$2.sym" --trigger --get --set
     echo "Done!\n"
 }
 
@@ -28,8 +24,8 @@ move_verifiers_and_metadata () {
     fi
     cp $outdir/circuit_final.zkey protocol-solidity-fixtures/fixtures/$anchorType/$size/circuit_final.zkey
     cp $outdir/verifier.sol contracts/verifiers/$anchorType/"Verifier$size.sol"
-    sed -i s/'pragma solidity ^0.6.11;'/'pragma solidity ^0.8.0;'/ contracts/verifiers/$anchorType/"Verifier$size.sol"
-    sed -i s/"contract Verifier {"/"contract Verifier$size {"/ contracts/verifiers/$anchorType/"Verifier$size.sol"
+    # sed -i 's/pragma solidity ^0.8.0;'/'pragma solidity ^0.8.0;'/ contracts/verifiers/$anchorType/"Verifier$size.sol"
+    # sed -i "s/contract Verifier {"/"contract Verifier$size {"/ contracts/verifiers/$anchorType/"Verifier$size.sol"
 }
 
 move_verifiers_and_metadata_vanchor () {
@@ -38,6 +34,6 @@ move_verifiers_and_metadata_vanchor () {
 
     mkdir -p contracts/verifiers/$anchorType
     cp $indir/verifier.sol contracts/verifiers/$anchorType/"Verifier$size\_$nIns.sol"
-    sed -i s/'pragma solidity ^0.6.11;'/'pragma solidity ^0.8.0;'/ contracts/verifiers/$anchorType/"Verifier$size\_$nIns.sol"
-    sed -i s/"contract Verifier {"/"contract Verifier$size\_$nIns {"/ contracts/verifiers/$anchorType/"Verifier$size\_$nIns.sol"
+    # sed -i 's/pragma solidity ^0.8.0;'/'pragma solidity ^0.8.0;'/ contracts/verifiers/$anchorType/"Verifier$size\_$nIns.sol"
+    # sed -i "s/contract Verifier {"/"contract Verifier$size\_$nIns {"/ contracts/verifiers/$anchorType/"Verifier$size\_$nIns.sol"
 }
