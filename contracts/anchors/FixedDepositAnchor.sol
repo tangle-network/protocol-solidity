@@ -243,13 +243,16 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
     bytes calldata _roots,
     EncodeInputsData memory encodeInputsData
   ) internal view returns (bytes memory, bytes32[] memory) {
+    bytes32 extDataHash = keccak256(abi.encodePacked(
+      encodeInputsData._recipient,
+      encodeInputsData._relayer,
+      encodeInputsData._fee,
+      encodeInputsData._refund,
+      encodeInputsData._refreshCommitment
+    ));
     bytes memory encodedInput = abi.encodePacked(
       uint256(encodeInputsData._nullifierHash),
-      uint256(uint160(encodeInputsData._recipient)),
-      uint256(uint160(encodeInputsData._relayer)),
-      uint256(encodeInputsData._fee),
-      uint256(encodeInputsData._refund),
-      uint256(encodeInputsData._refreshCommitment),
+      uint256(extDataHash),
       uint256(getChainIdType()),
       _roots
     );
