@@ -183,7 +183,7 @@ describe('multichain tests for signature vbridge', () => {
       };
 
       // deploy the bridge
-      vBridge = await VBridge.deployVariableAnchorBridge(vBridgeInput, deploymentConfig, initialGovernorsConfig, zkComponents16_2, zkComponents16_2);
+      vBridge = await VBridge.deployVariableAnchorBridge(vBridgeInput, deploymentConfig, initialGovernorsConfig, zkComponents2_2, zkComponents16_2);
 
       // make one deposit so the  edge exists
       const depositUtxo1 = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainID1), chainId: BigNumber.from(chainID2)})
