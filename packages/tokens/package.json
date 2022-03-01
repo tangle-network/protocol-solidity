@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@webb-tools/contracts": "^0.1.4",
-    "@webb-tools/utils": "^0.1.4",
+    "@webb-tools/utils": "^0.1.5",
     "ethers": "5.5.1"
   },
   "publishConfig": {
@@ -21,5 +21,5 @@
     "type": "git",
     "url": "git://github.com/webb-tools/protocol-solidity.git"
   },
-  "version": "0.1.5"
+  "version": "0.1.6"
 }

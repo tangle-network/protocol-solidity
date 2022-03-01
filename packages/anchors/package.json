@@ -10,9 +10,9 @@
   },
   "dependencies": {
     "@webb-tools/contracts": "^0.1.4",
-    "@webb-tools/interfaces": "^0.1.5",
-    "@webb-tools/merkle-tree": "^0.1.5",
-    "@webb-tools/utils": "^0.1.4",
+    "@webb-tools/interfaces": "^0.1.6",
+    "@webb-tools/merkle-tree": "^0.1.6",
+    "@webb-tools/utils": "^0.1.5",
     "snarkjs": "0.4.10"
   },
   "publishConfig": {
@@ -23,5 +23,5 @@
     "type": "git",
     "url": "git://github.com/webb-tools/protocol-solidity.git"
   },
-  "version": "0.1.5"
+  "version": "0.1.6"
 }
