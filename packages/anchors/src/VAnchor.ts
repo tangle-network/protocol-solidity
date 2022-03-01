@@ -2,7 +2,7 @@ import { BigNumber, BigNumberish, ethers } from 'ethers';
 import { performance } from 'perf_hooks';
 import { VAnchor as VAnchorContract, VAnchor__factory, VAnchorEncodeInputs__factory } from '@webb-tools/contracts';
 import { p256, toHex, RootInfo, Keypair, FIELD_SIZE, getExtDataHash, toFixedHex, Utxo, getChainIdType, median, mean, max, min } from '@webb-tools/utils';
-import { IAnchorDeposit, IAnchor, IExtData, IMerkleProofData, IUTXOInput, IVariableAnchorPublicInputs, IWitnessInput } from '@webb-tools/interfaces';
+import { IAnchorDeposit, IAnchor, IExtData, IMerkleProofData, IUTXOInput, IVariableAnchorPublicInputs, IWitnessInput, IAnchorDepositInfo } from '@webb-tools/interfaces';
 import { MerkleTree } from '@webb-tools/merkle-tree';
 
 const snarkjs = require('snarkjs');
@@ -84,7 +84,27 @@ export class VAnchor implements IAnchor {
     }
 
   }
-  deposit(destinationChainId: number) {
+  deposit(destinationChainId: number): Promise<IAnchorDeposit> {
+    throw new Error("Method not implemented.");
+  }
+  setupWithdraw(
+    deposit: IAnchorDepositInfo,
+    index: number,
+    recipient: string,
+    relayer: string,
+    fee: bigint,
+    refreshCommitment: string | number,
+  ) {
+    throw new Error("Method not implemented.");
+  }
+  withdraw(
+    deposit: IAnchorDepositInfo,
+    index: number,
+    recipient: string,
+    relayer: string,
+    fee: bigint,
+    refreshCommitment: string | number,
+  ): Promise<ethers.Event> {
     throw new Error("Method not implemented.");
   }
   wrapAndDeposit(tokenAddress: string, destinationChainId?: number): Promise<IAnchorDeposit> {
