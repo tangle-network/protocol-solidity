@@ -63,7 +63,8 @@ abstract contract VAnchorBase is AnchorBase {
   {}
 
   function initialize(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmount) external initializer {
-    _configureLimits(_minimalWithdrawalAmount, _maximumDepositAmount);
+    _configureMinimalWithdrawalLimit(_minimalWithdrawalAmount);
+    _configureMaximumDepositLimit(_maximumDepositAmount);
     super._initialize();
   }
 
@@ -72,8 +73,12 @@ abstract contract VAnchorBase is AnchorBase {
     _register(_account);
   }
 
-  function configureLimits(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmount) public onlyHandler {
-    _configureLimits(_minimalWithdrawalAmount, _maximumDepositAmount);
+  function configureMinimalWithdrawalLimit(uint256 _minimalWithdrawalAmount) public onlyHandler {
+    _configureMinimalWithdrawalLimit(_minimalWithdrawalAmount);
+  }
+
+  function configureMaximumDepositLimit(uint256 _maximumDepositAmount) public onlyHandler {
+    _configureMaximumDepositLimit(_maximumDepositAmount);
   }
 
   function calculatePublicAmount(int256 _extAmount, uint256 _fee) public pure returns (uint256) {
@@ -100,8 +105,11 @@ abstract contract VAnchorBase is AnchorBase {
     uint256 _fee
   ) internal virtual;
 
-  function _configureLimits(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmount) internal {
+  function _configureMinimalWithdrawalLimit(uint256 _minimalWithdrawalAmount) internal {
     minimalWithdrawalAmount = _minimalWithdrawalAmount;
+  }
+
+  function _configureMaximumDepositLimit(uint256 _maximumDepositAmount) internal {
     maximumDepositAmount = _maximumDepositAmount;
   }
 

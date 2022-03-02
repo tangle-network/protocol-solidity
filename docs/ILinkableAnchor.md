@@ -10,10 +10,26 @@
 
 ## Methods
 
-### configureLimits
+### configureMaximumDepositLimit
 
 ```solidity
-function configureLimits(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmount) external nonpayable
+function configureMaximumDepositLimit(uint256 _maximumDepositAmount) external nonpayable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _maximumDepositAmount | uint256 | undefined
+
+### configureMinimalWithdrawalLimit
+
+```solidity
+function configureMinimalWithdrawalLimit(uint256 _minimalWithdrawalAmount) external nonpayable
 ```
 
 
@@ -25,7 +41,6 @@ function configureLimits(uint256 _minimalWithdrawalAmount, uint256 _maximumDepos
 | Name | Type | Description |
 |---|---|---|
 | _minimalWithdrawalAmount | uint256 | undefined
-| _maximumDepositAmount | uint256 | undefined
 
 ### setHandler
 

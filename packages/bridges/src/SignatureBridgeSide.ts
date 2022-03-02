@@ -25,13 +25,13 @@ export class SignatureBridgeSide implements IBridgeSide {
 
   private constructor(
     contract: SignatureBridge,
-    initialGovernor: ethers.Wallet,
+    governor: ethers.Wallet,
     signer: ethers.Signer,
     signingSystemSignFn?: (data: any) => Promise<string>,
   ) {
     this.contract = contract;
     this.admin = signer;
-    this.governor = initialGovernor;
+    this.governor = governor;
     this.anchorHandler = null;
     this.tokenHandler = null;
     this.treasuryHandler = null;
@@ -40,7 +40,7 @@ export class SignatureBridgeSide implements IBridgeSide {
       this.signingSystemSignFn = signingSystemSignFn;
     } else {
       this.signingSystemSignFn = (data: any) => {
-        return signMessage(initialGovernor, data)
+        return signMessage(governor, data)
       };
     }
   }
@@ -56,9 +56,9 @@ export class SignatureBridgeSide implements IBridgeSide {
     return bridgeSide;
   }
 
-  public static async connect(address: string, initialGovernor: ethers.Wallet, admin: ethers.Wallet) {
+  public static async connect(address: string, governor: ethers.Wallet, admin: ethers.Wallet) {
     const deployedBridge = SignatureBridge__factory.connect(address, admin);
-    const bridgeSide = new SignatureBridgeSide(deployedBridge, initialGovernor, admin);
+    const bridgeSide = new SignatureBridgeSide(deployedBridge, governor, admin);
     return bridgeSide;
   }
 
@@ -133,8 +133,13 @@ export class SignatureBridgeSide implements IBridgeSide {
     return proposalData;
   }
 
-  public async createConfigLimitsProposalData(vAnchor: IAnchor, _minimalWithdrawalAmount: string, _maximumDepositAmount: string) {
-    const proposalData = await vAnchor.getConfigLimitsProposalData(_minimalWithdrawalAmount,_maximumDepositAmount);
+  public async createMinWithdrawalLimitProposalData(vAnchor: IAnchor, _minimalWithdrawalAmount: string) {
+    const proposalData = await vAnchor.getMinWithdrawalLimitProposalData(_minimalWithdrawalAmount);
+    return proposalData;
+  }
+
+  public async createMaxDepositLimitProposalData(vAnchor: IAnchor, _maximumDepositAmount: string) {
+    const proposalData = await vAnchor.getMaxDepositLimitProposalData(_maximumDepositAmount);
     return proposalData;
   }
 
@@ -338,9 +343,16 @@ export class SignatureBridgeSide implements IBridgeSide {
   }
 
 
-  public async executeConfigLimitsProposalWithSig(anchor: IAnchor, _minimalWithdrawalAmount: string, _maximumDepositAmount: string) {
+  public async executeMinWithdrawalLimitProposalWithSig(anchor: IAnchor, _minimalWithdrawalAmount: string) {
     if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
-    const proposalData = await this.createConfigLimitsProposalData(anchor, _minimalWithdrawalAmount,_maximumDepositAmount);
+    const proposalData = await this.createMinWithdrawalLimitProposalData(anchor, _minimalWithdrawalAmount);
+    ;
+    return this.execute(proposalData);
+  }
+
+  public async executeMaxDepositLimitProposalWithSig(anchor: IAnchor, _maximumDepositAmount: string) {
+    if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
+    const proposalData = await this.createMaxDepositLimitProposalData(anchor,_maximumDepositAmount);
     ;
     return this.execute(proposalData);
   }

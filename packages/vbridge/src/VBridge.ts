@@ -5,7 +5,7 @@ import { PoseidonT3__factory } from "@webb-tools/contracts";
 import Verifier from "./Verifier";
 import { AnchorIdentifier, GovernorConfig, IAnchor } from "@webb-tools/interfaces";
 import { AnchorHandler, VAnchor } from "@webb-tools/anchors";
-import { getChainIdType, Utxo } from "@webb-tools/utils";
+import { getChainIdType, Utxo, ZkComponents } from "@webb-tools/utils";
 
 // Deployer config matches the chainId to the signer for that chain
 export type DeployerConfig = Record<number, ethers.Signer>;
@@ -98,7 +98,7 @@ export class VBridge {
     return linkedVAnchorMap;
   }
 
-  public static async deployVariableAnchorBridge(vBridgeInput: VBridgeInput, deployers: DeployerConfig, initialGovernors: GovernorConfig): Promise<VBridge> {
+  public static async deployVariableAnchorBridge(vBridgeInput: VBridgeInput, deployers: DeployerConfig, initialGovernors: GovernorConfig, smallCircuitZkComponents: ZkComponents, largeCircuitZkComponents: ZkComponents): Promise<VBridge> {
     
     let webbTokenAddresses: Map<number, string> = new Map();
     let vBridgeSides: Map<number, SignatureBridgeSide> = new Map();
@@ -187,7 +187,9 @@ export class VBridge {
           handler.contract.address,
           tokenInstance!.contract.address,
           vBridgeInput.chainIDs.length-1,
-          deployers[chainID]
+          smallCircuitZkComponents,
+          largeCircuitZkComponents,
+          deployers[chainID],
       );
 
       //console.log(`createdVAnchor: ${vAnchorInstance.contract.address}`);
@@ -230,9 +232,12 @@ export class VBridge {
     let tokenDenomination = '1000000000000000000' // 1 ether
     for (let vAnchor of vAnchors) {
       await vBridgeSide.connectAnchorWithSignature(vAnchor);
-      await vBridgeSide.executeConfigLimitsProposalWithSig(
+      await vBridgeSide.executeMinWithdrawalLimitProposalWithSig(
         vAnchor,
         BigNumber.from(0).toString(),
+      ); 
+      await vBridgeSide.executeMaxDepositLimitProposalWithSig(
+        vAnchor,
         BigNumber.from(tokenDenomination).mul(1_000_000).toString()
       ); 
     }
@@ -307,7 +312,7 @@ export class VBridge {
     if (!vAnchor) {
        throw new Error("VAnchor does not exist on this chain");
     }
-    vAnchor.setSigner(signer);
+    await vAnchor.setSigner(signer);
 
     while (inputs.length !== 2 && inputs.length < 16) {
       inputs.push(new Utxo({
@@ -374,7 +379,7 @@ export class VBridge {
     if (!vAnchor) {
        throw new Error("VAnchor does not exist on this chain");
     }
-    vAnchor.setSigner(signer);
+    await vAnchor.setSigner(signer);
 
     while (inputs.length !== 2 && inputs.length < 16) {
       inputs.push(new Utxo({

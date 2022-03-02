@@ -21,7 +21,7 @@ import {
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
-import { getChainIdType, toFixedHex } from '../../packages/utils/src';
+import { fetchComponentsFromFilePaths, getChainIdType, toFixedHex, ZkComponents } from '../../packages/utils/src';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
@@ -34,6 +34,8 @@ import { writeFileSync } from "fs";
 const { NATIVE_AMOUNT } = process.env
 const BN = require('bn.js');
 
+const path = require('path');
+
 const snarkjs = require('snarkjs')
 const { toBN } = require('web3-utils');
 
@@ -42,7 +44,7 @@ describe('VAnchor for 2 max edges', () => {
 
   const levels = 5;
   let tree: MerkleTree;
-  let fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
+  let fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`100000000000000000`)).toString());
   let recipient = "0x1111111111111111111111111111111111111111";
   let verifier: Verifier;
   let hasherInstance: any;
@@ -55,6 +57,23 @@ describe('VAnchor for 2 max edges', () => {
   let create16InputWitness: any;
   let createInputWitnessPoseidon4: any;
   let sender: SignerWithAddress;
+  // setup zero knowledge components
+  let zkComponents2_2: ZkComponents;
+  let zkComponents16_2: ZkComponents;
+
+  before('instantiate zkcomponents', async () => {
+    zkComponents2_2 = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/circuit_final.zkey')
+    );
+
+    zkComponents16_2 = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/circuit_final.zkey')
+    );
+  });
 
   beforeEach(async () => {
     const signers = await ethers.getSigners();
@@ -83,13 +102,17 @@ describe('VAnchor for 2 max edges', () => {
       sender.address,
       token.address,
       1,
+      zkComponents2_2,
+      zkComponents16_2,
       sender,
     );
 
-    await anchor.contract.configureLimits(
+    await anchor.contract.configureMinimalWithdrawalLimit(
       BigNumber.from(0),
+    );
+    await anchor.contract.configureMaximumDepositLimit(
       BigNumber.from(tokenDenomination).mul(1_000_000),
-    )
+    );
 
     await token.approve(anchor.contract.address, '10000000000000000000000');
 
@@ -829,11 +852,15 @@ describe('VAnchor for 2 max edges', () => {
         sender.address,
         wrappedToken.address,
         1,
+        zkComponents2_2,
+        zkComponents16_2,
         sender
       );
 
-      await wrappedAnchor.contract.configureLimits(
+      await wrappedAnchor.contract.configureMinimalWithdrawalLimit(
         BigNumber.from(0),
+      );
+      await wrappedAnchor.contract.configureMaximumDepositLimit(
         BigNumber.from(tokenDenomination).mul(1_000_000),
       );
 
@@ -887,11 +914,15 @@ describe('VAnchor for 2 max edges', () => {
         sender.address,
         wrappedToken.address,
         1,
+        zkComponents2_2,
+        zkComponents16_2,
         sender
       );
 
-      await wrappedVAnchor.contract.configureLimits(
+      await wrappedVAnchor.contract.configureMinimalWithdrawalLimit(
         BigNumber.from(0),
+      );
+      await wrappedVAnchor.contract.configureMaximumDepositLimit(
         BigNumber.from(tokenDenomination).mul(1_000_000),
       );
       
@@ -960,13 +991,17 @@ describe('VAnchor for 2 max edges', () => {
         sender.address,
         wrappedToken.address,
         1,
+        zkComponents2_2,
+        zkComponents16_2,
         sender
       );
 
-      await wrappedVAnchor.contract.configureLimits(
+      await wrappedVAnchor.contract.configureMinimalWithdrawalLimit(
         BigNumber.from(0),
+      );
+      await wrappedVAnchor.contract.configureMaximumDepositLimit(
         BigNumber.from(tokenDenomination).mul(1_000_000),
-      )
+      );
 
       const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
       await wrappedToken.grantRole(MINTER_ROLE, wrappedVAnchor.contract.address);

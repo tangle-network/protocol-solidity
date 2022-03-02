@@ -40,7 +40,7 @@
    const levels = 30;
    const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
    let tree: MerkleTree;
-   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
+   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN('100000000000000000')).toString());
    const refund = BigInt((new BN('0')).toString());
    let recipient = "0x1111111111111111111111111111111111111111";
    let verifier: Verifier;
@@ -55,9 +55,9 @@
    before(async () => {
      // Grab the zero knowledge components
      zkComponents = await fetchComponentsFromFilePaths(
-       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm'),
-       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js'),
-       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey')
+       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/poseidon_anchor_2.wasm'),
+       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/witness_calculator.js'),
+       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/circuit_final.zkey')
      );
    })
  
@@ -99,8 +99,8 @@
      await token.approve(anchor.contract.address, '10000000000000000000000');
  
      createWitness = async (data: any) => {
-       const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js");
-       const fileBuf = require('fs').readFileSync('./protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm');
+       const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/anchor/2/witness_calculator.js");
+       const fileBuf = require('fs').readFileSync('./protocol-solidity-fixtures/fixtures/anchor/2/poseidon_anchor_2.wasm');
        const wtnsCalc = await witnessCalculator(fileBuf)
        const wtns = await wtnsCalc.calculateWTNSBin(data,0);
        return wtns;
@@ -195,12 +195,12 @@
  
        const wtns = await createWitness(input);
  
-       let res = await snarkjs.groth16.prove('protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey', wtns);
+       let res = await snarkjs.groth16.prove('protocol-solidity-fixtures/fixtures/anchor/2/circuit_final.zkey', wtns);
        const proof = res.proof;
        let publicSignals = res.publicSignals;
        let tempProof = proof;
        let tempSignals = publicSignals;
-       const vKey = await snarkjs.zKey.exportVerificationKey('protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey');
+       const vKey = await snarkjs.zKey.exportVerificationKey('protocol-solidity-fixtures/fixtures/anchor/2/circuit_final.zkey');
  
        res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
        assert.strictEqual(res, true);
@@ -309,7 +309,7 @@
  
        const wtns = await createWitness(input);
  
-       let res = await snarkjs.groth16.prove('protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey', wtns);
+       let res = await snarkjs.groth16.prove('protocol-solidity-fixtures/fixtures/anchor/2/circuit_final.zkey', wtns);
        const proof = res.proof;
        let publicSignals = res.publicSignals;
  
@@ -379,7 +379,7 @@
  
        const wtns = await createWitness(input);
  
-       let res = await snarkjs.groth16.prove('protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey', wtns);
+       let res = await snarkjs.groth16.prove('protocol-solidity-fixtures/fixtures/anchor/2/circuit_final.zkey', wtns);
        const proof = res.proof;
        let publicSignals = res.publicSignals;
  
@@ -432,7 +432,7 @@
  
        const wtns = await createWitness(input);
  
-       let res = await snarkjs.groth16.prove('protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey', wtns);
+       let res = await snarkjs.groth16.prove('protocol-solidity-fixtures/fixtures/anchor/2/circuit_final.zkey', wtns);
        const proof = res.proof;
        let publicSignals = res.publicSignals;
  
@@ -612,7 +612,7 @@
        const publicInputs = Anchor.convertArgsArrayToStruct(args);
  
        await TruffleAssert.passes(newAnchor.contract.withdraw(proof, publicInputs));
-     })
+     }).timeout(50000)
  
      it('should properly refresh a deposit', async () => {
        const signers = await ethers.getSigners();
@@ -643,8 +643,8 @@
        };
        const wtns = await createWitness(input);
  
-       let res = await snarkjs.groth16.prove('protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey', wtns);
-       const vKey = await snarkjs.zKey.exportVerificationKey('protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey');
+       let res = await snarkjs.groth16.prove('protocol-solidity-fixtures/fixtures/anchor/2/circuit_final.zkey', wtns);
+       const vKey = await snarkjs.zKey.exportVerificationKey('protocol-solidity-fixtures/fixtures/anchor/2/circuit_final.zkey');
  
        res = await snarkjs.groth16.verify(vKey, res.publicSignals, res.proof);
        assert(res);
@@ -998,7 +998,7 @@
    const levels = 30;
    const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
    let tree: MerkleTree;
-   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
+   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`100000000000000000`)).toString());
    const refund = BigInt((new BN('0')).toString());
    let recipient = "0x1111111111111111111111111111111111111111";
    let verifier: Verifier;
@@ -1011,9 +1011,9 @@
  
    before(async () => {
      zkComponents = await fetchComponentsFromFilePaths(
-       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/3/poseidon_bridge_3.wasm'),
-       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/3/witness_calculator.js'),
-       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/3/circuit_final.zkey')
+       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/3/poseidon_anchor_3.wasm'),
+       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/3/witness_calculator.js'),
+       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/3/circuit_final.zkey')
      );
    })
  
@@ -1055,8 +1055,8 @@
      await token.approve(anchor.contract.address, '10000000000000000000000');
  
      createWitness = async (data: any) => {
-       const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/bridge/3/witness_calculator.js");
-       const fileBuf = require('fs').readFileSync('./protocol-solidity-fixtures/fixtures/bridge/3/poseidon_bridge_3.wasm');
+       const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/anchor/3/witness_calculator.js");
+       const fileBuf = require('fs').readFileSync('./protocol-solidity-fixtures/fixtures/anchor/3/poseidon_anchor_3.wasm');
        const wtnsCalc = await witnessCalculator(fileBuf)
        const wtns = await wtnsCalc.calculateWTNSBin(data,0);
        return wtns;
@@ -1109,7 +1109,7 @@
    const levels = 30;
    const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
    let tree: MerkleTree;
-   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
+   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`100000000000000000`)).toString());
    const refund = BigInt((new BN('0')).toString());
    let recipient = "0x1111111111111111111111111111111111111111";
    let verifier: Verifier;
@@ -1122,9 +1122,9 @@
  
    before(async () => {
      zkComponents = await fetchComponentsFromFilePaths(
-       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/4/poseidon_bridge_4.wasm'),
-       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/4/witness_calculator.js'),
-       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/4/circuit_final.zkey'),
+       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/4/poseidon_anchor_4.wasm'),
+       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/4/witness_calculator.js'),
+       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/4/circuit_final.zkey'),
      );
    })
  
@@ -1166,8 +1166,8 @@
      await token.approve(anchor.contract.address, '10000000000000000000000');
  
      createWitness = async (data: any) => {
-       const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/bridge/4/witness_calculator.js");
-       const fileBuf = require('fs').readFileSync('./protocol-solidity-fixtures/fixtures/bridge/4/poseidon_bridge_4.wasm');
+       const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/anchor/4/witness_calculator.js");
+       const fileBuf = require('fs').readFileSync('./protocol-solidity-fixtures/fixtures/anchor/4/poseidon_anchor_4.wasm');
        const wtnsCalc = await witnessCalculator(fileBuf)
        const wtns = await wtnsCalc.calculateWTNSBin(data,0);
        return wtns;
@@ -1233,9 +1233,9 @@
  
    before(async () => {
      zkComponents = await fetchComponentsFromFilePaths(
-       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/5/poseidon_bridge_5.wasm'),
-       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/5/witness_calculator.js'),
-       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/5/circuit_final.zkey'),
+       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/5/poseidon_anchor_5.wasm'),
+       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/5/witness_calculator.js'),
+       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/5/circuit_final.zkey'),
      );
    })
  
@@ -1277,8 +1277,8 @@
      await token.approve(anchor.contract.address, '10000000000000000000000');
  
      createWitness = async (data: any) => {
-       const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/bridge/5/witness_calculator.js");
-       const fileBuf = require('fs').readFileSync('./protocol-solidity-fixtures/fixtures/bridge/5/poseidon_bridge_5.wasm');
+       const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/anchor/5/witness_calculator.js");
+       const fileBuf = require('fs').readFileSync('./protocol-solidity-fixtures/fixtures/anchor/5/poseidon_anchor_5.wasm');
        const wtnsCalc = await witnessCalculator(fileBuf)
        const wtns = await wtnsCalc.calculateWTNSBin(data,0);
        return wtns;

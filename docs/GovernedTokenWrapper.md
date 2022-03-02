@@ -219,6 +219,23 @@ function decreaseAllowance(address spender, uint256 subtractedValue) external no
 |---|---|---|
 | _0 | bool | undefined
 
+### feeRecipient
+
+```solidity
+function feeRecipient() external view returns (address payable)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address payable | undefined
+
 ### getAmountToWrap
 
 ```solidity

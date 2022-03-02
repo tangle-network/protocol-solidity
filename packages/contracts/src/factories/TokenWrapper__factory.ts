@@ -333,6 +333,19 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "feeRecipient",
+    outputs: [
+      {
+        internalType: "address payable",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "uint256",

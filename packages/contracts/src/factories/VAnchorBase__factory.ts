@@ -264,16 +264,24 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "_minimalWithdrawalAmount",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
         name: "_maximumDepositAmount",
         type: "uint256",
       },
     ],
-    name: "configureLimits",
+    name: "configureMaximumDepositLimit",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_minimalWithdrawalAmount",
+        type: "uint256",
+      },
+    ],
+    name: "configureMinimalWithdrawalLimit",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

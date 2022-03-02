@@ -42,7 +42,7 @@ describe('AnchorProxy', () => {
   const levels = 30;
   const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
   let tree: MerkleTree;
-  const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
+  const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`100000000000000000`)).toString());
   const refund = BigInt((new BN('0')).toString());
   let recipient = "0x1111111111111111111111111111111111111111";
   let verifier: Verifier;
@@ -60,9 +60,9 @@ describe('AnchorProxy', () => {
 
   before(async () => {
     zkComponents = await fetchComponentsFromFilePaths(
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/bridge/2/circuit_final.zkey')
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/poseidon_anchor_2.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/circuit_final.zkey')
     );
   })
 
@@ -126,8 +126,8 @@ describe('AnchorProxy', () => {
     await token.approve(anchorProxy.contract.address, '10000000000000000000000');
 
     createWitness = async (data: any) => {
-      const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/bridge/2/witness_calculator.js");
-      const fileBuf = require('fs').readFileSync('./protocol-solidity-fixtures/fixtures/bridge/2/poseidon_bridge_2.wasm');
+      const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/anchor/2/witness_calculator.js");
+      const fileBuf = require('fs').readFileSync('./protocol-solidity-fixtures/fixtures/anchor/2/poseidon_anchor_2.wasm');
       const wtnsCalc = await witnessCalculator(fileBuf)
       const wtns = await wtnsCalc.calculateWTNSBin(data,0);
       return wtns;

@@ -30,7 +30,8 @@ interface VAnchorInterface extends ethers.utils.Interface {
     "ZERO_VALUE()": FunctionFragment;
     "calculatePublicAmount(int256,uint256)": FunctionFragment;
     "commitments(bytes32)": FunctionFragment;
-    "configureLimits(uint256,uint256)": FunctionFragment;
+    "configureMaximumDepositLimit(uint256)": FunctionFragment;
+    "configureMinimalWithdrawalLimit(uint256)": FunctionFragment;
     "currentNeighborRootIndex(uint256)": FunctionFragment;
     "currentRootIndex()": FunctionFragment;
     "edgeExistsForChain(uint256)": FunctionFragment;
@@ -112,8 +113,12 @@ interface VAnchorInterface extends ethers.utils.Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "configureLimits",
-    values: [BigNumberish, BigNumberish]
+    functionFragment: "configureMaximumDepositLimit",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "configureMinimalWithdrawalLimit",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "currentNeighborRootIndex",
@@ -389,7 +394,11 @@ interface VAnchorInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "configureLimits",
+    functionFragment: "configureMaximumDepositLimit",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "configureMinimalWithdrawalLimit",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -645,9 +654,13 @@ export class VAnchor extends BaseContract {
 
     commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<[boolean]>;
 
-    configureLimits(
-      _minimalWithdrawalAmount: BigNumberish,
+    configureMaximumDepositLimit(
       _maximumDepositAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    configureMinimalWithdrawalLimit(
+      _minimalWithdrawalAmount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -977,9 +990,13 @@ export class VAnchor extends BaseContract {
 
   commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
-  configureLimits(
-    _minimalWithdrawalAmount: BigNumberish,
+  configureMaximumDepositLimit(
     _maximumDepositAmount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  configureMinimalWithdrawalLimit(
+    _minimalWithdrawalAmount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1284,9 +1301,13 @@ export class VAnchor extends BaseContract {
 
     commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
-    configureLimits(
-      _minimalWithdrawalAmount: BigNumberish,
+    configureMaximumDepositLimit(
       _maximumDepositAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    configureMinimalWithdrawalLimit(
+      _minimalWithdrawalAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1694,9 +1715,13 @@ export class VAnchor extends BaseContract {
 
     commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
-    configureLimits(
-      _minimalWithdrawalAmount: BigNumberish,
+    configureMaximumDepositLimit(
       _maximumDepositAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    configureMinimalWithdrawalLimit(
+      _minimalWithdrawalAmount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1997,9 +2022,13 @@ export class VAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    configureLimits(
-      _minimalWithdrawalAmount: BigNumberish,
+    configureMaximumDepositLimit(
       _maximumDepositAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    configureMinimalWithdrawalLimit(
+      _minimalWithdrawalAmount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

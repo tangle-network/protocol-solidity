@@ -20,7 +20,7 @@ import "hardhat/console.sol";
 abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
     using SafeMath for uint256;
     uint8 feePercentage;
-    address payable feeRecipient;
+    address payable public feeRecipient;
 
     constructor(string memory name, string memory symbol, address payable _feeRecipient)
         ERC20PresetMinterPauser(name, symbol) {

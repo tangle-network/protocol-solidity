@@ -668,6 +668,13 @@
   dependencies:
     "@ethersproject/logger" "^5.5.0"
 
+"@ethersproject/networks@5.5.2":
+  version "5.5.2"
+  resolved "https://registry.yarnpkg.com/@ethersproject/networks/-/networks-5.5.2.tgz#784c8b1283cd2a931114ab428dae1bd00c07630b"
+  integrity sha512-NEqPxbGBfy6O3x4ZTISb90SjEDkWYDUbEeIFhJly0F7sZjoQMnj5KYzMSkMkLKZ+1fGpx00EDpHQCy6PrDupkQ==
+  dependencies:
+    "@ethersproject/logger" "^5.5.0"
+
 "@ethersproject/pbkdf2@5.4.0", "@ethersproject/pbkdf2@^5.4.0":
   version "5.4.0"
   resolved "https://registry.npmjs.org/@ethersproject/pbkdf2/-/pbkdf2-5.4.0.tgz"
@@ -755,6 +762,31 @@
     bech32 "1.1.4"
     ws "7.4.6"
 
+"@ethersproject/providers@5.5.3":
+  version "5.5.3"
+  resolved "https://registry.yarnpkg.com/@ethersproject/providers/-/providers-5.5.3.tgz#56c2b070542ac44eb5de2ed3cf6784acd60a3130"
+  integrity sha512-ZHXxXXXWHuwCQKrgdpIkbzMNJMvs+9YWemanwp1fA7XZEv7QlilseysPvQe0D7Q7DlkJX/w/bGA1MdgK2TbGvA==
+  dependencies:
+    "@ethersproject/abstract-provider" "^5.5.0"
+    "@ethersproject/abstract-signer" "^5.5.0"
+    "@ethersproject/address" "^5.5.0"
+    "@ethersproject/basex" "^5.5.0"
+    "@ethersproject/bignumber" "^5.5.0"
+    "@ethersproject/bytes" "^5.5.0"
+    "@ethersproject/constants" "^5.5.0"
+    "@ethersproject/hash" "^5.5.0"
+    "@ethersproject/logger" "^5.5.0"
+    "@ethersproject/networks" "^5.5.0"
+    "@ethersproject/properties" "^5.5.0"
+    "@ethersproject/random" "^5.5.0"
+    "@ethersproject/rlp" "^5.5.0"
+    "@ethersproject/sha2" "^5.5.0"
+    "@ethersproject/strings" "^5.5.0"
+    "@ethersproject/transactions" "^5.5.0"
+    "@ethersproject/web" "^5.5.0"
+    bech32 "1.1.4"
+    ws "7.4.6"
+
 "@ethersproject/random@5.4.0", "@ethersproject/random@^5.4.0":
   version "5.4.0"
   resolved "https://registry.npmjs.org/@ethersproject/random/-/random-5.4.0.tgz"
@@ -767,6 +799,14 @@
   version "5.5.0"
   resolved "https://registry.yarnpkg.com/@ethersproject/random/-/random-5.5.0.tgz#305ed9e033ca537735365ac12eed88580b0f81f9"
   integrity sha512-egGYZwZ/YIFKMHcoBUo8t3a8Hb/TKYX8BCBoLjudVCZh892welR3jOxgOmb48xznc9bTcMm7Tpwc1gHC1PFNFQ==
+  dependencies:
+    "@ethersproject/bytes" "^5.5.0"
+    "@ethersproject/logger" "^5.5.0"
+
+"@ethersproject/random@5.5.1":
+  version "5.5.1"
+  resolved "https://registry.yarnpkg.com/@ethersproject/random/-/random-5.5.1.tgz#7cdf38ea93dc0b1ed1d8e480ccdaf3535c555415"
+  integrity sha512-YaU2dQ7DuhL5Au7KbcQLHxcRHfgyNgvFV4sQOo0HrtW3Zkrc9ctWNz8wXQ4uCSfSDsqX2vcjhroxU5RQRV0nqA==
   dependencies:
     "@ethersproject/bytes" "^5.5.0"
     "@ethersproject/logger" "^5.5.0"
@@ -975,6 +1015,17 @@
   version "5.5.0"
   resolved "https://registry.yarnpkg.com/@ethersproject/web/-/web-5.5.0.tgz#0e5bb21a2b58fb4960a705bfc6522a6acf461e28"
   integrity sha512-BEgY0eL5oH4mAo37TNYVrFeHsIXLRxggCRG/ksRIxI2X5uj5IsjGmcNiRN/VirQOlBxcUhCgHhaDLG4m6XAVoA==
+  dependencies:
+    "@ethersproject/base64" "^5.5.0"
+    "@ethersproject/bytes" "^5.5.0"
+    "@ethersproject/logger" "^5.5.0"
+    "@ethersproject/properties" "^5.5.0"
+    "@ethersproject/strings" "^5.5.0"
+
+"@ethersproject/web@5.5.1":
+  version "5.5.1"
+  resolved "https://registry.yarnpkg.com/@ethersproject/web/-/web-5.5.1.tgz#cfcc4a074a6936c657878ac58917a61341681316"
+  integrity sha512-olvLvc1CB12sREc1ROPSHTdFCdvMh0J5GSJYiQg2D0hdD4QmJDy8QYDb1CvoqD/bF1c++aeKv2sR5uduuG9dQg==
   dependencies:
     "@ethersproject/base64" "^5.5.0"
     "@ethersproject/bytes" "^5.5.0"
@@ -4394,10 +4445,10 @@ circomlib@^0.2.4:
     circom "0.5.21"
     ffjavascript "0.1.0"
 
-circomlib@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/circomlib/-/circomlib-2.0.1.tgz#cdc475a0a988468611e8e5ab1c98af451890157b"
-  integrity sha512-YVHukTcOrm+BtIrb1h58qDzIpyx7FurTt82sxC2VJmz2GGuXmvMiKUNHfCajGo7ZPpQqzRCh97ALZ0X72FJZCA==
+circomlib@^2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/circomlib/-/circomlib-2.0.3.tgz#88816e22f269ba491f47c825a2e238d14fd0e877"
+  integrity sha512-OeG1YBcqS8mnsOI1WAZePbyAVBMf398sSQfXetpPAb2HC0+1r9Q6kN/qQaHkJZ77BZmXn5dUqQTa5g6d5BDS3Q==
 
 circomlibjs@^0.0.8:
   version "0.0.8"
@@ -4409,6 +4460,16 @@ circomlibjs@^0.0.8:
     ffjavascript "^0.2.38"
     web3 "^1.6.0"
     web3-utils "^1.6.0"
+
+circomlibjs@^0.1.0:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/circomlibjs/-/circomlibjs-0.1.1.tgz#00085017f6fa00072a13a2092f643cfd12b11f6b"
+  integrity sha512-Bl7Mylf/VERdI5bRTIQ4hpi2EgbfIvEyJrn/MPh2pEqScbCkatX44RF8fuNGigoiQGdhItaIikgHKLTdlPPLPQ==
+  dependencies:
+    blake-hash "^2.0.0"
+    blake2b "^2.1.3"
+    ethers "^5.5.1"
+    ffjavascript "^0.2.45"
 
 class-is@^1.1.0:
   version "1.1.0"
@@ -6242,6 +6303,42 @@ ethers@^5.0.0, ethers@^5.0.1, ethers@^5.0.13, ethers@^5.0.2:
     "@ethersproject/web" "5.4.0"
     "@ethersproject/wordlists" "5.4.0"
 
+ethers@^5.5.1:
+  version "5.5.4"
+  resolved "https://registry.yarnpkg.com/ethers/-/ethers-5.5.4.tgz#e1155b73376a2f5da448e4a33351b57a885f4352"
+  integrity sha512-N9IAXsF8iKhgHIC6pquzRgPBJEzc9auw3JoRkaKe+y4Wl/LFBtDDunNe7YmdomontECAcC5APaAgWZBiu1kirw==
+  dependencies:
+    "@ethersproject/abi" "5.5.0"
+    "@ethersproject/abstract-provider" "5.5.1"
+    "@ethersproject/abstract-signer" "5.5.0"
+    "@ethersproject/address" "5.5.0"
+    "@ethersproject/base64" "5.5.0"
+    "@ethersproject/basex" "5.5.0"
+    "@ethersproject/bignumber" "5.5.0"
+    "@ethersproject/bytes" "5.5.0"
+    "@ethersproject/constants" "5.5.0"
+    "@ethersproject/contracts" "5.5.0"
+    "@ethersproject/hash" "5.5.0"
+    "@ethersproject/hdnode" "5.5.0"
+    "@ethersproject/json-wallets" "5.5.0"
+    "@ethersproject/keccak256" "5.5.0"
+    "@ethersproject/logger" "5.5.0"
+    "@ethersproject/networks" "5.5.2"
+    "@ethersproject/pbkdf2" "5.5.0"
+    "@ethersproject/properties" "5.5.0"
+    "@ethersproject/providers" "5.5.3"
+    "@ethersproject/random" "5.5.1"
+    "@ethersproject/rlp" "5.5.0"
+    "@ethersproject/sha2" "5.5.0"
+    "@ethersproject/signing-key" "5.5.0"
+    "@ethersproject/solidity" "5.5.0"
+    "@ethersproject/strings" "5.5.0"
+    "@ethersproject/transactions" "5.5.0"
+    "@ethersproject/units" "5.5.0"
+    "@ethersproject/wallet" "5.5.0"
+    "@ethersproject/web" "5.5.1"
+    "@ethersproject/wordlists" "5.5.0"
+
 ethjs-unit@0.1.6:
   version "0.1.6"
   resolved "https://registry.npmjs.org/ethjs-unit/-/ethjs-unit-0.1.6.tgz"
@@ -6605,6 +6702,16 @@ ffjavascript@^0.2.43:
     wasmcurves "0.1.0"
     web-worker "^1.2.0"
 
+ffjavascript@^0.2.45:
+  version "0.2.50"
+  resolved "https://registry.yarnpkg.com/ffjavascript/-/ffjavascript-0.2.50.tgz#26a11624b0f6736f44299cc9f39d8692152f7199"
+  integrity sha512-fQyzkLj3XShhJx9KjIjgWuYS6e6quJQqKF+anPPDuIC/aA+isb+w+8Rf9ih6MSlQYYUu2T8Rh9y8jbuVscESbw==
+  dependencies:
+    big-integer "^1.6.48"
+    wasmbuilder "^0.0.12"
+    wasmcurves "0.1.0"
+    web-worker "^1.2.0"
+
 ffwasm@0.0.7:
   version "0.0.7"
   resolved "https://registry.npmjs.org/ffwasm/-/ffwasm-0.0.7.tgz"
@@ -6949,10 +7056,10 @@ ganache-core@^2.13.2:
     ethereumjs-wallet "0.6.5"
     web3 "1.2.11"
 
-ganache@^7.0.0-rc.0:
-  version "7.0.0-rc.0"
-  resolved "https://registry.yarnpkg.com/ganache/-/ganache-7.0.0-rc.0.tgz#250a588ba23a98ec2ed39b192733d8b9ec964e6f"
-  integrity sha512-4VNB0rhUJBTq3aGuQm4I/PHk/DkiJWfv/odguY40/G4BTgefhksK2miy615LM791iUKeNYnllBuOmd17xQhH/w==
+ganache@^7.0.2:
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/ganache/-/ganache-7.0.2.tgz#c6b43061dd37d722dbf02db992cc38600389b757"
+  integrity sha512-cywtnBJQY/olx87mb6IT0NiBr8aTk58WccRF8fHtVQLQXxyEUbQfozqAZmpTA25Vdme+i+kFrGr9TrEA0GGq7g==
   dependencies:
     "@trufflesuite/bigint-buffer" "1.1.9"
     emittery "0.10.0"
@@ -13216,6 +13323,13 @@ wasmbuilder@^0.0.11:
   version "0.0.11"
   resolved "https://registry.yarnpkg.com/wasmbuilder/-/wasmbuilder-0.0.11.tgz#f7b621660883be41f8527d027798a2aefb8863c0"
   integrity sha512-rly3aPUwDYjNW+g+FhA567l/fsgI3yDE9eUoGAmkgnDlt6NsXA2XIYOwox8TH6IzDoDEHH1k+CQheMm4LDBvUA==
+  dependencies:
+    big-integer "^1.6.48"
+
+wasmbuilder@^0.0.12:
+  version "0.0.12"
+  resolved "https://registry.yarnpkg.com/wasmbuilder/-/wasmbuilder-0.0.12.tgz#a60cb25d6d11f314fe5ab3f4ee041ccb493cb78a"
+  integrity sha512-dTMpBgrnLOXrN58i2zakn2ScynsBhq9LfyQIsPz4CyxRF9k1GAORniuqn3xmE9NnI1l7g3iiVCkoB2Cl0/oG8w==
   dependencies:
     big-integer "^1.6.48"
 

@@ -11,8 +11,10 @@ import { VBridge, VBridgeInput } from '../../packages/vbridge/src';
 import { VAnchor } from '../../packages/anchors/src';
 import { MintableToken, GovernedTokenWrapper } from '../../packages/tokens/src';
 import { BigNumber } from 'ethers';
-import { getChainIdType, Utxo } from '../../packages/utils/src';
+import { fetchComponentsFromFilePaths, getChainIdType, Utxo, ZkComponents } from '../../packages/utils/src';
 import { startGanacheServer } from '../helpers/startGanacheServer';
+
+const path = require('path');
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -21,9 +23,24 @@ describe('multichain tests for signature vbridge', () => {
   const chainID2 = getChainIdType(1337);
   // setup ganache networks
   let ganacheServer2: any;
+  // setup zero knowledge components
+  let zkComponents2_2: ZkComponents;
+  let zkComponents16_2: ZkComponents;
 
   before('setup networks', async () => {
     ganacheServer2 = await startGanacheServer(1337, 1337, 'congress island collect purity dentist team gas unlock nuclear pig combine sight');
+
+    zkComponents2_2 = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/circuit_final.zkey')
+    );
+
+    zkComponents16_2 = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/circuit_final.zkey')
+    );
   });
 
   describe('BridgeConstruction', () => {
@@ -76,7 +93,7 @@ describe('multichain tests for signature vbridge', () => {
         [chainID2]: ethers.Wallet.createRandom(),
       };
 
-      const vBridge = await VBridge.deployVariableAnchorBridge(bridge2WebbEthInput, deploymentConfig, initialGovernorsConfig);
+      const vBridge = await VBridge.deployVariableAnchorBridge(bridge2WebbEthInput, deploymentConfig, initialGovernorsConfig, zkComponents2_2, zkComponents16_2);
       // Should be able to retrieve individual anchors
       const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
       const vAnchor2: VAnchor = vBridge.getVAnchor(chainID2)! as VAnchor;
@@ -166,7 +183,7 @@ describe('multichain tests for signature vbridge', () => {
       };
 
       // deploy the bridge
-      vBridge = await VBridge.deployVariableAnchorBridge(vBridgeInput, deploymentConfig, initialGovernorsConfig);
+      vBridge = await VBridge.deployVariableAnchorBridge(vBridgeInput, deploymentConfig, initialGovernorsConfig, zkComponents2_2, zkComponents16_2);
 
       // make one deposit so the  edge exists
       const depositUtxo1 = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainID1), chainId: BigNumber.from(chainID2)})
@@ -385,7 +402,7 @@ describe('multichain tests for signature vbridge', () => {
       };
 
       // deploy the bridge
-      vBridge = await VBridge.deployVariableAnchorBridge(vBridgeInput, deploymentConfig, initialGovernorsConfig);
+      vBridge = await VBridge.deployVariableAnchorBridge(vBridgeInput, deploymentConfig, initialGovernorsConfig, zkComponents2_2, zkComponents16_2);
     
       // make one deposit so the  edge exists
       const depositUtxo1 = new Utxo({amount: BigNumber.from(1e7), originChainId: BigNumber.from(chainID1), chainId: BigNumber.from(chainID2)});
@@ -464,7 +481,7 @@ describe('multichain tests for signature vbridge', () => {
         //wrapped balance of vanchor1 should be 1e7
         const balVAnchor1Wrapped = await webbToken1.getBalance(vAnchor1.contract.address);
         assert.strictEqual(balVAnchor1Wrapped.toString(), BigNumber.from(1e7).toString());
-      });
+      }).timeout(40000);
 
       it('wrap and deposit, withdraw and unwrap works join split 16 input via transactWrap', async () => {
         const signers = await ethers.getSigners();
