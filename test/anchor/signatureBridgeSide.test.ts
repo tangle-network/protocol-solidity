@@ -144,7 +144,7 @@ describe('SignatureBridgeSideConstruction', () => {
     // Create Treasury and TreasuryHandler
     const treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeSide.contract.address, [],[], admin);
     const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, admin);
-    await bridgeSide.setTreasuryHandler(treasuryHandler);
+    bridgeSide.setTreasuryHandler(treasuryHandler);
 
     // Create a GovernedTokenWrapper
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
@@ -442,8 +442,8 @@ describe('SignatureBridgeSideConstruction', () => {
     // Create Treasury and TreasuryHandler
     treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeSide.contract.address, [],[], admin);
     treasury = await Treasury.createTreasury(treasuryHandler.contract.address, admin);
-    await bridgeSide.setTreasuryHandler(treasuryHandler);
-    await bridgeSide.setTreasuryResourceWithSignature(treasury);
+    bridgeSide.setTreasuryHandler(treasuryHandler);
+    bridgeSide.setTreasuryResourceWithSignature(treasury);
 
     // Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
@@ -606,8 +606,8 @@ describe('Rescue Tokens Tests for Native ETH', () => {
    // Create Treasury and TreasuryHandler
    treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeSide.contract.address, [],[], admin);
    treasury = await Treasury.createTreasury(treasuryHandler.contract.address, admin);
-   await bridgeSide.setTreasuryHandler(treasuryHandler);
-   await bridgeSide.setTreasuryResourceWithSignature(treasury);
+   bridgeSide.setTreasuryHandler(treasuryHandler);
+   bridgeSide.setTreasuryResourceWithSignature(treasury);
 
    // Create a GovernedTokenWrapper
    governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
