@@ -481,7 +481,7 @@ describe('multichain tests for signature vbridge', () => {
         //wrapped balance of vanchor1 should be 1e7
         const balVAnchor1Wrapped = await webbToken1.getBalance(vAnchor1.contract.address);
         assert.strictEqual(balVAnchor1Wrapped.toString(), BigNumber.from(1e7).toString());
-      });
+      }).timeout(40000);
 
       it('wrap and deposit, withdraw and unwrap works join split 16 input via transactWrap', async () => {
         const signers = await ethers.getSigners();
