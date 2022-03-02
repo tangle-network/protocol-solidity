@@ -312,7 +312,7 @@ export class VBridge {
     if (!vAnchor) {
        throw new Error("VAnchor does not exist on this chain");
     }
-    vAnchor.setSigner(signer);
+    await vAnchor.setSigner(signer);
 
     while (inputs.length !== 2 && inputs.length < 16) {
       inputs.push(new Utxo({
