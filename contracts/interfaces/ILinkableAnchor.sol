@@ -8,7 +8,7 @@ pragma solidity ^0.8.0;
 interface ILinkableAnchor {
   function setHandler(address _handler, uint32 nonce) external;
   function setVerifier(address _verifier, uint32 nonce) external;
-  function configureMinimalWithdawalLimit(uint256 _minimalWithdrawalAmount) external;
+  function configureMinimalWithdrawalLimit(uint256 _minimalWithdrawalAmount) external;
   function configureMaximumDepositLimit(uint256 _maximumDepositAmount) external;
   
   function updateEdge(

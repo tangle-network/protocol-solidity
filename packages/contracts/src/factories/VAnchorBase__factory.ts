@@ -281,7 +281,7 @@ const _abi = [
         type: "uint256",
       },
     ],
-    name: "configureMinimalWithdawalLimit",
+    name: "configureMinimalWithdrawalLimit",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

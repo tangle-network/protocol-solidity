@@ -31,7 +31,7 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     "calculatePublicAmount(int256,uint256)": FunctionFragment;
     "commitments(bytes32)": FunctionFragment;
     "configureMaximumDepositLimit(uint256)": FunctionFragment;
-    "configureMinimalWithdawalLimit(uint256)": FunctionFragment;
+    "configureMinimalWithdrawalLimit(uint256)": FunctionFragment;
     "currentNeighborRootIndex(uint256)": FunctionFragment;
     "currentRootIndex()": FunctionFragment;
     "edgeExistsForChain(uint256)": FunctionFragment;
@@ -105,7 +105,7 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "configureMinimalWithdawalLimit",
+    functionFragment: "configureMinimalWithdrawalLimit",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
@@ -269,7 +269,7 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "configureMinimalWithdawalLimit",
+    functionFragment: "configureMinimalWithdrawalLimit",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -494,7 +494,7 @@ export class VAnchorBase extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    configureMinimalWithdawalLimit(
+    configureMinimalWithdrawalLimit(
       _minimalWithdrawalAmount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -707,7 +707,7 @@ export class VAnchorBase extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  configureMinimalWithdawalLimit(
+  configureMinimalWithdrawalLimit(
     _minimalWithdrawalAmount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -895,7 +895,7 @@ export class VAnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    configureMinimalWithdawalLimit(
+    configureMinimalWithdrawalLimit(
       _minimalWithdrawalAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -1188,7 +1188,7 @@ export class VAnchorBase extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    configureMinimalWithdawalLimit(
+    configureMinimalWithdrawalLimit(
       _minimalWithdrawalAmount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1372,7 +1372,7 @@ export class VAnchorBase extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    configureMinimalWithdawalLimit(
+    configureMinimalWithdrawalLimit(
       _minimalWithdrawalAmount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
