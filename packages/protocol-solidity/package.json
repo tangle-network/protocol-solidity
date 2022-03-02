@@ -9,14 +9,14 @@
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@webb-tools/anchors": "^0.1.6",
-    "@webb-tools/bridges": "^0.1.6",
-    "@webb-tools/contracts": "^0.1.4",
+    "@webb-tools/anchors": "^0.1.7",
+    "@webb-tools/bridges": "^0.1.7",
+    "@webb-tools/contracts": "^0.1.5",
     "@webb-tools/interfaces": "^0.1.6",
-    "@webb-tools/merkle-tree": "^0.1.6",
-    "@webb-tools/tokens": "^0.1.6",
+    "@webb-tools/merkle-tree": "^0.1.7",
+    "@webb-tools/tokens": "^0.1.7",
     "@webb-tools/utils": "^0.1.5",
-    "@webb-tools/vbridge": "^0.1.6"
+    "@webb-tools/vbridge": "^0.1.7"
   },
   "publishConfig": {
     "access": "public"
@@ -26,5 +26,5 @@
     "type": "git",
     "url": "git://github.com/webb-tools/protocol-solidity.git"
   },
-  "version": "0.1.7"
+  "version": "0.1.8"
 }
