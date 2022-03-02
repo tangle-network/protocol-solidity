@@ -173,10 +173,10 @@ function configureMaximumDepositLimit(uint256 _maximumDepositAmount) external no
 |---|---|---|
 | _maximumDepositAmount | uint256 | undefined
 
-### configureMinimalWithdawalLimit
+### configureMinimalWithdrawalLimit
 
 ```solidity
-function configureMinimalWithdawalLimit(uint256 _minimalWithdrawalAmount) external nonpayable
+function configureMinimalWithdrawalLimit(uint256 _minimalWithdrawalAmount) external nonpayable
 ```
 
 

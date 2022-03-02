@@ -107,7 +107,7 @@ describe('VAnchor for 2 max edges', () => {
       sender,
     );
 
-    await anchor.contract.configureMinimalWithdawalLimit(
+    await anchor.contract.configureMinimalWithdrawalLimit(
       BigNumber.from(0),
     );
     await anchor.contract.configureMaximumDepositLimit(
@@ -857,7 +857,7 @@ describe('VAnchor for 2 max edges', () => {
         sender
       );
 
-      await wrappedAnchor.contract.configureMinimalWithdawalLimit(
+      await wrappedAnchor.contract.configureMinimalWithdrawalLimit(
         BigNumber.from(0),
       );
       await wrappedAnchor.contract.configureMaximumDepositLimit(
@@ -919,7 +919,7 @@ describe('VAnchor for 2 max edges', () => {
         sender
       );
 
-      await wrappedVAnchor.contract.configureMinimalWithdawalLimit(
+      await wrappedVAnchor.contract.configureMinimalWithdrawalLimit(
         BigNumber.from(0),
       );
       await wrappedVAnchor.contract.configureMaximumDepositLimit(
@@ -996,7 +996,7 @@ describe('VAnchor for 2 max edges', () => {
         sender
       );
 
-      await wrappedVAnchor.contract.configureMinimalWithdawalLimit(
+      await wrappedVAnchor.contract.configureMinimalWithdrawalLimit(
         BigNumber.from(0),
       );
       await wrappedVAnchor.contract.configureMaximumDepositLimit(

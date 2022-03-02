@@ -612,7 +612,7 @@
        const publicInputs = Anchor.convertArgsArrayToStruct(args);
  
        await TruffleAssert.passes(newAnchor.contract.withdraw(proof, publicInputs));
-     })
+     }).timeout(50000)
  
      it('should properly refresh a deposit', async () => {
        const signers = await ethers.getSigners();

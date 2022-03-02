@@ -73,7 +73,7 @@ abstract contract VAnchorBase is AnchorBase {
     _register(_account);
   }
 
-  function configureMinimalWithdawalLimit(uint256 _minimalWithdrawalAmount) public onlyHandler {
+  function configureMinimalWithdrawalLimit(uint256 _minimalWithdrawalAmount) public onlyHandler {
     _configureMinimalWithdrawalLimit(_minimalWithdrawalAmount);
   }
 
