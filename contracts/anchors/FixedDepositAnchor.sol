@@ -228,6 +228,7 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
   ) internal view returns (bytes memory encodedInput, bytes32[] memory roots) {
     return _encodeInputs(
       _publicInputs._roots,
+      _publicInputs._extDataHash,
       EncodeInputsData(
         _publicInputs._nullifierHash,
         _publicInputs._refreshCommitment,
@@ -241,6 +242,7 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
 
   function _encodeInputs(
     bytes calldata _roots,
+    bytes32 _extDataHash,
     EncodeInputsData memory encodeInputsData
   ) internal view returns (bytes memory, bytes32[] memory) {
     bytes32 extDataHash = keccak256(abi.encodePacked(
@@ -250,9 +252,11 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
       encodeInputsData._refund,
       encodeInputsData._refreshCommitment
     ));
+
+    require(uint256(_extDataHash) == (uint256(extDataHash) % FIELD_SIZE), "Incorrect external data hash");
     bytes memory encodedInput = abi.encodePacked(
       uint256(encodeInputsData._nullifierHash),
-      uint256(extDataHash),
+      uint256(_extDataHash),
       uint256(getChainIdType()),
       _roots
     );

@@ -20,4 +20,5 @@ export interface IFixedAnchorPublicInputs {
   _relayer: string;
   _fee: string;
   _refund: string;
+  _extDataHash: string;
 }

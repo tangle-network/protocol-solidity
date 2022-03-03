@@ -8,6 +8,10 @@ import { MerkleTree } from '@webb-tools/merkle-tree';
 const snarkjs = require('snarkjs');
 const zeroAddress = "0x0000000000000000000000000000000000000000";
 
+export const FIELD_SIZE = BigNumber.from(
+  '21888242871839275222246405745257275088548364400416034343698204186575808495617',
+)
+
 function checkNativeAddress(tokenAddress: string): boolean {
   if (tokenAddress === zeroAddress || tokenAddress === '0') {
     return true;
@@ -350,8 +354,8 @@ class Anchor implements IAnchor {
     deposit: IAnchorDepositInfo,
     originChain: number,
     refreshCommitment: string | number,
-    recipient: BigInt,
-    relayer: BigInt,
+    recipient: string,
+    relayer: string,
     fee: BigInt,
     refund: BigInt,
     roots: string[],
@@ -359,10 +363,27 @@ class Anchor implements IAnchor {
     pathIndices: any[],
   ): Promise<any> {
     const { chainID, nullifierHash, nullifier, secret } = deposit;
-    
+    const abi = new ethers.utils.AbiCoder();
+    const data = [
+      toFixedHex(recipient, 20),
+      toFixedHex(relayer, 20),
+      toFixedHex(fee.toString()),
+      toFixedHex(refund.toString()),
+      toFixedHex(refreshCommitment.toString()),
+    ];
+
+    const hash = ethers.utils.solidityKeccak256(
+      ['address','address', 'uint', 'uint', 'bytes32'],
+      [ ...data ],
+    );
+
+    const extDataHash = BigNumber.from(hash).mod(FIELD_SIZE);
+
     return {
-      // public
-      nullifierHash, refreshCommitment, recipient, relayer, fee, refund, chainID, roots,
+      // public inputs to circuit
+      nullifierHash, extDataHash, chainID, roots,
+      // misc public inputs to contract
+      recipient, relayer, fee, refund, refreshCommitment,
       // private
       nullifier, secret, pathElements, pathIndices,
     };
@@ -415,8 +436,8 @@ class Anchor implements IAnchor {
       deposit,
       chainId,
       refreshCommitment,
-      BigInt(recipient),
-      BigInt(relayer),
+      recipient,
+      relayer,
       BigInt(fee),
       BigInt(0),
       roots,
@@ -424,7 +445,18 @@ class Anchor implements IAnchor {
       pathIndices,
     );
 
-    const wtns = await this.createWitness(input);
+    const wtns = await this.createWitness({
+      // public inputs to circuit
+      nullifierHash: input.nullifierHash,
+      extDataHash: input.extDataHash,
+      chainID: input.chainID,
+      roots: input.roots,
+      // private
+      nullifier: input.nullifier,
+      secret: input.secret,
+      pathElements: input.pathElements,
+      pathIndices: input.pathIndices,
+    });
     let proofEncoded = await this.proveAndVerify(wtns);
 
     const args = [
@@ -435,6 +467,7 @@ class Anchor implements IAnchor {
       toFixedHex(input.relayer, 20),
       toFixedHex(input.fee),
       toFixedHex(input.refund),
+      toFixedHex(input.extDataHash, 32),
     ];
 
     const publicInputs = Anchor.convertArgsArrayToStruct(args);
@@ -503,8 +536,8 @@ class Anchor implements IAnchor {
       deposit,
       originChainId,
       refreshCommitment,
-      BigInt(recipient),
-      BigInt(relayer),
+      recipient,
+      relayer,
       BigInt(fee),
       BigInt(0),
       roots,
@@ -512,7 +545,18 @@ class Anchor implements IAnchor {
       pathIndices,
     );
 
-    const wtns = await this.createWitness(input);
+    const wtns = await this.createWitness({
+      // public inputs to circuit
+      nullifierHash: input.nullifierHash,
+      extDataHash: input.extDataHash,
+      chainID: input.chainID,
+      roots: input.roots,
+      // private
+      nullifier: input.nullifier,
+      secret: input.secret,
+      pathElements: input.pathElements,
+      pathIndices: input.pathIndices,
+    });
     let proofEncoded = await this.proveAndVerify(wtns);
 
     const args = [
@@ -560,8 +604,8 @@ class Anchor implements IAnchor {
       deposit.deposit,
       deposit.originChainId,
       refreshCommitment,
-      BigInt(recipient),
-      BigInt(relayer),
+      recipient,
+      relayer,
       BigInt(fee),
       BigInt(refund),
       roots,
@@ -569,7 +613,18 @@ class Anchor implements IAnchor {
       pathIndices,
     );
 
-    const wtns = await this.createWitness(input);
+    const wtns = await this.createWitness({
+      // public inputs to circuit
+      nullifierHash: input.nullifierHash,
+      extDataHash: input.extDataHash,
+      chainID: input.chainID,
+      roots: input.roots,
+      // private
+      nullifier: input.nullifier,
+      secret: input.secret,
+      pathElements: input.pathElements,
+      pathIndices: input.pathIndices,
+    });
     let proofEncoded = await this.proveAndVerify(wtns);
 
     const args = [
@@ -609,6 +664,7 @@ class Anchor implements IAnchor {
       _relayer: args[4],
       _fee: args[5],
       _refund: args[6],
+      _extDataHash: args[7],
     };
   }
 
@@ -636,8 +692,8 @@ class Anchor implements IAnchor {
       deposit.deposit,
       deposit.originChainId,
       refreshCommitment,
-      BigInt(recipient),
-      BigInt(relayer),
+      recipient,
+      relayer,
       BigInt(fee),
       BigInt(refund),
       roots,
@@ -645,7 +701,18 @@ class Anchor implements IAnchor {
       pathIndices,
     );
 
-    const wtns = await this.createWitness(input);
+    const wtns = await this.createWitness({
+      // public inputs to circuit
+      nullifierHash: input.nullifierHash,
+      extDataHash: input.extDataHash,
+      chainID: input.chainID,
+      roots: input.roots,
+      // private
+      nullifier: input.nullifier,
+      secret: input.secret,
+      pathElements: input.pathElements,
+      pathIndices: input.pathIndices,
+    });
     let proofEncoded = await this.proveAndVerify(wtns);
 
     const args = [
@@ -656,6 +723,7 @@ class Anchor implements IAnchor {
       toFixedHex(input.relayer, 20),
       toFixedHex(input.fee),
       toFixedHex(input.refund),
+      toFixedHex(input.extDataHash),
     ];
 
     const publicInputs = Anchor.convertArgsArrayToStruct(args);

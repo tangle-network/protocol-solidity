@@ -414,16 +414,6 @@ export class VAnchor implements IAnchor {
       outPubkey: outputs.map((x) => toFixedHex(x.keypair.pubkey).toString()),
       outBlinding: outputs.map((x) => x.blinding.toString())
     }
-    //console.log(input.outPubkey.map((x) => toFixedHex(x)));
-    //console.log(input.inputNullifier);
-    // console.log(`public amount is ${input.publicAmount}`);
-    // console.log("printing input");
-    // console.log(input);
-    // console.log("printing input commitment");
-    // const inputCommitment =inputs.map((x) => [x.getCommitment(), x.amount]);
-    // console.log(inputCommitment);
-    // console.log("printing tree root")
-    // console.log(this.tree.root().toString());
 
     if (input.inputNullifier.length === 0) {
       input.inputNullifier = [...[0,1].map((_r) => {

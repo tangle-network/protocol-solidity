@@ -66,8 +66,8 @@ interface FixedDepositAnchorInterface extends ethers.utils.Interface {
     "unwrapIntoToken(address,uint256)": FunctionFragment;
     "updateEdge(uint256,bytes32,uint256)": FunctionFragment;
     "verifier()": FunctionFragment;
-    "withdraw(bytes,(bytes,bytes32,bytes32,address,address,uint256,uint256))": FunctionFragment;
-    "withdrawAndUnwrap(bytes,(bytes,bytes32,bytes32,address,address,uint256,uint256),address)": FunctionFragment;
+    "withdraw(bytes,(bytes,bytes32,bytes32,address,address,uint256,uint256,bytes32))": FunctionFragment;
+    "withdrawAndUnwrap(bytes,(bytes,bytes32,bytes32,address,address,uint256,uint256,bytes32),address)": FunctionFragment;
     "wrapAndDeposit(address,bytes32)": FunctionFragment;
     "wrapNative()": FunctionFragment;
     "wrapToken(address,uint256)": FunctionFragment;
@@ -240,6 +240,7 @@ interface FixedDepositAnchorInterface extends ethers.utils.Interface {
         _relayer: string;
         _fee: BigNumberish;
         _refund: BigNumberish;
+        _extDataHash: BytesLike;
       }
     ]
   ): string;
@@ -255,6 +256,7 @@ interface FixedDepositAnchorInterface extends ethers.utils.Interface {
         _relayer: string;
         _fee: BigNumberish;
         _refund: BigNumberish;
+        _extDataHash: BytesLike;
       },
       string
     ]
@@ -721,6 +723,7 @@ export class FixedDepositAnchor extends BaseContract {
         _relayer: string;
         _fee: BigNumberish;
         _refund: BigNumberish;
+        _extDataHash: BytesLike;
       },
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -735,6 +738,7 @@ export class FixedDepositAnchor extends BaseContract {
         _relayer: string;
         _fee: BigNumberish;
         _refund: BigNumberish;
+        _extDataHash: BytesLike;
       },
       tokenAddress: string,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -944,6 +948,7 @@ export class FixedDepositAnchor extends BaseContract {
       _relayer: string;
       _fee: BigNumberish;
       _refund: BigNumberish;
+      _extDataHash: BytesLike;
     },
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -958,6 +963,7 @@ export class FixedDepositAnchor extends BaseContract {
       _relayer: string;
       _fee: BigNumberish;
       _refund: BigNumberish;
+      _extDataHash: BytesLike;
     },
     tokenAddress: string,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -1176,6 +1182,7 @@ export class FixedDepositAnchor extends BaseContract {
         _relayer: string;
         _fee: BigNumberish;
         _refund: BigNumberish;
+        _extDataHash: BytesLike;
       },
       overrides?: CallOverrides
     ): Promise<void>;
@@ -1190,6 +1197,7 @@ export class FixedDepositAnchor extends BaseContract {
         _relayer: string;
         _fee: BigNumberish;
         _refund: BigNumberish;
+        _extDataHash: BytesLike;
       },
       tokenAddress: string,
       overrides?: CallOverrides
@@ -1512,6 +1520,7 @@ export class FixedDepositAnchor extends BaseContract {
         _relayer: string;
         _fee: BigNumberish;
         _refund: BigNumberish;
+        _extDataHash: BytesLike;
       },
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1526,6 +1535,7 @@ export class FixedDepositAnchor extends BaseContract {
         _relayer: string;
         _fee: BigNumberish;
         _refund: BigNumberish;
+        _extDataHash: BytesLike;
       },
       tokenAddress: string,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -1741,6 +1751,7 @@ export class FixedDepositAnchor extends BaseContract {
         _relayer: string;
         _fee: BigNumberish;
         _refund: BigNumberish;
+        _extDataHash: BytesLike;
       },
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -1755,6 +1766,7 @@ export class FixedDepositAnchor extends BaseContract {
         _relayer: string;
         _fee: BigNumberish;
         _refund: BigNumberish;
+        _extDataHash: BytesLike;
       },
       tokenAddress: string,
       overrides?: PayableOverrides & { from?: string | Promise<string> }

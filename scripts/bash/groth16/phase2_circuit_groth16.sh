@@ -23,17 +23,17 @@ move_verifiers_and_metadata () {
         mkdir -p contracts/verifiers/$anchorType
     fi
     cp $outdir/circuit_final.zkey protocol-solidity-fixtures/fixtures/$anchorType/$size/circuit_final.zkey
-    cp $outdir/verifier.sol contracts/verifiers/$anchorType/"Verifier$size.sol"
-    # sed -i 's/pragma solidity ^0.8.0;'/'pragma solidity ^0.8.0;'/ contracts/verifiers/$anchorType/"Verifier$size.sol"
-    # sed -i "s/contract Verifier {"/"contract Verifier$size {"/ contracts/verifiers/$anchorType/"Verifier$size.sol"
+    # Use node script to replace keywords: args should be [input_dir, output_dir, anchor_size]
+    node ./scripts/bash/groth16/replace_verifier_keywords.js $outdir/verifier.sol contracts/verifiers/$anchorType/ $size
 }
 
 move_verifiers_and_metadata_vanchor () {
     local indir="$1" size="$2" anchorType="$3" nIns="$4"
-    cp $indir/circuit_final.zkey protocol-solidity-fixtures/fixtures/$anchorType/$size/circuit_final.zkey
+    if [[ ! -f contracts/verifiers/$anchorType/ ]]; then
+        mkdir -p contracts/verifiers/$anchorType
+    fi
 
-    mkdir -p contracts/verifiers/$anchorType
-    cp $indir/verifier.sol contracts/verifiers/$anchorType/"Verifier$size\_$nIns.sol"
-    # sed -i 's/pragma solidity ^0.8.0;'/'pragma solidity ^0.8.0;'/ contracts/verifiers/$anchorType/"Verifier$size\_$nIns.sol"
-    # sed -i "s/contract Verifier {"/"contract Verifier$size\_$nIns {"/ contracts/verifiers/$anchorType/"Verifier$size\_$nIns.sol"
+    cp $indir/circuit_final.zkey protocol-solidity-fixtures/fixtures/$anchorType/$size/circuit_final.zkey
+    # Use node script to replace keywords: args should be [input_dir, output_dir, anchor_size]
+    node ./scripts/bash/groth16/replace_verifier_keywords.js $indir/verifier.sol contracts/verifiers/$anchorType/ "$size-$nIns"
 }

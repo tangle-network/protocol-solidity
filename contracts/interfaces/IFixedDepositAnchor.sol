@@ -15,6 +15,7 @@ interface IFixedDepositAnchor {
 		address payable _relayer;
 		uint256 _fee;
 		uint256 _refund;
+		bytes32 _extDataHash;
 	}
 
 	function deposit(bytes32 _commitment) external payable;

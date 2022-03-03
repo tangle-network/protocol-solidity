@@ -27,7 +27,7 @@ interface AnchorProxyInterface extends ethers.utils.Interface {
     "deposit(address,bytes32,bytes)": FunctionFragment;
     "governance()": FunctionFragment;
     "instances(address)": FunctionFragment;
-    "withdraw(address,bytes,(bytes,bytes32,bytes32,address,address,uint256,uint256))": FunctionFragment;
+    "withdraw(address,bytes,(bytes,bytes32,bytes32,address,address,uint256,uint256,bytes32))": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -60,6 +60,7 @@ interface AnchorProxyInterface extends ethers.utils.Interface {
         _relayer: string;
         _fee: BigNumberish;
         _refund: BigNumberish;
+        _extDataHash: BytesLike;
       }
     ]
   ): string;
@@ -180,6 +181,7 @@ export class AnchorProxy extends BaseContract {
         _relayer: string;
         _fee: BigNumberish;
         _refund: BigNumberish;
+        _extDataHash: BytesLike;
       },
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -217,6 +219,7 @@ export class AnchorProxy extends BaseContract {
       _relayer: string;
       _fee: BigNumberish;
       _refund: BigNumberish;
+      _extDataHash: BytesLike;
     },
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -254,6 +257,7 @@ export class AnchorProxy extends BaseContract {
         _relayer: string;
         _fee: BigNumberish;
         _refund: BigNumberish;
+        _extDataHash: BytesLike;
       },
       overrides?: CallOverrides
     ): Promise<void>;
@@ -335,6 +339,7 @@ export class AnchorProxy extends BaseContract {
         _relayer: string;
         _fee: BigNumberish;
         _refund: BigNumberish;
+        _extDataHash: BytesLike;
       },
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -373,6 +378,7 @@ export class AnchorProxy extends BaseContract {
         _relayer: string;
         _fee: BigNumberish;
         _refund: BigNumberish;
+        _extDataHash: BytesLike;
       },
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
