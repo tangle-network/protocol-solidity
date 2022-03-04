@@ -25,7 +25,8 @@
  import { Verifier } from '../../packages/bridges/src';
  import { Anchor } from '../../packages/anchors/src';
  import { MerkleTree } from '../../packages/merkle-tree/src';
- import { fetchComponentsFromFilePaths, ZkComponents, toFixedHex, getChainIdType } from '../../packages/utils/src';
+ import { fetchComponentsFromFilePaths, ZkComponents, toFixedHex, getChainIdType, getFixedAnchorExtDataHash } from '../../packages/utils/src';
+import { IFixedAnchorExtData } from '@webb-tools/interfaces';
  
  const { NATIVE_AMOUNT } = process.env
  const snarkjs = require('snarkjs')
@@ -179,11 +180,7 @@
        const input = {
          // public
          nullifierHash: deposit.nullifierHash,
-         refreshCommitment: 0,
-         recipient,
-         relayer,
-         fee,
-         refund,
+         extDataHash: getFixedAnchorExtDataHash({_refreshCommitment: toFixedHex(0), _recipient: recipient, _relayer: relayer, _fee: fee, _refund: refund}),
          chainID: deposit.chainID,
          roots: [merkleRoot, 0],
          // private
@@ -205,19 +202,19 @@
        res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
        assert.strictEqual(res, true);
  
-       // nullifier
+       // nullifier hash
        publicSignals[0] = '133792158246920651341275668520530514036799294649489851421007411546007850802'
        res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
        assert.strictEqual(res, false)
        publicSignals = tempSignals;
  
-       // try to cheat with recipient
+       // try to cheat with ext data hash
        publicSignals[1] = '133738360804642228759657445999390850076318544422'
        res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
        assert.strictEqual(res, false)
        publicSignals = tempSignals;
  
-       // fee
+       // chain id
        publicSignals[2] = '1337100000000000000000'
        res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
        assert.strictEqual(res, false)
@@ -245,7 +242,7 @@
        let isSpent = await anchor.contract.isSpent(toFixedHex(deposit.nullifierHash))
        assert.strictEqual(isSpent, false)
  
-       let receipt = await anchor.withdraw(deposit, index, recipient, relayer.address, fee, bigInt(0));
+       let receipt = await anchor.withdraw(deposit, index, recipient, relayer.address, fee, toFixedHex(0));
        const filter = anchor.contract.filters.Withdrawal(null, relayer.address, null);
        const events = await anchor.contract.queryFilter(filter, receipt.blockHash);
  
@@ -271,11 +268,11 @@
        const { deposit, index } = await anchor.deposit();
        
        //@ts-ignore
-       let receipt = await anchor.withdraw(deposit, index, sender.address, relayer.address, fee, bigInt(0));
+       let receipt = await anchor.withdraw(deposit, index, sender.address, relayer.address, fee, toFixedHex(0));
  
        await TruffleAssert.reverts(
          //@ts-ignore
-         anchor.withdraw(deposit, index, sender.address, relayer.address, fee, bigInt(0)),
+         anchor.withdraw(deposit, index, sender.address, relayer.address, fee, toFixedHex(0)),
          'The note has been already spent',
        );
      });
@@ -293,11 +290,7 @@
        const input = {
          // public
          nullifierHash: deposit.nullifierHash,
-         refreshCommitment: 0,
-         recipient,
-         relayer: relayer.address,
-         fee,
-         refund,
+         extDataHash: getFixedAnchorExtDataHash({_refreshCommitment: toFixedHex(0), _recipient: recipient, _relayer: relayer.address, _fee: fee, _refund: refund}),
          chainID: deposit.chainID,
          roots: [merkleRoot, '0'],
          // private
@@ -312,27 +305,31 @@
        let res = await snarkjs.groth16.prove('protocol-solidity-fixtures/fixtures/anchor/2/circuit_final.zkey', wtns);
        const proof = res.proof;
        let publicSignals = res.publicSignals;
- 
+       const proofEncoded = await Anchor.generateWithdrawProofCallData(proof, publicSignals);
        const args = [
+         `0x${proofEncoded}`,
          Anchor.createRootsBytes(input.roots),
          toFixedHex(
            toBN(input.nullifierHash).add(
              toBN('21888242871839275222246405745257275088548364400416034343698204186575808495617'),
            ),
          ),
-         toFixedHex(input.refreshCommitment, 32),
-         toFixedHex(input.recipient, 20),
-         toFixedHex(input.relayer, 20),
-         toFixedHex(input.fee),
-         toFixedHex(input.refund),
+         toFixedHex(input.extDataHash),
        ];
- 
-       const proofEncoded = await Anchor.generateWithdrawProofCallData(proof, publicSignals);
+
        const publicInputs = Anchor.convertArgsArrayToStruct(args);
- 
+       const relayerAddress = relayer.address;
+       const extData: IFixedAnchorExtData = { 
+          _refreshCommitment: toFixedHex(0), 
+          _recipient: recipient, 
+          _relayer: relayerAddress, 
+          _fee: fee, 
+          _refund: refund,
+       }
+
        await TruffleAssert.reverts(
          //@ts-ignore
-         anchor.contract.withdraw(`0x${proofEncoded}`, publicInputs),
+         anchor.contract.withdraw(publicInputs, extData),
          'verifier-gte-snark-scalar-field',
        );
      });
@@ -345,14 +342,14 @@
        const largeFee = bigInt(value).add(bigInt(1_000_000));
        await TruffleAssert.reverts(
          //@ts-ignore
-         anchor.withdraw(deposit, index, recipient, relayer.address, largeFee, bigInt(0)),
+         anchor.withdraw(deposit, index, recipient, relayer.address, largeFee, toFixedHex(0)),
          'Fee exceeds transfer value',
        );
      });
  
      it('should throw for corrupted merkle tree root', async () => {
        const signers = await ethers.getSigners();
-       const relayer = signers[0];
+       const relayer = signers[0].address;
  
        const deposit = Anchor.generateDeposit(chainID)
        await tree.insert(deposit.commitment)
@@ -361,44 +358,44 @@
        const { merkleRoot, pathElements, pathIndices } = await tree.path(0)
  
        const input = {
-         // public
-         nullifierHash: deposit.nullifierHash,
-         refreshCommitment: 0,
-         recipient,
-         relayer: relayer.address,
-         fee,
-         refund,
-         chainID: deposit.chainID,
-         roots: [merkleRoot, 0],
-         // private
-         nullifier: deposit.nullifier,
-         secret: deposit.secret,
-         pathElements: pathElements,
-         pathIndices: pathIndices,
-       };
+        // public
+        nullifierHash: deposit.nullifierHash,
+        extDataHash: getFixedAnchorExtDataHash({_refreshCommitment: toFixedHex(0), _recipient: recipient, _relayer: relayer, _fee: fee, _refund: refund}),
+        chainID: deposit.chainID,
+        roots: [merkleRoot, 0],
+        // private
+        nullifier: deposit.nullifier,
+        secret: deposit.secret,
+        pathElements: pathElements,
+        pathIndices: pathIndices,
+      };
  
        const wtns = await createWitness(input);
  
        let res = await snarkjs.groth16.prove('protocol-solidity-fixtures/fixtures/anchor/2/circuit_final.zkey', wtns);
        const proof = res.proof;
        let publicSignals = res.publicSignals;
- 
+       const proofEncoded = await Anchor.generateWithdrawProofCallData(proof, publicSignals);
+
        const args = [
-         Anchor.createRootsBytes([randomHex(32), 0]),
-         toFixedHex(input.nullifierHash),
-         toFixedHex(input.refreshCommitment, 32),
-         toFixedHex(input.recipient, 20),
-         toFixedHex(input.relayer, 20),
-         toFixedHex(input.fee),
-         toFixedHex(input.refund),
+        `0x${proofEncoded}`,
+        Anchor.createRootsBytes([randomHex(32), 0]),
+        toFixedHex(input.nullifierHash),
+        toFixedHex(input.extDataHash)
        ]
  
-       const proofEncoded = await Anchor.generateWithdrawProofCallData(proof, publicSignals);
        const publicInputs = Anchor.convertArgsArrayToStruct(args);
- 
+       const extData: IFixedAnchorExtData = { 
+        _refreshCommitment: toFixedHex(0), 
+        _recipient: recipient, 
+        _relayer: relayer, 
+        _fee: fee, 
+        _refund: refund,
+      }
+
        await TruffleAssert.reverts(
          //@ts-ignore
-         anchor.contract.withdraw(`0x${proofEncoded}`, publicInputs),
+         anchor.contract.withdraw(publicInputs, extData),
          'Cannot find your merkle root'
        );
      });
@@ -406,21 +403,25 @@
      it('should reject with tampered public inputs', async () => {
        const signers = await ethers.getSigners();
        const relayer = signers[0];
- 
        const deposit = Anchor.generateDeposit(chainID)
        await tree.insert(deposit.commitment)
        await anchor.contract.deposit(toFixedHex(deposit.commitment))
- 
+
        let { merkleRoot, pathElements, pathIndices } = await tree.path(0)
- 
+       const refreshCommitment = toFixedHex(0);
+       const relayerAddress = relayer.address;
+       const extData: IFixedAnchorExtData = { 
+          _refreshCommitment: refreshCommitment, 
+          _recipient: recipient, 
+          _relayer: relayerAddress, 
+          _fee: fee, 
+          _refund: refund,
+       }
+       const extDataHash = getFixedAnchorExtDataHash(extData).toString();
        const input = {
          // public
          nullifierHash: deposit.nullifierHash,
-         refreshCommitment: 0,
-         recipient,
-         relayer: relayer.address,
-         fee,
-         refund,
+         extDataHash: extDataHash,
          chainID: deposit.chainID,
          roots: [merkleRoot, '0'],
          // private
@@ -429,103 +430,84 @@
          pathElements: pathElements,
          pathIndices: pathIndices,
        };
- 
        const wtns = await createWitness(input);
- 
        let res = await snarkjs.groth16.prove('protocol-solidity-fixtures/fixtures/anchor/2/circuit_final.zkey', wtns);
        const proof = res.proof;
        let publicSignals = res.publicSignals;
- 
+       const proofEncoded = await Anchor.generateWithdrawProofCallData(proof, publicSignals);
        const args = [
+         `0x${proofEncoded}`,
          Anchor.createRootsBytes(input.roots),
          toFixedHex(input.nullifierHash),
-         toFixedHex(input.refreshCommitment, 32),
-         toFixedHex(input.recipient, 20),
-         toFixedHex(input.relayer, 20),
-         toFixedHex(input.fee),
-         toFixedHex(input.refund),
+         toFixedHex(input.extDataHash)
        ]
        const publicInputs = Anchor.convertArgsArrayToStruct(args);
  
        // recipient
-       let incorrectArgs = [
-         Anchor.createRootsBytes(input.roots),
-         toFixedHex(input.nullifierHash),
-         toFixedHex(input.refreshCommitment, 32),
-         toFixedHex('0x0000000000000000000000007a1f9131357404ef86d7c38dbffed2da70321337', 20),
-         toFixedHex(input.relayer, 20),
-         toFixedHex(input.fee),
-         toFixedHex(input.refund),
-       ];
- 
-       const proofEncoded = await Anchor.generateWithdrawProofCallData(proof, publicSignals);
-       let incorrectPublicInputs = Anchor.convertArgsArrayToStruct(incorrectArgs);
+       let incorrectExtData: IFixedAnchorExtData = { 
+         _refreshCommitment: toFixedHex(refreshCommitment), 
+         _recipient: toFixedHex('0x0000000000000000000000007a1f9131357404ef86d7c38dbffed2da70321337', 20), 
+         _relayer: relayerAddress, 
+         _fee: fee, 
+         _refund: refund,
+        }
        
        await TruffleAssert.reverts(
          //@ts-ignore
-         anchor.contract.withdraw(`0x${proofEncoded}`, incorrectPublicInputs),
-         'Invalid withdraw proof',
+         anchor.contract.withdraw(publicInputs, incorrectExtData),
+         'extDataHash is invalid',
        );
  
        // fee
-       incorrectArgs = [
-         Anchor.createRootsBytes(input.roots),
-         toFixedHex(input.nullifierHash),
-         toFixedHex(input.refreshCommitment, 32),
-         toFixedHex(input.recipient, 20),
-         toFixedHex(input.relayer, 20),
-         toFixedHex('0x000000000000000000000000000000000000000000000000015345785d8a0000'),
-         toFixedHex(input.refund),
-       ];
-       incorrectPublicInputs = Anchor.convertArgsArrayToStruct(incorrectArgs);
+       incorrectExtData = { 
+        _refreshCommitment: toFixedHex(refreshCommitment), 
+        _recipient: toFixedHex('0x0000000000000000000000007a1f9131357404ef86d7c38dbffed2da70321337', 20), 
+        _relayer: relayerAddress, 
+        _fee: BigInt(toFixedHex('0x000000000000000000000000000000000000000000000000015345785d8a0000')), 
+        _refund: refund,
+       };
  
        await TruffleAssert.reverts(
-         //@ts-ignore
-         anchor.contract.withdraw(`0x${proofEncoded}`, incorrectPublicInputs),
-         'Invalid withdraw proof',
-       );
+        //@ts-ignore
+        anchor.contract.withdraw(publicInputs, incorrectExtData),
+        'extDataHash is invalid',
+      );
  
-       // nullifier
-       incorrectArgs = [
-         Anchor.createRootsBytes(input.roots),
-         toFixedHex('0x00abdfc78211f8807b9c6504a6e537e71b8788b2f529a95f1399ce124a8642ad'),
-         toFixedHex(input.refreshCommitment, 32),
-         toFixedHex(input.recipient, 20),
-         toFixedHex(input.relayer, 20),
-         toFixedHex(input.fee),
-         toFixedHex(input.refund),
-       ];
+       // nullifier hash
+       let incorrectArgs = [
+        `0x${proofEncoded}`,
+        Anchor.createRootsBytes(input.roots),
+        toFixedHex('0x00abdfc78211f8807b9c6504a6e537e71b8788b2f529a95f1399ce124a8642ad'),
+        toFixedHex(input.extDataHash)
+      ]
  
-       incorrectPublicInputs = Anchor.convertArgsArrayToStruct(incorrectArgs);
+       let incorrectPublicInputs = Anchor.convertArgsArrayToStruct(incorrectArgs);
        await TruffleAssert.reverts(
          //@ts-ignore
-         anchor.contract.withdraw(`0x${proofEncoded}`, incorrectPublicInputs),
+         anchor.contract.withdraw(incorrectPublicInputs, extData),
          'Invalid withdraw proof',
        );
  
        // refresh commitment
-       incorrectArgs = [
-         Anchor.createRootsBytes(input.roots),
-         toFixedHex(input.nullifierHash),
-         toFixedHex('0x00abdfc78211f8807b9c6504a6e537e71b8788b2f529a95f1399ce124a8642ad'),
-         toFixedHex(input.recipient, 20),
-         toFixedHex(input.relayer, 20),
-         toFixedHex(input.fee),
-         toFixedHex(input.refund),
-       ];
-       incorrectPublicInputs = Anchor.convertArgsArrayToStruct(incorrectArgs);
+       incorrectExtData = { 
+        _refreshCommitment: toFixedHex('0x00abdfc78211f8807b9c6504a6e537e71b8788b2f529a95f1399ce124a8642ad'), 
+        _recipient: toFixedHex('0x0000000000000000000000007a1f9131357404ef86d7c38dbffed2da70321337', 20), 
+        _relayer: relayerAddress, 
+        _fee: BigInt(toFixedHex('0x000000000000000000000000000000000000000000000000015345785d8a0000')), 
+        _refund: refund,
+       };
  
        await TruffleAssert.reverts(
-         //@ts-ignore
-         anchor.contract.withdraw(`0x${proofEncoded}`, incorrectPublicInputs),
-         'Invalid withdraw proof',
-       );
+        //@ts-ignore
+        anchor.contract.withdraw(publicInputs, incorrectExtData),
+        'extDataHash is invalid',
+      );
  
        // should work with original values
        //@ts-ignore
        await TruffleAssert.passes(anchor.contract.withdraw(
-         `0x${proofEncoded}`,
          publicInputs,
+         extData,
        ));
      }).timeout(60000);
    })
@@ -539,7 +521,7 @@
        const { deposit: deposit2, index: index2 } = await anchor.deposit();
  
        //@ts-ignore
-       await anchor.withdraw(deposit1, index1, signers[0].address, relayer.address, fee, bigInt(0));
+       await anchor.withdraw(deposit1, index1, signers[0].address, relayer.address, fee, toFixedHex(0));
  
        const spentArray = await anchor.contract.isSpentArray([
          toFixedHex(deposit2.nullifierHash),
@@ -592,7 +574,7 @@
  
        // create a new anchor by connecting to the address of the setup anchor
        const newAnchor = await Anchor.connect(anchor.contract.address, zkComponents, wallet);
-       await TruffleAssert.passes(newAnchor.withdraw(deposit, index, recipient, signers[1].address, fee, bigInt(0)));
+       await TruffleAssert.passes(newAnchor.withdraw(deposit, index, recipient, signers[1].address, fee, toFixedHex(0)));
      });
  
      it('Should properly create withdraw proof to use directly in contract', async () => {
@@ -604,14 +586,14 @@
  
        const newAnchor = await Anchor.connect(anchor.contract.address, zkComponents, wallet);
  
-       const withdrawSetup = await newAnchor.setupWithdraw(deposit, index, recipient, signers[1].address, fee, bigInt(0));
+       const withdrawSetup = await newAnchor.setupWithdraw(deposit, index, recipient, signers[1].address, fee, toFixedHex(0));
        
-       const proof = `0x${withdrawSetup.proofEncoded}`;
+       const proof = withdrawSetup.publicInputs.proof;
        const args = withdrawSetup.args;
  
        const publicInputs = Anchor.convertArgsArrayToStruct(args);
  
-       await TruffleAssert.passes(newAnchor.contract.withdraw(proof, publicInputs));
+       await TruffleAssert.passes(newAnchor.contract.withdraw(withdrawSetup.publicInputs, withdrawSetup.extData));
      }).timeout(50000)
  
      it('should properly refresh a deposit', async () => {
@@ -625,14 +607,17 @@
        const refreshedDeposit = Anchor.generateDeposit(refreshedDestId);
  
        const { merkleRoot, pathElements, pathIndices } = anchor.tree.path(0);
+       const extData: IFixedAnchorExtData = { 
+        _refreshCommitment: toFixedHex(refreshedDeposit.commitment), 
+        _recipient: recipient, 
+        _relayer: relayer, 
+        _fee: fee, 
+        _refund: refund,
+     }
        const input = {
          // public
          nullifierHash: deposit.nullifierHash,
-         refreshCommitment: refreshedDeposit.commitment,
-         recipient,
-         relayer,
-         fee,
-         refund,
+         extDataHash: getFixedAnchorExtDataHash(extData),
          chainID: deposit.chainID,
          roots: [merkleRoot, 0],
          // private
@@ -657,7 +642,7 @@
          recipient,
          signers[1].address,
          fee,
-         refreshedDeposit.commitment
+         toFixedHex(refreshedDeposit.commitment)
        ));
        await TruffleAssert.passes(newAnchor.withdraw(
          refreshedDeposit,
@@ -665,7 +650,7 @@
          recipient,
          signers[1].address,
          fee,
-         0,
+         toFixedHex(0),
        ));
      });
  
@@ -711,7 +696,7 @@
        const balWrappedTokenAfterDepositAnchor = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
        const balWrappedTokenAfterDepositSender = await wrappedToken.balanceOf(sender.address);
        const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, zkComponents, wallet);
-       await TruffleAssert.passes(newAnchor.withdraw(deposit, index, sender.address, signers[1].address, bigInt(0), bigInt(0)));
+       await TruffleAssert.passes(newAnchor.withdraw(deposit, index, sender.address, signers[1].address, bigInt(0), toFixedHex(0)));
        const balWrappedTokenAfterWithdrawSender = await wrappedToken.balanceOf(sender.address);
        const balWrappedTokenAfterWithdrawAnchor = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
        assert.strictEqual(balWrappedTokenAfterWithdrawSender.sub(balWrappedTokenAfterDepositSender).toString(), '1000000000000000000');
@@ -773,7 +758,7 @@
        const balUnwrappedTokenBeforeWithdrawSender = await token.balanceOf(sender.address);
  
        const newAnchor = await Anchor.connect(wrappedAnchor.contract.address, zkComponents, wallet);
-       await TruffleAssert.passes(newAnchor.withdrawAndUnwrap(deposit, getChainIdType(31337), index, sender.address, signers[1].address, bigInt(0), bigInt(0), token.address));
+       await TruffleAssert.passes(newAnchor.withdrawAndUnwrap(deposit, getChainIdType(31337), index, sender.address, signers[1].address, bigInt(0), toFixedHex(0), token.address));
        const balWrappedTokenAfterWithdrawAnchor = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
        assert.strictEqual(balWrappedTokenAfterWithdrawAnchor.toString(), '0');
  
@@ -917,7 +902,7 @@
          sender.address,
          signers[1].address,
          bigInt(0),
-         bigInt(0),
+         toFixedHex(0),
          token.address
        ));
  
@@ -980,7 +965,7 @@
          sender.address,
          signers[1].address,
          bigInt(0),
-         bigInt(0),
+         toFixedHex(0),
          token.address
        ));
  
@@ -1082,7 +1067,7 @@
      let isSpent = await anchor.contract.isSpent(toFixedHex(deposit.nullifierHash))
      assert.strictEqual(isSpent, false)
  
-     let receipt = await anchor.withdraw(deposit, index, recipient, relayer.address, fee, bigInt(0));
+     let receipt = await anchor.withdraw(deposit, index, recipient, relayer.address, fee, toFixedHex(0));
      const filter = anchor.contract.filters.Withdrawal(null, relayer.address, null);
      const events = await anchor.contract.queryFilter(filter, receipt.blockHash);
  
@@ -1193,7 +1178,7 @@
      let isSpent = await anchor.contract.isSpent(toFixedHex(deposit.nullifierHash))
      assert.strictEqual(isSpent, false)
  
-     let receipt = await anchor.withdraw(deposit, index, recipient, relayer.address, fee, bigInt(0));
+     let receipt = await anchor.withdraw(deposit, index, recipient, relayer.address, fee, toFixedHex(0));
      const filter = anchor.contract.filters.Withdrawal(null, relayer.address, null);
      const events = await anchor.contract.queryFilter(filter, receipt.blockHash);
  
@@ -1304,7 +1289,7 @@
      let isSpent = await anchor.contract.isSpent(toFixedHex(deposit.nullifierHash))
      assert.strictEqual(isSpent, false)
  
-     let receipt = await anchor.withdraw(deposit, index, recipient, relayer.address, fee, bigInt(0));
+     let receipt = await anchor.withdraw(deposit, index, recipient, relayer.address, fee, toFixedHex(0));
      const filter = anchor.contract.filters.Withdrawal(null, relayer.address, null);
      const events = await anchor.contract.queryFilter(filter, receipt.blockHash);
  

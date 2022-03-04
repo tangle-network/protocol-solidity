@@ -13,7 +13,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./AnchorBase.sol";
-import "hardhat/console.sol";
 
 contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
   using SafeERC20 for IERC20;
@@ -26,15 +25,6 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
   event Deposit(address sender, uint32 indexed leafIndex, bytes32 indexed commitment, uint256 timestamp);
   event Withdrawal(address to, address indexed relayer, uint256 fee);
   event Refresh(bytes32 indexed commitment, bytes32 nullifierHash, uint32 insertedIndex);
-
-  struct EncodeInputsData {
-    bytes32 _nullifierHash;
-    bytes32 _refreshCommitment;
-    address _recipient;
-    address _relayer;
-    uint256 _fee;
-    uint256 _refund;
-  }
 
   /**
     @dev The constructor
@@ -64,6 +54,12 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
     emit Deposit(msg.sender, insertedIndex, _commitment, block.timestamp);
   }
 
+  function _isValidExtDataHash(ExtData calldata _extData, bytes32 _extDataHash) internal pure returns (bool) {
+    bytes memory _extData = abi.encode(_extData._refreshCommitment, _extData._recipient, _extData._relayer, _extData._fee, _extData._refund);
+
+    return (uint256(_extDataHash) == uint256(keccak256(_extData)) % FIELD_SIZE);
+  }
+
   /**
     @dev Withdraw a deposit from the contract. `proof` is a zkSNARK proof data, and input is an array of circuit public inputs
     `input` array consists of:
@@ -73,33 +69,32 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
       - optional fee that goes to the transaction sender (usually a relay)
   */
   function withdraw(
-    bytes calldata _proof,
-    PublicInputs calldata _publicInputs
+    Proof calldata _proof,
+    ExtData calldata _extData
   ) override external payable nonReentrant {
-    require(_publicInputs._fee <= denomination, "Fee exceeds transfer value");
-    require(!isSpent(_publicInputs._nullifierHash), "The note has been already spent");
-
-    (bytes memory encodedInput, bytes32[] memory roots) = _encodeInputsWithPublicInputs(_publicInputs);
+    require(_extData._fee <= denomination, "Fee exceeds transfer value");
+    require(!isSpent(_proof._nullifierHash), "The note has been already spent");
+    require(_isValidExtDataHash(_extData, _proof._extDataHash), "extDataHash is invalid");
+    bytes calldata proof = _proof.proof;    
+    (bytes memory encodedInput, bytes32[] memory roots) = _encodeInputs(_proof);
 
     require(isValidRoots(roots), "Invalid roots");
-    require(verify(_proof, encodedInput), "Invalid withdraw proof");
-
-    nullifierHashes[_publicInputs._nullifierHash] = true;
-
-    if (_publicInputs._refreshCommitment == bytes32(0x00)) {
+    require(verify(proof, encodedInput), "Invalid withdraw proof");
+    nullifierHashes[_proof._nullifierHash] = true;
+    if (_extData._refreshCommitment == bytes32(0x00)) {
       processWithdraw(
-        _publicInputs._recipient,
-        _publicInputs._relayer,
-        _publicInputs._fee,
-        _publicInputs._refund
+        _extData._recipient,
+        _extData._relayer,
+        _extData._fee,
+        _extData._refund
       );
     } else {
-      require(!commitments[_publicInputs._refreshCommitment], "The commitment has been submitted");
-      uint32 insertedIndex = _insert(_publicInputs._refreshCommitment);
-      commitments[_publicInputs._refreshCommitment] = true;
+      require(!commitments[_extData._refreshCommitment], "The commitment has been submitted");
+      uint32 insertedIndex = _insert(_extData._refreshCommitment);
+      commitments[_extData._refreshCommitment] = true;
       emit Refresh(
-        _publicInputs._refreshCommitment,
-        _publicInputs._nullifierHash,
+        _extData._refreshCommitment,
+        _proof._nullifierHash,
         insertedIndex
       );
     }
@@ -187,31 +182,33 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
   }
 
   function withdrawAndUnwrap(
-    bytes calldata _proof,
-    PublicInputs calldata _publicInputs,
+    Proof calldata _proof,
+    ExtData calldata _extData,
     address tokenAddress
   ) external payable nonReentrant {
-    require(_publicInputs._fee <= denomination, "Fee exceeds transfer value");
-    require(!nullifierHashes[_publicInputs._nullifierHash], "The note has been already spent");
+    require(_extData._fee <= denomination, "Fee exceeds transfer value");
+    require(!nullifierHashes[_proof._nullifierHash], "The note has been already spent");
+    require(_isValidExtDataHash(_extData, _proof._extDataHash), "extDataHash is invalid");
 
-    (bytes memory encodedInput, bytes32[] memory roots) = _encodeInputsWithPublicInputs(_publicInputs);
+    (bytes memory encodedInput, bytes32[] memory roots) = _encodeInputs(_proof);
+    bytes calldata proof = _proof.proof;
 
     require(isValidRoots(roots), "Invalid roots");
-    require(verify(_proof, encodedInput), "Invalid withdraw proof");
+    require(verify(proof, encodedInput), "Invalid withdraw proof");
 
-    nullifierHashes[_publicInputs._nullifierHash] = true;
+    nullifierHashes[_proof._nullifierHash] = true;
 
     processWithdraw(
       payable(address(this)),
-      _publicInputs._relayer,
-      _publicInputs._fee,
-      _publicInputs._refund
+      _extData._relayer,
+      _extData._fee,
+      _extData._refund
     );
     
     ITokenWrapper(token).unwrapAndSendTo(
       tokenAddress,
-      denomination - _publicInputs._fee,
-      address(_publicInputs._recipient)
+      denomination - _extData._fee,
+      address(_extData._recipient)
     );
   }
 
@@ -223,38 +220,17 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
     return token;
   }
 
-  function _encodeInputsWithPublicInputs(
-    PublicInputs calldata _publicInputs
-  ) internal view returns (bytes memory encodedInput, bytes32[] memory roots) {
-    return _encodeInputs(
-      _publicInputs._roots,
-      EncodeInputsData(
-        _publicInputs._nullifierHash,
-        _publicInputs._refreshCommitment,
-        address(_publicInputs._recipient),
-        address(_publicInputs._relayer),
-        _publicInputs._fee,
-        _publicInputs._refund
-      )
-    );
-  }
-
   function _encodeInputs(
-    bytes calldata _roots,
-    EncodeInputsData memory encodeInputsData
+    Proof calldata _proof
   ) internal view returns (bytes memory, bytes32[] memory) {
     bytes memory encodedInput = abi.encodePacked(
-      uint256(encodeInputsData._nullifierHash),
-      uint256(uint160(encodeInputsData._recipient)),
-      uint256(uint160(encodeInputsData._relayer)),
-      uint256(encodeInputsData._fee),
-      uint256(encodeInputsData._refund),
-      uint256(encodeInputsData._refreshCommitment),
+      uint256(_proof._nullifierHash),
+      uint256(_proof._extDataHash),
       uint256(getChainIdType()),
-      _roots
+      _proof._roots
     );
 
-    bytes32[] memory result = decodeRoots(_roots);
+    bytes32[] memory result = decodeRoots(_proof._roots);
 
     return (encodedInput, result);
   }

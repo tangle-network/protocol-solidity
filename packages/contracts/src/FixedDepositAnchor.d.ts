@@ -66,8 +66,8 @@ interface FixedDepositAnchorInterface extends ethers.utils.Interface {
     "unwrapIntoToken(address,uint256)": FunctionFragment;
     "updateEdge(uint256,bytes32,uint256)": FunctionFragment;
     "verifier()": FunctionFragment;
-    "withdraw(bytes,(bytes,bytes32,bytes32,address,address,uint256,uint256))": FunctionFragment;
-    "withdrawAndUnwrap(bytes,(bytes,bytes32,bytes32,address,address,uint256,uint256),address)": FunctionFragment;
+    "withdraw((bytes,bytes,bytes32,bytes32),(bytes32,address,address,uint256,uint256))": FunctionFragment;
+    "withdrawAndUnwrap((bytes,bytes,bytes32,bytes32),(bytes32,address,address,uint256,uint256),address)": FunctionFragment;
     "wrapAndDeposit(address,bytes32)": FunctionFragment;
     "wrapNative()": FunctionFragment;
     "wrapToken(address,uint256)": FunctionFragment;
@@ -231,10 +231,13 @@ interface FixedDepositAnchorInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "withdraw",
     values: [
-      BytesLike,
       {
+        proof: BytesLike;
         _roots: BytesLike;
         _nullifierHash: BytesLike;
+        _extDataHash: BytesLike;
+      },
+      {
         _refreshCommitment: BytesLike;
         _recipient: string;
         _relayer: string;
@@ -246,10 +249,13 @@ interface FixedDepositAnchorInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "withdrawAndUnwrap",
     values: [
-      BytesLike,
       {
+        proof: BytesLike;
         _roots: BytesLike;
         _nullifierHash: BytesLike;
+        _extDataHash: BytesLike;
+      },
+      {
         _refreshCommitment: BytesLike;
         _recipient: string;
         _relayer: string;
@@ -712,10 +718,13 @@ export class FixedDepositAnchor extends BaseContract {
     verifier(overrides?: CallOverrides): Promise<[string]>;
 
     withdraw(
-      _proof: BytesLike,
-      _publicInputs: {
+      _proof: {
+        proof: BytesLike;
         _roots: BytesLike;
         _nullifierHash: BytesLike;
+        _extDataHash: BytesLike;
+      },
+      _extData: {
         _refreshCommitment: BytesLike;
         _recipient: string;
         _relayer: string;
@@ -726,10 +735,13 @@ export class FixedDepositAnchor extends BaseContract {
     ): Promise<ContractTransaction>;
 
     withdrawAndUnwrap(
-      _proof: BytesLike,
-      _publicInputs: {
+      _proof: {
+        proof: BytesLike;
         _roots: BytesLike;
         _nullifierHash: BytesLike;
+        _extDataHash: BytesLike;
+      },
+      _extData: {
         _refreshCommitment: BytesLike;
         _recipient: string;
         _relayer: string;
@@ -935,10 +947,13 @@ export class FixedDepositAnchor extends BaseContract {
   verifier(overrides?: CallOverrides): Promise<string>;
 
   withdraw(
-    _proof: BytesLike,
-    _publicInputs: {
+    _proof: {
+      proof: BytesLike;
       _roots: BytesLike;
       _nullifierHash: BytesLike;
+      _extDataHash: BytesLike;
+    },
+    _extData: {
       _refreshCommitment: BytesLike;
       _recipient: string;
       _relayer: string;
@@ -949,10 +964,13 @@ export class FixedDepositAnchor extends BaseContract {
   ): Promise<ContractTransaction>;
 
   withdrawAndUnwrap(
-    _proof: BytesLike,
-    _publicInputs: {
+    _proof: {
+      proof: BytesLike;
       _roots: BytesLike;
       _nullifierHash: BytesLike;
+      _extDataHash: BytesLike;
+    },
+    _extData: {
       _refreshCommitment: BytesLike;
       _recipient: string;
       _relayer: string;
@@ -1167,10 +1185,13 @@ export class FixedDepositAnchor extends BaseContract {
     verifier(overrides?: CallOverrides): Promise<string>;
 
     withdraw(
-      _proof: BytesLike,
-      _publicInputs: {
+      _proof: {
+        proof: BytesLike;
         _roots: BytesLike;
         _nullifierHash: BytesLike;
+        _extDataHash: BytesLike;
+      },
+      _extData: {
         _refreshCommitment: BytesLike;
         _recipient: string;
         _relayer: string;
@@ -1181,10 +1202,13 @@ export class FixedDepositAnchor extends BaseContract {
     ): Promise<void>;
 
     withdrawAndUnwrap(
-      _proof: BytesLike,
-      _publicInputs: {
+      _proof: {
+        proof: BytesLike;
         _roots: BytesLike;
         _nullifierHash: BytesLike;
+        _extDataHash: BytesLike;
+      },
+      _extData: {
         _refreshCommitment: BytesLike;
         _recipient: string;
         _relayer: string;
@@ -1503,10 +1527,13 @@ export class FixedDepositAnchor extends BaseContract {
     verifier(overrides?: CallOverrides): Promise<BigNumber>;
 
     withdraw(
-      _proof: BytesLike,
-      _publicInputs: {
+      _proof: {
+        proof: BytesLike;
         _roots: BytesLike;
         _nullifierHash: BytesLike;
+        _extDataHash: BytesLike;
+      },
+      _extData: {
         _refreshCommitment: BytesLike;
         _recipient: string;
         _relayer: string;
@@ -1517,10 +1544,13 @@ export class FixedDepositAnchor extends BaseContract {
     ): Promise<BigNumber>;
 
     withdrawAndUnwrap(
-      _proof: BytesLike,
-      _publicInputs: {
+      _proof: {
+        proof: BytesLike;
         _roots: BytesLike;
         _nullifierHash: BytesLike;
+        _extDataHash: BytesLike;
+      },
+      _extData: {
         _refreshCommitment: BytesLike;
         _recipient: string;
         _relayer: string;
@@ -1732,10 +1762,13 @@ export class FixedDepositAnchor extends BaseContract {
     verifier(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     withdraw(
-      _proof: BytesLike,
-      _publicInputs: {
+      _proof: {
+        proof: BytesLike;
         _roots: BytesLike;
         _nullifierHash: BytesLike;
+        _extDataHash: BytesLike;
+      },
+      _extData: {
         _refreshCommitment: BytesLike;
         _recipient: string;
         _relayer: string;
@@ -1746,10 +1779,13 @@ export class FixedDepositAnchor extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     withdrawAndUnwrap(
-      _proof: BytesLike,
-      _publicInputs: {
+      _proof: {
+        proof: BytesLike;
         _roots: BytesLike;
         _nullifierHash: BytesLike;
+        _extDataHash: BytesLike;
+      },
+      _extData: {
         _refreshCommitment: BytesLike;
         _recipient: string;
         _relayer: string;

@@ -104,7 +104,7 @@ function instances(contract IFixedDepositAnchor) external view returns (contract
 ### withdraw
 
 ```solidity
-function withdraw(contract IFixedDepositAnchor _anchor, bytes _proof, IFixedDepositAnchor.PublicInputs _publicInputs) external payable
+function withdraw(contract IFixedDepositAnchor _anchor, IFixedDepositAnchor.Proof _proof, IFixedDepositAnchor.ExtData _extData) external payable
 ```
 
 
@@ -116,8 +116,8 @@ function withdraw(contract IFixedDepositAnchor _anchor, bytes _proof, IFixedDepo
 | Name | Type | Description |
 |---|---|---|
 | _anchor | contract IFixedDepositAnchor | undefined
-| _proof | bytes | undefined
-| _publicInputs | IFixedDepositAnchor.PublicInputs | undefined
+| _proof | IFixedDepositAnchor.Proof | undefined
+| _extData | IFixedDepositAnchor.ExtData | undefined
 
 
 

@@ -27,7 +27,7 @@ interface AnchorProxyInterface extends ethers.utils.Interface {
     "deposit(address,bytes32,bytes)": FunctionFragment;
     "governance()": FunctionFragment;
     "instances(address)": FunctionFragment;
-    "withdraw(address,bytes,(bytes,bytes32,bytes32,address,address,uint256,uint256))": FunctionFragment;
+    "withdraw(address,(bytes,bytes,bytes32,bytes32),(bytes32,address,address,uint256,uint256))": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -51,10 +51,13 @@ interface AnchorProxyInterface extends ethers.utils.Interface {
     functionFragment: "withdraw",
     values: [
       string,
-      BytesLike,
       {
+        proof: BytesLike;
         _roots: BytesLike;
         _nullifierHash: BytesLike;
+        _extDataHash: BytesLike;
+      },
+      {
         _refreshCommitment: BytesLike;
         _recipient: string;
         _relayer: string;
@@ -171,10 +174,13 @@ export class AnchorProxy extends BaseContract {
 
     withdraw(
       _anchor: string,
-      _proof: BytesLike,
-      _publicInputs: {
+      _proof: {
+        proof: BytesLike;
         _roots: BytesLike;
         _nullifierHash: BytesLike;
+        _extDataHash: BytesLike;
+      },
+      _extData: {
         _refreshCommitment: BytesLike;
         _recipient: string;
         _relayer: string;
@@ -208,10 +214,13 @@ export class AnchorProxy extends BaseContract {
 
   withdraw(
     _anchor: string,
-    _proof: BytesLike,
-    _publicInputs: {
+    _proof: {
+      proof: BytesLike;
       _roots: BytesLike;
       _nullifierHash: BytesLike;
+      _extDataHash: BytesLike;
+    },
+    _extData: {
       _refreshCommitment: BytesLike;
       _recipient: string;
       _relayer: string;
@@ -245,10 +254,13 @@ export class AnchorProxy extends BaseContract {
 
     withdraw(
       _anchor: string,
-      _proof: BytesLike,
-      _publicInputs: {
+      _proof: {
+        proof: BytesLike;
         _roots: BytesLike;
         _nullifierHash: BytesLike;
+        _extDataHash: BytesLike;
+      },
+      _extData: {
         _refreshCommitment: BytesLike;
         _recipient: string;
         _relayer: string;
@@ -326,10 +338,13 @@ export class AnchorProxy extends BaseContract {
 
     withdraw(
       _anchor: string,
-      _proof: BytesLike,
-      _publicInputs: {
+      _proof: {
+        proof: BytesLike;
         _roots: BytesLike;
         _nullifierHash: BytesLike;
+        _extDataHash: BytesLike;
+      },
+      _extData: {
         _refreshCommitment: BytesLike;
         _recipient: string;
         _relayer: string;
@@ -364,10 +379,13 @@ export class AnchorProxy extends BaseContract {
 
     withdraw(
       _anchor: string,
-      _proof: BytesLike,
-      _publicInputs: {
+      _proof: {
+        proof: BytesLike;
         _roots: BytesLike;
         _nullifierHash: BytesLike;
+        _extDataHash: BytesLike;
+      },
+      _extData: {
         _refreshCommitment: BytesLike;
         _recipient: string;
         _relayer: string;

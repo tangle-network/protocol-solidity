@@ -20,7 +20,7 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface Verifier5Interface extends ethers.utils.Interface {
   functions: {
-    "verifyProof(uint256[2],uint256[2][2],uint256[2],uint256[12])": FunctionFragment;
+    "verifyProof(uint256[2],uint256[2][2],uint256[2],uint256[8])": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -30,10 +30,6 @@ interface Verifier5Interface extends ethers.utils.Interface {
       [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]],
       [BigNumberish, BigNumberish],
       [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
         BigNumberish,
         BigNumberish,
         BigNumberish,
@@ -110,10 +106,6 @@ export class Verifier5 extends BaseContract {
         BigNumberish,
         BigNumberish,
         BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
         BigNumberish
       ],
       overrides?: CallOverrides
@@ -132,10 +124,6 @@ export class Verifier5 extends BaseContract {
       BigNumberish,
       BigNumberish,
       BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
       BigNumberish
     ],
     overrides?: CallOverrides
@@ -147,10 +135,6 @@ export class Verifier5 extends BaseContract {
       b: [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]],
       c: [BigNumberish, BigNumberish],
       input: [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
         BigNumberish,
         BigNumberish,
         BigNumberish,
@@ -179,10 +163,6 @@ export class Verifier5 extends BaseContract {
         BigNumberish,
         BigNumberish,
         BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
         BigNumberish
       ],
       overrides?: CallOverrides
@@ -195,10 +175,6 @@ export class Verifier5 extends BaseContract {
       b: [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]],
       c: [BigNumberish, BigNumberish],
       input: [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
         BigNumberish,
         BigNumberish,
         BigNumberish,

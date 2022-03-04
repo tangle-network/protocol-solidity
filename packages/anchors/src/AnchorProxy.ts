@@ -106,7 +106,8 @@ export class AnchorProxy {
     if (!anchor) {
       throw new Error('Anchor not found');
     }
-    const { args, input, proofEncoded, publicInputs } = await anchor.setupWithdraw(
+
+    const { args, input, publicInputs, extData } = await anchor.setupWithdraw(
       deposit,
       index,
       recipient,
@@ -114,17 +115,19 @@ export class AnchorProxy {
       fee,
       refreshCommitment,
     );
+
     //@ts-ignore
     let tx = await this.contract.withdraw(
       anchorAddr,
-      `0x${proofEncoded}`,
       publicInputs,
+      extData,
       { gasLimit: '0x5B8D80' }
     );
+
     const receipt = await tx.wait();
 
     if (args[2] !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
-      anchor.tree.insert(input.refreshCommitment);
+      anchor.tree.insert(refreshCommitment);
       const filter = anchor.contract.filters.Refresh(null, null, null);
       const events = await anchor.contract.queryFilter(filter, receipt.blockHash);
       return events[0];
