@@ -13,7 +13,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./AnchorBase.sol";
-import "hardhat/console.sol";
 
 contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
   using SafeERC20 for IERC20;
@@ -58,7 +57,7 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
   function _isValidExtDataHash(ExtData calldata _extData, bytes32 _extDataHash) internal pure returns (bool) {
     bytes memory _extData = abi.encode(_extData._refreshCommitment, _extData._recipient, _extData._relayer, _extData._fee, _extData._refund);
 
-    return (uint256(_extDataHash) == uint256(keccak256(abi.encode(_extData))) % FIELD_SIZE);
+    return (uint256(_extDataHash) == uint256(keccak256(_extData)) % FIELD_SIZE);
   }
 
   /**
@@ -76,15 +75,12 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
     require(_extData._fee <= denomination, "Fee exceeds transfer value");
     require(!isSpent(_proof._nullifierHash), "The note has been already spent");
     require(_isValidExtDataHash(_extData, _proof._extDataHash), "extDataHash is invalid");
-
     bytes calldata proof = _proof.proof;    
     (bytes memory encodedInput, bytes32[] memory roots) = _encodeInputs(_proof);
 
     require(isValidRoots(roots), "Invalid roots");
     require(verify(proof, encodedInput), "Invalid withdraw proof");
-
     nullifierHashes[_proof._nullifierHash] = true;
-
     if (_extData._refreshCommitment == bytes32(0x00)) {
       processWithdraw(
         _extData._recipient,

@@ -413,7 +413,6 @@ export class SignatureBridge {
     if (!(await anchorToWithdraw.setSigner(signer))) {
       throw new Error("Could not set signer");
     }
-
     await anchorToWithdraw.bridgedWithdraw(depositInfo, merkleProof, recipient, relayer, '0', '0', '0');
     return true;
   }

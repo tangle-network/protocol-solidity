@@ -44,10 +44,10 @@ describe('AnchorProxy', () => {
   let tree: MerkleTree;
   const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`100000000000000000`)).toString());
   const refund = BigInt((new BN('0')).toString());
-  let recipient = "0x1111111111111111111111111111111111111111";
   let verifier: Verifier;
   let hasherInstance: any;
   let token: Token;
+  let recipient;
   let wrappedToken: WrappedToken;
   let tokenDenomination = '1000000000000000000' // 1 ether
   const chainID = getChainIdType(31337);
@@ -70,7 +70,7 @@ describe('AnchorProxy', () => {
     const signers = await ethers.getSigners();
     const wallet = signers[0];
     const sender = wallet;
-
+    recipient = signers[2];
     tree = new MerkleTree(levels);
 
     // create poseidon hasher
@@ -185,18 +185,14 @@ describe('AnchorProxy', () => {
       const balanceAnchorAfterDeposit = await token.balanceOf(anchor1.contract.address);
       assert.strictEqual(balanceUserAfterDeposit.toString(), BN(toBN(balanceUserBefore).sub(toBN(value))).toString());
       assert.strictEqual(balanceAnchorAfterDeposit.toString(), toBN(value).toString());
-
       const balanceRelayerBefore = await token.balanceOf(relayer.address)
-      const balanceReceiverBefore = await token.balanceOf(toFixedHex(recipient, 20))
-
+      const balanceReceiverBefore = await token.balanceOf(recipient.address)
       let isSpent = await anchor1.contract.isSpent(toFixedHex(deposit.nullifierHash))
       assert.strictEqual(isSpent, false)
-
-      let receipt = await anchorProxy.withdraw(anchor1.contract.address, deposit, index, recipient, relayer.address, fee, bigInt(0));
-
+      let receipt = await anchorProxy.withdraw(anchor1.contract.address, deposit, index, recipient.address, relayer.address, fee, toFixedHex(0));
       const balanceAnchorAfter = await token.balanceOf(anchor1.contract.address)
       const balanceRelayerAfter = await token.balanceOf(relayer.address)
-      const balanceReceiverAfter = await token.balanceOf(toFixedHex(recipient, 20))
+      const balanceReceiverAfter = await token.balanceOf(recipient.address)
       const feeBN = toBN(fee.toString())
       assert.strictEqual(balanceAnchorAfter.toString(), toBN(balanceAnchorAfterDeposit).sub(toBN(value)).toString())
       assert.strictEqual(balanceReceiverAfter.toString(), toBN(balanceReceiverBefore).add(toBN(value)).sub(feeBN).toString())

@@ -89,21 +89,21 @@ export async function fetchComponentsFromFilePaths(wasmPath: string, witnessCalc
 }
 
 export function getFixedAnchorExtDataHash({
-  refreshCommitment,
-  recipient,
-  relayer,
-  fee,
-  refund,
+  _refreshCommitment,
+  _recipient,
+  _relayer,
+  _fee,
+  _refund,
 }: any) {
   const abi = new ethers.utils.AbiCoder();
   const encodedData = abi.encode(
     ['tuple(bytes32 refreshCommitment,address recipient,address relayer,uint256 fee,uint256 refund)'],
     [{
-      refreshCommitment: refreshCommitment,
-      recipient: recipient,
-      relayer: relayer,
-      fee: fee,
-      refund: refund,
+      refreshCommitment: toFixedHex(_refreshCommitment),
+      recipient: toFixedHex(_recipient, 20),
+      relayer: toFixedHex(_relayer, 20),
+      fee: toFixedHex(_fee),
+      refund: toFixedHex(_refund),
     }],
   );
   const hash = ethers.utils.keccak256(encodedData)

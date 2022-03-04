@@ -23,6 +23,6 @@ export interface IFixedAnchorExtData {
   _refreshCommitment: string;
   _recipient: string;
   _relayer: string;
-  _fee: string;
-  _refund: string;
+  _fee: bigint
+  _refund: bigint;
 }
