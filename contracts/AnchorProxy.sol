@@ -73,15 +73,15 @@ contract AnchorProxy {
 
   function withdraw(
     IFixedDepositAnchor _anchor,
-    bytes calldata _proof,
-    IFixedDepositAnchor.PublicInputs calldata _publicInputs
+    IFixedDepositAnchor.Proof calldata _proof,
+    IFixedDepositAnchor.ExtData calldata _extData
   ) public payable virtual {
     Instance memory instance = instances[_anchor];
     require(instance.state != InstanceState.DISABLED, "The instance is not supported");
 
-    _anchor.withdraw{ value: msg.value }(_proof, _publicInputs); 
+    _anchor.withdraw{ value: msg.value }(_proof, _extData); 
     if (instance.state == InstanceState.MINEABLE) {
-      anchorTrees.registerWithdrawal(address(_anchor), _publicInputs._nullifierHash); //nh change
+      anchorTrees.registerWithdrawal(address(_anchor), _proof._nullifierHash); //nh change
     }
   }
 

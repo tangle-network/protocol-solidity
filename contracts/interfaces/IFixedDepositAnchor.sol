@@ -7,9 +7,14 @@ pragma solidity ^0.8.0;
 
 
 interface IFixedDepositAnchor {
-	struct PublicInputs {
+	struct Proof {
+		bytes proof;
 		bytes _roots;
 		bytes32 _nullifierHash;
+		bytes32 _extDataHash;
+	}
+
+	struct ExtData {
 		bytes32 _refreshCommitment;
 		address payable _recipient;
 		address payable _relayer;
@@ -20,8 +25,8 @@ interface IFixedDepositAnchor {
 	function deposit(bytes32 _commitment) external payable;
 
 	function withdraw(
-		bytes calldata _proof,
-		PublicInputs calldata _publicInputs
+		Proof calldata _proof,
+		ExtData calldata _extData
 	) external payable;
 
 	function getDenomination() external view returns (uint);

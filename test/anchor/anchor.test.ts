@@ -25,7 +25,7 @@
  import { Verifier } from '../../packages/bridges/src';
  import { Anchor } from '../../packages/anchors/src';
  import { MerkleTree } from '../../packages/merkle-tree/src';
- import { fetchComponentsFromFilePaths, ZkComponents, toFixedHex, getChainIdType } from '../../packages/utils/src';
+ import { fetchComponentsFromFilePaths, ZkComponents, toFixedHex, getChainIdType, getFixedAnchorExtDataHash } from '../../packages/utils/src';
  
  const { NATIVE_AMOUNT } = process.env
  const snarkjs = require('snarkjs')
@@ -293,11 +293,7 @@
        const input = {
          // public
          nullifierHash: deposit.nullifierHash,
-         refreshCommitment: 0,
-         recipient,
-         relayer: relayer.address,
-         fee,
-         refund,
+         extDataHash: getFixedAnchorExtDataHash({refreshCommitment: 0, recipient, relayer: relayer.address, fee, refund}),
          chainID: deposit.chainID,
          roots: [merkleRoot, '0'],
          // private
@@ -312,8 +308,9 @@
        let res = await snarkjs.groth16.prove('protocol-solidity-fixtures/fixtures/anchor/2/circuit_final.zkey', wtns);
        const proof = res.proof;
        let publicSignals = res.publicSignals;
- 
+       const proofEncoded = await Anchor.generateWithdrawProofCallData(proof, publicSignals);
        const args = [
+         `0x{proofEncoded}`,
          Anchor.createRootsBytes(input.roots),
          toFixedHex(
            toBN(input.nullifierHash).add(
@@ -325,9 +322,9 @@
          toFixedHex(input.relayer, 20),
          toFixedHex(input.fee),
          toFixedHex(input.refund),
+         toFixedHex(input.extDataHash),
        ];
- 
-       const proofEncoded = await Anchor.generateWithdrawProofCallData(proof, publicSignals);
+
        const publicInputs = Anchor.convertArgsArrayToStruct(args);
  
        await TruffleAssert.reverts(
@@ -606,12 +603,12 @@
  
        const withdrawSetup = await newAnchor.setupWithdraw(deposit, index, recipient, signers[1].address, fee, bigInt(0));
        
-       const proof = `0x${withdrawSetup.proofEncoded}`;
+       const proof = withdrawSetup.proofObject.proof;
        const args = withdrawSetup.args;
  
        const publicInputs = Anchor.convertArgsArrayToStruct(args);
  
-       await TruffleAssert.passes(newAnchor.contract.withdraw(proof, publicInputs));
+       await TruffleAssert.passes(newAnchor.contract.withdraw(withdrawSetup.proofObject));
      }).timeout(50000)
  
      it('should properly refresh a deposit', async () => {

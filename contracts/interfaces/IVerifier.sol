@@ -10,7 +10,7 @@ interface IVerifier2 {
     uint[2] memory a,
     uint[2][2] memory b,
     uint[2] memory c,
-    uint256[9] memory input
+    uint256[5] memory input
   ) external view returns (bool r);
 }
 
@@ -19,7 +19,7 @@ interface IVerifier3 {
     uint[2] memory a,
     uint[2][2] memory b,
     uint[2] memory c,
-    uint256[10] memory input
+    uint256[6] memory input
   ) external view returns (bool r);
 }
 
@@ -28,7 +28,7 @@ interface IVerifier4 {
     uint[2] memory a,
     uint[2][2] memory b,
     uint[2] memory c,
-    uint256[11] memory input
+    uint256[7] memory input
   ) external view returns (bool r);
 }
 
@@ -37,7 +37,7 @@ interface IVerifier5 {
     uint[2] memory a,
     uint[2][2] memory b,
     uint[2] memory c,
-    uint256[12] memory input
+    uint256[8] memory input
   ) external view returns (bool r);
 }
 
@@ -46,6 +46,6 @@ interface IVerifier6 {
     uint[2] memory a,
     uint[2][2] memory b,
     uint[2] memory c,
-    uint256[13] memory input
+    uint256[9] memory input
   ) external view returns (bool r);
 }

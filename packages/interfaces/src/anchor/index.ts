@@ -13,8 +13,13 @@ export interface IAnchorDeposit {
 };
 
 export interface IFixedAnchorPublicInputs {
+  proof: string,
   _roots: string;
   _nullifierHash: string;
+  _extDataHash: string;
+}
+
+export interface IFixedAnchorExtData {
   _refreshCommitment: string;
   _recipient: string;
   _relayer: string;

@@ -88,6 +88,28 @@ export async function fetchComponentsFromFilePaths(wasmPath: string, witnessCalc
   };
 }
 
+export function getFixedAnchorExtDataHash({
+  refreshCommitment,
+  recipient,
+  relayer,
+  fee,
+  refund,
+}: any) {
+  const abi = new ethers.utils.AbiCoder();
+  const encodedData = abi.encode(
+    ['tuple(bytes32 refreshCommitment,address recipient,address relayer,uint256 fee,uint256 refund)'],
+    [{
+      refreshCommitment: refreshCommitment,
+      recipient: recipient,
+      relayer: relayer,
+      fee: fee,
+      refund: refund,
+    }],
+  );
+  const hash = ethers.utils.keccak256(encodedData)
+  return BigNumber.from(hash).mod(FIELD_SIZE)
+}
+
 export function getExtDataHash({
   recipient,
   extAmount,

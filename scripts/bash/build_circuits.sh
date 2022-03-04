@@ -69,21 +69,21 @@ copy_to_fixtures anchor poseidon_anchor_32 32 anchor
 # WEBB VANCHORS
 ###
 
-echo "Compiling Webb style variable Poseidon vanchor 2 circuit w/ 2 inputs"
-compile vanchor_2 poseidon_vanchor_2_2 2
-copy_to_fixtures vanchor_2 poseidon_vanchor_2_2 2 vanchor_2
+# echo "Compiling Webb style variable Poseidon vanchor 2 circuit w/ 2 inputs"
+# compile vanchor_2 poseidon_vanchor_2_2 2
+# copy_to_fixtures vanchor_2 poseidon_vanchor_2_2 2 vanchor_2
 
-echo "Compiling Webb style variable Poseidon vanchor 2 circuit w/ 16 inputs"
-compile vanchor_16 poseidon_vanchor_16_2 2
-copy_to_fixtures vanchor_16 poseidon_vanchor_16_2 2 vanchor_16
+# echo "Compiling Webb style variable Poseidon vanchor 2 circuit w/ 16 inputs"
+# compile vanchor_16 poseidon_vanchor_16_2 2
+# copy_to_fixtures vanchor_16 poseidon_vanchor_16_2 2 vanchor_16
 
-echo "Compiling Webb style variable Poseidon vanchor 8 circuit w/ 2 inputs"
-compile vanchor_2 poseidon_vanchor_2_8 8
-copy_to_fixtures vanchor_2 poseidon_vanchor_2_8 8 vanchor_2
+# echo "Compiling Webb style variable Poseidon vanchor 8 circuit w/ 2 inputs"
+# compile vanchor_2 poseidon_vanchor_2_8 8
+# copy_to_fixtures vanchor_2 poseidon_vanchor_2_8 8 vanchor_2
 
-echo "Compiling Webb style variable Poseidon vanchor 8 circuit w/ 16 inputs"
-compile vanchor_16 poseidon_vanchor_16_8 8
-copy_to_fixtures vanchor_16 poseidon_vanchor_16_8 8 vanchor_16
+# echo "Compiling Webb style variable Poseidon vanchor 8 circuit w/ 16 inputs"
+# compile vanchor_16 poseidon_vanchor_16_8 8
+# copy_to_fixtures vanchor_16 poseidon_vanchor_16_8 8 vanchor_16
 
 # echo "Compiling Poseidon4 test gadget"
 # compile poseidon4 poseidon4_test 4

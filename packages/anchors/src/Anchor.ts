@@ -2,7 +2,7 @@ import { BigNumberish, ethers, BigNumber } from 'ethers';
 import { FixedDepositAnchor as AnchorContract, FixedDepositAnchor__factory as Anchor__factory} from '@webb-tools/contracts'
 import { RefreshEvent, WithdrawalEvent } from '@webb-tools/contracts/src/FixedDepositAnchor';
 import { IAnchorDeposit, IAnchorDepositInfo, IAnchor, IFixedAnchorPublicInputs, IMerkleProofData } from '@webb-tools/interfaces';
-import { toFixedHex, toHex, rbigint, p256, PoseidonHasher, ZkComponents, Utxo, getChainIdType } from '@webb-tools/utils';
+import { toFixedHex, toHex, rbigint, p256, PoseidonHasher, ZkComponents, Utxo, getChainIdType, getFixedAnchorExtDataHash } from '@webb-tools/utils';
 import { MerkleTree } from '@webb-tools/merkle-tree';
 
 const snarkjs = require('snarkjs');
@@ -359,10 +359,10 @@ class Anchor implements IAnchor {
     pathIndices: any[],
   ): Promise<any> {
     const { chainID, nullifierHash, nullifier, secret } = deposit;
-    
+    const extDataHash = getFixedAnchorExtDataHash({refreshCommitment, recipient, relayer, fee, refund});
     return {
       // public
-      nullifierHash, refreshCommitment, recipient, relayer, fee, refund, chainID, roots,
+      nullifierHash, extDataHash: extDataHash.toString(), chainID, roots,
       // private
       nullifier, secret, pathElements, pathIndices,
     };
@@ -428,21 +428,27 @@ class Anchor implements IAnchor {
     let proofEncoded = await this.proveAndVerify(wtns);
 
     const args = [
+      `0x${proofEncoded}`,
       Anchor.createRootsBytes(input.roots),
       toFixedHex(input.nullifierHash),
-      toFixedHex(input.refreshCommitment, 32),
-      toFixedHex(input.recipient, 20),
-      toFixedHex(input.relayer, 20),
-      toFixedHex(input.fee),
-      toFixedHex(input.refund),
+      toFixedHex(input.extDataHash),
     ];
 
     const publicInputs = Anchor.convertArgsArrayToStruct(args);
+
+    const extData = {
+      _refreshCommitment: toFixedHex(input.refreshCommitment, 32),
+      _recipient: toFixedHex(input.recipient, 20),
+      _relayer: toFixedHex(input.relayer, 20),
+      _fee: toFixedHex(input.fee),
+      _refund: toFixedHex(input.refund),
+    };
+
     return {
       input,
       args,
-      proofEncoded,
       publicInputs,
+      extData,
     };
   }
 
@@ -454,7 +460,7 @@ class Anchor implements IAnchor {
     fee: bigint,
     refreshCommitment: string | number,
   ): Promise<RefreshEvent | WithdrawalEvent> {
-    const { args, input, proofEncoded, publicInputs } = await this.setupWithdraw(
+    const { args, input, publicInputs, extData } = await this.setupWithdraw(
       deposit,
       index,
       recipient,
@@ -464,8 +470,8 @@ class Anchor implements IAnchor {
     );
     //@ts-ignore
     let tx = await this.contract.withdraw(
-      `0x${proofEncoded}`,
       publicInputs,
+      extData,
       { gasLimit: '0x5B8D80' }
     );
     const receipt = await tx.wait();
@@ -516,6 +522,7 @@ class Anchor implements IAnchor {
     let proofEncoded = await this.proveAndVerify(wtns);
 
     const args = [
+      `0x${proofEncoded}`,
       Anchor.createRootsBytes(input.roots),
       toFixedHex(input.nullifierHash),
       toFixedHex(input.refreshCommitment, 32),
@@ -523,6 +530,7 @@ class Anchor implements IAnchor {
       toFixedHex(input.relayer, 20),
       toFixedHex(input.fee),
       toFixedHex(input.refund),
+      toFixedHex(input.extDataHash),
     ];
 
     const publicInputs = Anchor.convertArgsArrayToStruct(args);
@@ -572,22 +580,28 @@ class Anchor implements IAnchor {
     const wtns = await this.createWitness(input);
     let proofEncoded = await this.proveAndVerify(wtns);
 
+
+    const extData = {
+      _refreshCommitment: toFixedHex(input.refreshCommitment, 32),
+      _recipient: toFixedHex(input.recipient, 20),
+      _relayer: toFixedHex(input.relayer, 20),
+      _fee: toFixedHex(input.fee),
+      _refund: toFixedHex(input.refund),
+    }
+
     const args = [
+      `0x${proofEncoded}`,
       Anchor.createRootsBytes(input.roots),
       toFixedHex(input.nullifierHash),
-      toFixedHex(input.refreshCommitment, 32),
-      toFixedHex(input.recipient, 20),
-      toFixedHex(input.relayer, 20),
-      toFixedHex(input.fee),
-      toFixedHex(input.refund),
+      getFixedAnchorExtDataHash(extData).toString(),
     ];
 
     const publicInputs = Anchor.convertArgsArrayToStruct(args);
 
     //@ts-ignore
     let tx = await this.contract.withdrawAndUnwrap(
-      `0x${proofEncoded}`,
       publicInputs,
+      extData,
       tokenAddress,
       {
         gasLimit: '0x5B8D80'
@@ -602,13 +616,10 @@ class Anchor implements IAnchor {
 
   public static convertArgsArrayToStruct(args: any[]): IFixedAnchorPublicInputs {
     return {
-      _roots: args[0],
-      _nullifierHash: args[1],
-      _refreshCommitment: args[2],
-      _recipient: args[3],
-      _relayer: args[4],
-      _fee: args[5],
-      _refund: args[6],
+      proof: args[0],
+      _roots: args[1],
+      _nullifierHash: args[2],
+      _extDataHash: args[3],
     };
   }
 
@@ -648,22 +659,27 @@ class Anchor implements IAnchor {
     const wtns = await this.createWitness(input);
     let proofEncoded = await this.proveAndVerify(wtns);
 
+    const extData = {
+      _refreshCommitment: toFixedHex(input.refreshCommitment, 32),
+      _recipient: toFixedHex(input.recipient, 20),
+      _relayer: toFixedHex(input.relayer, 20),
+      _fee: toFixedHex(input.fee),
+      _refund: toFixedHex(input.refund),
+    };
+
     const args = [
+      `0x${proofEncoded}`,
       Anchor.createRootsBytes(input.roots),
       toFixedHex(input.nullifierHash),
-      toFixedHex(input.refreshCommitment, 32),
-      toFixedHex(input.recipient, 20),
-      toFixedHex(input.relayer, 20),
-      toFixedHex(input.fee),
-      toFixedHex(input.refund),
+      getFixedAnchorExtDataHash(extData).toString(),
     ];
 
     const publicInputs = Anchor.convertArgsArrayToStruct(args);
 
     //@ts-ignore
     let tx = await this.contract.withdraw(
-      `0x${proofEncoded}`,
       publicInputs,
+      extData,
       {
         gasLimit: '0x5B8D80'
       },

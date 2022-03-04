@@ -37,19 +37,19 @@ contract Verifier is IAnchorVerifier {
 		bool _unused
 	) override external view returns (bool r) {
 		if (maxEdges == 1) {
-			uint256[9] memory _inputs = abi.decode(input, (uint256[9]));
+			uint256[5] memory _inputs = abi.decode(input, (uint256[5]));
 			return v2.verifyProof(a, b, c, _inputs);
 		} else if (maxEdges == 2) {
-			uint256[10] memory _inputs = abi.decode(input, (uint256[10]));
+			uint256[6] memory _inputs = abi.decode(input, (uint256[6]));
 			return v3.verifyProof(a, b, c, _inputs);
 		} else if (maxEdges == 3) {
-			uint256[11] memory _inputs = abi.decode(input, (uint256[11]));
+			uint256[7] memory _inputs = abi.decode(input, (uint256[7]));
 			return v4.verifyProof(a, b, c, _inputs);
 		} else if (maxEdges == 4) {
-			uint256[12] memory _inputs = abi.decode(input, (uint256[12]));
+			uint256[8] memory _inputs = abi.decode(input, (uint256[8]));
 			return v5.verifyProof(a, b, c, _inputs);
 		} else if (maxEdges == 5) {
-			uint256[13] memory _inputs = abi.decode(input, (uint256[13]));
+			uint256[9] memory _inputs = abi.decode(input, (uint256[9]));
 			return v6.verifyProof(a, b, c, _inputs);
 		} else {
 			return false;
