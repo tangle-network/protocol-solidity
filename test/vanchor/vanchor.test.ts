@@ -182,7 +182,7 @@ describe('VAnchor for 2 max edges', () => {
       let res = await snarkjs.groth16.prove('protocol-solidity-fixtures/fixtures/vanchor_2/2/circuit_final.zkey', wtns);
       const proof = res.proof;
       let publicSignals = res.publicSignals;
-      //console.log(publicSignals);
+      
       let tempProof = proof;
       let tempSignals = publicSignals;
       const vKey = await snarkjs.zKey.exportVerificationKey('protocol-solidity-fixtures/fixtures/vanchor_2/2/circuit_final.zkey');
@@ -884,11 +884,8 @@ describe('VAnchor for 2 max edges', () => {
       );
       const balTokenAfterDepositSender = await token.balanceOf(sender.address);
       assert.strictEqual(balTokenBeforeDepositSender.sub(balTokenAfterDepositSender).toString(), '10000000');
-
       const balWrappedTokenAfterDepositAnchor = await wrappedToken.balanceOf(wrappedAnchor.contract.address);
-      //console.log(balWrappedTokenAfterDepositAnchor.toString());
-      const balWrappedTokenAfterDepositSender = await wrappedToken.balanceOf(sender.address);
-      //console.log(balWrappedTokenAfterDepositSender.toString());
+      const balWrappedTokenAfterDepositSender = await wrappedToken.balanceOf(sender.address);    
       assert.strictEqual(balWrappedTokenAfterDepositAnchor.toString(), '10000000');
       assert.strictEqual(balWrappedTokenAfterDepositSender.toString(), '0');
     });

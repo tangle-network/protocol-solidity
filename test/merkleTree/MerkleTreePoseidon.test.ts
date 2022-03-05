@@ -53,7 +53,7 @@ contract('MerkleTreePoseidon', (accounts) => {
         hasher.hash(null, '5', pathElements[0]),
         pathElements[1]
       );
-      // console.log(root)
+      
       assert(merkleRoot == calculated_root)
     });
 
@@ -120,10 +120,9 @@ contract('MerkleTreePoseidon', (accounts) => {
       let zero_values = [];
       let current_zero_value = '21663839004416932945382355908790599225266501822907911457504978515578255421292'
       zero_values.push(current_zero_value)
-      // console.log(new BN(current_zero_value.toString()).toString(16));
+      
       for (let i = 0; i < 31; i++) {
         current_zero_value = hasher.hash(i, current_zero_value, current_zero_value)
-        // console.log(new BN(current_zero_value.toString()).toString(16));
         zero_values.push(current_zero_value.toString())
       }
     });

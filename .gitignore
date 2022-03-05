@@ -15,6 +15,7 @@ artifacts
 /typechain
 /typechain-types
 /src
+/packages/protocol-solidity/docs/*
 
 dist
 

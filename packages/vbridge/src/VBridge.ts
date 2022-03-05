@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ethers, BigNumber, BigNumberish  } from 'ethers';
 import { SignatureBridgeSide } from '@webb-tools/bridges';
 import { MintableToken, GovernedTokenWrapper, TreasuryHandler, Treasury } from "@webb-tools/tokens";
@@ -125,7 +126,6 @@ export class VBridge {
       vBridgeInstance.setAnchorHandler(handler);
 
       vBridgeSides.set(chainID, vBridgeInstance);
-      //console.log(`vBridgeSide address on ${chainID}: ${vBridgeInstance.contract.address}`);
 
       // Create the Hasher and Verifier for the chain
       const hasherFactory = new PoseidonT3__factory(deployers[chainID]);
@@ -158,9 +158,6 @@ export class VBridge {
         tokenInstance = vBridgeInput.webbTokens.get(chainID)!;
       }
 
-      
-      //console.log(`created GovernedTokenWrapper on ${chainID}: ${tokenInstance?.contract.address}`);
-
       // Add all token addresses to the governed token instance.
       for (const tokenToBeWrapped of vBridgeInput.vAnchorInputs.asset[chainID]!) {
         // if the address is not '0', then add it
@@ -190,9 +187,7 @@ export class VBridge {
           smallCircuitZkComponents,
           largeCircuitZkComponents,
           deployers[chainID],
-      );
-
-      //console.log(`createdVAnchor: ${vAnchorInstance.contract.address}`);
+      );      
 
       // grant minting rights to the anchor
       await tokenInstance?.grantMinterRole(vAnchorInstance.contract.address); 
@@ -348,7 +343,6 @@ export class VBridge {
     .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
 
     const publicAmount = extAmount.sub(fee);
-    // console.log(`public amount is ${publicAmount}`);
     // Approve spending if needed
     const userTokenAllowance = await tokenInstance.getAllowance(signerAddress, vAnchor.contract.address);
     if (userTokenAllowance.lt(publicAmount)) {
@@ -356,9 +350,7 @@ export class VBridge {
     }
     // Make Merkle proof
     const merkleProof = inputs.map((x) => this.getVAnchor(Number(x.originChainId))!.getMerkleProof(x));
-    //console.log((await tokenInstance.getBalance(signerAddress)).toString());
-    await vAnchor.bridgedTransact(inputs, outputs, fee, recipient, relayer, merkleProof);
-    //console.log((await tokenInstance.getBalance(signerAddress)).toString());
+    await vAnchor.bridgedTransact(inputs, outputs, fee, recipient, relayer, merkleProof);    
     await this.updateLinkedVAnchors(vAnchor);
   }
 
@@ -386,7 +378,6 @@ export class VBridge {
         chainId: BigNumber.from(chainId)
       }));
     }
-    //console.log(inputs.length);
     //do we have to check if amount is greater than 0 before the checks?????
     //Check that input dest chain is this chain
     for (let i=0; i<inputs.length; i++) {
@@ -410,7 +401,6 @@ export class VBridge {
     .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
 
     const publicAmount = extAmount.sub(fee);
-    // console.log(`public amount is ${publicAmount}`);
     // Approve spending if needed
     const userTokenAllowance = await tokenInstance.getAllowance(signerAddress, vAnchor.contract.address);
     if (userTokenAllowance.lt(publicAmount)) {
@@ -419,9 +409,7 @@ export class VBridge {
 
     //Make Merkle proof
     const merkleProof = inputs.map((x) => this.getVAnchor(Number(x.originChainId))!.getMerkleProof(x));
-    //console.log((await tokenInstance.getBalance(signerAddress)).toString());
     await vAnchor.bridgedTransactWrap(tokenAddress, inputs, outputs, fee, recipient, relayer, merkleProof);
-    //console.log((await tokenInstance.getBalance(signerAddress)).toString());
     await this.updateLinkedVAnchors(vAnchor);
   }
 }
