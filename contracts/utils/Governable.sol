@@ -11,7 +11,7 @@ contract Governable {
     // Storage values relevant to proposer set update
     uint32 public proposerSetUpdateNonce = 0;
     bytes32 proposerSetRoot;
-    uint64 averageSessionLengthInMillisecs;
+    uint64 averageSessionLengthInMillisecs = 2**64 - 1;
     uint256 sessionLengthMultiplier = 2;
     uint32 numOfProposers;
     mapping (bytes => bool) alreadyVoted;
@@ -155,7 +155,7 @@ contract Governable {
             _transferOwnership(proposedGovernor);
         }
     }
-    
+
     function _isValidMerkleProof(bytes32[] memory siblingPathNodes, bytes memory leaf, uint32 leafIndex) internal view returns (bool) {
         bytes32 leafHash = keccak256(leaf);
         bytes32 currNodeHash = leafHash;
