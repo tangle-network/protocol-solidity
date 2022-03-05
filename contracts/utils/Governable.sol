@@ -136,6 +136,7 @@ contract Governable {
     }
 
     function voteInFavorForceSetGovernor(Vote memory vote) external {
+        
         // Check time 
         require(block.timestamp >= lastGovernorUpdateTime + sessionLengthMultiplier * (averageSessionLengthInMillisecs / 1000), "Invalid time for vote");
         
@@ -154,7 +155,7 @@ contract Governable {
             _transferOwnership(proposedGovernor);
         }
     }
-
+    
     function _isValidMerkleProof(bytes32[] memory siblingPathNodes, bytes memory leaf, uint32 leafIndex) internal view returns (bool) {
         bytes32 leafHash = keccak256(leaf);
         bytes32 currNodeHash = leafHash;

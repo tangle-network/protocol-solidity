@@ -33,11 +33,14 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     "isSignatureFromGovernor(bytes,bytes)": FunctionFragment;
     "paused()": FunctionFragment;
     "proposalNonce()": FunctionFragment;
+    "proposerSetUpdateNonce()": FunctionFragment;
     "recover(bytes,bytes)": FunctionFragment;
     "refreshNonce()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "transferOwnership(address,uint32)": FunctionFragment;
     "transferOwnershipWithSignaturePubKey(bytes,uint32,bytes)": FunctionFragment;
+    "updateProposerSetData(bytes32,uint64,uint32,uint32,bytes)": FunctionFragment;
+    "voteInFavorForceSetGovernor((bytes,uint32,bytes32[],address))": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -91,6 +94,10 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "proposerSetUpdateNonce",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "recover",
     values: [BytesLike, BytesLike]
   ): string;
@@ -109,6 +116,21 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "transferOwnershipWithSignaturePubKey",
     values: [BytesLike, BigNumberish, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "updateProposerSetData",
+    values: [BytesLike, BigNumberish, BigNumberish, BigNumberish, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "voteInFavorForceSetGovernor",
+    values: [
+      {
+        leaf: BytesLike;
+        leafIndex: BigNumberish;
+        siblingPathNodes: BytesLike[];
+        proposedGovernor: string;
+      }
+    ]
   ): string;
 
   decodeFunctionResult(
@@ -144,6 +166,10 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     functionFragment: "proposalNonce",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "proposerSetUpdateNonce",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "recover", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "refreshNonce",
@@ -159,6 +185,14 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnershipWithSignaturePubKey",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "updateProposerSetData",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "voteInFavorForceSetGovernor",
     data: BytesLike
   ): Result;
 
@@ -280,6 +314,8 @@ export class SignatureBridge extends BaseContract {
 
     proposalNonce(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    proposerSetUpdateNonce(overrides?: CallOverrides): Promise<[number]>;
+
     recover(
       data: BytesLike,
       sig: BytesLike,
@@ -302,6 +338,25 @@ export class SignatureBridge extends BaseContract {
       publicKey: BytesLike,
       nonce: BigNumberish,
       sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    updateProposerSetData(
+      _proposerSetRoot: BytesLike,
+      _averageSessionLengthInMillisecs: BigNumberish,
+      _numOfProposers: BigNumberish,
+      _proposerSetUpdateNonce: BigNumberish,
+      sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    voteInFavorForceSetGovernor(
+      vote: {
+        leaf: BytesLike;
+        leafIndex: BigNumberish;
+        siblingPathNodes: BytesLike[];
+        proposedGovernor: string;
+      },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
@@ -350,6 +405,8 @@ export class SignatureBridge extends BaseContract {
 
   proposalNonce(overrides?: CallOverrides): Promise<BigNumber>;
 
+  proposerSetUpdateNonce(overrides?: CallOverrides): Promise<number>;
+
   recover(
     data: BytesLike,
     sig: BytesLike,
@@ -372,6 +429,25 @@ export class SignatureBridge extends BaseContract {
     publicKey: BytesLike,
     nonce: BigNumberish,
     sig: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  updateProposerSetData(
+    _proposerSetRoot: BytesLike,
+    _averageSessionLengthInMillisecs: BigNumberish,
+    _numOfProposers: BigNumberish,
+    _proposerSetUpdateNonce: BigNumberish,
+    sig: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  voteInFavorForceSetGovernor(
+    vote: {
+      leaf: BytesLike;
+      leafIndex: BigNumberish;
+      siblingPathNodes: BytesLike[];
+      proposedGovernor: string;
+    },
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -420,6 +496,8 @@ export class SignatureBridge extends BaseContract {
 
     proposalNonce(overrides?: CallOverrides): Promise<BigNumber>;
 
+    proposerSetUpdateNonce(overrides?: CallOverrides): Promise<number>;
+
     recover(
       data: BytesLike,
       sig: BytesLike,
@@ -440,6 +518,25 @@ export class SignatureBridge extends BaseContract {
       publicKey: BytesLike,
       nonce: BigNumberish,
       sig: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    updateProposerSetData(
+      _proposerSetRoot: BytesLike,
+      _averageSessionLengthInMillisecs: BigNumberish,
+      _numOfProposers: BigNumberish,
+      _proposerSetUpdateNonce: BigNumberish,
+      sig: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    voteInFavorForceSetGovernor(
+      vote: {
+        leaf: BytesLike;
+        leafIndex: BigNumberish;
+        siblingPathNodes: BytesLike[];
+        proposedGovernor: string;
+      },
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -527,6 +624,8 @@ export class SignatureBridge extends BaseContract {
 
     proposalNonce(overrides?: CallOverrides): Promise<BigNumber>;
 
+    proposerSetUpdateNonce(overrides?: CallOverrides): Promise<BigNumber>;
+
     recover(
       data: BytesLike,
       sig: BytesLike,
@@ -549,6 +648,25 @@ export class SignatureBridge extends BaseContract {
       publicKey: BytesLike,
       nonce: BigNumberish,
       sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    updateProposerSetData(
+      _proposerSetRoot: BytesLike,
+      _averageSessionLengthInMillisecs: BigNumberish,
+      _numOfProposers: BigNumberish,
+      _proposerSetUpdateNonce: BigNumberish,
+      sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    voteInFavorForceSetGovernor(
+      vote: {
+        leaf: BytesLike;
+        leafIndex: BigNumberish;
+        siblingPathNodes: BytesLike[];
+        proposedGovernor: string;
+      },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
@@ -601,6 +719,10 @@ export class SignatureBridge extends BaseContract {
 
     proposalNonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    proposerSetUpdateNonce(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     recover(
       data: BytesLike,
       sig: BytesLike,
@@ -623,6 +745,25 @@ export class SignatureBridge extends BaseContract {
       publicKey: BytesLike,
       nonce: BigNumberish,
       sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    updateProposerSetData(
+      _proposerSetRoot: BytesLike,
+      _averageSessionLengthInMillisecs: BigNumberish,
+      _numOfProposers: BigNumberish,
+      _proposerSetUpdateNonce: BigNumberish,
+      sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    voteInFavorForceSetGovernor(
+      vote: {
+        leaf: BytesLike;
+        leafIndex: BigNumberish;
+        siblingPathNodes: BytesLike[];
+        proposedGovernor: string;
+      },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
