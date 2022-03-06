@@ -68,14 +68,6 @@ class Anchor implements IAnchor {
     throw new Error("Method not implemented.");
   }
 
-  // public static anchorFromAddress(
-  //   contract: string,
-  //   signer: ethers.Signer,
-  // ) {
-  //   const anchor = Anchor__factory.connect(contract, signer);
-  //   return new Anchor(anchor, signer);
-  // }
-
   // Deploys an Anchor contract and sets the signer for deposit and withdraws on this contract.
   public static async createAnchor(
     verifier: string,

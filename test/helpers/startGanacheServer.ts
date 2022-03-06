@@ -11,6 +11,5 @@ export async function startGanacheServer(port: number, networkId: number, mnemon
   });
 
   await ganacheServer.listen(port);
-  //console.log(`Ganache Started on http://127.0.0.1:${port} ..`);
   return ganacheServer;
 }

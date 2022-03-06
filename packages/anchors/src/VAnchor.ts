@@ -264,8 +264,6 @@ export class VAnchor implements IAnchor {
   // Proposal data is used to update linkedAnchors via bridge proposals 
   // on other chains with this anchor's state
   public async getProposalData(resourceID: string, leafIndex?: number): Promise<string> {
-    // console.log("get proposal data");
-    // console.log(`leafIndex is ${leafIndex}`);
     // If no leaf index passed in, set it to the most recent one.
     if (!leafIndex) {
       leafIndex = this.tree.number_of_elements() - 1;
@@ -392,7 +390,7 @@ export class VAnchor implements IAnchor {
     }
   
     const extDataHash = getExtDataHash(extData)
-    //console.log(roots);
+    
     let input = {
       roots: roots.map((x) => BigNumber.from(x.merkleRoot).toString()),
       chainID: chainId.toString(),
@@ -414,16 +412,6 @@ export class VAnchor implements IAnchor {
       outPubkey: outputs.map((x) => toFixedHex(x.keypair.pubkey).toString()),
       outBlinding: outputs.map((x) => x.blinding.toString())
     }
-    //console.log(input.outPubkey.map((x) => toFixedHex(x)));
-    //console.log(input.inputNullifier);
-    // console.log(`public amount is ${input.publicAmount}`);
-    // console.log("printing input");
-    // console.log(input);
-    // console.log("printing input commitment");
-    // const inputCommitment =inputs.map((x) => [x.getCommitment(), x.amount]);
-    // console.log(inputCommitment);
-    // console.log("printing tree root")
-    // console.log(this.tree.root().toString());
 
     if (input.inputNullifier.length === 0) {
       input.inputNullifier = [...[0,1].map((_r) => {
@@ -488,7 +476,6 @@ export class VAnchor implements IAnchor {
     let proof_time = (performance.now() - start)/1000;
 
     proofTimeBenchmark.push(proof_time)
-    // console.log("Proof gen took: ", proof_time, "s");
     let proof = res.proof;
     let publicSignals = res.publicSignals;
 
@@ -554,13 +541,9 @@ export class VAnchor implements IAnchor {
       relayer,
       merkleProofsForInputs
     );
-    // console.log("hi1");
-    // console.log(`input length is ${inputs.length}`);
-    // console.log(`Witness Input is`);
-    // console.log(input);
     const wtns = await this.createWitness(input, inputs.length == 2);
     let proofEncoded = await this.proveAndVerify(wtns, inputs.length == 2);
-    //console.log(proofEncoded);
+    
     const publicInputs: IVariableAnchorPublicInputs = this.generatePublicInputs(
       proofEncoded,
       roots,
@@ -569,14 +552,12 @@ export class VAnchor implements IAnchor {
       input.publicAmount,
       input.extDataHash.toString()
     );
-    //console.log(`current root (class) is ${toFixedHex(this.tree.root())}`);
+    
     outputs.forEach((x) => {
       this.tree.insert(toFixedHex(x.getCommitment()));
       let numOfElements = this.tree.number_of_elements();
       this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
     });
-    
-    //console.log(`updated root (class) is ${toFixedHex(this.tree.root())}`);
 
     return {
       extData,
@@ -591,7 +572,6 @@ export class VAnchor implements IAnchor {
     recipient: string = '0', 
     relayer: string = '0'
   ) {
-    //console.log(`current root (transact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
     
     while (inputs.length !== 2 && inputs.length < 16) {
       inputs.push(new Utxo({
@@ -613,7 +593,6 @@ export class VAnchor implements IAnchor {
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
     
-    //console.log(`extAmount is ${extAmount}`);
     const { extData, publicInputs } = await this.setupTransaction(
       inputs,
       outputs,
@@ -636,8 +615,6 @@ export class VAnchor implements IAnchor {
       { gasLimit: '0xBB8D80' }
     );
     const receipt = await tx.wait();
-    //console.log(`updated root (transact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
-    // console.log("gas used: ", receipt.gasUsed.toString());
     gasBenchmark.push(receipt.gasUsed.toString());
 
     return receipt;
@@ -651,7 +628,6 @@ export class VAnchor implements IAnchor {
     recipient: string = '0', 
     relayer: string = '0'
   ): Promise<ethers.ContractReceipt> {
-    //console.log(`current root (transact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
     
     while (inputs.length !== 2 && inputs.length < 16) {
       inputs.push(new Utxo({
@@ -673,7 +649,6 @@ export class VAnchor implements IAnchor {
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
     
-    //console.log(`extAmount is ${extAmount}`);
     const { extData, publicInputs } = await this.setupTransaction(
       inputs,
       outputs,
@@ -716,7 +691,6 @@ export class VAnchor implements IAnchor {
     }
 
     const receipt = await tx.wait();
-    //console.log(`updated root (transact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
     return receipt;
   }
 
@@ -853,8 +827,6 @@ export class VAnchor implements IAnchor {
     relayer: string = '0',
     merkleProofsForInputs: any[] = []
   ) {
-    //console.log(`current root (registertransact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
-    // const { pathElements, pathIndices, merkleRoot } = merkleProofsForInputs;
 
     while (inputs.length !== 2 && inputs.length < 16) {
       inputs.push(new Utxo({
@@ -895,7 +867,7 @@ export class VAnchor implements IAnchor {
       { ...publicInputs, outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]] },
       extData,
     ];
-    //console.log(args);
+
     let tx = await this.contract.registerAndTransact(
       { owner, publicKey },
       { ...publicInputs, outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]] },
@@ -903,7 +875,7 @@ export class VAnchor implements IAnchor {
       { gasLimit: '0x5B8D80' }
     );
     const receipt = await tx.wait();
-    //console.log(`updated root (registertransact, contract) is ${toFixedHex(await this.contract.getLastRoot())}`);
+    
     return receipt;
   }
 }

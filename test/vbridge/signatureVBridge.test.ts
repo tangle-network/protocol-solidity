@@ -103,7 +103,6 @@ describe('multichain tests for signature vbridge', () => {
       const tx = await webbToken.mintTokens(signers[2].address, '100000000000000000000000');
       // Get the state of anchors before deposit
       const sourceAnchorRootBefore = await vAnchor1.contract.getLastRoot();
-      //console.log(sourceAnchorRootBefore);
       // Define inputs/outputs for transact function
       const depositUtxo = new Utxo({
         amount: BigNumber.from(1e7),
