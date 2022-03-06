@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ethers, BigNumber, BigNumberish  } from 'ethers';
 import { SignatureBridgeSide } from '@webb-tools/bridges';
 import { MintableToken, GovernedTokenWrapper, TreasuryHandler, Treasury } from "@webb-tools/tokens";

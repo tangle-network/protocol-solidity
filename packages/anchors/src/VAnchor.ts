@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { BigNumber, BigNumberish, ethers } from 'ethers';
 import { performance } from 'perf_hooks';
 import { VAnchor as VAnchorContract, VAnchor__factory, VAnchorEncodeInputs__factory } from '@webb-tools/contracts';
@@ -571,7 +572,7 @@ export class VAnchor implements IAnchor {
     fee: BigNumberish = 0,
     recipient: string = '0', 
     relayer: string = '0'
-  ) {
+  ): Promise<ethers.ContractReceipt> {
     
     while (inputs.length !== 2 && inputs.length < 16) {
       inputs.push(new Utxo({
@@ -826,7 +827,7 @@ export class VAnchor implements IAnchor {
     recipient: string = '0',
     relayer: string = '0',
     merkleProofsForInputs: any[] = []
-  ) {
+  ): Promise<ethers.ContractReceipt> {
 
     while (inputs.length !== 2 && inputs.length < 16) {
       inputs.push(new Utxo({
