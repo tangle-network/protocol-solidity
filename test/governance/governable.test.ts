@@ -6,7 +6,7 @@
  const path = require('path');
  import { ethers } from 'hardhat';
  import BN from 'bn.js';
- import { toHex } from '../../packages/utils/src';
+ import { toFixedHex, toHex } from '../../packages/utils/src';
  import EC from 'elliptic';
  const ec = new EC.ec('secp256k1');
  const TruffleAssert = require('truffle-assertions');
@@ -92,5 +92,46 @@
     const events = await governableInstance.queryFilter(filter);
     assert.strictEqual(nextGovernorAddress, events[2].args.newOwner);
     assert.strictEqual(firstRotationKey, events[2].args.previousOwner);
+  });
+
+  it.only('proposer set data should update properly', async() => {
+    // Transfer ownership to an address we can sign with
+    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '0');
+    const wallet = ethers.Wallet.createRandom();
+    const key = ec.keyFromPrivate(wallet.privateKey.slice(2), 'hex');
+    const pubkey = key.getPublic().encode('hex').slice(2);
+    const publicKey = '0x' + pubkey;
+    let nextGovernorAddress = ethers.utils.getAddress('0x' + ethers.utils.keccak256(publicKey).slice(-40));
+    await governableInstance.transferOwnership(nextGovernorAddress, 1);
+    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '1');
+    
+    const dummyProposerSetRoot = '0x5555555555555555555555555555555555555555555555555555555555555555'
+    const dummyAverageSessionLengthInMilliseconds = 50000;
+    const dummyNumOfProposers = 4;
+    const dummyProposerSetUpdateNonce = 1;
+    
+    const prehashed = dummyProposerSetRoot + toFixedHex(dummyAverageSessionLengthInMilliseconds, 8).slice(2) + toFixedHex(dummyNumOfProposers, 4).slice(2) + toFixedHex(dummyProposerSetUpdateNonce, 4).slice(2);
+
+    let msg = ethers.utils.arrayify(ethers.utils.keccak256(prehashed));
+    let signature = key.sign(msg);
+    let expandedSig = { r: '0x' + signature.r.toString('hex'), s: '0x' + signature.s.toString('hex'), v: signature.recoveryParam + 27 }
+
+    // Transaction malleability fix if s is too large (Bitcoin allows it, Ethereum rejects it)
+    // https://ethereum.stackexchange.com/questions/55245/why-is-s-in-transaction-signature-limited-to-n-21
+    let sig;
+    try {
+      sig = ethers.utils.joinSignature(expandedSig)
+    } catch (e) {
+      expandedSig.s = '0x' + (new BN(ec.curve.n).sub(signature.s)).toString('hex');
+      expandedSig.v = (expandedSig.v === 27) ? 28 : 27;
+      sig = ethers.utils.joinSignature(expandedSig)
+    }
+
+    await governableInstance.updateProposerSetData(dummyProposerSetRoot, dummyAverageSessionLengthInMilliseconds, dummyNumOfProposers, dummyProposerSetUpdateNonce, sig);
+
+    assert.strictEqual((await governableInstance.averageSessionLengthInMillisecs()).toString(), '50000');
+    assert.strictEqual((await governableInstance.proposerSetUpdateNonce()).toString(), '1');
+    assert.strictEqual((await governableInstance.numOfProposers()).toString(), '4');
+    assert.strictEqual((await governableInstance.proposerSetRoot()), dummyProposerSetRoot);
   });
 });

@@ -25,18 +25,24 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     "_counts(uint256)": FunctionFragment;
     "_resourceIDToHandlerAddress(bytes32)": FunctionFragment;
     "adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,address,bytes)": FunctionFragment;
+    "averageSessionLengthInMillisecs()": FunctionFragment;
+    "currentVotingPeriod()": FunctionFragment;
     "executeProposalWithSignature(bytes,bytes)": FunctionFragment;
     "getChainId()": FunctionFragment;
     "getChainIdType()": FunctionFragment;
     "governor()": FunctionFragment;
     "isGovernor()": FunctionFragment;
     "isSignatureFromGovernor(bytes,bytes)": FunctionFragment;
+    "lastGovernorUpdateTime()": FunctionFragment;
+    "numOfProposers()": FunctionFragment;
     "paused()": FunctionFragment;
     "proposalNonce()": FunctionFragment;
+    "proposerSetRoot()": FunctionFragment;
     "proposerSetUpdateNonce()": FunctionFragment;
     "recover(bytes,bytes)": FunctionFragment;
     "refreshNonce()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
+    "sessionLengthMultiplier()": FunctionFragment;
     "transferOwnership(address,uint32)": FunctionFragment;
     "transferOwnershipWithSignaturePubKey(bytes,uint32,bytes)": FunctionFragment;
     "updateProposerSetData(bytes32,uint64,uint32,uint32,bytes)": FunctionFragment;
@@ -68,6 +74,14 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     ]
   ): string;
   encodeFunctionData(
+    functionFragment: "averageSessionLengthInMillisecs",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "currentVotingPeriod",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "executeProposalWithSignature",
     values: [BytesLike, BytesLike]
   ): string;
@@ -88,9 +102,21 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     functionFragment: "isSignatureFromGovernor",
     values: [BytesLike, BytesLike]
   ): string;
+  encodeFunctionData(
+    functionFragment: "lastGovernorUpdateTime",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "numOfProposers",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "proposalNonce",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "proposerSetRoot",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -107,6 +133,10 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "sessionLengthMultiplier",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -147,6 +177,14 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "averageSessionLengthInMillisecs",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "currentVotingPeriod",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "executeProposalWithSignature",
     data: BytesLike
   ): Result;
@@ -161,9 +199,21 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     functionFragment: "isSignatureFromGovernor",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "lastGovernorUpdateTime",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "numOfProposers",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "proposalNonce",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "proposerSetRoot",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -177,6 +227,10 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "sessionLengthMultiplier",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -290,6 +344,12 @@ export class SignatureBridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    averageSessionLengthInMillisecs(
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    currentVotingPeriod(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     executeProposalWithSignature(
       data: BytesLike,
       sig: BytesLike,
@@ -310,9 +370,15 @@ export class SignatureBridge extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
+    lastGovernorUpdateTime(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    numOfProposers(overrides?: CallOverrides): Promise<[number]>;
+
     paused(overrides?: CallOverrides): Promise<[boolean]>;
 
     proposalNonce(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    proposerSetRoot(overrides?: CallOverrides): Promise<[string]>;
 
     proposerSetUpdateNonce(overrides?: CallOverrides): Promise<[number]>;
 
@@ -327,6 +393,8 @@ export class SignatureBridge extends BaseContract {
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    sessionLengthMultiplier(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     transferOwnership(
       newOwner: string,
@@ -381,6 +449,12 @@ export class SignatureBridge extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  averageSessionLengthInMillisecs(
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  currentVotingPeriod(overrides?: CallOverrides): Promise<BigNumber>;
+
   executeProposalWithSignature(
     data: BytesLike,
     sig: BytesLike,
@@ -401,9 +475,15 @@ export class SignatureBridge extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
+  lastGovernorUpdateTime(overrides?: CallOverrides): Promise<BigNumber>;
+
+  numOfProposers(overrides?: CallOverrides): Promise<number>;
+
   paused(overrides?: CallOverrides): Promise<boolean>;
 
   proposalNonce(overrides?: CallOverrides): Promise<BigNumber>;
+
+  proposerSetRoot(overrides?: CallOverrides): Promise<string>;
 
   proposerSetUpdateNonce(overrides?: CallOverrides): Promise<number>;
 
@@ -418,6 +498,8 @@ export class SignatureBridge extends BaseContract {
   renounceOwnership(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  sessionLengthMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
 
   transferOwnership(
     newOwner: string,
@@ -472,6 +554,12 @@ export class SignatureBridge extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    averageSessionLengthInMillisecs(
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    currentVotingPeriod(overrides?: CallOverrides): Promise<BigNumber>;
+
     executeProposalWithSignature(
       data: BytesLike,
       sig: BytesLike,
@@ -492,9 +580,15 @@ export class SignatureBridge extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    lastGovernorUpdateTime(overrides?: CallOverrides): Promise<BigNumber>;
+
+    numOfProposers(overrides?: CallOverrides): Promise<number>;
+
     paused(overrides?: CallOverrides): Promise<boolean>;
 
     proposalNonce(overrides?: CallOverrides): Promise<BigNumber>;
+
+    proposerSetRoot(overrides?: CallOverrides): Promise<string>;
 
     proposerSetUpdateNonce(overrides?: CallOverrides): Promise<number>;
 
@@ -507,6 +601,8 @@ export class SignatureBridge extends BaseContract {
     refreshNonce(overrides?: CallOverrides): Promise<number>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
+    sessionLengthMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
 
     transferOwnership(
       newOwner: string,
@@ -600,6 +696,12 @@ export class SignatureBridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    averageSessionLengthInMillisecs(
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    currentVotingPeriod(overrides?: CallOverrides): Promise<BigNumber>;
+
     executeProposalWithSignature(
       data: BytesLike,
       sig: BytesLike,
@@ -620,9 +722,15 @@ export class SignatureBridge extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    lastGovernorUpdateTime(overrides?: CallOverrides): Promise<BigNumber>;
+
+    numOfProposers(overrides?: CallOverrides): Promise<BigNumber>;
+
     paused(overrides?: CallOverrides): Promise<BigNumber>;
 
     proposalNonce(overrides?: CallOverrides): Promise<BigNumber>;
+
+    proposerSetRoot(overrides?: CallOverrides): Promise<BigNumber>;
 
     proposerSetUpdateNonce(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -637,6 +745,8 @@ export class SignatureBridge extends BaseContract {
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    sessionLengthMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
 
     transferOwnership(
       newOwner: string,
@@ -695,6 +805,14 @@ export class SignatureBridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    averageSessionLengthInMillisecs(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    currentVotingPeriod(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     executeProposalWithSignature(
       data: BytesLike,
       sig: BytesLike,
@@ -715,9 +833,17 @@ export class SignatureBridge extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    lastGovernorUpdateTime(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    numOfProposers(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     proposalNonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    proposerSetRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     proposerSetUpdateNonce(
       overrides?: CallOverrides
@@ -733,6 +859,10 @@ export class SignatureBridge extends BaseContract {
 
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    sessionLengthMultiplier(
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     transferOwnership(

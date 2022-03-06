@@ -10,12 +10,12 @@ contract Governable {
 
     // Storage values relevant to proposer set update
     uint32 public proposerSetUpdateNonce = 0;
-    bytes32 proposerSetRoot;
-    uint64 averageSessionLengthInMillisecs = 2**64 - 1;
-    uint256 sessionLengthMultiplier = 2;
-    uint32 numOfProposers;
+    bytes32 public proposerSetRoot;
+    uint64 public averageSessionLengthInMillisecs = 2**64 - 1;
+    uint256 public sessionLengthMultiplier = 2;
+    uint32 public numOfProposers;
     mapping (bytes => bool) alreadyVoted;
-    uint256 currentVotingPeriod = 0;
+    uint256 public currentVotingPeriod = 0;
     mapping (uint256 => mapping(address => uint32)) numOfVotesForGovernor;
 
 
@@ -27,7 +27,7 @@ contract Governable {
     }
 
     // Last time ownership was transferred to a new govenror
-    uint256 lastGovernorUpdateTime;
+    uint256 public lastGovernorUpdateTime;
 
     event GovernanceOwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event RecoveredAddress(address indexed recovered);
