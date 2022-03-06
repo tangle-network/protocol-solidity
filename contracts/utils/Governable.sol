@@ -15,7 +15,9 @@ contract Governable {
     uint256 sessionLengthMultiplier = 2;
     uint32 numOfProposers;
     mapping (bytes => bool) alreadyVoted;
-    mapping (address => uint32) numOfVotesForGovernor;
+    uint256 currentVotingPeriod = 0;
+    mapping (uint256 => mapping(address => uint32)) numOfVotesForGovernor;
+
 
     struct Vote {
         bytes leaf;
@@ -119,6 +121,7 @@ contract Governable {
         emit GovernanceOwnershipTransferred(_governor, newOwner);
         _governor = newOwner;
         lastGovernorUpdateTime = block.timestamp;
+        currentVotingPeriod++;
     }
 
     function updateProposerSetData(bytes32 _proposerSetRoot, uint64 _averageSessionLengthInMillisecs, uint32 _numOfProposers, uint32 _proposerSetUpdateNonce, bytes memory sig) public {
@@ -146,12 +149,12 @@ contract Governable {
         // Make sure not already voted
         require(!alreadyVoted[vote.leaf], "already voted");
 
-        numOfVotesForGovernor[vote.proposedGovernor] += 1;
+        numOfVotesForGovernor[currentVotingPeriod][vote.proposedGovernor] += 1;
         _tryResolveVote(vote.proposedGovernor);
     }
 
     function _tryResolveVote(address proposedGovernor) internal {
-        if (numOfVotesForGovernor[proposedGovernor] > numOfProposers / 2) {
+        if (numOfVotesForGovernor[currentVotingPeriod][proposedGovernor] > numOfProposers / 2) {
             _transferOwnership(proposedGovernor);
         }
     }
