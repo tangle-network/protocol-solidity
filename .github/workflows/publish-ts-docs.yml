@@ -22,10 +22,10 @@ jobs:
       - name: Install dependencies 
         run: |
           yarn install --production=false &&
-          cd ./packages && yarn install
+          cd ./packages/protocol-solidity && yarn install
       - name: Generate docs
         run: |
-          cd ./packages && npx typedoc --out docs index.ts 
+          cd ./packages/protocol-solidity && npx typedoc --out docs src/index.ts 
   
       - name: Deploy docs 🚀
         uses: JamesIves/github-pages-deploy-action@4.1.4
