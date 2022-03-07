@@ -1,7 +1,7 @@
 import * as Anchors from '@webb-tools/anchors';
 import * as Bridges from '@webb-tools/bridges';
 import * as Contracts from '@webb-tools/contracts';
-import * as Interfaces from '@webb-tools/interfaces/';
+import * as Interfaces from '@webb-tools/interfaces';
 import * as MerkleTree from '@webb-tools/merkle-tree';
 import * as Tokens from '@webb-tools/tokens';
 import * as Utility from '@webb-tools/utils';
