@@ -136,7 +136,7 @@ import { BlockForkEvent } from '@ethersproject/contracts/node_modules/@etherspro
     assert.strictEqual((await governableInstance.proposerSetRoot()), dummyProposerSetRoot);
   });
 
-  it.only('should vote validly and change the governor', async() => {
+  it('should vote validly and change the governor', async() => {
     const voteStruct =
      {
       leaf: '0x01',
