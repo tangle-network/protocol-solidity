@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ethers } from 'ethers';
 import { getChainIdType, ZkComponents } from "@webb-tools/utils";
 import { PoseidonT3__factory } from "@webb-tools/contracts";
@@ -118,7 +119,6 @@ export class SignatureBridge {
       await bridgeInstance.setAnchorHandler(handler);
 
       bridgeSides.set(chainID, bridgeInstance);
-      //console.log(`bridgeSide address on ${chainID}: ${bridgeInstance.contract.address}`);
 
       // Create Treasury and TreasuryHandler
       const treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeInstance.contract.address, [],[], bridgeInstance.admin);
@@ -156,8 +156,6 @@ export class SignatureBridge {
         allowedNative,
         deployers[chainID],
       );
-      
-      //console.log(`created GovernedTokenWrapper on ${chainID}: ${tokenInstance.contract.address}`);
 
       await bridgeInstance.setTokenWrapperHandler(tokenWrapperHandler);
       await bridgeInstance.setGovernedTokenResourceWithSignature(tokenInstance);
@@ -193,8 +191,6 @@ export class SignatureBridge {
           zkComponents,
           deployers[chainID]
         );
-
-        //console.log(`createdAnchor: ${anchorInstance.contract.address}`);
 
         // grant minting rights to the anchor
         await tokenInstance.grantMinterRole(anchorInstance.contract.address); 
