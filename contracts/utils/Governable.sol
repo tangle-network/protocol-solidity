@@ -140,7 +140,6 @@ contract Governable {
     }
 
     function voteInFavorForceSetGovernor(Vote memory vote) external {
-        
         // Check time 
         require(block.timestamp >= lastGovernorUpdateTime + sessionLengthMultiplier * (averageSessionLengthInMillisecs / 1000), "Invalid time for vote");
         

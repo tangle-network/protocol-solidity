@@ -13,7 +13,6 @@
  
  // Convenience wrapper classes for contract classes
  import { Governable__factory } from '../../typechain';
-import { BlockForkEvent } from '@ethersproject/contracts/node_modules/@ethersproject/abstract-provider';
  
  describe('Governable Contract', () => {
   let governableInstance;
