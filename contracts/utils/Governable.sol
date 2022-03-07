@@ -136,6 +136,7 @@ contract Governable {
         averageSessionLengthInMillisecs = _averageSessionLengthInMillisecs;
         numOfProposers = _numOfProposers;
         proposerSetUpdateNonce = _proposerSetUpdateNonce;
+        currentVotingPeriod++;
     }
 
     function voteInFavorForceSetGovernor(Vote memory vote) external {
@@ -144,11 +145,12 @@ contract Governable {
         require(block.timestamp >= lastGovernorUpdateTime + sessionLengthMultiplier * (averageSessionLengthInMillisecs / 1000), "Invalid time for vote");
         
         // Check merkle proof is valid
-        require(_isValidMerkleProof(vote.siblingPathNodes, vote.leaf, vote.leafIndex));
+        require(_isValidMerkleProof(vote.siblingPathNodes, vote.leaf, vote.leafIndex), "invalid merkle proof");
 
         // Make sure not already voted
         require(!alreadyVoted[vote.leaf], "already voted");
 
+        alreadyVoted[vote.leaf] = true;
         numOfVotesForGovernor[currentVotingPeriod][vote.proposedGovernor] += 1;
         _tryResolveVote(vote.proposedGovernor);
     }

@@ -4,7 +4,7 @@
  */
  const assert = require('assert');
  const path = require('path');
- import { ethers } from 'hardhat';
+ import { ethers, network } from 'hardhat';
  import BN from 'bn.js';
  import { toFixedHex, toHex } from '../../packages/utils/src';
  import EC from 'elliptic';
@@ -13,6 +13,7 @@
  
  // Convenience wrapper classes for contract classes
  import { Governable__factory } from '../../typechain';
+import { BlockForkEvent } from '@ethersproject/contracts/node_modules/@ethersproject/abstract-provider';
  
  describe('Governable Contract', () => {
   let governableInstance;
@@ -94,7 +95,7 @@
     assert.strictEqual(firstRotationKey, events[2].args.previousOwner);
   });
 
-  it.only('proposer set data should update properly', async() => {
+  it('proposer set data should update properly', async() => {
     // Transfer ownership to an address we can sign with
     assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '0');
     const wallet = ethers.Wallet.createRandom();
@@ -133,5 +134,119 @@
     assert.strictEqual((await governableInstance.proposerSetUpdateNonce()).toString(), '1');
     assert.strictEqual((await governableInstance.numOfProposers()).toString(), '4');
     assert.strictEqual((await governableInstance.proposerSetRoot()), dummyProposerSetRoot);
+  });
+
+  it.only('should vote validly and change the governor', async() => {
+    const voteStruct =
+     {
+      leaf: '0x01',
+      leafIndex: 0, 
+      siblingPathNodes:['0x0000000000000000000000000000000000000000000000000000000000000001'], 
+      proposedGovernor: '0x1111111111111111111111111111111111111111'
+    };
+
+    await TruffleAssert.reverts(
+      governableInstance.voteInFavorForceSetGovernor(voteStruct),
+      'Invalid time for vote'
+    );
+
+    const proposer0 = '0x00';
+    const proposer1 = '0x01';
+    const proposer2 = '0x02';
+    const proposer3 = '0x03';
+    
+    const hashProposer0 = ethers.utils.keccak256(proposer0);
+    const hashProposer1 = ethers.utils.keccak256(proposer1);
+    const hashProposer2 = ethers.utils.keccak256(proposer2);
+    const hashProposer3 = ethers.utils.keccak256(proposer3);
+
+    const hashProposer01 = ethers.utils.keccak256(hashProposer0 + hashProposer1.slice(2));
+    const hashProposer23 = ethers.utils.keccak256(hashProposer2 + hashProposer3.slice(2));
+
+
+    const hashProposer0123 = ethers.utils.keccak256(hashProposer01 + hashProposer23.slice(2));
+
+
+    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '0');
+    const wallet = ethers.Wallet.createRandom();
+    const key = ec.keyFromPrivate(wallet.privateKey.slice(2), 'hex');
+    const pubkey = key.getPublic().encode('hex').slice(2);
+    const publicKey = '0x' + pubkey;
+    let nextGovernorAddress = ethers.utils.getAddress('0x' + ethers.utils.keccak256(publicKey).slice(-40));
+    await governableInstance.transferOwnership(nextGovernorAddress, 1);
+    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '1');
+
+    const proposerSetRoot = hashProposer0123;
+    const averageSessionLengthInMilliseconds = 50000;
+    const numOfProposers = 4;
+    const proposerSetUpdateNonce = 1;
+    
+    const prehashed = proposerSetRoot + toFixedHex(averageSessionLengthInMilliseconds, 8).slice(2) + toFixedHex(numOfProposers, 4).slice(2) + toFixedHex(proposerSetUpdateNonce, 4).slice(2);
+
+    let msg = ethers.utils.arrayify(ethers.utils.keccak256(prehashed));
+    let signature = key.sign(msg);
+    let expandedSig = { r: '0x' + signature.r.toString('hex'), s: '0x' + signature.s.toString('hex'), v: signature.recoveryParam + 27 }
+
+    // Transaction malleability fix if s is too large (Bitcoin allows it, Ethereum rejects it)
+    // https://ethereum.stackexchange.com/questions/55245/why-is-s-in-transaction-signature-limited-to-n-21
+    let sig;
+    try {
+      sig = ethers.utils.joinSignature(expandedSig)
+    } catch (e) {
+      expandedSig.s = '0x' + (new BN(ec.curve.n).sub(signature.s)).toString('hex');
+      expandedSig.v = (expandedSig.v === 27) ? 28 : 27;
+      sig = ethers.utils.joinSignature(expandedSig)
+    }
+
+    await governableInstance.updateProposerSetData(proposerSetRoot, averageSessionLengthInMilliseconds, numOfProposers, proposerSetUpdateNonce, sig);
+
+    assert.strictEqual((await governableInstance.averageSessionLengthInMillisecs()).toString(), '50000');
+    assert.strictEqual((await governableInstance.proposerSetUpdateNonce()).toString(), '1');
+    assert.strictEqual((await governableInstance.numOfProposers()).toString(), '4');
+    assert.strictEqual((await governableInstance.proposerSetRoot()), proposerSetRoot);
+    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '2');
+    await network.provider.send("evm_increaseTime", [600]);
+
+    const voteProposer0 = 
+    {
+      leaf: proposer0,
+      leafIndex: 0, 
+      siblingPathNodes:[hashProposer1, hashProposer23], 
+      proposedGovernor: '0x1111111111111111111111111111111111111111'
+    };
+
+    await governableInstance.voteInFavorForceSetGovernor(voteProposer0);
+
+    assert.notEqual(await governableInstance.governor(), '0x1111111111111111111111111111111111111111');
+
+    await TruffleAssert.reverts(
+      governableInstance.voteInFavorForceSetGovernor(voteProposer0),
+      'already voted'
+    );
+
+    const voteProposer1 = 
+    {
+      leaf: proposer1,
+      leafIndex: 1, 
+      siblingPathNodes:[hashProposer0, hashProposer23], 
+      proposedGovernor: '0x1111111111111111111111111111111111111111'
+    };
+
+    assert.notEqual(await governableInstance.governor(), '0x1111111111111111111111111111111111111111');
+
+    await governableInstance.voteInFavorForceSetGovernor(voteProposer1);
+
+    const voteProposer2 = 
+    {
+      leaf: proposer2,
+      leafIndex: 2, 
+      siblingPathNodes:[hashProposer3, hashProposer01], 
+      proposedGovernor: '0x1111111111111111111111111111111111111111'
+    };
+
+    await governableInstance.voteInFavorForceSetGovernor(voteProposer2);
+
+    assert.strictEqual(await governableInstance.governor(), '0x1111111111111111111111111111111111111111');
+    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '3');
   });
 });
