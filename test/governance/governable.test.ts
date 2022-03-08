@@ -135,10 +135,10 @@
     assert.strictEqual((await governableInstance.proposerSetRoot()), dummyProposerSetRoot);
   });
 
-  it('should vote validly and change the governor', async() => {
+  it.only('should vote validly and change the governor', async() => {
     const voteStruct =
      {
-      leaf: '0x01',
+      proposer: '0x01',
       leafIndex: 0, 
       siblingPathNodes:['0x0000000000000000000000000000000000000000000000000000000000000001'], 
       proposedGovernor: '0x1111111111111111111111111111111111111111'
@@ -149,10 +149,28 @@
       'Invalid time for vote'
     );
 
-    const proposer0 = '0x00';
-    const proposer1 = '0x01';
-    const proposer2 = '0x02';
-    const proposer3 = '0x03';
+    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '0');
+    const wallet = ethers.Wallet.createRandom();
+    const key = ec.keyFromPrivate(wallet.privateKey.slice(2), 'hex');
+    const pubkey = key.getPublic().encode('hex').slice(2);
+    const publicKey = '0x' + pubkey;
+    let nextGovernorAddress = ethers.utils.getAddress('0x' + ethers.utils.keccak256(publicKey).slice(-40));
+    await governableInstance.transferOwnership(nextGovernorAddress, 1);
+    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '1');
+
+    const signers = await ethers.getSigners()
+
+    const proposer0Signer = signers[0];
+    const proposer0 = signers[0].address;
+
+    const proposer1Signer = signers[1];
+    const proposer1 = signers[1].address;
+
+    const proposer2Signer = signers[2];
+    const proposer2 = signers[2].address;
+
+    const proposer3Signer = signers[3];
+    const proposer3 = signers[3].address;
     
     const hashProposer0 = ethers.utils.keccak256(proposer0);
     const hashProposer1 = ethers.utils.keccak256(proposer1);
@@ -164,16 +182,6 @@
 
 
     const hashProposer0123 = ethers.utils.keccak256(hashProposer01 + hashProposer23.slice(2));
-
-
-    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '0');
-    const wallet = ethers.Wallet.createRandom();
-    const key = ec.keyFromPrivate(wallet.privateKey.slice(2), 'hex');
-    const pubkey = key.getPublic().encode('hex').slice(2);
-    const publicKey = '0x' + pubkey;
-    let nextGovernorAddress = ethers.utils.getAddress('0x' + ethers.utils.keccak256(publicKey).slice(-40));
-    await governableInstance.transferOwnership(nextGovernorAddress, 1);
-    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '1');
 
     const proposerSetRoot = hashProposer0123;
     const averageSessionLengthInMilliseconds = 50000;
@@ -208,42 +216,42 @@
 
     const voteProposer0 = 
     {
-      leaf: proposer0,
+      proposer: proposer0,
       leafIndex: 0, 
       siblingPathNodes:[hashProposer1, hashProposer23], 
       proposedGovernor: '0x1111111111111111111111111111111111111111'
     };
 
-    await governableInstance.voteInFavorForceSetGovernor(voteProposer0);
+    await governableInstance.connect(proposer0Signer).voteInFavorForceSetGovernor(voteProposer0);
 
     assert.notEqual(await governableInstance.governor(), '0x1111111111111111111111111111111111111111');
 
     await TruffleAssert.reverts(
-      governableInstance.voteInFavorForceSetGovernor(voteProposer0),
+      governableInstance.connect(proposer0Signer).voteInFavorForceSetGovernor(voteProposer0),
       'already voted'
     );
 
     const voteProposer1 = 
     {
-      leaf: proposer1,
+      proposer: proposer1,
       leafIndex: 1, 
       siblingPathNodes:[hashProposer0, hashProposer23], 
       proposedGovernor: '0x1111111111111111111111111111111111111111'
     };
 
-    assert.notEqual(await governableInstance.governor(), '0x1111111111111111111111111111111111111111');
+    await governableInstance.connect(proposer1Signer).voteInFavorForceSetGovernor(voteProposer1);
 
-    await governableInstance.voteInFavorForceSetGovernor(voteProposer1);
+    assert.notEqual(await governableInstance.governor(), '0x1111111111111111111111111111111111111111');
 
     const voteProposer2 = 
     {
-      leaf: proposer2,
+      proposer: proposer2,
       leafIndex: 2, 
       siblingPathNodes:[hashProposer3, hashProposer01], 
       proposedGovernor: '0x1111111111111111111111111111111111111111'
     };
 
-    await governableInstance.voteInFavorForceSetGovernor(voteProposer2);
+    await governableInstance.connect(proposer2Signer).voteInFavorForceSetGovernor(voteProposer2);
 
     assert.strictEqual(await governableInstance.governor(), '0x1111111111111111111111111111111111111111');
     assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '3');

@@ -14,13 +14,13 @@ contract Governable {
     uint64 public averageSessionLengthInMillisecs = 2**64 - 1;
     uint256 public sessionLengthMultiplier = 2;
     uint32 public numOfProposers;
-    mapping (bytes => bool) alreadyVoted;
+    mapping (uint256 => mapping(address => bool)) alreadyVoted;
     uint256 public currentVotingPeriod = 0;
     mapping (uint256 => mapping(address => uint32)) numOfVotesForGovernor;
 
 
     struct Vote {
-        bytes leaf;
+        bytes proposer;
         uint32 leafIndex;
         bytes32[] siblingPathNodes;
         address proposedGovernor;
@@ -124,6 +124,9 @@ contract Governable {
         currentVotingPeriod++;
     }
 
+    /**
+     * @dev Updates the proposer set data if a valid signature from the DKG is provided. The *      data consists proposerSetRoot, the average session length in milliseconds, the *      number of proposers, and the proposal nonce.
+     */
     function updateProposerSetData(bytes32 _proposerSetRoot, uint64 _averageSessionLengthInMillisecs, uint32 _numOfProposers, uint32 _proposerSetUpdateNonce, bytes memory sig) public {
         // Valid Nonce
         require(proposerSetUpdateNonce < _proposerSetUpdateNonce, "Invalid nonce");
@@ -140,26 +143,43 @@ contract Governable {
     }
 
     function voteInFavorForceSetGovernor(Vote memory vote) external {
-        // Check time 
+        // Check block time stamp is some length greater than the last time
+        // ownership transferred
         require(block.timestamp >= lastGovernorUpdateTime + sessionLengthMultiplier * (averageSessionLengthInMillisecs / 1000), "Invalid time for vote");
         
         // Check merkle proof is valid
-        require(_isValidMerkleProof(vote.siblingPathNodes, vote.leaf, vote.leafIndex), "invalid merkle proof");
+        require(_isValidMerkleProof(vote.siblingPathNodes, vote.proposer, vote.leafIndex), "invalid merkle proof");
 
-        // Make sure not already voted
-        require(!alreadyVoted[vote.leaf], "already voted");
+        // Make sure that the sender of the vote corresponds to the proposer in the vote struct data
+        address proposerAddress;
+        if (vote.proposer.length == 20) {
+            proposerAddress = address(bytes20(vote.proposer));
+        } else {
+            proposerAddress = address(bytes20(keccak256(vote.proposer)));
+        }
+        require(msg.sender == proposerAddress, "msg sender is not the proposer");
 
-        alreadyVoted[vote.leaf] = true;
+        // Make sure proposer has not already voted
+        require(!alreadyVoted[currentVotingPeriod][proposerAddress], "already voted");
+
+        alreadyVoted[currentVotingPeriod][proposerAddress] = true;
         numOfVotesForGovernor[currentVotingPeriod][vote.proposedGovernor] += 1;
         _tryResolveVote(vote.proposedGovernor);
     }
 
+    /**
+     * @dev Tries and resolves the vote by checking the number of votes for
+     *      a proposed governor is greater than numOfProposers/2.
+     */
     function _tryResolveVote(address proposedGovernor) internal {
         if (numOfVotesForGovernor[currentVotingPeriod][proposedGovernor] > numOfProposers / 2) {
             _transferOwnership(proposedGovernor);
         }
     }
 
+    /**
+     * @dev Checks a merkle proof given a leaf and merkle path of sibling nodes.
+     */
     function _isValidMerkleProof(bytes32[] memory siblingPathNodes, bytes memory leaf, uint32 leafIndex) internal view returns (bool) {
         bytes32 leafHash = keccak256(leaf);
         bytes32 currNodeHash = leafHash;

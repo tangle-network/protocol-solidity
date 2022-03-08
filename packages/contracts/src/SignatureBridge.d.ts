@@ -155,7 +155,7 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     functionFragment: "voteInFavorForceSetGovernor",
     values: [
       {
-        leaf: BytesLike;
+        proposer: BytesLike;
         leafIndex: BigNumberish;
         siblingPathNodes: BytesLike[];
         proposedGovernor: string;
@@ -420,7 +420,7 @@ export class SignatureBridge extends BaseContract {
 
     voteInFavorForceSetGovernor(
       vote: {
-        leaf: BytesLike;
+        proposer: BytesLike;
         leafIndex: BigNumberish;
         siblingPathNodes: BytesLike[];
         proposedGovernor: string;
@@ -525,7 +525,7 @@ export class SignatureBridge extends BaseContract {
 
   voteInFavorForceSetGovernor(
     vote: {
-      leaf: BytesLike;
+      proposer: BytesLike;
       leafIndex: BigNumberish;
       siblingPathNodes: BytesLike[];
       proposedGovernor: string;
@@ -628,7 +628,7 @@ export class SignatureBridge extends BaseContract {
 
     voteInFavorForceSetGovernor(
       vote: {
-        leaf: BytesLike;
+        proposer: BytesLike;
         leafIndex: BigNumberish;
         siblingPathNodes: BytesLike[];
         proposedGovernor: string;
@@ -772,7 +772,7 @@ export class SignatureBridge extends BaseContract {
 
     voteInFavorForceSetGovernor(
       vote: {
-        leaf: BytesLike;
+        proposer: BytesLike;
         leafIndex: BigNumberish;
         siblingPathNodes: BytesLike[];
         proposedGovernor: string;
@@ -889,7 +889,7 @@ export class SignatureBridge extends BaseContract {
 
     voteInFavorForceSetGovernor(
       vote: {
-        leaf: BytesLike;
+        proposer: BytesLike;
         leafIndex: BigNumberish;
         siblingPathNodes: BytesLike[];
         proposedGovernor: string;
