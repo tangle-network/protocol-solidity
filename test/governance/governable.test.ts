@@ -135,7 +135,7 @@
     assert.strictEqual((await governableInstance.proposerSetRoot()), dummyProposerSetRoot);
   });
 
-  it.only('should vote validly and change the governor', async() => {
+  it('should vote validly and change the governor', async() => {
     const voteStruct =
      {
       proposer: '0x01',

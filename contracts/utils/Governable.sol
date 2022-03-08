@@ -20,7 +20,6 @@ contract Governable {
 
 
     struct Vote {
-        bytes proposer;
         uint32 leafIndex;
         bytes32[] siblingPathNodes;
         address proposedGovernor;
@@ -146,18 +145,9 @@ contract Governable {
         // Check block time stamp is some length greater than the last time
         // ownership transferred
         require(block.timestamp >= lastGovernorUpdateTime + sessionLengthMultiplier * (averageSessionLengthInMillisecs / 1000), "Invalid time for vote");
-        
+        address proposerAddress = msg.sender;
         // Check merkle proof is valid
-        require(_isValidMerkleProof(vote.siblingPathNodes, vote.proposer, vote.leafIndex), "invalid merkle proof");
-
-        // Make sure that the sender of the vote corresponds to the proposer in the vote struct data
-        address proposerAddress;
-        if (vote.proposer.length == 20) {
-            proposerAddress = address(bytes20(vote.proposer));
-        } else {
-            proposerAddress = address(bytes20(keccak256(vote.proposer)));
-        }
-        require(msg.sender == proposerAddress, "msg sender is not the proposer");
+        require(_isValidMerkleProof(vote.siblingPathNodes, proposerAddress, vote.leafIndex), "invalid merkle proof");
 
         // Make sure proposer has not already voted
         require(!alreadyVoted[currentVotingPeriod][proposerAddress], "already voted");
@@ -180,8 +170,8 @@ contract Governable {
     /**
      * @dev Checks a merkle proof given a leaf and merkle path of sibling nodes.
      */
-    function _isValidMerkleProof(bytes32[] memory siblingPathNodes, bytes memory leaf, uint32 leafIndex) internal view returns (bool) {
-        bytes32 leafHash = keccak256(leaf);
+    function _isValidMerkleProof(bytes32[] memory siblingPathNodes, address leaf, uint32 leafIndex) internal view returns (bool) {
+        bytes32 leafHash = keccak256(abi.encodePacked(leaf));
         bytes32 currNodeHash = leafHash;
         uint32 nodeIndex = leafIndex;
 
