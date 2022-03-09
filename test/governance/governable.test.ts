@@ -138,7 +138,6 @@
   it('should vote validly and change the governor', async() => {
     const voteStruct =
      {
-      proposer: '0x01',
       leafIndex: 0, 
       siblingPathNodes:['0x0000000000000000000000000000000000000000000000000000000000000001'], 
       proposedGovernor: '0x1111111111111111111111111111111111111111'
@@ -216,7 +215,6 @@
 
     const voteProposer0 = 
     {
-      proposer: proposer0,
       leafIndex: 0, 
       siblingPathNodes:[hashProposer1, hashProposer23], 
       proposedGovernor: '0x1111111111111111111111111111111111111111'
@@ -233,7 +231,6 @@
 
     const voteProposer1 = 
     {
-      proposer: proposer1,
       leafIndex: 1, 
       siblingPathNodes:[hashProposer0, hashProposer23], 
       proposedGovernor: '0x1111111111111111111111111111111111111111'
@@ -245,7 +242,6 @@
 
     const voteProposer2 = 
     {
-      proposer: proposer2,
       leafIndex: 2, 
       siblingPathNodes:[hashProposer3, hashProposer01], 
       proposedGovernor: '0x1111111111111111111111111111111111111111'
