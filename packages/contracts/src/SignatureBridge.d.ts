@@ -46,7 +46,7 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     "transferOwnership(address,uint32)": FunctionFragment;
     "transferOwnershipWithSignaturePubKey(bytes,uint32,bytes)": FunctionFragment;
     "updateProposerSetData(bytes32,uint64,uint32,uint32,bytes)": FunctionFragment;
-    "voteInFavorForceSetGovernor((bytes,uint32,bytes32[],address))": FunctionFragment;
+    "voteInFavorForceSetGovernor((uint32,bytes32[],address))": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -155,7 +155,6 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     functionFragment: "voteInFavorForceSetGovernor",
     values: [
       {
-        leaf: BytesLike;
         leafIndex: BigNumberish;
         siblingPathNodes: BytesLike[];
         proposedGovernor: string;
@@ -420,7 +419,6 @@ export class SignatureBridge extends BaseContract {
 
     voteInFavorForceSetGovernor(
       vote: {
-        leaf: BytesLike;
         leafIndex: BigNumberish;
         siblingPathNodes: BytesLike[];
         proposedGovernor: string;
@@ -525,7 +523,6 @@ export class SignatureBridge extends BaseContract {
 
   voteInFavorForceSetGovernor(
     vote: {
-      leaf: BytesLike;
       leafIndex: BigNumberish;
       siblingPathNodes: BytesLike[];
       proposedGovernor: string;
@@ -628,7 +625,6 @@ export class SignatureBridge extends BaseContract {
 
     voteInFavorForceSetGovernor(
       vote: {
-        leaf: BytesLike;
         leafIndex: BigNumberish;
         siblingPathNodes: BytesLike[];
         proposedGovernor: string;
@@ -772,7 +768,6 @@ export class SignatureBridge extends BaseContract {
 
     voteInFavorForceSetGovernor(
       vote: {
-        leaf: BytesLike;
         leafIndex: BigNumberish;
         siblingPathNodes: BytesLike[];
         proposedGovernor: string;
@@ -889,7 +884,6 @@ export class SignatureBridge extends BaseContract {
 
     voteInFavorForceSetGovernor(
       vote: {
-        leaf: BytesLike;
         leafIndex: BigNumberish;
         siblingPathNodes: BytesLike[];
         proposedGovernor: string;

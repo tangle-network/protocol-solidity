@@ -9,18 +9,30 @@ contract Governable {
     uint32 public refreshNonce = 0;
 
     // Storage values relevant to proposer set update
+
+    // the proposal nonce
     uint32 public proposerSetUpdateNonce = 0;
+    // the root of the proposer set Merkle tree
     bytes32 public proposerSetRoot;
+    // the average session length in millisecs
     uint64 public averageSessionLengthInMillisecs = 2**64 - 1;
+    // the session length multiplier (see the voteInFavorForceSetGovernor function below)
     uint256 public sessionLengthMultiplier = 2;
+    // the number of proposers
     uint32 public numOfProposers;
-    mapping (bytes => bool) alreadyVoted;
+    // the current voting period
     uint256 public currentVotingPeriod = 0;
+    // (currentVotingPeriod => (proposer => (true/false))) whether a proposer has
+    // voted in this period
+    mapping (uint256 => mapping(address => bool)) alreadyVoted;
+    // (currentVotingPeriod => (proposerGovernor => (uint))) number of votes a 
+    // proposedGovernor has in the current period
     mapping (uint256 => mapping(address => uint32)) numOfVotesForGovernor;
 
-
+    // leafIndex: leafIndex of the proposer in the proposer set Merkle tree
+    // siblingPathNodes: Merkle proof path of sibling nodes
+    // proposedGovernor: the governor that the voter wants to force reset to
     struct Vote {
-        bytes leaf;
         uint32 leafIndex;
         bytes32[] siblingPathNodes;
         address proposedGovernor;
@@ -124,6 +136,14 @@ contract Governable {
         currentVotingPeriod++;
     }
 
+    /**
+     * @dev Updates the proposer set data if a valid signature from the DKG is provided. The *      data consists proposerSetRoot, the average session length in milliseconds, the *      number of proposers, and the proposal nonce.
+     * @param _proposerSetRoot the root hash of the proposer set Merkle tree
+     * @param _averageSessionLengthInMillisecs the average DKG session length in milliseconds
+     * @param _numOfProposers the total number of proposers
+     * @param _proposerSetUpdateNonce the proposal nonce (to prevent replay attacks)
+     * @param sig the DKGs signature of the aforementioned parameters
+     */
     function updateProposerSetData(bytes32 _proposerSetRoot, uint64 _averageSessionLengthInMillisecs, uint32 _numOfProposers, uint32 _proposerSetUpdateNonce, bytes memory sig) public {
         // Valid Nonce
         require(proposerSetUpdateNonce < _proposerSetUpdateNonce, "Invalid nonce");
@@ -139,29 +159,45 @@ contract Governable {
         currentVotingPeriod++;
     }
 
+    /**
+     * @dev Casts a vote in favor of force refreshing the governor
+     * @param vote a vote struct, see above for details on it.
+     */
     function voteInFavorForceSetGovernor(Vote memory vote) external {
-        // Check time 
+        // Check block time stamp is some length greater than the last time
+        // ownership transferred
         require(block.timestamp >= lastGovernorUpdateTime + sessionLengthMultiplier * (averageSessionLengthInMillisecs / 1000), "Invalid time for vote");
-        
+        address proposerAddress = msg.sender;
         // Check merkle proof is valid
-        require(_isValidMerkleProof(vote.siblingPathNodes, vote.leaf, vote.leafIndex), "invalid merkle proof");
+        require(_isValidMerkleProof(vote.siblingPathNodes, proposerAddress, vote.leafIndex), "invalid merkle proof");
 
-        // Make sure not already voted
-        require(!alreadyVoted[vote.leaf], "already voted");
+        // Make sure proposer has not already voted
+        require(!alreadyVoted[currentVotingPeriod][proposerAddress], "already voted");
 
-        alreadyVoted[vote.leaf] = true;
+        alreadyVoted[currentVotingPeriod][proposerAddress] = true;
         numOfVotesForGovernor[currentVotingPeriod][vote.proposedGovernor] += 1;
         _tryResolveVote(vote.proposedGovernor);
     }
 
+    /**
+     * @dev Tries and resolves the vote by checking the number of votes for
+     *      a proposed governor is greater than numOfProposers/2.
+     * @param proposedGovernor the address to transfer ownership to, if the vote passes
+     */
     function _tryResolveVote(address proposedGovernor) internal {
         if (numOfVotesForGovernor[currentVotingPeriod][proposedGovernor] > numOfProposers / 2) {
             _transferOwnership(proposedGovernor);
         }
     }
 
-    function _isValidMerkleProof(bytes32[] memory siblingPathNodes, bytes memory leaf, uint32 leafIndex) internal view returns (bool) {
-        bytes32 leafHash = keccak256(leaf);
+    /**
+     * @dev Checks a merkle proof given a leaf and merkle path of sibling nodes.
+     * @param siblingPathNodes the path of sibling nodes of the Merkle proof
+     * @param leaf the leaf to prove membership of in the Merkle tree
+     * @param leafIndex the index of the leaf in the Merkle tree
+     */
+    function _isValidMerkleProof(bytes32[] memory siblingPathNodes, address leaf, uint32 leafIndex) internal view returns (bool) {
+        bytes32 leafHash = keccak256(abi.encodePacked(leaf));
         bytes32 currNodeHash = leafHash;
         uint32 nodeIndex = leafIndex;
 
