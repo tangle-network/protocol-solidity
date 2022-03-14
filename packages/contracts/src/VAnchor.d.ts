@@ -717,9 +717,7 @@ export class VAnchor extends BaseContract {
 
     getLatestNeighborRoots(overrides?: CallOverrides): Promise<[string[]]>;
 
-    getProposalNonce(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    getProposalNonce(overrides?: CallOverrides): Promise<[number]>;
 
     handler(overrides?: CallOverrides): Promise<[string]>;
 
@@ -1042,9 +1040,7 @@ export class VAnchor extends BaseContract {
 
   getLatestNeighborRoots(overrides?: CallOverrides): Promise<string[]>;
 
-  getProposalNonce(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  getProposalNonce(overrides?: CallOverrides): Promise<number>;
 
   handler(overrides?: CallOverrides): Promise<string>;
 
@@ -1758,9 +1754,7 @@ export class VAnchor extends BaseContract {
 
     getLatestNeighborRoots(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getProposalNonce(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    getProposalNonce(overrides?: CallOverrides): Promise<BigNumber>;
 
     handler(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -2074,9 +2068,7 @@ export class VAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getProposalNonce(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+    getProposalNonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     handler(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

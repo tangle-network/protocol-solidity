@@ -367,7 +367,7 @@ Get the latest merkle roots of all neighbor edges
 ### getProposalNonce
 
 ```solidity
-function getProposalNonce() external nonpayable returns (uint32)
+function getProposalNonce() external view returns (uint32)
 ```
 
 Gets the proposal nonce of this contract
