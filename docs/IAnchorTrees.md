@@ -2,9 +2,9 @@
 
 
 
+> IAnchorTrees interface
 
-
-
+Interface for AnchorTrees used in Anonymity mining
 
 
 
@@ -16,7 +16,7 @@
 function registerDeposit(address instance, bytes32 commitment) external nonpayable
 ```
 
-
+Registers a deposit in the AnchorTree
 
 
 
@@ -24,8 +24,8 @@ function registerDeposit(address instance, bytes32 commitment) external nonpayab
 
 | Name | Type | Description |
 |---|---|---|
-| instance | address | undefined
-| commitment | bytes32 | undefined
+| instance | address | The address of the Anchor
+| commitment | bytes32 | The commitment to be inserted into the tree
 
 ### registerWithdrawal
 
@@ -33,7 +33,7 @@ function registerDeposit(address instance, bytes32 commitment) external nonpayab
 function registerWithdrawal(address instance, bytes32 nullifier) external nonpayable
 ```
 
-
+Registers a withdrawal in the AnchorTree
 
 
 
@@ -41,8 +41,8 @@ function registerWithdrawal(address instance, bytes32 nullifier) external nonpay
 
 | Name | Type | Description |
 |---|---|---|
-| instance | address | undefined
-| nullifier | bytes32 | undefined
+| instance | address | The address of the Anchor
+| nullifier | bytes32 | The nullifier to be exposed during withdraw
 
 
 

@@ -62,7 +62,7 @@ interface FixedDepositAnchorInterface extends ethers.utils.Interface {
     "setVerifier(address,uint32)": FunctionFragment;
     "token()": FunctionFragment;
     "unpackProof(uint256[8])": FunctionFragment;
-    "unwrapIntoNative(address,uint256)": FunctionFragment;
+    "unwrapIntoNative(uint256)": FunctionFragment;
     "unwrapIntoToken(address,uint256)": FunctionFragment;
     "updateEdge(uint256,bytes32,uint256)": FunctionFragment;
     "verifier()": FunctionFragment;
@@ -217,7 +217,7 @@ interface FixedDepositAnchorInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "unwrapIntoNative",
-    values: [string, BigNumberish]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "unwrapIntoToken",
@@ -584,20 +584,14 @@ export class FixedDepositAnchor extends BaseContract {
           root: string;
           latestLeafIndex: BigNumber;
         })[]
-      ] & {
-        edges: ([BigNumber, string, BigNumber] & {
-          chainID: BigNumber;
-          root: string;
-          latestLeafIndex: BigNumber;
-        })[];
-      }
+      ]
     >;
 
-    getLatestNeighborRoots(
-      overrides?: CallOverrides
-    ): Promise<[string[]] & { roots: string[] }>;
+    getLatestNeighborRoots(overrides?: CallOverrides): Promise<[string[]]>;
 
-    getProposalNonce(overrides?: CallOverrides): Promise<[number]>;
+    getProposalNonce(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     getToken(overrides?: CallOverrides): Promise<[string]>;
 
@@ -618,7 +612,7 @@ export class FixedDepositAnchor extends BaseContract {
     hasher(overrides?: CallOverrides): Promise<[string]>;
 
     isKnownNeighborRoot(
-      neighborChainID: BigNumberish,
+      _neighborChainID: BigNumberish,
       _root: BytesLike,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
@@ -636,10 +630,10 @@ export class FixedDepositAnchor extends BaseContract {
     isSpentArray(
       _nullifierHashes: BytesLike[],
       overrides?: CallOverrides
-    ): Promise<[boolean[]] & { spent: boolean[] }>;
+    ): Promise<[boolean[]]>;
 
     isValidRoots(
-      roots: BytesLike[],
+      _roots: BytesLike[],
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
@@ -663,14 +657,14 @@ export class FixedDepositAnchor extends BaseContract {
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
     setHandler(
-      newHandler: string,
-      nonce: BigNumberish,
+      _handler: string,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setVerifier(
-      newVerifier: string,
-      nonce: BigNumberish,
+      _verifier: string,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -697,21 +691,20 @@ export class FixedDepositAnchor extends BaseContract {
     >;
 
     unwrapIntoNative(
-      tokenAddress: string,
-      amount: BigNumberish,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     unwrapIntoToken(
-      tokenAddress: string,
-      amount: BigNumberish,
+      _tokenAddress: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     updateEdge(
-      sourceChainID: BigNumberish,
-      root: BytesLike,
-      leafIndex: BigNumberish,
+      _sourceChainID: BigNumberish,
+      _root: BytesLike,
+      _leafIndex: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -748,12 +741,12 @@ export class FixedDepositAnchor extends BaseContract {
         _fee: BigNumberish;
         _refund: BigNumberish;
       },
-      tokenAddress: string,
+      _tokenAddress: string,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     wrapAndDeposit(
-      tokenAddress: string,
+      _tokenAddress: string,
       _commitment: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -763,8 +756,8 @@ export class FixedDepositAnchor extends BaseContract {
     ): Promise<ContractTransaction>;
 
     wrapToken(
-      tokenAddress: string,
-      amount: BigNumberish,
+      _tokenAddress: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -838,7 +831,9 @@ export class FixedDepositAnchor extends BaseContract {
 
   getLatestNeighborRoots(overrides?: CallOverrides): Promise<string[]>;
 
-  getProposalNonce(overrides?: CallOverrides): Promise<number>;
+  getProposalNonce(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   getToken(overrides?: CallOverrides): Promise<string>;
 
@@ -856,7 +851,7 @@ export class FixedDepositAnchor extends BaseContract {
   hasher(overrides?: CallOverrides): Promise<string>;
 
   isKnownNeighborRoot(
-    neighborChainID: BigNumberish,
+    _neighborChainID: BigNumberish,
     _root: BytesLike,
     overrides?: CallOverrides
   ): Promise<boolean>;
@@ -873,7 +868,10 @@ export class FixedDepositAnchor extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean[]>;
 
-  isValidRoots(roots: BytesLike[], overrides?: CallOverrides): Promise<boolean>;
+  isValidRoots(
+    _roots: BytesLike[],
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
   levels(overrides?: CallOverrides): Promise<number>;
 
@@ -892,14 +890,14 @@ export class FixedDepositAnchor extends BaseContract {
   roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   setHandler(
-    newHandler: string,
-    nonce: BigNumberish,
+    _handler: string,
+    _nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setVerifier(
-    newVerifier: string,
-    nonce: BigNumberish,
+    _verifier: string,
+    _nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -926,21 +924,20 @@ export class FixedDepositAnchor extends BaseContract {
   >;
 
   unwrapIntoNative(
-    tokenAddress: string,
-    amount: BigNumberish,
+    _amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   unwrapIntoToken(
-    tokenAddress: string,
-    amount: BigNumberish,
+    _tokenAddress: string,
+    _amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   updateEdge(
-    sourceChainID: BigNumberish,
-    root: BytesLike,
-    leafIndex: BigNumberish,
+    _sourceChainID: BigNumberish,
+    _root: BytesLike,
+    _leafIndex: BigNumberish,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -977,12 +974,12 @@ export class FixedDepositAnchor extends BaseContract {
       _fee: BigNumberish;
       _refund: BigNumberish;
     },
-    tokenAddress: string,
+    _tokenAddress: string,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   wrapAndDeposit(
-    tokenAddress: string,
+    _tokenAddress: string,
     _commitment: BytesLike,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -992,8 +989,8 @@ export class FixedDepositAnchor extends BaseContract {
   ): Promise<ContractTransaction>;
 
   wrapToken(
-    tokenAddress: string,
-    amount: BigNumberish,
+    _tokenAddress: string,
+    _amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1088,7 +1085,7 @@ export class FixedDepositAnchor extends BaseContract {
     hasher(overrides?: CallOverrides): Promise<string>;
 
     isKnownNeighborRoot(
-      neighborChainID: BigNumberish,
+      _neighborChainID: BigNumberish,
       _root: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
@@ -1106,7 +1103,7 @@ export class FixedDepositAnchor extends BaseContract {
     ): Promise<boolean[]>;
 
     isValidRoots(
-      roots: BytesLike[],
+      _roots: BytesLike[],
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -1130,14 +1127,14 @@ export class FixedDepositAnchor extends BaseContract {
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
     setHandler(
-      newHandler: string,
-      nonce: BigNumberish,
+      _handler: string,
+      _nonce: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     setVerifier(
-      newVerifier: string,
-      nonce: BigNumberish,
+      _verifier: string,
+      _nonce: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1164,21 +1161,20 @@ export class FixedDepositAnchor extends BaseContract {
     >;
 
     unwrapIntoNative(
-      tokenAddress: string,
-      amount: BigNumberish,
+      _amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     unwrapIntoToken(
-      tokenAddress: string,
-      amount: BigNumberish,
+      _tokenAddress: string,
+      _amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     updateEdge(
-      sourceChainID: BigNumberish,
-      root: BytesLike,
-      leafIndex: BigNumberish,
+      _sourceChainID: BigNumberish,
+      _root: BytesLike,
+      _leafIndex: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1215,12 +1211,12 @@ export class FixedDepositAnchor extends BaseContract {
         _fee: BigNumberish;
         _refund: BigNumberish;
       },
-      tokenAddress: string,
+      _tokenAddress: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     wrapAndDeposit(
-      tokenAddress: string,
+      _tokenAddress: string,
       _commitment: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -1228,8 +1224,8 @@ export class FixedDepositAnchor extends BaseContract {
     wrapNative(overrides?: CallOverrides): Promise<void>;
 
     wrapToken(
-      tokenAddress: string,
-      amount: BigNumberish,
+      _tokenAddress: string,
+      _amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1412,7 +1408,9 @@ export class FixedDepositAnchor extends BaseContract {
 
     getLatestNeighborRoots(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getProposalNonce(overrides?: CallOverrides): Promise<BigNumber>;
+    getProposalNonce(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     getToken(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1433,7 +1431,7 @@ export class FixedDepositAnchor extends BaseContract {
     hasher(overrides?: CallOverrides): Promise<BigNumber>;
 
     isKnownNeighborRoot(
-      neighborChainID: BigNumberish,
+      _neighborChainID: BigNumberish,
       _root: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1454,7 +1452,7 @@ export class FixedDepositAnchor extends BaseContract {
     ): Promise<BigNumber>;
 
     isValidRoots(
-      roots: BytesLike[],
+      _roots: BytesLike[],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1478,14 +1476,14 @@ export class FixedDepositAnchor extends BaseContract {
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     setHandler(
-      newHandler: string,
-      nonce: BigNumberish,
+      _handler: string,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setVerifier(
-      newVerifier: string,
-      nonce: BigNumberish,
+      _verifier: string,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1506,21 +1504,20 @@ export class FixedDepositAnchor extends BaseContract {
     ): Promise<BigNumber>;
 
     unwrapIntoNative(
-      tokenAddress: string,
-      amount: BigNumberish,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     unwrapIntoToken(
-      tokenAddress: string,
-      amount: BigNumberish,
+      _tokenAddress: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     updateEdge(
-      sourceChainID: BigNumberish,
-      root: BytesLike,
-      leafIndex: BigNumberish,
+      _sourceChainID: BigNumberish,
+      _root: BytesLike,
+      _leafIndex: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1557,12 +1554,12 @@ export class FixedDepositAnchor extends BaseContract {
         _fee: BigNumberish;
         _refund: BigNumberish;
       },
-      tokenAddress: string,
+      _tokenAddress: string,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     wrapAndDeposit(
-      tokenAddress: string,
+      _tokenAddress: string,
       _commitment: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1572,8 +1569,8 @@ export class FixedDepositAnchor extends BaseContract {
     ): Promise<BigNumber>;
 
     wrapToken(
-      tokenAddress: string,
-      amount: BigNumberish,
+      _tokenAddress: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1644,7 +1641,9 @@ export class FixedDepositAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getProposalNonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    getProposalNonce(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     getToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1665,7 +1664,7 @@ export class FixedDepositAnchor extends BaseContract {
     hasher(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     isKnownNeighborRoot(
-      neighborChainID: BigNumberish,
+      _neighborChainID: BigNumberish,
       _root: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -1686,7 +1685,7 @@ export class FixedDepositAnchor extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     isValidRoots(
-      roots: BytesLike[],
+      _roots: BytesLike[],
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1713,14 +1712,14 @@ export class FixedDepositAnchor extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     setHandler(
-      newHandler: string,
-      nonce: BigNumberish,
+      _handler: string,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setVerifier(
-      newVerifier: string,
-      nonce: BigNumberish,
+      _verifier: string,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1741,21 +1740,20 @@ export class FixedDepositAnchor extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     unwrapIntoNative(
-      tokenAddress: string,
-      amount: BigNumberish,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     unwrapIntoToken(
-      tokenAddress: string,
-      amount: BigNumberish,
+      _tokenAddress: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     updateEdge(
-      sourceChainID: BigNumberish,
-      root: BytesLike,
-      leafIndex: BigNumberish,
+      _sourceChainID: BigNumberish,
+      _root: BytesLike,
+      _leafIndex: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1792,12 +1790,12 @@ export class FixedDepositAnchor extends BaseContract {
         _fee: BigNumberish;
         _refund: BigNumberish;
       },
-      tokenAddress: string,
+      _tokenAddress: string,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     wrapAndDeposit(
-      tokenAddress: string,
+      _tokenAddress: string,
       _commitment: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -1807,8 +1805,8 @@ export class FixedDepositAnchor extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     wrapToken(
-      tokenAddress: string,
-      amount: BigNumberish,
+      _tokenAddress: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

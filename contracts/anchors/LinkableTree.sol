@@ -9,7 +9,6 @@ import "../trees/MerkleTreePoseidon.sol";
 import "../interfaces/IVerifier.sol";
 import "../utils/ChainIdWithType.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "hardhat/console.sol";
 
 /**
 	@title The LinkableTree contract

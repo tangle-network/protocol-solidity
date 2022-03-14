@@ -413,7 +413,7 @@ export class SignatureBridge extends BaseContract {
       _averageSessionLengthInMillisecs: BigNumberish,
       _numOfProposers: BigNumberish,
       _proposerSetUpdateNonce: BigNumberish,
-      sig: BytesLike,
+      _sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -517,7 +517,7 @@ export class SignatureBridge extends BaseContract {
     _averageSessionLengthInMillisecs: BigNumberish,
     _numOfProposers: BigNumberish,
     _proposerSetUpdateNonce: BigNumberish,
-    sig: BytesLike,
+    _sig: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -619,7 +619,7 @@ export class SignatureBridge extends BaseContract {
       _averageSessionLengthInMillisecs: BigNumberish,
       _numOfProposers: BigNumberish,
       _proposerSetUpdateNonce: BigNumberish,
-      sig: BytesLike,
+      _sig: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -762,7 +762,7 @@ export class SignatureBridge extends BaseContract {
       _averageSessionLengthInMillisecs: BigNumberish,
       _numOfProposers: BigNumberish,
       _proposerSetUpdateNonce: BigNumberish,
-      sig: BytesLike,
+      _sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -878,7 +878,7 @@ export class SignatureBridge extends BaseContract {
       _averageSessionLengthInMillisecs: BigNumberish,
       _numOfProposers: BigNumberish,
       _proposerSetUpdateNonce: BigNumberish,
-      sig: BytesLike,
+      _sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

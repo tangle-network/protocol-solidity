@@ -2,9 +2,9 @@
 
 *Webb Technologies.*
 
-> Governs allowable ERC20s to deposit using a governable wrapping limit.
+> A governed TokenWrapper system using an external `governor` address
 
-This contract is intended to be used with TokenHandler contract.
+Governs allowable ERC20s to deposit using a governable wrapping limit and sets fees for wrapping into itself. This contract is intended to be used with TokenHandler contract.
 
 
 
@@ -64,10 +64,10 @@ function PAUSER_ROLE() external view returns (bytes32)
 ### add
 
 ```solidity
-function add(address tokenAddress, uint256 nonce) external nonpayable
+function add(address _tokenAddress, uint256 _nonce) external nonpayable
 ```
 
-
+Adds a token at `_tokenAddress` to the GovernedTokenWrapper&#39;s wrapping listOnly the governor can call this function
 
 
 
@@ -75,8 +75,8 @@ function add(address tokenAddress, uint256 nonce) external nonpayable
 
 | Name | Type | Description |
 |---|---|---|
-| tokenAddress | address | undefined
-| nonce | uint256 | undefined
+| _tokenAddress | address | The address of the token to be added
+| _nonce | uint256 | The nonce tracking updates to this contract
 
 ### allowance
 
@@ -239,10 +239,10 @@ function feeRecipient() external view returns (address payable)
 ### getAmountToWrap
 
 ```solidity
-function getAmountToWrap(uint256 deposit) external view returns (uint256)
+function getAmountToWrap(uint256 _deposit) external view returns (uint256)
 ```
 
-
+Get the amount to wrap for a target `_deposit` amount
 
 
 
@@ -250,13 +250,13 @@ function getAmountToWrap(uint256 deposit) external view returns (uint256)
 
 | Name | Type | Description |
 |---|---|---|
-| deposit | uint256 | undefined
+| _deposit | uint256 | The deposit amount
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256 | undefined
+| _0 | uint256 | uint The amount to wrap conditioned on the deposit amount
 
 ### getFee
 
@@ -264,7 +264,7 @@ function getAmountToWrap(uint256 deposit) external view returns (uint256)
 function getFee() external view returns (uint8)
 ```
 
-
+Gets the current fee percentage
 
 
 
@@ -273,15 +273,15 @@ function getFee() external view returns (uint8)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint8 | undefined
+| _0 | uint8 | uint8 The fee percentage
 
 ### getFeeFromAmount
 
 ```solidity
-function getFeeFromAmount(uint256 amountToWrap) external view returns (uint256)
+function getFeeFromAmount(uint256 _amountToWrap) external view returns (uint256)
 ```
 
-
+Get the fee for a target amount to wrap
 
 
 
@@ -289,13 +289,13 @@ function getFeeFromAmount(uint256 amountToWrap) external view returns (uint256)
 
 | Name | Type | Description |
 |---|---|---|
-| amountToWrap | uint256 | undefined
+| _amountToWrap | uint256 | The amount to wrap
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256 | undefined
+| _0 | uint256 | uint The fee amount of the token being wrapped
 
 ### getRoleAdmin
 
@@ -370,7 +370,7 @@ function getRoleMemberCount(bytes32 role) external view returns (uint256)
 function getTokens() external view returns (address[])
 ```
 
-
+Gets the currently available wrappable tokens by their addresses
 
 
 
@@ -379,7 +379,7 @@ function getTokens() external view returns (address[])
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | address[] | undefined
+| _0 | address[] | address[] The currently available wrappable token addresses
 
 ### governor
 
@@ -582,10 +582,10 @@ function proposalNonce() external view returns (uint256)
 ### remove
 
 ```solidity
-function remove(address tokenAddress, uint256 nonce) external nonpayable
+function remove(address _tokenAddress, uint256 _nonce) external nonpayable
 ```
 
-
+Removes a token at `_tokenAddress` from the GovernedTokenWrapper&#39;s wrapping listOnly the governor can call this function
 
 
 
@@ -593,8 +593,8 @@ function remove(address tokenAddress, uint256 nonce) external nonpayable
 
 | Name | Type | Description |
 |---|---|---|
-| tokenAddress | address | undefined
-| nonce | uint256 | undefined
+| _tokenAddress | address | The address of the token to be removed
+| _nonce | uint256 | The nonce tracking updates to this contract
 
 ### renounceRole
 
@@ -633,10 +633,10 @@ function revokeRole(bytes32 role, address account) external nonpayable
 ### setFee
 
 ```solidity
-function setFee(uint8 _feePercentage, uint256 nonce) external nonpayable
+function setFee(uint8 _feePercentage, uint256 _nonce) external nonpayable
 ```
 
-
+Sets a new `_feePercentage` for the GovernedTokenWrapperOnly the governor can call this function
 
 
 
@@ -644,16 +644,16 @@ function setFee(uint8 _feePercentage, uint256 nonce) external nonpayable
 
 | Name | Type | Description |
 |---|---|---|
-| _feePercentage | uint8 | undefined
-| nonce | uint256 | undefined
+| _feePercentage | uint8 | The new fee percentage
+| _nonce | uint256 | The nonce tracking updates to this contract
 
 ### setFeeRecipient
 
 ```solidity
-function setFeeRecipient(address payable _feeRecipient, uint256 nonce) external nonpayable
+function setFeeRecipient(address payable _feeRecipient, uint256 _nonce) external nonpayable
 ```
 
-
+Sets a new `_feeRecipient` for the GovernedTokenWrapperOnly the governor can call this function
 
 
 
@@ -661,8 +661,8 @@ function setFeeRecipient(address payable _feeRecipient, uint256 nonce) external 
 
 | Name | Type | Description |
 |---|---|---|
-| _feeRecipient | address payable | undefined
-| nonce | uint256 | undefined
+| _feeRecipient | address payable | The new fee recipient
+| _nonce | uint256 | The nonce tracking updates to this contract
 
 ### setGovernor
 
@@ -670,7 +670,7 @@ function setFeeRecipient(address payable _feeRecipient, uint256 nonce) external 
 function setGovernor(address _governor) external nonpayable
 ```
 
-
+Sets the governor of the GovernedTokenWrapper contractOnly the governor can call this function
 
 
 
@@ -678,7 +678,7 @@ function setGovernor(address _governor) external nonpayable
 
 | Name | Type | Description |
 |---|---|---|
-| _governor | address | undefined
+| _governor | address | The address of the new governor
 
 ### setNativeAllowed
 
@@ -686,7 +686,7 @@ function setGovernor(address _governor) external nonpayable
 function setNativeAllowed(bool _isNativeAllowed) external nonpayable
 ```
 
-
+Sets whether native tokens are allowed to be wrappedOnly the governor can call this function
 
 
 
@@ -694,7 +694,7 @@ function setNativeAllowed(bool _isNativeAllowed) external nonpayable
 
 | Name | Type | Description |
 |---|---|---|
-| _isNativeAllowed | bool | undefined
+| _isNativeAllowed | bool | Whether or not native tokens are allowed to be wrapped
 
 ### supportsInterface
 
@@ -881,17 +881,17 @@ Used to unwrap/burn the wrapper token.
 
 | Name | Type | Description |
 |---|---|---|
-| sender | address | undefined
+| sender | address | The address that the caller is unwrapping for
 | tokenAddress | address | Address of ERC20 to unwrap into.
 | amount | uint256 | Amount of tokens to burn.
 
 ### updateLimit
 
 ```solidity
-function updateLimit(uint256 limit) external nonpayable
+function updateLimit(uint256 _limit) external nonpayable
 ```
 
-
+Updates the `_limit` of tokens that can be wrappedOnly the governor can call this function
 
 
 
@@ -899,7 +899,7 @@ function updateLimit(uint256 limit) external nonpayable
 
 | Name | Type | Description |
 |---|---|---|
-| limit | uint256 | undefined
+| _limit | uint256 | The new limit of tokens that can be wrapped
 
 ### wrap
 

@@ -193,7 +193,7 @@ abstract contract AnchorBase is LinkableTree {
 		@notice Gets the proposal nonce of this contract
 		@dev The nonce tracks how many times the handler has updated the contract
 	 */
-	function getProposalNonce() public view returns (uint32) {
+	function getProposalNonce() public virtual returns (uint32) {
 		return proposalNonce;
 	}
 }

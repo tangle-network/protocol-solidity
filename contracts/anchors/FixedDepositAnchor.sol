@@ -257,7 +257,7 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
 	}
 
 	/**
-		@notice Withdraws a deopsit and unwraps into a valid token for the `msg.sender`
+		@notice Withdraws a deposit and unwraps into a valid token for the `msg.sender`
 		@param _proof The zkSNARK proof for the withdrawal
 		@param _extData The external data for the withdrawal
 		@param _tokenAddress The address of the token to unwrap into
