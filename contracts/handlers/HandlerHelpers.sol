@@ -9,7 +9,7 @@ import "../interfaces/IExecutor.sol";
 
 /**
     @title Function used across handler contracts.
-    @author ChainSafe Systems.
+    @author Webb Technologies, adapted from ChainSafe Systems.
     @notice This contract is intended to be used with the Bridge contract.
  */
 abstract contract HandlerHelpers is IExecutor {
@@ -18,10 +18,10 @@ abstract contract HandlerHelpers is IExecutor {
     // resourceID => token contract address
     mapping (bytes32 => address) public _resourceIDToContractAddress;
 
-    // token contract address => resourceID
+    // Execution contract address => resourceID
     mapping (address => bytes32) public _contractAddressToResourceID;
 
-    // token contract address => is whitelisted
+    // Execution contract address => is whitelisted
     mapping (address => bool) public _contractWhitelist;
 
     modifier onlyBridge() {
@@ -39,8 +39,8 @@ abstract contract HandlerHelpers is IExecutor {
         then sets {_resourceIDToContractAddress} with {contractAddress},
         {_contractAddressToResourceID} with {resourceID},
         and {_contractWhitelist} to true for {contractAddress}.
-        @param resourceID ResourceID to be used when making deposits.
-        @param contractAddress Address of contract to be called when a deposit is made and a deposited is executed.
+        @param resourceID ResourceID to be used when executing proposals.
+        @param contractAddress Address of contract to be called when a proposal is signed and submitted for execution.
      */
     function setResource(bytes32 resourceID, address contractAddress) external override onlyBridge {
         _setResource(resourceID, contractAddress);
