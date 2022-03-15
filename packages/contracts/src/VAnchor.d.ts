@@ -712,18 +712,10 @@ export class VAnchor extends BaseContract {
           root: string;
           latestLeafIndex: BigNumber;
         })[]
-      ] & {
-        edges: ([BigNumber, string, BigNumber] & {
-          chainID: BigNumber;
-          root: string;
-          latestLeafIndex: BigNumber;
-        })[];
-      }
+      ]
     >;
 
-    getLatestNeighborRoots(
-      overrides?: CallOverrides
-    ): Promise<[string[]] & { roots: string[] }>;
+    getLatestNeighborRoots(overrides?: CallOverrides): Promise<[string[]]>;
 
     getProposalNonce(overrides?: CallOverrides): Promise<[number]>;
 
@@ -750,7 +742,7 @@ export class VAnchor extends BaseContract {
     ): Promise<ContractTransaction>;
 
     isKnownNeighborRoot(
-      neighborChainID: BigNumberish,
+      _neighborChainID: BigNumberish,
       _root: BytesLike,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
@@ -768,10 +760,10 @@ export class VAnchor extends BaseContract {
     isSpentArray(
       _nullifierHashes: BytesLike[],
       overrides?: CallOverrides
-    ): Promise<[boolean[]] & { spent: boolean[] }>;
+    ): Promise<[boolean[]]>;
 
     isValidRoots(
-      roots: BytesLike[],
+      _roots: BytesLike[],
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
@@ -842,21 +834,21 @@ export class VAnchor extends BaseContract {
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },
-      tokenAddress: string,
+      _tokenAddress: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
     setHandler(
-      newHandler: string,
-      nonce: BigNumberish,
+      _handler: string,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setVerifier(
-      newVerifier: string,
-      nonce: BigNumberish,
+      _verifier: string,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -899,7 +891,7 @@ export class VAnchor extends BaseContract {
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },
-      tokenAddress: string,
+      _tokenAddress: string,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -924,35 +916,35 @@ export class VAnchor extends BaseContract {
     >;
 
     unwrapIntoNative(
-      tokenAddress: string,
-      amount: BigNumberish,
+      _tokenAddress: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     unwrapIntoToken(
-      tokenAddress: string,
-      amount: BigNumberish,
+      _tokenAddress: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     updateEdge(
-      sourceChainID: BigNumberish,
-      root: BytesLike,
-      leafIndex: BigNumberish,
+      _sourceChainID: BigNumberish,
+      _root: BytesLike,
+      _leafIndex: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     verifier(overrides?: CallOverrides): Promise<[string]>;
 
     withdrawAndUnwrap(
-      tokenAddress: string,
-      recipient: string,
+      _tokenAddress: string,
+      _recipient: string,
       _minusExtAmount: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     wrapAndDeposit(
-      tokenAddress: string,
+      _tokenAddress: string,
       _extAmount: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -962,8 +954,8 @@ export class VAnchor extends BaseContract {
     ): Promise<ContractTransaction>;
 
     wrapToken(
-      tokenAddress: string,
-      amount: BigNumberish,
+      _tokenAddress: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -1070,7 +1062,7 @@ export class VAnchor extends BaseContract {
   ): Promise<ContractTransaction>;
 
   isKnownNeighborRoot(
-    neighborChainID: BigNumberish,
+    _neighborChainID: BigNumberish,
     _root: BytesLike,
     overrides?: CallOverrides
   ): Promise<boolean>;
@@ -1087,7 +1079,10 @@ export class VAnchor extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean[]>;
 
-  isValidRoots(roots: BytesLike[], overrides?: CallOverrides): Promise<boolean>;
+  isValidRoots(
+    _roots: BytesLike[],
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
   lastBalance(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1153,21 +1148,21 @@ export class VAnchor extends BaseContract {
       encryptedOutput1: BytesLike;
       encryptedOutput2: BytesLike;
     },
-    tokenAddress: string,
+    _tokenAddress: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   setHandler(
-    newHandler: string,
-    nonce: BigNumberish,
+    _handler: string,
+    _nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setVerifier(
-    newVerifier: string,
-    nonce: BigNumberish,
+    _verifier: string,
+    _nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1210,7 +1205,7 @@ export class VAnchor extends BaseContract {
       encryptedOutput1: BytesLike;
       encryptedOutput2: BytesLike;
     },
-    tokenAddress: string,
+    _tokenAddress: string,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1235,35 +1230,35 @@ export class VAnchor extends BaseContract {
   >;
 
   unwrapIntoNative(
-    tokenAddress: string,
-    amount: BigNumberish,
+    _tokenAddress: string,
+    _amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   unwrapIntoToken(
-    tokenAddress: string,
-    amount: BigNumberish,
+    _tokenAddress: string,
+    _amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   updateEdge(
-    sourceChainID: BigNumberish,
-    root: BytesLike,
-    leafIndex: BigNumberish,
+    _sourceChainID: BigNumberish,
+    _root: BytesLike,
+    _leafIndex: BigNumberish,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   verifier(overrides?: CallOverrides): Promise<string>;
 
   withdrawAndUnwrap(
-    tokenAddress: string,
-    recipient: string,
+    _tokenAddress: string,
+    _recipient: string,
     _minusExtAmount: BigNumberish,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   wrapAndDeposit(
-    tokenAddress: string,
+    _tokenAddress: string,
     _extAmount: BigNumberish,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -1273,8 +1268,8 @@ export class VAnchor extends BaseContract {
   ): Promise<ContractTransaction>;
 
   wrapToken(
-    tokenAddress: string,
-    amount: BigNumberish,
+    _tokenAddress: string,
+    _amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1387,7 +1382,7 @@ export class VAnchor extends BaseContract {
     ): Promise<void>;
 
     isKnownNeighborRoot(
-      neighborChainID: BigNumberish,
+      _neighborChainID: BigNumberish,
       _root: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
@@ -1405,7 +1400,7 @@ export class VAnchor extends BaseContract {
     ): Promise<boolean[]>;
 
     isValidRoots(
-      roots: BytesLike[],
+      _roots: BytesLike[],
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -1476,21 +1471,21 @@ export class VAnchor extends BaseContract {
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },
-      tokenAddress: string,
+      _tokenAddress: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
     setHandler(
-      newHandler: string,
-      nonce: BigNumberish,
+      _handler: string,
+      _nonce: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     setVerifier(
-      newVerifier: string,
-      nonce: BigNumberish,
+      _verifier: string,
+      _nonce: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1533,7 +1528,7 @@ export class VAnchor extends BaseContract {
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },
-      tokenAddress: string,
+      _tokenAddress: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1558,35 +1553,35 @@ export class VAnchor extends BaseContract {
     >;
 
     unwrapIntoNative(
-      tokenAddress: string,
-      amount: BigNumberish,
+      _tokenAddress: string,
+      _amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     unwrapIntoToken(
-      tokenAddress: string,
-      amount: BigNumberish,
+      _tokenAddress: string,
+      _amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     updateEdge(
-      sourceChainID: BigNumberish,
-      root: BytesLike,
-      leafIndex: BigNumberish,
+      _sourceChainID: BigNumberish,
+      _root: BytesLike,
+      _leafIndex: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     verifier(overrides?: CallOverrides): Promise<string>;
 
     withdrawAndUnwrap(
-      tokenAddress: string,
-      recipient: string,
+      _tokenAddress: string,
+      _recipient: string,
       _minusExtAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     wrapAndDeposit(
-      tokenAddress: string,
+      _tokenAddress: string,
       _extAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -1594,8 +1589,8 @@ export class VAnchor extends BaseContract {
     wrapNative(overrides?: CallOverrides): Promise<void>;
 
     wrapToken(
-      tokenAddress: string,
-      amount: BigNumberish,
+      _tokenAddress: string,
+      _amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1784,7 +1779,7 @@ export class VAnchor extends BaseContract {
     ): Promise<BigNumber>;
 
     isKnownNeighborRoot(
-      neighborChainID: BigNumberish,
+      _neighborChainID: BigNumberish,
       _root: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1805,7 +1800,7 @@ export class VAnchor extends BaseContract {
     ): Promise<BigNumber>;
 
     isValidRoots(
-      roots: BytesLike[],
+      _roots: BytesLike[],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1876,21 +1871,21 @@ export class VAnchor extends BaseContract {
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },
-      tokenAddress: string,
+      _tokenAddress: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     setHandler(
-      newHandler: string,
-      nonce: BigNumberish,
+      _handler: string,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setVerifier(
-      newVerifier: string,
-      nonce: BigNumberish,
+      _verifier: string,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1933,7 +1928,7 @@ export class VAnchor extends BaseContract {
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },
-      tokenAddress: string,
+      _tokenAddress: string,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1952,35 +1947,35 @@ export class VAnchor extends BaseContract {
     ): Promise<BigNumber>;
 
     unwrapIntoNative(
-      tokenAddress: string,
-      amount: BigNumberish,
+      _tokenAddress: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     unwrapIntoToken(
-      tokenAddress: string,
-      amount: BigNumberish,
+      _tokenAddress: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     updateEdge(
-      sourceChainID: BigNumberish,
-      root: BytesLike,
-      leafIndex: BigNumberish,
+      _sourceChainID: BigNumberish,
+      _root: BytesLike,
+      _leafIndex: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     verifier(overrides?: CallOverrides): Promise<BigNumber>;
 
     withdrawAndUnwrap(
-      tokenAddress: string,
-      recipient: string,
+      _tokenAddress: string,
+      _recipient: string,
       _minusExtAmount: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     wrapAndDeposit(
-      tokenAddress: string,
+      _tokenAddress: string,
       _extAmount: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1990,8 +1985,8 @@ export class VAnchor extends BaseContract {
     ): Promise<BigNumber>;
 
     wrapToken(
-      tokenAddress: string,
-      amount: BigNumberish,
+      _tokenAddress: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -2098,7 +2093,7 @@ export class VAnchor extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     isKnownNeighborRoot(
-      neighborChainID: BigNumberish,
+      _neighborChainID: BigNumberish,
       _root: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -2119,7 +2114,7 @@ export class VAnchor extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     isValidRoots(
-      roots: BytesLike[],
+      _roots: BytesLike[],
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2194,7 +2189,7 @@ export class VAnchor extends BaseContract {
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },
-      tokenAddress: string,
+      _tokenAddress: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -2204,14 +2199,14 @@ export class VAnchor extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     setHandler(
-      newHandler: string,
-      nonce: BigNumberish,
+      _handler: string,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setVerifier(
-      newVerifier: string,
-      nonce: BigNumberish,
+      _verifier: string,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -2254,7 +2249,7 @@ export class VAnchor extends BaseContract {
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },
-      tokenAddress: string,
+      _tokenAddress: string,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -2273,35 +2268,35 @@ export class VAnchor extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     unwrapIntoNative(
-      tokenAddress: string,
-      amount: BigNumberish,
+      _tokenAddress: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     unwrapIntoToken(
-      tokenAddress: string,
-      amount: BigNumberish,
+      _tokenAddress: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     updateEdge(
-      sourceChainID: BigNumberish,
-      root: BytesLike,
-      leafIndex: BigNumberish,
+      _sourceChainID: BigNumberish,
+      _root: BytesLike,
+      _leafIndex: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     verifier(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     withdrawAndUnwrap(
-      tokenAddress: string,
-      recipient: string,
+      _tokenAddress: string,
+      _recipient: string,
       _minusExtAmount: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     wrapAndDeposit(
-      tokenAddress: string,
+      _tokenAddress: string,
       _extAmount: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -2311,8 +2306,8 @@ export class VAnchor extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     wrapToken(
-      tokenAddress: string,
-      amount: BigNumberish,
+      _tokenAddress: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

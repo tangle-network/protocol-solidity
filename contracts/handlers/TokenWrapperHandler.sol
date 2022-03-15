@@ -9,7 +9,6 @@ pragma experimental ABIEncoderV2;
 import "../tokens/GovernedTokenWrapper.sol"; 
 import "./HandlerHelpers.sol";
 import "../interfaces/IExecutor.sol";
-import "hardhat/console.sol";
 
 /**
     @title Handles GovernedTokenWrapper fee and token updates

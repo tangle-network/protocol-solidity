@@ -144,7 +144,7 @@ export class VAnchorEncodeInputs extends BaseContract {
         publicAmount: BigNumberish;
         extDataHash: BytesLike;
       },
-      maxEdges: BigNumberish,
+      _maxEdges: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string, string[]]>;
 
@@ -157,7 +157,7 @@ export class VAnchorEncodeInputs extends BaseContract {
         publicAmount: BigNumberish;
         extDataHash: BytesLike;
       },
-      maxEdges: BigNumberish,
+      _maxEdges: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string, string[]]>;
 
@@ -177,7 +177,7 @@ export class VAnchorEncodeInputs extends BaseContract {
       publicAmount: BigNumberish;
       extDataHash: BytesLike;
     },
-    maxEdges: BigNumberish,
+    _maxEdges: BigNumberish,
     overrides?: CallOverrides
   ): Promise<[string, string[]]>;
 
@@ -190,7 +190,7 @@ export class VAnchorEncodeInputs extends BaseContract {
       publicAmount: BigNumberish;
       extDataHash: BytesLike;
     },
-    maxEdges: BigNumberish,
+    _maxEdges: BigNumberish,
     overrides?: CallOverrides
   ): Promise<[string, string[]]>;
 
@@ -210,7 +210,7 @@ export class VAnchorEncodeInputs extends BaseContract {
         publicAmount: BigNumberish;
         extDataHash: BytesLike;
       },
-      maxEdges: BigNumberish,
+      _maxEdges: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string, string[]]>;
 
@@ -223,7 +223,7 @@ export class VAnchorEncodeInputs extends BaseContract {
         publicAmount: BigNumberish;
         extDataHash: BytesLike;
       },
-      maxEdges: BigNumberish,
+      _maxEdges: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string, string[]]>;
 
@@ -246,7 +246,7 @@ export class VAnchorEncodeInputs extends BaseContract {
         publicAmount: BigNumberish;
         extDataHash: BytesLike;
       },
-      maxEdges: BigNumberish,
+      _maxEdges: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -259,7 +259,7 @@ export class VAnchorEncodeInputs extends BaseContract {
         publicAmount: BigNumberish;
         extDataHash: BytesLike;
       },
-      maxEdges: BigNumberish,
+      _maxEdges: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -280,7 +280,7 @@ export class VAnchorEncodeInputs extends BaseContract {
         publicAmount: BigNumberish;
         extDataHash: BytesLike;
       },
-      maxEdges: BigNumberish,
+      _maxEdges: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -293,7 +293,7 @@ export class VAnchorEncodeInputs extends BaseContract {
         publicAmount: BigNumberish;
         extDataHash: BytesLike;
       },
-      maxEdges: BigNumberish,
+      _maxEdges: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

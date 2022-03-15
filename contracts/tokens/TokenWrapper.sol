@@ -11,10 +11,10 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
-import "hardhat/console.sol";
+
 /**
-    @title Manages deposited ERC20s.
-    @author ChainSafe Systems.
+    @title A token that allows ERC20s to wrap into and mint it.
+    @author Webb Technologies.
     @notice This contract is intended to be used with TokenHandler contract.
  */
 abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
@@ -22,17 +22,33 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
     uint8 feePercentage;
     address payable public feeRecipient;
 
-    constructor(string memory name, string memory symbol, address payable _feeRecipient)
-        ERC20PresetMinterPauser(name, symbol) {
+    /**
+        @notice TokenWrapper constructor
+        @param _name The name of the ERC20
+        @param _symbol The symbol of the ERC20
+        @param _feeRecipient The address of the fee recipient
+     */
+    constructor(string memory _name, string memory _symbol, address payable _feeRecipient)
+        ERC20PresetMinterPauser(_name, _symbol) {
             feeRecipient = _feeRecipient;
         }
 
-    function getFeeFromAmount(uint amountToWrap) override public view returns (uint) {
-		return amountToWrap.mul(feePercentage).div(100);
+    /**
+        @notice Get the fee for a target amount to wrap
+        @param _amountToWrap The amount to wrap
+        @return uint The fee amount of the token being wrapped
+     */
+    function getFeeFromAmount(uint _amountToWrap) override public view returns (uint) {
+		return _amountToWrap.mul(feePercentage).div(100);
     }
 
-    function getAmountToWrap(uint deposit) override public view returns (uint) {
-		return deposit.mul(100).div(100 - feePercentage);
+    /**
+        @notice Get the amount to wrap for a target `_deposit` amount
+        @param _deposit The deposit amount
+        @return uint The amount to wrap conditioned on the deposit amount
+     */
+    function getAmountToWrap(uint _deposit) override public view returns (uint) {
+		return _deposit.mul(100).div(100 - feePercentage);
     }
 
     /**
@@ -180,6 +196,7 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
 
     /**
         @notice Used to unwrap/burn the wrapper token.
+        @param sender The address that the caller is unwrapping for
         @param tokenAddress Address of ERC20 to unwrap into.
         @param amount Amount of tokens to burn.
      */
@@ -215,28 +232,39 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
         _;
     }
 
-    modifier isValidWrapping(address tokenAddress, address _feeRecipient, uint256 amount) {
-        if (tokenAddress == address(0)) {
-            require(amount == 0, "Invalid amount provided for native wrapping");
+    /**
+        @notice Modifier to check if the wrapping is valid
+        @param _tokenAddress The token address to wrap from
+        @param _feeRecipient The fee recipient for the wrapping fee
+        @param _amount The amount of tokens to wrap
+     */
+    modifier isValidWrapping(address _tokenAddress, address _feeRecipient, uint256 _amount) {
+        if (_tokenAddress == address(0)) {
+            require(_amount == 0, "Invalid amount provided for native wrapping");
             require(_isNativeValid(), "Native wrapping is not allowed for this token wrapper");
         } else {
             require(msg.value == 0, "Invalid value sent for wrapping");
-            require(_isValidAddress(tokenAddress), "Invalid token address");
+            require(_isValidAddress(_tokenAddress), "Invalid token address");
         }
 
         require(_feeRecipient != address(0), "Fee Recipient cannot be zero address");
         
-        require(_isValidAmount(amount), "Invalid token amount");
+        require(_isValidAmount(_amount), "Invalid token amount");
         _;
     }
 
-    modifier isValidUnwrapping(address tokenAddress, uint256 amount) {
-        if (tokenAddress == address(0)) {
-            require(address(this).balance >= amount, "Insufficient native balance");
+    /**
+        @notice Modifier to check if the unwrapping is valid
+        @param _tokenAddress The token address to unwrap into
+        @param _amount The amount of tokens to unwrap
+     */
+    modifier isValidUnwrapping(address _tokenAddress, uint256 _amount) {
+        if (_tokenAddress == address(0)) {
+            require(address(this).balance >= _amount, "Insufficient native balance");
             require(_isNativeValid(), "Native unwrapping is not allowed for this token wrapper");
         } else {
-            require(IERC20(tokenAddress).balanceOf(address(this)) >= amount, "Insufficient ERC20 balance");
-            require(_isValidHistoricalAddress(tokenAddress), "Invalid historical token address");
+            require(IERC20(_tokenAddress).balanceOf(address(this)) >= _amount, "Insufficient ERC20 balance");
+            require(_isValidHistoricalAddress(_tokenAddress), "Invalid historical token address");
         }
 
         _;

@@ -349,7 +349,7 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "deposit",
+        name: "_deposit",
         type: "uint256",
       },
     ],
@@ -368,7 +368,7 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "amountToWrap",
+        name: "_amountToWrap",
         type: "uint256",
       },
     ],
@@ -602,12 +602,12 @@ const _abi = [
     inputs: [
       {
         internalType: "uint8",
-        name: "feePercentage",
+        name: "_feePercentage",
         type: "uint8",
       },
       {
         internalType: "uint256",
-        name: "nonce",
+        name: "_nonce",
         type: "uint256",
       },
     ],

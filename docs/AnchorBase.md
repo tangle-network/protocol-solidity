@@ -2,9 +2,9 @@
 
 
 
+> AnchorBase contract
 
-
-
+Base contract for interoperable anchors. Each anchor base is a LinkableTree which allows it to be connected to other LinkableTrees.
 
 
 
@@ -235,7 +235,7 @@ function filledSubtrees(uint256) external view returns (bytes32)
 function getChainId() external view returns (uint256)
 ```
 
-
+Gets the chain id using the chain id opcode
 
 
 
@@ -252,7 +252,7 @@ function getChainId() external view returns (uint256)
 function getChainIdType() external view returns (uint48)
 ```
 
-
+Computes the modified chain id using the underlying chain type (EVM)
 
 
 
@@ -283,10 +283,10 @@ function getLastRoot() external view returns (bytes32)
 ### getLatestNeighborEdges
 
 ```solidity
-function getLatestNeighborEdges() external view returns (struct LinkableTree.Edge[] edges)
+function getLatestNeighborEdges() external view returns (struct LinkableTree.Edge[])
 ```
 
-
+Get the latest state of all neighbor edges
 
 
 
@@ -295,15 +295,15 @@ function getLatestNeighborEdges() external view returns (struct LinkableTree.Edg
 
 | Name | Type | Description |
 |---|---|---|
-| edges | LinkableTree.Edge[] | undefined
+| _0 | LinkableTree.Edge[] | Edge[] An array of all neighboring and potentially empty edges
 
 ### getLatestNeighborRoots
 
 ```solidity
-function getLatestNeighborRoots() external view returns (bytes32[] roots)
+function getLatestNeighborRoots() external view returns (bytes32[])
 ```
 
-
+Get the latest merkle roots of all neighbor edges
 
 
 
@@ -312,7 +312,24 @@ function getLatestNeighborRoots() external view returns (bytes32[] roots)
 
 | Name | Type | Description |
 |---|---|---|
-| roots | bytes32[] | undefined
+| _0 | bytes32[] | bytes32[] An array of merkle roots
+
+### getProposalNonce
+
+```solidity
+function getProposalNonce() external view returns (uint32)
+```
+
+Gets the proposal nonce of this contract
+
+*The nonce tracks how many times the handler has updated the contract*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint32 | undefined
 
 ### handler
 
@@ -337,7 +354,7 @@ function handler() external view returns (address)
 function hasEdge(uint256 _chainID) external view returns (bool)
 ```
 
-
+Checks the `_chainID` has an edge on this contract
 
 
 
@@ -397,10 +414,10 @@ function hasher() external view returns (contract IPoseidonT3)
 ### isKnownNeighborRoot
 
 ```solidity
-function isKnownNeighborRoot(uint256 neighborChainID, bytes32 _root) external view returns (bool)
+function isKnownNeighborRoot(uint256 _neighborChainID, bytes32 _root) external view returns (bool)
 ```
 
-
+Checks to see whether a `_root` is known for a neighboring `neighborChainID`
 
 
 
@@ -408,8 +425,8 @@ function isKnownNeighborRoot(uint256 neighborChainID, bytes32 _root) external vi
 
 | Name | Type | Description |
 |---|---|---|
-| neighborChainID | uint256 | undefined
-| _root | bytes32 | undefined
+| _neighborChainID | uint256 | The chainID of the neighbor&#39;s edge
+| _root | bytes32 | The root to check
 
 #### Returns
 
@@ -445,51 +462,51 @@ function isKnownRoot(bytes32 _root) external view returns (bool)
 function isSpent(bytes32 _nullifierHash) external view returns (bool)
 ```
 
+Whether a note is already spent
 
 
-*whether a note is already spent *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| _nullifierHash | bytes32 | undefined
+| _nullifierHash | bytes32 | The nullifier hash of the deposit note
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | bool | undefined
+| _0 | bool | bool Whether the note is already spent
 
 ### isSpentArray
 
 ```solidity
-function isSpentArray(bytes32[] _nullifierHashes) external view returns (bool[] spent)
+function isSpentArray(bytes32[] _nullifierHashes) external view returns (bool[])
 ```
 
+Whether an array of notes is already spent
 
 
-*whether an array of notes is already spent *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| _nullifierHashes | bytes32[] | undefined
+| _nullifierHashes | bytes32[] | The array of nullifier hashes of the deposit notes
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| spent | bool[] | undefined
+| _0 | bool[] | bool[] An array indicated whether each note&#39;s nullifier hash is already spent
 
 ### isValidRoots
 
 ```solidity
-function isValidRoots(bytes32[] roots) external view returns (bool)
+function isValidRoots(bytes32[] _roots) external view returns (bool)
 ```
 
-
+Checks validity of an array of merkle roots in the history. The first root should always be the root of `this` underlying merkle tree and the remaining roots are of the neighboring roots in `edges.
 
 
 
@@ -497,7 +514,7 @@ function isValidRoots(bytes32[] roots) external view returns (bool)
 
 | Name | Type | Description |
 |---|---|---|
-| roots | bytes32[] | undefined
+| _roots | bytes32[] | An array of bytes32 merkle roots to be checked against the history.
 
 #### Returns
 
@@ -626,36 +643,36 @@ function roots(uint256) external view returns (bytes32)
 ### setHandler
 
 ```solidity
-function setHandler(address newHandler, uint32 nonce) external nonpayable
+function setHandler(address _handler, uint32 _nonce) external nonpayable
 ```
 
+Set a new handler with a nonce
 
-
-
+*Can only be called by the `AnchorHandler` contract*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| newHandler | address | undefined
-| nonce | uint32 | undefined
+| _handler | address | The new handler address
+| _nonce | uint32 | The nonce for updating the new handler
 
 ### setVerifier
 
 ```solidity
-function setVerifier(address newVerifier, uint32 nonce) external nonpayable
+function setVerifier(address _verifier, uint32 _nonce) external nonpayable
 ```
 
+Set a new verifier with a nonce
 
-
-
+*Can only be called by the `AnchorHandler` contract*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| newVerifier | address | undefined
-| nonce | uint32 | undefined
+| _verifier | address | The new verifier address
+| _nonce | uint32 | The nonce for updating the new verifier
 
 ### unpackProof
 
@@ -663,7 +680,7 @@ function setVerifier(address newVerifier, uint32 nonce) external nonpayable
 function unpackProof(uint256[8] _proof) external pure returns (uint256[2], uint256[2][2], uint256[2])
 ```
 
-
+A helper function to convert an array of 8 uint256 values into the a, b, and c array values that the zk-SNARK verifier&#39;s verifyProof accepts.
 
 
 
@@ -671,23 +688,23 @@ function unpackProof(uint256[8] _proof) external pure returns (uint256[2], uint2
 
 | Name | Type | Description |
 |---|---|---|
-| _proof | uint256[8] | undefined
+| _proof | uint256[8] | The array of 8 uint256 values
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256[2] | undefined
+| _0 | uint256[2] | (uint256[2] memory a, uint256[2][2] memory b, uint256[2] memory c) The unpacked proof values
 | _1 | uint256[2][2] | undefined
 | _2 | uint256[2] | undefined
 
 ### updateEdge
 
 ```solidity
-function updateEdge(uint256 sourceChainID, bytes32 root, uint256 leafIndex) external payable
+function updateEdge(uint256 _sourceChainID, bytes32 _root, uint256 _leafIndex) external payable
 ```
 
-
+Add an edge to the tree or update an existing edge.
 
 
 
@@ -695,9 +712,9 @@ function updateEdge(uint256 sourceChainID, bytes32 root, uint256 leafIndex) exte
 
 | Name | Type | Description |
 |---|---|---|
-| sourceChainID | uint256 | undefined
-| root | bytes32 | undefined
-| leafIndex | uint256 | undefined
+| _sourceChainID | uint256 | The chainID of the edge&#39;s LinkableTree
+| _root | bytes32 | The merkle root of the edge&#39;s merkle tree
+| _leafIndex | uint256 | The latest leaf insertion index of the edge&#39;s merkle tree
 
 ### verifier
 

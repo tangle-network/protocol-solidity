@@ -333,7 +333,7 @@ const _abi = [
           },
         ],
         internalType: "struct LinkableTree.Edge[]",
-        name: "edges",
+        name: "",
         type: "tuple[]",
       },
     ],
@@ -346,8 +346,21 @@ const _abi = [
     outputs: [
       {
         internalType: "bytes32[]",
-        name: "roots",
+        name: "",
         type: "bytes32[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getProposalNonce",
+    outputs: [
+      {
+        internalType: "uint32",
+        name: "",
+        type: "uint32",
       },
     ],
     stateMutability: "view",
@@ -431,7 +444,7 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "neighborChainID",
+        name: "_neighborChainID",
         type: "uint256",
       },
       {
@@ -501,7 +514,7 @@ const _abi = [
     outputs: [
       {
         internalType: "bool[]",
-        name: "spent",
+        name: "",
         type: "bool[]",
       },
     ],
@@ -512,7 +525,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32[]",
-        name: "roots",
+        name: "_roots",
         type: "bytes32[]",
       },
     ],
@@ -632,12 +645,12 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "newHandler",
+        name: "_handler",
         type: "address",
       },
       {
         internalType: "uint32",
-        name: "nonce",
+        name: "_nonce",
         type: "uint32",
       },
     ],
@@ -650,12 +663,12 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "newVerifier",
+        name: "_verifier",
         type: "address",
       },
       {
         internalType: "uint32",
-        name: "nonce",
+        name: "_nonce",
         type: "uint32",
       },
     ],
@@ -697,17 +710,17 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "sourceChainID",
+        name: "_sourceChainID",
         type: "uint256",
       },
       {
         internalType: "bytes32",
-        name: "root",
+        name: "_root",
         type: "bytes32",
       },
       {
         internalType: "uint256",
-        name: "leafIndex",
+        name: "_leafIndex",
         type: "uint256",
       },
     ],

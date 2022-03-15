@@ -6,8 +6,8 @@
 pragma solidity ^0.8.0;
 
 /**
-    @title Interface for handler contracts that support deposits and deposit executions.
-    @author ChainSafe Systems.
+    @title Interface for handler contracts that support proposal executions.
+    @author Webb Technologies, adapted from ChainSafe Systems.
  */
 interface IExecutor {
     /**

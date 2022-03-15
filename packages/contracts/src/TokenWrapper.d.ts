@@ -418,12 +418,12 @@ export class TokenWrapper extends BaseContract {
     feeRecipient(overrides?: CallOverrides): Promise<[string]>;
 
     getAmountToWrap(
-      deposit: BigNumberish,
+      _deposit: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     getFeeFromAmount(
-      amountToWrap: BigNumberish,
+      _amountToWrap: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -485,8 +485,8 @@ export class TokenWrapper extends BaseContract {
     ): Promise<ContractTransaction>;
 
     setFee(
-      feePercentage: BigNumberish,
-      nonce: BigNumberish,
+      _feePercentage: BigNumberish,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -600,12 +600,12 @@ export class TokenWrapper extends BaseContract {
   feeRecipient(overrides?: CallOverrides): Promise<string>;
 
   getAmountToWrap(
-    deposit: BigNumberish,
+    _deposit: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   getFeeFromAmount(
-    amountToWrap: BigNumberish,
+    _amountToWrap: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -667,8 +667,8 @@ export class TokenWrapper extends BaseContract {
   ): Promise<ContractTransaction>;
 
   setFee(
-    feePercentage: BigNumberish,
-    nonce: BigNumberish,
+    _feePercentage: BigNumberish,
+    _nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -779,12 +779,12 @@ export class TokenWrapper extends BaseContract {
     feeRecipient(overrides?: CallOverrides): Promise<string>;
 
     getAmountToWrap(
-      deposit: BigNumberish,
+      _deposit: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getFeeFromAmount(
-      amountToWrap: BigNumberish,
+      _amountToWrap: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -844,8 +844,8 @@ export class TokenWrapper extends BaseContract {
     ): Promise<void>;
 
     setFee(
-      feePercentage: BigNumberish,
-      nonce: BigNumberish,
+      _feePercentage: BigNumberish,
+      _nonce: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1062,12 +1062,12 @@ export class TokenWrapper extends BaseContract {
     feeRecipient(overrides?: CallOverrides): Promise<BigNumber>;
 
     getAmountToWrap(
-      deposit: BigNumberish,
+      _deposit: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getFeeFromAmount(
-      amountToWrap: BigNumberish,
+      _amountToWrap: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1132,8 +1132,8 @@ export class TokenWrapper extends BaseContract {
     ): Promise<BigNumber>;
 
     setFee(
-      feePercentage: BigNumberish,
-      nonce: BigNumberish,
+      _feePercentage: BigNumberish,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1253,12 +1253,12 @@ export class TokenWrapper extends BaseContract {
     feeRecipient(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getAmountToWrap(
-      deposit: BigNumberish,
+      _deposit: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getFeeFromAmount(
-      amountToWrap: BigNumberish,
+      _amountToWrap: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1323,8 +1323,8 @@ export class TokenWrapper extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     setFee(
-      feePercentage: BigNumberish,
-      nonce: BigNumberish,
+      _feePercentage: BigNumberish,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

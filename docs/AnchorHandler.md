@@ -212,8 +212,8 @@ First verifies {_resourceIDToContractAddress}[{resourceID}] and {_contractAddres
 
 | Name | Type | Description |
 |---|---|---|
-| resourceID | bytes32 | ResourceID to be used when making deposits.
-| contractAddress | address | Address of contract to be called when a deposit is made and a deposited is executed.
+| resourceID | bytes32 | ResourceID to be used when executing proposals.
+| contractAddress | address | Address of contract to be called when a proposal is signed and submitted for execution.
 
 
 

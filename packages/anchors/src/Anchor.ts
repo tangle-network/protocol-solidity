@@ -256,7 +256,7 @@ class Anchor implements IAnchor {
   public async getHandlerProposalData(newHandler: string): Promise<string> {
     const resourceID = await this.createResourceId();
     const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("setHandler(address,uint32)")).slice(0, 10).padEnd(10, '0');  
-    const nonce = (await this.contract.getProposalNonce()) + 1;;
+    const nonce = Number(await this.contract.getProposalNonce()) + 1;;
 
     return '0x' +
       toHex(resourceID, 32).substr(2)+ 
@@ -612,7 +612,6 @@ class Anchor implements IAnchor {
     refund: string,
     refreshCommitment: string,
   ): Promise<WithdrawalEvent> {
-
     const { pathElements, pathIndices, merkleRoot } = merkleProof;
     const isKnownNeighborRoot = await this.contract.isKnownNeighborRoot(deposit.originChainId, toFixedHex(merkleRoot));
     if (!isKnownNeighborRoot) {
@@ -648,7 +647,6 @@ class Anchor implements IAnchor {
     ];
 
     const publicInputs = Anchor.convertArgsArrayToStruct(args);
-
     //@ts-ignore
     let tx = await this.contract.withdraw(
       publicInputs,
@@ -657,8 +655,9 @@ class Anchor implements IAnchor {
         gasLimit: '0x5B8D80'
       },
     );
-    const receipt = await tx.wait();
 
+    const receipt = await tx.wait();
+    
     const filter = this.contract.filters.Withdrawal(null, relayer, null);
     const events = await this.contract.queryFilter(filter, receipt.blockHash);
     return events[0];

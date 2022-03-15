@@ -38,6 +38,7 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
     "getLastRoot()": FunctionFragment;
     "getLatestNeighborEdges()": FunctionFragment;
     "getLatestNeighborRoots()": FunctionFragment;
+    "getProposalNonce()": FunctionFragment;
     "handler()": FunctionFragment;
     "hasEdge(uint256)": FunctionFragment;
     "hashLeftRight(address,bytes32,bytes32)": FunctionFragment;
@@ -123,6 +124,10 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getLatestNeighborRoots",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getProposalNonce",
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "handler", values?: undefined): string;
@@ -241,6 +246,10 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getLatestNeighborRoots",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getProposalNonce",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "handler", data: BytesLike): Result;
@@ -429,18 +438,12 @@ export class AnchorBase extends BaseContract {
           root: string;
           latestLeafIndex: BigNumber;
         })[]
-      ] & {
-        edges: ([BigNumber, string, BigNumber] & {
-          chainID: BigNumber;
-          root: string;
-          latestLeafIndex: BigNumber;
-        })[];
-      }
+      ]
     >;
 
-    getLatestNeighborRoots(
-      overrides?: CallOverrides
-    ): Promise<[string[]] & { roots: string[] }>;
+    getLatestNeighborRoots(overrides?: CallOverrides): Promise<[string[]]>;
+
+    getProposalNonce(overrides?: CallOverrides): Promise<[number]>;
 
     handler(overrides?: CallOverrides): Promise<[string]>;
 
@@ -459,7 +462,7 @@ export class AnchorBase extends BaseContract {
     hasher(overrides?: CallOverrides): Promise<[string]>;
 
     isKnownNeighborRoot(
-      neighborChainID: BigNumberish,
+      _neighborChainID: BigNumberish,
       _root: BytesLike,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
@@ -477,10 +480,10 @@ export class AnchorBase extends BaseContract {
     isSpentArray(
       _nullifierHashes: BytesLike[],
       overrides?: CallOverrides
-    ): Promise<[boolean[]] & { spent: boolean[] }>;
+    ): Promise<[boolean[]]>;
 
     isValidRoots(
-      roots: BytesLike[],
+      _roots: BytesLike[],
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
@@ -504,14 +507,14 @@ export class AnchorBase extends BaseContract {
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
     setHandler(
-      newHandler: string,
-      nonce: BigNumberish,
+      _handler: string,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setVerifier(
-      newVerifier: string,
-      nonce: BigNumberish,
+      _verifier: string,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -536,9 +539,9 @@ export class AnchorBase extends BaseContract {
     >;
 
     updateEdge(
-      sourceChainID: BigNumberish,
-      root: BytesLike,
-      leafIndex: BigNumberish,
+      _sourceChainID: BigNumberish,
+      _root: BytesLike,
+      _leafIndex: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -605,6 +608,8 @@ export class AnchorBase extends BaseContract {
 
   getLatestNeighborRoots(overrides?: CallOverrides): Promise<string[]>;
 
+  getProposalNonce(overrides?: CallOverrides): Promise<number>;
+
   handler(overrides?: CallOverrides): Promise<string>;
 
   hasEdge(_chainID: BigNumberish, overrides?: CallOverrides): Promise<boolean>;
@@ -619,7 +624,7 @@ export class AnchorBase extends BaseContract {
   hasher(overrides?: CallOverrides): Promise<string>;
 
   isKnownNeighborRoot(
-    neighborChainID: BigNumberish,
+    _neighborChainID: BigNumberish,
     _root: BytesLike,
     overrides?: CallOverrides
   ): Promise<boolean>;
@@ -636,7 +641,10 @@ export class AnchorBase extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean[]>;
 
-  isValidRoots(roots: BytesLike[], overrides?: CallOverrides): Promise<boolean>;
+  isValidRoots(
+    _roots: BytesLike[],
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
   levels(overrides?: CallOverrides): Promise<number>;
 
@@ -655,14 +663,14 @@ export class AnchorBase extends BaseContract {
   roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   setHandler(
-    newHandler: string,
-    nonce: BigNumberish,
+    _handler: string,
+    _nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setVerifier(
-    newVerifier: string,
-    nonce: BigNumberish,
+    _verifier: string,
+    _nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -687,9 +695,9 @@ export class AnchorBase extends BaseContract {
   >;
 
   updateEdge(
-    sourceChainID: BigNumberish,
-    root: BytesLike,
-    leafIndex: BigNumberish,
+    _sourceChainID: BigNumberish,
+    _root: BytesLike,
+    _leafIndex: BigNumberish,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -759,6 +767,8 @@ export class AnchorBase extends BaseContract {
 
     getLatestNeighborRoots(overrides?: CallOverrides): Promise<string[]>;
 
+    getProposalNonce(overrides?: CallOverrides): Promise<number>;
+
     handler(overrides?: CallOverrides): Promise<string>;
 
     hasEdge(
@@ -776,7 +786,7 @@ export class AnchorBase extends BaseContract {
     hasher(overrides?: CallOverrides): Promise<string>;
 
     isKnownNeighborRoot(
-      neighborChainID: BigNumberish,
+      _neighborChainID: BigNumberish,
       _root: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
@@ -794,7 +804,7 @@ export class AnchorBase extends BaseContract {
     ): Promise<boolean[]>;
 
     isValidRoots(
-      roots: BytesLike[],
+      _roots: BytesLike[],
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -818,14 +828,14 @@ export class AnchorBase extends BaseContract {
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
     setHandler(
-      newHandler: string,
-      nonce: BigNumberish,
+      _handler: string,
+      _nonce: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     setVerifier(
-      newVerifier: string,
-      nonce: BigNumberish,
+      _verifier: string,
+      _nonce: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -850,9 +860,9 @@ export class AnchorBase extends BaseContract {
     >;
 
     updateEdge(
-      sourceChainID: BigNumberish,
-      root: BytesLike,
-      leafIndex: BigNumberish,
+      _sourceChainID: BigNumberish,
+      _root: BytesLike,
+      _leafIndex: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -962,6 +972,8 @@ export class AnchorBase extends BaseContract {
 
     getLatestNeighborRoots(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getProposalNonce(overrides?: CallOverrides): Promise<BigNumber>;
+
     handler(overrides?: CallOverrides): Promise<BigNumber>;
 
     hasEdge(
@@ -979,7 +991,7 @@ export class AnchorBase extends BaseContract {
     hasher(overrides?: CallOverrides): Promise<BigNumber>;
 
     isKnownNeighborRoot(
-      neighborChainID: BigNumberish,
+      _neighborChainID: BigNumberish,
       _root: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1000,7 +1012,7 @@ export class AnchorBase extends BaseContract {
     ): Promise<BigNumber>;
 
     isValidRoots(
-      roots: BytesLike[],
+      _roots: BytesLike[],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1024,14 +1036,14 @@ export class AnchorBase extends BaseContract {
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     setHandler(
-      newHandler: string,
-      nonce: BigNumberish,
+      _handler: string,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setVerifier(
-      newVerifier: string,
-      nonce: BigNumberish,
+      _verifier: string,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1050,9 +1062,9 @@ export class AnchorBase extends BaseContract {
     ): Promise<BigNumber>;
 
     updateEdge(
-      sourceChainID: BigNumberish,
-      root: BytesLike,
-      leafIndex: BigNumberish,
+      _sourceChainID: BigNumberish,
+      _root: BytesLike,
+      _leafIndex: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1116,6 +1128,8 @@ export class AnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    getProposalNonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     handler(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     hasEdge(
@@ -1133,7 +1147,7 @@ export class AnchorBase extends BaseContract {
     hasher(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     isKnownNeighborRoot(
-      neighborChainID: BigNumberish,
+      _neighborChainID: BigNumberish,
       _root: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -1154,7 +1168,7 @@ export class AnchorBase extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     isValidRoots(
-      roots: BytesLike[],
+      _roots: BytesLike[],
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1181,14 +1195,14 @@ export class AnchorBase extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     setHandler(
-      newHandler: string,
-      nonce: BigNumberish,
+      _handler: string,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setVerifier(
-      newVerifier: string,
-      nonce: BigNumberish,
+      _verifier: string,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1207,9 +1221,9 @@ export class AnchorBase extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     updateEdge(
-      sourceChainID: BigNumberish,
-      root: BytesLike,
-      leafIndex: BigNumberish,
+      _sourceChainID: BigNumberish,
+      _root: BytesLike,
+      _leafIndex: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

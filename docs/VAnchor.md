@@ -1,10 +1,10 @@
 # VAnchor
 
+*Webb Technologies*
 
+> Variable Anchor contract
 
-
-
-
+The Variable Anchor is a variable-denominated shielded pool system derived from Tornado Nova (tornado-pool). This system extends the shielded pool system into a bridged system and allows for join/split transactions. The system is built on top the VAnchorBase/AnchorBase/LinkableTree system which allows it to be linked to other VAnchor contracts through a simple graph-like interface where anchors maintain edges of their neighboring anchors. The system requires users to create and deposit UTXOs for the supported ERC20 asset into the smart contract and insert a commitment into the underlying merkle tree of the form: commitment = Poseidon(chainID, amount, pubKey, blinding). The hash input is the UTXO data. All deposits/withdrawals are unified under a common `transact` function which requires a zkSNARK proof that the UTXO commitments are well-formed (i.e. that the deposit amount matches the sum of new UTXOs&#39; amounts). Information regarding the commitments: - Poseidon is a zkSNARK friendly hash function - destinationChainID is the chainId of the destination chain, where the withdrawal is intended to be made - Details of the UTXO and hashes are below UTXO = { destinationChainID, amount, pubkey, blinding } commitment = Poseidon(destinationChainID, amount, pubKey, blinding) nullifier = Poseidon(commitment, merklePath, sign(privKey, commitment, merklePath)) Commitments adhering to different hash functions and formats will invalidate any attempt at withdrawal. Using the preimage / UTXO of the commitment, users can generate a zkSNARK proof that the UTXO is located in one-of-many VAnchor merkle trees and that the commitment&#39;s destination chain id matches the underlying chain id of the VAnchor where the transaction is taking place. The chain id opcode is leveraged to prevent any tampering of this data.
 
 
 
@@ -324,7 +324,7 @@ function filledSubtrees(uint256) external view returns (bytes32)
 function getChainId() external view returns (uint256)
 ```
 
-
+Gets the chain id using the chain id opcode
 
 
 
@@ -341,7 +341,7 @@ function getChainId() external view returns (uint256)
 function getChainIdType() external view returns (uint48)
 ```
 
-
+Computes the modified chain id using the underlying chain type (EVM)
 
 
 
@@ -372,10 +372,10 @@ function getLastRoot() external view returns (bytes32)
 ### getLatestNeighborEdges
 
 ```solidity
-function getLatestNeighborEdges() external view returns (struct LinkableTree.Edge[] edges)
+function getLatestNeighborEdges() external view returns (struct LinkableTree.Edge[])
 ```
 
-
+Get the latest state of all neighbor edges
 
 
 
@@ -384,15 +384,15 @@ function getLatestNeighborEdges() external view returns (struct LinkableTree.Edg
 
 | Name | Type | Description |
 |---|---|---|
-| edges | LinkableTree.Edge[] | undefined
+| _0 | LinkableTree.Edge[] | Edge[] An array of all neighboring and potentially empty edges
 
 ### getLatestNeighborRoots
 
 ```solidity
-function getLatestNeighborRoots() external view returns (bytes32[] roots)
+function getLatestNeighborRoots() external view returns (bytes32[])
 ```
 
-
+Get the latest merkle roots of all neighbor edges
 
 
 
@@ -401,7 +401,7 @@ function getLatestNeighborRoots() external view returns (bytes32[] roots)
 
 | Name | Type | Description |
 |---|---|---|
-| roots | bytes32[] | undefined
+| _0 | bytes32[] | bytes32[] An array of merkle roots
 
 ### getProposalNonce
 
@@ -409,9 +409,9 @@ function getLatestNeighborRoots() external view returns (bytes32[] roots)
 function getProposalNonce() external view returns (uint32)
 ```
 
+Gets the proposal nonce of this contract
 
-
-
+*The nonce tracks how many times the handler has updated the contract*
 
 
 #### Returns
@@ -443,7 +443,7 @@ function handler() external view returns (address)
 function hasEdge(uint256 _chainID) external view returns (bool)
 ```
 
-
+Checks the `_chainID` has an edge on this contract
 
 
 
@@ -520,10 +520,10 @@ function initialize(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmo
 ### isKnownNeighborRoot
 
 ```solidity
-function isKnownNeighborRoot(uint256 neighborChainID, bytes32 _root) external view returns (bool)
+function isKnownNeighborRoot(uint256 _neighborChainID, bytes32 _root) external view returns (bool)
 ```
 
-
+Checks to see whether a `_root` is known for a neighboring `neighborChainID`
 
 
 
@@ -531,8 +531,8 @@ function isKnownNeighborRoot(uint256 neighborChainID, bytes32 _root) external vi
 
 | Name | Type | Description |
 |---|---|---|
-| neighborChainID | uint256 | undefined
-| _root | bytes32 | undefined
+| _neighborChainID | uint256 | The chainID of the neighbor&#39;s edge
+| _root | bytes32 | The root to check
 
 #### Returns
 
@@ -568,51 +568,51 @@ function isKnownRoot(bytes32 _root) external view returns (bool)
 function isSpent(bytes32 _nullifierHash) external view returns (bool)
 ```
 
+Whether a note is already spent
 
 
-*whether a note is already spent *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| _nullifierHash | bytes32 | undefined
+| _nullifierHash | bytes32 | The nullifier hash of the deposit note
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | bool | undefined
+| _0 | bool | bool Whether the note is already spent
 
 ### isSpentArray
 
 ```solidity
-function isSpentArray(bytes32[] _nullifierHashes) external view returns (bool[] spent)
+function isSpentArray(bytes32[] _nullifierHashes) external view returns (bool[])
 ```
 
+Whether an array of notes is already spent
 
 
-*whether an array of notes is already spent *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| _nullifierHashes | bytes32[] | undefined
+| _nullifierHashes | bytes32[] | The array of nullifier hashes of the deposit notes
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| spent | bool[] | undefined
+| _0 | bool[] | bool[] An array indicated whether each note&#39;s nullifier hash is already spent
 
 ### isValidRoots
 
 ```solidity
-function isValidRoots(bytes32[] roots) external view returns (bool)
+function isValidRoots(bytes32[] _roots) external view returns (bool)
 ```
 
-
+Checks validity of an array of merkle roots in the history. The first root should always be the root of `this` underlying merkle tree and the remaining roots are of the neighboring roots in `edges.
 
 
 
@@ -620,7 +620,7 @@ function isValidRoots(bytes32[] roots) external view returns (bool)
 
 | Name | Type | Description |
 |---|---|---|
-| roots | bytes32[] | undefined
+| _roots | bytes32[] | An array of bytes32 merkle roots to be checked against the history.
 
 #### Returns
 
@@ -797,7 +797,7 @@ function register(VAnchorBase.Account _account) external nonpayable
 function registerAndTransact(VAnchorBase.Account _account, VAnchorEncodeInputs.Proof _proofArgs, VAnchorBase.ExtData _extData) external nonpayable
 ```
 
-
+Registers and transacts in a single flow
 
 
 
@@ -805,17 +805,17 @@ function registerAndTransact(VAnchorBase.Account _account, VAnchorEncodeInputs.P
 
 | Name | Type | Description |
 |---|---|---|
-| _account | VAnchorBase.Account | undefined
-| _proofArgs | VAnchorEncodeInputs.Proof | undefined
-| _extData | VAnchorBase.ExtData | undefined
+| _account | VAnchorBase.Account | The account to register
+| _proofArgs | VAnchorEncodeInputs.Proof | The zkSNARK proof parameters
+| _extData | VAnchorBase.ExtData | The external data for the transaction
 
 ### registerAndTransactWrap
 
 ```solidity
-function registerAndTransactWrap(VAnchorBase.Account _account, VAnchorEncodeInputs.Proof _proofArgs, VAnchorBase.ExtData _extData, address tokenAddress) external nonpayable
+function registerAndTransactWrap(VAnchorBase.Account _account, VAnchorEncodeInputs.Proof _proofArgs, VAnchorBase.ExtData _extData, address _tokenAddress) external nonpayable
 ```
 
-
+Registers and transacts and wraps in a single flow
 
 
 
@@ -823,10 +823,10 @@ function registerAndTransactWrap(VAnchorBase.Account _account, VAnchorEncodeInpu
 
 | Name | Type | Description |
 |---|---|---|
-| _account | VAnchorBase.Account | undefined
-| _proofArgs | VAnchorEncodeInputs.Proof | undefined
-| _extData | VAnchorBase.ExtData | undefined
-| tokenAddress | address | undefined
+| _account | VAnchorBase.Account | The account to register
+| _proofArgs | VAnchorEncodeInputs.Proof | The zkSNARK proof parameters
+| _extData | VAnchorBase.ExtData | The external data for the transaction
+| _tokenAddress | address | The token to wrap from
 
 ### roots
 
@@ -853,36 +853,36 @@ function roots(uint256) external view returns (bytes32)
 ### setHandler
 
 ```solidity
-function setHandler(address newHandler, uint32 nonce) external nonpayable
+function setHandler(address _handler, uint32 _nonce) external nonpayable
 ```
 
+Set a new handler with a nonce
 
-
-
+*Can only be called by the `AnchorHandler` contract*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| newHandler | address | undefined
-| nonce | uint32 | undefined
+| _handler | address | The new handler address
+| _nonce | uint32 | The nonce for updating the new handler
 
 ### setVerifier
 
 ```solidity
-function setVerifier(address newVerifier, uint32 nonce) external nonpayable
+function setVerifier(address _verifier, uint32 _nonce) external nonpayable
 ```
 
+Set a new verifier with a nonce
 
-
-
+*Can only be called by the `AnchorHandler` contract*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| newVerifier | address | undefined
-| nonce | uint32 | undefined
+| _verifier | address | The new verifier address
+| _nonce | uint32 | The nonce for updating the new verifier
 
 ### token
 
@@ -907,7 +907,7 @@ function token() external view returns (address)
 function transact(VAnchorEncodeInputs.Proof _args, VAnchorBase.ExtData _extData) external nonpayable
 ```
 
-
+Executes a deposit/withdrawal or combination join/split transaction
 
 
 
@@ -915,16 +915,16 @@ function transact(VAnchorEncodeInputs.Proof _args, VAnchorBase.ExtData _extData)
 
 | Name | Type | Description |
 |---|---|---|
-| _args | VAnchorEncodeInputs.Proof | undefined
-| _extData | VAnchorBase.ExtData | undefined
+| _args | VAnchorEncodeInputs.Proof | The zkSNARK proof parameters
+| _extData | VAnchorBase.ExtData | The external data for the transaction
 
 ### transactWrap
 
 ```solidity
-function transactWrap(VAnchorEncodeInputs.Proof _args, VAnchorBase.ExtData _extData, address tokenAddress) external payable
+function transactWrap(VAnchorEncodeInputs.Proof _args, VAnchorBase.ExtData _extData, address _tokenAddress) external payable
 ```
 
-
+Executes a deposit/withdrawal or combination join/split transaction including wrapping or unwrapping
 
 
 
@@ -932,9 +932,9 @@ function transactWrap(VAnchorEncodeInputs.Proof _args, VAnchorBase.ExtData _extD
 
 | Name | Type | Description |
 |---|---|---|
-| _args | VAnchorEncodeInputs.Proof | undefined
-| _extData | VAnchorBase.ExtData | undefined
-| tokenAddress | address | undefined
+| _args | VAnchorEncodeInputs.Proof | The zkSNARK proof parameters
+| _extData | VAnchorBase.ExtData | The external data for the transaction
+| _tokenAddress | address | The token to wrap from or unwrap into depending on the positivity of `_extData.extAmount`
 
 ### unpackProof
 
@@ -942,7 +942,7 @@ function transactWrap(VAnchorEncodeInputs.Proof _args, VAnchorBase.ExtData _extD
 function unpackProof(uint256[8] _proof) external pure returns (uint256[2], uint256[2][2], uint256[2])
 ```
 
-
+A helper function to convert an array of 8 uint256 values into the a, b, and c array values that the zk-SNARK verifier&#39;s verifyProof accepts.
 
 
 
@@ -950,23 +950,23 @@ function unpackProof(uint256[8] _proof) external pure returns (uint256[2], uint2
 
 | Name | Type | Description |
 |---|---|---|
-| _proof | uint256[8] | undefined
+| _proof | uint256[8] | The array of 8 uint256 values
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256[2] | undefined
+| _0 | uint256[2] | (uint256[2] memory a, uint256[2][2] memory b, uint256[2] memory c) The unpacked proof values
 | _1 | uint256[2][2] | undefined
 | _2 | uint256[2] | undefined
 
 ### unwrapIntoNative
 
 ```solidity
-function unwrapIntoNative(address tokenAddress, uint256 amount) external nonpayable
+function unwrapIntoNative(address _tokenAddress, uint256 _amount) external nonpayable
 ```
 
-
+Unwrap the TokenWrapper token for the `msg.sender` into the native token
 
 
 
@@ -974,16 +974,16 @@ function unwrapIntoNative(address tokenAddress, uint256 amount) external nonpaya
 
 | Name | Type | Description |
 |---|---|---|
-| tokenAddress | address | undefined
-| amount | uint256 | undefined
+| _tokenAddress | address | undefined
+| _amount | uint256 | The amount of tokens to unwrap
 
 ### unwrapIntoToken
 
 ```solidity
-function unwrapIntoToken(address tokenAddress, uint256 amount) external nonpayable
+function unwrapIntoToken(address _tokenAddress, uint256 _amount) external nonpayable
 ```
 
-
+Unwraps the TokenWrapper token for the `msg.sender` into one of its wrappable tokens.
 
 
 
@@ -991,16 +991,16 @@ function unwrapIntoToken(address tokenAddress, uint256 amount) external nonpayab
 
 | Name | Type | Description |
 |---|---|---|
-| tokenAddress | address | undefined
-| amount | uint256 | undefined
+| _tokenAddress | address | The address of the token to unwrap into
+| _amount | uint256 | The amount of tokens to unwrap
 
 ### updateEdge
 
 ```solidity
-function updateEdge(uint256 sourceChainID, bytes32 root, uint256 leafIndex) external payable
+function updateEdge(uint256 _sourceChainID, bytes32 _root, uint256 _leafIndex) external payable
 ```
 
-
+Add an edge to the tree or update an existing edge.
 
 
 
@@ -1008,9 +1008,9 @@ function updateEdge(uint256 sourceChainID, bytes32 root, uint256 leafIndex) exte
 
 | Name | Type | Description |
 |---|---|---|
-| sourceChainID | uint256 | undefined
-| root | bytes32 | undefined
-| leafIndex | uint256 | undefined
+| _sourceChainID | uint256 | The chainID of the edge&#39;s LinkableTree
+| _root | bytes32 | The merkle root of the edge&#39;s merkle tree
+| _leafIndex | uint256 | The latest leaf insertion index of the edge&#39;s merkle tree
 
 ### verifier
 
@@ -1032,10 +1032,10 @@ function verifier() external view returns (contract IAnchorVerifier)
 ### withdrawAndUnwrap
 
 ```solidity
-function withdrawAndUnwrap(address tokenAddress, address recipient, uint256 _minusExtAmount) external payable
+function withdrawAndUnwrap(address _tokenAddress, address _recipient, uint256 _minusExtAmount) external payable
 ```
 
-
+Unwraps into a valid token for the `msg.sender`
 
 
 
@@ -1043,17 +1043,17 @@ function withdrawAndUnwrap(address tokenAddress, address recipient, uint256 _min
 
 | Name | Type | Description |
 |---|---|---|
-| tokenAddress | address | undefined
-| recipient | address | undefined
-| _minusExtAmount | uint256 | undefined
+| _tokenAddress | address | The token to unwrap into
+| _recipient | address | The address of the recipient for the unwrapped assets
+| _minusExtAmount | uint256 | Negative external amount for the transaction
 
 ### wrapAndDeposit
 
 ```solidity
-function wrapAndDeposit(address tokenAddress, uint256 _extAmount) external payable
+function wrapAndDeposit(address _tokenAddress, uint256 _extAmount) external payable
 ```
 
-
+Wraps a token for the `msg.sender`
 
 
 
@@ -1061,8 +1061,8 @@ function wrapAndDeposit(address tokenAddress, uint256 _extAmount) external payab
 
 | Name | Type | Description |
 |---|---|---|
-| tokenAddress | address | undefined
-| _extAmount | uint256 | undefined
+| _tokenAddress | address | The address of the token to wrap
+| _extAmount | uint256 | The external amount for the transaction
 
 ### wrapNative
 
@@ -1070,7 +1070,7 @@ function wrapAndDeposit(address tokenAddress, uint256 _extAmount) external payab
 function wrapNative() external payable
 ```
 
-
+Wrap the native token for the `msg.sender` into the TokenWrapper tokenThe amount is taken from `msg.value`
 
 
 
@@ -1078,10 +1078,10 @@ function wrapNative() external payable
 ### wrapToken
 
 ```solidity
-function wrapToken(address tokenAddress, uint256 amount) external nonpayable
+function wrapToken(address _tokenAddress, uint256 _amount) external nonpayable
 ```
 
-
+Wraps a token for the `msg.sender` using the underlying FixedDepositAnchor&#39;s TokenWrapper contract
 
 
 
@@ -1089,8 +1089,8 @@ function wrapToken(address tokenAddress, uint256 amount) external nonpayable
 
 | Name | Type | Description |
 |---|---|---|
-| tokenAddress | address | undefined
-| amount | uint256 | undefined
+| _tokenAddress | address | The address of the token to wrap
+| _amount | uint256 | The amount of tokens to wrap
 
 ### zeros
 
