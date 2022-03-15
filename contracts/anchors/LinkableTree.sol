@@ -201,7 +201,7 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard, ChainIdWi
 		require(_roots.length == maxEdges + 1, "Incorrect root array length");
 		for (uint i = 0; i < edgeList.length; i++) {
 			Edge memory _edge = edgeList[i];
-			require(isKnownNeighborRoot(_edge.chainID, roots[i+1]), "Neighbor root not found");
+			require(isKnownNeighborRoot(_edge.chainID, _roots[i+1]), "Neighbor root not found");
 		}
 		return true;
 	}

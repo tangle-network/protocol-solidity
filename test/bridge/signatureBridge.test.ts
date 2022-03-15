@@ -136,15 +136,13 @@ describe('multichain tests for erc20 bridges', () => {
       // make sure the roots / anchors state have changed
       assert.notEqual(sourceAnchorRootAfter, sourceAnchorRootBefore);
       assert.deepEqual(ethers.BigNumber.from(0), destAnchorEdgeAfter.latestLeafIndex);
-
       await bridge.withdraw(depositNote, anchorSize, signers[1].address, signers[1].address, ganacheWallet2);
-
       const webbTokenAddress2 = bridge.getWebbTokenAddress(chainID2);
       const webbToken2 = await MintableToken.tokenFromAddress(webbTokenAddress2!, ganacheWallet2);
       const webbTokenBalance2 = await webbToken2.getBalance(signers[1].address);
 
       assert.deepEqual(webbTokenBalance2, ethers.BigNumber.from(anchorSize));
-    });
+    }).timeout(40000);
 
     it('create 3 side bridge for one token', async () => {
       bridge3WebbEthInput = {
