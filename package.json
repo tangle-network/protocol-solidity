@@ -76,8 +76,6 @@
     "ethers-eip712": "^0.2.0",
     "hardhat-artifactor": "^0.2.0",
     "hardhat-circom": "^1.0.1",
-    "maci-crypto": "^0.9.1",
-    "maci-domainobjs": "^0.9.1",
     "prettier": "^2.3.2",
     "prettier-plugin-solidity": "^1.0.0-beta.18",
     "snarkjs": "^0.4.10",

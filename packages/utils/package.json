@@ -14,8 +14,7 @@
     "elliptic": "^6.5.3",
     "eth-sig-util": "^3.0.1",
     "ethers": "5.5.1",
-    "ffjavascript": "^0.2.43",
-    "maci-crypto": "^0.9.1"
+    "ffjavascript": "^0.2.43"
   },
   "publishConfig": {
     "access": "public"
