@@ -10,6 +10,7 @@ const path = require('path');
 
 // Convenience wrapper classes for contract classes
 import { Anchor } from '../../packages/anchors/src';
+import { FixedDepositAnchor__factory, GovernedTokenWrapper, GovernedTokenWrapper__factory } from '@webb-tools/contracts';
 import { SignatureBridge } from '../../packages/bridges/src'; 
 import { BridgeInput } from '../../packages/interfaces/src';
 import { MintableToken } from '../../packages/tokens/src';
@@ -381,6 +382,42 @@ describe('multichain tests for erc20 bridges', () => {
         assert.deepStrictEqual(endingBalanceDest, startingBalanceDest.add(anchorSize));
       });
     });
+
+    it('Should successfully manually update when deposits made external to the api', async () => {
+      // Fetch information about the anchor to be updated.
+      console.log('inside the test and after before: ');
+
+      const signers = await ethers.getSigners();
+      const anchorSize = '1000000000000000000';
+
+      const bridgeAnchorInstance = bridge.getAnchor(chainID1, anchorSize);
+      const depositCountBefore = Object.keys(bridgeAnchorInstance.depositHistory).length;
+      const anchorAddress = bridgeAnchorInstance.contract.address;
+      const tokenAddress = bridge.getWebbTokenAddress(chainID1);
+
+      // Mint webb tokens for use in the anchor
+      const token = GovernedTokenWrapper__factory.connect(tokenAddress, signers[1]);
+      let tx = await token.mint(signers[1].address, '10000000000000000000000000');
+      await tx.wait();
+      // approve and deposit from outside of the bridge wrapper class
+      const externalAnchor = FixedDepositAnchor__factory.connect(anchorAddress, signers[1]);
+      tx = await token.approve(externalAnchor.address, '10000000000000000000000');
+      await tx.wait();
+      tx = await externalAnchor.deposit('0x0000000000000000000000000000000000000000000000000000000000000001');
+      await tx.wait();
+
+      // Forced casting to access update method
+      await bridge.update(chainID1, anchorSize);
+
+      const instanceAfterDeposit = bridge.getAnchor(chainID1, anchorSize);
+      const depositCountAfter = Object.keys(instanceAfterDeposit.depositHistory).length;
+      // print the deposit history of the anchors
+      Object.entries(instanceAfterDeposit.depositHistory).map((entry) => {
+        console.log(`After deposit entries: ${entry[0]} ${entry[1]}`)
+      })
+      console.log('deposit count after: ',depositCountAfter );
+      assert.deepStrictEqual(depositCountBefore + 1, depositCountAfter);
+    })
   });
 
   describe('4 sided bridge wrap/unwrap token use', () => {
