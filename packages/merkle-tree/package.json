@@ -9,10 +9,10 @@
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@webb-tools/contracts": "^0.1.7",
-    "@webb-tools/interfaces": "^0.1.8",
-    "@webb-tools/tokens": "^0.1.10",
-    "@webb-tools/utils": "^0.1.7"
+    "@webb-tools/contracts": "file:../contracts",
+    "@webb-tools/interfaces": "file:../interfaces",
+    "@webb-tools/tokens": "file:../tokens",
+    "@webb-tools/utils": "file:../utils"
   },
   "publishConfig": {
     "access": "public"

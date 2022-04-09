@@ -406,7 +406,6 @@ describe('multichain tests for erc20 bridges', () => {
       tx = await externalAnchor.deposit('0x0000000000000000000000000000000000000000000000000000000000000001');
       await tx.wait();
 
-      // Forced casting to access update method
       await bridge.update(chainID1, anchorSize);
 
       const instanceAfterDeposit = bridge.getAnchor(chainID1, anchorSize);
@@ -417,6 +416,44 @@ describe('multichain tests for erc20 bridges', () => {
       })
       console.log('deposit count after: ',depositCountAfter );
       assert.deepStrictEqual(depositCountBefore + 1, depositCountAfter);
+    });
+
+    it.only('should successfully bridge using the anchor wrappers and bridge sides', async () => {
+      const signers = await ethers.getSigners();
+      const anchorSize = '1000000000000000000';
+      const srcAnchor = bridge.getAnchor(chainID1, anchorSize) as Anchor;
+      const destAnchor = bridge.getAnchor(chainID2, anchorSize) as Anchor;
+      const destAnchorResourceId = await destAnchor.createResourceId();
+      const destBridgeSide = bridge.getBridgeSide(chainID2);
+
+      // Mint webb tokens and approve for use in the anchor
+      const tokenAddress = bridge.getWebbTokenAddress(chainID1);
+      const token = GovernedTokenWrapper__factory.connect(tokenAddress, signers[1]);
+      let tx = await token.mint(signers[1].address, '10000000000000000000000000');
+      await tx.wait();
+      tx = await token.approve(srcAnchor.contract.address, '10000000000000000000000');
+      await tx.wait();
+
+      console.log('before the deposit')
+
+      // Make a deposit on the srcAnchor.
+      const deposit = await srcAnchor.deposit(chainID2);
+
+      console.log('after the deposit')
+
+      // Use the bridge side to relay the new merkle root
+      await destBridgeSide.executeAnchorProposalWithSig(srcAnchor, destAnchorResourceId);
+
+      console.log('after the relayed root')
+
+      // Create the merkle proof necessary for a withdraw
+      const merkleProof = srcAnchor.tree.path(1);
+
+      // Setup the bridged withdraw
+      const setup = await destAnchor.setupBridgedWithdraw(deposit.deposit, merkleProof, signers[0].address, signers[0].address, BigInt(0), 0);
+
+      // Successfully call the contract directly
+      await TruffleAssert.passes(destAnchor.contract.withdraw(setup.publicInputs, setup.extData));
     })
   });
 

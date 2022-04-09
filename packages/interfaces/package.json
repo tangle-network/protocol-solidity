@@ -9,7 +9,7 @@
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@webb-tools/utils": "^0.1.7"
+    "@webb-tools/utils": "file:../utils"
   },
   "publishConfig": {
     "access": "public"

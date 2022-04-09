@@ -9,14 +9,14 @@
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@webb-tools/anchors": "^0.1.10",
-    "@webb-tools/bridges": "^0.1.10",
-    "@webb-tools/contracts": "^0.1.7",
-    "@webb-tools/interfaces": "^0.1.8",
-    "@webb-tools/merkle-tree": "^0.1.10",
-    "@webb-tools/tokens": "^0.1.10",
-    "@webb-tools/utils": "^0.1.7",
-    "@webb-tools/vbridge": "^0.1.10"
+    "@webb-tools/anchors": "file:../anchors",
+    "@webb-tools/bridges": "file:../bridges",
+    "@webb-tools/contracts": "file:../contracts",
+    "@webb-tools/interfaces": "file:../interfaces",
+    "@webb-tools/merkle-tree": "file:../merkle-tree",
+    "@webb-tools/tokens": "file:../tokens",
+    "@webb-tools/utils": "file:../utils",
+    "@webb-tools/vbridge": "file:../vbridge"
   },
   "publishConfig": {
     "access": "public"

@@ -5,7 +5,6 @@ import { RefreshEvent, WithdrawalEvent } from '@webb-tools/contracts/src/FixedDe
 import { IAnchorDeposit, IAnchorDepositInfo, IAnchor, IFixedAnchorPublicInputs, IMerkleProofData, IFixedAnchorExtData } from '@webb-tools/interfaces';
 import { toFixedHex, toHex, rbigint, p256, PoseidonHasher, ZkComponents, Utxo, getChainIdType, getFixedAnchorExtDataHash } from '@webb-tools/utils';
 import { MerkleTree } from '@webb-tools/merkle-tree';
-import bigInt from 'big-integer';
 
 const snarkjs = require('snarkjs');
 const zeroAddress = "0x0000000000000000000000000000000000000000";
@@ -220,6 +219,7 @@ class Anchor implements IAnchor {
         syncedBlock = await this.signer.provider.getBlockNumber();
       }
       this.tree = newTree;
+      this.latestSyncedBlock = syncedBlock;
       return true;
     } else {
       return false;
@@ -394,6 +394,7 @@ class Anchor implements IAnchor {
 
   public async createWitness(data: any) {
     const buff = await this.zkComponents.witnessCalculator.calculateWTNSBin(data,0);
+    console.log('witness created');
     return buff;
   }
 
@@ -610,6 +611,50 @@ class Anchor implements IAnchor {
       _roots: args[1],
       _nullifierHash: args[2],
       _extDataHash: args[3],
+    };
+  }
+
+  public async setupBridgedWithdraw(
+    deposit: IAnchorDepositInfo,
+    merkleProof: any,
+    recipient: string,
+    relayer: string,
+    fee: bigint,
+    refreshCommitment: string | number,
+  ) {
+    const { pathElements, pathIndices } = merkleProof;
+
+    // first, check if the merkle root is known on chain - if not, then update
+    const chainId = getChainIdType(await this.signer.getChainId());
+    const roots = await this.populateRootsForProof();
+    const refund = BigInt(0);
+    const { input, extData } = await this.generateWitnessInput(
+      deposit,
+      chainId,
+      refreshCommitment,
+      recipient,
+      relayer,
+      BigInt(fee),
+      refund,
+      roots,
+      pathElements,
+      pathIndices,
+    );
+    const wtns = await this.createWitness(input);
+    let proofEncoded = await this.proveAndVerify(wtns);
+    const args = [
+      `0x${proofEncoded}`,
+      Anchor.createRootsBytes(input.roots),
+      toFixedHex(input.nullifierHash),
+      toFixedHex(input.extDataHash),
+    ];
+    const publicInputs = Anchor.convertArgsArrayToStruct(args);
+
+    return {
+      input,
+      args,
+      publicInputs,
+      extData,
     };
   }
 
