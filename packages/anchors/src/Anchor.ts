@@ -16,10 +16,11 @@ function checkNativeAddress(tokenAddress: string): boolean {
   return false;
 }
 
-// This convenience wrapper class is used in tests -
-// It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
-// Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
-// Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods 
+/**
+ * It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
+ * Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
+ * Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
+ */
 class Anchor implements IAnchor {
   signer: ethers.Signer;
   contract: AnchorContract;
@@ -68,7 +69,9 @@ class Anchor implements IAnchor {
     throw new Error("Method not implemented.");
   }
 
-  // Deploys an Anchor contract and sets the signer for deposit and withdraws on this contract.
+  /**
+   * Deploys an Anchor contract and sets the signer for deposit and withdraws on this contract.
+   */
   public static async createAnchor(
     verifier: string,
     hasher: string,
@@ -198,12 +201,14 @@ class Anchor implements IAnchor {
     return false;
   }
 
-  // given a list of leaves and a latest synced block, update internal tree state
-  // The function will create a new tree, and check on chain root before updating its member variable
-  // If the passed leaves match on chain data, 
-  //      update this instance and return true
-  // else
-  //      return false
+  /**
+   * Given a list of leaves and a latest synced block, update internal tree state
+   * The function will create a new tree, and check on chain root before updating its member variable
+   * If the passed leaves match on chain data, 
+   *   update this instance and return true
+   * else
+   *   return false
+   */
   public async setWithLeaves(leaves: string[], syncedBlock?: number): Promise<Boolean> {
     let newTree = new MerkleTree(this.tree.levels, leaves);
     let root = toFixedHex(newTree.root());
@@ -226,8 +231,10 @@ class Anchor implements IAnchor {
     }
   }
 
-  // Proposal data is used to update linkedAnchors via bridge proposals 
-  // on other chains with this anchor's state
+  /**
+   * Proposal data is used to update linkedAnchors via bridge proposals 
+   * on other chains with this anchor's state
+   */
   public async getProposalData(resourceID: string, leafIndex?: number): Promise<string> {
 
     // If no leaf index passed in, set it to the most recent one.
@@ -297,7 +304,6 @@ class Anchor implements IAnchor {
 
   /**
    * Assumes the anchor has the correct, full deposit history.
-   * 
    */
   public async wrapAndDeposit(tokenAddress: string, wrappingFee: number = 0,destinationChainId?: number): Promise<IAnchorDeposit> {
     const originChainId = getChainIdType(await this.signer.getChainId());
@@ -326,8 +332,10 @@ class Anchor implements IAnchor {
     return { deposit, index, originChainId };
   }
 
-  // sync the local tree with the tree on chain.
-  // Start syncing from the given block number, otherwise latest synced block.
+  /**
+   * Sync the local tree with the tree on chain.
+   * Start syncing from the given block number, otherwise latest synced block.
+   */
   public async update(blockNumber?: number) {
     const filter = this.contract.filters.Deposit();
     const currentBlockNumber = await this.signer.provider!.getBlockNumber();
@@ -542,7 +550,9 @@ class Anchor implements IAnchor {
     return events[0];
   }
 
-  // A bridgedWithdraw needs the merkle proof to be generated from an anchor other than this one,
+  /**
+   * A bridgedWithdraw needs the merkle proof to be generated from an anchor other than this one,
+   */
   public async bridgedWithdrawAndUnwrap(
     deposit: IAnchorDeposit,
     merkleProof: any,
