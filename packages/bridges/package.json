@@ -13,11 +13,11 @@
     "hardhat": "^2.6.8"
   },
   "dependencies": {
-    "@webb-tools/anchors": "file:../anchors",
-    "@webb-tools/contracts": "file:../contracts",
-    "@webb-tools/interfaces": "file:../interfaces",
-    "@webb-tools/tokens": "file:../tokens",
-    "@webb-tools/utils": "file:../utils",
+    "@webb-tools/anchors": "^0.1.10",
+    "@webb-tools/contracts": "^0.1.7",
+    "@webb-tools/interfaces": "^0.1.8",
+    "@webb-tools/tokens": "^0.1.10",
+    "@webb-tools/utils": "^0.1.7",
     "circomlibjs": "^0.0.8",
     "ethers": "5.5.1",
     "ffjavascript": "^0.2.38",

@@ -13,10 +13,10 @@
     "hardhat": "^2.6.8"
   },
   "dependencies": {
-    "@webb-tools/bridges": "file:../bridges",
-    "@webb-tools/contracts": "file:../contracts",
-    "@webb-tools/tokens": "file:../tokens",
-    "@webb-tools/utils": "file:../utils",
+    "@webb-tools/bridges": "^0.1.10",
+    "@webb-tools/contracts": "^0.1.7",
+    "@webb-tools/tokens": "^0.1.10",
+    "@webb-tools/utils": "^0.1.7",
     "circomlibjs": "^0.0.8",
     "ethers": "5.5.1",
     "ffjavascript": "^0.2.38",

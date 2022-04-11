@@ -9,10 +9,10 @@
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@webb-tools/contracts": "file:../contracts",
-    "@webb-tools/interfaces": "file:../interfaces",
-    "@webb-tools/merkle-tree": "file:../merkle-tree",
-    "@webb-tools/utils": "file:../utils",
+    "@webb-tools/contracts": "^0.1.7",
+    "@webb-tools/interfaces": "^0.1.8",
+    "@webb-tools/merkle-tree": "^0.1.10",
+    "@webb-tools/utils": "^0.1.7",
     "snarkjs": "0.4.16"
   },
   "publishConfig": {
