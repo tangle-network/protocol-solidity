@@ -13,7 +13,7 @@
     "hardhat": "^2.6.8"
   },
   "dependencies": {
-    "@webb-tools/bridges": "^0.1.10",
+    "@webb-tools/bridges": "^0.1.11",
     "@webb-tools/contracts": "^0.1.7",
     "@webb-tools/tokens": "^0.1.10",
     "@webb-tools/utils": "^0.1.7",
@@ -30,5 +30,5 @@
     "type": "git",
     "url": "git://github.com/webb-tools/protocol-solidity.git"
   },
-  "version": "0.1.10"
+  "version": "0.1.11"
 }
