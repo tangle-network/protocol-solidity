@@ -4,12 +4,8 @@
 
 require('dotenv').config({ path: '../.env' });
 import { ethers } from 'ethers';
-import { Anchor__factory } from '../../../typechain/factories/Anchor__factory';
-import { Anchor } from '../../../typechain/Anchor';
-
-let provider = new ethers.providers.JsonRpcProvider(`${process.env.ENDPOINT}`);
-
-const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
+import { FixedDepositAnchor__factory as Anchor__factory } from '../../../typechain/factories/FixedDepositAnchor__factory';
+import { FixedDepositAnchor as Anchor } from '../../../typechain/FixedDepositAnchor';
 
 export async function deployERC20Anchor(
   verifierAddress: string,
@@ -17,22 +13,18 @@ export async function deployERC20Anchor(
   denomination: ethers.BigNumberish,
   treeHeight: number,
   tokenAddress: string,
-  bridgeAddress: string,
-  adminAddress: string,
   handlerAddress: string,
   passedWallet: ethers.Signer
 ): Promise<Anchor> {
-  const ERC20AnchorFactory = new Anchor__factory(wallet);
+  const ERC20AnchorFactory = new Anchor__factory(passedWallet);
   let ERC20Anchor = await ERC20AnchorFactory.deploy(
+    handlerAddress,
+    tokenAddress,
     verifierAddress,
     hasherAddress,
     denomination,
     treeHeight,
-    await passedWallet.getChainId(),
-    tokenAddress,
-    bridgeAddress,
-    adminAddress,
-    handlerAddress,
+    2,
     { gasLimit: '0x5B8D80' }
   );
   const ERC20AnchorAddress = await ERC20Anchor.deployed();
