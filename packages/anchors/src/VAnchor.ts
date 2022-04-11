@@ -1,6 +1,5 @@
 // @ts-nocheck
 import { BigNumber, BigNumberish, ethers } from 'ethers';
-import { performance } from 'perf_hooks';
 import { VAnchor as VAnchorContract, VAnchor__factory, VAnchorEncodeInputs__factory } from '@webb-tools/contracts';
 import { p256, toHex, RootInfo, Keypair, FIELD_SIZE, getExtDataHash, toFixedHex, Utxo, getChainIdType, median, mean, max, min, ZkComponents } from '@webb-tools/utils';
 import { IAnchorDeposit, IAnchor, IExtData, IMerkleProofData, IUTXOInput, IVariableAnchorPublicInputs, IWitnessInput, IAnchorDepositInfo } from '@webb-tools/interfaces';
@@ -469,14 +468,11 @@ export class VAnchor implements IAnchor {
   }
 
   public async proveAndVerify(wtns: any, small: boolean) {
-    let start = performance.now();
     let res = await snarkjs.groth16.prove(small
       ? this.smallCircuitZkComponents.zkey
       : this.largeCircuitZkComponents.zkey, wtns
     );
-    let proof_time = (performance.now() - start)/1000;
 
-    proofTimeBenchmark.push(proof_time)
     let proof = res.proof;
     let publicSignals = res.publicSignals;
 

@@ -1,11 +1,10 @@
 // @ts-nocheck
-import { BigNumberish, ethers, BigNumber } from 'ethers';
+import { BigNumberish, ethers, BigNumber, ContractTransaction } from 'ethers';
 import { FixedDepositAnchor as AnchorContract, FixedDepositAnchor__factory as Anchor__factory} from '@webb-tools/contracts'
 import { RefreshEvent, WithdrawalEvent } from '@webb-tools/contracts/src/FixedDepositAnchor';
 import { IAnchorDeposit, IAnchorDepositInfo, IAnchor, IFixedAnchorPublicInputs, IMerkleProofData, IFixedAnchorExtData } from '@webb-tools/interfaces';
 import { toFixedHex, toHex, rbigint, p256, PoseidonHasher, ZkComponents, Utxo, getChainIdType, getFixedAnchorExtDataHash } from '@webb-tools/utils';
 import { MerkleTree } from '@webb-tools/merkle-tree';
-import bigInt from 'big-integer';
 
 const snarkjs = require('snarkjs');
 const zeroAddress = "0x0000000000000000000000000000000000000000";
@@ -17,10 +16,11 @@ function checkNativeAddress(tokenAddress: string): boolean {
   return false;
 }
 
-// This convenience wrapper class is used in tests -
-// It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
-// Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
-// Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods 
+/**
+ * It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
+ * Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
+ * Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
+ */
 class Anchor implements IAnchor {
   signer: ethers.Signer;
   contract: AnchorContract;
@@ -69,7 +69,9 @@ class Anchor implements IAnchor {
     throw new Error("Method not implemented.");
   }
 
-  // Deploys an Anchor contract and sets the signer for deposit and withdraws on this contract.
+  /**
+   * Deploys an Anchor contract and sets the signer for deposit and withdraws on this contract.
+   */
   public static async createAnchor(
     verifier: string,
     hasher: string,
@@ -199,12 +201,14 @@ class Anchor implements IAnchor {
     return false;
   }
 
-  // given a list of leaves and a latest synced block, update internal tree state
-  // The function will create a new tree, and check on chain root before updating its member variable
-  // If the passed leaves match on chain data, 
-  //      update this instance and return true
-  // else
-  //      return false
+  /**
+   * Given a list of leaves and a latest synced block, update internal tree state
+   * The function will create a new tree, and check on chain root before updating its member variable
+   * If the passed leaves match on chain data, 
+   *   update this instance and return true
+   * else
+   *   return false
+   */
   public async setWithLeaves(leaves: string[], syncedBlock?: number): Promise<Boolean> {
     let newTree = new MerkleTree(this.tree.levels, leaves);
     let root = toFixedHex(newTree.root());
@@ -220,14 +224,17 @@ class Anchor implements IAnchor {
         syncedBlock = await this.signer.provider.getBlockNumber();
       }
       this.tree = newTree;
+      this.latestSyncedBlock = syncedBlock;
       return true;
     } else {
       return false;
     }
   }
 
-  // Proposal data is used to update linkedAnchors via bridge proposals 
-  // on other chains with this anchor's state
+  /**
+   * Proposal data is used to update linkedAnchors via bridge proposals 
+   * on other chains with this anchor's state
+   */
   public async getProposalData(resourceID: string, leafIndex?: number): Promise<string> {
 
     // If no leaf index passed in, set it to the most recent one.
@@ -268,6 +275,7 @@ class Anchor implements IAnchor {
   /**
    * Makes a deposit of the anchor's fixed sized denomination into the smart contracts.
    * Assumes the sender possesses the anchor's fixed sized denomination.
+   * Assumes the anchor has the correct, full deposit history.
    * @param destinationChainId 
    * @returns 
    */
@@ -279,9 +287,11 @@ class Anchor implements IAnchor {
     const tx = await this.contract.deposit(toFixedHex(deposit.commitment), { gasLimit: '0x5B8D80' });
     const receipt = await tx.wait();
 
+    // Deposit history and state altered.
     this.tree.insert(deposit.commitment);
     let index = this.tree.number_of_elements() - 1;
     this.depositHistory[index] = await this.contract.getLastRoot();
+    this.latestSyncedBlock = receipt.blockNumber;
 
     const root = await this.contract.getLastRoot();
 
@@ -292,11 +302,14 @@ class Anchor implements IAnchor {
     return BigNumber.from(this.denomination).mul(100).div(100 - wrappingFee);
   }
 
+  /**
+   * Assumes the anchor has the correct, full deposit history.
+   */
   public async wrapAndDeposit(tokenAddress: string, wrappingFee: number = 0,destinationChainId?: number): Promise<IAnchorDeposit> {
     const originChainId = getChainIdType(await this.signer.getChainId());
     const chainId = (destinationChainId) ? destinationChainId : originChainId;
     const deposit = Anchor.generateDeposit(chainId);
-    let tx;
+    let tx: ContractTransaction;
     if (checkNativeAddress(tokenAddress)) {
       tx = await this.contract.wrapAndDeposit(tokenAddress, toFixedHex(deposit.commitment), {
         value: this.getAmountToWrap(wrappingFee).toString(),
@@ -307,25 +320,29 @@ class Anchor implements IAnchor {
         gasLimit: '0x5B8D80'
       });
     }
-    await tx.wait();
+    const receipt = await tx.wait();
+    
+    // Deposit history and state altered.
     this.tree.insert(deposit.commitment);
     let index = this.tree.number_of_elements() - 1;
     const root = await this.contract.getLastRoot();
-
+    this.latestSyncedBlock = receipt.blockNumber;
     this.depositHistory[index] = root;
 
     return { deposit, index, originChainId };
   }
 
-  // sync the local tree with the tree on chain.
-  // Start syncing from the given block number, otherwise zero.
+  /**
+   * Sync the local tree with the tree on chain.
+   * Start syncing from the given block number, otherwise latest synced block.
+   */
   public async update(blockNumber?: number) {
     const filter = this.contract.filters.Deposit();
     const currentBlockNumber = await this.signer.provider!.getBlockNumber();
-    const events = await this.contract.queryFilter(filter, blockNumber || 0);
+    const events = await this.contract.queryFilter(filter, blockNumber || this.latestSyncedBlock + 1);
     const commitments = events.map((event) => event.args.commitment);
 
-    let index = 0;
+    let index = Object.keys(this.depositHistory).length;
     for (const commitment of commitments) {
       this.tree.insert(commitment);
       this.depositHistory[index] = toFixedHex(this.tree.root());
@@ -533,7 +550,9 @@ class Anchor implements IAnchor {
     return events[0];
   }
 
-  // A bridgedWithdraw needs the merkle proof to be generated from an anchor other than this one,
+  /**
+   * A bridgedWithdraw needs the merkle proof to be generated from an anchor other than this one,
+   */
   public async bridgedWithdrawAndUnwrap(
     deposit: IAnchorDeposit,
     merkleProof: any,
@@ -600,6 +619,50 @@ class Anchor implements IAnchor {
       _roots: args[1],
       _nullifierHash: args[2],
       _extDataHash: args[3],
+    };
+  }
+
+  public async setupBridgedWithdraw(
+    deposit: IAnchorDepositInfo,
+    merkleProof: any,
+    recipient: string,
+    relayer: string,
+    fee: bigint,
+    refreshCommitment: string | number,
+  ) {
+    const { pathElements, pathIndices } = merkleProof;
+
+    // first, check if the merkle root is known on chain - if not, then update
+    const chainId = getChainIdType(await this.signer.getChainId());
+    const roots = await this.populateRootsForProof();
+    const refund = BigInt(0);
+    const { input, extData } = await this.generateWitnessInput(
+      deposit,
+      chainId,
+      refreshCommitment,
+      recipient,
+      relayer,
+      BigInt(fee),
+      refund,
+      roots,
+      pathElements,
+      pathIndices,
+    );
+    const wtns = await this.createWitness(input);
+    let proofEncoded = await this.proveAndVerify(wtns);
+    const args = [
+      `0x${proofEncoded}`,
+      Anchor.createRootsBytes(input.roots),
+      toFixedHex(input.nullifierHash),
+      toFixedHex(input.extDataHash),
+    ];
+    const publicInputs = Anchor.convertArgsArrayToStruct(args);
+
+    return {
+      input,
+      args,
+      publicInputs,
+      extData,
     };
   }
 
