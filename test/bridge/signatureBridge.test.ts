@@ -418,7 +418,7 @@ describe('multichain tests for erc20 bridges', () => {
       assert.deepStrictEqual(depositCountBefore + 1, depositCountAfter);
     });
 
-    it.only('should successfully bridge using the anchor wrappers and bridge sides', async () => {
+    it('should successfully bridge using the anchor wrappers and bridge sides', async () => {
       const signers = await ethers.getSigners();
       const anchorSize = '1000000000000000000';
       const srcAnchor = bridge.getAnchor(chainID1, anchorSize) as Anchor;
@@ -434,17 +434,11 @@ describe('multichain tests for erc20 bridges', () => {
       tx = await token.approve(srcAnchor.contract.address, '10000000000000000000000');
       await tx.wait();
 
-      console.log('before the deposit')
-
       // Make a deposit on the srcAnchor.
       const deposit = await srcAnchor.deposit(chainID2);
 
-      console.log('after the deposit')
-
       // Use the bridge side to relay the new merkle root
       await destBridgeSide.executeAnchorProposalWithSig(srcAnchor, destAnchorResourceId);
-
-      console.log('after the relayed root')
 
       // Create the merkle proof necessary for a withdraw
       const merkleProof = srcAnchor.tree.path(1);

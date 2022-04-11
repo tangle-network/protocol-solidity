@@ -332,7 +332,6 @@ class Anchor implements IAnchor {
     const filter = this.contract.filters.Deposit();
     const currentBlockNumber = await this.signer.provider!.getBlockNumber();
     const events = await this.contract.queryFilter(filter, blockNumber || this.latestSyncedBlock + 1);
-    console.log(`current block number: ${currentBlockNumber} this.latestSyncedBlock: ${this.latestSyncedBlock}`);
     const commitments = events.map((event) => event.args.commitment);
 
     let index = Object.keys(this.depositHistory).length;
@@ -393,9 +392,7 @@ class Anchor implements IAnchor {
   }
 
   public async createWitness(data: any) {
-    console.log('before witness');
     const buff = await this.zkComponents.witnessCalculator.calculateWTNSBin(data,0);
-    console.log('witness created');
     return buff;
   }
 
@@ -641,11 +638,6 @@ class Anchor implements IAnchor {
       pathElements,
       pathIndices,
     );
-    console.log('input retrieved: ', input);
-    console.log('input secret: ', input.secret);
-    console.log('input nullifierHash: ', input.nullifierHash);
-    console.log('input roots: ', input.roots);
-    console.log('input pathIndices: ', input.pathIndices);
     const wtns = await this.createWitness(input);
     let proofEncoded = await this.proveAndVerify(wtns);
     const args = [

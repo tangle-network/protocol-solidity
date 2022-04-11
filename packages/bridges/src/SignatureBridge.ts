@@ -251,7 +251,6 @@ export class SignatureBridge {
 
     // update the sides
     for (let anchor of anchorsToUpdate) {
-      console.log('update the anchor: ', anchor.getAddress());
       // get the bridge side which corresponds to this anchor
       const resourceID = await anchor.createResourceId();
       const chainId = getChainIdType(await anchor.signer.getChainId());
