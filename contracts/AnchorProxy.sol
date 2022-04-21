@@ -42,7 +42,7 @@ contract AnchorProxy {
     address _anchorTrees,
     address _governance,
     AnchorStruct[] memory _instances
-  ) public {
+  ) {
     anchorTrees = IAnchorTrees(_anchorTrees);
     governance = _governance;
 

@@ -65,7 +65,7 @@ contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType {
         ), sig
     ){
         require(proposalNonce < nonce, "Invalid nonce");
-        require(nonce <= proposalNonce + 1, "Nonce must increment by 1");
+        require(nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
         require(
             functionSig == bytes4(keccak256(
                 "adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,address,bytes)"

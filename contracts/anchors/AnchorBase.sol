@@ -170,7 +170,7 @@ abstract contract AnchorBase is LinkableTree {
 	function setHandler(address _handler, uint32 _nonce) onlyHandler external {
 		require(_handler != address(0), "Handler cannot be 0");
 		require(proposalNonce < _nonce, "Invalid nonce");
-		require(_nonce <= proposalNonce + 1, "Nonce must increment by 1");
+		require(_nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
 		handler = _handler;
 		proposalNonce = _nonce;
 	}
@@ -184,7 +184,7 @@ abstract contract AnchorBase is LinkableTree {
 	function setVerifier(address _verifier, uint32 _nonce) onlyHandler external {
 		require(_verifier != address(0), "Handler cannot be 0");
 		require(proposalNonce < _nonce, "Invalid nonce");
-		require(_nonce <= proposalNonce + 1, "Nonce must increment by 1");
+		require(_nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
 		verifier = IAnchorVerifier(_verifier);
 		proposalNonce = _nonce;
 	}

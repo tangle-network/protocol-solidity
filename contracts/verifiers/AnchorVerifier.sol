@@ -34,7 +34,7 @@ contract Verifier is IAnchorVerifier {
 		uint[2] memory c,
 		bytes memory input,
 		uint8 maxEdges,
-		bool _unused
+		bool
 	) override external view returns (bool r) {
 		if (maxEdges == 1) {
 			uint256[5] memory _inputs = abi.decode(input, (uint256[5]));
