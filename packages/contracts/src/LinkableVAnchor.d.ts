@@ -61,7 +61,7 @@ interface LinkableVAnchorInterface extends ethers.utils.Interface {
     "setVerifier(address)": FunctionFragment;
     "transact((bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes))": FunctionFragment;
     "unpackProof(uint256[8])": FunctionFragment;
-    "updateEdge(uint256,bytes32,uint256)": FunctionFragment;
+    "updateEdge(uint256,bytes32,uint256,bytes32)": FunctionFragment;
     "verifier()": FunctionFragment;
     "zeros(uint256)": FunctionFragment;
   };

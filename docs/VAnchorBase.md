@@ -275,7 +275,7 @@ function edgeIndex(uint256) external view returns (uint256)
 ### edgeList
 
 ```solidity
-function edgeList(uint256) external view returns (uint256 chainID, bytes32 root, uint256 latestLeafIndex)
+function edgeList(uint256) external view returns (uint256 chainID, bytes32 root, uint256 latestLeafIndex, bytes32 target)
 ```
 
 
@@ -295,6 +295,7 @@ function edgeList(uint256) external view returns (uint256 chainID, bytes32 root,
 | chainID | uint256 | undefined
 | root | bytes32 | undefined
 | latestLeafIndex | uint256 | undefined
+| target | bytes32 | undefined
 
 ### filledSubtrees
 
@@ -874,7 +875,7 @@ A helper function to convert an array of 8 uint256 values into the a, b, and c a
 ### updateEdge
 
 ```solidity
-function updateEdge(uint256 _sourceChainID, bytes32 _root, uint256 _leafIndex) external payable
+function updateEdge(uint256 _sourceChainID, bytes32 _root, uint256 _leafIndex, bytes32 _target) external payable
 ```
 
 Add an edge to the tree or update an existing edge.
@@ -888,6 +889,7 @@ Add an edge to the tree or update an existing edge.
 | _sourceChainID | uint256 | The chainID of the edge&#39;s LinkableTree
 | _root | bytes32 | The merkle root of the edge&#39;s merkle tree
 | _leafIndex | uint256 | The latest leaf insertion index of the edge&#39;s merkle tree
+| _target | bytes32 | undefined
 
 ### verifier
 

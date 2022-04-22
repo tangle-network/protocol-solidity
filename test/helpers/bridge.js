@@ -70,7 +70,7 @@ const createUpdateProposalData = (sourceChainID, leafIndex, merkleRoot, thisAnch
   }
 
   const resourceID = createResourceID(thisAnchorAddress, thisAnchorChainID)
-  const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("updateEdge(uint256,bytes32,uint256)")).slice(0, 10).padEnd(10, '0');
+  const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("updateEdge(uint256,bytes32,uint256,bytes32)")).slice(0, 10).padEnd(10, '0');
   const dummyNonce = 1;
 
   return '0x' +

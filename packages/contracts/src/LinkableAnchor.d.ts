@@ -59,7 +59,7 @@ interface LinkableAnchorInterface extends ethers.utils.Interface {
     "setBridge(address)": FunctionFragment;
     "setHandler(address)": FunctionFragment;
     "unpackProof(uint256[8])": FunctionFragment;
-    "updateEdge(uint256,bytes32,uint256)": FunctionFragment;
+    "updateEdge(uint256,bytes32,uint256,bytes32)": FunctionFragment;
     "verifier()": FunctionFragment;
     "withdraw(bytes,(bytes,bytes32,bytes32,address,address,uint256,uint256))": FunctionFragment;
     "zeros(uint256)": FunctionFragment;

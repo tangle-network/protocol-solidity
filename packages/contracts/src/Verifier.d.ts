@@ -118,7 +118,7 @@ export class Verifier extends BaseContract {
       c: [BigNumberish, BigNumberish],
       input: BytesLike,
       maxEdges: BigNumberish,
-      _unused: boolean,
+      arg5: boolean,
       overrides?: CallOverrides
     ): Promise<[boolean] & { r: boolean }>;
   };
@@ -139,7 +139,7 @@ export class Verifier extends BaseContract {
     c: [BigNumberish, BigNumberish],
     input: BytesLike,
     maxEdges: BigNumberish,
-    _unused: boolean,
+    arg5: boolean,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
@@ -160,7 +160,7 @@ export class Verifier extends BaseContract {
       c: [BigNumberish, BigNumberish],
       input: BytesLike,
       maxEdges: BigNumberish,
-      _unused: boolean,
+      arg5: boolean,
       overrides?: CallOverrides
     ): Promise<boolean>;
   };
@@ -184,7 +184,7 @@ export class Verifier extends BaseContract {
       c: [BigNumberish, BigNumberish],
       input: BytesLike,
       maxEdges: BigNumberish,
-      _unused: boolean,
+      arg5: boolean,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
@@ -206,7 +206,7 @@ export class Verifier extends BaseContract {
       c: [BigNumberish, BigNumberish],
       input: BytesLike,
       maxEdges: BigNumberish,
-      _unused: boolean,
+      arg5: boolean,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
