@@ -14,7 +14,7 @@ import "./utils/ChainIdWithType.sol";
 import "./interfaces/IExecutor.sol";
 
 /**
-    @title Facilitates deposits, creation and voting of deposit proposals, and deposit executions.
+    @title Facilitates proposals execution and resource ID additions/updates
     @author ChainSafe Systems & Webb Technologies.
  */
 contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType {
