@@ -124,7 +124,7 @@ import { IFixedAnchorExtData } from '@webb-tools/interfaces';
        )
        await TruffleAssert.reverts(
          anchor.contract.setHandler(signers[1].address, 1049),
-         'Nonce must mot increment by more than 1048'
+         'Nonce must not increment by more than 1048'
        )
      });
  
@@ -136,7 +136,7 @@ import { IFixedAnchorExtData } from '@webb-tools/interfaces';
        )
        await TruffleAssert.reverts(
          anchor.contract.setVerifier(signers[1].address, 1049),
-         'Nonce must mot increment by more than 1048'
+         'Nonce must not increment by more than 1048'
        )
      });
    })

@@ -234,7 +234,7 @@ describe('VAnchor for 2 max edges', () => {
       )
       await TruffleAssert.reverts(
         anchor.contract.setHandler(signers[1].address, 1049),
-        'Nonce must mot increment by more than 1048'
+        'Nonce must not increment by more than 1048'
       )
     });
 
@@ -246,7 +246,7 @@ describe('VAnchor for 2 max edges', () => {
       )
       await TruffleAssert.reverts(
         anchor.contract.setVerifier(signers[1].address, 1049),
-        'Nonce must mot increment by more than 1048'
+        'Nonce must not increment by more than 1048'
       )
     });
   })
