@@ -43,10 +43,18 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard, ChainIdWi
 	// The maximum number of edges this tree can support.
 	uint8 public immutable maxEdges;
 
+	/**
+		@dev The Edge struct is used to store the edge data for linkable tree connections.
+		@param chainId The chain id where the LinkableTree contract being linked is located.
+		@param root The latest merkle root of the LinkableTree contract being linked.
+		@param nonce The latest leaf insertion index of the LinkableTree contract being linked.
+		@param target The contract address or tree identifier of the LinkableTree being linked.
+	 */
 	struct Edge {
 		uint256 chainID;
 		bytes32 root;
 		uint256 latestLeafIndex;
+		bytes32 target;
 	}
 
 	// Maps sourceChainID to the index in the edge list
@@ -89,7 +97,8 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard, ChainIdWi
 	function updateEdge(
 		uint256 _sourceChainID,
 		bytes32 _root,
-		uint256 _leafIndex
+		uint256 _leafIndex,
+		bytes32 _target
 	) onlyHandler external payable nonReentrant {
 		if (this.hasEdge(_sourceChainID)) {
 			//Update Edge
@@ -101,7 +110,8 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard, ChainIdWi
 			edgeList[index] = Edge({
 				chainID: _sourceChainID,
 				root: _root,
-				latestLeafIndex: _leafIndex
+				latestLeafIndex: _leafIndex,
+				target: _target
 			});
 				// add to root histories
 			uint32 neighborRootIndex = (currentNeighborRootIndex[_sourceChainID] + 1) % ROOT_HISTORY_SIZE;
@@ -116,7 +126,8 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard, ChainIdWi
 			Edge memory edge = Edge({
 				chainID: _sourceChainID,
 				root: _root,
-				latestLeafIndex: _leafIndex
+				latestLeafIndex: _leafIndex,
+				target: _target
 			});
 			edgeList.push(edge);
 			edgeIndex[_sourceChainID] = index;
@@ -130,7 +141,7 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard, ChainIdWi
 	/**
 		@notice Get the latest state of all neighbor edges
 		@return Edge[] An array of all neighboring and potentially empty edges
-	 */
+		*/
 	function getLatestNeighborEdges() public view returns (Edge[] memory) {
 		Edge[] memory edges = new Edge[](maxEdges);
 		for (uint256 i = 0; i < maxEdges; i++) {
@@ -141,7 +152,8 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard, ChainIdWi
 					// merkle tree height for zeros
 					root: zeros(levels),
 					chainID: 0,
-					latestLeafIndex: 0
+					latestLeafIndex: 0,
+					target: 0x0
 				});
 			}
 		}

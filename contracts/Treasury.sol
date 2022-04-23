@@ -26,7 +26,7 @@ contract Treasury is ITreasury {
         require(to != address(0), "Cannot send liquidity to zero address");
         require(tokenAddress != address(this), "Cannot rescue wrapped asset");
         require(proposalNonce < nonce, "Invalid nonce");
-        require(nonce <= proposalNonce + 1, "Nonce must increment by 1");
+        require(nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
 
         if (tokenAddress == address(0)) {
             // Native Ether 
@@ -53,7 +53,7 @@ contract Treasury is ITreasury {
     function setHandler(address newHandler, uint256 nonce) onlyHandler override external {
         require(newHandler != address(0), "Handler cannot be 0");
         require(proposalNonce < nonce, "Invalid nonce");
-        require(nonce <= proposalNonce + 1, "Nonce must increment by 1");
+        require(nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
         treasuryHandler = newHandler;
         proposalNonce = nonce;
     }

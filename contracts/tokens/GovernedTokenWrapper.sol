@@ -76,7 +76,7 @@ contract GovernedTokenWrapper is TokenWrapper {
 	function add(address _tokenAddress, uint256 _nonce) public onlyGovernor {
 		require(!valid[_tokenAddress], "Token should not be valid");
 		require(proposalNonce < _nonce, "Invalid nonce");
-		require(_nonce <= proposalNonce + 1, "Nonce must increment by 1");
+		require(_nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
 		tokens.push(_tokenAddress);
 
 		if (!historicallyValid[_tokenAddress]) {
@@ -96,7 +96,7 @@ contract GovernedTokenWrapper is TokenWrapper {
 	function remove(address _tokenAddress, uint256 _nonce) public onlyGovernor {
 		require(valid[_tokenAddress], "Token should be valid");
 		require(proposalNonce < _nonce, "Invalid nonce");
-		require(_nonce <= proposalNonce + 1, "Nonce must increment by 1");
+		require(_nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
 		uint index = 0;
 		for (uint i = 0; i < tokens.length; i++) {
 			if (tokens[i] == _tokenAddress) {
@@ -137,7 +137,7 @@ contract GovernedTokenWrapper is TokenWrapper {
 	function setFee(uint8 _feePercentage, uint256 _nonce) override external onlyGovernor {
 		require(0 <= _feePercentage && _feePercentage <= 100, "invalid fee percentage");
 		require(proposalNonce < _nonce, "Invalid nonce");
-		require(_nonce <= proposalNonce + 1, "Nonce must increment by 1");
+		require(_nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
 		feePercentage = _feePercentage;
 		proposalNonce = _nonce;
 	}
@@ -150,7 +150,7 @@ contract GovernedTokenWrapper is TokenWrapper {
 	 */
 	function setFeeRecipient(address payable _feeRecipient, uint256 _nonce) public onlyGovernor {
 		require(proposalNonce < _nonce, "Invalid nonce");
-		require(_nonce <= proposalNonce + 1, "Nonce must increment by 1");
+		require(_nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
 		require(_feeRecipient != address(0), "Fee Recipient cannot be zero address");
 		feeRecipient = _feeRecipient;
 		proposalNonce = _nonce;

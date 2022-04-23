@@ -79,7 +79,7 @@ Sets the verifier for zkSNARKs
 ### updateEdge
 
 ```solidity
-function updateEdge(uint256 sourceChainID, bytes32 root, uint256 latestLeafIndex) external payable
+function updateEdge(uint256 sourceChainID, bytes32 root, uint256 latestLeafIndex, bytes32 target) external payable
 ```
 
 The function is used to update the edge data of a LinkableAnchor
@@ -93,6 +93,7 @@ The function is used to update the edge data of a LinkableAnchor
 | sourceChainID | uint256 | The chain ID of the chain whose edge needs updating
 | root | bytes32 | The merkle root of the linked anchor on the  `sourceChainID`&#39;s chain
 | latestLeafIndex | uint256 | The index of the leaf updating the merkle tree with root `root`
+| target | bytes32 | undefined
 
 
 

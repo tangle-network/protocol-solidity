@@ -74,7 +74,7 @@ interface VAnchorInterface extends ethers.utils.Interface {
     "unpackProof(uint256[8])": FunctionFragment;
     "unwrapIntoNative(address,uint256)": FunctionFragment;
     "unwrapIntoToken(address,uint256)": FunctionFragment;
-    "updateEdge(uint256,bytes32,uint256)": FunctionFragment;
+    "updateEdge(uint256,bytes32,uint256,bytes32)": FunctionFragment;
     "verifier()": FunctionFragment;
     "withdrawAndUnwrap(address,address,uint256)": FunctionFragment;
     "wrapAndDeposit(address,uint256)": FunctionFragment;
@@ -349,7 +349,7 @@ interface VAnchorInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "updateEdge",
-    values: [BigNumberish, BytesLike, BigNumberish]
+    values: [BigNumberish, BytesLike, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "verifier", values?: undefined): string;
   encodeFunctionData(
@@ -685,10 +685,11 @@ export class VAnchor extends BaseContract {
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, string, BigNumber] & {
+      [BigNumber, string, BigNumber, string] & {
         chainID: BigNumber;
         root: string;
         latestLeafIndex: BigNumber;
+        target: string;
       }
     >;
 
@@ -707,10 +708,11 @@ export class VAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<
       [
-        ([BigNumber, string, BigNumber] & {
+        ([BigNumber, string, BigNumber, string] & {
           chainID: BigNumber;
           root: string;
           latestLeafIndex: BigNumber;
+          target: string;
         })[]
       ]
     >;
@@ -931,6 +933,7 @@ export class VAnchor extends BaseContract {
       _sourceChainID: BigNumberish,
       _root: BytesLike,
       _leafIndex: BigNumberish,
+      _target: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -1010,10 +1013,11 @@ export class VAnchor extends BaseContract {
     arg0: BigNumberish,
     overrides?: CallOverrides
   ): Promise<
-    [BigNumber, string, BigNumber] & {
+    [BigNumber, string, BigNumber, string] & {
       chainID: BigNumber;
       root: string;
       latestLeafIndex: BigNumber;
+      target: string;
     }
   >;
 
@@ -1031,10 +1035,11 @@ export class VAnchor extends BaseContract {
   getLatestNeighborEdges(
     overrides?: CallOverrides
   ): Promise<
-    ([BigNumber, string, BigNumber] & {
+    ([BigNumber, string, BigNumber, string] & {
       chainID: BigNumber;
       root: string;
       latestLeafIndex: BigNumber;
+      target: string;
     })[]
   >;
 
@@ -1245,6 +1250,7 @@ export class VAnchor extends BaseContract {
     _sourceChainID: BigNumberish,
     _root: BytesLike,
     _leafIndex: BigNumberish,
+    _target: BytesLike,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1327,10 +1333,11 @@ export class VAnchor extends BaseContract {
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, string, BigNumber] & {
+      [BigNumber, string, BigNumber, string] & {
         chainID: BigNumber;
         root: string;
         latestLeafIndex: BigNumber;
+        target: string;
       }
     >;
 
@@ -1348,10 +1355,11 @@ export class VAnchor extends BaseContract {
     getLatestNeighborEdges(
       overrides?: CallOverrides
     ): Promise<
-      ([BigNumber, string, BigNumber] & {
+      ([BigNumber, string, BigNumber, string] & {
         chainID: BigNumber;
         root: string;
         latestLeafIndex: BigNumber;
+        target: string;
       })[]
     >;
 
@@ -1568,6 +1576,7 @@ export class VAnchor extends BaseContract {
       _sourceChainID: BigNumberish,
       _root: BytesLike,
       _leafIndex: BigNumberish,
+      _target: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1962,6 +1971,7 @@ export class VAnchor extends BaseContract {
       _sourceChainID: BigNumberish,
       _root: BytesLike,
       _leafIndex: BigNumberish,
+      _target: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -2283,6 +2293,7 @@ export class VAnchor extends BaseContract {
       _sourceChainID: BigNumberish,
       _root: BytesLike,
       _leafIndex: BigNumberish,
+      _target: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

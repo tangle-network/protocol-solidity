@@ -68,6 +68,7 @@ const Token = artifacts.require("ERC20Mock");
       edge.sourceChainID,
       edge.root,
       edge.latestLeafIndex,
+      edge.target,
       { from: sender }
     )
   });
@@ -87,11 +88,13 @@ const Token = artifacts.require("ERC20Mock");
       sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 100,
+      target: '0x1111111111111111111111111111111111111111111111111111111111111111',
     };
     const edgeUpdated = {
       sourceChainID: '0x01',
       root: '0x2222111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 101,
+      target: '0x1111111111111111111111111111111111111111111111111111111111111111',
     };
 
     await TruffleAssert.passes(updateEdge(edge, accounts[0]));
@@ -104,11 +107,13 @@ const Token = artifacts.require("ERC20Mock");
       sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 100,
+      target: '0x1111111111111111111111111111111111111111111111111111111111111111',
     };
     const edgeUpdated = {
       sourceChainID: '0x02',
       root: '0x2222111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 101,
+      target: '0x1111111111111111111111111111111111111111111111111111111111111111',
     };
     await TruffleAssert.passes(updateEdge(edge, accounts[0]));
     await TruffleAssert.reverts(updateEdge(edgeUpdated, accounts[0]));
@@ -119,11 +124,13 @@ const Token = artifacts.require("ERC20Mock");
       sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 100,
+      target: '0x1111111111111111111111111111111111111111111111111111111111111111',
     };
     const edgeUpdated = {
     sourceChainID: '0x01',
       root: '0x2222111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 101,
+      target: '0x1111111111111111111111111111111111111111111111111111111111111111',
     };
     await TruffleAssert.passes(updateEdge(edge, accounts[0]));
 
@@ -143,11 +150,13 @@ const Token = artifacts.require("ERC20Mock");
       sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 100,
+      target: '0x1111111111111111111111111111111111111111111111111111111111111111',
     };
     const edgeUpdated = {
       sourceChainID: '0x01',
       root: '0x2222111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 101,
+      target: '0x1111111111111111111111111111111111111111111111111111111111111111',
     };
     await updateEdge(edge, accounts[0]);
     const result = await updateEdge(edgeUpdated, accounts[0]);

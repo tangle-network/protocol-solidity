@@ -101,11 +101,12 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
             uint32 nonce = uint32(bytes4(arguments[0:4])); 
             address newVerifier = address(bytes20(arguments[4:24]));
             anchor.setVerifier(newVerifier, nonce);
-        } else if (functionSig == bytes4(keccak256("updateEdge(uint256,bytes32,uint256)"))) {
+        } else if (functionSig == bytes4(keccak256("updateEdge(uint256,bytes32,uint256,bytes32)"))) {
             uint256 sourceChainId = uint48(bytes6(arguments[4:10]));
             uint32 leafIndex = uint32(bytes4(arguments[10:14]));
             bytes32 merkleRoot = bytes32(arguments[14:46]);
-            anchor.updateEdge(sourceChainId, merkleRoot, leafIndex);
+            bytes32 target = bytes32(arguments[46:78]);
+            anchor.updateEdge(sourceChainId, merkleRoot, leafIndex, target);
         } else if (functionSig == bytes4(keccak256("configureMinimalWithdrawalLimit(uint256)"))) {
             uint256 minimalWithdrawalAmount = uint256(bytes32(arguments[4:36]));
             anchor.configureMinimalWithdrawalLimit(minimalWithdrawalAmount);

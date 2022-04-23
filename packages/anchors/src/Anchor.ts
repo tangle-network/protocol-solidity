@@ -242,10 +242,11 @@ class Anchor implements IAnchor {
       leafIndex = this.tree.number_of_elements() - 1;
     }
 
-    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("updateEdge(uint256,bytes32,uint256)")).slice(0, 10).padEnd(10, '0');
+    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("updateEdge(uint256,bytes32,uint256,bytes32)")).slice(0, 10).padEnd(10, '0');
     const dummyNonce = 1;
     const chainID = getChainIdType(await this.signer.getChainId());
     const merkleRoot = this.depositHistory[leafIndex];
+    const targetContract = this.contract.address;
 
     return '0x' +
       toHex(resourceID, 32).substr(2)+ 
@@ -253,7 +254,8 @@ class Anchor implements IAnchor {
       toHex(dummyNonce,4).substr(2) +
       toHex(chainID, 6).substr(2) + 
       toHex(leafIndex, 4).substr(2) + 
-      toHex(merkleRoot, 32).substr(2);
+      toHex(merkleRoot, 32).substr(2) +
+      toHex(targetContract, 32).substr(2);
   }
 
   public async getHandler(): Promise<string> {

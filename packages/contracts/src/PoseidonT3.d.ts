@@ -78,19 +78,19 @@ export class PoseidonT3 extends BaseContract {
 
   functions: {
     poseidon(
-      input: [BigNumberish, BigNumberish],
+      arg0: [BigNumberish, BigNumberish],
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
   };
 
   poseidon(
-    input: [BigNumberish, BigNumberish],
+    arg0: [BigNumberish, BigNumberish],
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   callStatic: {
     poseidon(
-      input: [BigNumberish, BigNumberish],
+      arg0: [BigNumberish, BigNumberish],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
@@ -99,14 +99,14 @@ export class PoseidonT3 extends BaseContract {
 
   estimateGas: {
     poseidon(
-      input: [BigNumberish, BigNumberish],
+      arg0: [BigNumberish, BigNumberish],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     poseidon(
-      input: [BigNumberish, BigNumberish],
+      arg0: [BigNumberish, BigNumberish],
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };

@@ -15,7 +15,7 @@ interface IPoseidonT3 {
 }
 
 contract PoseidonT3 is IPoseidonT3 {
-    function poseidon(uint256[2] memory input) override external pure returns (uint256) {
+    function poseidon(uint256[2] memory) override external pure returns (uint256) {
         return 0;
     }
 }

@@ -172,7 +172,7 @@ contract Governable {
 	) public {
 		// Valid Nonce
 		require(proposerSetUpdateNonce < _proposerSetUpdateNonce, "Invalid nonce");
-		require(_proposerSetUpdateNonce <= proposerSetUpdateNonce + 1, "Nonce must increment by 1");
+		require(_proposerSetUpdateNonce < proposerSetUpdateNonce + 1048, "Nonce must not increment more than 1048");
 
 		// Valid Signature
 		require(isSignatureFromGovernor(

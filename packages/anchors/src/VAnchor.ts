@@ -270,8 +270,9 @@ export class VAnchor implements IAnchor {
     }
 
     const chainID = getChainIdType(await this.signer.getChainId());
-    const merkleRoot = this.depositHistory[leafIndex]; //bridgedTransact should update deposithistory
-    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("updateEdge(uint256,bytes32,uint256)")).slice(0, 10).padEnd(10, '0');
+    const merkleRoot = this.depositHistory[leafIndex];
+    const targetContract = this.contract.address;
+    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("updateEdge(uint256,bytes32,uint256,bytes32)")).slice(0, 10).padEnd(10, '0');
     const dummyNonce = 1;
 
     return '0x' +
@@ -280,7 +281,8 @@ export class VAnchor implements IAnchor {
       toHex(dummyNonce,4).substr(2) +
       toHex(chainID, 6).substr(2) +
       toHex(leafIndex, 4).substr(2) +
-      toHex(merkleRoot, 32).substr(2);
+      toHex(merkleRoot, 32).substr(2) +
+      toHex(targetContract, 32).substr(2);
   }
 
   public async getHandler(): Promise<string> {
