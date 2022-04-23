@@ -259,8 +259,10 @@ export class SignatureBridge {
     }
   };
 
+  // This update method is called when anchor deposits have been made outside of these wrappers.
   public async update(chainId: number, anchorSize: ethers.BigNumberish) {
     const anchor = this.getAnchor(chainId, anchorSize);
+    await anchor.update();
     if (!anchor) {
       return;
     }
@@ -281,10 +283,6 @@ export class SignatureBridge {
   public getWebbTokenAddress(chainId: number): string | undefined {
     return this.webbTokenAddresses.get(chainId);
   }
-
-  // public queryAnchors(query: AnchorQuery): IAnchor[] {
-    
-  // }
 
   public exportConfig(): SignatureBridgeConfig {
     return {

@@ -1132,7 +1132,7 @@ describe('VAnchor for 2 max edges', () => {
         wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1))
       );
     });
-    it('should print/save benchmarks', async () => {
+    it.skip('should print/save benchmarks', async () => {
       // Alice deposits into tornado pool
       const gasBenchmark = await anchor.getGasBenchmark()
       const proofTimeBenchmark = await anchor.getProofTimeBenchmark()
