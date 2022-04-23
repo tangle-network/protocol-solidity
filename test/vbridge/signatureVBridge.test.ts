@@ -141,7 +141,7 @@ describe('multichain tests for signature vbridge', () => {
     ganacheProvider2.pollingInterval = 1;
     let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
 
-    before(async () => {
+    beforeEach(async () => {
       const signers = await ethers.getSigners();
 
       existingToken1 = await MintableToken.createToken('existingERC20', 'EXIST', signers[1]);
@@ -151,10 +151,7 @@ describe('multichain tests for signature vbridge', () => {
       // mint some tokens to the user of the bridge
       await existingToken1.mintTokens(signers[1].address, '100000000000000000000000000');
       await existingToken2.mintTokens(ganacheWallet2.address, '100000000000000000000000000');
-    })
 
-    beforeEach(async () => {
-      const signers = await ethers.getSigners();
       let webbTokens1 = new Map<number, GovernedTokenWrapper | undefined>();
       webbTokens1.set(chainID1, null!);
       webbTokens1.set(chainID2, null!);
