@@ -23,6 +23,7 @@ export interface IAnchor {
   getMinWithdrawalLimitProposalData(_minimalWithdrawalAmount: string): Promise<string>;
   getMaxDepositLimitProposalData(_maximumDepositAmount: string): Promise<string>;
   createResourceId(): Promise<string>;
+  update(blockNumber?: number): Promise<void>;
   
   // FixedDepositAnchor methods
   deposit(destinationChainId: number): Promise<IAnchorDeposit>;

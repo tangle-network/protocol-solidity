@@ -531,22 +531,7 @@ import { IFixedAnchorExtData } from '@webb-tools/interfaces';
      });
    })
  
-   describe('#WrapperClass', () => {
-     it('should deposit without latest history', async () => {
-       const signers = await ethers.getSigners();
-       const wallet = signers[0];
- 
-       // create a deposit on the anchor already setup
-       await anchor.deposit();
- 
-       // create a new anchor by connecting to the address of the setup anchor
-       const newAnchor = await Anchor.connect(anchor.contract.address, zkComponents, wallet);
- 
-       // make sure the deposit goes through
-       await TruffleAssert.passes(newAnchor.deposit());
-       assert.strictEqual(newAnchor.latestSyncedBlock, 0);
-     });
- 
+   describe('#WrapperClass', () => { 
      it('should properly update to the latest on-chain', async () => {
        const signers = await ethers.getSigners();
        const wallet = signers[0];
@@ -562,6 +547,11 @@ import { IFixedAnchorExtData } from '@webb-tools/interfaces';
        assert.strictEqual(
          (await anchor.tree.root()).toString(),
          (await newAnchor.tree.root()).toString()
+       );
+       
+       assert.strictEqual(
+         Object.keys(anchor.depositHistory).length,
+         Object.keys(newAnchor.depositHistory).length
        );
      });
  
