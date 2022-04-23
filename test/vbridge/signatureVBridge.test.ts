@@ -372,7 +372,7 @@ describe('multichain tests for signature vbridge', () => {
       await existingToken2.mintTokens(ganacheWallet2.address, '100000000000000000000000000');
     })
 
-    beforeEach(async () => {
+    before(async () => {
       const signers = await ethers.getSigners();
       let webbTokens1 = new Map<number, GovernedTokenWrapper | undefined>();
       webbTokens1.set(chainID1, null!);
