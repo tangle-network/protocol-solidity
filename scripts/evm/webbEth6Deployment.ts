@@ -1,6 +1,9 @@
 require('dotenv').config();
 import { ethers } from 'ethers';
-import { Bridge, BridgeInput, DeployerConfig } from '@webb-tools/bridges';
+import path from 'path';
+import { SignatureBridge } from '@webb-tools/bridges';
+import { DeployerConfig, BridgeInput, GovernorConfig } from '@webb-tools/interfaces';
+import { fetchComponentsFromFilePaths } from '@webb-tools/utils';
 
 export async function run() {
 
@@ -27,7 +30,7 @@ export async function run() {
         69: ['0x0000000000000000000000000000000000000000'],
         421611: ['0x0000000000000000000000000000000000000000'],
       },
-      anchorSizes: ['100000'],
+      anchorSizes: ['100000000'],
     },
     chainIDs: [3, 4, 5, 42, 69, 421611],
   };
@@ -42,24 +45,41 @@ export async function run() {
     421611: walletArbitrum,
   };
 
-  const bridge = await Bridge.deployFixedDepositBridge(bridgeInput, deployers);
+  const governorsConfig: GovernorConfig = {
+    3: walletRopsten,
+    4: walletRinkeby,
+    5: walletGoerli,
+    42: walletKovan,
+    69: walletOptimism,
+    421611: walletArbitrum,
+  }
+
+  const zkComponents = await fetchComponentsFromFilePaths(
+    path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/poseidon_anchor_2.wasm'),
+    path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/witness_calculator.js'),
+    path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/circuit_final.zkey')
+  );
+
+  const bridge = await SignatureBridge.deployFixedDepositBridge(bridgeInput, deployers, governorsConfig, zkComponents);
 
   // print out all the info for the addresses to run 
   const bridgeConfig = await bridge.exportConfig();
 
-  for (const anchor of bridgeConfig.anchors.values()) {
-    const chainId = await anchor.signer.getChainId();
-    console.log(`Anchor ${anchor.contract.address} for chain ${chainId}`);
-  };
+  bridgeConfig.anchors.forEach((anchor) => {
+    anchor.signer.getChainId().then((res) => {
+      console.log(`Anchor ${anchor.contract.address} for chain ${res}`);
+    })
+  })
 
-  for (const bridgeSide of bridgeConfig.bridgeSides.values()) {
-    const chainId = await bridgeSide.admin.getChainId();
-    console.log(`BridgeSide ${bridgeSide.contract.address} for chain ${chainId}`);
-  }
+  bridgeConfig.bridgeSides.forEach((side) => {
+    side.admin.getChainId().then((res) => {
+      console.log(`BridgeSide ${side.contract.address} for chain ${res}`);
+    })
+  })
 
-  for (const webbToken of bridgeConfig.webbTokenAddresses.entries()) {
-    console.log(`webbToken entry: ${webbToken[0]} + ${webbToken[1]}`);
-  }
+  bridgeConfig.webbTokenAddresses.forEach((address, chainId) => {
+    console.log(`webbToken entry: ${address} for chain ${chainId}`);
+  })
 }
 
 run();
