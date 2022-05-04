@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { ethers } from 'ethers';
-import { getChainIdType, ZkComponents } from "@webb-tools/utils";
+import { getChainIdType, ZkComponents, Overrides } from "@webb-tools/utils";
 import { PoseidonT3__factory } from "@webb-tools/contracts";
 import { MintableToken, GovernedTokenWrapper, Treasury, TreasuryHandler, TokenWrapperHandler } from "@webb-tools/tokens";
 import { BridgeInput, DeployerConfig, GovernorConfig, IAnchor, IAnchorDeposit } from "@webb-tools/interfaces";
@@ -112,28 +112,28 @@ export class SignatureBridge {
       // Create the bridgeSide
       const bridgeInstance = await SignatureBridgeSide.createBridgeSide(
         initialGovernor,
-        deployers[chainID],
+        deployers.wallets[chainID],
       );
 
-      const handler = await AnchorHandler.createAnchorHandler(bridgeInstance.contract.address, [],[], bridgeInstance.admin);
+      const handler = await AnchorHandler.createAnchorHandler(bridgeInstance.contract.address, [],[], bridgeInstance.admin, deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'});
       await bridgeInstance.setAnchorHandler(handler);
 
       bridgeSides.set(chainID, bridgeInstance);
 
       // Create Treasury and TreasuryHandler
-      const treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeInstance.contract.address, [],[], bridgeInstance.admin);
+      const treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeInstance.contract.address, [],[], bridgeInstance.admin, deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'});
 
-      const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, bridgeInstance.admin);
+      const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, bridgeInstance.admin, deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'});
 
       await bridgeInstance.setTreasuryHandler(treasuryHandler);
       await bridgeInstance.setTreasuryResourceWithSignature(treasury);
 
       // Create the Hasher and Verifier for the chain
-      const hasherFactory = new PoseidonT3__factory(deployers[chainID]);
-      let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
+      const hasherFactory = new PoseidonT3__factory(deployers.wallets[chainID]);
+      let hasherInstance = await hasherFactory.deploy(deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'});
       await hasherInstance.deployed();
 
-      const verifier = await Verifier.createVerifier(deployers[chainID]);
+      const verifier = await Verifier.createVerifier(deployers.wallets[chainID], deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'});
       let verifierInstance = verifier.contract;
 
       // Check the addresses of the asset. If it is zero, deploy a native token wrapper
@@ -154,7 +154,8 @@ export class SignatureBridge {
         tokenWrapperHandler.contract.address,
         '10000000000000000000000000',
         allowedNative,
-        deployers[chainID],
+        deployers.wallets[chainID],
+        deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'}
       );
 
       await bridgeInstance.setTokenWrapperHandler(tokenWrapperHandler);
@@ -189,7 +190,8 @@ export class SignatureBridge {
           handler.contract.address,
           bridgeInput.chainIDs.length-1,
           zkComponents,
-          deployers[chainID]
+          deployers.wallets[chainID],
+          deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'}
         );
 
         // grant minting rights to the anchor
@@ -394,7 +396,6 @@ export class SignatureBridge {
     }
 
     //TODO: if the signer has the same chain ID as the origin, do a same-side withdraw
-    
     const merkleProof = anchorToProve.tree.path(depositInfo.index);
 
     // Submit the proof and arguments on the destination anchor

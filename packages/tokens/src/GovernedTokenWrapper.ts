@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { getChainIdType, toHex, generateFunctionSigHash } from '@webb-tools/utils';
+import { getChainIdType, toHex, generateFunctionSigHash, Overrides } from '@webb-tools/utils';
 import { GovernedTokenWrapper as GovernedTokenWrapperContract, GovernedTokenWrapper__factory } from '@webb-tools/contracts';
 
 export class GovernedTokenWrapper {
@@ -26,7 +26,8 @@ export class GovernedTokenWrapper {
     governor: string,
     limit: string,
     isNativeAllowed: boolean,
-    deployer: ethers.Signer
+    deployer: ethers.Signer,
+    overrides?: Overrides,
   ) {
     const factory = new GovernedTokenWrapper__factory(deployer);
     const contract = await factory.deploy(
@@ -35,7 +36,8 @@ export class GovernedTokenWrapper {
       feeRecipient,
       governor,
       limit,
-      isNativeAllowed
+      isNativeAllowed,
+      overrides || {}
     );
     await contract.deployed();
 

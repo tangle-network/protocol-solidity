@@ -1,4 +1,4 @@
-import { BigNumber, ethers } from 'ethers';
+import { BigNumber, ethers, Overrides } from 'ethers';
 import { SignatureBridge, SignatureBridge__factory } from '@webb-tools/contracts';
 import { GovernedTokenWrapper, Treasury } from "@webb-tools/tokens";
 import { TokenWrapperHandler } from "@webb-tools/tokens";
@@ -67,8 +67,8 @@ export class SignatureBridgeSide implements IBridgeSide {
    * Note that this requires an externally-signed transaction from the current governor.
    * @param newOwner The new owner of the bridge
    */
-  public async transferOwnership(newOwner: string, nonce: number) {
-    return this.contract.transferOwnership(newOwner, nonce);
+  public async transferOwnership(newOwner: string, nonce: number, overrides?: Overrides) {
+    return this.contract.transferOwnership(newOwner, nonce, overrides);
   }
 
   /**

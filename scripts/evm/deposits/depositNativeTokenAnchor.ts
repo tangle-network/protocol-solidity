@@ -1,8 +1,7 @@
 import { ethers } from 'ethers';
-import Anchor from '../../../lib/darkwebb/Anchor';
+import { Anchor } from '@webb-tools/fixed-bridge';
 
-export async function depositNativeTokenAnchor(anchorAddress: string, destChainId: number, passedWallet: ethers.Signer) {
-  const anchor = await Anchor.connect(anchorAddress, passedWallet);
+export async function depositNativeTokenAnchor(anchor: Anchor, destChainId: number, passedWallet: ethers.Signer) {
   const chainId = await passedWallet.getChainId();
 
   // There is enough to make the call.

@@ -1,85 +1,95 @@
 require('dotenv').config();
 import { ethers } from 'ethers';
-import path from 'path';
-import { SignatureBridge } from '@webb-tools/bridges';
-import { DeployerConfig, BridgeInput, GovernorConfig } from '@webb-tools/interfaces';
-import { fetchComponentsFromFilePaths } from '@webb-tools/utils';
+import { fetchComponentsFromFilePaths, getChainIdType, Overrides } from '@webb-tools/utils';
+import { SignatureBridge, SignatureBridgeSide } from '@webb-tools/bridges';
+import { BridgeInput, DeployerConfig, GovernorConfig, IAnchor, IAnchorDeposit } from "@webb-tools/interfaces";
+import { 
+  chainIdTypeArbitrum,
+  chainIdTypeGoerli,
+  chainIdTypeOptimism,
+  chainIdTypePolygon,
+  chainIdTypeRopsten,
+  chainIdTypeRinkeby,
+  walletArbitrum,
+  walletGoerli,
+  walletOptimism,
+  walletPolygon,
+  walletRinkeby,
+  walletRopsten
+} from './ethersGovernorWallets';
+
+import path from "path";
 
 export async function run() {
 
-  const providerRinkeby = new ethers.providers.JsonRpcProvider(`https://rinkeby.infura.io/v3/fff68ca474dd4764a8d54dd14fa5519e`);
-  const walletRinkeby = new ethers.Wallet(process.env.PRIVATE_KEY!, providerRinkeby);
-  const providerKovan = new ethers.providers.JsonRpcProvider(`https://kovan.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161`);
-  const walletKovan = new ethers.Wallet(process.env.PRIVATE_KEY!, providerKovan);
-  const providerRopsten = new ethers.providers.JsonRpcProvider(`https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161`);
-  const walletRopsten = new ethers.Wallet(process.env.PRIVATE_KEY!, providerRopsten);
-  const providerGoerli = new ethers.providers.JsonRpcProvider(`https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161`);
-  const walletGoerli = new ethers.Wallet(process.env.PRIVATE_KEY!, providerGoerli);
-  const providerOptimism = new ethers.providers.JsonRpcProvider('https://kovan.optimism.io');
-  const walletOptimism = new ethers.Wallet(process.env.PRIVATE_KEY!, providerOptimism);
-  const providerArbitrum = new ethers.providers.JsonRpcProvider('https://rinkeby.arbitrum.io/rpc');
-  const walletArbitrum = new ethers.Wallet(process.env.PRIVATE_KEY!, providerArbitrum);
+  const zkComponents = await fetchComponentsFromFilePaths(
+    path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/6/poseidon_anchor_6.wasm'),
+    path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/6/witness_calculator.js'),
+    path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/6/circuit_final.zkey')
+  );
 
   const bridgeInput: BridgeInput = {
     anchorInputs: {
       asset: {
-        3: ['0x0000000000000000000000000000000000000000'],
-        4: ['0x0000000000000000000000000000000000000000'],
-        5: ['0x0000000000000000000000000000000000000000'],
-        42: ['0x0000000000000000000000000000000000000000'],
-        69: ['0x0000000000000000000000000000000000000000'],
-        421611: ['0x0000000000000000000000000000000000000000'],
+        [chainIdTypeRopsten]: ['0xc778417E063141139Fce010982780140Aa0cD5Ab'],
+        [chainIdTypeRinkeby]: ['0xc778417E063141139Fce010982780140Aa0cD5Ab'],
+        [chainIdTypeGoerli]: ['0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6'],
+        [chainIdTypePolygon]: ['0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889'],
+        [chainIdTypeOptimism]: ['0xbC6F6b680bc61e30dB47721c6D1c5cde19C1300d'],
+        [chainIdTypeArbitrum]: ['0xEBbc3452Cc911591e4F18f3b36727Df45d6bd1f9'],
       },
       anchorSizes: ['100000000'],
     },
-    chainIDs: [3, 4, 5, 42, 69, 421611],
+    chainIDs: [chainIdTypeRopsten, chainIdTypeRinkeby, chainIdTypeGoerli, chainIdTypePolygon, chainIdTypeOptimism, chainIdTypeArbitrum],
   };
 
   //Record<number, ethers.Signer>;
   const deployers: DeployerConfig = {
-    3: walletRopsten,
-    4: walletRinkeby,
-    5: walletGoerli,
-    42: walletKovan,
-    69: walletOptimism,
-    421611: walletArbitrum,
+    wallets: {
+      [chainIdTypePolygon]: walletPolygon,
+      [chainIdTypeRopsten]: walletRopsten,
+      [chainIdTypeRinkeby]: walletRinkeby,
+      [chainIdTypeGoerli]: walletGoerli,
+      [chainIdTypeOptimism]: walletOptimism,
+      [chainIdTypeArbitrum]: walletArbitrum,
+    },
+    gasLimits: {
+      [chainIdTypePolygon]: '0x5B8D80',
+      [chainIdTypeRopsten]: '0x5B8D80',
+      [chainIdTypeRinkeby]: '0x5B8D80',
+      [chainIdTypeGoerli]: '0x5B8D80',
+      [chainIdTypeOptimism]: '0x5B8D80',
+      [chainIdTypeArbitrum]: '0x99999999'
+    }
   };
 
-  const governorsConfig: GovernorConfig = {
-    3: walletRopsten,
-    4: walletRinkeby,
-    5: walletGoerli,
-    42: walletKovan,
-    69: walletOptimism,
-    421611: walletArbitrum,
+  const governorConfig: GovernorConfig = {
+    [chainIdTypePolygon]: walletPolygon,
+    [chainIdTypeRopsten]: walletRopsten,
+    [chainIdTypeRinkeby]: walletRinkeby,
+    [chainIdTypeGoerli]: walletGoerli,
+    [chainIdTypeOptimism]: walletOptimism,
+    [chainIdTypeArbitrum]: walletArbitrum,
   }
 
-  const zkComponents = await fetchComponentsFromFilePaths(
-    path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/poseidon_anchor_2.wasm'),
-    path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/witness_calculator.js'),
-    path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/circuit_final.zkey')
-  );
+  const bridge = await SignatureBridge.deployFixedDepositBridge(bridgeInput, deployers, governorConfig, zkComponents);
 
-  const bridge = await SignatureBridge.deployFixedDepositBridge(bridgeInput, deployers, governorsConfig, zkComponents);
-
-  // print out all the info for the addresses to run 
+  // print out all the info for the addresses
   const bridgeConfig = await bridge.exportConfig();
 
-  bridgeConfig.anchors.forEach((anchor) => {
-    anchor.signer.getChainId().then((res) => {
-      console.log(`Anchor ${anchor.contract.address} for chain ${res}`);
-    })
-  })
+  for (const anchor of Array.from(bridgeConfig.anchors.values())) {
+    const chainId = await anchor.signer.getChainId();
+    console.log(`Anchor ${anchor.contract.address.toLowerCase()} for chain ${chainId}`);
+  };
 
-  bridgeConfig.bridgeSides.forEach((side) => {
-    side.admin.getChainId().then((res) => {
-      console.log(`BridgeSide ${side.contract.address} for chain ${res}`);
-    })
-  })
+  for (const bridgeSide of Array.from(bridgeConfig.bridgeSides.values())) {
+    const chainId = await bridgeSide.admin.getChainId();
+    console.log(`BridgeSide ${bridgeSide.contract.address.toLowerCase()} for chain ${chainId}`);
+  }
 
-  bridgeConfig.webbTokenAddresses.forEach((address, chainId) => {
-    console.log(`webbToken entry: ${address} for chain ${chainId}`);
-  })
+  for (const webbToken of Array.from(bridgeConfig.webbTokenAddresses.entries())) {
+    console.log(`webbToken entry: ${webbToken[0]} + ${webbToken[1].toLowerCase()}`);
+  }
 }
 
 run();

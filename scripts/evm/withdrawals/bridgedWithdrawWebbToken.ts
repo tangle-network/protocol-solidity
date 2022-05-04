@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 import Anchor from '../../../packages/bridges/Anchor';
 import { AnchorDeposit } from '../../../packages/bridges/types';
 
-export async function bridgedWithdrawErc20Token(
+export async function bridgedWithdrawWebbToken(
   anchor: Anchor,
   merkleProof: any,
   anchorDeposit: AnchorDeposit,

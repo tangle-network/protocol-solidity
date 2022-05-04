@@ -6,6 +6,10 @@ export type ZkComponents = {
   witnessCalculator: any;
 };
 
+export type Overrides = {
+  from?: string,
+  gasLimit?: BigNumberish | Promise<BigNumberish>,
+}
 export interface RootInfo {
   merkleRoot: BigNumberish;
   chainId: BigNumberish;

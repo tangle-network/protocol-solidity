@@ -1,11 +1,11 @@
 import { ethers } from 'ethers';
 import { Anchor } from "../../../packages/anchors";
 import { depositErc20TokenAnchor } from "../deposits/depositErc20TokenAnchor";
-import { bridgedWithdrawErc20Token } from "../withdrawals/bridgedWithdrawErc20Token";
+import { bridgedWithdrawWebbToken } from "../withdrawals/bridgedWithdrawWebbToken";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-export async function depositAndBridgedWithdraw(
+export async function depositERC20AndBridgedWithdraw(
   depositAnchor: Anchor,
   withdrawAnchor: Anchor,
   depositWallet: ethers.Signer,
@@ -24,5 +24,6 @@ export async function depositAndBridgedWithdraw(
   await sleep(150000);
 
   const proof = depositAnchor.tree.path(deposit.index);
-  const withdraw = await bridgedWithdrawErc20Token(withdrawAnchor, proof, deposit, recipient);
+  const withdraw = await bridgedWithdrawWebbToken(withdrawAnchor, proof, deposit, recipient);
+  console.log('withdraw event: ', withdraw);
 }
