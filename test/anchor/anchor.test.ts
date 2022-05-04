@@ -677,8 +677,11 @@ import { IFixedAnchorExtData } from '@webb-tools/interfaces';
        const balTokenBeforeDepositSender = await token.balanceOf(sender.address);
  
        // create a deposit on the anchor already setup
+       const destChainId = getChainIdType(await wallet.getChainId());
        const { deposit, index } = await wrappedAnchor.wrapAndDeposit(
-         token.address,
+         token.address, 
+         0,
+         destChainId
        );
        const balTokenAfterDepositSender = await token.balanceOf(sender.address);
        assert.strictEqual(balTokenBeforeDepositSender.sub(balTokenAfterDepositSender).toString(), '1000000000000000000');
@@ -729,9 +732,11 @@ import { IFixedAnchorExtData } from '@webb-tools/interfaces';
  
        const balUnwrappedTokenBeforeDepositWrapper = await token.balanceOf(wrappedToken.address);
        // create a deposit on the anchor already setup
+       const destChainId = getChainIdType(await wallet.getChainId());
        const { deposit, index } = await wrappedAnchor.wrapAndDeposit(
          token.address, 
          wrapFee,
+         destChainId
        );
  
        const balTokenAfterDepositSender = await token.balanceOf(sender.address);
@@ -870,8 +875,11 @@ import { IFixedAnchorExtData } from '@webb-tools/interfaces';
        await token.approve(wrappedToken.address, '1000000000000000000');
        const balTokenBeforeDepositSender = await token.balanceOf(sender.address);
        // create a deposit on the anchor already setup
+       const destChainId = getChainIdType(await wallet.getChainId());
        const { deposit, index, originChainId } = await wrappedAnchor.wrapAndDeposit(
-         token.address,
+        token.address, 
+        0,
+        destChainId
        );
  
        // Check that the anchor has the appropriate amount of wrapped token balance
@@ -935,10 +943,13 @@ import { IFixedAnchorExtData } from '@webb-tools/interfaces';
        const anchorUnderTest = await Anchor.connect(wrappedAnchor.contract.address, zkComponents, wallet);
  
        // create a deposit on the anchor already setup
+       const destChainId = getChainIdType(await wallet.getChainId());
        const { deposit, index, originChainId } = await anchorUnderTest.wrapAndDeposit(
-         token.address,
+        token.address,
+        0,
+        destChainId
        );
- 
+
        // Check that the anchor has the appropriate amount of wrapped token balance
        const anchorWrappedTokenBalance = await wrappedToken.balanceOf(anchorUnderTest.contract.address);
        assert.deepStrictEqual(anchorWrappedTokenBalance.toString(), tokenDenomination);
