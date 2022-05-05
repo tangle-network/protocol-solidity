@@ -139,8 +139,7 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
 			);
 		} else {
 			require(!commitments[_extData._refreshCommitment], "The commitment has been submitted");
-			uint32 insertedIndex = _insert(_extData._refreshCommitment);
-			commitments[_extData._refreshCommitment] = true;
+			uint32 insertedIndex = insert(_extData._refreshCommitment);
 			emit Refresh(
 				_extData._refreshCommitment,
 				_proof._nullifierHash,
