@@ -1,11 +1,12 @@
 import { IAnchorDeposit, IAnchorDepositInfo } from './anchor';
+import { AnchorBase } from '@webb-tools/contracts';
 import { IMerkleProofData } from './vanchor';
 import { Utxo } from "@webb-tools/utils";
 import { BigNumberish, ethers } from 'ethers';
 
 export interface IAnchor {
   signer: ethers.Signer;
-  contract: ethers.Contract;
+  contract: AnchorBase;
   tree: any;
   // hex string of the connected root
   latestSyncedBlock: number;
