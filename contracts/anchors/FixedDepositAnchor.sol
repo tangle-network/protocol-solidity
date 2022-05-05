@@ -91,8 +91,8 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
 	 */
 	function deposit(bytes32 _commitment) override public payable {
 		require(msg.value == 0, "ETH value is supposed to be 0 for ERC20 instance");
-		uint32 insertedIndex = insert(_commitment);
 		IMintableERC20(token).transferFrom(msg.sender, address(this), denomination);
+		uint32 insertedIndex = insert(_commitment);
 		emit Deposit(msg.sender, insertedIndex, _commitment, block.timestamp);
 	}
 
@@ -250,8 +250,8 @@ contract FixedDepositAnchor is AnchorBase, IFixedDepositAnchor {
 			address(this)
 		);
 		// insert a new commitment to the tree
-		uint32 insertedIndex = _insert(_commitment);
-		commitments[_commitment] = true;
+		uint32 insertedIndex = insert(_commitment);
+
 		// emit the deposit event
 		emit Deposit(msg.sender, insertedIndex, _commitment, block.timestamp);
 	}
