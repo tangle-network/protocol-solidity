@@ -148,24 +148,23 @@ export class SignatureBridge {
       const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeInstance.contract.address, [], [], bridgeInstance.admin);
 
       let tokenInstance: GovernedTokenWrapper = await GovernedTokenWrapper.createGovernedTokenWrapper(
-        `webbETH-test-1`,
-        `webbETH-test-1`,
+        `webbWETH-sig`,
+        `webbWETH-sig`,
         treasury.contract.address,
         tokenWrapperHandler.contract.address,
         '10000000000000000000000000',
         allowedNative,
         deployers.wallets[chainID],
-        deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'}
       );
 
       await bridgeInstance.setTokenWrapperHandler(tokenWrapperHandler);
-      await bridgeInstance.setGovernedTokenResourceWithSignature(tokenInstance);
+      await bridgeInstance.setGovernedTokenResourceWithSignature(tokenInstance, deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'});
 
       // Add all token addresses to the governed token instance.
       for (const tokenToBeWrapped of bridgeInput.anchorInputs.asset[chainID]!) {
         // if the address is not '0', then add it
         if (!checkNativeAddress(tokenToBeWrapped)) {
-          const tx = await bridgeInstance.executeAddTokenProposalWithSig(tokenInstance, tokenToBeWrapped);
+          const tx = await bridgeInstance.executeAddTokenProposalWithSig(tokenInstance, tokenToBeWrapped, deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'});
         }
       }
 
@@ -180,6 +179,8 @@ export class SignatureBridge {
       //
       // loop through all the anchor sizes on the token
       for (let anchorSize of bridgeInput.anchorInputs.anchorSizes) {
+        console.log('before createAnchor');
+
         const anchorInstance = await Anchor.createAnchor(
           verifierInstance.address,
           hasherInstance.address,
@@ -203,7 +204,7 @@ export class SignatureBridge {
           anchorInstance
         );
       }
-      await SignatureBridge.setPermissions(bridgeInstance, chainGroupedAnchors);
+      await SignatureBridge.setPermissions(bridgeInstance, chainGroupedAnchors, deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'});
       createdAnchors.push(chainGroupedAnchors);
     }
 
@@ -227,13 +228,13 @@ export class SignatureBridge {
   // The setPermissions method accepts initialized bridgeSide and anchors.
   // it creates the anchor handler and sets the appropriate permissions
   // for the bridgeSide/AnchorHandler/anchor
-  public static async setPermissions(bridgeSide: SignatureBridgeSide, anchors: IAnchor[]): Promise<void> {
+  public static async setPermissions(bridgeSide: SignatureBridgeSide, anchors: IAnchor[], overrides?: Overrides): Promise<void> {
     for (let anchor of anchors) {
-      await bridgeSide.setResourceWithSignature(anchor);
+      await bridgeSide.setResourceWithSignature(anchor, overrides ?? { gasLimit: '0x5B8D80'});
     }
-    
+
     for (let anchor of anchors) {
-      await bridgeSide.connectAnchorWithSignature(anchor);
+      await bridgeSide.connectAnchorWithSignature(anchor, overrides ?? { gasLimit: '0x5B8D80'});
     }
   }
 
@@ -243,7 +244,7 @@ export class SignatureBridge {
   * @param srcAnchor The anchor that has updated.
   * @returns 
   */
-  public async updateLinkedAnchors(srcAnchor: IAnchor) {
+  public async updateLinkedAnchors(srcAnchor: IAnchor, overrides?: Overrides) {
     // Find the bridge sides that are connected to this Anchor
     const linkedResourceID = await srcAnchor.createResourceId();
     const anchorsToUpdate = this.linkedAnchors.get(linkedResourceID);
@@ -257,7 +258,7 @@ export class SignatureBridge {
       const resourceID = await anchor.createResourceId();
       const chainId = getChainIdType(await anchor.signer.getChainId());
       const bridgeSide = this.bridgeSides.get(chainId);
-      await bridgeSide!.executeAnchorProposalWithSig(srcAnchor, resourceID);
+      await bridgeSide!.executeAnchorProposalWithSig(srcAnchor, resourceID, overrides ?? { gasLimit: '0x5B8D80'});
     }
   };
 

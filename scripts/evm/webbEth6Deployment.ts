@@ -1,6 +1,6 @@
 require('dotenv').config();
 import { ethers } from 'ethers';
-import { fetchComponentsFromFilePaths, getChainIdType, Overrides } from '@webb-tools/utils';
+import { fetchComponentsFromFilePaths } from '@webb-tools/utils';
 import { SignatureBridge, SignatureBridgeSide } from '@webb-tools/bridges';
 import { BridgeInput, DeployerConfig, GovernorConfig, IAnchor, IAnchorDeposit } from "@webb-tools/interfaces";
 import { 
@@ -38,7 +38,7 @@ export async function run() {
         [chainIdTypeOptimism]: ['0xbC6F6b680bc61e30dB47721c6D1c5cde19C1300d'],
         [chainIdTypeArbitrum]: ['0xEBbc3452Cc911591e4F18f3b36727Df45d6bd1f9'],
       },
-      anchorSizes: ['100000000'],
+      anchorSizes: ['100000000000000000'],
     },
     chainIDs: [chainIdTypeRopsten, chainIdTypeRinkeby, chainIdTypeGoerli, chainIdTypePolygon, chainIdTypeOptimism, chainIdTypeArbitrum],
   };

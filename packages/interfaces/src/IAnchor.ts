@@ -63,6 +63,7 @@ export interface IAnchor {
     fee: string,
     refund: string,
     refreshCommitment: string,
+    overrides?: Overrides,
   ): Promise<ethers.Event>
 
   // VAnchor methods

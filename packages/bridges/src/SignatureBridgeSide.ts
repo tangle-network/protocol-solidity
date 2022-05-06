@@ -143,25 +143,27 @@ export class SignatureBridgeSide implements IBridgeSide {
     return proposalData;
   }
 
-  public async setAnchorHandler(handler: AnchorHandler) {
+  public setAnchorHandler(handler: AnchorHandler) {
     this.anchorHandler = handler;
   }
 
-  public async setTokenWrapperHandler(handler: TokenWrapperHandler) {
+  public setTokenWrapperHandler(handler: TokenWrapperHandler) {
     this.tokenHandler = handler;
   }
 
-  public async setTreasuryHandler(handler: TreasuryHandler) {
+  public setTreasuryHandler(handler: TreasuryHandler) {
     this.treasuryHandler = handler;
   }
 
   // Connects the bridgeSide, anchor handler, and anchor.
   // Returns the resourceId of the anchor instance that connects
   // the anchor handler to the anchor (execution) contract.
-  public async connectAnchorWithSignature(anchor: IAnchor): Promise<string> {
-    const resourceId = await this.setResourceWithSignature(anchor);
+  public async connectAnchorWithSignature(anchor: IAnchor, overrides?: Overrides): Promise<string> {
+    const resourceId = overrides ? await this.setResourceWithSignature(anchor, overrides)
+                                 : await this.setResourceWithSignature(anchor);
     if (this.anchorHandler.contract.address !== await anchor.getHandler()) {
-      await this.executeHandlerProposalWithSig(anchor, this.anchorHandler.contract.address);
+      overrides ? await this.executeHandlerProposalWithSig(anchor, this.anchorHandler.contract.address, overrides)
+                : await this.executeHandlerProposalWithSig(anchor, this.anchorHandler.contract.address);
     }
 
     return resourceId;
@@ -175,7 +177,7 @@ export class SignatureBridgeSide implements IBridgeSide {
     );
   }
 
-  public async setResourceWithSignature(anchor: IAnchor): Promise<string> {
+  public async setResourceWithSignature(anchor: IAnchor, overrides?: Overrides): Promise<string> {
     if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
 
     const resourceId = await this.createResourceId();
@@ -200,7 +202,16 @@ export class SignatureBridgeSide implements IBridgeSide {
       + toHex(anchor.contract.address, 20).substr(2);
 
     const sig = await this.signingSystemSignFn(unsignedData);
-    const tx = await this.contract.adminSetResourceWithSignature(
+    const tx = overrides ? await this.contract.adminSetResourceWithSignature(
+      resourceId,
+      functionSig,
+      nonce,
+      newResourceId,
+      this.anchorHandler.contract.address,
+      anchor.contract.address,
+      sig,
+      overrides
+    ) : await this.contract.adminSetResourceWithSignature(
       resourceId,
       functionSig,
       nonce,
@@ -213,7 +224,7 @@ export class SignatureBridgeSide implements IBridgeSide {
     return newResourceId;
   }
 
-  public async setGovernedTokenResourceWithSignature(governedToken: GovernedTokenWrapper): Promise<string> {
+  public async setGovernedTokenResourceWithSignature(governedToken: GovernedTokenWrapper, overrides?: Overrides): Promise<string> {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
 
     const resourceId = await this.createResourceId();
@@ -235,7 +246,16 @@ export class SignatureBridgeSide implements IBridgeSide {
       + toHex(governedToken.contract.address, 20).substr(2);
 
     const sig = await this.signingSystemSignFn(unsignedData);
-    const tx = await this.contract.adminSetResourceWithSignature(
+    const tx = overrides ? await this.contract.adminSetResourceWithSignature(
+      resourceId,
+      functionSig,
+      nonce,
+      newResourceId,
+      this.tokenHandler.contract.address,
+      governedToken.contract.address,
+      sig,
+      overrides
+    ) : await this.contract.adminSetResourceWithSignature(
       resourceId,
       functionSig,
       nonce,
@@ -248,7 +268,7 @@ export class SignatureBridgeSide implements IBridgeSide {
     return resourceId;
   }
 
-  public async setTreasuryResourceWithSignature(treasury: Treasury): Promise<string> {
+  public async setTreasuryResourceWithSignature(treasury: Treasury, overrides?: Overrides): Promise<string> {
     if (!this.treasuryHandler) throw this.TREASURY_HANDLER_MISSING_ERROR;
 
     const resourceId = await this.createResourceId();
@@ -270,8 +290,17 @@ export class SignatureBridgeSide implements IBridgeSide {
       + toHex(treasury.contract.address, 20).substr(2);
 
 
-    const sig = await this.signingSystemSignFn(unsignedData);
-    const tx = await this.contract.adminSetResourceWithSignature(
+    const sig = await this.signingSystemSignFn(unsignedData); 
+    const tx = overrides ? await this.contract.adminSetResourceWithSignature(
+      resourceId,
+      functionSig,
+      nonce,
+      newResourceId,
+      this.treasuryHandler.contract.address,
+      treasury.contract.address,
+      sig,
+      overrides
+    ) : await this.contract.adminSetResourceWithSignature(
       resourceId,
       functionSig,
       nonce,
@@ -284,76 +313,77 @@ export class SignatureBridgeSide implements IBridgeSide {
     return resourceId;
   }
 
-  public async execute(proposalData: string) {
+  public async execute(proposalData: string, overrides?: Overrides) {
     const sig = await this.signingSystemSignFn(proposalData);
-    const tx = await this.contract.executeProposalWithSignature(proposalData, sig);
+    console.log('before execute()')
+    const tx = overrides ? await this.contract.executeProposalWithSignature(proposalData, sig, overrides)
+                         : await this.contract.executeProposalWithSignature(proposalData, sig);
     const receipt = await tx.wait();
     
     return receipt;
   }
 
-  public async executeHandlerProposalWithSig(anchor: IAnchor, newHandler: string) {
+  public async executeHandlerProposalWithSig(anchor: IAnchor, newHandler: string, overrides?: Overrides) {
     const proposalData = await this.createHandlerUpdateProposalData(anchor, newHandler);
-    return this.execute(proposalData);
+    return (overrides ? this.execute(proposalData, overrides) : this.execute(proposalData));
   }
 
   // emit ProposalEvent(chainID, nonce, ProposalStatus.Executed, dataHash);
-  public async executeAnchorProposalWithSig(srcAnchor: IAnchor, executionResourceID: string) {
+  public async executeAnchorProposalWithSig(srcAnchor: IAnchor, executionResourceID: string, overrides?: Overrides) {
     if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
     const proposalData = await this.createAnchorUpdateProposalData(srcAnchor, executionResourceID);
-    return this.execute(proposalData);
+    return (overrides ? this.execute(proposalData, overrides) : this.execute(proposalData));
   }
 
 
-  public async executeFeeProposalWithSig(governedToken: GovernedTokenWrapper, fee: number) {
+  public async executeFeeProposalWithSig(governedToken: GovernedTokenWrapper, fee: number, overrides?: Overrides) {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
     const proposalData = await this.createFeeUpdateProposalData(governedToken, fee);
-    return this.execute(proposalData);
+    return (overrides ? this.execute(proposalData, overrides) : this.execute(proposalData));
   }
 
-  public async executeAddTokenProposalWithSig(governedToken: GovernedTokenWrapper, tokenAddress: string) {
+  public async executeAddTokenProposalWithSig(governedToken: GovernedTokenWrapper, tokenAddress: string, overrides?: Overrides) {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
+    console.log('inside executeAddTokenProposalWithSig');
     const proposalData = await this.createAddTokenUpdateProposalData(governedToken, tokenAddress);
-    return this.execute(proposalData);
+    return (overrides ? this.execute(proposalData, overrides) : this.execute(proposalData));
   }
 
-  public async executeRemoveTokenProposalWithSig(governedToken: GovernedTokenWrapper, tokenAddress: string) {
+  public async executeRemoveTokenProposalWithSig(governedToken: GovernedTokenWrapper, tokenAddress: string, overrides?: Overrides) {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR; 
     const proposalData = await this.createRemoveTokenUpdateProposalData(governedToken, tokenAddress);
-    return this.execute(proposalData);
+    return (overrides ? this.execute(proposalData, overrides) : this.execute(proposalData));
   }
 
-  public async executeFeeRecipientProposalWithSig(governedToken: GovernedTokenWrapper, feeRecipient: string) {
+  public async executeFeeRecipientProposalWithSig(governedToken: GovernedTokenWrapper, feeRecipient: string, overrides?: Overrides) {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
 
     const proposalData = await this.createFeeRecipientUpdateProposalData(governedToken, feeRecipient);
-    return this.execute(proposalData);
+    return (overrides ? this.execute(proposalData, overrides) : this.execute(proposalData));
   }
 
-  public async executeTreasuryHandlerProposalWithSig(treasury: Treasury, newHandler: string) {
+  public async executeTreasuryHandlerProposalWithSig(treasury: Treasury, newHandler: string, overrides?: Overrides) {
     if (!this.treasuryHandler) throw this.TREASURY_HANDLER_MISSING_ERROR; 
     const proposalData = await this.createTreasuryHandlerUpdateProposalData(treasury, newHandler);
-    return this.execute(proposalData);
+    return (overrides ? this.execute(proposalData, overrides) : this.execute(proposalData));
   }
 
-  public async executeRescueTokensProposalWithSig(treasury: Treasury, tokenAddress: string, to: string, amountToRescue: BigNumber) {
+  public async executeRescueTokensProposalWithSig(treasury: Treasury, tokenAddress: string, to: string, amountToRescue: BigNumber, overrides?: Overrides) {
     if (!this.treasuryHandler) throw this.TREASURY_HANDLER_MISSING_ERROR; 
     const proposalData = await this.createRescueTokensProposalData(treasury, tokenAddress, to, amountToRescue);
-    return this.execute(proposalData);
+    return (overrides ? this.execute(proposalData, overrides) : this.execute(proposalData));
   }
 
 
-  public async executeMinWithdrawalLimitProposalWithSig(anchor: IAnchor, _minimalWithdrawalAmount: string) {
+  public async executeMinWithdrawalLimitProposalWithSig(anchor: IAnchor, _minimalWithdrawalAmount: string, overrides?: Overrides) {
     if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
     const proposalData = await this.createMinWithdrawalLimitProposalData(anchor, _minimalWithdrawalAmount);
-    ;
-    return this.execute(proposalData);
+    return (overrides ? this.execute(proposalData, overrides) : this.execute(proposalData));
   }
 
-  public async executeMaxDepositLimitProposalWithSig(anchor: IAnchor, _maximumDepositAmount: string) {
+  public async executeMaxDepositLimitProposalWithSig(anchor: IAnchor, _maximumDepositAmount: string, overrides?: Overrides) {
     if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
     const proposalData = await this.createMaxDepositLimitProposalData(anchor,_maximumDepositAmount);
-    ;
-    return this.execute(proposalData);
+    return (overrides ? this.execute(proposalData, overrides) : this.execute(proposalData));
   }
 }
