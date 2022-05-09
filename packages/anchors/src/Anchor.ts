@@ -307,7 +307,7 @@ class Anchor implements IAnchor {
   /**
    * Assumes the anchor has the correct, full deposit history.
    */
-  public async wrapAndDeposit(tokenAddress: string, wrappingFee: number = 0,destinationChainId?: number): Promise<IAnchorDeposit> {
+  public async wrapAndDeposit(tokenAddress: string, wrappingFee: number = 0, destinationChainId?: number): Promise<IAnchorDeposit> {
     const originChainId = getChainIdType(await this.signer.getChainId());
     const chainId = (destinationChainId) ? destinationChainId : originChainId;
     const deposit = Anchor.generateDeposit(chainId);
