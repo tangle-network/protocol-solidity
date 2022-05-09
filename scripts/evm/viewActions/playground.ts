@@ -1,6 +1,6 @@
 require('dotenv').config();
 import { ethers } from 'ethers';
-import { providerAthena, walletHermes, walletAthena, walletRinkeby, walletGoerli } from '../ethersGovernorWallets';
+import { providerAthena, walletHermes, walletAthena, walletRinkeby, walletGoerli, walletOptimism } from '../ethersGovernorWallets';
 import { viewEdgeList } from './viewEdgeList';
 import { viewRootHistory } from './viewRootHistory';
 import { Anchor } from '@webb-tools/anchors';
@@ -14,23 +14,23 @@ async function run() {
     path.resolve(__dirname, '../../../protocol-solidity-fixtures/fixtures/anchor/6/circuit_final.zkey')
   );
 
-  const anchorRinkeby = await Anchor.connect('0x12f2C4A1469B035e4459539E38ae68bC4DD5ba07', zkComponents, walletRinkeby);
-  await anchorRinkeby.update();
-  const anchorGoerli = await Anchor.connect('0x9c0B0e0Fb6dac561Ad4c947e6Db9abcf0f40B6Dc', zkComponents, walletGoerli);
+  const anchorOptimism = await Anchor.connect('0xf2f7bc0bED36d94c19C337b6E114caD2bC218819', zkComponents, walletOptimism);
+  await anchorOptimism.update();
+  const anchorGoerli = await Anchor.connect('0x3e8B7e3B498eA9375172f4d4bd181C21f18A4381', zkComponents, walletGoerli);
   await anchorGoerli.update();
 
-  console.log('num of elements in hermes: ', anchorRinkeby.tree.number_of_elements());
-  console.log('root of anchor hermes: ', anchorRinkeby.tree.root());
-  console.log('Hermes elements: ', anchorRinkeby.tree.elements());
+  console.log('num of elements in hermes: ', anchorOptimism.tree.number_of_elements());
+  console.log('root of anchor hermes: ', anchorOptimism.tree.root());
+  console.log('Hermes elements: ', anchorOptimism.tree.elements());
   console.log('Edge list of Athena on Hermes: ');
-  await viewEdgeList(anchorRinkeby, 5);
-  await viewRootHistory(anchorRinkeby);
+  await viewEdgeList(anchorOptimism, 5);
+  await viewRootHistory(anchorOptimism);
 
   console.log('num of elements in athena: ', anchorGoerli.tree.number_of_elements());
   console.log('root of anchor athena: ', anchorGoerli.tree.root()); 
   console.log('Athena elements: ', anchorGoerli.tree.elements());
   console.log('Edge list of Hermes on Athena: ');
-  await viewEdgeList(anchorGoerli, 4);
+  await viewEdgeList(anchorGoerli, 69);
   await viewRootHistory(anchorGoerli);
 }
 
