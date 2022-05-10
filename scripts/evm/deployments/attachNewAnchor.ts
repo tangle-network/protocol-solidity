@@ -79,11 +79,11 @@ async function main() {
     [chainIdTypeArbitrum]: '0x36243aD9e59566b7569CF6231F0767017Fcb031A',
   };
   const anchorVerifiers: Record<number, string> = {
-    [chainIdTypeRopsten]: '0x93447Fd245B940934B3133c7B6Ed89d98faAf8d7',
-    [chainIdTypeRinkeby]: '0x93447Fd245B940934B3133c7B6Ed89d98faAf8d7',
-    [chainIdTypeGoerli]: '0x93447Fd245B940934B3133c7B6Ed89d98faAf8d7',
-    [chainIdTypePolygon]: '0x93447Fd245B940934B3133c7B6Ed89d98faAf8d7',
-    [chainIdTypeOptimism]: '0xF70819727C883ea906FA48AD480F07A6b035B494',
+    // [chainIdTypeRopsten]: '0x93447Fd245B940934B3133c7B6Ed89d98faAf8d7',
+    // [chainIdTypeRinkeby]: '0x93447Fd245B940934B3133c7B6Ed89d98faAf8d7',
+    // [chainIdTypeGoerli]: '0x93447Fd245B940934B3133c7B6Ed89d98faAf8d7',
+    // [chainIdTypePolygon]: '0x93447Fd245B940934B3133c7B6Ed89d98faAf8d7',
+    // [chainIdTypeOptimism]: '0xF70819727C883ea906FA48AD480F07A6b035B494',
     [chainIdTypeArbitrum]: '0xe075648d44443d932F86Ed8f2bAe928590B2365f',
   };
   const gasLimits: Record<number, string> = {

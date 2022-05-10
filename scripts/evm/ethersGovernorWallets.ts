@@ -4,7 +4,7 @@ import { ethers } from "ethers";
 export const providerRinkeby = new ethers.providers.JsonRpcProvider(`https://rinkeby.infura.io/v3/fff68ca474dd4764a8d54dd14fa5519e`);
 export const walletRinkeby = new ethers.Wallet(process.env.PRIVATE_KEY!, providerRinkeby);
 export const chainIdTypeRinkeby = getChainIdType(4);
-export const providerPolygon = new ethers.providers.JsonRpcProvider('https://rpc-mumbai.maticvigil.com/');
+export const providerPolygon = new ethers.providers.JsonRpcProvider(process.env.POLYGON_KEY!);
 export const walletPolygon = new ethers.Wallet(process.env.PRIVATE_KEY!, providerPolygon);
 export const chainIdTypePolygon = getChainIdType(80001);
 export const providerRopsten = new ethers.providers.JsonRpcProvider(`https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161`);

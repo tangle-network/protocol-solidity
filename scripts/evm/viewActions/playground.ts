@@ -5,6 +5,8 @@ import { viewEdgeList } from './viewEdgeList';
 import { viewRootHistory } from './viewRootHistory';
 import { Anchor } from '@webb-tools/anchors';
 import { fetchComponentsFromFilePaths } from '@webb-tools/utils';
+import { viewRootAcrossBridge } from './viewRootAcrossBridge';
+import { viewGovernor } from './viewGovernor';
 const path = require('path');
 
 async function run() { 
@@ -14,24 +16,25 @@ async function run() {
     path.resolve(__dirname, '../../../protocol-solidity-fixtures/fixtures/anchor/6/circuit_final.zkey')
   );
 
-  const anchorOptimism = await Anchor.connect('0xf2f7bc0bED36d94c19C337b6E114caD2bC218819', zkComponents, walletOptimism);
-  await anchorOptimism.update();
-  const anchorGoerli = await Anchor.connect('0x3e8B7e3B498eA9375172f4d4bd181C21f18A4381', zkComponents, walletGoerli);
+  const anchorGoerli = await Anchor.connect('0xf2f7bc0bED36d94c19C337b6E114caD2bC218819', zkComponents, walletGoerli);
   await anchorGoerli.update();
+  const anchorRinkeby = await Anchor.connect('0xf2f7bc0bED36d94c19C337b6E114caD2bC218819', zkComponents, walletRinkeby);
+  await anchorRinkeby.update();
 
-  console.log('num of elements in hermes: ', anchorOptimism.tree.number_of_elements());
-  console.log('root of anchor hermes: ', anchorOptimism.tree.root());
-  console.log('Hermes elements: ', anchorOptimism.tree.elements());
-  console.log('Edge list of Athena on Hermes: ');
-  await viewEdgeList(anchorOptimism, 5);
-  await viewRootHistory(anchorOptimism);
-
-  console.log('num of elements in athena: ', anchorGoerli.tree.number_of_elements());
-  console.log('root of anchor athena: ', anchorGoerli.tree.root()); 
-  console.log('Athena elements: ', anchorGoerli.tree.elements());
-  console.log('Edge list of Hermes on Athena: ');
-  await viewEdgeList(anchorGoerli, 69);
+  console.log('SDK: num of elements in optimism: ', anchorGoerli.tree.number_of_elements());
+  console.log('SDK: root of anchor optimism: ', anchorGoerli.tree.root());
+  console.log('SDK: optimism elements: ', anchorGoerli.tree.elements());
+  console.log('CHAIN: Edge list of rinkeby on optimism: ');
+  await viewGovernor('', walletGoerli)
+  await viewEdgeList(anchorGoerli, 4);
   await viewRootHistory(anchorGoerli);
+
+  console.log('SDK: num of elements in rinkeby: ', anchorRinkeby.tree.number_of_elements());
+  console.log('SDK: root of anchor rinkeby: ', anchorRinkeby.tree.root()); 
+  console.log('SDK: Rinkeby elements: ', anchorRinkeby.tree.elements());
+  console.log('CHAIN: Edge list of optimism on rinkeby: ');
+  await viewEdgeList(anchorRinkeby, 5);
+  await viewRootHistory(anchorRinkeby);
 }
 
 run();

@@ -38,7 +38,7 @@ export async function run() {
         [chainIdTypeOptimism]: ['0xbC6F6b680bc61e30dB47721c6D1c5cde19C1300d'],
         [chainIdTypeArbitrum]: ['0xEBbc3452Cc911591e4F18f3b36727Df45d6bd1f9'],
       },
-      anchorSizes: ['100000000000000000'],
+      anchorSizes: ['10000000000000000'],
     },
     chainIDs: [chainIdTypeRopsten, chainIdTypeRinkeby, chainIdTypeGoerli, chainIdTypePolygon, chainIdTypeOptimism, chainIdTypeArbitrum],
   };

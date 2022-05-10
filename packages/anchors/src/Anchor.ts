@@ -85,7 +85,9 @@ class Anchor implements IAnchor {
     overrides?: Overrides
   ) {
     const factory = new Anchor__factory(signer);
-    const anchor = await factory.deploy(handler, token, verifier, hasher, denomination, merkleTreeHeight, maxEdges, overrides || {});
+    const anchor = overrides ? 
+      await factory.deploy(handler, token, verifier, hasher, denomination, merkleTreeHeight, maxEdges, overrides) : 
+      await factory.deploy(handler, token, verifier, hasher, denomination, merkleTreeHeight, maxEdges);
     await anchor.deployed();
     const createdAnchor = new Anchor(anchor, signer, merkleTreeHeight, maxEdges, zkComponents);
     createdAnchor.latestSyncedBlock = anchor.deployTransaction.blockNumber!;
@@ -372,7 +374,7 @@ class Anchor implements IAnchor {
     roots: string[],
     pathElements: any[],
     pathIndices: any[],
-  ): Promise<any> {
+  ): Promise<{input: any, extData: IFixedAnchorExtData}> {
     const { chainID, nullifierHash, nullifier, secret } = deposit;
     const extDataHash = getFixedAnchorExtDataHash({_refreshCommitment: refreshCommitment, _recipient: recipient, _relayer: relayer, _fee: fee, _refund: refund});
     let input = {
@@ -654,6 +656,7 @@ class Anchor implements IAnchor {
       pathElements,
       pathIndices,
     );
+
     const wtns = await this.createWitness(input);
     let proofEncoded = await this.proveAndVerify(wtns);
     const args = [
