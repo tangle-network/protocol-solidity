@@ -172,7 +172,7 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard, ChainIdWi
 				roots[i] = edgeList[i].root;
 			} else {
 				// merkle tree height for zeros
-				roots[i] = zeros(levels);
+				roots[i] = zeros(levels - 1);
 			}
 		}
 

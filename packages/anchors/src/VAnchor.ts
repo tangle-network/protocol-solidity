@@ -75,7 +75,7 @@ export class VAnchor implements IAnchor {
   ): Promise<ethers.Event> {
     throw new Error("Method not implemented.");
   }
-  wrapAndDeposit(tokenAddress: string, destinationChainId?: number): Promise<IAnchorDeposit> {
+  wrapAndDeposit(tokenAddress: string, wrappingFee: number, destinationChainId?: number): Promise<IAnchorDeposit> {
     throw new Error("Method not implemented.");
   }
   bridgedWithdrawAndUnwrap(deposit: IAnchorDeposit, merkleProof: any, recipient: string, relayer: string, fee: string, refund: string, refreshCommitment: string, tokenAddress: string): Promise<ethers.Event> {

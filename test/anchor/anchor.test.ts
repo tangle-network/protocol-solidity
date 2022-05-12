@@ -108,11 +108,20 @@ import { IFixedAnchorExtData } from '@webb-tools/interfaces';
      }
    })
  
-   describe('#constructor', () => {
+   describe.only('#constructor', () => {
      it('should initialize', async () => {
        const etherDenomination = await anchor.contract.denomination()
        assert.strictEqual(etherDenomination.toString(), toBN(value).toString());
      });
+
+     it('should properly set default neighbor roots to the default zero for its own level', async () => {
+       const zeroInsertionsRoot = await anchor.contract.getLastRoot();
+       const latestNeighborRoots = await anchor.contract.getLatestNeighborRoots();
+
+       for (const root of latestNeighborRoots) {
+         assert.strictEqual(zeroInsertionsRoot, root);
+       }
+     })
    })
  
    describe ('Setting Handler/Verifier Address Negative Tests', () => {

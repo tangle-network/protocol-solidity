@@ -17,9 +17,10 @@ import { MintableToken, Treasury, TreasuryHandler } from '../../packages/tokens/
 import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '../../packages/utils/src';
 import { PoseidonT3__factory } from '../../packages/contracts';
 import { GovernedTokenWrapper, TokenWrapperHandler } from '../../packages/tokens/src';
-import { BigNumber } from 'ethers';
+import { BigNumber, Wallet } from 'ethers';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
  
-describe('SignatureBridgeSideConstruction', () => {
+describe.only('SignatureBridgeSideConstruction', () => {
  
   let zkComponents: ZkComponents;
  
@@ -38,14 +39,34 @@ describe('SignatureBridgeSideConstruction', () => {
     const admin = signers[1];
     const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor, admin);
   })
+});
+
+describe.only('SignatureBridgeSide use', () => {
+
+  let zkComponents: ZkComponents;
+  let wallet: Wallet;
+  let initialGovernor: Wallet;
+  let admin: SignerWithAddress;
+  let signers: SignerWithAddress[];
+  let bridgeSide: SignatureBridgeSide;
+
+  before(async () => {
+    zkComponents = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/poseidon_anchor_2.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/circuit_final.zkey')
+    );
+    signers = await ethers.getSigners();
+  })
+
+  beforeEach(async () => {
+    wallet = ethers.Wallet.createRandom();
+    initialGovernor = wallet;
+    admin = signers[1];
+    bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor, admin);
+  })
 
   it('should set resource with signature', async () => {
-    const wallet = ethers.Wallet.createRandom();
-    const initialGovernor = wallet;
-    const signers = await ethers.getSigners();
-    const admin = signers[1];
-    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor, admin);
-
     // Create the Hasher and Verifier for the chain
     const hasherFactory = new PoseidonT3__factory(admin);
     let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
@@ -79,12 +100,6 @@ describe('SignatureBridgeSideConstruction', () => {
   })
  
   it('execute anchor proposal', async () => {
-    const wallet = ethers.Wallet.createRandom();
-    const initialGovernor = wallet;
-    const signers = await ethers.getSigners();
-    const admin = signers[1];
-    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor, admin);
-
     // Create the Hasher and Verifier for the chain
     const hasherFactory = new PoseidonT3__factory(admin);
     let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
@@ -132,12 +147,6 @@ describe('SignatureBridgeSideConstruction', () => {
   })
 
   it('execute fee proposal', async () => {
-    const wallet = ethers.Wallet.createRandom();
-    const initialGovernor = wallet;
-    const signers = await ethers.getSigners();
-    const admin = signers[1];
-    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor, admin);
-
     //Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
 
@@ -168,12 +177,6 @@ describe('SignatureBridgeSideConstruction', () => {
   })
 
   it('execute cannot set fee > 100', async () => {
-    const wallet = ethers.Wallet.createRandom();
-    const initialGovernor = wallet;
-    const signers = await ethers.getSigners();
-    const admin = signers[1];
-    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor, admin);
-
     //Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
 
@@ -206,12 +209,6 @@ describe('SignatureBridgeSideConstruction', () => {
   })
 
   it('execute add token proposal', async () => {
-    const wallet = ethers.Wallet.createRandom();
-    const initialGovernor = wallet;
-    const signers = await ethers.getSigners();
-    const admin = signers[1];
-    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor, admin);
-
     //Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
 
@@ -248,12 +245,6 @@ describe('SignatureBridgeSideConstruction', () => {
   })
 
   it('execute remove token proposal', async () => {
-    const wallet = ethers.Wallet.createRandom();
-    const initialGovernor = wallet;
-    const signers = await ethers.getSigners();
-    const admin = signers[1];
-    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor, admin);
-
     //Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
 
@@ -299,12 +290,6 @@ describe('SignatureBridgeSideConstruction', () => {
   })
 
   it('check nonce is increasing across multiple proposals', async () => {
-    const wallet = ethers.Wallet.createRandom();
-    const initialGovernor = wallet;
-    const signers = await ethers.getSigners();
-    const admin = signers[1];
-    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor, admin);
-
     //Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
 
@@ -357,12 +342,6 @@ describe('SignatureBridgeSideConstruction', () => {
 
 
   it('bridge nonce should update upon setting resource with sig', async () => {
-    const wallet = ethers.Wallet.createRandom();
-    const initialGovernor = wallet;
-    const signers = await ethers.getSigners();
-    const admin = signers[1];
-    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor, admin);
-
     // Create the Hasher and Verifier for the chain
     const hasherFactory = new PoseidonT3__factory(admin);
     let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
@@ -409,10 +388,9 @@ describe('SignatureBridgeSideConstruction', () => {
   })
  })
 
- describe('Rescue Tokens Tests for ERC20 Tokens', () => {
+ describe.only('Rescue Tokens Tests for ERC20 Tokens', () => {
   let zkComponents: ZkComponents;
   let sourceAnchor: Anchor;
-  let destAnchor: Anchor;
   let anchorHandler: AnchorHandler;
   let erc20TokenInstance: MintableToken;
   let bridgeSide: SignatureBridgeSide;
@@ -571,7 +549,7 @@ describe('SignatureBridgeSideConstruction', () => {
   })
 })
 
-describe('Rescue Tokens Tests for Native ETH', () => {
+describe.only('Rescue Tokens Tests for Native ETH', () => {
  let zkComponents: ZkComponents;
  let sourceAnchor: Anchor;
  let destAnchor: Anchor;

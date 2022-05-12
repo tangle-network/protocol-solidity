@@ -210,8 +210,8 @@ contract VAnchor is VAnchorBase {
 		_executeValidationAndVerification(_args, _extData);
 
 		if (_extData.extAmount > 0) {
-			IMintableERC20(token).transferFrom(msg.sender, address(this), uint256(_extData.extAmount));
 			require(uint256(_extData.extAmount) <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
+			IMintableERC20(token).transferFrom(msg.sender, address(this), uint256(_extData.extAmount));
 		}
 
 		if (_extData.extAmount < 0) {
