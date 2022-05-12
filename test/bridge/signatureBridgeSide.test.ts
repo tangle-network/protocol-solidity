@@ -20,7 +20,7 @@ import { GovernedTokenWrapper, TokenWrapperHandler } from '../../packages/tokens
 import { BigNumber, Wallet } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
  
-describe.only('SignatureBridgeSideConstruction', () => {
+describe('SignatureBridgeSideConstruction', () => {
  
   let zkComponents: ZkComponents;
  
@@ -41,7 +41,7 @@ describe.only('SignatureBridgeSideConstruction', () => {
   })
 });
 
-describe.only('SignatureBridgeSide use', () => {
+describe('SignatureBridgeSide use', () => {
 
   let zkComponents: ZkComponents;
   let wallet: Wallet;
@@ -388,7 +388,7 @@ describe.only('SignatureBridgeSide use', () => {
   })
  })
 
- describe.only('Rescue Tokens Tests for ERC20 Tokens', () => {
+ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
   let zkComponents: ZkComponents;
   let sourceAnchor: Anchor;
   let anchorHandler: AnchorHandler;
@@ -549,7 +549,7 @@ describe.only('SignatureBridgeSide use', () => {
   })
 })
 
-describe.only('Rescue Tokens Tests for Native ETH', () => {
+describe('Rescue Tokens Tests for Native ETH', () => {
  let zkComponents: ZkComponents;
  let sourceAnchor: Anchor;
  let destAnchor: Anchor;

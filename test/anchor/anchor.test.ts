@@ -108,7 +108,7 @@ import { IFixedAnchorExtData } from '@webb-tools/interfaces';
      }
    })
  
-   describe.only('#constructor', () => {
+   describe('#constructor', () => {
      it('should initialize', async () => {
        const etherDenomination = await anchor.contract.denomination()
        assert.strictEqual(etherDenomination.toString(), toBN(value).toString());
