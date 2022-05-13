@@ -370,7 +370,7 @@ class Anchor implements IAnchor {
     roots: string[],
     pathElements: any[],
     pathIndices: any[],
-  ): Promise<any> {
+  ): Promise<{input: any, extData: IFixedAnchorExtData}> {
     const { chainID, nullifierHash, nullifier, secret } = deposit;
     const extDataHash = getFixedAnchorExtDataHash({_refreshCommitment: refreshCommitment, _recipient: recipient, _relayer: relayer, _fee: fee, _refund: refund});
     let input = {

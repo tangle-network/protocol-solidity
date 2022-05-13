@@ -143,15 +143,15 @@ export class SignatureBridgeSide implements IBridgeSide {
     return proposalData;
   }
 
-  public async setAnchorHandler(handler: AnchorHandler) {
+  public setAnchorHandler(handler: AnchorHandler) {
     this.anchorHandler = handler;
   }
 
-  public async setTokenWrapperHandler(handler: TokenWrapperHandler) {
+  public setTokenWrapperHandler(handler: TokenWrapperHandler) {
     this.tokenHandler = handler;
   }
 
-  public async setTreasuryHandler(handler: TreasuryHandler) {
+  public setTreasuryHandler(handler: TreasuryHandler) {
     this.treasuryHandler = handler;
   }
 
