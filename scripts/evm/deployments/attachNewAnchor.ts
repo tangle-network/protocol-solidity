@@ -98,6 +98,10 @@ async function main() {
   for (let chainIdType of Object.keys(anchorVerifiers)) {
     const governor = getWalletByChainIdType(Number(chainIdType))
 
+    const gasPrice = (await governor.getFeeData()).gasPrice;
+
+    const gasLimit = gasPrice.mul(2);
+
     const newAnchor = await Anchor.createAnchor(
       anchorVerifiers[chainIdType],
       anchorHashers[chainIdType],
@@ -108,7 +112,7 @@ async function main() {
       5,
       zkComponents,
       governor,
-      { gasLimit: gasLimits[chainIdType] }
+      { gasLimit: gasLimit }
     );
 
     const bridgeSide = await SignatureBridgeSide.connect(bridgeSideAddresses[chainIdType], governor, governor);
