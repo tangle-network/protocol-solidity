@@ -125,7 +125,8 @@ async function main() {
     const tokenInstance = await GovernedTokenWrapper.connect(anchorTokens[chainIdType], governor);
 
     // grant minting rights to the anchor
-    await tokenInstance.grantMinterRole(newAnchor.getAddress()); 
+    const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+    await tokenInstance.contract.grantRole(MINTER_ROLE, newAnchor.getAddress(), { gasLimit: gasLimits[chainIdType] });
 
     console.log(`new anchor: ${newAnchor.getAddress()} on chain ${chainIdType}`)
   }
