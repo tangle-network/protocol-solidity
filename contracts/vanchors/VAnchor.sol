@@ -120,8 +120,7 @@ contract VAnchor is VAnchorBase {
 		@param _tokenAddress The address of the token to wrap
 		@param _extAmount The external amount for the transaction
 	 */
-	// TODO: Rename to _executeWrapping
-	function wrapAndDeposit(
+	function _executeWrapping(
 		address _tokenAddress,
 		uint256 _extAmount
 	) payable public {
@@ -151,7 +150,6 @@ contract VAnchor is VAnchorBase {
 		@param _recipient The address of the recipient for the unwrapped assets
 		@param _minusExtAmount Negative external amount for the transaction
 	 */
-	// TODO: Rename _executeUnwrapping
 	function withdrawAndUnwrap(
 		address _tokenAddress,
 		address _recipient,
@@ -243,10 +241,10 @@ contract VAnchor is VAnchorBase {
 		if (_extData.extAmount > 0) {
 			//wrapAndDeposit
 			require(uint256(_extData.extAmount) <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
-			wrapAndDeposit(_tokenAddress, uint256(_extData.extAmount));
+			_executeWrapping(_tokenAddress, uint256(_extData.extAmount));
 		} 
 		// Otherwise, check if extAmount < 0, call withdrawAndUnwrap
-		if (_extData.extAmount < 0) {
+		else if (_extData.extAmount < 0) {
 			require(_extData.recipient != address(0), "Can't withdraw to zero address");
 			require(uint256(-_extData.extAmount) >= minimalWithdrawalAmount, "amount is less than minimalWithdrawalAmount"); 
 			withdrawAndUnwrap(_tokenAddress, _extData.recipient, uint256(-_extData.extAmount));

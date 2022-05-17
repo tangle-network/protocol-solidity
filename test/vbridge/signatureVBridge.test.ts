@@ -122,6 +122,7 @@ describe('multichain tests for signature vbridge', () => {
       assert.deepEqual(ethers.BigNumber.from(1), destAnchorEdgeAfter.latestLeafIndex);
 
       const transferUtxo = new Utxo({
+        chainId: BigNumber.from(chainID1),
         originChainId: BigNumber.from(chainID1),
         amount: BigNumber.from(1e7),
         keypair: depositUtxo.keypair

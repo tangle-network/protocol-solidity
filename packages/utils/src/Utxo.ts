@@ -33,11 +33,11 @@ export class Utxo {
     blinding,
     originChainId,
     index
-  }: {chainId?: BigNumberish, amount?: BigNumberish, keypair?: Keypair, blinding?: BigNumberish, originChainId?: BigNumberish, index?: number}) {
+  }: {chainId: BigNumberish, amount?: BigNumberish, keypair?: Keypair, blinding?: BigNumberish, originChainId?: BigNumberish, index?: number}) {
     this.chainId = BigNumber.from(chainId);
-    this.amount = BigNumber.from(amount);
-    this.blinding = BigNumber.from(blinding);
-    this.keypair = keypair;
+    this.amount = amount ? BigNumber.from(amount) : 0;
+    this.blinding = blinding ? BigNumber.from(blinding) : randomBN();
+    this.keypair = keypair || new Keypair();
     this.originChainId = originChainId;
     this.index = index;
   }

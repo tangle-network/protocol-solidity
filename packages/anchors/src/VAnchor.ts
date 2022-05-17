@@ -456,9 +456,6 @@ export class VAnchor implements IAnchor {
 
   public async checkKnownRoot() {
     const isKnownRoot = await this.contract.isKnownRoot(toFixedHex(this.tree.root()));
-    if (!isKnownRoot) {
-      await this.update(this.latestSyncedBlock);
-    }
   }
 
   public async createWitness(data: any, small: boolean) {
@@ -526,7 +523,6 @@ export class VAnchor implements IAnchor {
     merkleProofsForInputs: any[],
   ) {
     // first, check if the merkle root is known on chain - if not, then update
-    await this.checkKnownRoot();
     const chainId = getChainIdType(await this.signer.getChainId());
     const roots = await this.populateRootInfosForProof();
     const { input, extData } = await this.generateWitnessInput(
@@ -762,7 +758,6 @@ export class VAnchor implements IAnchor {
       relayer,
       merkleProofsForInputs,
     );
-
 
     let tx = await this.contract.transact(
       {

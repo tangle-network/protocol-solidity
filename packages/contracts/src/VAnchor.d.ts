@@ -28,6 +28,7 @@ interface VAnchorInterface extends ethers.utils.Interface {
     "MAX_FEE()": FunctionFragment;
     "ROOT_HISTORY_SIZE()": FunctionFragment;
     "ZERO_VALUE()": FunctionFragment;
+    "_executeWrapping(address,uint256)": FunctionFragment;
     "calculatePublicAmount(int256,uint256)": FunctionFragment;
     "commitments(bytes32)": FunctionFragment;
     "configureMaximumDepositLimit(uint256)": FunctionFragment;
@@ -77,7 +78,6 @@ interface VAnchorInterface extends ethers.utils.Interface {
     "updateEdge(uint256,bytes32,uint256,bytes32)": FunctionFragment;
     "verifier()": FunctionFragment;
     "withdrawAndUnwrap(address,address,uint256)": FunctionFragment;
-    "wrapAndDeposit(address,uint256)": FunctionFragment;
     "wrapNative()": FunctionFragment;
     "wrapToken(address,uint256)": FunctionFragment;
     "zeros(uint256)": FunctionFragment;
@@ -103,6 +103,10 @@ interface VAnchorInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "ZERO_VALUE",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "_executeWrapping",
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "calculatePublicAmount",
@@ -357,10 +361,6 @@ interface VAnchorInterface extends ethers.utils.Interface {
     values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "wrapAndDeposit",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "wrapNative",
     values?: undefined
   ): string;
@@ -385,6 +385,10 @@ interface VAnchorInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "ZERO_VALUE", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "_executeWrapping",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "calculatePublicAmount",
     data: BytesLike
@@ -527,10 +531,6 @@ interface VAnchorInterface extends ethers.utils.Interface {
     functionFragment: "withdrawAndUnwrap",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "wrapAndDeposit",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "wrapNative", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "wrapToken", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "zeros", data: BytesLike): Result;
@@ -645,6 +645,12 @@ export class VAnchor extends BaseContract {
     ROOT_HISTORY_SIZE(overrides?: CallOverrides): Promise<[number]>;
 
     ZERO_VALUE(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    _executeWrapping(
+      _tokenAddress: string,
+      _extAmount: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     calculatePublicAmount(
       _extAmount: BigNumberish,
@@ -946,12 +952,6 @@ export class VAnchor extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    wrapAndDeposit(
-      _tokenAddress: string,
-      _extAmount: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     wrapNative(
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -976,6 +976,12 @@ export class VAnchor extends BaseContract {
   ROOT_HISTORY_SIZE(overrides?: CallOverrides): Promise<number>;
 
   ZERO_VALUE(overrides?: CallOverrides): Promise<BigNumber>;
+
+  _executeWrapping(
+    _tokenAddress: string,
+    _extAmount: BigNumberish,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   calculatePublicAmount(
     _extAmount: BigNumberish,
@@ -1263,12 +1269,6 @@ export class VAnchor extends BaseContract {
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  wrapAndDeposit(
-    _tokenAddress: string,
-    _extAmount: BigNumberish,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   wrapNative(
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -1293,6 +1293,12 @@ export class VAnchor extends BaseContract {
     ROOT_HISTORY_SIZE(overrides?: CallOverrides): Promise<number>;
 
     ZERO_VALUE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    _executeWrapping(
+      _tokenAddress: string,
+      _extAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     calculatePublicAmount(
       _extAmount: BigNumberish,
@@ -1589,12 +1595,6 @@ export class VAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    wrapAndDeposit(
-      _tokenAddress: string,
-      _extAmount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     wrapNative(overrides?: CallOverrides): Promise<void>;
 
     wrapToken(
@@ -1710,6 +1710,12 @@ export class VAnchor extends BaseContract {
     ROOT_HISTORY_SIZE(overrides?: CallOverrides): Promise<BigNumber>;
 
     ZERO_VALUE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    _executeWrapping(
+      _tokenAddress: string,
+      _extAmount: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     calculatePublicAmount(
       _extAmount: BigNumberish,
@@ -1984,12 +1990,6 @@ export class VAnchor extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    wrapAndDeposit(
-      _tokenAddress: string,
-      _extAmount: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     wrapNative(
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -2015,6 +2015,12 @@ export class VAnchor extends BaseContract {
     ROOT_HISTORY_SIZE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     ZERO_VALUE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    _executeWrapping(
+      _tokenAddress: string,
+      _extAmount: BigNumberish,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     calculatePublicAmount(
       _extAmount: BigNumberish,
@@ -2303,12 +2309,6 @@ export class VAnchor extends BaseContract {
       _tokenAddress: string,
       _recipient: string,
       _minusExtAmount: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    wrapAndDeposit(
-      _tokenAddress: string,
-      _extAmount: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
