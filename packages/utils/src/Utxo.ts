@@ -27,13 +27,13 @@ export class Utxo {
    * @param {number|null} index UTXO index in the merkle tree
    */
   constructor({
-    chainId = BigNumber.from(0),
-    amount = BigNumber.from(0),
-    keypair = new Keypair(),
-    blinding = randomBN(),
-    originChainId = BigNumber.from(getChainIdType(31337)),
-    index = null
-  } = {}) {
+    chainId,
+    amount,
+    keypair,
+    blinding,
+    originChainId,
+    index
+  }: {chainId?: BigNumberish, amount?: BigNumberish, keypair?: Keypair, blinding?: BigNumberish, originChainId?: BigNumberish, index?: number}) {
     this.chainId = BigNumber.from(chainId);
     this.amount = BigNumber.from(amount);
     this.blinding = BigNumber.from(blinding);
