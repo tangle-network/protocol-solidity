@@ -21,8 +21,8 @@ import {
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
-import { fetchComponentsFromFilePaths, getChainIdType, toFixedHex, ZkComponents } from '../../packages/utils/src';
-import { BigNumber } from 'ethers';
+import { fetchComponentsFromFilePaths, FIELD_SIZE, getChainIdType, getExtDataHash, RootInfo, toFixedHex, ZkComponents } from '../../packages/utils/src';
+import { BigNumber, BigNumberish } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 import { MerkleTree } from '../../packages/merkle-tree/src';
@@ -753,6 +753,209 @@ describe('VAnchor for 2 max edges', () => {
         'Incorrect external data hash',
       );
     });
+
+    // TODO: Get this test to work by hitting the revert code of "unknown neighbor root"
+    it.skip('should reject input UTXOs with value that don\'t exist due to unknown neighbor root', async function () {
+      const aliceDepositAmount = 1e7;
+      let aliceDepositUtxo1 = generateUTXOForTest(chainID, aliceDepositAmount);
+      aliceDepositUtxo1.index = 0;
+      let nonExistentInput1 = generateUTXOForTest(chainID);
+      let nonExistentOutput1 = generateUTXOForTest(chainID);
+      let nonExistentOutput2 = generateUTXOForTest(chainID);
+
+      // Get a new instance of the VAnchor wrapper for helper functions
+      const fakeTree = new MerkleTree(levels, []);
+      fakeTree.insert(aliceDepositUtxo1.getCommitment());
+      let fakeRoot = fakeTree.root();
+
+      const aliceFakeMerkleProof = {
+        pathElements: new Array(levels).fill(0),
+        pathIndex: 0,
+        merkleRoot: fakeRoot,
+      }
+
+      fakeTree.insert(nonExistentInput1.getCommitment());
+      fakeRoot = fakeTree.root();
+
+      let fakePathElements = new Array(levels).fill(0);
+      fakePathElements[0] = 1;
+
+      const nonExistMerkleProof = {
+        pathElements: fakePathElements,
+        pathIndex: 1,
+        merkleRoot: fakeRoot,
+      };
+      const defaultChainRoots = [{
+        merkleRoot: aliceFakeMerkleProof.merkleRoot,
+        chainId: chainID,
+      }, {
+        merkleRoot: nonExistMerkleProof.merkleRoot,
+        chainId: chainID,
+      }]
+      let extAmount = BigNumber.from(0).sub(aliceDepositAmount);
+
+      const fakeAnchor = await VAnchor.connect(anchor.getAddress(), zkComponents2_2, zkComponents16_2, sender);
+
+      const { input, extData } = await fakeAnchor.generateWitnessInput(
+        defaultChainRoots,
+        getChainIdType(31337),
+        [aliceDepositUtxo1, nonExistentInput1],
+        [nonExistentOutput1, nonExistentOutput2],
+        extAmount,
+        0,
+        '0x0000000000000000000000000000000000000001',
+        '0x0000000000000000000000000000000000000001',
+        [aliceFakeMerkleProof, nonExistMerkleProof]
+      )
+
+      const wtns = await fakeAnchor.createWitness(input, true);
+      let proofEncoded = await fakeAnchor.proveAndVerify(wtns, true);
+  
+      const publicInputs = fakeAnchor.generatePublicInputs(
+        proofEncoded,
+        defaultChainRoots,
+        [aliceDepositUtxo1, nonExistentInput1],
+        [nonExistentOutput1, nonExistentOutput2],
+        input.publicAmount,
+        input.extDataHash.toString()
+      );
+
+      await TruffleAssert.reverts(
+        fakeAnchor.contract.transact(
+          {
+            ...publicInputs,
+            outputCommitments: [
+              publicInputs.outputCommitments[0],
+              publicInputs.outputCommitments[1],
+            ]
+          },
+          extData,
+          { gasLimit: '0xBB8D80' }
+        ),
+        'Neighbor root not found'
+      );
+    })
+
+    // This test ensures that the witness generation checks for merkle membership proof
+    // if the input utxo contains a value.
+    it('should reject input UTXOs with value that don\'t exist due to bad merkle proof', async function () {
+      const aliceDepositAmount = 1e7;
+      let aliceDepositUtxo1 = generateUTXOForTest(chainID, aliceDepositAmount);
+      aliceDepositUtxo1.index = 0;
+      let nonExistentInput1 = generateUTXOForTest(chainID);
+      let nonExistentOutput1 = generateUTXOForTest(chainID);
+      let nonExistentOutput2 = generateUTXOForTest(chainID);
+
+      // Get a new instance of the VAnchor wrapper for helper functions
+      const fakeTree = new MerkleTree(levels, []);
+      fakeTree.insert(aliceDepositUtxo1.getCommitment());
+      const fakeRoot = fakeTree.root();
+      const fakeAnchor = await VAnchor.connect(anchor.getAddress(), zkComponents2_2, zkComponents16_2, sender);
+      const defaultRoot = '0x27953447a6979839536badc5425ed15fadb0e292e9bc36f92f0aa5cfa5013587';
+
+      const getFakeMerkleProof = () => { 
+        return {
+          pathElements: new Array(levels).fill(0),
+          pathIndex: 0,
+          merkleRoot: fakeRoot,
+        }
+      }
+
+      const generateFakeWitnessInput = async (
+        roots: RootInfo[], 
+        chainId: BigNumberish, 
+        inputs: Utxo[], 
+        outputs: Utxo[], 
+        extAmount: BigNumberish, 
+        fee: BigNumberish,
+        recipient: string, 
+        relayer: string,
+        externalMerkleProofs: any[],
+      ) => {
+        const extData = {
+          recipient: toFixedHex(recipient, 20),
+          extAmount: toFixedHex(extAmount),
+          relayer: toFixedHex(relayer, 20),
+          fee: toFixedHex(fee),
+          encryptedOutput1: outputs[0].encrypt(),
+          encryptedOutput2: outputs[1].encrypt()
+        }
+      
+        const extDataHash = getExtDataHash(extData)
+        
+        let input = {
+          roots: roots.map((x) => BigNumber.from(x.merkleRoot).toString()),
+          chainID: chainId.toString(),
+          inputNullifier: [aliceDepositUtxo1.getNullifier(), '0x0000000000000000000000000000000000000000000000000000000000000000'],
+          outputCommitment: outputs.map((x) => x.getCommitment().toString()),
+          publicAmount: BigNumber.from(extAmount).sub(fee).add(FIELD_SIZE).mod(FIELD_SIZE).toString(),
+          extDataHash: extDataHash.toString(),
+      
+          // data for 2 transaction inputs
+          inAmount: inputs.map((x) => x.amount.toString()),
+          inPrivateKey: inputs.map((x) => x.keypair.privkey.toString()),
+          inBlinding: inputs.map((x) => x.blinding.toString()),
+          inPathIndices: externalMerkleProofs.map((x) => x.pathIndex),
+          inPathElements: externalMerkleProofs.map((x) => x.pathElements),
+      
+          // data for 2 transaction outputs
+          outChainID: outputs.map((x) => x.chainId.toString()),
+          outAmount: outputs.map((x) => x.amount.toString()),
+          outPubkey: outputs.map((x) => toFixedHex(x.keypair.pubkey).toString()),
+          outBlinding: outputs.map((x) => x.blinding.toString())
+        }
+    
+        if (input.inputNullifier.length === 0) {
+          input.inputNullifier = [...[0,1].map((_r) => {
+            return '0x0000000000000000000000000000000000000000000000000000000000000000';
+          })];
+        }
+    
+        return {
+          input,
+          extData,
+        };
+      }
+
+      const setupFakeTransaction = async () => {
+        const defaultChainRoots = [{
+          merkleRoot: defaultRoot,
+          chainId: chainID,
+        }, {
+          merkleRoot: defaultRoot,
+          chainId: chainID,
+        }]
+        const roots = [defaultRoot, defaultRoot];
+        let extAmount = BigNumber.from(0).sub(aliceDepositAmount);
+
+        const { input, extData } = await generateFakeWitnessInput(
+          defaultChainRoots,
+          getChainIdType(31337),
+          [aliceDepositUtxo1, nonExistentInput1],
+          [nonExistentOutput1, nonExistentOutput2],
+          extAmount,
+          0,
+          '0x0000000000000000000000000000000000000001',
+          '0x0000000000000000000000000000000000000001',
+          [getFakeMerkleProof(), getFakeMerkleProof()]
+        );
+
+        let witnessGenerationFailed: boolean;
+
+        try {
+          await fakeAnchor.createWitness(input, true);
+          witnessGenerationFailed = false;
+        } catch (error) {
+          const message: string = error.toString();
+          assert.strictEqual(message.includes('ForceSetMembershipIfEnabled'), true);
+          witnessGenerationFailed = true;
+        }
+        
+        assert.strictEqual(witnessGenerationFailed, true);
+      }
+
+      await setupFakeTransaction();
+    })
 
     it('should be compliant', async function () {
       // basically verifier should check if a commitment and a nullifier hash are on chain
