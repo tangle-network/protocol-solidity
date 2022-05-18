@@ -242,9 +242,8 @@ contract VAnchor is VAnchorBase {
 			//wrapAndDeposit
 			require(uint256(_extData.extAmount) <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
 			_executeWrapping(_tokenAddress, uint256(_extData.extAmount));
-		} 
-		// Otherwise, check if extAmount < 0, call withdrawAndUnwrap
-		else if (_extData.extAmount < 0) {
+		} else if (_extData.extAmount < 0) {
+			// Otherwise, check if extAmount < 0, call withdrawAndUnwrap
 			require(_extData.recipient != address(0), "Can't withdraw to zero address");
 			require(uint256(-_extData.extAmount) >= minimalWithdrawalAmount, "amount is less than minimalWithdrawalAmount"); 
 			withdrawAndUnwrap(_tokenAddress, _extData.recipient, uint256(-_extData.extAmount));

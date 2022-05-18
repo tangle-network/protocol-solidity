@@ -568,7 +568,7 @@ export class VAnchor implements IAnchor {
     relayer: string
   ): Promise<ethers.ContractReceipt> {
 
-    // Assume default UTXO generation will match with the configured signer
+    // Default UTXO chain ID will match with the configured signer's chain ID
     const evmId = await this.signer.getChainId();
     const chainId = getChainIdType(evmId);
     
@@ -638,7 +638,7 @@ export class VAnchor implements IAnchor {
     relayer: string
   ): Promise<ethers.ContractReceipt> {
 
-    // Assume default UTXO generation will match with the configured signer
+    // Default UTXO chain ID will match with the configured signer's chain ID
     const evmId = await this.signer.getChainId();
     const chainId = getChainIdType(evmId);
 
@@ -725,7 +725,6 @@ export class VAnchor implements IAnchor {
     relayer: string,
     merkleProofsForInputs: any[]
   ): Promise<ethers.ContractReceipt> {
-    // const { pathElements, pathIndices, merkleRoot } = merkleProofsForInputs;
     if (merkleProofsForInputs.length !== inputs.length) {
       throw new Error('Merkle proofs has different length than inputs');
     }
@@ -784,7 +783,6 @@ export class VAnchor implements IAnchor {
     relayer: string,
     merkleProofsForInputs: any[]
   ) {
-    // const { pathElements, pathIndices, merkleRoot } = merkleProofsForInputs;
     if (merkleProofsForInputs.length !== inputs.length) {
       throw new Error('Merkle proofs has different length than inputs');
     }
