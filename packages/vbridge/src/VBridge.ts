@@ -309,9 +309,12 @@ export class VBridge {
     }
     await vAnchor.setSigner(signer);
 
+    // Create dummy UTXOs to satisfy the circuit
     while (inputs.length !== 2 && inputs.length < 16) {
       inputs.push(new Utxo({
-        chainId: BigNumber.from(chainId)
+        chainId: BigNumber.from(chainId),
+        originChainId: BigNumber.from(chainId),
+        amount: 0,
       }));
     }
 
@@ -373,9 +376,12 @@ export class VBridge {
     }
     await vAnchor.setSigner(signer);
 
+    // Create dummy UTXOs to satisfy the circuit
     while (inputs.length !== 2 && inputs.length < 16) {
       inputs.push(new Utxo({
-        chainId: BigNumber.from(chainId)
+        chainId: BigNumber.from(chainId),
+        originChainId: BigNumber.from(chainId),
+        amount: 0,
       }));
     }
     //do we have to check if amount is greater than 0 before the checks?

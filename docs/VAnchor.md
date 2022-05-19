@@ -112,6 +112,23 @@ function ZERO_VALUE() external view returns (uint256)
 |---|---|---|
 | _0 | uint256 | undefined
 
+### _executeWrapping
+
+```solidity
+function _executeWrapping(address _tokenAddress, uint256 _extAmount) external payable
+```
+
+Wraps a token for the `msg.sender`
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _tokenAddress | address | The address of the token to wrap
+| _extAmount | uint256 | The external amount for the transaction
+
 ### calculatePublicAmount
 
 ```solidity
@@ -1048,23 +1065,6 @@ Unwraps into a valid token for the `msg.sender`
 | _tokenAddress | address | The token to unwrap into
 | _recipient | address | The address of the recipient for the unwrapped assets
 | _minusExtAmount | uint256 | Negative external amount for the transaction
-
-### wrapAndDeposit
-
-```solidity
-function wrapAndDeposit(address _tokenAddress, uint256 _extAmount) external payable
-```
-
-Wraps a token for the `msg.sender`
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _tokenAddress | address | The address of the token to wrap
-| _extAmount | uint256 | The external amount for the transaction
 
 ### wrapNative
 

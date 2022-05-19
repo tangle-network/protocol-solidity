@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { BigNumber, BigNumberish, ethers } from 'ethers';
 import { VAnchor as VAnchorContract, VAnchor__factory, VAnchorEncodeInputs__factory } from '@webb-tools/contracts';
-import { p256, toHex, RootInfo, Keypair, FIELD_SIZE, getExtDataHash, toFixedHex, Utxo, getChainIdType, median, mean, max, min, ZkComponents } from '@webb-tools/utils';
+import { p256, toHex, RootInfo, Keypair, FIELD_SIZE, getExtDataHash, toFixedHex, Utxo, getChainIdType, median, mean, max, min, ZkComponents, randomBN } from '@webb-tools/utils';
 import { IAnchorDeposit, IAnchor, IExtData, IMerkleProofData, IUTXOInput, IVariableAnchorPublicInputs, IWitnessInput, IAnchorDepositInfo } from '@webb-tools/interfaces';
 import { MerkleTree } from '@webb-tools/merkle-tree';
 
@@ -456,9 +456,6 @@ export class VAnchor implements IAnchor {
 
   public async checkKnownRoot() {
     const isKnownRoot = await this.contract.isKnownRoot(toFixedHex(this.tree.root()));
-    if (!isKnownRoot) {
-      await this.update(this.latestSyncedBlock);
-    }
   }
 
   public async createWitness(data: any, small: boolean) {
@@ -526,7 +523,6 @@ export class VAnchor implements IAnchor {
     merkleProofsForInputs: any[],
   ) {
     // first, check if the merkle root is known on chain - if not, then update
-    await this.checkKnownRoot();
     const chainId = getChainIdType(await this.signer.getChainId());
     const roots = await this.populateRootInfosForProof();
     const { input, extData } = await this.generateWitnessInput(
@@ -567,14 +563,23 @@ export class VAnchor implements IAnchor {
   public async transact(
     inputs: Utxo[], 
     outputs: Utxo[], 
-    fee: BigNumberish = 0,
-    recipient: string = '0', 
-    relayer: string = '0'
+    fee: BigNumberish,
+    recipient: string, 
+    relayer: string
   ): Promise<ethers.ContractReceipt> {
+
+    // Default UTXO chain ID will match with the configured signer's chain ID
+    const evmId = await this.signer.getChainId();
+    const chainId = getChainIdType(evmId);
     
     while (inputs.length !== 2 && inputs.length < 16) {
       inputs.push(new Utxo({
-        chainId: BigNumber.from(getChainIdType(31337))
+        chainId: BigNumber.from(chainId),
+        originChainId: BigNumber.from(chainId),
+        amount: 0,
+        blinding: randomBN(),
+        keypair: new Keypair(),
+        index: null
       }));
     }
     
@@ -583,7 +588,12 @@ export class VAnchor implements IAnchor {
     if (outputs.length < 2) {
       while (outputs.length < 2) {
         outputs.push(new Utxo({
-          chainId: BigNumber.from(getChainIdType(31337))
+          chainId: BigNumber.from(chainId),
+          originChainId: BigNumber.from(chainId),
+          amount: 0,
+          blinding: randomBN(),
+          keypair: new Keypair(),
+          index: null
         }));
       }
     }
@@ -623,14 +633,23 @@ export class VAnchor implements IAnchor {
     tokenAddress: string,
     inputs: Utxo[], 
     outputs: Utxo[], 
-    fee: BigNumberish = 0,
-    recipient: string = '0', 
-    relayer: string = '0'
+    fee: BigNumberish,
+    recipient: string, 
+    relayer: string
   ): Promise<ethers.ContractReceipt> {
-    
+
+    // Default UTXO chain ID will match with the configured signer's chain ID
+    const evmId = await this.signer.getChainId();
+    const chainId = getChainIdType(evmId);
+
     while (inputs.length !== 2 && inputs.length < 16) {
       inputs.push(new Utxo({
-        chainId: BigNumber.from(getChainIdType(31337))
+        chainId: BigNumber.from(chainId),
+        originChainId: BigNumber.from(chainId),
+        amount: 0,
+        blinding: randomBN(),
+        keypair: new Keypair(),
+        index: null
       }));
     }
     
@@ -639,7 +658,12 @@ export class VAnchor implements IAnchor {
     if (outputs.length < 2) {
       while (outputs.length < 2) {
         outputs.push(new Utxo({
-          chainId: BigNumber.from(getChainIdType(31337))
+          chainId: BigNumber.from(chainId),
+          originChainId: BigNumber.from(chainId),
+          amount: 0,
+          blinding: randomBN(),
+          keypair: new Keypair(),
+          index: null
         }));
       }
     }
@@ -701,15 +725,21 @@ export class VAnchor implements IAnchor {
     relayer: string,
     merkleProofsForInputs: any[]
   ): Promise<ethers.ContractReceipt> {
-    // const { pathElements, pathIndices, merkleRoot } = merkleProofsForInputs;
     if (merkleProofsForInputs.length !== inputs.length) {
       throw new Error('Merkle proofs has different length than inputs');
     }
 
+    const chainId = getChainIdType(await this.signer.getChainId());
+
     if (outputs.length < 2) {
       while (outputs.length < 2) {
         outputs.push(new Utxo({
-          originChainId: BigNumber.from(getChainIdType(await this.signer.getChainId()))
+          chainId: BigNumber.from(chainId),
+          originChainId: BigNumber.from(chainId),
+          amount: 0,
+          blinding: randomBN(),
+          keypair: new Keypair(),
+          index: null
         }));
       }
     }
@@ -727,7 +757,6 @@ export class VAnchor implements IAnchor {
       relayer,
       merkleProofsForInputs,
     );
-
 
     let tx = await this.contract.transact(
       {
@@ -754,15 +783,21 @@ export class VAnchor implements IAnchor {
     relayer: string,
     merkleProofsForInputs: any[]
   ) {
-    // const { pathElements, pathIndices, merkleRoot } = merkleProofsForInputs;
     if (merkleProofsForInputs.length !== inputs.length) {
       throw new Error('Merkle proofs has different length than inputs');
     }
 
+    const chainId = getChainIdType(await this.signer.getChainId());
+
     if (outputs.length < 2) {
       while (outputs.length < 2) {
         outputs.push(new Utxo({
-          originChainId: BigNumber.from(getChainIdType(await this.signer.getChainId()))
+          chainId: BigNumber.from(chainId),
+          originChainId: BigNumber.from(chainId),
+          amount: 0,
+          blinding: randomBN(),
+          keypair: new Keypair(),
+          index: null
         }));
       }
     }
@@ -819,17 +854,24 @@ export class VAnchor implements IAnchor {
   public async registerAndTransact(
     owner: string,
     publicKey: string,
-    inputs: Utxo[] = [],
-    outputs: Utxo[] = [],
-    fee: BigNumberish = 0,
-    recipient: string = '0',
-    relayer: string = '0',
-    merkleProofsForInputs: any[] = []
+    inputs: Utxo[],
+    outputs: Utxo[],
+    fee: BigNumberish,
+    recipient: string,
+    relayer: string,
+    merkleProofsForInputs: any[]
   ): Promise<ethers.ContractReceipt> {
+
+    const chainId = getChainIdType(await this.signer.getChainId());
 
     while (inputs.length !== 2 && inputs.length < 16) {
       inputs.push(new Utxo({
-        chainId: BigNumber.from(getChainIdType(31337))
+        chainId: BigNumber.from(chainId),
+        originChainId: BigNumber.from(chainId),
+        amount: 0,
+        blinding: randomBN(),
+        keypair: new Keypair(),
+        index: null
       }));
     }
 
@@ -842,7 +884,12 @@ export class VAnchor implements IAnchor {
     if (outputs.length < 2) {
       while (outputs.length < 2) {
         outputs.push(new Utxo({
-          chainId: BigNumber.from(getChainIdType(31337))
+          chainId: BigNumber.from(chainId),
+          originChainId: BigNumber.from(chainId),
+          amount: 0,
+          blinding: randomBN(),
+          keypair: new Keypair(),
+          index: null
         }));
       }
     }
