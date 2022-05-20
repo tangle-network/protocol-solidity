@@ -101,6 +101,7 @@ export class VAnchor implements IAnchor {
   ) {
     const encodeLibraryFactory = new VAnchorEncodeInputs__factory(signer);
     const encodeLibrary = await encodeLibraryFactory.deploy();
+    await encodeLibrary.deployed();
     const factory = new VAnchor__factory({["contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs"]: encodeLibrary.address}, signer);
     const vAnchor = await factory.deploy(verifier, levels, hasher, handler, token, maxEdges, {});
     await vAnchor.deployed();
@@ -525,6 +526,27 @@ export class VAnchor implements IAnchor {
     // first, check if the merkle root is known on chain - if not, then update
     const chainId = getChainIdType(await this.signer.getChainId());
     const roots = await this.populateRootInfosForProof();
+
+    console.log('inside setupTransaction');
+    inputs.map((input) => console.log('input: ', input));
+    outputs.map((output) => console.log('output: ', output));
+    console.log('extAmount: ', extAmount);
+    console.log('fee', fee);
+    console.log('recipient', recipient);
+    console.log('relayer: ', relayer);
+    console.log('roots: ');
+    roots.map((root) => {
+      console.log('\troot merkle: ', root.merkleRoot);
+      console.log('\troot chainId: ', root.chainId);
+    })
+    merkleProofsForInputs.map((proof) => {
+      console.log('merkle proof input: ');
+      console.log('root: ', proof.merkleRoot);
+      console.log('pathElements: ', proof.pathElements);
+      console.log('pathIndex: ', proof.pathIndex);
+    })
+    
+
     const { input, extData } = await this.generateWitnessInput(
       roots,
       chainId,
