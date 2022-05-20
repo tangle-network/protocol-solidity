@@ -527,26 +527,6 @@ export class VAnchor implements IAnchor {
     const chainId = getChainIdType(await this.signer.getChainId());
     const roots = await this.populateRootInfosForProof();
 
-    console.log('inside setupTransaction');
-    inputs.map((input) => console.log('input: ', input));
-    outputs.map((output) => console.log('output: ', output));
-    console.log('extAmount: ', extAmount);
-    console.log('fee', fee);
-    console.log('recipient', recipient);
-    console.log('relayer: ', relayer);
-    console.log('roots: ');
-    roots.map((root) => {
-      console.log('\troot merkle: ', root.merkleRoot);
-      console.log('\troot chainId: ', root.chainId);
-    })
-    merkleProofsForInputs.map((proof) => {
-      console.log('merkle proof input: ');
-      console.log('root: ', proof.merkleRoot);
-      console.log('pathElements: ', proof.pathElements);
-      console.log('pathIndex: ', proof.pathIndex);
-    })
-    
-
     const { input, extData } = await this.generateWitnessInput(
       roots,
       chainId,
