@@ -9,8 +9,8 @@
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@webb-tools/contracts": "^0.1.10",
-    "@webb-tools/utils": "^0.1.7"
+    "@webb-tools/contracts": "^0.1.11",
+    "@webb-tools/utils": "^0.1.8"
   },
   "publishConfig": {
     "access": "public"
@@ -20,5 +20,5 @@
     "type": "git",
     "url": "git://github.com/webb-tools/protocol-solidity.git"
   },
-  "version": "0.1.11"
+  "version": "0.1.12"
 }
