@@ -244,11 +244,7 @@ export class MerkleTree {
 
     for (let i = 0; i < leaves.length; i++) {
       tree.insert(leaves[i]);
-      console.log('createTreeWithRoot - leaf: ', leaves[i]);
       const nextRoot = tree.root();
-
-      console.log(`target root: ${targetRoot} \n this root: ${toFixedHex(nextRoot)}`);
-
       if (toFixedHex(nextRoot) === targetRoot) {
         return tree;
       }
