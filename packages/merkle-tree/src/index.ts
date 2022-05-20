@@ -1,7 +1,7 @@
 // keccak256("tornado") % BN254_FIELD_SIZE
 const DEFAULT_ZERO = '21663839004416932945382355908790599225266501822907911457504978515578255421292'
 import { BigNumberish, BigNumber } from 'ethers';
-import { poseidonHash2 } from '@webb-tools/utils';
+import { poseidonHash2, toFixedHex } from '@webb-tools/utils';
 const defaultHash = poseidonHash2;
 
 // todo ensure consistent types in tree and inserted elements?
@@ -224,4 +224,33 @@ export class MerkleTree {
     instance.zeroElement = instance._zeros[0]
     return instance
   }
+
+  /**
+   * Create a merkle tree with the target root by inserting the given leaves
+   * one-by-one. 
+   * If the root matches after an insertion, return the tree. 
+   * Else, return undefined.
+   *
+   * @param leaves - An array of ordered leaves to be inserted in a merkle tree
+   * @param targetRoot - The root that the caller is trying to build a tree against
+   * @returns {MerkleTree | undefined}
+   */
+  static createTreeWithRoot (levels: number, leaves: string[], targetRoot: string): MerkleTree | undefined {
+    if (leaves.length > Math.pow(2, levels)) {
+      return undefined;
+    }
+    
+    const tree = new MerkleTree(levels, []);
+
+    for (let i = 0; i < leaves.length; i++) {
+      tree.insert(leaves[i]);
+      const nextRoot = tree.root();
+      if (toFixedHex(nextRoot) === targetRoot) {
+        return tree;
+      }
+    }
+
+    return undefined;
+  }
+  
 }

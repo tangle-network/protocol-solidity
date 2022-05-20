@@ -150,7 +150,7 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard, ChainIdWi
 			} else {
 				edges[i] = Edge({
 					// merkle tree height for zeros
-					root: zeros(levels),
+					root: zeros(levels - 1),
 					chainID: 0,
 					latestLeafIndex: 0,
 					target: 0x0

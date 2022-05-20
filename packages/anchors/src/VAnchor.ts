@@ -101,6 +101,7 @@ export class VAnchor implements IAnchor {
   ) {
     const encodeLibraryFactory = new VAnchorEncodeInputs__factory(signer);
     const encodeLibrary = await encodeLibraryFactory.deploy();
+    await encodeLibrary.deployed();
     const factory = new VAnchor__factory({["contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs"]: encodeLibrary.address}, signer);
     const vAnchor = await factory.deploy(verifier, levels, hasher, handler, token, maxEdges, {});
     await vAnchor.deployed();
@@ -525,6 +526,7 @@ export class VAnchor implements IAnchor {
     // first, check if the merkle root is known on chain - if not, then update
     const chainId = getChainIdType(await this.signer.getChainId());
     const roots = await this.populateRootInfosForProof();
+
     const { input, extData } = await this.generateWitnessInput(
       roots,
       chainId,
