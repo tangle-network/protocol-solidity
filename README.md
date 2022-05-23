@@ -8,6 +8,17 @@
 
 <br />
 
+## Prerequisites
+
+- This repository assumes the user has successfully installed Node, nvm, yarn.
+
+- This repository assumes the user has successfully installed rust
+## Installation
+
+- Run `yarn` to install javascript dependencies.
+
+- This repository requires the installation of circom 2.0 if generating fixtures. Install the circom 2.0 rust implementation [here](https://docs.circom.io/getting-started/installation/)
+
 ## Compiling
 
 - `yarn build`
