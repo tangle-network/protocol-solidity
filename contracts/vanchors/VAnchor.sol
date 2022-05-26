@@ -124,24 +124,21 @@ contract VAnchor is VAnchorBase {
 		address _tokenAddress,
 		uint256 _extAmount
 	) payable public {
-		// wrap into the token and send directly to this contract
+		// Before executing the wrapping, determine the amount which needs to be sent to the tokenWrapper
+		uint256 wrapAmount = ITokenWrapper(token).getAmountToWrap(_extAmount);
+
+		// If the address is zero, this is meant to wrap native tokens
 		if (_tokenAddress == address(0)) {
-				require(msg.value == _extAmount);
-				ITokenWrapper(token).wrapForAndSendTo{value: msg.value}(
-						msg.sender,
-						_tokenAddress,
-						0,
-						address(this)
-				);
+			require(msg.value == wrapAmount);
 		}
-		else {
-				ITokenWrapper(token).wrapForAndSendTo(
-						msg.sender,
-						_tokenAddress,
-						_extAmount,
-						address(this)
-				);
-		}
+
+		// wrap into the token and send directly to this contract
+		ITokenWrapper(token).wrapForAndSendTo{value: msg.value}(
+				msg.sender,
+				_tokenAddress,
+				wrapAmount,
+				address(this)
+		);
 	}
 
 	/**

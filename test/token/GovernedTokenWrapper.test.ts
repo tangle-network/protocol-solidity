@@ -45,5 +45,14 @@ describe('GovernedTokenWrapper', () => {
       assert.strictEqual((await wrappedToken.contract.wrappingLimit()).toString(), tokenDenomination);
       assert.strictEqual((await wrappedToken.contract.totalSupply()).toString(), '0');
     });
+
+    it('should properly calculate amountToWrap', async () => {
+      const webbWrappedTokenContract = wrappedToken.contract;
+      let tx = await webbWrappedTokenContract.setFee(1, 1);
+      await tx.wait();
+      let amountToWrap = await webbWrappedTokenContract.getAmountToWrap(ethers.utils.parseEther('1'));
+
+      assert.strictEqual(amountToWrap.toString(), ethers.BigNumber.from('1010101010101010101').toString());
+    });
   });
 });
