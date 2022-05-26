@@ -1025,7 +1025,7 @@ describe('VAnchor for 2 max edges', () => {
 
       await wrappedVAnchor.transactWrap(token.address, [], [aliceDepositUtxo], 0, '0', '0');
 
-      //Balance of VAnchor wrapped token should be 2e7
+      // Balance of VAnchor wrapped token should be 2e7
       const balWrappedTokenAfterDepositAnchor = await wrappedToken.balanceOf(wrappedVAnchor.contract.address);
       assert.strictEqual(balWrappedTokenAfterDepositAnchor.toString(), BigNumber.from(2e7).toString());
 
