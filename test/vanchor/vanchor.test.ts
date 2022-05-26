@@ -1029,7 +1029,7 @@ describe('VAnchor for 2 max edges', () => {
       const balWrappedTokenAfterDepositAnchor = await wrappedToken.balanceOf(wrappedVAnchor.contract.address);
       assert.strictEqual(balWrappedTokenAfterDepositAnchor.toString(), BigNumber.from(2e7).toString());
 
-      //Balance of sender unwrapped token should have gone down by 2e7 * (100) / (100 - wrapFee);
+      // Balance of sender unwrapped token should have gone down by 2e7 * (100) / (100 - wrapFee);
       const expectedSenderTokenOutflows = Math.trunc(2e7 * 100 / (100 - wrapFee));
       const balUnwrappedTokenAfterDepositSender = await token.balanceOf(sender.address);
       assert.strictEqual(balUnwrappedTokenBeforeDepositSender.sub(balUnwrappedTokenAfterDepositSender).toString(), expectedSenderTokenOutflows.toString());
