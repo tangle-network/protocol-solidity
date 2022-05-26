@@ -1025,19 +1025,20 @@ describe('VAnchor for 2 max edges', () => {
 
       await wrappedVAnchor.transactWrap(token.address, [], [aliceDepositUtxo], 0, '0', '0');
 
-      //Balance of VAnchor wrapped token should be 2e7 - fee
+      // Balance of VAnchor wrapped token should be 2e7
       const balWrappedTokenAfterDepositAnchor = await wrappedToken.balanceOf(wrappedVAnchor.contract.address);
-      assert.strictEqual(balWrappedTokenAfterDepositAnchor.toString(), BigNumber.from(2e7).sub(BigNumber.from(2e7).mul(wrapFee).div(100)).toString());
+      assert.strictEqual(balWrappedTokenAfterDepositAnchor.toString(), BigNumber.from(2e7).toString());
 
-      //Balance of sender unwrapped token should have gone down by 2e7
+      // Balance of sender unwrapped token should have gone down by 2e7 * (100) / (100 - wrapFee);
+      const expectedSenderTokenOutflows = Math.trunc(2e7 * 100 / (100 - wrapFee));
       const balUnwrappedTokenAfterDepositSender = await token.balanceOf(sender.address);
-      assert.strictEqual(balUnwrappedTokenBeforeDepositSender.sub(balUnwrappedTokenAfterDepositSender).toString(), BigNumber.from(2e7).toString());
+      assert.strictEqual(balUnwrappedTokenBeforeDepositSender.sub(balUnwrappedTokenAfterDepositSender).toString(), expectedSenderTokenOutflows.toString());
 
-      //Balance of TokenWrapper unwrapped should have gone up by 2e7
+      // Balance of TokenWrapper unwrapped should have gone up by 2e7
       const balUnwrappedTokenAfterDepositWrapper = await token.balanceOf(wrappedToken.address);
-      assert.strictEqual(balUnwrappedTokenAfterDepositWrapper.sub(balUnwrappedTokenBeforeDepositWrapper).toString(), BigNumber.from(2e7).sub(BigNumber.from(2e7).mul(wrapFee).div(100)).toString());
+      assert.strictEqual(balUnwrappedTokenAfterDepositWrapper.sub(balUnwrappedTokenBeforeDepositWrapper).toString(), BigNumber.from(2e7).toString());
 
-      //Withdraw 1e7 and check relevant balances
+      // Withdraw 1e7 and check relevant balances
       const aliceWithdrawAmount = 1e7;
 
       const aliceChangeUtxo = new Utxo({
@@ -1057,6 +1058,15 @@ describe('VAnchor for 2 max edges', () => {
 
       const balUnwrappedTokenAfterWithdrawWrapper = await token.balanceOf(wrappedToken.address);
       assert.strictEqual(balUnwrappedTokenAfterDepositWrapper.sub(balUnwrappedTokenAfterWithdrawWrapper).toString(), BigNumber.from(1e7).toString());
+
+      await TruffleAssert.passes(wrappedVAnchor.transactWrap(token.address, [aliceChangeUtxo], [], 0, sender.address, '0'));
+
+      let originalTokenDifference = expectedSenderTokenOutflows - 2e7;
+
+      assert.strictEqual(
+        (await token.balanceOf(sender.address)).toString(),
+        balUnwrappedTokenBeforeDepositSender.sub(originalTokenDifference).toString()
+      );
     });
 
     it('non-governor setting fee should fail', async () => {
