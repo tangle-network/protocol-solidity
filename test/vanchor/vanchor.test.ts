@@ -1038,7 +1038,7 @@ describe('VAnchor for 2 max edges', () => {
       const balUnwrappedTokenAfterDepositWrapper = await token.balanceOf(wrappedToken.address);
       assert.strictEqual(balUnwrappedTokenAfterDepositWrapper.sub(balUnwrappedTokenBeforeDepositWrapper).toString(), BigNumber.from(2e7).toString());
 
-      //Withdraw 1e7 and check relevant balances
+      // Withdraw 1e7 and check relevant balances
       const aliceWithdrawAmount = 1e7;
 
       const aliceChangeUtxo = new Utxo({
