@@ -1,22 +1,20 @@
-import { BigNumberish, ethers } from 'ethers';
+import { BigNumber, BigNumberish } from 'ethers';
 import { randomBN, poseidonHash, toBuffer } from './utils';
 import { Keypair } from './Keypair';
 import { RootInfo } from './types';
-import { getChainIdType } from '.';
 
-const { BigNumber } = ethers
 const F = require('circomlibjs').babyjub.F;
 const Scalar = require('ffjavascript').Scalar;
 
 export class Utxo {
-  chainId: BigNumberish;
-  amount: BigNumberish;
-  blinding: BigNumberish;
+  chainId: BigNumber;
+  amount: BigNumber;
+  blinding: BigNumber;
   keypair: Keypair;
-  originChainId: BigNumberish;
+  originChainId: BigNumber;
   index: number | null;
-  _commitment?: BigNumberish;
-  _nullifier?: BigNumberish;
+  _commitment?: BigNumber;
+  _nullifier?: BigNumber;
 
   /** Initialize a new UTXO - unspent transaction output or input. Note, a full TX consists of 2/16 inputs and 2 outputs
    *
@@ -35,10 +33,10 @@ export class Utxo {
     index
   }: {chainId: BigNumberish, amount?: BigNumberish, keypair?: Keypair, blinding?: BigNumberish, originChainId?: BigNumberish, index?: number}) {
     this.chainId = BigNumber.from(chainId);
-    this.amount = amount ? BigNumber.from(amount) : 0;
+    this.amount = amount ? BigNumber.from(amount) : BigNumber.from(0);
     this.blinding = blinding ? BigNumber.from(blinding) : randomBN();
     this.keypair = keypair || new Keypair();
-    this.originChainId = originChainId;
+    this.originChainId = originChainId ? BigNumber.from(originChainId) : BigNumber.from(0);
     this.index = index;
   }
 
@@ -63,7 +61,7 @@ export class Utxo {
   getNullifier() {
     if (!this._nullifier) {
       if (
-        this.amount > 0 &&
+        this.amount.lt(0) &&
         (this.index === undefined ||
           this.index === null ||
           this.keypair.privkey === undefined ||

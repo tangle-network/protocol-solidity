@@ -210,10 +210,10 @@ describe('VAnchor for 2 max edges', () => {
       })
       const input = {
         // data for 2 transaction outputs
-        outChainID: chainID,
-        outAmount: 0,
+        outChainID: BigNumber.from(chainID),
+        outAmount: BigNumber.from(0),
         outPubkey: output.keypair.pubkey,
-        outBlinding: toFixedHex(13),
+        outBlinding: BigNumber.from(toFixedHex(13)),
         outputCommitment: output.getCommitment()
       }
 

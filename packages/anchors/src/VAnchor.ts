@@ -459,6 +459,36 @@ export class VAnchor implements IAnchor {
     const isKnownRoot = await this.contract.isKnownRoot(toFixedHex(this.tree.root()));
   }
 
+  /**
+   * Given a list of leaves and a latest synced block, update internal tree state
+   * The function will create a new tree, and check on chain root before updating its member variable
+   * If the passed leaves match on chain data, 
+   *   update this instance and return true
+   * else
+   *   return false
+   */
+  public async setWithLeaves(leaves: string[], syncedBlock?: number): Promise<Boolean> {
+    let newTree = new MerkleTree(this.tree.levels, leaves);
+    let root = toFixedHex(newTree.root());
+    let validTree = await this.contract.isKnownRoot(root);
+
+    if (validTree) {
+      let index = 0;
+      for (const leaf of newTree.elements()) {
+        this.depositHistory[index] = toFixedHex(this.tree.root());
+        index++;
+      }
+      if (!syncedBlock) {
+        syncedBlock = await this.signer.provider.getBlockNumber();
+      }
+      this.tree = newTree;
+      this.latestSyncedBlock = syncedBlock;
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   public async createWitness(data: any, small: boolean) {
     const witnessCalculator = small
       ? this.smallCircuitZkComponents.witnessCalculator
