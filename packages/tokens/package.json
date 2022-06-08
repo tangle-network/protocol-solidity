@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@webb-tools/contracts": "^0.1.12",
+    "@webb-tools/sdk-core": "file:../../../webb.js/packages/sdk-core/build",
     "@webb-tools/utils": "^0.1.9",
     "ethers": "5.5.1"
   },

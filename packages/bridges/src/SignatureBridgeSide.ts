@@ -5,7 +5,8 @@ import { TokenWrapperHandler } from "@webb-tools/tokens";
 import { AnchorHandler } from "@webb-tools/anchors";
 import { IAnchor, IBridgeSide, Proposal } from "@webb-tools/interfaces";
 import { TreasuryHandler } from "@webb-tools/tokens";
-import { getChainIdType, signMessage, toHex } from '@webb-tools/utils';
+import { getChainIdType } from '@webb-tools/utils';
+import { signMessage, toHex } from '@webb-tools/sdk-core';
 import EC from 'elliptic';
 const ec = new EC.ec('secp256k1');
 
@@ -40,7 +41,7 @@ export class SignatureBridgeSide implements IBridgeSide {
       this.signingSystemSignFn = signingSystemSignFn;
     } else {
       this.signingSystemSignFn = (data: any) => {
-        return signMessage(governor, data)
+        return Promise.resolve(signMessage(governor, data))
       };
     }
   }

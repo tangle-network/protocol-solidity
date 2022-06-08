@@ -17,6 +17,7 @@
     "@webb-tools/contracts": "^0.1.12",
     "@webb-tools/interfaces": "^0.1.13",
     "@webb-tools/tokens": "^0.1.15",
+    "@webb-tools/sdk-core": "file:../../../webb.js/packages/sdk-core/build",
     "@webb-tools/utils": "^0.1.9",
     "circomlibjs": "^0.0.8",
     "ethers": "5.5.1",

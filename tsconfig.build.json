@@ -1,4 +1,13 @@
 {
+  "exclude": [
+    "node_modules/**/*",
+    "**/node_modules/**/*",
+  ],
+  "include": [
+    "packages/**/*",
+    "scripts/**/*",
+    "test/**/*",
+  ],
   "compilerOptions": {
     "declaration": true,
     "esModuleInterop": true,
@@ -6,5 +15,6 @@
     "moduleResolution": "node",
     "target": "es5",
     "noEmitOnError": true,
+    "skipLibCheck": true
   },
 }

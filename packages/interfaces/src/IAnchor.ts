@@ -1,7 +1,7 @@
 import { IAnchorDeposit, IAnchorDepositInfo } from './anchor';
 import { AnchorBase } from '@webb-tools/contracts';
 import { IMerkleProofData } from './vanchor';
-import { Utxo } from "@webb-tools/utils";
+import { Utxo } from "@webb-tools/sdk-core";
 import { BigNumberish, ethers } from 'ethers';
 
 export interface IAnchor {
@@ -69,19 +69,19 @@ export interface IAnchor {
   bridgedTransactWrap(
     tokenAddress: string,
     inputs: Utxo[],
-    outputs: Utxo[],
+    outputs: [Utxo, Utxo],
     fee: BigNumberish,
     recipient: string,
     relayer: string,
-    merkleProofsForInputs: any[]
+    leavesMap: Record<string, Uint8Array[]>
   ): Promise<ethers.ContractReceipt>;
   getMerkleProof(input: Utxo): IMerkleProofData;
   bridgedTransact(
     inputs: Utxo[],
-    outputs: Utxo[],
+    outputs: [Utxo, Utxo],
     fee: BigNumberish,
     recipient: string,
     relayer: string,
-    merkleProofsForInputs: any[]
+    leavesMap: Record<string, Uint8Array[]>
   ): Promise<ethers.ContractReceipt>;
 }

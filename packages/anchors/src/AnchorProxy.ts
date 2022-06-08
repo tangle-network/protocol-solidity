@@ -3,7 +3,7 @@ import { AnchorProxy as AnchorProxyContract, AnchorProxy__factory } from '@webb-
 import { WithdrawalEvent, RefreshEvent } from '@webb-tools/contracts/src/FixedDepositAnchor';
 import { Anchor } from './Anchor';
 import { IAnchorDepositInfo } from '@webb-tools/interfaces';
-import { toFixedHex } from "@webb-tools/utils";
+import { toFixedHex } from "@webb-tools/sdk-core";
 
 enum InstanceState {
   ENABLED,
@@ -107,7 +107,7 @@ export class AnchorProxy {
       throw new Error('Anchor not found');
     }
 
-    const { args, input, publicInputs, extData } = await anchor.setupWithdraw(
+    const { publicInputs, extData } = await anchor.setupWithdraw(
       deposit,
       index,
       recipient,
@@ -126,7 +126,7 @@ export class AnchorProxy {
 
     const receipt = await tx.wait();
 
-    if (args[2] !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
+    if (refreshCommitment !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
       anchor.tree.insert(refreshCommitment);
       const filter = anchor.contract.filters.Refresh(null, null, null);
       const events = await anchor.contract.queryFilter(filter, receipt.blockHash);

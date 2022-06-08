@@ -1,12 +1,23 @@
-// @ts-nocheck
 import { BigNumberish, ethers, BigNumber, ContractTransaction } from 'ethers';
 import { FixedDepositAnchor as AnchorContract, FixedDepositAnchor__factory as Anchor__factory} from '@webb-tools/contracts'
 import { RefreshEvent, WithdrawalEvent } from '@webb-tools/contracts/src/FixedDepositAnchor';
 import { IAnchorDeposit, IAnchorDepositInfo, IAnchor, IFixedAnchorPublicInputs, IMerkleProofData, IFixedAnchorExtData } from '@webb-tools/interfaces';
-import { toFixedHex, toHex, rbigint, p256, PoseidonHasher, ZkComponents, Utxo, getChainIdType, getFixedAnchorExtDataHash } from '@webb-tools/utils';
-import { MerkleTree } from '@webb-tools/merkle-tree';
+import { 
+  toFixedHex,
+  toHex,
+  rbigint,
+  MerkleTree,
+  Utxo,
+  Note,
+  CircomProvingManager,
+  NoteGenInput,
+  ProvingManagerSetupInput,
+  getFixedAnchorExtDataHash,
+} from '@webb-tools/sdk-core';
+import { hexToU8a } from '@polkadot/util';
+import { ZkComponents, getChainIdType } from '@webb-tools/utils'
+import { poseidon } from 'circomlibjs';
 
-const snarkjs = require('snarkjs');
 const zeroAddress = "0x0000000000000000000000000000000000000000";
 
 function checkNativeAddress(tokenAddress: string): boolean {
@@ -28,6 +39,7 @@ class Anchor implements IAnchor {
   // hex string of the connected root
   latestSyncedBlock: number;
   zkComponents: ZkComponents;
+  provingManager: CircomProvingManager;
 
   // The depositHistory stores leafIndex => information to create proposals (new root)
   depositHistory: Record<number, string>;
@@ -47,19 +59,20 @@ class Anchor implements IAnchor {
     this.latestSyncedBlock = 0;
     this.depositHistory = {};
     this.zkComponents = zkComponents;
+    this.provingManager = new CircomProvingManager(zkComponents.wasm, null);
   }
   
   getAddress(): string {
     return this.contract.address;
   }
 
-  bridgedTransactWrap(tokenAddress: string, inputs: Utxo[], outputs: Utxo[], fee: BigNumberish, recipient: string, relayer: string, merkleProofsForInputs: any[]): Promise<ethers.ContractReceipt> {
+  bridgedTransactWrap(tokenAddress: string, inputs: Utxo[], outputs: Utxo[], fee: BigNumberish, recipient: string, relayer: string, leavesMap: Record<string, Uint8Array[]>): Promise<ethers.ContractReceipt> {
     throw new Error("Method not implemented.");
   }
   getMerkleProof(input: Utxo): IMerkleProofData {
     throw new Error("Method not implemented.");
   }
-  bridgedTransact(inputs: Utxo[], outputs: Utxo[], fee: BigNumberish, recipient: string, relayer: string, merkleProofsForInputs: any[]): Promise<ethers.ContractReceipt> {
+  bridgedTransact(inputs: Utxo[], outputs: Utxo[], fee: BigNumberish, recipient: string, relayer: string, leavesMap: Record<string, Uint8Array[]>): Promise<ethers.ContractReceipt> {
     throw new Error("Method not implemented.");
   }
   getMinWithdrawalLimitProposalData(_minimalWithdrawalAmount: string): Promise<string> {
@@ -113,10 +126,8 @@ class Anchor implements IAnchor {
     const chainID = BigInt(destinationChainId);
     const secret = rbigint(secretBytesLen);
     const nullifier = rbigint(nullifierBytesLen);
-
-    const hasher = new PoseidonHasher();
-    const commitment = hasher.hash3([chainID, nullifier, secret]).toString();
-    const nullifierHash = hasher.hash(null, nullifier, nullifier);
+    const commitment = BigNumber.from(poseidon([chainID, nullifier, secret])).toHexString();
+    const nullifierHash = BigNumber.from(poseidon([null, nullifier, nullifier])).toHexString();
 
     const deposit: IAnchorDepositInfo = {
       chainID,
@@ -127,54 +138,15 @@ class Anchor implements IAnchor {
     };
   
     return deposit
-  }
+  } 
 
-  public static createRootsBytes(rootArray: string[] | BigNumberish[]) {
+  public static createRootsBytes(rootArray: string[] | BigNumberish[]): string {
     let rootsBytes = "0x";
     for (let i = 0; i < rootArray.length; i++) {
       rootsBytes += toFixedHex(rootArray[i]).substr(2);
     }
     return rootsBytes; // root byte string (32 * array.length bytes) 
   };
-
-  public static async groth16ExportSolidityCallData(proof: any, pub: any) {
-    let inputs = "";
-    for (let i = 0; i < pub.length; i++) {
-      if (inputs != "") inputs = inputs + ",";
-      inputs = inputs + p256(pub[i]);
-    }
-  
-    let S;
-    S=`[${p256(proof.pi_a[0])}, ${p256(proof.pi_a[1])}],` +
-      `[[${p256(proof.pi_b[0][1])}, ${p256(proof.pi_b[0][0])}],[${p256(proof.pi_b[1][1])}, ${p256(proof.pi_b[1][0])}]],` +
-      `[${p256(proof.pi_c[0])}, ${p256(proof.pi_c[1])}],` +
-      `[${inputs}]`;
-  
-    return S;
-  }
-  
-  public static async generateWithdrawProofCallData(proof: any, publicSignals: any) {
-    const result = await Anchor.groth16ExportSolidityCallData(proof, publicSignals);
-    const fullProof = JSON.parse("[" + result + "]");
-    const pi_a = fullProof[0];
-    const pi_b = fullProof[1];
-    const pi_c = fullProof[2];
-
-    let proofEncoded = [
-      pi_a[0],
-      pi_a[1],
-      pi_b[0][0],
-      pi_b[0][1],
-      pi_b[1][0],
-      pi_b[1][1],
-      pi_c[0],
-      pi_c[1],
-    ]
-    .map(elt => elt.substr(2))
-    .join('');
-
-    return proofEncoded;
-  }
 
   public async createResourceId(): Promise<string> {
     return toHex(
@@ -359,66 +331,11 @@ class Anchor implements IAnchor {
     return [await this.contract.getLastRoot(), ...neighborRoots];
   }
 
-  public async generateWitnessInput(
-    deposit: IAnchorDepositInfo,
-    originChain: number,
-    refreshCommitment: string | number,
-    recipient: string,
-    relayer: string,
-    fee: BigInt,
-    refund: BigInt,
-    roots: string[],
-    pathElements: any[],
-    pathIndices: any[],
-  ): Promise<{input: any, extData: IFixedAnchorExtData}> {
-    const { chainID, nullifierHash, nullifier, secret } = deposit;
-    const extDataHash = getFixedAnchorExtDataHash({_refreshCommitment: refreshCommitment, _recipient: recipient, _relayer: relayer, _fee: fee, _refund: refund});
-    let input = {
-      // public
-      nullifierHash, extDataHash: extDataHash.toString(), chainID, roots,
-      // private
-      nullifier, secret, pathElements, pathIndices,
-    };
-
-    let extData: IFixedAnchorExtData = { 
-      _refreshCommitment: toFixedHex(refreshCommitment), 
-      _recipient: toFixedHex(recipient, 20), 
-      _relayer: toFixedHex(relayer, 20), 
-      _fee: fee as bigint, 
-      _refund: refund as bigint, 
-    };
-
-    return {
-      input,
-      extData,
-    }
-  }
-
   public async checkKnownRoot() {
     const isKnownRoot = await this.contract.isKnownRoot(toFixedHex(await this.tree.root()));
     if (!isKnownRoot) {
       await this.update(this.latestSyncedBlock);
     }
-  }
-
-  public async createWitness(data: any) {
-    const buff = await this.zkComponents.witnessCalculator.calculateWTNSBin(data,0);
-    return buff;
-  }
-
-  public async proveAndVerify(wtns: any) {
-    let res = await snarkjs.groth16.prove(this.zkComponents.zkey, wtns);
-    let proof = res.proof;
-    let publicSignals = res.publicSignals;
-
-    const vKey = await snarkjs.zKey.exportVerificationKey(this.zkComponents.zkey);
-    res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
-    if (!res) {
-      throw new Error('Verification failed');
-    }
-
-    let proofEncoded = await Anchor.generateWithdrawProofCallData(proof, publicSignals);
-    return proofEncoded;
   }
 
   public async setupWithdraw(
@@ -428,38 +345,73 @@ class Anchor implements IAnchor {
     relayer: string,
     fee: bigint,
     refreshCommitment: string | number,
-  ) {
+  ): Promise<{
+    publicInputs: IFixedAnchorPublicInputs,
+    extData: IFixedAnchorExtData
+  }> {
     // first, check if the merkle root is known on chain - if not, then update
     await this.checkKnownRoot();
-    const { merkleRoot, pathElements, pathIndices } = await this.tree.path(index);
     const chainId = getChainIdType(await this.signer.getChainId());
     const roots = await this.populateRootsForProof();
     const refund = BigInt(0);
-    const { input, extData } = await this.generateWitnessInput(
-      deposit,
-      chainId,
-      refreshCommitment,
+    const noteInput: NoteGenInput = {
+      amount: this.denomination,
+      backend: 'Circom',
+      curve: 'Bn254',
+      denomination: '18',
+      exponentiation: '5',
+      hashFunction: 'Poseidon',
+      protocol: 'anchor',
+      sourceChain: BigNumber.from(deposit.chainID).toHexString(),
+      targetChain: chainId.toString(),
+      secrets: `${deposit.chainID}:${deposit.nullifier}:${deposit.secret}`,
+      version: 'v2',
+      width: '4',
+      tokenSymbol: this.token
+    }
+
+    console.log(noteInput);
+    const note = await Note.generateNote(noteInput);
+    const proofInput: ProvingManagerSetupInput<'anchor'> = {
+      fee: Number(fee),
+      leaves: this.tree.elements().map((leaf) => hexToU8a(leaf.toHexString())),
+      leafIndex: index,
+      note: note.serialize(),
+      provingKey: this.zkComponents.zkey,
       recipient,
+      refund: 0,
+      refreshCommitment: refreshCommitment.toString(),
       relayer,
-      BigInt(fee),
+      roots: roots.map((root) => hexToU8a(root)),
+    }
+
+    const proof = await this.provingManager.prove('anchor', proofInput);
+
+    const extData: IFixedAnchorExtData = {
+      _fee: fee,
+      _refreshCommitment: toFixedHex(refreshCommitment),
+      _recipient: toFixedHex(recipient, 20),
+      _relayer: toFixedHex(relayer, 20),
+      _refund: refund,
+    };
+
+    const extDataHash = getFixedAnchorExtDataHash(
+      fee,
+      recipient,
+      refreshCommitment,
       refund,
-      roots,
-      pathElements,
-      pathIndices,
+      relayer
     );
-    const wtns = await this.createWitness(input);
-    let proofEncoded = await this.proveAndVerify(wtns);
+
     const args = [
-      `0x${proofEncoded}`,
-      Anchor.createRootsBytes(input.roots),
-      toFixedHex(input.nullifierHash),
-      toFixedHex(input.extDataHash),
+      `0x${proof.proof}`,
+      Anchor.createRootsBytes(proof.roots),
+      toFixedHex(proof.nullifierHash),
+      toFixedHex(extDataHash),
     ];
     const publicInputs = Anchor.convertArgsArrayToStruct(args);
 
     return {
-      input,
-      args,
       publicInputs,
       extData,
     };
@@ -473,7 +425,7 @@ class Anchor implements IAnchor {
     fee: bigint,
     refreshCommitment: string | number,
   ): Promise<RefreshEvent | WithdrawalEvent> {
-    const { args, input, publicInputs, extData } = await this.setupWithdraw(
+    const { publicInputs, extData } = await this.setupWithdraw(
       deposit,
       index,
       recipient,
@@ -503,7 +455,6 @@ class Anchor implements IAnchor {
 
   public async withdrawAndUnwrap(
     deposit: IAnchorDepositInfo,
-    originChainId: number,
     index: number,
     recipient: string,
     relayer: string,
@@ -514,36 +465,15 @@ class Anchor implements IAnchor {
     // first, check if the merkle root is known on chain - if not, then update
     await this.checkKnownRoot();
 
-    const { merkleRoot, pathElements, pathIndices } = await this.tree.path(index);
-
-    const roots = await this.populateRootsForProof();
-    const refund = BigInt(0);
-
-    const { input, extData } = await this.generateWitnessInput(
+    const { publicInputs, extData } = await this.setupWithdraw(
       deposit,
-      originChainId,
-      refreshCommitment,
+      index,
       recipient,
       relayer,
-      BigInt(fee),
-      refund,
-      roots,
-      pathElements,
-      pathIndices,
-    );
+      fee,
+      refreshCommitment
+    )
 
-    const wtns = await this.createWitness(input);
-    let proofEncoded = await this.proveAndVerify(wtns);
-    const args = [
-      `0x${proofEncoded}`,
-      Anchor.createRootsBytes(input.roots),
-      toFixedHex(input.nullifierHash),
-      toFixedHex(input.extDataHash),
-    ];
-
-    const publicInputs = Anchor.convertArgsArrayToStruct(args);
-
-    //@ts-ignore
     let tx = await this.contract.withdrawAndUnwrap(publicInputs, extData, tokenAddress, { gasLimit: '0x5B8D80' });
     const receipt = await tx.wait();
 
@@ -557,7 +487,7 @@ class Anchor implements IAnchor {
    */
   public async bridgedWithdrawAndUnwrap(
     deposit: IAnchorDeposit,
-    merkleProof: any,
+    leaves: BigNumberish[],
     recipient: string,
     relayer: string,
     fee: string,
@@ -565,41 +495,18 @@ class Anchor implements IAnchor {
     refreshCommitment: string,
     tokenAddress: string,
   ): Promise<WithdrawalEvent> {
-    const { pathElements, pathIndices, merkleRoot } = merkleProof;
-    const isKnownNeighborRoot = await this.contract.isKnownNeighborRoot(deposit.originChainId, toFixedHex(merkleRoot));
-    if (!isKnownNeighborRoot) {
-      throw new Error("Neighbor root not found");
-    }
     refreshCommitment = (refreshCommitment) ? refreshCommitment : '0';
 
-    const roots = await this.populateRootsForProof();
-
-    const { input, extData } = await this.generateWitnessInput(
+    const { publicInputs, extData } = await this.setupBridgedWithdraw(
       deposit.deposit,
-      deposit.originChainId,
-      refreshCommitment,
+      leaves,
+      deposit.index,
       recipient,
       relayer,
       BigInt(fee),
-      BigInt(refund),
-      roots,
-      pathElements,
-      pathIndices,
+      refreshCommitment
     );
 
-    const wtns = await this.createWitness(input);
-    let proofEncoded = await this.proveAndVerify(wtns);
-
-    const args = [
-      `0x${proofEncoded}`,
-      Anchor.createRootsBytes(input.roots),
-      toFixedHex(input.nullifierHash),
-      toFixedHex(input.extDataHash),
-    ];
-
-    const publicInputs = Anchor.convertArgsArrayToStruct(args);
-
-    //@ts-ignore
     let tx = await this.contract.withdrawAndUnwrap(
       publicInputs,
       extData,
@@ -626,43 +533,78 @@ class Anchor implements IAnchor {
 
   public async setupBridgedWithdraw(
     deposit: IAnchorDepositInfo,
-    merkleProof: any,
+    leaves: BigNumberish[],
+    leafIndex: number,
     recipient: string,
     relayer: string,
     fee: bigint,
     refreshCommitment: string | number,
-  ) {
-    const { pathElements, pathIndices } = merkleProof;
-
-    // first, check if the merkle root is known on chain - if not, then update
+  ): Promise<{
+    publicInputs: IFixedAnchorPublicInputs,
+    extData: IFixedAnchorExtData
+  }> {
     const chainId = getChainIdType(await this.signer.getChainId());
     const roots = await this.populateRootsForProof();
     const refund = BigInt(0);
-    const { input, extData } = await this.generateWitnessInput(
-      deposit,
-      chainId,
-      refreshCommitment,
+    
+    const noteInput: NoteGenInput = {
+      amount: this.denomination,
+      backend: 'Circom',
+      curve: 'Bn254',
+      denomination: '18',
+      exponentiation: '5',
+      hashFunction: 'Poseidon',
+      protocol: 'anchor',
+      sourceChain: BigNumber.from(deposit.chainID).toHexString(),
+      targetChain: chainId.toString(),
+      secrets: `${deposit.chainID}:${deposit.nullifier}:${deposit.secret}`,
+      version: 'v2',
+      width: '4',
+      tokenSymbol: this.token
+    }
+
+    console.log(noteInput);
+    const note = await Note.generateNote(noteInput);
+    const proofInput: ProvingManagerSetupInput<'anchor'> = {
+      fee: Number(fee),
+      leaves: leaves.map((leaf) => hexToU8a(BigNumber.from(leaf).toHexString())),
+      leafIndex,
+      note: note.serialize(),
+      provingKey: this.zkComponents.zkey,
       recipient,
+      refund: 0,
+      refreshCommitment: refreshCommitment.toString(),
       relayer,
-      BigInt(fee),
+      roots: roots.map((root) => hexToU8a(root)),
+    }
+
+    const proof = await this.provingManager.prove('anchor', proofInput);
+
+    const extData: IFixedAnchorExtData = {
+      _fee: fee,
+      _refreshCommitment: toFixedHex(refreshCommitment),
+      _recipient: toFixedHex(recipient, 20),
+      _relayer: toFixedHex(relayer, 20),
+      _refund: refund,
+    };
+
+    const extDataHash = getFixedAnchorExtDataHash(
+      fee,
+      recipient,
+      refreshCommitment,
       refund,
-      roots,
-      pathElements,
-      pathIndices,
+      relayer
     );
-    const wtns = await this.createWitness(input);
-    let proofEncoded = await this.proveAndVerify(wtns);
+
     const args = [
-      `0x${proofEncoded}`,
-      Anchor.createRootsBytes(input.roots),
-      toFixedHex(input.nullifierHash),
-      toFixedHex(input.extDataHash),
+      `0x${proof.proof}`,
+      Anchor.createRootsBytes(proof.roots),
+      toFixedHex(proof.nullifierHash),
+      toFixedHex(extDataHash),
     ];
     const publicInputs = Anchor.convertArgsArrayToStruct(args);
 
     return {
-      input,
-      args,
       publicInputs,
       extData,
     };
@@ -670,49 +612,25 @@ class Anchor implements IAnchor {
 
   public async bridgedWithdraw(
     deposit: IAnchorDeposit,
-    merkleProof: any,
+    leaves: BigNumberish[],
     recipient: string,
     relayer: string,
     fee: string,
     refund: string,
     refreshCommitment: string,
   ): Promise<WithdrawalEvent> {
-    const { pathElements, pathIndices, merkleRoot } = merkleProof;
-    const isKnownNeighborRoot = await this.contract.isKnownNeighborRoot(deposit.originChainId, toFixedHex(merkleRoot));
-    if (!isKnownNeighborRoot) {
-      throw new Error("Neighbor root not found");
-    }
     refreshCommitment = (refreshCommitment) ? refreshCommitment : '0';
 
-    const lastRoot = await this.tree.root();
-
-    const roots = await this.populateRootsForProof();
-
-    const { input, extData } = await this.generateWitnessInput(
+    const { publicInputs, extData } = await this.setupBridgedWithdraw(
       deposit.deposit,
-      deposit.originChainId,
-      refreshCommitment,
+      leaves,
+      deposit.index,
       recipient,
       relayer,
       BigInt(fee),
-      BigInt(refund),
-      roots,
-      pathElements,
-      pathIndices,
+      refreshCommitment
     );
 
-    const wtns = await this.createWitness(input);
-    let proofEncoded = await this.proveAndVerify(wtns);
-
-    const args = [
-      `0x${proofEncoded}`,
-      Anchor.createRootsBytes(input.roots),
-      toFixedHex(input.nullifierHash),
-      toFixedHex(input.extDataHash),
-    ];
-
-    const publicInputs = Anchor.convertArgsArrayToStruct(args);
-    //@ts-ignore
     let tx = await this.contract.withdraw(
       publicInputs,
       extData,

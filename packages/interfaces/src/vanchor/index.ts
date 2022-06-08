@@ -1,5 +1,5 @@
 import { BigNumberish, BigNumber } from 'ethers';
-import { Keypair } from '@webb-tools/utils';
+import { Keypair } from '@webb-tools/sdk-core';
 
 export interface IMerkleProofData {
   pathElements: BigNumberish[],
@@ -24,7 +24,7 @@ export interface IVariableAnchorPublicInputs {
   extDataHash: string;
 }
 
-export interface IExtData {
+export interface IVariableAnchorExtData {
   recipient: string;
   extAmount: string;
   relayer: string;
@@ -55,5 +55,5 @@ export interface IWitnessInput {
     outBlinding: BigNumberish[],
     outPubkey: BigNumberish[],
   };
-  extData: IExtData
+  extData: IVariableAnchorExtData
 }
