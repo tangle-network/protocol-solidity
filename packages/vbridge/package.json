@@ -17,7 +17,7 @@
     "@webb-tools/contracts": "^0.1.12",
     "@webb-tools/tokens": "^0.1.15",
     "@webb-tools/utils": "^0.1.9",
-    "@webb-tools/sdk-core": "file:../../../webb.js/packages/sdk-core/build",
+    "@webb-tools/sdk-core": "0.1.4-82",
     "@polkadot/util": "9.4.1",
     "circomlibjs": "^0.0.8",
     "ethers": "5.5.1",
