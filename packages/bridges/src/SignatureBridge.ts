@@ -405,7 +405,6 @@ export class SignatureBridge {
     if (!(await anchorToWithdraw.setSigner(signer))) {
       throw new Error("Could not set signer");
     }
-    console.log(depositInfo);
     await anchorToWithdraw.bridgedWithdraw(depositInfo, leaves, recipient, relayer, '0', '0', '0');
     return true;
   }

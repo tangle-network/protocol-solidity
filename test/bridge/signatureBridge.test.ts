@@ -127,8 +127,6 @@ describe('multichain tests for erc20 bridges', () => {
 
       const bridge = await SignatureBridge.deployFixedDepositBridge(bridge2WebbEthInput, deploymentConfig, initialGovernorsConfig, zkComponents2);
 
-      console.log('after deployed bridge');
-
       // Should be able to retrieve individual anchors
       const anchorSize = '1000000000000000000';
       const anchor1: Anchor = bridge.getAnchor(chainID1, anchorSize)! as Anchor;
@@ -144,8 +142,6 @@ describe('multichain tests for erc20 bridges', () => {
 
       // Deposit on the bridge
       const depositNote = await bridge.deposit(chainID2, anchorSize, signers[2]);
-
-      console.log('after deposit');
       
       // Check the state of anchors after deposit
       let edgeIndex = await anchor2.contract.edgeIndex(chainID1);
