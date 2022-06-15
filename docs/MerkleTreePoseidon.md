@@ -260,4 +260,23 @@ function zeros(uint256 i) external pure returns (bytes32)
 
 
 
+## Events
+
+### Initialized
+
+```solidity
+event Initialized(uint8 version)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| version  | uint8 | undefined |
+
+
 

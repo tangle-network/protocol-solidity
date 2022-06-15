@@ -649,8 +649,6 @@ describe('Rescue Tokens Tests for Native ETH', () => {
    // For Native ETH Tests
    await sourceAnchor.wrapAndDeposit(zeroAddress, wrappingFee, getChainIdType(await admin.getChainId()));
 
-   console.log();
-
    // Anchor Denomination amount should go to TokenWrapper
    assert.strictEqual((await ethers.provider.getBalance(governedToken.contract.address)).toString(), anchorDenomination.toString());
 

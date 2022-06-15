@@ -1,11 +1,8 @@
 import { BigNumber, BigNumberish, ethers } from 'ethers';
 import { VAnchor as VAnchorContract, VAnchor__factory, VAnchorEncodeInputs__factory } from '@webb-tools/contracts';
 import {
-  p256,
   toHex,
   Keypair,
-  FIELD_SIZE,
-  getVAnchorExtDataHash,
   toFixedHex,
   Utxo,
   MerkleTree,
@@ -17,14 +14,15 @@ import {
   CircomProvingManager,
   ProvingManagerSetupInput,
   Note,
-  NoteGenInput
+  NoteGenInput,
+  MerkleProof,
+  UtxoGenInput,
+  CircomUtxo,
+  FIELD_SIZE
 } from '@webb-tools/sdk-core';
-import { JsUtxo } from '@webb-tools/wasm-utils';
-import { IAnchorDeposit, IAnchor, IVariableAnchorExtData, IMerkleProofData, IUTXOInput, IVariableAnchorPublicInputs, IWitnessInput, IAnchorDepositInfo } from '@webb-tools/interfaces';
+import { IAnchorDeposit, IAnchor, IVariableAnchorExtData, IVariableAnchorPublicInputs, IAnchorDepositInfo } from '@webb-tools/interfaces';
 import { getChainIdType, ZkComponents } from '@webb-tools/utils';
-import { hexToU8a } from '@polkadot/util';
-const { poseidon } = require('circomlibjs');
-const snarkjs = require('snarkjs');
+import { hexToU8a, u8aToHex } from '@polkadot/util';
 
 const zeroAddress = "0x0000000000000000000000000000000000000000";
 function checkNativeAddress(tokenAddress: string): boolean {
@@ -146,14 +144,8 @@ export class VAnchor implements IAnchor {
     return createdAnchor;
   }
 
-  public static generateUTXO(utxoInputs: IUTXOInput): Utxo {
-    return new Utxo({
-      chainId: utxoInputs.chainId,
-      amount: utxoInputs.amount,
-      blinding: utxoInputs.blinding,
-      keypair: utxoInputs.keypair,
-      index: undefined,
-    });
+  public static async generateUTXO(input: UtxoGenInput): Promise<Utxo> {
+    return CircomUtxo.generateUtxo(input);
   }
 
   public static createRootsBytes(rootArray: string[]) {
@@ -322,25 +314,26 @@ export class VAnchor implements IAnchor {
    * @param input A UTXO object that is inside the tree
    * @returns 
    */
-  public getMerkleProof(input: Utxo): IMerkleProofData {
-    let inputMerklePathIndex;
-    let inputMerklePathElements;
+  public getMerkleProof(input: Utxo): MerkleProof {
+    let inputMerklePathIndices: number[];
+    let inputMerklePathElements: BigNumber[];
 
     if (Number(input.amount) > 0) {
-      input.index = this.tree.indexOf(toFixedHex(input.getCommitment()))
       if (input.index < 0) {
-        throw new Error(`Input commitment ${toFixedHex(input.getCommitment())} was not found`)
+        throw new Error(`Input commitment ${u8aToHex(input.commitment)} was not found`)
       }
-      inputMerklePathIndex = input.index;
-      inputMerklePathElements = this.tree.path(input.index).pathElements
+      const path = this.tree.path(input.index);
+      inputMerklePathIndices = path.pathIndices;
+      inputMerklePathElements = path.pathElements
     } else {
-      inputMerklePathIndex = 0;
+      inputMerklePathIndices = new Array(this.tree.levels).fill(0);
       inputMerklePathElements = new Array(this.tree.levels).fill(0);
     }
 
     return {
+      element: BigNumber.from(u8aToHex(input.commitment)),
       pathElements: inputMerklePathElements,
-      pathIndex: inputMerklePathIndex,
+      pathIndices: inputMerklePathIndices,
       merkleRoot: this.tree.root(),
     }
   }
@@ -357,8 +350,8 @@ export class VAnchor implements IAnchor {
     const args: IVariableAnchorPublicInputs = {
       proof: `0x${proof}`,
       roots: `0x${roots.map((x) => toFixedHex(x).slice(2)).join('')}`,
-      inputNullifiers: inputs.map((x) => toFixedHex(x.getNullifier())),
-      outputCommitments: [toFixedHex(outputs[0].getCommitment()), toFixedHex(outputs[1].getCommitment())],
+      inputNullifiers: inputs.map((x) => toFixedHex(x.nullifier)),
+      outputCommitments: [toFixedHex(u8aToHex(outputs[0].commitment)), toFixedHex(u8aToHex(outputs[1].commitment))],
       publicAmount: toFixedHex(publicAmount),
       extDataHash: toFixedHex(extDataHash),
     };
@@ -447,7 +440,7 @@ export class VAnchor implements IAnchor {
     // Start creating notes to satisfy vanchor input
     // Only the sourceChainId and secrets (amount, nullifier, secret, blinding)
     // is required
-    let inputNotes: string[] = [];
+    let inputNotes: Note[] = [];
     let inputIndices: number[] = []
 
     // calculate the sum of input notes (for calculating the public amount)
@@ -455,7 +448,14 @@ export class VAnchor implements IAnchor {
 
     for (const inputUtxo of inputs) {
       sumInputNotes = BigNumber.from(sumInputNotes).add(inputUtxo.amount);
-      const secrets = `${chainId}:`;
+
+      // secrets should be formatted as expected in the wasm-utils for note generation
+      const secrets = 
+        `${toFixedHex(inputUtxo.chainId, 8).slice(2)}:` +
+        `${toFixedHex(inputUtxo.amount).slice(2)}:` + 
+        `${toFixedHex(inputUtxo.secret_key).slice(2)}:` +
+        `${toFixedHex(inputUtxo.blinding).slice(2)}`;
+
       const noteInput: NoteGenInput = {
         amount: inputUtxo.amount.toString(),
         backend: 'Circom',
@@ -467,39 +467,16 @@ export class VAnchor implements IAnchor {
         protocol: 'vanchor',
         secrets,        
         sourceChain: inputUtxo.originChainId.toString(),
+        sourceIdentifyingData: '0',
         targetChain: chainId.toString(),
+        targetIdentifyingData: this.contract.address,
         tokenSymbol: this.token,
         width: '5',
       }
       const inputNote = await Note.generateNote(noteInput);
-      inputNotes.push(inputNote.serialize());
+      inputNotes.push(inputNote);
       inputIndices.push(inputUtxo.index);
     }
-
-    const outputUtxos: [JsUtxo, JsUtxo] = [
-      new JsUtxo(
-        'Bn254',
-        'Circom',
-        inputs.length > 2 ? 16 : 2,
-        2,
-        outputs[0].amount.toString(),
-        outputs[0].chainId.toString(),
-        undefined,
-        hexToU8a(outputs[0].keypair.privkey),
-        hexToU8a(outputs[0].blinding.toHexString())
-      ),
-      new JsUtxo(
-        'Bn254',
-        'Circom',
-        inputs.length > 2 ? 16 : 2,
-        2,
-        outputs[1].amount.toString(),
-        outputs[1].chainId.toString(),
-        undefined,
-        hexToU8a(outputs[1].keypair.privkey),
-        hexToU8a(outputs[1].blinding.toHexString())
-      ),
-    ];
 
     const encryptedCommitments: [Uint8Array, Uint8Array] = [
       hexToU8a(outputs[0].encrypt()),
@@ -512,39 +489,21 @@ export class VAnchor implements IAnchor {
       indices: inputIndices,
       roots: roots.map((root) => hexToU8a(root)),
       chainId: chainId.toString(),
-      output: outputUtxos,
+      output: outputs,
       encryptedCommitments,
-      publicAmount: BigNumber.from(sumInputNotes).sub(fee).toString(),
+      publicAmount: BigNumber.from(extAmount).sub(fee).add(FIELD_SIZE).mod(FIELD_SIZE).toString(),
       provingKey: inputs.length > 2 ? this.largeCircuitZkComponents.zkey : this.smallCircuitZkComponents.zkey,
       relayer: hexToU8a(relayer),
       recipient: hexToU8a(recipient),
-      extAmount: BigNumber.from(sumInputNotes).toString(),
+      extAmount: toFixedHex(BigNumber.from(extAmount)),
       fee: BigNumber.from(fee).toString()
     };
 
     inputs.length > 2 ? 
-      this.provingManager = new CircomProvingManager(this.largeCircuitZkComponents.wasm, null) :
-      this.provingManager = new CircomProvingManager(this.smallCircuitZkComponents.wasm, null);
+      this.provingManager = new CircomProvingManager(this.largeCircuitZkComponents.wasm, this.tree.levels, null) :
+      this.provingManager = new CircomProvingManager(this.smallCircuitZkComponents.wasm, this.tree.levels, null);
 
     const proof = await this.provingManager.prove('vanchor', proofInput);
-
-    const extData: IVariableAnchorExtData = {
-      recipient: recipient,
-      extAmount: proofInput.extAmount,
-      relayer: relayer,
-      fee: proofInput.fee,
-      encryptedOutput1: outputs[0].encrypt(),
-      encryptedOutput2: outputs[1].encrypt(),
-    }
-
-    const extDataHash = getVAnchorExtDataHash(
-      extData.encryptedOutput1,
-      extData.encryptedOutput2,
-      extData.extAmount,
-      extData.fee,
-      extData.recipient,
-      extData.relayer
-    );
     
     const publicInputs: IVariableAnchorPublicInputs = this.generatePublicInputs(
       proof.proof,
@@ -552,14 +511,17 @@ export class VAnchor implements IAnchor {
       inputs,
       outputs,
       proofInput.publicAmount,
-      BigNumber.from(extDataHash).toString()
+      u8aToHex(proof.extDataHash)
     );
-    
-    outputs.forEach((x) => {
-      this.tree.insert(toFixedHex(x.getCommitment()));
-      let numOfElements = this.tree.number_of_elements();
-      this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
-    });
+
+    const extData: IVariableAnchorExtData = {
+      recipient: toFixedHex(proofInput.recipient, 20),
+      extAmount: toFixedHex(proofInput.extAmount),
+      relayer: toFixedHex(proofInput.relayer, 20),
+      fee: toFixedHex(proofInput.fee),
+      encryptedOutput1: u8aToHex(proofInput.encryptedCommitments[0]),
+      encryptedOutput2: u8aToHex(proofInput.encryptedCommitments[1]),
+    }
 
     return {
       extData,
@@ -579,27 +541,29 @@ export class VAnchor implements IAnchor {
     // Default UTXO chain ID will match with the configured signer's chain ID
     const evmId = await this.signer.getChainId();
     const chainId = getChainIdType(evmId);
+    const randomKeypair = new Keypair();
     
     while (inputs.length !== 2 && inputs.length < 16) {
-      inputs.push(new Utxo({
-        chainId: BigNumber.from(chainId),
-        originChainId: BigNumber.from(chainId),
-        amount: 0,
-        blinding: randomBN(),
-        keypair: new Keypair(),
-        index: null
+      inputs.push(await CircomUtxo.generateUtxo({
+        curve: 'Bn254',
+        backend: 'Circom',
+        chainId: chainId.toString(),
+        originChainId: chainId.toString(),
+        amount: '0',
+        blinding: hexToU8a(randomBN(31).toHexString()),
+        keypair: randomKeypair
       }));
     }
         
     if (outputs.length < 2) {
       while (outputs.length < 2) {
-        outputs.push(new Utxo({
-          chainId: BigNumber.from(chainId),
-          originChainId: BigNumber.from(chainId),
-          amount: 0,
-          blinding: randomBN(),
-          keypair: new Keypair(),
-          index: null
+        outputs.push(await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          chainId: chainId.toString(),
+          originChainId: chainId.toString(),
+          amount: '0',
+          keypair: randomKeypair
         }));
       }
     }
@@ -632,6 +596,13 @@ export class VAnchor implements IAnchor {
     const receipt = await tx.wait();
     gasBenchmark.push(receipt.gasUsed.toString());
 
+    // Add the leaves to the tree
+    outputs.forEach((x) => {
+      this.tree.insert(u8aToHex(x.commitment));
+      let numOfElements = this.tree.number_of_elements();
+      this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
+    });
+
     return receipt;
   }
   
@@ -648,29 +619,29 @@ export class VAnchor implements IAnchor {
     // Default UTXO chain ID will match with the configured signer's chain ID
     const evmId = await this.signer.getChainId();
     const chainId = getChainIdType(evmId);
+    const randomKeypair = new Keypair();
 
     while (inputs.length !== 2 && inputs.length < 16) {
-      inputs.push(new Utxo({
-        chainId: BigNumber.from(chainId),
-        originChainId: BigNumber.from(chainId),
-        amount: 0,
-        blinding: randomBN(),
-        keypair: new Keypair(),
-        index: null
+      inputs.push(await CircomUtxo.generateUtxo({
+        curve: 'Bn254',
+        backend: 'Circom',
+        chainId: chainId.toString(),
+        originChainId: chainId.toString(),
+        amount: '0',
+        blinding: hexToU8a(randomBN(31).toHexString()),
+        keypair: randomKeypair
       }));
     }
-    
-    const merkleProofsForInputs = inputs.map((x) => this.getMerkleProof(x));
-    
+        
     if (outputs.length < 2) {
       while (outputs.length < 2) {
-        outputs.push(new Utxo({
-          chainId: BigNumber.from(chainId),
-          originChainId: BigNumber.from(chainId),
-          amount: 0,
-          blinding: randomBN(),
-          keypair: new Keypair(),
-          index: null
+        outputs.push(await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          chainId: chainId.toString(),
+          originChainId: chainId.toString(),
+          amount: '0',
+          keypair: randomKeypair
         }));
       }
     }
@@ -719,8 +690,16 @@ export class VAnchor implements IAnchor {
         { gasLimit: '0x5B8D80' }
       );
     }
-
     const receipt = await tx.wait();
+
+    // Add the leaves to the tree
+    outputs.forEach((x) => {
+      // Maintain tree state after insertions
+      this.tree.insert(u8aToHex(x.commitment));
+      let numOfElements = this.tree.number_of_elements();
+      this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
+    });
+
     return receipt;
   }
 
@@ -734,15 +713,24 @@ export class VAnchor implements IAnchor {
   ): Promise<ethers.ContractReceipt> {
     const chainId = getChainIdType(await this.signer.getChainId());
 
+    while (inputs.length !== 2 && inputs.length < 16) {
+      inputs.push(await CircomUtxo.generateUtxo({
+        curve: 'Bn254',
+        backend: 'Circom',
+        chainId: chainId.toString(),
+        originChainId: chainId.toString(),
+        amount: '0',
+      }));
+    }
+
     if (outputs.length < 2) {
       while (outputs.length < 2) {
-        outputs.push(new Utxo({
-          chainId: BigNumber.from(chainId),
-          originChainId: BigNumber.from(chainId),
-          amount: 0,
-          blinding: randomBN(),
-          keypair: new Keypair(),
-          index: null
+        outputs.push(await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          chainId: chainId.toString(),
+          originChainId: chainId.toString(),
+          amount: '0',
         }));
       }
     }
@@ -773,6 +761,14 @@ export class VAnchor implements IAnchor {
       { gasLimit: '0x5B8D80' }
     );
     const receipt = await tx.wait();
+
+    // Add the leaves to the tree
+    outputs.forEach((x) => {
+      this.tree.insert(u8aToHex(x.commitment));
+      let numOfElements = this.tree.number_of_elements();
+      this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
+    });
+
     return receipt;
   }
 
@@ -788,15 +784,24 @@ export class VAnchor implements IAnchor {
   ) {
     const chainId = getChainIdType(await this.signer.getChainId());
 
+    while (inputs.length !== 2 && inputs.length < 16) {
+      inputs.push(await CircomUtxo.generateUtxo({
+        curve: 'Bn254',
+        backend: 'Circom',
+        chainId: chainId.toString(),
+        originChainId: chainId.toString(),
+        amount: '0'
+      }));
+    }
+
     if (outputs.length < 2) {
       while (outputs.length < 2) {
-        outputs.push(new Utxo({
-          chainId: BigNumber.from(chainId),
-          originChainId: BigNumber.from(chainId),
-          amount: 0,
-          blinding: randomBN(),
-          keypair: new Keypair(),
-          index: null
+        outputs.push(await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          chainId: chainId.toString(),
+          originChainId: chainId.toString(),
+          amount: '0',
         }));
       }
     }
@@ -847,6 +852,14 @@ export class VAnchor implements IAnchor {
       );
     }
     const receipt = await tx.wait();
+
+    // Add the leaves to the tree
+    outputs.forEach((x) => {
+      this.tree.insert(u8aToHex(x.commitment));
+      let numOfElements = this.tree.number_of_elements();
+      this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
+    });
+
     return receipt;
   }
 
@@ -862,34 +875,39 @@ export class VAnchor implements IAnchor {
   ): Promise<ethers.ContractReceipt> {
 
     const chainId = getChainIdType(await this.signer.getChainId());
+    const randomKeypair = new Keypair();
 
     while (inputs.length !== 2 && inputs.length < 16) {
-      inputs.push(new Utxo({
-        chainId: BigNumber.from(chainId),
-        originChainId: BigNumber.from(chainId),
-        amount: 0,
-        blinding: randomBN(),
-        keypair: new Keypair(),
-        index: null
+      inputs.push(await CircomUtxo.generateUtxo({
+        curve: 'Bn254',
+        backend: 'Circom',
+        chainId: chainId.toString(),
+        originChainId: chainId.toString(),
+        blinding: hexToU8a(randomBN(31).toHexString()),
+        privateKey: hexToU8a(randomKeypair.privkey),
+        amount: '0',
+        keypair: randomKeypair
       }));
     }
     
     if (outputs.length < 2) {
       while (outputs.length < 2) {
-        outputs.push(new Utxo({
-          chainId: BigNumber.from(chainId),
-          originChainId: BigNumber.from(chainId),
-          amount: 0,
-          blinding: randomBN(),
-          keypair: new Keypair(),
-          index: null
+        outputs.push(await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          chainId: chainId.toString(),
+          originChainId: chainId.toString(),
+          blinding: hexToU8a(randomBN(31).toHexString()),
+          privateKey: hexToU8a(randomKeypair.privkey),
+          amount: '0',
+          keypair: randomKeypair
         }));
       }
     }
 
     let extAmount = BigNumber.from(fee)
-      .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
-      .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+      .add(outputs.reduce((sum, x) => sum.add(BigNumber.from(BigInt(x.amount))), BigNumber.from(0)))
+      .sub(inputs.reduce((sum, x) => sum.add(BigNumber.from(BigInt(x.amount))), BigNumber.from(0)))
 
     const { extData, publicInputs } = await this.setupTransaction(
       inputs,
@@ -901,12 +919,6 @@ export class VAnchor implements IAnchor {
       leavesMap,
     );
 
-    const args = [
-      { owner, publicKey },
-      { ...publicInputs, outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]] },
-      extData,
-    ];
-
     let tx = await this.contract.registerAndTransact(
       { owner, publicKey },
       { ...publicInputs, outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]] },
@@ -915,6 +927,13 @@ export class VAnchor implements IAnchor {
     );
     const receipt = await tx.wait();
     
+    // Add the leaves to the tree
+    outputs.forEach((x) => {
+      this.tree.insert(u8aToHex(x.commitment));
+      let numOfElements = this.tree.number_of_elements();
+      this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
+    });
+
     return receipt;
   }
 }

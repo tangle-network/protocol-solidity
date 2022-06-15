@@ -970,6 +970,22 @@ event EdgeUpdate(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot)
 | latestLeafIndex  | uint256 | undefined |
 | merkleRoot  | bytes32 | undefined |
 
+### Initialized
+
+```solidity
+event Initialized(uint8 version)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| version  | uint8 | undefined |
+
 ### Insertion
 
 ```solidity

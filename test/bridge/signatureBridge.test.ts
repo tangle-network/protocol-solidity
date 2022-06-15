@@ -4,7 +4,7 @@
  */
 const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
-import { ethers, network } from 'hardhat';
+import { ethers } from 'hardhat';
 
 const path = require('path');
 
@@ -17,7 +17,7 @@ import { MintableToken } from '../../packages/tokens/src';
 import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '../../packages/utils/src';
 import { BigNumber } from '@ethersproject/bignumber';
 import { Signer } from 'ethers';
-import { startGanacheServer } from '../helpers/startGanacheServer';
+import { startGanacheServer } from '@webb-tools/test-utils';
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -37,9 +37,24 @@ describe('multichain tests for erc20 bridges', () => {
   let zkComponents4: ZkComponents;
 
   before('setup networks', async () => {
-    ganacheServer2 = await startGanacheServer(1337, 1337, 'congress island collect purity dentist team gas unlock nuclear pig combine sight');
-    ganacheServer3 = await startGanacheServer(9999, 9999, 'aspect biology suit thought bottom popular custom rebuild recall sauce endless local');
-    ganacheServer4 = await startGanacheServer(4444, 4444, 'harvest useful giraffe swim rail ostrich public awful provide amazing tank weapon');
+    ganacheServer2 = await startGanacheServer(1337, 1337, [
+      {
+        balance: '0x10000000000000000000000',
+        secretKey: '0xc0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e'
+      }
+    ]);
+    ganacheServer3 = await startGanacheServer(9999, 9999, [
+      {
+        balance: '0x10000000000000000000000',
+        secretKey: '0x745ee040ef2b087f075dc7d314fa06797ed2ffd4ab59a4cc35c0a33e8d2b7791'
+      }
+    ]);
+    ganacheServer4 = await startGanacheServer(4444, 4444, [
+      {
+        balance: '0x10000000000000000000000',
+        secretKey: '0xd897ca733460ea2c7cda5150926ade4a40e6828bb1cb0d38f097102530b3ef42'
+      }
+    ]);
     await sleep(2000);
     
     zkComponents2 = await fetchComponentsFromFilePaths(
@@ -112,6 +127,8 @@ describe('multichain tests for erc20 bridges', () => {
 
       const bridge = await SignatureBridge.deployFixedDepositBridge(bridge2WebbEthInput, deploymentConfig, initialGovernorsConfig, zkComponents2);
 
+      console.log('after deployed bridge');
+
       // Should be able to retrieve individual anchors
       const anchorSize = '1000000000000000000';
       const anchor1: Anchor = bridge.getAnchor(chainID1, anchorSize)! as Anchor;
@@ -127,6 +144,8 @@ describe('multichain tests for erc20 bridges', () => {
 
       // Deposit on the bridge
       const depositNote = await bridge.deposit(chainID2, anchorSize, signers[2]);
+
+      console.log('after deposit');
       
       // Check the state of anchors after deposit
       let edgeIndex = await anchor2.contract.edgeIndex(chainID1);
@@ -385,8 +404,6 @@ describe('multichain tests for erc20 bridges', () => {
 
     it('Should successfully manually update when deposits made external to the api', async () => {
       // Fetch information about the anchor to be updated.
-      console.log('inside the test and after before: ');
-
       const signers = await ethers.getSigners();
       const anchorSize = '1000000000000000000';
 
@@ -410,11 +427,6 @@ describe('multichain tests for erc20 bridges', () => {
 
       const instanceAfterDeposit = bridge.getAnchor(chainID1, anchorSize);
       const depositCountAfter = Object.keys(instanceAfterDeposit.depositHistory).length;
-      // print the deposit history of the anchors
-      Object.entries(instanceAfterDeposit.depositHistory).map((entry) => {
-        console.log(`After deposit entries: ${entry[0]} ${entry[1]}`)
-      })
-      console.log('deposit count after: ',depositCountAfter );
       assert.deepStrictEqual(depositCountBefore + 1, depositCountAfter);
     });
 
@@ -444,7 +456,7 @@ describe('multichain tests for erc20 bridges', () => {
       const merkleProof = srcAnchor.tree.path(1);
 
       // Setup the bridged withdraw
-      const setup = await destAnchor.setupBridgedWithdraw(deposit.deposit, merkleProof, signers[0].address, signers[0].address, BigInt(0), 0);
+      const setup = await destAnchor.setupBridgedWithdraw(deposit, srcAnchor.tree.elements(), 1, signers[0].address, signers[0].address, BigInt(0), 0);
 
       // Successfully call the contract directly
       await TruffleAssert.passes(destAnchor.contract.withdraw(setup.publicInputs, setup.extData));

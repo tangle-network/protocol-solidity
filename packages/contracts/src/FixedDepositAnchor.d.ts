@@ -415,6 +415,7 @@ interface FixedDepositAnchorInterface extends ethers.utils.Interface {
     "Deposit(address,uint32,bytes32,uint256)": EventFragment;
     "EdgeAddition(uint256,uint256,bytes32)": EventFragment;
     "EdgeUpdate(uint256,uint256,bytes32)": EventFragment;
+    "Initialized(uint8)": EventFragment;
     "Insertion(bytes32,uint32,uint256)": EventFragment;
     "Refresh(bytes32,bytes32,uint32)": EventFragment;
     "Withdrawal(address,address,uint256)": EventFragment;
@@ -423,6 +424,7 @@ interface FixedDepositAnchorInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "Deposit"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "EdgeAddition"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "EdgeUpdate"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Initialized"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Insertion"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Refresh"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Withdrawal"): EventFragment;
@@ -452,6 +454,8 @@ export type EdgeUpdateEvent = TypedEvent<
     merkleRoot: string;
   }
 >;
+
+export type InitializedEvent = TypedEvent<[number] & { version: number }>;
 
 export type InsertionEvent = TypedEvent<
   [string, number, BigNumber] & {
@@ -1303,6 +1307,14 @@ export class FixedDepositAnchor extends BaseContract {
       [BigNumber, BigNumber, string],
       { chainID: BigNumber; latestLeafIndex: BigNumber; merkleRoot: string }
     >;
+
+    "Initialized(uint8)"(
+      version?: null
+    ): TypedEventFilter<[number], { version: number }>;
+
+    Initialized(
+      version?: null
+    ): TypedEventFilter<[number], { version: number }>;
 
     "Insertion(bytes32,uint32,uint256)"(
       commitment?: BytesLike | null,

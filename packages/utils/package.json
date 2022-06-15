@@ -14,7 +14,9 @@
     "elliptic": "^6.5.3",
     "eth-sig-util": "^3.0.1",
     "ethers": "5.5.1",
-    "ffjavascript": "^0.2.43"
+    "ffjavascript": "^0.2.43",
+    "@webb-tools/sdk-core": "file:../../../webb.js/packages/sdk-core/build",
+    "@polkadot/util": "9.4.1"
   },
   "publishConfig": {
     "access": "public"

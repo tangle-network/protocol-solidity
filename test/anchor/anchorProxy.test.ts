@@ -22,16 +22,12 @@ import {
 
 // Convenience wrapper classes for contract classes
 import { Verifier } from '../../packages/bridges/src'
-import { fetchComponentsFromFilePaths, ZkComponents, toFixedHex, getChainIdType } from '../../packages/utils/src';
+import { fetchComponentsFromFilePaths, ZkComponents, getChainIdType } from '../../packages/utils/src';
 import { Anchor, AnchorProxy } from '../../packages/anchors/src';
-import { MerkleTree } from '../../packages/merkle-tree/src';
+import { toFixedHex, MerkleTree } from '@webb-tools/sdk-core';
 
 const { NATIVE_AMOUNT } = process.env
-const snarkjs = require('snarkjs')
-const bigInt = require('big-integer');
 const BN = require('bn.js');
-const F = require('circomlibjs').babyjub.F;
-const Scalar = require("ffjavascript").Scalar;
 
 describe('AnchorProxy', () => {
   let anchorProxy: AnchorProxy;

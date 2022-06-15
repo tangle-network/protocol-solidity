@@ -1,7 +1,7 @@
 import { BigNumberish, ethers, BigNumber, ContractTransaction } from 'ethers';
-import { FixedDepositAnchor as AnchorContract, FixedDepositAnchor__factory as Anchor__factory} from '@webb-tools/contracts'
+import { FixedDepositAnchor as AnchorContract, FixedDepositAnchor__factory as Anchor__factory, ERC20__factory} from '@webb-tools/contracts'
 import { RefreshEvent, WithdrawalEvent } from '@webb-tools/contracts/src/FixedDepositAnchor';
-import { IAnchorDeposit, IAnchorDepositInfo, IAnchor, IFixedAnchorPublicInputs, IMerkleProofData, IFixedAnchorExtData } from '@webb-tools/interfaces';
+import { IAnchorDeposit, IAnchorDepositInfo, IAnchor, IFixedAnchorPublicInputs, IFixedAnchorExtData } from '@webb-tools/interfaces';
 import { 
   toFixedHex,
   toHex,
@@ -13,6 +13,7 @@ import {
   NoteGenInput,
   ProvingManagerSetupInput,
   getFixedAnchorExtDataHash,
+  MerkleProof,
 } from '@webb-tools/sdk-core';
 import { hexToU8a } from '@polkadot/util';
 import { ZkComponents, getChainIdType } from '@webb-tools/utils'
@@ -59,20 +60,13 @@ class Anchor implements IAnchor {
     this.latestSyncedBlock = 0;
     this.depositHistory = {};
     this.zkComponents = zkComponents;
-    this.provingManager = new CircomProvingManager(zkComponents.wasm, null);
+    this.provingManager = new CircomProvingManager(zkComponents.wasm, treeHeight, null);
   }
   
   getAddress(): string {
     return this.contract.address;
   }
-
-  bridgedTransactWrap(tokenAddress: string, inputs: Utxo[], outputs: Utxo[], fee: BigNumberish, recipient: string, relayer: string, leavesMap: Record<string, Uint8Array[]>): Promise<ethers.ContractReceipt> {
-    throw new Error("Method not implemented.");
-  }
-  getMerkleProof(input: Utxo): IMerkleProofData {
-    throw new Error("Method not implemented.");
-  }
-  bridgedTransact(inputs: Utxo[], outputs: Utxo[], fee: BigNumberish, recipient: string, relayer: string, leavesMap: Record<string, Uint8Array[]>): Promise<ethers.ContractReceipt> {
+  getMerkleProof(input: Utxo): MerkleProof {
     throw new Error("Method not implemented.");
   }
   getMinWithdrawalLimitProposalData(_minimalWithdrawalAmount: string): Promise<string> {
@@ -127,7 +121,7 @@ class Anchor implements IAnchor {
     const secret = rbigint(secretBytesLen);
     const nullifier = rbigint(nullifierBytesLen);
     const commitment = BigNumber.from(poseidon([chainID, nullifier, secret])).toHexString();
-    const nullifierHash = BigNumber.from(poseidon([null, nullifier, nullifier])).toHexString();
+    const nullifierHash = BigNumber.from(poseidon([nullifier, nullifier])).toHexString();
 
     const deposit: IAnchorDepositInfo = {
       chainID,
@@ -267,8 +261,6 @@ class Anchor implements IAnchor {
     this.depositHistory[index] = await this.contract.getLastRoot();
     this.latestSyncedBlock = receipt.blockNumber;
 
-    const root = await this.contract.getLastRoot();
-
     return { deposit, index, originChainId };
   }
 
@@ -354,6 +346,9 @@ class Anchor implements IAnchor {
     const chainId = getChainIdType(await this.signer.getChainId());
     const roots = await this.populateRootsForProof();
     const refund = BigInt(0);
+    const tokenInstance = ERC20__factory.connect(this.token, this.signer);
+    const tokenSymbol = await tokenInstance.symbol();
+
     const noteInput: NoteGenInput = {
       amount: this.denomination,
       backend: 'Circom',
@@ -362,15 +357,19 @@ class Anchor implements IAnchor {
       exponentiation: '5',
       hashFunction: 'Poseidon',
       protocol: 'anchor',
-      sourceChain: BigNumber.from(deposit.chainID).toHexString(),
+      sourceChain: chainId.toString(),
+      sourceIdentifyingData: this.contract.address,
       targetChain: chainId.toString(),
-      secrets: `${deposit.chainID}:${deposit.nullifier}:${deposit.secret}`,
+      targetIdentifyingData: this.contract.address,
+      secrets:
+        `${toFixedHex(BigNumber.from(deposit.chainID), 8).slice(2)}:` +
+        `${toFixedHex(BigNumber.from(deposit.nullifier).toHexString()).slice(2)}:` +
+        `${toFixedHex(BigNumber.from(deposit.secret).toHexString()).slice(2)}`,
       version: 'v2',
       width: '4',
-      tokenSymbol: this.token
+      tokenSymbol
     }
 
-    console.log(noteInput);
     const note = await Note.generateNote(noteInput);
     const proofInput: ProvingManagerSetupInput<'anchor'> = {
       fee: Number(fee),
@@ -404,7 +403,7 @@ class Anchor implements IAnchor {
     );
 
     const args = [
-      `0x${proof.proof}`,
+      proof.proof,
       Anchor.createRootsBytes(proof.roots),
       toFixedHex(proof.nullifierHash),
       toFixedHex(extDataHash),
@@ -498,7 +497,7 @@ class Anchor implements IAnchor {
     refreshCommitment = (refreshCommitment) ? refreshCommitment : '0';
 
     const { publicInputs, extData } = await this.setupBridgedWithdraw(
-      deposit.deposit,
+      deposit,
       leaves,
       deposit.index,
       recipient,
@@ -532,7 +531,7 @@ class Anchor implements IAnchor {
   }
 
   public async setupBridgedWithdraw(
-    deposit: IAnchorDepositInfo,
+    deposit: IAnchorDeposit,
     leaves: BigNumberish[],
     leafIndex: number,
     recipient: string,
@@ -555,15 +554,19 @@ class Anchor implements IAnchor {
       exponentiation: '5',
       hashFunction: 'Poseidon',
       protocol: 'anchor',
-      sourceChain: BigNumber.from(deposit.chainID).toHexString(),
+      sourceChain: deposit.originChainId.toString(),
+      sourceIdentifyingData: 'unknown',
       targetChain: chainId.toString(),
-      secrets: `${deposit.chainID}:${deposit.nullifier}:${deposit.secret}`,
+      targetIdentifyingData: this.contract.address,
+      secrets:
+        `${toFixedHex(BigNumber.from(deposit.deposit.chainID), 8).slice(2)}:` +
+        `${toFixedHex(BigNumber.from(deposit.deposit.nullifier).toHexString()).slice(2)}:` +
+        `${toFixedHex(BigNumber.from(deposit.deposit.secret).toHexString()).slice(2)}`,
       version: 'v2',
       width: '4',
       tokenSymbol: this.token
     }
 
-    console.log(noteInput);
     const note = await Note.generateNote(noteInput);
     const proofInput: ProvingManagerSetupInput<'anchor'> = {
       fee: Number(fee),
@@ -589,15 +592,15 @@ class Anchor implements IAnchor {
     };
 
     const extDataHash = getFixedAnchorExtDataHash(
-      fee,
+      BigNumber.from(fee),
       recipient,
       refreshCommitment,
-      refund,
+      BigNumber.from(refund),
       relayer
     );
 
     const args = [
-      `0x${proof.proof}`,
+      proof.proof,
       Anchor.createRootsBytes(proof.roots),
       toFixedHex(proof.nullifierHash),
       toFixedHex(extDataHash),
@@ -622,7 +625,7 @@ class Anchor implements IAnchor {
     refreshCommitment = (refreshCommitment) ? refreshCommitment : '0';
 
     const { publicInputs, extData } = await this.setupBridgedWithdraw(
-      deposit.deposit,
+      deposit,
       leaves,
       deposit.index,
       recipient,

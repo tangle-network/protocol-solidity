@@ -1,12 +1,12 @@
-// @ts-nocheck
 import { ethers } from 'ethers';
 import { getChainIdType, ZkComponents } from "@webb-tools/utils";
 import { PoseidonT3__factory } from "@webb-tools/contracts";
 import { MintableToken, GovernedTokenWrapper, Treasury, TreasuryHandler, TokenWrapperHandler } from "@webb-tools/tokens";
-import { BridgeInput, DeployerConfig, GovernorConfig, IAnchor, IAnchorDeposit } from "@webb-tools/interfaces";
+import { BridgeInput, DeployerConfig, GovernorConfig, IAnchorDeposit } from "@webb-tools/interfaces";
 import { Anchor, AnchorHandler } from '@webb-tools/anchors';
 import { SignatureBridgeSide } from './SignatureBridgeSide';
 import { Verifier } from "./Verifier";
+import { hexToU8a } from '@polkadot/util';
 
 type AnchorIdentifier = {
   anchorSize: ethers.BigNumberish;
@@ -27,7 +27,7 @@ export type SignatureBridgeConfig = {
 
   // The addresses of the anchors for the GovernedTokenWrapper
   // {anchorIdentifier} => anchorAddress
-  anchors: Map<string, IAnchor>,
+  anchors: Map<string, Anchor>,
 
   // The addresses of the Bridge contracts (bridgeSides) to interact with
   bridgeSides: Map<number, SignatureBridgeSide>,
@@ -53,10 +53,10 @@ export class SignatureBridge {
 
     // Mapping of resourceID => linkedAnchor[]; so we know which
     // anchors need updating when the anchor for resourceID changes state.
-    public linkedAnchors: Map<string, IAnchor[]>,
+    public linkedAnchors: Map<string, Anchor[]>,
 
     // Mapping of anchorIdString => Anchor for easy anchor access
-    public anchors: Map<string, IAnchor>,
+    public anchors: Map<string, Anchor>,
   ) {}
 
   public static createAnchorIdString(anchorIdentifier: AnchorIdentifier): string {
@@ -76,8 +76,8 @@ export class SignatureBridge {
 
   // Takes as input a 2D array [[anchors to link together], [...]]
   // And returns a map of resourceID => linkedAnchor[]
-  public static async createLinkedAnchorMap(createdAnchors: IAnchor[][]): Promise<Map<string, IAnchor[]>> {
-    let linkedAnchorMap = new Map<string, IAnchor[]>();
+  public static async createLinkedAnchorMap(createdAnchors: Anchor[][]): Promise<Map<string, Anchor[]>> {
+    let linkedAnchorMap = new Map<string, Anchor[]>();
     for (let groupedAnchors of createdAnchors) {
       for (let i=0; i<groupedAnchors.length; i++) {
         // create the resourceID of this anchor
@@ -100,10 +100,10 @@ export class SignatureBridge {
   public static async deployFixedDepositBridge(bridgeInput: BridgeInput, deployers: DeployerConfig, initialGovernors: GovernorConfig, zkComponents: ZkComponents): Promise<SignatureBridge> {
     let webbTokenAddresses: Map<number, string> = new Map();
     let bridgeSides: Map<number, SignatureBridgeSide> = new Map();
-    let anchors: Map<string, IAnchor> = new Map();
+    let anchors: Map<string, Anchor> = new Map();
     // createdAnchors have the form of [[Anchors created on chainID], [...]]
     // and anchors in the subArrays of thhe same index should be linked together
-    let createdAnchors: IAnchor[][] = [];
+    let createdAnchors: Anchor[][] = [];
 
     for (let chainID of bridgeInput.chainIDs) {
       // From the initial governors from the GovernorConfig
@@ -174,7 +174,7 @@ export class SignatureBridge {
         tokenInstance.contract.address
       );
       
-      let chainGroupedAnchors: IAnchor[] = [];
+      let chainGroupedAnchors: Anchor[] = [];
 
       //
       // loop through all the anchor sizes on the token
@@ -206,11 +206,11 @@ export class SignatureBridge {
     }
 
     // All anchors created, massage data to group anchors which should be linked together
-    let groupLinkedAnchors: IAnchor[][] = [];
+    let groupLinkedAnchors: Anchor[][] = [];
 
     // all subarrays will have the same number of elements
     for(let i=0; i<createdAnchors[0].length; i++) {
-      let linkedAnchors: IAnchor[] = [];
+      let linkedAnchors: Anchor[] = [];
       for(let j=0; j<createdAnchors.length; j++) {
         linkedAnchors.push(createdAnchors[j][i]);
       }
@@ -225,7 +225,7 @@ export class SignatureBridge {
   // The setPermissions method accepts initialized bridgeSide and anchors.
   // it creates the anchor handler and sets the appropriate permissions
   // for the bridgeSide/AnchorHandler/anchor
-  public static async setPermissions(bridgeSide: SignatureBridgeSide, anchors: IAnchor[]): Promise<void> {
+  public static async setPermissions(bridgeSide: SignatureBridgeSide, anchors: Anchor[]): Promise<void> {
     for (let anchor of anchors) {
       await bridgeSide.setResourceWithSignature(anchor);
     }
@@ -241,7 +241,7 @@ export class SignatureBridge {
   * @param srcAnchor The anchor that has updated.
   * @returns 
   */
-  public async updateLinkedAnchors(srcAnchor: IAnchor) {
+  public async updateLinkedAnchors(srcAnchor: Anchor) {
     // Find the bridge sides that are connected to this Anchor
     const linkedResourceID = await srcAnchor.createResourceId();
     const anchorsToUpdate = this.linkedAnchors.get(linkedResourceID);
@@ -274,7 +274,7 @@ export class SignatureBridge {
   }
 
   public getAnchor(chainId: number, anchorSize: ethers.BigNumberish) {
-    let intendedAnchor: IAnchor | undefined = undefined;
+    let intendedAnchor: Anchor | undefined = undefined;
     intendedAnchor = this.anchors.get(SignatureBridge.createAnchorIdString({anchorSize, chainId}));
     return intendedAnchor;
   }
@@ -393,9 +393,7 @@ export class SignatureBridge {
       throw new Error("Could not find anchor to prove against");
     }
 
-    //TODO: if the signer has the same chain ID as the origin, do a same-side withdraw
-    
-    const merkleProof = anchorToProve.tree.path(depositInfo.index);
+    const leaves = anchorToProve.tree.elements();
 
     // Submit the proof and arguments on the destination anchor
     const anchorToWithdraw = this.getAnchor(Number(depositInfo.deposit.chainID.toString()), anchorSize);
@@ -407,7 +405,8 @@ export class SignatureBridge {
     if (!(await anchorToWithdraw.setSigner(signer))) {
       throw new Error("Could not set signer");
     }
-    await anchorToWithdraw.bridgedWithdraw(depositInfo, merkleProof, recipient, relayer, '0', '0', '0');
+    console.log(depositInfo);
+    await anchorToWithdraw.bridgedWithdraw(depositInfo, leaves, recipient, relayer, '0', '0', '0');
     return true;
   }
 
@@ -427,7 +426,7 @@ export class SignatureBridge {
 
     //TODO: if the signer has the same chain ID as the origin, do a same-side withdraw
 
-    const merkleProof = anchorToProve.tree.path(depositInfo.index);
+    const leaves = anchorToProve.tree.elements();
 
     // Submit the proof and arguments on the destination anchor
     const anchorToWithdraw = this.getAnchor(Number(depositInfo.deposit.chainID.toString()), anchorSize);
@@ -440,7 +439,7 @@ export class SignatureBridge {
       throw new Error("Could not set signer");
     }
 
-    await anchorToWithdraw.bridgedWithdrawAndUnwrap(depositInfo, merkleProof, recipient, relayer, '0', '0', '0', tokenAddress);
+    await anchorToWithdraw.bridgedWithdrawAndUnwrap(depositInfo, leaves, recipient, relayer, '0', '0', '0', tokenAddress);
     return true;
   }
 }

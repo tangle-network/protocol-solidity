@@ -13,7 +13,6 @@
     "@webb-tools/bridges": "^0.1.16",
     "@webb-tools/contracts": "^0.1.12",
     "@webb-tools/interfaces": "^0.1.13",
-    "@webb-tools/merkle-tree": "^0.1.16",
     "@webb-tools/tokens": "^0.1.15",
     "@webb-tools/utils": "^0.1.9",
     "@webb-tools/vbridge": "^0.1.16"
