@@ -221,7 +221,7 @@ describe('multichain tests for signature vbridge', () => {
     })
 
     describe('#bridging', () => {
-      it.only('basic ganache deposit should withdraw on hardhat', async () => {
+      it('basic ganache deposit should withdraw on hardhat', async () => {
         // Fetch information about the anchor to be updated.
         const signers = await ethers.getSigners();
 
@@ -260,7 +260,7 @@ describe('multichain tests for signature vbridge', () => {
         assert.strictEqual(signers2BalanceBefore.add(5e6).toString(), signers2BalanceAfter.toString());
       }).timeout(40000)
 
-      it.only('basic hardhat deposit should withdraw on ganache', async () => {
+      it('basic hardhat deposit should withdraw on ganache', async () => {
         // Fetch information about the anchor to be updated.
         const signers = await ethers.getSigners();
 
