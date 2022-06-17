@@ -23,7 +23,7 @@ import {
 
 // Convenience wrapper classes for contract classes
 import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '../../packages/utils/src';
-import { BigNumber, BigNumberish } from 'ethers';
+import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 import { Utxo, Keypair, MerkleTree, randomBN, toFixedHex, generateVariableWitnessInput, getVAnchorExtDataHash, generateWithdrawProofCallData, CircomUtxo } from '@webb-tools/sdk-core';
@@ -31,7 +31,6 @@ import { VAnchor } from '../../packages/anchors/src';
 import { Verifier } from "../../packages/vbridge"
 import { writeFileSync } from "fs";
 
-const { NATIVE_AMOUNT } = process.env
 const BN = require('bn.js');
 
 const path = require('path');
@@ -53,7 +52,7 @@ describe('VAnchor for 2 max edges', () => {
   let anchor: VAnchor;
 
   const levels = 5;
-  let fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`100000000000000000`)).toString());
+  let fee = BigInt((new BN(`100000000000000000`)).toString());
   let recipient = "0x1111111111111111111111111111111111111111";
   let verifier: Verifier;
   let hasherInstance: any;
@@ -63,7 +62,6 @@ describe('VAnchor for 2 max edges', () => {
   const chainID = getChainIdType(31337);
   const MAX_EDGES = 1;
   let create2InputWitness: any;
-  let createInputWitnessPoseidon4: any;
   let sender: SignerWithAddress;
   // setup zero knowledge components
   let zkComponents2_2: ZkComponents;
@@ -138,14 +136,6 @@ describe('VAnchor for 2 max edges', () => {
     );
 
     await token.approve(anchor.contract.address, '1000000000000000000000000');
-
-    createInputWitnessPoseidon4 = async (data: any) => {
-      const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/poseidon4/4/witness_calculator.js");
-      const fileBuf = require('fs').readFileSync('protocol-solidity-fixtures/fixtures/poseidon4/4/poseidon4_test.wasm');
-      const wtnsCalc = await witnessCalculator(fileBuf)
-      const wtns = await wtnsCalc.calculateWTNSBin(data,0);
-      return wtns;
-    }
 
     create2InputWitness = async (data: any) => {
       const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.js");

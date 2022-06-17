@@ -13,21 +13,11 @@ import { MintableToken, GovernedTokenWrapper } from '../../packages/tokens/src';
 import { BigNumber } from 'ethers';
 import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '../../packages/utils/src';
 import { startGanacheServer } from '@webb-tools/test-utils';
-import { CircomUtxo, Utxo } from '@webb-tools/sdk-core';
+import { CircomUtxo } from '@webb-tools/sdk-core';
 
 const path = require('path');
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-const updateUtxoWithIndex = async (inputUtxo: Utxo, index: number, originChain: number): Promise<Utxo> => {
-  const utxoString = inputUtxo.serialize();
-  const parts = utxoString.split('&');
-  parts[4] = index.toString();
-  const outputUtxo = await CircomUtxo.deserialize(parts.join('&'));
-  outputUtxo.setOriginChainId(originChain.toString());
-
-  return outputUtxo;
-}
 
 describe('multichain tests for signature vbridge', () => {
   const chainID1 = getChainIdType(31337);

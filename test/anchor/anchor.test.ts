@@ -6,10 +6,9 @@ const assert = require('assert');
 import { ethers } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
 
-const fs = require('fs');
 const path = require('path');
 const { toBN, randomHex } = require('web3-utils');
-import { BigNumber, BigNumberish } from 'ethers';
+import { BigNumber } from 'ethers';
 import BN from 'bn.js';
 
 // Typechain generated bindings for contracts
@@ -21,14 +20,12 @@ import {
   PoseidonT3__factory,
 } from '../../typechain';
 
-// Convenience wrapper classes for contract classes
 import { Verifier } from '../../packages/bridges/src';
 import { Anchor } from '../../packages/anchors/src';
 import { MerkleTree, toFixedHex, getFixedAnchorExtDataHash, generateWithdrawProofCallData } from '@webb-tools/sdk-core';
 import { fetchComponentsFromFilePaths, ZkComponents, getChainIdType } from '../../packages/utils/src';
 import { IFixedAnchorExtData } from '@webb-tools/interfaces';
 
-const { NATIVE_AMOUNT } = process.env
 const snarkjs = require('snarkjs')
 
 describe('Anchor for 2 max edges', () => {
@@ -36,9 +33,9 @@ describe('Anchor for 2 max edges', () => {
   let zkComponents: ZkComponents;
 
   const levels = 30;
-  const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
+  const value = '1000000000000000000' // 1 ether
   let tree: MerkleTree;
-  const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN('100000000000000000')).toString());
+  const fee = BigInt((new BN(value).shrn(1)).toString());
   const refund = BigInt((new BN('0')).toString());
   let recipient = "0x1111111111111111111111111111111111111111";
   let verifier: Verifier;
@@ -989,18 +986,14 @@ describe('Anchor for 2 max edges (3-sided bridge)', () => {
   let zkComponents: ZkComponents;
 
   const levels = 30;
-  const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
-  let tree: MerkleTree;
-  const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`100000000000000000`)).toString());
-  const refund = BigInt((new BN('0')).toString());
+  const value = '1000000000000000000' // 1 ether
+  const fee = BigInt((new BN(value).shrn(1)).toString());
   let recipient = "0x1111111111111111111111111111111111111111";
   let verifier: Verifier;
   let hasherInstance: any;
   let token: Token;
-  let wrappedToken: WrappedToken;
   let tokenDenomination = '1000000000000000000' // 1 ether
   const MAX_EDGES = 2;
-  let createWitness: any;
 
   before(async () => {
     zkComponents = await fetchComponentsFromFilePaths(
@@ -1014,8 +1007,6 @@ describe('Anchor for 2 max edges (3-sided bridge)', () => {
     const signers = await ethers.getSigners();
     const wallet = signers[0];
     const sender = wallet;
-
-    tree = new MerkleTree(levels);
 
     // create poseidon hasher
     const hasherFactory = new PoseidonT3__factory(wallet);
@@ -1046,14 +1037,6 @@ describe('Anchor for 2 max edges (3-sided bridge)', () => {
 
     // approve the anchor to spend the minted funds
     await token.approve(anchor.contract.address, '10000000000000000000000');
-
-    createWitness = async (data: any) => {
-      const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/anchor/3/witness_calculator.js");
-      const fileBuf = require('fs').readFileSync('./protocol-solidity-fixtures/fixtures/anchor/3/poseidon_anchor_3.wasm');
-      const wtnsCalc = await witnessCalculator(fileBuf)
-      const wtns = await wtnsCalc.calculateWTNSBin(data,0);
-      return wtns;
-    }
   })
 
   it('should withdraw successfully', async () => {
@@ -1100,18 +1083,14 @@ describe('Anchor for 3 max edges (4-sided bridge)', () => {
   let zkComponents: ZkComponents;
 
   const levels = 30;
-  const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
-  let tree: MerkleTree;
-  const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`100000000000000000`)).toString());
-  const refund = BigInt((new BN('0')).toString());
+  const value = '1000000000000000000' // 1 ether
+  const fee = BigInt((new BN(value).shrn(1)).toString());
   let recipient = "0x1111111111111111111111111111111111111111";
   let verifier: Verifier;
   let hasherInstance: any;
   let token: Token;
-  let wrappedToken: WrappedToken;
   let tokenDenomination = '1000000000000000000' // 1 ether
   const MAX_EDGES = 3;
-  let createWitness: any;
 
   before(async () => {
     zkComponents = await fetchComponentsFromFilePaths(
@@ -1125,8 +1104,6 @@ describe('Anchor for 3 max edges (4-sided bridge)', () => {
     const signers = await ethers.getSigners();
     const wallet = signers[0];
     const sender = wallet;
-
-    tree = new MerkleTree(levels);
 
     // create poseidon hasher
     const hasherFactory = new PoseidonT3__factory(wallet);
@@ -1157,14 +1134,6 @@ describe('Anchor for 3 max edges (4-sided bridge)', () => {
 
     // approve the anchor to spend the minted funds
     await token.approve(anchor.contract.address, '10000000000000000000000');
-
-    createWitness = async (data: any) => {
-      const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/anchor/4/witness_calculator.js");
-      const fileBuf = require('fs').readFileSync('./protocol-solidity-fixtures/fixtures/anchor/4/poseidon_anchor_4.wasm');
-      const wtnsCalc = await witnessCalculator(fileBuf)
-      const wtns = await wtnsCalc.calculateWTNSBin(data,0);
-      return wtns;
-    }
   })
 
   it('should withdraw successfully', async () => {
@@ -1211,18 +1180,14 @@ describe('Anchor for 4 max edges (5-sided bridge)', () => {
   let zkComponents: ZkComponents;
 
   const levels = 30;
-  const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
-  let tree: MerkleTree;
-  const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`${1e17}`)).toString());
-  const refund = BigInt((new BN('0')).toString());
+  const value = '1000000000000000000' // 1 ether
+  const fee = BigInt((new BN(value).shrn(1)).toString());
   let recipient = "0x1111111111111111111111111111111111111111";
   let verifier: Verifier;
   let hasherInstance: any;
   let token: Token;
-  let wrappedToken: WrappedToken;
   let tokenDenomination = '1000000000000000000' // 1 ether
   const MAX_EDGES = 4;
-  let createWitness: any;
 
   before(async () => {
     zkComponents = await fetchComponentsFromFilePaths(
@@ -1236,8 +1201,6 @@ describe('Anchor for 4 max edges (5-sided bridge)', () => {
     const signers = await ethers.getSigners();
     const wallet = signers[0];
     const sender = wallet;
-
-    tree = new MerkleTree(levels);
 
     // create poseidon hasher
     const hasherFactory = new PoseidonT3__factory(wallet);
@@ -1268,14 +1231,6 @@ describe('Anchor for 4 max edges (5-sided bridge)', () => {
 
     // approve the anchor to spend the minted funds
     await token.approve(anchor.contract.address, '10000000000000000000000');
-
-    createWitness = async (data: any) => {
-      const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/anchor/5/witness_calculator.js");
-      const fileBuf = require('fs').readFileSync('./protocol-solidity-fixtures/fixtures/anchor/5/poseidon_anchor_5.wasm');
-      const wtnsCalc = await witnessCalculator(fileBuf)
-      const wtns = await wtnsCalc.calculateWTNSBin(data,0);
-      return wtns;
-    }
   })
 
   it('should withdraw successfully', async () => {

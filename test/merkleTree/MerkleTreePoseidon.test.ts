@@ -13,12 +13,10 @@ const assert = require('assert');
 const Poseidon = artifacts.require('PoseidonT3')
 const MerkleTreeWithHistory = artifacts.require('MerkleTreePoseidonMock')
 
-const { MERKLE_TREE_HEIGHT } = process.env
-
 contract('MerkleTreePoseidon', (accounts) => {
   let merkleTreeWithHistory;
   let hasherInstance;
-  let levels = MERKLE_TREE_HEIGHT || 30;
+  let levels = 30;
   const sender = accounts[0];
   let tree: MerkleTree;
 

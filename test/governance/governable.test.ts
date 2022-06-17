@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
  const assert = require('assert');
- const path = require('path');
  import { ethers, network } from 'hardhat';
  import BN from 'bn.js';
  import { toFixedHex, toHex } from '@webb-tools/sdk-core';
@@ -19,7 +18,6 @@
   let sender;
   let nextGovernor;
   let arbSigner;
-  let hashMessage;
 
   beforeEach(async () => {
     const signers = await ethers.getSigners();

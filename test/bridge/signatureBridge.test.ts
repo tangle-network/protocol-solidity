@@ -10,7 +10,7 @@ const path = require('path');
 
 // Convenience wrapper classes for contract classes
 import { Anchor } from '../../packages/anchors/src';
-import { FixedDepositAnchor__factory, GovernedTokenWrapper, GovernedTokenWrapper__factory } from '@webb-tools/contracts';
+import { FixedDepositAnchor__factory, GovernedTokenWrapper__factory } from '@webb-tools/contracts';
 import { SignatureBridge } from '../../packages/bridges/src'; 
 import { BridgeInput } from '../../packages/interfaces/src';
 import { MintableToken } from '../../packages/tokens/src';
