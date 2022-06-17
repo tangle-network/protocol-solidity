@@ -11,7 +11,7 @@
   "dependencies": {
     "@webb-tools/contracts": "^0.1.12",
     "@webb-tools/interfaces": "^0.1.13",
-    "@webb-tools/sdk-core": "file:../../../webb.js/packages/sdk-core/build",
+    "@webb-tools/sdk-core": "0.1.4-84",
     "@webb-tools/utils": "^0.1.9",
     "@polkadot/util": "9.4.1",
     "snarkjs": "0.4.22"
