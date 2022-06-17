@@ -1,13 +1,6 @@
 import path from 'path';
-import { BigNumber, BigNumberish } from 'ethers';
 import { ZkComponents } from './types';
 import { toFixedHex } from '@webb-tools/sdk-core';
-
-const { poseidon } = require('circomlibjs');
-
-export const poseidonHash = (items: BigNumberish[]) => {
-  return BigNumber.from(poseidon(items).toString());
-}
 
 export async function fetchComponentsFromFilePaths(wasmPath: string, witnessCalculatorPath: string, zkeyPath: string): Promise<ZkComponents> {
   const wasm: Buffer = require('fs').readFileSync(path.resolve(__dirname, wasmPath));
