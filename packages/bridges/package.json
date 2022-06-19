@@ -13,13 +13,13 @@
     "hardhat": "^2.6.8"
   },
   "dependencies": {
-    "@webb-tools/anchors": "^0.1.16",
-    "@webb-tools/contracts": "^0.1.12",
-    "@webb-tools/interfaces": "^0.1.13",
-    "@webb-tools/tokens": "^0.1.15",
-    "@webb-tools/sdk-core": "0.1.4-84",
-    "@webb-tools/utils": "^0.1.9",
     "@polkadot/util": "9.4.1",
+    "@webb-tools/anchors": "^0.2.0",
+    "@webb-tools/contracts": "^0.2.0",
+    "@webb-tools/interfaces": "^0.2.0",
+    "@webb-tools/sdk-core": "0.1.4-84",
+    "@webb-tools/tokens": "^0.2.0",
+    "@webb-tools/utils": "^0.2.0",
     "circomlibjs": "0.0.8",
     "ethers": "5.5.1",
     "ffjavascript": "0.2.55",
@@ -33,5 +33,5 @@
     "type": "git",
     "url": "git://github.com/webb-tools/protocol-solidity.git"
   },
-  "version": "0.1.16"
+  "version": "0.2.0"
 }
