@@ -17,10 +17,12 @@
     "@webb-tools/contracts": "^0.1.12",
     "@webb-tools/tokens": "^0.1.15",
     "@webb-tools/utils": "^0.1.9",
-    "circomlibjs": "^0.0.8",
+    "@webb-tools/sdk-core": "0.1.4-84",
+    "@polkadot/util": "9.4.1",
+    "circomlibjs": "0.0.8",
     "ethers": "5.5.1",
-    "ffjavascript": "^0.2.38",
-    "snarkjs": "0.4.16"
+    "ffjavascript": "0.2.55",
+    "snarkjs": "0.4.22"
   },
   "publishConfig": {
     "access": "public"

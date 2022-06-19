@@ -3,10 +3,9 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
  const assert = require('assert');
- const path = require('path');
  import { ethers, network } from 'hardhat';
  import BN from 'bn.js';
- import { toFixedHex, toHex } from '../../packages/utils/src';
+ import { toFixedHex, toHex } from '@webb-tools/sdk-core';
  import EC from 'elliptic';
  const ec = new EC.ec('secp256k1');
  const TruffleAssert = require('truffle-assertions');
@@ -19,7 +18,6 @@
   let sender;
   let nextGovernor;
   let arbSigner;
-  let hashMessage;
 
   beforeEach(async () => {
     const signers = await ethers.getSigners();

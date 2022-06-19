@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@webb-tools/contracts": "^0.1.12",
+    "@webb-tools/sdk-core": "0.1.4-84",
     "@webb-tools/utils": "^0.1.9",
+    "@polkadot/util": "9.4.1",
     "ethers": "5.5.1"
   },
   "publishConfig": {

@@ -1,12 +1,13 @@
-// @ts-nocheck
 import { ethers, BigNumber, BigNumberish  } from 'ethers';
 import { SignatureBridgeSide } from '@webb-tools/bridges';
 import { MintableToken, GovernedTokenWrapper, TreasuryHandler, Treasury } from "@webb-tools/tokens";
 import { PoseidonT3__factory } from "@webb-tools/contracts";
 import Verifier from "./Verifier";
-import { AnchorIdentifier, GovernorConfig, IAnchor } from "@webb-tools/interfaces";
+import { AnchorIdentifier, GovernorConfig } from "@webb-tools/interfaces";
 import { AnchorHandler, VAnchor } from "@webb-tools/anchors";
-import { getChainIdType, Utxo, ZkComponents } from "@webb-tools/utils";
+import { getChainIdType, ZkComponents } from "@webb-tools/utils";
+import { CircomUtxo, Utxo } from "@webb-tools/sdk-core";
+import { hexToU8a, u8aToHex } from '@polkadot/util';
 
 // Deployer config matches the chainId to the signer for that chain
 export type DeployerConfig = Record<number, ethers.Signer>;
@@ -35,7 +36,7 @@ export type BridgeConfig = {
 
   // The addresses of the anchors for the GovernedTokenWrapper
   // {anchorIdentifier} => anchorAddress
-  vAnchors: Map<string, IAnchor>,
+  vAnchors: Map<string, VAnchor>,
 
   // The addresses of the Bridge contracts (bridgeSides) to interact with
   vBridgeSides: Map<number, SignatureBridgeSide>,
@@ -61,10 +62,10 @@ export class VBridge {
 
     // Mapping of resourceID => linkedVAnchor[]; so we know which
     // vanchors need updating when the anchor for resourceID changes state.
-    public linkedVAnchors: Map<string, IAnchor[]>,
+    public linkedVAnchors: Map<string, VAnchor[]>,
 
     // Mapping of anchorIdString => Anchor for easy anchor access
-    public vAnchors: Map<string, IAnchor>,
+    public vAnchors: Map<string, VAnchor>,
   ) {}
 
   //might need some editing depending on whether anchor identifier structure changes
@@ -80,8 +81,8 @@ export class VBridge {
 
   // Takes as input a 2D array [[anchors to link together], [...]]
   // And returns a map of resourceID => linkedAnchor[]
-  public static async createLinkedVAnchorMap(createdVAnchors: IAnchor[][]): Promise<Map<string, IAnchor[]>> {
-    let linkedVAnchorMap = new Map<string, IAnchor[]>();
+  public static async createLinkedVAnchorMap(createdVAnchors: VAnchor[][]): Promise<Map<string, VAnchor[]>> {
+    let linkedVAnchorMap = new Map<string, VAnchor[]>();
     for (let groupedVAnchors of createdVAnchors) {
       for (let i=0; i<groupedVAnchors.length; i++) {
         // create the resourceID of this anchor
@@ -103,10 +104,10 @@ export class VBridge {
     
     let webbTokenAddresses: Map<number, string> = new Map();
     let vBridgeSides: Map<number, SignatureBridgeSide> = new Map();
-    let vAnchors: Map<string, IAnchor> = new Map();
+    let vAnchors: Map<string, VAnchor> = new Map();
     // createdAnchors have the form of [[Anchors created on chainID], [...]]
     // and anchors in the subArrays of thhe same index should be linked together
-    let createdVAnchors: IAnchor[][] = [];
+    let createdVAnchors: VAnchor[][] = [];
 
     for (let chainID of vBridgeInput.chainIDs) {
       const initialGovernor = initialGovernors[chainID];
@@ -173,7 +174,7 @@ export class VBridge {
         tokenInstance!.contract.address
       );
       
-      let chainGroupedVAnchors: IAnchor[] = [];
+      let chainGroupedVAnchors: VAnchor[] = [];
 
       // loop through all the anchor sizes on the token
       
@@ -204,11 +205,11 @@ export class VBridge {
     }
 
     // All anchors created, massage data to group anchors which should be linked together
-    let groupLinkedVAnchors: IAnchor[][] = [];
+    let groupLinkedVAnchors: VAnchor[][] = [];
 
     // all subarrays will have the same number of elements
     for(let i=0; i<createdVAnchors[0].length; i++) {
-      let linkedAnchors: IAnchor[] = [];
+      let linkedAnchors: VAnchor[] = [];
       for(let j=0; j<createdVAnchors.length; j++) {
         linkedAnchors.push(createdVAnchors[j][i]);
       }
@@ -223,7 +224,7 @@ export class VBridge {
   // The setPermissions method accepts initialized bridgeSide and anchors.
   // it creates the anchor handler and sets the appropriate permissions
   // for the bridgeSide/anchorHandler/anchor
-  public static async setPermissions(vBridgeSide: SignatureBridgeSide, vAnchors: IAnchor[]): Promise<void> {
+  public static async setPermissions(vBridgeSide: SignatureBridgeSide, vAnchors: VAnchor[]): Promise<void> {
     let tokenDenomination = '1000000000000000000' // 1 ether
     for (let vAnchor of vAnchors) {
       await vBridgeSide.connectAnchorWithSignature(vAnchor);
@@ -244,7 +245,7 @@ export class VBridge {
   * @param srcAnchor The anchor that has updated.
   * @returns 
   */
-   public async updateLinkedVAnchors(srcAnchor: IAnchor) {
+   public async updateLinkedVAnchors(srcAnchor: VAnchor) {
     // Find the bridge sides that are connected to this Anchor
     const linkedResourceID = await srcAnchor.createResourceId();
     const vAnchorsToUpdate = this.linkedVAnchors.get(linkedResourceID);
@@ -262,7 +263,7 @@ export class VBridge {
     }
   };
 
-  public async update(chainId: number, anchorSize: ethers.BigNumberish) {
+  public async update(chainId: number) {
     const vAnchor = this.getVAnchor(chainId);
     if (!vAnchor) {
       return;
@@ -275,7 +276,7 @@ export class VBridge {
   }
 
   public getVAnchor(chainId: number) {
-    let intendedAnchor: IAnchor = undefined;
+    let intendedAnchor: VAnchor = undefined;
     intendedAnchor = this.vAnchors.get(VBridge.createVAnchorIdString({ chainId }));
     return intendedAnchor;
   }
@@ -308,15 +309,6 @@ export class VBridge {
        throw new Error("VAnchor does not exist on this chain");
     }
     await vAnchor.setSigner(signer);
-
-    // Create dummy UTXOs to satisfy the circuit
-    while (inputs.length !== 2 && inputs.length < 16) {
-      inputs.push(new Utxo({
-        chainId: BigNumber.from(chainId),
-        originChainId: BigNumber.from(chainId),
-        amount: 0,
-      }));
-    }
 
     //do we have to check if amount is greater than 0 before the checks?????
     // Check that input dest chain is this chain
@@ -351,10 +343,50 @@ export class VBridge {
     if (userTokenAllowance.lt(publicAmount)) {
       await tokenInstance.approveSpending(vAnchor.contract.address);
     }
-    // Make Merkle proof
-    const merkleProof = inputs.map((x) => this.getVAnchor(Number(x.originChainId))!.getMerkleProof(x));
-    await vAnchor.bridgedTransact(inputs, outputs, fee, recipient, relayer, merkleProof);
-    await this.updateLinkedVAnchors(vAnchor);
+
+    const regeneratedInputs: Utxo[] = [];
+
+    // Populate the leaves map
+    const leavesMap: Record<string, Uint8Array[]> = {};
+    leavesMap[chainId] = vAnchor.tree.elements().map((commitment) => hexToU8a(commitment.toHexString()))
+
+    for (let input of inputs) {
+      const inputTree = this.getVAnchor(Number(input.originChainId)).tree;
+
+      if (!leavesMap[input.originChainId]) {
+        leavesMap[input.originChainId] = inputTree.elements().map((commitment) => hexToU8a(commitment.toHexString()))
+      }
+
+      // update the utxo with the proper index 
+      const utxoIndex = inputTree.getIndexByElement(u8aToHex(input.commitment));
+      const newUtxo = await CircomUtxo.generateUtxo({
+        curve: 'Bn254',
+        backend: 'Circom',
+        amount: input.amount,
+        originChainId: input.originChainId,
+        chainId: input.chainId,
+        blinding: hexToU8a(input.blinding),
+        keypair: input.keypair,
+        privateKey: hexToU8a(input.secret_key),
+        index: utxoIndex.toString()
+      });
+      regeneratedInputs.push(newUtxo);
+    }
+
+    // Create dummy UTXOs to satisfy the circuit
+    while (regeneratedInputs.length !== 2 && regeneratedInputs.length < 16) {
+      regeneratedInputs.push(await CircomUtxo.generateUtxo({
+        curve: 'Bn254',
+        backend: 'Circom',
+        chainId: chainId.toString(),
+        originChainId: chainId.toString(),
+        index: '0',
+        amount: '0',
+      }));
+    }
+
+    await vAnchor.transact(regeneratedInputs, outputs, leavesMap, fee, recipient, relayer);
+    await this.update(chainId);
   }
 
   //token address is address of unwrapped erc20
@@ -376,14 +408,6 @@ export class VBridge {
     }
     await vAnchor.setSigner(signer);
 
-    // Create dummy UTXOs to satisfy the circuit
-    while (inputs.length !== 2 && inputs.length < 16) {
-      inputs.push(new Utxo({
-        chainId: BigNumber.from(chainId),
-        originChainId: BigNumber.from(chainId),
-        amount: 0,
-      }));
-    }
     //do we have to check if amount is greater than 0 before the checks?
     //Check that input dest chain is this chain
     for (let i=0; i<inputs.length; i++) {
@@ -403,8 +427,8 @@ export class VBridge {
     const tokenInstance = await MintableToken.tokenFromAddress(tokenAddress, signer);
 
     const extAmount = BigNumber.from(fee)
-    .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
-    .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+      .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+      .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
 
     const publicAmount = extAmount.sub(fee);
     // Approve spending if needed
@@ -413,10 +437,49 @@ export class VBridge {
       await tokenInstance.approveSpending(tokenInstanceAddress);
     }
 
-    //Make Merkle proof
-    const merkleProof = inputs.map((x) => this.getVAnchor(Number(x.originChainId))!.getMerkleProof(x));
-    await vAnchor.bridgedTransactWrap(tokenAddress, inputs, outputs, fee, recipient, relayer, merkleProof);
-    await this.updateLinkedVAnchors(vAnchor);
+    const regeneratedInputs: Utxo[] = [];
+
+    // Populate the leaves map
+    const leavesMap: Record<string, Uint8Array[]> = {};
+    leavesMap[chainId] = vAnchor.tree.elements().map((commitment) => hexToU8a(commitment.toHexString()))
+
+    for (let input of inputs) {
+      const inputTree = this.getVAnchor(Number(input.originChainId)).tree;
+
+      if (!leavesMap[input.originChainId]) {
+        leavesMap[input.originChainId] = inputTree.elements().map((commitment) => hexToU8a(commitment.toHexString()))
+      }
+
+      // update the utxo with the proper index 
+      const utxoIndex = inputTree.getIndexByElement(u8aToHex(input.commitment));
+      const newUtxo = await CircomUtxo.generateUtxo({
+        curve: 'Bn254',
+        backend: 'Circom',
+        amount: input.amount,
+        originChainId: input.originChainId,
+        chainId: input.chainId,
+        blinding: hexToU8a(input.blinding),
+        keypair: input.keypair,
+        privateKey: hexToU8a(input.secret_key),
+        index: utxoIndex.toString()
+      });
+      regeneratedInputs.push(newUtxo);
+    }
+
+    // Create dummy UTXOs to satisfy the circuit
+    while (regeneratedInputs.length !== 2 && regeneratedInputs.length < 16) {
+      regeneratedInputs.push(await CircomUtxo.generateUtxo({
+        curve: 'Bn254',
+        backend: 'Circom',
+        chainId: chainId.toString(),
+        originChainId: chainId.toString(),
+        index: '0',
+        amount: '0',
+      }));
+    }
+
+    await vAnchor.transactWrap(tokenAddress, regeneratedInputs, outputs, fee, recipient, relayer, leavesMap);
+    await this.update(chainId);
   }
 }
 

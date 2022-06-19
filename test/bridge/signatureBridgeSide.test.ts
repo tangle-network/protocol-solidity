@@ -6,8 +6,6 @@
 const assert = require('assert');
 const path = require('path');
 import { ethers } from 'hardhat';
-import EC from 'elliptic';
-const ec = new EC.ec('secp256k1');
 const TruffleAssert = require('truffle-assertions');
  
 // Convenience wrapper classes for contract classes
@@ -648,8 +646,6 @@ describe('Rescue Tokens Tests for Native ETH', () => {
 
    // For Native ETH Tests
    await sourceAnchor.wrapAndDeposit(zeroAddress, wrappingFee, getChainIdType(await admin.getChainId()));
-
-   console.log();
 
    // Anchor Denomination amount should go to TokenWrapper
    assert.strictEqual((await ethers.provider.getBalance(governedToken.contract.address)).toString(), anchorDenomination.toString());

@@ -4,34 +4,26 @@
  */
 
 const assert = require('assert');
-import { artifacts, ethers } from 'hardhat';
+import { ethers } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
 
-const fs = require('fs');
 const path = require('path');
-const { toBN, randomHex } = require('web3-utils');
+const { toBN } = require('web3-utils');
 
 // Typechain generated bindings for contracts
 import {
   ERC20Mock as Token,
   ERC20Mock__factory as TokenFactory,
-  GovernedTokenWrapper as WrappedToken,
-  GovernedTokenWrapper__factory as WrappedTokenFactory,
   PoseidonT3__factory,
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
 import { Verifier } from '../../packages/bridges/src'
-import { fetchComponentsFromFilePaths, ZkComponents, toFixedHex, getChainIdType } from '../../packages/utils/src';
+import { fetchComponentsFromFilePaths, ZkComponents, getChainIdType } from '../../packages/utils/src';
 import { Anchor, AnchorProxy } from '../../packages/anchors/src';
-import { MerkleTree } from '../../packages/merkle-tree/src';
+import { toFixedHex, MerkleTree } from '@webb-tools/sdk-core';
 
-const { NATIVE_AMOUNT } = process.env
-const snarkjs = require('snarkjs')
-const bigInt = require('big-integer');
 const BN = require('bn.js');
-const F = require('circomlibjs').babyjub.F;
-const Scalar = require("ffjavascript").Scalar;
 
 describe('AnchorProxy', () => {
   let anchorProxy: AnchorProxy;
@@ -40,19 +32,16 @@ describe('AnchorProxy', () => {
   let zkComponents: ZkComponents;
 
   const levels = 30;
-  const value = NATIVE_AMOUNT || '1000000000000000000' // 1 ether
+  const value = '1000000000000000000' // 1 ether
   let tree: MerkleTree;
-  const fee = BigInt((new BN(`${NATIVE_AMOUNT}`).shrn(1)).toString()) || BigInt((new BN(`100000000000000000`)).toString());
-  const refund = BigInt((new BN('0')).toString());
+  const fee = BigInt((new BN(value).shrn(1)).toString());
   let verifier: Verifier;
   let hasherInstance: any;
   let token: Token;
   let recipient;
-  let wrappedToken: WrappedToken;
   let tokenDenomination = '1000000000000000000' // 1 ether
   const chainID = getChainIdType(31337);
   const MAX_EDGES = 1;
-  let createWitness: any;
   
   //dummy addresses for anchor proxy tests
   let anchorTreesDummyAddress = "0x2111111111111111111111111111111111111111"
@@ -124,14 +113,6 @@ describe('AnchorProxy', () => {
 
     // approve the anchor to spend the minted funds
     await token.approve(anchorProxy.contract.address, '10000000000000000000000');
-
-    createWitness = async (data: any) => {
-      const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/anchor/2/witness_calculator.js");
-      const fileBuf = require('fs').readFileSync('./protocol-solidity-fixtures/fixtures/anchor/2/poseidon_anchor_2.wasm');
-      const wtnsCalc = await witnessCalculator(fileBuf)
-      const wtns = await wtnsCalc.calculateWTNSBin(data,0);
-      return wtns;
-    }
   })
 
   describe('#constructor', () => {

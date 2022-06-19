@@ -538,6 +538,7 @@ interface VAnchorInterface extends ethers.utils.Interface {
   events: {
     "EdgeAddition(uint256,uint256,bytes32)": EventFragment;
     "EdgeUpdate(uint256,uint256,bytes32)": EventFragment;
+    "Initialized(uint8)": EventFragment;
     "Insertion(bytes32,uint32,uint256)": EventFragment;
     "NewCommitment(bytes32,uint256,bytes)": EventFragment;
     "NewNullifier(bytes32)": EventFragment;
@@ -546,6 +547,7 @@ interface VAnchorInterface extends ethers.utils.Interface {
 
   getEvent(nameOrSignatureOrTopic: "EdgeAddition"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "EdgeUpdate"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Initialized"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Insertion"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewCommitment"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewNullifier"): EventFragment;
@@ -567,6 +569,8 @@ export type EdgeUpdateEvent = TypedEvent<
     merkleRoot: string;
   }
 >;
+
+export type InitializedEvent = TypedEvent<[number] & { version: number }>;
 
 export type InsertionEvent = TypedEvent<
   [string, number, BigNumber] & {
@@ -1642,6 +1646,14 @@ export class VAnchor extends BaseContract {
       [BigNumber, BigNumber, string],
       { chainID: BigNumber; latestLeafIndex: BigNumber; merkleRoot: string }
     >;
+
+    "Initialized(uint8)"(
+      version?: null
+    ): TypedEventFilter<[number], { version: number }>;
+
+    Initialized(
+      version?: null
+    ): TypedEventFilter<[number], { version: number }>;
 
     "Insertion(bytes32,uint32,uint256)"(
       commitment?: BytesLike | null,

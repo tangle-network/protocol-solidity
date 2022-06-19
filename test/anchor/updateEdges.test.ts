@@ -78,7 +78,6 @@ const Token = artifacts.require("ERC20Mock");
   });
 
   it('LinkableAnchor handler should only be updatable by handler only', async () => {
-    console.log((await AnchorInstance.getProposalNonce()).toString())
     await TruffleAssert.passes(setHandler(accounts[1], accounts[0], Number(await AnchorInstance.getProposalNonce())));
     await TruffleAssert.reverts(setHandler(accounts[0], accounts[0], Number(await AnchorInstance.getProposalNonce())), "sender is not the handler");
   });
