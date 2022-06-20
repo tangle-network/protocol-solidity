@@ -102,6 +102,7 @@ library VAnchorEncodeInputs {
 			inputs[7] = uint256(roots[0]);
 			inputs[8] = uint256(roots[1]);
 			inputs[9] = uint256(roots[2]);
+			encodedInput = abi.encodePacked(inputs);
 		} else if (_maxEdges == 3) {
 			uint256[11] memory inputs;
 			bytes32[4] memory roots = abi.decode(_args.roots, (bytes32[4]));
@@ -111,7 +112,6 @@ library VAnchorEncodeInputs {
 			result[2] = roots[2];
 			result[3] = roots[3];
 			// assign input
-			//encodedInput = abi.encodePacked(inputs);
 			inputs[0] = uint256(_args.publicAmount);
 			inputs[1] = uint256(_args.extDataHash);
 			inputs[2] = uint256(_args.inputNullifiers[0]);
@@ -123,6 +123,7 @@ library VAnchorEncodeInputs {
 			inputs[8] = uint256(roots[1]);
 			inputs[9] = uint256(roots[2]);
 			inputs[10] = uint256(roots[3]);
+			encodedInput = abi.encodePacked(inputs);
 		} else if (_maxEdges == 4) {
 			uint256[12] memory inputs;
 			bytes32[5] memory roots = abi.decode(_args.roots, (bytes32[5]));
@@ -133,7 +134,6 @@ library VAnchorEncodeInputs {
 			result[3] = roots[3];
 			result[4] = roots[4];
 			// assign input
-			//encodedInput = abi.encodePacked(inputs);
 			inputs[0] = uint256(_args.publicAmount);
 			inputs[1] = uint256(_args.extDataHash);
 			inputs[2] = uint256(_args.inputNullifiers[0]);
@@ -146,6 +146,7 @@ library VAnchorEncodeInputs {
 			inputs[9] = uint256(roots[2]);
 			inputs[10] = uint256(roots[3]);
 			inputs[11] = uint256(roots[4]);
+			encodedInput = abi.encodePacked(inputs);
 		} else if (_maxEdges == 5) {
 			uint256[13] memory inputs;
 			bytes32[6] memory roots = abi.decode(_args.roots, (bytes32[6]));
@@ -157,7 +158,6 @@ library VAnchorEncodeInputs {
 			result[4] = roots[4];
 			result[5] = roots[5];
 			// assign input
-			//encodedInput = abi.encodePacked(inputs);
 			inputs[0] = uint256(_args.publicAmount);
 			inputs[1] = uint256(_args.extDataHash);
 			inputs[2] = uint256(_args.inputNullifiers[0]);
@@ -171,7 +171,64 @@ library VAnchorEncodeInputs {
 			inputs[10] = uint256(roots[3]);
 			inputs[11] = uint256(roots[4]);
 			inputs[12] = uint256(roots[5]);
-		} else {
+			encodedInput = abi.encodePacked(inputs);
+		} else if (_maxEdges == 6) {
+			uint256[14] memory inputs;
+			bytes32[7] memory roots = abi.decode(_args.roots, (bytes32[7]));
+			// assign roots
+			result[0] = roots[0];
+			result[1] = roots[1];
+			result[2] = roots[2];
+			result[3] = roots[3];
+			result[4] = roots[4];
+			result[5] = roots[5];
+			// assign input
+			inputs[0] = uint256(_args.publicAmount);
+			inputs[1] = uint256(_args.extDataHash);
+			inputs[2] = uint256(_args.inputNullifiers[0]);
+			inputs[3] = uint256(_args.inputNullifiers[1]);
+			inputs[4] = uint256(_args.outputCommitments[0]);
+			inputs[5] = uint256(_args.outputCommitments[1]);
+			inputs[6] = uint256(_chainId);
+			inputs[7] = uint256(roots[0]);
+			inputs[8] = uint256(roots[1]);
+			inputs[9] = uint256(roots[2]);
+			inputs[10] = uint256(roots[3]);
+			inputs[11] = uint256(roots[4]);
+			inputs[12] = uint256(roots[5]);
+			inputs[13] = uint256(roots[6]);
+			encodedInput = abi.encodePacked(inputs);
+		} else if (_maxEdges == 7) {
+			uint256[15] memory inputs;
+			bytes32[8] memory roots = abi.decode(_args.roots, (bytes32[8]));
+			// assign roots
+			result[0] = roots[0];
+			result[1] = roots[1];
+			result[2] = roots[2];
+			result[3] = roots[3];
+			result[4] = roots[4];
+			result[5] = roots[5];
+			result[6] = roots[6];
+			result[7] = roots[7];
+			// assign input
+			inputs[0] = uint256(_args.publicAmount);
+			inputs[1] = uint256(_args.extDataHash);
+			inputs[2] = uint256(_args.inputNullifiers[0]);
+			inputs[3] = uint256(_args.inputNullifiers[1]);
+			inputs[4] = uint256(_args.outputCommitments[0]);
+			inputs[5] = uint256(_args.outputCommitments[1]);
+			inputs[6] = uint256(_chainId);
+			inputs[7] = uint256(roots[0]);
+			inputs[8] = uint256(roots[1]);
+			inputs[9] = uint256(roots[2]);
+			inputs[10] = uint256(roots[3]);
+			inputs[11] = uint256(roots[4]);
+			inputs[12] = uint256(roots[5]);
+			inputs[13] = uint256(roots[6]);
+			inputs[14] = uint256(roots[7]);
+			encodedInput = abi.encodePacked(inputs);
+		}
+		else {
 			require(false, "Invalid edges");
 		}
 
@@ -232,7 +289,6 @@ library VAnchorEncodeInputs {
 			result[1] = roots[1];
 			result[2] = roots[2];
 			// assign input
-			//encodedInput = abi.encodePacked(inputs);
 			inputs[0] = uint256(_args.publicAmount);
 			inputs[1] = uint256(_args.extDataHash);
 			inputs[2] = uint256(_args.inputNullifiers[0]);
@@ -257,6 +313,7 @@ library VAnchorEncodeInputs {
 			inputs[21] = uint256(roots[0]);
 			inputs[22] = uint256(roots[1]);
 			inputs[23] = uint256(roots[2]);
+			encodedInput = abi.encodePacked(inputs);
 		} else if (_maxEdges == 3) {
 			uint256[25] memory inputs;
 			bytes32[4] memory roots = abi.decode(_args.roots, (bytes32[4]));
@@ -266,7 +323,6 @@ library VAnchorEncodeInputs {
 			result[2] = roots[2];
 			result[3] = roots[3];
 			// assign input
-			//encodedInput = abi.encodePacked(inputs);
 			inputs[0] = uint256(_args.publicAmount);
 			inputs[1] = uint256(_args.extDataHash);
 			inputs[2] = uint256(_args.inputNullifiers[0]);
@@ -292,6 +348,7 @@ library VAnchorEncodeInputs {
 			inputs[22] = uint256(roots[1]);
 			inputs[23] = uint256(roots[2]);
 			inputs[24] = uint256(roots[3]);
+			encodedInput = abi.encodePacked(inputs);
 		} else if (_maxEdges == 4) {
 			uint256[26] memory inputs;
 			bytes32[5] memory roots = abi.decode(_args.roots, (bytes32[5]));
@@ -302,7 +359,6 @@ library VAnchorEncodeInputs {
 			result[3] = roots[3];
 			result[4] = roots[4];
 			// assign input
-			//encodedInput = abi.encodePacked(inputs);
 			inputs[0] = uint256(_args.publicAmount);
 			inputs[1] = uint256(_args.extDataHash);
 			inputs[2] = uint256(_args.inputNullifiers[0]);
@@ -329,6 +385,7 @@ library VAnchorEncodeInputs {
 			inputs[23] = uint256(roots[2]);
 			inputs[24] = uint256(roots[3]);
 			inputs[25] = uint256(roots[4]);
+			encodedInput = abi.encodePacked(inputs);
 		} else if (_maxEdges == 5) {
 			uint256[27] memory inputs;
 			bytes32[6] memory roots = abi.decode(_args.roots, (bytes32[6]));
@@ -340,7 +397,6 @@ library VAnchorEncodeInputs {
 			result[4] = roots[4];
 			result[5] = roots[5];
 			// assign input
-			//encodedInput = abi.encodePacked(inputs);
 			inputs[0] = uint256(_args.publicAmount);
 			inputs[1] = uint256(_args.extDataHash);
 			inputs[2] = uint256(_args.inputNullifiers[0]);
@@ -368,6 +424,91 @@ library VAnchorEncodeInputs {
 			inputs[24] = uint256(roots[3]);
 			inputs[25] = uint256(roots[4]);
 			inputs[26] = uint256(roots[5]);
+			encodedInput = abi.encodePacked(inputs);
+		} else if (_maxEdges == 6) {
+			uint256[28] memory inputs;
+			bytes32[7] memory roots = abi.decode(_args.roots, (bytes32[7]));
+			// assign roots
+			result[0] = roots[0];
+			result[1] = roots[1];
+			result[2] = roots[2];
+			result[3] = roots[3];
+			result[4] = roots[4];
+			result[5] = roots[5];
+			result[6] = roots[6];
+			// assign input
+			inputs[0] = uint256(_args.publicAmount);
+			inputs[1] = uint256(_args.extDataHash);
+			inputs[2] = uint256(_args.inputNullifiers[0]);
+			inputs[3] = uint256(_args.inputNullifiers[1]);
+			inputs[4] = uint256(_args.inputNullifiers[2]);
+			inputs[5] = uint256(_args.inputNullifiers[3]);
+			inputs[6] = uint256(_args.inputNullifiers[4]);
+			inputs[7] = uint256(_args.inputNullifiers[5]);
+			inputs[8] = uint256(_args.inputNullifiers[6]);
+			inputs[9] = uint256(_args.inputNullifiers[7]);
+			inputs[10] = uint256(_args.inputNullifiers[8]);
+			inputs[11] = uint256(_args.inputNullifiers[9]);
+			inputs[12] = uint256(_args.inputNullifiers[10]);
+			inputs[13] = uint256(_args.inputNullifiers[11]);
+			inputs[14] = uint256(_args.inputNullifiers[12]);
+			inputs[15] = uint256(_args.inputNullifiers[13]);
+			inputs[16] = uint256(_args.inputNullifiers[14]);
+			inputs[17] = uint256(_args.inputNullifiers[15]);
+			inputs[18] = uint256(_args.outputCommitments[0]);
+			inputs[19] = uint256(_args.outputCommitments[1]);
+			inputs[20] = uint256(_chainId);
+			inputs[21] = uint256(roots[0]);
+			inputs[22] = uint256(roots[1]);
+			inputs[23] = uint256(roots[2]);
+			inputs[24] = uint256(roots[3]);
+			inputs[25] = uint256(roots[4]);
+			inputs[26] = uint256(roots[5]);
+			inputs[27] = uint256(roots[6]);
+			encodedInput = abi.encodePacked(inputs);
+		} else if (_maxEdges == 7) {
+			uint256[29] memory inputs;
+			bytes32[8] memory roots = abi.decode(_args.roots, (bytes32[8]));
+			// assign roots
+			result[0] = roots[0];
+			result[1] = roots[1];
+			result[2] = roots[2];
+			result[3] = roots[3];
+			result[4] = roots[4];
+			result[5] = roots[5];
+			result[6] = roots[6];
+			result[7] = roots[7];
+			// assign input
+			inputs[0] = uint256(_args.publicAmount);
+			inputs[1] = uint256(_args.extDataHash);
+			inputs[2] = uint256(_args.inputNullifiers[0]);
+			inputs[3] = uint256(_args.inputNullifiers[1]);
+			inputs[4] = uint256(_args.inputNullifiers[2]);
+			inputs[5] = uint256(_args.inputNullifiers[3]);
+			inputs[6] = uint256(_args.inputNullifiers[4]);
+			inputs[7] = uint256(_args.inputNullifiers[5]);
+			inputs[8] = uint256(_args.inputNullifiers[6]);
+			inputs[9] = uint256(_args.inputNullifiers[7]);
+			inputs[10] = uint256(_args.inputNullifiers[8]);
+			inputs[11] = uint256(_args.inputNullifiers[9]);
+			inputs[12] = uint256(_args.inputNullifiers[10]);
+			inputs[13] = uint256(_args.inputNullifiers[11]);
+			inputs[14] = uint256(_args.inputNullifiers[12]);
+			inputs[15] = uint256(_args.inputNullifiers[13]);
+			inputs[16] = uint256(_args.inputNullifiers[14]);
+			inputs[17] = uint256(_args.inputNullifiers[15]);
+			inputs[18] = uint256(_args.outputCommitments[0]);
+			inputs[19] = uint256(_args.outputCommitments[1]);
+			inputs[20] = uint256(_chainId);
+			inputs[21] = uint256(roots[0]);
+			inputs[22] = uint256(roots[1]);
+			inputs[23] = uint256(roots[2]);
+			inputs[24] = uint256(roots[3]);
+			inputs[25] = uint256(roots[4]);
+			inputs[26] = uint256(roots[5]);
+			inputs[27] = uint256(roots[6]);
+			inputs[28] = uint256(roots[7]);
+			encodedInput = abi.encodePacked(inputs);
 		} else {
 			require(false, "Invalid edges");
 		}
