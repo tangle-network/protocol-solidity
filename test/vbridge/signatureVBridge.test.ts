@@ -823,6 +823,10 @@ describe('8-sided multichain tests for signature vbridge', () => {
     it.only('should deposit on hardhat with UTXO targeting ganache', async () => {
       const signers = await ethers.getSigners();
 
+      const webbTokenAddress = vBridge.getWebbTokenAddress(chainID1);
+      const webbToken = await MintableToken.tokenFromAddress(webbTokenAddress, signers[1]);
+      const balanceBefore = await webbToken.getBalance(await signers[1].getAddress());
+
       // create the UTXO
       const depositUtxo1 = await CircomUtxo.generateUtxo({
         curve: 'Bn254',
@@ -834,6 +838,9 @@ describe('8-sided multichain tests for signature vbridge', () => {
 
       //Transact on the bridge to populate edges
       await vBridge.transact([], [depositUtxo1], 0, '0', '0', signers[1]); 
+
+      const balanceAfter = await webbToken.getBalance(await signers[1].getAddress());
+      assert.strictEqual(balanceBefore.sub(1e7).toString(), balanceAfter.toString());
     });
 
     // describe('#bridging', () => {
