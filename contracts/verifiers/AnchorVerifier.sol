@@ -20,7 +20,7 @@ contract Verifier is IAnchorVerifier {
 		IVerifier3 _verifier3,
 		IVerifier4 _verifier4,
 		IVerifier5 _verifier5,
-		IVerifier6 _verifier6		
+		IVerifier6 _verifier6
 	) {
 		v2 = _verifier2;
 		v3 = _verifier3;

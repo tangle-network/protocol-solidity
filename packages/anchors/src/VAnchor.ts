@@ -493,6 +493,8 @@ export class VAnchor implements IAnchor {
       fee: BigNumber.from(fee).toString()
     };
 
+    console.log('proofInput: ', proofInput);
+
     inputs.length > 2 ? 
       this.provingManager = new CircomProvingManager(this.largeCircuitZkComponents.wasm, this.tree.levels, null) :
       this.provingManager = new CircomProvingManager(this.smallCircuitZkComponents.wasm, this.tree.levels, null);
@@ -575,6 +577,9 @@ export class VAnchor implements IAnchor {
       relayer,
       leavesMap,
     );
+
+    console.log('publicInputs: ', publicInputs);
+    console.log('extData: ', extData);
 
     let tx = await this.contract.transact(
       {

@@ -1315,6 +1315,5 @@ describe('VAnchor for 2 max edges', () => {
       writeFileSync("./metrics/gas-metrics.json", JSON.stringify(gasBenchmark));
       writeFileSync("./metrics/proof-time-metrics.json", JSON.stringify(proofTimeBenchmark));
     })
-  }) 
+  })
 });
-

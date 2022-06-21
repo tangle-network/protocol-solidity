@@ -91,7 +91,6 @@ library VAnchorEncodeInputs {
 			result[1] = roots[1];
 			result[2] = roots[2];
 			// assign input
-			//encodedInput = abi.encodePacked(inputs);
 			inputs[0] = uint256(_args.publicAmount);
 			inputs[1] = uint256(_args.extDataHash);
 			inputs[2] = uint256(_args.inputNullifiers[0]);
