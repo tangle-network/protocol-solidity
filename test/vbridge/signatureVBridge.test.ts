@@ -820,108 +820,85 @@ describe('8-sided multichain tests for signature vbridge', () => {
       await webbToken3.mintTokens(ganacheWallet3.address, '100000000000000000000000');
     });
 
-    it.only('should deposit on hardhat with UTXO targeting ganache', async () => {
-      const signers = await ethers.getSigners();
+    describe('#bridging', () => {
+      it('basic ganache deposit should withdraw on hardhat', async () => {
+        // Fetch information about the anchor to be updated.
+        const signers = await ethers.getSigners();
 
-      const webbTokenAddress = vBridge.getWebbTokenAddress(chainID1);
-      const webbToken = await MintableToken.tokenFromAddress(webbTokenAddress, signers[1]);
-      const balanceBefore = await webbToken.getBalance(await signers[1].getAddress());
+        const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
+        let edgeIndex = await vAnchor1.contract.edgeIndex(chainID2);
+        const destAnchorEdge2Before = await vAnchor1.contract.edgeList(edgeIndex);
+        const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainID1);
+        const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
+        const signers2BalanceBefore = await webbToken1.getBalance(await signers[2].getAddress());
+        
+        //ganacheWallet2 makes a deposit with dest chain chainID1
+        const ganacheDepositUtxo = await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          amount: 1e7.toString(),
+          originChainId: chainID2.toString(),
+          chainId: chainID1.toString()
+        });
 
-      // create the UTXO
-      const depositUtxo1 = await CircomUtxo.generateUtxo({
-        curve: 'Bn254',
-        backend: 'Circom',
-        amount: 1e7.toString(),
-        originChainId: chainID1.toString(),
-        chainId: chainID2.toString()
-      });
+        await vBridge.transact([], [ganacheDepositUtxo], 0, '0', '0', ganacheWallet2);
 
-      //Transact on the bridge to populate edges
-      await vBridge.transact([], [depositUtxo1], 0, '0', '0', signers[1]); 
+        //check latest leaf index is incremented
+        const destAnchorEdge2After = await vAnchor1.contract.edgeList(edgeIndex);
+        assert.deepStrictEqual(destAnchorEdge2Before.latestLeafIndex.add(2), destAnchorEdge2After.latestLeafIndex);
 
-      const balanceAfter = await webbToken.getBalance(await signers[1].getAddress());
-      assert.strictEqual(balanceBefore.sub(1e7).toString(), balanceAfter.toString());
+        //withdraw ganacheWallet2 deposit on chainID1 to signers[2] address
+        const hardhatWithdrawUtxo = await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          amount: 5e6.toString(),
+          originChainId: chainID1.toString(),
+          chainId: chainID1.toString()
+        })
+        await vBridge.transact([ganacheDepositUtxo], [hardhatWithdrawUtxo], 0, await signers[2].getAddress(), '0', signers[2]); 
+        const signers2BalanceAfter = await webbToken1.getBalance(await signers[2].getAddress());
+        assert.strictEqual(signers2BalanceBefore.add(5e6).toString(), signers2BalanceAfter.toString());
+      }).timeout(40000)
+
+      it('basic hardhat deposit should withdraw on ganache', async () => {
+        // Fetch information about the anchor to be updated.
+        const signers = await ethers.getSigners();
+
+        const vAnchorGanache: VAnchor = vBridge.getVAnchor(chainID2)! as VAnchor;
+        let edgeIndex = await vAnchorGanache.contract.edgeIndex(chainID1);
+        const destAnchorEdge2Before = await vAnchorGanache.contract.edgeList(edgeIndex);
+        const webbTokenAddressGanache = vBridge.getWebbTokenAddress(chainID2);
+        const webbTokenGanache = await MintableToken.tokenFromAddress(webbTokenAddressGanache!, ganacheWallet2);
+        const signers2BalanceBefore = await webbTokenGanache.getBalance(await signers[2].getAddress());
+        
+        //ganacheWallet2 makes a deposit with dest chain chainID1
+        const hardhatDepositUtxo = await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          amount: 1e7.toString(),
+          originChainId: chainID1.toString(),
+          chainId: chainID2.toString()
+        });
+
+        await vBridge.transact([], [hardhatDepositUtxo], 0, '0', '0', signers[1]);
+
+        //check latest leaf index is incremented
+        const destAnchorEdge2After = await vAnchorGanache.contract.edgeList(edgeIndex);
+        assert.deepStrictEqual(destAnchorEdge2Before.latestLeafIndex.add(2), destAnchorEdge2After.latestLeafIndex);
+
+        //withdraw ganacheWallet2 deposit on chainID1 to signers[2] address
+        const ganacheWithdrawUtxo = await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          amount: 5e6.toString(),
+          originChainId: chainID2.toString(),
+          chainId: chainID2.toString()
+        })
+        await vBridge.transact([hardhatDepositUtxo], [ganacheWithdrawUtxo], 0, await signers[2].getAddress(), '0', ganacheWallet2); 
+        const signers2BalanceAfter = await webbTokenGanache.getBalance(await signers[2].getAddress());
+        assert.strictEqual(signers2BalanceBefore.add(5e6).toString(), signers2BalanceAfter.toString());
+      }).timeout(40000)
     });
-
-    // describe('#bridging', () => {
-    //   it('basic ganache deposit should withdraw on hardhat', async () => {
-    //     // Fetch information about the anchor to be updated.
-    //     const signers = await ethers.getSigners();
-
-    //     const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
-    //     let edgeIndex = await vAnchor1.contract.edgeIndex(chainID2);
-    //     const destAnchorEdge2Before = await vAnchor1.contract.edgeList(edgeIndex);
-    //     const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainID1);
-    //     const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
-    //     const signers2BalanceBefore = await webbToken1.getBalance(await signers[2].getAddress());
-        
-    //     //ganacheWallet2 makes a deposit with dest chain chainID1
-    //     const ganacheDepositUtxo = await CircomUtxo.generateUtxo({
-    //       curve: 'Bn254',
-    //       backend: 'Circom',
-    //       amount: 1e7.toString(),
-    //       originChainId: chainID2.toString(),
-    //       chainId: chainID1.toString()
-    //     });
-
-    //     await vBridge.transact([], [ganacheDepositUtxo], 0, '0', '0', ganacheWallet2);
-
-    //     //check latest leaf index is incremented
-    //     const destAnchorEdge2After = await vAnchor1.contract.edgeList(edgeIndex);
-    //     assert.deepStrictEqual(destAnchorEdge2Before.latestLeafIndex.add(2), destAnchorEdge2After.latestLeafIndex);
-
-    //     //withdraw ganacheWallet2 deposit on chainID1 to signers[2] address
-    //     const hardhatWithdrawUtxo = await CircomUtxo.generateUtxo({
-    //       curve: 'Bn254',
-    //       backend: 'Circom',
-    //       amount: 5e6.toString(),
-    //       originChainId: chainID1.toString(),
-    //       chainId: chainID1.toString()
-    //     })
-    //     await vBridge.transact([ganacheDepositUtxo], [hardhatWithdrawUtxo], 0, await signers[2].getAddress(), '0', signers[2]); 
-    //     const signers2BalanceAfter = await webbToken1.getBalance(await signers[2].getAddress());
-    //     assert.strictEqual(signers2BalanceBefore.add(5e6).toString(), signers2BalanceAfter.toString());
-    //   }).timeout(40000)
-
-    //   it('basic hardhat deposit should withdraw on ganache', async () => {
-    //     // Fetch information about the anchor to be updated.
-    //     const signers = await ethers.getSigners();
-
-    //     const vAnchorGanache: VAnchor = vBridge.getVAnchor(chainID2)! as VAnchor;
-    //     let edgeIndex = await vAnchorGanache.contract.edgeIndex(chainID1);
-    //     const destAnchorEdge2Before = await vAnchorGanache.contract.edgeList(edgeIndex);
-    //     const webbTokenAddressGanache = vBridge.getWebbTokenAddress(chainID2);
-    //     const webbTokenGanache = await MintableToken.tokenFromAddress(webbTokenAddressGanache!, ganacheWallet2);
-    //     const signers2BalanceBefore = await webbTokenGanache.getBalance(await signers[2].getAddress());
-        
-    //     //ganacheWallet2 makes a deposit with dest chain chainID1
-    //     const hardhatDepositUtxo = await CircomUtxo.generateUtxo({
-    //       curve: 'Bn254',
-    //       backend: 'Circom',
-    //       amount: 1e7.toString(),
-    //       originChainId: chainID1.toString(),
-    //       chainId: chainID2.toString()
-    //     });
-
-    //     await vBridge.transact([], [hardhatDepositUtxo], 0, '0', '0', signers[1]);
-
-    //     //check latest leaf index is incremented
-    //     const destAnchorEdge2After = await vAnchorGanache.contract.edgeList(edgeIndex);
-    //     assert.deepStrictEqual(destAnchorEdge2Before.latestLeafIndex.add(2), destAnchorEdge2After.latestLeafIndex);
-
-    //     //withdraw ganacheWallet2 deposit on chainID1 to signers[2] address
-    //     const ganacheWithdrawUtxo = await CircomUtxo.generateUtxo({
-    //       curve: 'Bn254',
-    //       backend: 'Circom',
-    //       amount: 5e6.toString(),
-    //       originChainId: chainID2.toString(),
-    //       chainId: chainID2.toString()
-    //     })
-    //     await vBridge.transact([hardhatDepositUtxo], [ganacheWithdrawUtxo], 0, await signers[2].getAddress(), '0', ganacheWallet2); 
-    //     const signers2BalanceAfter = await webbTokenGanache.getBalance(await signers[2].getAddress());
-    //     assert.strictEqual(signers2BalanceBefore.add(5e6).toString(), signers2BalanceAfter.toString());
-    //   }).timeout(40000)
-    // });
   });
 
   after('terminate networks', async () => {
