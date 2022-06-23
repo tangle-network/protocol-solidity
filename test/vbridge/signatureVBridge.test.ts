@@ -257,7 +257,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         await vBridge.transact([ganacheDepositUtxo], [hardhatWithdrawUtxo], 0, await signers[2].getAddress(), '0', signers[2]); 
         const signers2BalanceAfter = await webbToken1.getBalance(await signers[2].getAddress());
         assert.strictEqual(signers2BalanceBefore.add(5e6).toString(), signers2BalanceAfter.toString());
-      }).timeout(40000)
+      });
 
       it('basic hardhat deposit should withdraw on ganache', async () => {
         // Fetch information about the anchor to be updated.
@@ -296,7 +296,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         await vBridge.transact([hardhatDepositUtxo], [ganacheWithdrawUtxo], 0, await signers[2].getAddress(), '0', ganacheWallet2); 
         const signers2BalanceAfter = await webbTokenGanache.getBalance(await signers[2].getAddress());
         assert.strictEqual(signers2BalanceBefore.add(5e6).toString(), signers2BalanceAfter.toString());
-      }).timeout(40000)
+      });
 
       it('join and split ganache deposits and withdraw on hardhat', async () => {
         const signers = await ethers.getSigners();
@@ -629,7 +629,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         //wrapped balance of vanchor1 should be 1e7
         const balVAnchor1Wrapped = await webbToken1.getBalance(vAnchor1.contract.address);
         assert.strictEqual(balVAnchor1Wrapped.toString(), BigNumber.from(1e7).toString());
-      }).timeout(40000);
+      });
 
       it('wrap and deposit, withdraw and unwrap works join split 16 input via transactWrap', async () => {
         const signers = await ethers.getSigners();
@@ -699,7 +699,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         //wrapped balance of vanchor1 should be 1e7
         const balVAnchor1Wrapped = await webbToken1.getBalance(vAnchor1.contract.address);
         assert.strictEqual(balVAnchor1Wrapped.toString(), BigNumber.from(1e7).toString());
-      }).timeout(40000);
+      });
     });
   });
 
@@ -885,7 +885,7 @@ describe('8-sided multichain tests for signature vbridge', () => {
         await vBridge.transact([ganacheDepositUtxo], [hardhatWithdrawUtxo], 0, await signers[2].getAddress(), '0', signers[2]); 
         const signers2BalanceAfter = await webbToken1.getBalance(await signers[2].getAddress());
         assert.strictEqual(signers2BalanceBefore.add(5e6).toString(), signers2BalanceAfter.toString());
-      }).timeout(40000)
+      });
 
       it('basic hardhat deposit should withdraw on ganache', async () => {
         // Fetch information about the anchor to be updated.
@@ -924,7 +924,7 @@ describe('8-sided multichain tests for signature vbridge', () => {
         await vBridge.transact([hardhatDepositUtxo], [ganacheWithdrawUtxo], 0, await signers[2].getAddress(), '0', ganacheWallet2); 
         const signers2BalanceAfter = await webbTokenGanache.getBalance(await signers[2].getAddress());
         assert.strictEqual(signers2BalanceBefore.add(5e6).toString(), signers2BalanceAfter.toString());
-      }).timeout(40000)
+      });
     });
   });
 

@@ -491,7 +491,7 @@ describe('VAnchor for 2 max edges', () => {
         '0',
         '0',
       );
-    }).timeout(40000);
+    });
 
     it('should withdraw', async () => {
       const aliceDepositAmount = 1e7;
@@ -532,7 +532,7 @@ describe('VAnchor for 2 max edges', () => {
         '0'
       )
       assert.strictEqual(aliceWithdrawAmount.toString(), await (await token.balanceOf(aliceETHAddress)).toString());
-    }).timeout(40000);
+    });
 
     it('should prevent double spend', async () => {
       const aliceDepositAmount = 1e7;

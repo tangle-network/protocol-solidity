@@ -84,7 +84,7 @@ contract('MerkleTreePoseidon', (accounts) => {
         merkleTreeWithHistory.insert(toFixedHex(1)),
         'Merkle tree is full. No more leaves can be added'
       );
-    }).timeout(30000);
+    });
   })
 
   describe('#isKnownRoot', () => {
