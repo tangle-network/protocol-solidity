@@ -17,7 +17,7 @@
     "@webb-tools/anchors": "^0.2.0",
     "@webb-tools/contracts": "^0.2.0",
     "@webb-tools/interfaces": "^0.2.0",
-    "@webb-tools/sdk-core": "0.1.4-84",
+    "@webb-tools/sdk-core": "0.1.4-87",
     "@webb-tools/tokens": "^0.2.0",
     "@webb-tools/utils": "^0.2.0",
     "circomlibjs": "0.0.8",

@@ -12,7 +12,7 @@
     "@polkadot/util": "9.4.1",
     "@webb-tools/contracts": "^0.2.0",
     "@webb-tools/interfaces": "^0.2.0",
-    "@webb-tools/sdk-core": "0.1.4-84",
+    "@webb-tools/sdk-core": "0.1.4-87",
     "@webb-tools/utils": "^0.2.0",
     "snarkjs": "0.4.22"
   },
