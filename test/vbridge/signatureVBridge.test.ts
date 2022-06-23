@@ -818,6 +818,33 @@ describe('8-sided multichain tests for signature vbridge', () => {
       const webbTokenAddress3 = vBridge.getWebbTokenAddress(chainID3);
       const webbToken3 = await MintableToken.tokenFromAddress(webbTokenAddress3, ganacheWallet3);
       await webbToken3.mintTokens(ganacheWallet3.address, '100000000000000000000000');
+
+      // Call transact at least once so we can query the edge list for assertions
+      const depositUtxo1 = await CircomUtxo.generateUtxo({
+        curve: 'Bn254',
+        backend: 'Circom',
+        amount: 1e7.toString(),
+        originChainId: chainID1.toString(),
+        chainId: chainID2.toString()
+      });
+      const depositUtxo2 = await CircomUtxo.generateUtxo({
+        curve: 'Bn254',
+        backend: 'Circom',
+        amount: 1e7.toString(),
+        originChainId: chainID2.toString(),
+        chainId: chainID3.toString()
+      });
+      const depositUtxo3 = await CircomUtxo.generateUtxo({
+        curve: 'Bn254',
+        backend: 'Circom',
+        amount: 1e7.toString(),
+        originChainId: chainID3.toString(),
+        chainId: chainID3.toString()
+      });
+      
+      await vBridge.transact([], [depositUtxo1], 0, '0', '0', signers[1]); 
+      await vBridge.transact([], [depositUtxo2], 0, '0', '0', ganacheWallet2); 
+      await vBridge.transact([], [depositUtxo3], 0, '0', '0', ganacheWallet3);
     });
 
     describe('#bridging', () => {

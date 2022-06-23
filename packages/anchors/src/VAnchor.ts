@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish, ethers } from 'ethers';
+import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
 import { VAnchor as VAnchorContract, VAnchor__factory, VAnchorEncodeInputs__factory } from '@webb-tools/contracts';
 import {
   toHex,
@@ -493,8 +493,6 @@ export class VAnchor implements IAnchor {
       fee: BigNumber.from(fee).toString()
     };
 
-    console.log('proofInput: ', proofInput);
-
     inputs.length > 2 ? 
       this.provingManager = new CircomProvingManager(this.largeCircuitZkComponents.wasm, this.tree.levels, null) :
       this.provingManager = new CircomProvingManager(this.smallCircuitZkComponents.wasm, this.tree.levels, null);
@@ -578,9 +576,6 @@ export class VAnchor implements IAnchor {
       leavesMap,
     );
 
-    console.log('publicInputs: ', publicInputs);
-    console.log('extData: ', extData);
-
     let tx = await this.contract.transact(
       {
         ...publicInputs,
@@ -658,7 +653,7 @@ export class VAnchor implements IAnchor {
       relayer,
       leavesMap,
     );
-    let tx;
+    let tx: ContractTransaction;
     if (extAmount.gt(0) && checkNativeAddress(tokenAddress)) {
       tx = await this.contract.transactWrap(
         {
@@ -765,7 +760,7 @@ export class VAnchor implements IAnchor {
       { gasLimit: '0x5B8D80' }
     );
     const receipt = await tx.wait();
-    
+
     // Add the leaves to the tree
     outputs.forEach((x) => {
       this.tree.insert(u8aToHex(x.commitment));

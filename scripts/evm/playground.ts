@@ -9,8 +9,9 @@ const walletGanache = new ethers.Wallet(process.env.PRIVATE_KEY!, providerGanach
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function run() {
+  console.log(ethers.BigNumber.from('0x201efb').mul(50).mul(10 ** 9));
 
 }
-
+.105254150000000000
 run();
 

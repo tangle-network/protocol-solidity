@@ -3002,6 +3002,17 @@
     "@webb-tools/api" "0.1.4-84"
     "@webb-tools/types" "0.1.4-84"
 
+"@webb-tools/api-derive@0.1.4-86":
+  version "0.1.4-86"
+  resolved "https://registry.yarnpkg.com/@webb-tools/api-derive/-/api-derive-0.1.4-86.tgz#b4c6ab0b1d74ef89efeec7888b205dcdcefcde9c"
+  integrity sha512-JTWTCtarNLODadBVLWO6WhLebuZthRKMaLBhWZc0/8854J6F40R4H2KHFIXOW8sMErcW8jt8gPczxljQ3wsmcw==
+  dependencies:
+    "@babel/runtime" "^7.10.2"
+    "@polkadot/api" "8.7.1"
+    "@polkadot/rpc-core" "8.7.1"
+    "@webb-tools/api" "0.1.4-86"
+    "@webb-tools/types" "0.1.4-86"
+
 "@webb-tools/api@0.1.4-84":
   version "0.1.4-84"
   resolved "https://registry.yarnpkg.com/@webb-tools/api/-/api-0.1.4-84.tgz#8f2ded80928ffc9b9f733b1f4e695456fcb5c3a2"
@@ -3012,6 +3023,16 @@
     "@polkadot/rpc-core" "8.7.1"
     "@webb-tools/api-derive" "0.1.4-84"
 
+"@webb-tools/api@0.1.4-86":
+  version "0.1.4-86"
+  resolved "https://registry.yarnpkg.com/@webb-tools/api/-/api-0.1.4-86.tgz#b7528cb3f9e63956124b8543fd252408b7f7cde5"
+  integrity sha512-Zhv5nksMYc10szvpDQKXhMEJsz0C+g1DtOya5q3oUd88etHP2lpNS//IYONnSEqNa1rwcD0Dxke8VTPF1I8f9g==
+  dependencies:
+    "@babel/runtime" "^7.10.2"
+    "@polkadot/api" "8.7.1"
+    "@polkadot/rpc-core" "8.7.1"
+    "@webb-tools/api-derive" "0.1.4-86"
+
 "@webb-tools/sdk-core@0.1.4-84":
   version "0.1.4-84"
   resolved "https://registry.yarnpkg.com/@webb-tools/sdk-core/-/sdk-core-0.1.4-84.tgz#928baa32da1f59b71216ab7072bac7267f250f15"
@@ -3021,6 +3042,23 @@
     "@types/events" "^3.0.0"
     "@webb-tools/api" "0.1.4-84"
     "@webb-tools/wasm-utils" "0.1.4-84"
+    bignumber.js "^9.0.0"
+    circomlibjs "0.0.8"
+    elliptic "6.5.4"
+    eth-sig-util "^3.0.1"
+    ethers "5.5.1"
+    events "^3.2.0"
+    ffjavascript "0.2.55"
+    lodash "^4.17.20"
+    snarkjs "0.4.22"
+
+"@webb-tools/sdk-core@file:../webb.js/packages/sdk-core/build":
+  version "0.1.4-86"
+  dependencies:
+    "@polkadot/util" "9.4.1"
+    "@types/events" "^3.0.0"
+    "@webb-tools/api" "0.1.4-86"
+    "@webb-tools/wasm-utils" "0.1.4-86"
     bignumber.js "^9.0.0"
     circomlibjs "0.0.8"
     elliptic "6.5.4"
@@ -3055,10 +3093,26 @@
     "@polkadot/typegen" "8.7.1"
     "@polkadot/types" "8.7.1"
 
+"@webb-tools/types@0.1.4-86":
+  version "0.1.4-86"
+  resolved "https://registry.yarnpkg.com/@webb-tools/types/-/types-0.1.4-86.tgz#6917307018a859d8ed582bea2cf239993773289f"
+  integrity sha512-625Py1VXgo/VkIkpGSEbzCMsHfpog2La5Cm1rXlJ+EuZxvQ55QsKEqo2qRzoykWaO9A7WFV+iUq7MPzf+miKxw==
+  dependencies:
+    "@babel/runtime" "^7.10.2"
+    "@open-web3/orml-types" "^1.1.3"
+    "@polkadot/api-derive" "8.7.1"
+    "@polkadot/typegen" "8.7.1"
+    "@polkadot/types" "8.7.1"
+
 "@webb-tools/wasm-utils@0.1.4-84":
   version "0.1.4-84"
   resolved "https://registry.yarnpkg.com/@webb-tools/wasm-utils/-/wasm-utils-0.1.4-84.tgz#49ad7965d1cd899725538d811dd3a5000d4b9336"
   integrity sha512-5wTUciWxSePYA41E5ZIytAjSX8VOmhS1tnQi3gW6g6kM1aYsVeYBmub3ZQTCDvYt1QklVN5XRKXtzIxwzueo6A==
+
+"@webb-tools/wasm-utils@0.1.4-86":
+  version "0.1.4-86"
+  resolved "https://registry.yarnpkg.com/@webb-tools/wasm-utils/-/wasm-utils-0.1.4-86.tgz#20b9e84c73a43bad18df2a97fe99c06bfdabb6aa"
+  integrity sha512-O6Mmb5ulO2RGAnRMRMPV4mm1emoisT2x2OKi2sJErWgT/fc6ZmNM5QJf5vIzmFK3K8xGnF7S6LUmVf6GXlc3iw==
 
 "@yarnpkg/lockfile@^1.1.0":
   version "1.1.0"

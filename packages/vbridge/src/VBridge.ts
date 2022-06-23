@@ -179,11 +179,11 @@ export class VBridge {
       // loop through all the anchor sizes on the token
       const vAnchorInstance = await VAnchor.createVAnchor(
           verifierInstance.address,
-          5,
+          30,
           hasherInstance.address,
           handler.contract.address,
           tokenInstance.contract.address,
-          vBridgeInput.chainIDs.length < 2 ? 1 : 7,
+          vBridgeInput.chainIDs.length > 2 ? 7 : 1,
           smallCircuitZkComponents,
           largeCircuitZkComponents,
           deployers[chainID],
