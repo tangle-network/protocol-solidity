@@ -491,7 +491,7 @@ describe('VAnchor for 2 max edges', () => {
         '0',
         '0',
       );
-    });
+    }).timeout(120000);
 
     it('should withdraw', async () => {
       const aliceDepositAmount = 1e7;
