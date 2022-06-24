@@ -526,7 +526,7 @@ describe('Anchor for 2 max edges', () => {
         publicInputs,
         extData,
       ));
-    }).timeout(60000);
+    })
   })
 
   describe('#isSpent', () => {
@@ -595,7 +595,7 @@ describe('Anchor for 2 max edges', () => {
       const withdrawSetup = await newAnchor.setupWithdraw(deposit, index, recipient, signers[1].address, fee, toFixedHex(0));
       
       await TruffleAssert.passes(newAnchor.contract.withdraw(withdrawSetup.publicInputs, withdrawSetup.extData));
-    }).timeout(50000)
+    });
 
     it('should properly refresh a deposit', async () => {
       const signers = await ethers.getSigners();

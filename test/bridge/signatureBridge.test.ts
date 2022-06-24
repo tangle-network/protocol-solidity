@@ -158,7 +158,7 @@ describe('multichain tests for erc20 bridges', () => {
       const webbTokenBalance2 = await webbToken2.getBalance(signers[1].address);
 
       assert.deepEqual(webbTokenBalance2, ethers.BigNumber.from(anchorSize));
-    }).timeout(40000);
+    });
 
     it('create 3 side bridge for one token', async () => {
       bridge3WebbEthInput = {
@@ -217,7 +217,7 @@ describe('multichain tests for erc20 bridges', () => {
       assert.notEqual(sourceAnchorRootAfter, sourceAnchorRootBefore);
       assert.deepStrictEqual(destAnchorEdge2After.latestLeafIndex, destAnchorEdge3After.latestLeafIndex);
       assert.deepStrictEqual(destAnchorEdge2After.root, destAnchorEdge3After.root);
-    }).timeout(40000);
+    });
   });
 
   describe('2 sided bridge existing token use', () => {
@@ -612,7 +612,7 @@ describe('multichain tests for erc20 bridges', () => {
       cumulativeBalance = await calculateCumulativeBalance(signers[1].address, tokenAddress1, webbTokenAddress1, signers[1]);
       assert.deepStrictEqual(cumulativeBalance, currentBalance.add(anchorSize));
       currentBalance = cumulativeBalance;
-    }).timeout(60000);
+    })
   });
 
   after('terminate networks', async () => {

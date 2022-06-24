@@ -163,28 +163,27 @@ export class VBridge {
       for (const tokenToBeWrapped of vBridgeInput.vAnchorInputs.asset[chainID]!) {
         // if the address is not '0', then add it
         if (!checkNativeAddress(tokenToBeWrapped)) {
-          const tx = await tokenInstance?.contract.add(tokenToBeWrapped, (await tokenInstance?.contract.proposalNonce()).add(1));
-          const receipt = await tx?.wait();
+          const tx = await tokenInstance.contract.add(tokenToBeWrapped, (await tokenInstance?.contract.proposalNonce()).add(1));
+          await tx.wait();
         }
       }
 
       // append each token
       webbTokenAddresses.set(
         chainID,
-        tokenInstance!.contract.address
+        tokenInstance.contract.address
       );
       
       let chainGroupedVAnchors: VAnchor[] = [];
 
       // loop through all the anchor sizes on the token
-      
       const vAnchorInstance = await VAnchor.createVAnchor(
           verifierInstance.address,
-          5,
+          30,
           hasherInstance.address,
           handler.contract.address,
-          tokenInstance!.contract.address,
-          vBridgeInput.chainIDs.length-1,
+          tokenInstance.contract.address,
+          vBridgeInput.chainIDs.length > 2 ? 7 : 1,
           smallCircuitZkComponents,
           largeCircuitZkComponents,
           deployers[chainID],

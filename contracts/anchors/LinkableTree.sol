@@ -6,7 +6,6 @@
 pragma solidity ^0.8.0;
 
 import "../trees/MerkleTreePoseidon.sol";
-import "../interfaces/IVerifier.sol";
 import "../utils/ChainIdWithType.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 

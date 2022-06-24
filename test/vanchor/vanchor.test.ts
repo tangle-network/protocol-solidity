@@ -51,7 +51,7 @@ const updateUtxoWithIndex = async (inputUtxo: Utxo, index: number, originChain: 
 describe('VAnchor for 2 max edges', () => {
   let anchor: VAnchor;
 
-  const levels = 5;
+  const levels = 30;
   let fee = BigInt((new BN(`100000000000000000`)).toString());
   let recipient = "0x1111111111111111111111111111111111111111";
   let verifier: Verifier;
@@ -491,7 +491,7 @@ describe('VAnchor for 2 max edges', () => {
         '0',
         '0',
       );
-    }).timeout(40000);
+    }).timeout(120000);
 
     it('should withdraw', async () => {
       const aliceDepositAmount = 1e7;
@@ -532,7 +532,7 @@ describe('VAnchor for 2 max edges', () => {
         '0'
       )
       assert.strictEqual(aliceWithdrawAmount.toString(), await (await token.balanceOf(aliceETHAddress)).toString());
-    }).timeout(40000);
+    });
 
     it('should prevent double spend', async () => {
       const aliceDepositAmount = 1e7;
@@ -942,7 +942,7 @@ describe('VAnchor for 2 max edges', () => {
       // create Anchor for wrapped token
       const wrappedAnchor = await VAnchor.createVAnchor(
         verifier.contract.address,
-        5,
+        30,
         hasherInstance.address,
         sender.address,
         wrappedToken.address,
@@ -1010,7 +1010,7 @@ describe('VAnchor for 2 max edges', () => {
       // create Anchor for wrapped token
       const wrappedVAnchor = await VAnchor.createVAnchor(
         verifier.contract.address,
-        5,
+        30,
         hasherInstance.address,
         sender.address,
         wrappedToken.address,
@@ -1106,7 +1106,7 @@ describe('VAnchor for 2 max edges', () => {
       // create Anchor for wrapped token
       const wrappedVAnchor = await VAnchor.createVAnchor(
         verifier.contract.address,
-        5,
+        30,
         hasherInstance.address,
         sender.address,
         wrappedToken.address,
@@ -1315,6 +1315,5 @@ describe('VAnchor for 2 max edges', () => {
       writeFileSync("./metrics/gas-metrics.json", JSON.stringify(gasBenchmark));
       writeFileSync("./metrics/proof-time-metrics.json", JSON.stringify(proofTimeBenchmark));
     })
-  }) 
+  })
 });
-
