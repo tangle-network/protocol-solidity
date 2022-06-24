@@ -10,9 +10,9 @@
   },
   "dependencies": {
     "@polkadot/util": "9.4.1",
-    "@webb-tools/contracts": "^0.2.0",
+    "@webb-tools/contracts": "^0.2.1",
     "@webb-tools/sdk-core": "0.1.4-87",
-    "@webb-tools/utils": "^0.2.0",
+    "@webb-tools/utils": "^0.2.1",
     "ethers": "5.5.1"
   },
   "publishConfig": {
@@ -23,5 +23,5 @@
     "type": "git",
     "url": "git://github.com/webb-tools/protocol-solidity.git"
   },
-  "version": "0.2.0"
+  "version": "0.2.1"
 }
