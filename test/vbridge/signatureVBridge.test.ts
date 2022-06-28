@@ -578,7 +578,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
       });
 
       it('should transactWrap with native', async () => {
-        const signers = ethers.getSigners();
+        const signers = await ethers.getSigners();
         //Deposit UTXO
         const hardhatDepositUtxo1 = await CircomUtxo.generateUtxo({
           curve: 'Bn254',

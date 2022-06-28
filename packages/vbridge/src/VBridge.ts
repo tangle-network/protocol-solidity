@@ -173,8 +173,7 @@ export class VBridge {
       for (const tokenToBeWrapped of vBridgeInput.vAnchorInputs.asset[chainID]!) {
         // if the address is not '0', then add it
         if (!checkNativeAddress(tokenToBeWrapped)) {
-          const tx = await tokenInstance.contract.add(tokenToBeWrapped, (await tokenInstance?.contract.proposalNonce()).add(1));
-          await tx.wait();
+          await vBridgeInstance.executeAddTokenProposalWithSig(tokenInstance, tokenToBeWrapped);
         }
       }
 
@@ -401,13 +400,13 @@ export class VBridge {
   //token address is address of unwrapped erc20
   public async transactWrap(
     tokenAddress: string,
-    inputs:Utxo[], 
-    outputs:Utxo[], 
+    inputs: Utxo[], 
+    outputs: Utxo[], 
     fee: BigNumberish, 
     recipient: string,
     relayer: string,
-    signer:ethers.Signer
-    ) {
+    signer: ethers.Signer
+  ) {
     
     const chainId = getChainIdType(await signer.getChainId());
     const signerAddress = await signer.getAddress();
