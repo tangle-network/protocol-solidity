@@ -51,7 +51,9 @@ export class SignatureBridgeSide implements IBridgeSide {
     admin: ethers.Signer
   ): Promise<SignatureBridgeSide> {
     const bridgeFactory = new SignatureBridge__factory(admin);
-    const deployedBridge = await bridgeFactory.deploy(initialGovernor.address);
+    const deployTx = bridgeFactory.getDeployTransaction(initialGovernor.address).data;
+    const gasEstimate = await bridgeFactory.signer.estimateGas({ data: deployTx });
+    const deployedBridge = await bridgeFactory.deploy(initialGovernor.address, { gasLimit: gasEstimate });
     await deployedBridge.deployed();
     const bridgeSide = new SignatureBridgeSide(deployedBridge, initialGovernor, admin);
     return bridgeSide;
@@ -69,7 +71,8 @@ export class SignatureBridgeSide implements IBridgeSide {
    * @param newOwner The new owner of the bridge
    */
   public async transferOwnership(newOwner: string, nonce: number) {
-    return this.contract.transferOwnership(newOwner, nonce);
+    const gasEstimate = this.contract.estimateGas.transferOwnership(newOwner, nonce);
+    return this.contract.transferOwnership(newOwner, nonce, { gasLimit: gasEstimate });
   }
 
   /**
@@ -201,7 +204,7 @@ export class SignatureBridgeSide implements IBridgeSide {
       + toHex(anchor.contract.address, 20).substr(2);
 
     const sig = await this.signingSystemSignFn(unsignedData);
-    const tx = await this.contract.adminSetResourceWithSignature(
+    const gasEstimate = await this.contract.estimateGas.adminSetResourceWithSignature(
       resourceId,
       functionSig,
       nonce,
@@ -210,6 +213,16 @@ export class SignatureBridgeSide implements IBridgeSide {
       anchor.contract.address,
       sig
     );
+    const tx = await this.contract.adminSetResourceWithSignature(
+      resourceId,
+      functionSig,
+      nonce,
+      newResourceId,
+      this.anchorHandler.contract.address,
+      anchor.contract.address,
+      sig,
+      { gasLimit: gasEstimate }
+    )
     await tx.wait();
     return newResourceId;
   }
@@ -236,7 +249,7 @@ export class SignatureBridgeSide implements IBridgeSide {
       + toHex(governedToken.contract.address, 20).substr(2);
 
     const sig = await this.signingSystemSignFn(unsignedData);
-    const tx = await this.contract.adminSetResourceWithSignature(
+    const gasEstimate = await this.contract.estimateGas.adminSetResourceWithSignature(
       resourceId,
       functionSig,
       nonce,
@@ -244,7 +257,17 @@ export class SignatureBridgeSide implements IBridgeSide {
       this.tokenHandler.contract.address,
       governedToken.contract.address,
       sig
-    );
+    )
+    const tx = await this.contract.adminSetResourceWithSignature(
+      resourceId,
+      functionSig,
+      nonce,
+      newResourceId,
+      this.tokenHandler.contract.address,
+      governedToken.contract.address,
+      sig,
+      { gasLimit: gasEstimate }
+    )
     await tx.wait();
     return resourceId;
   }
@@ -272,7 +295,7 @@ export class SignatureBridgeSide implements IBridgeSide {
 
 
     const sig = await this.signingSystemSignFn(unsignedData);
-    const tx = await this.contract.adminSetResourceWithSignature(
+    const gasEstimate = await this.contract.estimateGas.adminSetResourceWithSignature(
       resourceId,
       functionSig,
       nonce,
@@ -281,15 +304,25 @@ export class SignatureBridgeSide implements IBridgeSide {
       treasury.contract.address,
       sig
     );
-    await tx.wait()
+    const tx = await this.contract.adminSetResourceWithSignature(
+      resourceId,
+      functionSig,
+      nonce,
+      newResourceId,
+      this.treasuryHandler.contract.address,
+      treasury.contract.address,
+      sig,
+      { gasLimit: gasEstimate }
+    );
+    await tx.wait();
     return resourceId;
   }
 
   public async execute(proposalData: string) {
     const sig = await this.signingSystemSignFn(proposalData);
-    const tx = await this.contract.executeProposalWithSignature(proposalData, sig);
+    const gasEstimate = await this.contract.estimateGas.executeProposalWithSignature(proposalData, sig);
+    const tx = await this.contract.executeProposalWithSignature(proposalData, sig, { gasLimit: gasEstimate })
     const receipt = await tx.wait();
-    
     return receipt;
   }
 
@@ -347,14 +380,12 @@ export class SignatureBridgeSide implements IBridgeSide {
   public async executeMinWithdrawalLimitProposalWithSig(anchor: IAnchor, _minimalWithdrawalAmount: string) {
     if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
     const proposalData = await this.createMinWithdrawalLimitProposalData(anchor, _minimalWithdrawalAmount);
-    ;
     return this.execute(proposalData);
   }
 
   public async executeMaxDepositLimitProposalWithSig(anchor: IAnchor, _maximumDepositAmount: string) {
     if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
     const proposalData = await this.createMaxDepositLimitProposalData(anchor,_maximumDepositAmount);
-    ;
     return this.execute(proposalData);
   }
 }

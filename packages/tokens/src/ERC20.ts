@@ -16,9 +16,12 @@ class ERC20 {
     deployer: ethers.Signer
   ): Promise<ERC20> {
     const factory = new ERC20__factory(deployer);
+    const deployTx = factory.getDeployTransaction(name, symbol).data;
+    const gasEstimate = factory.signer.estimateGas({ data: deployTx })
     const contract = await factory.deploy(
       name,
       symbol,
+      { gasLimit: gasEstimate },
     );
     await contract.deployed();
 

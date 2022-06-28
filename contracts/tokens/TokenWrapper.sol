@@ -172,7 +172,7 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
         address tokenAddress,
         uint256 amount,
         address recipient
-    ) override payable public isMinter() isValidWrapping(tokenAddress,   feeRecipient, amount) {
+    ) override payable public isMinter() isValidWrapping(tokenAddress, feeRecipient, amount) {
         uint costToWrap = getFeeFromAmount(tokenAddress == address(0)
             ? msg.value
             : amount

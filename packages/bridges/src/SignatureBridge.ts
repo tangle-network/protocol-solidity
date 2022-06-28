@@ -6,18 +6,11 @@ import { BridgeInput, DeployerConfig, GovernorConfig, IAnchorDeposit } from "@we
 import { Anchor, AnchorHandler } from '@webb-tools/anchors';
 import { SignatureBridgeSide } from './SignatureBridgeSide';
 import { Verifier } from "./Verifier";
-import { hexToU8a } from '@polkadot/util';
 
 type AnchorIdentifier = {
   anchorSize: ethers.BigNumberish;
   chainId: number;
 };
-
-type AnchorQuery = {
-  anchorSize?: ethers.BigNumberish;
-  chainId?: number;
-  tokenAddress?: string;
-}
 
 export type SignatureBridgeConfig = {
 
@@ -42,7 +35,6 @@ function checkNativeAddress(tokenAddress: string): boolean {
   return false;
 }
 
-// A bridge is 
 export class SignatureBridge {
   private constructor(
     // Mapping of chainId => bridgeSide
@@ -122,7 +114,6 @@ export class SignatureBridge {
 
       // Create Treasury and TreasuryHandler
       const treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeInstance.contract.address, [],[], bridgeInstance.admin);
-
       const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, bridgeInstance.admin);
 
       await bridgeInstance.setTreasuryHandler(treasuryHandler);
@@ -130,7 +121,9 @@ export class SignatureBridge {
 
       // Create the Hasher and Verifier for the chain
       const hasherFactory = new PoseidonT3__factory(deployers[chainID]);
-      let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
+      const deployTx = hasherFactory.getDeployTransaction().data;
+      const gasEstimate = hasherFactory.signer.estimateGas({ data: deployTx })
+      let hasherInstance = await hasherFactory.deploy({ gasLimit: gasEstimate });
       await hasherInstance.deployed();
 
       const verifier = await Verifier.createVerifier(deployers[chainID]);
@@ -148,8 +141,8 @@ export class SignatureBridge {
       const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeInstance.contract.address, [], [], bridgeInstance.admin);
 
       let tokenInstance: GovernedTokenWrapper = await GovernedTokenWrapper.createGovernedTokenWrapper(
-        `webbETH-test-1`,
-        `webbETH-test-1`,
+        `webbWETH-sig`,
+        `webbWETH-sig`,
         treasury.contract.address,
         tokenWrapperHandler.contract.address,
         '10000000000000000000000000',
@@ -164,7 +157,7 @@ export class SignatureBridge {
       for (const tokenToBeWrapped of bridgeInput.anchorInputs.asset[chainID]!) {
         // if the address is not '0', then add it
         if (!checkNativeAddress(tokenToBeWrapped)) {
-          const tx = await bridgeInstance.executeAddTokenProposalWithSig(tokenInstance, tokenToBeWrapped);
+          await bridgeInstance.executeAddTokenProposalWithSig(tokenInstance, tokenToBeWrapped);
         }
       }
 
@@ -229,7 +222,7 @@ export class SignatureBridge {
     for (let anchor of anchors) {
       await bridgeSide.setResourceWithSignature(anchor);
     }
-    
+
     for (let anchor of anchors) {
       await bridgeSide.connectAnchorWithSignature(anchor);
     }
@@ -329,7 +322,7 @@ export class SignatureBridge {
     return deposit;
   }
 
-  public async wrapAndDeposit(destinationChainId: number, tokenAddress: string, anchorSize: ethers.BigNumberish, wrappingFee: number = 0, signer: ethers.Signer) {
+  public async wrapAndDeposit(destinationChainId: number, tokenAddress: string, anchorSize: ethers.BigNumberish, wrappingFee: number, signer: ethers.Signer) {
     const chainId = getChainIdType(await signer.getChainId());
     const signerAddress = await signer.getAddress();
     const anchor = this.getAnchor(chainId, anchorSize);

@@ -23,8 +23,11 @@ export class Treasury {
     deployer: ethers.Signer
   ) {
     const factory = new Treasury__factory(deployer);
+    const deployTx = await factory.getDeployTransaction(treasuryHandler).data;
+    const gasEstimate = await factory.signer.estimateGas({ data: deployTx });
     const contract = await factory.deploy(
-      treasuryHandler
+      treasuryHandler,
+      { gasLimit: gasEstimate }
     );
     await contract.deployed();
 

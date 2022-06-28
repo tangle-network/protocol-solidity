@@ -1,17 +1,20 @@
 require('dotenv').config();
+import { SignatureBridgeSide } from "@webb-tools/bridges";
+import { Anchor } from "@webb-tools/anchors";
+import { ethers } from "ethers";
+import { fetchComponentsFromFilePaths } from "../../packages/utils";
+import { providerArbitrum, providerMoonbase, walletArbitrum, walletHermes } from "./ethersGovernorWallets";
+import { transactWrapNative } from "./bridgeActions/transactWrapNative";
+
 const path = require('path');
-import { ethers } from 'ethers';
-import { toFixedHex } from '@webb-tools/sdk-core';
-
-const providerGanache = new ethers.providers.JsonRpcProvider(`http://localhost:8545`);
-const walletGanache = new ethers.Wallet(process.env.PRIVATE_KEY!, providerGanache);
-
-export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function run() {
-  console.log(ethers.BigNumber.from('0x201efb').mul(50).mul(10 ** 9));
+  // const gasArbitrumResponse = await (await providerArbitrum.getFeeData()).gasPrice;
+  // console.log('arbitrum gas: ', gasArbitrumResponse);
+  const gasMoonbaseResponse = await (await providerMoonbase.getFeeData()).gasPrice;
+  console.log('moonbase gas: ', gasMoonbaseResponse);
 
+  // await transactWrapNative('0xcbd945e77adb65651f503723ac322591f3435cc5', walletHermes);
 }
-.105254150000000000
-run();
 
+run();

@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
+import { BigNumber, BigNumberish, ContractTransaction, ethers } from "ethers";
 import { ERC20PresetMinterPauser, ERC20PresetMinterPauser__factory } from '@webb-tools/contracts';
 
 class MintableToken {
@@ -22,10 +22,14 @@ class MintableToken {
   public static async createToken(
     name: string,
     symbol: string,
-    creator: ethers.Signer
+    creator: ethers.Signer,
   ) {
     const factory = new ERC20PresetMinterPauser__factory(creator);
-    const token = await factory.deploy(name, symbol);
+    const deployTx = factory.getDeployTransaction(name, symbol).data;
+    const gasEstimate = factory.signer.estimateGas({ data: deployTx });
+    const token = await factory.deploy(name, symbol, {
+      gasLimit: gasEstimate,
+    });
     await token.deployed();
     return new MintableToken(token, name, symbol, creator);
   }
@@ -49,20 +53,27 @@ class MintableToken {
   }
 
   public async approveSpending(spender: string): Promise<ContractTransaction> {
+    const gasEstimate = await this.contract.estimateGas.approve(spender, '10000000000000000000000000000000000');
     return this.contract.approve(spender, '10000000000000000000000000000000000', {
-      gasLimit: '0x5B8D80',
+      gasLimit: gasEstimate,
     });
   }
 
   public async mintTokens(address: string, amount: BigNumberish) {
-    const tx = await this.contract.mint(address, amount);
+    const gasEstimate = await this.contract.estimateGas.mint(address, amount);
+    const tx = await this.contract.mint(address, amount, {
+      gasLimit: gasEstimate,
+    });
     await tx.wait();
     return;
   }
 
-  public grantMinterRole(address: string) {
+  public async grantMinterRole(address: string) {
     const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
-    return this.contract.grantRole(MINTER_ROLE, address);
+    const gasEstimate = await this.contract.estimateGas.grantRole(MINTER_ROLE, address);
+    return this.contract.grantRole(MINTER_ROLE, address, {
+      gasLimit: gasEstimate,
+    });
   }
 }
 

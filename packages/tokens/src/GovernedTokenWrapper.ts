@@ -30,13 +30,23 @@ export class GovernedTokenWrapper {
     deployer: ethers.Signer
   ) {
     const factory = new GovernedTokenWrapper__factory(deployer);
+    const deployTx = factory.getDeployTransaction(
+      name,
+      symbol,
+      feeRecipient,
+      governor,
+      limit,
+      isNativeAllowed,
+    ).data;
+    const gasEstimate = await factory.signer.estimateGas({ data: deployTx });
     const contract = await factory.deploy(
       name,
       symbol,
       feeRecipient,
       governor,
       limit,
-      isNativeAllowed
+      isNativeAllowed,
+      { gasLimit: gasEstimate }
     );
     await contract.deployed();
 
@@ -53,7 +63,8 @@ export class GovernedTokenWrapper {
 
   public async grantMinterRole(address: string) {
     const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
-    const tx = await this.contract.grantRole(MINTER_ROLE, address);
+    const gasEstimate = await this.contract.estimateGas.grantRole(MINTER_ROLE, address);
+    const tx = await this.contract.grantRole(MINTER_ROLE, address, { gasLimit: gasEstimate });
     await tx.wait();
     return;
   }

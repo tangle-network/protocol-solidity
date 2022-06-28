@@ -88,10 +88,12 @@ class Anchor implements IAnchor {
     handler: string,
     maxEdges: number,
     zkComponents: ZkComponents,
-    signer: ethers.Signer,
+    signer: ethers.Signer
   ) {
     const factory = new Anchor__factory(signer);
-    const anchor = await factory.deploy(handler, token, verifier, hasher, denomination, merkleTreeHeight, maxEdges, {});
+    const deployTx = factory.getDeployTransaction(handler, token, verifier, hasher, denomination, merkleTreeHeight, maxEdges).data;
+    const gasEstimate = await factory.signer.estimateGas({ data: deployTx });
+    const anchor = await factory.deploy(handler, token, verifier, hasher, denomination, merkleTreeHeight, maxEdges, { gasLimit: gasEstimate });
     await anchor.deployed();
     const createdAnchor = new Anchor(anchor, signer, merkleTreeHeight, maxEdges, zkComponents);
     createdAnchor.latestSyncedBlock = anchor.deployTransaction.blockNumber!;
@@ -151,7 +153,8 @@ class Anchor implements IAnchor {
   }
 
   public async setHandler(handlerAddress: string) {
-    const tx = await this.contract.setHandler(handlerAddress, BigNumber.from((await this.contract.getProposalNonce())).add(1));
+    const gasEstimate = await this.contract.estimateGas.setHandler(handlerAddress, BigNumber.from((await this.contract.getProposalNonce())).add(1));
+    const tx = await this.contract.setHandler(handlerAddress, BigNumber.from((await this.contract.getProposalNonce())).add(1), {gasLimit: gasEstimate});
     await tx.wait();
   }
 
@@ -252,7 +255,9 @@ class Anchor implements IAnchor {
     const destChainId = (destinationChainId) ? destinationChainId : originChainId;
     const deposit = Anchor.generateDeposit(destChainId);
     
-    const tx = await this.contract.deposit(toFixedHex(deposit.commitment), { gasLimit: '0x5B8D80' });
+    const gasEstimate = await this.contract.estimateGas.deposit(toFixedHex(deposit.commitment));
+    const tx = await this.contract.deposit(toFixedHex(deposit.commitment), {gasLimit: gasEstimate});
+
     const receipt = await tx.wait();
 
     // Deposit history and state altered.
@@ -271,19 +276,20 @@ class Anchor implements IAnchor {
   /**
    * Assumes the anchor has the correct, full deposit history.
    */
-  public async wrapAndDeposit(tokenAddress: string, wrappingFee: number = 0, destinationChainId?: number): Promise<IAnchorDeposit> {
+  public async wrapAndDeposit(tokenAddress: string, wrappingFee: number, destinationChainId: number): Promise<IAnchorDeposit> {
     const originChainId = getChainIdType(await this.signer.getChainId());
-    const chainId = (destinationChainId) ? destinationChainId : originChainId;
+    const chainId = destinationChainId;
     const deposit = Anchor.generateDeposit(chainId);
+    const gasEstimate = await this.contract.estimateGas.wrapAndDeposit(tokenAddress, toFixedHex(deposit.commitment));
     let tx: ContractTransaction;
     if (checkNativeAddress(tokenAddress)) {
       tx = await this.contract.wrapAndDeposit(tokenAddress, toFixedHex(deposit.commitment), {
         value: this.getAmountToWrap(wrappingFee).toString(),
-        gasLimit: '0x5B8D80'
+        gasLimit: gasEstimate
       });
     } else {
       tx = await this.contract.wrapAndDeposit(tokenAddress, toFixedHex(deposit.commitment), {
-        gasLimit: '0x5B8D80'
+        gasLimit: gasEstimate
       });
     }
     const receipt = await tx.wait();
@@ -318,6 +324,7 @@ class Anchor implements IAnchor {
     this.latestSyncedBlock = currentBlockNumber;
   }
 
+  // Used to populate the roots for a bridged withdraw
   public async populateRootsForProof(): Promise<string[]> {
     const neighborRoots = await this.contract.getLatestNeighborRoots();
     return [await this.contract.getLastRoot(), ...neighborRoots];
@@ -432,11 +439,14 @@ class Anchor implements IAnchor {
       fee,
       refreshCommitment,
     );
-    //@ts-ignore
-    let tx = await this.contract.withdraw(
+    const gasEstimate = await this.contract.estimateGas.withdraw(
+      publicInputs,
+      extData
+    );
+    const tx = await this.contract.withdraw(
       publicInputs,
       extData,
-      { gasLimit: '0x5B8D80' }
+      { gasLimit: gasEstimate }
     );
     const receipt = await tx.wait();
 
@@ -459,7 +469,7 @@ class Anchor implements IAnchor {
     relayer: string,
     fee: bigint,
     refreshCommitment: string,
-    tokenAddress: string,
+    tokenAddress: string
   ): Promise<WithdrawalEvent> {
     // first, check if the merkle root is known on chain - if not, then update
     await this.checkKnownRoot();
@@ -472,8 +482,9 @@ class Anchor implements IAnchor {
       fee,
       refreshCommitment
     )
+    const gasEstimate = await this.contract.estimateGas.withdrawAndUnwrap(publicInputs, extData, tokenAddress);
 
-    let tx = await this.contract.withdrawAndUnwrap(publicInputs, extData, tokenAddress, { gasLimit: '0x5B8D80' });
+    const tx = await this.contract.withdrawAndUnwrap(publicInputs, extData, tokenAddress, { gasLimit: gasEstimate });
     const receipt = await tx.wait();
 
     const filter = this.contract.filters.Withdrawal(null, null, null);
@@ -505,14 +516,17 @@ class Anchor implements IAnchor {
       BigInt(fee),
       refreshCommitment
     );
+    const gasEstimate = await this.contract.estimateGas.withdrawAndUnwrap(
+      publicInputs,
+      extData,
+      tokenAddress
+    );
 
-    let tx = await this.contract.withdrawAndUnwrap(
+    const tx = await this.contract.withdrawAndUnwrap(
       publicInputs,
       extData,
       tokenAddress,
-      {
-        gasLimit: '0x5B8D80'
-      },
+      { gasLimit: gasEstimate },
     );
     const receipt = await tx.wait();
 
@@ -620,7 +634,7 @@ class Anchor implements IAnchor {
     relayer: string,
     fee: string,
     refund: string,
-    refreshCommitment: string,
+    refreshCommitment: string
   ): Promise<WithdrawalEvent> {
     refreshCommitment = (refreshCommitment) ? refreshCommitment : '0';
 
@@ -634,12 +648,15 @@ class Anchor implements IAnchor {
       refreshCommitment
     );
 
-    let tx = await this.contract.withdraw(
+    const gasEstimate = await this.contract.estimateGas.withdraw(
+      publicInputs,
+      extData
+    );
+
+    const tx = await this.contract.withdraw(
       publicInputs,
       extData,
-      {
-        gasLimit: '0x5B8D80'
-      },
+      { gasLimit: gasEstimate },
     );
 
     const receipt = await tx.wait();

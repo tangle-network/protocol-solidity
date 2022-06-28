@@ -28,27 +28,43 @@ export class Verifier {
     signer: ethers.Signer,
   ) {
     const v22Factory = new Verifier22__factory(signer);
-    const v22 = await v22Factory.deploy(); 
+    let deployTx = v22Factory.getDeployTransaction().data;
+    let gasEstimate = v22Factory.signer.estimateGas({ data: deployTx });
+    const v22 = await v22Factory.deploy({ gasLimit: gasEstimate }); 
     await v22.deployed();
 
     const v82Factory = new Verifier82__factory(signer);
-    const v82 = await v82Factory.deploy(); 
+    deployTx = v82Factory.getDeployTransaction().data;
+    gasEstimate = v82Factory.signer.estimateGas({ data: deployTx });
+    const v82 = await v82Factory.deploy({ gasLimit: gasEstimate }); 
     await v82.deployed();
 
     const v216Factory = new Verifier216__factory(signer);
-    const v216 = await v216Factory.deploy(); 
+    deployTx = v216Factory.getDeployTransaction().data;
+    gasEstimate = v216Factory.signer.estimateGas({ data: deployTx });
+    const v216 = await v216Factory.deploy({ gasLimit: gasEstimate }); 
     await v216.deployed();
 
     const v816Factory = new Verifier816__factory(signer);
-    const v816 = await v816Factory.deploy(); 
+    deployTx = v816Factory.getDeployTransaction().data;
+    gasEstimate = v816Factory.signer.estimateGas({ data: deployTx });
+    const v816 = await v816Factory.deploy({ gasLimit: gasEstimate }); 
     await v816.deployed();
 
     const factory = new VAnchorVerifier__factory(signer);
+    deployTx = factory.getDeployTransaction(
+      v22.address,
+      v216.address,
+      v82.address,
+      v816.address
+    ).data;
+    gasEstimate = factory.signer.estimateGas({ data: deployTx });
     const verifier = await factory.deploy(
       v22.address,
       v216.address,
       v82.address,
       v816.address,
+      { gasLimit: gasEstimate }
     );
     await verifier.deployed();
     const createdVerifier = new Verifier(verifier, signer);

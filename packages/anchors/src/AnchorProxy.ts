@@ -26,7 +26,6 @@ export class AnchorProxy {
   contract: AnchorProxyContract;
   // An AnchorProxy can proxy for multiple anchors so we have a map from address to Anchor Class
   anchorProxyMap: Map<string, Anchor>; 
-
   
   constructor(
     contract: AnchorProxyContract,
@@ -59,7 +58,9 @@ export class AnchorProxy {
         },
       }
     });
-    const contract = await factory.deploy(_anchorTrees, _governance, instances); //edit this
+    const deployTx = factory.getDeployTransaction(_anchorTrees, _governance, instances).data;
+    const gasEstimate = await factory.signer.estimateGas({ data: deployTx });
+    const contract = await factory.deploy(_anchorTrees, _governance, instances, { gasLimit: gasEstimate }); //edit this
     await contract.deployed();
 
     const handler = new AnchorProxy(contract, deployer, _anchorList);
@@ -73,12 +74,17 @@ export class AnchorProxy {
       const _encryptedNote: string = encryptedNote;
     } 
 
+    const gasEstimate = await this.contract.estimateGas.deposit(
+      anchorAddr,
+      toFixedHex(deposit.commitment),
+      _encryptedNote,
+    );
 
     const tx = await this.contract.deposit(
       anchorAddr,
       toFixedHex(deposit.commitment),
       _encryptedNote,
-      { gasLimit: '0x5B8D80' }
+      { gasLimit: gasEstimate }
     );
   
     await tx.wait();
@@ -100,7 +106,7 @@ export class AnchorProxy {
     recipient: string,
     relayer: string,
     fee: bigint,
-    refreshCommitment: string | number,
+    refreshCommitment: string | number
   ): Promise<RefreshEvent | WithdrawalEvent> {
     const anchor = this.anchorProxyMap.get(anchorAddr);
     if (!anchor) {
@@ -116,12 +122,17 @@ export class AnchorProxy {
       refreshCommitment,
     );
 
-    //@ts-ignore
-    let tx = await this.contract.withdraw(
+    const gasEstimate = await this.contract.estimateGas.withdraw(
+      anchorAddr,
+      publicInputs,
+      extData
+    );
+
+    const tx = await this.contract.withdraw(
       anchorAddr,
       publicInputs,
       extData,
-      { gasLimit: '0x5B8D80' }
+      { gasLimit: gasEstimate }
     );
 
     const receipt = await tx.wait();
