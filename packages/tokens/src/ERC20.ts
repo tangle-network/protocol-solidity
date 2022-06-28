@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import { ethers, Overrides } from 'ethers';
 import { ERC20 as ERC20Contract, ERC20__factory } from '@webb-tools/contracts';
 
 class ERC20 {
@@ -13,12 +13,14 @@ class ERC20 {
   public static async createERC20(
     name: string,
     symbol: string,
-    deployer: ethers.Signer
+    deployer: ethers.Signer,
+    overrides?: Overrides
   ): Promise<ERC20> {
     const factory = new ERC20__factory(deployer);
     const contract = await factory.deploy(
       name,
       symbol,
+      overrides || {},
     );
     await contract.deployed();
 

@@ -21,6 +21,16 @@
 
 ## Compiling
 
+After cloning the project, populate the latest fixtures (large zero-knowledge files):
+
+- `git submodule update --init`
+
+If you are just attempting to run tests, the following command is suitable:
+
+- `yarn compile`
+
+If you require generation of new fixtures / updates have been made to circom circuits:
+
 - `yarn build`
 
 This command will build the Solidity system, performing the following build steps:

@@ -4,13 +4,13 @@
  */
 const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
-import { ethers } from 'hardhat';
+import { ethers as hhEthers } from 'hardhat';
 
 // Convenience wrapper classes for contract classes
 import { VBridge, VBridgeInput } from '../../packages/vbridge/src';
 import { VAnchor } from '../../packages/anchors/src';
 import { MintableToken, GovernedTokenWrapper } from '../../packages/tokens/src';
-import { BigNumber } from 'ethers';
+import { BigNumber, ethers } from 'ethers';
 import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '../../packages/utils/src';
 import { startGanacheServer } from '@webb-tools/test-utils';
 import { CircomUtxo } from '@webb-tools/sdk-core';
@@ -27,6 +27,11 @@ describe('2-sided multichain tests for signature vbridge', () => {
   // setup zero knowledge components
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
+
+  let hardhatWallet1 = new ethers.Wallet(
+    '0000000000000000000000000000000000000000000000000000000000000001',
+    hhEthers.provider
+  );
 
   before('setup networks', async () => {
     ganacheServer2 = await startGanacheServer(1337, 1337, [
@@ -61,10 +66,10 @@ describe('2-sided multichain tests for signature vbridge', () => {
     let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
 
     before('construction-tests', async () => {
-      const signers = await ethers.getSigners();
+      const signers = await hhEthers.getSigners();
       await ganacheProvider2.ready;
       // Create a token to test bridge construction support for existing tokens
-      tokenInstance1 = await MintableToken.createToken(tokenName, tokenAbbreviation, signers[7]);
+      tokenInstance1 = await MintableToken.createToken(tokenName, tokenAbbreviation, signers[3]);
       tokenInstance2 = await MintableToken.createToken(tokenName, tokenAbbreviation, ganacheWallet2);
       await tokenInstance1.mintTokens(signers[2].address, '100000000000000000000000000');
     });
@@ -83,16 +88,18 @@ describe('2-sided multichain tests for signature vbridge', () => {
         chainIDs: [chainID1, chainID2],
         webbTokens: webbTokens1
       };
-      const signers = await ethers.getSigners();
+      const signers = await hhEthers.getSigners();
 
       const deploymentConfig = {
-        [chainID1]: signers[1],
-        [chainID2]: ganacheWallet2,
+        wallets: {
+          [chainID1]: hardhatWallet1,
+          [chainID2]: ganacheWallet2,
+        }
       };
 
-      const initialGovernorsConfig = {
-        [chainID1]: ethers.Wallet.createRandom(),
-        [chainID2]: ethers.Wallet.createRandom(),
+      const initialGovernorsConfig: Record<number, ethers.Wallet> = {
+        [chainID1]: hardhatWallet1,
+        [chainID2]: ganacheWallet2,
       };
 
       const vBridge = await VBridge.deployVariableAnchorBridge(bridge2WebbEthInput, deploymentConfig, initialGovernorsConfig, zkComponents2_2, zkComponents16_2);
@@ -101,8 +108,8 @@ describe('2-sided multichain tests for signature vbridge', () => {
       const vAnchor2: VAnchor = vBridge.getVAnchor(chainID2)! as VAnchor;
       // Should be able to retrieve the token address (so we can mint tokens for test scenario)
       const webbTokenAddress = vBridge.getWebbTokenAddress(chainID1);
-      const webbToken = await MintableToken.tokenFromAddress(webbTokenAddress!, signers[1]);
-      const tx = await webbToken.mintTokens(signers[2].address, '100000000000000000000000');
+      const webbToken = await MintableToken.tokenFromAddress(webbTokenAddress!, hardhatWallet1);
+      await webbToken.mintTokens(signers[2].address, '100000000000000000000000');
       // Get the state of anchors before deposit
       const sourceAnchorRootBefore = await vAnchor1.contract.getLastRoot();
       // Define inputs/outputs for transact function
@@ -149,14 +156,14 @@ describe('2-sided multichain tests for signature vbridge', () => {
     let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
 
     beforeEach(async () => {
-      const signers = await ethers.getSigners();
+      const signers = await hhEthers.getSigners();
 
-      existingToken1 = await MintableToken.createToken('existingERC20', 'EXIST', signers[1]);
+      existingToken1 = await MintableToken.createToken('existingERC20', 'EXIST', hardhatWallet1);
       // Use some other signer with provider on other chain
       existingToken2 = await MintableToken.createToken('existingERC20', 'EXIST', ganacheWallet2);
 
       // mint some tokens to the user of the bridge
-      await existingToken1.mintTokens(signers[1].address, '100000000000000000000000000');
+      await existingToken1.mintTokens(hardhatWallet1.address, '100000000000000000000000000');
       await existingToken2.mintTokens(ganacheWallet2.address, '100000000000000000000000000');
 
       let webbTokens1 = new Map<number, GovernedTokenWrapper | undefined>();
@@ -176,13 +183,15 @@ describe('2-sided multichain tests for signature vbridge', () => {
 
       // setup the config for deployers of contracts (admins)
       const deploymentConfig = {
-        [chainID1]: signers[1],
-        [chainID2]: ganacheWallet2,
+        wallets: {
+          [chainID1]: hardhatWallet1,
+          [chainID2]: ganacheWallet2,
+        }
       }
 
       const initialGovernorsConfig = {
-        [chainID1]: ethers.Wallet.createRandom(),
-        [chainID2]: ethers.Wallet.createRandom(),
+        [chainID1]: hardhatWallet1,
+        [chainID2]: ganacheWallet2,
       };
 
       // deploy the bridge
@@ -206,15 +215,15 @@ describe('2-sided multichain tests for signature vbridge', () => {
 
       // Should be able to retrieve the token address (so we can mint tokens for test scenario)
       const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainID1);
-      const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
-      const tx1 = await webbToken1.mintTokens(signers[1].address, '100000000000000000000000');
+      const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, hardhatWallet1);
+      const tx1 = await webbToken1.mintTokens(hardhatWallet1.address, '100000000000000000000000');
 
       const webbTokenAddress2 = vBridge.getWebbTokenAddress(chainID2);
       const webbToken2 = await MintableToken.tokenFromAddress(webbTokenAddress2!, ganacheWallet2);
       const tx2 = await webbToken2.mintTokens(ganacheWallet2.address, '100000000000000000000000');
 
       //Transact on the bridge
-      await vBridge.transact([], [depositUtxo1], 0, '0', '0', signers[1]); 
+      await vBridge.transact([], [depositUtxo1], 0, '0', '0', hardhatWallet1); 
       await vBridge.transact([], [depositUtxo2], 0, '0', '0', ganacheWallet2); 
       //Now there is a bidirectional edge between chain1 and chain2
     })
@@ -222,13 +231,13 @@ describe('2-sided multichain tests for signature vbridge', () => {
     describe('#bridging', () => {
       it('basic ganache deposit should withdraw on hardhat', async () => {
         // Fetch information about the anchor to be updated.
-        const signers = await ethers.getSigners();
+        const signers = await hhEthers.getSigners();
 
         const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
         let edgeIndex = await vAnchor1.contract.edgeIndex(chainID2);
         const destAnchorEdge2Before = await vAnchor1.contract.edgeList(edgeIndex);
         const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainID1);
-        const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
+        const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, hardhatWallet1);
         const signers2BalanceBefore = await webbToken1.getBalance(await signers[2].getAddress());
         
         //ganacheWallet2 makes a deposit with dest chain chainID1
@@ -261,7 +270,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
 
       it('basic hardhat deposit should withdraw on ganache', async () => {
         // Fetch information about the anchor to be updated.
-        const signers = await ethers.getSigners();
+        const signers = await hhEthers.getSigners();
 
         const vAnchorGanache: VAnchor = vBridge.getVAnchor(chainID2)! as VAnchor;
         let edgeIndex = await vAnchorGanache.contract.edgeIndex(chainID1);
@@ -279,7 +288,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
           chainId: chainID2.toString()
         });
 
-        await vBridge.transact([], [hardhatDepositUtxo], 0, '0', '0', signers[1]);
+        await vBridge.transact([], [hardhatDepositUtxo], 0, '0', '0', hardhatWallet1);
 
         //check latest leaf index is incremented
         const destAnchorEdge2After = await vAnchorGanache.contract.edgeList(edgeIndex);
@@ -299,13 +308,13 @@ describe('2-sided multichain tests for signature vbridge', () => {
       });
 
       it('join and split ganache deposits and withdraw on hardhat', async () => {
-        const signers = await ethers.getSigners();
+        const signers = await hhEthers.getSigners();
 
         const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
         let edgeIndex = await vAnchor1.contract.edgeIndex(chainID2);
         const destAnchorEdge2Before = await vAnchor1.contract.edgeList(edgeIndex);
         const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainID1);
-        const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
+        const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, hardhatWallet1);
         const signers2BalanceBefore = await webbToken1.getBalance(await signers[2].getAddress());
 
         //ganacheWallet2 makes a deposit with dest chain chainID1
@@ -348,14 +357,14 @@ describe('2-sided multichain tests for signature vbridge', () => {
 
       it('should update multiple deposits and withdraw historic deposit from ganache', async () => {
         // Fetch information about the anchor to be updated.
-        const signers = await ethers.getSigners();
+        const signers = await hhEthers.getSigners();
 
         const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
         let edgeIndex = await vAnchor1.contract.edgeIndex(chainID2);
         const destAnchorEdge2Before = await vAnchor1.contract.edgeList(edgeIndex);
         const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainID1);
-        const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
-        const startingBalanceDest = await webbToken1.getBalance(signers[1].address);
+        const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, hardhatWallet1);
+        const startingBalanceDest = await webbToken1.getBalance(hardhatWallet1.address);
 
         //ganacheWallet2 makes a deposit with dest chain chainID1
         const ganacheDepositUtxo1 = await CircomUtxo.generateUtxo({
@@ -387,15 +396,15 @@ describe('2-sided multichain tests for signature vbridge', () => {
           originChainId: chainID1.toString(),
           chainId: chainID1.toString()
         })
-        await vBridge.transact([ganacheDepositUtxo1], [hardhatWithdrawUtxo], 0, await signers[1].getAddress(), '0', signers[2]); 
+        await vBridge.transact([ganacheDepositUtxo1], [hardhatWithdrawUtxo], 0, await hardhatWallet1.getAddress(), '0', signers[2]); 
 
         // // Check balances
-        const endingBalanceDest = await webbToken1.getBalance(signers[1].address);
+        const endingBalanceDest = await webbToken1.getBalance(hardhatWallet1.address);
         assert.deepStrictEqual(endingBalanceDest, startingBalanceDest.add(5e6));
       })
 
       it('prevent cross-chain double spending', async () => {
-        const signers = await ethers.getSigners();
+        const signers = await hhEthers.getSigners();
 
         //ganacheWallet2 makes a deposit with dest chain chainID1
         const ganacheDepositUtxo = await CircomUtxo.generateUtxo({
@@ -424,14 +433,14 @@ describe('2-sided multichain tests for signature vbridge', () => {
 
       it('mintable token task test', async () => {
         // Fetch information about the anchor to be updated.
-        const signers = await ethers.getSigners();
+        const signers = await hhEthers.getSigners();
 
         const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
         const vAnchor1Address = vAnchor1.contract.address;
         let edgeIndex = await vAnchor1.contract.edgeIndex(chainID2);
         const destAnchorEdge2Before = await vAnchor1.contract.edgeList(edgeIndex);
         const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainID1);
-        const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
+        const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, hardhatWallet1);
         const signers2BalanceBefore = await webbToken1.getBalance(await signers[2].getAddress());
         
         //ganacheWallet2 makes a deposit with dest chain chainID1
@@ -475,7 +484,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
     })
   })
 
-  describe('2 sided bridge existing token test wrapping functionality', () => {
+  describe.only('2 sided bridge existing token test wrapping functionality', () => {
     // ERC20 compliant contracts that can easily create balances for test
     let existingToken1: MintableToken;
     let existingToken2: MintableToken;
@@ -486,14 +495,12 @@ describe('2-sided multichain tests for signature vbridge', () => {
     let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
 
     beforeEach(async () => {
-      const signers = await ethers.getSigners();
-
-      existingToken1 = await MintableToken.createToken('existingERC20', 'EXIST', signers[1]);
+      existingToken1 = await MintableToken.createToken('existingERC20', 'EXIST', hardhatWallet1);
       // Use some other signer with provider on other chain
       existingToken2 = await MintableToken.createToken('existingERC20', 'EXIST', ganacheWallet2);
 
       // mint some tokens to the user of the bridge
-      await existingToken1.mintTokens(signers[1].address, '100000000000000000000000000');
+      await existingToken1.mintTokens(hardhatWallet1.address, '100000000000000000000000000');
       await existingToken2.mintTokens(ganacheWallet2.address, '100000000000000000000000000');
 
       let webbTokens1 = new Map<number, GovernedTokenWrapper | undefined>();
@@ -503,8 +510,8 @@ describe('2-sided multichain tests for signature vbridge', () => {
       const vBridgeInput = {
         vAnchorInputs: {
           asset: {
-            [chainID1]: [existingToken1.contract.address],
-            [chainID2]: [existingToken2.contract.address],
+            [chainID1]: [existingToken1.contract.address, '0x0000000000000000000000000000000000000000'],
+            [chainID2]: [existingToken2.contract.address, '0x0000000000000000000000000000000000000000'],
           }
         },
         chainIDs: [chainID1, chainID2],
@@ -513,8 +520,10 @@ describe('2-sided multichain tests for signature vbridge', () => {
 
       // setup the config for deployers of contracts (admins)
       const deploymentConfig = {
-        [chainID1]: signers[1],
-        [chainID2]: ganacheWallet2,
+        wallets: {
+          [chainID1]: hardhatWallet1,
+          [chainID2]: ganacheWallet2,
+        }
       }
 
       const initialGovernorsConfig = {
@@ -542,7 +551,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
       });
 
       //Transact on the bridge
-      await vBridge.transactWrap(existingToken1.contract.address, [], [depositUtxo1], 0, '0', '0', signers[1]); 
+      await vBridge.transactWrap(existingToken1.contract.address, [], [depositUtxo1], 0, '0', '0', hardhatWallet1); 
       await vBridge.transactWrap(existingToken2.contract.address, [], [depositUtxo2], 0, '0', '0', ganacheWallet2); 
       //Now there is a bidirectional edge between chain1 and chain2
     })
@@ -550,11 +559,9 @@ describe('2-sided multichain tests for signature vbridge', () => {
     describe('#bridging wrapping/unwrapping', () => {
       it('check there is a bidirectional bridge between the two chains', async () => {
         //Fetch information about the anchor to be updated.
-        const signers = await ethers.getSigners();
-
-        const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
+        const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1);
         const vAnchor1Address = vAnchor1.contract.address;
-        const vAnchor2: VAnchor = vBridge.getVAnchor(chainID2)! as VAnchor;
+        const vAnchor2: VAnchor = vBridge.getVAnchor(chainID2);
         const vAnchor2Address = vAnchor2.contract.address;
         let edgeIndex12 = await vAnchor1.contract.edgeIndex(chainID2);
         const destAnchorEdge2Before = await vAnchor1.contract.edgeList(edgeIndex12);
@@ -564,7 +571,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         assert.strictEqual(destAnchorEdge1Before.root.toString(), (await vAnchor1.contract.getLastRoot()).toString());
 
         const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainID1);
-        const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
+        const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, hardhatWallet1);
 
         const vAnchor1Balance = await webbToken1.getBalance(vAnchor1Address);
         assert.strictEqual(vAnchor1Balance.toString(), BigNumber.from(1e7).toString());
@@ -576,15 +583,36 @@ describe('2-sided multichain tests for signature vbridge', () => {
         assert.strictEqual(vAnchor2Balance.toString(), BigNumber.from(1e7).toString());
       });
 
+      it.only('should transactWrap with native', async () => {
+        //Deposit UTXO
+        const hardhatDepositUtxo1 = await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          amount: 2.5e7.toString(),
+          originChainId: chainID1.toString(),
+          chainId: chainID2.toString()
+        });
+
+        await vBridge.transactWrap(
+          '0x0000000000000000000000000000000000000000',
+          [],
+          [hardhatDepositUtxo1],
+          0,
+          '0',
+          '0',
+          hardhatWallet1
+        );
+      })
+
       it('wrap and deposit, withdraw and unwrap works join split via transactWrap', async () => {
-        const signers = await ethers.getSigners();
+        const signers = await hhEthers.getSigners();
 
         const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
         const vAnchor1Address = vAnchor1.contract.address;
         const vAnchor2: VAnchor = vBridge.getVAnchor(chainID2)! as VAnchor;
         const vAnchor2Address = vAnchor2.contract.address;
         const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainID1);
-        const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
+        const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, hardhatWallet1);
 
         //Deposit UTXO
         const ganacheDepositUtxo1 = await CircomUtxo.generateUtxo({
@@ -617,7 +645,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
           amount: 1e7.toString(),
           originChainId: chainID1.toString(),
           chainId: chainID1.toString()})
-        await vBridge.transactWrap(existingToken1.contract.address, [ganacheDepositUtxo1, ganacheDepositUtxo2], [hardhatWithdrawUtxo], 0, await signers[2].getAddress(), '0', signers[1]);
+        await vBridge.transactWrap(existingToken1.contract.address, [ganacheDepositUtxo1, ganacheDepositUtxo2], [hardhatWithdrawUtxo], 0, await signers[2].getAddress(), '0', hardhatWallet1);
 
         //Check relevant balances
         //Unwrapped Balance of signers[2] should be 3e7
@@ -632,14 +660,14 @@ describe('2-sided multichain tests for signature vbridge', () => {
       });
 
       it('wrap and deposit, withdraw and unwrap works join split 16 input via transactWrap', async () => {
-        const signers = await ethers.getSigners();
+        const signers = await hhEthers.getSigners();
 
         const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
         const vAnchor1Address = vAnchor1.contract.address;
         const vAnchor2: VAnchor = vBridge.getVAnchor(chainID2)! as VAnchor;
         const vAnchor2Address = vAnchor2.contract.address;
         const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainID1);
-        const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
+        const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, hardhatWallet1);
 
         //Deposit UTXO
         const ganacheDepositUtxo1 = await CircomUtxo.generateUtxo({
@@ -687,7 +715,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
           originChainId: chainID1.toString(),
           chainId: chainID1.toString()
         })
-        await vBridge.transactWrap(existingToken1.contract.address, [ganacheDepositUtxo1, ganacheDepositUtxo2, ganacheDepositUtxo3], [hardhatWithdrawUtxo], 0, await signers[2].getAddress(), '0', signers[1]);
+        await vBridge.transactWrap(existingToken1.contract.address, [ganacheDepositUtxo1, ganacheDepositUtxo2, ganacheDepositUtxo3], [hardhatWithdrawUtxo], 0, await signers[2].getAddress(), '0', hardhatWallet1);
 
         //Check relevant balances
         //Unwrapped Balance of signers[2] should be 3e7
@@ -712,6 +740,12 @@ describe('8-sided multichain tests for signature vbridge', () => {
   const chainID1 = getChainIdType(31337);
   const chainID2 = getChainIdType(1337);
   const chainID3 = getChainIdType(1338);
+
+  let hardhatWallet1 = new ethers.Wallet(
+    '0000000000000000000000000000000000000000000000000000000000000001',
+    hhEthers.provider
+  );
+
   // setup ganache networks
   let ganacheServer2: any;
   let ganacheServer3: any;
@@ -760,15 +794,13 @@ describe('8-sided multichain tests for signature vbridge', () => {
     ganacheProvider3.pollingInterval = 1;
     let ganacheWallet3 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider3);
     beforeEach(async () => {
-      const signers = await ethers.getSigners();
-
-      existingToken1 = await MintableToken.createToken('existingERC20', 'EXIST', signers[1]);
+      existingToken1 = await MintableToken.createToken('existingERC20', 'EXIST', hardhatWallet1);
       // Use some other signer with provider on other chain
       existingToken2 = await MintableToken.createToken('existingERC20', 'EXIST', ganacheWallet2);
       existingToken3 = await MintableToken.createToken('existingERC20', 'EXIST', ganacheWallet3);
 
       // mint some tokens to the user of the bridge
-      await existingToken1.mintTokens(signers[1].address, '100000000000000000000000000');
+      await existingToken1.mintTokens(hardhatWallet1.address, '100000000000000000000000000');
       await existingToken2.mintTokens(ganacheWallet2.address, '100000000000000000000000000');
       await existingToken3.mintTokens(ganacheWallet3.address, '100000000000000000000000000');
 
@@ -792,9 +824,11 @@ describe('8-sided multichain tests for signature vbridge', () => {
 
       // setup the config for deployers of contracts (admins)
       const deploymentConfig = {
-        [chainID1]: signers[1],
-        [chainID2]: ganacheWallet2,
-        [chainID3]: ganacheWallet3,
+        wallets: {
+          [chainID1]: hardhatWallet1,
+          [chainID2]: ganacheWallet2,
+          [chainID3]: ganacheWallet3,
+        }
       }
 
       const initialGovernorsConfig = {
@@ -808,8 +842,8 @@ describe('8-sided multichain tests for signature vbridge', () => {
 
       // Should be able to retrieve the token address (so we can mint tokens for test scenario)
       const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainID1);
-      const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1, signers[1]);
-      await webbToken1.mintTokens(signers[1].address, '100000000000000000000000');
+      const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1, hardhatWallet1);
+      await webbToken1.mintTokens(hardhatWallet1.address, '100000000000000000000000');
 
       const webbTokenAddress2 = vBridge.getWebbTokenAddress(chainID2);
       const webbToken2 = await MintableToken.tokenFromAddress(webbTokenAddress2, ganacheWallet2);
@@ -842,7 +876,7 @@ describe('8-sided multichain tests for signature vbridge', () => {
         chainId: chainID3.toString()
       });
       
-      await vBridge.transact([], [depositUtxo1], 0, '0', '0', signers[1]); 
+      await vBridge.transact([], [depositUtxo1], 0, '0', '0', hardhatWallet1); 
       await vBridge.transact([], [depositUtxo2], 0, '0', '0', ganacheWallet2); 
       await vBridge.transact([], [depositUtxo3], 0, '0', '0', ganacheWallet3);
     });
@@ -850,13 +884,13 @@ describe('8-sided multichain tests for signature vbridge', () => {
     describe('#bridging', () => {
       it('basic ganache deposit should withdraw on hardhat', async () => {
         // Fetch information about the anchor to be updated.
-        const signers = await ethers.getSigners();
+        const signers = await hhEthers.getSigners();
 
         const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
         let edgeIndex = await vAnchor1.contract.edgeIndex(chainID2);
         const destAnchorEdge2Before = await vAnchor1.contract.edgeList(edgeIndex);
         const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainID1);
-        const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
+        const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, hardhatWallet1);
         const signers2BalanceBefore = await webbToken1.getBalance(await signers[2].getAddress());
         
         //ganacheWallet2 makes a deposit with dest chain chainID1
@@ -889,7 +923,7 @@ describe('8-sided multichain tests for signature vbridge', () => {
 
       it('basic hardhat deposit should withdraw on ganache', async () => {
         // Fetch information about the anchor to be updated.
-        const signers = await ethers.getSigners();
+        const signers = await hhEthers.getSigners();
 
         const vAnchorGanache: VAnchor = vBridge.getVAnchor(chainID2)! as VAnchor;
         let edgeIndex = await vAnchorGanache.contract.edgeIndex(chainID1);
@@ -907,7 +941,7 @@ describe('8-sided multichain tests for signature vbridge', () => {
           chainId: chainID2.toString()
         });
 
-        await vBridge.transact([], [hardhatDepositUtxo], 0, '0', '0', signers[1]);
+        await vBridge.transact([], [hardhatDepositUtxo], 0, '0', '0', hardhatWallet1);
 
         //check latest leaf index is incremented
         const destAnchorEdge2After = await vAnchorGanache.contract.edgeList(edgeIndex);

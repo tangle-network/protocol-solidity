@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
+import { BigNumber, BigNumberish, ContractTransaction, ethers, Overrides } from 'ethers';
 import { VAnchor as VAnchorContract, VAnchor__factory, VAnchorEncodeInputs__factory } from '@webb-tools/contracts';
 import {
   toHex,
@@ -89,10 +89,11 @@ export class VAnchor implements IAnchor {
     relayer: string,
     fee: bigint,
     refreshCommitment: string | number,
+    overrides?: Overrides
   ): Promise<ethers.Event> {
     throw new Error("Method not implemented.");
   }
-  wrapAndDeposit(tokenAddress: string, wrappingFee: number, destinationChainId?: number): Promise<IAnchorDeposit> {
+  wrapAndDeposit(tokenAddress: string, wrappingFee: number, destinationChainId: number, overrides?: Overrides): Promise<IAnchorDeposit> {
     throw new Error("Method not implemented.");
   }
   bridgedWithdrawAndUnwrap(deposit: IAnchorDeposit, merkleProof: any, recipient: string, relayer: string, fee: string, refund: string, refreshCommitment: string, tokenAddress: string): Promise<ethers.Event> {
@@ -115,12 +116,13 @@ export class VAnchor implements IAnchor {
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents,
     signer: ethers.Signer,
+    overrides?: Overrides
   ) {
     const encodeLibraryFactory = new VAnchorEncodeInputs__factory(signer);
-    const encodeLibrary = await encodeLibraryFactory.deploy();
+    const encodeLibrary = await encodeLibraryFactory.deploy(overrides || {});
     await encodeLibrary.deployed();
     const factory = new VAnchor__factory({["contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs"]: encodeLibrary.address}, signer);
-    const vAnchor = await factory.deploy(verifier, levels, hasher, handler, token, maxEdges, {});
+    const vAnchor = await factory.deploy(verifier, levels, hasher, handler, token, maxEdges, overrides || {});
     await vAnchor.deployed();
     const createdVAnchor = new VAnchor(vAnchor, signer, BigNumber.from(levels).toNumber(), maxEdges, smallCircuitZkComponents, largeCircuitZkComponents);
     createdVAnchor.latestSyncedBlock = vAnchor.deployTransaction.blockNumber!;

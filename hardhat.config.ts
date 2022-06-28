@@ -1,4 +1,5 @@
 import { HardhatUserConfig } from 'hardhat/types';
+import { ethers } from 'hardhat';
 import "hardhat-artifactor";
 import '@typechain/hardhat';
 import '@nomiclabs/hardhat-ethers'
@@ -24,6 +25,30 @@ subtask('typechain-generate-types',
 
 const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',
+  networks: {
+    hardhat: {
+      // Specify hardhat account balances for deterministic privateKeys for governor interactions
+      accounts:
+        [
+          {
+            privateKey: '0x0000000000000000000000000000000000000000000000000000000000000001',
+            balance: '10000000000000000000000'
+          },
+          {
+            privateKey: '0x0000000000000000000000000000000000000000000000000000000000000002',
+            balance: '10000000000000000000000'
+          },
+          {
+            privateKey: '0x0000000000000000000000000000000000000000000000000000000000000003',
+            balance: '10000000000000000000000'
+          },
+          {
+            privateKey: '0x0000000000000000000000000000000000000000000000000000000000000004',
+            balance: '10000000000000000000000'
+          }
+        ]
+    }
+  },
   solidity: {
     compilers: [{
       version: "0.8.5",
@@ -35,13 +60,13 @@ const config: HardhatUserConfig = {
       }
     }],
   },
+  mocha: {
+    timeout: 60000
+  },
   // @ts-ignore
   dodoc: {
     include: ["FixedDepositAnchor", "AnchorBase", "LinkableAnchor", "AnchorHandler", "IAnchor", "IAnchorTrees", "ILinkableAnchor", "VAnchorEncodeInputs", "GovernedTokenWrapper", "TokenWrapperHandler", "Hasher", , "MerkleTreePoseidon", "MerkleTreeWithHistoryPoseidon", "Poseidon", "SnarkConstants", "LinkableVAnchor", "VAnchor", "VAnchorBase", "AnchorProxy", "Bridge"]
   },
-  mocha: {
-    timeout: 60000
-  }
 };
 
 export default config;

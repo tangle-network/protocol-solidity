@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import { ethers, Overrides } from 'ethers';
 import { TreasuryHandler as TreasuryHandlerContract, TreasuryHandler__factory } from '@webb-tools/contracts';
 
 export class TreasuryHandler {
@@ -14,10 +14,11 @@ export class TreasuryHandler {
     bridgeAddress: string,
     initResourceIds: string[],
     initContractAddresses: string[],
-    deployer: ethers.Signer
+    deployer: ethers.Signer,
+    overrides?: Overrides
   ) {
     const factory = new TreasuryHandler__factory(deployer);
-    const contract = await factory.deploy(bridgeAddress, initResourceIds, initContractAddresses);
+    const contract = await factory.deploy(bridgeAddress, initResourceIds, initContractAddresses, { ...overrides });
     await contract.deployed();
 
     const handler = new TreasuryHandler(contract);

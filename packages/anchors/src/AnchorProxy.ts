@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import { ethers, Overrides } from 'ethers';
 import { AnchorProxy as AnchorProxyContract, AnchorProxy__factory } from '@webb-tools/contracts';
 import { WithdrawalEvent, RefreshEvent } from '@webb-tools/contracts/src/FixedDepositAnchor';
 import { Anchor } from './Anchor';
@@ -26,7 +26,6 @@ export class AnchorProxy {
   contract: AnchorProxyContract;
   // An AnchorProxy can proxy for multiple anchors so we have a map from address to Anchor Class
   anchorProxyMap: Map<string, Anchor>; 
-
   
   constructor(
     contract: AnchorProxyContract,
@@ -47,7 +46,8 @@ export class AnchorProxy {
     _anchorTrees: string,
     _governance: string,
     _anchorList: Anchor[],
-    deployer: ethers.Signer
+    deployer: ethers.Signer,
+    overrides?: Overrides
   ) {
     const factory = new AnchorProxy__factory(deployer);
     const instances = _anchorList.map((a: Anchor) => {
@@ -59,14 +59,14 @@ export class AnchorProxy {
         },
       }
     });
-    const contract = await factory.deploy(_anchorTrees, _governance, instances); //edit this
+    const contract = await factory.deploy(_anchorTrees, _governance, instances, overrides || {}); //edit this
     await contract.deployed();
 
     const handler = new AnchorProxy(contract, deployer, _anchorList);
     return handler;
   }
 
-  public async deposit(anchorAddr: string, destChainId: number, encryptedNote?: string): Promise<{deposit: IAnchorDepositInfo, index: number}> {
+  public async deposit(anchorAddr: string, destChainId: number, encryptedNote?: string, overrides?: Overrides): Promise<{deposit: IAnchorDepositInfo, index: number}> {
     const deposit: IAnchorDepositInfo = Anchor.generateDeposit(destChainId);
     let _encryptedNote: string = '0x000000'
     if (encryptedNote) {
@@ -78,7 +78,7 @@ export class AnchorProxy {
       anchorAddr,
       toFixedHex(deposit.commitment),
       _encryptedNote,
-      { gasLimit: '0x5B8D80' }
+      overrides || { gasLimit: '0x5B8D80' }
     );
   
     await tx.wait();
@@ -101,6 +101,7 @@ export class AnchorProxy {
     relayer: string,
     fee: bigint,
     refreshCommitment: string | number,
+    overrides?: Overrides
   ): Promise<RefreshEvent | WithdrawalEvent> {
     const anchor = this.anchorProxyMap.get(anchorAddr);
     if (!anchor) {
@@ -121,7 +122,7 @@ export class AnchorProxy {
       anchorAddr,
       publicInputs,
       extData,
-      { gasLimit: '0x5B8D80' }
+      overrides || { gasLimit: '0x5B8D80' }
     );
 
     const receipt = await tx.wait();

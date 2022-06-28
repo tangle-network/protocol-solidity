@@ -1,16 +1,13 @@
-import { ethers, BigNumber, BigNumberish  } from 'ethers';
+import { ethers, BigNumber, BigNumberish, Overrides } from 'ethers';
 import { SignatureBridgeSide } from '@webb-tools/bridges';
-import { MintableToken, GovernedTokenWrapper, TreasuryHandler, Treasury } from "@webb-tools/tokens";
+import { MintableToken, GovernedTokenWrapper, TreasuryHandler, Treasury, TokenWrapperHandler } from "@webb-tools/tokens";
 import { PoseidonT3__factory } from "@webb-tools/contracts";
 import Verifier from "./Verifier";
-import { AnchorIdentifier, GovernorConfig } from "@webb-tools/interfaces";
+import { AnchorIdentifier, GovernorConfig, DeployerConfig } from "@webb-tools/interfaces";
 import { AnchorHandler, VAnchor } from "@webb-tools/anchors";
 import { getChainIdType, ZkComponents } from "@webb-tools/utils";
 import { CircomUtxo, Utxo } from "@webb-tools/sdk-core";
 import { hexToU8a, u8aToHex } from '@polkadot/util';
-
-// Deployer config matches the chainId to the signer for that chain
-export type DeployerConfig = Record<number, ethers.Signer>;
 
 export type ExistingAssetInput = {
   // A record of chainId => address
@@ -111,29 +108,48 @@ export class VBridge {
 
     for (let chainID of vBridgeInput.chainIDs) {
       const initialGovernor = initialGovernors[chainID];
-      let vBridgeInstance;
+
       // Create the bridgeSide
-      vBridgeInstance = await SignatureBridgeSide.createBridgeSide(
+      let vBridgeInstance = await SignatureBridgeSide.createBridgeSide(
        initialGovernor,
-       deployers[chainID],
+       deployers.wallets[chainID],
       );
 
-      // Create Treasury and TreasuryHandler
-      const treasuryHandler = await TreasuryHandler.createTreasuryHandler(vBridgeInstance.contract.address, [],[], vBridgeInstance.admin);
-
-      const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, vBridgeInstance.admin);
-
-      const handler = await AnchorHandler.createAnchorHandler(vBridgeInstance.contract.address, [], [], vBridgeInstance.admin);
+      const handler = await AnchorHandler.createAnchorHandler(
+        vBridgeInstance.contract.address,
+        [],
+        [],
+        vBridgeInstance.admin,
+        deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'}
+      );
       vBridgeInstance.setAnchorHandler(handler);
 
       vBridgeSides.set(chainID, vBridgeInstance);
 
+      // Create Treasury and TreasuryHandler
+      const treasuryHandler = await TreasuryHandler.createTreasuryHandler(
+        vBridgeInstance.contract.address,
+        [],
+        [],
+        vBridgeInstance.admin,
+        deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'}
+      );
+
+      const treasury = await Treasury.createTreasury(
+        treasuryHandler.contract.address,
+        vBridgeInstance.admin,
+        deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'}
+      );
+
+      await vBridgeInstance.setTreasuryHandler(treasuryHandler);
+      await vBridgeInstance.setTreasuryResourceWithSignature(treasury);
+
       // Create the Hasher and Verifier for the chain
-      const hasherFactory = new PoseidonT3__factory(deployers[chainID]);
-      let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
+      const hasherFactory = new PoseidonT3__factory(deployers.wallets[chainID]);
+      let hasherInstance = await hasherFactory.deploy(deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'});
       await hasherInstance.deployed();
 
-      const verifier = await Verifier.createVerifier(deployers[chainID]);
+      const verifier = await Verifier.createVerifier(deployers.wallets[chainID], deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'});
       let verifierInstance = verifier.contract;
 
       // Check the addresses of the asset. If it is zero, deploy a native token wrapper
@@ -144,30 +160,48 @@ export class VBridge {
           allowedNative = true;
         }
       }
+
+      // Deploy TokenWrapperHandler
+      const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(
+        vBridgeInstance.contract.address,
+        [],
+        [],
+        vBridgeInstance.admin,
+        deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'}
+      );
+
       let tokenInstance: GovernedTokenWrapper;
       if (!vBridgeInput.webbTokens.get(chainID)) {
         tokenInstance = await GovernedTokenWrapper.createGovernedTokenWrapper(
-          `webbETH-test-1`,
-          `webbETH-test-1`,
+          `webbETH`,
+          `webbETH`,
           treasury.contract.address,
-          await deployers[chainID].getAddress(),
+          tokenWrapperHandler.contract.address,
           '10000000000000000000000000',
           allowedNative,
-          deployers[chainID],
+          deployers.wallets[chainID],
+          deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'}
         );
       } else {
         tokenInstance = vBridgeInput.webbTokens.get(chainID)!;
-      }      
+      }
 
+      await vBridgeInstance.setTokenWrapperHandler(tokenWrapperHandler);
+      await vBridgeInstance.setGovernedTokenResourceWithSignature(tokenInstance, deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'});
+      
       // Add all token addresses to the governed token instance.
       for (const tokenToBeWrapped of vBridgeInput.vAnchorInputs.asset[chainID]!) {
         // if the address is not '0', then add it
         if (!checkNativeAddress(tokenToBeWrapped)) {
-          const tx = await tokenInstance.contract.add(tokenToBeWrapped, (await tokenInstance?.contract.proposalNonce()).add(1));
-          await tx.wait();
+          console.log('attempted to executeAddTokenProposal of token: ', tokenToBeWrapped);
+          await vBridgeInstance.executeAddTokenProposalWithSig(tokenInstance, tokenToBeWrapped, 
+            deployers.gasLimits
+              ? { gasLimit: deployers.gasLimits[chainID] }
+              : { gasLimit: '0x5B8D80' }
+          );
         }
       }
-
+      
       // append each token
       webbTokenAddresses.set(
         chainID,
@@ -186,11 +220,12 @@ export class VBridge {
           vBridgeInput.chainIDs.length > 2 ? 7 : 1,
           smallCircuitZkComponents,
           largeCircuitZkComponents,
-          deployers[chainID],
+          deployers.wallets[chainID],
+          deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'}
       );
 
       // grant minting rights to the anchor
-      await tokenInstance?.grantMinterRole(vAnchorInstance.contract.address); 
+      await tokenInstance.grantMinterRole(vAnchorInstance.contract.address, deployers.gasLimits ? { gasLimit: deployers.gasLimits[chainID]} : { gasLimit: '0x5B8D80'}); 
 
       chainGroupedVAnchors.push(vAnchorInstance);
       vAnchors.set(
@@ -223,17 +258,19 @@ export class VBridge {
   // The setPermissions method accepts initialized bridgeSide and anchors.
   // it creates the anchor handler and sets the appropriate permissions
   // for the bridgeSide/anchorHandler/anchor
-  public static async setPermissions(vBridgeSide: SignatureBridgeSide, vAnchors: VAnchor[]): Promise<void> {
+  public static async setPermissions(vBridgeSide: SignatureBridgeSide, vAnchors: VAnchor[], overrides?: Overrides): Promise<void> {
     let tokenDenomination = '1000000000000000000' // 1 ether
     for (let vAnchor of vAnchors) {
       await vBridgeSide.connectAnchorWithSignature(vAnchor);
       await vBridgeSide.executeMinWithdrawalLimitProposalWithSig(
         vAnchor,
         BigNumber.from(0).toString(),
+        overrides || {}
       ); 
       await vBridgeSide.executeMaxDepositLimitProposalWithSig(
         vAnchor,
-        BigNumber.from(tokenDenomination).mul(1_000_000).toString()
+        BigNumber.from(tokenDenomination).mul(1_000_000).toString(),
+        overrides || {}
       ); 
     }
   }
@@ -422,18 +459,20 @@ export class VBridge {
       }
     }
 
-    const tokenInstanceAddress = await vAnchor.contract.token();
-    const tokenInstance = await MintableToken.tokenFromAddress(tokenAddress, signer);
-
     const extAmount = BigNumber.from(fee)
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
 
     const publicAmount = extAmount.sub(fee);
     // Approve spending if needed
-    const userTokenAllowance = await tokenInstance.getAllowance(signerAddress, vAnchor.contract.address);
-    if (userTokenAllowance.lt(publicAmount)) {
-      await tokenInstance.approveSpending(tokenInstanceAddress);
+
+    const webbTokenAddress = await vAnchor.contract.token();
+    if (tokenAddress != zeroAddress) {
+      const tokenInstance = await MintableToken.tokenFromAddress(tokenAddress, signer);
+      const userTokenAllowance = await tokenInstance.getAllowance(signerAddress, vAnchor.contract.address);
+      if (userTokenAllowance.lt(publicAmount)) {
+        await tokenInstance.approveSpending(webbTokenAddress);
+      }
     }
 
     const regeneratedInputs: Utxo[] = [];
