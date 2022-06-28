@@ -608,22 +608,16 @@ describe('Anchor for 2 max edges', () => {
       const refreshedDeposit = Anchor.generateDeposit(refreshedDestId);
 
       const { merkleRoot, pathElements, pathIndices } = anchor.tree.path(0);
-      const extData: IFixedAnchorExtData = { 
-        _refreshCommitment: toFixedHex(refreshedDeposit.commitment), 
-        _recipient: recipient, 
-        _relayer: relayer, 
-        _fee: fee, 
-        _refund: refund,
-      }
+
       const input = {
         // public
         nullifierHash: deposit.nullifierHash,
         extDataHash: getFixedAnchorExtDataHash(
-          extData._fee,
-          extData._recipient,
-          extData._refreshCommitment,
-          extData._refund,
-          extData._relayer
+          fee,
+          recipient,
+          toFixedHex(refreshedDeposit.commitment),
+          refund,
+          relayer
         ),
         chainID: deposit.chainID,
         roots: [merkleRoot, 0],

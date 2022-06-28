@@ -14,6 +14,7 @@ import { BigNumber } from 'ethers';
 import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '../../packages/utils/src';
 import { startGanacheServer } from '@webb-tools/test-utils';
 import { CircomUtxo } from '@webb-tools/sdk-core';
+import { DeployerConfig, GovernorConfig } from '@webb-tools/interfaces';
 
 const path = require('path');
 
@@ -85,12 +86,12 @@ describe('2-sided multichain tests for signature vbridge', () => {
       };
       const signers = await ethers.getSigners();
 
-      const deploymentConfig = {
+      const deploymentConfig: DeployerConfig = {
         [chainID1]: signers[1],
         [chainID2]: ganacheWallet2,
       };
 
-      const initialGovernorsConfig = {
+      const initialGovernorsConfig: GovernorConfig = {
         [chainID1]: ethers.Wallet.createRandom(),
         [chainID2]: ethers.Wallet.createRandom(),
       };
@@ -175,12 +176,12 @@ describe('2-sided multichain tests for signature vbridge', () => {
       }
 
       // setup the config for deployers of contracts (admins)
-      const deploymentConfig = {
+      const deploymentConfig: DeployerConfig = {
         [chainID1]: signers[1],
         [chainID2]: ganacheWallet2,
       }
 
-      const initialGovernorsConfig = {
+      const initialGovernorsConfig: GovernorConfig = {
         [chainID1]: ethers.Wallet.createRandom(),
         [chainID2]: ethers.Wallet.createRandom(),
       };
@@ -503,8 +504,8 @@ describe('2-sided multichain tests for signature vbridge', () => {
       const vBridgeInput = {
         vAnchorInputs: {
           asset: {
-            [chainID1]: [existingToken1.contract.address],
-            [chainID2]: [existingToken2.contract.address],
+            [chainID1]: [existingToken1.contract.address, '0x0000000000000000000000000000000000000000'],
+            [chainID2]: [existingToken2.contract.address, '0x0000000000000000000000000000000000000000'],
           }
         },
         chainIDs: [chainID1, chainID2],
@@ -512,12 +513,12 @@ describe('2-sided multichain tests for signature vbridge', () => {
       }
 
       // setup the config for deployers of contracts (admins)
-      const deploymentConfig = {
+      const deploymentConfig: DeployerConfig = {
         [chainID1]: signers[1],
         [chainID2]: ganacheWallet2,
       }
 
-      const initialGovernorsConfig = {
+      const initialGovernorsConfig: GovernorConfig = {
         [chainID1]: ethers.Wallet.createRandom(),
         [chainID2]: ethers.Wallet.createRandom(),
       };
@@ -575,6 +576,28 @@ describe('2-sided multichain tests for signature vbridge', () => {
         const vAnchor2Balance = await webbToken2.getBalance(vAnchor2Address);
         assert.strictEqual(vAnchor2Balance.toString(), BigNumber.from(1e7).toString());
       });
+
+      it('should transactWrap with native', async () => {
+        const signers = ethers.getSigners();
+        //Deposit UTXO
+        const hardhatDepositUtxo1 = await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          amount: 2.5e7.toString(),
+          originChainId: chainID1.toString(),
+          chainId: chainID2.toString()
+        });
+
+        await vBridge.transactWrap(
+          '0x0000000000000000000000000000000000000000',
+          [],
+          [hardhatDepositUtxo1],
+          0,
+          '0',
+          '0',
+          signers[1]
+        );
+      })
 
       it('wrap and deposit, withdraw and unwrap works join split via transactWrap', async () => {
         const signers = await ethers.getSigners();
@@ -791,13 +814,13 @@ describe('8-sided multichain tests for signature vbridge', () => {
       }
 
       // setup the config for deployers of contracts (admins)
-      const deploymentConfig = {
+      const deploymentConfig: DeployerConfig = {
         [chainID1]: signers[1],
         [chainID2]: ganacheWallet2,
         [chainID3]: ganacheWallet3,
       }
 
-      const initialGovernorsConfig = {
+      const initialGovernorsConfig: GovernorConfig = {
         [chainID1]: ethers.Wallet.createRandom(),
         [chainID2]: ethers.Wallet.createRandom(),
         [chainID3]: ethers.Wallet.createRandom(),

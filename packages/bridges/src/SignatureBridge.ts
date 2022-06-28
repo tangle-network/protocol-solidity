@@ -148,8 +148,8 @@ export class SignatureBridge {
       const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeInstance.contract.address, [], [], bridgeInstance.admin);
 
       let tokenInstance: GovernedTokenWrapper = await GovernedTokenWrapper.createGovernedTokenWrapper(
-        `webbETH-test-1`,
-        `webbETH-test-1`,
+        `webbWETH`,
+        `webbWETH`,
         treasury.contract.address,
         tokenWrapperHandler.contract.address,
         '10000000000000000000000000',
@@ -164,7 +164,7 @@ export class SignatureBridge {
       for (const tokenToBeWrapped of bridgeInput.anchorInputs.asset[chainID]!) {
         // if the address is not '0', then add it
         if (!checkNativeAddress(tokenToBeWrapped)) {
-          const tx = await bridgeInstance.executeAddTokenProposalWithSig(tokenInstance, tokenToBeWrapped);
+          await bridgeInstance.executeAddTokenProposalWithSig(tokenInstance, tokenToBeWrapped);
         }
       }
 
@@ -329,7 +329,7 @@ export class SignatureBridge {
     return deposit;
   }
 
-  public async wrapAndDeposit(destinationChainId: number, tokenAddress: string, anchorSize: ethers.BigNumberish, wrappingFee: number = 0, signer: ethers.Signer) {
+  public async wrapAndDeposit(destinationChainId: number, tokenAddress: string, anchorSize: ethers.BigNumberish, wrappingFee: number, signer: ethers.Signer) {
     const chainId = getChainIdType(await signer.getChainId());
     const signerAddress = await signer.getAddress();
     const anchor = this.getAnchor(chainId, anchorSize);

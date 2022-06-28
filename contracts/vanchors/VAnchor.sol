@@ -130,15 +130,22 @@ contract VAnchor is VAnchorBase {
 		// If the address is zero, this is meant to wrap native tokens
 		if (_tokenAddress == address(0)) {
 			require(msg.value == wrapAmount);
+			// If the wrapping is native, ensure the amount sent to the tokenWrapper is 0
+			ITokenWrapper(token).wrapForAndSendTo{value: msg.value}(
+					msg.sender,
+					_tokenAddress,
+					0,
+					address(this)
+			);
+		} else {
+			// wrap into the token and send directly to this contract
+			ITokenWrapper(token).wrapForAndSendTo{value: msg.value}(
+					msg.sender,
+					_tokenAddress,
+					wrapAmount,
+					address(this)
+			);
 		}
-
-		// wrap into the token and send directly to this contract
-		ITokenWrapper(token).wrapForAndSendTo{value: msg.value}(
-				msg.sender,
-				_tokenAddress,
-				wrapAmount,
-				address(this)
-		);
 	}
 
 	/**
