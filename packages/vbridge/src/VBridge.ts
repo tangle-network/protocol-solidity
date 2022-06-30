@@ -10,18 +10,22 @@ import { CircomUtxo, Utxo } from "@webb-tools/sdk-core";
 import { hexToU8a, u8aToHex } from '@polkadot/util';
 
 export type ExistingAssetInput = {
-  // A record of chainId => address
+  // A record of chainId => address of wrappable tokens to be supported in the webbToken.
   asset: Record<number, string[]>;
 }
 
 // Users define an input for a completely new bridge
 export type VBridgeInput = {
-  // The tokens and anchors which should be supported after deploying from this bridge input
+  // The tokens which should be supported after deploying from this bridge input
   vAnchorInputs: ExistingAssetInput,
 
   // The IDs of the chains to deploy to
   chainIDs: number[],
 
+  // The number of max edges for vanchors, if not provided, maxEdges is derived from passed chainIDs.
+  maxEdges?: number,
+
+  // Existing webb tokens can be connected
   webbTokens: Map<number, GovernedTokenWrapper | undefined>;
 };
 
@@ -105,6 +109,9 @@ export class VBridge {
     // createdAnchors have the form of [[Anchors created on chainID], [...]]
     // and anchors in the subArrays of thhe same index should be linked together
     let createdVAnchors: VAnchor[][] = [];
+
+    // Determine the maxEdges for the anchors on this VBridge deployment
+    let maxEdges = vBridgeInput.maxEdges ?? vBridgeInput.chainIDs.length > 2 ? 7 : 1;
 
     for (let chainID of vBridgeInput.chainIDs) {
       const initialGovernor = initialGovernors[chainID];
@@ -192,7 +199,7 @@ export class VBridge {
           hasherInstance.address,
           handler.contract.address,
           tokenInstance.contract.address,
-          vBridgeInput.chainIDs.length > 2 ? 7 : 1,
+          maxEdges,
           smallCircuitZkComponents,
           largeCircuitZkComponents,
           deployers[chainID],

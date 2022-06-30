@@ -9,6 +9,8 @@ export async function viewTokensInWrapper(
   const governedTokenWrapper = GovernedTokenWrapper__factory.connect(tokenWrapperAddress, passedProvider);
   const tokens = await governedTokenWrapper.functions.getTokens();
 
+  const allowedNative = await governedTokenWrapper.isNativeAllowed();
   console.log('Tokens in the wrapper: ');
   console.log(tokens);
+  console.log('nativeAllowed? ', allowedNative);
 }
