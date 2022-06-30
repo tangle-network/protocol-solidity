@@ -1,7 +1,7 @@
 require('dotenv').config();
 import { ethers } from 'ethers';
 import { Anchor } from '@webb-tools/anchors';
-import { toFixedHex } from '@webb-tools/utils';
+import { toFixedHex } from '@webb-tools/sdk-core';
 
 export async function viewRootAcrossBridge(merkleRootAnchor: Anchor, edgeListAnchor: Anchor) {
   const lastMerkleRoot = await merkleRootAnchor.contract.getLastRoot();

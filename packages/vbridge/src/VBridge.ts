@@ -22,6 +22,9 @@ export type VBridgeInput = {
   // The IDs of the chains to deploy to
   chainIDs: number[],
 
+  // The number of max edges for vanchors, if not provided, maxEdges is derived from passed chainIDs.
+  maxEdges?: number,
+
   webbTokens: Map<number, GovernedTokenWrapper | undefined>;
 };
 
@@ -105,6 +108,9 @@ export class VBridge {
     // createdAnchors have the form of [[Anchors created on chainID], [...]]
     // and anchors in the subArrays of thhe same index should be linked together
     let createdVAnchors: VAnchor[][] = [];
+
+    // Determine the maxEdges for the anchors on this VBridge deployment
+    let maxEdges = vBridgeInput.maxEdges ?? vBridgeInput.chainIDs.length > 2 ? 7 : 1;
 
     for (let chainID of vBridgeInput.chainIDs) {
       const initialGovernor = initialGovernors[chainID];
@@ -217,7 +223,7 @@ export class VBridge {
           hasherInstance.address,
           handler.contract.address,
           tokenInstance.contract.address,
-          vBridgeInput.chainIDs.length > 2 ? 7 : 1,
+          maxEdges,
           smallCircuitZkComponents,
           largeCircuitZkComponents,
           deployers.wallets[chainID],

@@ -1,4 +1,4 @@
-import { VBridge } from '@webb-tools/vbridge';
+import { VBridge, VBridgeInput } from '@webb-tools/vbridge';
 import { ERC20, GovernedTokenWrapper } from '@webb-tools/tokens';
 import { fetchComponentsFromFilePaths, getChainIdType } from '@webb-tools/utils';
 import { DeployerConfig } from '@webb-tools/interfaces';
@@ -46,11 +46,12 @@ async function deploySignatureVBridge(
     console.log(tokens[chainIdType]);
   }
 
-  const bridgeInput = {
+  const bridgeInput: VBridgeInput = {
     vAnchorInputs: {
       asset: assetRecord,
     },
     chainIDs: chainIdsArray,
+    maxEdges: 7,
     webbTokens: existingWebbTokens
   }
 
