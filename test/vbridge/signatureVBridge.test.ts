@@ -20,7 +20,7 @@ const path = require('path');
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-describe.only('2-sided multichain tests for signature vbridge', () => {
+describe('2-sided multichain tests for signature vbridge', () => {
   const chainID1 = getChainIdType(31337);
   const chainID2 = getChainIdType(1337);
   // setup ganache networks
