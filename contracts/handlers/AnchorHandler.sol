@@ -27,9 +27,6 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
     // sourceChainID => height => Update Record
     mapping (uint256 => mapping(uint256 => UpdateRecord)) public _updateRecords;
 
-    // sourceChainID => number of updates
-    mapping(uint256 => uint64) public _counts;
-
     /**
         @param bridgeAddress Contract address of previously deployed Bridge.
         @param initialResourceIDs Resource IDs are used to identify a specific contract address.

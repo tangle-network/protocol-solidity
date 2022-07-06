@@ -20,7 +20,7 @@ copy_to_fixtures () {
     cp artifacts/circuits/$outdir/$circuit.sym protocol-solidity-fixtures/fixtures/$anchorType/$size/$circuit.sym
     cp artifacts/circuits/$outdir/$circuit.r1cs protocol-solidity-fixtures/fixtures/$anchorType/$size/$circuit.r1cs
     cp artifacts/circuits/$outdir/$circuit\_js/$circuit.wasm protocol-solidity-fixtures/fixtures/$anchorType/$size/$circuit.wasm
-    cp artifacts/circuits/$outdir/$circuit\_js/witness_calculator.js protocol-solidity-fixtures/fixtures/$anchorType/$size/witness_calculator.js
+    cp artifacts/circuits/$outdir/$circuit\_js/witness_calculator.js protocol-solidity-fixtures/fixtures/$anchorType/$size/witness_calculator.cjs
 }
 
 # ###

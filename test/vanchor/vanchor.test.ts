@@ -86,13 +86,13 @@ describe('VAnchor for 2 max edges', () => {
   before('instantiate zkcomponents', async () => {
     zkComponents2_2 = await fetchComponentsFromFilePaths(
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.cjs'),
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/circuit_final.zkey')
     );
 
     zkComponents16_2 = await fetchComponentsFromFilePaths(
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.cjs'),
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/circuit_final.zkey')
     );
   });
@@ -138,7 +138,7 @@ describe('VAnchor for 2 max edges', () => {
     await token.approve(anchor.contract.address, '1000000000000000000000000');
 
     create2InputWitness = async (data: any) => {
-      const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.js");
+      const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.cjs");
       const fileBuf = require('fs').readFileSync('protocol-solidity-fixtures/fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm');
       const wtnsCalc = await witnessCalculator(fileBuf)
       const wtns = await wtnsCalc.calculateWTNSBin(data,0);

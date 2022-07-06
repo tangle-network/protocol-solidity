@@ -14,7 +14,7 @@ export async function transactWrapNative(anchorAddress: string, sender: ethers.S
     ),
     path.resolve(
       __dirname,
-      `../../../protocol-solidity-fixtures/fixtures/vanchor_2/8/witness_calculator.js`
+      `../../../protocol-solidity-fixtures/fixtures/vanchor_2/8/witness_calculator.cjs`
     ),
     path.resolve(
       __dirname,
@@ -28,7 +28,7 @@ export async function transactWrapNative(anchorAddress: string, sender: ethers.S
     ),
     path.resolve(
       __dirname,
-      `../../../protocol-solidity-fixtures/fixtures/vanchor_16/8/witness_calculator.js`
+      `../../../protocol-solidity-fixtures/fixtures/vanchor_16/8/witness_calculator.cjs`
     ),
     path.resolve(
       __dirname,
