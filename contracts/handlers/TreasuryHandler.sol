@@ -29,9 +29,6 @@ contract TreasuryHandler is IExecutor, HandlerHelpers {
     // executionChainID => nonce => Update Record
     mapping (uint256 => mapping(uint256 => UpdateRecord)) public _updateRecords;
 
-    // executionChainID => number of updates
-    mapping(uint256 => uint) public _counts;
-
     /**
         @param bridgeAddress Contract address of previously deployed Bridge.
         @param initialResourceIDs Resource IDs are used to identify a specific contract address.

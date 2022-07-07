@@ -51,7 +51,7 @@ describe('Anchor for 2 max edges', () => {
     // Grab the zero knowledge components
     zkComponents = await fetchComponentsFromFilePaths(
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/poseidon_anchor_2.wasm'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/witness_calculator.cjs'),
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/circuit_final.zkey')
     );
   })
@@ -94,7 +94,7 @@ describe('Anchor for 2 max edges', () => {
     await token.approve(anchor.contract.address, '10000000000000000000000');
 
     createWitness = async (data: any) => {
-      const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/anchor/2/witness_calculator.js");
+      const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/anchor/2/witness_calculator.cjs");
       const fileBuf = require('fs').readFileSync('./protocol-solidity-fixtures/fixtures/anchor/2/poseidon_anchor_2.wasm');
       const wtnsCalc = await witnessCalculator(fileBuf)
       const wtns = await wtnsCalc.calculateWTNSBin(data,0);
@@ -992,7 +992,7 @@ describe('Anchor for 2 max edges (3-sided bridge)', () => {
   before(async () => {
     zkComponents = await fetchComponentsFromFilePaths(
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/3/poseidon_anchor_3.wasm'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/3/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/3/witness_calculator.cjs'),
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/3/circuit_final.zkey')
     );
   })
@@ -1089,7 +1089,7 @@ describe('Anchor for 3 max edges (4-sided bridge)', () => {
   before(async () => {
     zkComponents = await fetchComponentsFromFilePaths(
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/4/poseidon_anchor_4.wasm'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/4/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/4/witness_calculator.cjs'),
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/4/circuit_final.zkey'),
     );
   })
@@ -1186,7 +1186,7 @@ describe('Anchor for 4 max edges (5-sided bridge)', () => {
   before(async () => {
     zkComponents = await fetchComponentsFromFilePaths(
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/5/poseidon_anchor_5.wasm'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/5/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/5/witness_calculator.cjs'),
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/5/circuit_final.zkey'),
     );
   })

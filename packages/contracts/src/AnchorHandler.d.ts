@@ -24,7 +24,6 @@ interface AnchorHandlerInterface extends ethers.utils.Interface {
     "_bridgeAddress()": FunctionFragment;
     "_contractAddressToResourceID(address)": FunctionFragment;
     "_contractWhitelist(address)": FunctionFragment;
-    "_counts(uint256)": FunctionFragment;
     "_resourceIDToContractAddress(bytes32)": FunctionFragment;
     "_updateRecords(uint256,uint256)": FunctionFragment;
     "executeProposal(bytes32,bytes)": FunctionFragment;
@@ -44,10 +43,6 @@ interface AnchorHandlerInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "_contractWhitelist",
     values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "_counts",
-    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "_resourceIDToContractAddress",
@@ -86,7 +81,6 @@ interface AnchorHandlerInterface extends ethers.utils.Interface {
     functionFragment: "_contractWhitelist",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "_counts", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "_resourceIDToContractAddress",
     data: BytesLike
@@ -171,11 +165,6 @@ export class AnchorHandler extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    _counts(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     _resourceIDToContractAddress(
       arg0: BytesLike,
       overrides?: CallOverrides
@@ -237,8 +226,6 @@ export class AnchorHandler extends BaseContract {
   ): Promise<string>;
 
   _contractWhitelist(arg0: string, overrides?: CallOverrides): Promise<boolean>;
-
-  _counts(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
   _resourceIDToContractAddress(
     arg0: BytesLike,
@@ -303,8 +290,6 @@ export class AnchorHandler extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    _counts(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-
     _resourceIDToContractAddress(
       arg0: BytesLike,
       overrides?: CallOverrides
@@ -368,8 +353,6 @@ export class AnchorHandler extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    _counts(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-
     _resourceIDToContractAddress(
       arg0: BytesLike,
       overrides?: CallOverrides
@@ -415,11 +398,6 @@ export class AnchorHandler extends BaseContract {
 
     _contractWhitelist(
       arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    _counts(
-      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

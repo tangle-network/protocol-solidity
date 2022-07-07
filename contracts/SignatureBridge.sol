@@ -19,8 +19,7 @@ import "./interfaces/IExecutor.sol";
  */
 contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType {
     uint256 public proposalNonce = 0;
-    // destinationChainID => number of deposits
-    mapping(uint256 => uint64) public _counts;
+
     // resourceID => handler address
     mapping(bytes32 => address) public _resourceIDToHandlerAddress;
 

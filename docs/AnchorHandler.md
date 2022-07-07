@@ -71,28 +71,6 @@ function _contractWhitelist(address) external view returns (bool)
 |---|---|---|
 | _0 | bool | undefined
 
-### _counts
-
-```solidity
-function _counts(uint256) external view returns (uint64)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint64 | undefined
-
 ### _resourceIDToContractAddress
 
 ```solidity
