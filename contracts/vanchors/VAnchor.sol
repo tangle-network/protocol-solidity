@@ -82,7 +82,7 @@ contract VAnchor is VAnchorBase {
 	) {token = _token;}
 
 	/**
-		@notice Wraps a token for the `msg.sender` using the underlying FixedDepositAnchor's TokenWrapper contract
+		@notice Wraps a token for the `msg.sender` using the underlying TokenWrapper contract
 		@param _tokenAddress The address of the token to wrap
 		@param _amount The amount of tokens to wrap
 	 */
