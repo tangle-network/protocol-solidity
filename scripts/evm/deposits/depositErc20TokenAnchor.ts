@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ethers } from 'ethers';
 import Anchor from '../../../packages/bridges/Anchor';
 import { approveTokenSpend } from '../tokens/approveTokenSpend';

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ethers } from 'ethers';
 import { ERC20 } from '../../../typechain/ERC20';
 import { ERC20__factory } from '../../../typechain/factories/ERC20__factory';

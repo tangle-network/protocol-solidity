@@ -1,3 +1,4 @@
+// @ts-nocheck
 // This script can be run without arguments to generate all new contracts or,
 // the script can be run as `node deployWEBBAnchor <hasherAddress> <verifierAddress>`
 //    to create a mixer with existing hasher and verifier contracts.

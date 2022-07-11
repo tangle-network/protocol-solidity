@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ethers } from 'ethers';
 import { ERC20 } from '../../../typechain/ERC20';
 require('dotenv').config({ path: '../.env' });

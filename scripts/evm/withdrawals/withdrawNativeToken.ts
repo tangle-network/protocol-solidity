@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ethers } from 'ethers';
 import { Anchor, AnchorDeposit } from '../../../packages/bridges';
 import { WithdrawalEvent } from '../../../packages/contracts/lib/AnchorBase'
