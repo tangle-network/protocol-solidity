@@ -1,3 +1,4 @@
+// @ts-nocheck
 require('dotenv').config();
 import { ethers } from 'ethers';
 import { VAnchor } from '@webb-tools/anchors';

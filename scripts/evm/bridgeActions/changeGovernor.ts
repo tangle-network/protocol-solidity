@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ethers } from "ethers";
 import { SignatureBridgeSide } from "@webb-tools/bridges"
 

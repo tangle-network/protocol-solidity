@@ -1,3 +1,4 @@
+// @ts-nocheck
 require('dotenv').config({ path: '../.env' });
 import { ethers } from 'ethers';
 import { WEBBAnchor__factory } from '../../../typechain/factories/WEBBAnchor__factory';
