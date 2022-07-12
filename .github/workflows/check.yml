@@ -55,8 +55,5 @@ jobs:
       - name: Compile the contracts
         run: yarn compile
 
-      - name: Build packages
-        run: yarn build:packages
-
       - name: Run test suite
         run: yarn test

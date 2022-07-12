@@ -159,11 +159,6 @@ Compile the contracts:
 yarn compile
 ```
 
-Build the packages:
-```
-yarn build:packages
-```
-
 Run test suite:
 
 ```
