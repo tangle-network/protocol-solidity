@@ -1,12 +1,13 @@
 import { HardhatUserConfig } from 'hardhat/types';
-import "hardhat-artifactor";
+import 'hardhat-artifactor';
+import 'hardhat-gas-reporter'
 import '@typechain/hardhat';
 import '@nomiclabs/hardhat-ethers'
-import "@nomiclabs/hardhat-truffle5";
+import '@nomiclabs/hardhat-truffle5';
 import '@primitivefi/hardhat-dodoc';
 import { subtask } from 'hardhat/config'
 
-import poseidonContract from "circomlibjs/src/poseidon_gencontract.js";
+import poseidonContract from 'circomlibjs/src/poseidon_gencontract.js';
 
 const buildPoseidon = async (numInputs: number) => {
   //@ts-ignore
@@ -26,7 +27,7 @@ const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',
   solidity: {
     compilers: [{
-      version: "0.8.5",
+      version: '0.8.5',
       settings: {
         optimizer: {
           enabled: true,
@@ -37,11 +38,16 @@ const config: HardhatUserConfig = {
   },
   // @ts-ignore
   dodoc: {
-    include: ["FixedDepositAnchor", "AnchorBase", "LinkableAnchor", "AnchorHandler", "IAnchor", "IAnchorTrees", "ILinkableAnchor", "VAnchorEncodeInputs", "GovernedTokenWrapper", "TokenWrapperHandler", "Hasher", , "MerkleTreePoseidon", "MerkleTreeWithHistoryPoseidon", "Poseidon", "SnarkConstants", "LinkableVAnchor", "VAnchor", "VAnchorBase", "AnchorProxy", "Bridge"]
+    include: ['FixedDepositAnchor', 'AnchorBase', 'LinkableAnchor', 'AnchorHandler', 'IAnchor', 'IAnchorTrees', 'ILinkableAnchor', 'VAnchorEncodeInputs', 'GovernedTokenWrapper', 'TokenWrapperHandler', 'Hasher', , 'MerkleTreePoseidon', 'MerkleTreeWithHistoryPoseidon', 'Poseidon', 'SnarkConstants', 'LinkableVAnchor', 'VAnchor', 'VAnchorBase', 'AnchorProxy', 'Bridge']
   },
   mocha: {
     timeout: 60000
-  }
+  },
+  gasReporter: {
+    enabled: (process.env.REPORT_GAS) ? true : false,
+    currency: 'USD',
+    gasPrice: 21
+  },
 };
 
 export default config;

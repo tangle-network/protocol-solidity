@@ -1083,7 +1083,7 @@ Wrap the native token for the `msg.sender` into the TokenWrapper tokenThe amount
 function wrapToken(address _tokenAddress, uint256 _amount) external nonpayable
 ```
 
-Wraps a token for the `msg.sender` using the underlying FixedDepositAnchor&#39;s TokenWrapper contract
+Wraps a token for the `msg.sender` using the underlying TokenWrapper contract
 
 
 
