@@ -17,23 +17,23 @@ export type ExistingAssetInput = {
   // A record of chainId => address
   asset: Record<number, string[]>;
   anchorSizes: ethers.BigNumberish[];
-}
+};
 
 export type Proposal = {
-  data: string,
-  dataHash: string,
-  resourceId: string,
-  chainId: number,
-  leafIndex: number,
-}
+  data: string;
+  dataHash: string;
+  resourceId: string;
+  chainId: number;
+  leafIndex: number;
+};
 
 // Users define an input for a completely new bridge
 export type BridgeInput = {
   // The tokens and anchors which should be supported after deploying from this bridge input
-  anchorInputs: ExistingAssetInput,
+  anchorInputs: ExistingAssetInput;
 
   // The IDs of the chains to deploy to
-  chainIDs: number[],
+  chainIDs: number[];
 };
 
 export type BridgeConfig = {
@@ -43,8 +43,8 @@ export type BridgeConfig = {
 
   // The addresses of the anchors for the GovernedTokenWrapper
   // {anchorIdentifier} => anchorAddress
-  anchors: Map<string, IAnchor>,
+  anchors: Map<string, IAnchor>;
 
   // The addresses of the Bridge contracts (bridgeSides) to interact with
-  bridgeSides: Map<number, IBridgeSide>,
-}
+  bridgeSides: Map<number, IBridgeSide>;
+};

@@ -2,8 +2,8 @@ import { BigNumberish, BigNumber } from 'ethers';
 import { Keypair } from '@webb-tools/sdk-core';
 
 export interface IMerkleProofData {
-  pathElements: BigNumberish[],
-  pathIndex: BigNumberish,
+  pathElements: BigNumberish[];
+  pathIndex: BigNumberish;
   merkleRoot: BigNumberish;
 }
 
@@ -35,25 +35,25 @@ export interface IVariableAnchorExtData {
 
 export interface IWitnessInput {
   input: {
-    roots: BigNumberish[],
-    chainID: BigNumberish,
-    inputNullifier: BigNumberish[],
-    outputCommitment: BigNumberish[],
-    publicAmount: BigNumberish,
-    extDataHash: BigNumberish,
+    roots: BigNumberish[];
+    chainID: BigNumberish;
+    inputNullifier: BigNumberish[];
+    outputCommitment: BigNumberish[];
+    publicAmount: BigNumberish;
+    extDataHash: BigNumberish;
 
     // data for 2 transaction inputs
-    inAmount: BigNumberish[],
-    inPrivateKey: string[],
-    inBlinding: BigNumberish[],
-    inPathIndices: BigNumberish[],
-    inPathElements: BigNumberish[][],
+    inAmount: BigNumberish[];
+    inPrivateKey: string[];
+    inBlinding: BigNumberish[];
+    inPathIndices: BigNumberish[];
+    inPathElements: BigNumberish[][];
 
     // data for 2 transaction outputs
-    outChainID: BigNumberish[],
-    outAmount: BigNumberish[],
-    outBlinding: BigNumberish[],
-    outPubkey: BigNumberish[],
+    outChainID: BigNumberish[];
+    outAmount: BigNumberish[];
+    outBlinding: BigNumberish[];
+    outPubkey: BigNumberish[];
   };
-  extData: IVariableAnchorExtData
+  extData: IVariableAnchorExtData;
 }

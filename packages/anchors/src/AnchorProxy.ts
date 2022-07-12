@@ -3,7 +3,7 @@ import { AnchorProxy as AnchorProxyContract, AnchorProxy__factory } from '@webb-
 import { WithdrawalEvent, RefreshEvent } from '@webb-tools/contracts/src/FixedDepositAnchor';
 import { Anchor } from './Anchor';
 import { IAnchorDepositInfo } from '@webb-tools/interfaces';
-import { toFixedHex } from "@webb-tools/sdk-core";
+import { toFixedHex } from '@webb-tools/sdk-core';
 
 enum InstanceState {
   ENABLED,
@@ -25,15 +25,9 @@ export class AnchorProxy {
   signer: ethers.Signer;
   contract: AnchorProxyContract;
   // An AnchorProxy can proxy for multiple anchors so we have a map from address to Anchor Class
-  anchorProxyMap: Map<string, Anchor>; 
+  anchorProxyMap: Map<string, Anchor>;
 
-  
-  constructor(
-    contract: AnchorProxyContract,
-    signer: ethers.Signer,
-    anchorList: Anchor[],
-
-  ) {
+  constructor(contract: AnchorProxyContract, signer: ethers.Signer, anchorList: Anchor[]) {
     this.contract = contract;
     this.signer = signer;
     this.anchorProxyMap = new Map<string, Anchor>();
@@ -57,7 +51,7 @@ export class AnchorProxy {
           token: a.token || '',
           state: InstanceState.DISABLED,
         },
-      }
+      };
     });
     const contract = await factory.deploy(_anchorTrees, _governance, instances); //edit this
     await contract.deployed();
@@ -66,21 +60,21 @@ export class AnchorProxy {
     return handler;
   }
 
-  public async deposit(anchorAddr: string, destChainId: number, encryptedNote?: string): Promise<{deposit: IAnchorDepositInfo, index: number}> {
+  public async deposit(
+    anchorAddr: string,
+    destChainId: number,
+    encryptedNote?: string
+  ): Promise<{ deposit: IAnchorDepositInfo; index: number }> {
     const deposit: IAnchorDepositInfo = Anchor.generateDeposit(destChainId);
-    let _encryptedNote: string = '0x000000'
+    let _encryptedNote: string = '0x000000';
     if (encryptedNote) {
       const _encryptedNote: string = encryptedNote;
-    } 
+    }
 
+    const tx = await this.contract.deposit(anchorAddr, toFixedHex(deposit.commitment), _encryptedNote, {
+      gasLimit: '0x5B8D80',
+    });
 
-    const tx = await this.contract.deposit(
-      anchorAddr,
-      toFixedHex(deposit.commitment),
-      _encryptedNote,
-      { gasLimit: '0x5B8D80' }
-    );
-  
     await tx.wait();
 
     const anchor = this.anchorProxyMap.get(anchorAddr);
@@ -100,7 +94,7 @@ export class AnchorProxy {
     recipient: string,
     relayer: string,
     fee: bigint,
-    refreshCommitment: string | number,
+    refreshCommitment: string | number
   ): Promise<RefreshEvent | WithdrawalEvent> {
     const anchor = this.anchorProxyMap.get(anchorAddr);
     if (!anchor) {
@@ -113,16 +107,11 @@ export class AnchorProxy {
       recipient,
       relayer,
       fee,
-      refreshCommitment,
+      refreshCommitment
     );
 
     //@ts-ignore
-    let tx = await this.contract.withdraw(
-      anchorAddr,
-      publicInputs,
-      extData,
-      { gasLimit: '0x5B8D80' }
-    );
+    let tx = await this.contract.withdraw(anchorAddr, publicInputs, extData, { gasLimit: '0x5B8D80' });
 
     const receipt = await tx.wait();
 

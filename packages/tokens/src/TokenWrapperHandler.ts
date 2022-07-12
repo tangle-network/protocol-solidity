@@ -1,12 +1,13 @@
 import { ethers } from 'ethers';
-import { TokenWrapperHandler as TokenWrapperHandlerContract, TokenWrapperHandler__factory } from '@webb-tools/contracts';
+import {
+  TokenWrapperHandler as TokenWrapperHandlerContract,
+  TokenWrapperHandler__factory,
+} from '@webb-tools/contracts';
 
 export class TokenWrapperHandler {
   contract: TokenWrapperHandlerContract;
-  
-  constructor(
-    contract: TokenWrapperHandlerContract
-  ) {
+
+  constructor(contract: TokenWrapperHandlerContract) {
     this.contract = contract;
   }
 
@@ -24,10 +25,7 @@ export class TokenWrapperHandler {
     return handler;
   }
 
-  public static async connect(
-    handlerAddress: string,
-    signer: ethers.Signer,
-  ) {
+  public static async connect(handlerAddress: string, signer: ethers.Signer) {
     const handlerContract = TokenWrapperHandler__factory.connect(handlerAddress, signer);
     const handler = new TokenWrapperHandler(handlerContract);
     return handler;
