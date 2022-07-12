@@ -1,0 +1,62 @@
+name: check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - 'README.md'
+  
+  workflow_dispatch:
+
+jobs:
+  ts:
+    concurrency:
+      group: ts-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: ts-check
+        run: |
+          yarn install --frozen-lockfile
+          yarn ts-check
+
+  # This job builds and runs tests for the contracts
+  tests:
+    concurrency:
+      group: test-${{ github.ref }}
+      cancel-in-progress: true
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
+    steps:
+      - uses: actions/setup-node@v3
+        with: 
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+
+      - name: Fetch submodules
+        run: git submodule update --init --recursive
+
+      - name: Install dependencies 
+        run: yarn install --production=false
+
+      - name: Compile the contracts
+        run: yarn Compile
+
+      - name: Build packages
+        run: yarn build:packages
+
+      - name: Run test suite
+        run: yarn test

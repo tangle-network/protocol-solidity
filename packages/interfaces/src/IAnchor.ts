@@ -1,6 +1,6 @@
 import { IAnchorDeposit, IAnchorDepositInfo } from './anchor';
 import { AnchorBase } from '@webb-tools/contracts';
-import { MerkleProof, Utxo } from "@webb-tools/sdk-core";
+import { MerkleProof, Utxo } from '@webb-tools/sdk-core';
 import { BigNumberish, ethers } from 'ethers';
 
 export interface IAnchor {
@@ -24,7 +24,7 @@ export interface IAnchor {
   getMaxDepositLimitProposalData(_maximumDepositAmount: string): Promise<string>;
   createResourceId(): Promise<string>;
   update(blockNumber?: number): Promise<void>;
-  
+
   // FixedDepositAnchor methods
   deposit(destinationChainId: number): Promise<IAnchorDeposit>;
   setupWithdraw(
@@ -33,7 +33,7 @@ export interface IAnchor {
     recipient: string,
     relayer: string,
     fee: bigint,
-    refreshCommitment: string | number,
+    refreshCommitment: string | number
   );
   withdraw(
     deposit: IAnchorDepositInfo,
@@ -41,8 +41,8 @@ export interface IAnchor {
     recipient: string,
     relayer: string,
     fee: bigint,
-    refreshCommitment: string | number,
-  ): Promise<ethers.Event>
+    refreshCommitment: string | number
+  ): Promise<ethers.Event>;
   wrapAndDeposit(tokenAddress: string, wrappingFee: number, destinationChainId?: number): Promise<IAnchorDeposit>;
   bridgedWithdrawAndUnwrap(
     deposit: IAnchorDeposit,
@@ -52,8 +52,8 @@ export interface IAnchor {
     fee: string,
     refund: string,
     refreshCommitment: string,
-    tokenAddress: string,
-  ): Promise<ethers.Event>
+    tokenAddress: string
+  ): Promise<ethers.Event>;
   bridgedWithdraw(
     deposit: IAnchorDeposit,
     merkleProof: any,
@@ -61,8 +61,8 @@ export interface IAnchor {
     relayer: string,
     fee: string,
     refund: string,
-    refreshCommitment: string,
-  ): Promise<ethers.Event>
+    refreshCommitment: string
+  ): Promise<ethers.Event>;
 
   // VAnchor methods
   getMerkleProof(input: Utxo): MerkleProof;

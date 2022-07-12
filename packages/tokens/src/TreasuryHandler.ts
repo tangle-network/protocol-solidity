@@ -3,10 +3,8 @@ import { TreasuryHandler as TreasuryHandlerContract, TreasuryHandler__factory } 
 
 export class TreasuryHandler {
   contract: TreasuryHandlerContract;
-  
-  constructor(
-    contract: TreasuryHandlerContract
-  ) {
+
+  constructor(contract: TreasuryHandlerContract) {
     this.contract = contract;
   }
 
@@ -24,10 +22,7 @@ export class TreasuryHandler {
     return handler;
   }
 
-  public static async connect(
-    handlerAddress: string,
-    signer: ethers.Signer,
-  ) {
+  public static async connect(handlerAddress: string, signer: ethers.Signer) {
     const handlerContract = TreasuryHandler__factory.connect(handlerAddress, signer);
     const handler = new TreasuryHandler(handlerContract);
     return handler;

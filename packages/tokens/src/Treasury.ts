@@ -6,26 +6,18 @@ import { Treasury as TreasuryContract, Treasury__factory } from '@webb-tools/con
 export class Treasury {
   contract: TreasuryContract;
   signer: ethers.Signer;
-  
-  SET_HANDLER_SIGNATURE = "setHandler(address,uint256)";
-  RESCUE_TOKENS_SIGNATURE = "rescueTokens(address,address,uint256,uint256)";
 
-  constructor(
-    contract: TreasuryContract,
-    signer: ethers.Signer
-  ) {
+  SET_HANDLER_SIGNATURE = 'setHandler(address,uint256)';
+  RESCUE_TOKENS_SIGNATURE = 'rescueTokens(address,address,uint256,uint256)';
+
+  constructor(contract: TreasuryContract, signer: ethers.Signer) {
     this.contract = contract;
     this.signer = signer;
   }
 
-  public static async createTreasury(
-    treasuryHandler: string,
-    deployer: ethers.Signer
-  ) {
+  public static async createTreasury(treasuryHandler: string, deployer: ethers.Signer) {
     const factory = new Treasury__factory(deployer);
-    const contract = await factory.deploy(
-      treasuryHandler
-    );
+    const contract = await factory.deploy(treasuryHandler);
     await contract.deployed();
 
     const handler = new Treasury(contract, deployer);
@@ -47,28 +39,36 @@ export class Treasury {
     const resourceID = await this.createResourceId();
     const functionSig = generateFunctionSigHash(this.SET_HANDLER_SIGNATURE);
     const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
-  
-    return '0x' +
-    toHex(resourceID, 32).substr(2) + 
-    functionSig.slice(2) +
-    toHex(nonce,4).substr(2) + 
-    newHandler.padEnd(42, '0').slice(2);
+
+    return (
+      '0x' +
+      toHex(resourceID, 32).substr(2) +
+      functionSig.slice(2) +
+      toHex(nonce, 4).substr(2) +
+      newHandler.padEnd(42, '0').slice(2)
+    );
   }
 
   /**
    * @returns Proposal data for rescue tokens proposal
    */
-  public async getRescueTokensProposalData(tokenAddress: string, to: string, amountToRescue: BigNumber): Promise<string> {
+  public async getRescueTokensProposalData(
+    tokenAddress: string,
+    to: string,
+    amountToRescue: BigNumber
+  ): Promise<string> {
     const resourceID = await this.createResourceId();
     const functionSig = generateFunctionSigHash(this.RESCUE_TOKENS_SIGNATURE);
     const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
-  
-    return '0x' +
-      toHex(resourceID, 32).substr(2) + 
+
+    return (
+      '0x' +
+      toHex(resourceID, 32).substr(2) +
       functionSig.slice(2) +
-      toHex(nonce,4).substr(2) + 
+      toHex(nonce, 4).substr(2) +
       tokenAddress.padEnd(42, '0').slice(2) +
       to.padEnd(42, '0').slice(2) +
-      toFixedHex(amountToRescue).slice(2);
+      toFixedHex(amountToRescue).slice(2)
+    );
   }
 }

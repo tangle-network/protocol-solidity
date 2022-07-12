@@ -1,8 +1,18 @@
 import { BigNumberish, ethers, BigNumber, ContractTransaction } from 'ethers';
-import { FixedDepositAnchor as AnchorContract, FixedDepositAnchor__factory as Anchor__factory, ERC20__factory} from '@webb-tools/contracts'
+import {
+  FixedDepositAnchor as AnchorContract,
+  FixedDepositAnchor__factory as Anchor__factory,
+  ERC20__factory,
+} from '@webb-tools/contracts';
 import { RefreshEvent, WithdrawalEvent } from '@webb-tools/contracts/src/FixedDepositAnchor';
-import { IAnchorDeposit, IAnchorDepositInfo, IAnchor, IFixedAnchorPublicInputs, IFixedAnchorExtData } from '@webb-tools/interfaces';
-import { 
+import {
+  IAnchorDeposit,
+  IAnchorDepositInfo,
+  IAnchor,
+  IFixedAnchorPublicInputs,
+  IFixedAnchorExtData,
+} from '@webb-tools/interfaces';
+import {
   toFixedHex,
   toHex,
   rbigint,
@@ -16,10 +26,10 @@ import {
   MerkleProof,
 } from '@webb-tools/sdk-core';
 import { hexToU8a } from '@polkadot/util';
-import { ZkComponents, getChainIdType } from '@webb-tools/utils'
+import { ZkComponents, getChainIdType } from '@webb-tools/utils';
 import { poseidon } from 'circomlibjs';
 
-const zeroAddress = "0x0000000000000000000000000000000000000000";
+const zeroAddress = '0x0000000000000000000000000000000000000000';
 
 function checkNativeAddress(tokenAddress: string): boolean {
   if (tokenAddress === zeroAddress || tokenAddress === '0') {
@@ -52,7 +62,7 @@ class Anchor implements IAnchor {
     signer: ethers.Signer,
     treeHeight: number,
     maxEdges: number,
-    zkComponents: ZkComponents,
+    zkComponents: ZkComponents
   ) {
     this.signer = signer;
     this.contract = contract;
@@ -62,18 +72,18 @@ class Anchor implements IAnchor {
     this.zkComponents = zkComponents;
     this.provingManager = new CircomProvingManager(zkComponents.wasm, treeHeight, null);
   }
-  
+
   getAddress(): string {
     return this.contract.address;
   }
   getMerkleProof(input: Utxo): MerkleProof {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
   getMinWithdrawalLimitProposalData(_minimalWithdrawalAmount: string): Promise<string> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
   getMaxDepositLimitProposalData(_maximumDepositAmount: string): Promise<string> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
 
   /**
@@ -88,7 +98,7 @@ class Anchor implements IAnchor {
     handler: string,
     maxEdges: number,
     zkComponents: ZkComponents,
-    signer: ethers.Signer,
+    signer: ethers.Signer
   ) {
     const factory = new Anchor__factory(signer);
     const anchor = await factory.deploy(handler, token, verifier, hasher, denomination, merkleTreeHeight, maxEdges, {});
@@ -105,10 +115,10 @@ class Anchor implements IAnchor {
     // build up tree by querying provider for logs
     address: string,
     zkFiles: ZkComponents,
-    signer: ethers.Signer,
+    signer: ethers.Signer
   ) {
     const anchor = Anchor__factory.connect(address, signer);
-    const maxEdges = await anchor.maxEdges()
+    const maxEdges = await anchor.maxEdges();
     const treeHeight = await anchor.levels();
     const createdAnchor = new Anchor(anchor, signer, treeHeight, maxEdges, zkFiles);
     createdAnchor.token = await anchor.token();
@@ -116,7 +126,11 @@ class Anchor implements IAnchor {
     return createdAnchor;
   }
 
-  public static generateDeposit(destinationChainId: number, secretBytesLen: number = 31, nullifierBytesLen: number = 31): IAnchorDepositInfo {
+  public static generateDeposit(
+    destinationChainId: number,
+    secretBytesLen: number = 31,
+    nullifierBytesLen: number = 31
+  ): IAnchorDepositInfo {
     const chainID = BigInt(destinationChainId);
     const secret = rbigint(secretBytesLen);
     const nullifier = rbigint(nullifierBytesLen);
@@ -128,30 +142,29 @@ class Anchor implements IAnchor {
       secret,
       nullifier,
       commitment,
-      nullifierHash
+      nullifierHash,
     };
-  
-    return deposit
-  } 
+
+    return deposit;
+  }
 
   public static createRootsBytes(rootArray: string[] | BigNumberish[]): string {
-    let rootsBytes = "0x";
+    let rootsBytes = '0x';
     for (let i = 0; i < rootArray.length; i++) {
       rootsBytes += toFixedHex(rootArray[i]).substr(2);
     }
-    return rootsBytes; // root byte string (32 * array.length bytes) 
-  };
+    return rootsBytes; // root byte string (32 * array.length bytes)
+  }
 
   public async createResourceId(): Promise<string> {
-    return toHex(
-      this.contract.address
-        + toHex(getChainIdType(await this.signer.getChainId()), 6).substr(2),
-      32
-    );
+    return toHex(this.contract.address + toHex(getChainIdType(await this.signer.getChainId()), 6).substr(2), 32);
   }
 
   public async setHandler(handlerAddress: string) {
-    const tx = await this.contract.setHandler(handlerAddress, BigNumber.from((await this.contract.getProposalNonce())).add(1));
+    const tx = await this.contract.setHandler(
+      handlerAddress,
+      BigNumber.from(await this.contract.getProposalNonce()).add(1)
+    );
     await tx.wait();
   }
 
@@ -170,7 +183,7 @@ class Anchor implements IAnchor {
   /**
    * Given a list of leaves and a latest synced block, update internal tree state
    * The function will create a new tree, and check on chain root before updating its member variable
-   * If the passed leaves match on chain data, 
+   * If the passed leaves match on chain data,
    *   update this instance and return true
    * else
    *   return false
@@ -198,30 +211,34 @@ class Anchor implements IAnchor {
   }
 
   /**
-   * Proposal data is used to update linkedAnchors via bridge proposals 
+   * Proposal data is used to update linkedAnchors via bridge proposals
    * on other chains with this anchor's state
    */
   public async getProposalData(resourceID: string, leafIndex?: number): Promise<string> {
-
     // If no leaf index passed in, set it to the most recent one.
     if (!leafIndex) {
       leafIndex = this.tree.number_of_elements() - 1;
     }
 
-    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("updateEdge(uint256,bytes32,uint256,bytes32)")).slice(0, 10).padEnd(10, '0');
+    const functionSig = ethers.utils
+      .keccak256(ethers.utils.toUtf8Bytes('updateEdge(uint256,bytes32,uint256,bytes32)'))
+      .slice(0, 10)
+      .padEnd(10, '0');
     const dummyNonce = 1;
     const chainID = getChainIdType(await this.signer.getChainId());
     const merkleRoot = this.depositHistory[leafIndex];
     const targetContract = this.contract.address;
 
-    return '0x' +
-      toHex(resourceID, 32).substr(2)+ 
-      functionSig.slice(2) + 
-      toHex(dummyNonce,4).substr(2) +
-      toHex(chainID, 6).substr(2) + 
-      toHex(leafIndex, 4).substr(2) + 
+    return (
+      '0x' +
+      toHex(resourceID, 32).substr(2) +
+      functionSig.slice(2) +
+      toHex(dummyNonce, 4).substr(2) +
+      toHex(chainID, 6).substr(2) +
+      toHex(leafIndex, 4).substr(2) +
       toHex(merkleRoot, 32).substr(2) +
-      toHex(targetContract, 32).substr(2);
+      toHex(targetContract, 32).substr(2)
+    );
   }
 
   public async getHandler(): Promise<string> {
@@ -230,28 +247,33 @@ class Anchor implements IAnchor {
 
   public async getHandlerProposalData(newHandler: string): Promise<string> {
     const resourceID = await this.createResourceId();
-    const functionSig = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("setHandler(address,uint32)")).slice(0, 10).padEnd(10, '0');  
-    const nonce = Number(await this.contract.getProposalNonce()) + 1;;
+    const functionSig = ethers.utils
+      .keccak256(ethers.utils.toUtf8Bytes('setHandler(address,uint32)'))
+      .slice(0, 10)
+      .padEnd(10, '0');
+    const nonce = Number(await this.contract.getProposalNonce()) + 1;
 
-    return '0x' +
-      toHex(resourceID, 32).substr(2)+ 
-      functionSig.slice(2) + 
-      toHex(nonce,4).substr(2) +
-      toHex(newHandler, 20).substr(2) 
+    return (
+      '0x' +
+      toHex(resourceID, 32).substr(2) +
+      functionSig.slice(2) +
+      toHex(nonce, 4).substr(2) +
+      toHex(newHandler, 20).substr(2)
+    );
   }
 
   /**
    * Makes a deposit of the anchor's fixed sized denomination into the smart contracts.
    * Assumes the sender possesses the anchor's fixed sized denomination.
    * Assumes the anchor has the correct, full deposit history.
-   * @param destinationChainId 
-   * @returns 
+   * @param destinationChainId
+   * @returns
    */
   public async deposit(destinationChainId?: number): Promise<IAnchorDeposit> {
     const originChainId = getChainIdType(await this.signer.getChainId());
-    const destChainId = (destinationChainId) ? destinationChainId : originChainId;
+    const destChainId = destinationChainId ? destinationChainId : originChainId;
     const deposit = Anchor.generateDeposit(destChainId);
-    
+
     const tx = await this.contract.deposit(toFixedHex(deposit.commitment), { gasLimit: '0x5B8D80' });
     const receipt = await tx.wait();
 
@@ -265,29 +287,35 @@ class Anchor implements IAnchor {
   }
 
   public getAmountToWrap(wrappingFee: number) {
-    return BigNumber.from(this.denomination).mul(100).div(100 - wrappingFee);
+    return BigNumber.from(this.denomination)
+      .mul(100)
+      .div(100 - wrappingFee);
   }
 
   /**
    * Assumes the anchor has the correct, full deposit history.
    */
-  public async wrapAndDeposit(tokenAddress: string, wrappingFee: number = 0, destinationChainId?: number): Promise<IAnchorDeposit> {
+  public async wrapAndDeposit(
+    tokenAddress: string,
+    wrappingFee: number = 0,
+    destinationChainId?: number
+  ): Promise<IAnchorDeposit> {
     const originChainId = getChainIdType(await this.signer.getChainId());
-    const chainId = (destinationChainId) ? destinationChainId : originChainId;
+    const chainId = destinationChainId ? destinationChainId : originChainId;
     const deposit = Anchor.generateDeposit(chainId);
     let tx: ContractTransaction;
     if (checkNativeAddress(tokenAddress)) {
       tx = await this.contract.wrapAndDeposit(tokenAddress, toFixedHex(deposit.commitment), {
         value: this.getAmountToWrap(wrappingFee).toString(),
-        gasLimit: '0x5B8D80'
+        gasLimit: '0x5B8D80',
       });
     } else {
       tx = await this.contract.wrapAndDeposit(tokenAddress, toFixedHex(deposit.commitment), {
-        gasLimit: '0x5B8D80'
+        gasLimit: '0x5B8D80',
       });
     }
     const receipt = await tx.wait();
-    
+
     // Deposit history and state altered.
     this.tree.insert(deposit.commitment);
     let index = this.tree.number_of_elements() - 1;
@@ -336,10 +364,10 @@ class Anchor implements IAnchor {
     recipient: string,
     relayer: string,
     fee: bigint,
-    refreshCommitment: string | number,
+    refreshCommitment: string | number
   ): Promise<{
-    publicInputs: IFixedAnchorPublicInputs,
-    extData: IFixedAnchorExtData
+    publicInputs: IFixedAnchorPublicInputs;
+    extData: IFixedAnchorExtData;
   }> {
     // first, check if the merkle root is known on chain - if not, then update
     await this.checkKnownRoot();
@@ -367,8 +395,8 @@ class Anchor implements IAnchor {
         `${toFixedHex(BigNumber.from(deposit.secret).toHexString()).slice(2)}`,
       version: 'v2',
       width: '4',
-      tokenSymbol
-    }
+      tokenSymbol,
+    };
 
     const note = await Note.generateNote(noteInput);
     const proofInput: ProvingManagerSetupInput<'anchor'> = {
@@ -382,7 +410,7 @@ class Anchor implements IAnchor {
       refreshCommitment: refreshCommitment.toString(),
       relayer,
       roots: roots.map((root) => hexToU8a(root)),
-    }
+    };
 
     const proof = await this.provingManager.prove('anchor', proofInput);
 
@@ -394,13 +422,7 @@ class Anchor implements IAnchor {
       _refund: refund,
     };
 
-    const extDataHash = getFixedAnchorExtDataHash(
-      fee,
-      recipient,
-      refreshCommitment,
-      refund,
-      relayer
-    );
+    const extDataHash = getFixedAnchorExtDataHash(fee, recipient, refreshCommitment, refund, relayer);
 
     const args = [
       proof.proof,
@@ -422,7 +444,7 @@ class Anchor implements IAnchor {
     recipient: string,
     relayer: string,
     fee: bigint,
-    refreshCommitment: string | number,
+    refreshCommitment: string | number
   ): Promise<RefreshEvent | WithdrawalEvent> {
     const { publicInputs, extData } = await this.setupWithdraw(
       deposit,
@@ -430,14 +452,10 @@ class Anchor implements IAnchor {
       recipient,
       relayer,
       fee,
-      refreshCommitment,
+      refreshCommitment
     );
     //@ts-ignore
-    let tx = await this.contract.withdraw(
-      publicInputs,
-      extData,
-      { gasLimit: '0x5B8D80' }
-    );
+    let tx = await this.contract.withdraw(publicInputs, extData, { gasLimit: '0x5B8D80' });
     const receipt = await tx.wait();
 
     if (extData._refreshCommitment !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
@@ -459,7 +477,7 @@ class Anchor implements IAnchor {
     relayer: string,
     fee: bigint,
     refreshCommitment: string,
-    tokenAddress: string,
+    tokenAddress: string
   ): Promise<WithdrawalEvent> {
     // first, check if the merkle root is known on chain - if not, then update
     await this.checkKnownRoot();
@@ -471,7 +489,7 @@ class Anchor implements IAnchor {
       relayer,
       fee,
       refreshCommitment
-    )
+    );
 
     let tx = await this.contract.withdrawAndUnwrap(publicInputs, extData, tokenAddress, { gasLimit: '0x5B8D80' });
     const receipt = await tx.wait();
@@ -492,9 +510,9 @@ class Anchor implements IAnchor {
     fee: string,
     refund: string,
     refreshCommitment: string,
-    tokenAddress: string,
+    tokenAddress: string
   ): Promise<WithdrawalEvent> {
-    refreshCommitment = (refreshCommitment) ? refreshCommitment : '0';
+    refreshCommitment = refreshCommitment ? refreshCommitment : '0';
 
     const { publicInputs, extData } = await this.setupBridgedWithdraw(
       deposit,
@@ -506,14 +524,9 @@ class Anchor implements IAnchor {
       refreshCommitment
     );
 
-    let tx = await this.contract.withdrawAndUnwrap(
-      publicInputs,
-      extData,
-      tokenAddress,
-      {
-        gasLimit: '0x5B8D80'
-      },
-    );
+    let tx = await this.contract.withdrawAndUnwrap(publicInputs, extData, tokenAddress, {
+      gasLimit: '0x5B8D80',
+    });
     const receipt = await tx.wait();
 
     const filter = this.contract.filters.Withdrawal(null, relayer, null);
@@ -537,15 +550,15 @@ class Anchor implements IAnchor {
     recipient: string,
     relayer: string,
     fee: bigint,
-    refreshCommitment: string | number,
+    refreshCommitment: string | number
   ): Promise<{
-    publicInputs: IFixedAnchorPublicInputs,
-    extData: IFixedAnchorExtData
+    publicInputs: IFixedAnchorPublicInputs;
+    extData: IFixedAnchorExtData;
   }> {
     const chainId = getChainIdType(await this.signer.getChainId());
     const roots = await this.populateRootsForProof();
     const refund = BigInt(0);
-    
+
     const noteInput: NoteGenInput = {
       amount: this.denomination,
       backend: 'Circom',
@@ -564,8 +577,8 @@ class Anchor implements IAnchor {
         `${toFixedHex(BigNumber.from(deposit.deposit.secret).toHexString()).slice(2)}`,
       version: 'v2',
       width: '4',
-      tokenSymbol: this.token
-    }
+      tokenSymbol: this.token,
+    };
 
     const note = await Note.generateNote(noteInput);
     const proofInput: ProvingManagerSetupInput<'anchor'> = {
@@ -579,7 +592,7 @@ class Anchor implements IAnchor {
       refreshCommitment: refreshCommitment.toString(),
       relayer,
       roots: roots.map((root) => hexToU8a(root)),
-    }
+    };
 
     const proof = await this.provingManager.prove('anchor', proofInput);
 
@@ -620,9 +633,9 @@ class Anchor implements IAnchor {
     relayer: string,
     fee: string,
     refund: string,
-    refreshCommitment: string,
+    refreshCommitment: string
   ): Promise<WithdrawalEvent> {
-    refreshCommitment = (refreshCommitment) ? refreshCommitment : '0';
+    refreshCommitment = refreshCommitment ? refreshCommitment : '0';
 
     const { publicInputs, extData } = await this.setupBridgedWithdraw(
       deposit,
@@ -634,16 +647,12 @@ class Anchor implements IAnchor {
       refreshCommitment
     );
 
-    let tx = await this.contract.withdraw(
-      publicInputs,
-      extData,
-      {
-        gasLimit: '0x5B8D80'
-      },
-    );
+    let tx = await this.contract.withdraw(publicInputs, extData, {
+      gasLimit: '0x5B8D80',
+    });
 
     const receipt = await tx.wait();
-    
+
     const filter = this.contract.filters.Withdrawal(null, relayer, null);
     const events = await this.contract.queryFilter(filter, receipt.blockHash);
     return events[0];

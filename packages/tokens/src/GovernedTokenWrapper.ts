@@ -1,21 +1,21 @@
 import { ethers } from 'ethers';
 import { getChainIdType } from '@webb-tools/utils';
 import { toHex, generateFunctionSigHash } from '@webb-tools/sdk-core';
-import { GovernedTokenWrapper as GovernedTokenWrapperContract, GovernedTokenWrapper__factory } from '@webb-tools/contracts';
+import {
+  GovernedTokenWrapper as GovernedTokenWrapperContract,
+  GovernedTokenWrapper__factory,
+} from '@webb-tools/contracts';
 
 export class GovernedTokenWrapper {
   contract: GovernedTokenWrapperContract;
   signer: ethers.Signer;
-  
-  ADD_TOKEN_SIGNATURE = "add(address,uint256)";
-  REMOVE_TOKEN_SIGNATURE = "remove(address,uint256)";
-  SET_FEE_SIGNATURE = "setFee(uint8,uint256)";
-  FEE_RECIPIENT_SIGNATURE = "setFeeRecipient(address,uint256)";
 
-  constructor(
-    contract: GovernedTokenWrapperContract,
-    signer: ethers.Signer
-  ) {
+  ADD_TOKEN_SIGNATURE = 'add(address,uint256)';
+  REMOVE_TOKEN_SIGNATURE = 'remove(address,uint256)';
+  SET_FEE_SIGNATURE = 'setFee(uint8,uint256)';
+  FEE_RECIPIENT_SIGNATURE = 'setFeeRecipient(address,uint256)';
+
+  constructor(contract: GovernedTokenWrapperContract, signer: ethers.Signer) {
     this.contract = contract;
     this.signer = signer;
   }
@@ -30,14 +30,7 @@ export class GovernedTokenWrapper {
     deployer: ethers.Signer
   ) {
     const factory = new GovernedTokenWrapper__factory(deployer);
-    const contract = await factory.deploy(
-      name,
-      symbol,
-      feeRecipient,
-      governor,
-      limit,
-      isNativeAllowed
-    );
+    const contract = await factory.deploy(name, symbol, feeRecipient, governor, limit, isNativeAllowed);
     await contract.deployed();
 
     const createdGovernedTokenWrapper = new GovernedTokenWrapper(contract, deployer);
@@ -70,12 +63,14 @@ export class GovernedTokenWrapper {
     const resourceID = await this.createResourceId();
     const functionSig = generateFunctionSigHash(this.ADD_TOKEN_SIGNATURE);
     const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
-  
-    return '0x' +
-    toHex(resourceID, 32).substr(2) + 
-    functionSig.slice(2) +
-    toHex(nonce,4).substr(2) + 
-    tokenAddress.padEnd(42, '0').slice(2);
+
+    return (
+      '0x' +
+      toHex(resourceID, 32).substr(2) +
+      functionSig.slice(2) +
+      toHex(nonce, 4).substr(2) +
+      tokenAddress.padEnd(42, '0').slice(2)
+    );
   }
 
   public async getRemoveTokenProposalData(tokenAddress: string): Promise<string> {
@@ -83,11 +78,13 @@ export class GovernedTokenWrapper {
     const functionSig = generateFunctionSigHash(this.REMOVE_TOKEN_SIGNATURE);
     const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
 
-    return '0x' +
-      toHex(resourceID, 32).substr(2) + 
+    return (
+      '0x' +
+      toHex(resourceID, 32).substr(2) +
       functionSig.slice(2) +
-      toHex(nonce,4).substr(2) + 
-      tokenAddress.padEnd(42, '0').slice(2);
+      toHex(nonce, 4).substr(2) +
+      tokenAddress.padEnd(42, '0').slice(2)
+    );
   }
 
   public async getFeeProposalData(fee: number): Promise<string> {
@@ -96,11 +93,7 @@ export class GovernedTokenWrapper {
     const functionSig = generateFunctionSigHash(this.SET_FEE_SIGNATURE);
     const feeString = toHex(fee, 1);
 
-    return '0x' +
-      resourceID.substr(2) + 
-      functionSig.slice(2) +
-      toHex(nonce, 4).substr(2) + 
-      feeString.slice(2);
+    return '0x' + resourceID.substr(2) + functionSig.slice(2) + toHex(nonce, 4).substr(2) + feeString.slice(2);
   }
 
   public async getFeeRecipientProposalData(feeRecipient: string): Promise<string> {
@@ -108,10 +101,12 @@ export class GovernedTokenWrapper {
     const functionSig = generateFunctionSigHash(this.FEE_RECIPIENT_SIGNATURE);
     const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
 
-    return '0x' +
-      toHex(resourceID, 32).substr(2) + 
+    return (
+      '0x' +
+      toHex(resourceID, 32).substr(2) +
       functionSig.slice(2) +
-      toHex(nonce,4).substr(2) + 
-      feeRecipient.padEnd(42, '0').slice(2);
+      toHex(nonce, 4).substr(2) +
+      feeRecipient.padEnd(42, '0').slice(2)
+    );
   }
 }

@@ -1,61 +1,213 @@
-<h1 align="center">Webb Protocol Solidity</h1>
-
+<h1 align="center">🕸️  Webb Protocol Solidity  ⧫ </h1>
+<div align="center">
+<a href="https://www.webb.tools/">
+    <img alt="Webb Logo" src=".github/assets/webb-icon.svg" width="15%" height="30%" />
+  </a>
+  </div>
 <p align="center">
-    <strong>🕸️  Webb Protocol Solidity  ⧫</strong>
+    <strong>🚀 Webb's Solidity Smart Contract Implementation 🚀</strong>
     <br />
     <sub> ⚠️ Beta Software ⚠️ </sub>
 </p>
 
-<br />
+<div align="center" >
+
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/webb-tools/protocol-solidity/check?style=flat-square)](https://github.com/webb-tools/protocol-solidity/actions)
+[![License Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](https://www.apache.org/licenses/LICENSE-2.0)
+[![Twitter](https://img.shields.io/twitter/follow/webbprotocol.svg?style=flat-square&label=Twitter&color=1DA1F2)](https://twitter.com/webbprotocol)
+[![Telegram](https://img.shields.io/badge/Telegram-gray?logo=telegram)](https://t.me/webbprotocol)
+[![Discord](https://img.shields.io/discord/833784453251596298.svg?style=flat-square&label=Discord&logo=discord)](https://discord.gg/cv8EfJu3Tn)
+
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<h2 id="table-of-contents"> 📖 Table of Contents</h2>
+
+<details open="open">
+  <summary>Table of Contents</summary>
+  <ul>
+    <li><a href="#start"> Getting Started</a></li>
+    <li><a href="#compile">Install and Compile</a></li>
+    <li><a href="#test">Testing</a></li>
+    <li><a href="#contribute">Contributing</a></li>
+    <li><a href="#license">License</a></li>
+  </ul>  
+</details>
+
+<h2 id="start"> Getting Started  🎉 </h2>
+
+For additional information, please refer to the [Webb protocol-solidity implementation docs](https://webb-tools.github.io/protocol-solidity/) 📝. Have feedback on how to improve protocol-ink? Or have a specific question to ask? Checkout the [Anchor Protocol Feedback Discussion](https://github.com/webb-tools/feedback/discussions/categories/anchor-protocol) 💬.
 
 ## Prerequisites
 
-- This repository assumes the user has successfully installed Node, nvm, yarn.
+Your development environment will need to include nodejs, and Rust setups. If you need to generate fixtures you will also require Circom 2.0 and snarkjs installations. You can find installation instructions below. 
 
-- This repository assumes the user has successfully installed rust
-## Installation
+This repository makes use of node.js, yarn, Rust, and requires version 16. To install node.js binaries, installers, and source tarballs, please visit https://nodejs.org/en/download/. Once node.js is installed you may proceed to install [`yarn`](https://classic.yarnpkg.com/en/docs/install):
 
-- Run `yarn` to install javascript dependencies.
+```
+npm install --global yarn
+```
 
-- This repository requires the installation of circom 2.0 if generating fixtures. Install the circom 2.0 rust implementation [here](https://docs.circom.io/getting-started/installation/)
+Great! Now your **Node** environment is ready! 🚀🚀
 
-## Compiling
+You must also have Rust installed. This guide uses <https://rustup.rs> installer and the `rustup` tool to manage the Rust toolchain.
 
-- `yarn build`
+First install and configure `rustup`:
 
-This command will build the Solidity system, performing the following build steps:
+```bash
+# Install
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+# Configure
+source ~/.cargo/env
+```
 
-1. Compile the smart contracts and generate appropriate typescript bindings in a folder `typechain` at the root directory.
+Configure the Rust toolchain to default to the latest nightly version, and add the nightly wasm target:
 
-2. Compile the circom circuits.
+```bash
+rustup default nightly
+rustup update
+rustup update nightly
+rustup target add wasm32-unknown-unknown
+```
 
-3. Compile the hashers. These hashers are provided to the merkle tree upon deployment.
+Great! Now your Rust environment is ready! 🚀🚀
 
-4. Generate ptau. The ptau is needed for setup of zero knowledge proofs. This ptau is for test purposes / dev environment only!
+**Note:** You may need additional dependencies, checkout [substrate.io](https://docs.substrate.io/main-docs/install/) for more information.
 
-## Testing 
+### Generating Fixtures Prerequisites
 
-## Interacting
+> NOTE: This is only required for testing / dev purposes and not required to compile or interact with smart contracts. 
+
+To generate fixtures you will need Circom 2.0 and snarkjs installed. To install from source, clone the circom repository:
+
+```
+git clone https://github.com/iden3/circom.git
+```
+
+Enter the circom directory and use the cargo build to compile:
+```
+cargo build --release
+```
+
+The installation takes around 3 minutes to be completed. When the command successfully finishes, it generates the circom binary in the directory `target/release`. You can install this binary as follows:
+```
+cargo install --path circom
+```
+The previous command will install the circom binary in the directory `$HOME/.cargo/bin`.
+
+#### Installing snarkjs
+
+snarkjs is a npm package that contains code to generate and validate ZK proofs from the artifacts produced by circom.
+
+You can install snarkjs with the following command:
+```
+npm install -g snarkjs
+```
+
+<h2 id="compile"> Installation & Compile 💻 </h2>
+
+Install dependencies: 
+
+```
+yarn install 
+```
+
+Update submodules:
+
+```
+git submodule update --init --recursive
+```
+
+To compile contracts:
+
+```
+yarn compile
+```
+
+The above command will build the Solidity system, performing the following build steps:
+
+1. Compile the smart contracts and generate appropriate typescript bindings in a folder `typechain` at the root directory. 
+
+2. Compile the hashers. These hashers are provided to the merkle tree upon deployment.
+
+
+**Note:** If you need to generate the fixtures you should run:
+
+```
+yarn build
+```
+
+The above command will `compile` the contracts but also compile the circom circuits, and generate ptau. The ptau is needed for setup of zero knowledge proofs. This ptau is for test and development purposes only!
+
+<h2 id="test"> Testing 🧪 </h2>
+
+To run the test suite, update the submodules:
+
+```
+git submodule update --init --recursive
+```
+
+Install the dependencies:
+
+```
+yarn install
+```
+
+Compile the contracts:
+
+```
+yarn compile
+```
+
+Build the packages:
+```
+yarn build:packages
+```
+
+Run test suite:
+
+```
+yarn test
+```
+
+It is also possible to output a gas report of the contracts by running:
+
+```
+yarn test:gas-reporter
+```
+
+To fix the formatting, please run:
+
+```
+yarn format
+```
+
+To run TypeScript checks:
+
+```
+yarn ts-check
+```
+
+### Interacting
 
 This repository contains a variety of scripts to deploy and interact with the smart contracts in the `scripts` folder. To use these scripts, one will need to setup an `.env` file in the root directory:
 
 ```
-# ENDPOINT=https://api.s0.b.hmny.io
+# Setup an endpoint
 ENDPOINT=https://rinkeby.infura.io/v3/fff68ca474dd4764a8d54dd14fa5519e
-PRIVATE_KEY=
+
+# Add private key
+PRIVATE_KEY=XXX-XXX-XXX
 ```
 
-## License
+<h2 id="contribute"> Contributing </h2>
 
-<sup>
-Licensed under <a href="LICENSE">GPLV3 license</a>.
-</sup>
+Interested in contributing to the Webb Relayer Network? Thank you so much for your interest! We are always appreciative for contributions from the open-source community!
 
-<br/>
+If you have a contribution in mind, please check out our [Contribution Guide](./.github/CONTRIBUTING.md) for information on how to do so. We are excited for your first contribution!
 
-<sub>
-Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in this crate by you, as defined in the GPLV3 license, shall
-be licensed as above, without any additional terms or conditions.
-</sub>
+<h2 id="license"> License </h2>
 
+Licensed under <a href="LICENSE">Apache 2.0 license</a>.
+
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in this crate by you, as defined in the Apache 2.0 license, shall be licensed as above, without any additional terms or conditions.

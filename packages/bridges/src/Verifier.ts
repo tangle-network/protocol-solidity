@@ -15,23 +15,18 @@ export class Verifier {
   signer: ethers.Signer;
   contract: VerifierContract;
 
-  private constructor(
-    contract: VerifierContract,
-    signer: ethers.Signer,
-  ) {
+  private constructor(contract: VerifierContract, signer: ethers.Signer) {
     this.signer = signer;
     this.contract = contract;
   }
 
   // Deploys a Verifier contract and all auxiliary verifiers used by this verifier
-  public static async createVerifier(
-    signer: ethers.Signer,
-  ) {
+  public static async createVerifier(signer: ethers.Signer) {
     const v2Factory = new Verifier2__factory(signer);
-    const v2 = await v2Factory.deploy(); 
+    const v2 = await v2Factory.deploy();
     await v2.deployed();
     const v3Factory = new Verifier3__factory(signer);
-    const v3 = await v3Factory.deploy(); 
+    const v3 = await v3Factory.deploy();
     await v3.deployed();
     const v4Factory = new Verifier4__factory(signer);
     const v4 = await v4Factory.deploy();
@@ -44,13 +39,7 @@ export class Verifier {
     await v6.deployed();
 
     const factory = new Verifier__factory(signer);
-    const verifier = await factory.deploy(
-      v2.address,
-      v3.address,
-      v4.address,
-      v5.address,
-      v6.address,
-    );
+    const verifier = await factory.deploy(v2.address, v3.address, v4.address, v5.address, v6.address);
     await verifier.deployed();
     const createdVerifier = new Verifier(verifier, signer);
     return createdVerifier;
