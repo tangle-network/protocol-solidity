@@ -53,7 +53,7 @@ jobs:
         run: yarn install --production=false
 
       - name: Compile the contracts
-        run: yarn Compile
+        run: yarn compile
 
       - name: Build packages
         run: yarn build:packages
