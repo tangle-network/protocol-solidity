@@ -21,8 +21,10 @@ const path = require('path');
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 describe('2-sided multichain tests for signature vbridge', () => {
-  const chainID1 = getChainIdType(31337);
-  const chainID2 = getChainIdType(1337);
+  const FIRST_CHAIN_ID = 31337;
+  const SECOND_CHAIN_ID = 10000;
+  const chainID1 = getChainIdType(FIRST_CHAIN_ID);
+  const chainID2 = getChainIdType(SECOND_CHAIN_ID);
   // setup ganache networks
   let ganacheServer2: any;
   // setup zero knowledge components
@@ -30,7 +32,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
   let zkComponents16_2: ZkComponents;
 
   before('setup networks', async () => {
-    ganacheServer2 = await startGanacheServer(1337, 1337, [
+    ganacheServer2 = await startGanacheServer(SECOND_CHAIN_ID, SECOND_CHAIN_ID, [
       {
         balance: '0x1000000000000000000000',
         secretKey: '0xc0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e'
@@ -57,7 +59,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
     let tokenInstance1: MintableToken;
     let tokenInstance2: MintableToken;
 
-    let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:1337');
+    let ganacheProvider2 = new ethers.providers.JsonRpcProvider(`http://localhost:${SECOND_CHAIN_ID}`);
     ganacheProvider2.pollingInterval = 1;
     let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
 
@@ -145,7 +147,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
     let existingToken2: MintableToken;
 
     let vBridge: VBridge;
-    let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:1337');
+    let ganacheProvider2 = new ethers.providers.JsonRpcProvider(`http://localhost:${SECOND_CHAIN_ID}`);
     ganacheProvider2.pollingInterval = 1;
     let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
 
@@ -482,7 +484,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
     let existingToken2: MintableToken;
 
     let vBridge: VBridge;
-    let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:1337');
+    let ganacheProvider2 = new ethers.providers.JsonRpcProvider(`http://localhost:${SECOND_CHAIN_ID}`);
     ganacheProvider2.pollingInterval = 1;
     let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
 
@@ -732,9 +734,12 @@ describe('2-sided multichain tests for signature vbridge', () => {
 });
 
 describe('8-sided multichain tests for signature vbridge', () => {
-  const chainID1 = getChainIdType(31337);
-  const chainID2 = getChainIdType(1337);
-  const chainID3 = getChainIdType(1338);
+  const FIRST_CHAIN_ID = 31337;
+  const SECOND_CHAIN_ID = 31338;
+  const THIRD_CHAIN_ID = 31339;
+  const chainID1 = getChainIdType(FIRST_CHAIN_ID);
+  const chainID2 = getChainIdType(SECOND_CHAIN_ID);
+  const chainID3 = getChainIdType(THIRD_CHAIN_ID);
   // setup ganache networks
   let ganacheServer2: any;
   let ganacheServer3: any;
@@ -743,13 +748,13 @@ describe('8-sided multichain tests for signature vbridge', () => {
   let zkComponents16_8: ZkComponents;
 
   before('setup networks', async () => {
-    ganacheServer2 = await startGanacheServer(1337, 1337, [
+    ganacheServer2 = await startGanacheServer(SECOND_CHAIN_ID, SECOND_CHAIN_ID, [
       {
         balance: '0x1000000000000000000000',
         secretKey: '0xc0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e'
       }
     ]);
-    ganacheServer3 = await startGanacheServer(1338, 1338, [
+    ganacheServer3 = await startGanacheServer(THIRD_CHAIN_ID, THIRD_CHAIN_ID, [
       {
         balance: '0x1000000000000000000000',
         secretKey: '0xc0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e'
@@ -776,10 +781,10 @@ describe('8-sided multichain tests for signature vbridge', () => {
     let existingToken3: MintableToken;
 
     let vBridge: VBridge;
-    let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:1337');
+    let ganacheProvider2 = new ethers.providers.JsonRpcProvider(`http://localhost:${SECOND_CHAIN_ID}`);
     ganacheProvider2.pollingInterval = 1;
     let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
-    let ganacheProvider3 = new ethers.providers.JsonRpcProvider('http://localhost:1338');
+    let ganacheProvider3 = new ethers.providers.JsonRpcProvider(`http://localhost:${THIRD_CHAIN_ID}`);
     ganacheProvider3.pollingInterval = 1;
     let ganacheWallet3 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider3);
     beforeEach(async () => {
