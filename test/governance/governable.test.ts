@@ -28,7 +28,7 @@
     arbSigner = signers[2];
     // create poseidon hasher
     const govFactory = new Governable__factory(wallet);
-    governableInstance = await govFactory.deploy(sender.address);
+    governableInstance = await govFactory.deploy(sender.address, 0);
     await governableInstance.deployed();
   });
  

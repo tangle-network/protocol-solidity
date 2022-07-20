@@ -13,7 +13,7 @@ const ec = new EC.ec('secp256k1');
 export class SignatureBridgeSide implements IBridgeSide {
   contract: SignatureBridge;
   admin: ethers.Signer;
-  governor: ethers.Wallet;
+  governor: ethers.Wallet | string;
   anchorHandler: AnchorHandler;
   tokenHandler: TokenWrapperHandler;
   treasuryHandler: TreasuryHandler;
@@ -26,7 +26,7 @@ export class SignatureBridgeSide implements IBridgeSide {
 
   private constructor(
     contract: SignatureBridge,
-    governor: ethers.Wallet,
+    governor: ethers.Wallet | string,
     signer: ethers.Signer,
     signingSystemSignFn?: (data: any) => Promise<string>
   ) {
@@ -38,8 +38,15 @@ export class SignatureBridgeSide implements IBridgeSide {
     this.treasuryHandler = null;
     this.proposals = [];
     if (signingSystemSignFn) {
+      // The signing system here is an asynchronous function that
+      // potentially dispatches a message for a signature and waits
+      // to receive it. It is potentially a long-running process.
       this.signingSystemSignFn = signingSystemSignFn;
     } else {
+      if (typeof governor === 'string') {
+        throw new Error('Cannot sign with signing system without a governor wallet');
+      }
+
       this.signingSystemSignFn = (data: any) => {
         return Promise.resolve(signMessage(governor, data));
       };
@@ -47,13 +54,18 @@ export class SignatureBridgeSide implements IBridgeSide {
   }
 
   public static async createBridgeSide(
-    initialGovernor: ethers.Wallet,
-    admin: ethers.Signer
+    initialGovernor: ethers.Wallet | string,
+    admin: ethers.Signer,
+    signingSystemSignFn?: (data: any) => Promise<string>
   ): Promise<SignatureBridgeSide> {
     const bridgeFactory = new SignatureBridge__factory(admin);
-    const deployedBridge = await bridgeFactory.deploy(initialGovernor.address);
+    const deployedBridge = (typeof initialGovernor === 'string')
+      ? await bridgeFactory.deploy(initialGovernor, 0)
+      : await bridgeFactory.deploy(initialGovernor.address, 0);
     await deployedBridge.deployed();
-    const bridgeSide = new SignatureBridgeSide(deployedBridge, initialGovernor, admin);
+    const bridgeSide = (typeof initialGovernor === 'string')
+      ? new SignatureBridgeSide(deployedBridge, initialGovernor, admin, signingSystemSignFn)
+      : new SignatureBridgeSide(deployedBridge, initialGovernor, admin, signingSystemSignFn);
     return bridgeSide;
   }
 
