@@ -109,8 +109,6 @@ contract Governable {
 		@notice Can only be called by the current owner.
 	 */
 	function transferOwnership(address newOwner, uint32 nonce) public onlyGovernor {
-		require(refreshNonce < nonce, "Invalid nonce");
-		require(nonce <= refreshNonce + 1, "Nonce must increment by 1");
 		_transferOwnership(newOwner);
 		refreshNonce = nonce;
 	}
