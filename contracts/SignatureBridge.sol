@@ -35,7 +35,7 @@ contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType {
         @notice Initializes SignatureBridge with a governor
         @param initialGovernor Addresses that should be initially granted the relayer role.
      */
-    constructor (address initialGovernor) Governable(initialGovernor) {}
+    constructor (address initialGovernor, uint32 nonce) Governable(initialGovernor, nonce) {}
 
     /**
         @notice Sets a new resource for handler contracts that use the IExecutor interface,
