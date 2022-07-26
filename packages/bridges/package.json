@@ -13,11 +13,10 @@
     "hardhat": "^2.6.8"
   },
   "dependencies": {
-    "@polkadot/util": "9.4.1",
     "@webb-tools/anchors": "^0.2.2",
     "@webb-tools/contracts": "^0.2.2",
     "@webb-tools/interfaces": "^0.2.2",
-    "@webb-tools/sdk-core": "0.1.4-87",
+    "@webb-tools/sdk-core": "file:../../../webb.js/packages/sdk-core/build/",
     "@webb-tools/tokens": "^0.2.2",
     "@webb-tools/utils": "^0.2.1",
     "circomlibjs": "0.0.8",

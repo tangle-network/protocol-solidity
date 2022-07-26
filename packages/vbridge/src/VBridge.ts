@@ -11,9 +11,8 @@ import { PoseidonT3__factory } from '@webb-tools/contracts';
 import Verifier from './Verifier';
 import { AnchorIdentifier, GovernorConfig, DeployerConfig } from '@webb-tools/interfaces';
 import { AnchorHandler, VAnchor } from '@webb-tools/anchors';
-import { getChainIdType, ZkComponents } from '@webb-tools/utils';
+import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { CircomUtxo, Utxo } from '@webb-tools/sdk-core';
-import { hexToU8a, u8aToHex } from '@polkadot/util';
 
 export type ExistingAssetInput = {
   // A record of chainId => address of wrappable tokens to be supported in the webbToken.

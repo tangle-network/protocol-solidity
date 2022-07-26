@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { getChainIdType, ZkComponents } from '@webb-tools/utils';
+import { hexToU8a, getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { PoseidonT3__factory } from '@webb-tools/contracts';
 import {
   MintableToken,
@@ -12,7 +12,6 @@ import { BridgeInput, DeployerConfig, GovernorConfig, IAnchorDeposit } from '@we
 import { Anchor, AnchorHandler } from '@webb-tools/anchors';
 import { SignatureBridgeSide } from './SignatureBridgeSide';
 import { Verifier } from './Verifier';
-import { hexToU8a } from '@polkadot/util';
 
 type AnchorIdentifier = {
   anchorSize: ethers.BigNumberish;
