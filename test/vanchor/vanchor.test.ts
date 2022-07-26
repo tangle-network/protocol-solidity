@@ -6,7 +6,6 @@
 const assert = require('assert');
 import { ethers } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
-import { hexToU8a, u8aToHex } from '@polkadot/util';
 
 // Typechain generated bindings for contracts
 // These contracts are included in packages, so should be tested
@@ -23,7 +22,7 @@ import {
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
-import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '../../packages/utils/src';
+import { hexToU8a, fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '../../packages/utils/src';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 

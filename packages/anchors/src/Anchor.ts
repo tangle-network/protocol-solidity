@@ -25,8 +25,7 @@ import {
   getFixedAnchorExtDataHash,
   MerkleProof,
 } from '@webb-tools/sdk-core';
-import { hexToU8a } from '@polkadot/util';
-import { ZkComponents, getChainIdType } from '@webb-tools/utils';
+import { hexToU8a, ZkComponents, getChainIdType } from '@webb-tools/utils';
 import { poseidon } from 'circomlibjs';
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';

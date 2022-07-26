@@ -27,8 +27,7 @@ import {
   IVariableAnchorPublicInputs,
   IAnchorDepositInfo,
 } from '@webb-tools/interfaces';
-import { getChainIdType, ZkComponents } from '@webb-tools/utils';
-import { hexToU8a, u8aToHex } from '@polkadot/util';
+import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 function checkNativeAddress(tokenAddress: string): boolean {
