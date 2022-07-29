@@ -3,10 +3,10 @@ import { IAnchor } from '..';
 import { IBridgeSide } from '../IBridgeSide';
 
 // Deployer config matches the chainId to the signer for that chain
-export type DeployerConfig = Record<number, ethers.Signer>;
+export type DeployerConfig = Record<number, ethers.Wallet>;
 
 // Initial Governor config the chainId to the initial governor for that chain
-export type GovernorConfig = Record<number, ethers.Wallet | string>;
+export type GovernorConfig = Record<number, string>;
 
 export type AnchorIdentifier = {
   anchorSize?: ethers.BigNumberish;

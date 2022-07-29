@@ -119,7 +119,7 @@ export class SignatureBridge {
       const initialGovernor = initialGovernors[chainID];
 
       // Create the bridgeSide
-      const bridgeInstance = await SignatureBridgeSide.createBridgeSide(initialGovernor, deployers[chainID]);
+      const bridgeInstance = await SignatureBridgeSide.createBridgeSide(deployers[chainID]);
 
       const handler = await AnchorHandler.createAnchorHandler(
         bridgeInstance.contract.address,
@@ -128,8 +128,6 @@ export class SignatureBridge {
         bridgeInstance.admin
       );
       await bridgeInstance.setAnchorHandler(handler);
-
-      bridgeSides.set(chainID, bridgeInstance);
 
       // Create Treasury and TreasuryHandler
       const treasuryHandler = await TreasuryHandler.createTreasuryHandler(
@@ -216,8 +214,15 @@ export class SignatureBridge {
         chainGroupedAnchors.push(anchorInstance);
         anchors.set(SignatureBridge.createAnchorIdString({ anchorSize, chainId: chainID }), anchorInstance);
       }
+
+      // Transfer ownership of the bridge to the initialGovernor
+      const tx = await bridgeInstance.transferOwnership(initialGovernor, 0);
+      await tx.wait();
+
       await SignatureBridge.setPermissions(bridgeInstance, chainGroupedAnchors);
       createdAnchors.push(chainGroupedAnchors);
+
+      bridgeSides.set(chainID, bridgeInstance);
     }
 
     // All anchors created, massage data to group anchors which should be linked together

@@ -26,52 +26,34 @@ export class SignatureBridgeSide implements IBridgeSide {
 
   private constructor(
     contract: SignatureBridge,
-    governor: ethers.Wallet | string,
-    signer: ethers.Signer,
-    signingSystemSignFn?: (data: any) => Promise<string>
+    admin: ethers.Wallet,
   ) {
     this.contract = contract;
-    this.admin = signer;
-    this.governor = governor;
+    this.admin = admin;
     this.anchorHandler = null;
     this.tokenHandler = null;
     this.treasuryHandler = null;
     this.proposals = [];
-    if (signingSystemSignFn) {
-      // The signing system here is an asynchronous function that
-      // potentially dispatches a message for a signature and waits
-      // to receive it. It is potentially a long-running process.
-      this.signingSystemSignFn = signingSystemSignFn;
-    } else {
-      if (typeof governor === 'string') {
-        throw new Error('Cannot sign with signing system without a governor wallet');
-      }
 
-      this.signingSystemSignFn = (data: any) => {
-        return Promise.resolve(signMessage(governor, data));
-      };
-    }
+    this.signingSystemSignFn = (data: any) => {
+      return Promise.resolve(signMessage(admin, data));
+    };
   }
 
   public static async createBridgeSide(
-    initialGovernor: ethers.Wallet | string,
-    admin: ethers.Signer,
-    signingSystemSignFn?: (data: any) => Promise<string>
+    admin: ethers.Wallet
   ): Promise<SignatureBridgeSide> {
     const bridgeFactory = new SignatureBridge__factory(admin);
-    const deployedBridge = (typeof initialGovernor === 'string')
-      ? await bridgeFactory.deploy(initialGovernor, 0)
-      : await bridgeFactory.deploy(initialGovernor.address, 0);
+    const deployedBridge = await bridgeFactory.deploy(admin.address, 0);
     await deployedBridge.deployed();
-    const bridgeSide = (typeof initialGovernor === 'string')
-      ? new SignatureBridgeSide(deployedBridge, initialGovernor, admin, signingSystemSignFn)
-      : new SignatureBridgeSide(deployedBridge, initialGovernor, admin, signingSystemSignFn);
+    const bridgeSide = new SignatureBridgeSide(deployedBridge, admin);
     return bridgeSide;
   }
 
-  public static async connect(address: string, governor: ethers.Wallet, admin: ethers.Wallet) {
+  public static async connect(address: string, admin: ethers.Wallet, governor?: ethers.Wallet) {
     const deployedBridge = SignatureBridge__factory.connect(address, admin);
-    const bridgeSide = new SignatureBridgeSide(deployedBridge, governor, admin);
+    const bridgeSide = new SignatureBridgeSide(deployedBridge, admin);
+    bridgeSide.signingSystemSignFn = (data: any) => { return Promise.resolve(signMessage(governor,data)); }
     return bridgeSide;
   }
 

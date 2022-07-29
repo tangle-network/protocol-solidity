@@ -15,37 +15,21 @@ import { MintableToken, Treasury, TreasuryHandler } from '../../packages/tokens/
 import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '../../packages/utils/src';
 import { PoseidonT3__factory } from '../../packages/contracts';
 import { GovernedTokenWrapper, TokenWrapperHandler } from '../../packages/tokens/src';
-import { BigNumber, Wallet } from 'ethers';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { BigNumber } from 'ethers';
+import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
  
 describe('SignatureBridgeSideConstruction', () => {
- 
-  let zkComponents: ZkComponents;
- 
-  before(async () => {
-    zkComponents = await fetchComponentsFromFilePaths(
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/poseidon_anchor_2.wasm'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/witness_calculator.cjs'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/circuit_final.zkey')
-    );
-  })
+  let hardhatWallet1 = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
 
-  it('should create the signature bridge side which can affect the anchor state', async () => {
-    const wallet = ethers.Wallet.createRandom();
-    const initialGovernor = wallet;
-    const signers = await ethers.getSigners();
-    const admin = signers[1];
-    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor, admin);
+  it('should create the signature bridge side', async () => {
+    await SignatureBridgeSide.createBridgeSide(hardhatWallet1);
   })
 });
 
 describe('SignatureBridgeSide use', () => {
 
   let zkComponents: ZkComponents;
-  let wallet: Wallet;
-  let initialGovernor: Wallet;
-  let admin: SignerWithAddress;
-  let signers: SignerWithAddress[];
+  let admin = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
   let bridgeSide: SignatureBridgeSide;
 
   before(async () => {
@@ -54,14 +38,10 @@ describe('SignatureBridgeSide use', () => {
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/witness_calculator.cjs'),
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/circuit_final.zkey')
     );
-    signers = await ethers.getSigners();
   })
 
   beforeEach(async () => {
-    wallet = ethers.Wallet.createRandom();
-    initialGovernor = wallet;
-    admin = signers[1];
-    bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor, admin);
+    bridgeSide = await SignatureBridgeSide.createBridgeSide(admin);
   })
 
   it('should set resource with signature', async () => {
@@ -384,13 +364,14 @@ describe('SignatureBridgeSide use', () => {
     await bridgeSide.connectAnchorWithSignature(anchor);
     assert.strictEqual((await bridgeSide.contract.proposalNonce()).toString(), '5');
   })
- })
+})
 
- describe('Rescue Tokens Tests for ERC20 Tokens', () => {
+describe('Rescue Tokens Tests for ERC20 Tokens', () => {
   let zkComponents: ZkComponents;
   let sourceAnchor: Anchor;
   let anchorHandler: AnchorHandler;
   let erc20TokenInstance: MintableToken;
+  let admin = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
   let bridgeSide: SignatureBridgeSide;
   let wrappingFee: number;
   let signers;
@@ -398,7 +379,6 @@ describe('SignatureBridgeSide use', () => {
   let treasuryHandler;
   let treasury;
   const zeroAddress = "0x0000000000000000000000000000000000000000";
-
  
   before(async () => {
     zkComponents = await fetchComponentsFromFilePaths(
@@ -409,11 +389,8 @@ describe('SignatureBridgeSide use', () => {
   })
 
   beforeEach(async() => {
-    const wallet = ethers.Wallet.createRandom();
-    const initialGovernor = wallet;
     signers = await ethers.getSigners();
-    const admin = signers[1];
-    bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor, admin);
+    bridgeSide = await SignatureBridgeSide.createBridgeSide(admin);
 
     // Create Treasury and TreasuryHandler
     treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeSide.contract.address, [],[], admin);
@@ -550,9 +527,8 @@ describe('SignatureBridgeSide use', () => {
 describe('Rescue Tokens Tests for Native ETH', () => {
  let zkComponents: ZkComponents;
  let sourceAnchor: Anchor;
- let destAnchor: Anchor;
  let anchorHandler: AnchorHandler;
- let erc20TokenInstance: MintableToken;
+ let admin = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
  let bridgeSide: SignatureBridgeSide;
  let wrappingFee: number;
  let signers;
@@ -570,11 +546,8 @@ describe('Rescue Tokens Tests for Native ETH', () => {
  })
 
  beforeEach(async() => {
-   const wallet = ethers.Wallet.createRandom();
-   const initialGovernor = wallet;
    signers = await ethers.getSigners();
-   const admin = signers[1];
-   bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor, admin);
+   bridgeSide = await SignatureBridgeSide.createBridgeSide(admin);
 
    // Deploy TokenWrapperHandler
    const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);

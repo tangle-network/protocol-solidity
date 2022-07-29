@@ -1,4 +1,5 @@
 import { HardhatUserConfig } from 'hardhat/types';
+import { HARDHAT_ACCOUNTS } from './hardhatAccounts.js';
 import 'hardhat-artifactor';
 import 'hardhat-gas-reporter'
 import '@typechain/hardhat';
@@ -25,6 +26,11 @@ subtask('typechain-generate-types',
 
 const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',
+  networks: {
+    'hardhat': {
+      accounts: HARDHAT_ACCOUNTS,
+    }
+  },
   solidity: {
     compilers: [{
       version: '0.8.5',
