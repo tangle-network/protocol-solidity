@@ -38,8 +38,7 @@ describe('multichain tests for erc20 bridges', () => {
   let zkComponents3: ZkComponents;
   let zkComponents4: ZkComponents;
 
-  let hardhatProvider1 = ethers.provider;
-  let hardhatWallet1 = new ethers.Wallet(HARDHAT_PK_1, hardhatProvider1);
+  let hardhatWallet1 = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
 
   before('setup networks', async () => {
     ganacheServer2 = await startGanacheServer(1337, 1337, [

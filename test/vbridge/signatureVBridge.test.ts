@@ -4,7 +4,7 @@
  */
 const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
-import { ethers, network } from 'hardhat';
+import { ethers } from 'hardhat';
 
 // Convenience wrapper classes for contract classes
 import { VBridge, VBridgeInput } from '../../packages/vbridge/src';
@@ -23,8 +23,7 @@ export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 describe('2-sided multichain tests for signature vbridge', () => {
   const FIRST_CHAIN_ID = 31337;
-  let hardhatProvider1 = ethers.provider;
-  let hardhatWallet1 = new ethers.Wallet(HARDHAT_PK_1, hardhatProvider1);
+  let hardhatWallet1 = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
 
   const SECOND_CHAIN_ID = 10000;
   let ganacheProvider2 = new ethers.providers.JsonRpcProvider(`http://localhost:${SECOND_CHAIN_ID}`);
@@ -813,8 +812,7 @@ describe('8-sided multichain tests for signature vbridge', () => {
     let existingToken2: MintableToken;
     let existingToken3: MintableToken;
 
-    let hardhatProvider1 = ethers.provider;
-    let hardhatWallet1 = new ethers.Wallet(HARDHAT_PK_1, hardhatProvider1);
+    let hardhatWallet1 = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
   
     let ganacheProvider2 = new ethers.providers.JsonRpcProvider(`http://localhost:${SECOND_CHAIN_ID}`);
     ganacheProvider2.pollingInterval = 1;

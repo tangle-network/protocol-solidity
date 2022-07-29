@@ -7,8 +7,8 @@ import { IAnchor, IBridgeSide, Proposal } from '@webb-tools/interfaces';
 import { TreasuryHandler } from '@webb-tools/tokens';
 import { getChainIdType } from '@webb-tools/utils';
 import { signMessage, toHex } from '@webb-tools/sdk-core';
-import EC from 'elliptic';
-const ec = new EC.ec('secp256k1');
+
+type SystemSigningFn = (data: string) => Promise<string>;
 
 export class SignatureBridgeSide implements IBridgeSide {
   contract: SignatureBridge;
@@ -18,7 +18,7 @@ export class SignatureBridgeSide implements IBridgeSide {
   tokenHandler: TokenWrapperHandler;
   treasuryHandler: TreasuryHandler;
   proposals: Proposal[];
-  signingSystemSignFn: (data: any) => Promise<string>;
+  signingSystemSignFn: SystemSigningFn;
 
   ANCHOR_HANDLER_MISSING_ERROR = new Error('Cannot connect an anchor without a handler');
   TOKEN_HANDLER_MISSING_ERROR = new Error('Cannot connect to a token wrapper without a handler');
@@ -26,18 +26,15 @@ export class SignatureBridgeSide implements IBridgeSide {
 
   private constructor(
     contract: SignatureBridge,
-    admin: ethers.Wallet,
+    systemSigningFn: SystemSigningFn,
   ) {
     this.contract = contract;
-    this.admin = admin;
     this.anchorHandler = null;
     this.tokenHandler = null;
     this.treasuryHandler = null;
     this.proposals = [];
 
-    this.signingSystemSignFn = (data: any) => {
-      return Promise.resolve(signMessage(admin, data));
-    };
+    this.signingSystemSignFn = systemSigningFn
   }
 
   public static async createBridgeSide(
@@ -46,14 +43,27 @@ export class SignatureBridgeSide implements IBridgeSide {
     const bridgeFactory = new SignatureBridge__factory(admin);
     const deployedBridge = await bridgeFactory.deploy(admin.address, 0);
     await deployedBridge.deployed();
-    const bridgeSide = new SignatureBridgeSide(deployedBridge, admin);
+    const bridgeSide = new SignatureBridgeSide(deployedBridge, (data: string) => {
+      return Promise.resolve(signMessage(admin,data));
+    });
     return bridgeSide;
   }
 
-  public static async connect(address: string, admin: ethers.Wallet, governor?: ethers.Wallet) {
-    const deployedBridge = SignatureBridge__factory.connect(address, admin);
-    const bridgeSide = new SignatureBridgeSide(deployedBridge, admin);
-    bridgeSide.signingSystemSignFn = (data: any) => { return Promise.resolve(signMessage(governor,data)); }
+  public static async connectMocked(contractAddress: string, mockedGovernor: ethers.Wallet) {
+    const deployedBridge = SignatureBridge__factory.connect(contractAddress, mockedGovernor);
+    const bridgeSide = new SignatureBridgeSide(deployedBridge, (data: string) => {
+      return Promise.resolve(signMessage(mockedGovernor,data));
+    });
+    return bridgeSide;
+  }
+
+  public static async connectGovernor(
+    contractAddress: string,
+    provider: ethers.providers.Provider,
+    systemSigningFn: SystemSigningFn
+  ) {
+    const deployedBridge = SignatureBridge__factory.connect(contractAddress, provider);
+    const bridgeSide = new SignatureBridgeSide(deployedBridge, systemSigningFn);
     return bridgeSide;
   }
 
