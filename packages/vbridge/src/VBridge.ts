@@ -135,8 +135,6 @@ export class VBridge {
       );
       vBridgeInstance.setAnchorHandler(handler);
 
-      vBridgeSides.set(chainID, vBridgeInstance);
-
       // Create Treasury and TreasuryHandler
       const treasuryHandler = await TreasuryHandler.createTreasuryHandler(
         vBridgeInstance.contract.address,
@@ -226,6 +224,8 @@ export class VBridge {
 
       await VBridge.setPermissions(vBridgeInstance, chainGroupedVAnchors);
       createdVAnchors.push(chainGroupedVAnchors);
+
+      vBridgeSides.set(chainID, vBridgeInstance);
     }
 
     // All anchors created, massage data to group anchors which should be linked together
