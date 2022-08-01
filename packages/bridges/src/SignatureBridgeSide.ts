@@ -8,7 +8,7 @@ import { TreasuryHandler } from '@webb-tools/tokens';
 import { getChainIdType } from '@webb-tools/utils';
 import { signMessage, toHex } from '@webb-tools/sdk-core';
 
-type SystemSigningFn = (data: string) => Promise<string>;
+type SystemSigningFn = (data: any) => Promise<string>;
 
 export class SignatureBridgeSide implements IBridgeSide {
   contract: SignatureBridge;
@@ -43,9 +43,10 @@ export class SignatureBridgeSide implements IBridgeSide {
     const bridgeFactory = new SignatureBridge__factory(admin);
     const deployedBridge = await bridgeFactory.deploy(admin.address, 0);
     await deployedBridge.deployed();
-    const bridgeSide = new SignatureBridgeSide(deployedBridge, (data: string) => {
+    const bridgeSide = new SignatureBridgeSide(deployedBridge, (data: any) => {
       return Promise.resolve(signMessage(admin,data));
     });
+    bridgeSide.admin = admin;
     return bridgeSide;
   }
 
@@ -54,6 +55,8 @@ export class SignatureBridgeSide implements IBridgeSide {
     const bridgeSide = new SignatureBridgeSide(deployedBridge, (data: string) => {
       return Promise.resolve(signMessage(mockedGovernor,data));
     });
+    bridgeSide.governor = mockedGovernor;
+    bridgeSide.admin = mockedGovernor;
     return bridgeSide;
   }
 

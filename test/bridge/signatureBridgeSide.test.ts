@@ -27,7 +27,6 @@ describe('SignatureBridgeSideConstruction', () => {
 });
 
 describe('SignatureBridgeSide use', () => {
-
   let zkComponents: ZkComponents;
   let admin = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
   let bridgeSide: SignatureBridgeSide;
@@ -70,7 +69,7 @@ describe('SignatureBridgeSide use', () => {
     );
 
     await tokenInstance.approveSpending(anchor.contract.address);
-    await bridgeSide.setAnchorHandler(anchorHandler);
+    bridgeSide.setAnchorHandler(anchorHandler);
     // //Function call below sets resource with signature
     await bridgeSide.connectAnchorWithSignature(anchor);
     //Check that proposal nonce is updated on anchor contract since handler prposal has been executed
@@ -117,8 +116,8 @@ describe('SignatureBridgeSide use', () => {
     await tokenInstance.approveSpending(destAnchor.contract.address);
     await tokenInstance.approveSpending(sourceAnchor.contract.address);
 
-    await bridgeSide.setAnchorHandler(anchorHandler);
-    bridgeSide.setResourceWithSignature(destAnchor);
+    bridgeSide.setAnchorHandler(anchorHandler);
+    await bridgeSide.setResourceWithSignature(destAnchor);
     await sourceAnchor.deposit(await admin.getChainId());
     const destResourceID = await destAnchor.createResourceId();
     await bridgeSide.executeAnchorProposalWithSig(sourceAnchor, destResourceID);
@@ -131,7 +130,6 @@ describe('SignatureBridgeSide use', () => {
     // Create Treasury and TreasuryHandler
     const treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeSide.contract.address, [],[], admin);
     const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, admin);
-    await bridgeSide.setTreasuryHandler(treasuryHandler);
 
     // Create a GovernedTokenWrapper
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
@@ -193,7 +191,7 @@ describe('SignatureBridgeSide use', () => {
     // Create Treasury and TreasuryHandler
     const treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeSide.contract.address, [],[], bridgeSide.admin);
     const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, bridgeSide.admin);
-    
+
     //Create a GovernedTokenWrapper
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
