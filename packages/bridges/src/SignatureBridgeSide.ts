@@ -37,6 +37,12 @@ export class SignatureBridgeSide implements IBridgeSide {
     this.signingSystemSignFn = systemSigningFn
   }
 
+  /**
+   * When a bridgeSide is created, the admin is set as the governor.
+   * Ownership of the bridge can then be transferred to another entity.
+   * 
+   * @param admin - The deployer and governor upon creation.
+   */
   public static async createBridgeSide(
     admin: ethers.Wallet
   ): Promise<SignatureBridgeSide> {
@@ -47,9 +53,19 @@ export class SignatureBridgeSide implements IBridgeSide {
       return Promise.resolve(signMessage(admin,data));
     });
     bridgeSide.admin = admin;
+    bridgeSide.governor = admin;
     return bridgeSide;
   }
 
+  /**
+   * When an existing SignatureBridge is connected, the governor must be configured.
+   * In the case of connectMocked, a wallet address is passed which will act as the governor.
+   * 
+   * connectMocked is particularly useful for integration testing
+   * 
+   * @param contractAddress - The contract address of the SignatureBridge contract instance.
+   * @param mockedGovernor - The ethers.Wallet which will sign messages before execution on the bridgeSide.
+   */
   public static async connectMocked(contractAddress: string, mockedGovernor: ethers.Wallet) {
     const deployedBridge = SignatureBridge__factory.connect(contractAddress, mockedGovernor);
     const bridgeSide = new SignatureBridgeSide(deployedBridge, (data: string) => {
@@ -60,6 +76,19 @@ export class SignatureBridgeSide implements IBridgeSide {
     return bridgeSide;
   }
 
+  /**
+   * When an existing SignatureBridge is connected, the governor must be configured.
+   * In the case of connectGovernor, a network is passed for querying the chain as well
+   * as a signing function which can keep this class generic.
+   * 
+   * connectGovernor is necessary for interacting with this class when the private key
+   * of the governor is unavailable, but signed proposals are available.
+   * 
+   * @param contractAddress - The contract address of the SignatureBridge contract instance.
+   * @param provider - The network which the contract address exists upon.
+   * @param systemSigningFn - a function which will produce a signature that verifies as
+   * coming from the configured governor on chain.
+   */
   public static async connectGovernor(
     contractAddress: string,
     provider: ethers.providers.Provider,

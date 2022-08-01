@@ -164,8 +164,8 @@ describe('2-sided multichain tests for signature vbridge', () => {
       };
 
       const initialGovernorsConfig: GovernorConfig = {
-        [chainID1]: '0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF',
-        [chainID2]: '0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF',
+        [chainID1]: governorAddress,
+        [chainID2]: governorAddress,
       };
 
       const vBridge = await VBridge.deployVariableAnchorBridge(
