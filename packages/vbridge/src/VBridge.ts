@@ -105,12 +105,15 @@ export class VBridge {
     return linkedVAnchorMap;
   }
 
+  // Deployments of all contracts for the bridge will be done with the DeployerConfig.
+  // After deployments, the wallet in the DeployerConfig will transfer ownership
+  // to the initialGovernor
   public static async deployVariableAnchorBridge(
     vBridgeInput: VBridgeInput,
     deployers: DeployerConfig,
     initialGovernors: GovernorConfig,
     smallCircuitZkComponents: ZkComponents,
-    largeCircuitZkComponents: ZkComponents
+    largeCircuitZkComponents: ZkComponents,
   ): Promise<VBridge> {
     let webbTokenAddresses: Map<number, string> = new Map();
     let vBridgeSides: Map<number, SignatureBridgeSide> = new Map();
@@ -125,7 +128,7 @@ export class VBridge {
     for (let chainID of vBridgeInput.chainIDs) {
       const initialGovernor = initialGovernors[chainID];
       // Create the bridgeSide
-      let vBridgeInstance = await SignatureBridgeSide.createBridgeSide(initialGovernor, deployers[chainID]);
+      let vBridgeInstance = await SignatureBridgeSide.createBridgeSide(deployers[chainID]);
 
       const handler = await AnchorHandler.createAnchorHandler(
         vBridgeInstance.contract.address,
@@ -134,8 +137,6 @@ export class VBridge {
         vBridgeInstance.admin
       );
       vBridgeInstance.setAnchorHandler(handler);
-
-      vBridgeSides.set(chainID, vBridgeInstance);
 
       // Create Treasury and TreasuryHandler
       const treasuryHandler = await TreasuryHandler.createTreasuryHandler(
@@ -226,6 +227,11 @@ export class VBridge {
 
       await VBridge.setPermissions(vBridgeInstance, chainGroupedVAnchors);
       createdVAnchors.push(chainGroupedVAnchors);
+
+      // Transfer ownership of the bridge to the initialGovernor
+      const tx = await vBridgeInstance.transferOwnership(initialGovernor, 0);
+      await tx.wait();
+      vBridgeSides.set(chainID, vBridgeInstance);
     }
 
     // All anchors created, massage data to group anchors which should be linked together
@@ -240,8 +246,9 @@ export class VBridge {
       groupLinkedVAnchors.push(linkedAnchors);
     }
 
-    // finally, link the anchors
+    // link the anchors
     const linkedVAnchorMap = await VBridge.createLinkedVAnchorMap(groupLinkedVAnchors);
+
     return new VBridge(vBridgeSides, webbTokenAddresses, linkedVAnchorMap, vAnchors);
   }
 

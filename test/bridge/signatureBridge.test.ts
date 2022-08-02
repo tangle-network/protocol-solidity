@@ -19,6 +19,7 @@ import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '../.
 import { BigNumber } from '@ethersproject/bignumber';
 import { Signer } from 'ethers';
 import { startGanacheServer } from '@webb-tools/test-utils';
+import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -36,6 +37,8 @@ describe('multichain tests for erc20 bridges', () => {
   let zkComponents2: ZkComponents;
   let zkComponents3: ZkComponents;
   let zkComponents4: ZkComponents;
+
+  let hardhatWallet1 = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
 
   before('setup networks', async () => {
     ganacheServer2 = await startGanacheServer(1337, 1337, [
@@ -117,13 +120,13 @@ describe('multichain tests for erc20 bridges', () => {
       const signers = await ethers.getSigners();
 
       const deploymentConfig: DeployerConfig = {
-        [chainID1]: signers[1],
+        [chainID1]: hardhatWallet1,
         [chainID2]: ganacheWallet2,
       };
 
       const initialGovernorsConfig: GovernorConfig = {
-        [chainID1]: ethers.Wallet.createRandom(),
-        [chainID2]: ethers.Wallet.createRandom(),
+        [chainID1]: await hardhatWallet1.getAddress(),
+        [chainID2]: await ganacheWallet2.getAddress(),
       };
 
       const bridge = await SignatureBridge.deployFixedDepositBridge(bridge2WebbEthInput, deploymentConfig, initialGovernorsConfig, zkComponents2);
@@ -177,15 +180,15 @@ describe('multichain tests for erc20 bridges', () => {
       const signers = await ethers.getSigners();
 
       const deploymentConfig: DeployerConfig = {
-        [chainID1]: signers[1],
+        [chainID1]: hardhatWallet1,
         [chainID2]: ganacheWallet2,
         [chainID3]: ganacheWallet3,
       };
 
       const initialGovernorsConfig: GovernorConfig = {
-        [chainID1]: ethers.Wallet.createRandom(),
-        [chainID2]: ethers.Wallet.createRandom(),
-        [chainID3]: ethers.Wallet.createRandom(),
+        [chainID1]: await hardhatWallet1.getAddress(),
+        [chainID2]: await ganacheWallet2.getAddress(),
+        [chainID3]: await ganacheWallet3.getAddress(),
       };
 
       const bridge = await SignatureBridge.deployFixedDepositBridge(bridge3WebbEthInput, deploymentConfig, initialGovernorsConfig, zkComponents3);
@@ -260,15 +263,14 @@ describe('multichain tests for erc20 bridges', () => {
         chainIDs: [chainID1, chainID2]
       };
 
-      // setup the config for deployers of contracts (admins)
       const deploymentConfig: DeployerConfig = {
-        [chainID1]: signers[1],
+        [chainID1]: hardhatWallet1,
         [chainID2]: ganacheWallet2,
-      }
+      };
 
       const initialGovernorsConfig: GovernorConfig = {
-        [chainID1]: ethers.Wallet.createRandom(),
-        [chainID2]: ethers.Wallet.createRandom(),
+        [chainID1]: await hardhatWallet1.getAddress(),
+        [chainID2]: await ganacheWallet2.getAddress(),
       };
 
       // deploy the bridge
@@ -512,19 +514,19 @@ describe('multichain tests for erc20 bridges', () => {
 
       // setup the config for deployers of contracts (admins)
       const deploymentConfig: DeployerConfig = {
-        [chainID1]: signers[1],
+        [chainID1]: hardhatWallet1,
         [chainID2]: ganacheWallet2,
         [chainID3]: ganacheWallet3,
         [chainID4]: ganacheWallet4,
       }
 
       const initialGovernorsConfig: GovernorConfig = {
-        [chainID1]: ethers.Wallet.createRandom(),
-        [chainID2]: ethers.Wallet.createRandom(),
-        [chainID3]: ethers.Wallet.createRandom(),
-        [chainID4]: ethers.Wallet.createRandom(),
+        [chainID1]: await hardhatWallet1.getAddress(),
+        [chainID2]: await ganacheWallet2.getAddress(),
+        [chainID3]: await ganacheWallet3.getAddress(),
+        [chainID4]: await ganacheWallet4.getAddress(),
       };
-      
+
       // deploy the bridge
       bridge = await SignatureBridge.deployFixedDepositBridge(existingTokenBridgeConfig, deploymentConfig, initialGovernorsConfig, zkComponents4);
 
