@@ -99,9 +99,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         [chainID1]: await hardhatWallet1.getAddress(),
         [chainID2]: await ganacheWallet2.getAddress(),
       };
-      console.log('1');
       const vBridge = await VBridge.deployVariableAnchorBridge(bridge2WebbEthInput, deploymentConfig, initialGovernorsConfig, zkComponents2_2, zkComponents16_2);
-      console.log('2');
       // Should be able to retrieve individual anchors
       const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
       const vAnchor2: VAnchor = vBridge.getVAnchor(chainID2)! as VAnchor;
@@ -109,7 +107,6 @@ describe('2-sided multichain tests for signature vbridge', () => {
       const webbTokenAddress = vBridge.getWebbTokenAddress(chainID1);
       const webbToken = await MintableToken.tokenFromAddress(webbTokenAddress!, signers[1]);
       const tx = await webbToken.mintTokens(signers[2].address, '100000000000000000000000');
-      console.log('3');
       // Get the state of anchors before deposit
       const sourceAnchorRootBefore = await vAnchor1.contract.getLastRoot();
       // Define inputs/outputs for transact function
@@ -122,13 +119,11 @@ describe('2-sided multichain tests for signature vbridge', () => {
       });
       // Transact on the bridge
       await vBridge.transact([], [depositUtxo], 0, '0', '0', signers[2]); 
-      console.log('4');
       // Check the state of anchors after deposit
       let edgeIndex = await vAnchor2.contract.edgeIndex(chainID1);
 
       const sourceAnchorRootAfter = await vAnchor1.contract.getLastRoot();
       const destAnchorEdgeAfter = await vAnchor2.contract.edgeList(edgeIndex);
-      console.log('5');
       // make sure the roots / anchors state have changed
       assert.notEqual(sourceAnchorRootAfter, sourceAnchorRootBefore);
       assert.deepEqual(ethers.BigNumber.from(1), destAnchorEdgeAfter.latestLeafIndex);
@@ -141,9 +136,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         amount: 1e7.toString(),
         keypair: depositUtxo.keypair
       });
-      console.log('6');
       await vBridge.transact([depositUtxo], [transferUtxo], 0, '0', '0', signers[2]);
-      console.log('7');
     });
 
     it('should create properly initialize governor if passed address', async () => {

@@ -48,13 +48,13 @@ abstract contract LinkableAnchor is ILinkableAnchor, MerkleTreePoseidon, Reentra
 		@param chainId The chain id where the LinkableAnchor contract being linked is located.
 		@param root The latest merkle root of the LinkableAnchor contract being linked.
 		@param nonce The latest leaf insertion index of the LinkableAnchor contract being linked.
-		@param target The contract address or tree identifier of the LinkableAnchor being linked.
+		@param srcResourceID The contract address or tree identifier of the LinkableAnchor being linked.
 	 */
 	struct Edge {
 		uint256 chainID;
 		bytes32 root;
 		uint256 latestLeafIndex;
-		bytes32 target;
+		bytes32 srcResourceID;
 	}
 
 	// Maps sourceChainID to the index in the edge list
@@ -92,46 +92,46 @@ abstract contract LinkableAnchor is ILinkableAnchor, MerkleTreePoseidon, Reentra
 		@notice Add an edge to the tree or update an existing edge.
 		@param _root The merkle root of the edge's merkle tree
 		@param _leafIndex The latest leaf insertion index of the edge's merkle tree
-		@param _target The target resource ID of the linked anchor
+		@param _srcResourceID The origin resource ID of the originating linked anchor update
 	 */
 	function updateEdge(
 		bytes32 _root,
 		uint32 _leafIndex,
-		bytes32 _target
+		bytes32 _srcResourceID
 	) override onlyHandler external payable nonReentrant {
-		uint64 _sourceChainID = parseChainIdFromResourceId(_target);
-		if (this.hasEdge(_sourceChainID)) {
+		uint64 _srcChainID = parseChainIdFromResourceId(_srcResourceID);
+		if (this.hasEdge(_srcChainID)) {
 			// Require increasing nonce
-			require(edgeList[edgeIndex[_sourceChainID]].latestLeafIndex < _leafIndex, "New leaf index must be greater");
+			require(edgeList[edgeIndex[_srcChainID]].latestLeafIndex < _leafIndex, "New leaf index must be greater");
 			// Require leaf index increase is bounded by 65,536 updates at once
-			require(_leafIndex < edgeList[edgeIndex[_sourceChainID]].latestLeafIndex + (65_536), "New leaf index must within 2^16 updates");
-			require(_target == edgeList[edgeIndex[_sourceChainID]].target, "New target must be the same");
-			uint index = edgeIndex[_sourceChainID];
+			require(_leafIndex < edgeList[edgeIndex[_srcChainID]].latestLeafIndex + (65_536), "New leaf index must within 2^16 updates");
+			require(_srcResourceID == edgeList[edgeIndex[_srcChainID]].srcResourceID, "srcResourceID must be the same");
+			uint index = edgeIndex[_srcChainID];
 			// update the edge in the edge list
 			edgeList[index].latestLeafIndex = _leafIndex;
 			edgeList[index].root = _root;
 			// add to root histories
-			uint32 neighborRootIndex = (currentNeighborRootIndex[_sourceChainID] + 1) % ROOT_HISTORY_SIZE;
-			currentNeighborRootIndex[_sourceChainID] = neighborRootIndex;
-			neighborRoots[_sourceChainID][neighborRootIndex] = _root;
-			emit EdgeUpdate(_sourceChainID, _leafIndex, _root);
+			uint32 neighborRootIndex = (currentNeighborRootIndex[_srcChainID] + 1) % ROOT_HISTORY_SIZE;
+			currentNeighborRootIndex[_srcChainID] = neighborRootIndex;
+			neighborRoots[_srcChainID][neighborRootIndex] = _root;
+			emit EdgeUpdate(_srcChainID, _leafIndex, _root);
 		} else {
 			//Add Edge
 			require(edgeList.length < maxEdges, "This Anchor is at capacity");
-			edgeExistsForChain[_sourceChainID] = true;
+			edgeExistsForChain[_srcChainID] = true;
 			uint index = edgeList.length;
 			Edge memory edge = Edge({
-				chainID: _sourceChainID,
+				chainID: _srcChainID,
 				root: _root,
 				latestLeafIndex: _leafIndex,
-				target: _target
+				srcResourceID: _srcResourceID
 			});
 			edgeList.push(edge);
-			edgeIndex[_sourceChainID] = index;
+			edgeIndex[_srcChainID] = index;
 			// add to root histories
 			uint32 neighborRootIndex = 0;
-			neighborRoots[_sourceChainID][neighborRootIndex] = _root;
-			emit EdgeAddition(_sourceChainID, _leafIndex, _root);
+			neighborRoots[_srcChainID][neighborRootIndex] = _root;
+			emit EdgeAddition(_srcChainID, _leafIndex, _root);
 		}
 	}
 
@@ -150,7 +150,7 @@ abstract contract LinkableAnchor is ILinkableAnchor, MerkleTreePoseidon, Reentra
 					root: zeros(levels - 1),
 					chainID: 0,
 					latestLeafIndex: 0,
-					target: 0x0
+					srcResourceID: 0x0
 				});
 			}
 		}

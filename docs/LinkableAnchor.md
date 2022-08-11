@@ -198,7 +198,7 @@ function edgeIndex(uint256) external view returns (uint256)
 ### edgeList
 
 ```solidity
-function edgeList(uint256) external view returns (uint256 chainID, bytes32 root, uint256 latestLeafIndex, bytes32 target)
+function edgeList(uint256) external view returns (uint256 chainID, bytes32 root, uint256 latestLeafIndex, bytes32 srcResourceID)
 ```
 
 
@@ -218,7 +218,7 @@ function edgeList(uint256) external view returns (uint256 chainID, bytes32 root,
 | chainID | uint256 | undefined
 | root | bytes32 | undefined
 | latestLeafIndex | uint256 | undefined
-| target | bytes32 | undefined
+| srcResourceID | bytes32 | undefined
 
 ### filledSubtrees
 
@@ -646,7 +646,7 @@ Sets the verifier for zkSNARKs
 ### updateEdge
 
 ```solidity
-function updateEdge(bytes32 _root, uint32 _leafIndex, bytes32 _target) external payable
+function updateEdge(bytes32 _root, uint32 _leafIndex, bytes32 _srcResourceID) external payable
 ```
 
 Add an edge to the tree or update an existing edge.
@@ -659,7 +659,7 @@ Add an edge to the tree or update an existing edge.
 |---|---|---|
 | _root | bytes32 | The merkle root of the edge&#39;s merkle tree
 | _leafIndex | uint32 | The latest leaf insertion index of the edge&#39;s merkle tree
-| _target | bytes32 | The target resource ID of the linked anchor
+| _srcResourceID | bytes32 | The origin resource ID of the originating linked anchor update
 
 ### zeros
 

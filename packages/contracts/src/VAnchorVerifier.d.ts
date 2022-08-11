@@ -12,27 +12,27 @@ import {
   BaseContract,
   ContractTransaction,
   CallOverrides,
-} from 'ethers';
-import { BytesLike } from '@ethersproject/bytes';
-import { Listener, Provider } from '@ethersproject/providers';
-import { FunctionFragment, EventFragment, Result } from '@ethersproject/abi';
-import type { TypedEventFilter, TypedEvent, TypedListener } from './common';
+} from "ethers";
+import { BytesLike } from "@ethersproject/bytes";
+import { Listener, Provider } from "@ethersproject/providers";
+import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
+import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface VAnchorVerifierInterface extends ethers.utils.Interface {
   functions: {
-    'v2_16()': FunctionFragment;
-    'v2_2()': FunctionFragment;
-    'v8_16()': FunctionFragment;
-    'v8_2()': FunctionFragment;
-    'verifyProof(uint256[2],uint256[2][2],uint256[2],bytes,uint8,bool)': FunctionFragment;
+    "v2_16()": FunctionFragment;
+    "v2_2()": FunctionFragment;
+    "v8_16()": FunctionFragment;
+    "v8_2()": FunctionFragment;
+    "verifyProof(uint256[2],uint256[2][2],uint256[2],bytes,uint8,bool)": FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: 'v2_16', values?: undefined): string;
-  encodeFunctionData(functionFragment: 'v2_2', values?: undefined): string;
-  encodeFunctionData(functionFragment: 'v8_16', values?: undefined): string;
-  encodeFunctionData(functionFragment: 'v8_2', values?: undefined): string;
+  encodeFunctionData(functionFragment: "v2_16", values?: undefined): string;
+  encodeFunctionData(functionFragment: "v2_2", values?: undefined): string;
+  encodeFunctionData(functionFragment: "v8_16", values?: undefined): string;
+  encodeFunctionData(functionFragment: "v8_2", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: 'verifyProof',
+    functionFragment: "verifyProof",
     values: [
       [BigNumberish, BigNumberish],
       [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]],
@@ -43,11 +43,14 @@ interface VAnchorVerifierInterface extends ethers.utils.Interface {
     ]
   ): string;
 
-  decodeFunctionResult(functionFragment: 'v2_16', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'v2_2', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'v8_16', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'v8_2', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'verifyProof', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "v2_16", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "v2_2", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "v8_16", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "v8_2", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "verifyProof",
+    data: BytesLike
+  ): Result;
 
   events: {};
 }
