@@ -44,7 +44,7 @@ const config: HardhatUserConfig = {
   },
   // @ts-ignore
   dodoc: {
-    include: ['AnchorBase', 'LinkableAnchor', 'AnchorHandler', 'IAnchor', 'IAnchorTrees', 'ILinkableAnchor', 'VAnchorEncodeInputs', 'GovernedTokenWrapper', 'TokenWrapperHandler', 'Hasher', 'MerkleTreePoseidon', 'MerkleTreeWithHistoryPoseidon', 'Poseidon', 'VAnchor', 'VAnchorBase']
+    include: ['AnchorBase', 'LinkableAnchor', 'AnchorHandler', 'IAnchor', 'ILinkableAnchor', 'VAnchorEncodeInputs', 'GovernedTokenWrapper', 'TokenWrapperHandler', 'Hasher', 'MerkleTreePoseidon', 'MerkleTreeWithHistoryPoseidon', 'Poseidon', 'VAnchor', 'VAnchorBase']
   },
   mocha: {
     timeout: 60000
