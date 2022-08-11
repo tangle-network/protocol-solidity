@@ -22,7 +22,7 @@ contract Treasury is ITreasury {
         _;
     }
 
-    function rescueTokens(address tokenAddress, address payable to, uint256 amountToRescue, uint256 nonce) external override onlyHandler {
+    function rescueTokens(address tokenAddress, address payable to, uint256 amountToRescue, uint32 nonce) external override onlyHandler {
         require(to != address(0), "Cannot send liquidity to zero address");
         require(tokenAddress != address(this), "Cannot rescue wrapped asset");
         require(proposalNonce < nonce, "Invalid nonce");
@@ -50,7 +50,7 @@ contract Treasury is ITreasury {
         proposalNonce = nonce;
     }
 
-    function setHandler(address newHandler, uint256 nonce) onlyHandler override external {
+    function setHandler(address newHandler, uint32 nonce) onlyHandler override external {
         require(newHandler != address(0), "Handler cannot be 0");
         require(proposalNonce < nonce, "Invalid nonce");
         require(nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");

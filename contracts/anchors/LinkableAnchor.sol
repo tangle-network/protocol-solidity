@@ -7,36 +7,37 @@ pragma solidity ^0.8.0;
 
 import "../trees/MerkleTreePoseidon.sol";
 import "../utils/ChainIdWithType.sol";
+import "../interfaces/ILinkableAnchor.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
-	@title The LinkableTree contract
+	@title The LinkableAnchor contract
 	@author Webb Technologies
-	@notice The LinkableTree contract extends the MerkleTreePoseidon contract
-	with a graph-like interface for linking to other LinkableTrees. Links
+	@notice The LinkableAnchor contract extends the MerkleTreePoseidon contract
+	with a graph-like interface for linking to other LinkableAnchors. Links
 	between these trees are represented as directed edges (since updates occur
 	on one contract per transaction). The edge data is maintained as a record of the:
 	- Chain id that the edge points to
 	- Latest merkle root of the MerkleTreePoseidon contract being linked
 	- Latest leaf insertion index (used as a nonce) of the linked merkle tree.
 
-	Updating the state of the LinkableTree's edges is done through the handler
+	Updating the state of the LinkableAnchor's edges is done through the handler
 	architecture defined originally by ChainSafe's ChainBridge system. In our case,
-	we employ a handler to propagate updates to a LinkableTree contract. For example,
+	we employ a handler to propagate updates to a LinkableAnchor contract. For example,
 	the handler can be connected to an oracle system, signature system, or any other
-	bridge system to provide the state of the neighboring LinkableTree's edge data.
+	bridge system to provide the state of the neighboring LinkableAnchor's edge data.
 
-	The LinkableTree contract is meant to be inherited by child contracts that
+	The LinkableAnchor contract is meant to be inherited by child contracts that
 	define their own architecture around:
 	1. The structure of elements being inserted into the underlying Merkle Tree
 	2. The type of zkSNARK necessary for proving membership of a specific element
-	   in one-of-many LinkableTrees connected in a bridge.
+	   in one-of-many LinkableAnchors connected in a bridge.
 
 	An example usage of this system is the:
 	- FixedDepositAnchor.sol - for fixed sized private bridging of assets
 	- VAnchor.sol - for variable sized private bridging of assets
  */
-abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard, ChainIdWithType {
+abstract contract LinkableAnchor is ILinkableAnchor, MerkleTreePoseidon, ReentrancyGuard, ChainIdWithType {
 	address public handler;
 
 	// The maximum number of edges this tree can support.
@@ -44,10 +45,10 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard, ChainIdWi
 
 	/**
 		@dev The Edge struct is used to store the edge data for linkable tree connections.
-		@param chainId The chain id where the LinkableTree contract being linked is located.
-		@param root The latest merkle root of the LinkableTree contract being linked.
-		@param nonce The latest leaf insertion index of the LinkableTree contract being linked.
-		@param target The contract address or tree identifier of the LinkableTree being linked.
+		@param chainId The chain id where the LinkableAnchor contract being linked is located.
+		@param root The latest merkle root of the LinkableAnchor contract being linked.
+		@param nonce The latest leaf insertion index of the LinkableAnchor contract being linked.
+		@param target The contract address or tree identifier of the LinkableAnchor being linked.
 	 */
 	struct Edge {
 		uint256 chainID;
@@ -71,7 +72,7 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard, ChainIdWi
 	event EdgeUpdate(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
 
 	/**
-		@notice The LinkableTree constructor
+		@notice The LinkableAnchor constructor
 		@param _handler The address of the `AnchorHandler` contract
 		@param _hasher The address of hash contract
 		@param _merkleTreeHeight The height of deposits' Merkle Tree
@@ -89,30 +90,27 @@ abstract contract LinkableTree is MerkleTreePoseidon, ReentrancyGuard, ChainIdWi
 
 	/**
 		@notice Add an edge to the tree or update an existing edge.
-		@param _sourceChainID The chainID of the edge's LinkableTree
 		@param _root The merkle root of the edge's merkle tree
 		@param _leafIndex The latest leaf insertion index of the edge's merkle tree
+		@param _target The target resource ID of the linked anchor
 	 */
 	function updateEdge(
-		uint256 _sourceChainID,
 		bytes32 _root,
 		uint256 _leafIndex,
 		bytes32 _target
-	) onlyHandler external payable nonReentrant {
+	) override onlyHandler external payable nonReentrant {
+		uint64 _sourceChainID = parseChainIdFromResourceId(_target);
 		if (this.hasEdge(_sourceChainID)) {
-			//Update Edge
-			require(edgeExistsForChain[_sourceChainID], "Chain must be integrated from the bridge before updates");
+			// Require increasing nonce
 			require(edgeList[edgeIndex[_sourceChainID]].latestLeafIndex < _leafIndex, "New leaf index must be greater");
+			// Require leaf index increase is bounded by 65,536 updates at once
 			require(_leafIndex < edgeList[edgeIndex[_sourceChainID]].latestLeafIndex + (65_536), "New leaf index must within 2^16 updates");
+			require(_target == edgeList[edgeIndex[_sourceChainID]].target, "New target must be the same");
 			uint index = edgeIndex[_sourceChainID];
 			// update the edge in the edge list
-			edgeList[index] = Edge({
-				chainID: _sourceChainID,
-				root: _root,
-				latestLeafIndex: _leafIndex,
-				target: _target
-			});
-				// add to root histories
+			edgeList[index].latestLeafIndex = _leafIndex;
+			edgeList[index].root = _root;
+			// add to root histories
 			uint32 neighborRootIndex = (currentNeighborRootIndex[_sourceChainID] + 1) % ROOT_HISTORY_SIZE;
 			currentNeighborRootIndex[_sourceChainID] = neighborRootIndex;
 			neighborRoots[_sourceChainID][neighborRootIndex] = _root;

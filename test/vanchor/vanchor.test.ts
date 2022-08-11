@@ -1162,7 +1162,7 @@ describe('VAnchor for 2 max edges', () => {
       assert.strictEqual(balWrappedTokenAfterDepositAnchor.toString(), BigNumber.from(2e7).toString());
 
       // Balance of sender unwrapped token should have gone down by 2e7 * (100) / (100 - wrapFee);
-      const expectedSenderTokenOutflows = Math.trunc(2e7 * 100 / (100 - wrapFee));
+      const expectedSenderTokenOutflows = Math.trunc(2e7 * 10000 / (10000 - wrapFee));
       const balUnwrappedTokenAfterDepositSender = await token.balanceOf(sender.address);
       assert.strictEqual(balUnwrappedTokenBeforeDepositSender.sub(balUnwrappedTokenAfterDepositSender).toString(), expectedSenderTokenOutflows.toString());
 
@@ -1249,7 +1249,7 @@ describe('VAnchor for 2 max edges', () => {
       );
     });
 
-    it('fee percentage cannot be greater than 100', async () => {
+    it('fee percentage cannot be greater than 10000', async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
       const sender = wallet;
@@ -1261,7 +1261,7 @@ describe('VAnchor for 2 max edges', () => {
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, dummyFeeRecipient, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
       await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
-      const wrapFee = 101;
+      const wrapFee = 10001;
       assert
       await TruffleAssert.reverts(
         wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1)),

@@ -7,8 +7,6 @@ pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
 import "./utils/Pausable.sol";
-import "./utils/SafeMath.sol";
-import "./utils/SafeCast.sol";
 import "./utils/Governable.sol";
 import "./utils/ChainIdWithType.sol";
 import "./interfaces/IExecutor.sol";
@@ -17,7 +15,7 @@ import "./interfaces/IExecutor.sol";
     @title Facilitates proposals execution and resource ID additions/updates
     @author ChainSafe Systems & Webb Technologies.
  */
-contract SignatureBridge is Pausable, SafeMath, Governable, ChainIdWithType {
+contract SignatureBridge is Pausable, Governable, ChainIdWithType {
     uint256 public proposalNonce = 0;
 
     // resourceID => handler address

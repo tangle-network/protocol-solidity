@@ -57,6 +57,7 @@ interface FixedDepositAnchorInterface extends ethers.utils.Interface {
     "neighborRoots(uint256,uint32)": FunctionFragment;
     "nextIndex()": FunctionFragment;
     "nullifierHashes(bytes32)": FunctionFragment;
+    "parseChainIdFromResourceId(bytes32)": FunctionFragment;
     "roots(uint256)": FunctionFragment;
     "setHandler(address,uint32)": FunctionFragment;
     "setVerifier(address,uint32)": FunctionFragment;
@@ -64,7 +65,7 @@ interface FixedDepositAnchorInterface extends ethers.utils.Interface {
     "unpackProof(uint256[8])": FunctionFragment;
     "unwrapIntoNative(uint256)": FunctionFragment;
     "unwrapIntoToken(address,uint256)": FunctionFragment;
-    "updateEdge(uint256,bytes32,uint256,bytes32)": FunctionFragment;
+    "updateEdge(bytes32,uint256,bytes32)": FunctionFragment;
     "verifier()": FunctionFragment;
     "withdraw((bytes,bytes,bytes32,bytes32),(bytes32,address,address,uint256,uint256))": FunctionFragment;
     "withdrawAndUnwrap((bytes,bytes,bytes32,bytes32),(bytes32,address,address,uint256,uint256),address)": FunctionFragment;
@@ -190,6 +191,10 @@ interface FixedDepositAnchorInterface extends ethers.utils.Interface {
     functionFragment: "nullifierHashes",
     values: [BytesLike]
   ): string;
+  encodeFunctionData(
+    functionFragment: "parseChainIdFromResourceId",
+    values: [BytesLike]
+  ): string;
   encodeFunctionData(functionFragment: "roots", values: [BigNumberish]): string;
   encodeFunctionData(
     functionFragment: "setHandler",
@@ -225,7 +230,7 @@ interface FixedDepositAnchorInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "updateEdge",
-    values: [BigNumberish, BytesLike, BigNumberish, BytesLike]
+    values: [BytesLike, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "verifier", values?: undefined): string;
   encodeFunctionData(
@@ -375,6 +380,10 @@ interface FixedDepositAnchorInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "nextIndex", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "nullifierHashes",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "parseChainIdFromResourceId",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "roots", data: BytesLike): Result;
@@ -658,6 +667,11 @@ export class FixedDepositAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
+    parseChainIdFromResourceId(
+      _resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
     setHandler(
@@ -706,7 +720,6 @@ export class FixedDepositAnchor extends BaseContract {
     ): Promise<ContractTransaction>;
 
     updateEdge(
-      _sourceChainID: BigNumberish,
       _root: BytesLike,
       _leafIndex: BigNumberish,
       _target: BytesLike,
@@ -892,6 +905,11 @@ export class FixedDepositAnchor extends BaseContract {
 
   nullifierHashes(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
+  parseChainIdFromResourceId(
+    _resourceId: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   setHandler(
@@ -940,7 +958,6 @@ export class FixedDepositAnchor extends BaseContract {
   ): Promise<ContractTransaction>;
 
   updateEdge(
-    _sourceChainID: BigNumberish,
     _root: BytesLike,
     _leafIndex: BigNumberish,
     _target: BytesLike,
@@ -1132,6 +1149,11 @@ export class FixedDepositAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    parseChainIdFromResourceId(
+      _resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
     setHandler(
@@ -1180,7 +1202,6 @@ export class FixedDepositAnchor extends BaseContract {
     ): Promise<void>;
 
     updateEdge(
-      _sourceChainID: BigNumberish,
       _root: BytesLike,
       _leafIndex: BigNumberish,
       _target: BytesLike,
@@ -1488,6 +1509,11 @@ export class FixedDepositAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    parseChainIdFromResourceId(
+      _resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     setHandler(
@@ -1530,7 +1556,6 @@ export class FixedDepositAnchor extends BaseContract {
     ): Promise<BigNumber>;
 
     updateEdge(
-      _sourceChainID: BigNumberish,
       _root: BytesLike,
       _leafIndex: BigNumberish,
       _target: BytesLike,
@@ -1720,6 +1745,11 @@ export class FixedDepositAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    parseChainIdFromResourceId(
+      _resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     roots(
       arg0: BigNumberish,
       overrides?: CallOverrides
@@ -1765,7 +1795,6 @@ export class FixedDepositAnchor extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     updateEdge(
-      _sourceChainID: BigNumberish,
       _root: BytesLike,
       _leafIndex: BigNumberish,
       _target: BytesLike,

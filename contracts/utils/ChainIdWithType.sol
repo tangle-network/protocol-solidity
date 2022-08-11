@@ -35,4 +35,15 @@ abstract contract ChainIdWithType {
 		bytes memory chainIdWithType = abi.encodePacked(chainType, chainID);
 		return uint48(bytes6(chainIdWithType));
 	}
+
+	/**
+		Parses the typed chain ID out from a 32-byte resource ID
+	 */
+	function parseChainIdFromResourceId(bytes32 _resourceId) public pure returns (uint64) {
+		bytes6 outBytes;
+		assembly {
+			outBytes := mload(add(add(_resourceId, 32), 26))
+		}
+		return uint64(uint48(outBytes));
+	}
 }

@@ -67,14 +67,9 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
     }
 
     /**
-        @notice Proposal execution should be initiated when a proposal is finalized in the Bridge contract.
-        by a relayer on the deposit's destination chain.
-        @param resourceID ResourceID corresponding to a particular set of Anchors
-        @param data Consists of {sourceChainID}, {leafIndex}, {merkleRoot} all padded to 32 bytes.
-        @notice Data passed into the function should be constructed as follows:
-        chainID                                  uint256     bytes  0 - 32
-        leafIndex                                uint256     bytes  32 - 64
-        merkleRoot                               uint256     bytes  64 - 96
+        @notice Proposal execution should be initiated when a proposal is signed and executed by the `SignatureBridge`
+        @param resourceID ResourceID corresponding to a particular executing anchor contract.
+        @param data Consists of a specific proposal data structure for each finer-grained anchor proposal
      */
     function executeProposal(bytes32 resourceID, bytes calldata data) external override onlyBridge {
         bytes32        resourceId;
@@ -91,25 +86,26 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
         ILinkableAnchor anchor = ILinkableAnchor(anchorAddress);
 
         if (functionSig == bytes4(keccak256("setHandler(address,uint32)"))) {
-            uint32 nonce = uint32(bytes4(arguments[0:4])); 
+            uint32 nonce = uint32(bytes4(arguments[0:4]));
             address newHandler = address(bytes20(arguments[4:24]));
             anchor.setHandler(newHandler, nonce);
         } else if (functionSig == bytes4(keccak256("setVerifier(address,uint32)"))) {
-            uint32 nonce = uint32(bytes4(arguments[0:4])); 
+            uint32 nonce = uint32(bytes4(arguments[0:4]));
             address newVerifier = address(bytes20(arguments[4:24]));
             anchor.setVerifier(newVerifier, nonce);
         } else if (functionSig == bytes4(keccak256("updateEdge(uint256,bytes32,uint256,bytes32)"))) {
-            uint256 sourceChainId = uint48(bytes6(arguments[4:10]));
-            uint32 leafIndex = uint32(bytes4(arguments[10:14]));
-            bytes32 merkleRoot = bytes32(arguments[14:46]);
-            bytes32 target = bytes32(arguments[46:78]);
-            anchor.updateEdge(sourceChainId, merkleRoot, leafIndex, target);
-        } else if (functionSig == bytes4(keccak256("configureMinimalWithdrawalLimit(uint256)"))) {
+            uint32 nonce = uint32(bytes4(arguments[0:4]));
+            bytes32 merkleRoot = bytes32(arguments[4:36]);
+            bytes32 target = bytes32(arguments[36:68]);
+            anchor.updateEdge(merkleRoot, nonce, target);
+        } else if (functionSig == bytes4(keccak256("configureMinimalWithdrawalLimit(uint256,uint32)"))) {
+            uint32 nonce = uint32(bytes4(arguments[0:4]));
             uint256 minimalWithdrawalAmount = uint256(bytes32(arguments[4:36]));
-            anchor.configureMinimalWithdrawalLimit(minimalWithdrawalAmount);
-        } else if(functionSig == bytes4(keccak256("configureMaximumDepositLimit(uint256)"))) {
+            anchor.configureMinimalWithdrawalLimit(minimalWithdrawalAmount, nonce);
+        } else if(functionSig == bytes4(keccak256("configureMaximumDepositLimit(uint256,uint32)"))) {
+            uint32 nonce = uint32(bytes4(arguments[0:4]));
             uint256 maximumDepositAmount = uint256(bytes32(arguments[4:36]));
-            anchor.configureMaximumDepositLimit(maximumDepositAmount);
+            anchor.configureMaximumDepositLimit(maximumDepositAmount, nonce);
         } else {
             revert("Invalid function sig");
         }

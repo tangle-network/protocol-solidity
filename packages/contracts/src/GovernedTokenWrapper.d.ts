@@ -25,7 +25,7 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
     "DEFAULT_ADMIN_ROLE()": FunctionFragment;
     "MINTER_ROLE()": FunctionFragment;
     "PAUSER_ROLE()": FunctionFragment;
-    "add(address,uint256)": FunctionFragment;
+    "add(address,uint32)": FunctionFragment;
     "allowance(address,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
@@ -52,11 +52,11 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
     "pause()": FunctionFragment;
     "paused()": FunctionFragment;
     "proposalNonce()": FunctionFragment;
-    "remove(address,uint256)": FunctionFragment;
+    "remove(address,uint32)": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
-    "setFee(uint8,uint256)": FunctionFragment;
-    "setFeeRecipient(address,uint256)": FunctionFragment;
+    "setFee(uint16,uint32)": FunctionFragment;
+    "setFeeRecipient(address,uint32)": FunctionFragment;
     "setGovernor(address)": FunctionFragment;
     "setNativeAllowed(bool)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;

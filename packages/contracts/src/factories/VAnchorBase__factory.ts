@@ -838,6 +838,25 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "bytes32",
+        name: "_resourceId",
+        type: "bytes32",
+      },
+    ],
+    name: "parseChainIdFromResourceId",
+    outputs: [
+      {
+        internalType: "uint64",
+        name: "",
+        type: "uint64",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         components: [
           {
             internalType: "address",
@@ -946,11 +965,6 @@ const _abi = [
   },
   {
     inputs: [
-      {
-        internalType: "uint256",
-        name: "_sourceChainID",
-        type: "uint256",
-      },
       {
         internalType: "bytes32",
         name: "_root",

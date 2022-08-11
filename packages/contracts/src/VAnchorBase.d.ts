@@ -62,12 +62,13 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     "neighborRoots(uint256,uint32)": FunctionFragment;
     "nextIndex()": FunctionFragment;
     "nullifierHashes(bytes32)": FunctionFragment;
+    "parseChainIdFromResourceId(bytes32)": FunctionFragment;
     "register((address,bytes))": FunctionFragment;
     "roots(uint256)": FunctionFragment;
     "setHandler(address,uint32)": FunctionFragment;
     "setVerifier(address,uint32)": FunctionFragment;
     "unpackProof(uint256[8])": FunctionFragment;
-    "updateEdge(uint256,bytes32,uint256,bytes32)": FunctionFragment;
+    "updateEdge(bytes32,uint256,bytes32)": FunctionFragment;
     "verifier()": FunctionFragment;
     "zeros(uint256)": FunctionFragment;
   };
@@ -212,6 +213,10 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "parseChainIdFromResourceId",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "register",
     values: [{ owner: string; publicKey: BytesLike }]
   ): string;
@@ -241,7 +246,7 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "updateEdge",
-    values: [BigNumberish, BytesLike, BigNumberish, BytesLike]
+    values: [BytesLike, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "verifier", values?: undefined): string;
   encodeFunctionData(functionFragment: "zeros", values: [BigNumberish]): string;
@@ -362,6 +367,10 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "nextIndex", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "nullifierHashes",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "parseChainIdFromResourceId",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "register", data: BytesLike): Result;
@@ -640,6 +649,11 @@ export class VAnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
+    parseChainIdFromResourceId(
+      _resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     register(
       _account: { owner: string; publicKey: BytesLike },
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -680,7 +694,6 @@ export class VAnchorBase extends BaseContract {
     >;
 
     updateEdge(
-      _sourceChainID: BigNumberish,
       _root: BytesLike,
       _leafIndex: BigNumberish,
       _target: BytesLike,
@@ -836,6 +849,11 @@ export class VAnchorBase extends BaseContract {
 
   nullifierHashes(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
+  parseChainIdFromResourceId(
+    _resourceId: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   register(
     _account: { owner: string; publicKey: BytesLike },
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -876,7 +894,6 @@ export class VAnchorBase extends BaseContract {
   >;
 
   updateEdge(
-    _sourceChainID: BigNumberish,
     _root: BytesLike,
     _leafIndex: BigNumberish,
     _target: BytesLike,
@@ -1041,6 +1058,11 @@ export class VAnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    parseChainIdFromResourceId(
+      _resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     register(
       _account: { owner: string; publicKey: BytesLike },
       overrides?: CallOverrides
@@ -1081,7 +1103,6 @@ export class VAnchorBase extends BaseContract {
     >;
 
     updateEdge(
-      _sourceChainID: BigNumberish,
       _root: BytesLike,
       _leafIndex: BigNumberish,
       _target: BytesLike,
@@ -1331,6 +1352,11 @@ export class VAnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    parseChainIdFromResourceId(
+      _resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     register(
       _account: { owner: string; publicKey: BytesLike },
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1365,7 +1391,6 @@ export class VAnchorBase extends BaseContract {
     ): Promise<BigNumber>;
 
     updateEdge(
-      _sourceChainID: BigNumberish,
       _root: BytesLike,
       _leafIndex: BigNumberish,
       _target: BytesLike,
@@ -1529,6 +1554,11 @@ export class VAnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    parseChainIdFromResourceId(
+      _resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     register(
       _account: { owner: string; publicKey: BytesLike },
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1566,7 +1596,6 @@ export class VAnchorBase extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     updateEdge(
-      _sourceChainID: BigNumberish,
       _root: BytesLike,
       _leafIndex: BigNumberish,
       _target: BytesLike,

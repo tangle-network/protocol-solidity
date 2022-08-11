@@ -34,6 +34,7 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     "isSignatureFromGovernor(bytes,bytes)": FunctionFragment;
     "lastGovernorUpdateTime()": FunctionFragment;
     "numOfProposers()": FunctionFragment;
+    "parseChainIdFromResourceId(bytes32)": FunctionFragment;
     "paused()": FunctionFragment;
     "proposalNonce()": FunctionFragment;
     "proposerSetRoot()": FunctionFragment;
@@ -104,6 +105,10 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "numOfProposers",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "parseChainIdFromResourceId",
+    values: [BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(
@@ -198,6 +203,10 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "numOfProposers",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "parseChainIdFromResourceId",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
@@ -362,6 +371,11 @@ export class SignatureBridge extends BaseContract {
 
     numOfProposers(overrides?: CallOverrides): Promise<[number]>;
 
+    parseChainIdFromResourceId(
+      _resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     paused(overrides?: CallOverrides): Promise<[boolean]>;
 
     proposalNonce(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -464,6 +478,11 @@ export class SignatureBridge extends BaseContract {
 
   numOfProposers(overrides?: CallOverrides): Promise<number>;
 
+  parseChainIdFromResourceId(
+    _resourceId: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   paused(overrides?: CallOverrides): Promise<boolean>;
 
   proposalNonce(overrides?: CallOverrides): Promise<BigNumber>;
@@ -565,6 +584,11 @@ export class SignatureBridge extends BaseContract {
     lastGovernorUpdateTime(overrides?: CallOverrides): Promise<BigNumber>;
 
     numOfProposers(overrides?: CallOverrides): Promise<number>;
+
+    parseChainIdFromResourceId(
+      _resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     paused(overrides?: CallOverrides): Promise<boolean>;
 
@@ -705,6 +729,11 @@ export class SignatureBridge extends BaseContract {
 
     numOfProposers(overrides?: CallOverrides): Promise<BigNumber>;
 
+    parseChainIdFromResourceId(
+      _resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     paused(overrides?: CallOverrides): Promise<BigNumber>;
 
     proposalNonce(overrides?: CallOverrides): Promise<BigNumber>;
@@ -811,6 +840,11 @@ export class SignatureBridge extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     numOfProposers(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    parseChainIdFromResourceId(
+      _resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

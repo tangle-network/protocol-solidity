@@ -285,22 +285,20 @@ export class VAnchor implements IAnchor {
 
     const chainID = getChainIdType(await this.signer.getChainId());
     const merkleRoot = this.depositHistory[leafIndex];
-    const targetContract = this.contract.address;
     const functionSig = ethers.utils
       .keccak256(ethers.utils.toUtf8Bytes('updateEdge(uint256,bytes32,uint256,bytes32)'))
       .slice(0, 10)
       .padEnd(10, '0');
-    const dummyNonce = 1;
 
+    const targetContract = this.contract.address;
+    const targetResourceId = '0x' + toHex(targetContract, 20).substr(2) + toHex(chainID, 6).substr(2)
     return (
       '0x' +
       toHex(resourceID, 32).substr(2) +
       functionSig.slice(2) +
-      toHex(dummyNonce, 4).substr(2) +
-      toHex(chainID, 6).substr(2) +
       toHex(leafIndex, 4).substr(2) +
       toHex(merkleRoot, 32).substr(2) +
-      toHex(targetContract, 32).substr(2)
+      toHex(targetResourceId, 32).substr(2)
     );
   }
 

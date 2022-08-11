@@ -10,8 +10,6 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import { IAnchorVerifier } from "../interfaces/IAnchorVerifier.sol";
 import "../anchors/AnchorBase.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../libs/VAnchorEncodeInputs.sol";
-import "../anchors/LinkableTree.sol";
 
 /** @dev This contract(pool) allows deposit of an arbitrary amount to it, shielded transfer to another registered user inside the pool
  * and withdrawal from the pool. Project utilizes UTXO model to handle users' funds.
@@ -58,6 +56,7 @@ abstract contract VAnchorBase is AnchorBase {
 	{}
 
 	function initialize(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmount) external initializer {
+		proposalNonce = 0;
 		_configureMinimalWithdrawalLimit(_minimalWithdrawalAmount);
 		_configureMaximumDepositLimit(_maximumDepositAmount);
 		super._initialize();
@@ -68,11 +67,13 @@ abstract contract VAnchorBase is AnchorBase {
 		_register(_account);
 	}
 
-	function configureMinimalWithdrawalLimit(uint256 _minimalWithdrawalAmount) public onlyHandler {
+	function configureMinimalWithdrawalLimit(uint256 _minimalWithdrawalAmount, uint32 _nonce) override public onlyHandler {
+		proposalNonce = _nonce;
 		_configureMinimalWithdrawalLimit(_minimalWithdrawalAmount);
 	}
 
-	function configureMaximumDepositLimit(uint256 _maximumDepositAmount) public onlyHandler {
+	function configureMaximumDepositLimit(uint256 _maximumDepositAmount, uint32 _nonce) override public onlyHandler {
+		proposalNonce = _nonce;
 		_configureMaximumDepositLimit(_maximumDepositAmount);
 	}
 
