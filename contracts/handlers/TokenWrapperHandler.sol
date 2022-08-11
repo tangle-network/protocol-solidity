@@ -85,8 +85,7 @@ contract TokenWrapperHandler is IExecutor, HandlerHelpers {
         address governedTokenAddress = _resourceIDToContractAddress[resourceID];
         GovernedTokenWrapper governedToken = GovernedTokenWrapper(governedTokenAddress); 
  
-
-        if (functionSig == bytes4(keccak256("setFee(uint8,uint32)"))) {  
+        if (functionSig == bytes4(keccak256("setFee(uint16,uint32)"))) {  
             uint32 nonce = uint32(bytes4(arguments[0:4])); 
             uint8 newFee = uint8(bytes1(arguments[4:6]));
             governedToken.setFee(newFee, nonce);

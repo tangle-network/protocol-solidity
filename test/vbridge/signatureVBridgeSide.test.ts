@@ -128,7 +128,7 @@ describe.only('SignatureBridgeSide use', () => {
     await bridgeSide.executeAnchorProposalWithSig(srcAnchor, destResourceID);
   })
 
-  it('execute fee proposal', async () => {
+  it.only('execute fee proposal', async () => {
     //Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
 
@@ -152,12 +152,14 @@ describe.only('SignatureBridgeSide use', () => {
     // Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
     await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
     // Execute change fee proposal
+    console.log('1');
     await bridgeSide.executeFeeProposalWithSig(governedToken, 5);
+    console.log('2');
     // Check that fee actually changed
     assert.strictEqual((await governedToken.contract.getFee()).toString(), '5');
   })
 
-  it('execute cannot set fee > 100', async () => {
+  it('execute cannot set fee > 10000', async () => {
     // Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
 
@@ -184,7 +186,7 @@ describe.only('SignatureBridgeSide use', () => {
 
     // Execute change fee proposal
     await TruffleAssert.reverts(
-      bridgeSide.executeFeeProposalWithSig(governedToken, 101),
+      bridgeSide.executeFeeProposalWithSig(governedToken, 10001),
       'invalid fee percentage'
     );
   })
