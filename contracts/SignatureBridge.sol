@@ -75,7 +75,7 @@ contract SignatureBridge is Pausable, Governable, ChainIdWithType {
         );
         _resourceIDToHandlerAddress[newResourceID] = handlerAddress;
         IExecutor handler = IExecutor(handlerAddress);
-        address executionContext = address(bytes20(newResourceID >> (6 * 8)));
+        address executionContext = address(bytes20(newResourceID << (6 * 8)));
         handler.setResource(newResourceID, executionContext);
         proposalNonce = nonce;
     }

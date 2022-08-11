@@ -276,7 +276,7 @@ export class SignatureBridgeSide implements IBridgeSide {
 
   public async execute(proposalData: string) {
     const sig = await this.signingSystemSignFn(proposalData);
-    const tx = await this.contract.executeProposalWithSignature(proposalData, sig, {gasLimit: 3e7});
+    const tx = await this.contract.executeProposalWithSignature(proposalData, sig);
     const receipt = await tx.wait();
 
     return receipt;

@@ -128,7 +128,7 @@ describe.only('SignatureBridgeSide use', () => {
     await bridgeSide.executeAnchorProposalWithSig(srcAnchor, destResourceID);
   })
 
-  it.only('execute fee proposal', async () => {
+  it('execute fee proposal', async () => {
     //Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
 
