@@ -16,8 +16,6 @@ import "./LinkableAnchor.sol";
  */
 abstract contract AnchorBase is LinkableAnchor {
 	IAnchorVerifier public verifier;
-	uint32 proposalNonce = 0;
-
 	// map to store used nullifier hashes
 	mapping(bytes32 => bool) public nullifierHashes;
 	// map to store all commitments to prevent accidental deposits with the same commitment
@@ -86,8 +84,7 @@ abstract contract AnchorBase is LinkableAnchor {
 	/**
 		@notice Verifies a zero-knowledge proof of knowledge over the tree according
 		to the underlying `Verifier` circuit this `AnchorBase` is using.
-		@notice This aims to be as generic as currently needed to support our
-		FixedDepositAnchor and VAnchor (variable deposit) contracts.
+		@notice This aims to be as generic as currently needed to support our VAnchor (variable deposit) contracts.
 		@param _proof The zero-knowledge proof bytes
 		@param _input The public input packed bytes
 		@return bool Whether the proof is valid
@@ -186,13 +183,5 @@ abstract contract AnchorBase is LinkableAnchor {
 		require(_nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
 		verifier = IAnchorVerifier(_verifier);
 		proposalNonce = _nonce;
-	}
-
-	/**
-		@notice Gets the proposal nonce of this contract
-		@dev The nonce tracks how many times the handler has updated the contract
-	 */
-	function getProposalNonce() public view returns (uint32) {
-		return proposalNonce;
 	}
 }

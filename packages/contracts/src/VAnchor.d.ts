@@ -31,8 +31,8 @@ interface VAnchorInterface extends ethers.utils.Interface {
     "_executeWrapping(address,uint256)": FunctionFragment;
     "calculatePublicAmount(int256,uint256)": FunctionFragment;
     "commitments(bytes32)": FunctionFragment;
-    "configureMaximumDepositLimit(uint256)": FunctionFragment;
-    "configureMinimalWithdrawalLimit(uint256)": FunctionFragment;
+    "configureMaximumDepositLimit(uint256,uint32)": FunctionFragment;
+    "configureMinimalWithdrawalLimit(uint256,uint32)": FunctionFragment;
     "currentNeighborRootIndex(uint256)": FunctionFragment;
     "currentRootIndex()": FunctionFragment;
     "edgeExistsForChain(uint256)": FunctionFragment;
@@ -76,7 +76,7 @@ interface VAnchorInterface extends ethers.utils.Interface {
     "unpackProof(uint256[8])": FunctionFragment;
     "unwrapIntoNative(address,uint256)": FunctionFragment;
     "unwrapIntoToken(address,uint256)": FunctionFragment;
-    "updateEdge(bytes32,uint256,bytes32)": FunctionFragment;
+    "updateEdge(bytes32,uint32,bytes32)": FunctionFragment;
     "verifier()": FunctionFragment;
     "withdrawAndUnwrap(address,address,uint256)": FunctionFragment;
     "wrapNative()": FunctionFragment;
@@ -119,11 +119,11 @@ interface VAnchorInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "configureMaximumDepositLimit",
-    values: [BigNumberish]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "configureMinimalWithdrawalLimit",
-    values: [BigNumberish]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "currentNeighborRootIndex",
@@ -675,11 +675,13 @@ export class VAnchor extends BaseContract {
 
     configureMaximumDepositLimit(
       _maximumDepositAmount: BigNumberish,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     configureMinimalWithdrawalLimit(
       _minimalWithdrawalAmount: BigNumberish,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -1010,11 +1012,13 @@ export class VAnchor extends BaseContract {
 
   configureMaximumDepositLimit(
     _maximumDepositAmount: BigNumberish,
+    _nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   configureMinimalWithdrawalLimit(
     _minimalWithdrawalAmount: BigNumberish,
+    _nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1331,11 +1335,13 @@ export class VAnchor extends BaseContract {
 
     configureMaximumDepositLimit(
       _maximumDepositAmount: BigNumberish,
+      _nonce: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     configureMinimalWithdrawalLimit(
       _minimalWithdrawalAmount: BigNumberish,
+      _nonce: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1760,11 +1766,13 @@ export class VAnchor extends BaseContract {
 
     configureMaximumDepositLimit(
       _maximumDepositAmount: BigNumberish,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     configureMinimalWithdrawalLimit(
       _minimalWithdrawalAmount: BigNumberish,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -2072,11 +2080,13 @@ export class VAnchor extends BaseContract {
 
     configureMaximumDepositLimit(
       _maximumDepositAmount: BigNumberish,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     configureMinimalWithdrawalLimit(
       _minimalWithdrawalAmount: BigNumberish,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

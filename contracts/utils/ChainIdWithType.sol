@@ -5,6 +5,8 @@
 
 pragma solidity ^0.8.5;
 
+import "hardhat/console.sol";
+
 /**
 	@title ChainIdWithType abstract contract
  */
@@ -40,10 +42,6 @@ abstract contract ChainIdWithType {
 		Parses the typed chain ID out from a 32-byte resource ID
 	 */
 	function parseChainIdFromResourceId(bytes32 _resourceId) public pure returns (uint64) {
-		bytes6 outBytes;
-		assembly {
-			outBytes := mload(add(add(_resourceId, 32), 26))
-		}
-		return uint64(uint48(outBytes));
+		return uint64(uint48(bytes6(_resourceId << (26 * 8))));
 	}
 }

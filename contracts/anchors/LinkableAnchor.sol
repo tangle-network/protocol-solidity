@@ -34,10 +34,10 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 	   in one-of-many LinkableAnchors connected in a bridge.
 
 	An example usage of this system is the:
-	- FixedDepositAnchor.sol - for fixed sized private bridging of assets
 	- VAnchor.sol - for variable sized private bridging of assets
  */
 abstract contract LinkableAnchor is ILinkableAnchor, MerkleTreePoseidon, ReentrancyGuard, ChainIdWithType {
+	uint32 proposalNonce = 0;
 	address public handler;
 
 	// The maximum number of edges this tree can support.
@@ -96,7 +96,7 @@ abstract contract LinkableAnchor is ILinkableAnchor, MerkleTreePoseidon, Reentra
 	 */
 	function updateEdge(
 		bytes32 _root,
-		uint256 _leafIndex,
+		uint32 _leafIndex,
 		bytes32 _target
 	) override onlyHandler external payable nonReentrant {
 		uint64 _sourceChainID = parseChainIdFromResourceId(_target);
@@ -241,5 +241,13 @@ abstract contract LinkableAnchor is ILinkableAnchor, MerkleTreePoseidon, Reentra
 		}
 
 		return decodedRoots;
+	}
+
+	/**
+		@notice Gets the proposal nonce of this contract
+		@dev The nonce tracks how many times the handler has updated the contract
+	 */
+	function getProposalNonce() public view returns (uint32) {
+		return proposalNonce;
 	}
 }

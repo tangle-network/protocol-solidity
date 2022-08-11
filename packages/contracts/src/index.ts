@@ -7,17 +7,8 @@ export { ERC20__factory } from './factories/ERC20__factory';
 export type { ERC20PresetMinterPauser } from './ERC20PresetMinterPauser';
 export { ERC20PresetMinterPauser__factory } from './factories/ERC20PresetMinterPauser__factory';
 
-export type { AnchorProxy } from './AnchorProxy';
-export { AnchorProxy__factory } from './factories/AnchorProxy__factory';
-
-export type { FixedDepositAnchor } from './FixedDepositAnchor';
-export { FixedDepositAnchor__factory } from './factories/FixedDepositAnchor__factory';
-
 export type { AnchorBase } from './AnchorBase';
 export { AnchorBase__factory } from './factories/AnchorBase__factory';
-
-export type { LinkableAnchor } from './LinkableAnchor';
-export { LinkableAnchor__factory } from './factories/LinkableAnchor__factory';
 
 export type { SignatureBridge } from './SignatureBridge';
 export { SignatureBridge__factory } from './factories/SignatureBridge__factory';
@@ -51,9 +42,6 @@ export { Hasher__factory } from './factories/Hasher__factory';
 
 export type { PoseidonT3 } from './PoseidonT3';
 export { PoseidonT3__factory } from './factories/PoseidonT3__factory';
-
-export type { LinkableVAnchor } from './LinkableVAnchor';
-export { LinkableVAnchor__factory } from './factories/LinkableVAnchor__factory';
 
 export type { VAnchor } from './VAnchor';
 export { VAnchor__factory } from './factories/VAnchor__factory';

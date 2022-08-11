@@ -50,7 +50,7 @@ interface ILinkableAnchor {
 	 */
 	function updateEdge(
 		bytes32 root,
-		uint256 latestLeafIndex,
+		uint32 latestLeafIndex,
 		bytes32 target
 	) external payable;
 }

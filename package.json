@@ -63,7 +63,7 @@
   },
   "dependencies": {
     "@metamask/eth-sig-util": "^4.0.0",
-    "@openzeppelin/contracts": "^4.3.2",
+    "@openzeppelin/contracts": "^4.7.3",
     "@primitivefi/hardhat-dodoc": "^0.1.1",
     "@truffle/contract": "^4.3.24",
     "@typechain/ethers-v5": "^7.0.1",

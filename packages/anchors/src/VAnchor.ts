@@ -286,7 +286,7 @@ export class VAnchor implements IAnchor {
     const chainID = getChainIdType(await this.signer.getChainId());
     const merkleRoot = this.depositHistory[leafIndex];
     const functionSig = ethers.utils
-      .keccak256(ethers.utils.toUtf8Bytes('updateEdge(uint256,bytes32,uint256,bytes32)'))
+      .keccak256(ethers.utils.toUtf8Bytes('updateEdge(bytes32,uint32,bytes32)'))
       .slice(0, 10)
       .padEnd(10, '0');
 

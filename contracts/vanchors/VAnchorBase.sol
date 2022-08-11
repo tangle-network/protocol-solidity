@@ -7,7 +7,7 @@ pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import { IAnchorVerifier } from "../interfaces/IAnchorVerifier.sol";
+import "../interfaces/IAnchorVerifier.sol";
 import "../anchors/AnchorBase.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 

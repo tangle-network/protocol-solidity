@@ -93,7 +93,7 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
             uint32 nonce = uint32(bytes4(arguments[0:4]));
             address newVerifier = address(bytes20(arguments[4:24]));
             anchor.setVerifier(newVerifier, nonce);
-        } else if (functionSig == bytes4(keccak256("updateEdge(uint256,bytes32,uint256,bytes32)"))) {
+        } else if (functionSig == bytes4(keccak256("updateEdge(bytes32,uint32,bytes32)"))) {
             uint32 nonce = uint32(bytes4(arguments[0:4]));
             bytes32 merkleRoot = bytes32(arguments[4:36]);
             bytes32 target = bytes32(arguments[36:68]);

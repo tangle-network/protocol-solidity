@@ -170,6 +170,42 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
+        name: "maximumDepositAmount",
+        type: "uint256",
+      },
+      {
+        internalType: "uint32",
+        name: "nonce",
+        type: "uint32",
+      },
+    ],
+    name: "configureMaximumDepositLimit",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "minimalWithdrawalAmount",
+        type: "uint256",
+      },
+      {
+        internalType: "uint32",
+        name: "nonce",
+        type: "uint32",
+      },
+    ],
+    name: "configureMinimalWithdrawalLimit",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
         name: "",
         type: "uint256",
       },
@@ -355,7 +391,7 @@ const _abi = [
             type: "bytes32",
           },
         ],
-        internalType: "struct LinkableTree.Edge[]",
+        internalType: "struct LinkableAnchor.Edge[]",
         name: "",
         type: "tuple[]",
       },
@@ -756,9 +792,9 @@ const _abi = [
         type: "bytes32",
       },
       {
-        internalType: "uint256",
+        internalType: "uint32",
         name: "_leafIndex",
-        type: "uint256",
+        type: "uint32",
       },
       {
         internalType: "bytes32",

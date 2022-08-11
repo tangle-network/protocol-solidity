@@ -6,7 +6,7 @@
 import { artifacts, contract, assert } from "hardhat";
 const TruffleAssert = require('truffle-assertions');
 
-const Anchor = artifacts.require("FixedDepositAnchor");
+const Anchor = artifacts.require("LinkableAnchorMock");
 const Hasher = artifacts.require("PoseidonT3");
 const Verifier = artifacts.require('Verifier');
 const Verifier2 = artifacts.require('Verifier2');
@@ -53,10 +53,8 @@ contract('LinkableAnchor - [add edges]', async accounts => {
     await token.mint(sender, tokenDenomination);
     AnchorInstance = await Anchor.new(
       sender,
-      token.address,
       verifier.address,
       hasher.address,
-      tokenDenomination,
       merkleTreeHeight,
       MAX_EDGES,
     );
@@ -80,10 +78,9 @@ contract('LinkableAnchor - [add edges]', async accounts => {
 
   it('LinkableAnchor edges should be modifiable by handler only', async () => {
     const edge = {
-      sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 1,
-      target: '0x1111111111111111111111111111111111111111111111111111000100000001',
+      target: '0x1111111111111111111111111111111111111111111111111111001000000001',
     };
 
     await TruffleAssert.passes(updateEdge(edge, accounts[0]));
@@ -96,44 +93,40 @@ contract('LinkableAnchor - [add edges]', async accounts => {
 
   it('LinkableAnchor edges should update edgeIndex', async () => {
     const edge = {
-      sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 1,
-      target: '0x1111111111111111111111111111111111111111111111111111000100000001',
+      target: '0x1111111111111111111111111111111111111111111111111111001000000001',
     };
 
     await TruffleAssert.passes(updateEdge(edge, accounts[0]));
 
-    assert(await AnchorInstance.edgeIndex(edge.sourceChainID) == 0);
+    assert(await AnchorInstance.edgeIndex('0x01') == 0);
   });
 
   it('LinkableAnchor should fail to add an edge at capacity', async () => {
     const edge = {
-      sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 1,
-      target: '0x1111111111111111111111111111111111111111111111111111000100000001',
+      target: '0x1111111111111111111111111111111111111111111111111111001000000001',
     };
 
     const edge1 = {
-      sourceChainID: '0x02',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 1,
-      target: '0x1111111111111111111111111111111111111111111111111111000100000001',
+      target: '0x1111111111111111111111111111111111111111111111111111001000000001',
     };
 
     await TruffleAssert.passes(updateEdge(edge, accounts[0]));
-    assert(await AnchorInstance.edgeIndex(edge.sourceChainID) == 0);
+    assert(await AnchorInstance.edgeIndex('0x01') == 0);
 
     await TruffleAssert.reverts(updateEdge(edge1, accounts[0], 'This Anchor is at capacity'));
   });
 
   it('latestNeighborRoots should return correct roots', async () => {
     const edge = {
-      sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 1,
-      target: '0x1111111111111111111111111111111111111111111111111111000100000001',
+      target: '0x1111111111111111111111111111111111111111111111111111001000000001',
     };
 
     await TruffleAssert.passes(updateEdge(edge, accounts[0]));
@@ -145,10 +138,10 @@ contract('LinkableAnchor - [add edges]', async accounts => {
 
   it('Adding edge should emit correct EdgeAddition event', async () => {
     const edge = {
-      sourceChainID: '0x01',
+      sourceChainID: '0x100000000001',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 1,
-      target: '0x1111111111111111111111111111111111111111111111111111000100000001',
+      target: '0x1111111111111111111111111111111111111111111111111111100000000001',
     };
 
     const result = await updateEdge(edge, accounts[0]);
