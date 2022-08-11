@@ -114,7 +114,16 @@ describe.only('SignatureBridgeSide use', () => {
 
     bridgeSide.setAnchorHandler(anchorHandler);
     await bridgeSide.setAnchorResourceWithSignature(destAnchor);
-    await srcAnchor.deposit(await admin.getChainId());
+    // Define inputs/outputs for transact function
+    const depositUtxo = await CircomUtxo.generateUtxo({
+      curve: 'Bn254',
+      backend: 'Circom',
+      amount: 1e7.toString(),
+      originChainId: chainID1.toString(),
+      chainId: chainID1.toString(),
+    });
+    // Transact on the bridge
+    await srcAnchor.transact([], [depositUtxo], 0, '0', '0', signers[2]);
     const destResourceID = await destAnchor.createResourceId();
     await bridgeSide.executeAnchorProposalWithSig(srcAnchor, destResourceID);
   })
@@ -138,25 +147,25 @@ describe.only('SignatureBridgeSide use', () => {
       admin,
     );
 
-    //Set bridgeSide handler to tokenWrapperHandler
+    // Set bridgeSide handler to tokenWrapperHandler
     bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
-    //Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
+    // Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
     await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
-    //Execute change fee proposal
+    // Execute change fee proposal
     await bridgeSide.executeFeeProposalWithSig(governedToken, 5);
-    //Check that fee actually changed
+    // Check that fee actually changed
     assert.strictEqual((await governedToken.contract.getFee()).toString(), '5');
   })
 
   it('execute cannot set fee > 100', async () => {
-    //Deploy TokenWrapperHandler
+    // Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
 
     // Create Treasury and TreasuryHandler
     const treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeSide.contract.address, [],[], admin);
     const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, bridgeSide.admin);
 
-    //Create a GovernedTokenWrapper
+    // Create a GovernedTokenWrapper
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
@@ -167,13 +176,13 @@ describe.only('SignatureBridgeSide use', () => {
       admin,
     );
 
-    //Set bridgeSide handler to tokenWrapperHandler
+    // Set bridgeSide handler to tokenWrapperHandler
     bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
 
-    //Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
+    // Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
     await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
 
-    //Execute change fee proposal
+    // Execute change fee proposal
     await TruffleAssert.reverts(
       bridgeSide.executeFeeProposalWithSig(governedToken, 101),
       'invalid fee percentage'
@@ -181,14 +190,14 @@ describe.only('SignatureBridgeSide use', () => {
   })
 
   it('execute add token proposal', async () => {
-    //Deploy TokenWrapperHandler
+    // Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
 
     // Create Treasury and TreasuryHandler
     const treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeSide.contract.address, [],[], bridgeSide.admin);
     const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, bridgeSide.admin);
 
-    //Create a GovernedTokenWrapper
+    // Create a GovernedTokenWrapper
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
@@ -199,32 +208,32 @@ describe.only('SignatureBridgeSide use', () => {
       admin,
     );
 
-    //Set bridgeSide handler to tokenWrapperHandler
+    // Set bridgeSide handler to tokenWrapperHandler
     bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
 
-    //Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
+    // Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
     await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
 
-    //Create an ERC20 Token
+    // Create an ERC20 Token
     const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
     await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
 
-    //Execute Proposal to add that token to the governedToken
+    // Execute Proposal to add that token to the governedToken
     await bridgeSide.executeAddTokenProposalWithSig(governedToken, tokenInstance.contract.address);
 
-    //Check that governedToken contains the added token
+    // Check that governedToken contains the added token
     assert((await governedToken.contract.getTokens()).includes(tokenInstance.contract.address));
   })
 
   it('execute remove token proposal', async () => {
-    //Deploy TokenWrapperHandler
+    // Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
 
     // Create Treasury and TreasuryHandler
     const treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeSide.contract.address, [],[], bridgeSide.admin);
     const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, bridgeSide.admin);
 
-    //Create a GovernedTokenWrapper
+    // Create a GovernedTokenWrapper
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
@@ -235,41 +244,41 @@ describe.only('SignatureBridgeSide use', () => {
       admin,
     );
 
-    //Set bridgeSide handler to tokenWrapperHandler
+    // Set bridgeSide handler to tokenWrapperHandler
     bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
 
-    //Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
+    // Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
     await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
 
 
     // Add a Token---------
 
-    //Create an ERC20 Token
+    // Create an ERC20 Token
     const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
     await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
 
-    //Execute Proposal to add that token to the governedToken
+    // Execute Proposal to add that token to the governedToken
     await bridgeSide.executeAddTokenProposalWithSig(governedToken, tokenInstance.contract.address);
 
-    //Check that governedToken contains the added token
+    // Check that governedToken contains the added token
     assert((await governedToken.contract.getTokens()).includes(tokenInstance.contract.address));
-    //End Add a Token--------
+    // End Add a Token--------
 
-    //Remove a Token
+    // Remove a Token
     await bridgeSide.executeRemoveTokenProposalWithSig(governedToken, tokenInstance.contract.address);
 
     assert((await governedToken.contract.getTokens()).length === 0);  
   })
 
   it('check nonce is increasing across multiple proposals', async () => {
-    //Deploy TokenWrapperHandler
+    // Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
 
     // Create Treasury and TreasuryHandler
     const treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeSide.contract.address, [],[], bridgeSide.admin);
     const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, bridgeSide.admin);
 
-    //Create a GovernedTokenWrapper
+    // Create a GovernedTokenWrapper
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
@@ -280,32 +289,32 @@ describe.only('SignatureBridgeSide use', () => {
       admin,
     );
 
-    //Set bridgeSide handler to tokenWrapperHandler
+    // Set bridgeSide handler to tokenWrapperHandler
     bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
 
-    //Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
+    // Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
     await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
 
-    //Execute change fee proposal
+    // Execute change fee proposal
     await bridgeSide.executeFeeProposalWithSig(governedToken, 5);
 
-    //Check that fee actually changed
+    // Check that fee actually changed
     assert.strictEqual((await governedToken.contract.getFee()).toString(), '5');
     assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '1');
 
-    //Create an ERC20 Token
+    // Create an ERC20 Token
     const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
     await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
 
-    //Execute Proposal to add that token to the governedToken
+    // Execute Proposal to add that token to the governedToken
     await bridgeSide.executeAddTokenProposalWithSig(governedToken, tokenInstance.contract.address);
 
-    //Check that governedToken contains the added token
+    // Check that governedToken contains the added token
     assert((await governedToken.contract.getTokens()).includes(tokenInstance.contract.address));
-    //End Add a Token--------
+    // End Add a Token--------
     assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '2');
 
-    //Remove a Token
+    // Remove a Token
     await bridgeSide.executeRemoveTokenProposalWithSig(governedToken, tokenInstance.contract.address);
 
     assert((await governedToken.contract.getTokens()).length === 0);  
@@ -341,9 +350,9 @@ describe.only('SignatureBridgeSide use', () => {
     await tokenInstance.approveSpending(anchor.contract.address);
 
     await bridgeSide.setAnchorHandler(anchorHandler);
-    // //Function call below sets resource with signature
+    // Function call below sets resource with signature
     await bridgeSide.connectAnchorWithSignature(anchor);
-    //Check that proposal nonce is updated on anchor contract since handler prposal has been executed
+    // Check that proposal nonce is updated on anchor contract since handler prposal has been executed
     assert.strictEqual((await bridgeSide.contract.proposalNonce()).toString(), '1');
 
     await bridgeSide.connectAnchorWithSignature(anchor);
