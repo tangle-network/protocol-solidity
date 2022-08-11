@@ -13,146 +13,78 @@ import {
   ContractTransaction,
   Overrides,
   CallOverrides,
-} from "ethers";
-import { BytesLike } from "@ethersproject/bytes";
-import { Listener, Provider } from "@ethersproject/providers";
-import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
-import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
+} from 'ethers';
+import { BytesLike } from '@ethersproject/bytes';
+import { Listener, Provider } from '@ethersproject/providers';
+import { FunctionFragment, EventFragment, Result } from '@ethersproject/abi';
+import type { TypedEventFilter, TypedEvent, TypedListener } from './common';
 
 interface SignatureBridgeInterface extends ethers.utils.Interface {
   functions: {
-    "EVM_CHAIN_ID_TYPE()": FunctionFragment;
-    "_resourceIDToHandlerAddress(bytes32)": FunctionFragment;
-    "adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,address,bytes)": FunctionFragment;
-    "averageSessionLengthInMillisecs()": FunctionFragment;
-    "currentVotingPeriod()": FunctionFragment;
-    "executeProposalWithSignature(bytes,bytes)": FunctionFragment;
-    "getChainId()": FunctionFragment;
-    "getChainIdType()": FunctionFragment;
-    "governor()": FunctionFragment;
-    "isGovernor()": FunctionFragment;
-    "isSignatureFromGovernor(bytes,bytes)": FunctionFragment;
-    "lastGovernorUpdateTime()": FunctionFragment;
-    "numOfProposers()": FunctionFragment;
-    "parseChainIdFromResourceId(bytes32)": FunctionFragment;
-    "paused()": FunctionFragment;
-    "proposalNonce()": FunctionFragment;
-    "proposerSetRoot()": FunctionFragment;
-    "proposerSetUpdateNonce()": FunctionFragment;
-    "recover(bytes,bytes)": FunctionFragment;
-    "refreshNonce()": FunctionFragment;
-    "renounceOwnership()": FunctionFragment;
-    "sessionLengthMultiplier()": FunctionFragment;
-    "transferOwnership(address,uint32)": FunctionFragment;
-    "transferOwnershipWithSignaturePubKey(bytes,uint32,bytes)": FunctionFragment;
-    "updateProposerSetData(bytes32,uint64,uint32,uint32,bytes)": FunctionFragment;
-    "voteInFavorForceSetGovernor((uint32,bytes32[],address))": FunctionFragment;
+    'EVM_CHAIN_ID_TYPE()': FunctionFragment;
+    '_resourceIDToHandlerAddress(bytes32)': FunctionFragment;
+    'adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,address,bytes)': FunctionFragment;
+    'averageSessionLengthInMillisecs()': FunctionFragment;
+    'currentVotingPeriod()': FunctionFragment;
+    'executeProposalWithSignature(bytes,bytes)': FunctionFragment;
+    'getChainId()': FunctionFragment;
+    'getChainIdType()': FunctionFragment;
+    'governor()': FunctionFragment;
+    'isGovernor()': FunctionFragment;
+    'isSignatureFromGovernor(bytes,bytes)': FunctionFragment;
+    'lastGovernorUpdateTime()': FunctionFragment;
+    'numOfProposers()': FunctionFragment;
+    'parseChainIdFromResourceId(bytes32)': FunctionFragment;
+    'paused()': FunctionFragment;
+    'proposalNonce()': FunctionFragment;
+    'proposerSetRoot()': FunctionFragment;
+    'proposerSetUpdateNonce()': FunctionFragment;
+    'recover(bytes,bytes)': FunctionFragment;
+    'refreshNonce()': FunctionFragment;
+    'renounceOwnership()': FunctionFragment;
+    'sessionLengthMultiplier()': FunctionFragment;
+    'transferOwnership(address,uint32)': FunctionFragment;
+    'transferOwnershipWithSignaturePubKey(bytes,uint32,bytes)': FunctionFragment;
+    'updateProposerSetData(bytes32,uint64,uint32,uint32,bytes)': FunctionFragment;
+    'voteInFavorForceSetGovernor((uint32,bytes32[],address))': FunctionFragment;
   };
 
+  encodeFunctionData(functionFragment: 'EVM_CHAIN_ID_TYPE', values?: undefined): string;
+  encodeFunctionData(functionFragment: '_resourceIDToHandlerAddress', values: [BytesLike]): string;
   encodeFunctionData(
-    functionFragment: "EVM_CHAIN_ID_TYPE",
-    values?: undefined
+    functionFragment: 'adminSetResourceWithSignature',
+    values: [BytesLike, BytesLike, BigNumberish, BytesLike, string, string, BytesLike]
   ): string;
+  encodeFunctionData(functionFragment: 'averageSessionLengthInMillisecs', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'currentVotingPeriod', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'executeProposalWithSignature', values: [BytesLike, BytesLike]): string;
+  encodeFunctionData(functionFragment: 'getChainId', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'getChainIdType', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'governor', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'isGovernor', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'isSignatureFromGovernor', values: [BytesLike, BytesLike]): string;
+  encodeFunctionData(functionFragment: 'lastGovernorUpdateTime', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'numOfProposers', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'parseChainIdFromResourceId', values: [BytesLike]): string;
+  encodeFunctionData(functionFragment: 'paused', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'proposalNonce', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'proposerSetRoot', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'proposerSetUpdateNonce', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'recover', values: [BytesLike, BytesLike]): string;
+  encodeFunctionData(functionFragment: 'refreshNonce', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'renounceOwnership', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'sessionLengthMultiplier', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'transferOwnership', values: [string, BigNumberish]): string;
   encodeFunctionData(
-    functionFragment: "_resourceIDToHandlerAddress",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "adminSetResourceWithSignature",
-    values: [
-      BytesLike,
-      BytesLike,
-      BigNumberish,
-      BytesLike,
-      string,
-      string,
-      BytesLike
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "averageSessionLengthInMillisecs",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "currentVotingPeriod",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "executeProposalWithSignature",
-    values: [BytesLike, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getChainId",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getChainIdType",
-    values?: undefined
-  ): string;
-  encodeFunctionData(functionFragment: "governor", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "isGovernor",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isSignatureFromGovernor",
-    values: [BytesLike, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "lastGovernorUpdateTime",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "numOfProposers",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "parseChainIdFromResourceId",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(functionFragment: "paused", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "proposalNonce",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "proposerSetRoot",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "proposerSetUpdateNonce",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "recover",
-    values: [BytesLike, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "refreshNonce",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "renounceOwnership",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "sessionLengthMultiplier",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferOwnershipWithSignaturePubKey",
+    functionFragment: 'transferOwnershipWithSignaturePubKey',
     values: [BytesLike, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "updateProposerSetData",
+    functionFragment: 'updateProposerSetData',
     values: [BytesLike, BigNumberish, BigNumberish, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "voteInFavorForceSetGovernor",
+    functionFragment: 'voteInFavorForceSetGovernor',
     values: [
       {
         leafIndex: BigNumberish;
@@ -162,109 +94,44 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     ]
   ): string;
 
-  decodeFunctionResult(
-    functionFragment: "EVM_CHAIN_ID_TYPE",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "_resourceIDToHandlerAddress",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "adminSetResourceWithSignature",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "averageSessionLengthInMillisecs",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "currentVotingPeriod",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "executeProposalWithSignature",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getChainId", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getChainIdType",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "governor", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "isGovernor", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "isSignatureFromGovernor",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "lastGovernorUpdateTime",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "numOfProposers",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "parseChainIdFromResourceId",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "proposalNonce",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "proposerSetRoot",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "proposerSetUpdateNonce",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "recover", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "refreshNonce",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "renounceOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "sessionLengthMultiplier",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnershipWithSignaturePubKey",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "updateProposerSetData",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "voteInFavorForceSetGovernor",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: 'EVM_CHAIN_ID_TYPE', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: '_resourceIDToHandlerAddress', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'adminSetResourceWithSignature', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'averageSessionLengthInMillisecs', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'currentVotingPeriod', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'executeProposalWithSignature', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getChainId', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getChainIdType', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'governor', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'isGovernor', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'isSignatureFromGovernor', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'lastGovernorUpdateTime', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'numOfProposers', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'parseChainIdFromResourceId', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'paused', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'proposalNonce', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'proposerSetRoot', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'proposerSetUpdateNonce', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'recover', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'refreshNonce', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'renounceOwnership', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'sessionLengthMultiplier', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'transferOwnership', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'transferOwnershipWithSignaturePubKey', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'updateProposerSetData', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'voteInFavorForceSetGovernor', data: BytesLike): Result;
 
   events: {
-    "GovernanceOwnershipTransferred(address,address)": EventFragment;
-    "Paused(address)": EventFragment;
-    "RecoveredAddress(address)": EventFragment;
-    "Unpaused(address)": EventFragment;
+    'GovernanceOwnershipTransferred(address,address)': EventFragment;
+    'Paused(address)': EventFragment;
+    'RecoveredAddress(address)': EventFragment;
+    'Unpaused(address)': EventFragment;
   };
 
-  getEvent(
-    nameOrSignatureOrTopic: "GovernanceOwnershipTransferred"
-  ): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "RecoveredAddress"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Unpaused"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'GovernanceOwnershipTransferred'): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'Paused'): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'RecoveredAddress'): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'Unpaused'): EventFragment;
 }
 
 export type GovernanceOwnershipTransferredEvent = TypedEvent<
@@ -273,9 +140,7 @@ export type GovernanceOwnershipTransferredEvent = TypedEvent<
 
 export type PausedEvent = TypedEvent<[string] & { account: string }>;
 
-export type RecoveredAddressEvent = TypedEvent<
-  [string] & { recovered: string }
->;
+export type RecoveredAddressEvent = TypedEvent<[string] & { recovered: string }>;
 
 export type UnpausedEvent = TypedEvent<[string] & { account: string }>;
 
@@ -325,10 +190,7 @@ export class SignatureBridge extends BaseContract {
   functions: {
     EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<[string]>;
 
-    _resourceIDToHandlerAddress(
-      arg0: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    _resourceIDToHandlerAddress(arg0: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
     adminSetResourceWithSignature(
       resourceID: BytesLike,
@@ -341,9 +203,7 @@ export class SignatureBridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    averageSessionLengthInMillisecs(
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    averageSessionLengthInMillisecs(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     currentVotingPeriod(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -361,20 +221,13 @@ export class SignatureBridge extends BaseContract {
 
     isGovernor(overrides?: CallOverrides): Promise<[boolean]>;
 
-    isSignatureFromGovernor(
-      data: BytesLike,
-      sig: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    isSignatureFromGovernor(data: BytesLike, sig: BytesLike, overrides?: CallOverrides): Promise<[boolean]>;
 
     lastGovernorUpdateTime(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     numOfProposers(overrides?: CallOverrides): Promise<[number]>;
 
-    parseChainIdFromResourceId(
-      _resourceId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    parseChainIdFromResourceId(_resourceId: BytesLike, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     paused(overrides?: CallOverrides): Promise<[boolean]>;
 
@@ -384,17 +237,11 @@ export class SignatureBridge extends BaseContract {
 
     proposerSetUpdateNonce(overrides?: CallOverrides): Promise<[number]>;
 
-    recover(
-      data: BytesLike,
-      sig: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    recover(data: BytesLike, sig: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
     refreshNonce(overrides?: CallOverrides): Promise<[number]>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    renounceOwnership(overrides?: Overrides & { from?: string | Promise<string> }): Promise<ContractTransaction>;
 
     sessionLengthMultiplier(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -432,10 +279,7 @@ export class SignatureBridge extends BaseContract {
 
   EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<string>;
 
-  _resourceIDToHandlerAddress(
-    arg0: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  _resourceIDToHandlerAddress(arg0: BytesLike, overrides?: CallOverrides): Promise<string>;
 
   adminSetResourceWithSignature(
     resourceID: BytesLike,
@@ -448,9 +292,7 @@ export class SignatureBridge extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  averageSessionLengthInMillisecs(
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  averageSessionLengthInMillisecs(overrides?: CallOverrides): Promise<BigNumber>;
 
   currentVotingPeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -468,20 +310,13 @@ export class SignatureBridge extends BaseContract {
 
   isGovernor(overrides?: CallOverrides): Promise<boolean>;
 
-  isSignatureFromGovernor(
-    data: BytesLike,
-    sig: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+  isSignatureFromGovernor(data: BytesLike, sig: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
   lastGovernorUpdateTime(overrides?: CallOverrides): Promise<BigNumber>;
 
   numOfProposers(overrides?: CallOverrides): Promise<number>;
 
-  parseChainIdFromResourceId(
-    _resourceId: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  parseChainIdFromResourceId(_resourceId: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
   paused(overrides?: CallOverrides): Promise<boolean>;
 
@@ -491,17 +326,11 @@ export class SignatureBridge extends BaseContract {
 
   proposerSetUpdateNonce(overrides?: CallOverrides): Promise<number>;
 
-  recover(
-    data: BytesLike,
-    sig: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  recover(data: BytesLike, sig: BytesLike, overrides?: CallOverrides): Promise<string>;
 
   refreshNonce(overrides?: CallOverrides): Promise<number>;
 
-  renounceOwnership(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  renounceOwnership(overrides?: Overrides & { from?: string | Promise<string> }): Promise<ContractTransaction>;
 
   sessionLengthMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -539,10 +368,7 @@ export class SignatureBridge extends BaseContract {
   callStatic: {
     EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<string>;
 
-    _resourceIDToHandlerAddress(
-      arg0: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    _resourceIDToHandlerAddress(arg0: BytesLike, overrides?: CallOverrides): Promise<string>;
 
     adminSetResourceWithSignature(
       resourceID: BytesLike,
@@ -555,17 +381,11 @@ export class SignatureBridge extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    averageSessionLengthInMillisecs(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    averageSessionLengthInMillisecs(overrides?: CallOverrides): Promise<BigNumber>;
 
     currentVotingPeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
-    executeProposalWithSignature(
-      data: BytesLike,
-      sig: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    executeProposalWithSignature(data: BytesLike, sig: BytesLike, overrides?: CallOverrides): Promise<void>;
 
     getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -575,20 +395,13 @@ export class SignatureBridge extends BaseContract {
 
     isGovernor(overrides?: CallOverrides): Promise<boolean>;
 
-    isSignatureFromGovernor(
-      data: BytesLike,
-      sig: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+    isSignatureFromGovernor(data: BytesLike, sig: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
     lastGovernorUpdateTime(overrides?: CallOverrides): Promise<BigNumber>;
 
     numOfProposers(overrides?: CallOverrides): Promise<number>;
 
-    parseChainIdFromResourceId(
-      _resourceId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    parseChainIdFromResourceId(_resourceId: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
     paused(overrides?: CallOverrides): Promise<boolean>;
 
@@ -598,11 +411,7 @@ export class SignatureBridge extends BaseContract {
 
     proposerSetUpdateNonce(overrides?: CallOverrides): Promise<number>;
 
-    recover(
-      data: BytesLike,
-      sig: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    recover(data: BytesLike, sig: BytesLike, overrides?: CallOverrides): Promise<string>;
 
     refreshNonce(overrides?: CallOverrides): Promise<number>;
 
@@ -610,11 +419,7 @@ export class SignatureBridge extends BaseContract {
 
     sessionLengthMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
 
-    transferOwnership(
-      newOwner: string,
-      nonce: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    transferOwnership(newOwner: string, nonce: BigNumberish, overrides?: CallOverrides): Promise<void>;
 
     transferOwnershipWithSignaturePubKey(
       publicKey: BytesLike,
@@ -643,39 +448,25 @@ export class SignatureBridge extends BaseContract {
   };
 
   filters: {
-    "GovernanceOwnershipTransferred(address,address)"(
+    'GovernanceOwnershipTransferred(address,address)'(
       previousOwner?: string | null,
       newOwner?: string | null
-    ): TypedEventFilter<
-      [string, string],
-      { previousOwner: string; newOwner: string }
-    >;
+    ): TypedEventFilter<[string, string], { previousOwner: string; newOwner: string }>;
 
     GovernanceOwnershipTransferred(
       previousOwner?: string | null,
       newOwner?: string | null
-    ): TypedEventFilter<
-      [string, string],
-      { previousOwner: string; newOwner: string }
-    >;
+    ): TypedEventFilter<[string, string], { previousOwner: string; newOwner: string }>;
 
-    "Paused(address)"(
-      account?: null
-    ): TypedEventFilter<[string], { account: string }>;
+    'Paused(address)'(account?: null): TypedEventFilter<[string], { account: string }>;
 
     Paused(account?: null): TypedEventFilter<[string], { account: string }>;
 
-    "RecoveredAddress(address)"(
-      recovered?: string | null
-    ): TypedEventFilter<[string], { recovered: string }>;
+    'RecoveredAddress(address)'(recovered?: string | null): TypedEventFilter<[string], { recovered: string }>;
 
-    RecoveredAddress(
-      recovered?: string | null
-    ): TypedEventFilter<[string], { recovered: string }>;
+    RecoveredAddress(recovered?: string | null): TypedEventFilter<[string], { recovered: string }>;
 
-    "Unpaused(address)"(
-      account?: null
-    ): TypedEventFilter<[string], { account: string }>;
+    'Unpaused(address)'(account?: null): TypedEventFilter<[string], { account: string }>;
 
     Unpaused(account?: null): TypedEventFilter<[string], { account: string }>;
   };
@@ -683,10 +474,7 @@ export class SignatureBridge extends BaseContract {
   estimateGas: {
     EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<BigNumber>;
 
-    _resourceIDToHandlerAddress(
-      arg0: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    _resourceIDToHandlerAddress(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
     adminSetResourceWithSignature(
       resourceID: BytesLike,
@@ -699,9 +487,7 @@ export class SignatureBridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    averageSessionLengthInMillisecs(
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    averageSessionLengthInMillisecs(overrides?: CallOverrides): Promise<BigNumber>;
 
     currentVotingPeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -719,20 +505,13 @@ export class SignatureBridge extends BaseContract {
 
     isGovernor(overrides?: CallOverrides): Promise<BigNumber>;
 
-    isSignatureFromGovernor(
-      data: BytesLike,
-      sig: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    isSignatureFromGovernor(data: BytesLike, sig: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
     lastGovernorUpdateTime(overrides?: CallOverrides): Promise<BigNumber>;
 
     numOfProposers(overrides?: CallOverrides): Promise<BigNumber>;
 
-    parseChainIdFromResourceId(
-      _resourceId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    parseChainIdFromResourceId(_resourceId: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
     paused(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -742,17 +521,11 @@ export class SignatureBridge extends BaseContract {
 
     proposerSetUpdateNonce(overrides?: CallOverrides): Promise<BigNumber>;
 
-    recover(
-      data: BytesLike,
-      sig: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    recover(data: BytesLike, sig: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
     refreshNonce(overrides?: CallOverrides): Promise<BigNumber>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    renounceOwnership(overrides?: Overrides & { from?: string | Promise<string> }): Promise<BigNumber>;
 
     sessionLengthMultiplier(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -791,10 +564,7 @@ export class SignatureBridge extends BaseContract {
   populateTransaction: {
     EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    _resourceIDToHandlerAddress(
-      arg0: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    _resourceIDToHandlerAddress(arg0: BytesLike, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     adminSetResourceWithSignature(
       resourceID: BytesLike,
@@ -807,13 +577,9 @@ export class SignatureBridge extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    averageSessionLengthInMillisecs(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    averageSessionLengthInMillisecs(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    currentVotingPeriod(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    currentVotingPeriod(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     executeProposalWithSignature(
       data: BytesLike,
@@ -829,22 +595,13 @@ export class SignatureBridge extends BaseContract {
 
     isGovernor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    isSignatureFromGovernor(
-      data: BytesLike,
-      sig: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    isSignatureFromGovernor(data: BytesLike, sig: BytesLike, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    lastGovernorUpdateTime(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    lastGovernorUpdateTime(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     numOfProposers(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    parseChainIdFromResourceId(
-      _resourceId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    parseChainIdFromResourceId(_resourceId: BytesLike, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -852,25 +609,15 @@ export class SignatureBridge extends BaseContract {
 
     proposerSetRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    proposerSetUpdateNonce(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    proposerSetUpdateNonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    recover(
-      data: BytesLike,
-      sig: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    recover(data: BytesLike, sig: BytesLike, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     refreshNonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+    renounceOwnership(overrides?: Overrides & { from?: string | Promise<string> }): Promise<PopulatedTransaction>;
 
-    sessionLengthMultiplier(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    sessionLengthMultiplier(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transferOwnership(
       newOwner: string,

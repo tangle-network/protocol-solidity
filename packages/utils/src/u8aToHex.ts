@@ -19,8 +19,8 @@ for (let i = 0; i < 256; i++) {
 }
 
 /** @internal */
-function hex (value: Uint8Array, result: HexString): HexString {
-  const mod = (value.length % 2) | 0;
+function hex(value: Uint8Array, result: HexString): HexString {
+  const mod = value.length % 2 | 0;
   const length = (value.length - mod) | 0;
 
   for (let i = 0; i < length; i += 2) {
@@ -50,11 +50,9 @@ function hex (value: Uint8Array, result: HexString): HexString {
  * u8aToHex(new Uint8Array([0x68, 0x65, 0x6c, 0x6c, 0xf])); // 0x68656c0f
  * ```
  */
-export function u8aToHex (value?: Uint8Array | null, bitLength = -1, isPrefixed = true): HexString {
+export function u8aToHex(value?: Uint8Array | null, bitLength = -1, isPrefixed = true): HexString {
   // this is not 100% correct sinmce we support isPrefixed = false....
-  const empty = isPrefixed
-    ? '0x'
-    : '' as HexString;
+  const empty = isPrefixed ? '0x' : ('' as HexString);
 
   if (!value || !value.length) {
     return empty;
@@ -62,7 +60,10 @@ export function u8aToHex (value?: Uint8Array | null, bitLength = -1, isPrefixed 
     const length = Math.ceil(bitLength / 8);
 
     if (value.length > length) {
-      return `${hex(value.subarray(0, length / 2), empty)}…${hex(value.subarray(value.length - length / 2), '' as HexString)}`;
+      return `${hex(value.subarray(0, length / 2), empty)}…${hex(
+        value.subarray(value.length - length / 2),
+        '' as HexString
+      )}`;
     }
   }
 

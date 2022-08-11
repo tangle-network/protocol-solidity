@@ -10,10 +10,10 @@ export class GovernedTokenWrapper {
   contract: GovernedTokenWrapperContract;
   signer: ethers.Signer;
 
-  ADD_TOKEN_SIGNATURE = 'add(address,uint256)';
-  REMOVE_TOKEN_SIGNATURE = 'remove(address,uint256)';
-  SET_FEE_SIGNATURE = 'setFee(uint8,uint256)';
-  FEE_RECIPIENT_SIGNATURE = 'setFeeRecipient(address,uint256)';
+  ADD_TOKEN_SIGNATURE = 'add(address,uint32)';
+  REMOVE_TOKEN_SIGNATURE = 'remove(address,uint32)';
+  SET_FEE_SIGNATURE = 'setFee(uint8,uint32)';
+  FEE_RECIPIENT_SIGNATURE = 'setFeeRecipient(address,uint32)';
 
   constructor(contract: GovernedTokenWrapperContract, signer: ethers.Signer) {
     this.contract = contract;

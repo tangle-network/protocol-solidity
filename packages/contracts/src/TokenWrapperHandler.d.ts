@@ -13,98 +13,44 @@ import {
   ContractTransaction,
   Overrides,
   CallOverrides,
-} from "ethers";
-import { BytesLike } from "@ethersproject/bytes";
-import { Listener, Provider } from "@ethersproject/providers";
-import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
-import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
+} from 'ethers';
+import { BytesLike } from '@ethersproject/bytes';
+import { Listener, Provider } from '@ethersproject/providers';
+import { FunctionFragment, EventFragment, Result } from '@ethersproject/abi';
+import type { TypedEventFilter, TypedEvent, TypedListener } from './common';
 
 interface TokenWrapperHandlerInterface extends ethers.utils.Interface {
   functions: {
-    "_bridgeAddress()": FunctionFragment;
-    "_contractAddressToResourceID(address)": FunctionFragment;
-    "_contractWhitelist(address)": FunctionFragment;
-    "_resourceIDToContractAddress(bytes32)": FunctionFragment;
-    "_updateRecords(uint256,uint256)": FunctionFragment;
-    "executeProposal(bytes32,bytes)": FunctionFragment;
-    "getUpdateRecord(uint256,uint256)": FunctionFragment;
-    "migrateBridge(address)": FunctionFragment;
-    "setResource(bytes32,address)": FunctionFragment;
+    '_bridgeAddress()': FunctionFragment;
+    '_contractAddressToResourceID(address)': FunctionFragment;
+    '_contractWhitelist(address)': FunctionFragment;
+    '_resourceIDToContractAddress(bytes32)': FunctionFragment;
+    '_updateRecords(uint256,uint256)': FunctionFragment;
+    'executeProposal(bytes32,bytes)': FunctionFragment;
+    'getUpdateRecord(uint256,uint256)': FunctionFragment;
+    'migrateBridge(address)': FunctionFragment;
+    'setResource(bytes32,address)': FunctionFragment;
   };
 
-  encodeFunctionData(
-    functionFragment: "_bridgeAddress",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "_contractAddressToResourceID",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "_contractWhitelist",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "_resourceIDToContractAddress",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "_updateRecords",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "executeProposal",
-    values: [BytesLike, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getUpdateRecord",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "migrateBridge",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setResource",
-    values: [BytesLike, string]
-  ): string;
+  encodeFunctionData(functionFragment: '_bridgeAddress', values?: undefined): string;
+  encodeFunctionData(functionFragment: '_contractAddressToResourceID', values: [string]): string;
+  encodeFunctionData(functionFragment: '_contractWhitelist', values: [string]): string;
+  encodeFunctionData(functionFragment: '_resourceIDToContractAddress', values: [BytesLike]): string;
+  encodeFunctionData(functionFragment: '_updateRecords', values: [BigNumberish, BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'executeProposal', values: [BytesLike, BytesLike]): string;
+  encodeFunctionData(functionFragment: 'getUpdateRecord', values: [BigNumberish, BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'migrateBridge', values: [string]): string;
+  encodeFunctionData(functionFragment: 'setResource', values: [BytesLike, string]): string;
 
-  decodeFunctionResult(
-    functionFragment: "_bridgeAddress",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "_contractAddressToResourceID",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "_contractWhitelist",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "_resourceIDToContractAddress",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "_updateRecords",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "executeProposal",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getUpdateRecord",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "migrateBridge",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setResource",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: '_bridgeAddress', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: '_contractAddressToResourceID', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: '_contractWhitelist', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: '_resourceIDToContractAddress', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: '_updateRecords', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'executeProposal', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getUpdateRecord', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'migrateBridge', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'setResource', data: BytesLike): Result;
 
   events: {};
 }
@@ -155,20 +101,11 @@ export class TokenWrapperHandler extends BaseContract {
   functions: {
     _bridgeAddress(overrides?: CallOverrides): Promise<[string]>;
 
-    _contractAddressToResourceID(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    _contractAddressToResourceID(arg0: string, overrides?: CallOverrides): Promise<[string]>;
 
-    _contractWhitelist(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    _contractWhitelist(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
 
-    _resourceIDToContractAddress(
-      arg0: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    _resourceIDToContractAddress(arg0: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
     _updateRecords(
       arg0: BigNumberish,
@@ -222,17 +159,11 @@ export class TokenWrapperHandler extends BaseContract {
 
   _bridgeAddress(overrides?: CallOverrides): Promise<string>;
 
-  _contractAddressToResourceID(
-    arg0: string,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  _contractAddressToResourceID(arg0: string, overrides?: CallOverrides): Promise<string>;
 
   _contractWhitelist(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
-  _resourceIDToContractAddress(
-    arg0: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  _resourceIDToContractAddress(arg0: BytesLike, overrides?: CallOverrides): Promise<string>;
 
   _updateRecords(
     arg0: BigNumberish,
@@ -284,20 +215,11 @@ export class TokenWrapperHandler extends BaseContract {
   callStatic: {
     _bridgeAddress(overrides?: CallOverrides): Promise<string>;
 
-    _contractAddressToResourceID(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    _contractAddressToResourceID(arg0: string, overrides?: CallOverrides): Promise<string>;
 
-    _contractWhitelist(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+    _contractWhitelist(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
-    _resourceIDToContractAddress(
-      arg0: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    _resourceIDToContractAddress(arg0: BytesLike, overrides?: CallOverrides): Promise<string>;
 
     _updateRecords(
       arg0: BigNumberish,
@@ -314,11 +236,7 @@ export class TokenWrapperHandler extends BaseContract {
       }
     >;
 
-    executeProposal(
-      resourceID: BytesLike,
-      data: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    executeProposal(resourceID: BytesLike, data: BytesLike, overrides?: CallOverrides): Promise<void>;
 
     getUpdateRecord(
       updateNonce: BigNumberish,
@@ -337,11 +255,7 @@ export class TokenWrapperHandler extends BaseContract {
 
     migrateBridge(newBridge: string, overrides?: CallOverrides): Promise<void>;
 
-    setResource(
-      resourceID: BytesLike,
-      contractAddress: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    setResource(resourceID: BytesLike, contractAddress: string, overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {};
@@ -349,26 +263,13 @@ export class TokenWrapperHandler extends BaseContract {
   estimateGas: {
     _bridgeAddress(overrides?: CallOverrides): Promise<BigNumber>;
 
-    _contractAddressToResourceID(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    _contractAddressToResourceID(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    _contractWhitelist(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    _contractWhitelist(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    _resourceIDToContractAddress(
-      arg0: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    _resourceIDToContractAddress(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
-    _updateRecords(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    _updateRecords(arg0: BigNumberish, arg1: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     executeProposal(
       resourceID: BytesLike,
@@ -382,10 +283,7 @@ export class TokenWrapperHandler extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    migrateBridge(
-      newBridge: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    migrateBridge(newBridge: string, overrides?: Overrides & { from?: string | Promise<string> }): Promise<BigNumber>;
 
     setResource(
       resourceID: BytesLike,
@@ -397,26 +295,13 @@ export class TokenWrapperHandler extends BaseContract {
   populateTransaction: {
     _bridgeAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    _contractAddressToResourceID(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    _contractAddressToResourceID(arg0: string, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    _contractWhitelist(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    _contractWhitelist(arg0: string, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    _resourceIDToContractAddress(
-      arg0: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    _resourceIDToContractAddress(arg0: BytesLike, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    _updateRecords(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    _updateRecords(arg0: BigNumberish, arg1: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     executeProposal(
       resourceID: BytesLike,

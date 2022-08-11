@@ -291,7 +291,7 @@ export class VAnchor implements IAnchor {
       .padEnd(10, '0');
 
     const targetContract = this.contract.address;
-    const targetResourceId = '0x' + toHex(targetContract, 20).substr(2) + toHex(chainID, 6).substr(2)
+    const targetResourceId = '0x' + toHex(targetContract, 20).substr(2) + toHex(chainID, 6).substr(2);
     return (
       '0x' +
       toHex(resourceID, 32).substr(2) +
@@ -326,7 +326,7 @@ export class VAnchor implements IAnchor {
   public async getMinWithdrawalLimitProposalData(_minimalWithdrawalAmount: string): Promise<string> {
     const resourceID = await this.createResourceId();
     const functionSig = ethers.utils
-      .keccak256(ethers.utils.toUtf8Bytes('configureMinimalWithdrawalLimit(uint256)'))
+      .keccak256(ethers.utils.toUtf8Bytes('configureMinimalWithdrawalLimit(uint256,uint32)'))
       .slice(0, 10)
       .padEnd(10, '0');
     const nonce = Number(await this.contract.getProposalNonce()) + 1;
@@ -342,7 +342,7 @@ export class VAnchor implements IAnchor {
   public async getMaxDepositLimitProposalData(_maximumDepositAmount: string): Promise<string> {
     const resourceID = await this.createResourceId();
     const functionSig = ethers.utils
-      .keccak256(ethers.utils.toUtf8Bytes('configureMaximumDepositLimit(uint256)'))
+      .keccak256(ethers.utils.toUtf8Bytes('configureMaximumDepositLimit(uint256,uint32)'))
       .slice(0, 10)
       .padEnd(10, '0');
     const nonce = Number(await this.contract.getProposalNonce()) + 1;

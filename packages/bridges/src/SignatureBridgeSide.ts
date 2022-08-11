@@ -24,33 +24,28 @@ export class SignatureBridgeSide implements IBridgeSide {
   TOKEN_HANDLER_MISSING_ERROR = new Error('Cannot connect to a token wrapper without a handler');
   TREASURY_HANDLER_MISSING_ERROR = new Error('Cannot connect to treasury without handler');
 
-  private constructor(
-    contract: SignatureBridge,
-    systemSigningFn: SystemSigningFn,
-  ) {
+  private constructor(contract: SignatureBridge, systemSigningFn: SystemSigningFn) {
     this.contract = contract;
     this.anchorHandler = null;
     this.tokenHandler = null;
     this.treasuryHandler = null;
     this.proposals = [];
 
-    this.signingSystemSignFn = systemSigningFn
+    this.signingSystemSignFn = systemSigningFn;
   }
 
   /**
    * When a bridgeSide is created, the admin is set as the governor.
    * Ownership of the bridge can then be transferred to another entity.
-   * 
+   *
    * @param admin - The deployer and governor upon creation.
    */
-  public static async createBridgeSide(
-    admin: ethers.Wallet
-  ): Promise<SignatureBridgeSide> {
+  public static async createBridgeSide(admin: ethers.Wallet): Promise<SignatureBridgeSide> {
     const bridgeFactory = new SignatureBridge__factory(admin);
     const deployedBridge = await bridgeFactory.deploy(admin.address, 0);
     await deployedBridge.deployed();
     const bridgeSide = new SignatureBridgeSide(deployedBridge, (data: any) => {
-      return Promise.resolve(signMessage(admin,data));
+      return Promise.resolve(signMessage(admin, data));
     });
     bridgeSide.admin = admin;
     bridgeSide.governor = admin;
@@ -60,16 +55,16 @@ export class SignatureBridgeSide implements IBridgeSide {
   /**
    * When an existing SignatureBridge is connected, the governor must be configured.
    * In the case of connectMocked, a wallet address is passed which will act as the governor.
-   * 
+   *
    * connectMocked is particularly useful for integration testing
-   * 
+   *
    * @param contractAddress - The contract address of the SignatureBridge contract instance.
    * @param mockedGovernor - The ethers.Wallet which will sign messages before execution on the bridgeSide.
    */
   public static async connectMocked(contractAddress: string, mockedGovernor: ethers.Wallet) {
     const deployedBridge = SignatureBridge__factory.connect(contractAddress, mockedGovernor);
     const bridgeSide = new SignatureBridgeSide(deployedBridge, (data: string) => {
-      return Promise.resolve(signMessage(mockedGovernor,data));
+      return Promise.resolve(signMessage(mockedGovernor, data));
     });
     bridgeSide.governor = mockedGovernor;
     bridgeSide.admin = mockedGovernor;
@@ -80,10 +75,10 @@ export class SignatureBridgeSide implements IBridgeSide {
    * When an existing SignatureBridge is connected, the governor must be configured.
    * In the case of connectGovernor, a network is passed for querying the chain as well
    * as a signing function which can keep this class generic.
-   * 
+   *
    * connectGovernor is necessary for interacting with this class when the private key
    * of the governor is unavailable, but signed proposals are available.
-   * 
+   *
    * @param contractAddress - The contract address of the SignatureBridge contract instance.
    * @param provider - The network which the contract address exists upon.
    * @param systemSigningFn - a function which will produce a signature that verifies as

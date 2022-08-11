@@ -12,19 +12,19 @@ import {
   BaseContract,
   ContractTransaction,
   CallOverrides,
-} from "ethers";
-import { BytesLike } from "@ethersproject/bytes";
-import { Listener, Provider } from "@ethersproject/providers";
-import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
-import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
+} from 'ethers';
+import { BytesLike } from '@ethersproject/bytes';
+import { Listener, Provider } from '@ethersproject/providers';
+import { FunctionFragment, EventFragment, Result } from '@ethersproject/abi';
+import type { TypedEventFilter, TypedEvent, TypedListener } from './common';
 
 interface Verifier216Interface extends ethers.utils.Interface {
   functions: {
-    "verifyProof(uint256[2],uint256[2][2],uint256[2],uint256[23])": FunctionFragment;
+    'verifyProof(uint256[2],uint256[2][2],uint256[2],uint256[23])': FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "verifyProof",
+    functionFragment: 'verifyProof',
     values: [
       [BigNumberish, BigNumberish],
       [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]],
@@ -57,10 +57,7 @@ interface Verifier216Interface extends ethers.utils.Interface {
     ]
   ): string;
 
-  decodeFunctionResult(
-    functionFragment: "verifyProof",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: 'verifyProof', data: BytesLike): Result;
 
   events: {};
 }
