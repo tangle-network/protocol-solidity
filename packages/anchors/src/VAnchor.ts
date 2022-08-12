@@ -291,7 +291,7 @@ export class VAnchor implements IAnchor {
       .padEnd(10, '0');
 
     const srcContract = this.contract.address;
-    const srcResourceId = '0x' + toHex(srcContract, 20).substr(2) + toHex(chainID, 6).substr(2);
+    const srcResourceId = '0x' + toHex(0, 6).substring(2) + toHex(srcContract, 20).substr(2) + toHex(chainID, 6).substr(2);
     return (
       '0x' +
       toHex(resourceID, 32).substr(2) +
@@ -637,7 +637,9 @@ export class VAnchor implements IAnchor {
       relayer,
       leavesMap
     );
-
+    console.log('extAmount: ', extAmount);
+    console.log('extData: ', extData);
+    console.log('publicInputs: ', publicInputs);
     let tx = await this.contract.transact(
       {
         ...publicInputs,
@@ -725,8 +727,8 @@ export class VAnchor implements IAnchor {
         extData,
         tokenAddress,
         {
-          value: extAmount,
-          gasLimit: '0x5B8D80',
+          value: extAmount.toHexString(),
+          gasLimit: '0xBB8D80',
         }
       );
     } else {
@@ -737,7 +739,7 @@ export class VAnchor implements IAnchor {
         },
         extData,
         tokenAddress,
-        { gasLimit: '0x5B8D80' }
+        { gasLimit: '0xBB8D80' }
       );
     }
     const receipt = await tx.wait();

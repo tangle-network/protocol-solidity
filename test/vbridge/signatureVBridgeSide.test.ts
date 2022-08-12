@@ -2,28 +2,31 @@
  * Copyright 2021 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-// @ts-nocheck
 const assert = require('assert');
 const path = require('path');
 import { ethers } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
  
 // Convenience wrapper classes for contract classes
-import { Verifier, SignatureBridgeSide } from '../../packages/bridges/src';
+import { SignatureBridgeSide } from '../../packages/bridges/src';
 import { VAnchor, AnchorHandler } from '../../packages/anchors/src';
+import { VBridge, Verifier } from '../../packages/vbridge/src';
 import { MintableToken, Treasury, TreasuryHandler } from '../../packages/tokens/src';
 import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '../../packages/utils/src';
 import { PoseidonT3__factory } from '../../packages/contracts';
 import { GovernedTokenWrapper, TokenWrapperHandler } from '../../packages/tokens/src';
 import { BigNumber } from 'ethers';
 import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
+import { CircomUtxo, Keypair } from '@webb-tools/sdk-core';
 
-describe.only('SignatureBridgeSide use', () => {
+describe('SignatureBridgeSide use', () => {
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
   let admin = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
   let bridgeSide: SignatureBridgeSide;
-  let maxEdges = 2;
+  let maxEdges = 1;
+  const zeroAddress = "0x0000000000000000000000000000000000000000";
+  const chainID1 = getChainIdType(31337);
 
   before(async () => {
     zkComponents2_2 = await fetchComponentsFromFilePaths(
@@ -97,23 +100,17 @@ describe.only('SignatureBridgeSide use', () => {
       admin,
     );
 
-    const destAnchor = await VAnchor.createVAnchor(
-      verifier.contract.address,
-      30,
-      hasherInstance.address,
-      anchorHandler.contract.address,
-      tokenInstance.contract.address,
-      maxEdges,
-      zkComponents2_2,
-      zkComponents16_2,
-      admin,
-    );
-
-    await tokenInstance.approveSpending(destAnchor.contract.address);
     await tokenInstance.approveSpending(srcAnchor.contract.address);
 
     bridgeSide.setAnchorHandler(anchorHandler);
-    await bridgeSide.setAnchorResourceWithSignature(destAnchor);
+    const res = await bridgeSide.connectAnchorWithSignature(srcAnchor);
+
+    await bridgeSide.executeMinWithdrawalLimitProposalWithSig(srcAnchor, BigNumber.from(0).toString());
+    await bridgeSide.executeMaxDepositLimitProposalWithSig(
+      srcAnchor,
+      BigNumber.from(1e8).toString()
+    );
+
     // Define inputs/outputs for transact function
     const depositUtxo = await CircomUtxo.generateUtxo({
       curve: 'Bn254',
@@ -121,11 +118,10 @@ describe.only('SignatureBridgeSide use', () => {
       amount: 1e7.toString(),
       originChainId: chainID1.toString(),
       chainId: chainID1.toString(),
+      keypair: new Keypair(),
     });
     // Transact on the bridge
-    await srcAnchor.transact([], [depositUtxo], 0, '0', '0', signers[2]);
-    const destResourceID = await destAnchor.createResourceId();
-    await bridgeSide.executeAnchorProposalWithSig(srcAnchor, destResourceID);
+    await srcAnchor.transact([], [depositUtxo], { [chainID1.toString()]: [] }, '0', zeroAddress, zeroAddress);
   })
 
   it('execute fee proposal', async () => {
@@ -372,24 +368,33 @@ describe.only('SignatureBridgeSide use', () => {
 })
 
 describe('Rescue Tokens Tests for ERC20 Tokens', () => {
-  let zkComponents: ZkComponents;
-  let srcAnchor: Anchor;
+  let zkComponents2_2: ZkComponents;
+  let zkComponents16_2: ZkComponents;
+  let srcAnchor: VAnchor;
   let anchorHandler: AnchorHandler;
   let erc20TokenInstance: MintableToken;
   let admin = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
   let bridgeSide: SignatureBridgeSide;
   let wrappingFee: number;
   let signers;
-  let governedToken;
-  let treasuryHandler;
+  let governedToken: GovernedTokenWrapper;
+  let treasuryHandler: TreasuryHandler;
   let treasury;
   const zeroAddress = "0x0000000000000000000000000000000000000000";
+  const chainID1 = getChainIdType(31337);
+  let maxEdges = 1;
  
   before(async () => {
-    zkComponents = await fetchComponentsFromFilePaths(
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/poseidon_anchor_2.wasm'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/witness_calculator.cjs'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/circuit_final.zkey')
+    zkComponents2_2 = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.cjs'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/circuit_final.zkey')
+    );
+
+    zkComponents16_2 = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.cjs'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/circuit_final.zkey')
     );
   })
 
@@ -455,13 +460,13 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
 
     anchorHandler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, [], [], admin);
 
-    let anchorDenomination = 1000000000000;
+    let depositAmount = 1e7;
     srcAnchor = await VAnchor.createVAnchor(
       verifier.contract.address,
       30,
       hasherInstance.address,
       anchorHandler.contract.address,
-      tokenInstance.contract.address,
+      governedToken.contract.address,
       maxEdges,
       zkComponents2_2,
       zkComponents16_2,
@@ -471,25 +476,42 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
     await governedToken.grantMinterRole(srcAnchor.contract.address);
     await erc20TokenInstance.approveSpending(governedToken.contract.address);
     await erc20TokenInstance.approveSpending(srcAnchor.contract.address);
+    bridgeSide.setAnchorHandler(anchorHandler);
+    const res = await bridgeSide.connectAnchorWithSignature(srcAnchor);
+    await bridgeSide.executeMinWithdrawalLimitProposalWithSig(srcAnchor, BigNumber.from(0).toString());
+    await bridgeSide.executeMaxDepositLimitProposalWithSig(
+      srcAnchor,
+      BigNumber.from(1e8).toString()
+    );
+
+    // Define inputs/outputs for transact function
+    const depositUtxo = await CircomUtxo.generateUtxo({
+      curve: 'Bn254',
+      backend: 'Circom',
+      amount: depositAmount.toString(),
+      originChainId: chainID1.toString(),
+      chainId: chainID1.toString(),
+      keypair: new Keypair(),
+    });
     
     await TruffleAssert.reverts(
-     srcAnchor.wrapAndDeposit(erc20TokenInstance.contract.address, wrappingFee, getChainIdType(await admin.getChainId())),
-     'Fee Recipient cannot be zero address'
+      srcAnchor.transactWrap(erc20TokenInstance.contract.address, [], [depositUtxo], '0', zeroAddress, zeroAddress, { [chainID1.toString()]: [] }),
+      'Fee Recipient cannot be zero address'
     ); 
 
     // Change Fee Recipient to treasury Address
     await bridgeSide.executeFeeRecipientProposalWithSig(governedToken, treasury.contract.address);
 
     // For ERC20 Tests
-    await srcAnchor.wrapAndDeposit(erc20TokenInstance.contract.address, wrappingFee, getChainIdType(await admin.getChainId()));
+    await srcAnchor.transactWrap(erc20TokenInstance.contract.address, [], [depositUtxo], '0', zeroAddress, zeroAddress, { [chainID1.toString()]: [] });
 
     // Anchor Denomination amount should go to TokenWrapper
-    assert.strictEqual((await erc20TokenInstance.getBalance(governedToken.contract.address)).toString(), anchorDenomination.toString());
+    assert.strictEqual((await erc20TokenInstance.getBalance(governedToken.contract.address)).toString(), depositAmount.toString());
 
     // The wrapping fee should be transferred to the treasury
-    assert.strictEqual((await erc20TokenInstance.getBalance(treasury.contract.address)).toString(), parseInt((anchorDenomination * (wrappingFee / (100 - wrappingFee))).toString()).toString());
+    assert.strictEqual((await erc20TokenInstance.getBalance(treasury.contract.address)).toString(), parseInt((depositAmount * (wrappingFee / (10000 - wrappingFee))).toString()).toString());
 
-    assert.strictEqual((await governedToken.contract.balanceOf(srcAnchor.contract.address)).toString(), anchorDenomination.toString());
+    assert.strictEqual((await governedToken.contract.balanceOf(srcAnchor.contract.address)).toString(), depositAmount.toString());
   })
 
   it('should rescue tokens', async () => {
@@ -529,144 +551,170 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
   })
 })
 
-describe('Rescue Tokens Tests for Native ETH', () => {
- let zkComponents: ZkComponents;
- let srcAnchor: Anchor;
- let anchorHandler: AnchorHandler;
- let admin = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
- let bridgeSide: SignatureBridgeSide;
- let wrappingFee: number;
- let signers;
- let governedToken;
- let treasury;
- let treasuryHandler;
- const zeroAddress = "0x0000000000000000000000000000000000000000";
+describe.only('Rescue Tokens Tests for Native ETH', () => {
+  let zkComponents2_2: ZkComponents;
+  let zkComponents16_2: ZkComponents;
+  let srcAnchor: VAnchor;
+  let anchorHandler: AnchorHandler;
+  let admin = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
+  let bridgeSide: SignatureBridgeSide;
+  let wrappingFee: number;
+  let signers;
+  let governedToken: GovernedTokenWrapper;
+  let treasury;
+  let treasuryHandler;
+  const zeroAddress = "0x0000000000000000000000000000000000000000";
+  const chainID1 = getChainIdType(31337);
+  let maxEdges = 1;
 
- before(async () => {
-   zkComponents = await fetchComponentsFromFilePaths(
-     path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/poseidon_anchor_2.wasm'),
-     path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/witness_calculator.cjs'),
-     path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/circuit_final.zkey')
-   );
- })
+  before(async () => {
+    zkComponents2_2 = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.cjs'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/circuit_final.zkey')
+    );
 
- beforeEach(async() => {
-   signers = await ethers.getSigners();
-   bridgeSide = await SignatureBridgeSide.createBridgeSide(admin);
+    zkComponents16_2 = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.cjs'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/circuit_final.zkey')
+    );
+  })
 
-   // Deploy TokenWrapperHandler
-   const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
+  beforeEach(async() => {
+    signers = await ethers.getSigners();
+    bridgeSide = await SignatureBridgeSide.createBridgeSide(admin);
 
-   // Create Treasury and TreasuryHandler
-   treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeSide.contract.address, [],[], admin);
-   treasury = await Treasury.createTreasury(treasuryHandler.contract.address, admin);
-   await bridgeSide.setTreasuryHandler(treasuryHandler);
-   await bridgeSide.setTreasuryResourceWithSignature(treasury);
+    // Deploy TokenWrapperHandler
+    const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
 
-   // Create a GovernedTokenWrapper
-   governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
-     `webbETH-test-1`,
-     `webbETH-test-1`,
-     zeroAddress,
-     tokenWrapperHandler.contract.address,
-     '10000000000000000000000000',
-     true,
-     admin,
-   );
+    // Create Treasury and TreasuryHandler
+    treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeSide.contract.address, [],[], admin);
+    treasury = await Treasury.createTreasury(treasuryHandler.contract.address, admin);
+    await bridgeSide.setTreasuryHandler(treasuryHandler);
+    await bridgeSide.setTreasuryResourceWithSignature(treasury);
 
-   // Set bridgeSide handler to tokenWrapperHandler
-   bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
+    // Create a GovernedTokenWrapper
+    governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
+      `webbETH-test-1`,
+      `webbETH-test-1`,
+      zeroAddress,
+      tokenWrapperHandler.contract.address,
+      '10000000000000000000000000',
+      true,
+      admin,
+    );
 
-   // Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
-   await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
+    // Set bridgeSide handler to tokenWrapperHandler
+    bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
 
-   wrappingFee = 10;
-   // Execute change fee proposal
-   await bridgeSide.executeFeeProposalWithSig(governedToken, wrappingFee);
+    // Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
+    await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
 
-   // Check that fee actually changed
-   assert.strictEqual((await governedToken.contract.getFee()).toString(), '10');
+    wrappingFee = 10;
+    // Execute change fee proposal
+    await bridgeSide.executeFeeProposalWithSig(governedToken, wrappingFee);
 
-   // Create an anchor whose token is the governedToken
-   // Wrap and Deposit ERC20 liquidity into that anchor
+    // Check that fee actually changed
+    assert.strictEqual((await governedToken.contract.getFee()).toString(), '10');
 
-   // Create the Hasher and Verifier for the chain
-   const hasherFactory = new PoseidonT3__factory(admin);
-   let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
-   await hasherInstance.deployed();
+    // Create an anchor whose token is the governedToken
+    // Wrap and Deposit ERC20 liquidity into that anchor
 
-   const verifier = await Verifier.createVerifier(admin);
+    // Create the Hasher and Verifier for the chain
+    const hasherFactory = new PoseidonT3__factory(admin);
+    let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
+    await hasherInstance.deployed();
 
-   anchorHandler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, [], [], admin);
+    const verifier = await Verifier.createVerifier(admin);
 
-   let anchorDenomination = 1000000000000;
-   srcAnchor = await VAnchor.createVAnchor(
-    verifier.contract.address,
-    30,
-    hasherInstance.address,
-    anchorHandler.contract.address,
-    tokenInstance.contract.address,
-    maxEdges,
-    zkComponents2_2,
-    zkComponents16_2,
-    admin,
-  );
+    anchorHandler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, [], [], admin);
 
-   await governedToken.grantMinterRole(srcAnchor.contract.address);
+    let depositAmount = 1e7;
+    srcAnchor = await VAnchor.createVAnchor(
+      verifier.contract.address,
+      30,
+      hasherInstance.address,
+      anchorHandler.contract.address,
+      governedToken.contract.address,
+      maxEdges,
+      zkComponents2_2,
+      zkComponents16_2,
+      admin,
+    );
 
-   await TruffleAssert.reverts(
-    srcAnchor.wrapAndDeposit(zeroAddress, wrappingFee, getChainIdType(await admin.getChainId())),
-    'Fee Recipient cannot be zero address'
-   ); 
+    await governedToken.grantMinterRole(srcAnchor.contract.address);
+    bridgeSide.setAnchorHandler(anchorHandler);
+    const res = await bridgeSide.connectAnchorWithSignature(srcAnchor);
+    await bridgeSide.executeMinWithdrawalLimitProposalWithSig(srcAnchor, BigNumber.from(0).toString());
+    await bridgeSide.executeMaxDepositLimitProposalWithSig(
+      srcAnchor,
+      BigNumber.from(1e8).toString()
+    );
 
-   // Change Fee Recipient to treasury Address
-   await bridgeSide.executeFeeRecipientProposalWithSig(governedToken, treasury.contract.address);
+    // Define inputs/outputs for transact function
+    const depositUtxo = await CircomUtxo.generateUtxo({
+      curve: 'Bn254',
+      backend: 'Circom',
+      amount: depositAmount.toString(),
+      originChainId: chainID1.toString(),
+      chainId: chainID1.toString(),
+      keypair: new Keypair(),
+    });
 
-   // For Native ETH Tests
-   await srcAnchor.wrapAndDeposit(zeroAddress, wrappingFee, getChainIdType(await admin.getChainId()));
+    await TruffleAssert.reverts(
+      srcAnchor.transactWrap(zeroAddress, [], [depositUtxo], '0', zeroAddress, zeroAddress, { [chainID1.toString()]: [] }),
+      'Fee Recipient cannot be zero address'
+    ); 
 
-   // Anchor Denomination amount should go to TokenWrapper
-   assert.strictEqual((await ethers.provider.getBalance(governedToken.contract.address)).toString(), anchorDenomination.toString());
+    // Change Fee Recipient to treasury Address
+    await bridgeSide.executeFeeRecipientProposalWithSig(governedToken, treasury.contract.address);
 
-   // The wrapping fee should be transferred to the treasury
-   assert.strictEqual((await ethers.provider.getBalance(treasury.contract.address)).toString(), parseInt((anchorDenomination * (wrappingFee / (100 - wrappingFee))).toString()).toString());
+    // For Native ETH Tests
+    await srcAnchor.transactWrap(zeroAddress, [], [depositUtxo], '0', zeroAddress, zeroAddress, { [chainID1.toString()]: [] });
 
-   assert.strictEqual((await governedToken.contract.balanceOf(srcAnchor.contract.address)).toString(), anchorDenomination.toString());
- })
+    // Anchor Denomination amount should go to TokenWrapper
+    assert.strictEqual((await ethers.provider.getBalance(governedToken.contract.address)).toString(), depositAmount.toString());
 
- it('should rescue native eth', async () => {
-   let balTreasuryBeforeRescue = await ethers.provider.getBalance(treasury.contract.address);
-   let to = signers[2].address;
-   let balToBeforeRescue = await ethers.provider.getBalance(to);
+    // The wrapping fee should be transferred to the treasury
+    assert.strictEqual((await ethers.provider.getBalance(treasury.contract.address)).toString(), parseInt((depositAmount * (wrappingFee / (10000 - wrappingFee))).toString()).toString());
 
-   await bridgeSide.executeRescueTokensProposalWithSig(treasury, zeroAddress, to, BigNumber.from('500'));
+    assert.strictEqual((await governedToken.contract.balanceOf(srcAnchor.contract.address)).toString(), depositAmount.toString());
+  })
 
-   let balTreasuryAfterRescue = await ethers.provider.getBalance(treasury.contract.address);
-   let balToAfterRescue = await ethers.provider.getBalance(to);
+  it('should rescue native eth', async () => {
+    let balTreasuryBeforeRescue = await ethers.provider.getBalance(treasury.contract.address);
+    let to = signers[2].address;
+    let balToBeforeRescue = await ethers.provider.getBalance(to);
 
-   assert.strictEqual(balTreasuryBeforeRescue.sub(balTreasuryAfterRescue).toString(),'500');
+    await bridgeSide.executeRescueTokensProposalWithSig(treasury, zeroAddress, to, BigNumber.from('500'));
 
-   assert.strictEqual(balToAfterRescue.sub(balToBeforeRescue).toString(),'500');
+    let balTreasuryAfterRescue = await ethers.provider.getBalance(treasury.contract.address);
+    let balToAfterRescue = await ethers.provider.getBalance(to);
 
-   assert.strictEqual((await treasury.contract.proposalNonce()).toString(), '1');
- })
+    assert.strictEqual(balTreasuryBeforeRescue.sub(balTreasuryAfterRescue).toString(),'500');
 
- it('should rescue all native eth when amountToRescue greater than treasury balance', async () => {
-   let balTreasuryBeforeRescue = await ethers.provider.getBalance(treasury.contract.address);
-   let to = signers[2].address;
-   let balToBeforeRescue = await ethers.provider.getBalance(to);
+    assert.strictEqual(balToAfterRescue.sub(balToBeforeRescue).toString(),'500');
 
-   await bridgeSide.executeRescueTokensProposalWithSig(treasury, zeroAddress, to, BigNumber.from('500000000000000'));
+    assert.strictEqual((await treasury.contract.proposalNonce()).toString(), '1');
+  })
 
-   let balTreasuryAfterRescue = await ethers.provider.getBalance(treasury.contract.address);
-   let balToAfterRescue = await ethers.provider.getBalance(to);
+  it('should rescue all native eth when amountToRescue greater than treasury balance', async () => {
+    let balTreasuryBeforeRescue = await ethers.provider.getBalance(treasury.contract.address);
+    let to = signers[2].address;
+    let balToBeforeRescue = await ethers.provider.getBalance(to);
 
-   // balTreasuryAfterRescue = 0
-   assert.strictEqual(balTreasuryBeforeRescue.sub(balTreasuryAfterRescue).toString(), balTreasuryBeforeRescue.toString());
+    await bridgeSide.executeRescueTokensProposalWithSig(treasury, zeroAddress, to, BigNumber.from('500000000000000'));
 
-   // Should be balTreasuryBeforeRescue, since all tokens are transferred to the to address
-   assert.strictEqual(balToAfterRescue.sub(balToBeforeRescue).toString(),balTreasuryBeforeRescue.toString());
+    let balTreasuryAfterRescue = await ethers.provider.getBalance(treasury.contract.address);
+    let balToAfterRescue = await ethers.provider.getBalance(to);
 
-   assert.strictEqual((await treasury.contract.proposalNonce()).toString(), '1');
- })
+    // balTreasuryAfterRescue = 0
+    assert.strictEqual(balTreasuryBeforeRescue.sub(balTreasuryAfterRescue).toString(), balTreasuryBeforeRescue.toString());
+
+    // Should be balTreasuryBeforeRescue, since all tokens are transferred to the to address
+    assert.strictEqual(balToAfterRescue.sub(balToBeforeRescue).toString(),balTreasuryBeforeRescue.toString());
+
+    assert.strictEqual((await treasury.contract.proposalNonce()).toString(), '1');
+  })
 })
