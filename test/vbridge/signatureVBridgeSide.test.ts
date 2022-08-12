@@ -551,7 +551,7 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
   })
 })
 
-describe.only('Rescue Tokens Tests for Native ETH', () => {
+describe('Rescue Tokens Tests for Native ETH', () => {
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
   let srcAnchor: VAnchor;

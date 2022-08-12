@@ -1,5 +1,5 @@
 import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
-import { VAnchor as VAnchorContract, VAnchor__factory, VAnchorEncodeInputs__factory } from '@webb-tools/contracts';
+import { VAnchor as VAnchorContract, VAnchor__factory, VAnchorEncodeInputs__factory, TokenWrapper, TokenWrapper__factory } from '@webb-tools/contracts';
 import {
   toHex,
   Keypair,
@@ -203,7 +203,6 @@ export class VAnchor implements IAnchor {
 
     var a = [];
     for (var i = 0, len = str.length; i < len; i += 2) {
-      // @ts-ignore
       a.push(parseInt(str.substr(i, 2), 16));
     }
 
@@ -718,6 +717,8 @@ export class VAnchor implements IAnchor {
       leavesMap
     );
     let tx: ContractTransaction;
+    let tokenWrapper = TokenWrapper__factory.connect(await this.contract.token(), this.signer);
+    let valueToSend = await tokenWrapper.getAmountToWrap(extAmount);
     if (extAmount.gt(0) && checkNativeAddress(tokenAddress)) {
       tx = await this.contract.transactWrap(
         {
@@ -727,7 +728,7 @@ export class VAnchor implements IAnchor {
         extData,
         tokenAddress,
         {
-          value: extAmount.toHexString(),
+          value: valueToSend.toHexString(),
           gasLimit: '0xBB8D80',
         }
       );
