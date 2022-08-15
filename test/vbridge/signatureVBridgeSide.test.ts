@@ -10,10 +10,10 @@ const TruffleAssert = require('truffle-assertions');
 // Convenience wrapper classes for contract classes
 import { SignatureBridgeSide } from '../../packages/bridges/src';
 import { VAnchor, AnchorHandler } from '../../packages/anchors/src';
-import { VBridge, Verifier } from '../../packages/vbridge/src';
+import { Verifier } from '../../packages/vbridge/src';
 import { MintableToken, Treasury, TreasuryHandler } from '../../packages/tokens/src';
 import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '../../packages/utils/src';
-import { PoseidonT3__factory } from '../../packages/contracts';
+import { PoseidonT3__factory } from '../../packages/contracts/src';
 import { GovernedTokenWrapper, TokenWrapperHandler } from '../../packages/tokens/src';
 import { BigNumber } from 'ethers';
 import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
