@@ -25,9 +25,7 @@ interface TokenWrapperHandlerInterface extends ethers.utils.Interface {
     "_contractAddressToResourceID(address)": FunctionFragment;
     "_contractWhitelist(address)": FunctionFragment;
     "_resourceIDToContractAddress(bytes32)": FunctionFragment;
-    "_updateRecords(uint256,uint256)": FunctionFragment;
     "executeProposal(bytes32,bytes)": FunctionFragment;
-    "getUpdateRecord(uint256,uint256)": FunctionFragment;
     "migrateBridge(address)": FunctionFragment;
     "setResource(bytes32,address)": FunctionFragment;
   };
@@ -49,16 +47,8 @@ interface TokenWrapperHandlerInterface extends ethers.utils.Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "_updateRecords",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "executeProposal",
     values: [BytesLike, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getUpdateRecord",
-    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "migrateBridge",
@@ -86,15 +76,7 @@ interface TokenWrapperHandlerInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "_updateRecords",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "executeProposal",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getUpdateRecord",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -170,43 +152,11 @@ export class TokenWrapperHandler extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    _updateRecords(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [string, BigNumber, BigNumber, string, string, string] & {
-        _tokenWrapperAddress: string;
-        _executionChainID: BigNumber;
-        _nonce: BigNumber;
-        functionSig: string;
-        _resourceID: string;
-        _updateValue: string;
-      }
-    >;
-
     executeProposal(
       resourceID: BytesLike,
       data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    getUpdateRecord(
-      updateNonce: BigNumberish,
-      executionChainId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        [string, BigNumber, BigNumber, string, string, string] & {
-          _tokenWrapperAddress: string;
-          _executionChainID: BigNumber;
-          _nonce: BigNumber;
-          functionSig: string;
-          _resourceID: string;
-          _updateValue: string;
-        }
-      ]
-    >;
 
     migrateBridge(
       newBridge: string,
@@ -234,41 +184,11 @@ export class TokenWrapperHandler extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  _updateRecords(
-    arg0: BigNumberish,
-    arg1: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<
-    [string, BigNumber, BigNumber, string, string, string] & {
-      _tokenWrapperAddress: string;
-      _executionChainID: BigNumber;
-      _nonce: BigNumber;
-      functionSig: string;
-      _resourceID: string;
-      _updateValue: string;
-    }
-  >;
-
   executeProposal(
     resourceID: BytesLike,
     data: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
-
-  getUpdateRecord(
-    updateNonce: BigNumberish,
-    executionChainId: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<
-    [string, BigNumber, BigNumber, string, string, string] & {
-      _tokenWrapperAddress: string;
-      _executionChainID: BigNumber;
-      _nonce: BigNumber;
-      functionSig: string;
-      _resourceID: string;
-      _updateValue: string;
-    }
-  >;
 
   migrateBridge(
     newBridge: string,
@@ -299,41 +219,11 @@ export class TokenWrapperHandler extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    _updateRecords(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [string, BigNumber, BigNumber, string, string, string] & {
-        _tokenWrapperAddress: string;
-        _executionChainID: BigNumber;
-        _nonce: BigNumber;
-        functionSig: string;
-        _resourceID: string;
-        _updateValue: string;
-      }
-    >;
-
     executeProposal(
       resourceID: BytesLike,
       data: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    getUpdateRecord(
-      updateNonce: BigNumberish,
-      executionChainId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [string, BigNumber, BigNumber, string, string, string] & {
-        _tokenWrapperAddress: string;
-        _executionChainID: BigNumber;
-        _nonce: BigNumber;
-        functionSig: string;
-        _resourceID: string;
-        _updateValue: string;
-      }
-    >;
 
     migrateBridge(newBridge: string, overrides?: CallOverrides): Promise<void>;
 
@@ -364,22 +254,10 @@ export class TokenWrapperHandler extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    _updateRecords(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     executeProposal(
       resourceID: BytesLike,
       data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    getUpdateRecord(
-      updateNonce: BigNumberish,
-      executionChainId: BigNumberish,
-      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     migrateBridge(
@@ -412,22 +290,10 @@ export class TokenWrapperHandler extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    _updateRecords(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     executeProposal(
       resourceID: BytesLike,
       data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    getUpdateRecord(
-      updateNonce: BigNumberish,
-      executionChainId: BigNumberish,
-      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     migrateBridge(

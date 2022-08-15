@@ -148,9 +148,7 @@ describe('SignatureBridgeSide use', () => {
     // Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
     await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
     // Execute change fee proposal
-    console.log('1');
     await bridgeSide.executeFeeProposalWithSig(governedToken, 5);
-    console.log('2');
     // Check that fee actually changed
     assert.strictEqual((await governedToken.contract.getFee()).toString(), '5');
   })
