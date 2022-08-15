@@ -1,5 +1,11 @@
 import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
-import { VAnchor as VAnchorContract, VAnchor__factory, VAnchorEncodeInputs__factory, TokenWrapper, TokenWrapper__factory } from '@webb-tools/contracts';
+import {
+  VAnchor as VAnchorContract,
+  VAnchor__factory,
+  VAnchorEncodeInputs__factory,
+  TokenWrapper,
+  TokenWrapper__factory,
+} from '@webb-tools/contracts';
 import {
   toHex,
   Keypair,
@@ -290,7 +296,8 @@ export class VAnchor implements IAnchor {
       .padEnd(10, '0');
 
     const srcContract = this.contract.address;
-    const srcResourceId = '0x' + toHex(0, 6).substring(2) + toHex(srcContract, 20).substr(2) + toHex(chainID, 6).substr(2);
+    const srcResourceId =
+      '0x' + toHex(0, 6).substring(2) + toHex(srcContract, 20).substr(2) + toHex(chainID, 6).substr(2);
     return (
       '0x' +
       toHex(resourceID, 32).substr(2) +
@@ -636,9 +643,7 @@ export class VAnchor implements IAnchor {
       relayer,
       leavesMap
     );
-    console.log('extAmount: ', extAmount);
-    console.log('extData: ', extData);
-    console.log('publicInputs: ', publicInputs);
+
     let tx = await this.contract.transact(
       {
         ...publicInputs,
@@ -716,10 +721,12 @@ export class VAnchor implements IAnchor {
       relayer,
       leavesMap
     );
+
     let tx: ContractTransaction;
-    let tokenWrapper = TokenWrapper__factory.connect(await this.contract.token(), this.signer);
-    let valueToSend = await tokenWrapper.getAmountToWrap(extAmount);
     if (extAmount.gt(0) && checkNativeAddress(tokenAddress)) {
+      let tokenWrapper = TokenWrapper__factory.connect(await this.contract.token(), this.signer);
+      let valueToSend = await tokenWrapper.getAmountToWrap(extAmount);
+
       tx = await this.contract.transactWrap(
         {
           ...publicInputs,

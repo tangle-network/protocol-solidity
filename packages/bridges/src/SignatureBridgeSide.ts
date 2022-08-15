@@ -216,9 +216,7 @@ export class SignatureBridgeSide implements IBridgeSide {
   public async setResourceWithSignature(newResourceId: string, handler: string): Promise<string> {
     const resourceId = await this.createResourceId();
     const functionSig = ethers.utils
-      .keccak256(
-        ethers.utils.toUtf8Bytes('adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,bytes)')
-      )
+      .keccak256(ethers.utils.toUtf8Bytes('adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,bytes)'))
       .slice(0, 10)
       .padEnd(10, '0');
     const nonce = Number(await this.contract.proposalNonce()) + 1;
@@ -241,7 +239,7 @@ export class SignatureBridgeSide implements IBridgeSide {
       nonce,
       newResourceId,
       handler,
-      sig,
+      sig
     );
     await tx.wait();
     return newResourceId;
@@ -252,7 +250,7 @@ export class SignatureBridgeSide implements IBridgeSide {
 
     const newResourceId = await anchor.createResourceId();
     const handler = this.anchorHandler.contract.address;
-    
+
     return await this.setResourceWithSignature(newResourceId, handler);
   }
 

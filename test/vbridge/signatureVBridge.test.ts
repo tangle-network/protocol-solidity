@@ -669,8 +669,19 @@ describe('2-sided multichain tests for signature vbridge', () => {
           backend: 'Circom',
           amount: 1e7.toString(),
           originChainId: chainID1.toString(),
-          chainId: chainID1.toString()})
-        await vBridge.transactWrap(existingToken1.contract.address, [ganacheDepositUtxo1, ganacheDepositUtxo2], [hardhatWithdrawUtxo], 0, await signers[2].getAddress(), '0', signers[1]);
+          chainId: chainID1.toString()
+        });
+        
+
+        await vBridge.transactWrap(
+          existingToken1.contract.address,
+          [ganacheDepositUtxo1, ganacheDepositUtxo2],
+          [hardhatWithdrawUtxo],
+          0,
+          await signers[2].getAddress(),
+          '0',
+          signers[1]
+        );
 
         //Check relevant balances
         //Unwrapped Balance of signers[2] should be 3e7
