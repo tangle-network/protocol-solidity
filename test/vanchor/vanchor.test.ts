@@ -2,7 +2,6 @@
  * Copyright 2021 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later
 */
-// @ts-nocheck
 const assert = require('assert');
 import { ethers } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
@@ -22,7 +21,7 @@ import {
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
-import { hexToU8a, fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '../../packages/utils/src';
+import { hexToU8a, fetchComponentsFromFilePaths, getChainIdType, ZkComponents, u8aToHex } from '../../packages/utils/src';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
@@ -30,6 +29,7 @@ import { Utxo, Keypair, MerkleTree, randomBN, toFixedHex, generateVariableWitnes
 import { VAnchor } from '../../packages/anchors/src';
 import { Verifier } from "../../packages/vbridge"
 import { writeFileSync } from "fs";
+import { SetupTxVanchorMock } from './mocks/SetupTxVanchorMock';
 
 const BN = require('bn.js');
 
@@ -925,6 +925,94 @@ describe('VAnchor for 2 max edges', () => {
   
       // in report we can see the tx with NewCommitment event (this is how alice got money)
       // and the tx with NewNullifier event is where alice spent the UTXO
+    });
+
+    it('Should reject proofs made against roots of empty edges', async () => {
+      // This test has not been linked to another anchor - edgeList should be empty.
+      await TruffleAssert.reverts(anchor.contract.edgeList(0));
+      const [sender] = await ethers.getSigners();
+
+      // create the UTXO for commitment into a fake tree.
+      const depositAmount = 1e7;
+      const fakeChainId = getChainIdType(666);
+      const keypair = new Keypair();
+      let fakeUtxo = await CircomUtxo.generateUtxo({
+        curve: 'Bn254',
+        backend: 'Circom',
+        chainId: chainID.toString(),
+        originChainId: fakeChainId.toString(),
+        amount: depositAmount.toString(),
+        index: '0',
+        keypair
+      });
+
+      // Attempt to withdraw by creating a proof against a root that shouldn't exist.
+      // create the merkle tree
+      const fakeTree = new MerkleTree(30);
+      const fakeCommitment = u8aToHex(fakeUtxo.commitment);
+      fakeTree.insert(fakeCommitment);
+
+      const fakeRoot = fakeTree.root();
+
+      const roots = await anchor.populateRootsForProof();
+      roots[1] = fakeRoot.toHexString();
+
+      const setupVAnchor = new SetupTxVanchorMock(anchor.contract, anchor.signer, 30, 1, anchor.smallCircuitZkComponents, anchor.largeCircuitZkComponents, roots);
+      setupVAnchor.token = anchor.token;
+      let inputs: Utxo[] = [
+        fakeUtxo,
+        await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          chainId: chainID.toString(),
+          originChainId: chainID.toString(),
+          amount: '0',
+          blinding: hexToU8a(randomBN(31).toHexString()),
+          keypair,
+        })
+      ]
+
+      let outputs: [Utxo, Utxo] = [
+        await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          chainId: chainID.toString(),
+          originChainId: chainID.toString(),
+          amount: '0',
+          keypair,
+        }),
+        await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          chainId: chainID.toString(),
+          originChainId: chainID.toString(),
+          amount: '0',
+          keypair,
+        })
+      ];
+
+      let extAmount = BigNumber.from(0)
+        .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+        .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
+
+      const {publicInputs, extData} = await setupVAnchor.setupTransaction(
+        inputs,
+        outputs,
+        extAmount,
+        0,
+        recipient,
+        '0',
+        {
+          [fakeChainId.toString()]: [
+            fakeUtxo.commitment
+          ]
+        }
+      );
+
+      await TruffleAssert.reverts(
+        anchor.contract.transact(publicInputs, extData),
+        "non-existent edge is not set to the default root"
+      );
     })
   })
   describe('#wrapping tests', () => {
