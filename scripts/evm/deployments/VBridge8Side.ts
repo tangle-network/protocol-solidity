@@ -21,6 +21,12 @@ import {
   walletArbitrum,
   walletPolygon,
   walletMoonbase,
+  chainIdTypeHermes,
+  chainIdTypeAthena,
+  chainIdTypeDemeter,
+  walletHermes,
+  walletAthena,
+  walletDemeter,
 } from '../ethersGovernorWallets';
 
 async function deploySignatureVBridge(
@@ -99,7 +105,10 @@ async function run() {
     // [chainIdTypeOptimism]: walletOptimism,
     // [chainIdTypePolygon]: walletPolygon,
     // [chainIdTypeMoonbase]: walletMoonbase,
-    [chainIdTypeArbitrum]: walletArbitrum
+    // [chainIdTypeArbitrum]: walletArbitrum
+    [chainIdTypeHermes]: walletHermes,
+    [chainIdTypeAthena]: walletAthena,
+    [chainIdTypeDemeter]: walletDemeter
   };
 
   const tokens: Record<number, string[]> = {
@@ -107,10 +116,13 @@ async function run() {
     // [chainIdTypeGoerli]: ['0', '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6'],
     // [chainIdTypeRopsten]: ['0', '0xc778417E063141139Fce010982780140Aa0cD5Ab'],
     // [chainIdTypeKovan]: ['0', '0xd0A1E359811322d97991E03f863a0C30C2cF029C'],
-    // [chainIdTypeOptimism]: ['0', '0xbC6F6b680bc61e30dB47721c6D1c5cde19C1300d'],
+    // [chainIdTypeOptimism]: ['0', '0x4200000000000000000000000000000000000006'],
     // [chainIdTypePolygon]: ['0', '0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889'],
     // [chainIdTypeMoonbase]: ['0xD909178CC99d318e4D46e7E66a972955859670E1'],
-    [chainIdTypeArbitrum]: ['0', '0xe39Ab88f8A4777030A534146A9Ca3B52bd5D43A3']
+    // [chainIdTypeArbitrum]: ['0', '0xe39Ab88f8A4777030A534146A9Ca3B52bd5D43A3']
+    [chainIdTypeHermes]: ['0'],
+    [chainIdTypeAthena]: ['0'],
+    [chainIdTypeDemeter]: ['0']
   }
 
   const vbridge = await deploySignatureVBridge(

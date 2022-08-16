@@ -24,7 +24,7 @@ export const chainIdTypeGoerli = getChainIdType(5);
 
 export const providerOptimism = new ethers.providers.JsonRpcProvider(process.env.OPTIMISM_KEY!);
 export const walletOptimism = new ethers.Wallet(process.env.PRIVATE_KEY!, providerOptimism);
-export const chainIdTypeOptimism = getChainIdType(69);
+export const chainIdTypeOptimism = getChainIdType(420);
 
 export const providerArbitrum = new ethers.providers.JsonRpcProvider(process.env.ARBITRUM_KEY!);
 export const walletArbitrum = new ethers.Wallet(process.env.PRIVATE_KEY!, providerArbitrum);
