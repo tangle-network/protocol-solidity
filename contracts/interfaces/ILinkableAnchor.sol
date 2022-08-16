@@ -18,40 +18,39 @@ pragma solidity ^0.8.0;
 interface ILinkableAnchor {
 	/**
 		@notice Sets the handler for updating edges and other contract state
-		@param _handler The new handler address
-		@param _nonce The nonce for tracking update counts
+		@param handler The new handler address
+		@param nonce The nonce for tracking update counts
 	 */
-	function setHandler(address _handler, uint32 _nonce) external;
+	function setHandler(address handler, uint32 nonce) external;
 
 	/**
 		@notice Sets the verifier for zkSNARKs
-		@param _verifier The new verifier address
-		@param _nonce The nonce for tracking update counts
+		@param verifier The new verifier address
+		@param nonce The nonce for tracking update counts
 	 */	
-	function setVerifier(address _verifier, uint32 _nonce) external;
+	function setVerifier(address verifier, uint32 nonce) external;
 
 	/**
 		@notice Sets the minimal withdrawal limit for the anchor
-		@param _minimalWithdrawalAmount The new minimal withdrawal limit
+		@param minimalWithdrawalAmount The new minimal withdrawal limit
 	 */
-	function configureMinimalWithdrawalLimit(uint256 _minimalWithdrawalAmount) external;
+	function configureMinimalWithdrawalLimit(uint256 minimalWithdrawalAmount, uint32 nonce) external;
 
 	/**
 		@notice Sets the maximal deposit limit for the anchor
-		@param _maximumDepositAmount The new maximal deposit limit
+		@param maximumDepositAmount The new maximal deposit limit
 	 */
-	function configureMaximumDepositLimit(uint256 _maximumDepositAmount) external;
+	function configureMaximumDepositLimit(uint256 maximumDepositAmount, uint32 nonce) external;
 	
 	/**
 		@notice The function is used to update the edge data of a LinkableAnchor
-		@param sourceChainID The chain ID of the chain whose edge needs updating
 		@param root The merkle root of the linked anchor on the  `sourceChainID`'s chain
 		@param latestLeafIndex The index of the leaf updating the merkle tree with root `root`
+		@param target The target resource ID of the linked anchor
 	 */
 	function updateEdge(
-		uint256 sourceChainID,
 		bytes32 root,
-		uint256 latestLeafIndex,
+		uint32 latestLeafIndex,
 		bytes32 target
 	) external payable;
 }

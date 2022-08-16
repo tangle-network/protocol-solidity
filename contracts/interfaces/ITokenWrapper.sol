@@ -75,8 +75,8 @@ interface ITokenWrapper {
 
 	/**
 		@notice Sets the `_feePercentage` to be taken from wrappings with a `_nonce`
-		@param _feePercentage The percentage of the fee to be taken from the wrapping
+		@param _feePercentage The percentage of the fee to be taken from the wrapping, a value between 0 - 10000
 		@param _nonce The nonce for tracking fee updates
 	 */
-	function setFee(uint8 _feePercentage, uint256 _nonce) external;
+	function setFee(uint16 _feePercentage, uint32 _nonce) external;
 }

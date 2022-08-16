@@ -22,19 +22,21 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 interface SignatureBridgeInterface extends ethers.utils.Interface {
   functions: {
     "EVM_CHAIN_ID_TYPE()": FunctionFragment;
-    "_counts(uint256)": FunctionFragment;
     "_resourceIDToHandlerAddress(bytes32)": FunctionFragment;
-    "adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,address,bytes)": FunctionFragment;
+    "adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,bytes)": FunctionFragment;
     "averageSessionLengthInMillisecs()": FunctionFragment;
     "currentVotingPeriod()": FunctionFragment;
     "executeProposalWithSignature(bytes,bytes)": FunctionFragment;
     "getChainId()": FunctionFragment;
     "getChainIdType()": FunctionFragment;
     "governor()": FunctionFragment;
+    "isCorrectExecutionChain(bytes32)": FunctionFragment;
+    "isCorrectExecutionContext(bytes32)": FunctionFragment;
     "isGovernor()": FunctionFragment;
     "isSignatureFromGovernor(bytes,bytes)": FunctionFragment;
     "lastGovernorUpdateTime()": FunctionFragment;
     "numOfProposers()": FunctionFragment;
+    "parseChainIdFromResourceId(bytes32)": FunctionFragment;
     "paused()": FunctionFragment;
     "proposalNonce()": FunctionFragment;
     "proposerSetRoot()": FunctionFragment;
@@ -54,24 +56,12 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "_counts",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "_resourceIDToHandlerAddress",
     values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "adminSetResourceWithSignature",
-    values: [
-      BytesLike,
-      BytesLike,
-      BigNumberish,
-      BytesLike,
-      string,
-      string,
-      BytesLike
-    ]
+    values: [BytesLike, BytesLike, BigNumberish, BytesLike, string, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "averageSessionLengthInMillisecs",
@@ -95,6 +85,14 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "governor", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "isCorrectExecutionChain",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "isCorrectExecutionContext",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "isGovernor",
     values?: undefined
   ): string;
@@ -109,6 +107,10 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "numOfProposers",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "parseChainIdFromResourceId",
+    values: [BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(
@@ -166,7 +168,6 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     functionFragment: "EVM_CHAIN_ID_TYPE",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "_counts", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "_resourceIDToHandlerAddress",
     data: BytesLike
@@ -193,6 +194,14 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "governor", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "isCorrectExecutionChain",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "isCorrectExecutionContext",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "isGovernor", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "isSignatureFromGovernor",
@@ -204,6 +213,10 @@ interface SignatureBridgeInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "numOfProposers",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "parseChainIdFromResourceId",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
@@ -322,11 +335,6 @@ export class SignatureBridge extends BaseContract {
   functions: {
     EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<[string]>;
 
-    _counts(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     _resourceIDToHandlerAddress(
       arg0: BytesLike,
       overrides?: CallOverrides
@@ -338,7 +346,6 @@ export class SignatureBridge extends BaseContract {
       nonce: BigNumberish,
       newResourceID: BytesLike,
       handlerAddress: string,
-      executionContextAddress: string,
       sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -361,6 +368,16 @@ export class SignatureBridge extends BaseContract {
 
     governor(overrides?: CallOverrides): Promise<[string]>;
 
+    isCorrectExecutionChain(
+      resourceID: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    isCorrectExecutionContext(
+      resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
     isGovernor(overrides?: CallOverrides): Promise<[boolean]>;
 
     isSignatureFromGovernor(
@@ -372,6 +389,11 @@ export class SignatureBridge extends BaseContract {
     lastGovernorUpdateTime(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     numOfProposers(overrides?: CallOverrides): Promise<[number]>;
+
+    parseChainIdFromResourceId(
+      _resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     paused(overrides?: CallOverrides): Promise<[boolean]>;
 
@@ -429,8 +451,6 @@ export class SignatureBridge extends BaseContract {
 
   EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<string>;
 
-  _counts(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-
   _resourceIDToHandlerAddress(
     arg0: BytesLike,
     overrides?: CallOverrides
@@ -442,7 +462,6 @@ export class SignatureBridge extends BaseContract {
     nonce: BigNumberish,
     newResourceID: BytesLike,
     handlerAddress: string,
-    executionContextAddress: string,
     sig: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -465,6 +484,16 @@ export class SignatureBridge extends BaseContract {
 
   governor(overrides?: CallOverrides): Promise<string>;
 
+  isCorrectExecutionChain(
+    resourceID: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  isCorrectExecutionContext(
+    resourceId: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
   isGovernor(overrides?: CallOverrides): Promise<boolean>;
 
   isSignatureFromGovernor(
@@ -476,6 +505,11 @@ export class SignatureBridge extends BaseContract {
   lastGovernorUpdateTime(overrides?: CallOverrides): Promise<BigNumber>;
 
   numOfProposers(overrides?: CallOverrides): Promise<number>;
+
+  parseChainIdFromResourceId(
+    _resourceId: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   paused(overrides?: CallOverrides): Promise<boolean>;
 
@@ -533,8 +567,6 @@ export class SignatureBridge extends BaseContract {
   callStatic: {
     EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<string>;
 
-    _counts(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-
     _resourceIDToHandlerAddress(
       arg0: BytesLike,
       overrides?: CallOverrides
@@ -546,7 +578,6 @@ export class SignatureBridge extends BaseContract {
       nonce: BigNumberish,
       newResourceID: BytesLike,
       handlerAddress: string,
-      executionContextAddress: string,
       sig: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -569,6 +600,16 @@ export class SignatureBridge extends BaseContract {
 
     governor(overrides?: CallOverrides): Promise<string>;
 
+    isCorrectExecutionChain(
+      resourceID: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    isCorrectExecutionContext(
+      resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
     isGovernor(overrides?: CallOverrides): Promise<boolean>;
 
     isSignatureFromGovernor(
@@ -580,6 +621,11 @@ export class SignatureBridge extends BaseContract {
     lastGovernorUpdateTime(overrides?: CallOverrides): Promise<BigNumber>;
 
     numOfProposers(overrides?: CallOverrides): Promise<number>;
+
+    parseChainIdFromResourceId(
+      _resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     paused(overrides?: CallOverrides): Promise<boolean>;
 
@@ -674,8 +720,6 @@ export class SignatureBridge extends BaseContract {
   estimateGas: {
     EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<BigNumber>;
 
-    _counts(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-
     _resourceIDToHandlerAddress(
       arg0: BytesLike,
       overrides?: CallOverrides
@@ -687,7 +731,6 @@ export class SignatureBridge extends BaseContract {
       nonce: BigNumberish,
       newResourceID: BytesLike,
       handlerAddress: string,
-      executionContextAddress: string,
       sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -710,6 +753,16 @@ export class SignatureBridge extends BaseContract {
 
     governor(overrides?: CallOverrides): Promise<BigNumber>;
 
+    isCorrectExecutionChain(
+      resourceID: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    isCorrectExecutionContext(
+      resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     isGovernor(overrides?: CallOverrides): Promise<BigNumber>;
 
     isSignatureFromGovernor(
@@ -721,6 +774,11 @@ export class SignatureBridge extends BaseContract {
     lastGovernorUpdateTime(overrides?: CallOverrides): Promise<BigNumber>;
 
     numOfProposers(overrides?: CallOverrides): Promise<BigNumber>;
+
+    parseChainIdFromResourceId(
+      _resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     paused(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -779,11 +837,6 @@ export class SignatureBridge extends BaseContract {
   populateTransaction: {
     EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    _counts(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     _resourceIDToHandlerAddress(
       arg0: BytesLike,
       overrides?: CallOverrides
@@ -795,7 +848,6 @@ export class SignatureBridge extends BaseContract {
       nonce: BigNumberish,
       newResourceID: BytesLike,
       handlerAddress: string,
-      executionContextAddress: string,
       sig: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -820,6 +872,16 @@ export class SignatureBridge extends BaseContract {
 
     governor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    isCorrectExecutionChain(
+      resourceID: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    isCorrectExecutionContext(
+      resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     isGovernor(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     isSignatureFromGovernor(
@@ -833,6 +895,11 @@ export class SignatureBridge extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     numOfProposers(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    parseChainIdFromResourceId(
+      _resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

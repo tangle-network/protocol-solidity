@@ -6,8 +6,8 @@ import {
   Verifier82__factory,
   Verifier216__factory,
   Verifier816__factory,
-  VAnchorVerifier as VerifierContract
-} from '@webb-tools/contracts'
+  VAnchorVerifier as VerifierContract,
+} from '@webb-tools/contracts';
 
 // This convenience wrapper class is used in tests -
 // It represents a deployed contract throughout its life (e.g. maintains all verifiers)
@@ -15,18 +15,13 @@ export class Verifier {
   signer: ethers.Signer;
   contract: VerifierContract;
 
-  private constructor(
-    contract: VerifierContract,
-    signer: ethers.Signer,
-  ) {
+  private constructor(contract: VerifierContract, signer: ethers.Signer) {
     this.signer = signer;
     this.contract = contract;
   }
 
   // Deploys a Verifier contract and all auxiliary verifiers used by this verifier
-  public static async createVerifier(
-    signer: ethers.Signer,
-  ) {
+  public static async createVerifier(signer: ethers.Signer) {
     const v22Factory = new Verifier22__factory(signer);
     let deployTx = v22Factory.getDeployTransaction().data;
     let gasEstimate = v22Factory.signer.estimateGas({ data: deployTx });

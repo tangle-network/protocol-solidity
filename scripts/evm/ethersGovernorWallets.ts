@@ -28,7 +28,7 @@ export const chainIdTypeOptimism = getChainIdType(69);
 
 export const providerArbitrum = new ethers.providers.JsonRpcProvider(process.env.ARBITRUM_KEY!);
 export const walletArbitrum = new ethers.Wallet(process.env.PRIVATE_KEY!, providerArbitrum);
-export const chainIdTypeArbitrum = getChainIdType(421611);
+export const chainIdTypeArbitrum = getChainIdType(421613);
 
 export const providerMoonbase = new ethers.providers.JsonRpcProvider('https://moonbeam-alpha.api.onfinality.io/public');
 export const walletMoonbase = new ethers.Wallet(process.env.PRIVATE_KEY!, providerMoonbase);

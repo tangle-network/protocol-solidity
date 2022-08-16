@@ -4,38 +4,41 @@
  */
 const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
-import { ethers as hhEthers } from 'hardhat';
+import { ethers } from 'hardhat';
 
 // Convenience wrapper classes for contract classes
 import { VBridge, VBridgeInput } from '../../packages/vbridge/src';
 import { VAnchor } from '../../packages/anchors/src';
 import { MintableToken, GovernedTokenWrapper } from '../../packages/tokens/src';
-import { BigNumber, ethers } from 'ethers';
+import { BigNumber } from 'ethers';
 import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '../../packages/utils/src';
 import { startGanacheServer } from '@webb-tools/test-utils';
 import { CircomUtxo } from '@webb-tools/sdk-core';
 import { DeployerConfig, GovernorConfig } from '@webb-tools/interfaces';
+import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
 
 const path = require('path');
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 describe('2-sided multichain tests for signature vbridge', () => {
-  const chainID1 = getChainIdType(31337);
-  const chainID2 = getChainIdType(1337);
+  const FIRST_CHAIN_ID = 31337;
+  let hardhatWallet1 = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
+
+  const SECOND_CHAIN_ID = 10000;
+  let ganacheProvider2 = new ethers.providers.JsonRpcProvider(`http://localhost:${SECOND_CHAIN_ID}`);
+  ganacheProvider2.pollingInterval = 1;
+  let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
+  const chainID1 = getChainIdType(FIRST_CHAIN_ID);
+  const chainID2 = getChainIdType(SECOND_CHAIN_ID);
   // setup ganache networks
   let ganacheServer2: any;
   // setup zero knowledge components
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
 
-  let hardhatWallet1 = new ethers.Wallet(
-    '0000000000000000000000000000000000000000000000000000000000000001',
-    hhEthers.provider
-  );
-
   before('setup networks', async () => {
-    ganacheServer2 = await startGanacheServer(1337, 1337, [
+    ganacheServer2 = await startGanacheServer(SECOND_CHAIN_ID, SECOND_CHAIN_ID, [
       {
         balance: '0x1000000000000000000000',
         secretKey: '0xc0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e'
@@ -44,13 +47,13 @@ describe('2-sided multichain tests for signature vbridge', () => {
 
     zkComponents2_2 = await fetchComponentsFromFilePaths(
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.cjs'),
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/circuit_final.zkey')
     );
 
     zkComponents16_2 = await fetchComponentsFromFilePaths(
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.cjs'),
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/circuit_final.zkey')
     );
   });
@@ -62,12 +65,8 @@ describe('2-sided multichain tests for signature vbridge', () => {
     let tokenInstance1: MintableToken;
     let tokenInstance2: MintableToken;
 
-    let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:1337');
-    ganacheProvider2.pollingInterval = 1;
-    let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
-
     before('construction-tests', async () => {
-      const signers = await hhEthers.getSigners();
+      const signers = await ethers.getSigners();
       await ganacheProvider2.ready;
       // Create a token to test bridge construction support for existing tokens
       tokenInstance1 = await MintableToken.createToken(tokenName, tokenAbbreviation, signers[3]);
@@ -75,7 +74,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
       await tokenInstance1.mintTokens(signers[2].address, '100000000000000000000000000');
     });
 
-    it('create 2 side bridge for one token', async () => {
+    it('should create 2 side bridge with wallet (mocked) governor', async () => {
       let webbTokens1 = new Map<number, GovernedTokenWrapper | undefined>();
       webbTokens1.set(chainID1, null!);
       webbTokens1.set(chainID2, null!);
@@ -89,7 +88,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         chainIDs: [chainID1, chainID2],
         webbTokens: webbTokens1
       };
-      const signers = await hhEthers.getSigners();
+      const signers = await ethers.getSigners();
 
       const deploymentConfig: DeployerConfig = {
         [chainID1]: hardhatWallet1,
@@ -97,10 +96,9 @@ describe('2-sided multichain tests for signature vbridge', () => {
       };
 
       const initialGovernorsConfig: GovernorConfig = {
-        [chainID1]: hardhatWallet1,
-        [chainID2]: ganacheWallet2,
+        [chainID1]: await hardhatWallet1.getAddress(),
+        [chainID2]: await ganacheWallet2.getAddress(),
       };
-
       const vBridge = await VBridge.deployVariableAnchorBridge(bridge2WebbEthInput, deploymentConfig, initialGovernorsConfig, zkComponents2_2, zkComponents16_2);
       // Should be able to retrieve individual anchors
       const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
@@ -126,7 +124,6 @@ describe('2-sided multichain tests for signature vbridge', () => {
 
       const sourceAnchorRootAfter = await vAnchor1.contract.getLastRoot();
       const destAnchorEdgeAfter = await vAnchor2.contract.edgeList(edgeIndex);
-
       // make sure the roots / anchors state have changed
       assert.notEqual(sourceAnchorRootAfter, sourceAnchorRootBefore);
       assert.deepEqual(ethers.BigNumber.from(1), destAnchorEdgeAfter.latestLeafIndex);
@@ -139,23 +136,56 @@ describe('2-sided multichain tests for signature vbridge', () => {
         amount: 1e7.toString(),
         keypair: depositUtxo.keypair
       });
-
       await vBridge.transact([depositUtxo], [transferUtxo], 0, '0', '0', signers[2]);
     });
-  });
 
+    it('should create properly initialize governor if passed address', async () => {
+      let governorAddress = '0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF';
+      let webbTokens1 = new Map<number, GovernedTokenWrapper | undefined>();
+      webbTokens1.set(chainID1, null!);
+      webbTokens1.set(chainID2, null!);
+      bridge2WebbEthInput = {
+        vAnchorInputs: {
+          asset: {
+            [chainID1]: [tokenInstance1.contract.address],
+            [chainID2]: [tokenInstance2.contract.address],
+          }
+      },
+        chainIDs: [chainID1, chainID2],
+        webbTokens: webbTokens1
+      };
+
+      const deploymentConfig: DeployerConfig = {
+        [chainID1]: hardhatWallet1,
+        [chainID2]: ganacheWallet2,
+      };
+
+      const initialGovernorsConfig: GovernorConfig = {
+        [chainID1]: governorAddress,
+        [chainID2]: governorAddress,
+      };
+
+      const vBridge = await VBridge.deployVariableAnchorBridge(
+        bridge2WebbEthInput,
+        deploymentConfig,
+        initialGovernorsConfig,
+        zkComponents2_2,
+        zkComponents16_2,
+      );
+
+      const chainGovernor = await vBridge.getVBridgeSide(chainID1).contract.governor();
+      assert.deepEqual(governorAddress, chainGovernor);
+    });
+  });
   describe('2 sided bridge existing token use', () => {
     // ERC20 compliant contracts that can easily create balances for test
     let existingToken1: MintableToken;
     let existingToken2: MintableToken;
 
     let vBridge: VBridge;
-    let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:1337');
-    ganacheProvider2.pollingInterval = 1;
-    let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
 
     beforeEach(async () => {
-      const signers = await hhEthers.getSigners();
+      const signers = await ethers.getSigners();
 
       existingToken1 = await MintableToken.createToken('existingERC20', 'EXIST', hardhatWallet1);
       // Use some other signer with provider on other chain
@@ -180,15 +210,14 @@ describe('2-sided multichain tests for signature vbridge', () => {
         webbTokens: webbTokens1
       }
 
-      // setup the config for deployers of contracts (admins)
       const deploymentConfig: DeployerConfig = {
         [chainID1]: hardhatWallet1,
         [chainID2]: ganacheWallet2,
-      }
+      };
 
       const initialGovernorsConfig: GovernorConfig = {
-        [chainID1]: hardhatWallet1,
-        [chainID2]: ganacheWallet2,
+        [chainID1]: await hardhatWallet1.getAddress(),
+        [chainID2]: await ganacheWallet2.getAddress(),
       };
 
       // deploy the bridge
@@ -228,7 +257,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
     describe('#bridging', () => {
       it('basic ganache deposit should withdraw on hardhat', async () => {
         // Fetch information about the anchor to be updated.
-        const signers = await hhEthers.getSigners();
+        const signers = await ethers.getSigners();
 
         const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
         let edgeIndex = await vAnchor1.contract.edgeIndex(chainID2);
@@ -267,7 +296,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
 
       it('basic hardhat deposit should withdraw on ganache', async () => {
         // Fetch information about the anchor to be updated.
-        const signers = await hhEthers.getSigners();
+        const signers = await ethers.getSigners();
 
         const vAnchorGanache: VAnchor = vBridge.getVAnchor(chainID2)! as VAnchor;
         let edgeIndex = await vAnchorGanache.contract.edgeIndex(chainID1);
@@ -305,7 +334,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
       });
 
       it('join and split ganache deposits and withdraw on hardhat', async () => {
-        const signers = await hhEthers.getSigners();
+        const signers = await ethers.getSigners();
 
         const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
         let edgeIndex = await vAnchor1.contract.edgeIndex(chainID2);
@@ -354,7 +383,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
 
       it('should update multiple deposits and withdraw historic deposit from ganache', async () => {
         // Fetch information about the anchor to be updated.
-        const signers = await hhEthers.getSigners();
+        const signers = await ethers.getSigners();
 
         const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
         let edgeIndex = await vAnchor1.contract.edgeIndex(chainID2);
@@ -401,7 +430,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
       })
 
       it('prevent cross-chain double spending', async () => {
-        const signers = await hhEthers.getSigners();
+        const signers = await ethers.getSigners();
 
         //ganacheWallet2 makes a deposit with dest chain chainID1
         const ganacheDepositUtxo = await CircomUtxo.generateUtxo({
@@ -430,7 +459,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
 
       it('mintable token task test', async () => {
         // Fetch information about the anchor to be updated.
-        const signers = await hhEthers.getSigners();
+        const signers = await ethers.getSigners();
 
         const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
         const vAnchor1Address = vAnchor1.contract.address;
@@ -487,9 +516,6 @@ describe('2-sided multichain tests for signature vbridge', () => {
     let existingToken2: MintableToken;
 
     let vBridge: VBridge;
-    let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:1337');
-    ganacheProvider2.pollingInterval = 1;
-    let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
 
     beforeEach(async () => {
       existingToken1 = await MintableToken.createToken('existingERC20', 'EXIST', hardhatWallet1);
@@ -515,15 +541,14 @@ describe('2-sided multichain tests for signature vbridge', () => {
         webbTokens: webbTokens1
       }
 
-      // setup the config for deployers of contracts (admins)
       const deploymentConfig: DeployerConfig = {
         [chainID1]: hardhatWallet1,
         [chainID2]: ganacheWallet2,
-      }
+      };
 
       const initialGovernorsConfig: GovernorConfig = {
-        [chainID1]: ethers.Wallet.createRandom(),
-        [chainID2]: ethers.Wallet.createRandom(),
+        [chainID1]: await hardhatWallet1.getAddress(),
+        [chainID2]: await ganacheWallet2.getAddress(),
       };
 
       // deploy the bridge
@@ -579,6 +604,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
       });
 
       it('should transactWrap with native', async () => {
+        const signers = await ethers.getSigners();
         //Deposit UTXO
         const hardhatDepositUtxo1 = await CircomUtxo.generateUtxo({
           curve: 'Bn254',
@@ -595,12 +621,12 @@ describe('2-sided multichain tests for signature vbridge', () => {
           0,
           '0',
           '0',
-          hardhatWallet1
+          signers[1]
         );
       })
 
       it('wrap and deposit, withdraw and unwrap works join split via transactWrap', async () => {
-        const signers = await hhEthers.getSigners();
+        const signers = await ethers.getSigners();
 
         const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
         const vAnchor1Address = vAnchor1.contract.address;
@@ -639,8 +665,18 @@ describe('2-sided multichain tests for signature vbridge', () => {
           backend: 'Circom',
           amount: 1e7.toString(),
           originChainId: chainID1.toString(),
-          chainId: chainID1.toString()})
-        await vBridge.transactWrap(existingToken1.contract.address, [ganacheDepositUtxo1, ganacheDepositUtxo2], [hardhatWithdrawUtxo], 0, await signers[2].getAddress(), '0', hardhatWallet1);
+          chainId: chainID1.toString()
+        });
+
+        await vBridge.transactWrap(
+          existingToken1.contract.address,
+          [ganacheDepositUtxo1, ganacheDepositUtxo2],
+          [hardhatWithdrawUtxo],
+          0,
+          await signers[2].getAddress(),
+          '0',
+          signers[1]
+        );
 
         //Check relevant balances
         //Unwrapped Balance of signers[2] should be 3e7
@@ -655,7 +691,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
       });
 
       it('wrap and deposit, withdraw and unwrap works join split 16 input via transactWrap', async () => {
-        const signers = await hhEthers.getSigners();
+        const signers = await ethers.getSigners();
 
         const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
         const vAnchor1Address = vAnchor1.contract.address;
@@ -732,15 +768,12 @@ describe('2-sided multichain tests for signature vbridge', () => {
 });
 
 describe('8-sided multichain tests for signature vbridge', () => {
-  const chainID1 = getChainIdType(31337);
-  const chainID2 = getChainIdType(1337);
-  const chainID3 = getChainIdType(1338);
-
-  let hardhatWallet1 = new ethers.Wallet(
-    '0000000000000000000000000000000000000000000000000000000000000001',
-    hhEthers.provider
-  );
-
+  const FIRST_CHAIN_ID = 31337;
+  const SECOND_CHAIN_ID = 31338;
+  const THIRD_CHAIN_ID = 31339;
+  const chainID1 = getChainIdType(FIRST_CHAIN_ID);
+  const chainID2 = getChainIdType(SECOND_CHAIN_ID);
+  const chainID3 = getChainIdType(THIRD_CHAIN_ID);
   // setup ganache networks
   let ganacheServer2: any;
   let ganacheServer3: any;
@@ -749,13 +782,13 @@ describe('8-sided multichain tests for signature vbridge', () => {
   let zkComponents16_8: ZkComponents;
 
   before('setup networks', async () => {
-    ganacheServer2 = await startGanacheServer(1337, 1337, [
+    ganacheServer2 = await startGanacheServer(SECOND_CHAIN_ID, SECOND_CHAIN_ID, [
       {
         balance: '0x1000000000000000000000',
         secretKey: '0xc0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e'
       }
     ]);
-    ganacheServer3 = await startGanacheServer(1338, 1338, [
+    ganacheServer3 = await startGanacheServer(THIRD_CHAIN_ID, THIRD_CHAIN_ID, [
       {
         balance: '0x1000000000000000000000',
         secretKey: '0xc0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e'
@@ -764,30 +797,34 @@ describe('8-sided multichain tests for signature vbridge', () => {
 
     zkComponents2_8 = await fetchComponentsFromFilePaths(
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/8/poseidon_vanchor_2_8.wasm'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/8/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/8/witness_calculator.cjs'),
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/8/circuit_final.zkey')
     );
 
     zkComponents16_8 = await fetchComponentsFromFilePaths(
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/8/poseidon_vanchor_16_8.wasm'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/8/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/8/witness_calculator.cjs'),
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/8/circuit_final.zkey')
     );
   });
 
   describe('8 sided bridge existing token use', () => {
     // ERC20 compliant contracts that can easily create balances for test
+    let vBridge: VBridge;
     let existingToken1: MintableToken;
     let existingToken2: MintableToken;
     let existingToken3: MintableToken;
 
-    let vBridge: VBridge;
-    let ganacheProvider2 = new ethers.providers.JsonRpcProvider('http://localhost:1337');
+    let hardhatWallet1 = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
+  
+    let ganacheProvider2 = new ethers.providers.JsonRpcProvider(`http://localhost:${SECOND_CHAIN_ID}`);
     ganacheProvider2.pollingInterval = 1;
     let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
-    let ganacheProvider3 = new ethers.providers.JsonRpcProvider('http://localhost:1338');
+  
+    let ganacheProvider3 = new ethers.providers.JsonRpcProvider(`http://localhost:${THIRD_CHAIN_ID}`);
     ganacheProvider3.pollingInterval = 1;
     let ganacheWallet3 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider3);
+    
     beforeEach(async () => {
       existingToken1 = await MintableToken.createToken('existingERC20', 'EXIST', hardhatWallet1);
       // Use some other signer with provider on other chain
@@ -817,17 +854,16 @@ describe('8-sided multichain tests for signature vbridge', () => {
         webbTokens,
       }
 
-      // setup the config for deployers of contracts (admins)
       const deploymentConfig: DeployerConfig = {
         [chainID1]: hardhatWallet1,
         [chainID2]: ganacheWallet2,
         [chainID3]: ganacheWallet3,
-      }
+      };
 
       const initialGovernorsConfig: GovernorConfig = {
-        [chainID1]: ethers.Wallet.createRandom(),
-        [chainID2]: ethers.Wallet.createRandom(),
-        [chainID3]: ethers.Wallet.createRandom(),
+        [chainID1]: await hardhatWallet1.getAddress(),
+        [chainID2]: await ganacheWallet2.getAddress(),
+        [chainID3]: await ganacheWallet3.getAddress(),
       };
 
       // deploy the bridge
@@ -877,7 +913,7 @@ describe('8-sided multichain tests for signature vbridge', () => {
     describe('#bridging', () => {
       it('basic ganache deposit should withdraw on hardhat', async () => {
         // Fetch information about the anchor to be updated.
-        const signers = await hhEthers.getSigners();
+        const signers = await ethers.getSigners();
 
         const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
         let edgeIndex = await vAnchor1.contract.edgeIndex(chainID2);
@@ -916,7 +952,7 @@ describe('8-sided multichain tests for signature vbridge', () => {
 
       it('basic hardhat deposit should withdraw on ganache', async () => {
         // Fetch information about the anchor to be updated.
-        const signers = await hhEthers.getSigners();
+        const signers = await ethers.getSigners();
 
         const vAnchorGanache: VAnchor = vBridge.getVAnchor(chainID2)! as VAnchor;
         let edgeIndex = await vAnchorGanache.contract.edgeIndex(chainID1);

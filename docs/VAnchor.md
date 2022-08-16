@@ -4,7 +4,7 @@
 
 > Variable Anchor contract
 
-The Variable Anchor is a variable-denominated shielded pool system derived from Tornado Nova (tornado-pool). This system extends the shielded pool system into a bridged system and allows for join/split transactions. The system is built on top the VAnchorBase/AnchorBase/LinkableTree system which allows it to be linked to other VAnchor contracts through a simple graph-like interface where anchors maintain edges of their neighboring anchors. The system requires users to create and deposit UTXOs for the supported ERC20 asset into the smart contract and insert a commitment into the underlying merkle tree of the form: commitment = Poseidon(chainID, amount, pubKey, blinding). The hash input is the UTXO data. All deposits/withdrawals are unified under a common `transact` function which requires a zkSNARK proof that the UTXO commitments are well-formed (i.e. that the deposit amount matches the sum of new UTXOs&#39; amounts). Information regarding the commitments: - Poseidon is a zkSNARK friendly hash function - destinationChainID is the chainId of the destination chain, where the withdrawal is intended to be made - Details of the UTXO and hashes are below UTXO = { destinationChainID, amount, pubkey, blinding } commitment = Poseidon(destinationChainID, amount, pubKey, blinding) nullifier = Poseidon(commitment, merklePath, sign(privKey, commitment, merklePath)) Commitments adhering to different hash functions and formats will invalidate any attempt at withdrawal. Using the preimage / UTXO of the commitment, users can generate a zkSNARK proof that the UTXO is located in one-of-many VAnchor merkle trees and that the commitment&#39;s destination chain id matches the underlying chain id of the VAnchor where the transaction is taking place. The chain id opcode is leveraged to prevent any tampering of this data.
+The Variable Anchor is a variable-denominated shielded pool system derived from Tornado Nova (tornado-pool). This system extends the shielded pool system into a bridged system and allows for join/split transactions. The system is built on top the VAnchorBase/AnchorBase/LinkableAnchor system which allows it to be linked to other VAnchor contracts through a simple graph-like interface where anchors maintain edges of their neighboring anchors. The system requires users to create and deposit UTXOs for the supported ERC20 asset into the smart contract and insert a commitment into the underlying merkle tree of the form: commitment = Poseidon(chainID, amount, pubKey, blinding). The hash input is the UTXO data. All deposits/withdrawals are unified under a common `transact` function which requires a zkSNARK proof that the UTXO commitments are well-formed (i.e. that the deposit amount matches the sum of new UTXOs&#39; amounts). Information regarding the commitments: - Poseidon is a zkSNARK friendly hash function - destinationChainID is the chainId of the destination chain, where the withdrawal is intended to be made - Details of the UTXO and hashes are below UTXO = { destinationChainID, amount, pubkey, blinding } commitment = Poseidon(destinationChainID, amount, pubKey, blinding) nullifier = Poseidon(commitment, merklePath, sign(privKey, commitment, merklePath)) Commitments adhering to different hash functions and formats will invalidate any attempt at withdrawal. Using the preimage / UTXO of the commitment, users can generate a zkSNARK proof that the UTXO is located in one-of-many VAnchor merkle trees and that the commitment&#39;s destination chain id matches the underlying chain id of the VAnchor where the transaction is taking place. The chain id opcode is leveraged to prevent any tampering of this data.
 
 
 
@@ -177,7 +177,7 @@ function commitments(bytes32) external view returns (bool)
 ### configureMaximumDepositLimit
 
 ```solidity
-function configureMaximumDepositLimit(uint256 _maximumDepositAmount) external nonpayable
+function configureMaximumDepositLimit(uint256 _maximumDepositAmount, uint32 _nonce) external nonpayable
 ```
 
 
@@ -189,11 +189,12 @@ function configureMaximumDepositLimit(uint256 _maximumDepositAmount) external no
 | Name | Type | Description |
 |---|---|---|
 | _maximumDepositAmount | uint256 | undefined
+| _nonce | uint32 | undefined
 
 ### configureMinimalWithdrawalLimit
 
 ```solidity
-function configureMinimalWithdrawalLimit(uint256 _minimalWithdrawalAmount) external nonpayable
+function configureMinimalWithdrawalLimit(uint256 _minimalWithdrawalAmount, uint32 _nonce) external nonpayable
 ```
 
 
@@ -205,6 +206,7 @@ function configureMinimalWithdrawalLimit(uint256 _minimalWithdrawalAmount) exter
 | Name | Type | Description |
 |---|---|---|
 | _minimalWithdrawalAmount | uint256 | undefined
+| _nonce | uint32 | undefined
 
 ### currentNeighborRootIndex
 
@@ -292,7 +294,7 @@ function edgeIndex(uint256) external view returns (uint256)
 ### edgeList
 
 ```solidity
-function edgeList(uint256) external view returns (uint256 chainID, bytes32 root, uint256 latestLeafIndex, bytes32 target)
+function edgeList(uint256) external view returns (uint256 chainID, bytes32 root, uint256 latestLeafIndex, bytes32 srcResourceID)
 ```
 
 
@@ -312,7 +314,7 @@ function edgeList(uint256) external view returns (uint256 chainID, bytes32 root,
 | chainID | uint256 | undefined
 | root | bytes32 | undefined
 | latestLeafIndex | uint256 | undefined
-| target | bytes32 | undefined
+| srcResourceID | bytes32 | undefined
 
 ### filledSubtrees
 
@@ -390,7 +392,7 @@ function getLastRoot() external view returns (bytes32)
 ### getLatestNeighborEdges
 
 ```solidity
-function getLatestNeighborEdges() external view returns (struct LinkableTree.Edge[])
+function getLatestNeighborEdges() external view returns (struct LinkableAnchor.Edge[])
 ```
 
 Get the latest state of all neighbor edges
@@ -402,7 +404,7 @@ Get the latest state of all neighbor edges
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | LinkableTree.Edge[] | Edge[] An array of all neighboring and potentially empty edges
+| _0 | LinkableAnchor.Edge[] | Edge[] An array of all neighboring and potentially empty edges
 
 ### getLatestNeighborRoots
 
@@ -793,6 +795,28 @@ function nullifierHashes(bytes32) external view returns (bool)
 |---|---|---|
 | _0 | bool | undefined
 
+### parseChainIdFromResourceId
+
+```solidity
+function parseChainIdFromResourceId(bytes32 _resourceId) external pure returns (uint64)
+```
+
+Parses the typed chain ID out from a 32-byte resource ID
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _resourceId | bytes32 | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint64 | undefined
+
 ### register
 
 ```solidity
@@ -1015,7 +1039,7 @@ Unwraps the TokenWrapper token for the `msg.sender` into one of its wrappable to
 ### updateEdge
 
 ```solidity
-function updateEdge(uint256 _sourceChainID, bytes32 _root, uint256 _leafIndex, bytes32 _target) external payable
+function updateEdge(bytes32 _root, uint32 _leafIndex, bytes32 _srcResourceID) external payable
 ```
 
 Add an edge to the tree or update an existing edge.
@@ -1026,10 +1050,9 @@ Add an edge to the tree or update an existing edge.
 
 | Name | Type | Description |
 |---|---|---|
-| _sourceChainID | uint256 | The chainID of the edge&#39;s LinkableTree
 | _root | bytes32 | The merkle root of the edge&#39;s merkle tree
-| _leafIndex | uint256 | The latest leaf insertion index of the edge&#39;s merkle tree
-| _target | bytes32 | undefined
+| _leafIndex | uint32 | The latest leaf insertion index of the edge&#39;s merkle tree
+| _srcResourceID | bytes32 | The origin resource ID of the originating linked anchor update
 
 ### verifier
 
@@ -1083,7 +1106,7 @@ Wrap the native token for the `msg.sender` into the TokenWrapper tokenThe amount
 function wrapToken(address _tokenAddress, uint256 _amount) external nonpayable
 ```
 
-Wraps a token for the `msg.sender` using the underlying FixedDepositAnchor&#39;s TokenWrapper contract
+Wraps a token for the `msg.sender` using the underlying TokenWrapper contract
 
 
 

@@ -1,10 +1,10 @@
+// @ts-nocheck
 require('dotenv').config();
 import { ethers } from 'ethers';
 import { VAnchor } from '@webb-tools/anchors';
 import path from 'path';
-import { fetchComponentsFromFilePaths, getChainIdType } from '@webb-tools/utils';
+import { hexToU8a, fetchComponentsFromFilePaths, getChainIdType } from '@webb-tools/utils';
 import { CircomUtxo, Keypair, randomBN, Utxo } from '@webb-tools/sdk-core';
-import { hexToU8a } from '@polkadot/util';
 
 export async function transactWrapNative(anchorAddress: string, sender: ethers.Signer) {
   const zkComponentsSmall = await fetchComponentsFromFilePaths(
@@ -14,7 +14,7 @@ export async function transactWrapNative(anchorAddress: string, sender: ethers.S
     ),
     path.resolve(
       __dirname,
-      `../../../protocol-solidity-fixtures/fixtures/vanchor_2/8/witness_calculator.js`
+      `../../../protocol-solidity-fixtures/fixtures/vanchor_2/8/witness_calculator.cjs`
     ),
     path.resolve(
       __dirname,
@@ -28,7 +28,7 @@ export async function transactWrapNative(anchorAddress: string, sender: ethers.S
     ),
     path.resolve(
       __dirname,
-      `../../../protocol-solidity-fixtures/fixtures/vanchor_16/8/witness_calculator.js`
+      `../../../protocol-solidity-fixtures/fixtures/vanchor_16/8/witness_calculator.cjs`
     ),
     path.resolve(
       __dirname,

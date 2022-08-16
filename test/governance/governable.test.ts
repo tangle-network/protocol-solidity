@@ -2,6 +2,7 @@
  * Copyright 2021 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
+// @ts-nocheck
  const assert = require('assert');
  import { ethers, network } from 'hardhat';
  import BN from 'bn.js';
@@ -27,7 +28,7 @@
     arbSigner = signers[2];
     // create poseidon hasher
     const govFactory = new Governable__factory(wallet);
-    governableInstance = await govFactory.deploy(sender.address);
+    governableInstance = await govFactory.deploy(sender.address, 0);
     await governableInstance.deployed();
   });
  

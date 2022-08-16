@@ -3,7 +3,6 @@ import { getTokenBalance } from './getTokenBalance'
 import { ethers } from 'ethers';
 import { walletHermes, walletAthena, providerHermes } from '../ethersGovernorWallets';
 import { viewEdgeList } from '../viewActions/viewEdgeList';
-import { Anchor } from '@webb-tools/anchors';
 import { GovernedTokenWrapper, MintableToken } from '@webb-tools/tokens';
 import { fetchComponentsFromFilePaths } from '@webb-tools/utils';
 import { viewTokensInWrapper } from './viewTokensInWrapper';

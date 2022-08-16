@@ -27,6 +27,8 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
     "ROOT_HISTORY_SIZE()": FunctionFragment;
     "ZERO_VALUE()": FunctionFragment;
     "commitments(bytes32)": FunctionFragment;
+    "configureMaximumDepositLimit(uint256,uint32)": FunctionFragment;
+    "configureMinimalWithdrawalLimit(uint256,uint32)": FunctionFragment;
     "currentNeighborRootIndex(uint256)": FunctionFragment;
     "currentRootIndex()": FunctionFragment;
     "edgeExistsForChain(uint256)": FunctionFragment;
@@ -53,11 +55,12 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
     "neighborRoots(uint256,uint32)": FunctionFragment;
     "nextIndex()": FunctionFragment;
     "nullifierHashes(bytes32)": FunctionFragment;
+    "parseChainIdFromResourceId(bytes32)": FunctionFragment;
     "roots(uint256)": FunctionFragment;
     "setHandler(address,uint32)": FunctionFragment;
     "setVerifier(address,uint32)": FunctionFragment;
     "unpackProof(uint256[8])": FunctionFragment;
-    "updateEdge(uint256,bytes32,uint256,bytes32)": FunctionFragment;
+    "updateEdge(bytes32,uint32,bytes32)": FunctionFragment;
     "verifier()": FunctionFragment;
     "zeros(uint256)": FunctionFragment;
   };
@@ -81,6 +84,14 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "commitments",
     values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "configureMaximumDepositLimit",
+    values: [BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "configureMinimalWithdrawalLimit",
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "currentNeighborRootIndex",
@@ -168,6 +179,10 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
     functionFragment: "nullifierHashes",
     values: [BytesLike]
   ): string;
+  encodeFunctionData(
+    functionFragment: "parseChainIdFromResourceId",
+    values: [BytesLike]
+  ): string;
   encodeFunctionData(functionFragment: "roots", values: [BigNumberish]): string;
   encodeFunctionData(
     functionFragment: "setHandler",
@@ -194,7 +209,7 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "updateEdge",
-    values: [BigNumberish, BytesLike, BigNumberish, BytesLike]
+    values: [BytesLike, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "verifier", values?: undefined): string;
   encodeFunctionData(functionFragment: "zeros", values: [BigNumberish]): string;
@@ -211,6 +226,14 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "ZERO_VALUE", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "commitments",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "configureMaximumDepositLimit",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "configureMinimalWithdrawalLimit",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -285,6 +308,10 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "nextIndex", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "nullifierHashes",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "parseChainIdFromResourceId",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "roots", data: BytesLike): Result;
@@ -394,6 +421,18 @@ export class AnchorBase extends BaseContract {
 
     commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<[boolean]>;
 
+    configureMaximumDepositLimit(
+      maximumDepositAmount: BigNumberish,
+      nonce: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    configureMinimalWithdrawalLimit(
+      minimalWithdrawalAmount: BigNumberish,
+      nonce: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     currentNeighborRootIndex(
       arg0: BigNumberish,
       overrides?: CallOverrides
@@ -419,7 +458,7 @@ export class AnchorBase extends BaseContract {
         chainID: BigNumber;
         root: string;
         latestLeafIndex: BigNumber;
-        target: string;
+        srcResourceID: string;
       }
     >;
 
@@ -442,7 +481,7 @@ export class AnchorBase extends BaseContract {
           chainID: BigNumber;
           root: string;
           latestLeafIndex: BigNumber;
-          target: string;
+          srcResourceID: string;
         })[]
       ]
     >;
@@ -510,6 +549,11 @@ export class AnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
+    parseChainIdFromResourceId(
+      _resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
     setHandler(
@@ -545,10 +589,9 @@ export class AnchorBase extends BaseContract {
     >;
 
     updateEdge(
-      _sourceChainID: BigNumberish,
       _root: BytesLike,
       _leafIndex: BigNumberish,
-      _target: BytesLike,
+      _srcResourceID: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -566,6 +609,18 @@ export class AnchorBase extends BaseContract {
   ZERO_VALUE(overrides?: CallOverrides): Promise<BigNumber>;
 
   commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
+
+  configureMaximumDepositLimit(
+    maximumDepositAmount: BigNumberish,
+    nonce: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  configureMinimalWithdrawalLimit(
+    minimalWithdrawalAmount: BigNumberish,
+    nonce: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   currentNeighborRootIndex(
     arg0: BigNumberish,
@@ -589,7 +644,7 @@ export class AnchorBase extends BaseContract {
       chainID: BigNumber;
       root: string;
       latestLeafIndex: BigNumber;
-      target: string;
+      srcResourceID: string;
     }
   >;
 
@@ -611,7 +666,7 @@ export class AnchorBase extends BaseContract {
       chainID: BigNumber;
       root: string;
       latestLeafIndex: BigNumber;
-      target: string;
+      srcResourceID: string;
     })[]
   >;
 
@@ -669,6 +724,11 @@ export class AnchorBase extends BaseContract {
 
   nullifierHashes(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
+  parseChainIdFromResourceId(
+    _resourceId: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   setHandler(
@@ -704,10 +764,9 @@ export class AnchorBase extends BaseContract {
   >;
 
   updateEdge(
-    _sourceChainID: BigNumberish,
     _root: BytesLike,
     _leafIndex: BigNumberish,
-    _target: BytesLike,
+    _srcResourceID: BytesLike,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -725,6 +784,18 @@ export class AnchorBase extends BaseContract {
     ZERO_VALUE(overrides?: CallOverrides): Promise<BigNumber>;
 
     commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
+
+    configureMaximumDepositLimit(
+      maximumDepositAmount: BigNumberish,
+      nonce: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    configureMinimalWithdrawalLimit(
+      minimalWithdrawalAmount: BigNumberish,
+      nonce: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     currentNeighborRootIndex(
       arg0: BigNumberish,
@@ -751,7 +822,7 @@ export class AnchorBase extends BaseContract {
         chainID: BigNumber;
         root: string;
         latestLeafIndex: BigNumber;
-        target: string;
+        srcResourceID: string;
       }
     >;
 
@@ -773,7 +844,7 @@ export class AnchorBase extends BaseContract {
         chainID: BigNumber;
         root: string;
         latestLeafIndex: BigNumber;
-        target: string;
+        srcResourceID: string;
       })[]
     >;
 
@@ -837,6 +908,11 @@ export class AnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    parseChainIdFromResourceId(
+      _resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
     setHandler(
@@ -872,10 +948,9 @@ export class AnchorBase extends BaseContract {
     >;
 
     updateEdge(
-      _sourceChainID: BigNumberish,
       _root: BytesLike,
       _leafIndex: BigNumberish,
-      _target: BytesLike,
+      _srcResourceID: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -958,6 +1033,18 @@ export class AnchorBase extends BaseContract {
     ZERO_VALUE(overrides?: CallOverrides): Promise<BigNumber>;
 
     commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
+
+    configureMaximumDepositLimit(
+      maximumDepositAmount: BigNumberish,
+      nonce: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    configureMinimalWithdrawalLimit(
+      minimalWithdrawalAmount: BigNumberish,
+      nonce: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     currentNeighborRootIndex(
       arg0: BigNumberish,
@@ -1054,6 +1141,11 @@ export class AnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    parseChainIdFromResourceId(
+      _resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     setHandler(
@@ -1083,10 +1175,9 @@ export class AnchorBase extends BaseContract {
     ): Promise<BigNumber>;
 
     updateEdge(
-      _sourceChainID: BigNumberish,
       _root: BytesLike,
       _leafIndex: BigNumberish,
-      _target: BytesLike,
+      _srcResourceID: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1107,6 +1198,18 @@ export class AnchorBase extends BaseContract {
     commitments(
       arg0: BytesLike,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    configureMaximumDepositLimit(
+      maximumDepositAmount: BigNumberish,
+      nonce: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    configureMinimalWithdrawalLimit(
+      minimalWithdrawalAmount: BigNumberish,
+      nonce: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     currentNeighborRootIndex(
@@ -1211,6 +1314,11 @@ export class AnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    parseChainIdFromResourceId(
+      _resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     roots(
       arg0: BigNumberish,
       overrides?: CallOverrides
@@ -1243,10 +1351,9 @@ export class AnchorBase extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     updateEdge(
-      _sourceChainID: BigNumberish,
       _root: BytesLike,
       _leafIndex: BigNumberish,
-      _target: BytesLike,
+      _srcResourceID: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

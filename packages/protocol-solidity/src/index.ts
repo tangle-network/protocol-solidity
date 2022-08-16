@@ -6,12 +6,4 @@ import * as Tokens from '@webb-tools/tokens';
 import * as Utility from '@webb-tools/utils';
 import * as VBridge from '@webb-tools/vbridge';
 
-export {
-  Anchors,
-  Bridges,
-  Contracts,
-  Interfaces,
-  Tokens,
-  Utility,
-  VBridge,
-};
+export { Anchors, Bridges, Contracts, Interfaces, Tokens, Utility, VBridge };

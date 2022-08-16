@@ -1,13 +1,14 @@
 import { HardhatUserConfig } from 'hardhat/types';
-import { ethers } from 'hardhat';
-import "hardhat-artifactor";
+import { HARDHAT_ACCOUNTS } from './hardhatAccounts.js';
+import 'hardhat-artifactor';
+import 'hardhat-gas-reporter'
 import '@typechain/hardhat';
 import '@nomiclabs/hardhat-ethers'
-import "@nomiclabs/hardhat-truffle5";
+import '@nomiclabs/hardhat-truffle5';
 import '@primitivefi/hardhat-dodoc';
 import { subtask } from 'hardhat/config'
 
-import poseidonContract from "circomlibjs/src/poseidon_gencontract.js";
+import poseidonContract from 'circomlibjs/src/poseidon_gencontract.js';
 
 const buildPoseidon = async (numInputs: number) => {
   //@ts-ignore
@@ -26,32 +27,13 @@ subtask('typechain-generate-types',
 const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',
   networks: {
-    hardhat: {
-      // Specify hardhat account balances for deterministic privateKeys for governor interactions
-      accounts:
-        [
-          {
-            privateKey: '0x0000000000000000000000000000000000000000000000000000000000000001',
-            balance: '10000000000000000000000'
-          },
-          {
-            privateKey: '0x0000000000000000000000000000000000000000000000000000000000000002',
-            balance: '10000000000000000000000'
-          },
-          {
-            privateKey: '0x0000000000000000000000000000000000000000000000000000000000000003',
-            balance: '10000000000000000000000'
-          },
-          {
-            privateKey: '0x0000000000000000000000000000000000000000000000000000000000000004',
-            balance: '10000000000000000000000'
-          }
-        ]
+    'hardhat': {
+      accounts: HARDHAT_ACCOUNTS,
     }
   },
   solidity: {
     compilers: [{
-      version: "0.8.5",
+      version: '0.8.5',
       settings: {
         optimizer: {
           enabled: true,
@@ -60,12 +42,17 @@ const config: HardhatUserConfig = {
       }
     }],
   },
+  // @ts-ignore
+  dodoc: {
+    include: ['AnchorBase', 'LinkableAnchor', 'AnchorHandler', 'IAnchor', 'ILinkableAnchor', 'VAnchorEncodeInputs', 'GovernedTokenWrapper', 'TokenWrapperHandler', 'Hasher', 'MerkleTreePoseidon', 'MerkleTreeWithHistoryPoseidon', 'Poseidon', 'VAnchor', 'VAnchorBase']
+  },
   mocha: {
     timeout: 60000
   },
-  // @ts-ignore
-  dodoc: {
-    include: ["FixedDepositAnchor", "AnchorBase", "LinkableAnchor", "AnchorHandler", "IAnchor", "IAnchorTrees", "ILinkableAnchor", "VAnchorEncodeInputs", "GovernedTokenWrapper", "TokenWrapperHandler", "Hasher", , "MerkleTreePoseidon", "MerkleTreeWithHistoryPoseidon", "Poseidon", "SnarkConstants", "LinkableVAnchor", "VAnchor", "VAnchorBase", "AnchorProxy", "Bridge"]
+  gasReporter: {
+    enabled: (process.env.REPORT_GAS) ? true : false,
+    currency: 'USD',
+    gasPrice: 21
   },
 };
 

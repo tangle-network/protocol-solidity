@@ -20,9 +20,11 @@ jobs:
         uses: actions/setup-node@v2
 
       - name: Install dependencies 
-        run: |
-          yarn install --production=false &&
-          cd ./packages/protocol-solidity && yarn install
+      - run: git submodule update --init --recursive
+      - run: yarn install --production=false
+      - run: yarn compile
+      - run: yarn build:packages
+      - run: cd ./packages/protocol-solidity && yarn install
       - name: Generate docs
         run: |
           cd ./packages/protocol-solidity && npx typedoc --out docs src/index.ts 

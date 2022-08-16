@@ -12,6 +12,10 @@
         "preserveSymlinks": true,
         "pretty": true,
         "skipLibCheck": true,
-        "strict": true
+        "strict": true,
+        "exclude": [
+            "**/*.spec.ts",
+            "**/*.test.ts"
+          ]
     }
 }

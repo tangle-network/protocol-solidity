@@ -71,28 +71,6 @@ function _contractWhitelist(address) external view returns (bool)
 |---|---|---|
 | _0 | bool | undefined
 
-### _counts
-
-```solidity
-function _counts(uint256) external view returns (uint64)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint64 | undefined
-
 ### _resourceIDToContractAddress
 
 ```solidity
@@ -148,7 +126,7 @@ function _updateRecords(uint256, uint256) external view returns (address _tokenA
 function executeProposal(bytes32 resourceID, bytes data) external nonpayable
 ```
 
-Proposal execution should be initiated when a proposal is finalized in the Bridge contract. by a relayer on the deposit&#39;s destination chain.Data passed into the function should be constructed as follows: chainID                                  uint256     bytes  0 - 32 leafIndex                                uint256     bytes  32 - 64 merkleRoot                               uint256     bytes  64 - 96
+Proposal execution should be initiated when a proposal is signed and executed by the `SignatureBridge`
 
 
 
@@ -156,8 +134,8 @@ Proposal execution should be initiated when a proposal is finalized in the Bridg
 
 | Name | Type | Description |
 |---|---|---|
-| resourceID | bytes32 | ResourceID corresponding to a particular set of Anchors
-| data | bytes | Consists of {sourceChainID}, {leafIndex}, {merkleRoot} all padded to 32 bytes.
+| resourceID | bytes32 | ResourceID corresponding to a particular executing anchor contract.
+| data | bytes | Consists of a specific proposal data structure for each finer-grained anchor proposal
 
 ### getUpdateRecord
 

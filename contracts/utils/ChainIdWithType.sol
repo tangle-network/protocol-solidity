@@ -5,6 +5,8 @@
 
 pragma solidity ^0.8.5;
 
+import "hardhat/console.sol";
+
 /**
 	@title ChainIdWithType abstract contract
  */
@@ -34,5 +36,12 @@ abstract contract ChainIdWithType {
 		// cast this as a bytes32 in order to encode as a uint256 for zkp verification.
 		bytes memory chainIdWithType = abi.encodePacked(chainType, chainID);
 		return uint48(bytes6(chainIdWithType));
+	}
+
+	/**
+		Parses the typed chain ID out from a 32-byte resource ID
+	 */
+	function parseChainIdFromResourceId(bytes32 _resourceId) public pure returns (uint64) {
+		return uint64(uint48(bytes6(_resourceId << (26 * 8))));
 	}
 }

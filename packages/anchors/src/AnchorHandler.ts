@@ -3,10 +3,8 @@ import { AnchorHandler as AnchorHandlerContract, AnchorHandler__factory } from '
 
 export class AnchorHandler {
   contract: AnchorHandlerContract;
-  
-  constructor(
-    contract: AnchorHandlerContract
-  ) {
+
+  constructor(contract: AnchorHandlerContract) {
     this.contract = contract;
   }
 
@@ -26,10 +24,7 @@ export class AnchorHandler {
     return handler;
   }
 
-  public static async connect(
-    handlerAddress: string,
-    signer: ethers.Signer,
-  ) {
+  public static async connect(handlerAddress: string, signer: ethers.Signer) {
     const handlerContract = AnchorHandler__factory.connect(handlerAddress, signer);
     const handler = new AnchorHandler(handlerContract);
     return handler;

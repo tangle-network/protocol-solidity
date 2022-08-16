@@ -30,8 +30,8 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     "ZERO_VALUE()": FunctionFragment;
     "calculatePublicAmount(int256,uint256)": FunctionFragment;
     "commitments(bytes32)": FunctionFragment;
-    "configureMaximumDepositLimit(uint256)": FunctionFragment;
-    "configureMinimalWithdrawalLimit(uint256)": FunctionFragment;
+    "configureMaximumDepositLimit(uint256,uint32)": FunctionFragment;
+    "configureMinimalWithdrawalLimit(uint256,uint32)": FunctionFragment;
     "currentNeighborRootIndex(uint256)": FunctionFragment;
     "currentRootIndex()": FunctionFragment;
     "edgeExistsForChain(uint256)": FunctionFragment;
@@ -62,12 +62,13 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     "neighborRoots(uint256,uint32)": FunctionFragment;
     "nextIndex()": FunctionFragment;
     "nullifierHashes(bytes32)": FunctionFragment;
+    "parseChainIdFromResourceId(bytes32)": FunctionFragment;
     "register((address,bytes))": FunctionFragment;
     "roots(uint256)": FunctionFragment;
     "setHandler(address,uint32)": FunctionFragment;
     "setVerifier(address,uint32)": FunctionFragment;
     "unpackProof(uint256[8])": FunctionFragment;
-    "updateEdge(uint256,bytes32,uint256,bytes32)": FunctionFragment;
+    "updateEdge(bytes32,uint32,bytes32)": FunctionFragment;
     "verifier()": FunctionFragment;
     "zeros(uint256)": FunctionFragment;
   };
@@ -103,11 +104,11 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "configureMaximumDepositLimit",
-    values: [BigNumberish]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "configureMinimalWithdrawalLimit",
-    values: [BigNumberish]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "currentNeighborRootIndex",
@@ -212,6 +213,10 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "parseChainIdFromResourceId",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "register",
     values: [{ owner: string; publicKey: BytesLike }]
   ): string;
@@ -241,7 +246,7 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "updateEdge",
-    values: [BigNumberish, BytesLike, BigNumberish, BytesLike]
+    values: [BytesLike, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "verifier", values?: undefined): string;
   encodeFunctionData(functionFragment: "zeros", values: [BigNumberish]): string;
@@ -362,6 +367,10 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "nextIndex", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "nullifierHashes",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "parseChainIdFromResourceId",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "register", data: BytesLike): Result;
@@ -504,11 +513,13 @@ export class VAnchorBase extends BaseContract {
 
     configureMaximumDepositLimit(
       _maximumDepositAmount: BigNumberish,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     configureMinimalWithdrawalLimit(
       _minimalWithdrawalAmount: BigNumberish,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -537,7 +548,7 @@ export class VAnchorBase extends BaseContract {
         chainID: BigNumber;
         root: string;
         latestLeafIndex: BigNumber;
-        target: string;
+        srcResourceID: string;
       }
     >;
 
@@ -560,7 +571,7 @@ export class VAnchorBase extends BaseContract {
           chainID: BigNumber;
           root: string;
           latestLeafIndex: BigNumber;
-          target: string;
+          srcResourceID: string;
         })[]
       ]
     >;
@@ -640,6 +651,11 @@ export class VAnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
+    parseChainIdFromResourceId(
+      _resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     register(
       _account: { owner: string; publicKey: BytesLike },
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -680,10 +696,9 @@ export class VAnchorBase extends BaseContract {
     >;
 
     updateEdge(
-      _sourceChainID: BigNumberish,
       _root: BytesLike,
       _leafIndex: BigNumberish,
-      _target: BytesLike,
+      _srcResourceID: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -714,11 +729,13 @@ export class VAnchorBase extends BaseContract {
 
   configureMaximumDepositLimit(
     _maximumDepositAmount: BigNumberish,
+    _nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   configureMinimalWithdrawalLimit(
     _minimalWithdrawalAmount: BigNumberish,
+    _nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -744,7 +761,7 @@ export class VAnchorBase extends BaseContract {
       chainID: BigNumber;
       root: string;
       latestLeafIndex: BigNumber;
-      target: string;
+      srcResourceID: string;
     }
   >;
 
@@ -766,7 +783,7 @@ export class VAnchorBase extends BaseContract {
       chainID: BigNumber;
       root: string;
       latestLeafIndex: BigNumber;
-      target: string;
+      srcResourceID: string;
     })[]
   >;
 
@@ -836,6 +853,11 @@ export class VAnchorBase extends BaseContract {
 
   nullifierHashes(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
+  parseChainIdFromResourceId(
+    _resourceId: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   register(
     _account: { owner: string; publicKey: BytesLike },
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -876,10 +898,9 @@ export class VAnchorBase extends BaseContract {
   >;
 
   updateEdge(
-    _sourceChainID: BigNumberish,
     _root: BytesLike,
     _leafIndex: BigNumberish,
-    _target: BytesLike,
+    _srcResourceID: BytesLike,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -910,11 +931,13 @@ export class VAnchorBase extends BaseContract {
 
     configureMaximumDepositLimit(
       _maximumDepositAmount: BigNumberish,
+      _nonce: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     configureMinimalWithdrawalLimit(
       _minimalWithdrawalAmount: BigNumberish,
+      _nonce: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -943,7 +966,7 @@ export class VAnchorBase extends BaseContract {
         chainID: BigNumber;
         root: string;
         latestLeafIndex: BigNumber;
-        target: string;
+        srcResourceID: string;
       }
     >;
 
@@ -965,7 +988,7 @@ export class VAnchorBase extends BaseContract {
         chainID: BigNumber;
         root: string;
         latestLeafIndex: BigNumber;
-        target: string;
+        srcResourceID: string;
       })[]
     >;
 
@@ -1041,6 +1064,11 @@ export class VAnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    parseChainIdFromResourceId(
+      _resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     register(
       _account: { owner: string; publicKey: BytesLike },
       overrides?: CallOverrides
@@ -1081,10 +1109,9 @@ export class VAnchorBase extends BaseContract {
     >;
 
     updateEdge(
-      _sourceChainID: BigNumberish,
       _root: BytesLike,
       _leafIndex: BigNumberish,
-      _target: BytesLike,
+      _srcResourceID: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1216,11 +1243,13 @@ export class VAnchorBase extends BaseContract {
 
     configureMaximumDepositLimit(
       _maximumDepositAmount: BigNumberish,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     configureMinimalWithdrawalLimit(
       _minimalWithdrawalAmount: BigNumberish,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1331,6 +1360,11 @@ export class VAnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    parseChainIdFromResourceId(
+      _resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     register(
       _account: { owner: string; publicKey: BytesLike },
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1365,10 +1399,9 @@ export class VAnchorBase extends BaseContract {
     ): Promise<BigNumber>;
 
     updateEdge(
-      _sourceChainID: BigNumberish,
       _root: BytesLike,
       _leafIndex: BigNumberish,
-      _target: BytesLike,
+      _srcResourceID: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1403,11 +1436,13 @@ export class VAnchorBase extends BaseContract {
 
     configureMaximumDepositLimit(
       _maximumDepositAmount: BigNumberish,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     configureMinimalWithdrawalLimit(
       _minimalWithdrawalAmount: BigNumberish,
+      _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1529,6 +1564,11 @@ export class VAnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    parseChainIdFromResourceId(
+      _resourceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     register(
       _account: { owner: string; publicKey: BytesLike },
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1566,10 +1606,9 @@ export class VAnchorBase extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     updateEdge(
-      _sourceChainID: BigNumberish,
       _root: BytesLike,
       _leafIndex: BigNumberish,
-      _target: BytesLike,
+      _srcResourceID: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

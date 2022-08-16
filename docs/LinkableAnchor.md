@@ -1,12 +1,12 @@
-# VAnchorBase
+# LinkableAnchor
+
+*Webb Technologies*
+
+> The LinkableAnchor contract
+
+The LinkableAnchor contract extends the MerkleTreePoseidon contract with a graph-like interface for linking to other LinkableAnchors. Links between these trees are represented as directed edges (since updates occur on one contract per transaction). The edge data is maintained as a record of the: - Chain id that the edge points to - Latest merkle root of the MerkleTreePoseidon contract being linked - Latest leaf insertion index (used as a nonce) of the linked merkle tree. Updating the state of the LinkableAnchor&#39;s edges is done through the handler architecture defined originally by ChainSafe&#39;s ChainBridge system. In our case, we employ a handler to propagate updates to a LinkableAnchor contract. For example, the handler can be connected to an oracle system, signature system, or any other bridge system to provide the state of the neighboring LinkableAnchor&#39;s edge data. The LinkableAnchor contract is meant to be inherited by child contracts that define their own architecture around: 1. The structure of elements being inserted into the underlying Merkle Tree 2. The type of zkSNARK necessary for proving membership of a specific element in one-of-many LinkableAnchors connected in a bridge. An example usage of this system is the: - VAnchor.sol - for variable sized private bridging of assets
 
 
-
-
-
-
-
-*This contract(pool) allows deposit of an arbitrary amount to it, shielded transfer to another registered user inside the pool and withdrawal from the pool. Project utilizes UTXO model to handle users&#39; funds.*
 
 ## Methods
 
@@ -31,40 +31,6 @@ function EVM_CHAIN_ID_TYPE() external view returns (bytes2)
 
 ```solidity
 function FIELD_SIZE() external view returns (uint256)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined
-
-### MAX_EXT_AMOUNT
-
-```solidity
-function MAX_EXT_AMOUNT() external view returns (int256)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | int256 | undefined
-
-### MAX_FEE
-
-```solidity
-function MAX_FEE() external view returns (uint256)
 ```
 
 
@@ -112,58 +78,13 @@ function ZERO_VALUE() external view returns (uint256)
 |---|---|---|
 | _0 | uint256 | undefined
 
-### calculatePublicAmount
-
-```solidity
-function calculatePublicAmount(int256 _extAmount, uint256 _fee) external pure returns (uint256)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _extAmount | int256 | undefined
-| _fee | uint256 | undefined
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined
-
-### commitments
-
-```solidity
-function commitments(bytes32) external view returns (bool)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bytes32 | undefined
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined
-
 ### configureMaximumDepositLimit
 
 ```solidity
-function configureMaximumDepositLimit(uint256 _maximumDepositAmount, uint32 _nonce) external nonpayable
+function configureMaximumDepositLimit(uint256 maximumDepositAmount, uint32 nonce) external nonpayable
 ```
 
-
+Sets the maximal deposit limit for the anchor
 
 
 
@@ -171,16 +92,16 @@ function configureMaximumDepositLimit(uint256 _maximumDepositAmount, uint32 _non
 
 | Name | Type | Description |
 |---|---|---|
-| _maximumDepositAmount | uint256 | undefined
-| _nonce | uint32 | undefined
+| maximumDepositAmount | uint256 | The new maximal deposit limit
+| nonce | uint32 | undefined
 
 ### configureMinimalWithdrawalLimit
 
 ```solidity
-function configureMinimalWithdrawalLimit(uint256 _minimalWithdrawalAmount, uint32 _nonce) external nonpayable
+function configureMinimalWithdrawalLimit(uint256 minimalWithdrawalAmount, uint32 nonce) external nonpayable
 ```
 
-
+Sets the minimal withdrawal limit for the anchor
 
 
 
@@ -188,8 +109,8 @@ function configureMinimalWithdrawalLimit(uint256 _minimalWithdrawalAmount, uint3
 
 | Name | Type | Description |
 |---|---|---|
-| _minimalWithdrawalAmount | uint256 | undefined
-| _nonce | uint32 | undefined
+| minimalWithdrawalAmount | uint256 | The new minimal withdrawal limit
+| nonce | uint32 | undefined
 
 ### currentNeighborRootIndex
 
@@ -503,23 +424,6 @@ function hasher() external view returns (contract IPoseidonT3)
 |---|---|---|
 | _0 | contract IPoseidonT3 | undefined
 
-### initialize
-
-```solidity
-function initialize(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmount) external nonpayable
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _minimalWithdrawalAmount | uint256 | undefined
-| _maximumDepositAmount | uint256 | undefined
-
 ### isKnownNeighborRoot
 
 ```solidity
@@ -565,50 +469,6 @@ function isKnownRoot(bytes32 _root) external view returns (bool)
 |---|---|---|
 | _0 | bool | undefined
 
-### isSpent
-
-```solidity
-function isSpent(bytes32 _nullifierHash) external view returns (bool)
-```
-
-Whether a note is already spent
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _nullifierHash | bytes32 | The nullifier hash of the deposit note
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | bool Whether the note is already spent
-
-### isSpentArray
-
-```solidity
-function isSpentArray(bytes32[] _nullifierHashes) external view returns (bool[])
-```
-
-Whether an array of notes is already spent
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _nullifierHashes | bytes32[] | The array of nullifier hashes of the deposit notes
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool[] | bool[] An array indicated whether each note&#39;s nullifier hash is already spent
-
 ### isValidRoots
 
 ```solidity
@@ -630,23 +490,6 @@ Checks validity of an array of merkle roots in the history. The first root shoul
 | Name | Type | Description |
 |---|---|---|
 | _0 | bool | undefined
-
-### lastBalance
-
-```solidity
-function lastBalance() external view returns (uint256)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined
 
 ### levels
 
@@ -681,40 +524,6 @@ function maxEdges() external view returns (uint8)
 | Name | Type | Description |
 |---|---|---|
 | _0 | uint8 | undefined
-
-### maximumDepositAmount
-
-```solidity
-function maximumDepositAmount() external view returns (uint256)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined
-
-### minimalWithdrawalAmount
-
-```solidity
-function minimalWithdrawalAmount() external view returns (uint256)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined
 
 ### neighborRoots
 
@@ -756,28 +565,6 @@ function nextIndex() external view returns (uint32)
 |---|---|---|
 | _0 | uint32 | undefined
 
-### nullifierHashes
-
-```solidity
-function nullifierHashes(bytes32) external view returns (bool)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bytes32 | undefined
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined
-
 ### parseChainIdFromResourceId
 
 ```solidity
@@ -799,22 +586,6 @@ Parses the typed chain ID out from a 32-byte resource ID
 | Name | Type | Description |
 |---|---|---|
 | _0 | uint64 | undefined
-
-### register
-
-```solidity
-function register(VAnchorBase.Account _account) external nonpayable
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _account | VAnchorBase.Account | undefined
 
 ### roots
 
@@ -841,44 +612,27 @@ function roots(uint256) external view returns (bytes32)
 ### setHandler
 
 ```solidity
-function setHandler(address _handler, uint32 _nonce) external nonpayable
+function setHandler(address handler, uint32 nonce) external nonpayable
 ```
 
-Set a new handler with a nonce
+Sets the handler for updating edges and other contract state
 
-*Can only be called by the `AnchorHandler` contract*
+
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| _handler | address | The new handler address
-| _nonce | uint32 | The nonce for updating the new handler
+| handler | address | The new handler address
+| nonce | uint32 | The nonce for tracking update counts
 
 ### setVerifier
 
 ```solidity
-function setVerifier(address _verifier, uint32 _nonce) external nonpayable
+function setVerifier(address verifier, uint32 nonce) external nonpayable
 ```
 
-Set a new verifier with a nonce
-
-*Can only be called by the `AnchorHandler` contract*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _verifier | address | The new verifier address
-| _nonce | uint32 | The nonce for updating the new verifier
-
-### unpackProof
-
-```solidity
-function unpackProof(uint256[8] _proof) external pure returns (uint256[2], uint256[2][2], uint256[2])
-```
-
-A helper function to convert an array of 8 uint256 values into the a, b, and c array values that the zk-SNARK verifier&#39;s verifyProof accepts.
+Sets the verifier for zkSNARKs
 
 
 
@@ -886,15 +640,8 @@ A helper function to convert an array of 8 uint256 values into the a, b, and c a
 
 | Name | Type | Description |
 |---|---|---|
-| _proof | uint256[8] | The array of 8 uint256 values
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256[2] | (uint256[2] memory a, uint256[2][2] memory b, uint256[2] memory c) The unpacked proof values
-| _1 | uint256[2][2] | undefined
-| _2 | uint256[2] | undefined
+| verifier | address | The new verifier address
+| nonce | uint32 | The nonce for tracking update counts
 
 ### updateEdge
 
@@ -913,23 +660,6 @@ Add an edge to the tree or update an existing edge.
 | _root | bytes32 | The merkle root of the edge&#39;s merkle tree
 | _leafIndex | uint32 | The latest leaf insertion index of the edge&#39;s merkle tree
 | _srcResourceID | bytes32 | The origin resource ID of the originating linked anchor update
-
-### verifier
-
-```solidity
-function verifier() external view returns (contract IAnchorVerifier)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | contract IAnchorVerifier | undefined
 
 ### zeros
 
@@ -1008,75 +738,6 @@ event Initialized(uint8 version)
 | Name | Type | Description |
 |---|---|---|
 | version  | uint8 | undefined |
-
-### Insertion
-
-```solidity
-event Insertion(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| commitment `indexed` | bytes32 | undefined |
-| leafIndex  | uint32 | undefined |
-| timestamp  | uint256 | undefined |
-
-### NewCommitment
-
-```solidity
-event NewCommitment(bytes32 commitment, uint256 index, bytes encryptedOutput)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| commitment  | bytes32 | undefined |
-| index  | uint256 | undefined |
-| encryptedOutput  | bytes | undefined |
-
-### NewNullifier
-
-```solidity
-event NewNullifier(bytes32 nullifier)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| nullifier  | bytes32 | undefined |
-
-### PublicKey
-
-```solidity
-event PublicKey(address indexed owner, bytes key)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| owner `indexed` | address | undefined |
-| key  | bytes | undefined |
 
 
 

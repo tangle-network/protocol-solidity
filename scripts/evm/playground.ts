@@ -1,6 +1,5 @@
 require('dotenv').config();
 import { SignatureBridgeSide } from "@webb-tools/bridges";
-import { Anchor } from "@webb-tools/anchors";
 import { ethers } from "ethers";
 import { fetchComponentsFromFilePaths } from "../../packages/utils";
 import { providerArbitrum, providerMoonbase, walletArbitrum, walletHermes } from "./ethersGovernorWallets";

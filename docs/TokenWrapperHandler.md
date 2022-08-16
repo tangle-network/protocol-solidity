@@ -71,28 +71,6 @@ function _contractWhitelist(address) external view returns (bool)
 |---|---|---|
 | _0 | bool | undefined
 
-### _counts
-
-```solidity
-function _counts(uint256) external view returns (uint256)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined
-
 ### _resourceIDToContractAddress
 
 ```solidity
@@ -149,7 +127,7 @@ function _updateRecords(uint256, uint256) external view returns (address _tokenW
 function executeProposal(bytes32 resourceID, bytes data) external nonpayable
 ```
 
-Proposal execution should be initiated when a proposal is finalized in the Bridge contract. by a relayer on the deposit&#39;s destination chain. Or when a valid signature is produced by the DKG in the case of SignatureBridge.Data passed into the function should be constructed as follows: executionChainID                                  uint256     bytes  0 - 32 nonce                                             uint256     bytes  32 - 64 functionSig                                       bytes32     bytes  64 - 96 updateValue                                       bytes32     bytes  96 - 128  
+Proposal execution should be initiated when a proposal is finalized in the Bridge contract. by a relayer on the deposit&#39;s destination chain. Or when a valid signature is produced by the DKG in the case of SignatureBridge.
 
 
 
@@ -158,7 +136,7 @@ Proposal execution should be initiated when a proposal is finalized in the Bridg
 | Name | Type | Description |
 |---|---|---|
 | resourceID | bytes32 | ResourceID corresponding to a particular set of GovernedTokenWrapper contracts
-| data | bytes | Consists of {executionChainID}, {nonce}, {functionSig} {updateValue} all padded to 32 bytes.
+| data | bytes | Consists of a specific proposal data structure for each finer-grained token wrapper proposal
 
 ### getUpdateRecord
 

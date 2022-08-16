@@ -1,8 +1,6 @@
 require('dotenv').config();
 import { fetchComponentsFromFilePaths } from '@webb-tools/utils';
-import { SignatureBridge, SignatureBridgeSide } from "@webb-tools/bridges";
 import { ethers } from "ethers";
-import { Anchor, AnchorHandler } from "@webb-tools/anchors";
 import { 
   chainIdTypeArbitrum,
   chainIdTypeGoerli,

@@ -2,10 +2,10 @@
  * Copyright 2021 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later
 */
+// @ts-nocheck
 const assert = require('assert');
 import { ethers } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
-import { hexToU8a, u8aToHex } from '@polkadot/util';
 
 // Typechain generated bindings for contracts
 // These contracts are included in packages, so should be tested
@@ -22,7 +22,7 @@ import {
 } from '../../typechain';
 
 // Convenience wrapper classes for contract classes
-import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '../../packages/utils/src';
+import { hexToU8a, fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '../../packages/utils/src';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
@@ -86,13 +86,13 @@ describe('VAnchor for 2 max edges', () => {
   before('instantiate zkcomponents', async () => {
     zkComponents2_2 = await fetchComponentsFromFilePaths(
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.cjs'),
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/circuit_final.zkey')
     );
 
     zkComponents16_2 = await fetchComponentsFromFilePaths(
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.js'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.cjs'),
       path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/circuit_final.zkey')
     );
   });
@@ -130,15 +130,17 @@ describe('VAnchor for 2 max edges', () => {
 
     await anchor.contract.configureMinimalWithdrawalLimit(
       BigNumber.from(0),
+      0
     );
     await anchor.contract.configureMaximumDepositLimit(
       BigNumber.from(tokenDenomination).mul(1_000_000),
+      0
     );
 
     await token.approve(anchor.contract.address, '1000000000000000000000000');
 
     create2InputWitness = async (data: any) => {
-      const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.js");
+      const witnessCalculator = require("../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.cjs");
       const fileBuf = require('fs').readFileSync('protocol-solidity-fixtures/fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm');
       const wtnsCalc = await witnessCalculator(fileBuf)
       const wtns = await wtnsCalc.calculateWTNSBin(data,0);
@@ -954,9 +956,11 @@ describe('VAnchor for 2 max edges', () => {
 
       await wrappedAnchor.contract.configureMinimalWithdrawalLimit(
         BigNumber.from(0),
+        0,
       );
       await wrappedAnchor.contract.configureMaximumDepositLimit(
         BigNumber.from(tokenDenomination).mul(1_000_000),
+        0,
       );
 
       const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
@@ -1022,9 +1026,11 @@ describe('VAnchor for 2 max edges', () => {
 
       await wrappedVAnchor.contract.configureMinimalWithdrawalLimit(
         BigNumber.from(0),
+        0,
       );
       await wrappedVAnchor.contract.configureMaximumDepositLimit(
         BigNumber.from(tokenDenomination).mul(1_000_000),
+        0,
       );
       
       const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
@@ -1118,9 +1124,11 @@ describe('VAnchor for 2 max edges', () => {
 
       await wrappedVAnchor.contract.configureMinimalWithdrawalLimit(
         BigNumber.from(0),
+        0,
       );
       await wrappedVAnchor.contract.configureMaximumDepositLimit(
         BigNumber.from(tokenDenomination).mul(1_000_000),
+        0,
       );
 
       const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
@@ -1162,7 +1170,7 @@ describe('VAnchor for 2 max edges', () => {
       assert.strictEqual(balWrappedTokenAfterDepositAnchor.toString(), BigNumber.from(2e7).toString());
 
       // Balance of sender unwrapped token should have gone down by 2e7 * (100) / (100 - wrapFee);
-      const expectedSenderTokenOutflows = Math.trunc(2e7 * 100 / (100 - wrapFee));
+      const expectedSenderTokenOutflows = Math.trunc(2e7 * 10000 / (10000 - wrapFee));
       const balUnwrappedTokenAfterDepositSender = await token.balanceOf(sender.address);
       assert.strictEqual(balUnwrappedTokenBeforeDepositSender.sub(balUnwrappedTokenAfterDepositSender).toString(), expectedSenderTokenOutflows.toString());
 
@@ -1249,7 +1257,7 @@ describe('VAnchor for 2 max edges', () => {
       );
     });
 
-    it('fee percentage cannot be greater than 100', async () => {
+    it('fee percentage cannot be greater than 10000', async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
       const sender = wallet;
@@ -1261,7 +1269,7 @@ describe('VAnchor for 2 max edges', () => {
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol, dummyFeeRecipient, sender.address, '10000000000000000000000000', true);
       await wrappedToken.deployed();
       await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
-      const wrapFee = 101;
+      const wrapFee = 10001;
       assert
       await TruffleAssert.reverts(
         wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1)),

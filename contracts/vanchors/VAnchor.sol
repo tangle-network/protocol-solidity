@@ -8,6 +8,7 @@ pragma solidity ^0.8.0;
 import "../interfaces/ITokenWrapper.sol";
 import "../interfaces/IMintableERC20.sol";
 import "./VAnchorBase.sol";
+import "../libs/VAnchorEncodeInputs.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -19,7 +20,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 	derived from Tornado Nova (tornado-pool). This system extends the shielded
 	pool system into a bridged system and allows for join/split transactions.
 
-	The system is built on top the VAnchorBase/AnchorBase/LinkableTree system which allows
+	The system is built on top the VAnchorBase/AnchorBase/LinkableAnchor system which allows
 	it to be linked to other VAnchor contracts through a simple graph-like
 	interface where anchors maintain edges of their neighboring anchors.
 
@@ -61,10 +62,10 @@ contract VAnchor is VAnchorBase {
 		@param _hasher The address of hash contract
 		@param _handler The address of AnchorHandler for this contract
 		@param _token The address of the token that is used to pay the deposit
-		@param _maxEdges The maximum number of edges in the LinkableTree + Verifier supports.
+		@param _maxEdges The maximum number of edges in the LinkableAnchor + Verifier supports.
 		@notice The `_maxEdges` is zero-knowledge circuit dependent, meaning the
 		`_verifier` ONLY supports a certain maximum # of edges. Therefore we need to
-		limit the size of the LinkableTree with this parameter.
+		limit the size of the LinkableAnchor with this parameter.
 	*/
 	constructor(
 		IAnchorVerifier _verifier,
@@ -82,7 +83,7 @@ contract VAnchor is VAnchorBase {
 	) {token = _token;}
 
 	/**
-		@notice Wraps a token for the `msg.sender` using the underlying FixedDepositAnchor's TokenWrapper contract
+		@notice Wraps a token for the `msg.sender` using the underlying TokenWrapper contract
 		@param _tokenAddress The address of the token to wrap
 		@param _amount The amount of tokens to wrap
 	 */
@@ -130,7 +131,6 @@ contract VAnchor is VAnchorBase {
 		// If the address is zero, this is meant to wrap native tokens
 		if (_tokenAddress == address(0)) {
 			require(msg.value == wrapAmount);
-
 			// If the wrapping is native, ensure the amount sent to the tokenWrapper is 0
 			ITokenWrapper(token).wrapForAndSendTo{value: msg.value}(
 					msg.sender,

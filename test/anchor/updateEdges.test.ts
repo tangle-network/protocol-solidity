@@ -2,11 +2,11 @@
  * Copyright 2021 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
-
+// @ts-nocheck
 import { artifacts, contract, assert } from "hardhat";
 const TruffleAssert = require('truffle-assertions');
 
-const Anchor = artifacts.require("FixedDepositAnchor");
+const Anchor = artifacts.require("LinkableAnchorMock");
 const Hasher = artifacts.require("PoseidonT3");
 const Verifier = artifacts.require('Verifier');
 const Verifier2 = artifacts.require('Verifier2');
@@ -52,10 +52,8 @@ const Token = artifacts.require("ERC20Mock");
     await token.mint(sender, tokenDenomination);
     AnchorInstance = await Anchor.new(
       sender,
-      token.address,
       verifier.address,
       hasher.address,
-      tokenDenomination,
       merkleTreeHeight,
       MAX_EDGES,
     );
@@ -65,10 +63,9 @@ const Token = artifacts.require("ERC20Mock");
     });
 
     updateEdge = (edge, sender) => AnchorInstance.updateEdge(
-      edge.sourceChainID,
       edge.root,
       edge.latestLeafIndex,
-      edge.target,
+      edge.srcResourceID,
       { from: sender }
     )
   });
@@ -84,16 +81,14 @@ const Token = artifacts.require("ERC20Mock");
 
   it('LinkableAnchor edges should be modifiable by handler only (checks newHeight > oldHeight)', async () => {
     const edge = {
-      sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 100,
-      target: '0x1111111111111111111111111111111111111111111111111111111111111111',
+      srcResourceID: '0x1111111111111111111111111111111111111111111111111111001000000001',
     };
     const edgeUpdated = {
-      sourceChainID: '0x01',
       root: '0x2222111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 101,
-      target: '0x1111111111111111111111111111111111111111111111111111111111111111',
+      srcResourceID: '0x1111111111111111111111111111111111111111111111111111001000000001',
     };
 
     await TruffleAssert.passes(updateEdge(edge, accounts[0]));
@@ -103,16 +98,14 @@ const Token = artifacts.require("ERC20Mock");
 
   it('LinkableAnchor edges should be modifiable only if edge exists beforehand', async () => {
     const edge = {
-      sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 100,
-      target: '0x1111111111111111111111111111111111111111111111111111111111111111',
+      srcResourceID: '0x1111111111111111111111111111111111111111111111111111001000000001',
     };
     const edgeUpdated = {
-      sourceChainID: '0x02',
       root: '0x2222111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 101,
-      target: '0x1111111111111111111111111111111111111111111111111111111111111111',
+      srcResourceID: '0x1111111111111111111111111111111111111111111111111111100000000001',
     };
     await TruffleAssert.passes(updateEdge(edge, accounts[0]));
     await TruffleAssert.reverts(updateEdge(edgeUpdated, accounts[0]));
@@ -120,16 +113,14 @@ const Token = artifacts.require("ERC20Mock");
 
   it('getLatestNeighborRoots should return updated values', async () => {
     const edge = {
-      sourceChainID: '0x01',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 100,
-      target: '0x1111111111111111111111111111111111111111111111111111111111111111',
+      srcResourceID: '0x1111111111111111111111111111111111111111111111111111001000000001',
     };
     const edgeUpdated = {
-    sourceChainID: '0x01',
       root: '0x2222111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 101,
-      target: '0x1111111111111111111111111111111111111111111111111111111111111111',
+      srcResourceID: '0x1111111111111111111111111111111111111111111111111111001000000001',
     };
     await TruffleAssert.passes(updateEdge(edge, accounts[0]));
 
@@ -146,16 +137,16 @@ const Token = artifacts.require("ERC20Mock");
 
   it('Updating edge should emit correct EdgeUpdate event', async () => {
     const edge = {
-      sourceChainID: '0x01',
+      sourceChainID: '0x100000000001',
       root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 100,
-      target: '0x1111111111111111111111111111111111111111111111111111111111111111',
+      srcResourceID: '0x1111111111111111111111111111111111111111111111111111100000000001',
     };
     const edgeUpdated = {
-      sourceChainID: '0x01',
+      sourceChainID: '0x100000000001',
       root: '0x2222111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 101,
-      target: '0x1111111111111111111111111111111111111111111111111111111111111111',
+      srcResourceID: '0x1111111111111111111111111111111111111111111111111111100000000001',
     };
     await updateEdge(edge, accounts[0]);
     const result = await updateEdge(edgeUpdated, accounts[0]);

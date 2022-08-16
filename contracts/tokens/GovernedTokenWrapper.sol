@@ -73,7 +73,7 @@ contract GovernedTokenWrapper is TokenWrapper {
 		@param _nonce The nonce tracking updates to this contract
 		@notice Only the governor can call this function
 	 */
-	function add(address _tokenAddress, uint256 _nonce) public onlyGovernor {
+	function add(address _tokenAddress, uint32 _nonce) public onlyGovernor {
 		require(!valid[_tokenAddress], "Token should not be valid");
 		require(proposalNonce < _nonce, "Invalid nonce");
 		require(_nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
@@ -93,7 +93,7 @@ contract GovernedTokenWrapper is TokenWrapper {
 		@param _nonce The nonce tracking updates to this contract
 		@notice Only the governor can call this function
 	 */
-	function remove(address _tokenAddress, uint256 _nonce) public onlyGovernor {
+	function remove(address _tokenAddress, uint32 _nonce) public onlyGovernor {
 		require(valid[_tokenAddress], "Token should be valid");
 		require(proposalNonce < _nonce, "Invalid nonce");
 		require(_nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
@@ -134,8 +134,8 @@ contract GovernedTokenWrapper is TokenWrapper {
 		@param _nonce The nonce tracking updates to this contract
 		@notice Only the governor can call this function
 	 */
-	function setFee(uint8 _feePercentage, uint256 _nonce) override external onlyGovernor {
-		require(0 <= _feePercentage && _feePercentage <= 100, "invalid fee percentage");
+	function setFee(uint16 _feePercentage, uint32 _nonce) override external onlyGovernor {
+		require(0 <= _feePercentage && _feePercentage <= 10_000, "invalid fee percentage");
 		require(proposalNonce < _nonce, "Invalid nonce");
 		require(_nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
 		feePercentage = _feePercentage;
@@ -148,7 +148,7 @@ contract GovernedTokenWrapper is TokenWrapper {
 		@param _nonce The nonce tracking updates to this contract
 		@notice Only the governor can call this function
 	 */
-	function setFeeRecipient(address payable _feeRecipient, uint256 _nonce) public onlyGovernor {
+	function setFeeRecipient(address payable _feeRecipient, uint32 _nonce) public onlyGovernor {
 		require(proposalNonce < _nonce, "Invalid nonce");
 		require(_nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
 		require(_feeRecipient != address(0), "Fee Recipient cannot be zero address");
@@ -158,9 +158,9 @@ contract GovernedTokenWrapper is TokenWrapper {
 
 	/**
 		@notice Gets the current fee percentage
-		@return uint8 The fee percentage
+		@return uint16 The fee percentage
 	 */
-	function getFee() view external returns (uint8) {
+	function getFee() view external returns (uint16) {
 		return feePercentage;
 	}
 

@@ -64,7 +64,7 @@ function PAUSER_ROLE() external view returns (bytes32)
 ### add
 
 ```solidity
-function add(address _tokenAddress, uint256 _nonce) external nonpayable
+function add(address _tokenAddress, uint32 _nonce) external nonpayable
 ```
 
 Adds a token at `_tokenAddress` to the GovernedTokenWrapper&#39;s wrapping listOnly the governor can call this function
@@ -76,7 +76,7 @@ Adds a token at `_tokenAddress` to the GovernedTokenWrapper&#39;s wrapping listO
 | Name | Type | Description |
 |---|---|---|
 | _tokenAddress | address | The address of the token to be added
-| _nonce | uint256 | The nonce tracking updates to this contract
+| _nonce | uint32 | The nonce tracking updates to this contract
 
 ### allowance
 
@@ -261,7 +261,7 @@ Get the amount to wrap for a target `_deposit` amount
 ### getFee
 
 ```solidity
-function getFee() external view returns (uint8)
+function getFee() external view returns (uint16)
 ```
 
 Gets the current fee percentage
@@ -273,7 +273,7 @@ Gets the current fee percentage
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint8 | uint8 The fee percentage
+| _0 | uint16 | uint16 The fee percentage
 
 ### getFeeFromAmount
 
@@ -406,7 +406,7 @@ function grantRole(bytes32 role, address account) external nonpayable
 
 
 
-*Grants `role` to `account`. If `account` had not been already granted `role`, emits a {RoleGranted} event. Requirements: - the caller must have ``role``&#39;s admin role.*
+*Grants `role` to `account`. If `account` had not been already granted `role`, emits a {RoleGranted} event. Requirements: - the caller must have ``role``&#39;s admin role. May emit a {RoleGranted} event.*
 
 #### Parameters
 
@@ -582,7 +582,7 @@ function proposalNonce() external view returns (uint256)
 ### remove
 
 ```solidity
-function remove(address _tokenAddress, uint256 _nonce) external nonpayable
+function remove(address _tokenAddress, uint32 _nonce) external nonpayable
 ```
 
 Removes a token at `_tokenAddress` from the GovernedTokenWrapper&#39;s wrapping listOnly the governor can call this function
@@ -594,7 +594,7 @@ Removes a token at `_tokenAddress` from the GovernedTokenWrapper&#39;s wrapping 
 | Name | Type | Description |
 |---|---|---|
 | _tokenAddress | address | The address of the token to be removed
-| _nonce | uint256 | The nonce tracking updates to this contract
+| _nonce | uint32 | The nonce tracking updates to this contract
 
 ### renounceRole
 
@@ -604,7 +604,7 @@ function renounceRole(bytes32 role, address account) external nonpayable
 
 
 
-*Revokes `role` from the calling account. Roles are often managed via {grantRole} and {revokeRole}: this function&#39;s purpose is to provide a mechanism for accounts to lose their privileges if they are compromised (such as when a trusted device is misplaced). If the calling account had been revoked `role`, emits a {RoleRevoked} event. Requirements: - the caller must be `account`.*
+*Revokes `role` from the calling account. Roles are often managed via {grantRole} and {revokeRole}: this function&#39;s purpose is to provide a mechanism for accounts to lose their privileges if they are compromised (such as when a trusted device is misplaced). If the calling account had been revoked `role`, emits a {RoleRevoked} event. Requirements: - the caller must be `account`. May emit a {RoleRevoked} event.*
 
 #### Parameters
 
@@ -621,7 +621,7 @@ function revokeRole(bytes32 role, address account) external nonpayable
 
 
 
-*Revokes `role` from `account`. If `account` had been granted `role`, emits a {RoleRevoked} event. Requirements: - the caller must have ``role``&#39;s admin role.*
+*Revokes `role` from `account`. If `account` had been granted `role`, emits a {RoleRevoked} event. Requirements: - the caller must have ``role``&#39;s admin role. May emit a {RoleRevoked} event.*
 
 #### Parameters
 
@@ -633,7 +633,7 @@ function revokeRole(bytes32 role, address account) external nonpayable
 ### setFee
 
 ```solidity
-function setFee(uint8 _feePercentage, uint256 _nonce) external nonpayable
+function setFee(uint16 _feePercentage, uint32 _nonce) external nonpayable
 ```
 
 Sets a new `_feePercentage` for the GovernedTokenWrapperOnly the governor can call this function
@@ -644,13 +644,13 @@ Sets a new `_feePercentage` for the GovernedTokenWrapperOnly the governor can ca
 
 | Name | Type | Description |
 |---|---|---|
-| _feePercentage | uint8 | The new fee percentage
-| _nonce | uint256 | The nonce tracking updates to this contract
+| _feePercentage | uint16 | The new fee percentage
+| _nonce | uint32 | The nonce tracking updates to this contract
 
 ### setFeeRecipient
 
 ```solidity
-function setFeeRecipient(address payable _feeRecipient, uint256 _nonce) external nonpayable
+function setFeeRecipient(address payable _feeRecipient, uint32 _nonce) external nonpayable
 ```
 
 Sets a new `_feeRecipient` for the GovernedTokenWrapperOnly the governor can call this function
@@ -662,7 +662,7 @@ Sets a new `_feeRecipient` for the GovernedTokenWrapperOnly the governor can cal
 | Name | Type | Description |
 |---|---|---|
 | _feeRecipient | address payable | The new fee recipient
-| _nonce | uint256 | The nonce tracking updates to this contract
+| _nonce | uint32 | The nonce tracking updates to this contract
 
 ### setGovernor
 

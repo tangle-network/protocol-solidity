@@ -29,9 +29,6 @@ contract TreasuryHandler is IExecutor, HandlerHelpers {
     // executionChainID => nonce => Update Record
     mapping (uint256 => mapping(uint256 => UpdateRecord)) public _updateRecords;
 
-    // executionChainID => number of updates
-    mapping(uint256 => uint) public _counts;
-
     /**
         @param bridgeAddress Contract address of previously deployed Bridge.
         @param initialResourceIDs Resource IDs are used to identify a specific contract address.
@@ -94,11 +91,11 @@ contract TreasuryHandler is IExecutor, HandlerHelpers {
         ITreasury treasury = ITreasury(treasuryAddress); 
  
 
-        if (functionSig == bytes4(keccak256("setHandler(address,uint256)"))) {  
+        if (functionSig == bytes4(keccak256("setHandler(address,uint32)"))) {  
             uint32 nonce = uint32(bytes4(arguments[0:4])); 
             address newHandler = address(bytes20(arguments[4:24]));
             treasury.setHandler(newHandler, nonce);
-        } else if (functionSig == bytes4(keccak256("rescueTokens(address,address,uint256,uint256)"))) {
+        } else if (functionSig == bytes4(keccak256("rescueTokens(address,address,uint256,uint32)"))) {
             uint32 nonce = uint32(bytes4(arguments[0:4]));
             address tokenAddress = address(bytes20(arguments[4:24]));
             address payable to = payable(address(bytes20(arguments[24:44])));

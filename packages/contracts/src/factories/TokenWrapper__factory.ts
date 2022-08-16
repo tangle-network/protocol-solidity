@@ -601,14 +601,14 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "uint8",
+        internalType: "uint16",
         name: "_feePercentage",
-        type: "uint8",
+        type: "uint16",
       },
       {
-        internalType: "uint256",
+        internalType: "uint32",
         name: "_nonce",
-        type: "uint256",
+        type: "uint32",
       },
     ],
     name: "setFee",

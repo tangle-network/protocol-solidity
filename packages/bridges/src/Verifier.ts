@@ -15,18 +15,13 @@ export class Verifier {
   signer: ethers.Signer;
   contract: VerifierContract;
 
-  private constructor(
-    contract: VerifierContract,
-    signer: ethers.Signer,
-  ) {
+  private constructor(contract: VerifierContract, signer: ethers.Signer) {
     this.signer = signer;
     this.contract = contract;
   }
 
   // Deploys a Verifier contract and all auxiliary verifiers used by this verifier
-  public static async createVerifier(
-    signer: ethers.Signer,
-  ) {
+  public static async createVerifier(signer: ethers.Signer) {
     const v2Factory = new Verifier2__factory(signer);
     let deployTx = v2Factory.getDeployTransaction().data;
     let gasEstimate = await v2Factory.signer.estimateGas({ data: deployTx });

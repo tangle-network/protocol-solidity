@@ -7,18 +7,15 @@ pragma solidity ^0.8.0;
 
 import "../trees/MerkleTreePoseidon.sol";
 import "../interfaces/IAnchorVerifier.sol";
-import "../interfaces/ILinkableAnchor.sol";
-import "./LinkableTree.sol";
+import "./LinkableAnchor.sol";
 
 /**
 	@title AnchorBase contract
 	@notice Base contract for interoperable anchors. Each anchor base
-	is a LinkableTree which allows it to be connected to other LinkableTrees.
+	is a LinkableAnchor which allows it to be connected to other LinkableAnchors.
  */
-abstract contract AnchorBase is LinkableTree {
+abstract contract AnchorBase is LinkableAnchor {
 	IAnchorVerifier public verifier;
-	uint32 proposalNonce = 0;
-
 	// map to store used nullifier hashes
 	mapping(bytes32 => bool) public nullifierHashes;
 	// map to store all commitments to prevent accidental deposits with the same commitment
@@ -32,10 +29,10 @@ abstract contract AnchorBase is LinkableTree {
 		@param _verifier The address of SNARK verifier for this contract
 		@param _hasher The address of hash contract
 		@param _merkleTreeHeight The height of deposits' Merkle Tree
-		@param _maxEdges The maximum number of edges in the LinkableTree + Verifier supports.
+		@param _maxEdges The maximum number of edges in the LinkableAnchor + Verifier supports.
 		@notice The `_maxEdges` is zero-knowledge circuit dependent, meaning the
 		`_verifier` ONLY supports a certain maximum # of edges. Therefore we need to
-		limit the size of the LinkableTree with this parameter.
+		limit the size of the LinkableAnchor with this parameter.
 	*/
 	constructor(
 		address _handler,
@@ -43,7 +40,7 @@ abstract contract AnchorBase is LinkableTree {
 		IPoseidonT3 _hasher,
 		uint32 _merkleTreeHeight,
 		uint8 _maxEdges
-	) LinkableTree(_handler, _hasher, _merkleTreeHeight, _maxEdges) {
+	) LinkableAnchor(_handler, _hasher, _merkleTreeHeight, _maxEdges) {
 		verifier = _verifier;
 	}
 
@@ -87,8 +84,7 @@ abstract contract AnchorBase is LinkableTree {
 	/**
 		@notice Verifies a zero-knowledge proof of knowledge over the tree according
 		to the underlying `Verifier` circuit this `AnchorBase` is using.
-		@notice This aims to be as generic as currently needed to support our
-		FixedDepositAnchor and VAnchor (variable deposit) contracts.
+		@notice This aims to be as generic as currently needed to support our VAnchor (variable deposit) contracts.
 		@param _proof The zero-knowledge proof bytes
 		@param _input The public input packed bytes
 		@return bool Whether the proof is valid
@@ -167,7 +163,7 @@ abstract contract AnchorBase is LinkableTree {
 		@param _handler The new handler address
 		@param _nonce The nonce for updating the new handler
 	 */
-	function setHandler(address _handler, uint32 _nonce) onlyHandler external {
+	function setHandler(address _handler, uint32 _nonce) override onlyHandler external {
 		require(_handler != address(0), "Handler cannot be 0");
 		require(proposalNonce < _nonce, "Invalid nonce");
 		require(_nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
@@ -181,19 +177,11 @@ abstract contract AnchorBase is LinkableTree {
 		@param _verifier The new verifier address
 		@param _nonce The nonce for updating the new verifier
 	 */
-	function setVerifier(address _verifier, uint32 _nonce) onlyHandler external {
+	function setVerifier(address _verifier, uint32 _nonce) override onlyHandler external {
 		require(_verifier != address(0), "Handler cannot be 0");
 		require(proposalNonce < _nonce, "Invalid nonce");
 		require(_nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
 		verifier = IAnchorVerifier(_verifier);
 		proposalNonce = _nonce;
-	}
-
-	/**
-		@notice Gets the proposal nonce of this contract
-		@dev The nonce tracks how many times the handler has updated the contract
-	 */
-	function getProposalNonce() public view returns (uint32) {
-		return proposalNonce;
 	}
 }

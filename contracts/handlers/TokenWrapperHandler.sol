@@ -28,9 +28,6 @@ contract TokenWrapperHandler is IExecutor, HandlerHelpers {
     // executionChainID => nonce => Update Record
     mapping (uint256 => mapping(uint256 => UpdateRecord)) public _updateRecords;
 
-    // executionChainID => number of updates
-    mapping(uint256 => uint) public _counts;
-
     /**
         @param bridgeAddress Contract address of previously deployed Bridge.
         @param initialResourceIDs Resource IDs are used to identify a specific contract address.
@@ -74,12 +71,7 @@ contract TokenWrapperHandler is IExecutor, HandlerHelpers {
         @notice Proposal execution should be initiated when a proposal is finalized in the Bridge contract.
         by a relayer on the deposit's destination chain. Or when a valid signature is produced by the DKG in the case of SignatureBridge.
         @param resourceID ResourceID corresponding to a particular set of GovernedTokenWrapper contracts
-        @param data Consists of {executionChainID}, {nonce}, {functionSig} {updateValue} all padded to 32 bytes.
-        @notice Data passed into the function should be constructed as follows:
-        executionChainID                                  uint256     bytes  0 - 32
-        nonce                                             uint256     bytes  32 - 64
-        functionSig                                       bytes32     bytes  64 - 96
-        updateValue                                       bytes32     bytes  96 - 128  
+        @param data Consists of a specific proposal data structure for each finer-grained token wrapper proposal
      */
     function executeProposal(bytes32 resourceID, bytes calldata data) external override onlyBridge {
         bytes32         resourceId;
@@ -92,21 +84,20 @@ contract TokenWrapperHandler is IExecutor, HandlerHelpers {
     
         address governedTokenAddress = _resourceIDToContractAddress[resourceID];
         GovernedTokenWrapper governedToken = GovernedTokenWrapper(governedTokenAddress); 
- 
-
-        if (functionSig == bytes4(keccak256("setFee(uint8,uint256)"))) {  
+        
+        if (functionSig == bytes4(keccak256("setFee(uint16,uint32)"))) {  
             uint32 nonce = uint32(bytes4(arguments[0:4])); 
-            uint8 newFee = uint8(bytes1(arguments[4:5]));
+            uint16 newFee = uint16(bytes2(arguments[4:6]));
             governedToken.setFee(newFee, nonce);
-        } else if (functionSig == bytes4(keccak256("add(address,uint256)"))) {
+        } else if (functionSig == bytes4(keccak256("add(address,uint32)"))) {
             uint32 nonce = uint32(bytes4(arguments[0:4]));
             address tokenAddress = address(bytes20(arguments[4:24]));
             governedToken.add(tokenAddress, nonce);
-        } else if (functionSig == bytes4(keccak256("remove(address,uint256)"))) {
+        } else if (functionSig == bytes4(keccak256("remove(address,uint32)"))) {
             uint32 nonce = uint32(bytes4(arguments[0:4]));
             address tokenAddress = address(bytes20(arguments[4:24]));
             governedToken.remove(tokenAddress, nonce);
-        } else if (functionSig == bytes4(keccak256("setFeeRecipient(address,uint256)"))) {
+        } else if (functionSig == bytes4(keccak256("setFeeRecipient(address,uint32)"))) {
             uint32 nonce = uint32(bytes4(arguments[0:4]));
             address payable feeRecipient = payable(address(bytes20(arguments[4:24])));
             governedToken.setFeeRecipient(feeRecipient, nonce);

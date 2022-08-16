@@ -2,66 +2,48 @@
  * Copyright 2021 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-
 const assert = require('assert');
 const path = require('path');
 import { ethers } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
  
 // Convenience wrapper classes for contract classes
-import { Verifier, SignatureBridgeSide } from '../../packages/bridges/src';
-import { Anchor, AnchorHandler } from '../../packages/anchors/src';
+import { SignatureBridgeSide } from '../../packages/bridges/src';
+import { VAnchor, AnchorHandler } from '../../packages/anchors/src';
+import { Verifier } from '../../packages/vbridge/src';
 import { MintableToken, Treasury, TreasuryHandler } from '../../packages/tokens/src';
 import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '../../packages/utils/src';
-import { PoseidonT3__factory } from '../../packages/contracts';
+import { PoseidonT3__factory } from '../../packages/contracts/src';
 import { GovernedTokenWrapper, TokenWrapperHandler } from '../../packages/tokens/src';
-import { BigNumber, Wallet } from 'ethers';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
- 
-describe('SignatureBridgeSideConstruction', () => {
- 
-  let zkComponents: ZkComponents;
- 
-  before(async () => {
-    zkComponents = await fetchComponentsFromFilePaths(
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/poseidon_anchor_2.wasm'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/witness_calculator.js'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/circuit_final.zkey')
-    );
-  })
-
-  it('should create the signature bridge side which can affect the anchor state', async () => {
-    const wallet = ethers.Wallet.createRandom();
-    const initialGovernor = wallet;
-    const signers = await ethers.getSigners();
-    const admin = signers[1];
-    const bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor, admin);
-  })
-});
+import { BigNumber } from 'ethers';
+import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
+import { CircomUtxo, Keypair } from '@webb-tools/sdk-core';
 
 describe('SignatureBridgeSide use', () => {
-
-  let zkComponents: ZkComponents;
-  let wallet: Wallet;
-  let initialGovernor: Wallet;
-  let admin: SignerWithAddress;
-  let signers: SignerWithAddress[];
+  let zkComponents2_2: ZkComponents;
+  let zkComponents16_2: ZkComponents;
+  let admin = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
   let bridgeSide: SignatureBridgeSide;
+  let maxEdges = 1;
+  const zeroAddress = "0x0000000000000000000000000000000000000000";
+  const chainID1 = getChainIdType(31337);
 
   before(async () => {
-    zkComponents = await fetchComponentsFromFilePaths(
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/poseidon_anchor_2.wasm'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/witness_calculator.js'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/circuit_final.zkey')
+    zkComponents2_2 = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.cjs'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/circuit_final.zkey')
     );
-    signers = await ethers.getSigners();
+
+    zkComponents16_2 = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.cjs'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/circuit_final.zkey')
+    );
   })
 
   beforeEach(async () => {
-    wallet = ethers.Wallet.createRandom();
-    initialGovernor = wallet;
-    admin = signers[1];
-    bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor, admin);
+    bridgeSide = await SignatureBridgeSide.createBridgeSide(admin);
   })
 
   it('should set resource with signature', async () => {
@@ -69,29 +51,25 @@ describe('SignatureBridgeSide use', () => {
     const hasherFactory = new PoseidonT3__factory(admin);
     let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
     await hasherInstance.deployed();
-
     const verifier = await Verifier.createVerifier(admin);
-
     const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
     await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
 
     const anchorHandler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, [], [], admin);
-
-    const anchor = await Anchor.createAnchor(
+    const anchor = await VAnchor.createVAnchor(
       verifier.contract.address,
-      hasherInstance.address,
-      '1000000000000',
       30,
-      tokenInstance.contract.address,
+      hasherInstance.address,
       anchorHandler.contract.address,
-      5,
-      zkComponents,
-      admin
+      tokenInstance.contract.address,
+      maxEdges,
+      zkComponents2_2,
+      zkComponents16_2,
+      admin,
     );
-
     await tokenInstance.approveSpending(anchor.contract.address);
-    await bridgeSide.setAnchorHandler(anchorHandler);
-    // //Function call below sets resource with signature
+    bridgeSide.setAnchorHandler(anchorHandler);
+    // Function call below sets resource with signature
     await bridgeSide.connectAnchorWithSignature(anchor);
     //Check that proposal nonce is updated on anchor contract since handler prposal has been executed
     assert.strictEqual((await bridgeSide.contract.proposalNonce()).toNumber(), 1);
@@ -110,38 +88,40 @@ describe('SignatureBridgeSide use', () => {
 
     const anchorHandler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, [], [], admin);
 
-    const sourceAnchor = await Anchor.createAnchor(
+    const srcAnchor = await VAnchor.createVAnchor(
       verifier.contract.address,
-      hasherInstance.address,
-      '1000000000000',
       30,
-      tokenInstance.contract.address,
+      hasherInstance.address,
       anchorHandler.contract.address,
-      5,
-      zkComponents,
-      admin
+      tokenInstance.contract.address,
+      maxEdges,
+      zkComponents2_2,
+      zkComponents16_2,
+      admin,
     );
 
-    const destAnchor = await Anchor.createAnchor(
-      verifier.contract.address,
-      hasherInstance.address,
-      '1000000000000',
-      30,
-      tokenInstance.contract.address,
-      anchorHandler.contract.address,
-      5,
-      zkComponents,
-      admin
+    await tokenInstance.approveSpending(srcAnchor.contract.address);
+
+    bridgeSide.setAnchorHandler(anchorHandler);
+    const res = await bridgeSide.connectAnchorWithSignature(srcAnchor);
+
+    await bridgeSide.executeMinWithdrawalLimitProposalWithSig(srcAnchor, BigNumber.from(0).toString());
+    await bridgeSide.executeMaxDepositLimitProposalWithSig(
+      srcAnchor,
+      BigNumber.from(1e8).toString()
     );
 
-    await tokenInstance.approveSpending(destAnchor.contract.address);
-    await tokenInstance.approveSpending(sourceAnchor.contract.address);
-
-    await bridgeSide.setAnchorHandler(anchorHandler);
-    bridgeSide.setResourceWithSignature(destAnchor);
-    await sourceAnchor.deposit(await admin.getChainId());
-    const destResourceID = await destAnchor.createResourceId();
-    await bridgeSide.executeAnchorProposalWithSig(sourceAnchor, destResourceID);
+    // Define inputs/outputs for transact function
+    const depositUtxo = await CircomUtxo.generateUtxo({
+      curve: 'Bn254',
+      backend: 'Circom',
+      amount: 1e7.toString(),
+      originChainId: chainID1.toString(),
+      chainId: chainID1.toString(),
+      keypair: new Keypair(),
+    });
+    // Transact on the bridge
+    await srcAnchor.transact([], [depositUtxo], { [chainID1.toString()]: [] }, '0', zeroAddress, zeroAddress);
   })
 
   it('execute fee proposal', async () => {
@@ -151,7 +131,6 @@ describe('SignatureBridgeSide use', () => {
     // Create Treasury and TreasuryHandler
     const treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeSide.contract.address, [],[], admin);
     const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, admin);
-    await bridgeSide.setTreasuryHandler(treasuryHandler);
 
     // Create a GovernedTokenWrapper
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
@@ -164,25 +143,27 @@ describe('SignatureBridgeSide use', () => {
       admin,
     );
 
-    //Set bridgeSide handler to tokenWrapperHandler
+    // Set bridgeSide handler to tokenWrapperHandler
     bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
-    //Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
+    // Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
     await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
-    //Execute change fee proposal
+    // Execute change fee proposal
+    console.log('1');
     await bridgeSide.executeFeeProposalWithSig(governedToken, 5);
-    //Check that fee actually changed
+    console.log('2');
+    // Check that fee actually changed
     assert.strictEqual((await governedToken.contract.getFee()).toString(), '5');
   })
 
-  it('execute cannot set fee > 100', async () => {
-    //Deploy TokenWrapperHandler
+  it('execute cannot set fee > 10000', async () => {
+    // Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
 
     // Create Treasury and TreasuryHandler
     const treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeSide.contract.address, [],[], admin);
     const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, bridgeSide.admin);
 
-    //Create a GovernedTokenWrapper
+    // Create a GovernedTokenWrapper
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
@@ -193,28 +174,28 @@ describe('SignatureBridgeSide use', () => {
       admin,
     );
 
-    //Set bridgeSide handler to tokenWrapperHandler
+    // Set bridgeSide handler to tokenWrapperHandler
     bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
 
-    //Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
+    // Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
     await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
 
-    //Execute change fee proposal
+    // Execute change fee proposal
     await TruffleAssert.reverts(
-      bridgeSide.executeFeeProposalWithSig(governedToken, 101),
+      bridgeSide.executeFeeProposalWithSig(governedToken, 10001),
       'invalid fee percentage'
     );
   })
 
   it('execute add token proposal', async () => {
-    //Deploy TokenWrapperHandler
+    // Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
 
     // Create Treasury and TreasuryHandler
     const treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeSide.contract.address, [],[], bridgeSide.admin);
     const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, bridgeSide.admin);
-    
-    //Create a GovernedTokenWrapper
+
+    // Create a GovernedTokenWrapper
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
@@ -225,32 +206,32 @@ describe('SignatureBridgeSide use', () => {
       admin,
     );
 
-    //Set bridgeSide handler to tokenWrapperHandler
+    // Set bridgeSide handler to tokenWrapperHandler
     bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
 
-    //Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
+    // Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
     await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
 
-    //Create an ERC20 Token
+    // Create an ERC20 Token
     const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
     await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
 
-    //Execute Proposal to add that token to the governedToken
+    // Execute Proposal to add that token to the governedToken
     await bridgeSide.executeAddTokenProposalWithSig(governedToken, tokenInstance.contract.address);
 
-    //Check that governedToken contains the added token
+    // Check that governedToken contains the added token
     assert((await governedToken.contract.getTokens()).includes(tokenInstance.contract.address));
   })
 
   it('execute remove token proposal', async () => {
-    //Deploy TokenWrapperHandler
+    // Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
 
     // Create Treasury and TreasuryHandler
     const treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeSide.contract.address, [],[], bridgeSide.admin);
     const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, bridgeSide.admin);
 
-    //Create a GovernedTokenWrapper
+    // Create a GovernedTokenWrapper
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
@@ -261,41 +242,41 @@ describe('SignatureBridgeSide use', () => {
       admin,
     );
 
-    //Set bridgeSide handler to tokenWrapperHandler
+    // Set bridgeSide handler to tokenWrapperHandler
     bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
 
-    //Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
+    // Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
     await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
 
 
     // Add a Token---------
 
-    //Create an ERC20 Token
+    // Create an ERC20 Token
     const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
     await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
 
-    //Execute Proposal to add that token to the governedToken
+    // Execute Proposal to add that token to the governedToken
     await bridgeSide.executeAddTokenProposalWithSig(governedToken, tokenInstance.contract.address);
 
-    //Check that governedToken contains the added token
+    // Check that governedToken contains the added token
     assert((await governedToken.contract.getTokens()).includes(tokenInstance.contract.address));
-    //End Add a Token--------
+    // End Add a Token--------
 
-    //Remove a Token
+    // Remove a Token
     await bridgeSide.executeRemoveTokenProposalWithSig(governedToken, tokenInstance.contract.address);
 
     assert((await governedToken.contract.getTokens()).length === 0);  
   })
 
   it('check nonce is increasing across multiple proposals', async () => {
-    //Deploy TokenWrapperHandler
+    // Deploy TokenWrapperHandler
     const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
 
     // Create Treasury and TreasuryHandler
     const treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeSide.contract.address, [],[], bridgeSide.admin);
     const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, bridgeSide.admin);
 
-    //Create a GovernedTokenWrapper
+    // Create a GovernedTokenWrapper
     const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
@@ -306,32 +287,32 @@ describe('SignatureBridgeSide use', () => {
       admin,
     );
 
-    //Set bridgeSide handler to tokenWrapperHandler
+    // Set bridgeSide handler to tokenWrapperHandler
     bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
 
-    //Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
+    // Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
     await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
 
-    //Execute change fee proposal
+    // Execute change fee proposal
     await bridgeSide.executeFeeProposalWithSig(governedToken, 5);
 
-    //Check that fee actually changed
+    // Check that fee actually changed
     assert.strictEqual((await governedToken.contract.getFee()).toString(), '5');
     assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '1');
 
-    //Create an ERC20 Token
+    // Create an ERC20 Token
     const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
     await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
 
-    //Execute Proposal to add that token to the governedToken
+    // Execute Proposal to add that token to the governedToken
     await bridgeSide.executeAddTokenProposalWithSig(governedToken, tokenInstance.contract.address);
 
-    //Check that governedToken contains the added token
+    // Check that governedToken contains the added token
     assert((await governedToken.contract.getTokens()).includes(tokenInstance.contract.address));
-    //End Add a Token--------
+    // End Add a Token--------
     assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '2');
 
-    //Remove a Token
+    // Remove a Token
     await bridgeSide.executeRemoveTokenProposalWithSig(governedToken, tokenInstance.contract.address);
 
     assert((await governedToken.contract.getTokens()).length === 0);  
@@ -352,24 +333,24 @@ describe('SignatureBridgeSide use', () => {
 
     const anchorHandler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, [], [], admin);
 
-    const anchor = await Anchor.createAnchor(
+    const anchor = await VAnchor.createVAnchor(
       verifier.contract.address,
-      hasherInstance.address,
-      '1000000000000',
       30,
-      tokenInstance.contract.address,
+      hasherInstance.address,
       anchorHandler.contract.address,
-      5,
-      zkComponents,
-      admin
+      tokenInstance.contract.address,
+      maxEdges,
+      zkComponents2_2,
+      zkComponents16_2,
+      admin,
     );
 
     await tokenInstance.approveSpending(anchor.contract.address);
 
     await bridgeSide.setAnchorHandler(anchorHandler);
-    // //Function call below sets resource with signature
+    // Function call below sets resource with signature
     await bridgeSide.connectAnchorWithSignature(anchor);
-    //Check that proposal nonce is updated on anchor contract since handler prposal has been executed
+    // Check that proposal nonce is updated on anchor contract since handler prposal has been executed
     assert.strictEqual((await bridgeSide.contract.proposalNonce()).toString(), '1');
 
     await bridgeSide.connectAnchorWithSignature(anchor);
@@ -384,36 +365,42 @@ describe('SignatureBridgeSide use', () => {
     await bridgeSide.connectAnchorWithSignature(anchor);
     assert.strictEqual((await bridgeSide.contract.proposalNonce()).toString(), '5');
   })
- })
+})
 
- describe('Rescue Tokens Tests for ERC20 Tokens', () => {
-  let zkComponents: ZkComponents;
-  let sourceAnchor: Anchor;
+describe('Rescue Tokens Tests for ERC20 Tokens', () => {
+  let zkComponents2_2: ZkComponents;
+  let zkComponents16_2: ZkComponents;
+  let srcAnchor: VAnchor;
   let anchorHandler: AnchorHandler;
   let erc20TokenInstance: MintableToken;
+  let admin = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
   let bridgeSide: SignatureBridgeSide;
   let wrappingFee: number;
   let signers;
-  let governedToken;
-  let treasuryHandler;
+  let governedToken: GovernedTokenWrapper;
+  let treasuryHandler: TreasuryHandler;
   let treasury;
   const zeroAddress = "0x0000000000000000000000000000000000000000";
-
+  const chainID1 = getChainIdType(31337);
+  let maxEdges = 1;
  
   before(async () => {
-    zkComponents = await fetchComponentsFromFilePaths(
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/poseidon_anchor_2.wasm'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/witness_calculator.js'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/circuit_final.zkey')
+    zkComponents2_2 = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.cjs'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/circuit_final.zkey')
+    );
+
+    zkComponents16_2 = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.cjs'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/circuit_final.zkey')
     );
   })
 
   beforeEach(async() => {
-    const wallet = ethers.Wallet.createRandom();
-    const initialGovernor = wallet;
     signers = await ethers.getSigners();
-    const admin = signers[1];
-    bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor, admin);
+    bridgeSide = await SignatureBridgeSide.createBridgeSide(admin);
 
     // Create Treasury and TreasuryHandler
     treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeSide.contract.address, [],[], admin);
@@ -473,41 +460,58 @@ describe('SignatureBridgeSide use', () => {
 
     anchorHandler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, [], [], admin);
 
-    let anchorDenomination = 1000000000000;
-    sourceAnchor = await Anchor.createAnchor(
+    let depositAmount = 1e7;
+    srcAnchor = await VAnchor.createVAnchor(
       verifier.contract.address,
-      hasherInstance.address,
-      anchorDenomination.toString(),
       30,
-      governedToken.contract.address,
+      hasherInstance.address,
       anchorHandler.contract.address,
-      5,
-      zkComponents,
-      admin
+      governedToken.contract.address,
+      maxEdges,
+      zkComponents2_2,
+      zkComponents16_2,
+      admin,
     );
 
-    await governedToken.grantMinterRole(sourceAnchor.contract.address);
+    await governedToken.grantMinterRole(srcAnchor.contract.address);
     await erc20TokenInstance.approveSpending(governedToken.contract.address);
-    await erc20TokenInstance.approveSpending(sourceAnchor.contract.address);
+    await erc20TokenInstance.approveSpending(srcAnchor.contract.address);
+    bridgeSide.setAnchorHandler(anchorHandler);
+    const res = await bridgeSide.connectAnchorWithSignature(srcAnchor);
+    await bridgeSide.executeMinWithdrawalLimitProposalWithSig(srcAnchor, BigNumber.from(0).toString());
+    await bridgeSide.executeMaxDepositLimitProposalWithSig(
+      srcAnchor,
+      BigNumber.from(1e8).toString()
+    );
+
+    // Define inputs/outputs for transact function
+    const depositUtxo = await CircomUtxo.generateUtxo({
+      curve: 'Bn254',
+      backend: 'Circom',
+      amount: depositAmount.toString(),
+      originChainId: chainID1.toString(),
+      chainId: chainID1.toString(),
+      keypair: new Keypair(),
+    });
     
     await TruffleAssert.reverts(
-     sourceAnchor.wrapAndDeposit(erc20TokenInstance.contract.address, wrappingFee, getChainIdType(await admin.getChainId())),
-     'Fee Recipient cannot be zero address'
+      srcAnchor.transactWrap(erc20TokenInstance.contract.address, [], [depositUtxo], '0', zeroAddress, zeroAddress, { [chainID1.toString()]: [] }),
+      'Fee Recipient cannot be zero address'
     ); 
 
     // Change Fee Recipient to treasury Address
     await bridgeSide.executeFeeRecipientProposalWithSig(governedToken, treasury.contract.address);
 
     // For ERC20 Tests
-    await sourceAnchor.wrapAndDeposit(erc20TokenInstance.contract.address, wrappingFee, getChainIdType(await admin.getChainId()));
+    await srcAnchor.transactWrap(erc20TokenInstance.contract.address, [], [depositUtxo], '0', zeroAddress, zeroAddress, { [chainID1.toString()]: [] });
 
     // Anchor Denomination amount should go to TokenWrapper
-    assert.strictEqual((await erc20TokenInstance.getBalance(governedToken.contract.address)).toString(), anchorDenomination.toString());
+    assert.strictEqual((await erc20TokenInstance.getBalance(governedToken.contract.address)).toString(), depositAmount.toString());
 
     // The wrapping fee should be transferred to the treasury
-    assert.strictEqual((await erc20TokenInstance.getBalance(treasury.contract.address)).toString(), parseInt((anchorDenomination * (wrappingFee / (100 - wrappingFee))).toString()).toString());
+    assert.strictEqual((await erc20TokenInstance.getBalance(treasury.contract.address)).toString(), parseInt((depositAmount * (wrappingFee / (10000 - wrappingFee))).toString()).toString());
 
-    assert.strictEqual((await governedToken.contract.balanceOf(sourceAnchor.contract.address)).toString(), anchorDenomination.toString());
+    assert.strictEqual((await governedToken.contract.balanceOf(srcAnchor.contract.address)).toString(), depositAmount.toString());
   })
 
   it('should rescue tokens', async () => {
@@ -548,147 +552,169 @@ describe('SignatureBridgeSide use', () => {
 })
 
 describe('Rescue Tokens Tests for Native ETH', () => {
- let zkComponents: ZkComponents;
- let sourceAnchor: Anchor;
- let destAnchor: Anchor;
- let anchorHandler: AnchorHandler;
- let erc20TokenInstance: MintableToken;
- let bridgeSide: SignatureBridgeSide;
- let wrappingFee: number;
- let signers;
- let governedToken;
- let treasury;
- let treasuryHandler;
- const zeroAddress = "0x0000000000000000000000000000000000000000";
+  let zkComponents2_2: ZkComponents;
+  let zkComponents16_2: ZkComponents;
+  let srcAnchor: VAnchor;
+  let anchorHandler: AnchorHandler;
+  let admin = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
+  let bridgeSide: SignatureBridgeSide;
+  let wrappingFee: number;
+  let signers;
+  let governedToken: GovernedTokenWrapper;
+  let treasury;
+  let treasuryHandler;
+  const zeroAddress = "0x0000000000000000000000000000000000000000";
+  const chainID1 = getChainIdType(31337);
+  let maxEdges = 1;
 
- before(async () => {
-   zkComponents = await fetchComponentsFromFilePaths(
-     path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/poseidon_anchor_2.wasm'),
-     path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/witness_calculator.js'),
-     path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/anchor/2/circuit_final.zkey')
-   );
- })
+  before(async () => {
+    zkComponents2_2 = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.cjs'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/circuit_final.zkey')
+    );
 
- beforeEach(async() => {
-   const wallet = ethers.Wallet.createRandom();
-   const initialGovernor = wallet;
-   signers = await ethers.getSigners();
-   const admin = signers[1];
-   bridgeSide = await SignatureBridgeSide.createBridgeSide(initialGovernor, admin);
+    zkComponents16_2 = await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.cjs'),
+      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/circuit_final.zkey')
+    );
+  })
 
-   // Deploy TokenWrapperHandler
-   const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
+  beforeEach(async() => {
+    signers = await ethers.getSigners();
+    bridgeSide = await SignatureBridgeSide.createBridgeSide(admin);
 
-   // Create Treasury and TreasuryHandler
-   treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeSide.contract.address, [],[], admin);
-   treasury = await Treasury.createTreasury(treasuryHandler.contract.address, admin);
-   await bridgeSide.setTreasuryHandler(treasuryHandler);
-   await bridgeSide.setTreasuryResourceWithSignature(treasury);
+    // Deploy TokenWrapperHandler
+    const tokenWrapperHandler = await TokenWrapperHandler.createTokenWrapperHandler(bridgeSide.contract.address, [], [], admin);
 
-   // Create a GovernedTokenWrapper
-   governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
-     `webbETH-test-1`,
-     `webbETH-test-1`,
-     zeroAddress,
-     tokenWrapperHandler.contract.address,
-     '10000000000000000000000000',
-     true,
-     admin,
-   );
+    // Create Treasury and TreasuryHandler
+    treasuryHandler = await TreasuryHandler.createTreasuryHandler(bridgeSide.contract.address, [],[], admin);
+    treasury = await Treasury.createTreasury(treasuryHandler.contract.address, admin);
+    await bridgeSide.setTreasuryHandler(treasuryHandler);
+    await bridgeSide.setTreasuryResourceWithSignature(treasury);
 
-   // Set bridgeSide handler to tokenWrapperHandler
-   bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
+    // Create a GovernedTokenWrapper
+    governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
+      `webbETH-test-1`,
+      `webbETH-test-1`,
+      zeroAddress,
+      tokenWrapperHandler.contract.address,
+      '10000000000000000000000000',
+      true,
+      admin,
+    );
 
-   // Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
-   await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
+    // Set bridgeSide handler to tokenWrapperHandler
+    bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
 
-   wrappingFee = 10;
-   // Execute change fee proposal
-   await bridgeSide.executeFeeProposalWithSig(governedToken, wrappingFee);
+    // Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
+    await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
 
-   // Check that fee actually changed
-   assert.strictEqual((await governedToken.contract.getFee()).toString(), '10');
+    wrappingFee = 10;
+    // Execute change fee proposal
+    await bridgeSide.executeFeeProposalWithSig(governedToken, wrappingFee);
 
-   // Create an anchor whose token is the governedToken
-   // Wrap and Deposit ERC20 liquidity into that anchor
+    // Check that fee actually changed
+    assert.strictEqual((await governedToken.contract.getFee()).toString(), '10');
 
-   // Create the Hasher and Verifier for the chain
-   const hasherFactory = new PoseidonT3__factory(admin);
-   let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
-   await hasherInstance.deployed();
+    // Create an anchor whose token is the governedToken
+    // Wrap and Deposit ERC20 liquidity into that anchor
 
-   const verifier = await Verifier.createVerifier(admin);
+    // Create the Hasher and Verifier for the chain
+    const hasherFactory = new PoseidonT3__factory(admin);
+    let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
+    await hasherInstance.deployed();
 
-   anchorHandler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, [], [], admin);
+    const verifier = await Verifier.createVerifier(admin);
 
-   let anchorDenomination = 1000000000000;
-   sourceAnchor = await Anchor.createAnchor(
-     verifier.contract.address,
-     hasherInstance.address,
-     anchorDenomination.toString(),
-     30,
-     governedToken.contract.address,
-     anchorHandler.contract.address,
-     5,
-     zkComponents,
-     admin
-   );
+    anchorHandler = await AnchorHandler.createAnchorHandler(bridgeSide.contract.address, [], [], admin);
 
-   await governedToken.grantMinterRole(sourceAnchor.contract.address);
+    let depositAmount = 1e7;
+    srcAnchor = await VAnchor.createVAnchor(
+      verifier.contract.address,
+      30,
+      hasherInstance.address,
+      anchorHandler.contract.address,
+      governedToken.contract.address,
+      maxEdges,
+      zkComponents2_2,
+      zkComponents16_2,
+      admin,
+    );
 
-   await TruffleAssert.reverts(
-    sourceAnchor.wrapAndDeposit(zeroAddress, wrappingFee, getChainIdType(await admin.getChainId())),
-    'Fee Recipient cannot be zero address'
-   ); 
+    await governedToken.grantMinterRole(srcAnchor.contract.address);
+    bridgeSide.setAnchorHandler(anchorHandler);
+    const res = await bridgeSide.connectAnchorWithSignature(srcAnchor);
+    await bridgeSide.executeMinWithdrawalLimitProposalWithSig(srcAnchor, BigNumber.from(0).toString());
+    await bridgeSide.executeMaxDepositLimitProposalWithSig(
+      srcAnchor,
+      BigNumber.from(1e8).toString()
+    );
 
-   // Change Fee Recipient to treasury Address
-   await bridgeSide.executeFeeRecipientProposalWithSig(governedToken, treasury.contract.address);
+    // Define inputs/outputs for transact function
+    const depositUtxo = await CircomUtxo.generateUtxo({
+      curve: 'Bn254',
+      backend: 'Circom',
+      amount: depositAmount.toString(),
+      originChainId: chainID1.toString(),
+      chainId: chainID1.toString(),
+      keypair: new Keypair(),
+    });
 
-   // For Native ETH Tests
-   await sourceAnchor.wrapAndDeposit(zeroAddress, wrappingFee, getChainIdType(await admin.getChainId()));
+    await TruffleAssert.reverts(
+      srcAnchor.transactWrap(zeroAddress, [], [depositUtxo], '0', zeroAddress, zeroAddress, { [chainID1.toString()]: [] }),
+      'Fee Recipient cannot be zero address'
+    ); 
 
-   // Anchor Denomination amount should go to TokenWrapper
-   assert.strictEqual((await ethers.provider.getBalance(governedToken.contract.address)).toString(), anchorDenomination.toString());
+    // Change Fee Recipient to treasury Address
+    await bridgeSide.executeFeeRecipientProposalWithSig(governedToken, treasury.contract.address);
 
-   // The wrapping fee should be transferred to the treasury
-   assert.strictEqual((await ethers.provider.getBalance(treasury.contract.address)).toString(), parseInt((anchorDenomination * (wrappingFee / (100 - wrappingFee))).toString()).toString());
+    // For Native ETH Tests
+    await srcAnchor.transactWrap(zeroAddress, [], [depositUtxo], '0', zeroAddress, zeroAddress, { [chainID1.toString()]: [] });
 
-   assert.strictEqual((await governedToken.contract.balanceOf(sourceAnchor.contract.address)).toString(), anchorDenomination.toString());
- })
+    // Anchor Denomination amount should go to TokenWrapper
+    assert.strictEqual((await ethers.provider.getBalance(governedToken.contract.address)).toString(), depositAmount.toString());
 
- it('should rescue native eth', async () => {
-   let balTreasuryBeforeRescue = await ethers.provider.getBalance(treasury.contract.address);
-   let to = signers[2].address;
-   let balToBeforeRescue = await ethers.provider.getBalance(to);
+    // The wrapping fee should be transferred to the treasury
+    assert.strictEqual((await ethers.provider.getBalance(treasury.contract.address)).toString(), parseInt((depositAmount * (wrappingFee / (10000 - wrappingFee))).toString()).toString());
 
-   await bridgeSide.executeRescueTokensProposalWithSig(treasury, zeroAddress, to, BigNumber.from('500'));
+    assert.strictEqual((await governedToken.contract.balanceOf(srcAnchor.contract.address)).toString(), depositAmount.toString());
+  })
 
-   let balTreasuryAfterRescue = await ethers.provider.getBalance(treasury.contract.address);
-   let balToAfterRescue = await ethers.provider.getBalance(to);
+  it('should rescue native eth', async () => {
+    let balTreasuryBeforeRescue = await ethers.provider.getBalance(treasury.contract.address);
+    let to = signers[2].address;
+    let balToBeforeRescue = await ethers.provider.getBalance(to);
 
-   assert.strictEqual(balTreasuryBeforeRescue.sub(balTreasuryAfterRescue).toString(),'500');
+    await bridgeSide.executeRescueTokensProposalWithSig(treasury, zeroAddress, to, BigNumber.from('500'));
 
-   assert.strictEqual(balToAfterRescue.sub(balToBeforeRescue).toString(),'500');
+    let balTreasuryAfterRescue = await ethers.provider.getBalance(treasury.contract.address);
+    let balToAfterRescue = await ethers.provider.getBalance(to);
 
-   assert.strictEqual((await treasury.contract.proposalNonce()).toString(), '1');
- })
+    assert.strictEqual(balTreasuryBeforeRescue.sub(balTreasuryAfterRescue).toString(),'500');
 
- it('should rescue all native eth when amountToRescue greater than treasury balance', async () => {
-   let balTreasuryBeforeRescue = await ethers.provider.getBalance(treasury.contract.address);
-   let to = signers[2].address;
-   let balToBeforeRescue = await ethers.provider.getBalance(to);
+    assert.strictEqual(balToAfterRescue.sub(balToBeforeRescue).toString(),'500');
 
-   await bridgeSide.executeRescueTokensProposalWithSig(treasury, zeroAddress, to, BigNumber.from('500000000000000'));
+    assert.strictEqual((await treasury.contract.proposalNonce()).toString(), '1');
+  })
 
-   let balTreasuryAfterRescue = await ethers.provider.getBalance(treasury.contract.address);
-   let balToAfterRescue = await ethers.provider.getBalance(to);
+  it('should rescue all native eth when amountToRescue greater than treasury balance', async () => {
+    let balTreasuryBeforeRescue = await ethers.provider.getBalance(treasury.contract.address);
+    let to = signers[2].address;
+    let balToBeforeRescue = await ethers.provider.getBalance(to);
 
-   // balTreasuryAfterRescue = 0
-   assert.strictEqual(balTreasuryBeforeRescue.sub(balTreasuryAfterRescue).toString(), balTreasuryBeforeRescue.toString());
+    await bridgeSide.executeRescueTokensProposalWithSig(treasury, zeroAddress, to, BigNumber.from('500000000000000'));
 
-   // Should be balTreasuryBeforeRescue, since all tokens are transferred to the to address
-   assert.strictEqual(balToAfterRescue.sub(balToBeforeRescue).toString(),balTreasuryBeforeRescue.toString());
+    let balTreasuryAfterRescue = await ethers.provider.getBalance(treasury.contract.address);
+    let balToAfterRescue = await ethers.provider.getBalance(to);
 
-   assert.strictEqual((await treasury.contract.proposalNonce()).toString(), '1');
- })
+    // balTreasuryAfterRescue = 0
+    assert.strictEqual(balTreasuryBeforeRescue.sub(balTreasuryAfterRescue).toString(), balTreasuryBeforeRescue.toString());
+
+    // Should be balTreasuryBeforeRescue, since all tokens are transferred to the to address
+    assert.strictEqual(balToAfterRescue.sub(balToBeforeRescue).toString(),balTreasuryBeforeRescue.toString());
+
+    assert.strictEqual((await treasury.contract.proposalNonce()).toString(), '1');
+  })
 })

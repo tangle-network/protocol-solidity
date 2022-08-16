@@ -11,6 +11,7 @@
   ],
   "compilerOptions": {
     "declaration": true,
+    "downlevelIteration": true,
     "esModuleInterop": true,
     "module": "commonjs",
     "moduleResolution": "node",

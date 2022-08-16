@@ -13,7 +13,7 @@ The interface supports updating edges for a graph-like functionality. It also su
 ### configureMaximumDepositLimit
 
 ```solidity
-function configureMaximumDepositLimit(uint256 _maximumDepositAmount) external nonpayable
+function configureMaximumDepositLimit(uint256 maximumDepositAmount, uint32 nonce) external nonpayable
 ```
 
 Sets the maximal deposit limit for the anchor
@@ -24,12 +24,13 @@ Sets the maximal deposit limit for the anchor
 
 | Name | Type | Description |
 |---|---|---|
-| _maximumDepositAmount | uint256 | The new maximal deposit limit
+| maximumDepositAmount | uint256 | The new maximal deposit limit
+| nonce | uint32 | undefined
 
 ### configureMinimalWithdrawalLimit
 
 ```solidity
-function configureMinimalWithdrawalLimit(uint256 _minimalWithdrawalAmount) external nonpayable
+function configureMinimalWithdrawalLimit(uint256 minimalWithdrawalAmount, uint32 nonce) external nonpayable
 ```
 
 Sets the minimal withdrawal limit for the anchor
@@ -40,12 +41,13 @@ Sets the minimal withdrawal limit for the anchor
 
 | Name | Type | Description |
 |---|---|---|
-| _minimalWithdrawalAmount | uint256 | The new minimal withdrawal limit
+| minimalWithdrawalAmount | uint256 | The new minimal withdrawal limit
+| nonce | uint32 | undefined
 
 ### setHandler
 
 ```solidity
-function setHandler(address _handler, uint32 _nonce) external nonpayable
+function setHandler(address handler, uint32 nonce) external nonpayable
 ```
 
 Sets the handler for updating edges and other contract state
@@ -56,13 +58,13 @@ Sets the handler for updating edges and other contract state
 
 | Name | Type | Description |
 |---|---|---|
-| _handler | address | The new handler address
-| _nonce | uint32 | The nonce for tracking update counts
+| handler | address | The new handler address
+| nonce | uint32 | The nonce for tracking update counts
 
 ### setVerifier
 
 ```solidity
-function setVerifier(address _verifier, uint32 _nonce) external nonpayable
+function setVerifier(address verifier, uint32 nonce) external nonpayable
 ```
 
 Sets the verifier for zkSNARKs
@@ -73,13 +75,13 @@ Sets the verifier for zkSNARKs
 
 | Name | Type | Description |
 |---|---|---|
-| _verifier | address | The new verifier address
-| _nonce | uint32 | The nonce for tracking update counts
+| verifier | address | The new verifier address
+| nonce | uint32 | The nonce for tracking update counts
 
 ### updateEdge
 
 ```solidity
-function updateEdge(uint256 sourceChainID, bytes32 root, uint256 latestLeafIndex, bytes32 target) external payable
+function updateEdge(bytes32 root, uint32 latestLeafIndex, bytes32 target) external payable
 ```
 
 The function is used to update the edge data of a LinkableAnchor
@@ -90,10 +92,9 @@ The function is used to update the edge data of a LinkableAnchor
 
 | Name | Type | Description |
 |---|---|---|
-| sourceChainID | uint256 | The chain ID of the chain whose edge needs updating
 | root | bytes32 | The merkle root of the linked anchor on the  `sourceChainID`&#39;s chain
-| latestLeafIndex | uint256 | The index of the leaf updating the merkle tree with root `root`
-| target | bytes32 | undefined
+| latestLeafIndex | uint32 | The index of the leaf updating the merkle tree with root `root`
+| target | bytes32 | The target resource ID of the linked anchor
 
 
 

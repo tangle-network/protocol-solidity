@@ -1,7 +1,7 @@
 require('dotenv').config();
-import { Anchor } from '@webb-tools/anchors'
+import { VAnchor } from '@webb-tools/anchors'
 
-export async function viewRootHistory(anchor: Anchor) {
+export async function viewRootHistory(anchor: VAnchor) {
   const numOfRoots = await anchor.contract.nextIndex();
 
   for (let i=0; i<numOfRoots; i++) {
