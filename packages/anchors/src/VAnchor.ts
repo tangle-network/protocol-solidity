@@ -64,7 +64,7 @@ export class VAnchor implements IAnchor {
   denomination?: string;
   provingManager: CircomProvingManager;
 
-  private constructor(
+  constructor(
     contract: VAnchorContract,
     signer: ethers.Signer,
     treeHeight: number,
