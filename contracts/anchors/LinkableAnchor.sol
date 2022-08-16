@@ -208,9 +208,15 @@ abstract contract LinkableAnchor is ILinkableAnchor, MerkleTreePoseidon, Reentra
 	function isValidRoots(bytes32[] memory _roots) public view returns (bool) {
 		require(isKnownRoot(_roots[0]), "Cannot find your merkle root");
 		require(_roots.length == maxEdges + 1, "Incorrect root array length");
+		uint rootIndex = 1;
 		for (uint i = 0; i < edgeList.length; i++) {
 			Edge memory _edge = edgeList[i];
 			require(isKnownNeighborRoot(_edge.chainID, _roots[i+1]), "Neighbor root not found");
+			rootIndex++;
+		}
+		while (rootIndex != maxEdges + 1) {
+			require(_roots[rootIndex] == zeros(levels - 1), "non-existent edge is not set to the default root");
+			rootIndex++;
 		}
 		return true;
 	}

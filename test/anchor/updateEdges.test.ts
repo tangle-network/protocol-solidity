@@ -2,7 +2,6 @@
  * Copyright 2021 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
-// @ts-nocheck
 import { artifacts, contract, assert } from "hardhat";
 const TruffleAssert = require('truffle-assertions');
 
