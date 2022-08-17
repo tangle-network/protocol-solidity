@@ -9,16 +9,12 @@ const TruffleAssert = require('truffle-assertions');
 // Typechain generated bindings for contracts
 // These contracts are included in packages, so should be tested
 import {
+  ERC20PresetMinterPauser,
+  ERC20PresetMinterPauser__factory,
   GovernedTokenWrapper as WrappedToken,
   GovernedTokenWrapper__factory as WrappedTokenFactory,
   PoseidonT3__factory
-} from '../../packages/contracts';
-
-// These contracts are not included in the package, so can use generated typechain
-import {
-  ERC20Mock as Token,
-  ERC20Mock__factory as TokenFactory,
-} from '../../typechain';
+} from '../../packages/contracts/src';
 
 // Convenience wrapper classes for contract classes
 import { hexToU8a, fetchComponentsFromFilePaths, getChainIdType, ZkComponents, u8aToHex } from '../../packages/utils/src';
@@ -27,7 +23,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 import { Utxo, Keypair, MerkleTree, randomBN, toFixedHex, generateVariableWitnessInput, getVAnchorExtDataHash, generateWithdrawProofCallData, CircomUtxo } from '@webb-tools/sdk-core';
 import { VAnchor } from '../../packages/anchors/src';
-import { Verifier } from "../../packages/vbridge"
+import { Verifier } from "../../packages/vbridge/src"
 import { writeFileSync } from "fs";
 import { SetupTxVanchorMock } from './mocks/SetupTxVanchorMock';
 
@@ -56,7 +52,7 @@ describe('VAnchor for 2 max edges', () => {
   let recipient = "0x1111111111111111111111111111111111111111";
   let verifier: Verifier;
   let hasherInstance: any;
-  let token: Token;
+  let token: ERC20PresetMinterPauser;
   let wrappedToken: WrappedToken;
   let tokenDenomination = '1000000000000000000' // 1 ether
   const chainID = getChainIdType(31337);
@@ -110,8 +106,8 @@ describe('VAnchor for 2 max edges', () => {
     verifier = await Verifier.createVerifier(sender);
 
     // create token
-    const tokenFactory = new TokenFactory(wallet);
-    token = await tokenFactory.deploy();
+    const tokenFactory = new ERC20PresetMinterPauser__factory(wallet);
+    token = await tokenFactory.deploy('test token', 'TEST');
     await token.deployed();
     await token.mint(sender.address, '10000000000000000000000');
 
