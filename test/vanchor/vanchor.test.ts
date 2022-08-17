@@ -25,7 +25,7 @@ import { Utxo, Keypair, MerkleTree, randomBN, toFixedHex, generateVariableWitnes
 import { VAnchor } from '../../packages/anchors/src';
 import { Verifier } from "../../packages/vbridge/src"
 import { writeFileSync } from "fs";
-import { SetupTxVanchorMock } from './mocks/SetupTxVanchorMock.js';
+import { SetupTxVAnchorMock } from './mocks/SetupTxVAnchorMock';
 
 const BN = require('bn.js');
 
@@ -953,7 +953,7 @@ describe('VAnchor for 2 max edges', () => {
       const roots = await anchor.populateRootsForProof();
       roots[1] = fakeRoot.toHexString();
 
-      const setupVAnchor = new SetupTxVanchorMock(anchor.contract, anchor.signer, 30, 1, anchor.smallCircuitZkComponents, anchor.largeCircuitZkComponents, roots);
+      const setupVAnchor = new SetupTxVAnchorMock(anchor.contract, anchor.signer, 30, 1, anchor.smallCircuitZkComponents, anchor.largeCircuitZkComponents, roots);
       setupVAnchor.token = anchor.token;
       let inputs: Utxo[] = [
         fakeUtxo,

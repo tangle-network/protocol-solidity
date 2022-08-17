@@ -17,7 +17,7 @@ import {
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { VAnchor as VAnchorContract } from "@webb-tools/contracts";
 
-export class SetupTxVanchorMock extends VAnchor {
+export class SetupTxVAnchorMock extends VAnchor {
   private rootsForProof: string[];
 
   constructor(
