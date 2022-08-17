@@ -4,7 +4,7 @@
 
 > AnchorBase contract
 
-Base contract for interoperable anchors. Each anchor base is a LinkableTree which allows it to be connected to other LinkableTrees.
+Base contract for interoperable anchors. Each anchor base is a LinkableAnchor which allows it to be connected to other LinkableAnchors.
 
 
 
@@ -100,6 +100,40 @@ function commitments(bytes32) external view returns (bool)
 |---|---|---|
 | _0 | bool | undefined
 
+### configureMaximumDepositLimit
+
+```solidity
+function configureMaximumDepositLimit(uint256 maximumDepositAmount, uint32 nonce) external nonpayable
+```
+
+Sets the maximal deposit limit for the anchor
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| maximumDepositAmount | uint256 | The new maximal deposit limit
+| nonce | uint32 | undefined
+
+### configureMinimalWithdrawalLimit
+
+```solidity
+function configureMinimalWithdrawalLimit(uint256 minimalWithdrawalAmount, uint32 nonce) external nonpayable
+```
+
+Sets the minimal withdrawal limit for the anchor
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| minimalWithdrawalAmount | uint256 | The new minimal withdrawal limit
+| nonce | uint32 | undefined
+
 ### currentNeighborRootIndex
 
 ```solidity
@@ -186,7 +220,7 @@ function edgeIndex(uint256) external view returns (uint256)
 ### edgeList
 
 ```solidity
-function edgeList(uint256) external view returns (uint256 chainID, bytes32 root, uint256 latestLeafIndex, bytes32 target)
+function edgeList(uint256) external view returns (uint256 chainID, bytes32 root, uint256 latestLeafIndex, bytes32 srcResourceID)
 ```
 
 
@@ -206,7 +240,7 @@ function edgeList(uint256) external view returns (uint256 chainID, bytes32 root,
 | chainID | uint256 | undefined
 | root | bytes32 | undefined
 | latestLeafIndex | uint256 | undefined
-| target | bytes32 | undefined
+| srcResourceID | bytes32 | undefined
 
 ### filledSubtrees
 
@@ -284,7 +318,7 @@ function getLastRoot() external view returns (bytes32)
 ### getLatestNeighborEdges
 
 ```solidity
-function getLatestNeighborEdges() external view returns (struct LinkableTree.Edge[])
+function getLatestNeighborEdges() external view returns (struct LinkableAnchor.Edge[])
 ```
 
 Get the latest state of all neighbor edges
@@ -296,7 +330,7 @@ Get the latest state of all neighbor edges
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | LinkableTree.Edge[] | Edge[] An array of all neighboring and potentially empty edges
+| _0 | LinkableAnchor.Edge[] | Edge[] An array of all neighboring and potentially empty edges
 
 ### getLatestNeighborRoots
 
@@ -619,6 +653,28 @@ function nullifierHashes(bytes32) external view returns (bool)
 |---|---|---|
 | _0 | bool | undefined
 
+### parseChainIdFromResourceId
+
+```solidity
+function parseChainIdFromResourceId(bytes32 _resourceId) external pure returns (uint64)
+```
+
+Parses the typed chain ID out from a 32-byte resource ID
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _resourceId | bytes32 | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint64 | undefined
+
 ### roots
 
 ```solidity
@@ -702,7 +758,7 @@ A helper function to convert an array of 8 uint256 values into the a, b, and c a
 ### updateEdge
 
 ```solidity
-function updateEdge(uint256 _sourceChainID, bytes32 _root, uint256 _leafIndex, bytes32 _target) external payable
+function updateEdge(bytes32 _root, uint32 _leafIndex, bytes32 _srcResourceID) external payable
 ```
 
 Add an edge to the tree or update an existing edge.
@@ -713,10 +769,9 @@ Add an edge to the tree or update an existing edge.
 
 | Name | Type | Description |
 |---|---|---|
-| _sourceChainID | uint256 | The chainID of the edge&#39;s LinkableTree
 | _root | bytes32 | The merkle root of the edge&#39;s merkle tree
-| _leafIndex | uint256 | The latest leaf insertion index of the edge&#39;s merkle tree
-| _target | bytes32 | undefined
+| _leafIndex | uint32 | The latest leaf insertion index of the edge&#39;s merkle tree
+| _srcResourceID | bytes32 | The origin resource ID of the originating linked anchor update
 
 ### verifier
 

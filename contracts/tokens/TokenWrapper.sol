@@ -19,7 +19,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
  */
 abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
     using SafeMath for uint256;
-    uint8 feePercentage;
+    uint16 feePercentage;
     address payable public feeRecipient;
 
     /**
@@ -39,7 +39,7 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
         @return uint The fee amount of the token being wrapped
      */
     function getFeeFromAmount(uint _amountToWrap) override public view returns (uint) {
-		return _amountToWrap.mul(feePercentage).div(100);
+		return _amountToWrap.mul(feePercentage).div(10000);
     }
 
     /**
@@ -48,7 +48,7 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
         @return uint The amount to wrap conditioned on the deposit amount
      */
     function getAmountToWrap(uint _deposit) override public view returns (uint) {
-		return _deposit.mul(100).div(100 - feePercentage);
+		return _deposit.mul(10000).div(10000 - feePercentage);
     }
 
     /**

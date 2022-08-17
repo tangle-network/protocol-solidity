@@ -10,10 +10,10 @@ export class GovernedTokenWrapper {
   contract: GovernedTokenWrapperContract;
   signer: ethers.Signer;
 
-  ADD_TOKEN_SIGNATURE = 'add(address,uint256)';
-  REMOVE_TOKEN_SIGNATURE = 'remove(address,uint256)';
-  SET_FEE_SIGNATURE = 'setFee(uint8,uint256)';
-  FEE_RECIPIENT_SIGNATURE = 'setFeeRecipient(address,uint256)';
+  ADD_TOKEN_SIGNATURE = 'add(address,uint32)';
+  REMOVE_TOKEN_SIGNATURE = 'remove(address,uint32)';
+  SET_FEE_SIGNATURE = 'setFee(uint16,uint32)';
+  FEE_RECIPIENT_SIGNATURE = 'setFeeRecipient(address,uint32)';
 
   constructor(contract: GovernedTokenWrapperContract, signer: ethers.Signer) {
     this.contract = contract;
@@ -91,7 +91,7 @@ export class GovernedTokenWrapper {
     const resourceID = await this.createResourceId();
     const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
     const functionSig = generateFunctionSigHash(this.SET_FEE_SIGNATURE);
-    const feeString = toHex(fee, 1);
+    const feeString = toHex(fee, 2);
 
     return '0x' + resourceID.substr(2) + functionSig.slice(2) + toHex(nonce, 4).substr(2) + feeString.slice(2);
   }

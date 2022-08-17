@@ -24,33 +24,28 @@ export class SignatureBridgeSide implements IBridgeSide {
   TOKEN_HANDLER_MISSING_ERROR = new Error('Cannot connect to a token wrapper without a handler');
   TREASURY_HANDLER_MISSING_ERROR = new Error('Cannot connect to treasury without handler');
 
-  private constructor(
-    contract: SignatureBridge,
-    systemSigningFn: SystemSigningFn,
-  ) {
+  private constructor(contract: SignatureBridge, systemSigningFn: SystemSigningFn) {
     this.contract = contract;
     this.anchorHandler = null;
     this.tokenHandler = null;
     this.treasuryHandler = null;
     this.proposals = [];
 
-    this.signingSystemSignFn = systemSigningFn
+    this.signingSystemSignFn = systemSigningFn;
   }
 
   /**
    * When a bridgeSide is created, the admin is set as the governor.
    * Ownership of the bridge can then be transferred to another entity.
-   * 
+   *
    * @param admin - The deployer and governor upon creation.
    */
-  public static async createBridgeSide(
-    admin: ethers.Wallet
-  ): Promise<SignatureBridgeSide> {
+  public static async createBridgeSide(admin: ethers.Wallet): Promise<SignatureBridgeSide> {
     const bridgeFactory = new SignatureBridge__factory(admin);
     const deployedBridge = await bridgeFactory.deploy(admin.address, 0);
     await deployedBridge.deployed();
     const bridgeSide = new SignatureBridgeSide(deployedBridge, (data: any) => {
-      return Promise.resolve(signMessage(admin,data));
+      return Promise.resolve(signMessage(admin, data));
     });
     bridgeSide.admin = admin;
     bridgeSide.governor = admin;
@@ -60,16 +55,16 @@ export class SignatureBridgeSide implements IBridgeSide {
   /**
    * When an existing SignatureBridge is connected, the governor must be configured.
    * In the case of connectMocked, a wallet address is passed which will act as the governor.
-   * 
+   *
    * connectMocked is particularly useful for integration testing
-   * 
+   *
    * @param contractAddress - The contract address of the SignatureBridge contract instance.
    * @param mockedGovernor - The ethers.Wallet which will sign messages before execution on the bridgeSide.
    */
   public static async connectMocked(contractAddress: string, mockedGovernor: ethers.Wallet) {
     const deployedBridge = SignatureBridge__factory.connect(contractAddress, mockedGovernor);
     const bridgeSide = new SignatureBridgeSide(deployedBridge, (data: string) => {
-      return Promise.resolve(signMessage(mockedGovernor,data));
+      return Promise.resolve(signMessage(mockedGovernor, data));
     });
     bridgeSide.governor = mockedGovernor;
     bridgeSide.admin = mockedGovernor;
@@ -80,10 +75,10 @@ export class SignatureBridgeSide implements IBridgeSide {
    * When an existing SignatureBridge is connected, the governor must be configured.
    * In the case of connectGovernor, a network is passed for querying the chain as well
    * as a signing function which can keep this class generic.
-   * 
+   *
    * connectGovernor is necessary for interacting with this class when the private key
    * of the governor is unavailable, but signed proposals are available.
-   * 
+   *
    * @param contractAddress - The contract address of the SignatureBridge contract instance.
    * @param provider - The network which the contract address exists upon.
    * @param systemSigningFn - a function which will produce a signature that verifies as
@@ -133,7 +128,6 @@ export class SignatureBridgeSide implements IBridgeSide {
    * @returns Promise<string>
    */
   public async createFeeUpdateProposalData(governedToken: GovernedTokenWrapper, fee: number): Promise<string> {
-    // TODO: Validate fee is between [0, 100]
     const proposalData = await governedToken.getFeeProposalData(fee);
     return proposalData;
   }
@@ -204,7 +198,7 @@ export class SignatureBridgeSide implements IBridgeSide {
   // Returns the resourceId of the anchor instance that connects
   // the anchor handler to the anchor (execution) contract.
   public async connectAnchorWithSignature(anchor: IAnchor): Promise<string> {
-    const resourceId = await this.setResourceWithSignature(anchor);
+    const resourceId = await this.setAnchorResourceWithSignature(anchor);
     if (this.anchorHandler.contract.address !== (await anchor.getHandler())) {
       await this.executeHandlerProposalWithSig(anchor, this.anchorHandler.contract.address);
     }
@@ -219,21 +213,13 @@ export class SignatureBridgeSide implements IBridgeSide {
     );
   }
 
-  public async setResourceWithSignature(anchor: IAnchor): Promise<string> {
-    if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
-
+  public async setResourceWithSignature(newResourceId: string, handler: string): Promise<string> {
     const resourceId = await this.createResourceId();
-    const newResourceId = await anchor.createResourceId();
-    // const unsignedData = this.anchorHandler.contract.address + newResourceId.slice(2) + anchor.contract.address.slice(2);
-
     const functionSig = ethers.utils
-      .keccak256(
-        ethers.utils.toUtf8Bytes('adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,address,bytes)')
-      )
+      .keccak256(ethers.utils.toUtf8Bytes('adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,bytes)'))
       .slice(0, 10)
       .padEnd(10, '0');
     const nonce = Number(await this.contract.proposalNonce()) + 1;
-
     const unsignedData =
       '0x' +
       // A resource Id for the bridge contract
@@ -243,9 +229,8 @@ export class SignatureBridgeSide implements IBridgeSide {
       // The resource ID mapping the resource Id to handler and
       // the handler to the execution contract (in the handler's storage)
       toHex(newResourceId, 32).substr(2) +
-      // Setting the handler for the anchor to be the handler set in the bridge side class
-      toHex(this.anchorHandler.contract.address, 20).substr(2) +
-      toHex(anchor.contract.address, 20).substr(2);
+      // Setting the handler
+      toHex(handler, 20).substr(2);
 
     const sig = await this.signingSystemSignFn(unsignedData);
     const tx = await this.contract.adminSetResourceWithSignature(
@@ -253,90 +238,38 @@ export class SignatureBridgeSide implements IBridgeSide {
       functionSig,
       nonce,
       newResourceId,
-      this.anchorHandler.contract.address,
-      anchor.contract.address,
+      handler,
       sig
     );
     await tx.wait();
     return newResourceId;
   }
 
+  public async setAnchorResourceWithSignature(anchor: IAnchor): Promise<string> {
+    if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
+
+    const newResourceId = await anchor.createResourceId();
+    const handler = this.anchorHandler.contract.address;
+
+    return await this.setResourceWithSignature(newResourceId, handler);
+  }
+
   public async setGovernedTokenResourceWithSignature(governedToken: GovernedTokenWrapper): Promise<string> {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
 
-    const resourceId = await this.createResourceId();
     const newResourceId = await governedToken.createResourceId();
-    const functionSig = ethers.utils
-      .keccak256(
-        ethers.utils.toUtf8Bytes('adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,address,bytes)')
-      )
-      .slice(0, 10)
-      .padEnd(10, '0');
-    const nonce = Number(await this.contract.proposalNonce()) + 1;
+    const handler = this.tokenHandler.contract.address;
 
-    const unsignedData =
-      '0x' +
-      // A resource Id for the bridge contract
-      toHex(resourceId, 32).substr(2) +
-      functionSig.slice(2) +
-      toHex(nonce, 4).substr(2) +
-      // The resource ID mapping the resource Id to handler and
-      // the handler to the execution contract (in the handler's storage)
-      toHex(newResourceId, 32).substr(2) +
-      toHex(this.tokenHandler.contract.address, 20).substr(2) +
-      toHex(governedToken.contract.address, 20).substr(2);
-
-    const sig = await this.signingSystemSignFn(unsignedData);
-    const tx = await this.contract.adminSetResourceWithSignature(
-      resourceId,
-      functionSig,
-      nonce,
-      newResourceId,
-      this.tokenHandler.contract.address,
-      governedToken.contract.address,
-      sig
-    );
-    await tx.wait();
-    return resourceId;
+    return await this.setResourceWithSignature(newResourceId, handler);
   }
 
   public async setTreasuryResourceWithSignature(treasury: Treasury): Promise<string> {
     if (!this.treasuryHandler) throw this.TREASURY_HANDLER_MISSING_ERROR;
 
-    const resourceId = await this.createResourceId();
     const newResourceId = await treasury.createResourceId();
-    const functionSig = ethers.utils
-      .keccak256(
-        ethers.utils.toUtf8Bytes('adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,address,bytes)')
-      )
-      .slice(0, 10)
-      .padEnd(10, '0');
-    const nonce = Number(await this.contract.proposalNonce()) + 1;
+    const handler = this.treasuryHandler.contract.address;
 
-    const unsignedData =
-      '0x' +
-      // A resource Id for the bridge contract
-      toHex(resourceId, 32).substr(2) +
-      functionSig.slice(2) +
-      toHex(nonce, 4).substr(2) +
-      // The resource ID mapping the resource Id to handler and
-      // the handler to the execution contract (in the handler's storage)
-      toHex(newResourceId, 32).substr(2) +
-      toHex(this.treasuryHandler.contract.address, 20).substr(2) +
-      toHex(treasury.contract.address, 20).substr(2);
-
-    const sig = await this.signingSystemSignFn(unsignedData);
-    const tx = await this.contract.adminSetResourceWithSignature(
-      resourceId,
-      functionSig,
-      nonce,
-      newResourceId,
-      this.treasuryHandler.contract.address,
-      treasury.contract.address,
-      sig
-    );
-    await tx.wait();
-    return resourceId;
+    return await this.setResourceWithSignature(newResourceId, handler);
   }
 
   public async execute(proposalData: string) {

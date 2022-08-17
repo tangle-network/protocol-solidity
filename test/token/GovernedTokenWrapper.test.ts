@@ -52,7 +52,7 @@ describe('GovernedTokenWrapper', () => {
       await tx.wait();
       let amountToWrap = await webbWrappedTokenContract.getAmountToWrap(ethers.utils.parseEther('1'));
 
-      assert.strictEqual(amountToWrap.toString(), ethers.BigNumber.from('1010101010101010101').toString());
+      assert.strictEqual(amountToWrap.toString(), ethers.BigNumber.from('1000100010001000100').toString());
     });
   });
 });

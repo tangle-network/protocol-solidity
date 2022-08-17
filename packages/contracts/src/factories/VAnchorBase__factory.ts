@@ -280,6 +280,11 @@ const _abi = [
         name: "_maximumDepositAmount",
         type: "uint256",
       },
+      {
+        internalType: "uint32",
+        name: "_nonce",
+        type: "uint32",
+      },
     ],
     name: "configureMaximumDepositLimit",
     outputs: [],
@@ -292,6 +297,11 @@ const _abi = [
         internalType: "uint256",
         name: "_minimalWithdrawalAmount",
         type: "uint256",
+      },
+      {
+        internalType: "uint32",
+        name: "_nonce",
+        type: "uint32",
       },
     ],
     name: "configureMinimalWithdrawalLimit",
@@ -396,7 +406,7 @@ const _abi = [
       },
       {
         internalType: "bytes32",
-        name: "target",
+        name: "srcResourceID",
         type: "bytes32",
       },
     ],
@@ -484,11 +494,11 @@ const _abi = [
           },
           {
             internalType: "bytes32",
-            name: "target",
+            name: "srcResourceID",
             type: "bytes32",
           },
         ],
-        internalType: "struct LinkableTree.Edge[]",
+        internalType: "struct LinkableAnchor.Edge[]",
         name: "",
         type: "tuple[]",
       },
@@ -838,6 +848,25 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "bytes32",
+        name: "_resourceId",
+        type: "bytes32",
+      },
+    ],
+    name: "parseChainIdFromResourceId",
+    outputs: [
+      {
+        internalType: "uint64",
+        name: "",
+        type: "uint64",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         components: [
           {
             internalType: "address",
@@ -947,23 +976,18 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "uint256",
-        name: "_sourceChainID",
-        type: "uint256",
-      },
-      {
         internalType: "bytes32",
         name: "_root",
         type: "bytes32",
       },
       {
-        internalType: "uint256",
+        internalType: "uint32",
         name: "_leafIndex",
-        type: "uint256",
+        type: "uint32",
       },
       {
         internalType: "bytes32",
-        name: "_target",
+        name: "_srcResourceID",
         type: "bytes32",
       },
     ],

@@ -25,7 +25,7 @@ export interface IAnchor {
   createResourceId(): Promise<string>;
   update(blockNumber?: number): Promise<void>;
 
-  // FixedDepositAnchor methods
+  // Asset methods
   deposit(destinationChainId: number): Promise<IAnchorDeposit>;
   setupWithdraw(
     deposit: IAnchorDepositInfo,

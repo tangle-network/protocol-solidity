@@ -22,8 +22,8 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 interface TreasuryInterface extends ethers.utils.Interface {
   functions: {
     "proposalNonce()": FunctionFragment;
-    "rescueTokens(address,address,uint256,uint256)": FunctionFragment;
-    "setHandler(address,uint256)": FunctionFragment;
+    "rescueTokens(address,address,uint256,uint32)": FunctionFragment;
+    "setHandler(address,uint32)": FunctionFragment;
   };
 
   encodeFunctionData(

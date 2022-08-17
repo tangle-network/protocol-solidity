@@ -7,8 +7,8 @@ export class Treasury {
   contract: TreasuryContract;
   signer: ethers.Signer;
 
-  SET_HANDLER_SIGNATURE = 'setHandler(address,uint256)';
-  RESCUE_TOKENS_SIGNATURE = 'rescueTokens(address,address,uint256,uint256)';
+  SET_HANDLER_SIGNATURE = 'setHandler(address,uint32)';
+  RESCUE_TOKENS_SIGNATURE = 'rescueTokens(address,address,uint256,uint32)';
 
   constructor(contract: TreasuryContract, signer: ethers.Signer) {
     this.contract = contract;

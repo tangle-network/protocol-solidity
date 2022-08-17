@@ -99,7 +99,6 @@ describe('2-sided multichain tests for signature vbridge', () => {
         [chainID1]: await hardhatWallet1.getAddress(),
         [chainID2]: await ganacheWallet2.getAddress(),
       };
-
       const vBridge = await VBridge.deployVariableAnchorBridge(bridge2WebbEthInput, deploymentConfig, initialGovernorsConfig, zkComponents2_2, zkComponents16_2);
       // Should be able to retrieve individual anchors
       const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
@@ -125,7 +124,6 @@ describe('2-sided multichain tests for signature vbridge', () => {
 
       const sourceAnchorRootAfter = await vAnchor1.contract.getLastRoot();
       const destAnchorEdgeAfter = await vAnchor2.contract.edgeList(edgeIndex);
-
       // make sure the roots / anchors state have changed
       assert.notEqual(sourceAnchorRootAfter, sourceAnchorRootBefore);
       assert.deepEqual(ethers.BigNumber.from(1), destAnchorEdgeAfter.latestLeafIndex);
@@ -138,7 +136,6 @@ describe('2-sided multichain tests for signature vbridge', () => {
         amount: 1e7.toString(),
         keypair: depositUtxo.keypair
       });
-
       await vBridge.transact([depositUtxo], [transferUtxo], 0, '0', '0', signers[2]);
     });
 
@@ -672,8 +669,19 @@ describe('2-sided multichain tests for signature vbridge', () => {
           backend: 'Circom',
           amount: 1e7.toString(),
           originChainId: chainID1.toString(),
-          chainId: chainID1.toString()})
-        await vBridge.transactWrap(existingToken1.contract.address, [ganacheDepositUtxo1, ganacheDepositUtxo2], [hardhatWithdrawUtxo], 0, await signers[2].getAddress(), '0', signers[1]);
+          chainId: chainID1.toString()
+        });
+        
+
+        await vBridge.transactWrap(
+          existingToken1.contract.address,
+          [ganacheDepositUtxo1, ganacheDepositUtxo2],
+          [hardhatWithdrawUtxo],
+          0,
+          await signers[2].getAddress(),
+          '0',
+          signers[1]
+        );
 
         //Check relevant balances
         //Unwrapped Balance of signers[2] should be 3e7

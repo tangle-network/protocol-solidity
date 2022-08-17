@@ -38,25 +38,17 @@ for (let i = 0; i < 256; i++) {
  * hexToU8a('0x80001f', 32); // Uint8Array([0x00, 0x80, 0x00, 0x1f])
  * ```
  */
-export function hexToU8a (value?: HexString | string | null, bitLength = -1): Uint8Array {
+export function hexToU8a(value?: HexString | string | null, bitLength = -1): Uint8Array {
   if (!value) {
     return new Uint8Array();
   }
 
-  let s = value.startsWith('0x')
-    ? 2
-    : 0;
+  let s = value.startsWith('0x') ? 2 : 0;
 
   const decLength = Math.ceil((value.length - s) / 2);
-  const endLength = Math.ceil(
-    bitLength === -1
-      ? decLength
-      : bitLength / 8
-  );
+  const endLength = Math.ceil(bitLength === -1 ? decLength : bitLength / 8);
   const result = new Uint8Array(endLength);
-  const offset = endLength > decLength
-    ? endLength - decLength
-    : 0;
+  const offset = endLength > decLength ? endLength - decLength : 0;
 
   for (let i = offset; i < endLength; i++, s += 2) {
     // The big factor here is actually the string lookups. If we do

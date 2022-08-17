@@ -19,7 +19,6 @@ export class Storage<T = Record<string, unknown>> {
 
   put_batch(key_values: Partial<T>[]) {
     key_values.forEach((element: any) => {
-      // @ts-ignore
       this.db[element.key] = element.value;
     });
   }

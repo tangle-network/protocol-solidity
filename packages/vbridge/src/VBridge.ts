@@ -113,7 +113,7 @@ export class VBridge {
     deployers: DeployerConfig,
     initialGovernors: GovernorConfig,
     smallCircuitZkComponents: ZkComponents,
-    largeCircuitZkComponents: ZkComponents,
+    largeCircuitZkComponents: ZkComponents
   ): Promise<VBridge> {
     let webbTokenAddresses: Map<number, string> = new Map();
     let vBridgeSides: Map<number, SignatureBridgeSide> = new Map();

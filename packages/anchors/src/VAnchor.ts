@@ -1,5 +1,11 @@
 import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
-import { VAnchor as VAnchorContract, VAnchor__factory, VAnchorEncodeInputs__factory } from '@webb-tools/contracts';
+import {
+  VAnchor as VAnchorContract,
+  VAnchor__factory,
+  VAnchorEncodeInputs__factory,
+  TokenWrapper,
+  TokenWrapper__factory,
+} from '@webb-tools/contracts';
 import {
   toHex,
   Keypair,
@@ -58,7 +64,7 @@ export class VAnchor implements IAnchor {
   denomination?: string;
   provingManager: CircomProvingManager;
 
-  private constructor(
+  constructor(
     contract: VAnchorContract,
     signer: ethers.Signer,
     treeHeight: number,
@@ -203,7 +209,6 @@ export class VAnchor implements IAnchor {
 
     var a = [];
     for (var i = 0, len = str.length; i < len; i += 2) {
-      // @ts-ignore
       a.push(parseInt(str.substr(i, 2), 16));
     }
 
@@ -285,22 +290,21 @@ export class VAnchor implements IAnchor {
 
     const chainID = getChainIdType(await this.signer.getChainId());
     const merkleRoot = this.depositHistory[leafIndex];
-    const targetContract = this.contract.address;
     const functionSig = ethers.utils
-      .keccak256(ethers.utils.toUtf8Bytes('updateEdge(uint256,bytes32,uint256,bytes32)'))
+      .keccak256(ethers.utils.toUtf8Bytes('updateEdge(bytes32,uint32,bytes32)'))
       .slice(0, 10)
       .padEnd(10, '0');
-    const dummyNonce = 1;
 
+    const srcContract = this.contract.address;
+    const srcResourceId =
+      '0x' + toHex(0, 6).substring(2) + toHex(srcContract, 20).substr(2) + toHex(chainID, 6).substr(2);
     return (
       '0x' +
       toHex(resourceID, 32).substr(2) +
       functionSig.slice(2) +
-      toHex(dummyNonce, 4).substr(2) +
-      toHex(chainID, 6).substr(2) +
       toHex(leafIndex, 4).substr(2) +
       toHex(merkleRoot, 32).substr(2) +
-      toHex(targetContract, 32).substr(2)
+      toHex(srcResourceId, 32).substr(2)
     );
   }
 
@@ -328,7 +332,7 @@ export class VAnchor implements IAnchor {
   public async getMinWithdrawalLimitProposalData(_minimalWithdrawalAmount: string): Promise<string> {
     const resourceID = await this.createResourceId();
     const functionSig = ethers.utils
-      .keccak256(ethers.utils.toUtf8Bytes('configureMinimalWithdrawalLimit(uint256)'))
+      .keccak256(ethers.utils.toUtf8Bytes('configureMinimalWithdrawalLimit(uint256,uint32)'))
       .slice(0, 10)
       .padEnd(10, '0');
     const nonce = Number(await this.contract.getProposalNonce()) + 1;
@@ -344,7 +348,7 @@ export class VAnchor implements IAnchor {
   public async getMaxDepositLimitProposalData(_maximumDepositAmount: string): Promise<string> {
     const resourceID = await this.createResourceId();
     const functionSig = ethers.utils
-      .keccak256(ethers.utils.toUtf8Bytes('configureMaximumDepositLimit(uint256)'))
+      .keccak256(ethers.utils.toUtf8Bytes('configureMaximumDepositLimit(uint256,uint32)'))
       .slice(0, 10)
       .padEnd(10, '0');
     const nonce = Number(await this.contract.getProposalNonce()) + 1;
@@ -717,8 +721,12 @@ export class VAnchor implements IAnchor {
       relayer,
       leavesMap
     );
+
     let tx: ContractTransaction;
     if (extAmount.gt(0) && checkNativeAddress(tokenAddress)) {
+      let tokenWrapper = TokenWrapper__factory.connect(await this.contract.token(), this.signer);
+      let valueToSend = await tokenWrapper.getAmountToWrap(extAmount);
+
       tx = await this.contract.transactWrap(
         {
           ...publicInputs,
@@ -727,8 +735,8 @@ export class VAnchor implements IAnchor {
         extData,
         tokenAddress,
         {
-          value: extAmount,
-          gasLimit: '0x5B8D80',
+          value: valueToSend.toHexString(),
+          gasLimit: '0xBB8D80',
         }
       );
     } else {
@@ -739,7 +747,7 @@ export class VAnchor implements IAnchor {
         },
         extData,
         tokenAddress,
-        { gasLimit: '0x5B8D80' }
+        { gasLimit: '0xBB8D80' }
       );
     }
     const receipt = await tx.wait();
