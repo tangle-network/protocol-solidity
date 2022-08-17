@@ -25,7 +25,7 @@ import { Utxo, Keypair, MerkleTree, randomBN, toFixedHex, generateVariableWitnes
 import { VAnchor } from '../../packages/anchors/src';
 import { Verifier } from "../../packages/vbridge/src"
 import { writeFileSync } from "fs";
-import { SetupTxVanchorMock } from './mocks/SetupTxVanchorMock';
+import { SetupTxVanchorMock } from './mocks/SetupTxVanchorMock.js';
 
 const BN = require('bn.js');
 
