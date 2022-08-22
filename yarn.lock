@@ -2748,13 +2748,6 @@
   dependencies:
     node-gyp-build "4.4.0"
 
-"@trufflesuite/bigint-buffer@1.1.9":
-  version "1.1.9"
-  resolved "https://registry.yarnpkg.com/@trufflesuite/bigint-buffer/-/bigint-buffer-1.1.9.tgz#e2604d76e1e4747b74376d68f1312f9944d0d75d"
-  integrity sha512-bdM5cEGCOhDSwminryHJbRmXc1x7dPKg6Pqns3qyTwFlxsqUgxE29lsERS3PlIW1HTjoIGMUqsk1zQQwST1Yxw==
-  dependencies:
-    node-gyp-build "4.3.0"
-
 "@trufflesuite/chromafi@^3.0.0":
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@trufflesuite/chromafi/-/chromafi-3.0.0.tgz#f6956408c1af6a38a6ed1657783ce59504a1eb8b"
@@ -3028,36 +3021,36 @@
   resolved "https://registry.yarnpkg.com/@ungap/promise-all-settled/-/promise-all-settled-1.1.2.tgz#aa58042711d6e3275dd37dc597e5d31e8c290a44"
   integrity sha512-sL/cEvJWAnClXw0wHk85/2L0G6Sj8UB0Ctc1TEMbKSsmpRosqhwj9gWgFRZSrBr2f9tiXISwNhCPmlfqUqyb9Q==
 
-"@webb-tools/api-derive@0.1.4-90":
-  version "0.1.4-90"
-  resolved "https://registry.yarnpkg.com/@webb-tools/api-derive/-/api-derive-0.1.4-90.tgz#382f8272a40829eb13083cc744a01a5854dfb10c"
-  integrity sha512-+m8FIBBVMmF81YJYwGz92pzCj66/reV7X1BVlJiKP2Ucuyo5Yk8mgp3+1fzV9p0qHg1xaWrE+XnDtL3YTYC/8A==
+"@webb-tools/api-derive@0.1.4-96":
+  version "0.1.4-96"
+  resolved "https://registry.yarnpkg.com/@webb-tools/api-derive/-/api-derive-0.1.4-96.tgz#49a51ad217acd5aedd7b04e6d48a977807a724d8"
+  integrity sha512-XIghCBnGRIFcN90fQSUT/e6xwZTaEUpDlP8o5kWekZLF7dUNFLdvmK/Edoff1PVhpH+WZkhRtJFPj2nsiSse1A==
   dependencies:
     "@babel/runtime" "^7.10.2"
     "@polkadot/api" "8.14.1"
     "@polkadot/rpc-core" "8.14.1"
-    "@webb-tools/api" "0.1.4-90"
-    "@webb-tools/types" "0.1.4-90"
+    "@webb-tools/api" "0.1.4-96"
+    "@webb-tools/types" "0.1.4-96"
 
-"@webb-tools/api@0.1.4-90":
-  version "0.1.4-90"
-  resolved "https://registry.yarnpkg.com/@webb-tools/api/-/api-0.1.4-90.tgz#b5a89faa17ad71265feee37a85a5be9af7edfcda"
-  integrity sha512-PAX3F/I6VxwxvbnX55ETEu1idfr0ho0w+aKWN/0+Ug72NaXOppGaWfoa7AIvKvuYYQ9OQ4fCnXF5r+eYLtuPYg==
+"@webb-tools/api@0.1.4-96":
+  version "0.1.4-96"
+  resolved "https://registry.yarnpkg.com/@webb-tools/api/-/api-0.1.4-96.tgz#085080309aeb53939e2e07de0adbc08ff3e42ff3"
+  integrity sha512-rz+uH9Tc8yjKufVaqhNxyBX5mj6Vuq2cFpo2SMh0GPsNbDsPhFJusU7Y58XW4RY1zxxoymElnob+iE0Lc1rfpg==
   dependencies:
     "@babel/runtime" "^7.10.2"
     "@polkadot/api" "8.14.1"
     "@polkadot/rpc-core" "8.14.1"
-    "@webb-tools/api-derive" "0.1.4-90"
+    "@webb-tools/api-derive" "0.1.4-96"
 
-"@webb-tools/sdk-core@0.1.4-90":
-  version "0.1.4-90"
-  resolved "https://registry.yarnpkg.com/@webb-tools/sdk-core/-/sdk-core-0.1.4-90.tgz#1899a70b28e7ba69df6cbb2bea298c49e3cfb84b"
-  integrity sha512-Tzo5WdeWm7bsCPe+v/7yQksC+XHvThgJC4LXS8HtBvgo60U0RWMgw3wBfqbawrxgHoT4emSrgbVPn7+TZ4mcrw==
+"@webb-tools/sdk-core@0.1.4-96":
+  version "0.1.4-96"
+  resolved "https://registry.yarnpkg.com/@webb-tools/sdk-core/-/sdk-core-0.1.4-96.tgz#d9980ca9c76fc0f9ece36f52cfe44cad66733913"
+  integrity sha512-naV8PX71S0ZhXFuXxSiP3q2+B8r6IPU1btBZf3r8Ow7o0mFDZaxsYpERthoqcWdB9nbBNyQdWEl2UOumDZyYqQ==
   dependencies:
     "@polkadot/util" "10.1.1"
     "@types/events" "^3.0.0"
-    "@webb-tools/api" "0.1.4-90"
-    "@webb-tools/wasm-utils" "0.1.4-90"
+    "@webb-tools/api" "0.1.4-96"
+    "@webb-tools/wasm-utils" "0.1.4-96"
     bignumber.js "^9.0.0"
     circomlibjs "0.0.8"
     elliptic "6.5.4"
@@ -3068,23 +3061,24 @@
     lodash "^4.17.20"
     snarkjs "0.4.22"
 
-"@webb-tools/test-utils@0.1.4-90":
-  version "0.1.4-90"
-  resolved "https://registry.yarnpkg.com/@webb-tools/test-utils/-/test-utils-0.1.4-90.tgz#8275f3cbe4a11951c8df924ca30c06b65600ffd8"
-  integrity sha512-+NBprSNornyFhS/GgZELdUEoW7MH07xwPTlQvv/kb64HyL6GT3Hx1AyojmEAULLpvIDmmSVRKCBbQVlaw3wvvA==
+"@webb-tools/test-utils@0.1.4-96":
+  version "0.1.4-96"
+  resolved "https://registry.yarnpkg.com/@webb-tools/test-utils/-/test-utils-0.1.4-96.tgz#f392090caf5f29388268611b5deff7f1af474a07"
+  integrity sha512-AIGP84rnRO4xH4r0+PNmzw2Jm1QlL7UctF9yVtCMicgKAwvCe9b9hoZIA/x6Cy2bMi7h4A6VQu4QnhJ56DNMfA==
   dependencies:
     "@babel/runtime" "^7.10.2"
     "@polkadot/api" "8.14.1"
     "@polkadot/keyring" "10.1.1"
-    "@webb-tools/api" "0.1.4-90"
+    "@webb-tools/api" "0.1.4-96"
+    "@webb-tools/sdk-core" "0.1.4-96"
     bignumber.js "^9.0.0"
     ethers "5.5.1"
-    ganache "7.1.0"
+    ganache "7.4.1"
 
-"@webb-tools/types@0.1.4-90":
-  version "0.1.4-90"
-  resolved "https://registry.yarnpkg.com/@webb-tools/types/-/types-0.1.4-90.tgz#54ff136643811361f9341b90bd8da3612a5859fc"
-  integrity sha512-k4cu+eeMxdc005I5oYWEhau6TO4y6cnpwYKczvG3umEOIkCOwfwAZFkSKvFtOleJZKmJGHsUD/DJkZxNkPKdvg==
+"@webb-tools/types@0.1.4-96":
+  version "0.1.4-96"
+  resolved "https://registry.yarnpkg.com/@webb-tools/types/-/types-0.1.4-96.tgz#ee2bc9ddc3e572d3acf8efea6dd8235bb7fda8dc"
+  integrity sha512-vIH/JI2vJ4Hj04JH7hhwU9e1e96G6w73FUlDd6ctP+qSusXe5q8b8l0GY9L4bHINmnQ9sJfF0wVNi76eE9paZg==
   dependencies:
     "@babel/runtime" "^7.10.2"
     "@open-web3/orml-types" "^1.1.3"
@@ -3092,10 +3086,10 @@
     "@polkadot/typegen" "8.14.1"
     "@polkadot/types" "8.14.1"
 
-"@webb-tools/wasm-utils@0.1.4-90":
-  version "0.1.4-90"
-  resolved "https://registry.yarnpkg.com/@webb-tools/wasm-utils/-/wasm-utils-0.1.4-90.tgz#3746ffc607b5511a88e31517d74ad6c88974e7a0"
-  integrity sha512-rbKV07xxfHQUO6dMfb8WCcTEKXCofMs0tYMq5E7nB6nceWXIdL2Dka8QgdryH7jT4ESV5DiVBB/CJqkL9ExHHQ==
+"@webb-tools/wasm-utils@0.1.4-96":
+  version "0.1.4-96"
+  resolved "https://registry.yarnpkg.com/@webb-tools/wasm-utils/-/wasm-utils-0.1.4-96.tgz#64faf3250ec50d56731ef6d2080bd444d4676ddc"
+  integrity sha512-K485HjKJctMF6VghOq1cb4oDjfK+uJ9mU4UB1XipXmJmv29i7k7OlxI8XG2wPlv4cxO17XrefLPU6E7GY5rMmQ==
 
 "@yarnpkg/lockfile@^1.1.0":
   version "1.1.0"
@@ -7363,12 +7357,15 @@ ganache-core@^2.13.2:
     ethereumjs-wallet "0.6.5"
     web3 "1.2.11"
 
-ganache@7.1.0:
-  version "7.1.0"
-  resolved "https://registry.yarnpkg.com/ganache/-/ganache-7.1.0.tgz#f38287ae86c415d0a62b762faaef4732811e89e7"
-  integrity sha512-f794GTIxHcb9o889GOh0Ad6/Q09nsNhJtN11oi8m+nxsuPHkkMNaGRHav3hApZLY3GPrSBT3XIKlDIUFxcBq8g==
+ganache@7.4.1:
+  version "7.4.1"
+  resolved "https://registry.yarnpkg.com/ganache/-/ganache-7.4.1.tgz#5f109619067baf25dec15f92a8d919e5bfeedb4d"
+  integrity sha512-yLlfsHQpJmXRD/Ryd7JcHTzL9q0cE+BDu3fmMFmJ/0Nl8GYBDfZrtyzm/8nSRWiXoWR98ER/c3PZrhR9KDySeA==
   dependencies:
-    "@trufflesuite/bigint-buffer" "1.1.9"
+    "@trufflesuite/bigint-buffer" "1.1.10"
+    "@types/bn.js" "^5.1.0"
+    "@types/lru-cache" "5.1.1"
+    "@types/seedrandom" "3.0.1"
     emittery "0.10.0"
     keccak "3.0.1"
     leveldown "6.1.0"
@@ -10292,11 +10289,6 @@ node-fetch@~1.7.1:
   dependencies:
     encoding "^0.1.11"
     is-stream "^1.0.1"
-
-node-gyp-build@4.3.0:
-  version "4.3.0"
-  resolved "https://registry.yarnpkg.com/node-gyp-build/-/node-gyp-build-4.3.0.tgz#9f256b03e5826150be39c764bf51e993946d71a3"
-  integrity sha512-iWjXZvmboq0ja1pUGULQBexmxq8CV4xBhX7VDOTbL7ZR4FOowwY/VOtRxBN/yKxmdGoIp4j5ysNT4u3S2pDQ3Q==
 
 node-gyp-build@4.4.0:
   version "4.4.0"
