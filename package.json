@@ -65,6 +65,7 @@
     "dotenv": "^8.2.0",
     "elliptic": "^6.5.3",
     "hardhat-artifactor": "^0.2.0",
+    "mocha-parallel-tests": "^2.3.0",
     "prettier": "^2.3.2",
     "snarkjs": "0.4.22",
     "ts-node": "^10.1.0",
