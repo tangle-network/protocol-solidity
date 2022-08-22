@@ -8,13 +8,7 @@
     "clean": "rimraf -rf ./lib",
     "compile": "tsc -p tsconfig.build.json && sh ./copyTypes.sh"
   },
-  "devDependencies": {
-    "@nomiclabs/hardhat-ethers": "^2.0.2",
-    "@nomiclabs/hardhat-web3": "^2.0.0"
-  },
   "dependencies": {
-    "@typechain/ethers-v5": "^7.0.1",
-    "@typechain/hardhat": "^2.3.0",
     "ethers": "5.5.1"
   },
   "publishConfig": {
