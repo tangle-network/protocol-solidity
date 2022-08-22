@@ -2,9 +2,9 @@ name: check
 
 on:
   push:
-    branches: [ main ]
+    branches: [ '**' ]
   pull_request:
-    branches: [ main ]
+    branches: [ '**' ]
     paths-ignore:
       - 'README.md'
   
