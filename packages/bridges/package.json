@@ -8,10 +8,6 @@
     "clean": "rimraf -rf ./lib",
     "compile": "tsc -p tsconfig.build.json"
   },
-  "devDependencies": {
-    "@nomiclabs/hardhat-ethers": "2.0.2",
-    "hardhat": "^2.6.8"
-  },
   "dependencies": {
     "@webb-tools/anchors": "^0.2.4",
     "@webb-tools/contracts": "^0.2.3",
@@ -19,10 +15,7 @@
     "@webb-tools/sdk-core": "0.1.4-96",
     "@webb-tools/tokens": "^0.2.3",
     "@webb-tools/utils": "^0.2.2",
-    "circomlibjs": "0.0.8",
-    "ethers": "5.5.1",
-    "ffjavascript": "0.2.55",
-    "snarkjs": "0.4.22"
+    "ethers": "5.5.1"
   },
   "publishConfig": {
     "access": "public"
