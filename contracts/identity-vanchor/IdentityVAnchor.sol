@@ -8,8 +8,9 @@ pragma solidity ^0.8.0;
 import "../interfaces/ITokenWrapper.sol";
 import "../interfaces/IMintableERC20.sol";
 import "../interfaces/ISemaphore.sol";
-import "../vanchors/VAnchorBase.sol";
-import "../libs/VAnchorEncodeInputs.sol";
+import "./IdentityVAnchorBase.sol";
+// import "../libs/VAnchorEncodeInputs.sol";
+import "./IdentityVAnchorEncodeInputs.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -73,13 +74,13 @@ contract IdentityVAnchor is IdentityVAnchorBase {
 	constructor(
 		ISemaphore _semaphore,
 		IAnchorVerifier _verifier,
-		uint32 _levels,
+		uint8 _levels,
 		IPoseidonT3 _hasher,
 		address _handler,
 		address _token,
 		uint8 _maxEdges
 	) IdentityVAnchorBase (
-        _semaphore
+        _semaphore,
 		_verifier,
 		_levels,
 		_hasher,
@@ -184,7 +185,7 @@ contract IdentityVAnchor is IdentityVAnchorBase {
 		@param _args The zkSNARK proof parameters
 		@param _extData The external data for the transaction
 	 */
-	function transact(VAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) public nonReentrant {
+	function transact(IdentityVAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) public nonReentrant {
 		_executeValidationAndVerification(_args, _extData);
 
 		if (_extData.extAmount > 0) {
@@ -211,7 +212,7 @@ contract IdentityVAnchor is IdentityVAnchorBase {
 		@param _tokenAddress The token to wrap from or unwrap into depending on the positivity of `_extData.extAmount`
 	 */
 	function transactWrap(
-		VAnchorEncodeInputs.Proof memory _args,
+		IdentityVAnchorEncodeInputs.Proof memory _args,
 		ExtData memory _extData,
 		address _tokenAddress
 	) public payable {
@@ -244,7 +245,7 @@ contract IdentityVAnchor is IdentityVAnchorBase {
 		@param _args The zkSNARK proof parameters
 		@param _extData The external data for the transaction
 	 */
-	function _executeValidationAndVerification(VAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) internal {
+	function _executeValidationAndVerification(IdentityVAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) internal {
 		for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
 			require(!isSpent(_args.inputNullifiers[i]), "Input is already spent");
 		}
@@ -262,13 +263,13 @@ contract IdentityVAnchor is IdentityVAnchorBase {
 		@notice Checks whether the zkSNARK proof is valid
 		@param _args The zkSNARK proof parameters
 	 */
-	function _executeVerification(VAnchorEncodeInputs.Proof memory _args) view internal {
+	function _executeVerification(IdentityVAnchorEncodeInputs.Proof memory _args) view internal {
 		if (_args.inputNullifiers.length == 2) {
-			(bytes memory encodedInput, bytes32[] memory roots) = VAnchorEncodeInputs._encodeInputs2(_args, maxEdges);
+			(bytes memory encodedInput, bytes32[] memory roots) = IdentityVAnchorEncodeInputs._encodeInputs2(_args, maxEdges);
 			require(isValidRoots(roots), "Invalid roots");
 			require(verify2(_args.proof, encodedInput), "Invalid transaction proof");
 		} else if (_args.inputNullifiers.length == 16) {
-			(bytes memory encodedInput, bytes32[] memory roots) = VAnchorEncodeInputs._encodeInputs16(_args, maxEdges);
+			(bytes memory encodedInput, bytes32[] memory roots) = IdentityVAnchorEncodeInputs._encodeInputs16(_args, maxEdges);
 			require(isValidRoots(roots), "Invalid roots");
 			require(verify16(_args.proof, encodedInput), "Invalid transaction proof");
 		} else {
@@ -281,7 +282,7 @@ contract IdentityVAnchor is IdentityVAnchorBase {
 		@param _args The zkSNARK proof parameters
 		@param _extData The external data for the transaction
 	 */
-	function _executeInsertions(VAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) internal {
+	function _executeInsertions(IdentityVAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) internal {
 		insertTwo(_args.outputCommitments[0], _args.outputCommitments[1]);
 		emit NewCommitment(_args.outputCommitments[0], nextIndex - 2, _extData.encryptedOutput1);
 		emit NewCommitment(_args.outputCommitments[1], nextIndex - 1, _extData.encryptedOutput2);

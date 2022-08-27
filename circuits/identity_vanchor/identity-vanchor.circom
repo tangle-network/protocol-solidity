@@ -3,22 +3,15 @@ pragma circom 2.0.0;
 include "../vanchor/transaction.circom";
 include "./semaphore.circom";
 
-template IdentityVAnchor(levels, nIns, nOuts, zeroLeaf, semaphoreSetLength, vanchorSetLength) {
+template IdentityVAnchor(levels, nIns, nOuts, zeroLeaf, length) {
     // Semaphore inputs
-    signal input semaphoreIdentityNullifier;
-    signal input semaphoreIdentityTrapdoor;
+    signal input privateKey;
     signal input semaphoreTreePathIndices[levels];
     signal input semaphoreTreeSiblings[levels];
 
-    signal input semaphoreSignalHash;
-    signal input semaphoreExternalNullifier;
-
     // roots for interoperability, one-of-many merkle membership proof
-    signal input semaphoreRoots[semaphoreSetLength];
+    signal input semaphoreRoots[length];
     signal input chainID;
-
-    signal output nullifierHash;
-
 
     // VAnchor inputs
     signal input publicAmount;
@@ -40,26 +33,21 @@ template IdentityVAnchor(levels, nIns, nOuts, zeroLeaf, semaphoreSetLength, vanc
     signal input outBlinding[nOuts];
 
     // roots for interoperability, one-of-many merkle membership proof
-    signal input vanchorRoots[vanchorSetLength];
+    signal input vanchorRoots[length];
 
-    component semaphore =  Semaphore(levels, semaphoreSetLength);
+    component semaphore =  Semaphore(levels, length);
 
-    semaphore.identityNullifier <== semaphoreIdentityNullifier;
-    semaphore.identityTrapdoor <== semaphoreIdentityTrapdoor;
+    semaphore.privateKey <== privateKey;
     for (var i = 0; i < levels; i++) {
         semaphore.treePathIndices[i] <== semaphoreTreePathIndices[i];
         semaphore.treeSiblings[i] <== semaphoreTreeSiblings[i];
     }
-    semaphore.signalHash <== semaphoreSignalHash;
-    semaphore.externalNullifier <== semaphoreExternalNullifier;
     semaphore.chainID <== chainID;
 
-    for (var i = 0; i < semaphoreSetLength; i++) {
+    for (var i = 0; i < length; i++) {
         semaphore.roots[i] <== semaphoreRoots[i];
     }
-    nullifierHash <== semaphore.nullifierHash;
-
-    component vanchor =  Transaction(levels, nIns, nOuts, zeroLeaf, vanchorSetLength);
+    component vanchor =  Transaction(levels, nIns, nOuts, zeroLeaf, length);
 
     vanchor.publicAmount <== publicAmount;
     vanchor.extDataHash <== extDataHash;
@@ -80,7 +68,7 @@ template IdentityVAnchor(levels, nIns, nOuts, zeroLeaf, semaphoreSetLength, vanc
         vanchor.outPubkey[i] <== outPubkey[i];
         vanchor.outBlinding[i] <== outBlinding[i];
     }
-    for (var i = 0; i < vanchorSetLength; i++) {
+    for (var i = 0; i < length; i++) {
         vanchor.roots[i] <== vanchorRoots[i];
     }
 }

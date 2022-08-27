@@ -19,6 +19,7 @@ abstract contract IdentityVAnchorBase is AnchorBase {
 	int256 public constant MAX_EXT_AMOUNT = 2**248;
 	uint256 public constant MAX_FEE = 2**248;
 
+	uint256 public groupId;
 	uint256 public lastBalance;
 	uint256 public minimalWithdrawalAmount;
 	uint256 public maximumDepositAmount;
@@ -50,14 +51,17 @@ abstract contract IdentityVAnchorBase is AnchorBase {
 	constructor(
 		ISemaphore _semaphore,
 		IAnchorVerifier _verifier,
-		uint32 _levels,
+		uint8 _levels,
 		IPoseidonT3 _hasher,
 		address _handler,
 		uint8 _maxEdges
 	)
 		AnchorBase(_handler, _verifier, _hasher, _levels, _maxEdges)
 	{
+        // getting a random groupId to avoid collision with possibly existing groupIds
+        groupId = _hasher.poseidon([block.timestamp, block.timestamp]);
         SemaphoreContract = _semaphore;
+        SemaphoreContract.createGroup(groupId, _levels, _handler, _maxEdges);
     }
 
 	function initialize(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmount) external initializer {
@@ -67,8 +71,10 @@ abstract contract IdentityVAnchorBase is AnchorBase {
 		super._initialize();
 	}
 
-	function register(Account memory _account) public {
-		require(_account.owner == msg.sender, "only owner can be registered");
+	function register(Account memory _account) public onlyHandler {
+		// require(_account.owner == msg.sender, "only owner can be registered");
+        uint256 publicKey = abi.decode(_account.publicKey, (uint256));
+        SemaphoreContract.addMember(groupId, publicKey);
 		_register(_account);
 	}
 

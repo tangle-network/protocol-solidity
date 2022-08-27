@@ -1,11 +1,12 @@
 #!/bin/bash
 
-mkdir -p artifacts/circuits/{anchor,anchor,keypair,membership,semaphore,signature,vanchor_2,vanchor_16,poseidon4,identity_vanchor_2}
+mkdir -p artifacts/circuits/{anchor,anchor,keypair,membership,semaphore,signature,vanchor_2,vanchor_16,poseidon4,identity_vanchor_2,identity_vanchor_16}
 
 compile () {
     local outdir="$1" circuit="$2" size="$3"
     mkdir -p build/$outdir
     mkdir -p build/$outdir/$size
+    mkdir -p artifacts/circuits/$outdir
     echo "circuits/test/$circuit.circom"
     ~/.cargo/bin/circom --r1cs --wasm --sym \
         -o artifacts/circuits/$outdir \
@@ -93,10 +94,25 @@ copy_to_fixtures () {
 # WEBB IDENTITY-VANCHORS
 ###
 
-echo "Compiling Webb style variable Poseidon vanchor 2 circuit w/ 2 inputs"
-compile identity_vanchor_2 identity_vanchor_2_2 2
-copy_to_fixtures identity_vanchor_2 identity_vanchor_2_2 2 identity_vanchor_2
+# echo "Compiling Webb style variable Poseidon vanchor 2 circuit w/ 2 inputs"
+# compile identity_vanchor_2 identity_vanchor_2_2 2
+# copy_to_fixtures identity_vanchor_2 identity_vanchor_2_2 2 identity_vanchor_2
 
+echo "Compiling Webb style variable Poseidon vanchor 2 circuit w/ 16 inputs"
+compile identity_vanchor_16 identity_vanchor_16_2 2
+copy_to_fixtures identity_vanchor_16 identity_vanchor_16_2 2 identity_vanchor_16
+
+echo "Compiling Webb style variable Poseidon vanchor 8 circuit w/ 2 inputs"
+compile identity_vanchor_2 identity_vanchor_2_8 8
+copy_to_fixtures identity_vanchor_2 identity_vanchor_2_8 8 identity_vanchor_2
+
+echo "Compiling Webb style variable Poseidon vanchor 8 circuit w/ 16 inputs"
+compile identity_vanchor_16 identity_vanchor_16_8 8
+copy_to_fixtures identity_vanchor_16 identity_vanchor_16_8 8 identity_vanchor_16
+
+# echo "Compiling Poseidon4 test gadget"
+# compile poseidon4 poseidon4_test 4
+# copy_to_fixtures poseidon4 poseidon4_test 4 none
 # Keypair and Signature Circuits
 
 # echo "Compiling Keypair Circuit"
