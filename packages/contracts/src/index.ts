@@ -22,6 +22,9 @@ export { HandlerHelpers__factory } from './factories/HandlerHelpers__factory';
 export type { VAnchorEncodeInputs } from './VAnchorEncodeInputs';
 export { VAnchorEncodeInputs__factory } from './factories/VAnchorEncodeInputs__factory';
 
+export type { IdentityVAnchorEncodeInputs } from './IdentityVAnchorEncodeInputs';
+export { IdentityVAnchorEncodeInputs__factory } from './factories/IdentityVAnchorEncodeInputs__factory';
+
 export type { GovernedTokenWrapper } from './GovernedTokenWrapper';
 export { GovernedTokenWrapper__factory } from './factories/GovernedTokenWrapper__factory';
 
@@ -48,6 +51,12 @@ export { VAnchor__factory } from './factories/VAnchor__factory';
 
 export type { VAnchorBase } from './VAnchorBase';
 export { VAnchorBase__factory } from './factories/VAnchorBase__factory';
+
+export type { IdentityVAnchor } from './IdentityVAnchor';
+export { IdentityVAnchor__factory } from './factories/IdentityVAnchor__factory';
+
+export type { IdentityVAnchorBase } from './VAnchorBase';
+export { IdentityVAnchorBase__factory } from './factories/IdentityVAnchorBase__factory';
 
 export type { Verifier } from './Verifier';
 export { Verifier__factory } from './factories/Verifier__factory';

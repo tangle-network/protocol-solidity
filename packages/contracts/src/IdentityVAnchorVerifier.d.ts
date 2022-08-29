@@ -18,47 +18,35 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-interface Verifier216Interface extends ethers.utils.Interface {
+interface IdentityVAnchorVerifierInterface extends ethers.utils.Interface {
   functions: {
-    "verifyProof(uint256[2],uint256[2][2],uint256[2],uint256[25])": FunctionFragment;
+    "v2_16()": FunctionFragment;
+    "v2_2()": FunctionFragment;
+    "v8_16()": FunctionFragment;
+    "v8_2()": FunctionFragment;
+    "verifyProof(uint256[2],uint256[2][2],uint256[2],bytes,uint8,bool)": FunctionFragment;
   };
 
+  encodeFunctionData(functionFragment: "v2_16", values?: undefined): string;
+  encodeFunctionData(functionFragment: "v2_2", values?: undefined): string;
+  encodeFunctionData(functionFragment: "v8_16", values?: undefined): string;
+  encodeFunctionData(functionFragment: "v8_2", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "verifyProof",
     values: [
       [BigNumberish, BigNumberish],
       [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]],
       [BigNumberish, BigNumberish],
-      [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-      ]
+      BytesLike,
+      BigNumberish,
+      boolean
     ]
   ): string;
 
+  decodeFunctionResult(functionFragment: "v2_16", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "v2_2", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "v8_16", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "v8_2", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "verifyProof",
     data: BytesLike
@@ -67,7 +55,7 @@ interface Verifier216Interface extends ethers.utils.Interface {
   events: {};
 }
 
-export class Verifier216 extends BaseContract {
+export class IdentityVAnchorVerifier extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -108,110 +96,62 @@ export class Verifier216 extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: Verifier216Interface;
+  interface: IdentityVAnchorVerifierInterface;
 
   functions: {
+    v2_16(overrides?: CallOverrides): Promise<[string]>;
+
+    v2_2(overrides?: CallOverrides): Promise<[string]>;
+
+    v8_16(overrides?: CallOverrides): Promise<[string]>;
+
+    v8_2(overrides?: CallOverrides): Promise<[string]>;
+
     verifyProof(
       a: [BigNumberish, BigNumberish],
       b: [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]],
       c: [BigNumberish, BigNumberish],
-      input: [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-      ],
+      input: BytesLike,
+      maxEdges: BigNumberish,
+      smallInputs: boolean,
       overrides?: CallOverrides
     ): Promise<[boolean] & { r: boolean }>;
   };
+
+  v2_16(overrides?: CallOverrides): Promise<string>;
+
+  v2_2(overrides?: CallOverrides): Promise<string>;
+
+  v8_16(overrides?: CallOverrides): Promise<string>;
+
+  v8_2(overrides?: CallOverrides): Promise<string>;
 
   verifyProof(
     a: [BigNumberish, BigNumberish],
     b: [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]],
     c: [BigNumberish, BigNumberish],
-    input: [
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish
-    ],
+    input: BytesLike,
+    maxEdges: BigNumberish,
+    smallInputs: boolean,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
   callStatic: {
+    v2_16(overrides?: CallOverrides): Promise<string>;
+
+    v2_2(overrides?: CallOverrides): Promise<string>;
+
+    v8_16(overrides?: CallOverrides): Promise<string>;
+
+    v8_2(overrides?: CallOverrides): Promise<string>;
+
     verifyProof(
       a: [BigNumberish, BigNumberish],
       b: [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]],
       c: [BigNumberish, BigNumberish],
-      input: [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-      ],
+      input: BytesLike,
+      maxEdges: BigNumberish,
+      smallInputs: boolean,
       overrides?: CallOverrides
     ): Promise<boolean>;
   };
@@ -219,73 +159,41 @@ export class Verifier216 extends BaseContract {
   filters: {};
 
   estimateGas: {
+    v2_16(overrides?: CallOverrides): Promise<BigNumber>;
+
+    v2_2(overrides?: CallOverrides): Promise<BigNumber>;
+
+    v8_16(overrides?: CallOverrides): Promise<BigNumber>;
+
+    v8_2(overrides?: CallOverrides): Promise<BigNumber>;
+
     verifyProof(
       a: [BigNumberish, BigNumberish],
       b: [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]],
       c: [BigNumberish, BigNumberish],
-      input: [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-      ],
+      input: BytesLike,
+      maxEdges: BigNumberish,
+      smallInputs: boolean,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    v2_16(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    v2_2(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    v8_16(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    v8_2(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     verifyProof(
       a: [BigNumberish, BigNumberish],
       b: [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]],
       c: [BigNumberish, BigNumberish],
-      input: [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-      ],
+      input: BytesLike,
+      maxEdges: BigNumberish,
+      smallInputs: boolean,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };

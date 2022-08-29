@@ -22,6 +22,12 @@ cp ./typechain/VAnchor.d.ts ./packages/contracts/src/VAnchor.d.ts
 cp ./typechain/VAnchorBase.d.ts ./packages/contracts/src/VAnchorBase.d.ts
 cp ./typechain/VAnchorEncodeInputs.d.ts ./packages/contracts/src/VAnchorEncodeInputs.d.ts
 cp ./typechain/VAnchorVerifier.d.ts ./packages/contracts/src/VAnchorVerifier.d.ts
+
+cp ./typechain/IdentityVAnchor.d.ts ./packages/contracts/src/IdentityVAnchor.d.ts
+cp ./typechain/IdentityVAnchorBase.d.ts ./packages/contracts/src/IdentityVAnchorBase.d.ts
+cp ./typechain/IdentityVAnchorEncodeInputs.d.ts ./packages/contracts/src/IdentityVAnchorEncodeInputs.d.ts
+cp ./typechain/IdentityVAnchorVerifier.d.ts ./packages/contracts/src/IdentityVAnchorVerifier.d.ts
+
 cp ./typechain/Verifier.d.ts ./packages/contracts/src/Verifier.d.ts
 cp ./typechain/Verifier2.d.ts ./packages/contracts/src/Verifier2.d.ts
 cp ./typechain/Verifier3.d.ts ./packages/contracts/src/Verifier3.d.ts
@@ -50,6 +56,10 @@ cp ./typechain/factories/VAnchor__factory.ts ./packages/contracts/src/factories/
 cp ./typechain/factories/VAnchorBase__factory.ts ./packages/contracts/src/factories/VAnchorBase__factory.ts
 cp ./typechain/factories/VAnchorEncodeInputs__factory.ts ./packages/contracts/src/factories/VAnchorEncodeInputs__factory.ts
 cp ./typechain/factories/VAnchorVerifier__factory.ts ./packages/contracts/src/factories/VAnchorVerifier__factory.ts
+cp ./typechain/factories/IdentityVAnchor__factory.ts ./packages/contracts/src/factories/VAnchor__factory.ts
+cp ./typechain/factories/IdentityVAnchorBase__factory.ts ./packages/contracts/src/factories/IdentityVAnchorBase__factory.ts
+cp ./typechain/factories/IdentityVAnchorEncodeInputs__factory.ts ./packages/contracts/src/factories/IdentityVAnchorEncodeInputs__factory.ts
+cp ./typechain/factories/IdentityVAnchorVerifier__factory.ts ./packages/contracts/src/factories/IdentityVAnchorVerifier__factory.ts
 cp ./typechain/factories/Verifier__factory.ts ./packages/contracts/src/factories/Verifier__factory.ts
 cp ./typechain/factories/Verifier2__factory.ts ./packages/contracts/src/factories/Verifier2__factory.ts
 cp ./typechain/factories/Verifier3__factory.ts ./packages/contracts/src/factories/Verifier3__factory.ts
