@@ -76,6 +76,7 @@ export class VAnchor implements IAnchor {
     this.contract = contract;
     this.tree = new MerkleTree(treeHeight);
     this.latestSyncedBlock = 0;
+    this.maxEdges = maxEdges;
     this.depositHistory = {};
     this.smallCircuitZkComponents = smallCircuitZkComponents;
     this.largeCircuitZkComponents = largeCircuitZkComponents;

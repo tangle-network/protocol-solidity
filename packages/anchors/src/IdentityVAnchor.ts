@@ -55,6 +55,7 @@ export class IdentityVAnchor implements IAnchor {
   tree: MerkleTree;
   // hex string of the connected root
   latestSyncedBlock: number;
+  maxEdges: number;
   smallCircuitZkComponents: ZkComponents;
   largeCircuitZkComponents: ZkComponents;
 
@@ -76,6 +77,7 @@ export class IdentityVAnchor implements IAnchor {
     this.contract = contract;
     this.tree = new MerkleTree(treeHeight);
     this.latestSyncedBlock = 0;
+    this.maxEdges = maxEdges;
     this.depositHistory = {};
     this.smallCircuitZkComponents = smallCircuitZkComponents;
     this.largeCircuitZkComponents = largeCircuitZkComponents;
@@ -537,7 +539,7 @@ export class IdentityVAnchor implements IAnchor {
         exponentiation: '5',
         hashFunction: 'Poseidon',
         index: inputUtxo.index,
-        protocol: 'vanchor',
+        protocol: 'identityVAnchor',
         secrets,
         sourceChain: inputUtxo.originChainId.toString(),
         sourceIdentifyingData: '0',
@@ -558,10 +560,14 @@ export class IdentityVAnchor implements IAnchor {
 
     const proofInput: ProvingManagerSetupInput<'identityVAnchor'> = {
       inputNotes,
-      leavesMap,
-      indices: inputIndices,
+      // TODO: Fix privatekey and identity merkle-path 
+      privateKey: hexToU8a(relayer),
+      vanchorLeavesMap: leavesMap,
+      vanchorIndices: inputIndices,
+      identityLeavesMap: leavesMap,
+      identityIndices: inputIndices,
       identityRoots: identityRoots.map((root) => hexToU8a(root)),
-      vanchorRoots: identityRoots.map((root) => hexToU8a(root)),
+      vanchorRoots: vanchorRoots.map((root) => hexToU8a(root)),
       chainId: chainId.toString(),
       output: outputs,
       encryptedCommitments,
