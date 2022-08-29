@@ -56,7 +56,7 @@ cp ./typechain/factories/VAnchor__factory.ts ./packages/contracts/src/factories/
 cp ./typechain/factories/VAnchorBase__factory.ts ./packages/contracts/src/factories/VAnchorBase__factory.ts
 cp ./typechain/factories/VAnchorEncodeInputs__factory.ts ./packages/contracts/src/factories/VAnchorEncodeInputs__factory.ts
 cp ./typechain/factories/VAnchorVerifier__factory.ts ./packages/contracts/src/factories/VAnchorVerifier__factory.ts
-cp ./typechain/factories/IdentityVAnchor__factory.ts ./packages/contracts/src/factories/VAnchor__factory.ts
+cp ./typechain/factories/IdentityVAnchor__factory.ts ./packages/contracts/src/factories/IdentityVAnchor__factory.ts
 cp ./typechain/factories/IdentityVAnchorBase__factory.ts ./packages/contracts/src/factories/IdentityVAnchorBase__factory.ts
 cp ./typechain/factories/IdentityVAnchorEncodeInputs__factory.ts ./packages/contracts/src/factories/IdentityVAnchorEncodeInputs__factory.ts
 cp ./typechain/factories/IdentityVAnchorVerifier__factory.ts ./packages/contracts/src/factories/IdentityVAnchorVerifier__factory.ts
