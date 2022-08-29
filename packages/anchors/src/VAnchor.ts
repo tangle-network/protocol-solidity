@@ -54,6 +54,7 @@ export class VAnchor implements IAnchor {
   contract: VAnchorContract;
   tree: MerkleTree;
   // hex string of the connected root
+  maxEdges: number;
   latestSyncedBlock: number;
   smallCircuitZkComponents: ZkComponents;
   largeCircuitZkComponents: ZkComponents;

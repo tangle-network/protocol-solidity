@@ -150,10 +150,13 @@ export class IdentityVAnchor implements IAnchor {
     const encodeLibrary = await encodeLibraryFactory.deploy();
     await encodeLibrary.deployed();
     const factory = new IdentityVAnchor__factory(
-      { ['contracts/libs/IdentityVAnchorEncodeInputs.sol:IdentityVAnchorEncodeInputs']: encodeLibrary.address },
+      { ['contracts/identity-vanchor/IdentityVAnchorEncodeInputs.sol:IdentityVAnchorEncodeInputs']: encodeLibrary.address },
       signer
     );
-    const vAnchor = await factory.deploy(verifier, levels, hasher, handler, token, maxEdges, {});
+    // TODO: Import Semaphore and initialize it?
+    const semaphore = encodeLibrary.address;
+
+    const vAnchor = await factory.deploy(semaphore, verifier, levels, hasher, handler, token, maxEdges, {});
     await vAnchor.deployed();
     const createdIdentityVAnchor = new IdentityVAnchor(
       vAnchor,
