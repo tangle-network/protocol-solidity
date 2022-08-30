@@ -650,7 +650,7 @@ export class VAnchor implements IAnchor {
         outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
       },
       extData,
-      { gasLimit: '0xBB8D80' }
+      { gasLimit: '0x5B8D80' }
     );
     const receipt = await tx.wait();
     gasBenchmark.push(receipt.gasUsed.toString());
@@ -736,7 +736,7 @@ export class VAnchor implements IAnchor {
         tokenAddress,
         {
           value: valueToSend.toHexString(),
-          gasLimit: '0xBB8D80',
+          gasLimit: '0x5B8D80',
         }
       );
     } else {
@@ -747,7 +747,7 @@ export class VAnchor implements IAnchor {
         },
         extData,
         tokenAddress,
-        { gasLimit: '0xBB8D80' }
+        { gasLimit: '0x5B8D80' }
       );
     }
     const receipt = await tx.wait();

@@ -101,7 +101,7 @@ export class SignatureBridgeSide implements IBridgeSide {
    */
   public async transferOwnership(newOwner: string, nonce: number) {
     return this.contract.transferOwnership(newOwner, nonce, {
-      gasLimit: 80000000,
+      gasLimit: '0x5B8D80',
     });
   }
 
