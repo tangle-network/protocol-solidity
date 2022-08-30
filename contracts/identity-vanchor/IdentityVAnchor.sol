@@ -10,7 +10,7 @@ import "../interfaces/IMintableERC20.sol";
 import "../interfaces/ISemaphore.sol";
 import "./IdentityVAnchorBase.sol";
 // import "../libs/VAnchorEncodeInputs.sol";
-import "./IdentityVAnchorEncodeInputs.sol";
+import "../libs/IdentityVAnchorEncodeInputs.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";

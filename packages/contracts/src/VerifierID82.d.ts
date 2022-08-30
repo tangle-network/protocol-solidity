@@ -18,9 +18,9 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-interface Verifier82Interface extends ethers.utils.Interface {
+interface VerifierID82Interface extends ethers.utils.Interface {
   functions: {
-    "verifyProof(uint256[2],uint256[2][2],uint256[2],uint256[15])": FunctionFragment;
+    "verifyProof(uint256[2],uint256[2][2],uint256[2],uint256[23])": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -30,6 +30,14 @@ interface Verifier82Interface extends ethers.utils.Interface {
       [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]],
       [BigNumberish, BigNumberish],
       [
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
         BigNumberish,
         BigNumberish,
         BigNumberish,
@@ -57,7 +65,7 @@ interface Verifier82Interface extends ethers.utils.Interface {
   events: {};
 }
 
-export class Verifier82 extends BaseContract {
+export class VerifierID82 extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -98,7 +106,7 @@ export class Verifier82 extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: Verifier82Interface;
+  interface: VerifierID82Interface;
 
   functions: {
     verifyProof(
@@ -106,6 +114,14 @@ export class Verifier82 extends BaseContract {
       b: [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]],
       c: [BigNumberish, BigNumberish],
       input: [
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
         BigNumberish,
         BigNumberish,
         BigNumberish,
@@ -145,6 +161,14 @@ export class Verifier82 extends BaseContract {
       BigNumberish,
       BigNumberish,
       BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
       BigNumberish
     ],
     overrides?: CallOverrides
@@ -156,6 +180,14 @@ export class Verifier82 extends BaseContract {
       b: [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]],
       c: [BigNumberish, BigNumberish],
       input: [
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
         BigNumberish,
         BigNumberish,
         BigNumberish,
@@ -198,6 +230,14 @@ export class Verifier82 extends BaseContract {
         BigNumberish,
         BigNumberish,
         BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
         BigNumberish
       ],
       overrides?: CallOverrides
@@ -210,6 +250,14 @@ export class Verifier82 extends BaseContract {
       b: [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]],
       c: [BigNumberish, BigNumberish],
       input: [
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
+        BigNumberish,
         BigNumberish,
         BigNumberish,
         BigNumberish,
