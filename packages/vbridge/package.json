@@ -11,10 +11,10 @@
   "dependencies": {
     "@webb-tools/bridges": "^0.2.5",
     "@webb-tools/contracts": "^0.2.5",
-    "@webb-tools/sdk-core": "0.1.4-96",
+    "@webb-tools/sdk-core": "0.1.4-99",
     "@webb-tools/tokens": "^0.2.5",
     "@webb-tools/utils": "^0.2.5",
-    "ethers": "5.5.1"
+    "ethers": "5.7.0"
   },
   "publishConfig": {
     "access": "public"

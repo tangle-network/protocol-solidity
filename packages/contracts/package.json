@@ -9,7 +9,7 @@
     "compile": "tsc -p tsconfig.build.json && sh ./copyTypes.sh"
   },
   "dependencies": {
-    "ethers": "5.5.1"
+    "ethers": "5.7.0"
   },
   "publishConfig": {
     "access": "public"

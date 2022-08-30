@@ -100,7 +100,9 @@ export class SignatureBridgeSide implements IBridgeSide {
    * @param newOwner The new owner of the bridge
    */
   public async transferOwnership(newOwner: string, nonce: number) {
-    return this.contract.transferOwnership(newOwner, nonce);
+    return this.contract.transferOwnership(newOwner, nonce, {
+      gasLimit: '0x5B8D80',
+    });
   }
 
   /**
