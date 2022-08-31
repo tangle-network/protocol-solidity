@@ -22,15 +22,20 @@ export interface IIdentityVariableAnchorExtData {
 
 export interface IIdentityWitnessInput {
   input: {
-    identityRoots: BigNumberish[];
-    vanchorRoots: BigNumberish[];
+    // Semaphore inputs
+    privateKey: string;
+    semaphorePathIndices: BigNumberish[];
+    semaphorePathElements: BigNumberish[][];
+    // roots for semaphore interoperability
+    semaphoreRoots: BigNumberish[];
+
     chainID: BigNumberish;
-    inputNullifier: BigNumberish[];
-    outputCommitment: BigNumberish[];
+
     publicAmount: BigNumberish;
     extDataHash: BigNumberish;
 
-    // data for 2 transaction inputs
+    // data for transaction inputs
+    inputNullifier: BigNumberish[];
     inAmount: BigNumberish[];
     inPrivateKey: string[];
     inBlinding: BigNumberish[];
@@ -38,10 +43,14 @@ export interface IIdentityWitnessInput {
     inPathElements: BigNumberish[][];
 
     // data for 2 transaction outputs
+    outputCommitment: BigNumberish[];
     outChainID: BigNumberish[];
     outAmount: BigNumberish[];
     outBlinding: BigNumberish[];
     outPubkey: BigNumberish[];
+
+    // roots for vanchor interoperability
+    vanchorRoots: BigNumberish[];
   };
   extData: IIdentityVariableAnchorExtData;
 }
