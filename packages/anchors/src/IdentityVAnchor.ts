@@ -5,7 +5,7 @@ import {
   IdentityVAnchorEncodeInputs__factory,
   TokenWrapper,
   TokenWrapper__factory,
-} from '../../contracts';
+} from '@webb-tools/contracts';
 import {
   toHex,
   Keypair,
@@ -55,7 +55,6 @@ export class IdentityVAnchor implements IAnchor {
   tree: MerkleTree;
   // hex string of the connected root
   latestSyncedBlock: number;
-  maxEdges: number;
   smallCircuitZkComponents: ZkComponents;
   largeCircuitZkComponents: ZkComponents;
 
@@ -77,7 +76,6 @@ export class IdentityVAnchor implements IAnchor {
     this.contract = contract;
     this.tree = new MerkleTree(treeHeight);
     this.latestSyncedBlock = 0;
-    this.maxEdges = maxEdges;
     this.depositHistory = {};
     this.smallCircuitZkComponents = smallCircuitZkComponents;
     this.largeCircuitZkComponents = largeCircuitZkComponents;
