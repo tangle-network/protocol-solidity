@@ -70,11 +70,14 @@ rustup update nightly
 rustup target add wasm32-unknown-unknown
 ```
 
-Great! Now your Rust environment is ready! 🚀🚀
+Great! Now your **Rust** environment is ready! 🚀🚀
 
-Lastly, you need to install [DVC](https://dvc.org/) for fetching large ZK files.
+Lastly, install 
 
-**Note:** You may need additional dependencies, checkout [substrate.io](https://docs.substrate.io/main-docs/install/) for more information.
+  - [DVC](https://dvc.org/) is used for fetching large ZK files and managing them alongside git
+  - [substrate.io](https://docs.substrate.io/main-docs/install/) may require additional dependencies
+
+🚀🚀 Your environment is complete! 🚀🚀
 
 ### Generating Fixtures Prerequisites
 
