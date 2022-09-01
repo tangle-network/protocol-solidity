@@ -72,6 +72,8 @@ rustup target add wasm32-unknown-unknown
 
 Great! Now your Rust environment is ready! 🚀🚀
 
+Lastly, you need to install [DVC](https://dvc.org/) for fetching large ZK files.
+
 **Note:** You may need additional dependencies, checkout [substrate.io](https://docs.substrate.io/main-docs/install/) for more information.
 
 ### Generating Fixtures Prerequisites
@@ -118,6 +120,12 @@ Update submodules:
 git submodule update --init --recursive
 ```
 
+Populate fixtures from the submodules:
+
+```
+yarn fetch:fixtures
+```
+
 To compile contracts:
 
 ```
@@ -131,7 +139,7 @@ The above command will build the Solidity system, performing the following build
 2. Compile the hashers. These hashers are provided to the merkle tree upon deployment.
 
 
-**Note:** If you need to generate the fixtures you should run:
+**Note:** If you need to generate fixtures you should run:
 
 ```
 yarn build
@@ -145,6 +153,11 @@ To run the test suite, update the submodules:
 
 ```
 git submodule update --init --recursive
+```
+
+Fetch the fixtures:
+```
+yarn fetch:fixtures
 ```
 
 Install the dependencies:
