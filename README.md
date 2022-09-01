@@ -70,9 +70,14 @@ rustup update nightly
 rustup target add wasm32-unknown-unknown
 ```
 
-Great! Now your Rust environment is ready! 🚀🚀
+Great! Now your **Rust** environment is ready! 🚀🚀
 
-**Note:** You may need additional dependencies, checkout [substrate.io](https://docs.substrate.io/main-docs/install/) for more information.
+Lastly, install 
+
+  - [DVC](https://dvc.org/) is used for fetching large ZK files and managing them alongside git
+  - [substrate.io](https://docs.substrate.io/main-docs/install/) may require additional dependencies
+
+🚀🚀 Your environment is complete! 🚀🚀
 
 ### Generating Fixtures Prerequisites
 
@@ -118,6 +123,12 @@ Update submodules:
 git submodule update --init --recursive
 ```
 
+Populate fixtures from the submodules:
+
+```
+yarn fetch:fixtures
+```
+
 To compile contracts:
 
 ```
@@ -131,7 +142,7 @@ The above command will build the Solidity system, performing the following build
 2. Compile the hashers. These hashers are provided to the merkle tree upon deployment.
 
 
-**Note:** If you need to generate the fixtures you should run:
+**Note:** If you need to generate fixtures you should run:
 
 ```
 yarn build
@@ -139,12 +150,25 @@ yarn build
 
 The above command will `compile` the contracts but also compile the circom circuits, and generate ptau. The ptau is needed for setup of zero knowledge proofs. This ptau is for test and development purposes only!
 
+**Note:** If you push new fixtures to remote storage
+
+```
+cd solidity-fixtures
+dvc add solidity-fixtures
+dvc push --remote aws
+```
+
 <h2 id="test"> Testing 🧪 </h2>
 
 To run the test suite, update the submodules:
 
 ```
 git submodule update --init --recursive
+```
+
+Fetch the fixtures:
+```
+yarn fetch:fixtures
 ```
 
 Install the dependencies:

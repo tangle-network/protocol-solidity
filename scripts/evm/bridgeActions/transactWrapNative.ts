@@ -10,29 +10,29 @@ export async function transactWrapNative(anchorAddress: string, sender: ethers.S
   const zkComponentsSmall = await fetchComponentsFromFilePaths(
     path.resolve(
       __dirname,
-      `../../../protocol-solidity-fixtures/fixtures/vanchor_2/8/poseidon_vanchor_2_8.wasm`
+      `../../../solidity-fixtures/solidity-fixtures/vanchor_2/8/poseidon_vanchor_2_8.wasm`
     ),
     path.resolve(
       __dirname,
-      `../../../protocol-solidity-fixtures/fixtures/vanchor_2/8/witness_calculator.cjs`
+      `../../../solidity-fixtures/solidity-fixtures/vanchor_2/8/witness_calculator.cjs`
     ),
     path.resolve(
       __dirname,
-      `../../../protocol-solidity-fixtures/fixtures/vanchor_2/8/circuit_final.zkey`
+      `../../../solidity-fixtures/solidity-fixtures/vanchor_2/8/circuit_final.zkey`
     )
   );
   const zkComponentsLarge = await fetchComponentsFromFilePaths(
     path.resolve(
       __dirname,
-      `../../../protocol-solidity-fixtures/fixtures/vanchor_16/8/poseidon_vanchor_16_8.wasm`
+      `../../../solidity-fixtures/solidity-fixtures/vanchor_16/8/poseidon_vanchor_16_8.wasm`
     ),
     path.resolve(
       __dirname,
-      `../../../protocol-solidity-fixtures/fixtures/vanchor_16/8/witness_calculator.cjs`
+      `../../../solidity-fixtures/solidity-fixtures/vanchor_16/8/witness_calculator.cjs`
     ),
     path.resolve(
       __dirname,
-      `../../../protocol-solidity-fixtures/fixtures/vanchor_16/8/circuit_final.zkey`
+      `../../../solidity-fixtures/solidity-fixtures/vanchor_16/8/circuit_final.zkey`
     )
   );
   const anchor = await VAnchor.connect(anchorAddress, zkComponentsSmall, zkComponentsLarge, sender);

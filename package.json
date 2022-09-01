@@ -15,6 +15,7 @@
     "build:ptau": "./scripts/bash/generate_phase1_ptau.sh",
     "clean": "rm -rf artifacts typechain && yarn clean:packages",
     "clean:packages": "lerna run clean",
+    "fetch:fixtures": "cd solidity-fixtures && dvc pull && cd ..",
     "publish:packages": "lerna run build && lerna publish",
     "setup:groth16:anchor2": "./scripts/bash/groth16/anchor/phase2_poseidon_anchor2.sh",
     "setup:groth16:anchor3": "./scripts/bash/groth16/anchor/phase2_poseidon_anchor3.sh",
