@@ -150,6 +150,14 @@ yarn build
 
 The above command will `compile` the contracts but also compile the circom circuits, and generate ptau. The ptau is needed for setup of zero knowledge proofs. This ptau is for test and development purposes only!
 
+**Note:** If you push new fixtures to remote storage
+
+```
+cd solidity-fixtures
+dvc add solidity-fixtures
+dvc push --remote aws
+```
+
 <h2 id="test"> Testing 🧪 </h2>
 
 To run the test suite, update the submodules:
