@@ -326,6 +326,7 @@ export class VBridge {
     inputs: Utxo[],
     outputs: Utxo[],
     fee: BigNumberish,
+    refund: BigNumberish,
     recipient: string,
     relayer: string,
     signer: ethers.Signer
@@ -415,7 +416,7 @@ export class VBridge {
       );
     }
 
-    await vAnchor.transact(regeneratedInputs, outputs, leavesMap, fee, recipient, relayer);
+    await vAnchor.transact(regeneratedInputs, outputs, leavesMap, fee, refund, recipient, relayer);
     await this.update(chainId);
   }
 
@@ -425,6 +426,7 @@ export class VBridge {
     inputs: Utxo[],
     outputs: Utxo[],
     fee: BigNumberish,
+    refund: BigNumberish,
     recipient: string,
     relayer: string,
     signer: ethers.Signer
@@ -511,7 +513,7 @@ export class VBridge {
       );
     }
 
-    await vAnchor.transactWrap(tokenAddress, regeneratedInputs, outputs, fee, recipient, relayer, leavesMap);
+    await vAnchor.transactWrap(tokenAddress, regeneratedInputs, outputs, fee, refund, recipient, relayer, leavesMap);
     await this.update(chainId);
   }
 }
