@@ -49,7 +49,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
   const levels = 30;
   let fee = BigInt((new BN(`100000000000000000`)).toString());
   let recipient = "0x1111111111111111111111111111111111111111";
-  let verifier: Verifier;
+  let verifier: IdentityVerifier;
   let hasherInstance: any;
   let token: ERC20PresetMinterPauser;
   let wrappedToken: WrappedToken;
@@ -102,7 +102,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
     await hasherInstance.deployed();
       
     // create bridge verifier
-    verifier = await Verifier.createVerifier(sender);
+    verifier = await IdentityVerifier.createVerifier(sender);
 
     // create token
     const tokenFactory = new ERC20PresetMinterPauser__factory(wallet);

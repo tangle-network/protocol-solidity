@@ -34,7 +34,7 @@ import {
   IAnchorDepositInfo,
 } from '@webb-tools/interfaces';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
-import { Semaphore } from '@semaphore-anchor/packages/semaphore';
+import { Semaphore, Verifier } from '@semaphore-anchor/packages/semaphore';
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 function checkNativeAddress(tokenAddress: string): boolean {
@@ -154,7 +154,7 @@ export class IdentityVAnchor implements IAnchor {
     );
     // TODO: Import Semaphore and initialize it?
     // const semaphore = encodeLibrary.address;
-    const semaphore = Semaphore.createSemaphore(levels, maxEdges, smallCircuitZkComponents, signer)
+    const semaphore = await Semaphore.createSemaphore(levels, maxEdges, smallCircuitZkComponents, signer)
 
     const vAnchor = await factory.deploy(semaphore.contract.address, verifier, levels, hasher, handler, token, maxEdges, {});
     await vAnchor.deployed();
