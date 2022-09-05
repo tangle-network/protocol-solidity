@@ -13,7 +13,11 @@
     "@webb-tools/sdk-core": "file:../webb.js/packages/sdk-core/build",
     "@webb-tools/types": "file:../webb.js/packages/types/build",
     "@webb-tools/test-utils": "file:../webb.js/packages/test-utils/build",
-    "@webb-tools/wasm-utils": "file:../webb.js/packages/test-utils/build"
+    "@webb-tools/wasm-utils": "file:../webb.js/packages/test-utils/build",
+    "@semaphore-anchor/identity": "file:../semaphore-anchor/packages/identity/dist",
+    "@semaphore-anchor/group": "file:../semaphore-anchor/packages/group/dist",
+    "@semaphore-anchor/proof": "file:../semaphore-anchor/packages/proof/dist",
+    "@semaphore-anchor/semaphore": "file:../semaphore-anchor/packages/semaphore/dist"
   },
   "scripts": {
     "compile": "npx hardhat compile && sh ./scripts/bash/copyTypechain.sh && yarn build:packages",
@@ -67,8 +71,13 @@
     "@typechain/ethers-v5": "^7.0.1",
     "@typechain/hardhat": "^2.3.0",
     "@types/mocha": "^9.0.0",
-    "@webb-tools/sdk-core": "0.1.4-97",
+    "@webb-tools/sdk-core": "0.1.4-96",
     "@webb-tools/test-utils": "0.1.4-97",
+    "@semaphore-anchor": "file:../semaphore-anchor",
+    "@semaphore-anchor/identity": "file:../semaphore-anchor/packages/identity",
+    "@semaphore-anchor/group": "file:../semaphore-anchor/packages/group",
+    "@semaphore-anchor/proof": "file:../semaphore-anchor/packages/proof",
+    "@semaphore-anchor/semaphore": "file:../semaphore-anchor/packages/semaphore",
     "bn.js": "4.11.6",
     "circomlibjs": "0.0.8",
     "dotenv": "^8.2.0",
