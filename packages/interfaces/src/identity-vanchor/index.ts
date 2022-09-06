@@ -16,6 +16,8 @@ export interface IIdentityVariableAnchorExtData {
   extAmount: string;
   relayer: string;
   fee: string;
+  refund: string;
+  token: string;
   encryptedOutput1: string;
   encryptedOutput2: string;
 }

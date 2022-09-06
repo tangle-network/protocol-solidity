@@ -30,6 +30,8 @@ abstract contract IdentityVAnchorBase is AnchorBase {
 		int256 extAmount;
 		address relayer;
 		uint256 fee;
+		uint256 refund;
+		address token;
 		bytes encryptedOutput1;
 		bytes encryptedOutput2;
 	}

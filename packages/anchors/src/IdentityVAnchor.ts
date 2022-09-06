@@ -238,8 +238,10 @@ export class IdentityVAnchor implements IAnchor {
       extAmount: args[1],
       relayer: args[2],
       fee: args[3],
-      encryptedOutput1: args[4],
-      encryptedOutput2: args[5],
+      refund: args[4],
+      token: args[5],
+      encryptedOutput1: args[6],
+      encryptedOutput2: args[7],
     };
   }
 
@@ -603,6 +605,8 @@ export class IdentityVAnchor implements IAnchor {
       extAmount: toFixedHex(proofInput.extAmount),
       relayer: toFixedHex(proofInput.relayer, 20),
       fee: toFixedHex(proofInput.fee),
+      refund: toFixedHex(proofInput.refund),
+      token: toFixedHex(proofInput.token, 20),
       encryptedOutput1: u8aToHex(proofInput.encryptedCommitments[0]),
       encryptedOutput2: u8aToHex(proofInput.encryptedCommitments[1]),
     };
