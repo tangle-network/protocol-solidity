@@ -34,7 +34,7 @@ import {
   IAnchorDepositInfo,
 } from '@webb-tools/interfaces';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
-import { Semaphore, Verifier } from '@semaphore-anchor/packages/semaphore';
+import { Semaphore, Verifier } from '@semaphore-anchor/semaphore';
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 function checkNativeAddress(tokenAddress: string): boolean {
