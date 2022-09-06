@@ -65,14 +65,14 @@ interface VAnchorInterface extends ethers.utils.Interface {
     "nullifierHashes(bytes32)": FunctionFragment;
     "parseChainIdFromResourceId(bytes32)": FunctionFragment;
     "register((address,bytes))": FunctionFragment;
-    "registerAndTransact((address,bytes),(bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes))": FunctionFragment;
-    "registerAndTransactWrap((address,bytes),(bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes),address)": FunctionFragment;
+    "registerAndTransact((address,bytes),(bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,uint256,address,bytes,bytes))": FunctionFragment;
+    "registerAndTransactWrap((address,bytes),(bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,uint256,address,bytes,bytes),address)": FunctionFragment;
     "roots(uint256)": FunctionFragment;
     "setHandler(address,uint32)": FunctionFragment;
     "setVerifier(address,uint32)": FunctionFragment;
     "token()": FunctionFragment;
-    "transact((bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes))": FunctionFragment;
-    "transactWrap((bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,bytes,bytes),address)": FunctionFragment;
+    "transact((bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,uint256,address,bytes,bytes))": FunctionFragment;
+    "transactWrap((bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,uint256,address,bytes,bytes),address)": FunctionFragment;
     "unpackProof(uint256[8])": FunctionFragment;
     "unwrapIntoNative(address,uint256)": FunctionFragment;
     "unwrapIntoToken(address,uint256)": FunctionFragment;
@@ -252,6 +252,8 @@ interface VAnchorInterface extends ethers.utils.Interface {
         extAmount: BigNumberish;
         relayer: string;
         fee: BigNumberish;
+        refund: BigNumberish;
+        token: string;
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       }
@@ -274,6 +276,8 @@ interface VAnchorInterface extends ethers.utils.Interface {
         extAmount: BigNumberish;
         relayer: string;
         fee: BigNumberish;
+        refund: BigNumberish;
+        token: string;
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },
@@ -306,6 +310,8 @@ interface VAnchorInterface extends ethers.utils.Interface {
         extAmount: BigNumberish;
         relayer: string;
         fee: BigNumberish;
+        refund: BigNumberish;
+        token: string;
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       }
@@ -327,6 +333,8 @@ interface VAnchorInterface extends ethers.utils.Interface {
         extAmount: BigNumberish;
         relayer: string;
         fee: BigNumberish;
+        refund: BigNumberish;
+        token: string;
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },
@@ -838,6 +846,8 @@ export class VAnchor extends BaseContract {
         extAmount: BigNumberish;
         relayer: string;
         fee: BigNumberish;
+        refund: BigNumberish;
+        token: string;
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },
@@ -859,6 +869,8 @@ export class VAnchor extends BaseContract {
         extAmount: BigNumberish;
         relayer: string;
         fee: BigNumberish;
+        refund: BigNumberish;
+        token: string;
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },
@@ -896,6 +908,8 @@ export class VAnchor extends BaseContract {
         extAmount: BigNumberish;
         relayer: string;
         fee: BigNumberish;
+        refund: BigNumberish;
+        token: string;
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },
@@ -916,6 +930,8 @@ export class VAnchor extends BaseContract {
         extAmount: BigNumberish;
         relayer: string;
         fee: BigNumberish;
+        refund: BigNumberish;
+        token: string;
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },
@@ -1161,6 +1177,8 @@ export class VAnchor extends BaseContract {
       extAmount: BigNumberish;
       relayer: string;
       fee: BigNumberish;
+      refund: BigNumberish;
+      token: string;
       encryptedOutput1: BytesLike;
       encryptedOutput2: BytesLike;
     },
@@ -1182,6 +1200,8 @@ export class VAnchor extends BaseContract {
       extAmount: BigNumberish;
       relayer: string;
       fee: BigNumberish;
+      refund: BigNumberish;
+      token: string;
       encryptedOutput1: BytesLike;
       encryptedOutput2: BytesLike;
     },
@@ -1219,6 +1239,8 @@ export class VAnchor extends BaseContract {
       extAmount: BigNumberish;
       relayer: string;
       fee: BigNumberish;
+      refund: BigNumberish;
+      token: string;
       encryptedOutput1: BytesLike;
       encryptedOutput2: BytesLike;
     },
@@ -1239,6 +1261,8 @@ export class VAnchor extends BaseContract {
       extAmount: BigNumberish;
       relayer: string;
       fee: BigNumberish;
+      refund: BigNumberish;
+      token: string;
       encryptedOutput1: BytesLike;
       encryptedOutput2: BytesLike;
     },
@@ -1493,6 +1517,8 @@ export class VAnchor extends BaseContract {
         extAmount: BigNumberish;
         relayer: string;
         fee: BigNumberish;
+        refund: BigNumberish;
+        token: string;
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },
@@ -1514,6 +1540,8 @@ export class VAnchor extends BaseContract {
         extAmount: BigNumberish;
         relayer: string;
         fee: BigNumberish;
+        refund: BigNumberish;
+        token: string;
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },
@@ -1551,6 +1579,8 @@ export class VAnchor extends BaseContract {
         extAmount: BigNumberish;
         relayer: string;
         fee: BigNumberish;
+        refund: BigNumberish;
+        token: string;
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },
@@ -1571,6 +1601,8 @@ export class VAnchor extends BaseContract {
         extAmount: BigNumberish;
         relayer: string;
         fee: BigNumberish;
+        refund: BigNumberish;
+        token: string;
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },
@@ -1908,6 +1940,8 @@ export class VAnchor extends BaseContract {
         extAmount: BigNumberish;
         relayer: string;
         fee: BigNumberish;
+        refund: BigNumberish;
+        token: string;
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },
@@ -1929,6 +1963,8 @@ export class VAnchor extends BaseContract {
         extAmount: BigNumberish;
         relayer: string;
         fee: BigNumberish;
+        refund: BigNumberish;
+        token: string;
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },
@@ -1966,6 +2002,8 @@ export class VAnchor extends BaseContract {
         extAmount: BigNumberish;
         relayer: string;
         fee: BigNumberish;
+        refund: BigNumberish;
+        token: string;
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },
@@ -1986,6 +2024,8 @@ export class VAnchor extends BaseContract {
         extAmount: BigNumberish;
         relayer: string;
         fee: BigNumberish;
+        refund: BigNumberish;
+        token: string;
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },
@@ -2233,6 +2273,8 @@ export class VAnchor extends BaseContract {
         extAmount: BigNumberish;
         relayer: string;
         fee: BigNumberish;
+        refund: BigNumberish;
+        token: string;
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },
@@ -2254,6 +2296,8 @@ export class VAnchor extends BaseContract {
         extAmount: BigNumberish;
         relayer: string;
         fee: BigNumberish;
+        refund: BigNumberish;
+        token: string;
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },
@@ -2294,6 +2338,8 @@ export class VAnchor extends BaseContract {
         extAmount: BigNumberish;
         relayer: string;
         fee: BigNumberish;
+        refund: BigNumberish;
+        token: string;
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },
@@ -2314,6 +2360,8 @@ export class VAnchor extends BaseContract {
         extAmount: BigNumberish;
         relayer: string;
         fee: BigNumberish;
+        refund: BigNumberish;
+        token: string;
         encryptedOutput1: BytesLike;
         encryptedOutput2: BytesLike;
       },

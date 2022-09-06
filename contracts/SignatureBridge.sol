@@ -103,6 +103,6 @@ contract SignatureBridge is Pausable, Governable, ChainIdWithType {
     }
 
     function isCorrectExecutionContext(bytes32 resourceId) public view returns (bool) {
-		return address(bytes20(resourceId << (6 * 8))) == address(this);
-	}
+        return address(bytes20(resourceId << (6 * 8))) == address(this);
+    }
 }

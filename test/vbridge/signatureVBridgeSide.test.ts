@@ -30,15 +30,15 @@ describe('SignatureBridgeSide use', () => {
 
   before(async () => {
     zkComponents2_2 = await fetchComponentsFromFilePaths(
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.cjs'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/circuit_final.zkey')
+      path.resolve(__dirname, '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'),
+      path.resolve(__dirname, '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/witness_calculator.cjs'),
+      path.resolve(__dirname, '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey')
     );
 
     zkComponents16_2 = await fetchComponentsFromFilePaths(
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.cjs'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/circuit_final.zkey')
+      path.resolve(__dirname, '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'),
+      path.resolve(__dirname, '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/witness_calculator.cjs'),
+      path.resolve(__dirname, '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/circuit_final.zkey')
     );
   })
 
@@ -121,7 +121,7 @@ describe('SignatureBridgeSide use', () => {
       keypair: new Keypair(),
     });
     // Transact on the bridge
-    await srcAnchor.transact([], [depositUtxo], { [chainID1.toString()]: [] }, '0', zeroAddress, zeroAddress);
+    await srcAnchor.transact([], [depositUtxo], { [chainID1.toString()]: [] }, '0', '0', zeroAddress, zeroAddress);
   })
 
   it('execute fee proposal', async () => {
@@ -384,15 +384,15 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
  
   before(async () => {
     zkComponents2_2 = await fetchComponentsFromFilePaths(
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.cjs'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/circuit_final.zkey')
+      path.resolve(__dirname, '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'),
+      path.resolve(__dirname, '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/witness_calculator.cjs'),
+      path.resolve(__dirname, '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey')
     );
 
     zkComponents16_2 = await fetchComponentsFromFilePaths(
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.cjs'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/circuit_final.zkey')
+      path.resolve(__dirname, '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'),
+      path.resolve(__dirname, '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/witness_calculator.cjs'),
+      path.resolve(__dirname, '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/circuit_final.zkey')
     );
   })
 
@@ -493,7 +493,7 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
     });
     
     await TruffleAssert.reverts(
-      srcAnchor.transactWrap(erc20TokenInstance.contract.address, [], [depositUtxo], '0', zeroAddress, zeroAddress, { [chainID1.toString()]: [] }),
+      srcAnchor.transactWrap(erc20TokenInstance.contract.address, [], [depositUtxo], '0', '0', zeroAddress, zeroAddress, { [chainID1.toString()]: [] }),
       'Fee Recipient cannot be zero address'
     ); 
 
@@ -501,7 +501,7 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
     await bridgeSide.executeFeeRecipientProposalWithSig(governedToken, treasury.contract.address);
 
     // For ERC20 Tests
-    await srcAnchor.transactWrap(erc20TokenInstance.contract.address, [], [depositUtxo], '0', zeroAddress, zeroAddress, { [chainID1.toString()]: [] });
+    await srcAnchor.transactWrap(erc20TokenInstance.contract.address, [], [depositUtxo], '0', '0', zeroAddress, zeroAddress, { [chainID1.toString()]: [] });
 
     // Anchor Denomination amount should go to TokenWrapper
     assert.strictEqual((await erc20TokenInstance.getBalance(governedToken.contract.address)).toString(), depositAmount.toString());
@@ -567,15 +567,15 @@ describe('Rescue Tokens Tests for Native ETH', () => {
 
   before(async () => {
     zkComponents2_2 = await fetchComponentsFromFilePaths(
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/witness_calculator.cjs'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_2/2/circuit_final.zkey')
+      path.resolve(__dirname, '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'),
+      path.resolve(__dirname, '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/witness_calculator.cjs'),
+      path.resolve(__dirname, '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey')
     );
 
     zkComponents16_2 = await fetchComponentsFromFilePaths(
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/witness_calculator.cjs'),
-      path.resolve(__dirname, '../../protocol-solidity-fixtures/fixtures/vanchor_16/2/circuit_final.zkey')
+      path.resolve(__dirname, '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'),
+      path.resolve(__dirname, '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/witness_calculator.cjs'),
+      path.resolve(__dirname, '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/circuit_final.zkey')
     );
   })
 
@@ -661,7 +661,7 @@ describe('Rescue Tokens Tests for Native ETH', () => {
     });
 
     await TruffleAssert.reverts(
-      srcAnchor.transactWrap(zeroAddress, [], [depositUtxo], '0', zeroAddress, zeroAddress, { [chainID1.toString()]: [] }),
+      srcAnchor.transactWrap(zeroAddress, [], [depositUtxo], '0', '0', zeroAddress, zeroAddress, { [chainID1.toString()]: [] }),
       'Fee Recipient cannot be zero address'
     ); 
 
@@ -669,7 +669,7 @@ describe('Rescue Tokens Tests for Native ETH', () => {
     await bridgeSide.executeFeeRecipientProposalWithSig(governedToken, treasury.contract.address);
 
     // For Native ETH Tests
-    await srcAnchor.transactWrap(zeroAddress, [], [depositUtxo], '0', zeroAddress, zeroAddress, { [chainID1.toString()]: [] });
+    await srcAnchor.transactWrap(zeroAddress, [], [depositUtxo], '0', '0', zeroAddress, zeroAddress, { [chainID1.toString()]: [] });
 
     // Anchor Denomination amount should go to TokenWrapper
     assert.strictEqual((await ethers.provider.getBalance(governedToken.contract.address)).toString(), depositAmount.toString());

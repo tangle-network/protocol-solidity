@@ -3,7 +3,6 @@ import {
   VAnchor as VAnchorContract,
   VAnchor__factory,
   VAnchorEncodeInputs__factory,
-  TokenWrapper,
   TokenWrapper__factory,
 } from '@webb-tools/contracts';
 import {
@@ -27,11 +26,9 @@ import {
   FIELD_SIZE,
 } from '@webb-tools/sdk-core';
 import {
-  IAnchorDeposit,
   IAnchor,
   IVariableAnchorExtData,
   IVariableAnchorPublicInputs,
-  IAnchorDepositInfo,
 } from '@webb-tools/interfaces';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
 
@@ -82,55 +79,7 @@ export class VAnchor implements IAnchor {
     this.smallCircuitZkComponents = smallCircuitZkComponents;
     this.largeCircuitZkComponents = largeCircuitZkComponents;
   }
-  deposit(destinationChainId: number): Promise<IAnchorDeposit> {
-    throw new Error('Method not implemented.');
-  }
-  setupWithdraw(
-    deposit: IAnchorDepositInfo,
-    index: number,
-    recipient: string,
-    relayer: string,
-    fee: bigint,
-    refreshCommitment: string | number
-  ) {
-    throw new Error('Method not implemented.');
-  }
-  withdraw(
-    deposit: IAnchorDepositInfo,
-    index: number,
-    recipient: string,
-    relayer: string,
-    fee: bigint,
-    refreshCommitment: string | number
-  ): Promise<ethers.Event> {
-    throw new Error('Method not implemented.');
-  }
-  wrapAndDeposit(tokenAddress: string, wrappingFee: number, destinationChainId?: number): Promise<IAnchorDeposit> {
-    throw new Error('Method not implemented.');
-  }
-  bridgedWithdrawAndUnwrap(
-    deposit: IAnchorDeposit,
-    merkleProof: any,
-    recipient: string,
-    relayer: string,
-    fee: string,
-    refund: string,
-    refreshCommitment: string,
-    tokenAddress: string
-  ): Promise<ethers.Event> {
-    throw new Error('Method not implemented.');
-  }
-  bridgedWithdraw(
-    deposit: IAnchorDeposit,
-    merkleProof: any,
-    recipient: string,
-    relayer: string,
-    fee: string,
-    refund: string,
-    refreshCommitment: string
-  ): Promise<ethers.Event> {
-    throw new Error('Method not implemented.');
-  }
+
   getAddress(): string {
     return this.contract.address;
   }
@@ -234,8 +183,10 @@ export class VAnchor implements IAnchor {
       extAmount: args[1],
       relayer: args[2],
       fee: args[3],
-      encryptedOutput1: args[4],
-      encryptedOutput2: args[5],
+      refund: args[4],
+      token: args[5],
+      encryptedOutput1: args[6],
+      encryptedOutput2: args[7],
     };
   }
 
@@ -485,11 +436,18 @@ export class VAnchor implements IAnchor {
     };
   }
 
+  /**
+   *
+   * @param input A UTXO object that is inside the tree
+   * @returns an object with two fields, publicInput
+   */
   public async setupTransaction(
     inputs: Utxo[],
     outputs: [Utxo, Utxo],
     extAmount: BigNumberish,
     fee: BigNumberish,
+    refund: BigNumberish,
+    token: string,
     recipient: string,
     relayer: string,
     leavesMap: Record<string, Uint8Array[]>
@@ -558,6 +516,8 @@ export class VAnchor implements IAnchor {
       recipient: hexToU8a(recipient),
       extAmount: toFixedHex(BigNumber.from(extAmount)),
       fee: BigNumber.from(fee).toString(),
+      refund: BigNumber.from(refund).toString(),
+      token: hexToU8a(token)
     };
 
     inputs.length > 2
@@ -580,6 +540,8 @@ export class VAnchor implements IAnchor {
       extAmount: toFixedHex(proofInput.extAmount),
       relayer: toFixedHex(proofInput.relayer, 20),
       fee: toFixedHex(proofInput.fee),
+      refund: toFixedHex(proofInput.refund),
+      token: toFixedHex(proofInput.token, 20),
       encryptedOutput1: u8aToHex(proofInput.encryptedCommitments[0]),
       encryptedOutput2: u8aToHex(proofInput.encryptedCommitments[1]),
     };
@@ -590,11 +552,13 @@ export class VAnchor implements IAnchor {
     };
   }
 
+  
   public async transact(
     inputs: Utxo[],
     outputs: Utxo[],
     leavesMap: Record<string, Uint8Array[]>,
     fee: BigNumberish,
+    refund: BigNumberish,
     recipient: string,
     relayer: string
   ): Promise<ethers.ContractReceipt> {
@@ -636,11 +600,15 @@ export class VAnchor implements IAnchor {
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
 
+    const token = this.token;
+
     const { extData, publicInputs } = await this.setupTransaction(
       inputs,
       [outputs[0], outputs[1]],
       extAmount,
       fee,
+      refund,
+      token,
       recipient,
       relayer,
       leavesMap
@@ -652,7 +620,7 @@ export class VAnchor implements IAnchor {
         outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
       },
       extData,
-      { gasLimit: '0xBB8D80' }
+      { gasLimit: '0x5B8D80' }
     );
     const receipt = await tx.wait();
     gasBenchmark.push(receipt.gasUsed.toString());
@@ -672,6 +640,7 @@ export class VAnchor implements IAnchor {
     inputs: Utxo[],
     outputs: Utxo[],
     fee: BigNumberish,
+    refund: BigNumberish,
     recipient: string,
     relayer: string,
     leavesMap: Record<string, Uint8Array[]>
@@ -719,6 +688,8 @@ export class VAnchor implements IAnchor {
       [outputs[0], outputs[1]],
       extAmount,
       fee,
+      refund,
+      tokenAddress,
       recipient,
       relayer,
       leavesMap
@@ -738,7 +709,7 @@ export class VAnchor implements IAnchor {
         tokenAddress,
         {
           value: valueToSend.toHexString(),
-          gasLimit: '0xBB8D80',
+          gasLimit: '0x5B8D80',
         }
       );
     } else {
@@ -749,7 +720,7 @@ export class VAnchor implements IAnchor {
         },
         extData,
         tokenAddress,
-        { gasLimit: '0xBB8D80' }
+        { gasLimit: '0x5B8D80' }
       );
     }
     const receipt = await tx.wait();
@@ -771,6 +742,7 @@ export class VAnchor implements IAnchor {
     inputs: Utxo[],
     outputs: Utxo[],
     fee: BigNumberish,
+    refund: BigNumberish,
     recipient: string,
     relayer: string,
     leavesMap: Record<string, Uint8Array[]>
@@ -814,11 +786,15 @@ export class VAnchor implements IAnchor {
       .add(outputs.reduce((sum, x) => sum.add(BigNumber.from(BigInt(x.amount))), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(BigNumber.from(BigInt(x.amount))), BigNumber.from(0)));
 
+    const token = this.token;
+
     const { extData, publicInputs } = await this.setupTransaction(
       inputs,
       [outputs[0], outputs[1]],
       extAmount,
       fee,
+      refund,
+      token,
       recipient,
       relayer,
       leavesMap

@@ -45,9 +45,15 @@ jobs:
       - uses: actions/setup-node@v3
         with: 
           node-version: ${{ matrix.node-version }}
+
+      - name: Setup DVC
+        uses: iterative/setup-dvc@v1
           
       - name: Fetch submodules
         run: git submodule update --init --recursive
+
+      - name: Populate fixtures
+        run: cd solidity-fixtures && dvc pull && cd ..
 
       - name: Install dependencies 
         run: yarn install --production=false
