@@ -379,12 +379,18 @@ export class IdentityVAnchor implements IAnchor {
   }
   // TODO: UPDATE THIS ACCORDINGLY
   public async populateIdentityRootsForProof(): Promise<string[]> {
-    const neighborEdges = await this.contract.getLatestNeighborEdges();
-    const neighborRootInfos = neighborEdges.map((rootData) => {
-      return rootData.root;
-    });
-    let thisRoot = await this.contract.getLastRoot();
-    return [thisRoot, ...neighborRootInfos];
+    const neighborEdges = await this.contract.getGroupLatestNeighborEdges();
+    console.log("IDENTITY EDGES: ", neighborEdges);
+    const receipt = await neighborEdges.wait()
+      console.log("RECEIPT: ", receipt);
+      return [receipt.to, receipt.from]
+    // const neighborRootInfos = neighborEdges.map((rootData) => {
+    //   return rootData.root;
+    // });
+    // console.log("IDENTITY rootInfos: ", neighborRootInfos);
+    // let thisRoot = await this.contract.getGroupRoot();
+    // console.log("IDENTITY ROOT: ", thisRoot);
+    // return [thisRoot, ...neighborRootInfos];
   }
 
   public async getClassAndContractRoots() {

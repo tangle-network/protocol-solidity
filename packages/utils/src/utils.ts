@@ -75,7 +75,7 @@ export function getIdentityVAnchorExtDataHash (
 }
 
 export function generateIdentityVAnchorWitnessInput (
-  privateKey: BigNumber,
+  privateKey: string,
   identityRoots: BigNumber[],
   vanchorRoots: BigNumber[],
   chainId: BigNumberish,

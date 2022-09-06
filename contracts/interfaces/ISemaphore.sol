@@ -1,11 +1,20 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
+import { Edge } from "../interfaces/LinkableIncrementalBinaryTree.sol";
 /// @title Semaphore interface.
 /// @dev Interface of a Semaphore contract.
+
+
 interface ISemaphore {
     error Semaphore__CallerIsNotTheGroupAdmin();
     error Semaphore__TreeDepthIsNotSupported();
+    struct GroupEdge {
+        uint256 chainID;
+        bytes32 root;
+        uint256 latestLeafIndex;
+        bytes32 srcResourceID;
+    }
 
     struct Verifier {
         address contractAddress;
@@ -92,4 +101,14 @@ interface ISemaphore {
         uint32 leafIndex,
         bytes32 srcResourceID
     ) external;
+
+    /// @dev Returns the last root hash of a group.
+    /// @param groupId: Id of the group.
+    /// @return Root hash of the group.
+    function getRoot(uint256 groupId) external view returns (uint256);
+
+    /// @dev Returns the last root hash of a group.
+    /// @param groupId: Id of the group.
+    /// @return Latests roots from each edge connected
+    function getLatestNeighborEdges(uint256 groupId) external view returns (Edge[] memory);
 }

@@ -41,6 +41,8 @@ interface IdentityVAnchorInterface extends ethers.utils.Interface {
     "filledSubtrees(uint256)": FunctionFragment;
     "getChainId()": FunctionFragment;
     "getChainIdType()": FunctionFragment;
+    "getGroupLatestNeighborEdges()": FunctionFragment;
+    "getGroupRoot()": FunctionFragment;
     "getLastRoot()": FunctionFragment;
     "getLatestNeighborEdges()": FunctionFragment;
     "getLatestNeighborRoots()": FunctionFragment;
@@ -154,6 +156,14 @@ interface IdentityVAnchorInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getChainIdType",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getGroupLatestNeighborEdges",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getGroupRoot",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -392,6 +402,14 @@ interface IdentityVAnchorInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "getChainId", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getChainIdType",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getGroupLatestNeighborEdges",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getGroupRoot",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -676,6 +694,14 @@ export class IdentityVAnchor extends BaseContract {
     getChainId(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     getChainIdType(overrides?: CallOverrides): Promise<[number]>;
+
+    getGroupLatestNeighborEdges(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    getGroupRoot(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     getLastRoot(overrides?: CallOverrides): Promise<[string]>;
 
@@ -976,6 +1002,14 @@ export class IdentityVAnchor extends BaseContract {
 
   getChainIdType(overrides?: CallOverrides): Promise<number>;
 
+  getGroupLatestNeighborEdges(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  getGroupRoot(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   getLastRoot(overrides?: CallOverrides): Promise<string>;
 
   getLatestNeighborEdges(
@@ -1266,6 +1300,19 @@ export class IdentityVAnchor extends BaseContract {
     getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
     getChainIdType(overrides?: CallOverrides): Promise<number>;
+
+    getGroupLatestNeighborEdges(
+      overrides?: CallOverrides
+    ): Promise<
+      ([BigNumber, string, BigNumber, string] & {
+        chainID: BigNumber;
+        root: string;
+        latestLeafIndex: BigNumber;
+        srcResourceID: string;
+      })[]
+    >;
+
+    getGroupRoot(overrides?: CallOverrides): Promise<BigNumber>;
 
     getLastRoot(overrides?: CallOverrides): Promise<string>;
 
@@ -1653,6 +1700,14 @@ export class IdentityVAnchor extends BaseContract {
 
     getChainIdType(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getGroupLatestNeighborEdges(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    getGroupRoot(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     getLastRoot(overrides?: CallOverrides): Promise<BigNumber>;
 
     getLatestNeighborEdges(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1934,6 +1989,14 @@ export class IdentityVAnchor extends BaseContract {
     getChainId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getChainIdType(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getGroupLatestNeighborEdges(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getGroupRoot(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     getLastRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

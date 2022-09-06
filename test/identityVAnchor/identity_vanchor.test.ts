@@ -24,6 +24,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { Utxo, Keypair, MerkleTree, randomBN, toFixedHex, generateWithdrawProofCallData, CircomUtxo } from '@webb-tools/sdk-core';
 import { IdentityVAnchor } from '@webb-tools/anchors';
 import { IdentityVerifier } from "@webb-tools/vbridge"
+import { Group } from "@semaphore-anchor/group"
 import { writeFileSync } from "fs";
 
 const BN = require('bn.js');
@@ -61,6 +62,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
   // setup zero knowledge components
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
+  let group: Group;
 
   const identity_vanchor_2_2_wasm_path = path.resolve(__dirname, '../../solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/identity_vanchor_2_2.wasm')
   const identity_vanchor_2_2_witness_calc_path = path.resolve(__dirname, '../../solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/witness_calculator.cjs')
@@ -189,10 +191,12 @@ describe('IdentityVAnchor for 2 max edges', () => {
         BigNumber.from(0).toString(),
         token.address,
       )
+      // Alice deposits into tornado pool
+      const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
 
       const input = await generateIdentityVAnchorWitnessInput(
-        privateKey,
-        identityRoots,
+        aliceDepositUtxo.keypair.privkey,
+        identityRoots.map((root) => BigNumber.from(root)),
         vanchorRoots.map((root) => BigNumber.from(root)),
         chainID,
         inputs,
@@ -200,6 +204,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         extAmount,
         fee,
         extDataHash,
+        merkleProofsForInputs,
         merkleProofsForInputs
       );
 

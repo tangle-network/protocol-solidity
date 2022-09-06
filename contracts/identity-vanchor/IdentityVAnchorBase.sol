@@ -9,12 +9,15 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../interfaces/IAnchorVerifier.sol";
 import "../interfaces/ISemaphore.sol";
+// TODO: fix this double Edge struct problem. How can I use Semaphore's method and return its own edge?
+import { Edge as Edgei } from "../interfaces/LinkableIncrementalBinaryTree.sol";
 import "../anchors/AnchorBase.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /** @dev This contract(pool) allows deposit of an arbitrary amount to it, shielded transfer to another registered user inside the pool
  * and withdrawal from the pool. Project utilizes UTXO model to handle users' funds.
  */
+
 abstract contract IdentityVAnchorBase is AnchorBase {
 	int256 public constant MAX_EXT_AMOUNT = 2**248;
 	uint256 public constant MAX_FEE = 2**248;
@@ -79,6 +82,14 @@ abstract contract IdentityVAnchorBase is AnchorBase {
         SemaphoreContract.addMember(groupId, publicKey);
 		_register(_account);
 	}
+
+    function getGroupRoot() public returns (uint256) {
+        return SemaphoreContract.getRoot(groupId);
+    }
+    //
+    function getGroupLatestNeighborEdges() public returns (Edgei[] memory) {
+        return SemaphoreContract.getLatestNeighborEdges(groupId);
+    }
 
 	function configureMinimalWithdrawalLimit(uint256 _minimalWithdrawalAmount, uint32 _nonce) override public onlyHandler {
 		proposalNonce = _nonce;
