@@ -25,45 +25,6 @@ export interface IAnchor {
   createResourceId(): Promise<string>;
   update(blockNumber?: number): Promise<void>;
 
-  // Asset methods
-  deposit(destinationChainId: number): Promise<IAnchorDeposit>;
-  setupWithdraw(
-    deposit: IAnchorDepositInfo,
-    index: number,
-    recipient: string,
-    relayer: string,
-    fee: bigint,
-    refreshCommitment: string | number
-  );
-  withdraw(
-    deposit: IAnchorDepositInfo,
-    index: number,
-    recipient: string,
-    relayer: string,
-    fee: bigint,
-    refreshCommitment: string | number
-  ): Promise<ethers.Event>;
-  wrapAndDeposit(tokenAddress: string, wrappingFee: number, destinationChainId?: number): Promise<IAnchorDeposit>;
-  bridgedWithdrawAndUnwrap(
-    deposit: IAnchorDeposit,
-    merkleProof: any,
-    recipient: string,
-    relayer: string,
-    fee: string,
-    refund: string,
-    refreshCommitment: string,
-    tokenAddress: string
-  ): Promise<ethers.Event>;
-  bridgedWithdraw(
-    deposit: IAnchorDeposit,
-    merkleProof: any,
-    recipient: string,
-    relayer: string,
-    fee: string,
-    refund: string,
-    refreshCommitment: string
-  ): Promise<ethers.Event>;
-
   // VAnchor methods
   getMerkleProof(input: Utxo): MerkleProof;
 }

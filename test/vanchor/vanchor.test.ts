@@ -177,7 +177,9 @@ describe('VAnchor for 2 max edges', () => {
         extAmount.toString(),
         BigNumber.from(fee).toString(),
         recipient,
-        relayer
+        relayer,
+        BigNumber.from(0).toString(),
+        token.address
       )
 
       const input = await generateVariableWitnessInput(
@@ -240,6 +242,7 @@ describe('VAnchor for 2 max edges', () => {
         [],
         [aliceDepositUtxo],
         0,
+        0,
         '0',
         '0',
         {}
@@ -262,6 +265,7 @@ describe('VAnchor for 2 max edges', () => {
         [await generateUTXOForTest(chainID), await generateUTXOForTest(chainID)],
         [aliceDepositUtxo, await generateUTXOForTest(chainID)],
         BigNumber.from(fee),
+        BigNumber.from(0),
         '0',
         relayer,
         {}
@@ -285,6 +289,7 @@ describe('VAnchor for 2 max edges', () => {
         aliceDepositUtxo.keypair.address(),
         [],
         [aliceDepositUtxo],
+        0,
         0,
         '0',
         '0',
@@ -311,6 +316,7 @@ describe('VAnchor for 2 max edges', () => {
           [chainID.toString()]: anchorLeaves
         },
         0,
+        0,
         '0',
         '0',
       );
@@ -326,6 +332,7 @@ describe('VAnchor for 2 max edges', () => {
         aliceDepositUtxo.keypair.address(),
         [],
         [aliceDepositUtxo],
+        0,
         0,
         '0',
         '0',
@@ -345,6 +352,7 @@ describe('VAnchor for 2 max edges', () => {
           [chainID.toString()]: anchorLeaves
         },
         0,
+        0,
         '0',
         '0',
       );
@@ -359,6 +367,7 @@ describe('VAnchor for 2 max edges', () => {
         aliceDepositUtxo1.keypair.address(),
         [],
         [aliceDepositUtxo1],
+        0,
         0,
         '0',
         '0',
@@ -385,6 +394,7 @@ describe('VAnchor for 2 max edges', () => {
           [chainID.toString()]: anchorLeaves
         },
         0,
+        0,
         '0',
         '0',
       );
@@ -406,6 +416,7 @@ describe('VAnchor for 2 max edges', () => {
         {
           [chainID.toString()]: anchorLeaves
         },
+        0,
         0,
         '0',
         '0',
@@ -431,6 +442,7 @@ describe('VAnchor for 2 max edges', () => {
         [],
         [aliceDepositUtxo1, aliceDepositUtxo2],
         0,
+        0,
         '0',
         '0',
         { }
@@ -454,6 +466,7 @@ describe('VAnchor for 2 max edges', () => {
         {
           [chainID.toString()]: anchorLeaves
         },
+        0,
         0,
         '0',
         '0',
@@ -486,6 +499,7 @@ describe('VAnchor for 2 max edges', () => {
           [chainID.toString()]: anchorLeaves
         },
         0,
+        0,
         '0',
         '0',
       );
@@ -500,6 +514,7 @@ describe('VAnchor for 2 max edges', () => {
         aliceDepositUtxo.keypair.address(),
         [],
         [aliceDepositUtxo],
+        0,
         0,
         '0',
         '0',
@@ -526,6 +541,7 @@ describe('VAnchor for 2 max edges', () => {
           [chainID.toString()]: anchorLeaves
         },
         0,
+        0,
         aliceETHAddress,
         '0'
       )
@@ -547,6 +563,7 @@ describe('VAnchor for 2 max edges', () => {
         aliceDepositUtxo.keypair.address(),
         [],
         [aliceDepositUtxo],
+        0,
         0,
         '0',
         '0',
@@ -574,6 +591,7 @@ describe('VAnchor for 2 max edges', () => {
           [chainID.toString()]: anchorLeaves
         },
         0,
+        0,
         '0',
         '0',
       );
@@ -587,6 +605,7 @@ describe('VAnchor for 2 max edges', () => {
           {
             [chainID.toString()]: anchorLeaves
           },
+          0,
           0,
           '0',
           '0',
@@ -614,6 +633,7 @@ describe('VAnchor for 2 max edges', () => {
         aliceDepositUtxo.keypair.address(),
         [],
         [aliceDepositUtxo],
+        0,
         0,
         '0',
         '0',
@@ -645,6 +665,7 @@ describe('VAnchor for 2 max edges', () => {
             [chainID.toString()]: anchorLeaves
           },
           0,
+          0,
           '0',
           '0',
         ),
@@ -662,6 +683,8 @@ describe('VAnchor for 2 max edges', () => {
       const merkleProofsForInputs = inputs.map((x) => anchor.getMerkleProof(x));
       fee = BigInt(0);
 
+      console.log('token address: ', token.address);
+
       const encOutput1 = outputs[0].encrypt();
       const encOutput2 = outputs[1].encrypt();
 
@@ -671,7 +694,9 @@ describe('VAnchor for 2 max edges', () => {
         extAmount.toString(),
         BigNumber.from(fee).toString(),
         recipient,
-        relayer
+        relayer,
+        BigNumber.from(0).toString(),
+        token.address,
       )
       
       const input = await generateVariableWitnessInput(
@@ -706,6 +731,8 @@ describe('VAnchor for 2 max edges', () => {
         toFixedHex(extAmount),  
         toFixedHex(relayer, 20),
         toFixedHex(fee),
+        toFixedHex(0),
+        toFixedHex(token.address, 20),
         encOutput1,
         encOutput2
       ];
@@ -787,6 +814,8 @@ describe('VAnchor for 2 max edges', () => {
         toFixedHex(extAmount),  
         toFixedHex('0x0000000000000000000000007a1f9131357404ef86d7c38dbffed2da70321337', 20),
         toFixedHex(fee),
+        toFixedHex(0),
+        toFixedHex(token.address, 20),
         encOutput1,
         encOutput2
       ];
@@ -805,6 +834,8 @@ describe('VAnchor for 2 max edges', () => {
         toFixedHex(extAmount),  
         toFixedHex(relayer, 20),
         toFixedHex(fee),
+        toFixedHex(0),
+        toFixedHex(token.address, 20),
         encOutput1,
         encOutput2
       ];
@@ -822,6 +853,8 @@ describe('VAnchor for 2 max edges', () => {
         toFixedHex(extAmount),  
         toFixedHex(relayer, 20),
         toFixedHex('0x000000000000000000000000000000000000000000000000015345785d8a0000'),
+        toFixedHex(0),
+        toFixedHex(token.address, 20),
         encOutput1,
         encOutput2
       ];
@@ -846,6 +879,7 @@ describe('VAnchor for 2 max edges', () => {
         [aliceDepositUtxo],
         {},
         0,
+        0,
         '0',
         '0',
       );
@@ -859,6 +893,7 @@ describe('VAnchor for 2 max edges', () => {
         {
           [chainID.toString()]: anchorLeaves
         },
+        0,
         0,
         sender.address,
         '0'
@@ -926,7 +961,6 @@ describe('VAnchor for 2 max edges', () => {
     it('Should reject proofs made against roots of empty edges', async () => {
       // This test has not been linked to another anchor - edgeList should be empty.
       await TruffleAssert.reverts(anchor.contract.edgeList(0));
-      const [sender] = await ethers.getSigners();
 
       // create the UTXO for commitment into a fake tree.
       const depositAmount = 1e7;
@@ -996,6 +1030,8 @@ describe('VAnchor for 2 max edges', () => {
         outputs,
         extAmount,
         0,
+        0,
+        setupVAnchor.token,
         recipient,
         '0',
         {
@@ -1071,6 +1107,7 @@ describe('VAnchor for 2 max edges', () => {
         '0',
         '0',
         '0',
+        '0',
         {}
       );
       const balTokenAfterDepositSender = await token.balanceOf(sender.address);
@@ -1139,6 +1176,7 @@ describe('VAnchor for 2 max edges', () => {
         [],
         [aliceDepositUtxo],
         0,
+        0,
         '0',
         '0',
         {}
@@ -1166,6 +1204,7 @@ describe('VAnchor for 2 max edges', () => {
         token.address,
         [aliceDepositUtxo],
         [aliceChangeUtxo],
+        0,
         0,
         sender.address,
         '0',
@@ -1240,6 +1279,7 @@ describe('VAnchor for 2 max edges', () => {
         [],
         [aliceDepositUtxo],
         0,
+        0,
         '0',
         '0',
         {}
@@ -1280,6 +1320,7 @@ describe('VAnchor for 2 max edges', () => {
         [aliceDepositUtxo],
         [aliceChangeUtxo],
         0,
+        0,
         sender.address,
         '0',
         {
@@ -1304,6 +1345,7 @@ describe('VAnchor for 2 max edges', () => {
         token.address,
         [aliceChangeUtxo],
         [],
+        0,
         0,
         sender.address,
         '0',

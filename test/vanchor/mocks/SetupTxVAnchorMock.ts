@@ -38,6 +38,8 @@ export class SetupTxVAnchorMock extends VAnchor {
     outputs: [Utxo, Utxo],
     extAmount: BigNumberish,
     fee: BigNumberish,
+    refund: BigNumberish,
+    token: string,
     recipient: string,
     relayer: string,
     leavesMap: Record<string, Uint8Array[]>
@@ -102,6 +104,8 @@ export class SetupTxVAnchorMock extends VAnchor {
       publicAmount: BigNumber.from(extAmount).sub(fee).add(FIELD_SIZE).mod(FIELD_SIZE).toString(),
       provingKey: inputs.length > 2 ? this.largeCircuitZkComponents.zkey : this.smallCircuitZkComponents.zkey,
       relayer: hexToU8a(relayer),
+      refund: BigNumber.from(refund).toString(),
+      token: hexToU8a(token),
       recipient: hexToU8a(recipient),
       extAmount: toFixedHex(BigNumber.from(extAmount)),
       fee: BigNumber.from(fee).toString(),
@@ -127,6 +131,8 @@ export class SetupTxVAnchorMock extends VAnchor {
       extAmount: toFixedHex(proofInput.extAmount),
       relayer: toFixedHex(proofInput.relayer, 20),
       fee: toFixedHex(proofInput.fee),
+      refund: toFixedHex(proofInput.refund),
+      token: toFixedHex(proofInput.token, 20),
       encryptedOutput1: u8aToHex(proofInput.encryptedCommitments[0]),
       encryptedOutput2: u8aToHex(proofInput.encryptedCommitments[1]),
     };
