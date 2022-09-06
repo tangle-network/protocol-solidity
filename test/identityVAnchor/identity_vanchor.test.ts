@@ -17,13 +17,13 @@ import {
 } from '../../packages/contracts/src';
 
 // Convenience wrapper classes for contract classes
-import { hexToU8a, fetchComponentsFromFilePaths, getChainIdType, ZkComponents, u8aToHex } from '../../packages/utils/src';
+import { hexToU8a, fetchComponentsFromFilePaths, getChainIdType, ZkComponents, u8aToHex, generateIdentityVAnchorWitnessInput, getIdentityVAnchorExtDataHash} from '@webb-tools/utils';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
-import { Utxo, Keypair, MerkleTree, randomBN, toFixedHex, generateVariableWitnessInput, getVAnchorExtDataHash, generateWithdrawProofCallData, CircomUtxo } from '@webb-tools/sdk-core';
-import { IdentityVAnchor } from '../../packages/anchors/src';
-import { IdentityVerifier } from "../../packages/vbridge/src"
+import { Utxo, Keypair, MerkleTree, randomBN, toFixedHex, generateWithdrawProofCallData, CircomUtxo } from '@webb-tools/sdk-core';
+import { IdentityVAnchor } from '@webb-tools/anchors';
+import { IdentityVerifier } from "@webb-tools/vbridge"
 import { writeFileSync } from "fs";
 
 const BN = require('bn.js');
@@ -163,7 +163,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const relayer = "0x2111111111111111111111111111111111111111";
       const extAmount = 1e7;
       const aliceDepositAmount = 1e7;
-      const roots = await idAnchor.populateIdentityRootsForProof();
+      const identityRoots = await idAnchor.populateIdentityRootsForProof();
+      const vanchorRoots = await idAnchor.populateVAnchorRootsForProof();
       const inputs = [
         await generateUTXOForTest(chainID),
         await generateUTXOForTest(chainID),
@@ -178,7 +179,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const encOutput1 = outputs[0].encrypt();
       const encOutput2 = outputs[1].encrypt();
 
-      const extDataHash = await getVAnchorExtDataHash(
+      const extDataHash = await getIdentityVAnchorExtDataHash(
         encOutput1,
         encOutput2,
         extAmount.toString(),
@@ -189,8 +190,10 @@ describe('IdentityVAnchor for 2 max edges', () => {
         token.address,
       )
 
-      const input = await generateVariableWitnessInput(
-        roots.map((root) => BigNumber.from(root)),
+      const input = await generateIdentityVAnchorWitnessInput(
+        privateKey,
+        identityRoots,
+        vanchorRoots.map((root) => BigNumber.from(root)),
         chainID,
         inputs,
         outputs,
