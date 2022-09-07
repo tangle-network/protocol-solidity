@@ -84,7 +84,7 @@ export function generateIdentityVAnchorWitnessInput (
   extAmount: BigNumberish,
   fee: BigNumberish,
   extDataHash: BigNumber,
-  identityMerkleProofs: MerkleProof[],
+  identityMerkleProof: MerkleProof,
   vanchorMerkleProofs: MerkleProof[]
 ): any {
   const keypair1 = new Keypair(outputs[0].secret_key);
@@ -94,15 +94,15 @@ export function generateIdentityVAnchorWitnessInput (
     pathIndex: MerkleTree.calculateIndexFromPathIndices(proof.pathIndices),
     pathElements: proof.pathElements
   }));
-  const identityProofs = identityMerkleProofs.map((proof) => ({
-    pathIndex: MerkleTree.calculateIndexFromPathIndices(proof.pathIndices),
-    pathElements: proof.pathElements
-  }));
+  // const identityProof = identityMerkleProofs.map((proof) => ({
+  //   pathIndex: proof.pathIndices,
+  //   pathElements: proof.pathElements
+  // }));
 
   const input = {
     privateKey: privateKey.toString(),
-    semaphoreTreePathIndices: identityProofs.map((x) => x.pathIndex),
-    semaphoreTreeSiblings: identityProofs.map((x) => x.pathElements),
+    semaphoreTreePathIndices: identityMerkleProof.pathIndices,
+    semaphoreTreeSiblings: identityMerkleProof.pathElements,
     semaphoreRoots: identityRoots.map((x) => x.toString()),
     chainID: chainId.toString(),
     inputNullifier: inputs.map((x) => BigNumber.from(x.nullifier).toString()),
