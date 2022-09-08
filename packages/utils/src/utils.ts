@@ -1,6 +1,9 @@
 /* eslint-disable camelcase */
 /* eslint-disable sort-keys */
+const assert = require('assert');
 import { BigNumber, BigNumberish, ethers } from 'ethers';
+import { poseidon } from "circomlibjs"
+import { groth16 } from "snarkjs"
 
 import { u8aToHex } from '@polkadot/util';
 
@@ -73,23 +76,28 @@ export function getIdentityVAnchorExtDataHash (
 
   return BigNumber.from(hash).mod(FIELD_SIZE);
 }
+export default function verifyProof(verificationKey: any, { proof, publicSignals }: any): Promise<boolean> {
+    return groth16.verify(
+        verificationKey,
+        [
+            publicSignals.merkleRoot,
+            publicSignals.nullifierHash,
+            publicSignals.signalHash,
+            publicSignals.externalNullifier
+        ],
+        proof
+    )
+}
 
-export function generateIdentityVAnchorWitnessInput (
+export async function generateProof (
   privateKey: string,
-  identityRoots: BigNumber[],
-  vanchorRoots: BigNumber[],
-  chainId: BigNumberish,
-  inputs: Utxo[],
-  outputs: Utxo[],
-  extAmount: BigNumberish,
-  fee: BigNumberish,
-  extDataHash: BigNumber,
+  identityRoots: string[],
   identityMerkleProof: MerkleProof,
-  vanchorMerkleProofs: MerkleProof[]
-): any {
-  const keypair1 = new Keypair(outputs[0].secret_key);
-  const keypair2 = new Keypair(outputs[1].secret_key);
-
+  vanchorMerkleProofs: MerkleProof[],
+  vanchor_inputs: any,
+  wasmFilePath: string,
+  zkeyFilePath: string,
+): Promise<any> {
   const vanchorProofs = vanchorMerkleProofs.map((proof) => ({
     pathIndex: MerkleTree.calculateIndexFromPathIndices(proof.pathIndices),
     pathElements: proof.pathElements
@@ -98,32 +106,34 @@ export function generateIdentityVAnchorWitnessInput (
   //   pathIndex: proof.pathIndices,
   //   pathElements: proof.pathElements
   // }));
+  // assert.strictEqual(identityMerkleProof.element.toBigInt(), poseidon([privateKey]).toBigInt())
 
-  const input = {
+  console.log("vanchor inputs: ", vanchor_inputs)
+  let proof = await groth16.fullProve({
     privateKey: privateKey.toString(),
     semaphoreTreePathIndices: identityMerkleProof.pathIndices,
-    semaphoreTreeSiblings: identityMerkleProof.pathElements,
-    semaphoreRoots: identityRoots.map((x) => x.toString()),
-    chainID: chainId.toString(),
-    inputNullifier: inputs.map((x) => BigNumber.from(x.nullifier).toString()),
-    outputCommitment: outputs.map((x) => BigNumber.from(u8aToHex(x.commitment)).toString()),
-    publicAmount: BigNumber.from(extAmount).sub(fee).add(FIELD_SIZE).mod(FIELD_SIZE).toString(),
-    extDataHash: extDataHash.toString(),
+    semaphoreTreeSiblings: identityMerkleProof.pathElements.map((x) => BigNumber.from(x).toString()),
+    semaphoreRoots: identityRoots,
+    chainID: vanchor_inputs.chainID,
+    publicAmount: vanchor_inputs.publicAmount,
+    extDataHash: vanchor_inputs.extDataHash,
+    //
+    // // data for 2 transaction inputs
+    inputNullifier: vanchor_inputs.inputNullifier,
+    inAmount: vanchor_inputs.inAmount,
+    inPrivateKey: vanchor_inputs.inPrivateKey,
+    inBlinding: vanchor_inputs.inBlinding,
+    inPathIndices: vanchor_inputs.inPathIndices,
+    inPathElements: vanchor_inputs.inPathElements,
+    //
+    // // data for 2 transaction outputs
+    outputCommitment: vanchor_inputs.outputCommitment,
+    outChainID: vanchor_inputs.outChainID,
+    outAmount: vanchor_inputs.outAmount,
+    outPubkey: vanchor_inputs.outPubkey,
+    outBlinding: vanchor_inputs.outBlinding,
+    vanchorRoots: vanchor_inputs.roots,
+  }, wasmFilePath, zkeyFilePath);
 
-    // data for 2 transaction inputs
-    inAmount: inputs.map((x) => x.amount.toString()),
-    inPrivateKey: inputs.map((x) => x.secret_key.toString()),
-    inBlinding: inputs.map((x) => BigNumber.from(x.blinding).toString()),
-    inPathIndices: vanchorProofs.map((x) => x.pathIndex),
-    inPathElements: vanchorProofs.map((x) => x.pathElements),
-
-    // data for 2 transaction outputs
-    outChainID: outputs.map((x) => x.chainId),
-    outAmount: outputs.map((x) => x.amount.toString()),
-    outPubkey: [toFixedHex(keypair1.pubkey), toFixedHex(keypair2.pubkey)],
-    outBlinding: outputs.map((x) => BigNumber.from(x.blinding).toString()),
-    vanchorRoots: vanchorRoots.map((x) => x.toString())
-  };
-
-  return input;
+  return proof;
 }

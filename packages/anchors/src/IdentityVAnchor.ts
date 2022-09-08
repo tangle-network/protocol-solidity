@@ -371,12 +371,15 @@ export class IdentityVAnchor implements IAnchor {
 
   public async populateVAnchorRootsForProof(): Promise<string[]> {
     const neighborEdges = await this.contract.getLatestNeighborEdges();
+    console.log("NEIGHBOR EDGES: ", neighborEdges)
+    console.log("NEIGHBOR EDGES type: ", typeof neighborEdges)
     const neighborRootInfos = neighborEdges.map((rootData) => {
       return rootData.root;
     });
     let thisRoot = await this.contract.getLastRoot();
     return [thisRoot, ...neighborRootInfos];
   }
+
   // TODO: UPDATE THIS ACCORDINGLY
   public async populateIdentityRootsForProof(): Promise<string[]> {
     const neighborEdges = await this.contract.getGroupLatestNeighborEdges();

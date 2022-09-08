@@ -47,10 +47,12 @@ template IdentityVAnchor(levels, nIns, nOuts, zeroLeaf, length) {
     for (var i = 0; i < length; i++) {
         semaphore.roots[i] <== semaphoreRoots[i];
     }
+
     component vanchor =  Transaction(levels, nIns, nOuts, zeroLeaf, length);
 
     vanchor.publicAmount <== publicAmount;
     vanchor.extDataHash <== extDataHash;
+    vanchor.chainID <== chainID;
     for (var i = 0; i < nIns; i++) {
         vanchor.inputNullifier[i] <== inputNullifier[i];
         vanchor.inAmount[i] <== inAmount[i];

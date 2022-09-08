@@ -17,11 +17,11 @@ import {
 } from '../../packages/contracts/src';
 
 // Convenience wrapper classes for contract classes
-import { hexToU8a, fetchComponentsFromFilePaths, getChainIdType, ZkComponents, u8aToHex, generateIdentityVAnchorWitnessInput, getIdentityVAnchorExtDataHash} from '@webb-tools/utils';
+import { hexToU8a, fetchComponentsFromFilePaths, getChainIdType, ZkComponents, u8aToHex, generateProof, getIdentityVAnchorExtDataHash} from '@webb-tools/utils';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
-import { Utxo, Keypair, MerkleProof, MerkleTree, randomBN, toFixedHex, generateWithdrawProofCallData, CircomUtxo } from '@webb-tools/sdk-core';
+import { Utxo, Keypair, MerkleProof, MerkleTree, randomBN, toFixedHex, generateWithdrawProofCallData, getVAnchorExtDataHash, generateVariableWitnessInput, CircomUtxo } from '@webb-tools/sdk-core';
 import { IdentityVAnchor } from '@webb-tools/anchors';
 import { IdentityVerifier } from "@webb-tools/vbridge"
 import { Group } from "@semaphore-anchor/group"
@@ -182,7 +182,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const encOutput1 = outputs[0].encrypt();
       const encOutput2 = outputs[1].encrypt();
 
-      const extDataHash = await getIdentityVAnchorExtDataHash(
+      const extDataHash = await getVAnchorExtDataHash(
         encOutput1,
         encOutput2,
         extAmount.toString(),
@@ -190,26 +190,10 @@ describe('IdentityVAnchor for 2 max edges', () => {
         recipient,
         relayer,
         BigNumber.from(0).toString(),
-        token.address,
+        token.address
       )
-      // Alice deposits into tornado pool
-      const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
 
-      const group: Group = new Group(levels)
-      console.log("GROUP ROOT: ", group.root)
-      const leaf = aliceDepositUtxo.keypair.pubkey.toString()
-      group.addMember(leaf)
-
-      console.log("addmember ROOT: ", group.root)
-      const identityRootInputs = [group.root, BigNumber.from(0)]
-      const idx = group.indexOf(leaf)
-      const identityMerkleProof: MerkleProof = group.generateProofOfMembership(idx)
-      console.log(identityMerkleProof)
-
-      const input = await generateIdentityVAnchorWitnessInput(
-        aliceDepositUtxo.keypair.privkey.toString(),
-        // identityRoots.map((root) => BigNumber.from(root)),
-        identityRootInputs,
+      const vanchor_input = await generateVariableWitnessInput(
         vanchorRoots.map((root) => BigNumber.from(root)),
         chainID,
         inputs,
@@ -217,25 +201,101 @@ describe('IdentityVAnchor for 2 max edges', () => {
         extAmount,
         fee,
         extDataHash,
-        identityMerkleProof,
         merkleProofsForInputs
       );
+      // Alice deposits into tornado pool
+      const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
 
-      const wtns = await create2InputWitness(input);
-      console.log("WITNESS GENERATED: ", wtns)
-      let res = await snarkjs.groth16.prove(identity_vanchor_2_2_zkey_path, wtns);
-      console.log("PROOF GENERATED: ", res)
-      const proof = res.proof;
-      let publicSignals = res.publicSignals;
-      console.log("zkey path", identity_vanchor_2_2_zkey_path)
+      const group: Group = new Group(levels)
+      // console.log("GROUP ROOT: ", group.root)
+      const leaf = aliceDepositUtxo.keypair.pubkey.toString()
+      group.addMember(leaf)
 
-      console.log("PUBLIC SIGNALS: ", publicSignals)
+      console.log("vanchor_input: ", vanchor_input)
+      // const identityRootInputs = [group.root, BigNumber.from(0)]
+      const identityRootInputs = [group.root.toString(), BigNumber.from(0).toString()]
+      const idx = group.indexOf(leaf)
+      const identityMerkleProof: MerkleProof = group.generateProofOfMembership(idx)
+      // console.log(identityMerkleProof)
+
+      const wasmFilePath = `solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/identity_vanchor_2_2.wasm`
+      const zkeyFilePath = `solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/circuit_final.zkey`
+      const fullProof = await generateProof(
+        aliceDepositUtxo.keypair.privkey.toString(),
+        identityRootInputs,
+        identityMerkleProof,
+        merkleProofsForInputs,
+        vanchor_input,
+        wasmFilePath,
+        zkeyFilePath
+      );
+      console.log("Proof: ", fullProof)
+      // assert.strictEqual(group.root.toHexString(), identityRootInputs[0])
+
+      // const wtns = await create2InputWitness(input);
+      // // console.log("WITNESS GENERATED: ", wtns)
+      // let res = await snarkjs.groth16.fullProve(input, wasmFilePath, zkeyFilePath);
+      // console.log("PROOF GENERATED: ", res)
+      const proof = fullProof.proof;
+      let publicSignals = fullProof.publicSignals;
+      // console.log("zkey path", identity_vanchor_2_2_zkey_path)
+
+      // console.log("PUBLIC SIGNALS: ", publicSignals)
       const vKey = await snarkjs.zKey.exportVerificationKey(identity_vanchor_2_2_zkey_path);
 
-      res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
-      console.log("RESULT OF VERIFY: ", res)
+      const res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       assert.strictEqual(res, true);
     });
+    // it('should work 2 ', async () => {
+    //   const relayer = "0x2111111111111111111111111111111111111111";
+    //   const extAmount = 1e7;
+    //   const aliceDepositAmount = 1e7;
+    //   const roots = await idAnchor.populateRootsForProof();
+    //   const inputs = [
+    //     await generateUTXOForTest(chainID),
+    //     await generateUTXOForTest(chainID),
+    //   ];
+    //   const outputs = [
+    //     await generateUTXOForTest(chainID, aliceDepositAmount),
+    //     await generateUTXOForTest(chainID),
+    //   ];
+    //   const merkleProofsForInputs = inputs.map((x) => anchor.getMerkleProof(x));
+    //   fee = BigInt(0);
+    //
+    //   const encOutput1 = outputs[0].encrypt();
+    //   const encOutput2 = outputs[1].encrypt();
+    //
+    //   const extDataHash = await getVAnchorExtDataHash(
+    //     encOutput1,
+    //     encOutput2,
+    //     extAmount.toString(),
+    //     BigNumber.from(fee).toString(),
+    //     recipient,
+    //     relayer,
+    //     BigNumber.from(0).toString(),
+    //     token.address
+    //   )
+    //
+    //   const input = await generateVariableWitnessInput(
+    //     roots.map((root) => BigNumber.from(root)),
+    //     chainID,
+    //     inputs,
+    //     outputs,
+    //     extAmount,
+    //     fee,
+    //     extDataHash,
+    //     merkleProofsForInputs
+    //   );
+    //
+    //   const wtns = await create2InputWitness(input);
+    //   let res = await snarkjs.groth16.prove('solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey', wtns);
+    //   const proof = res.proof;
+    //   let publicSignals = res.publicSignals;
+    //   const vKey = await snarkjs.zKey.exportVerificationKey('solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey');
+    //
+    //   res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
+    //   assert.strictEqual(res, true);
+    // });
   })
 
   // describe ('Setting Handler/Verifier Address Negative Tests', () => {
