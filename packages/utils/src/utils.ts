@@ -108,7 +108,6 @@ export async function generateProof (
   // }));
   // assert.strictEqual(identityMerkleProof.element.toBigInt(), poseidon([privateKey]).toBigInt())
 
-  console.log("vanchor inputs: ", vanchor_inputs)
   let proof = await groth16.fullProve({
     privateKey: privateKey.toString(),
     semaphoreTreePathIndices: identityMerkleProof.pathIndices,

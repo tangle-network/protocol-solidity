@@ -489,7 +489,7 @@ const _abi = [
           },
         ],
         internalType: "struct Edge[]",
-        name: "",
+        name: "result",
         type: "tuple[]",
       },
     ],

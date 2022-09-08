@@ -63,6 +63,9 @@ describe('IdentityVAnchor for 2 max edges', () => {
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
   let group: Group;
+  let aliceKeypair: Keypair;
+  let bobKeypair: Keypair;
+  let carlKeypair: Keypair;
 
   const identity_vanchor_2_2_wasm_path = path.resolve(__dirname, '../../solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/identity_vanchor_2_2.wasm')
   const identity_vanchor_2_2_witness_calc_path = path.resolve(__dirname, '../../solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/witness_calculator.cjs')
@@ -72,8 +75,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
   const identity_vanchor_16_2_witness_calc_path = path.resolve(__dirname, '../../solidity-fixtures/solidity-fixtures/identity_vanchor_16/2/witness_calculator.cjs')
   const identity_vanchor_16_2_zkey_path = path.resolve(__dirname, '../../solidity-fixtures/solidity-fixtures/identity_vanchor_16/2/circuit_final.zkey')
 
-  const generateUTXOForTest = async (chainId: number, amount?: number) => {
-    const randomKeypair = new Keypair();
+  const generateUTXOForTest = async (chainId: number, keypair: Keypair, amount?: number) => {
+    // const randomKeypair = new Keypair();
     const amountString = amount ? amount.toString() : '0';
 
     return CircomUtxo.generateUtxo({
@@ -83,12 +86,12 @@ describe('IdentityVAnchor for 2 max edges', () => {
       originChainId: chainId.toString(),
       amount: amountString,
       blinding: hexToU8a(randomBN(31).toHexString()),
-      privateKey: hexToU8a(randomKeypair.privkey),
-      keypair: randomKeypair,
+      privateKey: hexToU8a(keypair.privkey),
+      keypair: keypair,
     });
   }
 
-  before('instantiate zkcomponents', async () => {
+  before('instantiate zkcomponents and user keypairs', async () => {
     zkComponents2_2 = await fetchComponentsFromFilePaths(
       identity_vanchor_2_2_wasm_path,
       identity_vanchor_2_2_witness_calc_path,
@@ -100,6 +103,10 @@ describe('IdentityVAnchor for 2 max edges', () => {
       identity_vanchor_16_2_witness_calc_path,
       identity_vanchor_16_2_zkey_path
     );
+
+    aliceKeypair = new Keypair();
+    bobKeypair = new Keypair();
+    carlKeypair = new Keypair();
   });
 
   beforeEach(async () => {
@@ -168,12 +175,13 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const identityRoots = await idAnchor.populateIdentityRootsForProof();
       const vanchorRoots = await idAnchor.populateVAnchorRootsForProof();
       const inputs = [
-        await generateUTXOForTest(chainID),
-        await generateUTXOForTest(chainID),
+        // TODO: Check if this is correct
+        await generateUTXOForTest(chainID, new Keypair()),
+        await generateUTXOForTest(chainID, new Keypair()),
       ];
       const outputs = [
-        await generateUTXOForTest(chainID, aliceDepositAmount),
-        await generateUTXOForTest(chainID),
+        await generateUTXOForTest(chainID, aliceKeypair, aliceDepositAmount),
+        await generateUTXOForTest(chainID, new Keypair()),
       ];
       const merkleProofsForInputs = inputs.map((x) => idAnchor.getMerkleProof(x));
 
@@ -204,19 +212,16 @@ describe('IdentityVAnchor for 2 max edges', () => {
         merkleProofsForInputs
       );
       // Alice deposits into tornado pool
-      const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
+      const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceDepositAmount);
 
       const group: Group = new Group(levels)
-      // console.log("GROUP ROOT: ", group.root)
       const leaf = aliceDepositUtxo.keypair.pubkey.toString()
       group.addMember(leaf)
 
-      console.log("vanchor_input: ", vanchor_input)
       // const identityRootInputs = [group.root, BigNumber.from(0)]
       const identityRootInputs = [group.root.toString(), BigNumber.from(0).toString()]
       const idx = group.indexOf(leaf)
       const identityMerkleProof: MerkleProof = group.generateProofOfMembership(idx)
-      // console.log(identityMerkleProof)
 
       const wasmFilePath = `solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/identity_vanchor_2_2.wasm`
       const zkeyFilePath = `solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/circuit_final.zkey`
@@ -229,101 +234,55 @@ describe('IdentityVAnchor for 2 max edges', () => {
         wasmFilePath,
         zkeyFilePath
       );
-      console.log("Proof: ", fullProof)
       // assert.strictEqual(group.root.toHexString(), identityRootInputs[0])
 
       // const wtns = await create2InputWitness(input);
-      // // console.log("WITNESS GENERATED: ", wtns)
       // let res = await snarkjs.groth16.fullProve(input, wasmFilePath, zkeyFilePath);
-      // console.log("PROOF GENERATED: ", res)
       const proof = fullProof.proof;
       let publicSignals = fullProof.publicSignals;
-      // console.log("zkey path", identity_vanchor_2_2_zkey_path)
 
-      // console.log("PUBLIC SIGNALS: ", publicSignals)
       const vKey = await snarkjs.zKey.exportVerificationKey(identity_vanchor_2_2_zkey_path);
 
       const res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       assert.strictEqual(res, true);
     });
-    // it('should work 2 ', async () => {
-    //   const relayer = "0x2111111111111111111111111111111111111111";
-    //   const extAmount = 1e7;
-    //   const aliceDepositAmount = 1e7;
-    //   const roots = await idAnchor.populateRootsForProof();
-    //   const inputs = [
-    //     await generateUTXOForTest(chainID),
-    //     await generateUTXOForTest(chainID),
-    //   ];
-    //   const outputs = [
-    //     await generateUTXOForTest(chainID, aliceDepositAmount),
-    //     await generateUTXOForTest(chainID),
-    //   ];
-    //   const merkleProofsForInputs = inputs.map((x) => anchor.getMerkleProof(x));
-    //   fee = BigInt(0);
-    //
-    //   const encOutput1 = outputs[0].encrypt();
-    //   const encOutput2 = outputs[1].encrypt();
-    //
-    //   const extDataHash = await getVAnchorExtDataHash(
-    //     encOutput1,
-    //     encOutput2,
-    //     extAmount.toString(),
-    //     BigNumber.from(fee).toString(),
-    //     recipient,
-    //     relayer,
-    //     BigNumber.from(0).toString(),
-    //     token.address
-    //   )
-    //
-    //   const input = await generateVariableWitnessInput(
-    //     roots.map((root) => BigNumber.from(root)),
-    //     chainID,
-    //     inputs,
-    //     outputs,
-    //     extAmount,
-    //     fee,
-    //     extDataHash,
-    //     merkleProofsForInputs
-    //   );
-    //
-    //   const wtns = await create2InputWitness(input);
-    //   let res = await snarkjs.groth16.prove('solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey', wtns);
-    //   const proof = res.proof;
-    //   let publicSignals = res.publicSignals;
-    //   const vKey = await snarkjs.zKey.exportVerificationKey('solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey');
-    //
-    //   res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
-    //   assert.strictEqual(res, true);
-    // });
   })
 
-  // describe ('Setting Handler/Verifier Address Negative Tests', () => {
-  //   it('should revert (setting handler) with improper nonce', async() => {
-  //     const signers = await ethers.getSigners();
-  //     await TruffleAssert.reverts(
-  //       idAnchor.contract.setHandler(signers[1].address, 0),
-  //       'Invalid nonce'
-  //     )
-  //     await TruffleAssert.reverts(
-  //       idAnchor.contract.setHandler(signers[1].address, 1049),
-  //       'Nonce must not increment more than 1048'
-  //     )
-  //   });
-  //
-  //   it('should revert (setting verifier) with improper nonce', async() => {
-  //     const signers = await ethers.getSigners();
-  //     await TruffleAssert.reverts(
-  //       idAnchor.contract.setVerifier(signers[1].address, 0),
-  //       'Invalid nonce'
-  //     )
-  //     await TruffleAssert.reverts(
-  //       idAnchor.contract.setVerifier(signers[1].address, 1049),
-  //       'Nonce must not increment more than 1048'
-  //     )
-  //   });
-  // })
-  //
+  describe ('Setting Handler/Verifier Address Negative Tests', () => {
+    it('should revert (setting handler) with improper nonce', async() => {
+      const signers = await ethers.getSigners();
+      await TruffleAssert.reverts(
+        idAnchor.contract.setHandler(signers[1].address, 0),
+        'Invalid nonce'
+      )
+      await TruffleAssert.reverts(
+        idAnchor.contract.setHandler(signers[1].address, 1049),
+        'Nonce must not increment more than 1048'
+      )
+    });
+
+    it('should revert (setting verifier) with improper nonce', async() => {
+      const signers = await ethers.getSigners();
+      await TruffleAssert.reverts(
+        idAnchor.contract.setVerifier(signers[1].address, 0),
+        'Invalid nonce'
+      )
+      await TruffleAssert.reverts(
+        idAnchor.contract.setVerifier(signers[1].address, 1049),
+        'Nonce must not increment more than 1048'
+      )
+    });
+  })
+  describe('#register', () => {
+    it('should register Alice and Bob', async () => {
+      const aliceReg = await idAnchor.contract.register({
+        owner: sender.address,
+        publicKey: aliceKeypair.address()
+      });
+      console.log(aliceReg)
+    })
+  })
+
   // describe('#transact', () => {
   //   it('should transact', async () => {
   //     // Alice deposits into tornado pool
