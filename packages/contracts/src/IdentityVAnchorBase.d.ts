@@ -40,13 +40,10 @@ interface IdentityVAnchorBaseInterface extends ethers.utils.Interface {
     "filledSubtrees(uint256)": FunctionFragment;
     "getChainId()": FunctionFragment;
     "getChainIdType()": FunctionFragment;
-    "getGroupLatestNeighborEdges()": FunctionFragment;
-    "getGroupRoot()": FunctionFragment;
     "getLastRoot()": FunctionFragment;
     "getLatestNeighborEdges()": FunctionFragment;
     "getLatestNeighborRoots()": FunctionFragment;
     "getProposalNonce()": FunctionFragment;
-    "groupId()": FunctionFragment;
     "handler()": FunctionFragment;
     "hasEdge(uint256)": FunctionFragment;
     "hashLeftRight(address,bytes32,bytes32)": FunctionFragment;
@@ -66,7 +63,6 @@ interface IdentityVAnchorBaseInterface extends ethers.utils.Interface {
     "nextIndex()": FunctionFragment;
     "nullifierHashes(bytes32)": FunctionFragment;
     "parseChainIdFromResourceId(bytes32)": FunctionFragment;
-    "register((address,bytes))": FunctionFragment;
     "roots(uint256)": FunctionFragment;
     "setHandler(address,uint32)": FunctionFragment;
     "setVerifier(address,uint32)": FunctionFragment;
@@ -146,14 +142,6 @@ interface IdentityVAnchorBaseInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getGroupLatestNeighborEdges",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getGroupRoot",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "getLastRoot",
     values?: undefined
   ): string;
@@ -169,7 +157,6 @@ interface IdentityVAnchorBaseInterface extends ethers.utils.Interface {
     functionFragment: "getProposalNonce",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "groupId", values?: undefined): string;
   encodeFunctionData(functionFragment: "handler", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "hasEdge",
@@ -227,10 +214,6 @@ interface IdentityVAnchorBaseInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "parseChainIdFromResourceId",
     values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "register",
-    values: [{ owner: string; publicKey: BytesLike }]
   ): string;
   encodeFunctionData(functionFragment: "roots", values: [BigNumberish]): string;
   encodeFunctionData(
@@ -318,14 +301,6 @@ interface IdentityVAnchorBaseInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getGroupLatestNeighborEdges",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getGroupRoot",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "getLastRoot",
     data: BytesLike
   ): Result;
@@ -341,7 +316,6 @@ interface IdentityVAnchorBaseInterface extends ethers.utils.Interface {
     functionFragment: "getProposalNonce",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "groupId", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "handler", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "hasEdge", data: BytesLike): Result;
   decodeFunctionResult(
@@ -394,7 +368,6 @@ interface IdentityVAnchorBaseInterface extends ethers.utils.Interface {
     functionFragment: "parseChainIdFromResourceId",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "register", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "roots", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setHandler", data: BytesLike): Result;
   decodeFunctionResult(
@@ -582,14 +555,6 @@ export class IdentityVAnchorBase extends BaseContract {
 
     getChainIdType(overrides?: CallOverrides): Promise<[number]>;
 
-    getGroupLatestNeighborEdges(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    getGroupRoot(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     getLastRoot(overrides?: CallOverrides): Promise<[string]>;
 
     getLatestNeighborEdges(
@@ -608,8 +573,6 @@ export class IdentityVAnchorBase extends BaseContract {
     getLatestNeighborRoots(overrides?: CallOverrides): Promise<[string[]]>;
 
     getProposalNonce(overrides?: CallOverrides): Promise<[number]>;
-
-    groupId(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     handler(overrides?: CallOverrides): Promise<[string]>;
 
@@ -686,11 +649,6 @@ export class IdentityVAnchorBase extends BaseContract {
       _resourceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
-
-    register(
-      _account: { owner: string; publicKey: BytesLike },
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
 
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
@@ -805,14 +763,6 @@ export class IdentityVAnchorBase extends BaseContract {
 
   getChainIdType(overrides?: CallOverrides): Promise<number>;
 
-  getGroupLatestNeighborEdges(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  getGroupRoot(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   getLastRoot(overrides?: CallOverrides): Promise<string>;
 
   getLatestNeighborEdges(
@@ -829,8 +779,6 @@ export class IdentityVAnchorBase extends BaseContract {
   getLatestNeighborRoots(overrides?: CallOverrides): Promise<string[]>;
 
   getProposalNonce(overrides?: CallOverrides): Promise<number>;
-
-  groupId(overrides?: CallOverrides): Promise<BigNumber>;
 
   handler(overrides?: CallOverrides): Promise<string>;
 
@@ -898,11 +846,6 @@ export class IdentityVAnchorBase extends BaseContract {
     _resourceId: BytesLike,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
-
-  register(
-    _account: { owner: string; publicKey: BytesLike },
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
 
   roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
@@ -1020,19 +963,6 @@ export class IdentityVAnchorBase extends BaseContract {
 
     getChainIdType(overrides?: CallOverrides): Promise<number>;
 
-    getGroupLatestNeighborEdges(
-      overrides?: CallOverrides
-    ): Promise<
-      ([BigNumber, string, BigNumber, string] & {
-        chainID: BigNumber;
-        root: string;
-        latestLeafIndex: BigNumber;
-        srcResourceID: string;
-      })[]
-    >;
-
-    getGroupRoot(overrides?: CallOverrides): Promise<BigNumber>;
-
     getLastRoot(overrides?: CallOverrides): Promise<string>;
 
     getLatestNeighborEdges(
@@ -1049,8 +979,6 @@ export class IdentityVAnchorBase extends BaseContract {
     getLatestNeighborRoots(overrides?: CallOverrides): Promise<string[]>;
 
     getProposalNonce(overrides?: CallOverrides): Promise<number>;
-
-    groupId(overrides?: CallOverrides): Promise<BigNumber>;
 
     handler(overrides?: CallOverrides): Promise<string>;
 
@@ -1124,11 +1052,6 @@ export class IdentityVAnchorBase extends BaseContract {
       _resourceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    register(
-      _account: { owner: string; publicKey: BytesLike },
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
@@ -1337,14 +1260,6 @@ export class IdentityVAnchorBase extends BaseContract {
 
     getChainIdType(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getGroupLatestNeighborEdges(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    getGroupRoot(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     getLastRoot(overrides?: CallOverrides): Promise<BigNumber>;
 
     getLatestNeighborEdges(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1352,8 +1267,6 @@ export class IdentityVAnchorBase extends BaseContract {
     getLatestNeighborRoots(overrides?: CallOverrides): Promise<BigNumber>;
 
     getProposalNonce(overrides?: CallOverrides): Promise<BigNumber>;
-
-    groupId(overrides?: CallOverrides): Promise<BigNumber>;
 
     handler(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1429,11 +1342,6 @@ export class IdentityVAnchorBase extends BaseContract {
     parseChainIdFromResourceId(
       _resourceId: BytesLike,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    register(
-      _account: { owner: string; publicKey: BytesLike },
-      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
@@ -1543,14 +1451,6 @@ export class IdentityVAnchorBase extends BaseContract {
 
     getChainIdType(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    getGroupLatestNeighborEdges(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    getGroupRoot(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     getLastRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getLatestNeighborEdges(
@@ -1562,8 +1462,6 @@ export class IdentityVAnchorBase extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getProposalNonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    groupId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     handler(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1643,11 +1541,6 @@ export class IdentityVAnchorBase extends BaseContract {
     parseChainIdFromResourceId(
       _resourceId: BytesLike,
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    register(
-      _account: { owner: string; publicKey: BytesLike },
-      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     roots(

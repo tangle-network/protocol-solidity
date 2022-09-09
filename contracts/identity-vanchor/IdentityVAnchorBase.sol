@@ -8,9 +8,6 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../interfaces/IAnchorVerifier.sol";
-import "../interfaces/ISemaphore.sol";
-// TODO: fix this double Edge struct problem. How can I use Semaphore's method and return its own edge?
-import { Edge as Edgei } from "../interfaces/LinkableIncrementalBinaryTree.sol";
 import "../anchors/AnchorBase.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -22,11 +19,9 @@ abstract contract IdentityVAnchorBase is AnchorBase {
 	int256 public constant MAX_EXT_AMOUNT = 2**248;
 	uint256 public constant MAX_FEE = 2**248;
 
-	uint256 public groupId;
 	uint256 public lastBalance;
 	uint256 public minimalWithdrawalAmount;
 	uint256 public maximumDepositAmount;
-	ISemaphore SemaphoreContract;
 
 	struct ExtData {
 		address recipient;
@@ -54,7 +49,6 @@ abstract contract IdentityVAnchorBase is AnchorBase {
 		@param _hasher hasher address for the merkle tree
 	*/
 	constructor(
-		ISemaphore _semaphore,
 		IAnchorVerifier _verifier,
 		uint8 _levels,
 		IPoseidonT3 _hasher,
@@ -63,10 +57,6 @@ abstract contract IdentityVAnchorBase is AnchorBase {
 	)
 		AnchorBase(_handler, _verifier, _hasher, _levels, _maxEdges)
 	{
-        // getting a random groupId to avoid collision with possibly existing groupIds
-        groupId = _hasher.poseidon([block.timestamp, block.timestamp]);
-        SemaphoreContract = _semaphore;
-        SemaphoreContract.createGroup(groupId, _levels, _handler, _maxEdges);
     }
 
 	function initialize(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmount) external initializer {
@@ -75,21 +65,6 @@ abstract contract IdentityVAnchorBase is AnchorBase {
 		_configureMaximumDepositLimit(_maximumDepositAmount);
 		super._initialize();
 	}
-
-	function register(Account memory _account) public onlyHandler {
-		// require(_account.owner == msg.sender, "only owner can be registered");
-        uint256 publicKey = abi.decode(_account.publicKey, (uint256));
-        SemaphoreContract.addMember(groupId, publicKey);
-		_register(_account);
-	}
-
-    function getGroupRoot() public returns (uint256) {
-        return SemaphoreContract.getRoot(groupId);
-    }
-    //
-    function getGroupLatestNeighborEdges() public returns (Edgei[] memory) {
-        return SemaphoreContract.getLatestNeighborEdges(groupId);
-    }
 
 	function configureMinimalWithdrawalLimit(uint256 _minimalWithdrawalAmount, uint32 _nonce) override public onlyHandler {
 		proposalNonce = _nonce;
@@ -106,10 +81,6 @@ abstract contract IdentityVAnchorBase is AnchorBase {
 		require(_extAmount > -MAX_EXT_AMOUNT && _extAmount < MAX_EXT_AMOUNT, "Invalid ext amount");
 		int256 publicAmount = _extAmount - int256(_fee);
 		return (publicAmount >= 0) ? uint256(publicAmount) : FIELD_SIZE - uint256(-publicAmount);
-	}
-
-	function _register(Account memory _account) internal {
-		emit PublicKey(_account.owner, _account.publicKey);
 	}
 
 	/** @dev this function is defined in a child contract */

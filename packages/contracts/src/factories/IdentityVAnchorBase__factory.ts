@@ -463,54 +463,6 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "getGroupLatestNeighborEdges",
-    outputs: [
-      {
-        components: [
-          {
-            internalType: "uint256",
-            name: "chainID",
-            type: "uint256",
-          },
-          {
-            internalType: "bytes32",
-            name: "root",
-            type: "bytes32",
-          },
-          {
-            internalType: "uint256",
-            name: "latestLeafIndex",
-            type: "uint256",
-          },
-          {
-            internalType: "bytes32",
-            name: "srcResourceID",
-            type: "bytes32",
-          },
-        ],
-        internalType: "struct Edge[]",
-        name: "result",
-        type: "tuple[]",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "getGroupRoot",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
     name: "getLastRoot",
     outputs: [
       {
@@ -578,19 +530,6 @@ const _abi = [
         internalType: "uint32",
         name: "",
         type: "uint32",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "groupId",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -926,31 +865,6 @@ const _abi = [
       },
     ],
     stateMutability: "pure",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        components: [
-          {
-            internalType: "address",
-            name: "owner",
-            type: "address",
-          },
-          {
-            internalType: "bytes",
-            name: "publicKey",
-            type: "bytes",
-          },
-        ],
-        internalType: "struct IdentityVAnchorBase.Account",
-        name: "_account",
-        type: "tuple",
-      },
-    ],
-    name: "register",
-    outputs: [],
-    stateMutability: "nonpayable",
     type: "function",
   },
   {

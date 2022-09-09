@@ -7,7 +7,7 @@ pragma solidity ^0.8.0;
 
 import "../interfaces/ITokenWrapper.sol";
 import "../interfaces/IMintableERC20.sol";
-import "../interfaces/ISemaphore.sol";
+import "../interfaces/ISemaphoreGroups.sol";
 import "./IdentityVAnchorBase.sol";
 // import "../libs/VAnchorEncodeInputs.sol";
 import "../libs/IdentityVAnchorEncodeInputs.sol";
@@ -57,6 +57,8 @@ contract IdentityVAnchor is IdentityVAnchorBase {
 	using SafeERC20 for IERC20;
 	using SafeMath for uint256;
 	address public immutable token;
+	ISemaphoreGroups SemaphoreContract;
+	uint256 public immutable groupId; // Assumes group is already setup on the semaphore contract
 
 	/**
 		@notice The Identity VAnchor constructor
@@ -72,15 +74,15 @@ contract IdentityVAnchor is IdentityVAnchorBase {
 		limit the size of the LinkableAnchor with this parameter.
 	*/
 	constructor(
-		ISemaphore _semaphore,
+		ISemaphoreGroups _semaphore,
 		IAnchorVerifier _verifier,
 		uint8 _levels,
 		IPoseidonT3 _hasher,
 		address _handler,
 		address _token,
-		uint8 _maxEdges
+		uint8 _maxEdges,
+		uint256 _groupId
 	) IdentityVAnchorBase (
-        _semaphore,
 		_verifier,
 		_levels,
 		_hasher,
@@ -88,6 +90,8 @@ contract IdentityVAnchor is IdentityVAnchorBase {
 		_maxEdges
 	) {
         token = _token;
+        SemaphoreContract = _semaphore;
+        groupId = _groupId;
     }
 
 	/**
@@ -265,8 +269,11 @@ contract IdentityVAnchor is IdentityVAnchorBase {
 	 */
 	function _executeVerification(IdentityVAnchorEncodeInputs.Proof memory _args) view internal {
 		if (_args.inputNullifiers.length == 2) {
+			// bytes32[2] memory identityRoots = abi.decode(_args.identityRoots, (bytes32[2]));
 			(bytes memory encodedInput, bytes32[] memory roots) = IdentityVAnchorEncodeInputs._encodeInputs2(_args, maxEdges);
-			require(isValidRoots(roots), "Invalid roots");
+			require(SemaphoreContract.verifyRoots(groupId, _args.identityRoots), "Invalid identity roots");
+			require(isValidRoots(roots), "Invalid UTXO roots");
+
 			require(verify2(_args.proof, encodedInput), "Invalid transaction proof");
 		} else if (_args.inputNullifiers.length == 16) {
 			(bytes memory encodedInput, bytes32[] memory roots) = IdentityVAnchorEncodeInputs._encodeInputs16(_args, maxEdges);

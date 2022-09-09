@@ -24,8 +24,6 @@ interface ISemaphoreInterface extends ethers.utils.Interface {
     "addMember(uint256,uint256)": FunctionFragment;
     "createGroup(uint256,uint8,address,uint8)": FunctionFragment;
     "decodeRoots(bytes)": FunctionFragment;
-    "getLatestNeighborEdges(uint256)": FunctionFragment;
-    "getRoot(uint256)": FunctionFragment;
     "removeMember(uint256,uint256,uint256[],uint8[])": FunctionFragment;
     "updateEdge(uint256,bytes32,uint32,bytes32)": FunctionFragment;
     "updateGroupAdmin(uint256,address)": FunctionFragment;
@@ -43,14 +41,6 @@ interface ISemaphoreInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "decodeRoots",
     values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getLatestNeighborEdges",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getRoot",
-    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "removeMember",
@@ -94,11 +84,6 @@ interface ISemaphoreInterface extends ethers.utils.Interface {
     functionFragment: "decodeRoots",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "getLatestNeighborEdges",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getRoot", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "removeMember",
     data: BytesLike
@@ -197,25 +182,6 @@ export class ISemaphore extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string[]] & { roots_decoded: string[] }>;
 
-    getLatestNeighborEdges(
-      groupId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        ([BigNumber, string, BigNumber, string] & {
-          chainID: BigNumber;
-          root: string;
-          latestLeafIndex: BigNumber;
-          srcResourceID: string;
-        })[]
-      ]
-    >;
-
-    getRoot(
-      groupId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     removeMember(
       groupId: BigNumberish,
       identityCommitment: BigNumberish,
@@ -274,20 +240,6 @@ export class ISemaphore extends BaseContract {
 
   decodeRoots(roots: BytesLike, overrides?: CallOverrides): Promise<string[]>;
 
-  getLatestNeighborEdges(
-    groupId: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<
-    ([BigNumber, string, BigNumber, string] & {
-      chainID: BigNumber;
-      root: string;
-      latestLeafIndex: BigNumber;
-      srcResourceID: string;
-    })[]
-  >;
-
-  getRoot(groupId: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-
   removeMember(
     groupId: BigNumberish,
     identityCommitment: BigNumberish,
@@ -345,23 +297,6 @@ export class ISemaphore extends BaseContract {
     ): Promise<void>;
 
     decodeRoots(roots: BytesLike, overrides?: CallOverrides): Promise<string[]>;
-
-    getLatestNeighborEdges(
-      groupId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      ([BigNumber, string, BigNumber, string] & {
-        chainID: BigNumber;
-        root: string;
-        latestLeafIndex: BigNumber;
-        srcResourceID: string;
-      })[]
-    >;
-
-    getRoot(
-      groupId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     removeMember(
       groupId: BigNumberish,
@@ -461,16 +396,6 @@ export class ISemaphore extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getLatestNeighborEdges(
-      groupId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getRoot(
-      groupId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     removeMember(
       groupId: BigNumberish,
       identityCommitment: BigNumberish,
@@ -530,16 +455,6 @@ export class ISemaphore extends BaseContract {
 
     decodeRoots(
       roots: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getLatestNeighborEdges(
-      groupId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getRoot(
-      groupId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
