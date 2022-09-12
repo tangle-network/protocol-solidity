@@ -24,6 +24,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { Utxo, Keypair, MerkleProof, MerkleTree, randomBN, toFixedHex, generateWithdrawProofCallData, getVAnchorExtDataHash, generateVariableWitnessInput, CircomUtxo } from '@webb-tools/sdk-core';
 import { IdentityVAnchor } from '@webb-tools/anchors';
 import { IdentityVerifier } from "@webb-tools/vbridge"
+import { Semaphore } from '@semaphore-anchor/semaphore';
 import { Group } from "@semaphore-anchor/group"
 import { writeFileSync } from "fs";
 
@@ -56,14 +57,18 @@ describe('IdentityVAnchor for 2 max edges', () => {
   let wrappedToken: WrappedToken;
   let tokenDenomination = '1000000000000000000' // 1 ether
   const chainID = getChainIdType(31337);
-  const MAX_EDGES = 1;
+  const maxEdges = 1;
   let create2InputWitness: any;
   let sender: SignerWithAddress;
   // setup zero knowledge components
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
   let group: Group;
+  let aliceCalldata: any
   let aliceKeypair: Keypair;
+  let aliceProof: any;
+  let aliceExtDataHash: any
+  let alicePublicSignals: any;
   let bobKeypair: Keypair;
   let carlKeypair: Keypair;
 
@@ -128,13 +133,19 @@ describe('IdentityVAnchor for 2 max edges', () => {
     await token.mint(sender.address, '10000000000000000000000');
 
     // create Anchor
+    const semaphore = await Semaphore.createSemaphore(levels, maxEdges, zkComponents2_2, sender)
+
+    const groupId = BigNumber.from(99) // arbitrary
+    semaphore.createGroup(groupId, sender, maxEdges)
     idAnchor = await IdentityVAnchor.createIdentityVAnchor(
+      semaphore,
       verifier.contract.address,
       levels,
       hasherInstance.address,
       sender.address,
       token.address,
-      1,
+      maxEdges,
+      groupId,
       zkComponents2_2,
       zkComponents16_2,
       sender,
@@ -162,8 +173,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
   describe('#constructor', () => {
     it('should initialize', async () => {
-      const maxEdges = await idAnchor.contract.maxEdges();
-      assert.strictEqual(maxEdges.toString(), `${MAX_EDGES}`);
+      const actual = await idAnchor.contract.maxEdges();
+      assert.strictEqual(actual.toString(), `${maxEdges}`);
     });
   });
 
@@ -172,7 +183,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const relayer = "0x2111111111111111111111111111111111111111";
       const extAmount = 1e7;
       const aliceDepositAmount = 1e7;
-      const identityRoots = await idAnchor.populateIdentityRootsForProof();
       const vanchorRoots = await idAnchor.populateVAnchorRootsForProof();
       const inputs = [
         // TODO: Check if this is correct
@@ -190,7 +200,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const encOutput1 = outputs[0].encrypt();
       const encOutput2 = outputs[1].encrypt();
 
-      const extDataHash = await getVAnchorExtDataHash(
+      aliceExtDataHash = await getVAnchorExtDataHash(
         encOutput1,
         encOutput2,
         extAmount.toString(),
@@ -208,7 +218,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         outputs,
         extAmount,
         fee,
-        extDataHash,
+        aliceExtDataHash,
         merkleProofsForInputs
       );
       // Alice deposits into tornado pool
@@ -234,16 +244,19 @@ describe('IdentityVAnchor for 2 max edges', () => {
         wasmFilePath,
         zkeyFilePath
       );
+      console.log("FULLPROOF: ", fullProof);
       // assert.strictEqual(group.root.toHexString(), identityRootInputs[0])
 
       // const wtns = await create2InputWitness(input);
       // let res = await snarkjs.groth16.fullProve(input, wasmFilePath, zkeyFilePath);
-      const proof = fullProof.proof;
-      let publicSignals = fullProof.publicSignals;
+      aliceProof = fullProof.proof;
+      alicePublicSignals = fullProof.publicSignals;
 
       const vKey = await snarkjs.zKey.exportVerificationKey(identity_vanchor_2_2_zkey_path);
 
-      const res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
+      const res = await snarkjs.groth16.verify(vKey, alicePublicSignals, aliceProof);
+      aliceCalldata = await snarkjs.groth16.exportSolidityCallData(fullProof.proof, fullProof.publicSignals)
+      console.log(aliceCalldata)
       assert.strictEqual(res, true);
     });
   })
@@ -273,33 +286,20 @@ describe('IdentityVAnchor for 2 max edges', () => {
       )
     });
   })
-  describe('#register', () => {
-    it('should register Alice and Bob', async () => {
-      const aliceReg = await idAnchor.contract.register({
-        owner: sender.address,
-        publicKey: aliceKeypair.address()
-      });
-      console.log(aliceReg)
+
+  describe('#transact', () => {
+    it('should transact', async () => {
+      // Alice deposits into tornado pool
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceDepositAmount);
+      console.log("UTXO: ", aliceDepositUtxo) 
+      await idAnchor.contract.transact(
+        aliceCalldata,
+        aliceExtDataHash,
+        {}
+      );
     })
   })
-
-  // describe('#transact', () => {
-  //   it('should transact', async () => {
-  //     // Alice deposits into tornado pool
-  //     const aliceDepositAmount = 1e7;
-  //     const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
-  //     
-  //     await idAnchor.registerAndTransact(
-  //       sender.address,
-  //       aliceDepositUtxo.keypair.address(),
-  //       [],
-  //       [aliceDepositUtxo],
-  //       0,
-  //       '0',
-  //       '0',
-  //       {}
-  //     );
-  //   })
   //
   //   it('should process fee on deposit', async () => {
   //     const signers = await ethers.getSigners();
