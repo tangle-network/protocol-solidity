@@ -37,7 +37,7 @@
     "setup:plonk:identity-vanchor2": "./scripts/bash/plonk/identity_vanchor/phase2_identity_vanchor2.sh",
     "setup:plonk:identity-vanchor8": "./scripts/bash/plonk/identity_vanchor/phase2_identity_vanchor8.sh",
     "setup:plonk": "./scripts/bash/setup_verifiers_plonk.sh",
-    "test": "npx hardhat test --parallel",
+    "test": "npx hardhat test",
     "test:gas-reporter": "REPORT_GAS=true npx hardhat test --parallel",
     "ts-check": "tsc --noEmit -p ./tsconfig.json",
     "format": "prettier --write \"packages/**/*.{ts,js,jsx,tsx}\""
@@ -68,7 +68,7 @@
     "@semaphore-anchor/group": "0.0.1",
     "@semaphore-anchor/identity": "0.0.1",
     "@semaphore-anchor/proof": "0.0.1",
-    "@semaphore-anchor/semaphore": "0.0.1",
+    "@semaphore-anchor/semaphore": "0.0.2",
     "bn.js": "4.11.6",
     "circomlibjs": "0.0.8",
     "dotenv": "^8.2.0",

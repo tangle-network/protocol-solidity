@@ -13,7 +13,8 @@ import {
   ERC20PresetMinterPauser__factory,
   GovernedTokenWrapper as WrappedToken,
   GovernedTokenWrapper__factory as WrappedTokenFactory,
-  PoseidonT3__factory
+  PoseidonT3__factory,
+  Semaphore as SemaphoreContract
 } from '../../packages/contracts/src';
 
 // Convenience wrapper classes for contract classes
@@ -47,6 +48,8 @@ const updateUtxoWithIndex = async (inputUtxo: Utxo, index: number, originChain: 
 
 describe('IdentityVAnchor for 2 max edges', () => {
   let idAnchor: IdentityVAnchor;
+  let semaphore: Semaphore;
+  let semaphoreContract: SemaphoreContract;
 
   const levels = 30;
   let fee = BigInt((new BN(`100000000000000000`)).toString());
@@ -113,6 +116,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
     aliceKeypair = new Keypair();
     bobKeypair = new Keypair();
     carlKeypair = new Keypair();
+
   });
 
   beforeEach(async () => {
@@ -134,10 +138,14 @@ describe('IdentityVAnchor for 2 max edges', () => {
     await token.mint(sender.address, '10000000000000000000000');
 
     // create Anchor
-    const semaphore = await Semaphore.createSemaphore(levels, maxEdges, zkComponents2_2, sender)
+    semaphore = await Semaphore.createSemaphore(levels, maxEdges, zkComponents2_2, sender)
+    semaphoreContract = semaphore.contract
 
     const groupId = BigNumber.from(99) // arbitrary
-    semaphore.createGroup(groupId, sender, maxEdges)
+    // console.log("SENDER: ", sender)
+    const tx = await semaphore.createGroup(groupId, sender.address, maxEdges, 20)
+    console.log(tx)
+
     idAnchor = await IdentityVAnchor.createIdentityVAnchor(
       semaphore,
       verifier.contract.address,
@@ -156,6 +164,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       BigNumber.from(0),
       0
     );
+
     await idAnchor.contract.configureMaximumDepositLimit(
       BigNumber.from(tokenDenomination).mul(1_000_000),
       0
@@ -234,10 +243,11 @@ describe('IdentityVAnchor for 2 max edges', () => {
         merkleProofsForInputs
       );
       // Alice deposits into tornado pool
-      const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceDepositAmount);
+      const bobDepositUtxo = await generateUTXOForTest(chainID, bobKeypair, aliceDepositAmount);
 
       const group: Group = new Group(levels)
-      const leaf = aliceDepositUtxo.keypair.pubkey.toString()
+      // const leaf = aliceDepositUtxo.keypair.pubkey.toString()
+      const leaf = bobDepositUtxo.keypair.pubkey.toString()
       group.addMember(leaf)
 
       // const identityRootInputs = [group.root, BigNumber.from(0)]
@@ -248,7 +258,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const wasmFilePath = `solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/identity_vanchor_2_2.wasm`
       const zkeyFilePath = `solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/circuit_final.zkey`
       const fullProof = await generateProof(
-        aliceDepositUtxo.keypair.privkey.toString(),
+        bobKeypair.privkey.toString(),
         identityRootInputs,
         identityMerkleProof,
         merkleProofsForInputs,
@@ -256,9 +266,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
         wasmFilePath,
         zkeyFilePath
       );
-      console.log("FULLPROOF: ", fullProof);
-      console.log("Identity ROOTS: ", identityRootInputs);
-      console.log("vanchor input: ", vanchor_input);
       // assert.strictEqual(group.root.toHexString(), identityRootInputs[0])
 
       // const wtns = await create2InputWitness(input);
@@ -270,7 +277,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
       const res = await snarkjs.groth16.verify(vKey, alicePublicSignals, aliceProof);
       aliceCalldata = await snarkjs.groth16.exportSolidityCallData(fullProof.proof, fullProof.publicSignals)
-      console.log(aliceCalldata)
       assert.strictEqual(res, true);
     });
   })
@@ -303,6 +309,11 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
   describe('#transact', () => {
     it('should transact', async () => {
+      let leaf = aliceKeypair.pubkey.toString()
+      let transaction = await semaphoreContract.connect(sender).addMember(idAnchor.groupId, leaf, { gasLimit: '0x5B8D80' })
+      // console.log(transaction)
+      // transaction = await transaction.wait();
+      // console.log(transaction)
       // Alice deposits into tornado pool
       const relayer = "0x2111111111111111111111111111111111111111";
       const vanchorRoots = await idAnchor.populateVAnchorRootsForProof();
@@ -319,7 +330,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       ];
 
       const group: Group = new Group(levels)
-      const leaf = aliceDepositUtxo.keypair.pubkey.toString()
+      // const leaf = aliceDepositUtxo.keypair.pubkey.toString()
       group.addMember(leaf)
 
       // const identityRootInputs = [group.root, BigNumber.from(0)]
@@ -343,7 +354,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         BigNumber.from(aliceExtDataHash),
         vanchorMerkleProofs
       );
-      await idAnchor.transact(
+      const tx = await idAnchor.transact(
           aliceKeypair.privkey.toString(),
           identityRootInputs,
           identityMerkleProof,
@@ -357,6 +368,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
           recipient,
           relayer
       )
+
+      console.log(tx);
 
       //   {"proof": aliceProof,
       //    "identityRoots": alicePublicSignals
