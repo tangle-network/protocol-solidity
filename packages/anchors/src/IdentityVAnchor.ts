@@ -19,6 +19,8 @@ import {
   randomBN,
   CircomProvingManager,
   ProvingManagerSetupInput,
+  generateVariableWitnessInput,
+  getVAnchorExtDataHash,
   Note,
   NoteGenInput,
   MerkleProof,
@@ -33,8 +35,10 @@ import {
   IIdentityVariableAnchorPublicInputs,
   IAnchorDepositInfo,
 } from '@webb-tools/interfaces';
-import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
+import { generateProof, hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { Semaphore, Verifier } from '@semaphore-anchor/semaphore';
+
+const snarkjs = require('snarkjs')
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 function checkNativeAddress(tokenAddress: string): boolean {
@@ -203,6 +207,29 @@ export class IdentityVAnchor implements IAnchor {
 
   public static async generateUTXO(input: UtxoGenInput): Promise<Utxo> {
     return CircomUtxo.generateUtxo(input);
+  }
+  public async generateProofCalldata (fullProof: any) {
+    // const result = snarkjs.groth16.exportSolidityCallData(proof, publicSignals);
+    const calldata = await snarkjs.groth16.exportSolidityCallData(fullProof.proof, fullProof.publicSignals)
+    const proof = JSON.parse('[' + calldata + ']');
+    const pi_a = proof[0];
+    const pi_b = proof[1];
+    const pi_c = proof[2];
+
+    const proofEncoded = [
+      pi_a[0],
+      pi_a[1],
+      pi_b[0][0],
+      pi_b[0][1],
+      pi_b[1][0],
+      pi_b[1][1],
+      pi_c[0],
+      pi_c[1]
+    ]
+    .map((elt) => elt.substr(2))
+    .join('');
+
+    return proofEncoded;
   }
 
   public static createRootsBytes(rootArray: string[]) {
@@ -500,120 +527,289 @@ export class IdentityVAnchor implements IAnchor {
     };
   }
 
-  public async setupUTXO(
-    inputs: Utxo[],
-    outputs: [Utxo, Utxo],
-    extAmount: BigNumberish,
-    fee: BigNumberish,
-    identityRoots: string[],
-    recipient: string,
-    relayer: string,
-    leavesMap: Record<string, Uint8Array[]>
+  public async setupTransaction(
+      private_key: string,
+      identityRootInputs: any,
+      identityMerkleProof: MerkleProof, 
+      vanchorMerkleProofs: any[], 
+      vanchor_input: any, 
+      vanchorRoots: any,
+      chainID: BigNumberish,
+      extAmount: BigNumberish,
+      fee: BigNumberish,
+      inputs: Utxo[],
+      outputs: Utxo[],
+      publicAmount: BigNumberish,
+      extDataHash: string,
+      wasmFilePath: string,
+      zkeyFilePath: string,
   ) {
-    // first, check if the merkle root is known on chain - if not, then update
-    const chainId = getChainIdType(await this.signer.getChainId());
-    // TODO: add method to get identity roots correctly
-    // const identityRoots = await this.populateIdentityRootsForProof();
-    const vanchorRoots = await this.populateVAnchorRootsForProof();
 
-    // Start creating notes to satisfy vanchor input
-    // Only the sourceChainId and secrets (amount, nullifier, secret, blinding)
-    // is required
-    let inputNotes: Note[] = [];
-    let inputIndices: number[] = [];
 
-    // calculate the sum of input notes (for calculating the public amount)
-    let sumInputNotes: BigNumberish = 0;
+      const fullProof = await generateProof(
+        private_key,
+        identityRootInputs,
+        identityMerkleProof,
+        vanchorMerkleProofs,
+        vanchor_input,
+        wasmFilePath,
+        zkeyFilePath
+      ); 
+      const proof = await this.generateProofCalldata(fullProof);
+      const vKey = await snarkjs.zKey.exportVerificationKey(zkeyFilePath);
+      const calldata = await snarkjs.groth16.exportSolidityCallData(fullProof.proof, fullProof.publicSignals)
 
-    for (const inputUtxo of inputs) {
-      sumInputNotes = BigNumber.from(sumInputNotes).add(inputUtxo.amount);
+      console.log(calldata)
 
-      // secrets should be formatted as expected in the wasm-utils for note generation
-      const secrets =
-        `${toFixedHex(inputUtxo.chainId, 8).slice(2)}:` +
-        `${toFixedHex(inputUtxo.amount).slice(2)}:` +
-        `${toFixedHex(inputUtxo.secret_key).slice(2)}:` +
-        `${toFixedHex(inputUtxo.blinding).slice(2)}`;
+      const publicInputs = this.generatePublicInputs(proof, 
+          [fullProof.publicSignals[0], fullProof.publicSignals[1]],
+          [fullProof.publicSignals[8], fullProof.publicSignals[9]],
+          inputs,
+          outputs, 
+          publicAmount,
+          extDataHash
+        )
+     
+      console.log(publicInputs)
 
-      const noteInput: NoteGenInput = {
-        amount: inputUtxo.amount.toString(),
-        backend: 'Circom',
-        curve: 'Bn254',
-        denomination: '18', // assumed erc20
-        exponentiation: '5',
-        hashFunction: 'Poseidon',
-        index: inputUtxo.index,
-        protocol: 'identityVAnchor',
-        secrets,
-        sourceChain: inputUtxo.originChainId.toString(),
-        sourceIdentifyingData: '0',
-        targetChain: chainId.toString(),
-        targetIdentifyingData: this.contract.address,
-        tokenSymbol: this.token,
-        width: '5',
-      };
-      const inputNote = await Note.generateNote(noteInput);
-      inputNotes.push(inputNote);
-      inputIndices.push(inputUtxo.index);
-    }
-
-    const encryptedCommitments: [Uint8Array, Uint8Array] = [
-      hexToU8a(outputs[0].encrypt()),
-      hexToU8a(outputs[1].encrypt()),
-    ];
-
-    const proofInput: ProvingManagerSetupInput<'identityVAnchor'> = {
-      inputNotes,
-      // TODO: Fix privatekey and identity merkle-path 
-      privateKey: hexToU8a(relayer),
-      vanchorLeavesMap: leavesMap,
-      vanchorIndices: inputIndices,
-      identityLeavesMap: leavesMap,
-      identityIndices: inputIndices,
-      identityRoots: identityRoots.map((root) => hexToU8a(root)),
-      vanchorRoots: vanchorRoots.map((root) => hexToU8a(root)),
-      chainId: chainId.toString(),
-      output: outputs,
-      encryptedCommitments,
-      publicAmount: BigNumber.from(extAmount).sub(fee).add(FIELD_SIZE).mod(FIELD_SIZE).toString(),
-      provingKey: inputs.length > 2 ? this.largeCircuitZkComponents.zkey : this.smallCircuitZkComponents.zkey,
-      relayer: hexToU8a(relayer),
-      recipient: hexToU8a(recipient),
-      extAmount: toFixedHex(BigNumber.from(extAmount)),
-      fee: BigNumber.from(fee).toString(),
-    };
-
-    inputs.length > 2
-      ? (this.provingManager = new CircomProvingManager(this.largeCircuitZkComponents.wasm, this.tree.levels, null))
-      : (this.provingManager = new CircomProvingManager(this.smallCircuitZkComponents.wasm, this.tree.levels, null));
-
-    const proof = await this.provingManager.prove('identityVAnchor', proofInput);
-
-    const publicInputs: IIdentityVariableAnchorPublicInputs = this.generatePublicInputs(
-      proof.proof,
-      identityRoots,
-      vanchorRoots,
-      inputs,
-      outputs,
-      proofInput.publicAmount,
-      u8aToHex(proof.extDataHash)
-    );
-
-    const extData: IIdentityVariableAnchorExtData = {
-      recipient: toFixedHex(proofInput.recipient, 20),
-      extAmount: toFixedHex(proofInput.extAmount),
-      relayer: toFixedHex(proofInput.relayer, 20),
-      fee: toFixedHex(proofInput.fee),
-      refund: toFixedHex(proofInput.refund),
-      token: toFixedHex(proofInput.token, 20),
-      encryptedOutput1: u8aToHex(proofInput.encryptedCommitments[0]),
-      encryptedOutput2: u8aToHex(proofInput.encryptedCommitments[1]),
-    };
+      // const publicInputs: IIdentityVariableAnchorPublicInputs = {
+      //   "proof": fullProof.proof,
+      //   "inputNullifiers": [fullProof.publicSignals[4], fullProof.publicSignals[5]],
+      //   "outputCommitments": [fullProof.publicSignals[6], fullProof.publicSignals[7]]  ,
+      //   "publicAmount": fullProof.publicSignals[2],
+      //   "extDataHash": fullProof.publicSignals[3]
+      // }
+      const res = await snarkjs.groth16.verify(vKey, fullProof.publicSignals, fullProof.proof);
+    
 
     return {
-      extData,
-      publicInputs,
+        publicInputs
     };
+  }
+  // public async setupTransaction(
+  //   inputs: Utxo[],
+  //   outputs: [Utxo, Utxo],
+  //   extAmount: BigNumberish,
+  //   fee: BigNumberish,
+  //   refund: BigNumberish,
+  //   token: string,
+  //   recipient: string,
+  //   relayer: string,
+  //   leavesMap: Record<string, Uint8Array[]>
+  // ) {
+  //   // first, check if the merkle root is known on chain - if not, then update
+  //   const chainId = getChainIdType(await this.signer.getChainId());
+  //   const roots = await this.populateVAnchorRootsForProof();
+  //   // Start creating notes to satisfy vanchor input
+  //   // Only the sourceChainId and secrets (amount, nullifier, secret, blinding)
+  //   // is required
+  //   let inputNotes: Note[] = [];
+  //   let inputIndices: number[] = [];
+  //
+  //   // calculate the sum of input notes (for calculating the public amount)
+  //   let sumInputNotes: BigNumberish = 0;
+  //
+  //   for (const inputUtxo of inputs) {
+  //     sumInputNotes = BigNumber.from(sumInputNotes).add(inputUtxo.amount);
+  //
+  //     // secrets should be formatted as expected in the wasm-utils for note generation
+  //     const secrets =
+  //       `${toFixedHex(inputUtxo.chainId, 8).slice(2)}:` +
+  //       `${toFixedHex(inputUtxo.amount).slice(2)}:` +
+  //       `${toFixedHex(inputUtxo.secret_key).slice(2)}:` +
+  //       `${toFixedHex(inputUtxo.blinding).slice(2)}`;
+  //
+  //     const noteInput: NoteGenInput = {
+  //       amount: inputUtxo.amount.toString(),
+  //       backend: 'Circom',
+  //       curve: 'Bn254',
+  //       denomination: '18', // assumed erc20
+  //       exponentiation: '5',
+  //       hashFunction: 'Poseidon',
+  //       index: inputUtxo.index,
+  //       protocol: 'vanchor',
+  //       secrets,
+  //       sourceChain: inputUtxo.originChainId.toString(),
+  //       sourceIdentifyingData: '0',
+  //       targetChain: chainId.toString(),
+  //       targetIdentifyingData: this.contract.address,
+  //       tokenSymbol: this.token,
+  //       width: '5',
+  //     };
+  //     const inputNote = await Note.generateNote(noteInput);
+  //     inputNotes.push(inputNote);
+  //     inputIndices.push(inputUtxo.index);
+  //   }
+  //
+  //   const encryptedCommitments: [Uint8Array, Uint8Array] = [
+  //     hexToU8a(outputs[0].encrypt()),
+  //     hexToU8a(outputs[1].encrypt()),
+  //   ];
+  //
+  //   const proofInput: ProvingManagerSetupInput<'vanchor'> = {
+  //     inputNotes,
+  //     leavesMap,
+  //     indices: inputIndices,
+  //     roots: roots.map((root) => hexToU8a(root)),
+  //     chainId: chainId.toString(),
+  //     output: outputs,
+  //     encryptedCommitments,
+  //     publicAmount: BigNumber.from(extAmount).sub(fee).add(FIELD_SIZE).mod(FIELD_SIZE).toString(),
+  //     provingKey: inputs.length > 2 ? this.largeCircuitZkComponents.zkey : this.smallCircuitZkComponents.zkey,
+  //     relayer: hexToU8a(relayer),
+  //     recipient: hexToU8a(recipient),
+  //     extAmount: toFixedHex(BigNumber.from(extAmount)),
+  //     fee: BigNumber.from(fee).toString(),
+  //     refund: BigNumber.from(refund).toString(),
+  //     token: hexToU8a(token)
+  //   };
+  //
+  //   inputs.length > 2
+  //     ? (this.provingManager = new CircomProvingManager(this.largeCircuitZkComponents.wasm, this.tree.levels, null))
+  //     : (this.provingManager = new CircomProvingManager(this.smallCircuitZkComponents.wasm, this.tree.levels, null));
+  //
+  //   const proof = await this.provingManager.prove('vanchor', proofInput);
+  //
+  //   const publicInputs: IIdentityVariableAnchorPublicInputs = this.generatePublicInputs(
+  //     proof.proof,
+  //     roots,
+  //     inputs,
+  //     outputs,
+  //     proofInput.publicAmount,
+  //     u8aToHex(proof.extDataHash)
+  //   );
+  //
+  //   const extData: IIdentityVariableAnchorExtData = {
+  //     recipient: toFixedHex(proofInput.recipient, 20),
+  //     extAmount: toFixedHex(proofInput.extAmount),
+  //     relayer: toFixedHex(proofInput.relayer, 20),
+  //     fee: toFixedHex(proofInput.fee),
+  //     refund: toFixedHex(proofInput.refund),
+  //     token: toFixedHex(proofInput.token, 20),
+  //     encryptedOutput1: u8aToHex(proofInput.encryptedCommitments[0]),
+  //     encryptedOutput2: u8aToHex(proofInput.encryptedCommitments[1]),
+  //   };
+  //
+  //   return {
+  //     extData,
+  //     publicInputs,
+  //   };
+  // }
+  public async transact(
+    private_key: string,
+    identityRootInputs: any,
+    identityMerkleProof: MerkleProof, 
+    vanchorMerkleProof: MerkleProof[], 
+    vanchor_input: any, 
+    publicAmount: BigNumberish, 
+    inputs: Utxo[],
+    outputs: Utxo[],
+    fee: BigNumberish,
+    refund: BigNumberish,
+    recipient: string,
+    relayer: string,
+  ): Promise<ethers.ContractReceipt> {
+    const chainId = getChainIdType(await this.signer.getChainId());
+    const randomKeypair = new Keypair();
+
+    while (inputs.length !== 2 && inputs.length < 16) {
+      inputs.push(
+        await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          chainId: chainId.toString(),
+          originChainId: chainId.toString(),
+          blinding: hexToU8a(randomBN(31).toHexString()),
+          privateKey: hexToU8a(randomKeypair.privkey),
+          amount: '0',
+          keypair: randomKeypair,
+        })
+      );
+    }
+
+    if (outputs.length < 2) {
+      while (outputs.length < 2) {
+        outputs.push(
+          await CircomUtxo.generateUtxo({
+            curve: 'Bn254',
+            backend: 'Circom',
+            chainId: chainId.toString(),
+            originChainId: chainId.toString(),
+            blinding: hexToU8a(randomBN(31).toHexString()),
+            privateKey: hexToU8a(randomKeypair.privkey),
+            amount: '0',
+            keypair: randomKeypair,
+          })
+        );
+      }
+    }
+
+    let extAmount = BigNumber.from(fee)
+      .add(outputs.reduce((sum, x) => sum.add(BigNumber.from(BigInt(x.amount))), BigNumber.from(0)))
+      .sub(inputs.reduce((sum, x) => sum.add(BigNumber.from(BigInt(x.amount))), BigNumber.from(0)));
+
+    const token = this.token;
+
+    const encOutput1 = outputs[0].encrypt();
+    const encOutput2 = outputs[1].encrypt();
+    const extData = {
+          recipient: toFixedHex(recipient, 20),
+          extAmount: toFixedHex(extAmount),
+          relayer: toFixedHex(relayer, 20),
+          fee: toFixedHex(fee),
+          refund: toFixedHex(BigNumber.from(0).toString()),
+          token: toFixedHex(token, 20),
+          encryptedOutput1: encOutput1,
+          encryptedOutput2: encOutput2
+      }
+    const extDataHash = await getVAnchorExtDataHash(
+      encOutput1,
+      encOutput2,
+      extAmount.toString(),
+      BigNumber.from(fee).toString(),
+      recipient,
+      relayer,
+      refund.toString(),
+      token
+    )
+
+    const vanchorRoots = await this.populateVAnchorRootsForProof();
+    const wasmFilePath = `solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/identity_vanchor_2_2.wasm`
+    const zkeyFilePath = `solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/circuit_final.zkey`
+    const { publicInputs } = await this.setupTransaction(
+      private_key,
+      identityRootInputs,
+      identityMerkleProof,
+      vanchorMerkleProof,
+      vanchor_input,
+      vanchorRoots,
+      chainId,
+      extAmount,
+      fee,
+      inputs,
+      [outputs[0], outputs[1]],
+      publicAmount,
+      extDataHash.toString(),
+      wasmFilePath,
+      zkeyFilePath
+    );
+
+    console.log("PUBLIC INPUTS: ", publicInputs)
+    let tx = await this.contract.transact(
+      { ...publicInputs, outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]] },
+      extData,
+      { gasLimit: '0x5B8D80' }
+    );
+    const receipt = await tx.wait();
+
+    // Add the leaves to the tree
+    outputs.forEach((x) => {
+      this.tree.insert(u8aToHex(x.commitment));
+      let numOfElements = this.tree.number_of_elements();
+      this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
+    });
+
+    return receipt;
   }
 
   // public async transact(

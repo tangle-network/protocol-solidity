@@ -67,6 +67,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
   let aliceCalldata: any
   let aliceKeypair: Keypair;
   let aliceProof: any;
+  let aliceExtData: any
   let aliceExtDataHash: any
   let alicePublicSignals: any;
   let bobKeypair: Keypair;
@@ -200,6 +201,17 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const encOutput1 = outputs[0].encrypt();
       const encOutput2 = outputs[1].encrypt();
 
+      aliceExtData = {
+          recipient: toFixedHex(recipient, 20),
+          extAmount: toFixedHex(extAmount),
+          relayer: toFixedHex(relayer, 20),
+          fee: toFixedHex(fee),
+          refund: toFixedHex(BigNumber.from(0).toString()),
+          token: toFixedHex(token.address, 20),
+          encOutput1,
+          encOutput2
+      }
+
       aliceExtDataHash = await getVAnchorExtDataHash(
         encOutput1,
         encOutput2,
@@ -245,6 +257,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
         zkeyFilePath
       );
       console.log("FULLPROOF: ", fullProof);
+      console.log("Identity ROOTS: ", identityRootInputs);
+      console.log("vanchor input: ", vanchor_input);
       // assert.strictEqual(group.root.toHexString(), identityRootInputs[0])
 
       // const wtns = await create2InputWitness(input);
@@ -290,14 +304,65 @@ describe('IdentityVAnchor for 2 max edges', () => {
   describe('#transact', () => {
     it('should transact', async () => {
       // Alice deposits into tornado pool
+      const relayer = "0x2111111111111111111111111111111111111111";
+      const vanchorRoots = await idAnchor.populateVAnchorRootsForProof();
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceDepositAmount);
+      const inputs = [
+        // TODO: Check if this is correct
+        await generateUTXOForTest(chainID, new Keypair()),
+        await generateUTXOForTest(chainID, new Keypair()),
+      ];
+      const outputs = [
+        aliceDepositUtxo,
+        await generateUTXOForTest(chainID, new Keypair()),
+      ];
+
+      const group: Group = new Group(levels)
+      const leaf = aliceDepositUtxo.keypair.pubkey.toString()
+      group.addMember(leaf)
+
+      // const identityRootInputs = [group.root, BigNumber.from(0)]
+      const vanchorMerkleProofs = inputs.map((x) => idAnchor.getMerkleProof(x));
+      const identityRootInputs = [group.root.toString(), BigNumber.from(0).toString()]
+      const idx = group.indexOf(leaf)
+      const identityMerkleProof: MerkleProof = group.generateProofOfMembership(idx)
+
+
       console.log("UTXO: ", aliceDepositUtxo) 
-      await idAnchor.contract.transact(
-        aliceCalldata,
-        aliceExtDataHash,
-        {}
+      console.log("proof: ", aliceProof) 
+      // const identityRoots = 
+      // const publicInputs = idAnchor.generatePublicInputs(aliceProof, identityRoots, vanchorRoots, inputs, outputs, publicAmount, extDataHash)
+      const vanchor_input = await generateVariableWitnessInput(
+        vanchorRoots.map((root) => BigNumber.from(root)),
+        chainID,
+        inputs,
+        outputs,
+        aliceDepositAmount,
+        fee,
+        BigNumber.from(aliceExtDataHash),
+        vanchorMerkleProofs
       );
+      await idAnchor.transact(
+          aliceKeypair.privkey.toString(),
+          identityRootInputs,
+          identityMerkleProof,
+          vanchorMerkleProofs,
+          vanchor_input,
+          aliceDepositAmount,
+          inputs,
+          outputs,
+          fee,
+          BigNumber.from(0),
+          recipient,
+          relayer
+      )
+
+      //   {"proof": aliceProof,
+      //    "identityRoots": alicePublicSignals
+      //   aliceExtDataHash,
+      //   {}
+      // );
     })
   })
   //
