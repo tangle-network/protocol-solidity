@@ -22,6 +22,7 @@ export { HandlerHelpers__factory } from './factories/HandlerHelpers__factory';
 export type { VAnchorEncodeInputs } from './VAnchorEncodeInputs';
 export { VAnchorEncodeInputs__factory } from './factories/VAnchorEncodeInputs__factory';
 
+export type { Semaphore } from './Semaphore';
 export type { IdentityVAnchorEncodeInputs } from './IdentityVAnchorEncodeInputs';
 export { IdentityVAnchorEncodeInputs__factory } from './factories/IdentityVAnchorEncodeInputs__factory';
 

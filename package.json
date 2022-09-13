@@ -68,7 +68,7 @@
     "@semaphore-anchor/group": "0.0.1",
     "@semaphore-anchor/identity": "0.0.1",
     "@semaphore-anchor/proof": "0.0.1",
-    "@semaphore-anchor/semaphore": "0.0.2",
+    "@semaphore-anchor/semaphore": "0.0.2-0d",
     "bn.js": "4.11.6",
     "circomlibjs": "0.0.8",
     "dotenv": "^8.2.0",
