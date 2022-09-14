@@ -20,7 +20,7 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface VerifierID216Interface extends ethers.utils.Interface {
   functions: {
-    "verifyProof(uint256[2],uint256[2][2],uint256[2],uint256[24])": FunctionFragment;
+    "verifyProof(uint256[2],uint256[2][2],uint256[2],uint256[25])": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -30,6 +30,7 @@ interface VerifierID216Interface extends ethers.utils.Interface {
       [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]],
       [BigNumberish, BigNumberish],
       [
+        BigNumberish,
         BigNumberish,
         BigNumberish,
         BigNumberish,
@@ -138,6 +139,7 @@ export class VerifierID216 extends BaseContract {
         BigNumberish,
         BigNumberish,
         BigNumberish,
+        BigNumberish,
         BigNumberish
       ],
       overrides?: CallOverrides
@@ -172,6 +174,7 @@ export class VerifierID216 extends BaseContract {
       BigNumberish,
       BigNumberish,
       BigNumberish,
+      BigNumberish,
       BigNumberish
     ],
     overrides?: CallOverrides
@@ -183,6 +186,7 @@ export class VerifierID216 extends BaseContract {
       b: [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]],
       c: [BigNumberish, BigNumberish],
       input: [
+        BigNumberish,
         BigNumberish,
         BigNumberish,
         BigNumberish,
@@ -243,6 +247,7 @@ export class VerifierID216 extends BaseContract {
         BigNumberish,
         BigNumberish,
         BigNumberish,
+        BigNumberish,
         BigNumberish
       ],
       overrides?: CallOverrides
@@ -255,6 +260,7 @@ export class VerifierID216 extends BaseContract {
       b: [[BigNumberish, BigNumberish], [BigNumberish, BigNumberish]],
       c: [BigNumberish, BigNumberish],
       input: [
+        BigNumberish,
         BigNumberish,
         BigNumberish,
         BigNumberish,
