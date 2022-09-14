@@ -2,6 +2,7 @@ pragma circom 2.0.0;
 
 include "../vanchor/transaction.circom";
 include "./semaphore.circom";
+include "./manyMerkleProof.circom";
 
 template IdentityVAnchor(levels, nIns, nOuts, zeroLeaf, length) {
     // Semaphore inputs
@@ -20,7 +21,6 @@ template IdentityVAnchor(levels, nIns, nOuts, zeroLeaf, length) {
     // data for transaction inputs
     signal input inputNullifier[nIns];
     signal input inAmount[nIns];
-    signal input inPrivateKey[nIns];
     signal input inBlinding[nIns];
     signal input inPathIndices[nIns];
     signal input inPathElements[nIns][levels];
@@ -30,6 +30,8 @@ template IdentityVAnchor(levels, nIns, nOuts, zeroLeaf, length) {
     signal input outChainID[nOuts];
     signal input outAmount[nOuts];
     signal input outPubkey[nOuts];
+    signal input outSemaphoreTreePathIndices[nOuts][levels];
+    signal input outSemaphoreTreeElements[nOuts][levels];
     signal input outBlinding[nOuts];
 
     // roots for interoperability, one-of-many merkle membership proof
@@ -56,7 +58,7 @@ template IdentityVAnchor(levels, nIns, nOuts, zeroLeaf, length) {
     for (var i = 0; i < nIns; i++) {
         vanchor.inputNullifier[i] <== inputNullifier[i];
         vanchor.inAmount[i] <== inAmount[i];
-        vanchor.inPrivateKey[i] <== inPrivateKey[i];
+        vanchor.inPrivateKey[i] <== privateKey;
         vanchor.inBlinding[i] <== inBlinding[i];
         vanchor.inPathIndices[i] <== inPathIndices[i];
         for (var j = 0; j < levels; j++) {
@@ -72,5 +74,20 @@ template IdentityVAnchor(levels, nIns, nOuts, zeroLeaf, length) {
     }
     for (var i = 0; i < length; i++) {
         vanchor.roots[i] <== vanchorRoots[i];
+    }
+
+    component publicSemaphore[nOuts];
+    
+    for (var n = 0; n < nOuts; n++) {
+        publicSemaphore[n] = ManyMerkleProofPublic(levels, length);
+        publicSemaphore[n].leaf <== outPubkey[n];
+        publicSemaphore[n].enabled <== outAmount[n];
+        for (var i = 0; i < length; i++) {
+            publicSemaphore[n].roots[i] <== semaphoreRoots[i];
+        }
+        for (var i = 0; i < levels; i++) {
+            publicSemaphore[n].pathIndices[i] <== outSemaphoreTreePathIndices[n][i];
+            publicSemaphore[n].pathElements[i] <== outSemaphoreTreeElements[n][i];
+        }
     }
 }
