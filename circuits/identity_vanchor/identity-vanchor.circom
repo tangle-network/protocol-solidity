@@ -21,6 +21,7 @@ template IdentityVAnchor(levels, nIns, nOuts, zeroLeaf, length) {
     // data for transaction inputs
     signal input inputNullifier[nIns];
     signal input inAmount[nIns];
+    signal input inPrivateKey[nIns];
     signal input inBlinding[nIns];
     signal input inPathIndices[nIns];
     signal input inPathElements[nIns][levels];
@@ -31,6 +32,7 @@ template IdentityVAnchor(levels, nIns, nOuts, zeroLeaf, length) {
     signal input outAmount[nOuts];
     signal input outPubkey[nOuts];
     signal input outSemaphoreTreePathIndices[nOuts][levels];
+    // TODO: can we reduce this to a single index per nOut?
     signal input outSemaphoreTreeElements[nOuts][levels];
     signal input outBlinding[nOuts];
 
@@ -58,7 +60,7 @@ template IdentityVAnchor(levels, nIns, nOuts, zeroLeaf, length) {
     for (var i = 0; i < nIns; i++) {
         vanchor.inputNullifier[i] <== inputNullifier[i];
         vanchor.inAmount[i] <== inAmount[i];
-        vanchor.inPrivateKey[i] <== privateKey;
+        vanchor.inPrivateKey[i] <== inPrivateKey[i];
         vanchor.inBlinding[i] <== inBlinding[i];
         vanchor.inPathIndices[i] <== inPathIndices[i];
         for (var j = 0; j < levels; j++) {
@@ -79,6 +81,10 @@ template IdentityVAnchor(levels, nIns, nOuts, zeroLeaf, length) {
     component publicSemaphore[nOuts];
     
     for (var n = 0; n < nOuts; n++) {
+        /* log(111111111111111111111); */
+        /* log(n); */
+        /* log(outPubkey[n]); */
+        /* log(outAmount[n]); */
         publicSemaphore[n] = ManyMerkleProofPublic(levels, length);
         publicSemaphore[n].leaf <== outPubkey[n];
         publicSemaphore[n].enabled <== outAmount[n];

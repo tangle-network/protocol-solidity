@@ -90,49 +90,58 @@ export default function verifyProof(verificationKey: any, { proof, publicSignals
 }
 
 export async function generateProof (
-  privateKey: string,
+  keypair: Keypair,
   identityRoots: string[],
   identityMerkleProof: MerkleProof,
   vanchorMerkleProofs: MerkleProof[],
+  outSemaphoreProofs: MerkleProof[],
   vanchor_inputs: any,
   wasmFilePath: string,
   zkeyFilePath: string,
 ): Promise<any> {
-  const vanchorProofs = vanchorMerkleProofs.map((proof) => ({
-    pathIndex: MerkleTree.calculateIndexFromPathIndices(proof.pathIndices),
-    pathElements: proof.pathElements
-  }));
+  // const vanchorProofs = vanchorMerkleProofs.map((proof) => ({
+  //   pathIndex: MerkleTree.calculateIndexFromPathIndices(proof.pathIndices),
+  //   pathElements: proof.pathElements
+  // }));
   // const identityProof = identityMerkleProofs.map((proof) => ({
   //   pathIndex: proof.pathIndices,
   //   pathElements: proof.pathElements
   // }));
   // assert.strictEqual(identityMerkleProof.element.toBigInt(), poseidon([privateKey]).toBigInt())
 
-  let proof = await groth16.fullProve({
-    privateKey: privateKey.toString(),
+  // console.log("PATH INDICES: ", identityMerkleProof.pathIndices)
+  const inputs = {
+    privateKey: keypair.privkey.toString(),
     semaphoreTreePathIndices: identityMerkleProof.pathIndices,
     semaphoreTreeSiblings: identityMerkleProof.pathElements.map((x) => BigNumber.from(x).toString()),
     semaphoreRoots: identityRoots,
     chainID: vanchor_inputs.chainID,
     publicAmount: vanchor_inputs.publicAmount,
     extDataHash: vanchor_inputs.extDataHash,
-    //
-    // // data for 2 transaction inputs
+
+    // data for 2 transaction inputs
     inputNullifier: vanchor_inputs.inputNullifier,
     inAmount: vanchor_inputs.inAmount,
     inPrivateKey: vanchor_inputs.inPrivateKey,
     inBlinding: vanchor_inputs.inBlinding,
     inPathIndices: vanchor_inputs.inPathIndices,
     inPathElements: vanchor_inputs.inPathElements,
-    //
-    // // data for 2 transaction outputs
+
+    // data for 2 transaction outputs
     outputCommitment: vanchor_inputs.outputCommitment,
     outChainID: vanchor_inputs.outChainID,
     outAmount: vanchor_inputs.outAmount,
     outPubkey: vanchor_inputs.outPubkey,
+    outSemaphoreTreePathIndices: [identityMerkleProof.pathIndices, outSemaphoreProofs[1].pathIndices.map((x) => BigNumber.from(x).toString())],
+    outSemaphoreTreeElements: [identityMerkleProof.pathElements.map((x) => BigNumber.from(x).toString()), outSemaphoreProofs[1].pathElements.map((x) => BigNumber.from(x).toString())],
     outBlinding: vanchor_inputs.outBlinding,
     vanchorRoots: vanchor_inputs.roots,
-  }, wasmFilePath, zkeyFilePath);
+  }
+
+  // console.log("CIRCUIT INPUTS: ", inputs)
+  // console.log("keypair: ", keypair)
+  // console.log("pubkey: ", keypair.pubkey.toHexString())
+  let proof = await groth16.fullProve(inputs, wasmFilePath, zkeyFilePath);
 
   return proof;
 }

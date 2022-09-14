@@ -528,10 +528,11 @@ export class IdentityVAnchor implements IAnchor {
   }
 
   public async setupTransaction(
-      private_key: string,
+      keypair: Keypair,
       identityRootInputs: any,
       identityMerkleProof: MerkleProof, 
       vanchorMerkleProofs: any[], 
+      outSemaphoreProofs: MerkleProof[],
       vanchor_input: any, 
       vanchorRoots: any,
       chainID: BigNumberish,
@@ -547,10 +548,11 @@ export class IdentityVAnchor implements IAnchor {
 
 
       const fullProof = await generateProof(
-        private_key,
+        keypair,
         identityRootInputs,
         identityMerkleProof,
         vanchorMerkleProofs,
+        outSemaphoreProofs,
         vanchor_input,
         wasmFilePath,
         zkeyFilePath
@@ -696,10 +698,11 @@ export class IdentityVAnchor implements IAnchor {
   //   };
   // }
   public async transact(
-    private_key: string,
+    keypair: Keypair,
     identityRootInputs: any,
     identityMerkleProof: MerkleProof, 
     vanchorMerkleProof: MerkleProof[], 
+    outSemaphoreProofs: MerkleProof[],
     vanchor_input: any, 
     publicAmount: BigNumberish, 
     inputs: Utxo[],
@@ -777,10 +780,11 @@ export class IdentityVAnchor implements IAnchor {
     const wasmFilePath = `solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/identity_vanchor_2_2.wasm`
     const zkeyFilePath = `solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/circuit_final.zkey`
     const { publicInputs } = await this.setupTransaction(
-      private_key,
+      keypair,
       identityRootInputs,
       identityMerkleProof,
       vanchorMerkleProof,
+      outSemaphoreProofs,
       vanchor_input,
       vanchorRoots,
       chainId,
@@ -794,7 +798,7 @@ export class IdentityVAnchor implements IAnchor {
       zkeyFilePath
     );
 
-    console.log("PUBLIC INPUTS: ", publicInputs)
+    // console.log("PUBLIC INPUTS: ", publicInputs)
     let tx = await this.contract.transact(
       { ...publicInputs, outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]] },
       extData,
