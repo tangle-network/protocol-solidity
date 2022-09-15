@@ -77,13 +77,13 @@ library IdentityVAnchorEncodeInputs {
 			// assign input
 			inputs[0] = uint256(identityRoots[0]);
 			inputs[1] = uint256(identityRoots[1]);
-			inputs[2] = uint256(_args.publicAmount);
-			inputs[3] = uint256(_args.extDataHash);
-			inputs[4] = uint256(_args.inputNullifiers[0]);
-			inputs[5] = uint256(_args.inputNullifiers[1]);
-			inputs[6] = uint256(_args.outputCommitments[0]);
-			inputs[7] = uint256(_args.outputCommitments[1]);
-			inputs[8] = uint256(_chainId);
+			inputs[2] = uint256(_chainId);
+			inputs[3] = uint256(_args.publicAmount);
+			inputs[4] = uint256(_args.extDataHash);
+			inputs[5] = uint256(_args.inputNullifiers[0]);
+			inputs[6] = uint256(_args.inputNullifiers[1]);
+			inputs[7] = uint256(_args.outputCommitments[0]);
+			inputs[8] = uint256(_args.outputCommitments[1]);
 			inputs[9] = uint256(vanchorRoots[0]);
 			inputs[10] = uint256(vanchorRoots[1]);
 			encodedInput = abi.encodePacked(inputs);

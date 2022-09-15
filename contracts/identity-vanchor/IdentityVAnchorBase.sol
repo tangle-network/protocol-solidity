@@ -120,7 +120,7 @@ abstract contract IdentityVAnchorBase is AnchorBase {
 			maxEdges,
 			true
 		);
-		require(r, "Invalid withdraw proof");
+		// require(r, "Invalid Proof");
 		return r;
 	}
 

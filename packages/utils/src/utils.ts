@@ -95,6 +95,7 @@ export async function generateProof (
   identityMerkleProof: MerkleProof,
   vanchorMerkleProofs: MerkleProof[],
   outSemaphoreProofs: MerkleProof[],
+  extDataHash: string,
   vanchor_inputs: any,
   wasmFilePath: string,
   zkeyFilePath: string,
@@ -117,7 +118,7 @@ export async function generateProof (
     semaphoreRoots: identityRoots,
     chainID: vanchor_inputs.chainID,
     publicAmount: vanchor_inputs.publicAmount,
-    extDataHash: vanchor_inputs.extDataHash,
+    extDataHash: extDataHash,
 
     // data for 2 transaction inputs
     inputNullifier: vanchor_inputs.inputNullifier,

@@ -68,6 +68,7 @@ interface IdentityVAnchorInterface extends ethers.utils.Interface {
     "roots(uint256)": FunctionFragment;
     "setHandler(address,uint32)": FunctionFragment;
     "setVerifier(address,uint32)": FunctionFragment;
+    "testEncodeInputs((bytes,bytes,bytes,bytes32[],bytes32[2],uint256,bytes32))": FunctionFragment;
     "token()": FunctionFragment;
     "transact((bytes,bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,uint256,address,bytes,bytes))": FunctionFragment;
     "transactWrap((bytes,bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),(address,int256,address,uint256,uint256,address,bytes,bytes),address)": FunctionFragment;
@@ -238,6 +239,20 @@ interface IdentityVAnchorInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "setVerifier",
     values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "testEncodeInputs",
+    values: [
+      {
+        proof: BytesLike;
+        identityRoots: BytesLike;
+        vanchorRoots: BytesLike;
+        inputNullifiers: BytesLike[];
+        outputCommitments: [BytesLike, BytesLike];
+        publicAmount: BigNumberish;
+        extDataHash: BytesLike;
+      }
+    ]
   ): string;
   encodeFunctionData(functionFragment: "token", values?: undefined): string;
   encodeFunctionData(
@@ -462,6 +477,10 @@ interface IdentityVAnchorInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "setHandler", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setVerifier",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "testEncodeInputs",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "token", data: BytesLike): Result;
@@ -782,6 +801,49 @@ export class IdentityVAnchor extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    testEncodeInputs(
+      _args: {
+        proof: BytesLike;
+        identityRoots: BytesLike;
+        vanchorRoots: BytesLike;
+        inputNullifiers: BytesLike[];
+        outputCommitments: [BytesLike, BytesLike];
+        publicAmount: BigNumberish;
+        extDataHash: BytesLike;
+      },
+      overrides?: CallOverrides
+    ): Promise<
+      [
+        [
+          BigNumber,
+          BigNumber,
+          BigNumber,
+          BigNumber,
+          BigNumber,
+          BigNumber,
+          BigNumber,
+          BigNumber,
+          BigNumber,
+          BigNumber,
+          BigNumber
+        ]
+      ] & {
+        _inputs: [
+          BigNumber,
+          BigNumber,
+          BigNumber,
+          BigNumber,
+          BigNumber,
+          BigNumber,
+          BigNumber,
+          BigNumber,
+          BigNumber,
+          BigNumber,
+          BigNumber
+        ];
+      }
+    >;
+
     token(overrides?: CallOverrides): Promise<[string]>;
 
     transact(
@@ -1064,6 +1126,33 @@ export class IdentityVAnchor extends BaseContract {
     _nonce: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  testEncodeInputs(
+    _args: {
+      proof: BytesLike;
+      identityRoots: BytesLike;
+      vanchorRoots: BytesLike;
+      inputNullifiers: BytesLike[];
+      outputCommitments: [BytesLike, BytesLike];
+      publicAmount: BigNumberish;
+      extDataHash: BytesLike;
+    },
+    overrides?: CallOverrides
+  ): Promise<
+    [
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber
+    ]
+  >;
 
   token(overrides?: CallOverrides): Promise<string>;
 
@@ -1356,6 +1445,33 @@ export class IdentityVAnchor extends BaseContract {
       _nonce: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    testEncodeInputs(
+      _args: {
+        proof: BytesLike;
+        identityRoots: BytesLike;
+        vanchorRoots: BytesLike;
+        inputNullifiers: BytesLike[];
+        outputCommitments: [BytesLike, BytesLike];
+        publicAmount: BigNumberish;
+        extDataHash: BytesLike;
+      },
+      overrides?: CallOverrides
+    ): Promise<
+      [
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber
+      ]
+    >;
 
     token(overrides?: CallOverrides): Promise<string>;
 
@@ -1732,6 +1848,19 @@ export class IdentityVAnchor extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    testEncodeInputs(
+      _args: {
+        proof: BytesLike;
+        identityRoots: BytesLike;
+        vanchorRoots: BytesLike;
+        inputNullifiers: BytesLike[];
+        outputCommitments: [BytesLike, BytesLike];
+        publicAmount: BigNumberish;
+        extDataHash: BytesLike;
+      },
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     token(overrides?: CallOverrides): Promise<BigNumber>;
 
     transact(
@@ -2018,6 +2147,19 @@ export class IdentityVAnchor extends BaseContract {
       _verifier: string,
       _nonce: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    testEncodeInputs(
+      _args: {
+        proof: BytesLike;
+        identityRoots: BytesLike;
+        vanchorRoots: BytesLike;
+        inputNullifiers: BytesLike[];
+        outputCommitments: [BytesLike, BytesLike];
+        publicAmount: BigNumberish;
+        extDataHash: BytesLike;
+      },
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     token(overrides?: CallOverrides): Promise<PopulatedTransaction>;
