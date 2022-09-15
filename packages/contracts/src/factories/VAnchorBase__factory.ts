@@ -875,7 +875,7 @@ const _abi = [
           },
           {
             internalType: "bytes",
-            name: "publicKey",
+            name: "keyData",
             type: "bytes",
           },
         ],

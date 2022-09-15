@@ -218,7 +218,7 @@ interface VAnchorBaseInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "register",
-    values: [{ owner: string; publicKey: BytesLike }]
+    values: [{ owner: string; keyData: BytesLike }]
   ): string;
   encodeFunctionData(functionFragment: "roots", values: [BigNumberish]): string;
   encodeFunctionData(
@@ -657,7 +657,7 @@ export class VAnchorBase extends BaseContract {
     ): Promise<[BigNumber]>;
 
     register(
-      _account: { owner: string; publicKey: BytesLike },
+      _account: { owner: string; keyData: BytesLike },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -859,7 +859,7 @@ export class VAnchorBase extends BaseContract {
   ): Promise<BigNumber>;
 
   register(
-    _account: { owner: string; publicKey: BytesLike },
+    _account: { owner: string; keyData: BytesLike },
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1070,7 +1070,7 @@ export class VAnchorBase extends BaseContract {
     ): Promise<BigNumber>;
 
     register(
-      _account: { owner: string; publicKey: BytesLike },
+      _account: { owner: string; keyData: BytesLike },
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1366,7 +1366,7 @@ export class VAnchorBase extends BaseContract {
     ): Promise<BigNumber>;
 
     register(
-      _account: { owner: string; publicKey: BytesLike },
+      _account: { owner: string; keyData: BytesLike },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1570,7 +1570,7 @@ export class VAnchorBase extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     register(
-      _account: { owner: string; publicKey: BytesLike },
+      _account: { owner: string; keyData: BytesLike },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

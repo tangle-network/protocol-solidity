@@ -233,12 +233,12 @@ interface VAnchorInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "register",
-    values: [{ owner: string; publicKey: BytesLike }]
+    values: [{ owner: string; keyData: BytesLike }]
   ): string;
   encodeFunctionData(
     functionFragment: "registerAndTransact",
     values: [
-      { owner: string; publicKey: BytesLike },
+      { owner: string; keyData: BytesLike },
       {
         proof: BytesLike;
         roots: BytesLike;
@@ -262,7 +262,7 @@ interface VAnchorInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "registerAndTransactWrap",
     values: [
-      { owner: string; publicKey: BytesLike },
+      { owner: string; keyData: BytesLike },
       {
         proof: BytesLike;
         roots: BytesLike;
@@ -827,12 +827,12 @@ export class VAnchor extends BaseContract {
     ): Promise<[BigNumber]>;
 
     register(
-      _account: { owner: string; publicKey: BytesLike },
+      _account: { owner: string; keyData: BytesLike },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     registerAndTransact(
-      _account: { owner: string; publicKey: BytesLike },
+      _account: { owner: string; keyData: BytesLike },
       _proofArgs: {
         proof: BytesLike;
         roots: BytesLike;
@@ -855,7 +855,7 @@ export class VAnchor extends BaseContract {
     ): Promise<ContractTransaction>;
 
     registerAndTransactWrap(
-      _account: { owner: string; publicKey: BytesLike },
+      _account: { owner: string; keyData: BytesLike },
       _proofArgs: {
         proof: BytesLike;
         roots: BytesLike;
@@ -1158,12 +1158,12 @@ export class VAnchor extends BaseContract {
   ): Promise<BigNumber>;
 
   register(
-    _account: { owner: string; publicKey: BytesLike },
+    _account: { owner: string; keyData: BytesLike },
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   registerAndTransact(
-    _account: { owner: string; publicKey: BytesLike },
+    _account: { owner: string; keyData: BytesLike },
     _proofArgs: {
       proof: BytesLike;
       roots: BytesLike;
@@ -1186,7 +1186,7 @@ export class VAnchor extends BaseContract {
   ): Promise<ContractTransaction>;
 
   registerAndTransactWrap(
-    _account: { owner: string; publicKey: BytesLike },
+    _account: { owner: string; keyData: BytesLike },
     _proofArgs: {
       proof: BytesLike;
       roots: BytesLike;
@@ -1498,12 +1498,12 @@ export class VAnchor extends BaseContract {
     ): Promise<BigNumber>;
 
     register(
-      _account: { owner: string; publicKey: BytesLike },
+      _account: { owner: string; keyData: BytesLike },
       overrides?: CallOverrides
     ): Promise<void>;
 
     registerAndTransact(
-      _account: { owner: string; publicKey: BytesLike },
+      _account: { owner: string; keyData: BytesLike },
       _proofArgs: {
         proof: BytesLike;
         roots: BytesLike;
@@ -1526,7 +1526,7 @@ export class VAnchor extends BaseContract {
     ): Promise<void>;
 
     registerAndTransactWrap(
-      _account: { owner: string; publicKey: BytesLike },
+      _account: { owner: string; keyData: BytesLike },
       _proofArgs: {
         proof: BytesLike;
         roots: BytesLike;
@@ -1921,12 +1921,12 @@ export class VAnchor extends BaseContract {
     ): Promise<BigNumber>;
 
     register(
-      _account: { owner: string; publicKey: BytesLike },
+      _account: { owner: string; keyData: BytesLike },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     registerAndTransact(
-      _account: { owner: string; publicKey: BytesLike },
+      _account: { owner: string; keyData: BytesLike },
       _proofArgs: {
         proof: BytesLike;
         roots: BytesLike;
@@ -1949,7 +1949,7 @@ export class VAnchor extends BaseContract {
     ): Promise<BigNumber>;
 
     registerAndTransactWrap(
-      _account: { owner: string; publicKey: BytesLike },
+      _account: { owner: string; keyData: BytesLike },
       _proofArgs: {
         proof: BytesLike;
         roots: BytesLike;
@@ -2254,12 +2254,12 @@ export class VAnchor extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     register(
-      _account: { owner: string; publicKey: BytesLike },
+      _account: { owner: string; keyData: BytesLike },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     registerAndTransact(
-      _account: { owner: string; publicKey: BytesLike },
+      _account: { owner: string; keyData: BytesLike },
       _proofArgs: {
         proof: BytesLike;
         roots: BytesLike;
@@ -2282,7 +2282,7 @@ export class VAnchor extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     registerAndTransactWrap(
-      _account: { owner: string; publicKey: BytesLike },
+      _account: { owner: string; keyData: BytesLike },
       _proofArgs: {
         proof: BytesLike;
         roots: BytesLike;
