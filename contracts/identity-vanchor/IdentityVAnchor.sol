@@ -263,12 +263,6 @@ contract IdentityVAnchor is IdentityVAnchorBase {
 		}
 	}
 
-    function testEncodeInputs(IdentityVAnchorEncodeInputs.Proof memory _args) public view returns (uint256[11] memory _inputs) {
-        (bytes memory encodedInput, bytes32[] memory roots) = IdentityVAnchorEncodeInputs._encodeInputs2(_args, maxEdges);
-        _inputs = abi.decode(encodedInput, (uint256[11]));
-        return _inputs;
-    }
-
 	/**
 		@notice Checks whether the zkSNARK proof is valid
 		@param _args The zkSNARK proof parameters
@@ -279,11 +273,10 @@ contract IdentityVAnchor is IdentityVAnchorBase {
 			(bytes memory encodedInput, bytes32[] memory roots) = IdentityVAnchorEncodeInputs._encodeInputs2(_args, maxEdges);
 			require(SemaphoreContract.verifyRoots(groupId, _args.identityRoots), "Invalid identity roots");
 			isValidRoots(roots);
-
 			require(verify2(_args.proof, encodedInput), "Invalid transaction proof");
 		} else if (_args.inputNullifiers.length == 16) {
 			(bytes memory encodedInput, bytes32[] memory roots) = IdentityVAnchorEncodeInputs._encodeInputs16(_args, maxEdges);
-			require(isValidRoots(roots), "Invalid roots");
+			isValidRoots(roots);
 			require(verify16(_args.proof, encodedInput), "Invalid transaction proof");
 		} else {
 			revert("unsupported input count");

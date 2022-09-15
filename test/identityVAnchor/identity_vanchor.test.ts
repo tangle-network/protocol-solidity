@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 const assert = require('assert');
+import { expect } from "chai";
 import { ethers } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
 
@@ -355,9 +356,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
       let transaction = await semaphoreContract
         .connect(sender)
         .addMember(idAnchor.groupId, aliceLeaf, { gasLimit: '0x5B8D80' });
-      // console.log("ADD MEMBER: ", transaction)
       const receipt = await transaction.wait();
-      // console.log(receipt)
+
       // Alice deposits into tornado pool
       const relayer = '0x2111111111111111111111111111111111111111';
       const vanchorRoots = await idAnchor.populateVAnchorRootsForProof();
@@ -371,10 +371,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const outputs = [aliceDepositUtxo, await generateUTXOForTest(chainID, new Keypair())];
 
       const group = new Group(levels, BigInt(defaultRoot));
-      // const leaf = aliceDepositUtxo.keypair.pubkey.toString()
       group.addMember(aliceLeaf);
 
-      // const identityRootInputs = [group.root, BigNumber.from(0)]
       const vanchorMerkleProofs = inputs.map((x) => idAnchor.getMerkleProof(x));
       const identityRootInputs = [group.root.toString(), BigNumber.from(0).toString()];
       const idx = group.indexOf(aliceLeaf);
@@ -395,16 +393,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
           }
         }
       })
-      // console.log("OUTPUTS: ", inputs)
-      // console.log("OUTPUTS: ", outputs)
-      //
-      // console.log("OUT SEMAPHORE: ", outSemaphoreProofs);
 
-      // console.log("UTXO: ", aliceDepositUtxo)
-      // console.log("proof: ", aliceProof)
-      // const identityRoots =
-      // const publicInputs = idAnchor.generatePublicInputs(aliceProof, identityRoots, vanchorRoots, inputs, outputs, publicAmount, extDataHash)
-      console.log("EXTDATAHASHSS: ", aliceExtDataHash)
       const vanchor_input = await generateVariableWitnessInput(
         vanchorRoots.map((root) => BigNumber.from(root)),
         chainID,
@@ -415,8 +404,9 @@ describe('IdentityVAnchor for 2 max edges', () => {
         BigNumber.from(aliceExtDataHash),
         vanchorMerkleProofs
       );
-      console.log("VANCHOR_INPUT: ", vanchor_input)
-      const tx = await idAnchor.transact(
+      // console.log("VANCHOR_INPUT: ", vanchor_input)
+      let publicInputs
+      const res = await idAnchor.transact(
           aliceKeypair,
           identityRootInputs,
           identityMerkleProof,
@@ -431,105 +421,10 @@ describe('IdentityVAnchor for 2 max edges', () => {
           recipient,
           relayer
       )
-
-      // console.log(tx);
-
-      //   {"proof": aliceProof,
-      //    "identityRoots": alicePublicSignals
-      //   aliceExtDataHash,
-      //   {}
-      // );
-    });
-
-    it('should test encoding', async () => {
-      let aliceLeaf = aliceKeypair.pubkey.toString();
-      let transaction = await semaphoreContract
-        .connect(sender)
-        .addMember(idAnchor.groupId, aliceLeaf, { gasLimit: '0x5B8D80' });
-      // console.log("ADD MEMBER: ", transaction)
-      const receipt = await transaction.wait();
-      // console.log(receipt)
-      // Alice deposits into tornado pool
-      const relayer = '0x2111111111111111111111111111111111111111';
-      const vanchorRoots = await idAnchor.populateVAnchorRootsForProof();
-      const aliceDepositAmount = 1e7;
-      const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceDepositAmount);
-      const inputs = [
-        // TODO: Check if this is correct
-        await generateUTXOForTest(chainID, new Keypair()),
-        await generateUTXOForTest(chainID, new Keypair()),
-      ];
-      const outputs = [aliceDepositUtxo, await generateUTXOForTest(chainID, new Keypair())];
-
-      const group = new Group(levels, BigInt(defaultRoot));
-      // const leaf = aliceDepositUtxo.keypair.pubkey.toString()
-      group.addMember(aliceLeaf);
-
-      // const identityRootInputs = [group.root, BigNumber.from(0)]
-      const vanchorMerkleProofs = inputs.map((x) => idAnchor.getMerkleProof(x));
-      const identityRootInputs = [group.root.toString(), BigNumber.from(0).toString()];
-      const idx = group.indexOf(aliceLeaf);
-      const identityMerkleProof: MerkleProof = group.generateProofOfMembership(idx);
-
-      const outSemaphoreProofs = outputs.map((utxo) => {
-        const leaf = utxo.keypair.pubkey.toString()
-        if (Number(utxo.amount) > 0) {
-            const idx = group.indexOf(leaf)
-            return group.generateProofOfMembership(idx)
-        }
-        else {
-          const inputMerklePathIndices = new Array(group.depth).fill(0);
-          const inputMerklePathElements = new Array(group.depth).fill(0);
-          return { 
-              pathIndices: inputMerklePathIndices,
-              pathElements: inputMerklePathElements
-          }
-        }
-      })
-      // console.log("OUTPUTS: ", inputs)
-      // console.log("OUTPUTS: ", outputs)
-      //
-      // console.log("OUT SEMAPHORE: ", outSemaphoreProofs);
-
-      // console.log("UTXO: ", aliceDepositUtxo)
-      // console.log("proof: ", aliceProof)
-      // const identityRoots =
-      // const publicInputs = idAnchor.generatePublicInputs(aliceProof, identityRoots, vanchorRoots, inputs, outputs, publicAmount, extDataHash)
-      console.log("EXTDATAHASHSS: ", aliceExtDataHash)
-      const vanchor_input = await generateVariableWitnessInput(
-        vanchorRoots.map((root) => BigNumber.from(root)),
-        chainID,
-        inputs,
-        outputs,
-        aliceDepositAmount,
-        fee,
-        BigNumber.from(aliceExtDataHash),
-        vanchorMerkleProofs
-      );
-      console.log("VANCHOR_INPUT: ", vanchor_input)
-      const tx = await idAnchor.testEncoding(
-          aliceKeypair,
-          identityRootInputs,
-          identityMerkleProof,
-          vanchorMerkleProofs,
-          outSemaphoreProofs,
-          vanchor_input,
-          aliceDepositAmount,
-          inputs,
-          outputs,
-          fee,
-          BigNumber.from(0),
-          recipient,
-          relayer
-      )
-
-      console.log("ENCODING: ", tx);
-
-      //   {"proof": aliceProof,
-      //    "identityRoots": alicePublicSignals
-      //   aliceExtDataHash,
-      //   {}
-      // );
+      expect(res.tx).to.emit(idAnchor.contract, "NewCommitment").withArgs(outputs[0].commitment, 0, aliceExtData.encOutput1)
+      expect(res.tx).to.emit(idAnchor.contract, "NewCommitment").withArgs(outputs[1].commitment, 1, aliceExtData.encOutput2)
+      expect(res.tx).to.emit(idAnchor.contract, "NewNullifier").withArgs(vanchor_input.inputNullifier[0])
+      expect(res.tx).to.emit(idAnchor.contract, "NewNullifier").withArgs(vanchor_input.inputNullifier[1])
     });
   });
   //
