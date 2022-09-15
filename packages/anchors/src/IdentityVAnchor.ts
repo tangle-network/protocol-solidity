@@ -35,7 +35,7 @@ import {
   IIdentityVariableAnchorPublicInputs,
   IAnchorDepositInfo,
 } from '@webb-tools/interfaces';
-import { generateProof, hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
+import { generateProof, hexToU8a, u8aToHex, getChainIdType, UTXOInputs, ZkComponents } from '@webb-tools/utils';
 import { Semaphore, Verifier } from '@semaphore-anchor/semaphore';
 
 const snarkjs = require('snarkjs')
@@ -47,7 +47,6 @@ function checkNativeAddress(tokenAddress: string): boolean {
   }
   return false;
 }
-
 export var gasBenchmark = [];
 export var proofTimeBenchmark = [];
 // This convenience wrapper class is used in tests -
@@ -449,15 +448,23 @@ export class IdentityVAnchor implements IAnchor {
   public generatePublicInputs(
     proof: any,
     byte_calldata: any,
+    nIns: number=2,
+    nOuts: number=2,
+    numSemaphoreRoots: number=2,
+    numVAnchorRoots: number=2,
   ): IIdentityVariableAnchorPublicInputs {
     // public inputs to the contract
     const publicInputs = JSON.parse("[" + byte_calldata+ "]")[3]
-    const identityRoots = [publicInputs[0],publicInputs[1]]
-    const publicAmount = publicInputs[3]
-    const extDataHash = publicInputs[4]
-    const vanchorRoots = [publicInputs[9],publicInputs[10]]
-    const outputs = [publicInputs[7],publicInputs[8]]
-    const inputs = [publicInputs[5],publicInputs[6]]
+    let index = 0
+    const identityRoots = publicInputs.slice(index, numSemaphoreRoots)
+    index = numSemaphoreRoots+1 // ignoring public chainID from circuit
+    const publicAmount = publicInputs[index++]
+    const extDataHash = publicInputs[index++]
+    const inputs = publicInputs.slice(index, index+nIns)
+    index += nIns
+    const outputs = publicInputs.slice(index, index+nOuts)
+    index += nOuts
+    const vanchorRoots = publicInputs.slice(index, index+numVAnchorRoots)
     const args: IIdentityVariableAnchorPublicInputs = {
       proof: `0x${proof}`,
       identityRoots: `0x${identityRoots.map((x) => toFixedHex(x).slice(2)).join('')}`,
@@ -536,18 +543,11 @@ export class IdentityVAnchor implements IAnchor {
       identityMerkleProof: MerkleProof, 
       vanchorMerkleProofs: any[], 
       outSemaphoreProofs: MerkleProof[],
-      vanchor_input: any, 
-      vanchorRoots: any,
-      chainID: BigNumberish,
-      extAmount: BigNumberish,
-      fee: BigNumberish,
-      inputs: Utxo[],
-      outputs: Utxo[],
-      publicAmount: BigNumberish,
+      vanchor_input: UTXOInputs, 
       extDataHash: string,
       wasmFilePath: string,
       zkeyFilePath: string,
-  ) {
+  ): Promise<IIdentityVariableAnchorPublicInputs> {
       const fullProof = await generateProof(
         keypair,
         identityRootInputs,
@@ -563,17 +563,14 @@ export class IdentityVAnchor implements IAnchor {
       const vKey = await snarkjs.zKey.exportVerificationKey(zkeyFilePath);
       const calldata = await snarkjs.groth16.exportSolidityCallData(fullProof.proof, fullProof.publicSignals)
 
-      const publicInputs = this.generatePublicInputs(
+      const publicInputs: IIdentityVariableAnchorPublicInputs = this.generatePublicInputs(
           proof, 
           calldata
         )
      
       const res = await snarkjs.groth16.verify(vKey, fullProof.publicSignals, fullProof.proof);
     
-
-    return {
-        publicInputs
-    };
+    return publicInputs
   }
 
   public async transact(
@@ -582,8 +579,7 @@ export class IdentityVAnchor implements IAnchor {
     identityMerkleProof: MerkleProof, 
     vanchorMerkleProof: MerkleProof[], 
     outSemaphoreProofs: MerkleProof[],
-    vanchor_input: any, 
-    publicAmount: BigNumberish, 
+    vanchor_input: UTXOInputs, 
     inputs: Utxo[],
     outputs: Utxo[],
     fee: BigNumberish,
@@ -591,7 +587,7 @@ export class IdentityVAnchor implements IAnchor {
     recipient: string,
     relayer: string,
   // ): Promise<ethers.ContractReceipt> {
-  ): Promise<any> {
+  ): Promise<{publicInputs: IIdentityVariableAnchorPublicInputs; tx: ethers.ContractTransaction}> {
     const chainId = getChainIdType(await this.signer.getChainId());
     const randomKeypair = new Keypair();
 
@@ -659,20 +655,13 @@ export class IdentityVAnchor implements IAnchor {
     const vanchorRoots = await this.populateVAnchorRootsForProof();
     const wasmFilePath = `solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/identity_vanchor_2_2.wasm`
     const zkeyFilePath = `solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/circuit_final.zkey`
-    const { publicInputs } = await this.setupTransaction(
+    const publicInputs = await this.setupTransaction(
       keypair,
       identityRootInputs,
       identityMerkleProof,
       vanchorMerkleProof,
       outSemaphoreProofs,
       vanchor_input,
-      vanchorRoots,
-      chainId,
-      extAmount,
-      fee,
-      inputs,
-      [outputs[0], outputs[1]],
-      publicAmount,
       extDataHash.toString(),
       wasmFilePath,
       zkeyFilePath
@@ -682,7 +671,7 @@ export class IdentityVAnchor implements IAnchor {
       extData,
       { gasLimit: '0x5B8D80' }
     );
-    return { publicInputs, tx};
+    return { publicInputs, tx };
     // const receipt = await tx.wait();
     //
     // // Add the leaves to the tree

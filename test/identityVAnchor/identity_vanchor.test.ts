@@ -27,6 +27,7 @@ import {
   u8aToHex,
   generateProof,
   getIdentityVAnchorExtDataHash,
+  UTXOInputs
 } from '@webb-tools/utils';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -262,7 +263,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         token.address
       );
 
-      const vanchor_input = await generateVariableWitnessInput(
+      const vanchor_input: UTXOInputs = await generateVariableWitnessInput(
         vanchorRoots.map((root) => BigNumber.from(root)),
         chainID,
         inputs,
@@ -394,7 +395,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         }
       })
 
-      const vanchor_input = await generateVariableWitnessInput(
+      const vanchor_input: UTXOInputs = await generateVariableWitnessInput(
         vanchorRoots.map((root) => BigNumber.from(root)),
         chainID,
         inputs,
@@ -413,7 +414,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
           vanchorMerkleProofs,
           outSemaphoreProofs,
           vanchor_input,
-          aliceDepositAmount,
           inputs,
           outputs,
           fee,

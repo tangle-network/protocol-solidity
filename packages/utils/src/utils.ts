@@ -15,6 +15,29 @@ export const FIELD_SIZE = BigNumber.from(
   '21888242871839275222246405745257275088548364400416034343698204186575808495617'
 );
 
+export type UTXOInputs = {
+    roots: string[],
+    chainID: string,
+    inputNullifier: string[],
+    outputCommitment: string[],
+    publicAmount: string,
+    extDataHash: string,
+
+    // data for 2 transaction inputs
+    inAmount: string[],
+    inPrivateKey: string[],
+    inBlinding: string[],
+    inPathIndices: number[][],
+    inPathElements: number[][],
+
+    // data for 2 transaction outputs
+    outChainID: string,
+    outAmount: string[],
+    outPubkey: string[],
+    outBlinding: string[]
+};
+
+
 export async function fetchComponentsFromFilePaths(
   wasmPath: string,
   witnessCalculatorPath: string,
@@ -96,7 +119,7 @@ export async function generateProof (
   vanchorMerkleProofs: MerkleProof[],
   outSemaphoreProofs: MerkleProof[],
   extDataHash: string,
-  vanchor_inputs: any,
+  vanchor_inputs: UTXOInputs,
   wasmFilePath: string,
   zkeyFilePath: string,
 ): Promise<any> {
