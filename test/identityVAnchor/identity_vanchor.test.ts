@@ -2,10 +2,8 @@
  * Copyright 2021 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-const assert = require('assert');
-import { expect } from "chai";
+import { expect } from 'chai';
 import { ethers } from 'hardhat';
-const TruffleAssert = require('truffle-assertions');
 
 // Typechain generated bindings for contracts
 // These contracts are included in packages, so should be tested
@@ -27,7 +25,7 @@ import {
   u8aToHex,
   generateProof,
   getIdentityVAnchorExtDataHash,
-  UTXOInputs
+  UTXOInputs,
 } from '@webb-tools/utils';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -207,21 +205,23 @@ describe('IdentityVAnchor for 2 max edges', () => {
     group = new Group(levels, BigInt(defaultRoot));
     group.addMember(aliceLeaf);
     let alice_addmember_tx = await semaphoreContract
-        .connect(sender)
-        .addMember(idAnchor.groupId, aliceLeaf, { gasLimit: '0x5B8D80' });
+      .connect(sender)
+      .addMember(idAnchor.groupId, aliceLeaf, { gasLimit: '0x5B8D80' });
     // const receipt = await alice_addmember_tx.wait();
 
-    expect(alice_addmember_tx).to.emit(semaphoreContract, "MemberAdded").withArgs(idAnchor.groupId, aliceLeaf, group.root)
+    expect(alice_addmember_tx)
+      .to.emit(semaphoreContract, 'MemberAdded')
+      .withArgs(idAnchor.groupId, aliceLeaf, group.root);
 
     let bobLeaf = bobKeypair.pubkey.toString();
     let bob_addmember_tx = await semaphoreContract
-        .connect(sender)
-        .addMember(idAnchor.groupId, bobLeaf, { gasLimit: '0x5B8D80' });
+      .connect(sender)
+      .addMember(idAnchor.groupId, bobLeaf, { gasLimit: '0x5B8D80' });
     // const receipt = await alice_addmember_tx.wait();
 
     group.addMember(bobLeaf);
 
-    expect(bob_addmember_tx).to.emit(semaphoreContract, "MemberAdded").withArgs(idAnchor.groupId, bobLeaf, group.root)
+    expect(bob_addmember_tx).to.emit(semaphoreContract, 'MemberAdded').withArgs(idAnchor.groupId, bobLeaf, group.root);
 
     create2InputWitness = async (data: any) => {
       const witnessCalculator = require(identity_vanchor_2_2_witness_calc_path);
@@ -235,7 +235,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
   describe('#constructor', () => {
     it('should initialize', async () => {
       const actual = await idAnchor.contract.maxEdges();
-      assert.strictEqual(actual.toString(), `${maxEdges}`);
+      expect(actual.toString()).to.equals(`${maxEdges}`);
     });
   });
 
@@ -295,27 +295,26 @@ describe('IdentityVAnchor for 2 max edges', () => {
       );
       // Alice deposits into tornado pool
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceDepositAmount);
-      const aliceLeaf = aliceKeypair.pubkey.toString()
+      const aliceLeaf = aliceKeypair.pubkey.toString();
 
       const identityRootInputs = [group.root.toString(), BigNumber.from(0).toString()];
       const idx = group.indexOf(aliceLeaf);
       const identityMerkleProof: MerkleProof = group.generateProofOfMembership(idx);
 
       const outSemaphoreProofs = outputs.map((utxo) => {
-        const leaf = utxo.keypair.pubkey.toString()
+        const leaf = utxo.keypair.pubkey.toString();
         if (Number(utxo.amount) > 0) {
-            const idx = group.indexOf(leaf)
-            return group.generateProofOfMembership(idx)
-        }
-        else {
+          const idx = group.indexOf(leaf);
+          return group.generateProofOfMembership(idx);
+        } else {
           const inputMerklePathIndices = new Array(group.depth).fill(0);
           const inputMerklePathElements = new Array(group.depth).fill(0);
-          return { 
-              pathIndices: inputMerklePathIndices,
-              pathElements: inputMerklePathElements
-          }
+          return {
+            pathIndices: inputMerklePathIndices,
+            pathElements: inputMerklePathElements,
+          };
         }
-      })
+      });
 
       const wasmFilePath = `solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/identity_vanchor_2_2.wasm`;
       const zkeyFilePath = `solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/circuit_final.zkey`;
@@ -330,10 +329,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
         wasmFilePath,
         zkeyFilePath
       );
-      // assert.strictEqual(group.root.toHexString(), identityRootInputs[0])
-
-      // const wtns = await create2InputWitness(input);
-      // let res = await snarkjs.groth16.fullProve(input, wasmFilePath, zkeyFilePath);
       aliceProof = fullProof.proof;
       alicePublicSignals = fullProof.publicSignals;
 
@@ -341,26 +336,23 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
       const res = await snarkjs.groth16.verify(vKey, alicePublicSignals, aliceProof);
       aliceCalldata = await snarkjs.groth16.exportSolidityCallData(fullProof.proof, fullProof.publicSignals);
-      assert.strictEqual(res, true);
-
+      expect(res).equal(true);
     });
   });
 
   describe('Setting Handler/Verifier Address Negative Tests', () => {
     it('should revert (setting handler) with improper nonce', async () => {
       const signers = await ethers.getSigners();
-      await TruffleAssert.reverts(idAnchor.contract.setHandler(signers[1].address, 0), 'Invalid nonce');
-      await TruffleAssert.reverts(
-        idAnchor.contract.setHandler(signers[1].address, 1049),
+      expect(idAnchor.contract.setHandler(signers[1].address, 0)).to.revertedWith('Invalid nonce');
+      expect(idAnchor.contract.setHandler(signers[1].address, 1049)).to.revertedWith(
         'Nonce must not increment more than 1048'
       );
     });
 
     it('should revert (setting verifier) with improper nonce', async () => {
       const signers = await ethers.getSigners();
-      await TruffleAssert.reverts(idAnchor.contract.setVerifier(signers[1].address, 0), 'Invalid nonce');
-      await TruffleAssert.reverts(
-        idAnchor.contract.setVerifier(signers[1].address, 1049),
+      expect(idAnchor.contract.setVerifier(signers[1].address, 0)).to.revertedWith('Invalid nonce');
+      expect(idAnchor.contract.setVerifier(signers[1].address, 1049)).to.revertedWith(
         'Nonce must not increment more than 1048'
       );
     });
@@ -387,20 +379,19 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const identityMerkleProof: MerkleProof = group.generateProofOfMembership(idx);
 
       const outSemaphoreProofs = outputs.map((utxo) => {
-        const leaf = utxo.keypair.pubkey.toString()
+        const leaf = utxo.keypair.pubkey.toString();
         if (Number(utxo.amount) > 0) {
-            const idx = group.indexOf(leaf)
-            return group.generateProofOfMembership(idx)
-        }
-        else {
+          const idx = group.indexOf(leaf);
+          return group.generateProofOfMembership(idx);
+        } else {
           const inputMerklePathIndices = new Array(group.depth).fill(0);
           const inputMerklePathElements = new Array(group.depth).fill(0);
-          return { 
-              pathIndices: inputMerklePathIndices,
-              pathElements: inputMerklePathElements
-          }
+          return {
+            pathIndices: inputMerklePathIndices,
+            pathElements: inputMerklePathElements,
+          };
         }
-      })
+      });
 
       const vanchor_input: UTXOInputs = await generateVariableWitnessInput(
         vanchorRoots.map((root) => BigNumber.from(root)),
@@ -413,29 +404,32 @@ describe('IdentityVAnchor for 2 max edges', () => {
         vanchorMerkleProofs
       );
       // console.log("VANCHOR_INPUT: ", vanchor_input)
-      let publicInputs
+      let publicInputs;
       const res = await idAnchor.transact(
-          aliceKeypair,
-          identityRootInputs,
-          identityMerkleProof,
-          vanchorMerkleProofs,
-          outSemaphoreProofs,
-          vanchor_input,
-          inputs,
-          outputs,
-          fee,
-          BigNumber.from(0),
-          recipient,
-          relayer
-      )
-      expect(res.tx).to.emit(idAnchor.contract, "NewCommitment").withArgs(outputs[0].commitment, 0, aliceExtData.encOutput1)
-      expect(res.tx).to.emit(idAnchor.contract, "NewCommitment").withArgs(outputs[1].commitment, 1, aliceExtData.encOutput2)
-      expect(res.tx).to.emit(idAnchor.contract, "NewNullifier").withArgs(vanchor_input.inputNullifier[0])
-      expect(res.tx).to.emit(idAnchor.contract, "NewNullifier").withArgs(vanchor_input.inputNullifier[1])
+        aliceKeypair,
+        identityRootInputs,
+        identityMerkleProof,
+        vanchorMerkleProofs,
+        outSemaphoreProofs,
+        vanchor_input,
+        inputs,
+        outputs,
+        fee,
+        BigNumber.from(0),
+        recipient,
+        relayer
+      );
+      expect(res.tx)
+        .to.emit(idAnchor.contract, 'NewCommitment')
+        .withArgs(outputs[0].commitment, 0, aliceExtData.encOutput1);
+      expect(res.tx)
+        .to.emit(idAnchor.contract, 'NewCommitment')
+        .withArgs(outputs[1].commitment, 1, aliceExtData.encOutput2);
+      expect(res.tx).to.emit(idAnchor.contract, 'NewNullifier').withArgs(vanchor_input.inputNullifier[0]);
+      expect(res.tx).to.emit(idAnchor.contract, 'NewNullifier').withArgs(vanchor_input.inputNullifier[1]);
     });
 
     it('alice should transfer to bob', async () => {
-
       let aliceLeaf = aliceKeypair.pubkey.toString();
       // let transaction = await semaphoreContract
       //   .connect(sender)
@@ -449,10 +443,13 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceDepositAmount);
       const inputs = [
         // TODO: Check if this is correct
-        await generateUTXOForTest(chainID, new Keypair()),
+        aliceDepositUtxo,
         await generateUTXOForTest(chainID, new Keypair()),
       ];
-      const outputs = [aliceDepositUtxo, await generateUTXOForTest(chainID, new Keypair())];
+      const outputs = [
+        aliceTransferUtxo,
+        await generateUTXOForTest(chainID, new Keypair())
+      ];
 
       const vanchorMerkleProofs = inputs.map((x) => idAnchor.getMerkleProof(x));
       const identityRootInputs = [group.root.toString(), BigNumber.from(0).toString()];
@@ -460,20 +457,19 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const identityMerkleProof: MerkleProof = group.generateProofOfMembership(idx);
 
       const outSemaphoreProofs = outputs.map((utxo) => {
-        const leaf = utxo.keypair.pubkey.toString()
+        const leaf = utxo.keypair.pubkey.toString();
         if (Number(utxo.amount) > 0) {
-            const idx = group.indexOf(leaf)
-            return group.generateProofOfMembership(idx)
-        }
-        else {
+          const idx = group.indexOf(leaf);
+          return group.generateProofOfMembership(idx);
+        } else {
           const inputMerklePathIndices = new Array(group.depth).fill(0);
           const inputMerklePathElements = new Array(group.depth).fill(0);
-          return { 
-              pathIndices: inputMerklePathIndices,
-              pathElements: inputMerklePathElements
-          }
+          return {
+            pathIndices: inputMerklePathIndices,
+            pathElements: inputMerklePathElements,
+          };
         }
-      })
+      });
 
       const vanchor_input: UTXOInputs = await generateVariableWitnessInput(
         vanchorRoots.map((root) => BigNumber.from(root)),
@@ -486,25 +482,29 @@ describe('IdentityVAnchor for 2 max edges', () => {
         vanchorMerkleProofs
       );
       // console.log("VANCHOR_INPUT: ", vanchor_input)
-      let publicInputs
+      let publicInputs;
       const res = await idAnchor.transact(
-          aliceKeypair,
-          identityRootInputs,
-          identityMerkleProof,
-          vanchorMerkleProofs,
-          outSemaphoreProofs,
-          vanchor_input,
-          inputs,
-          outputs,
-          fee,
-          BigNumber.from(0),
-          recipient,
-          relayer
-      )
-      expect(res.tx).to.emit(idAnchor.contract, "NewCommitment").withArgs(outputs[0].commitment, 0, aliceExtData.encOutput1)
-      expect(res.tx).to.emit(idAnchor.contract, "NewCommitment").withArgs(outputs[1].commitment, 1, aliceExtData.encOutput2)
-      expect(res.tx).to.emit(idAnchor.contract, "NewNullifier").withArgs(vanchor_input.inputNullifier[0])
-      expect(res.tx).to.emit(idAnchor.contract, "NewNullifier").withArgs(vanchor_input.inputNullifier[1])
+        aliceKeypair,
+        identityRootInputs,
+        identityMerkleProof,
+        vanchorMerkleProofs,
+        outSemaphoreProofs,
+        vanchor_input,
+        inputs,
+        outputs,
+        fee,
+        BigNumber.from(0),
+        recipient,
+        relayer
+      );
+      expect(res.tx)
+        .to.emit(idAnchor.contract, 'NewCommitment')
+        .withArgs(outputs[0].commitment, 0, aliceExtData.encOutput1);
+      expect(res.tx)
+        .to.emit(idAnchor.contract, 'NewCommitment')
+        .withArgs(outputs[1].commitment, 1, aliceExtData.encOutput2);
+      expect(res.tx).to.emit(idAnchor.contract, 'NewNullifier').withArgs(vanchor_input.inputNullifier[0]);
+      expect(res.tx).to.emit(idAnchor.contract, 'NewNullifier').withArgs(vanchor_input.inputNullifier[1]);
     });
   });
   //
