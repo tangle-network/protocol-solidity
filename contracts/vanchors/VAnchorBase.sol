@@ -35,7 +35,9 @@ abstract contract VAnchorBase is AnchorBase {
 
 	struct Account {
 		address owner;
-		bytes publicKey;
+		// A byte array which contains the public key from (0,64) and
+   		// the encryption key from (64, 128)
+		bytes keyData;
 	}
 
 	event NewCommitment(bytes32 commitment, uint256 index, bytes encryptedOutput);
@@ -87,7 +89,7 @@ abstract contract VAnchorBase is AnchorBase {
 	}
 
 	function _register(Account memory _account) internal {
-		emit PublicKey(_account.owner, _account.publicKey);
+		emit PublicKey(_account.owner, _account.keyData);
 	}
 
 	/** @dev this function is defined in a child contract */
