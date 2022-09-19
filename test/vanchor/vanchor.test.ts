@@ -237,7 +237,7 @@ describe('VAnchor for 2 max edges', () => {
       
       await anchor.registerAndTransact(
         sender.address,
-        aliceDepositUtxo.keypair.address(),
+        aliceDepositUtxo.keypair.toString(),
         [],
         [aliceDepositUtxo],
         0,
@@ -260,7 +260,7 @@ describe('VAnchor for 2 max edges', () => {
       const fee = 1e6;
       await anchor.registerAndTransact(
         sender.address,
-        aliceDepositUtxo.keypair.address(),
+        aliceDepositUtxo.keypair.toString(),
         [await generateUTXOForTest(chainID), await generateUTXOForTest(chainID)],
         [aliceDepositUtxo, await generateUTXOForTest(chainID)],
         BigNumber.from(fee),
@@ -285,7 +285,7 @@ describe('VAnchor for 2 max edges', () => {
       
       await anchor.registerAndTransact(
         sender.address,
-        aliceDepositUtxo.keypair.address(),
+        aliceDepositUtxo.keypair.toString(),
         [],
         [aliceDepositUtxo],
         0,
@@ -327,7 +327,7 @@ describe('VAnchor for 2 max edges', () => {
       
       await anchor.registerAndTransact(
         sender.address,
-        aliceDepositUtxo.keypair.address(),
+        aliceDepositUtxo.keypair.toString(),
         [],
         [aliceDepositUtxo],
         0,
@@ -362,7 +362,7 @@ describe('VAnchor for 2 max edges', () => {
 
       await anchor.registerAndTransact(
         sender.address,
-        aliceDepositUtxo1.keypair.address(),
+        aliceDepositUtxo1.keypair.toString(),
         [],
         [aliceDepositUtxo1],
         0,
@@ -436,7 +436,7 @@ describe('VAnchor for 2 max edges', () => {
       
       await anchor.registerAndTransact(
         sender.address,
-        aliceDepositUtxo1.keypair.address(),
+        aliceDepositUtxo1.keypair.toString(),
         [],
         [aliceDepositUtxo1, aliceDepositUtxo2],
         0,
@@ -509,7 +509,7 @@ describe('VAnchor for 2 max edges', () => {
 
       await anchor.registerAndTransact(
         sender.address,
-        aliceDepositUtxo.keypair.address(),
+        aliceDepositUtxo.keypair.toString(),
         [],
         [aliceDepositUtxo],
         0,
@@ -558,7 +558,7 @@ describe('VAnchor for 2 max edges', () => {
       
       await anchor.registerAndTransact(
         sender.address,
-        aliceDepositUtxo.keypair.address(),
+        aliceDepositUtxo.keypair.toString(),
         [],
         [aliceDepositUtxo],
         0,
@@ -628,7 +628,7 @@ describe('VAnchor for 2 max edges', () => {
       const aliceBalanceBeforeDeposit = await token.balanceOf(alice.address);
       await anchor.registerAndTransact(
         alice.address,
-        aliceDepositUtxo.keypair.address(),
+        aliceDepositUtxo.keypair.toString(),
         [],
         [aliceDepositUtxo],
         0,
