@@ -156,8 +156,10 @@ export async function generateProof (
     outChainID: vanchor_inputs.outChainID,
     outAmount: vanchor_inputs.outAmount,
     outPubkey: vanchor_inputs.outPubkey,
-    outSemaphoreTreePathIndices: [identityMerkleProof.pathIndices, outSemaphoreProofs[1].pathIndices.map((x) => BigNumber.from(x).toString())],
-    outSemaphoreTreeElements: [identityMerkleProof.pathElements.map((x) => BigNumber.from(x).toString()), outSemaphoreProofs[1].pathElements.map((x) => BigNumber.from(x).toString())],
+    outSemaphoreTreePathIndices: outSemaphoreProofs.map((proof) => proof.pathIndices.map((idx) => BigNumber.from(idx).toString())),
+    // outSemaphoreTreePathIndices: [outSemaphoreProofs[0].pathIndices.map((x) => BigNumber, outSemaphoreProofs[1].pathIndices.map((x) => BigNumber.from(x).toString())],
+    outSemaphoreTreeElements: outSemaphoreProofs.map((proof) => proof.pathElements.map((elem) => BigNumber.from(elem).toString())),
+    // outSemaphoreTreeElements: [outSemaphoreProofs[0].pathElements.map((x) => BigNumber.from(x).toString()), outSemaphoreProofs[1].pathElements.map((x) => BigNumber.from(x).toString())],
     outBlinding: vanchor_inputs.outBlinding,
     vanchorRoots: vanchor_inputs.roots,
   }

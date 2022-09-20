@@ -183,6 +183,27 @@ describe('IdentityVAnchor for 2 max edges', () => {
     const groupId = BigNumber.from(99); // arbitrary
     const tx = await semaphore.createGroup(groupId, sender.address, maxEdges, levels);
 
+    let aliceLeaf = aliceKeypair.getPubKey();
+    group = new Group(levels, BigInt(defaultRoot));
+    group.addMember(aliceLeaf);
+    let alice_addmember_tx = await semaphoreContract
+      .connect(sender)
+      .addMember(groupId, aliceLeaf, { gasLimit: '0x5B8D80' });
+    // const receipt = await alice_addmember_tx.wait();
+
+    expect(alice_addmember_tx)
+      .to.emit(semaphoreContract, 'MemberAdded')
+      .withArgs(groupId, aliceLeaf, group.root);
+
+    let bobLeaf = bobKeypair.getPubKey();
+    let bob_addmember_tx = await semaphoreContract
+      .connect(sender)
+      .addMember(groupId, bobLeaf, { gasLimit: '0x5B8D80' });
+    // const receipt = await alice_addmember_tx.wait();
+    group.addMember(bobLeaf);
+
+    expect(bob_addmember_tx).to.emit(semaphoreContract, 'MemberAdded').withArgs(groupId, bobLeaf, group.root);
+
     idAnchor = await IdentityVAnchor.createIdentityVAnchor(
       semaphore,
       verifier.contract.address,
@@ -192,6 +213,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       token.address,
       maxEdges,
       groupId,
+      group,
       zkComponents2_2,
       zkComponents16_2,
       sender
@@ -203,27 +225,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
     await token.approve(idAnchor.contract.address, '1000000000000000000000000');
 
-    let aliceLeaf = aliceKeypair.getPubKey();
-    group = new Group(levels, BigInt(defaultRoot));
-    group.addMember(aliceLeaf);
-    let alice_addmember_tx = await semaphoreContract
-      .connect(sender)
-      .addMember(idAnchor.groupId, aliceLeaf, { gasLimit: '0x5B8D80' });
-    // const receipt = await alice_addmember_tx.wait();
-
-    expect(alice_addmember_tx)
-      .to.emit(semaphoreContract, 'MemberAdded')
-      .withArgs(idAnchor.groupId, aliceLeaf, group.root);
-
-    let bobLeaf = bobKeypair.getPubKey();
-    let bob_addmember_tx = await semaphoreContract
-      .connect(sender)
-      .addMember(idAnchor.groupId, bobLeaf, { gasLimit: '0x5B8D80' });
-    // const receipt = await alice_addmember_tx.wait();
-
-    group.addMember(bobLeaf);
-
-    expect(bob_addmember_tx).to.emit(semaphoreContract, 'MemberAdded').withArgs(idAnchor.groupId, bobLeaf, group.root);
 
     create2InputWitness = async (data: any) => {
       const witnessCalculator = require(identity_vanchor_2_2_witness_calc_path);
@@ -412,8 +413,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
         identityRootInputs,
         identityMerkleProof,
         vanchorMerkleProofs,
-        outSemaphoreProofs,
-        vanchor_input,
         inputs,
         outputs,
         fee,
@@ -490,26 +489,11 @@ describe('IdentityVAnchor for 2 max edges', () => {
         }
       });
 
-      const vanchor_input: UTXOInputs = await generateVariableWitnessInput(
-        vanchorRoots.map((root) => BigNumber.from(root)),
-        chainID,
-        inputs,
-        outputs,
-        aliceDepositAmount,
-        fee,
-        BigNumber.from(aliceExtDataHash),
-        vanchorMerkleProofs
-      );
-      // console.log("VANCHOR_INPUT: ", vanchor_input)
-      // let publicInputs: IIdentityVariableAnchorPublicInputs;
-      // let tx: ContractTransaction;
       let {publicInputs, tx} = await idAnchor.transact(
         aliceKeypair,
         identityRootInputs,
         identityMerkleProof,
         vanchorMerkleProofs,
-        outSemaphoreProofs,
-        vanchor_input,
         inputs,
         outputs,
         fee,
@@ -517,14 +501,14 @@ describe('IdentityVAnchor for 2 max edges', () => {
         recipient.address,
         relayer
       );
-
+      let receipt = await tx.wait()
       // Bob queries encrypted commitments on chain
       // const encryptedCommitments: string[] = receipt.events
       //   .filter((event) => event.event === 'NewCommitment')
       //   .sort((a, b) => a.args.index - b.args.index)
       //   .map((e) => e.args.encryptedOutput)
-      //
-      // // Attempt to decrypt the encrypted commitments with bob's keypair
+      // //
+      // // // Attempt to decrypt the encrypted commitments with bob's keypair
       // const utxos = await Promise.all(
       //   encryptedCommitments.map(async (enc, index) => {
       //     try {
@@ -559,7 +543,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
       // const leaves = idAnchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
       //
       // // Bob uses the parsed utxos to issue a withdraw
-      // receipt = await idAnchor.transact(
+      // let {publicInputs: bobPublicInputs, tx: bobTx} = await idAnchor.transact(
+      //   bobKeypair
       //   spendableUtxos,
       //   [],
       //   {
@@ -575,8 +560,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
       // const aliceBalanceAfter = await token.balanceOf(sender.address);
       // const bobBalanceAfter = await token.balanceOf(recipient.address);
       //
-      // assert.strictEqual(aliceBalanceBefore.sub(aliceBalanceAfter).toString(), '10000000');
-      // assert.strictEqual(bobBalanceAfter.sub(bobBalanceBefore).toString(), '10000000');
+      // expect(aliceBalanceBefore.sub(aliceBalanceAfter).toString()).equal('10000000');
+      // expect(bobBalanceAfter.sub(bobBalanceBefore).toString()).equal('10000000');
     })
 
     // it('alice should transfer to bob', async () => {

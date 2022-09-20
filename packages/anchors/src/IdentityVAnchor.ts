@@ -37,6 +37,7 @@ import {
 } from '@webb-tools/interfaces';
 import { generateProof, hexToU8a, u8aToHex, getChainIdType, UTXOInputs, ZkComponents } from '@webb-tools/utils';
 import { Semaphore, Verifier } from '@semaphore-anchor/semaphore';
+import { Group } from '@semaphore-anchor/group';
 
 const snarkjs = require('snarkjs')
 
@@ -58,6 +59,7 @@ export class IdentityVAnchor implements IAnchor {
   contract: IdentityVAnchorContract;
   semaphore: Semaphore;
   tree: MerkleTree;
+  group: Group;
   // hex string of the connected root
   latestSyncedBlock: number;
   smallCircuitZkComponents: ZkComponents;
@@ -77,6 +79,7 @@ export class IdentityVAnchor implements IAnchor {
     treeHeight: number,
     maxEdges: number,
     groupId: BigNumber,
+    group: Group,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents
   ) {
@@ -86,6 +89,7 @@ export class IdentityVAnchor implements IAnchor {
     this.latestSyncedBlock = 0;
     this.maxEdges = maxEdges;
     this.groupId = groupId;
+    this.group = group;
     this.depositHistory = {};
     this.smallCircuitZkComponents = smallCircuitZkComponents;
     this.largeCircuitZkComponents = largeCircuitZkComponents;
@@ -152,6 +156,7 @@ export class IdentityVAnchor implements IAnchor {
     token: string,
     maxEdges: number,
     groupId: BigNumber,
+    group: Group,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents,
     signer: ethers.Signer
@@ -171,6 +176,7 @@ export class IdentityVAnchor implements IAnchor {
       BigNumber.from(levels).toNumber(),
       maxEdges,
       groupId,
+      group,
       smallCircuitZkComponents,
       largeCircuitZkComponents
     );
@@ -183,6 +189,7 @@ export class IdentityVAnchor implements IAnchor {
     // connect via factory method
     // build up tree by querying provider for logs
     address: string,
+    group: Group,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents,
     signer: ethers.Signer
@@ -197,6 +204,7 @@ export class IdentityVAnchor implements IAnchor {
       treeHeight,
       maxEdges,
       groupId,
+      group,
       smallCircuitZkComponents,
       largeCircuitZkComponents
     );
@@ -540,10 +548,10 @@ export class IdentityVAnchor implements IAnchor {
   public async setupTransaction(
       keypair: Keypair,
       identityRootInputs: any,
-      identityMerkleProof: MerkleProof, 
-      vanchorMerkleProofs: any[], 
+      identityMerkleProof: MerkleProof,
+      vanchorMerkleProofs: any[],
       outSemaphoreProofs: MerkleProof[],
-      vanchor_input: UTXOInputs, 
+      vanchorInput: UTXOInputs,
       extDataHash: string,
       wasmFilePath: string,
       zkeyFilePath: string,
@@ -555,31 +563,29 @@ export class IdentityVAnchor implements IAnchor {
         vanchorMerkleProofs,
         outSemaphoreProofs,
         extDataHash,
-        vanchor_input,
+        vanchorInput,
         wasmFilePath,
         zkeyFilePath
-      ); 
+      );
       const proof = await this.generateProofCalldata(fullProof);
       const vKey = await snarkjs.zKey.exportVerificationKey(zkeyFilePath);
       const calldata = await snarkjs.groth16.exportSolidityCallData(fullProof.proof, fullProof.publicSignals)
 
       const publicInputs: IIdentityVariableAnchorPublicInputs = this.generatePublicInputs(
-          proof, 
+          proof,
           calldata
         )
-     
+
       const res = await snarkjs.groth16.verify(vKey, fullProof.publicSignals, fullProof.proof);
-    
+
     return publicInputs
   }
 
   public async transact(
     keypair: Keypair,
     identityRootInputs: any,
-    identityMerkleProof: MerkleProof, 
-    vanchorMerkleProof: MerkleProof[], 
-    outSemaphoreProofs: MerkleProof[],
-    vanchor_input: UTXOInputs, 
+    identityMerkleProof: MerkleProof,
+    vanchorMerkleProof: MerkleProof[],
     inputs: Utxo[],
     outputs: Utxo[],
     fee: BigNumberish,
@@ -653,17 +659,45 @@ export class IdentityVAnchor implements IAnchor {
     const vanchorRoots = await this.populateVAnchorRootsForProof();
     const wasmFilePath = `solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/identity_vanchor_2_2.wasm`
     const zkeyFilePath = `solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/circuit_final.zkey`
+
+    const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
+      vanchorRoots.map((root) => BigNumber.from(root)),
+      chainId,
+      inputs,
+      outputs,
+      extAmount,
+      fee,
+      BigNumber.from(extDataHash),
+      vanchorMerkleProof
+    );
+
+    const outSemaphoreProofs = outputs.map((utxo) => {
+      const leaf = utxo.keypair.getPubKey()
+      if (Number(utxo.amount) > 0) {
+        const idx = this.group.indexOf(leaf);
+        return this.group.generateProofOfMembership(idx);
+      } else {
+        const inputMerklePathIndices = new Array(this.group.depth).fill(0);
+        const inputMerklePathElements = new Array(this.group.depth).fill(0);
+        return {
+          pathIndices: inputMerklePathIndices,
+          pathElements: inputMerklePathElements,
+        };
+      }
+    });
+
     const publicInputs = await this.setupTransaction(
       keypair,
       identityRootInputs,
       identityMerkleProof,
       vanchorMerkleProof,
       outSemaphoreProofs,
-      vanchor_input,
+      vanchorInput,
       extDataHash.toString(),
       wasmFilePath,
       zkeyFilePath
     );
+
     let tx = await this.contract.transact(
       { ...publicInputs },
       extData,
