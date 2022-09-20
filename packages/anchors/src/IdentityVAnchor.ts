@@ -599,7 +599,6 @@ export class IdentityVAnchor implements IAnchor {
           chainId: chainId.toString(),
           originChainId: chainId.toString(),
           blinding: hexToU8a(randomBN(31).toHexString()),
-          privateKey: hexToU8a(randomKeypair.privkey),
           amount: '0',
           keypair: randomKeypair,
         })
@@ -615,7 +614,6 @@ export class IdentityVAnchor implements IAnchor {
             chainId: chainId.toString(),
             originChainId: chainId.toString(),
             blinding: hexToU8a(randomBN(31).toHexString()),
-            privateKey: hexToU8a(randomKeypair.privkey),
             amount: '0',
             keypair: randomKeypair,
           })
