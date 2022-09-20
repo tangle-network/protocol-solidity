@@ -396,7 +396,6 @@ export class VBridge {
         chainId: input.chainId,
         blinding: hexToU8a(input.blinding),
         keypair: input.keypair,
-        privateKey: hexToU8a(input.secret_key),
         index: utxoIndex.toString(),
       });
       regeneratedInputs.push(newUtxo);
@@ -493,7 +492,6 @@ export class VBridge {
         chainId: input.chainId,
         blinding: hexToU8a(input.blinding),
         keypair: input.keypair,
-        privateKey: hexToU8a(input.secret_key),
         index: utxoIndex.toString(),
       });
       regeneratedInputs.push(newUtxo);

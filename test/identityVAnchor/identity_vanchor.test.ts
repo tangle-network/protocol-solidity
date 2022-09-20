@@ -135,7 +135,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
       originChainId: chainId.toString(),
       amount: amountString,
       blinding: hexToU8a(randomBN(31).toHexString()),
-      privateKey: hexToU8a(keypair.privkey),
       keypair: keypair,
     });
   };
@@ -203,7 +202,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
     await token.approve(idAnchor.contract.address, '1000000000000000000000000');
 
-    let aliceLeaf = aliceKeypair.pubkey.toString();
+    let aliceLeaf = aliceKeypair.getPubKey();
     group = new Group(levels, BigInt(defaultRoot));
     group.addMember(aliceLeaf);
     let alice_addmember_tx = await semaphoreContract
@@ -213,7 +212,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
     expect(alice_addmember_tx).to.emit(semaphoreContract, "MemberAdded").withArgs(idAnchor.groupId, aliceLeaf, group.root)
 
-    let bobLeaf = bobKeypair.pubkey.toString();
+    let bobLeaf = bobKeypair.getPubKey();
     let bob_addmember_tx = await semaphoreContract
         .connect(sender)
         .addMember(idAnchor.groupId, bobLeaf, { gasLimit: '0x5B8D80' });
@@ -295,14 +294,14 @@ describe('IdentityVAnchor for 2 max edges', () => {
       );
       // Alice deposits into tornado pool
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceDepositAmount);
-      const aliceLeaf = aliceKeypair.pubkey.toString()
+      const aliceLeaf = aliceKeypair.getPubKey()
 
       const identityRootInputs = [group.root.toString(), BigNumber.from(0).toString()];
       const idx = group.indexOf(aliceLeaf);
       const identityMerkleProof: MerkleProof = group.generateProofOfMembership(idx);
 
       const outSemaphoreProofs = outputs.map((utxo) => {
-        const leaf = utxo.keypair.pubkey.toString()
+        const leaf = utxo.keypair.getPubKey()
         if (Number(utxo.amount) > 0) {
             const idx = group.indexOf(leaf)
             return group.generateProofOfMembership(idx)
@@ -369,7 +368,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
   describe('#transact', () => {
     it('alice should deposit', async () => {
       // Alice deposits into tornado pool
-      let aliceLeaf = aliceKeypair.pubkey.toString();
+      let aliceLeaf = aliceKeypair.getPubKey();
       const relayer = '0x2111111111111111111111111111111111111111';
       const vanchorRoots = await idAnchor.populateVAnchorRootsForProof();
       const aliceDepositAmount = 1e7;
@@ -387,7 +386,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const identityMerkleProof: MerkleProof = group.generateProofOfMembership(idx);
 
       const outSemaphoreProofs = outputs.map((utxo) => {
-        const leaf = utxo.keypair.pubkey.toString()
+        const leaf = utxo.keypair.getPubKey()
         if (Number(utxo.amount) > 0) {
             const idx = group.indexOf(leaf)
             return group.generateProofOfMembership(idx)
@@ -436,7 +435,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
     it('alice should transfer to bob', async () => {
 
-      let aliceLeaf = aliceKeypair.pubkey.toString();
+      let aliceLeaf = aliceKeypair.getPubKey();
       // let transaction = await semaphoreContract
       //   .connect(sender)
       //   .addMember(idAnchor.groupId, bobLeaf, { gasLimit: '0x5B8D80' });
@@ -460,7 +459,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const identityMerkleProof: MerkleProof = group.generateProofOfMembership(idx);
 
       const outSemaphoreProofs = outputs.map((utxo) => {
-        const leaf = utxo.keypair.pubkey.toString()
+        const leaf = utxo.keypair.getPubKey()
         if (Number(utxo.amount) > 0) {
             const idx = group.indexOf(leaf)
             return group.generateProofOfMembership(idx)

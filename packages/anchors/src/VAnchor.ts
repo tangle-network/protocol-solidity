@@ -485,7 +485,7 @@ export class VAnchor implements IAnchor {
         index: inputUtxo.index,
         protocol: 'vanchor',
         secrets,
-        sourceChain: inputUtxo.originChainId.toString(),
+        sourceChain: inputUtxo.originChainId ? inputUtxo.originChainId.toString() : chainId.toString(),
         sourceIdentifyingData: '0',
         targetChain: chainId.toString(),
         targetIdentifyingData: this.contract.address,
@@ -552,7 +552,6 @@ export class VAnchor implements IAnchor {
     };
   }
 
-  
   public async transact(
     inputs: Utxo[],
     outputs: Utxo[],
@@ -738,7 +737,7 @@ export class VAnchor implements IAnchor {
 
   public async registerAndTransact(
     owner: string,
-    publicKey: string,
+    keyData: string,
     inputs: Utxo[],
     outputs: Utxo[],
     fee: BigNumberish,
@@ -758,7 +757,6 @@ export class VAnchor implements IAnchor {
           chainId: chainId.toString(),
           originChainId: chainId.toString(),
           blinding: hexToU8a(randomBN(31).toHexString()),
-          privateKey: hexToU8a(randomKeypair.privkey),
           amount: '0',
           keypair: randomKeypair,
         })
@@ -774,7 +772,6 @@ export class VAnchor implements IAnchor {
             chainId: chainId.toString(),
             originChainId: chainId.toString(),
             blinding: hexToU8a(randomBN(31).toHexString()),
-            privateKey: hexToU8a(randomKeypair.privkey),
             amount: '0',
             keypair: randomKeypair,
           })
@@ -801,7 +798,7 @@ export class VAnchor implements IAnchor {
     );
 
     let tx = await this.contract.registerAndTransact(
-      { owner, publicKey },
+      { owner, keyData: keyData },
       { ...publicInputs, outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]] },
       extData,
       { gasLimit: '0x5B8D80' }
