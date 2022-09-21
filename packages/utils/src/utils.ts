@@ -116,24 +116,12 @@ export async function generateProof (
   keypair: Keypair,
   identityRoots: string[],
   identityMerkleProof: MerkleProof,
-  vanchorMerkleProofs: MerkleProof[],
   outSemaphoreProofs: MerkleProof[],
   extDataHash: string,
   vanchor_inputs: UTXOInputs,
   wasmFilePath: string,
   zkeyFilePath: string,
 ): Promise<any> {
-  // const vanchorProofs = vanchorMerkleProofs.map((proof) => ({
-  //   pathIndex: MerkleTree.calculateIndexFromPathIndices(proof.pathIndices),
-  //   pathElements: proof.pathElements
-  // }));
-  // const identityProof = identityMerkleProofs.map((proof) => ({
-  //   pathIndex: proof.pathIndices,
-  //   pathElements: proof.pathElements
-  // }));
-  // assert.strictEqual(identityMerkleProof.element.toBigInt(), poseidon([privateKey]).toBigInt())
-
-  // console.log("PATH INDICES: ", identityMerkleProof.pathIndices)
   const inputs = {
     privateKey: keypair.privkey.toString(),
     semaphoreTreePathIndices: identityMerkleProof.pathIndices,
@@ -157,16 +145,11 @@ export async function generateProof (
     outAmount: vanchor_inputs.outAmount,
     outPubkey: vanchor_inputs.outPubkey,
     outSemaphoreTreePathIndices: outSemaphoreProofs.map((proof) => proof.pathIndices.map((idx) => BigNumber.from(idx).toString())),
-    // outSemaphoreTreePathIndices: [outSemaphoreProofs[0].pathIndices.map((x) => BigNumber, outSemaphoreProofs[1].pathIndices.map((x) => BigNumber.from(x).toString())],
     outSemaphoreTreeElements: outSemaphoreProofs.map((proof) => proof.pathElements.map((elem) => BigNumber.from(elem).toString())),
-    // outSemaphoreTreeElements: [outSemaphoreProofs[0].pathElements.map((x) => BigNumber.from(x).toString()), outSemaphoreProofs[1].pathElements.map((x) => BigNumber.from(x).toString())],
     outBlinding: vanchor_inputs.outBlinding,
     vanchorRoots: vanchor_inputs.roots,
   }
 
-  // console.log("CIRCUIT INPUTS: ", inputs)
-  // console.log("keypair: ", keypair)
-  // console.log("pubkey: ", keypair.pubkey.toHexString())
   let proof = await groth16.fullProve(inputs, wasmFilePath, zkeyFilePath);
 
   return proof;
