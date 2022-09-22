@@ -100,7 +100,7 @@ describe('VAnchor for 2 max edges', () => {
     const hasherFactory = new PoseidonT3__factory(wallet);
     hasherInstance = await hasherFactory.deploy();
     await hasherInstance.deployed();
-      
+
     // create bridge verifier
     verifier = await Verifier.createVerifier(sender);
 
@@ -234,7 +234,7 @@ describe('VAnchor for 2 max edges', () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
-      
+
       await anchor.registerAndTransact(
         sender.address,
         aliceDepositUtxo.keypair.toString(),
@@ -277,12 +277,12 @@ describe('VAnchor for 2 max edges', () => {
       //Step 3 Check relayers balance
       assert.strictEqual((await token.balanceOf(relayer)).toString(), BigNumber.from(fee).toString());
     })
-    
+
     it('should spend input utxo and create output utxo', async () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
-      
+
       await anchor.registerAndTransact(
         sender.address,
         aliceDepositUtxo.keypair.toString(),
@@ -294,7 +294,7 @@ describe('VAnchor for 2 max edges', () => {
         '0',
         {}
       );
-     
+
       const aliceRefreshUtxo = await CircomUtxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
@@ -324,7 +324,7 @@ describe('VAnchor for 2 max edges', () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 10;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
-      
+
       await anchor.registerAndTransact(
         sender.address,
         aliceDepositUtxo.keypair.toString(),
@@ -371,7 +371,7 @@ describe('VAnchor for 2 max edges', () => {
         '0',
         {}
       );
-      
+
       let anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
       const aliceDepositAmount2 = 1e7;
@@ -398,7 +398,7 @@ describe('VAnchor for 2 max edges', () => {
       );
 
       anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
-      
+
       const aliceJoinAmount = 2e7;
       const aliceJoinUtxo = await generateUTXOForTest(chainID, aliceJoinAmount);
 
@@ -433,7 +433,7 @@ describe('VAnchor for 2 max edges', () => {
         amount: aliceDepositAmount2.toString(),
         keypair: aliceDepositUtxo1.keypair,
       });
-      
+
       await anchor.registerAndTransact(
         sender.address,
         aliceDepositUtxo1.keypair.toString(),
@@ -471,7 +471,7 @@ describe('VAnchor for 2 max edges', () => {
       );
 
       anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
-      
+
       const aliceJoinAmount = 3e7;
       const aliceJoinUtxo = await CircomUtxo.generateUtxo({
         curve: 'Bn254',
@@ -531,7 +531,7 @@ describe('VAnchor for 2 max edges', () => {
         keypair: aliceDepositUtxo.keypair
       });
       const aliceETHAddress = '0xDeaD00000000000000000000000000000000BEEf';
-    
+
       await anchor.transact(
         [aliceDepositUtxo],
         [aliceChangeUtxo],
@@ -555,7 +555,7 @@ describe('VAnchor for 2 max edges', () => {
         originChainId: chainID.toString(),
         amount: aliceDepositAmount.toString()
       });
-      
+
       await anchor.registerAndTransact(
         sender.address,
         aliceDepositUtxo.keypair.toString(),
@@ -595,7 +595,7 @@ describe('VAnchor for 2 max edges', () => {
       );
 
       anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
-      
+
       await TruffleAssert.reverts(
         anchor.transact(
           [aliceDepositUtxo],
@@ -643,7 +643,7 @@ describe('VAnchor for 2 max edges', () => {
       //Step 2: Check Alice's balance
       const aliceBalanceAfterDeposit = await token.balanceOf(alice.address);
       assert.strictEqual(aliceBalanceAfterDeposit.toString(), BN(toBN(aliceBalanceBeforeDeposit).sub(toBN(aliceDepositAmount))).toString())
-      
+
       //Step 3: Alice tries to create a UTXO with more funds than she has in her account
       const aliceOutputAmount = '100000000000000000000000';
       const aliceOutputUtxo = await CircomUtxo.generateUtxo({
@@ -694,18 +694,18 @@ describe('VAnchor for 2 max edges', () => {
         BigNumber.from(0).toString(),
         token.address,
       )
-      
+
       const input = await generateVariableWitnessInput(
         roots.map((root) => BigNumber.from(root)),
         chainID,
-        inputs, 
+        inputs,
         outputs,
         extAmount,
         fee,
         extDataHash,
         merkleProofsForInputs
       );
-     
+
       const wtns = await create2InputWitness(input);
       let res = await snarkjs.groth16.prove('solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey', wtns);
       const proof = res.proof;
@@ -724,7 +724,7 @@ describe('VAnchor for 2 max edges', () => {
 
       let extDataArgs = [
         toFixedHex(recipient, 20),
-        toFixedHex(extAmount),  
+        toFixedHex(extAmount),
         toFixedHex(relayer, 20),
         toFixedHex(fee),
         toFixedHex(0),
@@ -747,7 +747,7 @@ describe('VAnchor for 2 max edges', () => {
       let extAmountInputs = VAnchor.convertToExtDataStruct(extDataArgs)
 
       //anchor.contract.transact(incorrectPublicInputs, extAmountInputs, { gasPrice: '100' });
-      
+
       await TruffleAssert.reverts(
         anchor.contract.transact(incorrectPublicInputs, extAmountInputs),
         'Invalid public amount',
@@ -807,7 +807,7 @@ describe('VAnchor for 2 max edges', () => {
       //relayer
       let incorrectExtDataArgs = [
         toFixedHex(recipient, 20),
-        toFixedHex(extAmount),  
+        toFixedHex(extAmount),
         toFixedHex('0x0000000000000000000000007a1f9131357404ef86d7c38dbffed2da70321337', 20),
         toFixedHex(fee),
         toFixedHex(0),
@@ -827,7 +827,7 @@ describe('VAnchor for 2 max edges', () => {
       //recipient
       incorrectExtDataArgs = [
         toFixedHex('0x0000000000000000000000007a1f9131357404ef86d7c38dbffed2da70321337', 20),
-        toFixedHex(extAmount),  
+        toFixedHex(extAmount),
         toFixedHex(relayer, 20),
         toFixedHex(fee),
         toFixedHex(0),
@@ -846,7 +846,7 @@ describe('VAnchor for 2 max edges', () => {
       //fee
       incorrectExtDataArgs = [
         toFixedHex(recipient, 20),
-        toFixedHex(extAmount),  
+        toFixedHex(extAmount),
         toFixedHex(relayer, 20),
         toFixedHex('0x000000000000000000000000000000000000000000000000015345785d8a0000'),
         toFixedHex(0),
@@ -944,7 +944,7 @@ describe('VAnchor for 2 max edges', () => {
       );
 
       const spendableUtxos = utxos.filter((utxo) => utxo !== undefined);
-      
+
       // fetch the inserted leaves
       const leaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
@@ -975,9 +975,9 @@ describe('VAnchor for 2 max edges', () => {
 
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
-  
+
       await anchor.transact(
-        [], 
+        [],
         [aliceDepositUtxo],
         {},
         0,
@@ -985,7 +985,7 @@ describe('VAnchor for 2 max edges', () => {
         '0',
         '0',
       );
-  
+
       const anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
       // withdrawal
@@ -1004,7 +1004,7 @@ describe('VAnchor for 2 max edges', () => {
       //build merkle tree start
       const filter = anchor.contract.filters.NewCommitment()
       const events = await anchor.contract.queryFilter(filter, 0)
-    
+
       const leaves = events.sort((a:any, b:any) => a.args.index - b.args.index).map((e) => toFixedHex(e.args.commitment))
       const tree = new MerkleTree(levels, leaves)
 
@@ -1024,15 +1024,15 @@ describe('VAnchor for 2 max edges', () => {
         keypair: aliceDepositUtxo.getKeypair()
       })
       const nullifier = aliceDepositUtxoRegen.nullifier
-  
+
       const commitmentV = aliceDepositUtxoRegen.commitment
       // generateReport(dataForVerifier) -> compliance report
       // on the verifier side we compute commitment and nullifier and then check them onchain
-  
+
       assert.strictEqual(BigNumber.from(commitmentV).toString(), BigNumber.from(commitment).toString());
       assert.strictEqual(await anchor.contract.nullifierHashes(toFixedHex(nullifier)), true);
       // expect commitmentV present onchain (it will be in NewCommitment events)
-  
+
       // in report we can see the tx with NewCommitment event (this is how alice got money)
       // and the tx with NewNullifier event is where alice spent the UTXO
     });
@@ -1167,7 +1167,7 @@ describe('VAnchor for 2 max edges', () => {
 
       await token.approve(wrappedToken.address, '1000000000000000000');
       const balTokenBeforeDepositSender = await token.balanceOf(sender.address);
-    
+
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await CircomUtxo.generateUtxo({
         curve: 'Bn254',
@@ -1232,7 +1232,7 @@ describe('VAnchor for 2 max edges', () => {
         BigNumber.from(tokenDenomination).mul(1_000_000),
         0,
       );
-      
+
       const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
       await wrappedToken.grantRole(MINTER_ROLE, wrappedVAnchor.contract.address);
       await token.approve(wrappedToken.address, '1000000000000000000');
@@ -1337,7 +1337,7 @@ describe('VAnchor for 2 max edges', () => {
       await wrappedToken.grantRole(MINTER_ROLE, wrappedVAnchor.contract.address);
 
       await token.approve(wrappedToken.address, '10000000000000000000');
-      
+
       //Should take a fee when depositing
       //Deposit 2e7 and Check Relevant Balances
       const aliceDepositAmount = 2e7;
