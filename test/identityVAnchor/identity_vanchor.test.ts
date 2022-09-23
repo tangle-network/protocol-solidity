@@ -562,6 +562,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
       // Alice deposits into tornado pool
       const relayer = '0x2111111111111111111111111111111111111111';
       const aliceDepositAmount = 10;
+
+      const aliceBalanceBeforeDeposit = await token.balanceOf(sender.address);
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceDepositAmount);
       // , await generateUTXOForTest(chainID, new Keypair())];
       const res = await idAnchor.transact(
@@ -573,6 +575,9 @@ describe('IdentityVAnchor for 2 max edges', () => {
         recipient,
         relayer
       );
+
+      const aliceBalanceAfterDeposit = await token.balanceOf(sender.address);
+      expect(aliceBalanceBeforeDeposit.sub(aliceBalanceAfterDeposit).toString()).equal('10');
 
       expect(res.tx)
         .to.emit(idAnchor.contract, 'NewCommitment')
@@ -591,6 +596,10 @@ describe('IdentityVAnchor for 2 max edges', () => {
         recipient,
         relayer
       );
+
+      // alice shouldn't have deposited into tornado as input utxo has enough
+      const aliceBalanceAfterSplit = await token.balanceOf(sender.address);
+      expect(aliceBalanceAfterDeposit.sub(aliceBalanceAfterSplit).toString()).equal('0');
     })
 
     it('should join and spend', async () => {
@@ -624,6 +633,11 @@ describe('IdentityVAnchor for 2 max edges', () => {
         relayer
       );
 
+      const aliceDeposit1Index = idAnchor.tree.getIndexByElement(aliceDepositUtxo1.commitment);
+      const aliceDeposit2Index = idAnchor.tree.getIndexByElement(aliceDepositUtxo2.commitment);
+      aliceDepositUtxo1 = await updateUtxoWithIndex(aliceDepositUtxo1, aliceDeposit1Index, chainID);
+      aliceDepositUtxo2 = await updateUtxoWithIndex(aliceDepositUtxo2, aliceDeposit2Index, chainID);
+
       const aliceJoinAmount = 2e7;
       const aliceJoinUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceJoinAmount);
       await idAnchor.transact(
@@ -635,6 +649,88 @@ describe('IdentityVAnchor for 2 max edges', () => {
         recipient,
         relayer
       );
+    })
+
+    it('should withdraw', async () => {
+      const relayer = '0x2111111111111111111111111111111111111111';
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceDepositAmount);
+      // , await generateUTXOForTest(chainID, new Keypair())];
+      await idAnchor.transact(
+        aliceKeypair,
+        [],
+        [aliceDepositUtxo],
+        fee,
+        BigNumber.from(0),
+        recipient,
+        relayer
+      );
+
+      const aliceWithdrawAmount = 5e6;
+      const aliceChangeUtxo = await CircomUtxo.generateUtxo({
+        curve: 'Bn254',
+        backend: 'Circom',
+        chainId: chainID.toString(),
+        originChainId: chainID.toString(),
+        amount: aliceWithdrawAmount.toString(),
+        keypair: aliceDepositUtxo.keypair
+      });
+      const aliceETHAddress = '0xDeaD00000000000000000000000000000000BEEf';
+
+      const res = await idAnchor.transact(
+        aliceKeypair,
+        [aliceDepositUtxo],
+        [aliceChangeUtxo],
+        fee,
+        BigNumber.from(0),
+        aliceETHAddress,
+        relayer
+      );
+
+      expect(aliceWithdrawAmount.toString()).equal(await (await token.balanceOf(aliceETHAddress)).toString());
+
+
+    })
+
+    it('should prevent double spend', async () => {
+      const relayer = '0x2111111111111111111111111111111111111111';
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceDepositAmount);
+
+      await idAnchor.transact(
+        aliceKeypair,
+        [],
+        [aliceDepositUtxo],
+        fee,
+        BigNumber.from(0),
+        recipient,
+        relayer
+      );
+      const aliceTransferUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceDepositAmount);
+
+      await idAnchor.transact(
+        aliceKeypair,
+        [aliceDepositUtxo],
+        [aliceTransferUtxo],
+        fee,
+        BigNumber.from(0),
+        recipient,
+        relayer
+      )
+
+      const aliceDoubleSpendTransaction = await generateUTXOForTest(chainID, aliceKeypair, aliceDepositAmount);
+
+      expect (
+        idAnchor.transact(
+          aliceKeypair,
+          [aliceDepositUtxo],
+          [aliceDoubleSpendTransaction],
+          fee,
+          BigNumber.from(0),
+          recipient,
+          relayer
+        )
+      ).to.revertedWith('Input is already spent')
     })
   });
 });
