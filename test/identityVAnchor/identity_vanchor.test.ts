@@ -91,8 +91,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
   let aliceCalldata: any;
   let aliceKeypair: Keypair;
   let aliceProof: any;
-  let aliceExtData: any;
-  let aliceExtDataHash: any;
   let alicePublicSignals: any;
   let bobKeypair: Keypair;
   let carlKeypair: Keypair;
@@ -258,18 +256,18 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const encOutput1 = outputs[0].encrypt();
       const encOutput2 = outputs[1].encrypt();
 
-      aliceExtData = {
+      const aliceExtData = {
         recipient: toFixedHex(recipient, 20),
         extAmount: toFixedHex(extAmount),
         relayer: toFixedHex(relayer, 20),
         fee: toFixedHex(fee),
         refund: toFixedHex(BigNumber.from(0).toString()),
         token: toFixedHex(token.address, 20),
-        encOutput1,
-        encOutput2,
+        encryptedOutput1: encOutput1,
+        encryptedOutput2: encOutput2,
       };
 
-      aliceExtDataHash = await getVAnchorExtDataHash(
+      const aliceExtDataHash = await getVAnchorExtDataHash(
         encOutput1,
         encOutput2,
         extAmount.toString(),
@@ -371,12 +369,15 @@ describe('IdentityVAnchor for 2 max edges', () => {
         relayer
       );
 
+      const encOutput1 = outputs[0].encrypt();
+      const encOutput2 = outputs[1].encrypt();
+
       expect(res.tx)
         .to.emit(idAnchor.contract, 'NewCommitment')
-        .withArgs(outputs[0].commitment, 0, aliceExtData.encOutput1);
+        .withArgs(outputs[0].commitment, 0, encOutput1);
       expect(res.tx)
         .to.emit(idAnchor.contract, 'NewCommitment')
-        .withArgs(outputs[1].commitment, 1, aliceExtData.encOutput2);
+        .withArgs(outputs[1].commitment, 1, encOutput2);
       expect(res.tx).to.emit(idAnchor.contract, 'NewNullifier').withArgs(inputs[0].nullifier);
       expect(res.tx).to.emit(idAnchor.contract, 'NewNullifier').withArgs(inputs[1].nullifier);
     });
@@ -404,12 +405,15 @@ describe('IdentityVAnchor for 2 max edges', () => {
         relayer
       );
 
+      const encOutput1 = outputs[0].encrypt();
+      const encOutput2 = outputs[1].encrypt();
+
       expect(res.tx)
         .to.emit(idAnchor.contract, 'NewCommitment')
-        .withArgs(outputs[0].commitment, 0, aliceExtData.encOutput1);
+        .withArgs(outputs[0].commitment, 0, encOutput1);
       expect(res.tx)
         .to.emit(idAnchor.contract, 'NewCommitment')
-        .withArgs(outputs[1].commitment, 1, aliceExtData.encOutput2);
+        .withArgs(outputs[1].commitment, 1, encOutput2);
       expect(res.tx).to.emit(idAnchor.contract, 'NewNullifier').withArgs(inputs[0].nullifier);
       expect(res.tx).to.emit(idAnchor.contract, 'NewNullifier').withArgs(inputs[1].nullifier);
 
@@ -443,7 +447,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
         amount: aliceDepositAmount.toString(),
         keypair: bobPublicKeypair,
       });
-      // console.log("alice transfer: ", aliceTransferUtxo)
 
       let { publicInputs, tx } = await idAnchor.transact(
         aliceKeypair,
@@ -523,10 +526,11 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceDepositAmount);
       // , await generateUTXOForTest(chainID, new Keypair())];
+      const outputs = [aliceDepositUtxo]
       const res = await idAnchor.transact(
         aliceKeypair,
         [],
-        [aliceDepositUtxo],
+        outputs,
         fee,
         BigNumber.from(0),
         recipient,
@@ -535,7 +539,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
       expect(res.tx)
         .to.emit(idAnchor.contract, 'NewCommitment')
-        .withArgs(aliceDepositUtxo.commitment, 0, aliceExtData.encOutput1);
+        .withArgs(aliceDepositUtxo.commitment, 0, outputs[0].encrypt());
 
       const aliceRefreshUtxo = await CircomUtxo.generateUtxo({
         curve: 'Bn254',
@@ -581,7 +585,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
       expect(res.tx)
         .to.emit(idAnchor.contract, 'NewCommitment')
-        .withArgs(aliceDepositUtxo.commitment, 0, aliceExtData.encOutput1);
+        .withArgs(aliceDepositUtxo.commitment, 0, aliceDepositUtxo.encrypt());
 
       const aliceSplitAmount = 5;
       const aliceSplitUtxo1 = await generateUTXOForTest(chainID, aliceKeypair, aliceSplitAmount);
@@ -731,6 +735,198 @@ describe('IdentityVAnchor for 2 max edges', () => {
           relayer
         )
       ).to.revertedWith('Input is already spent')
+    })
+    it('should prevent increasing UTXO amount without depositing', async () => {
+      const alice = sender;
+      const relayer = '0x2111111111111111111111111111111111111111';
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceDepositAmount);
+      const aliceBalanceBeforeDeposit = await token.balanceOf(alice.address);
+      await idAnchor.transact(
+        aliceKeypair,
+        [],
+        [aliceDepositUtxo],
+        fee,
+        BigNumber.from(0),
+        recipient,
+        relayer
+      );
+
+      const aliceBalanceAfterDeposit = await token.balanceOf(alice.address);
+      expect(aliceBalanceAfterDeposit.toString()).equal(BN(toBN(aliceBalanceBeforeDeposit).sub(toBN(aliceDepositAmount))).toString())
+
+      const aliceOutputAmount = aliceBalanceAfterDeposit.mul(2)
+      const aliceOutputUtxo = await CircomUtxo.generateUtxo({
+        curve: 'Bn254',
+        backend: 'Circom',
+        chainId: chainID.toString(),
+        originChainId: chainID.toString(),
+        amount: aliceOutputAmount.toString(),
+        keypair: aliceDepositUtxo.keypair
+      });
+      //Step 4: Check that step 3 fails
+      await expect(
+        idAnchor.transact(
+        aliceKeypair,
+        [aliceDepositUtxo],
+        [aliceOutputUtxo],
+        fee,
+        BigNumber.from(0),
+        recipient,
+        relayer
+        )
+      ).to.revertedWith('ERC20: transfer amount exceeds balance')
+    })
+  });
+
+  describe('# prevent tampering', () => {
+  // before('Create valid public inputs as baseline for tampering', async () => {
+    const relayer = '0x2111111111111111111111111111111111111111';
+    const extAmount = 1e7;
+    const aliceDepositAmount = 1e7;
+
+    let publicInputs: IIdentityVariableAnchorPublicInputs
+    let aliceExtData: any
+    let aliceExtDataHash: BigNumber
+
+
+    // should be before but it says idAnchor is undefined in this case
+    beforeEach(async () => {
+      const vanchorRoots = await idAnchor.populateVAnchorRootsForProof();
+      const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceDepositAmount);
+      const inputs: Utxo[] = [
+        await generateUTXOForTest(chainID, new Keypair()),
+        await generateUTXOForTest(chainID, new Keypair()),
+      ];
+      const outputs = [
+        aliceDepositUtxo,
+        await generateUTXOForTest(chainID, new Keypair()),
+      ];
+      const merkleProofsForInputs = inputs.map((x) => idAnchor.getMerkleProof(x));
+
+      fee = BigInt(0);
+
+      const encOutput1 = outputs[0].encrypt();
+      const encOutput2 = outputs[1].encrypt();
+
+      aliceExtData = {
+        recipient: toFixedHex(recipient, 20),
+        extAmount: toFixedHex(aliceDepositAmount),
+        relayer: toFixedHex(relayer, 20),
+        fee: toFixedHex(fee),
+        refund: toFixedHex(BigNumber.from(0).toString()),
+        token: toFixedHex(token.address, 20),
+        encryptedOutput1: encOutput1,
+        encryptedOutput2: encOutput2,
+      };
+
+      aliceExtDataHash = getVAnchorExtDataHash(
+        encOutput1,
+        encOutput2,
+        extAmount.toString(),
+        BigNumber.from(fee).toString(),
+        recipient,
+        relayer,
+        BigNumber.from(0).toString(),
+        token.address
+      );
+
+      const vanchor_input: UTXOInputs = await generateVariableWitnessInput(
+        vanchorRoots.map((root) => BigNumber.from(root)),
+        chainID,
+        inputs,
+        outputs,
+        extAmount,
+        fee,
+        aliceExtDataHash,
+        merkleProofsForInputs
+      );
+      // Alice deposits into tornado pool
+      const aliceLeaf = aliceKeypair.getPubKey();
+
+      const identityRootInputs = [group.root.toString(), BigNumber.from(0).toString()];
+      const idx = group.indexOf(aliceLeaf);
+      const identityMerkleProof: MerkleProof = group.generateProofOfMembership(idx);
+
+      const outSemaphoreProofs = outputs.map((utxo) => {
+        const leaf = utxo.keypair.getPubKey();
+        if (Number(utxo.amount) > 0) {
+          const idx = group.indexOf(leaf);
+          return group.generateProofOfMembership(idx);
+        } else {
+          const inputMerklePathIndices = new Array(group.depth).fill(0);
+          const inputMerklePathElements = new Array(group.depth).fill(0);
+          return {
+            pathIndices: inputMerklePathIndices,
+            pathElements: inputMerklePathElements,
+          };
+        }
+      });
+
+      publicInputs = await idAnchor.setupTransaction(
+        aliceKeypair,
+        identityRootInputs,
+        identityMerkleProof,
+        outSemaphoreProofs,
+        vanchor_input,
+        aliceExtDataHash.toString()
+      );
+    })
+    it('should reject tampering with public amount', async () => {
+      const invalidInputs = publicInputs;
+      invalidInputs.publicAmount = toFixedHex(BigNumber.from(1e10))
+
+      await expect(
+        idAnchor.contract.transact({ ...invalidInputs }, aliceExtData, { gasLimit: '0x5B8D80' })
+      ).to.revertedWith('Invalid public amount')
+
+    })
+    it('should reject tampering with external data hash', async () => {
+      const invalidInputs = publicInputs;
+      invalidInputs.extDataHash = toFixedHex(BigNumber.from(publicInputs.extDataHash).add(1))
+
+      await expect(
+        idAnchor.contract.transact({ ...invalidInputs }, aliceExtData, { gasLimit: '0x5B8D80' })
+      ).to.be.revertedWith('Incorrect external data hash')
+    })
+
+    it('should reject tampering with output commitments', async () => {
+      const invalidInputs = publicInputs;
+      invalidInputs.outputCommitments[0] = toFixedHex(BigNumber.from(publicInputs.outputCommitments[0]).add(1))
+
+      await expect(
+        idAnchor.contract.transact({ ...invalidInputs }, aliceExtData, { gasLimit: '0x5B8D80' })
+      ).to.be.revertedWith('Invalid transaction proof')
+    })
+    it('should reject tampering with input commitments', async () => {
+      const invalidInputs = publicInputs;
+      invalidInputs.inputNullifiers[0] = toFixedHex(BigNumber.from(publicInputs.inputNullifiers[0]).add(1))
+
+      await expect(
+        idAnchor.contract.transact({ ...invalidInputs }, aliceExtData, { gasLimit: '0x5B8D80' })
+      ).to.be.revertedWith('Invalid transaction proof')
+    })
+
+    it('should reject tampering with extData relayer', async () => {
+      const invalidExtData = aliceExtData;
+      invalidExtData.relayer = toFixedHex('0x0000000000000000000000007a1f9131357404ef86d7c38dbffed2da70321337', 20),
+      await expect(
+        idAnchor.contract.transact({ ...publicInputs }, invalidExtData, { gasLimit: '0x5B8D80' })
+      ).to.be.revertedWith('Incorrect external data hash')
+    })
+    it('should reject tampering with extData extAmount', async () => {
+      const invalidExtData = aliceExtData;
+      invalidExtData.extAmount = toFixedHex(aliceDepositAmount*100, 20),
+      await expect(
+        idAnchor.contract.transact({ ...publicInputs }, invalidExtData, { gasLimit: '0x5B8D80' })
+      ).to.be.revertedWith('Incorrect external data hash')
+    })
+    it('should reject tampering with extData fee', async () => {
+      const invalidExtData = aliceExtData;
+      invalidExtData.fee = toFixedHex(fee + BigInt(1000), 20),
+      await expect(
+        idAnchor.contract.transact({ ...publicInputs }, invalidExtData, { gasLimit: '0x5B8D80' })
+      ).to.be.revertedWith('Incorrect external data hash')
     })
   });
 });
