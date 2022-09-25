@@ -162,7 +162,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
     sender = wallet;
     alice = signers[0];
     bob = signers[1];
-    carl = signers[1];
+    carl = signers[2];
     // create poseidon hasher
     const hasherFactory = new PoseidonT3__factory(wallet);
     hasherInstance = await hasherFactory.deploy();
@@ -175,7 +175,9 @@ describe('IdentityVAnchor for 2 max edges', () => {
     const tokenFactory = new ERC20PresetMinterPauser__factory(wallet);
     token = await tokenFactory.deploy('test token', 'TEST');
     await token.deployed();
-    await token.mint(sender.address, '10000000000000000000000');
+    await token.mint(alice.address, BigNumber.from(1e10).toString());
+    await token.mint(bob.address, BigNumber.from(1e10).toString());
+    await token.mint(carl.address, BigNumber.from(1e10).toString());
 
     // create Anchor
     semaphore = await Semaphore.createSemaphore(levels, maxEdges, zkComponents2_2, sender);
@@ -460,7 +462,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         alice.address,
         relayer
       );
-      writeFileSync("transfer.json", JSON.stringify(publicInputs))
+
       let receipt = await tx.wait();
       // Bob queries encrypted commitments on chain
       const encryptedCommitments: string[] = receipt.events
@@ -506,7 +508,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       ];
 
       // Bob uses the parsed utxos to issue a withdraw
-      let { publicInputs: bobPublicInputs, tx: bobTx } = await idAnchor.transact(
+      await idAnchor.transact(
         bobKeypair,
         spendableUtxos,
         dummyOutputs,
@@ -765,6 +767,210 @@ describe('IdentityVAnchor for 2 max edges', () => {
         relayer
         )
       ).to.revertedWith('ERC20: transfer amount exceeds balance')
+    })
+    it.only('Should reject proofs made against VAnchor empty edges', async () => {
+      // const tx =
+      // console.log(tx)
+      await expect(idAnchor.contract.edgeList(BigNumber.from(0))).revertedWith('CALL_EXCEPTION')
+
+      const vanchorRoots = await idAnchor.populateVAnchorRootsForProof();
+      const depositAmount = 1e8
+      const depositUtxo = await generateUTXOForTest(chainID, aliceKeypair, depositAmount);
+      // const fakeUtxo = await generateUTXOForTest(chainID, aliceKeypair, depositAmount);
+      const fakeChainId = getChainIdType(666)
+      // fakeUtxo.originChainId = fakeChainId.toString()
+      const fakeUtxo = await CircomUtxo.generateUtxo({
+        curve: 'Bn254',
+        backend: 'Circom',
+        chainId: chainID.toString(),
+        originChainId: fakeChainId.toString(),
+        amount: BigNumber.from(depositAmount).toString(),
+        blinding: hexToU8a(randomBN(31).toHexString()),
+        keypair: aliceKeypair,
+      });
+
+      const inputs: Utxo[] = [
+        fakeUtxo,
+        // await generateUTXOForTest(chainID, new Keypair()),
+        await generateUTXOForTest(chainID, new Keypair()),
+      ];
+      const outputs = [
+        depositUtxo,
+        await generateUTXOForTest(chainID, new Keypair()),
+      ];
+      // const merkleProofsForInputs = inputs.map((x) => idAnchor.getMerkleProof(x));
+      const fakeTree = new MerkleTree(idAnchor.tree.levels);
+      const fakeCommitment = u8aToHex(fakeUtxo.commitment);
+      fakeTree.insert(fakeCommitment);
+      const fakeIdx = fakeTree.indexOf(fakeCommitment)
+      const fakeMerkleProofs = [fakeTree.path(fakeIdx), idAnchor.getMerkleProof(inputs[1])]
+
+      // console.log('original: ', merkleProofsForInputs)
+      fee = BigInt(0);
+
+      const encOutput1 = outputs[0].encrypt();
+      const encOutput2 = outputs[1].encrypt();
+
+      const extData = {
+        recipient: toFixedHex(alice.address, 20),
+        extAmount: toFixedHex(0),
+        relayer: toFixedHex(relayer, 20),
+        fee: toFixedHex(fee),
+        refund: toFixedHex(BigNumber.from(0).toString()),
+        token: toFixedHex(token.address, 20),
+        encryptedOutput1: encOutput1,
+        encryptedOutput2: encOutput2,
+      };
+
+      const extAmount = BigNumber.from(0)
+      const extDataHash = getVAnchorExtDataHash(
+        encOutput1,
+        encOutput2,
+        // depositAmount.toString(),
+        extAmount.toString(),
+        BigNumber.from(fee).toString(),
+        alice.address,
+        relayer,
+        BigNumber.from(0).toString(),
+        token.address
+      );
+
+      const fakeRoots = vanchorRoots
+      fakeRoots[1] = fakeTree.root().toString()
+      const vanchor_input: UTXOInputs = await generateVariableWitnessInput(
+        fakeRoots.map((root) => BigNumber.from(root)),
+        chainID,
+        inputs,
+        outputs,
+        extAmount,
+        fee,
+        extDataHash,
+        fakeMerkleProofs
+      );
+      // Alice deposits into tornado pool
+      const aliceLeaf = aliceKeypair.getPubKey();
+
+      const identityRootInputs = [group.root.toString(), BigNumber.from(0).toString()];
+      const idx = group.indexOf(aliceLeaf);
+      const identityMerkleProof: MerkleProof = group.generateProofOfMembership(idx);
+
+      const outSemaphoreProofs = outputs.map((utxo) => {
+        const leaf = utxo.keypair.getPubKey();
+        if (Number(utxo.amount) > 0) {
+          const idx = group.indexOf(leaf);
+          return group.generateProofOfMembership(idx);
+        } else {
+          const inputMerklePathIndices = new Array(group.depth).fill(0);
+          const inputMerklePathElements = new Array(group.depth).fill(0);
+          return {
+            pathIndices: inputMerklePathIndices,
+            pathElements: inputMerklePathElements,
+          };
+        }
+      });
+
+      const publicInputs = await idAnchor.setupTransaction(
+        aliceKeypair,
+        identityRootInputs,
+        identityMerkleProof,
+        outSemaphoreProofs,
+        vanchor_input,
+        extDataHash.toString()
+      );
+
+      const tx = idAnchor.contract.transact({ ...publicInputs }, extData, { gasLimit: '0x5B8D80' })
+      await expect(tx).revertedWith('non-existent edge is not set to the default root')
+    })
+    it.only('Should reject proofs made against Semaphore empty edges', async () => {
+      const vanchorRoots = await idAnchor.populateVAnchorRootsForProof();
+      const depositAmount = 1e7
+      // Carl has not been registered
+      const carlDepositUtxo = await generateUTXOForTest(chainID, carlKeypair, depositAmount);
+      const inputs: Utxo[] = [
+        await generateUTXOForTest(chainID, new Keypair()),
+        await generateUTXOForTest(chainID, new Keypair()),
+      ];
+      const outputs = [
+        carlDepositUtxo,
+        await generateUTXOForTest(chainID, new Keypair()),
+      ];
+      const merkleProofsForInputs = inputs.map((x) => idAnchor.getMerkleProof(x));
+
+      fee = BigInt(0);
+
+      const encOutput1 = outputs[0].encrypt();
+      const encOutput2 = outputs[1].encrypt();
+
+      const recipient = carl.address;
+
+      const extData = {
+        recipient: toFixedHex(recipient, 20),
+        extAmount: toFixedHex(depositAmount),
+        relayer: toFixedHex(relayer, 20),
+        fee: toFixedHex(fee),
+        refund: toFixedHex(BigNumber.from(0).toString()),
+        token: toFixedHex(token.address, 20),
+        encryptedOutput1: encOutput1,
+        encryptedOutput2: encOutput2,
+      };
+
+      const extDataHash = getVAnchorExtDataHash(
+        encOutput1,
+        encOutput2,
+        depositAmount.toString(),
+        BigNumber.from(fee).toString(),
+        recipient,
+        relayer,
+        BigNumber.from(0).toString(),
+        token.address
+      );
+
+      const vanchor_input: UTXOInputs = await generateVariableWitnessInput(
+        vanchorRoots.map((root) => BigNumber.from(root)),
+        chainID,
+        inputs,
+        outputs,
+        depositAmount,
+        fee,
+        extDataHash,
+        merkleProofsForInputs
+      );
+      // Alice deposits into tornado pool
+      const carlLeaf = carlKeypair.getPubKey();
+      const fakeGroup = new Group(levels, BigInt(defaultRoot));
+      fakeGroup.addMember(carlLeaf);
+
+      const identityRootInputs = [group.root.toString(), fakeGroup.root.toString()];
+      const idx = fakeGroup.indexOf(carlLeaf);
+      const identityMerkleProof: MerkleProof = group.generateProofOfMembership(idx);
+
+      const outSemaphoreProofs = outputs.map((utxo) => {
+        const leaf = utxo.keypair.getPubKey();
+        if (Number(utxo.amount) > 0) {
+          const idx = fakeGroup.indexOf(leaf);
+          return fakeGroup.generateProofOfMembership(idx);
+        } else {
+          const inputMerklePathIndices = new Array(group.depth).fill(0);
+          const inputMerklePathElements = new Array(group.depth).fill(0);
+          return {
+            pathIndices: inputMerklePathIndices,
+            pathElements: inputMerklePathElements,
+          };
+        }
+      });
+
+      const publicInputs = await idAnchor.setupTransaction(
+        aliceKeypair,
+        identityRootInputs,
+        identityMerkleProof,
+        outSemaphoreProofs,
+        vanchor_input,
+        extDataHash.toString()
+      );
+
+      const tx = idAnchor.contract.transact({ ...publicInputs }, extData, { gasLimit: '0x5B8D80' })
+
+      await expect(tx).revertedWith('Not initialized edges must be set to 0')
     })
   });
 
