@@ -1139,7 +1139,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
     })
 
-    it.only('should wrap and deposit', async () => {
+    it('should wrap and deposit', async () => {
       const balTokenBeforeDepositSender = await token.balanceOf(alice.address);
       console.log('BALANCE: ', balTokenBeforeDepositSender)
       const relayer = '0x2111111111111111111111111111111111111111';
@@ -1166,7 +1166,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       expect(balWrappedTokenAfterDepositAnchor.toString()).equal('10000000');
       expect(balWrappedTokenAfterDepositSender.toString()).equal('0');
     })
-    it.only('should wrap and deposit', async () => {
+    it('should wrap and deposit', async () => {
       const balTokenBeforeDepositSender = await token.balanceOf(alice.address);
       console.log('BALANCE: ', balTokenBeforeDepositSender)
       const relayer = '0x2111111111111111111111111111111111111111';

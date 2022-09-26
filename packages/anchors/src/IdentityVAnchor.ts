@@ -56,6 +56,16 @@ export type Proof = {
   protocol: string;
   curve: string;
 };
+export type ExtData = {
+  recipient: string;
+  extAmount: string;
+  relayer: string;
+  fee: string;
+  refund: string;
+  token: string;
+  encryptedOutput1: string;
+  encryptedOutput2: string;
+}
 
 export type RawPublicSignals = string[11];
 
@@ -656,6 +666,86 @@ export class IdentityVAnchor implements IAnchor {
     return [this.group.root.toString(), BigNumber.from(0).toString()];
   }
 
+  public async generateExtData(
+    recipient: string,
+    extAmount: BigNumber,
+    relayer: string,
+    fee: BigNumber,
+    refund: BigNumber,
+    encryptedOutput1: string,
+    encryptedOutput2: string,
+  ): Promise<{extData: ExtData, extDataHash: BigNumber}> {
+    const extData = {
+      recipient: toFixedHex(recipient, 20),
+      extAmount: toFixedHex(extAmount),
+      relayer: toFixedHex(relayer, 20),
+      fee: toFixedHex(fee),
+      refund: toFixedHex(refund.toString()),
+      token: toFixedHex(this.token, 20),
+      encryptedOutput1,
+      encryptedOutput2,
+    };
+
+    const extDataHash = await getVAnchorExtDataHash(
+      encryptedOutput1,
+      encryptedOutput2,
+      extAmount.toString(),
+      BigNumber.from(fee).toString(),
+      recipient,
+      relayer,
+      refund.toString(),
+      this.token
+    );
+    return { extData, extDataHash }
+  }
+
+  public generateOutputSemaphoreProof(
+    outputs: Utxo[]
+  ): MerkleProof[] {
+    const outSemaphoreProofs = outputs.map((utxo) => {
+      const leaf = utxo.keypair.getPubKey();
+      if (Number(utxo.amount) > 0) {
+        const idx = this.group.indexOf(leaf);
+        return this.group.generateProofOfMembership(idx);
+      } else {
+        const inputMerklePathIndices = new Array(this.group.depth).fill(0);
+        const inputMerklePathElements = new Array(this.group.depth).fill(0);
+
+        return {
+          pathIndices: inputMerklePathIndices,
+          pathElements: inputMerklePathElements,
+        };
+      }
+    });
+    return outSemaphoreProofs;
+  }
+
+  public async generateUTXOInputs(
+    inputs: Utxo[],
+    outputs: Utxo[],
+    chainId: number,
+    extAmount: BigNumber,
+    fee: BigNumber,
+    extDataHash: BigNumber,
+  ): Promise<UTXOInputs> {
+
+    const vanchorRoots = await this.populateVAnchorRootsForProof();
+    const vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x));
+
+    const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
+      vanchorRoots.map((root) => BigNumber.from(root)),
+      chainId,
+      inputs,
+      outputs,
+      extAmount,
+      fee,
+      BigNumber.from(extDataHash),
+      vanchorMerkleProof
+    );
+
+    return vanchorInput
+  }
+
   public async transact(
     keypair: Keypair,
     inputs: Utxo[],
@@ -706,28 +796,15 @@ export class IdentityVAnchor implements IAnchor {
       .add(outputs.reduce((sum, x) => sum.add(BigNumber.from(BigInt(x.amount))), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(BigNumber.from(BigInt(x.amount))), BigNumber.from(0)));
 
-    const encOutput1 = outputs[0].encrypt();
-    const encOutput2 = outputs[1].encrypt();
-    const extData = {
-      recipient: toFixedHex(recipient, 20),
-      extAmount: toFixedHex(extAmount),
-      relayer: toFixedHex(relayer, 20),
-      fee: toFixedHex(fee),
-      refund: toFixedHex(BigNumber.from(refund).toString()),
-      token: toFixedHex(this.token, 20),
-      encryptedOutput1: encOutput1,
-      encryptedOutput2: encOutput2,
-    };
-    const extDataHash = await getVAnchorExtDataHash(
-      encOutput1,
-      encOutput2,
-      extAmount.toString(),
-      BigNumber.from(fee).toString(),
+    const { extData, extDataHash } = await this.generateExtData(
       recipient,
+      extAmount,
       relayer,
-      refund.toString(),
-      this.token
-    );
+      BigNumber.from(fee),
+      BigNumber.from(refund),
+      outputs[0].encrypt(),
+      outputs[1].encrypt()
+    )
 
     const vanchorRoots = await this.populateVAnchorRootsForProof();
 
@@ -826,67 +903,30 @@ export class IdentityVAnchor implements IAnchor {
         );
       }
     }
-    console.log('inputs: ', inputs)
-    console.log('outputs: ', outputs)
-
     let extAmount = BigNumber.from(fee)
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
 
-    console.log('EXT AMOUNT: ', extAmount)
-
-    const encOutput1 = outputs[0].encrypt();
-    const encOutput2 = outputs[1].encrypt();
-    const extData = {
-      recipient: toFixedHex(recipient, 20),
-      extAmount: toFixedHex(extAmount),
-      relayer: toFixedHex(relayer, 20),
-      fee: toFixedHex(fee),
-      refund: toFixedHex(BigNumber.from(refund).toString()),
-      token: toFixedHex(this.token, 20),
-      encryptedOutput1: encOutput1,
-      encryptedOutput2: encOutput2,
-    };
-    const extDataHash = await getVAnchorExtDataHash(
-      encOutput1,
-      encOutput2,
-      extAmount.toString(),
-      BigNumber.from(fee).toString(),
+    const { extData, extDataHash } = await this.generateExtData(
       recipient,
+      extAmount,
       relayer,
-      refund.toString(),
-      this.token
-    );
+      BigNumber.from(fee),
+      BigNumber.from(refund),
+      outputs[0].encrypt(),
+      outputs[1].encrypt()
+    )
 
-    const vanchorRoots = await this.populateVAnchorRootsForProof();
-    const vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x));
-
-    const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
-      vanchorRoots.map((root) => BigNumber.from(root)),
-      chainId,
+    const vanchorInput: UTXOInputs = await this.generateUTXOInputs(
       inputs,
       outputs,
+      chainId,
       extAmount,
-      fee,
-      BigNumber.from(extDataHash),
-      vanchorMerkleProof
-    );
+      BigNumber.from(fee),
+      extDataHash
+    )
 
-    const outSemaphoreProofs = outputs.map((utxo) => {
-      const leaf = utxo.keypair.getPubKey();
-      if (Number(utxo.amount) > 0) {
-        const idx = this.group.indexOf(leaf);
-        return this.group.generateProofOfMembership(idx);
-      } else {
-        const inputMerklePathIndices = new Array(this.group.depth).fill(0);
-        const inputMerklePathElements = new Array(this.group.depth).fill(0);
-
-        return {
-          pathIndices: inputMerklePathIndices,
-          pathElements: inputMerklePathElements,
-        };
-      }
-    });
+    const outSemaphoreProofs = this.generateOutputSemaphoreProof(outputs)
 
     const publicInputs = await this.setupTransaction(
       keypair,
