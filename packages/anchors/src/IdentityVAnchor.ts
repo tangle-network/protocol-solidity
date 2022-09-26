@@ -641,11 +641,12 @@ export class IdentityVAnchor implements IAnchor {
 
     const publicInputs: IIdentityVariableAnchorPublicInputs = this.generatePublicInputs(proof, calldata);
 
-    const res: boolean = await snarkjs.groth16.verify(vKey, fullProof.publicSignals, fullProof.proof);
-    assert.strictEqual(res, true);
+    const is_valid: boolean = await snarkjs.groth16.verify(vKey, fullProof.publicSignals, fullProof.proof);
+    assert.strictEqual(is_valid, true);
 
     return publicInputs;
   }
+
   public generateIdentityMerkleProof(pubkey: string): MerkleProof {
     const idx = this.group.indexOf(pubkey);
     const identityMerkleProof: MerkleProof = this.group.generateProofOfMembership(idx);
@@ -663,9 +664,7 @@ export class IdentityVAnchor implements IAnchor {
     refund: BigNumberish,
     recipient: string,
     relayer: string
-    // ): Promise<ethers.ContractReceipt> {
-    // ): Promise<ethers.ContractTransaction> {
-  ): Promise<{ publicInputs: IIdentityVariableAnchorPublicInputs; tx: ethers.ContractTransaction }> {
+  ): Promise<ethers.ContractTransaction> {
     const chainId = getChainIdType(await this.signer.getChainId());
     const randomKeypair = new Keypair();
 
@@ -703,7 +702,6 @@ export class IdentityVAnchor implements IAnchor {
         );
       }
     }
-
     let extAmount = BigNumber.from(fee)
       .add(outputs.reduce((sum, x) => sum.add(BigNumber.from(BigInt(x.amount))), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(BigNumber.from(BigInt(x.amount))), BigNumber.from(0)));
@@ -743,6 +741,7 @@ export class IdentityVAnchor implements IAnchor {
       BigNumber.from(extDataHash),
       vanchorMerkleProof
     );
+    console.log('EXT AMOUNT transact: ', extAmount)
 
     const outSemaphoreProofs = outputs.map((utxo) => {
       const leaf = utxo.keypair.getPubKey();
@@ -778,109 +777,167 @@ export class IdentityVAnchor implements IAnchor {
       this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
     });
 
-    return { publicInputs, tx };
-    // return tx;
-    // const receipt = await tx.wait();
-    // return receipt;
+    return tx;
   }
 
-  // public async transactWrap(
-  //   tokenAddress: string,
-  //   inputs: Utxo[],
-  //   outputs: Utxo[],
-  //   fee: BigNumberish,
-  //   recipient: string,
-  //   relayer: string,
-  //   leavesMap: Record<string, Uint8Array[]>
-  // ): Promise<ethers.ContractReceipt> {
-  //   // Default UTXO chain ID will match with the configured signer's chain ID
-  //   const evmId = await this.signer.getChainId();
-  //   const chainId = getChainIdType(evmId);
-  //   const randomKeypair = new Keypair();
-  //
-  //   while (inputs.length !== 2 && inputs.length < 16) {
-  //     inputs.push(
-  //       await CircomUtxo.generateUtxo({
-  //         curve: 'Bn254',
-  //         backend: 'Circom',
-  //         chainId: chainId.toString(),
-  //         originChainId: chainId.toString(),
-  //         amount: '0',
-  //         blinding: hexToU8a(randomBN(31).toHexString()),
-  //         keypair: randomKeypair,
-  //       })
-  //     );
-  //   }
-  //
-  //   if (outputs.length < 2) {
-  //     while (outputs.length < 2) {
-  //       outputs.push(
-  //         await CircomUtxo.generateUtxo({
-  //           curve: 'Bn254',
-  //           backend: 'Circom',
-  //           chainId: chainId.toString(),
-  //           originChainId: chainId.toString(),
-  //           amount: '0',
-  //           keypair: randomKeypair,
-  //         })
-  //       );
-  //     }
-  //   }
-  //
-  //   let extAmount = BigNumber.from(fee)
-  //     .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
-  //     .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
-  //
-  //   const { extData, publicInputs } = await this.setupTransaction(
-  //     inputs,
-  //     [outputs[0], outputs[1]],
-  //     extAmount,
-  //     fee,
-  //     recipient,
-  //     relayer,
-  //     leavesMap
-  //   );
-  //
-  //   let tx: ContractTransaction;
-  //   if (extAmount.gt(0) && checkNativeAddress(tokenAddress)) {
-  //     let tokenWrapper = TokenWrapper__factory.connect(await this.contract.token(), this.signer);
-  //     let valueToSend = await tokenWrapper.getAmountToWrap(extAmount);
-  //
-  //     tx = await this.contract.transactWrap(
-  //       {
-  //         ...publicInputs,
-  //         outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
-  //       },
-  //       extData,
-  //       tokenAddress,
-  //       {
-  //         value: valueToSend.toHexString(),
-  //         gasLimit: '0xBB8D80',
-  //       }
-  //     );
-  //   } else {
-  //     tx = await this.contract.transactWrap(
-  //       {
-  //         ...publicInputs,
-  //         outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
-  //       },
-  //       extData,
-  //       tokenAddress,
-  //       { gasLimit: '0xBB8D80' }
-  //     );
-  //   }
-  //   const receipt = await tx.wait();
-  //
-  //   // Add the leaves to the tree
-  //   outputs.forEach((x) => {
-  //     // Maintain tree state after insertions
-  //     this.tree.insert(u8aToHex(x.commitment));
-  //     let numOfElements = this.tree.number_of_elements();
-  //     this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
-  //   });
-  //
-  //   return receipt;
-  // }
+  public async transactWrap(
+    tokenAddress: string,
+    keypair: Keypair,
+    inputs: Utxo[],
+    outputs: Utxo[],
+    fee: BigNumberish,
+    refund: BigNumberish,
+    recipient: string,
+    relayer: string
+  ): Promise<ethers.ContractTransaction> {
+    // Default UTXO chain ID will match with the configured signer's chain ID
+    const evmId = await this.signer.getChainId();
+    const chainId = getChainIdType(evmId);
+    const randomKeypair = new Keypair();
+
+    const identityRootInputs = this.populateIdentityRootsForProof();
+    const identityMerkleProof: MerkleProof = this.generateIdentityMerkleProof(keypair.getPubKey());
+
+    while (inputs.length !== 2 && inputs.length < 16) {
+      inputs.push(
+        await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          chainId: chainId.toString(),
+          originChainId: chainId.toString(),
+          amount: '0',
+          blinding: hexToU8a(randomBN(31).toHexString()),
+          keypair: randomKeypair,
+        })
+      );
+    }
+
+    if (outputs.length < 2) {
+      while (outputs.length < 2) {
+        outputs.push(
+          await CircomUtxo.generateUtxo({
+            curve: 'Bn254',
+            backend: 'Circom',
+            chainId: chainId.toString(),
+            originChainId: chainId.toString(),
+            amount: '0',
+            keypair: randomKeypair,
+          })
+        );
+      }
+    }
+    console.log('inputs: ', inputs)
+    console.log('outputs: ', outputs)
+
+    let extAmount = BigNumber.from(fee)
+      .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+      .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
+
+    console.log('EXT AMOUNT: ', extAmount)
+
+    const encOutput1 = outputs[0].encrypt();
+    const encOutput2 = outputs[1].encrypt();
+    const extData = {
+      recipient: toFixedHex(recipient, 20),
+      extAmount: toFixedHex(extAmount),
+      relayer: toFixedHex(relayer, 20),
+      fee: toFixedHex(fee),
+      refund: toFixedHex(BigNumber.from(refund).toString()),
+      token: toFixedHex(this.token, 20),
+      encryptedOutput1: encOutput1,
+      encryptedOutput2: encOutput2,
+    };
+    const extDataHash = await getVAnchorExtDataHash(
+      encOutput1,
+      encOutput2,
+      extAmount.toString(),
+      BigNumber.from(fee).toString(),
+      recipient,
+      relayer,
+      refund.toString(),
+      this.token
+    );
+
+    const vanchorRoots = await this.populateVAnchorRootsForProof();
+    const vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x));
+
+    const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
+      vanchorRoots.map((root) => BigNumber.from(root)),
+      chainId,
+      inputs,
+      outputs,
+      extAmount,
+      fee,
+      BigNumber.from(extDataHash),
+      vanchorMerkleProof
+    );
+
+    const outSemaphoreProofs = outputs.map((utxo) => {
+      const leaf = utxo.keypair.getPubKey();
+      if (Number(utxo.amount) > 0) {
+        const idx = this.group.indexOf(leaf);
+        return this.group.generateProofOfMembership(idx);
+      } else {
+        const inputMerklePathIndices = new Array(this.group.depth).fill(0);
+        const inputMerklePathElements = new Array(this.group.depth).fill(0);
+
+        return {
+          pathIndices: inputMerklePathIndices,
+          pathElements: inputMerklePathElements,
+        };
+      }
+    });
+
+    const publicInputs = await this.setupTransaction(
+      keypair,
+      identityRootInputs,
+      identityMerkleProof,
+      outSemaphoreProofs,
+      vanchorInput,
+      extDataHash.toString()
+    );
+
+    let tx: ContractTransaction;
+    if (extAmount.gt(0) && checkNativeAddress(tokenAddress)) {
+      let tokenWrapper = TokenWrapper__factory.connect(await this.contract.token(), this.signer);
+      let valueToSend = await tokenWrapper.getAmountToWrap(extAmount);
+
+      tx = await this.contract.transactWrap(
+        {
+          ...publicInputs,
+          outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
+        },
+        extData,
+        tokenAddress,
+        {
+          value: valueToSend.toHexString(),
+          gasLimit: '0xBB8D80',
+        }
+      );
+    } else {
+      tx = await this.contract.transactWrap(
+        {
+          ...publicInputs,
+          outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
+        },
+        extData,
+        tokenAddress,
+        { gasLimit: '0xBB8D80' }
+      );
+    }
+    // const receipt = await tx.wait();
+
+    // Add the leaves to the tree
+    outputs.forEach((x) => {
+      // Maintain tree state after insertions
+      this.tree.insert(u8aToHex(x.commitment));
+      let numOfElements = this.tree.number_of_elements();
+      this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
+    });
+
+    return tx;
+    // return receipt;
+  }
 }
 
 export default IdentityVAnchor;
