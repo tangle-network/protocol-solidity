@@ -8,7 +8,6 @@ import {
   Verifier216__factory,
   Verifier816__factory,
   VAnchorVerifier as VerifierContract,
-
   VerifierID22__factory,
   VerifierID82__factory,
   VerifierID216__factory,

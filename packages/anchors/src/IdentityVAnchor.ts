@@ -37,8 +37,8 @@ import {
   IAnchorDepositInfo,
 } from '@webb-tools/interfaces';
 import { generateProof, hexToU8a, u8aToHex, getChainIdType, UTXOInputs, ZkComponents } from '@webb-tools/utils';
-import { Semaphore, Verifier } from '@semaphore-anchor/semaphore';
-import { Group } from '@semaphore-anchor/group';
+import { Semaphore, Verifier } from '@webb-tools/semaphore';
+import { Group } from '@webb-tools/semaphore-group';
 
 const snarkjs = require('snarkjs');
 
@@ -65,7 +65,7 @@ export type ExtData = {
   token: string;
   encryptedOutput1: string;
   encryptedOutput2: string;
-}
+};
 
 export type RawPublicSignals = string[11];
 
@@ -490,15 +490,20 @@ export class IdentityVAnchor implements IAnchor {
   ): IIdentityVariableAnchorPublicInputs {
     // public inputs to the contract
     const publicInputs = JSON.parse('[' + byte_calldata + ']')[3];
+
     let index = 0;
     const identityRoots = publicInputs.slice(index, numSemaphoreRoots);
     index = numSemaphoreRoots + 1; // ignoring public chainID from circuit
+
     const publicAmount = publicInputs[index++];
     const extDataHash = publicInputs[index++];
+
     const inputs = publicInputs.slice(index, index + nIns);
     index += nIns;
+
     const outputs = publicInputs.slice(index, index + nOuts);
     index += nOuts;
+
     const vanchorRoots = publicInputs.slice(index, index + numVAnchorRoots);
     const args: IIdentityVariableAnchorPublicInputs = {
       proof: `0x${proof}`,
@@ -577,50 +582,48 @@ export class IdentityVAnchor implements IAnchor {
     identityMerkleProof: MerkleProof,
     outSemaphoreProofs: MerkleProof[],
     extDataHash: string,
-    vanchor_inputs: UTXOInputs
+    vanchorInputs: UTXOInputs
   ): Promise<FullProof> {
     // ): Promise<{proof: > {
-    // console.log("vanchorinputs: ", vanchor_inputs)
-
     const proofInputs = {
       privateKey: keypair.privkey.toString(),
       semaphoreTreePathIndices: identityMerkleProof.pathIndices,
       semaphoreTreeSiblings: identityMerkleProof.pathElements.map((x) => BigNumber.from(x).toString()),
       semaphoreRoots: identityRoots,
-      chainID: vanchor_inputs.chainID,
-      publicAmount: vanchor_inputs.publicAmount,
+      chainID: vanchorInputs.chainID,
+      publicAmount: vanchorInputs.publicAmount,
       extDataHash: extDataHash,
 
       // data for 2 transaction inputs
-      inputNullifier: vanchor_inputs.inputNullifier,
-      inAmount: vanchor_inputs.inAmount,
-      inPrivateKey: vanchor_inputs.inPrivateKey,
-      inBlinding: vanchor_inputs.inBlinding,
-      inPathIndices: vanchor_inputs.inPathIndices,
-      inPathElements: vanchor_inputs.inPathElements.map((utxoPathElements) => utxoPathElements.map((x) => BigNumber.from(x).toString())),
+      inputNullifier: vanchorInputs.inputNullifier,
+      inAmount: vanchorInputs.inAmount,
+      inPrivateKey: vanchorInputs.inPrivateKey,
+      inBlinding: vanchorInputs.inBlinding,
+      inPathIndices: vanchorInputs.inPathIndices,
+      inPathElements: vanchorInputs.inPathElements.map((utxoPathElements) =>
+        utxoPathElements.map((x) => BigNumber.from(x).toString())
+      ),
 
       // data for 2 transaction outputs
-      outputCommitment: vanchor_inputs.outputCommitment,
-      outChainID: vanchor_inputs.outChainID,
-      outAmount: vanchor_inputs.outAmount,
-      outPubkey: vanchor_inputs.outPubkey,
+      outputCommitment: vanchorInputs.outputCommitment,
+      outChainID: vanchorInputs.outChainID,
+      outAmount: vanchorInputs.outAmount,
+      outPubkey: vanchorInputs.outPubkey,
       outSemaphoreTreePathIndices: outSemaphoreProofs.map((proof) =>
         proof.pathIndices.map((idx) => BigNumber.from(idx).toString())
       ),
       outSemaphoreTreeElements: outSemaphoreProofs.map((proof) =>
-        proof.pathElements.map((elem) =>{
-          // console.log("ELEM: ", elem);
-          if(BigNumber.isBigNumber(elem)) {
-            return elem.toString()
+        proof.pathElements.map((elem) => {
+          if (BigNumber.isBigNumber(elem)) {
+            return elem.toString();
           }
-          return BigNumber.from(elem).toString()
+          return BigNumber.from(elem).toString();
         })
       ),
-      outBlinding: vanchor_inputs.outBlinding,
-      vanchorRoots: vanchor_inputs.roots,
+      outBlinding: vanchorInputs.outBlinding,
+      vanchorRoots: vanchorInputs.roots,
     };
 
-    // console.log("proofInputs: ", proofInputs)
     let proof = await snarkjs.groth16.fullProve(
       proofInputs,
       this.smallCircuitZkComponents.wasm,
@@ -673,8 +676,8 @@ export class IdentityVAnchor implements IAnchor {
     fee: BigNumber,
     refund: BigNumber,
     encryptedOutput1: string,
-    encryptedOutput2: string,
-  ): Promise<{extData: ExtData, extDataHash: BigNumber}> {
+    encryptedOutput2: string
+  ): Promise<{ extData: ExtData; extDataHash: BigNumber }> {
     const extData = {
       recipient: toFixedHex(recipient, 20),
       extAmount: toFixedHex(extAmount),
@@ -696,12 +699,10 @@ export class IdentityVAnchor implements IAnchor {
       refund.toString(),
       this.token
     );
-    return { extData, extDataHash }
+    return { extData, extDataHash };
   }
 
-  public generateOutputSemaphoreProof(
-    outputs: Utxo[]
-  ): MerkleProof[] {
+  public generateOutputSemaphoreProof(outputs: Utxo[]): MerkleProof[] {
     const outSemaphoreProofs = outputs.map((utxo) => {
       const leaf = utxo.keypair.getPubKey();
       if (Number(utxo.amount) > 0) {
@@ -726,9 +727,8 @@ export class IdentityVAnchor implements IAnchor {
     chainId: number,
     extAmount: BigNumber,
     fee: BigNumber,
-    extDataHash: BigNumber,
+    extDataHash: BigNumber
   ): Promise<UTXOInputs> {
-
     const vanchorRoots = await this.populateVAnchorRootsForProof();
     const vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x));
 
@@ -743,7 +743,7 @@ export class IdentityVAnchor implements IAnchor {
       vanchorMerkleProof
     );
 
-    return vanchorInput
+    return vanchorInput;
   }
 
   public async transact(
@@ -804,37 +804,18 @@ export class IdentityVAnchor implements IAnchor {
       BigNumber.from(refund),
       outputs[0].encrypt(),
       outputs[1].encrypt()
-    )
+    );
 
-    const vanchorRoots = await this.populateVAnchorRootsForProof();
-
-    const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
-      vanchorRoots.map((root) => BigNumber.from(root)),
-      chainId,
+    const vanchorInput: UTXOInputs = await this.generateUTXOInputs(
       inputs,
       outputs,
+      chainId,
       extAmount,
-      fee,
-      BigNumber.from(extDataHash),
-      vanchorMerkleProof
+      BigNumber.from(fee),
+      extDataHash
     );
-    console.log('EXT AMOUNT transact: ', extAmount)
 
-    const outSemaphoreProofs = outputs.map((utxo) => {
-      const leaf = utxo.keypair.getPubKey();
-      if (Number(utxo.amount) > 0) {
-        const idx = this.group.indexOf(leaf);
-        return this.group.generateProofOfMembership(idx);
-      } else {
-        const inputMerklePathIndices = new Array(this.group.depth).fill(0);
-        const inputMerklePathElements = new Array(this.group.depth).fill(0);
-
-        return {
-          pathIndices: inputMerklePathIndices,
-          pathElements: inputMerklePathElements,
-        };
-      }
-    });
+    const outSemaphoreProofs = this.generateOutputSemaphoreProof(outputs);
 
     const publicInputs = await this.setupTransaction(
       keypair,
@@ -915,7 +896,7 @@ export class IdentityVAnchor implements IAnchor {
       BigNumber.from(refund),
       outputs[0].encrypt(),
       outputs[1].encrypt()
-    )
+    );
 
     const vanchorInput: UTXOInputs = await this.generateUTXOInputs(
       inputs,
@@ -924,9 +905,9 @@ export class IdentityVAnchor implements IAnchor {
       extAmount,
       BigNumber.from(fee),
       extDataHash
-    )
+    );
 
-    const outSemaphoreProofs = this.generateOutputSemaphoreProof(outputs)
+    const outSemaphoreProofs = this.generateOutputSemaphoreProof(outputs);
 
     const publicInputs = await this.setupTransaction(
       keypair,

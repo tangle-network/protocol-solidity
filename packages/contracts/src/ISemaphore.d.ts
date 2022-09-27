@@ -13,98 +13,65 @@ import {
   ContractTransaction,
   Overrides,
   CallOverrides,
-} from "ethers";
-import { BytesLike } from "@ethersproject/bytes";
-import { Listener, Provider } from "@ethersproject/providers";
-import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
-import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
+} from 'ethers';
+import { BytesLike } from '@ethersproject/bytes';
+import { Listener, Provider } from '@ethersproject/providers';
+import { FunctionFragment, EventFragment, Result } from '@ethersproject/abi';
+import type { TypedEventFilter, TypedEvent, TypedListener } from './common';
 
 interface ISemaphoreInterface extends ethers.utils.Interface {
   functions: {
-    "addMember(uint256,uint256)": FunctionFragment;
-    "createGroup(uint256,uint8,address,uint8)": FunctionFragment;
-    "decodeRoots(bytes)": FunctionFragment;
-    "removeMember(uint256,uint256,uint256[],uint8[])": FunctionFragment;
-    "updateEdge(uint256,bytes32,uint32,bytes32)": FunctionFragment;
-    "updateGroupAdmin(uint256,address)": FunctionFragment;
-    "verifyProof(uint256,bytes32,uint256,uint256,bytes,uint256[8])": FunctionFragment;
+    'addMember(uint256,uint256)': FunctionFragment;
+    'createGroup(uint256,uint8,address,uint8)': FunctionFragment;
+    'decodeRoots(bytes)': FunctionFragment;
+    'removeMember(uint256,uint256,uint256[],uint8[])': FunctionFragment;
+    'updateEdge(uint256,bytes32,uint32,bytes32)': FunctionFragment;
+    'updateGroupAdmin(uint256,address)': FunctionFragment;
+    'verifyProof(uint256,bytes32,uint256,uint256,bytes,uint256[8])': FunctionFragment;
   };
 
+  encodeFunctionData(functionFragment: 'addMember', values: [BigNumberish, BigNumberish]): string;
   encodeFunctionData(
-    functionFragment: "addMember",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "createGroup",
+    functionFragment: 'createGroup',
     values: [BigNumberish, BigNumberish, string, BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: 'decodeRoots', values: [BytesLike]): string;
   encodeFunctionData(
-    functionFragment: "decodeRoots",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "removeMember",
+    functionFragment: 'removeMember',
     values: [BigNumberish, BigNumberish, BigNumberish[], BigNumberish[]]
   ): string;
   encodeFunctionData(
-    functionFragment: "updateEdge",
+    functionFragment: 'updateEdge',
     values: [BigNumberish, BytesLike, BigNumberish, BytesLike]
   ): string;
+  encodeFunctionData(functionFragment: 'updateGroupAdmin', values: [BigNumberish, string]): string;
   encodeFunctionData(
-    functionFragment: "updateGroupAdmin",
-    values: [BigNumberish, string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "verifyProof",
+    functionFragment: 'verifyProof',
     values: [
       BigNumberish,
       BytesLike,
       BigNumberish,
       BigNumberish,
       BytesLike,
-      [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-      ]
+      [BigNumberish, BigNumberish, BigNumberish, BigNumberish, BigNumberish, BigNumberish, BigNumberish, BigNumberish]
     ]
   ): string;
 
-  decodeFunctionResult(functionFragment: "addMember", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "createGroup",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "decodeRoots",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "removeMember",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "updateEdge", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "updateGroupAdmin",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "verifyProof",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: 'addMember', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'createGroup', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'decodeRoots', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'removeMember', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'updateEdge', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'updateGroupAdmin', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'verifyProof', data: BytesLike): Result;
 
   events: {
-    "GroupAdminUpdated(uint256,address,address)": EventFragment;
-    "ProofVerified(uint256,bytes32)": EventFragment;
+    'GroupAdminUpdated(uint256,address,address)': EventFragment;
+    'ProofVerified(uint256,bytes32)': EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "GroupAdminUpdated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ProofVerified"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'GroupAdminUpdated'): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'ProofVerified'): EventFragment;
 }
 
 export type GroupAdminUpdatedEvent = TypedEvent<
@@ -115,9 +82,7 @@ export type GroupAdminUpdatedEvent = TypedEvent<
   }
 >;
 
-export type ProofVerifiedEvent = TypedEvent<
-  [BigNumber, string] & { groupId: BigNumber; signal: string }
->;
+export type ProofVerifiedEvent = TypedEvent<[BigNumber, string] & { groupId: BigNumber; signal: string }>;
 
 export class ISemaphore extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -177,10 +142,7 @@ export class ISemaphore extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    decodeRoots(
-      roots: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[string[]] & { roots_decoded: string[] }>;
+    decodeRoots(roots: BytesLike, overrides?: CallOverrides): Promise<[string[]] & { roots_decoded: string[] }>;
 
     removeMember(
       groupId: BigNumberish,
@@ -282,11 +244,7 @@ export class ISemaphore extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    addMember(
-      groupId: BigNumberish,
-      identityCommitment: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    addMember(groupId: BigNumberish, identityCommitment: BigNumberish, overrides?: CallOverrides): Promise<void>;
 
     createGroup(
       groupId: BigNumberish,
@@ -314,11 +272,7 @@ export class ISemaphore extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    updateGroupAdmin(
-      groupId: BigNumberish,
-      newAdmin: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    updateGroupAdmin(groupId: BigNumberish, newAdmin: string, overrides?: CallOverrides): Promise<void>;
 
     verifyProof(
       groupId: BigNumberish,
@@ -341,39 +295,27 @@ export class ISemaphore extends BaseContract {
   };
 
   filters: {
-    "GroupAdminUpdated(uint256,address,address)"(
+    'GroupAdminUpdated(uint256,address,address)'(
       groupId?: BigNumberish | null,
       oldAdmin?: string | null,
       newAdmin?: string | null
-    ): TypedEventFilter<
-      [BigNumber, string, string],
-      { groupId: BigNumber; oldAdmin: string; newAdmin: string }
-    >;
+    ): TypedEventFilter<[BigNumber, string, string], { groupId: BigNumber; oldAdmin: string; newAdmin: string }>;
 
     GroupAdminUpdated(
       groupId?: BigNumberish | null,
       oldAdmin?: string | null,
       newAdmin?: string | null
-    ): TypedEventFilter<
-      [BigNumber, string, string],
-      { groupId: BigNumber; oldAdmin: string; newAdmin: string }
-    >;
+    ): TypedEventFilter<[BigNumber, string, string], { groupId: BigNumber; oldAdmin: string; newAdmin: string }>;
 
-    "ProofVerified(uint256,bytes32)"(
+    'ProofVerified(uint256,bytes32)'(
       groupId?: BigNumberish | null,
       signal?: null
-    ): TypedEventFilter<
-      [BigNumber, string],
-      { groupId: BigNumber; signal: string }
-    >;
+    ): TypedEventFilter<[BigNumber, string], { groupId: BigNumber; signal: string }>;
 
     ProofVerified(
       groupId?: BigNumberish | null,
       signal?: null
-    ): TypedEventFilter<
-      [BigNumber, string],
-      { groupId: BigNumber; signal: string }
-    >;
+    ): TypedEventFilter<[BigNumber, string], { groupId: BigNumber; signal: string }>;
   };
 
   estimateGas: {
@@ -391,10 +333,7 @@ export class ISemaphore extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    decodeRoots(
-      roots: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    decodeRoots(roots: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
     removeMember(
       groupId: BigNumberish,
@@ -453,10 +392,7 @@ export class ISemaphore extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    decodeRoots(
-      roots: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    decodeRoots(roots: BytesLike, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     removeMember(
       groupId: BigNumberish,

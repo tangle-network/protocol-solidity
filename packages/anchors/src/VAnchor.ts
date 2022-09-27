@@ -25,11 +25,7 @@ import {
   CircomUtxo,
   FIELD_SIZE,
 } from '@webb-tools/sdk-core';
-import {
-  IAnchor,
-  IVariableAnchorExtData,
-  IVariableAnchorPublicInputs,
-} from '@webb-tools/interfaces';
+import { IAnchor, IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
@@ -517,7 +513,7 @@ export class VAnchor implements IAnchor {
       extAmount: toFixedHex(BigNumber.from(extAmount)),
       fee: BigNumber.from(fee).toString(),
       refund: BigNumber.from(refund).toString(),
-      token: hexToU8a(token)
+      token: hexToU8a(token),
     };
 
     inputs.length > 2

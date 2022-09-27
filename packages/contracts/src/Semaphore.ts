@@ -12,20 +12,10 @@ import type {
   PopulatedTransaction,
   Signer,
   utils,
-} from "ethers";
-import type {
-  FunctionFragment,
-  Result,
-  EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-  PromiseOrValue,
-} from "./semaphoreCommon";
+} from 'ethers';
+import type { FunctionFragment, Result, EventFragment } from '@ethersproject/abi';
+import type { Listener, Provider } from '@ethersproject/providers';
+import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from './semaphoreCommon';
 
 export type EdgeStruct = {
   chainID: PromiseOrValue<BigNumberish>;
@@ -55,60 +45,57 @@ export declare namespace ISemaphore {
 
 export interface SemaphoreInterface extends utils.Interface {
   functions: {
-    "EVM_CHAIN_ID_TYPE()": FunctionFragment;
-    "addMember(uint256,uint256)": FunctionFragment;
-    "createGroup(uint256,uint8,address,uint8)": FunctionFragment;
-    "decodeRoots(bytes)": FunctionFragment;
-    "getChainId()": FunctionFragment;
-    "getChainIdType()": FunctionFragment;
-    "getDepth(uint256)": FunctionFragment;
-    "getLatestNeighborEdges(uint256)": FunctionFragment;
-    "getMaxEdges(uint256)": FunctionFragment;
-    "getNumberOfLeaves(uint256)": FunctionFragment;
-    "getRoot(uint256)": FunctionFragment;
-    "groupAdmins(uint256)": FunctionFragment;
-    "groupMaxEdges(uint256)": FunctionFragment;
-    "removeMember(uint256,uint256,uint256[],uint8[])": FunctionFragment;
-    "updateEdge(uint256,bytes32,uint32,bytes32)": FunctionFragment;
-    "updateGroupAdmin(uint256,address)": FunctionFragment;
-    "verifiers(uint8)": FunctionFragment;
-    "verifyProof(uint256,bytes32,uint256,uint256,bytes,uint256[8])": FunctionFragment;
-    "verifyRoots(uint256,bytes)": FunctionFragment;
+    'EVM_CHAIN_ID_TYPE()': FunctionFragment;
+    'addMember(uint256,uint256)': FunctionFragment;
+    'createGroup(uint256,uint8,address,uint8)': FunctionFragment;
+    'decodeRoots(bytes)': FunctionFragment;
+    'getChainId()': FunctionFragment;
+    'getChainIdType()': FunctionFragment;
+    'getDepth(uint256)': FunctionFragment;
+    'getLatestNeighborEdges(uint256)': FunctionFragment;
+    'getMaxEdges(uint256)': FunctionFragment;
+    'getNumberOfLeaves(uint256)': FunctionFragment;
+    'getRoot(uint256)': FunctionFragment;
+    'groupAdmins(uint256)': FunctionFragment;
+    'groupMaxEdges(uint256)': FunctionFragment;
+    'removeMember(uint256,uint256,uint256[],uint8[])': FunctionFragment;
+    'updateEdge(uint256,bytes32,uint32,bytes32)': FunctionFragment;
+    'updateGroupAdmin(uint256,address)': FunctionFragment;
+    'verifiers(uint8)': FunctionFragment;
+    'verifyProof(uint256,bytes32,uint256,uint256,bytes,uint256[8])': FunctionFragment;
+    'verifyRoots(uint256,bytes)': FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "EVM_CHAIN_ID_TYPE"
-      | "addMember"
-      | "createGroup"
-      | "decodeRoots"
-      | "getChainId"
-      | "getChainIdType"
-      | "getDepth"
-      | "getLatestNeighborEdges"
-      | "getMaxEdges"
-      | "getNumberOfLeaves"
-      | "getRoot"
-      | "groupAdmins"
-      | "groupMaxEdges"
-      | "removeMember"
-      | "updateEdge"
-      | "updateGroupAdmin"
-      | "verifiers"
-      | "verifyProof"
-      | "verifyRoots"
+      | 'EVM_CHAIN_ID_TYPE'
+      | 'addMember'
+      | 'createGroup'
+      | 'decodeRoots'
+      | 'getChainId'
+      | 'getChainIdType'
+      | 'getDepth'
+      | 'getLatestNeighborEdges'
+      | 'getMaxEdges'
+      | 'getNumberOfLeaves'
+      | 'getRoot'
+      | 'groupAdmins'
+      | 'groupMaxEdges'
+      | 'removeMember'
+      | 'updateEdge'
+      | 'updateGroupAdmin'
+      | 'verifiers'
+      | 'verifyProof'
+      | 'verifyRoots'
   ): FunctionFragment;
 
+  encodeFunctionData(functionFragment: 'EVM_CHAIN_ID_TYPE', values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "EVM_CHAIN_ID_TYPE",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "addMember",
+    functionFragment: 'addMember',
     values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
-    functionFragment: "createGroup",
+    functionFragment: 'createGroup',
     values: [
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>,
@@ -116,48 +103,18 @@ export interface SemaphoreInterface extends utils.Interface {
       PromiseOrValue<BigNumberish>
     ]
   ): string;
+  encodeFunctionData(functionFragment: 'decodeRoots', values: [PromiseOrValue<BytesLike>]): string;
+  encodeFunctionData(functionFragment: 'getChainId', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'getChainIdType', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'getDepth', values: [PromiseOrValue<BigNumberish>]): string;
+  encodeFunctionData(functionFragment: 'getLatestNeighborEdges', values: [PromiseOrValue<BigNumberish>]): string;
+  encodeFunctionData(functionFragment: 'getMaxEdges', values: [PromiseOrValue<BigNumberish>]): string;
+  encodeFunctionData(functionFragment: 'getNumberOfLeaves', values: [PromiseOrValue<BigNumberish>]): string;
+  encodeFunctionData(functionFragment: 'getRoot', values: [PromiseOrValue<BigNumberish>]): string;
+  encodeFunctionData(functionFragment: 'groupAdmins', values: [PromiseOrValue<BigNumberish>]): string;
+  encodeFunctionData(functionFragment: 'groupMaxEdges', values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(
-    functionFragment: "decodeRoots",
-    values: [PromiseOrValue<BytesLike>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getChainId",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getChainIdType",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getDepth",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getLatestNeighborEdges",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getMaxEdges",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getNumberOfLeaves",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getRoot",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "groupAdmins",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "groupMaxEdges",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "removeMember",
+    functionFragment: 'removeMember',
     values: [
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>,
@@ -166,7 +123,7 @@ export interface SemaphoreInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "updateEdge",
+    functionFragment: 'updateEdge',
     values: [
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BytesLike>,
@@ -175,15 +132,12 @@ export interface SemaphoreInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "updateGroupAdmin",
+    functionFragment: 'updateGroupAdmin',
     values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
   ): string;
+  encodeFunctionData(functionFragment: 'verifiers', values: [PromiseOrValue<BigNumberish>]): string;
   encodeFunctionData(
-    functionFragment: "verifiers",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "verifyProof",
+    functionFragment: 'verifyProof',
     values: [
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BytesLike>,
@@ -194,84 +148,45 @@ export interface SemaphoreInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "verifyRoots",
+    functionFragment: 'verifyRoots',
     values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BytesLike>]
   ): string;
 
-  decodeFunctionResult(
-    functionFragment: "EVM_CHAIN_ID_TYPE",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "addMember", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "createGroup",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "decodeRoots",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getChainId", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getChainIdType",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getDepth", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getLatestNeighborEdges",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getMaxEdges",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getNumberOfLeaves",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getRoot", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "groupAdmins",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "groupMaxEdges",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "removeMember",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "updateEdge", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "updateGroupAdmin",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "verifiers", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "verifyProof",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "verifyRoots",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: 'EVM_CHAIN_ID_TYPE', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'addMember', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'createGroup', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'decodeRoots', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getChainId', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getChainIdType', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getDepth', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getLatestNeighborEdges', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getMaxEdges', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getNumberOfLeaves', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getRoot', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'groupAdmins', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'groupMaxEdges', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'removeMember', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'updateEdge', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'updateGroupAdmin', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'verifiers', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'verifyProof', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'verifyRoots', data: BytesLike): Result;
 
   events: {
-    "GroupAdminUpdated(uint256,address,address)": EventFragment;
-    "GroupCreated(uint256,uint8)": EventFragment;
-    "MemberAdded(uint256,uint256,uint256)": EventFragment;
-    "MemberRemoved(uint256,uint256,uint256)": EventFragment;
-    "NullifierHashAdded(uint256)": EventFragment;
-    "ProofVerified(uint256,bytes32)": EventFragment;
+    'GroupAdminUpdated(uint256,address,address)': EventFragment;
+    'GroupCreated(uint256,uint8)': EventFragment;
+    'MemberAdded(uint256,uint256,uint256)': EventFragment;
+    'MemberRemoved(uint256,uint256,uint256)': EventFragment;
+    'NullifierHashAdded(uint256)': EventFragment;
+    'ProofVerified(uint256,bytes32)': EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "GroupAdminUpdated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "GroupCreated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "MemberAdded"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "MemberRemoved"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "NullifierHashAdded"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ProofVerified"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'GroupAdminUpdated'): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'GroupCreated'): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'MemberAdded'): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'MemberRemoved'): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'NullifierHashAdded'): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'ProofVerified'): EventFragment;
 }
 
 export interface GroupAdminUpdatedEventObject {
@@ -279,22 +194,15 @@ export interface GroupAdminUpdatedEventObject {
   oldAdmin: string;
   newAdmin: string;
 }
-export type GroupAdminUpdatedEvent = TypedEvent<
-  [BigNumber, string, string],
-  GroupAdminUpdatedEventObject
->;
+export type GroupAdminUpdatedEvent = TypedEvent<[BigNumber, string, string], GroupAdminUpdatedEventObject>;
 
-export type GroupAdminUpdatedEventFilter =
-  TypedEventFilter<GroupAdminUpdatedEvent>;
+export type GroupAdminUpdatedEventFilter = TypedEventFilter<GroupAdminUpdatedEvent>;
 
 export interface GroupCreatedEventObject {
   groupId: BigNumber;
   depth: number;
 }
-export type GroupCreatedEvent = TypedEvent<
-  [BigNumber, number],
-  GroupCreatedEventObject
->;
+export type GroupCreatedEvent = TypedEvent<[BigNumber, number], GroupCreatedEventObject>;
 
 export type GroupCreatedEventFilter = TypedEventFilter<GroupCreatedEvent>;
 
@@ -303,10 +211,7 @@ export interface MemberAddedEventObject {
   identityCommitment: BigNumber;
   root: BigNumber;
 }
-export type MemberAddedEvent = TypedEvent<
-  [BigNumber, BigNumber, BigNumber],
-  MemberAddedEventObject
->;
+export type MemberAddedEvent = TypedEvent<[BigNumber, BigNumber, BigNumber], MemberAddedEventObject>;
 
 export type MemberAddedEventFilter = TypedEventFilter<MemberAddedEvent>;
 
@@ -315,32 +220,22 @@ export interface MemberRemovedEventObject {
   identityCommitment: BigNumber;
   root: BigNumber;
 }
-export type MemberRemovedEvent = TypedEvent<
-  [BigNumber, BigNumber, BigNumber],
-  MemberRemovedEventObject
->;
+export type MemberRemovedEvent = TypedEvent<[BigNumber, BigNumber, BigNumber], MemberRemovedEventObject>;
 
 export type MemberRemovedEventFilter = TypedEventFilter<MemberRemovedEvent>;
 
 export interface NullifierHashAddedEventObject {
   nullifierHash: BigNumber;
 }
-export type NullifierHashAddedEvent = TypedEvent<
-  [BigNumber],
-  NullifierHashAddedEventObject
->;
+export type NullifierHashAddedEvent = TypedEvent<[BigNumber], NullifierHashAddedEventObject>;
 
-export type NullifierHashAddedEventFilter =
-  TypedEventFilter<NullifierHashAddedEvent>;
+export type NullifierHashAddedEventFilter = TypedEventFilter<NullifierHashAddedEvent>;
 
 export interface ProofVerifiedEventObject {
   groupId: BigNumber;
   signal: string;
 }
-export type ProofVerifiedEvent = TypedEvent<
-  [BigNumber, string],
-  ProofVerifiedEventObject
->;
+export type ProofVerifiedEvent = TypedEvent<[BigNumber, string], ProofVerifiedEventObject>;
 
 export type ProofVerifiedEventFilter = TypedEventFilter<ProofVerifiedEvent>;
 
@@ -357,13 +252,9 @@ export interface Semaphore extends BaseContract {
     toBlock?: string | number | undefined
   ): Promise<Array<TEvent>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
+  listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>;
   listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
+  removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this;
   removeAllListeners(eventName?: string): this;
   off: OnEvent<this>;
   on: OnEvent<this>;
@@ -396,40 +287,22 @@ export interface Semaphore extends BaseContract {
 
     getChainIdType(overrides?: CallOverrides): Promise<[number]>;
 
-    getDepth(
-      groupId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[number]>;
+    getDepth(groupId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[number]>;
 
     getLatestNeighborEdges(
       groupId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<[EdgeStructOutput[]]>;
 
-    getMaxEdges(
-      groupId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[number]>;
+    getMaxEdges(groupId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[number]>;
 
-    getNumberOfLeaves(
-      groupId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    getNumberOfLeaves(groupId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    getRoot(
-      groupId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    getRoot(groupId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    groupAdmins(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    groupAdmins(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[string]>;
 
-    groupMaxEdges(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[number]>;
+    groupMaxEdges(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[number]>;
 
     removeMember(
       groupId: PromiseOrValue<BigNumberish>,
@@ -453,10 +326,7 @@ export interface Semaphore extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    verifiers(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    verifiers(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[string]>;
 
     verifyProof(
       groupId: PromiseOrValue<BigNumberish>,
@@ -491,49 +361,25 @@ export interface Semaphore extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  decodeRoots(
-    roots: PromiseOrValue<BytesLike>,
-    overrides?: CallOverrides
-  ): Promise<string[]>;
+  decodeRoots(roots: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<string[]>;
 
   getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
   getChainIdType(overrides?: CallOverrides): Promise<number>;
 
-  getDepth(
-    groupId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<number>;
+  getDepth(groupId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<number>;
 
-  getLatestNeighborEdges(
-    groupId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<EdgeStructOutput[]>;
+  getLatestNeighborEdges(groupId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<EdgeStructOutput[]>;
 
-  getMaxEdges(
-    groupId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<number>;
+  getMaxEdges(groupId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<number>;
 
-  getNumberOfLeaves(
-    groupId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  getNumberOfLeaves(groupId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
-  getRoot(
-    groupId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  getRoot(groupId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
-  groupAdmins(
-    arg0: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  groupAdmins(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>;
 
-  groupMaxEdges(
-    arg0: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<number>;
+  groupMaxEdges(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<number>;
 
   removeMember(
     groupId: PromiseOrValue<BigNumberish>,
@@ -557,10 +403,7 @@ export interface Semaphore extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  verifiers(
-    arg0: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  verifiers(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>;
 
   verifyProof(
     groupId: PromiseOrValue<BigNumberish>,
@@ -595,49 +438,28 @@ export interface Semaphore extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    decodeRoots(
-      roots: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<string[]>;
+    decodeRoots(roots: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<string[]>;
 
     getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
     getChainIdType(overrides?: CallOverrides): Promise<number>;
 
-    getDepth(
-      groupId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<number>;
+    getDepth(groupId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<number>;
 
     getLatestNeighborEdges(
       groupId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<EdgeStructOutput[]>;
 
-    getMaxEdges(
-      groupId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<number>;
+    getMaxEdges(groupId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<number>;
 
-    getNumberOfLeaves(
-      groupId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getNumberOfLeaves(groupId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    getRoot(
-      groupId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getRoot(groupId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    groupAdmins(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    groupAdmins(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>;
 
-    groupMaxEdges(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<number>;
+    groupMaxEdges(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<number>;
 
     removeMember(
       groupId: PromiseOrValue<BigNumberish>,
@@ -661,10 +483,7 @@ export interface Semaphore extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    verifiers(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    verifiers(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>;
 
     verifyProof(
       groupId: PromiseOrValue<BigNumberish>,
@@ -684,7 +503,7 @@ export interface Semaphore extends BaseContract {
   };
 
   filters: {
-    "GroupAdminUpdated(uint256,address,address)"(
+    'GroupAdminUpdated(uint256,address,address)'(
       groupId?: PromiseOrValue<BigNumberish> | null,
       oldAdmin?: PromiseOrValue<string> | null,
       newAdmin?: PromiseOrValue<string> | null
@@ -695,16 +514,10 @@ export interface Semaphore extends BaseContract {
       newAdmin?: PromiseOrValue<string> | null
     ): GroupAdminUpdatedEventFilter;
 
-    "GroupCreated(uint256,uint8)"(
-      groupId?: PromiseOrValue<BigNumberish> | null,
-      depth?: null
-    ): GroupCreatedEventFilter;
-    GroupCreated(
-      groupId?: PromiseOrValue<BigNumberish> | null,
-      depth?: null
-    ): GroupCreatedEventFilter;
+    'GroupCreated(uint256,uint8)'(groupId?: PromiseOrValue<BigNumberish> | null, depth?: null): GroupCreatedEventFilter;
+    GroupCreated(groupId?: PromiseOrValue<BigNumberish> | null, depth?: null): GroupCreatedEventFilter;
 
-    "MemberAdded(uint256,uint256,uint256)"(
+    'MemberAdded(uint256,uint256,uint256)'(
       groupId?: PromiseOrValue<BigNumberish> | null,
       identityCommitment?: null,
       root?: null
@@ -715,7 +528,7 @@ export interface Semaphore extends BaseContract {
       root?: null
     ): MemberAddedEventFilter;
 
-    "MemberRemoved(uint256,uint256,uint256)"(
+    'MemberRemoved(uint256,uint256,uint256)'(
       groupId?: PromiseOrValue<BigNumberish> | null,
       identityCommitment?: null,
       root?: null
@@ -726,19 +539,14 @@ export interface Semaphore extends BaseContract {
       root?: null
     ): MemberRemovedEventFilter;
 
-    "NullifierHashAdded(uint256)"(
-      nullifierHash?: null
-    ): NullifierHashAddedEventFilter;
+    'NullifierHashAdded(uint256)'(nullifierHash?: null): NullifierHashAddedEventFilter;
     NullifierHashAdded(nullifierHash?: null): NullifierHashAddedEventFilter;
 
-    "ProofVerified(uint256,bytes32)"(
+    'ProofVerified(uint256,bytes32)'(
       groupId?: PromiseOrValue<BigNumberish> | null,
       signal?: null
     ): ProofVerifiedEventFilter;
-    ProofVerified(
-      groupId?: PromiseOrValue<BigNumberish> | null,
-      signal?: null
-    ): ProofVerifiedEventFilter;
+    ProofVerified(groupId?: PromiseOrValue<BigNumberish> | null, signal?: null): ProofVerifiedEventFilter;
   };
 
   estimateGas: {
@@ -758,49 +566,25 @@ export interface Semaphore extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    decodeRoots(
-      roots: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    decodeRoots(roots: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>;
 
     getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
     getChainIdType(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getDepth(
-      groupId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getDepth(groupId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    getLatestNeighborEdges(
-      groupId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getLatestNeighborEdges(groupId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    getMaxEdges(
-      groupId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getMaxEdges(groupId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    getNumberOfLeaves(
-      groupId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getNumberOfLeaves(groupId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    getRoot(
-      groupId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getRoot(groupId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    groupAdmins(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    groupAdmins(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
-    groupMaxEdges(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    groupMaxEdges(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
     removeMember(
       groupId: PromiseOrValue<BigNumberish>,
@@ -824,10 +608,7 @@ export interface Semaphore extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    verifiers(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    verifiers(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>;
 
     verifyProof(
       groupId: PromiseOrValue<BigNumberish>,
@@ -863,49 +644,28 @@ export interface Semaphore extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    decodeRoots(
-      roots: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    decodeRoots(roots: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getChainId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getChainIdType(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    getDepth(
-      groupId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getDepth(groupId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getLatestNeighborEdges(
       groupId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getMaxEdges(
-      groupId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getMaxEdges(groupId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    getNumberOfLeaves(
-      groupId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getNumberOfLeaves(groupId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    getRoot(
-      groupId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getRoot(groupId: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    groupAdmins(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    groupAdmins(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    groupMaxEdges(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    groupMaxEdges(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     removeMember(
       groupId: PromiseOrValue<BigNumberish>,
@@ -929,10 +689,7 @@ export interface Semaphore extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    verifiers(
-      arg0: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    verifiers(arg0: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     verifyProof(
       groupId: PromiseOrValue<BigNumberish>,

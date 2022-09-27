@@ -2,8 +2,8 @@
 /* eslint-disable sort-keys */
 const assert = require('assert');
 import { BigNumber, BigNumberish, ethers } from 'ethers';
-import { poseidon } from "circomlibjs"
-import { groth16 } from "snarkjs"
+import { poseidon } from 'circomlibjs';
+import { groth16 } from 'snarkjs';
 
 import { u8aToHex } from '@polkadot/util';
 
@@ -16,27 +16,26 @@ export const FIELD_SIZE = BigNumber.from(
 );
 
 export type UTXOInputs = {
-    roots: string[],
-    chainID: string,
-    inputNullifier: string[],
-    outputCommitment: string[],
-    publicAmount: string,
-    extDataHash: string,
+  roots: string[];
+  chainID: string;
+  inputNullifier: string[];
+  outputCommitment: string[];
+  publicAmount: string;
+  extDataHash: string;
 
-    // data for 2 transaction inputs
-    inAmount: string[],
-    inPrivateKey: string[],
-    inBlinding: string[],
-    inPathIndices: number[][],
-    inPathElements: number[][],
+  // data for 2 transaction inputs
+  inAmount: string[];
+  inPrivateKey: string[];
+  inBlinding: string[];
+  inPathIndices: number[][];
+  inPathElements: number[][];
 
-    // data for 2 transaction outputs
-    outChainID: string,
-    outAmount: string[],
-    outPubkey: string[],
-    outBlinding: string[]
+  // data for 2 transaction outputs
+  outChainID: string;
+  outAmount: string[];
+  outPubkey: string[];
+  outBlinding: string[];
 };
-
 
 export async function fetchComponentsFromFilePaths(
   wasmPath: string,
@@ -69,8 +68,7 @@ export const getChainIdType = (chainID: number = 31337): number => {
   return Number(BigInt(chainIdType));
 };
 
-
-export function getIdentityVAnchorExtDataHash (
+export function getIdentityVAnchorExtDataHash(
   encryptedOutput1: string,
   encryptedOutput2: string,
   extAmount: string,
@@ -82,17 +80,21 @@ export function getIdentityVAnchorExtDataHash (
 ) {
   const abi = new ethers.utils.AbiCoder();
   const encodedData = abi.encode(
-    ['tuple(address recipient,int256 extAmount,address relayer,uint256 fee,uint256 refund,address token,bytes encryptedOutput1,bytes encryptedOutput2)'],
-    [{
-      recipient: toFixedHex(recipient, 20),
-      extAmount: toFixedHex(extAmount),
-      relayer: toFixedHex(relayer, 20),
-      fee: toFixedHex(fee),
-      refund: toFixedHex(refund),
-      token: toFixedHex(token, 20),
-      encryptedOutput1,
-      encryptedOutput2
-    }]
+    [
+      'tuple(address recipient,int256 extAmount,address relayer,uint256 fee,uint256 refund,address token,bytes encryptedOutput1,bytes encryptedOutput2)',
+    ],
+    [
+      {
+        recipient: toFixedHex(recipient, 20),
+        extAmount: toFixedHex(extAmount),
+        relayer: toFixedHex(relayer, 20),
+        fee: toFixedHex(fee),
+        refund: toFixedHex(refund),
+        token: toFixedHex(token, 20),
+        encryptedOutput1,
+        encryptedOutput2,
+      },
+    ]
   );
 
   const hash = ethers.utils.keccak256(encodedData);
@@ -100,19 +102,14 @@ export function getIdentityVAnchorExtDataHash (
   return BigNumber.from(hash).mod(FIELD_SIZE);
 }
 export default function verifyProof(verificationKey: any, { proof, publicSignals }: any): Promise<boolean> {
-    return groth16.verify(
-        verificationKey,
-        [
-            publicSignals.merkleRoot,
-            publicSignals.nullifierHash,
-            publicSignals.signalHash,
-            publicSignals.externalNullifier
-        ],
-        proof
-    )
+  return groth16.verify(
+    verificationKey,
+    [publicSignals.merkleRoot, publicSignals.nullifierHash, publicSignals.signalHash, publicSignals.externalNullifier],
+    proof
+  );
 }
 
-export async function generateProof (
+export async function generateProof(
   keypair: Keypair,
   identityRoots: string[],
   identityMerkleProof: MerkleProof,
@@ -120,7 +117,7 @@ export async function generateProof (
   extDataHash: string,
   vanchor_inputs: UTXOInputs,
   wasmFilePath: string,
-  zkeyFilePath: string,
+  zkeyFilePath: string
 ): Promise<any> {
   const inputs = {
     privateKey: keypair.privkey.toString(),
@@ -144,11 +141,15 @@ export async function generateProof (
     outChainID: vanchor_inputs.outChainID,
     outAmount: vanchor_inputs.outAmount,
     outPubkey: vanchor_inputs.outPubkey,
-    outSemaphoreTreePathIndices: outSemaphoreProofs.map((proof) => proof.pathIndices.map((idx) => BigNumber.from(idx).toString())),
-    outSemaphoreTreeElements: outSemaphoreProofs.map((proof) => proof.pathElements.map((elem) => BigNumber.from(elem).toString())),
+    outSemaphoreTreePathIndices: outSemaphoreProofs.map((proof) =>
+      proof.pathIndices.map((idx) => BigNumber.from(idx).toString())
+    ),
+    outSemaphoreTreeElements: outSemaphoreProofs.map((proof) =>
+      proof.pathElements.map((elem) => BigNumber.from(elem).toString())
+    ),
     outBlinding: vanchor_inputs.outBlinding,
     vanchorRoots: vanchor_inputs.roots,
-  }
+  };
 
   let proof = await groth16.fullProve(inputs, wasmFilePath, zkeyFilePath);
 
