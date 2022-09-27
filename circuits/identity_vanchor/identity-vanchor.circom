@@ -81,10 +81,6 @@ template IdentityVAnchor(levels, nIns, nOuts, zeroLeaf, length) {
     component publicSemaphore[nOuts];
     
     for (var n = 0; n < nOuts; n++) {
-        /* log(111111111111111111111); */
-        /* log(n); */
-        /* log(outPubkey[n]); */
-        /* log(outAmount[n]); */
         publicSemaphore[n] = ManyMerkleProofPublic(levels, length);
         publicSemaphore[n].leaf <== outPubkey[n];
         publicSemaphore[n].enabled <== outAmount[n];
