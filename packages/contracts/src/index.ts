@@ -22,6 +22,10 @@ export { HandlerHelpers__factory } from './factories/HandlerHelpers__factory';
 export type { VAnchorEncodeInputs } from './VAnchorEncodeInputs';
 export { VAnchorEncodeInputs__factory } from './factories/VAnchorEncodeInputs__factory';
 
+export type { Semaphore } from './Semaphore';
+export type { IdentityVAnchorEncodeInputs } from './IdentityVAnchorEncodeInputs';
+export { IdentityVAnchorEncodeInputs__factory } from './factories/IdentityVAnchorEncodeInputs__factory';
+
 export type { GovernedTokenWrapper } from './GovernedTokenWrapper';
 export { GovernedTokenWrapper__factory } from './factories/GovernedTokenWrapper__factory';
 
@@ -48,6 +52,12 @@ export { VAnchor__factory } from './factories/VAnchor__factory';
 
 export type { VAnchorBase } from './VAnchorBase';
 export { VAnchorBase__factory } from './factories/VAnchorBase__factory';
+
+export type { IdentityVAnchor } from './IdentityVAnchor';
+export { IdentityVAnchor__factory } from './factories/IdentityVAnchor__factory';
+
+export type { IdentityVAnchorBase } from './IdentityVAnchorBase';
+export { IdentityVAnchorBase__factory } from './factories/IdentityVAnchorBase__factory';
 
 export type { Verifier } from './Verifier';
 export { Verifier__factory } from './factories/Verifier__factory';
@@ -81,3 +91,18 @@ export { Verifier82__factory } from './factories/Verifier82__factory';
 
 export type { VAnchorVerifier } from './VAnchorVerifier';
 export { VAnchorVerifier__factory } from './factories/VAnchorVerifier__factory';
+
+export type { VerifierID216 } from './VerifierID216';
+export { VerifierID216__factory } from './factories/VerifierID216__factory';
+
+export type { VerifierID816 } from './VerifierID816';
+export { VerifierID816__factory } from './factories/VerifierID816__factory';
+
+export type { VerifierID22 } from './Verifier22';
+export { VerifierID22__factory } from './factories/VerifierID22__factory';
+
+export type { VerifierID82 } from './Verifier82';
+export { VerifierID82__factory } from './factories/VerifierID82__factory';
+
+export type { IdentityVAnchorVerifier } from './IdentityVAnchorVerifier';
+export { IdentityVAnchorVerifier__factory } from './factories/IdentityVAnchorVerifier__factory';

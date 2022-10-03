@@ -1,8 +1,10 @@
 import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
+const assert = require('assert');
 import {
-  VAnchor as VAnchorContract,
-  VAnchor__factory,
-  VAnchorEncodeInputs__factory,
+  IdentityVAnchor as IdentityVAnchorContract,
+  IdentityVAnchor__factory,
+  IdentityVAnchorEncodeInputs__factory,
+  TokenWrapper,
   TokenWrapper__factory,
 } from '@webb-tools/contracts';
 import {
@@ -18,6 +20,8 @@ import {
   randomBN,
   CircomProvingManager,
   ProvingManagerSetupInput,
+  generateVariableWitnessInput,
+  getVAnchorExtDataHash,
   Note,
   NoteGenInput,
   MerkleProof,
@@ -25,29 +29,65 @@ import {
   CircomUtxo,
   FIELD_SIZE,
 } from '@webb-tools/sdk-core';
-import { IAnchor, IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
-import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
+import {
+  IAnchorDeposit,
+  IAnchor,
+  IIdentityVariableAnchorExtData,
+  IIdentityVariableAnchorPublicInputs,
+  IAnchorDepositInfo,
+} from '@webb-tools/interfaces';
+import { generateProof, hexToU8a, u8aToHex, getChainIdType, UTXOInputs, ZkComponents } from '@webb-tools/utils';
+import { Semaphore, Verifier } from '@webb-tools/semaphore';
+import { Group } from '@webb-tools/semaphore-group';
+
+const snarkjs = require('snarkjs');
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
+
+export type FullProof = {
+  proof: Proof;
+  publicSignals: RawPublicSignals;
+};
+
+export type Proof = {
+  pi_a: string[3];
+  pi_b: Array<string[2]>;
+  pi_c: string[3];
+  protocol: string;
+  curve: string;
+};
+export type ExtData = {
+  recipient: string;
+  extAmount: string;
+  relayer: string;
+  fee: string;
+  refund: string;
+  token: string;
+  encryptedOutput1: string;
+  encryptedOutput2: string;
+};
+
+export type RawPublicSignals = string[11];
+
 function checkNativeAddress(tokenAddress: string): boolean {
   if (tokenAddress === zeroAddress || tokenAddress === '0') {
     return true;
   }
   return false;
 }
-
 export var gasBenchmark = [];
 export var proofTimeBenchmark = [];
 // This convenience wrapper class is used in tests -
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
-export class VAnchor implements IAnchor {
+export class IdentityVAnchor implements IAnchor {
   signer: ethers.Signer;
-  contract: VAnchorContract;
+  contract: IdentityVAnchorContract;
+  semaphore: Semaphore;
   tree: MerkleTree;
+  group: Group;
   // hex string of the connected root
-  maxEdges: number;
   latestSyncedBlock: number;
   smallCircuitZkComponents: ZkComponents;
   largeCircuitZkComponents: ZkComponents;
@@ -56,13 +96,17 @@ export class VAnchor implements IAnchor {
   depositHistory: Record<number, string>;
   token?: string;
   denomination?: string;
+  maxEdges: number;
+  groupId: BigNumber;
   provingManager: CircomProvingManager;
 
   constructor(
-    contract: VAnchorContract,
+    contract: IdentityVAnchorContract,
     signer: ethers.Signer,
     treeHeight: number,
     maxEdges: number,
+    groupId: BigNumber,
+    group: Group,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents
   ) {
@@ -71,64 +115,132 @@ export class VAnchor implements IAnchor {
     this.tree = new MerkleTree(treeHeight);
     this.latestSyncedBlock = 0;
     this.maxEdges = maxEdges;
+    this.groupId = groupId;
+    this.group = group;
     this.depositHistory = {};
     this.smallCircuitZkComponents = smallCircuitZkComponents;
     this.largeCircuitZkComponents = largeCircuitZkComponents;
   }
-
+  deposit(destinationChainId: number): Promise<IAnchorDeposit> {
+    throw new Error('Method not implemented.');
+  }
+  setupWithdraw(
+    deposit: IAnchorDepositInfo,
+    index: number,
+    recipient: string,
+    relayer: string,
+    fee: bigint,
+    refreshCommitment: string | number
+  ) {
+    throw new Error('Method not implemented.');
+  }
+  withdraw(
+    deposit: IAnchorDepositInfo,
+    index: number,
+    recipient: string,
+    relayer: string,
+    fee: bigint,
+    refreshCommitment: string | number
+  ): Promise<ethers.Event> {
+    throw new Error('Method not implemented.');
+  }
+  wrapAndDeposit(tokenAddress: string, wrappingFee: number, destinationChainId?: number): Promise<IAnchorDeposit> {
+    throw new Error('Method not implemented.');
+  }
+  bridgedWithdrawAndUnwrap(
+    deposit: IAnchorDeposit,
+    merkleProof: any,
+    recipient: string,
+    relayer: string,
+    fee: string,
+    refund: string,
+    refreshCommitment: string,
+    tokenAddress: string
+  ): Promise<ethers.Event> {
+    throw new Error('Method not implemented.');
+  }
+  bridgedWithdraw(
+    deposit: IAnchorDeposit,
+    merkleProof: any,
+    recipient: string,
+    relayer: string,
+    fee: string,
+    refund: string,
+    refreshCommitment: string
+  ): Promise<ethers.Event> {
+    throw new Error('Method not implemented.');
+  }
   getAddress(): string {
     return this.contract.address;
   }
 
-  public static async createVAnchor(
+  public static async createIdentityVAnchor(
+    semaphore: Semaphore,
     verifier: string,
     levels: BigNumberish,
     hasher: string,
     handler: string,
     token: string,
     maxEdges: number,
+    groupId: BigNumber,
+    group: Group,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents,
     signer: ethers.Signer
   ) {
-    const encodeLibraryFactory = new VAnchorEncodeInputs__factory(signer);
+    const encodeLibraryFactory = new IdentityVAnchorEncodeInputs__factory(signer);
     const encodeLibrary = await encodeLibraryFactory.deploy();
     await encodeLibrary.deployed();
-    const factory = new VAnchor__factory(
-      { ['contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs']: encodeLibrary.address },
+    const factory = new IdentityVAnchor__factory(
+      { ['contracts/libs/IdentityVAnchorEncodeInputs.sol:IdentityVAnchorEncodeInputs']: encodeLibrary.address },
       signer
     );
-    const vAnchor = await factory.deploy(verifier, levels, hasher, handler, token, maxEdges, {});
+    const vAnchor = await factory.deploy(
+      semaphore.contract.address,
+      verifier,
+      levels,
+      hasher,
+      handler,
+      token,
+      maxEdges,
+      groupId
+    );
     await vAnchor.deployed();
-    const createdVAnchor = new VAnchor(
+    const createdIdentityVAnchor = new IdentityVAnchor(
       vAnchor,
       signer,
       BigNumber.from(levels).toNumber(),
       maxEdges,
+      groupId,
+      group,
       smallCircuitZkComponents,
       largeCircuitZkComponents
     );
-    createdVAnchor.latestSyncedBlock = vAnchor.deployTransaction.blockNumber!;
-    createdVAnchor.token = token;
-    return createdVAnchor;
+    createdIdentityVAnchor.latestSyncedBlock = vAnchor.deployTransaction.blockNumber!;
+    createdIdentityVAnchor.token = token;
+    return createdIdentityVAnchor;
   }
 
   public static async connect(
     // connect via factory method
     // build up tree by querying provider for logs
     address: string,
+    group: Group,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents,
     signer: ethers.Signer
   ) {
-    const anchor = VAnchor__factory.connect(address, signer);
+    const anchor = IdentityVAnchor__factory.connect(address, signer);
     const maxEdges = await anchor.maxEdges();
     const treeHeight = await anchor.levels();
-    const createdAnchor = new VAnchor(
+    const groupId = await anchor.groupId();
+    const createdAnchor = new IdentityVAnchor(
       anchor,
       signer,
       treeHeight,
       maxEdges,
+      groupId,
+      group,
       smallCircuitZkComponents,
       largeCircuitZkComponents
     );
@@ -138,6 +250,20 @@ export class VAnchor implements IAnchor {
 
   public static async generateUTXO(input: UtxoGenInput): Promise<Utxo> {
     return CircomUtxo.generateUtxo(input);
+  }
+  public async generateProofCalldata(fullProof: any) {
+    // const result = snarkjs.groth16.exportSolidityCallData(proof, publicSignals);
+    const calldata = await snarkjs.groth16.exportSolidityCallData(fullProof.proof, fullProof.publicSignals);
+    const proof = JSON.parse('[' + calldata + ']');
+    const pi_a = proof[0];
+    const pi_b = proof[1];
+    const pi_c = proof[2];
+
+    const proofEncoded = [pi_a[0], pi_a[1], pi_b[0][0], pi_b[0][1], pi_b[1][0], pi_b[1][1], pi_c[0], pi_c[1]]
+      .map((elt) => elt.substr(2))
+      .join('');
+
+    return proofEncoded;
   }
 
   public static createRootsBytes(rootArray: string[]) {
@@ -162,18 +288,19 @@ export class VAnchor implements IAnchor {
     return new Uint8Array(a);
   }
 
-  public static convertToPublicInputsStruct(args: any[]): IVariableAnchorPublicInputs {
+  public static convertToPublicInputsStruct(args: any[]): IIdentityVariableAnchorPublicInputs {
     return {
       proof: args[0],
-      roots: args[1],
-      inputNullifiers: args[2],
-      outputCommitments: args[3],
-      publicAmount: args[4],
-      extDataHash: args[5],
+      identityRoots: args[1],
+      vanchorRoots: args[2],
+      inputNullifiers: args[3],
+      outputCommitments: args[4],
+      publicAmount: args[5],
+      extDataHash: args[6],
     };
   }
 
-  public static convertToExtDataStruct(args: any[]): IVariableAnchorExtData {
+  public static convertToExtDataStruct(args: any[]): IIdentityVariableAnchorExtData {
     return {
       recipient: args[0],
       extAmount: args[1],
@@ -310,7 +437,7 @@ export class VAnchor implements IAnchor {
     );
   }
 
-  public async populateRootsForProof(): Promise<string[]> {
+  public async populateVAnchorRootsForProof(): Promise<string[]> {
     const neighborEdges = await this.contract.getLatestNeighborEdges();
     const neighborRootInfos = neighborEdges.map((rootData) => {
       return rootData.root;
@@ -352,20 +479,38 @@ export class VAnchor implements IAnchor {
     };
   }
 
+  // TODO parameterize this better
   public generatePublicInputs(
     proof: any,
-    roots: string[],
-    inputs: Utxo[],
-    outputs: Utxo[],
-    publicAmount: BigNumberish,
-    extDataHash: string
-  ): IVariableAnchorPublicInputs {
+    byte_calldata: any,
+    nIns: number = 2,
+    nOuts: number = 2,
+    numSemaphoreRoots: number = 2,
+    numVAnchorRoots: number = 2
+  ): IIdentityVariableAnchorPublicInputs {
     // public inputs to the contract
-    const args: IVariableAnchorPublicInputs = {
+    const publicInputs = JSON.parse('[' + byte_calldata + ']')[3];
+
+    let index = 0;
+    const identityRoots = publicInputs.slice(index, numSemaphoreRoots);
+    index = numSemaphoreRoots + 1; // ignoring public chainID from circuit
+
+    const publicAmount = publicInputs[index++];
+    const extDataHash = publicInputs[index++];
+
+    const inputs = publicInputs.slice(index, index + nIns);
+    index += nIns;
+
+    const outputs = publicInputs.slice(index, index + nOuts);
+    index += nOuts;
+
+    const vanchorRoots = publicInputs.slice(index, index + numVAnchorRoots);
+    const args: IIdentityVariableAnchorPublicInputs = {
       proof: `0x${proof}`,
-      roots: `0x${roots.map((x) => toFixedHex(x).slice(2)).join('')}`,
-      inputNullifiers: inputs.map((x) => toFixedHex(x.nullifier)),
-      outputCommitments: [toFixedHex(u8aToHex(outputs[0].commitment)), toFixedHex(u8aToHex(outputs[1].commitment))],
+      identityRoots: `0x${identityRoots.map((x) => toFixedHex(x).slice(2)).join('')}`,
+      vanchorRoots: `0x${vanchorRoots.map((x) => toFixedHex(x).slice(2)).join('')}`,
+      inputNullifiers: inputs.map((x) => toFixedHex(x)),
+      outputCommitments: [toFixedHex(outputs[0]), toFixedHex(outputs[1])],
       publicAmount: toFixedHex(publicAmount),
       extDataHash: toFixedHex(extDataHash),
     };
@@ -431,320 +576,191 @@ export class VAnchor implements IAnchor {
       minTime,
     };
   }
+  public async generateProof(
+    keypair: Keypair,
+    identityRoots: string[],
+    identityMerkleProof: MerkleProof,
+    outSemaphoreProofs: MerkleProof[],
+    extDataHash: string,
+    vanchorInputs: UTXOInputs
+  ): Promise<FullProof> {
+    // ): Promise<{proof: > {
+    const proofInputs = {
+      privateKey: keypair.privkey.toString(),
+      semaphoreTreePathIndices: identityMerkleProof.pathIndices,
+      semaphoreTreeSiblings: identityMerkleProof.pathElements.map((x) => BigNumber.from(x).toString()),
+      semaphoreRoots: identityRoots,
+      chainID: vanchorInputs.chainID,
+      publicAmount: vanchorInputs.publicAmount,
+      extDataHash: extDataHash,
 
-  /**
-   *
-   * @param input A UTXO object that is inside the tree
-   * @returns an object with two fields, publicInput
-   */
-  public async setupTransaction(
-    inputs: Utxo[],
-    outputs: [Utxo, Utxo],
-    extAmount: BigNumberish,
-    fee: BigNumberish,
-    refund: BigNumberish,
-    token: string,
-    recipient: string,
-    relayer: string,
-    leavesMap: Record<string, Uint8Array[]>
-  ) {
-    // first, check if the merkle root is known on chain - if not, then update
-    const chainId = getChainIdType(await this.signer.getChainId());
-    const roots = await this.populateRootsForProof();
+      // data for 2 transaction inputs
+      inputNullifier: vanchorInputs.inputNullifier,
+      inAmount: vanchorInputs.inAmount,
+      inPrivateKey: vanchorInputs.inPrivateKey,
+      inBlinding: vanchorInputs.inBlinding,
+      inPathIndices: vanchorInputs.inPathIndices,
+      inPathElements: vanchorInputs.inPathElements.map((utxoPathElements) =>
+        utxoPathElements.map((x) => BigNumber.from(x).toString())
+      ),
 
-    // Start creating notes to satisfy vanchor input
-    // Only the sourceChainId and secrets (amount, nullifier, secret, blinding)
-    // is required
-    let inputNotes: Note[] = [];
-    let inputIndices: number[] = [];
-
-    // calculate the sum of input notes (for calculating the public amount)
-    let sumInputNotes: BigNumberish = 0;
-
-    for (const inputUtxo of inputs) {
-      sumInputNotes = BigNumber.from(sumInputNotes).add(inputUtxo.amount);
-
-      // secrets should be formatted as expected in the wasm-utils for note generation
-      const secrets =
-        `${toFixedHex(inputUtxo.chainId, 8).slice(2)}:` +
-        `${toFixedHex(inputUtxo.amount).slice(2)}:` +
-        `${toFixedHex(inputUtxo.secret_key).slice(2)}:` +
-        `${toFixedHex(inputUtxo.blinding).slice(2)}`;
-
-      const noteInput: NoteGenInput = {
-        amount: inputUtxo.amount.toString(),
-        backend: 'Circom',
-        curve: 'Bn254',
-        denomination: '18', // assumed erc20
-        exponentiation: '5',
-        hashFunction: 'Poseidon',
-        index: inputUtxo.index,
-        protocol: 'vanchor',
-        secrets,
-        sourceChain: inputUtxo.originChainId ? inputUtxo.originChainId.toString() : chainId.toString(),
-        sourceIdentifyingData: '0',
-        targetChain: chainId.toString(),
-        targetIdentifyingData: this.contract.address,
-        tokenSymbol: this.token,
-        width: '5',
-      };
-      const inputNote = await Note.generateNote(noteInput);
-      inputNotes.push(inputNote);
-      inputIndices.push(inputUtxo.index);
-    }
-
-    const encryptedCommitments: [Uint8Array, Uint8Array] = [
-      hexToU8a(outputs[0].encrypt()),
-      hexToU8a(outputs[1].encrypt()),
-    ];
-
-    const proofInput: ProvingManagerSetupInput<'vanchor'> = {
-      inputNotes,
-      leavesMap,
-      indices: inputIndices,
-      roots: roots.map((root) => hexToU8a(root)),
-      chainId: chainId.toString(),
-      output: outputs,
-      encryptedCommitments,
-      publicAmount: BigNumber.from(extAmount).sub(fee).add(FIELD_SIZE).mod(FIELD_SIZE).toString(),
-      provingKey: inputs.length > 2 ? this.largeCircuitZkComponents.zkey : this.smallCircuitZkComponents.zkey,
-      relayer: hexToU8a(relayer),
-      recipient: hexToU8a(recipient),
-      extAmount: toFixedHex(BigNumber.from(extAmount)),
-      fee: BigNumber.from(fee).toString(),
-      refund: BigNumber.from(refund).toString(),
-      token: hexToU8a(token),
+      // data for 2 transaction outputs
+      outputCommitment: vanchorInputs.outputCommitment,
+      outChainID: vanchorInputs.outChainID,
+      outAmount: vanchorInputs.outAmount,
+      outPubkey: vanchorInputs.outPubkey,
+      outSemaphoreTreePathIndices: outSemaphoreProofs.map((proof) =>
+        proof.pathIndices.map((idx) => BigNumber.from(idx).toString())
+      ),
+      outSemaphoreTreeElements: outSemaphoreProofs.map((proof) =>
+        proof.pathElements.map((elem) => {
+          if (BigNumber.isBigNumber(elem)) {
+            return elem.toString();
+          }
+          return BigNumber.from(elem).toString();
+        })
+      ),
+      outBlinding: vanchorInputs.outBlinding,
+      vanchorRoots: vanchorInputs.roots,
     };
 
-    inputs.length > 2
-      ? (this.provingManager = new CircomProvingManager(this.largeCircuitZkComponents.wasm, this.tree.levels, null))
-      : (this.provingManager = new CircomProvingManager(this.smallCircuitZkComponents.wasm, this.tree.levels, null));
+    let proof = await snarkjs.groth16.fullProve(
+      proofInputs,
+      this.smallCircuitZkComponents.wasm,
+      this.smallCircuitZkComponents.zkey
+    );
+    return proof;
+  }
 
-    const proof = await this.provingManager.prove('vanchor', proofInput);
+  public async setupTransaction(
+    keypair: Keypair,
+    identityRootInputs: string[],
+    identityMerkleProof: MerkleProof,
+    outSemaphoreProofs: MerkleProof[],
+    vanchorInput: UTXOInputs,
+    extDataHash: string
+  ): Promise<IIdentityVariableAnchorPublicInputs> {
+    const fullProof = await this.generateProof(
+      keypair,
+      identityRootInputs,
+      identityMerkleProof,
+      outSemaphoreProofs,
+      extDataHash,
+      vanchorInput
+    );
+    const proof = await this.generateProofCalldata(fullProof);
+    const vKey = await snarkjs.zKey.exportVerificationKey(this.smallCircuitZkComponents.zkey);
+    const calldata = await snarkjs.groth16.exportSolidityCallData(fullProof.proof, fullProof.publicSignals);
 
-    const publicInputs: IVariableAnchorPublicInputs = this.generatePublicInputs(
-      proof.proof,
-      roots,
+    const publicInputs: IIdentityVariableAnchorPublicInputs = this.generatePublicInputs(proof, calldata);
+
+    const is_valid: boolean = await snarkjs.groth16.verify(vKey, fullProof.publicSignals, fullProof.proof);
+    assert.strictEqual(is_valid, true);
+
+    return publicInputs;
+  }
+
+  public generateIdentityMerkleProof(pubkey: string): MerkleProof {
+    const idx = this.group.indexOf(pubkey);
+    const identityMerkleProof: MerkleProof = this.group.generateProofOfMembership(idx);
+    return identityMerkleProof;
+  }
+  public populateIdentityRootsForProof(): string[] {
+    return [this.group.root.toString(), BigNumber.from(0).toString()];
+  }
+
+  public async generateExtData(
+    recipient: string,
+    extAmount: BigNumber,
+    relayer: string,
+    fee: BigNumber,
+    refund: BigNumber,
+    encryptedOutput1: string,
+    encryptedOutput2: string
+  ): Promise<{ extData: ExtData; extDataHash: BigNumber }> {
+    const extData = {
+      recipient: toFixedHex(recipient, 20),
+      extAmount: toFixedHex(extAmount),
+      relayer: toFixedHex(relayer, 20),
+      fee: toFixedHex(fee),
+      refund: toFixedHex(refund.toString()),
+      token: toFixedHex(this.token, 20),
+      encryptedOutput1,
+      encryptedOutput2,
+    };
+
+    const extDataHash = await getVAnchorExtDataHash(
+      encryptedOutput1,
+      encryptedOutput2,
+      extAmount.toString(),
+      BigNumber.from(fee).toString(),
+      recipient,
+      relayer,
+      refund.toString(),
+      this.token
+    );
+    return { extData, extDataHash };
+  }
+
+  public generateOutputSemaphoreProof(outputs: Utxo[]): MerkleProof[] {
+    const outSemaphoreProofs = outputs.map((utxo) => {
+      const leaf = utxo.keypair.getPubKey();
+      if (Number(utxo.amount) > 0) {
+        const idx = this.group.indexOf(leaf);
+        return this.group.generateProofOfMembership(idx);
+      } else {
+        const inputMerklePathIndices = new Array(this.group.depth).fill(0);
+        const inputMerklePathElements = new Array(this.group.depth).fill(0);
+
+        return {
+          pathIndices: inputMerklePathIndices,
+          pathElements: inputMerklePathElements,
+        };
+      }
+    });
+    return outSemaphoreProofs;
+  }
+
+  public async generateUTXOInputs(
+    inputs: Utxo[],
+    outputs: Utxo[],
+    chainId: number,
+    extAmount: BigNumber,
+    fee: BigNumber,
+    extDataHash: BigNumber
+  ): Promise<UTXOInputs> {
+    const vanchorRoots = await this.populateVAnchorRootsForProof();
+    const vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x));
+
+    const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
+      vanchorRoots.map((root) => BigNumber.from(root)),
+      chainId,
       inputs,
       outputs,
-      proofInput.publicAmount,
-      u8aToHex(proof.extDataHash)
+      extAmount,
+      fee,
+      BigNumber.from(extDataHash),
+      vanchorMerkleProof
     );
 
-    const extData: IVariableAnchorExtData = {
-      recipient: toFixedHex(proofInput.recipient, 20),
-      extAmount: toFixedHex(proofInput.extAmount),
-      relayer: toFixedHex(proofInput.relayer, 20),
-      fee: toFixedHex(proofInput.fee),
-      refund: toFixedHex(proofInput.refund),
-      token: toFixedHex(proofInput.token, 20),
-      encryptedOutput1: u8aToHex(proofInput.encryptedCommitments[0]),
-      encryptedOutput2: u8aToHex(proofInput.encryptedCommitments[1]),
-    };
-
-    return {
-      extData,
-      publicInputs,
-    };
+    return vanchorInput;
   }
 
   public async transact(
+    keypair: Keypair,
     inputs: Utxo[],
     outputs: Utxo[],
-    leavesMap: Record<string, Uint8Array[]>,
     fee: BigNumberish,
     refund: BigNumberish,
     recipient: string,
     relayer: string
-  ): Promise<ethers.ContractReceipt> {
-    // Default UTXO chain ID will match with the configured signer's chain ID
-    const evmId = await this.signer.getChainId();
-    const chainId = getChainIdType(evmId);
-    const randomKeypair = new Keypair();
-
-    while (inputs.length !== 2 && inputs.length < 16) {
-      inputs.push(
-        await CircomUtxo.generateUtxo({
-          curve: 'Bn254',
-          backend: 'Circom',
-          chainId: chainId.toString(),
-          originChainId: chainId.toString(),
-          amount: '0',
-          blinding: hexToU8a(randomBN(31).toHexString()),
-          keypair: randomKeypair,
-        })
-      );
-    }
-
-    if (outputs.length < 2) {
-      while (outputs.length < 2) {
-        outputs.push(
-          await CircomUtxo.generateUtxo({
-            curve: 'Bn254',
-            backend: 'Circom',
-            chainId: chainId.toString(),
-            originChainId: chainId.toString(),
-            amount: '0',
-            keypair: randomKeypair,
-          })
-        );
-      }
-    }
-
-    let extAmount = BigNumber.from(fee)
-      .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
-      .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
-
-    const token = this.token;
-
-    const { extData, publicInputs } = await this.setupTransaction(
-      inputs,
-      [outputs[0], outputs[1]],
-      extAmount,
-      fee,
-      refund,
-      token,
-      recipient,
-      relayer,
-      leavesMap
-    );
-
-    let tx = await this.contract.transact(
-      {
-        ...publicInputs,
-        outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
-      },
-      extData,
-      { gasLimit: '0x5B8D80' }
-    );
-    const receipt = await tx.wait();
-    gasBenchmark.push(receipt.gasUsed.toString());
-
-    // Add the leaves to the tree
-    outputs.forEach((x) => {
-      this.tree.insert(u8aToHex(x.commitment));
-      let numOfElements = this.tree.number_of_elements();
-      this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
-    });
-
-    return receipt;
-  }
-
-  public async transactWrap(
-    tokenAddress: string,
-    inputs: Utxo[],
-    outputs: Utxo[],
-    fee: BigNumberish,
-    refund: BigNumberish,
-    recipient: string,
-    relayer: string,
-    leavesMap: Record<string, Uint8Array[]>
-  ): Promise<ethers.ContractReceipt> {
-    // Default UTXO chain ID will match with the configured signer's chain ID
-    const evmId = await this.signer.getChainId();
-    const chainId = getChainIdType(evmId);
-    const randomKeypair = new Keypair();
-
-    while (inputs.length !== 2 && inputs.length < 16) {
-      inputs.push(
-        await CircomUtxo.generateUtxo({
-          curve: 'Bn254',
-          backend: 'Circom',
-          chainId: chainId.toString(),
-          originChainId: chainId.toString(),
-          amount: '0',
-          blinding: hexToU8a(randomBN(31).toHexString()),
-          keypair: randomKeypair,
-        })
-      );
-    }
-
-    if (outputs.length < 2) {
-      while (outputs.length < 2) {
-        outputs.push(
-          await CircomUtxo.generateUtxo({
-            curve: 'Bn254',
-            backend: 'Circom',
-            chainId: chainId.toString(),
-            originChainId: chainId.toString(),
-            amount: '0',
-            keypair: randomKeypair,
-          })
-        );
-      }
-    }
-
-    let extAmount = BigNumber.from(fee)
-      .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
-      .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
-
-    const { extData, publicInputs } = await this.setupTransaction(
-      inputs,
-      [outputs[0], outputs[1]],
-      extAmount,
-      fee,
-      refund,
-      tokenAddress,
-      recipient,
-      relayer,
-      leavesMap
-    );
-
-    let tx: ContractTransaction;
-    if (extAmount.gt(0) && checkNativeAddress(tokenAddress)) {
-      let tokenWrapper = TokenWrapper__factory.connect(await this.contract.token(), this.signer);
-      let valueToSend = await tokenWrapper.getAmountToWrap(extAmount);
-
-      tx = await this.contract.transactWrap(
-        {
-          ...publicInputs,
-          outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
-        },
-        extData,
-        tokenAddress,
-        {
-          value: valueToSend.toHexString(),
-          gasLimit: '0x5B8D80',
-        }
-      );
-    } else {
-      tx = await this.contract.transactWrap(
-        {
-          ...publicInputs,
-          outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
-        },
-        extData,
-        tokenAddress,
-        { gasLimit: '0x5B8D80' }
-      );
-    }
-    const receipt = await tx.wait();
-
-    // Add the leaves to the tree
-    outputs.forEach((x) => {
-      // Maintain tree state after insertions
-      this.tree.insert(u8aToHex(x.commitment));
-      let numOfElements = this.tree.number_of_elements();
-      this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
-    });
-
-    return receipt;
-  }
-
-  public async registerAndTransact(
-    owner: string,
-    keyData: string,
-    inputs: Utxo[],
-    outputs: Utxo[],
-    fee: BigNumberish,
-    refund: BigNumberish,
-    recipient: string,
-    relayer: string,
-    leavesMap: Record<string, Uint8Array[]>
-  ): Promise<ethers.ContractReceipt> {
+  ): Promise<ethers.ContractTransaction> {
     const chainId = getChainIdType(await this.signer.getChainId());
     const randomKeypair = new Keypair();
 
+    const identityRootInputs = this.populateIdentityRootsForProof();
+    const identityMerkleProof: MerkleProof = this.generateIdentityMerkleProof(keypair.getPubKey());
+
     while (inputs.length !== 2 && inputs.length < 16) {
       inputs.push(
         await CircomUtxo.generateUtxo({
@@ -758,6 +774,8 @@ export class VAnchor implements IAnchor {
         })
       );
     }
+
+    const vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x));
 
     if (outputs.length < 2) {
       while (outputs.length < 2) {
@@ -774,32 +792,41 @@ export class VAnchor implements IAnchor {
         );
       }
     }
-
     let extAmount = BigNumber.from(fee)
       .add(outputs.reduce((sum, x) => sum.add(BigNumber.from(BigInt(x.amount))), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(BigNumber.from(BigInt(x.amount))), BigNumber.from(0)));
 
-    const token = this.token;
-
-    const { extData, publicInputs } = await this.setupTransaction(
-      inputs,
-      [outputs[0], outputs[1]],
-      extAmount,
-      fee,
-      refund,
-      token,
+    const { extData, extDataHash } = await this.generateExtData(
       recipient,
+      extAmount,
       relayer,
-      leavesMap
+      BigNumber.from(fee),
+      BigNumber.from(refund),
+      outputs[0].encrypt(),
+      outputs[1].encrypt()
     );
 
-    let tx = await this.contract.registerAndTransact(
-      { owner, keyData: keyData },
-      { ...publicInputs, outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]] },
-      extData,
-      { gasLimit: '0x5B8D80' }
+    const vanchorInput: UTXOInputs = await this.generateUTXOInputs(
+      inputs,
+      outputs,
+      chainId,
+      extAmount,
+      BigNumber.from(fee),
+      extDataHash
     );
-    const receipt = await tx.wait();
+
+    const outSemaphoreProofs = this.generateOutputSemaphoreProof(outputs);
+
+    const publicInputs = await this.setupTransaction(
+      keypair,
+      identityRootInputs,
+      identityMerkleProof,
+      outSemaphoreProofs,
+      vanchorInput,
+      extDataHash.toString()
+    );
+
+    let tx = await this.contract.transact({ ...publicInputs }, extData, { gasLimit: '0x5B8D80' });
 
     // Add the leaves to the tree
     outputs.forEach((x) => {
@@ -808,8 +835,130 @@ export class VAnchor implements IAnchor {
       this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
     });
 
-    return receipt;
+    return tx;
+  }
+
+  public async transactWrap(
+    tokenAddress: string,
+    keypair: Keypair,
+    inputs: Utxo[],
+    outputs: Utxo[],
+    fee: BigNumberish,
+    refund: BigNumberish,
+    recipient: string,
+    relayer: string
+  ): Promise<ethers.ContractTransaction> {
+    // Default UTXO chain ID will match with the configured signer's chain ID
+    const evmId = await this.signer.getChainId();
+    const chainId = getChainIdType(evmId);
+    const randomKeypair = new Keypair();
+
+    const identityRootInputs = this.populateIdentityRootsForProof();
+    const identityMerkleProof: MerkleProof = this.generateIdentityMerkleProof(keypair.getPubKey());
+
+    while (inputs.length !== 2 && inputs.length < 16) {
+      inputs.push(
+        await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          chainId: chainId.toString(),
+          originChainId: chainId.toString(),
+          amount: '0',
+          blinding: hexToU8a(randomBN(31).toHexString()),
+          keypair: randomKeypair,
+        })
+      );
+    }
+
+    if (outputs.length < 2) {
+      while (outputs.length < 2) {
+        outputs.push(
+          await CircomUtxo.generateUtxo({
+            curve: 'Bn254',
+            backend: 'Circom',
+            chainId: chainId.toString(),
+            originChainId: chainId.toString(),
+            amount: '0',
+            keypair: randomKeypair,
+          })
+        );
+      }
+    }
+    let extAmount = BigNumber.from(fee)
+      .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+      .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
+
+    const { extData, extDataHash } = await this.generateExtData(
+      recipient,
+      extAmount,
+      relayer,
+      BigNumber.from(fee),
+      BigNumber.from(refund),
+      outputs[0].encrypt(),
+      outputs[1].encrypt()
+    );
+
+    const vanchorInput: UTXOInputs = await this.generateUTXOInputs(
+      inputs,
+      outputs,
+      chainId,
+      extAmount,
+      BigNumber.from(fee),
+      extDataHash
+    );
+
+    const outSemaphoreProofs = this.generateOutputSemaphoreProof(outputs);
+
+    const publicInputs = await this.setupTransaction(
+      keypair,
+      identityRootInputs,
+      identityMerkleProof,
+      outSemaphoreProofs,
+      vanchorInput,
+      extDataHash.toString()
+    );
+
+    let tx: ContractTransaction;
+    if (extAmount.gt(0) && checkNativeAddress(tokenAddress)) {
+      let tokenWrapper = TokenWrapper__factory.connect(await this.contract.token(), this.signer);
+      let valueToSend = await tokenWrapper.getAmountToWrap(extAmount);
+
+      tx = await this.contract.transactWrap(
+        {
+          ...publicInputs,
+          outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
+        },
+        extData,
+        tokenAddress,
+        {
+          value: valueToSend.toHexString(),
+          gasLimit: '0xBB8D80',
+        }
+      );
+    } else {
+      tx = await this.contract.transactWrap(
+        {
+          ...publicInputs,
+          outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
+        },
+        extData,
+        tokenAddress,
+        { gasLimit: '0xBB8D80' }
+      );
+    }
+    // const receipt = await tx.wait();
+
+    // Add the leaves to the tree
+    outputs.forEach((x) => {
+      // Maintain tree state after insertions
+      this.tree.insert(u8aToHex(x.commitment));
+      let numOfElements = this.tree.number_of_elements();
+      this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
+    });
+
+    return tx;
+    // return receipt;
   }
 }
 
-export default VAnchor;
+export default IdentityVAnchor;

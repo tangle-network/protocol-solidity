@@ -18,10 +18,18 @@ cp ./typechain/TokenWrapper.d.ts ./packages/contracts/src/TokenWrapper.d.ts
 cp ./typechain/TokenWrapperHandler.d.ts ./packages/contracts/src/TokenWrapperHandler.d.ts
 cp ./typechain/Treasury.d.ts ./packages/contracts/src/Treasury.d.ts
 cp ./typechain/TreasuryHandler.d.ts ./packages/contracts/src/TreasuryHandler.d.ts
+
 cp ./typechain/VAnchor.d.ts ./packages/contracts/src/VAnchor.d.ts
 cp ./typechain/VAnchorBase.d.ts ./packages/contracts/src/VAnchorBase.d.ts
 cp ./typechain/VAnchorEncodeInputs.d.ts ./packages/contracts/src/VAnchorEncodeInputs.d.ts
 cp ./typechain/VAnchorVerifier.d.ts ./packages/contracts/src/VAnchorVerifier.d.ts
+
+cp ./typechain/ISemaphore.d.ts ./packages/contracts/src/ISemaphore.d.ts
+cp ./typechain/IdentityVAnchor.d.ts ./packages/contracts/src/IdentityVAnchor.d.ts
+cp ./typechain/IdentityVAnchorBase.d.ts ./packages/contracts/src/IdentityVAnchorBase.d.ts
+cp ./typechain/IdentityVAnchorEncodeInputs.d.ts ./packages/contracts/src/IdentityVAnchorEncodeInputs.d.ts
+cp ./typechain/IdentityVAnchorVerifier.d.ts ./packages/contracts/src/IdentityVAnchorVerifier.d.ts
+
 cp ./typechain/Verifier.d.ts ./packages/contracts/src/Verifier.d.ts
 cp ./typechain/Verifier2.d.ts ./packages/contracts/src/Verifier2.d.ts
 cp ./typechain/Verifier3.d.ts ./packages/contracts/src/Verifier3.d.ts
@@ -32,6 +40,11 @@ cp ./typechain/Verifier22.d.ts ./packages/contracts/src/Verifier22.d.ts
 cp ./typechain/Verifier82.d.ts ./packages/contracts/src/Verifier82.d.ts
 cp ./typechain/Verifier216.d.ts ./packages/contracts/src/Verifier216.d.ts
 cp ./typechain/Verifier816.d.ts ./packages/contracts/src/Verifier816.d.ts
+
+cp ./typechain/VerifierID22.d.ts ./packages/contracts/src/VerifierID22.d.ts
+cp ./typechain/VerifierID82.d.ts ./packages/contracts/src/VerifierID82.d.ts
+cp ./typechain/VerifierID216.d.ts ./packages/contracts/src/VerifierID216.d.ts
+cp ./typechain/VerifierID816.d.ts ./packages/contracts/src/VerifierID816.d.ts
 
 cp ./typechain/factories/AnchorBase__factory.ts ./packages/contracts/src/factories/AnchorBase__factory.ts
 cp ./typechain/factories/AnchorHandler__factory.ts ./packages/contracts/src/factories/AnchorHandler__factory.ts
@@ -46,10 +59,17 @@ cp ./typechain/factories/TokenWrapper__factory.ts ./packages/contracts/src/facto
 cp ./typechain/factories/TokenWrapperHandler__factory.ts ./packages/contracts/src/factories/TokenWrapperHandler__factory.ts
 cp ./typechain/factories/Treasury__factory.ts ./packages/contracts/src/factories/Treasury__factory.ts
 cp ./typechain/factories/TreasuryHandler__factory.ts ./packages/contracts/src/factories/TreasuryHandler__factory.ts
+
 cp ./typechain/factories/VAnchor__factory.ts ./packages/contracts/src/factories/VAnchor__factory.ts
 cp ./typechain/factories/VAnchorBase__factory.ts ./packages/contracts/src/factories/VAnchorBase__factory.ts
 cp ./typechain/factories/VAnchorEncodeInputs__factory.ts ./packages/contracts/src/factories/VAnchorEncodeInputs__factory.ts
 cp ./typechain/factories/VAnchorVerifier__factory.ts ./packages/contracts/src/factories/VAnchorVerifier__factory.ts
+
+cp ./typechain/factories/IdentityVAnchor__factory.ts ./packages/contracts/src/factories/IdentityVAnchor__factory.ts
+cp ./typechain/factories/IdentityVAnchorBase__factory.ts ./packages/contracts/src/factories/IdentityVAnchorBase__factory.ts
+cp ./typechain/factories/IdentityVAnchorEncodeInputs__factory.ts ./packages/contracts/src/factories/IdentityVAnchorEncodeInputs__factory.ts
+cp ./typechain/factories/IdentityVAnchorVerifier__factory.ts ./packages/contracts/src/factories/IdentityVAnchorVerifier__factory.ts
+
 cp ./typechain/factories/Verifier__factory.ts ./packages/contracts/src/factories/Verifier__factory.ts
 cp ./typechain/factories/Verifier2__factory.ts ./packages/contracts/src/factories/Verifier2__factory.ts
 cp ./typechain/factories/Verifier3__factory.ts ./packages/contracts/src/factories/Verifier3__factory.ts
@@ -60,3 +80,8 @@ cp ./typechain/factories/Verifier22__factory.ts ./packages/contracts/src/factori
 cp ./typechain/factories/Verifier82__factory.ts ./packages/contracts/src/factories/Verifier82__factory.ts
 cp ./typechain/factories/Verifier216__factory.ts ./packages/contracts/src/factories/Verifier216__factory.ts
 cp ./typechain/factories/Verifier816__factory.ts ./packages/contracts/src/factories/Verifier816__factory.ts
+
+cp ./typechain/factories/VerifierID22__factory.ts ./packages/contracts/src/factories/VerifierID22__factory.ts
+cp ./typechain/factories/VerifierID82__factory.ts ./packages/contracts/src/factories/VerifierID82__factory.ts
+cp ./typechain/factories/VerifierID216__factory.ts ./packages/contracts/src/factories/VerifierID216__factory.ts
+cp ./typechain/factories/VerifierID816__factory.ts ./packages/contracts/src/factories/VerifierID816__factory.ts

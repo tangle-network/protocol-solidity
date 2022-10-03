@@ -13,6 +13,7 @@
     "@webb-tools/interfaces": "^0.2.7",
     "@webb-tools/sdk-core": "0.1.4-105",
     "@webb-tools/utils": "^0.2.7",
+    "@webb-tools/semaphore": "0.0.1-1",
     "ethers": "5.7.0"
   },
   "publishConfig": {
