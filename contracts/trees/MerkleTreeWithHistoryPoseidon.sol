@@ -14,16 +14,17 @@ abstract contract MerkleTreeWithHistoryPoseidon is Initializable {
     IPoseidonT3 public immutable hasher;
     uint32 public immutable levels;
 
+    struct Root {
+        bytes32 root;
+        uint256 latestLeafindex;
+    }
+
     // the following variables are made public for easier testing and debugging and
     // are not supposed to be accessed in regular code
 
     // filledSubtrees and roots could be bytes32[size], but using mappings makes it cheaper because
     // it removes index range check on every interaction
     mapping(uint256 => bytes32) public filledSubtrees;
-    struct Root {
-        bytes32 root;
-        uint256 latestLeafindex;
-    }
     mapping(uint256 => Root) public roots;
     uint32 public constant ROOT_HISTORY_SIZE = 30;
     uint32 public currentRootIndex = 0;
