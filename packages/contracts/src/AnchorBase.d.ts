@@ -554,7 +554,12 @@ export class AnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
+    roots(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [string, BigNumber] & { root: string; latestLeafindex: BigNumber }
+    >;
 
     setHandler(
       _handler: string,
@@ -729,7 +734,12 @@ export class AnchorBase extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+  roots(
+    arg0: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<
+    [string, BigNumber] & { root: string; latestLeafindex: BigNumber }
+  >;
 
   setHandler(
     _handler: string,
@@ -913,7 +923,12 @@ export class AnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+    roots(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [string, BigNumber] & { root: string; latestLeafindex: BigNumber }
+    >;
 
     setHandler(
       _handler: string,

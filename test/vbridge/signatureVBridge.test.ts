@@ -19,6 +19,8 @@ import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
 
 const path = require('path');
 
+const { GetProof, VerifyProof } = require('eth-proof');
+
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 describe('2-sided multichain tests for signature vbridge', () => {
@@ -654,6 +656,38 @@ describe('2-sided multichain tests for signature vbridge', () => {
           signers[1]
         );
       })
+
+      it.only('verify storage proof', async () => {
+        const signers = await ethers.getSigners();
+
+        const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
+        const vAnchor1Address = vAnchor1.contract.address;
+        const vAnchor2: VAnchor = vBridge.getVAnchor(chainID2)! as VAnchor;
+        const vAnchor2Address = vAnchor2.contract.address;
+        const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainID1);
+        const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
+
+        //Deposit UTXO
+        const ganacheDepositUtxo1 = await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          amount: 2.5e7.toString(),
+          originChainId: chainID2.toString(),
+          chainId: chainID1.toString()
+        });
+        const ganacheDepositUtxo2 = await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          amount: 2.5e7.toString(),
+          originChainId: chainID2.toString(),
+          chainId: chainID1.toString()
+        });
+        await vBridge.transactWrap(existingToken2.contract.address, [], [ganacheDepositUtxo1, ganacheDepositUtxo2], 0, 0, '0', '0', ganacheWallet2); 
+
+        const gp = new GetProof(`http://localhost:${SECOND_CHAIN_ID}`);
+        const sp = await gp.storageProof(vAnchor2.contract.address, '0x0000000000000000000000000000000000000000000000000000000000000000', null);
+        console.log((await VerifyProof.getStorageFromStorageProofAt(sp.storageProof, '0x0000000000000000000000000000000000000000000000000000000000000000')).toString());
+      });
 
       it('wrap and deposit, withdraw and unwrap works join split via transactWrap', async () => {
         const signers = await ethers.getSigners();

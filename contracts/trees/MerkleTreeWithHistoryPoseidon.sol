@@ -9,6 +9,10 @@ import "./Poseidon.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 abstract contract MerkleTreeWithHistoryPoseidon is Initializable {
+    struct Root {
+        bytes32 root;
+        uint256 latestLeafindex;
+    }
     uint256 public constant FIELD_SIZE = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
     uint256 public constant ZERO_VALUE = 21663839004416932945382355908790599225266501822907911457504978515578255421292; // = keccak256("tornado") % FIELD_SIZE
     IPoseidonT3 public immutable hasher;
@@ -20,7 +24,7 @@ abstract contract MerkleTreeWithHistoryPoseidon is Initializable {
     // filledSubtrees and roots could be bytes32[size], but using mappings makes it cheaper because
     // it removes index range check on every interaction
     mapping(uint256 => bytes32) public filledSubtrees;
-    mapping(uint256 => bytes32) public roots;
+    mapping(uint256 => Root) public roots;
     uint32 public constant ROOT_HISTORY_SIZE = 30;
     uint32 public currentRootIndex = 0;
     uint32 public nextIndex = 0;
@@ -58,8 +62,8 @@ abstract contract MerkleTreeWithHistoryPoseidon is Initializable {
 
         uint32 newRootIndex = (currentRootIndex + 1) % ROOT_HISTORY_SIZE;
         currentRootIndex = newRootIndex;
-        roots[newRootIndex] = currentLevelHash;
         nextIndex = _nextIndex + 1;
+        roots[newRootIndex] = Root(currentLevelHash, nextIndex);
         return _nextIndex;
     }
 
@@ -86,8 +90,8 @@ abstract contract MerkleTreeWithHistoryPoseidon is Initializable {
         
         uint32 newRootIndex = (currentRootIndex + 1) % ROOT_HISTORY_SIZE;
         currentRootIndex = newRootIndex;
-        roots[newRootIndex] = currentLevelHash;
         nextIndex = _nextIndex + 2;
+        roots[newRootIndex] = Root(currentLevelHash, nextIndex);
         return _nextIndex;
     }
 
@@ -101,7 +105,7 @@ abstract contract MerkleTreeWithHistoryPoseidon is Initializable {
         uint32 _currentRootIndex = currentRootIndex;
         uint32 i = _currentRootIndex;
         do {
-            if (_root == roots[i]) {
+            if (_root == roots[i].root) {
                 return true;
             }
             if (i == 0) {
@@ -116,7 +120,7 @@ abstract contract MerkleTreeWithHistoryPoseidon is Initializable {
         @dev Returns the last root
     */
     function getLastRoot() public view returns (bytes32) {
-        return roots[currentRootIndex];
+        return roots[currentRootIndex].root;
     }
 
     /** @dev this function is defined in a child contract */
