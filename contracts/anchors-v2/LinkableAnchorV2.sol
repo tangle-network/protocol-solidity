@@ -36,7 +36,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
     An example usage of this system is the:
     - VAnchor.sol - for variable sized private bridging of assets
  */
-abstract contract LinkableAnchor is ILinkableAnchor, MerkleTreePoseidonLatestLeafIndex, ReentrancyGuard, ChainIdWithType {
+abstract contract LinkableAnchorV2 is ILinkableAnchor, MerkleTreePoseidonLatestLeafIndex, ReentrancyGuard, ChainIdWithType {
     uint32 proposalNonce = 0;
     address public handler;
 
