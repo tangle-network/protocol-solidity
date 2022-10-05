@@ -5,6 +5,7 @@
 mkdir -p packages/contracts/src/factories
 
 cp ./typechain/AnchorBase.d.ts ./packages/contracts/src/AnchorBase.d.ts
+cp ./typechain/AnchorBaseV2.d.ts ./packages/contracts/src/AnchorBaseV2.d.ts
 cp ./typechain/AnchorHandler.d.ts ./packages/contracts/src/AnchorHandler.d.ts
 cp ./typechain/SignatureBridge.d.ts ./packages/contracts/src/SignatureBridge.d.ts
 cp ./typechain/common.d.ts ./packages/contracts/src/common.d.ts
@@ -20,7 +21,9 @@ cp ./typechain/Treasury.d.ts ./packages/contracts/src/Treasury.d.ts
 cp ./typechain/TreasuryHandler.d.ts ./packages/contracts/src/TreasuryHandler.d.ts
 
 cp ./typechain/VAnchor.d.ts ./packages/contracts/src/VAnchor.d.ts
+cp ./typechain/VAnchorV2.d.ts ./packages/contracts/src/VAnchorV2.d.ts
 cp ./typechain/VAnchorBase.d.ts ./packages/contracts/src/VAnchorBase.d.ts
+cp ./typechain/VAnchorBaseV2.d.ts ./packages/contracts/src/VAnchorBaseV2.d.ts
 cp ./typechain/VAnchorEncodeInputs.d.ts ./packages/contracts/src/VAnchorEncodeInputs.d.ts
 cp ./typechain/VAnchorVerifier.d.ts ./packages/contracts/src/VAnchorVerifier.d.ts
 
@@ -47,6 +50,7 @@ cp ./typechain/VerifierID216.d.ts ./packages/contracts/src/VerifierID216.d.ts
 cp ./typechain/VerifierID816.d.ts ./packages/contracts/src/VerifierID816.d.ts
 
 cp ./typechain/factories/AnchorBase__factory.ts ./packages/contracts/src/factories/AnchorBase__factory.ts
+cp ./typechain/factories/AnchorBaseV2__factory.ts ./packages/contracts/src/factories/AnchorBaseV2__factory.ts
 cp ./typechain/factories/AnchorHandler__factory.ts ./packages/contracts/src/factories/AnchorHandler__factory.ts
 cp ./typechain/factories/SignatureBridge__factory.ts ./packages/contracts/src/factories/SignatureBridge__factory.ts
 cp ./typechain/factories/ERC20__factory.ts ./packages/contracts/src/factories/ERC20__factory.ts
@@ -61,7 +65,9 @@ cp ./typechain/factories/Treasury__factory.ts ./packages/contracts/src/factories
 cp ./typechain/factories/TreasuryHandler__factory.ts ./packages/contracts/src/factories/TreasuryHandler__factory.ts
 
 cp ./typechain/factories/VAnchor__factory.ts ./packages/contracts/src/factories/VAnchor__factory.ts
+cp ./typechain/factories/VAnchorV2__factory.ts ./packages/contracts/src/factories/VAnchorV2__factory.ts
 cp ./typechain/factories/VAnchorBase__factory.ts ./packages/contracts/src/factories/VAnchorBase__factory.ts
+cp ./typechain/factories/VAnchorBaseV2__factory.ts ./packages/contracts/src/factories/VAnchorBaseV2__factory.ts
 cp ./typechain/factories/VAnchorEncodeInputs__factory.ts ./packages/contracts/src/factories/VAnchorEncodeInputs__factory.ts
 cp ./typechain/factories/VAnchorVerifier__factory.ts ./packages/contracts/src/factories/VAnchorVerifier__factory.ts
 
