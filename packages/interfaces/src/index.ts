@@ -4,3 +4,4 @@ export * from './identity-vanchor';
 export * from './bridge';
 export * from './IAnchor';
 export * from './IBridgeSide';
+export * from './IAnchorV2';

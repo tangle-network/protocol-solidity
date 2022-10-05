@@ -20,5 +20,6 @@
     "type": "git",
     "url": "git://github.com/webb-tools/protocol-solidity.git"
   },
-  "version": "0.2.8"
+  "version": "0.2.8",
+  "gitHead": "239a0a9e96c1da43b81af22bf1ddba17162c2c49"
 }

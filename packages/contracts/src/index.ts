@@ -10,6 +10,9 @@ export { ERC20PresetMinterPauser__factory } from './factories/ERC20PresetMinterP
 export type { AnchorBase } from './AnchorBase';
 export { AnchorBase__factory } from './factories/AnchorBase__factory';
 
+export type { AnchorBaseV2 } from './AnchorBaseV2';
+export { AnchorBaseV2__factory } from './factories/AnchorBaseV2__factory';
+
 export type { SignatureBridge } from './SignatureBridge';
 export { SignatureBridge__factory } from './factories/SignatureBridge__factory';
 
@@ -52,6 +55,12 @@ export { VAnchor__factory } from './factories/VAnchor__factory';
 
 export type { VAnchorBase } from './VAnchorBase';
 export { VAnchorBase__factory } from './factories/VAnchorBase__factory';
+
+export type { VAnchorV2 } from './VAnchorV2';
+export { VAnchorV2__factory } from './factories/VAnchorV2__factory';
+
+export type { VAnchorBaseV2 } from './VAnchorBaseV2';
+export { VAnchorBaseV2__factory } from './factories/VAnchorBaseV2__factory';
 
 export type { IdentityVAnchor } from './IdentityVAnchor';
 export { IdentityVAnchor__factory } from './factories/IdentityVAnchor__factory';

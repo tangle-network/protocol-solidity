@@ -15,7 +15,7 @@ import {
   IVariableAnchorPublicInputs,
 } from '@webb-tools/interfaces';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
-import { VAnchor as VAnchorContract } from "@webb-tools/contracts";
+import { VAnchorV2 as VAnchorContract } from "../../../packages/contracts/src";
 
 export class SetupTxVAnchorMock extends VAnchor {
   private rootsForProof: string[];
