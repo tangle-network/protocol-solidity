@@ -62,8 +62,8 @@ abstract contract MerkleTreeWithHistoryPoseidon is Initializable {
 
         uint32 newRootIndex = (currentRootIndex + 1) % ROOT_HISTORY_SIZE;
         currentRootIndex = newRootIndex;
-        roots[newRootIndex] = Root(currentLevelHash, currentRootIndex);
         nextIndex = _nextIndex + 1;
+        roots[newRootIndex] = Root(currentLevelHash, nextIndex);
         return _nextIndex;
     }
 
@@ -90,8 +90,8 @@ abstract contract MerkleTreeWithHistoryPoseidon is Initializable {
         
         uint32 newRootIndex = (currentRootIndex + 1) % ROOT_HISTORY_SIZE;
         currentRootIndex = newRootIndex;
-        roots[newRootIndex] = Root(currentLevelHash, currentRootIndex);
         nextIndex = _nextIndex + 2;
+        roots[newRootIndex] = Root(currentLevelHash, nextIndex);
         return _nextIndex;
     }
 
