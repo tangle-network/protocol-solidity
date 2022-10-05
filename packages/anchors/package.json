@@ -9,11 +9,11 @@
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@webb-tools/contracts": "^0.2.7",
-    "@webb-tools/interfaces": "^0.2.7",
+    "@webb-tools/contracts": "^0.2.8",
+    "@webb-tools/interfaces": "^0.2.8",
     "@webb-tools/sdk-core": "0.1.4-105",
-    "@webb-tools/utils": "^0.2.7",
     "@webb-tools/semaphore": "0.0.1-1",
+    "@webb-tools/utils": "^0.2.8",
     "ethers": "5.7.0"
   },
   "publishConfig": {
@@ -24,5 +24,5 @@
     "type": "git",
     "url": "git://github.com/webb-tools/protocol-solidity.git"
   },
-  "version": "0.2.7"
+  "version": "0.2.8"
 }
