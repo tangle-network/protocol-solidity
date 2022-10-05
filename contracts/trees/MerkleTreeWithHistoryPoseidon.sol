@@ -20,7 +20,11 @@ abstract contract MerkleTreeWithHistoryPoseidon is Initializable {
     // filledSubtrees and roots could be bytes32[size], but using mappings makes it cheaper because
     // it removes index range check on every interaction
     mapping(uint256 => bytes32) public filledSubtrees;
-    mapping(uint256 => bytes32) public roots;
+    struct Root {
+        bytes32 root;
+        uint256 latestLeafindex;
+    }
+    mapping(uint256 => Root) public roots;
     uint32 public constant ROOT_HISTORY_SIZE = 30;
     uint32 public currentRootIndex = 0;
     uint32 public nextIndex = 0;
@@ -58,7 +62,7 @@ abstract contract MerkleTreeWithHistoryPoseidon is Initializable {
 
         uint32 newRootIndex = (currentRootIndex + 1) % ROOT_HISTORY_SIZE;
         currentRootIndex = newRootIndex;
-        roots[newRootIndex] = currentLevelHash;
+        roots[newRootIndex] = Root(currentLevelHash, currentRootIndex);
         nextIndex = _nextIndex + 1;
         return _nextIndex;
     }
@@ -86,7 +90,7 @@ abstract contract MerkleTreeWithHistoryPoseidon is Initializable {
         
         uint32 newRootIndex = (currentRootIndex + 1) % ROOT_HISTORY_SIZE;
         currentRootIndex = newRootIndex;
-        roots[newRootIndex] = currentLevelHash;
+        roots[newRootIndex] = Root(currentLevelHash, currentRootIndex);
         nextIndex = _nextIndex + 2;
         return _nextIndex;
     }
@@ -101,7 +105,7 @@ abstract contract MerkleTreeWithHistoryPoseidon is Initializable {
         uint32 _currentRootIndex = currentRootIndex;
         uint32 i = _currentRootIndex;
         do {
-            if (_root == roots[i]) {
+            if (_root == roots[i].root) {
                 return true;
             }
             if (i == 0) {
@@ -116,7 +120,7 @@ abstract contract MerkleTreeWithHistoryPoseidon is Initializable {
         @dev Returns the last root
     */
     function getLastRoot() public view returns (bytes32) {
-        return roots[currentRootIndex];
+        return roots[currentRootIndex].root;
     }
 
     /** @dev this function is defined in a child contract */

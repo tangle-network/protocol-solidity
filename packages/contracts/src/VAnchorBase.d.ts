@@ -661,7 +661,12 @@ export class VAnchorBase extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
+    roots(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [string, BigNumber] & { root: string; latestLeafindex: BigNumber }
+    >;
 
     setHandler(
       _handler: string,
@@ -863,7 +868,12 @@ export class VAnchorBase extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+  roots(
+    arg0: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<
+    [string, BigNumber] & { root: string; latestLeafindex: BigNumber }
+  >;
 
   setHandler(
     _handler: string,
@@ -1074,7 +1084,12 @@ export class VAnchorBase extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+    roots(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [string, BigNumber] & { root: string; latestLeafindex: BigNumber }
+    >;
 
     setHandler(
       _handler: string,

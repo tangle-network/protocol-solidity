@@ -678,7 +678,7 @@ Parses the typed chain ID out from a 32-byte resource ID
 ### roots
 
 ```solidity
-function roots(uint256) external view returns (bytes32)
+function roots(uint256) external view returns (bytes32 root, uint256 latestLeafindex)
 ```
 
 
@@ -695,7 +695,8 @@ function roots(uint256) external view returns (bytes32)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | bytes32 | undefined
+| root | bytes32 | undefined
+| latestLeafindex | uint256 | undefined
 
 ### setHandler
 
