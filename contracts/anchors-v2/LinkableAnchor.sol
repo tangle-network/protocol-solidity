@@ -5,7 +5,7 @@
 
 pragma solidity ^0.8.0;
 
-import "../trees/MerkleTreePoseidon.sol";
+import "../trees/MerkleTreePoseidonLatestLeafIndex.sol";
 import "../utils/ChainIdWithType.sol";
 import "../interfaces/ILinkableAnchor.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -36,7 +36,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
     An example usage of this system is the:
     - VAnchor.sol - for variable sized private bridging of assets
  */
-abstract contract LinkableAnchor is ILinkableAnchor, MerkleTreePoseidon, ReentrancyGuard, ChainIdWithType {
+abstract contract LinkableAnchor is ILinkableAnchor, MerkleTreePoseidonLatestLeafIndex, ReentrancyGuard, ChainIdWithType {
     uint32 proposalNonce = 0;
     address public handler;
 
@@ -83,7 +83,7 @@ abstract contract LinkableAnchor is ILinkableAnchor, MerkleTreePoseidon, Reentra
         IPoseidonT3 _hasher,
         uint32 _merkleTreeHeight,
         uint8 _maxEdges
-    ) MerkleTreePoseidon(_merkleTreeHeight, _hasher) {
+    ) MerkleTreePoseidonLatestLeafIndex(_merkleTreeHeight, _hasher) {
         handler = _handler;
         maxEdges = _maxEdges;
     }
