@@ -9,14 +9,19 @@ import "./Poseidon.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 abstract contract MerkleTreeWithHistoryPoseidon is Initializable {
+    uint32 public currentRootIndex = 0;
+    uint32 public nextIndex = 0;
+    uint32 public immutable levels;
+    uint256 public constant FIELD_SIZE = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+    uint256 public constant ZERO_VALUE = 21663839004416932945382355908790599225266501822907911457504978515578255421292; // = keccak256("tornado") % FIELD_SIZE
+    
+
     struct Root {
         bytes32 root;
         uint256 latestLeafindex;
     }
-    uint256 public constant FIELD_SIZE = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
-    uint256 public constant ZERO_VALUE = 21663839004416932945382355908790599225266501822907911457504978515578255421292; // = keccak256("tornado") % FIELD_SIZE
+    mapping(uint256 => Root) public roots;
     IPoseidonT3 public immutable hasher;
-    uint32 public immutable levels;
 
     // the following variables are made public for easier testing and debugging and
     // are not supposed to be accessed in regular code
@@ -24,10 +29,7 @@ abstract contract MerkleTreeWithHistoryPoseidon is Initializable {
     // filledSubtrees and roots could be bytes32[size], but using mappings makes it cheaper because
     // it removes index range check on every interaction
     mapping(uint256 => bytes32) public filledSubtrees;
-    mapping(uint256 => Root) public roots;
     uint32 public constant ROOT_HISTORY_SIZE = 30;
-    uint32 public currentRootIndex = 0;
-    uint32 public nextIndex = 0;
 
     constructor(uint32 _levels, IPoseidonT3 _hasher) {
         require(_levels > 0, "_levels should be greater than zero");

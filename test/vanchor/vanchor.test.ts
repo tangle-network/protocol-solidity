@@ -26,6 +26,7 @@ import { VAnchor } from '../../packages/anchors/src';
 import { Verifier } from "../../packages/vbridge/src"
 import { writeFileSync } from "fs";
 import { SetupTxVAnchorMock } from './mocks/SetupTxVAnchorMock';
+import { toHex } from 'web3-utils';
 
 const BN = require('bn.js');
 
@@ -1196,6 +1197,74 @@ describe('VAnchor for 2 max edges', () => {
       const balWrappedTokenAfterDepositSender = await wrappedToken.balanceOf(sender.address);
       assert.strictEqual(balWrappedTokenAfterDepositAnchor.toString(), '10000000');
       assert.strictEqual(balWrappedTokenAfterDepositSender.toString(), '0');
+    });
+
+    it.only('verify storage proof', async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+      const sender = wallet;
+      // create wrapped token
+      const name = 'webbETH';
+      const symbol = 'webbETH';
+      const dummyFeeRecipient = "0x0000000000010000000010000000000000000000";
+      const wrappedTokenFactory = new WrappedTokenFactory(wallet);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, dummyFeeRecipient, sender.address, '10000000000000000000000000', true);
+      await wrappedToken.deployed();
+      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
+
+      // create Anchor for wrapped token
+      const wrappedAnchor = await VAnchor.createVAnchor(
+        verifier.contract.address,
+        30,
+        hasherInstance.address,
+        sender.address,
+        wrappedToken.address,
+        1,
+        zkComponents2_2,
+        zkComponents16_2,
+        sender
+      );
+
+      await wrappedAnchor.contract.configureMinimalWithdrawalLimit(
+        BigNumber.from(0),
+        0,
+      );
+      await wrappedAnchor.contract.configureMaximumDepositLimit(
+        BigNumber.from(tokenDenomination).mul(1_000_000),
+        0,
+      );
+
+      const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+      await wrappedToken.grantRole(MINTER_ROLE, wrappedAnchor.contract.address);
+
+      await token.approve(wrappedToken.address, '1000000000000000000');
+      const balTokenBeforeDepositSender = await token.balanceOf(sender.address);
+
+      const aliceDepositAmount = 1e7;
+      for (let i = 0; i < 2; i++) {
+        const aliceDepositUtxo = await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          chainId: chainID.toString(),
+          originChainId: chainID.toString(),
+          amount: aliceDepositAmount.toString(),
+          keypair: new Keypair(),
+          index: null,
+        });
+        //create a deposit on the anchor already setup
+        await wrappedAnchor.transactWrap(
+          token.address,
+          [],
+          [aliceDepositUtxo],
+          '0',
+          '0',
+          '0',
+          '0',
+          {}
+        );
+      }
+
+      console.log(await ethers.provider.getStorageAt(wrappedAnchor.contract.address, '0x3617319a054d772f909f7c479a2cebe5066e836a939412e32403c99029b92eff'));
     });
 
     it('should withdraw and unwrap', async () => {
