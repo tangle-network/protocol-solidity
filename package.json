@@ -47,6 +47,7 @@
     "@nomiclabs/hardhat-truffle5": "^2.0.0",
     "@nomiclabs/hardhat-web3": "^2.0.0",
     "ethers": "5.7.0",
+    "eth-proof": "~2.1.6",
     "ffjavascript": "^0.2.38",
     "hardhat": "^2.6.8",
     "hardhat-gas-reporter": "^1.0.8",

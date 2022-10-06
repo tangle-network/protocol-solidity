@@ -712,8 +712,13 @@ const _abi = [
     outputs: [
       {
         internalType: "bytes32",
-        name: "",
+        name: "root",
         type: "bytes32",
+      },
+      {
+        internalType: "uint256",
+        name: "latestLeafindex",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
