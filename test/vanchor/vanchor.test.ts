@@ -152,7 +152,7 @@ describe('VAnchor for 2 max edges', () => {
   });
 
   describe('snark proof native verification on js side', () => {
-    it('should work', async () => {
+    it.only('should work', async () => {
       const relayer = "0x2111111111111111111111111111111111111111";
       const extAmount = 1e7;
       const aliceDepositAmount = 1e7;
@@ -231,7 +231,7 @@ describe('VAnchor for 2 max edges', () => {
   })
 
   describe('#transact', () => {
-    it('should transact', async () => {
+    it.only('should transact', async () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);

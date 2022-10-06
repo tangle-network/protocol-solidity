@@ -452,44 +452,12 @@ export class VAnchor implements IAnchor {
     const chainId = getChainIdType(await this.signer.getChainId());
     const roots = await this.populateRootsForProof();
 
-    // Start creating notes to satisfy vanchor input
-    // Only the sourceChainId and secrets (amount, nullifier, secret, blinding)
-    // is required
-    let inputNotes: Note[] = [];
+    // calculate the sum of input notes (for calculating the public amount)
+    let sumInputUtxosAmount: BigNumberish = 0;
     let inputIndices: number[] = [];
 
-    // calculate the sum of input notes (for calculating the public amount)
-    let sumInputNotes: BigNumberish = 0;
-
     for (const inputUtxo of inputs) {
-      sumInputNotes = BigNumber.from(sumInputNotes).add(inputUtxo.amount);
-
-      // secrets should be formatted as expected in the wasm-utils for note generation
-      const secrets =
-        `${toFixedHex(inputUtxo.chainId, 8).slice(2)}:` +
-        `${toFixedHex(inputUtxo.amount).slice(2)}:` +
-        `${toFixedHex(inputUtxo.secret_key).slice(2)}:` +
-        `${toFixedHex(inputUtxo.blinding).slice(2)}`;
-
-      const noteInput: NoteGenInput = {
-        amount: inputUtxo.amount.toString(),
-        backend: 'Circom',
-        curve: 'Bn254',
-        denomination: '18', // assumed erc20
-        exponentiation: '5',
-        hashFunction: 'Poseidon',
-        index: inputUtxo.index,
-        protocol: 'vanchor',
-        secrets,
-        sourceChain: inputUtxo.originChainId ? inputUtxo.originChainId.toString() : chainId.toString(),
-        sourceIdentifyingData: '0',
-        targetChain: chainId.toString(),
-        targetIdentifyingData: this.contract.address,
-        tokenSymbol: this.token,
-        width: '5',
-      };
-      const inputNote = await Note.generateNote(noteInput);
-      inputNotes.push(inputNote);
+      sumInputUtxosAmount = BigNumber.from(sumInputUtxosAmount).add(inputUtxo.amount);
       inputIndices.push(inputUtxo.index);
     }
 
@@ -499,7 +467,7 @@ export class VAnchor implements IAnchor {
     ];
 
     const proofInput: ProvingManagerSetupInput<'vanchor'> = {
-      inputNotes,
+      inputUtxos: inputs,
       leavesMap,
       indices: inputIndices,
       roots: roots.map((root) => hexToU8a(root)),
