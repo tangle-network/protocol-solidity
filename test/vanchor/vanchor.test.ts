@@ -1199,7 +1199,7 @@ describe('VAnchor for 2 max edges', () => {
       assert.strictEqual(balWrappedTokenAfterDepositSender.toString(), '0');
     });
 
-    it.only('verify storage proof', async () => {
+    it('verify storage value of latest leaf index', async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
       const sender = wallet;
@@ -1241,7 +1241,8 @@ describe('VAnchor for 2 max edges', () => {
       const balTokenBeforeDepositSender = await token.balanceOf(sender.address);
 
       const aliceDepositAmount = 1e7;
-      for (let i = 0; i < 2; i++) {
+      const numOfInsertions = 31;
+      for (let i = 0; i < numOfInsertions; i++) {
         const aliceDepositUtxo = await CircomUtxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
@@ -1263,9 +1264,9 @@ describe('VAnchor for 2 max edges', () => {
           {}
         );
       }
-
-      console.log(await ethers.provider.getStorageAt(wrappedAnchor.contract.address, '0x3617319a054d772f909f7c479a2cebe5066e836a939412e32403c99029b92eff'));
-    });
+      
+      assert.equal(BigNumber.from(numOfInsertions * 2).toString(), BigNumber.from(await ethers.provider.getStorageAt(wrappedAnchor.contract.address, '0xcc69885fda6bcc1a4ace058b4a62bf5e179ea78fd58a1ccd71c22cc9b6887930')).toString());
+    }).timeout(12000000);
 
     it('should withdraw and unwrap', async () => {
       const signers = await ethers.getSigners();
