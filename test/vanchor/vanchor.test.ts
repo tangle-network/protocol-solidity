@@ -1252,7 +1252,7 @@ describe('VAnchor for 2 max edges', () => {
           keypair: new Keypair(),
           index: null,
         });
-        //create a deposit on the anchor already setup
+        // create a deposit on the anchor already setup
         await wrappedAnchor.transactWrap(
           token.address,
           [],
