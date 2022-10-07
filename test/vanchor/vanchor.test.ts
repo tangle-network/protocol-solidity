@@ -350,8 +350,6 @@ describe('VAnchor for 2 max edges', () => {
       const aliceDepositAmount1 = 1e7;
       let aliceDepositUtxo1 = await generateUTXOForTest(chainID, aliceDepositAmount1);
 
-      console.log('0');
-
       await anchor.registerAndTransact(
         sender.address,
         aliceDepositUtxo1.keypair.toString(),
@@ -549,7 +547,6 @@ describe('VAnchor for 2 max edges', () => {
         amount: aliceDepositAmount.toString(),
         keypair: aliceKeypair
       });
-      console.log('aliceDepositUtxo.keypair.toString(),', aliceDepositUtxo.keypair.toString());
 
       await anchor.registerAndTransact(
         sender.address,
@@ -953,7 +950,7 @@ describe('VAnchor for 2 max edges', () => {
       const aliceBalanceAfter = await token.balanceOf(sender.address);
       const bobBalanceAfter = await token.balanceOf(recipient.address);
 
-      assert.strictEqual(aliceBalanceBefore.sub(aliceBalanceAfter).toString(), '10000000');
+      assert.strictEqual(aliceBalanceBefore.sub(aliceBalanceAfter).toString(), (0 + Number(aliceTransferUtxo.amount)).toString());
       assert.strictEqual(bobBalanceAfter.sub(bobBalanceBefore).toString(), '10000000');
     })
 
