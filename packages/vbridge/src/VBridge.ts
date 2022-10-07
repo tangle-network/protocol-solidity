@@ -339,7 +339,6 @@ export class VBridge {
     }
     await vAnchor.setSigner(signer);
 
-    //do we have to check if amount is greater than 0 before the checks?????
     // Check that input dest chain is this chain
     for (let i = 0; i < inputs.length; i++) {
       if (inputs[i].chainId.toString() !== chainId.toString()) {
@@ -373,10 +372,10 @@ export class VBridge {
       await tokenInstance.approveSpending(vAnchor.contract.address);
     }
 
-    const regeneratedInputs: Utxo[] = [];
-
     // Populate the leaves map
     const leavesMap: Record<string, Uint8Array[]> = {};
+
+    // Always include the leaves of the chain which we are interacting on
     leavesMap[chainId] = vAnchor.tree.elements().map((commitment) => hexToU8a(commitment.toHexString()));
 
     for (let input of inputs) {
@@ -388,22 +387,12 @@ export class VBridge {
 
       // update the utxo with the proper index
       const utxoIndex = inputTree.getIndexByElement(u8aToHex(input.commitment));
-      const newUtxo = await CircomUtxo.generateUtxo({
-        curve: 'Bn254',
-        backend: 'Circom',
-        amount: input.amount,
-        originChainId: input.originChainId,
-        chainId: input.chainId,
-        blinding: hexToU8a(input.blinding),
-        keypair: input.keypair,
-        index: utxoIndex.toString(),
-      });
-      regeneratedInputs.push(newUtxo);
+      input.setIndex(utxoIndex);
     }
 
     // Create dummy UTXOs to satisfy the circuit
-    while (regeneratedInputs.length !== 2 && regeneratedInputs.length < 16) {
-      regeneratedInputs.push(
+    while (inputs.length !== 2 && inputs.length < 16) {
+      inputs.push(
         await CircomUtxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
@@ -415,7 +404,7 @@ export class VBridge {
       );
     }
 
-    await vAnchor.transact(regeneratedInputs, outputs, leavesMap, fee, refund, recipient, relayer);
+    await vAnchor.transact(inputs, outputs, leavesMap, fee, refund, recipient, relayer);
     await this.update(chainId);
   }
 
@@ -469,8 +458,6 @@ export class VBridge {
       }
     }
 
-    const regeneratedInputs: Utxo[] = [];
-
     // Populate the leaves map
     const leavesMap: Record<string, Uint8Array[]> = {};
     leavesMap[chainId] = vAnchor.tree.elements().map((commitment) => hexToU8a(commitment.toHexString()));
@@ -484,22 +471,12 @@ export class VBridge {
 
       // update the utxo with the proper index
       const utxoIndex = inputTree.getIndexByElement(u8aToHex(input.commitment));
-      const newUtxo = await CircomUtxo.generateUtxo({
-        curve: 'Bn254',
-        backend: 'Circom',
-        amount: input.amount,
-        originChainId: input.originChainId,
-        chainId: input.chainId,
-        blinding: hexToU8a(input.blinding),
-        keypair: input.keypair,
-        index: utxoIndex.toString(),
-      });
-      regeneratedInputs.push(newUtxo);
+      input.setIndex(utxoIndex);
     }
 
     // Create dummy UTXOs to satisfy the circuit
-    while (regeneratedInputs.length !== 2 && regeneratedInputs.length < 16) {
-      regeneratedInputs.push(
+    while (inputs.length !== 2 && inputs.length < 16) {
+      inputs.push(
         await CircomUtxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
@@ -511,7 +488,7 @@ export class VBridge {
       );
     }
 
-    await vAnchor.transactWrap(tokenAddress, regeneratedInputs, outputs, fee, refund, recipient, relayer, leavesMap);
+    await vAnchor.transactWrap(tokenAddress, inputs, outputs, fee, refund, recipient, relayer, leavesMap);
     await this.update(chainId);
   }
 }

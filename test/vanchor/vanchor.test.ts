@@ -26,7 +26,6 @@ import { VAnchor } from '../../packages/anchors/src';
 import { Verifier } from "../../packages/vbridge/src"
 import { writeFileSync } from "fs";
 import { SetupTxVAnchorMock } from './mocks/SetupTxVAnchorMock';
-import { toHex } from 'web3-utils';
 
 const BN = require('bn.js');
 
@@ -34,16 +33,6 @@ const path = require('path');
 const { poseidon } = require('circomlibjs');
 const snarkjs = require('snarkjs')
 const { toBN } = require('web3-utils');
-
-const updateUtxoWithIndex = async (inputUtxo: Utxo, index: number, originChain: number): Promise<Utxo> => {
-  const utxoString = inputUtxo.serialize();
-  const parts = utxoString.split('&');
-  parts[4] = index.toString();
-  const outputUtxo = await CircomUtxo.deserialize(parts.join('&'));
-  outputUtxo.setOriginChainId(originChain.toString());
-
-  return outputUtxo;
-}
 
 describe('VAnchor for 2 max edges', () => {
   let anchor: VAnchor;
@@ -152,7 +141,7 @@ describe('VAnchor for 2 max edges', () => {
   });
 
   describe('snark proof native verification on js side', () => {
-    it.only('should work', async () => {
+    it('should work', async () => {
       const relayer = "0x2111111111111111111111111111111111111111";
       const extAmount = 1e7;
       const aliceDepositAmount = 1e7;
@@ -231,7 +220,7 @@ describe('VAnchor for 2 max edges', () => {
   })
 
   describe('#transact', () => {
-    it.only('should transact', async () => {
+    it('should transact', async () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
@@ -361,6 +350,8 @@ describe('VAnchor for 2 max edges', () => {
       const aliceDepositAmount1 = 1e7;
       let aliceDepositUtxo1 = await generateUTXOForTest(chainID, aliceDepositAmount1);
 
+      console.log('0');
+
       await anchor.registerAndTransact(
         sender.address,
         aliceDepositUtxo1.keypair.toString(),
@@ -406,8 +397,8 @@ describe('VAnchor for 2 max edges', () => {
       // Limitations on UTXO index readonly value. create a new UTXO with the proper index.
       const aliceDeposit1Index = anchor.tree.getIndexByElement(aliceDepositUtxo1.commitment);
       const aliceDeposit2Index = anchor.tree.getIndexByElement(aliceDepositUtxo2.commitment);
-      aliceDepositUtxo1 = await updateUtxoWithIndex(aliceDepositUtxo1, aliceDeposit1Index, chainID);
-      aliceDepositUtxo2 = await updateUtxoWithIndex(aliceDepositUtxo2, aliceDeposit2Index, chainID);
+      aliceDepositUtxo1.setIndex(aliceDeposit1Index);
+      aliceDepositUtxo2.setIndex(aliceDeposit2Index);
 
       await anchor.transact(
         [aliceDepositUtxo1, aliceDepositUtxo2],
@@ -487,9 +478,9 @@ describe('VAnchor for 2 max edges', () => {
       const aliceDeposit1Index = anchor.tree.getIndexByElement(aliceDepositUtxo1.commitment);
       const aliceDeposit2Index = anchor.tree.getIndexByElement(aliceDepositUtxo2.commitment);
       const aliceDeposit3Index = anchor.tree.getIndexByElement(aliceDepositUtxo3.commitment);
-      aliceDepositUtxo1 = await updateUtxoWithIndex(aliceDepositUtxo1, aliceDeposit1Index, chainID);
-      aliceDepositUtxo2 = await updateUtxoWithIndex(aliceDepositUtxo2, aliceDeposit2Index, chainID);
-      aliceDepositUtxo3 = await updateUtxoWithIndex(aliceDepositUtxo3, aliceDeposit3Index, chainID);
+      aliceDepositUtxo1.setIndex(aliceDeposit1Index);
+      aliceDepositUtxo2.setIndex(aliceDeposit2Index);
+      aliceDepositUtxo3.setIndex(aliceDeposit3Index);
 
       await anchor.transact(
         [aliceDepositUtxo1, aliceDepositUtxo2, aliceDepositUtxo3],
@@ -548,14 +539,17 @@ describe('VAnchor for 2 max edges', () => {
     });
 
     it('should prevent double spend', async () => {
+      const aliceKeypair = new Keypair();
       const aliceDepositAmount = 1e7;
       let aliceDepositUtxo = await CircomUtxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: chainID.toString(),
         originChainId: chainID.toString(),
-        amount: aliceDepositAmount.toString()
+        amount: aliceDepositAmount.toString(),
+        keypair: aliceKeypair
       });
+      console.log('aliceDepositUtxo.keypair.toString(),', aliceDepositUtxo.keypair.toString());
 
       await anchor.registerAndTransact(
         sender.address,
@@ -572,7 +566,7 @@ describe('VAnchor for 2 max edges', () => {
       let anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
       // Limitations on UTXO index readonly value. create a new UTXO with the proper index.
       const aliceDepositIndex = anchor.tree.getIndexByElement(aliceDepositUtxo.commitment);
-      aliceDepositUtxo = await updateUtxoWithIndex(aliceDepositUtxo, aliceDepositIndex, chainID);
+      aliceDepositUtxo.setIndex(aliceDepositIndex);
 
       const aliceTransferUtxo = await CircomUtxo.generateUtxo({
         curve: 'Bn254',
@@ -898,6 +892,8 @@ describe('VAnchor for 2 max edges', () => {
         keypair: bobPublicKeypair
       });
 
+      console.log('aliceTransferUtxo: ', aliceTransferUtxo)
+
       // Insert the UTXO into the tree
       receipt = await anchor.transact(
         [],
@@ -921,22 +917,13 @@ describe('VAnchor for 2 max edges', () => {
           try {
             const decryptedUtxo = await CircomUtxo.decrypt(bobKeypair, enc);
             // In order to properly calculate the nullifier, an index is required.
-            // The decrypt function generates a utxo without an index, and the index is a readonly property.
-            // So, regenerate the utxo with the proper index.
-            const regeneratedUtxo = await CircomUtxo.generateUtxo({
-              amount: decryptedUtxo.amount,
-              backend: 'Circom',
-              blinding: hexToU8a(decryptedUtxo.blinding),
-              chainId: decryptedUtxo.chainId,
-              curve: 'Bn254',
-              keypair: bobKeypair,
-              index: index.toString(),
-            });
-            const alreadySpent = await anchor.contract.isSpent(toFixedHex(regeneratedUtxo.nullifier, 32));
+            decryptedUtxo.setIndex(index);
+            decryptedUtxo.setOriginChainId(chainID.toString());
+            const alreadySpent = await anchor.contract.isSpent(toFixedHex('0x' + decryptedUtxo.nullifier));
             if (!alreadySpent) {
-              return regeneratedUtxo;
+              return decryptedUtxo;
             } else {
-              return undefined;
+              throw new Error('Passed Utxo detected as alreadySpent');
             }
           } catch (e) {
             return undefined;
@@ -1013,25 +1000,13 @@ describe('VAnchor for 2 max edges', () => {
       const commitment = aliceDepositUtxo.commitment
       const index = tree.indexOf(toFixedHex(commitment)) // it's the same as merklePath and merklePathIndexes and index in the tree
 
-      // Cant set index on create JsUtxo - regenerate the CircomUtxo.
-      const aliceDepositUtxoRegen = await CircomUtxo.generateUtxo({
-        curve: 'Bn254',
-        backend: 'Circom',
-        chainId: chainID.toString(),
-        originChainId: chainID.toString(),
-        amount: aliceDepositUtxo.amount,
-        index: index.toString(),
-        blinding: hexToU8a(aliceDepositUtxo.blinding),
-        keypair: aliceDepositUtxo.getKeypair()
-      })
-      const nullifier = aliceDepositUtxoRegen.nullifier
+      aliceDepositUtxo.setIndex(index);
 
-      const commitmentV = aliceDepositUtxoRegen.commitment
       // generateReport(dataForVerifier) -> compliance report
       // on the verifier side we compute commitment and nullifier and then check them onchain
 
-      assert.strictEqual(BigNumber.from(commitmentV).toString(), BigNumber.from(commitment).toString());
-      assert.strictEqual(await anchor.contract.nullifierHashes(toFixedHex(nullifier)), true);
+      assert.strictEqual(BigNumber.from(aliceDepositUtxo.commitment).toString(), BigNumber.from(commitment).toString());
+      assert.strictEqual(await anchor.contract.nullifierHashes(toFixedHex('0x' + aliceDepositUtxo.nullifier)), true);
       // expect commitmentV present onchain (it will be in NewCommitment events)
 
       // in report we can see the tx with NewCommitment event (this is how alice got money)
@@ -1117,6 +1092,9 @@ describe('VAnchor for 2 max edges', () => {
         {
           [fakeChainId.toString()]: [
             fakeUtxo.commitment
+          ],
+          [chainID.toString()]: [
+            hexToU8a(fakeTree.zeroElement.toHexString())
           ]
         }
       );
@@ -1335,7 +1313,7 @@ describe('VAnchor for 2 max edges', () => {
 
       // Limitations on UTXO index readonly value. create a new UTXO with the proper index.
       const aliceDepositIndex = wrappedVAnchor.tree.getIndexByElement(aliceDepositUtxo.commitment);
-      aliceDepositUtxo = await updateUtxoWithIndex(aliceDepositUtxo, aliceDepositIndex, chainID);
+      aliceDepositUtxo.setIndex(aliceDepositIndex);
 
       //Check that vAnchor has the right amount of wrapped token balance
       assert.strictEqual((await wrappedToken.balanceOf(wrappedVAnchor.contract.address)).toString(), BigNumber.from(1e7).toString());
@@ -1436,7 +1414,7 @@ describe('VAnchor for 2 max edges', () => {
 
       // Limitations on UTXO index readonly value. create a new UTXO with the proper index.
       const aliceDepositIndex = wrappedVAnchor.tree.getIndexByElement(aliceDepositUtxo.commitment);
-      aliceDepositUtxo = await updateUtxoWithIndex(aliceDepositUtxo, aliceDepositIndex, chainID);
+      aliceDepositUtxo.setIndex(aliceDepositIndex);
 
       // Balance of VAnchor wrapped token should be 2e7
       const balWrappedTokenAfterDepositAnchor = await wrappedToken.balanceOf(wrappedVAnchor.contract.address);
@@ -1479,7 +1457,7 @@ describe('VAnchor for 2 max edges', () => {
 
       anchorLeaves = wrappedVAnchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
       const aliceChangeIndex = wrappedVAnchor.tree.getIndexByElement(aliceChangeUtxo.commitment);
-      aliceChangeUtxo = await updateUtxoWithIndex(aliceChangeUtxo, aliceChangeIndex, chainID);
+      aliceChangeUtxo.setIndex(aliceChangeIndex);
 
       const balUnwrappedTokenAfterWithdrawSender = await token.balanceOf(sender.address);
       assert.strictEqual(balUnwrappedTokenAfterWithdrawSender.sub(balUnwrappedTokenAfterDepositSender).toString(), BigNumber.from(1e7).toString());

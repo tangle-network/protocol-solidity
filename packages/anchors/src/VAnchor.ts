@@ -24,6 +24,7 @@ import {
   UtxoGenInput,
   CircomUtxo,
   FIELD_SIZE,
+  LeafIdentifier,
 } from '@webb-tools/sdk-core';
 import { IAnchor, IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
@@ -364,7 +365,7 @@ export class VAnchor implements IAnchor {
     const args: IVariableAnchorPublicInputs = {
       proof: `0x${proof}`,
       roots: `0x${roots.map((x) => toFixedHex(x).slice(2)).join('')}`,
-      inputNullifiers: inputs.map((x) => toFixedHex(x.nullifier)),
+      inputNullifiers: inputs.map((x) => toFixedHex('0x' + x.nullifier)),
       outputCommitments: [toFixedHex(u8aToHex(outputs[0].commitment)), toFixedHex(u8aToHex(outputs[1].commitment))],
       publicAmount: toFixedHex(publicAmount),
       extDataHash: toFixedHex(extDataHash),
@@ -454,11 +455,16 @@ export class VAnchor implements IAnchor {
 
     // calculate the sum of input notes (for calculating the public amount)
     let sumInputUtxosAmount: BigNumberish = 0;
-    let inputIndices: number[] = [];
+
+    // Pass the identifier for leaves alongside the proof input
+    let leafIds: LeafIdentifier[] = [];
 
     for (const inputUtxo of inputs) {
       sumInputUtxosAmount = BigNumber.from(sumInputUtxosAmount).add(inputUtxo.amount);
-      inputIndices.push(inputUtxo.index);
+      leafIds.push({
+        index: inputUtxo.index,
+        typedChainId: Number(inputUtxo.originChainId)
+      });
     }
 
     const encryptedCommitments: [Uint8Array, Uint8Array] = [
@@ -469,7 +475,7 @@ export class VAnchor implements IAnchor {
     const proofInput: ProvingManagerSetupInput<'vanchor'> = {
       inputUtxos: inputs,
       leavesMap,
-      indices: inputIndices,
+      leafIds,
       roots: roots.map((root) => hexToU8a(root)),
       chainId: chainId.toString(),
       output: outputs,
@@ -525,6 +531,14 @@ export class VAnchor implements IAnchor {
     recipient: string,
     relayer: string
   ): Promise<ethers.ContractReceipt> {
+
+    // Validate input utxos have a valid originChainId
+    inputs.map((utxo) => {
+      if (utxo.originChainId === undefined) {
+        throw new Error('Input Utxo does not have a configured originChainId');
+      }
+    })
+
     // Default UTXO chain ID will match with the configured signer's chain ID
     const evmId = await this.signer.getChainId();
     const chainId = getChainIdType(evmId);

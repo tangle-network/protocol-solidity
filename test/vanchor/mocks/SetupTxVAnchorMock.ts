@@ -9,6 +9,7 @@ import {
   Note,
   NoteGenInput,
   FIELD_SIZE,
+  LeafIdentifier,
 } from '@webb-tools/sdk-core';
 import {
   IVariableAnchorExtData,
@@ -49,11 +50,14 @@ export class SetupTxVAnchorMock extends VAnchor {
 
     // calculate the sum of input notes (for calculating the public amount)
     let sumInputs: BigNumberish = 0;
-    let inputIndices: number[] = [];
+    let leafIds: LeafIdentifier[] = [];
 
     for (const inputUtxo of inputs) {
       sumInputs = BigNumber.from(sumInputs).add(inputUtxo.amount);
-      inputIndices.push(inputUtxo.index);
+      leafIds.push({
+        index: inputUtxo.index,
+        typedChainId: Number(inputUtxo.originChainId)
+      });
     }
 
     const encryptedCommitments: [Uint8Array, Uint8Array] = [
@@ -64,7 +68,7 @@ export class SetupTxVAnchorMock extends VAnchor {
     const proofInput: ProvingManagerSetupInput<'vanchor'> = {
       inputUtxos: inputs,
       leavesMap,
-      indices: inputIndices,
+      leafIds,
       roots: this.rootsForProof.map((root) => hexToU8a(root)),
       chainId: chainId.toString(),
       output: outputs,
@@ -78,6 +82,8 @@ export class SetupTxVAnchorMock extends VAnchor {
       extAmount: toFixedHex(BigNumber.from(extAmount)),
       fee: BigNumber.from(fee).toString(),
     };
+
+    console.log('proofInput in vanchor mock: ', proofInput);
 
     inputs.length > 2
       ? (this.provingManager = new CircomProvingManager(this.largeCircuitZkComponents.wasm, this.tree.levels, null))
