@@ -24,7 +24,6 @@ cp ./typechain/VAnchorBase.d.ts ./packages/contracts/src/VAnchorBase.d.ts
 cp ./typechain/VAnchorEncodeInputs.d.ts ./packages/contracts/src/VAnchorEncodeInputs.d.ts
 cp ./typechain/VAnchorVerifier.d.ts ./packages/contracts/src/VAnchorVerifier.d.ts
 
-cp ./typechain/ISemaphore.d.ts ./packages/contracts/src/ISemaphore.d.ts
 cp ./typechain/IdentityVAnchor.d.ts ./packages/contracts/src/IdentityVAnchor.d.ts
 cp ./typechain/IdentityVAnchorBase.d.ts ./packages/contracts/src/IdentityVAnchorBase.d.ts
 cp ./typechain/IdentityVAnchorEncodeInputs.d.ts ./packages/contracts/src/IdentityVAnchorEncodeInputs.d.ts
