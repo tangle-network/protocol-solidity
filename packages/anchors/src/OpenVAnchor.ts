@@ -37,7 +37,6 @@ export class OpenVAnchor {
   contract: OpenVAnchorContract;
   tree: MerkleTree;
   // hex string of the connected root
-  maxEdges: number;
   latestSyncedBlock: number;
   smallCircuitZkComponents: ZkComponents;
   largeCircuitZkComponents: ZkComponents;
@@ -64,7 +63,7 @@ export class OpenVAnchor {
     return this.contract.address;
   }
 
-  public static async createVAnchor(
+  public static async createOpenVAnchor(
     levels: BigNumberish,
     hasher: string,
     handler: string,
@@ -346,10 +345,14 @@ export class OpenVAnchor {
 			delegatedCalldata: string,
 			blinding: BigNumberish
   ): string {
-    const delegatedCalldataHash = ethers.utils.keccak256(ethers.utils.arrayify('0x00'));
+    const delegatedCalldataHash = ethers.utils.keccak256(ethers.utils.arrayify('0x00'))
+
+    console.log('calldata hash: ', delegatedCalldataHash)
 
     const packedValues = solidityPack([ "uint256", "uint256", "address", "bytes32", "uint256" ], [ chainId, amount, recipientAddr, delegatedCalldataHash, blinding]);
+    console.log('packedValues: ', packedValues)
     const commitment = ethers.utils.keccak256(ethers.utils.arrayify(packedValues));
+    console.log('commitment: ', commitment)
     return commitment
   }
 
@@ -359,13 +362,11 @@ export class OpenVAnchor {
    * @returns an object with two fields, publicInput
    */
   public async wrapAndDeposit(
-    destinationChainId: number,
     depositAmount: BigNumberish,
+    destinationChainId: number,
     recipient: string,
     delegatedCalldata: string,
     blinding: BigNumberish,
-    tokenAddress: string,
-    leavesMap: Record<string, Uint8Array[]>,
   ): Promise<ethers.ContractReceipt> {
     // Default UTXO chain ID will match with the configured signer's chain ID
     const evmId = await this.signer.getChainId();
@@ -411,10 +412,8 @@ export class OpenVAnchor {
     delegatedCalldata: string,
     blinding: BigNumberish,
     merkleProof: MerkleProof,
-    commitmentIndex: number,
-    leavesMap: Record<string, Uint8Array[]>,
+    commitmentIndex: number
   ): Promise<ethers.ContractReceipt> {
-    // Default UTXO chain ID will match with the configured signer's chain ID
     const evmId = await this.signer.getChainId();
     const chainId = getChainIdType(evmId);
 
@@ -447,37 +446,6 @@ export class OpenVAnchor {
 
     return receipt;
   }
-
-  // public async transactWrap(
-  //   destinationChainId: number,
-  //   depositAmount: BigNumberish,
-  //   recipient: string,
-  //   delegatedCalldata: string,
-  //   blinding: BigNumberish,
-  //   tokenAddress: string,
-  //   leavesMap: Record<string, Uint8Array[]>,
-  // ): Promise<ethers.ContractReceipt> {
-  //   // Default UTXO chain ID will match with the configured signer's chain ID
-  //   const evmId = await this.signer.getChainId();
-  //   const chainId = getChainIdType(evmId);
-  //
-  //   const tx = await this.contract.wrapAndDeposit(
-  //     {
-  //       // TODO: This might need to be a hexValue instead of just an string
-  //       value: depositAmount.toString(),
-  //       gasLimit: '0x5B8D80',
-  //     }
-  //   );
-  //   const receipt = await tx.wait();
-  //
-  //   // Add the leaves to the tree
-  //   // Maintain tree state after insertions
-  //   this.tree.insert(u8aToHex(commitment));
-  //   let numOfElements = this.tree.number_of_elements();
-  //   this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
-  //
-  //   return receipt;
-  // }
 }
 
 export default OpenVAnchor;

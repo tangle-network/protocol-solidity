@@ -64,7 +64,7 @@ contract OpenVAnchor is OpenVAnchorBase {
 		_levels,
 		_hasher,
 		_handler
-	) {token = _token;}
+	) { token = _token; }
 
 	/**
 		@notice Wraps a token for the `msg.sender` using the underlying TokenWrapper contract
@@ -164,9 +164,15 @@ contract OpenVAnchor is OpenVAnchorBase {
 
         for (uint8 i = 0; i < siblingPathNodes.length; i++) {
             if (nodeIndex % 2 == 0) {
-                currNodeHash = keccak256(abi.encodePacked(currNodeHash, siblingPathNodes[i]));
+                currNodeHash = bytes32(hasher.hashLeftRight(
+					uint256(currNodeHash),
+					uint256(siblingPathNodes[i])
+				));
             } else {
-                currNodeHash = keccak256(abi.encodePacked(siblingPathNodes[i], currNodeHash));
+                currNodeHash = bytes32(hasher.hashLeftRight(
+					uint256(siblingPathNodes[i]),
+					uint256(currNodeHash)
+				));
             }
             nodeIndex = nodeIndex / 2;
         }

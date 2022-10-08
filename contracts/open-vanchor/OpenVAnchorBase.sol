@@ -20,6 +20,7 @@ abstract contract OpenVAnchorBase is OpenAnchorBase {
 	uint256 public lastBalance;
 	uint256 public minimalWithdrawalAmount;
 	uint256 public maximumDepositAmount;
+
 	struct Account {
 		address owner;
 		// A byte array which contains the public key from (0,64) and
@@ -30,7 +31,6 @@ abstract contract OpenVAnchorBase is OpenAnchorBase {
 	event NewCommitment(bytes32 commitment, uint256 index);
 	event NewNullifier(bytes32 nullifier);
 	event PublicKey(address indexed owner, bytes key);
-
 
 	constructor(
 		uint32 _levels,
