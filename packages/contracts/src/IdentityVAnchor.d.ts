@@ -79,7 +79,6 @@ interface IdentityVAnchorInterface extends ethers.utils.Interface {
     "withdrawAndUnwrap(address,address,uint256)": FunctionFragment;
     "wrapNative()": FunctionFragment;
     "wrapToken(address,uint256)": FunctionFragment;
-    "zeros(uint256)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -329,7 +328,6 @@ interface IdentityVAnchorInterface extends ethers.utils.Interface {
     functionFragment: "wrapToken",
     values: [string, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "zeros", values: [BigNumberish]): string;
 
   decodeFunctionResult(
     functionFragment: "EVM_CHAIN_ID_TYPE",
@@ -490,7 +488,6 @@ interface IdentityVAnchorInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "wrapNative", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "wrapToken", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "zeros", data: BytesLike): Result;
 
   events: {
     "EdgeAddition(uint256,uint256,bytes32)": EventFragment;
@@ -893,8 +890,6 @@ export class IdentityVAnchor extends BaseContract {
       _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    zeros(i: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
   };
 
   EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<string>;
@@ -1181,8 +1176,6 @@ export class IdentityVAnchor extends BaseContract {
     _amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
-
-  zeros(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<string>;
@@ -1476,8 +1469,6 @@ export class IdentityVAnchor extends BaseContract {
       _amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    zeros(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -1847,8 +1838,6 @@ export class IdentityVAnchor extends BaseContract {
       _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
-
-    zeros(i: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -2134,11 +2123,6 @@ export class IdentityVAnchor extends BaseContract {
       _tokenAddress: string,
       _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    zeros(
-      i: BigNumberish,
-      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
 }

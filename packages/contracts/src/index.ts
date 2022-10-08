@@ -7,6 +7,8 @@ export { ERC20__factory } from './factories/ERC20__factory';
 export type { ERC20PresetMinterPauser } from './ERC20PresetMinterPauser';
 export { ERC20PresetMinterPauser__factory } from './factories/ERC20PresetMinterPauser__factory';
 
+export type { Semaphore } from './Semaphore';
+
 export type { AnchorBase } from './AnchorBase';
 export { AnchorBase__factory } from './factories/AnchorBase__factory';
 
@@ -22,7 +24,6 @@ export { HandlerHelpers__factory } from './factories/HandlerHelpers__factory';
 export type { VAnchorEncodeInputs } from './VAnchorEncodeInputs';
 export { VAnchorEncodeInputs__factory } from './factories/VAnchorEncodeInputs__factory';
 
-export type { Semaphore } from './Semaphore';
 export type { IdentityVAnchorEncodeInputs } from './IdentityVAnchorEncodeInputs';
 export { IdentityVAnchorEncodeInputs__factory } from './factories/IdentityVAnchorEncodeInputs__factory';
 
@@ -41,11 +42,20 @@ export { Treasury__factory } from './factories/Treasury__factory';
 export type { TreasuryHandler } from './TreasuryHandler';
 export { TreasuryHandler__factory } from './factories/TreasuryHandler__factory';
 
-export type { Hasher } from './Hasher';
-export { Hasher__factory } from './factories/Hasher__factory';
+export type { KeccakHasher } from './KeccakHasher';
+export { KeccakHasher__factory } from './factories/KeccakHasher__factory';
+
+export type { PoseidonHasher } from './PoseidonHasher';
+export { PoseidonHasher__factory } from './factories/PoseidonHasher__factory';
 
 export type { PoseidonT3 } from './PoseidonT3';
 export { PoseidonT3__factory } from './factories/PoseidonT3__factory';
+
+export type { PoseidonT6 } from './PoseidonT6';
+export { PoseidonT6__factory } from './factories/PoseidonT6__factory';
+
+export type { MerkleTreeWithHistory } from './MerkleTreeWithHistory';
+export { MerkleTreeWithHistory__factory } from './factories/MerkleTreeWithHistory__factory';
 
 export type { VAnchor } from './VAnchor';
 export { VAnchor__factory } from './factories/VAnchor__factory';

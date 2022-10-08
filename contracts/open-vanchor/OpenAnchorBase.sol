@@ -21,8 +21,9 @@ abstract contract OpenAnchorBase is OpenLinkableAnchor {
 
     constructor(
         address _handler,
+        IHasher _hasher,
         uint32 _merkleTreeHeight
-    ) OpenLinkableAnchor(_handler, _merkleTreeHeight) {
+    ) OpenLinkableAnchor(_handler, _hasher, _merkleTreeHeight) {
     }
 
     /**

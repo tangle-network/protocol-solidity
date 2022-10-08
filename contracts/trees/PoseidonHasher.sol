@@ -5,31 +5,51 @@
 
 pragma solidity ^0.8.0;
 
-import "./MerkleTreeWithHistoryPoseidon.sol";
+import "./IHasher.sol";
+import { PoseidonT3, PoseidonT6 } from "./Poseidon.sol";
+import { SnarkConstants } from "./SnarkConstants.sol";
 
-contract MerkleTreePoseidon is MerkleTreeWithHistoryPoseidon {
-    constructor(uint32 _levels, IPoseidonT3 _hasher) MerkleTreeWithHistoryPoseidon(_levels, _hasher) {
-        for (uint32 i = 0; i < _levels; i++) {
-            filledSubtrees[i] = zeros(i);
-        }
-
-        roots[0] = Root(zeros(_levels - 1), 0);
+/*
+ * Poseidon hash functions for 2, 5, and 11 input elements.
+ */
+contract PoseidonHasher is SnarkConstants, IHasher {
+    function hash5(uint256[5] memory array) public pure returns (uint256) {
+        return PoseidonT6.poseidon(array);
     }
 
-    /**
-        @dev Hash 2 tree leaves, returns PoseidonT3([_left, _right])
-    */
-    function hashLeftRight(
-        IPoseidonT3 _hasher,
-        bytes32 _left,
-        bytes32 _right
-    ) override public pure returns (bytes32) {
-        require(uint256(_left) < FIELD_SIZE, "_left should be inside the field");
-        require(uint256(_right) < FIELD_SIZE, "_right should be inside the field");
-        uint256 output = uint256(_left);
-        uint256 right = uint256(_right);
-        output = _hasher.poseidon([output, right]);
-        return bytes32(output);
+    function hash11(uint256[] memory array) public pure returns (uint256) {
+        uint256[] memory input11 = new uint256[](11);
+        uint256[5] memory first5;
+        uint256[5] memory second5;
+        for (uint256 i = 0; i < array.length; i++) {
+            input11[i] = array[i];
+        }
+
+        for (uint256 i = array.length; i < 11; i++) {
+            input11[i] = 0;
+        }
+
+        for (uint256 i = 0; i < 5; i++) {
+            first5[i] = input11[i];
+            second5[i] = input11[i + 5];
+        }
+
+        uint256[2] memory first2;
+        first2[0] = PoseidonT6.poseidon(first5);
+        first2[1] = PoseidonT6.poseidon(second5);
+        uint256[2] memory second2;
+        second2[0] = PoseidonT3.poseidon(first2);
+        second2[1] = input11[10];
+        return PoseidonT3.poseidon(second2);
+    }
+
+    function hashLeftRight(uint256 _left, uint256 _right) override public pure returns (uint256) {
+        require(uint256(_left) < SNARK_SCALAR_FIELD, "_left should be inside the field");
+        require(uint256(_right) < SNARK_SCALAR_FIELD, "_right should be inside the field");
+        uint256[2] memory input;
+        input[0] = _left;
+        input[1] = _right;
+        return PoseidonT3.poseidon(input);
     }
 
     /// @dev provides Zero (Empty) elements for a Poseidon MerkleTree. Up to 32 levels

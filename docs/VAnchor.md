@@ -482,18 +482,18 @@ Checks the `_chainID` has an edge on this contract
 ### hashLeftRight
 
 ```solidity
-function hashLeftRight(contract IPoseidonT3 _hasher, bytes32 _left, bytes32 _right) external pure returns (bytes32)
+function hashLeftRight(contract IHasher _hasher, bytes32 _left, bytes32 _right) external view returns (bytes32)
 ```
 
 
 
-*Hash 2 tree leaves, returns PoseidonT3([_left, _right])*
+*Hash 2 tree leaves*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| _hasher | contract IPoseidonT3 | undefined
+| _hasher | contract IHasher | undefined
 | _left | bytes32 | undefined
 | _right | bytes32 | undefined
 
@@ -506,7 +506,7 @@ function hashLeftRight(contract IPoseidonT3 _hasher, bytes32 _left, bytes32 _rig
 ### hasher
 
 ```solidity
-function hasher() external view returns (contract IPoseidonT3)
+function hasher() external view returns (contract IHasher)
 ```
 
 
@@ -518,7 +518,7 @@ function hasher() external view returns (contract IPoseidonT3)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | contract IPoseidonT3 | undefined
+| _0 | contract IHasher | undefined
 
 ### initialize
 
@@ -1117,28 +1117,6 @@ Wraps a token for the `msg.sender` using the underlying TokenWrapper contract
 |---|---|---|
 | _tokenAddress | address | The address of the token to wrap
 | _amount | uint256 | The amount of tokens to wrap
-
-### zeros
-
-```solidity
-function zeros(uint256 i) external pure returns (bytes32)
-```
-
-
-
-*provides Zero (Empty) elements for a Poseidon MerkleTree. Up to 32 levels*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| i | uint256 | undefined
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bytes32 | undefined
 
 
 

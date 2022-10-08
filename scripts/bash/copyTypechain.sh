@@ -12,12 +12,17 @@ cp ./typechain/ERC20.d.ts ./packages/contracts/src/ERC20.d.ts
 cp ./typechain/ERC20PresetMinterPauser.d.ts ./packages/contracts/src/ERC20PresetMinterPauser.d.ts
 cp ./typechain/GovernedTokenWrapper.d.ts ./packages/contracts/src/GovernedTokenWrapper.d.ts
 cp ./typechain/HandlerHelpers.d.ts ./packages/contracts/src/HandlerHelpers.d.ts
-cp ./typechain/Hasher.d.ts ./packages/contracts/src/Hasher.d.ts
-cp ./typechain/PoseidonT3.d.ts ./packages/contracts/src/PoseidonT3.d.ts
 cp ./typechain/TokenWrapper.d.ts ./packages/contracts/src/TokenWrapper.d.ts
 cp ./typechain/TokenWrapperHandler.d.ts ./packages/contracts/src/TokenWrapperHandler.d.ts
 cp ./typechain/Treasury.d.ts ./packages/contracts/src/Treasury.d.ts
 cp ./typechain/TreasuryHandler.d.ts ./packages/contracts/src/TreasuryHandler.d.ts
+
+cp ./typechain/KeccakHasher.d.ts ./packages/contracts/src/KeccakHasher.d.ts
+cp ./typechain/PoseidonHasher.d.ts ./packages/contracts/src/PoseidonHasher.d.ts
+cp ./typechain/PoseidonT3.d.ts ./packages/contracts/src/PoseidonT3.d.ts
+cp ./typechain/PoseidonT6.d.ts ./packages/contracts/src/PoseidonT6.d.ts
+cp ./typechain/MerkleTree.d.ts ./packages/contracts/src/MerkleTree.d.ts
+cp ./typechain/MerkleTreeWithHistory.d.ts ./packages/contracts/src/MerkleTreeWithHistory.d.ts
 
 cp ./typechain/VAnchor.d.ts ./packages/contracts/src/VAnchor.d.ts
 cp ./typechain/VAnchorBase.d.ts ./packages/contracts/src/VAnchorBase.d.ts
@@ -53,12 +58,17 @@ cp ./typechain/factories/ERC20__factory.ts ./packages/contracts/src/factories/ER
 cp ./typechain/factories/ERC20PresetMinterPauser__factory.ts ./packages/contracts/src/factories/ERC20PresetMinterPauser__factory.ts
 cp ./typechain/factories/GovernedTokenWrapper__factory.ts ./packages/contracts/src/factories/GovernedTokenWrapper__factory.ts
 cp ./typechain/factories/HandlerHelpers__factory.ts ./packages/contracts/src/factories/HandlerHelpers__factory.ts
-cp ./typechain/factories/Hasher__factory.ts ./packages/contracts/src/factories/Hasher__factory.ts
-cp ./typechain/factories/PoseidonT3__factory.ts ./packages/contracts/src/factories/PoseidonT3__factory.ts
 cp ./typechain/factories/TokenWrapper__factory.ts ./packages/contracts/src/factories/TokenWrapper__factory.ts
 cp ./typechain/factories/TokenWrapperHandler__factory.ts ./packages/contracts/src/factories/TokenWrapperHandler__factory.ts
 cp ./typechain/factories/Treasury__factory.ts ./packages/contracts/src/factories/Treasury__factory.ts
 cp ./typechain/factories/TreasuryHandler__factory.ts ./packages/contracts/src/factories/TreasuryHandler__factory.ts
+
+cp ./typechain/factories/KeccakHasher__factory.ts ./packages/contracts/src/factories/KeccakHasher__factory.ts
+cp ./typechain/factories/PoseidonHasher__factory.ts ./packages/contracts/src/factories/PoseidonHasher__factory.ts
+cp ./typechain/factories/PoseidonT3__factory.ts ./packages/contracts/src/factories/PoseidonT3__factory.ts
+cp ./typechain/factories/PoseidonT6__factory.ts ./packages/contracts/src/factories/PoseidonT6__factory.ts
+cp ./typechain/factories/MerkleTree__factory.ts ./packages/contracts/src/factories/MerkleTree__factory.ts
+cp ./typechain/factories/MerkleTreeWithHistory__factory.ts ./packages/contracts/src/factories/MerkleTreeWithHistory__factory.ts
 
 cp ./typechain/factories/VAnchor__factory.ts ./packages/contracts/src/factories/VAnchor__factory.ts
 cp ./typechain/factories/VAnchorBase__factory.ts ./packages/contracts/src/factories/VAnchorBase__factory.ts

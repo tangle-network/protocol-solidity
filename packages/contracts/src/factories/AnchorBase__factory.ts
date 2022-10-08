@@ -460,7 +460,7 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "contract IPoseidonT3",
+        internalType: "contract IHasher",
         name: "_hasher",
         type: "address",
       },
@@ -483,7 +483,7 @@ const _abi = [
         type: "bytes32",
       },
     ],
-    stateMutability: "pure",
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -491,7 +491,7 @@ const _abi = [
     name: "hasher",
     outputs: [
       {
-        internalType: "contract IPoseidonT3",
+        internalType: "contract IHasher",
         name: "",
         type: "address",
       },
@@ -823,25 +823,6 @@ const _abi = [
       },
     ],
     stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "i",
-        type: "uint256",
-      },
-    ],
-    name: "zeros",
-    outputs: [
-      {
-        internalType: "bytes32",
-        name: "",
-        type: "bytes32",
-      },
-    ],
-    stateMutability: "pure",
     type: "function",
   },
 ];

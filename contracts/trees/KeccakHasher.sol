@@ -5,30 +5,20 @@
 
 pragma solidity ^0.8.0;
 
-import "./MerkleTreeWithHistoryKeccak.sol";
+import "./IHasher.sol";
 
-contract MerkleTreeKeccak is MerkleTreeWithHistoryKeccak {
-    constructor(uint32 _levels) MerkleTreeWithHistoryKeccak(_levels) {
-        for (uint32 i = 0; i < _levels; i++) {
-            filledSubtrees[i] = zeros(i);
-        }
-
-        roots[0] = Root(zeros(_levels - 1), 0);
-    }
-
-    /**
-        @dev Hash 2 tree leaves, returns PoseidonT3([_left, _right])
-    */
-    function hashLeftRight(
-        bytes32 _left,
-        bytes32 _right
-    ) override public pure returns (bytes32) {
+/*
+ * Keccak hash functions for 2 inputs.
+ */
+contract KeccakHasher is IHasher {
+    function hashLeftRight(uint256 _left, uint256 _right) override public pure returns (uint256) {
         uint256 output = uint256(_left);
         uint256 right = uint256(_right);
         output = uint256(keccak256(abi.encodePacked(output, right)));
-        return bytes32(output);
+        return output;
     }
-  /// @dev provides Zero (Empty) elements for a Poseidon MerkleTree. Up to 32 levels
+
+    /// @dev provides Zero (Empty) elements for a Poseidon MerkleTree. Up to 32 levels
     function zeros(uint256 i) override public pure returns (bytes32) {
         if (i == 0) return bytes32(0x2fe54c60d3acabf3343a35b6eba15db4821b340f76e741e2249685ed4899af6c);
         else if (i == 1) return bytes32(0x4fc2fe9184a25f44ce8ddb5f32671fcae6d9c85ed710c199acef16ad16b29911);

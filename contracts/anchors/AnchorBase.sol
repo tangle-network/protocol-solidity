@@ -5,7 +5,7 @@
 
 pragma solidity ^0.8.0;
 
-import "../trees/MerkleTreePoseidon.sol";
+import "../trees/MerkleTree.sol";
 import "../interfaces/IAnchorVerifier.sol";
 import "./LinkableAnchor.sol";
 
@@ -37,7 +37,7 @@ abstract contract AnchorBase is LinkableAnchor {
     constructor(
         address _handler,
         IAnchorVerifier _verifier,
-        IPoseidonT3 _hasher,
+        IHasher _hasher,
         uint32 _merkleTreeHeight,
         uint8 _maxEdges
     ) LinkableAnchor(_handler, _hasher, _merkleTreeHeight, _maxEdges) {

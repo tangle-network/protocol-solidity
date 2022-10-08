@@ -34,9 +34,10 @@ abstract contract OpenVAnchorBase is OpenAnchorBase {
 
 	constructor(
 		uint32 _levels,
+		IHasher _hasher,
 		address _handler
 	)
-		OpenAnchorBase(_handler, _levels)
+		OpenAnchorBase(_handler, _hasher, _levels)
 	{}
 
 	function initialize(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmount) external initializer {

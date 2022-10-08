@@ -7,10 +7,9 @@ import {
   Treasury,
   TokenWrapperHandler,
 } from '@webb-tools/tokens';
-import { PoseidonT3__factory } from '@webb-tools/contracts';
 import Verifier from './Verifier';
 import { AnchorIdentifier, GovernorConfig, DeployerConfig } from '@webb-tools/interfaces';
-import { AnchorHandler, VAnchor } from '@webb-tools/anchors';
+import { AnchorHandler, PoseidonHasher, VAnchor } from '@webb-tools/anchors';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { CircomUtxo, Utxo } from '@webb-tools/sdk-core';
 
@@ -151,9 +150,7 @@ export class VBridge {
       await vBridgeInstance.setTreasuryResourceWithSignature(treasury);
 
       // Create the Hasher and Verifier for the chain
-      const hasherFactory = new PoseidonT3__factory(deployers[chainID]);
-      let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
-      await hasherInstance.deployed();
+      const hasherInstance = await PoseidonHasher.createPoseidonHasher(deployers[chainID]);
 
       const verifier = await Verifier.createVerifier(deployers[chainID]);
       let verifierInstance = verifier.contract;
@@ -210,7 +207,7 @@ export class VBridge {
       const vAnchorInstance = await VAnchor.createVAnchor(
         verifierInstance.address,
         30,
-        hasherInstance.address,
+        hasherInstance.contract.address,
         handler.contract.address,
         tokenInstance.contract.address,
         maxEdges,

@@ -57,10 +57,12 @@ contract OpenVAnchor is OpenVAnchorBase {
 
 	constructor(
 		uint32 _levels,
+		IHasher _hasher,
 		address _handler,
 		address _token
 	) OpenVAnchorBase (
 		_levels,
+		_hasher,
 		_handler
 	) {token = _token;}
 

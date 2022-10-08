@@ -13,7 +13,6 @@ import {
   ERC20PresetMinterPauser__factory,
   GovernedTokenWrapper as WrappedToken,
   GovernedTokenWrapper__factory as WrappedTokenFactory,
-  PoseidonT3__factory
 } from '../../packages/contracts/src';
 
 // Convenience wrapper classes for contract classes
@@ -22,7 +21,7 @@ import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 import { Utxo, Keypair, MerkleTree, randomBN, toFixedHex, generateVariableWitnessInput, getVAnchorExtDataHash, generateWithdrawProofCallData, CircomUtxo } from '@webb-tools/sdk-core';
-import { VAnchor } from '../../packages/anchors/src';
+import { VAnchor, PoseidonHasher } from '../../packages/anchors/src';
 import { Verifier } from "../../packages/vbridge/src"
 import { writeFileSync } from "fs";
 import { SetupTxVAnchorMock } from './mocks/SetupTxVAnchorMock';
@@ -98,9 +97,7 @@ describe('VAnchor for 2 max edges', () => {
     const wallet = signers[0];
     sender = wallet;
     // create poseidon hasher
-    const hasherFactory = new PoseidonT3__factory(wallet);
-    hasherInstance = await hasherFactory.deploy();
-    await hasherInstance.deployed();
+    const hasherInstance = await PoseidonHasher.createPoseidonHasher(wallet);
 
     // create bridge verifier
     verifier = await Verifier.createVerifier(sender);
@@ -115,7 +112,7 @@ describe('VAnchor for 2 max edges', () => {
     anchor = await VAnchor.createVAnchor(
       verifier.contract.address,
       levels,
-      hasherInstance.address,
+      hasherInstance.contract.address,
       sender.address,
       token.address,
       1,
@@ -1132,6 +1129,10 @@ describe('VAnchor for 2 max edges', () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
       const sender = wallet;
+
+      // create poseidon hasher
+      const hasherInstance = await PoseidonHasher.createPoseidonHasher(wallet);
+
       // create wrapped token
       const name = 'webbETH';
       const symbol = 'webbETH';
@@ -1145,7 +1146,7 @@ describe('VAnchor for 2 max edges', () => {
       const wrappedAnchor = await VAnchor.createVAnchor(
         verifier.contract.address,
         30,
-        hasherInstance.address,
+        hasherInstance.contract.address,
         sender.address,
         wrappedToken.address,
         1,
@@ -1203,6 +1204,10 @@ describe('VAnchor for 2 max edges', () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
       const sender = wallet;
+
+      // create poseidon hasher
+      const hasherInstance = await PoseidonHasher.createPoseidonHasher(wallet);
+
       // create wrapped token
       const name = 'webbETH';
       const symbol = 'webbETH';
@@ -1216,7 +1221,7 @@ describe('VAnchor for 2 max edges', () => {
       const wrappedAnchor = await VAnchor.createVAnchor(
         verifier.contract.address,
         30,
-        hasherInstance.address,
+        hasherInstance.contract.address,
         sender.address,
         wrappedToken.address,
         1,
@@ -1272,6 +1277,10 @@ describe('VAnchor for 2 max edges', () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
       const sender = wallet;
+
+      // create poseidon hasher
+      const hasherInstance = await PoseidonHasher.createPoseidonHasher(wallet);
+
       // create wrapped token
       const name = 'webbETH';
       const symbol = 'webbETH';
@@ -1285,7 +1294,7 @@ describe('VAnchor for 2 max edges', () => {
       const wrappedVAnchor = await VAnchor.createVAnchor(
         verifier.contract.address,
         30,
-        hasherInstance.address,
+        hasherInstance.contract.address,
         sender.address,
         wrappedToken.address,
         1,
@@ -1370,6 +1379,10 @@ describe('VAnchor for 2 max edges', () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
       const sender = wallet;
+
+      // create poseidon hasher
+      const hasherInstance = await PoseidonHasher.createPoseidonHasher(wallet);
+
       // create wrapped token
       const name = 'webbETH';
       const symbol = 'webbETH';
@@ -1385,7 +1398,7 @@ describe('VAnchor for 2 max edges', () => {
       const wrappedVAnchor = await VAnchor.createVAnchor(
         verifier.contract.address,
         30,
-        hasherInstance.address,
+        hasherInstance.contract.address,
         sender.address,
         wrappedToken.address,
         1,

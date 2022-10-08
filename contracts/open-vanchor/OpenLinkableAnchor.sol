@@ -5,7 +5,7 @@
 
 pragma solidity ^0.8.0;
 
-import "../trees/MerkleTreeKeccak.sol";
+import "../trees/MerkleTree.sol";
 import "../utils/ChainIdWithType.sol";
 import "../interfaces/IOpenLinkableAnchor.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -36,7 +36,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
     An example usage of this system is the:
     - VAnchor.sol - for variable sized private bridging of assets
  */
-abstract contract OpenLinkableAnchor is IOpenLinkableAnchor, MerkleTreeKeccak, ReentrancyGuard, ChainIdWithType {
+abstract contract OpenLinkableAnchor is IOpenLinkableAnchor, MerkleTree, ReentrancyGuard, ChainIdWithType {
     uint32 proposalNonce = 0;
     address public handler;
 
@@ -70,8 +70,9 @@ abstract contract OpenLinkableAnchor is IOpenLinkableAnchor, MerkleTreeKeccak, R
 
     constructor(
         address _handler,
+        IHasher _hasher,
         uint32 _merkleTreeHeight
-    ) MerkleTreeKeccak(_merkleTreeHeight) {
+    ) MerkleTree(_merkleTreeHeight, _hasher) {
         handler = _handler;
     }
 
@@ -140,7 +141,7 @@ abstract contract OpenLinkableAnchor is IOpenLinkableAnchor, MerkleTreeKeccak, R
                 roots[i] = edgeList[i].root;
             } else {
                 // merkle tree height for zeros
-                roots[i] = zeros(levels - 1);
+                roots[i] = hasher.zeros(levels - 1);
             }
         }
         return roots;
@@ -185,7 +186,7 @@ abstract contract OpenLinkableAnchor is IOpenLinkableAnchor, MerkleTreeKeccak, R
             rootIndex++;
         }
         while (rootIndex != edgeList.length + 1) {
-            require(_roots[rootIndex] == zeros(levels - 1), "non-existent edge is not set to the default root");
+            require(_roots[rootIndex] == hasher.zeros(levels - 1), "non-existent edge is not set to the default root");
             rootIndex++;
         }
         return true;

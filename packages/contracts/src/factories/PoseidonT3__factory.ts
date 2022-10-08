@@ -11,7 +11,7 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256[2]",
-        name: "",
+        name: "input",
         type: "uint256[2]",
       },
     ],

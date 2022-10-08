@@ -62,7 +62,6 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
     "unpackProof(uint256[8])": FunctionFragment;
     "updateEdge(bytes32,uint32,bytes32)": FunctionFragment;
     "verifier()": FunctionFragment;
-    "zeros(uint256)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -212,7 +211,6 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
     values: [BytesLike, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "verifier", values?: undefined): string;
-  encodeFunctionData(functionFragment: "zeros", values: [BigNumberish]): string;
 
   decodeFunctionResult(
     functionFragment: "EVM_CHAIN_ID_TYPE",
@@ -326,7 +324,6 @@ interface AnchorBaseInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "updateEdge", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "verifier", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "zeros", data: BytesLike): Result;
 
   events: {
     "EdgeAddition(uint256,uint256,bytes32)": EventFragment;
@@ -601,8 +598,6 @@ export class AnchorBase extends BaseContract {
     ): Promise<ContractTransaction>;
 
     verifier(overrides?: CallOverrides): Promise<[string]>;
-
-    zeros(i: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
   };
 
   EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<string>;
@@ -781,8 +776,6 @@ export class AnchorBase extends BaseContract {
   ): Promise<ContractTransaction>;
 
   verifier(overrides?: CallOverrides): Promise<string>;
-
-  zeros(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<string>;
@@ -970,8 +963,6 @@ export class AnchorBase extends BaseContract {
     ): Promise<void>;
 
     verifier(overrides?: CallOverrides): Promise<string>;
-
-    zeros(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -1197,8 +1188,6 @@ export class AnchorBase extends BaseContract {
     ): Promise<BigNumber>;
 
     verifier(overrides?: CallOverrides): Promise<BigNumber>;
-
-    zeros(i: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -1373,10 +1362,5 @@ export class AnchorBase extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     verifier(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    zeros(
-      i: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
   };
 }
