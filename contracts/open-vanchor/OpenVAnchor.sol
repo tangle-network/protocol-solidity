@@ -12,7 +12,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../utils/ChainIdWithType.sol";
-import "hardhat/console.sol";
 
 /**
 	@title Variable Anchor contract
@@ -137,7 +136,7 @@ contract OpenVAnchor is OpenVAnchorBase {
 		bytes32 root
 	) public payable nonReentrant {
 		bytes32 commitment = keccak256(abi.encodePacked(
-			getChainId(),
+			getChainIdType(),
 			withdrawAmount,
 			_recipient,
 			keccak256(delegatedCalldata),
@@ -169,11 +168,6 @@ contract OpenVAnchor is OpenVAnchorBase {
             }
             nodeIndex = nodeIndex / 2;
         }
-		console.log("currnodehash");
-		console.logBytes32(currNodeHash);
-		console.log("root");
-		console.logBytes32(root);
-
 		bool isKnownRootBool= false;
 		for (uint i = 0; i < edgeList.length; i++) {
 			isKnownRootBool = isKnownRootBool || isKnownNeighborRoot(edgeList[i].chainID, root);
@@ -187,12 +181,8 @@ contract OpenVAnchor is OpenVAnchorBase {
 
 
 
-	function wrapAndDeposit(uint256 depositAmount, uint256 destinationChainId, address recipient, bytes memory delegatedCalldata, address _tokenAddress, uint256 blinding) public payable nonReentrant {
+	function wrapAndDeposit(uint256 depositAmount, uint48 destinationChainId, address recipient, bytes memory delegatedCalldata, address _tokenAddress, uint256 blinding) public payable nonReentrant {
 		require(depositAmount <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
-		console.logBytes(delegatedCalldata);
-		console.log(depositAmount);
-		console.log(destinationChainId);
-		console.logAddress(recipient);
 		bytes32 commitment = keccak256(abi.encodePacked(
 			destinationChainId,
 			depositAmount,
@@ -200,7 +190,6 @@ contract OpenVAnchor is OpenVAnchorBase {
 			keccak256(delegatedCalldata),
 			blinding
 		));
-		console.logBytes32(commitment);
 
 		_executeInsertion(commitment);
 	}

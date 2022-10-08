@@ -17,6 +17,7 @@ import {
 import { BigNumber, BigNumberish } from 'ethers';
 import { keccak256, sha3 } from 'web3-utils';
 import { solidityPack } from 'ethers/lib/utils';
+import { getChainIdType } from '@webb-tools/utils';
 
 function sha3Hash (left: BigNumberish, right: BigNumberish) {
   const packed = solidityPack([ "bytes32", "bytes32"], [toFixedHex(left), toFixedHex(right)]);
@@ -28,14 +29,14 @@ describe('Open VAnchor Contract', () => {
     let openVAnchorInstance;
     let token;
     let tokenDenomination = '1000000000000000000' // 1 ether
-    let chainId = 31337;
+    let chainId;
     let recipient;
     beforeEach(async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
       sender = wallet;
       recipient = signers[1];
-
+      chainId = getChainIdType(await sender.getChainId());
       // create token
       const tokenFactory = new ERC20PresetMinterPauser__factory(wallet);
       token = await tokenFactory.deploy('test token', 'TEST');
@@ -63,7 +64,7 @@ describe('Open VAnchor Contract', () => {
 
       // Merkle Proof Generation
       const delHash = ethers.utils.keccak256(ethers.utils.arrayify('0x00'));
-      const prehashed = solidityPack([ "uint256", "uint256", "address", "bytes32", "uint256" ], [ 31337, 10000, await recipient.getAddress(), delHash, blinding]);
+      const prehashed = solidityPack([ "uint48", "uint256", "address", "bytes32", "uint256" ], [ chainId, 10000, await recipient.getAddress(), delHash, blinding]);
 
       // Step 1: Get Commitment
       let commitment = ethers.utils.keccak256(ethers.utils.arrayify(prehashed));
