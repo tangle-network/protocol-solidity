@@ -1,4 +1,5 @@
 const assert = require('assert');
+const TruffleAssert = require('truffle-assertions');
 import { ethers, network } from 'hardhat';
 import BN from 'bn.js';
 import { toFixedHex, toHex, MerkleTree, MerkleProof } from '@webb-tools/sdk-core';
@@ -48,7 +49,7 @@ describe('Open VAnchor Contract', () => {
       await openVAnchorInstance.deployed();
     });
    
-    it.only('should deposit and withdraw', async () => {
+    it('should deposit and withdraw', async () => {
       // Deposit
       await openVAnchorInstance.configureMaximumDepositLimit(BigNumber.from(10000000000),0,);
       await openVAnchorInstance.configureMinimalWithdrawalLimit(BigNumber.from(tokenDenomination).mul(1_000_000),
@@ -82,5 +83,43 @@ describe('Open VAnchor Contract', () => {
 
       // Withdraw
       await openVAnchorInstance.withdraw(recipient.getAddress(), 10000, BigNumber.from(0), blinding, merkleProof, commitmentIndex, toFixedHex(root, 32));
+    });
+
+    it('should not withdraw with wrong chain id', async () => {
+      // Deposit
+      await openVAnchorInstance.configureMaximumDepositLimit(BigNumber.from(10000000000),0,);
+      await openVAnchorInstance.configureMinimalWithdrawalLimit(BigNumber.from(tokenDenomination).mul(1_000_000),
+      0,);
+      const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+      await token.grantRole(MINTER_ROLE, openVAnchorInstance.address);
+
+      await token.approve(token.address, '1000000000000000000');
+
+      let blinding = BigNumber.from(1010101010);
+      // Deposit
+      //Wrong chain id
+      chainId = getChainIdType(31338);
+      await openVAnchorInstance.wrapAndDeposit(10000, chainId, await recipient.getAddress(), BigNumber.from(0), token.address, blinding);
+
+      // Merkle Proof Generation
+      const delHash = ethers.utils.keccak256(ethers.utils.arrayify('0x00'));
+      const prehashed = solidityPack([ "uint48", "uint256", "address", "bytes32", "uint256" ], [ chainId, 10000, await recipient.getAddress(), delHash, blinding]);
+
+      // Step 1: Get Commitment
+      let commitment = ethers.utils.keccak256(ethers.utils.arrayify(prehashed));
+      console.log(commitment);
+      
+      // Step 2: Insert into Merkle Tree
+      let mt = new MerkleTree(30, [], {hashFunction: sha3Hash},);
+      // Step 3: Get Merkle Proof and leaf Index of commitment
+      mt.insert(commitment);
+      let commitmentIndex = mt.indexOf(commitment);
+      console.log('commitment index', commitmentIndex);
+      let merkleProofData = mt.path(commitmentIndex);
+      let merkleProof = merkleProofData.pathElements;
+      let root = merkleProofData.merkleRoot;
+
+      // Withdraw
+      await TruffleAssert.reverts(openVAnchorInstance.withdraw(recipient.getAddress(), 10000, BigNumber.from(0), blinding, merkleProof, commitmentIndex, toFixedHex(root, 32)), "Invalid root");
     });
 });
