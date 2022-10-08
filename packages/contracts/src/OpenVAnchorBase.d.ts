@@ -23,6 +23,7 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 interface OpenVAnchorBaseInterface extends ethers.utils.Interface {
   functions: {
     "EVM_CHAIN_ID_TYPE()": FunctionFragment;
+    "FIELD_SIZE()": FunctionFragment;
     "MAX_EXT_AMOUNT()": FunctionFragment;
     "MAX_FEE()": FunctionFragment;
     "ROOT_HISTORY_SIZE()": FunctionFragment;
@@ -44,7 +45,8 @@ interface OpenVAnchorBaseInterface extends ethers.utils.Interface {
     "getProposalNonce()": FunctionFragment;
     "handler()": FunctionFragment;
     "hasEdge(uint256)": FunctionFragment;
-    "hashLeftRight(bytes32,bytes32)": FunctionFragment;
+    "hashLeftRight(address,bytes32,bytes32)": FunctionFragment;
+    "hasher()": FunctionFragment;
     "initialize(uint256,uint256)": FunctionFragment;
     "isKnownNeighborRoot(uint256,bytes32)": FunctionFragment;
     "isKnownRoot(bytes32)": FunctionFragment;
@@ -62,11 +64,14 @@ interface OpenVAnchorBaseInterface extends ethers.utils.Interface {
     "roots(uint256)": FunctionFragment;
     "setHandler(address,uint32)": FunctionFragment;
     "updateEdge(bytes32,uint32,bytes32)": FunctionFragment;
-    "zeros(uint256)": FunctionFragment;
   };
 
   encodeFunctionData(
     functionFragment: "EVM_CHAIN_ID_TYPE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "FIELD_SIZE",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -149,8 +154,9 @@ interface OpenVAnchorBaseInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "hashLeftRight",
-    values: [BytesLike, BytesLike]
+    values: [string, BytesLike, BytesLike]
   ): string;
+  encodeFunctionData(functionFragment: "hasher", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "initialize",
     values: [BigNumberish, BigNumberish]
@@ -207,12 +213,12 @@ interface OpenVAnchorBaseInterface extends ethers.utils.Interface {
     functionFragment: "updateEdge",
     values: [BytesLike, BigNumberish, BytesLike]
   ): string;
-  encodeFunctionData(functionFragment: "zeros", values: [BigNumberish]): string;
 
   decodeFunctionResult(
     functionFragment: "EVM_CHAIN_ID_TYPE",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "FIELD_SIZE", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "MAX_EXT_AMOUNT",
     data: BytesLike
@@ -280,6 +286,7 @@ interface OpenVAnchorBaseInterface extends ethers.utils.Interface {
     functionFragment: "hashLeftRight",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "hasher", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "isKnownNeighborRoot",
@@ -327,7 +334,6 @@ interface OpenVAnchorBaseInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "roots", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setHandler", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "updateEdge", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "zeros", data: BytesLike): Result;
 
   events: {
     "EdgeAddition(uint256,uint256,bytes32)": EventFragment;
@@ -430,6 +436,8 @@ export class OpenVAnchorBase extends BaseContract {
   functions: {
     EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<[string]>;
 
+    FIELD_SIZE(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     MAX_EXT_AMOUNT(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     MAX_FEE(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -517,10 +525,13 @@ export class OpenVAnchorBase extends BaseContract {
     ): Promise<[boolean]>;
 
     hashLeftRight(
+      _hasher: string,
       _left: BytesLike,
       _right: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string]>;
+
+    hasher(overrides?: CallOverrides): Promise<[string]>;
 
     initialize(
       _minimalWithdrawalAmount: BigNumberish,
@@ -599,11 +610,11 @@ export class OpenVAnchorBase extends BaseContract {
       _srcResourceID: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    zeros(i: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
   };
 
   EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<string>;
+
+  FIELD_SIZE(overrides?: CallOverrides): Promise<BigNumber>;
 
   MAX_EXT_AMOUNT(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -684,10 +695,13 @@ export class OpenVAnchorBase extends BaseContract {
   hasEdge(_chainID: BigNumberish, overrides?: CallOverrides): Promise<boolean>;
 
   hashLeftRight(
+    _hasher: string,
     _left: BytesLike,
     _right: BytesLike,
     overrides?: CallOverrides
   ): Promise<string>;
+
+  hasher(overrides?: CallOverrides): Promise<string>;
 
   initialize(
     _minimalWithdrawalAmount: BigNumberish,
@@ -761,10 +775,10 @@ export class OpenVAnchorBase extends BaseContract {
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  zeros(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
-
   callStatic: {
     EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<string>;
+
+    FIELD_SIZE(overrides?: CallOverrides): Promise<BigNumber>;
 
     MAX_EXT_AMOUNT(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -851,10 +865,13 @@ export class OpenVAnchorBase extends BaseContract {
     ): Promise<boolean>;
 
     hashLeftRight(
+      _hasher: string,
       _left: BytesLike,
       _right: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
+
+    hasher(overrides?: CallOverrides): Promise<string>;
 
     initialize(
       _minimalWithdrawalAmount: BigNumberish,
@@ -930,8 +947,6 @@ export class OpenVAnchorBase extends BaseContract {
       _srcResourceID: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    zeros(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -1035,6 +1050,8 @@ export class OpenVAnchorBase extends BaseContract {
   estimateGas: {
     EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<BigNumber>;
 
+    FIELD_SIZE(overrides?: CallOverrides): Promise<BigNumber>;
+
     MAX_EXT_AMOUNT(overrides?: CallOverrides): Promise<BigNumber>;
 
     MAX_FEE(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1101,10 +1118,13 @@ export class OpenVAnchorBase extends BaseContract {
     ): Promise<BigNumber>;
 
     hashLeftRight(
+      _hasher: string,
       _left: BytesLike,
       _right: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    hasher(overrides?: CallOverrides): Promise<BigNumber>;
 
     initialize(
       _minimalWithdrawalAmount: BigNumberish,
@@ -1178,12 +1198,12 @@ export class OpenVAnchorBase extends BaseContract {
       _srcResourceID: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
-
-    zeros(i: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
     EVM_CHAIN_ID_TYPE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    FIELD_SIZE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     MAX_EXT_AMOUNT(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1261,10 +1281,13 @@ export class OpenVAnchorBase extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     hashLeftRight(
+      _hasher: string,
       _left: BytesLike,
       _right: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    hasher(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     initialize(
       _minimalWithdrawalAmount: BigNumberish,
@@ -1344,11 +1367,6 @@ export class OpenVAnchorBase extends BaseContract {
       _leafIndex: BigNumberish,
       _srcResourceID: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    zeros(
-      i: BigNumberish,
-      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
 }

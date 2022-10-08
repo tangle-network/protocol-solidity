@@ -5,6 +5,8 @@
 mkdir -p packages/contracts/src/factories
 
 cp ./typechain/OpenAnchorBase.d.ts ./packages/contracts/src/OpenAnchorBase.d.ts
+cp ./typechain/OpenVAnchor.d.ts ./packages/contracts/src/OpenVAnchor.d.ts
+cp ./typechain/OpenVAnchorBase.d.ts ./packages/contracts/src/OpenVAnchorBase.d.ts
 cp ./typechain/AnchorBase.d.ts ./packages/contracts/src/AnchorBase.d.ts
 cp ./typechain/AnchorHandler.d.ts ./packages/contracts/src/AnchorHandler.d.ts
 cp ./typechain/SignatureBridge.d.ts ./packages/contracts/src/SignatureBridge.d.ts

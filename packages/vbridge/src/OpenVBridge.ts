@@ -13,6 +13,7 @@ import { AnchorIdentifier, GovernorConfig, DeployerConfig } from '@webb-tools/in
 import { AnchorHandler, OpenVAnchor as VAnchor } from '@webb-tools/anchors';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { CircomUtxo, Utxo } from '@webb-tools/sdk-core';
+import { KeccakHasher__factory } from '@webb-tools/contracts';
 
 export type ExistingAssetInput = {
   // A record of chainId => address of wrappable tokens to be supported in the webbToken.
@@ -151,7 +152,7 @@ export class VBridge {
       await vBridgeInstance.setTreasuryResourceWithSignature(treasury);
 
       // Create the Hasher and Verifier for the chain
-      const hasherFactory = new PoseidonT3__factory(deployers[chainID]);
+      const hasherFactory = new KeccakHasher__factory(deployers[chainID]);
       let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
       await hasherInstance.deployed();
 
@@ -209,6 +210,7 @@ export class VBridge {
       // loop through all the anchor sizes on the token
       const vAnchorInstance = await VAnchor.createOpenVAnchor(
         30,
+        hasherInstance.address,
         handler.contract.address,
         tokenInstance.contract.address,
         deployers[chainID]

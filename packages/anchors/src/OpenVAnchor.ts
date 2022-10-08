@@ -17,6 +17,7 @@ import {
   MerkleProof,
 } from '@webb-tools/sdk-core';
 import { u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
+import { IAnchor } from '@webb-tools/interfaces';
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 function checkNativeAddress(tokenAddress: string): boolean {
