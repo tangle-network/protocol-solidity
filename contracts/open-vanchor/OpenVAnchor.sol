@@ -130,7 +130,7 @@ contract OpenVAnchor is OpenVAnchorBase {
 		address _recipient,
 		uint256 withdrawAmount,
 		bytes memory delegatedCalldata,
-		uint256 blockNumber,
+		uint256 blinding,
 		bytes32[] memory merkleProof,
 		uint32 commitmentIndex,
 		bytes32 root
@@ -140,7 +140,7 @@ contract OpenVAnchor is OpenVAnchorBase {
 			withdrawAmount,
 			_recipient,
 			keccak256(delegatedCalldata),
-			blockNumber
+			blinding
 		));
 		require(_isValidMerkleProof(merkleProof, commitment, commitmentIndex, root), "Invalid Merkle Proof");
 		_processWithdraw(payable(address(this)), withdrawAmount);
@@ -183,7 +183,7 @@ contract OpenVAnchor is OpenVAnchorBase {
 
 
 
-	function wrapAndDeposit(uint256 depositAmount, uint256 destinationChainId, address recipient, bytes memory delegatedCalldata, address _tokenAddress) public payable nonReentrant {
+	function wrapAndDeposit(uint256 depositAmount, uint256 destinationChainId, address recipient, bytes memory delegatedCalldata, address _tokenAddress, uint256 blinding) public payable nonReentrant {
 		require(depositAmount <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
 
 		bytes32 commitment = keccak256(abi.encodePacked(
@@ -191,7 +191,7 @@ contract OpenVAnchor is OpenVAnchorBase {
 			depositAmount,
 			recipient,
 			keccak256(delegatedCalldata),
-			block.number
+			blinding
 		));
 
 		_executeInsertion(commitment);
