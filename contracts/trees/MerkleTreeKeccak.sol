@@ -7,7 +7,7 @@ pragma solidity ^0.8.0;
 
 import "./MerkleTreeWithHistoryKeccak.sol";
 
-contract MerkleTreePoseidon is MerkleTreeWithHistoryKeccak {
+contract MerkleTreeKeccak is MerkleTreeWithHistoryKeccak {
     constructor(uint32 _levels) MerkleTreeWithHistoryKeccak(_levels) {
         for (uint32 i = 0; i < _levels; i++) {
             filledSubtrees[i] = zeros(i);
