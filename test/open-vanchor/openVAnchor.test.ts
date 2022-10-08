@@ -13,7 +13,7 @@ function sha3Hash (left: BigNumberish, right: BigNumberish) {
   return BigNumber.from(ethers.utils.keccak256(ethers.utils.arrayify(packed)));
 }
 
-describe.only('Open VAnchor Contract', () => {
+describe('Open VAnchor Contract', () => {
     let sender;
     let openVAnchor;
     let token;
