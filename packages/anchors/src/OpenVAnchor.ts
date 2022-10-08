@@ -2,13 +2,10 @@ import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
 import {
   OpenVAnchor as OpenVAnchorContract,
   OpenVAnchor__factory,
-  TokenWrapper__factory,
 } from '@webb-tools/contracts';
-import { keccak256, sha3 } from 'web3-utils';
 import { solidityPack } from 'ethers/lib/utils';
 import {
   toHex,
-  Keypair,
   toFixedHex,
   Utxo,
   MerkleTree,
@@ -16,18 +13,10 @@ import {
   mean,
   max,
   min,
-  randomBN,
   CircomProvingManager,
-  ProvingManagerSetupInput,
-  Note,
-  NoteGenInput,
   MerkleProof,
-  UtxoGenInput,
-  CircomUtxo,
-  FIELD_SIZE,
 } from '@webb-tools/sdk-core';
-import { IAnchor, IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
-import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
+import { u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 function checkNativeAddress(tokenAddress: string): boolean {
@@ -77,12 +66,13 @@ export class OpenVAnchor {
 
   public static async createVAnchor(
     levels: BigNumberish,
+    hasher: string,
     handler: string,
     token: string,
     signer: ethers.Signer
   ) {
     const factory = new OpenVAnchor__factory(signer);
-    const openVAnchor = await factory.deploy(levels, handler, token, {});
+    const openVAnchor = await factory.deploy(levels, hasher, handler, token, {});
     await openVAnchor.deployed();
     const createdVAnchor = new OpenVAnchor(
       openVAnchor,
@@ -101,7 +91,6 @@ export class OpenVAnchor {
     signer: ethers.Signer
   ) {
     const anchor = OpenVAnchor__factory.connect(address, signer);
-    const maxEdges = await anchor.maxEdges();
     const treeHeight = await anchor.levels();
     const createdAnchor = new OpenVAnchor(
       anchor,

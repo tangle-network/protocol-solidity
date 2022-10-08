@@ -5,9 +5,9 @@
 import { Contract, Signer, utils } from "ethers";
 import { Provider } from "@ethersproject/providers";
 import type {
-  OpenVAnchorBase,
-  OpenVAnchorBaseInterface,
-} from "../OpenVAnchorBase";
+  OpenAnchorBase,
+  OpenAnchorBaseInterface,
+} from "../OpenAnchorBase";
 
 const _abi = [
   {
@@ -99,57 +99,6 @@ const _abi = [
     type: "event",
   },
   {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "bytes32",
-        name: "commitment",
-        type: "bytes32",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "index",
-        type: "uint256",
-      },
-    ],
-    name: "NewCommitment",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "bytes32",
-        name: "nullifier",
-        type: "bytes32",
-      },
-    ],
-    name: "NewNullifier",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "owner",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "bytes",
-        name: "key",
-        type: "bytes",
-      },
-    ],
-    name: "PublicKey",
-    type: "event",
-  },
-  {
     inputs: [],
     name: "EVM_CHAIN_ID_TYPE",
     outputs: [
@@ -165,32 +114,6 @@ const _abi = [
   {
     inputs: [],
     name: "FIELD_SIZE",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "MAX_EXT_AMOUNT",
-    outputs: [
-      {
-        internalType: "int256",
-        name: "",
-        type: "int256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "MAX_FEE",
     outputs: [
       {
         internalType: "uint256",
@@ -250,12 +173,12 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "_maximumDepositAmount",
+        name: "maximumDepositAmount",
         type: "uint256",
       },
       {
         internalType: "uint32",
-        name: "_nonce",
+        name: "nonce",
         type: "uint32",
       },
     ],
@@ -268,12 +191,12 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "_minimalWithdrawalAmount",
+        name: "minimalWithdrawalAmount",
         type: "uint256",
       },
       {
         internalType: "uint32",
-        name: "_nonce",
+        name: "nonce",
         type: "uint32",
       },
     ],
@@ -583,24 +506,6 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "_minimalWithdrawalAmount",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "_maximumDepositAmount",
-        type: "uint256",
-      },
-    ],
-    name: "initialize",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
         name: "_neighborChainID",
         type: "uint256",
       },
@@ -699,51 +604,12 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "lastBalance",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
     name: "levels",
     outputs: [
       {
         internalType: "uint32",
         name: "",
         type: "uint32",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "maximumDepositAmount",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "minimalWithdrawalAmount",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -891,15 +757,15 @@ const _abi = [
   },
 ];
 
-export class OpenVAnchorBase__factory {
+export class OpenAnchorBase__factory {
   static readonly abi = _abi;
-  static createInterface(): OpenVAnchorBaseInterface {
-    return new utils.Interface(_abi) as OpenVAnchorBaseInterface;
+  static createInterface(): OpenAnchorBaseInterface {
+    return new utils.Interface(_abi) as OpenAnchorBaseInterface;
   }
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): OpenVAnchorBase {
-    return new Contract(address, _abi, signerOrProvider) as OpenVAnchorBase;
+  ): OpenAnchorBase {
+    return new Contract(address, _abi, signerOrProvider) as OpenAnchorBase;
   }
 }

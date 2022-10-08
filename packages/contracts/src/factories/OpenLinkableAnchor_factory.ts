@@ -88,6 +88,19 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "FIELD_SIZE",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "ROOT_HISTORY_SIZE",
     outputs: [
       {
@@ -406,6 +419,11 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "contract IHasher",
+        name: "_hasher",
+        type: "address",
+      },
+      {
         internalType: "bytes32",
         name: "_left",
         type: "bytes32",
@@ -424,7 +442,20 @@ const _abi = [
         type: "bytes32",
       },
     ],
-    stateMutability: "pure",
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "hasher",
+    outputs: [
+      {
+        internalType: "contract IHasher",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -621,25 +652,6 @@ const _abi = [
     name: "updateEdge",
     outputs: [],
     stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "i",
-        type: "uint256",
-      },
-    ],
-    name: "zeros",
-    outputs: [
-      {
-        internalType: "bytes32",
-        name: "",
-        type: "bytes32",
-      },
-    ],
-    stateMutability: "pure",
     type: "function",
   },
 ];

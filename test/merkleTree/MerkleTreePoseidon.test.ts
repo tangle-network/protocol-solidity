@@ -34,7 +34,7 @@ contract('MerkleTree w/ Poseidon hasher', (accounts) => {
       const firstSubtree = await merkleTreeWithHistory.filledSubtrees(0)
       assert.strictEqual(firstSubtree, toFixedHex(BigNumber.from(zeroValue.toString())));
       
-      const firstZero = await merkleTreeWithHistory.zeros(0)
+      const firstZero = await hasherInstance.contract.zeros(0)
       assert.strictEqual(firstZero, toFixedHex(BigNumber.from(zeroValue.toString())));
     });
   });
