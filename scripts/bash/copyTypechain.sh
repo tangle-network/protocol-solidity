@@ -4,6 +4,7 @@
 # cp -a ./typechain/. packages/contracts/src/
 mkdir -p packages/contracts/src/factories
 
+cp ./typechain/OpenAnchorBase.d.ts ./packages/contracts/src/OpenAnchorBase.d.ts
 cp ./typechain/AnchorBase.d.ts ./packages/contracts/src/AnchorBase.d.ts
 cp ./typechain/AnchorHandler.d.ts ./packages/contracts/src/AnchorHandler.d.ts
 cp ./typechain/SignatureBridge.d.ts ./packages/contracts/src/SignatureBridge.d.ts

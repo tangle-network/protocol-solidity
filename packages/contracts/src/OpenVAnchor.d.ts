@@ -68,7 +68,7 @@ interface OpenVAnchorInterface extends ethers.utils.Interface {
     "unwrapIntoToken(address,uint256)": FunctionFragment;
     "updateEdge(bytes32,uint32,bytes32)": FunctionFragment;
     "withdraw(address,uint256,bytes,uint256,bytes32[],uint32,bytes32)": FunctionFragment;
-    "wrapAndDeposit(uint256,uint256,address,bytes,address,uint256)": FunctionFragment;
+    "wrapAndDeposit(uint256,uint48,address,bytes,address,uint256)": FunctionFragment;
     "wrapNative()": FunctionFragment;
     "wrapToken(address,uint256)": FunctionFragment;
     "zeros(uint256)": FunctionFragment;

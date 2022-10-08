@@ -32,14 +32,11 @@ export var proofTimeBenchmark = [];
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
-export class OpenVAnchor {
+export class OpenVAnchor implements IAnchor {
   signer: ethers.Signer;
   contract: OpenVAnchorContract;
   tree: MerkleTree;
-  // hex string of the connected root
-  latestSyncedBlock: number;
-  smallCircuitZkComponents: ZkComponents;
-  largeCircuitZkComponents: ZkComponents;
+  latestSyncedBlock = 0;
 
   // The depositHistory stores leafIndex => information to create proposals (new root)
   depositHistory: Record<number, string>;
@@ -55,7 +52,6 @@ export class OpenVAnchor {
     this.signer = signer;
     this.contract = contract;
     this.tree = new MerkleTree(treeHeight);
-    this.latestSyncedBlock = 0;
     this.depositHistory = {};
   }
 
@@ -78,7 +74,6 @@ export class OpenVAnchor {
       signer,
       BigNumber.from(levels).toNumber(),
     );
-    createdVAnchor.latestSyncedBlock = openVAnchor.deployTransaction.blockNumber!;
     createdVAnchor.token = token;
     return createdVAnchor;
   }
@@ -302,7 +297,6 @@ export class OpenVAnchor {
         syncedBlock = await this.signer.provider.getBlockNumber();
       }
       this.tree = newTree;
-      this.latestSyncedBlock = syncedBlock;
       return true;
     } else {
       return false;
