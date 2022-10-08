@@ -140,7 +140,7 @@ contract OpenVAnchor is OpenVAnchorBase {
 			withdrawAmount,
 			_recipient,
 			keccak256(delegatedCalldata),
-			block.number
+			blockNumber
 		));
 		require(_isValidMerkleProof(merkleProof, commitment, commitmentIndex, root), "Invalid Merkle Proof");
 		_processWithdraw(payable(address(this)), withdrawAmount);
