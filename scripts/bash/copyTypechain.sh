@@ -66,8 +66,8 @@ cp ./typechain/factories/VAnchorVerifier__factory.ts ./packages/contracts/src/fa
 
 cp ./typechain/factories/OpenVAnchor__factory.ts ./packages/contracts/src/factories/OpenVAnchor__factory.ts
 cp ./typechain/factories/OpenVAnchorBase__factory.ts ./packages/contracts/src/factories/OpenVAnchorBase__factory.ts
-cp ./typechain/factories/OpenAnchorBase__factory.ts ./packages/contracts/src/factories/OpenVAnchor__factory.ts
-cp ./typechain/factories/OpenLinkableAnchor__factory.ts ./packages/contracts/src/factories/OpenLinkableAnchor_factory.ts
+cp ./typechain/factories/OpenAnchorBase__factory.ts ./packages/contracts/src/factories/OpenAnchorBase__factory.ts
+cp ./typechain/factories/OpenLinkableAnchor__factory.ts ./packages/contracts/src/factories/OpenLinkableAnchor__factory.ts
 
 cp ./typechain/factories/IdentityVAnchor__factory.ts ./packages/contracts/src/factories/IdentityVAnchor__factory.ts
 cp ./typechain/factories/IdentityVAnchorBase__factory.ts ./packages/contracts/src/factories/IdentityVAnchorBase__factory.ts

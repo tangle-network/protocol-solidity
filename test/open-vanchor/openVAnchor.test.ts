@@ -3,6 +3,7 @@ const TruffleAssert = require('truffle-assertions');
 import { ethers, network } from 'hardhat';
 import BN from 'bn.js';
 import { toFixedHex, toHex, MerkleTree, MerkleProof } from '@webb-tools/sdk-core';
+import { OpenVAnchor } from '@webb-tools/anchors';
 
 import { OpenVAnchor__factory } from '../../typechain';
 
@@ -27,7 +28,7 @@ function sha3Hash (left: BigNumberish, right: BigNumberish) {
 
 describe('Open VAnchor Contract', () => {
     let sender;
-    let openVAnchorInstance;
+    let openVAnchor;
     let token;
     let tokenDenomination = '1000000000000000000' // 1 ether
     let chainId;
@@ -43,25 +44,36 @@ describe('Open VAnchor Contract', () => {
       token = await tokenFactory.deploy('test token', 'TEST');
       await token.deployed();
       await token.mint(sender.address, '10000000000000000000000');
+      // const openVAnchorFactory = new OpenVAnchor__factory(wallet);
+      // openVAnchorInstance= await openVAnchorFactory.deploy(30, sender.address, token.address,);
+      openVAnchor = await OpenVAnchor.createOpenVAnchor(
+        30,
+        sender.address,
+        token.address,
+        sender
+      )
 
-      const openVAnchorFactory = new OpenVAnchor__factory(wallet);
-      openVAnchorInstance= await openVAnchorFactory.deploy(30, sender.address, token.address,);
-      await openVAnchorInstance.deployed();
-    });
-   
-    it('should deposit and withdraw', async () => {
-      // Deposit
-      await openVAnchorInstance.configureMaximumDepositLimit(BigNumber.from(10000000000),0,);
-      await openVAnchorInstance.configureMinimalWithdrawalLimit(BigNumber.from(tokenDenomination).mul(1_000_000),
+      await openVAnchor.contract.configureMaximumDepositLimit(BigNumber.from(10000000000),0,);
+      await openVAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(tokenDenomination).mul(1_000_000),
       0,);
       const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
-      await token.grantRole(MINTER_ROLE, openVAnchorInstance.address);
+      await token.grantRole(MINTER_ROLE, openVAnchor.contract.address);
 
       await token.approve(token.address, '1000000000000000000');
+    });
 
+    it('should deposit and withdraw', async () => {
       let blinding = BigNumber.from(1010101010);
       // Deposit
-      await openVAnchorInstance.wrapAndDeposit(10000, chainId, await recipient.getAddress(), BigNumber.from(0), token.address, blinding);
+      const delegatedCalldata = '0x00'
+
+      await openVAnchor.wrapAndDeposit(
+        BigNumber.from(10000),
+        chainId,
+        await recipient.getAddress(),
+        delegatedCalldata,
+        blinding
+      );
 
       // Merkle Proof Generation
       const delHash = ethers.utils.keccak256(ethers.utils.arrayify('0x00'));
@@ -70,36 +82,28 @@ describe('Open VAnchor Contract', () => {
       // Step 1: Get Commitment
       let commitment = ethers.utils.keccak256(ethers.utils.arrayify(prehashed));
       console.log(commitment);
-      
+
       // Step 2: Insert into Merkle Tree
       let mt = new MerkleTree(30, [], {hashFunction: sha3Hash},);
       // Step 3: Get Merkle Proof and leaf Index of commitment
       mt.insert(commitment);
       let commitmentIndex = mt.indexOf(commitment);
       console.log('commitment index', commitmentIndex);
-      let merkleProofData = mt.path(commitmentIndex);
-      let merkleProof = merkleProofData.pathElements;
-      let root = merkleProofData.merkleRoot;
-
+      let merkleProof = mt.path(commitmentIndex);
+      // let merkleProof = merkleProofData.pathElements;
+      // let root = merkleProofData.merkleRoot;
       // Withdraw
-      await openVAnchorInstance.withdraw(recipient.getAddress(), 10000, BigNumber.from(0), blinding, merkleProof, commitmentIndex, toFixedHex(root, 32));
+      await openVAnchor.withdraw(await recipient.getAddress(), BigNumber.from(10000), delegatedCalldata, blinding, merkleProof, commitmentIndex);
     });
 
     it('should not withdraw with wrong chain id', async () => {
       // Deposit
-      await openVAnchorInstance.configureMaximumDepositLimit(BigNumber.from(10000000000),0,);
-      await openVAnchorInstance.configureMinimalWithdrawalLimit(BigNumber.from(tokenDenomination).mul(1_000_000),
-      0,);
-      const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
-      await token.grantRole(MINTER_ROLE, openVAnchorInstance.address);
-
-      await token.approve(token.address, '1000000000000000000');
-
       let blinding = BigNumber.from(1010101010);
+      const delegatedCalldata = '0x00'
       // Deposit
       //Wrong chain id
       chainId = getChainIdType(31338);
-      await openVAnchorInstance.wrapAndDeposit(10000, chainId, await recipient.getAddress(), BigNumber.from(0), token.address, blinding);
+      await openVAnchor.wrapAndDeposit(10000, chainId, await recipient.getAddress(), delegatedCalldata, token.address, blinding);
 
       // Merkle Proof Generation
       const delHash = ethers.utils.keccak256(ethers.utils.arrayify('0x00'));
@@ -108,18 +112,16 @@ describe('Open VAnchor Contract', () => {
       // Step 1: Get Commitment
       let commitment = ethers.utils.keccak256(ethers.utils.arrayify(prehashed));
       console.log(commitment);
-      
+
       // Step 2: Insert into Merkle Tree
       let mt = new MerkleTree(30, [], {hashFunction: sha3Hash},);
       // Step 3: Get Merkle Proof and leaf Index of commitment
       mt.insert(commitment);
       let commitmentIndex = mt.indexOf(commitment);
       console.log('commitment index', commitmentIndex);
-      let merkleProofData = mt.path(commitmentIndex);
-      let merkleProof = merkleProofData.pathElements;
-      let root = merkleProofData.merkleRoot;
+      let merkleProof = mt.path(commitmentIndex);
 
       // Withdraw
-      await TruffleAssert.reverts(openVAnchorInstance.withdraw(recipient.getAddress(), 10000, BigNumber.from(0), blinding, merkleProof, commitmentIndex, toFixedHex(root, 32)), "Invalid root");
+      await TruffleAssert.reverts(openVAnchor.withdraw(await recipient.getAddress(), 10000, delegatedCalldata, blinding, merkleProof, commitmentIndex), "Invalid root");
     });
 });
