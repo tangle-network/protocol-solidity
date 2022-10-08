@@ -63,6 +63,12 @@ export { VAnchor__factory } from './factories/VAnchor__factory';
 export type { VAnchorBase } from './VAnchorBase';
 export { VAnchorBase__factory } from './factories/VAnchorBase__factory';
 
+export type { OpenVAnchor } from './OpenVAnchor';
+export { OpenVAnchor__factory } from './factories/OpenVAnchor__factory';
+
+export type { OpenVAnchorBase } from './VAnchorBase';
+export { OpenVAnchorBase__factory } from './factories/VAnchorBase__factory';
+
 export type { IdentityVAnchor } from './IdentityVAnchor';
 export { IdentityVAnchor__factory } from './factories/IdentityVAnchor__factory';
 
