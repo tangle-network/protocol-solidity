@@ -21,7 +21,7 @@ function sha3Hash (left: BigNumberish, right: BigNumberish) {
   return BigNumber.from(ethers.utils.keccak256(ethers.utils.arrayify(packed)));
 }
 
-describe.only('Open VAnchor Contract', () => {
+describe('Open VAnchor Contract', () => {
     let sender;
     let openVAnchor;
     let token;
@@ -164,7 +164,7 @@ describe.only('Open VAnchor Contract', () => {
     });
 });
 
-describe.only('Open VAnchor Contract - cross chain', () => {
+describe('Open VAnchor Contract - cross chain', () => {
   const FIRST_CHAIN_ID = 31337;
   let hardhatWallet1 = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
   let sender;
