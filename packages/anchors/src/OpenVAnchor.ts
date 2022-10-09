@@ -352,28 +352,21 @@ export class OpenVAnchor implements IAnchor {
     return commitment
   }
 
-  /**
-   *
-   * @param input A UTXO object that is inside the tree
-   * @returns an object with two fields, publicInput
-   */
-  public async wrapAndDeposit(
-    depositAmount: BigNumberish,
+   public async deposit(
     destinationChainId: number,
+    depositAmount: BigNumberish,
     recipient: string,
     delegatedCalldata: string,
     blinding: BigNumberish,
   ): Promise<ethers.ContractReceipt> {
     // Default UTXO chain ID will match with the configured signer's chain ID
     const evmId = await this.signer.getChainId();
-    const chainId = getChainIdType(evmId);
 
-    let tx = await this.contract.wrapAndDeposit(
+    let tx = await this.contract.deposit(
       depositAmount,
       destinationChainId,
       recipient,
       delegatedCalldata,
-      this.token,
       blinding,
       { gasLimit: '0x5B8D80' }
     );
@@ -397,41 +390,86 @@ export class OpenVAnchor implements IAnchor {
     return receipt;
   }
 
-  /**
-   *
-   * @param input A UTXO object that is inside the tree
-   * @returns an object with two fields, publicInput
-   */
-  public async withdraw(
-    tokenAddress: string,
+  public async wrapAndDeposit(
+    destinationChainId: number,
+    depositAmount: BigNumberish,
     recipient: string,
-    withdrawAmount: BigNumberish,
     delegatedCalldata: string,
     blinding: BigNumberish,
-    merkleProof: MerkleProof,
-    commitmentIndex: number,
+    tokenAddress: string,
   ): Promise<ethers.ContractReceipt> {
-    const evmId = await this.signer.getChainId();
-    const chainId = getChainIdType(evmId);
+    let tx = await this.contract.wrapAndDeposit(
+      destinationChainId,
+      depositAmount,
+      recipient,
+      delegatedCalldata,
+      blinding,
+      tokenAddress,
+      { gasLimit: '0x5B8D80' }
+    );
+
+    const receipt = await tx.wait();
+    gasBenchmark.push(receipt.gasUsed.toString());
 
 		const commitment = this.getCommitment(
-			chainId,
-			withdrawAmount,
+			destinationChainId,
+			depositAmount,
 			recipient,
 			delegatedCalldata,
 			blinding
 		);
 
+    // Add the leaves to the tree
+    this.tree.insert(toFixedHex(BigNumber.from(commitment)));
+    let numOfElements = this.tree.number_of_elements();
+    this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
 
-    let tx = await this.contract.withdrawAndUnwrap(
-      tokenAddress,
-      recipient,
+    return receipt;
+  }
+
+  public async withdraw(
+    withdrawAmount: BigNumberish,
+    recipient: string,
+    delegatedCalldata: string,
+    blinding: BigNumberish,
+    merkleProof: MerkleProof,
+    commitmentIndex: number,
+  ): Promise<ethers.ContractReceipt> {
+    let tx = await this.contract.withdraw(
       withdrawAmount,
+      recipient,
       delegatedCalldata,
       blinding,
       merkleProof.pathElements.map((bignum) => bignum.toHexString()),
       commitmentIndex,
       merkleProof.merkleRoot.toHexString(),
+      { gasLimit: '0x5B8D80' }
+    );
+
+    const receipt = await tx.wait();
+    gasBenchmark.push(receipt.gasUsed.toString());
+
+    return receipt;
+  }
+
+  public async withdrawAndUnwrap(
+    withdrawAmount: BigNumberish,
+    recipient: string,
+    delegatedCalldata: string,
+    blinding: BigNumberish,
+    merkleProof: MerkleProof,
+    commitmentIndex: number,
+    tokenAddress: string,
+  ): Promise<ethers.ContractReceipt> {
+    let tx = await this.contract.withdrawAndUnwrap(
+      withdrawAmount,
+      recipient,
+      delegatedCalldata,
+      blinding,
+      merkleProof.pathElements.map((bignum) => bignum.toHexString()),
+      commitmentIndex,
+      merkleProof.merkleRoot.toHexString(),
+      tokenAddress,
       { gasLimit: '0x5B8D80' }
     );
 

@@ -248,10 +248,10 @@ describe('2-sided multichain tests for signature vbridge', () => {
       const webbToken2 = await MintableToken.tokenFromAddress(webbTokenAddress2!, ganacheWallet2);
       const tx2 = await webbToken2.mintTokens(ganacheWallet2.address, '100000000000000000000000');
 
-      //Transact on the bridge
+      // Transact on the bridge
       await vBridge.transact([], [depositUtxo1], 0, 0, '0', '0', signers[1]); 
       await vBridge.transact([], [depositUtxo2], 0, 0, '0', '0', ganacheWallet2); 
-      //Now there is a bidirectional edge between chain1 and chain2
+      // Now there is a bidirectional edge between chain1 and chain2
     })
 
     describe('#bridging', () => {

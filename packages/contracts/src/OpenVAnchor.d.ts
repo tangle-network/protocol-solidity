@@ -34,6 +34,7 @@ interface OpenVAnchorInterface extends ethers.utils.Interface {
     "configureMinimalWithdrawalLimit(uint256,uint32)": FunctionFragment;
     "currentNeighborRootIndex(uint256)": FunctionFragment;
     "currentRootIndex()": FunctionFragment;
+    "deposit(uint48,uint256,address,bytes,uint256)": FunctionFragment;
     "edgeExistsForChain(uint256)": FunctionFragment;
     "edgeIndex(uint256)": FunctionFragment;
     "edgeList(uint256)": FunctionFragment;
@@ -68,8 +69,9 @@ interface OpenVAnchorInterface extends ethers.utils.Interface {
     "unwrapIntoNative(address,uint256)": FunctionFragment;
     "unwrapIntoToken(address,uint256)": FunctionFragment;
     "updateEdge(bytes32,uint32,bytes32)": FunctionFragment;
-    "withdrawAndUnwrap(address,address,uint256,bytes,uint256,bytes32[],uint32,bytes32)": FunctionFragment;
-    "wrapAndDeposit(uint256,uint48,address,bytes,address,uint256)": FunctionFragment;
+    "withdraw(uint256,address,bytes,uint256,bytes32[],uint32,bytes32)": FunctionFragment;
+    "withdrawAndUnwrap(uint256,address,bytes,uint256,bytes32[],uint32,bytes32,address)": FunctionFragment;
+    "wrapAndDeposit(uint48,uint256,address,bytes,uint256,address)": FunctionFragment;
     "wrapNative()": FunctionFragment;
     "wrapToken(address,uint256)": FunctionFragment;
   };
@@ -118,6 +120,10 @@ interface OpenVAnchorInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "currentRootIndex",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "deposit",
+    values: [BigNumberish, BigNumberish, string, BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "edgeExistsForChain",
@@ -235,16 +241,28 @@ interface OpenVAnchorInterface extends ethers.utils.Interface {
     values: [BytesLike, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "withdrawAndUnwrap",
+    functionFragment: "withdraw",
     values: [
-      string,
-      string,
       BigNumberish,
+      string,
       BytesLike,
       BigNumberish,
       BytesLike[],
       BigNumberish,
       BytesLike
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "withdrawAndUnwrap",
+    values: [
+      BigNumberish,
+      string,
+      BytesLike,
+      BigNumberish,
+      BytesLike[],
+      BigNumberish,
+      BytesLike,
+      string
     ]
   ): string;
   encodeFunctionData(
@@ -254,8 +272,8 @@ interface OpenVAnchorInterface extends ethers.utils.Interface {
       BigNumberish,
       string,
       BytesLike,
-      string,
-      BigNumberish
+      BigNumberish,
+      string
     ]
   ): string;
   encodeFunctionData(
@@ -306,6 +324,7 @@ interface OpenVAnchorInterface extends ethers.utils.Interface {
     functionFragment: "currentRootIndex",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "edgeExistsForChain",
     data: BytesLike
@@ -400,6 +419,7 @@ interface OpenVAnchorInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "updateEdge", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "withdrawAndUnwrap",
     data: BytesLike
@@ -548,6 +568,15 @@ export class OpenVAnchor extends BaseContract {
     ): Promise<[number]>;
 
     currentRootIndex(overrides?: CallOverrides): Promise<[number]>;
+
+    deposit(
+      destinationChainId: BigNumberish,
+      depositAmount: BigNumberish,
+      recipient: string,
+      delegatedCalldata: BytesLike,
+      blinding: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     edgeExistsForChain(
       arg0: BigNumberish,
@@ -707,25 +736,36 @@ export class OpenVAnchor extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    withdrawAndUnwrap(
-      _tokenAddress: string,
-      _recipient: string,
+    withdraw(
       withdrawAmount: BigNumberish,
+      recipient: string,
       delegatedCalldata: BytesLike,
       blinding: BigNumberish,
       merkleProof: BytesLike[],
       commitmentIndex: BigNumberish,
       root: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    withdrawAndUnwrap(
+      withdrawAmount: BigNumberish,
+      recipient: string,
+      delegatedCalldata: BytesLike,
+      blinding: BigNumberish,
+      merkleProof: BytesLike[],
+      commitmentIndex: BigNumberish,
+      root: BytesLike,
+      tokenAddress: string,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     wrapAndDeposit(
-      depositAmount: BigNumberish,
       destinationChainId: BigNumberish,
+      depositAmount: BigNumberish,
       recipient: string,
       delegatedCalldata: BytesLike,
-      _tokenAddress: string,
       blinding: BigNumberish,
+      tokenAddress: string,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -778,6 +818,15 @@ export class OpenVAnchor extends BaseContract {
   ): Promise<number>;
 
   currentRootIndex(overrides?: CallOverrides): Promise<number>;
+
+  deposit(
+    destinationChainId: BigNumberish,
+    depositAmount: BigNumberish,
+    recipient: string,
+    delegatedCalldata: BytesLike,
+    blinding: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   edgeExistsForChain(
     arg0: BigNumberish,
@@ -923,25 +972,36 @@ export class OpenVAnchor extends BaseContract {
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  withdrawAndUnwrap(
-    _tokenAddress: string,
-    _recipient: string,
+  withdraw(
     withdrawAmount: BigNumberish,
+    recipient: string,
     delegatedCalldata: BytesLike,
     blinding: BigNumberish,
     merkleProof: BytesLike[],
     commitmentIndex: BigNumberish,
     root: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  withdrawAndUnwrap(
+    withdrawAmount: BigNumberish,
+    recipient: string,
+    delegatedCalldata: BytesLike,
+    blinding: BigNumberish,
+    merkleProof: BytesLike[],
+    commitmentIndex: BigNumberish,
+    root: BytesLike,
+    tokenAddress: string,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   wrapAndDeposit(
-    depositAmount: BigNumberish,
     destinationChainId: BigNumberish,
+    depositAmount: BigNumberish,
     recipient: string,
     delegatedCalldata: BytesLike,
-    _tokenAddress: string,
     blinding: BigNumberish,
+    tokenAddress: string,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -994,6 +1054,15 @@ export class OpenVAnchor extends BaseContract {
     ): Promise<number>;
 
     currentRootIndex(overrides?: CallOverrides): Promise<number>;
+
+    deposit(
+      destinationChainId: BigNumberish,
+      depositAmount: BigNumberish,
+      recipient: string,
+      delegatedCalldata: BytesLike,
+      blinding: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     edgeExistsForChain(
       arg0: BigNumberish,
@@ -1148,10 +1217,9 @@ export class OpenVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    withdrawAndUnwrap(
-      _tokenAddress: string,
-      _recipient: string,
+    withdraw(
       withdrawAmount: BigNumberish,
+      recipient: string,
       delegatedCalldata: BytesLike,
       blinding: BigNumberish,
       merkleProof: BytesLike[],
@@ -1160,13 +1228,25 @@ export class OpenVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    wrapAndDeposit(
-      depositAmount: BigNumberish,
-      destinationChainId: BigNumberish,
+    withdrawAndUnwrap(
+      withdrawAmount: BigNumberish,
       recipient: string,
       delegatedCalldata: BytesLike,
-      _tokenAddress: string,
       blinding: BigNumberish,
+      merkleProof: BytesLike[],
+      commitmentIndex: BigNumberish,
+      root: BytesLike,
+      tokenAddress: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    wrapAndDeposit(
+      destinationChainId: BigNumberish,
+      depositAmount: BigNumberish,
+      recipient: string,
+      delegatedCalldata: BytesLike,
+      blinding: BigNumberish,
+      tokenAddress: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1317,6 +1397,15 @@ export class OpenVAnchor extends BaseContract {
 
     currentRootIndex(overrides?: CallOverrides): Promise<BigNumber>;
 
+    deposit(
+      destinationChainId: BigNumberish,
+      depositAmount: BigNumberish,
+      recipient: string,
+      delegatedCalldata: BytesLike,
+      blinding: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     edgeExistsForChain(
       arg0: BigNumberish,
       overrides?: CallOverrides
@@ -1449,25 +1538,36 @@ export class OpenVAnchor extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    withdrawAndUnwrap(
-      _tokenAddress: string,
-      _recipient: string,
+    withdraw(
       withdrawAmount: BigNumberish,
+      recipient: string,
       delegatedCalldata: BytesLike,
       blinding: BigNumberish,
       merkleProof: BytesLike[],
       commitmentIndex: BigNumberish,
       root: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    withdrawAndUnwrap(
+      withdrawAmount: BigNumberish,
+      recipient: string,
+      delegatedCalldata: BytesLike,
+      blinding: BigNumberish,
+      merkleProof: BytesLike[],
+      commitmentIndex: BigNumberish,
+      root: BytesLike,
+      tokenAddress: string,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     wrapAndDeposit(
-      depositAmount: BigNumberish,
       destinationChainId: BigNumberish,
+      depositAmount: BigNumberish,
       recipient: string,
       delegatedCalldata: BytesLike,
-      _tokenAddress: string,
       blinding: BigNumberish,
+      tokenAddress: string,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1524,6 +1624,15 @@ export class OpenVAnchor extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     currentRootIndex(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    deposit(
+      destinationChainId: BigNumberish,
+      depositAmount: BigNumberish,
+      recipient: string,
+      delegatedCalldata: BytesLike,
+      blinding: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     edgeExistsForChain(
       arg0: BigNumberish,
@@ -1671,25 +1780,36 @@ export class OpenVAnchor extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    withdrawAndUnwrap(
-      _tokenAddress: string,
-      _recipient: string,
+    withdraw(
       withdrawAmount: BigNumberish,
+      recipient: string,
       delegatedCalldata: BytesLike,
       blinding: BigNumberish,
       merkleProof: BytesLike[],
       commitmentIndex: BigNumberish,
       root: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdrawAndUnwrap(
+      withdrawAmount: BigNumberish,
+      recipient: string,
+      delegatedCalldata: BytesLike,
+      blinding: BigNumberish,
+      merkleProof: BytesLike[],
+      commitmentIndex: BigNumberish,
+      root: BytesLike,
+      tokenAddress: string,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     wrapAndDeposit(
-      depositAmount: BigNumberish,
       destinationChainId: BigNumberish,
+      depositAmount: BigNumberish,
       recipient: string,
       delegatedCalldata: BytesLike,
-      _tokenAddress: string,
       blinding: BigNumberish,
+      tokenAddress: string,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
