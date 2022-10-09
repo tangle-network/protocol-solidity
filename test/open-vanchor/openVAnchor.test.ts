@@ -13,8 +13,6 @@ import { DeployerConfig, GovernorConfig } from '@webb-tools/interfaces';
 import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
 import { OpenVBridge, VBridgeInput } from '../../packages/vbridge/src';
 import { MintableToken, GovernedTokenWrapper } from '../../packages/tokens/src';
-import { isCommaListExpression } from 'typescript';
-import { VBridge } from 'packages/protocol-solidity/lib/index.js';
 
 function sha3Hash (left: BigNumberish, right: BigNumberish) {
   const packed = solidityPack([ "bytes32", "bytes32"], [toFixedHex(left), toFixedHex(right)]);
