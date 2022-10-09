@@ -125,7 +125,6 @@ export class OpenVBridge {
     let maxEdges = vBridgeInput.maxEdges ?? vBridgeInput.chainIDs.length > 2 ? 7 : 1;
 
     for (let chainID of vBridgeInput.chainIDs) {
-      console.log("chainid", chainID);
       const initialGovernor = initialGovernors[chainID];
       // Create the bridgeSide
       let vBridgeInstance = await SignatureBridgeSide.createBridgeSide(deployers[chainID]);
@@ -269,7 +268,6 @@ export class OpenVBridge {
     // Find the bridge sides that are connected to this Anchor
     const linkedResourceID = await srcAnchor.createResourceId();
     const vAnchorsToUpdate = this.linkedVAnchors.get(linkedResourceID);
-    console.log("update length", vAnchorsToUpdate.length);
     if (!vAnchorsToUpdate) {
       return;
     }
@@ -280,8 +278,6 @@ export class OpenVBridge {
       const chainId = getChainIdType(await vAnchor.signer.getChainId());
       const resourceID = await vAnchor.createResourceId();
       const vBridgeSide = this.vBridgeSides.get(chainId);
-      console.log("hi mom", chainId);
-      console.log(srcAnchor.contract.address, "src anchor");
       await vBridgeSide!.executeAnchorProposalWithSig(srcAnchor, resourceID);
     }
   }
@@ -289,7 +285,6 @@ export class OpenVBridge {
   public async update(chainId: number) {
     const vAnchor = this.getVAnchor(chainId);
     if (!vAnchor) {
-      console.log("hi bob my name is dad");
       return;
     }
     await this.updateLinkedVAnchors(vAnchor);
@@ -301,10 +296,7 @@ export class OpenVBridge {
 
   public getVAnchor(chainId: number) {
     let intendedAnchor: VAnchor = undefined;
-    console.log("vanchors.length", this.vAnchors.keys());
-    console.log("hi my name is drew", OpenVBridge.createVAnchorIdString({ chainId }));
     intendedAnchor = this.vAnchors.get(OpenVBridge.createVAnchorIdString({ chainId }));
-    console.log("intended anchor", intendedAnchor.contract.address);
     return intendedAnchor;
   }
 

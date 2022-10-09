@@ -65,11 +65,10 @@ interface OpenVAnchorInterface extends ethers.utils.Interface {
     "roots(uint256)": FunctionFragment;
     "setHandler(address,uint32)": FunctionFragment;
     "token()": FunctionFragment;
-    "unwrap(address,uint256)": FunctionFragment;
     "unwrapIntoNative(address,uint256)": FunctionFragment;
     "unwrapIntoToken(address,uint256)": FunctionFragment;
     "updateEdge(bytes32,uint32,bytes32)": FunctionFragment;
-    "withdraw(address,uint256,bytes,uint256,bytes32[],uint32,bytes32)": FunctionFragment;
+    "withdrawAndUnwrap(address,address,uint256,bytes,uint256,bytes32[],uint32,bytes32)": FunctionFragment;
     "wrapAndDeposit(uint256,uint48,address,bytes,address,uint256)": FunctionFragment;
     "wrapNative()": FunctionFragment;
     "wrapToken(address,uint256)": FunctionFragment;
@@ -224,10 +223,6 @@ interface OpenVAnchorInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "token", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "unwrap",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "unwrapIntoNative",
     values: [string, BigNumberish]
   ): string;
@@ -240,8 +235,9 @@ interface OpenVAnchorInterface extends ethers.utils.Interface {
     values: [BytesLike, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "withdraw",
+    functionFragment: "withdrawAndUnwrap",
     values: [
+      string,
       string,
       BigNumberish,
       BytesLike,
@@ -395,7 +391,6 @@ interface OpenVAnchorInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "roots", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setHandler", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "token", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "unwrap", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "unwrapIntoNative",
     data: BytesLike
@@ -405,7 +400,10 @@ interface OpenVAnchorInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "updateEdge", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawAndUnwrap",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "wrapAndDeposit",
     data: BytesLike
@@ -690,12 +688,6 @@ export class OpenVAnchor extends BaseContract {
 
     token(overrides?: CallOverrides): Promise<[string]>;
 
-    unwrap(
-      _tokenAddress: string,
-      _withdrawAmount: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     unwrapIntoNative(
       _tokenAddress: string,
       _amount: BigNumberish,
@@ -715,7 +707,8 @@ export class OpenVAnchor extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    withdraw(
+    withdrawAndUnwrap(
+      _tokenAddress: string,
       _recipient: string,
       withdrawAmount: BigNumberish,
       delegatedCalldata: BytesLike,
@@ -911,12 +904,6 @@ export class OpenVAnchor extends BaseContract {
 
   token(overrides?: CallOverrides): Promise<string>;
 
-  unwrap(
-    _tokenAddress: string,
-    _withdrawAmount: BigNumberish,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   unwrapIntoNative(
     _tokenAddress: string,
     _amount: BigNumberish,
@@ -936,7 +923,8 @@ export class OpenVAnchor extends BaseContract {
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  withdraw(
+  withdrawAndUnwrap(
+    _tokenAddress: string,
     _recipient: string,
     withdrawAmount: BigNumberish,
     delegatedCalldata: BytesLike,
@@ -1141,12 +1129,6 @@ export class OpenVAnchor extends BaseContract {
 
     token(overrides?: CallOverrides): Promise<string>;
 
-    unwrap(
-      _tokenAddress: string,
-      _withdrawAmount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     unwrapIntoNative(
       _tokenAddress: string,
       _amount: BigNumberish,
@@ -1166,7 +1148,8 @@ export class OpenVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    withdraw(
+    withdrawAndUnwrap(
+      _tokenAddress: string,
       _recipient: string,
       withdrawAmount: BigNumberish,
       delegatedCalldata: BytesLike,
@@ -1447,12 +1430,6 @@ export class OpenVAnchor extends BaseContract {
 
     token(overrides?: CallOverrides): Promise<BigNumber>;
 
-    unwrap(
-      _tokenAddress: string,
-      _withdrawAmount: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     unwrapIntoNative(
       _tokenAddress: string,
       _amount: BigNumberish,
@@ -1472,7 +1449,8 @@ export class OpenVAnchor extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    withdraw(
+    withdrawAndUnwrap(
+      _tokenAddress: string,
       _recipient: string,
       withdrawAmount: BigNumberish,
       delegatedCalldata: BytesLike,
@@ -1674,12 +1652,6 @@ export class OpenVAnchor extends BaseContract {
 
     token(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    unwrap(
-      _tokenAddress: string,
-      _withdrawAmount: BigNumberish,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     unwrapIntoNative(
       _tokenAddress: string,
       _amount: BigNumberish,
@@ -1699,7 +1671,8 @@ export class OpenVAnchor extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    withdraw(
+    withdrawAndUnwrap(
+      _tokenAddress: string,
       _recipient: string,
       withdrawAmount: BigNumberish,
       delegatedCalldata: BytesLike,

@@ -164,7 +164,6 @@ export class OpenVAnchor implements IAnchor {
     if (!leafIndex) {
       leafIndex = this.tree.number_of_elements() - 1;
     }
-    console.log("akilesh", leafIndex);
 
     const chainID = getChainIdType(await this.signer.getChainId());
     const merkleRoot = this.depositHistory[leafIndex];
@@ -347,12 +346,9 @@ export class OpenVAnchor implements IAnchor {
   ): string {
     const delegatedCalldataHash = ethers.utils.keccak256(ethers.utils.arrayify('0x00'))
 
-    console.log('calldata hash: ', delegatedCalldataHash)
 
-    const packedValues = solidityPack([ "uint256", "uint256", "address", "bytes32", "uint256" ], [ chainId, amount, recipientAddr, delegatedCalldataHash, blinding]);
-    console.log('packedValues: ', packedValues)
+    const packedValues = solidityPack([ "uint48", "uint256", "address", "bytes32", "uint256" ], [ chainId, amount, recipientAddr, delegatedCalldataHash, blinding]);
     const commitment = ethers.utils.keccak256(ethers.utils.arrayify(packedValues));
-    console.log('commitment: ', commitment)
     return commitment
   }
 
@@ -395,9 +391,7 @@ export class OpenVAnchor implements IAnchor {
 
     // Add the leaves to the tree
     this.tree.insert(toFixedHex(BigNumber.from(commitment)));
-    console.log("akilesh234", destinationChainId, toFixedHex(this.tree.root()));
     let numOfElements = this.tree.number_of_elements();
-    console.log("num elements", numOfElements);
     this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
 
     return receipt;
@@ -409,6 +403,7 @@ export class OpenVAnchor implements IAnchor {
    * @returns an object with two fields, publicInput
    */
   public async withdraw(
+    tokenAddress: string,
     recipient: string,
     withdrawAmount: BigNumberish,
     delegatedCalldata: string,
@@ -427,9 +422,9 @@ export class OpenVAnchor implements IAnchor {
 			blinding
 		);
 
-    console.log("hihihihi")
 
-    let tx = await this.contract.withdraw(
+    let tx = await this.contract.withdrawAndUnwrap(
+      tokenAddress,
       recipient,
       withdrawAmount,
       delegatedCalldata,

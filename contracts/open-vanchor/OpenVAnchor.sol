@@ -12,7 +12,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../utils/ChainIdWithType.sol";
-import "hardhat/console.sol";
 
 /**
 	@title Variable Anchor contract
@@ -129,7 +128,8 @@ contract OpenVAnchor is OpenVAnchorBase {
 		}
 	}
 
-	function withdraw(
+	function withdrawAndUnwrap(
+		address _tokenAddress,
 		address _recipient,
 		uint256 withdrawAmount,
 		bytes memory delegatedCalldata,
@@ -138,7 +138,9 @@ contract OpenVAnchor is OpenVAnchorBase {
 		uint32 commitmentIndex,
 		bytes32 root
 	) public payable nonReentrant {
-		console.log("withdraw");
+		// We first withdraw the assets and send them to `this` contract address.
+		// This ensure that when we unwrap the assets, `this` contract has the
+		// assets to unwrap into.
 		bytes32 commitment = keccak256(abi.encodePacked(
 			getChainIdType(),
 			withdrawAmount,
@@ -149,13 +151,10 @@ contract OpenVAnchor is OpenVAnchorBase {
 		require(_isValidMerkleProof(merkleProof, commitment, commitmentIndex, root), "Invalid Merkle Proof");
 		_processWithdraw(payable(address(this)), withdrawAmount);
 		nullifierHashes[commitment] = true;
-	}
 
-	function unwrap(address _tokenAddress, uint256 _withdrawAmount) public payable nonReentrant {
-		address _recipient = msg.sender;
 		ITokenWrapper(token).unwrapAndSendTo(
 			_tokenAddress,
-			_withdrawAmount,
+			withdrawAmount,
 			_recipient
 		);
 	}
@@ -178,8 +177,6 @@ contract OpenVAnchor is OpenVAnchorBase {
             }
             nodeIndex = nodeIndex / 2;
         }
-		console.log("CURRNODEHASH");
-		console.logBytes32(currNodeHash);
 		bool isKnownRootBool= false;
 		for (uint i = 0; i < edgeList.length; i++) {
 			isKnownRootBool = isKnownRootBool || isKnownNeighborRoot(edgeList[i].chainID, root);
@@ -202,7 +199,7 @@ contract OpenVAnchor is OpenVAnchorBase {
 			keccak256(delegatedCalldata),
 			blinding
 		));
-
+		_executeWrapping(_tokenAddress, depositAmount);
 		_executeInsertion(commitment);
 	}
 

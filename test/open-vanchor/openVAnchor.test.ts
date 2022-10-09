@@ -35,32 +35,29 @@ describe('Open VAnchor Contract', () => {
       recipient = signers[1];
       chainId = getChainIdType(await sender.getChainId());
       // create token
-      const tokenFactory = new ERC20PresetMinterPauser__factory(wallet);
-      token = await tokenFactory.deploy('test token', 'TEST');
-      await token.deployed();
-      await token.mint(sender.address, '10000000000000000000000');
-      
+      let tokenName: string = 'existingERC20';
+      let tokenAbbreviation: string = 'EXIST';
+      const token = await MintableToken.createToken(tokenName, tokenAbbreviation, signers[7]);
+      await token.grantMinterRole(await sender.getAddress());
       const hasherFactory = new KeccakHasher__factory(wallet);
       const hasher = await hasherFactory.deploy();
       await hasher.deployed();
 
-      // const openVAnchorFactory = new OpenVAnchor__factory(wallet);
-      // openVAnchorInstance= await openVAnchorFactory.deploy(30, sender.address, token.address,);
+      const webbToken = await GovernedTokenWrapper.createGovernedTokenWrapper("WEBB", "WEBB", await sender.getAddress(), await sender.getAddress(), '1000000000000000', false, sender);
+      await webbToken.grantMinterRole(await sender.getAddress());
+      await webbToken.contract.add(token.contract.address, 1);
+
       openVAnchor = await OpenVAnchor.createOpenVAnchor(
         30,
         hasher.address,
         sender.address,
-        token.address,
+        webbToken.contract.address,
         sender
       )
 
       await openVAnchor.contract.configureMaximumDepositLimit(BigNumber.from(10000000000),0,);
       await openVAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(tokenDenomination).mul(1_000_000),
       0,);
-      const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
-      await token.grantRole(MINTER_ROLE, openVAnchor.contract.address);
-
-      await token.approve(token.address, '1000000000000000000');
     });
 
     it.only('should deposit and withdraw', async () => {
@@ -82,22 +79,20 @@ describe('Open VAnchor Contract', () => {
 
       // Step 1: Get Commitment
       let commitment = ethers.utils.keccak256(ethers.utils.arrayify(prehashed));
-      console.log(commitment);
 
       // Step 2: Insert into Merkle Tree
       let mt = new MerkleTree(30, [], {hashFunction: sha3Hash},);
       // Step 3: Get Merkle Proof and leaf Index of commitment
       mt.insert(commitment);
       let commitmentIndex = mt.indexOf(commitment);
-      console.log('commitment index', commitmentIndex);
       let merkleProof = mt.path(commitmentIndex);
       // let merkleProof = merkleProofData.pathElements;
       // let root = merkleProofData.merkleRoot;
       // Withdraw
-      await openVAnchor.withdraw(await recipient.getAddress(), BigNumber.from(10000), delegatedCalldata, blinding, merkleProof, commitmentIndex);
+      await openVAnchor.contract.withdrawAndUnwrap(token.contract.address, await recipient.getAddress(), BigNumber.from(10000), delegatedCalldata, blinding, merkleProof, commitmentIndex);
     });
 
-    it.only('should not withdraw with wrong chain id', async () => {
+    it('should not withdraw with wrong chain id', async () => {
       // Deposit
       let blinding = BigNumber.from(1010101010);
       const delegatedCalldata = '0x00'
@@ -112,14 +107,12 @@ describe('Open VAnchor Contract', () => {
 
       // Step 1: Get Commitment
       let commitment = ethers.utils.keccak256(ethers.utils.arrayify(prehashed));
-      console.log(commitment);
 
       // Step 2: Insert into Merkle Tree
       let mt = new MerkleTree(30, [], {hashFunction: sha3Hash},);
       // Step 3: Get Merkle Proof and leaf Index of commitment
       mt.insert(commitment);
       let commitmentIndex = mt.indexOf(commitment);
-      console.log('commitment index', commitmentIndex);
       let merkleProof = mt.path(commitmentIndex);
 
       // Withdraw
@@ -161,10 +154,11 @@ describe('Open VAnchor Contract', () => {
       // Create a token to test bridge construction support for existing tokens
       tokenInstance1 = await MintableToken.createToken(tokenName, tokenAbbreviation, signers[7]);
       tokenInstance2 = await MintableToken.createToken(tokenName, tokenAbbreviation, ganacheWallet2);
-      await tokenInstance1.mintTokens(signers[2].address, '100000000000000000000000000');
+      await tokenInstance1.mintTokens(signers[1].address, '100000000000000000000000000');
+      await tokenInstance2.mintTokens(signers[1].address, '100000000000000000000000000');
       const blinding = 101010;
   });
-  it.only ('should deposit and withdraw cross chain', async () => {
+  it ('should deposit and withdraw cross chain', async () => {
     let webbTokens1 = new Map<number, GovernedTokenWrapper | undefined>();
     webbTokens1.set(chainID1, null!);
     webbTokens1.set(chainID2, null!);
@@ -191,15 +185,14 @@ describe('Open VAnchor Contract', () => {
     };
     const vBridge = await OpenVBridge.deployVariableAnchorBridge(bridge2WebbEthInput, deploymentConfig, initialGovernorsConfig);
     // Should be able to retrieve individual anchors
-    console.log("1")
-    console.log(chainID1);
     const vAnchor1: OpenVAnchor = vBridge.getVAnchor(chainID1)! as OpenVAnchor;
-    console.log("2")
     const vAnchor2: OpenVAnchor = vBridge.getVAnchor(chainID2)! as OpenVAnchor;
-    console.log(vAnchor1.contract.address, vAnchor2.contract.address, "stuff");
     const depositAmount = 10000;
     const blinding = 1010101;
-    
+    const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainID1);
+    const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
+    const signers2BalanceBefore = await webbToken1.getBalance(await signers[2].getAddress());
+    assert.strictEqual(BigNumber.from(signers2BalanceBefore).toString(), BigNumber.from(0).toString());
     const recipient = await signers[2].getAddress();
     await vAnchor1.wrapAndDeposit(0, chainID2, recipient, '0x00', blinding);
     await vAnchor2.setSigner(ganacheWallet2);
@@ -208,7 +201,6 @@ describe('Open VAnchor Contract', () => {
     await vBridge.update(chainID2);
     let edgeIndex = await vAnchor1.contract.edgeIndex(chainID2);
     const destAnchorEdge2Before = await vAnchor1.contract.edgeList(edgeIndex);
-    console.log("dest anchor", destAnchorEdge2Before);
     // Merkle Proof Generation
     const delHash = ethers.utils.keccak256(ethers.utils.arrayify('0x00'));
     const prehashed = solidityPack([ "uint48", "uint256", "address", "bytes32", "uint256" ], [ FIRST_CHAIN_ID, depositAmount, recipient, delHash, blinding]);
@@ -219,7 +211,7 @@ describe('Open VAnchor Contract', () => {
     mt.insert(toFixedHex(BigNumber.from(commitment)));
     let commitmentIndex = mt.indexOf(commitment);
     let merkleProof = mt.path(commitmentIndex);
-    console.log("merkle root", toFixedHex(mt.root()));
     await vAnchor1.withdraw(recipient, depositAmount, '0x00', blinding, merkleProof, commitmentIndex);
+    await vAnchor1.contract.unwrap(tokenInstance2.contract.address, depositAmount, recipient);
   });
 });
