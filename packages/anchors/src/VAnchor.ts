@@ -24,6 +24,7 @@ import {
   UtxoGenInput,
   CircomUtxo,
   FIELD_SIZE,
+  LeafIdentifier,
 } from '@webb-tools/sdk-core';
 import { IAnchor, IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
@@ -365,7 +366,7 @@ export class VAnchor implements IAnchor {
     const args: IVariableAnchorPublicInputs = {
       proof: `0x${proof}`,
       roots: `0x${roots.map((x) => toFixedHex(x).slice(2)).join('')}`,
-      inputNullifiers: inputs.map((x) => toFixedHex(x.nullifier)),
+      inputNullifiers: inputs.map((x) => toFixedHex('0x' + x.nullifier)),
       outputCommitments: [toFixedHex(u8aToHex(outputs[0].commitment)), toFixedHex(u8aToHex(outputs[1].commitment))],
       publicAmount: toFixedHex(publicAmount),
       extDataHash: toFixedHex(extDataHash),
@@ -453,45 +454,18 @@ export class VAnchor implements IAnchor {
     const chainId = getChainIdType(await this.signer.getChainId());
     const roots = await this.populateRootsForProof();
 
-    // Start creating notes to satisfy vanchor input
-    // Only the sourceChainId and secrets (amount, nullifier, secret, blinding)
-    // is required
-    let inputNotes: Note[] = [];
-    let inputIndices: number[] = [];
-
     // calculate the sum of input notes (for calculating the public amount)
-    let sumInputNotes: BigNumberish = 0;
+    let sumInputUtxosAmount: BigNumberish = 0;
+
+    // Pass the identifier for leaves alongside the proof input
+    let leafIds: LeafIdentifier[] = [];
 
     for (const inputUtxo of inputs) {
-      sumInputNotes = BigNumber.from(sumInputNotes).add(inputUtxo.amount);
-
-      // secrets should be formatted as expected in the wasm-utils for note generation
-      const secrets =
-        `${toFixedHex(inputUtxo.chainId, 8).slice(2)}:` +
-        `${toFixedHex(inputUtxo.amount).slice(2)}:` +
-        `${toFixedHex(inputUtxo.secret_key).slice(2)}:` +
-        `${toFixedHex(inputUtxo.blinding).slice(2)}`;
-
-      const noteInput: NoteGenInput = {
-        amount: inputUtxo.amount.toString(),
-        backend: 'Circom',
-        curve: 'Bn254',
-        denomination: '18', // assumed erc20
-        exponentiation: '5',
-        hashFunction: 'Poseidon',
+      sumInputUtxosAmount = BigNumber.from(sumInputUtxosAmount).add(inputUtxo.amount);
+      leafIds.push({
         index: inputUtxo.index,
-        protocol: 'vanchor',
-        secrets,
-        sourceChain: inputUtxo.originChainId ? inputUtxo.originChainId.toString() : chainId.toString(),
-        sourceIdentifyingData: '0',
-        targetChain: chainId.toString(),
-        targetIdentifyingData: this.contract.address,
-        tokenSymbol: this.token,
-        width: '5',
-      };
-      const inputNote = await Note.generateNote(noteInput);
-      inputNotes.push(inputNote);
-      inputIndices.push(inputUtxo.index);
+        typedChainId: Number(inputUtxo.originChainId)
+      });
     }
 
     const encryptedCommitments: [Uint8Array, Uint8Array] = [
@@ -500,9 +474,9 @@ export class VAnchor implements IAnchor {
     ];
 
     const proofInput: ProvingManagerSetupInput<'vanchor'> = {
-      inputNotes,
+      inputUtxos: inputs,
       leavesMap,
-      indices: inputIndices,
+      leafIds,
       roots: roots.map((root) => hexToU8a(root)),
       chainId: chainId.toString(),
       output: outputs,
@@ -558,6 +532,14 @@ export class VAnchor implements IAnchor {
     recipient: string,
     relayer: string
   ): Promise<ethers.ContractReceipt> {
+
+    // Validate input utxos have a valid originChainId
+    inputs.map((utxo) => {
+      if (utxo.originChainId === undefined) {
+        throw new Error('Input Utxo does not have a configured originChainId');
+      }
+    })
+
     // Default UTXO chain ID will match with the configured signer's chain ID
     const evmId = await this.signer.getChainId();
     const chainId = getChainIdType(evmId);
