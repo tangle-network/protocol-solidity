@@ -112,7 +112,7 @@ export class OpenVBridge {
   public static async deployVariableAnchorBridge(
     vBridgeInput: VBridgeInput,
     deployers: DeployerConfig,
-    initialGovernors: GovernorConfig,
+    initialGovernors: GovernorConfig
   ): Promise<OpenVBridge> {
     let webbTokenAddresses: Map<number, string> = new Map();
     let vBridgeSides: Map<number, SignatureBridgeSide> = new Map();
@@ -305,10 +305,8 @@ export class OpenVBridge {
     destinationChainId: number,
     recipient: string,
     delegatedCalldata: string,
-    blinding: BigNumberish,
-  ) {
-    
-  }
+    blinding: BigNumberish
+  ) {}
 
   // Returns the address of the webbToken which wraps the given token name.
   public getWebbTokenAddress(chainId: number): string | undefined {

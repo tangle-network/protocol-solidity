@@ -1,6 +1,6 @@
 import { IAnchorDeposit, IAnchorDepositInfo } from './anchor';
 import { AnchorBase } from '@webb-tools/contracts';
-import { OpenAnchorBase } from '@webb-tools/contracts'
+import { OpenAnchorBase } from '@webb-tools/contracts';
 import { MerkleProof, Utxo } from '@webb-tools/sdk-core';
 import { BigNumberish, ethers } from 'ethers';
 

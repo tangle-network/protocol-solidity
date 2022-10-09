@@ -12,43 +12,32 @@ import {
   BaseContract,
   ContractTransaction,
   CallOverrides,
-} from "ethers";
-import { BytesLike } from "@ethersproject/bytes";
-import { Listener, Provider } from "@ethersproject/providers";
-import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
-import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
+} from 'ethers';
+import { BytesLike } from '@ethersproject/bytes';
+import { Listener, Provider } from '@ethersproject/providers';
+import { FunctionFragment, EventFragment, Result } from '@ethersproject/abi';
+import type { TypedEventFilter, TypedEvent, TypedListener } from './common';
 
 interface PoseidonHasherInterface extends ethers.utils.Interface {
   functions: {
-    "hash11(uint256[])": FunctionFragment;
-    "hash5(uint256[5])": FunctionFragment;
-    "hashLeftRight(uint256,uint256)": FunctionFragment;
-    "zeros(uint256)": FunctionFragment;
+    'hash11(uint256[])': FunctionFragment;
+    'hash5(uint256[5])': FunctionFragment;
+    'hashLeftRight(uint256,uint256)': FunctionFragment;
+    'zeros(uint256)': FunctionFragment;
   };
 
+  encodeFunctionData(functionFragment: 'hash11', values: [BigNumberish[]]): string;
   encodeFunctionData(
-    functionFragment: "hash11",
-    values: [BigNumberish[]]
+    functionFragment: 'hash5',
+    values: [[BigNumberish, BigNumberish, BigNumberish, BigNumberish, BigNumberish]]
   ): string;
-  encodeFunctionData(
-    functionFragment: "hash5",
-    values: [
-      [BigNumberish, BigNumberish, BigNumberish, BigNumberish, BigNumberish]
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "hashLeftRight",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(functionFragment: "zeros", values: [BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'hashLeftRight', values: [BigNumberish, BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'zeros', values: [BigNumberish]): string;
 
-  decodeFunctionResult(functionFragment: "hash11", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "hash5", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "hashLeftRight",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "zeros", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'hash11', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'hash5', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'hashLeftRight', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'zeros', data: BytesLike): Result;
 
   events: {};
 }
@@ -97,27 +86,14 @@ export class PoseidonHasher extends BaseContract {
   interface: PoseidonHasherInterface;
 
   functions: {
-    hash11(
-      array: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    hash11(array: BigNumberish[], overrides?: CallOverrides): Promise<[BigNumber]>;
 
     hash5(
-      array: [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-      ],
+      array: [BigNumberish, BigNumberish, BigNumberish, BigNumberish, BigNumberish],
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    hashLeftRight(
-      _left: BigNumberish,
-      _right: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    hashLeftRight(_left: BigNumberish, _right: BigNumberish, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     zeros(i: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
   };
@@ -125,46 +101,23 @@ export class PoseidonHasher extends BaseContract {
   hash11(array: BigNumberish[], overrides?: CallOverrides): Promise<BigNumber>;
 
   hash5(
-    array: [
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish
-    ],
+    array: [BigNumberish, BigNumberish, BigNumberish, BigNumberish, BigNumberish],
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  hashLeftRight(
-    _left: BigNumberish,
-    _right: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  hashLeftRight(_left: BigNumberish, _right: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
   zeros(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
-    hash11(
-      array: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    hash11(array: BigNumberish[], overrides?: CallOverrides): Promise<BigNumber>;
 
     hash5(
-      array: [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-      ],
+      array: [BigNumberish, BigNumberish, BigNumberish, BigNumberish, BigNumberish],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    hashLeftRight(
-      _left: BigNumberish,
-      _right: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    hashLeftRight(_left: BigNumberish, _right: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     zeros(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
   };
@@ -172,57 +125,28 @@ export class PoseidonHasher extends BaseContract {
   filters: {};
 
   estimateGas: {
-    hash11(
-      array: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    hash11(array: BigNumberish[], overrides?: CallOverrides): Promise<BigNumber>;
 
     hash5(
-      array: [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-      ],
+      array: [BigNumberish, BigNumberish, BigNumberish, BigNumberish, BigNumberish],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    hashLeftRight(
-      _left: BigNumberish,
-      _right: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    hashLeftRight(_left: BigNumberish, _right: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     zeros(i: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    hash11(
-      array: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    hash11(array: BigNumberish[], overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     hash5(
-      array: [
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish,
-        BigNumberish
-      ],
+      array: [BigNumberish, BigNumberish, BigNumberish, BigNumberish, BigNumberish],
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    hashLeftRight(
-      _left: BigNumberish,
-      _right: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    hashLeftRight(_left: BigNumberish, _right: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    zeros(
-      i: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    zeros(i: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }
