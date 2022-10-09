@@ -300,14 +300,6 @@ export class OpenVBridge {
     return intendedAnchor;
   }
 
-  public async wrapAndDeposit(
-    depositAmount: BigNumberish,
-    destinationChainId: number,
-    recipient: string,
-    delegatedCalldata: string,
-    blinding: BigNumberish
-  ) {}
-
   // Returns the address of the webbToken which wraps the given token name.
   public getWebbTokenAddress(chainId: number): string | undefined {
     return this.webbTokenAddresses.get(chainId);
