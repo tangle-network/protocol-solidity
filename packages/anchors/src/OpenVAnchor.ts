@@ -391,7 +391,7 @@ export class OpenVAnchor implements IAnchor {
     const commitment = this.getCommitment(destinationChainId, depositAmount, recipient, delegatedCalldata, blinding);
 
     // Add the leaves to the tree
-    this.tree.insert(toFixedHex(BigNumber.from(commitment)));
+    this.tree.insert(commitment);
     let numOfElements = this.tree.number_of_elements();
     this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
 

@@ -1,0 +1,8 @@
+101 warn complete Waiting for 2 child processes to exit. CTRL-C to exit immediately.
+102 error Error: Command failed with exit code 128: git tag @webb-tools/anchors@0.3.1-alpha.0 -m @webb-tools/anchors@0.3.1-alpha.0
+102 error fatal: tag '@webb-tools/anchors@0.3.1-alpha.0' already exists
+102 error     at makeError (/Users/akileshtangella/Documents/webb-tools/protocol-solidity/node_modules/execa/lib/error.js:60:11)
+102 error     at handlePromise (/Users/akileshtangella/Documents/webb-tools/protocol-solidity/node_modules/execa/index.js:118:26)
+102 error     at processTicksAndRejections (node:internal/process/task_queues:96:5)
+102 error     at async Promise.all (index 0)
+102 error     at async Promise.all (index 0)
