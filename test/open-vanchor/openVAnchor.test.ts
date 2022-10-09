@@ -44,7 +44,7 @@ describe('Open VAnchor Contract', () => {
       await hasher.deployed();
 
       const webbToken = await GovernedTokenWrapper.createGovernedTokenWrapper("WEBB", "WEBB", await sender.getAddress(), await sender.getAddress(), '1000000000000000', false, sender);
-      await webbToken.grantMinterRole(await sender.getAddress());
+      
       await webbToken.contract.add(token.contract.address, 1);
 
       openVAnchor = await OpenVAnchor.createOpenVAnchor(
@@ -54,6 +54,8 @@ describe('Open VAnchor Contract', () => {
         webbToken.contract.address,
         sender
       )
+
+      await webbToken.grantMinterRole(openVAnchor.contract.address);
 
       await openVAnchor.contract.configureMaximumDepositLimit(BigNumber.from(10000000000),0,);
       await openVAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(tokenDenomination).mul(1_000_000),
