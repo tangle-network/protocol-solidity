@@ -12,6 +12,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../utils/ChainIdWithType.sol";
+import "hardhat/console.sol";
 
 /**
 	@title Variable Anchor contract
@@ -137,6 +138,7 @@ contract OpenVAnchor is OpenVAnchorBase {
 		uint32 commitmentIndex,
 		bytes32 root
 	) public payable nonReentrant {
+		console.log("withdraw");
 		bytes32 commitment = keccak256(abi.encodePacked(
 			getChainIdType(),
 			withdrawAmount,
@@ -176,6 +178,8 @@ contract OpenVAnchor is OpenVAnchorBase {
             }
             nodeIndex = nodeIndex / 2;
         }
+		console.log("CURRNODEHASH");
+		console.logBytes32(currNodeHash);
 		bool isKnownRootBool= false;
 		for (uint i = 0; i < edgeList.length; i++) {
 			isKnownRootBool = isKnownRootBool || isKnownNeighborRoot(edgeList[i].chainID, root);

@@ -58,7 +58,7 @@ function checkNativeAddress(tokenAddress: string): boolean {
 }
 
 // A bridge is
-export class VBridge {
+export class OpenVBridge {
   private constructor(
     // Mapping of chainId => vBridgeSide
     public vBridgeSides: Map<number, SignatureBridgeSide>,
@@ -113,9 +113,7 @@ export class VBridge {
     vBridgeInput: VBridgeInput,
     deployers: DeployerConfig,
     initialGovernors: GovernorConfig,
-    smallCircuitZkComponents: ZkComponents,
-    largeCircuitZkComponents: ZkComponents
-  ): Promise<VBridge> {
+  ): Promise<OpenVBridge> {
     let webbTokenAddresses: Map<number, string> = new Map();
     let vBridgeSides: Map<number, SignatureBridgeSide> = new Map();
     let vAnchors: Map<string, VAnchor> = new Map();
@@ -127,6 +125,7 @@ export class VBridge {
     let maxEdges = vBridgeInput.maxEdges ?? vBridgeInput.chainIDs.length > 2 ? 7 : 1;
 
     for (let chainID of vBridgeInput.chainIDs) {
+      console.log("chainid", chainID);
       const initialGovernor = initialGovernors[chainID];
       // Create the bridgeSide
       let vBridgeInstance = await SignatureBridgeSide.createBridgeSide(deployers[chainID]);
@@ -155,9 +154,6 @@ export class VBridge {
       const hasherFactory = new KeccakHasher__factory(deployers[chainID]);
       let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
       await hasherInstance.deployed();
-
-      const verifier = await Verifier.createVerifier(deployers[chainID]);
-      let verifierInstance = verifier.contract;
 
       // Check the addresses of the asset. If it is zero, deploy a native token wrapper
       let allowedNative: boolean = false;
@@ -220,9 +216,9 @@ export class VBridge {
       await tokenInstance.grantMinterRole(vAnchorInstance.contract.address);
 
       chainGroupedVAnchors.push(vAnchorInstance);
-      vAnchors.set(VBridge.createVAnchorIdString({ chainId: chainID }), vAnchorInstance);
+      vAnchors.set(OpenVBridge.createVAnchorIdString({ chainId: chainID }), vAnchorInstance);
 
-      await VBridge.setPermissions(vBridgeInstance, chainGroupedVAnchors);
+      await OpenVBridge.setPermissions(vBridgeInstance, chainGroupedVAnchors);
       createdVAnchors.push(chainGroupedVAnchors);
 
       // Transfer ownership of the bridge to the initialGovernor
@@ -233,7 +229,6 @@ export class VBridge {
 
     // All anchors created, massage data to group anchors which should be linked together
     let groupLinkedVAnchors: VAnchor[][] = [];
-
     // all subarrays will have the same number of elements
     for (let i = 0; i < createdVAnchors[0].length; i++) {
       let linkedAnchors: VAnchor[] = [];
@@ -244,9 +239,9 @@ export class VBridge {
     }
 
     // link the anchors
-    const linkedVAnchorMap = await VBridge.createLinkedVAnchorMap(groupLinkedVAnchors);
+    const linkedVAnchorMap = await OpenVBridge.createLinkedVAnchorMap(groupLinkedVAnchors);
 
-    return new VBridge(vBridgeSides, webbTokenAddresses, linkedVAnchorMap, vAnchors);
+    return new OpenVBridge(vBridgeSides, webbTokenAddresses, linkedVAnchorMap, vAnchors);
   }
 
   // The setPermissions method accepts initialized bridgeSide and anchors.
@@ -274,6 +269,7 @@ export class VBridge {
     // Find the bridge sides that are connected to this Anchor
     const linkedResourceID = await srcAnchor.createResourceId();
     const vAnchorsToUpdate = this.linkedVAnchors.get(linkedResourceID);
+    console.log("update length", vAnchorsToUpdate.length);
     if (!vAnchorsToUpdate) {
       return;
     }
@@ -284,6 +280,8 @@ export class VBridge {
       const chainId = getChainIdType(await vAnchor.signer.getChainId());
       const resourceID = await vAnchor.createResourceId();
       const vBridgeSide = this.vBridgeSides.get(chainId);
+      console.log("hi mom", chainId);
+      console.log(srcAnchor.contract.address, "src anchor");
       await vBridgeSide!.executeAnchorProposalWithSig(srcAnchor, resourceID);
     }
   }
@@ -291,6 +289,7 @@ export class VBridge {
   public async update(chainId: number) {
     const vAnchor = this.getVAnchor(chainId);
     if (!vAnchor) {
+      console.log("hi bob my name is dad");
       return;
     }
     await this.updateLinkedVAnchors(vAnchor);
@@ -302,8 +301,21 @@ export class VBridge {
 
   public getVAnchor(chainId: number) {
     let intendedAnchor: VAnchor = undefined;
-    intendedAnchor = this.vAnchors.get(VBridge.createVAnchorIdString({ chainId }));
+    console.log("vanchors.length", this.vAnchors.keys());
+    console.log("hi my name is drew", OpenVBridge.createVAnchorIdString({ chainId }));
+    intendedAnchor = this.vAnchors.get(OpenVBridge.createVAnchorIdString({ chainId }));
+    console.log("intended anchor", intendedAnchor.contract.address);
     return intendedAnchor;
+  }
+
+  public async wrapAndDeposit(
+    depositAmount: BigNumberish,
+    destinationChainId: number,
+    recipient: string,
+    delegatedCalldata: string,
+    blinding: BigNumberish,
+  ) {
+    
   }
 
   // Returns the address of the webbToken which wraps the given token name.
@@ -320,4 +332,4 @@ export class VBridge {
   }
 }
 
-export default VBridge;
+export default OpenVBridge;

@@ -26,6 +26,10 @@ function checkNativeAddress(tokenAddress: string): boolean {
   }
   return false;
 }
+function sha3Hash (left: BigNumberish, right: BigNumberish) {
+  const packed = solidityPack([ "bytes32", "bytes32"], [toFixedHex(left), toFixedHex(right)]);
+  return BigNumber.from(ethers.utils.keccak256(ethers.utils.arrayify(packed)));
+}
 
 export var gasBenchmark = [];
 export var proofTimeBenchmark = [];
@@ -52,7 +56,7 @@ export class OpenVAnchor implements IAnchor {
   ) {
     this.signer = signer;
     this.contract = contract;
-    this.tree = new MerkleTree(treeHeight);
+    this.tree = new MerkleTree(treeHeight, [], {hashFunction: sha3Hash});
     this.depositHistory = {};
   }
 
@@ -160,6 +164,7 @@ export class OpenVAnchor implements IAnchor {
     if (!leafIndex) {
       leafIndex = this.tree.number_of_elements() - 1;
     }
+    console.log("akilesh", leafIndex);
 
     const chainID = getChainIdType(await this.signer.getChainId());
     const merkleRoot = this.depositHistory[leafIndex];
@@ -337,7 +342,7 @@ export class OpenVAnchor implements IAnchor {
 			chainId: number,
 			amount: BigNumberish,
 			recipientAddr: string,
-			delegatedCalldata: string,
+			delegatedCalldata: BigNumberish,
 			blinding: BigNumberish
   ): string {
     const delegatedCalldataHash = ethers.utils.keccak256(ethers.utils.arrayify('0x00'))
@@ -389,8 +394,10 @@ export class OpenVAnchor implements IAnchor {
 		);
 
     // Add the leaves to the tree
-    this.tree.insert(commitment);
+    this.tree.insert(toFixedHex(BigNumber.from(commitment)));
+    console.log("akilesh234", destinationChainId, toFixedHex(this.tree.root()));
     let numOfElements = this.tree.number_of_elements();
+    console.log("num elements", numOfElements);
     this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
 
     return receipt;
@@ -407,7 +414,7 @@ export class OpenVAnchor implements IAnchor {
     delegatedCalldata: string,
     blinding: BigNumberish,
     merkleProof: MerkleProof,
-    commitmentIndex: number
+    commitmentIndex: number,
   ): Promise<ethers.ContractReceipt> {
     const evmId = await this.signer.getChainId();
     const chainId = getChainIdType(evmId);
@@ -419,6 +426,8 @@ export class OpenVAnchor implements IAnchor {
 			delegatedCalldata,
 			blinding
 		);
+
+    console.log("hihihihi")
 
     let tx = await this.contract.withdraw(
       recipient,
@@ -433,11 +442,6 @@ export class OpenVAnchor implements IAnchor {
 
     const receipt = await tx.wait();
     gasBenchmark.push(receipt.gasUsed.toString());
-
-    // Add the leaves to the tree
-    this.tree.insert(commitment);
-    let numOfElements = this.tree.number_of_elements();
-    this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
 
     return receipt;
   }
