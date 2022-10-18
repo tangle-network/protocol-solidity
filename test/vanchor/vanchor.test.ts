@@ -886,8 +886,6 @@ describe('VAnchor for 2 max edges', () => {
         keypair: bobPublicKeypair
       });
 
-      console.log('aliceTransferUtxo: ', aliceTransferUtxo)
-
       // Insert the UTXO into the tree
       receipt = await anchor.transact(
         [],

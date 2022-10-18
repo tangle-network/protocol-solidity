@@ -174,7 +174,7 @@ describe('Open VAnchor Contract - cross chain', () => {
   let tokenAbbreviation: string = 'EXIST';
   let bridge2WebbEthInput: VBridgeInput;
 
-  const SECOND_CHAIN_ID = 10000;
+  const SECOND_CHAIN_ID = 10001;
   let ganacheProvider2 = new ethers.providers.JsonRpcProvider(`http://localhost:${SECOND_CHAIN_ID}`);
   ganacheProvider2.pollingInterval = 1;
   let ganacheWallet2 = new ethers.Wallet('c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e', ganacheProvider2);
