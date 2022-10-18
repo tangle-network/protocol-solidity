@@ -14,440 +14,203 @@ import {
   Overrides,
   PayableOverrides,
   CallOverrides,
-} from "ethers";
-import { BytesLike } from "@ethersproject/bytes";
-import { Listener, Provider } from "@ethersproject/providers";
-import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
-import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
+} from 'ethers';
+import { BytesLike } from '@ethersproject/bytes';
+import { Listener, Provider } from '@ethersproject/providers';
+import { FunctionFragment, EventFragment, Result } from '@ethersproject/abi';
+import type { TypedEventFilter, TypedEvent, TypedListener } from './common';
 
 interface OpenVAnchorInterface extends ethers.utils.Interface {
   functions: {
-    "EVM_CHAIN_ID_TYPE()": FunctionFragment;
-    "FIELD_SIZE()": FunctionFragment;
-    "MAX_EXT_AMOUNT()": FunctionFragment;
-    "MAX_FEE()": FunctionFragment;
-    "ROOT_HISTORY_SIZE()": FunctionFragment;
-    "ZERO_VALUE()": FunctionFragment;
-    "_executeWrapping(address,uint256)": FunctionFragment;
-    "commitments(bytes32)": FunctionFragment;
-    "configureMaximumDepositLimit(uint256,uint32)": FunctionFragment;
-    "configureMinimalWithdrawalLimit(uint256,uint32)": FunctionFragment;
-    "currentNeighborRootIndex(uint256)": FunctionFragment;
-    "currentRootIndex()": FunctionFragment;
-    "deposit(uint48,uint256,address,bytes,uint256)": FunctionFragment;
-    "edgeExistsForChain(uint256)": FunctionFragment;
-    "edgeIndex(uint256)": FunctionFragment;
-    "edgeList(uint256)": FunctionFragment;
-    "filledSubtrees(uint256)": FunctionFragment;
-    "getChainId()": FunctionFragment;
-    "getChainIdType()": FunctionFragment;
-    "getLastRoot()": FunctionFragment;
-    "getLatestNeighborEdges()": FunctionFragment;
-    "getLatestNeighborRoots()": FunctionFragment;
-    "getProposalNonce()": FunctionFragment;
-    "handler()": FunctionFragment;
-    "hasEdge(uint256)": FunctionFragment;
-    "hashLeftRight(address,bytes32,bytes32)": FunctionFragment;
-    "hasher()": FunctionFragment;
-    "initialize(uint256,uint256)": FunctionFragment;
-    "isKnownNeighborRoot(uint256,bytes32)": FunctionFragment;
-    "isKnownRoot(bytes32)": FunctionFragment;
-    "isSpent(bytes32)": FunctionFragment;
-    "isSpentArray(bytes32[])": FunctionFragment;
-    "isValidRoots(bytes32[])": FunctionFragment;
-    "lastBalance()": FunctionFragment;
-    "levels()": FunctionFragment;
-    "maximumDepositAmount()": FunctionFragment;
-    "minimalWithdrawalAmount()": FunctionFragment;
-    "neighborRoots(uint256,uint32)": FunctionFragment;
-    "nextIndex()": FunctionFragment;
-    "nullifierHashes(bytes32)": FunctionFragment;
-    "parseChainIdFromResourceId(bytes32)": FunctionFragment;
-    "roots(uint256)": FunctionFragment;
-    "setHandler(address,uint32)": FunctionFragment;
-    "token()": FunctionFragment;
-    "unwrapIntoNative(address,uint256)": FunctionFragment;
-    "unwrapIntoToken(address,uint256)": FunctionFragment;
-    "updateEdge(bytes32,uint32,bytes32)": FunctionFragment;
-    "withdraw(uint256,address,bytes,uint256,bytes32[],uint32,bytes32)": FunctionFragment;
-    "withdrawAndUnwrap(uint256,address,bytes,uint256,bytes32[],uint32,bytes32,address)": FunctionFragment;
-    "wrapAndDeposit(uint48,uint256,address,bytes,uint256,address)": FunctionFragment;
-    "wrapNative()": FunctionFragment;
-    "wrapToken(address,uint256)": FunctionFragment;
+    'EVM_CHAIN_ID_TYPE()': FunctionFragment;
+    'FIELD_SIZE()': FunctionFragment;
+    'MAX_EXT_AMOUNT()': FunctionFragment;
+    'MAX_FEE()': FunctionFragment;
+    'ROOT_HISTORY_SIZE()': FunctionFragment;
+    'ZERO_VALUE()': FunctionFragment;
+    '_executeWrapping(address,uint256)': FunctionFragment;
+    'commitments(bytes32)': FunctionFragment;
+    'configureMaximumDepositLimit(uint256,uint32)': FunctionFragment;
+    'configureMinimalWithdrawalLimit(uint256,uint32)': FunctionFragment;
+    'currentNeighborRootIndex(uint256)': FunctionFragment;
+    'currentRootIndex()': FunctionFragment;
+    'deposit(uint48,uint256,address,bytes,uint256)': FunctionFragment;
+    'edgeExistsForChain(uint256)': FunctionFragment;
+    'edgeIndex(uint256)': FunctionFragment;
+    'edgeList(uint256)': FunctionFragment;
+    'filledSubtrees(uint256)': FunctionFragment;
+    'getChainId()': FunctionFragment;
+    'getChainIdType()': FunctionFragment;
+    'getLastRoot()': FunctionFragment;
+    'getLatestNeighborEdges()': FunctionFragment;
+    'getLatestNeighborRoots()': FunctionFragment;
+    'getProposalNonce()': FunctionFragment;
+    'handler()': FunctionFragment;
+    'hasEdge(uint256)': FunctionFragment;
+    'hashLeftRight(address,bytes32,bytes32)': FunctionFragment;
+    'hasher()': FunctionFragment;
+    'initialize(uint256,uint256)': FunctionFragment;
+    'isKnownNeighborRoot(uint256,bytes32)': FunctionFragment;
+    'isKnownRoot(bytes32)': FunctionFragment;
+    'isSpent(bytes32)': FunctionFragment;
+    'isSpentArray(bytes32[])': FunctionFragment;
+    'isValidRoots(bytes32[])': FunctionFragment;
+    'lastBalance()': FunctionFragment;
+    'levels()': FunctionFragment;
+    'maximumDepositAmount()': FunctionFragment;
+    'minimalWithdrawalAmount()': FunctionFragment;
+    'neighborRoots(uint256,uint32)': FunctionFragment;
+    'nextIndex()': FunctionFragment;
+    'nullifierHashes(bytes32)': FunctionFragment;
+    'parseChainIdFromResourceId(bytes32)': FunctionFragment;
+    'roots(uint256)': FunctionFragment;
+    'setHandler(address,uint32)': FunctionFragment;
+    'token()': FunctionFragment;
+    'unwrapIntoNative(address,uint256)': FunctionFragment;
+    'unwrapIntoToken(address,uint256)': FunctionFragment;
+    'updateEdge(bytes32,uint32,bytes32)': FunctionFragment;
+    'withdraw(uint256,address,bytes,uint256,bytes32[],uint32,bytes32)': FunctionFragment;
+    'withdrawAndUnwrap(uint256,address,bytes,uint256,bytes32[],uint32,bytes32,address)': FunctionFragment;
+    'wrapAndDeposit(uint48,uint256,address,bytes,uint256,address)': FunctionFragment;
+    'wrapNative()': FunctionFragment;
+    'wrapToken(address,uint256)': FunctionFragment;
   };
 
+  encodeFunctionData(functionFragment: 'EVM_CHAIN_ID_TYPE', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'FIELD_SIZE', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'MAX_EXT_AMOUNT', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'MAX_FEE', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'ROOT_HISTORY_SIZE', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'ZERO_VALUE', values?: undefined): string;
+  encodeFunctionData(functionFragment: '_executeWrapping', values: [string, BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'commitments', values: [BytesLike]): string;
+  encodeFunctionData(functionFragment: 'configureMaximumDepositLimit', values: [BigNumberish, BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'configureMinimalWithdrawalLimit', values: [BigNumberish, BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'currentNeighborRootIndex', values: [BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'currentRootIndex', values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "EVM_CHAIN_ID_TYPE",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "FIELD_SIZE",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "MAX_EXT_AMOUNT",
-    values?: undefined
-  ): string;
-  encodeFunctionData(functionFragment: "MAX_FEE", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "ROOT_HISTORY_SIZE",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "ZERO_VALUE",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "_executeWrapping",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "commitments",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "configureMaximumDepositLimit",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "configureMinimalWithdrawalLimit",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "currentNeighborRootIndex",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "currentRootIndex",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "deposit",
+    functionFragment: 'deposit',
     values: [BigNumberish, BigNumberish, string, BytesLike, BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: 'edgeExistsForChain', values: [BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'edgeIndex', values: [BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'edgeList', values: [BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'filledSubtrees', values: [BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'getChainId', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'getChainIdType', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'getLastRoot', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'getLatestNeighborEdges', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'getLatestNeighborRoots', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'getProposalNonce', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'handler', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'hasEdge', values: [BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'hashLeftRight', values: [string, BytesLike, BytesLike]): string;
+  encodeFunctionData(functionFragment: 'hasher', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'initialize', values: [BigNumberish, BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'isKnownNeighborRoot', values: [BigNumberish, BytesLike]): string;
+  encodeFunctionData(functionFragment: 'isKnownRoot', values: [BytesLike]): string;
+  encodeFunctionData(functionFragment: 'isSpent', values: [BytesLike]): string;
+  encodeFunctionData(functionFragment: 'isSpentArray', values: [BytesLike[]]): string;
+  encodeFunctionData(functionFragment: 'isValidRoots', values: [BytesLike[]]): string;
+  encodeFunctionData(functionFragment: 'lastBalance', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'levels', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'maximumDepositAmount', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'minimalWithdrawalAmount', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'neighborRoots', values: [BigNumberish, BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'nextIndex', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'nullifierHashes', values: [BytesLike]): string;
+  encodeFunctionData(functionFragment: 'parseChainIdFromResourceId', values: [BytesLike]): string;
+  encodeFunctionData(functionFragment: 'roots', values: [BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'setHandler', values: [string, BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'token', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'unwrapIntoNative', values: [string, BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'unwrapIntoToken', values: [string, BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'updateEdge', values: [BytesLike, BigNumberish, BytesLike]): string;
   encodeFunctionData(
-    functionFragment: "edgeExistsForChain",
-    values: [BigNumberish]
+    functionFragment: 'withdraw',
+    values: [BigNumberish, string, BytesLike, BigNumberish, BytesLike[], BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "edgeIndex",
-    values: [BigNumberish]
+    functionFragment: 'withdrawAndUnwrap',
+    values: [BigNumberish, string, BytesLike, BigNumberish, BytesLike[], BigNumberish, BytesLike, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "edgeList",
-    values: [BigNumberish]
+    functionFragment: 'wrapAndDeposit',
+    values: [BigNumberish, BigNumberish, string, BytesLike, BigNumberish, string]
   ): string;
-  encodeFunctionData(
-    functionFragment: "filledSubtrees",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getChainId",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getChainIdType",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getLastRoot",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getLatestNeighborEdges",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getLatestNeighborRoots",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getProposalNonce",
-    values?: undefined
-  ): string;
-  encodeFunctionData(functionFragment: "handler", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "hasEdge",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "hashLeftRight",
-    values: [string, BytesLike, BytesLike]
-  ): string;
-  encodeFunctionData(functionFragment: "hasher", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "initialize",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isKnownNeighborRoot",
-    values: [BigNumberish, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isKnownRoot",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(functionFragment: "isSpent", values: [BytesLike]): string;
-  encodeFunctionData(
-    functionFragment: "isSpentArray",
-    values: [BytesLike[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isValidRoots",
-    values: [BytesLike[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "lastBalance",
-    values?: undefined
-  ): string;
-  encodeFunctionData(functionFragment: "levels", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "maximumDepositAmount",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "minimalWithdrawalAmount",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "neighborRoots",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(functionFragment: "nextIndex", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "nullifierHashes",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "parseChainIdFromResourceId",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(functionFragment: "roots", values: [BigNumberish]): string;
-  encodeFunctionData(
-    functionFragment: "setHandler",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(functionFragment: "token", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "unwrapIntoNative",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "unwrapIntoToken",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "updateEdge",
-    values: [BytesLike, BigNumberish, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "withdraw",
-    values: [
-      BigNumberish,
-      string,
-      BytesLike,
-      BigNumberish,
-      BytesLike[],
-      BigNumberish,
-      BytesLike
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "withdrawAndUnwrap",
-    values: [
-      BigNumberish,
-      string,
-      BytesLike,
-      BigNumberish,
-      BytesLike[],
-      BigNumberish,
-      BytesLike,
-      string
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "wrapAndDeposit",
-    values: [
-      BigNumberish,
-      BigNumberish,
-      string,
-      BytesLike,
-      BigNumberish,
-      string
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "wrapNative",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "wrapToken",
-    values: [string, BigNumberish]
-  ): string;
+  encodeFunctionData(functionFragment: 'wrapNative', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'wrapToken', values: [string, BigNumberish]): string;
 
-  decodeFunctionResult(
-    functionFragment: "EVM_CHAIN_ID_TYPE",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "FIELD_SIZE", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "MAX_EXT_AMOUNT",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "MAX_FEE", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "ROOT_HISTORY_SIZE",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "ZERO_VALUE", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "_executeWrapping",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "commitments",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "configureMaximumDepositLimit",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "configureMinimalWithdrawalLimit",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "currentNeighborRootIndex",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "currentRootIndex",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "edgeExistsForChain",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "edgeIndex", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "edgeList", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "filledSubtrees",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getChainId", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getChainIdType",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getLastRoot",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getLatestNeighborEdges",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getLatestNeighborRoots",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getProposalNonce",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "handler", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "hasEdge", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "hashLeftRight",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "hasher", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "isKnownNeighborRoot",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "isKnownRoot",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "isSpent", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "isSpentArray",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "isValidRoots",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "lastBalance",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "levels", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "maximumDepositAmount",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "minimalWithdrawalAmount",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "neighborRoots",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "nextIndex", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "nullifierHashes",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "parseChainIdFromResourceId",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "roots", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "setHandler", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "token", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "unwrapIntoNative",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "unwrapIntoToken",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "updateEdge", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "withdrawAndUnwrap",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "wrapAndDeposit",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "wrapNative", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "wrapToken", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'EVM_CHAIN_ID_TYPE', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'FIELD_SIZE', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'MAX_EXT_AMOUNT', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'MAX_FEE', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'ROOT_HISTORY_SIZE', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'ZERO_VALUE', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: '_executeWrapping', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'commitments', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'configureMaximumDepositLimit', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'configureMinimalWithdrawalLimit', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'currentNeighborRootIndex', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'currentRootIndex', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'deposit', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'edgeExistsForChain', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'edgeIndex', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'edgeList', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'filledSubtrees', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getChainId', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getChainIdType', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getLastRoot', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getLatestNeighborEdges', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getLatestNeighborRoots', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getProposalNonce', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'handler', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'hasEdge', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'hashLeftRight', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'hasher', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'initialize', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'isKnownNeighborRoot', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'isKnownRoot', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'isSpent', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'isSpentArray', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'isValidRoots', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'lastBalance', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'levels', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'maximumDepositAmount', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'minimalWithdrawalAmount', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'neighborRoots', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'nextIndex', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'nullifierHashes', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'parseChainIdFromResourceId', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'roots', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'setHandler', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'token', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'unwrapIntoNative', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'unwrapIntoToken', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'updateEdge', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'withdraw', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'withdrawAndUnwrap', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'wrapAndDeposit', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'wrapNative', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'wrapToken', data: BytesLike): Result;
 
   events: {
-    "EdgeAddition(uint256,uint256,bytes32)": EventFragment;
-    "EdgeUpdate(uint256,uint256,bytes32)": EventFragment;
-    "Initialized(uint8)": EventFragment;
-    "Insertion(bytes32,uint32,uint256)": EventFragment;
-    "NewCommitment(bytes32,uint256)": EventFragment;
-    "NewNullifier(bytes32)": EventFragment;
-    "PublicKey(address,bytes)": EventFragment;
+    'EdgeAddition(uint256,uint256,bytes32)': EventFragment;
+    'EdgeUpdate(uint256,uint256,bytes32)': EventFragment;
+    'Initialized(uint8)': EventFragment;
+    'Insertion(bytes32,uint32,uint256)': EventFragment;
+    'NewCommitment(bytes32,uint256)': EventFragment;
+    'NewNullifier(bytes32)': EventFragment;
+    'PublicKey(address,bytes)': EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "EdgeAddition"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "EdgeUpdate"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Initialized"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Insertion"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "NewCommitment"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "NewNullifier"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "PublicKey"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'EdgeAddition'): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'EdgeUpdate'): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'Initialized'): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'Insertion'): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'NewCommitment'): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'NewNullifier'): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'PublicKey'): EventFragment;
 }
 
 export type EdgeAdditionEvent = TypedEvent<
@@ -476,15 +239,11 @@ export type InsertionEvent = TypedEvent<
   }
 >;
 
-export type NewCommitmentEvent = TypedEvent<
-  [string, BigNumber] & { commitment: string; index: BigNumber }
->;
+export type NewCommitmentEvent = TypedEvent<[string, BigNumber] & { commitment: string; index: BigNumber }>;
 
 export type NewNullifierEvent = TypedEvent<[string] & { nullifier: string }>;
 
-export type PublicKeyEvent = TypedEvent<
-  [string, string] & { owner: string; key: string }
->;
+export type PublicKeyEvent = TypedEvent<[string, string] & { owner: string; key: string }>;
 
 export class OpenVAnchor extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -562,10 +321,7 @@ export class OpenVAnchor extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    currentNeighborRootIndex(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[number]>;
+    currentNeighborRootIndex(arg0: BigNumberish, overrides?: CallOverrides): Promise<[number]>;
 
     currentRootIndex(overrides?: CallOverrides): Promise<[number]>;
 
@@ -578,15 +334,9 @@ export class OpenVAnchor extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    edgeExistsForChain(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    edgeExistsForChain(arg0: BigNumberish, overrides?: CallOverrides): Promise<[boolean]>;
 
-    edgeIndex(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    edgeIndex(arg0: BigNumberish, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     edgeList(
       arg0: BigNumberish,
@@ -600,10 +350,7 @@ export class OpenVAnchor extends BaseContract {
       }
     >;
 
-    filledSubtrees(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    filledSubtrees(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
     getChainId(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -611,9 +358,7 @@ export class OpenVAnchor extends BaseContract {
 
     getLastRoot(overrides?: CallOverrides): Promise<[string]>;
 
-    getLatestNeighborEdges(
-      overrides?: CallOverrides
-    ): Promise<
+    getLatestNeighborEdges(overrides?: CallOverrides): Promise<
       [
         ([BigNumber, string, BigNumber, string] & {
           chainID: BigNumber;
@@ -630,17 +375,9 @@ export class OpenVAnchor extends BaseContract {
 
     handler(overrides?: CallOverrides): Promise<[string]>;
 
-    hasEdge(
-      _chainID: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    hasEdge(_chainID: BigNumberish, overrides?: CallOverrides): Promise<[boolean]>;
 
-    hashLeftRight(
-      _hasher: string,
-      _left: BytesLike,
-      _right: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    hashLeftRight(_hasher: string, _left: BytesLike, _right: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
     hasher(overrides?: CallOverrides): Promise<[string]>;
 
@@ -656,25 +393,13 @@ export class OpenVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    isKnownRoot(
-      _root: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    isKnownRoot(_root: BytesLike, overrides?: CallOverrides): Promise<[boolean]>;
 
-    isSpent(
-      _nullifierHash: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    isSpent(_nullifierHash: BytesLike, overrides?: CallOverrides): Promise<[boolean]>;
 
-    isSpentArray(
-      _nullifierHashes: BytesLike[],
-      overrides?: CallOverrides
-    ): Promise<[boolean[]]>;
+    isSpentArray(_nullifierHashes: BytesLike[], overrides?: CallOverrides): Promise<[boolean[]]>;
 
-    isValidRoots(
-      _roots: BytesLike[],
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    isValidRoots(_roots: BytesLike[], overrides?: CallOverrides): Promise<[boolean]>;
 
     lastBalance(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -684,30 +409,18 @@ export class OpenVAnchor extends BaseContract {
 
     minimalWithdrawalAmount(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    neighborRoots(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    neighborRoots(arg0: BigNumberish, arg1: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
     nextIndex(overrides?: CallOverrides): Promise<[number]>;
 
-    nullifierHashes(
-      arg0: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    nullifierHashes(arg0: BytesLike, overrides?: CallOverrides): Promise<[boolean]>;
 
-    parseChainIdFromResourceId(
-      _resourceId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    parseChainIdFromResourceId(_resourceId: BytesLike, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     roots(
       arg0: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<
-      [string, BigNumber] & { root: string; latestLeafindex: BigNumber }
-    >;
+    ): Promise<[string, BigNumber] & { root: string; latestLeafindex: BigNumber }>;
 
     setHandler(
       _handler: string,
@@ -769,9 +482,7 @@ export class OpenVAnchor extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    wrapNative(
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    wrapNative(overrides?: PayableOverrides & { from?: string | Promise<string> }): Promise<ContractTransaction>;
 
     wrapToken(
       _tokenAddress: string,
@@ -812,10 +523,7 @@ export class OpenVAnchor extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  currentNeighborRootIndex(
-    arg0: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<number>;
+  currentNeighborRootIndex(arg0: BigNumberish, overrides?: CallOverrides): Promise<number>;
 
   currentRootIndex(overrides?: CallOverrides): Promise<number>;
 
@@ -828,10 +536,7 @@ export class OpenVAnchor extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  edgeExistsForChain(
-    arg0: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+  edgeExistsForChain(arg0: BigNumberish, overrides?: CallOverrides): Promise<boolean>;
 
   edgeIndex(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -847,10 +552,7 @@ export class OpenVAnchor extends BaseContract {
     }
   >;
 
-  filledSubtrees(
-    arg0: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  filledSubtrees(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -858,9 +560,7 @@ export class OpenVAnchor extends BaseContract {
 
   getLastRoot(overrides?: CallOverrides): Promise<string>;
 
-  getLatestNeighborEdges(
-    overrides?: CallOverrides
-  ): Promise<
+  getLatestNeighborEdges(overrides?: CallOverrides): Promise<
     ([BigNumber, string, BigNumber, string] & {
       chainID: BigNumber;
       root: string;
@@ -877,12 +577,7 @@ export class OpenVAnchor extends BaseContract {
 
   hasEdge(_chainID: BigNumberish, overrides?: CallOverrides): Promise<boolean>;
 
-  hashLeftRight(
-    _hasher: string,
-    _left: BytesLike,
-    _right: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  hashLeftRight(_hasher: string, _left: BytesLike, _right: BytesLike, overrides?: CallOverrides): Promise<string>;
 
   hasher(overrides?: CallOverrides): Promise<string>;
 
@@ -892,28 +587,15 @@ export class OpenVAnchor extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  isKnownNeighborRoot(
-    _neighborChainID: BigNumberish,
-    _root: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+  isKnownNeighborRoot(_neighborChainID: BigNumberish, _root: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
   isKnownRoot(_root: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
-  isSpent(
-    _nullifierHash: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+  isSpent(_nullifierHash: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
-  isSpentArray(
-    _nullifierHashes: BytesLike[],
-    overrides?: CallOverrides
-  ): Promise<boolean[]>;
+  isSpentArray(_nullifierHashes: BytesLike[], overrides?: CallOverrides): Promise<boolean[]>;
 
-  isValidRoots(
-    _roots: BytesLike[],
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+  isValidRoots(_roots: BytesLike[], overrides?: CallOverrides): Promise<boolean>;
 
   lastBalance(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -923,27 +605,18 @@ export class OpenVAnchor extends BaseContract {
 
   minimalWithdrawalAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
-  neighborRoots(
-    arg0: BigNumberish,
-    arg1: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  neighborRoots(arg0: BigNumberish, arg1: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   nextIndex(overrides?: CallOverrides): Promise<number>;
 
   nullifierHashes(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
-  parseChainIdFromResourceId(
-    _resourceId: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  parseChainIdFromResourceId(_resourceId: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
   roots(
     arg0: BigNumberish,
     overrides?: CallOverrides
-  ): Promise<
-    [string, BigNumber] & { root: string; latestLeafindex: BigNumber }
-  >;
+  ): Promise<[string, BigNumber] & { root: string; latestLeafindex: BigNumber }>;
 
   setHandler(
     _handler: string,
@@ -1005,9 +678,7 @@ export class OpenVAnchor extends BaseContract {
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  wrapNative(
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  wrapNative(overrides?: PayableOverrides & { from?: string | Promise<string> }): Promise<ContractTransaction>;
 
   wrapToken(
     _tokenAddress: string,
@@ -1028,11 +699,7 @@ export class OpenVAnchor extends BaseContract {
 
     ZERO_VALUE(overrides?: CallOverrides): Promise<BigNumber>;
 
-    _executeWrapping(
-      _tokenAddress: string,
-      depositAmount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    _executeWrapping(_tokenAddress: string, depositAmount: BigNumberish, overrides?: CallOverrides): Promise<void>;
 
     commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
@@ -1048,10 +715,7 @@ export class OpenVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    currentNeighborRootIndex(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<number>;
+    currentNeighborRootIndex(arg0: BigNumberish, overrides?: CallOverrides): Promise<number>;
 
     currentRootIndex(overrides?: CallOverrides): Promise<number>;
 
@@ -1064,15 +728,9 @@ export class OpenVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    edgeExistsForChain(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+    edgeExistsForChain(arg0: BigNumberish, overrides?: CallOverrides): Promise<boolean>;
 
-    edgeIndex(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    edgeIndex(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     edgeList(
       arg0: BigNumberish,
@@ -1086,10 +744,7 @@ export class OpenVAnchor extends BaseContract {
       }
     >;
 
-    filledSubtrees(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    filledSubtrees(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
     getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1097,9 +752,7 @@ export class OpenVAnchor extends BaseContract {
 
     getLastRoot(overrides?: CallOverrides): Promise<string>;
 
-    getLatestNeighborEdges(
-      overrides?: CallOverrides
-    ): Promise<
+    getLatestNeighborEdges(overrides?: CallOverrides): Promise<
       ([BigNumber, string, BigNumber, string] & {
         chainID: BigNumber;
         root: string;
@@ -1114,17 +767,9 @@ export class OpenVAnchor extends BaseContract {
 
     handler(overrides?: CallOverrides): Promise<string>;
 
-    hasEdge(
-      _chainID: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+    hasEdge(_chainID: BigNumberish, overrides?: CallOverrides): Promise<boolean>;
 
-    hashLeftRight(
-      _hasher: string,
-      _left: BytesLike,
-      _right: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    hashLeftRight(_hasher: string, _left: BytesLike, _right: BytesLike, overrides?: CallOverrides): Promise<string>;
 
     hasher(overrides?: CallOverrides): Promise<string>;
 
@@ -1134,28 +779,15 @@ export class OpenVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    isKnownNeighborRoot(
-      _neighborChainID: BigNumberish,
-      _root: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+    isKnownNeighborRoot(_neighborChainID: BigNumberish, _root: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
     isKnownRoot(_root: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
-    isSpent(
-      _nullifierHash: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+    isSpent(_nullifierHash: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
-    isSpentArray(
-      _nullifierHashes: BytesLike[],
-      overrides?: CallOverrides
-    ): Promise<boolean[]>;
+    isSpentArray(_nullifierHashes: BytesLike[], overrides?: CallOverrides): Promise<boolean[]>;
 
-    isValidRoots(
-      _roots: BytesLike[],
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+    isValidRoots(_roots: BytesLike[], overrides?: CallOverrides): Promise<boolean>;
 
     lastBalance(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1165,50 +797,26 @@ export class OpenVAnchor extends BaseContract {
 
     minimalWithdrawalAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
-    neighborRoots(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    neighborRoots(arg0: BigNumberish, arg1: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
     nextIndex(overrides?: CallOverrides): Promise<number>;
 
-    nullifierHashes(
-      arg0: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+    nullifierHashes(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
-    parseChainIdFromResourceId(
-      _resourceId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    parseChainIdFromResourceId(_resourceId: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
     roots(
       arg0: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<
-      [string, BigNumber] & { root: string; latestLeafindex: BigNumber }
-    >;
+    ): Promise<[string, BigNumber] & { root: string; latestLeafindex: BigNumber }>;
 
-    setHandler(
-      _handler: string,
-      _nonce: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    setHandler(_handler: string, _nonce: BigNumberish, overrides?: CallOverrides): Promise<void>;
 
     token(overrides?: CallOverrides): Promise<string>;
 
-    unwrapIntoNative(
-      _tokenAddress: string,
-      _amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    unwrapIntoNative(_tokenAddress: string, _amount: BigNumberish, overrides?: CallOverrides): Promise<void>;
 
-    unwrapIntoToken(
-      _tokenAddress: string,
-      _amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    unwrapIntoToken(_tokenAddress: string, _amount: BigNumberish, overrides?: CallOverrides): Promise<void>;
 
     updateEdge(
       _root: BytesLike,
@@ -1252,15 +860,11 @@ export class OpenVAnchor extends BaseContract {
 
     wrapNative(overrides?: CallOverrides): Promise<void>;
 
-    wrapToken(
-      _tokenAddress: string,
-      _amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    wrapToken(_tokenAddress: string, _amount: BigNumberish, overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {
-    "EdgeAddition(uint256,uint256,bytes32)"(
+    'EdgeAddition(uint256,uint256,bytes32)'(
       chainID?: null,
       latestLeafIndex?: null,
       merkleRoot?: null
@@ -1278,7 +882,7 @@ export class OpenVAnchor extends BaseContract {
       { chainID: BigNumber; latestLeafIndex: BigNumber; merkleRoot: string }
     >;
 
-    "EdgeUpdate(uint256,uint256,bytes32)"(
+    'EdgeUpdate(uint256,uint256,bytes32)'(
       chainID?: null,
       latestLeafIndex?: null,
       merkleRoot?: null
@@ -1296,65 +900,42 @@ export class OpenVAnchor extends BaseContract {
       { chainID: BigNumber; latestLeafIndex: BigNumber; merkleRoot: string }
     >;
 
-    "Initialized(uint8)"(
-      version?: null
-    ): TypedEventFilter<[number], { version: number }>;
+    'Initialized(uint8)'(version?: null): TypedEventFilter<[number], { version: number }>;
 
-    Initialized(
-      version?: null
-    ): TypedEventFilter<[number], { version: number }>;
+    Initialized(version?: null): TypedEventFilter<[number], { version: number }>;
 
-    "Insertion(bytes32,uint32,uint256)"(
+    'Insertion(bytes32,uint32,uint256)'(
       commitment?: BytesLike | null,
       leafIndex?: null,
       timestamp?: null
-    ): TypedEventFilter<
-      [string, number, BigNumber],
-      { commitment: string; leafIndex: number; timestamp: BigNumber }
-    >;
+    ): TypedEventFilter<[string, number, BigNumber], { commitment: string; leafIndex: number; timestamp: BigNumber }>;
 
     Insertion(
       commitment?: BytesLike | null,
       leafIndex?: null,
       timestamp?: null
-    ): TypedEventFilter<
-      [string, number, BigNumber],
-      { commitment: string; leafIndex: number; timestamp: BigNumber }
-    >;
+    ): TypedEventFilter<[string, number, BigNumber], { commitment: string; leafIndex: number; timestamp: BigNumber }>;
 
-    "NewCommitment(bytes32,uint256)"(
+    'NewCommitment(bytes32,uint256)'(
       commitment?: null,
       index?: null
-    ): TypedEventFilter<
-      [string, BigNumber],
-      { commitment: string; index: BigNumber }
-    >;
+    ): TypedEventFilter<[string, BigNumber], { commitment: string; index: BigNumber }>;
 
     NewCommitment(
       commitment?: null,
       index?: null
-    ): TypedEventFilter<
-      [string, BigNumber],
-      { commitment: string; index: BigNumber }
-    >;
+    ): TypedEventFilter<[string, BigNumber], { commitment: string; index: BigNumber }>;
 
-    "NewNullifier(bytes32)"(
-      nullifier?: null
-    ): TypedEventFilter<[string], { nullifier: string }>;
+    'NewNullifier(bytes32)'(nullifier?: null): TypedEventFilter<[string], { nullifier: string }>;
 
-    NewNullifier(
-      nullifier?: null
-    ): TypedEventFilter<[string], { nullifier: string }>;
+    NewNullifier(nullifier?: null): TypedEventFilter<[string], { nullifier: string }>;
 
-    "PublicKey(address,bytes)"(
+    'PublicKey(address,bytes)'(
       owner?: string | null,
       key?: null
     ): TypedEventFilter<[string, string], { owner: string; key: string }>;
 
-    PublicKey(
-      owner?: string | null,
-      key?: null
-    ): TypedEventFilter<[string, string], { owner: string; key: string }>;
+    PublicKey(owner?: string | null, key?: null): TypedEventFilter<[string, string], { owner: string; key: string }>;
   };
 
   estimateGas: {
@@ -1390,10 +971,7 @@ export class OpenVAnchor extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    currentNeighborRootIndex(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    currentNeighborRootIndex(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     currentRootIndex(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1406,22 +984,13 @@ export class OpenVAnchor extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    edgeExistsForChain(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    edgeExistsForChain(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
-    edgeIndex(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    edgeIndex(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     edgeList(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
-    filledSubtrees(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    filledSubtrees(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     getChainId(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1437,17 +1006,9 @@ export class OpenVAnchor extends BaseContract {
 
     handler(overrides?: CallOverrides): Promise<BigNumber>;
 
-    hasEdge(
-      _chainID: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    hasEdge(_chainID: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
-    hashLeftRight(
-      _hasher: string,
-      _left: BytesLike,
-      _right: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    hashLeftRight(_hasher: string, _left: BytesLike, _right: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
     hasher(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1463,25 +1024,13 @@ export class OpenVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    isKnownRoot(
-      _root: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    isKnownRoot(_root: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
-    isSpent(
-      _nullifierHash: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    isSpent(_nullifierHash: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
-    isSpentArray(
-      _nullifierHashes: BytesLike[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    isSpentArray(_nullifierHashes: BytesLike[], overrides?: CallOverrides): Promise<BigNumber>;
 
-    isValidRoots(
-      _roots: BytesLike[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    isValidRoots(_roots: BytesLike[], overrides?: CallOverrides): Promise<BigNumber>;
 
     lastBalance(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1491,23 +1040,13 @@ export class OpenVAnchor extends BaseContract {
 
     minimalWithdrawalAmount(overrides?: CallOverrides): Promise<BigNumber>;
 
-    neighborRoots(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    neighborRoots(arg0: BigNumberish, arg1: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     nextIndex(overrides?: CallOverrides): Promise<BigNumber>;
 
-    nullifierHashes(
-      arg0: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    nullifierHashes(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
-    parseChainIdFromResourceId(
-      _resourceId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    parseChainIdFromResourceId(_resourceId: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1571,9 +1110,7 @@ export class OpenVAnchor extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    wrapNative(
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    wrapNative(overrides?: PayableOverrides & { from?: string | Promise<string> }): Promise<BigNumber>;
 
     wrapToken(
       _tokenAddress: string,
@@ -1601,10 +1138,7 @@ export class OpenVAnchor extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    commitments(
-      arg0: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    commitments(arg0: BytesLike, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     configureMaximumDepositLimit(
       _maximumDepositAmount: BigNumberish,
@@ -1618,10 +1152,7 @@ export class OpenVAnchor extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    currentNeighborRootIndex(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    currentNeighborRootIndex(arg0: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     currentRootIndex(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1634,25 +1165,13 @@ export class OpenVAnchor extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    edgeExistsForChain(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    edgeExistsForChain(arg0: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    edgeIndex(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    edgeIndex(arg0: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    edgeList(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    edgeList(arg0: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    filledSubtrees(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    filledSubtrees(arg0: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getChainId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1660,22 +1179,15 @@ export class OpenVAnchor extends BaseContract {
 
     getLastRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    getLatestNeighborEdges(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getLatestNeighborEdges(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    getLatestNeighborRoots(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getLatestNeighborRoots(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getProposalNonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     handler(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    hasEdge(
-      _chainID: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    hasEdge(_chainID: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     hashLeftRight(
       _hasher: string,
@@ -1698,60 +1210,31 @@ export class OpenVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    isKnownRoot(
-      _root: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    isKnownRoot(_root: BytesLike, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    isSpent(
-      _nullifierHash: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    isSpent(_nullifierHash: BytesLike, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    isSpentArray(
-      _nullifierHashes: BytesLike[],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    isSpentArray(_nullifierHashes: BytesLike[], overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    isValidRoots(
-      _roots: BytesLike[],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    isValidRoots(_roots: BytesLike[], overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     lastBalance(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     levels(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    maximumDepositAmount(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    maximumDepositAmount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    minimalWithdrawalAmount(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    minimalWithdrawalAmount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    neighborRoots(
-      arg0: BigNumberish,
-      arg1: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    neighborRoots(arg0: BigNumberish, arg1: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     nextIndex(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    nullifierHashes(
-      arg0: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    nullifierHashes(arg0: BytesLike, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    parseChainIdFromResourceId(
-      _resourceId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    parseChainIdFromResourceId(_resourceId: BytesLike, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    roots(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     setHandler(
       _handler: string,
@@ -1813,9 +1296,7 @@ export class OpenVAnchor extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    wrapNative(
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+    wrapNative(overrides?: PayableOverrides & { from?: string | Promise<string> }): Promise<PopulatedTransaction>;
 
     wrapToken(
       _tokenAddress: string,
