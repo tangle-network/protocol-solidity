@@ -119,9 +119,9 @@ abstract contract VAnchorBase is AnchorBase {
 	) internal view returns (bool r) {
 		uint256[8] memory p = abi.decode(_proof, (uint256[8]));
 		(
-				uint256[2] memory a,
-				uint256[2][2] memory b,
-				uint256[2] memory c
+			uint256[2] memory a,
+			uint256[2][2] memory b,
+			uint256[2] memory c
 		) = unpackProof(p);
 		r = verifier.verifyProof(
 			a, b, c,
@@ -139,9 +139,9 @@ abstract contract VAnchorBase is AnchorBase {
 	) internal view returns (bool r) {
 		uint256[8] memory p = abi.decode(_proof, (uint256[8]));
 		(
-				uint256[2] memory a,
-				uint256[2][2] memory b,
-				uint256[2] memory c
+			uint256[2] memory a,
+			uint256[2][2] memory b,
+			uint256[2] memory c
 		) = unpackProof(p);
 		r = verifier.verifyProof(
 			a, b, c,
