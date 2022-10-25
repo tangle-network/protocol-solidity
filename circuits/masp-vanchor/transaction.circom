@@ -3,18 +3,21 @@ pragma circom 2.0.0;
 include "../../node_modules/circomlib/circuits/poseidon.circom";
 include "../set/membership.circom";
 include "../merkle-tree/manyMerkleProof.circom";
-include "./keypair.circom";
+include "../vanchor/keypair.circom";
 
 /*
 UTXO structure:
 {
-    chainID, // destination chain identifier
+    assetID
     amount,
-    pubkey,
-    blinding, // random number
+    Hash {
+        chainID, // destination chain identifier
+        pubkey,
+        blinding, // random number
+    }
 }
 
-commitment = hash(chainID, amount, pubKey, blinding)
+commitment = hash(assetID, amount, hash(chainID, pubKey, blinding))
 nullifier = hash(commitment, merklePath, sign(privKey, commitment, merklePath))
 */
 
