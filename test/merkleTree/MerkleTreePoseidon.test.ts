@@ -5,25 +5,27 @@
 
 import { MerkleTree, toFixedHex } from '@webb-tools/sdk-core';
 import { BigNumber } from 'ethers';
-import { artifacts, contract } from 'hardhat';
+import { artifacts, contract, ethers } from 'hardhat';
 import { poseidon } from 'circomlibjs';
+import { PoseidonHasher } from '@webb-tools/anchors';
 const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
 
-const Poseidon = artifacts.require('PoseidonT3')
 const MerkleTreeWithHistory = artifacts.require('MerkleTreePoseidonMock')
 
-contract('MerkleTreePoseidon', (accounts) => {
+contract('MerkleTree w/ Poseidon hasher', (accounts) => {
   let merkleTreeWithHistory;
-  let hasherInstance;
+  let hasherInstance: PoseidonHasher;
   let levels = 30;
   const sender = accounts[0];
   let tree: MerkleTree;
 
   beforeEach(async () => {
-    hasherInstance = await Poseidon.new();
+    const signers = await ethers.getSigners();
+    const wallet = signers[0];
+    hasherInstance = await PoseidonHasher.createPoseidonHasher(wallet);
     tree = new MerkleTree(levels)
-    merkleTreeWithHistory = await MerkleTreeWithHistory.new(levels, hasherInstance.address)
+    merkleTreeWithHistory = await MerkleTreeWithHistory.new(levels, hasherInstance.contract.address)
   })
 
   describe('#constructor', () => {
@@ -32,14 +34,14 @@ contract('MerkleTreePoseidon', (accounts) => {
       const firstSubtree = await merkleTreeWithHistory.filledSubtrees(0)
       assert.strictEqual(firstSubtree, toFixedHex(BigNumber.from(zeroValue.toString())));
       
-      const firstZero = await merkleTreeWithHistory.zeros(0)
+      const firstZero = await hasherInstance.contract.zeros(0)
       assert.strictEqual(firstZero, toFixedHex(BigNumber.from(zeroValue.toString())));
     });
   });
 
   describe('#hash', () => {
     it('should hash', async () => {
-      let contractResult = await hasherInstance.poseidon([10, 10]);
+      let contractResult = await hasherInstance.contract.hashLeftRight(10, 10);
       let result = BigNumber.from(poseidon([10, 10]));
       assert.strictEqual(result.toString(), contractResult.toString());
 
@@ -69,7 +71,7 @@ contract('MerkleTreePoseidon', (accounts) => {
 
     it('should reject if tree is full', async () => {
       const levels = 6
-      const merkleTreeWithHistory = await MerkleTreeWithHistory.new(levels, hasherInstance.address)
+      const merkleTreeWithHistory = await MerkleTreeWithHistory.new(levels, hasherInstance.contract.address)
 
       for (let i = 0; i < 2 ** levels; i++) {
         TruffleAssert.passes(await merkleTreeWithHistory.insert(toFixedHex(i + 42)))
@@ -114,7 +116,7 @@ contract('MerkleTreePoseidon', (accounts) => {
 
   describe('#insertions using deposit commitments', async () =>  {
     it('should rebuild root correctly between native and contract', async () => {
-      const merkleTreeWithHistory = await MerkleTreeWithHistory.new(levels, hasherInstance.address);
+      const merkleTreeWithHistory = await MerkleTreeWithHistory.new(levels, hasherInstance.contract.address);
       const commitment = '0x0101010101010101010101010101010101010101010101010101010101010101';
       await tree.insert(commitment);
       const { merkleRoot, pathElements, pathIndices } = await tree.path(0);
@@ -127,11 +129,11 @@ contract('MerkleTreePoseidon', (accounts) => {
         let elt = pathElements[i];
         let side = pathIndices[i];
         if (side === 0) {
-          let contractResult = await hasherInstance.poseidon([curr, elt]);
-          curr = contractResult;
+          let contractResult = await hasherInstance.contract.hashLeftRight(curr, elt);
+          curr = contractResult.toString();
         } else {
-          let contractResult = await hasherInstance.poseidon([elt, curr]);
-          curr =  contractResult;
+          let contractResult = await hasherInstance.contract.hashLeftRight(elt, curr);
+          curr =  contractResult.toString();
         }
       }
 

@@ -7,7 +7,7 @@ import { artifacts, contract, assert } from "hardhat";
 const TruffleAssert = require('truffle-assertions');
 
 const Anchor = artifacts.require("LinkableAnchorMock");
-const Hasher = artifacts.require("PoseidonT3");
+const Hasher = artifacts.require("KeccakHasher");
 const Verifier = artifacts.require('Verifier');
 const Verifier2 = artifacts.require('Verifier2');
 const Verifier3 = artifacts.require('Verifier3');

@@ -1,4 +1,4 @@
-# MerkleTreePoseidon
+# MerkleTreeWithHistory
 
 
 
@@ -120,18 +120,18 @@ function getLastRoot() external view returns (bytes32)
 ### hashLeftRight
 
 ```solidity
-function hashLeftRight(contract IPoseidonT3 _hasher, bytes32 _left, bytes32 _right) external pure returns (bytes32)
+function hashLeftRight(contract IHasher _hasher, bytes32 _left, bytes32 _right) external nonpayable returns (bytes32)
 ```
 
 
 
-*Hash 2 tree leaves, returns PoseidonT3([_left, _right])*
+*this function is defined in a child contract *
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| _hasher | contract IPoseidonT3 | undefined
+| _hasher | contract IHasher | undefined
 | _left | bytes32 | undefined
 | _right | bytes32 | undefined
 
@@ -144,7 +144,7 @@ function hashLeftRight(contract IPoseidonT3 _hasher, bytes32 _left, bytes32 _rig
 ### hasher
 
 ```solidity
-function hasher() external view returns (contract IPoseidonT3)
+function hasher() external view returns (contract IHasher)
 ```
 
 
@@ -156,7 +156,7 @@ function hasher() external view returns (contract IPoseidonT3)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | contract IPoseidonT3 | undefined
+| _0 | contract IHasher | undefined
 
 ### isKnownRoot
 
@@ -236,28 +236,6 @@ function roots(uint256) external view returns (bytes32 root, uint256 latestLeafi
 |---|---|---|
 | root | bytes32 | undefined
 | latestLeafindex | uint256 | undefined
-
-### zeros
-
-```solidity
-function zeros(uint256 i) external pure returns (bytes32)
-```
-
-
-
-*provides Zero (Empty) elements for a Poseidon MerkleTree. Up to 32 levels*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| i | uint256 | undefined
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bytes32 | undefined
 
 
 

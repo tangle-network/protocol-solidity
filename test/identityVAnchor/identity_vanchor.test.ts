@@ -4,7 +4,6 @@
  */
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { ContractTransaction } from 'ethers';
 
 // Typechain generated bindings for contracts
 // These contracts are included in packages, so should be tested
@@ -13,7 +12,6 @@ import {
   ERC20PresetMinterPauser__factory,
   GovernedTokenWrapper as WrappedToken,
   GovernedTokenWrapper__factory as WrappedTokenFactory,
-  PoseidonT3__factory,
   Semaphore as SemaphoreContract,
 } from '../../packages/contracts/src';
 
@@ -42,7 +40,7 @@ import {
   generateVariableWitnessInput,
   CircomUtxo,
 } from '@webb-tools/sdk-core';
-import { IdentityVAnchor } from '@webb-tools/anchors';
+import { IdentityVAnchor, PoseidonHasher } from '@webb-tools/anchors';
 import { IdentityVerifier } from '@webb-tools/vbridge';
 import { IIdentityVariableAnchorPublicInputs } from '@webb-tools/interfaces';
 import { Semaphore } from '@webb-tools/semaphore';
@@ -65,7 +63,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
   const defaultRoot = BigInt('21663839004416932945382355908790599225266501822907911457504978515578255421292');
   let fee = BigInt(new BN(`100`).toString());
   let verifier: IdentityVerifier;
-  let hasherInstance: any;
   let token: ERC20PresetMinterPauser;
   let wrappedToken: WrappedToken;
   let tokenDenomination = '1000000000000000000'; // 1 ether
@@ -154,9 +151,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
     bob = signers[1];
     carl = signers[2];
     // create poseidon hasher
-    const hasherFactory = new PoseidonT3__factory(wallet);
-    hasherInstance = await hasherFactory.deploy();
-    await hasherInstance.deployed();
+    const hasherInstance = await PoseidonHasher.createPoseidonHasher(wallet);
 
     // create bridge verifier
     verifier = await IdentityVerifier.createVerifier(sender);
@@ -199,7 +194,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       semaphore,
       verifier.contract.address,
       levels,
-      hasherInstance.address,
+      hasherInstance.contract.address,
       alice.address,
       token.address,
       maxEdges,
@@ -1049,6 +1044,11 @@ describe('IdentityVAnchor for 2 max edges', () => {
     let wrapFee: number = 0; // between 0-10000
 
     beforeEach(async () => {
+      const signers = await ethers.getSigners();
+      const wallet = signers[0];
+      // create poseidon hasher
+      const hasherInstance = await PoseidonHasher.createPoseidonHasher(wallet);
+      
       const name = 'webbETH';
       const symbol = 'webbETH';
       const dummyFeeRecipient = "0x0000000000010000000010000000000000000000";
@@ -1063,7 +1063,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         semaphore,
         verifier.contract.address,
         levels,
-        hasherInstance.address,
+        hasherInstance.contract.address,
         alice.address,
         wrappedToken.address,
         maxEdges,

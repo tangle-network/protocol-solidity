@@ -386,18 +386,18 @@ Checks the `_chainID` has an edge on this contract
 ### hashLeftRight
 
 ```solidity
-function hashLeftRight(contract IPoseidonT3 _hasher, bytes32 _left, bytes32 _right) external pure returns (bytes32)
+function hashLeftRight(contract IHasher _hasher, bytes32 _left, bytes32 _right) external view returns (bytes32)
 ```
 
 
 
-*Hash 2 tree leaves, returns PoseidonT3([_left, _right])*
+*Hash 2 tree leaves*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| _hasher | contract IPoseidonT3 | undefined
+| _hasher | contract IHasher | undefined
 | _left | bytes32 | undefined
 | _right | bytes32 | undefined
 
@@ -410,7 +410,7 @@ function hashLeftRight(contract IPoseidonT3 _hasher, bytes32 _left, bytes32 _rig
 ### hasher
 
 ```solidity
-function hasher() external view returns (contract IPoseidonT3)
+function hasher() external view returns (contract IHasher)
 ```
 
 
@@ -422,7 +422,7 @@ function hasher() external view returns (contract IPoseidonT3)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | contract IPoseidonT3 | undefined
+| _0 | contract IHasher | undefined
 
 ### isKnownNeighborRoot
 
@@ -661,28 +661,6 @@ Add an edge to the tree or update an existing edge.
 | _root | bytes32 | The merkle root of the edge&#39;s merkle tree
 | _leafIndex | uint32 | The latest leaf insertion index of the edge&#39;s merkle tree
 | _srcResourceID | bytes32 | The origin resource ID of the originating linked anchor update
-
-### zeros
-
-```solidity
-function zeros(uint256 i) external pure returns (bytes32)
-```
-
-
-
-*provides Zero (Empty) elements for a Poseidon MerkleTree. Up to 32 levels*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| i | uint256 | undefined
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bytes32 | undefined
 
 
 

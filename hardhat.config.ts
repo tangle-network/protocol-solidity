@@ -18,9 +18,9 @@ const buildPoseidon = async (numInputs: number) => {
 
 subtask('typechain-generate-types',
   async (taskArgs, hre, runSuper) => {
-
     // overwrite the artifact before generating types
     await buildPoseidon(2);
+    await buildPoseidon(5);
     await runSuper();
   }
 )
@@ -45,7 +45,7 @@ const config: HardhatUserConfig = {
   },
   // @ts-ignore
   dodoc: {
-    include: ['AnchorBase', 'LinkableAnchor', 'AnchorHandler', 'IAnchor', 'ILinkableAnchor', 'VAnchorEncodeInputs', 'GovernedTokenWrapper', 'TokenWrapperHandler', 'Hasher', 'MerkleTreePoseidon', 'MerkleTreeWithHistoryPoseidon', 'Poseidon', 'VAnchor', 'VAnchorBase']
+    include: ['AnchorBase', 'LinkableAnchor', 'AnchorHandler', 'IAnchor', 'ILinkableAnchor', 'VAnchorEncodeInputs', 'GovernedTokenWrapper', 'TokenWrapperHandler', 'Hasher', 'MerkleTree', 'MerkleTreeWithHistory', 'PoseidonHasher', 'KeccakHasher', 'VAnchor', 'VAnchorBase']
   },
   mocha: {
     timeout: 60000

@@ -52,7 +52,7 @@ abstract contract VAnchorBase is AnchorBase {
 	constructor(
 		IAnchorVerifier _verifier,
 		uint32 _levels,
-		IPoseidonT3 _hasher,
+		IHasher _hasher,
 		address _handler,
 		uint8 _maxEdges
 	)
