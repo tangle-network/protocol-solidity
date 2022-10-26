@@ -4155,7 +4155,7 @@
     "@truffle/error" "^0.1.1"
     colors "1.4.0"
 
-"@truffle/contract-schema@^3.4.10", "@truffle/contract-schema@^3.4.7":
+"@truffle/contract-schema@^3.0.14", "@truffle/contract-schema@^3.4.10", "@truffle/contract-schema@^3.4.7":
   version "3.4.10"
   resolved "https://registry.yarnpkg.com/@truffle/contract-schema/-/contract-schema-3.4.10.tgz#c11a814c13ad55a5e454fb35ddfa291ae0d24ace"
   integrity sha512-BhRNRoRvlj2th6E5RNS0BnS0ZxQe01JJz8I7MjkGqdeXSvrn6qDCAnbmvhNgUv0l5h8w5+gBOQhAJhILf1shdQ==
@@ -10542,6 +10542,15 @@ fs-constants@^1.0.0:
   resolved "https://registry.yarnpkg.com/fs-constants/-/fs-constants-1.0.0.tgz#6be0de9be998ce16af8afc24497b9ee9b7ccd9ad"
   integrity sha512-y6OAwoSIf7FyjMIv94u+b5rdheZEjzR63GTyZJm5qh4Bi+2YgwLCcI/fPFZkL5PSixOt6ZNKm+w+Hfp/Bciwow==
 
+fs-extra@6.0.1:
+  version "6.0.1"
+  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-6.0.1.tgz#8abc128f7946e310135ddc93b98bddb410e7a34b"
+  integrity sha512-GnyIkKhhzXZUWFCaJzvyDLEEgDkPfb4/TPvJCJVuS8MWZgoSsErf++QpiAlDnKFcqhRlm+tIOcencCjyJE6ZCA==
+  dependencies:
+    graceful-fs "^4.1.2"
+    jsonfile "^4.0.0"
+    universalify "^0.1.0"
+
 fs-extra@^0.30.0:
   version "0.30.0"
   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-0.30.0.tgz#f233ffcc08d4da7d432daa449776989db1df93f0"
@@ -13506,7 +13515,7 @@ lodash@4.17.20:
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.20.tgz#b44a9b6297bcb698f1c51a3545a2b3b368d59c52"
   integrity sha512-PlhdFcillOINfeV7Ni6oF1TAEayyZBoZ8bcshTHqOYJYlrqzRK5hagpagky5o4HfCzzd1TRkXPMFq6cKk9rGmA==
 
-lodash@^4.17.11, lodash@^4.17.14, lodash@^4.17.15, lodash@^4.17.19, lodash@^4.17.21, lodash@^4.17.4:
+lodash@^4.17.11, lodash@^4.17.13, lodash@^4.17.14, lodash@^4.17.15, lodash@^4.17.19, lodash@^4.17.21, lodash@^4.17.4:
   version "4.17.21"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
@@ -18057,6 +18066,15 @@ trim-right@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/trim-right/-/trim-right-1.0.1.tgz#cb2e1203067e0c8de1f614094b9fe45704ea6003"
   integrity sha512-WZGXGstmCWgeevgTL54hrCuw1dyMQIzWy7ZfqRJfSmJZBwklI15egmQytFP6bPidmw3M8d5yEowl1niq4vmqZw==
+
+truffle-artifactor@^4.0.30:
+  version "4.0.30"
+  resolved "https://registry.yarnpkg.com/truffle-artifactor/-/truffle-artifactor-4.0.30.tgz#c06448fbf3406f8f697dae86c281e0f8cd7e5f69"
+  integrity sha512-3ZriLaKQ1UZ7Fhf70PUAWq0/0461oiYOLheabdQrNiggwzAwt1URMoLLByqDGmCmVBimbf/RHA4VYGd62343aA==
+  dependencies:
+    "@truffle/contract-schema" "^3.0.14"
+    fs-extra "6.0.1"
+    lodash "^4.17.13"
 
 truffle-assertions@^0.9.2:
   version "0.9.2"

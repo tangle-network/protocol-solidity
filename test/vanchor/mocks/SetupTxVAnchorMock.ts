@@ -83,8 +83,6 @@ export class SetupTxVAnchorMock extends VAnchor {
       fee: BigNumber.from(fee).toString(),
     };
 
-    console.log('proofInput in vanchor mock: ', proofInput);
-
     inputs.length > 2
       ? (this.provingManager = new CircomProvingManager(this.largeCircuitZkComponents.wasm, this.tree.levels, null))
       : (this.provingManager = new CircomProvingManager(this.smallCircuitZkComponents.wasm, this.tree.levels, null));

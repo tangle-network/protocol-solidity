@@ -70,7 +70,7 @@ contract VAnchor is VAnchorBase {
 	constructor(
 		IAnchorVerifier _verifier,
 		uint32 _levels,
-		IPoseidonT3 _hasher,
+		IHasher _hasher,
 		address _handler,
 		address _token,
 		uint8 _maxEdges
@@ -287,7 +287,7 @@ contract VAnchor is VAnchorBase {
 		@notice Checks whether the zkSNARK proof is valid
 		@param _args The zkSNARK proof parameters
 	 */
-	function _executeVerification(VAnchorEncodeInputs.Proof memory _args) view internal {
+	function _executeVerification(VAnchorEncodeInputs.Proof memory _args) internal {
 		if (_args.inputNullifiers.length == 2) {
 			(bytes memory encodedInput, bytes32[] memory roots) = VAnchorEncodeInputs._encodeInputs2(_args, maxEdges);
 			require(isValidRoots(roots), "Invalid roots");

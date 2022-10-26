@@ -28,6 +28,7 @@ import {
 } from '@webb-tools/sdk-core';
 import { IAnchor, IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
+import { solidityPack } from 'ethers/lib/utils';
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 function checkNativeAddress(tokenAddress: string): boolean {
@@ -463,7 +464,7 @@ export class VAnchor implements IAnchor {
       sumInputUtxosAmount = BigNumber.from(sumInputUtxosAmount).add(inputUtxo.amount);
       leafIds.push({
         index: inputUtxo.index,
-        typedChainId: Number(inputUtxo.originChainId)
+        typedChainId: Number(inputUtxo.originChainId),
       });
     }
 
@@ -531,13 +532,12 @@ export class VAnchor implements IAnchor {
     recipient: string,
     relayer: string
   ): Promise<ethers.ContractReceipt> {
-
     // Validate input utxos have a valid originChainId
     inputs.map((utxo) => {
       if (utxo.originChainId === undefined) {
         throw new Error('Input Utxo does not have a configured originChainId');
       }
-    })
+    });
 
     // Default UTXO chain ID will match with the configured signer's chain ID
     const evmId = await this.signer.getChainId();

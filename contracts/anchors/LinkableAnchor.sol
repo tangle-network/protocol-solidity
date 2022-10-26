@@ -5,7 +5,7 @@
 
 pragma solidity ^0.8.0;
 
-import "../trees/MerkleTreePoseidon.sol";
+import "../trees/MerkleTree.sol";
 import "../utils/ChainIdWithType.sol";
 import "../interfaces/ILinkableAnchor.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -36,11 +36,11 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
     An example usage of this system is the:
     - VAnchor.sol - for variable sized private bridging of assets
  */
-abstract contract LinkableAnchor is ILinkableAnchor, MerkleTreePoseidon, ReentrancyGuard, ChainIdWithType {
+abstract contract LinkableAnchor is ILinkableAnchor, MerkleTree, ReentrancyGuard, ChainIdWithType {
     uint32 proposalNonce = 0;
     address public handler;
 
-    // The maximum number of edges this tree can support.
+    // The maximum number of edges this tree can support for zero-knowledge linkability.
     uint8 public immutable maxEdges;
 
     /**
@@ -80,10 +80,10 @@ abstract contract LinkableAnchor is ILinkableAnchor, MerkleTreePoseidon, Reentra
     */
     constructor(
         address _handler,
-        IPoseidonT3 _hasher,
+        IHasher _hasher,
         uint32 _merkleTreeHeight,
         uint8 _maxEdges
-    ) MerkleTreePoseidon(_merkleTreeHeight, _hasher) {
+    ) MerkleTree(_merkleTreeHeight, _hasher) {
         handler = _handler;
         maxEdges = _maxEdges;
     }
@@ -147,7 +147,7 @@ abstract contract LinkableAnchor is ILinkableAnchor, MerkleTreePoseidon, Reentra
             } else {
                 edges[i] = Edge({
                     // merkle tree height for zeros
-                    root: zeros(levels - 1),
+                    root: hasher.zeros(levels - 1),
                     chainID: 0,
                     latestLeafIndex: 0,
                     srcResourceID: 0x0
@@ -169,7 +169,7 @@ abstract contract LinkableAnchor is ILinkableAnchor, MerkleTreePoseidon, Reentra
                 roots[i] = edgeList[i].root;
             } else {
                 // merkle tree height for zeros
-                roots[i] = zeros(levels - 1);
+                roots[i] = hasher.zeros(levels - 1);
             }
         }
 
@@ -215,7 +215,7 @@ abstract contract LinkableAnchor is ILinkableAnchor, MerkleTreePoseidon, Reentra
             rootIndex++;
         }
         while (rootIndex != maxEdges + 1) {
-            require(_roots[rootIndex] == zeros(levels - 1), "non-existent edge is not set to the default root");
+            require(_roots[rootIndex] == hasher.zeros(levels - 1), "non-existent edge is not set to the default root");
             rootIndex++;
         }
         return true;

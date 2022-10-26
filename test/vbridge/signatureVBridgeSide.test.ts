@@ -9,11 +9,10 @@ const TruffleAssert = require('truffle-assertions');
  
 // Convenience wrapper classes for contract classes
 import { SignatureBridgeSide } from '../../packages/bridges/src';
-import { VAnchor, AnchorHandler } from '../../packages/anchors/src';
+import { VAnchor, AnchorHandler, PoseidonHasher } from '../../packages/anchors/src';
 import { Verifier } from '../../packages/vbridge/src';
 import { MintableToken, Treasury, TreasuryHandler } from '../../packages/tokens/src';
 import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '../../packages/utils/src';
-import { PoseidonT3__factory } from '../../packages/contracts/src';
 import { GovernedTokenWrapper, TokenWrapperHandler } from '../../packages/tokens/src';
 import { BigNumber } from 'ethers';
 import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
@@ -48,9 +47,7 @@ describe('SignatureBridgeSide use', () => {
 
   it('should set resource with signature', async () => {
     // Create the Hasher and Verifier for the chain
-    const hasherFactory = new PoseidonT3__factory(admin);
-    let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
-    await hasherInstance.deployed();
+    const hasherInstance = await PoseidonHasher.createPoseidonHasher(admin);
     const verifier = await Verifier.createVerifier(admin);
     const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
     await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
@@ -59,7 +56,7 @@ describe('SignatureBridgeSide use', () => {
     const anchor = await VAnchor.createVAnchor(
       verifier.contract.address,
       30,
-      hasherInstance.address,
+      hasherInstance.contract.address,
       anchorHandler.contract.address,
       tokenInstance.contract.address,
       maxEdges,
@@ -77,9 +74,7 @@ describe('SignatureBridgeSide use', () => {
  
   it('execute anchor proposal', async () => {
     // Create the Hasher and Verifier for the chain
-    const hasherFactory = new PoseidonT3__factory(admin);
-    let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
-    await hasherInstance.deployed();
+    const hasherInstance = await PoseidonHasher.createPoseidonHasher(admin);
 
     const verifier = await Verifier.createVerifier(admin);
 
@@ -91,7 +86,7 @@ describe('SignatureBridgeSide use', () => {
     const srcAnchor = await VAnchor.createVAnchor(
       verifier.contract.address,
       30,
-      hasherInstance.address,
+      hasherInstance.contract.address,
       anchorHandler.contract.address,
       tokenInstance.contract.address,
       maxEdges,
@@ -320,9 +315,7 @@ describe('SignatureBridgeSide use', () => {
 
   it('bridge nonce should update upon setting resource with sig', async () => {
     // Create the Hasher and Verifier for the chain
-    const hasherFactory = new PoseidonT3__factory(admin);
-    let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
-    await hasherInstance.deployed();
+    const hasherInstance = await PoseidonHasher.createPoseidonHasher(admin);
 
     const verifier = await Verifier.createVerifier(admin);
 
@@ -334,7 +327,7 @@ describe('SignatureBridgeSide use', () => {
     const anchor = await VAnchor.createVAnchor(
       verifier.contract.address,
       30,
-      hasherInstance.address,
+      hasherInstance.contract.address,
       anchorHandler.contract.address,
       tokenInstance.contract.address,
       maxEdges,
@@ -450,9 +443,7 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
     // Wrap and Deposit ERC20 liquidity into that anchor
 
     // Create the Hasher and Verifier for the chain
-    const hasherFactory = new PoseidonT3__factory(admin);
-    let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
-    await hasherInstance.deployed();
+    const hasherInstance = await PoseidonHasher.createPoseidonHasher(admin);
 
     const verifier = await Verifier.createVerifier(admin);
 
@@ -462,7 +453,7 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
     srcAnchor = await VAnchor.createVAnchor(
       verifier.contract.address,
       30,
-      hasherInstance.address,
+      hasherInstance.contract.address,
       anchorHandler.contract.address,
       governedToken.contract.address,
       maxEdges,
@@ -620,9 +611,7 @@ describe('Rescue Tokens Tests for Native ETH', () => {
     // Wrap and Deposit ERC20 liquidity into that anchor
 
     // Create the Hasher and Verifier for the chain
-    const hasherFactory = new PoseidonT3__factory(admin);
-    let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
-    await hasherInstance.deployed();
+    const hasherInstance = await PoseidonHasher.createPoseidonHasher(admin);
 
     const verifier = await Verifier.createVerifier(admin);
 
@@ -632,7 +621,7 @@ describe('Rescue Tokens Tests for Native ETH', () => {
     srcAnchor = await VAnchor.createVAnchor(
       verifier.contract.address,
       30,
-      hasherInstance.address,
+      hasherInstance.contract.address,
       anchorHandler.contract.address,
       governedToken.contract.address,
       maxEdges,

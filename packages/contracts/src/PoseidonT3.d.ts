@@ -12,23 +12,20 @@ import {
   BaseContract,
   ContractTransaction,
   CallOverrides,
-} from "ethers";
-import { BytesLike } from "@ethersproject/bytes";
-import { Listener, Provider } from "@ethersproject/providers";
-import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
-import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
+} from 'ethers';
+import { BytesLike } from '@ethersproject/bytes';
+import { Listener, Provider } from '@ethersproject/providers';
+import { FunctionFragment, EventFragment, Result } from '@ethersproject/abi';
+import type { TypedEventFilter, TypedEvent, TypedListener } from './common';
 
 interface PoseidonT3Interface extends ethers.utils.Interface {
   functions: {
-    "poseidon(uint256[2])": FunctionFragment;
+    'poseidon(uint256[2])': FunctionFragment;
   };
 
-  encodeFunctionData(
-    functionFragment: "poseidon",
-    values: [[BigNumberish, BigNumberish]]
-  ): string;
+  encodeFunctionData(functionFragment: 'poseidon', values: [[BigNumberish, BigNumberish]]): string;
 
-  decodeFunctionResult(functionFragment: "poseidon", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'poseidon', data: BytesLike): Result;
 
   events: {};
 }
@@ -77,37 +74,22 @@ export class PoseidonT3 extends BaseContract {
   interface: PoseidonT3Interface;
 
   functions: {
-    poseidon(
-      arg0: [BigNumberish, BigNumberish],
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    poseidon(input: [BigNumberish, BigNumberish], overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
-  poseidon(
-    arg0: [BigNumberish, BigNumberish],
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  poseidon(input: [BigNumberish, BigNumberish], overrides?: CallOverrides): Promise<BigNumber>;
 
   callStatic: {
-    poseidon(
-      arg0: [BigNumberish, BigNumberish],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    poseidon(input: [BigNumberish, BigNumberish], overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {};
 
   estimateGas: {
-    poseidon(
-      arg0: [BigNumberish, BigNumberish],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    poseidon(input: [BigNumberish, BigNumberish], overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    poseidon(
-      arg0: [BigNumberish, BigNumberish],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    poseidon(input: [BigNumberish, BigNumberish], overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

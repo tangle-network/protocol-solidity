@@ -77,7 +77,7 @@ contract IdentityVAnchor is IdentityVAnchorBase {
 		ISemaphoreGroups _semaphore,
 		IAnchorVerifier _verifier,
 		uint8 _levels,
-		IPoseidonT3 _hasher,
+		IHasher _hasher,
 		address _handler,
 		address _token,
 		uint8 _maxEdges,
@@ -267,7 +267,7 @@ contract IdentityVAnchor is IdentityVAnchorBase {
 		@notice Checks whether the zkSNARK proof is valid
 		@param _args The zkSNARK proof parameters
 	 */
-	function _executeVerification(IdentityVAnchorEncodeInputs.Proof memory _args) view internal {
+	function _executeVerification(IdentityVAnchorEncodeInputs.Proof memory _args) internal {
 		if (_args.inputNullifiers.length == 2) {
 			// bytes32[2] memory identityRoots = abi.decode(_args.identityRoots, (bytes32[2]));
 			(bytes memory encodedInput, bytes32[] memory roots) = IdentityVAnchorEncodeInputs._encodeInputs2(_args, maxEdges);

@@ -12,27 +12,24 @@ import {
   BaseContract,
   ContractTransaction,
   CallOverrides,
-} from "ethers";
-import { BytesLike } from "@ethersproject/bytes";
-import { Listener, Provider } from "@ethersproject/providers";
-import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
-import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
+} from 'ethers';
+import { BytesLike } from '@ethersproject/bytes';
+import { Listener, Provider } from '@ethersproject/providers';
+import { FunctionFragment, EventFragment, Result } from '@ethersproject/abi';
+import type { TypedEventFilter, TypedEvent, TypedListener } from './common';
 
 interface IdentityVAnchorEncodeInputsInterface extends ethers.utils.Interface {
   functions: {
-    "EVM_CHAIN_ID_TYPE()": FunctionFragment;
-    "_encodeInputs16((bytes,bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),uint8)": FunctionFragment;
-    "_encodeInputs2((bytes,bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),uint8)": FunctionFragment;
-    "getChainId()": FunctionFragment;
-    "getChainIdType()": FunctionFragment;
+    'EVM_CHAIN_ID_TYPE()': FunctionFragment;
+    '_encodeInputs16((bytes,bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),uint8)': FunctionFragment;
+    '_encodeInputs2((bytes,bytes,bytes,bytes32[],bytes32[2],uint256,bytes32),uint8)': FunctionFragment;
+    'getChainId()': FunctionFragment;
+    'getChainIdType()': FunctionFragment;
   };
 
+  encodeFunctionData(functionFragment: 'EVM_CHAIN_ID_TYPE', values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "EVM_CHAIN_ID_TYPE",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "_encodeInputs16",
+    functionFragment: '_encodeInputs16',
     values: [
       {
         proof: BytesLike;
@@ -47,7 +44,7 @@ interface IdentityVAnchorEncodeInputsInterface extends ethers.utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "_encodeInputs2",
+    functionFragment: '_encodeInputs2',
     values: [
       {
         proof: BytesLike;
@@ -61,32 +58,14 @@ interface IdentityVAnchorEncodeInputsInterface extends ethers.utils.Interface {
       BigNumberish
     ]
   ): string;
-  encodeFunctionData(
-    functionFragment: "getChainId",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getChainIdType",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: 'getChainId', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'getChainIdType', values?: undefined): string;
 
-  decodeFunctionResult(
-    functionFragment: "EVM_CHAIN_ID_TYPE",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "_encodeInputs16",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "_encodeInputs2",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getChainId", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getChainIdType",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: 'EVM_CHAIN_ID_TYPE', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: '_encodeInputs16', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: '_encodeInputs2', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getChainId', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getChainIdType', data: BytesLike): Result;
 
   events: {};
 }
