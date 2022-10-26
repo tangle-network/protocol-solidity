@@ -52,11 +52,24 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 	destination chain id matches the underlying chain id of the VAnchor where the
 	transaction is taking place. The chain id opcode is leveraged to prevent any
 	tampering of this data.
+
+	Part of the benefit of a MASP is the ability to handle multiple assets in a single pool.
+	To support this, the system uses a `assetId` field in the UTXO to identify the asset.
+	One thing to remember is that all assets in the pool must be wrapped ERC20 tokens specific
+	to the pool. We refer to this tokens as the bridge ERC20 tokens. Part of the challenge of building
+	the MASP then is dealing with the mapping between bridge ERC20s and their asset IDs.
+
+	IMPORTANT: A bridge ERC20 token MUST have the same assetID across chain.
  */
 contract MultiAssetVAnchor is MultiAssetVAnchorBase {
 	using SafeERC20 for IERC20;
 	using SafeMath for uint256;
 	address public immutable token;
+
+	// TODO: Maintain a map from bridge ERC20s to assetIDs
+	// TODO: Start assetIDs at 1, use 0 to indicate an invalid bridge ERC20 (non-existant)
+	mapping (address => uint256) public bridgeAssetIdMap;
+	mapping (address => address) public assetToBridgeAssetMap;
 
 	struct ExtData {
 		uint256 assetId;
@@ -217,6 +230,48 @@ contract MultiAssetVAnchor is MultiAssetVAnchorBase {
 	) public {
 		register(_account);
 		transactWrap(_proofArgs, _extData, _tokenAddress);
+	}
+
+	function wrapAndDeposit(
+		address tokenAddress,
+		uint256 _amount,
+		bytes32 partialCommitment,
+		bytes memory encryptedCommitment
+	) public payable {
+		// Before executing the wrapping, determine the amount which needs to be sent to the tokenWrapper
+		uint256 wrapAmount = ITokenWrapper(token).getAmountToWrap(_amount);
+
+        if (tokenAddress == address(0)) {
+            require(msg.value == _amount);
+			ITokenWrapper(token).wrapForAndSendTo{value: msg.value}(
+				msg.sender,
+				tokenAddress,
+				0,
+				address(this)
+			);
+		} else {
+			ITokenWrapper(token).wrapForAndSendTo{value: msg.value}(
+				msg.sender,
+				tokenAddress,
+				_amount,
+				address(this)
+			);
+        }
+
+		address bridgeAsset = assetToBridgeAssetMap[tokenAddress];
+		uint256 assetID = bridgeAssetIdMap[bridgeAsset];
+		bytes32 commitment = bytes32(IHasher(hasher).hash3([
+			assetID,
+			wrapAmount,
+			uint256(partialCommitment)
+		]));
+		bytes32 zeroCommitment = bytes32(IHasher(hasher).hash3([
+			uint256(0),
+			uint256(0),
+			uint256(0)
+		]));
+		insertTwo(commitment, zeroCommitment);
+		emit NewCommitment(commitment, nextIndex - 2, encryptedCommitment);
 	}
 
 	/**

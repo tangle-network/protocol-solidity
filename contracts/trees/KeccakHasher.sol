@@ -11,6 +11,10 @@ import "./IHasher.sol";
  * Keccak hash functions for 2 inputs.
  */
 contract KeccakHasher is IHasher {
+    function hash3(uint256[3] memory array) override public pure returns (uint256) {
+        return uint256(keccak256(abi.encodePacked(array)));
+    }
+
     function hashLeftRight(uint256 _left, uint256 _right) override public pure returns (uint256) {
         uint256 output = uint256(_left);
         uint256 right = uint256(_right);

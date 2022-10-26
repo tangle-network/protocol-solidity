@@ -158,7 +158,7 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
     // Enforce that outAssetID is zero if publicAmount is zero (i.e. shielded tx)
     // Otherwise it is equal to tokenField
     component isShieldedTx = IsZero();
-    isShieldedTx.in <== publicAmount; 
+    isShieldedTx.in <== publicAmount;
     component checkEqualIfNotShielded = ForceEqualIfEnabled();
     checkEqualIfNotShielded.enabled <== 1 - isShieldedTx.out;
     checkEqualIfNotShielded.in[0] <== assetID;

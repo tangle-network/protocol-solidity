@@ -9,6 +9,7 @@ pragma solidity ^0.8.0;
  * Hasher interface for hashing 2 uint256 elements.
  */
 interface IHasher {
+    function hash3(uint256[3] memory array) external view returns (uint256);
     /// @dev provides a 2 elemtns hash with left and right elements
     function hashLeftRight(uint256 _left, uint256 _right) external view returns (uint256);
     /// @dev provides Zero (Empty) elements for a IHasher based MerkleTree. Up to 32 levels

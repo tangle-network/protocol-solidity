@@ -32,6 +32,28 @@ function hash11(uint256[] array) external pure returns (uint256)
 |---|---|---|
 | _0 | uint256 | undefined
 
+### hash3
+
+```solidity
+function hash3(uint256[3] array) external pure returns (uint256)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| array | uint256[3] | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
 ### hash5
 
 ```solidity
