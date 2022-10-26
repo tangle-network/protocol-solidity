@@ -28,7 +28,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 	The system requires users to create UTXOs for any supported ERC20 asset into the smart
 	contract and insert a commitment into the underlying merkle tree of the form:
 	```
-	commitment = Poseidon(assetId, amount, Poseidon(chainId, pubKey, blinding)).
+	commitment = Poseidon(assetId, amount, Poseidon(destinationChainID, pubKey, blinding)).
 	```
 	The hash input is the UTXO data. All deposits/withdrawals are unified under
 	a common `transact` function which requires a zkSNARK proof that the UTXO commitments
@@ -40,8 +40,8 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 	  is intended to be made
 	- Details of the UTXO and hashes are below
 
-	UTXO = { destinationChainID, amount, pubkey, blinding }
-	commitment = Poseidon(destinationChainID, amount, pubKey, blinding)
+	UTXO = { assetId, amount, Poseidon(destinationChainID, pubKey, blinding) }
+	commitment = Poseidon(assetId, amount, Poseidon(destinationChainID, pubKey, blinding))
 	nullifier = Poseidon(commitment, merklePath, sign(privKey, commitment, merklePath))
 
 	Commitments adhering to different hash functions and formats will invalidate
@@ -85,7 +85,7 @@ contract MultiAssetVAnchor is MultiAssetVAnchorBase {
 	constructor(
 		IAnchorVerifier _verifier,
 		uint32 _levels,
-		IPoseidonT3 _hasher,
+		IHasher _hasher,
 		address _handler,
 		address _token,
 		uint8 _maxEdges
