@@ -1,5 +1,6 @@
 pragma circom 2.0.0;
 
+include "../../node_modules/circomlib/circuits/comparators.circom";
 include "../../node_modules/circomlib/circuits/poseidon.circom";
 include "../set/membership.circom";
 include "../merkle-tree/manyMerkleProof.circom";
@@ -29,6 +30,10 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
     signal input publicAmount;
     signal input extDataHash; // arbitrary
 
+    // data for input/output asset identifier
+    signal input assetID;
+    signal input outAssetID;
+
     // data for transaction inputs
     signal input inputNullifier[nIns];
     signal input inAmount[nIns];
@@ -39,8 +44,8 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
 
     // data for transaction outputs
     signal input outputCommitment[nOuts];
-    signal input outChainID[nOuts];
     signal input outAmount[nOuts];
+    signal input outChainID[nOuts];
     signal input outPubkey[nOuts];
     signal input outBlinding[nOuts];
 
@@ -51,6 +56,7 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
     component inKeypair[nIns];
     component inSignature[nIns];
     component inCommitmentHasher[nIns];
+    component inPartialCommitmentHasher[nIns];
     component inNullifierHasher[nIns];
     component inTree[nIns];
     component inCheckRoot[nIns];
@@ -60,12 +66,18 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
     for (var tx = 0; tx < nIns; tx++) {
         inKeypair[tx] = Keypair();
         inKeypair[tx].privateKey <== inPrivateKey[tx];
+        
+        // Compute intermediate hash
+        inPartialCommitmentHasher[tx] = Poseidon(3);
+        inPartialCommitmentHasher[tx].inputs[0] <== chainID;
+        inPartialCommitmentHasher[tx].inputs[1] <== inKeypair[tx].publicKey;
+        inPartialCommitmentHasher[tx].inputs[2] <== inBlinding[tx];
 
-        inCommitmentHasher[tx] = Poseidon(4);
-        inCommitmentHasher[tx].inputs[0] <== chainID;
+        // Compute commitment hash
+        inCommitmentHasher[tx] = Poseidon(3);
+        inCommitmentHasher[tx].inputs[0] <== assetID;
         inCommitmentHasher[tx].inputs[1] <== inAmount[tx];
-        inCommitmentHasher[tx].inputs[2] <== inKeypair[tx].publicKey;
-        inCommitmentHasher[tx].inputs[3] <== inBlinding[tx];
+        inCommitmentHasher[tx].inputs[2] <== inPartialCommitmentHasher[tx].out;
 
         inSignature[tx] = Signature();
         inSignature[tx].privateKey <== inPrivateKey[tx];
@@ -98,17 +110,26 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
         sumIns += inAmount[tx];
     }
 
+    component outPartialCommitmentHasher[nOuts];
     component outCommitmentHasher[nOuts];
     component outAmountCheck[nOuts];
     var sumOuts = 0;
 
     // verify correctness of transaction outputs
     for (var tx = 0; tx < nOuts; tx++) {
-        outCommitmentHasher[tx] = Poseidon(4);
-        outCommitmentHasher[tx].inputs[0] <== outChainID[tx];
+        // Compute intermediate hash
+        outPartialCommitmentHasher[tx] = Poseidon(3);
+        outPartialCommitmentHasher[tx].inputs[0] <== chainID;
+        outPartialCommitmentHasher[tx].inputs[1] <== outPubkey[tx];
+        outPartialCommitmentHasher[tx].inputs[2] <== outBlinding[tx];
+
+        // Compute commitment hash
+        outCommitmentHasher[tx] = Poseidon(3);
+        outCommitmentHasher[tx].inputs[0] <== assetID;
         outCommitmentHasher[tx].inputs[1] <== outAmount[tx];
-        outCommitmentHasher[tx].inputs[2] <== outPubkey[tx];
-        outCommitmentHasher[tx].inputs[3] <== outBlinding[tx];
+        outCommitmentHasher[tx].inputs[2] <== inPartialCommitmentHasher[tx].out;
+        
+        // Constrain output commitment by reconstructed commitment
         outCommitmentHasher[tx].out === outputCommitment[tx];
 
         // Check that amount fits into 248 bits to prevent overflow
@@ -133,6 +154,15 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
 
     // verify amount invariant
     sumIns + publicAmount === sumOuts;
+
+    // Enforce that outAssetID is zero if publicAmount is zero (i.e. shielded tx)
+    // Otherwise it is equal to tokenField
+    component isShieldedTx = IsZero();
+    isShieldedTx.in <== publicAmount; 
+    component checkEqualIfNotShielded = ForceEqualIfEnabled();
+    checkEqualIfNotShielded.enabled <== 1 - isShieldedTx.out;
+    checkEqualIfNotShielded.in[0] <== assetID;
+    checkEqualIfNotShielded.in[1] <== outAssetID;
 
     // optional safety constraint to make sure extDataHash cannot be changed
     signal extDataSquare;
