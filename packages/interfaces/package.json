@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@webb-tools/contracts": "^0.4.0",
-    "@webb-tools/sdk-core": "0.1.4-111"
+    "@webb-tools/sdk-core": "0.1.4-113"
   },
   "publishConfig": {
     "access": "public"

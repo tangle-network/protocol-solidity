@@ -11,9 +11,9 @@
   "dependencies": {
     "@webb-tools/bridges": "^0.4.0",
     "@webb-tools/contracts": "^0.4.0",
-    "@webb-tools/sdk-core": "0.1.4-111",
+    "@webb-tools/sdk-core": "0.1.4-113",
     "@webb-tools/tokens": "^0.4.0",
-    "@webb-tools/utils": "^0.3.2-alpha.0",
+    "@webb-tools/utils": "^0.4.0",
     "ethers": "5.7.0"
   },
   "publishConfig": {
