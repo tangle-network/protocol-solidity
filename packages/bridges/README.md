@@ -2,7 +2,7 @@
 
 Wrapper classes and utilities for deploying and interacting with zero-knowledge Bridges in solidity.
 
-## License
+## License 
 
 <sup>
 Licensed under <a href="LICENSE">GPLV3 license</a>.

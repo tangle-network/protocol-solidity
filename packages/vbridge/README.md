@@ -1,4 +1,4 @@
-<h1 align="center">Webb Variable Bridge</h1>
+<h1 align="center">Webb Variable Bridge</h1> 
 
 This sub-module is for defining variable-bridge (vbridge) classes and functionality.
 

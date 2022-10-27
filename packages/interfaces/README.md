@@ -2,7 +2,7 @@
 
 Interfaces for various classes and types.
 
-## License
+## License 
 
 <sup>
 Licensed under <a href="LICENSE">GPLV3 license</a>.

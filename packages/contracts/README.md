@@ -3,7 +3,7 @@
 This sub-module is for defining types and factories for contracts of webb solidity.
 It is essentially the typechain-generated output packaged up and exposed for other areas of webb.
 
-## License
+## License 
 
 <sup>
 Licensed under <a href="LICENSE">GPLV3 license</a>.
