@@ -147,7 +147,6 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
             ? uint(msg.value).sub(costToWrap)
             : amount.sub(costToWrap);
         if (tokenAddress == address(0)) {
-            mint(sender, leftover);
             // transfer fee (costToWrap) to feeRecipient 
             feeRecipient.transfer(costToWrap);
         } else {
@@ -155,9 +154,9 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
             IERC20(tokenAddress).transferFrom(sender, address(this), leftover);
             // transfer fee (costToWrap) to feeRecipient
             IERC20(tokenAddress).transferFrom(sender, feeRecipient, costToWrap);
-            // mint the wrapped token for the sender
-            mint(sender, leftover);
         }
+        // mint the wrapped token for the sender
+        _mint(sender, leftover);
     }
 
     /**
@@ -181,7 +180,6 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
             ? uint(msg.value).sub(costToWrap)
             : amount.sub(costToWrap);
         if (tokenAddress == address(0)) {
-            mint(recipient, leftover);
             // transfer fee (costToWrap) to feeRecipient
             feeRecipient.transfer(costToWrap);
         } else {
@@ -189,9 +187,9 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
             IERC20(tokenAddress).transferFrom(sender, address(this), leftover);
             // transfer fee (costToWrap) to feeRecipient
             IERC20(tokenAddress).transferFrom(sender, feeRecipient, costToWrap);
-            // mint the wrapped token for the recipient
-            mint(recipient, leftover);
         }
+        // mint the wrapped token for the recipient
+        _mint(recipient, leftover);
     }
 
     /**
