@@ -19,12 +19,14 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
  */
 abstract contract MultiTokenWrapper is ERC1155PresetMinterPauser, IMultiTokenWrapper {
     using SafeMath for uint256;
+    using SafeERC20 for IERC20;
     address payable public feeRecipient;
 
     mapping (address => uint256) wrappedTokenToTokenId;
     mapping (uint256 => address) tokenIdToWrappedToken;
     mapping (address => uint16) wrappedTokenToWrappingFeePercentage;
     mapping (address => uint256) wrappedToken;
+    mapping (uint256 => uint256) totalSupply;
 
     /**
         @notice MultiTokenWrapper constructor
@@ -90,6 +92,7 @@ abstract contract MultiTokenWrapper is ERC1155PresetMinterPauser, IMultiTokenWra
         uint tokenId = wrappedTokenToTokenId[toTokenAddress];
         // mint the native value sent to the contract
         _mint(_msgSender(), tokenId, leftover, "");
+        totalSupply[tokenId] += leftover;
     }
 
     /**
@@ -106,6 +109,7 @@ abstract contract MultiTokenWrapper is ERC1155PresetMinterPauser, IMultiTokenWra
         uint tokenId = wrappedTokenToTokenId[fromTokenAddress];
         // burn wrapped token from sender
         _burn(_msgSender(), tokenId, amount);
+        totalSupply[tokenId] -= amount;
         // unwrap liquidity and send to the sender
         if (fromTokenAddress == address(0)) {
             // transfer native liquidity from the token wrapper to the sender
@@ -238,16 +242,16 @@ abstract contract MultiTokenWrapper is ERC1155PresetMinterPauser, IMultiTokenWra
     }
 
     /** @dev this function is defined in a child contract */
-    function _isValidAddress(address tokenAddress) internal virtual returns (bool);
+    function _isValidAddress(address fromTokenAddress, address toTokenAddress) internal virtual returns (bool);
 
     /** @dev this function is defined in a child contract */
-    function _isValidHistoricalAddress(address tokenAddress) internal virtual returns (bool);
+    function _isValidHistoricalAddress(address fromTokenAddress, address toTokenAddress) internal virtual returns (bool);
 
     /** @dev this function is defined in a child contract */
-    function _isNativeValid() internal virtual returns (bool);
+    function _isNativeValid(address tokenAddress) internal virtual returns (bool);
 
     /** @dev this function is defined in a child contract */
-    function _isValidAmount(uint256 amount) internal virtual returns (bool);
+    function _isValidAmount(address tokenAddress, uint256 amount) internal virtual returns (bool);
 
     modifier isMinter() {
         require(hasRole(MINTER_ROLE, msg.sender), "ERC1155PresetMinterPauser: must have minter role");
@@ -269,15 +273,15 @@ abstract contract MultiTokenWrapper is ERC1155PresetMinterPauser, IMultiTokenWra
     ) {
         if (fromTokenAddress == address(0)) {
             require(amount == 0, "Invalid amount provided for native wrapping");
-            require(_isNativeValid(), "Native wrapping is not allowed for this token wrapper");
+            require(_isNativeValid(toTokenAddress), "Native wrapping is not allowed for this token wrapper");
         } else {
             require(msg.value == 0, "Invalid value sent for wrapping");
-            require(_isValidAddress(fromTokenAddress), "Invalid token address");
+            require(_isValidAddress(fromTokenAddress, toTokenAddress), "Invalid token address");
         }
 
         require(feeRec != address(0), "Fee Recipient cannot be zero address");
         
-        require(_isValidAmount(amount), "Invalid token amount");
+        require(_isValidAmount(toTokenAddress, amount), "Invalid token amount");
         _;
     }
 
@@ -294,10 +298,10 @@ abstract contract MultiTokenWrapper is ERC1155PresetMinterPauser, IMultiTokenWra
     ) {
         if (fromTokenAddress == address(0)) {
             require(address(this).balance >= amount, "Insufficient native balance");
-            require(_isNativeValid(), "Native unwrapping is not allowed for this token wrapper");
+            require(_isNativeValid(toTokenAddress), "Native unwrapping is not allowed for this token wrapper");
         } else {
             require(IERC20(fromTokenAddress).balanceOf(address(this)) >= amount, "Insufficient ERC20 balance");
-            require(_isValidHistoricalAddress(fromTokenAddress), "Invalid historical token address");
+            require(_isValidHistoricalAddress(fromTokenAddress, toTokenAddress), "Invalid historical token address");
         }
 
         _;
