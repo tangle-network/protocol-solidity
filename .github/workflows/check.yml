@@ -28,6 +28,7 @@ jobs:
       - name: ts-check
         run: |
           yarn install
+          yarn compile
           yarn ts-check
 
   # This job builds and runs tests for the contracts
