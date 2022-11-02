@@ -1,7 +1,7 @@
 <h1 align="center">Webb Solidity Tokens</h1>
 
 This sub-module is for defining token-related functionality in webb solidity.
-
+ 
 ## License
 
 <sup>
