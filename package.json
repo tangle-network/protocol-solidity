@@ -11,7 +11,7 @@
     "compile": "lerna run compile --scope=@webb-tools/contracts",
     "build": "yarn compile && yarn build:packages",
     "setup": "yarn compile && yarn build:circuits && yarn build:ptau",
-    "test:contracts": "lerna run test --scope=@webb-tools/contracts",
+    "test": "lerna run test --scope=@webb-tools/contracts",
     "build:circuits": "./scripts/bash/build_circuits.sh",
     "build:packages": "lerna run build",
     "build:ptau": "./scripts/bash/generate_phase1_ptau.sh",
