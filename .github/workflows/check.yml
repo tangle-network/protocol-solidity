@@ -52,11 +52,11 @@ jobs:
       - name: Fetch submodules
         run: git submodule update --init --recursive
 
-      - name: Populate fixtures
-        run: cd solidity-fixtures && dvc pull && cd ..
-
       - name: Install dependencies 
         run: yarn install --production=false
+
+      - name: Populate fixtures
+        run: yarn fetch:fixtures
 
       - name: Compile the contracts
         run: yarn compile
