@@ -2,33 +2,25 @@ require('dotenv').config();
 import { getChainIdType } from "@webb-tools/utils";
 import { ethers } from "ethers";
 
-export const providerRinkeby = new ethers.providers.JsonRpcProvider(`https://rinkeby.infura.io/v3/fff68ca474dd4764a8d54dd14fa5519e`);
-export const walletRinkeby = new ethers.Wallet(process.env.PRIVATE_KEY!, providerRinkeby);
-export const chainIdTypeRinkeby = getChainIdType(4);
-
 export const providerPolygon = new ethers.providers.JsonRpcProvider(process.env.POLYGON_KEY!);
 export const walletPolygon = new ethers.Wallet(process.env.PRIVATE_KEY!, providerPolygon);
 export const chainIdTypePolygon = getChainIdType(80001);
-
-export const providerKovan = new ethers.providers.JsonRpcProvider(`https://kovan.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161`);
-export const walletKovan = new ethers.Wallet(process.env.PRIVATE_KEY!, providerKovan);
-export const chainIdTypeKovan = getChainIdType(42);
-
-export const providerRopsten = new ethers.providers.JsonRpcProvider(`https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161`);
-export const walletRopsten = new ethers.Wallet(process.env.PRIVATE_KEY!, providerRopsten);
-export const chainIdTypeRopsten = getChainIdType(3);
 
 export const providerGoerli = new ethers.providers.JsonRpcProvider(`https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161`);
 export const walletGoerli = new ethers.Wallet(process.env.PRIVATE_KEY!, providerGoerli);
 export const chainIdTypeGoerli = getChainIdType(5);
 
+export const providerSepolia = new ethers.providers.JsonRpcProvider(`https://rpc.sepolia.org`);
+export const walletSepolia = new ethers.Wallet(process.env.PRIVATE_KEY!, providerSepolia);
+export const chainIdTypeSepolia = getChainIdType(11155111);
+
 export const providerOptimism = new ethers.providers.JsonRpcProvider(process.env.OPTIMISM_KEY!);
 export const walletOptimism = new ethers.Wallet(process.env.PRIVATE_KEY!, providerOptimism);
-export const chainIdTypeOptimism = getChainIdType(69);
+export const chainIdTypeOptimism = getChainIdType(420);
 
 export const providerArbitrum = new ethers.providers.JsonRpcProvider(process.env.ARBITRUM_KEY!);
 export const walletArbitrum = new ethers.Wallet(process.env.PRIVATE_KEY!, providerArbitrum);
-export const chainIdTypeArbitrum = getChainIdType(421611);
+export const chainIdTypeArbitrum = getChainIdType(421613);
 
 export const providerMoonbase = new ethers.providers.JsonRpcProvider('https://moonbeam-alpha.api.onfinality.io/public');
 export const walletMoonbase = new ethers.Wallet(process.env.PRIVATE_KEY!, providerMoonbase);
