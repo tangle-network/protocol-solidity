@@ -58,8 +58,8 @@ jobs:
       - name: Populate fixtures
         run: yarn fetch:fixtures
 
-      - name: Compile the contracts
-        run: yarn compile
+      - name: Compile the contracts and build typescript interfaces
+        run: yarn build
 
       - name: Run test suite
         run: yarn test
