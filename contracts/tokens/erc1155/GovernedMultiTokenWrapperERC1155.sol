@@ -5,16 +5,16 @@
 
 pragma solidity ^0.8.0;
 
-import "./MultiTokenWrapper.sol";
+import "./MultiTokenWrapperERC1155.sol";
 
 /**
-    @title A governed MultiTokenWrapper system using an external `governor` address
+    @title A governed MultiTokenWrapperERC1155 system using an external `governor` address
     @author Webb Technologies.
     @notice Governs allowable ERC20s to deposit using a governable wrapping limit and
     sets fees for wrapping into itself. This contract is intended to be used with
     TokenHandler contract.
  */
-contract GovernedMultiTokenWrapper is MultiTokenWrapper {
+contract GovernedMultiTokenWrapperERC1155 is MultiTokenWrapperERC1155 {
     using SafeMath for uint256;
 
     address public governor;
@@ -42,21 +42,23 @@ contract GovernedMultiTokenWrapper is MultiTokenWrapper {
     uint256 public proposalNonce = 0;
 
     /**
-        @notice GovernedMultiTokenWrapper constructor
-        @param _uri The uri of the ERC1155 MultiTokenWrapper
+        @notice GovernedMultiTokenWrapperERC1155 constructor
+        @param _uri The uri of the ERC1155 MultiTokenWrapperERC1155
         @param _feeRecipient The recipient for fees from wrapping.
         @param _governor The address of the governor
+        @notice An example of the uri scheme https://token-cdn-domain/{id}.json
+        @notice https://eips.ethereum.org/EIPS/eip-1155#metadata
      */
     constructor(
         string memory _uri,
         address payable _feeRecipient,
         address _governor
-    ) MultiTokenWrapper(_uri, _feeRecipient) {
+    ) MultiTokenWrapperERC1155(_uri, _feeRecipient) {
         governor = _governor;
     }
 
     /**
-        @notice Sets the governor of the GovernedMultiTokenWrapper contract
+        @notice Sets the governor of the GovernedMultiTokenWrapperERC1155 contract
         @param _governor The address of the new governor
         @notice Only the governor can call this function
      */
@@ -74,7 +76,7 @@ contract GovernedMultiTokenWrapper is MultiTokenWrapper {
     }
 
     /**
-        @notice Adds a token at `_tokenAddress` to the GovernedMultiTokenWrapper's wrapping list
+        @notice Adds a token at `_tokenAddress` to the GovernedMultiTokenWrapperERC1155's wrapping list
         @param fromTokenAddress The address of the token to be added to `toTokenAddress`'s wrapping list
         @param toTokenAddress The address of the wrapping token whose wrapping list will be updated
         @param nonce The nonce tracking updates to this contract
@@ -95,7 +97,7 @@ contract GovernedMultiTokenWrapper is MultiTokenWrapper {
     }
 
     /**
-        @notice Removes a token at `_tokenAddress` from the GovernedMultiTokenWrapper's wrapping list
+        @notice Removes a token at `_tokenAddress` from the GovernedMultiTokenWrapperERC1155's wrapping list
         @param fromTokenAddress The address of the token to be removed from `toTokenAddress`'s wrapping list
         @param toTokenAddress The address of the wrapping token whose wrapping list will be updated
         @param nonce The nonce tracking updates to this contract
@@ -119,16 +121,6 @@ contract GovernedMultiTokenWrapper is MultiTokenWrapper {
     }
 
     /**
-        @notice Removes a token at `index` from the GovernedMultiTokenWrapper's wrapping list
-        @param tokenAddress The address of the wrapping token whose wrapping list will be updated
-        @param index The index of the token to be removed
-     */
-    function removeTokenAtIndex(address tokenAddress, uint index) internal {
-        tokens[tokenAddress][index] = tokens[tokenAddress][tokens[tokenAddress].length-1];
-        tokens[tokenAddress].pop();
-    }
-
-    /**
         @notice Updates the `limit` of tokens that can be wrapped
         @param limit The new limit of tokens that can be wrapped
         @notice Only the governor can call this function
@@ -138,7 +130,7 @@ contract GovernedMultiTokenWrapper is MultiTokenWrapper {
     }
 
     /**
-        @notice Sets a new `_feePercentage` for the GovernedMultiTokenWrapper
+        @notice Sets a new `_feePercentage` for the GovernedMultiTokenWrapperERC1155
         @param _feePercentage The new fee percentage
         @param _nonce The nonce tracking updates to this contract
         @notice Only the governor can call this function
@@ -152,7 +144,7 @@ contract GovernedMultiTokenWrapper is MultiTokenWrapper {
     }
 
     /**
-        @notice Sets a new `_feeRecipient` for the GovernedMultiTokenWrapper
+        @notice Sets a new `_feeRecipient` for the GovernedMultiTokenWrapperERC1155
         @param _feeRecipient The new fee recipient
         @param _nonce The nonce tracking updates to this contract
         @notice Only the governor can call this function
@@ -163,6 +155,16 @@ contract GovernedMultiTokenWrapper is MultiTokenWrapper {
         require(_feeRecipient != address(0), "Fee Recipient cannot be zero address");
         feeRecipient = _feeRecipient;
         proposalNonce = _nonce;
+    }
+
+    /**
+        @notice Removes a token at `index` from the GovernedMultiTokenWrapperERC1155's wrapping list
+        @param tokenAddress The address of the wrapping token whose wrapping list will be updated
+        @param index The index of the token to be removed
+     */
+    function removeTokenAtIndex(address tokenAddress, uint index) internal {
+        tokens[tokenAddress][index] = tokens[tokenAddress][tokens[tokenAddress].length-1];
+        tokens[tokenAddress].pop();
     }
 
     /**
@@ -202,7 +204,7 @@ contract GovernedMultiTokenWrapper is MultiTokenWrapper {
      */
     function _isValidAmount(address toTokenAddress, uint256 amount) override internal virtual returns (bool) {
         uint tokenId = wrappedTokenToTokenId[toTokenAddress];
-        return amount + totalSupply[tokenId] <= wrappingLimit[toTokenAddress];
+        return amount + totalSupply(tokenId) <= wrappingLimit[toTokenAddress];
     }
 
     /**

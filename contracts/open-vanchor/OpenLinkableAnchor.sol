@@ -7,7 +7,7 @@ pragma solidity ^0.8.0;
 
 import "../trees/MerkleTree.sol";
 import "../utils/ChainIdWithType.sol";
-import "../interfaces/IOpenLinkableAnchor.sol";
+import "../interfaces/anchors/ILinkableAnchor.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
@@ -36,7 +36,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
     An example usage of this system is the:
     - VAnchor.sol - for variable sized private bridging of assets
  */
-abstract contract OpenLinkableAnchor is IOpenLinkableAnchor, MerkleTree, ReentrancyGuard, ChainIdWithType {
+abstract contract OpenLinkableAnchor is ILinkableAnchor, MerkleTree, ReentrancyGuard, ChainIdWithType {
     uint32 proposalNonce = 0;
     address public handler;
 

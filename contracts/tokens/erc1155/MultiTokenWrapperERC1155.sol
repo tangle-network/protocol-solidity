@@ -5,19 +5,18 @@
  
 pragma solidity ^0.8.0;
 
-import "../interfaces/IMultiTokenWrapper.sol";
+import "../../interfaces/tokens/IMultiTokenWrapper.sol";
+import "./ERC1155PresetMinterPauserSupply.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/token/ERC1155/presets/ERC1155PresetMinterPauser.sol";
-import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 
 /**
     @title A token that allows ERC20s to wrap into and mint it.
     @author Webb Technologies.
     @notice This contract is intended to be used with TokenHandler contract.
  */
-abstract contract MultiTokenWrapper is ERC1155PresetMinterPauser, IMultiTokenWrapper {
+abstract contract MultiTokenWrapperERC1155 is ERC1155PresetMinterPauserSupply, IMultiTokenWrapper {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     address payable public feeRecipient;
@@ -26,15 +25,16 @@ abstract contract MultiTokenWrapper is ERC1155PresetMinterPauser, IMultiTokenWra
     mapping (uint256 => address) tokenIdToWrappedToken;
     mapping (address => uint16) wrappedTokenToWrappingFeePercentage;
     mapping (address => uint256) wrappedToken;
-    mapping (uint256 => uint256) totalSupply;
 
     /**
         @notice MultiTokenWrapper constructor
         @param uri The uri for the ERC1155
         @param feeRec The address of the fee recipient
+        @notice An example of the uri scheme https://token-cdn-domain/{id}.json
+        @notice https://eips.ethereum.org/EIPS/eip-1155#metadata
      */
     constructor(string memory uri, address payable feeRec)
-        ERC1155PresetMinterPauser(uri) {
+        ERC1155PresetMinterPauserSupply(uri) {
             feeRecipient = feeRec;
         }
 
@@ -92,7 +92,6 @@ abstract contract MultiTokenWrapper is ERC1155PresetMinterPauser, IMultiTokenWra
         uint tokenId = wrappedTokenToTokenId[toTokenAddress];
         // mint the native value sent to the contract
         _mint(_msgSender(), tokenId, leftover, "");
-        totalSupply[tokenId] += leftover;
     }
 
     /**
@@ -109,7 +108,6 @@ abstract contract MultiTokenWrapper is ERC1155PresetMinterPauser, IMultiTokenWra
         uint tokenId = wrappedTokenToTokenId[fromTokenAddress];
         // burn wrapped token from sender
         _burn(_msgSender(), tokenId, amount);
-        totalSupply[tokenId] -= amount;
         // unwrap liquidity and send to the sender
         if (fromTokenAddress == address(0)) {
             // transfer native liquidity from the token wrapper to the sender
@@ -254,7 +252,7 @@ abstract contract MultiTokenWrapper is ERC1155PresetMinterPauser, IMultiTokenWra
     function _isValidAmount(address tokenAddress, uint256 amount) internal virtual returns (bool);
 
     modifier isMinter() {
-        require(hasRole(MINTER_ROLE, msg.sender), "ERC1155PresetMinterPauser: must have minter role");
+        require(hasRole(MINTER_ROLE, msg.sender), "ERC1155PresetMinterPauserSupply: must have minter role");
         _;
     }
 

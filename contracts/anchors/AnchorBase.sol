@@ -6,7 +6,7 @@
 pragma solidity ^0.8.0;
 
 import "../trees/MerkleTree.sol";
-import "../interfaces/IAnchorVerifier.sol";
+import "../interfaces/verifiers/IAnchorVerifier.sol";
 import "./LinkableAnchor.sol";
 
 /**

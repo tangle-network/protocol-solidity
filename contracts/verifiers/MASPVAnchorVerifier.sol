@@ -5,8 +5,8 @@
 
 pragma solidity ^0.8.0;
 
-import "../interfaces/IAnchorVerifier.sol";
-import "../interfaces/IMASPVAnchorVerifier.sol";
+import "../interfaces/verifiers/IAnchorVerifier.sol";
+import "../interfaces/verifiers/IMASPVAnchorVerifier.sol";
 
 contract MASPVAnchorVerifier is IAnchorVerifier {
 	IMASPVAnchorVerifier2_2 public v2_2;

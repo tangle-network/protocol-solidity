@@ -7,7 +7,7 @@ pragma solidity ^0.8.0;
 
 import "../trees/MerkleTree.sol";
 import "../utils/ChainIdWithType.sol";
-import "../interfaces/ILinkableAnchor.sol";
+import "../interfaces/anchors/ILinkableAnchor.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**

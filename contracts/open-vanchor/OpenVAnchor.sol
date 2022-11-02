@@ -5,13 +5,13 @@
 
 pragma solidity ^0.8.0;
 
-import "../interfaces/ITokenWrapper.sol";
-import "../interfaces/IMintableERC20.sol";
 import "./OpenVAnchorBase.sol";
+import "../interfaces/tokens/ITokenWrapper.sol";
+import "../interfaces/tokens/IMintableERC20.sol";
+import "../utils/ChainIdWithType.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "../utils/ChainIdWithType.sol";
 
 /**
     @title Open Variable Anchor contract

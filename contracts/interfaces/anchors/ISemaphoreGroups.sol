@@ -1,6 +1,6 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
-import "../anchors/LinkableAnchor.sol";
+import "../../anchors/LinkableAnchor.sol";
 
 /// @title SemaphoreGroups interface.
 /// @dev Interface of a SemaphoreGroups contract.

@@ -5,9 +5,9 @@
 
 pragma solidity ^0.8.0;
 
-import "../interfaces/ITokenWrapper.sol";
-import "../interfaces/IMintableERC20.sol";
-import "../interfaces/ISemaphoreGroups.sol";
+import "../interfaces/tokens/ITokenWrapper.sol";
+import "../interfaces/tokens/IMintableERC20.sol";
+import "../interfaces/anchors/ISemaphoreGroups.sol";
 import "./IdentityVAnchorBase.sol";
 // import "../libs/VAnchorEncodeInputs.sol";
 import "../libs/IdentityVAnchorEncodeInputs.sol";
@@ -18,10 +18,12 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 /**
 	@title Identity VAnchor contract
 	@author Webb Technologies
-    // TODO: Update docs
-	@notice The Variable Anchor is a variable-denominated shielded pool system
-	derived from Tornado Nova (tornado-pool). This system extends the shielded
-	pool system into a bridged system and allows for join/split transactions.
+
+	@notice The Identity Variable Anchor is a variable-denominated shielded pool system
+	derived from Tornado Nova (tornado-pool) with identity constrains on top. This system
+	extends the shielded pool system into a bridged system and allows for join/split transactions.
+	The identity extensions extends the shielded to pool to only allow for transactions from
+	users who maintain membership within a cross-chain Semaphore identity set.
 
 	The system is built on top the VAnchorBase/AnchorBase/LinkableAnchor system which allows
 	it to be linked to other VAnchor contracts through a simple graph-like

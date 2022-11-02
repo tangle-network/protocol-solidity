@@ -5,8 +5,9 @@
  
 pragma solidity ^0.8.0;
 
-import "../interfaces/ITokenWrapper.sol";
+import "../../interfaces/tokens/ITokenWrapper.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
@@ -17,7 +18,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
     @author Webb Technologies.
     @notice This contract is intended to be used with TokenHandler contract.
  */
-abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
+abstract contract TokenWrapperInitializable is ERC20PresetMinterPauser, ITokenWrapper, Initializable {
     using SafeMath for uint256;
     uint16 feePercentage;
     address payable public feeRecipient;
@@ -26,12 +27,9 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
         @notice TokenWrapper constructor
         @param _name The name of the ERC20
         @param _symbol The symbol of the ERC20
-        @param _feeRecipient The address of the fee recipient
      */
-    constructor(string memory _name, string memory _symbol, address payable _feeRecipient)
-        ERC20PresetMinterPauser(_name, _symbol) {
-            feeRecipient = _feeRecipient;
-        }
+    constructor(string memory _name, string memory _symbol)
+        ERC20PresetMinterPauser(_name, _symbol) {}
 
     /**
         @notice Get the fee for a target amount to wrap
@@ -65,7 +63,7 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
             : amount
         );
 
-         uint leftover = tokenAddress == address(0)
+        uint leftover = tokenAddress == address(0)
             ? uint(msg.value).sub(costToWrap)
             : amount.sub(costToWrap);
         

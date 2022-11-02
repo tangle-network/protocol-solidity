@@ -72,11 +72,4 @@ interface ITokenWrapper {
         @param _deposit Amount of tokens needed for the deposit to be valid
      */
     function getAmountToWrap(uint _deposit) external view returns (uint);
-
-    /**
-        @notice Sets the `_feePercentage` to be taken from wrappings with a `_nonce`
-        @param _feePercentage The percentage of the fee to be taken from the wrapping, a value between 0 - 10000
-        @param _nonce The nonce for tracking fee updates
-     */
-    function setFee(uint16 _feePercentage, uint32 _nonce) external;
 }
