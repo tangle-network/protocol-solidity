@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { ethers } from "ethers";
 import { SignatureBridgeSide } from "@webb-tools/bridges"
 
@@ -7,7 +6,7 @@ export async function changeGovernor(
   newGovernor: string,
   currentGovernor: ethers.Wallet
 ) {
-  const bridgeInstance = await SignatureBridgeSide.connect(bridgeAddress, currentGovernor, currentGovernor);
+  const bridgeInstance = await SignatureBridgeSide.connectMocked(bridgeAddress, currentGovernor);
   const refreshNonce = await bridgeInstance.contract.refreshNonce();
   const tx = await bridgeInstance.transferOwnership(newGovernor, refreshNonce+1);
   const receipt = await tx.wait();
