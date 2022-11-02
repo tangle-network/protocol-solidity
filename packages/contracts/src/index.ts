@@ -51,6 +51,9 @@ export { PoseidonHasher__factory } from './factories/PoseidonHasher__factory';
 export type { PoseidonT3 } from './PoseidonT3';
 export { PoseidonT3__factory } from './factories/PoseidonT3__factory';
 
+export type { PoseidonT4 } from './PoseidonT4';
+export { PoseidonT4__factory } from './factories/PoseidonT4__factory';
+
 export type { PoseidonT6 } from './PoseidonT6';
 export { PoseidonT6__factory } from './factories/PoseidonT6__factory';
 
@@ -65,12 +68,6 @@ export { VAnchorBase__factory } from './factories/VAnchorBase__factory';
 
 export type { OpenVAnchor } from './OpenVAnchor';
 export { OpenVAnchor__factory } from './factories/OpenVAnchor__factory';
-
-export type { OpenAnchorBase } from './OpenAnchorBase';
-export { OpenAnchorBase__factory } from './factories/OpenAnchorBase__factory';
-
-export type { OpenVAnchorBase } from './OpenVAnchorBase';
-export { OpenVAnchorBase__factory } from './factories/OpenVAnchorBase__factory';
 
 export type { IdentityVAnchor } from './IdentityVAnchor';
 export { IdentityVAnchor__factory } from './factories/IdentityVAnchor__factory';

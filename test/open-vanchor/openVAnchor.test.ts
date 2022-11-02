@@ -19,7 +19,7 @@ function sha3Hash (left: BigNumberish, right: BigNumberish) {
   return BigNumber.from(ethers.utils.keccak256(ethers.utils.arrayify(packed)));
 }
 
-describe('Open VAnchor Contract', () => {
+describe.only('Open VAnchor Contract', () => {
     let sender;
     let openVAnchor;
     let token;
@@ -73,7 +73,8 @@ describe('Open VAnchor Contract', () => {
     });
 
     it('should deposit and withdraw', async () => {
-      let blinding = BigNumber.from(1010101010);
+      const relayingFee = 0;
+      const blinding = BigNumber.from(1010101010);
       const delegatedCalldata = '0x00'
       // Wrap and deposit
       await openVAnchor.wrapAndDeposit(
@@ -82,14 +83,15 @@ describe('Open VAnchor Contract', () => {
         await recipient.getAddress(),
         delegatedCalldata,
         blinding,
+        relayingFee,
         token.contract.address,
       );
 
       // Merkle Proof Generation
       const delHash = ethers.utils.keccak256(ethers.utils.arrayify('0x00'));
       const prehashed = solidityPack(
-        [ "uint48", "uint256", "address", "bytes32", "uint256" ],
-        [ chainId, 10000, await recipient.getAddress(), delHash, blinding]
+        [ "uint48", "uint256", "address", "bytes32", "uint256", "uint256" ],
+        [ chainId, 10000, await recipient.getAddress(), delHash, blinding, relayingFee]
       );
 
       // Step 1: Get Commitment
@@ -109,6 +111,7 @@ describe('Open VAnchor Contract', () => {
         await recipient.getAddress(),
         delegatedCalldata,
         blinding,
+
         merkleProof,
         commitmentIndex,
         token.contract.address,
@@ -116,11 +119,10 @@ describe('Open VAnchor Contract', () => {
     });
 
     it('should not withdraw with wrong chain id', async () => {
-      // Deposit
+      const relayingFee = 0;
       let blinding = BigNumber.from(1010101010);
       const delegatedCalldata = '0x00'
-      // Deposit
-      //Wrong chain id
+      // Deposit on wrong chain id
       chainId = getChainIdType(31338);
       await openVAnchor.wrapAndDeposit(
         chainId,
@@ -128,14 +130,15 @@ describe('Open VAnchor Contract', () => {
         await recipient.getAddress(),
         delegatedCalldata,
         blinding,
+        relayingFee,
         token.contract.address,
       );
 
       // Merkle Proof Generation
       const delHash = ethers.utils.keccak256(ethers.utils.arrayify('0x00'));
       const prehashed = solidityPack(
-        [ "uint48", "uint256", "address", "bytes32", "uint256" ],
-        [ chainId, 10000, await recipient.getAddress(), delHash, blinding]
+        [ "uint48", "uint256", "address", "bytes32", "uint256", "uint256" ],
+        [ chainId, 10000, await recipient.getAddress(), delHash, blinding, relayingFee]
       );
 
       // Step 1: Get Commitment
@@ -155,6 +158,7 @@ describe('Open VAnchor Contract', () => {
           await recipient.getAddress(),
           delegatedCalldata,
           blinding,
+          relayingFee,
           merkleProof,
           commitmentIndex
         ),
@@ -203,6 +207,7 @@ describe('Open VAnchor Contract - cross chain', () => {
   });
 
   it('should deposit and withdraw cross chain', async () => {
+    const relayingFee = 0;
     const depositAmount = 10000;
     const blinding = 1010101;
 
@@ -261,6 +266,7 @@ describe('Open VAnchor Contract - cross chain', () => {
       await sender.getAddress(),
       '0x00',
       blinding,
+      relayingFee,
       tokenInstance1.contract.address,
     );
     // GanacheWallet2 wants to send `depositAmount` tokens to the `recipient` on chain 1.
@@ -275,6 +281,7 @@ describe('Open VAnchor Contract - cross chain', () => {
       await recipient.getAddress(),
       '0x00',
       blinding,
+      relayingFee,
       tokenInstance2.contract.address,
     );
     await vBridge.update(chainID1);
@@ -284,8 +291,8 @@ describe('Open VAnchor Contract - cross chain', () => {
     // Merkle Proof Generation
     const delHash = ethers.utils.keccak256(ethers.utils.arrayify('0x00'));
     const prehashed = solidityPack(
-      [ "uint48", "uint256", "address", "bytes32", "uint256" ],
-      [ chainID1, depositAmount, await recipient.getAddress(), delHash, blinding]
+      [ "uint48", "uint256", "address", "bytes32", "uint256", "uint256" ],
+      [ chainID1, depositAmount, await recipient.getAddress(), delHash, blinding, 0]
     );
 
     let commitment = vAnchor2.getCommitment(chainID1, depositAmount, await recipient.getAddress(), '0x00', blinding);

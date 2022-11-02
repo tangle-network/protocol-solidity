@@ -345,14 +345,21 @@ export class OpenVAnchor implements IAnchor {
     depositAmount: BigNumberish,
     recipient: string,
     delegatedCalldata: string,
-    blinding: BigNumberish
+    blinding: BigNumberish,
+    relayingFee: BigNumberish,
   ): Promise<ethers.ContractReceipt> {
     // Default UTXO chain ID will match with the configured signer's chain ID
     const evmId = await this.signer.getChainId();
 
-    let tx = await this.contract.deposit(depositAmount, destinationChainId, recipient, delegatedCalldata, blinding, {
-      gasLimit: '0x5B8D80',
-    });
+    let tx = await this.contract.deposit(
+      depositAmount,
+      destinationChainId,
+      recipient,
+      delegatedCalldata,
+      blinding,
+      relayingFee,
+      { gasLimit: '0x5B8D80' }
+    );
 
     const receipt = await tx.wait();
     gasBenchmark.push(receipt.gasUsed.toString());
@@ -373,6 +380,7 @@ export class OpenVAnchor implements IAnchor {
     recipient: string,
     delegatedCalldata: string,
     blinding: BigNumberish,
+    relayingFee: BigNumberish,
     tokenAddress: string
   ): Promise<ethers.ContractReceipt> {
     let tx = await this.contract.wrapAndDeposit(
@@ -381,6 +389,7 @@ export class OpenVAnchor implements IAnchor {
       recipient,
       delegatedCalldata,
       blinding,
+      relayingFee,
       tokenAddress,
       { gasLimit: '0x5B8D80' }
     );
@@ -403,6 +412,7 @@ export class OpenVAnchor implements IAnchor {
     recipient: string,
     delegatedCalldata: string,
     blinding: BigNumberish,
+    relayingFee: BigNumberish,
     merkleProof: MerkleProof,
     commitmentIndex: number
   ): Promise<ethers.ContractReceipt> {
@@ -411,6 +421,7 @@ export class OpenVAnchor implements IAnchor {
       recipient,
       delegatedCalldata,
       blinding,
+      relayingFee,
       merkleProof.pathElements.map((bignum) => bignum.toHexString()),
       commitmentIndex,
       merkleProof.merkleRoot.toHexString(),
@@ -428,6 +439,7 @@ export class OpenVAnchor implements IAnchor {
     recipient: string,
     delegatedCalldata: string,
     blinding: BigNumberish,
+    relayingFee: BigNumberish,
     merkleProof: MerkleProof,
     commitmentIndex: number,
     tokenAddress: string
@@ -437,6 +449,7 @@ export class OpenVAnchor implements IAnchor {
       recipient,
       delegatedCalldata,
       blinding,
+      relayingFee,
       merkleProof.pathElements.map((bignum) => bignum.toHexString()),
       commitmentIndex,
       merkleProof.merkleRoot.toHexString(),

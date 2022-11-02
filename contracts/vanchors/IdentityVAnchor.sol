@@ -5,31 +5,36 @@
 
 pragma solidity ^0.8.0;
 
-import "./MultiAssetVAnchorBase.sol";
+import "../structs/SingleAssetExtData.sol";
 import "../interfaces/tokens/ITokenWrapper.sol";
 import "../interfaces/tokens/IMintableERC20.sol";
-import "../libs/VAnchorEncodeInputs.sol";
+import "../interfaces/anchors/ISemaphoreGroups.sol";
+import "../interfaces/verifiers/IAnchorVerifier.sol";
+import "../interfaces/verifiers/ISetVerifier.sol";
+import "../vanchors/VAnchorBase.sol";
+import "../verifiers/TxProofVerifier.sol";
+import "../libs/IdentityVAnchorEncodeInputs.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 /**
-	@title Multi Asset Variable Anchor contract
+	@title Identity VAnchor contract
 	@author Webb Technologies
-	@notice The Multi Asset Variable Anchor is a variable-denominated shielded pool system
-	derived from Tornado Nova (tornado-pool) that supports multiple assets in a single pool.
-	This system extends the shielded pool system into a bridged system and allows for
-	join/split transactions of different assets at 2 same time.
 
-	The system is built on top the MultiAssetVAnchorBase/AnchorBase/LinkableAnchor system
-	which allows it to be linked to other VAnchor contracts through a simple graph-like
+	@notice The Identity Variable Anchor is a variable-denominated shielded pool system
+	derived from Tornado Nova (tornado-pool) with identity constrains on top. This system
+	extends the shielded pool system into a bridged system and allows for join/split transactions.
+	The identity extensions extends the shielded to pool to only allow for transactions from
+	users who maintain membership within a cross-chain Semaphore identity set.
+
+	The system is built on top the VAnchorBase/AnchorBase/LinkableAnchor system which allows
+	it to be linked to other VAnchor contracts through a simple graph-like
 	interface where anchors maintain edges of their neighboring anchors.
 
-	The system requires users to create UTXOs for any supported ERC20 asset into the smart
-	contract and insert a commitment into the underlying merkle tree of the form:
-	```
-	commitment = Poseidon(assetId, amount, Poseidon(destinationChainID, pubKey, blinding)).
-	```
+	The system requires users to create and deposit UTXOs for the supported ERC20
+	asset into the smart contract and insert a commitment into the underlying
+	merkle tree of the form: commitment = Poseidon(chainID, amount, pubKey, blinding).
 	The hash input is the UTXO data. All deposits/withdrawals are unified under
 	a common `transact` function which requires a zkSNARK proof that the UTXO commitments
 	are well-formed (i.e. that the deposit amount matches the sum of new UTXOs' amounts).
@@ -40,8 +45,8 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 	  is intended to be made
 	- Details of the UTXO and hashes are below
 
-	UTXO = { assetId, amount, Poseidon(destinationChainID, pubKey, blinding) }
-	commitment = Poseidon(assetId, amount, Poseidon(destinationChainID, pubKey, blinding))
+	UTXO = { destinationChainID, amount, pubkey, blinding }
+	commitment = Poseidon(destinationChainID, amount, pubKey, blinding)
 	nullifier = Poseidon(commitment, merklePath, sign(privKey, commitment, merklePath))
 
 	Commitments adhering to different hash functions and formats will invalidate
@@ -52,39 +57,17 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 	destination chain id matches the underlying chain id of the VAnchor where the
 	transaction is taking place. The chain id opcode is leveraged to prevent any
 	tampering of this data.
-
-	Part of the benefit of a MASP is the ability to handle multiple assets in a single pool.
-	To support this, the system uses a `assetId` field in the UTXO to identify the asset.
-	One thing to remember is that all assets in the pool must be wrapped ERC20 tokens specific
-	to the pool. We refer to this tokens as the bridge ERC20 tokens. Part of the challenge of building
-	the MASP then is dealing with the mapping between bridge ERC20s and their asset IDs.
-
-	IMPORTANT: A bridge ERC20 token MUST have the same assetID across chain.
  */
-contract MultiAssetVAnchor is MultiAssetVAnchorBase {
+contract IdentityVAnchor is VAnchorBase, TxProofVerifier, ISetVerifier {
 	using SafeERC20 for IERC20;
 	using SafeMath for uint256;
 	address public immutable token;
-
-	// TODO: Maintain a map from bridge ERC20s to assetIDs
-	// TODO: Start assetIDs at 1, use 0 to indicate an invalid bridge ERC20 (non-existant)
-	mapping (address => uint256) public bridgeAssetIdMap;
-	mapping (address => address) public assetToBridgeAssetMap;
-
-	struct ExtData {
-		uint256 assetId;
-		address recipient;
-		int256 extAmount;
-		address relayer;
-		uint256 fee;
-		uint256 refund;
-		address token;
-		bytes encryptedOutput1;
-		bytes encryptedOutput2;
-	}
+	ISemaphoreGroups SemaphoreContract;
+	uint256 public immutable groupId; // Assumes group is already setup on the semaphore contract
 
 	/**
-		@notice The VAnchor constructor
+		@notice The Identity VAnchor constructor
+		@param _semaphore The address of Semaphore contract
 		@param _verifier The address of SNARK verifier for this contract
 		@param _levels The height/# of levels of underlying Merkle Tree
 		@param _hasher The address of hash contract
@@ -96,19 +79,22 @@ contract MultiAssetVAnchor is MultiAssetVAnchorBase {
 		limit the size of the LinkableAnchor with this parameter.
 	*/
 	constructor(
+		ISemaphoreGroups _semaphore,
 		IAnchorVerifier _verifier,
-		uint32 _levels,
+		uint8 _levels,
 		IHasher _hasher,
 		address _handler,
 		address _token,
-		uint8 _maxEdges
-	) MultiAssetVAnchorBase (
-		_verifier,
-		_levels,
-		_hasher,
-		_handler,
-		_maxEdges
-	) {token = _token;}
+		uint8 _maxEdges,
+		uint256 _groupId
+	)
+        VAnchorBase (_levels, _hasher, _handler, _maxEdges)
+        TxProofVerifier(_verifier)
+    {
+        token = _token;
+        SemaphoreContract = _semaphore;
+        groupId = _groupId;
+    }
 
 	/**
 		@notice Wraps a token for the `msg.sender` using the underlying TokenWrapper contract
@@ -191,7 +177,7 @@ contract MultiAssetVAnchor is MultiAssetVAnchorBase {
 		// We first withdraw the assets and send them to `this` contract address.
 		// This ensure that when we unwrap the assets, `this` contract has the
 		// assets to unwrap into.
-		_processWithdraw(payable(address(this)), _minusExtAmount);
+		_processWithdraw(token, payable(address(this)), _minusExtAmount);
 
 		ITokenWrapper(token).unwrapAndSendTo(
 			_tokenAddress,
@@ -201,85 +187,11 @@ contract MultiAssetVAnchor is MultiAssetVAnchorBase {
 	}
 
 	/**
-		@notice Registers and transacts in a single flow
-		@param _account The account to register
-		@param _proofArgs The zkSNARK proof parameters
-		@param _extData The external data for the transaction
-	 */
-	function registerAndTransact(
-		Account memory _account,
-		VAnchorEncodeInputs.Proof memory _proofArgs,
-		ExtData memory _extData
-	) public {
-		register(_account);
-		transact(_proofArgs, _extData);
-	}
-
-	/**
-		@notice Registers and transacts and wraps in a single flow
-		@param _account The account to register
-		@param _proofArgs The zkSNARK proof parameters
-		@param _extData The external data for the transaction
-		@param _tokenAddress The token to wrap from
-	 */
-	function registerAndTransactWrap(
-		Account memory _account,
-		VAnchorEncodeInputs.Proof memory _proofArgs,
-		ExtData memory _extData,
-		address _tokenAddress
-	) public {
-		register(_account);
-		transactWrap(_proofArgs, _extData, _tokenAddress);
-	}
-
-	function wrapAndDeposit(
-		address tokenAddress,
-		uint256 _amount,
-		bytes32 partialCommitment,
-		bytes memory encryptedCommitment
-	) public payable {
-		// Before executing the wrapping, determine the amount which needs to be sent to the tokenWrapper
-		uint256 wrapAmount = ITokenWrapper(token).getAmountToWrap(_amount);
-
-        if (tokenAddress == address(0)) {
-            require(msg.value == _amount);
-			ITokenWrapper(token).wrapForAndSendTo{value: msg.value}(
-				msg.sender,
-				tokenAddress,
-				0,
-				address(this)
-			);
-		} else {
-			ITokenWrapper(token).wrapForAndSendTo{value: msg.value}(
-				msg.sender,
-				tokenAddress,
-				_amount,
-				address(this)
-			);
-        }
-
-		address bridgeAsset = assetToBridgeAssetMap[tokenAddress];
-		uint256 assetID = bridgeAssetIdMap[bridgeAsset];
-		bytes32 commitment = bytes32(IHasher(hasher).hash3([
-			assetID,
-			wrapAmount,
-			uint256(partialCommitment)
-		]));
-		bytes32 zeroCommitment = bytes32(IHasher(hasher).hash3([
-			uint256(0),
-			uint256(0),
-			uint256(0)
-		]));
-		insertTwo(commitment, zeroCommitment);
-		emit NewCommitment(commitment, nextIndex - 2, encryptedCommitment);
-	}
-
-	/**
 		@notice Executes a deposit/withdrawal or combination join/split transaction
 		@param _args The zkSNARK proof parameters
 		@param _extData The external data for the transaction
 	 */
-	function transact(VAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) public nonReentrant {
+	function transact(IdentityVAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) public nonReentrant {
 		_executeValidationAndVerification(_args, _extData);
 
 		if (_extData.extAmount > 0) {
@@ -290,10 +202,10 @@ contract MultiAssetVAnchor is MultiAssetVAnchorBase {
 		if (_extData.extAmount < 0) {
 			require(_extData.recipient != address(0), "Can't withdraw to zero address");
 			require(uint256(-_extData.extAmount) >= minimalWithdrawalAmount, "amount is less than minimalWithdrawalAmount"); // prevents ddos attack to Bridge
-			_processWithdraw(_extData.recipient, uint256(-_extData.extAmount));
+			_processWithdraw(token, _extData.recipient, uint256(-_extData.extAmount));
 		}
 		if (_extData.fee > 0) {
-			_processFee(_extData.relayer, _extData.fee);
+			_processFee(token, _extData.relayer, _extData.fee);
 		}
 
 		_executeInsertions(_args, _extData);
@@ -306,7 +218,7 @@ contract MultiAssetVAnchor is MultiAssetVAnchorBase {
 		@param _tokenAddress The token to wrap from or unwrap into depending on the positivity of `_extData.extAmount`
 	 */
 	function transactWrap(
-		VAnchorEncodeInputs.Proof memory _args,
+		IdentityVAnchorEncodeInputs.Proof memory _args,
 		ExtData memory _extData,
 		address _tokenAddress
 	) public payable {
@@ -325,7 +237,7 @@ contract MultiAssetVAnchor is MultiAssetVAnchorBase {
 		}
 
 		if (_extData.fee > 0) {
-			_processFee(_extData.relayer, _extData.fee);
+			_processFee(token, _extData.relayer, _extData.fee);
 		}
 
 		_executeInsertions(_args, _extData);
@@ -339,7 +251,7 @@ contract MultiAssetVAnchor is MultiAssetVAnchorBase {
 		@param _args The zkSNARK proof parameters
 		@param _extData The external data for the transaction
 	 */
-	function _executeValidationAndVerification(VAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) internal {
+	function _executeValidationAndVerification(IdentityVAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) internal {
 		for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
 			require(!isSpent(_args.inputNullifiers[i]), "Input is already spent");
 		}
@@ -357,18 +269,17 @@ contract MultiAssetVAnchor is MultiAssetVAnchorBase {
 		@notice Checks whether the zkSNARK proof is valid
 		@param _args The zkSNARK proof parameters
 	 */
-	function _executeVerification(VAnchorEncodeInputs.Proof memory _args) view internal {
-		if (_args.inputNullifiers.length == 2) {
-			(bytes memory encodedInput, bytes32[] memory roots) = VAnchorEncodeInputs._encodeInputs2(_args, maxEdges);
-			require(isValidRoots(roots), "Invalid roots");
-			require(verify2(_args.proof, encodedInput), "Invalid transaction proof");
-		} else if (_args.inputNullifiers.length == 16) {
-			(bytes memory encodedInput, bytes32[] memory roots) = VAnchorEncodeInputs._encodeInputs16(_args, maxEdges);
-			require(isValidRoots(roots), "Invalid roots");
-			require(verify16(_args.proof, encodedInput), "Invalid transaction proof");
-		} else {
-			revert("unsupported input count");
-		}
+	function _executeVerification(IdentityVAnchorEncodeInputs.Proof memory _args) internal view {
+        require(_args.inputNullifiers.length == 2 || _args.inputNullifiers.length == 16, "Invalid number of inputs");
+        bool smallInputs = _args.inputNullifiers.length == 2;
+        (bytes memory encodedInput, bytes32[] memory roots) = smallInputs
+            ? IdentityVAnchorEncodeInputs._encodeInputs2(_args, maxEdges)
+            : IdentityVAnchorEncodeInputs._encodeInputs16(_args, maxEdges);
+
+
+        require(SemaphoreContract.verifyRoots(groupId, _args.identityRoots), "Invalid identity roots");
+        require(isValidRoots(roots), "Invalid vanchor roots");
+        require(verify(_args.proof, encodedInput, smallInputs, maxEdges), "Invalid transaction proof");
 	}
 
 	/**
@@ -376,7 +287,7 @@ contract MultiAssetVAnchor is MultiAssetVAnchorBase {
 		@param _args The zkSNARK proof parameters
 		@param _extData The external data for the transaction
 	 */
-	function _executeInsertions(VAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) internal {
+	function _executeInsertions(IdentityVAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) internal {
 		insertTwo(_args.outputCommitments[0], _args.outputCommitments[1]);
 		emit NewCommitment(_args.outputCommitments[0], nextIndex - 2, _extData.encryptedOutput1);
 		emit NewCommitment(_args.outputCommitments[1], nextIndex - 1, _extData.encryptedOutput2);
@@ -387,42 +298,60 @@ contract MultiAssetVAnchor is MultiAssetVAnchorBase {
 
 	/**
 		@notice Process the withdrawal by sending/minting the wrapped tokens to/for the recipient
+		@param _token The address of the token to withdraw
 		@param _recipient The recipient of the tokens
 		@param _minusExtAmount The amount of tokens to withdraw. Since
 		withdrawal ext amount is negative we apply a minus sign once more.
 	 */
 	function _processWithdraw(
+		address _token,
 		address _recipient,
 		uint256 _minusExtAmount
 	) internal override {
-		uint balance = IERC20(token).balanceOf(address(this));
+		uint balance = IERC20(_token).balanceOf(address(this));
 		if (balance >= _minusExtAmount) {
 			// transfer tokens when balance exists
-			IERC20(token).safeTransfer(_recipient, _minusExtAmount);
+			IERC20(_token).safeTransfer(_recipient, _minusExtAmount);
 		} else {
 			// mint tokens when not enough balance exists
-			IMintableERC20(token).mint(_recipient, _minusExtAmount);
+			IMintableERC20(_token).mint(_recipient, _minusExtAmount);
 		}
 	}
 
 	/**
 		@notice Process and pay the relayer their fee. Mint the fee if contract has no balance.
+		@param _token The token to pay the fee in
 		@param _relayer The relayer of the transaction
 		@param _fee The fee to pay
 	 */
 	function _processFee(
+		address _token,
 		address _relayer,
 		uint256 _fee
 	) internal override {
-		uint balance = IERC20(token).balanceOf(address(this));
+		uint balance = IERC20(_token).balanceOf(address(this));
 		if (_fee > 0) {
 			if (balance >= _fee) {
 				// transfer tokens when balance exists
-				IERC20(token).safeTransfer(_relayer, _fee);
+				IERC20(_token).safeTransfer(_relayer, _fee);
 			}
 			else {
-				IMintableERC20(token).mint(_relayer, _fee);
+				IMintableERC20(_token).mint(_relayer, _fee);
 			}
 		}
 	}
+
+    /**
+        @notice Set a new verifier with a nonce
+        @dev Can only be called by the `AnchorHandler` contract
+        @param _verifier The new verifier address
+        @param _nonce The nonce for updating the new verifier
+     */
+    function setVerifier(address _verifier, uint32 _nonce) override onlyHandler external {
+        require(_verifier != address(0), "Handler cannot be 0");
+        require(proposalNonce < _nonce, "Invalid nonce");
+        require(_nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
+        verifier = IAnchorVerifier(_verifier);
+        proposalNonce = _nonce;
+    }
 }

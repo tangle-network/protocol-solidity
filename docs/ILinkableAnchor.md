@@ -61,23 +61,6 @@ Sets the handler for updating edges and other contract state
 | handler | address | The new handler address
 | nonce | uint32 | The nonce for tracking update counts
 
-### setVerifier
-
-```solidity
-function setVerifier(address verifier, uint32 nonce) external nonpayable
-```
-
-Sets the verifier for zkSNARKs
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| verifier | address | The new verifier address
-| nonce | uint32 | The nonce for tracking update counts
-
 ### updateEdge
 
 ```solidity

@@ -5,7 +5,8 @@
 
 pragma solidity ^0.8.0;
 
-import "./OpenVAnchorBase.sol";
+import "../vanchors/VAnchorBase.sol";
+import "../structs/SingleAssetExtData.sol";
 import "../interfaces/tokens/ITokenWrapper.sol";
 import "../interfaces/tokens/IMintableERC20.sol";
 import "../utils/ChainIdWithType.sol";
@@ -27,7 +28,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
     The system requires users to supply all inputs in the clear. Commitments are constructed
     inside of the smart contract and inserted into a merkle tree for easy cross-chain state updates.
  */
-contract OpenVAnchor is OpenVAnchorBase {
+contract OpenVAnchor is VAnchorBase {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
     address public immutable token;
@@ -37,10 +38,11 @@ contract OpenVAnchor is OpenVAnchorBase {
         IHasher _hasher,
         address _handler,
         address _token
-    ) OpenVAnchorBase (
+    ) VAnchorBase (
         _levels,
         _hasher,
-        _handler
+        _handler,
+        0
     ) { token = _token; }
 
     /**
@@ -82,7 +84,8 @@ contract OpenVAnchor is OpenVAnchorBase {
         uint256 depositAmount,
         address recipient,
         bytes calldata delegatedCalldata,
-        uint256 blinding
+        uint256 blinding,
+        uint256 relayingFee
     ) public nonReentrant {
         require(depositAmount <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
         bytes32 commitment = keccak256(abi.encodePacked(
@@ -90,7 +93,8 @@ contract OpenVAnchor is OpenVAnchorBase {
             depositAmount,
             recipient,
             keccak256(delegatedCalldata),
-            blinding
+            blinding,
+            relayingFee
         ));
         // Send the wrapped asset directly to this contract.
         IERC20(token).transferFrom(msg.sender, address(this), depositAmount);
@@ -104,6 +108,7 @@ contract OpenVAnchor is OpenVAnchorBase {
         address recipient,
         bytes calldata delegatedCalldata,
         uint256 blinding,
+        uint256 relayingFee,
         address tokenAddress
     ) public payable nonReentrant {
         require(depositAmount <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
@@ -112,7 +117,8 @@ contract OpenVAnchor is OpenVAnchorBase {
             depositAmount,
             recipient,
             keccak256(delegatedCalldata),
-            blinding
+            blinding,
+            relayingFee
         ));
         // Send the `tokenAddress` asset to the `TokenWrapper` and mint this contract the wrapped asset.
         _executeWrapping(tokenAddress, depositAmount);
@@ -125,6 +131,7 @@ contract OpenVAnchor is OpenVAnchorBase {
         address recipient,
         bytes memory delegatedCalldata,
         uint256 blinding,
+        uint256 relayingFee,
         bytes32[] memory merkleProof,
         uint32 commitmentIndex,
         bytes32 root
@@ -134,12 +141,17 @@ contract OpenVAnchor is OpenVAnchorBase {
             withdrawAmount,
             recipient,
             keccak256(delegatedCalldata),
-            blinding
+            blinding,
+            relayingFee
         ));
         require(_isValidMerkleProof(merkleProof, commitment, commitmentIndex, root), "Invalid Merkle Proof");
         nullifierHashes[commitment] = true;
         // Send the wrapped token to the recipient.
-        _processWithdraw(recipient, withdrawAmount);
+        _processWithdraw(token, recipient, withdrawAmount.sub(relayingFee));
+        if (msg.sender != recipient) {
+            // Send the fee to the relayer
+            _processFee(token, msg.sender, relayingFee);
+        }
     }
 
     function withdrawAndUnwrap(
@@ -147,6 +159,7 @@ contract OpenVAnchor is OpenVAnchorBase {
         address recipient,
         bytes memory delegatedCalldata,
         uint256 blinding,
+        uint256 relayingFee,
         bytes32[] memory merkleProof,
         uint32 commitmentIndex,
         bytes32 root,
@@ -157,36 +170,28 @@ contract OpenVAnchor is OpenVAnchorBase {
             withdrawAmount,
             recipient,
             keccak256(delegatedCalldata),
-            blinding
+            blinding,
+            relayingFee
         ));
         require(_isValidMerkleProof(merkleProof, commitment, commitmentIndex, root), "Invalid Merkle Proof");
-        _processWithdraw(payable(address(this)), withdrawAmount);
+        _processWithdraw(token, payable(address(this)), withdrawAmount);
         nullifierHashes[commitment] = true;
 
         ITokenWrapper(token).unwrapAndSendTo(
             tokenAddress,
-            withdrawAmount,
+            withdrawAmount.sub(relayingFee),
             recipient
         );
+
+        if (msg.sender != recipient) {
+            // Send the fee to the relayer
+            _processFee(token, msg.sender, relayingFee);
+        }
     }
 
     function _executeInsertion(bytes32 commitment) internal {
         insert(commitment);
-        emit NewCommitment(commitment, nextIndex - 1);
-    }
-
-    function _processWithdraw(
-        address _recipient,
-        uint256 withdrawAmount
-    ) internal override {
-        uint balance = IERC20(token).balanceOf(address(this));
-        if (balance >= withdrawAmount) {
-            // transfer tokens when balance exists
-            IERC20(token).safeTransfer(_recipient, withdrawAmount);
-        } else {
-            // mint tokens when not enough balance exists
-            IMintableERC20(token).mint(_recipient, withdrawAmount);
-        }
+        emit NewCommitment(commitment, nextIndex - 1, "");
     }
 
     function _executeWrapping(
@@ -216,6 +221,51 @@ contract OpenVAnchor is OpenVAnchorBase {
             );
         }
     }
+
+    /**
+		@notice Process the withdrawal by sending/minting the wrapped tokens to/for the recipient
+        @param _token The address of the token to withdraw
+		@param _recipient The recipient of the tokens
+		@param _minusExtAmount The amount of tokens to withdraw. Since
+		withdrawal ext amount is negative we apply a minus sign once more.
+	 */
+    function _processWithdraw(
+        address _token,
+        address _recipient,
+        uint256 _minusExtAmount
+    ) internal override {
+        uint balance = IERC20(_token).balanceOf(address(this));
+        if (balance >= _minusExtAmount) {
+            // transfer tokens when balance exists
+            IERC20(_token).safeTransfer(_recipient, _minusExtAmount);
+        } else {
+            // mint tokens when not enough balance exists
+            IMintableERC20(_token).mint(_recipient, _minusExtAmount);
+        }
+    }
+
+	/**
+		@notice Process and pay the relayer their fee. Mint the fee if contract has no balance.
+        @param _token The token to pay the fee in
+		@param _relayer The relayer of the transaction
+		@param _fee The fee to pay
+	 */
+	function _processFee(
+        address _token,
+		address _relayer,
+		uint256 _fee
+	) internal override {
+		uint balance = IERC20(_token).balanceOf(address(this));
+		if (_fee > 0) {
+			if (balance >= _fee) {
+				// transfer tokens when balance exists
+				IERC20(_token).safeTransfer(_relayer, _fee);
+			}
+			else {
+				IMintableERC20(_token).mint(_relayer, _fee);
+			}
+		}
+	}
 
     function _isValidMerkleProof(
         bytes32[] memory siblingPathNodes,
@@ -247,4 +297,5 @@ contract OpenVAnchor is OpenVAnchorBase {
         isKnownRootBool = isKnownRootBool || isKnownRoot(root);
         return root == currNodeHash && isKnownRootBool;
     }
+
 }

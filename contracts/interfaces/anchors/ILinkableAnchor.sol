@@ -24,13 +24,6 @@ interface ILinkableAnchor {
     function setHandler(address handler, uint32 nonce) external;
 
     /**
-        @notice Sets the verifier for zkSNARKs
-        @param verifier The new verifier address
-        @param nonce The nonce for tracking update counts
-     */	
-    function setVerifier(address verifier, uint32 nonce) external;
-
-    /**
         @notice Sets the minimal withdrawal limit for the anchor
         @param minimalWithdrawalAmount The new minimal withdrawal limit
      */

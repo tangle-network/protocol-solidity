@@ -22,6 +22,7 @@ subtask('typechain-generate-types',
     await buildPoseidon(2);
     await buildPoseidon(5);
     await runSuper();
+    // TODO: Run copy typechain and clean up
   }
 )
 

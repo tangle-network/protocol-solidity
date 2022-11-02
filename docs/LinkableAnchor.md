@@ -296,7 +296,7 @@ function getLastRoot() external view returns (bytes32)
 ### getLatestNeighborEdges
 
 ```solidity
-function getLatestNeighborEdges() external view returns (struct LinkableAnchor.Edge[])
+function getLatestNeighborEdges() external view returns (struct Edge[])
 ```
 
 Get the latest state of all neighbor edges
@@ -308,7 +308,7 @@ Get the latest state of all neighbor edges
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | LinkableAnchor.Edge[] | Edge[] An array of all neighboring and potentially empty edges
+| _0 | Edge[] | Edge[] An array of all neighboring and potentially empty edges
 
 ### getLatestNeighborRoots
 
@@ -625,23 +625,6 @@ Sets the handler for updating edges and other contract state
 | Name | Type | Description |
 |---|---|---|
 | handler | address | The new handler address
-| nonce | uint32 | The nonce for tracking update counts
-
-### setVerifier
-
-```solidity
-function setVerifier(address verifier, uint32 nonce) external nonpayable
-```
-
-Sets the verifier for zkSNARKs
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| verifier | address | The new verifier address
 | nonce | uint32 | The nonce for tracking update counts
 
 ### updateEdge

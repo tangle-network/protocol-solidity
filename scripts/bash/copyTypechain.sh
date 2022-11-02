@@ -4,9 +4,6 @@
 # cp -a ./typechain/. packages/contracts/src/
 mkdir -p packages/contracts/src/factories
 
-cp ./typechain/OpenAnchorBase.d.ts ./packages/contracts/src/OpenAnchorBase.d.ts
-cp ./typechain/OpenVAnchor.d.ts ./packages/contracts/src/OpenVAnchor.d.ts
-cp ./typechain/OpenVAnchorBase.d.ts ./packages/contracts/src/OpenVAnchorBase.d.ts
 cp ./typechain/AnchorBase.d.ts ./packages/contracts/src/AnchorBase.d.ts
 cp ./typechain/AnchorHandler.d.ts ./packages/contracts/src/AnchorHandler.d.ts
 cp ./typechain/SignatureBridge.d.ts ./packages/contracts/src/SignatureBridge.d.ts
@@ -23,6 +20,7 @@ cp ./typechain/TreasuryHandler.d.ts ./packages/contracts/src/TreasuryHandler.d.t
 cp ./typechain/KeccakHasher.d.ts ./packages/contracts/src/KeccakHasher.d.ts
 cp ./typechain/PoseidonHasher.d.ts ./packages/contracts/src/PoseidonHasher.d.ts
 cp ./typechain/PoseidonT3.d.ts ./packages/contracts/src/PoseidonT3.d.ts
+cp ./typechain/PoseidonT4.d.ts ./packages/contracts/src/PoseidonT4.d.ts
 cp ./typechain/PoseidonT6.d.ts ./packages/contracts/src/PoseidonT6.d.ts
 cp ./typechain/MerkleTree.d.ts ./packages/contracts/src/MerkleTree.d.ts
 cp ./typechain/MerkleTreeWithHistory.d.ts ./packages/contracts/src/MerkleTreeWithHistory.d.ts
@@ -31,6 +29,8 @@ cp ./typechain/VAnchor.d.ts ./packages/contracts/src/VAnchor.d.ts
 cp ./typechain/VAnchorBase.d.ts ./packages/contracts/src/VAnchorBase.d.ts
 cp ./typechain/VAnchorEncodeInputs.d.ts ./packages/contracts/src/VAnchorEncodeInputs.d.ts
 cp ./typechain/VAnchorVerifier.d.ts ./packages/contracts/src/VAnchorVerifier.d.ts
+
+cp ./typechain/OpenVAnchor.d.ts ./packages/contracts/src/OpenVAnchor.d.ts
 
 cp ./typechain/IdentityVAnchor.d.ts ./packages/contracts/src/IdentityVAnchor.d.ts
 cp ./typechain/IdentityVAnchorBase.d.ts ./packages/contracts/src/IdentityVAnchorBase.d.ts
@@ -68,6 +68,7 @@ cp ./typechain/factories/TreasuryHandler__factory.ts ./packages/contracts/src/fa
 cp ./typechain/factories/KeccakHasher__factory.ts ./packages/contracts/src/factories/KeccakHasher__factory.ts
 cp ./typechain/factories/PoseidonHasher__factory.ts ./packages/contracts/src/factories/PoseidonHasher__factory.ts
 cp ./typechain/factories/PoseidonT3__factory.ts ./packages/contracts/src/factories/PoseidonT3__factory.ts
+cp ./typechain/factories/PoseidonT4__factory.ts ./packages/contracts/src/factories/PoseidonT4__factory.ts
 cp ./typechain/factories/PoseidonT6__factory.ts ./packages/contracts/src/factories/PoseidonT6__factory.ts
 cp ./typechain/factories/MerkleTree__factory.ts ./packages/contracts/src/factories/MerkleTree__factory.ts
 cp ./typechain/factories/MerkleTreeWithHistory__factory.ts ./packages/contracts/src/factories/MerkleTreeWithHistory__factory.ts
@@ -78,9 +79,6 @@ cp ./typechain/factories/VAnchorEncodeInputs__factory.ts ./packages/contracts/sr
 cp ./typechain/factories/VAnchorVerifier__factory.ts ./packages/contracts/src/factories/VAnchorVerifier__factory.ts
 
 cp ./typechain/factories/OpenVAnchor__factory.ts ./packages/contracts/src/factories/OpenVAnchor__factory.ts
-cp ./typechain/factories/OpenVAnchorBase__factory.ts ./packages/contracts/src/factories/OpenVAnchorBase__factory.ts
-cp ./typechain/factories/OpenAnchorBase__factory.ts ./packages/contracts/src/factories/OpenAnchorBase__factory.ts
-cp ./typechain/factories/OpenLinkableAnchor__factory.ts ./packages/contracts/src/factories/OpenLinkableAnchor__factory.ts
 
 cp ./typechain/factories/IdentityVAnchor__factory.ts ./packages/contracts/src/factories/IdentityVAnchor__factory.ts
 cp ./typechain/factories/IdentityVAnchorBase__factory.ts ./packages/contracts/src/factories/IdentityVAnchorBase__factory.ts

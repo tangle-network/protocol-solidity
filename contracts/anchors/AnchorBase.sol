@@ -6,7 +6,6 @@
 pragma solidity ^0.8.0;
 
 import "../trees/MerkleTree.sol";
-import "../interfaces/verifiers/IAnchorVerifier.sol";
 import "./LinkableAnchor.sol";
 
 /**
@@ -15,7 +14,6 @@ import "./LinkableAnchor.sol";
     is a LinkableAnchor which allows it to be connected to other LinkableAnchors.
  */
 abstract contract AnchorBase is LinkableAnchor {
-    IAnchorVerifier public verifier;
     // map to store used nullifier hashes
     mapping(bytes32 => bool) public nullifierHashes;
     // map to store all commitments to prevent accidental deposits with the same commitment
@@ -26,7 +24,6 @@ abstract contract AnchorBase is LinkableAnchor {
     /**
         @notice The constructor
         @param _handler The address of AnchorHandler for this contract
-        @param _verifier The address of SNARK verifier for this contract
         @param _hasher The address of hash contract
         @param _merkleTreeHeight The height of deposits' Merkle Tree
         @param _maxEdges The maximum number of edges in the LinkableAnchor + Verifier supports.
@@ -36,13 +33,10 @@ abstract contract AnchorBase is LinkableAnchor {
     */
     constructor(
         address _handler,
-        IAnchorVerifier _verifier,
         IHasher _hasher,
         uint32 _merkleTreeHeight,
         uint8 _maxEdges
-    ) LinkableAnchor(_handler, _hasher, _merkleTreeHeight, _maxEdges) {
-        verifier = _verifier;
-    }
+    ) LinkableAnchor(_handler, _hasher, _merkleTreeHeight, _maxEdges) {}
 
     /**
         @notice Inserts a commitment into the tree
@@ -82,57 +76,6 @@ abstract contract AnchorBase is LinkableAnchor {
     }
 
     /**
-        @notice Verifies a zero-knowledge proof of knowledge over the tree according
-        to the underlying `Verifier` circuit this `AnchorBase` is using.
-        @notice This aims to be as generic as currently needed to support our VAnchor (variable deposit) contracts.
-        @param _proof The zero-knowledge proof bytes
-        @param _input The public input packed bytes
-        @return bool Whether the proof is valid
-     */
-    function verify(
-        bytes memory _proof,
-        bytes memory _input
-    ) internal view returns (bool) {
-        uint256[8] memory p = abi.decode(_proof, (uint256[8]));
-        (
-                uint256[2] memory a,
-                uint256[2][2] memory b,
-                uint256[2] memory c
-        ) = unpackProof(p);
-        bool r = verifier.verifyProof(
-            a, b, c,
-            _input,
-            maxEdges,
-            true
-        );
-        require(r, "Invalid withdraw proof");
-        return r;
-    }
-
-    /**
-        @notice A helper function to convert an array of 8 uint256 values into the a, b,
-        and c array values that the zk-SNARK verifier's verifyProof accepts.
-        @param _proof The array of 8 uint256 values
-        @return (uint256[2] memory a, uint256[2][2] memory b, uint256[2] memory c) The unpacked proof values
-    */
-    function unpackProof(
-            uint256[8] memory _proof
-    ) public pure returns (
-            uint256[2] memory,
-            uint256[2][2] memory,
-            uint256[2] memory
-    ) {
-        return (
-            [_proof[0], _proof[1]],
-            [
-                [_proof[2], _proof[3]],
-                [_proof[4], _proof[5]]
-            ],
-            [_proof[6], _proof[7]]
-        );
-    }
-
-    /**
         @notice Whether a note is already spent
         @param _nullifierHash The nullifier hash of the deposit note
         @return bool Whether the note is already spent
@@ -168,20 +111,6 @@ abstract contract AnchorBase is LinkableAnchor {
         require(proposalNonce < _nonce, "Invalid nonce");
         require(_nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
         handler = _handler;
-        proposalNonce = _nonce;
-    }
-
-    /**
-        @notice Set a new verifier with a nonce
-        @dev Can only be called by the `AnchorHandler` contract
-        @param _verifier The new verifier address
-        @param _nonce The nonce for updating the new verifier
-     */
-    function setVerifier(address _verifier, uint32 _nonce) override onlyHandler external {
-        require(_verifier != address(0), "Handler cannot be 0");
-        require(proposalNonce < _nonce, "Invalid nonce");
-        require(_nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
-        verifier = IAnchorVerifier(_verifier);
         proposalNonce = _nonce;
     }
 }

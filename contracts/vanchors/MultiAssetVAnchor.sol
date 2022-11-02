@@ -5,31 +5,34 @@
 
 pragma solidity ^0.8.0;
 
-import "./VAnchorBase.sol";
-import "../structs/SingleAssetExtData.sol";
+import "../vanchors/VAnchorBase.sol";
+import "../structs/MultiAssetExtData.sol";
 import "../interfaces/tokens/ITokenWrapper.sol";
 import "../interfaces/tokens/IMintableERC20.sol";
-import "../interfaces/verifiers/ISetVerifier.sol";
-import "../libs/VAnchorEncodeInputs.sol";
+import "../interfaces/verifiers/IAnchorVerifier.sol";
 import "../verifiers/TxProofVerifier.sol";
+import "../libs/VAnchorEncodeInputs.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 /**
-	@title Variable Anchor contract
+	@title Multi Asset Variable Anchor contract
 	@author Webb Technologies
-	@notice The Variable Anchor is a variable-denominated shielded pool system
-	derived from Tornado Nova (tornado-pool). This system extends the shielded
-	pool system into a bridged system and allows for join/split transactions.
+	@notice The Multi Asset Variable Anchor is a variable-denominated shielded pool system
+	derived from Tornado Nova (tornado-pool) that supports multiple assets in a single pool.
+	This system extends the shielded pool system into a bridged system and allows for
+	join/split transactions of different assets at 2 same time.
 
-	The system is built on top the VAnchorBase/AnchorBase/LinkableAnchor system which allows
-	it to be linked to other VAnchor contracts through a simple graph-like
+	The system is built on top the MultiAssetVAnchorBase/AnchorBase/LinkableAnchor system
+	which allows it to be linked to other VAnchor contracts through a simple graph-like
 	interface where anchors maintain edges of their neighboring anchors.
 
-	The system requires users to create and deposit UTXOs for the supported ERC20
-	asset into the smart contract and insert a commitment into the underlying
-	merkle tree of the form: commitment = Poseidon(chainID, amount, pubKey, blinding).
+	The system requires users to create UTXOs for any supported ERC20 asset into the smart
+	contract and insert a commitment into the underlying merkle tree of the form:
+	```
+	commitment = Poseidon(assetId, amount, Poseidon(destinationChainID, pubKey, blinding)).
+	```
 	The hash input is the UTXO data. All deposits/withdrawals are unified under
 	a common `transact` function which requires a zkSNARK proof that the UTXO commitments
 	are well-formed (i.e. that the deposit amount matches the sum of new UTXOs' amounts).
@@ -40,8 +43,8 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 	  is intended to be made
 	- Details of the UTXO and hashes are below
 
-	UTXO = { destinationChainID, amount, pubkey, blinding }
-	commitment = Poseidon(destinationChainID, amount, pubKey, blinding)
+	UTXO = { assetId, amount, Poseidon(destinationChainID, pubKey, blinding) }
+	commitment = Poseidon(assetId, amount, Poseidon(destinationChainID, pubKey, blinding))
 	nullifier = Poseidon(commitment, merklePath, sign(privKey, commitment, merklePath))
 
 	Commitments adhering to different hash functions and formats will invalidate
@@ -52,11 +55,23 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 	destination chain id matches the underlying chain id of the VAnchor where the
 	transaction is taking place. The chain id opcode is leveraged to prevent any
 	tampering of this data.
+
+	Part of the benefit of a MASP is the ability to handle multiple assets in a single pool.
+	To support this, the system uses a `assetId` field in the UTXO to identify the asset.
+	One thing to remember is that all assets in the pool must be wrapped ERC20 tokens specific
+	to the pool. We refer to this tokens as the bridge ERC20 tokens. Part of the challenge of building
+	the MASP then is dealing with the mapping between bridge ERC20s and their asset IDs.
+
+	IMPORTANT: A bridge ERC20 token MUST have the same assetID across chain.
  */
-contract VAnchor is VAnchorBase, TxProofVerifier, ISetVerifier {
+contract MultiAssetVAnchor is VAnchorBase, TxProofVerifier {
 	using SafeERC20 for IERC20;
 	using SafeMath for uint256;
-	address public immutable token;
+
+	// TODO: Maintain a map from bridge ERC20s to assetIDs
+	// TODO: Start assetIDs at 1, use 0 to indicate an invalid bridge ERC20 (non-existant)
+	mapping (address => uint256) public bridgeAssetIdMap;
+	mapping (uint256 => address) public assetIdToBridgeAssetMap;
 
 	/**
 		@notice The VAnchor constructor
@@ -64,7 +79,6 @@ contract VAnchor is VAnchorBase, TxProofVerifier, ISetVerifier {
 		@param _levels The height/# of levels of underlying Merkle Tree
 		@param _hasher The address of hash contract
 		@param _handler The address of AnchorHandler for this contract
-		@param _token The address of the token that is used to pay the deposit
 		@param _maxEdges The maximum number of edges in the LinkableAnchor + Verifier supports.
 		@notice The `_maxEdges` is zero-knowledge circuit dependent, meaning the
 		`_verifier` ONLY supports a certain maximum # of edges. Therefore we need to
@@ -75,76 +89,79 @@ contract VAnchor is VAnchorBase, TxProofVerifier, ISetVerifier {
 		uint32 _levels,
 		IHasher _hasher,
 		address _handler,
-		address _token,
 		uint8 _maxEdges
 	)
 		VAnchorBase (_levels, _hasher, _handler, _maxEdges)
 		TxProofVerifier(_verifier)
-	{
-		token = _token;
-	}
+	{}
 
 	/**
 		@notice Wraps a token for the `msg.sender` using the underlying TokenWrapper contract
-		@param _tokenAddress The address of the token to wrap
+		@param _fromTokenAddress The address of the token to wrap from
+		@param _toTokenAddress The address of the token to wrap into
 		@param _amount The amount of tokens to wrap
 	 */
-	function wrapToken(address _tokenAddress, uint256 _amount) public {
-		ITokenWrapper(token).wrapFor(msg.sender, _tokenAddress, _amount);
+	function wrapToken(address _fromTokenAddress, address _toTokenAddress, uint256 _amount) public {
+		ITokenWrapper(_toTokenAddress).wrapFor(msg.sender, _toTokenAddress, _amount);
 	}
 
 	/**
 		@notice Unwraps the TokenWrapper token for the `msg.sender` into one of its wrappable tokens.
-		@param _tokenAddress The address of the token to unwrap into
+		@param _fromTokenAddress The address of the token to unwrap from
+		@param _toTokenAddress The address of the token to unwrap into
 		@param _amount The amount of tokens to unwrap
 	 */
-	function unwrapIntoToken(address _tokenAddress, uint256 _amount) public {
-		ITokenWrapper(token).unwrapFor(msg.sender, _tokenAddress, _amount);
+	function unwrapIntoToken(address _fromTokenAddress, address _toTokenAddress, uint256 _amount) public {
+		ITokenWrapper(_fromTokenAddress).unwrapFor(msg.sender, _toTokenAddress, _amount);
 	}
 
 	/**
 		@notice Wrap the native token for the `msg.sender` into the TokenWrapper token
+		@param _toTokenAddress The address of the token to wrap into
 		@notice The amount is taken from `msg.value`
 	 */
-	function wrapNative() payable public {
-		ITokenWrapper(token).wrapFor{value: msg.value}(msg.sender, address(0), 0);
+	function wrapNative(address _toTokenAddress) payable public {
+		ITokenWrapper(_toTokenAddress).wrapFor{value: msg.value}(msg.sender, address(0), 0);
 	}
 
 	/**
 		@notice Unwrap the TokenWrapper token for the `msg.sender` into the native token
+		@param _fromTokenAddress The address of the token to unwrap from
 		@param _amount The amount of tokens to unwrap
 	 */
-	function unwrapIntoNative(address _tokenAddress, uint256 _amount) public {
-		ITokenWrapper(token).unwrapFor(msg.sender, _tokenAddress, _amount);
+	function unwrapIntoNative(address _fromTokenAddress, uint256 _amount) public {
+		ITokenWrapper(_fromTokenAddress).unwrapFor(msg.sender, address(0), _amount);
 	}
 	
 	/**
 		@notice Wraps a token for the `msg.sender`
-		@param _tokenAddress The address of the token to wrap
+		@param _fromTokenAddress The address of the token to wrap from
+		@param _toTokenAddress The address of the token to wrap into
 		@param _extAmount The external amount for the transaction
 	 */
 	function _executeWrapping(
-		address _tokenAddress,
+		address _fromTokenAddress,
+		address _toTokenAddress,
 		uint256 _extAmount
 	) payable public {
 		// Before executing the wrapping, determine the amount which needs to be sent to the tokenWrapper
-		uint256 wrapAmount = ITokenWrapper(token).getAmountToWrap(_extAmount);
+		uint256 wrapAmount = ITokenWrapper(_toTokenAddress).getAmountToWrap(_extAmount);
 
 		// If the address is zero, this is meant to wrap native tokens
-		if (_tokenAddress == address(0)) {
+		if (_fromTokenAddress == address(0)) {
 			require(msg.value == wrapAmount);
 			// If the wrapping is native, ensure the amount sent to the tokenWrapper is 0
-			ITokenWrapper(token).wrapForAndSendTo{value: msg.value}(
+			ITokenWrapper(_toTokenAddress).wrapForAndSendTo{value: msg.value}(
 					msg.sender,
-					_tokenAddress,
+					_fromTokenAddress,
 					0,
 					address(this)
 			);
 		} else {
 			// wrap into the token and send directly to this contract
-			ITokenWrapper(token).wrapForAndSendTo{value: msg.value}(
+			ITokenWrapper(_toTokenAddress).wrapForAndSendTo{value: msg.value}(
 					msg.sender,
-					_tokenAddress,
+					_fromTokenAddress,
 					wrapAmount,
 					address(this)
 			);
@@ -153,22 +170,24 @@ contract VAnchor is VAnchorBase, TxProofVerifier, ISetVerifier {
 
 	/**
 		@notice Unwraps into a valid token for the `msg.sender`
-		@param _tokenAddress The token to unwrap into
+		@param _fromTokenAddress The address of the token to unwrap from
+		@param _toTokenAddress The address of the token to unwrap into
 		@param _recipient The address of the recipient for the unwrapped assets
 		@param _minusExtAmount Negative external amount for the transaction
 	 */
 	function withdrawAndUnwrap(
-		address _tokenAddress,
+		address _fromTokenAddress,
+		address _toTokenAddress,
 		address _recipient,
 		uint256 _minusExtAmount
 	) public payable nonReentrant {
 		// We first withdraw the assets and send them to `this` contract address.
 		// This ensure that when we unwrap the assets, `this` contract has the
 		// assets to unwrap into.
-		_processWithdraw(token, payable(address(this)), _minusExtAmount);
+		_processWithdraw(_fromTokenAddress, payable(address(this)), _minusExtAmount);
 
-		ITokenWrapper(token).unwrapAndSendTo(
-			_tokenAddress,
+		ITokenWrapper(_fromTokenAddress).unwrapAndSendTo(
+			_toTokenAddress,
 			_minusExtAmount,
 			_recipient
 		);
@@ -207,6 +226,56 @@ contract VAnchor is VAnchorBase, TxProofVerifier, ISetVerifier {
 	}
 
 	/**
+		@notice Wraps and deposits in a single flow without a proof. Leads to a single non-zero UTXO.
+		@param _fromTokenAddress The address of the token to wrap from
+		@param _toTokenAddress The address of the token to wrap into
+		@param _amount The amount of tokens to wrap
+		@param partialCommitment The partial commitment of the UTXO
+		@param encryptedCommitment The encrypted commitment of the partial UTXO
+	 */
+	function wrapAndDeposit(
+		address _fromTokenAddress,
+		address _toTokenAddress,
+		uint256 _amount,
+		bytes32 partialCommitment,
+		bytes memory encryptedCommitment
+	) public payable {
+		// Before executing the wrapping, determine the amount which needs to be sent to the tokenWrapper
+		uint256 wrapAmount = ITokenWrapper(_toTokenAddress).getAmountToWrap(_amount);
+
+		if (_fromTokenAddress == address(0)) {
+			require(msg.value == _amount);
+			ITokenWrapper(_toTokenAddress).wrapForAndSendTo{value: msg.value}(
+				msg.sender,
+				_fromTokenAddress,
+				0,
+				address(this)
+			);
+		} else {
+			ITokenWrapper(_toTokenAddress).wrapForAndSendTo{value: msg.value}(
+				msg.sender,
+				_fromTokenAddress,
+				_amount,
+				address(this)
+			);
+		}
+
+		uint256 assetID = bridgeAssetIdMap[_toTokenAddress];
+		bytes32 commitment = bytes32(IHasher(hasher).hash3([
+			assetID,
+			wrapAmount,
+			uint256(partialCommitment)
+		]));
+		bytes32 zeroCommitment = bytes32(IHasher(hasher).hash3([
+			uint256(0),
+			uint256(0),
+			uint256(0)
+		]));
+		insertTwo(commitment, zeroCommitment);
+		emit NewCommitment(commitment, nextIndex - 2, encryptedCommitment);
+	}
+
+	/**
 		@notice Executes a deposit/withdrawal or combination join/split transaction
 		@param _args The zkSNARK proof parameters
 		@param _extData The external data for the transaction
@@ -214,18 +283,19 @@ contract VAnchor is VAnchorBase, TxProofVerifier, ISetVerifier {
 	function transact(VAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) public nonReentrant {
 		_executeValidationAndVerification(_args, _extData);
 
+		address wrappedToken = assetIdToBridgeAssetMap[_extData.assetId];
 		if (_extData.extAmount > 0) {
 			require(uint256(_extData.extAmount) <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
-			IMintableERC20(token).transferFrom(msg.sender, address(this), uint256(_extData.extAmount));
+			IMintableERC20(_extData.token).transferFrom(msg.sender, address(this), uint256(_extData.extAmount));
 		}
 
 		if (_extData.extAmount < 0) {
 			require(_extData.recipient != address(0), "Can't withdraw to zero address");
 			require(uint256(-_extData.extAmount) >= minimalWithdrawalAmount, "amount is less than minimalWithdrawalAmount"); // prevents ddos attack to Bridge
-			_processWithdraw(token, _extData.recipient, uint256(-_extData.extAmount));
+			_processWithdraw(_extData.token, _extData.recipient, uint256(-_extData.extAmount));
 		}
 		if (_extData.fee > 0) {
-			_processFee(token, _extData.relayer, _extData.fee);
+			_processFee(wrappedToken, _extData.relayer, _extData.fee);
 		}
 
 		_executeInsertions(_args, _extData);
@@ -244,20 +314,21 @@ contract VAnchor is VAnchorBase, TxProofVerifier, ISetVerifier {
 	) public payable {
 		_executeValidationAndVerification(_args, _extData);
 
+		address wrappedToken = assetIdToBridgeAssetMap[_extData.assetId];
 		// Check if extAmount > 0, call wrapAndDeposit
 		if (_extData.extAmount > 0) {
 			//wrapAndDeposit
 			require(uint256(_extData.extAmount) <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
-			_executeWrapping(_tokenAddress, uint256(_extData.extAmount));
+			_executeWrapping(_tokenAddress, wrappedToken, uint256(_extData.extAmount));
 		} else if (_extData.extAmount < 0) {
 			// Otherwise, check if extAmount < 0, call withdrawAndUnwrap
 			require(_extData.recipient != address(0), "Can't withdraw to zero address");
 			require(uint256(-_extData.extAmount) >= minimalWithdrawalAmount, "amount is less than minimalWithdrawalAmount"); 
-			withdrawAndUnwrap(_tokenAddress, _extData.recipient, uint256(-_extData.extAmount));
+			withdrawAndUnwrap(wrappedToken, _tokenAddress, _extData.recipient, uint256(-_extData.extAmount));
 		}
 
 		if (_extData.fee > 0) {
-			_processFee(token, _extData.relayer, _extData.fee);
+			_processFee(wrappedToken, _extData.relayer, _extData.fee);
 		}
 
 		_executeInsertions(_args, _extData);
@@ -289,7 +360,7 @@ contract VAnchor is VAnchorBase, TxProofVerifier, ISetVerifier {
 		@notice Checks whether the zkSNARK proof is valid
 		@param _args The zkSNARK proof parameters
 	 */
-	function _executeVerification(VAnchorEncodeInputs.Proof memory _args) internal view {
+	function _executeVerification(VAnchorEncodeInputs.Proof memory _args) view internal {
 		require(_args.inputNullifiers.length == 2 || _args.inputNullifiers.length == 16, "Invalid number of inputs");
 		bool smallInputs = _args.inputNullifiers.length == 2;
 		(bytes memory encodedInput, bytes32[] memory roots) = smallInputs
@@ -317,7 +388,6 @@ contract VAnchor is VAnchorBase, TxProofVerifier, ISetVerifier {
 
 	/**
 		@notice Process the withdrawal by sending/minting the wrapped tokens to/for the recipient
-		@param _token The token to withdraw
 		@param _recipient The recipient of the tokens
 		@param _minusExtAmount The amount of tokens to withdraw. Since
 		withdrawal ext amount is negative we apply a minus sign once more.
@@ -339,7 +409,6 @@ contract VAnchor is VAnchorBase, TxProofVerifier, ISetVerifier {
 
 	/**
 		@notice Process and pay the relayer their fee. Mint the fee if contract has no balance.
-		@param _token The token to pay the fee in
 		@param _relayer The relayer of the transaction
 		@param _fee The fee to pay
 	 */
@@ -358,19 +427,5 @@ contract VAnchor is VAnchorBase, TxProofVerifier, ISetVerifier {
 				IMintableERC20(_token).mint(_relayer, _fee);
 			}
 		}
-	}
-
-	/**
-		@notice Set a new verifier with a nonce
-		@dev Can only be called by the `AnchorHandler` contract
-		@param _verifier The new verifier address
-		@param _nonce The nonce for updating the new verifier
-	 */
-	function setVerifier(address _verifier, uint32 _nonce) override onlyHandler external {
-		require(_verifier != address(0), "Handler cannot be 0");
-		require(proposalNonce < _nonce, "Invalid nonce");
-		require(_nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
-		verifier = IAnchorVerifier(_verifier);
-		proposalNonce = _nonce;
 	}
 }

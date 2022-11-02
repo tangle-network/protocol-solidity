@@ -1,6 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
-import "../../anchors/LinkableAnchor.sol";
+
+import "../../structs/Edge.sol";
 
 /// @title SemaphoreGroups interface.
 /// @dev Interface of a SemaphoreGroups contract.
@@ -41,7 +42,7 @@ interface ISemaphoreGroups {
     /// @dev Returns the last root hash of a group.
     /// @param groupId: Id of the group.
     /// @return Latests roots from each edge connected
-    function getLatestNeighborEdges(uint256 groupId) external view returns (LinkableAnchor.Edge[] memory);
+    function getLatestNeighborEdges(uint256 groupId) external view returns (Edge[] memory);
 
     /// @dev Returns the last root hash of a group.
     /// @param groupId: Id of the group.

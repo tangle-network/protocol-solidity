@@ -8,7 +8,6 @@ pragma solidity ^0.8.0;
 import "./initializable/GovernedTokenWrapperInitializable.sol";
 import "../interfaces/tokens/IMultiTokenManager.sol";
 
-
 /**
     @title A MultiTokenManager manages GovernedTokenWrapper systems using an external `governor` address
     @author Webb Technologies.
@@ -37,9 +36,9 @@ contract MultiTokenManager is IMultiTokenManager {
     function registerToken(
         string memory _name,
         string memory _symbol,
+        bytes32 _salt,
         uint256 _limit,
-        bool _isNativeAllowed,
-        bytes32 _salt
+        bool _isNativeAllowed
     ) override external onlyGovernor {
         GovernedTokenWrapperInitializable governedToken = new GovernedTokenWrapperInitializable{salt: _salt}(
             _name,

@@ -58,24 +58,27 @@ contract MultiTokenManagerHandler is IExecutor, HandlerHelpers {
         address multiTokenManagerAddress = _resourceIDToContractAddress[resourceID];
         IMultiTokenManager multiTokenManager = IMultiTokenManager(multiTokenManagerAddress); 
         
-        if (functionSig == bytes4(keccak256("setFee(uint16,uint32)"))) {  
-            uint32 nonce = uint32(bytes4(arguments[0:4])); 
-            uint16 newFee = uint16(bytes2(arguments[4:6]));
-            multiTokenManager.setFee(newFee, nonce);
-        } else if (functionSig == bytes4(keccak256("add(address,uint32)"))) {
-            uint32 nonce = uint32(bytes4(arguments[0:4]));
-            address tokenAddress = address(bytes20(arguments[4:24]));
-            multiTokenManager.add(tokenAddress, nonce);
-        } else if (functionSig == bytes4(keccak256("remove(address,uint32)"))) {
-            uint32 nonce = uint32(bytes4(arguments[0:4]));
-            address tokenAddress = address(bytes20(arguments[4:24]));
-            multiTokenManager.remove(tokenAddress, nonce);
-        } else if (functionSig == bytes4(keccak256("setFeeRecipient(address,uint32)"))) {
-            uint32 nonce = uint32(bytes4(arguments[0:4]));
-            address payable feeRecipient = payable(address(bytes20(arguments[4:24])));
-            multiTokenManager.setFeeRecipient(feeRecipient, nonce);
+        if (functionSig == bytes4(keccak256("registerToken(bytes32,bytes32,bytes32,uint256,bool)"))) {  
+            string memory nonce = bytes32ToString(bytes32(arguments[0:32])); 
+            string memory newFee = bytes32ToString(bytes32(arguments[32:64]));
+            bytes32 salt = bytes32(arguments[64:96]);
+            uint256 fee = uint256(bytes32(arguments[96:128]));
+            bool isNative = bytes1(arguments[128:129]) == 0x01;
+            multiTokenManager.registerToken(nonce, newFee, salt, fee, isNative);
         } else {
             revert("Invalid function sig");
         }
+    }
+
+    function bytes32ToString(bytes32 _bytes32) public pure returns (string memory) {
+        uint8 i = 0;
+        while(i < 32 && _bytes32[i] != 0) {
+            i++;
+        }
+        bytes memory bytesArray = new bytes(i);
+        for (i = 0; i < 32 && _bytes32[i] != 0; i++) {
+            bytesArray[i] = _bytes32[i];
+        }
+        return string(bytesArray);
     }
 }

@@ -14,16 +14,16 @@ interface IMultiTokenManager {
         @notice Registers a new token and deploys the GovernedTokenWrapperInitializable contract
         @param _name The name of the ERC20
         @param _symbol The symbol of the ERC20
+        @param _salt Salt used for matching addresses across chain using CREATE2
         @param _limit The maximum amount of tokens that can be wrapped
         @param _isNativeAllowed Whether or not native tokens are allowed to be wrapped
-        @param _salt Salt used for matching addresses across chain using CREATE2
      */
     function registerToken(
         string memory _name,
         string memory _symbol,
+        bytes32 _salt,
         uint256 _limit,
-        bool _isNativeAllowed,
-        bytes32 _salt
+        bool _isNativeAllowed
     ) external;
 
     /**
