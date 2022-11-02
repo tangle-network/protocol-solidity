@@ -27,7 +27,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: ts-check
         run: |
-          yarn install --frozen-lockfile
+          yarn install
           yarn ts-check
 
   # This job builds and runs tests for the contracts
