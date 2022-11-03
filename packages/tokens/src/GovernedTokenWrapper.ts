@@ -30,9 +30,14 @@ export class GovernedTokenWrapper {
     deployer: ethers.Signer
   ) {
     const factory = new GovernedTokenWrapper__factory(deployer);
-    const contract = await factory.deploy(name, symbol, feeRecipient, governor, limit, isNativeAllowed);
+    const contract = await factory.deploy(name, symbol);
     await contract.deployed();
-
+    await contract.initialize(
+      feeRecipient,
+      governor,
+      limit,
+      isNativeAllowed
+    );
     const createdGovernedTokenWrapper = new GovernedTokenWrapper(contract, deployer);
 
     return createdGovernedTokenWrapper;

@@ -5,18 +5,19 @@
 
 pragma solidity ^0.8.0;
 
-import "../../interfaces/tokens/IGovernedTokenWrapper.sol";
-import "./TokenWrapperInitializable.sol";
+import "../interfaces/tokens/IGovernedTokenWrapper.sol";
+import "./TokenWrapper.sol";
 
 /**
-    @title A governed TokenWrapperInitializable system using an external `governor` address
+    @title A governed TokenWrapper system using an external `governor` address
     @author Webb Technologies.
     @notice Governs allowable ERC20s to deposit using a governable wrapping limit and
     sets fees for wrapping into itself. This contract is intended to be used with
     TokenHandler contract.
  */
-contract GovernedTokenWrapperInitializable is TokenWrapperInitializable, IGovernedTokenWrapper {
+contract GovernedTokenWrapper is TokenWrapper, IGovernedTokenWrapper {
     using SafeMath for uint256;
+    bool public initialized = false;
 
     address public governor;
     address[] public tokens;
@@ -29,17 +30,17 @@ contract GovernedTokenWrapperInitializable is TokenWrapperInitializable, IGovern
     uint256 public proposalNonce = 0;
 
     /**
-        @notice GovernedTokenWrapperInitializable constructor
-        @param _name The name of the ERC20 TokenWrapperInitializable
-        @param _symbol The symbol of the ERC20 TokenWrapperInitializable
+        @notice GovernedTokenWrapper constructor
+        @param _name The name of the ERC20 TokenWrapper
+        @param _symbol The symbol of the ERC20 TokenWrapper
      */
     constructor(
         string memory _name,
         string memory _symbol
-    ) TokenWrapperInitializable(_name, _symbol) {}
+    ) TokenWrapper(_name, _symbol) {}
 
     /**
-        @notice GovernedTokenWrapperInitializable initializer
+        @notice GovernedTokenWrapper initializer
         @param _feeRecipient The recipient for fees from wrapping.
         @param _governor The address of the governor
         @param _limit The maximum amount of tokens that can be wrapped
@@ -50,15 +51,17 @@ contract GovernedTokenWrapperInitializable is TokenWrapperInitializable, IGovern
         address _governor,
         uint256 _limit,
         bool _isNativeAllowed
-    ) public initializer {
+    ) public {
+        require(!initialized, "Contract already initialized");
         feeRecipient = payable(_feeRecipient);
         governor = _governor;
         wrappingLimit = _limit;
         isNativeAllowed = _isNativeAllowed;
+        initialized = true;
     }
 
     /**
-        @notice Sets the governor of the GovernedTokenWrapperInitializable contract
+        @notice Sets the governor of the GovernedTokenWrapper contract
         @param _governor The address of the new governor
         @notice Only the governor can call this function
      */
@@ -76,7 +79,7 @@ contract GovernedTokenWrapperInitializable is TokenWrapperInitializable, IGovern
     }
 
     /**
-        @notice Adds a token at `_tokenAddress` to the GovernedTokenWrapperInitializable's wrapping list
+        @notice Adds a token at `_tokenAddress` to the GovernedTokenWrapper's wrapping list
         @param _tokenAddress The address of the token to be added
         @param _nonce The nonce tracking updates to this contract
         @notice Only the governor can call this function
@@ -96,7 +99,7 @@ contract GovernedTokenWrapperInitializable is TokenWrapperInitializable, IGovern
     }
 
     /**
-        @notice Removes a token at `_tokenAddress` from the GovernedTokenWrapperInitializable's wrapping list
+        @notice Removes a token at `_tokenAddress` from the GovernedTokenWrapper's wrapping list
         @param _tokenAddress The address of the token to be removed
         @param _nonce The nonce tracking updates to this contract
         @notice Only the governor can call this function
@@ -119,7 +122,7 @@ contract GovernedTokenWrapperInitializable is TokenWrapperInitializable, IGovern
     }
 
     /**
-        @notice Sets a new `_feePercentage` for the GovernedTokenWrapperInitializable
+        @notice Sets a new `_feePercentage` for the GovernedTokenWrapper
         @param _feePercentage The new fee percentage
         @param _nonce The nonce tracking updates to this contract
         @notice Only the governor can call this function
@@ -133,7 +136,7 @@ contract GovernedTokenWrapperInitializable is TokenWrapperInitializable, IGovern
     }
 
     /**
-        @notice Sets a new `_feeRecipient` for the GovernedTokenWrapperInitializable
+        @notice Sets a new `_feeRecipient` for the GovernedTokenWrapper
         @param _feeRecipient The new fee recipient
         @param _nonce The nonce tracking updates to this contract
         @notice Only the governor can call this function
@@ -147,7 +150,7 @@ contract GovernedTokenWrapperInitializable is TokenWrapperInitializable, IGovern
     }
 
     /**
-        @notice Removes a token at `_index` from the GovernedTokenWrapperInitializable's wrapping list
+        @notice Removes a token at `_index` from the GovernedTokenWrapper's wrapping list
         @param _index The index of the token to be removed
      */
     function removeTokenAtIndex(uint _index) internal {

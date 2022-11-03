@@ -290,7 +290,9 @@ export class SignatureBridgeSide implements IBridgeSide {
   // emit ProposalEvent(chainID, nonce, ProposalStatus.Executed, dataHash);
   public async executeAnchorProposalWithSig(srcAnchor: IAnchor, executionResourceID: string) {
     if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
+    console.log('executing anchor proposal with sig');
     const proposalData = await this.createAnchorUpdateProposalData(srcAnchor, executionResourceID);
+    console.log('proposalData', proposalData);
     return this.execute(proposalData);
   }
 

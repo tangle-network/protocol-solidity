@@ -483,6 +483,42 @@ function increaseAllowance(address spender, uint256 addedValue) external nonpaya
 |---|---|---|
 | _0 | bool | undefined
 
+### initialize
+
+```solidity
+function initialize(address _feeRecipient, address _governor, uint256 _limit, bool _isNativeAllowed) external nonpayable
+```
+
+GovernedTokenWrapper initializer
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _feeRecipient | address | The recipient for fees from wrapping.
+| _governor | address | The address of the governor
+| _limit | uint256 | The maximum amount of tokens that can be wrapped
+| _isNativeAllowed | bool | Whether or not native tokens are allowed to be wrapped
+
+### initialized
+
+```solidity
+function initialized() external view returns (bool)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bool | undefined
+
 ### isNativeAllowed
 
 ```solidity

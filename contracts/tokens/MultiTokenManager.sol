@@ -5,7 +5,7 @@
 
 pragma solidity ^0.8.0;
 
-import "./initializable/GovernedTokenWrapperInitializable.sol";
+import "./GovernedTokenWrapper.sol";
 import "../interfaces/tokens/IMultiTokenManager.sol";
 
 /**
@@ -22,11 +22,9 @@ contract MultiTokenManager is IMultiTokenManager {
     uint256 public proposalNonce = 0;
 
     address[] public wrappedTokens;
-    mapping (address => bool) public fungibleTokens;
-    mapping (address => bool) public nonFungibleTokens;
 
     /**
-        @notice Registers a new token and deploys the GovernedTokenWrapperInitializable contract
+        @notice Registers a new token and deploys the GovernedTokenWrapper contract
         @param _name The name of the ERC20
         @param _symbol The symbol of the ERC20
         @param _limit The maximum amount of tokens that can be wrapped
@@ -40,7 +38,7 @@ contract MultiTokenManager is IMultiTokenManager {
         uint256 _limit,
         bool _isNativeAllowed
     ) override external onlyGovernor {
-        GovernedTokenWrapperInitializable governedToken = new GovernedTokenWrapperInitializable{salt: _salt}(
+        GovernedTokenWrapper governedToken = new GovernedTokenWrapper{salt: _salt}(
             _name,
             _symbol
         );
@@ -53,11 +51,6 @@ contract MultiTokenManager is IMultiTokenManager {
         );
 
         wrappedTokens.push(address(governedToken));
-        if (_limit == 1 || _limit == 0) {
-            nonFungibleTokens[address(governedToken)] = true;
-        } else {
-            fungibleTokens[address(governedToken)] = true;
-        }
     }
 
     /**
@@ -68,7 +61,7 @@ contract MultiTokenManager is IMultiTokenManager {
     function setGovernor(address _governor) override external onlyGovernor {
         governor = _governor;
         for (uint256 i = 0; i < wrappedTokens.length; i++) {
-            GovernedTokenWrapperInitializable(wrappedTokens[i]).setGovernor(_governor);
+            GovernedTokenWrapper(wrappedTokens[i]).setGovernor(_governor);
         }
     }
 

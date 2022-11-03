@@ -19,7 +19,7 @@ function sha3Hash (left: BigNumberish, right: BigNumberish) {
   return BigNumber.from(ethers.utils.keccak256(ethers.utils.arrayify(packed)));
 }
 
-describe.only('Open VAnchor Contract', () => {
+describe('Open VAnchor Contract', () => {
     let sender;
     let openVAnchor;
     let token;
@@ -111,7 +111,7 @@ describe.only('Open VAnchor Contract', () => {
         await recipient.getAddress(),
         delegatedCalldata,
         blinding,
-
+        relayingFee,
         merkleProof,
         commitmentIndex,
         token.contract.address,
@@ -167,7 +167,7 @@ describe.only('Open VAnchor Contract', () => {
     });
 });
 
-describe('Open VAnchor Contract - cross chain', () => {
+describe.only('Open VAnchor Contract - cross chain', () => {
   const FIRST_CHAIN_ID = 31337;
   let hardhatWallet1 = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
   let sender;
@@ -269,6 +269,10 @@ describe('Open VAnchor Contract - cross chain', () => {
       relayingFee,
       tokenInstance1.contract.address,
     );
+    console.log("update chain 1");
+    await vBridge.update(chainID1);
+    console.log("update chain 2");
+    await vBridge.update(chainID2);
     // GanacheWallet2 wants to send `depositAmount` tokens to the `recipient` on chain 1.
     await vAnchor2.setSigner(ganacheWallet2);
     // First GanacheWallet2 must approve the `webbToken2` to spend `tokenInstance2` tokens.
@@ -308,6 +312,7 @@ describe('Open VAnchor Contract - cross chain', () => {
       await recipient.getAddress(),
       '0x00',
       blinding,
+      relayingFee,
       merkleProof,
       commitmentIndex,
     );

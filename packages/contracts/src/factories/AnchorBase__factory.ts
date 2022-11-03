@@ -391,7 +391,7 @@ const _abi = [
             type: "bytes32",
           },
         ],
-        internalType: "struct LinkableAnchor.Edge[]",
+        internalType: "struct Edge[]",
         name: "",
         type: "tuple[]",
       },

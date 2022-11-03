@@ -5,9 +5,8 @@
  
 pragma solidity ^0.8.0;
 
-import "../../interfaces/tokens/ITokenWrapper.sol";
+import "../interfaces/tokens/ITokenWrapper.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
@@ -18,7 +17,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
     @author Webb Technologies.
     @notice This contract is intended to be used with TokenHandler contract.
  */
-abstract contract TokenWrapperInitializable is ERC20PresetMinterPauser, ITokenWrapper, Initializable {
+abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
     using SafeMath for uint256;
     uint16 feePercentage;
     address payable public feeRecipient;
@@ -136,7 +135,7 @@ abstract contract TokenWrapperInitializable is ERC20PresetMinterPauser, ITokenWr
         address sender,
         address tokenAddress,
         uint256 amount
-    ) override payable public isMinter() isValidWrapping(tokenAddress, feeRecipient, amount) {
+    ) override payable public isMinter isValidWrapping(tokenAddress, feeRecipient, amount) {
         uint costToWrap = getFeeFromAmount(tokenAddress == address(0)
             ? msg.value
             : amount
@@ -169,7 +168,7 @@ abstract contract TokenWrapperInitializable is ERC20PresetMinterPauser, ITokenWr
         address tokenAddress,
         uint256 amount,
         address recipient
-    ) override payable public isMinter() isValidWrapping(tokenAddress, feeRecipient, amount) {
+    ) override payable public isMinter isValidWrapping(tokenAddress, feeRecipient, amount) {
         uint costToWrap = getFeeFromAmount(tokenAddress == address(0)
             ? msg.value
             : amount
@@ -200,7 +199,7 @@ abstract contract TokenWrapperInitializable is ERC20PresetMinterPauser, ITokenWr
         address sender,
         address tokenAddress,
         uint256 amount
-    ) override public isMinter() isValidUnwrapping(tokenAddress, amount) {
+    ) override public isMinter isValidUnwrapping(tokenAddress, amount) {
         // burn wrapped token from sender
         _burn(sender, amount);
         if (tokenAddress == address(0)) {

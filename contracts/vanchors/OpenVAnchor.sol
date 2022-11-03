@@ -42,7 +42,7 @@ contract OpenVAnchor is VAnchorBase {
         _levels,
         _hasher,
         _handler,
-        0
+        255
     ) { token = _token; }
 
     /**

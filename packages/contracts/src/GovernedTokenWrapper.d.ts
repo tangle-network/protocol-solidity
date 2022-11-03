@@ -46,6 +46,8 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
     "hasRole(bytes32,address)": FunctionFragment;
     "historicalTokens(uint256)": FunctionFragment;
     "increaseAllowance(address,uint256)": FunctionFragment;
+    "initialize(address,address,uint256,bool)": FunctionFragment;
+    "initialized()": FunctionFragment;
     "isNativeAllowed()": FunctionFragment;
     "mint(address,uint256)": FunctionFragment;
     "name()": FunctionFragment;
@@ -153,6 +155,14 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "increaseAllowance",
     values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "initialize",
+    values: [string, string, BigNumberish, boolean]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "initialized",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "isNativeAllowed",
@@ -307,6 +317,11 @@ interface GovernedTokenWrapperInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "increaseAllowance",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "initialized",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -571,6 +586,16 @@ export class GovernedTokenWrapper extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    initialize(
+      _feeRecipient: string,
+      _governor: string,
+      _limit: BigNumberish,
+      _isNativeAllowed: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    initialized(overrides?: CallOverrides): Promise<[boolean]>;
+
     isNativeAllowed(overrides?: CallOverrides): Promise<[boolean]>;
 
     mint(
@@ -805,6 +830,16 @@ export class GovernedTokenWrapper extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  initialize(
+    _feeRecipient: string,
+    _governor: string,
+    _limit: BigNumberish,
+    _isNativeAllowed: boolean,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  initialized(overrides?: CallOverrides): Promise<boolean>;
+
   isNativeAllowed(overrides?: CallOverrides): Promise<boolean>;
 
   mint(
@@ -1035,6 +1070,16 @@ export class GovernedTokenWrapper extends BaseContract {
       addedValue: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    initialize(
+      _feeRecipient: string,
+      _governor: string,
+      _limit: BigNumberish,
+      _isNativeAllowed: boolean,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    initialized(overrides?: CallOverrides): Promise<boolean>;
 
     isNativeAllowed(overrides?: CallOverrides): Promise<boolean>;
 
@@ -1368,6 +1413,16 @@ export class GovernedTokenWrapper extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    initialize(
+      _feeRecipient: string,
+      _governor: string,
+      _limit: BigNumberish,
+      _isNativeAllowed: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    initialized(overrides?: CallOverrides): Promise<BigNumber>;
+
     isNativeAllowed(overrides?: CallOverrides): Promise<BigNumber>;
 
     mint(
@@ -1610,6 +1665,16 @@ export class GovernedTokenWrapper extends BaseContract {
       addedValue: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    initialize(
+      _feeRecipient: string,
+      _governor: string,
+      _limit: BigNumberish,
+      _isNativeAllowed: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    initialized(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     isNativeAllowed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

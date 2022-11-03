@@ -371,7 +371,13 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const encOutput2 = outputs[1].encrypt();
 
       const aliceBalanceAfterDeposit = await token.balanceOf(alice.address);
-      expect(aliceBalanceAfterDeposit.toString()).equal(BN(toBN(aliceBalanceBeforeDeposit).sub(toBN(aliceDepositAmount))).toString())
+      expect(aliceBalanceAfterDeposit.toString())
+        .equal(
+          BN(toBN(aliceBalanceBeforeDeposit)
+            .sub(toBN(aliceDepositAmount))
+            .sub(toBN(fee.toString()))
+          ).toString()
+      );
 
       expect(tx)
         .to.emit(idAnchor.contract, 'NewCommitment')

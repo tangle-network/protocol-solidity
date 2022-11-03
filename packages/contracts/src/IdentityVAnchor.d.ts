@@ -65,6 +65,7 @@ interface IdentityVAnchorInterface extends ethers.utils.Interface {
     "nextIndex()": FunctionFragment;
     "nullifierHashes(bytes32)": FunctionFragment;
     "parseChainIdFromResourceId(bytes32)": FunctionFragment;
+    "register((address,bytes))": FunctionFragment;
     "roots(uint256)": FunctionFragment;
     "setHandler(address,uint32)": FunctionFragment;
     "setVerifier(address,uint32)": FunctionFragment;
@@ -228,6 +229,10 @@ interface IdentityVAnchorInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "parseChainIdFromResourceId",
     values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "register",
+    values: [{ owner: string; keyData: BytesLike }]
   ): string;
   encodeFunctionData(functionFragment: "roots", values: [BigNumberish]): string;
   encodeFunctionData(
@@ -456,6 +461,7 @@ interface IdentityVAnchorInterface extends ethers.utils.Interface {
     functionFragment: "parseChainIdFromResourceId",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "register", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "roots", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setHandler", data: BytesLike): Result;
   decodeFunctionResult(
@@ -765,6 +771,11 @@ export class IdentityVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    register(
+      _account: { owner: string; keyData: BytesLike },
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     roots(
       arg0: BigNumberish,
       overrides?: CallOverrides
@@ -1050,6 +1061,11 @@ export class IdentityVAnchor extends BaseContract {
     _resourceId: BytesLike,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
+
+  register(
+    _account: { owner: string; keyData: BytesLike },
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   roots(
     arg0: BigNumberish,
@@ -1345,6 +1361,11 @@ export class IdentityVAnchor extends BaseContract {
       _resourceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    register(
+      _account: { owner: string; keyData: BytesLike },
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     roots(
       arg0: BigNumberish,
@@ -1724,6 +1745,11 @@ export class IdentityVAnchor extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    register(
+      _account: { owner: string; keyData: BytesLike },
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     setHandler(
@@ -2005,6 +2031,11 @@ export class IdentityVAnchor extends BaseContract {
     parseChainIdFromResourceId(
       _resourceId: BytesLike,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    register(
+      _account: { owner: string; keyData: BytesLike },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     roots(

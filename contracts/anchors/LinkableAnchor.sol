@@ -10,6 +10,7 @@ import "../trees/MerkleTree.sol";
 import "../utils/ChainIdWithType.sol";
 import "../interfaces/anchors/ILinkableAnchor.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "hardhat/console.sol";
 
 /**
     @title The LinkableAnchor contract

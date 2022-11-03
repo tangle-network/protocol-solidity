@@ -29,7 +29,6 @@ import { SetupTxVAnchorMock } from './mocks/SetupTxVAnchorMock';
 const BN = require('bn.js');
 
 const path = require('path');
-const { poseidon } = require('circomlibjs');
 const snarkjs = require('snarkjs')
 const { toBN } = require('web3-utils');
 

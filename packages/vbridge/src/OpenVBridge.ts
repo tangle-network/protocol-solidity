@@ -121,9 +121,6 @@ export class OpenVBridge {
     // and anchors in the subArrays of thhe same index should be linked together
     let createdVAnchors: VAnchor[][] = [];
 
-    // Determine the maxEdges for the anchors on this VBridge deployment
-    let maxEdges = vBridgeInput.maxEdges ?? vBridgeInput.chainIDs.length > 2 ? 7 : 1;
-
     for (let chainID of vBridgeInput.chainIDs) {
       const initialGovernor = initialGovernors[chainID];
       // Create the bridgeSide
