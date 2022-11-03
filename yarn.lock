@@ -4994,10 +4994,10 @@
     "@polkadot/rpc-core" "9.2.4"
     "@webb-tools/protocol-substrate-types" "0.0.1"
 
-"@webb-tools/api-derive@0.1.4-113":
-  version "0.1.4-113"
-  resolved "https://registry.yarnpkg.com/@webb-tools/api-derive/-/api-derive-0.1.4-113.tgz#a8e6ffa179852134737a94d82fc2d750199610ad"
-  integrity sha512-GR85xq4inPQKWFBtTWxVqMtA/MchUf0sZjjoxz5VBLJea9cKOO3aPVZriVe9E4vLtOjde5JZRi5yeaX/Df+Xtw==
+"@webb-tools/api-derive@0.1.4-111":
+  version "0.1.4-111"
+  resolved "https://registry.yarnpkg.com/@webb-tools/api-derive/-/api-derive-0.1.4-111.tgz#712b18307b3e71ef27b24cc3ec0e518dc1a26e9f"
+  integrity sha512-GlkIGBWqvO7XmEF51GjfVcDEsDXNikdgscXtnAHlikoRDnkDjn7DAlk9O5HGEu8ydT4R/E+hKlFLiIjxGTiJmg==
   dependencies:
     "@polkadot/api" "9.2.4"
     "@polkadot/rpc-core" "9.2.4"
@@ -5011,13 +5011,13 @@
     "@polkadot/api" "9.2.4"
     "@webb-tools/api-derive" "0.1.4-106"
 
-"@webb-tools/api@0.1.4-113":
-  version "0.1.4-113"
-  resolved "https://registry.yarnpkg.com/@webb-tools/api/-/api-0.1.4-113.tgz#d8a960fb20965538b217e6b45757894c8edb43fe"
-  integrity sha512-oTRBi5GGXuTDWo94POFeKoQpsQEwUxT2QxhgOoqhL3aMsy3Jr3lUzgUAITQzdzjuZtkwDHsVaUUpqUdkXw6pEA==
+"@webb-tools/api@0.1.4-111":
+  version "0.1.4-111"
+  resolved "https://registry.yarnpkg.com/@webb-tools/api/-/api-0.1.4-111.tgz#8b09e904f80720f8a11f977020acec984f2f21bd"
+  integrity sha512-iaJFESuFZXoYZS1hCTBUpkJHmKgLZEcLgadYZRsPZFM3LXWHr1skE/WL8/wBG59Z4s8CArBN0j0zTEE0QnFTiw==
   dependencies:
     "@polkadot/api" "9.2.4"
-    "@webb-tools/api-derive" "0.1.4-113"
+    "@webb-tools/api-derive" "0.1.4-111"
 
 "@webb-tools/bridges@^0.2.6", "@webb-tools/bridges@^0.2.7", "@webb-tools/bridges@^0.2.9":
   version "0.2.9"
@@ -5142,6 +5142,21 @@
     ffjavascript "0.2.55"
     snarkjs "0.4.22"
 
+"@webb-tools/sdk-core@0.1.4-111":
+  version "0.1.4-111"
+  resolved "https://registry.yarnpkg.com/@webb-tools/sdk-core/-/sdk-core-0.1.4-111.tgz#0e0885480f9b0bdbfc0df33044cf7cfbf2b32934"
+  integrity sha512-yMfc1+idLC3TqSshWzhBZCBkxDpVt2Ub4V2ZwZ8RH7PPxAM0JXlCM8rg6B5Kmm5OT1n8w22J9fo9PD/bepyBbA==
+  dependencies:
+    "@polkadot/util" "10.1.7"
+    "@webb-tools/wasm-utils" "0.1.4-111"
+    bignumber.js "^9.0.0"
+    circomlibjs "0.0.8"
+    elliptic "6.5.4"
+    eth-sig-util "^3.0.1"
+    ethers "5.7.0"
+    ffjavascript "0.2.55"
+    snarkjs "0.4.22"
+
 "@webb-tools/sdk-core@0.1.4-113":
   version "0.1.4-113"
   resolved "https://registry.yarnpkg.com/@webb-tools/sdk-core/-/sdk-core-0.1.4-113.tgz#e7da09e8c5274aa78752e4d806defcf116646393"
@@ -5235,16 +5250,16 @@
     ethers "5.7.0"
     ganache "7.4.1"
 
-"@webb-tools/test-utils@0.1.4-113":
-  version "0.1.4-113"
-  resolved "https://registry.yarnpkg.com/@webb-tools/test-utils/-/test-utils-0.1.4-113.tgz#04417f2e6835ea912fa6d5358bb5cd6091b793b2"
-  integrity sha512-YogTlJXMtMnAZlXEkanymsGDp+xq/oYhZP4wMjbY9DYC7HhGbBPbVA7HW7JpCRVou/55u4QGno+i6QJbgksB3Q==
+"@webb-tools/test-utils@0.1.4-111":
+  version "0.1.4-111"
+  resolved "https://registry.yarnpkg.com/@webb-tools/test-utils/-/test-utils-0.1.4-111.tgz#4c6e0c6675b1f136dbddd5c39e4da2a254f76934"
+  integrity sha512-Dtgv44+rd9Tpqt3r2VHWsY1nkwKP1/U/SXSP6rhN5WiMqdjUINFt8Cv3JDX8UiT8oGA2h6prY3T7lD+Y8rw1lw==
   dependencies:
     "@polkadot/api" "9.2.4"
     "@polkadot/keyring" "10.1.7"
-    "@webb-tools/api" "0.1.4-113"
+    "@webb-tools/api" "0.1.4-111"
     "@webb-tools/protocol-solidity" "0.2.6"
-    "@webb-tools/sdk-core" "0.1.4-113"
+    "@webb-tools/sdk-core" "0.1.4-111"
     "@webb-tools/tokens" "0.2.6"
     "@webb-tools/utils" "0.2.6"
     "@webb-tools/vbridge" "0.2.6"
@@ -5360,6 +5375,11 @@
   version "0.1.4-106"
   resolved "https://registry.yarnpkg.com/@webb-tools/wasm-utils/-/wasm-utils-0.1.4-106.tgz#88541220233edf75bed69f259d5392ca05eddf6b"
   integrity sha512-grKAT2/rAChMp0rNdxmAGvhaGaenoLHBcyHHgcJt9OiAt+jJR6/dRJkHsyCjgBWEjmtZGXGQ2rXWGRSmKuGlKQ==
+
+"@webb-tools/wasm-utils@0.1.4-111":
+  version "0.1.4-111"
+  resolved "https://registry.yarnpkg.com/@webb-tools/wasm-utils/-/wasm-utils-0.1.4-111.tgz#6792c237237f1296dc88beeeb9d2750cd31a85b3"
+  integrity sha512-6xoIqNEO+89AGOlsr4xeV/1y75N+EPC3dXKI+dCr7DrD9ugsH+yGZOaSbFJxWh0/LMG1m60t63Dhod2f12TzTw==
 
 "@webb-tools/wasm-utils@0.1.4-113":
   version "0.1.4-113"
