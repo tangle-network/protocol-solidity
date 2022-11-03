@@ -12,6 +12,9 @@ Goal is to support:
 - Non-fungible assets
 - Contract calls from the shielded and ability to re-shield
 
+Goal is to differentiate between
+- Collections of NFTs without taking over too much of the address space
+
 UTXO structure:
 {
     assetID, // If this was an NFT, this becomes to contract address

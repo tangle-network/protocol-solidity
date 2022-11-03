@@ -27,6 +27,18 @@ interface IMultiTokenManager {
     ) external;
 
     /**
+        @notice Registers a new NFT token and deploys the NFTTokenWrapper contract
+        @param _name The name of the ERC20
+        @param _symbol The symbol of the ERC20
+        @param _salt Salt used for matching addresses across chain using CREATE2
+     */
+    function registerNFTToken(
+        string memory _name,
+        string memory _symbol,
+        bytes32 _salt
+    ) external;
+
+    /**
         @notice Sets the governor of the MultiTokenManager contract
         @param _governor The address of the new governor
         @notice Only the governor can call this function

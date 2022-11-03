@@ -54,6 +54,17 @@ contract MultiTokenManager is IMultiTokenManager {
     }
 
     /**
+        Registers an NFT token
+     */
+    function registerNFTToken(
+        string memory _name,
+        string memory _symbol,
+        bytes32 _salt
+    ) override external onlyGovernor {
+
+    }
+
+    /**
         @notice Sets the governor of the MultiTokenManager contract
         @param _governor The address of the new governor
         @notice Only the governor can call this function
