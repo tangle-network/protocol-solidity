@@ -1059,8 +1059,14 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const symbol = 'webbETH';
       const dummyFeeRecipient = "0x0000000000010000000010000000000000000000";
       const wrappedTokenFactory = new WrappedTokenFactory(alice);
-      wrappedToken = await wrappedTokenFactory.deploy(name, symbol, dummyFeeRecipient, alice.address, '10000000000000000000000000', true);
+      wrappedToken = await wrappedTokenFactory.deploy(name, symbol);
       await wrappedToken.deployed();
+      await wrappedToken.initialize(
+        dummyFeeRecipient,
+        alice.address,
+        '10000000000000000000000000',
+        true
+      );
       await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
       const groupId = BigNumber.from(99); // arbitrary
       await wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1));
