@@ -220,7 +220,6 @@ export class IdentityVAnchor implements IAnchor {
       groupId
     );
     await vAnchor.deployed();
-    console.log("MAX EDGES", await vAnchor.maxEdges());
     const createdIdentityVAnchor = new IdentityVAnchor(
       vAnchor,
       signer,

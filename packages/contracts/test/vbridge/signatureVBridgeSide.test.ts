@@ -23,7 +23,7 @@ import {BigNumber} from "ethers";
 import {HARDHAT_PK_1} from "../../hardhatAccounts.js";
 import {CircomUtxo, Keypair} from "@webb-tools/sdk-core";
 
-describe.only("SignatureBridgeSide use", () => {
+describe("SignatureBridgeSide use", () => {
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
   let admin = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
@@ -68,7 +68,7 @@ describe.only("SignatureBridgeSide use", () => {
     bridgeSide = await SignatureBridgeSide.createBridgeSide(admin);
   });
 
-  it.only("should set resource with signature", async () => {
+  it("should set resource with signature", async () => {
     // Create the Hasher and Verifier for the chain
     const hasherInstance = await PoseidonHasher.createPoseidonHasher(admin);
     const verifier = await Verifier.createVerifier(admin);
