@@ -1,4 +1,4 @@
-import {ethers} from "ethers";
+import {ethers} from 'ethers';
 import {
   Verifier as VerifierContract,
   Verifier__factory,
@@ -7,7 +7,7 @@ import {
   Verifier4__factory,
   Verifier5__factory,
   Verifier6__factory,
-} from "@webb-tools/contracts";
+} from '@webb-tools/contracts';
 
 // This convenience wrapper class is used in tests -
 // It represents a deployed contract throughout its life (e.g. maintains all verifiers)

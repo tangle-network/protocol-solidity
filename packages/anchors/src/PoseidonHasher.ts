@@ -1,11 +1,11 @@
-import {ethers} from "ethers";
+import {ethers} from 'ethers';
 import {
   PoseidonHasher as PoseidonHasherContract,
   PoseidonHasher__factory,
   PoseidonT3__factory,
   PoseidonT4__factory,
   PoseidonT6__factory,
-} from "@webb-tools/contracts";
+} from '@webb-tools/contracts';
 
 export class PoseidonHasher {
   contract: PoseidonHasherContract;
@@ -28,9 +28,9 @@ export class PoseidonHasher {
     await poseidonT6Library.deployed();
 
     const libraryAddresses = {
-      ["contracts/hashers/Poseidon.sol:PoseidonT3"]: poseidonT3Library.address,
-      ["contracts/hashers/Poseidon.sol:PoseidonT4"]: poseidonT4Library.address,
-      ["contracts/hashers/Poseidon.sol:PoseidonT6"]: poseidonT6Library.address,
+      ['contracts/hashers/Poseidon.sol:PoseidonT3']: poseidonT3Library.address,
+      ['contracts/hashers/Poseidon.sol:PoseidonT4']: poseidonT4Library.address,
+      ['contracts/hashers/Poseidon.sol:PoseidonT6']: poseidonT6Library.address,
     };
     const factory = new PoseidonHasher__factory(libraryAddresses, signer);
 

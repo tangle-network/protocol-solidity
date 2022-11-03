@@ -1,12 +1,12 @@
-import {BigNumber, ethers} from "ethers";
-import {SignatureBridge, SignatureBridge__factory} from "@webb-tools/contracts";
-import {GovernedTokenWrapper, Treasury} from "@webb-tools/tokens";
-import {TokenWrapperHandler} from "@webb-tools/tokens";
-import {AnchorHandler} from "@webb-tools/anchors";
-import {IAnchor, IBridgeSide, Proposal} from "@webb-tools/interfaces";
-import {TreasuryHandler} from "@webb-tools/tokens";
-import {getChainIdType} from "@webb-tools/utils";
-import {signMessage, toHex} from "@webb-tools/sdk-core";
+import {BigNumber, ethers} from 'ethers';
+import {SignatureBridge, SignatureBridge__factory} from '@webb-tools/contracts';
+import {GovernedTokenWrapper, Treasury} from '@webb-tools/tokens';
+import {TokenWrapperHandler} from '@webb-tools/tokens';
+import {AnchorHandler} from '@webb-tools/anchors';
+import {IAnchor, IBridgeSide, Proposal} from '@webb-tools/interfaces';
+import {TreasuryHandler} from '@webb-tools/tokens';
+import {getChainIdType} from '@webb-tools/utils';
+import {signMessage, toHex} from '@webb-tools/sdk-core';
 
 type SystemSigningFn = (data: any) => Promise<string>;
 
@@ -20,9 +20,9 @@ export class SignatureBridgeSide implements IBridgeSide {
   proposals: Proposal[];
   signingSystemSignFn: SystemSigningFn;
 
-  ANCHOR_HANDLER_MISSING_ERROR = new Error("Cannot connect an anchor without a handler");
-  TOKEN_HANDLER_MISSING_ERROR = new Error("Cannot connect to a token wrapper without a handler");
-  TREASURY_HANDLER_MISSING_ERROR = new Error("Cannot connect to treasury without handler");
+  ANCHOR_HANDLER_MISSING_ERROR = new Error('Cannot connect an anchor without a handler');
+  TOKEN_HANDLER_MISSING_ERROR = new Error('Cannot connect to a token wrapper without a handler');
+  TREASURY_HANDLER_MISSING_ERROR = new Error('Cannot connect to treasury without handler');
 
   private constructor(contract: SignatureBridge, systemSigningFn: SystemSigningFn) {
     this.contract = contract;
@@ -101,7 +101,7 @@ export class SignatureBridgeSide implements IBridgeSide {
    */
   public async transferOwnership(newOwner: string, nonce: number) {
     return this.contract.transferOwnership(newOwner, nonce, {
-      gasLimit: "0x5B8D80",
+      gasLimit: '0x5B8D80',
     });
   }
 
@@ -240,14 +240,14 @@ export class SignatureBridgeSide implements IBridgeSide {
     const functionSig = ethers.utils
       .keccak256(
         ethers.utils.toUtf8Bytes(
-          "adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,bytes)"
+          'adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,bytes)'
         )
       )
       .slice(0, 10)
-      .padEnd(10, "0");
+      .padEnd(10, '0');
     const nonce = Number(await this.contract.proposalNonce()) + 1;
     const unsignedData =
-      "0x" +
+      '0x' +
       // A resource Id for the bridge contract
       toHex(resourceId, 32).substr(2) +
       functionSig.slice(2) +

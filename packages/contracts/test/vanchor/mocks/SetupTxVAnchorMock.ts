@@ -1,6 +1,6 @@
-import {VAnchor} from "@webb-tools/anchors";
+import {VAnchor} from '@webb-tools/anchors';
 
-import {BigNumber, BigNumberish, ethers} from "ethers";
+import {BigNumber, BigNumberish, ethers} from 'ethers';
 import {
   toFixedHex,
   Utxo,
@@ -10,10 +10,10 @@ import {
   NoteGenInput,
   FIELD_SIZE,
   LeafIdentifier,
-} from "@webb-tools/sdk-core";
-import {IVariableAnchorExtData, IVariableAnchorPublicInputs} from "@webb-tools/interfaces";
-import {hexToU8a, u8aToHex, getChainIdType, ZkComponents} from "@webb-tools/utils";
-import {VAnchor as VAnchorContract} from "@webb-tools/contracts";
+} from '@webb-tools/sdk-core';
+import {IVariableAnchorExtData, IVariableAnchorPublicInputs} from '@webb-tools/interfaces';
+import {hexToU8a, u8aToHex, getChainIdType, ZkComponents} from '@webb-tools/utils';
+import {VAnchor as VAnchorContract} from '@webb-tools/contracts';
 
 export class SetupTxVAnchorMock extends VAnchor {
   private rootsForProof: string[];
@@ -69,7 +69,7 @@ export class SetupTxVAnchorMock extends VAnchor {
       hexToU8a(outputs[1].encrypt()),
     ];
 
-    const proofInput: ProvingManagerSetupInput<"vanchor"> = {
+    const proofInput: ProvingManagerSetupInput<'vanchor'> = {
       inputUtxos: inputs,
       leavesMap,
       leafIds,
@@ -100,7 +100,7 @@ export class SetupTxVAnchorMock extends VAnchor {
           null
         ));
 
-    const proof = await this.provingManager.prove("vanchor", proofInput);
+    const proof = await this.provingManager.prove('vanchor', proofInput);
 
     const publicInputs: IVariableAnchorPublicInputs = this.generatePublicInputs(
       proof.proof,

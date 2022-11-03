@@ -3,22 +3,22 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 // @ts-nocheck
-import {artifacts, contract, assert} from "hardhat";
-const TruffleAssert = require("truffle-assertions");
+import {artifacts, contract, assert} from 'hardhat';
+const TruffleAssert = require('truffle-assertions');
 
-const Anchor = artifacts.require("LinkableAnchorMock");
-const Hasher = artifacts.require("KeccakHasher");
-const Verifier = artifacts.require("Verifier");
-const Verifier2 = artifacts.require("Verifier2");
-const Verifier3 = artifacts.require("Verifier3");
-const Verifier4 = artifacts.require("Verifier4");
-const Verifier5 = artifacts.require("Verifier5");
-const Verifier6 = artifacts.require("Verifier6");
-const Token = artifacts.require("ERC20Mock");
+const Anchor = artifacts.require('LinkableAnchorMock');
+const Hasher = artifacts.require('KeccakHasher');
+const Verifier = artifacts.require('Verifier');
+const Verifier2 = artifacts.require('Verifier2');
+const Verifier3 = artifacts.require('Verifier3');
+const Verifier4 = artifacts.require('Verifier4');
+const Verifier5 = artifacts.require('Verifier5');
+const Verifier6 = artifacts.require('Verifier6');
+const Token = artifacts.require('ERC20Mock');
 
 // This test does NOT include all getter methods, just
 // getters that should work with only the constructor called
-contract("LinkableAnchor - [update edges]", async (accounts) => {
+contract('LinkableAnchor - [update edges]', async (accounts) => {
   let AnchorInstance;
   let hasher;
   let v2, v3, v4, v5, v6;
@@ -26,7 +26,7 @@ contract("LinkableAnchor - [update edges]", async (accounts) => {
   let token;
   const merkleTreeHeight = 31;
   const sender = accounts[0];
-  let tokenDenomination = "1000000000000000000"; // 1 ether
+  let tokenDenomination = '1000000000000000000'; // 1 ether
   // function stubs
   let setHandler;
   let updateEdge;
@@ -63,62 +63,62 @@ contract("LinkableAnchor - [update edges]", async (accounts) => {
       });
   });
 
-  it("LinkableAnchor should have same bridge & admin & handler on init", async () => {
+  it('LinkableAnchor should have same bridge & admin & handler on init', async () => {
     assert((await AnchorInstance.handler()) == accounts[0]);
   });
 
-  it("LinkableAnchor handler should only be updatable by handler only", async () => {
+  it('LinkableAnchor handler should only be updatable by handler only', async () => {
     await TruffleAssert.passes(
       setHandler(accounts[1], accounts[0], Number(await AnchorInstance.getProposalNonce()))
     );
     await TruffleAssert.reverts(
       setHandler(accounts[0], accounts[0], Number(await AnchorInstance.getProposalNonce())),
-      "sender is not the handler"
+      'sender is not the handler'
     );
   });
 
-  it("LinkableAnchor edges should be modifiable by handler only (checks newHeight > oldHeight)", async () => {
+  it('LinkableAnchor edges should be modifiable by handler only (checks newHeight > oldHeight)', async () => {
     const edge = {
-      root: "0x1111111111111111111111111111111111111111111111111111111111111111",
+      root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 100,
-      srcResourceID: "0x1111111111111111111111111111111111111111111111111111001000000001",
+      srcResourceID: '0x1111111111111111111111111111111111111111111111111111001000000001',
     };
     const edgeUpdated = {
-      root: "0x2222111111111111111111111111111111111111111111111111111111111111",
+      root: '0x2222111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 101,
-      srcResourceID: "0x1111111111111111111111111111111111111111111111111111001000000001",
+      srcResourceID: '0x1111111111111111111111111111111111111111111111111111001000000001',
     };
 
     await TruffleAssert.passes(updateEdge(edge, accounts[0]));
     await TruffleAssert.passes(updateEdge(edgeUpdated, accounts[0]));
-    await TruffleAssert.reverts(updateEdge(edgeUpdated, accounts[1]), "sender is not the handler");
+    await TruffleAssert.reverts(updateEdge(edgeUpdated, accounts[1]), 'sender is not the handler');
   });
 
-  it("LinkableAnchor edges should be modifiable only if edge exists beforehand", async () => {
+  it('LinkableAnchor edges should be modifiable only if edge exists beforehand', async () => {
     const edge = {
-      root: "0x1111111111111111111111111111111111111111111111111111111111111111",
+      root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 100,
-      srcResourceID: "0x1111111111111111111111111111111111111111111111111111001000000001",
+      srcResourceID: '0x1111111111111111111111111111111111111111111111111111001000000001',
     };
     const edgeUpdated = {
-      root: "0x2222111111111111111111111111111111111111111111111111111111111111",
+      root: '0x2222111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 101,
-      srcResourceID: "0x1111111111111111111111111111111111111111111111111111100000000001",
+      srcResourceID: '0x1111111111111111111111111111111111111111111111111111100000000001',
     };
     await TruffleAssert.passes(updateEdge(edge, accounts[0]));
     await TruffleAssert.reverts(updateEdge(edgeUpdated, accounts[0]));
   });
 
-  it("getLatestNeighborRoots should return updated values", async () => {
+  it('getLatestNeighborRoots should return updated values', async () => {
     const edge = {
-      root: "0x1111111111111111111111111111111111111111111111111111111111111111",
+      root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 100,
-      srcResourceID: "0x1111111111111111111111111111111111111111111111111111001000000001",
+      srcResourceID: '0x1111111111111111111111111111111111111111111111111111001000000001',
     };
     const edgeUpdated = {
-      root: "0x2222111111111111111111111111111111111111111111111111111111111111",
+      root: '0x2222111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 101,
-      srcResourceID: "0x1111111111111111111111111111111111111111111111111111001000000001",
+      srcResourceID: '0x1111111111111111111111111111111111111111111111111111001000000001',
     };
     await TruffleAssert.passes(updateEdge(edge, accounts[0]));
 
@@ -133,22 +133,22 @@ contract("LinkableAnchor - [update edges]", async (accounts) => {
     assert.strictEqual(rootsUpdated[0], edgeUpdated.root);
   });
 
-  it("Updating edge should emit correct EdgeUpdate event", async () => {
+  it('Updating edge should emit correct EdgeUpdate event', async () => {
     const edge = {
-      sourceChainID: "0x100000000001",
-      root: "0x1111111111111111111111111111111111111111111111111111111111111111",
+      sourceChainID: '0x100000000001',
+      root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 100,
-      srcResourceID: "0x1111111111111111111111111111111111111111111111111111100000000001",
+      srcResourceID: '0x1111111111111111111111111111111111111111111111111111100000000001',
     };
     const edgeUpdated = {
-      sourceChainID: "0x100000000001",
-      root: "0x2222111111111111111111111111111111111111111111111111111111111111",
+      sourceChainID: '0x100000000001',
+      root: '0x2222111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 101,
-      srcResourceID: "0x1111111111111111111111111111111111111111111111111111100000000001",
+      srcResourceID: '0x1111111111111111111111111111111111111111111111111111100000000001',
     };
     await updateEdge(edge, accounts[0]);
     const result = await updateEdge(edgeUpdated, accounts[0]);
-    TruffleAssert.eventEmitted(result, "EdgeUpdate", (ev) => {
+    TruffleAssert.eventEmitted(result, 'EdgeUpdate', (ev) => {
       return (
         ev.chainID == parseInt(edgeUpdated.sourceChainID, 16) &&
         ev.latestLeafIndex == edgeUpdated.latestLeafIndex &&

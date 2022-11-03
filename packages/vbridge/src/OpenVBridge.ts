@@ -1,19 +1,19 @@
-import {ethers, BigNumber, BigNumberish} from "ethers";
-import {SignatureBridgeSide} from "@webb-tools/bridges";
+import {ethers, BigNumber, BigNumberish} from 'ethers';
+import {SignatureBridgeSide} from '@webb-tools/bridges';
 import {
   MintableToken,
   GovernedTokenWrapper,
   TreasuryHandler,
   Treasury,
   TokenWrapperHandler,
-} from "@webb-tools/tokens";
-import {PoseidonT3__factory} from "@webb-tools/contracts";
-import Verifier from "./Verifier";
-import {AnchorIdentifier, GovernorConfig, DeployerConfig} from "@webb-tools/interfaces";
-import {AnchorHandler, OpenVAnchor as VAnchor} from "@webb-tools/anchors";
-import {hexToU8a, u8aToHex, getChainIdType, ZkComponents} from "@webb-tools/utils";
-import {CircomUtxo, Utxo} from "@webb-tools/sdk-core";
-import {KeccakHasher__factory} from "@webb-tools/contracts";
+} from '@webb-tools/tokens';
+import {PoseidonT3__factory} from '@webb-tools/contracts';
+import Verifier from './Verifier';
+import {AnchorIdentifier, GovernorConfig, DeployerConfig} from '@webb-tools/interfaces';
+import {AnchorHandler, OpenVAnchor as VAnchor} from '@webb-tools/anchors';
+import {hexToU8a, u8aToHex, getChainIdType, ZkComponents} from '@webb-tools/utils';
+import {CircomUtxo, Utxo} from '@webb-tools/sdk-core';
+import {KeccakHasher__factory} from '@webb-tools/contracts';
 
 export type ExistingAssetInput = {
   // A record of chainId => address of wrappable tokens to be supported in the webbToken.
@@ -48,10 +48,10 @@ export type BridgeConfig = {
   vBridgeSides: Map<number, SignatureBridgeSide>;
 };
 
-const zeroAddress = "0x0000000000000000000000000000000000000000";
+const zeroAddress = '0x0000000000000000000000000000000000000000';
 
 function checkNativeAddress(tokenAddress: string): boolean {
-  if (tokenAddress === zeroAddress || tokenAddress === "0") {
+  if (tokenAddress === zeroAddress || tokenAddress === '0') {
     return true;
   }
   return false;
@@ -153,7 +153,7 @@ export class OpenVBridge {
 
       // Create the Hasher and Verifier for the chain
       const hasherFactory = new KeccakHasher__factory(deployers[chainID]);
-      let hasherInstance = await hasherFactory.deploy({gasLimit: "0x5B8D80"});
+      let hasherInstance = await hasherFactory.deploy({gasLimit: '0x5B8D80'});
       await hasherInstance.deployed();
 
       // Check the addresses of the asset. If it is zero, deploy a native token wrapper
@@ -180,7 +180,7 @@ export class OpenVBridge {
           `webbWETH`,
           treasury.contract.address,
           tokenWrapperHandler.contract.address,
-          "10000000000000000000000000",
+          '10000000000000000000000000',
           allowedNative,
           deployers[chainID]
         );
@@ -251,7 +251,7 @@ export class OpenVBridge {
     vBridgeSide: SignatureBridgeSide,
     vAnchors: VAnchor[]
   ): Promise<void> {
-    let tokenDenomination = "1000000000000000000"; // 1 ether
+    let tokenDenomination = '1000000000000000000'; // 1 ether
     for (let vAnchor of vAnchors) {
       await vBridgeSide.connectAnchorWithSignature(vAnchor);
       await vBridgeSide.executeMinWithdrawalLimitProposalWithSig(

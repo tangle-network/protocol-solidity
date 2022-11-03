@@ -3,22 +3,22 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
-import {artifacts, contract, assert} from "hardhat";
-const TruffleAssert = require("truffle-assertions");
+import {artifacts, contract, assert} from 'hardhat';
+const TruffleAssert = require('truffle-assertions');
 
-const Anchor = artifacts.require("LinkableAnchorMock");
-const Hasher = artifacts.require("KeccakHasher");
-const Verifier = artifacts.require("Verifier");
-const Verifier2 = artifacts.require("Verifier2");
-const Verifier3 = artifacts.require("Verifier3");
-const Verifier4 = artifacts.require("Verifier4");
-const Verifier5 = artifacts.require("Verifier5");
-const Verifier6 = artifacts.require("Verifier6");
-const Token = artifacts.require("ERC20Mock");
+const Anchor = artifacts.require('LinkableAnchorMock');
+const Hasher = artifacts.require('KeccakHasher');
+const Verifier = artifacts.require('Verifier');
+const Verifier2 = artifacts.require('Verifier2');
+const Verifier3 = artifacts.require('Verifier3');
+const Verifier4 = artifacts.require('Verifier4');
+const Verifier5 = artifacts.require('Verifier5');
+const Verifier6 = artifacts.require('Verifier6');
+const Token = artifacts.require('ERC20Mock');
 
 // This test does NOT include all getter methods, just
 // getters that should work with only the constructor called
-contract("LinkableAnchor - [add edges]", async (accounts) => {
+contract('LinkableAnchor - [add edges]', async (accounts) => {
   let AnchorInstance;
   let hasher;
   let v2, v3, v4, v5, v6;
@@ -27,7 +27,7 @@ contract("LinkableAnchor - [add edges]", async (accounts) => {
   const merkleTreeHeight = 31;
   const maxRoots = 1;
   const sender = accounts[0];
-  let tokenDenomination = "1000"; // 1 ether
+  let tokenDenomination = '1000'; // 1 ether
   // function stubs
   let setHandler;
   let updateEdge;
@@ -64,61 +64,61 @@ contract("LinkableAnchor - [add edges]", async (accounts) => {
       });
   });
 
-  it("LinkableAnchor should have same bridge & admin & handler on init", async () => {
+  it('LinkableAnchor should have same bridge & admin & handler on init', async () => {
     assert((await AnchorInstance.handler()) == accounts[0]);
   });
 
-  it("LinkableAnchor edges should be modifiable by handler only", async () => {
+  it('LinkableAnchor edges should be modifiable by handler only', async () => {
     const edge = {
-      root: "0x1111111111111111111111111111111111111111111111111111111111111111",
+      root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 1,
-      srcResourceID: "0x1111111111111111111111111111111111111111111111111111001000000001",
+      srcResourceID: '0x1111111111111111111111111111111111111111111111111111001000000001',
     };
 
     await TruffleAssert.passes(updateEdge(edge, accounts[0]));
-    await TruffleAssert.reverts(updateEdge(edge, accounts[1]), "sender is not the handler");
+    await TruffleAssert.reverts(updateEdge(edge, accounts[1]), 'sender is not the handler');
 
     const roots = await AnchorInstance.getLatestNeighborRoots();
     assert.strictEqual(roots.length, maxRoots);
     assert.strictEqual(roots[0], edge.root);
   });
 
-  it("LinkableAnchor edges should update edgeIndex", async () => {
+  it('LinkableAnchor edges should update edgeIndex', async () => {
     const edge = {
-      root: "0x1111111111111111111111111111111111111111111111111111111111111111",
+      root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 1,
-      srcResourceID: "0x1111111111111111111111111111111111111111111111111111001000000001",
+      srcResourceID: '0x1111111111111111111111111111111111111111111111111111001000000001',
     };
 
     await TruffleAssert.passes(updateEdge(edge, accounts[0]));
 
-    assert((await AnchorInstance.edgeIndex("0x01")) == 0);
+    assert((await AnchorInstance.edgeIndex('0x01')) == 0);
   });
 
-  it("LinkableAnchor should fail to add an edge at capacity", async () => {
+  it('LinkableAnchor should fail to add an edge at capacity', async () => {
     const edge = {
-      root: "0x1111111111111111111111111111111111111111111111111111111111111111",
+      root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 1,
-      srcResourceID: "0x1111111111111111111111111111111111111111111111111111001000000001",
+      srcResourceID: '0x1111111111111111111111111111111111111111111111111111001000000001',
     };
 
     const edge1 = {
-      root: "0x1111111111111111111111111111111111111111111111111111111111111111",
+      root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 1,
-      srcResourceID: "0x1111111111111111111111111111111111111111111111111111001000000001",
+      srcResourceID: '0x1111111111111111111111111111111111111111111111111111001000000001',
     };
 
     await TruffleAssert.passes(updateEdge(edge, accounts[0]));
-    assert((await AnchorInstance.edgeIndex("0x01")) == 0);
+    assert((await AnchorInstance.edgeIndex('0x01')) == 0);
 
-    await TruffleAssert.reverts(updateEdge(edge1, accounts[0], "This Anchor is at capacity"));
+    await TruffleAssert.reverts(updateEdge(edge1, accounts[0], 'This Anchor is at capacity'));
   });
 
-  it("latestNeighborRoots should return correct roots", async () => {
+  it('latestNeighborRoots should return correct roots', async () => {
     const edge = {
-      root: "0x1111111111111111111111111111111111111111111111111111111111111111",
+      root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 1,
-      srcResourceID: "0x1111111111111111111111111111111111111111111111111111001000000001",
+      srcResourceID: '0x1111111111111111111111111111111111111111111111111111001000000001',
     };
 
     await TruffleAssert.passes(updateEdge(edge, accounts[0]));
@@ -128,17 +128,17 @@ contract("LinkableAnchor - [add edges]", async (accounts) => {
     assert.strictEqual(roots[0], edge.root);
   });
 
-  it("Adding edge should emit correct EdgeAddition event", async () => {
+  it('Adding edge should emit correct EdgeAddition event', async () => {
     const edge = {
-      sourceChainID: "0x100000000001",
-      root: "0x1111111111111111111111111111111111111111111111111111111111111111",
+      sourceChainID: '0x100000000001',
+      root: '0x1111111111111111111111111111111111111111111111111111111111111111',
       latestLeafIndex: 1,
-      srcResourceID: "0x1111111111111111111111111111111111111111111111111111100000000001",
+      srcResourceID: '0x1111111111111111111111111111111111111111111111111111100000000001',
     };
 
     const result = await updateEdge(edge, accounts[0]);
 
-    TruffleAssert.eventEmitted(result, "EdgeAddition", (ev) => {
+    TruffleAssert.eventEmitted(result, 'EdgeAddition', (ev) => {
       return (
         ev.chainID == parseInt(edge.sourceChainID, 16) &&
         ev.latestLeafIndex == edge.latestLeafIndex &&

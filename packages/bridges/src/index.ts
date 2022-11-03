@@ -1,2 +1,2 @@
-export {SignatureBridgeSide} from "./SignatureBridgeSide";
-export {Verifier} from "./Verifier";
+export {SignatureBridgeSide} from './SignatureBridgeSide';
+export {Verifier} from './Verifier';

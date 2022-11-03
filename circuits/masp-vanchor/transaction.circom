@@ -7,15 +7,24 @@ include "../merkle-tree/manyMerkleProof.circom";
 include "../vanchor/keypair.circom";
 
 /*
+Goal is to support:
+- Fungible assets
+- Non-fungible assets
+- Contract calls from the shielded and ability to re-shield
+
 UTXO structure:
 {
-    assetID
+    assetID, // If this was an NFT, this becomes to contract address
+    tokenID, // If this is non-zero, it is an NFT
     amount,
-    Hash {
-        chainID, // destination chain identifier
-        pubkey,
-        blinding, // random number
-    }
+    partialUtxoCommitment,
+}
+
+Partial UTXO structure:
+{
+    chainID, // destination chain identifier
+    pubkey,
+    blinding, // random number
 }
 
 commitment = hash(assetID, amount, hash(chainID, pubKey, blinding))

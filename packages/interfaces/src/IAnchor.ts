@@ -1,6 +1,6 @@
-import {AnchorBase} from "@webb-tools/contracts";
-import {MerkleProof, Utxo} from "@webb-tools/sdk-core";
-import {ethers} from "ethers";
+import {AnchorBase} from '@webb-tools/contracts';
+import {MerkleProof, Utxo} from '@webb-tools/sdk-core';
+import {ethers} from 'ethers';
 
 export interface IAnchor {
   signer: ethers.Signer;

@@ -3,18 +3,18 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 // @ts-nocheck
-const assert = require("assert");
-import {ethers, network} from "hardhat";
-import BN from "bn.js";
-import {toFixedHex, toHex} from "@webb-tools/sdk-core";
-import EC from "elliptic";
-const ec = new EC.ec("secp256k1");
-const TruffleAssert = require("truffle-assertions");
+const assert = require('assert');
+import {ethers, network} from 'hardhat';
+import BN from 'bn.js';
+import {toFixedHex, toHex} from '@webb-tools/sdk-core';
+import EC from 'elliptic';
+const ec = new EC.ec('secp256k1');
+const TruffleAssert = require('truffle-assertions');
 
 // Convenience wrapper classes for contract classes
-import {Governable__factory} from "../../typechain";
+import {Governable__factory} from '../../typechain';
 
-describe("Governable Contract", () => {
+describe('Governable Contract', () => {
   let governableInstance;
   let sender;
   let nextGovernor;
@@ -32,37 +32,37 @@ describe("Governable Contract", () => {
     await governableInstance.deployed();
   });
 
-  it("should check governor", async () => {
+  it('should check governor', async () => {
     assert.strictEqual(await governableInstance.governor(), sender.address);
   });
 
-  it("failing test: non-governor should not be able to transfer ownership", async () => {
+  it('failing test: non-governor should not be able to transfer ownership', async () => {
     await TruffleAssert.reverts(
       governableInstance.connect(nextGovernor).transferOwnership(nextGovernor.address, 1),
-      "Governable: caller is not the governor"
+      'Governable: caller is not the governor'
     );
   });
 
-  it("test renounce ownership", async () => {
+  it('test renounce ownership', async () => {
     await governableInstance.renounceOwnership();
     assert.strictEqual(
       (await governableInstance.governor()).toString(),
-      "0x0000000000000000000000000000000000000000"
+      '0x0000000000000000000000000000000000000000'
     );
 
     await TruffleAssert.reverts(
       governableInstance.connect(sender).transferOwnership(nextGovernor.address, 1),
-      "Governable: caller is not the governor"
+      'Governable: caller is not the governor'
     );
   });
 
-  it("should check ownership is transferred to new governor via signed public key", async () => {
+  it('should check ownership is transferred to new governor via signed public key', async () => {
     const wallet = ethers.Wallet.createRandom();
-    const key = ec.keyFromPrivate(wallet.privateKey.slice(2), "hex");
-    const pubkey = key.getPublic().encode("hex").slice(2);
-    const publicKey = "0x" + pubkey;
+    const key = ec.keyFromPrivate(wallet.privateKey.slice(2), 'hex');
+    const pubkey = key.getPublic().encode('hex').slice(2);
+    const publicKey = '0x' + pubkey;
     let nextGovernorAddress = ethers.utils.getAddress(
-      "0x" + ethers.utils.keccak256(publicKey).slice(-40)
+      '0x' + ethers.utils.keccak256(publicKey).slice(-40)
     );
     let firstRotationKey = nextGovernorAddress;
     await governableInstance.transferOwnership(nextGovernorAddress, 1);
@@ -72,16 +72,16 @@ describe("Governable Contract", () => {
     // msg to be signed is hash(nonce + pubkey)
     const dummy = ethers.Wallet.createRandom();
     const dummyPubkey = ec
-      .keyFromPrivate(dummy.privateKey, "hex")
+      .keyFromPrivate(dummy.privateKey, 'hex')
       .getPublic()
-      .encode("hex")
+      .encode('hex')
       .slice(2);
     let prehashed = nonceString + dummyPubkey;
     let msg = ethers.utils.arrayify(ethers.utils.keccak256(prehashed));
     let signature = key.sign(msg);
     let expandedSig = {
-      r: "0x" + signature.r.toString("hex"),
-      s: "0x" + signature.s.toString("hex"),
+      r: '0x' + signature.r.toString('hex'),
+      s: '0x' + signature.s.toString('hex'),
       v: signature.recoveryParam + 27,
     };
 
@@ -91,14 +91,14 @@ describe("Governable Contract", () => {
     try {
       sig = ethers.utils.joinSignature(expandedSig);
     } catch (e) {
-      expandedSig.s = "0x" + new BN(ec.curve.n).sub(signature.s).toString("hex");
+      expandedSig.s = '0x' + new BN(ec.curve.n).sub(signature.s).toString('hex');
       expandedSig.v = expandedSig.v === 27 ? 28 : 27;
       sig = ethers.utils.joinSignature(expandedSig);
     }
 
-    await governableInstance.transferOwnershipWithSignaturePubKey("0x" + dummyPubkey, 2, sig);
+    await governableInstance.transferOwnershipWithSignaturePubKey('0x' + dummyPubkey, 2, sig);
     nextGovernorAddress = ethers.utils.getAddress(
-      "0x" + ethers.utils.keccak256("0x" + dummyPubkey).slice(-40)
+      '0x' + ethers.utils.keccak256('0x' + dummyPubkey).slice(-40)
     );
     assert.strictEqual(await governableInstance.governor(), nextGovernorAddress);
 
@@ -108,21 +108,21 @@ describe("Governable Contract", () => {
     assert.strictEqual(firstRotationKey, events[2].args.previousOwner);
   });
 
-  it("proposer set data should update properly", async () => {
+  it('proposer set data should update properly', async () => {
     // Transfer ownership to an address we can sign with
-    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), "0");
+    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '0');
     const wallet = ethers.Wallet.createRandom();
-    const key = ec.keyFromPrivate(wallet.privateKey.slice(2), "hex");
-    const pubkey = key.getPublic().encode("hex").slice(2);
-    const publicKey = "0x" + pubkey;
+    const key = ec.keyFromPrivate(wallet.privateKey.slice(2), 'hex');
+    const pubkey = key.getPublic().encode('hex').slice(2);
+    const publicKey = '0x' + pubkey;
     let nextGovernorAddress = ethers.utils.getAddress(
-      "0x" + ethers.utils.keccak256(publicKey).slice(-40)
+      '0x' + ethers.utils.keccak256(publicKey).slice(-40)
     );
     await governableInstance.transferOwnership(nextGovernorAddress, 1);
-    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), "1");
+    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '1');
 
     const dummyProposerSetRoot =
-      "0x5555555555555555555555555555555555555555555555555555555555555555";
+      '0x5555555555555555555555555555555555555555555555555555555555555555';
     const dummyAverageSessionLengthInMilliseconds = 50000;
     const dummyNumOfProposers = 4;
     const dummyProposerSetUpdateNonce = 1;
@@ -136,8 +136,8 @@ describe("Governable Contract", () => {
     let msg = ethers.utils.arrayify(ethers.utils.keccak256(prehashed));
     let signature = key.sign(msg);
     let expandedSig = {
-      r: "0x" + signature.r.toString("hex"),
-      s: "0x" + signature.s.toString("hex"),
+      r: '0x' + signature.r.toString('hex'),
+      s: '0x' + signature.s.toString('hex'),
       v: signature.recoveryParam + 27,
     };
 
@@ -147,7 +147,7 @@ describe("Governable Contract", () => {
     try {
       sig = ethers.utils.joinSignature(expandedSig);
     } catch (e) {
-      expandedSig.s = "0x" + new BN(ec.curve.n).sub(signature.s).toString("hex");
+      expandedSig.s = '0x' + new BN(ec.curve.n).sub(signature.s).toString('hex');
       expandedSig.v = expandedSig.v === 27 ? 28 : 27;
       sig = ethers.utils.joinSignature(expandedSig);
     }
@@ -162,35 +162,35 @@ describe("Governable Contract", () => {
 
     assert.strictEqual(
       (await governableInstance.averageSessionLengthInMillisecs()).toString(),
-      "50000"
+      '50000'
     );
-    assert.strictEqual((await governableInstance.proposerSetUpdateNonce()).toString(), "1");
-    assert.strictEqual((await governableInstance.numOfProposers()).toString(), "4");
+    assert.strictEqual((await governableInstance.proposerSetUpdateNonce()).toString(), '1');
+    assert.strictEqual((await governableInstance.numOfProposers()).toString(), '4');
     assert.strictEqual(await governableInstance.proposerSetRoot(), dummyProposerSetRoot);
   });
 
-  it("should vote validly and change the governor", async () => {
+  it('should vote validly and change the governor', async () => {
     const voteStruct = {
       leafIndex: 0,
-      siblingPathNodes: ["0x0000000000000000000000000000000000000000000000000000000000000001"],
-      proposedGovernor: "0x1111111111111111111111111111111111111111",
+      siblingPathNodes: ['0x0000000000000000000000000000000000000000000000000000000000000001'],
+      proposedGovernor: '0x1111111111111111111111111111111111111111',
     };
 
     await TruffleAssert.reverts(
       governableInstance.voteInFavorForceSetGovernor(voteStruct),
-      "Invalid time for vote"
+      'Invalid time for vote'
     );
 
-    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), "0");
+    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '0');
     const wallet = ethers.Wallet.createRandom();
-    const key = ec.keyFromPrivate(wallet.privateKey.slice(2), "hex");
-    const pubkey = key.getPublic().encode("hex").slice(2);
-    const publicKey = "0x" + pubkey;
+    const key = ec.keyFromPrivate(wallet.privateKey.slice(2), 'hex');
+    const pubkey = key.getPublic().encode('hex').slice(2);
+    const publicKey = '0x' + pubkey;
     let nextGovernorAddress = ethers.utils.getAddress(
-      "0x" + ethers.utils.keccak256(publicKey).slice(-40)
+      '0x' + ethers.utils.keccak256(publicKey).slice(-40)
     );
     await governableInstance.transferOwnership(nextGovernorAddress, 1);
-    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), "1");
+    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '1');
 
     const signers = await ethers.getSigners();
 
@@ -230,8 +230,8 @@ describe("Governable Contract", () => {
     let msg = ethers.utils.arrayify(ethers.utils.keccak256(prehashed));
     let signature = key.sign(msg);
     let expandedSig = {
-      r: "0x" + signature.r.toString("hex"),
-      s: "0x" + signature.s.toString("hex"),
+      r: '0x' + signature.r.toString('hex'),
+      s: '0x' + signature.s.toString('hex'),
       v: signature.recoveryParam + 27,
     };
 
@@ -241,7 +241,7 @@ describe("Governable Contract", () => {
     try {
       sig = ethers.utils.joinSignature(expandedSig);
     } catch (e) {
-      expandedSig.s = "0x" + new BN(ec.curve.n).sub(signature.s).toString("hex");
+      expandedSig.s = '0x' + new BN(ec.curve.n).sub(signature.s).toString('hex');
       expandedSig.v = expandedSig.v === 27 ? 28 : 27;
       sig = ethers.utils.joinSignature(expandedSig);
     }
@@ -256,57 +256,57 @@ describe("Governable Contract", () => {
 
     assert.strictEqual(
       (await governableInstance.averageSessionLengthInMillisecs()).toString(),
-      "50000"
+      '50000'
     );
-    assert.strictEqual((await governableInstance.proposerSetUpdateNonce()).toString(), "1");
-    assert.strictEqual((await governableInstance.numOfProposers()).toString(), "4");
+    assert.strictEqual((await governableInstance.proposerSetUpdateNonce()).toString(), '1');
+    assert.strictEqual((await governableInstance.numOfProposers()).toString(), '4');
     assert.strictEqual(await governableInstance.proposerSetRoot(), proposerSetRoot);
-    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), "2");
-    await network.provider.send("evm_increaseTime", [600]);
+    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '2');
+    await network.provider.send('evm_increaseTime', [600]);
 
     const voteProposer0 = {
       leafIndex: 0,
       siblingPathNodes: [hashProposer1, hashProposer23],
-      proposedGovernor: "0x1111111111111111111111111111111111111111",
+      proposedGovernor: '0x1111111111111111111111111111111111111111',
     };
 
     await governableInstance.connect(proposer0Signer).voteInFavorForceSetGovernor(voteProposer0);
 
     assert.notEqual(
       await governableInstance.governor(),
-      "0x1111111111111111111111111111111111111111"
+      '0x1111111111111111111111111111111111111111'
     );
 
     await TruffleAssert.reverts(
       governableInstance.connect(proposer0Signer).voteInFavorForceSetGovernor(voteProposer0),
-      "already voted"
+      'already voted'
     );
 
     const voteProposer1 = {
       leafIndex: 1,
       siblingPathNodes: [hashProposer0, hashProposer23],
-      proposedGovernor: "0x1111111111111111111111111111111111111111",
+      proposedGovernor: '0x1111111111111111111111111111111111111111',
     };
 
     await governableInstance.connect(proposer1Signer).voteInFavorForceSetGovernor(voteProposer1);
 
     assert.notEqual(
       await governableInstance.governor(),
-      "0x1111111111111111111111111111111111111111"
+      '0x1111111111111111111111111111111111111111'
     );
 
     const voteProposer2 = {
       leafIndex: 2,
       siblingPathNodes: [hashProposer3, hashProposer01],
-      proposedGovernor: "0x1111111111111111111111111111111111111111",
+      proposedGovernor: '0x1111111111111111111111111111111111111111',
     };
 
     await governableInstance.connect(proposer2Signer).voteInFavorForceSetGovernor(voteProposer2);
 
     assert.strictEqual(
       await governableInstance.governor(),
-      "0x1111111111111111111111111111111111111111"
+      '0x1111111111111111111111111111111111111111'
     );
-    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), "3");
+    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '3');
   });
 });

@@ -1,17 +1,17 @@
-import {ethers, BigNumber, BigNumberish} from "ethers";
-import {SignatureBridgeSide} from "@webb-tools/bridges";
+import {ethers, BigNumber, BigNumberish} from 'ethers';
+import {SignatureBridgeSide} from '@webb-tools/bridges';
 import {
   MintableToken,
   GovernedTokenWrapper,
   TreasuryHandler,
   Treasury,
   TokenWrapperHandler,
-} from "@webb-tools/tokens";
-import Verifier from "./Verifier";
-import {AnchorIdentifier, GovernorConfig, DeployerConfig} from "@webb-tools/interfaces";
-import {AnchorHandler, PoseidonHasher, VAnchor} from "@webb-tools/anchors";
-import {hexToU8a, u8aToHex, getChainIdType, ZkComponents} from "@webb-tools/utils";
-import {CircomUtxo, Utxo} from "@webb-tools/sdk-core";
+} from '@webb-tools/tokens';
+import Verifier from './Verifier';
+import {AnchorIdentifier, GovernorConfig, DeployerConfig} from '@webb-tools/interfaces';
+import {AnchorHandler, PoseidonHasher, VAnchor} from '@webb-tools/anchors';
+import {hexToU8a, u8aToHex, getChainIdType, ZkComponents} from '@webb-tools/utils';
+import {CircomUtxo, Utxo} from '@webb-tools/sdk-core';
 
 export type ExistingAssetInput = {
   // A record of chainId => address of wrappable tokens to be supported in the webbToken.
@@ -46,10 +46,10 @@ export type BridgeConfig = {
   vBridgeSides: Map<number, SignatureBridgeSide>;
 };
 
-const zeroAddress = "0x0000000000000000000000000000000000000000";
+const zeroAddress = '0x0000000000000000000000000000000000000000';
 
 function checkNativeAddress(tokenAddress: string): boolean {
-  if (tokenAddress === zeroAddress || tokenAddress === "0") {
+  if (tokenAddress === zeroAddress || tokenAddress === '0') {
     return true;
   }
   return false;
@@ -184,7 +184,7 @@ export class VBridge {
           `webbWETH`,
           treasury.contract.address,
           tokenWrapperHandler.contract.address,
-          "10000000000000000000000000",
+          '10000000000000000000000000',
           allowedNative,
           deployers[chainID]
         );
@@ -261,7 +261,7 @@ export class VBridge {
     vBridgeSide: SignatureBridgeSide,
     vAnchors: VAnchor[]
   ): Promise<void> {
-    let tokenDenomination = "1000000000000000000"; // 1 ether
+    let tokenDenomination = '1000000000000000000'; // 1 ether
     for (let vAnchor of vAnchors) {
       await vBridgeSide.connectAnchorWithSignature(vAnchor);
       await vBridgeSide.executeMinWithdrawalLimitProposalWithSig(
@@ -343,28 +343,28 @@ export class VBridge {
     const signerAddress = await signer.getAddress();
     const vAnchor = this.getVAnchor(chainId);
     if (!vAnchor) {
-      throw new Error("VAnchor does not exist on this chain");
+      throw new Error('VAnchor does not exist on this chain');
     }
     await vAnchor.setSigner(signer);
 
     // Check that input dest chain is this chain
     for (let i = 0; i < inputs.length; i++) {
       if (inputs[i].chainId.toString() !== chainId.toString()) {
-        throw new Error("Trying to spend an input with wrong destination chainId");
+        throw new Error('Trying to spend an input with wrong destination chainId');
       }
     }
 
     //check that output origin chain is this chain
     for (let i = 0; i < outputs.length; i++) {
       if (outputs[i].originChainId.toString() !== chainId.toString()) {
-        throw new Error("Trying to form an output with the wrong originChainId");
+        throw new Error('Trying to form an output with the wrong originChainId');
       }
     }
 
     const tokenAddress = await vAnchor.contract.token();
 
     if (!tokenAddress) {
-      throw new Error("Token not supported");
+      throw new Error('Token not supported');
     }
 
     const tokenInstance = await MintableToken.tokenFromAddress(tokenAddress, signer);
@@ -409,12 +409,12 @@ export class VBridge {
     while (inputs.length !== 2 && inputs.length < 16) {
       inputs.push(
         await CircomUtxo.generateUtxo({
-          curve: "Bn254",
-          backend: "Circom",
+          curve: 'Bn254',
+          backend: 'Circom',
           chainId: chainId.toString(),
           originChainId: chainId.toString(),
-          index: "0",
-          amount: "0",
+          index: '0',
+          amount: '0',
         })
       );
     }
@@ -438,7 +438,7 @@ export class VBridge {
     const signerAddress = await signer.getAddress();
     const vAnchor = this.getVAnchor(chainId);
     if (!vAnchor) {
-      throw new Error("VAnchor does not exist on this chain");
+      throw new Error('VAnchor does not exist on this chain');
     }
     await vAnchor.setSigner(signer);
 
@@ -446,14 +446,14 @@ export class VBridge {
     //Check that input dest chain is this chain
     for (let i = 0; i < inputs.length; i++) {
       if (inputs[i].chainId.toString() !== chainId.toString()) {
-        throw new Error("Trying to spend an input with wrong destination chainId");
+        throw new Error('Trying to spend an input with wrong destination chainId');
       }
     }
 
     //check that output origin chain is this chain
     for (let i = 0; i < outputs.length; i++) {
       if (outputs[i].originChainId.toString() !== chainId.toString()) {
-        throw new Error("Trying to form an output with the wrong originChainId");
+        throw new Error('Trying to form an output with the wrong originChainId');
       }
     }
 
@@ -500,12 +500,12 @@ export class VBridge {
     while (inputs.length !== 2 && inputs.length < 16) {
       inputs.push(
         await CircomUtxo.generateUtxo({
-          curve: "Bn254",
-          backend: "Circom",
+          curve: 'Bn254',
+          backend: 'Circom',
           chainId: chainId.toString(),
           originChainId: chainId.toString(),
-          index: "0",
-          amount: "0",
+          index: '0',
+          amount: '0',
         })
       );
     }

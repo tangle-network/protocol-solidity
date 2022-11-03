@@ -1,19 +1,19 @@
-import {ethers} from "ethers";
-import {getChainIdType} from "@webb-tools/utils";
-import {toHex, generateFunctionSigHash} from "@webb-tools/sdk-core";
+import {ethers} from 'ethers';
+import {getChainIdType} from '@webb-tools/utils';
+import {toHex, generateFunctionSigHash} from '@webb-tools/sdk-core';
 import {
   GovernedTokenWrapper as GovernedTokenWrapperContract,
   GovernedTokenWrapper__factory,
-} from "@webb-tools/contracts";
+} from '@webb-tools/contracts';
 
 export class GovernedTokenWrapper {
   contract: GovernedTokenWrapperContract;
   signer: ethers.Signer;
 
-  ADD_TOKEN_SIGNATURE = "add(address,uint32)";
-  REMOVE_TOKEN_SIGNATURE = "remove(address,uint32)";
-  SET_FEE_SIGNATURE = "setFee(uint16,uint32)";
-  FEE_RECIPIENT_SIGNATURE = "setFeeRecipient(address,uint32)";
+  ADD_TOKEN_SIGNATURE = 'add(address,uint32)';
+  REMOVE_TOKEN_SIGNATURE = 'remove(address,uint32)';
+  SET_FEE_SIGNATURE = 'setFee(uint16,uint32)';
+  FEE_RECIPIENT_SIGNATURE = 'setFeeRecipient(address,uint32)';
 
   constructor(contract: GovernedTokenWrapperContract, signer: ethers.Signer) {
     this.contract = contract;
@@ -46,7 +46,7 @@ export class GovernedTokenWrapper {
   }
 
   public async grantMinterRole(address: string) {
-    const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("MINTER_ROLE"));
+    const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
     const tx = await this.contract.grantRole(MINTER_ROLE, address);
     await tx.wait();
     return;
@@ -69,11 +69,11 @@ export class GovernedTokenWrapper {
     const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
 
     return (
-      "0x" +
+      '0x' +
       toHex(resourceID, 32).substr(2) +
       functionSig.slice(2) +
       toHex(nonce, 4).substr(2) +
-      tokenAddress.padEnd(42, "0").slice(2)
+      tokenAddress.padEnd(42, '0').slice(2)
     );
   }
 
@@ -83,11 +83,11 @@ export class GovernedTokenWrapper {
     const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
 
     return (
-      "0x" +
+      '0x' +
       toHex(resourceID, 32).substr(2) +
       functionSig.slice(2) +
       toHex(nonce, 4).substr(2) +
-      tokenAddress.padEnd(42, "0").slice(2)
+      tokenAddress.padEnd(42, '0').slice(2)
     );
   }
 
@@ -98,7 +98,7 @@ export class GovernedTokenWrapper {
     const feeString = toHex(fee, 2);
 
     return (
-      "0x" +
+      '0x' +
       resourceID.substr(2) +
       functionSig.slice(2) +
       toHex(nonce, 4).substr(2) +
@@ -112,11 +112,11 @@ export class GovernedTokenWrapper {
     const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
 
     return (
-      "0x" +
+      '0x' +
       toHex(resourceID, 32).substr(2) +
       functionSig.slice(2) +
       toHex(nonce, 4).substr(2) +
-      feeRecipient.padEnd(42, "0").slice(2)
+      feeRecipient.padEnd(42, '0').slice(2)
     );
   }
 }

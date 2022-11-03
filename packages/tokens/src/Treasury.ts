@@ -1,14 +1,14 @@
-import {BigNumber, ethers} from "ethers";
-import {getChainIdType} from "@webb-tools/utils";
-import {toHex, generateFunctionSigHash, toFixedHex} from "@webb-tools/sdk-core";
-import {Treasury as TreasuryContract, Treasury__factory} from "@webb-tools/contracts";
+import {BigNumber, ethers} from 'ethers';
+import {getChainIdType} from '@webb-tools/utils';
+import {toHex, generateFunctionSigHash, toFixedHex} from '@webb-tools/sdk-core';
+import {Treasury as TreasuryContract, Treasury__factory} from '@webb-tools/contracts';
 
 export class Treasury {
   contract: TreasuryContract;
   signer: ethers.Signer;
 
-  SET_HANDLER_SIGNATURE = "setHandler(address,uint32)";
-  RESCUE_TOKENS_SIGNATURE = "rescueTokens(address,address,uint256,uint32)";
+  SET_HANDLER_SIGNATURE = 'setHandler(address,uint32)';
+  RESCUE_TOKENS_SIGNATURE = 'rescueTokens(address,address,uint256,uint32)';
 
   constructor(contract: TreasuryContract, signer: ethers.Signer) {
     this.contract = contract;
@@ -44,11 +44,11 @@ export class Treasury {
     const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
 
     return (
-      "0x" +
+      '0x' +
       toHex(resourceID, 32).substr(2) +
       functionSig.slice(2) +
       toHex(nonce, 4).substr(2) +
-      newHandler.padEnd(42, "0").slice(2)
+      newHandler.padEnd(42, '0').slice(2)
     );
   }
 
@@ -65,12 +65,12 @@ export class Treasury {
     const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
 
     return (
-      "0x" +
+      '0x' +
       toHex(resourceID, 32).substr(2) +
       functionSig.slice(2) +
       toHex(nonce, 4).substr(2) +
-      tokenAddress.padEnd(42, "0").slice(2) +
-      to.padEnd(42, "0").slice(2) +
+      tokenAddress.padEnd(42, '0').slice(2) +
+      to.padEnd(42, '0').slice(2) +
       toFixedHex(amountToRescue).slice(2)
     );
   }

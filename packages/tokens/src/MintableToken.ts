@@ -1,5 +1,5 @@
-import {BigNumber, BigNumberish, ContractTransaction, ethers} from "ethers";
-import {ERC20PresetMinterPauser, ERC20PresetMinterPauser__factory} from "@webb-tools/contracts";
+import {BigNumber, BigNumberish, ContractTransaction, ethers} from 'ethers';
+import {ERC20PresetMinterPauser, ERC20PresetMinterPauser__factory} from '@webb-tools/contracts';
 
 class MintableToken {
   contract: ERC20PresetMinterPauser;
@@ -45,8 +45,8 @@ class MintableToken {
   }
 
   public async approveSpending(spender: string): Promise<ContractTransaction> {
-    return this.contract.approve(spender, "10000000000000000000000000000000000", {
-      gasLimit: "0x5B8D80",
+    return this.contract.approve(spender, '10000000000000000000000000000000000', {
+      gasLimit: '0x5B8D80',
     });
   }
 
@@ -57,7 +57,7 @@ class MintableToken {
   }
 
   public grantMinterRole(address: string) {
-    const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("MINTER_ROLE"));
+    const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
     return this.contract.grantRole(MINTER_ROLE, address);
   }
 }

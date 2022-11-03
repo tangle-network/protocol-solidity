@@ -3,7 +3,7 @@
 
 type HexString = `0x${string}`;
 
-const CHR = "0123456789abcdef";
+const CHR = '0123456789abcdef';
 const U8 = new Array<number>(256);
 const U16 = new Array<number>(256 * 256);
 
@@ -43,7 +43,7 @@ export function hexToU8a(value?: HexString | string | null, bitLength = -1): Uin
     return new Uint8Array();
   }
 
-  let s = value.startsWith("0x") ? 2 : 0;
+  let s = value.startsWith('0x') ? 2 : 0;
 
   const decLength = Math.ceil((value.length - s) / 2);
   const endLength = Math.ceil(bitLength === -1 ? decLength : bitLength / 8);
