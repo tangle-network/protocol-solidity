@@ -1016,24 +1016,24 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
     it('should reject tampering with extData relayer', async () => {
       const invalidExtData = aliceExtData;
-      invalidExtData.relayer = toFixedHex('0x0000000000000000000000007a1f9131357404ef86d7c38dbffed2da70321337', 20),
-        await expect(
-          idAnchor.contract.transact({ ...publicInputs }, invalidExtData, { gasLimit: '0x5B8D80' })
-        ).to.be.revertedWith('Incorrect external data hash')
+      invalidExtData.relayer = toFixedHex('0x0000000000000000000000007a1f9131357404ef86d7c38dbffed2da70321337', 20)
+      await expect(
+        idAnchor.contract.transact({ ...publicInputs }, invalidExtData, { gasLimit: '0x5B8D80' })
+      ).to.be.revertedWith('Incorrect external data hash')
     })
     it('should reject tampering with extData extAmount', async () => {
       const invalidExtData = aliceExtData;
-      invalidExtData.extAmount = toFixedHex(aliceDepositAmount * 100, 20),
-        await expect(
-          idAnchor.contract.transact({ ...publicInputs }, invalidExtData, { gasLimit: '0x5B8D80' })
-        ).to.be.revertedWith('Incorrect external data hash')
+      invalidExtData.extAmount = toFixedHex(aliceDepositAmount * 100, 20)
+      await expect(
+        idAnchor.contract.transact({ ...publicInputs }, invalidExtData, { gasLimit: '0x5B8D80' })
+      ).to.be.revertedWith('Incorrect external data hash')
     })
     it('should reject tampering with extData fee', async () => {
       const invalidExtData = aliceExtData;
-      invalidExtData.fee = toFixedHex(fee + BigInt(1000), 20),
-        await expect(
-          idAnchor.contract.transact({ ...publicInputs }, invalidExtData, { gasLimit: '0x5B8D80' })
-        ).to.be.revertedWith('Incorrect external data hash')
+      invalidExtData.fee = toFixedHex(fee + BigInt(1000), 20)
+      await expect(
+        idAnchor.contract.transact({ ...publicInputs }, invalidExtData, { gasLimit: '0x5B8D80' })
+      ).to.be.revertedWith('Incorrect external data hash')
     })
   });
   describe('# transactWrap', () => {
