@@ -122,10 +122,10 @@ Populate fixtures from the submodules:
 yarn fetch:fixtures
 ```
 
-To compile contracts:
+To compile contracts and build typescript interfaces
 
 ```
-yarn compile
+yarn build
 ```
 
 The above command will build the Solidity system, performing the following build steps:

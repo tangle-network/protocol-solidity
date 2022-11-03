@@ -4,13 +4,18 @@ node_modules
 build/
 .env
 
-#Packages
+*.md
+*.json
+*.cjs
+*.yml
+
+# Packages
 packages/contracts/typechain
 packages/*/node_modules
 packages/*/lib
 packages/*/tsconfig.tsbuildinfo
 
-#Hardhat files
+# Hardhat files
 cache
 artifacts
 /typechain

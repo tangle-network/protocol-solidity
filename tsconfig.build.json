@@ -1,7 +1,7 @@
 {
   "exclude": [
     "node_modules/**/*",
-    "**/node_modules/**/*",
+    "**/node_modules/**/*"
   ],
   "include": [
     "packages/**/*",
@@ -18,5 +18,5 @@
     "target": "es5",
     "noEmitOnError": true,
     "skipLibCheck": true
-  },
+  }
 }
