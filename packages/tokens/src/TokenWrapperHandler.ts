@@ -1,8 +1,8 @@
-import { ethers } from 'ethers';
+import {ethers} from "ethers";
 import {
   TokenWrapperHandler as TokenWrapperHandlerContract,
   TokenWrapperHandler__factory,
-} from '@webb-tools/contracts';
+} from "@webb-tools/contracts";
 
 export class TokenWrapperHandler {
   contract: TokenWrapperHandlerContract;

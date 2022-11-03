@@ -1,12 +1,12 @@
-import { BigNumber, ethers } from 'ethers';
-import { SignatureBridge, SignatureBridge__factory } from '@webb-tools/contracts';
-import { GovernedTokenWrapper, Treasury } from '@webb-tools/tokens';
-import { TokenWrapperHandler } from '@webb-tools/tokens';
-import { AnchorHandler } from '@webb-tools/anchors';
-import { IAnchor, IBridgeSide, Proposal } from '@webb-tools/interfaces';
-import { TreasuryHandler } from '@webb-tools/tokens';
-import { getChainIdType } from '@webb-tools/utils';
-import { signMessage, toHex } from '@webb-tools/sdk-core';
+import {BigNumber, ethers} from "ethers";
+import {SignatureBridge, SignatureBridge__factory} from "@webb-tools/contracts";
+import {GovernedTokenWrapper, Treasury} from "@webb-tools/tokens";
+import {TokenWrapperHandler} from "@webb-tools/tokens";
+import {AnchorHandler} from "@webb-tools/anchors";
+import {IAnchor, IBridgeSide, Proposal} from "@webb-tools/interfaces";
+import {TreasuryHandler} from "@webb-tools/tokens";
+import {getChainIdType} from "@webb-tools/utils";
+import {signMessage, toHex} from "@webb-tools/sdk-core";
 
 type SystemSigningFn = (data: any) => Promise<string>;
 
@@ -20,9 +20,9 @@ export class SignatureBridgeSide implements IBridgeSide {
   proposals: Proposal[];
   signingSystemSignFn: SystemSigningFn;
 
-  ANCHOR_HANDLER_MISSING_ERROR = new Error('Cannot connect an anchor without a handler');
-  TOKEN_HANDLER_MISSING_ERROR = new Error('Cannot connect to a token wrapper without a handler');
-  TREASURY_HANDLER_MISSING_ERROR = new Error('Cannot connect to treasury without handler');
+  ANCHOR_HANDLER_MISSING_ERROR = new Error("Cannot connect an anchor without a handler");
+  TOKEN_HANDLER_MISSING_ERROR = new Error("Cannot connect to a token wrapper without a handler");
+  TREASURY_HANDLER_MISSING_ERROR = new Error("Cannot connect to treasury without handler");
 
   private constructor(contract: SignatureBridge, systemSigningFn: SystemSigningFn) {
     this.contract = contract;
@@ -101,7 +101,7 @@ export class SignatureBridgeSide implements IBridgeSide {
    */
   public async transferOwnership(newOwner: string, nonce: number) {
     return this.contract.transferOwnership(newOwner, nonce, {
-      gasLimit: '0x5B8D80',
+      gasLimit: "0x5B8D80",
     });
   }
 
@@ -112,7 +112,10 @@ export class SignatureBridgeSide implements IBridgeSide {
    * @param executionResourceId The resource id of the execution anchor instance.
    * @returns Promise<string>
    */
-  public async createAnchorUpdateProposalData(srcAnchor: IAnchor, executionResourceID: string): Promise<string> {
+  public async createAnchorUpdateProposalData(
+    srcAnchor: IAnchor,
+    executionResourceID: string
+  ): Promise<string> {
     const proposalData = await srcAnchor.getProposalData(executionResourceID);
     return proposalData;
   }
@@ -129,17 +132,26 @@ export class SignatureBridgeSide implements IBridgeSide {
    * @param fee The new fee percentage
    * @returns Promise<string>
    */
-  public async createFeeUpdateProposalData(governedToken: GovernedTokenWrapper, fee: number): Promise<string> {
+  public async createFeeUpdateProposalData(
+    governedToken: GovernedTokenWrapper,
+    fee: number
+  ): Promise<string> {
     const proposalData = await governedToken.getFeeProposalData(fee);
     return proposalData;
   }
 
-  public async createAddTokenUpdateProposalData(governedToken: GovernedTokenWrapper, tokenAddress: string) {
+  public async createAddTokenUpdateProposalData(
+    governedToken: GovernedTokenWrapper,
+    tokenAddress: string
+  ) {
     const proposalData = await governedToken.getAddTokenProposalData(tokenAddress);
     return proposalData;
   }
 
-  public async createRemoveTokenUpdateProposalData(governedToken: GovernedTokenWrapper, tokenAddress: string) {
+  public async createRemoveTokenUpdateProposalData(
+    governedToken: GovernedTokenWrapper,
+    tokenAddress: string
+  ) {
     const proposalData = await governedToken.getRemoveTokenProposalData(tokenAddress);
     return proposalData;
   }
@@ -155,7 +167,11 @@ export class SignatureBridgeSide implements IBridgeSide {
     to: string,
     amountToRescue: BigNumber
   ) {
-    const proposalData = await treasury.getRescueTokensProposalData(tokenAddress, to, amountToRescue);
+    const proposalData = await treasury.getRescueTokensProposalData(
+      tokenAddress,
+      to,
+      amountToRescue
+    );
     return proposalData;
   }
 
@@ -174,7 +190,10 @@ export class SignatureBridgeSide implements IBridgeSide {
     return proposalData;
   }
 
-  public async createMinWithdrawalLimitProposalData(vAnchor: IAnchor, _minimalWithdrawalAmount: string) {
+  public async createMinWithdrawalLimitProposalData(
+    vAnchor: IAnchor,
+    _minimalWithdrawalAmount: string
+  ) {
     const proposalData = await vAnchor.getMinWithdrawalLimitProposalData(_minimalWithdrawalAmount);
     return proposalData;
   }
@@ -210,7 +229,8 @@ export class SignatureBridgeSide implements IBridgeSide {
 
   public async createResourceId(): Promise<string> {
     return toHex(
-      this.contract.address + toHex(getChainIdType(Number(await this.contract.getChainId())), 6).substr(2),
+      this.contract.address +
+        toHex(getChainIdType(Number(await this.contract.getChainId())), 6).substr(2),
       32
     );
   }
@@ -218,12 +238,16 @@ export class SignatureBridgeSide implements IBridgeSide {
   public async setResourceWithSignature(newResourceId: string, handler: string): Promise<string> {
     const resourceId = await this.createResourceId();
     const functionSig = ethers.utils
-      .keccak256(ethers.utils.toUtf8Bytes('adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,bytes)'))
+      .keccak256(
+        ethers.utils.toUtf8Bytes(
+          "adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,bytes)"
+        )
+      )
       .slice(0, 10)
-      .padEnd(10, '0');
+      .padEnd(10, "0");
     const nonce = Number(await this.contract.proposalNonce()) + 1;
     const unsignedData =
-      '0x' +
+      "0x" +
       // A resource Id for the bridge contract
       toHex(resourceId, 32).substr(2) +
       functionSig.slice(2) +
@@ -256,7 +280,9 @@ export class SignatureBridgeSide implements IBridgeSide {
     return await this.setResourceWithSignature(newResourceId, handler);
   }
 
-  public async setGovernedTokenResourceWithSignature(governedToken: GovernedTokenWrapper): Promise<string> {
+  public async setGovernedTokenResourceWithSignature(
+    governedToken: GovernedTokenWrapper
+  ): Promise<string> {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
 
     const newResourceId = await governedToken.createResourceId();
@@ -300,22 +326,37 @@ export class SignatureBridgeSide implements IBridgeSide {
     return this.execute(proposalData);
   }
 
-  public async executeAddTokenProposalWithSig(governedToken: GovernedTokenWrapper, tokenAddress: string) {
+  public async executeAddTokenProposalWithSig(
+    governedToken: GovernedTokenWrapper,
+    tokenAddress: string
+  ) {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
     const proposalData = await this.createAddTokenUpdateProposalData(governedToken, tokenAddress);
     return this.execute(proposalData);
   }
 
-  public async executeRemoveTokenProposalWithSig(governedToken: GovernedTokenWrapper, tokenAddress: string) {
+  public async executeRemoveTokenProposalWithSig(
+    governedToken: GovernedTokenWrapper,
+    tokenAddress: string
+  ) {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
-    const proposalData = await this.createRemoveTokenUpdateProposalData(governedToken, tokenAddress);
+    const proposalData = await this.createRemoveTokenUpdateProposalData(
+      governedToken,
+      tokenAddress
+    );
     return this.execute(proposalData);
   }
 
-  public async executeFeeRecipientProposalWithSig(governedToken: GovernedTokenWrapper, feeRecipient: string) {
+  public async executeFeeRecipientProposalWithSig(
+    governedToken: GovernedTokenWrapper,
+    feeRecipient: string
+  ) {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
 
-    const proposalData = await this.createFeeRecipientUpdateProposalData(governedToken, feeRecipient);
+    const proposalData = await this.createFeeRecipientUpdateProposalData(
+      governedToken,
+      feeRecipient
+    );
     return this.execute(proposalData);
   }
 
@@ -332,19 +373,36 @@ export class SignatureBridgeSide implements IBridgeSide {
     amountToRescue: BigNumber
   ) {
     if (!this.treasuryHandler) throw this.TREASURY_HANDLER_MISSING_ERROR;
-    const proposalData = await this.createRescueTokensProposalData(treasury, tokenAddress, to, amountToRescue);
+    const proposalData = await this.createRescueTokensProposalData(
+      treasury,
+      tokenAddress,
+      to,
+      amountToRescue
+    );
     return this.execute(proposalData);
   }
 
-  public async executeMinWithdrawalLimitProposalWithSig(anchor: IAnchor, _minimalWithdrawalAmount: string) {
+  public async executeMinWithdrawalLimitProposalWithSig(
+    anchor: IAnchor,
+    _minimalWithdrawalAmount: string
+  ) {
     if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
-    const proposalData = await this.createMinWithdrawalLimitProposalData(anchor, _minimalWithdrawalAmount);
+    const proposalData = await this.createMinWithdrawalLimitProposalData(
+      anchor,
+      _minimalWithdrawalAmount
+    );
     return this.execute(proposalData);
   }
 
-  public async executeMaxDepositLimitProposalWithSig(anchor: IAnchor, _maximumDepositAmount: string) {
+  public async executeMaxDepositLimitProposalWithSig(
+    anchor: IAnchor,
+    _maximumDepositAmount: string
+  ) {
     if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
-    const proposalData = await this.createMaxDepositLimitProposalData(anchor, _maximumDepositAmount);
+    const proposalData = await this.createMaxDepositLimitProposalData(
+      anchor,
+      _maximumDepositAmount
+    );
     return this.execute(proposalData);
   }
 }

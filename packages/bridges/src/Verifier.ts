@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import {ethers} from "ethers";
 import {
   Verifier as VerifierContract,
   Verifier__factory,
@@ -7,7 +7,7 @@ import {
   Verifier4__factory,
   Verifier5__factory,
   Verifier6__factory,
-} from '@webb-tools/contracts';
+} from "@webb-tools/contracts";
 
 // This convenience wrapper class is used in tests -
 // It represents a deployed contract throughout its life (e.g. maintains all verifiers)
@@ -39,7 +39,13 @@ export class Verifier {
     await v6.deployed();
 
     const factory = new Verifier__factory(signer);
-    const verifier = await factory.deploy(v2.address, v3.address, v4.address, v5.address, v6.address);
+    const verifier = await factory.deploy(
+      v2.address,
+      v3.address,
+      v4.address,
+      v5.address,
+      v6.address
+    );
     await verifier.deployed();
     const createdVerifier = new Verifier(verifier, signer);
     return createdVerifier;

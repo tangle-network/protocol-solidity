@@ -1,18 +1,18 @@
 /* eslint-disable camelcase */
 /* eslint-disable sort-keys */
-const assert = require('assert');
-import { BigNumber, BigNumberish, ethers } from 'ethers';
-import { poseidon } from 'circomlibjs';
-import { groth16 } from 'snarkjs';
+const assert = require("assert");
+import {BigNumber, BigNumberish, ethers} from "ethers";
+import {poseidon} from "circomlibjs";
+import {groth16} from "snarkjs";
 
-import { u8aToHex } from '@polkadot/util';
+import {u8aToHex} from "@polkadot/util";
 
-import path from 'path';
-import { ZkComponents } from './types';
-import { toFixedHex, Keypair, MerkleProof, MerkleTree, Utxo } from '@webb-tools/sdk-core';
+import path from "path";
+import {ZkComponents} from "./types";
+import {toFixedHex, Keypair, MerkleProof, MerkleTree, Utxo} from "@webb-tools/sdk-core";
 
 export const FIELD_SIZE = BigNumber.from(
-  '21888242871839275222246405745257275088548364400416034343698204186575808495617'
+  "21888242871839275222246405745257275088548364400416034343698204186575808495617"
 );
 
 export type UTXOInputs = {
@@ -42,10 +42,10 @@ export async function fetchComponentsFromFilePaths(
   witnessCalculatorPath: string,
   zkeyPath: string
 ): Promise<ZkComponents> {
-  const wasm: Buffer = require('fs').readFileSync(path.resolve(__dirname, wasmPath));
+  const wasm: Buffer = require("fs").readFileSync(path.resolve(__dirname, wasmPath));
   const witnessCalculatorGenerator = require(witnessCalculatorPath);
   const witnessCalculator = await witnessCalculatorGenerator(wasm);
-  const zkeyBuffer: Buffer = require('fs').readFileSync(path.resolve(__dirname, zkeyPath));
+  const zkeyBuffer: Buffer = require("fs").readFileSync(path.resolve(__dirname, zkeyPath));
   const zkey: Uint8Array = new Uint8Array(
     zkeyBuffer.buffer.slice(zkeyBuffer.byteOffset, zkeyBuffer.byteOffset + zkeyBuffer.byteLength)
   );
@@ -63,7 +63,7 @@ export async function fetchComponentsFromFilePaths(
  * @returns
  */
 export const getChainIdType = (chainID: number = 31337): number => {
-  const CHAIN_TYPE = '0x0100';
+  const CHAIN_TYPE = "0x0100";
   const chainIdType = CHAIN_TYPE + toFixedHex(chainID, 4).substr(2);
   return Number(BigInt(chainIdType));
 };
@@ -81,7 +81,7 @@ export function getIdentityVAnchorExtDataHash(
   const abi = new ethers.utils.AbiCoder();
   const encodedData = abi.encode(
     [
-      'tuple(address recipient,int256 extAmount,address relayer,uint256 fee,uint256 refund,address token,bytes encryptedOutput1,bytes encryptedOutput2)',
+      "tuple(address recipient,int256 extAmount,address relayer,uint256 fee,uint256 refund,address token,bytes encryptedOutput1,bytes encryptedOutput2)",
     ],
     [
       {
@@ -101,10 +101,18 @@ export function getIdentityVAnchorExtDataHash(
 
   return BigNumber.from(hash).mod(FIELD_SIZE);
 }
-export default function verifyProof(verificationKey: any, { proof, publicSignals }: any): Promise<boolean> {
+export default function verifyProof(
+  verificationKey: any,
+  {proof, publicSignals}: any
+): Promise<boolean> {
   return groth16.verify(
     verificationKey,
-    [publicSignals.merkleRoot, publicSignals.nullifierHash, publicSignals.signalHash, publicSignals.externalNullifier],
+    [
+      publicSignals.merkleRoot,
+      publicSignals.nullifierHash,
+      publicSignals.signalHash,
+      publicSignals.externalNullifier,
+    ],
     proof
   );
 }
@@ -122,7 +130,9 @@ export async function generateProof(
   const inputs = {
     privateKey: keypair.privkey.toString(),
     semaphoreTreePathIndices: identityMerkleProof.pathIndices,
-    semaphoreTreeSiblings: identityMerkleProof.pathElements.map((x) => BigNumber.from(x).toString()),
+    semaphoreTreeSiblings: identityMerkleProof.pathElements.map((x) =>
+      BigNumber.from(x).toString()
+    ),
     semaphoreRoots: identityRoots,
     chainID: vanchor_inputs.chainID,
     publicAmount: vanchor_inputs.publicAmount,

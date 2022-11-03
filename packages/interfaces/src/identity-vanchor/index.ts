@@ -1,5 +1,5 @@
-import { BigNumberish, BigNumber } from 'ethers';
-import { Keypair } from '@webb-tools/sdk-core';
+import {BigNumberish, BigNumber} from "ethers";
+import {Keypair} from "@webb-tools/sdk-core";
 
 export interface IIdentityVariableAnchorPublicInputs {
   proof: string;

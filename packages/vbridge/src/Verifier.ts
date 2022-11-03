@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import {ethers} from "ethers";
 
 import {
   VAnchorVerifier__factory,
@@ -12,7 +12,7 @@ import {
   VerifierID82__factory,
   VerifierID216__factory,
   VerifierID816__factory,
-} from '@webb-tools/contracts';
+} from "@webb-tools/contracts";
 
 // This convenience wrapper class is used in tests -
 // It represents a deployed contract throughout its life (e.g. maintains all verifiers)

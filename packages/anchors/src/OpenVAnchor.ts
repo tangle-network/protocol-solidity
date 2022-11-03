@@ -1,6 +1,6 @@
-import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
-import { OpenVAnchor as OpenVAnchorContract, OpenVAnchor__factory } from '@webb-tools/contracts';
-import { solidityPack } from 'ethers/lib/utils';
+import {BigNumber, BigNumberish, ContractTransaction, ethers} from "ethers";
+import {OpenVAnchor as OpenVAnchorContract, OpenVAnchor__factory} from "@webb-tools/contracts";
+import {solidityPack} from "ethers/lib/utils";
 import {
   toHex,
   toFixedHex,
@@ -12,19 +12,19 @@ import {
   min,
   CircomProvingManager,
   MerkleProof,
-} from '@webb-tools/sdk-core';
-import { u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
-import { IAnchor } from '@webb-tools/interfaces';
+} from "@webb-tools/sdk-core";
+import {u8aToHex, getChainIdType, ZkComponents} from "@webb-tools/utils";
+import {IAnchor} from "@webb-tools/interfaces";
 
-const zeroAddress = '0x0000000000000000000000000000000000000000';
+const zeroAddress = "0x0000000000000000000000000000000000000000";
 function checkNativeAddress(tokenAddress: string): boolean {
-  if (tokenAddress === zeroAddress || tokenAddress === '0') {
+  if (tokenAddress === zeroAddress || tokenAddress === "0") {
     return true;
   }
   return false;
 }
 function sha3Hash(left: BigNumberish, right: BigNumberish) {
-  const packed = solidityPack(['bytes32', 'bytes32'], [toFixedHex(left), toFixedHex(right)]);
+  const packed = solidityPack(["bytes32", "bytes32"], [toFixedHex(left), toFixedHex(right)]);
   return BigNumber.from(ethers.utils.keccak256(ethers.utils.arrayify(packed)));
 }
 
@@ -49,7 +49,7 @@ export class OpenVAnchor implements IAnchor {
   constructor(contract: OpenVAnchorContract, signer: ethers.Signer, treeHeight: number) {
     this.signer = signer;
     this.contract = contract;
-    this.tree = new MerkleTree(treeHeight, [], { hashFunction: sha3Hash });
+    this.tree = new MerkleTree(treeHeight, [], {hashFunction: sha3Hash});
     this.depositHistory = {};
   }
 
@@ -86,7 +86,7 @@ export class OpenVAnchor implements IAnchor {
   }
 
   public static createRootsBytes(rootArray: string[]) {
-    let rootsBytes = '0x';
+    let rootsBytes = "0x";
     for (let i = 0; i < rootArray.length; i++) {
       rootsBytes += toFixedHex(rootArray[i]).substr(2);
     }
@@ -119,7 +119,10 @@ export class OpenVAnchor implements IAnchor {
   }
 
   public async createResourceId(): Promise<string> {
-    return toHex(this.contract.address + toHex(getChainIdType(await this.signer.getChainId()), 6).substr(2), 32);
+    return toHex(
+      this.contract.address + toHex(getChainIdType(await this.signer.getChainId()), 6).substr(2),
+      32
+    );
   }
 
   public async setHandler(handlerAddress: string) {
@@ -153,15 +156,18 @@ export class OpenVAnchor implements IAnchor {
     const chainID = getChainIdType(await this.signer.getChainId());
     const merkleRoot = this.depositHistory[leafIndex];
     const functionSig = ethers.utils
-      .keccak256(ethers.utils.toUtf8Bytes('updateEdge(bytes32,uint32,bytes32)'))
+      .keccak256(ethers.utils.toUtf8Bytes("updateEdge(bytes32,uint32,bytes32)"))
       .slice(0, 10)
-      .padEnd(10, '0');
+      .padEnd(10, "0");
 
     const srcContract = this.contract.address;
     const srcResourceId =
-      '0x' + toHex(0, 6).substring(2) + toHex(srcContract, 20).substr(2) + toHex(chainID, 6).substr(2);
+      "0x" +
+      toHex(0, 6).substring(2) +
+      toHex(srcContract, 20).substr(2) +
+      toHex(chainID, 6).substr(2);
     return (
-      '0x' +
+      "0x" +
       toHex(resourceID, 32).substr(2) +
       functionSig.slice(2) +
       toHex(leafIndex, 4).substr(2) +
@@ -177,13 +183,13 @@ export class OpenVAnchor implements IAnchor {
   public async getHandlerProposalData(newHandler: string): Promise<string> {
     const resourceID = await this.createResourceId();
     const functionSig = ethers.utils
-      .keccak256(ethers.utils.toUtf8Bytes('setHandler(address,uint32)'))
+      .keccak256(ethers.utils.toUtf8Bytes("setHandler(address,uint32)"))
       .slice(0, 10)
-      .padEnd(10, '0');
+      .padEnd(10, "0");
     const nonce = Number(await this.contract.getProposalNonce()) + 1;
 
     return (
-      '0x' +
+      "0x" +
       toHex(resourceID, 32).substr(2) +
       functionSig.slice(2) +
       toHex(nonce, 4).substr(2) +
@@ -191,15 +197,17 @@ export class OpenVAnchor implements IAnchor {
     );
   }
 
-  public async getMinWithdrawalLimitProposalData(_minimalWithdrawalAmount: string): Promise<string> {
+  public async getMinWithdrawalLimitProposalData(
+    _minimalWithdrawalAmount: string
+  ): Promise<string> {
     const resourceID = await this.createResourceId();
     const functionSig = ethers.utils
-      .keccak256(ethers.utils.toUtf8Bytes('configureMinimalWithdrawalLimit(uint256,uint32)'))
+      .keccak256(ethers.utils.toUtf8Bytes("configureMinimalWithdrawalLimit(uint256,uint32)"))
       .slice(0, 10)
-      .padEnd(10, '0');
+      .padEnd(10, "0");
     const nonce = Number(await this.contract.getProposalNonce()) + 1;
     return (
-      '0x' +
+      "0x" +
       toHex(resourceID, 32).substr(2) +
       functionSig.slice(2) +
       toHex(nonce, 4).substr(2) +
@@ -210,12 +218,12 @@ export class OpenVAnchor implements IAnchor {
   public async getMaxDepositLimitProposalData(_maximumDepositAmount: string): Promise<string> {
     const resourceID = await this.createResourceId();
     const functionSig = ethers.utils
-      .keccak256(ethers.utils.toUtf8Bytes('configureMaximumDepositLimit(uint256,uint32)'))
+      .keccak256(ethers.utils.toUtf8Bytes("configureMaximumDepositLimit(uint256,uint32)"))
       .slice(0, 10)
-      .padEnd(10, '0');
+      .padEnd(10, "0");
     const nonce = Number(await this.contract.getProposalNonce()) + 1;
     return (
-      '0x' +
+      "0x" +
       toHex(resourceID, 32).substr(2) +
       functionSig.slice(2) +
       toHex(nonce, 4).substr(2) +
@@ -331,10 +339,10 @@ export class OpenVAnchor implements IAnchor {
     blinding: BigNumberish,
     relayingFee: BigNumberish
   ): string {
-    const delegatedCalldataHash = ethers.utils.keccak256(ethers.utils.arrayify('0x00'));
+    const delegatedCalldataHash = ethers.utils.keccak256(ethers.utils.arrayify("0x00"));
 
     const packedValues = solidityPack(
-      ['uint48', 'uint256', 'address', 'bytes32', 'uint256', 'uint256'],
+      ["uint48", "uint256", "address", "bytes32", "uint256", "uint256"],
       [chainId, amount, recipientAddr, delegatedCalldataHash, blinding, relayingFee]
     );
     const commitment = ethers.utils.keccak256(ethers.utils.arrayify(packedValues));
@@ -359,7 +367,7 @@ export class OpenVAnchor implements IAnchor {
       delegatedCalldata,
       blinding,
       relayingFee,
-      { gasLimit: '0x5B8D80' }
+      {gasLimit: "0x5B8D80"}
     );
 
     const receipt = await tx.wait();
@@ -399,7 +407,7 @@ export class OpenVAnchor implements IAnchor {
       blinding,
       relayingFee,
       tokenAddress,
-      { gasLimit: '0x5B8D80' }
+      {gasLimit: "0x5B8D80"}
     );
 
     const receipt = await tx.wait();
@@ -440,7 +448,7 @@ export class OpenVAnchor implements IAnchor {
       merkleProof.pathElements.map((bignum) => bignum.toHexString()),
       commitmentIndex,
       merkleProof.merkleRoot.toHexString(),
-      { gasLimit: '0x5B8D80' }
+      {gasLimit: "0x5B8D80"}
     );
 
     const receipt = await tx.wait();
@@ -469,7 +477,7 @@ export class OpenVAnchor implements IAnchor {
       commitmentIndex,
       merkleProof.merkleRoot.toHexString(),
       tokenAddress,
-      { gasLimit: '0x5B8D80' }
+      {gasLimit: "0x5B8D80"}
     );
 
     const receipt = await tx.wait();

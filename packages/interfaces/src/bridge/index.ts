@@ -1,6 +1,6 @@
-import { ethers } from 'ethers';
-import { IAnchor } from '..';
-import { IBridgeSide } from '../IBridgeSide';
+import {ethers} from "ethers";
+import {IAnchor} from "..";
+import {IBridgeSide} from "../IBridgeSide";
 
 // Deployer config matches the chainId to the signer for that chain
 export type DeployerConfig = Record<number, ethers.Wallet>;

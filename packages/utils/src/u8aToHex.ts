@@ -7,7 +7,7 @@ const U8 = new Array<string>(256);
 const U16 = new Array<string>(256 * 256);
 
 for (let n = 0; n < 256; n++) {
-  U8[n] = n.toString(16).padStart(2, '0');
+  U8[n] = n.toString(16).padStart(2, "0");
 }
 
 for (let i = 0; i < 256; i++) {
@@ -52,7 +52,7 @@ function hex(value: Uint8Array, result: HexString): HexString {
  */
 export function u8aToHex(value?: Uint8Array | null, bitLength = -1, isPrefixed = true): HexString {
   // this is not 100% correct sinmce we support isPrefixed = false....
-  const empty = isPrefixed ? '0x' : ('' as HexString);
+  const empty = isPrefixed ? "0x" : ("" as HexString);
 
   if (!value || !value.length) {
     return empty;
@@ -62,7 +62,7 @@ export function u8aToHex(value?: Uint8Array | null, bitLength = -1, isPrefixed =
     if (value.length > length) {
       return `${hex(value.subarray(0, length / 2), empty)}…${hex(
         value.subarray(value.length - length / 2),
-        '' as HexString
+        "" as HexString
       )}`;
     }
   }

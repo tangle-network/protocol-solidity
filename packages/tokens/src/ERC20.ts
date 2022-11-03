@@ -1,5 +1,5 @@
-import { ethers } from 'ethers';
-import { ERC20 as ERC20Contract, ERC20__factory } from '@webb-tools/contracts';
+import {ethers} from "ethers";
+import {ERC20 as ERC20Contract, ERC20__factory} from "@webb-tools/contracts";
 
 class ERC20 {
   contract: ERC20Contract;
@@ -8,7 +8,11 @@ class ERC20 {
     this.contract = contract;
   }
 
-  public static async createERC20(name: string, symbol: string, deployer: ethers.Signer): Promise<ERC20> {
+  public static async createERC20(
+    name: string,
+    symbol: string,
+    deployer: ethers.Signer
+  ): Promise<ERC20> {
     const factory = new ERC20__factory(deployer);
     const contract = await factory.deploy(name, symbol);
     await contract.deployed();
@@ -18,4 +22,4 @@ class ERC20 {
   }
 }
 
-export { ERC20 };
+export {ERC20};
