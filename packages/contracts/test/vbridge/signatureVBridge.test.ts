@@ -767,7 +767,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
 
         const balSigners2UnwrappedBefore = await existingToken1.contract.balanceOf(await signers[2].getAddress());
 
-        //Withdraw UTXO
+        // Withdraw UTXO
         const vAnchor1TokenAddr = await vAnchor1.contract.token()
         await existingToken1.mintTokens(vAnchor1TokenAddr, '100000000');
         const balWrapper1UnwrappedBefore = await existingToken1.contract.balanceOf(vAnchor1TokenAddr);
