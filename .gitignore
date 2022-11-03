@@ -5,6 +5,7 @@ build/
 .env
 
 #Packages
+packages/contracts/typechain
 packages/*/node_modules
 packages/*/lib
 packages/*/tsconfig.tsbuildinfo

@@ -8,14 +8,16 @@
     "packages/*"
   ],
   "scripts": {
-    "compile": "npx hardhat compile && sh ./scripts/bash/copyTypechain.sh && yarn build:packages",
-    "build": "yarn compile && yarn build:circuits && yarn build:ptau",
+    "compile": "lerna run compile --scope=@webb-tools/contracts",
+    "build": "yarn compile && yarn build:packages",
+    "setup": "yarn compile && yarn build:circuits && yarn build:ptau",
+    "test": "yarn workspace @webb-tools/contracts run test",
     "build:circuits": "./scripts/bash/build_circuits.sh",
     "build:packages": "lerna run build",
     "build:ptau": "./scripts/bash/generate_phase1_ptau.sh",
     "clean": "rm -rf artifacts typechain && yarn clean:packages",
     "clean:packages": "lerna run clean",
-    "fetch:fixtures": "cd solidity-fixtures && dvc pull && cd ..",
+    "fetch:fixtures": "cd packages/contracts/solidity-fixtures && dvc pull && cd ../../../",
     "publish:packages": "lerna run build && lerna publish",
     "setup:groth16:anchor2": "./scripts/bash/groth16/anchor/phase2_poseidon_anchor2.sh",
     "setup:groth16:anchor3": "./scripts/bash/groth16/anchor/phase2_poseidon_anchor3.sh",
@@ -37,8 +39,6 @@
     "setup:plonk:identity-vanchor2": "./scripts/bash/plonk/identity_vanchor/phase2_identity_vanchor2.sh",
     "setup:plonk:identity-vanchor8": "./scripts/bash/plonk/identity_vanchor/phase2_identity_vanchor8.sh",
     "setup:plonk": "./scripts/bash/setup_verifiers_plonk.sh",
-    "test": "npx hardhat test",
-    "test:gas-reporter": "REPORT_GAS=true npx hardhat test --parallel",
     "ts-check": "tsc --noEmit -p ./tsconfig.json",
     "format": "prettier --write \"packages/**/*.{ts,js,jsx,tsx}\""
   },
