@@ -32,12 +32,7 @@ export class GovernedTokenWrapper {
     const factory = new GovernedTokenWrapper__factory(deployer);
     const contract = await factory.deploy(name, symbol);
     await contract.deployed();
-    await contract.initialize(
-      feeRecipient,
-      governor,
-      limit,
-      isNativeAllowed
-    );
+    await contract.initialize(feeRecipient, governor, limit, isNativeAllowed);
     const createdGovernedTokenWrapper = new GovernedTokenWrapper(contract, deployer);
 
     return createdGovernedTokenWrapper;

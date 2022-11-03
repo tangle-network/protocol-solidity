@@ -198,7 +198,6 @@ export class OpenVBridge {
       webbTokenAddresses.set(chainID, tokenInstance.contract.address);
 
       let chainGroupedVAnchors: VAnchor[] = [];
-
       // loop through all the anchor sizes on the token
       const vAnchorInstance = await VAnchor.createOpenVAnchor(
         30,

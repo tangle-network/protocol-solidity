@@ -12,35 +12,26 @@ import {
   BaseContract,
   ContractTransaction,
   CallOverrides,
-} from "ethers";
-import { BytesLike } from "@ethersproject/bytes";
-import { Listener, Provider } from "@ethersproject/providers";
-import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
-import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
+} from 'ethers';
+import { BytesLike } from '@ethersproject/bytes';
+import { Listener, Provider } from '@ethersproject/providers';
+import { FunctionFragment, EventFragment, Result } from '@ethersproject/abi';
+import type { TypedEventFilter, TypedEvent, TypedListener } from './common';
 
 interface KeccakHasherInterface extends ethers.utils.Interface {
   functions: {
-    "hash3(uint256[3])": FunctionFragment;
-    "hashLeftRight(uint256,uint256)": FunctionFragment;
-    "zeros(uint256)": FunctionFragment;
+    'hash3(uint256[3])': FunctionFragment;
+    'hashLeftRight(uint256,uint256)': FunctionFragment;
+    'zeros(uint256)': FunctionFragment;
   };
 
-  encodeFunctionData(
-    functionFragment: "hash3",
-    values: [[BigNumberish, BigNumberish, BigNumberish]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "hashLeftRight",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(functionFragment: "zeros", values: [BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'hash3', values: [[BigNumberish, BigNumberish, BigNumberish]]): string;
+  encodeFunctionData(functionFragment: 'hashLeftRight', values: [BigNumberish, BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'zeros', values: [BigNumberish]): string;
 
-  decodeFunctionResult(functionFragment: "hash3", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "hashLeftRight",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "zeros", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'hash3', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'hashLeftRight', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'zeros', data: BytesLike): Result;
 
   events: {};
 }
@@ -89,44 +80,23 @@ export class KeccakHasher extends BaseContract {
   interface: KeccakHasherInterface;
 
   functions: {
-    hash3(
-      array: [BigNumberish, BigNumberish, BigNumberish],
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    hash3(array: [BigNumberish, BigNumberish, BigNumberish], overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    hashLeftRight(
-      _left: BigNumberish,
-      _right: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    hashLeftRight(_left: BigNumberish, _right: BigNumberish, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     zeros(i: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
   };
 
-  hash3(
-    array: [BigNumberish, BigNumberish, BigNumberish],
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  hash3(array: [BigNumberish, BigNumberish, BigNumberish], overrides?: CallOverrides): Promise<BigNumber>;
 
-  hashLeftRight(
-    _left: BigNumberish,
-    _right: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  hashLeftRight(_left: BigNumberish, _right: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
   zeros(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
-    hash3(
-      array: [BigNumberish, BigNumberish, BigNumberish],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    hash3(array: [BigNumberish, BigNumberish, BigNumberish], overrides?: CallOverrides): Promise<BigNumber>;
 
-    hashLeftRight(
-      _left: BigNumberish,
-      _right: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    hashLeftRight(_left: BigNumberish, _right: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     zeros(i: BigNumberish, overrides?: CallOverrides): Promise<string>;
   };
@@ -134,35 +104,18 @@ export class KeccakHasher extends BaseContract {
   filters: {};
 
   estimateGas: {
-    hash3(
-      array: [BigNumberish, BigNumberish, BigNumberish],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    hash3(array: [BigNumberish, BigNumberish, BigNumberish], overrides?: CallOverrides): Promise<BigNumber>;
 
-    hashLeftRight(
-      _left: BigNumberish,
-      _right: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    hashLeftRight(_left: BigNumberish, _right: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     zeros(i: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    hash3(
-      array: [BigNumberish, BigNumberish, BigNumberish],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    hash3(array: [BigNumberish, BigNumberish, BigNumberish], overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    hashLeftRight(
-      _left: BigNumberish,
-      _right: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    hashLeftRight(_left: BigNumberish, _right: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    zeros(
-      i: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    zeros(i: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

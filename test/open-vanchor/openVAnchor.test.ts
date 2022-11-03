@@ -167,7 +167,7 @@ describe('Open VAnchor Contract', () => {
     });
 });
 
-describe.only('Open VAnchor Contract - cross chain', () => {
+describe('Open VAnchor Contract - cross chain', () => {
   const FIRST_CHAIN_ID = 31337;
   let hardhatWallet1 = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
   let sender;
@@ -269,10 +269,6 @@ describe.only('Open VAnchor Contract - cross chain', () => {
       relayingFee,
       tokenInstance1.contract.address,
     );
-    console.log("update chain 1");
-    await vBridge.update(chainID1);
-    console.log("update chain 2");
-    await vBridge.update(chainID2);
     // GanacheWallet2 wants to send `depositAmount` tokens to the `recipient` on chain 1.
     await vAnchor2.setSigner(ganacheWallet2);
     // First GanacheWallet2 must approve the `webbToken2` to spend `tokenInstance2` tokens.
@@ -296,10 +292,17 @@ describe.only('Open VAnchor Contract - cross chain', () => {
     const delHash = ethers.utils.keccak256(ethers.utils.arrayify('0x00'));
     const prehashed = solidityPack(
       [ "uint48", "uint256", "address", "bytes32", "uint256", "uint256" ],
-      [ chainID1, depositAmount, await recipient.getAddress(), delHash, blinding, 0]
+      [ chainID1, depositAmount, await recipient.getAddress(), delHash, blinding, relayingFee]
     );
 
-    let commitment = vAnchor2.getCommitment(chainID1, depositAmount, await recipient.getAddress(), '0x00', blinding);
+    let commitment = vAnchor2.getCommitment(
+      chainID1,
+      depositAmount,
+      await recipient.getAddress(),
+      '0x00',
+      blinding,
+      relayingFee
+    );
     assert.strictEqual(ethers.utils.keccak256(ethers.utils.arrayify(prehashed)), commitment);
 
     let mt = new MerkleTree(30, [], { hashFunction: sha3Hash });

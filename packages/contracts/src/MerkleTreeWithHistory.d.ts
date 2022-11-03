@@ -13,101 +13,59 @@ import {
   ContractTransaction,
   Overrides,
   CallOverrides,
-} from "ethers";
-import { BytesLike } from "@ethersproject/bytes";
-import { Listener, Provider } from "@ethersproject/providers";
-import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
-import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
+} from 'ethers';
+import { BytesLike } from '@ethersproject/bytes';
+import { Listener, Provider } from '@ethersproject/providers';
+import { FunctionFragment, EventFragment, Result } from '@ethersproject/abi';
+import type { TypedEventFilter, TypedEvent, TypedListener } from './common';
 
 interface MerkleTreeWithHistoryInterface extends ethers.utils.Interface {
   functions: {
-    "FIELD_SIZE()": FunctionFragment;
-    "ROOT_HISTORY_SIZE()": FunctionFragment;
-    "ZERO_VALUE()": FunctionFragment;
-    "currentRootIndex()": FunctionFragment;
-    "filledSubtrees(uint256)": FunctionFragment;
-    "getLastRoot()": FunctionFragment;
-    "hashLeftRight(address,bytes32,bytes32)": FunctionFragment;
-    "hasher()": FunctionFragment;
-    "isKnownRoot(bytes32)": FunctionFragment;
-    "levels()": FunctionFragment;
-    "nextIndex()": FunctionFragment;
-    "roots(uint256)": FunctionFragment;
+    'FIELD_SIZE()': FunctionFragment;
+    'ROOT_HISTORY_SIZE()': FunctionFragment;
+    'ZERO_VALUE()': FunctionFragment;
+    'currentRootIndex()': FunctionFragment;
+    'filledSubtrees(uint256)': FunctionFragment;
+    'getLastRoot()': FunctionFragment;
+    'hashLeftRight(address,bytes32,bytes32)': FunctionFragment;
+    'hasher()': FunctionFragment;
+    'isKnownRoot(bytes32)': FunctionFragment;
+    'levels()': FunctionFragment;
+    'nextIndex()': FunctionFragment;
+    'roots(uint256)': FunctionFragment;
   };
 
-  encodeFunctionData(
-    functionFragment: "FIELD_SIZE",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "ROOT_HISTORY_SIZE",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "ZERO_VALUE",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "currentRootIndex",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "filledSubtrees",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getLastRoot",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "hashLeftRight",
-    values: [string, BytesLike, BytesLike]
-  ): string;
-  encodeFunctionData(functionFragment: "hasher", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "isKnownRoot",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(functionFragment: "levels", values?: undefined): string;
-  encodeFunctionData(functionFragment: "nextIndex", values?: undefined): string;
-  encodeFunctionData(functionFragment: "roots", values: [BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'FIELD_SIZE', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'ROOT_HISTORY_SIZE', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'ZERO_VALUE', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'currentRootIndex', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'filledSubtrees', values: [BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'getLastRoot', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'hashLeftRight', values: [string, BytesLike, BytesLike]): string;
+  encodeFunctionData(functionFragment: 'hasher', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'isKnownRoot', values: [BytesLike]): string;
+  encodeFunctionData(functionFragment: 'levels', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'nextIndex', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'roots', values: [BigNumberish]): string;
 
-  decodeFunctionResult(functionFragment: "FIELD_SIZE", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "ROOT_HISTORY_SIZE",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "ZERO_VALUE", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "currentRootIndex",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "filledSubtrees",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getLastRoot",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "hashLeftRight",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "hasher", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "isKnownRoot",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "levels", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "nextIndex", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "roots", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'FIELD_SIZE', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'ROOT_HISTORY_SIZE', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'ZERO_VALUE', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'currentRootIndex', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'filledSubtrees', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getLastRoot', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'hashLeftRight', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'hasher', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'isKnownRoot', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'levels', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'nextIndex', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'roots', data: BytesLike): Result;
 
   events: {
-    "Initialized(uint8)": EventFragment;
+    'Initialized(uint8)': EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "Initialized"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'Initialized'): EventFragment;
 }
 
 export type InitializedEvent = TypedEvent<[number] & { version: number }>;
@@ -164,10 +122,7 @@ export class MerkleTreeWithHistory extends BaseContract {
 
     currentRootIndex(overrides?: CallOverrides): Promise<[number]>;
 
-    filledSubtrees(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    filledSubtrees(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
     getLastRoot(overrides?: CallOverrides): Promise<[string]>;
 
@@ -180,10 +135,7 @@ export class MerkleTreeWithHistory extends BaseContract {
 
     hasher(overrides?: CallOverrides): Promise<[string]>;
 
-    isKnownRoot(
-      _root: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    isKnownRoot(_root: BytesLike, overrides?: CallOverrides): Promise<[boolean]>;
 
     levels(overrides?: CallOverrides): Promise<[number]>;
 
@@ -192,9 +144,7 @@ export class MerkleTreeWithHistory extends BaseContract {
     roots(
       arg0: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<
-      [string, BigNumber] & { root: string; latestLeafindex: BigNumber }
-    >;
+    ): Promise<[string, BigNumber] & { root: string; latestLeafindex: BigNumber }>;
   };
 
   FIELD_SIZE(overrides?: CallOverrides): Promise<BigNumber>;
@@ -205,10 +155,7 @@ export class MerkleTreeWithHistory extends BaseContract {
 
   currentRootIndex(overrides?: CallOverrides): Promise<number>;
 
-  filledSubtrees(
-    arg0: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  filledSubtrees(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   getLastRoot(overrides?: CallOverrides): Promise<string>;
 
@@ -230,9 +177,7 @@ export class MerkleTreeWithHistory extends BaseContract {
   roots(
     arg0: BigNumberish,
     overrides?: CallOverrides
-  ): Promise<
-    [string, BigNumber] & { root: string; latestLeafindex: BigNumber }
-  >;
+  ): Promise<[string, BigNumber] & { root: string; latestLeafindex: BigNumber }>;
 
   callStatic: {
     FIELD_SIZE(overrides?: CallOverrides): Promise<BigNumber>;
@@ -243,19 +188,11 @@ export class MerkleTreeWithHistory extends BaseContract {
 
     currentRootIndex(overrides?: CallOverrides): Promise<number>;
 
-    filledSubtrees(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    filledSubtrees(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
     getLastRoot(overrides?: CallOverrides): Promise<string>;
 
-    hashLeftRight(
-      _hasher: string,
-      _left: BytesLike,
-      _right: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    hashLeftRight(_hasher: string, _left: BytesLike, _right: BytesLike, overrides?: CallOverrides): Promise<string>;
 
     hasher(overrides?: CallOverrides): Promise<string>;
 
@@ -268,19 +205,13 @@ export class MerkleTreeWithHistory extends BaseContract {
     roots(
       arg0: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<
-      [string, BigNumber] & { root: string; latestLeafindex: BigNumber }
-    >;
+    ): Promise<[string, BigNumber] & { root: string; latestLeafindex: BigNumber }>;
   };
 
   filters: {
-    "Initialized(uint8)"(
-      version?: null
-    ): TypedEventFilter<[number], { version: number }>;
+    'Initialized(uint8)'(version?: null): TypedEventFilter<[number], { version: number }>;
 
-    Initialized(
-      version?: null
-    ): TypedEventFilter<[number], { version: number }>;
+    Initialized(version?: null): TypedEventFilter<[number], { version: number }>;
   };
 
   estimateGas: {
@@ -292,10 +223,7 @@ export class MerkleTreeWithHistory extends BaseContract {
 
     currentRootIndex(overrides?: CallOverrides): Promise<BigNumber>;
 
-    filledSubtrees(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    filledSubtrees(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     getLastRoot(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -308,10 +236,7 @@ export class MerkleTreeWithHistory extends BaseContract {
 
     hasher(overrides?: CallOverrides): Promise<BigNumber>;
 
-    isKnownRoot(
-      _root: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    isKnownRoot(_root: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
     levels(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -329,10 +254,7 @@ export class MerkleTreeWithHistory extends BaseContract {
 
     currentRootIndex(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    filledSubtrees(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    filledSubtrees(arg0: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getLastRoot(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -345,18 +267,12 @@ export class MerkleTreeWithHistory extends BaseContract {
 
     hasher(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    isKnownRoot(
-      _root: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    isKnownRoot(_root: BytesLike, overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     levels(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     nextIndex(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    roots(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    roots(arg0: BigNumberish, overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

@@ -328,13 +328,14 @@ export class OpenVAnchor implements IAnchor {
     amount: BigNumberish,
     recipientAddr: string,
     delegatedCalldata: BigNumberish,
-    blinding: BigNumberish
+    blinding: BigNumberish,
+    relayingFee: BigNumberish
   ): string {
     const delegatedCalldataHash = ethers.utils.keccak256(ethers.utils.arrayify('0x00'));
 
     const packedValues = solidityPack(
-      ['uint48', 'uint256', 'address', 'bytes32', 'uint256'],
-      [chainId, amount, recipientAddr, delegatedCalldataHash, blinding]
+      ['uint48', 'uint256', 'address', 'bytes32', 'uint256', 'uint256'],
+      [chainId, amount, recipientAddr, delegatedCalldataHash, blinding, relayingFee]
     );
     const commitment = ethers.utils.keccak256(ethers.utils.arrayify(packedValues));
     return commitment;
@@ -346,7 +347,7 @@ export class OpenVAnchor implements IAnchor {
     recipient: string,
     delegatedCalldata: string,
     blinding: BigNumberish,
-    relayingFee: BigNumberish,
+    relayingFee: BigNumberish
   ): Promise<ethers.ContractReceipt> {
     // Default UTXO chain ID will match with the configured signer's chain ID
     const evmId = await this.signer.getChainId();
@@ -364,7 +365,14 @@ export class OpenVAnchor implements IAnchor {
     const receipt = await tx.wait();
     gasBenchmark.push(receipt.gasUsed.toString());
 
-    const commitment = this.getCommitment(destinationChainId, depositAmount, recipient, delegatedCalldata, blinding);
+    const commitment = this.getCommitment(
+      destinationChainId,
+      depositAmount,
+      recipient,
+      delegatedCalldata,
+      blinding,
+      relayingFee
+    );
 
     // Add the leaves to the tree
     this.tree.insert(toFixedHex(BigNumber.from(commitment)));
@@ -397,7 +405,14 @@ export class OpenVAnchor implements IAnchor {
     const receipt = await tx.wait();
     gasBenchmark.push(receipt.gasUsed.toString());
 
-    const commitment = this.getCommitment(destinationChainId, depositAmount, recipient, delegatedCalldata, blinding);
+    const commitment = this.getCommitment(
+      destinationChainId,
+      depositAmount,
+      recipient,
+      delegatedCalldata,
+      blinding,
+      relayingFee
+    );
 
     // Add the leaves to the tree
     this.tree.insert(commitment);
