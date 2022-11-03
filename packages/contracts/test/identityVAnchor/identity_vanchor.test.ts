@@ -12,7 +12,6 @@ import {
   ERC20PresetMinterPauser__factory,
   GovernedTokenWrapper as WrappedToken,
   GovernedTokenWrapper__factory as WrappedTokenFactory,
-  Semaphore as SemaphoreContract,
 } from '../../typechain/';
 
 // Convenience wrapper classes for contract classes
@@ -57,7 +56,6 @@ const { toBN } = require('web3-utils');
 describe('IdentityVAnchor for 2 max edges', () => {
   let idAnchor: IdentityVAnchor;
   let semaphore: Semaphore;
-  let semaphoreContract: SemaphoreContract;
 
   const levels = 30;
   const defaultRoot = BigInt('21663839004416932945382355908790599225266501822907911457504978515578255421292');
@@ -166,7 +164,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
     // create Anchor
     semaphore = await Semaphore.createSemaphore(levels, maxEdges, zkComponents2_2, sender);
-    semaphoreContract = semaphore.contract;
 
     const groupId = BigNumber.from(99); // arbitrary
     const tx = await semaphore.createGroup(groupId, levels, alice.address, maxEdges);
@@ -174,21 +171,21 @@ describe('IdentityVAnchor for 2 max edges', () => {
     let aliceLeaf = aliceKeypair.getPubKey();
     group = new Group(levels, BigInt(defaultRoot));
     group.addMember(aliceLeaf);
-    let alice_addmember_tx = await semaphoreContract
+    let alice_addmember_tx = await semaphore.contract
       .connect(sender)
       .addMember(groupId, aliceLeaf, { gasLimit: '0x5B8D80' });
     // const receipt = await alice_addmember_tx.wait();
 
-    expect(alice_addmember_tx).to.emit(semaphoreContract, 'MemberAdded').withArgs(groupId, aliceLeaf, group.root);
+    expect(alice_addmember_tx).to.emit(semaphore.contract, 'MemberAdded').withArgs(groupId, aliceLeaf, group.root);
 
     let bobLeaf = bobKeypair.getPubKey();
-    let bob_addmember_tx = await semaphoreContract
+    let bob_addmember_tx = await semaphore.contract
       .connect(sender)
       .addMember(groupId, bobLeaf, { gasLimit: '0x5B8D80' });
     // const receipt = await alice_addmember_tx.wait();
     group.addMember(bobLeaf);
 
-    expect(bob_addmember_tx).to.emit(semaphoreContract, 'MemberAdded').withArgs(groupId, bobLeaf, group.root);
+    expect(bob_addmember_tx).to.emit(semaphore.contract, 'MemberAdded').withArgs(groupId, bobLeaf, group.root);
 
     idAnchor = await IdentityVAnchor.createIdentityVAnchor(
       semaphore,
