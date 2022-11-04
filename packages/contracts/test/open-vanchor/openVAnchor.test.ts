@@ -6,7 +6,7 @@ import {BigNumber, BigNumberish} from 'ethers';
 import {solidityPack} from 'ethers/lib/utils';
 import {getChainIdType} from '@webb-tools/utils';
 import {OpenVAnchor} from '@webb-tools/anchors';
-import {ERC20PresetMinterPauser__factory, KeccakHasher__factory} from '@webb-tools/contracts';
+import {ERC20PresetMinterPauser__factory, KeccakHasher__factory} from '../../typechain';
 import {startGanacheServer} from '@webb-tools/test-utils';
 import {CircomUtxo} from '@webb-tools/sdk-core';
 import {DeployerConfig, GovernorConfig} from '@webb-tools/interfaces';
@@ -26,6 +26,8 @@ describe('Open VAnchor Contract', () => {
   let tokenDenomination = '1000000000000000000'; // 1 ether
   let chainId;
   let recipient;
+  const relayingFee = BigNumber.from(0);
+
   beforeEach(async () => {
     const signers = await ethers.getSigners();
     const wallet = signers[0];
@@ -172,6 +174,7 @@ describe('Open VAnchor Contract - cross chain', () => {
   let tokenName: string = 'existingERC20';
   let tokenAbbreviation: string = 'EXIST';
   let bridge2WebbEthInput: VBridgeInput;
+  const relayingFee = BigNumber.from(0);
 
   const SECOND_CHAIN_ID = 10001;
   let ganacheProvider2 = new ethers.providers.JsonRpcProvider(
@@ -267,6 +270,7 @@ describe('Open VAnchor Contract - cross chain', () => {
       await sender.getAddress(),
       '0x00',
       blinding,
+      relayingFee,
       tokenInstance1.contract.address
     );
     // GanacheWallet2 wants to send `depositAmount` tokens to the `recipient` on chain 1.
@@ -281,6 +285,7 @@ describe('Open VAnchor Contract - cross chain', () => {
       await recipient.getAddress(),
       '0x00',
       blinding,
+      relayingFee,
       tokenInstance2.contract.address
     );
     await vBridge.update(chainID1);
@@ -299,7 +304,8 @@ describe('Open VAnchor Contract - cross chain', () => {
       depositAmount,
       await recipient.getAddress(),
       '0x00',
-      blinding
+      blinding,
+      relayingFee,
     );
     assert.strictEqual(ethers.utils.keccak256(ethers.utils.arrayify(prehashed)), commitment);
 
@@ -313,6 +319,7 @@ describe('Open VAnchor Contract - cross chain', () => {
       await recipient.getAddress(),
       '0x00',
       blinding,
+      relayingFee,
       merkleProof,
       commitmentIndex
     );
