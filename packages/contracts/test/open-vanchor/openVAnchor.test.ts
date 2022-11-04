@@ -305,7 +305,7 @@ describe('Open VAnchor Contract - cross chain', () => {
       await recipient.getAddress(),
       '0x00',
       blinding,
-      relayingFee,
+      relayingFee
     );
     assert.strictEqual(ethers.utils.keccak256(ethers.utils.arrayify(prehashed)), commitment);
 
