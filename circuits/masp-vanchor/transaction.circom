@@ -18,7 +18,7 @@ Goal is to differentiate between
 UTXO structure:
 {
     assetID, // If this was an NFT, this becomes to contract address
-    tokenID, // If this is non-zero, it is an NFT
+    nftTokenID, // If this is non-zero, it is an NFT
     amount,
     partialUtxoCommitment,
 }

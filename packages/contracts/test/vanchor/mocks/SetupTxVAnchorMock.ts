@@ -13,7 +13,7 @@ import {
 } from '@webb-tools/sdk-core';
 import {IVariableAnchorExtData, IVariableAnchorPublicInputs} from '@webb-tools/interfaces';
 import {hexToU8a, u8aToHex, getChainIdType, ZkComponents} from '@webb-tools/utils';
-import {VAnchor as VAnchorContract} from '@webb-tools/contracts';
+import {VAnchor as VAnchorContract} from '../../../typechain';
 
 export class SetupTxVAnchorMock extends VAnchor {
   private rootsForProof: string[];
