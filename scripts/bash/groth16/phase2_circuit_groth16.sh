@@ -22,13 +22,13 @@ move_verifiers_and_metadata () {
     if [[ ! -f contracts/verifiers/$anchorType/ ]]; then
         mkdir -p contracts/verifiers/$anchorType
     fi
-    cp $outdir/circuit_final.zkey solidity-fixtures/solidity-fixtures/$anchorType/$size/circuit_final.zkey
+    cp $outdir/circuit_final.zkey packages/contracts/solidity-fixtures/solidity-fixtures/$anchorType/$size/circuit_final.zkey
     cp $outdir/verifier.sol contracts/verifiers/$anchorType/"Verifier$size.sol"
 }
 
 move_verifiers_and_metadata_vanchor () {
     local indir="$1" size="$2" anchorType="$3" nIns="$4"
-    cp $indir/circuit_final.zkey solidity-fixtures/solidity-fixtures/$anchorType/$size/circuit_final.zkey
+    cp $indir/circuit_final.zkey packages/contracts/solidity-fixtures/solidity-fixtures/$anchorType/$size/circuit_final.zkey
 
     mkdir -p packages/contracts/contracts/verifiers/$anchorType
     cp $indir/verifier.sol packages/contracts/contracts/verifiers/$anchorType/Verifier"$size"_"$nIns".sol
@@ -36,7 +36,7 @@ move_verifiers_and_metadata_vanchor () {
 
 move_verifiers_and_metadata_masp_vanchor () {
     local indir="$1" size="$2" anchorType="$3" nIns="$4"
-    cp $indir/circuit_final.zkey solidity-fixtures/solidity-fixtures/$anchorType/$size/circuit_final.zkey
+    cp $indir/circuit_final.zkey packages/contracts/solidity-fixtures/solidity-fixtures/$anchorType/$size/circuit_final.zkey
 
     mkdir -p packages/contracts/contracts/verifiers/$anchorType
     cp $indir/verifier.sol packages/contracts/contracts/verifiers/$anchorType/VerifierMASP"$size"_"$nIns".sol
@@ -44,7 +44,7 @@ move_verifiers_and_metadata_masp_vanchor () {
 
 move_verifiers_and_metadata_identity_vanchor () {
     local indir="$1" size="$2" anchorType="$3" nIns="$4"
-    cp $indir/circuit_final.zkey solidity-fixtures/solidity-fixtures/$anchorType/$size/circuit_final.zkey
+    cp $indir/circuit_final.zkey packages/contracts/solidity-fixtures/solidity-fixtures/$anchorType/$size/circuit_final.zkey
 
     mkdir -p packages/contracts/contracts/verifiers/$anchorType
     cp $indir/verifier.sol packages/contracts/contracts/verifiers/$anchorType/VerifierID"$size"_"$nIns".sol
