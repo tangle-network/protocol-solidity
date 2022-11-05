@@ -6,17 +6,21 @@
 pragma solidity ^0.8.0;
 
 import "./GovernedTokenWrapper.sol";
+import "./Initialized.sol";
 import "./NftTokenWrapper.sol";
 import "../interfaces/tokens/IMultiTokenManager.sol";
 
 /**
-    @title A MultiTokenManager manages GovernedTokenWrapper systems using an external `governor` address
+    @title A MultiNftTokenManager manages NftTokenWrapper systems using an external `governor` address
     @author Webb Technologies.
  */
-contract MultiTokenManager is IMultiTokenManager {
+contract Registrar is Initialized, IMultiTokenManager {
     using SafeMath for uint256;
+
     address public governor;
     address public masterFeeRecipient;
+    IMultiTokenManager public fungibleTokenManager;
+    IMultiTokenManager public nonFungibleTokenManager;
 
     uint256 public proposalNonce = 0;
     address[] public wrappedTokens;
@@ -24,6 +28,15 @@ contract MultiTokenManager is IMultiTokenManager {
     constructor() {
         governor = msg.sender;
         masterFeeRecipient = msg.sender;
+    }
+
+    function initialize(
+        IMultiTokenManager _fungibleTokenManager,
+        IMultiTokenManager _nonFungibleTokenManager
+    ) external onlyGovernor onlyUninitialized {
+        initialized = true;
+        fungibleTokenManager = _fungibleTokenManager;
+        nonFungibleTokenManager = _nonFungibleTokenManager;
     }
 
     /**
@@ -40,21 +53,15 @@ contract MultiTokenManager is IMultiTokenManager {
         bytes32 _salt,
         uint256 _limit,
         bool _isNativeAllowed
-    ) override external onlyGovernor returns (address) {
-        GovernedTokenWrapper governedToken = new GovernedTokenWrapper{salt: _salt}(
-            _name,
-            _symbol
-        );
-
-        governedToken.initialize(
-            payable(masterFeeRecipient),
-            governor,
-            _limit,
-            _isNativeAllowed
-        );
-
-        wrappedTokens.push(address(governedToken));
-        return address(governedToken);
+    ) override external onlyGovernor onlyInitialized returns (address) {
+        return IMultiTokenManager(fungibleTokenManager)
+            .registerToken(
+                _name,
+                _symbol,
+                _salt,
+                _limit,
+                _isNativeAllowed
+            );
     }
 
     /**
@@ -63,13 +70,12 @@ contract MultiTokenManager is IMultiTokenManager {
     function registerNFTToken(
         string memory _uri,
         bytes32 _salt
-    ) override external onlyGovernor returns (address) {
-        NftTokenWrapper nftWrapper = new NftTokenWrapper{salt: _salt}(_uri);
-
-        nftWrapper.initialize(payable(masterFeeRecipient), governor);
-
-        wrappedTokens.push(address(nftWrapper));
-        return address(nftWrapper);
+    ) override external onlyGovernor onlyInitialized returns (address) {
+        return IMultiTokenManager(nonFungibleTokenManager)
+            .registerNFTToken(
+                _uri,
+                _salt
+            );
     }
 
     /**
@@ -77,7 +83,7 @@ contract MultiTokenManager is IMultiTokenManager {
         @param _governor The address of the new governor
         @notice Only the governor can call this function
      */
-    function setGovernor(address _governor) override external onlyGovernor {
+    function setGovernor(address _governor) onlyInitialized override external onlyGovernor {
         governor = _governor;
         for (uint256 i = 0; i < wrappedTokens.length; i++) {
             GovernedTokenWrapper(wrappedTokens[i]).setGovernor(_governor);

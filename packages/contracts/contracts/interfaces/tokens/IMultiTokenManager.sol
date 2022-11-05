@@ -28,7 +28,7 @@ interface IMultiTokenManager {
 
     /**
         @notice Registers a new NFT token and deploys the NftTokenWrapper contract
-        @param _name The uri for the wrapped ERC1155
+        @param _uri The uri for the wrapped ERC1155
         @param _salt Salt used for matching addresses across chain using CREATE2
      */
     function registerNFTToken(

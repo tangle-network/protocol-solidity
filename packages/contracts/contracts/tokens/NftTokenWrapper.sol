@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 /**
     @title A MultiTokenManager manages GovernedTokenWrapper systems using an external `governor` address
@@ -22,6 +23,40 @@ contract NftTokenWrapper is ERC1155, ERC1155Receiver, IERC721Receiver {
 
     constructor(string memory _uri) ERC1155(_uri) {
         governor = msg.sender;
+    }
+
+    /**
+        @notice Initializes the contract
+        @param _governor The address of the governor
+     */
+    function initialize(address _governor) external onlyGovernor {
+        governor = _governor;
+    }
+
+    function wrap721(uint256 _tokenId, address _tokenContract) external {
+        IERC721(_tokenContract).safeTransferFrom(msg.sender, address(this), _tokenId);
+    }
+
+    function unwrap721(uint256 _tokenId, address _tokenContract) external {
+        // Ensure msg.sender is the owner of the wrapped token
+        require(balanceOf(msg.sender, _tokenId) == 1, "NftTokenWrapper: Not the owner of the token");
+        // Ensure this contract is the owner of the token
+        require(IERC721(_tokenContract).ownerOf(_tokenId) == address(this), "NftTokenWrapper: Not the owner of the wrapped token");
+        IERC721(_tokenContract).safeTransferFrom(address(this), msg.sender, _tokenId);
+        _burn(msg.sender, _tokenId, 1);
+    }
+
+    function wrap1155(uint256 _tokenId, address _tokenContract) external {
+        IERC1155(_tokenContract).safeTransferFrom(msg.sender, address(this), _tokenId, 1, "");
+    }
+
+    function unwrap1155(uint256 _tokenId, address _tokenContract) external {
+        // Ensure msg.sender is the owner of the wrapped token
+        require(balanceOf(msg.sender, _tokenId) == 1, "NftTokenWrapper: Not the owner of the token");
+        // Ensure this contract is the owner of the token
+        require(IERC1155(_tokenContract).balanceOf(address(this), _tokenId) == 1, "NftTokenWrapper: Not the owner of the wrapped token");
+        IERC1155(_tokenContract).safeTransferFrom(address(this), msg.sender, _tokenId, 1, "");
+        _burn(msg.sender, _tokenId, 1);
     }
 
     /**
@@ -152,6 +187,7 @@ contract NftTokenWrapper is ERC1155, ERC1155Receiver, IERC721Receiver {
         uint256 tokenId,
         bytes calldata data
     ) override external returns (bytes4) {
+        _mint(from, tokenId, 1, data);
         return this.onERC721Received.selector;
     }
 
