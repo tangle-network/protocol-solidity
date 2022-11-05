@@ -24,19 +24,17 @@ interface IMultiTokenManager {
         bytes32 _salt,
         uint256 _limit,
         bool _isNativeAllowed
-    ) external;
+    ) external returns (address);
 
     /**
-        @notice Registers a new NFT token and deploys the NFTTokenWrapper contract
-        @param _name The name of the ERC20
-        @param _symbol The symbol of the ERC20
+        @notice Registers a new NFT token and deploys the NftTokenWrapper contract
+        @param _name The uri for the wrapped ERC1155
         @param _salt Salt used for matching addresses across chain using CREATE2
      */
     function registerNFTToken(
-        string memory _name,
-        string memory _symbol,
+        string memory _uri,
         bytes32 _salt
-    ) external;
+    ) external returns (address);
 
     /**
         @notice Sets the governor of the MultiTokenManager contract

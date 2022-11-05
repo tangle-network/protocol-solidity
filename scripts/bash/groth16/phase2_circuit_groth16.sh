@@ -24,26 +24,28 @@ move_verifiers_and_metadata () {
     fi
     cp $outdir/circuit_final.zkey solidity-fixtures/solidity-fixtures/$anchorType/$size/circuit_final.zkey
     cp $outdir/verifier.sol contracts/verifiers/$anchorType/"Verifier$size.sol"
-    # sed -i 's/pragma solidity ^0.8.0;'/'pragma solidity ^0.8.0;'/ contracts/verifiers/$anchorType/"Verifier$size.sol"
-    # sed -i "s/contract Verifier {"/"contract Verifier$size {"/ contracts/verifiers/$anchorType/"Verifier$size.sol"
 }
 
 move_verifiers_and_metadata_vanchor () {
     local indir="$1" size="$2" anchorType="$3" nIns="$4"
     cp $indir/circuit_final.zkey solidity-fixtures/solidity-fixtures/$anchorType/$size/circuit_final.zkey
 
-    mkdir -p contracts/verifiers/$anchorType
-    cp $indir/verifier.sol contracts/verifiers/$anchorType/Verifier"$size"_"$nIns".sol
-    # sed -i 's/pragma solidity ^0.6.11/pragma solidity ^0.8.0/' contracts/verifiers/Verifier"$size".sol
-    # sed -i "s/contract Verifier {/contract Verifier$size {/" contracts/verifiers/Verifier"$size".sol
+    mkdir -p packages/contracts/contracts/verifiers/$anchorType
+    cp $indir/verifier.sol packages/contracts/contracts/verifiers/$anchorType/Verifier"$size"_"$nIns".sol
+}
+
+move_verifiers_and_metadata_masp_vanchor () {
+    local indir="$1" size="$2" anchorType="$3" nIns="$4"
+    cp $indir/circuit_final.zkey solidity-fixtures/solidity-fixtures/$anchorType/$size/circuit_final.zkey
+
+    mkdir -p packages/contracts/contracts/verifiers/$anchorType
+    cp $indir/verifier.sol packages/contracts/contracts/verifiers/$anchorType/VerifierMASP"$size"_"$nIns".sol
 }
 
 move_verifiers_and_metadata_identity_vanchor () {
     local indir="$1" size="$2" anchorType="$3" nIns="$4"
     cp $indir/circuit_final.zkey solidity-fixtures/solidity-fixtures/$anchorType/$size/circuit_final.zkey
 
-    mkdir -p contracts/verifiers/$anchorType
-    cp $indir/verifier.sol contracts/verifiers/$anchorType/VerifierID"$size"_"$nIns".sol
-    sed -i 's/pragma solidity ^0.6.11/pragma solidity ^0.8.0/' contracts/verifiers/$anchorType/VerifierID"$size"_"$nIns".sol
-    sed -i "s/contract Verifier {/contract VerifierID${size}_${nIns} {/" contracts/verifiers/$anchorType/VerifierID"$size"_"$nIns".sol
+    mkdir -p packages/contracts/contracts/verifiers/$anchorType
+    cp $indir/verifier.sol packages/contracts/contracts/verifiers/$anchorType/VerifierID"$size"_"$nIns".sol
 }
