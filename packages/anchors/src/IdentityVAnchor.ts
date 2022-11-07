@@ -19,15 +19,11 @@ import {
   min,
   randomBN,
   CircomProvingManager,
-  ProvingManagerSetupInput,
   generateVariableWitnessInput,
   getVAnchorExtDataHash,
-  Note,
-  NoteGenInput,
   MerkleProof,
   UtxoGenInput,
   CircomUtxo,
-  FIELD_SIZE,
 } from '@webb-tools/sdk-core';
 import {
   IAnchorDeposit,
@@ -36,9 +32,9 @@ import {
   IIdentityVariableAnchorPublicInputs,
   IAnchorDepositInfo,
 } from '@webb-tools/interfaces';
-import { generateProof, hexToU8a, u8aToHex, getChainIdType, UTXOInputs, ZkComponents } from '@webb-tools/utils';
-import { Semaphore, Verifier } from '@webb-tools/semaphore';
-import { Group } from '@webb-tools/semaphore-group';
+import { hexToU8a, u8aToHex, getChainIdType, UTXOInputs, ZkComponents } from '@webb-tools/utils';
+import { Semaphore } from '@webb-tools/semaphore';
+import { LinkedGroup } from '@webb-tools/semaphore-group';
 
 const snarkjs = require('snarkjs');
 
@@ -86,7 +82,7 @@ export class IdentityVAnchor implements IAnchor {
   contract: IdentityVAnchorContract;
   semaphore: Semaphore;
   tree: MerkleTree;
-  group: Group;
+  group: LinkedGroup;
   // hex string of the connected root
   latestSyncedBlock: number;
   smallCircuitZkComponents: ZkComponents;
@@ -106,7 +102,7 @@ export class IdentityVAnchor implements IAnchor {
     treeHeight: number,
     maxEdges: number,
     groupId: BigNumber,
-    group: Group,
+    group: LinkedGroup,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents
   ) {
@@ -183,7 +179,7 @@ export class IdentityVAnchor implements IAnchor {
     token: string,
     maxEdges: number,
     groupId: BigNumber,
-    group: Group,
+    group: LinkedGroup,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents,
     signer: ethers.Signer
@@ -225,7 +221,7 @@ export class IdentityVAnchor implements IAnchor {
     // connect via factory method
     // build up tree by querying provider for logs
     address: string,
-    group: Group,
+    group: LinkedGroup,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents,
     signer: ethers.Signer
@@ -666,7 +662,7 @@ export class IdentityVAnchor implements IAnchor {
     return identityMerkleProof;
   }
   public populateIdentityRootsForProof(): string[] {
-    return [this.group.root.toString(), BigNumber.from(0).toString()];
+    return this.group.getRoots().map((bignum: BigNumber) => bignum.toString());
   }
 
   public async generateExtData(
@@ -715,6 +711,8 @@ export class IdentityVAnchor implements IAnchor {
         return {
           pathIndices: inputMerklePathIndices,
           pathElements: inputMerklePathElements,
+          element: BigNumber.from(0),
+          merkleRoot: BigNumber.from(0)
         };
       }
     });
