@@ -12,7 +12,7 @@ import {ERC721Mock__factory as ERC721__factory} from '../../typechain/factories/
 import {NftTokenWrapper} from '../../typechain/NftTokenWrapper';
 import {NftTokenWrapper__factory} from '../../typechain/factories/NftTokenWrapper__factory';
 
-describe.only('NftGovernedTokenManager', () => {
+describe('NftGovernedTokenManager', () => {
   let token: ERC721;
   let wrappedNft: NftTokenWrapper;
   let tokenDenomination = '1000000000000000000'; // 1 ether
