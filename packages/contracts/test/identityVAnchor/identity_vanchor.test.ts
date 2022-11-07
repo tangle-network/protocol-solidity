@@ -296,6 +296,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
           return {
             pathIndices: inputMerklePathIndices,
             pathElements: inputMerklePathElements,
+            element: BigNumber.from(defaultRoot),
+            merkleRoot: BigNumber.from(defaultRoot)
           };
         }
       });
@@ -779,6 +781,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
           return {
             pathIndices: inputMerklePathIndices,
             pathElements: inputMerklePathElements,
+            element: BigNumber.from(defaultRoot),
+            merkleRoot: BigNumber.from(defaultRoot)
           };
         }
       });
@@ -956,7 +960,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
       // Alice deposits into tornado pool
       const aliceLeaf = aliceKeypair.getPubKey();
 
-      // const identityRootInputs = [group.root.toString(), BigNumber.from(defaultRoot).toString()];
       const identityRootInputs = group.getRoots().map((bignum: BigNumber) => bignum.toString());
       const idx = group.indexOf(aliceLeaf);
       const identityMerkleProof: MerkleProof = group.generateProofOfMembership(idx);
