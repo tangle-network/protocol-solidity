@@ -9,12 +9,11 @@ class ERC1155 {
   }
 
   public static async createERC1155(
-    name: string,
-    symbol: string,
+    uri: string,
     deployer: ethers.Signer
   ): Promise<ERC1155> {
     const factory = new ERC1155__factory(deployer);
-    const contract = await factory.deploy(name, symbol);
+    const contract = await factory.deploy(uri);
     await contract.deployed();
 
     const handler = new ERC1155(contract);
