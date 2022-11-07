@@ -19,6 +19,7 @@ const buildPoseidon = async (numInputs: number) => {
 subtask('typechain-generate-types', async (taskArgs, hre, runSuper) => {
   // overwrite the artifact before generating types
   await buildPoseidon(2);
+  await buildPoseidon(3);
   await buildPoseidon(5);
   await runSuper();
 });
