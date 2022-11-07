@@ -8,8 +8,10 @@
     "clean": "rimraf -rf ./lib",
     "compile": "tsc -p tsconfig.build.json"
   },
+  "peerDependencies": {
+    "@webb-tools/contracts": "^0.4.2"
+  },
   "dependencies": {
-    "@webb-tools/contracts": "^0.4.2",
     "@webb-tools/sdk-core": "0.1.4-113"
   },
   "publishConfig": {
