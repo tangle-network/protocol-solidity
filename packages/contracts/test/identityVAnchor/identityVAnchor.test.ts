@@ -1035,7 +1035,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
       await expect(
         idAnchor.contract.transact({...invalidInputs}, aliceExtData, {gasLimit: '0x5B8D80'})
-      ).to.be.revertedWith('Invalid transaction proof');
+      ).to.be.revertedWith('Invalid withdraw proof');
     });
     it('should reject tampering with input commitments', async () => {
       const invalidInputs = publicInputs;
@@ -1045,7 +1045,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
       await expect(
         idAnchor.contract.transact({...invalidInputs}, aliceExtData, {gasLimit: '0x5B8D80'})
-      ).to.be.revertedWith('Invalid transaction proof');
+      ).to.be.revertedWith('Invalid withdraw proof');
     });
 
     it('should reject tampering with extData relayer', async () => {
