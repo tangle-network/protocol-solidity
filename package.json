@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "compile": "lerna run build --scope=@webb-tools/contracts",
-    "build": "yarn build:packages",
+    "build": "yarn compile && yarn build:packages",
     "setup": "yarn compile && yarn build:circuits && yarn build:ptau",
     "test": "yarn workspace @webb-tools/contracts run test",
     "build:circuits": "./scripts/bash/build_circuits.sh",
