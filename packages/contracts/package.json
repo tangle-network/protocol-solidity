@@ -6,7 +6,7 @@
   "scripts": {
     "compile": "yarn run clean && yarn run build:contracts",
     "build": "yarn run build:library",
-    "clean": "rimraf -rf ./lib && rimraf -rf ./typechain && rimraf -rf ./cache",
+    "clean": "rimraf -rf ./lib && rimraf -rf ./typechain && rimraf -rf ./cache && rimraf -rf ./artifacts",
     "build:library": "tsc -p tsconfig.build.json",
     "test": "npx hardhat test",
     "build:contracts": "npx hardhat compile",
