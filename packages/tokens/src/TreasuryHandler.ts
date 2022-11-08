@@ -1,4 +1,4 @@
-import {ethers} from 'ethers';
+import { ethers } from 'ethers';
 import {
   TreasuryHandler as TreasuryHandlerContract,
   TreasuryHandler__factory,

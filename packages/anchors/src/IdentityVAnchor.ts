@@ -1,4 +1,4 @@
-import {BigNumber, BigNumberish, ContractTransaction, ethers} from 'ethers';
+import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
 const assert = require('assert');
 import {
   IdentityVAnchor as IdentityVAnchorContract,
@@ -712,7 +712,7 @@ export class IdentityVAnchor implements IAnchor {
     refund: BigNumber,
     encryptedOutput1: string,
     encryptedOutput2: string
-  ): Promise<{extData: ExtData; extDataHash: BigNumber}> {
+  ): Promise<{ extData: ExtData; extDataHash: BigNumber }> {
     const extData = {
       recipient: toFixedHex(recipient, 20),
       extAmount: toFixedHex(extAmount),
@@ -734,7 +734,7 @@ export class IdentityVAnchor implements IAnchor {
       refund.toString(),
       this.token
     );
-    return {extData, extDataHash};
+    return { extData, extDataHash };
   }
 
   public generateOutputSemaphoreProof(outputs: Utxo[]): MerkleProof[] {
@@ -751,7 +751,7 @@ export class IdentityVAnchor implements IAnchor {
           pathIndices: inputMerklePathIndices,
           pathElements: inputMerklePathElements,
           element: BigNumber.from(0),
-          merkleRoot: BigNumber.from(0)
+          merkleRoot: BigNumber.from(0),
         };
       }
     });
@@ -833,7 +833,7 @@ export class IdentityVAnchor implements IAnchor {
       .add(outputs.reduce((sum, x) => sum.add(BigNumber.from(BigInt(x.amount))), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(BigNumber.from(BigInt(x.amount))), BigNumber.from(0)));
 
-    const {extData, extDataHash} = await this.generateExtData(
+    const { extData, extDataHash } = await this.generateExtData(
       recipient,
       extAmount,
       relayer,
@@ -863,7 +863,7 @@ export class IdentityVAnchor implements IAnchor {
       extDataHash.toString()
     );
 
-    let tx = await this.contract.transact({...publicInputs}, extData, {gasLimit: '0x5B8D80'});
+    let tx = await this.contract.transact({ ...publicInputs }, extData, { gasLimit: '0x5B8D80' });
 
     // Add the leaves to the tree
     outputs.forEach((x) => {
@@ -925,7 +925,7 @@ export class IdentityVAnchor implements IAnchor {
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
 
-    const {extData, extDataHash} = await this.generateExtData(
+    const { extData, extDataHash } = await this.generateExtData(
       recipient,
       extAmount,
       relayer,
@@ -980,7 +980,7 @@ export class IdentityVAnchor implements IAnchor {
         },
         extData,
         tokenAddress,
-        {gasLimit: '0xBB8D80'}
+        { gasLimit: '0xBB8D80' }
       );
     }
     // const receipt = await tx.wait();

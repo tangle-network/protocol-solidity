@@ -1,5 +1,5 @@
-import {ethers, BigNumber, BigNumberish} from 'ethers';
-import {SignatureBridgeSide} from '@webb-tools/bridges';
+import { ethers, BigNumber, BigNumberish } from 'ethers';
+import { SignatureBridgeSide } from '@webb-tools/bridges';
 import {
   MintableToken,
   GovernedTokenWrapper,
@@ -7,13 +7,13 @@ import {
   Treasury,
   TokenWrapperHandler,
 } from '@webb-tools/tokens';
-import {PoseidonT3__factory} from '@webb-tools/contracts';
+import { PoseidonT3__factory } from '@webb-tools/contracts';
 import Verifier from './Verifier';
-import {AnchorIdentifier, GovernorConfig, DeployerConfig} from '@webb-tools/interfaces';
-import {AnchorHandler, OpenVAnchor as VAnchor} from '@webb-tools/anchors';
-import {hexToU8a, u8aToHex, getChainIdType, ZkComponents} from '@webb-tools/utils';
-import {CircomUtxo, Utxo} from '@webb-tools/sdk-core';
-import {KeccakHasher__factory} from '@webb-tools/contracts';
+import { AnchorIdentifier, GovernorConfig, DeployerConfig } from '@webb-tools/interfaces';
+import { AnchorHandler, OpenVAnchor as VAnchor } from '@webb-tools/anchors';
+import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
+import { CircomUtxo, Utxo } from '@webb-tools/sdk-core';
+import { KeccakHasher__factory } from '@webb-tools/contracts';
 
 export type ExistingAssetInput = {
   // A record of chainId => address of wrappable tokens to be supported in the webbToken.
@@ -153,7 +153,7 @@ export class OpenVBridge {
 
       // Create the Hasher and Verifier for the chain
       const hasherFactory = new KeccakHasher__factory(deployers[chainID]);
-      let hasherInstance = await hasherFactory.deploy({gasLimit: '0x5B8D80'});
+      let hasherInstance = await hasherFactory.deploy({ gasLimit: '0x5B8D80' });
       await hasherInstance.deployed();
 
       // Check the addresses of the asset. If it is zero, deploy a native token wrapper
@@ -216,7 +216,7 @@ export class OpenVBridge {
       await tokenInstance.grantMinterRole(vAnchorInstance.contract.address);
 
       chainGroupedVAnchors.push(vAnchorInstance);
-      vAnchors.set(OpenVBridge.createVAnchorIdString({chainId: chainID}), vAnchorInstance);
+      vAnchors.set(OpenVBridge.createVAnchorIdString({ chainId: chainID }), vAnchorInstance);
 
       await OpenVBridge.setPermissions(vBridgeInstance, chainGroupedVAnchors);
       createdVAnchors.push(chainGroupedVAnchors);
@@ -303,7 +303,7 @@ export class OpenVBridge {
 
   public getVAnchor(chainId: number) {
     let intendedAnchor: VAnchor = undefined;
-    intendedAnchor = this.vAnchors.get(OpenVBridge.createVAnchorIdString({chainId}));
+    intendedAnchor = this.vAnchors.get(OpenVBridge.createVAnchorIdString({ chainId }));
     return intendedAnchor;
   }
 

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 const assert = require('assert');
-import {ethers} from 'hardhat';
+import { ethers } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
 
 // Typechain generated bindings for contracts
@@ -23,8 +23,8 @@ import {
   ZkComponents,
   u8aToHex,
 } from '@webb-tools/utils';
-import {BigNumber} from 'ethers';
-import {SignerWithAddress} from '@nomiclabs/hardhat-ethers/signers';
+import { BigNumber } from 'ethers';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 import {
   Utxo,
@@ -37,16 +37,16 @@ import {
   generateWithdrawProofCallData,
   CircomUtxo,
 } from '@webb-tools/sdk-core';
-import {VAnchor, PoseidonHasher} from '@webb-tools/anchors';
-import {Verifier} from '@webb-tools/vbridge';
-import {writeFileSync} from 'fs';
-import {SetupTxVAnchorMock} from './mocks/SetupTxVAnchorMock';
+import { VAnchor, PoseidonHasher } from '@webb-tools/anchors';
+import { Verifier } from '@webb-tools/vbridge';
+import { writeFileSync } from 'fs';
+import { SetupTxVAnchorMock } from './mocks/SetupTxVAnchorMock';
 
 const BN = require('bn.js');
 
 const path = require('path');
 const snarkjs = require('snarkjs');
-const {toBN} = require('web3-utils');
+const { toBN } = require('web3-utils');
 
 describe('VAnchor for 2 max edges', () => {
   let anchor: VAnchor;
@@ -1132,7 +1132,7 @@ describe('VAnchor for 2 max edges', () => {
         .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
         .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
 
-      const {publicInputs, extData} = await setupVAnchor.setupTransaction(
+      const { publicInputs, extData } = await setupVAnchor.setupTransaction(
         inputs,
         outputs,
         extAmount,

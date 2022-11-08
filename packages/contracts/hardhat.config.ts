@@ -1,5 +1,5 @@
-import {HardhatUserConfig} from 'hardhat/types';
-import {HARDHAT_ACCOUNTS} from './hardhatAccounts.js';
+import { HardhatUserConfig } from 'hardhat/types';
+import { HARDHAT_ACCOUNTS } from './hardhatAccounts.js';
 import 'hardhat-artifactor';
 import 'hardhat-gas-reporter';
 import '@typechain/hardhat';
@@ -7,7 +7,7 @@ import '@nomiclabs/hardhat-waffle';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-truffle5';
 import '@primitivefi/hardhat-dodoc';
-import {subtask} from 'hardhat/config';
+import { subtask } from 'hardhat/config';
 
 import poseidonContract from 'circomlibjs/src/poseidon_gencontract.js';
 

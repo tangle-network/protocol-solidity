@@ -1,5 +1,5 @@
-import {ethers, BigNumber, BigNumberish} from 'ethers';
-import {SignatureBridgeSide} from '@webb-tools/bridges';
+import { ethers, BigNumber, BigNumberish } from 'ethers';
+import { SignatureBridgeSide } from '@webb-tools/bridges';
 import {
   MintableToken,
   GovernedTokenWrapper,
@@ -8,10 +8,10 @@ import {
   TokenWrapperHandler,
 } from '@webb-tools/tokens';
 import Verifier from './Verifier';
-import {AnchorIdentifier, GovernorConfig, DeployerConfig} from '@webb-tools/interfaces';
-import {AnchorHandler, PoseidonHasher, VAnchor} from '@webb-tools/anchors';
-import {hexToU8a, u8aToHex, getChainIdType, ZkComponents} from '@webb-tools/utils';
-import {CircomUtxo, Utxo} from '@webb-tools/sdk-core';
+import { AnchorIdentifier, GovernorConfig, DeployerConfig } from '@webb-tools/interfaces';
+import { AnchorHandler, PoseidonHasher, VAnchor } from '@webb-tools/anchors';
+import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
+import { CircomUtxo, Utxo } from '@webb-tools/sdk-core';
 
 export type ExistingAssetInput = {
   // A record of chainId => address of wrappable tokens to be supported in the webbToken.
@@ -225,7 +225,7 @@ export class VBridge {
       await tokenInstance.grantMinterRole(vAnchorInstance.contract.address);
 
       chainGroupedVAnchors.push(vAnchorInstance);
-      vAnchors.set(VBridge.createVAnchorIdString({chainId: chainID}), vAnchorInstance);
+      vAnchors.set(VBridge.createVAnchorIdString({ chainId: chainID }), vAnchorInstance);
 
       await VBridge.setPermissions(vBridgeInstance, chainGroupedVAnchors);
       createdVAnchors.push(chainGroupedVAnchors);
@@ -313,7 +313,7 @@ export class VBridge {
 
   public getVAnchor(chainId: number) {
     let intendedAnchor: VAnchor = undefined;
-    intendedAnchor = this.vAnchors.get(VBridge.createVAnchorIdString({chainId}));
+    intendedAnchor = this.vAnchors.get(VBridge.createVAnchorIdString({ chainId }));
     return intendedAnchor;
   }
 

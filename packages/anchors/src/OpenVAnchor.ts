@@ -1,6 +1,6 @@
-import {BigNumber, BigNumberish, ContractTransaction, ethers} from 'ethers';
-import {OpenVAnchor as OpenVAnchorContract, OpenVAnchor__factory} from '@webb-tools/contracts';
-import {solidityPack} from 'ethers/lib/utils';
+import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
+import { OpenVAnchor as OpenVAnchorContract, OpenVAnchor__factory } from '@webb-tools/contracts';
+import { solidityPack } from 'ethers/lib/utils';
 import {
   toHex,
   toFixedHex,
@@ -13,8 +13,8 @@ import {
   CircomProvingManager,
   MerkleProof,
 } from '@webb-tools/sdk-core';
-import {u8aToHex, getChainIdType, ZkComponents} from '@webb-tools/utils';
-import {IAnchor} from '@webb-tools/interfaces';
+import { u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
+import { IAnchor } from '@webb-tools/interfaces';
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 function checkNativeAddress(tokenAddress: string): boolean {
@@ -49,7 +49,7 @@ export class OpenVAnchor implements IAnchor {
   constructor(contract: OpenVAnchorContract, signer: ethers.Signer, treeHeight: number) {
     this.signer = signer;
     this.contract = contract;
-    this.tree = new MerkleTree(treeHeight, [], {hashFunction: sha3Hash});
+    this.tree = new MerkleTree(treeHeight, [], { hashFunction: sha3Hash });
     this.depositHistory = {};
   }
 
@@ -367,7 +367,7 @@ export class OpenVAnchor implements IAnchor {
       delegatedCalldata,
       blinding,
       relayingFee,
-      {gasLimit: '0x5B8D80'}
+      { gasLimit: '0x5B8D80' }
     );
 
     const receipt = await tx.wait();
@@ -407,7 +407,7 @@ export class OpenVAnchor implements IAnchor {
       blinding,
       relayingFee,
       tokenAddress,
-      {gasLimit: '0x5B8D80'}
+      { gasLimit: '0x5B8D80' }
     );
 
     const receipt = await tx.wait();
@@ -448,7 +448,7 @@ export class OpenVAnchor implements IAnchor {
       merkleProof.pathElements.map((bignum) => bignum.toHexString()),
       commitmentIndex,
       merkleProof.merkleRoot.toHexString(),
-      {gasLimit: '0x5B8D80'}
+      { gasLimit: '0x5B8D80' }
     );
 
     const receipt = await tx.wait();
@@ -477,7 +477,7 @@ export class OpenVAnchor implements IAnchor {
       commitmentIndex,
       merkleProof.merkleRoot.toHexString(),
       tokenAddress,
-      {gasLimit: '0x5B8D80'}
+      { gasLimit: '0x5B8D80' }
     );
 
     const receipt = await tx.wait();

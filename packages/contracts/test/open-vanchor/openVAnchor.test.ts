@@ -1,18 +1,18 @@
 const assert = require('assert');
 const TruffleAssert = require('truffle-assertions');
-import {ethers, network} from 'hardhat';
-import {toFixedHex, toHex, MerkleTree, MerkleProof} from '@webb-tools/sdk-core';
-import {BigNumber, BigNumberish} from 'ethers';
-import {solidityPack} from 'ethers/lib/utils';
-import {getChainIdType} from '@webb-tools/utils';
-import {OpenVAnchor} from '@webb-tools/anchors';
-import {ERC20PresetMinterPauser__factory, KeccakHasher__factory} from '../../typechain';
-import {startGanacheServer} from '@webb-tools/test-utils';
-import {CircomUtxo} from '@webb-tools/sdk-core';
-import {DeployerConfig, GovernorConfig} from '@webb-tools/interfaces';
-import {HARDHAT_PK_1} from '../../hardhatAccounts.js';
-import {OpenVBridge, VBridgeInput} from '@webb-tools/vbridge';
-import {MintableToken, GovernedTokenWrapper} from '@webb-tools/tokens';
+import { ethers, network } from 'hardhat';
+import { toFixedHex, toHex, MerkleTree, MerkleProof } from '@webb-tools/sdk-core';
+import { BigNumber, BigNumberish } from 'ethers';
+import { solidityPack } from 'ethers/lib/utils';
+import { getChainIdType } from '@webb-tools/utils';
+import { OpenVAnchor } from '@webb-tools/anchors';
+import { ERC20PresetMinterPauser__factory, KeccakHasher__factory } from '../../typechain';
+import { startGanacheServer } from '@webb-tools/test-utils';
+import { CircomUtxo } from '@webb-tools/sdk-core';
+import { DeployerConfig, GovernorConfig } from '@webb-tools/interfaces';
+import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
+import { OpenVBridge, VBridgeInput } from '@webb-tools/vbridge';
+import { MintableToken, GovernedTokenWrapper } from '@webb-tools/tokens';
 
 function sha3Hash(left: BigNumberish, right: BigNumberish) {
   const packed = solidityPack(['bytes32', 'bytes32'], [toFixedHex(left), toFixedHex(right)]);
@@ -98,7 +98,7 @@ describe('Open VAnchor Contract', () => {
     let commitment = ethers.utils.keccak256(ethers.utils.arrayify(prehashed));
 
     // Step 2: Insert into Merkle Tree
-    let mt = new MerkleTree(30, [], {hashFunction: sha3Hash});
+    let mt = new MerkleTree(30, [], { hashFunction: sha3Hash });
     // Step 3: Get Merkle Proof and leaf Index of commitment
     mt.insert(commitment);
     let commitmentIndex = mt.indexOf(commitment);
@@ -146,7 +146,7 @@ describe('Open VAnchor Contract', () => {
     let commitment = ethers.utils.keccak256(ethers.utils.arrayify(prehashed));
 
     // Step 2: Insert into Merkle Tree
-    let mt = new MerkleTree(30, [], {hashFunction: sha3Hash});
+    let mt = new MerkleTree(30, [], { hashFunction: sha3Hash });
     // Step 3: Get Merkle Proof and leaf Index of commitment
     mt.insert(commitment);
     let commitmentIndex = mt.indexOf(commitment);
@@ -313,7 +313,7 @@ describe('Open VAnchor Contract - cross chain', () => {
     );
     assert.strictEqual(ethers.utils.keccak256(ethers.utils.arrayify(prehashed)), commitment);
 
-    let mt = new MerkleTree(30, [], {hashFunction: sha3Hash});
+    let mt = new MerkleTree(30, [], { hashFunction: sha3Hash });
     // Step 3: Get Merkle Proof and leaf Index of commitment
     mt.insert(toFixedHex(BigNumber.from(commitment)));
     let commitmentIndex = mt.indexOf(commitment);

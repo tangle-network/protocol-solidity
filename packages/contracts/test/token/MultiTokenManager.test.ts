@@ -3,15 +3,15 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 const assert = require('assert');
-import {SignerWithAddress} from '@nomiclabs/hardhat-ethers/signers';
-import {ethers, expect} from 'hardhat';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { ethers, expect } from 'hardhat';
 
 // Convenience wrapper classes for contract classes
-import {ERC20 as ERC20Class, GovernedTokenWrapper} from '@webb-tools/tokens';
-import {MultiGovernedTokenManager} from '../../typechain/MultiGovernedTokenManager';
-import {Registrar__factory} from '../../typechain/factories/Registrar__factory';
-import {MultiGovernedTokenManager__factory} from '../../typechain/factories/MultiGovernedTokenManager__factory';
-import {Registrar} from '../../typechain/Registrar';
+import { ERC20 as ERC20Class, GovernedTokenWrapper } from '@webb-tools/tokens';
+import { MultiGovernedTokenManager } from '../../typechain/MultiGovernedTokenManager';
+import { Registrar__factory } from '../../typechain/factories/Registrar__factory';
+import { MultiGovernedTokenManager__factory } from '../../typechain/factories/MultiGovernedTokenManager__factory';
+import { Registrar } from '../../typechain/Registrar';
 
 describe('MultiGovernedTokenManager', () => {
   let token: ERC20Class;

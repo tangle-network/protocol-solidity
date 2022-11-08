@@ -1,4 +1,4 @@
-import {BigNumberish} from 'ethers';
+import { BigNumberish } from 'ethers';
 
 export type ZkComponents = {
   wasm: Buffer;

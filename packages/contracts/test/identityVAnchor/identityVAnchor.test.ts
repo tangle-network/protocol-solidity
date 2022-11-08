@@ -2,8 +2,8 @@
  * Copyright 2021 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-import {expect} from 'chai';
-import {ethers} from 'hardhat';
+import { expect } from 'chai';
+import { ethers } from 'hardhat';
 
 // Typechain generated bindings for contracts
 // These contracts are included in packages, so should be tested
@@ -24,8 +24,8 @@ import {
   getIdentityVAnchorExtDataHash,
   UTXOInputs,
 } from '@webb-tools/utils';
-import {BigNumber} from 'ethers';
-import {SignerWithAddress} from '@nomiclabs/hardhat-ethers/signers';
+import { BigNumber } from 'ethers';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 import {
   Utxo,
@@ -49,9 +49,9 @@ import { writeFileSync } from 'fs';
 const BN = require('bn.js');
 
 const path = require('path');
-const {poseidon} = require('circomlibjs');
+const { poseidon } = require('circomlibjs');
 const snarkjs = require('snarkjs');
-const {toBN} = require('web3-utils');
+const { toBN } = require('web3-utils');
 
 describe('IdentityVAnchor for 2 max edges', () => {
   let idAnchor: IdentityVAnchor;
@@ -175,7 +175,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
     group.addMember(aliceLeaf);
     let alice_addmember_tx = await semaphore.contract
       .connect(sender)
-      .addMember(groupId, aliceLeaf, {gasLimit: '0x5B8D80'});
+      .addMember(groupId, aliceLeaf, { gasLimit: '0x5B8D80' });
     // const receipt = await alice_addmember_tx.wait();
 
     expect(alice_addmember_tx)
@@ -185,7 +185,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
     let bobLeaf = bobKeypair.getPubKey();
     let bob_addmember_tx = await semaphore.contract
       .connect(sender)
-      .addMember(groupId, bobLeaf, {gasLimit: '0x5B8D80'});
+      .addMember(groupId, bobLeaf, { gasLimit: '0x5B8D80' });
     // const receipt = await alice_addmember_tx.wait();
     group.addMember(bobLeaf);
 
@@ -306,7 +306,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
             pathIndices: inputMerklePathIndices,
             pathElements: inputMerklePathElements,
             element: BigNumber.from(defaultRoot),
-            merkleRoot: BigNumber.from(defaultRoot)
+            merkleRoot: BigNumber.from(defaultRoot),
           };
         }
       });
@@ -391,9 +391,9 @@ describe('IdentityVAnchor for 2 max edges', () => {
         .withArgs(outputs[1].commitment, 1, encOutput2);
       expect(tx).to.emit(idAnchor.contract, 'NewNullifier').withArgs(inputs[0].nullifier);
       expect(tx).to.emit(idAnchor.contract, 'NewNullifier').withArgs(inputs[1].nullifier);
-      const expectedBalance = aliceBalanceBeforeDeposit.sub(aliceDepositAmount).sub(fee)
+      const expectedBalance = aliceBalanceBeforeDeposit.sub(aliceDepositAmount).sub(fee);
       // expect(aliceBalanceAfterDeposit.add(BigNumber.from(fee))).equal(BN(toBN(aliceBalanceBeforeDeposit).sub(toBN(aliceDepositAmount))))
-      expect(aliceBalanceAfterDeposit).equal(expectedBalance)
+      expect(aliceBalanceAfterDeposit).equal(expectedBalance);
     });
 
     it('should process fee on deposit', async () => {
@@ -816,7 +816,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
             pathIndices: inputMerklePathIndices,
             pathElements: inputMerklePathElements,
             element: BigNumber.from(defaultRoot),
-            merkleRoot: BigNumber.from(defaultRoot)
+            merkleRoot: BigNumber.from(defaultRoot),
           };
         }
       });
@@ -830,7 +830,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         extDataHash.toString()
       );
 
-      const tx = idAnchor.contract.transact({...publicInputs}, extData, {gasLimit: '0x5B8D80'});
+      const tx = idAnchor.contract.transact({ ...publicInputs }, extData, { gasLimit: '0x5B8D80' });
       await expect(tx).revertedWith('non-existent edge is not set to the default root');
     });
     it('should reject proofs made against Semaphore empty edges', async () => {
@@ -890,7 +890,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       fakeGroup.addMember(carlLeaf);
 
       const identityRootInputs = group.getRoots().map((bignum: BigNumber) => bignum.toString());
-      identityRootInputs[1] = fakeGroup.root.toString()
+      identityRootInputs[1] = fakeGroup.root.toString();
       const idx = fakeGroup.indexOf(carlLeaf);
       const identityMerkleProof: MerkleProof = group.generateProofOfMembership(idx);
 
@@ -906,7 +906,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
             pathIndices: inputMerklePathIndices,
             pathElements: inputMerklePathElements,
             element: BigNumber.from(defaultRoot),
-            merkleRoot: BigNumber.from(defaultRoot)
+            merkleRoot: BigNumber.from(defaultRoot),
           };
         }
       });
@@ -920,10 +920,10 @@ describe('IdentityVAnchor for 2 max edges', () => {
         extDataHash.toString()
       );
 
-      const tx = idAnchor.contract.transact({...publicInputs}, extData, {gasLimit: '0x5B8D80'});
+      const tx = idAnchor.contract.transact({ ...publicInputs }, extData, { gasLimit: '0x5B8D80' });
 
-      await expect(tx).revertedWith('non-existent edge is not set to the default root')
-    })
+      await expect(tx).revertedWith('non-existent edge is not set to the default root');
+    });
   });
 
   describe('# prevent tampering', () => {
@@ -991,7 +991,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const idx = group.indexOf(aliceLeaf);
       const identityMerkleProof: MerkleProof = group.generateProofOfMembership(idx);
 
-
       const outSemaphoreProofs = outputs.map((utxo) => {
         const leaf = utxo.keypair.getPubKey();
         if (Number(utxo.amount) > 0) {
@@ -1023,7 +1022,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       invalidInputs.publicAmount = toFixedHex(BigNumber.from(1e10));
 
       await expect(
-        idAnchor.contract.transact({...invalidInputs}, aliceExtData, {gasLimit: '0x5B8D80'})
+        idAnchor.contract.transact({ ...invalidInputs }, aliceExtData, { gasLimit: '0x5B8D80' })
       ).to.revertedWith('Invalid public amount');
     });
     it('should reject tampering with external data hash', async () => {
@@ -1031,15 +1030,17 @@ describe('IdentityVAnchor for 2 max edges', () => {
       invalidInputs.extDataHash = toFixedHex(BigNumber.from(publicInputs.extDataHash).add(1));
 
       await expect(
-        idAnchor.contract.transact({...invalidInputs}, aliceExtData, {gasLimit: '0x5B8D80'})
+        idAnchor.contract.transact({ ...invalidInputs }, aliceExtData, { gasLimit: '0x5B8D80' })
       ).to.be.revertedWith('Incorrect external data hash');
     });
 
     it('should reject tampering with output commitments', async () => {
       const invalidInputs = publicInputs;
-      invalidInputs.outputCommitments[0] = toFixedHex(BigNumber.from(publicInputs.outputCommitments[0]).add(1))
+      invalidInputs.outputCommitments[0] = toFixedHex(
+        BigNumber.from(publicInputs.outputCommitments[0]).add(1)
+      );
       await expect(
-        idAnchor.contract.transact({...invalidInputs}, aliceExtData, {gasLimit: '0x5B8D80'})
+        idAnchor.contract.transact({ ...invalidInputs }, aliceExtData, { gasLimit: '0x5B8D80' })
       ).to.be.revertedWith('Invalid withdraw proof');
     });
     it('should reject tampering with input commitments', async () => {
@@ -1049,7 +1050,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       );
 
       await expect(
-        idAnchor.contract.transact({...invalidInputs}, aliceExtData, {gasLimit: '0x5B8D80'})
+        idAnchor.contract.transact({ ...invalidInputs }, aliceExtData, { gasLimit: '0x5B8D80' })
       ).to.be.revertedWith('Invalid withdraw proof');
     });
 
@@ -1060,21 +1061,21 @@ describe('IdentityVAnchor for 2 max edges', () => {
         20
       );
       await expect(
-        idAnchor.contract.transact({...publicInputs}, invalidExtData, {gasLimit: '0x5B8D80'})
+        idAnchor.contract.transact({ ...publicInputs }, invalidExtData, { gasLimit: '0x5B8D80' })
       ).to.be.revertedWith('Incorrect external data hash');
     });
     it('should reject tampering with extData extAmount', async () => {
       const invalidExtData = aliceExtData;
       invalidExtData.extAmount = toFixedHex(aliceDepositAmount * 100, 20);
       await expect(
-        idAnchor.contract.transact({...publicInputs}, invalidExtData, {gasLimit: '0x5B8D80'})
+        idAnchor.contract.transact({ ...publicInputs }, invalidExtData, { gasLimit: '0x5B8D80' })
       ).to.be.revertedWith('Incorrect external data hash');
     });
     it('should reject tampering with extData fee', async () => {
       const invalidExtData = aliceExtData;
       invalidExtData.fee = toFixedHex(fee + BigInt(1000), 20);
       await expect(
-        idAnchor.contract.transact({...publicInputs}, invalidExtData, {gasLimit: '0x5B8D80'})
+        idAnchor.contract.transact({ ...publicInputs }, invalidExtData, { gasLimit: '0x5B8D80' })
       ).to.be.revertedWith('Incorrect external data hash');
     });
   });
@@ -1195,7 +1196,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       ).equal(BigNumber.from(1e7).toString());
 
       const aliceChangeAmount = 0;
-      const aliceChangeUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceChangeAmount)
+      const aliceChangeUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceChangeAmount);
 
       const tx1 = await wrappedIdAnchor.transactWrap(
         token.address,
@@ -1209,7 +1210,9 @@ describe('IdentityVAnchor for 2 max edges', () => {
       );
 
       const balTokenAfterWithdrawAndUnwrapSender = await token.balanceOf(alice.address);
-      const balTokenAfterWithdrawAndUnwrapAnchor = await wrappedToken.balanceOf(idAnchor.contract.address);
+      const balTokenAfterWithdrawAndUnwrapAnchor = await wrappedToken.balanceOf(
+        idAnchor.contract.address
+      );
       expect(balTokenBeforeDepositSender).equal(balTokenAfterWithdrawAndUnwrapSender);
       expect(balTokenAfterWithdrawAndUnwrapSender).equal(balTokenBeforeDepositSender);
     });

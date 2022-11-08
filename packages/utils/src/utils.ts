@@ -1,15 +1,15 @@
 /* eslint-disable camelcase */
 /* eslint-disable sort-keys */
 const assert = require('assert');
-import {BigNumber, BigNumberish, ethers} from 'ethers';
-import {poseidon} from 'circomlibjs';
-import {groth16} from 'snarkjs';
+import { BigNumber, BigNumberish, ethers } from 'ethers';
+import { poseidon } from 'circomlibjs';
+import { groth16 } from 'snarkjs';
 
-import {u8aToHex} from '@polkadot/util';
+import { u8aToHex } from '@polkadot/util';
 
 import path from 'path';
-import {ZkComponents} from './types';
-import {toFixedHex, Keypair, MerkleProof, MerkleTree, Utxo} from '@webb-tools/sdk-core';
+import { ZkComponents } from './types';
+import { toFixedHex, Keypair, MerkleProof, MerkleTree, Utxo } from '@webb-tools/sdk-core';
 
 export const FIELD_SIZE = BigNumber.from(
   '21888242871839275222246405745257275088548364400416034343698204186575808495617'
@@ -103,7 +103,7 @@ export function getIdentityVAnchorExtDataHash(
 }
 export default function verifyProof(
   verificationKey: any,
-  {proof, publicSignals}: any
+  { proof, publicSignals }: any
 ): Promise<boolean> {
   return groth16.verify(
     verificationKey,

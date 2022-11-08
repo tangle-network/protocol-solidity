@@ -1,6 +1,6 @@
-import {VAnchor} from '@webb-tools/anchors';
+import { VAnchor } from '@webb-tools/anchors';
 
-import {BigNumber, BigNumberish, ethers} from 'ethers';
+import { BigNumber, BigNumberish, ethers } from 'ethers';
 import {
   toFixedHex,
   Utxo,
@@ -11,9 +11,9 @@ import {
   FIELD_SIZE,
   LeafIdentifier,
 } from '@webb-tools/sdk-core';
-import {IVariableAnchorExtData, IVariableAnchorPublicInputs} from '@webb-tools/interfaces';
-import {hexToU8a, u8aToHex, getChainIdType, ZkComponents} from '@webb-tools/utils';
-import {VAnchor as VAnchorContract} from '../../../typechain';
+import { IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
+import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
+import { VAnchor as VAnchorContract } from '../../../typechain';
 
 export class SetupTxVAnchorMock extends VAnchor {
   private rootsForProof: string[];

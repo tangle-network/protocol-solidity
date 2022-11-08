@@ -4,15 +4,15 @@
  */
 // @ts-nocheck
 const assert = require('assert');
-import {ethers, network} from 'hardhat';
+import { ethers, network } from 'hardhat';
 import BN from 'bn.js';
-import {toFixedHex, toHex} from '@webb-tools/sdk-core';
+import { toFixedHex, toHex } from '@webb-tools/sdk-core';
 import EC from 'elliptic';
 const ec = new EC.ec('secp256k1');
 const TruffleAssert = require('truffle-assertions');
 
 // Convenience wrapper classes for contract classes
-import {Governable__factory} from '../../typechain';
+import { Governable__factory } from '../../typechain';
 
 describe('Governable Contract', () => {
   let governableInstance;

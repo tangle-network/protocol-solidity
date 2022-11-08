@@ -1,4 +1,4 @@
-import {BigNumber, BigNumberish, ContractTransaction, ethers} from 'ethers';
+import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
 import {
   VAnchor as VAnchorContract,
   VAnchor__factory,
@@ -26,9 +26,13 @@ import {
   FIELD_SIZE,
   LeafIdentifier,
 } from '@webb-tools/sdk-core';
-import {IAnchor, IVariableAnchorExtData, IVariableAnchorPublicInputs} from '@webb-tools/interfaces';
-import {hexToU8a, u8aToHex, getChainIdType, ZkComponents} from '@webb-tools/utils';
-import {solidityPack} from 'ethers/lib/utils';
+import {
+  IAnchor,
+  IVariableAnchorExtData,
+  IVariableAnchorPublicInputs,
+} from '@webb-tools/interfaces';
+import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
+import { solidityPack } from 'ethers/lib/utils';
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 function checkNativeAddress(tokenAddress: string): boolean {
@@ -97,7 +101,7 @@ export class VAnchor implements IAnchor {
     const encodeLibrary = await encodeLibraryFactory.deploy();
     await encodeLibrary.deployed();
     const factory = new VAnchor__factory(
-      {['contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs']: encodeLibrary.address},
+      { ['contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs']: encodeLibrary.address },
       signer
     );
     const vAnchor = await factory.deploy(verifier, levels, hasher, handler, token, maxEdges, {});
@@ -599,7 +603,7 @@ export class VAnchor implements IAnchor {
 
     const token = this.token;
 
-    const {extData, publicInputs} = await this.setupTransaction(
+    const { extData, publicInputs } = await this.setupTransaction(
       inputs,
       [outputs[0], outputs[1]],
       extAmount,
@@ -617,7 +621,7 @@ export class VAnchor implements IAnchor {
         outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
       },
       extData,
-      {gasLimit: '0x5B8D80'}
+      { gasLimit: '0x5B8D80' }
     );
     const receipt = await tx.wait();
     gasBenchmark.push(receipt.gasUsed.toString());
@@ -680,7 +684,7 @@ export class VAnchor implements IAnchor {
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
 
-    const {extData, publicInputs} = await this.setupTransaction(
+    const { extData, publicInputs } = await this.setupTransaction(
       inputs,
       [outputs[0], outputs[1]],
       extAmount,
@@ -717,7 +721,7 @@ export class VAnchor implements IAnchor {
         },
         extData,
         tokenAddress,
-        {gasLimit: '0x5B8D80'}
+        { gasLimit: '0x5B8D80' }
       );
     }
     const receipt = await tx.wait();
@@ -783,7 +787,7 @@ export class VAnchor implements IAnchor {
 
     const token = this.token;
 
-    const {extData, publicInputs} = await this.setupTransaction(
+    const { extData, publicInputs } = await this.setupTransaction(
       inputs,
       [outputs[0], outputs[1]],
       extAmount,
@@ -796,13 +800,13 @@ export class VAnchor implements IAnchor {
     );
 
     let tx = await this.contract.registerAndTransact(
-      {owner, keyData: keyData},
+      { owner, keyData: keyData },
       {
         ...publicInputs,
         outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
       },
       extData,
-      {gasLimit: '0x5B8D80'}
+      { gasLimit: '0x5B8D80' }
     );
     const receipt = await tx.wait();
 

@@ -1,6 +1,6 @@
-import {ethers} from 'ethers';
-import {getChainIdType} from '@webb-tools/utils';
-import {toHex, generateFunctionSigHash} from '@webb-tools/sdk-core';
+import { ethers } from 'ethers';
+import { getChainIdType } from '@webb-tools/utils';
+import { toHex, generateFunctionSigHash } from '@webb-tools/sdk-core';
 import {
   GovernedTokenWrapper as GovernedTokenWrapperContract,
   GovernedTokenWrapper__factory,

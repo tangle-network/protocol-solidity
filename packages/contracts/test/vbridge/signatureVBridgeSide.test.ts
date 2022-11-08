@@ -4,13 +4,13 @@
  */
 const assert = require('assert');
 const path = require('path');
-import {ethers} from 'hardhat';
+import { ethers } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
 
 // Convenience wrapper classes for contract classes
-import {SignatureBridgeSide} from '@webb-tools/bridges';
-import {VAnchor, AnchorHandler, PoseidonHasher} from '@webb-tools/anchors';
-import {Verifier} from '@webb-tools/vbridge';
+import { SignatureBridgeSide } from '@webb-tools/bridges';
+import { VAnchor, AnchorHandler, PoseidonHasher } from '@webb-tools/anchors';
+import { Verifier } from '@webb-tools/vbridge';
 import {
   MintableToken,
   Treasury,
@@ -18,10 +18,10 @@ import {
   GovernedTokenWrapper,
   TokenWrapperHandler,
 } from '@webb-tools/tokens';
-import {fetchComponentsFromFilePaths, getChainIdType, ZkComponents} from '@webb-tools/utils';
-import {BigNumber} from 'ethers';
-import {HARDHAT_PK_1} from '../../hardhatAccounts.js';
-import {CircomUtxo, Keypair} from '@webb-tools/sdk-core';
+import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '@webb-tools/utils';
+import { BigNumber } from 'ethers';
+import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
+import { CircomUtxo, Keypair } from '@webb-tools/sdk-core';
 
 describe('SignatureBridgeSide use', () => {
   let zkComponents2_2: ZkComponents;
@@ -155,7 +155,7 @@ describe('SignatureBridgeSide use', () => {
     await srcAnchor.transact(
       [],
       [depositUtxo],
-      {[chainID1.toString()]: []},
+      { [chainID1.toString()]: [] },
       '0',
       '0',
       zeroAddress,
@@ -648,7 +648,7 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
         '0',
         zeroAddress,
         zeroAddress,
-        {[chainID1.toString()]: []}
+        { [chainID1.toString()]: [] }
       ),
       'Fee Recipient cannot be zero address'
     );
@@ -665,7 +665,7 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
       '0',
       zeroAddress,
       zeroAddress,
-      {[chainID1.toString()]: []}
+      { [chainID1.toString()]: [] }
     );
 
     // Anchor Denomination amount should go to TokenWrapper
@@ -903,7 +903,7 @@ describe('Rescue Tokens Tests for Native ETH', () => {
       '0',
       zeroAddress,
       zeroAddress,
-      {[chainID1.toString()]: []}
+      { [chainID1.toString()]: [] }
     );
 
     // Anchor Denomination amount should go to TokenWrapper

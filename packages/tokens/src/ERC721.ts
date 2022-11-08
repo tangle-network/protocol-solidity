@@ -1,5 +1,5 @@
-import {ethers} from 'ethers';
-import {ERC721 as ERC721Contract, ERC721__factory} from '@webb-tools/contracts';
+import { ethers } from 'ethers';
+import { ERC721 as ERC721Contract, ERC721__factory } from '@webb-tools/contracts';
 
 class ERC721 {
   contract: ERC721Contract;
@@ -22,4 +22,4 @@ class ERC721 {
   }
 }
 
-export {ERC721};
+export { ERC721 };

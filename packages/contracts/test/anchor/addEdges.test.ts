@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
-import {artifacts, contract, assert} from 'hardhat';
+import { artifacts, contract, assert } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
 
 const Anchor = artifacts.require('LinkableAnchorMock');

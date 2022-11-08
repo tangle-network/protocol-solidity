@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 const assert = require('assert');
-import {SignerWithAddress} from '@nomiclabs/hardhat-ethers/signers';
-import {ethers, expect} from 'hardhat';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { ethers, expect } from 'hardhat';
 
 // Convenience wrapper classes for contract classes
-import {ERC721Mock as ERC721} from '../../typechain/ERC721Mock';
-import {ERC721Mock__factory as ERC721__factory} from '../../typechain/factories/ERC721Mock__factory';
-import {NftTokenWrapper} from '../../typechain/NftTokenWrapper';
-import {NftTokenWrapper__factory} from '../../typechain/factories/NftTokenWrapper__factory';
+import { ERC721Mock as ERC721 } from '../../typechain/ERC721Mock';
+import { ERC721Mock__factory as ERC721__factory } from '../../typechain/factories/ERC721Mock__factory';
+import { NftTokenWrapper } from '../../typechain/NftTokenWrapper';
+import { NftTokenWrapper__factory } from '../../typechain/factories/NftTokenWrapper__factory';
 
 describe('NftGovernedTokenManager', () => {
   let token: ERC721;

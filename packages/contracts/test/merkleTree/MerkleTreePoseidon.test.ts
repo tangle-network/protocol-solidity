@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
-import {MerkleTree, toFixedHex} from '@webb-tools/sdk-core';
-import {BigNumber} from 'ethers';
-import {artifacts, contract, ethers} from 'hardhat';
-import {poseidon} from 'circomlibjs';
-import {PoseidonHasher} from '@webb-tools/anchors';
+import { MerkleTree, toFixedHex } from '@webb-tools/sdk-core';
+import { BigNumber } from 'ethers';
+import { artifacts, contract, ethers } from 'hardhat';
+import { poseidon } from 'circomlibjs';
+import { PoseidonHasher } from '@webb-tools/anchors';
 const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
 
@@ -67,9 +67,9 @@ contract('MerkleTree w/ Poseidon hasher', (accounts) => {
       let rootFromContract;
 
       for (let i = 1; i < 11; i++) {
-        await merkleTreeWithHistory.insert(toFixedHex(i), {from: sender});
+        await merkleTreeWithHistory.insert(toFixedHex(i), { from: sender });
         await tree.insert(i);
-        let {merkleRoot} = await tree.path(i - 1);
+        let { merkleRoot } = await tree.path(i - 1);
         rootFromContract = await merkleTreeWithHistory.getLastRoot();
         assert.strictEqual(toFixedHex(merkleRoot), rootFromContract.toString());
       }
@@ -103,21 +103,21 @@ contract('MerkleTree w/ Poseidon hasher', (accounts) => {
       let path;
 
       for (let i = 1; i < 5; i++) {
-        TruffleAssert.passes(await merkleTreeWithHistory.insert(toFixedHex(i), {from: sender}));
+        TruffleAssert.passes(await merkleTreeWithHistory.insert(toFixedHex(i), { from: sender }));
         await tree.insert(i);
         path = await tree.path(i - 1);
         let isKnown = await merkleTreeWithHistory.isKnownRoot(toFixedHex(path.merkleRoot));
         assert(isKnown);
       }
 
-      TruffleAssert.passes(await merkleTreeWithHistory.insert(toFixedHex(42), {from: sender}));
+      TruffleAssert.passes(await merkleTreeWithHistory.insert(toFixedHex(42), { from: sender }));
       // check outdated root
       let isKnown = await merkleTreeWithHistory.isKnownRoot(toFixedHex(path.merkleRoot));
       assert(isKnown);
     });
 
     it('should not return uninitialized roots', async () => {
-      TruffleAssert.passes(await merkleTreeWithHistory.insert(toFixedHex(42), {from: sender}));
+      TruffleAssert.passes(await merkleTreeWithHistory.insert(toFixedHex(42), { from: sender }));
       let isKnown = await merkleTreeWithHistory.isKnownRoot(toFixedHex(0));
       assert(!isKnown);
     });
@@ -131,8 +131,8 @@ contract('MerkleTree w/ Poseidon hasher', (accounts) => {
       );
       const commitment = '0x0101010101010101010101010101010101010101010101010101010101010101';
       await tree.insert(commitment);
-      const {merkleRoot, pathElements, pathIndices} = await tree.path(0);
-      await merkleTreeWithHistory.insert(toFixedHex(commitment), {from: sender});
+      const { merkleRoot, pathElements, pathIndices } = await tree.path(0);
+      await merkleTreeWithHistory.insert(toFixedHex(commitment), { from: sender });
       const rootFromContract = await merkleTreeWithHistory.getLastRoot();
       assert.strictEqual(toFixedHex(merkleRoot), rootFromContract.toString());
 

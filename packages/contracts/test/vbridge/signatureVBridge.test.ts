@@ -4,18 +4,18 @@
  */
 const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
-import {ethers} from 'hardhat';
+import { ethers } from 'hardhat';
 
 // Convenience wrapper classes for contract classes
-import {VBridge, VBridgeInput} from '@webb-tools/vbridge';
-import {VAnchor} from '@webb-tools/anchors';
-import {MintableToken, GovernedTokenWrapper} from '@webb-tools/tokens';
-import {BigNumber} from 'ethers';
-import {fetchComponentsFromFilePaths, getChainIdType, ZkComponents} from '@webb-tools/utils';
-import {startGanacheServer} from '@webb-tools/test-utils';
-import {CircomUtxo} from '@webb-tools/sdk-core';
-import {DeployerConfig, GovernorConfig} from '@webb-tools/interfaces';
-import {HARDHAT_PK_1} from '../../hardhatAccounts.js';
+import { VBridge, VBridgeInput } from '@webb-tools/vbridge';
+import { VAnchor } from '@webb-tools/anchors';
+import { MintableToken, GovernedTokenWrapper } from '@webb-tools/tokens';
+import { BigNumber } from 'ethers';
+import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '@webb-tools/utils';
+import { startGanacheServer } from '@webb-tools/test-utils';
+import { CircomUtxo } from '@webb-tools/sdk-core';
+import { DeployerConfig, GovernorConfig } from '@webb-tools/interfaces';
+import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
 
 const path = require('path');
 

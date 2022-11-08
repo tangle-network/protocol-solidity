@@ -1,12 +1,12 @@
-import {BigNumber, ethers} from 'ethers';
-import {SignatureBridge, SignatureBridge__factory} from '@webb-tools/contracts';
-import {GovernedTokenWrapper, Treasury} from '@webb-tools/tokens';
-import {TokenWrapperHandler} from '@webb-tools/tokens';
-import {AnchorHandler} from '@webb-tools/anchors';
-import {IAnchor, IBridgeSide, Proposal} from '@webb-tools/interfaces';
-import {TreasuryHandler} from '@webb-tools/tokens';
-import {getChainIdType} from '@webb-tools/utils';
-import {signMessage, toHex} from '@webb-tools/sdk-core';
+import { BigNumber, ethers } from 'ethers';
+import { SignatureBridge, SignatureBridge__factory } from '@webb-tools/contracts';
+import { GovernedTokenWrapper, Treasury } from '@webb-tools/tokens';
+import { TokenWrapperHandler } from '@webb-tools/tokens';
+import { AnchorHandler } from '@webb-tools/anchors';
+import { IAnchor, IBridgeSide, Proposal } from '@webb-tools/interfaces';
+import { TreasuryHandler } from '@webb-tools/tokens';
+import { getChainIdType } from '@webb-tools/utils';
+import { signMessage, toHex } from '@webb-tools/sdk-core';
 
 type SystemSigningFn = (data: any) => Promise<string>;
 
