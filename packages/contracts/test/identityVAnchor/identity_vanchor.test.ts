@@ -43,7 +43,7 @@ import { IdentityVAnchor, PoseidonHasher } from '@webb-tools/anchors';
 import { IdentityVerifier } from '@webb-tools/vbridge';
 import { IIdentityVariableAnchorPublicInputs } from '@webb-tools/interfaces';
 import { Semaphore } from '@webb-tools/semaphore';
-import { Group } from '@webb-tools/semaphore-group';
+import { LinkedGroup } from '@webb-tools/semaphore-group';
 import { writeFileSync } from 'fs';
 
 const BN = require('bn.js');
@@ -71,7 +71,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
   // setup zero knowledge components
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
-  let group: Group;
+  let group: LinkedGroup;
   let aliceCalldata: any;
   let aliceKeypair: Keypair;
   let aliceProof: any;
@@ -169,7 +169,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
     const tx = await semaphore.createGroup(groupId, levels, alice.address, maxEdges);
 
     let aliceLeaf = aliceKeypair.getPubKey();
-    group = new Group(levels, BigInt(defaultRoot));
+    group = new LinkedGroup(levels, maxEdges, BigInt(defaultRoot));
     group.addMember(aliceLeaf);
     let alice_addmember_tx = await semaphore.contract
       .connect(sender)
@@ -281,7 +281,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceDepositAmount);
       const aliceLeaf = aliceKeypair.getPubKey();
 
-      const identityRootInputs = [group.root.toString(), BigNumber.from(0).toString()];
+      const identityRootInputs = group.getRoots().map((bignum: BigNumber) => bignum.toString());
       const idx = group.indexOf(aliceLeaf);
       const identityMerkleProof: MerkleProof = group.generateProofOfMembership(idx);
 
@@ -296,6 +296,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
           return {
             pathIndices: inputMerklePathIndices,
             pathElements: inputMerklePathElements,
+            element: BigNumber.from(defaultRoot),
+            merkleRoot: BigNumber.from(defaultRoot)
           };
         }
       });
@@ -368,7 +370,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const encOutput2 = outputs[1].encrypt();
 
       const aliceBalanceAfterDeposit = await token.balanceOf(alice.address);
-      expect(aliceBalanceAfterDeposit.toString()).equal(BN(toBN(aliceBalanceBeforeDeposit).sub(toBN(aliceDepositAmount))).toString())
 
       expect(tx)
         .to.emit(idAnchor.contract, 'NewCommitment')
@@ -378,6 +379,9 @@ describe('IdentityVAnchor for 2 max edges', () => {
         .withArgs(outputs[1].commitment, 1, encOutput2);
       expect(tx).to.emit(idAnchor.contract, 'NewNullifier').withArgs(inputs[0].nullifier);
       expect(tx).to.emit(idAnchor.contract, 'NewNullifier').withArgs(inputs[1].nullifier);
+      const expectedBalance = aliceBalanceBeforeDeposit.sub(aliceDepositAmount).sub(fee)
+      // expect(aliceBalanceAfterDeposit.add(BigNumber.from(fee))).equal(BN(toBN(aliceBalanceBeforeDeposit).sub(toBN(aliceDepositAmount))))
+      expect(aliceBalanceAfterDeposit).equal(expectedBalance)
     });
 
     it('should process fee on deposit', async () => {
@@ -762,7 +766,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       // Alice deposits into tornado pool
       const aliceLeaf = aliceKeypair.getPubKey();
 
-      const identityRootInputs = [group.root.toString(), BigNumber.from(0).toString()];
+      const identityRootInputs = group.getRoots().map((bignum: BigNumber) => bignum.toString());
       const idx = group.indexOf(aliceLeaf);
       const identityMerkleProof: MerkleProof = group.generateProofOfMembership(idx);
 
@@ -777,6 +781,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
           return {
             pathIndices: inputMerklePathIndices,
             pathElements: inputMerklePathElements,
+            element: BigNumber.from(defaultRoot),
+            merkleRoot: BigNumber.from(defaultRoot)
           };
         }
       });
@@ -849,10 +855,11 @@ describe('IdentityVAnchor for 2 max edges', () => {
       );
       // Alice deposits into tornado pool
       const carlLeaf = carlKeypair.getPubKey();
-      const fakeGroup = new Group(levels, BigInt(defaultRoot));
+      const fakeGroup = new LinkedGroup(levels, maxEdges, BigInt(defaultRoot));
       fakeGroup.addMember(carlLeaf);
 
-      const identityRootInputs = [group.root.toString(), fakeGroup.root.toString()];
+      const identityRootInputs = group.getRoots().map((bignum: BigNumber) => bignum.toString());
+      identityRootInputs[1] = fakeGroup.root.toString()
       const idx = fakeGroup.indexOf(carlLeaf);
       const identityMerkleProof: MerkleProof = group.generateProofOfMembership(idx);
 
@@ -867,6 +874,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
           return {
             pathIndices: inputMerklePathIndices,
             pathElements: inputMerklePathElements,
+            element: BigNumber.from(defaultRoot),
+            merkleRoot: BigNumber.from(defaultRoot)
           };
         }
       });
@@ -882,7 +891,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
       const tx = idAnchor.contract.transact({ ...publicInputs }, extData, { gasLimit: '0x5B8D80' })
 
-      await expect(tx).revertedWith('Not initialized edges must be set to 0')
+      await expect(tx).revertedWith('non-existent edge is not set to the default root')
     })
   });
 
@@ -951,9 +960,10 @@ describe('IdentityVAnchor for 2 max edges', () => {
       // Alice deposits into tornado pool
       const aliceLeaf = aliceKeypair.getPubKey();
 
-      const identityRootInputs = [group.root.toString(), BigNumber.from(0).toString()];
+      const identityRootInputs = group.getRoots().map((bignum: BigNumber) => bignum.toString());
       const idx = group.indexOf(aliceLeaf);
       const identityMerkleProof: MerkleProof = group.generateProofOfMembership(idx);
+
 
       const outSemaphoreProofs = outputs.map((utxo) => {
         const leaf = utxo.keypair.getPubKey();
@@ -966,6 +976,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
           return {
             pathIndices: inputMerklePathIndices,
             pathElements: inputMerklePathElements,
+            merkleRoot: BigNumber.from(defaultRoot),
+            element: BigNumber.from(defaultRoot),
           };
         }
       });
@@ -1000,7 +1012,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
     it('should reject tampering with output commitments', async () => {
       const invalidInputs = publicInputs;
       invalidInputs.outputCommitments[0] = toFixedHex(BigNumber.from(publicInputs.outputCommitments[0]).add(1))
-
       await expect(
         idAnchor.contract.transact({ ...invalidInputs }, aliceExtData, { gasLimit: '0x5B8D80' })
       ).to.be.revertedWith('Invalid transaction proof')
@@ -1144,8 +1155,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
       const aliceChangeAmount = 0;
       const aliceChangeUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceChangeAmount)
-      console.log('balance before withdraw sender: ', balWrappedTokenAfterDepositSender)
-      console.log('balance before withdraw contract: ', balWrappedTokenAfterDepositAnchor)
 
       const tx1 = await wrappedIdAnchor.transactWrap(
         token.address,
@@ -1160,8 +1169,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
       const balTokenAfterWithdrawAndUnwrapSender = await token.balanceOf(alice.address);
       const balTokenAfterWithdrawAndUnwrapAnchor = await wrappedToken.balanceOf(idAnchor.contract.address);
-      console.log('balance after withdraw: ', balTokenAfterWithdrawAndUnwrapSender)
-      console.log('balance after withdraw contract: ', balTokenAfterWithdrawAndUnwrapAnchor)
       expect(balTokenBeforeDepositSender).equal(balTokenAfterWithdrawAndUnwrapSender);
       expect(balTokenAfterWithdrawAndUnwrapSender).equal(balTokenBeforeDepositSender);
     })
