@@ -51,7 +51,6 @@ contract Governable {
     event GovernanceOwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event RecoveredAddress(address indexed recovered);
 
-
     constructor (address gov, uint32 nonce) {
         _governor = gov;
         refreshNonce = nonce;

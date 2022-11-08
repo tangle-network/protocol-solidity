@@ -6,7 +6,6 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "../tokens/GovernedTokenWrapper.sol"; 
 import "./HandlerHelpers.sol";
 import "../interfaces/IExecutor.sol";
 import "../interfaces/ITreasury.sol";

@@ -5,8 +5,8 @@
 
 pragma solidity ^0.8.0;
 
-import "../interfaces/IAnchorVerifier.sol";
-import "../interfaces/IVerifier.sol";
+import "../interfaces/verifiers/IAnchorVerifier.sol";
+import "../interfaces/verifiers/IVerifier.sol";
 
 contract Verifier is IAnchorVerifier {
 	IVerifier2 public v2;

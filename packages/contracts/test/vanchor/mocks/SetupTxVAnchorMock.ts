@@ -1,4 +1,4 @@
-import { VAnchor } from "@webb-tools/anchors";
+import { VAnchor } from '@webb-tools/anchors';
 
 import { BigNumber, BigNumberish, ethers } from 'ethers';
 import {
@@ -11,12 +11,9 @@ import {
   FIELD_SIZE,
   LeafIdentifier,
 } from '@webb-tools/sdk-core';
-import {
-  IVariableAnchorExtData,
-  IVariableAnchorPublicInputs,
-} from '@webb-tools/interfaces';
+import { IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
-import { VAnchor as VAnchorContract } from "@webb-tools/contracts";
+import { VAnchor as VAnchorContract } from '../../../typechain';
 
 export class SetupTxVAnchorMock extends VAnchor {
   private rootsForProof: string[];
@@ -30,7 +27,14 @@ export class SetupTxVAnchorMock extends VAnchor {
     largeCircuitZkComponents: ZkComponents,
     roots: string[]
   ) {
-    super(contract, signer, treeHeight, maxEdges, smallCircuitZkComponents, largeCircuitZkComponents);
+    super(
+      contract,
+      signer,
+      treeHeight,
+      maxEdges,
+      smallCircuitZkComponents,
+      largeCircuitZkComponents
+    );
     this.rootsForProof = roots;
   }
 
@@ -56,7 +60,7 @@ export class SetupTxVAnchorMock extends VAnchor {
       sumInputs = BigNumber.from(sumInputs).add(inputUtxo.amount);
       leafIds.push({
         index: inputUtxo.index,
-        typedChainId: Number(inputUtxo.originChainId)
+        typedChainId: Number(inputUtxo.originChainId),
       });
     }
 
@@ -74,7 +78,8 @@ export class SetupTxVAnchorMock extends VAnchor {
       output: outputs,
       encryptedCommitments,
       publicAmount: BigNumber.from(extAmount).sub(fee).add(FIELD_SIZE).mod(FIELD_SIZE).toString(),
-      provingKey: inputs.length > 2 ? this.largeCircuitZkComponents.zkey : this.smallCircuitZkComponents.zkey,
+      provingKey:
+        inputs.length > 2 ? this.largeCircuitZkComponents.zkey : this.smallCircuitZkComponents.zkey,
       relayer: hexToU8a(relayer),
       refund: BigNumber.from(refund).toString(),
       token: hexToU8a(token),
@@ -84,8 +89,16 @@ export class SetupTxVAnchorMock extends VAnchor {
     };
 
     inputs.length > 2
-      ? (this.provingManager = new CircomProvingManager(this.largeCircuitZkComponents.wasm, this.tree.levels, null))
-      : (this.provingManager = new CircomProvingManager(this.smallCircuitZkComponents.wasm, this.tree.levels, null));
+      ? (this.provingManager = new CircomProvingManager(
+          this.largeCircuitZkComponents.wasm,
+          this.tree.levels,
+          null
+        ))
+      : (this.provingManager = new CircomProvingManager(
+          this.smallCircuitZkComponents.wasm,
+          this.tree.levels,
+          null
+        ));
 
     const proof = await this.provingManager.prove('vanchor', proofInput);
 

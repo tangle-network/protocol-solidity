@@ -5,10 +5,13 @@
 
 pragma solidity ^0.8.0;
 
-import "../interfaces/ITokenWrapper.sol";
-import "../interfaces/IMintableERC20.sol";
 import "./VAnchorBase.sol";
+import "../structs/SingleAssetExtData.sol";
+import "../interfaces/tokens/ITokenWrapper.sol";
+import "../interfaces/tokens/IMintableERC20.sol";
+import "../interfaces/verifiers/ISetVerifier.sol";
 import "../libs/VAnchorEncodeInputs.sol";
+import "../verifiers/TxProofVerifier.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -50,7 +53,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 	transaction is taking place. The chain id opcode is leveraged to prevent any
 	tampering of this data.
  */
-contract VAnchor is VAnchorBase {
+contract VAnchor is VAnchorBase, TxProofVerifier, ISetVerifier {
 	using SafeERC20 for IERC20;
 	using SafeMath for uint256;
 	address public immutable token;
@@ -74,13 +77,12 @@ contract VAnchor is VAnchorBase {
 		address _handler,
 		address _token,
 		uint8 _maxEdges
-	) VAnchorBase (
-		_verifier,
-		_levels,
-		_hasher,
-		_handler,
-		_maxEdges
-	) {token = _token;}
+	)
+		VAnchorBase (_levels, _hasher, _handler, _maxEdges)
+		TxProofVerifier(_verifier)
+	{
+		token = _token;
+	}
 
 	/**
 		@notice Wraps a token for the `msg.sender` using the underlying TokenWrapper contract
@@ -163,7 +165,7 @@ contract VAnchor is VAnchorBase {
 		// We first withdraw the assets and send them to `this` contract address.
 		// This ensure that when we unwrap the assets, `this` contract has the
 		// assets to unwrap into.
-		_processWithdraw(payable(address(this)), _minusExtAmount);
+		_processWithdraw(token, payable(address(this)), _minusExtAmount);
 
 		ITokenWrapper(token).unwrapAndSendTo(
 			_tokenAddress,
@@ -220,10 +222,10 @@ contract VAnchor is VAnchorBase {
 		if (_extData.extAmount < 0) {
 			require(_extData.recipient != address(0), "Can't withdraw to zero address");
 			require(uint256(-_extData.extAmount) >= minimalWithdrawalAmount, "amount is less than minimalWithdrawalAmount"); // prevents ddos attack to Bridge
-			_processWithdraw(_extData.recipient, uint256(-_extData.extAmount));
+			_processWithdraw(token, _extData.recipient, uint256(-_extData.extAmount));
 		}
 		if (_extData.fee > 0) {
-			_processFee(_extData.relayer, _extData.fee);
+			_processFee(token, _extData.relayer, _extData.fee);
 		}
 
 		_executeInsertions(_args, _extData);
@@ -255,7 +257,7 @@ contract VAnchor is VAnchorBase {
 		}
 
 		if (_extData.fee > 0) {
-			_processFee(_extData.relayer, _extData.fee);
+			_processFee(token, _extData.relayer, _extData.fee);
 		}
 
 		_executeInsertions(_args, _extData);
@@ -287,18 +289,16 @@ contract VAnchor is VAnchorBase {
 		@notice Checks whether the zkSNARK proof is valid
 		@param _args The zkSNARK proof parameters
 	 */
-	function _executeVerification(VAnchorEncodeInputs.Proof memory _args) internal {
-		if (_args.inputNullifiers.length == 2) {
-			(bytes memory encodedInput, bytes32[] memory roots) = VAnchorEncodeInputs._encodeInputs2(_args, maxEdges);
-			require(isValidRoots(roots), "Invalid roots");
-			require(verify2(_args.proof, encodedInput), "Invalid transaction proof");
-		} else if (_args.inputNullifiers.length == 16) {
-			(bytes memory encodedInput, bytes32[] memory roots) = VAnchorEncodeInputs._encodeInputs16(_args, maxEdges);
-			require(isValidRoots(roots), "Invalid roots");
-			require(verify16(_args.proof, encodedInput), "Invalid transaction proof");
-		} else {
-			revert("unsupported input count");
-		}
+	function _executeVerification(VAnchorEncodeInputs.Proof memory _args) internal view {
+		require(_args.inputNullifiers.length == 2 || _args.inputNullifiers.length == 16, "Invalid number of inputs");
+		bool smallInputs = _args.inputNullifiers.length == 2;
+		(bytes memory encodedInput, bytes32[] memory roots) = smallInputs
+			? VAnchorEncodeInputs._encodeInputs2(_args, maxEdges)
+			: VAnchorEncodeInputs._encodeInputs16(_args, maxEdges);
+
+
+		require(isValidRoots(roots), "Invalid vanchor roots");
+		require(verify(_args.proof, encodedInput, smallInputs, maxEdges), "Invalid transaction proof");
 	}
 
 	/**
@@ -317,42 +317,60 @@ contract VAnchor is VAnchorBase {
 
 	/**
 		@notice Process the withdrawal by sending/minting the wrapped tokens to/for the recipient
+		@param _token The token to withdraw
 		@param _recipient The recipient of the tokens
 		@param _minusExtAmount The amount of tokens to withdraw. Since
 		withdrawal ext amount is negative we apply a minus sign once more.
 	 */
 	function _processWithdraw(
+		address _token,
 		address _recipient,
 		uint256 _minusExtAmount
 	) internal override {
-		uint balance = IERC20(token).balanceOf(address(this));
+		uint balance = IERC20(_token).balanceOf(address(this));
 		if (balance >= _minusExtAmount) {
 			// transfer tokens when balance exists
-			IERC20(token).safeTransfer(_recipient, _minusExtAmount);
+			IERC20(_token).safeTransfer(_recipient, _minusExtAmount);
 		} else {
 			// mint tokens when not enough balance exists
-			IMintableERC20(token).mint(_recipient, _minusExtAmount);
+			IMintableERC20(_token).mint(_recipient, _minusExtAmount);
 		}
 	}
 
 	/**
 		@notice Process and pay the relayer their fee. Mint the fee if contract has no balance.
+		@param _token The token to pay the fee in
 		@param _relayer The relayer of the transaction
 		@param _fee The fee to pay
 	 */
 	function _processFee(
+		address _token,
 		address _relayer,
 		uint256 _fee
 	) internal override {
-		uint balance = IERC20(token).balanceOf(address(this));
+		uint balance = IERC20(_token).balanceOf(address(this));
 		if (_fee > 0) {
 			if (balance >= _fee) {
 				// transfer tokens when balance exists
-				IERC20(token).safeTransfer(_relayer, _fee);
+				IERC20(_token).safeTransfer(_relayer, _fee);
 			}
 			else {
-				IMintableERC20(token).mint(_relayer, _fee);
+				IMintableERC20(_token).mint(_relayer, _fee);
 			}
 		}
+	}
+
+	/**
+		@notice Set a new verifier with a nonce
+		@dev Can only be called by the `AnchorHandler` contract
+		@param _verifier The new verifier address
+		@param _nonce The nonce for updating the new verifier
+	 */
+	function setVerifier(address _verifier, uint32 _nonce) override onlyHandler external {
+		require(_verifier != address(0), "Handler cannot be 0");
+		require(proposalNonce < _nonce, "Invalid nonce");
+		require(_nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
+		verifier = IAnchorVerifier(_verifier);
+		proposalNonce = _nonce;
 	}
 }

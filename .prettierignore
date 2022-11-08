@@ -1,0 +1,28 @@
+node_modules
+.vscode
+.DS_STORE
+build/
+.env
+
+*.md
+*.json
+*.cjs
+*.yml
+
+# Packages
+packages/contracts/typechain
+packages/*/node_modules
+packages/*/lib
+packages/*/tsconfig.tsbuildinfo
+
+# Hardhat files
+cache
+artifacts
+/typechain
+/typechain-types
+/src
+
+dist
+
+*.ptau
+yarn-error.log

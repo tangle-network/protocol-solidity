@@ -375,7 +375,7 @@ function getLastRoot() external view returns (bytes32)
 ### getLatestNeighborEdges
 
 ```solidity
-function getLatestNeighborEdges() external view returns (struct LinkableAnchor.Edge[])
+function getLatestNeighborEdges() external view returns (struct Edge[])
 ```
 
 Get the latest state of all neighbor edges
@@ -387,7 +387,7 @@ Get the latest state of all neighbor edges
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | LinkableAnchor.Edge[] | Edge[] An array of all neighboring and potentially empty edges
+| _0 | Edge[] | Edge[] An array of all neighboring and potentially empty edges
 
 ### getLatestNeighborRoots
 
@@ -856,47 +856,6 @@ Set a new handler with a nonce
 | _handler | address | The new handler address
 | _nonce | uint32 | The nonce for updating the new handler
 
-### setVerifier
-
-```solidity
-function setVerifier(address _verifier, uint32 _nonce) external nonpayable
-```
-
-Set a new verifier with a nonce
-
-*Can only be called by the `AnchorHandler` contract*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _verifier | address | The new verifier address
-| _nonce | uint32 | The nonce for updating the new verifier
-
-### unpackProof
-
-```solidity
-function unpackProof(uint256[8] _proof) external pure returns (uint256[2], uint256[2][2], uint256[2])
-```
-
-A helper function to convert an array of 8 uint256 values into the a, b, and c array values that the zk-SNARK verifier&#39;s verifyProof accepts.
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _proof | uint256[8] | The array of 8 uint256 values
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256[2] | (uint256[2] memory a, uint256[2][2] memory b, uint256[2] memory c) The unpacked proof values
-| _1 | uint256[2][2] | undefined
-| _2 | uint256[2] | undefined
-
 ### updateEdge
 
 ```solidity
@@ -914,23 +873,6 @@ Add an edge to the tree or update an existing edge.
 | _root | bytes32 | The merkle root of the edge&#39;s merkle tree
 | _leafIndex | uint32 | The latest leaf insertion index of the edge&#39;s merkle tree
 | _srcResourceID | bytes32 | The origin resource ID of the originating linked anchor update
-
-### verifier
-
-```solidity
-function verifier() external view returns (contract IAnchorVerifier)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | contract IAnchorVerifier | undefined
 
 
 

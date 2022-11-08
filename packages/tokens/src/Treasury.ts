@@ -31,7 +31,10 @@ export class Treasury {
   }
 
   public async createResourceId(): Promise<string> {
-    return toHex(this.contract.address + toHex(getChainIdType(await this.signer.getChainId()), 6).substr(2), 32);
+    return toHex(
+      this.contract.address + toHex(getChainIdType(await this.signer.getChainId()), 6).substr(2),
+      32
+    );
   }
 
   public async getSetHandlerProposalData(newHandler: string): Promise<string> {

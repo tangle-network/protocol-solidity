@@ -101,10 +101,18 @@ export function getIdentityVAnchorExtDataHash(
 
   return BigNumber.from(hash).mod(FIELD_SIZE);
 }
-export default function verifyProof(verificationKey: any, { proof, publicSignals }: any): Promise<boolean> {
+export default function verifyProof(
+  verificationKey: any,
+  { proof, publicSignals }: any
+): Promise<boolean> {
   return groth16.verify(
     verificationKey,
-    [publicSignals.merkleRoot, publicSignals.nullifierHash, publicSignals.signalHash, publicSignals.externalNullifier],
+    [
+      publicSignals.merkleRoot,
+      publicSignals.nullifierHash,
+      publicSignals.signalHash,
+      publicSignals.externalNullifier,
+    ],
     proof
   );
 }
@@ -122,7 +130,9 @@ export async function generateProof(
   const inputs = {
     privateKey: keypair.privkey.toString(),
     semaphoreTreePathIndices: identityMerkleProof.pathIndices,
-    semaphoreTreeSiblings: identityMerkleProof.pathElements.map((x) => BigNumber.from(x).toString()),
+    semaphoreTreeSiblings: identityMerkleProof.pathElements.map((x) =>
+      BigNumber.from(x).toString()
+    ),
     semaphoreRoots: identityRoots,
     chainID: vanchor_inputs.chainID,
     publicAmount: vanchor_inputs.publicAmount,

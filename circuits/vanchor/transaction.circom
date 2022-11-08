@@ -2,7 +2,7 @@ pragma circom 2.0.0;
 
 include "../../node_modules/circomlib/circuits/poseidon.circom";
 include "../set/membership.circom";
-include "./manyMerkleProof.circom";
+include "../merkle-tree/manyMerkleProof.circom";
 include "./keypair.circom";
 
 /*

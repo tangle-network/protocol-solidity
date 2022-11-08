@@ -6,9 +6,10 @@
 pragma solidity ^0.8.0;
 
 import "../anchors/LinkableAnchor.sol";
-import "../interfaces/IAnchorVerifier.sol";
+import "../interfaces/verifiers/IAnchorVerifier.sol";
+import "../interfaces/verifiers/ISetVerifier.sol";
 
-contract LinkableAnchorMock is LinkableAnchor {
+contract LinkableAnchorMock is LinkableAnchor, ISetVerifier{
     constructor(
         address _handler,
         IAnchorVerifier _verifier,

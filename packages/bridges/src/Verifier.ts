@@ -39,7 +39,13 @@ export class Verifier {
     await v6.deployed();
 
     const factory = new Verifier__factory(signer);
-    const verifier = await factory.deploy(v2.address, v3.address, v4.address, v5.address, v6.address);
+    const verifier = await factory.deploy(
+      v2.address,
+      v3.address,
+      v4.address,
+      v5.address,
+      v6.address
+    );
     await verifier.deployed();
     const createdVerifier = new Verifier(verifier, signer);
     return createdVerifier;

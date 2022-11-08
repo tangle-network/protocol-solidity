@@ -26,7 +26,11 @@ import {
   FIELD_SIZE,
   LeafIdentifier,
 } from '@webb-tools/sdk-core';
-import { IAnchor, IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
+import {
+  IAnchor,
+  IVariableAnchorExtData,
+  IVariableAnchorPublicInputs,
+} from '@webb-tools/interfaces';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { solidityPack } from 'ethers/lib/utils';
 
@@ -200,7 +204,10 @@ export class VAnchor implements IAnchor {
   }
 
   public async createResourceId(): Promise<string> {
-    return toHex(this.contract.address + toHex(getChainIdType(await this.signer.getChainId()), 6).substr(2), 32);
+    return toHex(
+      this.contract.address + toHex(getChainIdType(await this.signer.getChainId()), 6).substr(2),
+      32
+    );
   }
 
   public async setVerifier(verifierAddress: string) {
@@ -248,7 +255,10 @@ export class VAnchor implements IAnchor {
 
     const srcContract = this.contract.address;
     const srcResourceId =
-      '0x' + toHex(0, 6).substring(2) + toHex(srcContract, 20).substr(2) + toHex(chainID, 6).substr(2);
+      '0x' +
+      toHex(0, 6).substring(2) +
+      toHex(srcContract, 20).substr(2) +
+      toHex(chainID, 6).substr(2);
     return (
       '0x' +
       toHex(resourceID, 32).substr(2) +
@@ -280,7 +290,9 @@ export class VAnchor implements IAnchor {
     );
   }
 
-  public async getMinWithdrawalLimitProposalData(_minimalWithdrawalAmount: string): Promise<string> {
+  public async getMinWithdrawalLimitProposalData(
+    _minimalWithdrawalAmount: string
+  ): Promise<string> {
     const resourceID = await this.createResourceId();
     const functionSig = ethers.utils
       .keccak256(ethers.utils.toUtf8Bytes('configureMinimalWithdrawalLimit(uint256,uint32)'))
@@ -367,7 +379,10 @@ export class VAnchor implements IAnchor {
       proof: `0x${proof}`,
       roots: `0x${roots.map((x) => toFixedHex(x).slice(2)).join('')}`,
       inputNullifiers: inputs.map((x) => toFixedHex('0x' + x.nullifier)),
-      outputCommitments: [toFixedHex(u8aToHex(outputs[0].commitment)), toFixedHex(u8aToHex(outputs[1].commitment))],
+      outputCommitments: [
+        toFixedHex(u8aToHex(outputs[0].commitment)),
+        toFixedHex(u8aToHex(outputs[1].commitment)),
+      ],
       publicAmount: toFixedHex(publicAmount),
       extDataHash: toFixedHex(extDataHash),
     };
@@ -482,7 +497,8 @@ export class VAnchor implements IAnchor {
       output: outputs,
       encryptedCommitments,
       publicAmount: BigNumber.from(extAmount).sub(fee).add(FIELD_SIZE).mod(FIELD_SIZE).toString(),
-      provingKey: inputs.length > 2 ? this.largeCircuitZkComponents.zkey : this.smallCircuitZkComponents.zkey,
+      provingKey:
+        inputs.length > 2 ? this.largeCircuitZkComponents.zkey : this.smallCircuitZkComponents.zkey,
       relayer: hexToU8a(relayer),
       recipient: hexToU8a(recipient),
       extAmount: toFixedHex(BigNumber.from(extAmount)),
@@ -492,8 +508,16 @@ export class VAnchor implements IAnchor {
     };
 
     inputs.length > 2
-      ? (this.provingManager = new CircomProvingManager(this.largeCircuitZkComponents.wasm, this.tree.levels, null))
-      : (this.provingManager = new CircomProvingManager(this.smallCircuitZkComponents.wasm, this.tree.levels, null));
+      ? (this.provingManager = new CircomProvingManager(
+          this.largeCircuitZkComponents.wasm,
+          this.tree.levels,
+          null
+        ))
+      : (this.provingManager = new CircomProvingManager(
+          this.smallCircuitZkComponents.wasm,
+          this.tree.levels,
+          null
+        ));
 
     const proof = await this.provingManager.prove('vanchor', proofInput);
 
@@ -777,7 +801,10 @@ export class VAnchor implements IAnchor {
 
     let tx = await this.contract.registerAndTransact(
       { owner, keyData: keyData },
-      { ...publicInputs, outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]] },
+      {
+        ...publicInputs,
+        outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
+      },
       extData,
       { gasLimit: '0x5B8D80' }
     );

@@ -119,7 +119,10 @@ export class OpenVAnchor implements IAnchor {
   }
 
   public async createResourceId(): Promise<string> {
-    return toHex(this.contract.address + toHex(getChainIdType(await this.signer.getChainId()), 6).substr(2), 32);
+    return toHex(
+      this.contract.address + toHex(getChainIdType(await this.signer.getChainId()), 6).substr(2),
+      32
+    );
   }
 
   public async setHandler(handlerAddress: string) {
@@ -159,7 +162,10 @@ export class OpenVAnchor implements IAnchor {
 
     const srcContract = this.contract.address;
     const srcResourceId =
-      '0x' + toHex(0, 6).substring(2) + toHex(srcContract, 20).substr(2) + toHex(chainID, 6).substr(2);
+      '0x' +
+      toHex(0, 6).substring(2) +
+      toHex(srcContract, 20).substr(2) +
+      toHex(chainID, 6).substr(2);
     return (
       '0x' +
       toHex(resourceID, 32).substr(2) +
@@ -191,7 +197,9 @@ export class OpenVAnchor implements IAnchor {
     );
   }
 
-  public async getMinWithdrawalLimitProposalData(_minimalWithdrawalAmount: string): Promise<string> {
+  public async getMinWithdrawalLimitProposalData(
+    _minimalWithdrawalAmount: string
+  ): Promise<string> {
     const resourceID = await this.createResourceId();
     const functionSig = ethers.utils
       .keccak256(ethers.utils.toUtf8Bytes('configureMinimalWithdrawalLimit(uint256,uint32)'))
@@ -328,13 +336,14 @@ export class OpenVAnchor implements IAnchor {
     amount: BigNumberish,
     recipientAddr: string,
     delegatedCalldata: BigNumberish,
-    blinding: BigNumberish
+    blinding: BigNumberish,
+    relayingFee: BigNumberish
   ): string {
     const delegatedCalldataHash = ethers.utils.keccak256(ethers.utils.arrayify('0x00'));
 
     const packedValues = solidityPack(
-      ['uint48', 'uint256', 'address', 'bytes32', 'uint256'],
-      [chainId, amount, recipientAddr, delegatedCalldataHash, blinding]
+      ['uint48', 'uint256', 'address', 'bytes32', 'uint256', 'uint256'],
+      [chainId, amount, recipientAddr, delegatedCalldataHash, blinding, relayingFee]
     );
     const commitment = ethers.utils.keccak256(ethers.utils.arrayify(packedValues));
     return commitment;
@@ -345,19 +354,33 @@ export class OpenVAnchor implements IAnchor {
     depositAmount: BigNumberish,
     recipient: string,
     delegatedCalldata: string,
-    blinding: BigNumberish
+    blinding: BigNumberish,
+    relayingFee: BigNumberish
   ): Promise<ethers.ContractReceipt> {
     // Default UTXO chain ID will match with the configured signer's chain ID
     const evmId = await this.signer.getChainId();
 
-    let tx = await this.contract.deposit(depositAmount, destinationChainId, recipient, delegatedCalldata, blinding, {
-      gasLimit: '0x5B8D80',
-    });
+    let tx = await this.contract.deposit(
+      depositAmount,
+      destinationChainId,
+      recipient,
+      delegatedCalldata,
+      blinding,
+      relayingFee,
+      { gasLimit: '0x5B8D80' }
+    );
 
     const receipt = await tx.wait();
     gasBenchmark.push(receipt.gasUsed.toString());
 
-    const commitment = this.getCommitment(destinationChainId, depositAmount, recipient, delegatedCalldata, blinding);
+    const commitment = this.getCommitment(
+      destinationChainId,
+      depositAmount,
+      recipient,
+      delegatedCalldata,
+      blinding,
+      relayingFee
+    );
 
     // Add the leaves to the tree
     this.tree.insert(toFixedHex(BigNumber.from(commitment)));
@@ -373,6 +396,7 @@ export class OpenVAnchor implements IAnchor {
     recipient: string,
     delegatedCalldata: string,
     blinding: BigNumberish,
+    relayingFee: BigNumberish,
     tokenAddress: string
   ): Promise<ethers.ContractReceipt> {
     let tx = await this.contract.wrapAndDeposit(
@@ -381,6 +405,7 @@ export class OpenVAnchor implements IAnchor {
       recipient,
       delegatedCalldata,
       blinding,
+      relayingFee,
       tokenAddress,
       { gasLimit: '0x5B8D80' }
     );
@@ -388,7 +413,14 @@ export class OpenVAnchor implements IAnchor {
     const receipt = await tx.wait();
     gasBenchmark.push(receipt.gasUsed.toString());
 
-    const commitment = this.getCommitment(destinationChainId, depositAmount, recipient, delegatedCalldata, blinding);
+    const commitment = this.getCommitment(
+      destinationChainId,
+      depositAmount,
+      recipient,
+      delegatedCalldata,
+      blinding,
+      relayingFee
+    );
 
     // Add the leaves to the tree
     this.tree.insert(commitment);
@@ -403,6 +435,7 @@ export class OpenVAnchor implements IAnchor {
     recipient: string,
     delegatedCalldata: string,
     blinding: BigNumberish,
+    relayingFee: BigNumberish,
     merkleProof: MerkleProof,
     commitmentIndex: number
   ): Promise<ethers.ContractReceipt> {
@@ -411,6 +444,7 @@ export class OpenVAnchor implements IAnchor {
       recipient,
       delegatedCalldata,
       blinding,
+      relayingFee,
       merkleProof.pathElements.map((bignum) => bignum.toHexString()),
       commitmentIndex,
       merkleProof.merkleRoot.toHexString(),
@@ -428,6 +462,7 @@ export class OpenVAnchor implements IAnchor {
     recipient: string,
     delegatedCalldata: string,
     blinding: BigNumberish,
+    relayingFee: BigNumberish,
     merkleProof: MerkleProof,
     commitmentIndex: number,
     tokenAddress: string
@@ -437,6 +472,7 @@ export class OpenVAnchor implements IAnchor {
       recipient,
       delegatedCalldata,
       blinding,
+      relayingFee,
       merkleProof.pathElements.map((bignum) => bignum.toHexString()),
       commitmentIndex,
       merkleProof.merkleRoot.toHexString(),

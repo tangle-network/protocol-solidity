@@ -6,9 +6,9 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "../tokens/GovernedTokenWrapper.sol"; 
 import "./HandlerHelpers.sol";
 import "../interfaces/IExecutor.sol";
+import "../interfaces/tokens/IGovernedTokenWrapper.sol"; 
 
 /**
     @title Handles GovernedTokenWrapper fee and token updates
@@ -56,7 +56,7 @@ contract TokenWrapperHandler is IExecutor, HandlerHelpers {
         arguments = data[36:];
     
         address governedTokenAddress = _resourceIDToContractAddress[resourceID];
-        GovernedTokenWrapper governedToken = GovernedTokenWrapper(governedTokenAddress); 
+        IGovernedTokenWrapper governedToken = IGovernedTokenWrapper(governedTokenAddress); 
         
         if (functionSig == bytes4(keccak256("setFee(uint16,uint32)"))) {  
             uint32 nonce = uint32(bytes4(arguments[0:4])); 

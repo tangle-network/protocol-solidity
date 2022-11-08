@@ -1,5 +1,8 @@
 import { ethers } from 'ethers';
-import { TreasuryHandler as TreasuryHandlerContract, TreasuryHandler__factory } from '@webb-tools/contracts';
+import {
+  TreasuryHandler as TreasuryHandlerContract,
+  TreasuryHandler__factory,
+} from '@webb-tools/contracts';
 
 export class TreasuryHandler {
   contract: TreasuryHandlerContract;

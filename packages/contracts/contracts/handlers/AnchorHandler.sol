@@ -6,9 +6,10 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "../interfaces/ILinkableAnchor.sol";
 import "./HandlerHelpers.sol";
 import "../interfaces/IExecutor.sol";
+import "../interfaces/verifiers/ISetVerifier.sol";
+import "../interfaces/anchors/ILinkableAnchor.sol";
 
 /**
     @title Handles Anchor edge list merkle root updates
@@ -57,29 +58,28 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
         address anchorAddress = _resourceIDToContractAddress[resourceID];
 
         require(_contractWhitelist[anchorAddress], "provided tokenAddress is not whitelisted");
-        ILinkableAnchor anchor = ILinkableAnchor(anchorAddress);
 
         if (functionSig == bytes4(keccak256("setHandler(address,uint32)"))) {
             uint32 nonce = uint32(bytes4(arguments[0:4]));
             address newHandler = address(bytes20(arguments[4:24]));
-            anchor.setHandler(newHandler, nonce);
+            ILinkableAnchor(anchorAddress).setHandler(newHandler, nonce);
         } else if (functionSig == bytes4(keccak256("setVerifier(address,uint32)"))) {
             uint32 nonce = uint32(bytes4(arguments[0:4]));
             address newVerifier = address(bytes20(arguments[4:24]));
-            anchor.setVerifier(newVerifier, nonce);
+            ISetVerifier(anchorAddress).setVerifier(newVerifier, nonce);
         } else if (functionSig == bytes4(keccak256("updateEdge(bytes32,uint32,bytes32)"))) {
             uint32 nonce = uint32(bytes4(arguments[0:4]));
             bytes32 merkleRoot = bytes32(arguments[4:36]);
             bytes32 target = bytes32(arguments[36:68]);
-            anchor.updateEdge(merkleRoot, nonce, target);
+            ILinkableAnchor(anchorAddress).updateEdge(merkleRoot, nonce, target);
         } else if (functionSig == bytes4(keccak256("configureMinimalWithdrawalLimit(uint256,uint32)"))) {
             uint32 nonce = uint32(bytes4(arguments[0:4]));
             uint256 minimalWithdrawalAmount = uint256(bytes32(arguments[4:36]));
-            anchor.configureMinimalWithdrawalLimit(minimalWithdrawalAmount, nonce);
+            ILinkableAnchor(anchorAddress).configureMinimalWithdrawalLimit(minimalWithdrawalAmount, nonce);
         } else if(functionSig == bytes4(keccak256("configureMaximumDepositLimit(uint256,uint32)"))) {
             uint32 nonce = uint32(bytes4(arguments[0:4]));
             uint256 maximumDepositAmount = uint256(bytes32(arguments[4:36]));
-            anchor.configureMaximumDepositLimit(maximumDepositAmount, nonce);
+            ILinkableAnchor(anchorAddress).configureMaximumDepositLimit(maximumDepositAmount, nonce);
         } else {
             revert("Invalid function sig");
         }

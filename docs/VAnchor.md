@@ -392,7 +392,7 @@ function getLastRoot() external view returns (bytes32)
 ### getLatestNeighborEdges
 
 ```solidity
-function getLatestNeighborEdges() external view returns (struct LinkableAnchor.Edge[])
+function getLatestNeighborEdges() external view returns (struct Edge[])
 ```
 
 Get the latest state of all neighbor edges
@@ -404,7 +404,7 @@ Get the latest state of all neighbor edges
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | LinkableAnchor.Edge[] | Edge[] An array of all neighboring and potentially empty edges
+| _0 | Edge[] | Edge[] An array of all neighboring and potentially empty edges
 
 ### getLatestNeighborRoots
 
@@ -836,7 +836,7 @@ function register(VAnchorBase.Account _account) external nonpayable
 ### registerAndTransact
 
 ```solidity
-function registerAndTransact(VAnchorBase.Account _account, VAnchorEncodeInputs.Proof _proofArgs, VAnchorBase.ExtData _extData) external nonpayable
+function registerAndTransact(VAnchorBase.Account _account, VAnchorEncodeInputs.Proof _proofArgs, ExtData _extData) external nonpayable
 ```
 
 Registers and transacts in a single flow
@@ -849,12 +849,12 @@ Registers and transacts in a single flow
 |---|---|---|
 | _account | VAnchorBase.Account | The account to register
 | _proofArgs | VAnchorEncodeInputs.Proof | The zkSNARK proof parameters
-| _extData | VAnchorBase.ExtData | The external data for the transaction
+| _extData | ExtData | The external data for the transaction
 
 ### registerAndTransactWrap
 
 ```solidity
-function registerAndTransactWrap(VAnchorBase.Account _account, VAnchorEncodeInputs.Proof _proofArgs, VAnchorBase.ExtData _extData, address _tokenAddress) external nonpayable
+function registerAndTransactWrap(VAnchorBase.Account _account, VAnchorEncodeInputs.Proof _proofArgs, ExtData _extData, address _tokenAddress) external nonpayable
 ```
 
 Registers and transacts and wraps in a single flow
@@ -867,7 +867,7 @@ Registers and transacts and wraps in a single flow
 |---|---|---|
 | _account | VAnchorBase.Account | The account to register
 | _proofArgs | VAnchorEncodeInputs.Proof | The zkSNARK proof parameters
-| _extData | VAnchorBase.ExtData | The external data for the transaction
+| _extData | ExtData | The external data for the transaction
 | _tokenAddress | address | The token to wrap from
 
 ### roots
@@ -947,7 +947,7 @@ function token() external view returns (address)
 ### transact
 
 ```solidity
-function transact(VAnchorEncodeInputs.Proof _args, VAnchorBase.ExtData _extData) external nonpayable
+function transact(VAnchorEncodeInputs.Proof _args, ExtData _extData) external nonpayable
 ```
 
 Executes a deposit/withdrawal or combination join/split transaction
@@ -959,12 +959,12 @@ Executes a deposit/withdrawal or combination join/split transaction
 | Name | Type | Description |
 |---|---|---|
 | _args | VAnchorEncodeInputs.Proof | The zkSNARK proof parameters
-| _extData | VAnchorBase.ExtData | The external data for the transaction
+| _extData | ExtData | The external data for the transaction
 
 ### transactWrap
 
 ```solidity
-function transactWrap(VAnchorEncodeInputs.Proof _args, VAnchorBase.ExtData _extData, address _tokenAddress) external payable
+function transactWrap(VAnchorEncodeInputs.Proof _args, ExtData _extData, address _tokenAddress) external payable
 ```
 
 Executes a deposit/withdrawal or combination join/split transaction including wrapping or unwrapping
@@ -976,7 +976,7 @@ Executes a deposit/withdrawal or combination join/split transaction including wr
 | Name | Type | Description |
 |---|---|---|
 | _args | VAnchorEncodeInputs.Proof | The zkSNARK proof parameters
-| _extData | VAnchorBase.ExtData | The external data for the transaction
+| _extData | ExtData | The external data for the transaction
 | _tokenAddress | address | The token to wrap from or unwrap into depending on the positivity of `_extData.extAmount`
 
 ### unpackProof

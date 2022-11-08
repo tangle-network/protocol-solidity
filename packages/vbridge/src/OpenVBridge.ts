@@ -87,7 +87,9 @@ export class OpenVBridge {
 
   // Takes as input a 2D array [[anchors to link together], [...]]
   // And returns a map of resourceID => linkedAnchor[]
-  public static async createLinkedVAnchorMap(createdVAnchors: VAnchor[][]): Promise<Map<string, VAnchor[]>> {
+  public static async createLinkedVAnchorMap(
+    createdVAnchors: VAnchor[][]
+  ): Promise<Map<string, VAnchor[]>> {
     let linkedVAnchorMap = new Map<string, VAnchor[]>();
     for (let groupedVAnchors of createdVAnchors) {
       for (let i = 0; i < groupedVAnchors.length; i++) {
@@ -121,9 +123,6 @@ export class OpenVBridge {
     // and anchors in the subArrays of thhe same index should be linked together
     let createdVAnchors: VAnchor[][] = [];
 
-    // Determine the maxEdges for the anchors on this VBridge deployment
-    let maxEdges = vBridgeInput.maxEdges ?? vBridgeInput.chainIDs.length > 2 ? 7 : 1;
-
     for (let chainID of vBridgeInput.chainIDs) {
       const initialGovernor = initialGovernors[chainID];
       // Create the bridgeSide
@@ -144,7 +143,10 @@ export class OpenVBridge {
         [],
         vBridgeInstance.admin
       );
-      const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, vBridgeInstance.admin);
+      const treasury = await Treasury.createTreasury(
+        treasuryHandler.contract.address,
+        vBridgeInstance.admin
+      );
 
       await vBridgeInstance.setTreasuryHandler(treasuryHandler);
       await vBridgeInstance.setTreasuryResourceWithSignature(treasury);
@@ -201,7 +203,6 @@ export class OpenVBridge {
       webbTokenAddresses.set(chainID, tokenInstance.contract.address);
 
       let chainGroupedVAnchors: VAnchor[] = [];
-
       // loop through all the anchor sizes on the token
       const vAnchorInstance = await VAnchor.createOpenVAnchor(
         30,
@@ -246,11 +247,17 @@ export class OpenVBridge {
   // The setPermissions method accepts initialized bridgeSide and anchors.
   // it creates the anchor handler and sets the appropriate permissions
   // for the bridgeSide/anchorHandler/anchor
-  public static async setPermissions(vBridgeSide: SignatureBridgeSide, vAnchors: VAnchor[]): Promise<void> {
+  public static async setPermissions(
+    vBridgeSide: SignatureBridgeSide,
+    vAnchors: VAnchor[]
+  ): Promise<void> {
     let tokenDenomination = '1000000000000000000'; // 1 ether
     for (let vAnchor of vAnchors) {
       await vBridgeSide.connectAnchorWithSignature(vAnchor);
-      await vBridgeSide.executeMinWithdrawalLimitProposalWithSig(vAnchor, BigNumber.from(0).toString());
+      await vBridgeSide.executeMinWithdrawalLimitProposalWithSig(
+        vAnchor,
+        BigNumber.from(0).toString()
+      );
       await vBridgeSide.executeMaxDepositLimitProposalWithSig(
         vAnchor,
         BigNumber.from(tokenDenomination).mul(1_000_000).toString()

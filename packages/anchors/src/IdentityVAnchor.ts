@@ -140,7 +140,11 @@ export class IdentityVAnchor implements IAnchor {
   ): Promise<ethers.Event> {
     throw new Error('Method not implemented.');
   }
-  wrapAndDeposit(tokenAddress: string, wrappingFee: number, destinationChainId?: number): Promise<IAnchorDeposit> {
+  wrapAndDeposit(
+    tokenAddress: string,
+    wrappingFee: number,
+    destinationChainId?: number
+  ): Promise<IAnchorDeposit> {
     throw new Error('Method not implemented.');
   }
   bridgedWithdrawAndUnwrap(
@@ -188,7 +192,10 @@ export class IdentityVAnchor implements IAnchor {
     const encodeLibrary = await encodeLibraryFactory.deploy();
     await encodeLibrary.deployed();
     const factory = new IdentityVAnchor__factory(
-      { ['contracts/libs/IdentityVAnchorEncodeInputs.sol:IdentityVAnchorEncodeInputs']: encodeLibrary.address },
+      {
+        ['contracts/libs/IdentityVAnchorEncodeInputs.sol:IdentityVAnchorEncodeInputs']:
+          encodeLibrary.address,
+      },
       signer
     );
     const vAnchor = await factory.deploy(
@@ -249,13 +256,25 @@ export class IdentityVAnchor implements IAnchor {
   }
   public async generateProofCalldata(fullProof: any) {
     // const result = snarkjs.groth16.exportSolidityCallData(proof, publicSignals);
-    const calldata = await snarkjs.groth16.exportSolidityCallData(fullProof.proof, fullProof.publicSignals);
+    const calldata = await snarkjs.groth16.exportSolidityCallData(
+      fullProof.proof,
+      fullProof.publicSignals
+    );
     const proof = JSON.parse('[' + calldata + ']');
     const pi_a = proof[0];
     const pi_b = proof[1];
     const pi_c = proof[2];
 
-    const proofEncoded = [pi_a[0], pi_a[1], pi_b[0][0], pi_b[0][1], pi_b[1][0], pi_b[1][1], pi_c[0], pi_c[1]]
+    const proofEncoded = [
+      pi_a[0],
+      pi_a[1],
+      pi_b[0][0],
+      pi_b[0][1],
+      pi_b[1][0],
+      pi_b[1][1],
+      pi_c[0],
+      pi_c[1],
+    ]
       .map((elt) => elt.substr(2))
       .join('');
 
@@ -321,7 +340,10 @@ export class IdentityVAnchor implements IAnchor {
   }
 
   public async createResourceId(): Promise<string> {
-    return toHex(this.contract.address + toHex(getChainIdType(await this.signer.getChainId()), 6).substr(2), 32);
+    return toHex(
+      this.contract.address + toHex(getChainIdType(await this.signer.getChainId()), 6).substr(2),
+      32
+    );
   }
 
   public async setVerifier(verifierAddress: string) {
@@ -369,7 +391,10 @@ export class IdentityVAnchor implements IAnchor {
 
     const srcContract = this.contract.address;
     const srcResourceId =
-      '0x' + toHex(0, 6).substring(2) + toHex(srcContract, 20).substr(2) + toHex(chainID, 6).substr(2);
+      '0x' +
+      toHex(0, 6).substring(2) +
+      toHex(srcContract, 20).substr(2) +
+      toHex(chainID, 6).substr(2);
     return (
       '0x' +
       toHex(resourceID, 32).substr(2) +
@@ -401,7 +426,9 @@ export class IdentityVAnchor implements IAnchor {
     );
   }
 
-  public async getMinWithdrawalLimitProposalData(_minimalWithdrawalAmount: string): Promise<string> {
+  public async getMinWithdrawalLimitProposalData(
+    _minimalWithdrawalAmount: string
+  ): Promise<string> {
     const resourceID = await this.createResourceId();
     const functionSig = ethers.utils
       .keccak256(ethers.utils.toUtf8Bytes('configureMinimalWithdrawalLimit(uint256,uint32)'))
@@ -584,7 +611,9 @@ export class IdentityVAnchor implements IAnchor {
     const proofInputs = {
       privateKey: keypair.privkey.toString(),
       semaphoreTreePathIndices: identityMerkleProof.pathIndices,
-      semaphoreTreeSiblings: identityMerkleProof.pathElements.map((x) => BigNumber.from(x).toString()),
+      semaphoreTreeSiblings: identityMerkleProof.pathElements.map((x) =>
+        BigNumber.from(x).toString()
+      ),
       semaphoreRoots: identityRoots,
       chainID: vanchorInputs.chainID,
       publicAmount: vanchorInputs.publicAmount,
@@ -646,11 +675,21 @@ export class IdentityVAnchor implements IAnchor {
     );
     const proof = await this.generateProofCalldata(fullProof);
     const vKey = await snarkjs.zKey.exportVerificationKey(this.smallCircuitZkComponents.zkey);
-    const calldata = await snarkjs.groth16.exportSolidityCallData(fullProof.proof, fullProof.publicSignals);
+    const calldata = await snarkjs.groth16.exportSolidityCallData(
+      fullProof.proof,
+      fullProof.publicSignals
+    );
 
-    const publicInputs: IIdentityVariableAnchorPublicInputs = this.generatePublicInputs(proof, calldata);
+    const publicInputs: IIdentityVariableAnchorPublicInputs = this.generatePublicInputs(
+      proof,
+      calldata
+    );
 
-    const is_valid: boolean = await snarkjs.groth16.verify(vKey, fullProof.publicSignals, fullProof.proof);
+    const is_valid: boolean = await snarkjs.groth16.verify(
+      vKey,
+      fullProof.publicSignals,
+      fullProof.proof
+    );
     assert.strictEqual(is_valid, true);
 
     return publicInputs;
@@ -712,7 +751,7 @@ export class IdentityVAnchor implements IAnchor {
           pathIndices: inputMerklePathIndices,
           pathElements: inputMerklePathElements,
           element: BigNumber.from(0),
-          merkleRoot: BigNumber.from(0)
+          merkleRoot: BigNumber.from(0),
         };
       }
     });

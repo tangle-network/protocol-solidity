@@ -3,22 +3,22 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 // @ts-nocheck
-import { artifacts, contract, assert } from "hardhat";
+import { artifacts, contract, assert } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
 
-const Anchor = artifacts.require("LinkableAnchorMock");
-const Hasher = artifacts.require("KeccakHasher");
+const Anchor = artifacts.require('LinkableAnchorMock');
+const Hasher = artifacts.require('KeccakHasher');
 const Verifier = artifacts.require('Verifier');
 const Verifier2 = artifacts.require('Verifier2');
 const Verifier3 = artifacts.require('Verifier3');
 const Verifier4 = artifacts.require('Verifier4');
 const Verifier5 = artifacts.require('Verifier5');
 const Verifier6 = artifacts.require('Verifier6');
-const Token = artifacts.require("ERC20Mock");
+const Token = artifacts.require('ERC20Mock');
 
- // This test does NOT include all getter methods, just
- // getters that should work with only the constructor called
- contract('LinkableAnchor - [update edges]', async accounts => {
+// This test does NOT include all getter methods, just
+// getters that should work with only the constructor called
+contract('LinkableAnchor - [update edges]', async (accounts) => {
   let AnchorInstance;
   let hasher;
   let v2, v3, v4, v5, v6;
@@ -26,7 +26,7 @@ const Token = artifacts.require("ERC20Mock");
   let token;
   const merkleTreeHeight = 31;
   const sender = accounts[0];
-  let tokenDenomination = '1000000000000000000' // 1 ether
+  let tokenDenomination = '1000000000000000000'; // 1 ether
   // function stubs
   let setHandler;
   let updateEdge;
@@ -35,19 +35,13 @@ const Token = artifacts.require("ERC20Mock");
   beforeEach(async () => {
     hasher = await Hasher.new();
     await Promise.all([
-      Verifier2.new().then(instance => v2 = instance),
-      Verifier3.new().then(instance => v3 = instance),
-      Verifier4.new().then(instance => v4 = instance),
-      Verifier5.new().then(instance => v5 = instance),
-      Verifier6.new().then(instance => v6 = instance),
+      Verifier2.new().then((instance) => (v2 = instance)),
+      Verifier3.new().then((instance) => (v3 = instance)),
+      Verifier4.new().then((instance) => (v4 = instance)),
+      Verifier5.new().then((instance) => (v5 = instance)),
+      Verifier6.new().then((instance) => (v6 = instance)),
     ]);
-    verifier = await Verifier.new(
-      v2.address,
-      v3.address,
-      v4.address,
-      v5.address,
-      v6.address
-    );
+    verifier = await Verifier.new(v2.address, v3.address, v4.address, v5.address, v6.address);
     token = await Token.new();
     await token.mint(sender, tokenDenomination);
     AnchorInstance = await Anchor.new(
@@ -55,28 +49,32 @@ const Token = artifacts.require("ERC20Mock");
       verifier.address,
       hasher.address,
       merkleTreeHeight,
-      MAX_EDGES,
+      MAX_EDGES
     );
-    
-    setHandler = (handler, sender, proposalNonce) => AnchorInstance.setHandler(handler, proposalNonce + 1, {
-      from: sender
-    });
 
-    updateEdge = (edge, sender) => AnchorInstance.updateEdge(
-      edge.root,
-      edge.latestLeafIndex,
-      edge.srcResourceID,
-      { from: sender }
-    )
+    setHandler = (handler, sender, proposalNonce) =>
+      AnchorInstance.setHandler(handler, proposalNonce + 1, {
+        from: sender,
+      });
+
+    updateEdge = (edge, sender) =>
+      AnchorInstance.updateEdge(edge.root, edge.latestLeafIndex, edge.srcResourceID, {
+        from: sender,
+      });
   });
 
   it('LinkableAnchor should have same bridge & admin & handler on init', async () => {
-    assert(await AnchorInstance.handler() == accounts[0]);
+    assert((await AnchorInstance.handler()) == accounts[0]);
   });
 
   it('LinkableAnchor handler should only be updatable by handler only', async () => {
-    await TruffleAssert.passes(setHandler(accounts[1], accounts[0], Number(await AnchorInstance.getProposalNonce())));
-    await TruffleAssert.reverts(setHandler(accounts[0], accounts[0], Number(await AnchorInstance.getProposalNonce())), "sender is not the handler");
+    await TruffleAssert.passes(
+      setHandler(accounts[1], accounts[0], Number(await AnchorInstance.getProposalNonce()))
+    );
+    await TruffleAssert.reverts(
+      setHandler(accounts[0], accounts[0], Number(await AnchorInstance.getProposalNonce())),
+      'sender is not the handler'
+    );
   });
 
   it('LinkableAnchor edges should be modifiable by handler only (checks newHeight > oldHeight)', async () => {
@@ -93,7 +91,7 @@ const Token = artifacts.require("ERC20Mock");
 
     await TruffleAssert.passes(updateEdge(edge, accounts[0]));
     await TruffleAssert.passes(updateEdge(edgeUpdated, accounts[0]));
-    await TruffleAssert.reverts(updateEdge(edgeUpdated, accounts[1]), "sender is not the handler");
+    await TruffleAssert.reverts(updateEdge(edgeUpdated, accounts[1]), 'sender is not the handler');
   });
 
   it('LinkableAnchor edges should be modifiable only if edge exists beforehand', async () => {
@@ -151,8 +149,11 @@ const Token = artifacts.require("ERC20Mock");
     await updateEdge(edge, accounts[0]);
     const result = await updateEdge(edgeUpdated, accounts[0]);
     TruffleAssert.eventEmitted(result, 'EdgeUpdate', (ev) => {
-      return ev.chainID == parseInt(edgeUpdated.sourceChainID, 16) &&
-      ev.latestLeafIndex == edgeUpdated.latestLeafIndex && ev.merkleRoot == edgeUpdated.root
+      return (
+        ev.chainID == parseInt(edgeUpdated.sourceChainID, 16) &&
+        ev.latestLeafIndex == edgeUpdated.latestLeafIndex &&
+        ev.merkleRoot == edgeUpdated.root
+      );
     });
   });
 });

@@ -85,7 +85,9 @@ export class VBridge {
 
   // Takes as input a 2D array [[anchors to link together], [...]]
   // And returns a map of resourceID => linkedAnchor[]
-  public static async createLinkedVAnchorMap(createdVAnchors: VAnchor[][]): Promise<Map<string, VAnchor[]>> {
+  public static async createLinkedVAnchorMap(
+    createdVAnchors: VAnchor[][]
+  ): Promise<Map<string, VAnchor[]>> {
     let linkedVAnchorMap = new Map<string, VAnchor[]>();
     for (let groupedVAnchors of createdVAnchors) {
       for (let i = 0; i < groupedVAnchors.length; i++) {
@@ -144,7 +146,10 @@ export class VBridge {
         [],
         vBridgeInstance.admin
       );
-      const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, vBridgeInstance.admin);
+      const treasury = await Treasury.createTreasury(
+        treasuryHandler.contract.address,
+        vBridgeInstance.admin
+      );
 
       await vBridgeInstance.setTreasuryHandler(treasuryHandler);
       await vBridgeInstance.setTreasuryResourceWithSignature(treasury);
@@ -252,11 +257,17 @@ export class VBridge {
   // The setPermissions method accepts initialized bridgeSide and anchors.
   // it creates the anchor handler and sets the appropriate permissions
   // for the bridgeSide/anchorHandler/anchor
-  public static async setPermissions(vBridgeSide: SignatureBridgeSide, vAnchors: VAnchor[]): Promise<void> {
+  public static async setPermissions(
+    vBridgeSide: SignatureBridgeSide,
+    vAnchors: VAnchor[]
+  ): Promise<void> {
     let tokenDenomination = '1000000000000000000'; // 1 ether
     for (let vAnchor of vAnchors) {
       await vBridgeSide.connectAnchorWithSignature(vAnchor);
-      await vBridgeSide.executeMinWithdrawalLimitProposalWithSig(vAnchor, BigNumber.from(0).toString());
+      await vBridgeSide.executeMinWithdrawalLimitProposalWithSig(
+        vAnchor,
+        BigNumber.from(0).toString()
+      );
       await vBridgeSide.executeMaxDepositLimitProposalWithSig(
         vAnchor,
         BigNumber.from(tokenDenomination).mul(1_000_000).toString()
@@ -364,7 +375,10 @@ export class VBridge {
 
     const publicAmount = extAmount.sub(fee);
     // Approve spending if needed
-    const userTokenAllowance = await tokenInstance.getAllowance(signerAddress, vAnchor.contract.address);
+    const userTokenAllowance = await tokenInstance.getAllowance(
+      signerAddress,
+      vAnchor.contract.address
+    );
     if (userTokenAllowance.lt(publicAmount)) {
       await tokenInstance.approveSpending(vAnchor.contract.address);
     }
@@ -373,13 +387,17 @@ export class VBridge {
     const leavesMap: Record<string, Uint8Array[]> = {};
 
     // Always include the leaves of the chain which we are interacting on
-    leavesMap[chainId] = vAnchor.tree.elements().map((commitment) => hexToU8a(commitment.toHexString()));
+    leavesMap[chainId] = vAnchor.tree
+      .elements()
+      .map((commitment) => hexToU8a(commitment.toHexString()));
 
     for (let input of inputs) {
       const inputTree = this.getVAnchor(Number(input.originChainId)).tree;
 
       if (!leavesMap[input.originChainId]) {
-        leavesMap[input.originChainId] = inputTree.elements().map((commitment) => hexToU8a(commitment.toHexString()));
+        leavesMap[input.originChainId] = inputTree
+          .elements()
+          .map((commitment) => hexToU8a(commitment.toHexString()));
       }
 
       // update the utxo with the proper index
@@ -449,7 +467,10 @@ export class VBridge {
     const webbTokenAddress = await vAnchor.contract.token();
     if (tokenAddress != zeroAddress) {
       const tokenInstance = await MintableToken.tokenFromAddress(tokenAddress, signer);
-      const userTokenAllowance = await tokenInstance.getAllowance(signerAddress, vAnchor.contract.address);
+      const userTokenAllowance = await tokenInstance.getAllowance(
+        signerAddress,
+        vAnchor.contract.address
+      );
       if (userTokenAllowance.lt(publicAmount)) {
         await tokenInstance.approveSpending(webbTokenAddress);
       }
@@ -457,13 +478,17 @@ export class VBridge {
 
     // Populate the leaves map
     const leavesMap: Record<string, Uint8Array[]> = {};
-    leavesMap[chainId] = vAnchor.tree.elements().map((commitment) => hexToU8a(commitment.toHexString()));
+    leavesMap[chainId] = vAnchor.tree
+      .elements()
+      .map((commitment) => hexToU8a(commitment.toHexString()));
 
     for (let input of inputs) {
       const inputTree = this.getVAnchor(Number(input.originChainId)).tree;
 
       if (!leavesMap[input.originChainId]) {
-        leavesMap[input.originChainId] = inputTree.elements().map((commitment) => hexToU8a(commitment.toHexString()));
+        leavesMap[input.originChainId] = inputTree
+          .elements()
+          .map((commitment) => hexToU8a(commitment.toHexString()));
       }
 
       // update the utxo with the proper index
@@ -485,7 +510,16 @@ export class VBridge {
       );
     }
 
-    await vAnchor.transactWrap(tokenAddress, inputs, outputs, fee, refund, recipient, relayer, leavesMap);
+    await vAnchor.transactWrap(
+      tokenAddress,
+      inputs,
+      outputs,
+      fee,
+      refund,
+      recipient,
+      relayer,
+      leavesMap
+    );
     await this.update(chainId);
   }
 }

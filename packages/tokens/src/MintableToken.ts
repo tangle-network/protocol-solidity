@@ -7,7 +7,12 @@ class MintableToken {
   name: string;
   symbol: string;
 
-  constructor(contract: ERC20PresetMinterPauser, name: string, symbol: string, signer: ethers.Signer) {
+  constructor(
+    contract: ERC20PresetMinterPauser,
+    name: string,
+    symbol: string,
+    signer: ethers.Signer
+  ) {
     this.contract = contract;
     this.signer = signer;
     this.name = name;
@@ -21,7 +26,10 @@ class MintableToken {
     return new MintableToken(token, name, symbol, creator);
   }
 
-  public static async tokenFromAddress(contract: string, signer: ethers.Signer): Promise<MintableToken> {
+  public static async tokenFromAddress(
+    contract: string,
+    signer: ethers.Signer
+  ): Promise<MintableToken> {
     const token = ERC20PresetMinterPauser__factory.connect(contract, signer);
     const name = await token.name();
     const symbol = await token.symbol();

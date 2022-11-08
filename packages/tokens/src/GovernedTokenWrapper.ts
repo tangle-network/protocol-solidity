@@ -30,9 +30,10 @@ export class GovernedTokenWrapper {
     deployer: ethers.Signer
   ) {
     const factory = new GovernedTokenWrapper__factory(deployer);
-    const contract = await factory.deploy(name, symbol, feeRecipient, governor, limit, isNativeAllowed);
+    const contract = await factory.deploy(name, symbol);
     await contract.deployed();
-
+    // Initialize immediately after deployment as we use an intializer now
+    await contract.initialize(feeRecipient, governor, limit, isNativeAllowed);
     const createdGovernedTokenWrapper = new GovernedTokenWrapper(contract, deployer);
 
     return createdGovernedTokenWrapper;
@@ -56,7 +57,10 @@ export class GovernedTokenWrapper {
   }
 
   public async createResourceId(): Promise<string> {
-    return toHex(this.contract.address + toHex(getChainIdType(await this.signer.getChainId()), 6).substr(2), 32);
+    return toHex(
+      this.contract.address + toHex(getChainIdType(await this.signer.getChainId()), 6).substr(2),
+      32
+    );
   }
 
   public async getAddTokenProposalData(tokenAddress: string): Promise<string> {
@@ -93,7 +97,13 @@ export class GovernedTokenWrapper {
     const functionSig = generateFunctionSigHash(this.SET_FEE_SIGNATURE);
     const feeString = toHex(fee, 2);
 
-    return '0x' + resourceID.substr(2) + functionSig.slice(2) + toHex(nonce, 4).substr(2) + feeString.slice(2);
+    return (
+      '0x' +
+      resourceID.substr(2) +
+      functionSig.slice(2) +
+      toHex(nonce, 4).substr(2) +
+      feeString.slice(2)
+    );
   }
 
   public async getFeeRecipientProposalData(feeRecipient: string): Promise<string> {

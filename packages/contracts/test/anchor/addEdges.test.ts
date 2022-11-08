@@ -3,22 +3,22 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
-import { artifacts, contract, assert } from "hardhat";
+import { artifacts, contract, assert } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
 
-const Anchor = artifacts.require("LinkableAnchorMock");
-const Hasher = artifacts.require("KeccakHasher");
+const Anchor = artifacts.require('LinkableAnchorMock');
+const Hasher = artifacts.require('KeccakHasher');
 const Verifier = artifacts.require('Verifier');
 const Verifier2 = artifacts.require('Verifier2');
 const Verifier3 = artifacts.require('Verifier3');
 const Verifier4 = artifacts.require('Verifier4');
 const Verifier5 = artifacts.require('Verifier5');
 const Verifier6 = artifacts.require('Verifier6');
-const Token = artifacts.require("ERC20Mock");
+const Token = artifacts.require('ERC20Mock');
 
 // This test does NOT include all getter methods, just
 // getters that should work with only the constructor called
-contract('LinkableAnchor - [add edges]', async accounts => {
+contract('LinkableAnchor - [add edges]', async (accounts) => {
   let AnchorInstance;
   let hasher;
   let v2, v3, v4, v5, v6;
@@ -36,19 +36,13 @@ contract('LinkableAnchor - [add edges]', async accounts => {
   beforeEach(async () => {
     hasher = await Hasher.new();
     await Promise.all([
-      Verifier2.new().then(instance => v2 = instance),
-      Verifier3.new().then(instance => v3 = instance),
-      Verifier4.new().then(instance => v4 = instance),
-      Verifier5.new().then(instance => v5 = instance),
-      Verifier6.new().then(instance => v6 = instance),
+      Verifier2.new().then((instance) => (v2 = instance)),
+      Verifier3.new().then((instance) => (v3 = instance)),
+      Verifier4.new().then((instance) => (v4 = instance)),
+      Verifier5.new().then((instance) => (v5 = instance)),
+      Verifier6.new().then((instance) => (v6 = instance)),
     ]);
-    verifier = await Verifier.new(
-      v2.address,
-      v3.address,
-      v4.address,
-      v5.address,
-      v6.address
-    );
+    verifier = await Verifier.new(v2.address, v3.address, v4.address, v5.address, v6.address);
     token = await Token.new();
     await token.mint(sender, tokenDenomination);
     AnchorInstance = await Anchor.new(
@@ -56,24 +50,22 @@ contract('LinkableAnchor - [add edges]', async accounts => {
       verifier.address,
       hasher.address,
       merkleTreeHeight,
-      MAX_EDGES,
+      MAX_EDGES
     );
 
-    setHandler = (handler, sender, proposalNonce) => AnchorInstance.setHandler(handler, proposalNonce + 1, 
-    {
-      from: sender
-    });
+    setHandler = (handler, sender, proposalNonce) =>
+      AnchorInstance.setHandler(handler, proposalNonce + 1, {
+        from: sender,
+      });
 
-    updateEdge = (edge, sender) => AnchorInstance.updateEdge(
-      edge.root,
-      edge.latestLeafIndex,
-      edge.srcResourceID,
-      { from: sender }
-    )
+    updateEdge = (edge, sender) =>
+      AnchorInstance.updateEdge(edge.root, edge.latestLeafIndex, edge.srcResourceID, {
+        from: sender,
+      });
   });
 
   it('LinkableAnchor should have same bridge & admin & handler on init', async () => {
-    assert(await AnchorInstance.handler() == accounts[0]);
+    assert((await AnchorInstance.handler()) == accounts[0]);
   });
 
   it('LinkableAnchor edges should be modifiable by handler only', async () => {
@@ -84,7 +76,7 @@ contract('LinkableAnchor - [add edges]', async accounts => {
     };
 
     await TruffleAssert.passes(updateEdge(edge, accounts[0]));
-    await TruffleAssert.reverts(updateEdge(edge, accounts[1]), "sender is not the handler");
+    await TruffleAssert.reverts(updateEdge(edge, accounts[1]), 'sender is not the handler');
 
     const roots = await AnchorInstance.getLatestNeighborRoots();
     assert.strictEqual(roots.length, maxRoots);
@@ -100,7 +92,7 @@ contract('LinkableAnchor - [add edges]', async accounts => {
 
     await TruffleAssert.passes(updateEdge(edge, accounts[0]));
 
-    assert(await AnchorInstance.edgeIndex('0x01') == 0);
+    assert((await AnchorInstance.edgeIndex('0x01')) == 0);
   });
 
   it('LinkableAnchor should fail to add an edge at capacity', async () => {
@@ -117,7 +109,7 @@ contract('LinkableAnchor - [add edges]', async accounts => {
     };
 
     await TruffleAssert.passes(updateEdge(edge, accounts[0]));
-    assert(await AnchorInstance.edgeIndex('0x01') == 0);
+    assert((await AnchorInstance.edgeIndex('0x01')) == 0);
 
     await TruffleAssert.reverts(updateEdge(edge1, accounts[0], 'This Anchor is at capacity'));
   });
@@ -147,9 +139,11 @@ contract('LinkableAnchor - [add edges]', async accounts => {
     const result = await updateEdge(edge, accounts[0]);
 
     TruffleAssert.eventEmitted(result, 'EdgeAddition', (ev) => {
-      return ev.chainID == parseInt(edge.sourceChainID, 16) &&
-       ev.latestLeafIndex == edge.latestLeafIndex && ev.merkleRoot == edge.root
+      return (
+        ev.chainID == parseInt(edge.sourceChainID, 16) &&
+        ev.latestLeafIndex == edge.latestLeafIndex &&
+        ev.merkleRoot == edge.root
+      );
     });
   });
 });
-
