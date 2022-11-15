@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Webb Technologies
+ * Copyright 2021-2022 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 import { expect } from 'chai';

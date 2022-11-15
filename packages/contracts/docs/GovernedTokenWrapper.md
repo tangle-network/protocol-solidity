@@ -2,7 +2,7 @@
 
 *Webb Technologies.*
 
-> A governed TokenWrapper system using an external `governor` address
+> A governed TokenWrapper system using an external `handler` address
 
 Governs allowable ERC20s to deposit using a governable wrapping limit and sets fees for wrapping into itself. This contract is intended to be used with TokenHandler contract.
 
@@ -67,7 +67,7 @@ function PAUSER_ROLE() external view returns (bytes32)
 function add(address _tokenAddress, uint32 _nonce) external nonpayable
 ```
 
-Adds a token at `_tokenAddress` to the GovernedTokenWrapper&#39;s wrapping listOnly the governor can call this function
+Adds a token at `_tokenAddress` to the GovernedTokenWrapper&#39;s wrapping listOnly the handler can call this function
 
 
 
@@ -381,23 +381,6 @@ Gets the currently available wrappable tokens by their addresses
 |---|---|---|
 | _0 | address[] | address[] The currently available wrappable token addresses
 
-### governor
-
-```solidity
-function governor() external view returns (address)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | address | undefined
-
 ### grantRole
 
 ```solidity
@@ -414,6 +397,23 @@ function grantRole(bytes32 role, address account) external nonpayable
 |---|---|---|
 | role | bytes32 | undefined
 | account | address | undefined
+
+### handler
+
+```solidity
+function handler() external view returns (address)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined
 
 ### hasRole
 
@@ -486,7 +486,7 @@ function increaseAllowance(address spender, uint256 addedValue) external nonpaya
 ### initialize
 
 ```solidity
-function initialize(address _feeRecipient, address _governor, uint256 _limit, bool _isNativeAllowed) external nonpayable
+function initialize(address _feeRecipient, address _handler, uint256 _limit, bool _isNativeAllowed) external nonpayable
 ```
 
 GovernedTokenWrapper initializer
@@ -498,7 +498,7 @@ GovernedTokenWrapper initializer
 | Name | Type | Description |
 |---|---|---|
 | _feeRecipient | address | The recipient for fees from wrapping.
-| _governor | address | The address of the governor
+| _handler | address | The address of the handler
 | _limit | uint256 | The maximum amount of tokens that can be wrapped
 | _isNativeAllowed | bool | Whether or not native tokens are allowed to be wrapped
 
@@ -621,7 +621,7 @@ function proposalNonce() external view returns (uint256)
 function remove(address _tokenAddress, uint32 _nonce) external nonpayable
 ```
 
-Removes a token at `_tokenAddress` from the GovernedTokenWrapper&#39;s wrapping listOnly the governor can call this function
+Removes a token at `_tokenAddress` from the GovernedTokenWrapper&#39;s wrapping listOnly the handler can call this function
 
 
 
@@ -672,7 +672,7 @@ function revokeRole(bytes32 role, address account) external nonpayable
 function setFee(uint16 _feePercentage, uint32 _nonce) external nonpayable
 ```
 
-Sets a new `_feePercentage` for the GovernedTokenWrapperOnly the governor can call this function
+Sets a new `_feePercentage` for the GovernedTokenWrapperOnly the handler can call this function
 
 
 
@@ -689,7 +689,7 @@ Sets a new `_feePercentage` for the GovernedTokenWrapperOnly the governor can ca
 function setFeeRecipient(address payable _feeRecipient, uint32 _nonce) external nonpayable
 ```
 
-Sets a new `_feeRecipient` for the GovernedTokenWrapperOnly the governor can call this function
+Sets a new `_feeRecipient` for the GovernedTokenWrapperOnly the handler can call this function
 
 
 
@@ -700,13 +700,13 @@ Sets a new `_feeRecipient` for the GovernedTokenWrapperOnly the governor can cal
 | _feeRecipient | address payable | The new fee recipient
 | _nonce | uint32 | The nonce tracking updates to this contract
 
-### setGovernor
+### setHandler
 
 ```solidity
-function setGovernor(address _governor) external nonpayable
+function setHandler(address _handler) external nonpayable
 ```
 
-Sets the governor of the GovernedTokenWrapper contractOnly the governor can call this function
+Sets the handler of the GovernedTokenWrapper contractOnly the handler can call this function
 
 
 
@@ -714,7 +714,7 @@ Sets the governor of the GovernedTokenWrapper contractOnly the governor can call
 
 | Name | Type | Description |
 |---|---|---|
-| _governor | address | The address of the new governor
+| _handler | address | The address of the new handler
 
 ### setNativeAllowed
 
@@ -722,7 +722,7 @@ Sets the governor of the GovernedTokenWrapper contractOnly the governor can call
 function setNativeAllowed(bool _isNativeAllowed) external nonpayable
 ```
 
-Sets whether native tokens are allowed to be wrappedOnly the governor can call this function
+Sets whether native tokens are allowed to be wrappedOnly the handler can call this function
 
 
 
@@ -927,7 +927,7 @@ Used to unwrap/burn the wrapper token.
 function updateLimit(uint256 _limit) external nonpayable
 ```
 
-Updates the `_limit` of tokens that can be wrappedOnly the governor can call this function
+Updates the `_limit` of tokens that can be wrappedOnly the handler can call this function
 
 
 

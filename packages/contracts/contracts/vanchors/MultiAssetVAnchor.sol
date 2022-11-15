@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Webb Technologies
+ * Copyright 2021-2022 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
@@ -102,7 +102,7 @@ contract MultiAssetVAnchor is VAnchorBase, TxProofVerifier {
 		@param _amount The amount of tokens to wrap
 	 */
 	function wrapToken(address _fromTokenAddress, address _toTokenAddress, uint256 _amount) public {
-		ITokenWrapper(_toTokenAddress).wrapFor(msg.sender, _toTokenAddress, _amount);
+		ITokenWrapper(_fromTokenAddress).wrapFor(msg.sender, _toTokenAddress, _amount);
 	}
 
 	/**
@@ -233,7 +233,7 @@ contract MultiAssetVAnchor is VAnchorBase, TxProofVerifier {
 		@param partialCommitment The partial commitment of the UTXO
 		@param encryptedCommitment The encrypted commitment of the partial UTXO
 	 */
-	function wrapAndDeposit(
+	function wrapAndDepositERC20(
 		address _fromTokenAddress,
 		address _toTokenAddress,
 		uint256 _amount,

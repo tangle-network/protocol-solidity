@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Webb Technologies
+ * Copyright 2021-2022 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
@@ -109,7 +109,7 @@ abstract contract AnchorBase is LinkableAnchor {
     function setHandler(address _handler, uint32 _nonce) override onlyHandler external {
         require(_handler != address(0), "Handler cannot be 0");
         require(proposalNonce < _nonce, "Invalid nonce");
-        require(_nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
+        require(_nonce < proposalNonce + 1, "Nonce must not increment more than 1048");
         handler = _handler;
         proposalNonce = _nonce;
     }

@@ -1,30 +1,26 @@
 /**
- * Copyright 2021 Webb Technologies
+ * Copyright 2021-2022 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
 pragma solidity ^0.8.0;
 
 import "./GovernedTokenWrapper.sol";
-import "./NftTokenWrapper.sol";
-import "../interfaces/tokens/IMultiTokenManager.sol";
+import "./MultiTokenManagerBase.sol";
 
 /**
-    @title A MultiTokenManager manages GovernedTokenWrapper systems using an external `governor` address
+    @title A MultiGovernedTokenManager manages GovernedTokenWrapper systems
+    using an external `governor` address.
     @author Webb Technologies.
  */
-contract MultiGovernedTokenManager is IMultiTokenManager {
+contract MultiGovernedTokenManager is MultiTokenManagerBase {
     using SafeMath for uint256;
-    address public governor;
-    address public masterFeeRecipient;
 
-    uint256 public proposalNonce = 0;
-    address[] public wrappedTokens;
-
-    constructor() {
-        governor = msg.sender;
-        masterFeeRecipient = msg.sender;
-    }
+    constructor(
+        address _registry,
+        address _governor,
+        address _feeRecipient
+    ) MultiTokenManagerBase(_registry, _governor, _feeRecipient) {}
 
     /**
         @notice Registers a new token and deploys the GovernedTokenWrapper contract
@@ -40,7 +36,7 @@ contract MultiGovernedTokenManager is IMultiTokenManager {
         bytes32 _salt,
         uint256 _limit,
         bool _isNativeAllowed
-    ) override external onlyGovernor returns (address) {
+    ) override external onlyRegistry returns (address) {
         GovernedTokenWrapper governedToken = new GovernedTokenWrapper{salt: _salt}(
             _name,
             _symbol
@@ -60,38 +56,10 @@ contract MultiGovernedTokenManager is IMultiTokenManager {
     /**
         Registers an NFT token
      */
-    function registerNFTToken(
+    function registerNftToken(
         string memory,
         bytes32
-    ) override external view onlyGovernor returns (address) {
+    ) override public view onlyRegistry returns (address) {
         revert();
-    }
-
-    /**
-        @notice Sets the governor of the MultiTokenManager contract
-        @param _governor The address of the new governor
-        @notice Only the governor can call this function
-     */
-    function setGovernor(address _governor) override external onlyGovernor {
-        governor = _governor;
-        for (uint256 i = 0; i < wrappedTokens.length; i++) {
-            GovernedTokenWrapper(wrappedTokens[i]).setGovernor(_governor);
-        }
-    }
-
-    /**
-        @notice Gets the currently available wrappable tokens by their addresses
-        @return address[] The currently available wrappable token addresses
-     */
-    function getWrappedTokens() external view returns (address[] memory) {
-        return wrappedTokens;
-    }
-
-    /**
-        @notice Modifier for enforcing that the caller is the governor
-     */
-    modifier onlyGovernor() {
-        require(msg.sender == governor, "Only governor can call this function");
-        _;
     }
 }

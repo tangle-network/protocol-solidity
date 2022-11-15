@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Webb Technologies
+ * Copyright 2021-2022 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
@@ -25,7 +25,18 @@ contract SignatureBridge is Pausable, Governable, ChainIdWithType {
         Verifying signature of governor over some datahash
      */
     modifier signedByGovernor(bytes memory data, bytes memory sig) {
-        require(isSignatureFromGovernor(data, sig), "signed by governor: Not valid sig from governor");
+        require(isSignatureFromGovernor(data, sig), "SignatureBridge: Not valid sig from governor");
+        _;
+    }
+
+    /**
+        Verifying batch signatures from a governor over some datahash
+     */
+    modifier batchSignedByGovernor(bytes[] memory data, bytes[] memory sig) {
+        require(data.length == sig.length, "SignatureBridge: Data and sig lengths must match");
+        for (uint256 i = 0; i < data.length; i++) {
+            require(isSignatureFromGovernor(data[i], sig[i]), "SignatureBridge: Not valid sig from governor");
+        }
         _;
     }
 
@@ -90,10 +101,28 @@ contract SignatureBridge is Pausable, Governable, ChainIdWithType {
     ) external signedByGovernor(data, sig) {
         // Parse resourceID from the data
         bytes32 resourceID = bytes32(data[0:32]);
-        require(this.isCorrectExecutionChain(resourceID), "executeProposalWithSignature: Executing on wrong chain");
+        require(this.isCorrectExecutionChain(resourceID), "SignatureBridge: Executing on wrong chain");
         address handler = _resourceIDToHandlerAddress[resourceID];
         IExecutor executionHandler = IExecutor(handler);
         executionHandler.executeProposal(resourceID, data);
+    }
+
+    /**
+        @notice Executes a batch of proposals signed by the governor.
+        @param data Data meant for execution by execution handlers.
+     */
+    function batchExecuteProposalWithSignature(
+        bytes[] calldata data,
+        bytes[] memory sig
+    ) external batchSignedByGovernor(data, sig) {
+        for (uint256 i = 0; i < data.length; i++) {
+            // Parse resourceID from the data
+            bytes32 resourceID = bytes32(data[i][0:32]);
+            require(this.isCorrectExecutionChain(resourceID), "SignatureBridge: Batch Executing on wrong chain");
+            address handler = _resourceIDToHandlerAddress[resourceID];
+            IExecutor executionHandler = IExecutor(handler);
+            executionHandler.executeProposal(resourceID, data[i]);
+        }
     }
 
     function isCorrectExecutionChain(bytes32 resourceID) external view returns (bool) {

@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Webb Technologies
+ * Copyright 2021-2022 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
@@ -9,7 +9,7 @@ import "../interfaces/tokens/IGovernedTokenWrapper.sol";
 import "./TokenWrapper.sol";
 
 /**
-    @title A governed TokenWrapper system using an external `governor` address
+    @title A governed TokenWrapper system using an external `handler` address
     @author Webb Technologies.
     @notice Governs allowable ERC20s to deposit using a governable wrapping limit and
     sets fees for wrapping into itself. This contract is intended to be used with
@@ -19,7 +19,7 @@ contract GovernedTokenWrapper is TokenWrapper, IGovernedTokenWrapper {
     using SafeMath for uint256;
     bool public initialized = false;
 
-    address public governor;
+    address public handler;
     address[] public tokens;
     address[] public historicalTokens;
     mapping (address => bool) valid;
@@ -42,39 +42,39 @@ contract GovernedTokenWrapper is TokenWrapper, IGovernedTokenWrapper {
     /**
         @notice GovernedTokenWrapper initializer
         @param _feeRecipient The recipient for fees from wrapping.
-        @param _governor The address of the governor
+        @param _handler The address of the handler
         @param _limit The maximum amount of tokens that can be wrapped
         @param _isNativeAllowed Whether or not native tokens are allowed to be wrapped
      */
     function initialize(
         address _feeRecipient,
-        address _governor,
+        address _handler,
         uint256 _limit,
         bool _isNativeAllowed
     ) public {
         require(!initialized, "Contract already initialized");
         feeRecipient = payable(_feeRecipient);
-        governor = _governor;
+        handler = _handler;
         wrappingLimit = _limit;
         isNativeAllowed = _isNativeAllowed;
         initialized = true;
     }
 
     /**
-        @notice Sets the governor of the GovernedTokenWrapper contract
-        @param _governor The address of the new governor
-        @notice Only the governor can call this function
+        @notice Sets the handler of the GovernedTokenWrapper contract
+        @param _handler The address of the new handler
+        @notice Only the handler can call this function
      */
-    function setGovernor(address _governor) public onlyGovernor {
-        governor = _governor;
+    function setHandler(address _handler) public onlyHandler {
+        handler = _handler;
     }
 
     /**
         @notice Sets whether native tokens are allowed to be wrapped
         @param _isNativeAllowed Whether or not native tokens are allowed to be wrapped
-        @notice Only the governor can call this function
+        @notice Only the handler can call this function
      */
-    function setNativeAllowed(bool _isNativeAllowed) public onlyGovernor {
+    function setNativeAllowed(bool _isNativeAllowed) public onlyHandler {
         isNativeAllowed = _isNativeAllowed;
     }
 
@@ -82,12 +82,12 @@ contract GovernedTokenWrapper is TokenWrapper, IGovernedTokenWrapper {
         @notice Adds a token at `_tokenAddress` to the GovernedTokenWrapper's wrapping list
         @param _tokenAddress The address of the token to be added
         @param _nonce The nonce tracking updates to this contract
-        @notice Only the governor can call this function
+        @notice Only the handler can call this function
      */
-    function add(address _tokenAddress, uint32 _nonce) override external onlyGovernor {
-        require(!valid[_tokenAddress], "Token should not be valid");
-        require(proposalNonce < _nonce, "Invalid nonce");
-        require(_nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
+    function add(address _tokenAddress, uint32 _nonce) override external onlyHandler {
+        require(!valid[_tokenAddress], "GovernedTokenWrapper: Token should not be valid");
+        require(proposalNonce < _nonce, "GovernedTokenWrapper: Invalid nonce");
+        require(_nonce < proposalNonce + 1, "GovernedTokenWrapper: Nonce must not increment more than 1048");
         tokens.push(_tokenAddress);
 
         if (!historicallyValid[_tokenAddress]) {
@@ -102,12 +102,12 @@ contract GovernedTokenWrapper is TokenWrapper, IGovernedTokenWrapper {
         @notice Removes a token at `_tokenAddress` from the GovernedTokenWrapper's wrapping list
         @param _tokenAddress The address of the token to be removed
         @param _nonce The nonce tracking updates to this contract
-        @notice Only the governor can call this function
+        @notice Only the handler can call this function
      */
-    function remove(address _tokenAddress, uint32 _nonce) override external onlyGovernor {
-        require(valid[_tokenAddress], "Token should be valid");
-        require(proposalNonce < _nonce, "Invalid nonce");
-        require(_nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
+    function remove(address _tokenAddress, uint32 _nonce) override external onlyHandler {
+        require(valid[_tokenAddress], "GovernedTokenWrapper: Token should be valid");
+        require(proposalNonce < _nonce, "GovernedTokenWrapper: Invalid nonce");
+        require(_nonce < proposalNonce + 1, "GovernedTokenWrapper: Nonce must not increment more than 1048");
         uint index = 0;
         for (uint i = 0; i < tokens.length; i++) {
             if (tokens[i] == _tokenAddress) {
@@ -115,7 +115,7 @@ contract GovernedTokenWrapper is TokenWrapper, IGovernedTokenWrapper {
                 break;
             }
         }
-        require(index < tokens.length, "token not found");
+        require(index < tokens.length, "GovernedTokenWrapper: Token not found");
         valid[_tokenAddress] = false;
         proposalNonce = _nonce;
         removeTokenAtIndex(index);
@@ -125,12 +125,12 @@ contract GovernedTokenWrapper is TokenWrapper, IGovernedTokenWrapper {
         @notice Sets a new `_feePercentage` for the GovernedTokenWrapper
         @param _feePercentage The new fee percentage
         @param _nonce The nonce tracking updates to this contract
-        @notice Only the governor can call this function
+        @notice Only the handler can call this function
      */
-    function setFee(uint16 _feePercentage, uint32 _nonce) override external onlyGovernor {
-        require(0 <= _feePercentage && _feePercentage <= 10_000, "invalid fee percentage");
-        require(proposalNonce < _nonce, "Invalid nonce");
-        require(_nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
+    function setFee(uint16 _feePercentage, uint32 _nonce) override external onlyHandler {
+        require(0 <= _feePercentage && _feePercentage <= 10_000, "GovernedTokenWrapper: Invalid fee percentage");
+        require(proposalNonce < _nonce, "GovernedTokenWrapper: Invalid nonce");
+        require(_nonce < proposalNonce + 1, "GovernedTokenWrapper: Nonce must not increment more than 1048");
         feePercentage = _feePercentage;
         proposalNonce = _nonce;
     }
@@ -139,12 +139,12 @@ contract GovernedTokenWrapper is TokenWrapper, IGovernedTokenWrapper {
         @notice Sets a new `_feeRecipient` for the GovernedTokenWrapper
         @param _feeRecipient The new fee recipient
         @param _nonce The nonce tracking updates to this contract
-        @notice Only the governor can call this function
+        @notice Only the handler can call this function
      */
-    function setFeeRecipient(address payable _feeRecipient, uint32 _nonce) override external onlyGovernor {
-        require(proposalNonce < _nonce, "Invalid nonce");
-        require(_nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
-        require(_feeRecipient != address(0), "Fee Recipient cannot be zero address");
+    function setFeeRecipient(address payable _feeRecipient, uint32 _nonce) override external onlyHandler {
+        require(proposalNonce < _nonce, "GovernedTokenWrapper: Invalid nonce");
+        require(_nonce < proposalNonce + 1, "GovernedTokenWrapper: Nonce must not increment more than 1048");
+        require(_feeRecipient != address(0), "GovernedTokenWrapper: Fee Recipient cannot be zero address");
         feeRecipient = _feeRecipient;
         proposalNonce = _nonce;
     }
@@ -161,9 +161,9 @@ contract GovernedTokenWrapper is TokenWrapper, IGovernedTokenWrapper {
     /**
         @notice Updates the `_limit` of tokens that can be wrapped
         @param _limit The new limit of tokens that can be wrapped
-        @notice Only the governor can call this function
+        @notice Only the handler can call this function
      */
-    function updateLimit(uint256 _limit) public onlyGovernor {
+    function updateLimit(uint256 _limit) public onlyHandler {
         wrappingLimit = _limit;
     }
 
@@ -219,10 +219,10 @@ contract GovernedTokenWrapper is TokenWrapper, IGovernedTokenWrapper {
     }
 
     /**
-        @notice Modifier for enforcing that the caller is the governor
+        @notice Modifier for enforcing that the caller is the handler
      */
-    modifier onlyGovernor() {
-        require(msg.sender == governor, "Only governor can call this function");
+    modifier onlyHandler() {
+        require(msg.sender == handler, "GovernedTokenWrapper: Only handler can call this function");
         _;
     }
 }
