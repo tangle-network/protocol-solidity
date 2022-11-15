@@ -5,19 +5,16 @@
 
 pragma solidity ^0.8.0;
 
-import "./GovernedTokenWrapper.sol";
-import "./NftTokenWrapper.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../interfaces/tokens/IMultiTokenManager.sol";
-import "../interfaces/ISetGovernor.sol";
 
 /**
     @title A MultiNftTokenManagerBase
     @author Webb Technologies.
  */
-abstract contract MultiTokenManagerBase is IMultiTokenManager, ISetGovernor {
+abstract contract MultiTokenManagerBase is IMultiTokenManager {
     using SafeMath for uint256;
     address public registry;
-    address public governor;
     address public masterFeeRecipient;
 
     uint256 public proposalNonce = 0;
@@ -25,25 +22,10 @@ abstract contract MultiTokenManagerBase is IMultiTokenManager, ISetGovernor {
 
     constructor(
         address _registry,
-        address _governor,
         address _feeRecipient
     ) {
         registry = _registry;
-        governor = _governor;
         masterFeeRecipient = _feeRecipient;
-    }
-
-    /**
-        @notice Sets the governor of the MultiTokenManager contract and its children
-        @param _governor The address of the new governor
-        @notice Only the governor can call this function
-     */
-    // TODO: Benchmark how many tokens this can set the governor of in a single transaction.
-    function setGovernor(address _governor) override external onlyRegistry {
-        governor = _governor;
-        for (uint256 i = 0; i < wrappedTokens.length; i++) {
-            ISetGovernor(wrappedTokens[i]).setGovernor(_governor);
-        }
     }
 
     /**
@@ -58,7 +40,7 @@ abstract contract MultiTokenManagerBase is IMultiTokenManager, ISetGovernor {
         @notice Modifier for enforcing that the caller is the governor
      */
     modifier onlyRegistry() {
-        require(msg.sender == governor, "Only governor can call this function");
+        require(msg.sender == registry, "Only registry can call this function");
         _;
     }
 }

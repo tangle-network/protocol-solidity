@@ -18,11 +18,11 @@ contract MultiNftTokenManager is MultiTokenManagerBase {
 
     constructor(
         address _registry,
-        address _governor,
         address _feeRecipient
-    ) MultiTokenManagerBase(_registry, _governor, _feeRecipient) {}
+    ) MultiTokenManagerBase(_registry, _feeRecipient) {}
 
     function registerToken(
+        address,
         string memory,
         string memory,
         bytes32,
@@ -32,16 +32,14 @@ contract MultiNftTokenManager is MultiTokenManagerBase {
         revert();
     }
 
-    /**
-        Registers an NFT token
-     */
     function registerNftToken(
+        address _handler,
         string memory _uri,
         bytes32 _salt
     ) override external onlyRegistry returns (address) {
         NftTokenWrapper nftWrapper = new NftTokenWrapper{salt: _salt}(_uri);
 
-        nftWrapper.initialize(governor);
+        nftWrapper.initialize(_handler);
 
         wrappedTokens.push(address(nftWrapper));
         return address(nftWrapper);

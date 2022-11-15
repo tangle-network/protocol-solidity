@@ -43,7 +43,7 @@ contract RegistryHandler is IExecutor, HandlerHelpers {
     /**
         @notice Proposal execution should be initiated when a proposal is finalized in the Bridge contract.
         by a relayer on the deposit's destination chain. Or when a valid signature is produced by the DKG in the case of SignatureBridge.
-        @param resourceID ResourceID corresponding to a particular set of GovernedTokenWrapper contracts
+        @param resourceID ResourceID corresponding to a particular set of FungibleTokenWrapper contracts
         @param data Consists of a specific proposal data structure for each finer-grained token wrapper proposal
      */
     function executeProposal(bytes32 resourceID, bytes calldata data) external override onlyBridge {
@@ -60,17 +60,21 @@ contract RegistryHandler is IExecutor, HandlerHelpers {
         
         if (functionSig == bytes4(keccak256("registerToken(string,string,bytes32,uint256,bool)"))) {  
             uint32 nonce = uint32(bytes4(arguments[0:4]));
-            bytes32 name = bytes32(arguments[4:36]); 
-            bytes32 symbol = bytes32(arguments[36:68]);
-            bytes32 salt = bytes32(arguments[68:100]);
-            uint256 limit = uint256(bytes32(arguments[100:132]));
-            bool isNativeAllowed = bytes1(arguments[132:133]) == 0x01;
-            registry.registerToken(nonce, name, symbol, salt, limit, isNativeAllowed);
+            address tokenHandler = address(bytes20(arguments[4:24]));
+            uint256 assetId = uint256(bytes32(arguments[24:56]));
+            bytes32 name = bytes32(arguments[56:88]); 
+            bytes32 symbol = bytes32(arguments[88:120]);
+            bytes32 salt = bytes32(arguments[120:152]);
+            uint256 limit = uint256(bytes32(arguments[152:184]));
+            bool isNativeAllowed = bytes1(arguments[184:185]) == 0x01;
+            registry.registerToken(nonce, tokenHandler, assetId, name, symbol, salt, limit, isNativeAllowed);
         } else if (functionSig == bytes4(keccak256("registerNftToken(string,bytes32)"))) {
             uint32 nonce = uint32(bytes4(arguments[0:4]));
-            bytes memory uri = bytes(arguments[4:100]);
-            bytes32 salt = bytes32(arguments[100:132]);
-            registry.registerNftToken(nonce, uri, salt);
+            address tokenHandler = address(bytes20(arguments[4:24]));
+            uint256 assetId = uint256(bytes32(arguments[24:56]));
+            bytes32 salt = bytes32(arguments[56:88]);
+            bytes memory uri = bytes(arguments[88:]);
+            registry.registerNftToken(nonce, tokenHandler, assetId, uri, salt);
         } else {
             revert("Invalid function sig");
         }

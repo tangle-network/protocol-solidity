@@ -5,25 +5,25 @@
 
 pragma solidity ^0.8.0;
 
-import "./GovernedTokenWrapper.sol";
+import "./FungibleTokenWrapper.sol";
 import "./MultiTokenManagerBase.sol";
 
 /**
-    @title A MultiGovernedTokenManager manages GovernedTokenWrapper systems
-    using an external `governor` address.
+    @title A MultiFungibleTokenManager manages FungibleTokenWrapper systems
+    using an external `handler` address.
     @author Webb Technologies.
  */
-contract MultiGovernedTokenManager is MultiTokenManagerBase {
+contract MultiFungibleTokenManager is MultiTokenManagerBase {
     using SafeMath for uint256;
 
     constructor(
         address _registry,
-        address _governor,
         address _feeRecipient
-    ) MultiTokenManagerBase(_registry, _governor, _feeRecipient) {}
+    ) MultiTokenManagerBase(_registry, _feeRecipient) {}
 
     /**
-        @notice Registers a new token and deploys the GovernedTokenWrapper contract
+        @notice Registers a new token and deploys the FungibleTokenWrapper contract
+        @param _handler The address of the token handler contract
         @param _name The name of the ERC20
         @param _symbol The symbol of the ERC20
         @param _limit The maximum amount of tokens that can be wrapped
@@ -31,20 +31,21 @@ contract MultiGovernedTokenManager is MultiTokenManagerBase {
         @param _salt Salt used for matching addresses across chain using CREATE2
      */
     function registerToken(
+        address _handler,
         string memory _name,
         string memory _symbol,
         bytes32 _salt,
         uint256 _limit,
         bool _isNativeAllowed
     ) override external onlyRegistry returns (address) {
-        GovernedTokenWrapper governedToken = new GovernedTokenWrapper{salt: _salt}(
+        FungibleTokenWrapper governedToken = new FungibleTokenWrapper{salt: _salt}(
             _name,
             _symbol
         );
 
         governedToken.initialize(
             payable(masterFeeRecipient),
-            governor,
+            _handler,
             _limit,
             _isNativeAllowed
         );
@@ -57,6 +58,7 @@ contract MultiGovernedTokenManager is MultiTokenManagerBase {
         Registers an NFT token
      */
     function registerNftToken(
+        address,
         string memory,
         bytes32
     ) override public view onlyRegistry returns (address) {

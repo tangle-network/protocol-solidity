@@ -2,7 +2,7 @@
 
 *Webb Technologies.*
 
-> Handles GovernedTokenWrapper fee and token updates
+> Handles FungibleTokenWrapper fee and token updates
 
 This contract is intended to be used with the Bridge and SignatureBridge contracts.
 
@@ -107,7 +107,7 @@ Proposal execution should be initiated when a proposal is finalized in the Bridg
 
 | Name | Type | Description |
 |---|---|---|
-| resourceID | bytes32 | ResourceID corresponding to a particular set of GovernedTokenWrapper contracts
+| resourceID | bytes32 | ResourceID corresponding to a particular set of FungibleTokenWrapper contracts
 | data | bytes | Consists of a specific proposal data structure for each finer-grained token wrapper proposal
 
 ### migrateBridge

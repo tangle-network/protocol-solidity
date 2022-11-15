@@ -1,4 +1,4 @@
-export { GovernedTokenWrapper } from './GovernedTokenWrapper';
+export { FungibleTokenWrapper } from './FungibleTokenWrapper';
 export { MintableToken } from './MintableToken';
 export { ERC20 } from './ERC20';
 export { ERC721 } from './ERC721';

@@ -6,13 +6,15 @@
 pragma solidity ^0.8.0;
 
 /**
-    @title A MultiTokenManager manages GovernedTokenWrapper systems using an external `governor` address
+    @title A MultiTokenManager manages FungibleTokenWrapper systems using an external `governor` address
     @author Webb Technologies.
  */
 interface IRegistry {
     /**
-        @notice Registers a new token and deploys the GovernedTokenWrapperInitializable contract
+        @notice Registers a new token and deploys the FungibleTokenWrapper contract
         @param _nonce The nonce of the proposal
+        @param _handler The address of the token handler contract
+        @param _assetIdentifier The identifier of the asset for the MASP
         @param _name The name of the ERC20
         @param _symbol The symbol of the ERC20
         @param _salt Salt used for matching addresses across chain using CREATE2
@@ -21,6 +23,8 @@ interface IRegistry {
      */
     function registerToken(
         uint32 _nonce,
+        address _handler,
+        uint256 _assetIdentifier,
         bytes32 _name,
         bytes32 _symbol,
         bytes32 _salt,
@@ -31,12 +35,28 @@ interface IRegistry {
     /**
         @notice Registers a new NFT token and deploys the NftTokenWrapper contract
         @param _nonce The nonce of the proposal
+        @param _handler The address of the token handler contract
+        @param _assetIdentifier The identifier of the asset for the MASP
         @param _uri The uri for the wrapped NFT
         @param _salt Salt used for matching addresses across chain using CREATE2
      */
     function registerNftToken(
         uint32 _nonce,
+        address _handler,
+        uint256 _assetIdentifier,
         bytes memory _uri,
         bytes32 _salt
     ) external;
+
+    /**
+        @notice Fetches the address for an asset ID
+        @param _assetId The asset ID
+     */
+    function getAssetAddress(uint256 _assetId) external view returns (address);
+
+    /**
+        @notice Fetches the asset ID for an address
+        @param _address The address
+     */
+    function getAssetId(address _address) external view returns (uint256);
 }

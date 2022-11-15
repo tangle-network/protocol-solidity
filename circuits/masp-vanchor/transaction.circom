@@ -16,12 +16,15 @@ Goal is to differentiate between
 - Collections of NFTs without taking over too much of the address space
 
 UTXO structure:
+// If this is an NFT, this becomes hash(contract address, tokenId)g
+// If this is a fungible token, this is selected deterministically on all chains
 {
-    assetID, // If this was an NFT, this becomes to contract address
-    nftTokenID, // If this is non-zero, it is an NFT
+    assetID,
     amount,
     partialUtxoCommitment,
 }
+
+For NFTs: hash(contract_address, token_id)
 
 Partial UTXO structure:
 {
