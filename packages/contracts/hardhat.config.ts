@@ -11,6 +11,8 @@ import { subtask } from 'hardhat/config';
 
 import poseidonContract from 'circomlibjs/src/poseidon_gencontract.js';
 
+require('dotenv').config({ path: __dirname + '/.env' });
+
 const buildPoseidon = async (numInputs: number) => {
   //@ts-ignore
   await overwriteArtifact(`PoseidonT${numInputs + 1}`, poseidonContract.createCode(numInputs));
@@ -24,11 +26,17 @@ subtask('typechain-generate-types', async (taskArgs, hre, runSuper) => {
   await runSuper();
 });
 
+console.log('this is forking url: ', process.env.RPC_URL);
+
 const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',
   networks: {
     hardhat: {
-      accounts: HARDHAT_ACCOUNTS,
+      forking: {
+        url: process.env.RPC_URL,
+      },
+      allowUnlimitedContractSize: true,
+      //accounts: HARDHAT_ACCOUNTS,
     },
   },
   solidity: {
