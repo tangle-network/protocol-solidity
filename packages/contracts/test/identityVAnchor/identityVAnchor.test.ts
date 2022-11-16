@@ -10,8 +10,8 @@ import { ethers } from 'hardhat';
 import {
   ERC20PresetMinterPauser,
   ERC20PresetMinterPauser__factory,
-  GovernedTokenWrapper as WrappedToken,
-  GovernedTokenWrapper__factory as WrappedTokenFactory,
+  FungibleTokenWrapper as WrappedToken,
+  FungibleTokenWrapper__factory as WrappedTokenFactory,
 } from '../../typechain/';
 
 // Convenience wrapper classes for contract classes

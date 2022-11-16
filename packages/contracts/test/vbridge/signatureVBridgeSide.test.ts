@@ -15,7 +15,7 @@ import {
   MintableToken,
   Treasury,
   TreasuryHandler,
-  GovernedTokenWrapper,
+  FungibleTokenWrapper,
   TokenWrapperHandler,
 } from '@webb-tools/tokens';
 import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '@webb-tools/utils';
@@ -181,8 +181,8 @@ describe('SignatureBridgeSide use', () => {
     );
     const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, admin);
 
-    // Create a GovernedTokenWrapper
-    const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
+    // Create a FungibleTokenWrapper
+    const fungibleToken = await FungibleTokenWrapper.FungibleTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
       treasury.contract.address,
@@ -194,12 +194,12 @@ describe('SignatureBridgeSide use', () => {
 
     // Set bridgeSide handler to tokenWrapperHandler
     bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
-    // Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
-    await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
+    // Connect resourceID of FungibleTokenWrapper with TokenWrapperHandler
+    await bridgeSide.setFungibleTokenResourceWithSignature(fungibleToken);
     // Execute change fee proposal
-    await bridgeSide.executeFeeProposalWithSig(governedToken, 5);
+    await bridgeSide.executeFeeProposalWithSig(fungibleToken, 5);
     // Check that fee actually changed
-    assert.strictEqual((await governedToken.contract.getFee()).toString(), '5');
+    assert.strictEqual((await fungibleToken.contract.getFee()).toString(), '5');
   });
 
   it('execute cannot set fee > 10000', async () => {
@@ -223,8 +223,8 @@ describe('SignatureBridgeSide use', () => {
       bridgeSide.admin
     );
 
-    // Create a GovernedTokenWrapper
-    const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
+    // Create a FungibleTokenWrapper
+    const fungibleToken = await FungibleTokenWrapper.FungibleTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
       treasury.contract.address,
@@ -237,12 +237,12 @@ describe('SignatureBridgeSide use', () => {
     // Set bridgeSide handler to tokenWrapperHandler
     bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
 
-    // Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
-    await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
+    // Connect resourceID of FungibleTokenWrapper with TokenWrapperHandler
+    await bridgeSide.setFungibleTokenResourceWithSignature(fungibleToken);
 
     // Execute change fee proposal
     await TruffleAssert.reverts(
-      bridgeSide.executeFeeProposalWithSig(governedToken, 10001),
+      bridgeSide.executeFeeProposalWithSig(fungibleToken, 10001),
       'invalid fee percentage'
     );
   });
@@ -268,8 +268,8 @@ describe('SignatureBridgeSide use', () => {
       bridgeSide.admin
     );
 
-    // Create a GovernedTokenWrapper
-    const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
+    // Create a FungibleTokenWrapper
+    const fungibleToken = await FungibleTokenWrapper.FungibleTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
       treasury.contract.address,
@@ -282,18 +282,18 @@ describe('SignatureBridgeSide use', () => {
     // Set bridgeSide handler to tokenWrapperHandler
     bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
 
-    // Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
-    await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
+    // Connect resourceID of FungibleTokenWrapper with TokenWrapperHandler
+    await bridgeSide.setFungibleTokenResourceWithSignature(fungibleToken);
 
     // Create an ERC20 Token
     const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
     await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
 
-    // Execute Proposal to add that token to the governedToken
-    await bridgeSide.executeAddTokenProposalWithSig(governedToken, tokenInstance.contract.address);
+    // Execute Proposal to add that token to the fungibleToken
+    await bridgeSide.executeAddTokenProposalWithSig(fungibleToken, tokenInstance.contract.address);
 
-    // Check that governedToken contains the added token
-    assert((await governedToken.contract.getTokens()).includes(tokenInstance.contract.address));
+    // Check that fungibleToken contains the added token
+    assert((await fungibleToken.contract.getTokens()).includes(tokenInstance.contract.address));
   });
 
   it('execute remove token proposal', async () => {
@@ -317,8 +317,8 @@ describe('SignatureBridgeSide use', () => {
       bridgeSide.admin
     );
 
-    // Create a GovernedTokenWrapper
-    const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
+    // Create a FungibleTokenWrapper
+    const fungibleToken = await FungibleTokenWrapper.FungibleTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
       treasury.contract.address,
@@ -331,8 +331,8 @@ describe('SignatureBridgeSide use', () => {
     // Set bridgeSide handler to tokenWrapperHandler
     bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
 
-    // Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
-    await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
+    // Connect resourceID of FungibleTokenWrapper with TokenWrapperHandler
+    await bridgeSide.setFungibleTokenResourceWithSignature(fungibleToken);
 
     // Add a Token---------
 
@@ -340,20 +340,20 @@ describe('SignatureBridgeSide use', () => {
     const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
     await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
 
-    // Execute Proposal to add that token to the governedToken
-    await bridgeSide.executeAddTokenProposalWithSig(governedToken, tokenInstance.contract.address);
+    // Execute Proposal to add that token to the fungibleToken
+    await bridgeSide.executeAddTokenProposalWithSig(fungibleToken, tokenInstance.contract.address);
 
-    // Check that governedToken contains the added token
-    assert((await governedToken.contract.getTokens()).includes(tokenInstance.contract.address));
+    // Check that fungibleToken contains the added token
+    assert((await fungibleToken.contract.getTokens()).includes(tokenInstance.contract.address));
     // End Add a Token--------
 
     // Remove a Token
     await bridgeSide.executeRemoveTokenProposalWithSig(
-      governedToken,
+      fungibleToken,
       tokenInstance.contract.address
     );
 
-    assert((await governedToken.contract.getTokens()).length === 0);
+    assert((await fungibleToken.contract.getTokens()).length === 0);
   });
 
   it('check nonce is increasing across multiple proposals', async () => {
@@ -377,8 +377,8 @@ describe('SignatureBridgeSide use', () => {
       bridgeSide.admin
     );
 
-    // Create a GovernedTokenWrapper
-    const governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
+    // Create a FungibleTokenWrapper
+    const fungibleToken = await FungibleTokenWrapper.FungibleTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
       treasury.contract.address,
@@ -391,36 +391,36 @@ describe('SignatureBridgeSide use', () => {
     // Set bridgeSide handler to tokenWrapperHandler
     bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
 
-    // Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
-    await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
+    // Connect resourceID of FungibleTokenWrapper with TokenWrapperHandler
+    await bridgeSide.setFungibleTokenResourceWithSignature(fungibleToken);
 
     // Execute change fee proposal
-    await bridgeSide.executeFeeProposalWithSig(governedToken, 5);
+    await bridgeSide.executeFeeProposalWithSig(fungibleToken, 5);
 
     // Check that fee actually changed
-    assert.strictEqual((await governedToken.contract.getFee()).toString(), '5');
-    assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '1');
+    assert.strictEqual((await fungibleToken.contract.getFee()).toString(), '5');
+    assert.strictEqual((await fungibleToken.contract.proposalNonce()).toString(), '1');
 
     // Create an ERC20 Token
     const tokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
     await tokenInstance.mintTokens(admin.address, '100000000000000000000000');
 
-    // Execute Proposal to add that token to the governedToken
-    await bridgeSide.executeAddTokenProposalWithSig(governedToken, tokenInstance.contract.address);
+    // Execute Proposal to add that token to the fungibleToken
+    await bridgeSide.executeAddTokenProposalWithSig(fungibleToken, tokenInstance.contract.address);
 
-    // Check that governedToken contains the added token
-    assert((await governedToken.contract.getTokens()).includes(tokenInstance.contract.address));
+    // Check that fungibleToken contains the added token
+    assert((await fungibleToken.contract.getTokens()).includes(tokenInstance.contract.address));
     // End Add a Token--------
-    assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '2');
+    assert.strictEqual((await fungibleToken.contract.proposalNonce()).toString(), '2');
 
     // Remove a Token
     await bridgeSide.executeRemoveTokenProposalWithSig(
-      governedToken,
+      fungibleToken,
       tokenInstance.contract.address
     );
 
-    assert((await governedToken.contract.getTokens()).length === 0);
-    assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '3');
+    assert((await fungibleToken.contract.getTokens()).length === 0);
+    assert.strictEqual((await fungibleToken.contract.proposalNonce()).toString(), '3');
   });
 
   it('bridge nonce should update upon setting resource with sig', async () => {
@@ -483,7 +483,7 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
   let bridgeSide: SignatureBridgeSide;
   let wrappingFee: number;
   let signers;
-  let governedToken: GovernedTokenWrapper;
+  let fungibleToken: FungibleTokenWrapper;
   let treasuryHandler: TreasuryHandler;
   let treasury;
   const zeroAddress = '0x0000000000000000000000000000000000000000';
@@ -549,8 +549,8 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
     erc20TokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
     await erc20TokenInstance.mintTokens(admin.address, '100000000000000000000000');
 
-    // Create a GovernedTokenWrapper
-    governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
+    // Create a FungibleTokenWrapper
+    fungibleToken = await FungibleTokenWrapper.FungibleTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
       zeroAddress,
@@ -563,31 +563,31 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
     // Set bridgeSide handler to tokenWrapperHandler
     bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
 
-    // Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
-    await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
+    // Connect resourceID of FungibleTokenWrapper with TokenWrapperHandler
+    await bridgeSide.setFungibleTokenResourceWithSignature(fungibleToken);
 
     wrappingFee = 10;
     // Execute change fee proposal
-    await bridgeSide.executeFeeProposalWithSig(governedToken, wrappingFee);
+    await bridgeSide.executeFeeProposalWithSig(fungibleToken, wrappingFee);
 
     // Check that fee actually changed
-    assert.strictEqual((await governedToken.contract.getFee()).toString(), '10');
-    assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '1');
+    assert.strictEqual((await fungibleToken.contract.getFee()).toString(), '10');
+    assert.strictEqual((await fungibleToken.contract.proposalNonce()).toString(), '1');
 
-    // Execute Proposal to add that token to the governedToken
+    // Execute Proposal to add that token to the fungibleToken
     await bridgeSide.executeAddTokenProposalWithSig(
-      governedToken,
+      fungibleToken,
       erc20TokenInstance.contract.address
     );
 
-    // Check that governedToken contains the added token
+    // Check that fungibleToken contains the added token
     assert(
-      (await governedToken.contract.getTokens()).includes(erc20TokenInstance.contract.address)
+      (await fungibleToken.contract.getTokens()).includes(erc20TokenInstance.contract.address)
     );
 
-    assert.strictEqual((await governedToken.contract.proposalNonce()).toString(), '2');
+    assert.strictEqual((await fungibleToken.contract.proposalNonce()).toString(), '2');
 
-    // Create an anchor whose token is the governedToken
+    // Create an anchor whose token is the fungibleToken
     // Wrap and Deposit ERC20 liquidity into that anchor
 
     // Create the Hasher and Verifier for the chain
@@ -608,15 +608,15 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
       30,
       hasherInstance.contract.address,
       anchorHandler.contract.address,
-      governedToken.contract.address,
+      fungibleToken.contract.address,
       maxEdges,
       zkComponents2_2,
       zkComponents16_2,
       admin
     );
 
-    await governedToken.grantMinterRole(srcAnchor.contract.address);
-    await erc20TokenInstance.approveSpending(governedToken.contract.address);
+    await fungibleToken.grantMinterRole(srcAnchor.contract.address);
+    await erc20TokenInstance.approveSpending(fungibleToken.contract.address);
     await erc20TokenInstance.approveSpending(srcAnchor.contract.address);
     bridgeSide.setAnchorHandler(anchorHandler);
     const res = await bridgeSide.connectAnchorWithSignature(srcAnchor);
@@ -654,7 +654,7 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
     );
 
     // Change Fee Recipient to treasury Address
-    await bridgeSide.executeFeeRecipientProposalWithSig(governedToken, treasury.contract.address);
+    await bridgeSide.executeFeeRecipientProposalWithSig(fungibleToken, treasury.contract.address);
 
     // For ERC20 Tests
     await srcAnchor.transactWrap(
@@ -670,7 +670,7 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
 
     // Anchor Denomination amount should go to TokenWrapper
     assert.strictEqual(
-      (await erc20TokenInstance.getBalance(governedToken.contract.address)).toString(),
+      (await erc20TokenInstance.getBalance(fungibleToken.contract.address)).toString(),
       depositAmount.toString()
     );
 
@@ -681,7 +681,7 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
     );
 
     assert.strictEqual(
-      (await governedToken.contract.balanceOf(srcAnchor.contract.address)).toString(),
+      (await fungibleToken.contract.balanceOf(srcAnchor.contract.address)).toString(),
       depositAmount.toString()
     );
   });
@@ -748,7 +748,7 @@ describe('Rescue Tokens Tests for Native ETH', () => {
   let bridgeSide: SignatureBridgeSide;
   let wrappingFee: number;
   let signers;
-  let governedToken: GovernedTokenWrapper;
+  let fungibleToken: FungibleTokenWrapper;
   let treasury;
   let treasuryHandler;
   const zeroAddress = '0x0000000000000000000000000000000000000000';
@@ -810,8 +810,8 @@ describe('Rescue Tokens Tests for Native ETH', () => {
     await bridgeSide.setTreasuryHandler(treasuryHandler);
     await bridgeSide.setTreasuryResourceWithSignature(treasury);
 
-    // Create a GovernedTokenWrapper
-    governedToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
+    // Create a FungibleTokenWrapper
+    fungibleToken = await FungibleTokenWrapper.FungibleTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
       zeroAddress,
@@ -824,17 +824,17 @@ describe('Rescue Tokens Tests for Native ETH', () => {
     // Set bridgeSide handler to tokenWrapperHandler
     bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
 
-    // Connect resourceID of GovernedTokenWrapper with TokenWrapperHandler
-    await bridgeSide.setGovernedTokenResourceWithSignature(governedToken);
+    // Connect resourceID of FungibleTokenWrapper with TokenWrapperHandler
+    await bridgeSide.setFungibleTokenResourceWithSignature(fungibleToken);
 
     wrappingFee = 10;
     // Execute change fee proposal
-    await bridgeSide.executeFeeProposalWithSig(governedToken, wrappingFee);
+    await bridgeSide.executeFeeProposalWithSig(fungibleToken, wrappingFee);
 
     // Check that fee actually changed
-    assert.strictEqual((await governedToken.contract.getFee()).toString(), '10');
+    assert.strictEqual((await fungibleToken.contract.getFee()).toString(), '10');
 
-    // Create an anchor whose token is the governedToken
+    // Create an anchor whose token is the fungibleToken
     // Wrap and Deposit ERC20 liquidity into that anchor
 
     // Create the Hasher and Verifier for the chain
@@ -855,14 +855,14 @@ describe('Rescue Tokens Tests for Native ETH', () => {
       30,
       hasherInstance.contract.address,
       anchorHandler.contract.address,
-      governedToken.contract.address,
+      fungibleToken.contract.address,
       maxEdges,
       zkComponents2_2,
       zkComponents16_2,
       admin
     );
 
-    await governedToken.grantMinterRole(srcAnchor.contract.address);
+    await fungibleToken.grantMinterRole(srcAnchor.contract.address);
     bridgeSide.setAnchorHandler(anchorHandler);
     const res = await bridgeSide.connectAnchorWithSignature(srcAnchor);
     await bridgeSide.executeMinWithdrawalLimitProposalWithSig(
@@ -892,7 +892,7 @@ describe('Rescue Tokens Tests for Native ETH', () => {
     );
 
     // Change Fee Recipient to treasury Address
-    await bridgeSide.executeFeeRecipientProposalWithSig(governedToken, treasury.contract.address);
+    await bridgeSide.executeFeeRecipientProposalWithSig(fungibleToken, treasury.contract.address);
 
     // For Native ETH Tests
     await srcAnchor.transactWrap(
@@ -908,7 +908,7 @@ describe('Rescue Tokens Tests for Native ETH', () => {
 
     // Anchor Denomination amount should go to TokenWrapper
     assert.strictEqual(
-      (await ethers.provider.getBalance(governedToken.contract.address)).toString(),
+      (await ethers.provider.getBalance(fungibleToken.contract.address)).toString(),
       depositAmount.toString()
     );
 
@@ -919,7 +919,7 @@ describe('Rescue Tokens Tests for Native ETH', () => {
     );
 
     assert.strictEqual(
-      (await governedToken.contract.balanceOf(srcAnchor.contract.address)).toString(),
+      (await fungibleToken.contract.balanceOf(srcAnchor.contract.address)).toString(),
       depositAmount.toString()
     );
   });

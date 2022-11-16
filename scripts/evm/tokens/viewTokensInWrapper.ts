@@ -1,19 +1,19 @@
 // @ts-nocheck
 require("dotenv").config({ path: "../.env" });
 import { ethers } from "ethers";
-import { GovernedTokenWrapper__factory } from "../../../typechain/factories/GovernedTokenWrapper__factory";
+import { FungibleTokenWrapper__factory } from "../../../typechain/factories/FungibleTokenWrapper__factory";
 
 export async function viewTokensInWrapper(
   tokenWrapperAddress: string,
   passedProvider: ethers.providers.JsonRpcProvider
 ) {
-  const governedTokenWrapper = GovernedTokenWrapper__factory.connect(
+  const fungibleTokenWrapper = FungibleTokenWrapper__factory.connect(
     tokenWrapperAddress,
     passedProvider
   );
-  const tokens = await governedTokenWrapper.functions.getTokens();
+  const tokens = await fungibleTokenWrapper.functions.getTokens();
 
-  const allowedNative = await governedTokenWrapper.isNativeAllowed();
+  const allowedNative = await fungibleTokenWrapper.isNativeAllowed();
   console.log("Tokens in the wrapper: ");
   console.log(tokens);
   console.log("nativeAllowed? ", allowedNative);

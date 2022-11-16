@@ -1,6 +1,6 @@
 import { BigNumber, ethers } from 'ethers';
 import { SignatureBridge, SignatureBridge__factory } from '@webb-tools/contracts';
-import { GovernedTokenWrapper, Treasury } from '@webb-tools/tokens';
+import { FungibleTokenWrapper, Treasury } from '@webb-tools/tokens';
 import { TokenWrapperHandler } from '@webb-tools/tokens';
 import { AnchorHandler } from '@webb-tools/anchors';
 import { IAnchor, IBridgeSide, Proposal } from '@webb-tools/interfaces';
@@ -127,32 +127,32 @@ export class SignatureBridgeSide implements IBridgeSide {
 
   /**
    * Creates the proposal data for updating the wrapping fee
-   * of a governed token wrapper.
-   * @param governedToken The governed token wrapper whose fee will be updated.
+   * of a fungible token wrapper.
+   * @param fungibleToken The fungible token wrapper whose fee will be updated.
    * @param fee The new fee percentage
    * @returns Promise<string>
    */
   public async createFeeUpdateProposalData(
-    governedToken: GovernedTokenWrapper,
+    fungibleToken: FungibleTokenWrapper,
     fee: number
   ): Promise<string> {
-    const proposalData = await governedToken.getFeeProposalData(fee);
+    const proposalData = await fungibleToken.getFeeProposalData(fee);
     return proposalData;
   }
 
   public async createAddTokenUpdateProposalData(
-    governedToken: GovernedTokenWrapper,
+    fungibleToken: FungibleTokenWrapper,
     tokenAddress: string
   ) {
-    const proposalData = await governedToken.getAddTokenProposalData(tokenAddress);
+    const proposalData = await fungibleToken.getAddTokenProposalData(tokenAddress);
     return proposalData;
   }
 
   public async createRemoveTokenUpdateProposalData(
-    governedToken: GovernedTokenWrapper,
+    fungibleToken: FungibleTokenWrapper,
     tokenAddress: string
   ) {
-    const proposalData = await governedToken.getRemoveTokenProposalData(tokenAddress);
+    const proposalData = await fungibleToken.getRemoveTokenProposalData(tokenAddress);
     return proposalData;
   }
 
@@ -177,16 +177,16 @@ export class SignatureBridgeSide implements IBridgeSide {
 
   /**
    * Creates the proposal data for updating the fee recipient
-   * of a governed token wrapper.
-   * @param governedToken The governed token wrapper whose fee will be updated.
+   * of a fungible token wrapper.
+   * @param fungibleToken The fungible token wrapper whose fee will be updated.
    * @param feeRecipient The new fee recipient
    * @returns Promise<string>
    */
   public async createFeeRecipientUpdateProposalData(
-    governedToken: GovernedTokenWrapper,
+    fungibleToken: FungibleTokenWrapper,
     feeRecipient: string
   ): Promise<string> {
-    const proposalData = await governedToken.getFeeRecipientProposalData(feeRecipient);
+    const proposalData = await fungibleToken.getFeeRecipientProposalData(feeRecipient);
     return proposalData;
   }
 
@@ -280,12 +280,12 @@ export class SignatureBridgeSide implements IBridgeSide {
     return await this.setResourceWithSignature(newResourceId, handler);
   }
 
-  public async setGovernedTokenResourceWithSignature(
-    governedToken: GovernedTokenWrapper
+  public async setFungibleTokenResourceWithSignature(
+    fungibleToken: FungibleTokenWrapper
   ): Promise<string> {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
 
-    const newResourceId = await governedToken.createResourceId();
+    const newResourceId = await fungibleToken.createResourceId();
     const handler = this.tokenHandler.contract.address;
 
     return await this.setResourceWithSignature(newResourceId, handler);
@@ -320,41 +320,41 @@ export class SignatureBridgeSide implements IBridgeSide {
     return this.execute(proposalData);
   }
 
-  public async executeFeeProposalWithSig(governedToken: GovernedTokenWrapper, fee: number) {
+  public async executeFeeProposalWithSig(fungibleToken: FungibleTokenWrapper, fee: number) {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
-    const proposalData = await this.createFeeUpdateProposalData(governedToken, fee);
+    const proposalData = await this.createFeeUpdateProposalData(fungibleToken, fee);
     return this.execute(proposalData);
   }
 
   public async executeAddTokenProposalWithSig(
-    governedToken: GovernedTokenWrapper,
+    fungibleToken: FungibleTokenWrapper,
     tokenAddress: string
   ) {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
-    const proposalData = await this.createAddTokenUpdateProposalData(governedToken, tokenAddress);
+    const proposalData = await this.createAddTokenUpdateProposalData(fungibleToken, tokenAddress);
     return this.execute(proposalData);
   }
 
   public async executeRemoveTokenProposalWithSig(
-    governedToken: GovernedTokenWrapper,
+    fungibleToken: FungibleTokenWrapper,
     tokenAddress: string
   ) {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
     const proposalData = await this.createRemoveTokenUpdateProposalData(
-      governedToken,
+      fungibleToken,
       tokenAddress
     );
     return this.execute(proposalData);
   }
 
   public async executeFeeRecipientProposalWithSig(
-    governedToken: GovernedTokenWrapper,
+    fungibleToken: FungibleTokenWrapper,
     feeRecipient: string
   ) {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
 
     const proposalData = await this.createFeeRecipientUpdateProposalData(
-      governedToken,
+      fungibleToken,
       feeRecipient
     );
     return this.execute(proposalData);

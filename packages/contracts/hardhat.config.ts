@@ -44,26 +44,6 @@ const config: HardhatUserConfig = {
       },
     ],
   },
-  // @ts-ignore
-  dodoc: {
-    include: [
-      'AnchorBase',
-      'LinkableAnchor',
-      'AnchorHandler',
-      'IAnchor',
-      'ILinkableAnchor',
-      'VAnchorEncodeInputs',
-      'GovernedTokenWrapper',
-      'TokenWrapperHandler',
-      'Hasher',
-      'MerkleTree',
-      'MerkleTreeWithHistory',
-      'PoseidonHasher',
-      'KeccakHasher',
-      'VAnchor',
-      'VAnchorBase',
-    ],
-  },
   mocha: {
     timeout: 60000,
   },

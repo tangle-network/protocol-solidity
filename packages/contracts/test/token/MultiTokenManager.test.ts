@@ -7,15 +7,15 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers, expect } from 'hardhat';
 
 // Convenience wrapper classes for contract classes
-import { ERC20 as ERC20Class, GovernedTokenWrapper } from '@webb-tools/tokens';
-import { MultiGovernedTokenManager } from '../../typechain/MultiGovernedTokenManager';
+import { ERC20 as ERC20Class, FungibleTokenWrapper } from '@webb-tools/tokens';
+import { MultiFungibleTokenManager } from '../../typechain/MultiFungibleTokenManager';
 import { Registrar__factory } from '../../typechain/factories/Registrar__factory';
-import { MultiGovernedTokenManager__factory } from '../../typechain/factories/MultiGovernedTokenManager__factory';
+import { MultiFungibleTokenManager__factory } from '../../typechain/factories/MultiFungibleTokenManager__factory';
 import { Registrar } from '../../typechain/Registrar';
 
-describe('MultiGovernedTokenManager', () => {
+describe('MultiFungibleTokenManager', () => {
   let token: ERC20Class;
-  let multiTokenMgr: MultiGovernedTokenManager;
+  let multiTokenMgr: MultiFungibleTokenManager;
   let registry: Registrar;
   let tokenDenomination = '1000000000000000000'; // 1 ether
   let sender: SignerWithAddress;
@@ -30,7 +30,7 @@ describe('MultiGovernedTokenManager', () => {
     sender = wallet;
 
     token = await ERC20Class.createERC20(tokenName, tokenSymbol, wallet);
-    const factory = new MultiGovernedTokenManager__factory(wallet);
+    const factory = new MultiFungibleTokenManager__factory(wallet);
     multiTokenMgr = await factory.deploy();
     await multiTokenMgr.deployed();
 
@@ -78,7 +78,7 @@ describe('MultiGovernedTokenManager', () => {
       );
       await tx.wait();
       const wrappedTokenAddress = await multiTokenMgr.wrappedTokens(0);
-      const wrappedToken = GovernedTokenWrapper.connect(wrappedTokenAddress, sender);
+      const wrappedToken = FungibleTokenWrapper.connect(wrappedTokenAddress, sender);
       assert.strictEqual(await wrappedToken.contract.name(), wrappedTokenName);
       assert.strictEqual(await wrappedToken.contract.symbol(), wrappedTokenSymbol);
       assert.strictEqual(

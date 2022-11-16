@@ -38,20 +38,20 @@ contract MultiFungibleTokenManager is MultiTokenManagerBase {
         uint256 _limit,
         bool _isNativeAllowed
     ) override external onlyRegistry returns (address) {
-        FungibleTokenWrapper governedToken = new FungibleTokenWrapper{salt: _salt}(
+        FungibleTokenWrapper token = new FungibleTokenWrapper{salt: _salt}(
             _name,
             _symbol
         );
 
-        governedToken.initialize(
+        token.initialize(
             payable(masterFeeRecipient),
             _handler,
             _limit,
             _isNativeAllowed
         );
 
-        wrappedTokens.push(address(governedToken));
-        return address(governedToken);
+        wrappedTokens.push(address(token));
+        return address(token);
     }
 
     /**

@@ -38,10 +38,10 @@ export type BridgeInput = {
 
 export type BridgeConfig = {
   // The addresses of tokens available to be transferred over this bridge config
-  // chainId => GovernedTokenWrapperAddress
+  // chainId => FungibleTokenWrapperAddress
   webbTokenAddresses: Map<number, string>;
 
-  // The addresses of the anchors for the GovernedTokenWrapper
+  // The addresses of the anchors for the FungibleTokenWrapper
   // {anchorIdentifier} => anchorAddress
   anchors: Map<string, IAnchor>;
 

@@ -80,6 +80,7 @@ contract Registry is Initialized, IRegistry {
         uint256 _limit,
         bool _isNativeAllowed
     ) override external onlyHandler onlyInitialized {
+        require(idToWrappedAsset[_assetIdentifier] == address(0x0), "Registry: Asset already registered");
         require(proposalNonce < _nonce, "Registry: Invalid nonce");
         require(_nonce < proposalNonce + 1, "Registry: Nonce must not increment more than 1048");
         proposalNonce = _nonce;
@@ -112,6 +113,7 @@ contract Registry is Initialized, IRegistry {
         bytes memory _uri,
         bytes32 _salt
     ) override external onlyHandler onlyInitialized {
+        require(idToWrappedAsset[_assetIdentifier] == address(0x0), "Registry: Asset already registered");
         require(proposalNonce < _nonce, "Registry: Invalid nonce");
         require(_nonce < proposalNonce + 1, "Registry: Nonce must not increment more than 1048");
         proposalNonce = _nonce;

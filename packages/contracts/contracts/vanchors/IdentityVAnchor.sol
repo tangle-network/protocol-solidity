@@ -226,7 +226,7 @@ contract IdentityVAnchor is VAnchorBase, TxProofVerifier, ISetVerifier {
 
 		// Check if extAmount > 0, call wrapAndDeposit
 		if (_extData.extAmount > 0) {
-			//wrapAndDeposit
+			// wrapAndDeposit
 			require(uint256(_extData.extAmount) <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
 			_executeWrapping(_tokenAddress, uint256(_extData.extAmount));
 		} else if (_extData.extAmount < 0) {
