@@ -19,7 +19,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
  */
 abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
     using SafeMath for uint256;
-    uint16 feePercentage;
+    uint16 public feePercentage;
     address payable public feeRecipient;
 
     /**

@@ -427,19 +427,19 @@ Get the latest merkle roots of all neighbor edges
 ### getProposalNonce
 
 ```solidity
-function getProposalNonce() external view returns (uint32)
+function getProposalNonce() external view returns (uint256)
 ```
 
-Gets the proposal nonce of this contract
 
-*The nonce tracks how many times the handler has updated the contract*
+
+
 
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint32 | undefined
+| _0 | uint256 | undefined
 
 ### handler
 
@@ -817,6 +817,23 @@ Parses the typed chain ID out from a 32-byte resource ID
 | Name | Type | Description |
 |---|---|---|
 | _0 | uint64 | undefined
+
+### proposalNonce
+
+```solidity
+function proposalNonce() external view returns (uint256)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
 
 ### register
 

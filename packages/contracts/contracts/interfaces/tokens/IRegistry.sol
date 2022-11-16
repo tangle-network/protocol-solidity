@@ -18,6 +18,7 @@ interface IRegistry {
         @param _name The name of the ERC20
         @param _symbol The symbol of the ERC20
         @param _salt Salt used for matching addresses across chain using CREATE2
+        @param _feePercentage The fee percentage for wrapping
         @param _limit The maximum amount of tokens that can be wrapped
         @param _isNativeAllowed Whether or not native tokens are allowed to be wrapped
      */
@@ -29,6 +30,7 @@ interface IRegistry {
         bytes32 _symbol,
         bytes32 _salt,
         uint256 _limit,
+        uint16 _feePercentage,
         bool _isNativeAllowed
     ) external;
 

@@ -16,19 +16,15 @@ import "./MultiTokenManagerBase.sol";
 contract MultiNftTokenManager is MultiTokenManagerBase {
     using SafeMath for uint256;
 
-    constructor(
-        address _registry,
-        address _feeRecipient
-    ) MultiTokenManagerBase(_registry, _feeRecipient) {}
-
     function registerToken(
         address,
         string memory,
         string memory,
         bytes32,
         uint256,
+        uint16,
         bool
-    ) override public view onlyRegistry returns (address) {
+    ) override public view onlyRegistry onlyInitialized returns (address) {
         revert();
     }
 
@@ -36,7 +32,7 @@ contract MultiNftTokenManager is MultiTokenManagerBase {
         address _handler,
         string memory _uri,
         bytes32 _salt
-    ) override external onlyRegistry returns (address) {
+    ) override external onlyRegistry onlyInitialized returns (address) {
         NftTokenWrapper nftWrapper = new NftTokenWrapper{salt: _salt}(_uri);
 
         nftWrapper.initialize(_handler);

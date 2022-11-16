@@ -13,9 +13,11 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
  */
 contract Governable {
     address private _governor;
+    
+    // Refresh nonce is for rotating the DKG
     uint32 public refreshNonce = 0;
 
-    // Storage values relevant to proposer set update
+    /// Storage values relevant to proposer set update
 
     // The proposal nonce
     uint32 public proposerSetUpdateNonce = 0;
@@ -170,7 +172,7 @@ contract Governable {
     ) public {
         // Valid Nonce
         require(proposerSetUpdateNonce < _proposerSetUpdateNonce, "Invalid nonce");
-        require(_proposerSetUpdateNonce < proposerSetUpdateNonce + 1048, "Nonce must not increment more than 1048");
+        require(_proposerSetUpdateNonce <= proposerSetUpdateNonce + 1, "Nonce must not increment more than 1");
 
         // Valid Signature
         require(isSignatureFromGovernor(

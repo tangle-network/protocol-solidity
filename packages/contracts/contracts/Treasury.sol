@@ -8,9 +8,9 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./interfaces/ITreasury.sol";
+import "./utils/ProposalNonceTracker.sol";
 
-contract Treasury is ITreasury {
-    uint256 public proposalNonce = 0;
+contract Treasury is ITreasury, ProposalNonceTracker {
     address treasuryHandler;
 
     constructor (address _treasuryHandler) {
@@ -22,11 +22,14 @@ contract Treasury is ITreasury {
         _;
     }
 
-    function rescueTokens(address tokenAddress, address payable to, uint256 amountToRescue, uint32 nonce) external override onlyHandler {
+    function rescueTokens(
+        address tokenAddress,
+        address payable to,
+        uint256 amountToRescue,
+        uint32 nonce
+    ) external override onlyHandler onlyIncrementingByOne(nonce) {
         require(to != address(0), "Cannot send liquidity to zero address");
         require(tokenAddress != address(this), "Cannot rescue wrapped asset");
-        require(proposalNonce < nonce, "Invalid nonce");
-        require(nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
 
         if (tokenAddress == address(0)) {
             // Native Ether 
@@ -46,16 +49,14 @@ contract Treasury is ITreasury {
                 IERC20(tokenAddress).transfer(to, erc20Balance);
             }  
         }
-
-        proposalNonce = nonce;
     }
 
-    function setHandler(address newHandler, uint32 nonce) onlyHandler override external {
+    function setHandler(
+        address newHandler,
+        uint32 nonce
+    ) onlyHandler onlyIncrementingByOne(nonce) override external {
         require(newHandler != address(0), "Handler cannot be 0");
-        require(proposalNonce < nonce, "Invalid nonce");
-        require(nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
         treasuryHandler = newHandler;
-        proposalNonce = nonce;
     }
 
     receive() external payable {}

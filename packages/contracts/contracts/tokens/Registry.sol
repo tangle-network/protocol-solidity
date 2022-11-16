@@ -6,7 +6,8 @@
 pragma solidity ^0.8.0;
 
 import "./FungibleTokenWrapper.sol";
-import "./Initialized.sol";
+import "../utils/Initialized.sol";
+import "../utils/ProposalNonceTracker.sol";
 import "./NftTokenWrapper.sol";
 import "../interfaces/tokens/IRegistry.sol";
 import "../interfaces/tokens/IMultiTokenManager.sol";
@@ -16,7 +17,7 @@ import "../interfaces/tokens/IMultiTokenManager.sol";
     ERC20 / ERC721 / ERC1155 tokens on the bridge
     @author Webb Technologies.
  */
-contract Registry is Initialized, IRegistry {
+contract Registry is Initialized, IRegistry, ProposalNonceTracker {
     using SafeMath for uint256;
 
     address public fungibleTokenManager;
@@ -25,8 +26,6 @@ contract Registry is Initialized, IRegistry {
     address public registryHandler;
     address public masterFeeRecipient;
     address public maspVAnchor;
-
-    uint256 public proposalNonce = 0;
 
     // TODO: Maintain a map from wrapped tokens (fungible + NFTs) to assetIDs
 	// TODO: Start assetIDs at 1, use 0 to indicate an invalid bridge ERC20 (non-existant)
@@ -57,6 +56,15 @@ contract Registry is Initialized, IRegistry {
         registryHandler = _handler;
         masterFeeRecipient = _masterFeeRecipient;
         maspVAnchor = _maspVAnchor;
+
+        IMultiTokenManager(_fungibleTokenManager).initialize(
+            address(this),
+            _masterFeeRecipient
+        );
+        IMultiTokenManager(_nonFungibleTokenManager).initialize(
+            address(this),
+            _masterFeeRecipient
+        );
     }
 
     /**
@@ -66,9 +74,10 @@ contract Registry is Initialized, IRegistry {
         @param _assetIdentifier The identifier of the asset for the MASP
         @param _name The name of the ERC20
         @param _symbol The symbol of the ERC20
-        @param _limit The maximum amount of tokens that can be wrapped
-        @param _isNativeAllowed Whether or not native tokens are allowed to be wrapped
         @param _salt Salt used for matching addresses across chain using CREATE2
+        @param _limit The maximum amount of tokens that can be wrapped
+        @param _feePercentage The fee percentage for wrapping
+        @param _isNativeAllowed Whether or not native tokens are allowed to be wrapped
      */
     function registerToken(
         uint32 _nonce,
@@ -78,12 +87,10 @@ contract Registry is Initialized, IRegistry {
         bytes32 _symbol,
         bytes32 _salt,
         uint256 _limit,
+        uint16 _feePercentage,
         bool _isNativeAllowed
-    ) override external onlyHandler onlyInitialized {
+    ) override external onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
         require(idToWrappedAsset[_assetIdentifier] == address(0x0), "Registry: Asset already registered");
-        require(proposalNonce < _nonce, "Registry: Invalid nonce");
-        require(_nonce < proposalNonce + 1, "Registry: Nonce must not increment more than 1048");
-        proposalNonce = _nonce;
         address token = IMultiTokenManager(fungibleTokenManager)
             .registerToken(
                 _tokenHandler,
@@ -91,6 +98,7 @@ contract Registry is Initialized, IRegistry {
                 string(abi.encodePacked(_symbol)),
                 _salt,
                 _limit,
+                _feePercentage,
                 _isNativeAllowed
             );
         emit TokenRegistered(token, _tokenHandler, _assetIdentifier);
@@ -112,11 +120,8 @@ contract Registry is Initialized, IRegistry {
         uint256 _assetIdentifier,
         bytes memory _uri,
         bytes32 _salt
-    ) override external onlyHandler onlyInitialized {
+    ) override external onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
         require(idToWrappedAsset[_assetIdentifier] == address(0x0), "Registry: Asset already registered");
-        require(proposalNonce < _nonce, "Registry: Invalid nonce");
-        require(_nonce < proposalNonce + 1, "Registry: Nonce must not increment more than 1048");
-        proposalNonce = _nonce;
         address token = IMultiTokenManager(nonFungibleTokenManager)
             .registerNftToken(
                 _tokenHandler,

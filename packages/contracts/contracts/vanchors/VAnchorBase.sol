@@ -50,7 +50,6 @@ abstract contract VAnchorBase is AnchorBase {
 
 	function initialize(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmount) external initializer {
 		super._initialize();
-		proposalNonce = 0;
 		_configureMinimalWithdrawalLimit(_minimalWithdrawalAmount);
 		_configureMaximumDepositLimit(_maximumDepositAmount);
 
@@ -61,13 +60,17 @@ abstract contract VAnchorBase is AnchorBase {
 		_register(_account);
 	}
 
-	function configureMinimalWithdrawalLimit(uint256 _minimalWithdrawalAmount, uint32 _nonce) override public onlyHandler {
-		proposalNonce = _nonce;
+	function configureMinimalWithdrawalLimit(
+		uint256 _minimalWithdrawalAmount,
+		uint32 _nonce
+	) override public onlyHandler onlyIncrementingByOne(_nonce) {
 		_configureMinimalWithdrawalLimit(_minimalWithdrawalAmount);
 	}
 
-	function configureMaximumDepositLimit(uint256 _maximumDepositAmount, uint32 _nonce) override public onlyHandler {
-		proposalNonce = _nonce;
+	function configureMaximumDepositLimit(
+		uint256 _maximumDepositAmount,
+		uint32 _nonce
+	) override public onlyHandler onlyIncrementingByOne(_nonce) {
 		_configureMaximumDepositLimit(_maximumDepositAmount);
 	}
 

@@ -172,6 +172,23 @@ Computes the modified chain id using the underlying chain type (EVM)
 |---|---|---|
 | _0 | uint48 | undefined
 
+### getProposalNonce
+
+```solidity
+function getProposalNonce() external view returns (uint256)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
 ### governor
 
 ```solidity
@@ -386,7 +403,7 @@ function proposerSetRoot() external view returns (bytes32)
 function proposerSetUpdateNonce() external view returns (uint32)
 ```
 
-
+Storage values relevant to proposer set update
 
 
 

@@ -10,6 +10,23 @@
 
 ## Methods
 
+### getProposalNonce
+
+```solidity
+function getProposalNonce() external view returns (uint256)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
 ### getWrappedTokens
 
 ```solidity
@@ -26,6 +43,40 @@ Gets the currently available wrappable tokens by their addresses
 | Name | Type | Description |
 |---|---|---|
 | _0 | address[] | address[] The currently available wrappable token addresses
+
+### initialize
+
+```solidity
+function initialize(address _registry, address _feeRecipient) external nonpayable
+```
+
+Initialize the contract with the registry and fee recipient
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _registry | address | The address of the registry
+| _feeRecipient | address | The address of the fee recipient
+
+### initialized
+
+```solidity
+function initialized() external view returns (bool)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bool | undefined
 
 ### masterFeeRecipient
 
@@ -88,7 +139,7 @@ Registers an NFT token
 ### registerToken
 
 ```solidity
-function registerToken(address _handler, string _name, string _symbol, bytes32 _salt, uint256 _limit, bool _isNativeAllowed) external nonpayable returns (address)
+function registerToken(address _handler, string _name, string _symbol, bytes32 _salt, uint256 _limit, uint16 _feePercentage, bool _isNativeAllowed) external nonpayable returns (address)
 ```
 
 Registers a new token and deploys the FungibleTokenWrapper contract
@@ -104,6 +155,7 @@ Registers a new token and deploys the FungibleTokenWrapper contract
 | _symbol | string | The symbol of the ERC20
 | _salt | bytes32 | Salt used for matching addresses across chain using CREATE2
 | _limit | uint256 | The maximum amount of tokens that can be wrapped
+| _feePercentage | uint16 | The fee percentage for wrapping
 | _isNativeAllowed | bool | Whether or not native tokens are allowed to be wrapped
 
 #### Returns
@@ -128,6 +180,38 @@ function registry() external view returns (address)
 | Name | Type | Description |
 |---|---|---|
 | _0 | address | undefined
+
+### setMasterFeeRecipient
+
+```solidity
+function setMasterFeeRecipient(address _feeRecipient) external nonpayable
+```
+
+Sets the master fee recipient
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _feeRecipient | address | undefined
+
+### setRegistry
+
+```solidity
+function setRegistry(address _registry) external nonpayable
+```
+
+Sets the registry
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _registry | address | undefined
 
 ### wrappedTokens
 

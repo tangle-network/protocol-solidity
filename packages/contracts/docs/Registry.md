@@ -93,6 +93,23 @@ Fetches the asset ID for an address
 |---|---|---|
 | _0 | uint256 | undefined
 
+### getProposalNonce
+
+```solidity
+function getProposalNonce() external view returns (uint256)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
 ### idToWrappedAsset
 
 ```solidity
@@ -118,13 +135,22 @@ function idToWrappedAsset(uint256) external view returns (address)
 ### initialize
 
 ```solidity
-function initialize() external nonpayable
+function initialize(address _fungibleTokenManager, address _nonFungibleTokenManager, address _handler, address _masterFeeRecipient, address _maspVAnchor) external nonpayable
 ```
 
 
 
 
 
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _fungibleTokenManager | address | undefined
+| _nonFungibleTokenManager | address | undefined
+| _handler | address | undefined
+| _masterFeeRecipient | address | undefined
+| _maspVAnchor | address | undefined
 
 ### initialized
 
@@ -234,7 +260,7 @@ Registers a new NFT token and deploys the NftTokenWrapper contract
 ### registerToken
 
 ```solidity
-function registerToken(uint32 _nonce, address _tokenHandler, uint256 _assetIdentifier, bytes32 _name, bytes32 _symbol, bytes32 _salt, uint256 _limit, bool _isNativeAllowed) external nonpayable
+function registerToken(uint32 _nonce, address _tokenHandler, uint256 _assetIdentifier, bytes32 _name, bytes32 _symbol, bytes32 _salt, uint256 _limit, uint16 _feePercentage, bool _isNativeAllowed) external nonpayable
 ```
 
 Registers a new token and deploys the FungibleTokenWrapper contract
@@ -252,6 +278,7 @@ Registers a new token and deploys the FungibleTokenWrapper contract
 | _symbol | bytes32 | The symbol of the ERC20
 | _salt | bytes32 | Salt used for matching addresses across chain using CREATE2
 | _limit | uint256 | The maximum amount of tokens that can be wrapped
+| _feePercentage | uint16 | The fee percentage for wrapping
 | _isNativeAllowed | bool | Whether or not native tokens are allowed to be wrapped
 
 ### registryHandler

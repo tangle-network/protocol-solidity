@@ -43,9 +43,10 @@ describe('Open VAnchor Contract', () => {
     const hasher = await hasherFactory.deploy();
     await hasher.deployed();
 
-    const webbToken = await FungibleTokenWrapper.FungibleTokenWrapper(
+    const webbToken = await FungibleTokenWrapper.createFungibleTokenWrapper(
       'WEBB',
       'WEBB',
+      0,
       await sender.getAddress(),
       await sender.getAddress(),
       '1000000000000000',
@@ -66,10 +67,10 @@ describe('Open VAnchor Contract', () => {
     await tx.wait();
 
     await webbToken.grantMinterRole(openVAnchor.contract.address);
-    await openVAnchor.contract.configureMaximumDepositLimit(BigNumber.from(10_000_000_000), 0);
+    await openVAnchor.contract.configureMaximumDepositLimit(BigNumber.from(10_000_000_000), 1);
     await openVAnchor.contract.configureMinimalWithdrawalLimit(
       BigNumber.from(tokenDenomination).mul(1_000_000),
-      0
+      2
     );
   });
 

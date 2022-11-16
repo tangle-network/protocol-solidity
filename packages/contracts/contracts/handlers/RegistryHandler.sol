@@ -58,7 +58,7 @@ contract RegistryHandler is IExecutor, HandlerHelpers {
         address registryAddress = _resourceIDToContractAddress[resourceID];
         IRegistry registry = IRegistry(registryAddress); 
         
-        if (functionSig == bytes4(keccak256("registerToken(string,string,bytes32,uint256,bool)"))) {  
+        if (functionSig == bytes4(keccak256("registerToken(string,string,bytes32,uint256,uint16,bool)"))) {  
             uint32 nonce = uint32(bytes4(arguments[0:4]));
             address tokenHandler = address(bytes20(arguments[4:24]));
             uint256 assetId = uint256(bytes32(arguments[24:56]));
@@ -66,8 +66,19 @@ contract RegistryHandler is IExecutor, HandlerHelpers {
             bytes32 symbol = bytes32(arguments[88:120]);
             bytes32 salt = bytes32(arguments[120:152]);
             uint256 limit = uint256(bytes32(arguments[152:184]));
-            bool isNativeAllowed = bytes1(arguments[184:185]) == 0x01;
-            registry.registerToken(nonce, tokenHandler, assetId, name, symbol, salt, limit, isNativeAllowed);
+            uint16 feePercentage = uint16(bytes2(arguments[184:186]));
+            bool isNativeAllowed = bytes1(arguments[186:187]) == 0x01;
+            registry.registerToken(
+                nonce,
+                tokenHandler,
+                assetId,
+                name,
+                symbol,
+                salt,
+                limit,
+                feePercentage,
+                isNativeAllowed
+            );
         } else if (functionSig == bytes4(keccak256("registerNftToken(string,bytes32)"))) {
             uint32 nonce = uint32(bytes4(arguments[0:4]));
             address tokenHandler = address(bytes20(arguments[4:24]));

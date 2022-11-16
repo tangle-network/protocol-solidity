@@ -8,6 +8,7 @@ pragma solidity ^0.8.0;
 import "../structs/Edge.sol";
 import "../trees/MerkleTree.sol";
 import "../utils/ChainIdWithType.sol";
+import "../utils/ProposalNonceTracker.sol";
 import "../interfaces/anchors/ILinkableAnchor.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "hardhat/console.sol";
@@ -38,8 +39,7 @@ import "hardhat/console.sol";
     An example usage of this system is the:
     - VAnchor.sol - for variable sized private bridging of assets
  */
-abstract contract LinkableAnchor is ILinkableAnchor, MerkleTree, ReentrancyGuard, ChainIdWithType {
-    uint32 proposalNonce = 0;
+abstract contract LinkableAnchor is ILinkableAnchor, MerkleTree, ReentrancyGuard, ChainIdWithType, ProposalNonceTracker {
     address public handler;
 
     // The maximum number of edges this tree can support for zero-knowledge linkability.
@@ -235,13 +235,5 @@ abstract contract LinkableAnchor is ILinkableAnchor, MerkleTree, ReentrancyGuard
         }
 
         return decodedRoots;
-    }
-
-    /**
-        @notice Gets the proposal nonce of this contract
-        @dev The nonce tracks how many times the handler has updated the contract
-     */
-    function getProposalNonce() public view returns (uint32) {
-        return proposalNonce;
     }
 }

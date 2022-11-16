@@ -182,9 +182,10 @@ describe('SignatureBridgeSide use', () => {
     const treasury = await Treasury.createTreasury(treasuryHandler.contract.address, admin);
 
     // Create a FungibleTokenWrapper
-    const fungibleToken = await FungibleTokenWrapper.FungibleTokenWrapper(
+    const fungibleToken = await FungibleTokenWrapper.createFungibleTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      0,
       treasury.contract.address,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
@@ -224,9 +225,10 @@ describe('SignatureBridgeSide use', () => {
     );
 
     // Create a FungibleTokenWrapper
-    const fungibleToken = await FungibleTokenWrapper.FungibleTokenWrapper(
+    const fungibleToken = await FungibleTokenWrapper.createFungibleTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      0,
       treasury.contract.address,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
@@ -269,9 +271,10 @@ describe('SignatureBridgeSide use', () => {
     );
 
     // Create a FungibleTokenWrapper
-    const fungibleToken = await FungibleTokenWrapper.FungibleTokenWrapper(
+    const fungibleToken = await FungibleTokenWrapper.createFungibleTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      0,
       treasury.contract.address,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
@@ -318,9 +321,10 @@ describe('SignatureBridgeSide use', () => {
     );
 
     // Create a FungibleTokenWrapper
-    const fungibleToken = await FungibleTokenWrapper.FungibleTokenWrapper(
+    const fungibleToken = await FungibleTokenWrapper.createFungibleTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      0,
       treasury.contract.address,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
@@ -378,9 +382,10 @@ describe('SignatureBridgeSide use', () => {
     );
 
     // Create a FungibleTokenWrapper
-    const fungibleToken = await FungibleTokenWrapper.FungibleTokenWrapper(
+    const fungibleToken = await FungibleTokenWrapper.createFungibleTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      0,
       treasury.contract.address,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
@@ -550,9 +555,10 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
     await erc20TokenInstance.mintTokens(admin.address, '100000000000000000000000');
 
     // Create a FungibleTokenWrapper
-    fungibleToken = await FungibleTokenWrapper.FungibleTokenWrapper(
+    fungibleToken = await FungibleTokenWrapper.createFungibleTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      0,
       zeroAddress,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',
@@ -811,9 +817,10 @@ describe('Rescue Tokens Tests for Native ETH', () => {
     await bridgeSide.setTreasuryResourceWithSignature(treasury);
 
     // Create a FungibleTokenWrapper
-    fungibleToken = await FungibleTokenWrapper.FungibleTokenWrapper(
+    fungibleToken = await FungibleTokenWrapper.createFungibleTokenWrapper(
       `webbETH-test-1`,
       `webbETH-test-1`,
+      0,
       zeroAddress,
       tokenWrapperHandler.contract.address,
       '10000000000000000000000000',

@@ -10,6 +10,23 @@
 
 ## Methods
 
+### getProposalNonce
+
+```solidity
+function getProposalNonce() external view returns (uint256)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
 ### getWrappedTokens
 
 ```solidity
@@ -26,6 +43,40 @@ Gets the currently available wrappable tokens by their addresses
 | Name | Type | Description |
 |---|---|---|
 | _0 | address[] | address[] The currently available wrappable token addresses
+
+### initialize
+
+```solidity
+function initialize(address _registry, address _feeRecipient) external nonpayable
+```
+
+Initialize the contract with the registry and fee recipient
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _registry | address | The address of the registry
+| _feeRecipient | address | The address of the fee recipient
+
+### initialized
+
+```solidity
+function initialized() external view returns (bool)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bool | undefined
 
 ### masterFeeRecipient
 
@@ -88,7 +139,7 @@ Registers a new NFT token and deploys the NftTokenWrapper contract
 ### registerToken
 
 ```solidity
-function registerToken(address, string, string, bytes32, uint256, bool) external view returns (address)
+function registerToken(address, string, string, bytes32, uint256, uint16, bool) external view returns (address)
 ```
 
 
@@ -104,7 +155,8 @@ function registerToken(address, string, string, bytes32, uint256, bool) external
 | _2 | string | undefined
 | _3 | bytes32 | undefined
 | _4 | uint256 | undefined
-| _5 | bool | undefined
+| _5 | uint16 | undefined
+| _6 | bool | undefined
 
 #### Returns
 
@@ -128,6 +180,38 @@ function registry() external view returns (address)
 | Name | Type | Description |
 |---|---|---|
 | _0 | address | undefined
+
+### setMasterFeeRecipient
+
+```solidity
+function setMasterFeeRecipient(address _feeRecipient) external nonpayable
+```
+
+Sets the master fee recipient
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _feeRecipient | address | undefined
+
+### setRegistry
+
+```solidity
+function setRegistry(address _registry) external nonpayable
+```
+
+Sets the registry
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _registry | address | undefined
 
 ### wrappedTokens
 

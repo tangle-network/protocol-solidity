@@ -56,6 +56,23 @@ function balanceOfBatch(address[] accounts, uint256[] ids) external view returns
 |---|---|---|
 | _0 | uint256[] | undefined
 
+### getProposalNonce
+
+```solidity
+function getProposalNonce() external view returns (uint256)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
 ### handler
 
 ```solidity
@@ -205,6 +222,23 @@ function onERC721Received(address operator, address from, uint256 tokenId, bytes
 | Name | Type | Description |
 |---|---|---|
 | _0 | bytes4 | undefined
+
+### proposalNonce
+
+```solidity
+function proposalNonce() external view returns (uint256)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
 
 ### safeBatchTransferFrom
 

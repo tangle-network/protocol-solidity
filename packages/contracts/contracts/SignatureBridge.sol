@@ -9,15 +9,14 @@ pragma experimental ABIEncoderV2;
 import "./utils/Pausable.sol";
 import "./utils/Governable.sol";
 import "./utils/ChainIdWithType.sol";
+import "./utils/ProposalNonceTracker.sol";
 import "./interfaces/IExecutor.sol";
 
 /**
     @title Facilitates proposals execution and resource ID additions/updates
     @author ChainSafe Systems & Webb Technologies.
  */
-contract SignatureBridge is Pausable, Governable, ChainIdWithType {
-    uint256 public proposalNonce = 0;
-
+contract SignatureBridge is Pausable, Governable, ChainIdWithType, ProposalNonceTracker {
     // resourceID => handler address
     mapping(bytes32 => address) public _resourceIDToHandlerAddress;
 
@@ -64,20 +63,18 @@ contract SignatureBridge is Pausable, Governable, ChainIdWithType {
         bytes32 newResourceID,
         address handlerAddress,
         bytes memory sig
-    ) external signedByGovernor(
+    ) external onlyIncrementingByOne(nonce) signedByGovernor(
         abi.encodePacked(
             resourceID,
             functionSig,
             nonce,
             newResourceID,
             handlerAddress
-        ), sig
-    ){
+        ), sig)
+    {
         require(this.isCorrectExecutionChain(resourceID), "adminSetResourceWithSignature: Executing on wrong chain");
         require(this.isCorrectExecutionChain(newResourceID), "adminSetResourceWithSignature: Executing on wrong chain");
         require(this.isCorrectExecutionContext(resourceID), "adminSetResourceWithSignature: Invalid execution context");
-        require(proposalNonce < nonce, "adminSetResourceWithSignature: Invalid nonce");
-        require(nonce < proposalNonce + 1048, "adminSetResourceWithSignature: Nonce must not increment more than 1048");
         require(
             functionSig == bytes4(keccak256(
                 "adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,bytes)"
@@ -88,7 +85,6 @@ contract SignatureBridge is Pausable, Governable, ChainIdWithType {
         IExecutor handler = IExecutor(handlerAddress);
         address executionContext = address(bytes20(newResourceID << (6 * 8)));
         handler.setResource(newResourceID, executionContext);
-        proposalNonce = nonce;
     }
 
     /**

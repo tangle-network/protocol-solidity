@@ -27,11 +27,12 @@ describe('FungibleTokenWrapper', () => {
     const wallet = signers[0];
     sender = wallet;
 
-    token = await ERC20Class.createERC20(tokenName, tokenSymbol, wallet);
+    token = await ERC20Class.createERC20PresetMinterPauser(tokenName, tokenSymbol, wallet);
     const dummyFeeRecipient = '0x0000000000010000000010000000000000000000';
-    wrappedToken = await FungibleTokenWrapperClass.FungibleTokenWrapper(
+    wrappedToken = await FungibleTokenWrapperClass.createFungibleTokenWrapper(
       wrappedTokenName,
       wrappedTokenSymbol,
+      0,
       dummyFeeRecipient,
       sender.address,
       tokenDenomination,
@@ -44,7 +45,7 @@ describe('FungibleTokenWrapper', () => {
     it('should initialize', async () => {
       assert.strictEqual(await wrappedToken.contract.name(), wrappedTokenName);
       assert.strictEqual(await wrappedToken.contract.symbol(), wrappedTokenSymbol);
-      assert.strictEqual(await wrappedToken.contract.governor(), sender.address);
+      assert.strictEqual(await wrappedToken.contract.handler(), sender.address);
       assert.strictEqual(
         (await wrappedToken.contract.wrappingLimit()).toString(),
         tokenDenomination

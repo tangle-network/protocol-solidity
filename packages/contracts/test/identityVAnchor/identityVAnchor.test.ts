@@ -163,13 +163,10 @@ describe('IdentityVAnchor for 2 max edges', () => {
     await token.mint(alice.address, BigNumber.from(1e10).toString());
     await token.mint(bob.address, BigNumber.from(1e10).toString());
     await token.mint(carl.address, BigNumber.from(1e10).toString());
-
     // create Anchor
     semaphore = await Semaphore.createSemaphore(levels, maxEdges, zkComponents2_2, sender);
-
     const groupId = BigNumber.from(99); // arbitrary
     const tx = await semaphore.createGroup(groupId, levels, alice.address, maxEdges);
-
     let aliceLeaf = aliceKeypair.getPubKey();
     group = new LinkedGroup(levels, maxEdges, BigInt(defaultRoot));
     group.addMember(aliceLeaf);
@@ -177,11 +174,9 @@ describe('IdentityVAnchor for 2 max edges', () => {
       .connect(sender)
       .addMember(groupId, aliceLeaf, { gasLimit: '0x5B8D80' });
     // const receipt = await alice_addmember_tx.wait();
-
     expect(alice_addmember_tx)
       .to.emit(semaphore.contract, 'MemberAdded')
       .withArgs(groupId, aliceLeaf, group.root);
-
     let bobLeaf = bobKeypair.getPubKey();
     let bob_addmember_tx = await semaphore.contract
       .connect(sender)
@@ -192,7 +187,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
     expect(bob_addmember_tx)
       .to.emit(semaphore.contract, 'MemberAdded')
       .withArgs(groupId, bobLeaf, group.root);
-
     idAnchor = await IdentityVAnchor.createIdentityVAnchor(
       semaphore,
       verifier.contract.address,
@@ -207,12 +201,10 @@ describe('IdentityVAnchor for 2 max edges', () => {
       zkComponents16_2,
       sender
     );
-
-    await idAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 0);
-
+    await idAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
     await idAnchor.contract.configureMaximumDepositLimit(
       BigNumber.from(tokenDenomination).mul(1_000_000),
-      0
+      2
     );
 
     await token.approve(idAnchor.contract.address, '1000000000000000000000000');
@@ -338,17 +330,17 @@ describe('IdentityVAnchor for 2 max edges', () => {
   describe('Setting Handler/Verifier Address Negative Tests', () => {
     it('should revert (setting handler) with improper nonce', async () => {
       const signers = await ethers.getSigners();
-      expect(idAnchor.contract.setHandler(signers[1].address, 0)).to.revertedWith('Invalid nonce');
-      expect(idAnchor.contract.setHandler(signers[1].address, 1049)).to.revertedWith(
-        'Nonce must not increment more than 1048'
+      expect(idAnchor.contract.setHandler(signers[1].address, 0)).to.revertedWith('ProposalNonceTracker: Invalid nonce');
+      expect(idAnchor.contract.setHandler(signers[1].address, 2)).to.revertedWith(
+        'ProposalNonceTracker: Nonce must not increment more than 1'
       );
     });
 
     it('should revert (setting verifier) with improper nonce', async () => {
       const signers = await ethers.getSigners();
-      expect(idAnchor.contract.setVerifier(signers[1].address, 0)).to.revertedWith('Invalid nonce');
-      expect(idAnchor.contract.setVerifier(signers[1].address, 1049)).to.revertedWith(
-        'Nonce must not increment more than 1048'
+      expect(idAnchor.contract.setVerifier(signers[1].address, 0)).to.revertedWith('ProposalNonceTracker: Invalid nonce');
+      expect(idAnchor.contract.setVerifier(signers[1].address, 2)).to.revertedWith(
+        'ProposalNonceTracker: Nonce must not increment more than 1'
       );
     });
   });
@@ -1096,6 +1088,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol);
       await wrappedToken.deployed();
       await wrappedToken.initialize(
+        0,
         dummyFeeRecipient,
         alice.address,
         '10000000000000000000000000',
@@ -1120,10 +1113,10 @@ describe('IdentityVAnchor for 2 max edges', () => {
         alice
       );
 
-      await wrappedIdAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 0);
+      await wrappedIdAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
       await wrappedIdAnchor.contract.configureMaximumDepositLimit(
         BigNumber.from(tokenDenomination).mul(1_000_000),
-        0
+        2
       );
       const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
       await wrappedToken.grantRole(MINTER_ROLE, wrappedIdAnchor.contract.address);

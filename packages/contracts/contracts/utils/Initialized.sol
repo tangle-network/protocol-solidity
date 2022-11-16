@@ -21,8 +21,4 @@ contract Initialized {
         require(initialized, "Initialized: Not initialized");
         _;
     }
-
-    function initialize() external onlyUninitialized {
-        initialized = true;
-    }
 }

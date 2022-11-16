@@ -219,6 +219,23 @@ function decreaseAllowance(address spender, uint256 subtractedValue) external no
 |---|---|---|
 | _0 | bool | undefined
 
+### feePercentage
+
+```solidity
+function feePercentage() external view returns (uint16)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint16 | undefined
+
 ### feeRecipient
 
 ```solidity
@@ -296,6 +313,23 @@ Get the fee for a target amount to wrap
 | Name | Type | Description |
 |---|---|---|
 | _0 | uint256 | uint The fee amount of the token being wrapped
+
+### getProposalNonce
+
+```solidity
+function getProposalNonce() external view returns (uint256)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
 
 ### getRoleAdmin
 
@@ -486,7 +520,7 @@ function increaseAllowance(address spender, uint256 addedValue) external nonpaya
 ### initialize
 
 ```solidity
-function initialize(address _feeRecipient, address _handler, uint256 _limit, bool _isNativeAllowed) external nonpayable
+function initialize(uint16 _feePercentage, address _feeRecipient, address _handler, uint256 _limit, bool _isNativeAllowed) external nonpayable
 ```
 
 FungibleTokenWrapper initializer
@@ -497,6 +531,7 @@ FungibleTokenWrapper initializer
 
 | Name | Type | Description |
 |---|---|---|
+| _feePercentage | uint16 | The fee percentage for wrapping
 | _feeRecipient | address | The recipient for fees from wrapping.
 | _handler | address | The address of the handler
 | _limit | uint256 | The maximum amount of tokens that can be wrapped

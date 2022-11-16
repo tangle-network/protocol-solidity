@@ -202,6 +202,23 @@ function decreaseAllowance(address spender, uint256 subtractedValue) external no
 |---|---|---|
 | _0 | bool | undefined
 
+### feePercentage
+
+```solidity
+function feePercentage() external view returns (uint16)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint16 | undefined
+
 ### feeRecipient
 
 ```solidity

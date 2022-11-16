@@ -8,15 +8,12 @@ import { ethers, expect } from 'hardhat';
 
 // Convenience wrapper classes for contract classes
 import { ERC20 as ERC20Class, FungibleTokenWrapper } from '@webb-tools/tokens';
-import { MultiFungibleTokenManager } from '../../typechain/MultiFungibleTokenManager';
-import { Registrar__factory } from '../../typechain/factories/Registrar__factory';
-import { MultiFungibleTokenManager__factory } from '../../typechain/factories/MultiFungibleTokenManager__factory';
-import { Registrar } from '../../typechain/Registrar';
+import { MultiFungibleTokenManager, Registry } from '@webb-tools/tokens';
 
 describe('MultiFungibleTokenManager', () => {
   let token: ERC20Class;
   let multiTokenMgr: MultiFungibleTokenManager;
-  let registry: Registrar;
+  let registry: Registry;
   let tokenDenomination = '1000000000000000000'; // 1 ether
   let sender: SignerWithAddress;
   const tokenName = 'Token';
@@ -29,22 +26,29 @@ describe('MultiFungibleTokenManager', () => {
     const wallet = signers[0];
     sender = wallet;
 
-    token = await ERC20Class.createERC20(tokenName, tokenSymbol, wallet);
-    const factory = new MultiFungibleTokenManager__factory(wallet);
-    multiTokenMgr = await factory.deploy();
-    await multiTokenMgr.deployed();
+    token = await ERC20Class.createERC20PresetMinterPauser(tokenName, tokenSymbol, wallet);
+    multiTokenMgr = await MultiFungibleTokenManager.createMultiFungibleTokenManager(
+      sender,
+    );
 
-    const registryFactory = new Registrar__factory(wallet);
-    registry = await registryFactory.deploy();
-    await registry.deployed();
-    await registry['initialize(address,address)'](multiTokenMgr.address, multiTokenMgr.address);
+    registry = await Registry.createRegistry(sender);
+    await registry.initialize(
+      multiTokenMgr.contract.address,
+      '0',
+      sender.address,
+      sender.address,
+      sender.address,
+    );
+
+    assert(registry.contract.initialized(), 'Registry not initialized');
+    assert(multiTokenMgr.contract.initialized(), 'MultiTokenManager not initialized');
   });
 
   describe('#constructor', () => {
     it('should initialize', async () => {
-      assert.strictEqual((await multiTokenMgr.proposalNonce()).toNumber(), 0);
-      assert.strictEqual(await multiTokenMgr.governor(), sender.address);
-      assert.strictEqual(await registry.governor(), sender.address);
+      assert.strictEqual((await multiTokenMgr.contract.proposalNonce()).toNumber(), 0);
+      assert.strictEqual(await multiTokenMgr.contract.registry(), sender.address);
+      assert.strictEqual(await registry.contract.registryHandler(), sender.address);
     });
   });
 
@@ -52,32 +56,64 @@ describe('MultiFungibleTokenManager', () => {
     it('should fail to register token through the registry', async () => {
       const salt = ethers.utils.formatBytes32String('1');
       const limit = ethers.utils.parseEther('1000');
+      const nonce = 1;
+      const tokenHandler = sender.address;
+      const assetIdentifier = 1;
+      const feePercentage = 0;
       await expect(
-        registry.registerToken(wrappedTokenName, wrappedTokenSymbol, salt, limit, true)
+        registry.registerToken(
+          nonce,
+          tokenHandler,
+          assetIdentifier,
+          wrappedTokenName,
+          wrappedTokenSymbol,
+          salt,
+          limit,
+          feePercentage,
+          true
+        )
       ).to.be.revertedWith('Only governor can call this function');
     });
 
     it('should transfer ownership to the registry and register a token', async () => {
       const salt = ethers.utils.formatBytes32String('1');
       const limit = ethers.utils.parseEther('1000');
-      await multiTokenMgr.setGovernor(registry.address);
-      assert.strictEqual(await multiTokenMgr.governor(), registry.address);
-      assert.strictEqual(await registry.governor(), sender.address);
-      await registry.registerToken(wrappedTokenName, wrappedTokenSymbol, salt, limit, true);
+      const nonce = 1;
+      const tokenHandler = sender.address;
+      const assetIdentifier = 1;
+      const feePercentage = 0;
+      await multiTokenMgr.setRegistry(registry.contract.address);
+      assert.strictEqual(await multiTokenMgr.contract.registry(), registry.contract.address);
+      assert.strictEqual(await registry.contract.registryHandler(), sender.address);
+      await registry.registerToken(
+        nonce,
+        tokenHandler,
+        assetIdentifier,
+        wrappedTokenName,
+        wrappedTokenSymbol,
+        salt,
+        limit,
+        feePercentage,
+        true
+      );
     });
 
     it('should create a new token', async () => {
       const salt = ethers.utils.formatBytes32String('1');
       const limit = ethers.utils.parseEther('1000');
-      const tx = await multiTokenMgr.registerToken(
+      const tokenHandler = sender.address;
+      const feePercentage = 0;
+      const tx = await multiTokenMgr.contract.registerToken(
+        tokenHandler,
         wrappedTokenName,
         wrappedTokenSymbol,
         salt,
         limit,
+        feePercentage,
         true
       );
       await tx.wait();
-      const wrappedTokenAddress = await multiTokenMgr.wrappedTokens(0);
+      const wrappedTokenAddress = await multiTokenMgr.contract.wrappedTokens(0);
       const wrappedToken = FungibleTokenWrapper.connect(wrappedTokenAddress, sender);
       assert.strictEqual(await wrappedToken.contract.name(), wrappedTokenName);
       assert.strictEqual(await wrappedToken.contract.symbol(), wrappedTokenSymbol);

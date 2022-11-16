@@ -6,25 +6,42 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "../utils/Initialized.sol";
+import "../utils/ProposalNonceTracker.sol";
 import "../interfaces/tokens/IMultiTokenManager.sol";
 
 /**
     @title A MultiNftTokenManagerBase
     @author Webb Technologies.
  */
-abstract contract MultiTokenManagerBase is IMultiTokenManager {
+abstract contract MultiTokenManagerBase is IMultiTokenManager, Initialized, ProposalNonceTracker {
     using SafeMath for uint256;
     address public registry;
     address public masterFeeRecipient;
-
-    uint256 public proposalNonce = 0;
     address[] public wrappedTokens;
 
-    constructor(
+    function initialize(
         address _registry,
         address _feeRecipient
-    ) {
+    ) external override onlyUninitialized {
+        initialized = true;
         registry = _registry;
+        masterFeeRecipient = _feeRecipient;
+    }
+
+    /**
+        @notice Sets the registry
+     */
+    function setRegistry(address _registry) external {
+        require(msg.sender == registry, "MultiTokenManager: Only registry can set registry");
+        registry = _registry;
+    }
+
+    /**
+        @notice Sets the master fee recipient
+     */
+    function setMasterFeeRecipient(address _feeRecipient) external {
+        require(msg.sender == masterFeeRecipient, "MultiTokenManager: Only registry can set master fee recipient");
         masterFeeRecipient = _feeRecipient;
     }
 

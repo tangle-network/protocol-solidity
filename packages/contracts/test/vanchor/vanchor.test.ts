@@ -143,10 +143,10 @@ describe('VAnchor for 2 max edges', () => {
       sender
     );
 
-    await anchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 0);
+    await anchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
     await anchor.contract.configureMaximumDepositLimit(
       BigNumber.from(tokenDenomination).mul(1_000_000),
-      0
+      2
     );
 
     await token.approve(anchor.contract.address, '1000000000000000000000000');
@@ -229,11 +229,11 @@ describe('VAnchor for 2 max edges', () => {
       const signers = await ethers.getSigners();
       await TruffleAssert.reverts(
         anchor.contract.setHandler(signers[1].address, 0),
-        'Invalid nonce'
+        'ProposalNonceTracker: Invalid nonce'
       );
       await TruffleAssert.reverts(
-        anchor.contract.setHandler(signers[1].address, 1049),
-        'Nonce must not increment more than 1048'
+        anchor.contract.setHandler(signers[1].address, 2),
+        'Nonce must not increment more than 1'
       );
     });
 
@@ -241,11 +241,11 @@ describe('VAnchor for 2 max edges', () => {
       const signers = await ethers.getSigners();
       await TruffleAssert.reverts(
         anchor.contract.setVerifier(signers[1].address, 0),
-        'Invalid nonce'
+        'ProposalNonceTracker: Invalid nonce'
       );
       await TruffleAssert.reverts(
-        anchor.contract.setVerifier(signers[1].address, 1049),
-        'Nonce must not increment more than 1048'
+        anchor.contract.setVerifier(signers[1].address, 2),
+        'Nonce must not increment more than 1'
       );
     });
   });
@@ -1170,6 +1170,7 @@ describe('VAnchor for 2 max edges', () => {
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol);
       await wrappedToken.deployed();
       await wrappedToken.initialize(
+        0,
         dummyFeeRecipient,
         sender.address,
         '10000000000000000000000000',
@@ -1190,10 +1191,10 @@ describe('VAnchor for 2 max edges', () => {
         sender
       );
 
-      await wrappedAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 0);
+      await wrappedAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
       await wrappedAnchor.contract.configureMaximumDepositLimit(
         BigNumber.from(tokenDenomination).mul(1_000_000),
-        0
+        2
       );
 
       const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
@@ -1253,6 +1254,7 @@ describe('VAnchor for 2 max edges', () => {
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol);
       await wrappedToken.deployed();
       await wrappedToken.initialize(
+        0,
         dummyFeeRecipient,
         sender.address,
         '10000000000000000000000000',
@@ -1273,10 +1275,10 @@ describe('VAnchor for 2 max edges', () => {
         sender
       );
 
-      await wrappedAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 0);
+      await wrappedAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
       await wrappedAnchor.contract.configureMaximumDepositLimit(
         BigNumber.from(tokenDenomination).mul(1_000_000),
-        0
+        2
       );
 
       const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
@@ -1337,6 +1339,7 @@ describe('VAnchor for 2 max edges', () => {
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol);
       await wrappedToken.deployed();
       await wrappedToken.initialize(
+        0,
         dummyFeeRecipient,
         sender.address,
         '10000000000000000000000000',
@@ -1357,10 +1360,10 @@ describe('VAnchor for 2 max edges', () => {
         sender
       );
 
-      await wrappedVAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 0);
+      await wrappedVAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
       await wrappedVAnchor.contract.configureMaximumDepositLimit(
         BigNumber.from(tokenDenomination).mul(1_000_000),
-        0
+        2
       );
 
       const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
@@ -1442,6 +1445,7 @@ describe('VAnchor for 2 max edges', () => {
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol);
       await wrappedToken.deployed();
       await wrappedToken.initialize(
+        0,
         dummyFeeRecipient,
         sender.address,
         '10000000000000000000000000',
@@ -1464,10 +1468,10 @@ describe('VAnchor for 2 max edges', () => {
         sender
       );
 
-      await wrappedVAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 0);
+      await wrappedVAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
       await wrappedVAnchor.contract.configureMaximumDepositLimit(
         BigNumber.from(tokenDenomination).mul(1_000_000),
-        0
+        2
       );
 
       const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
@@ -1595,7 +1599,7 @@ describe('VAnchor for 2 max edges', () => {
       );
     });
 
-    it('non-governor setting fee should fail', async () => {
+    it('non-handler setting fee should fail', async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
       const sender = wallet;
@@ -1607,6 +1611,7 @@ describe('VAnchor for 2 max edges', () => {
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol);
       await wrappedToken.deployed();
       await wrappedToken.initialize(
+        0,
         dummyFeeRecipient,
         sender.address,
         '10000000000000000000000000',
@@ -1615,12 +1620,11 @@ describe('VAnchor for 2 max edges', () => {
       await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
       const wrapFee = 5;
       const otherSender = signers[1];
-      assert;
       await TruffleAssert.reverts(
         wrappedToken
           .connect(otherSender)
           .setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1)),
-        'Only governor can call this function'
+        'FungibleTokenWrapper: Only handler can call this function'
       );
     });
 
@@ -1636,6 +1640,7 @@ describe('VAnchor for 2 max edges', () => {
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol);
       await wrappedToken.deployed();
       await wrappedToken.initialize(
+        0,
         dummyFeeRecipient,
         sender.address,
         '10000000000000000000000000',
@@ -1646,7 +1651,7 @@ describe('VAnchor for 2 max edges', () => {
       assert;
       await TruffleAssert.reverts(
         wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1)),
-        'invalid fee percentage'
+        'FungibleTokenWrapper: Invalid fee percentage'
       );
     });
 
@@ -1662,6 +1667,7 @@ describe('VAnchor for 2 max edges', () => {
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol);
       await wrappedToken.deployed();
       await wrappedToken.initialize(
+        0,
         dummyFeeRecipient,
         sender.address,
         '10000000000000000000000000',
@@ -1687,6 +1693,7 @@ describe('VAnchor for 2 max edges', () => {
       wrappedToken = await wrappedTokenFactory.deploy(name, symbol);
       await wrappedToken.deployed();
       await wrappedToken.initialize(
+        0,
         dummyFeeRecipient,
         sender.address,
         '10000000000000000000000000',

@@ -158,7 +158,7 @@ function proposerSetRoot() external view returns (bytes32)
 function proposerSetUpdateNonce() external view returns (uint32)
 ```
 
-
+Storage values relevant to proposer set update
 
 
 

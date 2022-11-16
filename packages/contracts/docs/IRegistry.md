@@ -77,7 +77,7 @@ Registers a new NFT token and deploys the NftTokenWrapper contract
 ### registerToken
 
 ```solidity
-function registerToken(uint32 _nonce, address _handler, uint256 _assetIdentifier, bytes32 _name, bytes32 _symbol, bytes32 _salt, uint256 _limit, bool _isNativeAllowed) external nonpayable
+function registerToken(uint32 _nonce, address _handler, uint256 _assetIdentifier, bytes32 _name, bytes32 _symbol, bytes32 _salt, uint256 _limit, uint16 _feePercentage, bool _isNativeAllowed) external nonpayable
 ```
 
 Registers a new token and deploys the FungibleTokenWrapper contract
@@ -95,6 +95,7 @@ Registers a new token and deploys the FungibleTokenWrapper contract
 | _symbol | bytes32 | The symbol of the ERC20
 | _salt | bytes32 | Salt used for matching addresses across chain using CREATE2
 | _limit | uint256 | The maximum amount of tokens that can be wrapped
+| _feePercentage | uint16 | The fee percentage for wrapping
 | _isNativeAllowed | bool | Whether or not native tokens are allowed to be wrapped
 
 

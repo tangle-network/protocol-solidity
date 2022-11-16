@@ -11,12 +11,23 @@ pragma solidity ^0.8.0;
  */
 interface IMultiTokenManager {
     /**
+        @notice Initialize the contract with the registry and fee recipient
+        @param _registry The address of the registry
+        @param _feeRecipient The address of the fee recipient
+     */
+    function initialize(
+        address _registry,
+        address _feeRecipient
+    ) external;
+
+    /**
         @notice Registers a new token and deploys the FungibleTokenWrapperInitializable contract
         @param _handler The address of the token handler contract
         @param _name The name of the ERC20
         @param _symbol The symbol of the ERC20
         @param _salt Salt used for matching addresses across chain using CREATE2
         @param _limit The maximum amount of tokens that can be wrapped
+        @param _feePercentage The fee percentage for wrapping
         @param _isNativeAllowed Whether or not native tokens are allowed to be wrapped
      */
     function registerToken(
@@ -25,6 +36,7 @@ interface IMultiTokenManager {
         string memory _symbol,
         bytes32 _salt,
         uint256 _limit,
+        uint16 _feePercentage,
         bool _isNativeAllowed
     ) external returns (address);
 

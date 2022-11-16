@@ -106,11 +106,11 @@ abstract contract AnchorBase is LinkableAnchor {
         @param _handler The new handler address
         @param _nonce The nonce for updating the new handler
      */
-    function setHandler(address _handler, uint32 _nonce) override onlyHandler external {
+    function setHandler(
+        address _handler,
+        uint32 _nonce
+    ) override onlyHandler onlyIncrementingByOne(_nonce) external {
         require(_handler != address(0), "Handler cannot be 0");
-        require(proposalNonce < _nonce, "Invalid nonce");
-        require(_nonce < proposalNonce + 1, "Nonce must not increment more than 1048");
         handler = _handler;
-        proposalNonce = _nonce;
     }
 }

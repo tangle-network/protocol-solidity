@@ -179,9 +179,10 @@ export class VBridge {
 
       let tokenInstance: FungibleTokenWrapper;
       if (!vBridgeInput.webbTokens.get(chainID)) {
-        tokenInstance = await FungibleTokenWrapper.FungibleTokenWrapper(
+        tokenInstance = await FungibleTokenWrapper.createFungibleTokenWrapper(
           `webbWETH`,
           `webbWETH`,
+          0,
           treasury.contract.address,
           tokenWrapperHandler.contract.address,
           '10000000000000000000000000',

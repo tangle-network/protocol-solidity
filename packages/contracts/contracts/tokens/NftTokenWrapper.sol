@@ -10,15 +10,15 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "../utils/Initialized.sol";
+import "../utils/ProposalNonceTracker.sol";
 
 /**
     @title A MultiTokenManager manages FungibleTokenWrapper systems using an external `governor` address
     @author Webb Technologies.
  */
-contract NftTokenWrapper is ERC1155, ERC1155Receiver, IERC721Receiver {
+contract NftTokenWrapper is ERC1155, ERC1155Receiver, IERC721Receiver, Initialized, ProposalNonceTracker {
     using SafeMath for uint256;
-
-    bool public initialized = false;
     address public handler;
 
     constructor(string memory _uri) ERC1155(_uri) {}
@@ -27,10 +27,9 @@ contract NftTokenWrapper is ERC1155, ERC1155Receiver, IERC721Receiver {
         @notice Initializes the contract
         @param _handler The address of the token handler contract
      */
-    function initialize(address _handler) external {
-        require(!initialized, "Contract already initialized");
-        handler = _handler;
+    function initialize(address _handler) onlyUninitialized external {
         initialized = true;
+        handler = _handler;
     }
 
     function wrap721(uint256 _tokenId, address _tokenContract) external {

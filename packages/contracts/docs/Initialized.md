@@ -10,17 +10,6 @@
 
 ## Methods
 
-### initialize
-
-```solidity
-function initialize() external nonpayable
-```
-
-
-
-
-
-
 ### initialized
 
 ```solidity
