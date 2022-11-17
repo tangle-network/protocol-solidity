@@ -26,14 +26,12 @@ subtask('typechain-generate-types', async (taskArgs, hre, runSuper) => {
   await runSuper();
 });
 
-console.log('this is forking url: ', process.env.RPC_URL);
-
 const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',
   networks: {
     hardhat: {
       forking: {
-        url: process.env.RPC_URL,
+        url: 'https://mainnet.infura.io/v3/' + process.env.INFURA_API_KEY,
       },
       allowUnlimitedContractSize: true,
       //accounts: HARDHAT_ACCOUNTS,
