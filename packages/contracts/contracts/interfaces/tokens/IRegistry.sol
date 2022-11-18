@@ -46,7 +46,7 @@ interface IRegistry {
         uint32 _nonce,
         address _handler,
         uint256 _assetIdentifier,
-        bytes memory _uri,
+        string memory _uri,
         bytes32 _salt
     ) external;
 

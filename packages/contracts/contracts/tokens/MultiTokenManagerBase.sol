@@ -54,6 +54,11 @@ abstract contract MultiTokenManagerBase is IMultiTokenManager, Initialized, Prop
     }
 
     /**
+        @notice A flag used to separate between fungible and non-fungible token managers
+     */
+    function isFungible() public virtual returns (bool);
+
+    /**
         @notice Modifier for enforcing that the caller is the governor
      */
     modifier onlyRegistry() {

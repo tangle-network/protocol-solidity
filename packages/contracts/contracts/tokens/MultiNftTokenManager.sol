@@ -40,4 +40,8 @@ contract MultiNftTokenManager is MultiTokenManagerBase {
         wrappedTokens.push(address(nftWrapper));
         return address(nftWrapper);
     }
+
+    function isFungible() override public pure returns (bool) {
+        return false;
+    }
 }

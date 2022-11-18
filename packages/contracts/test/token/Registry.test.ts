@@ -12,15 +12,14 @@ import {
   Registry,
 } from '@webb-tools/tokens';
 
-describe('Registry', () => {
+describe.only('Registry', () => {
   let multiFungibleTokenMgr: MultiFungibleTokenManager;
   let multiNftTokenMgr: MultiNftTokenManager;
   let registry: Registry;
   let sender: SignerWithAddress;
-  const tokenName = 'Token';
-  const tokenSymbol = 'TKN';
   const wrappedTokenName = 'Wrapped Token';
   const wrappedTokenSymbol = 'wTKN';
+  const wrappedTokenURI = 'www.example.com/{id}.json';
 
   beforeEach(async () => {
     const signers = await ethers.getSigners();
@@ -75,7 +74,7 @@ describe('Registry', () => {
       )).to.be.revertedWith('MultiTokenManagerBase: Only registry can call this function');
     });
 
-    it('should register token through the registry', async () => {
+    it('should register a fungible token through the registry', async () => {
       const salt = ethers.utils.formatBytes32String('1');
       const limit = ethers.utils.parseEther('1000');
       const nonce = 1;
@@ -103,6 +102,72 @@ describe('Registry', () => {
         limit.toString()
       );
       assert.strictEqual(await wrappedToken.contract.isNativeAllowed(), true);
+    });
+
+    it('should fail to register a token with the same assetIdentifier', async () => {
+      const salt = ethers.utils.formatBytes32String('1');
+      const limit = ethers.utils.parseEther('1000');
+      const nonce = 1;
+      const tokenHandler = sender.address;
+      const assetIdentifier = 1;
+      const feePercentage = 0;
+      await registry.registerToken(
+        nonce,
+        tokenHandler,
+        assetIdentifier,
+        wrappedTokenName,
+        wrappedTokenSymbol,
+        salt,
+        limit,
+        feePercentage,
+        true
+      );
+
+      expect(registry.registerToken(
+        nonce,
+        tokenHandler,
+        assetIdentifier,
+        wrappedTokenName,
+        wrappedTokenSymbol,
+        salt,
+        limit,
+        feePercentage,
+        true
+      )).to.be.revertedWith('Registry: Asset already registered');
+    });
+
+    it('should fail to register an asset with an assetIdentifier of 0', async () => {
+      const salt = ethers.utils.formatBytes32String('1');
+      const limit = ethers.utils.parseEther('1000');
+      const nonce = 1;
+      const tokenHandler = sender.address;
+      const assetIdentifier = 0;
+      const feePercentage = 0;
+      expect(registry.registerToken(
+        nonce,
+        tokenHandler,
+        assetIdentifier,
+        wrappedTokenName,
+        wrappedTokenSymbol,
+        salt,
+        limit,
+        feePercentage,
+        true
+      )).to.be.revertedWith('Registry: Asset identifier cannot be 0');
+    });
+
+    it('should register a non fungible token through the registry', async () => {
+      const salt = ethers.utils.formatBytes32String('1');
+      const nonce = 1;
+      const tokenHandler = sender.address;
+      const assetIdentifier = 2;
+      await registry.registerNftToken(
+        nonce,
+        tokenHandler,
+        assetIdentifier,
+        wrappedTokenURI,
+        salt,
+      );
     });
   });
 });

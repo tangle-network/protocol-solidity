@@ -66,4 +66,23 @@ export class Registry {
     );
     await tx.wait();
   }
+
+  public async registerNftToken(
+    nonce: number,
+    tokenHandler: string,
+    assetIdentifier: number,
+    wrappedTokenURI: string,
+    salt: string,
+  ) {
+    const tx = await this.contract.registerNftToken(
+      nonce,
+      tokenHandler,
+      assetIdentifier,
+      wrappedTokenURI,
+      salt,
+      { gasLimit: '0x5B8D80' }
+    );
+
+    await tx.wait();
+  }
 }

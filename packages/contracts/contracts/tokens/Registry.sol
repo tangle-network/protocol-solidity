@@ -27,8 +27,6 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
     address public masterFeeRecipient;
     address public maspVAnchor;
 
-    // TODO: Maintain a map from wrapped tokens (fungible + NFTs) to assetIDs
-	// TODO: Start assetIDs at 1, use 0 to indicate an invalid bridge ERC20 (non-existant)
 	mapping (address => uint256) public wrappedAssetToId;
 	mapping (uint256 => address) public idToWrappedAsset;
 
@@ -90,6 +88,7 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
         uint16 _feePercentage,
         bool _isNativeAllowed
     ) override external onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
+        require(_assetIdentifier != 0, "Registry: Asset identifier cannot be 0");
         require(idToWrappedAsset[_assetIdentifier] == address(0x0), "Registry: Asset already registered");
         address token = IMultiTokenManager(fungibleTokenManager)
             .registerToken(
@@ -118,14 +117,15 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
         uint32 _nonce,
         address _tokenHandler,
         uint256 _assetIdentifier,
-        bytes memory _uri,
+        string memory _uri,
         bytes32 _salt
     ) override external onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
+        require(_assetIdentifier != 0, "Registry: Asset identifier cannot be 0");
         require(idToWrappedAsset[_assetIdentifier] == address(0x0), "Registry: Asset already registered");
         address token = IMultiTokenManager(nonFungibleTokenManager)
             .registerNftToken(
                 _tokenHandler,
-                string(abi.encodePacked(_uri)),
+                _uri,
                 _salt
             );
         emit TokenRegistered(token, _tokenHandler, _assetIdentifier);

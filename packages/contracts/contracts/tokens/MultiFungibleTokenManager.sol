@@ -62,4 +62,8 @@ contract MultiFungibleTokenManager is MultiTokenManagerBase {
     ) override public view onlyRegistry onlyInitialized returns (address) {
         revert();
     }
+
+    function isFungible() override public pure returns (bool) {
+        return true;
+    }
 }
