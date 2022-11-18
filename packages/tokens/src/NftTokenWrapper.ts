@@ -27,7 +27,7 @@ export class NftTokenWrapper {
     return tokenWrapper;
   }
 
-  public static async connect(tokenWrapperAddress: string, signer: ethers.Signer) {
+  public static connect(tokenWrapperAddress: string, signer: ethers.Signer) {
     const tokenWrapperContract = NftTokenWrapper__factory.connect(tokenWrapperAddress, signer);
     const tokenWrapper = new NftTokenWrapper(tokenWrapperContract);
     return tokenWrapper;

@@ -10,6 +10,7 @@ import {
   MultiNftTokenManager,
   MultiFungibleTokenManager,
   Registry,
+  NftTokenWrapper,
 } from '@webb-tools/tokens';
 
 describe.only('Registry', () => {
@@ -94,6 +95,11 @@ describe.only('Registry', () => {
       );
 
       const wrappedTokenAddress = await multiFungibleTokenMgr.contract.wrappedTokens(0);
+      assert.strictEqual(
+        (await registry.contract.wrappedAssetToId(wrappedTokenAddress)).toNumber(),
+        assetIdentifier
+      );
+
       const wrappedToken = FungibleTokenWrapper.connect(wrappedTokenAddress, sender);
       assert.strictEqual(await wrappedToken.contract.name(), wrappedTokenName);
       assert.strictEqual(await wrappedToken.contract.symbol(), wrappedTokenSymbol);
@@ -168,6 +174,15 @@ describe.only('Registry', () => {
         wrappedTokenURI,
         salt,
       );
+
+      const wrappedTokenAddress = await multiNftTokenMgr.contract.wrappedTokens(0);
+      assert.strictEqual(
+        (await registry.contract.wrappedAssetToId(wrappedTokenAddress)).toNumber(),
+        assetIdentifier
+      );
+
+      const wrappedToken = NftTokenWrapper.connect(wrappedTokenAddress, sender);
+      assert.strictEqual(await wrappedToken.contract.uri(assetIdentifier), wrappedTokenURI);
     });
   });
 });
