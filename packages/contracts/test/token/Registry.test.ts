@@ -13,7 +13,7 @@ import {
   NftTokenWrapper,
 } from '@webb-tools/tokens';
 
-describe.only('Registry', () => {
+describe('Registry', () => {
   let multiFungibleTokenMgr: MultiFungibleTokenManager;
   let multiNftTokenMgr: MultiNftTokenManager;
   let registry: Registry;
