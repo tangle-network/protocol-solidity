@@ -14,7 +14,6 @@ import {
   FungibleTokenWrapper__factory as WrappedTokenFactory,
 } from '../../typechain/';
 
-// Convenience wrapper classes for contract classes
 import {
   hexToU8a,
   fetchComponentsFromFilePaths,
@@ -330,7 +329,9 @@ describe('IdentityVAnchor for 2 max edges', () => {
   describe('Setting Handler/Verifier Address Negative Tests', () => {
     it('should revert (setting handler) with improper nonce', async () => {
       const signers = await ethers.getSigners();
-      expect(idAnchor.contract.setHandler(signers[1].address, 0)).to.revertedWith('ProposalNonceTracker: Invalid nonce');
+      expect(idAnchor.contract.setHandler(signers[1].address, 0)).to.revertedWith(
+        'ProposalNonceTracker: Invalid nonce'
+      );
       expect(idAnchor.contract.setHandler(signers[1].address, 2)).to.revertedWith(
         'ProposalNonceTracker: Nonce must not increment more than 1'
       );
@@ -338,7 +339,9 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
     it('should revert (setting verifier) with improper nonce', async () => {
       const signers = await ethers.getSigners();
-      expect(idAnchor.contract.setVerifier(signers[1].address, 0)).to.revertedWith('ProposalNonceTracker: Invalid nonce');
+      expect(idAnchor.contract.setVerifier(signers[1].address, 0)).to.revertedWith(
+        'ProposalNonceTracker: Invalid nonce'
+      );
       expect(idAnchor.contract.setVerifier(signers[1].address, 2)).to.revertedWith(
         'ProposalNonceTracker: Nonce must not increment more than 1'
       );

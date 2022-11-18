@@ -32,7 +32,7 @@ abstract contract MultiTokenManagerBase is IMultiTokenManager, Initialized, Prop
     /**
         @notice Sets the registry
      */
-    function setRegistry(address _registry) external {
+    function setRegistry(address _registry) onlyInitialized external {
         require(msg.sender == registry, "MultiTokenManager: Only registry can set registry");
         registry = _registry;
     }
@@ -40,7 +40,7 @@ abstract contract MultiTokenManagerBase is IMultiTokenManager, Initialized, Prop
     /**
         @notice Sets the master fee recipient
      */
-    function setMasterFeeRecipient(address _feeRecipient) external {
+    function setMasterFeeRecipient(address _feeRecipient) onlyInitialized external {
         require(msg.sender == masterFeeRecipient, "MultiTokenManager: Only registry can set master fee recipient");
         masterFeeRecipient = _feeRecipient;
     }
@@ -57,7 +57,7 @@ abstract contract MultiTokenManagerBase is IMultiTokenManager, Initialized, Prop
         @notice Modifier for enforcing that the caller is the governor
      */
     modifier onlyRegistry() {
-        require(msg.sender == registry, "Only registry can call this function");
+        require(msg.sender == registry, "MultiTokenManagerBase: Only registry can call this function");
         _;
     }
 }

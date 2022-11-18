@@ -6,7 +6,6 @@ const assert = require('assert');
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
 
-// Convenience wrapper classes for contract classes
 import {
   ERC20 as ERC20Class,
   FungibleTokenWrapper as FungibleTokenWrapperClass,

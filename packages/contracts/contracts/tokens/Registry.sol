@@ -49,7 +49,7 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
         address _handler,
         address _masterFeeRecipient,
         address _maspVAnchor
-    ) external onlyHandler onlyUninitialized {
+    ) external onlyUninitialized {
         initialized = true;
         fungibleTokenManager = _fungibleTokenManager;
         nonFungibleTokenManager = _nonFungibleTokenManager;
@@ -83,8 +83,8 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
         uint32 _nonce,
         address _tokenHandler,
         uint256 _assetIdentifier,
-        bytes32 _name,
-        bytes32 _symbol,
+        string memory _name,
+        string memory _symbol,
         bytes32 _salt,
         uint256 _limit,
         uint16 _feePercentage,
@@ -94,8 +94,8 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
         address token = IMultiTokenManager(fungibleTokenManager)
             .registerToken(
                 _tokenHandler,
-                string(abi.encodePacked(_name)),
-                string(abi.encodePacked(_symbol)),
+                _name,
+                _symbol,
                 _salt,
                 _limit,
                 _feePercentage,
@@ -155,17 +155,5 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
     modifier onlyHandler() {
         require(msg.sender == registryHandler, "Only governor can call this function");
         _;
-    }
-
-    function bytes32ToString(bytes32 _bytes32) public pure returns (string memory) {
-        uint8 i = 0;
-        while(i < 32 && _bytes32[i] != 0) {
-            i++;
-        }
-        bytes memory bytesArray = new bytes(i);
-        for (i = 0; i < 32 && _bytes32[i] != 0; i++) {
-            bytesArray[i] = _bytes32[i];
-        }
-        return string(bytesArray);
     }
 }

@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import {
   ERC20PresetMinterPauser as ERC20PresetMinterPauserContract,
-  ERC20PresetMinterPauser__factory
+  ERC20PresetMinterPauser__factory,
 } from '@webb-tools/contracts';
 
 class ERC20 {

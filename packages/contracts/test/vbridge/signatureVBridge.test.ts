@@ -6,7 +6,6 @@ const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
 import { ethers } from 'hardhat';
 
-// Convenience wrapper classes for contract classes
 import { VBridge, VBridgeInput } from '@webb-tools/vbridge';
 import { VAnchor } from '@webb-tools/anchors';
 import { MintableToken, FungibleTokenWrapper } from '@webb-tools/tokens';

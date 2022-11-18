@@ -15,7 +15,6 @@ import {
   FungibleTokenWrapper__factory as WrappedTokenFactory,
 } from '../../typechain';
 
-// Convenience wrapper classes for contract classes
 import {
   hexToU8a,
   fetchComponentsFromFilePaths,

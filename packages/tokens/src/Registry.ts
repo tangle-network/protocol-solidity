@@ -1,36 +1,25 @@
 import { BigNumberish, ethers } from 'ethers';
-import {
-  Registry as RegistryContract,
-  Registry__factory,
-} from '@webb-tools/contracts';
+import { Registry as RegistryContract, Registry__factory } from '@webb-tools/contracts';
 
 export class Registry {
   contract: RegistryContract;
 
-  constructor(
-    contract: RegistryContract,
-  ) {
+  constructor(contract: RegistryContract) {
     this.contract = contract;
   }
 
-  public static async createRegistry(
-    deployer: ethers.Signer
-  ) {
+  public static async createRegistry(deployer: ethers.Signer) {
     const factory = new Registry__factory(deployer);
     const contract = await factory.deploy();
     await contract.deployed();
 
-    const registry = new Registry(
-        contract,
-    );
+    const registry = new Registry(contract);
     return registry;
   }
 
   public static async connect(registryAddress: string, signer: ethers.Signer) {
     const registryContract = Registry__factory.connect(registryAddress, signer);
-    const registry = new Registry(
-        registryContract,
-    );
+    const registry = new Registry(registryContract);
     return registry;
   }
 
@@ -39,14 +28,15 @@ export class Registry {
     nonFungibleTokenManager: string,
     registryHandler: string,
     masterFeeRecipient: string,
-    maspVAnchor: string,
+    maspVAnchor: string
   ) {
     const tx = await this.contract.initialize(
-        fungibleTokenManager,
-        nonFungibleTokenManager,
-        registryHandler,
-        masterFeeRecipient,
-        maspVAnchor,
+      fungibleTokenManager,
+      nonFungibleTokenManager,
+      registryHandler,
+      masterFeeRecipient,
+      maspVAnchor,
+      { gasLimit: '0x5B8D80' }
     );
     await tx.wait();
   }
@@ -60,7 +50,7 @@ export class Registry {
     salt: string,
     limit: BigNumberish,
     feePercentage: number,
-    isNativeAllowed: boolean,
+    isNativeAllowed: boolean
   ) {
     const tx = await this.contract.registerToken(
       nonce,
@@ -71,7 +61,8 @@ export class Registry {
       salt,
       limit,
       feePercentage,
-      isNativeAllowed
+      isNativeAllowed,
+      { gasLimit: '0x5B8D80' }
     );
     await tx.wait();
   }

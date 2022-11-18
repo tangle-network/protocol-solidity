@@ -7,7 +7,6 @@ const path = require('path');
 import { ethers } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
 
-// Convenience wrapper classes for contract classes
 import { SignatureBridgeSide } from '@webb-tools/bridges';
 import { VAnchor, AnchorHandler, PoseidonHasher } from '@webb-tools/anchors';
 import { Verifier } from '@webb-tools/vbridge';

@@ -11,7 +11,6 @@ import EC from 'elliptic';
 const ec = new EC.ec('secp256k1');
 const TruffleAssert = require('truffle-assertions');
 
-// Convenience wrapper classes for contract classes
 import { Governable, Governable__factory } from '../../typechain';
 import { ethers } from 'ethers';
 

@@ -7,9 +7,7 @@ import {
 export class NftTokenWrapper {
   contract: NftTokenWrapperContract;
 
-  constructor(
-    contract: NftTokenWrapperContract,
-) {
+  constructor(contract: NftTokenWrapperContract) {
     this.contract = contract;
   }
 
@@ -22,14 +20,10 @@ export class NftTokenWrapper {
     const contract = await factory.deploy(uri);
     await contract.deployed();
 
-    const tx = await contract.initialize(
-        tokenHandler
-    );
+    const tx = await contract.initialize(tokenHandler);
     await tx.wait();
 
-    const tokenWrapper = new NftTokenWrapper(
-        contract,
-    );
+    const tokenWrapper = new NftTokenWrapper(contract);
     return tokenWrapper;
   }
 

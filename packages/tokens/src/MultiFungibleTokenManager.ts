@@ -7,15 +7,11 @@ import {
 export class MultiFungibleTokenManager {
   contract: MultiFungibleTokenManagerContract;
 
-  constructor(
-    contract: MultiFungibleTokenManagerContract,
-) {
+  constructor(contract: MultiFungibleTokenManagerContract) {
     this.contract = contract;
   }
 
-  public static async createMultiFungibleTokenManager(
-    deployer: ethers.Signer
-  ) {
+  public static async createMultiFungibleTokenManager(deployer: ethers.Signer) {
     const factory = new MultiFungibleTokenManager__factory(deployer);
     const contract = await factory.deploy();
     await contract.deployed();
@@ -28,6 +24,37 @@ export class MultiFungibleTokenManager {
     const managerContract = MultiFungibleTokenManager__factory.connect(managerAddress, signer);
     const manager = new MultiFungibleTokenManager(managerContract);
     return manager;
+  }
+
+  public async initialize(registry: string,feeRecipient: string) {
+    const tx = await this.contract.initialize(
+      registry,
+      feeRecipient,
+      { gasLimit: '0x5B8D80' }
+    );
+
+    await tx.wait();
+  }
+
+  public async registerToken(
+    tokenHandler: string,
+    name: string,
+    symbol: string,
+    salt: string,
+    limit: string,
+    feePercentage: number,
+    isNativeAllowed: boolean
+  ) {
+    const tx = await this.contract.registerToken(
+      tokenHandler,
+      name,
+      symbol,
+      salt,
+      limit,
+      feePercentage,
+      isNativeAllowed
+    );
+    await tx.wait();
   }
 
   public async setRegistry(registry: string) {
