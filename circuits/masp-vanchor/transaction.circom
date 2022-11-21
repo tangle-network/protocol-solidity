@@ -139,7 +139,7 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
         outCommitmentHasher[tx] = Poseidon(3);
         outCommitmentHasher[tx].inputs[0] <== assetID;
         outCommitmentHasher[tx].inputs[1] <== outAmount[tx];
-        outCommitmentHasher[tx].inputs[2] <== inPartialCommitmentHasher[tx].out;
+        outCommitmentHasher[tx].inputs[2] <== outPartialCommitmentHasher[tx].out;
         
         // Constrain output commitment by reconstructed commitment
         outCommitmentHasher[tx].out === outputCommitment[tx];
