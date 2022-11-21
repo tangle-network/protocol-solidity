@@ -12,7 +12,7 @@ import {
   ERC20PresetMinterPauser__factory,
   FungibleTokenWrapper as WrappedToken,
   FungibleTokenWrapper__factory as WrappedTokenFactory,
-} from '../../typechain/';
+} from '@webb-tools/contracts';
 
 import {
   hexToU8a,
@@ -20,7 +20,6 @@ import {
   getChainIdType,
   ZkComponents,
   u8aToHex,
-  getIdentityVAnchorExtDataHash,
   UTXOInputs,
 } from '@webb-tools/utils';
 import { BigNumber } from 'ethers';
