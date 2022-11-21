@@ -244,7 +244,7 @@ describe('SignatureBridgeSide use', () => {
     // Execute change fee proposal
     await TruffleAssert.reverts(
       bridgeSide.executeFeeProposalWithSig(fungibleToken, 10001),
-      'invalid fee percentage'
+      'FungibleTokenWrapper: Invalid fee percentage'
     );
   });
 
