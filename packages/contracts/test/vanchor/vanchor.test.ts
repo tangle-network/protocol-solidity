@@ -231,8 +231,8 @@ describe('VAnchor for 2 max edges', () => {
         'ProposalNonceTracker: Invalid nonce'
       );
       await TruffleAssert.reverts(
-        anchor.contract.setHandler(signers[1].address, 2),
-        'Nonce must not increment more than 1'
+        anchor.contract.setHandler(signers[1].address, 4),
+        'ProposalNonceTracker: Nonce must not increment more than 1'
       );
     });
 
@@ -243,8 +243,8 @@ describe('VAnchor for 2 max edges', () => {
         'ProposalNonceTracker: Invalid nonce'
       );
       await TruffleAssert.reverts(
-        anchor.contract.setVerifier(signers[1].address, 2),
-        'Nonce must not increment more than 1'
+        anchor.contract.setVerifier(signers[1].address, 4),
+        'ProposalNonceTracker: Nonce must not increment more than 1'
       );
     });
   });
