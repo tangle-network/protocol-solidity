@@ -5,6 +5,7 @@
 const assert = require('assert');
 const path = require('path');
 import { ethers } from 'hardhat';
+const hre = require('hardhat');
 const TruffleAssert = require('truffle-assertions');
 
 import { SignatureBridgeSide } from '@webb-tools/bridges';
@@ -64,6 +65,10 @@ describe('SignatureBridgeSide use', () => {
   });
 
   beforeEach(async () => {
+    await hre.network.provider.request({
+      method: 'hardhat_reset',
+      params: [],
+    });
     bridgeSide = await SignatureBridgeSide.createBridgeSide(admin);
   });
 
