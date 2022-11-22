@@ -1,5 +1,5 @@
 import { VBridge } from "@webb-tools/vbridge";
-import { GovernedTokenWrapper } from "@webb-tools/tokens";
+import { FungibleTokenWrapper } from "@webb-tools/tokens";
 import { fetchComponentsFromFilePaths } from "@webb-tools/utils";
 import { DeployerConfig } from "@webb-tools/interfaces";
 import path from "path";
@@ -31,7 +31,7 @@ async function deploySignatureVBridge(
 ): Promise<VBridge> {
   let assetRecord: Record<number, string[]> = {};
   let chainIdsArray: number[] = [];
-  let existingWebbTokens = new Map<number, GovernedTokenWrapper>();
+  let existingWebbTokens = new Map<number, FungibleTokenWrapper>();
   let governorConfig: Record<number, string> = {};
 
   for (const chainIdType of Object.keys(deployers)) {

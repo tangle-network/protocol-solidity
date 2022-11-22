@@ -6,7 +6,7 @@ import '@typechain/hardhat';
 import '@nomiclabs/hardhat-waffle';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-truffle5';
-import '@primitivefi/hardhat-dodoc';
+// import '@primitivefi/hardhat-dodoc';
 import { subtask } from 'hardhat/config';
 
 import poseidonContract from 'circomlibjs/src/poseidon_gencontract.js';
@@ -38,30 +38,10 @@ const config: HardhatUserConfig = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 300,
+            runs: 200,
           },
         },
       },
-    ],
-  },
-  // @ts-ignore
-  dodoc: {
-    include: [
-      'AnchorBase',
-      'LinkableAnchor',
-      'AnchorHandler',
-      'IAnchor',
-      'ILinkableAnchor',
-      'VAnchorEncodeInputs',
-      'GovernedTokenWrapper',
-      'TokenWrapperHandler',
-      'Hasher',
-      'MerkleTree',
-      'MerkleTreeWithHistory',
-      'PoseidonHasher',
-      'KeccakHasher',
-      'VAnchor',
-      'VAnchorBase',
     ],
   },
   mocha: {

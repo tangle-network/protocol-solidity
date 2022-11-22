@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Webb Technologies
+ * Copyright 2021-2022 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
@@ -10,27 +10,26 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "../utils/Initialized.sol";
+import "../utils/ProposalNonceTracker.sol";
 
 /**
-    @title A MultiTokenManager manages GovernedTokenWrapper systems using an external `governor` address
+    @title A MultiTokenManager manages FungibleTokenWrapper systems using an external `governor` address
     @author Webb Technologies.
  */
-contract NftTokenWrapper is ERC1155, ERC1155Receiver, IERC721Receiver {
+contract NftTokenWrapper is ERC1155, ERC1155Receiver, IERC721Receiver, Initialized, ProposalNonceTracker {
     using SafeMath for uint256;
-    address public governor;
+    address public handler;
 
-    uint256 public proposalNonce = 0;
-
-    constructor(string memory _uri) ERC1155(_uri) {
-        governor = msg.sender;
-    }
+    constructor(string memory _uri) ERC1155(_uri) {}
 
     /**
         @notice Initializes the contract
-        @param _governor The address of the governor
+        @param _handler The address of the token handler contract
      */
-    function initialize(address _governor) external onlyGovernor {
-        governor = _governor;
+    function initialize(address _handler) onlyUninitialized external {
+        initialized = true;
+        handler = _handler;
     }
 
     function wrap721(uint256 _tokenId, address _tokenContract) external {
@@ -207,22 +206,5 @@ contract NftTokenWrapper is ERC1155, ERC1155Receiver, IERC721Receiver {
     */
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC1155, ERC1155Receiver) returns (bool) {
         return interfaceId == type(IERC1155Receiver).interfaceId || super.supportsInterface(interfaceId);
-    }
-
-    /**
-        @notice Sets the governor of the MultiTokenManager contract
-        @param _governor The address of the new governor
-        @notice Only the governor can call this function
-     */
-    function setGovernor(address _governor) external onlyGovernor {
-        governor = _governor;
-    }
-
-    /**
-        @notice Modifier for enforcing that the caller is the governor
-     */
-    modifier onlyGovernor() {
-        require(msg.sender == governor, "Only governor can call this function");
-        _;
     }
 }

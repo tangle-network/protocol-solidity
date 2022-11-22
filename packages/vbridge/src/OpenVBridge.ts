@@ -2,7 +2,7 @@ import { ethers, BigNumber, BigNumberish } from 'ethers';
 import { SignatureBridgeSide } from '@webb-tools/bridges';
 import {
   MintableToken,
-  GovernedTokenWrapper,
+  FungibleTokenWrapper,
   TreasuryHandler,
   Treasury,
   TokenWrapperHandler,
@@ -32,15 +32,15 @@ export type VBridgeInput = {
   maxEdges?: number;
 
   // Existing webb tokens can be connected
-  webbTokens: Map<number, GovernedTokenWrapper | undefined>;
+  webbTokens: Map<number, FungibleTokenWrapper | undefined>;
 };
 
 export type BridgeConfig = {
   // The addresses of tokens available to be transferred over this bridge config
-  // chainId => GovernedTokenWrapperAddress
+  // chainId => FungibleTokenWrapperAddress
   webbTokenAddresses: Map<number, string | undefined>;
 
-  // The addresses of the anchors for the GovernedTokenWrapper
+  // The addresses of the anchors for the FungibleTokenWrapper
   // {anchorIdentifier} => anchorAddress
   vAnchors: Map<string, VAnchor>;
 
@@ -63,7 +63,7 @@ export class OpenVBridge {
     // Mapping of chainId => vBridgeSide
     public vBridgeSides: Map<number, SignatureBridgeSide>,
 
-    // chainID => GovernedTokenWrapper (webbToken) address
+    // chainID => FungibleTokenWrapper (webbToken) address
     public webbTokenAddresses: Map<number, string>,
 
     // Mapping of resourceID => linkedVAnchor[]; so we know which
@@ -173,11 +173,12 @@ export class OpenVBridge {
         vBridgeInstance.admin
       );
 
-      let tokenInstance: GovernedTokenWrapper;
+      let tokenInstance: FungibleTokenWrapper;
       if (!vBridgeInput.webbTokens.get(chainID)) {
-        tokenInstance = await GovernedTokenWrapper.createGovernedTokenWrapper(
+        tokenInstance = await FungibleTokenWrapper.createFungibleTokenWrapper(
           `webbWETH`,
           `webbWETH`,
+          0,
           treasury.contract.address,
           tokenWrapperHandler.contract.address,
           '10000000000000000000000000',
@@ -189,7 +190,7 @@ export class OpenVBridge {
       }
 
       await vBridgeInstance.setTokenWrapperHandler(tokenWrapperHandler);
-      await vBridgeInstance.setGovernedTokenResourceWithSignature(tokenInstance);
+      await vBridgeInstance.setFungibleTokenResourceWithSignature(tokenInstance);
 
       // Add all token addresses to the governed token instance.
       for (const tokenToBeWrapped of vBridgeInput.vAnchorInputs.asset[chainID]!) {

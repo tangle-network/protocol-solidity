@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Webb Technologies
+ * Copyright 2021-2022 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
@@ -20,9 +20,5 @@ contract Initialized {
     modifier onlyInitialized() {
         require(initialized, "Initialized: Not initialized");
         _;
-    }
-
-    function initialize() external onlyUninitialized {
-        initialized = true;
     }
 }

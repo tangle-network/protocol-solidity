@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Webb Technologies
+ * Copyright 2021-2022 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
  
@@ -15,11 +15,11 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 /**
     @title A token that allows ERC20s to wrap into and mint it.
     @author Webb Technologies.
-    @notice This contract is intended to be used with TokenHandler contract.
+    @notice This contract is intended to be used with TokenHandler/FungibleToken contract.
  */
 abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
     using SafeMath for uint256;
-    uint16 feePercentage;
+    uint16 public feePercentage;
     address payable public feeRecipient;
 
     /**
