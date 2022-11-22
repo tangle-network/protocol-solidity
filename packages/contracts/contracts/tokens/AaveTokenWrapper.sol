@@ -6,7 +6,7 @@
 pragma solidity ^0.8.0;
 
 import "../interfaces/tokens/IAaveTokenWrapper.sol";
-import "./GovernedTokenWrapper.sol";
+import "./FungibleTokenWrapper.sol";
 import "../interfaces/external/aave/IAaveLendingPool.sol";
 import "hardhat/console.sol";
 
@@ -14,7 +14,7 @@ import "hardhat/console.sol";
     @title An AaveTokenWrapper system that deposits/withdraws into Aave lending pools
     @author Webb Technologies.
  */
-contract AaveTokenWrapper is GovernedTokenWrapper, IAaveTokenWrapper {
+contract AaveTokenWrapper is FungibleTokenWrapper, IAaveTokenWrapper {
     using SafeMath for uint256;
     IAaveLendingPool public aaveLendingPool;
 
@@ -27,8 +27,7 @@ contract AaveTokenWrapper is GovernedTokenWrapper, IAaveTokenWrapper {
         string memory _name,
         string memory _symbol,
         address _aaveLendingPool
-    ) GovernedTokenWrapper(_name, _symbol) {
-        governor = msg.sender;
+    ) FungibleTokenWrapper(_name, _symbol) {
         aaveLendingPool = IAaveLendingPool(_aaveLendingPool);
     }
 
@@ -48,7 +47,6 @@ contract AaveTokenWrapper is GovernedTokenWrapper, IAaveTokenWrapper {
     ) public {
         require(!initialized, "Contract already initialized");
         feeRecipient = payable(_feeRecipient);
-        governor = _governor;
         wrappingLimit = _limit;
         isNativeAllowed = _isNativeAllowed;
         initialized = true;

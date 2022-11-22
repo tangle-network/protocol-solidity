@@ -45,9 +45,6 @@ describe('AaveTokenWrapper', () => {
     sender = wallet;
     const factory = new AaveTokenWrapper__factory(wallet);
 
-    token = await ERC20Class.createERC20(tokenName, tokenSymbol, wallet);
-    const dummyFeeRecipient = '0x0000000000010000000010000000000000000000';
-
     // Get contracts
     aaveLendingPool = await ethers.getContractAt('IAaveLendingPool', aaveLendingPoolAddress);
     usdc = await ethers.getContractAt('IERC20', USDCAddress);
@@ -74,7 +71,6 @@ describe('AaveTokenWrapper', () => {
     it('should initialize', async () => {
       assert.strictEqual(await aaveToken.name(), aaveTokenName);
       assert.strictEqual(await aaveToken.symbol(), aaveTokenSymbol);
-      assert.strictEqual(await aaveToken.governor(), sender.address);
       assert.strictEqual((await aaveToken.aaveLendingPool()).toString(), aaveLendingPoolAddress);
     });
 
