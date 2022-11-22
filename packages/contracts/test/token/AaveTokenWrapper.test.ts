@@ -40,6 +40,17 @@ describe('AaveTokenWrapper', () => {
   let aaveTokenSigner: SignerWithAddress;
 
   beforeEach(async () => {
+    await hre.network.provider.request({
+      method: 'hardhat_reset',
+      params: [
+        {
+          forking: {
+            jsonRpcUrl: 'https://mainnet.infura.io/v3/' + process.env.INFURA_API_KEY,
+            blockNumber: 16023470,
+          },
+        },
+      ],
+    });
     signers = await ethers.getSigners();
     const wallet = signers[0];
     sender = wallet;

@@ -43,10 +43,6 @@ describe('2-sided multichain tests for signature vbridge', () => {
   let zkComponents16_2: ZkComponents;
 
   before('setup networks', async () => {
-    await hre.network.provider.request({
-      method: 'hardhat_reset',
-      params: [],
-    });
     ganacheServer2 = await startGanacheServer(SECOND_CHAIN_ID, SECOND_CHAIN_ID, [
       {
         balance: '0x1000000000000000000000',

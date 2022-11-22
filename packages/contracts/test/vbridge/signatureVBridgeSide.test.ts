@@ -65,10 +65,6 @@ describe('SignatureBridgeSide use', () => {
   });
 
   beforeEach(async () => {
-    await hre.network.provider.request({
-      method: 'hardhat_reset',
-      params: [],
-    });
     bridgeSide = await SignatureBridgeSide.createBridgeSide(admin);
   });
 
