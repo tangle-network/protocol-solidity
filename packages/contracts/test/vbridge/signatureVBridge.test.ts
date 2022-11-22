@@ -5,6 +5,7 @@
 const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
 import { ethers } from 'hardhat';
+const hre = require('hardhat');
 
 import { VBridge, VBridgeInput } from '@webb-tools/vbridge';
 import { VAnchor } from '@webb-tools/anchors';

@@ -63,4 +63,6 @@ jobs:
         run: yarn build
 
       - name: Run test suite
+        env:
+          INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
         run: yarn test

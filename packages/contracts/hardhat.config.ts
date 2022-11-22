@@ -11,6 +11,8 @@ import { subtask } from 'hardhat/config';
 
 import poseidonContract from 'circomlibjs/src/poseidon_gencontract.js';
 
+require('dotenv').config({ path: __dirname + '/.env' });
+
 const buildPoseidon = async (numInputs: number) => {
   //@ts-ignore
   await overwriteArtifact(`PoseidonT${numInputs + 1}`, poseidonContract.createCode(numInputs));
@@ -28,6 +30,7 @@ const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',
   networks: {
     hardhat: {
+      allowUnlimitedContractSize: true,
       accounts: HARDHAT_ACCOUNTS,
     },
   },
