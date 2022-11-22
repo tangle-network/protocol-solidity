@@ -12,7 +12,7 @@ import { CircomUtxo } from '@webb-tools/sdk-core';
 import { DeployerConfig, GovernorConfig } from '@webb-tools/interfaces';
 import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
 import { OpenVBridge, VBridgeInput } from '@webb-tools/vbridge';
-import { MintableToken, GovernedTokenWrapper } from '@webb-tools/tokens';
+import { MintableToken, FungibleTokenWrapper } from '@webb-tools/tokens';
 
 function sha3Hash(left: BigNumberish, right: BigNumberish) {
   const packed = solidityPack(['bytes32', 'bytes32'], [toFixedHex(left), toFixedHex(right)]);
@@ -43,9 +43,10 @@ describe('Open VAnchor Contract', () => {
     const hasher = await hasherFactory.deploy();
     await hasher.deployed();
 
-    const webbToken = await GovernedTokenWrapper.createGovernedTokenWrapper(
+    const webbToken = await FungibleTokenWrapper.createFungibleTokenWrapper(
       'WEBB',
       'WEBB',
+      0,
       await sender.getAddress(),
       await sender.getAddress(),
       '1000000000000000',
@@ -66,10 +67,10 @@ describe('Open VAnchor Contract', () => {
     await tx.wait();
 
     await webbToken.grantMinterRole(openVAnchor.contract.address);
-    await openVAnchor.contract.configureMaximumDepositLimit(BigNumber.from(10_000_000_000), 0);
+    await openVAnchor.contract.configureMaximumDepositLimit(BigNumber.from(10_000_000_000), 1);
     await openVAnchor.contract.configureMinimalWithdrawalLimit(
       BigNumber.from(tokenDenomination).mul(1_000_000),
-      0
+      2
     );
   });
 
@@ -217,7 +218,7 @@ describe('Open VAnchor Contract - cross chain', () => {
     const depositAmount = 10000;
     const blinding = 1010101;
 
-    let webbTokens1 = new Map<number, GovernedTokenWrapper | undefined>();
+    let webbTokens1 = new Map<number, FungibleTokenWrapper | undefined>();
     webbTokens1.set(chainID1, null!);
     webbTokens1.set(chainID2, null!);
     bridge2WebbEthInput = {

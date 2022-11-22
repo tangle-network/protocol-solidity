@@ -8,10 +8,10 @@ pragma experimental ABIEncoderV2;
 
 import "./HandlerHelpers.sol";
 import "../interfaces/IExecutor.sol";
-import "../interfaces/tokens/IGovernedTokenWrapper.sol"; 
+import "../interfaces/tokens/IFungibleTokenWrapper.sol"; 
 
 /**
-    @title Handles GovernedTokenWrapper fee and token updates
+    @title Handles FungibleTokenWrapper fee and token updates
     @author Webb Technologies.
     @notice This contract is intended to be used with the Bridge and SignatureBridge contracts.
  */
@@ -43,7 +43,7 @@ contract TokenWrapperHandler is IExecutor, HandlerHelpers {
     /**
         @notice Proposal execution should be initiated when a proposal is finalized in the Bridge contract.
         by a relayer on the deposit's destination chain. Or when a valid signature is produced by the DKG in the case of SignatureBridge.
-        @param resourceID ResourceID corresponding to a particular set of GovernedTokenWrapper contracts
+        @param resourceID ResourceID corresponding to a particular set of FungibleTokenWrapper contracts
         @param data Consists of a specific proposal data structure for each finer-grained token wrapper proposal
      */
     function executeProposal(bytes32 resourceID, bytes calldata data) external override onlyBridge {
@@ -55,25 +55,25 @@ contract TokenWrapperHandler is IExecutor, HandlerHelpers {
         functionSig = bytes4(data[32:36]);
         arguments = data[36:];
     
-        address governedTokenAddress = _resourceIDToContractAddress[resourceID];
-        IGovernedTokenWrapper governedToken = IGovernedTokenWrapper(governedTokenAddress); 
+        address fungibleTokenAddress = _resourceIDToContractAddress[resourceID];
+        IFungibleTokenWrapper fungibleToken = IFungibleTokenWrapper(fungibleTokenAddress); 
         
         if (functionSig == bytes4(keccak256("setFee(uint16,uint32)"))) {  
             uint32 nonce = uint32(bytes4(arguments[0:4])); 
             uint16 newFee = uint16(bytes2(arguments[4:6]));
-            governedToken.setFee(newFee, nonce);
+            fungibleToken.setFee(newFee, nonce);
         } else if (functionSig == bytes4(keccak256("add(address,uint32)"))) {
             uint32 nonce = uint32(bytes4(arguments[0:4]));
             address tokenAddress = address(bytes20(arguments[4:24]));
-            governedToken.add(tokenAddress, nonce);
+            fungibleToken.add(tokenAddress, nonce);
         } else if (functionSig == bytes4(keccak256("remove(address,uint32)"))) {
             uint32 nonce = uint32(bytes4(arguments[0:4]));
             address tokenAddress = address(bytes20(arguments[4:24]));
-            governedToken.remove(tokenAddress, nonce);
+            fungibleToken.remove(tokenAddress, nonce);
         } else if (functionSig == bytes4(keccak256("setFeeRecipient(address,uint32)"))) {
             uint32 nonce = uint32(bytes4(arguments[0:4]));
             address payable feeRecipient = payable(address(bytes20(arguments[4:24])));
-            governedToken.setFeeRecipient(feeRecipient, nonce);
+            fungibleToken.setFeeRecipient(feeRecipient, nonce);
         } else {
             revert("Invalid function sig");
         }

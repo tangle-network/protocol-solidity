@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Webb Technologies
+ * Copyright 2021-2022 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
@@ -21,24 +21,34 @@ contract LinkableAnchorMock is LinkableAnchor, ISetVerifier{
         return;
     }
 
-    function setHandler(address _handler, uint32 _nonce) override external onlyHandler {
+    function setHandler(
+        address _handler,
+        uint32 _nonce
+    ) override external onlyHandler onlyIncrementingByOne(_nonce) {
         handler = _handler;
-        proposalNonce = _nonce;
         return;
     }
 
-    function setVerifier(address _verifier, uint32 _nonce) override external onlyHandler {
+    function setVerifier(
+        address _verifier,
+        uint32 _nonce
+    ) override external onlyHandler onlyIncrementingByOne(_nonce) {
         _verifier = _verifier;
-        proposalNonce = _nonce;
         return;
     }
 
-    function configureMinimalWithdrawalLimit(uint256 _minimalWithdrawalAmount, uint32 _nonce) view override external onlyHandler {
+    function configureMinimalWithdrawalLimit(
+        uint256 _minimalWithdrawalAmount,
+        uint32 _nonce
+    ) override external onlyHandler onlyIncrementingByOne(_nonce) {
         _minimalWithdrawalAmount + _minimalWithdrawalAmount;
         return;
     }
 
-    function configureMaximumDepositLimit(uint256 _maximumDepositAmount, uint32 _nonce) view override external onlyHandler {
+    function configureMaximumDepositLimit(
+        uint256 _maximumDepositAmount,
+        uint32 _nonce
+    ) override external onlyHandler onlyIncrementingByOne(_nonce) {
         _maximumDepositAmount + _maximumDepositAmount;
         return;
     }

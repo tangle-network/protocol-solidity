@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Webb Technologies
+ * Copyright 2021-2022 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
@@ -366,11 +366,11 @@ contract VAnchor is VAnchorBase, TxProofVerifier, ISetVerifier {
 		@param _verifier The new verifier address
 		@param _nonce The nonce for updating the new verifier
 	 */
-	function setVerifier(address _verifier, uint32 _nonce) override onlyHandler external {
+	function setVerifier(
+		address _verifier,
+		uint32 _nonce
+	) override onlyHandler onlyIncrementingByOne(_nonce) external {
 		require(_verifier != address(0), "Handler cannot be 0");
-		require(proposalNonce < _nonce, "Invalid nonce");
-		require(_nonce < proposalNonce + 1048, "Nonce must not increment more than 1048");
 		verifier = IAnchorVerifier(_verifier);
-		proposalNonce = _nonce;
 	}
 }

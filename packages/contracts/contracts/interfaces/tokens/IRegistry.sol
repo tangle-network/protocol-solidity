@@ -9,46 +9,56 @@ pragma solidity ^0.8.0;
     @title A MultiTokenManager manages FungibleTokenWrapper systems using an external `governor` address
     @author Webb Technologies.
  */
-interface IMultiTokenManager {
+interface IRegistry {
     /**
-        @notice Initialize the contract with the registry and fee recipient
-        @param _registry The address of the registry
-        @param _feeRecipient The address of the fee recipient
-     */
-    function initialize(
-        address _registry,
-        address _feeRecipient
-    ) external;
-
-    /**
-        @notice Registers a new token and deploys the FungibleTokenWrapperInitializable contract
+        @notice Registers a new token and deploys the FungibleTokenWrapper contract
+        @param _nonce The nonce of the proposal
         @param _handler The address of the token handler contract
+        @param _assetIdentifier The identifier of the asset for the MASP
         @param _name The name of the ERC20
         @param _symbol The symbol of the ERC20
         @param _salt Salt used for matching addresses across chain using CREATE2
-        @param _limit The maximum amount of tokens that can be wrapped
         @param _feePercentage The fee percentage for wrapping
+        @param _limit The maximum amount of tokens that can be wrapped
         @param _isNativeAllowed Whether or not native tokens are allowed to be wrapped
      */
     function registerToken(
+        uint32 _nonce,
         address _handler,
+        uint256 _assetIdentifier,
         string memory _name,
         string memory _symbol,
         bytes32 _salt,
         uint256 _limit,
         uint16 _feePercentage,
         bool _isNativeAllowed
-    ) external returns (address);
+    ) external;
 
     /**
         @notice Registers a new NFT token and deploys the NftTokenWrapper contract
+        @param _nonce The nonce of the proposal
         @param _handler The address of the token handler contract
-        @param _uri The uri for the wrapped ERC1155
+        @param _assetIdentifier The identifier of the asset for the MASP
+        @param _uri The uri for the wrapped NFT
         @param _salt Salt used for matching addresses across chain using CREATE2
      */
     function registerNftToken(
+        uint32 _nonce,
         address _handler,
+        uint256 _assetIdentifier,
         string memory _uri,
         bytes32 _salt
-    ) external returns (address);
+    ) external;
+
+    /**
+        @notice Fetches the address for an asset ID
+        @param _assetId The asset ID
+     */
+    function getAssetAddress(uint256 _assetId) external view returns (address);
+
+    /**
+        @notice Fetches the asset ID for an address
+        @param _address The address
+     */
+    function getAssetId(address _address) external view returns (uint256);
 }

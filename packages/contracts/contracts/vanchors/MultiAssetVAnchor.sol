@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Webb Technologies
+ * Copyright 2021-2022 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
@@ -9,6 +9,7 @@ import "../vanchors/VAnchorBase.sol";
 import "../structs/MultiAssetExtData.sol";
 import "../interfaces/tokens/ITokenWrapper.sol";
 import "../interfaces/tokens/IMintableERC20.sol";
+import "../interfaces/tokens/IRegistry.sol";
 import "../interfaces/verifiers/IAnchorVerifier.sol";
 import "../verifiers/TxProofVerifier.sol";
 import "../libs/VAnchorEncodeInputs.sol";
@@ -68,10 +69,7 @@ contract MultiAssetVAnchor is VAnchorBase, TxProofVerifier {
 	using SafeERC20 for IERC20;
 	using SafeMath for uint256;
 
-	// TODO: Maintain a map from bridge ERC20s to assetIDs
-	// TODO: Start assetIDs at 1, use 0 to indicate an invalid bridge ERC20 (non-existant)
-	mapping (address => uint256) public bridgeAssetIdMap;
-	mapping (uint256 => address) public assetIdToBridgeAssetMap;
+	address public registry;
 
 	/**
 		@notice The VAnchor constructor
@@ -102,7 +100,7 @@ contract MultiAssetVAnchor is VAnchorBase, TxProofVerifier {
 		@param _amount The amount of tokens to wrap
 	 */
 	function wrapToken(address _fromTokenAddress, address _toTokenAddress, uint256 _amount) public {
-		ITokenWrapper(_toTokenAddress).wrapFor(msg.sender, _toTokenAddress, _amount);
+		ITokenWrapper(_fromTokenAddress).wrapFor(msg.sender, _toTokenAddress, _amount);
 	}
 
 	/**
@@ -233,7 +231,7 @@ contract MultiAssetVAnchor is VAnchorBase, TxProofVerifier {
 		@param partialCommitment The partial commitment of the UTXO
 		@param encryptedCommitment The encrypted commitment of the partial UTXO
 	 */
-	function wrapAndDeposit(
+	function wrapAndDepositERC20(
 		address _fromTokenAddress,
 		address _toTokenAddress,
 		uint256 _amount,
@@ -260,7 +258,7 @@ contract MultiAssetVAnchor is VAnchorBase, TxProofVerifier {
 			);
 		}
 
-		uint256 assetID = bridgeAssetIdMap[_toTokenAddress];
+		uint256 assetID = IRegistry(registry).getAssetId(_toTokenAddress);
 		bytes32 commitment = bytes32(IHasher(hasher).hash3([
 			assetID,
 			wrapAmount,
@@ -283,7 +281,7 @@ contract MultiAssetVAnchor is VAnchorBase, TxProofVerifier {
 	function transact(VAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) public nonReentrant {
 		_executeValidationAndVerification(_args, _extData);
 
-		address wrappedToken = assetIdToBridgeAssetMap[_extData.assetId];
+		address wrappedToken = IRegistry(registry).getAssetAddress(_extData.assetId);
 		if (_extData.extAmount > 0) {
 			require(uint256(_extData.extAmount) <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
 			IMintableERC20(_extData.token).transferFrom(msg.sender, address(this), uint256(_extData.extAmount));
@@ -314,7 +312,7 @@ contract MultiAssetVAnchor is VAnchorBase, TxProofVerifier {
 	) public payable {
 		_executeValidationAndVerification(_args, _extData);
 
-		address wrappedToken = assetIdToBridgeAssetMap[_extData.assetId];
+		address wrappedToken = IRegistry(registry).getAssetAddress(_extData.assetId);
 		// Check if extAmount > 0, call wrapAndDeposit
 		if (_extData.extAmount > 0) {
 			//wrapAndDeposit

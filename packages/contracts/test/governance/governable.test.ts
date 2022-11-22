@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Webb Technologies
+ * Copyright 2021-2022 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 // @ts-nocheck
@@ -11,14 +11,14 @@ import EC from 'elliptic';
 const ec = new EC.ec('secp256k1');
 const TruffleAssert = require('truffle-assertions');
 
-// Convenience wrapper classes for contract classes
-import { Governable__factory } from '../../typechain';
+import { Governable, Governable__factory } from '../../typechain';
+import { ethers } from 'ethers';
 
 describe('Governable Contract', () => {
-  let governableInstance;
-  let sender;
-  let nextGovernor;
-  let arbSigner;
+  let governableInstance: Governable;
+  let sender: ethers.Signer;
+  let nextGovernor: ethers.Signer;
+  let arbSigner: ethers.Signer;
 
   beforeEach(async () => {
     const signers = await ethers.getSigners();

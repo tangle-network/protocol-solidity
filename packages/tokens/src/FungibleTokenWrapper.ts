@@ -2,12 +2,13 @@ import { ethers } from 'ethers';
 import { getChainIdType } from '@webb-tools/utils';
 import { toHex, generateFunctionSigHash } from '@webb-tools/sdk-core';
 import {
-  GovernedTokenWrapper as GovernedTokenWrapperContract,
-  GovernedTokenWrapper__factory,
+  FungibleTokenWrapper as FungibleTokenWrapperContract,
+  FungibleTokenWrapper__factory,
 } from '@webb-tools/contracts';
+import { assert } from 'chai';
 
-export class GovernedTokenWrapper {
-  contract: GovernedTokenWrapperContract;
+export class FungibleTokenWrapper {
+  contract: FungibleTokenWrapperContract;
   signer: ethers.Signer;
 
   ADD_TOKEN_SIGNATURE = 'add(address,uint32)';
@@ -15,33 +16,35 @@ export class GovernedTokenWrapper {
   SET_FEE_SIGNATURE = 'setFee(uint16,uint32)';
   FEE_RECIPIENT_SIGNATURE = 'setFeeRecipient(address,uint32)';
 
-  constructor(contract: GovernedTokenWrapperContract, signer: ethers.Signer) {
+  constructor(contract: FungibleTokenWrapperContract, signer: ethers.Signer) {
     this.contract = contract;
     this.signer = signer;
   }
 
-  public static async createGovernedTokenWrapper(
+  public static async createFungibleTokenWrapper(
     name: string,
     symbol: string,
+    feePercentage: number,
     feeRecipient: string,
-    governor: string,
+    handler: string,
     limit: string,
     isNativeAllowed: boolean,
     deployer: ethers.Signer
   ) {
-    const factory = new GovernedTokenWrapper__factory(deployer);
+    assert(feePercentage <= 10_000, 'feePercentage should be less than 10_000');
+    const factory = new FungibleTokenWrapper__factory(deployer);
     const contract = await factory.deploy(name, symbol);
     await contract.deployed();
     // Initialize immediately after deployment as we use an intializer now
-    await contract.initialize(feeRecipient, governor, limit, isNativeAllowed);
-    const createdGovernedTokenWrapper = new GovernedTokenWrapper(contract, deployer);
+    await contract.initialize(feePercentage, feeRecipient, handler, limit, isNativeAllowed);
+    const tokenWrapper = new FungibleTokenWrapper(contract, deployer);
 
-    return createdGovernedTokenWrapper;
+    return tokenWrapper;
   }
 
   public static connect(address: string, signer: ethers.Signer) {
-    const contract = GovernedTokenWrapper__factory.connect(address, signer);
-    const tokenWrapper = new GovernedTokenWrapper(contract, signer);
+    const contract = FungibleTokenWrapper__factory.connect(address, signer);
+    const tokenWrapper = new FungibleTokenWrapper(contract, signer);
     return tokenWrapper;
   }
 

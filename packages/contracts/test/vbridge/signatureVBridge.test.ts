@@ -1,15 +1,14 @@
 /**
- * Copyright 2021 Webb Technologies
+ * Copyright 2021-2022 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
 import { ethers } from 'hardhat';
 
-// Convenience wrapper classes for contract classes
 import { VBridge, VBridgeInput } from '@webb-tools/vbridge';
 import { VAnchor } from '@webb-tools/anchors';
-import { MintableToken, GovernedTokenWrapper } from '@webb-tools/tokens';
+import { MintableToken, FungibleTokenWrapper } from '@webb-tools/tokens';
 import { BigNumber } from 'ethers';
 import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { startGanacheServer } from '@webb-tools/test-utils';
@@ -102,7 +101,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
     });
 
     it('should create 2 side bridge with wallet (mocked) governor', async () => {
-      let webbTokens1 = new Map<number, GovernedTokenWrapper | undefined>();
+      let webbTokens1 = new Map<number, FungibleTokenWrapper | undefined>();
       webbTokens1.set(chainID1, null!);
       webbTokens1.set(chainID2, null!);
       bridge2WebbEthInput = {
@@ -174,7 +173,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
 
     it('should create properly initialize governor if passed address', async () => {
       let governorAddress = '0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF';
-      let webbTokens1 = new Map<number, GovernedTokenWrapper | undefined>();
+      let webbTokens1 = new Map<number, FungibleTokenWrapper | undefined>();
       webbTokens1.set(chainID1, null!);
       webbTokens1.set(chainID2, null!);
       bridge2WebbEthInput = {
@@ -228,7 +227,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
       await existingToken1.mintTokens(signers[1].address, '100000000000000000000000000');
       await existingToken2.mintTokens(ganacheWallet2.address, '100000000000000000000000000');
 
-      let webbTokens1 = new Map<number, GovernedTokenWrapper | undefined>();
+      let webbTokens1 = new Map<number, FungibleTokenWrapper | undefined>();
       webbTokens1.set(chainID1, null!);
       webbTokens1.set(chainID2, null!);
       // create the config for the bridge
@@ -651,7 +650,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
       await existingToken1.mintTokens(signers[1].address, '100000000000000000000000000');
       await existingToken2.mintTokens(ganacheWallet2.address, '100000000000000000000000000');
 
-      let webbTokens1 = new Map<number, GovernedTokenWrapper | undefined>();
+      let webbTokens1 = new Map<number, FungibleTokenWrapper | undefined>();
       webbTokens1.set(chainID1, null!);
       webbTokens1.set(chainID2, null!);
       // create the config for the bridge
@@ -1105,7 +1104,7 @@ describe('8-sided multichain tests for signature vbridge', () => {
       await existingToken2.mintTokens(ganacheWallet2.address, '100000000000000000000000000');
       await existingToken3.mintTokens(ganacheWallet3.address, '100000000000000000000000000');
 
-      let webbTokens = new Map<number, GovernedTokenWrapper | undefined>();
+      let webbTokens = new Map<number, FungibleTokenWrapper | undefined>();
       webbTokens.set(chainID1, null);
       webbTokens.set(chainID2, null);
       webbTokens.set(chainID3, null);
