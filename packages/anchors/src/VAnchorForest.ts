@@ -3,8 +3,10 @@ import {
   VAnchorForest as VAnchorForestContract,
   VAnchorForest__factory,
   VAnchorEncodeInputs__factory,
+  LinkableIncrementalBinaryTree__factory,
   TokenWrapper__factory,
 } from '@webb-tools/contracts';
+import { poseidon, poseidon_gencontract as poseidonContract } from "circomlibjs";
 import {
   toHex,
   Keypair,
@@ -48,9 +50,10 @@ export var proofTimeBenchmark = [];
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
-export class VAnchorForest implements IAnchor {
+export class VAnchorForest {
   signer: ethers.Signer;
   contract: VAnchorForestContract;
+  forest: MerkleTree;
   tree: MerkleTree;
   // hex string of the connected root
   maxEdges: number;
@@ -67,6 +70,7 @@ export class VAnchorForest implements IAnchor {
   constructor(
     contract: VAnchorForestContract,
     signer: ethers.Signer,
+    forestHeight: number,
     treeHeight: number,
     maxEdges: number,
     smallCircuitZkComponents: ZkComponents,
@@ -74,6 +78,7 @@ export class VAnchorForest implements IAnchor {
   ) {
     this.signer = signer;
     this.contract = contract;
+    this.forest = new MerkleTree(forestHeight);
     this.tree = new MerkleTree(treeHeight);
     this.latestSyncedBlock = 0;
     this.maxEdges = maxEdges;
@@ -88,7 +93,8 @@ export class VAnchorForest implements IAnchor {
 
   public static async createVAnchor(
     verifier: string,
-    levels: BigNumberish,
+    forestLevels: BigNumberish,
+    subtreeLevels: BigNumberish,
     hasher: string,
     handler: string,
     token: string,
@@ -100,14 +106,41 @@ export class VAnchorForest implements IAnchor {
     const encodeLibraryFactory = new VAnchorEncodeInputs__factory(signer);
     const encodeLibrary = await encodeLibraryFactory.deploy();
     await encodeLibrary.deployed();
-    const factory = new VAnchorForest__factory(signer);
-    const forestLevels = 5;
-    const vAnchor = await factory.deploy(verifier, forestLevels, levels, hasher, handler, token, maxEdges, {});
+    const poseidonABI = poseidonContract.generateABI(2);
+    const poseidonBytecode = poseidonContract.createCode(2);
+
+    const PoseidonLibFactory = new ethers.ContractFactory(
+      poseidonABI,
+      poseidonBytecode,
+      signer
+    );
+    const poseidonLib = await PoseidonLibFactory.deploy();
+    await poseidonLib.deployed();
+
+    const LinkableIncrementalBinaryTree = new LinkableIncrementalBinaryTree__factory(
+      {
+        ['contracts/hashers/Poseidon.sol:PoseidonT3']: poseidonLib.address,
+      },
+      signer
+    );
+    const linkableIncrementalBinaryTree =
+      await LinkableIncrementalBinaryTree.deploy();
+    await linkableIncrementalBinaryTree.deployed();
+    const factory = new VAnchorForest__factory(
+      {
+        ["contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs"]: encodeLibrary.address,
+        ['contracts/hashers/Poseidon.sol:PoseidonT3']: poseidonLib.address,
+        ['contracts/trees/LinkableIncrementalBinaryTree.sol:LinkableIncrementalBinaryTree']: linkableIncrementalBinaryTree.address,
+      },
+      signer
+    );
+    const vAnchor = await factory.deploy(verifier, forestLevels, subtreeLevels, hasher, handler, token, maxEdges, {});
     await vAnchor.deployed();
     const createdVAnchor = new VAnchorForest(
       vAnchor,
       signer,
-      BigNumber.from(levels).toNumber(),
+      BigNumber.from(forestLevels).toNumber(),
+      BigNumber.from(subtreeLevels).toNumber(),
       maxEdges,
       smallCircuitZkComponents,
       largeCircuitZkComponents
@@ -127,11 +160,13 @@ export class VAnchorForest implements IAnchor {
   ) {
     const anchor = VAnchorForest__factory.connect(address, signer);
     const maxEdges = await anchor.maxEdges();
-    const treeHeight = await anchor.levels();
+    const forestHeight = await anchor.forestLevels();
+    const subtreeHeight = await anchor.subtreeLevels();
     const createdAnchor = new VAnchorForest(
       anchor,
       signer,
-      treeHeight,
+      forestHeight.toNumber(),
+      subtreeHeight.toNumber(),
       maxEdges,
       smallCircuitZkComponents,
       largeCircuitZkComponents
@@ -328,7 +363,7 @@ export class VAnchorForest implements IAnchor {
       return rootData.root;
     });
     let thisRoot = await this.contract.getLastRoot();
-    return [thisRoot, ...neighborRootInfos];
+    return [thisRoot.toString(), ...neighborRootInfos.map((bignum) => bignum.toString())];
   }
 
   public async getClassAndContractRoots() {

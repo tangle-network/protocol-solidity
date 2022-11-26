@@ -57,11 +57,14 @@ contract VAnchorForest is VAnchorForestBase, TxProofVerifier, ISetVerifier {
 	using SafeERC20 for IERC20;
 	using SafeMath for uint256;
 	address public immutable token;
+	uint public immutable forestLevels;
+	uint public immutable subtreeLevels;
 
 	/**
 		@notice The VAnchor constructor
 		@param _verifier The address of SNARK verifier for this contract
-		@param _levels The height/# of levels of underlying Merkle Tree
+		@param _forestLevels The height/# of levels of underlying Merkle Forest
+		@param _subtreeLevels The height/# of levels of underlying Merkle Tree
 		@param _hasher The address of hash contract
 		@param _handler The address of AnchorHandler for this contract
 		@param _token The address of the token that is used to pay the deposit
@@ -73,16 +76,18 @@ contract VAnchorForest is VAnchorForestBase, TxProofVerifier, ISetVerifier {
 	constructor(
 		IAnchorVerifier _verifier,
 		uint32 _forestLevels,
-		uint32 _levels,
+		uint32 _subtreeLevels,
 		IHasher _hasher,
 		address _handler,
 		address _token,
 		uint8 _maxEdges
 	)
-		VAnchorForestBase (_forestLevels, _levels, _hasher, _handler, _maxEdges)
+		VAnchorForestBase (_forestLevels, _subtreeLevels, _hasher, _handler, _maxEdges)
 		TxProofVerifier(_verifier)
 	{
 		token = _token;
+        forestLevels = _forestLevels;
+        subtreeLevels = _subtreeLevels;
 	}
 
 	/**
@@ -181,14 +186,14 @@ contract VAnchorForest is VAnchorForestBase, TxProofVerifier, ISetVerifier {
 		@param _proofArgs The zkSNARK proof parameters
 		@param _extData The external data for the transaction
 	 */
-	// function registerAndTransact(
-	// 	Account memory _account,
-	// 	VAnchorEncodeInputs.Proof memory _proofArgs,
-	// 	ExtData memory _extData
-	// ) public {
-	// 	register(_account);
-	// 	transact(_proofArgs, _extData);
-	// }
+	function registerAndTransact(
+		Account memory _account,
+		VAnchorEncodeInputs.Proof memory _proofArgs,
+		ExtData memory _extData
+	) public {
+		register(_account);
+		transact(_proofArgs, _extData);
+	}
 
 	/**
 		@notice Registers and transacts and wraps in a single flow
@@ -197,40 +202,40 @@ contract VAnchorForest is VAnchorForestBase, TxProofVerifier, ISetVerifier {
 		@param _extData The external data for the transaction
 		@param _tokenAddress The token to wrap from
 	 */
-	// function registerAndTransactWrap(
-	// 	Account memory _account,
-	// 	VAnchorEncodeInputs.Proof memory _proofArgs,
-	// 	ExtData memory _extData,
-	// 	address _tokenAddress
-	// ) public {
-	// 	register(_account);
-	// 	transactWrap(_proofArgs, _extData, _tokenAddress);
-	// }
+	function registerAndTransactWrap(
+		Account memory _account,
+		VAnchorEncodeInputs.Proof memory _proofArgs,
+		ExtData memory _extData,
+		address _tokenAddress
+	) public {
+		register(_account);
+		transactWrap(_proofArgs, _extData, _tokenAddress);
+	}
 
 	/**
 		@notice Executes a deposit/withdrawal or combination join/split transaction
 		@param _args The zkSNARK proof parameters
 		@param _extData The external data for the transaction
 	 */
-	// function transact(VAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) public nonReentrant {
-	// 	_executeValidationAndVerification(_args, _extData);
-	//
-	// 	if (_extData.extAmount > 0) {
-	// 		require(uint256(_extData.extAmount) <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
-	// 		IMintableERC20(token).transferFrom(msg.sender, address(this), uint256(_extData.extAmount));
-	// 	}
-	//
-	// 	if (_extData.extAmount < 0) {
-	// 		require(_extData.recipient != address(0), "Can't withdraw to zero address");
-	// 		require(uint256(-_extData.extAmount) >= minimalWithdrawalAmount, "amount is less than minimalWithdrawalAmount"); // prevents ddos attack to Bridge
-	// 		_processWithdraw(token, _extData.recipient, uint256(-_extData.extAmount));
-	// 	}
-	// 	if (_extData.fee > 0) {
-	// 		_processFee(token, _extData.relayer, _extData.fee);
-	// 	}
-	//
-	// 	_executeInsertions(_args, _extData);
-	// }
+	function transact(VAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) public nonReentrant {
+		_executeValidationAndVerification(_args, _extData);
+
+		if (_extData.extAmount > 0) {
+			require(uint256(_extData.extAmount) <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
+			IMintableERC20(token).transferFrom(msg.sender, address(this), uint256(_extData.extAmount));
+		}
+
+		if (_extData.extAmount < 0) {
+			require(_extData.recipient != address(0), "Can't withdraw to zero address");
+			require(uint256(-_extData.extAmount) >= minimalWithdrawalAmount, "amount is less than minimalWithdrawalAmount"); // prevents ddos attack to Bridge
+			_processWithdraw(token, _extData.recipient, uint256(-_extData.extAmount));
+		}
+		if (_extData.fee > 0) {
+			_processFee(token, _extData.relayer, _extData.fee);
+		}
+
+		_executeInsertions(_args, _extData);
+	}
 
 	/**
 		@notice Executes a deposit/withdrawal or combination join/split transaction including wrapping or unwrapping
@@ -238,31 +243,31 @@ contract VAnchorForest is VAnchorForestBase, TxProofVerifier, ISetVerifier {
 		@param _extData The external data for the transaction
 		@param _tokenAddress The token to wrap from or unwrap into depending on the positivity of `_extData.extAmount`
 	 */
-	// function transactWrap(
-	// 	VAnchorEncodeInputs.Proof memory _args,
-	// 	ExtData memory _extData,
-	// 	address _tokenAddress
-	// ) public payable {
-	// 	_executeValidationAndVerification(_args, _extData);
-	//
-	// 	// Check if extAmount > 0, call wrapAndDeposit
-	// 	if (_extData.extAmount > 0) {
-	// 		//wrapAndDeposit
-	// 		require(uint256(_extData.extAmount) <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
-	// 		_executeWrapping(_tokenAddress, uint256(_extData.extAmount));
-	// 	} else if (_extData.extAmount < 0) {
-	// 		// Otherwise, check if extAmount < 0, call withdrawAndUnwrap
-	// 		require(_extData.recipient != address(0), "Can't withdraw to zero address");
-	// 		require(uint256(-_extData.extAmount) >= minimalWithdrawalAmount, "amount is less than minimalWithdrawalAmount");
-	// 		withdrawAndUnwrap(_tokenAddress, _extData.recipient, uint256(-_extData.extAmount));
-	// 	}
-	//
-	// 	if (_extData.fee > 0) {
-	// 		_processFee(token, _extData.relayer, _extData.fee);
-	// 	}
-	//
-	// 	_executeInsertions(_args, _extData);
-	// }
+	function transactWrap(
+		VAnchorEncodeInputs.Proof memory _args,
+		ExtData memory _extData,
+		address _tokenAddress
+	) public payable {
+		_executeValidationAndVerification(_args, _extData);
+
+		// Check if extAmount > 0, call wrapAndDeposit
+		if (_extData.extAmount > 0) {
+			//wrapAndDeposit
+			require(uint256(_extData.extAmount) <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
+			_executeWrapping(_tokenAddress, uint256(_extData.extAmount));
+		} else if (_extData.extAmount < 0) {
+			// Otherwise, check if extAmount < 0, call withdrawAndUnwrap
+			require(_extData.recipient != address(0), "Can't withdraw to zero address");
+			require(uint256(-_extData.extAmount) >= minimalWithdrawalAmount, "amount is less than minimalWithdrawalAmount");
+			withdrawAndUnwrap(_tokenAddress, _extData.recipient, uint256(-_extData.extAmount));
+		}
+
+		if (_extData.fee > 0) {
+			_processFee(token, _extData.relayer, _extData.fee);
+		}
+
+		_executeInsertions(_args, _extData);
+	}
 
 	/**
 		@notice Checks whether the transaction is valid
@@ -272,19 +277,19 @@ contract VAnchorForest is VAnchorForestBase, TxProofVerifier, ISetVerifier {
 		@param _args The zkSNARK proof parameters
 		@param _extData The external data for the transaction
 	 */
-	// function _executeValidationAndVerification(VAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) internal {
-	// 	for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
-	// 		require(!isSpent(_args.inputNullifiers[i]), "Input is already spent");
-	// 	}
-	// 	require(uint256(_args.extDataHash) == uint256(keccak256(abi.encode(_extData))) % FIELD_SIZE, "Incorrect external data hash");
-	// 	require(_args.publicAmount == calculatePublicAmount(_extData.extAmount, _extData.fee), "Invalid public amount");
-	// 	_executeVerification(_args);
-	//
-	// 	for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
-	// 		// sets the nullifier for the input UTXO to spent
-	// 		nullifierHashes[_args.inputNullifiers[i]] = true;
-	// 	}
-	// }
+	function _executeValidationAndVerification(VAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) internal {
+		for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
+			require(!isSpent(_args.inputNullifiers[i]), "Input is already spent");
+		}
+		require(uint256(_args.extDataHash) == uint256(keccak256(abi.encode(_extData))) % FIELD_SIZE, "Incorrect external data hash");
+		require(_args.publicAmount == calculatePublicAmount(_extData.extAmount, _extData.fee), "Invalid public amount");
+		_executeVerification(_args);
+
+		for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
+			// sets the nullifier for the input UTXO to spent
+			nullifierHashes[_args.inputNullifiers[i]] = true;
+		}
+	}
 
 	/**
 		@notice Checks whether the zkSNARK proof is valid
@@ -307,14 +312,15 @@ contract VAnchorForest is VAnchorForestBase, TxProofVerifier, ISetVerifier {
 		@param _args The zkSNARK proof parameters
 		@param _extData The external data for the transaction
 	 */
-	// function _executeInsertions(VAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) internal {
-	// 	insertTwo(_args.outputCommitments[0], _args.outputCommitments[1]);
-	// 	emit NewCommitment(_args.outputCommitments[0], nextIndex - 2, _extData.encryptedOutput1);
-	// 	emit NewCommitment(_args.outputCommitments[1], nextIndex - 1, _extData.encryptedOutput2);
-	// 	for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
-	// 		emit NewNullifier(_args.inputNullifiers[i]);
-	// 	}
-	// }
+	function _executeInsertions(VAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) internal {
+		insertTwo(_args.outputCommitments[0], _args.outputCommitments[1]);
+        // TODO: need to add subtreeId to event
+		emit NewCommitment(_args.outputCommitments[0], numSubtreeElements - 2, _extData.encryptedOutput1);
+		emit NewCommitment(_args.outputCommitments[1], numSubtreeElements - 1, _extData.encryptedOutput2);
+		for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
+			emit NewNullifier(_args.inputNullifiers[i]);
+		}
+	}
 
 	/**
 		@notice Process the withdrawal by sending/minting the wrapped tokens to/for the recipient

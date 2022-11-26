@@ -50,7 +50,8 @@ const { toBN } = require('web3-utils');
 describe.only('VAnchorForest for 2 max edges', () => {
   let anchor: VAnchorForest;
 
-  const levels = 30;
+  const subtreeLevels = 30;
+  const forestLevels = 5;
   let fee = BigInt(new BN(`100000000000000000`).toString());
   let recipient = '0x1111111111111111111111111111111111111111';
   let verifier: Verifier;
@@ -132,7 +133,8 @@ describe.only('VAnchorForest for 2 max edges', () => {
     // create Anchor
     anchor = await VAnchorForest.createVAnchor(
       verifier.contract.address,
-      levels,
+      forestLevels,
+      subtreeLevels,
       hasherInstance.contract.address,
       sender.address,
       token.address,
