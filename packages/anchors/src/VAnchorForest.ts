@@ -7,6 +7,7 @@ import {
   TokenWrapper__factory,
 } from '@webb-tools/contracts';
 import { poseidon, poseidon_gencontract as poseidonContract } from "circomlibjs";
+import { groth16 } from "snarkjs";
 import {
   toHex,
   Keypair,
@@ -18,8 +19,10 @@ import {
   max,
   min,
   randomBN,
+  getVAnchorExtDataHash,
   CircomProvingManager,
   ProvingManagerSetupInput,
+  generateVariableWitnessInput,
   Note,
   NoteGenInput,
   MerkleProof,
@@ -33,7 +36,7 @@ import {
   IVariableAnchorExtData,
   IVariableAnchorPublicInputs,
 } from '@webb-tools/interfaces';
-import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
+import { hexToU8a, UTXOInputs, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { solidityPack } from 'ethers/lib/utils';
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
@@ -43,6 +46,16 @@ function checkNativeAddress(tokenAddress: string): boolean {
   }
   return false;
 }
+export type ExtData = {
+  recipient: string;
+  extAmount: string;
+  relayer: string;
+  fee: string;
+  refund: string;
+  token: string;
+  encryptedOutput1: string;
+  encryptedOutput2: string;
+};
 
 export var gasBenchmark = [];
 export var proofTimeBenchmark = [];
@@ -481,6 +494,63 @@ export class VAnchorForest {
       minTime,
     };
   }
+  public async generateUTXOInputs(
+    inputs: Utxo[],
+    outputs: Utxo[],
+    chainId: number,
+    extAmount: BigNumber,
+    fee: BigNumber,
+    extDataHash: BigNumber
+  ): Promise<UTXOInputs> {
+    const vanchorRoots = await this.populateRootsForProof();
+    const vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x));
+
+    const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
+      vanchorRoots.map((root) => BigNumber.from(root)),
+      chainId,
+      inputs,
+      outputs,
+      extAmount,
+      fee,
+      BigNumber.from(extDataHash),
+      vanchorMerkleProof
+    );
+
+    return vanchorInput;
+  }
+
+  public async generateExtData(
+    recipient: string,
+    extAmount: BigNumber,
+    relayer: string,
+    fee: BigNumber,
+    refund: BigNumber,
+    encryptedOutput1: string,
+    encryptedOutput2: string
+  ): Promise<{ extData: ExtData; extDataHash: BigNumber }> {
+    const extData = {
+      recipient: toFixedHex(recipient, 20),
+      extAmount: toFixedHex(extAmount),
+      relayer: toFixedHex(relayer, 20),
+      fee: toFixedHex(fee),
+      refund: toFixedHex(refund.toString()),
+      token: toFixedHex(this.token, 20),
+      encryptedOutput1,
+      encryptedOutput2,
+    };
+
+    const extDataHash = await getVAnchorExtDataHash(
+      encryptedOutput1,
+      encryptedOutput2,
+      extAmount.toString(),
+      BigNumber.from(fee).toString(),
+      recipient,
+      relayer,
+      refund.toString(),
+      this.token
+    );
+    return { extData, extDataHash };
+  }
 
   /**
    *
@@ -520,39 +590,41 @@ export class VAnchorForest {
       hexToU8a(outputs[0].encrypt()),
       hexToU8a(outputs[1].encrypt()),
     ];
+    const { extData, extDataHash } = await this.generateExtData(
+      recipient,
+      BigNumber.from(extAmount),
+      relayer,
+      BigNumber.from(fee),
+      BigNumber.from(refund),
+      outputs[0].encrypt(),
+      outputs[1].encrypt()
+    );
 
-    const proofInput: ProvingManagerSetupInput<'vanchor'> = {
-      inputUtxos: inputs,
-      leavesMap,
-      leafIds,
-      roots: roots.map((root) => hexToU8a(root)),
-      chainId: chainId.toString(),
-      output: outputs,
-      encryptedCommitments,
-      publicAmount: BigNumber.from(extAmount).sub(fee).add(FIELD_SIZE).mod(FIELD_SIZE).toString(),
-      provingKey:
-        inputs.length > 2 ? this.largeCircuitZkComponents.zkey : this.smallCircuitZkComponents.zkey,
-      relayer: hexToU8a(relayer),
-      recipient: hexToU8a(recipient),
-      extAmount: toFixedHex(BigNumber.from(extAmount)),
-      fee: BigNumber.from(fee).toString(),
-      refund: BigNumber.from(refund).toString(),
-      token: hexToU8a(token),
-    };
+    const proofInput: UTXOInputs = await this.generateUTXOInputs(
+      inputs,
+      outputs,
+      chainId,
+      BigNumber.from(extAmount),
+      BigNumber.from(fee),
+      extDataHash
+    );
 
-    inputs.length > 2
-      ? (this.provingManager = new CircomProvingManager(
-        this.largeCircuitZkComponents.wasm,
-        this.tree.levels,
-        null
-      ))
-      : (this.provingManager = new CircomProvingManager(
-        this.smallCircuitZkComponents.wasm,
-        this.tree.levels,
-        null
-      ));
+    let wasmFile;
+    let zkeyFile;
+    if (inputs.length > 2) {
+      wasmFile = this.largeCircuitZkComponents.wasm
+      zkeyFile = this.largeCircuitZkComponents.zkey
+    } else {
+      wasmFile = this.smallCircuitZkComponents.wasm
+      zkeyFile = this.smallCircuitZkComponents.zkey
+    }
+    let proof = await groth16.fullProve(
+      proofInput,
+      wasmFile,
+      zkeyFile
+    );
 
-    const proof = await this.provingManager.prove('vanchor', proofInput);
+    // const proof = await this.provingManager.prove('vanchor', proofInput);
 
     const publicInputs: IVariableAnchorPublicInputs = this.generatePublicInputs(
       proof.proof,
@@ -563,16 +635,16 @@ export class VAnchorForest {
       u8aToHex(proof.extDataHash)
     );
 
-    const extData: IVariableAnchorExtData = {
-      recipient: toFixedHex(proofInput.recipient, 20),
-      extAmount: toFixedHex(proofInput.extAmount),
-      relayer: toFixedHex(proofInput.relayer, 20),
-      fee: toFixedHex(proofInput.fee),
-      refund: toFixedHex(proofInput.refund),
-      token: toFixedHex(proofInput.token, 20),
-      encryptedOutput1: u8aToHex(proofInput.encryptedCommitments[0]),
-      encryptedOutput2: u8aToHex(proofInput.encryptedCommitments[1]),
-    };
+    // const extData: IVariableAnchorExtData = {
+    //   recipient: toFixedHex(proofInput.recipient, 20),
+    //   extAmount: toFixedHex(proofInput.extAmount),
+    //   relayer: toFixedHex(proofInput.relayer, 20),
+    //   fee: toFixedHex(proofInput.fee),
+    //   refund: toFixedHex(proofInput.refund),
+    //   token: toFixedHex(proofInput.token, 20),
+    //   encryptedOutput1: u8aToHex(proofInput.encryptedCommitments[0]),
+    //   encryptedOutput2: u8aToHex(proofInput.encryptedCommitments[1]),
+    // };
 
     return {
       extData,
