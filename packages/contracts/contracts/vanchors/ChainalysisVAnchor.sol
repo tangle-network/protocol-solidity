@@ -130,7 +130,7 @@ contract ChainalysisVAnchor is VAnchorBase, TxProofVerifier, SanctionFilter, ISe
 		address _tokenAddress,
 		address _recipient,
 		uint256 _minusExtAmount
-	) public payable nonReentrant isNotSanctioned(msg.sender) {
+	) public payable nonReentrant isNotSanctioned(msg.sender) isNotSanctioned(_recipient) {
 		// We first withdraw the assets and send them to `this` contract address.
 		// This ensure that when we unwrap the assets, `this` contract has the
 		// assets to unwrap into.
@@ -153,7 +153,7 @@ contract ChainalysisVAnchor is VAnchorBase, TxProofVerifier, SanctionFilter, ISe
 		Account memory _account,
 		VAnchorEncodeInputs.Proof memory _proofArgs,
 		ExtData memory _extData
-	) public isNotSanctioned(msg.sender) {
+	) public isNotSanctioned(msg.sender) isNotSanctioned(_extData.recipient) {
 		register(_account);
 		transact(_proofArgs, _extData);
 	}
@@ -170,7 +170,7 @@ contract ChainalysisVAnchor is VAnchorBase, TxProofVerifier, SanctionFilter, ISe
 		VAnchorEncodeInputs.Proof memory _proofArgs,
 		ExtData memory _extData,
 		address _tokenAddress
-	) public isNotSanctioned(msg.sender) {
+	) public isNotSanctioned(msg.sender) isNotSanctioned(_extData.recipient) {
 		register(_account);
 		transactWrap(_proofArgs, _extData, _tokenAddress);
 	}
@@ -180,7 +180,10 @@ contract ChainalysisVAnchor is VAnchorBase, TxProofVerifier, SanctionFilter, ISe
 		@param _args The zkSNARK proof parameters
 		@param _extData The external data for the transaction
 	 */
-	function transact(VAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) public nonReentrant isNotSanctioned(msg.sender) {
+	function transact(
+		VAnchorEncodeInputs.Proof memory _args,
+		ExtData memory _extData
+	) public nonReentrant isNotSanctioned(msg.sender) isNotSanctioned(_extData.recipient) {
 		_executeValidationAndVerification(_args, _extData);
 
 		if (_extData.extAmount > 0) {
@@ -210,7 +213,7 @@ contract ChainalysisVAnchor is VAnchorBase, TxProofVerifier, SanctionFilter, ISe
 		VAnchorEncodeInputs.Proof memory _args,
 		ExtData memory _extData,
 		address _tokenAddress
-	) public payable isNotSanctioned(msg.sender) {
+	) public payable isNotSanctioned(msg.sender) isNotSanctioned(_extData.recipient) {
 		_executeValidationAndVerification(_args, _extData);
 
 		// Check if extAmount > 0, call wrapAndDeposit
