@@ -64,15 +64,17 @@ describe('Registry', () => {
       const tokenHandler = sender.address;
       const assetIdentifier = 1;
       const feePercentage = 0;
-      expect(multiFungibleTokenMgr.contract.registerToken(
-        tokenHandler,
-        wrappedTokenName,
-        wrappedTokenSymbol,
-        salt,
-        limit,
-        feePercentage,
-        true
-      )).to.be.revertedWith('MultiTokenManagerBase: Only registry can call this function');
+      expect(
+        multiFungibleTokenMgr.contract.registerToken(
+          tokenHandler,
+          wrappedTokenName,
+          wrappedTokenSymbol,
+          salt,
+          limit,
+          feePercentage,
+          true
+        )
+      ).to.be.revertedWith('MultiTokenManagerBase: Only registry can call this function');
     });
 
     it('should register a fungible token through the registry', async () => {
@@ -129,17 +131,19 @@ describe('Registry', () => {
         true
       );
 
-      expect(registry.registerToken(
-        nonce,
-        tokenHandler,
-        assetIdentifier,
-        wrappedTokenName,
-        wrappedTokenSymbol,
-        salt,
-        limit,
-        feePercentage,
-        true
-      )).to.be.revertedWith('Registry: Asset already registered');
+      expect(
+        registry.registerToken(
+          nonce,
+          tokenHandler,
+          assetIdentifier,
+          wrappedTokenName,
+          wrappedTokenSymbol,
+          salt,
+          limit,
+          feePercentage,
+          true
+        )
+      ).to.be.revertedWith('Registry: Asset already registered');
     });
 
     it('should fail to register an asset with an assetIdentifier of 0', async () => {
@@ -149,17 +153,19 @@ describe('Registry', () => {
       const tokenHandler = sender.address;
       const assetIdentifier = 0;
       const feePercentage = 0;
-      expect(registry.registerToken(
-        nonce,
-        tokenHandler,
-        assetIdentifier,
-        wrappedTokenName,
-        wrappedTokenSymbol,
-        salt,
-        limit,
-        feePercentage,
-        true
-      )).to.be.revertedWith('Registry: Asset identifier cannot be 0');
+      expect(
+        registry.registerToken(
+          nonce,
+          tokenHandler,
+          assetIdentifier,
+          wrappedTokenName,
+          wrappedTokenSymbol,
+          salt,
+          limit,
+          feePercentage,
+          true
+        )
+      ).to.be.revertedWith('Registry: Asset identifier cannot be 0');
     });
 
     it('should register a non fungible token through the registry', async () => {
@@ -167,13 +173,7 @@ describe('Registry', () => {
       const nonce = 1;
       const tokenHandler = sender.address;
       const assetIdentifier = 2;
-      await registry.registerNftToken(
-        nonce,
-        tokenHandler,
-        assetIdentifier,
-        wrappedTokenURI,
-        salt,
-      );
+      await registry.registerNftToken(nonce, tokenHandler, assetIdentifier, wrappedTokenURI, salt);
 
       const wrappedTokenAddress = await multiNftTokenMgr.contract.wrappedTokens(0);
       assert.strictEqual(

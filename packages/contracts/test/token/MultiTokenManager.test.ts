@@ -25,10 +25,7 @@ describe('MultiFungibleTokenManager', () => {
     token = await ERC20Class.createERC20PresetMinterPauser(tokenName, tokenSymbol, wallet);
     multiTokenMgr = await MultiFungibleTokenManager.createMultiFungibleTokenManager(sender);
     assert(multiTokenMgr.contract.initialized(), 'MultiTokenManager not initialized');
-    await multiTokenMgr.initialize(
-      sender.address,
-      sender.address
-    );
+    await multiTokenMgr.initialize(sender.address, sender.address);
   });
 
   describe('#constructor', () => {

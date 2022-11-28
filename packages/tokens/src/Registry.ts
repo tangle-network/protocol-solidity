@@ -72,7 +72,7 @@ export class Registry {
     tokenHandler: string,
     assetIdentifier: number,
     wrappedTokenURI: string,
-    salt: string,
+    salt: string
   ) {
     const tx = await this.contract.registerNftToken(
       nonce,

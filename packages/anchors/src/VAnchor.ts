@@ -2,6 +2,7 @@ import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
 import {
   VAnchor as VAnchorContract,
   VAnchor__factory,
+  ChainalysisVAnchor as ChainalysisVAnchorContract,
   VAnchorEncodeInputs__factory,
   TokenWrapper__factory,
 } from '@webb-tools/contracts';
@@ -18,8 +19,6 @@ import {
   randomBN,
   CircomProvingManager,
   ProvingManagerSetupInput,
-  Note,
-  NoteGenInput,
   MerkleProof,
   UtxoGenInput,
   CircomUtxo,
@@ -32,7 +31,6 @@ import {
   IVariableAnchorPublicInputs,
 } from '@webb-tools/interfaces';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
-import { solidityPack } from 'ethers/lib/utils';
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 function checkNativeAddress(tokenAddress: string): boolean {
@@ -50,7 +48,7 @@ export var proofTimeBenchmark = [];
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
 export class VAnchor implements IAnchor {
   signer: ethers.Signer;
-  contract: VAnchorContract;
+  contract: VAnchorContract | ChainalysisVAnchorContract;
   tree: MerkleTree;
   // hex string of the connected root
   maxEdges: number;
@@ -65,7 +63,7 @@ export class VAnchor implements IAnchor {
   provingManager: CircomProvingManager;
 
   constructor(
-    contract: VAnchorContract,
+    contract: VAnchorContract | ChainalysisVAnchorContract,
     signer: ethers.Signer,
     treeHeight: number,
     maxEdges: number,
