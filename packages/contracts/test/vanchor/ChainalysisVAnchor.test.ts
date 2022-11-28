@@ -11,7 +11,12 @@ const bne = (x, e) => BigNumber.from(x + '0'.repeat(parseInt(e)));
 const path = require('path');
 
 import { ChainalysisVAnchor, PoseidonHasher, VAnchor } from '@webb-tools/anchors';
-import { fetchComponentsFromFilePaths, getChainIdType, hexToU8a, ZkComponents } from '@webb-tools/utils';
+import {
+  fetchComponentsFromFilePaths,
+  getChainIdType,
+  hexToU8a,
+  ZkComponents,
+} from '@webb-tools/utils';
 import { Keypair, CircomUtxo, randomBN } from '@webb-tools/sdk-core';
 import { Verifier } from '@webb-tools/bridges';
 import { ERC20PresetMinterPauser, ERC20PresetMinterPauser__factory } from '@webb-tools/contracts';
@@ -144,17 +149,19 @@ describe('ChainalysisVAnchor', () => {
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
       anchor.setSigner(sanctionedSigner);
-      expect(anchor.registerAndTransact(
-        sender.address,
-        aliceDepositUtxo.keypair.toString(),
-        [],
-        [aliceDepositUtxo],
-        0,
-        0,
-        '0',
-        '0',
-        {}
-      )).to.be.revertedWith('SanctionFilter: Sanctioned address');
+      expect(
+        anchor.registerAndTransact(
+          sender.address,
+          aliceDepositUtxo.keypair.toString(),
+          [],
+          [aliceDepositUtxo],
+          0,
+          0,
+          '0',
+          '0',
+          {}
+        )
+      ).to.be.revertedWith('SanctionFilter: Sanctioned address');
     });
   });
 });
