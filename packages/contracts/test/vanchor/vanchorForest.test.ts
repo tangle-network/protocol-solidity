@@ -37,7 +37,7 @@ import {
   CircomUtxo,
 } from '@webb-tools/sdk-core';
 import { VAnchorForest, PoseidonHasher } from '@webb-tools/anchors';
-import { Verifier } from '@webb-tools/vbridge';
+import { ForestVerifier } from '@webb-tools/vbridge';
 import { writeFileSync } from 'fs';
 import { SetupTxVAnchorMock } from './mocks/SetupTxVAnchorMock';
 
@@ -86,30 +86,30 @@ describe.only('VAnchorForest for 2 max edges', () => {
     zkComponents2_2 = await fetchComponentsFromFilePaths(
       path.resolve(
         __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'
+        '../../solidity-fixtures/solidity-fixtures/vanchor_forest_2/2/vanchor_forest_2_2.wasm'
       ),
       path.resolve(
         __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/witness_calculator.cjs'
+        '../../solidity-fixtures/solidity-fixtures/vanchor_forest_2/2/witness_calculator.cjs'
       ),
       path.resolve(
         __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey'
+        '../../solidity-fixtures/solidity-fixtures/vanchor_forest_2/2/circuit_final.zkey'
       )
     );
 
     zkComponents16_2 = await fetchComponentsFromFilePaths(
       path.resolve(
         __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'
+        '../../solidity-fixtures/solidity-fixtures/vanchor_forest_16/2/vanchor_forest_16_2.wasm'
       ),
       path.resolve(
         __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/witness_calculator.cjs'
+        '../../solidity-fixtures/solidity-fixtures/vanchor_forest_16/2/witness_calculator.cjs'
       ),
       path.resolve(
         __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/circuit_final.zkey'
+        '../../solidity-fixtures/solidity-fixtures/vanchor_forest_16/2/circuit_final.zkey'
       )
     );
   });
@@ -122,7 +122,7 @@ describe.only('VAnchorForest for 2 max edges', () => {
     const hasherInstance = await PoseidonHasher.createPoseidonHasher(wallet);
 
     // create bridge verifier
-    verifier = await Verifier.createVerifier(sender);
+    verifier = await ForestVerifier.createVerifier(sender);
 
     // create token
     const tokenFactory = new ERC20PresetMinterPauser__factory(wallet);
@@ -252,7 +252,7 @@ describe.only('VAnchorForest for 2 max edges', () => {
   });
 
   describe('#transact', () => {
-    it('should transact', async () => {
+    it.only('should transact', async () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);

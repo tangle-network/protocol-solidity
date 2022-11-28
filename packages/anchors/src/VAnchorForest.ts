@@ -38,6 +38,7 @@ import {
 } from '@webb-tools/interfaces';
 import { hexToU8a, UTXOInputs, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { solidityPack } from 'ethers/lib/utils';
+// import { generateVariableWitnessInput } from "./utils"
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 function checkNativeAddress(tokenAddress: string): boolean {
@@ -372,10 +373,13 @@ export class VAnchorForest {
 
   public async populateRootsForProof(): Promise<string[]> {
     const neighborEdges = await this.contract.getLatestNeighborEdges();
+    console.log('neighborEdges', neighborEdges);
     const neighborRootInfos = neighborEdges.map((rootData) => {
       return rootData.root;
     });
+    console.log('neighborRootInfos', neighborRootInfos);
     let thisRoot = await this.contract.getLastRoot();
+    console.log('thisRoot', thisRoot);
     return [thisRoot.toString(), ...neighborRootInfos.map((bignum) => bignum.toString())];
   }
 
@@ -388,27 +392,37 @@ export class VAnchorForest {
    * @param input A UTXO object that is inside the tree
    * @returns
    */
-  public getMerkleProof(input: Utxo): MerkleProof {
-    let inputMerklePathIndices: number[];
-    let inputMerklePathElements: BigNumber[];
+  public getMerkleProof(input: Utxo): any {
+    let inputSubtreePathIndices: number[];
+    let inputSubtreePathElements: BigNumber[];
+    let inputForestPathIndices: number[];
+    let inputForestPathElements: BigNumber[];
 
     if (Number(input.amount) > 0) {
       if (input.index < 0) {
         throw new Error(`Input commitment ${u8aToHex(input.commitment)} was not found`);
       }
-      const path = this.tree.path(input.index);
-      inputMerklePathIndices = path.pathIndices;
-      inputMerklePathElements = path.pathElements;
+      const subtreePath = this.tree.path(input.index);
+      const idx = this.forest.indexOf(subtreePath.merkleRoot.toString());
+      const forestPath = this.forest.path(idx);
+      inputSubtreePathIndices = subtreePath.pathIndices;
+      inputSubtreePathElements = subtreePath.pathElements;
+      inputForestPathIndices = forestPath.pathIndices;
+      inputForestPathElements = forestPath.pathElements;
     } else {
-      inputMerklePathIndices = new Array(this.tree.levels).fill(0);
-      inputMerklePathElements = new Array(this.tree.levels).fill(0);
+      inputSubtreePathIndices = new Array(this.tree.levels).fill(0);
+      inputSubtreePathElements = new Array(this.tree.levels).fill(0);
+      inputForestPathIndices = new Array(this.forest.levels).fill(0);
+      inputForestPathElements = new Array(this.forest.levels).fill(0);
     }
 
     return {
       element: BigNumber.from(u8aToHex(input.commitment)),
-      pathElements: inputMerklePathElements,
-      pathIndices: inputMerklePathIndices,
-      merkleRoot: this.tree.root(),
+      pathElements: inputSubtreePathElements,
+      pathIndices: inputSubtreePathIndices,
+      forestPathElements: inputForestPathElements,
+      forestPathIndices: inputForestPathIndices,
+      merkleRoot: this.forest.root(),
     };
   }
 
@@ -501,9 +515,15 @@ export class VAnchorForest {
     extAmount: BigNumber,
     fee: BigNumber,
     extDataHash: BigNumber
-  ): Promise<UTXOInputs> {
+  ): Promise<any> {
+    console.log('1')
     const vanchorRoots = await this.populateRootsForProof();
+    console.log('vanchorRoots: ', vanchorRoots)
+    console.log('tree.root: ', this.tree.root())
+    console.log('forest.root: ', this.forest.root())
     const vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x));
+    console.log('2')
+    // console.log('vanchorMerkleProof: ', vanchorMerkleProof)
 
     const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
       vanchorRoots.map((root) => BigNumber.from(root)),
@@ -515,8 +535,28 @@ export class VAnchorForest {
       BigNumber.from(extDataHash),
       vanchorMerkleProof
     );
+    console.log('3')
+    const proofInput = {
+      roots: vanchorInput.roots,
+      chainID: vanchorInput.chainID,
+      inputNullifier: vanchorInput.inputNullifier,
+      outputCommitment: vanchorInput.outputCommitment,
+      publicAmount: vanchorInput.publicAmount,
+      extDataHash: vanchorInput.extDataHash,
+      inAmount: vanchorInput.inAmount,
+      inPrivateKey: vanchorInput.inPrivateKey,
+      inBlinding: vanchorInput.inBlinding,
+      outChainID: vanchorInput.outChainID,
+      outAmount: vanchorInput.outAmount,
+      outPubkey: vanchorInput.outPubkey,
 
-    return vanchorInput;
+      subtreePathIndices: vanchorInput.inPathIndices,
+      subtreePathElements: vanchorInput.inPathElements,
+      forestPathIndices: vanchorMerkleProof.map((proof) => proof.forestPathIndices),
+      forestPathElements: vanchorMerkleProof.map((proof) => proof.forestPathElements),
+    }
+
+    return proofInput;
   }
 
   public async generateExtData(
@@ -600,6 +640,7 @@ export class VAnchorForest {
       outputs[1].encrypt()
     );
 
+    console.log('0')
     const proofInput: UTXOInputs = await this.generateUTXOInputs(
       inputs,
       outputs,
