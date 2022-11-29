@@ -250,7 +250,7 @@ describe('VAnchor for 2 max edges', () => {
   });
 
   describe('#transact', () => {
-    it.only('should transact', async () => {
+    it('should transact', async () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);

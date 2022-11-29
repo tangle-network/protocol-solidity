@@ -143,7 +143,7 @@ describe('ChainalysisVAnchor', () => {
     );
   });
 
-  describe.only('#transact', () => {
+  describe('#transact', () => {
     it('should fail to transact from a sanctioned address', async () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 1e7;
