@@ -431,6 +431,7 @@ export class VAnchorForest {
     extDataHash: string
   ): IVariableAnchorPublicInputs {
     // public inputs to the contract
+    proof = this.encodeSolidityProof(proof);
     const args: IVariableAnchorPublicInputs = {
       proof: `0x${proof}`,
       roots: `0x${roots.map((x) => toFixedHex(x).slice(2)).join('')}`,
@@ -536,6 +537,8 @@ export class VAnchorForest {
     // forestPathIndices.push(index)
     // index = MerkleTree.calculateIndexFromPathIndices(indices[1])
     // forestPathIndices.push(index)
+    console.log("vanchorInput EXT DATA HASH: ", vanchorInput.extDataHash)
+    console.log("vanchorInput: ", vanchorInput)
     const proofInput = {
       roots: vanchorInput.roots,
       chainID: vanchorInput.chainID,
@@ -686,15 +689,15 @@ export class VAnchorForest {
     console.log("PROOF HAS BEEN VERIFIED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!", res)
     // const proof = await this.provingManager.prove('vanchor', proofInput);
 
+    console.log("EXT DATA HASH: ", proof.publicSignals.extDataHash)
     const publicInputs: IVariableAnchorPublicInputs = this.generatePublicInputs(
       proof.proof,
       roots,
       inputs,
       outputs,
       proofInput.publicAmount,
-      u8aToHex(proof.extDataHash)
+      extDataHash.toHexString()
     );
-
     // const extData: IVariableAnchorExtData = {
     //   recipient: toFixedHex(proofInput.recipient, 20),
     //   extAmount: toFixedHex(proofInput.extAmount),
@@ -901,6 +904,31 @@ export class VAnchorForest {
 
     return receipt;
   }
+  public encodeSolidityProof(fullProof: any): String {
+    console.log("-------------------------------")
+    console.log("------------HERE---------------")
+    console.log("-------------------------------")
+    console.log(fullProof)
+    const proof = fullProof
+    const pi_a = proof.pi_a;
+    const pi_b = proof.pi_b;
+    const pi_c = proof.pi_c;
+
+    const proofEncoded = [
+      pi_a[0],
+      pi_a[1],
+      pi_b[0][0],
+      pi_b[0][1],
+      pi_b[1][0],
+      pi_b[1][1],
+      pi_c[0],
+      pi_c[1],
+    ]
+      .map((elt) => elt.substr(2))
+      .join('');
+
+    return proofEncoded;
+  }
 
   public async registerAndTransact(
     owner: string,
@@ -963,7 +991,18 @@ export class VAnchorForest {
       relayer,
       leavesMap
     );
+    console.log("extData: ", extData)
+    console.log("publicInputs: ", publicInputs)
 
+    // let tx = await this.contract.registerAndTransact(
+    //   { owner, keyData: keyData },
+    //   {
+    //     ...publicInputs,
+    //     outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
+    //   },
+    //   extData,
+    //   { gasLimit: '0x5B8D80' }
+    // );
     let tx = await this.contract.registerAndTransact(
       { owner, keyData: keyData },
       {
@@ -973,6 +1012,9 @@ export class VAnchorForest {
       extData,
       { gasLimit: '0x5B8D80' }
     );
+    console.log("-------------------------------------------------")
+    console.log("-------------------FOUND IT----------------------")
+    console.log("-------------------------------------------------")
     const receipt = await tx.wait();
 
     // Add the leaves to the tree

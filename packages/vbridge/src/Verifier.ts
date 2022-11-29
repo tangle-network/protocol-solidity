@@ -120,7 +120,7 @@ export class ForestVerifier {
     const v816 = await v816Factory.deploy();
     await v816.deployed();
 
-    const factory = new IdentityVAnchorVerifier__factory(signer);
+    const factory = new VAnchorVerifier__factory(signer);
     const verifier = await factory.deploy(v22.address, v216.address, v82.address, v816.address);
     await verifier.deployed();
     const createdVerifier = new ForestVerifier(verifier, signer);

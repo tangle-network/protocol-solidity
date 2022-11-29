@@ -180,6 +180,21 @@ contract VAnchorForest is VAnchorForestBase, TxProofVerifier, ISetVerifier {
 		);
 	}
 
+	// /**
+	// 	@notice Registers and transacts in a single flow
+	// 	@param _account The account to register
+	// 	@param _proofArgs The zkSNARK proof parameters
+	// 	@param _extData The external data for the transaction
+	//  */
+	// function registerAndTransact(
+	// 	Account memory _account
+	// 	// VAnchorEncodeInputs.Proof memory _proofArgs,
+	// 	// ExtData memory _extData
+	// ) public {
+	// 	register(_account);
+	// 	// transact(_proofArgs, _extData);
+	// }
+
 	/**
 		@notice Registers and transacts in a single flow
 		@param _account The account to register
