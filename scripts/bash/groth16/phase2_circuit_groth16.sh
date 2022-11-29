@@ -50,3 +50,13 @@ move_verifiers_and_metadata_identity_vanchor () {
     mkdir -p packages/contracts/contracts/verifiers/$anchorType
     cp $indir/verifier.sol packages/contracts/contracts/verifiers/$anchorType/VerifierID"$size"_"$nIns".sol
 }
+
+move_verifiers_and_metadata_vanchor_forest () {
+    local indir="$1" size="$2" anchorType="$3" nIns="$4"
+    cp $indir/circuit_final.zkey packages/contracts/solidity-fixtures/solidity-fixtures/$anchorType/$size/circuit_final.zkey
+
+    mkdir -p packages/contracts/contracts/verifiers/$anchorType
+    cp $indir/verifier.sol packages/contracts/contracts/verifiers/$anchorType/VerifierF"$size"_"$nIns".sol
+    sed -i 's/contract Verifier/contract VerifierF'$size'_'$nIns'/g' packages/contracts/contracts/verifiers/$anchorType/VerifierF"$size"_"$nIns".sol
+    sed -i 's/pragma solidity ^0.6.11;/pragma solidity ^0.8.0;/g' packages/contracts/contracts/verifiers/$anchorType/VerifierF"$size"_"$nIns".sol
+}

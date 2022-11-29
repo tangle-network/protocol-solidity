@@ -7,7 +7,7 @@ import {
   TokenWrapper__factory,
 } from '@webb-tools/contracts';
 import { poseidon, poseidon_gencontract as poseidonContract } from "circomlibjs";
-import { groth16 } from "snarkjs";
+import { zKey, groth16 } from "snarkjs";
 import {
   toHex,
   Keypair,
@@ -38,7 +38,6 @@ import {
 } from '@webb-tools/interfaces';
 import { hexToU8a, UTXOInputs, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { solidityPack } from 'ethers/lib/utils';
-// import { generateVariableWitnessInput } from "./utils"
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 function checkNativeAddress(tokenAddress: string): boolean {
@@ -373,13 +372,10 @@ export class VAnchorForest {
 
   public async populateRootsForProof(): Promise<string[]> {
     const neighborEdges = await this.contract.getLatestNeighborEdges();
-    console.log('neighborEdges', neighborEdges);
     const neighborRootInfos = neighborEdges.map((rootData) => {
       return rootData.root;
     });
-    console.log('neighborRootInfos', neighborRootInfos);
     let thisRoot = await this.contract.getLastRoot();
-    console.log('thisRoot', thisRoot);
     return [thisRoot.toString(), ...neighborRootInfos.map((bignum) => bignum.toString())];
   }
 
@@ -516,14 +512,9 @@ export class VAnchorForest {
     fee: BigNumber,
     extDataHash: BigNumber
   ): Promise<any> {
-    console.log('1')
     const vanchorRoots = await this.populateRootsForProof();
-    console.log('vanchorRoots: ', vanchorRoots)
-    console.log('tree.root: ', this.tree.root())
-    console.log('forest.root: ', this.forest.root())
     const vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x));
-    console.log('2')
-    // console.log('vanchorMerkleProof: ', vanchorMerkleProof)
+    const outputCommitment = outputs.map((x) => BigNumber.from(u8aToHex(x.commitment)).toString())
 
     const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
       vanchorRoots.map((root) => BigNumber.from(root)),
@@ -535,7 +526,16 @@ export class VAnchorForest {
       BigNumber.from(extDataHash),
       vanchorMerkleProof
     );
-    console.log('3')
+    const hash = poseidon([vanchorInput.outChainID[0], vanchorInput.outAmount[0], vanchorInput.outPubkey[0], vanchorInput.outBlinding[0]])
+    const indices = vanchorMerkleProof.map((proof) => proof.forestPathIndices)
+    const forestPathIndices = []
+    indices.forEach((pathIndices) => {
+      let index = MerkleTree.calculateIndexFromPathIndices(pathIndices)
+      forestPathIndices.push(index)
+    });
+    // forestPathIndices.push(index)
+    // index = MerkleTree.calculateIndexFromPathIndices(indices[1])
+    // forestPathIndices.push(index)
     const proofInput = {
       roots: vanchorInput.roots,
       chainID: vanchorInput.chainID,
@@ -549,10 +549,14 @@ export class VAnchorForest {
       outChainID: vanchorInput.outChainID,
       outAmount: vanchorInput.outAmount,
       outPubkey: vanchorInput.outPubkey,
+      outBlinding: vanchorInput.outBlinding,
+
 
       subtreePathIndices: vanchorInput.inPathIndices,
       subtreePathElements: vanchorInput.inPathElements,
-      forestPathIndices: vanchorMerkleProof.map((proof) => proof.forestPathIndices),
+      forestPathIndices: forestPathIndices,
+      // forestPathIndices: vanchorMerkleProof.map((proof) => proof.forestPathIndices),
+
       forestPathElements: vanchorMerkleProof.map((proof) => proof.forestPathElements),
     }
 
@@ -615,6 +619,8 @@ export class VAnchorForest {
     // calculate the sum of input notes (for calculating the public amount)
     let sumInputUtxosAmount: BigNumberish = 0;
 
+    console.log('outputs', outputs);
+    console.log('outputs', outputs.map((x) => x.commitment));
     // Pass the identifier for leaves alongside the proof input
     let leafIds: LeafIdentifier[] = [];
 
@@ -630,6 +636,7 @@ export class VAnchorForest {
       hexToU8a(outputs[0].encrypt()),
       hexToU8a(outputs[1].encrypt()),
     ];
+    console.log('encryptedCommitments', encryptedCommitments);
     const { extData, extDataHash } = await this.generateExtData(
       recipient,
       BigNumber.from(extAmount),
@@ -659,12 +666,24 @@ export class VAnchorForest {
       wasmFile = this.smallCircuitZkComponents.wasm
       zkeyFile = this.smallCircuitZkComponents.zkey
     }
+
+    console.log("FINAL PROOF INPUT", proofInput)
     let proof = await groth16.fullProve(
       proofInput,
       wasmFile,
       zkeyFile
     );
+    console.log("PROOF HAS BEEN GENERATED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    const vKey = await zKey.exportVerificationKey(
+      '/home/semar/Projects/webb/protocol-solidity/packages/contracts/solidity-fixtures/solidity-fixtures/vanchor_forest_2/2/circuit_final.zkey'
+    );
 
+    const res = await groth16.verify(vKey, proof.publicSignals, proof.proof);
+    if (res !== true) {
+      throw new Error('!!!!!!!!!!!!!!!!!!!!!!!!!!Invalid proof');
+    }
+
+    console.log("PROOF HAS BEEN VERIFIED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!", res)
     // const proof = await this.provingManager.prove('vanchor', proofInput);
 
     const publicInputs: IVariableAnchorPublicInputs = this.generatePublicInputs(
