@@ -26,12 +26,8 @@ export class MultiFungibleTokenManager {
     return manager;
   }
 
-  public async initialize(registry: string,feeRecipient: string) {
-    const tx = await this.contract.initialize(
-      registry,
-      feeRecipient,
-      { gasLimit: '0x5B8D80' }
-    );
+  public async initialize(registry: string, feeRecipient: string) {
+    const tx = await this.contract.initialize(registry, feeRecipient, { gasLimit: '0x5B8D80' });
 
     await tx.wait();
   }
