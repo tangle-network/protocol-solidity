@@ -431,12 +431,8 @@ export class VAnchorForest {
     // ): IVariableAnchorPublicInputs {
   ): Promise<any> {
     // public inputs to the contract
-    console.log('proof', proof);
     proof = await this.encodeSolidityProof(proof);
-    console.log('proof', proof);
-    console.log('byte_calldata', byte_calldata);
     const publicInputs = JSON.parse('[' + byte_calldata + ']')[3];
-    console.log('publicInputs', publicInputs);
     const publicAmount = publicInputs[0];
     const extDataHash = publicInputs[1];
     const inputNullifiers = publicInputs.slice(2, 2 + nIns);
@@ -529,6 +525,7 @@ export class VAnchorForest {
     extDataHash: BigNumber
   ): Promise<any> {
     const vanchorRoots = await this.populateRootsForProof();
+    console.log('vanchorRoots', vanchorRoots);
     const vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x));
     const outputCommitment = outputs.map((x) => BigNumber.from(u8aToHex(x.commitment)).toString())
 
@@ -552,8 +549,8 @@ export class VAnchorForest {
     // forestPathIndices.push(index)
     // index = MerkleTree.calculateIndexFromPathIndices(indices[1])
     // forestPathIndices.push(index)
-    // console.log("vanchorInput EXT DATA HASH: ", vanchorInput.extDataHash)
-    // console.log("vanchorInput: ", vanchorInput)
+    const forestPathElements = vanchorMerkleProof.map((proof) => proof.forestPathElements.map((bignum) => bignum.toString()))
+
     const proofInput = {
       roots: vanchorInput.roots,
       chainID: vanchorInput.chainID,
@@ -571,12 +568,11 @@ export class VAnchorForest {
 
 
       subtreePathIndices: vanchorInput.inPathIndices,
-      subtreePathElements: vanchorInput.inPathElements,
+      subtreePathElements: vanchorInput.inPathElements.map((utxoPathElements) => utxoPathElements.map((bignum) => bignum.toString())),
       forestPathIndices: forestPathIndices,
-      // forestPathIndices: vanchorMerkleProof.map((proof) => proof.forestPathIndices),
-
-      forestPathElements: vanchorMerkleProof.map((proof) => proof.forestPathElements),
+      forestPathElements,
     }
+    console.log("forestRoot", this.forest.root())
 
     return proofInput;
   }
@@ -681,13 +677,11 @@ export class VAnchorForest {
       zkeyFile = this.smallCircuitZkComponents.zkey
     }
 
-    console.log("FINAL PROOF INPUT", proofInput)
     let proof = await groth16.fullProve(
       proofInput,
       wasmFile,
       zkeyFile
     );
-    console.log("PROOF HAS BEEN GENERATED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     const vKey = await zKey.exportVerificationKey(
       '/home/semar/Projects/webb/protocol-solidity/packages/contracts/solidity-fixtures/solidity-fixtures/vanchor_forest_2/2/circuit_final.zkey'
     );
@@ -700,12 +694,10 @@ export class VAnchorForest {
     console.log("PROOF HAS BEEN VERIFIED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!", res)
     // const proof = await this.provingManager.prove('vanchor', proofInput);
 
-    // console.log("EXT DATA HASH: ", proof.publicSignals.extDataHash)
     const calldata = await groth16.exportSolidityCallData(
       proof.proof,
       proof.publicSignals
     );
-    console.log("CALLDATA: ", calldata)
     const publicInputs = await this.generatePublicInputs(
       proof,
       calldata
@@ -808,10 +800,22 @@ export class VAnchorForest {
 
     // Add the leaves to the tree
     outputs.forEach((x) => {
-      this.tree.insert(u8aToHex(x.commitment));
+      const commitment = BigNumber.from(u8aToHex(x.commitment))
+      console.log("COMMITMENT: ", commitment)
+      this.tree.insert(commitment.toHexString());
       let numOfElements = this.tree.number_of_elements();
       this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
     });
+
+    const curIdx = await this.contract.currSubtreeIndex()
+    const lastSubtreeRoot = await this.contract.getLastSubtreeRoot(0)
+    console.log("CUR IDX", curIdx.toString())
+    console.log("CUR ROOT", this.forest.root())
+    console.log("SUBTREE INTERFACE ROOT", this.tree.root())
+    console.log("SUBTREE CONTRACT ROOT", lastSubtreeRoot)
+    this.forest.update(curIdx.toNumber(), this.tree.root().toHexString());
+    console.log("UPDATED ROOT", this.forest.root())
+    console.log('-------------------')
 
     return receipt;
   }
@@ -1003,18 +1007,6 @@ export class VAnchorForest {
       relayer,
       leavesMap
     );
-    console.log("extData: ", extData)
-    console.log("publicInputs: ", publicInputs)
-
-    // let tx = await this.contract.registerAndTransact(
-    //   { owner, keyData: keyData },
-    //   {
-    //     ...publicInputs,
-    //     outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
-    //   },
-    //   extData,
-    //   { gasLimit: '0x5B8D80' }
-    // );
     let tx = await this.contract.registerAndTransact(
       { owner, keyData: keyData },
       {
@@ -1024,17 +1016,25 @@ export class VAnchorForest {
       extData,
       { gasLimit: '0x5B8D80' }
     );
-    console.log("-------------------------------------------------")
-    console.log("-------------------FOUND IT----------------------")
-    console.log("-------------------------------------------------")
     const receipt = await tx.wait();
 
     // Add the leaves to the tree
     outputs.forEach((x) => {
-      this.tree.insert(u8aToHex(x.commitment));
+      const commitment = BigNumber.from(u8aToHex(x.commitment))
+      console.log("COMMITMENT: ", commitment)
+      this.tree.insert(commitment.toHexString());
       let numOfElements = this.tree.number_of_elements();
       this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
     });
+    const curIdx = await this.contract.currSubtreeIndex()
+    const lastSubtreeRoot = await this.contract.getLastSubtreeRoot(0)
+    console.log("CUR IDX", curIdx.toString())
+    console.log("CUR ROOT", this.forest.root())
+    console.log("SUBTREE INTERFACE ROOT", this.tree.root())
+    console.log("SUBTREE CONTRACT ROOT", lastSubtreeRoot)
+    this.forest.update(curIdx.toNumber(), this.tree.root().toHexString());
+    console.log("UPDATED ROOT", this.forest.root())
+    console.log('---------------')
 
     return receipt;
   }

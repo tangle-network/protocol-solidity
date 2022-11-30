@@ -252,7 +252,7 @@ describe.only('VAnchorForest for 2 max edges', () => {
   });
 
   describe('#transact', () => {
-    it.only('should transact', async () => {
+    it('should transact', async () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
@@ -384,7 +384,7 @@ describe.only('VAnchorForest for 2 max edges', () => {
       );
     });
 
-    it('should join and spend', async () => {
+    it.only('should join and spend', async () => {
       const aliceDepositAmount1 = 1e7;
       let aliceDepositUtxo1 = await generateUTXOForTest(chainID, aliceDepositAmount1);
 
@@ -435,6 +435,8 @@ describe.only('VAnchorForest for 2 max edges', () => {
       const aliceDeposit2Index = anchor.tree.getIndexByElement(aliceDepositUtxo2.commitment);
       aliceDepositUtxo1.setIndex(aliceDeposit1Index);
       aliceDepositUtxo2.setIndex(aliceDeposit2Index);
+      // console.log('aliceDepositUtxo1', aliceDepositUtxo1);
+      // console.log('aliceDepositUtxo2', aliceDepositUtxo2);
 
       await anchor.transact(
         [aliceDepositUtxo1, aliceDepositUtxo2],
