@@ -422,26 +422,41 @@ export class VAnchorForest {
     };
   }
 
-  public generatePublicInputs(
+  public async generatePublicInputs(
     proof: any,
-    roots: string[],
-    inputs: Utxo[],
-    outputs: Utxo[],
-    publicAmount: BigNumberish,
-    extDataHash: string
-  ): IVariableAnchorPublicInputs {
+    byte_calldata: any,
+    nIns: number = 2,
+    nOuts: number = 2,
+    maxEdges: number = 2,
+    // ): IVariableAnchorPublicInputs {
+  ): Promise<any> {
     // public inputs to the contract
-    proof = this.encodeSolidityProof(proof);
-    const args: IVariableAnchorPublicInputs = {
+    console.log('proof', proof);
+    proof = await this.encodeSolidityProof(proof);
+    console.log('proof', proof);
+    console.log('byte_calldata', byte_calldata);
+    const publicInputs = JSON.parse('[' + byte_calldata + ']')[3];
+    console.log('publicInputs', publicInputs);
+    const publicAmount = publicInputs[0];
+    const extDataHash = publicInputs[1];
+    const inputNullifiers = publicInputs.slice(2, 2 + nIns);
+    const outputCommitments = publicInputs.slice(2 + nIns, 2 + nIns + nOuts);
+    const _chainID = publicInputs[2 + nIns + nOuts]
+    const roots = publicInputs.slice(3 + nIns + nOuts, 3 + nIns + nOuts + maxEdges);
+    const args = {
       proof: `0x${proof}`,
       roots: `0x${roots.map((x) => toFixedHex(x).slice(2)).join('')}`,
-      inputNullifiers: inputs.map((x) => toFixedHex('0x' + x.nullifier)),
-      outputCommitments: [
-        toFixedHex(u8aToHex(outputs[0].commitment)),
-        toFixedHex(u8aToHex(outputs[1].commitment)),
-      ],
-      publicAmount: toFixedHex(publicAmount),
-      extDataHash: toFixedHex(extDataHash),
+      // inputNullifiers: `0x${roots.map((x) => toFixedHex(x).slice(2)).join('')}`,
+      inputNullifiers,
+      outputCommitments,
+      publicAmount,
+      extDataHash,
+      // outputCommitments: [
+      //   toFixedHex(u8aToHex(outputs[0].commitment)),
+      //   toFixedHex(u8aToHex(outputs[1].commitment)),
+      // ],
+      // publicAmount: toFixedHex(publicAmount),
+      // extDataHash: toFixedHex(extDataHash),
     };
 
     return args;
@@ -537,8 +552,8 @@ export class VAnchorForest {
     // forestPathIndices.push(index)
     // index = MerkleTree.calculateIndexFromPathIndices(indices[1])
     // forestPathIndices.push(index)
-    console.log("vanchorInput EXT DATA HASH: ", vanchorInput.extDataHash)
-    console.log("vanchorInput: ", vanchorInput)
+    // console.log("vanchorInput EXT DATA HASH: ", vanchorInput.extDataHash)
+    // console.log("vanchorInput: ", vanchorInput)
     const proofInput = {
       roots: vanchorInput.roots,
       chainID: vanchorInput.chainID,
@@ -622,8 +637,6 @@ export class VAnchorForest {
     // calculate the sum of input notes (for calculating the public amount)
     let sumInputUtxosAmount: BigNumberish = 0;
 
-    console.log('outputs', outputs);
-    console.log('outputs', outputs.map((x) => x.commitment));
     // Pass the identifier for leaves alongside the proof input
     let leafIds: LeafIdentifier[] = [];
 
@@ -639,7 +652,6 @@ export class VAnchorForest {
       hexToU8a(outputs[0].encrypt()),
       hexToU8a(outputs[1].encrypt()),
     ];
-    console.log('encryptedCommitments', encryptedCommitments);
     const { extData, extDataHash } = await this.generateExtData(
       recipient,
       BigNumber.from(extAmount),
@@ -650,7 +662,6 @@ export class VAnchorForest {
       outputs[1].encrypt()
     );
 
-    console.log('0')
     const proofInput: UTXOInputs = await this.generateUTXOInputs(
       inputs,
       outputs,
@@ -689,14 +700,15 @@ export class VAnchorForest {
     console.log("PROOF HAS BEEN VERIFIED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!", res)
     // const proof = await this.provingManager.prove('vanchor', proofInput);
 
-    console.log("EXT DATA HASH: ", proof.publicSignals.extDataHash)
-    const publicInputs: IVariableAnchorPublicInputs = this.generatePublicInputs(
+    // console.log("EXT DATA HASH: ", proof.publicSignals.extDataHash)
+    const calldata = await groth16.exportSolidityCallData(
       proof.proof,
-      roots,
-      inputs,
-      outputs,
-      proofInput.publicAmount,
-      extDataHash.toHexString()
+      proof.publicSignals
+    );
+    console.log("CALLDATA: ", calldata)
+    const publicInputs = await this.generatePublicInputs(
+      proof,
+      calldata
     );
     // const extData: IVariableAnchorExtData = {
     //   recipient: toFixedHex(proofInput.recipient, 20),
@@ -904,15 +916,15 @@ export class VAnchorForest {
 
     return receipt;
   }
-  public encodeSolidityProof(fullProof: any): String {
-    console.log("-------------------------------")
-    console.log("------------HERE---------------")
-    console.log("-------------------------------")
-    console.log(fullProof)
-    const proof = fullProof
-    const pi_a = proof.pi_a;
-    const pi_b = proof.pi_b;
-    const pi_c = proof.pi_c;
+  public async encodeSolidityProof(fullProof: any): Promise<String> {
+    const calldata = await groth16.exportSolidityCallData(
+      fullProof.proof,
+      fullProof.publicSignals
+    );
+    const proof = JSON.parse('[' + calldata + ']');
+    const pi_a = proof[0];
+    const pi_b = proof[1];
+    const pi_c = proof[2];
 
     const proofEncoded = [
       pi_a[0],
