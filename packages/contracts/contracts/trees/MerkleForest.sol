@@ -7,7 +7,6 @@ pragma solidity ^0.8.0;
 
 import "./LinkableIncrementalBinaryTree.sol";
 import "../hashers/IHasher.sol";
-import "hardhat/console.sol";
 
 contract MerkleForest {
     using LinkableIncrementalBinaryTree for LinkableIncrementalTreeData;

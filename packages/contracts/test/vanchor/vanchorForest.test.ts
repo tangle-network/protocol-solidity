@@ -435,8 +435,6 @@ describe.only('VAnchorForest for 2 max edges', () => {
       const aliceDeposit2Index = anchor.tree.getIndexByElement(aliceDepositUtxo2.commitment);
       aliceDepositUtxo1.setIndex(aliceDeposit1Index);
       aliceDepositUtxo2.setIndex(aliceDeposit2Index);
-      // console.log('aliceDepositUtxo1', aliceDepositUtxo1);
-      // console.log('aliceDepositUtxo2', aliceDepositUtxo2);
 
       await anchor.transact(
         [aliceDepositUtxo1, aliceDepositUtxo2],
@@ -1078,45 +1076,8 @@ describe.only('VAnchorForest for 2 max edges', () => {
         index: '0',
         keypair,
       });
-      const dummyInput = await CircomUtxo.generateUtxo({
-        curve: 'Bn254',
-        backend: 'Circom',
-        chainId: chainID.toString(),
-        originChainId: chainID.toString(),
-        amount: '0',
-        keypair: new Keypair(),
-        index: null,
-      });
-      const dummyInput2 = await CircomUtxo.generateUtxo({
-        curve: 'Bn254',
-        backend: 'Circom',
-        chainId: chainID.toString(),
-        originChainId: chainID.toString(),
-        amount: '0',
-        keypair: new Keypair(),
-        index: null,
-      });
-      const dummyOutput = await CircomUtxo.generateUtxo({
-        curve: 'Bn254',
-        backend: 'Circom',
-        chainId: chainID.toString(),
-        originChainId: chainID.toString(),
-        amount: '0',
-        keypair: new Keypair(),
-        index: null,
-      });
-      const dummyOutput2 = await CircomUtxo.generateUtxo({
-        curve: 'Bn254',
-        backend: 'Circom',
-        chainId: chainID.toString(),
-        originChainId: chainID.toString(),
-        amount: '0',
-        keypair: new Keypair(),
-        index: null,
-      });
-      const fakeInputs = [fakeUtxo, dummyInput]
-      const inputs = [dummyInput, dummyInput2]
-      const outputs = [dummyOutput, dummyOutput2]
+      const fakeInputs = await anchor.padUtxos([fakeUtxo], 2)
+      const outputs = await anchor.padUtxos([], 2)
 
       const extAmount = BigNumber.from(fee)
         .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
@@ -1125,18 +1086,19 @@ describe.only('VAnchorForest for 2 max edges', () => {
       const fakeTree = new MerkleTree(subtreeLevels);
       const fakeForest = new MerkleTree(forestLevels);
       const fakeCommitment = u8aToHex(fakeUtxo.commitment);
-      fakeTree.insert(fakeCommitment);
 
+      fakeTree.insert(fakeCommitment);
       const fakeSubtreeRoot = fakeTree.root();
       fakeForest.insert(fakeSubtreeRoot);
       const fakeRoot = fakeForest.root();
+      const emptyMerkleProof = anchor.getMerkleProof(fakeInputs[1]);
 
       const fakeSubtreeProof = fakeTree.path(0)
       const fakeForestProof = fakeForest.path(0)
-      let forestIndices = MerkleTree.calculateIndexFromPathIndices(fakeForestProof.pathIndices)
-      let forestPathElements = fakeForestProof.pathElements.map((bignum) => bignum.toString())
-      let subtreeIndices = MerkleTree.calculateIndexFromPathIndices(fakeSubtreeProof.pathIndices)
-      let subtreePathElements = fakeSubtreeProof.pathElements.map((bignum) => bignum.toString())
+      let forestIndices = [MerkleTree.calculateIndexFromPathIndices(fakeForestProof.pathIndices), 0]
+      let forestPathElements = [fakeForestProof.pathElements.map((bignum) => bignum.toString()), emptyMerkleProof.forestPathElements.map((bignum) => bignum.toString())]
+      let subtreeIndices = [MerkleTree.calculateIndexFromPathIndices(fakeSubtreeProof.pathIndices), 0]
+      let subtreePathElements = [fakeSubtreeProof.pathElements.map((bignum) => bignum.toString()), emptyMerkleProof.pathElements.map((bignum) => bignum.toString())]
 
       const roots = await anchor.populateRootsForProof();
       roots[1] = fakeRoot.toHexString();
@@ -1151,37 +1113,45 @@ describe.only('VAnchorForest for 2 max edges', () => {
         outputs[1].encrypt()
       );
 
-      const emptyMerkleProof = anchor.getMerkleProof(inputs[1]);
       const outputCommitment = outputs.map((x) => BigNumber.from(u8aToHex(x.commitment)).toString())
       // const merkleProofs = [
+      const merkleProofs = [fakeSubtreeProof, emptyMerkleProof];
 
       const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
         roots.map((root) => BigNumber.from(root)),
         chainID,
-        inputs,
+        fakeInputs,
         outputs,
         extAmount,
         fee,
         BigNumber.from(extDataHash),
-        vanchorMerkleProof
+        merkleProofs
       );
 
-
-
-
-
-
-
-
-      let wasmFile;
-      let zkeyFile;
-      if (inputs.length > 2) {
-        wasmFile = anchor.largeCircuitZkComponents.wasm
-        zkeyFile = anchor.largeCircuitZkComponents.zkey
-      } else {
-        wasmFile = anchor.smallCircuitZkComponents.wasm
-        zkeyFile = anchor.smallCircuitZkComponents.zkey
+      const proofInput = {
+        roots: vanchorInput.roots,
+        chainID: vanchorInput.chainID,
+        inputNullifier: vanchorInput.inputNullifier.map((hexStr) => BigNumber.from(hexStr).toString()),
+        outputCommitment: vanchorInput.outputCommitment,
+        publicAmount: vanchorInput.publicAmount,
+        extDataHash: vanchorInput.extDataHash,
+        inAmount: vanchorInput.inAmount,
+        inPrivateKey: vanchorInput.inPrivateKey,
+        inBlinding: vanchorInput.inBlinding,
+        outChainID: vanchorInput.outChainID,
+        outAmount: vanchorInput.outAmount,
+        outPubkey: vanchorInput.outPubkey,
+        outBlinding: vanchorInput.outBlinding,
+        //
+        //
+        subtreePathIndices: subtreeIndices,
+        subtreePathElements: vanchorInput.inPathElements.map((utxoPathElements) => utxoPathElements.map((bignum) => bignum.toString())),
+        forestPathIndices: forestIndices,
+        forestPathElements,
       }
+
+      const wasmFile = anchor.smallCircuitZkComponents.wasm
+      const zkeyFile = anchor.smallCircuitZkComponents.zkey
 
       let proof = await snarkjs.groth16.fullProve(
         proofInput,
@@ -1199,18 +1169,20 @@ describe.only('VAnchorForest for 2 max edges', () => {
 
       console.log("PROOF HAS BEEN VERIFIED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!", res)
       // const proof = await this.provingManager.prove('vanchor', proofInput);
-
-      const calldata = await snarkjs.groth16.exportSolidityCallData(
-        proof.proof,
-        proof.publicSignals
-      );
       const publicInputs = await anchor.generatePublicInputs(
         proof,
-        calldata
       );
+      const contractInput = {
+        ...publicInputs,
+        outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
+      }
 
       await TruffleAssert.reverts(
-        anchor.contract.transact(publicInputs, extData),
+        anchor.contract.transact(
+          contractInput,
+          extData,
+          { gasLimit: '0x5B8D80' }
+        ),
         'non-existent edge is not set to the default root'
       );
     });

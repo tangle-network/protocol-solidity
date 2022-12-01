@@ -438,6 +438,7 @@ export class VAnchorForest {
     // public inputs to the contract
     proof = await this.encodeSolidityProof(proof, byte_calldata);
     const publicInputs = JSON.parse('[' + byte_calldata + ']')[3];
+
     const publicAmount = publicInputs[0];
     const extDataHash = publicInputs[1];
     const inputNullifiers = publicInputs.slice(2, 2 + nIns);
@@ -543,7 +544,6 @@ export class VAnchorForest {
       BigNumber.from(extDataHash),
       vanchorMerkleProof
     );
-    const hash = poseidon([vanchorInput.outChainID[0], vanchorInput.outAmount[0], vanchorInput.outPubkey[0], vanchorInput.outBlinding[0]])
     const indices = vanchorMerkleProof.map((proof) => proof.forestPathIndices)
     const forestPathIndices = []
     indices.forEach((pathIndices) => {
