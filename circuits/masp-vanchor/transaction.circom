@@ -47,7 +47,9 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
 
     // data for input/output asset identifier
     signal input assetID;
-    signal input outAssetID;
+    signal input tokenID;
+    signal input publicAssetID;
+    signal input publicTokenID;
 
     // data for transaction inputs
     signal input inputNullifier[nIns];
@@ -89,10 +91,11 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
         inPartialCommitmentHasher[tx].inputs[2] <== inBlinding[tx];
 
         // Compute commitment hash
-        inCommitmentHasher[tx] = Poseidon(3);
+        inCommitmentHasher[tx] = Poseidon(4);
         inCommitmentHasher[tx].inputs[0] <== assetID;
-        inCommitmentHasher[tx].inputs[1] <== inAmount[tx];
-        inCommitmentHasher[tx].inputs[2] <== inPartialCommitmentHasher[tx].out;
+        inCommitmentHasher[tx].inputs[1] <== tokenID;
+        inCommitmentHasher[tx].inputs[2] <== inAmount[tx];
+        inCommitmentHasher[tx].inputs[3] <== inPartialCommitmentHasher[tx].out;
 
         inSignature[tx] = Signature();
         inSignature[tx].privateKey <== inPrivateKey[tx];
@@ -139,10 +142,11 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
         outPartialCommitmentHasher[tx].inputs[2] <== outBlinding[tx];
 
         // Compute commitment hash
-        outCommitmentHasher[tx] = Poseidon(3);
+        outCommitmentHasher[tx] = Poseidon(4);
         outCommitmentHasher[tx].inputs[0] <== assetID;
-        outCommitmentHasher[tx].inputs[1] <== outAmount[tx];
-        outCommitmentHasher[tx].inputs[2] <== outPartialCommitmentHasher[tx].out;
+        outCommitmentHasher[tx].inputs[1] <== tokenID;
+        outCommitmentHasher[tx].inputs[2] <== outAmount[tx];
+        outCommitmentHasher[tx].inputs[3] <== outPartialCommitmentHasher[tx].out;
         
         // Constrain output commitment by reconstructed commitment
         outCommitmentHasher[tx].out === outputCommitment[tx];
@@ -174,10 +178,14 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
     // Otherwise it is equal to tokenField
     component isShieldedTx = IsZero();
     isShieldedTx.in <== publicAmount;
-    component checkEqualIfNotShielded = ForceEqualIfEnabled();
-    checkEqualIfNotShielded.enabled <== 1 - isShieldedTx.out;
-    checkEqualIfNotShielded.in[0] <== assetID;
-    checkEqualIfNotShielded.in[1] <== outAssetID;
+    component checkAssetIDEqualIfNotShielded = ForceEqualIfEnabled();
+    checkAssetIDEqualIfNotShielded.enabled <== 1 - isShieldedTx.out;
+    checkAssetIDEqualIfNotShielded.in[0] <== assetID;
+    checkAssetIDEqualIfNotShielded.in[1] <== publicAssetID;
+    component checkTokenIDEqualIfNotShielded = ForceEqualIfEnabled();
+    checkTokenIDEqualIfNotShielded.enabled <== 1 - isShieldedTx.out;
+    checkTokenIDEqualIfNotShielded.in[0] <== tokenID;
+    checkTokenIDEqualIfNotShielded.in[1] <== publicTokenID;
 
     // optional safety constraint to make sure extDataHash cannot be changed
     signal extDataSquare;
