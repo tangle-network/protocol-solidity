@@ -124,6 +124,9 @@ library LinkableIncrementalBinaryTree {
             "Cannot update leaf outside of tree"
         );
         uint256 hash = leaf;
+        for (uint i = 0; i < startLevel; i++) {
+            index /= 2;
+        }
 
         for (uint i = startLevel; i < self.depth; i++) {
             if (index % 2 == 0) {
@@ -137,8 +140,8 @@ library LinkableIncrementalBinaryTree {
         }
 
         uint32 newRootIndex = (self.currentRootIndex + 1) % ROOT_HISTORY_SIZE;
-        self.currentRootIndex = newRootIndex;
         self.roots[newRootIndex] = hash;
+        self.currentRootIndex = newRootIndex;
     }
 
     /// @dev Updates a leaf in the tree.

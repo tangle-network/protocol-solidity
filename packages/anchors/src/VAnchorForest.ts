@@ -31,6 +31,8 @@ import {
   FIELD_SIZE,
   LeafIdentifier,
 } from '@webb-tools/sdk-core';
+
+// import { MerkleTree } from "."
 import {
   IAnchor,
   IVariableAnchorExtData,
@@ -525,7 +527,6 @@ export class VAnchorForest {
     extDataHash: BigNumber
   ): Promise<any> {
     const vanchorRoots = await this.populateRootsForProof();
-    console.log('vanchorRoots', vanchorRoots);
     const vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x));
     const outputCommitment = outputs.map((x) => BigNumber.from(u8aToHex(x.commitment)).toString())
 
@@ -572,7 +573,6 @@ export class VAnchorForest {
       forestPathIndices: forestPathIndices,
       forestPathElements,
     }
-    console.log("forestRoot", this.forest.root())
 
     return proofInput;
   }
@@ -799,23 +799,19 @@ export class VAnchorForest {
     gasBenchmark.push(receipt.gasUsed.toString());
 
     // Add the leaves to the tree
+    let commitments = []
     outputs.forEach((x) => {
       const commitment = BigNumber.from(u8aToHex(x.commitment))
-      console.log("COMMITMENT: ", commitment)
+      commitments.push(commitment.toHexString())
       this.tree.insert(commitment.toHexString());
       let numOfElements = this.tree.number_of_elements();
       this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
     });
+    const thash = poseidon(commitments);
 
     const curIdx = await this.contract.currSubtreeIndex()
     const lastSubtreeRoot = await this.contract.getLastSubtreeRoot(0)
-    console.log("CUR IDX", curIdx.toString())
-    console.log("CUR ROOT", this.forest.root())
-    console.log("SUBTREE INTERFACE ROOT", this.tree.root())
-    console.log("SUBTREE CONTRACT ROOT", lastSubtreeRoot)
     this.forest.update(curIdx.toNumber(), this.tree.root().toHexString());
-    console.log("UPDATED ROOT", this.forest.root())
-    console.log('-------------------')
 
     return receipt;
   }
@@ -1021,20 +1017,13 @@ export class VAnchorForest {
     // Add the leaves to the tree
     outputs.forEach((x) => {
       const commitment = BigNumber.from(u8aToHex(x.commitment))
-      console.log("COMMITMENT: ", commitment)
       this.tree.insert(commitment.toHexString());
       let numOfElements = this.tree.number_of_elements();
       this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
     });
     const curIdx = await this.contract.currSubtreeIndex()
     const lastSubtreeRoot = await this.contract.getLastSubtreeRoot(0)
-    console.log("CUR IDX", curIdx.toString())
-    console.log("CUR ROOT", this.forest.root())
-    console.log("SUBTREE INTERFACE ROOT", this.tree.root())
-    console.log("SUBTREE CONTRACT ROOT", lastSubtreeRoot)
     this.forest.update(curIdx.toNumber(), this.tree.root().toHexString());
-    console.log("UPDATED ROOT", this.forest.root())
-    console.log('---------------')
 
     return receipt;
   }

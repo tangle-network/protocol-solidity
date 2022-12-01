@@ -38,7 +38,7 @@ contract MerkleForest {
         numSubtreeElements = 0;
     }
     function _insert(bytes32 _leaf) internal returns (uint32) {
-        if (numSubtreeElements + 1>= maxSubtreeElements) {
+        if (numSubtreeElements >= maxSubtreeElements) {
             numSubtreeElements = 0;
             currSubtreeIndex += 1;
         }
@@ -50,62 +50,24 @@ contract MerkleForest {
     }
 
     function _insertTwo(bytes32 _leaf1, bytes32 _leaf2) internal returns (uint32) {
-        if (numSubtreeElements + 2 >= maxSubtreeElements) {
+        if (numSubtreeElements + 1 >= maxSubtreeElements) {
             numSubtreeElements = 0;
             currSubtreeIndex += 1;
         }
-        console.log("inserting two START");
-        console.log("currSubtreeIndex: %s", currSubtreeIndex);
-        console.log("numSubtreeElements: %s", numSubtreeElements);
-        console.log("maxSubtreeElements: %s", maxSubtreeElements);
-        console.log("leaf1 %s", uint(_leaf1));
-        console.log("leaf2 %s", uint(_leaf2));
         uint32 index = subtrees[currSubtreeIndex]._insertTwo(uint(_leaf1), uint(_leaf2));
         uint newLeaf = subtrees[currSubtreeIndex].getLastRoot();
-        console.log("index %s", index);
-        console.log("NEWLEAF %s", newLeaf);
         merkleForest._update(currSubtreeIndex, 0,  newLeaf);
         numSubtreeElements += 2;
-        console.log("inserting two END");
         return index;
     }
     // TODO: Should remove, included for testing
     function insertTwoTest(bytes32 _leaf1, bytes32 _leaf2) public returns (uint32) {
-        if (numSubtreeElements + 2 >= maxSubtreeElements) {
-            numSubtreeElements = 0;
-            currSubtreeIndex += 1;
-        }
-        console.log("inserting two START");
-        console.log("currSubtreeIndex: %s", currSubtreeIndex);
-        console.log("numSubtreeElements: %s", numSubtreeElements);
-        console.log("maxSubtreeElements: %s", maxSubtreeElements);
-        console.log("leaf1 %s", uint(_leaf1));
-        console.log("leaf2 %s", uint(_leaf2));
-        uint32 index = subtrees[currSubtreeIndex]._insertTwo(uint(_leaf1), uint(_leaf2));
-        uint newLeaf = subtrees[currSubtreeIndex].getLastRoot();
-        console.log("index %s", index);
-        console.log("NEWLEAF %s", newLeaf);
-        merkleForest._update(currSubtreeIndex, 0,  newLeaf);
-        numSubtreeElements += 2;
-        console.log("inserting two END");
-        return index;
+        _insertTwo(_leaf1, _leaf2);
     }
 
     // TODO: Remove this. Created for testing
     function insertTest(bytes32 _leaf) public returns (uint32) {
-        console.log("inserting START");
-        console.log("currSubtreeIndex: %s", currSubtreeIndex);
-        console.log("numSubtreeElements: %s", numSubtreeElements);
-        console.log("maxSubtreeElements: %s", maxSubtreeElements);
-        if (numSubtreeElements >= maxSubtreeElements) {
-            numSubtreeElements = 0;
-            currSubtreeIndex += 1;
-        }
-        subtrees[currSubtreeIndex]._insert(uint(_leaf));
-        uint newLeaf = subtrees[currSubtreeIndex].getLastRoot();
-        merkleForest._update(currSubtreeIndex, 0, newLeaf);
-        numSubtreeElements += 1;
-        // return merkleForest.getLastRoot();
+        _insert(_leaf);
     }
 
     // TODO: Make it internal
