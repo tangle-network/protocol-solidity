@@ -550,9 +550,7 @@ export class VAnchorForest {
       let index = MerkleTree.calculateIndexFromPathIndices(pathIndices)
       forestPathIndices.push(index)
     });
-    // forestPathIndices.push(index)
-    // index = MerkleTree.calculateIndexFromPathIndices(indices[1])
-    // forestPathIndices.push(index)
+
     const forestPathElements = vanchorMerkleProof.map((proof) => proof.forestPathElements.map((bignum) => bignum.toString()))
 
     const proofInput = {
@@ -701,7 +699,7 @@ export class VAnchorForest {
       zkeyFile
     );
 
-    const publicInputs = await this.generatePublicInputs(proof)
+    const publicInputs = await this.generatePublicInputs(proof, inputs.length)
     return {
       extData,
       publicInputs,
@@ -740,6 +738,7 @@ export class VAnchorForest {
       relayer,
       leavesMap
     );
+    // console.log("after setup transaction publicInputs", publicInputs)
 
     let tx = await this.contract.transact(
       {
@@ -752,8 +751,6 @@ export class VAnchorForest {
     const receipt = await tx.wait();
     gasBenchmark.push(receipt.gasUsed.toString());
 
-    // Add the leaves to the tree
-    let commitments = []
     await this.updateForest(outputs);
 
     return receipt;

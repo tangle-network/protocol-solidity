@@ -500,7 +500,8 @@ describe.only('VAnchorForest for 2 max edges', () => {
         '0'
       );
 
-      anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
+      const subtreeLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
+      const forestLeaves = anchor.forest.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
       const aliceJoinAmount = 3e7;
       const aliceJoinUtxo = await CircomUtxo.generateUtxo({
@@ -524,7 +525,7 @@ describe.only('VAnchorForest for 2 max edges', () => {
         [aliceDepositUtxo1, aliceDepositUtxo2, aliceDepositUtxo3],
         [aliceJoinUtxo],
         {
-          [chainID.toString()]: anchorLeaves,
+          // [chainID.toString()]: anchorLeaves,
         },
         0,
         0,
@@ -1060,7 +1061,7 @@ describe.only('VAnchorForest for 2 max edges', () => {
       // and the tx with NewNullifier event is where alice spent the UTXO
     });
 
-    it.only('Should reject proofs made against roots of empty edges', async () => {
+    it('Should reject proofs made against roots of empty edges', async () => {
       // This test has not been linked to another anchor - edgeList should be empty.
       await TruffleAssert.reverts(anchor.contract.edgeList(0));
 
@@ -1113,15 +1114,14 @@ describe.only('VAnchorForest for 2 max edges', () => {
         keypair: new Keypair(),
         index: null,
       });
-      // const inputs = [fakeUtxo, dummyInput]
+      const fakeInputs = [fakeUtxo, dummyInput]
       const inputs = [dummyInput, dummyInput2]
       const outputs = [dummyOutput, dummyOutput2]
 
       const extAmount = BigNumber.from(fee)
         .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
-        .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
+        .sub(fakeInputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
 
-      console.log("1")
       const fakeTree = new MerkleTree(subtreeLevels);
       const fakeForest = new MerkleTree(forestLevels);
       const fakeCommitment = u8aToHex(fakeUtxo.commitment);
@@ -1130,6 +1130,13 @@ describe.only('VAnchorForest for 2 max edges', () => {
       const fakeSubtreeRoot = fakeTree.root();
       fakeForest.insert(fakeSubtreeRoot);
       const fakeRoot = fakeForest.root();
+
+      const fakeSubtreeProof = fakeTree.path(0)
+      const fakeForestProof = fakeForest.path(0)
+      let forestIndices = MerkleTree.calculateIndexFromPathIndices(fakeForestProof.pathIndices)
+      let forestPathElements = fakeForestProof.pathElements.map((bignum) => bignum.toString())
+      let subtreeIndices = MerkleTree.calculateIndexFromPathIndices(fakeSubtreeProof.pathIndices)
+      let subtreePathElements = fakeSubtreeProof.pathElements.map((bignum) => bignum.toString())
 
       const roots = await anchor.populateRootsForProof();
       roots[1] = fakeRoot.toHexString();
@@ -1144,25 +1151,27 @@ describe.only('VAnchorForest for 2 max edges', () => {
         outputs[1].encrypt()
       );
 
-      const proofInput: UTXOInputs = await anchor.generateUTXOInputs(
+      const emptyMerkleProof = anchor.getMerkleProof(inputs[1]);
+      const outputCommitment = outputs.map((x) => BigNumber.from(u8aToHex(x.commitment)).toString())
+      // const merkleProofs = [
+
+      const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
+        roots.map((root) => BigNumber.from(root)),
+        chainID,
         inputs,
         outputs,
-        chainID,
-        BigNumber.from(extAmount),
-        BigNumber.from(fee),
-        extDataHash
+        extAmount,
+        fee,
+        BigNumber.from(extDataHash),
+        vanchorMerkleProof
       );
 
-      const fakeSubtreeProof = fakeTree.path(0)
-      const fakeForestProof = fakeForest.path(0)
-      const forestPathIndices = []
-      let forestIndices = MerkleTree.calculateIndexFromPathIndices(fakeForestProof.pathIndices)
-      let subtreeIndices = MerkleTree.calculateIndexFromPathIndices(fakeSubtreeProof.pathIndices)
-      proofInput["subtreePathElements"] = [fakeSubtreeProof.pathElements.map((x) => x.toHexString()), new Array(fakeTree.levels).fill(0)]
-      proofInput["subtreePathIndices"] = [MerkleTree.calculateIndexFromPathIndices(fakeSubtreeProof.pathIndices), 0]
-      proofInput["forestPathIndices"] = [MerkleTree.calculateIndexFromPathIndices(fakeForestProof.pathIndices), 0]
-      proofInput["forestPathElements"] = [fakeForestProof.pathElements.map((x) => x.toHexString()), new Array(fakeForest.levels).fill(0)]
-      console.log('proofInput: ', proofInput)
+
+
+
+
+
+
 
       let wasmFile;
       let zkeyFile;

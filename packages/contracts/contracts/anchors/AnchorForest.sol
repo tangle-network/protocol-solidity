@@ -7,6 +7,7 @@ pragma solidity ^0.8.0;
 
 import "../trees/MerkleTree.sol";
 import "./LinkableAnchorForest.sol";
+import "hardhat/console.sol";
 
 /**
     @title AnchorBase contract
@@ -66,7 +67,6 @@ abstract contract AnchorForest is LinkableAnchorForest {
     function insertTwo(bytes32 _firstCommitment, bytes32 _secondCommitment) internal returns(uint32) {
         require(!commitments[_firstCommitment], "The commitment has been submitted");
         require(!commitments[_secondCommitment], "The commitment has been submitted");
-
         uint32 insertedIndex = _insertTwo(_firstCommitment, _secondCommitment);
         commitments[_firstCommitment] = true;
         commitments[_secondCommitment] = true;
