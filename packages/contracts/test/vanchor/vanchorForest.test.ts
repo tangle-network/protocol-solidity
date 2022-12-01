@@ -19,6 +19,7 @@ import {
   hexToU8a,
   fetchComponentsFromFilePaths,
   getChainIdType,
+  UTXOInputs,
   ZkComponents,
   u8aToHex,
 } from '@webb-tools/utils';
@@ -59,6 +60,7 @@ describe.only('VAnchorForest for 2 max edges', () => {
   let token: ERC20PresetMinterPauser;
   let wrappedToken: WrappedToken;
   let tokenDenomination = '1000000000000000000'; // 1 ether
+  const relayer = '0x2111111111111111111111111111111111111111';
   const chainID = getChainIdType(31337);
   const MAX_EDGES = 1;
   let create2InputWitness: any;
@@ -172,7 +174,6 @@ describe.only('VAnchorForest for 2 max edges', () => {
 
   describe('snark proof native verification on js side', () => {
     it('should work', async () => {
-      const relayer = '0x2111111111111111111111111111111111111111';
       const extAmount = 1e7;
       const aliceDepositAmount = 1e7;
       const roots = await anchor.populateRootsForProof();
@@ -278,7 +279,6 @@ describe.only('VAnchorForest for 2 max edges', () => {
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
       //Step 1: Alice deposits into Tornado Pool
       const aliceBalanceBeforeDeposit = await token.balanceOf(alice.address);
-      const relayer = '0x2111111111111111111111111111111111111111';
       const fee = 1e6;
       await anchor.registerAndTransact(
         sender.address,
@@ -1077,82 +1077,127 @@ describe.only('VAnchorForest for 2 max edges', () => {
         index: '0',
         keypair,
       });
+      const dummyInput = await CircomUtxo.generateUtxo({
+        curve: 'Bn254',
+        backend: 'Circom',
+        chainId: chainID.toString(),
+        originChainId: chainID.toString(),
+        amount: '0',
+        keypair: new Keypair(),
+        index: null,
+      });
+      const dummyInput2 = await CircomUtxo.generateUtxo({
+        curve: 'Bn254',
+        backend: 'Circom',
+        chainId: chainID.toString(),
+        originChainId: chainID.toString(),
+        amount: '0',
+        keypair: new Keypair(),
+        index: null,
+      });
+      const dummyOutput = await CircomUtxo.generateUtxo({
+        curve: 'Bn254',
+        backend: 'Circom',
+        chainId: chainID.toString(),
+        originChainId: chainID.toString(),
+        amount: '0',
+        keypair: new Keypair(),
+        index: null,
+      });
+      const dummyOutput2 = await CircomUtxo.generateUtxo({
+        curve: 'Bn254',
+        backend: 'Circom',
+        chainId: chainID.toString(),
+        originChainId: chainID.toString(),
+        amount: '0',
+        keypair: new Keypair(),
+        index: null,
+      });
+      // const inputs = [fakeUtxo, dummyInput]
+      const inputs = [dummyInput, dummyInput2]
+      const outputs = [dummyOutput, dummyOutput2]
 
-      // Attempt to withdraw by creating a proof against a root that shouldn't exist.
-      // create the merkle tree
+      const extAmount = BigNumber.from(fee)
+        .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+        .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
+
       console.log("1")
-      const fakeTree = new MerkleTree(30);
+      const fakeTree = new MerkleTree(subtreeLevels);
+      const fakeForest = new MerkleTree(forestLevels);
       const fakeCommitment = u8aToHex(fakeUtxo.commitment);
       fakeTree.insert(fakeCommitment);
 
-      const fakeRoot = fakeTree.root();
+      const fakeSubtreeRoot = fakeTree.root();
+      fakeForest.insert(fakeSubtreeRoot);
+      const fakeRoot = fakeForest.root();
 
       const roots = await anchor.populateRootsForProof();
       roots[1] = fakeRoot.toHexString();
 
-      console.log("1")
-      const setupVAnchor = new SetupTxVAnchorMock(
-        anchor.contract,
-        anchor.signer,
-        30,
-        1,
-        anchor.smallCircuitZkComponents,
-        anchor.largeCircuitZkComponents,
-        roots
+      const { extData, extDataHash } = await anchor.generateExtData(
+        recipient,
+        BigNumber.from(extAmount),
+        relayer,
+        BigNumber.from(fee),
+        BigNumber.from(0),
+        outputs[0].encrypt(),
+        outputs[1].encrypt()
       );
-      console.log("1")
-      setupVAnchor.token = anchor.token;
-      let inputs: Utxo[] = [
-        fakeUtxo,
-        await CircomUtxo.generateUtxo({
-          curve: 'Bn254',
-          backend: 'Circom',
-          chainId: chainID.toString(),
-          originChainId: chainID.toString(),
-          amount: '0',
-          blinding: hexToU8a(randomBN(31).toHexString()),
-          keypair,
-        }),
-      ];
 
-      console.log("1")
-      let outputs: [Utxo, Utxo] = [
-        await CircomUtxo.generateUtxo({
-          curve: 'Bn254',
-          backend: 'Circom',
-          chainId: chainID.toString(),
-          originChainId: chainID.toString(),
-          amount: '0',
-          keypair,
-        }),
-        await CircomUtxo.generateUtxo({
-          curve: 'Bn254',
-          backend: 'Circom',
-          chainId: chainID.toString(),
-          originChainId: chainID.toString(),
-          amount: '0',
-          keypair,
-        }),
-      ];
-
-      console.log("1")
-      let extAmount = BigNumber.from(0)
-        .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
-        .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
-
-      const { publicInputs, extData } = await setupVAnchor.setupTransaction(
+      const proofInput: UTXOInputs = await anchor.generateUTXOInputs(
         inputs,
         outputs,
-        extAmount,
-        0,
-        0,
-        setupVAnchor.token,
-        recipient,
-        '0',
-        {
-          [fakeChainId.toString()]: [fakeUtxo.commitment],
-          [chainID.toString()]: [hexToU8a(fakeTree.zeroElement.toHexString())],
-        }
+        chainID,
+        BigNumber.from(extAmount),
+        BigNumber.from(fee),
+        extDataHash
+      );
+
+      const fakeSubtreeProof = fakeTree.path(0)
+      const fakeForestProof = fakeForest.path(0)
+      const forestPathIndices = []
+      let forestIndices = MerkleTree.calculateIndexFromPathIndices(fakeForestProof.pathIndices)
+      let subtreeIndices = MerkleTree.calculateIndexFromPathIndices(fakeSubtreeProof.pathIndices)
+      proofInput["subtreePathElements"] = [fakeSubtreeProof.pathElements.map((x) => x.toHexString()), new Array(fakeTree.levels).fill(0)]
+      proofInput["subtreePathIndices"] = [MerkleTree.calculateIndexFromPathIndices(fakeSubtreeProof.pathIndices), 0]
+      proofInput["forestPathIndices"] = [MerkleTree.calculateIndexFromPathIndices(fakeForestProof.pathIndices), 0]
+      proofInput["forestPathElements"] = [fakeForestProof.pathElements.map((x) => x.toHexString()), new Array(fakeForest.levels).fill(0)]
+      console.log('proofInput: ', proofInput)
+
+      let wasmFile;
+      let zkeyFile;
+      if (inputs.length > 2) {
+        wasmFile = anchor.largeCircuitZkComponents.wasm
+        zkeyFile = anchor.largeCircuitZkComponents.zkey
+      } else {
+        wasmFile = anchor.smallCircuitZkComponents.wasm
+        zkeyFile = anchor.smallCircuitZkComponents.zkey
+      }
+
+      let proof = await snarkjs.groth16.fullProve(
+        proofInput,
+        wasmFile,
+        zkeyFile
+      );
+      const vKey = await snarkjs.zKey.exportVerificationKey(
+        '/home/semar/Projects/webb/protocol-solidity/packages/contracts/solidity-fixtures/solidity-fixtures/vanchor_forest_2/2/circuit_final.zkey'
+      );
+
+      const res = await snarkjs.groth16.verify(vKey, proof.publicSignals, proof.proof);
+      if (res !== true) {
+        throw new Error('!!!!!!!!!!!!!!!!!!!!!!!!!!Invalid proof');
+      }
+
+      console.log("PROOF HAS BEEN VERIFIED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!", res)
+      // const proof = await this.provingManager.prove('vanchor', proofInput);
+
+      const calldata = await snarkjs.groth16.exportSolidityCallData(
+        proof.proof,
+        proof.publicSignals
+      );
+      const publicInputs = await anchor.generatePublicInputs(
+        proof,
+        calldata
       );
 
       await TruffleAssert.reverts(
