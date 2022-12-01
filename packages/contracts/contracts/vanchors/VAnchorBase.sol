@@ -7,6 +7,7 @@ pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
 import "../anchors/AnchorBase.sol";
+import "../structs/PublicInputs.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -85,15 +86,12 @@ abstract contract VAnchorBase is AnchorBase {
 		emit PublicKey(_account.owner, _account.keyData);
 	}
 
-	/** @dev this function is defined in a child contract */
-	//removed payable from address might need to add it back if things don't work
 	function _processWithdraw(
 		address _token,
 		address _recipient,
 		uint256 _minusExtAmount
 	) internal virtual;
 
-	/** similar to _processWithdraw. Is defined in a child contract */
 	function _processFee(
 		address _token,
 		address _relayer,

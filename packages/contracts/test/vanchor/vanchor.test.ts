@@ -129,13 +129,29 @@ describe('VAnchor for 2 max edges', () => {
     await token.deployed();
     await token.mint(sender.address, '10000000000000000000000');
 
+    // create wrapped token
+    const name = 'webbETH';
+    const symbol = 'webbETH';
+    const dummyFeeRecipient = '0x0000000000010000000010000000000000000000';
+    const wrappedTokenFactory = new WrappedTokenFactory(wallet);
+    wrappedToken = await wrappedTokenFactory.deploy(name, symbol);
+    await wrappedToken.deployed();
+    await wrappedToken.initialize(
+      0,
+      dummyFeeRecipient,
+      sender.address,
+      '10000000000000000000000000',
+      true
+    );
+    await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
+
     // create Anchor
     anchor = await VAnchor.createVAnchor(
       verifier.contract.address,
       levels,
       hasherInstance.contract.address,
       sender.address,
-      token.address,
+      wrappedToken.address,
       1,
       zkComponents2_2,
       zkComponents16_2,
@@ -249,8 +265,8 @@ describe('VAnchor for 2 max edges', () => {
     });
   });
 
-  describe('#transact', () => {
-    it('should transact', async () => {
+  describe.only('#transact', () => {
+    it.only('should transact', async () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
@@ -264,6 +280,7 @@ describe('VAnchor for 2 max edges', () => {
         0,
         '0',
         '0',
+        '',
         {}
       );
     });
@@ -287,6 +304,7 @@ describe('VAnchor for 2 max edges', () => {
         BigNumber.from(0),
         '0',
         relayer,
+        '',
         {}
       );
 
@@ -318,6 +336,7 @@ describe('VAnchor for 2 max edges', () => {
         0,
         '0',
         '0',
+        '',
         {}
       );
 
@@ -333,17 +352,9 @@ describe('VAnchor for 2 max edges', () => {
 
       const anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
-      await anchor.transact(
-        [aliceDepositUtxo],
-        [aliceRefreshUtxo],
-        {
-          [chainID.toString()]: anchorLeaves,
-        },
-        0,
-        0,
-        '0',
-        '0'
-      );
+      await anchor.transact([aliceDepositUtxo], [aliceRefreshUtxo], 0, 0, '0', '0', '', {
+        [chainID.toString()]: anchorLeaves,
+      });
     });
 
     it('should spend input utxo and split', async () => {
@@ -360,6 +371,7 @@ describe('VAnchor for 2 max edges', () => {
         0,
         '0',
         '0',
+        '',
         {}
       );
 
@@ -372,13 +384,14 @@ describe('VAnchor for 2 max edges', () => {
       await anchor.transact(
         [aliceDepositUtxo],
         [aliceSplitUtxo1, aliceSplitUtxo2],
-        {
-          [chainID.toString()]: anchorLeaves,
-        },
         0,
         0,
         '0',
-        '0'
+        '0',
+        '',
+        {
+          [chainID.toString()]: anchorLeaves,
+        }
       );
     });
 
@@ -395,6 +408,7 @@ describe('VAnchor for 2 max edges', () => {
         0,
         '0',
         '0',
+        '',
         {}
       );
 
@@ -411,17 +425,9 @@ describe('VAnchor for 2 max edges', () => {
         blinding: hexToU8a(randomBN().toHexString()),
       });
 
-      await anchor.transact(
-        [],
-        [aliceDepositUtxo2],
-        {
-          [chainID.toString()]: anchorLeaves,
-        },
-        0,
-        0,
-        '0',
-        '0'
-      );
+      await anchor.transact([], [aliceDepositUtxo2], 0, 0, '0', '0', '', {
+        [chainID.toString()]: anchorLeaves,
+      });
 
       anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
@@ -437,13 +443,14 @@ describe('VAnchor for 2 max edges', () => {
       await anchor.transact(
         [aliceDepositUtxo1, aliceDepositUtxo2],
         [aliceJoinUtxo],
-        {
-          [chainID.toString()]: anchorLeaves,
-        },
         0,
         0,
         '0',
-        '0'
+        '0',
+        '',
+        {
+          [chainID.toString()]: anchorLeaves,
+        }
       );
     });
 
@@ -469,6 +476,7 @@ describe('VAnchor for 2 max edges', () => {
         0,
         '0',
         '0',
+        '',
         {}
       );
 
@@ -484,17 +492,9 @@ describe('VAnchor for 2 max edges', () => {
         keypair: aliceDepositUtxo1.keypair,
       });
 
-      await anchor.transact(
-        [],
-        [aliceDepositUtxo3],
-        {
-          [chainID.toString()]: anchorLeaves,
-        },
-        0,
-        0,
-        '0',
-        '0'
-      );
+      await anchor.transact([], [aliceDepositUtxo3], 0, 0, '0', '0', '', {
+        [chainID.toString()]: anchorLeaves,
+      });
 
       anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
@@ -519,13 +519,14 @@ describe('VAnchor for 2 max edges', () => {
       await anchor.transact(
         [aliceDepositUtxo1, aliceDepositUtxo2, aliceDepositUtxo3],
         [aliceJoinUtxo],
-        {
-          [chainID.toString()]: anchorLeaves,
-        },
         0,
         0,
         '0',
-        '0'
+        '0',
+        '',
+        {
+          [chainID.toString()]: anchorLeaves,
+        }
       );
     }).timeout(120000);
 
@@ -542,6 +543,7 @@ describe('VAnchor for 2 max edges', () => {
         0,
         '0',
         '0',
+        '',
         {}
       );
 
@@ -558,17 +560,10 @@ describe('VAnchor for 2 max edges', () => {
       });
       const aliceETHAddress = '0xDeaD00000000000000000000000000000000BEEf';
 
-      await anchor.transact(
-        [aliceDepositUtxo],
-        [aliceChangeUtxo],
-        {
-          [chainID.toString()]: anchorLeaves,
-        },
-        0,
-        0,
-        aliceETHAddress,
-        '0'
-      );
+      await anchor.transact([aliceDepositUtxo], [aliceChangeUtxo], 0, 0, aliceETHAddress, '0', '', {
+        [chainID.toString()]: anchorLeaves,
+      });
+
       assert.strictEqual(
         aliceWithdrawAmount.toString(),
         await (await token.balanceOf(aliceETHAddress)).toString()
@@ -596,6 +591,7 @@ describe('VAnchor for 2 max edges', () => {
         0,
         '0',
         '0',
+        '',
         {}
       );
 
@@ -613,32 +609,16 @@ describe('VAnchor for 2 max edges', () => {
         keypair: aliceDepositUtxo.keypair,
       });
 
-      await anchor.transact(
-        [aliceDepositUtxo],
-        [aliceTransferUtxo],
-        {
-          [chainID.toString()]: anchorLeaves,
-        },
-        0,
-        0,
-        '0',
-        '0'
-      );
+      await anchor.transact([aliceDepositUtxo], [aliceTransferUtxo], 0, 0, '0', '0', '', {
+        [chainID.toString()]: anchorLeaves,
+      });
 
       anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
       await TruffleAssert.reverts(
-        anchor.transact(
-          [aliceDepositUtxo],
-          [aliceTransferUtxo],
-          {
-            [chainID.toString()]: anchorLeaves,
-          },
-          0,
-          0,
-          '0',
-          '0'
-        ),
+        anchor.transact([aliceDepositUtxo], [aliceTransferUtxo], 0, 0, '0', '0', '', {
+          [chainID.toString()]: anchorLeaves,
+        }),
         'Input is already spent'
       );
     });
@@ -666,6 +646,7 @@ describe('VAnchor for 2 max edges', () => {
         0,
         '0',
         '0',
+        '',
         {}
       );
 
@@ -690,17 +671,9 @@ describe('VAnchor for 2 max edges', () => {
       });
       //Step 4: Check that step 3 fails
       await TruffleAssert.reverts(
-        anchor.transact(
-          [aliceDepositUtxo],
-          [aliceOutputUtxo],
-          {
-            [chainID.toString()]: anchorLeaves,
-          },
-          0,
-          0,
-          '0',
-          '0'
-        ),
+        anchor.transact([aliceDepositUtxo], [aliceOutputUtxo], 0, 0, '0', '0', '', {
+          [chainID.toString()]: anchorLeaves,
+        }),
         'ERC20: transfer amount exceeds balance'
       );
     });
@@ -786,10 +759,17 @@ describe('VAnchor for 2 max edges', () => {
       let incorrectPublicInputs = VAnchor.convertToPublicInputsStruct(incorrectPublicInputArgs);
       let extAmountInputs = VAnchor.convertToExtDataStruct(extDataArgs);
 
-      //anchor.contract.transact(incorrectPublicInputs, extAmountInputs, { gasPrice: '100' });
-
       await TruffleAssert.reverts(
-        anchor.contract.transact(incorrectPublicInputs, extAmountInputs),
+        anchor.contract.transact(
+          incorrectPublicInputs.proof,
+          '',
+          extAmountInputs,
+          incorrectPublicInputs,
+          {
+            encryptedOutput1: '',
+            encryptedOutput2: '',
+          }
+        ),
         'Invalid public amount'
       );
 
@@ -806,7 +786,16 @@ describe('VAnchor for 2 max edges', () => {
       incorrectPublicInputs = VAnchor.convertToPublicInputsStruct(incorrectPublicInputArgs);
 
       await TruffleAssert.reverts(
-        anchor.contract.transact(incorrectPublicInputs, extAmountInputs),
+        anchor.contract.transact(
+          incorrectPublicInputs.proof,
+          '',
+          extAmountInputs,
+          incorrectPublicInputs,
+          {
+            encryptedOutput1: '',
+            encryptedOutput2: '',
+          }
+        ),
         'Incorrect external data hash'
       );
 
@@ -826,7 +815,16 @@ describe('VAnchor for 2 max edges', () => {
       incorrectPublicInputs = VAnchor.convertToPublicInputsStruct(incorrectPublicInputArgs);
 
       await TruffleAssert.reverts(
-        anchor.contract.transact(incorrectPublicInputs, extAmountInputs),
+        anchor.contract.transact(
+          incorrectPublicInputs.proof,
+          '',
+          extAmountInputs,
+          incorrectPublicInputs,
+          {
+            encryptedOutput1: '',
+            encryptedOutput2: '',
+          }
+        ),
         'Invalid withdraw proof'
       );
 
@@ -843,7 +841,16 @@ describe('VAnchor for 2 max edges', () => {
       incorrectPublicInputs = VAnchor.convertToPublicInputsStruct(incorrectPublicInputArgs);
 
       await TruffleAssert.reverts(
-        anchor.contract.transact(incorrectPublicInputs, extAmountInputs),
+        anchor.contract.transact(
+          incorrectPublicInputs.proof,
+          '',
+          extAmountInputs,
+          incorrectPublicInputs,
+          {
+            encryptedOutput1: '',
+            encryptedOutput2: '',
+          }
+        ),
         'Invalid withdraw proof'
       );
 
@@ -863,7 +870,16 @@ describe('VAnchor for 2 max edges', () => {
       let incorrectExtAmountInputs = VAnchor.convertToExtDataStruct(incorrectExtDataArgs);
 
       await TruffleAssert.reverts(
-        anchor.contract.transact(correctPublicInputs, incorrectExtAmountInputs),
+        anchor.contract.transact(
+          correctPublicInputs.proof,
+          '',
+          incorrectExtAmountInputs,
+          correctPublicInputs,
+          {
+            encryptedOutput1: '',
+            encryptedOutput2: '',
+          }
+        ),
         'Incorrect external data hash'
       );
 
@@ -882,7 +898,16 @@ describe('VAnchor for 2 max edges', () => {
       incorrectExtAmountInputs = VAnchor.convertToExtDataStruct(incorrectExtDataArgs);
 
       await TruffleAssert.reverts(
-        anchor.contract.transact(correctPublicInputs, incorrectExtAmountInputs),
+        anchor.contract.transact(
+          correctPublicInputs.proof,
+          '',
+          incorrectExtAmountInputs,
+          correctPublicInputs,
+          {
+            encryptedOutput1: '',
+            encryptedOutput2: '',
+          }
+        ),
         'Incorrect external data hash'
       );
 
@@ -901,7 +926,16 @@ describe('VAnchor for 2 max edges', () => {
       incorrectExtAmountInputs = VAnchor.convertToExtDataStruct(incorrectExtDataArgs);
 
       await TruffleAssert.reverts(
-        anchor.contract.transact(correctPublicInputs, incorrectExtAmountInputs),
+        anchor.contract.transact(
+          correctPublicInputs.proof,
+          '',
+          incorrectExtAmountInputs,
+          correctPublicInputs,
+          {
+            encryptedOutput1: '',
+            encryptedOutput2: '',
+          }
+        ),
         'Incorrect external data hash'
       );
     });
@@ -941,7 +975,7 @@ describe('VAnchor for 2 max edges', () => {
       });
 
       // Insert the UTXO into the tree
-      receipt = await anchor.transact([], [aliceTransferUtxo], {}, 0, 0, '0', '0');
+      receipt = await anchor.transact([], [aliceTransferUtxo], 0, 0, '0', '0', '', {});
 
       // Bob queries encrypted commitments on chain
       const encryptedCommitments: string[] = receipt.events
@@ -977,17 +1011,9 @@ describe('VAnchor for 2 max edges', () => {
       const leaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
       // Bob uses the parsed utxos to issue a withdraw
-      receipt = await anchor.transact(
-        spendableUtxos,
-        [],
-        {
-          [chainID.toString()]: leaves,
-        },
-        0,
-        0,
-        recipient.address,
-        '0'
-      );
+      receipt = await anchor.transact(spendableUtxos, [], 0, 0, recipient.address, '0', '', {
+        [chainID.toString()]: leaves,
+      });
 
       // get balances after transfer interactions
       const aliceBalanceAfter = await token.balanceOf(sender.address);
@@ -1007,22 +1033,14 @@ describe('VAnchor for 2 max edges', () => {
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
 
-      await anchor.transact([], [aliceDepositUtxo], {}, 0, 0, '0', '0');
+      await anchor.transact([], [aliceDepositUtxo], 0, 0, '0', '0', '', {});
 
       const anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
       // withdrawal
-      await anchor.transact(
-        [aliceDepositUtxo],
-        [],
-        {
-          [chainID.toString()]: anchorLeaves,
-        },
-        0,
-        0,
-        sender.address,
-        '0'
-      );
+      await anchor.transact([aliceDepositUtxo], [], 0, 0, sender.address, '0', '', {
+        [chainID.toString()]: anchorLeaves,
+      });
 
       //build merkle tree start
       const filter = anchor.contract.filters.NewCommitment();
@@ -1147,7 +1165,10 @@ describe('VAnchor for 2 max edges', () => {
       );
 
       await TruffleAssert.reverts(
-        anchor.contract.transact(publicInputs, extData),
+        anchor.contract.transact(publicInputs.proof, '', extData, publicInputs, {
+          encryptedOutput1: outputs[0].encrypt(),
+          encryptedOutput2: outputs[1].encrypt(),
+        }),
         'non-existent edge is not set to the default root'
       );
     });
@@ -1213,16 +1234,7 @@ describe('VAnchor for 2 max edges', () => {
         index: null,
       });
       //create a deposit on the anchor already setup
-      await wrappedAnchor.transactWrap(
-        token.address,
-        [],
-        [aliceDepositUtxo],
-        '0',
-        '0',
-        '0',
-        '0',
-        {}
-      );
+      await wrappedAnchor.transact([], [aliceDepositUtxo], '0', '0', '0', '0', token.address, {});
       const balTokenAfterDepositSender = await token.balanceOf(sender.address);
       assert.strictEqual(
         balTokenBeforeDepositSender.sub(balTokenAfterDepositSender).toString(),
@@ -1299,16 +1311,7 @@ describe('VAnchor for 2 max edges', () => {
           index: null,
         });
         // create a deposit on the anchor already setup
-        await wrappedAnchor.transactWrap(
-          token.address,
-          [],
-          [aliceDepositUtxo],
-          '0',
-          '0',
-          '0',
-          '0',
-          {}
-        );
+        await wrappedAnchor.transact([], [aliceDepositUtxo], '0', '0', '0', '0', token.address, {});
       }
 
       assert.equal(
@@ -1385,7 +1388,7 @@ describe('VAnchor for 2 max edges', () => {
         keypair,
       });
       //create a deposit on the anchor already setup
-      await wrappedVAnchor.transactWrap(token.address, [], [aliceDepositUtxo], 0, 0, '0', '0', {});
+      await wrappedVAnchor.transact([], [aliceDepositUtxo], 0, 0, '0', '0', token.address, {});
 
       let anchorLeaves = wrappedVAnchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
@@ -1408,14 +1411,14 @@ describe('VAnchor for 2 max edges', () => {
         amount: aliceChangeAmount.toString(),
       });
 
-      await wrappedVAnchor.transactWrap(
-        token.address,
+      await wrappedVAnchor.transact(
         [aliceDepositUtxo],
         [aliceChangeUtxo],
         0,
         0,
         sender.address,
         '0',
+        token.address,
         {
           [chainID.toString()]: anchorLeaves,
         }
@@ -1428,7 +1431,7 @@ describe('VAnchor for 2 max edges', () => {
       );
     });
 
-    it('wrapping fee should work correctly with transactWrap', async () => {
+    it('wrapping fee should work correctly with transact and wrap', async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
       const sender = wallet;
@@ -1495,7 +1498,7 @@ describe('VAnchor for 2 max edges', () => {
       const balUnwrappedTokenBeforeDepositSender = await token.balanceOf(sender.address);
       const balUnwrappedTokenBeforeDepositWrapper = await token.balanceOf(wrappedToken.address);
 
-      await wrappedVAnchor.transactWrap(token.address, [], [aliceDepositUtxo], 0, 0, '0', '0', {});
+      await wrappedVAnchor.transact([], [aliceDepositUtxo], 0, 0, '0', '0', token.address, {});
 
       // Limitations on UTXO index readonly value. create a new UTXO with the proper index.
       const aliceDepositIndex = wrappedVAnchor.tree.getIndexByElement(aliceDepositUtxo.commitment);
@@ -1538,14 +1541,14 @@ describe('VAnchor for 2 max edges', () => {
         keypair: aliceDepositUtxo.keypair,
       });
 
-      await wrappedVAnchor.transactWrap(
-        token.address,
+      await wrappedVAnchor.transact(
         [aliceDepositUtxo],
         [aliceChangeUtxo],
         0,
         0,
         sender.address,
         '0',
+        token.address,
         {
           [chainID.toString()]: anchorLeaves,
         }
@@ -1576,18 +1579,9 @@ describe('VAnchor for 2 max edges', () => {
       );
 
       await TruffleAssert.passes(
-        wrappedVAnchor.transactWrap(
-          token.address,
-          [aliceChangeUtxo],
-          [],
-          0,
-          0,
-          sender.address,
-          '0',
-          {
-            [chainID.toString()]: anchorLeaves,
-          }
-        )
+        wrappedVAnchor.transact([aliceChangeUtxo], [], 0, 0, sender.address, '0', token.address, {
+          [chainID.toString()]: anchorLeaves,
+        })
       );
 
       let originalTokenDifference = expectedSenderTokenOutflows - 2e7;

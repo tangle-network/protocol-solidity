@@ -21,6 +21,7 @@ import {
   ZkComponents,
   u8aToHex,
   UTXOInputs,
+  ZERO_BYTES32,
 } from '@webb-tools/utils';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -369,7 +370,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
         fee,
         BigNumber.from(0),
         alice.address,
-        relayer
+        relayer,
+        ''
       );
 
       const encOutput1 = outputs[0].encrypt();
@@ -407,7 +409,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
         fee,
         BigNumber.from(0),
         alice.address,
-        relayer
+        relayer,
+        ''
       );
 
       const encOutput1 = outputs[0].encrypt();
@@ -457,7 +460,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
         fee,
         BigNumber.from(0),
         alice.address,
-        relayer
+        relayer,
+        ''
       );
 
       let receipt = await tx.wait();
@@ -505,7 +509,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
         fee,
         BigNumber.from(0),
         bob.address,
-        relayer
+        relayer,
+        ''
       );
 
       const aliceBalanceAfter = await token.balanceOf(alice.address);
@@ -532,7 +537,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
           fee,
           BigNumber.from(0),
           alice.address,
-          relayer
+          relayer,
+          ''
         );
         aliceBalanceAfterDeposit = await token.balanceOf(alice.address);
         expect(aliceBalanceAfterDeposit.toString()).equal(
@@ -561,7 +567,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
           fee,
           BigNumber.from(0),
           alice.address,
-          relayer
+          relayer,
+          ''
         );
       });
 
@@ -579,7 +586,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
           fee,
           BigNumber.from(0),
           alice.address,
-          relayer
+          relayer,
+          ''
         );
 
         const aliceDoubleSpendTransaction = await generateUTXOForTest(
@@ -596,7 +604,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
             fee,
             BigNumber.from(0),
             alice.address,
-            relayer
+            relayer,
+            ''
           )
         ).to.revertedWith('Input is already spent');
       });
@@ -620,7 +629,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
             fee,
             BigNumber.from(0),
             alice.address,
-            relayer
+            relayer,
+            ''
           )
         ).to.revertedWith('ERC20: transfer amount exceeds balance');
       });
@@ -643,7 +653,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
           fee,
           BigNumber.from(0),
           alice.address,
-          relayer
+          relayer,
+          ''
         );
         const aliceBalanceAfterSecondDeposit = await token.balanceOf(alice.address);
         expect(aliceBalanceAfterFirstDeposit.sub(aliceBalanceAfterSecondDeposit).toString()).equal(
@@ -664,7 +675,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
           fee,
           BigNumber.from(0),
           alice.address,
-          relayer
+          relayer,
+          ''
         );
         const aliceBalanceAfterJoin = await token.balanceOf(alice.address);
         expect(aliceBalanceBeforeDeposit.sub(aliceBalanceAfterJoin).toString()).equal('30000000');
@@ -682,7 +694,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
           fee,
           BigNumber.from(0),
           alice.address,
-          relayer
+          relayer,
+          ''
         );
 
         // alice shouldn't have deposited into tornado as input utxo has enough
@@ -709,7 +722,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
           fee,
           BigNumber.from(0),
           aliceETHAddress,
-          relayer
+          relayer,
+          ''
         );
 
         expect(aliceWithdrawAmount.toString()).equal(
@@ -718,7 +732,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
       });
     });
     it('should reject proofs made against VAnchor empty edges', async () => {
-      // const tx =
       await expect(idAnchor.contract.edgeList(BigNumber.from(0))).revertedWith('CALL_EXCEPTION');
 
       const vanchorRoots = await idAnchor.populateVAnchorRootsForProof();
@@ -824,7 +837,28 @@ describe('IdentityVAnchor for 2 max edges', () => {
         extDataHash.toString()
       );
 
-      const tx = idAnchor.contract.transact({ ...publicInputs }, extData, { gasLimit: '0x5B8D80' });
+      const tx = idAnchor.contract.transact(
+        publicInputs.proof,
+        '',
+        {
+          dataHash: ZERO_BYTES32,
+          recipient: extData.recipient,
+          extAmount: extData.extAmount,
+          relayer: extData.relayer,
+          fee: extData.fee,
+          refund: extData.refund,
+          token: extData.token,
+        },
+        {
+          roots: publicInputs.vanchorRoots,
+          extensionRoots: publicInputs.identityRoots,
+          inputNullifiers: publicInputs.inputNullifiers,
+          outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
+          publicAmount: publicInputs.publicAmount,
+          extDataHash: publicInputs.extDataHash,
+        },
+        { gasLimit: '0x5B8D80' }
+      );
       await expect(tx).revertedWith('non-existent edge is not set to the default root');
     });
     it('should reject proofs made against Semaphore empty edges', async () => {
@@ -914,7 +948,28 @@ describe('IdentityVAnchor for 2 max edges', () => {
         extDataHash.toString()
       );
 
-      const tx = idAnchor.contract.transact({ ...publicInputs }, extData, { gasLimit: '0x5B8D80' });
+      const tx = idAnchor.contract.transact(
+        publicInputs.proof,
+        '',
+        {
+          dataHash: ZERO_BYTES32,
+          recipient: extData.recipient,
+          extAmount: extData.extAmount,
+          relayer: extData.relayer,
+          fee: extData.fee,
+          refund: extData.refund,
+          token: extData.token,
+        },
+        {
+          roots: publicInputs.vanchorRoots,
+          extensionRoots: publicInputs.identityRoots,
+          inputNullifiers: publicInputs.inputNullifiers,
+          outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
+          publicAmount: publicInputs.publicAmount,
+          extDataHash: publicInputs.extDataHash,
+        },
+        { gasLimit: '0x5B8D80' }
+      );
 
       await expect(tx).revertedWith('non-existent edge is not set to the default root');
     });
@@ -1016,7 +1071,31 @@ describe('IdentityVAnchor for 2 max edges', () => {
       invalidInputs.publicAmount = toFixedHex(BigNumber.from(1e10));
 
       await expect(
-        idAnchor.contract.transact({ ...invalidInputs }, aliceExtData, { gasLimit: '0x5B8D80' })
+        idAnchor.contract.transact(
+          invalidInputs.proof,
+          '',
+          {
+            dataHash: ZERO_BYTES32,
+            recipient: aliceExtData.recipient,
+            extAmount: aliceExtData.extAmount,
+            relayer: aliceExtData.relayer,
+            fee: aliceExtData.fee,
+            refund: aliceExtData.refund,
+            token: aliceExtData.token,
+          },
+          {
+            roots: invalidInputs.vanchorRoots,
+            extensionRoots: invalidInputs.identityRoots,
+            inputNullifiers: invalidInputs.inputNullifiers,
+            outputCommitments: [
+              invalidInputs.outputCommitments[0],
+              invalidInputs.outputCommitments[1],
+            ],
+            publicAmount: invalidInputs.publicAmount,
+            extDataHash: invalidInputs.extDataHash,
+          },
+          { gasLimit: '0x5B8D80' }
+        )
       ).to.revertedWith('Invalid public amount');
     });
     it('should reject tampering with external data hash', async () => {
@@ -1024,7 +1103,31 @@ describe('IdentityVAnchor for 2 max edges', () => {
       invalidInputs.extDataHash = toFixedHex(BigNumber.from(publicInputs.extDataHash).add(1));
 
       await expect(
-        idAnchor.contract.transact({ ...invalidInputs }, aliceExtData, { gasLimit: '0x5B8D80' })
+        idAnchor.contract.transact(
+          invalidInputs.proof,
+          '',
+          {
+            dataHash: ZERO_BYTES32,
+            recipient: aliceExtData.recipient,
+            extAmount: aliceExtData.extAmount,
+            relayer: aliceExtData.relayer,
+            fee: aliceExtData.fee,
+            refund: aliceExtData.refund,
+            token: aliceExtData.token,
+          },
+          {
+            roots: invalidInputs.vanchorRoots,
+            extensionRoots: invalidInputs.identityRoots,
+            inputNullifiers: invalidInputs.inputNullifiers,
+            outputCommitments: [
+              invalidInputs.outputCommitments[0],
+              invalidInputs.outputCommitments[1],
+            ],
+            publicAmount: invalidInputs.publicAmount,
+            extDataHash: invalidInputs.extDataHash,
+          },
+          { gasLimit: '0x5B8D80' }
+        )
       ).to.be.revertedWith('Incorrect external data hash');
     });
 
@@ -1034,7 +1137,31 @@ describe('IdentityVAnchor for 2 max edges', () => {
         BigNumber.from(publicInputs.outputCommitments[0]).add(1)
       );
       await expect(
-        idAnchor.contract.transact({ ...invalidInputs }, aliceExtData, { gasLimit: '0x5B8D80' })
+        idAnchor.contract.transact(
+          invalidInputs.proof,
+          '',
+          {
+            dataHash: ZERO_BYTES32,
+            recipient: aliceExtData.recipient,
+            extAmount: aliceExtData.extAmount,
+            relayer: aliceExtData.relayer,
+            fee: aliceExtData.fee,
+            refund: aliceExtData.refund,
+            token: aliceExtData.token,
+          },
+          {
+            roots: invalidInputs.vanchorRoots,
+            extensionRoots: invalidInputs.identityRoots,
+            inputNullifiers: invalidInputs.inputNullifiers,
+            outputCommitments: [
+              invalidInputs.outputCommitments[0],
+              invalidInputs.outputCommitments[1],
+            ],
+            publicAmount: invalidInputs.publicAmount,
+            extDataHash: invalidInputs.extDataHash,
+          },
+          { gasLimit: '0x5B8D80' }
+        )
       ).to.be.revertedWith('Invalid withdraw proof');
     });
     it('should reject tampering with input commitments', async () => {
@@ -1044,7 +1171,31 @@ describe('IdentityVAnchor for 2 max edges', () => {
       );
 
       await expect(
-        idAnchor.contract.transact({ ...invalidInputs }, aliceExtData, { gasLimit: '0x5B8D80' })
+        idAnchor.contract.transact(
+          invalidInputs.proof,
+          '',
+          {
+            dataHash: ZERO_BYTES32,
+            recipient: aliceExtData.recipient,
+            extAmount: aliceExtData.extAmount,
+            relayer: aliceExtData.relayer,
+            fee: aliceExtData.fee,
+            refund: aliceExtData.refund,
+            token: aliceExtData.token,
+          },
+          {
+            roots: invalidInputs.vanchorRoots,
+            extensionRoots: invalidInputs.identityRoots,
+            inputNullifiers: invalidInputs.inputNullifiers,
+            outputCommitments: [
+              invalidInputs.outputCommitments[0],
+              invalidInputs.outputCommitments[1],
+            ],
+            publicAmount: invalidInputs.publicAmount,
+            extDataHash: invalidInputs.extDataHash,
+          },
+          { gasLimit: '0x5B8D80' }
+        )
       ).to.be.revertedWith('Invalid withdraw proof');
     });
 
@@ -1055,25 +1206,97 @@ describe('IdentityVAnchor for 2 max edges', () => {
         20
       );
       await expect(
-        idAnchor.contract.transact({ ...publicInputs }, invalidExtData, { gasLimit: '0x5B8D80' })
+        idAnchor.contract.transact(
+          publicInputs.proof,
+          '',
+          {
+            dataHash: ZERO_BYTES32,
+            recipient: invalidExtData.recipient,
+            extAmount: invalidExtData.extAmount,
+            relayer: invalidExtData.relayer,
+            fee: invalidExtData.fee,
+            refund: invalidExtData.refund,
+            token: invalidExtData.token,
+          },
+          {
+            roots: publicInputs.vanchorRoots,
+            extensionRoots: publicInputs.identityRoots,
+            inputNullifiers: publicInputs.inputNullifiers,
+            outputCommitments: [
+              publicInputs.outputCommitments[0],
+              publicInputs.outputCommitments[1],
+            ],
+            publicAmount: publicInputs.publicAmount,
+            extDataHash: publicInputs.extDataHash,
+          },
+          { gasLimit: '0x5B8D80' }
+        )
       ).to.be.revertedWith('Incorrect external data hash');
     });
     it('should reject tampering with extData extAmount', async () => {
       const invalidExtData = aliceExtData;
       invalidExtData.extAmount = toFixedHex(aliceDepositAmount * 100, 20);
       await expect(
-        idAnchor.contract.transact({ ...publicInputs }, invalidExtData, { gasLimit: '0x5B8D80' })
+        idAnchor.contract.transact(
+          publicInputs.proof,
+          '',
+          {
+            dataHash: ZERO_BYTES32,
+            recipient: invalidExtData.recipient,
+            extAmount: invalidExtData.extAmount,
+            relayer: invalidExtData.relayer,
+            fee: invalidExtData.fee,
+            refund: invalidExtData.refund,
+            token: invalidExtData.token,
+          },
+          {
+            roots: publicInputs.vanchorRoots,
+            extensionRoots: publicInputs.identityRoots,
+            inputNullifiers: publicInputs.inputNullifiers,
+            outputCommitments: [
+              publicInputs.outputCommitments[0],
+              publicInputs.outputCommitments[1],
+            ],
+            publicAmount: publicInputs.publicAmount,
+            extDataHash: publicInputs.extDataHash,
+          },
+          { gasLimit: '0x5B8D80' }
+        )
       ).to.be.revertedWith('Incorrect external data hash');
     });
     it('should reject tampering with extData fee', async () => {
       const invalidExtData = aliceExtData;
       invalidExtData.fee = toFixedHex(fee + BigInt(1000), 20);
       await expect(
-        idAnchor.contract.transact({ ...publicInputs }, invalidExtData, { gasLimit: '0x5B8D80' })
+        idAnchor.contract.transact(
+          publicInputs.proof,
+          '',
+          {
+            dataHash: ZERO_BYTES32,
+            recipient: invalidExtData.recipient,
+            extAmount: invalidExtData.extAmount,
+            relayer: invalidExtData.relayer,
+            fee: invalidExtData.fee,
+            refund: invalidExtData.refund,
+            token: invalidExtData.token,
+          },
+          {
+            roots: publicInputs.vanchorRoots,
+            extensionRoots: publicInputs.identityRoots,
+            inputNullifiers: publicInputs.inputNullifiers,
+            outputCommitments: [
+              publicInputs.outputCommitments[0],
+              publicInputs.outputCommitments[1],
+            ],
+            publicAmount: publicInputs.publicAmount,
+            extDataHash: publicInputs.extDataHash,
+          },
+          { gasLimit: '0x5B8D80' }
+        )
       ).to.be.revertedWith('Incorrect external data hash');
     });
   });
-  describe('# transactWrap', () => {
+  describe('#transact and wrap', () => {
     let wrappedIdAnchor: IdentityVAnchor;
     let wrapFee: number = 0; // between 0-10000
 
@@ -1130,15 +1353,15 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const relayer = '0x2111111111111111111111111111111111111111';
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceDepositAmount);
-      const tx = await wrappedIdAnchor.transactWrap(
-        token.address,
+      const tx = await wrappedIdAnchor.transact(
         aliceKeypair,
         [],
         [aliceDepositUtxo],
         fee,
         BigNumber.from(0),
         '0',
-        relayer
+        relayer,
+        token.address
       );
       const balTokenAfterDepositSender = await token.balanceOf(alice.address);
       // Fix: this aint working. Might be bc of gas cost?
@@ -1156,8 +1379,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const relayer = '0x2111111111111111111111111111111111111111';
       const aliceDepositAmount = 1e7;
       let aliceDepositUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceDepositAmount);
-      await wrappedIdAnchor.transactWrap(
-        token.address,
+      await wrappedIdAnchor.transact(
         aliceKeypair,
         [],
         [aliceDepositUtxo],
@@ -1165,7 +1387,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
         BigNumber.from(0),
         BigNumber.from(0),
         '0',
-        relayer
+        relayer,
+        token.address
       );
       const balTokenAfterDepositSender = await token.balanceOf(alice.address);
       // Fix: why the magic 2? no idea
@@ -1193,15 +1416,15 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const aliceChangeAmount = 0;
       const aliceChangeUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceChangeAmount);
 
-      const tx1 = await wrappedIdAnchor.transactWrap(
-        token.address,
+      const tx1 = await wrappedIdAnchor.transact(
         aliceKeypair,
         [aliceDepositUtxo],
         [aliceChangeUtxo],
         BigNumber.from(0),
         BigNumber.from(0),
         alice.address,
-        relayer
+        relayer,
+        token.address
       );
 
       const balTokenAfterWithdrawAndUnwrapSender = await token.balanceOf(alice.address);

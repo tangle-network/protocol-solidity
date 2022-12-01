@@ -72,4 +72,9 @@ interface ITokenWrapper {
         @param _deposit Amount of tokens needed for the deposit to be valid
      */
     function getAmountToWrap(uint _deposit) external view returns (uint);
+
+    /**
+        @notice Checks if a token is wrappable / valid
+     */
+    function isValidToken(address _tokenAddress) external view returns (bool);
 }

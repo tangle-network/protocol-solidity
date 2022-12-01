@@ -205,17 +205,25 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
         }
     }
 
-    /** @dev this function is defined in a child contract */
-    function _isValidAddress(address tokenAddress) internal virtual returns (bool);
+    function isValidToken(address tokenAddress) override public view returns (bool) {
+        if (tokenAddress == address(0)) {
+            return _isNativeValid();
+        } else {
+            return _isValidAddress(tokenAddress);
+        }
+    }
 
     /** @dev this function is defined in a child contract */
-    function _isValidHistoricalAddress(address tokenAddress) internal virtual returns (bool);
+    function _isValidAddress(address tokenAddress) internal view virtual returns (bool);
 
     /** @dev this function is defined in a child contract */
-    function _isNativeValid() internal virtual returns (bool);
+    function _isValidHistoricalAddress(address tokenAddress) internal view virtual returns (bool);
 
     /** @dev this function is defined in a child contract */
-    function _isValidAmount(uint256 amount) internal virtual returns (bool);
+    function _isNativeValid() internal view virtual returns (bool);
+
+    /** @dev this function is defined in a child contract */
+    function _isValidAmount(uint256 amount) internal view virtual returns (bool);
 
     modifier isMinter() {
         require(hasRole(MINTER_ROLE, msg.sender), "ERC20PresetMinterPauser: must have minter role");

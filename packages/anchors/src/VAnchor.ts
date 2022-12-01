@@ -30,7 +30,7 @@ import {
   IVariableAnchorExtData,
   IVariableAnchorPublicInputs,
 } from '@webb-tools/interfaces';
-import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
+import { hexToU8a, u8aToHex, getChainIdType, ZkComponents, ZERO_BYTES32 } from '@webb-tools/utils';
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 function checkNativeAddress(tokenAddress: string): boolean {
@@ -170,6 +170,7 @@ export class VAnchor implements IAnchor {
     return {
       proof: args[0],
       roots: args[1],
+      extensionRoots: '',
       inputNullifiers: args[2],
       outputCommitments: args[3],
       publicAmount: args[4],
@@ -179,6 +180,7 @@ export class VAnchor implements IAnchor {
 
   public static convertToExtDataStruct(args: any[]): IVariableAnchorExtData {
     return {
+      dataHash: ZERO_BYTES32,
       recipient: args[0],
       extAmount: args[1],
       relayer: args[2],
@@ -376,6 +378,7 @@ export class VAnchor implements IAnchor {
     const args: IVariableAnchorPublicInputs = {
       proof: `0x${proof}`,
       roots: `0x${roots.map((x) => toFixedHex(x).slice(2)).join('')}`,
+      extensionRoots: '',
       inputNullifiers: inputs.map((x) => toFixedHex('0x' + x.nullifier)),
       outputCommitments: [
         toFixedHex(u8aToHex(outputs[0].commitment)),
@@ -458,9 +461,9 @@ export class VAnchor implements IAnchor {
     extAmount: BigNumberish,
     fee: BigNumberish,
     refund: BigNumberish,
-    token: string,
     recipient: string,
     relayer: string,
+    wrapUnwrapToken: string,
     leavesMap: Record<string, Uint8Array[]>
   ) {
     // first, check if the merkle root is known on chain - if not, then update
@@ -502,7 +505,7 @@ export class VAnchor implements IAnchor {
       extAmount: toFixedHex(BigNumber.from(extAmount)),
       fee: BigNumber.from(fee).toString(),
       refund: BigNumber.from(refund).toString(),
-      token: hexToU8a(token),
+      token: hexToU8a(wrapUnwrapToken),
     };
 
     inputs.length > 2
@@ -529,6 +532,7 @@ export class VAnchor implements IAnchor {
     );
 
     const extData: IVariableAnchorExtData = {
+      dataHash: ZERO_BYTES32,
       recipient: toFixedHex(proofInput.recipient, 20),
       extAmount: toFixedHex(proofInput.extAmount),
       relayer: toFixedHex(proofInput.relayer, 20),
@@ -548,100 +552,11 @@ export class VAnchor implements IAnchor {
   public async transact(
     inputs: Utxo[],
     outputs: Utxo[],
-    leavesMap: Record<string, Uint8Array[]>,
-    fee: BigNumberish,
-    refund: BigNumberish,
-    recipient: string,
-    relayer: string
-  ): Promise<ethers.ContractReceipt> {
-    // Validate input utxos have a valid originChainId
-    inputs.map((utxo) => {
-      if (utxo.originChainId === undefined) {
-        throw new Error('Input Utxo does not have a configured originChainId');
-      }
-    });
-
-    // Default UTXO chain ID will match with the configured signer's chain ID
-    const evmId = await this.signer.getChainId();
-    const chainId = getChainIdType(evmId);
-    const randomKeypair = new Keypair();
-
-    while (inputs.length !== 2 && inputs.length < 16) {
-      inputs.push(
-        await CircomUtxo.generateUtxo({
-          curve: 'Bn254',
-          backend: 'Circom',
-          chainId: chainId.toString(),
-          originChainId: chainId.toString(),
-          amount: '0',
-          blinding: hexToU8a(randomBN(31).toHexString()),
-          keypair: randomKeypair,
-        })
-      );
-    }
-
-    if (outputs.length < 2) {
-      while (outputs.length < 2) {
-        outputs.push(
-          await CircomUtxo.generateUtxo({
-            curve: 'Bn254',
-            backend: 'Circom',
-            chainId: chainId.toString(),
-            originChainId: chainId.toString(),
-            amount: '0',
-            keypair: randomKeypair,
-          })
-        );
-      }
-    }
-
-    let extAmount = BigNumber.from(fee)
-      .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
-      .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
-
-    const token = this.token;
-
-    const { extData, publicInputs } = await this.setupTransaction(
-      inputs,
-      [outputs[0], outputs[1]],
-      extAmount,
-      fee,
-      refund,
-      token,
-      recipient,
-      relayer,
-      leavesMap
-    );
-
-    let tx = await this.contract.transact(
-      {
-        ...publicInputs,
-        outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
-      },
-      extData,
-      { gasLimit: '0x5B8D80' }
-    );
-    const receipt = await tx.wait();
-    gasBenchmark.push(receipt.gasUsed.toString());
-
-    // Add the leaves to the tree
-    outputs.forEach((x) => {
-      this.tree.insert(u8aToHex(x.commitment));
-      let numOfElements = this.tree.number_of_elements();
-      this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
-    });
-
-    return receipt;
-  }
-
-  public async transactWrap(
-    tokenAddress: string,
-    inputs: Utxo[],
-    outputs: Utxo[],
     fee: BigNumberish,
     refund: BigNumberish,
     recipient: string,
     relayer: string,
+    wrapUnwrapToken: string,
     leavesMap: Record<string, Uint8Array[]>
   ): Promise<ethers.ContractReceipt> {
     // Default UTXO chain ID will match with the configured signer's chain ID
@@ -688,40 +603,47 @@ export class VAnchor implements IAnchor {
       extAmount,
       fee,
       refund,
-      tokenAddress,
       recipient,
       relayer,
+      wrapUnwrapToken,
       leavesMap
     );
 
-    let tx: ContractTransaction;
-    if (extAmount.gt(0) && checkNativeAddress(tokenAddress)) {
+    let options;
+    if (extAmount.gt(0) && checkNativeAddress(wrapUnwrapToken)) {
       let tokenWrapper = TokenWrapper__factory.connect(await this.contract.token(), this.signer);
       let valueToSend = await tokenWrapper.getAmountToWrap(extAmount);
 
-      tx = await this.contract.transactWrap(
-        {
-          ...publicInputs,
-          outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
-        },
-        extData,
-        tokenAddress,
-        {
-          value: valueToSend.toHexString(),
-          gasLimit: '0x5B8D80',
-        }
-      );
+      options = {
+        value: valueToSend.toHexString(),
+        gasLimit: '0x5B8D80',
+      };
     } else {
-      tx = await this.contract.transactWrap(
-        {
-          ...publicInputs,
-          outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
-        },
-        extData,
-        tokenAddress,
-        { gasLimit: '0x5B8D80' }
-      );
+      options = { gasLimit: '0x5B8D80' };
     }
+
+    const tx = await this.contract.transact(
+      publicInputs.proof,
+      ZERO_BYTES32,
+      {
+        dataHash: ZERO_BYTES32,
+        recipient: extData.recipient,
+        extAmount: extData.extAmount,
+        relayer: extData.relayer,
+        fee: extData.fee,
+        refund: extData.refund,
+        token: extData.token,
+      },
+      {
+        roots: publicInputs.roots,
+        extensionRoots: [],
+        inputNullifiers: publicInputs.inputNullifiers,
+        outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
+        publicAmount: publicInputs.publicAmount,
+        extDataHash: publicInputs.extDataHash,
+      },
+      options
+    );
     const receipt = await tx.wait();
 
     // Add the leaves to the tree
@@ -744,6 +666,7 @@ export class VAnchor implements IAnchor {
     refund: BigNumberish,
     recipient: string,
     relayer: string,
+    wrapUnwrapToken: string,
     leavesMap: Record<string, Uint8Array[]>
   ): Promise<ethers.ContractReceipt> {
     const chainId = getChainIdType(await this.signer.getChainId());
@@ -783,7 +706,10 @@ export class VAnchor implements IAnchor {
       .add(outputs.reduce((sum, x) => sum.add(BigNumber.from(BigInt(x.amount))), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(BigNumber.from(BigInt(x.amount))), BigNumber.from(0)));
 
-    const token = this.token;
+    if (wrapUnwrapToken.length === 0) {
+      wrapUnwrapToken = this.token;
+    }
+    console.log('wrapUnwrapToken', wrapUnwrapToken);
 
     const { extData, publicInputs } = await this.setupTransaction(
       inputs,
@@ -791,20 +717,48 @@ export class VAnchor implements IAnchor {
       extAmount,
       fee,
       refund,
-      token,
+      wrapUnwrapToken,
       recipient,
       relayer,
       leavesMap
     );
 
+    let options;
+    if (extAmount.gt(0) && checkNativeAddress(wrapUnwrapToken)) {
+      let tokenWrapper = TokenWrapper__factory.connect(await this.contract.token(), this.signer);
+      let valueToSend = await tokenWrapper.getAmountToWrap(extAmount);
+
+      options = {
+        value: valueToSend.toHexString(),
+        gasLimit: '0x5B8D80',
+      };
+    } else {
+      options = { gasLimit: '0x5B8D80' };
+    }
+
     let tx = await this.contract.registerAndTransact(
       { owner, keyData: keyData },
+      publicInputs.proof,
+      ZERO_BYTES32,
       {
-        ...publicInputs,
+        dataHash: ZERO_BYTES32,
+        recipient: extData.recipient,
+        extAmount: extData.extAmount,
+        relayer: extData.relayer,
+        fee: extData.fee,
+        refund: extData.refund,
+        token: extData.token,
+      },
+      {
+        roots: publicInputs.roots,
+        extensionRoots: [],
+        inputNullifiers: publicInputs.inputNullifiers,
         outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
+        publicAmount: publicInputs.publicAmount,
+        extDataHash: publicInputs.extDataHash,
       },
       extData,
-      { gasLimit: '0x5B8D80' }
+      options
     );
     const receipt = await tx.wait();
 

@@ -181,7 +181,7 @@ contract FungibleTokenWrapper is TokenWrapper, Initialized, IFungibleTokenWrappe
         @notice Checks if the token at `tokenAddress` is valid (i.e. if it's in the wrapping list)
         @return bool Whether or not the token is valid
      */
-    function _isValidAddress(address tokenAddress) override internal virtual returns (bool) {
+    function _isValidAddress(address tokenAddress) override internal view virtual returns (bool) {
         return valid[tokenAddress];
     }
     
@@ -191,7 +191,7 @@ contract FungibleTokenWrapper is TokenWrapper, Initialized, IFungibleTokenWrappe
         @param _tokenAddress The address of the token to be checked
         @return bool Whether or not the token is historically valid
      */
-    function _isValidHistoricalAddress(address _tokenAddress) override internal virtual returns (bool) {
+    function _isValidHistoricalAddress(address _tokenAddress) override internal view virtual returns (bool) {
         return historicallyValid[_tokenAddress];
     }
 
@@ -200,7 +200,7 @@ contract FungibleTokenWrapper is TokenWrapper, Initialized, IFungibleTokenWrappe
         @param _amount The amount of the underlying token to be wrapped
         @return bool Whether or not the amount can be wrapped
      */
-    function _isValidAmount(uint256 _amount) override internal virtual returns (bool) {
+    function _isValidAmount(uint256 _amount) override internal view virtual returns (bool) {
         return _amount + this.totalSupply() <= wrappingLimit;
     }
 
@@ -208,7 +208,7 @@ contract FungibleTokenWrapper is TokenWrapper, Initialized, IFungibleTokenWrappe
         @notice Checks if the native token is allowed to be wrapped
         @return bool Whether or not the native token is allowed to be wrapped
      */
-    function _isNativeValid() override internal virtual returns (bool) {
+    function _isNativeValid() override internal view virtual returns (bool) {
         return isNativeAllowed;
     }
 

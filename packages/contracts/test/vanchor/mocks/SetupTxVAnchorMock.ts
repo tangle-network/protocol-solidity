@@ -112,6 +112,7 @@ export class SetupTxVAnchorMock extends VAnchor {
     );
 
     const extData: IVariableAnchorExtData = {
+      dataHash: '',
       recipient: toFixedHex(proofInput.recipient, 20),
       extAmount: toFixedHex(proofInput.extAmount),
       relayer: toFixedHex(proofInput.relayer, 20),

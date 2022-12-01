@@ -18,6 +18,7 @@ export interface IUTXOInput {
 export interface IVariableAnchorPublicInputs {
   proof: string;
   roots: string;
+  extensionRoots: string;
   inputNullifiers: string[];
   outputCommitments: [string, string];
   publicAmount: string;
@@ -25,6 +26,7 @@ export interface IVariableAnchorPublicInputs {
 }
 
 export interface IVariableAnchorExtData {
+  dataHash: string;
   recipient: string;
   extAmount: string;
   relayer: string;

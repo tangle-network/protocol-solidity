@@ -152,15 +152,9 @@ describe('SignatureBridgeSide use', () => {
       keypair: new Keypair(),
     });
     // Transact on the bridge
-    await srcAnchor.transact(
-      [],
-      [depositUtxo],
-      { [chainID1.toString()]: [] },
-      '0',
-      '0',
-      zeroAddress,
-      zeroAddress
-    );
+    await srcAnchor.transact([], [depositUtxo], '0', '0', zeroAddress, zeroAddress, '', {
+      [chainID1.toString()]: [],
+    });
   });
 
   it('execute fee proposal', async () => {
@@ -644,16 +638,16 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
       chainId: chainID1.toString(),
       keypair: new Keypair(),
     });
-
+    console.log('here');
     await TruffleAssert.reverts(
-      srcAnchor.transactWrap(
-        erc20TokenInstance.contract.address,
+      srcAnchor.transact(
         [],
         [depositUtxo],
         '0',
         '0',
         zeroAddress,
         zeroAddress,
+        erc20TokenInstance.contract.address,
         { [chainID1.toString()]: [] }
       ),
       'Fee Recipient cannot be zero address'
@@ -663,14 +657,14 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
     await bridgeSide.executeFeeRecipientProposalWithSig(fungibleToken, treasury.contract.address);
 
     // For ERC20 Tests
-    await srcAnchor.transactWrap(
-      erc20TokenInstance.contract.address,
+    await srcAnchor.transact(
       [],
       [depositUtxo],
       '0',
       '0',
       zeroAddress,
       zeroAddress,
+      erc20TokenInstance.contract.address,
       { [chainID1.toString()]: [] }
     );
 
@@ -892,7 +886,7 @@ describe('Rescue Tokens Tests for Native ETH', () => {
     });
 
     await TruffleAssert.reverts(
-      srcAnchor.transactWrap(zeroAddress, [], [depositUtxo], '0', '0', zeroAddress, zeroAddress, {
+      srcAnchor.transact([], [depositUtxo], '0', '0', zeroAddress, zeroAddress, zeroAddress, {
         [chainID1.toString()]: [],
       }),
       'Fee Recipient cannot be zero address'
@@ -902,16 +896,9 @@ describe('Rescue Tokens Tests for Native ETH', () => {
     await bridgeSide.executeFeeRecipientProposalWithSig(fungibleToken, treasury.contract.address);
 
     // For Native ETH Tests
-    await srcAnchor.transactWrap(
-      zeroAddress,
-      [],
-      [depositUtxo],
-      '0',
-      '0',
-      zeroAddress,
-      zeroAddress,
-      { [chainID1.toString()]: [] }
-    );
+    await srcAnchor.transact([], [depositUtxo], '0', '0', zeroAddress, zeroAddress, zeroAddress, {
+      [chainID1.toString()]: [],
+    });
 
     // Anchor Denomination amount should go to TokenWrapper
     assert.strictEqual(
