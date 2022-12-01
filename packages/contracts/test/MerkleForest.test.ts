@@ -15,7 +15,7 @@ const assert = require("assert");
 
 // const MerkleTreeWithHistory = artifacts.require('MerkleTreePoseidonMock');
 
-describe("MerkleForest", () => {
+describe.only("MerkleForest", () => {
   let merkleForest;
   let poseidonLib;
   let linkableIncrementalBinaryTree;
@@ -77,7 +77,7 @@ describe("MerkleForest", () => {
         LinkableIncrementalBinaryTree: linkableIncrementalBinaryTree.address,
       },
     });
-    merkleForest = await MerkleForest.deploy(groupLevels, subtreeLevels);
+    merkleForest = await MerkleForest.deploy(groupLevels, subtreeLevels, hasherInstance.contract.address);
     await merkleForest.deployed();
   });
 
@@ -105,8 +105,9 @@ describe("MerkleForest", () => {
       const subtree = await merkleForest.subtrees(0);
       assert.strictEqual(await subtree.depth.toNumber(), tree.levels);
       const forestData = await merkleForest.merkleForest();
+      console.log("forestData", forestData);
       assert.strictEqual(forestData.depth.toNumber(), forest.levels);
-      assert.strictEqual(0, forestData.numberOfLeaves.toNumber());
+      assert.strictEqual(0, forestData.numberOfLeaves);
       assert.strictEqual(0, await forestData.currentRootIndex);
 
       const t1 = await hasherInstance.contract.zeros(
@@ -159,6 +160,38 @@ describe("MerkleForest", () => {
       }
     });
 
+    it.only("should insertTwo correctly", async () => {
+      // let rootFromContract;
+      // let subtree = await getSubtree(merkleForest, 0);
+
+      for (let i = 1; i < 11; i += 2) {
+        // const i = 1;
+        await merkleForest.insertTwoTest(toFixedHex(i), toFixedHex(i + 1), { from: sender });
+        await tree.insert(i);
+        await tree.insert(i + 1);
+        const { merkleRoot: subtreeRoot } = await tree.path(i);
+        const subtreeRootFromContract = await merkleForest.getLastSubtreeRoot(
+          0
+        );
+        assert.strictEqual(
+          toFixedHex(subtreeRoot),
+          subtreeRootFromContract.toHexString()
+        );
+        if (i === 1) {
+          await forest.insert(subtreeRoot);
+        } else {
+          await forest.update(0, subtreeRoot);
+        }
+        const { merkleRoot: forestRoot } = await forest.path(0);
+
+        const forestRootFromContract = await merkleForest.getLastRoot();
+        assert.strictEqual(
+          toFixedHex(forestRoot),
+          forestRootFromContract.toHexString()
+        );
+      }
+    });
+
     it("should reject if tree is full", async () => {
       const levels = 6;
       const MerkleForest = await ethers.getContractFactory("MerkleForest", {
@@ -168,7 +201,7 @@ describe("MerkleForest", () => {
           LinkableIncrementalBinaryTree: linkableIncrementalBinaryTree.address,
         },
       });
-      const merkleForest = await MerkleForest.deploy(levels, levels);
+      const merkleForest = await MerkleForest.deploy(levels, levels, hasherInstance.contract.address);
       await merkleForest.deployed();
       // const MerkleTreeWithHistory = new MerkleTreeWithHistory__factory();
       for (let i = 0; i < 2 ** levels; i++) {
@@ -176,6 +209,73 @@ describe("MerkleForest", () => {
           await merkleForest.insertSubtree(0, toFixedHex(i + 42))
         );
       }
+
+      await TruffleAssert.reverts(
+        merkleForest.insertSubtree(0, toFixedHex(1337)),
+        "Cannot update leaf outside of tree"
+      );
+
+      await TruffleAssert.reverts(
+        merkleForest.insertSubtree(0, toFixedHex(1)),
+        "Cannot update leaf outside of tree"
+      );
+    });
+
+    it("should correctly move on to the next subtree after its full (simple insert)", async () => {
+      const levels = 6;
+      const MerkleForest = await ethers.getContractFactory("MerkleForest", {
+        signer: wallet,
+        libraries: {
+          PoseidonT3: poseidonLib.address,
+          LinkableIncrementalBinaryTree: linkableIncrementalBinaryTree.address,
+        },
+      });
+      const merkleForest = await MerkleForest.deploy(levels, levels, hasherInstance.contract.address);
+      await merkleForest.deployed();
+      // const MerkleTreeWithHistory = new MerkleTreeWithHistory__factory();
+      const initialIndex = await merkleForest.currSubtreeIndex()
+      assert.strictEqual(initialIndex.toNumber(), 0);
+      for (let i = 0; i < 2 ** levels; i++) {
+        TruffleAssert.passes(
+          await merkleForest.insertTest(toFixedHex(i + 42))
+        );
+      }
+      await merkleForest.insertTest(toFixedHex(2 ** levels + 42))
+      const endIndex = await merkleForest.currSubtreeIndex()
+      assert.strictEqual(endIndex.toNumber(), 1);
+
+      await TruffleAssert.reverts(
+        merkleForest.insertSubtree(0, toFixedHex(1337)),
+        "Cannot update leaf outside of tree"
+      );
+
+      await TruffleAssert.reverts(
+        merkleForest.insertSubtree(0, toFixedHex(1)),
+        "Cannot update leaf outside of tree"
+      );
+    });
+    it.skip("should correctly move on to the next subtree after its full (insertTwo)", async () => {
+      const levels = 6;
+      const MerkleForest = await ethers.getContractFactory("MerkleForest", {
+        signer: wallet,
+        libraries: {
+          PoseidonT3: poseidonLib.address,
+          LinkableIncrementalBinaryTree: linkableIncrementalBinaryTree.address,
+        },
+      });
+      const merkleForest = await MerkleForest.deploy(levels, levels, hasherInstance.contract.address);
+      await merkleForest.deployed();
+      // const MerkleTreeWithHistory = new MerkleTreeWithHistory__factory();
+      const initialIndex = await merkleForest.currSubtreeIndex()
+      assert.strictEqual(initialIndex.toNumber(), 0);
+      for (let i = 0; i < 2 ** levels; i++) {
+        TruffleAssert.passes(
+          await merkleForest.insertTest(toFixedHex(i + 42))
+        );
+      }
+      await merkleForest.insertTest(toFixedHex(2 ** levels + 42))
+      const endIndex = await merkleForest.currSubtreeIndex()
+      assert.strictEqual(endIndex.toNumber(), 1);
 
       await TruffleAssert.reverts(
         merkleForest.insertSubtree(0, toFixedHex(1337)),
