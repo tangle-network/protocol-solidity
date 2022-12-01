@@ -908,11 +908,14 @@ export class VAnchorForest {
 
     // Add the leaves to the tree
     outputs.forEach((x) => {
-      // Maintain tree state after insertions
-      this.tree.insert(u8aToHex(x.commitment));
+      const commitment = BigNumber.from(u8aToHex(x.commitment))
+      this.tree.insert(commitment.toHexString());
       let numOfElements = this.tree.number_of_elements();
       this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
     });
+    const curIdx = await this.contract.currSubtreeIndex()
+    const lastSubtreeRoot = await this.contract.getLastSubtreeRoot(0)
+    this.forest.update(curIdx.toNumber(), this.tree.root().toHexString());
 
     return receipt;
   }

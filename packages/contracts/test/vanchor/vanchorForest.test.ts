@@ -384,7 +384,7 @@ describe.only('VAnchorForest for 2 max edges', () => {
       );
     });
 
-    it.only('should join and spend', async () => {
+    it('should join and spend', async () => {
       const aliceDepositAmount1 = 1e7;
       let aliceDepositUtxo1 = await generateUTXOForTest(chainID, aliceDepositAmount1);
 
@@ -1035,7 +1035,7 @@ describe.only('VAnchorForest for 2 max edges', () => {
       const leaves = events
         .sort((a: any, b: any) => a.args.index - b.args.index)
         .map((e) => toFixedHex(e.args.commitment));
-      const tree = new MerkleTree(levels, leaves);
+      const tree = new MerkleTree(subtreeLevels, leaves);
 
       //build merkle tree end
       const commitment = aliceDepositUtxo.commitment;
@@ -1060,7 +1060,7 @@ describe.only('VAnchorForest for 2 max edges', () => {
       // and the tx with NewNullifier event is where alice spent the UTXO
     });
 
-    it('Should reject proofs made against roots of empty edges', async () => {
+    it.only('Should reject proofs made against roots of empty edges', async () => {
       // This test has not been linked to another anchor - edgeList should be empty.
       await TruffleAssert.reverts(anchor.contract.edgeList(0));
 
@@ -1080,6 +1080,7 @@ describe.only('VAnchorForest for 2 max edges', () => {
 
       // Attempt to withdraw by creating a proof against a root that shouldn't exist.
       // create the merkle tree
+      console.log("1")
       const fakeTree = new MerkleTree(30);
       const fakeCommitment = u8aToHex(fakeUtxo.commitment);
       fakeTree.insert(fakeCommitment);
@@ -1089,6 +1090,7 @@ describe.only('VAnchorForest for 2 max edges', () => {
       const roots = await anchor.populateRootsForProof();
       roots[1] = fakeRoot.toHexString();
 
+      console.log("1")
       const setupVAnchor = new SetupTxVAnchorMock(
         anchor.contract,
         anchor.signer,
@@ -1098,6 +1100,7 @@ describe.only('VAnchorForest for 2 max edges', () => {
         anchor.largeCircuitZkComponents,
         roots
       );
+      console.log("1")
       setupVAnchor.token = anchor.token;
       let inputs: Utxo[] = [
         fakeUtxo,
@@ -1112,6 +1115,7 @@ describe.only('VAnchorForest for 2 max edges', () => {
         }),
       ];
 
+      console.log("1")
       let outputs: [Utxo, Utxo] = [
         await CircomUtxo.generateUtxo({
           curve: 'Bn254',
@@ -1131,6 +1135,7 @@ describe.only('VAnchorForest for 2 max edges', () => {
         }),
       ];
 
+      console.log("1")
       let extAmount = BigNumber.from(0)
         .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
         .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
@@ -1184,7 +1189,8 @@ describe.only('VAnchorForest for 2 max edges', () => {
       // create Anchor for wrapped token
       const wrappedAnchor = await VAnchorForest.createVAnchor(
         verifier.contract.address,
-        30,
+        forestLevels,
+        subtreeLevels,
         hasherInstance.contract.address,
         sender.address,
         wrappedToken.address,
@@ -1241,7 +1247,7 @@ describe.only('VAnchorForest for 2 max edges', () => {
       assert.strictEqual(balWrappedTokenAfterDepositSender.toString(), '0');
     });
 
-    it('verify storage value of latest leaf index', async () => {
+    it.skip('verify storage value of latest leaf index', async () => {
       const signers = await ethers.getSigners();
       const wallet = signers[0];
       const sender = wallet;
@@ -1268,7 +1274,8 @@ describe.only('VAnchorForest for 2 max edges', () => {
       // create Anchor for wrapped token
       const wrappedAnchor = await VAnchorForest.createVAnchor(
         verifier.contract.address,
-        30,
+        forestLevels,
+        subtreeLevels,
         hasherInstance.contract.address,
         sender.address,
         wrappedToken.address,
@@ -1353,7 +1360,8 @@ describe.only('VAnchorForest for 2 max edges', () => {
       // create Anchor for wrapped token
       const wrappedVAnchor = await VAnchorForest.createVAnchor(
         verifier.contract.address,
-        30,
+        forestLevels,
+        subtreeLevels,
         hasherInstance.contract.address,
         sender.address,
         wrappedToken.address,
@@ -1461,7 +1469,8 @@ describe.only('VAnchorForest for 2 max edges', () => {
       // create Anchor for wrapped token
       const wrappedVAnchor = await VAnchorForest.createVAnchor(
         verifier.contract.address,
-        30,
+        forestLevels,
+        subtreeLevels,
         hasherInstance.contract.address,
         sender.address,
         wrappedToken.address,

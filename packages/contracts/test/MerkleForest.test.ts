@@ -15,7 +15,7 @@ const assert = require("assert");
 
 // const MerkleTreeWithHistory = artifacts.require('MerkleTreePoseidonMock');
 
-describe.only("MerkleForest", () => {
+describe("MerkleForest", () => {
   let merkleForest;
   let poseidonLib;
   let linkableIncrementalBinaryTree;
@@ -160,7 +160,7 @@ describe.only("MerkleForest", () => {
       }
     });
 
-    it.only("should insertTwo correctly", async () => {
+    it("should insertTwo correctly", async () => {
       // let rootFromContract;
       // let subtree = await getSubtree(merkleForest, 0);
 
@@ -236,6 +236,7 @@ describe.only("MerkleForest", () => {
       const initialIndex = await merkleForest.currSubtreeIndex()
       assert.strictEqual(initialIndex.toNumber(), 0);
       for (let i = 0; i < 2 ** levels; i++) {
+        console.log('were at i', i)
         TruffleAssert.passes(
           await merkleForest.insertTest(toFixedHex(i + 42))
         );
@@ -254,7 +255,7 @@ describe.only("MerkleForest", () => {
         "Cannot update leaf outside of tree"
       );
     });
-    it.skip("should correctly move on to the next subtree after its full (insertTwo)", async () => {
+    it("should correctly move on to the next subtree after its full (insertTwo)", async () => {
       const levels = 6;
       const MerkleForest = await ethers.getContractFactory("MerkleForest", {
         signer: wallet,
@@ -268,14 +269,15 @@ describe.only("MerkleForest", () => {
       // const MerkleTreeWithHistory = new MerkleTreeWithHistory__factory();
       const initialIndex = await merkleForest.currSubtreeIndex()
       assert.strictEqual(initialIndex.toNumber(), 0);
-      for (let i = 0; i < 2 ** levels; i++) {
+      for (let i = 0; i <= 2 ** (levels); i++) {
+        console.log('were at ', i)
         TruffleAssert.passes(
-          await merkleForest.insertTest(toFixedHex(i + 42))
+          await merkleForest.insertTwoTest(toFixedHex(i + 43), toFixedHex(i + 42))
         );
       }
-      await merkleForest.insertTest(toFixedHex(2 ** levels + 42))
+      // await merkleForest.insertTest(toFixedHex(2 ** levels + 42))
       const endIndex = await merkleForest.currSubtreeIndex()
-      assert.strictEqual(endIndex.toNumber(), 1);
+      assert.strictEqual(endIndex.toNumber(), 2);
 
       await TruffleAssert.reverts(
         merkleForest.insertSubtree(0, toFixedHex(1337)),
