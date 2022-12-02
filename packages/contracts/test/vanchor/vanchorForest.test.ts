@@ -55,7 +55,7 @@ describe('VAnchorForest for 2 max edges', () => {
   const forestLevels = 5;
   let fee = BigInt(new BN(`100000000000000000`).toString());
   let recipient = '0x1111111111111111111111111111111111111111';
-  let verifier: Verifier;
+  let verifier: ForestVerifier;
   let hasherInstance: any;
   let token: ERC20PresetMinterPauser;
   let wrappedToken: WrappedToken;
