@@ -6,8 +6,8 @@ import {
   LinkableIncrementalBinaryTree__factory,
   TokenWrapper__factory,
 } from '@webb-tools/contracts';
-import { poseidon, poseidon_gencontract as poseidonContract } from "circomlibjs";
-import { zKey, groth16 } from "snarkjs";
+import { poseidon, poseidon_gencontract as poseidonContract } from 'circomlibjs';
+import { zKey, groth16 } from 'snarkjs';
 import {
   toHex,
   Keypair,
@@ -124,11 +124,7 @@ export class VAnchorForest {
     const poseidonABI = poseidonContract.generateABI(2);
     const poseidonBytecode = poseidonContract.createCode(2);
 
-    const PoseidonLibFactory = new ethers.ContractFactory(
-      poseidonABI,
-      poseidonBytecode,
-      signer
-    );
+    const PoseidonLibFactory = new ethers.ContractFactory(poseidonABI, poseidonBytecode, signer);
     const poseidonLib = await PoseidonLibFactory.deploy();
     await poseidonLib.deployed();
 
@@ -138,18 +134,27 @@ export class VAnchorForest {
       },
       signer
     );
-    const linkableIncrementalBinaryTree =
-      await LinkableIncrementalBinaryTree.deploy();
+    const linkableIncrementalBinaryTree = await LinkableIncrementalBinaryTree.deploy();
     await linkableIncrementalBinaryTree.deployed();
     const factory = new VAnchorForest__factory(
       {
-        ["contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs"]: encodeLibrary.address,
+        ['contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs']: encodeLibrary.address,
         ['contracts/hashers/Poseidon.sol:PoseidonT3']: poseidonLib.address,
-        ['contracts/trees/LinkableIncrementalBinaryTree.sol:LinkableIncrementalBinaryTree']: linkableIncrementalBinaryTree.address,
+        ['contracts/trees/LinkableIncrementalBinaryTree.sol:LinkableIncrementalBinaryTree']:
+          linkableIncrementalBinaryTree.address,
       },
       signer
     );
-    const vAnchor = await factory.deploy(verifier, forestLevels, subtreeLevels, hasher, handler, token, maxEdges, {});
+    const vAnchor = await factory.deploy(
+      verifier,
+      forestLevels,
+      subtreeLevels,
+      hasher,
+      handler,
+      token,
+      maxEdges,
+      {}
+    );
     await vAnchor.deployed();
     const createdVAnchor = new VAnchorForest(
       vAnchor,
@@ -428,13 +433,10 @@ export class VAnchorForest {
     proof: any,
     nIns: number = 2,
     nOuts: number = 2,
-    maxEdges: number = 2,
+    maxEdges: number = 2
     // ): IVariableAnchorPublicInputs {
   ): Promise<any> {
-    const byte_calldata = await groth16.exportSolidityCallData(
-      proof.proof,
-      proof.publicSignals
-    );
+    const byte_calldata = await groth16.exportSolidityCallData(proof.proof, proof.publicSignals);
     // public inputs to the contract
     proof = await this.encodeSolidityProof(proof, byte_calldata);
     const publicInputs = JSON.parse('[' + byte_calldata + ']')[3];
@@ -443,7 +445,7 @@ export class VAnchorForest {
     const extDataHash = publicInputs[1];
     const inputNullifiers = publicInputs.slice(2, 2 + nIns);
     const outputCommitments = publicInputs.slice(2 + nIns, 2 + nIns + nOuts);
-    const _chainID = publicInputs[2 + nIns + nOuts]
+    const _chainID = publicInputs[2 + nIns + nOuts];
     const roots = publicInputs.slice(3 + nIns + nOuts, 3 + nIns + nOuts + maxEdges);
     const args = {
       proof: `0x${proof}`,
@@ -532,7 +534,7 @@ export class VAnchorForest {
   ): Promise<any> {
     const vanchorRoots = await this.populateRootsForProof();
     const vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x));
-    const outputCommitment = outputs.map((x) => BigNumber.from(u8aToHex(x.commitment)).toString())
+    const outputCommitment = outputs.map((x) => BigNumber.from(u8aToHex(x.commitment)).toString());
 
     const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
       vanchorRoots.map((root) => BigNumber.from(root)),
@@ -544,14 +546,16 @@ export class VAnchorForest {
       BigNumber.from(extDataHash),
       vanchorMerkleProof
     );
-    const indices = vanchorMerkleProof.map((proof) => proof.forestPathIndices)
-    const forestPathIndices = []
+    const indices = vanchorMerkleProof.map((proof) => proof.forestPathIndices);
+    const forestPathIndices = [];
     indices.forEach((pathIndices) => {
-      let index = MerkleTree.calculateIndexFromPathIndices(pathIndices)
-      forestPathIndices.push(index)
+      let index = MerkleTree.calculateIndexFromPathIndices(pathIndices);
+      forestPathIndices.push(index);
     });
 
-    const forestPathElements = vanchorMerkleProof.map((proof) => proof.forestPathElements.map((bignum) => bignum.toString()))
+    const forestPathElements = vanchorMerkleProof.map((proof) =>
+      proof.forestPathElements.map((bignum) => bignum.toString())
+    );
 
     const proofInput = {
       roots: vanchorInput.roots,
@@ -568,12 +572,13 @@ export class VAnchorForest {
       outPubkey: vanchorInput.outPubkey,
       outBlinding: vanchorInput.outBlinding,
 
-
       subtreePathIndices: vanchorInput.inPathIndices,
-      subtreePathElements: vanchorInput.inPathElements.map((utxoPathElements) => utxoPathElements.map((bignum) => bignum.toString())),
+      subtreePathElements: vanchorInput.inPathElements.map((utxoPathElements) =>
+        utxoPathElements.map((bignum) => bignum.toString())
+      ),
       forestPathIndices: forestPathIndices,
       forestPathElements,
-    }
+    };
 
     return proofInput;
   }
@@ -611,20 +616,17 @@ export class VAnchorForest {
     return { extData, extDataHash };
   }
 
-  public async updateForest(
-    outputs: Utxo[],
-  ): Promise<void> {
+  public async updateForest(outputs: Utxo[]): Promise<void> {
     outputs.forEach((x) => {
-      const commitment = BigNumber.from(u8aToHex(x.commitment))
+      const commitment = BigNumber.from(u8aToHex(x.commitment));
       this.tree.insert(commitment.toHexString());
       let numOfElements = this.tree.number_of_elements();
       this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
     });
-    const curIdx = await this.contract.currSubtreeIndex()
-    const lastSubtreeRoot = await this.contract.getLastSubtreeRoot(0)
+    const curIdx = await this.contract.currSubtreeIndex();
+    const lastSubtreeRoot = await this.contract.getLastSubtreeRoot(0);
     this.forest.update(curIdx.toNumber(), this.tree.root().toHexString());
   }
-
 
   /**
    *
@@ -686,20 +688,16 @@ export class VAnchorForest {
     let wasmFile;
     let zkeyFile;
     if (inputs.length > 2) {
-      wasmFile = this.largeCircuitZkComponents.wasm
-      zkeyFile = this.largeCircuitZkComponents.zkey
+      wasmFile = this.largeCircuitZkComponents.wasm;
+      zkeyFile = this.largeCircuitZkComponents.zkey;
     } else {
-      wasmFile = this.smallCircuitZkComponents.wasm
-      zkeyFile = this.smallCircuitZkComponents.zkey
+      wasmFile = this.smallCircuitZkComponents.wasm;
+      zkeyFile = this.smallCircuitZkComponents.zkey;
     }
 
-    let proof = await groth16.fullProve(
-      proofInput,
-      wasmFile,
-      zkeyFile
-    );
+    let proof = await groth16.fullProve(proofInput, wasmFile, zkeyFile);
 
-    const publicInputs = await this.generatePublicInputs(proof, inputs.length)
+    const publicInputs = await this.generatePublicInputs(proof, inputs.length);
     return {
       extData,
       publicInputs,
@@ -725,7 +723,7 @@ export class VAnchorForest {
     // Default UTXO chain ID will match with the configured signer's chain ID
     let { inputs, outputs } = await this.padInputsAndOutputs(raw_inputs, raw_outputs);
 
-    let extAmount = await this.getExtAmount(inputs, outputs, fee)
+    let extAmount = await this.getExtAmount(inputs, outputs, fee);
 
     const { extData, publicInputs } = await this.setupTransaction(
       inputs,
@@ -769,7 +767,7 @@ export class VAnchorForest {
     // Default UTXO chain ID will match with the configured signer's chain ID
     let { inputs, outputs } = await this.padInputsAndOutputs(raw_inputs, raw_outputs);
 
-    let extAmount = await this.getExtAmount(inputs, outputs, fee)
+    let extAmount = await this.getExtAmount(inputs, outputs, fee);
 
     const { extData, publicInputs } = await this.setupTransaction(
       inputs,
@@ -858,22 +856,17 @@ export class VAnchorForest {
       );
     }
     return utxos;
-
   }
 
   public async padInputsAndOutputs(
     inputs: Utxo[],
-    outputs: Utxo[],
-  ): Promise<{ inputs: Utxo[], outputs: Utxo[] }> {
+    outputs: Utxo[]
+  ): Promise<{ inputs: Utxo[]; outputs: Utxo[] }> {
     inputs = await this.padUtxos(inputs, 16);
     outputs = await this.padUtxos(outputs, 2);
     return { inputs, outputs };
   }
-  public async getExtAmount(
-    inputs: Utxo[],
-    outputs: Utxo[],
-    fee: BigNumberish,
-  ) {
+  public async getExtAmount(inputs: Utxo[], outputs: Utxo[], fee: BigNumberish) {
     return BigNumber.from(fee)
       .add(outputs.reduce((sum, x) => sum.add(BigNumber.from(BigInt(x.amount))), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(BigNumber.from(BigInt(x.amount))), BigNumber.from(0)));
@@ -890,7 +883,7 @@ export class VAnchorForest {
     leavesMap: Record<string, Uint8Array[]>
   ): Promise<ethers.ContractReceipt> {
     let { inputs, outputs } = await this.padInputsAndOutputs(raw_inputs, raw_outputs);
-    let extAmount = await this.getExtAmount(inputs, outputs, fee)
+    let extAmount = await this.getExtAmount(inputs, outputs, fee);
 
     const { extData, publicInputs } = await this.setupTransaction(
       inputs,
