@@ -9,16 +9,20 @@ import { ethers } from 'hardhat';
 import { poseidon, poseidon_gencontract as poseidonContract } from 'circomlibjs';
 import { MerkleTree } from '@webb-tools/sdk-core';
 import { PoseidonHasher } from '@webb-tools/anchors';
-import { LinkableIncrementalBinaryTree__factory } from '../../typechain';
+import {
+  MerkleForestMock as MerkleForestMockContract,
+  LinkableIncrementalBinaryTree as LinkableIncrementalBinaryTreeContract,
+  LinkableIncrementalBinaryTree__factory,
+} from '../../typechain';
 const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
 
 // const MerkleTreeWithHistory = artifacts.require('MerkleTreePoseidonMock');
 
 describe('MerkleForest', () => {
-  let merkleForest;
-  let poseidonLib;
-  let linkableIncrementalBinaryTree;
+  let merkleForest: MerkleForestMockContract;
+  let poseidonLib: any;
+  let linkableIncrementalBinaryTree: LinkableIncrementalBinaryTreeContract;
   let hasherInstance: PoseidonHasher;
   let sender;
   let wallet;
@@ -256,14 +260,18 @@ describe('MerkleForest', () => {
       let path;
 
       for (let i = 1; i < 5; i++) {
-        TruffleAssert.passes(await merkleForest.insertSubtreeTest(0, toFixedHex(i), { from: sender }));
+        TruffleAssert.passes(
+          await merkleForest.insertSubtreeTest(0, toFixedHex(i), { from: sender })
+        );
         await tree.insert(i);
         const { merkleRoot } = await tree.path(i - 1);
         const isKnown = await merkleForest.isKnownSubtreeRoot(0, toFixedHex(merkleRoot));
         assert(isKnown);
       }
 
-      TruffleAssert.passes(await merkleForest.insertSubtreeTest(0, toFixedHex(42), { from: sender }));
+      TruffleAssert.passes(
+        await merkleForest.insertSubtreeTest(0, toFixedHex(42), { from: sender })
+      );
       // check outdated root
       const { merkleRoot } = await tree.path(3);
       const isKnown = await merkleForest.isKnownSubtreeRoot(0, toFixedHex(merkleRoot));
@@ -271,7 +279,9 @@ describe('MerkleForest', () => {
     });
 
     it('should not return uninitialized roots', async () => {
-      TruffleAssert.passes(await merkleForest.insertSubtreeTest(0, toFixedHex(42), { from: sender }));
+      TruffleAssert.passes(
+        await merkleForest.insertSubtreeTest(0, toFixedHex(42), { from: sender })
+      );
       const isKnown = await merkleForest.isKnownRoot(toFixedHex(0));
       assert(!isKnown);
     });
