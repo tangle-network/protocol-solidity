@@ -45,6 +45,7 @@ class MintableToken {
   }
 
   public async approveSpending(spender: string): Promise<ContractTransaction> {
+    // TODO: Make this configurable
     return this.contract.approve(spender, '10000000000000000000000000000000000', {
       gasLimit: '0x5B8D80',
     });

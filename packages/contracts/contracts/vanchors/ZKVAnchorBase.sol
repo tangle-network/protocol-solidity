@@ -317,11 +317,7 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 		address _relayer,
 		uint256 _fee
 	) internal override {
-		console.log("Token address: %s", _token);
-		console.log("Fee: %s", _fee);
-		console.log("Relayer: %s", _relayer);
 		uint balance = IERC20(_token).balanceOf(address(this));
-		console.log("Balance: %s", balance);
 		if (_fee > 0) {
 			if (balance >= _fee) {
 				// transfer tokens when balance exists

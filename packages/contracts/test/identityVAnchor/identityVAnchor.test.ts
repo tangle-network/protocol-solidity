@@ -953,7 +953,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
       const tx = idAnchor.contract.transact(
         publicInputs.proof,
-        '',
+        ZERO_BYTES32,
         {
           recipient: extData.recipient,
           extAmount: extData.extAmount,
@@ -991,6 +991,9 @@ describe('IdentityVAnchor for 2 max edges', () => {
     let aliceExtData: any;
     let aliceExtDataHash: BigNumber;
 
+    let encOutput1;
+    let encOutput2;
+
     // should be before but it says idAnchor is undefined in this case
     beforeEach(async () => {
       const vanchorRoots = await idAnchor.populateVAnchorRootsForProof();
@@ -1004,8 +1007,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
       fee = BigInt(0);
 
-      const encOutput1 = outputs[0].encrypt();
-      const encOutput2 = outputs[1].encrypt();
+      encOutput1 = outputs[0].encrypt();
+      encOutput2 = outputs[1].encrypt();
 
       aliceExtData = {
         recipient: toFixedHex(alice.address, 20),
@@ -1079,7 +1082,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       await expect(
         idAnchor.contract.transact(
           invalidInputs.proof,
-          '',
+          ZERO_BYTES32,
           {
             recipient: aliceExtData.recipient,
             extAmount: aliceExtData.extAmount,
@@ -1100,8 +1103,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
             extDataHash: invalidInputs.extDataHash,
           },
           {
-            encryptedOutput1: '0x00',
-            encryptedOutput2: '0x00',
+            encryptedOutput1: encOutput1,
+            encryptedOutput2: encOutput2,
           },
           { gasLimit: '0x5B8D80' }
         )
@@ -1114,7 +1117,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       await expect(
         idAnchor.contract.transact(
           invalidInputs.proof,
-          '',
+          ZERO_BYTES32,
           {
             recipient: aliceExtData.recipient,
             extAmount: aliceExtData.extAmount,
@@ -1135,8 +1138,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
             extDataHash: invalidInputs.extDataHash,
           },
           {
-            encryptedOutput1: '0x00',
-            encryptedOutput2: '0x00',
+            encryptedOutput1: encOutput1,
+            encryptedOutput2: encOutput2,
           },
           { gasLimit: '0x5B8D80' }
         )
@@ -1151,7 +1154,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       await expect(
         idAnchor.contract.transact(
           invalidInputs.proof,
-          '',
+          ZERO_BYTES32,
           {
             recipient: aliceExtData.recipient,
             extAmount: aliceExtData.extAmount,
@@ -1172,8 +1175,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
             extDataHash: invalidInputs.extDataHash,
           },
           {
-            encryptedOutput1: '0x00',
-            encryptedOutput2: '0x00',
+            encryptedOutput1: encOutput1,
+            encryptedOutput2: encOutput2,
           },
           { gasLimit: '0x5B8D80' }
         )
@@ -1188,7 +1191,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       await expect(
         idAnchor.contract.transact(
           invalidInputs.proof,
-          '',
+          ZERO_BYTES32,
           {
             recipient: aliceExtData.recipient,
             extAmount: aliceExtData.extAmount,
@@ -1209,8 +1212,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
             extDataHash: invalidInputs.extDataHash,
           },
           {
-            encryptedOutput1: '0x00',
-            encryptedOutput2: '0x00',
+            encryptedOutput1: encOutput1,
+            encryptedOutput2: encOutput2,
           },
           { gasLimit: '0x5B8D80' }
         )
@@ -1226,7 +1229,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       await expect(
         idAnchor.contract.transact(
           publicInputs.proof,
-          '',
+          ZERO_BYTES32,
           {
             recipient: invalidExtData.recipient,
             extAmount: invalidExtData.extAmount,
@@ -1247,8 +1250,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
             extDataHash: publicInputs.extDataHash,
           },
           {
-            encryptedOutput1: '0x00',
-            encryptedOutput2: '0x00',
+            encryptedOutput1: encOutput1,
+            encryptedOutput2: encOutput2,
           },
           { gasLimit: '0x5B8D80' }
         )
@@ -1260,7 +1263,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       await expect(
         idAnchor.contract.transact(
           publicInputs.proof,
-          '',
+          ZERO_BYTES32,
           {
             recipient: invalidExtData.recipient,
             extAmount: invalidExtData.extAmount,
@@ -1281,8 +1284,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
             extDataHash: publicInputs.extDataHash,
           },
           {
-            encryptedOutput1: '0x00',
-            encryptedOutput2: '0x00',
+            encryptedOutput1: encOutput1,
+            encryptedOutput2: encOutput2,
           },
           { gasLimit: '0x5B8D80' }
         )
@@ -1294,7 +1297,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       await expect(
         idAnchor.contract.transact(
           publicInputs.proof,
-          '',
+          ZERO_BYTES32,
           {
             recipient: invalidExtData.recipient,
             extAmount: invalidExtData.extAmount,
@@ -1315,8 +1318,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
             extDataHash: publicInputs.extDataHash,
           },
           {
-            encryptedOutput1: '0x00',
-            encryptedOutput2: '0x00',
+            encryptedOutput1: encOutput1,
+            encryptedOutput2: encOutput2,
           },
           { gasLimit: '0x5B8D80' }
         )
@@ -1391,8 +1394,9 @@ describe('IdentityVAnchor for 2 max edges', () => {
         token.address
       );
       const balTokenAfterDepositSender = await token.balanceOf(alice.address);
-      // Fix: this aint working. Might be bc of gas cost?
-      // expect(balTokenBeforeDepositSender.sub(balTokenAfterDepositSender).toString()).equal('10000100');
+      expect(
+        balTokenBeforeDepositSender.sub(balTokenAfterDepositSender).toString()
+      ).equal(aliceDepositAmount.toString());
 
       const balWrappedTokenAfterDepositAnchor = await wrappedToken.balanceOf(
         wrappedIdAnchor.contract.address
@@ -1401,6 +1405,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       expect(balWrappedTokenAfterDepositAnchor.toString()).equal('10000000');
       expect(balWrappedTokenAfterDepositSender.toString()).equal('0');
     });
+
     it('should wrap and deposit', async () => {
       const balTokenBeforeDepositSender = await token.balanceOf(alice.address);
       const relayer = '0x2111111111111111111111111111111111111111';

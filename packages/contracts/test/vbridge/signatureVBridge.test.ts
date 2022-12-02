@@ -723,6 +723,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         existingToken1.contract.address,
         signers[1]
       );
+      console.log('made deposit');
       await vBridge.transact(
         [],
         [depositUtxo2],
@@ -733,6 +734,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         existingToken2.contract.address,
         ganacheWallet2
       );
+      console.log('made deposit');
       //Now there is a bidirectional edge between chain1 and chain2
     });
 

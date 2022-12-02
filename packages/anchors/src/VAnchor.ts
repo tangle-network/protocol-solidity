@@ -595,6 +595,10 @@ export class VAnchor implements IAnchor {
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
 
+    if (wrapUnwrapToken.length === 0) {
+      wrapUnwrapToken = this.token;
+    }
+
     const { extData, publicInputs } = await this.setupTransaction(
       inputs,
       [outputs[0], outputs[1]],
@@ -620,7 +624,7 @@ export class VAnchor implements IAnchor {
       options = { gasLimit: '0x5B8D80' };
     }
 
-    const tx = await this.contract.transact(
+    const tx = await (this.contract as VAnchorContract).transact(
       publicInputs.proof,
       ZERO_BYTES32,
       {
@@ -633,11 +637,15 @@ export class VAnchor implements IAnchor {
       },
       {
         roots: publicInputs.roots,
-        extensionRoots: [],
+        extensionRoots: '0x',
         inputNullifiers: publicInputs.inputNullifiers,
         outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
         publicAmount: publicInputs.publicAmount,
         extDataHash: publicInputs.extDataHash,
+      },
+      {
+        encryptedOutput1: extData.encryptedOutput1,
+        encryptedOutput2: extData.encryptedOutput2,
       },
       options
     );

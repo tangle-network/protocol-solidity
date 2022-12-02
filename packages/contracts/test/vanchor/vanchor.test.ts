@@ -21,6 +21,7 @@ import {
   getChainIdType,
   ZkComponents,
   u8aToHex,
+  ZERO_BYTES32,
 } from '@webb-tools/utils';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -266,8 +267,8 @@ describe('VAnchor for 2 max edges', () => {
     });
   });
 
-  describe.only('#transact', () => {
-    it.only('should transact', async () => {
+  describe('#transact', () => {
+    it('should transact', async () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
@@ -285,7 +286,7 @@ describe('VAnchor for 2 max edges', () => {
       );
     });
 
-    it.only('should process fee on deposit', async () => {
+    it('should process fee on deposit', async () => {
       const signers = await ethers.getSigners();
       const alice = signers[0];
 
@@ -425,7 +426,7 @@ describe('VAnchor for 2 max edges', () => {
         blinding: hexToU8a(randomBN().toHexString()),
       });
 
-      await anchor.transact([], [aliceDepositUtxo2], 0, 0, '0', '0', '', {
+      await anchor.transact([], [aliceDepositUtxo2], 0, 0, '0', '0', token.address, {
         [chainID.toString()]: anchorLeaves,
       });
 
@@ -492,7 +493,7 @@ describe('VAnchor for 2 max edges', () => {
         keypair: aliceDepositUtxo1.keypair,
       });
 
-      await anchor.transact([], [aliceDepositUtxo3], 0, 0, '0', '0', '', {
+      await anchor.transact([], [aliceDepositUtxo3], 0, 0, '0', '0', token.address, {
         [chainID.toString()]: anchorLeaves,
       });
 
@@ -566,7 +567,7 @@ describe('VAnchor for 2 max edges', () => {
 
       assert.strictEqual(
         aliceWithdrawAmount.toString(),
-        await (await token.balanceOf(aliceETHAddress)).toString()
+        await (await wrappedToken.balanceOf(aliceETHAddress)).toString()
       );
     });
 
@@ -671,7 +672,7 @@ describe('VAnchor for 2 max edges', () => {
       });
       //Step 4: Check that step 3 fails
       await TruffleAssert.reverts(
-        anchor.transact([aliceDepositUtxo], [aliceOutputUtxo], 0, 0, '0', '0', '', {
+        anchor.transact([aliceDepositUtxo], [aliceOutputUtxo], 0, 0, '0', '0', token.address, {
           [chainID.toString()]: anchorLeaves,
         }),
         'ERC20: transfer amount exceeds balance'
@@ -762,12 +763,12 @@ describe('VAnchor for 2 max edges', () => {
       await TruffleAssert.reverts(
         anchor.contract.transact(
           incorrectPublicInputs.proof,
-          '',
+          ZERO_BYTES32,
           extAmountInputs,
           incorrectPublicInputs,
           {
-            encryptedOutput1: '0x00',
-            encryptedOutput2: '0x00',
+            encryptedOutput1: encOutput1,
+            encryptedOutput2: encOutput2,
           }
         ),
         'Invalid public amount'
@@ -788,12 +789,12 @@ describe('VAnchor for 2 max edges', () => {
       await TruffleAssert.reverts(
         anchor.contract.transact(
           incorrectPublicInputs.proof,
-          '',
+          ZERO_BYTES32,
           extAmountInputs,
           incorrectPublicInputs,
           {
-            encryptedOutput1: '0x00',
-            encryptedOutput2: '0x00',
+            encryptedOutput1: encOutput1,
+            encryptedOutput2: encOutput2,
           }
         ),
         'Incorrect external data hash'
@@ -813,21 +814,19 @@ describe('VAnchor for 2 max edges', () => {
       ];
 
       incorrectPublicInputs = VAnchor.convertToPublicInputsStruct(incorrectPublicInputArgs);
-
       await TruffleAssert.reverts(
         anchor.contract.transact(
           incorrectPublicInputs.proof,
-          '',
+          ZERO_BYTES32,
           extAmountInputs,
           incorrectPublicInputs,
           {
-            encryptedOutput1: '0x00',
-            encryptedOutput2: '0x00',
+            encryptedOutput1: encOutput1,
+            encryptedOutput2: encOutput2,
           }
         ),
         'Invalid withdraw proof'
       );
-
       // input nullifier
       incorrectPublicInputArgs = [
         `0x${proofEncoded}`,
@@ -843,12 +842,12 @@ describe('VAnchor for 2 max edges', () => {
       await TruffleAssert.reverts(
         anchor.contract.transact(
           incorrectPublicInputs.proof,
-          '',
+          ZERO_BYTES32,
           extAmountInputs,
           incorrectPublicInputs,
           {
-            encryptedOutput1: '0x00',
-            encryptedOutput2: '0x00',
+            encryptedOutput1: encOutput1,
+            encryptedOutput2: encOutput2,
           }
         ),
         'Invalid withdraw proof'
@@ -872,12 +871,12 @@ describe('VAnchor for 2 max edges', () => {
       await TruffleAssert.reverts(
         anchor.contract.transact(
           correctPublicInputs.proof,
-          '',
+          ZERO_BYTES32,
           incorrectExtAmountInputs,
           correctPublicInputs,
           {
-            encryptedOutput1: '0x00',
-            encryptedOutput2: '0x00',
+            encryptedOutput1: encOutput1,
+            encryptedOutput2: encOutput2,
           }
         ),
         'Incorrect external data hash'
@@ -900,12 +899,12 @@ describe('VAnchor for 2 max edges', () => {
       await TruffleAssert.reverts(
         anchor.contract.transact(
           correctPublicInputs.proof,
-          '',
+          ZERO_BYTES32,
           incorrectExtAmountInputs,
           correctPublicInputs,
           {
-            encryptedOutput1: '0x00',
-            encryptedOutput2: '0x00',
+            encryptedOutput1: encOutput1,
+            encryptedOutput2: encOutput2,
           }
         ),
         'Incorrect external data hash'
@@ -928,12 +927,12 @@ describe('VAnchor for 2 max edges', () => {
       await TruffleAssert.reverts(
         anchor.contract.transact(
           correctPublicInputs.proof,
-          '',
+          ZERO_BYTES32,
           incorrectExtAmountInputs,
           correctPublicInputs,
           {
-            encryptedOutput1: '0x00',
-            encryptedOutput2: '0x00',
+            encryptedOutput1: encOutput1,
+            encryptedOutput2: encOutput2,
           }
         ),
         'Incorrect external data hash'
@@ -975,7 +974,7 @@ describe('VAnchor for 2 max edges', () => {
       });
 
       // Insert the UTXO into the tree
-      receipt = await anchor.transact([], [aliceTransferUtxo], 0, 0, '0', '0', '', {});
+      receipt = await anchor.transact([], [aliceTransferUtxo], 0, 0, '0', '0', token.address, {});
 
       // Bob queries encrypted commitments on chain
       const encryptedCommitments: string[] = receipt.events
@@ -1011,7 +1010,7 @@ describe('VAnchor for 2 max edges', () => {
       const leaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
       // Bob uses the parsed utxos to issue a withdraw
-      receipt = await anchor.transact(spendableUtxos, [], 0, 0, recipient.address, '0', '', {
+      receipt = await anchor.transact(spendableUtxos, [], 0, 0, recipient.address, '0', token.address, {
         [chainID.toString()]: leaves,
       });
 
@@ -1033,7 +1032,7 @@ describe('VAnchor for 2 max edges', () => {
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
 
-      await anchor.transact([], [aliceDepositUtxo], 0, 0, '0', '0', '', {});
+      await anchor.transact([], [aliceDepositUtxo], 0, 0, '0', '0', token.address, {});
 
       const anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
@@ -1074,7 +1073,7 @@ describe('VAnchor for 2 max edges', () => {
       // and the tx with NewNullifier event is where alice spent the UTXO
     });
 
-    it.only('Should reject proofs made against roots of empty edges', async () => {
+    it('Should reject proofs made against roots of empty edges', async () => {
       // This test has not been linked to another anchor - edgeList should be empty.
       await TruffleAssert.reverts(anchor.contract.edgeList(0));
 
@@ -1149,7 +1148,6 @@ describe('VAnchor for 2 max edges', () => {
         .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
         .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
 
-      console.log('here');
       const { publicInputs, extData } = await setupVAnchor.setupTransaction(
         inputs,
         outputs,
@@ -1164,9 +1162,9 @@ describe('VAnchor for 2 max edges', () => {
           [chainID.toString()]: [hexToU8a(fakeTree.zeroElement.toHexString())],
         }
       );
-      console.log('there');
+
       await TruffleAssert.reverts(
-        anchor.contract.transact(publicInputs.proof, '', extData, publicInputs, {
+        anchor.contract.transact(publicInputs.proof, ZERO_BYTES32, extData, publicInputs, {
           encryptedOutput1: outputs[0].encrypt(),
           encryptedOutput2: outputs[1].encrypt(),
         }),
