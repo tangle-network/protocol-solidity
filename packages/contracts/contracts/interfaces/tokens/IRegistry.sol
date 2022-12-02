@@ -28,6 +28,7 @@ interface IRegistry {
         uint256 _assetIdentifier,
         string memory _name,
         string memory _symbol,
+        address unwrappedAddress,
         bytes32 _salt,
         uint256 _limit,
         uint16 _feePercentage,

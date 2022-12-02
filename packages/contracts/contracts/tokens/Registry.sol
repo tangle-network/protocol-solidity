@@ -30,6 +30,9 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
 	mapping (address => uint256) public wrappedAssetToId;
 	mapping (uint256 => address) public idToWrappedAsset;
 
+    mapping (address => uint256) public unwrappedAssetToId;
+	mapping (uint256 => address) public idToUnwrappedAsset;
+
     event TokenRegistered(
         address indexed token,
         address indexed handler,
@@ -83,6 +86,7 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
         uint256 _assetIdentifier,
         string memory _name,
         string memory _symbol,
+        address unwrappedAddress,
         bytes32 _salt,
         uint256 _limit,
         uint16 _feePercentage,
@@ -103,6 +107,8 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
         emit TokenRegistered(token, _tokenHandler, _assetIdentifier);
         idToWrappedAsset[_assetIdentifier] = token;
         wrappedAssetToId[token] = _assetIdentifier;
+        idToUnwrappedAsset[_assetIdentifier] = unwrappedAddress;
+        unwrappedAssetToId[unwrappedAddress] = _assetIdentifier;
     }
 
     /**
