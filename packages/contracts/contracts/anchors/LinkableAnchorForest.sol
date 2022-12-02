@@ -43,6 +43,7 @@ abstract contract LinkableAnchorForest is ILinkableAnchor, MerkleForest, Reentra
     // The maximum number of edges this tree can support for zero-knowledge linkability.
     uint8 public immutable maxEdges;
     uint32 public immutable forestDepth;
+    uint32 public immutable subtreeDepth;
     uint32 internal constant ROOT_HISTORY_SIZE = 30;
 
     // Maps sourceChainID to the index in the edge list
@@ -63,19 +64,20 @@ abstract contract LinkableAnchorForest is ILinkableAnchor, MerkleForest, Reentra
         @notice The LinkableAnchor constructor
         @param _handler The address of the `AnchorHandler` contract
         @param _hasher The address of hash contract
-        @param _merkleTreeHeight The height of deposits' Merkle Tree
+        @param _subtreeHeight The height of deposits' Merkle Tree
         @param _maxEdges The maximum # of edges this linkable tree connects to
     */
     constructor(
         address _handler,
         IHasher _hasher,
         uint32 _forestHeight,
-        uint32 _merkleTreeHeight,
+        uint32 _subtreeHeight,
         uint8 _maxEdges
-    ) MerkleForest(_forestHeight, _merkleTreeHeight, _hasher) {
+    ) MerkleForest(_forestHeight, _subtreeHeight, _hasher) {
         handler = _handler;
         maxEdges = _maxEdges;
         forestDepth = _forestHeight;
+        subtreeDepth = _subtreeHeight;
     }
 
     /**
