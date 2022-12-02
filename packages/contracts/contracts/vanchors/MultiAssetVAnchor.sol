@@ -169,9 +169,9 @@ contract MultiAssetVAnchor is ZKVAnchorBase {
 		bytes memory _auxPublicInputs,
 		CommonExtData memory _externalData,
 		Encryptions memory _encryptions
-	) override internal virtual returns (CommonExtData memory) {
+	) override internal virtual returns (bytes32) {
 		AuxPublicInputs memory aux = abi.decode(_auxPublicInputs, (AuxPublicInputs));
-		_externalData.dataHash = keccak256(abi.encode(
+		return keccak256(abi.encode(
 			ExtData(
 				aux.assetID,
 				_externalData.recipient,
@@ -184,6 +184,5 @@ contract MultiAssetVAnchor is ZKVAnchorBase {
 				_encryptions.encryptedOutput2
 			)
 		));
-		return _externalData;
 	}
 }

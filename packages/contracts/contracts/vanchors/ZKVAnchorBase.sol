@@ -14,6 +14,7 @@ import "../verifiers/TxProofVerifier.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "hardhat/console.sol";
 
 /**
 	@title ZK VAnchor Base
@@ -102,7 +103,7 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 		PublicInputs memory _publicInputs,
 		Encryptions memory _encryptions
 	) internal virtual {
-		CommonExtData memory extData = _executeValidationAndVerification(
+		_executeValidationAndVerification(
 			_proof,
 			_auxPublicInputs,
 			_externalData,
@@ -111,45 +112,45 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 		);
 
 		// Check if extAmount > 0, call wrapAndDeposit
-        if (extData.extAmount > 0) {
-			require(uint256(extData.extAmount) <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
-			if (extData.token == _wrappedToken) {
+        if (_externalData.extAmount > 0) {
+			require(uint256(_externalData.extAmount) <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
+			if (_externalData.token == _wrappedToken) {
 				IMintableERC20(_wrappedToken).transferFrom(
 					msg.sender,
 					address(this),
-					uint256(extData.extAmount)
+					uint256(_externalData.extAmount)
 				);
 			} else {
 				_executeWrapping(
-					extData.token,
+					_externalData.token,
 					_wrappedToken,
-					uint256(extData.extAmount)
+					uint256(_externalData.extAmount)
 				);
 			}
 		}
 
-		if (extData.extAmount < 0) {
-			require(extData.recipient != address(0), "Can't withdraw to zero address");
+		if (_externalData.extAmount < 0) {
+			require(_externalData.recipient != address(0), "Can't withdraw to zero address");
 			// Prevents ddos attack to Bridge
-			require(uint256(-extData.extAmount) >= minimalWithdrawalAmount, "amount is less than minimalWithdrawalAmount"); 
-			if (extData.token == _wrappedToken) {
+			require(uint256(-_externalData.extAmount) >= minimalWithdrawalAmount, "amount is less than minimalWithdrawalAmount"); 
+			if (_externalData.token == _wrappedToken) {
 				_processWithdraw(
 					_wrappedToken,
-					extData.recipient,
-					uint256(-extData.extAmount)
+					_externalData.recipient,
+					uint256(-_externalData.extAmount)
 				);
 			} else {
 				_withdrawAndUnwrap(
 					_wrappedToken,
-					extData.token,
-					extData.recipient,
-					uint256(-extData.extAmount)
+					_externalData.token,
+					_externalData.recipient,
+					uint256(-_externalData.extAmount)
 				);
 			}
 		}
 
-		if (extData.fee > 0) {
-			_processFee(_wrappedToken, extData.relayer, extData.fee);
+		if (_externalData.fee > 0) {
+			_processFee(_wrappedToken, _externalData.relayer, _externalData.fee);
 		}
 
 		_executeInsertions(_publicInputs, _encryptions);
@@ -234,8 +235,8 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 		CommonExtData memory _externalData,
 		PublicInputs memory _publicInputs,
 		Encryptions memory _encryptions
-	) internal virtual returns (CommonExtData memory) {
-		CommonExtData memory extData = _genExtDataHash(
+	) internal virtual {
+		bytes32 extDataHash = _genExtDataHash(
 			_auxPublicInputs,
 			_externalData,
 			_encryptions
@@ -244,16 +245,14 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 		for (uint256 i = 0; i < _publicInputs.inputNullifiers.length; i++) {
 			require(!isSpent(_publicInputs.inputNullifiers[i]), "Input is already spent");
 		}
-		require(uint256(_publicInputs.extDataHash) == uint256(extData.dataHash) % FIELD_SIZE, "Incorrect external data hash");
-		require(_publicInputs.publicAmount == calculatePublicAmount(extData.extAmount, extData.fee), "Invalid public amount");
+		require(uint256(_publicInputs.extDataHash) == uint256(extDataHash) % FIELD_SIZE, "Incorrect external data hash");
+		require(_publicInputs.publicAmount == calculatePublicAmount(_externalData.extAmount, _externalData.fee), "Invalid public amount");
 		_executeVerification(_proof, _auxPublicInputs, _publicInputs, _encryptions);
 
 		for (uint256 i = 0; i < _publicInputs.inputNullifiers.length; i++) {
 			// sets the nullifier for the input UTXO to spent
 			nullifierHashes[_publicInputs.inputNullifiers[i]] = true;
 		}
-
-        return extData;
 	}
 
 	/**
@@ -318,7 +317,11 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 		address _relayer,
 		uint256 _fee
 	) internal override {
+		console.log("Token address: %s", _token);
+		console.log("Fee: %s", _fee);
+		console.log("Relayer: %s", _relayer);
 		uint balance = IERC20(_token).balanceOf(address(this));
+		console.log("Balance: %s", balance);
 		if (_fee > 0) {
 			if (balance >= _fee) {
 				// transfer tokens when balance exists
@@ -334,7 +337,7 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 		bytes memory _auxPublicInputs,
 		CommonExtData memory _externalData,
 		Encryptions memory _encryptions
-	) internal virtual returns (CommonExtData memory);
+	) internal virtual returns (bytes32);
 
 	/**
 		@notice Set a new verifier with a nonce

@@ -5,7 +5,7 @@
       "options": {
         "printWidth": 100,
         "tabWidth": 4,
-        "useTabs": false,
+        "useTabs": true,
         "singleQuote": false,
         "bracketSpacing": true
       }

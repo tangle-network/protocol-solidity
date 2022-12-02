@@ -839,9 +839,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
       const tx = idAnchor.contract.transact(
         publicInputs.proof,
-        '',
+        ZERO_BYTES32,
         {
-          dataHash: ZERO_BYTES32,
           recipient: extData.recipient,
           extAmount: extData.extAmount,
           relayer: extData.relayer,
@@ -856,6 +855,10 @@ describe('IdentityVAnchor for 2 max edges', () => {
           outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
           publicAmount: publicInputs.publicAmount,
           extDataHash: publicInputs.extDataHash,
+        },
+        {
+          encryptedOutput1: encOutput1,
+          encryptedOutput2: encOutput2,
         },
         { gasLimit: '0x5B8D80' }
       );
@@ -952,7 +955,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
         publicInputs.proof,
         '',
         {
-          dataHash: ZERO_BYTES32,
           recipient: extData.recipient,
           extAmount: extData.extAmount,
           relayer: extData.relayer,
@@ -967,6 +969,10 @@ describe('IdentityVAnchor for 2 max edges', () => {
           outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
           publicAmount: publicInputs.publicAmount,
           extDataHash: publicInputs.extDataHash,
+        },
+        {
+          encryptedOutput1: encOutput1,
+          encryptedOutput2: encOutput2,
         },
         { gasLimit: '0x5B8D80' }
       );
@@ -1075,7 +1081,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
           invalidInputs.proof,
           '',
           {
-            dataHash: ZERO_BYTES32,
             recipient: aliceExtData.recipient,
             extAmount: aliceExtData.extAmount,
             relayer: aliceExtData.relayer,
@@ -1093,6 +1098,10 @@ describe('IdentityVAnchor for 2 max edges', () => {
             ],
             publicAmount: invalidInputs.publicAmount,
             extDataHash: invalidInputs.extDataHash,
+          },
+          {
+            encryptedOutput1: '0x00',
+            encryptedOutput2: '0x00',
           },
           { gasLimit: '0x5B8D80' }
         )
@@ -1107,7 +1116,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
           invalidInputs.proof,
           '',
           {
-            dataHash: ZERO_BYTES32,
             recipient: aliceExtData.recipient,
             extAmount: aliceExtData.extAmount,
             relayer: aliceExtData.relayer,
@@ -1125,6 +1133,10 @@ describe('IdentityVAnchor for 2 max edges', () => {
             ],
             publicAmount: invalidInputs.publicAmount,
             extDataHash: invalidInputs.extDataHash,
+          },
+          {
+            encryptedOutput1: '0x00',
+            encryptedOutput2: '0x00',
           },
           { gasLimit: '0x5B8D80' }
         )
@@ -1141,7 +1153,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
           invalidInputs.proof,
           '',
           {
-            dataHash: ZERO_BYTES32,
             recipient: aliceExtData.recipient,
             extAmount: aliceExtData.extAmount,
             relayer: aliceExtData.relayer,
@@ -1159,6 +1170,10 @@ describe('IdentityVAnchor for 2 max edges', () => {
             ],
             publicAmount: invalidInputs.publicAmount,
             extDataHash: invalidInputs.extDataHash,
+          },
+          {
+            encryptedOutput1: '0x00',
+            encryptedOutput2: '0x00',
           },
           { gasLimit: '0x5B8D80' }
         )
@@ -1175,7 +1190,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
           invalidInputs.proof,
           '',
           {
-            dataHash: ZERO_BYTES32,
             recipient: aliceExtData.recipient,
             extAmount: aliceExtData.extAmount,
             relayer: aliceExtData.relayer,
@@ -1193,6 +1207,10 @@ describe('IdentityVAnchor for 2 max edges', () => {
             ],
             publicAmount: invalidInputs.publicAmount,
             extDataHash: invalidInputs.extDataHash,
+          },
+          {
+            encryptedOutput1: '0x00',
+            encryptedOutput2: '0x00',
           },
           { gasLimit: '0x5B8D80' }
         )
@@ -1210,7 +1228,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
           publicInputs.proof,
           '',
           {
-            dataHash: ZERO_BYTES32,
             recipient: invalidExtData.recipient,
             extAmount: invalidExtData.extAmount,
             relayer: invalidExtData.relayer,
@@ -1228,6 +1245,10 @@ describe('IdentityVAnchor for 2 max edges', () => {
             ],
             publicAmount: publicInputs.publicAmount,
             extDataHash: publicInputs.extDataHash,
+          },
+          {
+            encryptedOutput1: '0x00',
+            encryptedOutput2: '0x00',
           },
           { gasLimit: '0x5B8D80' }
         )
@@ -1241,7 +1262,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
           publicInputs.proof,
           '',
           {
-            dataHash: ZERO_BYTES32,
             recipient: invalidExtData.recipient,
             extAmount: invalidExtData.extAmount,
             relayer: invalidExtData.relayer,
@@ -1259,6 +1279,10 @@ describe('IdentityVAnchor for 2 max edges', () => {
             ],
             publicAmount: publicInputs.publicAmount,
             extDataHash: publicInputs.extDataHash,
+          },
+          {
+            encryptedOutput1: '0x00',
+            encryptedOutput2: '0x00',
           },
           { gasLimit: '0x5B8D80' }
         )
@@ -1272,7 +1296,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
           publicInputs.proof,
           '',
           {
-            dataHash: ZERO_BYTES32,
             recipient: invalidExtData.recipient,
             extAmount: invalidExtData.extAmount,
             relayer: invalidExtData.relayer,
@@ -1290,6 +1313,10 @@ describe('IdentityVAnchor for 2 max edges', () => {
             ],
             publicAmount: publicInputs.publicAmount,
             extDataHash: publicInputs.extDataHash,
+          },
+          {
+            encryptedOutput1: '0x00',
+            encryptedOutput2: '0x00',
           },
           { gasLimit: '0x5B8D80' }
         )

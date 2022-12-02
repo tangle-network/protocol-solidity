@@ -717,7 +717,7 @@ export class IdentityVAnchor implements IAnchor {
     relayer: string,
     fee: BigNumber,
     refund: BigNumber,
-    token: string,
+    wrapUnwrapToken: string,
     encryptedOutput1: string,
     encryptedOutput2: string
   ): Promise<{ extData: ExtData; extDataHash: BigNumber }> {
@@ -727,7 +727,7 @@ export class IdentityVAnchor implements IAnchor {
       relayer: toFixedHex(relayer, 20),
       fee: toFixedHex(fee),
       refund: toFixedHex(refund.toString()),
-      token: toFixedHex(token, 20),
+      token: toFixedHex(wrapUnwrapToken, 20),
       encryptedOutput1,
       encryptedOutput2,
     };
@@ -740,7 +740,7 @@ export class IdentityVAnchor implements IAnchor {
       recipient,
       relayer,
       refund.toString(),
-      token
+      wrapUnwrapToken
     );
     return { extData, extDataHash };
   }
@@ -881,7 +881,6 @@ export class IdentityVAnchor implements IAnchor {
       publicInputs.proof,
       ZERO_BYTES32,
       {
-        dataHash: ZERO_BYTES32,
         recipient: extData.recipient,
         extAmount: extData.extAmount,
         relayer: extData.relayer,

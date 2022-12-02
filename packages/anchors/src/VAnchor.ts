@@ -170,7 +170,7 @@ export class VAnchor implements IAnchor {
     return {
       proof: args[0],
       roots: args[1],
-      extensionRoots: '',
+      extensionRoots: '0x00',
       inputNullifiers: args[2],
       outputCommitments: args[3],
       publicAmount: args[4],
@@ -180,7 +180,6 @@ export class VAnchor implements IAnchor {
 
   public static convertToExtDataStruct(args: any[]): IVariableAnchorExtData {
     return {
-      dataHash: ZERO_BYTES32,
       recipient: args[0],
       extAmount: args[1],
       relayer: args[2],
@@ -378,7 +377,7 @@ export class VAnchor implements IAnchor {
     const args: IVariableAnchorPublicInputs = {
       proof: `0x${proof}`,
       roots: `0x${roots.map((x) => toFixedHex(x).slice(2)).join('')}`,
-      extensionRoots: '',
+      extensionRoots: '0x00',
       inputNullifiers: inputs.map((x) => toFixedHex('0x' + x.nullifier)),
       outputCommitments: [
         toFixedHex(u8aToHex(outputs[0].commitment)),
@@ -532,7 +531,6 @@ export class VAnchor implements IAnchor {
     );
 
     const extData: IVariableAnchorExtData = {
-      dataHash: ZERO_BYTES32,
       recipient: toFixedHex(proofInput.recipient, 20),
       extAmount: toFixedHex(proofInput.extAmount),
       relayer: toFixedHex(proofInput.relayer, 20),
@@ -626,7 +624,6 @@ export class VAnchor implements IAnchor {
       publicInputs.proof,
       ZERO_BYTES32,
       {
-        dataHash: ZERO_BYTES32,
         recipient: extData.recipient,
         extAmount: extData.extAmount,
         relayer: extData.relayer,
@@ -709,7 +706,6 @@ export class VAnchor implements IAnchor {
     if (wrapUnwrapToken.length === 0) {
       wrapUnwrapToken = this.token;
     }
-    console.log('wrapUnwrapToken', wrapUnwrapToken);
 
     const { extData, publicInputs } = await this.setupTransaction(
       inputs,
@@ -717,9 +713,9 @@ export class VAnchor implements IAnchor {
       extAmount,
       fee,
       refund,
-      wrapUnwrapToken,
       recipient,
       relayer,
+      wrapUnwrapToken,
       leavesMap
     );
 
@@ -741,7 +737,6 @@ export class VAnchor implements IAnchor {
       publicInputs.proof,
       ZERO_BYTES32,
       {
-        dataHash: ZERO_BYTES32,
         recipient: extData.recipient,
         extAmount: extData.extAmount,
         relayer: extData.relayer,

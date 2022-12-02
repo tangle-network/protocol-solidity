@@ -26,7 +26,6 @@ export interface IVariableAnchorPublicInputs {
 }
 
 export interface IVariableAnchorExtData {
-  dataHash: string;
   recipient: string;
   extAmount: string;
   relayer: string;

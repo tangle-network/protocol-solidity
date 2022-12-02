@@ -6,13 +6,12 @@
 pragma solidity ^0.8.0;
 
 struct CommonExtData {
-    bytes32 dataHash;
     address recipient;
-	int256 extAmount;
-	address relayer;
-	uint256 fee;
-	uint256 refund;
-	address token;
+    int256 extAmount;
+    address relayer;
+    uint256 fee;
+    uint256 refund;
+    address token;
 }
 
 /**
@@ -27,10 +26,10 @@ struct CommonExtData {
 struct PublicInputs {
     bytes roots;
     bytes extensionRoots;
-	bytes32[] inputNullifiers;
-	bytes32[2] outputCommitments;
-	uint256 publicAmount;
-	bytes32 extDataHash;
+    bytes32[] inputNullifiers;
+    bytes32[2] outputCommitments;
+    uint256 publicAmount;
+    bytes32 extDataHash;
 }
 
 /**
@@ -46,5 +45,5 @@ struct AuxPublicInputs {
  */
 struct Encryptions {
     bytes encryptedOutput1;
-	bytes encryptedOutput2;
+    bytes encryptedOutput2;
 }

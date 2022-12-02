@@ -103,8 +103,8 @@ contract VAnchor is ZKVAnchorBase {
 		bytes memory,
 		CommonExtData memory _externalData,
 		Encryptions memory _encryptions
-	) override internal virtual returns (CommonExtData memory) {
-		_externalData.dataHash = keccak256(abi.encode(
+	) override internal virtual returns (bytes32) {
+		return keccak256(abi.encode(
 			ExtData(
 				_externalData.recipient,
 				_externalData.extAmount,
@@ -116,6 +116,5 @@ contract VAnchor is ZKVAnchorBase {
 				_encryptions.encryptedOutput2
 			)
 		));
-		return _externalData;
 	}
 }

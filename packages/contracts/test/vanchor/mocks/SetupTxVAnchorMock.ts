@@ -44,9 +44,9 @@ export class SetupTxVAnchorMock extends VAnchor {
     extAmount: BigNumberish,
     fee: BigNumberish,
     refund: BigNumberish,
-    token: string,
     recipient: string,
     relayer: string,
+    wrapUnwrapToken: string,
     leavesMap: Record<string, Uint8Array[]>
   ) {
     // first, check if the merkle root is known on chain - if not, then update
@@ -82,7 +82,7 @@ export class SetupTxVAnchorMock extends VAnchor {
         inputs.length > 2 ? this.largeCircuitZkComponents.zkey : this.smallCircuitZkComponents.zkey,
       relayer: hexToU8a(relayer),
       refund: BigNumber.from(refund).toString(),
-      token: hexToU8a(token),
+      token: hexToU8a(wrapUnwrapToken),
       recipient: hexToU8a(recipient),
       extAmount: toFixedHex(BigNumber.from(extAmount)),
       fee: BigNumber.from(fee).toString(),
@@ -112,7 +112,6 @@ export class SetupTxVAnchorMock extends VAnchor {
     );
 
     const extData: IVariableAnchorExtData = {
-      dataHash: '',
       recipient: toFixedHex(proofInput.recipient, 20),
       extAmount: toFixedHex(proofInput.extAmount),
       relayer: toFixedHex(proofInput.relayer, 20),
