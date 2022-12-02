@@ -64,16 +64,18 @@ contract RegistryHandler is IExecutor, HandlerHelpers {
             uint256 assetId = uint256(bytes32(arguments[24:56]));
             bytes32 name = bytes32(arguments[56:88]); 
             bytes32 symbol = bytes32(arguments[88:120]);
-            bytes32 salt = bytes32(arguments[120:152]);
-            uint256 limit = uint256(bytes32(arguments[152:184]));
-            uint16 feePercentage = uint16(bytes2(arguments[184:186]));
-            bool isNativeAllowed = bytes1(arguments[186:187]) == 0x01;
+            address unwrappedAddress = address(bytes20(arguments[120:140]));
+            bytes32 salt = bytes32(arguments[140:172]);
+            uint256 limit = uint256(bytes32(arguments[172:204]));
+            uint16 feePercentage = uint16(bytes2(arguments[204:206]));
+            bool isNativeAllowed = bytes1(arguments[206:207]) == 0x01;
             registry.registerToken(
                 nonce,
                 tokenHandler,
                 assetId,
                 bytes32ToString(name),
                 bytes32ToString(symbol),
+                unwrappedAddress,
                 salt,
                 limit,
                 feePercentage,
@@ -83,9 +85,10 @@ contract RegistryHandler is IExecutor, HandlerHelpers {
             uint32 nonce = uint32(bytes4(arguments[0:4]));
             address tokenHandler = address(bytes20(arguments[4:24]));
             uint256 assetId = uint256(bytes32(arguments[24:56]));
-            bytes32 salt = bytes32(arguments[56:88]);
-            bytes memory uri = bytes(arguments[88:]);
-            registry.registerNftToken(nonce, tokenHandler, assetId, string(uri), salt);
+            address unwrappedAddress = address(bytes20(arguments[56:76]));
+            bytes32 salt = bytes32(arguments[76:108]);
+            bytes memory uri = bytes(arguments[108:]);
+            registry.registerNftToken(nonce, tokenHandler, assetId, unwrappedAddress, string(uri), salt);
         } else {
             revert("Invalid function sig");
         }

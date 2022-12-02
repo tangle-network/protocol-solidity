@@ -258,7 +258,7 @@ contract MultiAssetVAnchor is VAnchorBase, TxProofVerifier {
 			);
 		}
 
-		uint256 assetID = IRegistry(registry).getAssetId(_toTokenAddress);
+		uint256 assetID = IRegistry(registry).getAssetIdFromWrappedAddress(_toTokenAddress);
 		bytes32 commitment = bytes32(IHasher(hasher).hash3([
 			assetID,
 			wrapAmount,
@@ -281,7 +281,7 @@ contract MultiAssetVAnchor is VAnchorBase, TxProofVerifier {
 	function transact(VAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) public nonReentrant {
 		_executeValidationAndVerification(_args, _extData);
 
-		address wrappedToken = IRegistry(registry).getAssetAddress(_extData.assetId);
+		address wrappedToken = IRegistry(registry).getWrappedAssetAddress(_extData.assetId);
 		if (_extData.extAmount > 0) {
 			require(uint256(_extData.extAmount) <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
 			IMintableERC20(_extData.token).transferFrom(msg.sender, address(this), uint256(_extData.extAmount));
@@ -312,7 +312,7 @@ contract MultiAssetVAnchor is VAnchorBase, TxProofVerifier {
 	) public payable {
 		_executeValidationAndVerification(_args, _extData);
 
-		address wrappedToken = IRegistry(registry).getAssetAddress(_extData.assetId);
+		address wrappedToken = IRegistry(registry).getWrappedAssetAddress(_extData.assetId);
 		// Check if extAmount > 0, call wrapAndDeposit
 		if (_extData.extAmount > 0) {
 			//wrapAndDeposit

@@ -47,6 +47,7 @@ interface IRegistry {
         uint32 _nonce,
         address _handler,
         uint256 _assetIdentifier,
+        address unwrappedAddress,
         string memory _uri,
         bytes32 _salt
     ) external;
@@ -55,11 +56,23 @@ interface IRegistry {
         @notice Fetches the address for an asset ID
         @param _assetId The asset ID
      */
-    function getAssetAddress(uint256 _assetId) external view returns (address);
+    function getWrappedAssetAddress(uint256 _assetId) external view returns (address);
 
     /**
         @notice Fetches the asset ID for an address
         @param _address The address
      */
-    function getAssetId(address _address) external view returns (uint256);
+    function getAssetIdFromWrappedAddress(address _address) external view returns (uint256);
+
+    /**
+        @notice Fetches the unwrapped address for an asset ID
+        @param _assetId The asset ID
+     */
+    function getUnwrappedAssetAddress(uint256 _assetId) external view returns (address);
+
+    /**
+        @notice Fetches the asset ID for an address
+        @param _address The address
+     */
+    function getAssetIdFromUnwrappedAddress(address _address) external view returns (uint256);
 }

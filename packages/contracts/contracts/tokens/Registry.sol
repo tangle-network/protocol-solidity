@@ -123,6 +123,7 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
         uint32 _nonce,
         address _tokenHandler,
         uint256 _assetIdentifier,
+        address unwrappedAddress,
         string memory _uri,
         bytes32 _salt
     ) override external onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
@@ -137,13 +138,15 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
         emit TokenRegistered(token, _tokenHandler, _assetIdentifier);
         idToWrappedAsset[_assetIdentifier] = token;
         wrappedAssetToId[token] = _assetIdentifier;
+        idToUnwrappedAsset[_assetIdentifier] = unwrappedAddress;
+        unwrappedAssetToId[unwrappedAddress] = _assetIdentifier;
     }
 
     /**
         @notice Fetches the address for an asset ID
         @param _assetId The asset ID
      */
-    function getAssetAddress(uint256 _assetId) override external view returns (address) {
+    function getWrappedAssetAddress(uint256 _assetId) override external view returns (address) {
         return idToWrappedAsset[_assetId];
     }
 
@@ -151,8 +154,24 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
         @notice Fetches the asset ID for an address
         @param _address The address
      */
-    function getAssetId(address _address) override external view returns (uint256) {
+    function getAssetIdFromWrappedAddress(address _address) override external view returns (uint256) {
         return wrappedAssetToId[_address];
+    }
+
+    /**
+        @notice Fetches the address for an asset ID
+        @param _assetId The asset ID
+     */
+    function getUnwrappedAssetAddress(uint256 _assetId) override external view returns (address) {
+        return idToUnwrappedAsset[_assetId];
+    }
+
+    /**
+        @notice Fetches the asset ID for an address
+        @param _address The address
+     */
+    function getAssetIdFromUnwrappedAddress(address _address) override external view returns (uint256) {
+        return unwrappedAssetToId[_address];
     }
 
     /**
