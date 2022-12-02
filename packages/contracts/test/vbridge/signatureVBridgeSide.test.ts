@@ -92,7 +92,7 @@ describe('SignatureBridgeSide use', () => {
       zkComponents16_2,
       admin
     );
-    await tokenInstance.approveSpending(anchor.contract.address);
+    await tokenInstance.approveSpending(anchor.contract.address, BigNumber.from(1e7));
     bridgeSide.setAnchorHandler(anchorHandler);
     // Function call below sets resource with signature
     await bridgeSide.connectAnchorWithSignature(anchor);
@@ -128,7 +128,7 @@ describe('SignatureBridgeSide use', () => {
       admin
     );
 
-    await tokenInstance.approveSpending(srcAnchor.contract.address);
+    await tokenInstance.approveSpending(srcAnchor.contract.address, BigNumber.from(1e7));
 
     bridgeSide.setAnchorHandler(anchorHandler);
     const res = await bridgeSide.connectAnchorWithSignature(srcAnchor);
@@ -146,7 +146,7 @@ describe('SignatureBridgeSide use', () => {
     const depositUtxo = await CircomUtxo.generateUtxo({
       curve: 'Bn254',
       backend: 'Circom',
-      amount: (1e7).toString(),
+      amount: (BigNumber.from(1e7)).toString(),
       originChainId: chainID1.toString(),
       chainId: chainID1.toString(),
       keypair: new Keypair(),
@@ -450,7 +450,7 @@ describe('SignatureBridgeSide use', () => {
       admin
     );
 
-    await tokenInstance.approveSpending(anchor.contract.address);
+    await tokenInstance.approveSpending(anchor.contract.address, BigNumber.from(1e7));
 
     await bridgeSide.setAnchorHandler(anchorHandler);
     // Function call below sets resource with signature
@@ -616,8 +616,8 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
     );
 
     await fungibleToken.grantMinterRole(srcAnchor.contract.address);
-    await erc20TokenInstance.approveSpending(fungibleToken.contract.address);
-    await erc20TokenInstance.approveSpending(srcAnchor.contract.address);
+    await erc20TokenInstance.approveSpending(fungibleToken.contract.address, BigNumber.from(1e7));
+    await erc20TokenInstance.approveSpending(srcAnchor.contract.address, BigNumber.from(1e7));
     bridgeSide.setAnchorHandler(anchorHandler);
     const res = await bridgeSide.connectAnchorWithSignature(srcAnchor);
     await bridgeSide.executeMinWithdrawalLimitProposalWithSig(
@@ -638,7 +638,7 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
       chainId: chainID1.toString(),
       keypair: new Keypair(),
     });
-    console.log('here');
+
     await TruffleAssert.reverts(
       srcAnchor.transact(
         [],

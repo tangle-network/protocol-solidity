@@ -711,7 +711,6 @@ describe('2-sided multichain tests for signature vbridge', () => {
         originChainId: chainID2.toString(),
         chainId: chainID1.toString(),
       });
-
       //Transact on the bridge
       await vBridge.transact(
         [],
@@ -720,10 +719,9 @@ describe('2-sided multichain tests for signature vbridge', () => {
         0,
         '0',
         '0',
-        existingToken1.contract.address,
+        '0x0000000000000000000000000000000000000000',
         signers[1]
       );
-      console.log('made deposit');
       await vBridge.transact(
         [],
         [depositUtxo2],
@@ -731,10 +729,9 @@ describe('2-sided multichain tests for signature vbridge', () => {
         0,
         '0',
         '0',
-        existingToken2.contract.address,
+        '0x0000000000000000000000000000000000000000',
         ganacheWallet2
       );
-      console.log('made deposit');
       //Now there is a bidirectional edge between chain1 and chain2
     });
 
@@ -796,7 +793,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         );
       });
 
-      it('wrap and deposit, withdraw and unwrap works join split via transction and wrapping', async () => {
+      it.only('wrap and deposit, withdraw and unwrap works join split via transact and wrap', async () => {
         const signers = await ethers.getSigners();
 
         const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
@@ -811,16 +808,17 @@ describe('2-sided multichain tests for signature vbridge', () => {
           curve: 'Bn254',
           backend: 'Circom',
           amount: (2.5e7).toString(),
-          originChainId: chainID2.toString(),
-          chainId: chainID1.toString(),
+          originChainId: chainID1.toString(),
+          chainId: chainID2.toString(),
         });
         const ganacheDepositUtxo2 = await CircomUtxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (2.5e7).toString(),
-          originChainId: chainID2.toString(),
-          chainId: chainID1.toString(),
+          originChainId: chainID1.toString(),
+          chainId: chainID2.toString(),
         });
+        console.log('here');
         await vBridge.transact(
           [],
           [ganacheDepositUtxo1, ganacheDepositUtxo2],
@@ -828,10 +826,10 @@ describe('2-sided multichain tests for signature vbridge', () => {
           0,
           '0',
           '0',
-          existingToken2.contract.address,
-          ganacheWallet2
+          existingToken1.contract.address,
+          signers[1],
         );
-
+        console.log('here');
         const webbTokenAddress2 = vBridge.getWebbTokenAddress(chainID2);
         const webbToken2 = await MintableToken.tokenFromAddress(webbTokenAddress2!, ganacheWallet2);
         assert.strictEqual(
@@ -852,7 +850,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
           originChainId: chainID1.toString(),
           chainId: chainID1.toString(),
         });
-
+        console.log('here');
         await vBridge.transact(
           [ganacheDepositUtxo1, ganacheDepositUtxo2],
           [hardhatWithdrawUtxo],
@@ -863,7 +861,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
           existingToken1.contract.address,
           signers[1]
         );
-
+        console.log('here');
         //Check relevant balances
         //Unwrapped Balance of signers[2] should be 3e7
         const balSigners2Unwrapped = await existingToken1.contract.balanceOf(
@@ -883,7 +881,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         assert.strictEqual(balVAnchor1Wrapped.toString(), BigNumber.from(1e7).toString());
       });
 
-      it('wrap and deposit, withdraw and unwrap works join split 16 input via transact and wrapping', async () => {
+      it.only('wrap and deposit, withdraw and unwrap works join split 16 input via transact and wrapping', async () => {
         const signers = await ethers.getSigners();
 
         const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
@@ -898,22 +896,22 @@ describe('2-sided multichain tests for signature vbridge', () => {
           curve: 'Bn254',
           backend: 'Circom',
           amount: (2e7).toString(),
-          originChainId: chainID2.toString(),
-          chainId: chainID1.toString(),
+          originChainId: chainID1.toString(),
+          chainId: chainID2.toString(),
         });
         const ganacheDepositUtxo2 = await CircomUtxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (2e7).toString(),
-          originChainId: chainID2.toString(),
-          chainId: chainID1.toString(),
+          originChainId: chainID1.toString(),
+          chainId: chainID2.toString(),
         });
         const ganacheDepositUtxo3 = await CircomUtxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (2e7).toString(),
-          originChainId: chainID2.toString(),
-          chainId: chainID1.toString(),
+          originChainId: chainID1.toString(),
+          chainId: chainID2.toString(),
         });
 
         await vBridge.transact(
@@ -923,8 +921,8 @@ describe('2-sided multichain tests for signature vbridge', () => {
           0,
           '0',
           '0',
-          existingToken2.contract.address,
-          ganacheWallet2
+          existingToken1.contract.address,
+          signers[1],
         );
 
         await vBridge.transact(
@@ -934,8 +932,8 @@ describe('2-sided multichain tests for signature vbridge', () => {
           0,
           '0',
           '0',
-          existingToken2.contract.address,
-          ganacheWallet2
+          existingToken1.contract.address,
+          signers[1],
         );
 
         await vBridge.transact(
@@ -945,8 +943,8 @@ describe('2-sided multichain tests for signature vbridge', () => {
           0,
           '0',
           '0',
-          existingToken2.contract.address,
-          ganacheWallet2
+          existingToken1.contract.address,
+          signers[1],
         );
 
         const webbTokenAddress2 = vBridge.getWebbTokenAddress(chainID2);
@@ -1187,9 +1185,9 @@ describe('8-sided multichain tests for signature vbridge', () => {
         chainId: chainID3.toString(),
       });
 
-      await vBridge.transact([], [depositUtxo1], 0, 0, '0', '0', '', signers[1]);
-      await vBridge.transact([], [depositUtxo2], 0, 0, '0', '0', '', ganacheWallet2);
-      await vBridge.transact([], [depositUtxo3], 0, 0, '0', '0', '', ganacheWallet3);
+      await vBridge.transact([], [depositUtxo1], 0, 0, '0', '0', '0x0000000000000000000000000000000000000000', signers[1]);
+      await vBridge.transact([], [depositUtxo2], 0, 0, '0', '0', '0x0000000000000000000000000000000000000000', ganacheWallet2);
+      await vBridge.transact([], [depositUtxo3], 0, 0, '0', '0', '0x0000000000000000000000000000000000000000', ganacheWallet3);
     });
 
     describe('#bridging', () => {

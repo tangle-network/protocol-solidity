@@ -63,7 +63,7 @@ describe('Open VAnchor Contract', () => {
       sender
     );
     // Allow the contracts to spend the token
-    let tx = await token.approveSpending(webbToken.contract.address);
+    let tx = await token.approveSpending(webbToken.contract.address, BigNumber.from(1e7));
     await tx.wait();
 
     await webbToken.grantMinterRole(openVAnchor.contract.address);
@@ -281,7 +281,7 @@ describe('Open VAnchor Contract - cross chain', () => {
     // GanacheWallet2 wants to send `depositAmount` tokens to the `recipient` on chain 1.
     await vAnchor2.setSigner(ganacheWallet2);
     // First GanacheWallet2 must approve the `webbToken2` to spend `tokenInstance2` tokens.
-    let tx = await tokenInstance2.approveSpending(webbToken2.contract.address);
+    let tx = await tokenInstance2.approveSpending(webbToken2.contract.address, BigNumber.from(1e7));
     await tx.wait();
     // Then, GanacheWallet2 can deposit `depositAmount` tokens to the vanchor2.
     await vAnchor2.wrapAndDeposit(

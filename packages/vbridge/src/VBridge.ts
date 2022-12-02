@@ -378,15 +378,30 @@ export class VBridge {
     const extAmount = BigNumber.from(fee)
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
-
+    
     const publicAmount = extAmount.sub(fee);
     // Approve spending if needed
-    const userTokenAllowance = await tokenInstance.getAllowance(
+    const userTokenAllowanceForAnchor = await tokenInstance.getAllowance(
       signerAddress,
       vAnchor.contract.address
     );
-    if (userTokenAllowance.lt(publicAmount)) {
-      await tokenInstance.approveSpending(vAnchor.contract.address);
+    console.log('userTokenAllowanceForAnchor', userTokenAllowanceForAnchor.toString());
+    if (userTokenAllowanceForAnchor.lt(publicAmount)) {
+      await tokenInstance.approveSpending(vAnchor.contract.address, publicAmount);
+    }
+    console.log('userTokenAllowanceForAnchor', userTokenAllowanceForAnchor.toString());
+
+    if (wrapUnwrapToken !== tokenAddress) {
+      const wrappedToken = await vAnchor.contract.token();
+      const userTokenAllowanceForWrappedToken = await tokenInstance.getAllowance(
+        signerAddress,
+        wrappedToken
+      );
+      console.log('userTokenAllowanceForWrappedToken', userTokenAllowanceForWrappedToken.toString());
+      if (userTokenAllowanceForWrappedToken.lt(publicAmount)) {
+        await tokenInstance.approveSpending(wrappedToken, publicAmount);
+      }
+      console.log('userTokenAllowanceForWrappedToken', userTokenAllowanceForWrappedToken.toString());
     }
 
     // Populate the leaves map
@@ -424,7 +439,7 @@ export class VBridge {
         })
       );
     }
-
+    console.log('before transact');
     await vAnchor.transact(
       inputs,
       outputs,

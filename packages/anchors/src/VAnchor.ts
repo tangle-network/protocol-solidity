@@ -611,20 +611,20 @@ export class VAnchor implements IAnchor {
       leavesMap
     );
 
-    let options;
+    let options = {};
     if (extAmount.gt(0) && checkNativeAddress(wrapUnwrapToken)) {
       let tokenWrapper = TokenWrapper__factory.connect(await this.contract.token(), this.signer);
       let valueToSend = await tokenWrapper.getAmountToWrap(extAmount);
 
       options = {
         value: valueToSend.toHexString(),
-        gasLimit: '0x5B8D80',
       };
     } else {
-      options = { gasLimit: '0x5B8D80' };
+      options = {};
     }
 
-    const tx = await (this.contract as VAnchorContract).transact(
+    console.log('before transact in VAnchor.ts');
+    const tx = await this.contract.transact(
       publicInputs.proof,
       ZERO_BYTES32,
       {
@@ -727,17 +727,16 @@ export class VAnchor implements IAnchor {
       leavesMap
     );
 
-    let options;
+    let options = {};
     if (extAmount.gt(0) && checkNativeAddress(wrapUnwrapToken)) {
       let tokenWrapper = TokenWrapper__factory.connect(await this.contract.token(), this.signer);
       let valueToSend = await tokenWrapper.getAmountToWrap(extAmount);
 
       options = {
         value: valueToSend.toHexString(),
-        gasLimit: '0x5B8D80',
       };
     } else {
-      options = { gasLimit: '0x5B8D80' };
+      options = {};
     }
 
     let tx = await this.contract.registerAndTransact(
