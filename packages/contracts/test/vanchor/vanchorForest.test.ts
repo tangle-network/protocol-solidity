@@ -48,7 +48,7 @@ const path = require('path');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
 
-describe.only('VAnchorForest for 2 max edges', () => {
+describe('VAnchorForest for 2 max edges', () => {
   let anchor: VAnchorForest;
 
   const subtreeLevels = 30;
@@ -1059,7 +1059,6 @@ describe.only('VAnchorForest for 2 max edges', () => {
       // in report we can see the tx with NewCommitment event (this is how alice got money)
       // and the tx with NewNullifier event is where alice spent the UTXO
     });
-
     it('Should reject proofs made against roots of empty edges', async () => {
       // This test has not been linked to another anchor - edgeList should be empty.
       await TruffleAssert.reverts(anchor.contract.edgeList(0));
@@ -1174,7 +1173,10 @@ describe.only('VAnchorForest for 2 max edges', () => {
 
       let proof = await snarkjs.groth16.fullProve(proofInput, wasmFile, zkeyFile);
       const vKey = await snarkjs.zKey.exportVerificationKey(
-        '/home/semar/Projects/webb/protocol-solidity/packages/contracts/solidity-fixtures/solidity-fixtures/vanchor_forest_2/2/circuit_final.zkey'
+        path.resolve(
+          __dirname,
+          '../../solidity-fixtures/solidity-fixtures/vanchor_forest_2/2/circuit_final.zkey'
+        )
       );
 
       const res = await snarkjs.groth16.verify(vKey, proof.publicSignals, proof.proof);
