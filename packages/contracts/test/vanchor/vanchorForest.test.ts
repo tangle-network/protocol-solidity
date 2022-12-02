@@ -48,7 +48,7 @@ const path = require('path');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
 
-describe('VAnchorForest for 2 max edges', () => {
+describe.only('VAnchorForest for 2 max edges', () => {
   let anchor: VAnchorForest;
 
   const subtreeLevels = 30;
