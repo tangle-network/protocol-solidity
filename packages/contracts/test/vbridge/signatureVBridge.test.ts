@@ -793,7 +793,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         );
       });
 
-      it.only('wrap and deposit, withdraw and unwrap works join split via transact and wrap', async () => {
+      it('wrap and deposit, withdraw and unwrap works join split via transact and wrap', async () => {
         const signers = await ethers.getSigners();
 
         const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
@@ -881,7 +881,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         assert.strictEqual(balVAnchor1Wrapped.toString(), BigNumber.from(1e7).toString());
       });
 
-      it.only('wrap and deposit, withdraw and unwrap works join split 16 input via transact and wrapping', async () => {
+      it('wrap and deposit, withdraw and unwrap works join split 16 input via transact and wrapping', async () => {
         const signers = await ethers.getSigners();
 
         const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
