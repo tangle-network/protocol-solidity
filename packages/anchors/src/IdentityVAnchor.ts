@@ -502,7 +502,6 @@ export class IdentityVAnchor implements IAnchor {
     };
   }
 
-  // TODO parameterize this better
   public generatePublicInputs(
     proof: any,
     byte_calldata: any,

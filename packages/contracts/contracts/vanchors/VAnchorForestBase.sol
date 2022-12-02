@@ -29,7 +29,7 @@ abstract contract VAnchorForestBase is AnchorForest {
 		bytes keyData;
 	}
 
-	event NewCommitment(bytes32 commitment, uint256 index, bytes encryptedOutput);
+	event NewCommitment(bytes32 commitment, uint256 subtreeIndex, uint256 leafIndex, bytes encryptedOutput);
 	event NewNullifier(bytes32 nullifier);
 	event PublicKey(address indexed owner, bytes key);
 

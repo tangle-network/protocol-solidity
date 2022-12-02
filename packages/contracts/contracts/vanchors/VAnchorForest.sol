@@ -328,10 +328,14 @@ contract VAnchorForest is VAnchorForestBase, TxProofVerifier, ISetVerifier {
 		@param _extData The external data for the transaction
 	 */
 	function _executeInsertions(VAnchorEncodeInputs.Proof memory _args, ExtData memory _extData) internal {
+        uint beforeInsertSubtreeIdx = currSubtreeIndex;
 		insertTwo(_args.outputCommitments[0], _args.outputCommitments[1]);
-        // TODO: need to add subtreeId to event
-		emit NewCommitment(_args.outputCommitments[0], numSubtreeElements - 2, _extData.encryptedOutput1);
-		emit NewCommitment(_args.outputCommitments[1], numSubtreeElements - 1, _extData.encryptedOutput2);
+        uint afterInsertSubtreeIdx = currSubtreeIndex;
+        if (beforeInsertSubtreeIdx != afterInsertSubtreeIdx) {
+            afterInsertSubtreeIdx -= 1;
+        }
+		emit NewCommitment(_args.outputCommitments[0], afterInsertSubtreeIdx, numSubtreeElements - 2, _extData.encryptedOutput1);
+		emit NewCommitment(_args.outputCommitments[1], afterInsertSubtreeIdx, numSubtreeElements - 1, _extData.encryptedOutput2);
 		for (uint256 i = 0; i < _args.inputNullifiers.length; i++) {
 			emit NewNullifier(_args.inputNullifiers[i]);
 		}
