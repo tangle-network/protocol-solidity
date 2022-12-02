@@ -9,7 +9,7 @@ import { ethers } from "hardhat";
 import { poseidon, poseidon_gencontract as poseidonContract } from "circomlibjs";
 import { MerkleTree } from "@webb-tools/sdk-core";
 import { PoseidonHasher } from "@webb-tools/anchors";
-import { LinkableIncrementalBinaryTree__factory } from "../typechain";
+import { LinkableIncrementalBinaryTree__factory } from "../../typechain";
 const TruffleAssert = require("truffle-assertions");
 const assert = require("assert");
 
@@ -236,7 +236,6 @@ describe("MerkleForest", () => {
       const initialIndex = await merkleForest.currSubtreeIndex()
       assert.strictEqual(initialIndex.toNumber(), 0);
       for (let i = 0; i < 2 ** levels; i++) {
-        console.log('were at i', i)
         TruffleAssert.passes(
           await merkleForest.insertTest(toFixedHex(i + 42))
         );
@@ -270,7 +269,6 @@ describe("MerkleForest", () => {
       const initialIndex = await merkleForest.currSubtreeIndex()
       assert.strictEqual(initialIndex.toNumber(), 0);
       for (let i = 0; i <= 2 ** (levels); i++) {
-        console.log('were at ', i)
         TruffleAssert.passes(
           await merkleForest.insertTwoTest(toFixedHex(i + 43), toFixedHex(i + 42))
         );
