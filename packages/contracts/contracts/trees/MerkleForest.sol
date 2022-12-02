@@ -36,7 +36,10 @@ contract MerkleForest {
         currSubtreeIndex = 0;
         numSubtreeElements = 0;
     }
-    function _insert(bytes32 _leaf) internal returns (uint32) {
+    /**
+        @dev inserts single leaf into subtree then update forest
+    */
+    function _insert(bytes32 _leaf) internal returns (bool) {
         if (numSubtreeElements >= maxSubtreeElements) {
             numSubtreeElements = 0;
             currSubtreeIndex += 1;
@@ -45,9 +48,13 @@ contract MerkleForest {
         uint newLeaf = subtrees[currSubtreeIndex].getLastRoot();
         merkleForest._update(currSubtreeIndex, 0, newLeaf);
         numSubtreeElements += 1;
+        return true;
         // return merkleForest.getLastRoot();
     }
 
+    /**
+        @dev inserts pair of leaves into subtree then update forest
+    */
     function _insertTwo(bytes32 _leaf1, bytes32 _leaf2) internal returns (uint32) {
         if (numSubtreeElements + 1 >= maxSubtreeElements) {
             numSubtreeElements = 0;
@@ -59,18 +66,11 @@ contract MerkleForest {
         numSubtreeElements += 2;
         return index;
     }
-    // TODO: Should remove, included for testing
-    function insertTwoTest(bytes32 _leaf1, bytes32 _leaf2) public returns (uint32) {
-        _insertTwo(_leaf1, _leaf2);
-    }
 
-    // TODO: Remove this. Created for testing
-    function insertTest(bytes32 _leaf) public returns (uint32) {
-        _insert(_leaf);
-    }
-
-    // TODO: Make it internal
-    function insertSubtree(uint32 _subtreeId, bytes32 _leaf) public returns (uint) {
+    /**
+        @dev inserts single leaf into specific subtreeId (if possible)
+    */
+    function _insertSubtree(uint32 _subtreeId, bytes32 _leaf) internal returns (uint) {
         if (numSubtreeElements >= maxSubtreeElements) {
             numSubtreeElements = 0;
             currSubtreeIndex += 1;

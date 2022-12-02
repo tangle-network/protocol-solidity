@@ -41,22 +41,6 @@ abstract contract AnchorForest is LinkableAnchorForest {
     ) LinkableAnchorForest(_handler, _hasher, _forestHeight, _merkleTreeHeight, _maxEdges) {}
 
     /**
-        @notice Inserts a commitment into the tree
-        @notice This is an internal function and meant to be used by a child contract.
-        @param _commitment The note commitment = Poseidon(chainId, nullifier, secret)
-        @return uint32 The index of the inserted commitment
-    */
-    function insert(bytes32 _commitment) internal returns(uint32) {
-        require(!commitments[_commitment], "The commitment has been submitted");
-
-        uint32 insertedIndex = _insert(_commitment);
-        commitments[_commitment] = true;
-        emit Insertion(_commitment, insertedIndex, block.timestamp);
-
-        return insertedIndex;
-    }
-
-    /**
         @notice Inserts two commitments into the tree. Useful for contracts
         that need to insert two commitments at once.
         @notice This is an internal function and meant to be used by a child contract.

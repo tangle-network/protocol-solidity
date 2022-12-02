@@ -54,7 +54,7 @@ describe('MerkleForest', () => {
     linkableIncrementalBinaryTree = await LinkableIncrementalBinaryTree.deploy();
     await linkableIncrementalBinaryTree.deployed();
 
-    const MerkleForest = await ethers.getContractFactory('MerkleForest', {
+    const MerkleForest = await ethers.getContractFactory('MerkleForestMock', {
       signer: wallet,
       libraries: {
         PoseidonT3: poseidonLib.address,
@@ -105,7 +105,7 @@ describe('MerkleForest', () => {
 
       for (let i = 1; i < 11; i++) {
         // const i = 1;
-        await merkleForest.insertSubtree(0, toFixedHex(i), { from: sender });
+        await merkleForest.insertSubtreeTest(0, toFixedHex(i), { from: sender });
         await tree.insert(i);
         const { merkleRoot: subtreeRoot } = await tree.path(i - 1);
         const subtreeRootFromContract = await merkleForest.getLastSubtreeRoot(0);
@@ -148,7 +148,7 @@ describe('MerkleForest', () => {
 
     it('should reject if tree is full', async () => {
       const levels = 6;
-      const MerkleForest = await ethers.getContractFactory('MerkleForest', {
+      const MerkleForest = await ethers.getContractFactory('MerkleForestMock', {
         signer: wallet,
         libraries: {
           PoseidonT3: poseidonLib.address,
@@ -163,23 +163,23 @@ describe('MerkleForest', () => {
       await merkleForest.deployed();
       // const MerkleTreeWithHistory = new MerkleTreeWithHistory__factory();
       for (let i = 0; i < 2 ** levels; i++) {
-        TruffleAssert.passes(await merkleForest.insertSubtree(0, toFixedHex(i + 42)));
+        TruffleAssert.passes(await merkleForest.insertSubtreeTest(0, toFixedHex(i + 42)));
       }
 
       await TruffleAssert.reverts(
-        merkleForest.insertSubtree(0, toFixedHex(1337)),
+        merkleForest.insertSubtreeTest(0, toFixedHex(1337)),
         'Cannot update leaf outside of tree'
       );
 
       await TruffleAssert.reverts(
-        merkleForest.insertSubtree(0, toFixedHex(1)),
+        merkleForest.insertSubtreeTest(0, toFixedHex(1)),
         'Cannot update leaf outside of tree'
       );
     });
 
     it('should correctly move on to the next subtree after its full (simple insert)', async () => {
       const levels = 6;
-      const MerkleForest = await ethers.getContractFactory('MerkleForest', {
+      const MerkleForest = await ethers.getContractFactory('MerkleForestMock', {
         signer: wallet,
         libraries: {
           PoseidonT3: poseidonLib.address,
@@ -203,18 +203,18 @@ describe('MerkleForest', () => {
       assert.strictEqual(endIndex.toNumber(), 1);
 
       await TruffleAssert.reverts(
-        merkleForest.insertSubtree(0, toFixedHex(1337)),
+        merkleForest.insertSubtreeTest(0, toFixedHex(1337)),
         'Cannot update leaf outside of tree'
       );
 
       await TruffleAssert.reverts(
-        merkleForest.insertSubtree(0, toFixedHex(1)),
+        merkleForest.insertSubtreeTest(0, toFixedHex(1)),
         'Cannot update leaf outside of tree'
       );
     });
     it('should correctly move on to the next subtree after its full (insertTwo)', async () => {
       const levels = 6;
-      const MerkleForest = await ethers.getContractFactory('MerkleForest', {
+      const MerkleForest = await ethers.getContractFactory('MerkleForestMock', {
         signer: wallet,
         libraries: {
           PoseidonT3: poseidonLib.address,
@@ -240,12 +240,12 @@ describe('MerkleForest', () => {
       assert.strictEqual(endIndex.toNumber(), 2);
 
       await TruffleAssert.reverts(
-        merkleForest.insertSubtree(0, toFixedHex(1337)),
+        merkleForest.insertSubtreeTest(0, toFixedHex(1337)),
         'Cannot update leaf outside of tree'
       );
 
       await TruffleAssert.reverts(
-        merkleForest.insertSubtree(0, toFixedHex(1)),
+        merkleForest.insertSubtreeTest(0, toFixedHex(1)),
         'Cannot update leaf outside of tree'
       );
     });
@@ -256,14 +256,14 @@ describe('MerkleForest', () => {
       let path;
 
       for (let i = 1; i < 5; i++) {
-        TruffleAssert.passes(await merkleForest.insertSubtree(0, toFixedHex(i), { from: sender }));
+        TruffleAssert.passes(await merkleForest.insertSubtreeTest(0, toFixedHex(i), { from: sender }));
         await tree.insert(i);
         const { merkleRoot } = await tree.path(i - 1);
         const isKnown = await merkleForest.isKnownSubtreeRoot(0, toFixedHex(merkleRoot));
         assert(isKnown);
       }
 
-      TruffleAssert.passes(await merkleForest.insertSubtree(0, toFixedHex(42), { from: sender }));
+      TruffleAssert.passes(await merkleForest.insertSubtreeTest(0, toFixedHex(42), { from: sender }));
       // check outdated root
       const { merkleRoot } = await tree.path(3);
       const isKnown = await merkleForest.isKnownSubtreeRoot(0, toFixedHex(merkleRoot));
@@ -271,7 +271,7 @@ describe('MerkleForest', () => {
     });
 
     it('should not return uninitialized roots', async () => {
-      TruffleAssert.passes(await merkleForest.insertSubtree(0, toFixedHex(42), { from: sender }));
+      TruffleAssert.passes(await merkleForest.insertSubtreeTest(0, toFixedHex(42), { from: sender }));
       const isKnown = await merkleForest.isKnownRoot(toFixedHex(0));
       assert(!isKnown);
     });
@@ -284,7 +284,7 @@ describe('MerkleForest', () => {
       const { merkleRoot: subtreeRoot } = await tree.path(0);
       await forest.insert(subtreeRoot);
       const { merkleRoot, pathElements, pathIndices } = await forest.path(0);
-      await merkleForest.insertSubtree(0, toFixedHex(commitment), {
+      await merkleForest.insertSubtreeTest(0, toFixedHex(commitment), {
         from: sender,
       });
       const rootFromContract = BigNumber.from(await merkleForest.getLastRoot());
