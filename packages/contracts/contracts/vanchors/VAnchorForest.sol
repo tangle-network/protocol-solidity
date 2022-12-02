@@ -331,7 +331,7 @@ contract VAnchorForest is VAnchorForestBase, TxProofVerifier, ISetVerifier {
         uint beforeInsertSubtreeIdx = currSubtreeIndex;
 		insertTwo(_args.outputCommitments[0], _args.outputCommitments[1]);
         uint afterInsertSubtreeIdx = currSubtreeIndex;
-        uint leafIndex = currSubtreeIndex;
+        uint leafIndex = numSubtreeElements;
         if (beforeInsertSubtreeIdx != afterInsertSubtreeIdx) {
             afterInsertSubtreeIdx -= 1;
             if (leafIndex <= 1) {
