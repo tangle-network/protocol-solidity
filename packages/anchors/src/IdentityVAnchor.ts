@@ -42,6 +42,7 @@ import {
 } from '@webb-tools/utils';
 import { Semaphore } from '@webb-tools/semaphore';
 import { LinkedGroup } from '@webb-tools/semaphore-group';
+import { VAnchorBase } from './VAnchorBase';
 
 const snarkjs = require('snarkjs');
 
@@ -84,7 +85,7 @@ export var proofTimeBenchmark = [];
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
-export class IdentityVAnchor implements IAnchor {
+export class IdentityVAnchor extends VAnchorBase implements IAnchor {
   signer: ethers.Signer;
   contract: IdentityVAnchorContract;
   semaphore: Semaphore;
@@ -113,6 +114,7 @@ export class IdentityVAnchor implements IAnchor {
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents
   ) {
+    super()
     this.signer = signer;
     this.contract = contract;
     this.tree = new MerkleTree(treeHeight);
@@ -287,28 +289,28 @@ export class IdentityVAnchor implements IAnchor {
 
     return proofEncoded;
   }
-
-  public static createRootsBytes(rootArray: string[]) {
-    let rootsBytes = '0x';
-    for (let i = 0; i < rootArray.length; i++) {
-      rootsBytes += toFixedHex(rootArray[i]).substr(2);
-    }
-    return rootsBytes; // root byte string (32 * array.length bytes)
-  }
-
-  // Convert a hex string to a byte array
-  public static hexStringToByte(str: string) {
-    if (!str) {
-      return new Uint8Array();
-    }
-
-    var a = [];
-    for (var i = 0, len = str.length; i < len; i += 2) {
-      a.push(parseInt(str.substr(i, 2), 16));
-    }
-
-    return new Uint8Array(a);
-  }
+  //
+  // public static createRootsBytes(rootArray: string[]) {
+  //   let rootsBytes = '0x';
+  //   for (let i = 0; i < rootArray.length; i++) {
+  //     rootsBytes += toFixedHex(rootArray[i]).substr(2);
+  //   }
+  //   return rootsBytes; // root byte string (32 * array.length bytes)
+  // }
+  //
+  // // Convert a hex string to a byte array
+  // public static hexStringToByte(str: string) {
+  //   if (!str) {
+  //     return new Uint8Array();
+  //   }
+  //
+  //   var a = [];
+  //   for (var i = 0, len = str.length; i < len; i += 2) {
+  //     a.push(parseInt(str.substr(i, 2), 16));
+  //   }
+  //
+  //   return new Uint8Array(a);
+  // }
 
   public static convertToPublicInputsStruct(args: any[]): IIdentityVariableAnchorPublicInputs {
     return {
@@ -790,6 +792,14 @@ export class IdentityVAnchor implements IAnchor {
 
     return vanchorInput;
   }
+  // Maintain tree state after insertions
+  public async updateTree(outputs: Utxo[]): Promise<void> {
+    outputs.forEach((x) => {
+      this.tree.insert(u8aToHex(x.commitment));
+      let numOfElements = this.tree.number_of_elements();
+      this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
+    });
+  }
 
   public async transact(
     keypair: Keypair,
@@ -802,45 +812,16 @@ export class IdentityVAnchor implements IAnchor {
     wrapUnwrapToken: string
   ): Promise<ethers.ContractTransaction> {
     const chainId = getChainIdType(await this.signer.getChainId());
-    const randomKeypair = new Keypair();
 
-    const identityRootInputs = this.populateIdentityRootsForProof();
-    const identityMerkleProof: MerkleProof = this.generateIdentityMerkleProof(keypair.getPubKey());
+    inputs = await this.padUtxos(inputs, 16, this.signer);
 
-    while (inputs.length !== 2 && inputs.length < 16) {
-      inputs.push(
-        await CircomUtxo.generateUtxo({
-          curve: 'Bn254',
-          backend: 'Circom',
-          chainId: chainId.toString(),
-          originChainId: chainId.toString(),
-          blinding: hexToU8a(randomBN(31).toHexString()),
-          amount: '0',
-          keypair: randomKeypair,
-        })
-      );
-    }
+    outputs = await this.padUtxos(outputs, 2, this.signer);
+
+    let extAmount = await this.getExtAmount(inputs, outputs, fee);
 
     const vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x));
-
-    if (outputs.length < 2) {
-      while (outputs.length < 2) {
-        outputs.push(
-          await CircomUtxo.generateUtxo({
-            curve: 'Bn254',
-            backend: 'Circom',
-            chainId: chainId.toString(),
-            originChainId: chainId.toString(),
-            blinding: hexToU8a(randomBN(31).toHexString()),
-            amount: '0',
-            keypair: randomKeypair,
-          })
-        );
-      }
-    }
-    let extAmount = BigNumber.from(fee)
-      .add(outputs.reduce((sum, x) => sum.add(BigNumber.from(BigInt(x.amount))), BigNumber.from(0)))
-      .sub(inputs.reduce((sum, x) => sum.add(BigNumber.from(BigInt(x.amount))), BigNumber.from(0)));
+    const identityRootInputs = this.populateIdentityRootsForProof();
+    const identityMerkleProof: MerkleProof = this.generateIdentityMerkleProof(keypair.getPubKey());
 
     if (wrapUnwrapToken.length === 0) {
       wrapUnwrapToken = this.token;
@@ -902,11 +883,7 @@ export class IdentityVAnchor implements IAnchor {
     const receipt = await tx.wait();
 
     // Add the leaves to the tree
-    outputs.forEach((x) => {
-      this.tree.insert(u8aToHex(x.commitment));
-      let numOfElements = this.tree.number_of_elements();
-      this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
-    });
+    await this.updateTree(outputs);
 
     return tx;
   }
