@@ -139,7 +139,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
       // Should be able to retrieve the token address (so we can mint tokens for test scenario)
       const webbTokenAddress = vBridge.getWebbTokenAddress(chainID1);
       const webbToken = await MintableToken.tokenFromAddress(webbTokenAddress!, signers[1]);
-      const tx = await webbToken.mintTokens(signers[2].address, '100000000000000000000000');
+      await webbToken.mintTokens(signers[2].address, '100000000000000000000000');
       // Get the state of anchors before deposit
       const sourceAnchorRootBefore = await vAnchor1.contract.getLastRoot();
       // Define inputs/outputs for transact function

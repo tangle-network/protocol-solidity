@@ -369,19 +369,28 @@ export class VBridge {
       throw new Error('Token not supported');
     }
 
-    if (wrapUnwrapToken.length === 0) {
-      wrapUnwrapToken = webbTokenAddress;
-    }
-
     const extAmount = BigNumber.from(fee)
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
     
     const publicAmount = extAmount.sub(fee);
 
-    // Approve spending if needed
-    if (wrapUnwrapToken != zeroAddress) {
+    // If the wrapUnwrapToken is unspecified ('') then we assume that
+    // the user is trying to transact directly with the webbToken. We instead
+    // check if the anchor's allowed to spend webbToken funds from the user.
+    if (wrapUnwrapToken.length === 0) {
       const tokenInstance = await MintableToken.tokenFromAddress(webbTokenAddress, signer);
+      const userTokenAllowance = await tokenInstance.getAllowance(
+        signerAddress,
+        vAnchor.contract.address,
+      );
+      if (userTokenAllowance.lt(publicAmount)) {
+        await tokenInstance.approveSpending(vAnchor.contract.address, publicAmount);
+      }
+
+      wrapUnwrapToken = webbTokenAddress;
+    } else if (wrapUnwrapToken != zeroAddress) {
+      const tokenInstance = await MintableToken.tokenFromAddress(wrapUnwrapToken, signer);
       const userTokenAllowance = await tokenInstance.getAllowance(
         signerAddress,
         webbTokenAddress
@@ -426,7 +435,7 @@ export class VBridge {
         })
       );
     }
-    console.log('before transact');
+
     await vAnchor.transact(
       inputs,
       outputs,
