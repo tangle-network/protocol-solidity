@@ -16,12 +16,12 @@ compile () {
 
 copy_to_fixtures () {
     local outdir="$1" circuit="$2" size="$3" anchorType="$4" 
-    mkdir -p solidity-fixtures/solidity-fixtures/$anchorType
-    mkdir -p solidity-fixtures/solidity-fixtures/$anchorType/$size
-    cp artifacts/circuits/$outdir/$circuit.sym solidity-fixtures/solidity-fixtures/$anchorType/$size/$circuit.sym
-    cp artifacts/circuits/$outdir/$circuit.r1cs solidity-fixtures/solidity-fixtures/$anchorType/$size/$circuit.r1cs
-    cp artifacts/circuits/$outdir/$circuit\_js/$circuit.wasm solidity-fixtures/solidity-fixtures/$anchorType/$size/$circuit.wasm
-    cp artifacts/circuits/$outdir/$circuit\_js/witness_calculator.js solidity-fixtures/solidity-fixtures/$anchorType/$size/witness_calculator.cjs
+    mkdir -p packages/contracts/solidity-fixtures/solidity-fixtures/$anchorType
+    mkdir -p packages/contracts/solidity-fixtures/solidity-fixtures/$anchorType/$size
+    cp artifacts/circuits/$outdir/$circuit.sym packages/contracts/solidity-fixtures/solidity-fixtures/$anchorType/$size/$circuit.sym
+    cp artifacts/circuits/$outdir/$circuit.r1cs packages/contracts/solidity-fixtures/solidity-fixtures/$anchorType/$size/$circuit.r1cs
+    cp artifacts/circuits/$outdir/$circuit\_js/$circuit.wasm packages/contracts/solidity-fixtures/solidity-fixtures/$anchorType/$size/$circuit.wasm
+    cp artifacts/circuits/$outdir/$circuit\_js/witness_calculator.js packages/contracts/solidity-fixtures/solidity-fixtures/$anchorType/$size/witness_calculator.cjs
 }
 
 # ###
@@ -114,21 +114,41 @@ copy_to_fixtures () {
 # WEBB MASP-VANCHORS
 ###
 
-echo "Compiling Webb style multi-asset Poseidon vanchor 2 circuit w/ 2 inputs"
-compile masp_vanchor_2 masp_vanchor_2_2 2
-copy_to_fixtures masp_vanchor_2 masp_vanchor_2_2 2 masp_vanchor_2
+# echo "Compiling Webb style multi-asset Poseidon vanchor 2 circuit w/ 2 inputs"
+# compile masp_vanchor_2 masp_vanchor_2_2 2
+# copy_to_fixtures masp_vanchor_2 masp_vanchor_2_2 2 masp_vanchor_2
+#
+# echo "Compiling Webb style multi-asset Poseidon vanchor 8 circuit w/ 2 inputs"
+# compile masp_vanchor_2 masp_vanchor_2_8 8
+# copy_to_fixtures masp_vanchor_2 masp_vanchor_2_8 8 masp_vanchor_2
+#
+# echo "Compiling Webb style multi-asset Poseidon vanchor 2 circuit w/ 16 inputs"
+# compile masp_vanchor_16 masp_vanchor_16_2 2
+# copy_to_fixtures masp_vanchor_16 masp_vanchor_16_2 2 masp_vanchor_16
+#
+# echo "Compiling Webb style multi-asset Poseidon vanchor 8 circuit w/ 2 inputs"
+# compile masp_vanchor_16 masp_vanchor_16_8 8
+# copy_to_fixtures masp_vanchor_16 masp_vanchor_16_8 8 masp_vanchor_16
 
-echo "Compiling Webb style multi-asset Poseidon vanchor 8 circuit w/ 2 inputs"
-compile masp_vanchor_2 masp_vanchor_2_8 8
-copy_to_fixtures masp_vanchor_2 masp_vanchor_2_8 8 masp_vanchor_2
+###
+# WEBB MASP-VANCHORS
+###
 
-echo "Compiling Webb style multi-asset Poseidon vanchor 2 circuit w/ 16 inputs"
-compile masp_vanchor_16 masp_vanchor_16_2 2
-copy_to_fixtures masp_vanchor_16 masp_vanchor_16_2 2 masp_vanchor_16
+echo "Compiling Webb style multi-asset vanchor forest 2 circuit w/ 2 inputs"
+compile vanchor_forest_2 vanchor_forest_2_2 2
+copy_to_fixtures vanchor_forest_2 vanchor_forest_2_2 2 vanchor_forest_2
 
-echo "Compiling Webb style multi-asset Poseidon vanchor 8 circuit w/ 2 inputs"
-compile masp_vanchor_16 masp_vanchor_16_8 8
-copy_to_fixtures masp_vanchor_16 masp_vanchor_16_8 8 masp_vanchor_16
+echo "Compiling Webb style multi-asset vanchor forest 8 circuit w/ 2 inputs"
+compile vanchor_forest_2 vanchor_forest_2_8 8
+copy_to_fixtures vanchor_forest_2 vanchor_forest_2_8 8 vanchor_forest_2
+#
+echo "Compiling Webb style multi-asset vanchor forest 2 circuit w/ 16 inputs"
+compile vanchor_forest_16 vanchor_forest_16_2 2
+copy_to_fixtures vanchor_forest_16 vanchor_forest_16_2 2 vanchor_forest_16 
+#
+echo "Compiling Webb style multi-asset vanchor forest 8 circuit w/ 2 inputs"
+compile vanchor_forest_16 vanchor_forest_16_8 8
+copy_to_fixtures vanchor_forest_16 vanchor_forest_16_8 8 vanchor_forest_16 
 
 # echo "Compiling Poseidon4 test gadget"
 # compile poseidon4 poseidon4_test 4

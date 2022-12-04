@@ -511,7 +511,6 @@ export class IdentityVAnchor extends VAnchorBase implements IAnchor {
     };
   }
 
-  // TODO parameterize this better
   public generatePublicInputs(
     proof: any,
     byte_calldata: any,

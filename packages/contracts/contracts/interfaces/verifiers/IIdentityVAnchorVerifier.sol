@@ -30,7 +30,6 @@ interface IIdentityVAnchorVerifier2_2 {
 	- X is the # of edges supported on this VAnchor (i.e. 2)
 	- Y is the # of inputs to the join/split transaction (i.e. 16)
  */
- // TODO: Check if this is right
 interface IIdentityVAnchorVerifier2_16 {
 	function verifyProof(
 		uint[2] memory a,
@@ -48,7 +47,6 @@ interface IIdentityVAnchorVerifier2_16 {
 	- X is the # of edges supported on this VAnchor (i.e. 8)
 	- Y is the # of inputs to the join/split transaction (i.e. 2)
  */
- // TODO: Check if this is right
 interface IIdentityVAnchorVerifier8_2 {
 	function verifyProof(
 		uint[2] memory a,
@@ -66,7 +64,6 @@ interface IIdentityVAnchorVerifier8_2 {
 	- X is the # of edges supported on this VAnchor (i.e. 8)
 	- Y is the # of inputs to the join/split transaction (i.e. 16)
  */
- // TODO: Check if this is right
 interface IIdentityVAnchorVerifier8_16 {
 	function verifyProof(
 		uint[2] memory a,

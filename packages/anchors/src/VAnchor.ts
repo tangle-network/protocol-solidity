@@ -613,7 +613,6 @@ export class VAnchor extends VAnchorBase implements IAnchor {
       options = {};
     }
 
-    console.log('before transact in VAnchor.ts');
     let tx: ContractTransaction;
     if (keyData === undefined && owner === undefined) {
       tx = await contractCall(
