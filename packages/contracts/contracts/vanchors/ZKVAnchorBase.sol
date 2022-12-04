@@ -181,10 +181,6 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 					address(this)
 			);
 		} else {
-			console.log("wrapAmount: %s", wrapAmount);
-			console.log("msg.value: %s", msg.value);
-			console.log("allowance anchor: %s", IERC20(_fromTokenAddress).allowance(msg.sender, address(this)));
-			console.log("allowance token wrapper: %s", IERC20(_fromTokenAddress).allowance(msg.sender, _toTokenAddress));
 			// wrap into the token and send directly to this contract
 			ITokenWrapper(_toTokenAddress).wrapForAndSendTo{value: msg.value}(
 					msg.sender,

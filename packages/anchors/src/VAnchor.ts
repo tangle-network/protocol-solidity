@@ -623,7 +623,6 @@ export class VAnchor implements IAnchor {
       options = {};
     }
 
-    console.log('before transact in VAnchor.ts');
     const tx = await this.contract.transact(
       publicInputs.proof,
       ZERO_BYTES32,
