@@ -527,27 +527,6 @@ export class VAnchor extends VAnchorBase implements IAnchor {
       publicInputs,
     };
   }
-  // public async padUtxos(utxos: Utxo[], maxUtxos: number): Promise<Utxo[]> {
-  //   const evmId = await this.signer.getChainId();
-  //   const chainId = getChainIdType(evmId);
-  //   const randomKeypair = new Keypair();
-  //
-  //   while (utxos.length !== 2 && utxos.length < maxUtxos) {
-  //     utxos.push(
-  //       await CircomUtxo.generateUtxo({
-  //         curve: 'Bn254',
-  //         backend: 'Circom',
-  //         chainId: chainId.toString(),
-  //         originChainId: chainId.toString(),
-  //         amount: '0',
-  //         blinding: hexToU8a(randomBN(31).toHexString()),
-  //         keypair: randomKeypair,
-  //       })
-  //     );
-  //   }
-  //   return utxos;
-  // }
-
   // Maintain tree state after insertions
   public async updateTree(outputs: Utxo[]): Promise<void> {
     outputs.forEach((x) => {
