@@ -9,7 +9,7 @@ import {
 } from '@webb-tools/tokens';
 import Verifier from './Verifier';
 import { AnchorIdentifier, GovernorConfig, DeployerConfig } from '@webb-tools/interfaces';
-import { AnchorHandler, PoseidonHasher, VAnchor } from '@webb-tools/anchors';
+import { AnchorHandler, PoseidonHasher, VAnchor, UtxoUtils } from '@webb-tools/anchors';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { CircomUtxo, Utxo } from '@webb-tools/sdk-core';
 
@@ -56,7 +56,7 @@ function checkNativeAddress(tokenAddress: string): boolean {
 }
 
 // A bridge is
-export class VBridge {
+export class VBridge extends UtxoUtils {
   private constructor(
     // Mapping of chainId => vBridgeSide
     public vBridgeSides: Map<number, SignatureBridgeSide>,
@@ -70,7 +70,7 @@ export class VBridge {
 
     // Mapping of anchorIdString => Anchor for easy anchor access
     public vAnchors: Map<string, VAnchor>
-  ) {}
+  ) { super(); }
 
   //might need some editing depending on whether anchor identifier structure changes
   public static createVAnchorIdString(vAnchorIdentifier: AnchorIdentifier): string {
@@ -369,10 +369,8 @@ export class VBridge {
       throw new Error('Token not supported');
     }
 
-    const extAmount = BigNumber.from(fee)
-      .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
-      .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
-    
+    let extAmount = await this.getExtAmount(inputs, outputs, fee);
+
     const publicAmount = extAmount.sub(fee);
 
     // If the wrapUnwrapToken is unspecified ('') then we assume that
@@ -423,18 +421,7 @@ export class VBridge {
     }
 
     // Create dummy UTXOs to satisfy the circuit
-    while (inputs.length !== 2 && inputs.length < 16) {
-      inputs.push(
-        await CircomUtxo.generateUtxo({
-          curve: 'Bn254',
-          backend: 'Circom',
-          chainId: chainId.toString(),
-          originChainId: chainId.toString(),
-          index: '0',
-          amount: '0',
-        })
-      );
-    }
+    inputs = await this.padUtxos(inputs, 16, signer);
 
     await vAnchor.transact(
       inputs,

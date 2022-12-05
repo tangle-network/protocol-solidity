@@ -42,7 +42,7 @@ import {
 } from '@webb-tools/utils';
 import { Semaphore } from '@webb-tools/semaphore';
 import { LinkedGroup } from '@webb-tools/semaphore-group';
-import { VAnchorBase } from './VAnchorBase';
+import { UtxoUtils } from './UtxoUtils';
 
 const snarkjs = require('snarkjs');
 
@@ -85,7 +85,7 @@ export var proofTimeBenchmark = [];
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
-export class IdentityVAnchor extends VAnchorBase implements IAnchor {
+export class IdentityVAnchor extends UtxoUtils implements IAnchor {
   signer: ethers.Signer;
   contract: IdentityVAnchorContract;
   semaphore: Semaphore;

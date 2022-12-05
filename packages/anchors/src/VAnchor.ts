@@ -31,7 +31,7 @@ import {
   IVariableAnchorPublicInputs,
 } from '@webb-tools/interfaces';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents, ZERO_BYTES32 } from '@webb-tools/utils';
-import { VAnchorBase } from './VAnchorBase';
+import { UtxoUtils } from './UtxoUtils';
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 function checkNativeAddress(tokenAddress: string): boolean {
@@ -47,7 +47,7 @@ export var proofTimeBenchmark = [];
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
-export class VAnchor extends VAnchorBase implements IAnchor {
+export class VAnchor extends UtxoUtils implements IAnchor {
   signer: ethers.Signer;
   contract: VAnchorContract | ChainalysisVAnchorContract;
   tree: MerkleTree;

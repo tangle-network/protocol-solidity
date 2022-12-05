@@ -8,7 +8,7 @@ import {
 } from '@webb-tools/sdk-core';
 import { hexToU8a, getChainIdType } from '@webb-tools/utils';
 
-export class VAnchorBase {
+export class UtxoUtils {
   public static createRootsBytes(rootArray: string[]) {
     let rootsBytes = '0x';
     for (let i = 0; i < rootArray.length; i++) {
@@ -60,5 +60,5 @@ export class VAnchorBase {
 
 }
 
-export default VAnchorBase;
+export default UtxoUtils;
 
