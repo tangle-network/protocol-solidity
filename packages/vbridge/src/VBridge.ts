@@ -363,45 +363,32 @@ export class VBridge {
       }
     }
 
-    const tokenAddress = await vAnchor.contract.token();
+    const webbTokenAddress = await vAnchor.contract.token();
 
-    if (!tokenAddress) {
+    if (!webbTokenAddress) {
       throw new Error('Token not supported');
     }
 
     if (wrapUnwrapToken.length === 0) {
-      wrapUnwrapToken = tokenAddress;
+      wrapUnwrapToken = webbTokenAddress;
     }
-
-    const tokenInstance = await MintableToken.tokenFromAddress(tokenAddress, signer);
 
     const extAmount = BigNumber.from(fee)
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
     
     const publicAmount = extAmount.sub(fee);
-    // Approve spending if needed
-    const userTokenAllowanceForAnchor = await tokenInstance.getAllowance(
-      signerAddress,
-      vAnchor.contract.address
-    );
-    console.log('userTokenAllowanceForAnchor', userTokenAllowanceForAnchor.toString());
-    if (userTokenAllowanceForAnchor.lt(publicAmount)) {
-      await tokenInstance.approveSpending(vAnchor.contract.address, publicAmount);
-    }
-    console.log('userTokenAllowanceForAnchor', userTokenAllowanceForAnchor.toString());
 
-    if (wrapUnwrapToken !== tokenAddress) {
-      const wrappedToken = await vAnchor.contract.token();
-      const userTokenAllowanceForWrappedToken = await tokenInstance.getAllowance(
+    // Approve spending if needed
+    if (wrapUnwrapToken != zeroAddress) {
+      const tokenInstance = await MintableToken.tokenFromAddress(webbTokenAddress, signer);
+      const userTokenAllowance = await tokenInstance.getAllowance(
         signerAddress,
-        wrappedToken
+        webbTokenAddress
       );
-      console.log('userTokenAllowanceForWrappedToken', userTokenAllowanceForWrappedToken.toString());
-      if (userTokenAllowanceForWrappedToken.lt(publicAmount)) {
-        await tokenInstance.approveSpending(wrappedToken, publicAmount);
+      if (userTokenAllowance.lt(publicAmount)) {
+        await tokenInstance.approveSpending(webbTokenAddress, publicAmount);
       }
-      console.log('userTokenAllowanceForWrappedToken', userTokenAllowanceForWrappedToken.toString());
     }
 
     // Populate the leaves map
