@@ -50,7 +50,7 @@ const path = require('path');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
 
-describe.only('VAnchor for 2 max edges', () => {
+describe('VAnchor for 3 max edges', () => {
   let anchor: VAnchor;
 
   const levels = 30;
@@ -227,19 +227,40 @@ describe.only('VAnchor for 2 max edges', () => {
         merkleProofsForInputs
       );
 
-      const wtns = await create2InputWitness(input);
-      let res = await snarkjs.groth16.prove(
-        'solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey',
-        wtns
+      let fullProof = await anchor.generateProof(extDataHash.toString(), input)
+      const vKey = await snarkjs.zKey.exportVerificationKey(anchor.smallCircuitZkComponents.zkey);
+      console.log("fullProof", fullProof)
+      const calldata = await snarkjs.groth16.exportSolidityCallData(
+        fullProof.proof,
+        fullProof.publicSignals
       );
-      const proof = res.proof;
-      let publicSignals = res.publicSignals;
-      const vKey = await snarkjs.zKey.exportVerificationKey(
-        'solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey'
+      console.log("calldata", calldata)
+      //
+      // const publicInputs: IIdentityVariableAnchorPublicInputs = this.generatePublicInputs(
+      //   proof,
+      //   calldata
+      // );
+      //
+      const is_valid: boolean = await snarkjs.groth16.verify(
+        vKey,
+        fullProof.publicSignals,
+        fullProof.proof
       );
-
-      res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
-      assert.strictEqual(res, true);
+      assert.strictEqual(is_valid, true);
+      //
+      // const wtns = await create2InputWitness(input);
+      // let res = await snarkjs.groth16.prove(
+      //   'solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey',
+      //   wtns
+      // );
+      // const proof = res.proof;
+      // let publicSignals = res.publicSignals;
+      // const vKey = await snarkjs.zKey.exportVerificationKey(
+      //   'solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey'
+      // );
+      //
+      // res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
+      // assert.strictEqual(res, true);
     });
   });
 

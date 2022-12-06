@@ -85,9 +85,9 @@ describe('MerkleForest', () => {
       const initialSubtreeRoot = await merkleForest.getLastSubtreeRoot(0);
       assert.strictEqual(initialSubtreeRoot.toString(), defaultSubtreeRoot.toString());
       const subtree = await merkleForest.subtrees(0);
-      assert.strictEqual(await subtree.depth, tree.levels);
+      assert.strictEqual(subtree.depth.toString(), tree.levels.toString());
       const forestData = await merkleForest.merkleForest();
-      assert.strictEqual(forestData.depth, forest.levels);
+      assert.strictEqual(forestData.depth.toString(), forest.levels.toString());
       assert.strictEqual(0, forestData.numberOfLeaves);
       assert.strictEqual(0, await forestData.currentRootIndex);
 
