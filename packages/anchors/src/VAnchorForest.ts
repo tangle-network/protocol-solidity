@@ -383,7 +383,7 @@ export class VAnchorForest {
     );
   }
 
-  public async populateRootsForProof(): Promise<string[]> {
+  public async populateRootsForProof(): Promise<BigNumber[]> {
     const neighborEdges = await this.contract.getLatestNeighborEdges();
     const neighborRootInfos = neighborEdges.map((rootData) => {
       return rootData.root;
