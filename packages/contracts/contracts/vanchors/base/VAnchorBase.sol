@@ -191,7 +191,7 @@ abstract contract VAnchorBase is LinkableAnchor {
 		address _toTokenAddress,
 		address _recipient,
 		uint256 _minusExtAmount
-	) public payable nonReentrant {
+	) public payable {
 		// We first withdraw the assets and send them to `this` contract address.
 		// This ensure that when we unwrap the assets, `this` contract has the
 		// assets to unwrap into.

@@ -818,7 +818,6 @@ describe('2-sided multichain tests for signature vbridge', () => {
           originChainId: chainID1.toString(),
           chainId: chainID2.toString(),
         });
-        console.log('here');
         await vBridge.transact(
           [],
           [ganacheDepositUtxo1, ganacheDepositUtxo2],
@@ -829,7 +828,6 @@ describe('2-sided multichain tests for signature vbridge', () => {
           existingToken1.contract.address,
           signers[1],
         );
-        console.log('here');
         const webbTokenAddress2 = vBridge.getWebbTokenAddress(chainID2);
         const webbToken2 = await MintableToken.tokenFromAddress(webbTokenAddress2!, ganacheWallet2);
         assert.strictEqual(
@@ -850,7 +848,6 @@ describe('2-sided multichain tests for signature vbridge', () => {
           originChainId: chainID1.toString(),
           chainId: chainID1.toString(),
         });
-        console.log('here');
         await vBridge.transact(
           [ganacheDepositUtxo1, ganacheDepositUtxo2],
           [hardhatWithdrawUtxo],
@@ -861,7 +858,6 @@ describe('2-sided multichain tests for signature vbridge', () => {
           existingToken1.contract.address,
           signers[1]
         );
-        console.log('here');
         //Check relevant balances
         //Unwrapped Balance of signers[2] should be 3e7
         const balSigners2Unwrapped = await existingToken1.contract.balanceOf(

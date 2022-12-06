@@ -50,7 +50,7 @@ const path = require('path');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
 
-describe('VAnchor for 3 max edges', () => {
+describe('VAnchor for 1 max edge', () => {
   let anchor: VAnchor;
 
   const levels = 30;
@@ -1096,7 +1096,7 @@ describe('VAnchor for 3 max edges', () => {
       // and the tx with NewNullifier event is where alice spent the UTXO
     });
 
-    it('Should reject proofs made against roots of empty edges', async () => {
+    it('should reject proofs made against roots of empty edges', async () => {
       // This test has not been linked to another anchor - edgeList should be empty.
       await TruffleAssert.reverts(anchor.contract.edgeList(0));
 
@@ -1134,7 +1134,6 @@ describe('VAnchor for 3 max edges', () => {
         anchor.largeCircuitZkComponents,
         roots
       );
-
       setupVAnchor.token = anchor.token;
       let inputs: Utxo[] = [
         fakeUtxo,
@@ -1186,7 +1185,6 @@ describe('VAnchor for 3 max edges', () => {
           [chainID.toString()]: [hexToU8a(fakeTree.zeroElement.toHexString())],
         }
       );
-
       await TruffleAssert.reverts(
         anchor.contract.transact(publicInputs.proof, ZERO_BYTES32, extData, publicInputs, {
           encryptedOutput1: outputs[0].encrypt(),

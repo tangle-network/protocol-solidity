@@ -68,7 +68,7 @@ export class SetupTxVAnchorMock extends VAnchor {
       hexToU8a(outputs[0].encrypt()),
       hexToU8a(outputs[1].encrypt()),
     ];
-    console.log(this.rootsForProof);
+
     const proofInput: ProvingManagerSetupInput<'vanchor'> = {
       inputUtxos: inputs,
       leavesMap,
@@ -101,14 +101,13 @@ export class SetupTxVAnchorMock extends VAnchor {
         ));
 
     const proof = await this.provingManager.prove('vanchor', proofInput);
-
     const publicInputs: IVariableAnchorPublicInputs = this.generatePublicInputs(
       proof.proof,
       this.rootsForProof,
       inputs,
       outputs,
       proofInput.publicAmount,
-      proof.extdatahash,
+      proof.extDataHash,
     );
 
     const extData: IVariableAnchorExtData = {

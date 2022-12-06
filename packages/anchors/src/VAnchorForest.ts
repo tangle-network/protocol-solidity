@@ -389,7 +389,7 @@ export class VAnchorForest {
       return rootData.root;
     });
     let thisRoot = await this.contract.getLastRoot();
-    return [thisRoot.toString(), ...neighborRootInfos.map((bignum) => bignum.toString())];
+    return [thisRoot, ...neighborRootInfos];
   }
 
   public async getClassAndContractRoots() {
