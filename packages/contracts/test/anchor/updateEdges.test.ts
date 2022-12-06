@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 import { BigNumber } from 'ethers';
-// @ts-nocheck
 import { artifacts, contract, assert } from 'hardhat';
 import { toFixedHex } from '@webb-tools/sdk-core';
 const TruffleAssert = require('truffle-assertions');

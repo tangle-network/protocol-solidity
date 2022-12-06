@@ -48,7 +48,7 @@ const path = require('path');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
 
-describe('VAnchor for 2 max edges', () => {
+describe.only('VAnchor for 2 max edges', () => {
   let anchor: VAnchor;
 
   const levels = 30;
@@ -267,7 +267,7 @@ describe('VAnchor for 2 max edges', () => {
     });
   });
 
-  describe('#transact', () => {
+  describe.only('#transact', () => {
     it('should transact', async () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 1e7;
