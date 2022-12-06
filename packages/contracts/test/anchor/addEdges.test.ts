@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
+import { BigNumber } from 'ethers';
 import { artifacts, contract, assert } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
 
@@ -71,7 +72,7 @@ contract('LinkableAnchor - [add edges]', async (accounts) => {
 
   it('LinkableAnchor edges should be modifiable by handler only', async () => {
     const edge = {
-      root: '0x1111111111111111111111111111111111111111111111111111111111111111',
+      root: BigNumber.from('0x1111111111111111111111111111111111111111111111111111111111111111'),
       latestLeafIndex: 1,
       srcResourceID: '0x1111111111111111111111111111111111111111111111111111001000000001',
     };
@@ -81,7 +82,7 @@ contract('LinkableAnchor - [add edges]', async (accounts) => {
 
     const roots = await AnchorInstance.getLatestNeighborRoots();
     assert.strictEqual(roots.length, maxRoots);
-    assert.strictEqual(roots[0], edge.root);
+    assert.strictEqual(roots[0].toString(), edge.root);
   });
 
   it('LinkableAnchor edges should update edgeIndex', async () => {
@@ -117,23 +118,22 @@ contract('LinkableAnchor - [add edges]', async (accounts) => {
 
   it('latestNeighborRoots should return correct roots', async () => {
     const edge = {
-      root: '0x1111111111111111111111111111111111111111111111111111111111111111',
+      root: BigNumber.from('0x1111111111111111111111111111111111111111111111111111111111111111'),
       latestLeafIndex: 1,
       srcResourceID: '0x1111111111111111111111111111111111111111111111111111001000000001',
     };
 
     await TruffleAssert.passes(updateEdge(edge, accounts[0]));
-
     const roots = await AnchorInstance.getLatestNeighborRoots();
     assert.strictEqual(roots.length, maxRoots);
-    assert.strictEqual(roots[0], edge.root);
+    assert.strictEqual(roots[0].toString(), edge.root.toString());
   });
 
   it('Adding edge should emit correct EdgeAddition event', async () => {
     const edge = {
-      sourceChainID: '0x100000000001',
-      root: '0x1111111111111111111111111111111111111111111111111111111111111111',
-      latestLeafIndex: 1,
+      sourceChainID: BigNumber.from('0x100000000001'),
+      root: BigNumber.from('0x1111111111111111111111111111111111111111111111111111111111111111'),
+      latestLeafIndex: BigNumber.from(1),
       srcResourceID: '0x1111111111111111111111111111111111111111111111111111100000000001',
     };
 
@@ -141,9 +141,9 @@ contract('LinkableAnchor - [add edges]', async (accounts) => {
 
     TruffleAssert.eventEmitted(result, 'EdgeAddition', (ev) => {
       return (
-        ev.chainID == parseInt(edge.sourceChainID, 16) &&
-        ev.latestLeafIndex == edge.latestLeafIndex &&
-        ev.merkleRoot == edge.root
+        ev.chainID.toString() == edge.sourceChainID.toString() &&
+        ev.latestLeafIndex.toString() == edge.latestLeafIndex &&
+        ev.merkleRoot.toString() == edge.root
       );
     });
   });
