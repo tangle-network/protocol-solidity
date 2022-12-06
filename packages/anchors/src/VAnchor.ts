@@ -328,13 +328,13 @@ export class VAnchor implements IVAnchor {
     );
   }
 
-  public async populateRootsForProof(): Promise<string[]> {
+  public async populateRootsForProof(): Promise<BigNumber[]> {
     const neighborEdges = await this.contract.getLatestNeighborEdges();
     const neighborRootInfos = neighborEdges.map((rootData) => {
       return rootData.root;
     });
     let thisRoot = await this.contract.getLastRoot();
-    return [thisRoot.toString(), ...neighborRootInfos.map((bignum) => bignum.toString())];
+    return [thisRoot, ...neighborRootInfos];
   }
 
   public async getClassAndContractRoots() {
@@ -372,24 +372,24 @@ export class VAnchor implements IVAnchor {
 
   public generatePublicInputs(
     proof: any,
-    roots: string[],
+    roots: BigNumber[],
     inputs: Utxo[],
     outputs: Utxo[],
     publicAmount: BigNumberish,
-    extDataHash: string
+    extDataHash: BigNumber
   ): IVariableAnchorPublicInputs {
     // public inputs to the contract
     const args: IVariableAnchorPublicInputs = {
       proof: `0x${proof}`,
       roots: `0x${roots.map((x) => toFixedHex(x).slice(2)).join('')}`,
       extensionRoots: '0x00',
-      inputNullifiers: inputs.map((x) => toFixedHex('0x' + x.nullifier)),
+      inputNullifiers: inputs.map((x) => BigNumber.from(toFixedHex('0x' + x.nullifier))),
       outputCommitments: [
-        toFixedHex(u8aToHex(outputs[0].commitment)),
-        toFixedHex(u8aToHex(outputs[1].commitment)),
+        BigNumber.from(toFixedHex(u8aToHex(outputs[0].commitment))),
+        BigNumber.from(toFixedHex(u8aToHex(outputs[1].commitment))),
       ],
       publicAmount: toFixedHex(publicAmount),
-      extDataHash: toFixedHex(extDataHash),
+      extDataHash,
     };
 
     return args;
@@ -497,7 +497,7 @@ export class VAnchor implements IVAnchor {
       inputUtxos: inputs,
       leavesMap,
       leafIds,
-      roots: roots.map((root) => hexToU8a(root)),
+      roots: roots.map((root) => hexToU8a(root.toHexString())),
       chainId: chainId.toString(),
       output: outputs,
       encryptedCommitments,
@@ -532,7 +532,7 @@ export class VAnchor implements IVAnchor {
       inputs,
       outputs,
       proofInput.publicAmount,
-      u8aToHex(proof.extDataHash)
+      BigNumber.from(u8aToHex(proof.extDataHash))
     );
 
     const extData: IVariableAnchorExtData = {
@@ -759,11 +759,17 @@ export class VAnchor implements IVAnchor {
         roots: publicInputs.roots,
         extensionRoots: [],
         inputNullifiers: publicInputs.inputNullifiers,
-        outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
+        outputCommitments: [
+          BigNumber.from(publicInputs.outputCommitments[0]),
+          BigNumber.from(publicInputs.outputCommitments[1])
+        ],
         publicAmount: publicInputs.publicAmount,
         extDataHash: publicInputs.extDataHash,
       },
-      extData,
+      {
+        encryptedOutput1: extData.encryptedOutput1,
+        encryptedOutput2: extData.encryptedOutput2,
+      },
       options
     );
     const receipt = await tx.wait();

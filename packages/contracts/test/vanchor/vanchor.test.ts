@@ -41,6 +41,8 @@ import { VAnchor, PoseidonHasher } from '@webb-tools/anchors';
 import { Verifier } from '@webb-tools/vbridge';
 import { writeFileSync } from 'fs';
 import { SetupTxVAnchorMock } from './mocks/SetupTxVAnchorMock';
+import { isTupleTypeNode } from 'typescript';
+import { TokenWrapper__factory } from 'packages/contracts/typechain';
 
 const BN = require('bn.js');
 
@@ -48,7 +50,7 @@ const path = require('path');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
 
-describe('VAnchor for 2 max edges', () => {
+describe.only('VAnchor for 2 max edges', () => {
   let anchor: VAnchor;
 
   const levels = 30;
@@ -187,7 +189,7 @@ describe('VAnchor for 2 max edges', () => {
   });
 
   describe('snark proof native verification on js side', () => {
-    it.only('should work', async () => {
+    it('should work', async () => {
       const relayer = '0x2111111111111111111111111111111111111111';
       const extAmount = 1e7;
       const aliceDepositAmount = 1e7;
@@ -268,7 +270,7 @@ describe('VAnchor for 2 max edges', () => {
   });
 
   describe('#transact', () => {
-    it.only('should transact', async () => {
+    it('should transact', async () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
@@ -1100,7 +1102,7 @@ describe('VAnchor for 2 max edges', () => {
       const fakeRoot = fakeTree.root();
 
       const roots = await anchor.populateRootsForProof();
-      roots[1] = fakeRoot.toHexString();
+      roots[1] = fakeRoot;
 
       const setupVAnchor = new SetupTxVAnchorMock(
         anchor.contract,
@@ -1111,6 +1113,7 @@ describe('VAnchor for 2 max edges', () => {
         anchor.largeCircuitZkComponents,
         roots
       );
+
       setupVAnchor.token = anchor.token;
       let inputs: Utxo[] = [
         fakeUtxo,

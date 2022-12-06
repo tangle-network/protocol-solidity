@@ -19,10 +19,10 @@ export interface IVariableAnchorPublicInputs {
   proof: string;
   roots: string;
   extensionRoots: string;
-  inputNullifiers: string[];
-  outputCommitments: [string, string];
+  inputNullifiers: BigNumber[];
+  outputCommitments: [BigNumber, BigNumber];
   publicAmount: string;
-  extDataHash: string;
+  extDataHash: BigNumber;
 }
 
 export interface IVariableAnchorExtData {

@@ -16,7 +16,7 @@ import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/ut
 import { VAnchor as VAnchorContract } from '../../../typechain';
 
 export class SetupTxVAnchorMock extends VAnchor {
-  private rootsForProof: string[];
+  private rootsForProof: BigNumber[];
 
   constructor(
     contract: VAnchorContract,
@@ -25,7 +25,7 @@ export class SetupTxVAnchorMock extends VAnchor {
     maxEdges: number,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents,
-    roots: string[]
+    roots: BigNumber[]
   ) {
     super(
       contract,
@@ -68,12 +68,12 @@ export class SetupTxVAnchorMock extends VAnchor {
       hexToU8a(outputs[0].encrypt()),
       hexToU8a(outputs[1].encrypt()),
     ];
-
+    console.log(this.rootsForProof);
     const proofInput: ProvingManagerSetupInput<'vanchor'> = {
       inputUtxos: inputs,
       leavesMap,
       leafIds,
-      roots: this.rootsForProof.map((root) => hexToU8a(root)),
+      roots: this.rootsForProof.map((root) => hexToU8a(root.toHexString())),
       chainId: chainId.toString(),
       output: outputs,
       encryptedCommitments,
@@ -108,7 +108,7 @@ export class SetupTxVAnchorMock extends VAnchor {
       inputs,
       outputs,
       proofInput.publicAmount,
-      u8aToHex(proof.extDataHash)
+      proof.extdatahash,
     );
 
     const extData: IVariableAnchorExtData = {
