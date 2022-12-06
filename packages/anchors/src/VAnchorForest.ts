@@ -653,7 +653,6 @@ export class VAnchorForest {
   ) {
     // first, check if the merkle root is known on chain - if not, then update
     const chainId = getChainIdType(await this.signer.getChainId());
-    const roots = await this.populateRootsForProof();
 
     // calculate the sum of input notes (for calculating the public amount)
     let sumInputUtxosAmount: BigNumberish = 0;
@@ -683,7 +682,7 @@ export class VAnchorForest {
       outputs[0].encrypt(),
       outputs[1].encrypt()
     );
-
+    console.log('extDataHash', extDataHash);
     const proofInput: UTXOInputs = await this.generateUTXOInputs(
       inputs,
       outputs,
@@ -712,85 +711,6 @@ export class VAnchorForest {
     };
   }
 
-  public async transact(
-    raw_inputs: Utxo[],
-    raw_outputs: Utxo[],
-    fee: BigNumberish,
-    refund: BigNumberish,
-    recipient: string,
-    relayer: string,
-    wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>,
-  ): Promise<ethers.ContractReceipt> {
-    // Validate input utxos have a valid originChainId
-    raw_inputs.map((utxo) => {
-      if (utxo.originChainId === undefined) {
-        throw new Error('Input Utxo does not have a configured originChainId');
-      }
-    });
-
-    // Default UTXO chain ID will match with the configured signer's chain ID
-    let { inputs, outputs } = await this.padInputsAndOutputs(raw_inputs, raw_outputs);
-
-    let extAmount = await this.getExtAmount(inputs, outputs, fee);
-
-    const { extData, publicInputs } = await this.setupTransaction(
-      inputs,
-      [outputs[0], outputs[1]],
-      extAmount,
-      fee,
-      refund,
-      recipient,
-      relayer,
-      wrapUnwrapToken,
-      leavesMap
-    );
-
-    let options = {};
-    if (extAmount.gt(0) && checkNativeAddress(wrapUnwrapToken)) {
-      let tokenWrapper = TokenWrapper__factory.connect(await this.contract.token(), this.signer);
-      let valueToSend = await tokenWrapper.getAmountToWrap(extAmount);
-
-      options = {
-        value: valueToSend.toHexString(),
-      };
-    } else {
-      options = {};
-    }
-
-    const tx = await this.contract.transact(
-      publicInputs.proof,
-      ZERO_BYTES32,
-      {
-        recipient: extData.recipient,
-        extAmount: extData.extAmount,
-        relayer: extData.relayer,
-        fee: extData.fee,
-        refund: extData.refund,
-        token: extData.token,
-      },
-      {
-        roots: publicInputs.roots,
-        extensionRoots: '0x',
-        inputNullifiers: publicInputs.inputNullifiers,
-        outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
-        publicAmount: publicInputs.publicAmount,
-        extDataHash: publicInputs.extDataHash,
-      },
-      {
-        encryptedOutput1: extData.encryptedOutput1,
-        encryptedOutput2: extData.encryptedOutput2,
-      },
-      options
-    );
-    const receipt = await tx.wait();
-
-    gasBenchmark.push(receipt.gasUsed.toString());
-
-    await this.updateForest(outputs);
-
-    return receipt;
-  }
 
   public async encodeSolidityProof(fullProof: any, calldata: any): Promise<String> {
     const proof = JSON.parse('[' + calldata + ']');
@@ -877,7 +797,92 @@ export class VAnchorForest {
       relayer,
       leavesMap
     );
-    
+
+    console.log('publicInputs', publicInputs);
+
+    let options = {};
+    if (extAmount.gt(0) && checkNativeAddress(wrapUnwrapToken)) {
+      let tokenWrapper = TokenWrapper__factory.connect(await this.contract.token(), this.signer);
+      let valueToSend = await tokenWrapper.getAmountToWrap(extAmount);
+
+      options = {
+        value: valueToSend.toHexString(),
+      };
+    } else {
+      options = {};
+    }
+
+    let tx = await this.contract.registerAndTransact(
+      { owner, keyData: keyData },
+      publicInputs.proof,
+      ZERO_BYTES32,
+      {
+        recipient: extData.recipient,
+        extAmount: extData.extAmount,
+        relayer: extData.relayer,
+        fee: extData.fee,
+        refund: extData.refund,
+        token: extData.token,
+      },
+      {
+        roots: publicInputs.roots,
+        extensionRoots: [],
+        inputNullifiers: publicInputs.inputNullifiers,
+        outputCommitments: [
+          BigNumber.from(publicInputs.outputCommitments[0]),
+          BigNumber.from(publicInputs.outputCommitments[1])
+        ],
+        publicAmount: publicInputs.publicAmount,
+        extDataHash: publicInputs.extDataHash,
+      },
+      {
+        encryptedOutput1: extData.encryptedOutput1,
+        encryptedOutput2: extData.encryptedOutput2,
+      },
+      options
+    );
+    const receipt = await tx.wait();
+    // Add the leaves to the tree
+    await this.updateForest(outputs);
+
+    return receipt;
+  }
+
+  public async transact(
+    raw_inputs: Utxo[],
+    raw_outputs: Utxo[],
+    fee: BigNumberish,
+    refund: BigNumberish,
+    recipient: string,
+    relayer: string,
+    wrapUnwrapToken: string,
+    leavesMap: Record<string, Uint8Array[]>,
+  ): Promise<ethers.ContractReceipt> {
+    // Validate input utxos have a valid originChainId
+    raw_inputs.map((utxo) => {
+      if (utxo.originChainId === undefined) {
+        throw new Error('Input Utxo does not have a configured originChainId');
+      }
+    });
+
+    // Default UTXO chain ID will match with the configured signer's chain ID
+    let { inputs, outputs } = await this.padInputsAndOutputs(raw_inputs, raw_outputs);
+
+    let extAmount = await this.getExtAmount(inputs, outputs, fee);
+
+    const { extData, publicInputs } = await this.setupTransaction(
+      inputs,
+      [outputs[0], outputs[1]],
+      extAmount,
+      fee,
+      refund,
+      recipient,
+      relayer,
+      wrapUnwrapToken,
+      leavesMap
+    );
+    console.log('transact publicInputs', publicInputs);
+
     let options = {};
     if (extAmount.gt(0) && checkNativeAddress(wrapUnwrapToken)) {
       let tokenWrapper = TokenWrapper__factory.connect(await this.contract.token(), this.signer);
@@ -917,7 +922,6 @@ export class VAnchorForest {
     );
     const receipt = await tx.wait();
 
-    // Add the leaves to the tree
     await this.updateForest(outputs);
 
     return receipt;
