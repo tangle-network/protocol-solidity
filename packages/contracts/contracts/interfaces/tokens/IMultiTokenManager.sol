@@ -21,7 +21,7 @@ interface IMultiTokenManager {
     ) external;
 
     /**
-        @notice Registers a new token and deploys the FungibleTokenWrapperInitializable contract
+        @notice Registers a new token and deploys the FungibleTokenWrapper contract
         @param _handler The address of the token handler contract
         @param _name The name of the ERC20
         @param _symbol The symbol of the ERC20

@@ -64,14 +64,14 @@ library VAnchorEncodeInputs {
         PublicInputs memory _args,
         bytes memory,
         uint8 _maxEdges
-    ) public view returns (bytes memory, bytes32[] memory) {
+    ) public view returns (bytes memory, uint256[] memory) {
         uint256 _chainId = getChainIdType();
-        bytes32[] memory result = new bytes32[](_maxEdges + 1);
+        uint256[] memory result = new uint256[](_maxEdges + 1);
         bytes memory encodedInput;
 
         if (_maxEdges == 1) {
             uint256[9] memory inputs;
-            bytes32[2] memory roots = abi.decode(_args.roots, (bytes32[2]));
+            uint256[2] memory roots = abi.decode(_args.roots, (uint256[2]));
             // assign roots
             result[0] = roots[0];
             result[1] = roots[1];
@@ -88,7 +88,7 @@ library VAnchorEncodeInputs {
             encodedInput = abi.encodePacked(inputs);
         } else if (_maxEdges == 7) {
             uint256[15] memory inputs;
-            bytes32[8] memory roots = abi.decode(_args.roots, (bytes32[8]));
+            uint256[8] memory roots = abi.decode(_args.roots, (uint256[8]));
             // assign roots
             result[0] = roots[0];
             result[1] = roots[1];
@@ -133,14 +133,14 @@ library VAnchorEncodeInputs {
         PublicInputs memory _args,
         bytes memory,
         uint8 _maxEdges
-    ) public view returns (bytes memory, bytes32[] memory) {
+    ) public view returns (bytes memory, uint256[] memory) {
         uint256 _chainId = getChainIdType();
-        bytes32[] memory result = new bytes32[](_maxEdges + 1);
+        uint256[] memory result = new uint256[](_maxEdges + 1);
         bytes memory encodedInput;
 
         if (_maxEdges == 1) {
             uint256[23] memory inputs;
-            bytes32[2] memory roots = abi.decode(_args.roots, (bytes32[2]));
+            uint256[2] memory roots = abi.decode(_args.roots, (uint256[2]));
             // assign roots
             result[0] = roots[0];
             result[1] = roots[1];
@@ -172,7 +172,7 @@ library VAnchorEncodeInputs {
             encodedInput = abi.encodePacked(inputs);
         } else if (_maxEdges == 7) {
             uint256[29] memory inputs;
-            bytes32[8] memory roots = abi.decode(_args.roots, (bytes32[8]));
+            uint256[8] memory roots = abi.decode(_args.roots, (uint256[8]));
             // assign roots
             result[0] = roots[0];
             result[1] = roots[1];

@@ -46,15 +46,15 @@ library IdentityVAnchorEncodeInputs {
 		PublicInputs memory _args,
 		bytes memory,
         uint8 _maxEdges
-	) public view returns (bytes memory, bytes32[] memory) {
+	) public view returns (bytes memory, uint256[] memory) {
 		uint256 _chainId = getChainIdType();
-		bytes32[] memory result = new bytes32[](_maxEdges + 1);
+		uint256[] memory result = new uint256[](_maxEdges + 1);
 		bytes memory encodedInput;
 
 		if (_maxEdges == 1) {
             uint256[11] memory inputs;
-			bytes32[2] memory identityRoots = abi.decode(_args.extensionRoots, (bytes32[2]));
-			bytes32[2] memory vanchorRoots = abi.decode(_args.roots, (bytes32[2]));
+			uint256[2] memory identityRoots = abi.decode(_args.extensionRoots, (uint256[2]));
+			uint256[2] memory vanchorRoots = abi.decode(_args.roots, (uint256[2]));
 			// assign roots
 			result[0] = vanchorRoots[0];
 			result[1] = vanchorRoots[1];
@@ -73,8 +73,8 @@ library IdentityVAnchorEncodeInputs {
 			encodedInput = abi.encodePacked(inputs);
 		} else if (_maxEdges == 7) {
 			uint256[23] memory inputs;
-			bytes32[8] memory identityRoots = abi.decode(_args.extensionRoots, (bytes32[8]));
-			bytes32[8] memory vanchorRoots = abi.decode(_args.roots, (bytes32[8]));
+			uint256[8] memory identityRoots = abi.decode(_args.extensionRoots, (uint256[8]));
+			uint256[8] memory vanchorRoots = abi.decode(_args.roots, (uint256[8]));
 			// assign roots
 			result[0] = vanchorRoots[0];
 			result[1] = vanchorRoots[1];
@@ -127,15 +127,15 @@ library IdentityVAnchorEncodeInputs {
 		PublicInputs memory _args,
 		bytes memory,
         uint8 _maxEdges
-	) public view returns (bytes memory, bytes32[] memory) {
+	) public view returns (bytes memory, uint256[] memory) {
 		uint256 _chainId = getChainIdType();
-		bytes32[] memory result = new bytes32[](_maxEdges + 1);
+		uint256[] memory result = new uint256[](_maxEdges + 1);
 		bytes memory encodedInput;
 
 		if (_maxEdges == 1) {
 			uint256[25] memory inputs;
-			bytes32[2] memory identityRoots = abi.decode(_args.extensionRoots, (bytes32[2]));
-			bytes32[2] memory vanchorRoots = abi.decode(_args.roots, (bytes32[2]));
+			uint256[2] memory identityRoots = abi.decode(_args.extensionRoots, (uint256[2]));
+			uint256[2] memory vanchorRoots = abi.decode(_args.roots, (uint256[2]));
 			// assign roots
 			result[0] = vanchorRoots[0];
 			result[1] = vanchorRoots[1];
@@ -170,8 +170,8 @@ library IdentityVAnchorEncodeInputs {
 		} else if (_maxEdges == 7) {
 			uint256[37] memory inputs;
 			// assign input
-			bytes32[8] memory identityRoots = abi.decode(_args.extensionRoots, (bytes32[8]));
-			bytes32[8] memory vanchorRoots = abi.decode(_args.roots, (bytes32[8]));
+			uint256[8] memory identityRoots = abi.decode(_args.extensionRoots, (uint256[8]));
+			uint256[8] memory vanchorRoots = abi.decode(_args.roots, (uint256[8]));
 			// assign roots
 			result[0] = vanchorRoots[0];
 			result[1] = vanchorRoots[1];

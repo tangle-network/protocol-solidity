@@ -6,8 +6,8 @@
 pragma solidity ^0.8.0;
 
 import "./ZKVAnchorBase.sol";
-import "../structs/SingleAssetExtData.sol";
-import "../libs/VAnchorEncodeInputs.sol";
+import "../../structs/SingleAssetExtData.sol";
+import "../../libs/VAnchorEncodeInputs.sol";
 
 /**
 	@title Variable Anchor contract
@@ -46,18 +46,17 @@ import "../libs/VAnchorEncodeInputs.sol";
 	transaction is taking place. The chain id opcode is leveraged to prevent any
 	tampering of this data.
  */
-contract VAnchor is ZKVAnchorBase {
+abstract contract VAnchor is ZKVAnchorBase {
 	address public immutable token;
 
 	constructor(
 		IAnchorVerifier _verifier,
 		uint32 _levels,
-		IHasher _hasher,
 		address _handler,
 		address _token,
 		uint8 _maxEdges
 	)
-		ZKVAnchorBase (_verifier, _levels, _hasher, _handler, _maxEdges)
+		ZKVAnchorBase(_verifier, _levels, _handler, _maxEdges)
 	{
 		token = _token;
 	}
@@ -89,7 +88,7 @@ contract VAnchor is ZKVAnchorBase {
 	) override internal virtual {
 		require(_publicInputs.inputNullifiers.length == 2 || _publicInputs.inputNullifiers.length == 16, "Invalid number of inputs");
 		bool smallInputs = _publicInputs.inputNullifiers.length == 2;
-		(bytes memory encodedInput, bytes32[] memory roots) = smallInputs
+		(bytes memory encodedInput, uint256[] memory roots) = smallInputs
 			? VAnchorEncodeInputs._encodeInputs2(_publicInputs, _auxPublicInputs, maxEdges)
 			: VAnchorEncodeInputs._encodeInputs16(_publicInputs, _auxPublicInputs, maxEdges);
 

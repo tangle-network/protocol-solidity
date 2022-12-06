@@ -5,78 +5,30 @@
 
 pragma solidity ^0.8.0;
 
-import "../vanchors/VAnchorBase.sol";
-import "../structs/SingleAssetExtData.sol";
-import "../interfaces/tokens/ITokenWrapper.sol";
-import "../interfaces/tokens/IMintableERC20.sol";
-import "../utils/ChainIdWithType.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "./VAnchorBase.sol";
+import "../../structs/SingleAssetExtData.sol";
 
 /**
     @title Open Variable Anchor contract
     @author Webb Technologies
-    @notice The Variable Anchor is a variable-denominated public pool system
-    derived from Webb's Shielded VAnchor. This system extends the anchor protocol
+    @notice The Open Variable Anchor is a variable-denominated public pool system
+    derived from Webb's VAnchorBase. This system extends the anchor protocol
     in a public way by enabling public cross-chain asset transfers.
-
-    The system is built on top the OpenAnchorBase/OpenLinkableAnchor system which allows
-    it to be linked to other OpenVAnchor contracts through a simple graph-like
-    interface where anchors maintain edges of their neighboring anchors.
 
     The system requires users to supply all inputs in the clear. Commitments are constructed
     inside of the smart contract and inserted into a merkle tree for easy cross-chain state updates.
  */
-contract OpenVAnchor is VAnchorBase {
+abstract contract OpenVAnchor is VAnchorBase {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
     address public immutable token;
 
     constructor(
         uint32 _levels,
-        IHasher _hasher,
         address _handler,
         address _token
-    ) VAnchorBase (
-        _levels,
-        _hasher,
-        _handler,
-        255
-    ) { token = _token; }
-
-    /**
-        @notice Wraps a token for the `msg.sender` using the underlying TokenWrapper contract
-        @param _tokenAddress The address of the token to wrap
-        @param _amount The amount of tokens to wrap
-     */
-    function wrapToken(address _tokenAddress, uint256 _amount) public {
-        ITokenWrapper(token).wrapFor(msg.sender, _tokenAddress, _amount);
-    }
-
-    /**
-        @notice Unwraps the TokenWrapper token for the `msg.sender` into one of its wrappable tokens.
-        @param _tokenAddress The address of the token to unwrap into
-        @param _amount The amount of tokens to unwrap
-     */
-    function unwrapIntoToken(address _tokenAddress, uint256 _amount) public {
-        ITokenWrapper(token).unwrapFor(msg.sender, _tokenAddress, _amount);
-    }
-
-    /**
-        @notice Wrap the native token for the `msg.sender` into the TokenWrapper token
-        @notice The amount is taken from `msg.value`
-     */
-    function wrapNative() payable public {
-        ITokenWrapper(token).wrapFor{value: msg.value}(msg.sender, address(0), 0);
-    }
-
-    /**
-        @notice Unwrap the TokenWrapper token for the `msg.sender` into the native token
-        @param _amount The amount of tokens to unwrap
-     */
-    function unwrapIntoNative(address _tokenAddress, uint256 _amount) public {
-        ITokenWrapper(token).unwrapFor(msg.sender, _tokenAddress, _amount);
+    ) VAnchorBase( _levels, _handler, 255) {
+        token = _token;
     }
 
     function deposit(
@@ -99,7 +51,7 @@ contract OpenVAnchor is VAnchorBase {
         // Send the wrapped asset directly to this contract.
         IERC20(token).transferFrom(msg.sender, address(this), depositAmount);
         // Insert the commitment
-        _executeInsertion(commitment);
+        _executeInsertion(uint256(commitment));
     }
 
     function wrapAndDeposit(
@@ -123,7 +75,7 @@ contract OpenVAnchor is VAnchorBase {
         // Send the `tokenAddress` asset to the `TokenWrapper` and mint this contract the wrapped asset.
         _executeWrapping(tokenAddress, depositAmount);
         // Insert the commitment
-        _executeInsertion(commitment);
+        _executeInsertion(uint256(commitment));
     }
 
     function withdraw(
@@ -132,9 +84,9 @@ contract OpenVAnchor is VAnchorBase {
         bytes memory delegatedCalldata,
         uint256 blinding,
         uint256 relayingFee,
-        bytes32[] memory merkleProof,
+        uint256[] memory merkleProof,
         uint32 commitmentIndex,
-        bytes32 root
+        uint256 root
     ) public nonReentrant {
         bytes32 commitment = keccak256(abi.encodePacked(
             getChainIdType(),
@@ -144,8 +96,8 @@ contract OpenVAnchor is VAnchorBase {
             blinding,
             relayingFee
         ));
-        require(_isValidMerkleProof(merkleProof, commitment, commitmentIndex, root), "Invalid Merkle Proof");
-        nullifierHashes[commitment] = true;
+        require(_isValidMerkleProof(merkleProof, uint256(commitment), commitmentIndex, root), "Invalid Merkle Proof");
+        nullifierHashes[uint256(commitment)] = true;
         // Send the wrapped token to the recipient.
         _processWithdraw(token, recipient, withdrawAmount.sub(relayingFee));
         if (msg.sender != recipient) {
@@ -160,9 +112,9 @@ contract OpenVAnchor is VAnchorBase {
         bytes memory delegatedCalldata,
         uint256 blinding,
         uint256 relayingFee,
-        bytes32[] memory merkleProof,
+        uint256[] memory merkleProof,
         uint32 commitmentIndex,
-        bytes32 root,
+        uint256 root,
         address tokenAddress
     ) public payable nonReentrant {
         bytes32 commitment = keccak256(abi.encodePacked(
@@ -173,9 +125,9 @@ contract OpenVAnchor is VAnchorBase {
             blinding,
             relayingFee
         ));
-        require(_isValidMerkleProof(merkleProof, commitment, commitmentIndex, root), "Invalid Merkle Proof");
+        require(_isValidMerkleProof(merkleProof, uint256(commitment), commitmentIndex, root), "Invalid Merkle Proof");
         _processWithdraw(token, payable(address(this)), withdrawAmount);
-        nullifierHashes[commitment] = true;
+        nullifierHashes[uint256(commitment)] = true;
 
         ITokenWrapper(token).unwrapAndSendTo(
             tokenAddress,
@@ -189,9 +141,9 @@ contract OpenVAnchor is VAnchorBase {
         }
     }
 
-    function _executeInsertion(bytes32 commitment) internal {
+    function _executeInsertion(uint256 commitment) internal {
         insert(commitment);
-        emit NewCommitment(commitment, nextIndex - 1, "");
+        emit NewCommitment(commitment, 0, this.getNextIndex() - 1, "");
     }
 
     function _executeWrapping(
@@ -268,25 +220,25 @@ contract OpenVAnchor is VAnchorBase {
 	}
 
     function _isValidMerkleProof(
-        bytes32[] memory siblingPathNodes,
-        bytes32 leaf,
+        uint256[] memory siblingPathNodes,
+        uint256 leaf,
         uint32 leafIndex,
-        bytes32 root
+        uint256 root
     ) internal view returns (bool) {
-        bytes32 currNodeHash = leaf;
+        uint256 currNodeHash = leaf;
         uint32 nodeIndex = leafIndex;
 
         for (uint8 i = 0; i < siblingPathNodes.length; i++) {
             if (nodeIndex % 2 == 0) {
-                currNodeHash = bytes32(hasher.hashLeftRight(
-                    uint256(currNodeHash),
-                    uint256(siblingPathNodes[i])
-                ));
+                currNodeHash = hashLeftRight(
+                    currNodeHash,
+                    siblingPathNodes[i]
+                );
             } else {
-                currNodeHash = bytes32(hasher.hashLeftRight(
-                    uint256(siblingPathNodes[i]),
-                    uint256(currNodeHash)
-                ));
+                currNodeHash = hashLeftRight(
+                    siblingPathNodes[i],
+                    currNodeHash
+                );
             }
             nodeIndex = nodeIndex / 2;
         }
@@ -294,7 +246,7 @@ contract OpenVAnchor is VAnchorBase {
         for (uint i = 0; i < edgeList.length; i++) {
             isKnownRootBool = isKnownRootBool || isKnownNeighborRoot(edgeList[i].chainID, root);
         }
-        isKnownRootBool = isKnownRootBool || isKnownRoot(root);
+        isKnownRootBool = isKnownRootBool || this.isKnownRoot(root);
         return root == currNodeHash && isKnownRootBool;
     }
 

@@ -5,36 +5,26 @@
 
 pragma solidity ^0.8.0;
 
-import "./VAnchor.sol";
-import "../structs/SingleAssetExtData.sol";
-import "../interfaces/tokens/ITokenWrapper.sol";
-import "../interfaces/tokens/IMintableERC20.sol";
-import "../interfaces/verifiers/ISetVerifier.sol";
-import "../utils/SanctionFilter.sol";
-import "../libs/VAnchorEncodeInputs.sol";
-import "../verifiers/TxProofVerifier.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "../base/VAnchor.sol";
+import "../../utils/SanctionFilter.sol";
 
 /**
 	@title Chainalysis Variable Anchor contract
 	@author Webb Technologies
 	@notice The main addition here is a filter for sanctioned addresses on transactions.
  */
-contract ChainalysisVAnchor is VAnchor, SanctionFilter {
+abstract contract ChainalysisVAnchor is VAnchor, SanctionFilter {
 	using SafeERC20 for IERC20;
 	using SafeMath for uint256;
 	
 	constructor(
 		IAnchorVerifier _verifier,
 		uint32 _levels,
-		IHasher _hasher,
 		address _handler,
 		address _token,
 		uint8 _maxEdges
 	)
-		VAnchor(_verifier, _levels, _hasher, _handler, _token, _maxEdges)
+		VAnchor(_verifier, _levels, _handler, _token, _maxEdges)
 	{}
 
 	/// @inheritdoc ZKVAnchorBase

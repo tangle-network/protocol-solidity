@@ -6,14 +6,17 @@
 pragma solidity ^0.8.0;
 
 import "./LinkableIncrementalBinaryTree.sol";
+import "../interfaces/IMerkleSystem.sol";
 import "../hashers/IHasher.sol";
 
-contract MerkleForest {
+contract MerkleForest is MerkleSystem {
     using LinkableIncrementalBinaryTree for LinkableIncrementalTreeData;
     IHasher public hasher;
-    uint256 public currSubtreeIndex;
-    uint256 public numSubtreeElements;
-    uint256 public maxSubtreeElements;
+    uint32 public currSubtreeIndex;
+    uint32 public numSubtreeElements;
+
+    uint32 public forestLevels;
+    uint32 public subtreeLevels;
 
     /// @dev Gets a group id and returns the group/tree data.
     mapping(uint256 => LinkableIncrementalTreeData) public subtrees;
@@ -32,15 +35,16 @@ contract MerkleForest {
         merkleForest.init(_forestLevels);
 
         hasher = _hasher;
-        maxSubtreeElements = 2 ** _subtreeLevels;
         currSubtreeIndex = 0;
         numSubtreeElements = 0;
+        forestLevels = _forestLevels;
+        subtreeLevels = _subtreeLevels;
     }
     /**
         @dev inserts single leaf into subtree then update forest
     */
-    function _insert(bytes32 _leaf) internal returns (bool) {
-        if (numSubtreeElements >= maxSubtreeElements) {
+    function _insert(uint256 _leaf) override internal returns (uint32) {
+        if (numSubtreeElements >= uint32(2 ** subtreeLevels)) {
             numSubtreeElements = 0;
             currSubtreeIndex += 1;
         }
@@ -48,15 +52,14 @@ contract MerkleForest {
         uint newLeaf = subtrees[currSubtreeIndex].getLastRoot();
         merkleForest._update(currSubtreeIndex, 0, newLeaf);
         numSubtreeElements += 1;
-        return true;
-        // return merkleForest.getLastRoot();
+        return numSubtreeElements;
     }
 
     /**
         @dev inserts pair of leaves into subtree then update forest
     */
-    function _insertTwo(bytes32 _leaf1, bytes32 _leaf2) internal returns (uint32) {
-        if (numSubtreeElements + 1 >= maxSubtreeElements) {
+    function _insertTwo(uint256 _leaf1, uint256 _leaf2) override internal returns (uint32) {
+        if (numSubtreeElements + 1 >= uint32(2 ** subtreeLevels)) {
             numSubtreeElements = 0;
             currSubtreeIndex += 1;
         }
@@ -70,8 +73,8 @@ contract MerkleForest {
     /**
         @dev inserts single leaf into specific subtreeId (if possible)
     */
-    function _insertSubtree(uint32 _subtreeId, bytes32 _leaf) internal returns (uint) {
-        if (numSubtreeElements >= maxSubtreeElements) {
+    function _insertSubtree(uint32 _subtreeId, uint256 _leaf) internal returns (uint) {
+        if (numSubtreeElements >= uint32(2 ** subtreeLevels)) {
             numSubtreeElements = 0;
             currSubtreeIndex += 1;
         }
@@ -83,22 +86,8 @@ contract MerkleForest {
     /**
         @dev Whether the root is present in any of the subtree's history
     */
-    function isKnownSubtreeRoot(uint _subtreeId, bytes32 _root) public view returns (bool) {
+    function isKnownSubtreeRoot(uint _subtreeId, uint256 _root) public view returns (bool) {
         return subtrees[_subtreeId].isKnownRoot(uint(_root));
-    }
-
-    /**
-        @dev Returns the last root of the forest
-    */
-    function getLastRoot() public view returns (uint256) {
-        return merkleForest.getLastRoot();
-    }
-
-    /**
-        @dev Whether the root is present in the root history of the forest
-    */
-    function isKnownRoot(uint256 _root) public view returns (bool) {
-        return merkleForest.isKnownRoot(_root);
     }
 
     /**
@@ -106,5 +95,35 @@ contract MerkleForest {
     */
     function getLastSubtreeRoot(uint256 _subtreeId) public view returns (uint) {
         return subtrees[_subtreeId].getLastRoot();
+    }
+
+    /// @inheritdoc IMerkleSystem
+    function isKnownRoot(uint256 _root) override public view returns (bool) {
+        return merkleForest.isKnownRoot(uint256(_root));
+    }
+
+    /// @inheritdoc IMerkleSystem
+    function getLastRoot() override external view returns (uint256) {
+        return merkleForest.getLastRoot();
+    }
+
+    /// @inheritdoc IMerkleSystem
+    function getZeroHash(uint32 index) override external pure returns (uint256) {
+        return LinkableIncrementalBinaryTree.zeros(index);
+    }
+
+    /// @inheritdoc IMerkleSystem
+    function getNextIndex() override external view returns (uint32) {
+        return numSubtreeElements;
+    }
+
+    /// @inheritdoc IMerkleSystem
+    function getLevels() override external view returns (uint32) {
+        return forestLevels;
+    }
+
+    /// @inheritdoc IMerkleSystem
+    function getHasher() override external view returns (IHasher) {
+        return hasher;
     }
 }

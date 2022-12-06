@@ -31,14 +31,6 @@ interface ISemaphoreGroups {
 
     function verifyRoots(uint256 groupId, bytes calldata roots) external view returns (bool);
 
-    // function _updateEdge(
-    //     uint256 groupId,
-    //     uint256 sourceChainID,
-    //     bytes32 root,
-    //     uint256 leafIndex,
-    //     bytes32 target
-    // ) external;
-
     /// @dev Returns the last root hash of a group.
     /// @param groupId: Id of the group.
     /// @return Latests roots from each edge connected

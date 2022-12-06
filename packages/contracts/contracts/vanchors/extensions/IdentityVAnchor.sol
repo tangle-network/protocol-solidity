@@ -5,17 +5,9 @@
 
 pragma solidity ^0.8.0;
 
-import "../structs/SingleAssetExtData.sol";
-import "../interfaces/tokens/ITokenWrapper.sol";
-import "../interfaces/tokens/IMintableERC20.sol";
-import "../interfaces/anchors/ISemaphoreGroups.sol";
-import "../interfaces/verifiers/IAnchorVerifier.sol";
-import "../interfaces/verifiers/ISetVerifier.sol";
-import "../vanchors/VAnchor.sol";
-import "../libs/IdentityVAnchorEncodeInputs.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "../base/VAnchor.sol";
+import "../../libs/IdentityVAnchorEncodeInputs.sol";
+import "../../interfaces/anchors/ISemaphoreGroups.sol";
 
 /**
 	@title Identity VAnchor contract
@@ -57,7 +49,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 	transaction is taking place. The chain id opcode is leveraged to prevent any
 	tampering of this data.
  */
-contract IdentityVAnchor is VAnchor {
+abstract contract IdentityVAnchor is VAnchor {
 	using SafeERC20 for IERC20;
 	using SafeMath for uint256;
 
@@ -69,7 +61,6 @@ contract IdentityVAnchor is VAnchor {
 		@param _semaphore The address of Semaphore contract
 		@param _verifier The address of SNARK verifier for this contract
 		@param _levels The height/# of levels of underlying Merkle Tree
-		@param _hasher The address of hash contract
 		@param _handler The address of AnchorHandler for this contract
 		@param _token The address of the token that is used to pay the deposit
 		@param _maxEdges The maximum number of edges in the LinkableAnchor + Verifier supports.
@@ -81,13 +72,12 @@ contract IdentityVAnchor is VAnchor {
 		ISemaphoreGroups _semaphore,
 		IAnchorVerifier _verifier,
 		uint8 _levels,
-		IHasher _hasher,
 		address _handler,
 		address _token,
 		uint8 _maxEdges,
 		uint256 _groupId
 	)
-        VAnchor(_verifier, _levels, _hasher, _handler, _token, _maxEdges)
+        VAnchor(_verifier, _levels, _handler, _token, _maxEdges)
     {
         SemaphoreContract = _semaphore;
         groupId = _groupId;
@@ -102,10 +92,9 @@ contract IdentityVAnchor is VAnchor {
 	) override internal view {
         require(_publicInputs.inputNullifiers.length == 2 || _publicInputs.inputNullifiers.length == 16, "Invalid number of inputs");
         bool smallInputs = _publicInputs.inputNullifiers.length == 2;
-        (bytes memory encodedInput, bytes32[] memory roots) = smallInputs
+        (bytes memory encodedInput, uint256[] memory roots) = smallInputs
             ? IdentityVAnchorEncodeInputs._encodeInputs2(_publicInputs, _auxPublicInputs, maxEdges)
             : IdentityVAnchorEncodeInputs._encodeInputs16(_publicInputs, _auxPublicInputs, maxEdges);
-
 
         require(SemaphoreContract.verifyRoots(groupId, _publicInputs.extensionRoots), "Invalid identity roots");
         require(isValidRoots(roots), "Invalid vanchor roots");

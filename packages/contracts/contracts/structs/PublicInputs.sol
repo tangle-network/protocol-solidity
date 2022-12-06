@@ -26,10 +26,10 @@ struct CommonExtData {
 struct PublicInputs {
     bytes roots;
     bytes extensionRoots;
-    bytes32[] inputNullifiers;
-    bytes32[2] outputCommitments;
+    uint256[] inputNullifiers;
+    uint256[2] outputCommitments;
     uint256 publicAmount;
-    bytes32 extDataHash;
+    uint256 extDataHash;
 }
 
 /**

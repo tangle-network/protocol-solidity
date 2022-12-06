@@ -39,11 +39,11 @@ interface ILinkableAnchor {
         @notice The function is used to update the edge data of a LinkableAnchor
         @param root The merkle root of the linked anchor on the  `sourceChainID`'s chain
         @param latestLeafIndex The index of the leaf updating the merkle tree with root `root`
-        @param target The target resource ID of the linked anchor
+        @param srcResourceID The source resource ID of the linked anchor where the update originates from
      */
     function updateEdge(
-        bytes32 root,
+        uint256 root,
         uint32 latestLeafIndex,
-        bytes32 target
+        bytes32 srcResourceID
     ) external payable;
 }

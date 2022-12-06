@@ -6,12 +6,12 @@
 pragma solidity ^0.8.0;
 
 import "../structs/Edge.sol";
-import "../trees/MerkleTree.sol";
+import "../hashers/IHasher.sol";
 import "../utils/ChainIdWithType.sol";
 import "../utils/ProposalNonceTracker.sol";
 import "../interfaces/anchors/ILinkableAnchor.sol";
+import "../interfaces/IMerkleSystem.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "hardhat/console.sol";
 
 /**
     @title The LinkableAnchor contract
@@ -39,11 +39,18 @@ import "hardhat/console.sol";
     An example usage of this system is the:
     - VAnchor.sol - for variable sized private bridging of assets
  */
-abstract contract LinkableAnchor is ILinkableAnchor, MerkleTree, ReentrancyGuard, ChainIdWithType, ProposalNonceTracker {
+abstract contract LinkableAnchor is
+    ILinkableAnchor,
+    MerkleSystem,
+    ReentrancyGuard,
+    ChainIdWithType,
+    ProposalNonceTracker
+{
     address public handler;
 
     // The maximum number of edges this tree can support for zero-knowledge linkability.
     uint8 public immutable maxEdges;
+    uint32 public immutable outerLevels;
 
     // Maps sourceChainID to the index in the edge list
     mapping(uint256 => uint256) public edgeIndex;
@@ -51,28 +58,27 @@ abstract contract LinkableAnchor is ILinkableAnchor, MerkleTree, ReentrancyGuard
     Edge[] public edgeList;
 
     // Map to store chainID => (rootIndex => root) to track neighbor histories
-    mapping(uint256 => mapping(uint32 => bytes32)) public neighborRoots;
+    mapping(uint256 => mapping(uint32 => uint256)) public neighborRoots;
     // Map to store the current historical root index for a chainID
     mapping(uint256 => uint32) public currentNeighborRootIndex;
 
     // Edge linking events
-    event EdgeAddition(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
-    event EdgeUpdate(uint256 chainID, uint256 latestLeafIndex, bytes32 merkleRoot);
+    event EdgeAddition(uint256 chainID, uint256 latestLeafIndex, uint256 merkleRoot);
+    event EdgeUpdate(uint256 chainID, uint256 latestLeafIndex, uint256 merkleRoot);
 
     /**
         @notice The LinkableAnchor constructor
         @param _handler The address of the `AnchorHandler` contract
-        @param _hasher The address of hash contract
-        @param _merkleTreeHeight The height of deposits' Merkle Tree
+        @param _outerTreeHeight The height of outer-most merkle tree
         @param _maxEdges The maximum # of edges this linkable tree connects to
     */
     constructor(
         address _handler,
-        IHasher _hasher,
-        uint32 _merkleTreeHeight,
+        uint32 _outerTreeHeight,
         uint8 _maxEdges
-    ) MerkleTree(_merkleTreeHeight, _hasher) {
+    ) {
         handler = _handler;
+        outerLevels = _outerTreeHeight;
         maxEdges = _maxEdges;
     }
 
@@ -83,10 +89,10 @@ abstract contract LinkableAnchor is ILinkableAnchor, MerkleTree, ReentrancyGuard
         @param _srcResourceID The origin resource ID of the originating linked anchor update
      */
     function updateEdge(
-        bytes32 _root,
+        uint256 _root,
         uint32 _leafIndex,
         bytes32 _srcResourceID
-    ) override onlyHandler external payable nonReentrant {
+    ) override onlyHandler onlyInitialized external payable nonReentrant {
         uint64 _srcChainID = parseChainIdFromResourceId(_srcResourceID);
         if (this.hasEdge(_srcChainID)) {
             // Require increasing nonce
@@ -97,7 +103,7 @@ abstract contract LinkableAnchor is ILinkableAnchor, MerkleTree, ReentrancyGuard
             uint index = edgeIndex[_srcChainID];
             // update the edge in the edge list
             edgeList[index].latestLeafIndex = _leafIndex;
-            edgeList[index].root = _root;
+            edgeList[index].root = uint256(_root);
             // add to root histories
             uint32 neighborRootIndex = (currentNeighborRootIndex[_srcChainID] + 1) % ROOT_HISTORY_SIZE;
             currentNeighborRootIndex[_srcChainID] = neighborRootIndex;
@@ -110,7 +116,7 @@ abstract contract LinkableAnchor is ILinkableAnchor, MerkleTree, ReentrancyGuard
             uint index = edgeList.length;
             Edge memory edge = Edge({
                 chainID: _srcChainID,
-                root: _root,
+                root: uint256(_root),
                 latestLeafIndex: _leafIndex,
                 srcResourceID: _srcResourceID
             });
@@ -135,7 +141,7 @@ abstract contract LinkableAnchor is ILinkableAnchor, MerkleTree, ReentrancyGuard
             } else {
                 edges[i] = Edge({
                     // merkle tree height for zeros
-                    root: hasher.zeros(levels - 1),
+                    root: this.getZeroHash(outerLevels - 1),
                     chainID: 0,
                     latestLeafIndex: 0,
                     srcResourceID: 0x0
@@ -150,14 +156,14 @@ abstract contract LinkableAnchor is ILinkableAnchor, MerkleTree, ReentrancyGuard
         @notice Get the latest merkle roots of all neighbor edges
         @return bytes32[] An array of merkle roots
      */
-    function getLatestNeighborRoots() public view returns (bytes32[] memory) {
-        bytes32[] memory roots = new bytes32[](maxEdges);
+    function getLatestNeighborRoots() public view returns (uint256[] memory) {
+        uint256[] memory roots = new uint256[](maxEdges);
         for (uint256 i = 0; i < maxEdges; i++) {
             if (edgeList.length >= i + 1) {
                 roots[i] = edgeList[i].root;
             } else {
                 // merkle tree height for zeros
-                roots[i] = hasher.zeros(levels - 1);
+                roots[i] = this.getZeroHash(outerLevels - 1);
             }
         }
 
@@ -169,7 +175,7 @@ abstract contract LinkableAnchor is ILinkableAnchor, MerkleTree, ReentrancyGuard
         @param _neighborChainID The chainID of the neighbor's edge
         @param _root The root to check
      */
-    function isKnownNeighborRoot(uint256 _neighborChainID, bytes32 _root) public view returns (bool) {
+    function isKnownNeighborRoot(uint256 _neighborChainID, uint256 _root) public view returns (bool) {
         if (_root == 0) {
             return false;
         }
@@ -191,10 +197,10 @@ abstract contract LinkableAnchor is ILinkableAnchor, MerkleTree, ReentrancyGuard
         @notice Checks validity of an array of merkle roots in the history.
         The first root should always be the root of `this` underlying merkle
         tree and the remaining roots are of the neighboring roots in `edges.
-        @param _roots An array of bytes32 merkle roots to be checked against the history.
+        @param _roots An array of uint256 merkle roots to be checked against the history.
      */
-    function isValidRoots(bytes32[] memory _roots) public view returns (bool) {
-        require(isKnownRoot(_roots[0]), "Cannot find your merkle root");
+    function isValidRoots(uint256[] memory _roots) public view returns (bool) {
+        require(this.isKnownRoot(_roots[0]), "Cannot find your merkle root");
         require(_roots.length == maxEdges + 1, "Incorrect root array length");
         uint rootIndex = 1;
         for (uint i = 0; i < edgeList.length; i++) {
@@ -203,7 +209,7 @@ abstract contract LinkableAnchor is ILinkableAnchor, MerkleTree, ReentrancyGuard
             rootIndex++;
         }
         while (rootIndex != maxEdges + 1) {
-            require(_roots[rootIndex] == hasher.zeros(levels - 1), "non-existent edge is not set to the default root");
+            require(_roots[rootIndex] == this.getZeroHash(outerLevels - 1), "non-existent edge is not set to the default root");
             rootIndex++;
         }
         return true;

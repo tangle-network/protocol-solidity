@@ -6,15 +6,8 @@
 pragma solidity ^0.8.0;
 
 import "./VAnchorBase.sol";
-import "../interfaces/tokens/ITokenWrapper.sol";
-import "../interfaces/tokens/IMintableERC20.sol";
-import "../interfaces/verifiers/ISetVerifier.sol";
-import "../libs/VAnchorEncodeInputs.sol";
-import "../verifiers/TxProofVerifier.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "hardhat/console.sol";
+import "../../interfaces/verifiers/ISetVerifier.sol";
+import "../../verifiers/TxProofVerifier.sol";
 
 /**
 	@title ZK VAnchor Base
@@ -31,7 +24,6 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 		@notice The VAnchor constructor
 		@param _verifier The address of SNARK verifier for this contract
 		@param _levels The height/# of levels of underlying Merkle Tree
-		@param _hasher The address of hash contract
 		@param _handler The address of AnchorHandler for this contract
 		@param _maxEdges The maximum number of edges in the LinkableAnchor + Verifier supports.
 		@notice The `_maxEdges` is zero-knowledge circuit dependent, meaning the
@@ -41,11 +33,10 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 	constructor(
 		IAnchorVerifier _verifier,
 		uint32 _levels,
-		IHasher _hasher,
 		address _handler,
 		uint8 _maxEdges
 	)
-		VAnchorBase (_levels, _hasher, _handler, _maxEdges)
+		VAnchorBase(_levels, _handler, _maxEdges)
 		TxProofVerifier(_verifier)
 	{}
 
@@ -260,29 +251,24 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 		@param _proof The zkSNARK proof
 		@param _auxPublicInputs The extension public inputs for the zkSNARK proof
 		@param _publicInputs The public inputs for the zkSNARK proof
+		@param _encryptions The encrypted outputs
 	 */
 	function _executeVerification(
 		bytes memory _proof,
 		bytes memory _auxPublicInputs,
 		PublicInputs memory _publicInputs,
-		Encryptions memory
+		Encryptions memory _encryptions
 	) internal virtual;
 
 	/**
-		@notice Inserts the output commitments into the underlying merkle tree
+		@notice Inserts the output commitments into the underlying merkle system
 		@param _publicInputs The public inputs for the proof
+		@param _encryptions The encryptions of the output commitments
 	 */
 	function _executeInsertions(
 		PublicInputs memory _publicInputs,
 		Encryptions memory _encryptions
-	) internal {
-		insertTwo(_publicInputs.outputCommitments[0], _publicInputs.outputCommitments[1]);
-		emit NewCommitment(_publicInputs.outputCommitments[0], nextIndex - 2, _encryptions.encryptedOutput1);
-		emit NewCommitment(_publicInputs.outputCommitments[1], nextIndex - 1, _encryptions.encryptedOutput2);
-		for (uint256 i = 0; i < _publicInputs.inputNullifiers.length; i++) {
-			emit NewNullifier(_publicInputs.inputNullifiers[i]);
-		}
-	}
+	) internal virtual;
 
 	/**
 		@notice Process the withdrawal by sending/minting the wrapped tokens to/for the recipient

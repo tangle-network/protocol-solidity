@@ -46,16 +46,16 @@ library MASPVAnchorEncodeInputs {
         PublicInputs memory _args,
         bytes memory _auxPublicInputs,
         uint8 _maxEdges
-    ) public view returns (bytes memory, bytes32[] memory) {
+    ) public view returns (bytes memory, uint256[] memory) {
         uint256 _chainId = getChainIdType();
-        bytes32[] memory result = new bytes32[](_maxEdges + 1);
+        uint256[] memory result = new uint256[](_maxEdges + 1);
         bytes memory encodedInput;
 
         AuxPublicInputs memory _aux = abi.decode(_auxPublicInputs, (AuxPublicInputs));
 
         if (_maxEdges == 1) {
             uint256[10] memory inputs;
-            bytes32[2] memory roots = abi.decode(_args.roots, (bytes32[2]));
+            uint256[2] memory roots = abi.decode(_args.roots, (uint256[2]));
             // assign roots
             result[0] = roots[0];
             result[1] = roots[1];
@@ -73,7 +73,7 @@ library MASPVAnchorEncodeInputs {
             encodedInput = abi.encodePacked(inputs);
         } else if (_maxEdges == 7) {
             uint256[16] memory inputs;
-            bytes32[8] memory roots = abi.decode(_args.roots, (bytes32[8]));
+            uint256[8] memory roots = abi.decode(_args.roots, (uint256[8]));
             // assign roots
             result[0] = roots[0];
             result[1] = roots[1];
@@ -119,16 +119,16 @@ library MASPVAnchorEncodeInputs {
         PublicInputs memory _args,
         bytes memory _auxPublicInputs,
         uint8 _maxEdges
-    ) public view returns (bytes memory, bytes32[] memory) {
+    ) public view returns (bytes memory, uint256[] memory) {
         uint256 _chainId = getChainIdType();
-        bytes32[] memory result = new bytes32[](_maxEdges + 1);
+        uint256[] memory result = new uint256[](_maxEdges + 1);
         bytes memory encodedInput;
 
         AuxPublicInputs memory _aux = abi.decode(_auxPublicInputs, (AuxPublicInputs));
 
         if (_maxEdges == 1) {
             uint256[24] memory inputs;
-            bytes32[2] memory roots = abi.decode(_args.roots, (bytes32[2]));
+            uint256[2] memory roots = abi.decode(_args.roots, (uint256[2]));
             // assign roots
             result[0] = roots[0];
             result[1] = roots[1];
@@ -161,7 +161,7 @@ library MASPVAnchorEncodeInputs {
             encodedInput = abi.encodePacked(inputs);
         } else if (_maxEdges == 7) {
             uint256[30] memory inputs;
-            bytes32[8] memory roots = abi.decode(_args.roots, (bytes32[8]));
+            uint256[8] memory roots = abi.decode(_args.roots, (uint256[8]));
             // assign roots
             result[0] = roots[0];
             result[1] = roots[1];
