@@ -148,66 +148,14 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 	}
 
 	/**
-		@notice Wraps a token for the `msg.sender`
-		@param _fromTokenAddress The address of the token to wrap from
-		@param _toTokenAddress The address of the token to wrap into
-		@param _extAmount The external amount for the transaction
+		@notice Inserts the output commitments into the underlying merkle system
+		@param _publicInputs The public inputs for the proof
+		@param _encryptions The encryptions of the output commitments
 	 */
-	function _executeWrapping(
-		address _fromTokenAddress,
-		address _toTokenAddress,
-		uint256 _extAmount
-	) payable public returns (uint256) {
-		// Before executing the wrapping, determine the amount which needs to be sent to the tokenWrapper
-		uint256 wrapAmount = ITokenWrapper(_toTokenAddress).getAmountToWrap(_extAmount);
-
-		// If the address is zero, this is meant to wrap native tokens
-		if (_fromTokenAddress == address(0)) {
-			require(msg.value == wrapAmount);
-			// If the wrapping is native, ensure the amount sent to the tokenWrapper is 0
-			ITokenWrapper(_toTokenAddress).wrapForAndSendTo{value: msg.value}(
-					msg.sender,
-					_fromTokenAddress,
-					0,
-					address(this)
-			);
-		} else {
-			// wrap into the token and send directly to this contract
-			ITokenWrapper(_toTokenAddress).wrapForAndSendTo{value: msg.value}(
-					msg.sender,
-					_fromTokenAddress,
-					wrapAmount,
-					address(this)
-			);
-		}
-
-		return wrapAmount;
-	}
-
-	/**
-		@notice Unwraps into a valid token for the `msg.sender`
-		@param _fromTokenAddress The address of the token to unwrap from
-		@param _toTokenAddress The address of the token to unwrap into
-		@param _recipient The address of the recipient for the unwrapped assets
-		@param _minusExtAmount Negative external amount for the transaction
-	 */
-	function _withdrawAndUnwrap(
-		address _fromTokenAddress,
-		address _toTokenAddress,
-		address _recipient,
-		uint256 _minusExtAmount
-	) public payable nonReentrant {
-		// We first withdraw the assets and send them to `this` contract address.
-		// This ensure that when we unwrap the assets, `this` contract has the
-		// assets to unwrap into.
-		_processWithdraw(_fromTokenAddress, payable(address(this)), _minusExtAmount);
-
-		ITokenWrapper(_fromTokenAddress).unwrapAndSendTo(
-			_toTokenAddress,
-			_minusExtAmount,
-			_recipient
-		);
-	}
+	function _executeInsertions(
+		PublicInputs memory _publicInputs,
+		Encryptions memory _encryptions
+	) internal virtual;
 
 	/**
 		@notice Checks whether the transaction is valid
@@ -259,61 +207,6 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 		PublicInputs memory _publicInputs,
 		Encryptions memory _encryptions
 	) internal virtual;
-
-	/**
-		@notice Inserts the output commitments into the underlying merkle system
-		@param _publicInputs The public inputs for the proof
-		@param _encryptions The encryptions of the output commitments
-	 */
-	function _executeInsertions(
-		PublicInputs memory _publicInputs,
-		Encryptions memory _encryptions
-	) internal virtual;
-
-	/**
-		@notice Process the withdrawal by sending/minting the wrapped tokens to/for the recipient
-		@param _token The token to withdraw
-		@param _recipient The recipient of the tokens
-		@param _minusExtAmount The amount of tokens to withdraw. Since
-		withdrawal ext amount is negative we apply a minus sign once more.
-	 */
-	function _processWithdraw(
-		address _token,
-		address _recipient,
-		uint256 _minusExtAmount
-	) internal override {
-		uint balance = IERC20(_token).balanceOf(address(this));
-		if (balance >= _minusExtAmount) {
-			// transfer tokens when balance exists
-			IERC20(_token).safeTransfer(_recipient, _minusExtAmount);
-		} else {
-			// mint tokens when not enough balance exists
-			IMintableERC20(_token).mint(_recipient, _minusExtAmount);
-		}
-	}
-
-	/**
-		@notice Process and pay the relayer their fee. Mint the fee if contract has no balance.
-		@param _token The token to pay the fee in
-		@param _relayer The relayer of the transaction
-		@param _fee The fee to pay
-	 */
-	function _processFee(
-		address _token,
-		address _relayer,
-		uint256 _fee
-	) internal override {
-		uint balance = IERC20(_token).balanceOf(address(this));
-		if (_fee > 0) {
-			if (balance >= _fee) {
-				// transfer tokens when balance exists
-				IERC20(_token).safeTransfer(_relayer, _fee);
-			}
-			else {
-				IMintableERC20(_token).mint(_relayer, _fee);
-			}
-		}
-	}
 
 	function _genExtDataHash(
 		bytes memory _auxPublicInputs,

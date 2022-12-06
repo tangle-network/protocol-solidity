@@ -18,7 +18,7 @@ const Token = artifacts.require('ERC20Mock');
 
 // This test does NOT include all getter methods, just
 // getters that should work with only the constructor called
-contract('LinkableAnchor - [update edges]', async (accounts) => {
+contract.only('LinkableAnchor - [update edges]', async (accounts) => {
   let AnchorInstance;
   let hasher;
   let v2, v3, v4, v5, v6;
@@ -51,7 +51,7 @@ contract('LinkableAnchor - [update edges]', async (accounts) => {
       merkleTreeHeight,
       MAX_EDGES
     );
-
+    await AnchorInstance.initialize();
     setHandler = (handler, sender, proposalNonce) =>
       AnchorInstance.setHandler(handler, proposalNonce + 1, {
         from: sender,

@@ -1,8 +1,7 @@
 import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
 import {
-  VAnchor as VAnchorContract,
-  VAnchor__factory,
-  ChainalysisVAnchor as ChainalysisVAnchorContract,
+  VAnchorTree as VAnchorTreeContract,
+  VAnchorTree__factory,
   VAnchorEncodeInputs__factory,
   TokenWrapper__factory,
 } from '@webb-tools/contracts';
@@ -26,12 +25,11 @@ import {
   LeafIdentifier,
 } from '@webb-tools/sdk-core';
 import {
-  IAnchor,
+  IVAnchor,
   IVariableAnchorExtData,
   IVariableAnchorPublicInputs,
 } from '@webb-tools/interfaces';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents, ZERO_BYTES32 } from '@webb-tools/utils';
-import { assert } from 'chai';
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 function checkNativeAddress(tokenAddress: string): boolean {
@@ -47,9 +45,9 @@ export var proofTimeBenchmark = [];
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
-export class VAnchor implements IAnchor {
+export class VAnchor implements IVAnchor {
   signer: ethers.Signer;
-  contract: VAnchorContract | ChainalysisVAnchorContract;
+  contract: VAnchorTreeContract;
   tree: MerkleTree;
   // hex string of the connected root
   maxEdges: number;
@@ -64,7 +62,7 @@ export class VAnchor implements IAnchor {
   provingManager: CircomProvingManager;
 
   constructor(
-    contract: VAnchorContract | ChainalysisVAnchorContract,
+    contract: VAnchorTreeContract,
     signer: ethers.Signer,
     treeHeight: number,
     maxEdges: number,
@@ -94,12 +92,13 @@ export class VAnchor implements IAnchor {
     maxEdges: number,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents,
-    signer: ethers.Signer
+    signer: ethers.Signer,
   ) {
     const encodeLibraryFactory = new VAnchorEncodeInputs__factory(signer);
     const encodeLibrary = await encodeLibraryFactory.deploy();
     await encodeLibrary.deployed();
-    const factory = new VAnchor__factory(
+
+    const factory = new VAnchorTree__factory(
       { ['contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs']: encodeLibrary.address },
       signer
     );
@@ -115,6 +114,11 @@ export class VAnchor implements IAnchor {
     );
     createdVAnchor.latestSyncedBlock = vAnchor.deployTransaction.blockNumber!;
     createdVAnchor.token = token;
+    const tx = await createdVAnchor.contract.initialize(
+      BigNumber.from('1'),
+      BigNumber.from(2).pow(256).sub(1)
+    );
+    await tx.wait();
     return createdVAnchor;
   }
 
@@ -126,7 +130,7 @@ export class VAnchor implements IAnchor {
     largeCircuitZkComponents: ZkComponents,
     signer: ethers.Signer
   ) {
-    const anchor = VAnchor__factory.connect(address, signer);
+    const anchor = VAnchorTree__factory.connect(address, signer);
     const maxEdges = await anchor.maxEdges();
     const treeHeight = await anchor.levels();
     const createdAnchor = new VAnchor(
@@ -330,7 +334,7 @@ export class VAnchor implements IAnchor {
       return rootData.root;
     });
     let thisRoot = await this.contract.getLastRoot();
-    return [thisRoot, ...neighborRootInfos];
+    return [thisRoot.toString(), ...neighborRootInfos.map((bignum) => bignum.toString())];
   }
 
   public async getClassAndContractRoots() {

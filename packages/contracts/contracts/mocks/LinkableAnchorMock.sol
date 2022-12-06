@@ -25,6 +25,10 @@ contract LinkableAnchorMock is MerkleTree, LinkableAnchor, ISetVerifier {
         return;
     }
 
+    function initialize() external onlyUninitialized {
+        super._initialize();
+    }
+
     function setHandler(
         address _handler,
         uint32 _nonce

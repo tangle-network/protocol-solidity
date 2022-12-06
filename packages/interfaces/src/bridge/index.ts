@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { IAnchor } from '..';
+import { IVAnchor } from '..';
 import { IBridgeSide } from '../IBridgeSide';
 
 // Deployer config matches the chainId to the signer for that chain
@@ -43,7 +43,7 @@ export type BridgeConfig = {
 
   // The addresses of the anchors for the FungibleTokenWrapper
   // {anchorIdentifier} => anchorAddress
-  anchors: Map<string, IAnchor>;
+  anchors: Map<string, IVAnchor>;
 
   // The addresses of the Bridge contracts (bridgeSides) to interact with
   bridgeSides: Map<number, IBridgeSide>;

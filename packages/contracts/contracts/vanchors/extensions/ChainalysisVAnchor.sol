@@ -5,7 +5,7 @@
 
 pragma solidity ^0.8.0;
 
-import "../base/VAnchor.sol";
+import "../instances/VAnchorTree.sol";
 import "../../utils/SanctionFilter.sol";
 
 /**
@@ -13,18 +13,19 @@ import "../../utils/SanctionFilter.sol";
 	@author Webb Technologies
 	@notice The main addition here is a filter for sanctioned addresses on transactions.
  */
-abstract contract ChainalysisVAnchor is VAnchor, SanctionFilter {
+contract ChainalysisVAnchor is VAnchorTree, SanctionFilter {
 	using SafeERC20 for IERC20;
 	using SafeMath for uint256;
 	
 	constructor(
 		IAnchorVerifier _verifier,
-		uint32 _levels,
+		uint32 _merkleTreeLevels,
+		IHasher _hasher,
 		address _handler,
 		address _token,
 		uint8 _maxEdges
 	)
-		VAnchor(_verifier, _levels, _handler, _token, _maxEdges)
+		VAnchorTree(_verifier, _merkleTreeLevels, _hasher, _handler, _token, _maxEdges)
 	{}
 
 	/// @inheritdoc ZKVAnchorBase

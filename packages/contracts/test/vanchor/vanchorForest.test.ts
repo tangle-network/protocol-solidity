@@ -338,13 +338,14 @@ describe('VAnchorForest for 2 max edges', () => {
       await anchor.transact(
         [aliceDepositUtxo],
         [aliceRefreshUtxo],
-        {
-          [chainID.toString()]: anchorLeaves,
-        },
         0,
         0,
         '0',
-        '0'
+        '0',
+        '',
+        {
+          [chainID.toString()]: anchorLeaves,
+        },
       );
     });
 
@@ -1261,13 +1262,13 @@ describe('VAnchorForest for 2 max edges', () => {
       });
       //create a deposit on the anchor already setup
       await wrappedAnchor.transactWrap(
-        token.address,
         [],
         [aliceDepositUtxo],
         '0',
         '0',
         '0',
         '0',
+        token.address,
         {}
       );
       const balTokenAfterDepositSender = await token.balanceOf(sender.address);
@@ -1348,13 +1349,13 @@ describe('VAnchorForest for 2 max edges', () => {
         });
         // create a deposit on the anchor already setup
         await wrappedAnchor.transactWrap(
-          token.address,
           [],
           [aliceDepositUtxo],
           '0',
           '0',
           '0',
           '0',
+          token.address,
           {}
         );
       }
@@ -1434,7 +1435,7 @@ describe('VAnchorForest for 2 max edges', () => {
         keypair,
       });
       //create a deposit on the anchor already setup
-      await wrappedVAnchor.transactWrap(token.address, [], [aliceDepositUtxo], 0, 0, '0', '0', {});
+      await wrappedVAnchor.transactWrap([], [aliceDepositUtxo], 0, 0, '0', '0', token.address, {});
 
       let anchorLeaves = wrappedVAnchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
@@ -1458,13 +1459,13 @@ describe('VAnchorForest for 2 max edges', () => {
       });
 
       await wrappedVAnchor.transactWrap(
-        token.address,
         [aliceDepositUtxo],
         [aliceChangeUtxo],
         0,
         0,
         sender.address,
         '0',
+        token.address,
         {
           [chainID.toString()]: anchorLeaves,
         }
@@ -1545,7 +1546,7 @@ describe('VAnchorForest for 2 max edges', () => {
       const balUnwrappedTokenBeforeDepositSender = await token.balanceOf(sender.address);
       const balUnwrappedTokenBeforeDepositWrapper = await token.balanceOf(wrappedToken.address);
 
-      await wrappedVAnchor.transactWrap(token.address, [], [aliceDepositUtxo], 0, 0, '0', '0', {});
+      await wrappedVAnchor.transact([], [aliceDepositUtxo], 0, 0, '0', '0', token.address, {});
 
       // Limitations on UTXO index readonly value. create a new UTXO with the proper index.
       const aliceDepositIndex = wrappedVAnchor.tree.getIndexByElement(aliceDepositUtxo.commitment);
@@ -1589,13 +1590,13 @@ describe('VAnchorForest for 2 max edges', () => {
       });
 
       await wrappedVAnchor.transactWrap(
-        token.address,
         [aliceDepositUtxo],
         [aliceChangeUtxo],
         0,
         0,
         sender.address,
         '0',
+        token.address,
         {
           [chainID.toString()]: anchorLeaves,
         }
@@ -1627,13 +1628,13 @@ describe('VAnchorForest for 2 max edges', () => {
 
       await TruffleAssert.passes(
         wrappedVAnchor.transactWrap(
-          token.address,
           [aliceChangeUtxo],
           [],
           0,
           0,
           sender.address,
           '0',
+          token.address,
           {
             [chainID.toString()]: anchorLeaves,
           }

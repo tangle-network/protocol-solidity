@@ -14,7 +14,7 @@ import {
   MerkleProof,
 } from '@webb-tools/sdk-core';
 import { u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
-import { IAnchor } from '@webb-tools/interfaces';
+import { IVAnchor } from '@webb-tools/interfaces';
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 function checkNativeAddress(tokenAddress: string): boolean {
@@ -34,7 +34,7 @@ export var proofTimeBenchmark = [];
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
-export class OpenVAnchor implements IAnchor {
+export class OpenVAnchor implements IVAnchor {
   signer: ethers.Signer;
   contract: OpenVAnchorContract;
   tree: MerkleTree;
@@ -65,10 +65,15 @@ export class OpenVAnchor implements IAnchor {
     signer: ethers.Signer
   ) {
     const factory = new OpenVAnchor__factory(signer);
-    const openVAnchor = await factory.deploy(levels, hasher, handler, token, {});
+    const openVAnchor = await factory.deploy(hasher, levels, handler, token, {});
     await openVAnchor.deployed();
     const createdVAnchor = new OpenVAnchor(openVAnchor, signer, BigNumber.from(levels).toNumber());
     createdVAnchor.token = token;
+    const tx = await createdVAnchor.contract.initialize(
+      BigNumber.from('1'),
+      BigNumber.from(2).pow(256).sub(1)
+    );
+    await tx.wait();
     return createdVAnchor;
   }
 
@@ -79,7 +84,7 @@ export class OpenVAnchor implements IAnchor {
     signer: ethers.Signer
   ) {
     const anchor = OpenVAnchor__factory.connect(address, signer);
-    const treeHeight = await anchor.levels();
+    const treeHeight = await anchor.outerLevels();
     const createdAnchor = new OpenVAnchor(anchor, signer, treeHeight);
     createdAnchor.token = await anchor.token();
     return createdAnchor;
@@ -237,7 +242,7 @@ export class OpenVAnchor implements IAnchor {
       return rootData.root;
     });
     let thisRoot = await this.contract.getLastRoot();
-    return [thisRoot, ...neighborRootInfos];
+    return [thisRoot.toString(), ...neighborRootInfos.map((bignum) => bignum.toString())];
   }
 
   public async getClassAndContractRoots() {

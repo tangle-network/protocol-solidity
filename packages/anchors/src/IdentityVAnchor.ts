@@ -26,11 +26,9 @@ import {
   CircomUtxo,
 } from '@webb-tools/sdk-core';
 import {
-  IAnchorDeposit,
-  IAnchor,
+  IVAnchor,
   IIdentityVariableAnchorExtData,
   IIdentityVariableAnchorPublicInputs,
-  IAnchorDepositInfo,
 } from '@webb-tools/interfaces';
 import {
   hexToU8a,
@@ -84,7 +82,7 @@ export var proofTimeBenchmark = [];
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
-export class IdentityVAnchor implements IAnchor {
+export class IdentityVAnchor implements IVAnchor {
   signer: ethers.Signer;
   contract: IdentityVAnchorContract;
   semaphore: Semaphore;
@@ -124,59 +122,7 @@ export class IdentityVAnchor implements IAnchor {
     this.smallCircuitZkComponents = smallCircuitZkComponents;
     this.largeCircuitZkComponents = largeCircuitZkComponents;
   }
-  deposit(destinationChainId: number): Promise<IAnchorDeposit> {
-    throw new Error('Method not implemented.');
-  }
-  setupWithdraw(
-    deposit: IAnchorDepositInfo,
-    index: number,
-    recipient: string,
-    relayer: string,
-    fee: bigint,
-    refreshCommitment: string | number
-  ) {
-    throw new Error('Method not implemented.');
-  }
-  withdraw(
-    deposit: IAnchorDepositInfo,
-    index: number,
-    recipient: string,
-    relayer: string,
-    fee: bigint,
-    refreshCommitment: string | number
-  ): Promise<ethers.Event> {
-    throw new Error('Method not implemented.');
-  }
-  wrapAndDeposit(
-    tokenAddress: string,
-    wrappingFee: number,
-    destinationChainId?: number
-  ): Promise<IAnchorDeposit> {
-    throw new Error('Method not implemented.');
-  }
-  bridgedWithdrawAndUnwrap(
-    deposit: IAnchorDeposit,
-    merkleProof: any,
-    recipient: string,
-    relayer: string,
-    fee: string,
-    refund: string,
-    refreshCommitment: string,
-    tokenAddress: string
-  ): Promise<ethers.Event> {
-    throw new Error('Method not implemented.');
-  }
-  bridgedWithdraw(
-    deposit: IAnchorDeposit,
-    merkleProof: any,
-    recipient: string,
-    relayer: string,
-    fee: string,
-    refund: string,
-    refreshCommitment: string
-  ): Promise<ethers.Event> {
-    throw new Error('Method not implemented.');
-  }
+
   getAddress(): string {
     return this.contract.address;
   }
@@ -208,8 +154,8 @@ export class IdentityVAnchor implements IAnchor {
     const vAnchor = await factory.deploy(
       semaphore.contract.address,
       verifier,
-      levels,
       hasher,
+      levels,
       handler,
       token,
       maxEdges,
@@ -228,6 +174,11 @@ export class IdentityVAnchor implements IAnchor {
     );
     createdIdentityVAnchor.latestSyncedBlock = vAnchor.deployTransaction.blockNumber!;
     createdIdentityVAnchor.token = token;
+    const tx = await createdIdentityVAnchor.contract.initialize(
+      BigNumber.from('1'),
+      BigNumber.from(2).pow(256).sub(1)
+    );
+    await tx.wait();
     return createdIdentityVAnchor;
   }
 
@@ -242,7 +193,7 @@ export class IdentityVAnchor implements IAnchor {
   ) {
     const anchor = IdentityVAnchor__factory.connect(address, signer);
     const maxEdges = await anchor.maxEdges();
-    const treeHeight = await anchor.levels();
+    const treeHeight = await anchor.outerLevels();
     const groupId = await anchor.groupId();
     const createdAnchor = new IdentityVAnchor(
       anchor,
@@ -473,7 +424,7 @@ export class IdentityVAnchor implements IAnchor {
       return rootData.root;
     });
     let thisRoot = await this.contract.getLastRoot();
-    return [thisRoot, ...neighborRootInfos];
+    return [thisRoot.toString(), ...neighborRootInfos.map((bignum) => bignum.toString())];
   }
 
   public async getClassAndContractRoots() {

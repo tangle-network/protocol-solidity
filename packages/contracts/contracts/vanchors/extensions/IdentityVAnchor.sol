@@ -5,7 +5,7 @@
 
 pragma solidity ^0.8.0;
 
-import "../base/VAnchor.sol";
+import "../instances/VAnchorTree.sol";
 import "../../libs/IdentityVAnchorEncodeInputs.sol";
 import "../../interfaces/anchors/ISemaphoreGroups.sol";
 
@@ -49,7 +49,7 @@ import "../../interfaces/anchors/ISemaphoreGroups.sol";
 	transaction is taking place. The chain id opcode is leveraged to prevent any
 	tampering of this data.
  */
-abstract contract IdentityVAnchor is VAnchor {
+contract IdentityVAnchor is VAnchorTree {
 	using SafeERC20 for IERC20;
 	using SafeMath for uint256;
 
@@ -60,6 +60,7 @@ abstract contract IdentityVAnchor is VAnchor {
 		@notice The Identity VAnchor constructor
 		@param _semaphore The address of Semaphore contract
 		@param _verifier The address of SNARK verifier for this contract
+		@param _hasher The address of the hasher for this contract
 		@param _levels The height/# of levels of underlying Merkle Tree
 		@param _handler The address of AnchorHandler for this contract
 		@param _token The address of the token that is used to pay the deposit
@@ -71,13 +72,14 @@ abstract contract IdentityVAnchor is VAnchor {
 	constructor(
 		ISemaphoreGroups _semaphore,
 		IAnchorVerifier _verifier,
+		IHasher _hasher,
 		uint8 _levels,
 		address _handler,
 		address _token,
 		uint8 _maxEdges,
 		uint256 _groupId
 	)
-        VAnchor(_verifier, _levels, _handler, _token, _maxEdges)
+        VAnchorTree(_verifier, _levels, _hasher, _handler, _token, _maxEdges)
     {
         SemaphoreContract = _semaphore;
         groupId = _groupId;
