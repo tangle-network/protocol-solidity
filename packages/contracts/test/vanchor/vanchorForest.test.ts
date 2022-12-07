@@ -271,7 +271,7 @@ describe('VAnchorForest for 1 max edge', () => {
     });
   });
 
-  describe.only('#transact', () => {
+  describe('#transact', () => {
     it('should transact', async () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 1e7;
