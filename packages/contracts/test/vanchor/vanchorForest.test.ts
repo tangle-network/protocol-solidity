@@ -1277,8 +1277,6 @@ describe('VAnchorForest for 1 max edge', () => {
         throw new Error('!!!!!!!!!!!!!!!!!!!!!!!!!!Invalid proof');
       }
 
-      console.log('PROOF HAS BEEN VERIFIED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!', res);
-      // const proof = await this.provingManager.prove('vanchor', proofInput);
       const publicInputs = await anchor.generatePublicInputs(proof);
       const contractInput = {
         ...publicInputs,
@@ -1287,14 +1285,28 @@ describe('VAnchorForest for 1 max edge', () => {
 
       await TruffleAssert.reverts(
         anchor.contract.transact(
-          contractInput.proof,
-          ZERO_BYTES32,
-          extData,
-          contractInput,
-          {
-            encryptedOutput1: outputs[0].encrypt(),
-            encryptedOutput2: outputs[1].encrypt(),
-          },
+        publicInputs.proof,
+        ZERO_BYTES32,
+        {
+          recipient: extData.recipient,
+          extAmount: extData.extAmount,
+          relayer: extData.relayer,
+          fee: extData.fee,
+          refund: extData.refund,
+          token: extData.token,
+        },
+        {
+          roots: publicInputs.roots,
+          extensionRoots: '0x',
+          inputNullifiers: publicInputs.inputNullifiers,
+          outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
+          publicAmount: publicInputs.publicAmount,
+          extDataHash: publicInputs.extDataHash,
+        },
+        {
+          encryptedOutput1: extData.encryptedOutput1,
+          encryptedOutput2: extData.encryptedOutput2,
+        },
           { gasLimit: '0x5B8D80' }
         ),
         'non-existent edge is not set to the default root'
