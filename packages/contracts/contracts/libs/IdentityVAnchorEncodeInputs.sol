@@ -16,7 +16,9 @@ library IdentityVAnchorEncodeInputs {
 	 */
 	function getChainId() public view returns (uint) {
 		uint chainId;
-		assembly { chainId := chainid() }
+		assembly {
+			chainId := chainid()
+		}
 		return chainId;
 	}
 
@@ -45,14 +47,14 @@ library IdentityVAnchorEncodeInputs {
 	function _encodeInputs2(
 		PublicInputs memory _args,
 		bytes memory,
-        uint8 _maxEdges
+		uint8 _maxEdges
 	) public view returns (bytes memory, uint256[] memory) {
 		uint256 _chainId = getChainIdType();
 		uint256[] memory result = new uint256[](_maxEdges + 1);
 		bytes memory encodedInput;
 
 		if (_maxEdges == 1) {
-            uint256[11] memory inputs;
+			uint256[11] memory inputs;
 			uint256[2] memory identityRoots = abi.decode(_args.extensionRoots, (uint256[2]));
 			uint256[2] memory vanchorRoots = abi.decode(_args.roots, (uint256[2]));
 			// assign roots
@@ -109,8 +111,7 @@ library IdentityVAnchorEncodeInputs {
 			inputs[21] = uint256(vanchorRoots[6]);
 			inputs[22] = uint256(vanchorRoots[7]);
 			encodedInput = abi.encodePacked(inputs);
-		}
-		else {
+		} else {
 			require(false, "Invalid edges");
 		}
 
@@ -126,7 +127,7 @@ library IdentityVAnchorEncodeInputs {
 	function _encodeInputs16(
 		PublicInputs memory _args,
 		bytes memory,
-        uint8 _maxEdges
+		uint8 _maxEdges
 	) public view returns (bytes memory, uint256[] memory) {
 		uint256 _chainId = getChainIdType();
 		uint256[] memory result = new uint256[](_maxEdges + 1);
@@ -224,6 +225,6 @@ library IdentityVAnchorEncodeInputs {
 			require(false, "Invalid edges");
 		}
 
-			return (encodedInput, result);
+		return (encodedInput, result);
 	}
 }

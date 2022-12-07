@@ -13,8 +13,8 @@ pragma solidity ^0.8.0;
     @param srcResourceID The contract address or tree identifier of the LinkableTree being linked.
 */
 struct Edge {
-    uint256 chainID;
-    uint256 root;
-    uint256 latestLeafIndex;
-    bytes32 srcResourceID;
+	uint256 chainID;
+	uint256 root;
+	uint256 latestLeafIndex;
+	bytes32 srcResourceID;
 }

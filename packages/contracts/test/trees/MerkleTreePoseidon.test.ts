@@ -134,7 +134,10 @@ contract('MerkleTree w/ Poseidon hasher', (accounts) => {
       const { merkleRoot, pathElements, pathIndices } = await tree.path(0);
       await merkleTreeWithHistory.insert(toFixedHex(commitment), { from: sender });
       const rootFromContract = await merkleTreeWithHistory.getLastRoot();
-      assert.strictEqual(merkleRoot.toString(), BigNumber.from(rootFromContract.toString()).toString());
+      assert.strictEqual(
+        merkleRoot.toString(),
+        BigNumber.from(rootFromContract.toString()).toString()
+      );
 
       let curr = commitment;
       for (var i = 0; i < pathElements.length; i++) {

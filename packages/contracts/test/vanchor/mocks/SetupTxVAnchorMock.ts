@@ -13,7 +13,7 @@ import {
 } from '@webb-tools/sdk-core';
 import { IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
-import { VAnchor as VAnchorContract } from '../../../typechain';
+import { VAnchorTree as VAnchorContract } from '../../../typechain';
 
 export class SetupTxVAnchorMock extends VAnchor {
   private rootsForProof: BigNumber[];
@@ -107,7 +107,7 @@ export class SetupTxVAnchorMock extends VAnchor {
       inputs,
       outputs,
       proofInput.publicAmount,
-      proof.extDataHash,
+      proof.extDataHash
     );
 
     const extData: IVariableAnchorExtData = {

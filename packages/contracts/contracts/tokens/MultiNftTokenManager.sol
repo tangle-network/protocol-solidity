@@ -14,34 +14,34 @@ import "./MultiTokenManagerBase.sol";
     @author Webb Technologies.
  */
 contract MultiNftTokenManager is MultiTokenManagerBase {
-    using SafeMath for uint256;
+	using SafeMath for uint256;
 
-    function registerToken(
-        address,
-        string memory,
-        string memory,
-        bytes32,
-        uint256,
-        uint16,
-        bool
-    ) override public view onlyRegistry onlyInitialized returns (address) {
-        revert();
-    }
+	function registerToken(
+		address,
+		string memory,
+		string memory,
+		bytes32,
+		uint256,
+		uint16,
+		bool
+	) public view override onlyRegistry onlyInitialized returns (address) {
+		revert();
+	}
 
-    function registerNftToken(
-        address _handler,
-        string memory _uri,
-        bytes32 _salt
-    ) override external onlyRegistry onlyInitialized returns (address) {
-        NftTokenWrapper nftWrapper = new NftTokenWrapper{salt: _salt}(_uri);
+	function registerNftToken(
+		address _handler,
+		string memory _uri,
+		bytes32 _salt
+	) external override onlyRegistry onlyInitialized returns (address) {
+		NftTokenWrapper nftWrapper = new NftTokenWrapper{ salt: _salt }(_uri);
 
-        nftWrapper.initialize(_handler);
+		nftWrapper.initialize(_handler);
 
-        wrappedTokens.push(address(nftWrapper));
-        return address(nftWrapper);
-    }
+		wrappedTokens.push(address(nftWrapper));
+		return address(nftWrapper);
+	}
 
-    function isFungible() override public pure returns (bool) {
-        return false;
-    }
+	function isFungible() public pure override returns (bool) {
+		return false;
+	}
 }

@@ -146,7 +146,7 @@ describe('SignatureBridgeSide use', () => {
     const depositUtxo = await CircomUtxo.generateUtxo({
       curve: 'Bn254',
       backend: 'Circom',
-      amount: (BigNumber.from(1e7)).toString(),
+      amount: BigNumber.from(1e7).toString(),
       originChainId: chainID1.toString(),
       chainId: chainID1.toString(),
       keypair: new Keypair(),

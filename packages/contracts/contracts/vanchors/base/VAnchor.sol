@@ -55,9 +55,7 @@ abstract contract VAnchor is ZKVAnchorBase {
 		address _handler,
 		address _token,
 		uint8 _maxEdges
-	)
-		ZKVAnchorBase(_verifier, _levels, _handler, _maxEdges)
-	{
+	) ZKVAnchorBase(_verifier, _levels, _handler, _maxEdges) {
 		token = _token;
 	}
 
@@ -68,15 +66,8 @@ abstract contract VAnchor is ZKVAnchorBase {
 		CommonExtData memory _externalData,
 		PublicInputs memory _publicInputs,
 		Encryptions memory _encryptions
-	) override public payable virtual {
-		_transact(
-			token,
-			_proof,
-			_auxPublicInputs,
-			_externalData,
-			_publicInputs,
-			_encryptions
-		);
+	) public payable virtual override {
+		_transact(token, _proof, _auxPublicInputs, _externalData, _publicInputs, _encryptions);
 	}
 
 	/// @inheritdoc ZKVAnchorBase
@@ -85,13 +76,15 @@ abstract contract VAnchor is ZKVAnchorBase {
 		bytes memory _auxPublicInputs,
 		PublicInputs memory _publicInputs,
 		Encryptions memory
-	) override internal virtual {
-		require(_publicInputs.inputNullifiers.length == 2 || _publicInputs.inputNullifiers.length == 16, "Invalid number of inputs");
+	) internal virtual override {
+		require(
+			_publicInputs.inputNullifiers.length == 2 || _publicInputs.inputNullifiers.length == 16,
+			"Invalid number of inputs"
+		);
 		bool smallInputs = _publicInputs.inputNullifiers.length == 2;
 		(bytes memory encodedInput, uint256[] memory roots) = smallInputs
 			? VAnchorEncodeInputs._encodeInputs2(_publicInputs, _auxPublicInputs, maxEdges)
 			: VAnchorEncodeInputs._encodeInputs16(_publicInputs, _auxPublicInputs, maxEdges);
-
 
 		require(isValidRoots(roots), "Invalid vanchor roots");
 		require(verify(_proof, encodedInput, smallInputs, maxEdges), "Invalid transaction proof");
@@ -102,18 +95,21 @@ abstract contract VAnchor is ZKVAnchorBase {
 		bytes memory,
 		CommonExtData memory _externalData,
 		Encryptions memory _encryptions
-	) override internal virtual returns (bytes32) {
-		return keccak256(abi.encode(
-			ExtData(
-				_externalData.recipient,
-				_externalData.extAmount,
-				_externalData.relayer,
-				_externalData.fee,
-				_externalData.refund,
-				_externalData.token,
-				_encryptions.encryptedOutput1,
-				_encryptions.encryptedOutput2
-			)
-		));
+	) internal virtual override returns (bytes32) {
+		return
+			keccak256(
+				abi.encode(
+					ExtData(
+						_externalData.recipient,
+						_externalData.extAmount,
+						_externalData.relayer,
+						_externalData.fee,
+						_externalData.refund,
+						_externalData.token,
+						_encryptions.encryptedOutput1,
+						_encryptions.encryptedOutput2
+					)
+				)
+			);
 	}
 }

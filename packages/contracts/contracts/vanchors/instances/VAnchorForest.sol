@@ -41,14 +41,14 @@ contract VAnchorForest is VAnchor, MerkleForest {
 		uint8 _maxEdges
 	)
 		VAnchor(_verifier, _forestLevels, _handler, _token, _maxEdges)
-        MerkleForest(_forestLevels, _subtreeLevels, _hasher)
+		MerkleForest(_forestLevels, _subtreeLevels, _hasher)
 	{}
 
 	/// @inheritdoc ZKVAnchorBase
 	function _executeInsertions(
 		PublicInputs memory _publicInputs,
 		Encryptions memory _encryptions
-	) override internal {
+	) internal override {
 		uint beforeInsertSubtreeIdx = currSubtreeIndex;
 		insertTwo(_publicInputs.outputCommitments[0], _publicInputs.outputCommitments[1]);
 		uint afterInsertSubtreeIdx = currSubtreeIndex;
@@ -59,8 +59,18 @@ contract VAnchorForest is VAnchor, MerkleForest {
 				leafIndex = 2 ** subtreeLevels;
 			}
 		}
-		emit NewCommitment(_publicInputs.outputCommitments[0], afterInsertSubtreeIdx, leafIndex - 2, _encryptions.encryptedOutput1);
-		emit NewCommitment(_publicInputs.outputCommitments[1], afterInsertSubtreeIdx, leafIndex - 1, _encryptions.encryptedOutput2);
+		emit NewCommitment(
+			_publicInputs.outputCommitments[0],
+			afterInsertSubtreeIdx,
+			leafIndex - 2,
+			_encryptions.encryptedOutput1
+		);
+		emit NewCommitment(
+			_publicInputs.outputCommitments[1],
+			afterInsertSubtreeIdx,
+			leafIndex - 1,
+			_encryptions.encryptedOutput2
+		);
 		for (uint256 i = 0; i < _publicInputs.inputNullifiers.length; i++) {
 			emit NewNullifier(_publicInputs.inputNullifiers[i]);
 		}

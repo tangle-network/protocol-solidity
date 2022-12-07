@@ -23,8 +23,8 @@ abstract contract VAnchorBase is LinkableAnchor {
 	using SafeMath for uint256;
 	using SafeERC20 for IERC20;
 
-	int256 public constant MAX_EXT_AMOUNT = 2**248;
-	uint256 public constant MAX_FEE = 2**248;
+	int256 public constant MAX_EXT_AMOUNT = 2 ** 248;
+	uint256 public constant MAX_FEE = 2 ** 248;
 
 	uint256 public lastBalance;
 	uint256 public minimalWithdrawalAmount;
@@ -56,15 +56,15 @@ abstract contract VAnchorBase is LinkableAnchor {
 		uint32 _levels,
 		address _handler,
 		uint8 _maxEdges
-	)
-		LinkableAnchor(_handler, _levels, _maxEdges)
-	{}
+	) LinkableAnchor(_handler, _levels, _maxEdges) {}
 
-	function initialize(uint256 _minimalWithdrawalAmount, uint256 _maximumDepositAmount) external onlyUninitialized {
+	function initialize(
+		uint256 _minimalWithdrawalAmount,
+		uint256 _maximumDepositAmount
+	) external onlyUninitialized {
 		super._initialize();
 		_configureMinimalWithdrawalLimit(_minimalWithdrawalAmount);
 		_configureMaximumDepositLimit(_maximumDepositAmount);
-
 	}
 
 	function register(Account memory _account) public {
@@ -75,14 +75,14 @@ abstract contract VAnchorBase is LinkableAnchor {
 	function configureMinimalWithdrawalLimit(
 		uint256 _minimalWithdrawalAmount,
 		uint32 _nonce
-	) override public onlyHandler onlyIncrementingByOne(_nonce) {
+	) public override onlyHandler onlyIncrementingByOne(_nonce) {
 		_configureMinimalWithdrawalLimit(_minimalWithdrawalAmount);
 	}
 
 	function configureMaximumDepositLimit(
 		uint256 _maximumDepositAmount,
 		uint32 _nonce
-	) override public onlyHandler onlyIncrementingByOne(_nonce) {
+	) public override onlyHandler onlyIncrementingByOne(_nonce) {
 		_configureMaximumDepositLimit(_maximumDepositAmount);
 	}
 
@@ -105,23 +105,23 @@ abstract contract VAnchorBase is LinkableAnchor {
 		maximumDepositAmount = _maximumDepositAmount;
 	}
 
-    /**
+	/**
         @notice Inserts a commitment into the tree
         @notice This is an internal function and meant to be used by a child contract.
         @param _commitment The note commitment = Poseidon(chainId, nullifier, secret)
         @return uint32 The index of the inserted commitment
     */
-    function insert(uint256 _commitment) internal returns(uint32) {
-        require(!commitments[_commitment], "The commitment has been submitted");
+	function insert(uint256 _commitment) internal returns (uint32) {
+		require(!commitments[_commitment], "The commitment has been submitted");
 
-        uint32 insertedIndex = _insert(_commitment);
-        commitments[_commitment] = true;
-        emit Insertion(_commitment, insertedIndex, block.timestamp);
+		uint32 insertedIndex = _insert(_commitment);
+		commitments[_commitment] = true;
+		emit Insertion(_commitment, insertedIndex, block.timestamp);
 
-        return insertedIndex;
-    }
+		return insertedIndex;
+	}
 
-    /**
+	/**
         @notice Inserts two commitments into the tree. Useful for contracts
         that need to insert two commitments at once.
         @notice This is an internal function and meant to be used by a child contract.
@@ -129,18 +129,21 @@ abstract contract VAnchorBase is LinkableAnchor {
         @param _secondCommitment The second note commitment
         @return uint32 The index of the first inserted commitment
      */
-    function insertTwo(uint256 _firstCommitment, uint256 _secondCommitment) internal returns(uint32) {
-        require(!commitments[_firstCommitment], "The commitment has been submitted");
-        require(!commitments[_secondCommitment], "The commitment has been submitted");
+	function insertTwo(
+		uint256 _firstCommitment,
+		uint256 _secondCommitment
+	) internal returns (uint32) {
+		require(!commitments[_firstCommitment], "The commitment has been submitted");
+		require(!commitments[_secondCommitment], "The commitment has been submitted");
 
-        uint32 insertedIndex = _insertTwo([_firstCommitment, _secondCommitment]);
-        commitments[_firstCommitment] = true;
-        commitments[_secondCommitment] = true;
-        emit Insertion(_firstCommitment, insertedIndex, block.timestamp);
-        emit Insertion(_secondCommitment, insertedIndex + 1, block.timestamp);
+		uint32 insertedIndex = _insertTwo([_firstCommitment, _secondCommitment]);
+		commitments[_firstCommitment] = true;
+		commitments[_secondCommitment] = true;
+		emit Insertion(_firstCommitment, insertedIndex, block.timestamp);
+		emit Insertion(_secondCommitment, insertedIndex + 1, block.timestamp);
 
-        return insertedIndex;
-    }
+		return insertedIndex;
+	}
 
 	/**
 		@notice Wraps a token for the `msg.sender`
@@ -152,7 +155,7 @@ abstract contract VAnchorBase is LinkableAnchor {
 		address _fromTokenAddress,
 		address _toTokenAddress,
 		uint256 _extAmount
-	) payable public returns (uint256) {
+	) public payable returns (uint256) {
 		// Before executing the wrapping, determine the amount which needs to be sent to the tokenWrapper
 		uint256 wrapAmount = ITokenWrapper(_toTokenAddress).getAmountToWrap(_extAmount);
 
@@ -160,19 +163,19 @@ abstract contract VAnchorBase is LinkableAnchor {
 		if (_fromTokenAddress == address(0)) {
 			require(msg.value == wrapAmount);
 			// If the wrapping is native, ensure the amount sent to the tokenWrapper is 0
-			ITokenWrapper(_toTokenAddress).wrapForAndSendTo{value: msg.value}(
-					msg.sender,
-					_fromTokenAddress,
-					0,
-					address(this)
+			ITokenWrapper(_toTokenAddress).wrapForAndSendTo{ value: msg.value }(
+				msg.sender,
+				_fromTokenAddress,
+				0,
+				address(this)
 			);
 		} else {
 			// wrap into the token and send directly to this contract
-			ITokenWrapper(_toTokenAddress).wrapForAndSendTo{value: msg.value}(
-					msg.sender,
-					_fromTokenAddress,
-					wrapAmount,
-					address(this)
+			ITokenWrapper(_toTokenAddress).wrapForAndSendTo{ value: msg.value }(
+				msg.sender,
+				_fromTokenAddress,
+				wrapAmount,
+				address(this)
 			);
 		}
 
@@ -232,59 +235,56 @@ abstract contract VAnchorBase is LinkableAnchor {
 		@param _relayer The relayer of the transaction
 		@param _fee The fee to pay
 	 */
-	function _processFee(
-		address _token,
-		address _relayer,
-		uint256 _fee
-	) internal virtual {
+	function _processFee(address _token, address _relayer, uint256 _fee) internal virtual {
 		uint balance = IERC20(_token).balanceOf(address(this));
 		if (_fee > 0) {
 			if (balance >= _fee) {
 				// transfer tokens when balance exists
 				IERC20(_token).safeTransfer(_relayer, _fee);
-			}
-			else {
+			} else {
 				IMintableERC20(_token).mint(_relayer, _fee);
 			}
 		}
 	}
 
-    /**
+	/**
         @notice Whether a note is already spent
         @param _nullifierHash The nullifier hash of the deposit note
         @return bool Whether the note is already spent
     */
-    function isSpent(uint256 _nullifierHash) public view returns (bool) {
-        return nullifierHashes[_nullifierHash];
-    }
+	function isSpent(uint256 _nullifierHash) public view returns (bool) {
+		return nullifierHashes[_nullifierHash];
+	}
 
-    /**
+	/**
         @notice Whether an array of notes is already spent
         @param _nullifierHashes The array of nullifier hashes of the deposit notes
         @return bool[] An array indicated whether each note's nullifier hash is already spent
     */
-    function isSpentArray(uint256[] calldata _nullifierHashes) external view returns (bool[] memory) {
-        bool[] memory spent = new bool[](_nullifierHashes.length);
-        for (uint256 i = 0; i < _nullifierHashes.length; i++) {
-            if (isSpent(_nullifierHashes[i])) {
-                spent[i] = true;
-            }
-        }
+	function isSpentArray(
+		uint256[] calldata _nullifierHashes
+	) external view returns (bool[] memory) {
+		bool[] memory spent = new bool[](_nullifierHashes.length);
+		for (uint256 i = 0; i < _nullifierHashes.length; i++) {
+			if (isSpent(_nullifierHashes[i])) {
+				spent[i] = true;
+			}
+		}
 
-        return spent;
-    }
+		return spent;
+	}
 
-    /**
+	/**
         @notice Set a new handler with a nonce
         @dev Can only be called by the `AnchorHandler` contract
         @param _handler The new handler address
         @param _nonce The nonce for updating the new handler
      */
-    function setHandler(
-        address _handler,
-        uint32 _nonce
-    ) override onlyHandler onlyIncrementingByOne(_nonce) external {
-        require(_handler != address(0), "Handler cannot be 0");
-        handler = _handler;
-    }
+	function setHandler(
+		address _handler,
+		uint32 _nonce
+	) external override onlyHandler onlyIncrementingByOne(_nonce) {
+		require(_handler != address(0), "Handler cannot be 0");
+		handler = _handler;
+	}
 }

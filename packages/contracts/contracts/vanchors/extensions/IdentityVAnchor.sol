@@ -78,12 +78,10 @@ contract IdentityVAnchor is VAnchorTree {
 		address _token,
 		uint8 _maxEdges,
 		uint256 _groupId
-	)
-        VAnchorTree(_verifier, _levels, _hasher, _handler, _token, _maxEdges)
-    {
-        SemaphoreContract = _semaphore;
-        groupId = _groupId;
-    }
+	) VAnchorTree(_verifier, _levels, _hasher, _handler, _token, _maxEdges) {
+		SemaphoreContract = _semaphore;
+		groupId = _groupId;
+	}
 
 	/// @inheritdoc ZKVAnchorBase
 	function _executeVerification(
@@ -91,15 +89,25 @@ contract IdentityVAnchor is VAnchorTree {
 		bytes memory _auxPublicInputs,
 		PublicInputs memory _publicInputs,
 		Encryptions memory
-	) override internal view {
-        require(_publicInputs.inputNullifiers.length == 2 || _publicInputs.inputNullifiers.length == 16, "Invalid number of inputs");
-        bool smallInputs = _publicInputs.inputNullifiers.length == 2;
-        (bytes memory encodedInput, uint256[] memory roots) = smallInputs
-            ? IdentityVAnchorEncodeInputs._encodeInputs2(_publicInputs, _auxPublicInputs, maxEdges)
-            : IdentityVAnchorEncodeInputs._encodeInputs16(_publicInputs, _auxPublicInputs, maxEdges);
+	) internal view override {
+		require(
+			_publicInputs.inputNullifiers.length == 2 || _publicInputs.inputNullifiers.length == 16,
+			"Invalid number of inputs"
+		);
+		bool smallInputs = _publicInputs.inputNullifiers.length == 2;
+		(bytes memory encodedInput, uint256[] memory roots) = smallInputs
+			? IdentityVAnchorEncodeInputs._encodeInputs2(_publicInputs, _auxPublicInputs, maxEdges)
+			: IdentityVAnchorEncodeInputs._encodeInputs16(
+				_publicInputs,
+				_auxPublicInputs,
+				maxEdges
+			);
 
-        require(SemaphoreContract.verifyRoots(groupId, _publicInputs.extensionRoots), "Invalid identity roots");
-        require(isValidRoots(roots), "Invalid vanchor roots");
-        require(verify(_proof, encodedInput, smallInputs, maxEdges), "Invalid transaction proof");
+		require(
+			SemaphoreContract.verifyRoots(groupId, _publicInputs.extensionRoots),
+			"Invalid identity roots"
+		);
+		require(isValidRoots(roots), "Invalid vanchor roots");
+		require(verify(_proof, encodedInput, smallInputs, maxEdges), "Invalid transaction proof");
 	}
 }

@@ -29,10 +29,7 @@ contract OpenVAnchor is VAnchorBase, MerkleTree {
 		uint32 _levels,
 		address _handler,
 		address _token
-	)
-		VAnchorBase( _levels, _handler, 255)
-		MerkleTree(_levels, _hasher)
-	{
+	) VAnchorBase(_levels, _handler, 255) MerkleTree(_levels, _hasher) {
 		token = _token;
 	}
 
@@ -44,15 +41,20 @@ contract OpenVAnchor is VAnchorBase, MerkleTree {
 		uint256 blinding,
 		uint256 relayingFee
 	) public nonReentrant {
-		require(depositAmount <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
-		bytes32 commitment = keccak256(abi.encodePacked(
-			destinationChainId,
-			depositAmount,
-			recipient,
-			keccak256(delegatedCalldata),
-			blinding,
-			relayingFee
-		));
+		require(
+			depositAmount <= maximumDepositAmount,
+			"amount is larger than maximumDepositAmount"
+		);
+		bytes32 commitment = keccak256(
+			abi.encodePacked(
+				destinationChainId,
+				depositAmount,
+				recipient,
+				keccak256(delegatedCalldata),
+				blinding,
+				relayingFee
+			)
+		);
 		// Send the wrapped asset directly to this contract.
 		IERC20(token).transferFrom(msg.sender, address(this), depositAmount);
 		// Insert the commitment
@@ -68,15 +70,20 @@ contract OpenVAnchor is VAnchorBase, MerkleTree {
 		uint256 relayingFee,
 		address tokenAddress
 	) public payable nonReentrant {
-		require(depositAmount <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
-		bytes32 commitment = keccak256(abi.encodePacked(
-			destinationChainId,
-			depositAmount,
-			recipient,
-			keccak256(delegatedCalldata),
-			blinding,
-			relayingFee
-		));
+		require(
+			depositAmount <= maximumDepositAmount,
+			"amount is larger than maximumDepositAmount"
+		);
+		bytes32 commitment = keccak256(
+			abi.encodePacked(
+				destinationChainId,
+				depositAmount,
+				recipient,
+				keccak256(delegatedCalldata),
+				blinding,
+				relayingFee
+			)
+		);
 		// Send the `tokenAddress` asset to the `TokenWrapper` and mint this contract the wrapped asset.
 		_executeWrapping(tokenAddress, token, depositAmount);
 		// Insert the commitment
@@ -93,15 +100,20 @@ contract OpenVAnchor is VAnchorBase, MerkleTree {
 		uint32 commitmentIndex,
 		uint256 root
 	) public nonReentrant {
-		bytes32 commitment = keccak256(abi.encodePacked(
-			getChainIdType(),
-			withdrawAmount,
-			recipient,
-			keccak256(delegatedCalldata),
-			blinding,
-			relayingFee
-		));
-		require(_isValidMerkleProof(merkleProof, uint256(commitment), commitmentIndex, root), "Invalid Merkle Proof");
+		bytes32 commitment = keccak256(
+			abi.encodePacked(
+				getChainIdType(),
+				withdrawAmount,
+				recipient,
+				keccak256(delegatedCalldata),
+				blinding,
+				relayingFee
+			)
+		);
+		require(
+			_isValidMerkleProof(merkleProof, uint256(commitment), commitmentIndex, root),
+			"Invalid Merkle Proof"
+		);
 		nullifierHashes[uint256(commitment)] = true;
 		// Send the wrapped token to the recipient.
 		_processWithdraw(token, recipient, withdrawAmount.sub(relayingFee));
@@ -119,22 +131,22 @@ contract OpenVAnchor is VAnchorBase, MerkleTree {
 		uint256 root,
 		address tokenAddress
 	) public payable nonReentrant {
-		bytes32 commitment = keccak256(abi.encodePacked(
-			getChainIdType(),
-			withdrawAmount,
-			recipient,
-			keccak256(delegatedCalldata),
-			blinding,
-			relayingFee
-		));
-		require(_isValidMerkleProof(merkleProof, uint256(commitment), commitmentIndex, root), "Invalid Merkle Proof");
-		nullifierHashes[uint256(commitment)] = true;
-		_withdrawAndUnwrap(
-			token,
-			tokenAddress,
-			recipient,
-			withdrawAmount.sub(relayingFee)
+		bytes32 commitment = keccak256(
+			abi.encodePacked(
+				getChainIdType(),
+				withdrawAmount,
+				recipient,
+				keccak256(delegatedCalldata),
+				blinding,
+				relayingFee
+			)
 		);
+		require(
+			_isValidMerkleProof(merkleProof, uint256(commitment), commitmentIndex, root),
+			"Invalid Merkle Proof"
+		);
+		nullifierHashes[uint256(commitment)] = true;
+		_withdrawAndUnwrap(token, tokenAddress, recipient, withdrawAmount.sub(relayingFee));
 		_processFee(token, msg.sender, relayingFee);
 	}
 
@@ -154,24 +166,17 @@ contract OpenVAnchor is VAnchorBase, MerkleTree {
 
 		for (uint8 i = 0; i < siblingPathNodes.length; i++) {
 			if (nodeIndex % 2 == 0) {
-				currNodeHash = hashLeftRight(
-					currNodeHash,
-					siblingPathNodes[i]
-				);
+				currNodeHash = hashLeftRight(currNodeHash, siblingPathNodes[i]);
 			} else {
-				currNodeHash = hashLeftRight(
-					siblingPathNodes[i],
-					currNodeHash
-				);
+				currNodeHash = hashLeftRight(siblingPathNodes[i], currNodeHash);
 			}
 			nodeIndex = nodeIndex / 2;
 		}
-		bool isKnownRootBool= false;
+		bool isKnownRootBool = false;
 		for (uint i = 0; i < edgeList.length; i++) {
 			isKnownRootBool = isKnownRootBool || isKnownNeighborRoot(edgeList[i].chainID, root);
 		}
 		isKnownRootBool = isKnownRootBool || this.isKnownRoot(root);
 		return root == currNodeHash && isKnownRootBool;
 	}
-
 }

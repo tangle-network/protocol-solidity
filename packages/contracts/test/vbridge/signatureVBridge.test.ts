@@ -826,7 +826,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
           '0',
           '0',
           existingToken1.contract.address,
-          signers[1],
+          signers[1]
         );
         const webbTokenAddress2 = vBridge.getWebbTokenAddress(chainID2);
         const webbToken2 = await MintableToken.tokenFromAddress(webbTokenAddress2!, ganacheWallet2);
@@ -918,7 +918,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
           '0',
           '0',
           existingToken1.contract.address,
-          signers[1],
+          signers[1]
         );
 
         await vBridge.transact(
@@ -929,7 +929,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
           '0',
           '0',
           existingToken1.contract.address,
-          signers[1],
+          signers[1]
         );
 
         await vBridge.transact(
@@ -940,7 +940,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
           '0',
           '0',
           existingToken1.contract.address,
-          signers[1],
+          signers[1]
         );
 
         const webbTokenAddress2 = vBridge.getWebbTokenAddress(chainID2);
@@ -1181,9 +1181,36 @@ describe('8-sided multichain tests for signature vbridge', () => {
         chainId: chainID3.toString(),
       });
 
-      await vBridge.transact([], [depositUtxo1], 0, 0, '0', '0', '0x0000000000000000000000000000000000000000', signers[1]);
-      await vBridge.transact([], [depositUtxo2], 0, 0, '0', '0', '0x0000000000000000000000000000000000000000', ganacheWallet2);
-      await vBridge.transact([], [depositUtxo3], 0, 0, '0', '0', '0x0000000000000000000000000000000000000000', ganacheWallet3);
+      await vBridge.transact(
+        [],
+        [depositUtxo1],
+        0,
+        0,
+        '0',
+        '0',
+        '0x0000000000000000000000000000000000000000',
+        signers[1]
+      );
+      await vBridge.transact(
+        [],
+        [depositUtxo2],
+        0,
+        0,
+        '0',
+        '0',
+        '0x0000000000000000000000000000000000000000',
+        ganacheWallet2
+      );
+      await vBridge.transact(
+        [],
+        [depositUtxo3],
+        0,
+        0,
+        '0',
+        '0',
+        '0x0000000000000000000000000000000000000000',
+        ganacheWallet3
+      );
     });
 
     describe('#bridging', () => {

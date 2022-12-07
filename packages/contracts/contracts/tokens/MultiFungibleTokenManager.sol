@@ -14,9 +14,9 @@ import "./MultiTokenManagerBase.sol";
     @author Webb Technologies.
  */
 contract MultiFungibleTokenManager is MultiTokenManagerBase {
-    using SafeMath for uint256;
+	using SafeMath for uint256;
 
-    /**
+	/**
         @notice Registers a new token and deploys the FungibleTokenWrapper contract
         @param _handler The address of the token handler contract
         @param _name The name of the ERC20
@@ -26,44 +26,41 @@ contract MultiFungibleTokenManager is MultiTokenManagerBase {
         @param _feePercentage The fee percentage for wrapping
         @param _isNativeAllowed Whether or not native tokens are allowed to be wrapped
      */
-    function registerToken(
-        address _handler,
-        string memory _name,
-        string memory _symbol,
-        bytes32 _salt,
-        uint256 _limit,
-        uint16 _feePercentage,
-        bool _isNativeAllowed
-    ) override external onlyRegistry onlyInitialized returns (address) {
-        FungibleTokenWrapper token = new FungibleTokenWrapper{salt: _salt}(
-            _name,
-            _symbol
-        );
+	function registerToken(
+		address _handler,
+		string memory _name,
+		string memory _symbol,
+		bytes32 _salt,
+		uint256 _limit,
+		uint16 _feePercentage,
+		bool _isNativeAllowed
+	) external override onlyRegistry onlyInitialized returns (address) {
+		FungibleTokenWrapper token = new FungibleTokenWrapper{ salt: _salt }(_name, _symbol);
 
-        token.initialize(
-            _feePercentage,
-            payable(masterFeeRecipient),
-            _handler,
-            _limit,
-            _isNativeAllowed
-        );
+		token.initialize(
+			_feePercentage,
+			payable(masterFeeRecipient),
+			_handler,
+			_limit,
+			_isNativeAllowed
+		);
 
-        wrappedTokens.push(address(token));
-        return address(token);
-    }
+		wrappedTokens.push(address(token));
+		return address(token);
+	}
 
-    /**
+	/**
         Registers an NFT token
      */
-    function registerNftToken(
-        address,
-        string memory,
-        bytes32
-    ) override public view onlyRegistry onlyInitialized returns (address) {
-        revert();
-    }
+	function registerNftToken(
+		address,
+		string memory,
+		bytes32
+	) public view override onlyRegistry onlyInitialized returns (address) {
+		revert();
+	}
 
-    function isFungible() override public pure returns (bool) {
-        return true;
-    }
+	function isFungible() public pure override returns (bool) {
+		return true;
+	}
 }

@@ -53,9 +53,7 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		uint32 _levels,
 		address _handler,
 		uint8 _maxEdges
-	)
-		ZKVAnchorBase(_verifier, _levels, _handler, _maxEdges)
-	{
+	) ZKVAnchorBase(_verifier, _levels, _handler, _maxEdges) {
 		registry = address(_registry);
 	}
 
@@ -75,18 +73,12 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		bytes memory encryptedCommitment
 	) public payable {
 		// Execute the wrapping
-		uint256 wrapAmount = _executeWrapping(
-			_fromTokenAddress,
-			_toTokenAddress,
-			_amount
-		);
+		uint256 wrapAmount = _executeWrapping(_fromTokenAddress, _toTokenAddress, _amount);
 		// Create the record commitment
 		uint256 assetID = IRegistry(registry).getAssetId(_toTokenAddress);
-		uint256 commitment = IHasher(this.getHasher()).hash3([
-			assetID,
-			wrapAmount,
-			uint256(partialCommitment)
-		]);
+		uint256 commitment = IHasher(this.getHasher()).hash3(
+			[assetID, wrapAmount, uint256(partialCommitment)]
+		);
 		_insertTwo(commitment, 0);
 		emit NewCommitment(commitment, 0, this.getNextIndex() - 2, encryptedCommitment);
 	}
@@ -98,7 +90,7 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		CommonExtData memory _externalData,
 		PublicInputs memory _publicInputs,
 		Encryptions memory _encryptions
-	) override public payable virtual {
+	) public payable virtual override {
 		AuxPublicInputs memory aux = abi.decode(_auxPublicInputs, (AuxPublicInputs));
 		address wrappedToken = IRegistry(registry).getAssetAddress(aux.assetID);
 		_transact(
@@ -117,13 +109,15 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		bytes memory _auxPublicInputs,
 		PublicInputs memory _publicInputs,
 		Encryptions memory
-	) override internal virtual {
-		require(_publicInputs.inputNullifiers.length == 2 || _publicInputs.inputNullifiers.length == 16, "Invalid number of inputs");
+	) internal virtual override {
+		require(
+			_publicInputs.inputNullifiers.length == 2 || _publicInputs.inputNullifiers.length == 16,
+			"Invalid number of inputs"
+		);
 		bool smallInputs = _publicInputs.inputNullifiers.length == 2;
 		(bytes memory encodedInput, uint256[] memory roots) = smallInputs
 			? MASPVAnchorEncodeInputs._encodeInputs2(_publicInputs, _auxPublicInputs, maxEdges)
 			: MASPVAnchorEncodeInputs._encodeInputs16(_publicInputs, _auxPublicInputs, maxEdges);
-
 
 		require(isValidRoots(roots), "Invalid vanchor roots");
 		require(verify(_proof, encodedInput, smallInputs, maxEdges), "Invalid transaction proof");
@@ -134,20 +128,23 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		bytes memory _auxPublicInputs,
 		CommonExtData memory _externalData,
 		Encryptions memory _encryptions
-	) override internal virtual returns (bytes32) {
+	) internal virtual override returns (bytes32) {
 		AuxPublicInputs memory aux = abi.decode(_auxPublicInputs, (AuxPublicInputs));
-		return keccak256(abi.encode(
-			ExtData(
-				aux.assetID,
-				_externalData.recipient,
-				_externalData.extAmount,
-				_externalData.relayer,
-				_externalData.fee,
-				_externalData.refund,
-				_externalData.token,
-				_encryptions.encryptedOutput1,
-				_encryptions.encryptedOutput2
-			)
-		));
+		return
+			keccak256(
+				abi.encode(
+					ExtData(
+						aux.assetID,
+						_externalData.recipient,
+						_externalData.extAmount,
+						_externalData.relayer,
+						_externalData.fee,
+						_externalData.refund,
+						_externalData.token,
+						_encryptions.encryptedOutput1,
+						_encryptions.encryptedOutput2
+					)
+				)
+			);
 	}
 }

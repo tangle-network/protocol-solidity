@@ -372,7 +372,7 @@ export class VBridge {
     const extAmount = BigNumber.from(fee)
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
-    
+
     const publicAmount = extAmount.sub(fee);
 
     // If the wrapUnwrapToken is unspecified ('') then we assume that
@@ -382,7 +382,7 @@ export class VBridge {
       const tokenInstance = await MintableToken.tokenFromAddress(webbTokenAddress, signer);
       const userTokenAllowance = await tokenInstance.getAllowance(
         signerAddress,
-        vAnchor.contract.address,
+        vAnchor.contract.address
       );
       if (userTokenAllowance.lt(publicAmount)) {
         await tokenInstance.approveSpending(vAnchor.contract.address, publicAmount);
@@ -391,10 +391,7 @@ export class VBridge {
       wrapUnwrapToken = webbTokenAddress;
     } else if (wrapUnwrapToken != zeroAddress) {
       const tokenInstance = await MintableToken.tokenFromAddress(wrapUnwrapToken, signer);
-      const userTokenAllowance = await tokenInstance.getAllowance(
-        signerAddress,
-        webbTokenAddress
-      );
+      const userTokenAllowance = await tokenInstance.getAllowance(signerAddress, webbTokenAddress);
       if (userTokenAllowance.lt(publicAmount)) {
         await tokenInstance.approveSpending(webbTokenAddress, publicAmount);
       }

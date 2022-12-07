@@ -357,18 +357,9 @@ describe('VAnchorForest for 1 max edge', () => {
 
       const anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
-      await anchor.transact(
-        [aliceDepositUtxo],
-        [aliceRefreshUtxo],
-        0,
-        0,
-        '0',
-        '0',
-        '',
-        {
-          [chainID.toString()]: anchorLeaves,
-        },
-      );
+      await anchor.transact([aliceDepositUtxo], [aliceRefreshUtxo], 0, 0, '0', '0', '', {
+        [chainID.toString()]: anchorLeaves,
+      });
     });
 
     it('should spend input utxo and split', async () => {
@@ -405,7 +396,7 @@ describe('VAnchorForest for 1 max edge', () => {
         '',
         {
           [chainID.toString()]: anchorLeaves,
-        },
+        }
       );
     });
 
@@ -439,18 +430,9 @@ describe('VAnchorForest for 1 max edge', () => {
         blinding: hexToU8a(randomBN().toHexString()),
       });
 
-      await anchor.transact(
-        [],
-        [aliceDepositUtxo2],
-        0,
-        0,
-        '0',
-        '0',
-        token.address,
-        {
-          [chainID.toString()]: anchorLeaves,
-        }
-      );
+      await anchor.transact([], [aliceDepositUtxo2], 0, 0, '0', '0', token.address, {
+        [chainID.toString()]: anchorLeaves,
+      });
 
       anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
@@ -473,7 +455,7 @@ describe('VAnchorForest for 1 max edge', () => {
         '',
         {
           [chainID.toString()]: anchorLeaves,
-        },
+        }
       );
     });
 
@@ -515,18 +497,9 @@ describe('VAnchorForest for 1 max edge', () => {
         keypair: aliceDepositUtxo1.keypair,
       });
 
-      await anchor.transact(
-        [],
-        [aliceDepositUtxo3],
-        0,
-        0,
-        '0',
-        '0',
-        token.address,
-        {
-          [chainID.toString()]: anchorLeaves,
-        },
-      );
+      await anchor.transact([], [aliceDepositUtxo3], 0, 0, '0', '0', token.address, {
+        [chainID.toString()]: anchorLeaves,
+      });
 
       const subtreeLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
       const forestLeaves = anchor.forest.elements().map((leaf) => hexToU8a(leaf.toHexString()));
@@ -557,7 +530,7 @@ describe('VAnchorForest for 1 max edge', () => {
         '0',
         '0',
         '',
-        {},
+        {}
       );
     }).timeout(120000);
 
@@ -591,18 +564,9 @@ describe('VAnchorForest for 1 max edge', () => {
       });
       const aliceETHAddress = '0xDeaD00000000000000000000000000000000BEEf';
 
-      await anchor.transact(
-        [aliceDepositUtxo],
-        [aliceChangeUtxo],
-        0,
-        0,
-        aliceETHAddress,
-        '0',
-        '',
-        {
-          [chainID.toString()]: anchorLeaves,
-        },
-      );
+      await anchor.transact([aliceDepositUtxo], [aliceChangeUtxo], 0, 0, aliceETHAddress, '0', '', {
+        [chainID.toString()]: anchorLeaves,
+      });
       assert.strictEqual(
         aliceWithdrawAmount.toString(),
         await (await wrappedToken.balanceOf(aliceETHAddress)).toString()
@@ -648,34 +612,16 @@ describe('VAnchorForest for 1 max edge', () => {
         keypair: aliceDepositUtxo.keypair,
       });
 
-      await anchor.transact(
-        [aliceDepositUtxo],
-        [aliceTransferUtxo],
-        0,
-        0,
-        '0',
-        '0',
-        '',
-        {
-          [chainID.toString()]: anchorLeaves,
-        },
-      );
+      await anchor.transact([aliceDepositUtxo], [aliceTransferUtxo], 0, 0, '0', '0', '', {
+        [chainID.toString()]: anchorLeaves,
+      });
 
       anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
       await TruffleAssert.reverts(
-        anchor.transact(
-          [aliceDepositUtxo],
-          [aliceTransferUtxo],
-          0,
-          0,
-          '0',
-          '0',
-          '',
-          {
-            [chainID.toString()]: anchorLeaves,
-          },
-        ),
+        anchor.transact([aliceDepositUtxo], [aliceTransferUtxo], 0, 0, '0', '0', '', {
+          [chainID.toString()]: anchorLeaves,
+        }),
         'Input is already spent'
       );
     });
@@ -728,18 +674,9 @@ describe('VAnchorForest for 1 max edge', () => {
       });
       //Step 4: Check that step 3 fails
       await TruffleAssert.reverts(
-        anchor.transact(
-          [aliceDepositUtxo],
-          [aliceOutputUtxo],
-          0,
-          0,
-          '0',
-          '0',
-          token.address,
-          {
-            [chainID.toString()]: anchorLeaves,
-          },
-        ),
+        anchor.transact([aliceDepositUtxo], [aliceOutputUtxo], 0, 0, '0', '0', token.address, {
+          [chainID.toString()]: anchorLeaves,
+        }),
         'ERC20: transfer amount exceeds balance'
       );
     });
@@ -1009,7 +946,7 @@ describe('VAnchorForest for 1 max edge', () => {
 
     // This test is meant to prove that utxo transfer flows are possible, and the receiver
     // can query on-chain data to construct and spend a utxo generated by the sender.
-    it('should be able to transfer without direct communication between sender and recipient', async function() {
+    it('should be able to transfer without direct communication between sender and recipient', async function () {
       const [sender, recipient] = await ethers.getSigners();
       const bobKeypair = new Keypair();
 
@@ -1088,7 +1025,7 @@ describe('VAnchorForest for 1 max edge', () => {
         token.address,
         {
           [chainID.toString()]: leaves,
-        },
+        }
       );
 
       // get balances after transfer interactions
@@ -1102,7 +1039,7 @@ describe('VAnchorForest for 1 max edge', () => {
       assert.strictEqual(bobBalanceAfter.sub(bobBalanceBefore).toString(), '10000000');
     });
 
-    it('should be compliant', async function() {
+    it('should be compliant', async function () {
       // basically verifier should check if a commitment and a nullifier hash are on chain
       const [sender] = await ethers.getSigners();
 
@@ -1114,18 +1051,9 @@ describe('VAnchorForest for 1 max edge', () => {
       const anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
       // withdrawal
-      await anchor.transact(
-        [aliceDepositUtxo],
-        [],
-        0,
-        0,
-        sender.address,
-        '0',
-        '',
-        {
-          [chainID.toString()]: anchorLeaves,
-        },
-      );
+      await anchor.transact([aliceDepositUtxo], [], 0, 0, sender.address, '0', '', {
+        [chainID.toString()]: anchorLeaves,
+      });
 
       //build merkle tree start
       const filter = anchor.contract.filters.NewCommitment();
@@ -1285,28 +1213,31 @@ describe('VAnchorForest for 1 max edge', () => {
 
       await TruffleAssert.reverts(
         anchor.contract.transact(
-        publicInputs.proof,
-        ZERO_BYTES32,
-        {
-          recipient: extData.recipient,
-          extAmount: extData.extAmount,
-          relayer: extData.relayer,
-          fee: extData.fee,
-          refund: extData.refund,
-          token: extData.token,
-        },
-        {
-          roots: publicInputs.roots,
-          extensionRoots: '0x',
-          inputNullifiers: publicInputs.inputNullifiers,
-          outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
-          publicAmount: publicInputs.publicAmount,
-          extDataHash: publicInputs.extDataHash,
-        },
-        {
-          encryptedOutput1: extData.encryptedOutput1,
-          encryptedOutput2: extData.encryptedOutput2,
-        },
+          publicInputs.proof,
+          ZERO_BYTES32,
+          {
+            recipient: extData.recipient,
+            extAmount: extData.extAmount,
+            relayer: extData.relayer,
+            fee: extData.fee,
+            refund: extData.refund,
+            token: extData.token,
+          },
+          {
+            roots: publicInputs.roots,
+            extensionRoots: '0x',
+            inputNullifiers: publicInputs.inputNullifiers,
+            outputCommitments: [
+              publicInputs.outputCommitments[0],
+              publicInputs.outputCommitments[1],
+            ],
+            publicAmount: publicInputs.publicAmount,
+            extDataHash: publicInputs.extDataHash,
+          },
+          {
+            encryptedOutput1: extData.encryptedOutput1,
+            encryptedOutput2: extData.encryptedOutput2,
+          },
           { gasLimit: '0x5B8D80' }
         ),
         'non-existent edge is not set to the default root'
@@ -1375,16 +1306,7 @@ describe('VAnchorForest for 1 max edge', () => {
         index: null,
       });
       //create a deposit on the anchor already setup
-      await wrappedAnchor.transact(
-        [],
-        [aliceDepositUtxo],
-        '0',
-        '0',
-        '0',
-        '0',
-        token.address,
-        {}
-      );
+      await wrappedAnchor.transact([], [aliceDepositUtxo], '0', '0', '0', '0', token.address, {});
       const balTokenAfterDepositSender = await token.balanceOf(sender.address);
       assert.strictEqual(
         balTokenBeforeDepositSender.sub(balTokenAfterDepositSender).toString(),
@@ -1462,16 +1384,7 @@ describe('VAnchorForest for 1 max edge', () => {
           index: null,
         });
         // create a deposit on the anchor already setup
-        await wrappedAnchor.transact(
-          [],
-          [aliceDepositUtxo],
-          '0',
-          '0',
-          '0',
-          '0',
-          token.address,
-          {}
-        );
+        await wrappedAnchor.transact([], [aliceDepositUtxo], '0', '0', '0', '0', token.address, {});
       }
 
       assert.equal(
@@ -1741,18 +1654,9 @@ describe('VAnchorForest for 1 max edge', () => {
       );
 
       await TruffleAssert.passes(
-        wrappedVAnchor.transact(
-          [aliceChangeUtxo],
-          [],
-          0,
-          0,
-          sender.address,
-          '0',
-          token.address,
-          {
-            [chainID.toString()]: anchorLeaves,
-          }
-        )
+        wrappedVAnchor.transact([aliceChangeUtxo], [], 0, 0, sender.address, '0', token.address, {
+          [chainID.toString()]: anchorLeaves,
+        })
       );
 
       let originalTokenDifference = expectedSenderTokenOutflows - 2e7;

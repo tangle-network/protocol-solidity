@@ -38,7 +38,14 @@ import {
   IVariableAnchorExtData,
   IVariableAnchorPublicInputs,
 } from '@webb-tools/interfaces';
-import { hexToU8a, UTXOInputs, u8aToHex, getChainIdType, ZkComponents, ZERO_BYTES32 } from '@webb-tools/utils';
+import {
+  hexToU8a,
+  UTXOInputs,
+  u8aToHex,
+  getChainIdType,
+  ZkComponents,
+  ZERO_BYTES32,
+} from '@webb-tools/utils';
 import { solidityPack } from 'ethers/lib/utils';
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
@@ -711,7 +718,6 @@ export class VAnchorForest {
     };
   }
 
-
   public async encodeSolidityProof(fullProof: any, calldata: any): Promise<String> {
     const proof = JSON.parse('[' + calldata + ']');
     const pi_a = proof[0];
@@ -805,11 +811,11 @@ export class VAnchorForest {
 
       options = {
         value: valueToSend.toHexString(),
-        gasLimit: '0x5B8D80'
+        gasLimit: '0x5B8D80',
       };
     } else {
       options = {
-        gasLimit: '0x5B8D80'
+        gasLimit: '0x5B8D80',
       };
     }
 
@@ -831,7 +837,7 @@ export class VAnchorForest {
         inputNullifiers: publicInputs.inputNullifiers,
         outputCommitments: [
           BigNumber.from(publicInputs.outputCommitments[0]),
-          BigNumber.from(publicInputs.outputCommitments[1])
+          BigNumber.from(publicInputs.outputCommitments[1]),
         ],
         publicAmount: publicInputs.publicAmount,
         extDataHash: publicInputs.extDataHash,
@@ -857,7 +863,7 @@ export class VAnchorForest {
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>,
+    leavesMap: Record<string, Uint8Array[]>
   ): Promise<ethers.ContractReceipt> {
     // Validate input utxos have a valid originChainId
     raw_inputs.map((utxo) => {
@@ -894,11 +900,11 @@ export class VAnchorForest {
 
       options = {
         value: valueToSend.toHexString(),
-        gasLimit: '0x5B8D80'
+        gasLimit: '0x5B8D80',
       };
     } else {
       options = {
-        gasLimit: '0x5B8D80'
+        gasLimit: '0x5B8D80',
       };
     }
 

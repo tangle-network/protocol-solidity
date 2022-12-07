@@ -35,10 +35,7 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 		uint32 _levels,
 		address _handler,
 		uint8 _maxEdges
-	)
-		VAnchorBase(_levels, _handler, _maxEdges)
-		TxProofVerifier(_verifier)
-	{}
+	) VAnchorBase(_levels, _handler, _maxEdges) TxProofVerifier(_verifier) {}
 
 	/**
 		@notice Registers and transacts in a single flow
@@ -103,8 +100,11 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 		);
 
 		// Check if extAmount > 0, call wrapAndDeposit
-        if (_externalData.extAmount > 0) {
-			require(uint256(_externalData.extAmount) <= maximumDepositAmount, "amount is larger than maximumDepositAmount");
+		if (_externalData.extAmount > 0) {
+			require(
+				uint256(_externalData.extAmount) <= maximumDepositAmount,
+				"amount is larger than maximumDepositAmount"
+			);
 			if (_externalData.token == _wrappedToken) {
 				IMintableERC20(_wrappedToken).transferFrom(
 					msg.sender,
@@ -123,7 +123,10 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 		if (_externalData.extAmount < 0) {
 			require(_externalData.recipient != address(0), "Can't withdraw to zero address");
 			// Prevents ddos attack to Bridge
-			require(uint256(-_externalData.extAmount) >= minimalWithdrawalAmount, "amount is less than minimalWithdrawalAmount"); 
+			require(
+				uint256(-_externalData.extAmount) >= minimalWithdrawalAmount,
+				"amount is less than minimalWithdrawalAmount"
+			);
 			if (_externalData.token == _wrappedToken) {
 				_processWithdraw(
 					_wrappedToken,
@@ -175,17 +178,20 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 		PublicInputs memory _publicInputs,
 		Encryptions memory _encryptions
 	) internal virtual {
-		bytes32 extDataHash = _genExtDataHash(
-			_auxPublicInputs,
-			_externalData,
-			_encryptions
-		);
+		bytes32 extDataHash = _genExtDataHash(_auxPublicInputs, _externalData, _encryptions);
 
 		for (uint256 i = 0; i < _publicInputs.inputNullifiers.length; i++) {
 			require(!isSpent(_publicInputs.inputNullifiers[i]), "Input is already spent");
 		}
-		require(uint256(_publicInputs.extDataHash) == uint256(extDataHash) % FIELD_SIZE, "Incorrect external data hash");
-		require(_publicInputs.publicAmount == calculatePublicAmount(_externalData.extAmount, _externalData.fee), "Invalid public amount");
+		require(
+			uint256(_publicInputs.extDataHash) == uint256(extDataHash) % FIELD_SIZE,
+			"Incorrect external data hash"
+		);
+		require(
+			_publicInputs.publicAmount ==
+				calculatePublicAmount(_externalData.extAmount, _externalData.fee),
+			"Invalid public amount"
+		);
 		_executeVerification(_proof, _auxPublicInputs, _publicInputs, _encryptions);
 
 		for (uint256 i = 0; i < _publicInputs.inputNullifiers.length; i++) {
@@ -223,7 +229,7 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 	function setVerifier(
 		address _verifier,
 		uint32 _nonce
-	) override onlyHandler onlyIncrementingByOne(_nonce) external {
+	) external override onlyHandler onlyIncrementingByOne(_nonce) {
 		require(_verifier != address(0), "Handler cannot be 0");
 		verifier = IAnchorVerifier(_verifier);
 	}

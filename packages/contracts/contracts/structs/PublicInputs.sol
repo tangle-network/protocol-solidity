@@ -6,12 +6,12 @@
 pragma solidity ^0.8.0;
 
 struct CommonExtData {
-    address recipient;
-    int256 extAmount;
-    address relayer;
-    uint256 fee;
-    uint256 refund;
-    address token;
+	address recipient;
+	int256 extAmount;
+	address relayer;
+	uint256 fee;
+	uint256 refund;
+	address token;
 }
 
 /**
@@ -24,12 +24,12 @@ struct CommonExtData {
     @param extDataHash The external data hash for the proof verification
 */
 struct PublicInputs {
-    bytes roots;
-    bytes extensionRoots;
-    uint256[] inputNullifiers;
-    uint256[2] outputCommitments;
-    uint256 publicAmount;
-    uint256 extDataHash;
+	bytes roots;
+	bytes extensionRoots;
+	uint256[] inputNullifiers;
+	uint256[2] outputCommitments;
+	uint256 publicAmount;
+	uint256 extDataHash;
 }
 
 /**
@@ -37,13 +37,13 @@ struct PublicInputs {
     @param assetID the public asset ID of the asset being deposited or withdrawn
  */
 struct AuxPublicInputs {
-    uint256 assetID;
+	uint256 assetID;
 }
 
 /**
     @notice External encryptions for new output commitments
  */
 struct Encryptions {
-    bytes encryptedOutput1;
-    bytes encryptedOutput2;
+	bytes encryptedOutput1;
+	bytes encryptedOutput2;
 }

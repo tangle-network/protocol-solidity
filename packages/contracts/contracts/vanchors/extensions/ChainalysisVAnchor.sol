@@ -16,7 +16,7 @@ import "../../utils/SanctionFilter.sol";
 contract ChainalysisVAnchor is VAnchorTree, SanctionFilter {
 	using SafeERC20 for IERC20;
 	using SafeMath for uint256;
-	
+
 	constructor(
 		IAnchorVerifier _verifier,
 		uint32 _merkleTreeLevels,
@@ -24,9 +24,7 @@ contract ChainalysisVAnchor is VAnchorTree, SanctionFilter {
 		address _handler,
 		address _token,
 		uint8 _maxEdges
-	)
-		VAnchorTree(_verifier, _merkleTreeLevels, _hasher, _handler, _token, _maxEdges)
-	{}
+	) VAnchorTree(_verifier, _merkleTreeLevels, _hasher, _handler, _token, _maxEdges) {}
 
 	/// @inheritdoc ZKVAnchorBase
 	function registerAndTransact(
@@ -36,14 +34,15 @@ contract ChainalysisVAnchor is VAnchorTree, SanctionFilter {
 		CommonExtData memory _externalData,
 		PublicInputs memory _publicInputs,
 		Encryptions memory _encryptions
-	)
-		override
-		public
-		payable
-		isNotSanctioned(msg.sender)
-		isNotSanctioned(_externalData.recipient)
-	{
-		super.registerAndTransact(_account, _proof, _auxPublicInputs, _externalData, _publicInputs, _encryptions);
+	) public payable override isNotSanctioned(msg.sender) isNotSanctioned(_externalData.recipient) {
+		super.registerAndTransact(
+			_account,
+			_proof,
+			_auxPublicInputs,
+			_externalData,
+			_publicInputs,
+			_encryptions
+		);
 	}
 
 	/// @inheritdoc ZKVAnchorBase
@@ -54,9 +53,9 @@ contract ChainalysisVAnchor is VAnchorTree, SanctionFilter {
 		PublicInputs memory _publicInputs,
 		Encryptions memory _encryptions
 	)
-		override
 		public
 		payable
+		override
 		nonReentrant
 		isNotSanctioned(msg.sender)
 		isNotSanctioned(_externalData.recipient)

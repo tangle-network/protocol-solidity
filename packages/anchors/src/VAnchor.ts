@@ -92,7 +92,7 @@ export class VAnchor implements IVAnchor {
     maxEdges: number,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents,
-    signer: ethers.Signer,
+    signer: ethers.Signer
   ) {
     const encodeLibraryFactory = new VAnchorEncodeInputs__factory(signer);
     const encodeLibrary = await encodeLibraryFactory.deploy();
@@ -761,7 +761,7 @@ export class VAnchor implements IVAnchor {
         inputNullifiers: publicInputs.inputNullifiers,
         outputCommitments: [
           BigNumber.from(publicInputs.outputCommitments[0]),
-          BigNumber.from(publicInputs.outputCommitments[1])
+          BigNumber.from(publicInputs.outputCommitments[1]),
         ],
         publicAmount: publicInputs.publicAmount,
         extDataHash: publicInputs.extDataHash,

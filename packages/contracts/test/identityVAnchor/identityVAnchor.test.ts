@@ -1394,9 +1394,9 @@ describe('IdentityVAnchor for 2 max edges', () => {
         token.address
       );
       const balTokenAfterDepositSender = await token.balanceOf(alice.address);
-      expect(
-        balTokenBeforeDepositSender.sub(balTokenAfterDepositSender).toString()
-      ).equal(aliceDepositAmount.toString());
+      expect(balTokenBeforeDepositSender.sub(balTokenAfterDepositSender).toString()).equal(
+        aliceDepositAmount.toString()
+      );
 
       const balWrappedTokenAfterDepositAnchor = await wrappedToken.balanceOf(
         wrappedIdAnchor.contract.address
