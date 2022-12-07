@@ -296,6 +296,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
     describe('#bridging', () => {
       it('basic ganache deposit should withdraw on hardhat', async () => {
         // Fetch information about the anchor to be updated.
+        console.log('init')
         const signers = await ethers.getSigners();
 
         const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
@@ -304,6 +305,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainID1);
         const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
         const signers2BalanceBefore = await webbToken1.getBalance(await signers[2].getAddress());
+        console.log('start generating utxos')
 
         //ganacheWallet2 makes a deposit with dest chain chainID1
         const ganacheDepositUtxo = await CircomUtxo.generateUtxo({
@@ -331,6 +333,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
           originChainId: chainID1.toString(),
           chainId: chainID1.toString(),
         });
+        console.log("before transact")
         await vBridge.transact(
           [ganacheDepositUtxo],
           [hardhatWithdrawUtxo],
@@ -1181,41 +1184,15 @@ describe('8-sided multichain tests for signature vbridge', () => {
         chainId: chainID3.toString(),
       });
 
-      await vBridge.transact(
-        [],
-        [depositUtxo1],
-        0,
-        0,
-        '0',
-        '0',
-        '0x0000000000000000000000000000000000000000',
-        signers[1]
-      );
-      await vBridge.transact(
-        [],
-        [depositUtxo2],
-        0,
-        0,
-        '0',
-        '0',
-        '0x0000000000000000000000000000000000000000',
-        ganacheWallet2
-      );
-      await vBridge.transact(
-        [],
-        [depositUtxo3],
-        0,
-        0,
-        '0',
-        '0',
-        '0x0000000000000000000000000000000000000000',
-        ganacheWallet3
-      );
+      await vBridge.transact([], [depositUtxo1], 0, 0, '0', '0', '', signers[1]);
+      await vBridge.transact([], [depositUtxo2], 0, 0, '0', '0', '', ganacheWallet2);
+      await vBridge.transact([], [depositUtxo3], 0, 0, '0', '0', '', ganacheWallet3);
     });
 
     describe('#bridging', () => {
       it('basic ganache deposit should withdraw on hardhat', async () => {
         // Fetch information about the anchor to be updated.
+        console.log('init')
         const signers = await ethers.getSigners();
 
         const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
@@ -1224,6 +1201,7 @@ describe('8-sided multichain tests for signature vbridge', () => {
         const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainID1);
         const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
         const signers2BalanceBefore = await webbToken1.getBalance(await signers[2].getAddress());
+        console.log('start generating utxos')
 
         //ganacheWallet2 makes a deposit with dest chain chainID1
         const ganacheDepositUtxo = await CircomUtxo.generateUtxo({
