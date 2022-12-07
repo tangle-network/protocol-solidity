@@ -235,32 +235,13 @@ describe('VAnchor for 1 max edge', () => {
         fullProof.publicSignals
       );
       console.log("calldata", calldata)
-      //
-      // const publicInputs: IIdentityVariableAnchorPublicInputs = this.generatePublicInputs(
-      //   proof,
-      //   calldata
-      // );
-      //
+
       const is_valid: boolean = await snarkjs.groth16.verify(
         vKey,
         fullProof.publicSignals,
         fullProof.proof
       );
       assert.strictEqual(is_valid, true);
-      //
-      // const wtns = await create2InputWitness(input);
-      // let res = await snarkjs.groth16.prove(
-      //   'solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey',
-      //   wtns
-      // );
-      // const proof = res.proof;
-      // let publicSignals = res.publicSignals;
-      // const vKey = await snarkjs.zKey.exportVerificationKey(
-      //   'solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey'
-      // );
-      //
-      // res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
-      // assert.strictEqual(res, true);
     });
   });
 

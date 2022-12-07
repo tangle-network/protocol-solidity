@@ -605,7 +605,7 @@ export class VAnchorForest {
       relayer: toFixedHex(relayer, 20),
       fee: toFixedHex(fee),
       refund: toFixedHex(refund.toString()),
-      token: toFixedHex(this.token, 20),
+      token: toFixedHex(wrapUnwrapToken, 20),
       encryptedOutput1,
       encryptedOutput2,
     };
@@ -682,7 +682,7 @@ export class VAnchorForest {
       outputs[0].encrypt(),
       outputs[1].encrypt()
     );
-    console.log('extDataHash', extDataHash);
+
     const proofInput: UTXOInputs = await this.generateUTXOInputs(
       inputs,
       outputs,
@@ -792,13 +792,11 @@ export class VAnchorForest {
       extAmount,
       fee,
       refund,
-      wrapUnwrapToken,
       recipient,
       relayer,
+      wrapUnwrapToken,
       leavesMap
     );
-
-    console.log('publicInputs', publicInputs);
 
     let options = {};
     if (extAmount.gt(0) && checkNativeAddress(wrapUnwrapToken)) {
@@ -807,9 +805,12 @@ export class VAnchorForest {
 
       options = {
         value: valueToSend.toHexString(),
+        gasLimit: '0x5B8D80'
       };
     } else {
-      options = {};
+      options = {
+        gasLimit: '0x5B8D80'
+      };
     }
 
     let tx = await this.contract.registerAndTransact(
@@ -870,6 +871,10 @@ export class VAnchorForest {
 
     let extAmount = await this.getExtAmount(inputs, outputs, fee);
 
+    if (wrapUnwrapToken.length === 0) {
+      wrapUnwrapToken = this.token;
+    }
+
     const { extData, publicInputs } = await this.setupTransaction(
       inputs,
       [outputs[0], outputs[1]],
@@ -881,7 +886,6 @@ export class VAnchorForest {
       wrapUnwrapToken,
       leavesMap
     );
-    console.log('transact publicInputs', publicInputs);
 
     let options = {};
     if (extAmount.gt(0) && checkNativeAddress(wrapUnwrapToken)) {
@@ -890,9 +894,12 @@ export class VAnchorForest {
 
       options = {
         value: valueToSend.toHexString(),
+        gasLimit: '0x5B8D80'
       };
     } else {
-      options = {};
+      options = {
+        gasLimit: '0x5B8D80'
+      };
     }
 
     const tx = await this.contract.transact(
@@ -908,7 +915,7 @@ export class VAnchorForest {
       },
       {
         roots: publicInputs.roots,
-        extensionRoots: '0x',
+        extensionRoots: [],
         inputNullifiers: publicInputs.inputNullifiers,
         outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
         publicAmount: publicInputs.publicAmount,
