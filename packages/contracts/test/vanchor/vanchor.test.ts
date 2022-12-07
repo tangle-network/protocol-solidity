@@ -50,7 +50,7 @@ const path = require('path');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
 
-describe('VAnchor for 1 max edge', () => {
+describe.only('VAnchor for 1 max edge', () => {
   let anchor: VAnchor;
 
   const levels = 30;
@@ -190,8 +190,8 @@ describe('VAnchor for 1 max edge', () => {
 
   describe('snark proof native verification on js side', () => {
     it('should work', async () => {
-      const relayer = '0x2111111111111111111111111111111111111111';
       const extAmount = 1e7;
+      const relayer = '0x2111111111111111111111111111111111111111';
       const aliceDepositAmount = 1e7;
       const roots = await anchor.populateRootsForProof();
       const inputs = [await generateUTXOForTest(chainID), await generateUTXOForTest(chainID)];
@@ -227,21 +227,19 @@ describe('VAnchor for 1 max edge', () => {
         merkleProofsForInputs
       );
 
-      let fullProof = await anchor.generateProof(extDataHash.toString(), input)
-      const vKey = await snarkjs.zKey.exportVerificationKey(anchor.smallCircuitZkComponents.zkey);
-      console.log("fullProof", fullProof)
-      const calldata = await snarkjs.groth16.exportSolidityCallData(
-        fullProof.proof,
-        fullProof.publicSignals
+      const wtns = await create2InputWitness(input);
+      let res = await snarkjs.groth16.prove(
+        'solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey',
+        wtns
       );
-      console.log("calldata", calldata)
+      const proof = res.proof;
+      let publicSignals = res.publicSignals;
+      const vKey = await snarkjs.zKey.exportVerificationKey(
+        'solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey'
+      );
 
-      const is_valid: boolean = await snarkjs.groth16.verify(
-        vKey,
-        fullProof.publicSignals,
-        fullProof.proof
-      );
-      assert.strictEqual(is_valid, true);
+      res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
+      assert.strictEqual(res, true);
     });
   });
 
