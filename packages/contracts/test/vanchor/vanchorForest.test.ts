@@ -1155,7 +1155,7 @@ describe('VAnchorForest for 1 max edge', () => {
       );
     });
 
-    it.only('should reject proofs made against roots of empty edges', async () => {
+    it('should reject proofs made against roots of empty edges', async () => {
       // This test has not been linked to another anchor - edgeList should be empty.
       await TruffleAssert.reverts(anchor.contract.edgeList(0));
 
