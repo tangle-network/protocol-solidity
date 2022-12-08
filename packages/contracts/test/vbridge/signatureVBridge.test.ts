@@ -821,7 +821,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         // assert(false)
       });
 
-      it.only('wrap and deposit, withdraw and unwrap works join split via transact and wrap', async () => {
+      it('wrap and deposit, withdraw and unwrap works join split via transact and wrap', async () => {
         const signers = await ethers.getSigners();
 
         const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
