@@ -616,8 +616,10 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
     );
 
     await fungibleToken.grantMinterRole(srcAnchor.contract.address);
-    await erc20TokenInstance.approveSpending(fungibleToken.contract.address, BigNumber.from(1e7));
-    await erc20TokenInstance.approveSpending(srcAnchor.contract.address, BigNumber.from(1e7));
+    let amountToWrap = await fungibleToken.contract.getAmountToWrap(
+      BigNumber.from(1e7)
+    );
+    await erc20TokenInstance.approveSpending(fungibleToken.contract.address, amountToWrap);
     bridgeSide.setAnchorHandler(anchorHandler);
     const res = await bridgeSide.connectAnchorWithSignature(srcAnchor);
     await bridgeSide.executeMinWithdrawalLimitProposalWithSig(
@@ -648,13 +650,14 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
         zeroAddress,
         zeroAddress,
         erc20TokenInstance.contract.address,
-        { [chainID1.toString()]: [] }
+        {}
       ),
       'Fee Recipient cannot be zero address'
     );
 
     // Change Fee Recipient to treasury Address
     await bridgeSide.executeFeeRecipientProposalWithSig(fungibleToken, treasury.contract.address);
+
 
     // For ERC20 Tests
     await srcAnchor.transact(
@@ -665,7 +668,7 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
       zeroAddress,
       zeroAddress,
       erc20TokenInstance.contract.address,
-      { [chainID1.toString()]: [] }
+      {}
     );
 
     // Anchor Denomination amount should go to TokenWrapper

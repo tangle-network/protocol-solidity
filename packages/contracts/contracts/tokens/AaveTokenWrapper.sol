@@ -8,7 +8,6 @@ pragma solidity ^0.8.0;
 import "../interfaces/tokens/IAaveTokenWrapper.sol";
 import "./FungibleTokenWrapper.sol";
 import "../interfaces/external/aave/IAaveLendingPool.sol";
-import "hardhat/console.sol";
 
 /**
     @title An AaveTokenWrapper system that deposits/withdraws into Aave lending pools
