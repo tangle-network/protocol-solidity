@@ -884,16 +884,17 @@ describe('2-sided multichain tests for signature vbridge', () => {
         );
         console.log('after first assert')
 
-        //Withdraw UTXO
+        // Withdraw UTXO
         const vAnchor1TokenAddr = await vAnchor1.contract.token();
         await existingToken1.mintTokens(vAnchor1TokenAddr, '100000000');
         const balWrapper1UnwrappedBefore = await existingToken1.contract.balanceOf(
           vAnchor1TokenAddr
         );
+        console.log('balWrapper1UnwrappedBefore: ', balWrapper1UnwrappedBefore.toString())
         const hardhatWithdrawUtxo = await CircomUtxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
-          amount: (10e7).toString(),
+          amount: (1e7).toString(),
           originChainId: chainID1.toString(),
           chainId: chainID1.toString(),
         });
@@ -908,14 +909,10 @@ describe('2-sided multichain tests for signature vbridge', () => {
           signers[1]
         );
         //Check relevant balances
-        //Unwrapped Balance of signers[2] should be 3e7
+        //Unwrapped Balance of signers[2] should be 4e7
         const balSigners2Unwrapped = await existingToken1.contract.balanceOf(
           await signers[2].getAddress()
         );
-        const balSigners2Wrapped = await webbToken1.contract.balanceOf(
-          await signers[2].getAddress()
-        );
-        console.log(balSigners2Wrapped);
         console.log('b4 second assert')
         assert.strictEqual(balSigners2Unwrapped.toString(), BigNumber.from(4e7).toString());
         console.log('after second assert')
