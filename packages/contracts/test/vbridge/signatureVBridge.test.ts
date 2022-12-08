@@ -946,22 +946,22 @@ describe('2-sided multichain tests for signature vbridge', () => {
           curve: 'Bn254',
           backend: 'Circom',
           amount: (2e7).toString(),
-          originChainId: chainID1.toString(),
-          chainId: chainID2.toString(),
+          originChainId: chainID2.toString(),
+          chainId: chainID1.toString(),
         });
         const ganacheDepositUtxo2 = await CircomUtxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (2e7).toString(),
-          originChainId: chainID1.toString(),
-          chainId: chainID2.toString(),
+          originChainId: chainID2.toString(),
+          chainId: chainID1.toString(),
         });
         const ganacheDepositUtxo3 = await CircomUtxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (2e7).toString(),
-          originChainId: chainID1.toString(),
-          chainId: chainID2.toString(),
+          originChainId: chainID2.toString(),
+          chainId: chainID1.toString(),
         });
 
         await vBridge.transact(
@@ -971,8 +971,8 @@ describe('2-sided multichain tests for signature vbridge', () => {
           0,
           '0',
           '0',
-          existingToken1.contract.address,
-          signers[1]
+          existingToken2.contract.address,
+          ganacheWallet2,
         );
 
         await vBridge.transact(
@@ -982,8 +982,8 @@ describe('2-sided multichain tests for signature vbridge', () => {
           0,
           '0',
           '0',
-          existingToken1.contract.address,
-          signers[1]
+          existingToken2.contract.address,
+          ganacheWallet2,
         );
 
         await vBridge.transact(
@@ -993,8 +993,8 @@ describe('2-sided multichain tests for signature vbridge', () => {
           0,
           '0',
           '0',
-          existingToken1.contract.address,
-          signers[1]
+          existingToken2.contract.address,
+          ganacheWallet2,
         );
 
         const webbTokenAddress2 = vBridge.getWebbTokenAddress(chainID2);
