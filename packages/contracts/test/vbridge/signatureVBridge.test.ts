@@ -775,6 +775,18 @@ describe('2-sided multichain tests for signature vbridge', () => {
 
       it('should transact and wrap with native', async () => {
         const signers = await ethers.getSigners();
+        const webbTokenAddress = vBridge.getWebbTokenAddress(chainID1);
+        const webbToken = await MintableToken.tokenFromAddress(webbTokenAddress!, signers[1]);
+        console.log('after transact signer balance token: ', await webbToken.getBalance(await signers[1].getAddress()))
+        console.log('before transact signer balance eth: ', await ethers.provider.getBalance(await signers[1].getAddress()))
+        const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
+        const vAnchor1Address = vAnchor1.contract.address;
+        console.log('after transact vanchor1 balance token: ', await webbToken.getBalance(vAnchor1Address))
+        console.log('before transact vanchor1 balance eth: ', await ethers.provider.getBalance(vAnchor1Address))
+        const vAnchor2: VAnchor = vBridge.getVAnchor(chainID2)! as VAnchor;
+        const vAnchor2Address = vAnchor2.contract.address;
+        console.log('after transact vanchor2 balance token: ', await webbToken.getBalance(vAnchor2Address))
+        console.log('before transact vanchor2 balance eth: ', await ethers.provider.getBalance(vAnchor2Address))
         //Deposit UTXO
         const hardhatDepositUtxo1 = await CircomUtxo.generateUtxo({
           curve: 'Bn254',
@@ -783,6 +795,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
           originChainId: chainID1.toString(),
           chainId: chainID2.toString(),
         });
+        const b4EthBalance = await ethers.provider.getBalance(await signers[1].getAddress())
 
         await vBridge.transact(
           [],
@@ -794,9 +807,21 @@ describe('2-sided multichain tests for signature vbridge', () => {
           '0x0000000000000000000000000000000000000000',
           signers[1]
         );
+        // const afterEthBalance = await ethers.provider.getBalance(await signers[1].getAddress())
+        // console.log('after transact signer balance token: ', await webbToken.getBalance(await signers[1].getAddress()))
+        // console.log('after transact signer balance eth: ', await ethers.provider.getBalance(await signers[1].getAddress()))
+        // console.log('after transact vanchor1 balance token: ', await webbToken.getBalance(vAnchor1Address))
+        // console.log('after transact vanchor1 balance eth: ', await ethers.provider.getBalance(vAnchor1Address))
+        // console.log('after transact vanchor2 balance token: ', await webbToken.getBalance(vAnchor2Address))
+        // console.log('after transact vanchor2 balance eth: ', await ethers.provider.getBalance(vAnchor2Address))
+        // console.log('delta eth: ', b4EthBalance.sub(afterEthBalance))
+        // console.log('delta eth magnitude: ', b4EthBalance.sub(afterEthBalance).toString().length)
+        // console.log('deposit size: ', (2.5e7).toString())
+        // console.log('delta eth - depositsize: ', b4EthBalance.sub(afterEthBalance).sub(2.5e7))
+        // assert(false)
       });
 
-      it('wrap and deposit, withdraw and unwrap works join split via transact and wrap', async () => {
+      it.only('wrap and deposit, withdraw and unwrap works join split via transact and wrap', async () => {
         const signers = await ethers.getSigners();
 
         const vAnchor1: VAnchor = vBridge.getVAnchor(chainID1)! as VAnchor;
@@ -821,6 +846,12 @@ describe('2-sided multichain tests for signature vbridge', () => {
           originChainId: chainID1.toString(),
           chainId: chainID2.toString(),
         });
+        const webbTokenAddress2 = vBridge.getWebbTokenAddress(chainID2);
+        const webbToken2 = await MintableToken.tokenFromAddress(webbTokenAddress2!, ganacheWallet2);
+        console.log('before transact balance token1: ', await webbToken1.getBalance(vAnchor2Address))
+        console.log('before transact balance token2: ', await webbToken2.getBalance(vAnchor2Address))
+        const b4EthBalance = await ethers.provider.getBalance(vAnchor2Address)
+        console.log('before transact balance eth: ', b4EthBalance)
         await vBridge.transact(
           [],
           [ganacheDepositUtxo1, ganacheDepositUtxo2],
@@ -831,12 +862,27 @@ describe('2-sided multichain tests for signature vbridge', () => {
           existingToken1.contract.address,
           signers[1]
         );
-        const webbTokenAddress2 = vBridge.getWebbTokenAddress(chainID2);
-        const webbToken2 = await MintableToken.tokenFromAddress(webbTokenAddress2!, ganacheWallet2);
+        console.log('b4 first assert')
+        const afterEthBalance = await ethers.provider.getBalance(vAnchor2Address)
+        console.log('after transact signer balance token1: ', await webbToken1.getBalance(await signers[1].getAddress()))
+        console.log('after transact signer balance token2: ', await webbToken2.getBalance(await signers[1].getAddress()))
+        console.log('after transact signer balance eth: ', await ethers.provider.getBalance(await signers[1].getAddress()))
+        console.log('after transact vanchor1 balance token1: ', await webbToken1.getBalance(vAnchor1Address))
+        console.log('after transact vanchor1 balance token2: ', await webbToken2.getBalance(vAnchor1Address))
+        console.log('after transact vanchor1 balance eth: ', await ethers.provider.getBalance(vAnchor1Address))
+        console.log('after transact vanchor2 balance token1: ', await webbToken1.getBalance(vAnchor2Address))
+        console.log('after transact vanchor2 balance token2: ', await webbToken2.getBalance(vAnchor2Address))
+        console.log('after transact vanchor2 balance eth: ', await ethers.provider.getBalance(vAnchor2Address))
+        console.log('delta eth: ', b4EthBalance.sub(afterEthBalance))
+        console.log('delta eth magnitude: ', b4EthBalance.sub(afterEthBalance).toString().length)
+        console.log('deposit size: ', (2.5e7).toString())
+        console.log('delta eth - depositsize: ', b4EthBalance.sub(afterEthBalance).sub(2.5e7))
+
         assert.strictEqual(
-          (await webbToken2.getBalance(vAnchor2Address)).toString(),
+          (await webbToken1.getBalance(vAnchor1Address)).toString(),
           BigNumber.from(6e7).toString()
         );
+        console.log('after first assert')
 
         //Withdraw UTXO
         const vAnchor1TokenAddr = await vAnchor1.contract.token();
@@ -847,7 +893,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         const hardhatWithdrawUtxo = await CircomUtxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
-          amount: (1e7).toString(),
+          amount: (10e7).toString(),
           originChainId: chainID1.toString(),
           chainId: chainID1.toString(),
         });
@@ -866,15 +912,19 @@ describe('2-sided multichain tests for signature vbridge', () => {
         const balSigners2Unwrapped = await existingToken1.contract.balanceOf(
           await signers[2].getAddress()
         );
+        console.log('b4 second assert')
         assert.strictEqual(balSigners2Unwrapped.toString(), BigNumber.from(4e7).toString());
+        console.log('after second assert')
         //Unwrapped balance of vanchor1tokenaddr should be
         const balWrapper1UnwrappedAfter = await existingToken1.contract.balanceOf(
           vAnchor1TokenAddr
         );
+        console.log('b4 third assert')
         assert.strictEqual(
           balWrapper1UnwrappedBefore.sub(BigNumber.from(4e7)).toString(),
           balWrapper1UnwrappedAfter.toString()
         );
+        console.log('after forth assert')
         //wrapped balance of vanchor1 should be 1e7
         const balVAnchor1Wrapped = await webbToken1.getBalance(vAnchor1.contract.address);
         assert.strictEqual(balVAnchor1Wrapped.toString(), BigNumber.from(1e7).toString());
