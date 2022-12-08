@@ -836,15 +836,15 @@ describe('2-sided multichain tests for signature vbridge', () => {
           curve: 'Bn254',
           backend: 'Circom',
           amount: (2.5e7).toString(),
-          originChainId: chainID1.toString(),
-          chainId: chainID2.toString(),
+          originChainId: chainID2.toString(),
+          chainId: chainID1.toString(),
         });
         const ganacheDepositUtxo2 = await CircomUtxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (2.5e7).toString(),
-          originChainId: chainID1.toString(),
-          chainId: chainID2.toString(),
+          originChainId: chainID2.toString(),
+          chainId: chainID1.toString(),
         });
         const webbTokenAddress2 = vBridge.getWebbTokenAddress(chainID2);
         const webbToken2 = await MintableToken.tokenFromAddress(webbTokenAddress2!, ganacheWallet2);
@@ -859,8 +859,8 @@ describe('2-sided multichain tests for signature vbridge', () => {
           0,
           '0',
           '0',
-          existingToken1.contract.address,
-          signers[1]
+          existingToken2.contract.address,
+          ganacheWallet2,
         );
         console.log('b4 first assert')
         const afterEthBalance = await ethers.provider.getBalance(vAnchor2Address)
@@ -879,7 +879,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         console.log('delta eth - depositsize: ', b4EthBalance.sub(afterEthBalance).sub(2.5e7))
 
         assert.strictEqual(
-          (await webbToken1.getBalance(vAnchor1Address)).toString(),
+          (await webbToken2.getBalance(vAnchor2Address)).toString(),
           BigNumber.from(6e7).toString()
         );
         console.log('after first assert')
