@@ -912,6 +912,10 @@ describe('2-sided multichain tests for signature vbridge', () => {
         const balSigners2Unwrapped = await existingToken1.contract.balanceOf(
           await signers[2].getAddress()
         );
+        const balSigners2Wrapped = await webbToken1.contract.balanceOf(
+          await signers[2].getAddress()
+        );
+        console.log(balSigners2Wrapped);
         console.log('b4 second assert')
         assert.strictEqual(balSigners2Unwrapped.toString(), BigNumber.from(4e7).toString());
         console.log('after second assert')
