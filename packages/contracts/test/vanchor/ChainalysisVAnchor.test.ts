@@ -159,6 +159,7 @@ describe('ChainalysisVAnchor', () => {
           0,
           '0',
           '0',
+          '',
           {}
         )
       ).to.be.revertedWith('SanctionFilter: Sanctioned address');

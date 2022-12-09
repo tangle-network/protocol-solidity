@@ -10,7 +10,7 @@ pragma solidity ^0.8.0;
     @author Webb Technologies.
  */
 interface IRegistry {
-    /**
+	/**
         @notice Registers a new token and deploys the FungibleTokenWrapper contract
         @param _nonce The nonce of the proposal
         @param _handler The address of the token handler contract
@@ -22,19 +22,19 @@ interface IRegistry {
         @param _limit The maximum amount of tokens that can be wrapped
         @param _isNativeAllowed Whether or not native tokens are allowed to be wrapped
      */
-    function registerToken(
-        uint32 _nonce,
-        address _handler,
-        uint256 _assetIdentifier,
-        string memory _name,
-        string memory _symbol,
-        bytes32 _salt,
-        uint256 _limit,
-        uint16 _feePercentage,
-        bool _isNativeAllowed
-    ) external;
+	function registerToken(
+		uint32 _nonce,
+		address _handler,
+		uint256 _assetIdentifier,
+		string memory _name,
+		string memory _symbol,
+		bytes32 _salt,
+		uint256 _limit,
+		uint16 _feePercentage,
+		bool _isNativeAllowed
+	) external;
 
-    /**
+	/**
         @notice Registers a new NFT token and deploys the NftTokenWrapper contract
         @param _nonce The nonce of the proposal
         @param _handler The address of the token handler contract
@@ -42,23 +42,23 @@ interface IRegistry {
         @param _uri The uri for the wrapped NFT
         @param _salt Salt used for matching addresses across chain using CREATE2
      */
-    function registerNftToken(
-        uint32 _nonce,
-        address _handler,
-        uint256 _assetIdentifier,
-        string memory _uri,
-        bytes32 _salt
-    ) external;
+	function registerNftToken(
+		uint32 _nonce,
+		address _handler,
+		uint256 _assetIdentifier,
+		string memory _uri,
+		bytes32 _salt
+	) external;
 
-    /**
+	/**
         @notice Fetches the address for an asset ID
         @param _assetId The asset ID
      */
-    function getAssetAddress(uint256 _assetId) external view returns (address);
+	function getAssetAddress(uint256 _assetId) external view returns (address);
 
-    /**
+	/**
         @notice Fetches the asset ID for an address
         @param _address The address
      */
-    function getAssetId(address _address) external view returns (uint256);
+	function getAssetId(address _address) external view returns (uint256);
 }

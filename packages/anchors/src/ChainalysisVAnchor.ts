@@ -34,6 +34,11 @@ export class ChainalysisVAnchor extends VAnchor {
     );
     createdVAnchor.latestSyncedBlock = vAnchor.deployTransaction.blockNumber!;
     createdVAnchor.token = token;
+    const tx = await createdVAnchor.contract.initialize(
+      BigNumber.from('1'),
+      BigNumber.from(2).pow(256).sub(1)
+    );
+    await tx.wait();
     return createdVAnchor;
   }
 }

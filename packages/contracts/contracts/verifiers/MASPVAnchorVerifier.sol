@@ -14,7 +14,6 @@ contract MASPVAnchorVerifier is IAnchorVerifier {
 
 	IMASPVAnchorVerifier8_2 public v8_2;
 	IMASPVAnchorVerifier8_16 public v8_16;
-	
 
 	constructor(
 		IMASPVAnchorVerifier2_2 _verifier_2_2,
@@ -35,7 +34,7 @@ contract MASPVAnchorVerifier is IAnchorVerifier {
 		bytes memory input,
 		uint8 maxEdges,
 		bool smallInputs
-	) override external view returns (bool r) {
+	) external view override returns (bool r) {
 		if (maxEdges == 1) {
 			if (smallInputs) {
 				uint256[10] memory _inputs = abi.decode(input, (uint256[10]));

@@ -10,23 +10,29 @@ pragma solidity ^0.8.0;
     @author Webb Technologies.
  */
 contract ProposalNonceTracker {
-    uint256 public proposalNonce;
+	uint256 public proposalNonce;
 
-    modifier onlyIncrementingByOne(uint nonce) {
-        require(proposalNonce < nonce, "ProposalNonceTracker: Invalid nonce");
-        require(nonce <= proposalNonce + 1, "ProposalNonceTracker: Nonce must not increment more than 1");
-        proposalNonce = nonce;
-        _;
-    }
+	modifier onlyIncrementingByOne(uint nonce) {
+		require(proposalNonce < nonce, "ProposalNonceTracker: Invalid nonce");
+		require(
+			nonce <= proposalNonce + 1,
+			"ProposalNonceTracker: Nonce must not increment more than 1"
+		);
+		proposalNonce = nonce;
+		_;
+	}
 
-    modifier onlyIncrementingByAtMost1048(uint nonce) {
-        require(proposalNonce < nonce, "ProposalNonceTracker: Invalid nonce");
-        require(nonce <= proposalNonce + 1048, "ProposalNonceTracker: Nonce must not increment more than 1");
-        proposalNonce = nonce;
-        _;
-    }
+	modifier onlyIncrementingByAtMost1048(uint nonce) {
+		require(proposalNonce < nonce, "ProposalNonceTracker: Invalid nonce");
+		require(
+			nonce <= proposalNonce + 1048,
+			"ProposalNonceTracker: Nonce must not increment more than 1"
+		);
+		proposalNonce = nonce;
+		_;
+	}
 
-    function getProposalNonce() external view returns (uint256) {
-        return proposalNonce;
-    }
+	function getProposalNonce() external view returns (uint256) {
+		return proposalNonce;
+	}
 }

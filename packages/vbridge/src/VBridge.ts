@@ -338,6 +338,7 @@ export class VBridge {
     refund: BigNumberish,
     recipient: string,
     relayer: string,
+    wrapUnwrapToken: string,
     signer: ethers.Signer
   ) {
     const chainId = getChainIdType(await signer.getChainId());
@@ -362,26 +363,38 @@ export class VBridge {
       }
     }
 
-    const tokenAddress = await vAnchor.contract.token();
+    const webbTokenAddress = await vAnchor.contract.token();
 
-    if (!tokenAddress) {
+    if (!webbTokenAddress) {
       throw new Error('Token not supported');
     }
-
-    const tokenInstance = await MintableToken.tokenFromAddress(tokenAddress, signer);
 
     const extAmount = BigNumber.from(fee)
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
 
     const publicAmount = extAmount.sub(fee);
-    // Approve spending if needed
-    const userTokenAllowance = await tokenInstance.getAllowance(
-      signerAddress,
-      vAnchor.contract.address
-    );
-    if (userTokenAllowance.lt(publicAmount)) {
-      await tokenInstance.approveSpending(vAnchor.contract.address);
+
+    // If the wrapUnwrapToken is unspecified ('') then we assume that
+    // the user is trying to transact directly with the webbToken. We instead
+    // check if the anchor's allowed to spend webbToken funds from the user.
+    if (wrapUnwrapToken.length === 0) {
+      const tokenInstance = await MintableToken.tokenFromAddress(webbTokenAddress, signer);
+      const userTokenAllowance = await tokenInstance.getAllowance(
+        signerAddress,
+        vAnchor.contract.address
+      );
+      if (userTokenAllowance.lt(publicAmount)) {
+        await tokenInstance.approveSpending(vAnchor.contract.address, publicAmount);
+      }
+
+      wrapUnwrapToken = webbTokenAddress;
+    } else if (wrapUnwrapToken != zeroAddress) {
+      const tokenInstance = await MintableToken.tokenFromAddress(wrapUnwrapToken, signer);
+      const userTokenAllowance = await tokenInstance.getAllowance(signerAddress, webbTokenAddress);
+      if (userTokenAllowance.lt(publicAmount)) {
+        await tokenInstance.approveSpending(webbTokenAddress, publicAmount);
+      }
     }
 
     // Populate the leaves map
@@ -420,105 +433,14 @@ export class VBridge {
       );
     }
 
-    await vAnchor.transact(inputs, outputs, leavesMap, fee, refund, recipient, relayer);
-    await this.update(chainId);
-  }
-
-  //token address is address of unwrapped erc20
-  public async transactWrap(
-    tokenAddress: string,
-    inputs: Utxo[],
-    outputs: Utxo[],
-    fee: BigNumberish,
-    refund: BigNumberish,
-    recipient: string,
-    relayer: string,
-    signer: ethers.Signer
-  ) {
-    const chainId = getChainIdType(await signer.getChainId());
-    const signerAddress = await signer.getAddress();
-    const vAnchor = this.getVAnchor(chainId);
-    if (!vAnchor) {
-      throw new Error('VAnchor does not exist on this chain');
-    }
-    await vAnchor.setSigner(signer);
-
-    //do we have to check if amount is greater than 0 before the checks?
-    //Check that input dest chain is this chain
-    for (let i = 0; i < inputs.length; i++) {
-      if (inputs[i].chainId.toString() !== chainId.toString()) {
-        throw new Error('Trying to spend an input with wrong destination chainId');
-      }
-    }
-
-    //check that output origin chain is this chain
-    for (let i = 0; i < outputs.length; i++) {
-      if (outputs[i].originChainId.toString() !== chainId.toString()) {
-        throw new Error('Trying to form an output with the wrong originChainId');
-      }
-    }
-
-    const extAmount = BigNumber.from(fee)
-      .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
-      .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
-
-    const publicAmount = extAmount.sub(fee);
-
-    // Approve spending if needed
-    const webbTokenAddress = await vAnchor.contract.token();
-    if (tokenAddress != zeroAddress) {
-      const tokenInstance = await MintableToken.tokenFromAddress(tokenAddress, signer);
-      const userTokenAllowance = await tokenInstance.getAllowance(
-        signerAddress,
-        vAnchor.contract.address
-      );
-      if (userTokenAllowance.lt(publicAmount)) {
-        await tokenInstance.approveSpending(webbTokenAddress);
-      }
-    }
-
-    // Populate the leaves map
-    const leavesMap: Record<string, Uint8Array[]> = {};
-    leavesMap[chainId] = vAnchor.tree
-      .elements()
-      .map((commitment) => hexToU8a(commitment.toHexString()));
-
-    for (let input of inputs) {
-      const inputTree = this.getVAnchor(Number(input.originChainId)).tree;
-
-      if (!leavesMap[input.originChainId]) {
-        leavesMap[input.originChainId] = inputTree
-          .elements()
-          .map((commitment) => hexToU8a(commitment.toHexString()));
-      }
-
-      // update the utxo with the proper index
-      const utxoIndex = inputTree.getIndexByElement(u8aToHex(input.commitment));
-      input.setIndex(utxoIndex);
-    }
-
-    // Create dummy UTXOs to satisfy the circuit
-    while (inputs.length !== 2 && inputs.length < 16) {
-      inputs.push(
-        await CircomUtxo.generateUtxo({
-          curve: 'Bn254',
-          backend: 'Circom',
-          chainId: chainId.toString(),
-          originChainId: chainId.toString(),
-          index: '0',
-          amount: '0',
-        })
-      );
-    }
-
-    await vAnchor.transactWrap(
-      tokenAddress,
+    await vAnchor.transact(
       inputs,
       outputs,
       fee,
       refund,
       recipient,
       relayer,
+      wrapUnwrapToken,
       leavesMap
     );
     await this.update(chainId);

@@ -16,34 +16,37 @@ pragma solidity ^0.8.0;
     to control the minimal and maximum withdrawal and deposit limits respectively.
  */
 interface ILinkableAnchor {
-    /**
+	/**
         @notice Sets the handler for updating edges and other contract state
         @param handler The new handler address
         @param nonce The nonce for tracking update counts
      */
-    function setHandler(address handler, uint32 nonce) external;
+	function setHandler(address handler, uint32 nonce) external;
 
-    /**
+	/**
         @notice Sets the minimal withdrawal limit for the anchor
         @param minimalWithdrawalAmount The new minimal withdrawal limit
      */
-    function configureMinimalWithdrawalLimit(uint256 minimalWithdrawalAmount, uint32 nonce) external;
+	function configureMinimalWithdrawalLimit(
+		uint256 minimalWithdrawalAmount,
+		uint32 nonce
+	) external;
 
-    /**
+	/**
         @notice Sets the maximal deposit limit for the anchor
         @param maximumDepositAmount The new maximal deposit limit
      */
-    function configureMaximumDepositLimit(uint256 maximumDepositAmount, uint32 nonce) external;
-    
-    /**
+	function configureMaximumDepositLimit(uint256 maximumDepositAmount, uint32 nonce) external;
+
+	/**
         @notice The function is used to update the edge data of a LinkableAnchor
         @param root The merkle root of the linked anchor on the  `sourceChainID`'s chain
         @param latestLeafIndex The index of the leaf updating the merkle tree with root `root`
-        @param target The target resource ID of the linked anchor
+        @param srcResourceID The source resource ID of the linked anchor where the update originates from
      */
-    function updateEdge(
-        bytes32 root,
-        uint32 latestLeafIndex,
-        bytes32 target
-    ) external payable;
+	function updateEdge(
+		uint256 root,
+		uint32 latestLeafIndex,
+		bytes32 srcResourceID
+	) external payable;
 }

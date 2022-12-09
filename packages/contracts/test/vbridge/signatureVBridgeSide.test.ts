@@ -92,7 +92,7 @@ describe('SignatureBridgeSide use', () => {
       zkComponents16_2,
       admin
     );
-    await tokenInstance.approveSpending(anchor.contract.address);
+    await tokenInstance.approveSpending(anchor.contract.address, BigNumber.from(1e7));
     bridgeSide.setAnchorHandler(anchorHandler);
     // Function call below sets resource with signature
     await bridgeSide.connectAnchorWithSignature(anchor);
@@ -128,7 +128,7 @@ describe('SignatureBridgeSide use', () => {
       admin
     );
 
-    await tokenInstance.approveSpending(srcAnchor.contract.address);
+    await tokenInstance.approveSpending(srcAnchor.contract.address, BigNumber.from(1e7));
 
     bridgeSide.setAnchorHandler(anchorHandler);
     const res = await bridgeSide.connectAnchorWithSignature(srcAnchor);
@@ -146,21 +146,15 @@ describe('SignatureBridgeSide use', () => {
     const depositUtxo = await CircomUtxo.generateUtxo({
       curve: 'Bn254',
       backend: 'Circom',
-      amount: (1e7).toString(),
+      amount: BigNumber.from(1e7).toString(),
       originChainId: chainID1.toString(),
       chainId: chainID1.toString(),
       keypair: new Keypair(),
     });
     // Transact on the bridge
-    await srcAnchor.transact(
-      [],
-      [depositUtxo],
-      { [chainID1.toString()]: [] },
-      '0',
-      '0',
-      zeroAddress,
-      zeroAddress
-    );
+    await srcAnchor.transact([], [depositUtxo], '0', '0', zeroAddress, zeroAddress, '', {
+      [chainID1.toString()]: [],
+    });
   });
 
   it('execute fee proposal', async () => {
@@ -456,7 +450,7 @@ describe('SignatureBridgeSide use', () => {
       admin
     );
 
-    await tokenInstance.approveSpending(anchor.contract.address);
+    await tokenInstance.approveSpending(anchor.contract.address, BigNumber.from(1e7));
 
     await bridgeSide.setAnchorHandler(anchorHandler);
     // Function call below sets resource with signature
@@ -622,8 +616,10 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
     );
 
     await fungibleToken.grantMinterRole(srcAnchor.contract.address);
-    await erc20TokenInstance.approveSpending(fungibleToken.contract.address);
-    await erc20TokenInstance.approveSpending(srcAnchor.contract.address);
+    let amountToWrap = await fungibleToken.contract.getAmountToWrap(
+      BigNumber.from(1e7)
+    );
+    await erc20TokenInstance.approveSpending(fungibleToken.contract.address, amountToWrap);
     bridgeSide.setAnchorHandler(anchorHandler);
     const res = await bridgeSide.connectAnchorWithSignature(srcAnchor);
     await bridgeSide.executeMinWithdrawalLimitProposalWithSig(
@@ -646,15 +642,15 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
     });
 
     await TruffleAssert.reverts(
-      srcAnchor.transactWrap(
-        erc20TokenInstance.contract.address,
+      srcAnchor.transact(
         [],
         [depositUtxo],
         '0',
         '0',
         zeroAddress,
         zeroAddress,
-        { [chainID1.toString()]: [] }
+        erc20TokenInstance.contract.address,
+        {}
       ),
       'Fee Recipient cannot be zero address'
     );
@@ -662,16 +658,17 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
     // Change Fee Recipient to treasury Address
     await bridgeSide.executeFeeRecipientProposalWithSig(fungibleToken, treasury.contract.address);
 
+
     // For ERC20 Tests
-    await srcAnchor.transactWrap(
-      erc20TokenInstance.contract.address,
+    await srcAnchor.transact(
       [],
       [depositUtxo],
       '0',
       '0',
       zeroAddress,
       zeroAddress,
-      { [chainID1.toString()]: [] }
+      erc20TokenInstance.contract.address,
+      {}
     );
 
     // Anchor Denomination amount should go to TokenWrapper
@@ -892,7 +889,7 @@ describe('Rescue Tokens Tests for Native ETH', () => {
     });
 
     await TruffleAssert.reverts(
-      srcAnchor.transactWrap(zeroAddress, [], [depositUtxo], '0', '0', zeroAddress, zeroAddress, {
+      srcAnchor.transact([], [depositUtxo], '0', '0', zeroAddress, zeroAddress, zeroAddress, {
         [chainID1.toString()]: [],
       }),
       'Fee Recipient cannot be zero address'
@@ -902,16 +899,9 @@ describe('Rescue Tokens Tests for Native ETH', () => {
     await bridgeSide.executeFeeRecipientProposalWithSig(fungibleToken, treasury.contract.address);
 
     // For Native ETH Tests
-    await srcAnchor.transactWrap(
-      zeroAddress,
-      [],
-      [depositUtxo],
-      '0',
-      '0',
-      zeroAddress,
-      zeroAddress,
-      { [chainID1.toString()]: [] }
-    );
+    await srcAnchor.transact([], [depositUtxo], '0', '0', zeroAddress, zeroAddress, zeroAddress, {
+      [chainID1.toString()]: [],
+    });
 
     // Anchor Denomination amount should go to TokenWrapper
     assert.strictEqual(

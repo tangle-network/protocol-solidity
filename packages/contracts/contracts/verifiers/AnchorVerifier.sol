@@ -28,6 +28,7 @@ contract Verifier is IAnchorVerifier {
 		v5 = _verifier5;
 		v6 = _verifier6;
 	}
+
 	function verifyProof(
 		uint[2] memory a,
 		uint[2][2] memory b,
@@ -35,7 +36,7 @@ contract Verifier is IAnchorVerifier {
 		bytes memory input,
 		uint8 maxEdges,
 		bool
-	) override external view returns (bool r) {
+	) external view override returns (bool r) {
 		if (maxEdges == 1) {
 			uint256[5] memory _inputs = abi.decode(input, (uint256[5]));
 			return v2.verifyProof(a, b, c, _inputs);

@@ -8,11 +8,11 @@ import "../interfaces/external/chainalysis/ISanctionsList.sol";
 pragma solidity ^0.8.0;
 
 contract SanctionFilter {
-    address constant SANCTIONS_CONTRACT = 0x40C57923924B5c5c5455c48D93317139ADDaC8fb;
+	address constant SANCTIONS_CONTRACT = 0x40C57923924B5c5c5455c48D93317139ADDaC8fb;
 
-    modifier isNotSanctioned(address addr) {
-        ISanctionsList sanctionsList = ISanctionsList(SANCTIONS_CONTRACT);
-        require(!sanctionsList.isSanctioned(addr), "SanctionFilter: Sanctioned address");
-        _;
-    }
+	modifier isNotSanctioned(address addr) {
+		ISanctionsList sanctionsList = ISanctionsList(SANCTIONS_CONTRACT);
+		require(!sanctionsList.isSanctioned(addr), "SanctionFilter: Sanctioned address");
+		_;
+	}
 }

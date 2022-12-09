@@ -2,8 +2,9 @@
  * Copyright 2021-2022 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
-// @ts-nocheck
+import { BigNumber } from 'ethers';
 import { artifacts, contract, assert } from 'hardhat';
+import { toFixedHex } from '@webb-tools/sdk-core';
 const TruffleAssert = require('truffle-assertions');
 
 const Anchor = artifacts.require('LinkableAnchorMock');
@@ -51,7 +52,7 @@ contract('LinkableAnchor - [update edges]', async (accounts) => {
       merkleTreeHeight,
       MAX_EDGES
     );
-
+    await AnchorInstance.initialize();
     setHandler = (handler, sender, proposalNonce) =>
       AnchorInstance.setHandler(handler, proposalNonce + 1, {
         from: sender,
@@ -111,26 +112,26 @@ contract('LinkableAnchor - [update edges]', async (accounts) => {
 
   it('getLatestNeighborRoots should return updated values', async () => {
     const edge = {
-      root: '0x1111111111111111111111111111111111111111111111111111111111111111',
+      root: BigNumber.from('0x1111111111111111111111111111111111111111111111111111111111111111'),
       latestLeafIndex: 100,
-      srcResourceID: '0x1111111111111111111111111111111111111111111111111111001000000001',
+      srcResourceID: '0x1111111111111111111111111111111111111111111111111111100000000001',
     };
     const edgeUpdated = {
-      root: '0x2222111111111111111111111111111111111111111111111111111111111111',
-      latestLeafIndex: 101,
-      srcResourceID: '0x1111111111111111111111111111111111111111111111111111001000000001',
+      root: BigNumber.from('0x2222111111111111111111111111111111111111111111111111111111111111'),
+      latestLeafIndex: BigNumber.from(101),
+      srcResourceID: '0x1111111111111111111111111111111111111111111111111111100000000001',
     };
     await TruffleAssert.passes(updateEdge(edge, accounts[0]));
 
     const roots = await AnchorInstance.getLatestNeighborRoots();
     assert.strictEqual(roots.length, 1);
-    assert.strictEqual(roots[0], edge.root);
+    assert.strictEqual(BigNumber.from(roots[0].toString()), edge.root);
 
     await TruffleAssert.passes(updateEdge(edgeUpdated, accounts[0]));
 
     const rootsUpdated = await AnchorInstance.getLatestNeighborRoots();
     assert.strictEqual(rootsUpdated.length, 1);
-    assert.strictEqual(rootsUpdated[0], edgeUpdated.root);
+    assert.strictEqual(BigNumber.from(rootsUpdated[0].toString()), edgeUpdated.root);
   });
 
   it('Updating edge should emit correct EdgeUpdate event', async () => {
@@ -141,18 +142,18 @@ contract('LinkableAnchor - [update edges]', async (accounts) => {
       srcResourceID: '0x1111111111111111111111111111111111111111111111111111100000000001',
     };
     const edgeUpdated = {
-      sourceChainID: '0x100000000001',
-      root: '0x2222111111111111111111111111111111111111111111111111111111111111',
-      latestLeafIndex: 101,
+      sourceChainID: BigNumber.from('0x100000000001'),
+      root: BigNumber.from('0x2222111111111111111111111111111111111111111111111111111111111111'),
+      latestLeafIndex: BigNumber.from(101),
       srcResourceID: '0x1111111111111111111111111111111111111111111111111111100000000001',
     };
     await updateEdge(edge, accounts[0]);
     const result = await updateEdge(edgeUpdated, accounts[0]);
     TruffleAssert.eventEmitted(result, 'EdgeUpdate', (ev) => {
       return (
-        ev.chainID == parseInt(edgeUpdated.sourceChainID, 16) &&
-        ev.latestLeafIndex == edgeUpdated.latestLeafIndex &&
-        ev.merkleRoot == edgeUpdated.root
+        ev.chainID.toString() == edgeUpdated.sourceChainID.toString() &&
+        ev.latestLeafIndex.toString() == edgeUpdated.latestLeafIndex.toString() &&
+        ev.merkleRoot.toString() == edgeUpdated.root.toString()
       );
     });
   });
