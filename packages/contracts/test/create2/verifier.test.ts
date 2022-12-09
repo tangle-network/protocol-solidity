@@ -8,43 +8,38 @@ const TruffleAssert = require('truffle-assertions');
 import {
   DeterministicDeployFactory as DeterministicDeployFactoryContract,
   DeterministicDeployFactory__factory,
+  ERC20PresetMinterPauser,
+  ERC20PresetMinterPauser__factory,
 } from '@webb-tools/contracts';
 
 import {
-  hexToU8a,
-  fetchComponentsFromFilePaths,
   getChainIdType,
-  ZkComponents,
-  u8aToHex,
 } from '@webb-tools/utils';
 import { startGanacheServer } from '@webb-tools/test-utils';
+import { PoseidonHasher } from '@webb-tools/anchors';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
-import {
-  Utxo,
-  Keypair,
-  MerkleTree,
-  randomBN,
-  toFixedHex,
-  generateVariableWitnessInput,
-  getVAnchorExtDataHash,
-  generateWithdrawProofCallData,
-  CircomUtxo,
-} from '@webb-tools/sdk-core';
-import { VAnchor, PoseidonHasher } from '@webb-tools/anchors';
 import { Verifier } from '@webb-tools/vbridge';
 import { writeFileSync } from 'fs';
 
 const path = require('path');
 
+const encoder = (types, values) => {
+    const abiCoder = ethers.utils.defaultAbiCoder;
+    const encodedParams = abiCoder.encode(types, values);
+    return encodedParams.slice(2);
+};
+
+const create2Address = (factoryAddress, saltHex, initCode) => {
+    const create2Addr = ethers.utils.getCreate2Address(factoryAddress, saltHex, ethers.utils.keccak256(initCode));
+    return create2Addr;
+
+}
+
 describe.only('Should deploy verifiers to the same address', () => {
-  let anchor: VAnchor;
   let deployer: DeterministicDeployFactoryContract;
 
-  const levels = 30;
-  let fee = BigInt('100000000000000000');
-  let recipient = '0x1111111111111111111111111111111111111111';
   let verifier1: Verifier;
   let verifier2: Verifier;
   let sender: SignerWithAddress;
@@ -87,7 +82,9 @@ describe.only('Should deploy verifiers to the same address', () => {
    })
 
   describe('#deploy deployer', () => {
-    it.only('should deploy to the same address', async () => {
+    it('should deploy to the same address', async () => {
+      console.log('sender: ', sender)
+      console.log('ganache: ', ganacheWallet1)
       const Deployer1 = new DeterministicDeployFactory__factory(sender)
       const deployer1 = await Deployer1.deploy();
       await deployer1.deployed();
@@ -101,6 +98,8 @@ describe.only('Should deploy verifiers to the same address', () => {
   describe('#deploy verifier', () => {
     let deployer1: DeterministicDeployFactoryContract
     let deployer2: DeterministicDeployFactoryContract
+    let poseidonHasher1: PoseidonHasher;
+    let poseidonHasher2: PoseidonHasher;
     before('should setup deployers', async () => {
       const Deployer1 = new DeterministicDeployFactory__factory(sender)
       deployer1 = await Deployer1.deploy();
@@ -111,7 +110,7 @@ describe.only('Should deploy verifiers to the same address', () => {
       await deployer2.deployed();
       assert.strictEqual(deployer1.address, deployer2.address)
     })
-    it.only('should deploy verifiers to the same address using different wallets', async () => {
+    it('should deploy verifiers to the same address using different wallets', async () => {
       const salt = '666'
       verifier1 = await Verifier.create2Verifier(deployer1, salt, sender);
       console.log("Verifier1 deployed to: ", verifier1.contract.address)
@@ -119,5 +118,40 @@ describe.only('Should deploy verifiers to the same address', () => {
       console.log("Verifier2 deployed to: ", verifier2.contract.address)
       assert.strictEqual(verifier1.contract.address, verifier2.contract.address)
     })
+    it('should deploy poseidonHasher to the same address using different wallets', async () => {
+      const salt = '666'
+      poseidonHasher1 = await PoseidonHasher.create2PoseidonHasher(deployer1, salt, sender);
+      console.log("poseidonHasher1 deployed to: ", poseidonHasher1.contract.address)
+      poseidonHasher2 = await PoseidonHasher.create2PoseidonHasher(deployer2, salt, ganacheWallet2);
+      console.log("poseidonHasher2 deployed to: ", poseidonHasher2.contract.address)
+      assert.strictEqual(poseidonHasher1.contract.address, poseidonHasher2.contract.address)
+    })
+    it('should deploy ERC20PresetMinterPauser to the same address using different wallets', async () => {
+      const salt = '666'
+      const saltHex = ethers.utils.id(salt)
+      const factory1 = new ERC20PresetMinterPauser__factory(sender)
+      const factory1Bytecode = factory1['bytecode']
+      const factory1InitCode = factory1Bytecode + encoder(['string', 'string'], ['test token', 'TEST'])
+      // const factory1Create2Addr = create2Address(deployer.address, saltHex, factory1InitCode)
+      const factory1Tx = await deployer1.deploy(factory1InitCode, saltHex);
+      const factory1Receipt = await factory1Tx.wait()
+      console.log("factory receipt", factory1Receipt.events)
+      const contract1 = await factory1.attach(factory1Receipt.events[factory1Receipt.events.length-1].args[0]);
+      // poseidonHasher1 = await PoseidonHasher.create2PoseidonHasher(deployer1, salt, sender);
+      console.log("tokenFactory1 deployed to: ", contract1.address)
+      const factory2 = new ERC20PresetMinterPauser__factory(ganacheWallet2)
+      const factory2Bytecode = factory2['bytecode']
+      const factory2InitCode = factory2Bytecode + encoder(['string', 'string'], ['test token', 'TEST'])
+      // const factory1Create2Addr = create2Address(deployer.address, saltHex, factory1InitCode)
+      const factory2Tx = await deployer2.deploy(factory2InitCode, saltHex);
+      const factory2Receipt = await factory2Tx.wait()
+      const contract2 = await factory1.attach(factory2Receipt.events[factory1Receipt.events.length-1].args[0]);
+      // poseidonHasher2 = await PoseidonHasher.create2PoseidonHasher(deployer2, salt, ganacheWallet2);
+      console.log("tokenFactory2 deployed to: ", contract2.address)
+      assert.strictEqual(contract1.address, contract2.address)
+    })
   })
+  after('terminate networks', async () => {
+    await ganacheServer2.close();
+  });
 });
