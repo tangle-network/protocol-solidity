@@ -10,6 +10,7 @@ import "../../structs/MultiAssetExtData.sol";
 import "../../libs/MASPVAnchorEncodeInputs.sol";
 import "../../interfaces/tokens/IRegistry.sol";
 import "../../trees/MerkleTree.sol";
+import "../../interfaces/tokens/INftTokenWrapper.sol";
 
 /**
 	@title Multi Asset Variable Anchor contract
@@ -75,9 +76,40 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		// Execute the wrapping
 		uint256 wrapAmount = _executeWrapping(_fromTokenAddress, _toTokenAddress, _amount);
 		// Create the record commitment
-		uint256 assetID = IRegistry(registry).getAssetId(_toTokenAddress);
-		uint256 commitment = IHasher(this.getHasher()).hash3(
-			[assetID, wrapAmount, uint256(partialCommitment)]
+		uint256 assetID = IRegistry(registry).getAssetIdFromWrappedAddress(_toTokenAddress);
+		require(assetID != 0, "Wrapped asset not registered");
+		uint256 commitment = IHasher(this.getHasher()).hash4(
+			[assetID, 0, wrapAmount, uint256(partialCommitment)]
+		);
+		_insertTwo(commitment, 0);
+		emit NewCommitment(commitment, 0, this.getNextIndex() - 2, encryptedCommitment);
+	}
+
+	/**
+		@notice Wraps and deposits in a single flow without a proof. Leads to a single non-zero UTXO.
+		@param _fromTokenAddress The address of the token to wrap from
+		@param _toTokenAddress The address of the token to wrap into
+		@param _tokenID Nft token ID
+		@param partialCommitment The partial commitment of the UTXO
+		@param encryptedCommitment The encrypted commitment of the partial UTXO
+	 */
+	function wrapAndDepositERC721(
+		address _fromTokenAddress,
+		address _toTokenAddress,
+		uint256 _tokenID,
+		bytes32 partialCommitment,
+		bytes memory encryptedCommitment
+	) public payable {
+		// Execute the wrapping
+		uint256 assetID = IRegistry(registry).getAssetIdFromWrappedAddress(_toTokenAddress);
+		// Check assetID is not 0
+		require(assetID != 0, "Wrapped asset not registered");
+		// Check wrapped and unwrapped addresses are consistent
+		require(IRegistry(registry).getUnwrappedAssetAddress(assetID) == _fromTokenAddress, "Wrapped and unwrapped addresses don't match");
+		INftTokenWrapper(_toTokenAddress).wrap721(_tokenID, _fromTokenAddress);
+		// Create the record commitment
+		uint256 commitment = IHasher(this.getHasher()).hash4(
+			[assetID, _tokenID, 1, uint256(partialCommitment)]
 		);
 		_insertTwo(commitment, 0);
 		emit NewCommitment(commitment, 0, this.getNextIndex() - 2, encryptedCommitment);
@@ -92,7 +124,7 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		Encryptions memory _encryptions
 	) public payable virtual override {
 		MASPAuxPublicInputs memory aux = abi.decode(_auxPublicInputs, (MASPAuxPublicInputs));
-		address wrappedToken = IRegistry(registry).getAssetAddress(aux.publicAssetID);
+		address wrappedToken = IRegistry(registry).getWrappedAssetAddress(aux.publicAssetID);
 		_transact(
 			wrappedToken,
 			_proof,
