@@ -91,8 +91,8 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		PublicInputs memory _publicInputs,
 		Encryptions memory _encryptions
 	) public payable virtual override {
-		AuxPublicInputs memory aux = abi.decode(_auxPublicInputs, (AuxPublicInputs));
-		address wrappedToken = IRegistry(registry).getAssetAddress(aux.assetID);
+		MASPAuxPublicInputs memory aux = abi.decode(_auxPublicInputs, (MASPAuxPublicInputs));
+		address wrappedToken = IRegistry(registry).getAssetAddress(aux.publicAssetID);
 		_transact(
 			wrappedToken,
 			_proof,
@@ -129,12 +129,10 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		CommonExtData memory _externalData,
 		Encryptions memory _encryptions
 	) internal virtual override returns (bytes32) {
-		AuxPublicInputs memory aux = abi.decode(_auxPublicInputs, (AuxPublicInputs));
 		return
 			keccak256(
 				abi.encode(
 					ExtData(
-						aux.assetID,
 						_externalData.recipient,
 						_externalData.extAmount,
 						_externalData.relayer,

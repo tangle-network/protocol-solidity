@@ -34,10 +34,12 @@ struct PublicInputs {
 
 /**
     @notice Auxiliary public input struct made up of deserializable values
-    @param assetID the public asset ID of the asset being deposited or withdrawn
+    @param publicAssetID the public asset ID of the asset being deposited or withdrawn
+	@param publicTokenID tokenID of Nft
  */
-struct AuxPublicInputs {
-	uint256 assetID;
+struct MASPAuxPublicInputs {
+	uint256 publicAssetID;
+	uint256 publicTokenID;
 }
 
 /**

@@ -53,10 +53,10 @@ library MASPVAnchorEncodeInputs {
 		uint256[] memory result = new uint256[](_maxEdges + 1);
 		bytes memory encodedInput;
 
-		AuxPublicInputs memory _aux = abi.decode(_auxPublicInputs, (AuxPublicInputs));
+		MASPAuxPublicInputs memory _aux = abi.decode(_auxPublicInputs, (MASPAuxPublicInputs));
 
 		if (_maxEdges == 1) {
-			uint256[10] memory inputs;
+			uint256[11] memory inputs;
 			uint256[2] memory roots = abi.decode(_args.roots, (uint256[2]));
 			// assign roots
 			result[0] = roots[0];
@@ -64,17 +64,18 @@ library MASPVAnchorEncodeInputs {
 			// assign input
 			inputs[0] = uint256(_args.publicAmount);
 			inputs[1] = uint256(_args.extDataHash);
-			inputs[2] = uint256(_aux.assetID);
-			inputs[3] = uint256(_args.inputNullifiers[0]);
-			inputs[4] = uint256(_args.inputNullifiers[1]);
-			inputs[5] = uint256(_args.outputCommitments[0]);
-			inputs[6] = uint256(_args.outputCommitments[1]);
-			inputs[7] = uint256(_chainId);
-			inputs[8] = uint256(roots[0]);
-			inputs[9] = uint256(roots[1]);
+			inputs[2] = uint256(_aux.publicAssetID);
+			inputs[3] = uint256(_aux.publicTokenID);
+			inputs[4] = uint256(_args.inputNullifiers[0]);
+			inputs[5] = uint256(_args.inputNullifiers[1]);
+			inputs[6] = uint256(_args.outputCommitments[0]);
+			inputs[7] = uint256(_args.outputCommitments[1]);
+			inputs[8] = uint256(_chainId);
+			inputs[9] = uint256(roots[0]);
+			inputs[10] = uint256(roots[1]);
 			encodedInput = abi.encodePacked(inputs);
 		} else if (_maxEdges == 7) {
-			uint256[16] memory inputs;
+			uint256[17] memory inputs;
 			uint256[8] memory roots = abi.decode(_args.roots, (uint256[8]));
 			// assign roots
 			result[0] = roots[0];
@@ -88,20 +89,21 @@ library MASPVAnchorEncodeInputs {
 			// assign input
 			inputs[0] = uint256(_args.publicAmount);
 			inputs[1] = uint256(_args.extDataHash);
-			inputs[2] = uint256(_aux.assetID);
-			inputs[3] = uint256(_args.inputNullifiers[0]);
-			inputs[4] = uint256(_args.inputNullifiers[1]);
-			inputs[5] = uint256(_args.outputCommitments[0]);
-			inputs[6] = uint256(_args.outputCommitments[1]);
-			inputs[7] = uint256(_chainId);
-			inputs[8] = uint256(roots[0]);
-			inputs[9] = uint256(roots[1]);
-			inputs[10] = uint256(roots[2]);
-			inputs[11] = uint256(roots[3]);
-			inputs[12] = uint256(roots[4]);
-			inputs[13] = uint256(roots[5]);
-			inputs[14] = uint256(roots[6]);
-			inputs[15] = uint256(roots[7]);
+			inputs[2] = uint256(_aux.publicAssetID);
+			inputs[3] = uint256(_aux.publicTokenID);
+			inputs[4] = uint256(_args.inputNullifiers[0]);
+			inputs[5] = uint256(_args.inputNullifiers[1]);
+			inputs[6] = uint256(_args.outputCommitments[0]);
+			inputs[7] = uint256(_args.outputCommitments[1]);
+			inputs[8] = uint256(_chainId);
+			inputs[9] = uint256(roots[0]);
+			inputs[10] = uint256(roots[1]);
+			inputs[11] = uint256(roots[2]);
+			inputs[12] = uint256(roots[3]);
+			inputs[13] = uint256(roots[4]);
+			inputs[14] = uint256(roots[5]);
+			inputs[15] = uint256(roots[6]);
+			inputs[16] = uint256(roots[7]);
 			encodedInput = abi.encodePacked(inputs);
 		} else {
 			require(false, "Invalid edges");
@@ -125,10 +127,10 @@ library MASPVAnchorEncodeInputs {
 		uint256[] memory result = new uint256[](_maxEdges + 1);
 		bytes memory encodedInput;
 
-		AuxPublicInputs memory _aux = abi.decode(_auxPublicInputs, (AuxPublicInputs));
+		MASPAuxPublicInputs memory _aux = abi.decode(_auxPublicInputs, (MASPAuxPublicInputs));
 
 		if (_maxEdges == 1) {
-			uint256[24] memory inputs;
+			uint256[25] memory inputs;
 			uint256[2] memory roots = abi.decode(_args.roots, (uint256[2]));
 			// assign roots
 			result[0] = roots[0];
@@ -137,31 +139,32 @@ library MASPVAnchorEncodeInputs {
 			//encodedInput = abi.encodePacked(inputs);
 			inputs[0] = uint256(_args.publicAmount);
 			inputs[1] = uint256(_args.extDataHash);
-			inputs[2] = uint256(_aux.assetID);
-			inputs[3] = uint256(_args.inputNullifiers[0]);
-			inputs[4] = uint256(_args.inputNullifiers[1]);
-			inputs[5] = uint256(_args.inputNullifiers[2]);
-			inputs[6] = uint256(_args.inputNullifiers[3]);
-			inputs[7] = uint256(_args.inputNullifiers[4]);
-			inputs[8] = uint256(_args.inputNullifiers[5]);
-			inputs[9] = uint256(_args.inputNullifiers[6]);
-			inputs[10] = uint256(_args.inputNullifiers[7]);
-			inputs[11] = uint256(_args.inputNullifiers[8]);
-			inputs[12] = uint256(_args.inputNullifiers[9]);
-			inputs[13] = uint256(_args.inputNullifiers[10]);
-			inputs[14] = uint256(_args.inputNullifiers[11]);
-			inputs[15] = uint256(_args.inputNullifiers[12]);
-			inputs[16] = uint256(_args.inputNullifiers[13]);
-			inputs[17] = uint256(_args.inputNullifiers[14]);
-			inputs[18] = uint256(_args.inputNullifiers[15]);
-			inputs[19] = uint256(_args.outputCommitments[0]);
-			inputs[20] = uint256(_args.outputCommitments[1]);
-			inputs[21] = uint256(_chainId);
-			inputs[22] = uint256(roots[0]);
-			inputs[23] = uint256(roots[1]);
+			inputs[2] = uint256(_aux.publicAssetID);
+			inputs[3] = uint256(_aux.publicTokenID);
+			inputs[4] = uint256(_args.inputNullifiers[0]);
+			inputs[5] = uint256(_args.inputNullifiers[1]);
+			inputs[6] = uint256(_args.inputNullifiers[2]);
+			inputs[7] = uint256(_args.inputNullifiers[3]);
+			inputs[8] = uint256(_args.inputNullifiers[4]);
+			inputs[9] = uint256(_args.inputNullifiers[5]);
+			inputs[10] = uint256(_args.inputNullifiers[6]);
+			inputs[11] = uint256(_args.inputNullifiers[7]);
+			inputs[12] = uint256(_args.inputNullifiers[8]);
+			inputs[13] = uint256(_args.inputNullifiers[9]);
+			inputs[14] = uint256(_args.inputNullifiers[10]);
+			inputs[15] = uint256(_args.inputNullifiers[11]);
+			inputs[16] = uint256(_args.inputNullifiers[12]);
+			inputs[17] = uint256(_args.inputNullifiers[13]);
+			inputs[18] = uint256(_args.inputNullifiers[14]);
+			inputs[19] = uint256(_args.inputNullifiers[15]);
+			inputs[20] = uint256(_args.outputCommitments[0]);
+			inputs[21] = uint256(_args.outputCommitments[1]);
+			inputs[22] = uint256(_chainId);
+			inputs[23] = uint256(roots[0]);
+			inputs[24] = uint256(roots[1]);
 			encodedInput = abi.encodePacked(inputs);
 		} else if (_maxEdges == 7) {
-			uint256[30] memory inputs;
+			uint256[31] memory inputs;
 			uint256[8] memory roots = abi.decode(_args.roots, (uint256[8]));
 			// assign roots
 			result[0] = roots[0];
@@ -175,34 +178,35 @@ library MASPVAnchorEncodeInputs {
 			// assign input
 			inputs[0] = uint256(_args.publicAmount);
 			inputs[1] = uint256(_args.extDataHash);
-			inputs[2] = uint256(_aux.assetID);
-			inputs[3] = uint256(_args.inputNullifiers[0]);
-			inputs[4] = uint256(_args.inputNullifiers[1]);
-			inputs[5] = uint256(_args.inputNullifiers[2]);
-			inputs[6] = uint256(_args.inputNullifiers[3]);
-			inputs[7] = uint256(_args.inputNullifiers[4]);
-			inputs[8] = uint256(_args.inputNullifiers[5]);
-			inputs[9] = uint256(_args.inputNullifiers[6]);
-			inputs[10] = uint256(_args.inputNullifiers[7]);
-			inputs[11] = uint256(_args.inputNullifiers[8]);
-			inputs[12] = uint256(_args.inputNullifiers[9]);
-			inputs[13] = uint256(_args.inputNullifiers[10]);
-			inputs[14] = uint256(_args.inputNullifiers[11]);
-			inputs[15] = uint256(_args.inputNullifiers[12]);
-			inputs[16] = uint256(_args.inputNullifiers[13]);
-			inputs[17] = uint256(_args.inputNullifiers[14]);
-			inputs[18] = uint256(_args.inputNullifiers[15]);
-			inputs[19] = uint256(_args.outputCommitments[0]);
-			inputs[20] = uint256(_args.outputCommitments[1]);
-			inputs[21] = uint256(_chainId);
-			inputs[22] = uint256(roots[0]);
-			inputs[23] = uint256(roots[1]);
-			inputs[24] = uint256(roots[2]);
-			inputs[25] = uint256(roots[3]);
-			inputs[26] = uint256(roots[4]);
-			inputs[27] = uint256(roots[5]);
-			inputs[28] = uint256(roots[6]);
-			inputs[29] = uint256(roots[7]);
+			inputs[2] = uint256(_aux.publicAssetID);
+			inputs[3] = uint256(_aux.publicTokenID);
+			inputs[4] = uint256(_args.inputNullifiers[0]);
+			inputs[5] = uint256(_args.inputNullifiers[1]);
+			inputs[6] = uint256(_args.inputNullifiers[2]);
+			inputs[7] = uint256(_args.inputNullifiers[3]);
+			inputs[8] = uint256(_args.inputNullifiers[4]);
+			inputs[9] = uint256(_args.inputNullifiers[5]);
+			inputs[10] = uint256(_args.inputNullifiers[6]);
+			inputs[11] = uint256(_args.inputNullifiers[7]);
+			inputs[12] = uint256(_args.inputNullifiers[8]);
+			inputs[13] = uint256(_args.inputNullifiers[9]);
+			inputs[14] = uint256(_args.inputNullifiers[10]);
+			inputs[15] = uint256(_args.inputNullifiers[11]);
+			inputs[16] = uint256(_args.inputNullifiers[12]);
+			inputs[17] = uint256(_args.inputNullifiers[13]);
+			inputs[18] = uint256(_args.inputNullifiers[14]);
+			inputs[19] = uint256(_args.inputNullifiers[15]);
+			inputs[20] = uint256(_args.outputCommitments[0]);
+			inputs[21] = uint256(_args.outputCommitments[1]);
+			inputs[22] = uint256(_chainId);
+			inputs[23] = uint256(roots[0]);
+			inputs[24] = uint256(roots[1]);
+			inputs[25] = uint256(roots[2]);
+			inputs[26] = uint256(roots[3]);
+			inputs[27] = uint256(roots[4]);
+			inputs[28] = uint256(roots[5]);
+			inputs[29] = uint256(roots[6]);
+			inputs[30] = uint256(roots[7]);
 			encodedInput = abi.encodePacked(inputs);
 		} else {
 			require(false, "Invalid edges");
