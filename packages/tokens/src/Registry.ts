@@ -71,6 +71,7 @@ export class Registry {
     nonce: number,
     tokenHandler: string,
     assetIdentifier: number,
+    unwrappedNftAddress: string,
     wrappedTokenURI: string,
     salt: string
   ) {
@@ -78,6 +79,7 @@ export class Registry {
       nonce,
       tokenHandler,
       assetIdentifier,
+      unwrappedNftAddress,
       wrappedTokenURI,
       salt,
       { gasLimit: '0x5B8D80' }

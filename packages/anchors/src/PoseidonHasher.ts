@@ -4,6 +4,7 @@ import {
   PoseidonHasher__factory,
   PoseidonT3__factory,
   PoseidonT4__factory,
+  PoseidonT5__factory,
   PoseidonT6__factory,
 } from '@webb-tools/contracts';
 
@@ -23,6 +24,10 @@ export class PoseidonHasher {
     const poseidonT4Library = await poseidonT4LibraryFactory.deploy();
     await poseidonT4Library.deployed();
 
+    const poseidonT5LibraryFactory = new PoseidonT5__factory(signer);
+    const poseidonT5Library = await poseidonT5LibraryFactory.deploy();
+    await poseidonT5Library.deployed();
+
     const poseidonT6LibraryFactory = new PoseidonT6__factory(signer);
     const poseidonT6Library = await poseidonT6LibraryFactory.deploy();
     await poseidonT6Library.deployed();
@@ -30,6 +35,7 @@ export class PoseidonHasher {
     const libraryAddresses = {
       ['contracts/hashers/Poseidon.sol:PoseidonT3']: poseidonT3Library.address,
       ['contracts/hashers/Poseidon.sol:PoseidonT4']: poseidonT4Library.address,
+      ['contracts/hashers/Poseidon.sol:PoseidonT5']: poseidonT5Library.address,
       ['contracts/hashers/Poseidon.sol:PoseidonT6']: poseidonT6Library.address,
     };
     const factory = new PoseidonHasher__factory(libraryAddresses, signer);
