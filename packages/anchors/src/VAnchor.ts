@@ -3,6 +3,7 @@ import {
   VAnchor as VAnchorContract,
   VAnchor__factory,
   ChainalysisVAnchor as ChainalysisVAnchorContract,
+  DeterministicDeployFactory as DeterministicDeployFactoryContract,
   VAnchorEncodeInputs__factory,
   TokenWrapper__factory,
 } from '@webb-tools/contracts';
@@ -31,6 +32,19 @@ import {
   IVariableAnchorPublicInputs,
 } from '@webb-tools/interfaces';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
+
+const encoder = (types, values) => {
+  const abiCoder = ethers.utils.defaultAbiCoder;
+  const encodedParams = abiCoder.encode(types, values);
+  return encodedParams.slice(2);
+};
+
+const create2Address = (factoryAddress, saltHex, initCode) => {
+  const create2Addr = ethers.utils.getCreate2Address(factoryAddress, saltHex, ethers.utils.keccak256(initCode));
+  return create2Addr;
+
+}
+
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 function checkNativeAddress(tokenAddress: string): boolean {
@@ -82,6 +96,55 @@ export class VAnchor implements IAnchor {
 
   getAddress(): string {
     return this.contract.address;
+  }
+  public static async create2VAnchor(
+    deployer: DeterministicDeployFactoryContract,
+    salt: string,
+    verifier: string,
+    levels: BigNumberish,
+    hasher: string,
+    handler: string,
+    token: string,
+    maxEdges: number,
+    smallCircuitZkComponents: ZkComponents,
+    largeCircuitZkComponents: ZkComponents,
+    signer: ethers.Signer
+  ) {
+    const saltHex = ethers.utils.id(salt)
+    const encodeLibrary1Factory = new VAnchorEncodeInputs__factory(signer);
+    const encodeLibrary1Bytecode = encodeLibrary1Factory['bytecode']
+    const encodeLibrary1InitCode = encodeLibrary1Bytecode + encoder([], [])
+    const factory1Create2Addr = create2Address(deployer.address, saltHex, encodeLibrary1InitCode)
+    const encodeLibrary1Tx = await deployer.deploy(encodeLibrary1InitCode, saltHex);
+    const encodeLibrary1Receipt = await encodeLibrary1Tx.wait()
+    console.log("factory receipt", encodeLibrary1Receipt.events)
+    // const contract1 = await encodeLibrary1Factory.attach(encodeLibrary1Receipt.events[encodeLibrary1Receipt.events.length - 1].args[0]);
+    let libraryAddress = encodeLibrary1Receipt.events[encodeLibrary1Receipt.events.length - 1].args[0]
+    const factory = new VAnchor__factory(
+      { ['contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs']: libraryAddress },
+      signer
+    );
+    const vanchorBytecode = factory['bytecode']
+    const vanchorInitCode = vanchorBytecode + encoder(["address", "uint32", "address", "address", "address", "uint8"], [verifier, levels, hasher, handler, token, maxEdges])
+    const vanchorTx = await deployer.deploy(vanchorInitCode, saltHex);
+    const vanchorReceipt = await vanchorTx.wait()
+    console.log("vanchor receipt", vanchorReceipt.events[0])
+    console.log("Vanchor deployed to ", vanchorReceipt.events[0].args[0])
+    const vanchor = await factory.attach(vanchorReceipt.events[0].args[0]);
+    // const vAnchor = await factory.deploy(verifier, levels, hasher, handler, token, maxEdges, {});
+    console.log("vanchor obj", vanchor)
+    // await vAnchor.deployed();
+    const createdVAnchor = new VAnchor(
+      vanchor,
+      signer,
+      BigNumber.from(levels).toNumber(),
+      maxEdges,
+      smallCircuitZkComponents,
+      largeCircuitZkComponents
+    );
+    createdVAnchor.latestSyncedBlock = vanchorReceipt.blockNumber!;
+    createdVAnchor.token = token;
+    return createdVAnchor;
   }
 
   public static async createVAnchor(
@@ -507,15 +570,15 @@ export class VAnchor implements IAnchor {
 
     inputs.length > 2
       ? (this.provingManager = new CircomProvingManager(
-          this.largeCircuitZkComponents.wasm,
-          this.tree.levels,
-          null
-        ))
+        this.largeCircuitZkComponents.wasm,
+        this.tree.levels,
+        null
+      ))
       : (this.provingManager = new CircomProvingManager(
-          this.smallCircuitZkComponents.wasm,
-          this.tree.levels,
-          null
-        ));
+        this.smallCircuitZkComponents.wasm,
+        this.tree.levels,
+        null
+      ));
 
     const proof = await this.provingManager.prove('vanchor', proofInput);
 
