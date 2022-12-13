@@ -39,7 +39,7 @@ const create2Address = (factoryAddress, saltHex, initCode) => {
 
 
 
-describe.only('Should deploy verifiers to the same address', () => {
+describe('Should deploy verifiers to the same address', () => {
   let deployer: DeterministicDeployFactoryContract;
 
   let verifier1: Verifier;
@@ -97,7 +97,7 @@ describe.only('Should deploy verifiers to the same address', () => {
       assert.strictEqual(deployer1.address, deployer2.address)
     })
   })
-  describe('#deploy verifier', () => {
+  describe('#deploy VAnchor', () => {
     let deployer1: DeterministicDeployFactoryContract
     let deployer2: DeterministicDeployFactoryContract
     let poseidonHasher1: PoseidonHasher;
@@ -180,23 +180,16 @@ describe.only('Should deploy verifiers to the same address', () => {
       assert.strictEqual(contract1.address, factory2Create2Addr)
       assert.strictEqual(contract1.address, contract2.address)
     })
-    it('should deploy VAnchor to the same address using different wallets (note it needs previous test to have run)', async () => {
+    it('should deploy VAnchor to the same address using different wallets (but same handler) ((note it needs previous test to have run))', async () => {
       const salt = '666'
       const levels = 30
       const saltHex = ethers.utils.id(salt)
-      // const verifier1 = await Verifier.create2Verifier(deployer1, salt, sender);
-      console.log("Verifier1 deployed to: ", verifier1.contract.address)
-      console.log("Verifier2 deployed to: ", verifier2.contract.address)
-      console.log("poseidonHasher1 deployed to: ", poseidonHasher1.contract.address)
-      console.log("poseidonHasher2 deployed to: ", poseidonHasher2.contract.address)
       assert.strictEqual(verifier1.contract.address, verifier2.contract.address)
       assert.strictEqual(poseidonHasher1.contract.address, poseidonHasher2.contract.address)
       assert.strictEqual(token1.address, token2.address)
       const vanchor1 = await VAnchor.create2VAnchor(deployer1, salt, verifier1.contract.address, levels, poseidonHasher1.contract.address, sender.address, token1.address, 1, undefined, undefined, sender)
       console.log("vanchor1 deployed to: ", vanchor1.contract.address)
-      // const factory1Create2Addr = create2Address(deployer1.address, saltHex, encodeLibrary1InitCode)
-      // const factory2Create2Addr = create2Address(deployer2.address, saltHex, encodeLibrary2InitCode)
-      const vanchor2 = await VAnchor.create2VAnchor(deployer2, salt, verifier2.contract.address, levels, poseidonHasher2.contract.address, ganacheWallet1.address, token2.address, 1, undefined, undefined, ganacheWallet1)
+      const vanchor2 = await VAnchor.create2VAnchor(deployer2, salt, verifier2.contract.address, levels, poseidonHasher2.contract.address, ganacheWallet1.address, token2.address, 1, undefined, undefined, ganacheWallet2)
       console.log("vanchor2 deployed to: ", vanchor2.contract.address)
       assert.strictEqual(vanchor1.contract.address, vanchor2.contract.address)
       // assert.strictEqual(contract1.address, factory2Create2Addr)

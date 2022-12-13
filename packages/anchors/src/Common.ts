@@ -4,6 +4,7 @@ import {
   VAnchor__factory,
   ChainalysisVAnchor as ChainalysisVAnchorContract,
   DeterministicDeployFactory as DeterministicDeployFactoryContract,
+  IdentityVAnchor as IdentityVAnchorContract,
   VAnchorEncodeInputs__factory,
   TokenWrapper__factory,
 } from '@webb-tools/contracts';
@@ -39,15 +40,15 @@ const create2Address = (factoryAddress, saltHex, initCode) => {
   return create2Addr;
 
 }
-type WebbContracts = VAnchorContract | ChainalysisVAnchorContract;
+type WebbContracts = VAnchorContract | ChainalysisVAnchorContract | IdentityVAnchorContract;
 
 export class WebbBridge {
   signer: ethers.Signer;
   contract: WebbContracts;
 
   constructor(contract: WebbContracts, signer: ethers.Signer) {
-    this.signer = signer;
     this.contract = contract;
+    this.signer = signer;
   }
 
   public static async generateUTXO(input: UtxoGenInput): Promise<Utxo> {
