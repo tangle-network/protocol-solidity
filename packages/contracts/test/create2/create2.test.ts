@@ -37,8 +37,6 @@ const create2Address = (factoryAddress, saltHex, initCode) => {
 
 }
 
-
-
 describe('Should deploy verifiers to the same address', () => {
   let deployer: DeterministicDeployFactoryContract;
 
@@ -76,6 +74,18 @@ describe('Should deploy verifiers to the same address', () => {
     ]);
     const signers = await ethers.getSigners();
     const wallet = signers[1];
+    let hardhatNonce = await wallet.provider.getTransactionCount(wallet.address, "latest");
+    let ganacheNonce = await ganacheWallet1.provider.getTransactionCount(ganacheWallet1.address, "latest");
+    assert(ganacheNonce <= hardhatNonce)
+    while (ganacheNonce < hardhatNonce) {
+      ganacheWallet1.sendTransaction({
+        "to": ganacheWallet2.address,
+        "value": ethers.utils.parseEther("0.0"),
+      })
+      hardhatNonce = await wallet.provider.getTransactionCount(wallet.address, "latest");
+      ganacheNonce = await ganacheWallet1.provider.getTransactionCount(ganacheWallet1.address, "latest");
+    }
+    assert.strictEqual(ganacheNonce, hardhatNonce)
     let b1 = await wallet.provider.getBalance(wallet.address)
     let b2 = await ganacheWallet1.provider.getBalance(ganacheWallet1.address)
     let b3 = await ganacheWallet2.provider.getBalance(ganacheWallet2.address)
@@ -85,15 +95,41 @@ describe('Should deploy verifiers to the same address', () => {
 
   describe('#deploy deployer', () => {
     it('should deploy to the same address', async () => {
-      console.log('sender: ', sender)
-      console.log('ganache: ', ganacheWallet1)
+      let hardhatNonce = await sender.provider.getTransactionCount(sender.address, "latest");
+      let ganacheNonce = await ganacheWallet1.provider.getTransactionCount(ganacheWallet1.address, "latest");
+      while (ganacheNonce !== hardhatNonce) {
+        if (ganacheNonce < hardhatNonce) {
+          const Deployer2 = new DeterministicDeployFactory__factory(ganacheWallet1)
+          const deployer2 = await Deployer2.deploy();
+          await deployer2.deployed();
+          console.log("WHILE: Deployer2 deployed to ", deployer2.address)
+        } else {
+          const Deployer1 = new DeterministicDeployFactory__factory(sender)
+          let deployer1 = await Deployer1.deploy();
+          await deployer1.deployed();
+          console.log("WHILE: Deployer1 deployed to ", deployer1.address)
+        }
+
+        hardhatNonce = await sender.provider.getTransactionCount(sender.address, "latest");
+        ganacheNonce = await ganacheWallet1.provider.getTransactionCount(ganacheWallet1.address, "latest");
+        console.log('-----------------------------')
+        console.log("hardhat nonce", hardhatNonce);
+        console.log("ganache nonce", ganacheNonce);
+        console.log('-----------------------------')
+        if (ganacheNonce === hardhatNonce) {
+          break
+        }
+      }
+      assert.strictEqual(ganacheNonce, hardhatNonce)
       const Deployer1 = new DeterministicDeployFactory__factory(sender)
       const deployer1 = await Deployer1.deploy();
       await deployer1.deployed();
+      console.log("Deployer1 deployed to ", deployer1.address)
 
       const Deployer2 = new DeterministicDeployFactory__factory(ganacheWallet1)
       const deployer2 = await Deployer2.deploy();
       await deployer2.deployed();
+      console.log("Deployer2 deployed to ", deployer2.address)
       assert.strictEqual(deployer1.address, deployer2.address)
     })
   })
@@ -109,10 +145,12 @@ describe('Should deploy verifiers to the same address', () => {
       const Deployer1 = new DeterministicDeployFactory__factory(sender)
       deployer1 = await Deployer1.deploy();
       await deployer1.deployed();
+      console.log("before Deployer1 deployed to ", deployer1.address)
 
       const Deployer2 = new DeterministicDeployFactory__factory(ganacheWallet1)
       deployer2 = await Deployer2.deploy();
       await deployer2.deployed();
+      console.log("before Deployer2 deployed to ", deployer2.address)
       assert.strictEqual(deployer1.address, deployer2.address)
     })
     it('should deploy verifiers to the same address using different wallets', async () => {
@@ -140,7 +178,6 @@ describe('Should deploy verifiers to the same address', () => {
       // const factory1Create2Addr = create2Address(deployer.address, saltHex, factory1InitCode)
       const factory1Tx = await deployer1.deploy(factory1InitCode, saltHex);
       const factory1Receipt = await factory1Tx.wait()
-      console.log("factory receipt", factory1Receipt.events)
       token1 = await factory1.attach(factory1Receipt.events[factory1Receipt.events.length - 1].args[0]);
       // poseidonHasher1 = await PoseidonHasher.create2PoseidonHasher(deployer1, salt, sender);
       console.log("tokenFactory1 deployed to: ", token1.address)
@@ -164,7 +201,7 @@ describe('Should deploy verifiers to the same address', () => {
       const factory1Create2Addr = create2Address(deployer1.address, saltHex, encodeLibrary1InitCode)
       const encodeLibrary1Tx = await deployer1.deploy(encodeLibrary1InitCode, saltHex);
       const encodeLibrary1Receipt = await encodeLibrary1Tx.wait()
-      console.log("factory receipt", encodeLibrary1Receipt.events)
+      // console.log("factory receipt", encodeLibrary1Receipt.events)
       const contract1 = await encodeLibrary1Factory.attach(encodeLibrary1Receipt.events[encodeLibrary1Receipt.events.length - 1].args[0]);
       // poseidonHasher1 = await PoseidonHasher.create2PoseidonHasher(deployer1, salt, sender);
       const encodeLibrary2Factory = new VAnchorEncodeInputs__factory(ganacheWallet2);
@@ -173,7 +210,7 @@ describe('Should deploy verifiers to the same address', () => {
       const factory2Create2Addr = create2Address(deployer2.address, saltHex, encodeLibrary2InitCode)
       const encodeLibrary2Tx = await deployer2.deploy(encodeLibrary2InitCode, saltHex);
       const encodeLibrary2Receipt = await encodeLibrary2Tx.wait()
-      console.log("factory receipt", encodeLibrary2Receipt.events)
+      // console.log("factory receipt", encodeLibrary2Receipt.events)
       const contract2 = await encodeLibrary1Factory.attach(encodeLibrary1Receipt.events[encodeLibrary1Receipt.events.length - 1].args[0]);
       console.log("tokenFactory2 deployed to: ", contract2.address)
       assert.strictEqual(contract1.address, factory1Create2Addr)
