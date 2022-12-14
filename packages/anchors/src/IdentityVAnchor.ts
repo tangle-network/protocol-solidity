@@ -126,7 +126,7 @@ export class IdentityVAnchor extends WebbBridge implements IAnchor {
   public static async createIdentityVAnchor(
     semaphore: Semaphore,
     verifier: string,
-    levels: BigNumberish,
+    levels: number,
     hasher: string,
     handler: string,
     token: string,

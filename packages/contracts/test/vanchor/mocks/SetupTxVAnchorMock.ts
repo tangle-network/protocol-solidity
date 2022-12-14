@@ -40,8 +40,7 @@ export class SetupTxVAnchorMock extends VAnchor {
 
   public async setupTransaction(
     inputs: Utxo[],
-    outputs: [Utxo, Utxo],
-    extAmount: BigNumberish,
+    outputs: Utxo[],
     fee: BigNumberish,
     refund: BigNumberish,
     token: string,
@@ -50,6 +49,10 @@ export class SetupTxVAnchorMock extends VAnchor {
     leavesMap: Record<string, Uint8Array[]>
   ) {
     // first, check if the merkle root is known on chain - if not, then update
+    inputs = await this.padUtxos(inputs, 16)
+    outputs = await this.padUtxos(outputs, 2)
+    let extAmount = this.getExtAmount(inputs, outputs, fee)
+
     const chainId = getChainIdType(await this.signer.getChainId());
 
     // calculate the sum of input notes (for calculating the public amount)
@@ -75,7 +78,7 @@ export class SetupTxVAnchorMock extends VAnchor {
       leafIds,
       roots: this.rootsForProof.map((root) => hexToU8a(root)),
       chainId: chainId.toString(),
-      output: outputs,
+      output: [outputs[0], outputs[1]],
       encryptedCommitments,
       publicAmount: BigNumber.from(extAmount).sub(fee).add(FIELD_SIZE).mod(FIELD_SIZE).toString(),
       provingKey:
@@ -90,15 +93,15 @@ export class SetupTxVAnchorMock extends VAnchor {
 
     inputs.length > 2
       ? (this.provingManager = new CircomProvingManager(
-          this.largeCircuitZkComponents.wasm,
-          this.tree.levels,
-          null
-        ))
+        this.largeCircuitZkComponents.wasm,
+        this.tree.levels,
+        null
+      ))
       : (this.provingManager = new CircomProvingManager(
-          this.smallCircuitZkComponents.wasm,
-          this.tree.levels,
-          null
-        ));
+        this.smallCircuitZkComponents.wasm,
+        this.tree.levels,
+        null
+      ));
 
     const proof = await this.provingManager.prove('vanchor', proofInput);
 
@@ -123,6 +126,7 @@ export class SetupTxVAnchorMock extends VAnchor {
     };
 
     return {
+      extAmount,
       extData,
       publicInputs,
     };

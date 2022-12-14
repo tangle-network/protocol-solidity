@@ -113,13 +113,13 @@ export class VAnchor extends WebbBridge implements IAnchor {
     signer: ethers.Signer
   ) {
     const saltHex = ethers.utils.id(salt)
-    const encodeLibrary1Factory = new VAnchorEncodeInputs__factory(signer);
-    const encodeLibrary1Bytecode = encodeLibrary1Factory['bytecode']
-    const encodeLibrary1InitCode = encodeLibrary1Bytecode + encoder([], [])
-    const factory1Create2Addr = create2Address(deployer.address, saltHex, encodeLibrary1InitCode)
-    const encodeLibrary1Tx = await deployer.deploy(encodeLibrary1InitCode, saltHex);
-    const encodeLibrary1Receipt = await encodeLibrary1Tx.wait()
-    let libraryAddress = encodeLibrary1Receipt.events[encodeLibrary1Receipt.events.length - 1].args[0]
+    const encodeLibraryFactory = new VAnchorEncodeInputs__factory(signer);
+    const encodeLibraryBytecode = encodeLibraryFactory['bytecode']
+    const encodeLibraryInitCode = encodeLibraryBytecode + encoder([], [])
+    const factoryCreate2Addr = create2Address(deployer.address, saltHex, encodeLibraryInitCode)
+    const encodeLibraryTx = await deployer.deploy(encodeLibraryInitCode, saltHex);
+    const encodeLibraryReceipt = await encodeLibraryTx.wait()
+    let libraryAddress = encodeLibraryReceipt.events[encodeLibraryReceipt.events.length - 1].args[0]
     const factory = new VAnchor__factory(
       { ['contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs']: libraryAddress },
       signer
