@@ -5,6 +5,7 @@ import {
   ChainalysisVAnchor as ChainalysisVAnchorContract,
   DeterministicDeployFactory as DeterministicDeployFactoryContract,
   IdentityVAnchor as IdentityVAnchorContract,
+  VAnchorForest as VAnchorForestContract,
   VAnchorEncodeInputs__factory,
   TokenWrapper__factory,
 } from '@webb-tools/contracts';
@@ -40,7 +41,7 @@ const create2Address = (factoryAddress, saltHex, initCode) => {
   return create2Addr;
 
 }
-type WebbContracts = VAnchorContract | ChainalysisVAnchorContract | IdentityVAnchorContract;
+type WebbContracts = VAnchorContract | ChainalysisVAnchorContract | IdentityVAnchorContract | VAnchorForestContract;
 
 export class WebbBridge {
   signer: ethers.Signer;

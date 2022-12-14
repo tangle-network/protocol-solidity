@@ -40,6 +40,7 @@ import {
 } from '@webb-tools/interfaces';
 import { hexToU8a, UTXOInputs, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { solidityPack } from 'ethers/lib/utils';
+import { WebbBridge } from './Common';
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 function checkNativeAddress(tokenAddress: string): boolean {
@@ -65,7 +66,7 @@ export var proofTimeBenchmark = [];
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
-export class VAnchorForest {
+export class VAnchorForest extends WebbBridge {
   signer: ethers.Signer;
   contract: VAnchorForestContract;
   forest: MerkleTree;
@@ -91,6 +92,7 @@ export class VAnchorForest {
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents
   ) {
+    super(contract, signer)
     this.signer = signer;
     this.contract = contract;
     this.forest = new MerkleTree(forestHeight);
@@ -195,32 +197,6 @@ export class VAnchorForest {
     return createdAnchor;
   }
 
-  public static async generateUTXO(input: UtxoGenInput): Promise<Utxo> {
-    return CircomUtxo.generateUtxo(input);
-  }
-
-  public static createRootsBytes(rootArray: string[]) {
-    let rootsBytes = '0x';
-    for (let i = 0; i < rootArray.length; i++) {
-      rootsBytes += toFixedHex(rootArray[i]).substr(2);
-    }
-    return rootsBytes; // root byte string (32 * array.length bytes)
-  }
-
-  // Convert a hex string to a byte array
-  public static hexStringToByte(str: string) {
-    if (!str) {
-      return new Uint8Array();
-    }
-
-    var a = [];
-    for (var i = 0, len = str.length; i < len; i += 2) {
-      a.push(parseInt(str.substr(i, 2), 16));
-    }
-
-    return new Uint8Array(a);
-  }
-
   public static convertToPublicInputsStruct(args: any[]): IVariableAnchorPublicInputs {
     return {
       proof: args[0],
@@ -256,41 +232,6 @@ export class VAnchorForest {
     // this.latestSyncedBlock = currentBlockNumber;
   }
 
-  public async createResourceId(): Promise<string> {
-    return toHex(
-      this.contract.address + toHex(getChainIdType(await this.signer.getChainId()), 6).substr(2),
-      32
-    );
-  }
-
-  public async setVerifier(verifierAddress: string) {
-    const tx = await this.contract.setVerifier(
-      verifierAddress,
-      BigNumber.from(await this.contract.getProposalNonce()).add(1)
-    );
-    await tx.wait();
-  }
-
-  public async setHandler(handlerAddress: string) {
-    const tx = await this.contract.setHandler(
-      handlerAddress,
-      BigNumber.from(await this.contract.getProposalNonce()).add(1)
-    );
-    await tx.wait();
-  }
-
-  public async setSigner(newSigner: ethers.Signer) {
-    const currentChainId = await this.signer.getChainId();
-    const newChainId = await newSigner.getChainId();
-
-    if (currentChainId === newChainId) {
-      this.signer = newSigner;
-      this.contract = this.contract.connect(newSigner);
-      return true;
-    }
-    return false;
-  }
-
   // Proposal data is used to update linkedAnchors via bridge proposals
   // on other chains with this anchor's state
   public async getProposalData(resourceID: string, leafIndex?: number): Promise<string> {
@@ -301,80 +242,7 @@ export class VAnchorForest {
 
     const chainID = getChainIdType(await this.signer.getChainId());
     const merkleRoot = this.depositHistory[leafIndex];
-    const functionSig = ethers.utils
-      .keccak256(ethers.utils.toUtf8Bytes('updateEdge(bytes32,uint32,bytes32)'))
-      .slice(0, 10)
-      .padEnd(10, '0');
-
-    const srcContract = this.contract.address;
-    const srcResourceId =
-      '0x' +
-      toHex(0, 6).substring(2) +
-      toHex(srcContract, 20).substr(2) +
-      toHex(chainID, 6).substr(2);
-    return (
-      '0x' +
-      toHex(resourceID, 32).substr(2) +
-      functionSig.slice(2) +
-      toHex(leafIndex, 4).substr(2) +
-      toHex(merkleRoot, 32).substr(2) +
-      toHex(srcResourceId, 32).substr(2)
-    );
-  }
-
-  public async getHandler(): Promise<string> {
-    return this.contract.handler();
-  }
-
-  public async getHandlerProposalData(newHandler: string): Promise<string> {
-    const resourceID = await this.createResourceId();
-    const functionSig = ethers.utils
-      .keccak256(ethers.utils.toUtf8Bytes('setHandler(address,uint32)'))
-      .slice(0, 10)
-      .padEnd(10, '0');
-    const nonce = Number(await this.contract.getProposalNonce()) + 1;
-
-    return (
-      '0x' +
-      toHex(resourceID, 32).substr(2) +
-      functionSig.slice(2) +
-      toHex(nonce, 4).substr(2) +
-      toHex(newHandler, 20).substr(2)
-    );
-  }
-
-  public async getMinWithdrawalLimitProposalData(
-    _minimalWithdrawalAmount: string
-  ): Promise<string> {
-    const resourceID = await this.createResourceId();
-    const functionSig = ethers.utils
-      .keccak256(ethers.utils.toUtf8Bytes('configureMinimalWithdrawalLimit(uint256,uint32)'))
-      .slice(0, 10)
-      .padEnd(10, '0');
-    const nonce = Number(await this.contract.getProposalNonce()) + 1;
-    return (
-      '0x' +
-      toHex(resourceID, 32).substr(2) +
-      functionSig.slice(2) +
-      toHex(nonce, 4).substr(2) +
-      toFixedHex(_minimalWithdrawalAmount).substr(2)
-    );
-  }
-
-  public async getMaxDepositLimitProposalData(_maximumDepositAmount: string): Promise<string> {
-    const resourceID = await this.createResourceId();
-    const functionSig = ethers.utils
-      .keccak256(ethers.utils.toUtf8Bytes('configureMaximumDepositLimit(uint256,uint32)'))
-      .slice(0, 10)
-      .padEnd(10, '0');
-    const nonce = Number(await this.contract.getProposalNonce()) + 1;
-    return (
-      '0x' +
-      toHex(resourceID, 32).substr(2) +
-      functionSig.slice(2) +
-      toHex(nonce, 4).substr(2) +
-      toFixedHex(_maximumDepositAmount).substr(2)
-    );
+    return await this.genProposalData(resourceID, merkleRoot, leafIndex)
   }
 
   public async populateRootsForProof(): Promise<string[]> {
@@ -450,17 +318,10 @@ export class VAnchorForest {
     const args = {
       proof: `0x${proof}`,
       roots: `0x${roots.map((x) => toFixedHex(x).slice(2)).join('')}`,
-      // inputNullifiers: `0x${roots.map((x) => toFixedHex(x).slice(2)).join('')}`,
       inputNullifiers,
       outputCommitments,
       publicAmount,
       extDataHash,
-      // outputCommitments: [
-      //   toFixedHex(u8aToHex(outputs[0].commitment)),
-      //   toFixedHex(u8aToHex(outputs[1].commitment)),
-      // ],
-      // publicAmount: toFixedHex(publicAmount),
-      // extDataHash: toFixedHex(extDataHash),
     };
 
     return args;
@@ -635,8 +496,7 @@ export class VAnchorForest {
    */
   public async setupTransaction(
     inputs: Utxo[],
-    outputs: [Utxo, Utxo],
-    extAmount: BigNumberish,
+    outputs: Utxo[],
     fee: BigNumberish,
     refund: BigNumberish,
     token: string,
@@ -644,6 +504,10 @@ export class VAnchorForest {
     relayer: string,
     leavesMap: Record<string, Uint8Array[]>
   ) {
+    inputs = await this.padUtxos(inputs, 16)
+    outputs = await this.padUtxos(outputs, 2)
+
+    let extAmount = await this.getExtAmount(inputs, outputs, fee);
     // first, check if the merkle root is known on chain - if not, then update
     const chainId = getChainIdType(await this.signer.getChainId());
     const roots = await this.populateRootsForProof();
@@ -699,14 +563,22 @@ export class VAnchorForest {
 
     const publicInputs = await this.generatePublicInputs(proof, inputs.length);
     return {
+      extAmount,
       extData,
       publicInputs,
     };
   }
+  public validateInputs(inputs: Utxo[]): void {
+    inputs.map((utxo) => {
+      if (utxo.originChainId === undefined) {
+        throw new Error('Input Utxo does not have a configured originChainId');
+      }
+    });
+  }
 
   public async transact(
-    raw_inputs: Utxo[],
-    raw_outputs: Utxo[],
+    inputs: Utxo[],
+    outputs: Utxo[],
     leavesMap: Record<string, Uint8Array[]>,
     fee: BigNumberish,
     refund: BigNumberish,
@@ -714,21 +586,10 @@ export class VAnchorForest {
     relayer: string
   ): Promise<ethers.ContractReceipt> {
     // Validate input utxos have a valid originChainId
-    raw_inputs.map((utxo) => {
-      if (utxo.originChainId === undefined) {
-        throw new Error('Input Utxo does not have a configured originChainId');
-      }
-    });
-
-    // Default UTXO chain ID will match with the configured signer's chain ID
-    let { inputs, outputs } = await this.padInputsAndOutputs(raw_inputs, raw_outputs);
-
-    let extAmount = await this.getExtAmount(inputs, outputs, fee);
-
+    this.validateInputs(inputs);
     const { extData, publicInputs } = await this.setupTransaction(
       inputs,
-      [outputs[0], outputs[1]],
-      extAmount,
+      outputs,
       fee,
       refund,
       this.token,
@@ -756,8 +617,8 @@ export class VAnchorForest {
 
   public async transactWrap(
     tokenAddress: string,
-    raw_inputs: Utxo[],
-    raw_outputs: Utxo[],
+    inputs: Utxo[],
+    outputs: Utxo[],
     fee: BigNumberish,
     refund: BigNumberish,
     recipient: string,
@@ -765,14 +626,9 @@ export class VAnchorForest {
     leavesMap: Record<string, Uint8Array[]>
   ): Promise<ethers.ContractReceipt> {
     // Default UTXO chain ID will match with the configured signer's chain ID
-    let { inputs, outputs } = await this.padInputsAndOutputs(raw_inputs, raw_outputs);
-
-    let extAmount = await this.getExtAmount(inputs, outputs, fee);
-
-    const { extData, publicInputs } = await this.setupTransaction(
+    const { extAmount, extData, publicInputs } = await this.setupTransaction(
       inputs,
-      [outputs[0], outputs[1]],
-      extAmount,
+      outputs,
       fee,
       refund,
       tokenAddress,
@@ -838,57 +694,20 @@ export class VAnchorForest {
     return proofEncoded;
   }
 
-  public async padUtxos(utxos: Utxo[], maxLength: number): Promise<Utxo[]> {
-    const evmId = await this.signer.getChainId();
-    const chainId = getChainIdType(evmId);
-    const randomKeypair = new Keypair();
-    while (utxos.length !== 2 && utxos.length < maxLength) {
-      utxos.push(
-        await CircomUtxo.generateUtxo({
-          curve: 'Bn254',
-          backend: 'Circom',
-          chainId: chainId.toString(),
-          originChainId: chainId.toString(),
-          blinding: hexToU8a(randomBN(31).toHexString()),
-          amount: '0',
-          keypair: randomKeypair,
-        })
-      );
-    }
-    return utxos;
-  }
-
-  public async padInputsAndOutputs(
-    inputs: Utxo[],
-    outputs: Utxo[]
-  ): Promise<{ inputs: Utxo[]; outputs: Utxo[] }> {
-    inputs = await this.padUtxos(inputs, 16);
-    outputs = await this.padUtxos(outputs, 2);
-    return { inputs, outputs };
-  }
-  public async getExtAmount(inputs: Utxo[], outputs: Utxo[], fee: BigNumberish) {
-    return BigNumber.from(fee)
-      .add(outputs.reduce((sum, x) => sum.add(BigNumber.from(BigInt(x.amount))), BigNumber.from(0)))
-      .sub(inputs.reduce((sum, x) => sum.add(BigNumber.from(BigInt(x.amount))), BigNumber.from(0)));
-  }
   public async registerAndTransact(
     owner: string,
     keyData: string,
-    raw_inputs: Utxo[],
-    raw_outputs: Utxo[],
+    inputs: Utxo[],
+    outputs: Utxo[],
     fee: BigNumberish,
     refund: BigNumberish,
     recipient: string,
     relayer: string,
     leavesMap: Record<string, Uint8Array[]>
   ): Promise<ethers.ContractReceipt> {
-    let { inputs, outputs } = await this.padInputsAndOutputs(raw_inputs, raw_outputs);
-    let extAmount = await this.getExtAmount(inputs, outputs, fee);
-
     const { extData, publicInputs } = await this.setupTransaction(
       inputs,
-      [outputs[0], outputs[1]],
-      extAmount,
+      outputs,
       fee,
       refund,
       this.token,
