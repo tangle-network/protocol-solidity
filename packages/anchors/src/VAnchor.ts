@@ -99,22 +99,15 @@ export class VAnchor extends WebbBridge implements IAnchor {
     largeCircuitZkComponents: ZkComponents,
     signer: ethers.Signer
   ) {
-    const { contract: libraryContract } = await deployer.deploy(VAnchorEncodeInputs__factory, saltHex, signer)
+    const { contract: libraryContract } = await deployer.deploy(VAnchorEncodeInputs__factory, saltHex, signer);
+
     let libraryAddresses = {
       ['contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs']: libraryContract.address
-    }
+    };
+
     const argTypes = ["address", "uint32", "address", "address", "address", "uint8"];
     const args = [verifier, levels, hasher, handler, token, maxEdges];
-    const { contract: vanchor, receipt } = await deployer.deploy(VAnchor__factory, saltHex, signer, libraryAddresses, argTypes, args)
-    // const factory = new VAnchor__factory(
-    //   { ['contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs']: libraryAddress },
-    //   signer
-    // );
-    // const vanchorBytecode = factory['bytecode']
-    // const vanchorInitCode = vanchorBytecode + encoder(["address", "uint32", "address", "address", "address", "uint8"], [verifier, levels, hasher, handler, token, maxEdges])
-    // const vanchorTx = await deployer.deploy(vanchorInitCode, saltHex);
-    // const vanchorReceipt = await vanchorTx.wait()
-    // const vanchor = await factory.attach(vanchorReceipt.events[0].args[0]);
+    const { contract: vanchor, receipt } = await deployer.deploy(VAnchor__factory, saltHex, signer, libraryAddresses, argTypes, args);
     const createdVAnchor = new VAnchor(
       vanchor,
       signer,
@@ -123,7 +116,7 @@ export class VAnchor extends WebbBridge implements IAnchor {
       smallCircuitZkComponents,
       largeCircuitZkComponents
     );
-    console.log('vanchor', vanchor.deployTransaction)
+    console.log('vanchor', vanchor.deployTransaction);
     createdVAnchor.latestSyncedBlock = receipt.blockNumber!;
     createdVAnchor.token = token;
     return createdVAnchor;

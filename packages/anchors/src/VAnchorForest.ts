@@ -42,18 +42,7 @@ import {
 import { hexToU8a, UTXOInputs, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { solidityPack } from 'ethers/lib/utils';
 import { WebbBridge } from './Common';
-
-const encoder = (types, values) => {
-  const abiCoder = ethers.utils.defaultAbiCoder;
-  const encodedParams = abiCoder.encode(types, values);
-  return encodedParams.slice(2);
-};
-
-const create2Address = (factoryAddress, saltHex, initCode) => {
-  const create2Addr = ethers.utils.getCreate2Address(factoryAddress, saltHex, ethers.utils.keccak256(initCode));
-  return create2Addr;
-
-}
+import { Deployer } from './Deployer';
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 function checkNativeAddress(tokenAddress: string): boolean {
@@ -121,8 +110,8 @@ export class VAnchorForest extends WebbBridge {
     return this.contract.address;
   }
   public static async create2VAnchor(
-    deployer: DeterministicDeployFactoryContract,
-    salt: string,
+    deployer: Deployer,
+    saltHex: string,
     verifier: string,
     forestLevels: BigNumberish,
     subtreeLevels: BigNumberish,
@@ -134,45 +123,26 @@ export class VAnchorForest extends WebbBridge {
     largeCircuitZkComponents: ZkComponents,
     signer: ethers.Signer
   ) {
-    const saltHex = ethers.utils.id(salt)
-    const encodeLibraryFactory = new VAnchorEncodeInputs__factory(signer);
-
-    const encodeLibraryBytecode = encodeLibraryFactory['bytecode']
-    const encodeLibraryInitCode = encodeLibraryBytecode + encoder([], [])
-    const factoryCreate2Addr = create2Address(deployer.address, saltHex, encodeLibraryInitCode)
-    const encodeLibraryTx = await deployer.deploy(encodeLibraryInitCode, saltHex);
-    const encodeLibraryReceipt = await encodeLibraryTx.wait()
-
-    let encodeLibraryAddress = encodeLibraryReceipt.events[encodeLibraryReceipt.events.length - 1].args[0]
-    console.log("encodeLibrary deployed to: ", encodeLibraryAddress)
-    // const encodeLibrary = await encodeLibraryFactory.deploy();
-    // await encodeLibrary.deployed();
+    // const saltHex = ethers.utils.id(salt)
+    const { contract: encodeLibrary } = await deployer.deploy(VAnchorEncodeInputs__factory, saltHex, signer);
 
     const poseidonABI = poseidonContract.generateABI(2);
     const poseidonBytecode = poseidonContract.createCode(2);
+    const poseidonInitCode = poseidonBytecode + Deployer.encode([], []);
 
-    const PoseidonLibFactory = new ethers.ContractFactory(poseidonABI, poseidonBytecode, signer);
-    const poseidonLib = await PoseidonLibFactory.deploy();
-    await poseidonLib.deployed();
+    const { address: poseidonLibAddr } = await deployer.deployInitCode(saltHex, signer, poseidonInitCode)
 
-    const LinkableIncrementalBinaryTree = new LinkableIncrementalBinaryTree__factory(
-      {
-        ['contracts/hashers/Poseidon.sol:PoseidonT3']: poseidonLib.address,
-      },
-      signer
-    );
-    const linkableIncrementalBinaryTree = await LinkableIncrementalBinaryTree.deploy();
-    await linkableIncrementalBinaryTree.deployed();
-    const factory = new VAnchorForest__factory(
-      {
-        ['contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs']: encodeLibraryAddress,
-        ['contracts/hashers/Poseidon.sol:PoseidonT3']: poseidonLib.address,
-        ['contracts/trees/LinkableIncrementalBinaryTree.sol:LinkableIncrementalBinaryTree']:
-          linkableIncrementalBinaryTree.address,
-      },
-      signer
-    );
-    const vAnchor = await factory.deploy(
+    const LinkableIncrementalBinaryTreeLibs = {
+      ['contracts/hashers/Poseidon.sol:PoseidonT3']: poseidonLibAddr,
+    }
+    const { contract: linkableIncrementalBinaryTree } = await deployer.deploy(LinkableIncrementalBinaryTree__factory, saltHex, signer, LinkableIncrementalBinaryTreeLibs)
+    const libraryAddresses = {
+      ['contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs']: encodeLibrary.address,
+      ['contracts/hashers/Poseidon.sol:PoseidonT3']: poseidonLibAddr,
+      ['contracts/trees/LinkableIncrementalBinaryTree.sol:LinkableIncrementalBinaryTree']: linkableIncrementalBinaryTree.address,
+    }
+    const argTypes = ["address", "uint32", "uint32", "address", "address", "address", "uint8"]
+    const args = [
       verifier,
       forestLevels,
       subtreeLevels,
@@ -180,9 +150,9 @@ export class VAnchorForest extends WebbBridge {
       handler,
       token,
       maxEdges,
-      {}
-    );
-    await vAnchor.deployed();
+    ]
+    const { contract: vAnchor, receipt } = await deployer.deploy(VAnchorForest__factory, saltHex, signer, libraryAddresses, argTypes, args)
+    // await vAnchor.deployed();
     const createdVAnchor = new VAnchorForest(
       vAnchor,
       signer,
@@ -192,7 +162,7 @@ export class VAnchorForest extends WebbBridge {
       smallCircuitZkComponents,
       largeCircuitZkComponents
     );
-    createdVAnchor.latestSyncedBlock = vAnchor.deployTransaction.blockNumber!;
+    createdVAnchor.latestSyncedBlock = receipt.blockNumber!;
     createdVAnchor.token = token;
     return createdVAnchor;
   }

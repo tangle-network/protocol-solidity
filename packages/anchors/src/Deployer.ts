@@ -86,6 +86,23 @@ export class Deployer {
     const contract = await verifierFactory.attach(deployEvent.args[0]);
     return { contract, receipt };
   }
+  public async deployInitCode(
+    saltHex: string,
+    signer: Signer,
+    initCode: any,
+  ): Promise<{ address }> {
+    // console.log('typeof initCode', typeof initCode);
+    const verifierCreate2Addr = Deployer.create2Address(this.contract.address, saltHex, initCode);
+    const tx = await this.contract.deploy(initCode, saltHex);
+    const receipt = await tx.wait();
+    const deployEventIdx = receipt.events.length - 1;
+    const deployEvent = receipt.events[deployEventIdx];
+    if (deployEvent.args[0] !== verifierCreate2Addr) {
+      throw new Error('create2 address mismatch');
+    }
+    let address = deployEvent.args[0];
+    return { address };
+  }
 
 }
 export default Deployer;
