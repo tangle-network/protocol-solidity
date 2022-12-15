@@ -647,7 +647,6 @@ export class MultiAssetVAnchor implements IVAnchor {
     const registry = await Registry.connect(await this.contract.registry(), signer);
     const assetID = await registry.contract.getAssetIdFromWrappedAddress(wrappedToken);
     const utxo = new MaspUtxo(BigNumber.from(destinationChainId), assetID, BigNumber.from(0), BigNumber.from(amount));
-    const encryptedNote = utxo.encrypt();
 
     let options = {};
     if (amount > 0 && checkNativeAddress(unwrappedToken)) {
@@ -658,21 +657,42 @@ export class MultiAssetVAnchor implements IVAnchor {
         value: valueToSend.toHexString(),
       };
     }
-    
+
     const tx = await this.contract.wrapAndDepositErc20(
       unwrappedToken,
       wrappedToken,
       amount,
       utxo.getPartialCommitment(),
-      encryptedNote,
+      utxo.encrypt(),
       options,
     );
     const receipt = await tx.wait();
     return receipt;
   }
 
-  public async wrapAndDepositErc721(): Promise<ethers.ContractReceipt> {
+  public async wrapAndDepositErc721(
+    destinationChainId: BigNumberish,
+    unwrappedToken: string,
+    wrappedToken: string,
+    tokenID: BigNumber,
+    signer: ethers.Signer,
+  ): Promise<ethers.ContractReceipt> {
+    const registry = await Registry.connect(await this.contract.registry(), signer);
+    const assetID = await registry.contract.getAssetIdFromWrappedAddress(wrappedToken);
+    const utxo = new MaspUtxo(BigNumber.from(destinationChainId), assetID, tokenID, BigNumber.from(1));
 
+    let options = {};
+
+    const tx = await this.contract.wrapAndDepositErc721(
+      unwrappedToken,
+      wrappedToken,
+      tokenID,
+      utxo.getPartialCommitment(),
+      utxo.encrypt(),
+      options,
+    );
+    const receipt = await tx.wait();
+    return receipt;
   }
 }
 
