@@ -563,6 +563,35 @@ export class MultiAssetVAnchor implements IVAnchor {
     return [thisRoot, ...neighborRootInfos];
   }
 
+    /**
+   *
+   * @param input A UTXO object that is inside the tree
+   * @returns
+   */
+     public getMASPMerkleProof(input: MaspUtxo): MerkleProof {
+      let inputMerklePathIndices: number[];
+      let inputMerklePathElements: BigNumber[];
+  
+      if (Number(input.amount) > 0) {
+        if (input.index < BigNumber.from(0)) {
+          throw new Error(`Input commitment ${toFixedHex(input.getCommitment())} was not found`);
+        }
+        const path = this.tree.path(input.index.toNumber());
+        inputMerklePathIndices = path.pathIndices;
+        inputMerklePathElements = path.pathElements;
+      } else {
+        inputMerklePathIndices = new Array(this.tree.levels).fill(0);
+        inputMerklePathElements = new Array(this.tree.levels).fill(0);
+      }
+  
+      return {
+        element: input.getCommitment(),
+        pathElements: inputMerklePathElements,
+        pathIndices: inputMerklePathIndices,
+        merkleRoot: this.tree.root(),
+      };
+    }
+
   public async transact(
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
@@ -570,37 +599,47 @@ export class MultiAssetVAnchor implements IVAnchor {
     refund: BigNumberish,
     recipient: string,
     relayer: string,
-    wrapUnwrapToken: string,
+    wrappedToken: string,
+    tokenId: BigNumber,
+    signer: ethers.Signer,
   ): Promise<ethers.ContractReceipt> {
     // Default UTXO chain ID will match with the configured signer's chain ID
     const evmId = await this.signer.getChainId();
     const chainId = getChainIdType(evmId);
 
+    const registry = await Registry.connect(await this.contract.registry(), signer);
+    const assetID = await registry.contract.getAssetIdFromWrappedAddress(wrappedToken);
+
     while (inputs.length !== 2 && inputs.length < 16) {
       inputs.push(
-        new MaspUtxo(BigNumber.from(chainId), BigNumber.from(0), BigNumber.from(0), BigNumber.from(0), BigNumber.from(0))
+        new MaspUtxo(BigNumber.from(chainId), BigNumber.from(0), BigNumber.from(0), BigNumber.from(0))
       );
     }
 
     if (outputs.length < 2) {
       while (outputs.length < 2) {
         outputs.push(
-          new MaspUtxo(BigNumber.from(chainId), BigNumber.from(0), BigNumber.from(0), BigNumber.from(0), BigNumber.from(0))
+          new MaspUtxo(BigNumber.from(chainId), BigNumber.from(0), BigNumber.from(0), BigNumber.from(0))
         );
       }
     }
+
+    const merkleProofs = inputs.map((x) => this.getMASPMerkleProof(x));
 
     let extAmount = BigNumber.from(fee)
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
 
 
-    const extData = this.generateExtData();
-    const publicInputs = await this.publicInputsWithProof();
+    const { extData, extDataHash } = await this.generateExtData(recipient, extAmount, relayer, BigNumber.from(fee), BigNumber.from(refund), wrappedToken, outputs[0].encrypt(), outputs[1].encrypt());
+    const roots = await this.populateRootsForProof();
+    const publicInputs = await this.publicInputsWithProof(roots, chainId, assetID.toNumber(), tokenId.toNumber(), inputs, outputs, extAmount, BigNumber.from(fee), extDataHash, merkleProofs);
+
+    const auxInputs = toFixedHex(publicInputs.publicAssetId) + toFixedHex(publicInputs.publicTokenId).slice(2);
 
     const tx = await this.contract.transact(
       publicInputs.proof,
-      ZERO_BYTES32,
+      auxInputs,
       {
         recipient: extData.recipient,
         extAmount: extData.extAmount,
@@ -695,8 +734,5 @@ export class MultiAssetVAnchor implements IVAnchor {
     return receipt;
   }
 }
-
-
-
 
 export default MultiAssetVAnchor;
