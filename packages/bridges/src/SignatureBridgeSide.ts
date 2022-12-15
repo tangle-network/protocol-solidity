@@ -1,10 +1,10 @@
-import { BigNumber, ethers } from 'ethers';
+import { BigNumber, BigNumberish, ethers } from 'ethers';
 import { SignatureBridge, SignatureBridge__factory } from '@webb-tools/contracts';
 import { FungibleTokenWrapper, Treasury } from '@webb-tools/tokens';
 import { TokenWrapperHandler } from '@webb-tools/tokens';
 import { AnchorHandler } from '@webb-tools/anchors';
 import { IVAnchor, IBridgeSide, Proposal } from '@webb-tools/interfaces';
-import { TreasuryHandler } from '@webb-tools/tokens';
+import { TreasuryHandler, RegistryHandler, Registry } from '@webb-tools/tokens';
 import { getChainIdType } from '@webb-tools/utils';
 import { signMessage, toHex } from '@webb-tools/sdk-core';
 
@@ -17,18 +17,22 @@ export class SignatureBridgeSide implements IBridgeSide {
   anchorHandler: AnchorHandler;
   tokenHandler: TokenWrapperHandler;
   treasuryHandler: TreasuryHandler;
+  registryHandler: RegistryHandler;
+
   proposals: Proposal[];
   signingSystemSignFn: SystemSigningFn;
 
   ANCHOR_HANDLER_MISSING_ERROR = new Error('Cannot connect an anchor without a handler');
   TOKEN_HANDLER_MISSING_ERROR = new Error('Cannot connect to a token wrapper without a handler');
   TREASURY_HANDLER_MISSING_ERROR = new Error('Cannot connect to treasury without handler');
+  REGISTRY_HANDLER_MISSING_ERROR = new Error('Cannot connect to treasury without handler');
 
   private constructor(contract: SignatureBridge, systemSigningFn: SystemSigningFn) {
     this.contract = contract;
     this.anchorHandler = null;
     this.tokenHandler = null;
     this.treasuryHandler = null;
+    this.registryHandler = null;
     this.proposals = [];
 
     this.signingSystemSignFn = systemSigningFn;
@@ -203,6 +207,48 @@ export class SignatureBridgeSide implements IBridgeSide {
     return proposalData;
   }
 
+  public async createRegisterFungibleTokenProposalData(
+    registry: Registry,
+    tokenHandler: string,
+    assetIdentifier: number,
+    wrappedTokenName: string,
+    wrappedTokenSymbol: string,
+    salt: string,
+    limit: BigNumberish,
+    feePercentage: number,
+    isNativeAllowed: boolean
+  ): Promise<string> {
+    const proposalData = await registry.getRegisterFungibleTokenProposalData(
+        tokenHandler,
+        assetIdentifier,
+        wrappedTokenName,
+        wrappedTokenSymbol,
+        salt,
+        limit,
+        feePercentage,
+        isNativeAllowed,
+    );
+    return proposalData;
+  }
+
+  public async createRegisterNftTokenProposalData(
+    registry: Registry,
+    tokenHandler: string,
+    assetIdentifier: number,
+    unwrappedNftAddress: string,
+    salt: string,
+    uri: string,
+  ): Promise<string> {
+    const proposalData = await registry.getRegisterNftTokenProposalData(
+      tokenHandler,
+      assetIdentifier,
+      unwrappedNftAddress,
+      salt,
+      uri,
+    );
+    return proposalData;
+  }
+
   public setAnchorHandler(handler: AnchorHandler) {
     this.anchorHandler = handler;
   }
@@ -212,6 +258,10 @@ export class SignatureBridgeSide implements IBridgeSide {
   }
 
   public setTreasuryHandler(handler: TreasuryHandler) {
+    this.treasuryHandler = handler;
+  }
+
+  public setRegistryHandler(handler: RegistryHandler) {
     this.treasuryHandler = handler;
   }
 
@@ -296,6 +346,15 @@ export class SignatureBridgeSide implements IBridgeSide {
 
     const newResourceId = await treasury.createResourceId();
     const handler = this.treasuryHandler.contract.address;
+
+    return await this.setResourceWithSignature(newResourceId, handler);
+  }
+
+  public async setRegistryResourceWithSignature(registry: Registry): Promise<string> {
+    if (!this.registryHandler) throw this.REGISTRY_HANDLER_MISSING_ERROR;
+
+    const newResourceId = await registry.createResourceId();
+    const handler = this.registryHandler.contract.address;
 
     return await this.setResourceWithSignature(newResourceId, handler);
   }
@@ -405,4 +464,52 @@ export class SignatureBridgeSide implements IBridgeSide {
     );
     return this.execute(proposalData);
   }
+
+  public async executeRegisterFungibleTokenProposalWithSig(
+    registry: Registry,
+    tokenHandler: string,
+    assetIdentifier: number,
+    wrappedTokenName: string,
+    wrappedTokenSymbol: string,
+    salt: string,
+    limit: BigNumberish,
+    feePercentage: number,
+    isNativeAllowed: boolean
+  ) {
+    if (!this.registryHandler) throw this.REGISTRY_HANDLER_MISSING_ERROR;
+    const proposalData = await this.createRegisterFungibleTokenProposalData(
+      registry,
+      tokenHandler,
+      assetIdentifier,
+      wrappedTokenName,
+      wrappedTokenSymbol,
+      salt,
+      limit,
+      feePercentage,
+      isNativeAllowed,
+    );
+    return this.execute(proposalData);
+  }
+
+  public async executeRegisterNftTokenProposalWithSig(
+    registry: Registry,
+    tokenHandler: string,
+    assetIdentifier: number,
+    unwrappedNftAddress: string,
+    salt: string,
+    uri: string,
+  ) {
+    if (!this.registryHandler) throw this.REGISTRY_HANDLER_MISSING_ERROR;
+    const proposalData = await this.createRegisterNftTokenProposalData(
+      registry,
+      tokenHandler,
+      assetIdentifier,
+      unwrappedNftAddress,
+      salt,
+      uri,
+    );
+    return this.execute(proposalData);
+  }
+
+
 }

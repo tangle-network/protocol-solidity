@@ -5,3 +5,4 @@ export { ChainalysisVAnchor } from './ChainalysisVAnchor';
 export { IdentityVAnchor } from './IdentityVAnchor';
 export { OpenVAnchor } from './OpenVAnchor';
 export { PoseidonHasher } from './PoseidonHasher';
+export { MultiAssetVAnchor } from './MultiAssetVAnchor';

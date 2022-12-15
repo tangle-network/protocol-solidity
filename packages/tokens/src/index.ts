@@ -12,3 +12,4 @@ export { FungibleTokenWrapper } from './FungibleTokenWrapper';
 export { MultiFungibleTokenManager } from './MultiFungibleTokenManager';
 export { MultiNftTokenManager } from './MultiNftTokenManager';
 export { Registry } from './Registry';
+export { RegistryHandler } from './RegistryHandler';
