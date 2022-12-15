@@ -25,6 +25,18 @@ export interface IVariableAnchorPublicInputs {
   extDataHash: BigNumber;
 }
 
+export interface IMASPVAnchorPublicInputs {
+  proof: string;
+  roots: string;
+  extensionRoots: string;
+  inputNullifiers: BigNumber[];
+  outputCommitments: [BigNumber, BigNumber];
+  publicAmount: string;
+  publicAssetId: string;
+  publicTokenId: string;
+  extDataHash: BigNumber;
+}
+
 export interface IVariableAnchorExtData {
   recipient: string;
   extAmount: string;

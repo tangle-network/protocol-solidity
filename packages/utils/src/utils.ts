@@ -10,6 +10,7 @@ import { u8aToHex } from '@polkadot/util';
 import path from 'path';
 import { ZkComponents } from './types';
 import { toFixedHex, Keypair, MerkleProof, MerkleTree, Utxo } from '@webb-tools/sdk-core';
+import { chainIdTypeArbitrum } from 'scripts/evm/ethersGovernorWallets';
 
 export const ZERO_BYTES32 = '0x0000000000000000000000000000000000000000000000000000000000000000';
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
@@ -39,6 +40,33 @@ export type UTXOInputs = {
   outPubkey: string[];
   outBlinding: string[];
 };
+
+export type MASPAllInputs = {
+  roots: string[];
+  chainID: string;
+  inputNullifier: string[];
+  outputCommitment: string[];
+  publicAmount: string;
+  assetID: number,
+  tokenID: number,
+  publicAssetID: number,
+  publicTokenID: number,
+  extDataHash: string;
+
+  // data for 2 transaction inputs
+  inAmount: string[];
+  inPrivateKey: string[];
+  inBlinding: string[];
+  inPathIndices: number[];
+  inPathElements: BigNumber[][];
+
+  // data for 2 transaction outputs
+  outChainID: string[];
+  outAmount: string[];
+  outPubkey: string[];
+  outBlinding: string[];
+};
+
 
 export async function fetchComponentsFromFilePaths(
   wasmPath: string,
