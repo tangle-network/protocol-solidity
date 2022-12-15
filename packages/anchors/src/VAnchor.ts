@@ -3,7 +3,6 @@ import {
   VAnchor as VAnchorContract,
   VAnchor__factory,
   ChainalysisVAnchor as ChainalysisVAnchorContract,
-  DeterministicDeployFactory as DeterministicDeployFactoryContract,
   VAnchorEncodeInputs__factory,
   TokenWrapper__factory,
 } from '@webb-tools/contracts';
@@ -33,19 +32,7 @@ import {
 } from '@webb-tools/interfaces';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { WebbBridge } from './Common';
-
-const encoder = (types, values) => {
-  const abiCoder = ethers.utils.defaultAbiCoder;
-  const encodedParams = abiCoder.encode(types, values);
-  return encodedParams.slice(2);
-};
-
-const create2Address = (factoryAddress, saltHex, initCode) => {
-  const create2Addr = ethers.utils.getCreate2Address(factoryAddress, saltHex, ethers.utils.keccak256(initCode));
-  return create2Addr;
-
-}
-
+import { Deployer } from './Deployer';
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 function checkNativeAddress(tokenAddress: string): boolean {
@@ -100,8 +87,8 @@ export class VAnchor extends WebbBridge implements IAnchor {
     return this.contract.address;
   }
   public static async create2VAnchor(
-    deployer: DeterministicDeployFactoryContract,
-    salt: string,
+    deployer: Deployer,
+    saltHex: string,
     verifier: string,
     levels: BigNumberish,
     hasher: string,
@@ -112,23 +99,22 @@ export class VAnchor extends WebbBridge implements IAnchor {
     largeCircuitZkComponents: ZkComponents,
     signer: ethers.Signer
   ) {
-    const saltHex = ethers.utils.id(salt)
-    const encodeLibraryFactory = new VAnchorEncodeInputs__factory(signer);
-    const encodeLibraryBytecode = encodeLibraryFactory['bytecode']
-    const encodeLibraryInitCode = encodeLibraryBytecode + encoder([], [])
-    const factoryCreate2Addr = create2Address(deployer.address, saltHex, encodeLibraryInitCode)
-    const encodeLibraryTx = await deployer.deploy(encodeLibraryInitCode, saltHex);
-    const encodeLibraryReceipt = await encodeLibraryTx.wait()
-    let libraryAddress = encodeLibraryReceipt.events[encodeLibraryReceipt.events.length - 1].args[0]
-    const factory = new VAnchor__factory(
-      { ['contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs']: libraryAddress },
-      signer
-    );
-    const vanchorBytecode = factory['bytecode']
-    const vanchorInitCode = vanchorBytecode + encoder(["address", "uint32", "address", "address", "address", "uint8"], [verifier, levels, hasher, handler, token, maxEdges])
-    const vanchorTx = await deployer.deploy(vanchorInitCode, saltHex);
-    const vanchorReceipt = await vanchorTx.wait()
-    const vanchor = await factory.attach(vanchorReceipt.events[0].args[0]);
+    const { contract: libraryContract } = await deployer.deploy(VAnchorEncodeInputs__factory, saltHex, signer)
+    let libraryAddresses = {
+      ['contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs']: libraryContract.address
+    }
+    const argTypes = ["address", "uint32", "address", "address", "address", "uint8"];
+    const args = [verifier, levels, hasher, handler, token, maxEdges];
+    const { contract: vanchor, receipt } = await deployer.deploy(VAnchor__factory, saltHex, signer, libraryAddresses, argTypes, args)
+    // const factory = new VAnchor__factory(
+    //   { ['contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs']: libraryAddress },
+    //   signer
+    // );
+    // const vanchorBytecode = factory['bytecode']
+    // const vanchorInitCode = vanchorBytecode + encoder(["address", "uint32", "address", "address", "address", "uint8"], [verifier, levels, hasher, handler, token, maxEdges])
+    // const vanchorTx = await deployer.deploy(vanchorInitCode, saltHex);
+    // const vanchorReceipt = await vanchorTx.wait()
+    // const vanchor = await factory.attach(vanchorReceipt.events[0].args[0]);
     const createdVAnchor = new VAnchor(
       vanchor,
       signer,
@@ -137,7 +123,8 @@ export class VAnchor extends WebbBridge implements IAnchor {
       smallCircuitZkComponents,
       largeCircuitZkComponents
     );
-    createdVAnchor.latestSyncedBlock = vanchorReceipt.blockNumber!;
+    console.log('vanchor', vanchor.deployTransaction)
+    createdVAnchor.latestSyncedBlock = receipt.blockNumber!;
     createdVAnchor.token = token;
     return createdVAnchor;
   }

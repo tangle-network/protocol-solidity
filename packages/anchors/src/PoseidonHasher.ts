@@ -29,9 +29,9 @@ export class PoseidonHasher {
   public static async create2PoseidonHasher(deployer: Deployer, salt: string, signer: ethers.Signer) {
     console.log('init')
     const saltHex = ethers.utils.id(salt)
-    const poseidonT3Library = await deployer.deploy(PoseidonT3__factory, saltHex, signer)
-    const poseidonT4Library = await deployer.deploy(PoseidonT4__factory, saltHex, signer)
-    const poseidonT6Library = await deployer.deploy(PoseidonT6__factory, saltHex, signer)
+    const { contract: poseidonT3Library } = await deployer.deploy(PoseidonT3__factory, saltHex, signer)
+    const { contract: poseidonT4Library } = await deployer.deploy(PoseidonT4__factory, saltHex, signer)
+    const { contract: poseidonT6Library } = await deployer.deploy(PoseidonT6__factory, saltHex, signer)
 
 
     const libraryAddresses = {
@@ -39,7 +39,7 @@ export class PoseidonHasher {
       ['contracts/hashers/Poseidon.sol:PoseidonT4']: poseidonT4Library.address,
       ['contracts/hashers/Poseidon.sol:PoseidonT6']: poseidonT6Library.address,
     };
-    const contract = await deployer.deploy(PoseidonHasher__factory, saltHex, signer, libraryAddresses)
+    const { contract } = await deployer.deploy(PoseidonHasher__factory, saltHex, signer, libraryAddresses)
 
     const hasher = new PoseidonHasher(contract);
     return hasher;

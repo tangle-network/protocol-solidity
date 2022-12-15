@@ -94,7 +94,7 @@ export class VerifierBase {
     // const verifierBytecode = verifierFactory['bytecode'];
     // const verifierInitCode = verifierBytecode + encoder([], []);
     // const verifierCreate2Addr = create2Address(deployer.address, saltHex, verifierInitCode);
-    const contract = await deployer.deploy(verifier__factory, saltHex, signer);
+    const { contract } = await deployer.deploy(verifier__factory, saltHex, signer);
     // const verifierReceipt = await verifierTx.wait();
     // if (verifierReceipt.events[0].args[0] !== verifierCreate2Addr) {
     //   throw new Error('create2 address mismatch');
@@ -121,7 +121,7 @@ export class VerifierBase {
     const argTypes = ['address', 'address', 'address', 'address']
     const args = [v22.address, v216.address, v82.address, v816.address]
 
-    const verifier = await deployer.deploy(verifier__factory, saltHex, signer, undefined, argTypes, args);
+    const { contract: verifier } = await deployer.deploy(verifier__factory, saltHex, signer, undefined, argTypes, args);
     // const vanchorVerifierReceipt = await vanchorVerifierTx.wait();
     // // const verifier = await VerifierFactory.deploy(v22.address, v216.address, v82.address, v816.address);
     // const numEvents = vanchorVerifierReceipt.events.length;
