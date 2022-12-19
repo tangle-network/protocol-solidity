@@ -28,7 +28,7 @@ jobs:
       - name: ts-check
         run: |
           yarn install --frozen-lockfile
-          yarn build
+          yarn compile
           yarn ts-check
 
   # This job builds and runs tests for the contracts
