@@ -22,11 +22,11 @@
     "@types/chai": "^4.3.0",
     "@types/mocha": "^9.0.0",
     "@webb-tools/sdk-core": "0.1.4-113",
-    "@webb-tools/test-utils": "0.1.4-113",
     "@webb-tools/semaphore": "0.0.1-4",
     "@webb-tools/semaphore-group": "0.0.1-4",
     "@webb-tools/semaphore-identity": "0.0.1-3",
     "@webb-tools/semaphore-proof": "0.0.1-3",
+    "@webb-tools/test-utils": "0.1.4-113",
     "babel-plugin-styled-components": "^2.0.7",
     "bn.js": "4.11.6",
     "chai": "^4.3.5",
@@ -51,5 +51,6 @@
     "type": "git",
     "url": "git://github.com/webb-tools/protocol-solidity.git"
   },
-  "version": "0.4.2"
+  "version": "0.5.0",
+  "gitHead": "16b09cb2a50b4473783bf145d0f6cd3d0c71a629"
 }

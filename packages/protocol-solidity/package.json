@@ -1,7 +1,7 @@
 {
   "name": "@webb-tools/protocol-solidity",
   "main": "./lib/index.js",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "license": "GPL-3.0-or-later",
   "author": "Webb Developers <drew@webb.tools>",
   "scripts": {
@@ -10,13 +10,13 @@
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@webb-tools/anchors": "^0.4.2",
-    "@webb-tools/bridges": "^0.4.2",
-    "@webb-tools/contracts": "^0.4.2",
-    "@webb-tools/interfaces": "^0.4.2",
-    "@webb-tools/tokens": "^0.4.2",
-    "@webb-tools/utils": "^0.4.2",
-    "@webb-tools/vbridge": "^0.4.2"
+    "@webb-tools/anchors": "^0.5.0",
+    "@webb-tools/bridges": "^0.5.0",
+    "@webb-tools/contracts": "^0.5.0",
+    "@webb-tools/interfaces": "^0.5.0",
+    "@webb-tools/tokens": "^0.5.0",
+    "@webb-tools/utils": "^0.5.0",
+    "@webb-tools/vbridge": "^0.5.0"
   },
   "publishConfig": {
     "access": "public"
@@ -25,5 +25,6 @@
     "directory": "packages/protocol-solidity",
     "type": "git",
     "url": "git://github.com/webb-tools/protocol-solidity.git"
-  }
+  },
+  "gitHead": "16b09cb2a50b4473783bf145d0f6cd3d0c71a629"
 }
