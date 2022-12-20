@@ -18,15 +18,26 @@ export class ChainalysisVAnchor extends VAnchor {
     largeCircuitZkComponents: ZkComponents,
     signer: ethers.Signer
   ) {
-    const { contract: libraryContract } = await deployer.deploy(VAnchorEncodeInputs__factory, saltHex, signer);
+    const { contract: libraryContract } = await deployer.deploy(
+      VAnchorEncodeInputs__factory,
+      saltHex,
+      signer
+    );
 
     let libraryAddresses = {
-      ['contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs']: libraryContract.address
+      ['contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs']: libraryContract.address,
     };
 
-    const argTypes = ["address", "uint32", "address", "address", "address", "uint8"];
+    const argTypes = ['address', 'uint32', 'address', 'address', 'address', 'uint8'];
     const args = [verifier, levels, hasher, handler, token, maxEdges];
-    const { contract: vanchor, receipt } = await deployer.deploy(ChainalysisVAnchor__factory, saltHex, signer, libraryAddresses, argTypes, args);
+    const { contract: vanchor, receipt } = await deployer.deploy(
+      ChainalysisVAnchor__factory,
+      saltHex,
+      signer,
+      libraryAddresses,
+      argTypes,
+      args
+    );
     const createdVAnchor = new VAnchor(
       vanchor,
       signer,

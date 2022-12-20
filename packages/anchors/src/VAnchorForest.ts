@@ -94,7 +94,7 @@ export class VAnchorForest extends WebbBridge {
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents
   ) {
-    super(contract, signer)
+    super(contract, signer);
     this.signer = signer;
     this.contract = contract;
     this.forest = new MerkleTree(forestHeight);
@@ -124,34 +124,47 @@ export class VAnchorForest extends WebbBridge {
     signer: ethers.Signer
   ) {
     // const saltHex = ethers.utils.id(salt)
-    const { contract: encodeLibrary } = await deployer.deploy(VAnchorEncodeInputs__factory, saltHex, signer);
+    const { contract: encodeLibrary } = await deployer.deploy(
+      VAnchorEncodeInputs__factory,
+      saltHex,
+      signer
+    );
 
     const poseidonABI = poseidonContract.generateABI(2);
     const poseidonBytecode = poseidonContract.createCode(2);
     const poseidonInitCode = poseidonBytecode + Deployer.encode([], []);
 
-    const { address: poseidonLibAddr } = await deployer.deployInitCode(saltHex, signer, poseidonInitCode)
+    const { address: poseidonLibAddr } = await deployer.deployInitCode(
+      saltHex,
+      signer,
+      poseidonInitCode
+    );
 
     const LinkableIncrementalBinaryTreeLibs = {
       ['contracts/hashers/Poseidon.sol:PoseidonT3']: poseidonLibAddr,
-    }
-    const { contract: linkableIncrementalBinaryTree } = await deployer.deploy(LinkableIncrementalBinaryTree__factory, saltHex, signer, LinkableIncrementalBinaryTreeLibs)
+    };
+    const { contract: linkableIncrementalBinaryTree } = await deployer.deploy(
+      LinkableIncrementalBinaryTree__factory,
+      saltHex,
+      signer,
+      LinkableIncrementalBinaryTreeLibs
+    );
     const libraryAddresses = {
       ['contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs']: encodeLibrary.address,
       ['contracts/hashers/Poseidon.sol:PoseidonT3']: poseidonLibAddr,
-      ['contracts/trees/LinkableIncrementalBinaryTree.sol:LinkableIncrementalBinaryTree']: linkableIncrementalBinaryTree.address,
-    }
-    const argTypes = ["address", "uint32", "uint32", "address", "address", "address", "uint8"]
-    const args = [
-      verifier,
-      forestLevels,
-      subtreeLevels,
-      hasher,
-      handler,
-      token,
-      maxEdges,
-    ]
-    const { contract: vAnchor, receipt } = await deployer.deploy(VAnchorForest__factory, saltHex, signer, libraryAddresses, argTypes, args)
+      ['contracts/trees/LinkableIncrementalBinaryTree.sol:LinkableIncrementalBinaryTree']:
+        linkableIncrementalBinaryTree.address,
+    };
+    const argTypes = ['address', 'uint32', 'uint32', 'address', 'address', 'address', 'uint8'];
+    const args = [verifier, forestLevels, subtreeLevels, hasher, handler, token, maxEdges];
+    const { contract: vAnchor, receipt } = await deployer.deploy(
+      VAnchorForest__factory,
+      saltHex,
+      signer,
+      libraryAddresses,
+      argTypes,
+      args
+    );
     // await vAnchor.deployed();
     const createdVAnchor = new VAnchorForest(
       vAnchor,
@@ -301,7 +314,7 @@ export class VAnchorForest extends WebbBridge {
 
     const chainID = getChainIdType(await this.signer.getChainId());
     const merkleRoot = this.depositHistory[leafIndex];
-    return await this.genProposalData(resourceID, merkleRoot, leafIndex)
+    return await this.genProposalData(resourceID, merkleRoot, leafIndex);
   }
 
   public async populateRootsForProof(): Promise<string[]> {
@@ -563,8 +576,8 @@ export class VAnchorForest extends WebbBridge {
     relayer: string,
     leavesMap: Record<string, Uint8Array[]>
   ) {
-    inputs = await this.padUtxos(inputs, 16)
-    outputs = await this.padUtxos(outputs, 2)
+    inputs = await this.padUtxos(inputs, 16);
+    outputs = await this.padUtxos(outputs, 2);
 
     let extAmount = await this.getExtAmount(inputs, outputs, fee);
     // first, check if the merkle root is known on chain - if not, then update

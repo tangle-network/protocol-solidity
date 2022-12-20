@@ -37,11 +37,18 @@ const encoder = (types, values) => {
 };
 
 const create2Address = (factoryAddress, saltHex, initCode) => {
-  const create2Addr = ethers.utils.getCreate2Address(factoryAddress, saltHex, ethers.utils.keccak256(initCode));
+  const create2Addr = ethers.utils.getCreate2Address(
+    factoryAddress,
+    saltHex,
+    ethers.utils.keccak256(initCode)
+  );
   return create2Addr;
-
-}
-type WebbContracts = VAnchorContract | ChainalysisVAnchorContract | IdentityVAnchorContract | VAnchorForestContract;
+};
+type WebbContracts =
+  | VAnchorContract
+  | ChainalysisVAnchorContract
+  | IdentityVAnchorContract
+  | VAnchorForestContract;
 
 export class WebbBridge {
   signer: ethers.Signer;
@@ -139,7 +146,11 @@ export class WebbBridge {
 
   // Proposal data is used to update linkedAnchors via bridge proposals
   // on other chains with this anchor's state
-  public async genProposalData(resourceID: string, merkleRoot: string, leafIndex: number): Promise<string> {
+  public async genProposalData(
+    resourceID: string,
+    merkleRoot: string,
+    leafIndex: number
+  ): Promise<string> {
     // If no leaf index passed in, set it to the most recent one.
     const chainID = getChainIdType(await this.signer.getChainId());
     const functionSig = ethers.utils
@@ -212,5 +223,4 @@ export class WebbBridge {
       toHex(newHandler, 20).substr(2)
     );
   }
-
 }

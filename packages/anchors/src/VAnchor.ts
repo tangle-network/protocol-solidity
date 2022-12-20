@@ -72,7 +72,7 @@ export class VAnchor extends WebbBridge implements IAnchor {
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents
   ) {
-    super(contract, signer)
+    super(contract, signer);
     this.signer = signer;
     this.contract = contract;
     this.tree = new MerkleTree(treeHeight);
@@ -99,15 +99,26 @@ export class VAnchor extends WebbBridge implements IAnchor {
     largeCircuitZkComponents: ZkComponents,
     signer: ethers.Signer
   ) {
-    const { contract: libraryContract } = await deployer.deploy(VAnchorEncodeInputs__factory, saltHex, signer);
+    const { contract: libraryContract } = await deployer.deploy(
+      VAnchorEncodeInputs__factory,
+      saltHex,
+      signer
+    );
 
     let libraryAddresses = {
-      ['contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs']: libraryContract.address
+      ['contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs']: libraryContract.address,
     };
 
-    const argTypes = ["address", "uint32", "address", "address", "address", "uint8"];
+    const argTypes = ['address', 'uint32', 'address', 'address', 'address', 'uint8'];
     const args = [verifier, levels, hasher, handler, token, maxEdges];
-    const { contract: vanchor, receipt } = await deployer.deploy(VAnchor__factory, saltHex, signer, libraryAddresses, argTypes, args);
+    const { contract: vanchor, receipt } = await deployer.deploy(
+      VAnchor__factory,
+      saltHex,
+      signer,
+      libraryAddresses,
+      argTypes,
+      args
+    );
     const createdVAnchor = new VAnchor(
       vanchor,
       signer,
@@ -177,7 +188,6 @@ export class VAnchor extends WebbBridge implements IAnchor {
     createdAnchor.token = await anchor.token();
     return createdAnchor;
   }
-
 
   public static convertToPublicInputsStruct(args: any[]): IVariableAnchorPublicInputs {
     return {
@@ -374,8 +384,8 @@ export class VAnchor extends WebbBridge implements IAnchor {
     leavesMap: Record<string, Uint8Array[]>
   ) {
     // Default UTXO chain ID will match with the configured signer's chain ID
-    inputs = await this.padUtxos(inputs, 16)
-    outputs = await this.padUtxos(outputs, 2)
+    inputs = await this.padUtxos(inputs, 16);
+    outputs = await this.padUtxos(outputs, 2);
 
     // calculate the sum of input notes (for calculating the public amount)
     let sumInputUtxosAmount: BigNumberish = 0;
@@ -393,7 +403,18 @@ export class VAnchor extends WebbBridge implements IAnchor {
 
     const roots = await this.populateRootsForProof();
 
-    const { extAmount, proof, proofInput } = await this.generateProof(roots, inputs, outputs, fee, refund, token, recipient, relayer, leafIds, leavesMap)
+    const { extAmount, proof, proofInput } = await this.generateProof(
+      roots,
+      inputs,
+      outputs,
+      fee,
+      refund,
+      token,
+      recipient,
+      relayer,
+      leafIds,
+      leavesMap
+    );
 
     const publicInputs: IVariableAnchorPublicInputs = this.generatePublicInputs(
       proof.proof,
@@ -546,7 +567,7 @@ export class VAnchor extends WebbBridge implements IAnchor {
     leafIds: LeafIdentifier[],
     leavesMap: Record<string, Uint8Array[]>
   ) {
-    let extAmount = this.getExtAmount(inputs, outputs, fee)
+    let extAmount = this.getExtAmount(inputs, outputs, fee);
 
     const encryptedCommitments: [Uint8Array, Uint8Array] = [
       hexToU8a(outputs[0].encrypt()),
@@ -575,18 +596,18 @@ export class VAnchor extends WebbBridge implements IAnchor {
 
     inputs.length > 2
       ? (this.provingManager = new CircomProvingManager(
-        this.largeCircuitZkComponents.wasm,
-        this.tree.levels,
-        null
-      ))
+          this.largeCircuitZkComponents.wasm,
+          this.tree.levels,
+          null
+        ))
       : (this.provingManager = new CircomProvingManager(
-        this.smallCircuitZkComponents.wasm,
-        this.tree.levels,
-        null
-      ));
+          this.smallCircuitZkComponents.wasm,
+          this.tree.levels,
+          null
+        ));
 
     const proof = await this.provingManager.prove('vanchor', proofInput);
-    return { proof, extAmount, proofInput }
+    return { proof, extAmount, proofInput };
   }
 
   public async registerAndTransact(

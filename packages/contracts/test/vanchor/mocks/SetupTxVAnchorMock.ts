@@ -49,9 +49,9 @@ export class SetupTxVAnchorMock extends VAnchor {
     leavesMap: Record<string, Uint8Array[]>
   ) {
     // first, check if the merkle root is known on chain - if not, then update
-    inputs = await this.padUtxos(inputs, 16)
-    outputs = await this.padUtxos(outputs, 2)
-    let extAmount = this.getExtAmount(inputs, outputs, fee)
+    inputs = await this.padUtxos(inputs, 16);
+    outputs = await this.padUtxos(outputs, 2);
+    let extAmount = this.getExtAmount(inputs, outputs, fee);
 
     const chainId = getChainIdType(await this.signer.getChainId());
 
@@ -93,15 +93,15 @@ export class SetupTxVAnchorMock extends VAnchor {
 
     inputs.length > 2
       ? (this.provingManager = new CircomProvingManager(
-        this.largeCircuitZkComponents.wasm,
-        this.tree.levels,
-        null
-      ))
+          this.largeCircuitZkComponents.wasm,
+          this.tree.levels,
+          null
+        ))
       : (this.provingManager = new CircomProvingManager(
-        this.smallCircuitZkComponents.wasm,
-        this.tree.levels,
-        null
-      ));
+          this.smallCircuitZkComponents.wasm,
+          this.tree.levels,
+          null
+        ));
 
     const proof = await this.provingManager.prove('vanchor', proofInput);
 

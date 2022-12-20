@@ -30,7 +30,6 @@ import {
 } from '@webb-tools/sdk-core';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
 
-
 export class Deployer {
   signer: ethers.Signer;
   contract: DeterministicDeployFactoryContract;
@@ -46,10 +45,14 @@ export class Deployer {
     const abiCoder = ethers.utils.defaultAbiCoder;
     const encodedParams = abiCoder.encode(types, values);
     return encodedParams.slice(2);
-  };
+  }
 
   public static create2Address(factoryAddress, saltHex, initCode) {
-    const create2Addr = ethers.utils.getCreate2Address(factoryAddress, saltHex, ethers.utils.keccak256(initCode));
+    const create2Addr = ethers.utils.getCreate2Address(
+      factoryAddress,
+      saltHex,
+      ethers.utils.keccak256(initCode)
+    );
     return create2Addr;
   }
   public async deploy(
@@ -58,8 +61,8 @@ export class Deployer {
     signer: Signer,
     libraryAddresses?: any,
     argTypes?: string[],
-    args?: any[],
-  ): Promise<{ contract, receipt }> {
+    args?: any[]
+  ): Promise<{ contract; receipt }> {
     let verifierFactory;
     if (libraryAddresses === undefined) {
       verifierFactory = new factory(signer);
@@ -89,7 +92,7 @@ export class Deployer {
   public async deployInitCode(
     saltHex: string,
     signer: Signer,
-    initCode: any,
+    initCode: any
   ): Promise<{ address }> {
     // console.log('typeof initCode', typeof initCode);
     const verifierCreate2Addr = Deployer.create2Address(this.contract.address, saltHex, initCode);
@@ -103,6 +106,5 @@ export class Deployer {
     let address = deployEvent.args[0];
     return { address };
   }
-
 }
 export default Deployer;

@@ -15,10 +15,13 @@ const encoder = (types, values) => {
 };
 
 const create2Address = (factoryAddress, saltHex, initCode) => {
-  const create2Addr = ethers.utils.getCreate2Address(factoryAddress, saltHex, ethers.utils.keccak256(initCode));
+  const create2Addr = ethers.utils.getCreate2Address(
+    factoryAddress,
+    saltHex,
+    ethers.utils.keccak256(initCode)
+  );
   return create2Addr;
-
-}
+};
 
 export class PoseidonHasher {
   contract: PoseidonHasherContract;
@@ -26,20 +29,40 @@ export class PoseidonHasher {
   constructor(contract: PoseidonHasherContract) {
     this.contract = contract;
   }
-  public static async create2PoseidonHasher(deployer: Deployer, salt: string, signer: ethers.Signer) {
-    console.log('init')
-    const saltHex = ethers.utils.id(salt)
-    const { contract: poseidonT3Library } = await deployer.deploy(PoseidonT3__factory, saltHex, signer)
-    const { contract: poseidonT4Library } = await deployer.deploy(PoseidonT4__factory, saltHex, signer)
-    const { contract: poseidonT6Library } = await deployer.deploy(PoseidonT6__factory, saltHex, signer)
-
+  public static async create2PoseidonHasher(
+    deployer: Deployer,
+    salt: string,
+    signer: ethers.Signer
+  ) {
+    console.log('init');
+    const saltHex = ethers.utils.id(salt);
+    const { contract: poseidonT3Library } = await deployer.deploy(
+      PoseidonT3__factory,
+      saltHex,
+      signer
+    );
+    const { contract: poseidonT4Library } = await deployer.deploy(
+      PoseidonT4__factory,
+      saltHex,
+      signer
+    );
+    const { contract: poseidonT6Library } = await deployer.deploy(
+      PoseidonT6__factory,
+      saltHex,
+      signer
+    );
 
     const libraryAddresses = {
       ['contracts/hashers/Poseidon.sol:PoseidonT3']: poseidonT3Library.address,
       ['contracts/hashers/Poseidon.sol:PoseidonT4']: poseidonT4Library.address,
       ['contracts/hashers/Poseidon.sol:PoseidonT6']: poseidonT6Library.address,
     };
-    const { contract } = await deployer.deploy(PoseidonHasher__factory, saltHex, signer, libraryAddresses)
+    const { contract } = await deployer.deploy(
+      PoseidonHasher__factory,
+      saltHex,
+      signer,
+      libraryAddresses
+    );
 
     const hasher = new PoseidonHasher(contract);
     return hasher;
