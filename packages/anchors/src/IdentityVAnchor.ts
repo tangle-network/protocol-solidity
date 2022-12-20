@@ -36,6 +36,7 @@ import { hexToU8a, u8aToHex, getChainIdType, UTXOInputs, ZkComponents } from '@w
 import { Semaphore } from '@webb-tools/semaphore';
 import { LinkedGroup } from '@webb-tools/semaphore-group';
 import { WebbBridge } from './Common';
+import { Deployer } from './Deployer';
 
 const snarkjs = require('snarkjs');
 
@@ -107,7 +108,7 @@ export class IdentityVAnchor extends WebbBridge implements IAnchor {
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents
   ) {
-    super(contract, signer)
+    super(contract, signer);
     this.contract = contract;
     this.signer = signer;
     this.tree = new MerkleTree(treeHeight);
@@ -121,6 +122,74 @@ export class IdentityVAnchor extends WebbBridge implements IAnchor {
   }
   getAddress(): string {
     return this.contract.address;
+  }
+  public static async create2IdentityVAnchor(
+    deployer: Deployer,
+    saltHex: string,
+    semaphore: Semaphore,
+    verifier: string,
+    levels: number,
+    hasher: string,
+    handler: string,
+    token: string,
+    maxEdges: number,
+    groupId: BigNumber,
+    group: LinkedGroup,
+    smallCircuitZkComponents: ZkComponents,
+    largeCircuitZkComponents: ZkComponents,
+    signer: ethers.Signer
+  ) {
+    const { contract: encodeLibrary } = await deployer.deploy(
+      IdentityVAnchorEncodeInputs__factory,
+      saltHex,
+      signer
+    );
+    let libraryAddresses = {
+      ['contracts/libs/IdentityVAnchorEncodeInputs.sol:IdentityVAnchorEncodeInputs']:
+        encodeLibrary.address,
+    };
+    const argTypes = [
+      'address',
+      'address',
+      'uint8',
+      'address',
+      'address',
+      'address',
+      'uint8',
+      'uint256',
+    ];
+    const args = [
+      semaphore.contract.address,
+      verifier,
+      levels,
+      hasher,
+      handler,
+      token,
+      maxEdges,
+      groupId,
+    ];
+
+    const { contract: vAnchor, receipt } = await deployer.deploy(
+      IdentityVAnchor__factory,
+      saltHex,
+      signer,
+      libraryAddresses,
+      argTypes,
+      args
+    );
+    const createdIdentityVAnchor = new IdentityVAnchor(
+      vAnchor,
+      signer,
+      BigNumber.from(levels).toNumber(),
+      maxEdges,
+      groupId,
+      group,
+      smallCircuitZkComponents,
+      largeCircuitZkComponents
+    );
+    createdIdentityVAnchor.latestSyncedBlock = receipt.blockNumber!;
+    createdIdentityVAnchor.token = token;
+    return createdIdentityVAnchor;
   }
 
   public static async createIdentityVAnchor(
@@ -303,7 +372,7 @@ export class IdentityVAnchor extends WebbBridge implements IAnchor {
 
     const chainID = getChainIdType(await this.signer.getChainId());
     const merkleRoot = this.depositHistory[leafIndex];
-    return this.genProposalData(resourceID, merkleRoot, leafIndex)
+    return this.genProposalData(resourceID, merkleRoot, leafIndex);
   }
 
   public async populateVAnchorRootsForProof(): Promise<string[]> {
@@ -508,12 +577,16 @@ export class IdentityVAnchor extends WebbBridge implements IAnchor {
     fee: BigNumberish,
     refund: BigNumberish,
     recipient: string,
-    relayer: string,
-  ): Promise<{ extAmount: BigNumber, extData: any, publicInputs: IIdentityVariableAnchorPublicInputs }> {
-    inputs = await this.padUtxos(inputs, 16)
-    outputs = await this.padUtxos(outputs, 2)
+    relayer: string
+  ): Promise<{
+    extAmount: BigNumber;
+    extData: any;
+    publicInputs: IIdentityVariableAnchorPublicInputs;
+  }> {
+    inputs = await this.padUtxos(inputs, 16);
+    outputs = await this.padUtxos(outputs, 2);
 
-    let extAmount = this.getExtAmount(inputs, outputs, fee)
+    let extAmount = this.getExtAmount(inputs, outputs, fee);
 
     const identityRootInputs = this.populateIdentityRootsForProof();
     const identityMerkleProof: MerkleProof = this.generateIdentityMerkleProof(keypair.getPubKey());
@@ -686,7 +759,7 @@ export class IdentityVAnchor extends WebbBridge implements IAnchor {
       fee,
       refund,
       recipient,
-      relayer,
+      relayer
     );
 
     let tx = await this.contract.transact({ ...publicInputs }, extData, { gasLimit: '0x5B8D80' });
@@ -718,7 +791,7 @@ export class IdentityVAnchor extends WebbBridge implements IAnchor {
       fee,
       refund,
       recipient,
-      relayer,
+      relayer
     );
 
     let tx: ContractTransaction;

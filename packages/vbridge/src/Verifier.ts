@@ -27,9 +27,13 @@ const encoder = (types, values) => {
 };
 
 const create2Address = (factoryAddress, saltHex, initCode) => {
-  const create2Addr = ethers.utils.getCreate2Address(factoryAddress, saltHex, ethers.utils.keccak256(initCode));
+  const create2Addr = ethers.utils.getCreate2Address(
+    factoryAddress,
+    saltHex,
+    ethers.utils.keccak256(initCode)
+  );
   return create2Addr;
-}
+};
 // type V22Factory = Verifier22__factory | VerifierID22__factory | VerifierF22__factory
 // type V82Factory = Verifier82__factory | VerifierID82__factory | VerifierF82__factory
 // type V216Factory = Verifier216__factory | VerifierID216__factory | VerifierF216__factory
@@ -77,30 +81,12 @@ export class VerifierBase {
     v816__factory: any,
     signer: Signer
   ): Promise<{ v22; v82; v216; v816 }> {
-    const v22 = await this.create2SingleVerifier(deployer, saltHex, v22__factory, signer);
-    const v82 = await this.create2SingleVerifier(deployer, saltHex, v82__factory, signer);
-    const v216 = await this.create2SingleVerifier(deployer, saltHex, v216__factory, signer);
-    const v816 = await this.create2SingleVerifier(deployer, saltHex, v816__factory, signer);
+    const { contract: v22 } = await deployer.deploy(v22__factory, saltHex, signer);
+    const { contract: v82 } = await deployer.deploy(v82__factory, saltHex, signer);
+    const { contract: v216 } = await deployer.deploy(v216__factory, saltHex, signer);
+    const { contract: v816 } = await deployer.deploy(v816__factory, saltHex, signer);
 
     return { v22, v82, v216, v816 };
-  }
-  public static async create2SingleVerifier(
-    deployer: Deployer,
-    saltHex: string,
-    verifier__factory: any,
-    signer: Signer
-  ): Promise<any> {
-    // const verifierFactory = new verifier__factory(signer);
-    // const verifierBytecode = verifierFactory['bytecode'];
-    // const verifierInitCode = verifierBytecode + encoder([], []);
-    // const verifierCreate2Addr = create2Address(deployer.address, saltHex, verifierInitCode);
-    const { contract } = await deployer.deploy(verifier__factory, saltHex, signer);
-    // const verifierReceipt = await verifierTx.wait();
-    // if (verifierReceipt.events[0].args[0] !== verifierCreate2Addr) {
-    //   throw new Error('create2 address mismatch');
-    // }
-    // const contract = await verifierFactory.attach(verifierReceipt.events[0].args[0]);
-    return contract;
   }
   public static async create2VAnchorVerifier(
     deployer: Deployer,
@@ -109,25 +95,17 @@ export class VerifierBase {
     signer: Signer,
     { v22, v82, v216, v816 }
   ): Promise<VerifierContract> {
-    // const VAnchorVerifierFactory = new verifier__factory(signer);
-    // const vanchorVerifierBytecode = VAnchorVerifierFactory['bytecode'];
-    // const vanchorVerifierInitCode =
-    //   vanchorVerifierBytecode +
-    //   encoder(
-    //     ['address', 'address', 'address', 'address'],
-    //     [v22.address, v216.address, v82.address, v816.address]
-    //   );
+    const argTypes = ['address', 'address', 'address', 'address'];
+    const args = [v22.address, v216.address, v82.address, v816.address];
 
-    const argTypes = ['address', 'address', 'address', 'address']
-    const args = [v22.address, v216.address, v82.address, v816.address]
-
-    const { contract: verifier } = await deployer.deploy(verifier__factory, saltHex, signer, undefined, argTypes, args);
-    // const vanchorVerifierReceipt = await vanchorVerifierTx.wait();
-    // // const verifier = await VerifierFactory.deploy(v22.address, v216.address, v82.address, v816.address);
-    // const numEvents = vanchorVerifierReceipt.events.length;
-    // const verifier = await VAnchorVerifierFactory.attach(
-    //   vanchorVerifierReceipt.events[numEvents - 1].args[0]
-    // );
+    const { contract: verifier } = await deployer.deploy(
+      verifier__factory,
+      saltHex,
+      signer,
+      undefined,
+      argTypes,
+      args
+    );
     return verifier;
   }
   public static async createVAnchorVerifier(
@@ -153,11 +131,7 @@ export class Verifier extends VerifierBase {
     this.signer = signer;
     this.contract = contract;
   }
-  public static async create2Verifier(
-    deployer: Deployer,
-    salt: string,
-    signer: ethers.Signer
-  ) {
+  public static async create2Verifier(deployer: Deployer, salt: string, signer: ethers.Signer) {
     const saltHex = ethers.utils.id(salt);
     const verifiers = await this.create2Verifiers(
       deployer,
@@ -207,11 +181,7 @@ export class IdentityVerifier extends VerifierBase {
     this.signer = signer;
     this.contract = contract;
   }
-  public static async create2Verifier(
-    deployer: Deployer,
-    salt: string,
-    signer: ethers.Signer
-  ) {
+  public static async create2Verifier(deployer: Deployer, salt: string, signer: ethers.Signer) {
     const saltHex = ethers.utils.id(salt);
     const verifiers = await this.create2Verifiers(
       deployer,
@@ -265,11 +235,7 @@ export class ForestVerifier extends VerifierBase {
     this.contract = contract;
   }
 
-  public static async create2Verifier(
-    deployer: Deployer,
-    salt: string,
-    signer: ethers.Signer
-  ) {
+  public static async create2Verifier(deployer: Deployer, salt: string, signer: ethers.Signer) {
     const saltHex = ethers.utils.id(salt);
     const verifiers = await this.create2Verifiers(
       deployer,
