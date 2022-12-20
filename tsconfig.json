@@ -22,10 +22,10 @@
         "packages/merkle-tree/src/*"
       ],
       "@webb-tools/contracts": [
-        "packages/contracts/src"
+        "packages/contracts/typechain"
       ],
       "@webb-tools/contracts/*": [
-        "packages/contracts/src/*"
+        "packages/contracts/typechain/*"
       ],
       "@webb-tools/bridges": [
         "packages/bridges/src"

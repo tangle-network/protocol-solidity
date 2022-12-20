@@ -13,7 +13,7 @@ import {
   MerkleForestMock as MerkleForestMockContract,
   LinkableIncrementalBinaryTree as LinkableIncrementalBinaryTreeContract,
   LinkableIncrementalBinaryTree__factory,
-} from '../../typechain';
+} from '../../lib';
 const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
 
