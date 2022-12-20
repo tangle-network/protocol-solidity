@@ -21,3 +21,5 @@ dist
 
 *.ptau
 yarn-error.log
+
+solidity-fixtures/

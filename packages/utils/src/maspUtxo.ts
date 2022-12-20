@@ -24,7 +24,7 @@ export class MaspUtxo {
     };
 
     public getPartialCommitment(): BigNumber {
-        return BigNumber.from(poseidon[ this.chainID, this.keypair.getPubKey(), this.blinding ]);
+        return BigNumber.from(poseidon([ this.chainID, this.keypair.getPubKey(), this.blinding ]));
     }
 
     public encrypt () {

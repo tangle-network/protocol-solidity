@@ -92,9 +92,9 @@ export class Registry {
     await tx.wait();
   }
 
-  REGISTER_FUNGIBLE_TOKEN_SIGNATURE = 'registerToken(uint32, address, uint256, string, string, bytes32, uint256, uint16, bool)';
+  public REGISTER_FUNGIBLE_TOKEN_SIGNATURE = 'registerToken(uint32, address, uint256, string, string, bytes32, uint256, uint16, bool)';
 
-  REGISTER_NFT_TOKEN_SIGNATURE = 'registerNftToken(uint32, address, uint256, address, string, bytes32)';
+  public REGISTER_NFT_TOKEN_SIGNATURE = 'registerNftToken(uint32, address, uint256, address, string, bytes32)';
 
   public async createResourceId(): Promise<string> {
     return toHex(
