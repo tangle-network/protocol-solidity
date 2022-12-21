@@ -1703,14 +1703,5 @@ describe('VAnchor for 1 max edge', () => {
         wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1))
       );
     });
-    it.skip('should print/save benchmarks', async () => {
-      // Alice deposits into tornado pool
-      const gasBenchmark = await anchor.getGasBenchmark();
-      const proofTimeBenchmark = await anchor.getProofTimeBenchmark();
-      console.log('Gas benchmark:\n', gasBenchmark);
-      console.log('Proof time benchmark:\n', proofTimeBenchmark);
-      writeFileSync('./metrics/gas-metrics.json', JSON.stringify(gasBenchmark));
-      writeFileSync('./metrics/proof-time-metrics.json', JSON.stringify(proofTimeBenchmark));
-    });
   });
 });
