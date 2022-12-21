@@ -644,35 +644,6 @@ export class VAnchorForest extends WebbBridge {
     };
   }
 
-  public validateInputs(inputs: Utxo[]): void {
-    inputs.map((utxo) => {
-      if (utxo.originChainId === undefined) {
-        throw new Error('Input Utxo does not have a configured originChainId');
-      }
-    });
-  }
-
-  public async encodeSolidityProof(fullProof: any, calldata: any): Promise<String> {
-    const proof = JSON.parse('[' + calldata + ']');
-    const pi_a = proof[0];
-    const pi_b = proof[1];
-    const pi_c = proof[2];
-
-    const proofEncoded = [
-      pi_a[0],
-      pi_a[1],
-      pi_b[0][0],
-      pi_b[0][1],
-      pi_b[1][0],
-      pi_b[1][1],
-      pi_c[0],
-      pi_c[1],
-    ]
-      .map((elt) => elt.substr(2))
-      .join('');
-
-    return proofEncoded;
-  }
   public async registerAndTransact(
     owner: string,
     keyData: string,

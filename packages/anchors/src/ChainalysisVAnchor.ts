@@ -46,7 +46,6 @@ export class ChainalysisVAnchor extends VAnchor {
       smallCircuitZkComponents,
       largeCircuitZkComponents
     );
-    console.log('vanchor', vanchor.deployTransaction);
     createdVAnchor.latestSyncedBlock = receipt.blockNumber!;
     createdVAnchor.token = token;
     return createdVAnchor;

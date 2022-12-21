@@ -77,7 +77,6 @@ export class Deployer {
     } else {
       initCode = verifierBytecode + Deployer.encode([], []);
     }
-    // console.log('typeof initCode', typeof initCode);
     const verifierCreate2Addr = Deployer.create2Address(this.contract.address, saltHex, initCode);
     const tx = await this.contract.deploy(initCode, saltHex);
     const receipt = await tx.wait();
@@ -94,7 +93,6 @@ export class Deployer {
     signer: Signer,
     initCode: any
   ): Promise<{ address }> {
-    // console.log('typeof initCode', typeof initCode);
     const verifierCreate2Addr = Deployer.create2Address(this.contract.address, saltHex, initCode);
     const tx = await this.contract.deploy(initCode, saltHex);
     const receipt = await tx.wait();

@@ -8,21 +8,6 @@ import {
 } from '@webb-tools/contracts';
 import { Deployer } from './Deployer';
 
-const encoder = (types, values) => {
-  const abiCoder = ethers.utils.defaultAbiCoder;
-  const encodedParams = abiCoder.encode(types, values);
-  return encodedParams.slice(2);
-};
-
-const create2Address = (factoryAddress, saltHex, initCode) => {
-  const create2Addr = ethers.utils.getCreate2Address(
-    factoryAddress,
-    saltHex,
-    ethers.utils.keccak256(initCode)
-  );
-  return create2Addr;
-};
-
 export class PoseidonHasher {
   contract: PoseidonHasherContract;
 
@@ -34,7 +19,6 @@ export class PoseidonHasher {
     salt: string,
     signer: ethers.Signer
   ) {
-    console.log('init');
     const saltHex = ethers.utils.id(salt);
     const { contract: poseidonT3Library } = await deployer.deploy(
       PoseidonT3__factory,

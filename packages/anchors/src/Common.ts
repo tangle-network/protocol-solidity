@@ -30,21 +30,6 @@ import {
 } from '@webb-tools/sdk-core';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
 
-const encoder = (types, values) => {
-  const abiCoder = ethers.utils.defaultAbiCoder;
-  const encodedParams = abiCoder.encode(types, values);
-  return encodedParams.slice(2);
-};
-
-const create2Address = (factoryAddress, saltHex, initCode) => {
-  const create2Addr = ethers.utils.getCreate2Address(
-    factoryAddress,
-    saltHex,
-    ethers.utils.keccak256(initCode)
-  );
-  return create2Addr;
-};
-
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 function checkNativeAddress(tokenAddress: string): boolean {
   if (tokenAddress === zeroAddress || tokenAddress === '0') {
@@ -204,6 +189,27 @@ export class WebbBridge {
       options = {};
     }
     return options;
+  }
+  public async encodeSolidityProof(fullProof: any, calldata: any): Promise<String> {
+    const proof = JSON.parse('[' + calldata + ']');
+    const pi_a = proof[0];
+    const pi_b = proof[1];
+    const pi_c = proof[2];
+
+    const proofEncoded = [
+      pi_a[0],
+      pi_a[1],
+      pi_b[0][0],
+      pi_b[0][1],
+      pi_b[1][0],
+      pi_b[1][1],
+      pi_c[0],
+      pi_c[1],
+    ]
+      .map((elt) => elt.substr(2))
+      .join('');
+
+    return proofEncoded;
   }
 
   public async padUtxos(utxos: Utxo[], maxLen: number): Promise<Utxo[]> {

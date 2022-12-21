@@ -171,7 +171,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
       handler,
       token,
       maxEdges,
-      groupId
+      groupId,
     ];
 
     const { contract: vAnchor, receipt } = await deployer.deploy(
@@ -551,18 +551,51 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
 
   public async setupTransaction(
     keypair: Keypair,
-    identityRootInputs: string[],
-    identityMerkleProof: MerkleProof,
-    outSemaphoreProofs: MerkleProof[],
-    vanchorInput: UTXOInputs,
-    extDataHash: string
-  ): Promise<IIdentityVariableAnchorPublicInputs> {
+    inputs: Utxo[],
+    outputs: Utxo[],
+    fee: BigNumberish,
+    refund: BigNumberish,
+    recipient: string,
+    relayer: string,
+    wrapUnwrapToken: string
+  ) {
+    if (wrapUnwrapToken.length === 0) {
+      wrapUnwrapToken = this.token;
+    }
+
+    const chainId = getChainIdType(await this.signer.getChainId());
+    const identityRootInputs = this.populateIdentityRootsForProof();
+    const identityMerkleProof: MerkleProof = this.generateIdentityMerkleProof(keypair.getPubKey());
+    const vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x));
+    let extAmount = this.getExtAmount(inputs, outputs, fee);
+
+    const { extData, extDataHash } = await this.generateExtData(
+      recipient,
+      extAmount,
+      relayer,
+      BigNumber.from(fee),
+      BigNumber.from(refund),
+      wrapUnwrapToken,
+      outputs[0].encrypt(),
+      outputs[1].encrypt()
+    );
+
+    const vanchorInput: UTXOInputs = await this.generateUTXOInputs(
+      inputs,
+      outputs,
+      chainId,
+      extAmount,
+      BigNumber.from(fee),
+      extDataHash
+    );
+
+    const outSemaphoreProofs = this.generateOutputSemaphoreProof(outputs);
     const fullProof = await this.generateProof(
       keypair,
       identityRootInputs,
       identityMerkleProof,
       outSemaphoreProofs,
-      extDataHash,
+      extDataHash.toString(),
       vanchorInput
     );
     const proof = await this.generateProofCalldata(fullProof);
@@ -584,7 +617,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     );
     assert.strictEqual(is_valid, true);
 
-    return publicInputs;
+    return { extAmount, extData, publicInputs };
   }
 
   public generateIdentityMerkleProof(pubkey: string): MerkleProof {
@@ -675,13 +708,6 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
 
     return vanchorInput;
   }
-  public validateInputs(inputs: Utxo[]): void {
-    inputs.map((utxo) => {
-      if (utxo.originChainId === undefined) {
-        throw new Error('Input Utxo does not have a configured originChainId');
-      }
-    });
-  }
   public updateTreeState(outputs: Utxo[]): void {
     outputs.forEach((x) => {
       this.tree.insert(u8aToHex(x.commitment));
@@ -700,55 +726,20 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     relayer: string,
     wrapUnwrapToken: string
   ): Promise<ethers.ContractTransaction> {
-
-    const chainId = getChainIdType(await this.signer.getChainId());
     inputs = await this.padUtxos(inputs, 16);
     outputs = await this.padUtxos(outputs, 2);
 
-    const identityRootInputs = this.populateIdentityRootsForProof();
-    const identityMerkleProof: MerkleProof = this.generateIdentityMerkleProof(keypair.getPubKey());
-
-
-    const vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x));
-
-    let extAmount = BigNumber.from(fee)
-      .add(outputs.reduce((sum, x) => sum.add(BigNumber.from(BigInt(x.amount))), BigNumber.from(0)))
-      .sub(inputs.reduce((sum, x) => sum.add(BigNumber.from(BigInt(x.amount))), BigNumber.from(0)));
-
-    if (wrapUnwrapToken.length === 0) {
-      wrapUnwrapToken = this.token;
-    }
-
-    const { extData, extDataHash } = await this.generateExtData(
-      recipient,
-      extAmount,
-      relayer,
-      BigNumber.from(fee),
-      BigNumber.from(refund),
-      wrapUnwrapToken,
-      outputs[0].encrypt(),
-      outputs[1].encrypt()
-    );
-
-    const vanchorInput: UTXOInputs = await this.generateUTXOInputs(
+    const { extAmount, extData, publicInputs } = await this.setupTransaction(
+      keypair,
       inputs,
       outputs,
-      chainId,
-      extAmount,
-      BigNumber.from(fee),
-      extDataHash
+      fee,
+      refund,
+      recipient,
+      relayer,
+      wrapUnwrapToken
     );
-
-    const outSemaphoreProofs = this.generateOutputSemaphoreProof(outputs);
-
-    const publicInputs = await this.setupTransaction(
-      keypair,
-      identityRootInputs,
-      identityMerkleProof,
-      outSemaphoreProofs,
-      vanchorInput,
-      extDataHash.toString()
-    );
+    let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
 
     let tx = await this.contract.transact(
       publicInputs.proof,
@@ -770,7 +761,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
         extDataHash: publicInputs.extDataHash,
       },
       extData,
-      { gasLimit: '0x5B8D80' }
+      options
     );
     const receipt = await tx.wait();
 

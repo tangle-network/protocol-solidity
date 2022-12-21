@@ -20,20 +20,6 @@ import {
 } from '@webb-tools/contracts';
 import { Deployer } from '@webb-tools/anchors';
 
-const encoder = (types, values) => {
-  const abiCoder = ethers.utils.defaultAbiCoder;
-  const encodedParams = abiCoder.encode(types, values);
-  return encodedParams.slice(2);
-};
-
-const create2Address = (factoryAddress, saltHex, initCode) => {
-  const create2Addr = ethers.utils.getCreate2Address(
-    factoryAddress,
-    saltHex,
-    ethers.utils.keccak256(initCode)
-  );
-  return create2Addr;
-};
 // type V22Factory = Verifier22__factory | VerifierID22__factory | VerifierF22__factory
 // type V82Factory = Verifier82__factory | VerifierID82__factory | VerifierF82__factory
 // type V216Factory = Verifier216__factory | VerifierID216__factory | VerifierF216__factory
