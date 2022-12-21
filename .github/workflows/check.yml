@@ -4,6 +4,7 @@ on:
   push:
     branches: [ 'main' ]
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     branches: [ '**' ]
     paths-ignore:
       - 'README.md'
@@ -38,6 +39,7 @@ jobs:
       cancel-in-progress: true
 
     runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/main' && github.event.pull_request.draft == false
     strategy:
       matrix:
         node-version: [16.x]
