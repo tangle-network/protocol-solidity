@@ -11,6 +11,9 @@ import path from 'path';
 import { ZkComponents } from './types';
 import { toFixedHex, Keypair, MerkleProof, MerkleTree, Utxo } from '@webb-tools/sdk-core';
 
+export const ZERO_BYTES32 = '0x0000000000000000000000000000000000000000000000000000000000000000';
+export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+
 export const FIELD_SIZE = BigNumber.from(
   '21888242871839275222246405745257275088548364400416034343698204186575808495617'
 );

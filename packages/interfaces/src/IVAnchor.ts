@@ -1,10 +1,10 @@
-import { AnchorBase } from '@webb-tools/contracts';
+import { VAnchorBase } from '@webb-tools/contracts';
 import { MerkleProof, Utxo } from '@webb-tools/sdk-core';
 import { ethers } from 'ethers';
 
-export interface IAnchor {
+export interface IVAnchor {
   signer: ethers.Signer;
-  contract: AnchorBase;
+  contract: VAnchorBase;
   tree: any;
   // hex string of the connected root
   latestSyncedBlock: number;

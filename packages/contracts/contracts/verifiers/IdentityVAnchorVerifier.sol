@@ -14,7 +14,6 @@ contract IdentityVAnchorVerifier is IAnchorVerifier {
 
 	IIdentityVAnchorVerifier8_2 public v8_2;
 	IIdentityVAnchorVerifier8_16 public v8_16;
-	
 
 	constructor(
 		IIdentityVAnchorVerifier2_2 _verifier_2_2,
@@ -35,7 +34,7 @@ contract IdentityVAnchorVerifier is IAnchorVerifier {
 		bytes memory input,
 		uint8 maxEdges,
 		bool smallInputs
-	) override external view returns (bool r) {
+	) external view override returns (bool r) {
 		if (maxEdges == 1) {
 			if (smallInputs) {
 				uint256[11] memory _inputs = abi.decode(input, (uint256[11]));

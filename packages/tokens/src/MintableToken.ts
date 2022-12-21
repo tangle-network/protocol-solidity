@@ -44,10 +44,10 @@ class MintableToken {
     return this.contract.balanceOf(address);
   }
 
-  public async approveSpending(spender: string): Promise<ContractTransaction> {
-    return this.contract.approve(spender, '10000000000000000000000000000000000', {
-      gasLimit: '0x5B8D80',
-    });
+  public async approveSpending(spender: string, amount: BigNumber): Promise<ContractTransaction> {
+    const tx = await this.contract.approve(spender, amount);
+    await tx.wait();
+    return tx;
   }
 
   public async mintTokens(address: string, amount: BigNumberish) {

@@ -6,12 +6,10 @@ const TruffleAssert = require('truffle-assertions');
 // Typechain generated bindings for contracts
 // These contracts are included in packages, so should be tested
 import {
-  DeterministicDeployFactory as DeterministicDeployFactoryContract,
   DeterministicDeployFactory__factory,
   ERC20PresetMinterPauser,
   ERC20PresetMinterPauser__factory,
   VAnchorEncodeInputs__factory,
-  VAnchorEncodeInputs,
 } from '@webb-tools/contracts';
 
 import { getChainIdType } from '@webb-tools/utils';
@@ -29,23 +27,8 @@ import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 import { Verifier, ForestVerifier, IdentityVerifier } from '@webb-tools/vbridge';
-import { writeFileSync } from 'fs';
 
 const path = require('path');
-const encoder = (types, values) => {
-  const abiCoder = ethers.utils.defaultAbiCoder;
-  const encodedParams = abiCoder.encode(types, values);
-  return encodedParams.slice(2);
-};
-
-const create2Address = (factoryAddress, saltHex, initCode) => {
-  const create2Addr = ethers.utils.getCreate2Address(
-    factoryAddress,
-    saltHex,
-    ethers.utils.keccak256(initCode)
-  );
-  return create2Addr;
-};
 
 describe('Should deploy verifiers to the same address', () => {
   let deployer1: Deployer;

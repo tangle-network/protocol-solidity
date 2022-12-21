@@ -13,10 +13,10 @@ import {
 } from '@webb-tools/sdk-core';
 import { IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
-import { VAnchor as VAnchorContract } from '../../../typechain';
+import { VAnchorTree as VAnchorContract } from '../../../typechain';
 
 export class SetupTxVAnchorMock extends VAnchor {
-  private rootsForProof: string[];
+  private rootsForProof: BigNumber[];
 
   constructor(
     contract: VAnchorContract,
@@ -25,7 +25,7 @@ export class SetupTxVAnchorMock extends VAnchor {
     maxEdges: number,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents,
-    roots: string[]
+    roots: BigNumber[]
   ) {
     super(
       contract,
@@ -43,9 +43,9 @@ export class SetupTxVAnchorMock extends VAnchor {
     outputs: Utxo[],
     fee: BigNumberish,
     refund: BigNumberish,
-    token: string,
     recipient: string,
     relayer: string,
+    wrapUnwrapToken: string,
     leavesMap: Record<string, Uint8Array[]>
   ) {
     // first, check if the merkle root is known on chain - if not, then update
@@ -76,7 +76,7 @@ export class SetupTxVAnchorMock extends VAnchor {
       inputUtxos: inputs,
       leavesMap,
       leafIds,
-      roots: this.rootsForProof.map((root) => hexToU8a(root)),
+      roots: this.rootsForProof.map((root) => hexToU8a(root.toHexString())),
       chainId: chainId.toString(),
       output: [outputs[0], outputs[1]],
       encryptedCommitments,
@@ -85,7 +85,7 @@ export class SetupTxVAnchorMock extends VAnchor {
         inputs.length > 2 ? this.largeCircuitZkComponents.zkey : this.smallCircuitZkComponents.zkey,
       relayer: hexToU8a(relayer),
       refund: BigNumber.from(refund).toString(),
-      token: hexToU8a(token),
+      token: hexToU8a(wrapUnwrapToken),
       recipient: hexToU8a(recipient),
       extAmount: toFixedHex(BigNumber.from(extAmount)),
       fee: BigNumber.from(fee).toString(),
@@ -104,14 +104,13 @@ export class SetupTxVAnchorMock extends VAnchor {
         ));
 
     const proof = await this.provingManager.prove('vanchor', proofInput);
-
     const publicInputs: IVariableAnchorPublicInputs = this.generatePublicInputs(
       proof.proof,
       this.rootsForProof,
       inputs,
       outputs,
       proofInput.publicAmount,
-      u8aToHex(proof.extDataHash)
+      proof.extDataHash
     );
 
     const extData: IVariableAnchorExtData = {

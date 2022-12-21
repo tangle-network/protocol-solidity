@@ -18,54 +18,44 @@ import "../interfaces/tokens/IMultiTokenManager.sol";
     @author Webb Technologies.
  */
 contract Registry is Initialized, IRegistry, ProposalNonceTracker {
-    using SafeMath for uint256;
+	using SafeMath for uint256;
 
-    address public fungibleTokenManager;
-    address public nonFungibleTokenManager;
+	address public fungibleTokenManager;
+	address public nonFungibleTokenManager;
 
-    address public registryHandler;
-    address public masterFeeRecipient;
-    address public maspVAnchor;
+	address public registryHandler;
+	address public masterFeeRecipient;
+	address public maspVAnchor;
 
-	mapping (address => uint256) public wrappedAssetToId;
-	mapping (uint256 => address) public idToWrappedAsset;
+	mapping(address => uint256) public wrappedAssetToId;
+	mapping(uint256 => address) public idToWrappedAsset;
 
-    event TokenRegistered(
-        address indexed token,
-        address indexed handler,
-        uint256 indexed assetId
-    );
+	event TokenRegistered(address indexed token, address indexed handler, uint256 indexed assetId);
 
-    constructor() {
-        registryHandler = msg.sender;
-        masterFeeRecipient = msg.sender;
-    }
+	constructor() {
+		registryHandler = msg.sender;
+		masterFeeRecipient = msg.sender;
+	}
 
-    function initialize(
-        address _fungibleTokenManager,
-        address _nonFungibleTokenManager,
-        address _handler,
-        address _masterFeeRecipient,
-        address _maspVAnchor
-    ) external onlyUninitialized {
-        initialized = true;
-        fungibleTokenManager = _fungibleTokenManager;
-        nonFungibleTokenManager = _nonFungibleTokenManager;
-        registryHandler = _handler;
-        masterFeeRecipient = _masterFeeRecipient;
-        maspVAnchor = _maspVAnchor;
+	function initialize(
+		address _fungibleTokenManager,
+		address _nonFungibleTokenManager,
+		address _handler,
+		address _masterFeeRecipient,
+		address _maspVAnchor
+	) external onlyUninitialized {
+		initialized = true;
+		fungibleTokenManager = _fungibleTokenManager;
+		nonFungibleTokenManager = _nonFungibleTokenManager;
+		registryHandler = _handler;
+		masterFeeRecipient = _masterFeeRecipient;
+		maspVAnchor = _maspVAnchor;
 
-        IMultiTokenManager(_fungibleTokenManager).initialize(
-            address(this),
-            _masterFeeRecipient
-        );
-        IMultiTokenManager(_nonFungibleTokenManager).initialize(
-            address(this),
-            _masterFeeRecipient
-        );
-    }
+		IMultiTokenManager(_fungibleTokenManager).initialize(address(this), _masterFeeRecipient);
+		IMultiTokenManager(_nonFungibleTokenManager).initialize(address(this), _masterFeeRecipient);
+	}
 
-    /**
+	/**
         @notice Registers a new token and deploys the FungibleTokenWrapper contract
         @param _nonce The nonce of the proposal
         @param _tokenHandler The address of the token handler contract
@@ -77,35 +67,37 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
         @param _feePercentage The fee percentage for wrapping
         @param _isNativeAllowed Whether or not native tokens are allowed to be wrapped
      */
-    function registerToken(
-        uint32 _nonce,
-        address _tokenHandler,
-        uint256 _assetIdentifier,
-        string memory _name,
-        string memory _symbol,
-        bytes32 _salt,
-        uint256 _limit,
-        uint16 _feePercentage,
-        bool _isNativeAllowed
-    ) override external onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
-        require(_assetIdentifier != 0, "Registry: Asset identifier cannot be 0");
-        require(idToWrappedAsset[_assetIdentifier] == address(0x0), "Registry: Asset already registered");
-        address token = IMultiTokenManager(fungibleTokenManager)
-            .registerToken(
-                _tokenHandler,
-                _name,
-                _symbol,
-                _salt,
-                _limit,
-                _feePercentage,
-                _isNativeAllowed
-            );
-        emit TokenRegistered(token, _tokenHandler, _assetIdentifier);
-        idToWrappedAsset[_assetIdentifier] = token;
-        wrappedAssetToId[token] = _assetIdentifier;
-    }
+	function registerToken(
+		uint32 _nonce,
+		address _tokenHandler,
+		uint256 _assetIdentifier,
+		string memory _name,
+		string memory _symbol,
+		bytes32 _salt,
+		uint256 _limit,
+		uint16 _feePercentage,
+		bool _isNativeAllowed
+	) external override onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
+		require(_assetIdentifier != 0, "Registry: Asset identifier cannot be 0");
+		require(
+			idToWrappedAsset[_assetIdentifier] == address(0x0),
+			"Registry: Asset already registered"
+		);
+		address token = IMultiTokenManager(fungibleTokenManager).registerToken(
+			_tokenHandler,
+			_name,
+			_symbol,
+			_salt,
+			_limit,
+			_feePercentage,
+			_isNativeAllowed
+		);
+		emit TokenRegistered(token, _tokenHandler, _assetIdentifier);
+		idToWrappedAsset[_assetIdentifier] = token;
+		wrappedAssetToId[token] = _assetIdentifier;
+	}
 
-    /**
+	/**
         @notice Registers a new NFT token and deploys the NftTokenWrapper contract
         @param _nonce The nonce of the proposal
         @param _tokenHandler The address of the token handler contract
@@ -113,47 +105,49 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
         @param _uri The uri for the wrapped NFT
         @param _salt Salt used for matching addresses across chain using CREATE2
      */
-    function registerNftToken(
-        uint32 _nonce,
-        address _tokenHandler,
-        uint256 _assetIdentifier,
-        string memory _uri,
-        bytes32 _salt
-    ) override external onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
-        require(_assetIdentifier != 0, "Registry: Asset identifier cannot be 0");
-        require(idToWrappedAsset[_assetIdentifier] == address(0x0), "Registry: Asset already registered");
-        address token = IMultiTokenManager(nonFungibleTokenManager)
-            .registerNftToken(
-                _tokenHandler,
-                _uri,
-                _salt
-            );
-        emit TokenRegistered(token, _tokenHandler, _assetIdentifier);
-        idToWrappedAsset[_assetIdentifier] = token;
-        wrappedAssetToId[token] = _assetIdentifier;
-    }
+	function registerNftToken(
+		uint32 _nonce,
+		address _tokenHandler,
+		uint256 _assetIdentifier,
+		string memory _uri,
+		bytes32 _salt
+	) external override onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
+		require(_assetIdentifier != 0, "Registry: Asset identifier cannot be 0");
+		require(
+			idToWrappedAsset[_assetIdentifier] == address(0x0),
+			"Registry: Asset already registered"
+		);
+		address token = IMultiTokenManager(nonFungibleTokenManager).registerNftToken(
+			_tokenHandler,
+			_uri,
+			_salt
+		);
+		emit TokenRegistered(token, _tokenHandler, _assetIdentifier);
+		idToWrappedAsset[_assetIdentifier] = token;
+		wrappedAssetToId[token] = _assetIdentifier;
+	}
 
-    /**
+	/**
         @notice Fetches the address for an asset ID
         @param _assetId The asset ID
      */
-    function getAssetAddress(uint256 _assetId) override external view returns (address) {
-        return idToWrappedAsset[_assetId];
-    }
+	function getAssetAddress(uint256 _assetId) external view override returns (address) {
+		return idToWrappedAsset[_assetId];
+	}
 
-    /**
+	/**
         @notice Fetches the asset ID for an address
         @param _address The address
      */
-    function getAssetId(address _address) override external view returns (uint256) {
-        return wrappedAssetToId[_address];
-    }
+	function getAssetId(address _address) external view override returns (uint256) {
+		return wrappedAssetToId[_address];
+	}
 
-    /**
+	/**
         @notice Modifier for enforcing that the caller is the governor
      */
-    modifier onlyHandler() {
-        require(msg.sender == registryHandler, "Only governor can call this function");
-        _;
-    }
+	modifier onlyHandler() {
+		require(msg.sender == registryHandler, "Only governor can call this function");
+		_;
+	}
 }

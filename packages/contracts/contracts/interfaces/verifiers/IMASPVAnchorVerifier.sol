@@ -14,12 +14,12 @@ pragma solidity ^0.8.0;
     - Y is the # of inputs to the join/split transaction (i.e. 2)
  */
 interface IMASPVAnchorVerifier2_2 {
-    function verifyProof(
-        uint[2] memory a,
-        uint[2][2] memory b,
-        uint[2] memory c,
-        uint[10] memory input
-    ) external view returns (bool r);
+	function verifyProof(
+		uint[2] memory a,
+		uint[2][2] memory b,
+		uint[2] memory c,
+		uint[10] memory input
+	) external view returns (bool r);
 }
 
 /**
@@ -31,12 +31,12 @@ interface IMASPVAnchorVerifier2_2 {
     - Y is the # of inputs to the join/split transaction (i.e. 16)
  */
 interface IMASPVAnchorVerifier2_16 {
-    function verifyProof(
-        uint[2] memory a,
-        uint[2][2] memory b,
-        uint[2] memory c,
-        uint256[24] memory input
-    ) external view returns (bool r);
+	function verifyProof(
+		uint[2] memory a,
+		uint[2][2] memory b,
+		uint[2] memory c,
+		uint256[24] memory input
+	) external view returns (bool r);
 }
 
 /**
@@ -48,12 +48,12 @@ interface IMASPVAnchorVerifier2_16 {
     - Y is the # of inputs to the join/split transaction (i.e. 2)
  */
 interface IMASPVAnchorVerifier8_2 {
-    function verifyProof(
-        uint[2] memory a,
-        uint[2][2] memory b,
-        uint[2] memory c,
-        uint[16] memory input
-    ) external view returns (bool r);
+	function verifyProof(
+		uint[2] memory a,
+		uint[2][2] memory b,
+		uint[2] memory c,
+		uint[16] memory input
+	) external view returns (bool r);
 }
 
 /**
@@ -65,10 +65,10 @@ interface IMASPVAnchorVerifier8_2 {
     - Y is the # of inputs to the join/split transaction (i.e. 16)
  */
 interface IMASPVAnchorVerifier8_16 {
-    function verifyProof(
-        uint[2] memory a,
-        uint[2][2] memory b,
-        uint[2] memory c,
-        uint256[30] memory input
-    ) external view returns (bool r);
+	function verifyProof(
+		uint[2] memory a,
+		uint[2][2] memory b,
+		uint[2] memory c,
+		uint256[30] memory input
+	) external view returns (bool r);
 }

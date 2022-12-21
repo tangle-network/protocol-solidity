@@ -10,15 +10,15 @@ pragma solidity ^0.8.0;
     @author Webb Technologies.
  */
 contract Initialized {
-    bool public initialized;
+	bool public initialized;
 
-    modifier onlyUninitialized() {
-        require(!initialized, "Initialized: Already initialized");
-        _;
-    }
+	modifier onlyUninitialized() {
+		require(!initialized, "Initialized: Already initialized");
+		_;
+	}
 
-    modifier onlyInitialized() {
-        require(initialized, "Initialized: Not initialized");
-        _;
-    }
+	modifier onlyInitialized() {
+		require(initialized, "Initialized: Not initialized");
+		_;
+	}
 }

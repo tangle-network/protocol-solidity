@@ -35,10 +35,10 @@ contract('MerkleTree w/ Poseidon hasher', (accounts) => {
     it('should initialize', async () => {
       const zeroValue = await merkleTreeWithHistory.ZERO_VALUE();
       const firstSubtree = await merkleTreeWithHistory.filledSubtrees(0);
-      assert.strictEqual(firstSubtree, toFixedHex(BigNumber.from(zeroValue.toString())));
+      assert.strictEqual(firstSubtree.toString(), zeroValue.toString());
 
       const firstZero = await hasherInstance.contract.zeros(0);
-      assert.strictEqual(firstZero, toFixedHex(BigNumber.from(zeroValue.toString())));
+      assert.strictEqual(toFixedHex(firstZero), toFixedHex(BigNumber.from(zeroValue.toString())));
     });
   });
 
@@ -71,7 +71,7 @@ contract('MerkleTree w/ Poseidon hasher', (accounts) => {
         await tree.insert(i);
         let { merkleRoot } = await tree.path(i - 1);
         rootFromContract = await merkleTreeWithHistory.getLastRoot();
-        assert.strictEqual(toFixedHex(merkleRoot), rootFromContract.toString());
+        assert.strictEqual(merkleRoot.toString(), rootFromContract.toString());
       }
     });
 
@@ -134,7 +134,10 @@ contract('MerkleTree w/ Poseidon hasher', (accounts) => {
       const { merkleRoot, pathElements, pathIndices } = await tree.path(0);
       await merkleTreeWithHistory.insert(toFixedHex(commitment), { from: sender });
       const rootFromContract = await merkleTreeWithHistory.getLastRoot();
-      assert.strictEqual(toFixedHex(merkleRoot), rootFromContract.toString());
+      assert.strictEqual(
+        merkleRoot.toString(),
+        BigNumber.from(rootFromContract.toString()).toString()
+      );
 
       let curr = commitment;
       for (var i = 0; i < pathElements.length; i++) {

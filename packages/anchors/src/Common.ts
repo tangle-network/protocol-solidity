@@ -44,6 +44,14 @@ const create2Address = (factoryAddress, saltHex, initCode) => {
   );
   return create2Addr;
 };
+
+const zeroAddress = '0x0000000000000000000000000000000000000000';
+function checkNativeAddress(tokenAddress: string): boolean {
+  if (tokenAddress === zeroAddress || tokenAddress === '0') {
+    return true;
+  }
+  return false;
+}
 type WebbContracts =
   | VAnchorContract
   | ChainalysisVAnchorContract
@@ -69,6 +77,10 @@ export class WebbBridge {
       rootsBytes += toFixedHex(rootArray[i]).substr(2);
     }
     return rootsBytes; // root byte string (32 * array.length bytes)
+  }
+
+  getAddress(): string {
+    return this.contract.address;
   }
 
   // Convert a hex string to a byte array
@@ -179,6 +191,21 @@ export class WebbBridge {
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
   }
+  public async getWrapUnwrapOptions(extAmount, wrapUnwrapToken) {
+    let options = {};
+    if (extAmount.gt(0) && checkNativeAddress(wrapUnwrapToken)) {
+      let tokenWrapper = TokenWrapper__factory.connect(await this.contract.token(), this.signer);
+      let valueToSend = await tokenWrapper.getAmountToWrap(extAmount);
+
+      options = {
+        value: valueToSend.toHexString(),
+      };
+    } else {
+      options = {};
+    }
+    return options;
+  }
+
   public async padUtxos(utxos: Utxo[], maxLen: number): Promise<Utxo[]> {
     const evmId = await this.signer.getChainId();
     const chainId = getChainIdType(evmId);
@@ -197,6 +224,9 @@ export class WebbBridge {
         })
       );
     }
+    if (utxos.length !== 2 && utxos.length !== maxLen) {
+      throw new Error('Invalid utxo length');
+    }
     return utxos;
   }
 
@@ -205,6 +235,14 @@ export class WebbBridge {
 
   public async getHandler(): Promise<string> {
     return this.contract.handler();
+  }
+
+  public validateInputs(inputs: Utxo[]): void {
+    inputs.map((utxo) => {
+      if (utxo.originChainId === undefined) {
+        throw new Error('Input Utxo does not have a configured originChainId');
+      }
+    });
   }
 
   public async getHandlerProposalData(newHandler: string): Promise<string> {

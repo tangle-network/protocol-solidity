@@ -48,7 +48,7 @@ const config: HardhatUserConfig = {
     ],
   },
   mocha: {
-    timeout: 60000,
+    timeout: 100000,
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS ? true : false,
