@@ -151,7 +151,7 @@ export class WebbBridge {
     // If no leaf index passed in, set it to the most recent one.
     const chainID = getChainIdType(await this.signer.getChainId());
     const functionSig = ethers.utils
-      .keccak256(ethers.utils.toUtf8Bytes('updateEdge(bytes32,uint32,bytes32)'))
+      .keccak256(ethers.utils.toUtf8Bytes('updateEdge(uint256,uint32,bytes32)'))
       .slice(0, 10)
       .padEnd(10, '0');
 
