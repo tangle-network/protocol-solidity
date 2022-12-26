@@ -1155,14 +1155,9 @@ describe('VAnchor for 1 max edge', () => {
         }),
       ];
 
-      let extAmount = BigNumber.from(0)
-        .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
-        .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
-
       const { publicInputs, extData } = await setupVAnchor.setupTransaction(
         inputs,
         outputs,
-        extAmount,
         0,
         0,
         recipient,
@@ -1707,15 +1702,6 @@ describe('VAnchor for 1 max edge', () => {
       await TruffleAssert.fails(
         wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1))
       );
-    });
-    it.skip('should print/save benchmarks', async () => {
-      // Alice deposits into tornado pool
-      const gasBenchmark = await anchor.getGasBenchmark();
-      const proofTimeBenchmark = await anchor.getProofTimeBenchmark();
-      console.log('Gas benchmark:\n', gasBenchmark);
-      console.log('Proof time benchmark:\n', proofTimeBenchmark);
-      writeFileSync('./metrics/gas-metrics.json', JSON.stringify(gasBenchmark));
-      writeFileSync('./metrics/proof-time-metrics.json', JSON.stringify(proofTimeBenchmark));
     });
   });
 });
