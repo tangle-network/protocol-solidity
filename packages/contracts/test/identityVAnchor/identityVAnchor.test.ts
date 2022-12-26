@@ -163,9 +163,9 @@ describe('IdentityVAnchor for 2 max edges', () => {
     await token.mint(bob.address, BigNumber.from(1e10).toString());
     await token.mint(carl.address, BigNumber.from(1e10).toString());
     // create Anchor
-    semaphore = await Semaphore.createSemaphore(levels, maxEdges, zkComponents2_2, sender);
+    semaphore = await Semaphore.createSemaphore(levels, zkComponents2_2, zkComponents2_2, sender);
     const groupId = BigNumber.from(99); // arbitrary
-    const tx = await semaphore.createGroup(groupId, levels, alice.address, maxEdges);
+    const tx = await semaphore.createGroup(groupId.toNumber(), levels, alice.address, maxEdges);
     let aliceLeaf = aliceKeypair.getPubKey();
     group = new LinkedGroup(levels, maxEdges, BigInt(defaultRoot));
     group.addMember(aliceLeaf);
@@ -828,14 +828,33 @@ describe('IdentityVAnchor for 2 max edges', () => {
         }
       });
 
-      const publicInputs = await idAnchor.setupTransaction(
+      const fullProof = await idAnchor.generateProof(
         aliceKeypair,
         identityRootInputs,
         identityMerkleProof,
         outSemaphoreProofs,
-        vanchorInput,
-        extDataHash.toString()
+        extDataHash.toString(),
+        vanchorInput
       );
+      const proof = await idAnchor.generateProofCalldata(fullProof);
+      const vKey = await snarkjs.zKey.exportVerificationKey(idAnchor.smallCircuitZkComponents.zkey);
+      const calldata = await snarkjs.groth16.exportSolidityCallData(
+        fullProof.proof,
+        fullProof.publicSignals
+      );
+
+      const publicInputs: IIdentityVariableAnchorPublicInputs = idAnchor.generatePublicInputs(
+        proof,
+        calldata
+      );
+
+      const is_valid: boolean = await snarkjs.groth16.verify(
+        vKey,
+        fullProof.publicSignals,
+        fullProof.proof
+      );
+      expect(is_valid).equals(true);
+      // (is_valid, true);
 
       const tx = idAnchor.contract.transact(
         publicInputs.proof,
@@ -942,14 +961,32 @@ describe('IdentityVAnchor for 2 max edges', () => {
         }
       });
 
-      const publicInputs = await idAnchor.setupTransaction(
+      const fullProof = await idAnchor.generateProof(
         aliceKeypair,
         identityRootInputs,
         identityMerkleProof,
         outSemaphoreProofs,
-        vanchorInput,
-        extDataHash.toString()
+        extDataHash.toString(),
+        vanchorInput
       );
+      const proof = await idAnchor.generateProofCalldata(fullProof);
+      const vKey = await snarkjs.zKey.exportVerificationKey(idAnchor.smallCircuitZkComponents.zkey);
+      const calldata = await snarkjs.groth16.exportSolidityCallData(
+        fullProof.proof,
+        fullProof.publicSignals
+      );
+
+      const publicInputs: IIdentityVariableAnchorPublicInputs = idAnchor.generatePublicInputs(
+        proof,
+        calldata
+      );
+
+      const is_valid: boolean = await snarkjs.groth16.verify(
+        vKey,
+        fullProof.publicSignals,
+        fullProof.proof
+      );
+      expect(is_valid).equals(true);
 
       const tx = idAnchor.contract.transact(
         publicInputs.proof,
@@ -1066,14 +1103,28 @@ describe('IdentityVAnchor for 2 max edges', () => {
         }
       });
 
-      publicInputs = await idAnchor.setupTransaction(
+      const fullProof = await idAnchor.generateProof(
         aliceKeypair,
         identityRootInputs,
         identityMerkleProof,
         outSemaphoreProofs,
-        vanchorInput,
-        aliceExtDataHash.toString()
+        aliceExtDataHash.toString(),
+        vanchorInput
       );
+      const proof = await idAnchor.generateProofCalldata(fullProof);
+      const vKey = await snarkjs.zKey.exportVerificationKey(idAnchor.smallCircuitZkComponents.zkey);
+      const calldata = await snarkjs.groth16.exportSolidityCallData(
+        fullProof.proof,
+        fullProof.publicSignals
+      );
+
+      publicInputs = idAnchor.generatePublicInputs(proof, calldata);
+      const is_valid: boolean = await snarkjs.groth16.verify(
+        vKey,
+        fullProof.publicSignals,
+        fullProof.proof
+      );
+      expect(is_valid).equals(true);
     });
     it('should reject tampering with public amount', async () => {
       const invalidInputs = publicInputs;
