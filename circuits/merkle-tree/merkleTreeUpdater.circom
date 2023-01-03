@@ -1,39 +1,35 @@
 pragma circom 2.0.0;
 
-include "./merkleProof.circom";
 include "./merkleTree.circom";
 
-// inserts a subtree into a merkle tree
-// checks that tree previously contained zeroes is the same positions
-// zeroSubtreeRoot is a root of a subtree that contains only zeroes
-template MerkleTreeUpdater(levels, subtreeLevels, zeroSubtreeRoot) {
-    var remainingLevels = levels - subtreeLevels;
-
+// inserts a leaf into a tree
+// checks that tree previously contained zero in the same position
+template MerkleTreeUpdater(levels, zeroLeaf) {
     signal input oldRoot;
     signal input newRoot;
-    signal input leaves[1 << subtreeLevels];
+    signal input leaf;
     signal input pathIndices;
-    signal input pathElements[remainingLevels];
+    signal input pathElements[levels];
 
-    // calculate subtree root
-    component subtree = MerkleTree(subtreeLevels);
-    for(var i = 0; i < (1 << subtreeLevels); i++) {
-        subtree.leaves[i] <== leaves[i];
-    }
+    // Compute indexBits once for both trees
+    // Since Num2Bits is non deterministic, 2 duplicate calls to it cannot be
+    // optimized by circom compiler
+    component indexBits = Num2Bits(levels);
+    indexBits.in <== pathIndices;
 
-    component treeBefore = MerkleProof(remainingLevels);
-    for(var i = 0; i < remainingLevels; i++) {
+    component treeBefore = RawMerkleTree(levels);
+    for(var i = 0; i < levels; i++) {
+        treeBefore.pathIndices[i] <== indexBits.out[i];
         treeBefore.pathElements[i] <== pathElements[i];
     }
-    treeBefore.pathIndices <== pathIndices;
-    treeBefore.leaf <== zeroSubtreeRoot;
+    treeBefore.leaf <== zeroLeaf;
     treeBefore.root === oldRoot;
 
-    component treeAfter = MerkleProof(remainingLevels);
-    for(var i = 0; i < remainingLevels; i++) {
+    component treeAfter = RawMerkleTree(levels);
+    for(var i = 0; i < levels; i++) {
+        treeAfter.pathIndices[i] <== indexBits.out[i];
         treeAfter.pathElements[i] <== pathElements[i];
     }
-    treeAfter.pathIndices <== pathIndices;
-    treeAfter.leaf <== subtree.root;
+    treeAfter.leaf <== leaf;
     treeAfter.root === newRoot;
 }
