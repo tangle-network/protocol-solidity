@@ -35,10 +35,9 @@ copy_to_fixtures () {
 # WEBB BATCH TREE UPDATER
 ###
 
-echo "Compiling Webb style Poseidon anchor 2 withdrawal circuit..."
-compile merkle-tree batchMerkleTreeUpdate_16 16
-copy_to_fixtures merkle-tree batchMerkleTreeUpdate_16 2 merkle-tree
-# compile anchor poseidon_anchor_2 2
+echo "Compiling batch insertion for 16 leafs (levels=4)"
+compile batch-tree batchMerkleTreeUpdate_16 16
+copy_to_fixtures batch-tree batchMerkleTreeUpdate_16 16 batch-tree
 
 ###
 # WEBB ANCHORS

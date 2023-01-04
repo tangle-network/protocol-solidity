@@ -22,11 +22,12 @@ contract BatchMerkleTree is MerkleTreeWithHistory {
     IBatchTreeUpdateVerifier public treeUpdateVerifier;
 
 
-	constructor(uint32 _levels, IHasher _hasher) {
+	constructor(uint32 _levels, IHasher _hasher, IBatchTreeUpdateVerifier _treeUpdateVerifier) {
 		require(_levels > 0, "_levels should be greater than zero");
 		require(_levels < 32, "_levels should be less than 32");
 		levels = _levels;
 		hasher = _hasher;
+		treeUpdateVerifier = _treeUpdateVerifier;
 
 		for (uint32 i = 0; i < _levels; i++) {
 			filledSubtrees[i] = uint256(hasher.zeros(i));
@@ -38,7 +39,8 @@ contract BatchMerkleTree is MerkleTreeWithHistory {
 	}
     event DepositData(address instance, bytes32 indexed hash, uint256 block, uint256 index);
 
-    function registerInsertion(address _instance, bytes32 _commitment) internal {
+    // TODO: MAKE THIS FUNCTION INTERNAL
+    function registerInsertion(address _instance, bytes32 _commitment) public {
         uint256 _queueLength = queueLength;
         queue[_queueLength] = keccak256(abi.encode(_instance, _commitment, blockNumber()));
         emit DepositData(_instance, _commitment, blockNumber(), _queueLength);
