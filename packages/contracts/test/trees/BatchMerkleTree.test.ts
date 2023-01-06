@@ -149,9 +149,10 @@ contract.only('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
       console.log('oldRoot ', oldRoot);
       console.log('newRoot ', newRoot);
       let { pathElements, pathIndices } = merkleTree.path(merkleTree.elements().length - 1);
-      pathElements = pathElements.map((e) => e.toString());
+      pathElements = pathElements.slice(batchHeight).map((e) => e.toString());
       console.log('pathElements ', pathElements);
       console.log('pathIndices ', pathIndices);
+      pathIndices = MerkleTree.calculateIndexFromPathIndices(pathIndices);
 
       const input = {
         oldRoot,
@@ -164,6 +165,10 @@ contract.only('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
       const circuitInput = {
         oldRoot,
         newRoot,
+        argsHash: input['argsHash'],
+        pathIndices,
+        pathElements,
+        leaves,
       }
 
       console.log('input ', circuitInput);

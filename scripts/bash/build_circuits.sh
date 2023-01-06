@@ -36,8 +36,8 @@ copy_to_fixtures () {
 ###
 
 echo "Compiling batch insertion for 16 leafs (levels=4)"
-compile batch-tree batchMerkleTreeUpdate_16 16
-copy_to_fixtures batch-tree batchMerkleTreeUpdate_16 16 batch-tree
+compile batch_tree_16 batchMerkleTreeUpdate_16 16
+copy_to_fixtures batch_tree_16 batchMerkleTreeUpdate_16 16 batch-tree
 
 ###
 # WEBB ANCHORS
