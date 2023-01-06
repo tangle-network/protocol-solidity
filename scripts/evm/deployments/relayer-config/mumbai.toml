@@ -1,0 +1,40 @@
+[evm]
+
+[evm.moonbase]
+beneficiary = "0xf1fd5607b90f6c421db7313158baac170d4f053b"
+block-confirmations = 0.0
+chain-id = 1287.0
+enabled = true
+name = "moonbase"
+private-key = "0xc086596a698603ae7428a61ced569cbc5fdc24ae91c341d692aad590febc4429"
+
+[[evm.moonbase.contracts]]
+address = "0x4164de999b272edb36ef23dc2dbb59015cfce632"
+contract = "VAnchor"
+
+[evm.moonbase.contracts.events-watcher]
+enabled = true
+polling-interval = 1000.0
+print-progress-interval = 7000.0
+
+[[evm.moonbase.contracts.linked-anchors]]
+address = "0xa6ba48634e8a85d70f139e7dda332e0565eb638b"
+chain-id = "1287"
+type = "Evm"
+
+[evm.moonbase.contracts.proposal-signing-backend]
+node = "tangle"
+type = "DKGNode"
+
+[evm.moonbase.contracts.withdraw-config]
+withdraw-fee-percentage = 0.0
+withdraw-gaslimit = "0x5B8D80"
+
+[[evm.moonbase.contracts]]
+address = "0xe9bc69534ae5066e444d74984829b6a799316894"
+contract = "SignatureBridge"
+
+[evm.moonbase.contracts.events-watcher]
+enabled = true
+polling-interval = 1000.0
+print-progress-interval = 7000.0

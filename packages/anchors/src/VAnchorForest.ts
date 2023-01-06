@@ -671,7 +671,7 @@ export class VAnchorForest extends WebbBridge {
     );
 
     let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
-    options["gasLimit"] = '0x5B8D80';
+    options['gasLimit'] = '0x5B8D80';
 
     let tx = await this.contract.registerAndTransact(
       { owner, keyData: keyData },
@@ -738,7 +738,7 @@ export class VAnchorForest extends WebbBridge {
     );
 
     let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
-    options["gasLimit"] = '0x5B8D80';
+    options['gasLimit'] = '0x5B8D80';
     const tx = await this.contract.transact(
       publicInputs.proof,
       ZERO_BYTES32,
