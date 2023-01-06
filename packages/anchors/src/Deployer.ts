@@ -1,34 +1,7 @@
-import { BigNumber, BigNumberish, Signer, ethers } from 'ethers';
+import { Signer, ethers } from 'ethers';
 import {
-  VAnchor as VAnchorContract,
-  VAnchor__factory,
-  ChainalysisVAnchor as ChainalysisVAnchorContract,
   DeterministicDeployFactory as DeterministicDeployFactoryContract,
-  IdentityVAnchor as IdentityVAnchorContract,
-  VAnchorForest as VAnchorForestContract,
-  VAnchorEncodeInputs__factory,
-  TokenWrapper__factory,
 } from '@webb-tools/contracts';
-import {
-  toHex,
-  Keypair,
-  toFixedHex,
-  Utxo,
-  MerkleTree,
-  median,
-  mean,
-  max,
-  min,
-  randomBN,
-  CircomProvingManager,
-  ProvingManagerSetupInput,
-  MerkleProof,
-  UtxoGenInput,
-  CircomUtxo,
-  FIELD_SIZE,
-  LeafIdentifier,
-} from '@webb-tools/sdk-core';
-import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
 
 export class Deployer {
   signer: ethers.Signer;

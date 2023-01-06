@@ -1,26 +1,16 @@
-import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
+import { BigNumber, BigNumberish, ethers } from 'ethers';
 import {
   VAnchorTree as VAnchorTreeContract,
   VAnchorTree__factory,
   VAnchorEncodeInputs__factory,
-  TokenWrapper__factory,
 } from '@webb-tools/contracts';
 import {
-  toHex,
-  Keypair,
   toFixedHex,
   Utxo,
   MerkleTree,
-  median,
-  mean,
-  max,
-  min,
-  randomBN,
   CircomProvingManager,
   ProvingManagerSetupInput,
   MerkleProof,
-  UtxoGenInput,
-  CircomUtxo,
   FIELD_SIZE,
   LeafIdentifier,
 } from '@webb-tools/sdk-core';
