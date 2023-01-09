@@ -1,9 +1,10 @@
-<h1 align="center">Webb EVM-Localnet 🕸️ </h1>
 <div align="center">
 <a href="https://www.webb.tools/">
-    <img alt="Webb Logo" src="./.github/assets/webb-icon.svg" width="15%" height="30%" />
+
+  ![Webb Logo](../../.github/assets/webb_banner_light.png#gh-light-mode-only)
+  ![Webb Logo](../../.github/assets/webb_banner_dark.png#gh-dark-mode-only)
   </a>
-  </div>
+</div>
 <p align="center">
     <strong> A local ganache network for testing evm interactions in development </strong>
     <br />
@@ -33,7 +34,7 @@
 
 <h1 id="overview"> Overview </h1>
 
-This Repository is meant to support a development environment for the anchor protocol over EVM networks.  In its current state, it starts up two networks and deploys a FixedAnchor bridge over these networks for a freshly created erc20 token.
+This Repository is meant to support a development environment for the anchor protocol over EVM networks.  In its current state, it starts up two networks and deploys a Variable Anchor bridge over these networks for a freshly created erc20 token. It is meant to be used directly with [this script](../../scripts/evm/deployments/LocalEvmVBridge.ts) at the current moment.
 
 - Hermes: chainId 5001, 'chain a'
 - Athena: chainId 5002, 'chain b'
@@ -41,22 +42,19 @@ This Repository is meant to support a development environment for the anchor pro
 
 <h1 id="start"> Start </h1>
 
-1. Clone the local testnet: 
+1. Clone the repo and build dependencies
 ```bash
-git clone https://github.com/webb-tools/evm-localnet
+git clone https://github.com/webb-tools/protocol-solidity
+cd protocol-solidity && yarn
 ```
 
 2. Populate fixed zero knowledge keys by running:
 ```bash
-git submodule update --init
+cd packages/contracts && dvc pull && cd ../..
 ```
-3. Install dependencies:
-```bash
-  yarn install
-``` 
-4. Start the local testnet with:
+3. Start the local testnet with:
 ```
-yarn start
+ts-node ./scripts/evm/deployments/LocalEvmVBridge.ts
 ```
 Great! Now you have a local EVM node running!
 
