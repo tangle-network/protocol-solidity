@@ -1,4 +1,3 @@
-import { VBridge } from "@webb-tools/vbridge";
 import { FungibleTokenWrapper } from "@webb-tools/tokens";
 import { fetchComponentsFromFilePaths, getChainIdType } from "@webb-tools/utils";
 import { DeployerConfig } from "@webb-tools/interfaces";
@@ -25,18 +24,18 @@ import {
   walletSepolia,
   chainIdTypeBinance,
   chainIdTypeAurora,
-} from "../ethersGovernorWallets";
-import { LinkableAnchor } from "typechain";
+} from "../../ethersGovernorWallets";
 import { EvmLinkedAnchor, ProposalSigningBackend } from "@webb-tools/test-utils";
-import { ContractConfig, getEvmChainConfig, writeEvmChainConfig } from "./utils";
+import { ContractConfig, getEvmChainConfig, writeEvmChainConfig } from "../utils";
 import { zip } from 'itertools';
-import fs from 'fs';
-import { EndPointConfig, goerliEndPoints, moonbaseEndPoints, optimismEndPoints, polygonEndPoints, sepoliaEndPoints } from "./endPoints";
+import { EndPointConfig, moonbaseEndPoints, polygonEndPoints } from "../endPoints";
+import Create2VBridge from "./create2Bridge";
+
 
 async function deploySignatureVBridge(
   tokens: Record<number, string[]>,
   deployers: DeployerConfig
-): Promise<VBridge> {
+): Promise<Create2VBridge> {
   let assetRecord: Record<number, string[]> = {};
   let chainIdsArray: number[] = [];
   let existingWebbTokens = new Map<number, FungibleTokenWrapper>();
@@ -93,7 +92,7 @@ async function deploySignatureVBridge(
 
   console.log(governorConfig);
 
-  return VBridge.deployVariableAnchorBridge(
+  return Create2VBridge.deployVariableAnchorBridge(
     bridgeInput,
     deployers,
     governorConfig,
@@ -107,7 +106,7 @@ async function run() {
     // [chainIdTypeGoerli]: walletGoerli,
     // [chainIdTypeSepolia]: walletSepolia,
     // [chainIdTypeOptimism]: walletOptimism,
-    [chainIdTypePolygon]: walletPolygon,
+    // [chainIdTypePolygon]: walletPolygon,
     [chainIdTypeMoonbase]: walletMoonbase,
   };
 
@@ -115,7 +114,7 @@ async function run() {
     // [chainIdTypeGoerli]: ["0", ""],
     // [chainIdTypeSepolia]: ["0", "0xeD43f81C17976372Fcb5786Dd214572e7dbB92c7"],
     // [chainIdTypeOptimism]: ["0", "0x4200000000000000000000000000000000000006"],
-    [chainIdTypePolygon]: ["0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889"],
+    // [chainIdTypePolygon]: ["0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889"],
     [chainIdTypeMoonbase]: ["0xD909178CC99d318e4D46e7E66a972955859670E1"],
   };
   
@@ -123,7 +122,7 @@ async function run() {
     // [chainIdTypeGoerli]: goerliEndPoints,
     // [chainIdTypeSepolia]: sepoliaEndPoints,
     // [chainIdTypeOptimism]: optimismEndPoints,
-    [chainIdTypePolygon]: polygonEndPoints,
+    // [chainIdTypePolygon]: polygonEndPoints,
     [chainIdTypeMoonbase]: moonbaseEndPoints,
   }
 

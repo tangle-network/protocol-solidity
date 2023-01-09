@@ -2,7 +2,7 @@ import { BigNumber, ethers } from 'ethers';
 import { SignatureBridge, SignatureBridge__factory } from '@webb-tools/contracts';
 import { FungibleTokenWrapper, Treasury } from '@webb-tools/tokens';
 import { TokenWrapperHandler } from '@webb-tools/tokens';
-import { AnchorHandler } from '@webb-tools/anchors';
+import { AnchorHandler, Deployer } from '@webb-tools/anchors';
 import { IVAnchor, IBridgeSide, Proposal } from '@webb-tools/interfaces';
 import { TreasuryHandler } from '@webb-tools/tokens';
 import { getChainIdType } from '@webb-tools/utils';
@@ -44,6 +44,24 @@ export class SignatureBridgeSide implements IBridgeSide {
     const bridgeFactory = new SignatureBridge__factory(admin);
     const deployedBridge = await bridgeFactory.deploy(admin.address, 0);
     await deployedBridge.deployed();
+    const bridgeSide = new SignatureBridgeSide(deployedBridge, (data: any) => {
+      return Promise.resolve(signMessage(admin, data));
+    });
+    bridgeSide.admin = admin;
+    bridgeSide.governor = admin;
+    return bridgeSide;
+  }
+
+  public static async create2BridgeSide(
+    deployer: Deployer,
+    saltHex: string,
+    admin: ethers.Wallet
+  ): Promise<SignatureBridgeSide> {
+    const { contract: deployedBridge } = await deployer.deploy(
+      SignatureBridge__factory,
+      saltHex,
+      admin
+    );
     const bridgeSide = new SignatureBridgeSide(deployedBridge, (data: any) => {
       return Promise.resolve(signMessage(admin, data));
     });

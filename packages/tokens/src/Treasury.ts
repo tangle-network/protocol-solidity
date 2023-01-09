@@ -2,6 +2,7 @@ import { BigNumber, ethers } from 'ethers';
 import { getChainIdType } from '@webb-tools/utils';
 import { toHex, generateFunctionSigHash, toFixedHex } from '@webb-tools/sdk-core';
 import { Treasury as TreasuryContract, Treasury__factory } from '@webb-tools/contracts';
+import { Deployer } from '@webb-tools/anchors';
 
 export class Treasury {
   contract: TreasuryContract;
@@ -21,6 +22,27 @@ export class Treasury {
     await contract.deployed();
 
     const handler = new Treasury(contract, deployer);
+    return handler;
+  }
+
+  public static async create2Treasury(
+    treasuryHandler: string,
+    deployer: Deployer,
+    saltHex: string,
+    sender: ethers.Signer
+  ) {
+    const argTypes = ['string'];
+    const args = [treasuryHandler];
+    const { contract: contract } = await deployer.deploy(
+      Treasury__factory,
+      saltHex,
+      sender,
+      undefined,
+      argTypes,
+      args
+    );
+
+    const handler = new Treasury(contract, deployer.signer);
     return handler;
   }
 

@@ -84,7 +84,6 @@ export function writeEvmChainConfig (
     'proposal-signing-backend'?: ConvertToKebabCase<ProposalSigningBackend>;
     'withdraw-config'?: ConvertToKebabCase<WithdrawConfig>;
     'linked-anchors'?: ConvertedLinkedAnchor[];
-    'deployed-at': number;
   };
   type ConvertedConfig = Omit<
   ConvertToKebabCase<typeof config>,

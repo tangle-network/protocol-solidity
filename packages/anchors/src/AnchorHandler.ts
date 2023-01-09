@@ -3,6 +3,7 @@ import {
   AnchorHandler as AnchorHandlerContract,
   AnchorHandler__factory,
 } from '@webb-tools/contracts';
+import { Deployer } from './Deployer';
 
 export class AnchorHandler {
   contract: AnchorHandlerContract;
@@ -20,6 +21,29 @@ export class AnchorHandler {
     const factory = new AnchorHandler__factory(deployer);
     const contract = await factory.deploy(bridgeAddress, initResourceIds, initContractAddresses);
     await contract.deployed();
+
+    const handler = new AnchorHandler(contract);
+    return handler;
+  }
+
+  public static async create2AnchorHandler(
+    bridgeAddress: string,
+    initResourceIds: string[],
+    initContractAddresses: string[],
+    deployer: Deployer,
+    saltHex: string,
+    signer: ethers.Signer
+  ) {
+    const argTypes = ['address', 'bytes32[]', 'address[]'];
+    const args = [bridgeAddress, initResourceIds, initContractAddresses];
+    const { contract: contract } = await deployer.deploy(
+      AnchorHandler__factory,
+      saltHex,
+      signer,
+      undefined,
+      argTypes,
+      args
+    );
 
     const handler = new AnchorHandler(contract);
     return handler;
