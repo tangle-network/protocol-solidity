@@ -1,14 +1,11 @@
-import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
+import { BigNumber, BigNumberish, ethers } from 'ethers';
 const assert = require('assert');
 import {
   IdentityVAnchor as IdentityVAnchorContract,
   IdentityVAnchor__factory,
   IdentityVAnchorEncodeInputs__factory,
-  TokenWrapper,
-  TokenWrapper__factory,
 } from '@webb-tools/contracts';
 import {
-  toHex,
   Keypair,
   toFixedHex,
   Utxo,
@@ -17,13 +14,10 @@ import {
   mean,
   max,
   min,
-  randomBN,
   CircomProvingManager,
   generateVariableWitnessInput,
   getVAnchorExtDataHash,
   MerkleProof,
-  UtxoGenInput,
-  CircomUtxo,
 } from '@webb-tools/sdk-core';
 import {
   IVAnchor,
@@ -31,7 +25,6 @@ import {
   IIdentityVariableAnchorPublicInputs,
 } from '@webb-tools/interfaces';
 import {
-  hexToU8a,
   u8aToHex,
   getChainIdType,
   UTXOInputs,

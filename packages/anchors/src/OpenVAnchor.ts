@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
+import { BigNumber, BigNumberish, ethers } from 'ethers';
 import { OpenVAnchor as OpenVAnchorContract, OpenVAnchor__factory } from '@webb-tools/contracts';
 import { solidityPack } from 'ethers/lib/utils';
 import {
@@ -13,7 +13,7 @@ import {
   CircomProvingManager,
   MerkleProof,
 } from '@webb-tools/sdk-core';
-import { u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
+import { u8aToHex, getChainIdType } from '@webb-tools/utils';
 import { IVAnchor } from '@webb-tools/interfaces';
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';

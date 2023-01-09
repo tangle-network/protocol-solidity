@@ -1,17 +1,13 @@
-import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
+import { BigNumber, BigNumberish, ethers } from 'ethers';
 import {
-  DeterministicDeployFactory as DeterministicDeployFactoryContract,
   VAnchorForest as VAnchorForestContract,
   VAnchorForest__factory,
   VAnchorEncodeInputs__factory,
   LinkableIncrementalBinaryTree__factory,
-  TokenWrapper__factory,
 } from '@webb-tools/contracts';
-import { poseidon, poseidon_gencontract as poseidonContract } from 'circomlibjs';
-import { zKey, groth16 } from 'snarkjs';
+import { poseidon_gencontract as poseidonContract } from 'circomlibjs';
+import { groth16 } from 'snarkjs';
 import {
-  toHex,
-  Keypair,
   toFixedHex,
   Utxo,
   MerkleTree,
@@ -19,23 +15,14 @@ import {
   mean,
   max,
   min,
-  randomBN,
   getVAnchorExtDataHash,
   CircomProvingManager,
-  ProvingManagerSetupInput,
   generateVariableWitnessInput,
-  Note,
-  NoteGenInput,
-  MerkleProof,
-  UtxoGenInput,
-  CircomUtxo,
-  FIELD_SIZE,
   LeafIdentifier,
 } from '@webb-tools/sdk-core';
 
 // import { MerkleTree } from "."
 import {
-  IVAnchor,
   IVariableAnchorExtData,
   IVariableAnchorPublicInputs,
 } from '@webb-tools/interfaces';
@@ -47,7 +34,6 @@ import {
   ZkComponents,
   ZERO_BYTES32,
 } from '@webb-tools/utils';
-import { solidityPack } from 'ethers/lib/utils';
 import { WebbBridge } from './Common';
 import { Deployer } from './Deployer';
 
