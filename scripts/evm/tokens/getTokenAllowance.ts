@@ -1,7 +1,7 @@
 // @ts-nocheck
-import { ethers } from "ethers";
-import { ERC20__factory } from "../../../typechain/factories/ERC20__factory";
-require("dotenv").config({ path: "../.env" });
+import { ethers } from 'ethers';
+import { ERC20__factory } from '../../../typechain/factories/ERC20__factory';
+require('dotenv').config({ path: '../.env' });
 
 export async function getTokenAllowance(
   tokenAddress: string,
