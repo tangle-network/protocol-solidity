@@ -5,12 +5,7 @@ import { ethers } from 'ethers';
 export interface IVAnchor {
   signer: ethers.Signer;
   contract: VAnchorBase;
-  tree: any;
-  // hex string of the connected root
   latestSyncedBlock: number;
-
-  // The depositHistory stores leafIndex => information to create proposals (new root)
-  depositHistory: Record<number, string>;
   token?: string;
   denomination?: string;
 
