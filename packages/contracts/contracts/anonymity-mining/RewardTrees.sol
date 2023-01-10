@@ -8,7 +8,6 @@ pragma solidity ^0.8.0;
 import "../trees/MerkleTree.sol";
 import "../trees/OwnableMerkleTree.sol";
 import "../interfaces/IRewardTrees.sol";
-import "hardhat/console.sol";
 
 contract RewardTrees is IRewardTrees {
   OwnableMerkleTree public immutable depositTree;
@@ -50,7 +49,6 @@ contract RewardTrees is IRewardTrees {
 
   function registerDeposit(address _instance, bytes32 _commitment) external override onlyRewardProxy {
     deposits.push(uint256(keccak256(abi.encode(_instance, _commitment, blockNumber()))));
-    //deposits.push(hasher.hash3([]);(keccak256(abi.encode(_instance, _commitment, blockNumber()))));
   }
 
   function registerWithdrawal(address _instance, bytes32 _nullifier) external override onlyRewardProxy {
@@ -68,15 +66,10 @@ contract RewardTrees is IRewardTrees {
 
     for (uint256 i = 0; i < _deposits.length; i++) {
       TreeLeaf memory deposit = _deposits[i];
-      console.log("CONTRACT -> updateDepositTree() -> this is deposit.instance: ", deposit.instance);
-      console.log("CONTRACT -> updateDepositTree() -> this is deposit.hash: ", uint256(deposit.hash));
-      console.log("CONTRACT -> updateDepositTree() -> this is deposit.block: ", deposit.block);
       uint256 leafHash = uint256(keccak256(abi.encode(deposit.instance, deposit.hash, deposit.block)));
       require(deposits[offset + i] == leafHash, "Incorrect deposit");
 
-      //leaves[i] = hasher.poseidon([bytes32(uint256(uint160(deposit.instance))), deposit.hash, bytes32(deposit.block)]);
       leaves[i] = hasher.hash3([uint256(uint160(deposit.instance)), uint256(deposit.hash), deposit.block]);
-      console.log("CONTRACT -> updateDepositTree() -> this is leaves[i]: ", leaves[i]);
       delete deposits[offset + i];
       depositTree.insert(leaves[i]);
 
@@ -97,7 +90,6 @@ contract RewardTrees is IRewardTrees {
       uint256 leafHash = uint256(keccak256(abi.encode(withdrawal.instance, withdrawal.hash, withdrawal.block)));
       require(withdrawals[offset + i] == leafHash, "Incorrect withdrawal");
 
-      //leaves[i] = hasher.poseidon([bytes32(uint256(withdrawal.instance)), withdrawal.hash, bytes32(withdrawal.block)]);
       leaves[i] = hasher.hash3([uint256(uint160(withdrawal.instance)), uint256(withdrawal.hash), withdrawal.block]);
       delete withdrawals[offset + i];
       withdrawalTree.insert(leaves[i]);
