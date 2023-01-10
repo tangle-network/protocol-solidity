@@ -4,6 +4,7 @@ import {
   ChainalysisVAnchor as ChainalysisVAnchorContract,
   IdentityVAnchor as IdentityVAnchorContract,
   VAnchorForest as VAnchorForestContract,
+  OpenVAnchor as OpenVAnchorContract,
   TokenWrapper__factory,
 } from '@webb-tools/contracts';
 import {
@@ -14,6 +15,7 @@ import {
   randomBN,
   UtxoGenInput,
   CircomUtxo,
+  MerkleTree,
 } from '@webb-tools/sdk-core';
 import { hexToU8a, getChainIdType } from '@webb-tools/utils';
 
@@ -28,11 +30,17 @@ type WebbContracts =
   | VAnchorContract
   | ChainalysisVAnchorContract
   | IdentityVAnchorContract
-  | VAnchorForestContract;
+  | VAnchorForestContract
+  | OpenVAnchorContract;
 
 export class WebbBridge {
   signer: ethers.Signer;
   contract: WebbContracts;
+
+  tree: MerkleTree;
+
+  // The depositHistory stores leafIndex => information to create proposals (new root)
+  depositHistory: Record<number, string>;
 
   constructor(contract: WebbContracts, signer: ethers.Signer) {
     this.contract = contract;
@@ -126,6 +134,18 @@ export class WebbBridge {
       toHex(nonce, 4).substr(2) +
       toFixedHex(_maximumDepositAmount).substr(2)
     );
+  }
+
+  // Proposal data is used to update linkedAnchors via bridge proposals
+  // on other chains with this anchor's state
+  public async getProposalData(resourceID: string, leafIndex?: number): Promise<string> {
+    // If no leaf index passed in, set it to the most recent one.
+    if (!leafIndex) {
+      leafIndex = this.tree.number_of_elements() - 1;
+    }
+
+    const merkleRoot = this.depositHistory[leafIndex];
+    return this.genProposalData(resourceID, merkleRoot, leafIndex);
   }
 
   // Proposal data is used to update linkedAnchors via bridge proposals
