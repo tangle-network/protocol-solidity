@@ -7,6 +7,7 @@ pragma solidity ^0.8.0;
 
 import "./MerkleTreeWithHistory.sol";
 import "../interfaces/verifiers/IBatchVerifier.sol";
+import "hardhat/console.sol";
 
 contract BatchMerkleTree is MerkleTreeWithHistory {
     bytes32 public currentRoot;
@@ -35,14 +36,16 @@ contract BatchMerkleTree is MerkleTreeWithHistory {
         queueLength = 0;
         lastProcessedLeaf = 0;
 
-		roots[0] = Root(uint256(hasher.zeros(_levels - 1)), 0);
+		roots[0] = Root(uint256(hasher.zeros(_levels)), 0);
+        currentRoot = hasher.zeros(_levels);
 	}
     event DepositData(address instance, bytes32 indexed hash, uint256 block, uint256 index);
 
     // TODO: MAKE THIS FUNCTION INTERNAL
     function registerInsertion(address _instance, bytes32 _commitment) public {
         uint256 _queueLength = queueLength;
-        queue[_queueLength] = keccak256(abi.encode(_instance, _commitment, blockNumber()));
+        // queue[_queueLength] = keccak256(abi.encode(_instance, _commitment, blockNumber()));
+        queue[_queueLength] = _commitment;
         emit DepositData(_instance, _commitment, blockNumber(), _queueLength);
         queueLength = queueLength + 1;
     }
@@ -63,7 +66,9 @@ contract BatchMerkleTree is MerkleTreeWithHistory {
     bytes32[CHUNK_SIZE] calldata _leaves
   ) public {
     uint256 offset = lastProcessedLeaf;
-    require(_currentRoot == currentRoot, "Proposed deposit root is invalid");
+    console.log('SOLIDITY: input current root: ', uint(_currentRoot));
+    console.log('SOLIDITY: contract current root: ', uint(currentRoot));
+    require(_currentRoot == currentRoot, "Initial deposit root is invalid");
     require(_pathIndices == offset >> CHUNK_TREE_HEIGHT, "Incorrect deposit insert index");
 
     bytes memory data = new bytes(BYTES_SIZE);
@@ -87,7 +92,9 @@ contract BatchMerkleTree is MerkleTreeWithHistory {
 
     uint256 argsHash = uint256(sha256(data)) % SNARK_FIELD;
     require(argsHash == uint256(_argsHash), "Invalid args hash");
-    require(treeUpdateVerifier.verifyProof(_proof, [argsHash]), "Invalid deposit tree update proof");
+    uint256[8] memory p = abi.decode(_proof, (uint256[8]));
+    (uint256[2] memory a, uint256[2][2] memory b, uint256[2] memory c) = unpackProof(p);
+    require(treeUpdateVerifier.verifyProof(a, b, c, [argsHash]), "Invalid deposit tree update proof");
 
     previousRoot = currentRoot;
     currentRoot = _newRoot;
@@ -96,4 +103,13 @@ contract BatchMerkleTree is MerkleTreeWithHistory {
   function blockNumber() public returns (uint256) {
       return block.number;
   }
+	function unpackProof(
+		uint256[8] memory _proof
+	) public pure returns (uint256[2] memory, uint256[2][2] memory, uint256[2] memory) {
+		return (
+			[_proof[0], _proof[1]],
+			[[_proof[2], _proof[3]], [_proof[4], _proof[5]]],
+			[_proof[6], _proof[7]]
+		);
+	}
 }
