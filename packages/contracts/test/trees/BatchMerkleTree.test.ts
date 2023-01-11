@@ -18,7 +18,10 @@ import { hexToU8a, u8aToHex, ZkComponents, fetchComponentsFromFilePaths } from '
 import {
   BatchMerkleTree as BatchMerkleTreeContract,
   BatchMerkleTree__factory,
+  VerifierBatch4__factory,
+  VerifierBatch8__factory,
   VerifierBatch16__factory,
+  BatchTreeVerifierSelector__factory
 } from '../../typechain';
 import jsSHA from 'jssha';
 import path from 'path';
@@ -71,19 +74,46 @@ contract.only('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
   let merkleTree;
   let contract;
   let hasherInstance: PoseidonHasher;
-  let zkComponents: ZkComponents;
+  let zkComponents_4: ZkComponents;
+  let zkComponents_8: ZkComponents;
+  let zkComponents_16: ZkComponents;
   // let levels = 30;
-  const wasmFilePath = path.resolve(
+  const wasmFilePath_16 = path.resolve(
     __dirname,
     '../../solidity-fixtures/solidity-fixtures/batch-tree/16/batchMerkleTreeUpdate_16.wasm'
   )
-  const zkeyFilePath = path.resolve(
+  const zkeyFilePath_16 = path.resolve(
     __dirname,
     '../../solidity-fixtures/solidity-fixtures/batch-tree/16/circuit_final.zkey'
   )
-  const wtnsCalcFilePath = path.resolve(
+  const wtnsCalcFilePath_16 = path.resolve(
     __dirname,
     '../../solidity-fixtures/solidity-fixtures/batch-tree/16/witness_calculator.cjs'
+  )
+  const wasmFilePath_4 = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/batch-tree/4/batchMerkleTreeUpdate_4.wasm'
+  )
+  const zkeyFilePath_4 = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/batch-tree/4/circuit_final.zkey'
+  )
+  const wtnsCalcFilePath_4 = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/batch-tree/4/witness_calculator.cjs'
+  )
+
+  const wasmFilePath_8 = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/batch-tree/8/batchMerkleTreeUpdate_8.wasm'
+  )
+  const zkeyFilePath_8 = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/batch-tree/8/circuit_final.zkey'
+  )
+  const wtnsCalcFilePath_8 = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/batch-tree/8/witness_calculator.cjs'
   )
   const levels = 20;
   const CHUNK_TREE_HEIGHT = 4;
@@ -92,37 +122,51 @@ contract.only('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
   let initialRoot: BigNumber;
 
   beforeEach(async () => {
-    zkComponents = await fetchComponentsFromFilePaths(
-      wasmFilePath,
-      wtnsCalcFilePath,
-      zkeyFilePath,
+    zkComponents_16 = await fetchComponentsFromFilePaths(
+      wasmFilePath_16,
+      wtnsCalcFilePath_16,
+      zkeyFilePath_16,
+    );
+    zkComponents_4 = await fetchComponentsFromFilePaths(
+      wasmFilePath_4,
+      wtnsCalcFilePath_4,
+      zkeyFilePath_4,
+    );
+    zkComponents_8 = await fetchComponentsFromFilePaths(
+      wasmFilePath_8,
+      wtnsCalcFilePath_8,
+      zkeyFilePath_8,
     );
     const signers = await ethers.getSigners();
     const wallet = signers[0];
     hasherInstance = await PoseidonHasher.createPoseidonHasher(wallet);
     merkleTree = new MerkleTree(levels);
-    const verifierFactory = new VerifierBatch16__factory(wallet);
-    const verifier = await verifierFactory.deploy();
+    const verifierFactory_4 = new VerifierBatch4__factory(wallet);
+    const verifier_4 = await verifierFactory_4.deploy();
+
+    const verifierFactory_8 = new VerifierBatch8__factory(wallet);
+    const verifier_8 = await verifierFactory_8.deploy();
+
+    const verifierFactory_16 = new VerifierBatch16__factory(wallet);
+    const verifier_16 = await verifierFactory_16.deploy();
+
+    const verifierSelectorFactory = new BatchTreeVerifierSelector__factory(wallet)
+    const verifierSelector = await verifierSelectorFactory.deploy(verifier_4.address, verifier_8.address, verifier_16.address);
+
     const factory = await ethers.getContractFactory('BatchMerkleTree', {
       signer: wallet,
     });
-    contract = await factory.deploy(levels, hasherInstance.contract.address, verifier.address);
+    contract = await factory.deploy(levels, hasherInstance.contract.address, verifierSelector.address);
     initialRoot = await contract.getLastRoot()
     let zero20 = BigNumber.from(await hasherInstance.contract.zeros(20))
     let zero4 = BigNumber.from(await hasherInstance.contract.zeros(4))
-    console.log("initialRoot: ", initialRoot)
-    console.log("merkleRoot: ", merkleTree.root())
-    console.log("zeros20: ", zero20.toString())
-    console.log("zeros4: ", zero4.toString())
   });
   describe('#registration', () => {
     it('should register a deposit', async () => {
       const instance = hasherInstance.contract.address; // dummy
       // const commitment = randomBN()
       const commitment = toFixedHex(randomBN().toHexString());
-      console.log('instance ', instance, ' commitment ', commitment);
       let tx = await contract.registerInsertion(instance, toFixedHex(commitment));
-      // console.log('tx ', tx)
       // let receipt = await tx.wait()
       expect(tx).to.emit(contract, 'DepositData').withArgs(instance, commitment, 0, 0);
     });
@@ -132,18 +176,16 @@ contract.only('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
       let queueLength = await contract.queueLength();
       while (queueLength < 16) {
         const commitment = toFixedHex(randomBN().toHexString());
-        console.log('instance ', instance, ' commitment ', commitment);
         let tx = await contract.registerInsertion(instance, toFixedHex(commitment));
-        // console.log('tx ', tx)
         // let receipt = await tx.wait()
         expect(tx).to.emit(contract, 'DepositData').withArgs(instance, commitment, 0, queueLength);
         queueLength += 1;
       }
     });
   });
-  describe('#batchInsertions', () => {
+  describe('#batchInsert_4', () => {
     it('should prove snark', async () => {
-      const batchHeight = 4;
+      const batchHeight = 2;
       const batchSize = 2 ** batchHeight;
       const oldRoot = merkleTree.root().toString();
       let leaves = [];
@@ -154,13 +196,8 @@ contract.only('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
       merkleTree.bulkInsert(leaves);
       const newRoot = merkleTree.root().toString();
       // const newRoot = tree.root().toString();
-      console.log('oldRoot ', oldRoot);
-      console.log('newRoot ', newRoot);
-      console.log('zeros ', merkleTree.zeros());
       let { pathElements, pathIndices } = merkleTree.path(merkleTree.elements().length - 1);
       pathElements = pathElements.slice(batchHeight).map((e) => e.toString());
-      console.log('pathElements ', pathElements);
-      console.log('pathIndices ', pathIndices);
       pathIndices = MerkleTree.calculateIndexFromPathIndices(pathIndices.slice(batchHeight));
       const input = {
         oldRoot,
@@ -170,28 +207,15 @@ contract.only('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
         leaves,
       };
       input['argsHash'] = hashInputs(input);
-      const circuitInput = {
-        oldRoot,
-        newRoot,
-        argsHash: input['argsHash'],
-        pathIndices,
-        pathElements,
-        leaves,
-      }
 
-      console.log('input ', circuitInput);
-      console.log('zkComponents ', zkComponents);
-      console.log('zkComponents ', wasmFilePath);
-      const { proof, publicSignals } = await snarkjs.groth16.fullProve(circuitInput, zkComponents.wasm, zkComponents.zkey);
-      const vKey = await snarkjs.zKey.exportVerificationKey(zkeyFilePath)
-      console.log('proof ', proof);
-      console.log('publicSignals ', publicSignals);
+      const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, zkComponents_4.wasm, zkComponents_4.zkey);
+      const vKey = await snarkjs.zKey.exportVerificationKey(zkeyFilePath_4)
       const res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       console.log('proof verified ', res);
       expect(res).to.equal(true);
     });
-    it.only('should batch insert', async () => {
-      const batchHeight = 4;
+    it('should batch insert 4 leaves', async () => {
+      const batchHeight = 2;
       const batchSize = 2 ** batchHeight;
       const oldRoot = merkleTree.root().toString();
       expect(oldRoot).to.equal(initialRoot)
@@ -200,20 +224,12 @@ contract.only('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
         const commitment = toFixedHex(randomBN().toHexString());
         leaves.push(commitment);
         const instance = hasherInstance.contract.address; // dummy
-        console.log('instance ', instance, ' commitment ', commitment);
         let tx = await contract.registerInsertion(instance, toFixedHex(commitment));
-        // console.log('tx ', tx, ' instance ', instance, ' commitment ', commitment);
       }
       merkleTree.bulkInsert(leaves);
       const newRoot = merkleTree.root().toString();
-      // const newRoot = tree.root().toString();
-      console.log('oldRoot ', oldRoot);
-      console.log('newRoot ', newRoot);
-      // console.log('zeros ', merkleTree.zeros());
       let { pathElements, pathIndices } = merkleTree.path(merkleTree.elements().length - 1);
       pathElements = pathElements.slice(batchHeight).map((e) => e.toString());
-      // console.log('pathElements ', pathElements);
-      // console.log('pathIndices ', pathIndices);
       pathIndices = MerkleTree.calculateIndexFromPathIndices(pathIndices.slice(batchHeight));
       const input = {
         oldRoot,
@@ -223,22 +239,10 @@ contract.only('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
         leaves,
       };
       input['argsHash'] = hashInputs(input);
-      const circuitInput = {
-        oldRoot,
-        newRoot,
-        argsHash: input['argsHash'],
-        pathIndices,
-        pathElements,
-        leaves,
-      }
 
-      // console.log('input ', circuitInput);
-      // console.log('zkComponents ', zkComponents);
-      // console.log('zkComponents ', wasmFilePath);
-      const { proof, publicSignals } = await snarkjs.groth16.fullProve(circuitInput, zkComponents.wasm, zkComponents.zkey);
-      const vKey = await snarkjs.zKey.exportVerificationKey(zkeyFilePath)
-      // console.log('proof ', proof);
-      // console.log('publicSignals ', publicSignals);
+      const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, zkComponents_4.wasm, zkComponents_4.zkey);
+      const vKey = await snarkjs.zKey.exportVerificationKey(zkeyFilePath_4)
+
       const res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       console.log('proof verified ', res);
       expect(res).to.equal(true);
@@ -266,18 +270,217 @@ contract.only('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
       .join('');
 
       proofEncoded = `0x${proofEncoded}`
-      console.log('proof encoded', proofEncoded);
-      console.log('argsHash', input['argsHash']);
-      console.log('oldRoot', input['oldRoot']);
-      console.log('newRoot', input['newRoot']);
-      console.log('pathIndices', input['pathIndices']);
-      console.log('leaves', input['leaves']);
-      let contractQueue = []
-      for(var i = 0; i < 16; i++) {
-        let c = await contract.queue(i);
-        contractQueue.push(c)
+
+      let tx = await contract.batchInsert(
+        proofEncoded,
+        toFixedHex(input['argsHash']),
+        toFixedHex(input['oldRoot']),
+        toFixedHex(input['newRoot']),
+        input['pathIndices'],
+        input['leaves']
+      )
+      let receipt = await tx.wait()
+    });
+  });
+  describe('#batchInsert_8', () => {
+    it('should prove snark', async () => {
+      const batchHeight = 3;
+      const batchSize = 2 ** batchHeight;
+      const oldRoot = merkleTree.root().toString();
+      let leaves = [];
+      for (let i = 0; i < batchSize; i++) {
+        const commitment = toFixedHex(randomBN().toHexString());
+        leaves.push(commitment);
       }
-      console.log('queue', contractQueue);
+      merkleTree.bulkInsert(leaves);
+      const newRoot = merkleTree.root().toString();
+      // const newRoot = tree.root().toString();
+      let { pathElements, pathIndices } = merkleTree.path(merkleTree.elements().length - 1);
+      pathElements = pathElements.slice(batchHeight).map((e) => e.toString());
+      pathIndices = MerkleTree.calculateIndexFromPathIndices(pathIndices.slice(batchHeight));
+      const input = {
+        oldRoot,
+        newRoot,
+        pathIndices,
+        pathElements,
+        leaves,
+      };
+      input['argsHash'] = hashInputs(input);
+
+      const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, zkComponents_8.wasm, zkComponents_8.zkey);
+      const vKey = await snarkjs.zKey.exportVerificationKey(zkeyFilePath_8)
+      const res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
+      console.log('proof verified ', res);
+      expect(res).to.equal(true);
+    });
+    it('should batch insert 8 leaves', async () => {
+      const batchHeight = 3;
+      const batchSize = 2 ** batchHeight;
+      const oldRoot = merkleTree.root().toString();
+      expect(oldRoot).to.equal(initialRoot)
+      let leaves = [];
+      for (let i = 0; i < batchSize; i++) {
+        const commitment = toFixedHex(randomBN().toHexString());
+        leaves.push(commitment);
+        const instance = hasherInstance.contract.address; // dummy
+        let tx = await contract.registerInsertion(instance, toFixedHex(commitment));
+      }
+      merkleTree.bulkInsert(leaves);
+      const newRoot = merkleTree.root().toString();
+      let { pathElements, pathIndices } = merkleTree.path(merkleTree.elements().length - 1);
+      pathElements = pathElements.slice(batchHeight).map((e) => e.toString());
+      pathIndices = MerkleTree.calculateIndexFromPathIndices(pathIndices.slice(batchHeight));
+      const input = {
+        oldRoot,
+        newRoot,
+        pathIndices,
+        pathElements,
+        leaves,
+      };
+      input['argsHash'] = hashInputs(input);
+
+      const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, zkComponents_8.wasm, zkComponents_8.zkey);
+      const vKey = await snarkjs.zKey.exportVerificationKey(zkeyFilePath_8)
+
+      const res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
+      console.log('proof verified ', res);
+      expect(res).to.equal(true);
+
+    const calldata = await snarkjs.groth16.exportSolidityCallData(
+      proof,
+      publicSignals
+    );
+    const proofJson = JSON.parse('[' + calldata + ']');
+    const pi_a = proofJson[0];
+    const pi_b = proofJson[1];
+    const pi_c = proofJson[2];
+
+    let proofEncoded = [
+      pi_a[0],
+      pi_a[1],
+      pi_b[0][0],
+      pi_b[0][1],
+      pi_b[1][0],
+      pi_b[1][1],
+      pi_c[0],
+      pi_c[1],
+    ]
+      .map((elt) => elt.substr(2))
+      .join('');
+
+      proofEncoded = `0x${proofEncoded}`
+
+      let tx = await contract.batchInsert(
+        proofEncoded,
+        toFixedHex(input['argsHash']),
+        toFixedHex(input['oldRoot']),
+        toFixedHex(input['newRoot']),
+        input['pathIndices'],
+        input['leaves']
+      )
+      let receipt = await tx.wait()
+    });
+  });
+  describe('#batchInsert_16', () => {
+    it('should prove snark', async () => {
+      const batchHeight = 4;
+      const batchSize = 2 ** batchHeight;
+      const oldRoot = merkleTree.root().toString();
+      let leaves = [];
+      for (let i = 0; i < batchSize; i++) {
+        const commitment = toFixedHex(randomBN().toHexString());
+        leaves.push(commitment);
+      }
+      merkleTree.bulkInsert(leaves);
+      const newRoot = merkleTree.root().toString();
+      // const newRoot = tree.root().toString();
+      let { pathElements, pathIndices } = merkleTree.path(merkleTree.elements().length - 1);
+      pathElements = pathElements.slice(batchHeight).map((e) => e.toString());
+      pathIndices = MerkleTree.calculateIndexFromPathIndices(pathIndices.slice(batchHeight));
+      const input = {
+        oldRoot,
+        newRoot,
+        pathIndices,
+        pathElements,
+        leaves,
+      };
+      input['argsHash'] = hashInputs(input);
+      const circuitInput = {
+        oldRoot,
+        newRoot,
+        argsHash: input['argsHash'],
+        pathIndices,
+        pathElements,
+        leaves,
+      }
+
+      const { proof, publicSignals } = await snarkjs.groth16.fullProve(circuitInput, zkComponents_16.wasm, zkComponents_16.zkey);
+      const vKey = await snarkjs.zKey.exportVerificationKey(zkeyFilePath_16)
+      const res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
+      expect(res).to.equal(true);
+    });
+    it('should batch insert', async () => {
+      const batchHeight = 4;
+      const batchSize = 2 ** batchHeight;
+      const oldRoot = merkleTree.root().toString();
+      expect(oldRoot).to.equal(initialRoot)
+      let leaves = [];
+      for (let i = 0; i < batchSize; i++) {
+        const commitment = toFixedHex(randomBN().toHexString());
+        leaves.push(commitment);
+        const instance = hasherInstance.contract.address; // dummy
+        let tx = await contract.registerInsertion(instance, toFixedHex(commitment));
+      }
+      merkleTree.bulkInsert(leaves);
+      const newRoot = merkleTree.root().toString();
+      let { pathElements, pathIndices } = merkleTree.path(merkleTree.elements().length - 1);
+      pathElements = pathElements.slice(batchHeight).map((e) => e.toString());
+      pathIndices = MerkleTree.calculateIndexFromPathIndices(pathIndices.slice(batchHeight));
+      const input = {
+        oldRoot,
+        newRoot,
+        pathIndices,
+        pathElements,
+        leaves,
+      };
+      input['argsHash'] = hashInputs(input);
+
+      const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, zkComponents_16.wasm, zkComponents_16.zkey);
+      const vKey = await snarkjs.zKey.exportVerificationKey(zkeyFilePath_16)
+
+      const res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
+      console.log('proof verified ', res);
+      expect(res).to.equal(true);
+
+    const calldata = await snarkjs.groth16.exportSolidityCallData(
+      proof,
+      publicSignals
+    );
+    const proofJson = JSON.parse('[' + calldata + ']');
+    const pi_a = proofJson[0];
+    const pi_b = proofJson[1];
+    const pi_c = proofJson[2];
+
+    let proofEncoded = [
+      pi_a[0],
+      pi_a[1],
+      pi_b[0][0],
+      pi_b[0][1],
+      pi_b[1][0],
+      pi_b[1][1],
+      pi_c[0],
+      pi_c[1],
+    ]
+      .map((elt) => elt.substr(2))
+      .join('');
+
+      proofEncoded = `0x${proofEncoded}`
+      // let contractQueue = []
+      // for(var i = 0; i < 16; i++) {
+      //   let c = await contract.queue(i);
+      //   contractQueue.push(c)
+      // }
+      // console.log('queue', contractQueue);
 
 
       let tx = await contract.batchInsert(
@@ -288,9 +491,7 @@ contract.only('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
         input['pathIndices'],
         input['leaves']
       )
-      console.log('transaction ', tx)
       let receipt = await tx.wait()
-      console.log('receipt ', receipt)
     });
   });
 });

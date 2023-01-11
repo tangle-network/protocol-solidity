@@ -15,15 +15,16 @@ contract BatchMerkleTree is MerkleTreeWithHistory {
     uint256 public queueLength;
     uint256 public lastProcessedLeaf;
     mapping(uint256 => bytes32) public queue;
-    uint256 public constant ITEM_SIZE = 32; // + 20 + 4;
     uint256 public constant CHUNK_TREE_HEIGHT = 4;
     uint256 public constant CHUNK_SIZE = 2**CHUNK_TREE_HEIGHT;
     uint256 public constant BYTES_SIZE = 32 + 32 + 4 + CHUNK_SIZE * ITEM_SIZE;
+    uint256 public constant HEADER_SIZE = 32 + 32 + 4;
+    uint256 public constant ITEM_SIZE = 32; // + 20 + 4;
     uint256 public constant SNARK_FIELD = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
-    IBatchTreeUpdateVerifier public treeUpdateVerifier;
+    IBatchTreeVerifierSelector public treeUpdateVerifier;
 
 
-	constructor(uint32 _levels, IHasher _hasher, IBatchTreeUpdateVerifier _treeUpdateVerifier) {
+	constructor(uint32 _levels, IHasher _hasher, IBatchTreeVerifierSelector _treeUpdateVerifier) {
 		require(_levels > 0, "_levels should be greater than zero");
 		require(_levels < 32, "_levels should be less than 32");
 		levels = _levels;
@@ -50,6 +51,14 @@ contract BatchMerkleTree is MerkleTreeWithHistory {
         queueLength = queueLength + 1;
     }
 
+    function checkLeavesLength(bytes32[] calldata _leaves) public {
+        require(_leaves.length == 4 ||
+                _leaves.length == 8 ||
+                _leaves.length == 16,
+                "Invalid number of leaves");
+
+    }
+
   /// @dev Insert a full batch of queued deposits into a merkle tree
   /// @param _proof A snark proof that elements were inserted correctly
   /// @param _argsHash A hash of snark inputs
@@ -63,23 +72,22 @@ contract BatchMerkleTree is MerkleTreeWithHistory {
     bytes32 _currentRoot,
     bytes32 _newRoot,
     uint32 _pathIndices,
-    bytes32[CHUNK_SIZE] calldata _leaves
+    bytes32[] calldata _leaves
   ) public {
     uint256 offset = lastProcessedLeaf;
     console.log('SOLIDITY: input current root: ', uint(_currentRoot));
     console.log('SOLIDITY: contract current root: ', uint(currentRoot));
     require(_currentRoot == currentRoot, "Initial deposit root is invalid");
     require(_pathIndices == offset >> CHUNK_TREE_HEIGHT, "Incorrect deposit insert index");
+    checkLeavesLength(_leaves);
 
-    bytes memory data = new bytes(BYTES_SIZE);
+    bytes memory data = new bytes(HEADER_SIZE + ITEM_SIZE * _leaves.length);
     assembly {
       mstore(add(data, 0x44), _pathIndices)
       mstore(add(data, 0x40), _newRoot)
       mstore(add(data, 0x20), _currentRoot)
     }
-    for (uint256 i = 0; i < CHUNK_SIZE; i++) {
-      // (bytes32 hash, address instance, uint32 blockNumber) = (_events[i].hash, _events[i].instance, _events[i].block);
-      // bytes32 leafHash = keccak256(abi.encode(instance, hash, blockNumber));
+    for (uint256 i = 0; i < _leaves.length; i++) {
       bytes32 leafHash = _leaves[i];
       bytes32 deposit = queue[offset + i];
       require(leafHash == deposit, "Incorrect deposit");
@@ -94,11 +102,11 @@ contract BatchMerkleTree is MerkleTreeWithHistory {
     require(argsHash == uint256(_argsHash), "Invalid args hash");
     uint256[8] memory p = abi.decode(_proof, (uint256[8]));
     (uint256[2] memory a, uint256[2][2] memory b, uint256[2] memory c) = unpackProof(p);
-    require(treeUpdateVerifier.verifyProof(a, b, c, [argsHash]), "Invalid deposit tree update proof");
+    require(treeUpdateVerifier.verifyProof(a, b, c, [argsHash], _leaves.length), "Invalid deposit tree update proof");
 
     previousRoot = currentRoot;
     currentRoot = _newRoot;
-    lastProcessedLeaf = offset + CHUNK_SIZE;
+    lastProcessedLeaf = offset + _leaves.length;
   }
   function blockNumber() public returns (uint256) {
       return block.number;
