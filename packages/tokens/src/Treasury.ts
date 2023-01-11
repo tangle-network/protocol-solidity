@@ -29,20 +29,20 @@ export class Treasury {
     treasuryHandler: string,
     deployer: Deployer,
     saltHex: string,
-    sender: ethers.Signer
+    signer: ethers.Signer
   ) {
     const argTypes = ['string'];
     const args = [treasuryHandler];
     const { contract: contract } = await deployer.deploy(
       Treasury__factory,
       saltHex,
-      sender,
+      signer,
       undefined,
       argTypes,
       args
     );
 
-    const handler = new Treasury(contract, deployer.signer);
+    const handler = new Treasury(contract, signer);
     return handler;
   }
 
