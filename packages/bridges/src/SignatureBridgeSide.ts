@@ -57,10 +57,15 @@ export class SignatureBridgeSide implements IBridgeSide {
     saltHex: string,
     admin: ethers.Wallet
   ): Promise<SignatureBridgeSide> {
+    const argTypes = ['address', 'uint32'];
+    const args = [admin.address, 0];
     const { contract: deployedBridge } = await deployer.deploy(
       SignatureBridge__factory,
       saltHex,
-      admin
+      admin,
+      undefined,
+      argTypes,
+      args
     );
     const bridgeSide = new SignatureBridgeSide(deployedBridge, (data: any) => {
       return Promise.resolve(signMessage(admin, data));
@@ -349,7 +354,9 @@ export class SignatureBridgeSide implements IBridgeSide {
     tokenAddress: string
   ) {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
+    console.log("executeAddTokenProposalWithSig")
     const proposalData = await this.createAddTokenUpdateProposalData(fungibleToken, tokenAddress);
+    console.log("execute");
     return this.execute(proposalData);
   }
 
