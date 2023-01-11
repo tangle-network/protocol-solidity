@@ -67,6 +67,14 @@ abstract contract LinkableAnchor is
 	event EdgeUpdate(uint256 chainID, uint256 latestLeafIndex, uint256 merkleRoot);
 
 	/**
+        @notice Checks the sender is the AnchorHandler configured on this contract
+     */
+	modifier onlyHandler() {
+		require(msg.sender == handler, "sender is not the handler");
+		_;
+	}
+
+	/**
         @notice The LinkableAnchor constructor
         @param _handler The address of the `AnchorHandler` contract
         @param _outerTreeHeight The height of outer-most merkle tree
@@ -225,14 +233,6 @@ abstract contract LinkableAnchor is
 			rootIndex++;
 		}
 		return true;
-	}
-
-	/**
-        @notice Checks the sender is the AnchorHandler configured on this contract
-     */
-	modifier onlyHandler() {
-		require(msg.sender == handler, "sender is not the handler");
-		_;
 	}
 
 	/**

@@ -47,15 +47,17 @@ contract FungibleTokenWrapper is
         @param _handler The address of the handler
         @param _limit The maximum amount of tokens that can be wrapped
         @param _isNativeAllowed Whether or not native tokens are allowed to be wrapped
+		@param _admin The address of the admin who will receive minting rights and admin role
      */
 	function initialize(
 		uint16 _feePercentage,
 		address _feeRecipient,
 		address _handler,
 		uint256 _limit,
-		bool _isNativeAllowed
+		bool _isNativeAllowed,
+		address _admin
 	) public onlyUninitialized {
-		super.initialize(msg.sender);
+		super.initialize(_admin);
 		initialized = true;
 		feePercentage = _feePercentage;
 		feeRecipient = payable(_feeRecipient);

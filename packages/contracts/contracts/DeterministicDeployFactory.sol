@@ -17,6 +17,16 @@ contract DeterministicDeployFactory {
 		return addr;
 	}
 
+	/**
+		@notice Deploy a fungible token
+		@param bytecode The bytecode of the contract
+		@param _salt The salt for the contract
+		@param _feePercentage The fee percentage for wrapping
+		@param _feeRecipient The recipient for fees from wrapping.
+		@param _handler The address of the handler
+		@param _limit The maximum amount of tokens that can be wrapped
+		@param _isNativeAllowed Whether or not native tokens are allowed to be wrapped
+	 */
 	function deployFungibleToken(
 		bytes memory bytecode,
 		uint _salt,
@@ -28,7 +38,7 @@ contract DeterministicDeployFactory {
 	) external {
 		address c = this.deploy(bytecode, _salt);
 		// delegate call initialize the contract created with the msg.sender
-		(bool success, bytes memory data) = c.delegatecall(
+		(bool success, bytes memory data) = c.call(
 			abi.encodeWithSignature(
 				"initialize(uint16,address,address,uint256,bool)",
 				_feePercentage,
@@ -36,6 +46,31 @@ contract DeterministicDeployFactory {
 				_handler,
 				_limit,
 				_isNativeAllowed
+			)
+		);
+		require(success, string(data));
+	}
+
+	/**
+		@notice Deploy a VAnchor
+		@param bytecode The bytecode of the contract
+		@param _salt The salt for the contract
+		@param _minimalWithdrawalAmount The minimal withdrawal amount
+		@param _maximumDepositAmount The maximum deposit amount
+	 */
+	function deployVAnchor(
+		bytes memory bytecode,
+		uint _salt,
+		uint256 _minimalWithdrawalAmount,
+		uint256 _maximumDepositAmount
+	) external {
+		address c = this.deploy(bytecode, _salt);
+		// delegate call initialize the contract created with the msg.sender
+		(bool success, bytes memory data) = c.call(
+			abi.encodeWithSignature(
+				"initialize(uint256,uint256)",
+				_minimalWithdrawalAmount,
+				_maximumDepositAmount
 			)
 		);
 		require(success, string(data));

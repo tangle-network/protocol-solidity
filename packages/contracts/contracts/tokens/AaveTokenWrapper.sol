@@ -26,29 +26,35 @@ contract AaveTokenWrapper is FungibleTokenWrapper, IAaveTokenWrapper {
 		string memory _name,
 		string memory _symbol,
 		address _aaveLendingPool
-	) FungibleTokenWrapper(_name, _symbol) {
-		aaveLendingPool = IAaveLendingPool(_aaveLendingPool);
-	}
+	) FungibleTokenWrapper(_name, _symbol) {}
 
 	/**
         @notice AaveTokenWrapper initializer
-        @param _feeRecipient The recipient for fees from wrapping
-        @param _governor The address of the governor
+        @param _feePercentage The fee percentage for wrapping
+        @param _feeRecipient The recipient for fees from wrapping.
+        @param _handler The address of the handler
         @param _limit The maximum amount of tokens that can be wrapped
         @param _isNativeAllowed Whether or not native tokens are allowed to be wrapped
+		@param _admin The address of the admin who will receive minting rights and admin role
+		@param _aaveLendingPool The address of the Aave lending pool
      */
 	function initialize(
+		uint16 _feePercentage,
 		address _feeRecipient,
-		address _governor,
+		address _handler,
 		uint256 _limit,
 		bool _isNativeAllowed,
+		address _admin,
 		address _aaveLendingPool
-	) public {
-		require(!initialized, "Contract already initialized");
-		feeRecipient = payable(_feeRecipient);
-		wrappingLimit = _limit;
-		isNativeAllowed = _isNativeAllowed;
-		initialized = true;
+	) public onlyUninitialized {
+		super.initialize(
+			_feePercentage,
+			_feeRecipient,
+			_handler,
+			_limit,
+			_isNativeAllowed,
+			_admin
+		);
 		aaveLendingPool = IAaveLendingPool(_aaveLendingPool);
 	}
 
