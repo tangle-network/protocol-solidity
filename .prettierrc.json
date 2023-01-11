@@ -11,7 +11,10 @@
       }
     },
     {
-      "files": "packages/**/*.ts",
+      "files": [
+        "packages/**/*.{ts,tsx,js,jsx}",
+        "scripts/**/*.{ts,tsx,js,jsx}"
+      ],
       "options": {
         "printWidth": 100,
         "tabWidth": 2,

@@ -1,12 +1,10 @@
-import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
+import { BigNumber, BigNumberish, ethers } from 'ethers';
 import {
   VAnchor as VAnchorContract,
-  VAnchor__factory,
   ChainalysisVAnchor as ChainalysisVAnchorContract,
-  DeterministicDeployFactory as DeterministicDeployFactoryContract,
   IdentityVAnchor as IdentityVAnchorContract,
   VAnchorForest as VAnchorForestContract,
-  VAnchorEncodeInputs__factory,
+  OpenVAnchor as OpenVAnchorContract,
   TokenWrapper__factory,
 } from '@webb-tools/contracts';
 import {
@@ -14,21 +12,12 @@ import {
   Keypair,
   toFixedHex,
   Utxo,
-  MerkleTree,
-  median,
-  mean,
-  max,
-  min,
   randomBN,
-  CircomProvingManager,
-  ProvingManagerSetupInput,
-  MerkleProof,
   UtxoGenInput,
   CircomUtxo,
-  FIELD_SIZE,
-  LeafIdentifier,
+  MerkleTree,
 } from '@webb-tools/sdk-core';
-import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
+import { hexToU8a, getChainIdType } from '@webb-tools/utils';
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 function checkNativeAddress(tokenAddress: string): boolean {
@@ -41,11 +30,17 @@ type WebbContracts =
   | VAnchorContract
   | ChainalysisVAnchorContract
   | IdentityVAnchorContract
-  | VAnchorForestContract;
+  | VAnchorForestContract
+  | OpenVAnchorContract;
 
 export class WebbBridge {
   signer: ethers.Signer;
   contract: WebbContracts;
+
+  tree: MerkleTree;
+
+  // The depositHistory stores leafIndex => information to create proposals (new root)
+  depositHistory: Record<number, string>;
 
   constructor(contract: WebbContracts, signer: ethers.Signer) {
     this.contract = contract;
@@ -139,6 +134,18 @@ export class WebbBridge {
       toHex(nonce, 4).substr(2) +
       toFixedHex(_maximumDepositAmount).substr(2)
     );
+  }
+
+  // Proposal data is used to update linkedAnchors via bridge proposals
+  // on other chains with this anchor's state
+  public async getProposalData(resourceID: string, leafIndex?: number): Promise<string> {
+    // If no leaf index passed in, set it to the most recent one.
+    if (!leafIndex) {
+      leafIndex = this.tree.number_of_elements() - 1;
+    }
+
+    const merkleRoot = this.depositHistory[leafIndex];
+    return this.genProposalData(resourceID, merkleRoot, leafIndex);
   }
 
   // Proposal data is used to update linkedAnchors via bridge proposals

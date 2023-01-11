@@ -283,6 +283,8 @@ export class VBridge {
    * @returns
    */
   public async updateLinkedVAnchors(srcAnchor: VAnchor) {
+    console.log(srcAnchor.contract.address);
+    console.log(await srcAnchor.contract.getLastRoot());
     // Find the bridge sides that are connected to this Anchor
     const linkedResourceID = await srcAnchor.createResourceId();
     const vAnchorsToUpdate = this.linkedVAnchors.get(linkedResourceID);
