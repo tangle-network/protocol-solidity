@@ -5,7 +5,7 @@
 
 import { toFixedHex } from '@webb-tools/sdk-core';
 import { BigNumber } from 'ethers';
-import { toBN, BN } from 'web3-utils';
+import { toBN } from 'web3-utils';
 import { Keypair, CircomUtxo, toBuffer, randomBN } from '@webb-tools/sdk-core';
 import { artifacts, contract, ethers } from 'hardhat';
 import { poseidon, pedersenHash, buildPedersenHash } from 'circomlibjs';
@@ -46,16 +46,16 @@ class Pedersen {
 
 // Note class
 class Note {
-  secret: BN;
-  nullifier: BN;
-  commitment: BN;
-  nullifierHash: BN;
+  secret: any;
+  nullifier: any;
+  commitment: any;
+  nullifierHash: any;
   rewardNullifier: any;
   netId: any;
   amount: any;
   currency: any;
-  depositBlock: BN;
-  withdrawalBlock: BN;
+  depositBlock: any;
+  withdrawalBlock: any;
   instance: any;
   pedersen: any;
 
@@ -99,8 +99,8 @@ class Note {
     note = note.split('-');
     const [, currency, amount, netId] = note;
     const hexNote = note[4].slice(2);
-    const nullifier = new BN(hexNote.slice(0, 62), 16, 'le');
-    const secret = new BN(hexNote.slice(62), 16, 'le');
+    const nullifier = toBN(hexNote.slice(0, 62));
+    const secret = toBN(hexNote.slice(62));
     return new Note({
       secret,
       nullifier,

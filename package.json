@@ -11,7 +11,7 @@
     "compile": "lerna run compile",
     "build": "yarn compile && yarn build:packages",
     "setup": "yarn compile && yarn build:circuits && yarn build:ptau",
-    "test": "yarn workspace @webb-tools/contracts run test ./test/trees/RewardTrees.test.ts",
+    "test": "yarn workspace @webb-tools/contracts run test",
     "fast": "yarn workspace @webb-tools/contracts run fast",
     "build:circuits": "./scripts/bash/build_circuits.sh",
     "build:packages": "lerna run build",
