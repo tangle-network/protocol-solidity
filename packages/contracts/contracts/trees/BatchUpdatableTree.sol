@@ -13,11 +13,10 @@ contract BatchMerkleTree is MerkleTreeWithHistory {
     bytes32 public currentRoot;
     bytes32 public previousRoot;
     uint256 public queueLength;
-    uint256 public lastProcessedLeaf;
     mapping(uint256 => bytes32) public queue;
-    uint256 public constant CHUNK_TREE_HEIGHT = 4;
-    uint256 public constant CHUNK_SIZE = 2**CHUNK_TREE_HEIGHT;
-    uint256 public constant BYTES_SIZE = 32 + 32 + 4 + CHUNK_SIZE * ITEM_SIZE;
+    // uint256 public constant CHUNK_TREE_HEIGHT = 4;
+    // uint256 public constant CHUNK_SIZE = 2**CHUNK_TREE_HEIGHT;
+    // uint256 public constant BYTES_SIZE = 32 + 32 + 4 + CHUNK_SIZE * ITEM_SIZE;
     uint256 public constant HEADER_SIZE = 32 + 32 + 4;
     uint256 public constant ITEM_SIZE = 32; // + 20 + 4;
     uint256 public constant SNARK_FIELD = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
@@ -35,8 +34,6 @@ contract BatchMerkleTree is MerkleTreeWithHistory {
 			filledSubtrees[i] = uint256(hasher.zeros(i));
 		}
         queueLength = 0;
-        lastProcessedLeaf = 0;
-
 		roots[0] = Root(uint256(hasher.zeros(_levels)), 0);
         currentRoot = hasher.zeros(_levels);
 	}
@@ -44,10 +41,9 @@ contract BatchMerkleTree is MerkleTreeWithHistory {
 
     // TODO: MAKE THIS FUNCTION INTERNAL
     function registerInsertion(address _instance, bytes32 _commitment) public {
-        uint256 _queueLength = queueLength;
-        // queue[_queueLength] = keccak256(abi.encode(_instance, _commitment, blockNumber()));
-        queue[_queueLength] = _commitment;
-        emit DepositData(_instance, _commitment, blockNumber(), _queueLength);
+        // uint256 _queueLength = queueLength;
+        queue[queueLength] = _commitment;
+        emit DepositData(_instance, _commitment, blockNumber(), queueLength);
         queueLength = queueLength + 1;
     }
 
@@ -72,14 +68,20 @@ contract BatchMerkleTree is MerkleTreeWithHistory {
     bytes32 _currentRoot,
     bytes32 _newRoot,
     uint32 _pathIndices,
-    bytes32[] calldata _leaves
+    bytes32[] calldata _leaves,
+    uint32 _batchHeight
   ) public {
-    uint256 offset = lastProcessedLeaf;
+    uint256 offset = nextIndex;
+
+    console.log('SOLIDITY: nextIndex: ', nextIndex);
     console.log('SOLIDITY: input current root: ', uint(_currentRoot));
     console.log('SOLIDITY: contract current root: ', uint(currentRoot));
     require(_currentRoot == currentRoot, "Initial deposit root is invalid");
-    require(_pathIndices == offset >> CHUNK_TREE_HEIGHT, "Incorrect deposit insert index");
-    checkLeavesLength(_leaves);
+    // console.log("SOLIDITY: pathIndices", _pathIndices);
+    // console.log("SOLIDITY: _batchHeight", _batchHeight);
+    // console.log("SOLIDITY: offset >> _batchHeight",  offset >> _batchHeight);
+    require(_pathIndices == offset >> _batchHeight, "Incorrect deposit insert index");
+    this.checkLeavesLength(_leaves);
 
     bytes memory data = new bytes(HEADER_SIZE + ITEM_SIZE * _leaves.length);
     assembly {
@@ -90,6 +92,11 @@ contract BatchMerkleTree is MerkleTreeWithHistory {
     for (uint256 i = 0; i < _leaves.length; i++) {
       bytes32 leafHash = _leaves[i];
       bytes32 deposit = queue[offset + i];
+      // console.log("SOLIDITY: offset", offset);
+      // console.log("SOLIDITY: offset + i", offset + i);
+      // console.log("SOLIDITY: deposit", uint(deposit));
+      // console.log("SOLIDITY: leafHash", uint(leafHash));
+      // console.log("SOLIDITY: _batchHeight", _batchHeight);
       require(leafHash == deposit, "Incorrect deposit");
       assembly {
         let itemOffset := add(data, mul(ITEM_SIZE, i))
@@ -106,7 +113,12 @@ contract BatchMerkleTree is MerkleTreeWithHistory {
 
     previousRoot = currentRoot;
     currentRoot = _newRoot;
-    lastProcessedLeaf = offset + _leaves.length;
+
+    uint32 newRootIndex = (currentRootIndex + 1) % ROOT_HISTORY_SIZE;
+    // roots[currentRootIndex] = _newRoot;
+    nextIndex = nextIndex + uint32(_leaves.length);
+    roots[newRootIndex] = Root(uint256(currentRoot), nextIndex);
+    currentRootIndex = newRootIndex;
   }
   function blockNumber() public returns (uint256) {
       return block.number;
