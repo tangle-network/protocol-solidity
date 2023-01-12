@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
+import { BigNumber, BigNumberish, ethers } from 'ethers';
 import { OpenVAnchor as OpenVAnchorContract, OpenVAnchor__factory } from '@webb-tools/contracts';
 import { solidityPack } from 'ethers/lib/utils';
 import {
@@ -13,8 +13,9 @@ import {
   CircomProvingManager,
   MerkleProof,
 } from '@webb-tools/sdk-core';
-import { u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
+import { u8aToHex, getChainIdType } from '@webb-tools/utils';
 import { IVAnchor } from '@webb-tools/interfaces';
+import { WebbBridge } from './Common';
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 function checkNativeAddress(tokenAddress: string): boolean {
@@ -34,19 +35,16 @@ export var proofTimeBenchmark = [];
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
-export class OpenVAnchor implements IVAnchor {
-  signer: ethers.Signer;
+export class OpenVAnchor extends WebbBridge implements IVAnchor {
   contract: OpenVAnchorContract;
-  tree: MerkleTree;
   latestSyncedBlock = 0;
 
-  // The depositHistory stores leafIndex => information to create proposals (new root)
-  depositHistory: Record<number, string>;
   token?: string;
   denomination?: string;
   provingManager: CircomProvingManager;
 
   constructor(contract: OpenVAnchorContract, signer: ethers.Signer, treeHeight: number) {
+    super(contract, signer);
     this.signer = signer;
     this.contract = contract;
     this.tree = new MerkleTree(treeHeight, [], { hashFunction: sha3Hash });
@@ -148,37 +146,6 @@ export class OpenVAnchor implements IVAnchor {
       return true;
     }
     return false;
-  }
-
-  // Proposal data is used to update linkedAnchors via bridge proposals
-  // on other chains with this anchor's state
-  public async getProposalData(resourceID: string, leafIndex?: number): Promise<string> {
-    // If no leaf index passed in, set it to the most recent one.
-    if (!leafIndex) {
-      leafIndex = this.tree.number_of_elements() - 1;
-    }
-
-    const chainID = getChainIdType(await this.signer.getChainId());
-    const merkleRoot = this.depositHistory[leafIndex];
-    const functionSig = ethers.utils
-      .keccak256(ethers.utils.toUtf8Bytes('updateEdge(uint256,uint32,bytes32)'))
-      .slice(0, 10)
-      .padEnd(10, '0');
-
-    const srcContract = this.contract.address;
-    const srcResourceId =
-      '0x' +
-      toHex(0, 6).substring(2) +
-      toHex(srcContract, 20).substr(2) +
-      toHex(chainID, 6).substr(2);
-    return (
-      '0x' +
-      toHex(resourceID, 32).substr(2) +
-      functionSig.slice(2) +
-      toHex(leafIndex, 4).substr(2) +
-      toHex(merkleRoot, 32).substr(2) +
-      toHex(srcResourceId, 32).substr(2)
-    );
   }
 
   public async getHandler(): Promise<string> {

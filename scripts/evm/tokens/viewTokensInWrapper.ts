@@ -1,7 +1,7 @@
 // @ts-nocheck
-require("dotenv").config({ path: "../.env" });
-import { ethers } from "ethers";
-import { FungibleTokenWrapper__factory } from "../../../typechain/factories/FungibleTokenWrapper__factory";
+require('dotenv').config({ path: '../.env' });
+import { ethers } from 'ethers';
+import { FungibleTokenWrapper__factory } from '../../../typechain/factories/FungibleTokenWrapper__factory';
 
 export async function viewTokensInWrapper(
   tokenWrapperAddress: string,
@@ -14,7 +14,7 @@ export async function viewTokensInWrapper(
   const tokens = await fungibleTokenWrapper.functions.getTokens();
 
   const allowedNative = await fungibleTokenWrapper.isNativeAllowed();
-  console.log("Tokens in the wrapper: ");
+  console.log('Tokens in the wrapper: ');
   console.log(tokens);
-  console.log("nativeAllowed? ", allowedNative);
+  console.log('nativeAllowed? ', allowedNative);
 }

@@ -1,7 +1,7 @@
 // @ts-nocheck
-import { ethers } from "ethers";
-import { ERC20__factory } from "../../../typechain/factories/ERC20__factory";
-require("dotenv").config();
+import { ethers } from 'ethers';
+import { ERC20__factory } from '../../../typechain/factories/ERC20__factory';
+require('dotenv').config();
 
 export async function getTokenBalance(
   tokenAddress: string,
@@ -12,9 +12,7 @@ export async function getTokenBalance(
 
   const balance = await token.balanceOf(checkAddress);
   const name = await token.name();
-  console.log(
-    `The account: ${checkAddress} has a balance of ${balance} for ${name}`
-  );
+  console.log(`The account: ${checkAddress} has a balance of ${balance} for ${name}`);
 
   return balance;
 }
