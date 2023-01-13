@@ -8,7 +8,7 @@ template PartialRecord() {
     signal input pk_X;
     signal input pk_Y;
     signal input blinding;
-    signal output partialRecord
+    signal output partialRecord;
 
     component hasher = Poseidon(4);
     hasher.inputs[0] <== chainID;

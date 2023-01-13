@@ -122,9 +122,9 @@ copy_to_fixtures () {
 # compile masp_vanchor_2 masp_vanchor_2_8 8
 # copy_to_fixtures masp_vanchor_2 masp_vanchor_2_8 8 masp_vanchor_2
 #
-# echo "Compiling Webb style multi-asset Poseidon vanchor 2 circuit w/ 16 inputs"
-# compile masp_vanchor_16 masp_vanchor_16_2 2
-# copy_to_fixtures masp_vanchor_16 masp_vanchor_16_2 2 masp_vanchor_16
+echo "Compiling Webb style multi-asset Poseidon vanchor 2 circuit w/ 16 inputs"
+compile masp_vanchor_16 masp_vanchor_16_2 2
+copy_to_fixtures masp_vanchor_16 masp_vanchor_16_2 2 masp_vanchor_16
 #
 # echo "Compiling Webb style multi-asset Poseidon vanchor 8 circuit w/ 2 inputs"
 # compile masp_vanchor_16 masp_vanchor_16_8 8
@@ -134,21 +134,21 @@ copy_to_fixtures () {
 # WEBB MASP-VANCHORS
 ###
 
-echo "Compiling Webb style multi-asset vanchor forest 2 circuit w/ 2 inputs"
-compile vanchor_forest_2 vanchor_forest_2_2 2
-copy_to_fixtures vanchor_forest_2 vanchor_forest_2_2 2 vanchor_forest_2
+# echo "Compiling Webb style multi-asset vanchor forest 2 circuit w/ 2 inputs"
+# compile vanchor_forest_2 vanchor_forest_2_2 2
+# copy_to_fixtures vanchor_forest_2 vanchor_forest_2_2 2 vanchor_forest_2
 
-echo "Compiling Webb style multi-asset vanchor forest 8 circuit w/ 2 inputs"
-compile vanchor_forest_2 vanchor_forest_2_8 8
-copy_to_fixtures vanchor_forest_2 vanchor_forest_2_8 8 vanchor_forest_2
-#
-echo "Compiling Webb style multi-asset vanchor forest 2 circuit w/ 16 inputs"
-compile vanchor_forest_16 vanchor_forest_16_2 2
-copy_to_fixtures vanchor_forest_16 vanchor_forest_16_2 2 vanchor_forest_16 
-#
-echo "Compiling Webb style multi-asset vanchor forest 8 circuit w/ 2 inputs"
-compile vanchor_forest_16 vanchor_forest_16_8 8
-copy_to_fixtures vanchor_forest_16 vanchor_forest_16_8 8 vanchor_forest_16 
+# echo "Compiling Webb style multi-asset vanchor forest 8 circuit w/ 2 inputs"
+# compile vanchor_forest_2 vanchor_forest_2_8 8
+# copy_to_fixtures vanchor_forest_2 vanchor_forest_2_8 8 vanchor_forest_2
+# #
+# echo "Compiling Webb style multi-asset vanchor forest 2 circuit w/ 16 inputs"
+# compile vanchor_forest_16 vanchor_forest_16_2 2
+# copy_to_fixtures vanchor_forest_16 vanchor_forest_16_2 2 vanchor_forest_16 
+# #
+# echo "Compiling Webb style multi-asset vanchor forest 8 circuit w/ 2 inputs"
+# compile vanchor_forest_16 vanchor_forest_16_8 8
+# copy_to_fixtures vanchor_forest_16 vanchor_forest_16_8 8 vanchor_forest_16 
 
 # echo "Compiling Poseidon4 test gadget"
 # compile poseidon4 poseidon4_test 4

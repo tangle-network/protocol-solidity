@@ -1,7 +1,7 @@
 pragma circom 2.0.0;
 
 include "../../node_modules/circomlib/circuits/poseidon.circom";
-include "../../node_modules/circomlib/circuits/babyjub.circom.circom";
+include "../../node_modules/circomlib/circuits/babyjub.circom";
 
 // Since we don't use signatures, the keypair can be based on a simple hash
 template Key() {
@@ -19,6 +19,6 @@ template Key() {
 
     component pbk = BabyPbk();
     pbk.in <== vk;
-    pk_X <== Ax;
-    pk_Y <== Ay;
+    pk_X <== pbk.Ax;
+    pk_Y <== pbk.Ay;
 }
