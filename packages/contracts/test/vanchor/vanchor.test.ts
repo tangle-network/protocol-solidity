@@ -47,7 +47,7 @@ const path = require('path');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
 
-describe.only('VAnchor for 1 max edge', () => {
+describe('VAnchor for 1 max edge', () => {
   let anchor: VAnchor;
 
   const levels = 30;
