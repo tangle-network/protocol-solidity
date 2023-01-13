@@ -50,7 +50,8 @@ contract BatchMerkleTree is MerkleTreeWithHistory {
     function checkLeavesLength(bytes32[] calldata _leaves) public {
         require(_leaves.length == 4 ||
                 _leaves.length == 8 ||
-                _leaves.length == 16,
+                _leaves.length == 16 ||
+                _leaves.length == 32,
                 "Invalid number of leaves");
 
     }
@@ -73,13 +74,7 @@ contract BatchMerkleTree is MerkleTreeWithHistory {
   ) public {
     uint256 offset = nextIndex;
 
-    console.log('SOLIDITY: nextIndex: ', nextIndex);
-    console.log('SOLIDITY: input current root: ', uint(_currentRoot));
-    console.log('SOLIDITY: contract current root: ', uint(currentRoot));
     require(_currentRoot == currentRoot, "Initial deposit root is invalid");
-    // console.log("SOLIDITY: pathIndices", _pathIndices);
-    // console.log("SOLIDITY: _batchHeight", _batchHeight);
-    // console.log("SOLIDITY: offset >> _batchHeight",  offset >> _batchHeight);
     require(_pathIndices == offset >> _batchHeight, "Incorrect deposit insert index");
     this.checkLeavesLength(_leaves);
 
@@ -92,11 +87,6 @@ contract BatchMerkleTree is MerkleTreeWithHistory {
     for (uint256 i = 0; i < _leaves.length; i++) {
       bytes32 leafHash = _leaves[i];
       bytes32 deposit = queue[offset + i];
-      // console.log("SOLIDITY: offset", offset);
-      // console.log("SOLIDITY: offset + i", offset + i);
-      // console.log("SOLIDITY: deposit", uint(deposit));
-      // console.log("SOLIDITY: leafHash", uint(leafHash));
-      // console.log("SOLIDITY: _batchHeight", _batchHeight);
       require(leafHash == deposit, "Incorrect deposit");
       assembly {
         let itemOffset := add(data, mul(ITEM_SIZE, i))
@@ -115,7 +105,6 @@ contract BatchMerkleTree is MerkleTreeWithHistory {
     currentRoot = _newRoot;
 
     uint32 newRootIndex = (currentRootIndex + 1) % ROOT_HISTORY_SIZE;
-    // roots[currentRootIndex] = _newRoot;
     nextIndex = nextIndex + uint32(_leaves.length);
     roots[newRootIndex] = Root(uint256(currentRoot), nextIndex);
     currentRootIndex = newRootIndex;

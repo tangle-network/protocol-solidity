@@ -66,6 +66,7 @@ export class BatchTreeUpdater {
   zkComponents_4: ZkComponents;
   zkComponents_8: ZkComponents;
   zkComponents_16: ZkComponents;
+  zkComponents_32: ZkComponents;
 
   constructor(
     contract: BatchMerkleTreeContract,
@@ -74,6 +75,7 @@ export class BatchTreeUpdater {
     zkComponents_4: ZkComponents,
     zkComponents_8: ZkComponents,
     zkComponents_16: ZkComponents,
+    zkComponents_32: ZkComponents,
   ) {
     this.contract = contract;
     this.signer = signer;
@@ -82,6 +84,7 @@ export class BatchTreeUpdater {
     this.zkComponents_4 = zkComponents_4;
     this.zkComponents_8 = zkComponents_8;
     this.zkComponents_16 = zkComponents_16;
+    this.zkComponents_32 = zkComponents_32;
   }
   public static async createBatchTreeUpdater(
     verifierAddr: string,
@@ -90,6 +93,7 @@ export class BatchTreeUpdater {
     zkComponents_4: ZkComponents,
     zkComponents_8: ZkComponents,
     zkComponents_16: ZkComponents,
+    zkComponents_32: ZkComponents,
     signer: ethers.Signer
   ) {
     const factory = new BatchMerkleTree__factory(signer);
@@ -107,6 +111,7 @@ export class BatchTreeUpdater {
       zkComponents_4,
       zkComponents_8,
       zkComponents_16,
+      zkComponents_32,
     );
     createdBatchTreeUpdater.latestSyncedBlock = contract.deployTransaction.blockNumber!;
     return createdBatchTreeUpdater;
@@ -152,6 +157,8 @@ export class BatchTreeUpdater {
       return this.zkComponents_8
     } else if (batchSize === 16) {
       return this.zkComponents_16
+    } else if (batchSize === 32) {
+      return this.zkComponents_32
     } else {
       throw new Error('Invalid batch size')
     }

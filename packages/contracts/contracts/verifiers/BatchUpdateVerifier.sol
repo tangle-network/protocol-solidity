@@ -13,17 +13,19 @@ contract BatchTreeVerifierSelector is IBatchTreeVerifierSelector {
 	IBatchTreeVerifier public v4;
 	IBatchTreeVerifier public v8;
 	IBatchTreeVerifier public v16;
-	// IBatchTreeVerifier public v32;
+	IBatchTreeVerifier public v32;
 	// IBatchTreeVerifier public v64;
 
 	constructor(
 		IBatchTreeVerifier _verifier_4,
 		IBatchTreeVerifier _verifier_8,
-		IBatchTreeVerifier _verifier_16
+		IBatchTreeVerifier _verifier_16,
+		IBatchTreeVerifier _verifier_32
 	) {
 		v4 = _verifier_4;
 		v8 = _verifier_8;
 		v16 = _verifier_16;
+		v32 = _verifier_32;
 	}
 
 	function verifyProof(
@@ -39,6 +41,8 @@ contract BatchTreeVerifierSelector is IBatchTreeVerifierSelector {
             return v8.verifyProof(_a, _b, _c, _input);
 		} else if (_batchSize == 16) {
             return v16.verifyProof(_a, _b, _c, _input);
+		} else if (_batchSize == 32) {
+            return v32.verifyProof(_a, _b, _c, _input);
 		} else {
             return false;
         }

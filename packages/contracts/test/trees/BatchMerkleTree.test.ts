@@ -21,6 +21,7 @@ import {
   VerifierBatch4__factory,
   VerifierBatch8__factory,
   VerifierBatch16__factory,
+  VerifierBatch32__factory,
   BatchTreeVerifierSelector__factory
 } from '../../typechain';
 import jsSHA from 'jssha';
@@ -45,19 +46,10 @@ contract.only('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
   let zkComponents_4: ZkComponents;
   let zkComponents_8: ZkComponents;
   let zkComponents_16: ZkComponents;
+  let zkComponents_32: ZkComponents;
+  // dummy
+  const instance = '0x1111000000000000000000000000000000001111',
   // let levels = 30;
-  const wasmFilePath_16 = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/16/batchMerkleTreeUpdate_16.wasm'
-  )
-  const zkeyFilePath_16 = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/16/circuit_final.zkey'
-  )
-  const wtnsCalcFilePath_16 = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/16/witness_calculator.cjs'
-  )
   const wasmFilePath_4 = path.resolve(
     __dirname,
     '../../solidity-fixtures/solidity-fixtures/batch-tree/4/batchMerkleTreeUpdate_4.wasm'
@@ -83,6 +75,33 @@ contract.only('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
     __dirname,
     '../../solidity-fixtures/solidity-fixtures/batch-tree/8/witness_calculator.cjs'
   )
+
+  const wasmFilePath_16 = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/batch-tree/16/batchMerkleTreeUpdate_16.wasm'
+  )
+  const zkeyFilePath_16 = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/batch-tree/16/circuit_final.zkey'
+  )
+  const wtnsCalcFilePath_16 = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/batch-tree/16/witness_calculator.cjs'
+  )
+
+  const wasmFilePath_32 = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/batch-tree/32/batchMerkleTreeUpdate_32.wasm'
+  )
+  const zkeyFilePath_32 = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/batch-tree/32/circuit_final.zkey'
+  )
+  const wtnsCalcFilePath_32 = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/batch-tree/32/witness_calculator.cjs'
+  )
+
   const levels = 20;
   const CHUNK_TREE_HEIGHT = 4;
   const sender = accounts[0];
@@ -90,11 +109,6 @@ contract.only('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
   let initialRoot: BigNumber;
 
   beforeEach(async () => {
-    zkComponents_16 = await fetchComponentsFromFilePaths(
-      wasmFilePath_16,
-      wtnsCalcFilePath_16,
-      zkeyFilePath_16,
-    );
     zkComponents_4 = await fetchComponentsFromFilePaths(
       wasmFilePath_4,
       wtnsCalcFilePath_4,
@@ -104,6 +118,16 @@ contract.only('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
       wasmFilePath_8,
       wtnsCalcFilePath_8,
       zkeyFilePath_8,
+    );
+    zkComponents_16 = await fetchComponentsFromFilePaths(
+      wasmFilePath_16,
+      wtnsCalcFilePath_16,
+      zkeyFilePath_16,
+    );
+    zkComponents_32 = await fetchComponentsFromFilePaths(
+      wasmFilePath_32,
+      wtnsCalcFilePath_32,
+      zkeyFilePath_32,
     );
     const signers = await ethers.getSigners();
     const wallet = signers[0];
@@ -118,8 +142,11 @@ contract.only('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
     const verifierFactory_16 = new VerifierBatch16__factory(wallet);
     const verifier_16 = await verifierFactory_16.deploy();
 
+    const verifierFactory_32 = new VerifierBatch32__factory(wallet);
+    const verifier_32 = await verifierFactory_32.deploy();
+
     const verifierSelectorFactory = new BatchTreeVerifierSelector__factory(wallet)
-    const verifierSelector = await verifierSelectorFactory.deploy(verifier_4.address, verifier_8.address, verifier_16.address);
+    const verifierSelector = await verifierSelectorFactory.deploy(verifier_4.address, verifier_8.address, verifier_16.address, verifier_32.address);
 
     // const factory = await ethers.getContractFactory('BatchMerkleTree', {
     //   signer: wallet,
@@ -132,15 +159,13 @@ contract.only('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
       zkComponents_4,
       zkComponents_8,
       zkComponents_16,
+      zkComponents_32,
       wallet
     )
     initialRoot = await batchTree.contract.getLastRoot()
-    let zero20 = BigNumber.from(await hasherInstance.contract.zeros(20))
-    let zero4 = BigNumber.from(await hasherInstance.contract.zeros(4))
   });
   describe('#registration', () => {
     it('should register a deposit', async () => {
-      const instance = hasherInstance.contract.address; // dummy
       // const commitment = randomBN()
       const commitment = toFixedHex(randomBN().toHexString());
       let tx = await batchTree.registerInsertion(instance, toFixedHex(commitment));
@@ -148,7 +173,6 @@ contract.only('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
       expect(tx).to.emit(batchTree.contract, 'DepositData').withArgs(instance, commitment, 0, 0);
     });
     it('should register up to 16 deposits', async () => {
-      const instance = hasherInstance.contract.address; // dummy
       // const commitment = randomBN()
       let queueLength = (await batchTree.contract.queueLength()).toNumber();
       while (queueLength < 16) {
@@ -161,73 +185,45 @@ contract.only('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
     });
   });
   describe('#batchInsert_4', () => {
-    it('should prove snark for 4 leaves', async () => {
-      const batchHeight = 2;
-      const batchSize = 2 ** batchHeight;
+    const batchHeight = 2;
+    const batchSize = 2 ** batchHeight;
+    let leaves = []
+    beforeEach(async () => {
       const oldRoot = merkleTree.root().toString();
-      let leaves = [];
+      // Dummy value
       for (let i = 0; i < batchSize; i++) {
         const commitment = toFixedHex(randomBN().toHexString());
         leaves.push(commitment);
+        await batchTree.registerInsertion(instance, toFixedHex(commitment));
       }
+    });
+    it('should prove snark for 4 leaves', async () => {
       const { verified } = await batchTree.generateProof(batchSize, leaves)
       expect(verified).to.equal(true)
     });
     it('should batch insert 4 leaves', async () => {
-      const batchHeight = 2;
-      const batchSize = 2 ** batchHeight;
-      const oldRoot = merkleTree.root().toString();
-      const oldContractRoot = await batchTree.contract.getLastRoot();
-      expect(oldRoot).to.equal(initialRoot)
-      expect(oldRoot).to.equal(oldContractRoot)
-      const instance = hasherInstance.contract.address; // dummy
-      // doing batches twice to allow for 8 batch insert
-      for (let batchIdx = 0; batchIdx < 2; batchIdx++) {
-        const oldRoot = merkleTree.root().toString();
-
-        let leaves = [];
-        for (let i = 0; i < batchSize; i++) {
-          const commitment = toFixedHex(randomBN().toHexString());
-          leaves.push(commitment);
-          let tx = await batchTree.registerInsertion(instance, toFixedHex(commitment));
-        }
         let { input, tx } = await batchTree.batchInsert(batchSize);
-        let receipt = await tx.wait()
         const updatedRoot = await batchTree.contract.getLastRoot();
         expect(updatedRoot).to.equal(input['newRoot'])
-      }
     });
   });
   describe('#batchInsert_8', () => {
-    it('should prove snark for 8 leaves', async () => {
-      const batchHeight = 3;
-      const batchSize = 2 ** batchHeight;
-      const oldRoot = merkleTree.root().toString();
-      let leaves = [];
+    const batchHeight = 3;
+    const batchSize = 2 ** batchHeight;
+    let leaves = [];
+    beforeEach(async () => {
+      // Dummy value
       for (let i = 0; i < batchSize; i++) {
         const commitment = toFixedHex(randomBN().toHexString());
         leaves.push(commitment);
+        await batchTree.registerInsertion(instance, toFixedHex(commitment));
       }
+    });
+    it('should prove snark for 8 leaves', async () => {
       const { verified } = await batchTree.generateProof(batchSize, leaves)
       expect(verified).to.equal(true)
     });
     it('should batch insert 8 leaves', async () => {
-      const batchHeight = 3;
-      const batchSize = 2 ** batchHeight;
-      const oldRoot = merkleTree.root().toString();
-      const oldContractRoot = await batchTree.contract.getLastRoot();
-      // expect(oldRoot).to.equal(initialRoot)
-      // expect(oldRoot).to.equal(oldContractRoot)
-      const instance = hasherInstance.contract.address; // dummy
-      // doing batches twice to allow for 8 batch insert
-      const oldRoot = merkleTree.root().toString();
-
-      let leaves = [];
-      for (let i = 0; i < batchSize; i++) {
-        const commitment = toFixedHex(randomBN().toHexString());
-        leaves.push(commitment);
-        let tx = await batchTree.registerInsertion(instance, toFixedHex(commitment));
-      }
       let { input, tx } = await batchTree.batchInsert(batchSize);
       let receipt = await tx.wait()
       const updatedRoot = await batchTree.contract.getLastRoot();
@@ -235,37 +231,97 @@ contract.only('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
     });
   });
   describe('#batchInsert_16', () => {
-    it('should prove snark for 16 leaves', async () => {
-      const batchHeight = 4;
-      const batchSize = 2 ** batchHeight;
-      const oldRoot = merkleTree.root().toString();
-      const contractRoot = await batchTree.contract.getLastRoot()
-      let leaves = [];
+    const batchHeight = 4;
+    const batchSize = 2 ** batchHeight;
+    let leaves = [];
+    beforeEach(async () => {
       for (let i = 0; i < batchSize; i++) {
         const commitment = toFixedHex(randomBN().toHexString());
         leaves.push(commitment);
+        await batchTree.registerInsertion(instance, toFixedHex(commitment));
       }
+    });
+    it('should prove snark for 16 leaves', async () => {
       const { verified } = await batchTree.generateProof(batchSize, leaves)
       expect(verified).to.equal(true)
     });
     it('should batch insert 16 leaves', async () => {
-      const batchHeight = 4;
-      const batchSize = 2 ** batchHeight;
-      const oldRoot = merkleTree.root().toString();
-      const oldContractRoot = await batchTree.contract.getLastRoot();
-      const instance = hasherInstance.contract.address; // dummy
-      const oldRoot = merkleTree.root().toString();
-
-      let leaves = [];
-      for (let i = 0; i < batchSize; i++) {
-        const commitment = toFixedHex(randomBN().toHexString());
-        leaves.push(commitment);
-        let tx = await batchTree.registerInsertion(instance, toFixedHex(commitment));
-      }
       let { input, tx } = await batchTree.batchInsert(batchSize);
       let receipt = await tx.wait()
       const updatedRoot = await batchTree.contract.getLastRoot();
       expect(updatedRoot).to.equal(input['newRoot'])
+    });
+  });
+  describe('#batchInsert_32', () => {
+    const batchHeight = 5;
+    const batchSize = 2 ** batchHeight;
+    let leaves = [];
+    beforeEach(async () => {
+      for (let i = 0; i < batchSize; i++) {
+        const commitment = toFixedHex(randomBN().toHexString());
+        leaves.push(commitment);
+        await batchTree.registerInsertion(instance, toFixedHex(commitment));
+      }
+    });
+    it('should prove snark for 32 leaves', async () => {
+      const { verified } = await batchTree.generateProof(batchSize, leaves)
+      expect(verified).to.equal(true)
+    });
+    it('should batch insert 32 leaves', async () => {
+      let { input, tx } = await batchTree.batchInsert(batchSize);
+      let receipt = await tx.wait()
+      const updatedRoot = await batchTree.contract.getLastRoot();
+      expect(updatedRoot).to.equal(input['newRoot'])
+    });
+  });
+
+  describe('#batchInsert mix', () => {
+    it('should batch insert 4 leaves after a 16 batchInsertion', async () => {
+      const batchHeight_16 = 4;
+      const batchSize_16 = 2 ** batchHeight_16;
+      const batchHeight_4 = 2;
+      const batchSize_4 = 2 ** batchHeight_4;
+
+
+      for (let i = 0; i < batchSize_4 + batchSize_16; i++) {
+        const commitment = toFixedHex(randomBN().toHexString());
+        await batchTree.registerInsertion(instance, toFixedHex(commitment));
+      }
+      let { input: input_16 } = await batchTree.batchInsert(batchSize_16);
+      const updatedRoot_16 = await batchTree.contract.getLastRoot();
+      expect(updatedRoot_16).to.equal(input_16['newRoot'])
+
+      let { input: input_4 } = await batchTree.batchInsert(batchSize_4);
+      const updatedRoot_4 = await batchTree.contract.getLastRoot();
+      expect(updatedRoot_4).to.equal(input_4['newRoot'])
+    });
+    it('should do [16, 8, 8, 16] batchInsertions respectively', async () => {
+      const batchHeight_16 = 4;
+      const batchSize_16 = 2 ** batchHeight_16;
+      const batchHeight_8 = 3;
+      const batchSize_8 = 2 ** batchHeight_8;
+
+
+      // 16 + 8 + 8 + 16 == 3*batchSize_16
+      for (let i = 0; i <  3*batchSize_16; i++) {
+        const commitment = toFixedHex(randomBN().toHexString());
+        await batchTree.registerInsertion(instance, toFixedHex(commitment));
+      }
+      let { input: input_first } = await batchTree.batchInsert(batchSize_16);
+      const updatedRoot_first = await batchTree.contract.getLastRoot();
+      expect(updatedRoot_first).to.equal(input_first['newRoot'])
+
+      let { input: input_second } = await batchTree.batchInsert(batchSize_8);
+      const updatedRoot_second = await batchTree.contract.getLastRoot();
+      expect(updatedRoot_second).to.equal(input_second['newRoot'])
+
+      let { input: input_third } = await batchTree.batchInsert(batchSize_8);
+      const updatedRoot_third = await batchTree.contract.getLastRoot();
+      expect(updatedRoot_third).to.equal(input_third['newRoot'])
+
+      let { input: input_last } = await batchTree.batchInsert(batchSize_16);
+      const updatedRoot_last = await batchTree.contract.getLastRoot();
+      expect(updatedRoot_last).to.equal(input_last['newRoot'])
     });
   });
 });
