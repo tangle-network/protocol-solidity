@@ -4,7 +4,9 @@ include "../../node_modules/circomlib/circuits/comparators.circom";
 include "../../node_modules/circomlib/circuits/poseidon.circom";
 include "../set/membership.circom";
 include "../merkle-tree/manyMerkleProof.circom";
-include "../vanchor/keypair.circom";
+include "../key.circom";
+include "../nullifier.circom";
+include "../record.circom";
 
 /*
 Goal is to support:
@@ -33,7 +35,7 @@ Partial UTXO structure:
     blinding, // random number
 }
 
-commitment = hash(assetID, amount, hash(chainID, pubKey, blinding))
+commitment = hash(assetID, tokenID, amount, hash(chainID, pubKey, blinding))
 nullifier = hash(commitment, merklePath, sign(privKey, commitment, merklePath))
 */
 
@@ -63,49 +65,60 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
     signal input outputCommitment[nOuts];
     signal input outAmount[nOuts];
     signal input outChainID[nOuts];
-    signal input outPubkey[nOuts];
+    signal input outPk_X[nOuts];
+    signal input outPk_Y[nOuts];
     signal input outBlinding[nOuts];
 
     // roots for interoperability, one-of-many merkle membership proof
     signal input chainID;
     signal input roots[length];
 
-    component inKeypair[nIns];
-    component inSignature[nIns];
+    component inKeyComputer[nIns];
     component inCommitmentHasher[nIns];
     component inPartialCommitmentHasher[nIns];
     component inNullifierHasher[nIns];
     component inTree[nIns];
     component inCheckRoot[nIns];
+    component inBabyPbk[nIns];
+
+    // MASP Keys
+    signal input ak_X[nIns];
+    signal input ak_Y[nIns];
+    signal input sk_alpha[nIns];
+    signal input ak_alpha_X[nIns] // Public Input
+    signal input ak_alpha_Y[nIns] // Public Input
+
     var sumIns = 0;
 
     // verify correctness of transaction inputs
     for (var tx = 0; tx < nIns; tx++) {
-        inKeypair[tx] = Keypair();
-        inKeypair[tx].privateKey <== inPrivateKey[tx];
-        
-        // Compute intermediate hash
-        inPartialCommitmentHasher[tx] = Poseidon(3);
-        inPartialCommitmentHasher[tx].inputs[0] <== chainID;
-        inPartialCommitmentHasher[tx].inputs[1] <== inKeypair[tx].publicKey;
-        inPartialCommitmentHasher[tx].inputs[2] <== inBlinding[tx];
+        // Check MASP keys well formed
+        component inBabyPbk[tx] = BabyPbk();
+        inBabyPbk[tx].in = sk_alpha[tx];
+        ak_alpha_X[tx] === inBabyPbk[tx].Ax;
+        ak_alpha_Y[tx] === inBabyPbk[tx].Ay;
 
-        // Compute commitment hash
-        inCommitmentHasher[tx] = Poseidon(4);
-        inCommitmentHasher[tx].inputs[0] <== assetID;
-        inCommitmentHasher[tx].inputs[1] <== tokenID;
-        inCommitmentHasher[tx].inputs[2] <== inAmount[tx];
-        inCommitmentHasher[tx].inputs[3] <== inPartialCommitmentHasher[tx].out;
+        component inKeyComputer[tx] = Key();
+        keyComputer.ak_X <== ak_X[tx];
+        keyComputer.ak_Y <== ak_Y[tx];
 
-        inSignature[tx] = Signature();
-        inSignature[tx].privateKey <== inPrivateKey[tx];
-        inSignature[tx].commitment <== inCommitmentHasher[tx].out;
-        inSignature[tx].merklePath <== inPathIndices[tx];
+        component inPartialCommitmentHasher[tx] = PartialRecord();
+        inPartialCommitmentHasher[tx].chainID <== chainID;
+        inPartialCommitmentHasher[tx].pk_X <== keyComputer.pk_X;
+        inPartialCommitmentHasher[tx].pk_Y <== keyComputer.pk_Y;
+        inPartialCommitmentHasher[tx].blinding <== inBlinding[tx];
 
-        inNullifierHasher[tx] = Poseidon(3);
-        inNullifierHasher[tx].inputs[0] <== inCommitmentHasher[tx].out;
-        inNullifierHasher[tx].inputs[1] <== inPathIndices[tx];
-        inNullifierHasher[tx].inputs[2] <== inSignature[tx].out;
+        component inCommitmentHasher[tx]; = Record();
+        inCommitmentHasher[tx].assetID <== assetID;
+        inCommitmentHasher[tx].tokenID <== tokenID;
+        inCommitmentHasher[tx].amount <== inAmount[tx];
+        inCommitmentHasher[tx].partialRecord <== partialRecordHasher.partialRecord;
+
+        inNullifierHasher[tx] = Nullifier();
+        inNullifierHasher[tx].pk_X <== keyComputer.pk_X;
+        inNullifierHasher[tx].pk_Y <== keyComputer.pk_Y;
+        inNullifierHasher[tx].record <== inCommitmentHasher[tx].out;
+        inNullifierHasher[tx].pathIndices <== inPathIndices[tx];
         inNullifierHasher[tx].out === inputNullifier[tx];
 
         inTree[tx] = ManyMerkleProof(levels, length);
@@ -135,18 +148,17 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
 
     // verify correctness of transaction outputs
     for (var tx = 0; tx < nOuts; tx++) {
-        // Compute intermediate hash
-        outPartialCommitmentHasher[tx] = Poseidon(3);
-        outPartialCommitmentHasher[tx].inputs[0] <== chainID;
-        outPartialCommitmentHasher[tx].inputs[1] <== outPubkey[tx];
-        outPartialCommitmentHasher[tx].inputs[2] <== outBlinding[tx];
+        component outPartialCommitmentHasher[tx] = PartialRecord();
+        outPartialCommitmentHasher[tx].chainID <== chainID;
+        outPartialCommitmentHasher[tx].pk_X <== keyComputer.pk_X;
+        outPartialCommitmentHasher[tx].pk_Y <== keyComputer.pk_Y;
+        outPartialCommitmentHasher[tx].blinding <== outBlinding[tx];
 
-        // Compute commitment hash
-        outCommitmentHasher[tx] = Poseidon(4);
-        outCommitmentHasher[tx].inputs[0] <== assetID;
-        outCommitmentHasher[tx].inputs[1] <== tokenID;
-        outCommitmentHasher[tx].inputs[2] <== outAmount[tx];
-        outCommitmentHasher[tx].inputs[3] <== outPartialCommitmentHasher[tx].out;
+        component outCommitmentHasher[tx]; = Record();
+        outCommitmentHasher[tx].assetID <== assetID;
+        outCommitmentHasher[tx].tokenID <== tokenID;
+        outCommitmentHasher[tx].amount <== outAmount[tx];
+        outCommitmentHasher[tx].partialRecord <== partialRecordHasher.partialRecord;
         
         // Constrain output commitment by reconstructed commitment
         outCommitmentHasher[tx].out === outputCommitment[tx];
