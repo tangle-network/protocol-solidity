@@ -616,9 +616,7 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
     );
 
     await fungibleToken.grantMinterRole(srcAnchor.contract.address);
-    let amountToWrap = await fungibleToken.contract.getAmountToWrap(
-      BigNumber.from(1e7)
-    );
+    let amountToWrap = await fungibleToken.contract.getAmountToWrap(BigNumber.from(1e7));
     await erc20TokenInstance.approveSpending(fungibleToken.contract.address, amountToWrap);
     bridgeSide.setAnchorHandler(anchorHandler);
     const res = await bridgeSide.connectAnchorWithSignature(srcAnchor);
@@ -657,7 +655,6 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
 
     // Change Fee Recipient to treasury Address
     await bridgeSide.executeFeeRecipientProposalWithSig(fungibleToken, treasury.contract.address);
-
 
     // For ERC20 Tests
     await srcAnchor.transact(

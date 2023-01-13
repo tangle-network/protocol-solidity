@@ -1,17 +1,13 @@
-import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
+import { BigNumber, BigNumberish, ethers } from 'ethers';
 import {
-  DeterministicDeployFactory as DeterministicDeployFactoryContract,
   VAnchorForest as VAnchorForestContract,
   VAnchorForest__factory,
   VAnchorEncodeInputs__factory,
   LinkableIncrementalBinaryTree__factory,
-  TokenWrapper__factory,
 } from '@webb-tools/contracts';
-import { poseidon, poseidon_gencontract as poseidonContract } from 'circomlibjs';
-import { zKey, groth16 } from 'snarkjs';
+import { poseidon_gencontract as poseidonContract } from 'circomlibjs';
+import { groth16 } from 'snarkjs';
 import {
-  toHex,
-  Keypair,
   toFixedHex,
   Utxo,
   MerkleTree,
@@ -19,26 +15,14 @@ import {
   mean,
   max,
   min,
-  randomBN,
   getVAnchorExtDataHash,
   CircomProvingManager,
-  ProvingManagerSetupInput,
   generateVariableWitnessInput,
-  Note,
-  NoteGenInput,
-  MerkleProof,
-  UtxoGenInput,
-  CircomUtxo,
-  FIELD_SIZE,
   LeafIdentifier,
 } from '@webb-tools/sdk-core';
 
 // import { MerkleTree } from "."
-import {
-  IVAnchor,
-  IVariableAnchorExtData,
-  IVariableAnchorPublicInputs,
-} from '@webb-tools/interfaces';
+import { IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
 import {
   hexToU8a,
   UTXOInputs,
@@ -47,7 +31,6 @@ import {
   ZkComponents,
   ZERO_BYTES32,
 } from '@webb-tools/utils';
-import { solidityPack } from 'ethers/lib/utils';
 import { WebbBridge } from './Common';
 import { Deployer } from './Deployer';
 
@@ -69,18 +52,14 @@ export var proofTimeBenchmark = [];
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
 export class VAnchorForest extends WebbBridge {
-  signer: ethers.Signer;
   contract: VAnchorForestContract;
   forest: MerkleTree;
-  tree: MerkleTree;
-  // hex string of the connected root
+
   maxEdges: number;
   latestSyncedBlock: number;
   smallCircuitZkComponents: ZkComponents;
   largeCircuitZkComponents: ZkComponents;
 
-  // The depositHistory stores leafIndex => information to create proposals (new root)
-  depositHistory: Record<number, string>;
   token?: string;
   denomination?: string;
   provingManager: CircomProvingManager;
@@ -305,19 +284,6 @@ export class VAnchorForest extends WebbBridge {
     // const commitments = events.map((event) => event.args.commitment);
     // this.tree.batch_insert(commitments);
     // this.latestSyncedBlock = currentBlockNumber;
-  }
-
-  // Proposal data is used to update linkedAnchors via bridge proposals
-  // on other chains with this anchor's state
-  public async getProposalData(resourceID: string, leafIndex?: number): Promise<string> {
-    // If no leaf index passed in, set it to the most recent one.
-    if (!leafIndex) {
-      leafIndex = this.tree.number_of_elements() - 1;
-    }
-
-    const chainID = getChainIdType(await this.signer.getChainId());
-    const merkleRoot = this.depositHistory[leafIndex];
-    return await this.genProposalData(resourceID, merkleRoot, leafIndex);
   }
 
   public async populateRootsForProof(): Promise<BigNumber[]> {
@@ -671,7 +637,7 @@ export class VAnchorForest extends WebbBridge {
     );
 
     let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
-    options["gasLimit"] = '0x5B8D80';
+    options['gasLimit'] = '0x5B8D80';
 
     let tx = await this.contract.registerAndTransact(
       { owner, keyData: keyData },
@@ -738,7 +704,7 @@ export class VAnchorForest extends WebbBridge {
     );
 
     let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
-    options["gasLimit"] = '0x5B8D80';
+    options['gasLimit'] = '0x5B8D80';
     const tx = await this.contract.transact(
       publicInputs.proof,
       ZERO_BYTES32,

@@ -1,29 +1,23 @@
-import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
+import { BigNumber, BigNumberish, ethers } from 'ethers';
 const assert = require('assert');
 import {
   IdentityVAnchor as IdentityVAnchorContract,
   IdentityVAnchor__factory,
   IdentityVAnchorEncodeInputs__factory,
-  TokenWrapper,
-  TokenWrapper__factory,
 } from '@webb-tools/contracts';
 import {
-  toHex,
   Keypair,
   toFixedHex,
   Utxo,
-  MerkleTree,
   median,
   mean,
   max,
   min,
-  randomBN,
   CircomProvingManager,
   generateVariableWitnessInput,
   getVAnchorExtDataHash,
   MerkleProof,
-  UtxoGenInput,
-  CircomUtxo,
+  MerkleTree,
 } from '@webb-tools/sdk-core';
 import {
   IVAnchor,
@@ -31,7 +25,6 @@ import {
   IIdentityVariableAnchorPublicInputs,
 } from '@webb-tools/interfaces';
 import {
-  hexToU8a,
   u8aToHex,
   getChainIdType,
   UTXOInputs,
@@ -85,18 +78,14 @@ export var proofTimeBenchmark = [];
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
 export class IdentityVAnchor extends WebbBridge implements IVAnchor {
-  signer: ethers.Signer;
   contract: IdentityVAnchorContract;
   semaphore: Semaphore;
-  tree: MerkleTree;
   group: LinkedGroup;
-  // hex string of the connected root
+
   latestSyncedBlock: number;
   smallCircuitZkComponents: ZkComponents;
   largeCircuitZkComponents: ZkComponents;
 
-  // The depositHistory stores leafIndex => information to create proposals (new root)
-  depositHistory: Record<number, string>;
   token?: string;
   denomination?: string;
   maxEdges: number;
@@ -468,16 +457,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     };
     // return gasBenchmark;
   }
-  public async getProposalData(resourceID: string, leafIndex?: number): Promise<string> {
-    // If no leaf index passed in, set it to the most recent one.
-    if (!leafIndex) {
-      leafIndex = this.tree.number_of_elements() - 1;
-    }
 
-    const chainID = getChainIdType(await this.signer.getChainId());
-    const merkleRoot = this.depositHistory[leafIndex];
-    return this.genProposalData(resourceID, merkleRoot, leafIndex);
-  }
   public async getProofTimeBenchmark() {
     const meanTime = mean(proofTimeBenchmark);
     const medianTime = median(proofTimeBenchmark);
