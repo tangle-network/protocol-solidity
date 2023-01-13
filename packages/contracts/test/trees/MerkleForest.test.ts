@@ -6,14 +6,13 @@
 import { toFixedHex } from '@webb-tools/sdk-core';
 import { BigNumber } from 'ethers';
 import { ethers } from 'hardhat';
-import { poseidon, poseidon_gencontract as poseidonContract } from 'circomlibjs';
+import { poseidon_gencontract as poseidonContract } from 'circomlibjs';
 import { MerkleTree } from '@webb-tools/sdk-core';
 import { PoseidonHasher } from '@webb-tools/anchors';
 import {
   MerkleForestMock as MerkleForestMockContract,
   LinkableIncrementalBinaryTree as LinkableIncrementalBinaryTreeContract,
-  LinkableIncrementalBinaryTree__factory,
-} from '../../typechain';
+} from '../../lib';
 const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
 
@@ -46,7 +45,7 @@ describe('MerkleForest', () => {
     poseidonLib = await PoseidonLibFactory.deploy();
     await poseidonLib.deployed();
 
-    let LinkableIncrementalBinaryTree = await ethers.getContractFactory(
+    const LinkableIncrementalBinaryTree = await ethers.getContractFactory(
       'LinkableIncrementalBinaryTree',
       {
         signer: wallet,
@@ -55,17 +54,17 @@ describe('MerkleForest', () => {
         },
       }
     );
-    let linkableIncrementalBinaryTree = await LinkableIncrementalBinaryTree.deploy();
+    linkableIncrementalBinaryTree = await LinkableIncrementalBinaryTree.deploy();
     await linkableIncrementalBinaryTree.deployed();
 
-    let MerkleForest = await ethers.getContractFactory('MerkleForestMock', {
+    const MerkleForest = await ethers.getContractFactory('MerkleForestMock', {
       signer: wallet,
       libraries: {
         PoseidonT3: poseidonLib.address,
         LinkableIncrementalBinaryTree: linkableIncrementalBinaryTree.address,
       },
     });
-    let merkleForest = await MerkleForest.deploy(
+    merkleForest = await MerkleForest.deploy(
       groupLevels,
       subtreeLevels,
       hasherInstance.contract.address
