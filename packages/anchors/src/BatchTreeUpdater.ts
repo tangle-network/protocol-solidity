@@ -151,7 +151,7 @@ export class BatchTreeUpdater {
     } else if (batchSize === 8) {
       return this.zkComponents_8
     } else if (batchSize === 16) {
-      return this.zkComponents_8
+      return this.zkComponents_16
     } else {
       throw new Error('Invalid batch size')
     }

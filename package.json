@@ -8,7 +8,7 @@
     "packages/*"
   ],
   "scripts": {
-    "compile": "lerna run compile",
+    "compile": "lerna run compile --scope=@webb-tools/contracts",
     "build": "yarn compile && yarn build:packages",
     "setup": "yarn compile && yarn build:circuits && yarn build:ptau",
     "test": "yarn workspace @webb-tools/contracts run test",
