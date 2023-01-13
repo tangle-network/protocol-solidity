@@ -34,7 +34,7 @@ export class FungibleTokenWrapper {
   ) {
     assert(feePercentage <= 10_000, 'feePercentage should be less than 10_000');
     const factory = new FungibleTokenWrapper__factory(deployer);
-    const contract = await factory.deploy(name, symbol);
+    const contract: FungibleTokenWrapperContract = await factory.deploy(name, symbol);
     await contract.deployed();
     // Initialize immediately after deployment as we use an intializer now
     await contract.initialize(feePercentage, feeRecipient, handler, limit, isNativeAllowed, await deployer.getAddress());

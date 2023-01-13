@@ -993,7 +993,7 @@
     pirates "^4.0.5"
     source-map-support "^0.5.16"
 
-"@babel/runtime@^7.18.9", "@babel/runtime@^7.19.0", "@babel/runtime@^7.20.6", "@babel/runtime@^7.20.7", "@babel/runtime@^7.4.4", "@babel/runtime@^7.8.4":
+"@babel/runtime@^7.15.4", "@babel/runtime@^7.18.9", "@babel/runtime@^7.19.0", "@babel/runtime@^7.20.6", "@babel/runtime@^7.20.7", "@babel/runtime@^7.4.4", "@babel/runtime@^7.8.4":
   version "7.20.7"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.20.7.tgz#fcb41a5a70550e04a7b708037c7c32f7f356d8fd"
   integrity sha512-UF0tvkUtxwAgZ5W/KrkHf0Rn0fdnLDU9ScxBrEVNUprE/MzirjK4MJUX1/BVDv00Sv8cljtukVK1aky++X1SjQ==
@@ -4986,15 +4986,6 @@
     "@polkadot/rpc-core" "9.2.4"
     "@webb-tools/protocol-substrate-types" "^0.0.2"
 
-"@webb-tools/api-derive@0.1.4-119":
-  version "0.1.4-119"
-  resolved "https://registry.yarnpkg.com/@webb-tools/api-derive/-/api-derive-0.1.4-119.tgz#9705b5696819a1c9bcb6ccca92c2920789cf1aa4"
-  integrity sha512-sTfu//CXAsCGWStDPTTmKG0YzbtYPfFPa18PZlB9BKnWt2s/cUkGefoeBbj63kPuyOn8QvW1X0uHRe3CL4pg/Q==
-  dependencies:
-    "@polkadot/api" "9.2.4"
-    "@polkadot/rpc-core" "9.2.4"
-    "@webb-tools/protocol-substrate-types" "^0.0.2"
-
 "@webb-tools/api@0.1.4-106":
   version "0.1.4-106"
   resolved "https://registry.yarnpkg.com/@webb-tools/api/-/api-0.1.4-106.tgz#3eeb67bf8b3d1b416ed0a5b98781e59e87322e3a"
@@ -5010,15 +5001,6 @@
   dependencies:
     "@polkadot/api" "9.2.4"
     "@webb-tools/api-derive" "0.1.4-108"
-
-"@webb-tools/api@0.1.4-119":
-  version "0.1.4-119"
-  resolved "https://registry.yarnpkg.com/@webb-tools/api/-/api-0.1.4-119.tgz#6ef554d0f1a23b010a38ac90d0ce145de3a87f78"
-  integrity sha512-JC7T+7kk8f5c49CyV6JVBEqk3jmlF38MrIRz1JBRdQ9TQ4+lD5IYKkUH5duM/kGmMllmHuyZkI2y33GZ3d8rhA==
-  dependencies:
-    "@polkadot/api" "9.2.4"
-    "@webb-tools/api-derive" "0.1.4-119"
-    "@webb-tools/protocol-substrate-types" "0.0.3"
 
 "@webb-tools/api@0.1.4-119":
   version "0.1.4-119"
@@ -5421,30 +5403,6 @@
     ecpair "^2.0.1"
     ethers "5.7.0"
     ganache "7.4.1"
-    get-port "6.1.2"
-    is-ci "^3.0.1"
-    prettier "^2.2.1"
-    tiny-secp256k1 "^2.2.1"
-
-"@webb-tools/test-utils@0.1.4-119":
-  version "0.1.4-119"
-  resolved "https://registry.yarnpkg.com/@webb-tools/test-utils/-/test-utils-0.1.4-119.tgz#e5654b645f6edc01a5b6a7490827527d67de39ab"
-  integrity sha512-RVwidzGSIP9XNVsmYbHiIl+XEptHbpPgu/GBqYSM0UF4jIn83X/Dkc9kyKHzkyqTq1QcYya7k11gljs4FZFhow==
-  dependencies:
-    "@polkadot/api" "9.2.4"
-    "@polkadot/keyring" "10.1.7"
-    "@types/node" "16.11.7"
-    "@webb-tools/api" "0.1.4-119"
-    "@webb-tools/dkg-substrate-types" "0.0.1"
-    "@webb-tools/protocol-solidity" "0.4.2"
-    "@webb-tools/protocol-substrate-types" "0.0.3"
-    "@webb-tools/sdk-core" "0.1.4-119"
-    "@webb-tools/tokens" "0.4.2"
-    "@webb-tools/utils" "0.4.2"
-    "@webb-tools/vbridge" "0.4.2"
-    ecpair "^2.0.1"
-    ethers "5.7.0"
-    ganache "7.5.0"
     get-port "6.1.2"
     is-ci "^3.0.1"
     prettier "^2.2.1"
