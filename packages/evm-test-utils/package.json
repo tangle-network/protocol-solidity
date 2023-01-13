@@ -1,5 +1,5 @@
 {
-  "name": "@webb-tools/vbridge",
+  "name": "@webb-tools/evm-test-utils",
   "main": "./lib/index.js",
   "license": "GPL-3.0-or-later",
   "author": "Webb Developers <drew@webb.tools>",
@@ -9,20 +9,20 @@
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@webb-tools/anchors": "^0.5.4",
-    "@webb-tools/bridges": "^0.5.4",
-    "@webb-tools/contracts": "^0.5.4",
     "@webb-tools/interfaces": "^0.5.4",
     "@webb-tools/sdk-core": "0.1.4-119",
-    "@webb-tools/tokens": "^0.5.4",
     "@webb-tools/utils": "^0.5.4",
-    "ethers": "5.7.0"
+    "@webb-tools/vbridge": "^0.5.4",
+    "ecpair": "^2.0.1",
+    "ethers": "5.7.0",
+    "ganache": "7.5.0",
+    "tiny-secp256k1": "^2.2.1"
   },
   "publishConfig": {
     "access": "public"
   },
   "repository": {
-    "directory": "packages/vbridge",
+    "directory": "packages/evm-test-utils",
     "type": "git",
     "url": "git://github.com/webb-tools/protocol-solidity.git"
   },
