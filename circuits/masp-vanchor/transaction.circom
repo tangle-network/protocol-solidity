@@ -92,7 +92,7 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
 
     // data for input/output asset identifier
     signal input feeAssetID;
-    signal input whitelistedAssetIDs[numFeeTokens];
+    signal input whitelistedAssetIDs[numFeeTokens]; // Public Input
     signal input feeTokenID;
 
     // data for transaction inputs

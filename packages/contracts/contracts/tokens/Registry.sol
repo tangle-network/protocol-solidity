@@ -30,6 +30,9 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
 	mapping(address => uint256) public wrappedAssetToId;
 	mapping(uint256 => address) public idToWrappedAsset;
 
+	mapping(address => uint256) public unwrappedNftAssetToId;
+	mapping(uint256 => address) public idToUnwrappedNftAsset;
+
 	event TokenRegistered(address indexed token, address indexed handler, uint256 indexed assetId);
 
 	constructor() {
@@ -102,6 +105,7 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
         @param _nonce The nonce of the proposal
         @param _tokenHandler The address of the token handler contract
         @param _assetIdentifier The identifier of the asset for the MASP
+		@param _unwrappedNftAddress Address of the underlying NFT collection
         @param _uri The uri for the wrapped NFT
         @param _salt Salt used for matching addresses across chain using CREATE2
      */
@@ -109,6 +113,7 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
 		uint32 _nonce,
 		address _tokenHandler,
 		uint256 _assetIdentifier,
+		address _unwrappedNftAddress,
 		string memory _uri,
 		bytes32 _salt
 	) external override onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
@@ -125,13 +130,15 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
 		emit TokenRegistered(token, _tokenHandler, _assetIdentifier);
 		idToWrappedAsset[_assetIdentifier] = token;
 		wrappedAssetToId[token] = _assetIdentifier;
+		idToUnwrappedNftAsset[_assetIdentifier] = _unwrappedNftAddress;
+		unwrappedNftAssetToId[_unwrappedNftAddress] = _assetIdentifier;
 	}
 
 	/**
         @notice Fetches the address for an asset ID
         @param _assetId The asset ID
      */
-	function getAssetAddress(uint256 _assetId) external view override returns (address) {
+	function getWrappedAssetAddress(uint256 _assetId) external view override returns (address) {
 		return idToWrappedAsset[_assetId];
 	}
 
@@ -139,8 +146,24 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
         @notice Fetches the asset ID for an address
         @param _address The address
      */
-	function getAssetId(address _address) external view override returns (uint256) {
+	function getAssetIdFromWrappedAddress(address _address) external view override returns (uint256) {
 		return wrappedAssetToId[_address];
+	}
+
+	/**
+        @notice Fetches the address for an asset ID
+        @param _assetId The asset ID
+     */
+	function getUnwrappedAssetAddress(uint256 _assetId) external view override returns (address) {
+		return idToUnwrappedNftAsset[_assetId];
+	}
+
+	/**
+        @notice Fetches the asset ID for an address
+        @param _address The address
+     */
+	function getAssetIdFromUnwrappedAddress(address _address) external view override returns (uint256) {
+		return unwrappedNftAssetToId[_address];
 	}
 
 	/**
