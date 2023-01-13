@@ -4,7 +4,7 @@
   ![Webb Logo](./.github/assets/webb_banner_light.png#gh-light-mode-only)
   ![Webb Logo](./.github/assets/webb_banner_dark.png#gh-dark-mode-only)
   </a>
-  </div>
+</div>
 <p align="left">
     <strong>🚀 Webb's Solidity Smart Contract Implementation 🚀</strong>
 </p>

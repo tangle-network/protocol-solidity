@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 contract DeterministicDeployFactory {
-    event Deploy(address addr);
+	event Deploy(address addr);
 
 	function deploy(bytes memory bytecode, uint _salt) external returns (address) {
 		address addr;
@@ -76,4 +76,3 @@ contract DeterministicDeployFactory {
 		require(success, string(data));
 	}
 }
-

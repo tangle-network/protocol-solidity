@@ -22,10 +22,7 @@ import {
 } from '@webb-tools/sdk-core';
 
 // import { MerkleTree } from "."
-import {
-  IVariableAnchorExtData,
-  IVariableAnchorPublicInputs,
-} from '@webb-tools/interfaces';
+import { IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
 import {
   hexToU8a,
   UTXOInputs,
@@ -55,18 +52,14 @@ export var proofTimeBenchmark = [];
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
 export class VAnchorForest extends WebbBridge {
-  signer: ethers.Signer;
   contract: VAnchorForestContract;
   forest: MerkleTree;
-  tree: MerkleTree;
-  // hex string of the connected root
+
   maxEdges: number;
   latestSyncedBlock: number;
   smallCircuitZkComponents: ZkComponents;
   largeCircuitZkComponents: ZkComponents;
 
-  // The depositHistory stores leafIndex => information to create proposals (new root)
-  depositHistory: Record<number, string>;
   token?: string;
   denomination?: string;
   provingManager: CircomProvingManager;
@@ -291,19 +284,6 @@ export class VAnchorForest extends WebbBridge {
     // const commitments = events.map((event) => event.args.commitment);
     // this.tree.batch_insert(commitments);
     // this.latestSyncedBlock = currentBlockNumber;
-  }
-
-  // Proposal data is used to update linkedAnchors via bridge proposals
-  // on other chains with this anchor's state
-  public async getProposalData(resourceID: string, leafIndex?: number): Promise<string> {
-    // If no leaf index passed in, set it to the most recent one.
-    if (!leafIndex) {
-      leafIndex = this.tree.number_of_elements() - 1;
-    }
-
-    const chainID = getChainIdType(await this.signer.getChainId());
-    const merkleRoot = this.depositHistory[leafIndex];
-    return await this.genProposalData(resourceID, merkleRoot, leafIndex);
   }
 
   public async populateRootsForProof(): Promise<BigNumber[]> {
