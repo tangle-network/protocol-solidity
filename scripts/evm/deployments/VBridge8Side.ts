@@ -26,7 +26,6 @@ import {
   chainIdTypeBinance,
   chainIdTypeAurora,
 } from "../ethersGovernorWallets";
-import { LinkableAnchor } from "typechain";
 import { EvmLinkedAnchor, ProposalSigningBackend } from "@webb-tools/test-utils";
 import { ContractConfig, getEvmChainConfig, writeEvmChainConfig } from "./utils";
 import { zip } from 'itertools';
@@ -113,10 +112,10 @@ async function run() {
 
   const tokens: Record<number, string[]> = {
     // [chainIdTypeGoerli]: ["0", ""],
-    // [chainIdTypeSepolia]: ["0", "0xeD43f81C17976372Fcb5786Dd214572e7dbB92c7"],
+    [chainIdTypeSepolia]: ["0", "0xeD43f81C17976372Fcb5786Dd214572e7dbB92c7"],
     // [chainIdTypeOptimism]: ["0", "0x4200000000000000000000000000000000000006"],
-    [chainIdTypePolygon]: ["0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889"],
-    [chainIdTypeMoonbase]: ["0xD909178CC99d318e4D46e7E66a972955859670E1"],
+    // [chainIdTypePolygon]: ["0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889"],
+    // [chainIdTypeMoonbase]: ["0xD909178CC99d318e4D46e7E66a972955859670E1"],
   };
   
   const endPoints: Record<number, EndPointConfig> = {

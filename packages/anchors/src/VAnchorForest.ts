@@ -22,10 +22,7 @@ import {
 } from '@webb-tools/sdk-core';
 
 // import { MerkleTree } from "."
-import {
-  IVariableAnchorExtData,
-  IVariableAnchorPublicInputs,
-} from '@webb-tools/interfaces';
+import { IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
 import {
   hexToU8a,
   UTXOInputs,

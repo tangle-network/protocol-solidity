@@ -81,7 +81,7 @@ export class FungibleTokenWrapper {
   }
 
   public async grantMinterRole(address: string) {
-    console.log("Grant minting role");
+    console.log('Grant minting role');
     const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
     console.log(MINTER_ROLE);
     const tx = await this.contract.grantRole(MINTER_ROLE, address);

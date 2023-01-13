@@ -4977,15 +4977,6 @@
     "@polkadot/rpc-core" "9.2.4"
     "@webb-tools/protocol-substrate-types" "0.0.1"
 
-"@webb-tools/api-derive@0.1.4-113":
-  version "0.1.4-113"
-  resolved "https://registry.yarnpkg.com/@webb-tools/api-derive/-/api-derive-0.1.4-113.tgz#a8e6ffa179852134737a94d82fc2d750199610ad"
-  integrity sha512-GR85xq4inPQKWFBtTWxVqMtA/MchUf0sZjjoxz5VBLJea9cKOO3aPVZriVe9E4vLtOjde5JZRi5yeaX/Df+Xtw==
-  dependencies:
-    "@polkadot/api" "9.2.4"
-    "@polkadot/rpc-core" "9.2.4"
-    "@webb-tools/protocol-substrate-types" "^0.0.2"
-
 "@webb-tools/api-derive@0.1.4-119":
   version "0.1.4-119"
   resolved "https://registry.yarnpkg.com/@webb-tools/api-derive/-/api-derive-0.1.4-119.tgz#9705b5696819a1c9bcb6ccca92c2920789cf1aa4"
@@ -5010,14 +5001,6 @@
   dependencies:
     "@polkadot/api" "9.2.4"
     "@webb-tools/api-derive" "0.1.4-108"
-
-"@webb-tools/api@0.1.4-113":
-  version "0.1.4-113"
-  resolved "https://registry.yarnpkg.com/@webb-tools/api/-/api-0.1.4-113.tgz#d8a960fb20965538b217e6b45757894c8edb43fe"
-  integrity sha512-oTRBi5GGXuTDWo94POFeKoQpsQEwUxT2QxhgOoqhL3aMsy3Jr3lUzgUAITQzdzjuZtkwDHsVaUUpqUdkXw6pEA==
-  dependencies:
-    "@polkadot/api" "9.2.4"
-    "@webb-tools/api-derive" "0.1.4-113"
 
 "@webb-tools/api@0.1.4-119":
   version "0.1.4-119"
@@ -5414,27 +5397,6 @@
     "@webb-tools/api" "0.1.4-108"
     "@webb-tools/protocol-solidity" "0.2.6"
     "@webb-tools/sdk-core" "0.1.4-108"
-    "@webb-tools/tokens" "0.2.6"
-    "@webb-tools/utils" "0.2.6"
-    "@webb-tools/vbridge" "0.2.6"
-    ecpair "^2.0.1"
-    ethers "5.7.0"
-    ganache "7.4.1"
-    get-port "6.1.2"
-    is-ci "^3.0.1"
-    prettier "^2.2.1"
-    tiny-secp256k1 "^2.2.1"
-
-"@webb-tools/test-utils@0.1.4-113":
-  version "0.1.4-113"
-  resolved "https://registry.yarnpkg.com/@webb-tools/test-utils/-/test-utils-0.1.4-113.tgz#04417f2e6835ea912fa6d5358bb5cd6091b793b2"
-  integrity sha512-YogTlJXMtMnAZlXEkanymsGDp+xq/oYhZP4wMjbY9DYC7HhGbBPbVA7HW7JpCRVou/55u4QGno+i6QJbgksB3Q==
-  dependencies:
-    "@polkadot/api" "9.2.4"
-    "@polkadot/keyring" "10.1.7"
-    "@webb-tools/api" "0.1.4-113"
-    "@webb-tools/protocol-solidity" "0.2.6"
-    "@webb-tools/sdk-core" "0.1.4-113"
     "@webb-tools/tokens" "0.2.6"
     "@webb-tools/utils" "0.2.6"
     "@webb-tools/vbridge" "0.2.6"
@@ -9135,7 +9097,7 @@ ecc-jsbn@~0.1.1:
     jsbn "~0.1.0"
     safer-buffer "^2.1.0"
 
-ecpair@^2.0.1:
+ecpair@^2.0.1, ecpair@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/ecpair/-/ecpair-2.1.0.tgz#673f826b1d80d5eb091b8e2010c6b588e8d2cb45"
   integrity sha512-cL/mh3MtJutFOvFc27GPZE2pWL3a3k4YvzUWEOvilnfZVlH3Jwgx/7d6tlD7/75tNk8TG2m+7Kgtz0SI1tWcqw==

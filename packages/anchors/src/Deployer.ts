@@ -1,7 +1,5 @@
 import { Signer, ethers } from 'ethers';
-import {
-  DeterministicDeployFactory as DeterministicDeployFactoryContract,
-} from '@webb-tools/contracts';
+import { DeterministicDeployFactory as DeterministicDeployFactoryContract } from '@webb-tools/contracts';
 
 export class Deployer {
   signer: ethers.Signer;

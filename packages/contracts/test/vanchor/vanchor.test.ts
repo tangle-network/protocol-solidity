@@ -39,10 +39,7 @@ import {
 } from '@webb-tools/sdk-core';
 import { VAnchor, PoseidonHasher } from '@webb-tools/anchors';
 import { Verifier } from '@webb-tools/vbridge';
-import { writeFileSync } from 'fs';
 import { SetupTxVAnchorMock } from './mocks/SetupTxVAnchorMock';
-import { isTupleTypeNode } from 'typescript';
-import { TokenWrapper__factory } from 'packages/contracts/typechain';
 
 const BN = require('bn.js');
 
@@ -50,7 +47,7 @@ const path = require('path');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
 
-describe('VAnchor for 1 max edge', () => {
+describe.only('VAnchor for 1 max edge', () => {
   let anchor: VAnchor;
 
   const levels = 30;

@@ -19,6 +19,7 @@ import "../utils/ProposalNonceTracker.sol";
  */
 contract FungibleTokenWrapper is
 	TokenWrapper,
+	Initialized,
 	IFungibleTokenWrapper,
 	ProposalNonceTracker
 {
@@ -55,7 +56,6 @@ contract FungibleTokenWrapper is
 		uint256 _limit,
 		bool _isNativeAllowed
 	) public onlyUninitialized {
-		super.initialize(msg.sender);
 		initialized = true;
 		feePercentage = _feePercentage;
 		feeRecipient = payable(_feeRecipient);
