@@ -40,7 +40,7 @@ nullifier = hash(commitment, merklePath, sign(privKey, commitment, merklePath))
 */
 
 // Universal JoinSplit transaction with nIns inputs and 2 outputs (2-2 & 16-2)
-template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
+template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, numFeeTokens) {
     // extAmount = external amount used for deposits and withdrawals
     // correct extAmount range is enforced on the smart contract
     // publicAmount = extAmount - fee
@@ -88,6 +88,45 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
     signal input ak_alpha_X[nIns] // Public Input
     signal input ak_alpha_Y[nIns] // Public Input
 
+    // Fee Inputs (2-2 Join-Split Circuit) --------------
+
+    // data for input/output asset identifier
+    signal input feeAssetID;
+    signal input whitelistedAssetIDs[numFeeTokens]
+    signal input feeTokenID;
+
+    // data for transaction inputs
+    signal input feeInputNullifier[nFeeIns];
+    signal input feeInAmount[nFeeIns];
+    signal input feeInPrivateKey[nFeeIns];
+    signal input feeInBlinding[nFeeIns];
+    signal input feeInPathIndices[nFeeIns];
+    signal input feeInPathElements[nFeeIns][levels];
+
+    // data for transaction outputs
+    signal input feeOutputCommitment[nFeeOuts];
+    signal input feeOutAmount[nFeeOuts];
+    signal input feeOutChainID[nFeeOuts];
+    signal input feeOutPk_X[nFeeOuts];
+    signal input feeOutPk_Y[nFeeOuts];
+    signal input feeOutBlinding[nFeeOuts];
+
+    component feeInKeyComputer[nFeeIns];
+    component feeInCommitmentHasher[nFeeIns];
+    component feeInPartialCommitmentHasher[nFeeIns];
+    component feeInNullifierHasher[nFeeIns];
+    component feeInTree[nFeeIns];
+    component feeInCheckRoot[nFeeIns];
+    component feeInBabyPbk[nFeeIns];
+
+    // MASP Keys
+    signal input fee_ak_X[nFeeIns];
+    signal input fee_ak_Y[nFeeIns];
+    signal input fee_sk_alpha[nFeeIns];
+    signal input fee_ak_alpha_X[nFeeIns] // Public Input
+    signal input fee_ak_alpha_Y[nFeeIns] // Public Input
+    // End Fee Inputs --------------
+
     var sumIns = 0;
 
     // verify correctness of transaction inputs
@@ -99,24 +138,24 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
         ak_alpha_Y[tx] === inBabyPbk[tx].Ay;
 
         component inKeyComputer[tx] = Key();
-        keyComputer.ak_X <== ak_X[tx];
-        keyComputer.ak_Y <== ak_Y[tx];
+        inKeyComputer.ak_X <== ak_X[tx];
+        inKeyComputer.ak_Y <== ak_Y[tx];
 
         component inPartialCommitmentHasher[tx] = PartialRecord();
         inPartialCommitmentHasher[tx].chainID <== chainID;
-        inPartialCommitmentHasher[tx].pk_X <== keyComputer.pk_X;
-        inPartialCommitmentHasher[tx].pk_Y <== keyComputer.pk_Y;
+        inPartialCommitmentHasher[tx].pk_X <== inKeyComputer.pk_X;
+        inPartialCommitmentHasher[tx].pk_Y <== inKeyComputer.pk_Y;
         inPartialCommitmentHasher[tx].blinding <== inBlinding[tx];
 
         component inCommitmentHasher[tx]; = Record();
         inCommitmentHasher[tx].assetID <== assetID;
         inCommitmentHasher[tx].tokenID <== tokenID;
         inCommitmentHasher[tx].amount <== inAmount[tx];
-        inCommitmentHasher[tx].partialRecord <== partialRecordHasher.partialRecord;
+        inCommitmentHasher[tx].partialRecord <== inPartialCommitmentHasher.partialRecord;
 
         inNullifierHasher[tx] = Nullifier();
-        inNullifierHasher[tx].pk_X <== keyComputer.pk_X;
-        inNullifierHasher[tx].pk_Y <== keyComputer.pk_Y;
+        inNullifierHasher[tx].pk_X <== inKeyComputer.pk_X;
+        inNullifierHasher[tx].pk_Y <== inKeyComputer.pk_Y;
         inNullifierHasher[tx].record <== inCommitmentHasher[tx].out;
         inNullifierHasher[tx].pathIndices <== inPathIndices[tx];
         inNullifierHasher[tx].out === inputNullifier[tx];
@@ -141,6 +180,7 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
         sumIns += inAmount[tx];
     }
 
+
     component outPartialCommitmentHasher[nOuts];
     component outCommitmentHasher[nOuts];
     component outAmountCheck[nOuts];
@@ -150,15 +190,15 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
     for (var tx = 0; tx < nOuts; tx++) {
         component outPartialCommitmentHasher[tx] = PartialRecord();
         outPartialCommitmentHasher[tx].chainID <== chainID;
-        outPartialCommitmentHasher[tx].pk_X <== keyComputer.pk_X;
-        outPartialCommitmentHasher[tx].pk_Y <== keyComputer.pk_Y;
+        outPartialCommitmentHasher[tx].pk_X <== outPk_X[tx];
+        outPartialCommitmentHasher[tx].pk_Y <== outPk_Y[tx];
         outPartialCommitmentHasher[tx].blinding <== outBlinding[tx];
 
         component outCommitmentHasher[tx]; = Record();
         outCommitmentHasher[tx].assetID <== assetID;
         outCommitmentHasher[tx].tokenID <== tokenID;
         outCommitmentHasher[tx].amount <== outAmount[tx];
-        outCommitmentHasher[tx].partialRecord <== partialRecordHasher.partialRecord;
+        outCommitmentHasher[tx].partialRecord <== outPartialCommitmentHasher.partialRecord;
         
         // Constrain output commitment by reconstructed commitment
         outCommitmentHasher[tx].out === outputCommitment[tx];
@@ -198,6 +238,116 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
     checkTokenIDEqualIfNotShielded.enabled <== 1 - isShieldedTx.out;
     checkTokenIDEqualIfNotShielded.in[0] <== tokenID;
     checkTokenIDEqualIfNotShielded.in[1] <== publicTokenID;
+
+    // Fee Constraints
+    // Check Fee AssetID is allowable
+    component membership = SetMembership(numFeeTokens);
+    membership.element <== assetID;
+    for (var i = 0; i < numFeeTokens; i++) {
+        membership.set[i] <== whitelistedAssetIDs[i];
+    }
+
+    // Fee Token must be a fungible token
+    tokenID === 0;
+
+    var sumFeeIns = 0;
+
+    // verify correctness of transaction inputs
+    for (var tx = 0; tx < nFeeIns; tx++) {
+        // Check MASP keys well formed
+        component feeInBabyPbk[tx] = BabyPbk();
+        feeInBabyPbk[tx].in = fee_sk_alpha[tx];
+        fee_ak_alpha_X[tx] === feeInBabyPbk[tx].Ax;
+        fee_ak_alpha_Y[tx] === feeInBabyPbk[tx].Ay;
+
+        component feeInKeyComputer[tx] = Key();
+        feeKeyComputer.ak_X <== fee_ak_X[tx];
+        feeKeyComputer.ak_Y <== fee_ak_Y[tx];
+
+        component feeInPartialCommitmentHasher[tx] = PartialRecord();
+        feeInPartialCommitmentHasher[tx].chainID <== outChainID[tx];
+        feeInPartialCommitmentHasher[tx].pk_X <== feeInKeyComputer.pk_X;
+        feeInPartialCommitmentHasher[tx].pk_Y <== feeInKeyComputer.pk_Y;
+        feeInPartialCommitmentHasher[tx].blinding <== feeInBlinding[tx];
+
+        component feeInCommitmentHasher[tx]; = Record();
+        feeInCommitmentHasher[tx].assetID <== feeAssetID;
+        feeInCommitmentHasher[tx].tokenID <== feeTokenID;
+        feeInCommitmentHasher[tx].amount <== feeInAmount[tx];
+        feeInCommitmentHasher[tx].partialRecord <== feeInPartialCommitmentHasher.partialRecord;
+
+        feeInNullifierHasher[tx] = Nullifier();
+        feeInNullifierHasher[tx].pk_X <== feeInKeyComputer.pk_X;
+        feeInNullifierHasher[tx].pk_Y <== feeInKeyComputer.pk_Y;
+        feeInNullifierHasher[tx].record <== feeInCommitmentHasher[tx].out;
+        feeInNullifierHasher[tx].pathIndices <== feeInPathIndices[tx];
+        feeInNullifierHasher[tx].out === feeInputNullifier[tx];
+
+        feeInTree[tx] = ManyMerkleProof(levels, length);
+        feeInTree[tx].leaf <== feeInCommitmentHasher[tx].out;
+        feeInTree[tx].pathIndices <== feeInPathIndices[tx];
+
+        // add the roots and diffs signals to the bridge circuit
+        for (var i = 0; i < length; i++) {
+            feeInTree[tx].roots[i] <== roots[i];
+        }
+
+        feeInTree[tx].isEnabled <== feeInAmount[tx];
+        for (var i = 0; i < levels; i++) {
+            feeInTree[tx].pathElements[i] <== feenPathElements[tx][i];
+        }
+
+        // We don't need to range check input amounts, since all inputs are valid UTXOs that
+        // were already checked as outputs in the previous transaction (or zero amount UTXOs that don't
+        // need to be checked either).
+        sumFeeIns += inAmount[tx];
+    }
+
+
+    component feeOutPartialCommitmentHasher[nOuts];
+    component feeOutCommitmentHasher[nOuts];
+    component feeOutAmountCheck[nOuts];
+    var sumFeeOuts = 0;
+
+    // verify correctness of transaction outputs
+    for (var tx = 0; tx < nFeeOuts; tx++) {
+        component feeOutPartialCommitmentHasher[tx] = PartialRecord();
+        feeOutPartialCommitmentHasher[tx].chainID <== feeOutChainID[tx];
+        feeOutPartialCommitmentHasher[tx].pk_X <== feeOutPk_X[tx];
+        feeOutPartialCommitmentHasher[tx].pk_Y <== feeOutPk_Y[tx];
+        feeOutPartialCommitmentHasher[tx].blinding <== feeOutBlinding[tx];
+
+        component outCommitmentHasher[tx]; = Record();
+        feeOutCommitmentHasher[tx].assetID <== feeAssetID;
+        feeOutCommitmentHasher[tx].tokenID <== feeTokenID;
+        feeOutCommitmentHasher[tx].amount <== feeOutAmount[tx];
+        feeOutCommitmentHasher[tx].partialRecord <== feeOutPartialCommitmentHasher[tx].partialRecord;
+        
+        // Constrain output commitment by reconstructed commitment
+        feeOutCommitmentHasher[tx].out === feeOutputCommitment[tx];
+
+        // Check that amount fits into 248 bits to prevent overflow
+        feeOutAmountCheck[tx] = Num2Bits(248);
+        feeOutAmountCheck[tx].in <== feeOutAmount[tx];
+
+        sumOuts += feeOutAmount[tx];
+    }
+
+    // check that there are no same nullifiers among all inputs
+    component sameFeeNullifiers[nFeeIns * (nFeeIns - 1) / 2];
+    var feeIndex = 0;
+    for (var i = 0; i < nFeeIns - 1; i++) {
+      for (var j = i + 1; j < nFeeIns; j++) {
+          sameFeeNullifiers[index] = IsEqual();
+          sameFeeNullifiers[index].in[0] <== feeInputNullifier[i];
+          sameFeeNullifiers[index].in[1] <== feeInputNullifier[j];
+          sameFeeNullifiers[index].out === 0;
+          index++;
+      }
+    }
+
+    // verify amount invariant
+    sumFeeIns === sumFeeOuts;
 
     // optional safety constraint to make sure extDataHash cannot be changed
     signal extDataSquare;
