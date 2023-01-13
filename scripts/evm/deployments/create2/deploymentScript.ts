@@ -22,7 +22,6 @@ import {
   walletDemeter,
   chainIdTypeSepolia,
   walletSepolia,
-  chainIdTypeBinance,
   chainIdTypeAurora,
 } from "../../ethersGovernorWallets";
 import { EvmLinkedAnchor, ProposalSigningBackend } from "@webb-tools/test-utils";

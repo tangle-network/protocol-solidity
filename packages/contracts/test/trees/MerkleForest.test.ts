@@ -46,7 +46,7 @@ describe('MerkleForest', () => {
     poseidonLib = await PoseidonLibFactory.deploy();
     await poseidonLib.deployed();
 
-    const LinkableIncrementalBinaryTree = await ethers.getContractFactory(
+    let LinkableIncrementalBinaryTree = await ethers.getContractFactory(
       'LinkableIncrementalBinaryTree',
       {
         signer: wallet,
@@ -55,17 +55,17 @@ describe('MerkleForest', () => {
         },
       }
     );
-    linkableIncrementalBinaryTree = await LinkableIncrementalBinaryTree.deploy();
+    let linkableIncrementalBinaryTree = await LinkableIncrementalBinaryTree.deploy();
     await linkableIncrementalBinaryTree.deployed();
 
-    const MerkleForest = await ethers.getContractFactory('MerkleForestMock', {
+    let MerkleForest = await ethers.getContractFactory('MerkleForestMock', {
       signer: wallet,
       libraries: {
         PoseidonT3: poseidonLib.address,
         LinkableIncrementalBinaryTree: linkableIncrementalBinaryTree.address,
       },
     });
-    merkleForest = await MerkleForest.deploy(
+    let merkleForest = await MerkleForest.deploy(
       groupLevels,
       subtreeLevels,
       hasherInstance.contract.address
