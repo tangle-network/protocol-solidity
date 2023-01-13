@@ -72,7 +72,8 @@ describe('Registry', () => {
           salt,
           limit,
           feePercentage,
-          true
+          true,
+          sender.address,
         )
       ).to.be.revertedWith('MultiTokenManagerBase: Only registry can call this function');
     });

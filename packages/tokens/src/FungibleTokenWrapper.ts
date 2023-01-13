@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import { BigNumberish, ethers } from 'ethers';
 import { getChainIdType } from '@webb-tools/utils';
 import { toHex, generateFunctionSigHash } from '@webb-tools/sdk-core';
 import {
@@ -28,7 +28,7 @@ export class FungibleTokenWrapper {
     feePercentage: number,
     feeRecipient: string,
     handler: string,
-    limit: string,
+    limit: BigNumberish,
     isNativeAllowed: boolean,
     deployer: ethers.Signer
   ) {
@@ -37,7 +37,7 @@ export class FungibleTokenWrapper {
     const contract = await factory.deploy(name, symbol);
     await contract.deployed();
     // Initialize immediately after deployment as we use an intializer now
-    await contract.initialize(feePercentage, feeRecipient, handler, limit, isNativeAllowed);
+    await contract.initialize(feePercentage, feeRecipient, handler, limit, isNativeAllowed, await deployer.getAddress());
     const tokenWrapper = new FungibleTokenWrapper(contract, deployer);
 
     return tokenWrapper;
@@ -88,6 +88,32 @@ export class FungibleTokenWrapper {
     await tx.wait();
     console.log(tx);
     return;
+  }
+
+  public async approve(address: string, amount: BigNumberish) {
+    const tx = await this.contract.approve(address, amount);
+    await tx.wait();
+    return;
+  }
+
+  public async wrap(tokenAddress: string, amount: BigNumberish) {
+    const tx = await this.contract.wrap(tokenAddress, amount);
+    await tx.wait();
+    return;
+  }
+
+  public async unwrap(tokenAddress: string, amount: BigNumberish) {
+    const tx = await this.contract.unwrap(tokenAddress, amount);
+    await tx.wait();
+    return;
+  }
+
+  public async isNativeAllowed(): Promise<boolean> {
+    return await this.contract.isNativeAllowed();
+  }
+
+  public async canWrap(address: string): Promise<boolean> {
+    return await this.contract.isValidToken(address);
   }
 
   public async getFeeRecipientAddress(): Promise<string> {
