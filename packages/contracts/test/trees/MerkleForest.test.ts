@@ -6,14 +6,13 @@
 import { toFixedHex } from '@webb-tools/sdk-core';
 import { BigNumber } from 'ethers';
 import { ethers } from 'hardhat';
-import { poseidon, poseidon_gencontract as poseidonContract } from 'circomlibjs';
+import { poseidon_gencontract as poseidonContract } from 'circomlibjs';
 import { MerkleTree } from '@webb-tools/sdk-core';
 import { PoseidonHasher } from '@webb-tools/anchors';
 import {
   MerkleForestMock as MerkleForestMockContract,
   LinkableIncrementalBinaryTree as LinkableIncrementalBinaryTreeContract,
-  LinkableIncrementalBinaryTree__factory,
-} from '../../typechain';
+} from '../../lib';
 const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
 

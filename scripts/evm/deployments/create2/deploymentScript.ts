@@ -22,13 +22,12 @@ import {
   walletDemeter,
   chainIdTypeSepolia,
   walletSepolia,
-  chainIdTypeBinance,
   chainIdTypeAurora,
 } from "../../ethersGovernorWallets";
 import { EvmLinkedAnchor, ProposalSigningBackend } from "@webb-tools/test-utils";
 import { ContractConfig, getEvmChainConfig, writeEvmChainConfig } from "../utils";
 import { zip } from 'itertools';
-import { EndPointConfig, moonbaseEndPoints, polygonEndPoints } from "../endPoints";
+import { EndPointConfig, moonbaseEndPoints, polygonEndPoints, sepoliaEndPoints } from "../endPoints";
 import Create2VBridge from "./create2Bridge";
 
 
@@ -64,29 +63,29 @@ async function deploySignatureVBridge(
   const zkComponentsSmall = await fetchComponentsFromFilePaths(
     path.resolve(
       __dirname,
-      `../../../solidity-fixtures/solidity-fixtures/vanchor_2/8/poseidon_vanchor_2_8.wasm`
+      `../../../../solidity-fixtures/solidity-fixtures/vanchor_2/8/poseidon_vanchor_2_8.wasm`
     ),
     path.resolve(
       __dirname,
-      `../../../solidity-fixtures/solidity-fixtures/vanchor_2/8/witness_calculator.cjs`
+      `../../../../solidity-fixtures/solidity-fixtures/vanchor_2/8/witness_calculator.cjs`
     ),
     path.resolve(
       __dirname,
-      `../../../solidity-fixtures/solidity-fixtures/vanchor_2/8/circuit_final.zkey`
+      `../../../../solidity-fixtures/solidity-fixtures/vanchor_2/8/circuit_final.zkey`
     )
   );
   const zkComponentsLarge = await fetchComponentsFromFilePaths(
     path.resolve(
       __dirname,
-      `../../../solidity-fixtures/solidity-fixtures/vanchor_16/8/poseidon_vanchor_16_8.wasm`
+      `../../../../solidity-fixtures/solidity-fixtures/vanchor_16/8/poseidon_vanchor_16_8.wasm`
     ),
     path.resolve(
       __dirname,
-      `../../../solidity-fixtures/solidity-fixtures/vanchor_16/8/witness_calculator.cjs`
+      `../../../../solidity-fixtures/solidity-fixtures/vanchor_16/8/witness_calculator.cjs`
     ),
     path.resolve(
       __dirname,
-      `../../../solidity-fixtures/solidity-fixtures/vanchor_16/8/circuit_final.zkey`
+      `../../../../solidity-fixtures/solidity-fixtures/vanchor_16/8/circuit_final.zkey`
     )
   );
 
@@ -104,26 +103,26 @@ async function deploySignatureVBridge(
 async function run() {
   const deployers: DeployerConfig = {
     // [chainIdTypeGoerli]: walletGoerli,
-    // [chainIdTypeSepolia]: walletSepolia,
+    [chainIdTypeSepolia]: walletSepolia,
     // [chainIdTypeOptimism]: walletOptimism,
     // [chainIdTypePolygon]: walletPolygon,
-    [chainIdTypeMoonbase]: walletMoonbase,
+    // [chainIdTypeMoonbase]: walletMoonbase,
   };
 
   const tokens: Record<number, string[]> = {
     // [chainIdTypeGoerli]: ["0", ""],
-    // [chainIdTypeSepolia]: ["0", "0xeD43f81C17976372Fcb5786Dd214572e7dbB92c7"],
+    [chainIdTypeSepolia]: ["0", "0xeD43f81C17976372Fcb5786Dd214572e7dbB92c7"],
     // [chainIdTypeOptimism]: ["0", "0x4200000000000000000000000000000000000006"],
     // [chainIdTypePolygon]: ["0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889"],
-    [chainIdTypeMoonbase]: ["0xD909178CC99d318e4D46e7E66a972955859670E1"],
+    // [chainIdTypeMoonbase]: ["0xD909178CC99d318e4D46e7E66a972955859670E1"],
   };
   
   const endPoints: Record<number, EndPointConfig> = {
     // [chainIdTypeGoerli]: goerliEndPoints,
-    // [chainIdTypeSepolia]: sepoliaEndPoints,
+    [chainIdTypeSepolia]: sepoliaEndPoints,
     // [chainIdTypeOptimism]: optimismEndPoints,
     // [chainIdTypePolygon]: polygonEndPoints,
-    [chainIdTypeMoonbase]: moonbaseEndPoints,
+    // [chainIdTypeMoonbase]: moonbaseEndPoints,
   }
 
   const vbridge = await deploySignatureVBridge(tokens, deployers);

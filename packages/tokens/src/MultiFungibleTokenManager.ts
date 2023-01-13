@@ -8,12 +8,9 @@ export class MultiFungibleTokenManager {
   contract: MultiFungibleTokenManagerContract;
   signer: ethers.Signer;
 
-  constructor(
-    contract: MultiFungibleTokenManagerContract,
-    signer: ethers.Signer,
-  ) {
+  constructor(contract: MultiFungibleTokenManagerContract, signer: ethers.Signer) {
     this.contract = contract;
-    this.signer
+    this.signer;
   }
 
   public static async createMultiFungibleTokenManager(deployer: ethers.Signer) {
@@ -55,7 +52,7 @@ export class MultiFungibleTokenManager {
       limit,
       feePercentage,
       isNativeAllowed,
-      await this.signer.getAddress(),
+      await this.signer.getAddress()
     );
     await tx.wait();
   }

@@ -354,9 +354,7 @@ export class SignatureBridgeSide implements IBridgeSide {
     tokenAddress: string
   ) {
     if (!this.tokenHandler) throw this.TOKEN_HANDLER_MISSING_ERROR;
-    console.log("executeAddTokenProposalWithSig")
     const proposalData = await this.createAddTokenUpdateProposalData(fungibleToken, tokenAddress);
-    console.log("execute");
     return this.execute(proposalData);
   }
 

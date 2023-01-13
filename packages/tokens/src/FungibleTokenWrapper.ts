@@ -37,7 +37,14 @@ export class FungibleTokenWrapper {
     const contract: FungibleTokenWrapperContract = await factory.deploy(name, symbol);
     await contract.deployed();
     // Initialize immediately after deployment as we use an intializer now
-    await contract.initialize(feePercentage, feeRecipient, handler, limit, isNativeAllowed, await deployer.getAddress());
+    await contract.initialize(
+      feePercentage,
+      feeRecipient,
+      handler,
+      limit,
+      isNativeAllowed,
+      await deployer.getAddress()
+    );
     const tokenWrapper = new FungibleTokenWrapper(contract, deployer);
 
     return tokenWrapper;
@@ -81,12 +88,9 @@ export class FungibleTokenWrapper {
   }
 
   public async grantMinterRole(address: string) {
-    console.log("Grant minting role");
     const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
-    console.log(MINTER_ROLE);
     const tx = await this.contract.grantRole(MINTER_ROLE, address);
     await tx.wait();
-    console.log(tx);
     return;
   }
 

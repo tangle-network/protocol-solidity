@@ -49,7 +49,7 @@ describe('MultiFungibleTokenManager', () => {
         limit,
         feePercentage,
         true,
-        sender.address,
+        sender.address
       );
       await tx.wait();
       const wrappedTokenAddress = await multiTokenMgr.contract.wrappedTokens(0);

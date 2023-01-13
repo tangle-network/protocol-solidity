@@ -7,9 +7,12 @@ export const walletPolygon = new ethers.Wallet(process.env.PRIVATE_KEY!, provide
 export const chainIdTypePolygon = getChainIdType(80001);
 
 export const providerGoerli = new ethers.providers.JsonRpcProvider(
-  process.env.GOERLI_RPC
+  `https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161`
 );
-export const walletGoerli = new ethers.Wallet(process.env.PRIVATE_KEY!, providerGoerli);
+export const walletGoerli = new ethers.Wallet(
+  process.env.PRIVATE_KEY!,
+  providerGoerli
+);
 export const chainIdTypeGoerli = getChainIdType(5);
 
 export const providerSepolia = new ethers.providers.JsonRpcProvider(`https://rpc.sepolia.org`);

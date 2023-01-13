@@ -130,16 +130,12 @@ export class Create2VBridge {
     for (let chainID of vBridgeInput.chainIDs) {
       const initialGovernor = initialGovernors[chainID];
       // Create the bridgeSide
-      console.log("Create Deployer");
       let deployer: Deployer;
       const Deployer1 = new DeterministicDeployFactory__factory(deployers[chainID]);
       let deployer1Contract = await Deployer1.deploy();
       await deployer1Contract.deployed();
-      console.log("Deployer deployed");
       deployer = new Deployer(deployer1Contract);
-      console.log("create2Brdige side called");
       let vBridgeInstance = await SignatureBridgeSide.create2BridgeSide(deployer, saltHex, deployers[chainID] );
-      console.log("create2BridgeSide");
       const handler = await AnchorHandler.create2AnchorHandler(
         vBridgeInstance.contract.address,
         [],
@@ -148,9 +144,7 @@ export class Create2VBridge {
         saltHex,
         deployers[chainID]
       );
-      console.log("create2AnchorHandler");
       vBridgeInstance.setAnchorHandler(handler);
-      console.log("setAnchorHandler");
       // Create Treasury and TreasuryHandler
       const treasuryHandler = await TreasuryHandler.create2TreasuryHandler(
         vBridgeInstance.contract.address,
@@ -160,23 +154,18 @@ export class Create2VBridge {
         saltHex,
         vBridgeInstance.admin
       );
-      console.log("create2TreasuryHandler");
       const treasury = await Treasury.create2Treasury(
         treasuryHandler.contract.address,
         deployer,
         saltHex,
         vBridgeInstance.admin
       );
-      console.log("create2TreasuryHandler");
       await vBridgeInstance.setTreasuryHandler(treasuryHandler);
       await vBridgeInstance.setTreasuryResourceWithSignature(treasury);
-      console.log("setTreasuryResourceWithSignature");
       // Create the Hasher and Verifier for the chain
       const hasherInstance = await PoseidonHasher.create2PoseidonHasher(deployer, saltHex, deployers[chainID]);
-      console.log("create2PoseidonHasher");
       const verifier = await Verifier.create2Verifier(deployer, saltHex, deployers[chainID]);
       let verifierInstance = verifier.contract;
-      console.log("create2Verifier");
       // Check the addresses of the asset. If it is zero, deploy a native token wrapper
       let allowedNative: boolean = false;
       for (const tokenToBeWrapped of vBridgeInput.vAnchorInputs.asset[chainID]!) {
@@ -195,7 +184,6 @@ export class Create2VBridge {
         saltHex,
         vBridgeInstance.admin
       );
-      console.log("create2TokenWrapperHandler");
       let tokenInstance: FungibleTokenWrapper;
       if (!vBridgeInput.webbTokens.get(chainID)) {
         tokenInstance = await FungibleTokenWrapper.create2FungibleTokenWrapper(
@@ -210,14 +198,11 @@ export class Create2VBridge {
           saltHex,
           deployers[chainID]
         );
-        console.log("create2FungibleTokenWrapper no webbtoken");
       } else {
         tokenInstance = vBridgeInput.webbTokens.get(chainID)!;
       }
-      console.log("create2FungibleTokenWrapper");
       await vBridgeInstance.setTokenWrapperHandler(tokenWrapperHandler);
       await vBridgeInstance.setFungibleTokenResourceWithSignature(tokenInstance);
-      console.log("setFungibleTokenResourceWithSignature");
       // Add all token addresses to the governed token instance.
       for (const tokenToBeWrapped of vBridgeInput.vAnchorInputs.asset[chainID]!) {
         // if the address is not '0', then add it
@@ -225,7 +210,6 @@ export class Create2VBridge {
           await vBridgeInstance.executeAddTokenProposalWithSig(tokenInstance, tokenToBeWrapped);
         }
       }
-      console.log("passed");
       // append each token
       webbTokenAddresses.set(chainID, tokenInstance.contract.address);
 
@@ -245,20 +229,15 @@ export class Create2VBridge {
         largeCircuitZkComponents,
         deployers[chainID]
       );
-      console.log("create2VAnchor");
       // grant minting rights to the anchor
       await tokenInstance.grantMinterRole(vAnchorInstance.contract.address);
-      console.log("grantMinterRole");
       chainGroupedVAnchors.push(vAnchorInstance);
       vAnchors.set(Create2VBridge.createVAnchorIdString({ chainId: chainID }), vAnchorInstance);
-      console.log("createVAnchorIdString");
       await Create2VBridge.setPermissions(vBridgeInstance, chainGroupedVAnchors);
       createdVAnchors.push(chainGroupedVAnchors);
-      console.log("setPermissions");
       // Transfer ownership of the bridge to the initialGovernor
       const tx = await vBridgeInstance.transferOwnership(initialGovernor, 0);
       await tx.wait();
-      console.log("transferOwnership");
       vBridgeSides.set(chainID, vBridgeInstance);
     }
 

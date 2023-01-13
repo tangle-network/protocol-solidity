@@ -6,7 +6,6 @@
 pragma solidity ^0.8.0;
 
 import "../interfaces/tokens/ITokenWrapper.sol";
-import "../utils/Initialized.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -18,7 +17,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
     @author Webb Technologies.
     @notice This contract is intended to be used with TokenHandler/FungibleToken contract.
  */
-abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, Initialized {
+abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
 	using SafeMath for uint256;
 	uint16 public feePercentage;
 	address payable public feeRecipient;
@@ -32,17 +31,6 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, Initia
 		string memory _name,
 		string memory _symbol
 	) ERC20PresetMinterPauser(_name, _symbol) {}
-
-	function initialize(address admin) public onlyUninitialized {
-		initialized = true;
-		address currentAdmin = getRoleMember(DEFAULT_ADMIN_ROLE, 0);
-		_revokeRole(DEFAULT_ADMIN_ROLE, currentAdmin);
-		_revokeRole(MINTER_ROLE, currentAdmin);
-		_revokeRole(PAUSER_ROLE, currentAdmin);
-		_grantRole(DEFAULT_ADMIN_ROLE, admin);
-		_grantRole(MINTER_ROLE, admin);
-		_grantRole(PAUSER_ROLE, admin);
-	}
 
 	/**
         @notice Get the fee for a target amount to wrap
