@@ -39,7 +39,7 @@ const snarkjs = require('snarkjs');
 
 const blocks = ['0xaaaaaaaa', '0xbbbbbbbb', '0xcccccccc', '0xdddddddd'];
 
-contract.only('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
+contract('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
   let merkleTree;
   let batchTree: BatchTreeUpdater;
   let hasherInstance: PoseidonHasher;
@@ -48,7 +48,7 @@ contract.only('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
   let zkComponents_16: ZkComponents;
   let zkComponents_32: ZkComponents;
   // dummy
-  const instance = '0x1111000000000000000000000000000000001111',
+  const instance = '0x1111000000000000000000000000000000001111'
   // let levels = 30;
   const wasmFilePath_4 = path.resolve(
     __dirname,
