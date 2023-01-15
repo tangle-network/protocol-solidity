@@ -1,6 +1,6 @@
 {
   "name": "@webb-tools/contracts",
-  "main": "./typechain/index.js",
+  "main": "./typechain/index.ts",
   "license": "GPL-3.0-or-later",
   "author": "Webb Developers <drew@webb.tools>",
   "scripts": {
