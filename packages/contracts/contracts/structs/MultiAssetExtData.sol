@@ -6,7 +6,6 @@
 pragma solidity ^0.8.0;
 
 struct ExtData {
-	uint256 assetID;
 	address recipient;
 	int256 extAmount;
 	address relayer;

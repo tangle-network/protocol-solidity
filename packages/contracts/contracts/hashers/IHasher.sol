@@ -1,3 +1,4 @@
+
 /**
  * Copyright 2021-2022 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later-only
@@ -10,6 +11,8 @@ pragma solidity ^0.8.0;
  */
 interface IHasher {
 	function hash3(uint256[3] memory array) external view returns (uint256);
+
+	function hash4(uint256[4] memory array) external view returns (uint256);
 
 	/// @dev provides a 2 elemtns hash with left and right elements
 	function hashLeftRight(uint256 _left, uint256 _right) external view returns (uint256);

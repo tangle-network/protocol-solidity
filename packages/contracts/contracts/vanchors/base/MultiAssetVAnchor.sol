@@ -129,29 +129,6 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		emit NewCommitment(commitment, 0, this.getNextIndex() - 2, encryptedCommitment);
 	}
 
-	function withdrawAndUnwrap721 (
-		bytes memory _proof,
-		bytes memory _auxPublicInputs,
-		CommonExtData memory _externalData,
-		PublicInputs memory _publicInputs,
-		Encryptions memory _encryptions
-	) public payable {
-		_executeValidationAndVerification(
-			_proof,
-			_auxPublicInputs,
-			_externalData,
-			_publicInputs,
-			_encryptions
-		);
-		MASPAuxPublicInputs memory aux = abi.decode(_auxPublicInputs, (MASPAuxPublicInputs));
-		uint256 assetID = aux.publicAssetID;
-		require(assetID != 0, "Wrapped asset not registered");
-		address _fromTokenAddress = IRegistry(registry).getUnwrappedAssetAddress(assetID);
-		address _toTokenAddress = IRegistry(registry).getWrappedAssetAddress(assetID);
-		INftTokenWrapper(_toTokenAddress).unwrap721(aux.publicTokenID, _fromTokenAddress);
-		_executeInsertions(_publicInputs, _encryptions);
-	}
-
 	/// @inheritdoc ZKVAnchorBase
 	function transact(
 		bytes memory _proof,
