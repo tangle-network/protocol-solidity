@@ -61,26 +61,36 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 
 	/**
 		@notice Wraps and deposits in a single flow without a proof. Leads to a single non-zero UTXO.
-		@param _fromTokenAddress The address of the token to wrap from
+		@param _fromTokenAddress The address of the token to wrap from. If address(0) then do not wrap.
 		@param _toTokenAddress The address of the token to wrap into
 		@param _amount The amount of tokens to wrap
 		@param partialCommitment The partial commitment of the UTXO
 		@param encryptedCommitment The encrypted commitment of the partial UTXO
 	 */
-	function wrapAndDepositERC20(
+	function depositERC20(
 		address _fromTokenAddress,
 		address _toTokenAddress,
 		uint256 _amount,
 		bytes32 partialCommitment,
 		bytes memory encryptedCommitment
 	) public payable {
-		// Execute the wrapping
-		uint256 wrapAmount = _executeWrapping(_fromTokenAddress, _toTokenAddress, _amount);
+		uint256 amount = _amount;
+		// Execute wrapping if wrapAndDeposit, otherwise directly transfer wrapped tokens.
+		if (_fromTokenAddress != address(0)) {
+			amount = _executeWrapping(_fromTokenAddress, _toTokenAddress, _amount);
+		} else {
+			IMintableERC20(_toTokenAddress).transferFrom(
+					msg.sender,
+					address(this),
+					uint256(amount)
+			);
+		}
+		
 		// Create the record commitment
 		uint256 assetID = IRegistry(registry).getAssetIdFromWrappedAddress(_toTokenAddress);
 		require(assetID != 0, "Wrapped asset not registered");
 		uint256 commitment = IHasher(this.getHasher()).hash4(
-			[assetID, 0, wrapAmount, uint256(partialCommitment)]
+			[assetID, 0, amount, uint256(partialCommitment)]
 		);
 		_insertTwo(commitment, 0);
 		emit NewCommitment(commitment, 0, this.getNextIndex() - 2, encryptedCommitment);
