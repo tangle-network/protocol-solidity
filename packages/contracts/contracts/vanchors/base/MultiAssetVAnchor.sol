@@ -85,7 +85,6 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 					uint256(amount)
 			);
 		}
-		
 		// Create the record commitment
 		uint256 assetID = IRegistry(registry).getAssetIdFromWrappedAddress(_toTokenAddress);
 		require(assetID != 0, "Wrapped asset not registered");
@@ -98,13 +97,13 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 
 	/**
 		@notice Wraps and deposits in a single flow without a proof. Leads to a single non-zero UTXO.
-		@param _fromTokenAddress The address of the token to wrap from
+		@param _fromTokenAddress The address of the token to wrap from. If address(0) do not wrap.
 		@param _toTokenAddress The address of the token to wrap into
 		@param _tokenID Nft token ID
 		@param partialCommitment The partial commitment of the UTXO
 		@param encryptedCommitment The encrypted commitment of the partial UTXO
 	 */
-	function wrapAndDepositERC721(
+	function depositERC721(
 		address _fromTokenAddress,
 		address _toTokenAddress,
 		uint256 _tokenID,
@@ -115,9 +114,13 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		uint256 assetID = IRegistry(registry).getAssetIdFromWrappedAddress(_toTokenAddress);
 		// Check assetID is not 0
 		require(assetID != 0, "Wrapped asset not registered");
-		// Check wrapped and unwrapped addresses are consistent
-		require(IRegistry(registry).getUnwrappedAssetAddress(assetID) == _fromTokenAddress, "Wrapped and unwrapped addresses don't match");
-		INftTokenWrapper(_toTokenAddress).wrap721(_tokenID, _fromTokenAddress);
+		if (_fromTokenAddress != address(0)) {
+			// Check wrapped and unwrapped addresses are consistent
+			require(IRegistry(registry).getUnwrappedAssetAddress(assetID) == _fromTokenAddress, "Wrapped and unwrapped addresses don't match");
+			INftTokenWrapper(_toTokenAddress).wrap721(_tokenID, _fromTokenAddress);
+		} else {
+			IERC721(_toTokenAddress).safeTransferFrom(msg.sender, address(this), _tokenID);
+		}
 		// Create the record commitment
 		uint256 commitment = IHasher(this.getHasher()).hash4(
 			[assetID, _tokenID, 1, uint256(partialCommitment)]
