@@ -39,7 +39,7 @@ const snarkjs = require('snarkjs');
 
 const blocks = ['0xaaaaaaaa', '0xbbbbbbbb', '0xcccccccc', '0xdddddddd'];
 
-contract('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
+contract.only('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
   let merkleTree;
   let batchTree: BatchTreeUpdater;
   let hasherInstance: PoseidonHasher;
