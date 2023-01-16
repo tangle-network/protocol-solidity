@@ -14,6 +14,7 @@ contract BatchTreeVerifierSelector is IBatchTreeVerifierSelector {
 	IBatchTreeVerifier public v8;
 	IBatchTreeVerifier public v16;
 	IBatchTreeVerifier public v32;
+
 	// IBatchTreeVerifier public v64;
 
 	constructor(
@@ -32,20 +33,19 @@ contract BatchTreeVerifierSelector is IBatchTreeVerifierSelector {
 		uint[2] memory _a,
 		uint[2][2] memory _b,
 		uint[2] memory _c,
-        uint[1] memory _input,
+		uint[1] memory _input,
 		uint256 _batchSize
 	) external view override returns (bool) {
 		if (_batchSize == 4) {
-            return v4.verifyProof(_a, _b, _c, _input);
+			return v4.verifyProof(_a, _b, _c, _input);
 		} else if (_batchSize == 8) {
-            return v8.verifyProof(_a, _b, _c, _input);
+			return v8.verifyProof(_a, _b, _c, _input);
 		} else if (_batchSize == 16) {
-            return v16.verifyProof(_a, _b, _c, _input);
+			return v16.verifyProof(_a, _b, _c, _input);
 		} else if (_batchSize == 32) {
-            return v32.verifyProof(_a, _b, _c, _input);
+			return v32.verifyProof(_a, _b, _c, _input);
 		} else {
-            return false;
-        }
-
+			return false;
+		}
 	}
 }

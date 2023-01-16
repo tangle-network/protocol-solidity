@@ -49,13 +49,13 @@ const snarkjs = require('snarkjs');
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 
 type ProofSignals = {
-  oldRoot: string,
-  newRoot: string,
-  pathIndices: number,
-  pathElements: string[],
-  leaves: string[],
-  argsHash?: string,
-}
+  oldRoot: string;
+  newRoot: string;
+  pathIndices: number;
+  pathElements: string[];
+  leaves: string[];
+  argsHash?: string;
+};
 
 export class BatchTreeUpdater {
   signer: ethers.Signer;
@@ -75,7 +75,7 @@ export class BatchTreeUpdater {
     zkComponents_4: ZkComponents,
     zkComponents_8: ZkComponents,
     zkComponents_16: ZkComponents,
-    zkComponents_32: ZkComponents,
+    zkComponents_32: ZkComponents
   ) {
     this.contract = contract;
     this.signer = signer;
@@ -97,11 +97,7 @@ export class BatchTreeUpdater {
     signer: ethers.Signer
   ) {
     const factory = new BatchMerkleTree__factory(signer);
-    const contract = await factory.deploy(
-      levels,
-      hasherAddr,
-      verifierAddr
-    );
+    const contract = await factory.deploy(levels, hasherAddr, verifierAddr);
     await contract.deployed();
 
     const createdBatchTreeUpdater = new BatchTreeUpdater(
@@ -111,7 +107,7 @@ export class BatchTreeUpdater {
       zkComponents_4,
       zkComponents_8,
       zkComponents_16,
-      zkComponents_32,
+      zkComponents_32
     );
     createdBatchTreeUpdater.latestSyncedBlock = contract.deployTransaction.blockNumber!;
     return createdBatchTreeUpdater;
@@ -137,30 +133,30 @@ export class BatchTreeUpdater {
     return result;
   }
 
-  public async registerInsertion(instance: string, commitment: BigNumberish) {
-      return await this.contract.registerInsertion(instance, toFixedHex(commitment));
-  }
+  // public async registerInsertion(instance: string, commitment: BigNumberish) {
+  //   return await this.contract.registerInsertion(instance, toFixedHex(commitment));
+  // }
 
-  public async registerInsertions(instances: string[], commitments: BigNumberish[]) {
-    assert(instances.length === commitments.length)
-    let transactions = []
-    for(let i = 0; i < instances.length; i++) {
-      let tx = await this.contract.registerInsertion(instances[i], toFixedHex(commitments[i]));
-      transactions.push(tx);
-    }
-    return transactions
-  }
+  // public async registerInsertions(instances: string[], commitments: BigNumberish[]) {
+  //   assert(instances.length === commitments.length);
+  //   let transactions = [];
+  //   for (let i = 0; i < instances.length; i++) {
+  //     let tx = await this.contract.registerInsertion(instances[i], toFixedHex(commitments[i]));
+  //     transactions.push(tx);
+  //   }
+  //   return transactions;
+  // }
   public async validateBatchSize(batchSize: number) {
-    if(batchSize == 4) {
-      return this.zkComponents_4
+    if (batchSize == 4) {
+      return this.zkComponents_4;
     } else if (batchSize === 8) {
-      return this.zkComponents_8
+      return this.zkComponents_8;
     } else if (batchSize === 16) {
-      return this.zkComponents_16
+      return this.zkComponents_16;
     } else if (batchSize === 32) {
-      return this.zkComponents_32
+      return this.zkComponents_32;
     } else {
-      throw new Error('Invalid batch size')
+      throw new Error('Invalid batch size');
     }
   }
 
@@ -173,10 +169,12 @@ export class BatchTreeUpdater {
     const oldRoot: string = this.tree.root().toString();
 
     this.tree.bulkInsert(leaves);
-    const newRoot: string  = this.tree.root().toString();
+    const newRoot: string = this.tree.root().toString();
     let { pathElements, pathIndices } = this.tree.path(this.tree.elements().length - 1);
     let batchPathElements: string[] = pathElements.slice(batchHeight).map((e) => e.toString());
-    let batchPathIndices: number = MerkleTree.calculateIndexFromPathIndices(pathIndices.slice(batchHeight));
+    let batchPathIndices: number = MerkleTree.calculateIndexFromPathIndices(
+      pathIndices.slice(batchHeight)
+    );
     // pathIndices = MerkleTree.calculateIndexFromPathIndices(pathIndices.slice(batchHeight));
     const input = {
       oldRoot,
@@ -187,27 +185,27 @@ export class BatchTreeUpdater {
     };
     input['argsHash'] = BatchTreeUpdater.hashInputs(input);
 
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, zkComponent.wasm, zkComponent.zkey);
-    const vKey = await snarkjs.zKey.exportVerificationKey(zkComponent.zkey)
+    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+      input,
+      zkComponent.wasm,
+      zkComponent.zkey
+    );
+    const vKey = await snarkjs.zKey.exportVerificationKey(zkComponent.zkey);
     const verified = await snarkjs.groth16.verify(vKey, publicSignals, proof);
-    return { input, proof, publicSignals, verified }
+    return { input, proof, publicSignals, verified };
   }
 
   public async batchInsert(batchSize: number) {
-
     let batchHeight = Math.log2(batchSize);
-    let leaves = []
+    let leaves = [];
     let startIndex = await this.contract.nextIndex();
-    for(var i = startIndex; i < startIndex + batchSize; i++) {
+    for (var i = startIndex; i < startIndex + batchSize; i++) {
       let c = await this.contract.queue(i);
-      leaves.push(c)
+      leaves.push(c);
     }
 
     const { input, proof, publicSignals } = await this.generateProof(batchSize, leaves);
-    const calldata = await snarkjs.groth16.exportSolidityCallData(
-      proof,
-      publicSignals
-    );
+    const calldata = await snarkjs.groth16.exportSolidityCallData(proof, publicSignals);
     const proofJson = JSON.parse('[' + calldata + ']');
     const pi_a = proofJson[0];
     const pi_b = proofJson[1];
@@ -226,24 +224,17 @@ export class BatchTreeUpdater {
       .map((elt) => elt.substr(2))
       .join('');
 
-      proofEncoded = `0x${proofEncoded}`
-      // let contractQueue = []
-      // for(var i = 0; i < 16; i++) {
-      //   let c = await contract.queue(i);
-      //   contractQueue.push(c)
-      // }
-      // console.log('queue', contractQueue);
+    proofEncoded = `0x${proofEncoded}`;
 
-
-      let tx = await this.contract.batchInsert(
-        proofEncoded,
-        toFixedHex(input['argsHash']),
-        toFixedHex(input['oldRoot']),
-        toFixedHex(input['newRoot']),
-        input['pathIndices'],
-        input['leaves'],
-        batchHeight
-      )
-      return { input, tx };
+    let tx = await this.contract.batchInsert(
+      proofEncoded,
+      toFixedHex(input['argsHash']),
+      toFixedHex(input['oldRoot']),
+      toFixedHex(input['newRoot']),
+      input['pathIndices'],
+      input['leaves'],
+      batchHeight
+    );
+    return { input, tx };
   }
 }
