@@ -48,9 +48,9 @@ struct AuxPublicInputs {
 struct MASPAuxPublicInputs {
 	uint256 publicAssetID;
 	uint256 publicTokenID;
-	address[] whitelistedAssetIDs;
 	uint256[] ak_alpha_X;
 	uint256[] ak_alpha_Y;
+	uint256[] whitelistedAssetIDs;
 	uint256[] feeInputNullifiers;
 	uint256[2] feeOutputCommitments;
 	uint256[] fee_ak_alpha_X;
