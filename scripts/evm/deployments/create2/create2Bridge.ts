@@ -135,7 +135,11 @@ export class Create2VBridge {
       let deployer1Contract = await Deployer1.deploy();
       await deployer1Contract.deployed();
       deployer = new Deployer(deployer1Contract);
-      let vBridgeInstance = await SignatureBridgeSide.create2BridgeSide(deployer, saltHex, deployers[chainID] );
+      let vBridgeInstance = await SignatureBridgeSide.create2BridgeSide(
+        deployer,
+        saltHex,
+        deployers[chainID]
+      );
       const handler = await AnchorHandler.create2AnchorHandler(
         vBridgeInstance.contract.address,
         [],
@@ -163,7 +167,11 @@ export class Create2VBridge {
       await vBridgeInstance.setTreasuryHandler(treasuryHandler);
       await vBridgeInstance.setTreasuryResourceWithSignature(treasury);
       // Create the Hasher and Verifier for the chain
-      const hasherInstance = await PoseidonHasher.create2PoseidonHasher(deployer, saltHex, deployers[chainID]);
+      const hasherInstance = await PoseidonHasher.create2PoseidonHasher(
+        deployer,
+        saltHex,
+        deployers[chainID]
+      );
       const verifier = await Verifier.create2Verifier(deployer, saltHex, deployers[chainID]);
       let verifierInstance = verifier.contract;
       // Check the addresses of the asset. If it is zero, deploy a native token wrapper
@@ -334,8 +342,6 @@ export class Create2VBridge {
       vBridgeSides: this.vBridgeSides,
     };
   }
-
-  
 }
 
 export default Create2VBridge;

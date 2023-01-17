@@ -36,7 +36,7 @@ interface IMultiTokenManager {
 		uint256 _limit,
 		uint16 _feePercentage,
 		bool _isNativeAllowed,
-      address _admin
+		address _admin
 	) external returns (address);
 
 	/**

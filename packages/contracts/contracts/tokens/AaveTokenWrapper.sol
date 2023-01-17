@@ -47,14 +47,7 @@ contract AaveTokenWrapper is FungibleTokenWrapper, IAaveTokenWrapper {
 		address _admin,
 		address _aaveLendingPool
 	) public onlyUninitialized {
-		super.initialize(
-			_feePercentage,
-			_feeRecipient,
-			_handler,
-			_limit,
-			_isNativeAllowed,
-			_admin
-		);
+		super.initialize(_feePercentage, _feeRecipient, _handler, _limit, _isNativeAllowed, _admin);
 		aaveLendingPool = IAaveLendingPool(_aaveLendingPool);
 	}
 
