@@ -6,23 +6,26 @@ import {
 
 export class MultiFungibleTokenManager {
   contract: MultiFungibleTokenManagerContract;
+  signer: ethers.Signer;
 
-  constructor(contract: MultiFungibleTokenManagerContract) {
+  constructor(contract: MultiFungibleTokenManagerContract, signer: ethers.Signer) {
     this.contract = contract;
+    this.signer;
   }
 
   public static async createMultiFungibleTokenManager(deployer: ethers.Signer) {
     const factory = new MultiFungibleTokenManager__factory(deployer);
     const contract = await factory.deploy();
+
     await contract.deployed();
 
-    const manager = new MultiFungibleTokenManager(contract);
+    const manager = new MultiFungibleTokenManager(contract, deployer);
     return manager;
   }
 
   public static async connect(managerAddress: string, signer: ethers.Signer) {
     const managerContract = MultiFungibleTokenManager__factory.connect(managerAddress, signer);
-    const manager = new MultiFungibleTokenManager(managerContract);
+    const manager = new MultiFungibleTokenManager(managerContract, signer);
     return manager;
   }
 
@@ -48,7 +51,8 @@ export class MultiFungibleTokenManager {
       salt,
       limit,
       feePercentage,
-      isNativeAllowed
+      isNativeAllowed,
+      await this.signer.getAddress()
     );
     await tx.wait();
   }

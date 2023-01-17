@@ -75,14 +75,14 @@ abstract contract VAnchorBase is LinkableAnchor {
 	function configureMinimalWithdrawalLimit(
 		uint256 _minimalWithdrawalAmount,
 		uint32 _nonce
-	) public override onlyHandler onlyIncrementingByOne(_nonce) {
+	) public override onlyHandler onlyIncrementingByOne(_nonce) onlyInitialized {
 		_configureMinimalWithdrawalLimit(_minimalWithdrawalAmount);
 	}
 
 	function configureMaximumDepositLimit(
 		uint256 _maximumDepositAmount,
 		uint32 _nonce
-	) public override onlyHandler onlyIncrementingByOne(_nonce) {
+	) public override onlyHandler onlyIncrementingByOne(_nonce) onlyInitialized {
 		_configureMaximumDepositLimit(_maximumDepositAmount);
 	}
 
