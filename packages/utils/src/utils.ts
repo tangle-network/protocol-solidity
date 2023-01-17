@@ -1,15 +1,13 @@
 /* eslint-disable camelcase */
 /* eslint-disable sort-keys */
 const assert = require('assert');
-import { BigNumber, BigNumberish, ethers } from 'ethers';
-import { poseidon } from 'circomlibjs';
+import { BigNumber, ethers } from 'ethers';
 import { groth16 } from 'snarkjs';
 
-import { u8aToHex } from '@polkadot/util';
 
 import path from 'path';
 import { ZkComponents } from './types';
-import { toFixedHex, Keypair, MerkleProof, MerkleTree, Utxo } from '@webb-tools/sdk-core';
+import { toFixedHex, Keypair, MerkleProof } from '@webb-tools/sdk-core';
 
 export const ZERO_BYTES32 = '0x0000000000000000000000000000000000000000000000000000000000000000';
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
