@@ -9,6 +9,7 @@
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
+    "@webb-tools/anchors": "^0.5.4",
     "@webb-tools/contracts": "^0.5.4",
     "@webb-tools/sdk-core": "0.1.4-119",
     "@webb-tools/utils": "^0.5.4",

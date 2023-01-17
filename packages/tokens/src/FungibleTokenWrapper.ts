@@ -6,6 +6,7 @@ import {
   FungibleTokenWrapper__factory,
 } from '@webb-tools/contracts';
 import { assert } from 'chai';
+import { Deployer } from '@webb-tools/anchors';
 
 export class FungibleTokenWrapper {
   contract: FungibleTokenWrapperContract;
@@ -39,6 +40,37 @@ export class FungibleTokenWrapper {
     await contract.initialize(feePercentage, feeRecipient, handler, limit, isNativeAllowed);
     const tokenWrapper = new FungibleTokenWrapper(contract, deployer);
 
+    return tokenWrapper;
+  }
+
+  public static async create2FungibleTokenWrapper(
+    name: string,
+    symbol: string,
+    feePercentage: number,
+    feeRecipient: string,
+    handler: string,
+    limit: string,
+    isNativeAllowed: boolean,
+    deployer: Deployer,
+    saltHex: string,
+    signer: ethers.Signer
+  ) {
+    assert(feePercentage <= 10_000, 'feePercentage should be less than 10_000');
+
+    const argTypes = ['string', 'string'];
+    const args = [name, symbol];
+    const { contract: contract } = await deployer.deploy(
+      FungibleTokenWrapper__factory,
+      saltHex,
+      signer,
+      undefined,
+      argTypes,
+      args
+    );
+
+    // Initialize immediately after deployment as we use an intializer now
+    await contract.initialize(feePercentage, feeRecipient, handler, limit, isNativeAllowed);
+    const tokenWrapper = new FungibleTokenWrapper(contract, signer);
     return tokenWrapper;
   }
 
