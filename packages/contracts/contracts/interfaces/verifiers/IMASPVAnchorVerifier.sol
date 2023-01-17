@@ -18,7 +18,7 @@ interface IMASPVAnchorVerifier2_2 {
 		uint[2] memory a,
 		uint[2][2] memory b,
 		uint[2] memory c,
-		uint[10] memory input
+		uint[33] memory input
 	) external view returns (bool r);
 }
 
@@ -35,7 +35,7 @@ interface IMASPVAnchorVerifier2_16 {
 		uint[2] memory a,
 		uint[2][2] memory b,
 		uint[2] memory c,
-		uint256[24] memory input
+		uint256[39] memory input
 	) external view returns (bool r);
 }
 
@@ -52,7 +52,7 @@ interface IMASPVAnchorVerifier8_2 {
 		uint[2] memory a,
 		uint[2][2] memory b,
 		uint[2] memory c,
-		uint[16] memory input
+		uint[74] memory input
 	) external view returns (bool r);
 }
 
@@ -69,6 +69,6 @@ interface IMASPVAnchorVerifier8_16 {
 		uint[2] memory a,
 		uint[2][2] memory b,
 		uint[2] memory c,
-		uint256[30] memory input
+		uint256[80] memory input
 	) external view returns (bool r);
 }
