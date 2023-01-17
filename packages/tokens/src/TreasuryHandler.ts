@@ -3,6 +3,7 @@ import {
   TreasuryHandler as TreasuryHandlerContract,
   TreasuryHandler__factory,
 } from '@webb-tools/contracts';
+import { Deployer } from '@webb-tools/anchors';
 
 export class TreasuryHandler {
   contract: TreasuryHandlerContract;
@@ -21,6 +22,28 @@ export class TreasuryHandler {
     const contract = await factory.deploy(bridgeAddress, initResourceIds, initContractAddresses);
     await contract.deployed();
 
+    const handler = new TreasuryHandler(contract);
+    return handler;
+  }
+
+  public static async create2TreasuryHandler(
+    bridgeAddress: string,
+    initResourceIds: string[],
+    initContractAddresses: string[],
+    deployer: Deployer,
+    saltHex: string,
+    sender: ethers.Signer
+  ) {
+    const argTypes = ['address', 'bytes32[]', 'address[]'];
+    const args = [bridgeAddress, initResourceIds, initContractAddresses];
+    const { contract: contract } = await deployer.deploy(
+      TreasuryHandler__factory,
+      saltHex,
+      sender,
+      undefined,
+      argTypes,
+      args
+    );
     const handler = new TreasuryHandler(contract);
     return handler;
   }

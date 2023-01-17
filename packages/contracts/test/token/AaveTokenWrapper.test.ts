@@ -15,11 +15,8 @@ import { IERC20, AaveTokenWrapper, AaveTokenWrapper__factory } from '../../typec
 import { expect } from 'chai';
 
 describe('AaveTokenWrapper', () => {
-  let token: ERC20Class;
   let aaveToken: AaveTokenWrapper;
   let sender: SignerWithAddress;
-  const tokenName = 'Token';
-  const tokenSymbol = 'TKN';
   const aaveTokenName = 'Wrapped Token';
   const aaveTokenSymbol = 'wTKN';
   const aaveLendingPoolAddress = '0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9';

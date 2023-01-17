@@ -51,6 +51,8 @@
     "copyfiles": "^2.4.1",
     "eth-proof": "~2.1.6",
     "ethers": "5.7.0",
+    "itertools": "^1.7.1",
+    "tomlify-j0.4":"^3.0.0",
     "ffjavascript": "^0.2.38",
     "hardhat": "^2.6.8",
     "hardhat-gas-reporter": "^1.0.8",

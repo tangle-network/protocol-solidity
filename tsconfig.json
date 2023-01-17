@@ -22,10 +22,10 @@
         "packages/evm-test-utils/src/*"
       ],
       "@webb-tools/contracts": [
-        "packages/contracts/typechain"
+        "packages/contracts/src"
       ],
       "@webb-tools/contracts/*": [
-        "packages/contracts/typechain/*"
+        "packages/contracts/src/*"
       ],
       "@webb-tools/interfaces": [
         "packages/interfaces/src"
