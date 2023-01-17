@@ -1398,7 +1398,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
         dummyFeeRecipient,
         alice.address,
         '10000000000000000000000000',
-        true
+        true,
+        wallet.address
       );
       await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
       const groupId = BigNumber.from(99); // arbitrary
