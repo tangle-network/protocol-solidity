@@ -6,3 +6,4 @@ export { IdentityVAnchor } from './IdentityVAnchor';
 export { OpenVAnchor } from './OpenVAnchor';
 export { PoseidonHasher } from './PoseidonHasher';
 export { Deployer } from './Deployer';
+export { BatchTreeUpdater } from './BatchTreeUpdater';

@@ -1,17 +1,14 @@
 {
   "name": "@webb-tools/contracts",
-  "main": "./lib/index.js",
+  "main": "./typechain/index.ts",
   "license": "GPL-3.0-or-later",
   "author": "Webb Developers <drew@webb.tools>",
   "scripts": {
-    "compile": "yarn compile:private && yarn build:library && yarn copy:declarations",
-    "compile:private": "yarn run clean && yarn run build:contracts",
+    "compile": "yarn run clean && yarn run build:contracts",
     "build": "exit 0",
-    "clean": "rimraf -rf ./lib && rimraf -rf ./typechain && rimraf -rf ./cache && rimraf -rf ./artifacts",
-    "build:library": "tsc -p tsconfig.build.json",
+    "clean": "rimraf -rf ./typechain && rimraf -rf ./cache && rimraf -rf ./artifacts",
     "test": "npx hardhat test",
     "test:parallel": "npx hardhat test --parallel",
-    "copy:declarations": "copyfiles -f ./typechain/*.d.ts ./lib",
     "build:contracts": "npx hardhat compile",
     "test:gas-reporter": "REPORT_GAS=true npx hardhat test --parallel"
   },
