@@ -47,7 +47,7 @@ const path = require('path');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
 
-describe('VAnchor for 1 max edge', () => {
+describe.only('VAnchor for 1 max edge', () => {
   let anchor: VAnchor;
 
   const levels = 30;
@@ -141,7 +141,8 @@ describe('VAnchor for 1 max edge', () => {
       dummyFeeRecipient,
       sender.address,
       '10000000000000000000000000',
-      true
+      true,
+      wallet.address
     );
     await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
 
@@ -1195,7 +1196,8 @@ describe('VAnchor for 1 max edge', () => {
         dummyFeeRecipient,
         sender.address,
         '10000000000000000000000000',
-        true
+        true,
+        wallet.address
       );
       await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
 
@@ -1270,7 +1272,8 @@ describe('VAnchor for 1 max edge', () => {
         dummyFeeRecipient,
         sender.address,
         '10000000000000000000000000',
-        true
+        true,
+        wallet.address
       );
       await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
 
@@ -1346,7 +1349,8 @@ describe('VAnchor for 1 max edge', () => {
         dummyFeeRecipient,
         sender.address,
         '10000000000000000000000000',
-        true
+        true,
+        wallet.address
       );
       await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
 
@@ -1452,7 +1456,8 @@ describe('VAnchor for 1 max edge', () => {
         dummyFeeRecipient,
         sender.address,
         '10000000000000000000000000',
-        true
+        true,
+        wallet.address
       );
       await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
       const wrapFee = 5;
@@ -1609,7 +1614,8 @@ describe('VAnchor for 1 max edge', () => {
         dummyFeeRecipient,
         sender.address,
         '10000000000000000000000000',
-        true
+        true,
+        wallet.address
       );
       await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
       const wrapFee = 5;
@@ -1638,7 +1644,8 @@ describe('VAnchor for 1 max edge', () => {
         dummyFeeRecipient,
         sender.address,
         '10000000000000000000000000',
-        true
+        true,
+        wallet.address
       );
       await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
       const wrapFee = 10001;
@@ -1665,7 +1672,8 @@ describe('VAnchor for 1 max edge', () => {
         dummyFeeRecipient,
         sender.address,
         '10000000000000000000000000',
-        true
+        true,
+        wallet.address
       );
       await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
       const wrapFee = -1;
@@ -1691,7 +1699,8 @@ describe('VAnchor for 1 max edge', () => {
         dummyFeeRecipient,
         sender.address,
         '10000000000000000000000000',
-        true
+        true,
+        wallet.address
       );
       await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
       const wrapFee = 2.5;

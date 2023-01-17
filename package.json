@@ -12,7 +12,7 @@
     "build": "yarn compile && yarn build:packages",
     "setup": "yarn compile && yarn build:circuits && yarn build:ptau",
     "test": "yarn workspace @webb-tools/contracts run test",
-    "fast": "yarn workspace @webb-tools/contracts run fast",
+    "fast": "yarn workspace @webb-tools/contracts run test:parallel",
     "build:circuits": "./scripts/bash/build_circuits.sh",
     "build:packages": "lerna run build",
     "build:ptau": "./scripts/bash/generate_phase1_ptau.sh",
