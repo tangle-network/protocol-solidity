@@ -129,7 +129,7 @@ async function run() {
     // [chainIdTypeDemeter]: ['0']
   };
 
-  const endPoints: Record<number, EndPointConfig> = {
+  const chainEndPoints: Record<number, EndPointConfig> = {
     // [chainIdTypeGoerli]: goerliEndPoints,
     // [chainIdTypeSepolia]: sepoliaEndPoints,
     // [chainIdTypeOptimism]: optimismEndPoints,
@@ -171,7 +171,7 @@ async function run() {
       }
     }
 
-    const endPointConfig = endPoints[typedChainId];
+    const endPointConfig = chainEndPoints[typedChainId];
     // construct chain configuration
     const chainConfig = getEvmChainConfig(
       chainId,
