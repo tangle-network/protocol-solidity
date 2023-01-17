@@ -12,7 +12,8 @@ import { PoseidonHasher } from '@webb-tools/anchors';
 import {
   MerkleForestMock as MerkleForestMockContract,
   LinkableIncrementalBinaryTree as LinkableIncrementalBinaryTreeContract,
-} from '../../lib';
+  LinkableIncrementalBinaryTree__factory,
+} from '../../typechain';
 const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
 
