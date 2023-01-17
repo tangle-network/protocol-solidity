@@ -56,7 +56,6 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
     // data for transaction inputs
     signal input inputNullifier[nIns];
     signal input inAmount[nIns];
-    signal input inPrivateKey[nIns];
     signal input inBlinding[nIns];
     signal input inPathIndices[nIns];
     signal input inPathElements[nIns][levels];
@@ -98,7 +97,6 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
     // data for transaction inputs
     signal input feeInputNullifier[nFeeIns];
     signal input feeInAmount[nFeeIns];
-    signal input feeInPrivateKey[nFeeIns];
     signal input feeInBlinding[nFeeIns];
     signal input feeInPathIndices[nFeeIns];
     signal input feeInPathElements[nFeeIns][levels];

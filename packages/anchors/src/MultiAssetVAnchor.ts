@@ -51,7 +51,7 @@ export type Proof = {
 };
 
 export type MASPVAnchorInputs = {
-  allInputs: MASPAllInputs;
+  allInputs: IMASPAllInputs;
   publicInputs: IMASPVAnchorPublicInputs;
 }
 
