@@ -6,14 +6,12 @@ import {
   Utxo,
   CircomProvingManager,
   ProvingManagerSetupInput,
-  Note,
-  NoteGenInput,
   FIELD_SIZE,
   LeafIdentifier,
 } from '@webb-tools/sdk-core';
 import { IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
-import { VAnchorTree as VAnchorContract } from '../../../typechain';
+import { VAnchorTree as VAnchorContract } from '@webb-tools/contracts';
 
 export class SetupTxVAnchorMock extends VAnchor {
   private rootsForProof: BigNumber[];
