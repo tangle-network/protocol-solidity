@@ -128,6 +128,14 @@ async function run() {
     // [chainIdTypeAthena]: ['0'],
     // [chainIdTypeDemeter]: ['0']
   };
+  
+  const endPoints: Record<number, EndPointConfig> = {
+    // [chainIdTypeGoerli]: goerliEndPoints,
+    // [chainIdTypeSepolia]: sepoliaEndPoints,
+    // [chainIdTypeOptimism]: optimismEndPoints,
+    [chainIdTypePolygon]: polygonEndPoints,
+    // [chainIdTypeMoonbase]: moonbaseEndPoints,
+  }
 
   const endPoints: Record<number, EndPointConfig> = {
     // [chainIdTypeGoerli]: goerliEndPoints,
