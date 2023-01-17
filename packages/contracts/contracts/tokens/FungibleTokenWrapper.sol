@@ -18,6 +18,7 @@ import "../utils/ProposalNonceTracker.sol";
     TokenHandler contract.
  */
 contract FungibleTokenWrapper is
+	Initialized,
 	TokenWrapper,
 	IFungibleTokenWrapper,
 	ProposalNonceTracker
@@ -57,7 +58,7 @@ contract FungibleTokenWrapper is
 		bool _isNativeAllowed,
 		address _admin
 	) public onlyUninitialized {
-		super.initialize(_admin);
+		super._initialize(_admin);
 		initialized = true;
 		feePercentage = _feePercentage;
 		feeRecipient = payable(_feeRecipient);

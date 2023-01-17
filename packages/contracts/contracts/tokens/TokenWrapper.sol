@@ -42,6 +42,16 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
 	}
 
 	/**
+        @notice Get the fee for a target amount to wrap
+        @param _admin the address for granting minting, pausing and admin roles at initialization
+     */
+	function _initialize(address _admin) internal returns (uint256) {
+        _setupRole(MINTER_ROLE, _admin);
+        _setupRole(DEFAULT_ADMIN_ROLE, _admin);
+        _setupRole(PAUSER_ROLE, _admin);
+	}
+
+	/**
         @notice Get the amount to wrap for a target `_deposit` amount
         @param _deposit The deposit amount
         @return uint The amount to wrap conditioned on the deposit amount
