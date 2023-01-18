@@ -695,16 +695,15 @@ export class VAnchor extends WebbBridge implements IVAnchor {
   }
 
   async getDepositLeaves(
-    vanchor: VAnchor,
     startingBlock: number,
     finalBlock: number,
     abortSignal: AbortSignal,
     retryPromise
   ): Promise<{ lastQueriedBlock: number; newLeaves: string[] }> {
-    const filter = vanchor.contract.filters.NewCommitment(null, null, null);
+    const filter = this.contract.filters.NewCommitment(null, null, null);
 
     console.log('Getting leaves with filter', filter);
-    finalBlock = finalBlock || (await vanchor.contract.provider.getBlockNumber());
+    finalBlock = finalBlock || (await this.contract.provider.getBlockNumber());
     console.log(`finalBlock detected as: ${finalBlock}`);
 
     let logs: Array<Log> = []; // Read the stored logs into this variable
@@ -715,7 +714,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
       for (let i = startingBlock; i < finalBlock; i += step) {
         const nextLogs = await retryPromise(
           () => {
-            return vanchor.contract.provider.getLogs({
+            return this.contract.provider.getLogs({
               fromBlock: i,
               toBlock: finalBlock - i > step ? i + step : finalBlock,
               ...filter,
@@ -735,7 +734,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
       throw e;
     }
 
-    const events = logs.map((log) => vanchor.contract.interface.parseLog(log));
+    const events = logs.map((log) => this.contract.interface.parseLog(log));
 
     const newCommitments = events
       .sort((a, b) => a.args.index - b.args.index) // Sort events in chronological order
@@ -748,17 +747,16 @@ export class VAnchor extends WebbBridge implements IVAnchor {
 
   // This function will query the chain for notes that are spendable by a keypair in a block range
   async getSpendableUtxosFromChain(
-    vanchor: VAnchor,
     owner: Keypair,
     startingBlock: number,
     finalBlock: number,
     abortSignal: AbortSignal,
     retryPromise: any
   ): Promise<Utxo[]> {
-    const filter = vanchor.contract.filters.NewCommitment(null, null, null);
+    const filter = this.contract.filters.NewCommitment(null, null, null);
     let logs: Array<Log> = []; // Read the stored logs into this variable
 
-    finalBlock = finalBlock || (await vanchor.contract.provider.getBlockNumber());
+    finalBlock = finalBlock || (await this.contract.provider.getBlockNumber());
     console.log(`Getting notes from chain`);
     // number of blocks to query at a time
     const step = 1024;
@@ -768,7 +766,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
       for (let i = startingBlock; i < finalBlock; i += step) {
         const nextLogs = await retryPromise(
           () => {
-            return vanchor.contract.provider.getLogs({
+            return this.contract.provider.getLogs({
               fromBlock: i,
               toBlock: finalBlock - i > step ? i + step : finalBlock,
               ...filter,
@@ -788,7 +786,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
       throw e;
     }
 
-    const events = logs.map((log) => vanchor.contract.interface.parseLog(log));
+    const events = logs.map((log) => this.contract.interface.parseLog(log));
     const encryptedCommitments: string[] = events
       .sort((a, b) => a.args.index - b.args.index) // Sort events in chronological order
       .map((e) => e.args.encryptedOutput);
@@ -810,7 +808,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
             keypair: owner,
             index: index.toString(),
           });
-          const alreadySpent = await vanchor.contract.isSpent(
+          const alreadySpent = await this.contract.isSpent(
             toFixedHex(`0x${regeneratedUtxo.nullifier}`, 32)
           );
           if (!alreadySpent) {
