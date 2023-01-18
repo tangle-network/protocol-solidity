@@ -14,7 +14,8 @@
     "@webb-tools/sdk-core": "0.1.4-119",
     "@webb-tools/semaphore": "0.0.1-5",
     "@webb-tools/utils": "^0.5.6",
-    "ethers": "5.7.0"
+    "ethers": "5.7.0",
+    "jssha": "^3.2.0"
   },
   "publishConfig": {
     "access": "public"
