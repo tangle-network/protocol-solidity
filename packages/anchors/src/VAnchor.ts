@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish, ethers } from 'ethers';
+import { BigNumber, BigNumberish, BytesLike, ethers } from 'ethers';
 import { Log } from '@ethersproject/abstract-provider';
 import {
   VAnchorTree as VAnchorTreeContract,
@@ -571,8 +571,11 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     return receipt;
   }
 
-  public async register(account: string, keyData: string): Promise<ethers.ContractReceipt> {
-    const tx = await this.contract.register(account, keyData);
+  public async register(owner: string, keyData: BytesLike): Promise<ethers.ContractReceipt> {
+    const tx = await this.contract.register({
+      owner,
+      keyData,
+    });
     const receipt = await tx.wait();
     return receipt;
   }
