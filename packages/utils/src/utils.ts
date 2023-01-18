@@ -4,7 +4,6 @@ const assert = require('assert');
 import { BigNumber, ethers } from 'ethers';
 import { groth16 } from 'snarkjs';
 
-
 import path from 'path';
 import { ZkComponents } from './types';
 import { toFixedHex, Keypair, MerkleProof } from '@webb-tools/sdk-core';

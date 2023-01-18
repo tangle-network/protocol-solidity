@@ -76,7 +76,14 @@ export class FungibleTokenWrapper {
     );
 
     // Initialize immediately after deployment as we use an intializer now
-    await contract.initialize(feePercentage, feeRecipient, handler, limit, isNativeAllowed);
+    await contract.initialize(
+      feePercentage,
+      feeRecipient,
+      handler,
+      limit,
+      isNativeAllowed,
+      await signer.getAddress()
+    );
     const tokenWrapper = new FungibleTokenWrapper(contract, signer);
     return tokenWrapper;
   }

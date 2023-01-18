@@ -290,10 +290,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
 
   // Verify the leaf occurred at the reported block
   // This is important to check the behavior of relayers before modifying local storage
-  async leafCreatedAtBlock(
-    leaf: string,
-    blockNumber: number
-  ): Promise<boolean> {
+  async leafCreatedAtBlock(leaf: string, blockNumber: number): Promise<boolean> {
     const filter = this.contract.filters.NewCommitment(null, null, null);
     const logs = await this.contract.provider.getLogs({
       fromBlock: blockNumber,

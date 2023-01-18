@@ -1,0 +1,40 @@
+[evm]
+
+[evm.sepolia]
+beneficiary = "0xf1fd5607b90f6c421db7313158baac170d4f053b"
+block-confirmations = 0
+chain-id = 11155111
+enabled = true
+http-endpoint = "https://rpc.sepolia.org"
+name = "sepolia"
+private-key = "0xc086596a698603ae7428a61ced569cbc5fdc24ae91c341d692aad590febc4429"
+ws-endpoint = "wss://rpc.sepolia.dev"
+
+[[evm.sepolia.contracts]]
+address = "0x2f31776767859e6907aebce3f60572d921188d2f"
+contract = "VAnchor"
+deployed-at = 2712214
+linked-anchors = []
+
+[evm.sepolia.contracts.events-watcher]
+enabled = true
+polling-interval = 1000
+print-progress-interval = 7000
+
+[evm.sepolia.contracts.proposal-signing-backend]
+node = "tangle"
+type = "DKGNode"
+
+[evm.sepolia.contracts.withdraw-config]
+withdraw-fee-percentage = 0
+withdraw-gaslimit = "0x5B8D80"
+
+[[evm.sepolia.contracts]]
+address = "0xb143c457702f64154c566bb49b433f25d683e662"
+contract = "SignatureBridge"
+deployed-at = 2712197
+
+[evm.sepolia.contracts.events-watcher]
+enabled = true
+polling-interval = 1000
+print-progress-interval = 7000
