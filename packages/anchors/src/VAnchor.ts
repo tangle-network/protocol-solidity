@@ -1,8 +1,11 @@
 import { BigNumber, BigNumberish, ethers } from 'ethers';
+import { Log } from '@ethersproject/abstract-provider';
 import {
   VAnchorTree as VAnchorTreeContract,
   VAnchorTree__factory,
   VAnchorEncodeInputs__factory,
+  ERC20,
+  ERC20__factory,
 } from '@webb-tools/contracts';
 import {
   toFixedHex,
@@ -13,6 +16,8 @@ import {
   MerkleProof,
   FIELD_SIZE,
   LeafIdentifier,
+  Keypair,
+  CircomUtxo,
 } from '@webb-tools/sdk-core';
 import {
   IVAnchor,
@@ -290,10 +295,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
 
   // Verify the leaf occurred at the reported block
   // This is important to check the behavior of relayers before modifying local storage
-  async leafCreatedAtBlock(
-    leaf: string,
-    blockNumber: number
-  ): Promise<boolean> {
+  async leafCreatedAtBlock(leaf: string, blockNumber: number): Promise<boolean> {
     const filter = this.contract.filters.NewCommitment(null, null, null);
     const logs = await this.contract.provider.getLogs({
       fromBlock: blockNumber,
@@ -631,6 +633,203 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     this.updateTreeState(outputs);
 
     return receipt;
+  }
+
+  async getWebbToken(): Promise<ERC20> {
+    const tokenAddress = await this.contract.token();
+    const tokenInstance = ERC20__factory.connect(tokenAddress, this.signer);
+
+    return tokenInstance;
+  }
+
+  async isWebbTokenApprovalRequired(depositAmount: BigNumberish) {
+    const userAddress = await this.signer.getAddress();
+    const tokenInstance = await this.getWebbToken();
+    const tokenAllowance = await tokenInstance.allowance(userAddress, this.contract.address);
+
+    if (tokenAllowance < depositAmount) {
+      return true;
+    }
+
+    return false;
+  }
+
+  async isWrappableTokenApprovalRequired(tokenAddress: string, depositAmount: BigNumberish) {
+    const userAddress = await this.signer.getAddress();
+    const webbToken = await this.getWebbToken();
+    const tokenAllowance = await webbToken.allowance(userAddress, webbToken.address);
+
+    if (tokenAllowance < depositAmount) {
+      return true;
+    }
+
+    return false;
+  }
+
+  async hasEnoughBalance(depositAmount: BigNumberish, tokenAddress?: string) {
+    const userAddress = await this.signer.getAddress();
+    let tokenBalance: BigNumber;
+
+    // If a token address was supplied, the user is querying for enough balance of a wrappableToken
+    if (tokenAddress) {
+      // query for native balance
+      if (tokenAddress === zeroAddress) {
+        tokenBalance = await this.signer.getBalance();
+      } else {
+        const tokenInstance = ERC20__factory.connect(tokenAddress, this.signer);
+
+        tokenBalance = await tokenInstance.balanceOf(userAddress);
+      }
+    } else {
+      // Querying for balance of the webbToken
+      const tokenInstance = await this.getWebbToken();
+
+      tokenBalance = await tokenInstance.balanceOf(userAddress);
+    }
+
+    if (tokenBalance.lt(BigNumber.from(depositAmount))) {
+      return false;
+    }
+
+    return true;
+  }
+
+  async getDepositLeaves(
+    vanchor: VAnchor,
+    startingBlock: number,
+    finalBlock: number,
+    abortSignal: AbortSignal,
+    retryPromise
+  ): Promise<{ lastQueriedBlock: number; newLeaves: string[] }> {
+    const filter = vanchor.contract.filters.NewCommitment(null, null, null);
+
+    console.log('Getting leaves with filter', filter);
+    finalBlock = finalBlock || (await vanchor.contract.provider.getBlockNumber());
+    console.log(`finalBlock detected as: ${finalBlock}`);
+
+    let logs: Array<Log> = []; // Read the stored logs into this variable
+    const step = 1000; // Metamask infura caps requests at 1000 blocks
+    console.log(`Fetching leaves with steps of ${step} logs/request`);
+
+    try {
+      for (let i = startingBlock; i < finalBlock; i += step) {
+        const nextLogs = await retryPromise(
+          () => {
+            return vanchor.contract.provider.getLogs({
+              fromBlock: i,
+              toBlock: finalBlock - i > step ? i + step : finalBlock,
+              ...filter,
+            });
+          },
+          20,
+          10,
+          abortSignal
+        );
+
+        logs = [...logs, ...nextLogs];
+
+        console.log(`Getting logs for block range: ${i} through ${i + step}`);
+      }
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+
+    const events = logs.map((log) => vanchor.contract.interface.parseLog(log));
+
+    const newCommitments = events
+      .sort((a, b) => a.args.index - b.args.index) // Sort events in chronological order
+      .map((e) => BigNumber.from(e.args.commitment).toHexString());
+    return {
+      lastQueriedBlock: finalBlock,
+      newLeaves: newCommitments,
+    };
+  }
+
+  // This function will query the chain for notes that are spendable by a keypair in a block range
+  async getSpendableUtxosFromChain(
+    vanchor: VAnchor,
+    owner: Keypair,
+    startingBlock: number,
+    finalBlock: number,
+    abortSignal: AbortSignal,
+    retryPromise: any
+  ): Promise<Utxo[]> {
+    const filter = vanchor.contract.filters.NewCommitment(null, null, null);
+    let logs: Array<Log> = []; // Read the stored logs into this variable
+
+    finalBlock = finalBlock || (await vanchor.contract.provider.getBlockNumber());
+    console.log(`Getting notes from chain`);
+    // number of blocks to query at a time
+    const step = 1024;
+    console.log(`Fetching notes with steps of ${step} logs/request`);
+
+    try {
+      for (let i = startingBlock; i < finalBlock; i += step) {
+        const nextLogs = await retryPromise(
+          () => {
+            return vanchor.contract.provider.getLogs({
+              fromBlock: i,
+              toBlock: finalBlock - i > step ? i + step : finalBlock,
+              ...filter,
+            });
+          },
+          20,
+          10,
+          abortSignal
+        );
+
+        logs = [...logs, ...nextLogs];
+
+        console.log(`Getting logs for block range: ${i} through ${i + step}`);
+      }
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+
+    const events = logs.map((log) => vanchor.contract.interface.parseLog(log));
+    const encryptedCommitments: string[] = events
+      .sort((a, b) => a.args.index - b.args.index) // Sort events in chronological order
+      .map((e) => e.args.encryptedOutput);
+
+    // Attempt to decrypt with the owner's keypair
+    const utxos = await Promise.all(
+      encryptedCommitments.map(async (enc, index) => {
+        try {
+          const decryptedUtxo = await CircomUtxo.decrypt(owner, enc);
+          // In order to properly calculate the nullifier, an index is required.
+          // The decrypt function generates a utxo without an index, and the index is a readonly property.
+          // So, regenerate the utxo with the proper index.
+          const regeneratedUtxo = await CircomUtxo.generateUtxo({
+            amount: decryptedUtxo.amount,
+            backend: 'Circom',
+            blinding: hexToU8a(decryptedUtxo.blinding),
+            chainId: decryptedUtxo.chainId,
+            curve: 'Bn254',
+            keypair: owner,
+            index: index.toString(),
+          });
+          const alreadySpent = await vanchor.contract.isSpent(
+            toFixedHex(`0x${regeneratedUtxo.nullifier}`, 32)
+          );
+          if (!alreadySpent) {
+            return regeneratedUtxo;
+          } else {
+            return undefined;
+          }
+        } catch (e) {
+          return undefined;
+        }
+      })
+    );
+
+    // Unsure why the following filter statement does not change type from (Utxo | undefined)[] to Utxo[]
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const decryptedUtxos: Utxo[] = utxos.filter((value) => value !== undefined);
+
+    return decryptedUtxos;
   }
 }
 
