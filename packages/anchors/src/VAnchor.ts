@@ -571,6 +571,12 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     return receipt;
   }
 
+  public async register(account: string, keyData: string): Promise<ethers.ContractReceipt> {
+    const tx = await this.contract.register(account, keyData);
+    const receipt = await tx.wait();
+    return receipt;
+  }
+
   public async registerAndTransact(
     owner: string,
     keyData: string,

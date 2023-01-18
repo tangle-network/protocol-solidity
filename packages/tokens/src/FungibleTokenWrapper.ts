@@ -87,29 +87,29 @@ export class FungibleTokenWrapper {
     return tokenWrapper;
   }
 
-  public async grantMinterRole(address: string) {
+  public async grantMinterRole(address: string): Promise<ethers.ContractReceipt> {
     const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
     const tx = await this.contract.grantRole(MINTER_ROLE, address);
-    await tx.wait();
-    return;
+    const receipt = await tx.wait();
+    return receipt;
   }
 
-  public async approve(address: string, amount: BigNumberish) {
+  public async approve(address: string, amount: BigNumberish): Promise<ethers.ContractReceipt> {
     const tx = await this.contract.approve(address, amount);
-    await tx.wait();
-    return;
+    const receipt = await tx.wait();
+    return receipt;
   }
 
-  public async wrap(tokenAddress: string, amount: BigNumberish) {
+  public async wrap(tokenAddress: string, amount: BigNumberish): Promise<ethers.ContractReceipt> {
     const tx = await this.contract.wrap(tokenAddress, amount);
-    await tx.wait();
-    return;
+    const receipt = await tx.wait();
+    return receipt;
   }
 
-  public async unwrap(tokenAddress: string, amount: BigNumberish) {
+  public async unwrap(tokenAddress: string, amount: BigNumberish): Promise<ethers.ContractReceipt> {
     const tx = await this.contract.unwrap(tokenAddress, amount);
-    await tx.wait();
-    return;
+    const receipt = await tx.wait();
+    return receipt;
   }
 
   public async isNativeAllowed(): Promise<boolean> {
