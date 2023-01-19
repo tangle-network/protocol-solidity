@@ -29,7 +29,9 @@ import { ContractConfig, getEvmChainConfig, writeEvmChainConfig } from '../utils
 import { zip } from 'itertools';
 import {
   EndPointConfig,
+  goerliEndPoints,
   moonbaseEndPoints,
+  optimismEndPoints,
   polygonEndPoints,
   sepoliaEndPoints,
 } from '../endPoints';
@@ -139,11 +141,11 @@ async function run() {
     const chainId = await anchor.signer.getChainId();
     const anchorContractConfig: ContractConfig = {
       address: anchor.contract.address.toLowerCase(),
-      deployedAt: anchor.contract.deployTransaction.blockNumber,
+      deployedAt: anchor.contract.deployTransaction.blockNumber ?? 1,
     };
     const bridgeContractConfig: ContractConfig = {
       address: bridgeSide.contract.address.toLowerCase(),
-      deployedAt: bridgeSide.contract.deployTransaction.blockNumber,
+      deployedAt: bridgeSide.contract.deployTransaction.blockNumber ?? 1,
     };
     const proposalSigningBackend: ProposalSigningBackend = { type: 'DKGNode', node: 'tangle' };
     const linkedAnchors: EvmLinkedAnchor[] = [];
