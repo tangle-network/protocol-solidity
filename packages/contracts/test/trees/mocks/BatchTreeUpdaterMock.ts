@@ -1,22 +1,12 @@
 import { BatchTreeUpdater } from '@webb-tools/anchors';
 
 import { BigNumber, BigNumberish, ethers } from 'ethers';
-import {
-  toFixedHex,
-  Utxo,
-  CircomProvingManager,
-  ProvingManagerSetupInput,
-  Note,
-  NoteGenInput,
-  FIELD_SIZE,
-  LeafIdentifier,
-} from '@webb-tools/sdk-core';
-import { IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
-import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
+import { toFixedHex } from '@webb-tools/sdk-core';
+import { ZkComponents } from '@webb-tools/utils';
 import {
   BatchMerkleTreeMock__factory,
   BatchMerkleTreeMock as BatchMerkleTreeContract,
-} from '../../../typechain';
+} from '../../../lib';
 
 const assert = require('assert');
 

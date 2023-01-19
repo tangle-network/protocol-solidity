@@ -4,49 +4,12 @@ import jsSHA from 'jssha';
 import {
   BatchMerkleTree as BatchMerkleTreeContract,
   BatchMerkleTree__factory,
-  TokenWrapper,
-  TokenWrapper__factory,
 } from '@webb-tools/contracts';
-import {
-  toHex,
-  Keypair,
-  toFixedHex,
-  Utxo,
-  MerkleTree,
-  median,
-  mean,
-  max,
-  min,
-  randomBN,
-  CircomProvingManager,
-  generateVariableWitnessInput,
-  getVAnchorExtDataHash,
-  MerkleProof,
-  UtxoGenInput,
-  CircomUtxo,
-  toBuffer,
-} from '@webb-tools/sdk-core';
-import {
-  IVAnchor,
-  IIdentityVariableAnchorExtData,
-  IIdentityVariableAnchorPublicInputs,
-} from '@webb-tools/interfaces';
-import {
-  hexToU8a,
-  u8aToHex,
-  getChainIdType,
-  UTXOInputs,
-  ZkComponents,
-  ZERO_BYTES32,
-} from '@webb-tools/utils';
-import { Semaphore } from '@webb-tools/semaphore';
-import { LinkedGroup } from '@webb-tools/semaphore-group';
-import { WebbBridge } from './Common';
-import { Deployer } from './Deployer';
+import { toFixedHex, MerkleTree, toBuffer } from '@webb-tools/sdk-core';
+
+import { ZkComponents } from '@webb-tools/utils';
 
 const snarkjs = require('snarkjs');
-
-const zeroAddress = '0x0000000000000000000000000000000000000000';
 
 type ProofSignals = {
   oldRoot: string;

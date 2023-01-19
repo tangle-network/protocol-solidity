@@ -10,8 +10,7 @@ const { BigNumber } = require('ethers');
 const bne = (x, e) => BigNumber.from(x + '0'.repeat(parseInt(e)));
 
 // Convenience wrapper classes for contract classes
-import { ERC20 as ERC20Class } from '@webb-tools/tokens';
-import { IERC20, AaveTokenWrapper, AaveTokenWrapper__factory } from '../../typechain';
+import { IERC20, AaveTokenWrapper, AaveTokenWrapper__factory } from '../../lib';
 import { expect } from 'chai';
 
 describe('AaveTokenWrapper', () => {
