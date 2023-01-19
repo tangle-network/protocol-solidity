@@ -6,12 +6,13 @@ export interface IMASPVAnchorPublicInputs {
     extDataHash: BigNumber;
     assetID: BigNumber;
     tokenID: BigNumber;
-    publicAssetID: BigNumber;
-    publicTokenID: BigNumber;
+    publicAssetID: string;
+    publicTokenID: string;
     inputNullifier: BigNumber[];
     outputCommitment: [BigNumber, BigNumber];
     chainID: string;
     roots: string;
+    extensionRoots: string;
     ak_alpha_X: BigNumber[];
     ak_alpha_Y: BigNumber[];
     whitelistedAssetIDs: BigNumber[];

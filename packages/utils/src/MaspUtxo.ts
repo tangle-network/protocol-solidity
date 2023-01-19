@@ -1,11 +1,14 @@
-import { Keypair, randomBN, toBuffer } from "@webb-tools/sdk-core";
+import { randomBN, toBuffer } from "@webb-tools/sdk-core";
 import { BigNumber } from "ethers";
 import { poseidon } from 'circomlibjs';
+import { Fp, Fr, Point, signEdDSA, verifyEdDSA, EdDSA } from "@zkopru/babyjubjub";
+const { PublicKey, PrivateKey } = require('babyjubjub');
+import { MaspKey } from "./MaspKey";
 
 export class MaspUtxo {
     // Partial Commitment
     chainID: BigNumber;
-    keypair: Keypair;
+    maspKey: MaspKey;
     blinding: BigNumber;
     // Commitment
     assetID: BigNumber;
@@ -13,34 +16,23 @@ export class MaspUtxo {
     amount: BigNumber;
     index: BigNumber;
 
-    constructor(chainID: BigNumber, assetID: BigNumber, tokenID: BigNumber, amount: BigNumber) {
+    constructor(chainID: BigNumber, maspKey: MaspKey, assetID: BigNumber, tokenID: BigNumber, amount: BigNumber) {
         this.chainID = chainID;
+        this.maspKey = maspKey;
         this.blinding = randomBN(31);
         this.assetID = assetID;
         this.tokenID = tokenID;
         this.amount = amount;
-        this.keypair = new Keypair();
         this.index = BigNumber.from(-1);
     };
 
     public getPartialCommitment(): BigNumber {
-        return BigNumber.from(poseidon([ this.chainID, this.keypair.getPubKey(), this.blinding ]));
+        return BigNumber.from(poseidon([ this.chainID, this.maspKey.getPublicKey().x, this.maspKey.getPublicKey().y, this.blinding ]));
     }
 
+    // TODO: Fill in babyjubjub encrypt function 
     public encrypt () {
-        if (!this.keypair) {
-          throw new Error('Must set a keypair to encrypt the MASP utxo');
-        }
-    
-        const bytes = Buffer.concat([
-          toBuffer(`0x${this.chainID}`, 8),
-          toBuffer(`0x${this.amount}`, 31),
-          toBuffer(`0x${this.blinding}`, 31),
-          toBuffer(`0x${this.assetID}`, 8),
-          toBuffer(`0x${this.tokenID}`, 8)
-        ]);
-    
-        return this.keypair.encrypt(bytes);
+        return "";
     }
 
     public getCommitment(): BigNumber {
@@ -56,8 +48,7 @@ export class MaspUtxo {
        // nullifier = Poseidon(commitment, merklePath, Poseidon(privKey, commitment, merklePath))
        const commitment = this.getCommitment();
        const merklePath = this.index;
-       const signature = BigNumber.from(poseidon([this.keypair.privkey, commitment, merklePath]));
-       return BigNumber.from(poseidon([commitment, merklePath, signature]));
+       return BigNumber.from(poseidon([this.maspKey.getPublicKey().x, this.maspKey.getPublicKey().y, commitment, merklePath]));
 
     }
 

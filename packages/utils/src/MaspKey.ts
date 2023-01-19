@@ -1,27 +1,32 @@
 import { randomBN } from "@webb-tools/sdk-core";
-import { BigNumber } from "ethers";
-const { PublicKey, PrivateKey } = require('babyjubjub');
+import { BigNumber, BigNumberish } from "ethers";
+import { Fp, Fr, Point, signEdDSA, verifyEdDSA, EdDSA } from "@zkopru/babyjubjub";
 const { poseidon } = require('circomlibjs');
 
 // sk -> ak -> vk -> pk
 export class MaspKey {
-    sk;
-    ak;
-    vk;
-    pk;
+    sk: Fp;
+    ak: Point;
+    vk: Fp;
+    pk: Point;
 
-    constructor() {
-        this.sk = new PrivateKey(PrivateKey.getRandObj().field);
+    constructor(sk?: BigNumberish) {
+        if (typeof sk !== undefined) {
+            this.sk = Fp.from(randomBN(31).toString());
+        } else {
+            this.sk = Fp.from(sk.toString());
+        }
+        
         //get PublicKey object from privateKey object
-        this.ak = PublicKey.fromPrivate(this.sk);
-        this.vk = new PrivateKey(BigNumber.from(poseidon([this.ak.p.x.n, this.ak.p.y.n]))); 
-        this.pk = PublicKey.fromPrivate(this.vk);
+        this.ak = Point.fromPrivKey(this.sk.toString());
+        this.vk = Fp.from(BigNumber.from(poseidon([this.ak.x, this.ak.y])).toString()); 
+        this.pk = Point.fromPrivKey(this.vk.toString());
     }
 
     public randomize_sk_ak() {
-        let alpha = randomBN(31);
-        let sk_alpha = new PrivateKey(alpha.mul(this.sk));
-        let ak_alpha = PublicKey.fromPrivate(sk_alpha);
+        let alpha = randomBN(31).toString();
+        let sk_alpha = this.sk.mul(alpha);
+        let ak_alpha = Point.fromPrivKey(sk_alpha.toString());
         return { alpha, sk_alpha, ak_alpha } ;
     }
 

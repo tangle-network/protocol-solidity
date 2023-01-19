@@ -98,6 +98,7 @@
     "truffle-artifactor": "^4.0.30",
     "ts-node": "^10.1.0",
     "typechain": "^5.1.2",
-    "typescript": "4.7.2"
+    "typescript": "4.7.2",
+    "@zkopru/babyjubjub": "2.0.0-beta.8"
   }
 }

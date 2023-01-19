@@ -30,10 +30,11 @@ import {
   IVAnchor,
   IMASPAllInputs, 
 } from '@webb-tools/interfaces';
-import { u8aToHex, getChainIdType, ZkComponents, MaspUtxo, } from '@webb-tools/utils';
+import { u8aToHex, getChainIdType, ZkComponents, MaspUtxo, MaspKey, } from '@webb-tools/utils';
 import { fromAscii } from 'web3-utils';
 import { Registry } from '@webb-tools/tokens';
 import { EthAbiDecodeParametersResultArray } from 'web3/eth/abi';
+import { convertPublicSignals } from '@webb-tools/semaphore-proof/dist/types/generateProof';
 const snarkjs = require('snarkjs');
 const assert = require('assert');
 
@@ -406,7 +407,7 @@ export class MultiAssetVAnchor implements IVAnchor {
   }
 
   public async generateProof(
-    proofInputs: MASPAllInputs
+    proofInputs: IMASPAllInputs
   ): Promise<FullProof> {
     let proof = await snarkjs.groth16.fullProve(
       proofInputs,
@@ -466,6 +467,13 @@ export class MultiAssetVAnchor implements IVAnchor {
     tokenId: number, 
     inputs: MaspUtxo[], 
     outputs: MaspUtxo[], 
+    alphas: BigNumber[],
+    feeAssetId: number,
+    feeTokenId: number,
+    whitelistedAssetIds: BigNumber[],
+    feeInputs: MaspUtxo[],
+    feeOutputs: MaspUtxo[],
+    feeAlphas: BigNumber[],
     extAmount: BigNumber, 
     fee: BigNumber, 
     extDataHash: BigNumber, 
@@ -485,7 +493,8 @@ export class MultiAssetVAnchor implements IVAnchor {
 
     const publicAmount = BigNumber.from(extAmount).sub(fee).add(FIELD_SIZE).mod(FIELD_SIZE).toString();
 
-    const allInputs: MASPAllInputs = {
+    const allInputs: IMASPAllInputs = {
+      
       roots: roots.map(x => x.toString()),
       chainID: chainId.toString(),
       inputNullifier: inputs.map(x => x.getNullifier().toString()),
@@ -513,14 +522,14 @@ export class MultiAssetVAnchor implements IVAnchor {
       proof: "",
       roots: `0x${roots.map((x) => toFixedHex(x).slice(2)).join('')}`,
       extensionRoots: '0x00',
-      inputNullifiers: inputs.map((x) => BigNumber.from(toFixedHex('0x' + x.getNullifier()))),
-      outputCommitments: [
+      inputNullifier: inputs.map((x) => BigNumber.from(toFixedHex('0x' + x.getNullifier()))),
+      outputCommitment: [
         BigNumber.from(toFixedHex(outputs[0].getCommitment())),
         BigNumber.from(toFixedHex(outputs[1].getCommitment())),
       ],
       publicAmount: toFixedHex(publicAmount),
-      publicAssetId: toFixedHex(publicAssetId),
-      publicTokenId: toFixedHex(publicTokenId),
+      publicAssetID: toFixedHex(publicAssetId),
+      publicTokenID: toFixedHex(publicTokenId),
       extDataHash: extDataHash,
     };
 
@@ -534,12 +543,19 @@ export class MultiAssetVAnchor implements IVAnchor {
     tokenId: number, 
     inputs: MaspUtxo[], 
     outputs: MaspUtxo[], 
+    alphas: BigNumber[],
+    feeAssetId: number,
+    feeTokenId: number,
+    whitelistedAssetIds: BigNumber[],
+    feeInputs: MaspUtxo[],
+    feeOutputs: MaspUtxo[],
+    feeAlphas: BigNumber[],
     extAmount: BigNumber, 
     fee: BigNumber, 
     extDataHash: BigNumber, 
     externalMerkleProofs: MerkleProof[],
   ): Promise<IMASPVAnchorPublicInputs> {
-    let { allInputs, publicInputs } = await MultiAssetVAnchor.generateMASPVAnchorInputs(roots, chainId, assetId, tokenId, inputs, outputs, extAmount, fee, extDataHash, externalMerkleProofs);
+    let { allInputs, publicInputs } = await MultiAssetVAnchor.generateMASPVAnchorInputs(roots, chainId, assetId, tokenId, inputs, outputs, alphas, feeAssetId, feeTokenId, whitelistedAssetIds, feeInputs, feeOutputs, feeAlphas, extAmount, fee, extDataHash, externalMerkleProofs);
     const fullProof = await this.generateProof(allInputs);
     const proof = await this.generateProofCalldata(fullProof);
     publicInputs.proof = proof;
@@ -562,6 +578,46 @@ export class MultiAssetVAnchor implements IVAnchor {
     });
     let thisRoot = await this.contract.getLastRoot();
     return [thisRoot, ...neighborRootInfos];
+  }
+
+  public static auxInputsToBytes(publicInputs: IMASPVAnchorPublicInputs): string {
+    // publicAssetID, publicTokenID, ak_alpha_X, ak_alpha_Y, whitelistedAssetIDs, feeInputNullifiers, feeOutputCommitments, fee_ak_alpha_X, fee_ak_alpha_Y
+    let ak_alpha_X_bytes = "";
+    for (let i = 0; i < publicInputs.ak_alpha_X.length; i++) {
+      ak_alpha_X_bytes += toFixedHex(publicInputs.ak_alpha_X[i]).slice(2);
+    }
+
+    let ak_alpha_Y_bytes = "";
+    for (let i = 0; i < publicInputs.ak_alpha_Y.length; i++) {
+      ak_alpha_Y_bytes += toFixedHex(publicInputs.ak_alpha_Y[i]).slice(2);
+    }
+
+    let whitelistedAssetIDs_bytes = "";
+    for (let i = 0; i < publicInputs.whitelistedAssetIDs.length; i++) {
+      whitelistedAssetIDs_bytes += toFixedHex(publicInputs.whitelistedAssetIDs[i]).slice(2);
+    }
+
+    let feeInputNullifier_bytes = "";
+    for (let i = 0; i < publicInputs.feeInputNullifier.length; i++) {
+      feeInputNullifier_bytes += toFixedHex(publicInputs.feeInputNullifier[i]);
+    }
+
+    let feeOutputCommitment_bytes = "";
+    for (let i = 0; i < publicInputs.feeOutputCommitment.length; i++) {
+      feeOutputCommitment_bytes += toFixedHex(publicInputs.feeOutputCommitment[i]);
+    }
+
+    let fee_ak_alpha_X_bytes = "";
+    for (let i = 0; i < publicInputs.fee_ak_alpha_X.length; i++) {
+      fee_ak_alpha_X_bytes += toFixedHex(publicInputs.fee_ak_alpha_X[i]).slice(2);
+    }
+
+    let fee_ak_alpha_Y_bytes = "";
+    for (let i = 0; i < publicInputs.fee_ak_alpha_Y.length; i++) {
+      fee_ak_alpha_Y_bytes += toFixedHex(publicInputs.fee_ak_alpha_Y[i]).slice(2);
+    }
+
+    return toFixedHex(publicInputs.publicAssetID) + toFixedHex(publicInputs.publicTokenID) + ak_alpha_X_bytes + ak_alpha_Y_bytes + whitelistedAssetIDs_bytes + feeInputNullifier_bytes + feeOutputCommitment_bytes + fee_ak_alpha_X_bytes + fee_ak_alpha_Y_bytes;
   }
 
     /**
@@ -596,7 +652,8 @@ export class MultiAssetVAnchor implements IVAnchor {
   public async transact(
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
-    fee: BigNumberish,
+    feeInputs: MaspUtxo[],
+    feeOutputs: MaspUtxo[],
     refund: BigNumberish,
     recipient: string,
     relayer: string,
@@ -610,17 +667,22 @@ export class MultiAssetVAnchor implements IVAnchor {
 
     const registry = await Registry.connect(await this.contract.registry(), signer);
     const assetID = await registry.contract.getAssetIdFromWrappedAddress(wrappedToken);
+    const dummyMaspKey = new MaspKey();
+    const feeAssetId = feeInputs[0].assetID;
+    const feeTokenId = feeInputs[0].tokenID;
+    const whitelistedAssetIds = registry.contract.whitelistedAssetIDs();
+    const fee = 0;
 
     while (inputs.length !== 2 && inputs.length < 16) {
       inputs.push(
-        new MaspUtxo(BigNumber.from(chainId), BigNumber.from(0), BigNumber.from(0), BigNumber.from(0))
+        new MaspUtxo(BigNumber.from(chainId), dummyMaspKey, BigNumber.from(0), BigNumber.from(0), BigNumber.from(0))
       );
     }
 
     if (outputs.length < 2) {
       while (outputs.length < 2) {
         outputs.push(
-          new MaspUtxo(BigNumber.from(chainId), BigNumber.from(0), BigNumber.from(0), BigNumber.from(0))
+          new MaspUtxo(BigNumber.from(chainId),dummyMaspKey, BigNumber.from(0), BigNumber.from(0), BigNumber.from(0))
         );
       }
     }
@@ -633,10 +695,12 @@ export class MultiAssetVAnchor implements IVAnchor {
 
 
     const { extData, extDataHash } = await this.generateExtData(recipient, extAmount, relayer, BigNumber.from(fee), BigNumber.from(refund), wrappedToken, outputs[0].encrypt(), outputs[1].encrypt());
-    const roots = await this.populateRootsForProof();
-    const publicInputs = await this.publicInputsWithProof(roots, chainId, assetID.toNumber(), tokenId.toNumber(), inputs, outputs, extAmount, BigNumber.from(fee), extDataHash, merkleProofs);
 
-    const auxInputs = toFixedHex(publicInputs.publicAssetId) + toFixedHex(publicInputs.publicTokenId).slice(2);
+    const roots = await this.populateRootsForProof();
+
+    const publicInputs = await this.publicInputsWithProof(roots, chainId, assetID.toNumber(), tokenId.toNumber(), inputs, outputs, alphas, feeAssetId.toNumber(), feeTokenId.toNumber(), whitelistedAssetIds, feeInputs, feeOutputs, feeAlphas, extAmount, BigNumber.from(fee), extDataHash, merkleProofs);
+
+    const auxInputs = MultiAssetVAnchor.auxInputsToBytes(publicInputs);
 
     const tx = await this.contract.transact(
       publicInputs.proof,
@@ -652,8 +716,8 @@ export class MultiAssetVAnchor implements IVAnchor {
       {
         roots: publicInputs.roots,
         extensionRoots: '0x',
-        inputNullifiers: publicInputs.inputNullifiers,
-        outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
+        inputNullifiers: publicInputs.inputNullifier,
+        outputCommitments: [publicInputs.outputCommitment[0], publicInputs.outputCommitment[1]],
         publicAmount: publicInputs.publicAmount,
         extDataHash: publicInputs.extDataHash,
       },
@@ -677,7 +741,8 @@ export class MultiAssetVAnchor implements IVAnchor {
     return receipt;
   }
 
-  public async wrapAndDepositERC20(
+  public async depositERC20(
+    maspKey: MaspKey,
     destinationChainId: BigNumberish,
     amount: BigNumberish,
     unwrappedToken: string,
@@ -686,7 +751,7 @@ export class MultiAssetVAnchor implements IVAnchor {
   ): Promise<ethers.ContractReceipt> {
     const registry = await Registry.connect(await this.contract.registry(), signer);
     const assetID = await registry.contract.getAssetIdFromWrappedAddress(wrappedToken);
-    const utxo = new MaspUtxo(BigNumber.from(destinationChainId), assetID, BigNumber.from(0), BigNumber.from(amount));
+    const utxo = new MaspUtxo(BigNumber.from(destinationChainId), maspKey, assetID, BigNumber.from(0), BigNumber.from(amount));
 
     let options = {};
     if (amount > 0 && checkNativeAddress(unwrappedToken)) {
@@ -698,7 +763,7 @@ export class MultiAssetVAnchor implements IVAnchor {
       };
     }
 
-    const tx = await this.contract.wrapAndDepositERC20(
+    const tx = await this.contract.depositERC20(
       unwrappedToken,
       wrappedToken,
       amount,
@@ -710,7 +775,8 @@ export class MultiAssetVAnchor implements IVAnchor {
     return receipt;
   }
 
-  public async wrapAndDepositERC721(
+  public async depositERC721(
+    maspKey: MaspKey,
     destinationChainId: BigNumberish,
     unwrappedToken: string,
     wrappedToken: string,
@@ -719,11 +785,11 @@ export class MultiAssetVAnchor implements IVAnchor {
   ): Promise<ethers.ContractReceipt> {
     const registry = await Registry.connect(await this.contract.registry(), signer);
     const assetID = await registry.contract.getAssetIdFromWrappedAddress(wrappedToken);
-    const utxo = new MaspUtxo(BigNumber.from(destinationChainId), assetID, tokenID, BigNumber.from(1));
+    const utxo = new MaspUtxo(BigNumber.from(destinationChainId), maspKey, assetID, tokenID, BigNumber.from(1));
 
     let options = {};
 
-    const tx = await this.contract.wrapAndDepositERC721(
+    const tx = await this.contract.depositERC721(
       unwrappedToken,
       wrappedToken,
       tokenID,
