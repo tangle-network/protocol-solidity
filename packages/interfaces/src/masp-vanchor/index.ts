@@ -4,10 +4,8 @@ export interface IMASPVAnchorPublicInputs {
     proof: string;
     publicAmount: string;
     extDataHash: string;
-    assetID: string;
-    tokenID: string;
-    publicAssetID: string;
-    publicTokenID: string;
+    publicAssetID: number;
+    publicTokenID: number;
     inputNullifier: string[];
     outputCommitment: string[];
     chainID: string;
@@ -18,8 +16,8 @@ export interface IMASPVAnchorPublicInputs {
     whitelistedAssetIDs: number[];
     feeInputNullifier: string[];
     feeOutputCommitment: string[];
-    fee_ak_alpha_X: BigNumber[];
-    fee_ak_alpha_Y: BigNumber[];
+    fee_ak_alpha_X: string[];
+    fee_ak_alpha_Y: string[];
 }
 
 export type IMASPAllInputs = {
@@ -50,9 +48,9 @@ export type IMASPAllInputs = {
 
     ak_X: string[];
     ak_Y: string[];
-    sk_alpha: BigNumber[];
-    ak_alpha_X: BigNumber[];
-    ak_alpha_Y: BigNumber[];
+    sk_alpha: string[];
+    ak_alpha_X: string[];
+    ak_alpha_Y: string[];
 
     feeAssetId: number;
     whitelistedAssetIDs: number[];
@@ -73,9 +71,9 @@ export type IMASPAllInputs = {
     feeOutPk_Y: string[];
     feeOutBlinding: string[];
 
-    fee_ak_X: BigNumber[];
-    fee_ak_Y: BigNumber[];
-    fee_sk_alpha: BigNumber[];
-    fee_ak_alpha_X: BigNumber[];
-    fee_ak_alpha_Y: BigNumber[];
+    fee_ak_X: string[];
+    fee_ak_Y: string[];
+    fee_sk_alpha: string[];
+    fee_ak_alpha_X: string[];
+    fee_ak_alpha_Y: string[];
   };

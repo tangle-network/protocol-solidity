@@ -1,5 +1,5 @@
 {
-  "name": "@webb-tools/tokens",
+  "name": "@webb-tools/create2-utils",
   "main": "./lib/index.js",
   "license": "GPL-3.0-or-later",
   "author": "Webb Developers <drew@webb.tools>",
@@ -10,16 +10,13 @@
   },
   "dependencies": {
     "@webb-tools/contracts": "^0.5.4",
-    "@webb-tools/create2-utils": "^0.5.4",
-    "@webb-tools/sdk-core": "0.1.4-119",
-    "@webb-tools/utils": "^0.5.4",
     "ethers": "5.7.0"
   },
   "publishConfig": {
     "access": "public"
   },
   "repository": {
-    "directory": "packages/tokens",
+    "directory": "packages/create2-utils",
     "type": "git",
     "url": "git://github.com/webb-tools/protocol-solidity.git"
   },

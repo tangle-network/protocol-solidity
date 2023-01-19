@@ -3,7 +3,7 @@ import {
   AnchorHandler as AnchorHandlerContract,
   AnchorHandler__factory,
 } from '@webb-tools/contracts';
-import { Deployer } from './Deployer';
+import { Deployer } from '@webb-tools/create2-utils';
 
 export class AnchorHandler {
   contract: AnchorHandlerContract;

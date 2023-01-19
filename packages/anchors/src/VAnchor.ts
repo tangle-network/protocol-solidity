@@ -20,7 +20,7 @@ import {
   IVariableAnchorPublicInputs,
 } from '@webb-tools/interfaces';
 import { WebbBridge } from './Common';
-import { Deployer } from './Deployer';
+import { Deployer } from '@webb-tools/create2-utils';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents, ZERO_BYTES32 } from '@webb-tools/utils';
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';

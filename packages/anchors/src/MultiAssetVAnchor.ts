@@ -30,6 +30,7 @@ import {
   IVAnchor,
   IMASPAllInputs, 
 } from '@webb-tools/interfaces';
+import { Point, Fp } from "@zkopru/babyjubjub";
 import { u8aToHex, getChainIdType, ZkComponents, MaspUtxo, MaspKey, } from '@webb-tools/utils';
 import { fromAscii } from 'web3-utils';
 import { Registry } from '@webb-tools/tokens';
@@ -467,13 +468,13 @@ export class MultiAssetVAnchor implements IVAnchor {
     tokenId: number, 
     inputs: MaspUtxo[], 
     outputs: MaspUtxo[], 
-    alphas: BigNumber[],
+    sk_alphas: string[],
     feeAssetId: number,
     feeTokenId: number,
     whitelistedAssetIds: number[],
     feeInputs: MaspUtxo[],
     feeOutputs: MaspUtxo[],
-    feeAlphas: BigNumber[],
+    fee_sk_alphas: string[],
     extAmount: BigNumber, 
     fee: BigNumber, 
     extDataHash: BigNumber, 
@@ -526,10 +527,10 @@ export class MultiAssetVAnchor implements IVAnchor {
       roots: roots.map(x => x.toString()),
   
       ak_X: inputs.map(x => x.maspKey.getProofAuthorizingKey().x.toString()),
-      ak_Y: inputs.map(x => x.maspKey.getProofAuthorizingKey().y.toString()),,
-      sk_alpha:,
-      ak_alpha_X:,
-      ak_alpha_Y:,
+      ak_Y: inputs.map(x => x.maspKey.getProofAuthorizingKey().y.toString()),
+      sk_alpha: sk_alphas,
+      ak_alpha_X: sk_alphas.map(x => Point.fromPrivKey(x).x.toString()),
+      ak_alpha_Y: sk_alphas.map(x => Point.fromPrivKey(x).y.toString()),
   
       feeAssetId: feeAssetId,
       whitelistedAssetIDs: whitelistedAssetIds,
@@ -550,26 +551,43 @@ export class MultiAssetVAnchor implements IVAnchor {
       feeOutPk_Y: feeOutputs.map(x => x.maspKey.getPublicKey().y.toString()),
       feeOutBlinding: feeOutputs.map(x => x.blinding.toString()),
   
-      fee_ak_X:,
-      fee_ak_Y:,
-      fee_sk_alpha:,
-      fee_ak_alpha_X:,
-      fee_ak_alpha_Y:,      
+      fee_ak_X: feeInputs.map(x => x.maspKey.getProofAuthorizingKey().x.toString()),
+      fee_ak_Y: feeInputs.map(x => x.maspKey.getProofAuthorizingKey().y.toString()),
+      fee_sk_alpha: fee_sk_alphas,
+      fee_ak_alpha_X: fee_sk_alphas.map(x => Point.fromPrivKey(x).x.toString()),
+      fee_ak_alpha_Y: fee_sk_alphas.map(x => Point.fromPrivKey(x).y.toString()),      
     };
 
     const publicInputs: IMASPVAnchorPublicInputs = {
       proof: "",
-      roots: `0x${roots.map((x) => toFixedHex(x).slice(2)).join('')}`,
-      extensionRoots: '0x00',
-      inputNullifier: inputs.map((x) => BigNumber.from(toFixedHex('0x' + x.getNullifier()))),
-      outputCommitment: [
-        BigNumber.from(toFixedHex(outputs[0].getCommitment())),
-        BigNumber.from(toFixedHex(outputs[1].getCommitment())),
-      ],
-      publicAmount: toFixedHex(publicAmount),
-      publicAssetID: toFixedHex(publicAssetId),
-      publicTokenID: toFixedHex(publicTokenId),
-      extDataHash: extDataHash,
+      extensionRoots: "0x",
+      publicAmount: publicAmount,
+      publicAssetID: publicAssetId,
+      publicTokenID: publicTokenId,
+      extDataHash: extDataHash.toString(),
+  
+      // data for transaction inputs
+      inputNullifier: inputs.map(x => x.getNullifier().toString()),
+  
+      // data for transaction outputs
+      outputCommitment: outputs.map(x => x.getCommitment().toString()),
+  
+      chainID: chainId.toString(),
+      roots: roots.map(x => x.toString()),
+  
+      ak_alpha_X: sk_alphas.map(x => Point.fromPrivKey(x).x.toString()),
+      ak_alpha_Y: sk_alphas.map(x => Point.fromPrivKey(x).y.toString()),
+  
+      whitelistedAssetIDs: whitelistedAssetIds,
+  
+      // data for transaction inputs
+      feeInputNullifier: feeInputs.map(x => x.getNullifier().toString()),
+  
+      // data for transaction outputs
+      feeOutputCommitment: feeOutputs.map(x => x.getCommitment().toString()),
+
+      fee_ak_alpha_X: fee_sk_alphas.map(x => Point.fromPrivKey(x).x.toString()),
+      fee_ak_alpha_Y: fee_sk_alphas.map(x => Point.fromPrivKey(x).y.toString()), 
     };
 
     return { allInputs, publicInputs }
@@ -582,20 +600,20 @@ export class MultiAssetVAnchor implements IVAnchor {
     tokenId: number, 
     inputs: MaspUtxo[], 
     outputs: MaspUtxo[], 
-    alphas: BigNumber[],
+    sk_alphas: string[],
     feeAssetId: number,
     feeTokenId: number,
     whitelistedAssetIds: number[],
     feeInputs: MaspUtxo[],
     feeOutputs: MaspUtxo[],
-    feeAlphas: BigNumber[],
+    fee_sk_alphas: string[],
     extAmount: BigNumber, 
     fee: BigNumber, 
     extDataHash: BigNumber, 
     externalMerkleProofs: MerkleProof[],
     externalFeeMerkleProofs: MerkleProof[]
   ): Promise<IMASPVAnchorPublicInputs> {
-    let { allInputs, publicInputs } = await MultiAssetVAnchor.generateMASPVAnchorInputs(roots, chainId, assetId, tokenId, inputs, outputs, alphas, feeAssetId, feeTokenId, whitelistedAssetIds, feeInputs, feeOutputs, feeAlphas, extAmount, fee, extDataHash, externalMerkleProofs, externalFeeMerkleProofs);
+    let { allInputs, publicInputs } = await MultiAssetVAnchor.generateMASPVAnchorInputs(roots, chainId, assetId, tokenId, inputs, outputs, sk_alphas, feeAssetId, feeTokenId, whitelistedAssetIds, feeInputs, feeOutputs, fee_sk_alphas, extAmount, fee, extDataHash, externalMerkleProofs, externalFeeMerkleProofs);
     const fullProof = await this.generateProof(allInputs);
     const proof = await this.generateProofCalldata(fullProof);
     publicInputs.proof = proof;
@@ -692,10 +710,10 @@ export class MultiAssetVAnchor implements IVAnchor {
   public async transact(
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
-    alphas: BigNumber[],
+    sk_alphas: string[],
     feeInputs: MaspUtxo[],
     feeOutputs: MaspUtxo[],
-    feeAlphas: BigNumber[],
+    fee_sk_alphas: string[],
     whitelistedAssetIds: number[],
     refund: BigNumberish,
     recipient: string,
@@ -741,7 +759,7 @@ export class MultiAssetVAnchor implements IVAnchor {
 
     const roots = await this.populateRootsForProof();
 
-    const publicInputs = await this.publicInputsWithProof(roots, chainId, assetID.toNumber(), tokenId.toNumber(), inputs, outputs, alphas, feeAssetId.toNumber(), feeTokenId.toNumber(), whitelistedAssetIds, feeInputs, feeOutputs, feeAlphas, extAmount, BigNumber.from(fee), extDataHash, merkleProofs, feeMerkleProofs);
+    const publicInputs = await this.publicInputsWithProof(roots, chainId, assetID.toNumber(), tokenId.toNumber(), inputs, outputs, sk_alphas, feeAssetId.toNumber(), feeTokenId.toNumber(), whitelistedAssetIds, feeInputs, feeOutputs, fee_sk_alphas, extAmount, BigNumber.from(fee), extDataHash, merkleProofs, feeMerkleProofs);
 
     const auxInputs = MultiAssetVAnchor.auxInputsToBytes(publicInputs);
 
