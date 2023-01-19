@@ -3,42 +3,42 @@ import { BigNumber } from "ethers";
 export interface IMASPVAnchorPublicInputs {
     proof: string;
     publicAmount: string;
-    extDataHash: BigNumber;
-    assetID: BigNumber;
-    tokenID: BigNumber;
+    extDataHash: string;
+    assetID: string;
+    tokenID: string;
     publicAssetID: string;
     publicTokenID: string;
-    inputNullifier: BigNumber[];
-    outputCommitment: [BigNumber, BigNumber];
+    inputNullifier: string[];
+    outputCommitment: string[];
     chainID: string;
-    roots: string;
+    roots: string[];
     extensionRoots: string;
-    ak_alpha_X: BigNumber[];
-    ak_alpha_Y: BigNumber[];
-    whitelistedAssetIDs: BigNumber[];
-    feeInputNullifier: BigNumber[];
-    feeOutputCommitment: BigNumber[];
+    ak_alpha_X: string[];
+    ak_alpha_Y: string[];
+    whitelistedAssetIDs: number[];
+    feeInputNullifier: string[];
+    feeOutputCommitment: string[];
     fee_ak_alpha_X: BigNumber[];
     fee_ak_alpha_Y: BigNumber[];
 }
 
 export type IMASPAllInputs = {
     publicAmount: string;
-    extDataHash: BigNumber;
-    assetID: BigNumber;
-    tokenID: BigNumber;
-    publicAssetID: BigNumber;
-    publicTokenID: BigNumber;
+    extDataHash: string;
+    assetID: number;
+    tokenID: number;
+    publicAssetID: number;
+    publicTokenID: number;
 
     // data for transaction inputs
-    inputNullifier: BigNumber[];
+    inputNullifier: string[];
     inAmount: string[];
     inBlinding: string[];
     inPathIndices: number[];
     inPathElements: BigNumber[][];
 
     // data for transaction outputs
-    outputCommitment: [BigNumber, BigNumber];
+    outputCommitment: string[];
     outAmount: string[];
     outChainID: string[];
     outPk_X: string[];
@@ -46,27 +46,27 @@ export type IMASPAllInputs = {
     outBlinding: string[];
 
     chainID: string;
-    roots: string;
+    roots: string[];
 
-    ak_X: BigNumber[];
-    ak_Y: BigNumber[];
+    ak_X: string[];
+    ak_Y: string[];
     sk_alpha: BigNumber[];
     ak_alpha_X: BigNumber[];
     ak_alpha_Y: BigNumber[];
 
-    feeAssetId: BigNumber;
-    whitelistedAssetIDs: BigNumber[];
-    feeTokenID: BigNumber;
+    feeAssetId: number;
+    whitelistedAssetIDs: number[];
+    feeTokenID: number;
 
     // data for transaction inputs
-    feeInputNullifier: BigNumber[];
+    feeInputNullifier: string[];
     feeInAmount: string[];
     feeInBlinding: string[];
     feeInPathIndices: number[];
     feeInPathElements: BigNumber[][];
 
     // data for transaction outputs
-    feeOutputCommitment: [BigNumber, BigNumber];
+    feeOutputCommitment: string[];
     feeOutAmount: string[];
     feeOutChainID: string[];
     feeOutPk_X: string[];

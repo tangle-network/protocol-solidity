@@ -5,7 +5,7 @@ const { poseidon } = require('circomlibjs');
 
 // sk -> ak -> vk -> pk
 export class MaspKey {
-    sk: Fp;
+    private sk: Fp;
     ak: Point;
     vk: Fp;
     pk: Point;
@@ -28,10 +28,6 @@ export class MaspKey {
         let sk_alpha = this.sk.mul(alpha);
         let ak_alpha = Point.fromPrivKey(sk_alpha.toString());
         return { alpha, sk_alpha, ak_alpha } ;
-    }
-
-    public getSecretKey() {
-        return this.sk;
     }
 
     public getProofAuthorizingKey() {
