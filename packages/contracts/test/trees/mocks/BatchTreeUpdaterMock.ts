@@ -1,11 +1,11 @@
 import { BatchTreeUpdater } from '@webb-tools/anchors';
 
-import { BigNumber, BigNumberish, ethers } from 'ethers';
 import { toFixedHex } from '@webb-tools/sdk-core';
 import { ZkComponents } from '@webb-tools/utils';
+import { BigNumberish, ethers } from 'ethers';
 import {
-  BatchMerkleTreeMock__factory,
   BatchMerkleTreeMock as BatchMerkleTreeContract,
+  BatchMerkleTreeMock__factory,
 } from '../../../lib';
 
 const assert = require('assert');

@@ -10,8 +10,8 @@ const { BigNumber } = require('ethers');
 const bne = (x, e) => BigNumber.from(x + '0'.repeat(parseInt(e)));
 
 // Convenience wrapper classes for contract classes
-import { IERC20, AaveTokenWrapper, AaveTokenWrapper__factory } from '../../lib';
 import { expect } from 'chai';
+import { AaveTokenWrapper, AaveTokenWrapper__factory, IERC20 } from '../../lib';
 
 describe('AaveTokenWrapper', () => {
   let aaveToken: AaveTokenWrapper;

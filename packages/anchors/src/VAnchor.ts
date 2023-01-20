@@ -305,7 +305,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     const events = logs.map((log) => this.contract.interface.parseLog(log));
 
     for (let i = 0; i < events.length; i++) {
-      if (events[i].args.commitment === leaf) {
+      if (events[i].args.commitment?._hex === leaf) {
         return true;
       }
     }
@@ -720,7 +720,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     console.log(`Fetching leaves with steps of ${step} logs/request`);
 
     try {
-      for (let i = startingBlock; i < finalBlock; i += step) {
+      for (let i = startingBlock; i <= finalBlock; i += step) {
         const nextLogs = await retryPromise(
           () => {
             return this.contract.provider.getLogs({
