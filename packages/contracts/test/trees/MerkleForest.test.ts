@@ -3,17 +3,15 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
-import { toFixedHex } from '@webb-tools/sdk-core';
+import { PoseidonHasher } from '@webb-tools/anchors';
+import { MerkleTree, toFixedHex } from '@webb-tools/sdk-core';
+import { poseidon_gencontract as poseidonContract } from 'circomlibjs';
 import { BigNumber } from 'ethers';
 import { ethers } from 'hardhat';
-import { poseidon_gencontract as poseidonContract } from 'circomlibjs';
-import { MerkleTree } from '@webb-tools/sdk-core';
-import { PoseidonHasher } from '@webb-tools/anchors';
 import {
-  MerkleForestMock as MerkleForestMockContract,
   LinkableIncrementalBinaryTree as LinkableIncrementalBinaryTreeContract,
-  LinkableIncrementalBinaryTree__factory,
-} from '../../typechain';
+  MerkleForestMock as MerkleForestMockContract,
+} from '../../lib';
 const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
 
