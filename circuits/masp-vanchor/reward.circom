@@ -1,11 +1,14 @@
-include "../node_modules/circomlib/circuits/poseidon.circom";
-include "../node_modules/circomlib/circuits/bitify.circom";
-include "../node_modules/circomlib/circuits/comparators.circom";
-include "./Utils.circom";
-include "./MerkleTree.circom";
-include "./MerkleTreeUpdater.circom";
+pragma circom 2.0.0;
+
+include "../../node_modules/circomlib/circuits/poseidon.circom";
+include "../../node_modules/circomlib/circuits/bitify.circom";
+include "../../node_modules/circomlib/circuits/comparators.circom";
+/* include "./Utils.circom"; */
+/* include "./MerkleTree.circom"; */
 /* include "../vanchor/transaction.circom"; */
 include "../merkle-tree/manyMerkleProof.circom";
+include "../vanchor/keypair.circom";
+include "../merkle-tree/merkleTreeUpdater.circom";
 
 template Reward(levels, zeroLeaf, length) {
   signal input rate;
@@ -62,28 +65,28 @@ template Reward(levels, zeroLeaf, length) {
   outputAmountCheck.in <== outputAmount;
   blockRangeCheck.in <== withdrawalTimestamp - depositTimestamp;
 
-  keypair = Keypair();
-  keypair.privateKey <== inputPrivateKey;
+  component inputKeypair = Keypair();
+  inputKeypair.privateKey <== inputPrivateKey;
 
   // Compute input commitment
   component inputHasher = Poseidon(4);
   inputHasher.inputs[0] <== inputChainID;
   inputHasher.inputs[1] <== inputAmount;
-  inputHasher.inputs[2] <== keypair.publicKey;
+  inputHasher.inputs[2] <== inputKeypair.publicKey;
   inputHasher.inputs[3] <== inputBlinding;
 
-  inputSignature = Signature();
+  component inputSignature = Signature();
   inputSignature.privateKey <== inputPrivateKey;
   inputSignature.commitment <== inputHasher.out;
   inputSignature.merklePath <== inputPathIndices;
   
-  inputNullifierHasher = Poseidon(3);
+  component inputNullifierHasher = Poseidon(3);
   inputNullifierHasher.inputs[0] <== inputHasher.out;
   inputNullifierHasher.inputs[1] <== inputPathIndices;
   inputNullifierHasher.inputs[2] <== inputSignature.out;
   inputNullifierHasher.out === inputNullifier;
   
-  inputTree = ManyMerkleProof(levels, length);
+  component inputTree = ManyMerkleProof(levels, length);
   inputTree.leaf <== inputHasher.out;
   inputTree.pathIndices <== inputPathIndices;
   
@@ -94,11 +97,11 @@ template Reward(levels, zeroLeaf, length) {
   
   inputTree.isEnabled <== inputAmount;
   for (var i = 0; i < levels; i++) {
-      inputTree.pathElements[i] <== inputPathElements[tx][i];
+      inputTree.pathElements[i] <== inputPathElements[i];
   }
 
   // Compute and verify output commitment
-  outputKeypair = Keypair();
+  component outputKeypair = Keypair();
   outputKeypair.privateKey <== outputPrivateKey;
 
   component outputHasher = Poseidon(4);
@@ -126,8 +129,8 @@ template Reward(levels, zeroLeaf, length) {
 
   // Compute deposit commitment
   component depositHasher = Poseidon(2);
-  depositHasher.inputs[1] <== inputHasher.out;
-  depositHasher.inputs[2] <== depositTimestamp;
+  depositHasher.inputs[0] <== inputHasher.out;
+  depositHasher.inputs[1] <== depositTimestamp;
 
   // Verify that deposit commitment exists in the tree
   component depositTree = MerkleTree(levels);
@@ -140,8 +143,8 @@ template Reward(levels, zeroLeaf, length) {
 
   // Compute withdrawal commitment
   component withdrawalHasher = Poseidon(2);
-  withdrawalHasher.inputs[1] <== inputNullifier;
-  withdrawalHasher.inputs[2] <== withdrawalTimestamp;
+  withdrawalHasher.inputs[0] <== inputNullifier;
+  withdrawalHasher.inputs[1] <== withdrawalTimestamp;
 
   // Verify that withdrawal commitment exists in the tree
   component withdrawalTree = MerkleTree(levels);
@@ -158,10 +161,10 @@ template Reward(levels, zeroLeaf, length) {
   outputSignature.commitment <== outputHasher.out;
   outputSignature.merklePath <== outputPathIndices;
 
-  component inputNullifierHasher = Poseidon(3);
-  inputNullifierHasher.inputs[0] <== outputHasher.out;
-  inputNullifierHasher.inputs[1] <== outputPathIndices;
-  inputNullifierHasher.inputs[2] <== outputSignature.out;
+  component rewardNullifierHasher = Poseidon(3);
+  rewardNullifierHasher.inputs[0] <== outputHasher.out;
+  rewardNullifierHasher.inputs[1] <== outputPathIndices;
+  rewardNullifierHasher.inputs[2] <== outputSignature.out;
   rewardNullifierHasher.out === rewardNullifier;
 
   // Add hidden signals to make sure that tampering with recipient or fee will invalidate the snark proof
