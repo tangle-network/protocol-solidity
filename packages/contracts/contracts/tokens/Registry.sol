@@ -93,7 +93,8 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
 			_salt,
 			_limit,
 			_feePercentage,
-			_isNativeAllowed
+			_isNativeAllowed,
+			maspVAnchor
 		);
 		emit TokenRegistered(token, _tokenHandler, _assetIdentifier);
 		idToWrappedAsset[_assetIdentifier] = token;

@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import { BigNumberish, ethers } from 'ethers';
 import { getChainIdType } from '@webb-tools/utils';
 import { toHex, generateFunctionSigHash } from '@webb-tools/sdk-core';
 import {
@@ -28,16 +28,23 @@ export class FungibleTokenWrapper {
     feePercentage: number,
     feeRecipient: string,
     handler: string,
-    limit: string,
+    limit: BigNumberish,
     isNativeAllowed: boolean,
     deployer: ethers.Signer
   ) {
     assert(feePercentage <= 10_000, 'feePercentage should be less than 10_000');
     const factory = new FungibleTokenWrapper__factory(deployer);
-    const contract = await factory.deploy(name, symbol);
+    const contract: FungibleTokenWrapperContract = await factory.deploy(name, symbol);
     await contract.deployed();
     // Initialize immediately after deployment as we use an intializer now
-    await contract.initialize(feePercentage, feeRecipient, handler, limit, isNativeAllowed);
+    await contract.initialize(
+      feePercentage,
+      feeRecipient,
+      handler,
+      limit,
+      isNativeAllowed,
+      await deployer.getAddress()
+    );
     const tokenWrapper = new FungibleTokenWrapper(contract, deployer);
 
     return tokenWrapper;
@@ -80,11 +87,37 @@ export class FungibleTokenWrapper {
     return tokenWrapper;
   }
 
-  public async grantMinterRole(address: string) {
+  public async grantMinterRole(address: string): Promise<ethers.ContractReceipt> {
     const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
     const tx = await this.contract.grantRole(MINTER_ROLE, address);
-    await tx.wait();
-    return;
+    const receipt = await tx.wait();
+    return receipt;
+  }
+
+  public async approve(address: string, amount: BigNumberish): Promise<ethers.ContractReceipt> {
+    const tx = await this.contract.approve(address, amount);
+    const receipt = await tx.wait();
+    return receipt;
+  }
+
+  public async wrap(tokenAddress: string, amount: BigNumberish): Promise<ethers.ContractReceipt> {
+    const tx = await this.contract.wrap(tokenAddress, amount);
+    const receipt = await tx.wait();
+    return receipt;
+  }
+
+  public async unwrap(tokenAddress: string, amount: BigNumberish): Promise<ethers.ContractReceipt> {
+    const tx = await this.contract.unwrap(tokenAddress, amount);
+    const receipt = await tx.wait();
+    return receipt;
+  }
+
+  public async isNativeAllowed(): Promise<boolean> {
+    return await this.contract.isNativeAllowed();
+  }
+
+  public async canWrap(address: string): Promise<boolean> {
+    return await this.contract.isValidToken(address);
   }
 
   public async getFeeRecipientAddress(): Promise<string> {

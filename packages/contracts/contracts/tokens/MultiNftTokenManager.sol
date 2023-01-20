@@ -23,7 +23,8 @@ contract MultiNftTokenManager is MultiTokenManagerBase {
 		bytes32,
 		uint256,
 		uint16,
-		bool
+		bool,
+		address
 	) public view override onlyRegistry onlyInitialized returns (address) {
 		revert();
 	}

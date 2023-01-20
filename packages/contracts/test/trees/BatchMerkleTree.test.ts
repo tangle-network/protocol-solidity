@@ -12,7 +12,7 @@ import { artifacts, contract, ethers } from 'hardhat';
 import { poseidon } from 'circomlibjs';
 // import { PoseidonHasher, BatchTreeUpdater } from '@webb-tools/anchors';
 import { PoseidonHasher } from '@webb-tools/anchors';
-import { BatchTreeUpdaterMock as  BatchTreeUpdater } from './mocks/BatchTreeUpdaterMock';
+import { BatchTreeUpdaterMock as BatchTreeUpdater } from './mocks/BatchTreeUpdaterMock';
 import { randomBytes } from 'crypto';
 // import { groth16 } from 'snarkjs';
 // const TruffleAssert = require('truffle-assertions');
