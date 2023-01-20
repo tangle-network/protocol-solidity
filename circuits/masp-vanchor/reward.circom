@@ -98,10 +98,13 @@ template Reward(levels, zeroLeaf, length) {
   }
 
   // Compute and verify output commitment
+  outputKeypair = Keypair();
+  outputKeypair.privateKey <== outputPrivateKey;
+
   component outputHasher = Poseidon(4);
   outputHasher.inputs[0] <== outputChainID;
   outputHasher.inputs[1] <== outputAmount;
-  outputHasher.inputs[2] <== outputPrivateKey;
+  outputHasher.inputs[2] <== outputKeypair.publicKey;
   outputHasher.inputs[3] <== outputBlinding;
   outputHasher.out === outputCommitment;
 
@@ -150,8 +153,15 @@ template Reward(levels, zeroLeaf, length) {
   withdrawalTree.root === withdrawalRoot;
 
   // Compute reward nullifier
-  component rewardNullifierHasher = Poseidon(1);
-  rewardNullifierHasher.inputs[0] <== noteNullifier;
+  component outputSignature = Signature();
+  outputSignature.privateKey <== outputPrivateKey;
+  outputSignature.commitment <== outputHasher.out;
+  outputSignature.merklePath <== outputPathIndices;
+
+  component inputNullifierHasher = Poseidon(3);
+  inputNullifierHasher.inputs[0] <== outputHasher.out;
+  inputNullifierHasher.inputs[1] <== outputPathIndices;
+  inputNullifierHasher.inputs[2] <== outputSignature.out;
   rewardNullifierHasher.out === rewardNullifier;
 
   // Add hidden signals to make sure that tampering with recipient or fee will invalidate the snark proof
