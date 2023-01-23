@@ -7,17 +7,17 @@ chain-id = 11155111
 enabled = true
 http-endpoint = "https://rpc.sepolia.org"
 name = "sepolia"
-private-key = "0xc086596a698603ae7428a61ced569cbc5fdc24ae91c341d692aad590febc4429"
+private-key = "$SEPOLIA_PRIVATE_KEY"
 ws-endpoint = "wss://rpc.sepolia.dev"
 
 [[evm.sepolia.contracts]]
-address = "0x2f31776767859e6907aebce3f60572d921188d2f"
+address = "0x77f0a3aca922339dc91b82e88a83231ef2dacf02"
 contract = "VAnchor"
-deployed-at = 2712214
+deployed-at = 2750880
 linked-anchors = [
-    { type = "Evm", chain = "goerli", chain-id = 5, address = "0x885c8b5f580e08780e9eb8ad1f43dd51c88743ac" },
-    { type = "Evm", chain = "optimism", chain-id = 420, address = "0xa7f45216a24acfe9bb514a9c7d08f4e442d75a04" },
-    { type = "Evm", chain = "moonbase", chain-id = 1287, address = "0x72320f338706e0249045d0be06227f72d427b342"}
+    { type = "Evm", chain = "goerli", chain-id = 5, address = "0x77f0a3aca922339dc91b82e88a83231ef2dacf02" },
+    { type = "Evm", chain = "optimism", chain-id = 420, address = "0x77f0a3aca922339dc91b82e88a83231ef2dacf02" },
+    { type = "Evm", chain = "moonbase", chain-id = 1287, address = "0x77f0a3aca922339dc91b82e88a83231ef2dacf02"}
 ]
 
 [evm.sepolia.contracts.events-watcher]
@@ -34,9 +34,9 @@ withdraw-fee-percentage = 0
 withdraw-gaslimit = "0x5B8D80"
 
 [[evm.sepolia.contracts]]
-address = "0xb143c457702f64154c566bb49b433f25d683e662"
+address = "0x8a568614cf78ae79ab8d326fd1d3fd5bf888aae7"
 contract = "SignatureBridge"
-deployed-at = 2712197
+deployed-at = 2750859
 
 [evm.sepolia.contracts.events-watcher]
 enabled = true

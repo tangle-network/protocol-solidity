@@ -115,7 +115,7 @@ export class Create2VBridge {
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents
   ): Promise<Create2VBridge> {
-    const salt = '123456';
+    const salt = '999';
     const saltHex = ethers.utils.id(salt);
     let webbTokenAddresses: Map<number, string> = new Map();
     let vBridgeSides: Map<number, SignatureBridgeSide> = new Map();
@@ -135,6 +135,7 @@ export class Create2VBridge {
       let deployer1Contract = await Deployer1.deploy();
       await deployer1Contract.deployed();
       deployer = new Deployer(deployer1Contract);
+      console.log("deployer address : ", deployer.address);
       let vBridgeInstance = await SignatureBridgeSide.create2BridgeSide(
         deployer,
         saltHex,
