@@ -13,12 +13,11 @@ include "../merkle-tree/merkleTreeUpdater.circom";
 template Reward(levels, zeroLeaf, length) {
   signal input rate;
   signal input fee;
-  signal input instance;
   signal input rewardNullifier;
   signal input extDataHash;
 
-  signal input noteSecret;
-  signal input noteNullifier;
+  /* signal input noteSecret; */
+  /* signal input noteBlinding; */
 
   signal input inputChainID;
   signal input inputAmount;
@@ -28,30 +27,37 @@ template Reward(levels, zeroLeaf, length) {
   signal input inputRoots[length];
   signal input inputPathElements[levels];
   signal input inputPathIndices;
-  signal input inputNullifierHash;
 
   signal input outputChainID;
   signal input outputAmount;
   signal input outputPrivateKey;
   signal input outputBlinding;
-  /* signal input outputNullifier; */
   signal input outputRoot;
   signal input outputPathIndices;
   signal input outputPathElements[levels];
   signal input outputCommitment;
 
   signal input depositTimestamp;
-  signal input depositRoot;
+  signal input depositRoots[length];
+  /* signal input depositRoot; */
   signal input depositPathIndices;
   signal input depositPathElements[levels];
 
   signal input withdrawalTimestamp;
-  signal input withdrawalRoot;
+  signal input withdrawalRoots[length];
+  /* signal input withdrawalRoot; */
   signal input withdrawalPathIndices;
   signal input withdrawalPathElements[levels];
 
   // Check amount invariant
-  inputAmount + rate * (withdrawalTimestamp - depositTimestamp) === outputAmount + fee;
+  signal rewardRate;
+  signal rewardAmount;
+  rewardRate <== rate * (withdrawalTimestamp - depositTimestamp);
+  rewardAmount <== rewardRate * inputAmount;
+
+  inputAmount + rewardAmount === outputAmount + fee;
+  /* inputAmount + (rate * (withdrawalTimestamp - depositTimestamp)) === outputAmount + fee; */
+
 
   // === check input and output accounts and block range ===
   // Check that amounts fit into 248 bits to prevent overflow
@@ -133,13 +139,17 @@ template Reward(levels, zeroLeaf, length) {
   depositHasher.inputs[1] <== depositTimestamp;
 
   // Verify that deposit commitment exists in the tree
-  component depositTree = MerkleTree(levels);
+  component depositTree = ManyMerkleProof(levels, length);
   depositTree.leaf <== depositHasher.out;
   depositTree.pathIndices <== depositPathIndices;
   for (var i = 0; i < levels; i++) {
     depositTree.pathElements[i] <== depositPathElements[i];
   }
-  depositTree.root === depositRoot;
+
+  depositTree.isEnabled <== 1;
+  for (var i = 0; i < length; i++) {
+      depositTree.roots[i] <== depositRoots[i];
+  }
 
   // Compute withdrawal commitment
   component withdrawalHasher = Poseidon(2);
@@ -147,13 +157,17 @@ template Reward(levels, zeroLeaf, length) {
   withdrawalHasher.inputs[1] <== withdrawalTimestamp;
 
   // Verify that withdrawal commitment exists in the tree
-  component withdrawalTree = MerkleTree(levels);
+  component withdrawalTree = ManyMerkleProof(levels, length);
   withdrawalTree.leaf <== withdrawalHasher.out;
   withdrawalTree.pathIndices <== withdrawalPathIndices;
   for (var i = 0; i < levels; i++) {
     withdrawalTree.pathElements[i] <== withdrawalPathElements[i];
   }
-  withdrawalTree.root === withdrawalRoot;
+  /* withdrawalTree.root === withdrawalRoot; */
+  withdrawalTree.isEnabled <== 1;
+  for (var i = 0; i < length; i++) {
+      withdrawalTree.roots[i] <== withdrawalRoots[i];
+  }
 
   // Compute reward nullifier
   component outputSignature = Signature();
