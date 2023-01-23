@@ -1,0 +1,44 @@
+[evm]
+
+[evm.optimism]
+beneficiary = "0xf1fd5607b90f6c421db7313158baac170d4f053b"
+block-confirmations = 0
+chain-id = 420
+enabled = true
+http-endpoint = "https://goerli.optimism.io"
+name = "optimism"
+private-key = "$OPTIMISM_TESTNET_PRIVATE_KEY"
+ws-endpoint = "wss://goerli.optimism.io"
+
+[[evm.optimism.contracts]]
+address = "0x77f0a3aca922339dc91b82e88a83231ef2dacf02"
+contract = "VAnchor"
+deployed-at = 4538203
+linked-anchors = [
+    { type = "Evm", chain = "goerli", chain-id = 5, address = "0x77f0a3aca922339dc91b82e88a83231ef2dacf02" },
+    { type = "Evm", chain = "sepolia", chain-id = 11155111, address = "0x77f0a3aca922339dc91b82e88a83231ef2dacf02" },
+    { type = "Evm", chain = "moonbase", chain-id = 1287, address = "0x77f0a3aca922339dc91b82e88a83231ef2dacf02"}
+]
+
+[evm.optimism.contracts.events-watcher]
+enabled = true
+polling-interval = 1000
+print-progress-interval = 7000
+
+[evm.optimism.contracts.proposal-signing-backend]
+node = "tangle"
+type = "DKGNode"
+
+[evm.optimism.contracts.withdraw-config]
+withdraw-fee-percentage = 0
+withdraw-gaslimit = "0x5B8D80"
+
+[[evm.optimism.contracts]]
+address = "0x8a568614cf78ae79ab8d326fd1d3fd5bf888aae7"
+contract = "SignatureBridge"
+deployed-at = 4538067
+
+[evm.optimism.contracts.events-watcher]
+enabled = true
+polling-interval = 1000
+print-progress-interval = 7000

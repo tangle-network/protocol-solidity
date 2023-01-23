@@ -4,40 +4,21 @@
  */
 
 const { expect } = require('chai');
-// const { toFixedHex, poseidonHash2, randomBN } = require('../src/utils')
-// const MerkleTree = require('fixed-merkle-tree')
 import { MerkleTree, toFixedHex, toBuffer, randomBN } from '@webb-tools/sdk-core';
 import { BigNumber } from 'ethers';
-import { artifacts, contract, ethers } from 'hardhat';
-import { poseidon } from 'circomlibjs';
-// import { PoseidonHasher, BatchTreeUpdater } from '@webb-tools/anchors';
+import { contract, ethers } from 'hardhat';
 import { PoseidonHasher } from '@webb-tools/anchors';
 import { BatchTreeUpdaterMock as BatchTreeUpdater } from './mocks/BatchTreeUpdaterMock';
-import { randomBytes } from 'crypto';
-// import { groth16 } from 'snarkjs';
-// const TruffleAssert = require('truffle-assertions');
-import { hexToU8a, u8aToHex, ZkComponents, fetchComponentsFromFilePaths } from '@webb-tools/utils';
+import { ZkComponents, fetchComponentsFromFilePaths } from '@webb-tools/utils';
 import {
-  // BatchMerkleTree as BatchMerkleTreeContract,
-  // BatchMerkleTree__factory,
   VerifierBatch4__factory,
   VerifierBatch8__factory,
   VerifierBatch16__factory,
   VerifierBatch32__factory,
   BatchTreeVerifierSelector__factory,
-} from '../../typechain';
-import jsSHA from 'jssha';
+} from '../../lib';
 import path from 'path';
 const snarkjs = require('snarkjs');
-
-// const MerkleTreeWithHistory = artifacts.require('MerkleTreePoseidonMock');
-
-// const instances = [
-//   '0x1111000000000000000000000000000000001111',
-//   '0x2222000000000000000000000000000000002222',
-//   '0x3333000000000000000000000000000000003333',
-//   '0x4444000000000000000000000000000000004444',
-// ]
 
 const blocks = ['0xaaaaaaaa', '0xbbbbbbbb', '0xcccccccc', '0xdddddddd'];
 
