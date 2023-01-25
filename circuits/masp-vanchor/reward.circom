@@ -152,7 +152,7 @@ template Reward(levels, zeroLeaf, length) {
   noteSignature.commitment <== noteHasher.out;
   noteSignature.merklePath <== notePathIndices;
   
-  component inputNullifierHasher = Poseidon(3);
+  component noteNullifierHasher = Poseidon(3);
   noteNullifierHasher.inputs[0] <== noteHasher.out;
   noteNullifierHasher.inputs[1] <== notePathIndices;
   noteNullifierHasher.inputs[2] <== noteSignature.out;
@@ -194,9 +194,8 @@ template Reward(levels, zeroLeaf, length) {
   }
 
   // Compute reward nullifier
-  component rewardNullifierHasher = Poseidon(3);
+  component rewardNullifierHasher = Poseidon(1);
   rewardNullifierHasher.inputs[0] <== noteNullifierHasher.out;
-  rewardNullifierHasher.inputs[1] <== outputPathIndices;
   rewardNullifierHasher.out === rewardNullifier;
 
   // Add hidden signals to make sure that tampering with recipient or fee will invalidate the snark proof
