@@ -7,6 +7,7 @@ include "../../node_modules/circomlib/circuits/comparators.circom";
 /* include "./MerkleTree.circom"; */
 /* include "../vanchor/transaction.circom"; */
 include "../merkle-tree/manyMerkleProof.circom";
+include "../merkle-tree/merkleTree.circom";
 include "../vanchor/keypair.circom";
 include "../merkle-tree/merkleTreeUpdater.circom";
 
@@ -20,7 +21,6 @@ template Reward(levels, zeroLeaf, length) {
   signal input noteAmount;
   signal input notePrivateKey;
   signal input noteBlinding;
-  signal input noteMerkleRoot;
   signal input notePathElements[levels];
   signal input notePathIndices;
 
@@ -30,7 +30,7 @@ template Reward(levels, zeroLeaf, length) {
   signal input inputPrivateKey;
   signal input inputBlinding;
   signal input inputNullifier;
-  signal input inputRoots[length];
+  signal input inputRoot;
   signal input inputPathElements[levels];
   signal input inputPathIndices;
 
@@ -45,23 +45,23 @@ template Reward(levels, zeroLeaf, length) {
   signal input outputCommitment;
 
   // inputs prefixed with deposit correspond to the depositMerkleTree
-  signal input unspentTimestamp;
-  signal input unspentRoots[length];
-  /* signal input unspentRoot; */
-  signal input unspentPathIndices;
-  signal input unspentPathElements[levels];
+  signal input depositTimestamp;
+  signal input depositRoots[length];
+  /* signal input depositRoot; */
+  signal input depositPathIndices;
+  signal input depositPathElements[levels];
 
   // inputs prefixed with withdrawal correspond to the withdrawMerkleTree
-  signal input spentTimestamp;
-  signal input spentRoots[length];
-  /* signal input spentRoot; */
-  signal input spentPathIndices;
-  signal input spentPathElements[levels];
+  signal input withdrawTimestamp;
+  signal input withdrawRoots[length];
+  /* signal input withdrawRoot; */
+  signal input withdrawPathIndices;
+  signal input withdrawPathElements[levels];
 
   // Check amount invariant
   signal rewardRate;
   signal rewardAmount;
-  rewardRate <== rate * (spentTimestamp - unspentTimestamp);
+  rewardRate <== rate * (withdrawTimestamp - depositTimestamp);
   rewardAmount <== rewardRate * inputAmount;
 
   inputAmount + rewardAmount === outputAmount + fee;
@@ -78,7 +78,7 @@ template Reward(levels, zeroLeaf, length) {
   component blockRangeCheck = Num2Bits(32);
   inputAmountCheck.in <== inputAmount;
   outputAmountCheck.in <== outputAmount;
-  blockRangeCheck.in <== spentTimestamp - unspentTimestamp;
+  blockRangeCheck.in <== withdrawTimestamp - depositTimestamp;
 
   component inputKeypair = Keypair();
   inputKeypair.privateKey <== inputPrivateKey;
@@ -101,19 +101,23 @@ template Reward(levels, zeroLeaf, length) {
   inputNullifierHasher.inputs[2] <== inputSignature.out;
   inputNullifierHasher.out === inputNullifier;
   
-  component inputTree = ManyMerkleProof(levels, length);
+  component inputTree = MerkleTree(levels);
   inputTree.leaf <== inputHasher.out;
   inputTree.pathIndices <== inputPathIndices;
   
   // add the roots and diffs signals to the bridge circuit
-  for (var i = 0; i < length; i++) {
-      inputTree.roots[i] <== inputRoots[i];
-  }
+  /* for (var i = 0; i < length; i++) { */
+  /*     inputTree.roots[i] <== inputRoots[i]; */
+  /* } */
   
-  inputTree.isEnabled <== inputAmount;
+  /* inputTree.isEnabled <== inputAmount; */
   for (var i = 0; i < levels; i++) {
       inputTree.pathElements[i] <== inputPathElements[i];
   }
+  component checkRoot = ForceEqualIfEnabled();
+  checkRoot.in[0] <== inputRoot;
+  checkRoot.in[1] <== inputTree.root;
+  checkRoot.enabled <== inputAmount;
 
   // Compute and verify output commitment
   component outputKeypair = Keypair();
@@ -128,7 +132,7 @@ template Reward(levels, zeroLeaf, length) {
 
   // Update accounts tree with output account commitment
   component accountTreeUpdater = MerkleTreeUpdater(levels, zeroLeaf);
-  accountTreeUpdater.oldRoot <== inputRoots[0];
+  accountTreeUpdater.oldRoot <== inputRoot;
   accountTreeUpdater.newRoot <== outputRoot;
   accountTreeUpdater.leaf <== outputCommitment;
   accountTreeUpdater.pathIndices <== outputPathIndices;
@@ -158,39 +162,39 @@ template Reward(levels, zeroLeaf, length) {
   noteNullifierHasher.inputs[2] <== noteSignature.out;
 
   // Compute deposit commitment
-  component spentHasher = Poseidon(2);
-  spentHasher.inputs[0] <== noteHasher.out;
-  spentHasher.inputs[1] <== spentTimestamp;
+  component depositHasher = Poseidon(2);
+  depositHasher.inputs[0] <== noteHasher.out;
+  depositHasher.inputs[1] <== depositTimestamp;
 
   // Verify that deposit commitment exists in the tree
-  component spentTree = ManyMerkleProof(levels, length);
-  spentTree.leaf <== spentHasher.out;
-  spentTree.pathIndices <== spentPathIndices;
+  component depositTree = ManyMerkleProof(levels, length);
+  depositTree.leaf <== depositHasher.out;
+  depositTree.pathIndices <== depositPathIndices;
   for (var i = 0; i < levels; i++) {
-    spentTree.pathElements[i] <== spentPathElements[i];
+    depositTree.pathElements[i] <== depositPathElements[i];
   }
 
-  spentTree.isEnabled <== 1;
+  depositTree.isEnabled <== 1;
   for (var i = 0; i < length; i++) {
-      spentTree.roots[i] <== spentRoots[i];
+      depositTree.roots[i] <== depositRoots[i];
   }
 
   // Compute withdrawal commitment
-  component unspentHasher = Poseidon(2);
-  unspentHasher.inputs[0] <== noteNullifierHasher.out;
-  unspentHasher.inputs[1] <== unspentTimestamp;
+  component withdrawHasher = Poseidon(2);
+  withdrawHasher.inputs[0] <== noteNullifierHasher.out;
+  withdrawHasher.inputs[1] <== withdrawTimestamp;
 
   // Verify that withdrawal commitment exists in the tree
-  component unspentTree = ManyMerkleProof(levels, length);
-  unspentTree.leaf <== unspentHasher.out;
-  unspentTree.pathIndices <== unspentPathIndices;
+  component withdrawTree = ManyMerkleProof(levels, length);
+  withdrawTree.leaf <== withdrawHasher.out;
+  withdrawTree.pathIndices <== withdrawPathIndices;
   for (var i = 0; i < levels; i++) {
-    unspentTree.pathElements[i] <== unspentPathElements[i];
+    withdrawTree.pathElements[i] <== withdrawPathElements[i];
   }
   /* withdrawalTree.root === withdrawalRoot; */
-  unspentTree.isEnabled <== 1;
+  withdrawTree.isEnabled <== 1;
   for (var i = 0; i < length; i++) {
-      unspentTree.roots[i] <== unspentRoots[i];
+      withdrawTree.roots[i] <== withdrawRoots[i];
   }
 
   // Compute reward nullifier
