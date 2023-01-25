@@ -16,9 +16,12 @@ template Reward(levels, zeroLeaf, length) {
   signal input rewardNullifier;
   signal input extDataHash;
 
-  /* signal input noteSecret; */
-  /* signal input noteBlinding; */
+  signal input noteChainID;
+  signal input noteAmount;
+  signal input notePrivateKey;
+  signal input noteBlinding;
 
+  // inputs prefixed with input correspond to the vanchor utxos
   signal input inputChainID;
   signal input inputAmount;
   signal input inputPrivateKey;
@@ -28,6 +31,7 @@ template Reward(levels, zeroLeaf, length) {
   signal input inputPathElements[levels];
   signal input inputPathIndices;
 
+  // inputs prefixed with output correspond to the anonimity points vanchor
   signal input outputChainID;
   signal input outputAmount;
   signal input outputPrivateKey;
@@ -37,12 +41,14 @@ template Reward(levels, zeroLeaf, length) {
   signal input outputPathElements[levels];
   signal input outputCommitment;
 
+  // inputs prefixed with deposit correspond to the depositMerkleTree
   signal input depositTimestamp;
   signal input depositRoots[length];
   /* signal input depositRoot; */
   signal input depositPathIndices;
   signal input depositPathElements[levels];
 
+  // inputs prefixed with withdrawal correspond to the withdrawMerkleTree
   signal input withdrawalTimestamp;
   signal input withdrawalRoots[length];
   /* signal input withdrawalRoot; */
@@ -129,13 +135,21 @@ template Reward(levels, zeroLeaf, length) {
 
   // === check deposit and withdrawal ===
   // Compute tornado.cash commitment and nullifier
+  component noteKeypair = Keypair();
+  noteKeypair.privateKey <== notePrivateKey;
+
+  component noteHasher = Poseidon(4);
+  noteHasher.inputs[0] <== noteChainID;
+  noteHasher.inputs[1] <== noteAmount;
+  noteHasher.inputs[2] <== noteKeypair.publicKey;
+  noteHasher.inputs[3] <== noteBlinding;
   /* component noteHasher = TornadoCommitmentHasher(); */
   /* noteHasher.nullifier <== noteNullifier; */
   /* noteHasher.secret <== noteSecret; */
 
   // Compute deposit commitment
   component depositHasher = Poseidon(2);
-  depositHasher.inputs[0] <== inputHasher.out;
+  depositHasher.inputs[0] <== noteHasher.out;
   depositHasher.inputs[1] <== depositTimestamp;
 
   // Verify that deposit commitment exists in the tree
