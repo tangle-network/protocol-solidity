@@ -20,6 +20,9 @@ template Reward(levels, zeroLeaf, length) {
   signal input noteAmount;
   signal input notePrivateKey;
   signal input noteBlinding;
+  signal input noteMerkleRoot;
+  signal input notePathElements[levels];
+  signal input notePathIndices;
 
   // inputs prefixed with input correspond to the vanchor utxos
   signal input inputChainID;
@@ -42,23 +45,23 @@ template Reward(levels, zeroLeaf, length) {
   signal input outputCommitment;
 
   // inputs prefixed with deposit correspond to the depositMerkleTree
-  signal input depositTimestamp;
-  signal input depositRoots[length];
-  /* signal input depositRoot; */
-  signal input depositPathIndices;
-  signal input depositPathElements[levels];
+  signal input unspentTimestamp;
+  signal input unspentRoots[length];
+  /* signal input unspentRoot; */
+  signal input unspentPathIndices;
+  signal input unspentPathElements[levels];
 
   // inputs prefixed with withdrawal correspond to the withdrawMerkleTree
-  signal input withdrawalTimestamp;
-  signal input withdrawalRoots[length];
-  /* signal input withdrawalRoot; */
-  signal input withdrawalPathIndices;
-  signal input withdrawalPathElements[levels];
+  signal input spentTimestamp;
+  signal input spentRoots[length];
+  /* signal input spentRoot; */
+  signal input spentPathIndices;
+  signal input spentPathElements[levels];
 
   // Check amount invariant
   signal rewardRate;
   signal rewardAmount;
-  rewardRate <== rate * (withdrawalTimestamp - depositTimestamp);
+  rewardRate <== rate * (spentTimestamp - unspentTimestamp);
   rewardAmount <== rewardRate * inputAmount;
 
   inputAmount + rewardAmount === outputAmount + fee;
@@ -75,7 +78,7 @@ template Reward(levels, zeroLeaf, length) {
   component blockRangeCheck = Num2Bits(32);
   inputAmountCheck.in <== inputAmount;
   outputAmountCheck.in <== outputAmount;
-  blockRangeCheck.in <== withdrawalTimestamp - depositTimestamp;
+  blockRangeCheck.in <== spentTimestamp - unspentTimestamp;
 
   component inputKeypair = Keypair();
   inputKeypair.privateKey <== inputPrivateKey;
@@ -143,56 +146,57 @@ template Reward(levels, zeroLeaf, length) {
   noteHasher.inputs[1] <== noteAmount;
   noteHasher.inputs[2] <== noteKeypair.publicKey;
   noteHasher.inputs[3] <== noteBlinding;
-  /* component noteHasher = TornadoCommitmentHasher(); */
-  /* noteHasher.nullifier <== noteNullifier; */
-  /* noteHasher.secret <== noteSecret; */
+
+  component noteSignature = Signature();
+  noteSignature.privateKey <== notePrivateKey;
+  noteSignature.commitment <== noteHasher.out;
+  noteSignature.merklePath <== notePathIndices;
+  
+  component inputNullifierHasher = Poseidon(3);
+  noteNullifierHasher.inputs[0] <== noteHasher.out;
+  noteNullifierHasher.inputs[1] <== notePathIndices;
+  noteNullifierHasher.inputs[2] <== noteSignature.out;
 
   // Compute deposit commitment
-  component depositHasher = Poseidon(2);
-  depositHasher.inputs[0] <== noteHasher.out;
-  depositHasher.inputs[1] <== depositTimestamp;
+  component spentHasher = Poseidon(2);
+  spentHasher.inputs[0] <== noteHasher.out;
+  spentHasher.inputs[1] <== spentTimestamp;
 
   // Verify that deposit commitment exists in the tree
-  component depositTree = ManyMerkleProof(levels, length);
-  depositTree.leaf <== depositHasher.out;
-  depositTree.pathIndices <== depositPathIndices;
+  component spentTree = ManyMerkleProof(levels, length);
+  spentTree.leaf <== spentHasher.out;
+  spentTree.pathIndices <== spentPathIndices;
   for (var i = 0; i < levels; i++) {
-    depositTree.pathElements[i] <== depositPathElements[i];
+    spentTree.pathElements[i] <== spentPathElements[i];
   }
 
-  depositTree.isEnabled <== 1;
+  spentTree.isEnabled <== 1;
   for (var i = 0; i < length; i++) {
-      depositTree.roots[i] <== depositRoots[i];
+      spentTree.roots[i] <== spentRoots[i];
   }
 
   // Compute withdrawal commitment
-  component withdrawalHasher = Poseidon(2);
-  withdrawalHasher.inputs[0] <== inputNullifier;
-  withdrawalHasher.inputs[1] <== withdrawalTimestamp;
+  component unspentHasher = Poseidon(2);
+  unspentHasher.inputs[0] <== noteNullifierHasher.out;
+  unspentHasher.inputs[1] <== unspentTimestamp;
 
   // Verify that withdrawal commitment exists in the tree
-  component withdrawalTree = ManyMerkleProof(levels, length);
-  withdrawalTree.leaf <== withdrawalHasher.out;
-  withdrawalTree.pathIndices <== withdrawalPathIndices;
+  component unspentTree = ManyMerkleProof(levels, length);
+  unspentTree.leaf <== unspentHasher.out;
+  unspentTree.pathIndices <== unspentPathIndices;
   for (var i = 0; i < levels; i++) {
-    withdrawalTree.pathElements[i] <== withdrawalPathElements[i];
+    unspentTree.pathElements[i] <== unspentPathElements[i];
   }
   /* withdrawalTree.root === withdrawalRoot; */
-  withdrawalTree.isEnabled <== 1;
+  unspentTree.isEnabled <== 1;
   for (var i = 0; i < length; i++) {
-      withdrawalTree.roots[i] <== withdrawalRoots[i];
+      unspentTree.roots[i] <== unspentRoots[i];
   }
 
   // Compute reward nullifier
-  component outputSignature = Signature();
-  outputSignature.privateKey <== outputPrivateKey;
-  outputSignature.commitment <== outputHasher.out;
-  outputSignature.merklePath <== outputPathIndices;
-
   component rewardNullifierHasher = Poseidon(3);
-  rewardNullifierHasher.inputs[0] <== outputHasher.out;
+  rewardNullifierHasher.inputs[0] <== noteNullifierHasher.out;
   rewardNullifierHasher.inputs[1] <== outputPathIndices;
-  rewardNullifierHasher.inputs[2] <== outputSignature.out;
   rewardNullifierHasher.out === rewardNullifier;
 
   // Add hidden signals to make sure that tampering with recipient or fee will invalidate the snark proof
