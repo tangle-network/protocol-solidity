@@ -52,7 +52,7 @@ export type IMASPAllInputs = {
     ak_alpha_X: string[];
     ak_alpha_Y: string[];
 
-    feeAssetId: number;
+    feeAssetID: number;
     whitelistedAssetIDs: number[];
     feeTokenID: number;
 

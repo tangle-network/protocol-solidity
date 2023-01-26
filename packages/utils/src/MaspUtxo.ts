@@ -1,7 +1,6 @@
 import { randomBN, toBuffer } from "@webb-tools/sdk-core";
 import { BigNumber } from "ethers";
 import { poseidon } from 'circomlibjs';
-import { Fp, Fr, Point, signEdDSA, verifyEdDSA, EdDSA } from "@zkopru/babyjubjub";
 const { PublicKey, PrivateKey } = require('babyjubjub');
 import { MaspKey } from "./MaspKey";
 
@@ -27,12 +26,12 @@ export class MaspUtxo {
     };
 
     public getPartialCommitment(): BigNumber {
-        return BigNumber.from(poseidon([ this.chainID, this.maspKey.getPublicKey().x, this.maspKey.getPublicKey().y, this.blinding ]));
+        return BigNumber.from(poseidon([ this.chainID, this.maspKey.getPublicKey()[0].toString(), this.maspKey.getPublicKey()[1].toString(), this.blinding ]));
     }
 
     // TODO: Fill in babyjubjub encrypt function 
     public encrypt () {
-        return "";
+        return "0x";  
     }
 
     public getCommitment(): BigNumber {
@@ -48,7 +47,7 @@ export class MaspUtxo {
        // nullifier = Poseidon(commitment, merklePath, Poseidon(privKey, commitment, merklePath))
        const commitment = this.getCommitment();
        const merklePath = this.index;
-       return BigNumber.from(poseidon([this.maspKey.getPublicKey().x, this.maspKey.getPublicKey().y, commitment, merklePath]));
+       return BigNumber.from(poseidon([this.maspKey.getPublicKey()[0].toString(), this.maspKey.getPublicKey()[1].toString(), commitment, merklePath]));
 
     }
 

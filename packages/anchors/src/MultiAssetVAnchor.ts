@@ -30,7 +30,7 @@ import {
   IVAnchor,
   IMASPAllInputs, 
 } from '@webb-tools/interfaces';
-import { Point, Fp } from "@zkopru/babyjubjub";
+const { babyjub } = require('circomlibjs');
 import { u8aToHex, getChainIdType, ZkComponents, MaspUtxo, MaspKey, } from '@webb-tools/utils';
 import { fromAscii } from 'web3-utils';
 import { Registry } from '@webb-tools/tokens';
@@ -38,6 +38,7 @@ import { EthAbiDecodeParametersResultArray } from 'web3/eth/abi';
 import { convertPublicSignals } from '@webb-tools/semaphore-proof/dist/types/generateProof';
 const snarkjs = require('snarkjs');
 const assert = require('assert');
+
 
 export type FullProof = {
   proof: Proof;
@@ -519,20 +520,20 @@ export class MultiAssetVAnchor implements IVAnchor {
       outputCommitment: outputs.map(x => x.getCommitment().toString()),
       outAmount: outputs.map(x => x.amount.toString()),
       outChainID: outputs.map(x => x.chainID.toString()),
-      outPk_X: outputs.map(x => x.maspKey.getPublicKey().x.toString()),
-      outPk_Y: outputs.map(x => x.maspKey.getPublicKey().y.toString()),
+      outPk_X: outputs.map(x => x.maspKey.getPublicKey()[0].toString()),
+      outPk_Y: outputs.map(x => x.maspKey.getPublicKey()[1].toString()),
       outBlinding: outputs.map(x => x.blinding.toString()),
   
       chainID: chainId.toString(),
       roots: roots.map(x => x.toString()),
   
-      ak_X: inputs.map(x => x.maspKey.getProofAuthorizingKey().x.toString()),
-      ak_Y: inputs.map(x => x.maspKey.getProofAuthorizingKey().y.toString()),
+      ak_X: inputs.map(x => x.maspKey.getProofAuthorizingKey()[0].toString()),
+      ak_Y: inputs.map(x => x.maspKey.getProofAuthorizingKey()[1].toString()),
       sk_alpha: sk_alphas,
-      ak_alpha_X: sk_alphas.map(x => Point.fromPrivKey(x).x.toString()),
-      ak_alpha_Y: sk_alphas.map(x => Point.fromPrivKey(x).y.toString()),
+      ak_alpha_X: sk_alphas.map(x => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[0]),
+      ak_alpha_Y: sk_alphas.map(x => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[1].toString()),
   
-      feeAssetId: feeAssetId,
+      feeAssetID: feeAssetId,
       whitelistedAssetIDs: whitelistedAssetIds,
       feeTokenID: feeTokenId,
   
@@ -547,15 +548,15 @@ export class MultiAssetVAnchor implements IVAnchor {
       feeOutputCommitment: feeOutputs.map(x => x.getCommitment().toString()),
       feeOutAmount: feeOutputs.map(x => x.amount.toString()),
       feeOutChainID: feeOutputs.map(x => x.chainID.toString()),
-      feeOutPk_X: feeOutputs.map(x => x.maspKey.getPublicKey().x.toString()),
-      feeOutPk_Y: feeOutputs.map(x => x.maspKey.getPublicKey().y.toString()),
+      feeOutPk_X: feeOutputs.map(x => x.maspKey.getPublicKey()[0].toString()),
+      feeOutPk_Y: feeOutputs.map(x => x.maspKey.getPublicKey()[1].toString()),
       feeOutBlinding: feeOutputs.map(x => x.blinding.toString()),
   
-      fee_ak_X: feeInputs.map(x => x.maspKey.getProofAuthorizingKey().x.toString()),
-      fee_ak_Y: feeInputs.map(x => x.maspKey.getProofAuthorizingKey().y.toString()),
+      fee_ak_X: feeInputs.map(x => x.maspKey.getProofAuthorizingKey()[0].toString()),
+      fee_ak_Y: feeInputs.map(x => x.maspKey.getProofAuthorizingKey()[1].toString()),
       fee_sk_alpha: fee_sk_alphas,
-      fee_ak_alpha_X: fee_sk_alphas.map(x => Point.fromPrivKey(x).x.toString()),
-      fee_ak_alpha_Y: fee_sk_alphas.map(x => Point.fromPrivKey(x).y.toString()),      
+      fee_ak_alpha_X: fee_sk_alphas.map(x => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[0]),
+      fee_ak_alpha_Y: fee_sk_alphas.map(x => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[1]),      
     };
 
     const publicInputs: IMASPVAnchorPublicInputs = {
@@ -575,8 +576,8 @@ export class MultiAssetVAnchor implements IVAnchor {
       chainID: chainId.toString(),
       roots: roots.map(x => x.toString()),
   
-      ak_alpha_X: sk_alphas.map(x => Point.fromPrivKey(x).x.toString()),
-      ak_alpha_Y: sk_alphas.map(x => Point.fromPrivKey(x).y.toString()),
+      ak_alpha_X: sk_alphas.map(x => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[0]),
+      ak_alpha_Y: sk_alphas.map(x => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[1]),
   
       whitelistedAssetIDs: whitelistedAssetIds,
   
@@ -586,8 +587,8 @@ export class MultiAssetVAnchor implements IVAnchor {
       // data for transaction outputs
       feeOutputCommitment: feeOutputs.map(x => x.getCommitment().toString()),
 
-      fee_ak_alpha_X: fee_sk_alphas.map(x => Point.fromPrivKey(x).x.toString()),
-      fee_ak_alpha_Y: fee_sk_alphas.map(x => Point.fromPrivKey(x).y.toString()), 
+      fee_ak_alpha_X: fee_sk_alphas.map(x => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[0]),
+      fee_ak_alpha_Y: fee_sk_alphas.map(x => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[1]), 
     };
 
     return { allInputs, publicInputs }

@@ -7,3 +7,4 @@ export { OpenVAnchor } from './OpenVAnchor';
 export { PoseidonHasher } from './PoseidonHasher';
 export { Deployer } from '@webb-tools/create2-utils';
 export { BatchTreeUpdater } from './BatchTreeUpdater';
+export { MultiAssetVAnchor } from './MultiAssetVAnchor';
