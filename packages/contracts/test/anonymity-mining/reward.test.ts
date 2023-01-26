@@ -149,14 +149,6 @@ describe.only('Reward snarkjs local proof', () => {
     console.log("rewardOutputUtxo: ", rewardOutputUtxo)
     const outputCommitment = toFixedHex(rewardOutputUtxo.commitment)
     const outputPrivateKey = rewardOutputUtxo.getKeypair().privkey
-    await rewardMerkleTree.insert(outputCommitment);
-
-    expect(rewardMerkleTree.number_of_elements()).to.equal(1);
-    const outputRoot = rewardMerkleTree.root().toString();
-    const outputPath = rewardMerkleTree.path(0);
-
-    const outputPathElements = outputPath.pathElements.map((bignum: BigNumber) => bignum.toString())
-    const outputPathIndices = MerkleTree.calculateIndexFromPathIndices(outputPath.pathIndices);
     const depositRoots = [depositTree.root().toString(), emptyTreeRoot.toString()]
     const depositPath = depositTree.path(0);
     const depositPathElements = depositPath.pathElements.map((bignum: BigNumber) => bignum.toString())
@@ -200,9 +192,6 @@ describe.only('Reward snarkjs local proof', () => {
       outputPrivateKey: outputPrivateKey,
       outputBlinding: '0x' + rewardOutputUtxo.blinding,
       outputCommitment: toFixedHex(rewardOutputUtxo.commitment),
-      outputRoot,
-      outputPathIndices,
-      outputPathElements,
       spentTimestamp: depositTimestamp,
       spentRoots: depositRoots,
       spentPathIndices: depositPathIndices,

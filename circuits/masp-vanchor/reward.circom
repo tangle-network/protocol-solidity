@@ -40,9 +40,9 @@ template Reward(levels, zeroLeaf, length) {
   signal input outputPrivateKey;
   signal input outputBlinding;
   signal input outputCommitment;
-  signal input outputRoot;
-  signal input outputPathIndices;
-  signal input outputPathElements[levels];
+  /* signal input outputRoot; */
+  /* signal input outputPathIndices; */
+  /* signal input outputPathElements[levels]; */
 
   // inputs prefixed with spent correspond to the already spent UTXO
   signal input spentTimestamp;
@@ -56,10 +56,10 @@ template Reward(levels, zeroLeaf, length) {
   signal input unspentPathElements[levels];
 
   // Check amount invariant
-  signal rewardRate;
+  signal intermediateRewardValue;
   signal rewardAmount;
-  rewardRate <== rate * (unspentTimestamp - spentTimestamp);
-  rewardAmount <== rewardRate * noteAmount;
+  intermediateRewardValue <== rate * (unspentTimestamp - spentTimestamp);
+  rewardAmount <== intermediateRewardValue * noteAmount;
 
   inputAmount + rewardAmount === outputAmount + fee;
   /* inputAmount + (rate * (unspentTimestamp - spentTimestamp)) === outputAmount + fee; */
@@ -124,17 +124,6 @@ template Reward(levels, zeroLeaf, length) {
   outputHasher.inputs[3] <== outputBlinding;
   outputHasher.out === outputCommitment;
 
-
-  // Update accounts tree with output account commitment
-  component accountTreeUpdater = MerkleTreeUpdater(levels, zeroLeaf);
-  accountTreeUpdater.oldRoot <== inputRoot;
-  accountTreeUpdater.newRoot <== outputRoot;
-  accountTreeUpdater.leaf <== outputCommitment;
-  accountTreeUpdater.pathIndices <== outputPathIndices;
-  for (var i = 0; i < levels; i++) {
-      accountTreeUpdater.pathElements[i] <== outputPathElements[i];
-  }
-
   // === check deposit and withdrawal ===
   // Compute tornado.cash commitment and nullifier
   component noteKeypair = Keypair();
@@ -156,7 +145,6 @@ template Reward(levels, zeroLeaf, length) {
   noteNullifierHasher.inputs[1] <== notePathIndices;
   noteNullifierHasher.inputs[2] <== noteSignature.out;
 
-  log(00000000000);
   // Compute deposit commitment
   component spentHasher = Poseidon(2);
   spentHasher.inputs[0] <== noteHasher.out;
