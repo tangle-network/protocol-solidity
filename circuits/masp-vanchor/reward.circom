@@ -55,11 +55,11 @@ template Reward(levels, zeroLeaf, length) {
   // Check amount invariant
   signal intermediateRewardValue;
   signal rewardAmount;
-  intermediateRewardValue <== rate * (unspentTimestamp - spentTimestamp);
+  intermediateRewardValue <== rate * (spentTimestamp - unspentTimestamp);
   rewardAmount <== intermediateRewardValue * noteAmount;
 
   inputAmount + rewardAmount === outputAmount + fee;
-  /* inputAmount + (rate * (unspentTimestamp - spentTimestamp)) === outputAmount + fee; */
+  /* inputAmount + (rate * (spentTimestamp - unspentTimestamp)) === outputAmount + fee; */
 
 
   // === check input and output accounts and block range ===
@@ -74,7 +74,7 @@ template Reward(levels, zeroLeaf, length) {
   component blockRangeCheck = Num2Bits(32);
   inputAmountCheck.in <== inputAmount;
   outputAmountCheck.in <== outputAmount;
-  blockRangeCheck.in <== unspentTimestamp - spentTimestamp;
+  blockRangeCheck.in <== spentTimestamp - unspentTimestamp;
 
   component inputKeypair = Keypair();
   inputKeypair.privateKey <== inputPrivateKey;
@@ -143,38 +143,38 @@ template Reward(levels, zeroLeaf, length) {
   noteNullifierHasher.inputs[2] <== noteSignature.out;
 
   // Compute deposit commitment
-  component spentHasher = Poseidon(2);
-  spentHasher.inputs[0] <== noteHasher.out;
-  spentHasher.inputs[1] <== spentTimestamp;
-
-  // Verify that deposit commitment exists in the tree
-  component spentTree = ManyMerkleProof(levels, length);
-  spentTree.leaf <== spentHasher.out;
-  spentTree.pathIndices <== spentPathIndices;
-  for (var i = 0; i < levels; i++) {
-    spentTree.pathElements[i] <== spentPathElements[i];
-  }
-
-  spentTree.isEnabled <== 1;
-  for (var i = 0; i < length; i++) {
-      spentTree.roots[i] <== spentRoots[i];
-  }
-
-  // Compute withdrawal commitment
   component unspentHasher = Poseidon(2);
-  unspentHasher.inputs[0] <== noteNullifierHasher.out;
+  unspentHasher.inputs[0] <== noteHasher.out;
   unspentHasher.inputs[1] <== unspentTimestamp;
 
-  // Verify that withdrawal commitment exists in the tree
+  // Verify that deposit commitment exists in the tree
   component unspentTree = ManyMerkleProof(levels, length);
   unspentTree.leaf <== unspentHasher.out;
   unspentTree.pathIndices <== unspentPathIndices;
   for (var i = 0; i < levels; i++) {
     unspentTree.pathElements[i] <== unspentPathElements[i];
   }
+
   unspentTree.isEnabled <== 1;
   for (var i = 0; i < length; i++) {
       unspentTree.roots[i] <== unspentRoots[i];
+  }
+
+  // Compute withdrawal commitment
+  component spentHasher = Poseidon(2);
+  spentHasher.inputs[0] <== noteNullifierHasher.out;
+  spentHasher.inputs[1] <== spentTimestamp;
+
+  // Verify that withdrawal commitment exists in the tree
+  component spentTree = ManyMerkleProof(levels, length);
+  spentTree.leaf <== spentHasher.out;
+  spentTree.pathIndices <== spentPathIndices;
+  for (var i = 0; i < levels; i++) {
+    spentTree.pathElements[i] <== spentPathElements[i];
+  }
+  spentTree.isEnabled <== 1;
+  for (var i = 0; i < length; i++) {
+      spentTree.roots[i] <== spentRoots[i];
   }
 
   // Compute reward nullifier

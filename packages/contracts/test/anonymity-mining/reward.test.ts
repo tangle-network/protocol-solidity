@@ -42,8 +42,8 @@ const path = require('path');
 const blocks = ['0xaaaaaaaa', '0xbbbbbbbb', '0xcccccccc', '0xdddddddd'];
 
 describe.only('Reward snarkjs local proof', () => {
-  let depositTree: MerkleTree;
-  let withdrawalTree: MerkleTree;
+  let unspentTree: MerkleTree;
+  let spentTree: MerkleTree;
   // VAnchor-like contract's merkle-tree
   let vanchorMerkleTree: MerkleTree;
   // VAnchor-like contract's merkle-tree for the AP tokens
@@ -78,8 +78,8 @@ describe.only('Reward snarkjs local proof', () => {
     const wallet = signers[0];
     sender = wallet;
 
-    depositTree = new MerkleTree(levels);
-    withdrawalTree = new MerkleTree(levels);
+    unspentTree = new MerkleTree(levels);
+    spentTree = new MerkleTree(levels);
     vanchorMerkleTree = new MerkleTree(levels);
     rewardMerkleTree = new MerkleTree(levels);
     emptyTreeRoot = vanchorMerkleTree.root();
@@ -114,22 +114,17 @@ describe.only('Reward snarkjs local proof', () => {
     const UTXOPathIndices = MerkleTree.calculateIndexFromPathIndices(UTXOPath.pathIndices);
 
     // Update depositTree with vanchor UTXO commitment
-    const depositTimestamp = Date.now();
-    console.log("Alice deposited: ", aliceCommitment, " at ", depositTimestamp)
-    const depositLeaf = poseidon([aliceCommitment, depositTimestamp]);
-    console.log("depositLeaf: ", depositLeaf)
-    await depositTree.insert(depositLeaf)
-    expect(depositTree.number_of_elements()).to.equal(1);
+    const unspentTimestamp = Date.now();
+    const unspentLeaf = poseidon([aliceCommitment, unspentTimestamp]);
+    await unspentTree.insert(unspentLeaf)
+    expect(unspentTree.number_of_elements()).to.equal(1);
 
-    const withdrawTimestamp = Date.now() + 1000;
+    const spentTimestamp = Date.now() + 1000;
 
     const aliceNullifier = '0x' + aliceDepositUtxo.nullifier
-    const withdrawLeaf = poseidon([aliceNullifier, withdrawTimestamp]);
-    await withdrawalTree.insert(withdrawLeaf)
-    expect(withdrawalTree.number_of_elements()).to.equal(1);
-
-    console.log("Nullifier: ", aliceNullifier)
-    console.log("withdrawLeaf: ", withdrawLeaf)
+    const spentLeaf = poseidon([aliceNullifier, spentTimestamp]);
+    await spentTree.insert(spentLeaf)
+    expect(spentTree.number_of_elements()).to.equal(1);
 
     const rate = 1000;
     const fee = 0;
@@ -142,26 +137,22 @@ describe.only('Reward snarkjs local proof', () => {
     const inputPathElements = new Array(rewardMerkleTree.levels).fill(0);
     const inputPathIndices = MerkleTree.calculateIndexFromPathIndices(new Array(rewardMerkleTree.levels).fill(0));
 
-    const outputAmount = (rate * (withdrawTimestamp - depositTimestamp)) * aliceDepositAmount
-    console.log("inputAmount: ", inputAmount)
-    console.log("outputAmount: ", outputAmount)
+    const outputAmount = (rate * (spentTimestamp - unspentTimestamp)) * aliceDepositAmount
     const rewardOutputUtxo = await generateUTXOForTest(chainID, outputAmount);
-    console.log("rewardOutputUtxo: ", rewardOutputUtxo)
     const outputCommitment = toFixedHex(rewardOutputUtxo.commitment)
     const outputPrivateKey = rewardOutputUtxo.getKeypair().privkey
-    const depositRoots = [depositTree.root().toString(), emptyTreeRoot.toString()]
-    const depositPath = depositTree.path(0);
-    const depositPathElements = depositPath.pathElements.map((bignum: BigNumber) => bignum.toString())
-    const depositPathIndices = MerkleTree.calculateIndexFromPathIndices(depositPath.pathIndices);
+    const unspentRoots = [unspentTree.root().toString(), emptyTreeRoot.toString()]
+    const unspentPath = unspentTree.path(0);
+    const unspentPathElements = unspentPath.pathElements.map((bignum: BigNumber) => bignum.toString())
+    const unspentPathIndices = MerkleTree.calculateIndexFromPathIndices(unspentPath.pathIndices);
 
-    expect(withdrawalTree.number_of_elements()).to.equal(1);
-    const withdrawRoots = [withdrawalTree.root().toString(), emptyTreeRoot.toString()]
-    const withdrawalPath = withdrawalTree.path(0);
-    const withdrawPathElements = withdrawalPath.pathElements.map((bignum: BigNumber) => bignum.toString())
-    const withdrawPathIndices = MerkleTree.calculateIndexFromPathIndices(withdrawalPath.pathIndices);
+    expect(spentTree.number_of_elements()).to.equal(1);
+    const spentRoots = [spentTree.root().toString(), emptyTreeRoot.toString()]
+    const spentPath = spentTree.path(0);
+    const spentPathElements = spentPath.pathElements.map((bignum: BigNumber) => bignum.toString())
+    const spentPathIndices = MerkleTree.calculateIndexFromPathIndices(spentPath.pathIndices);
 
     const rewardNullifier = poseidon([aliceNullifier, UTXOPathIndices]);
-    console.log('rewardNullifier: ', rewardNullifier)
 
     const circuitInput = {
       rate,
@@ -192,16 +183,15 @@ describe.only('Reward snarkjs local proof', () => {
       outputPrivateKey: outputPrivateKey,
       outputBlinding: '0x' + rewardOutputUtxo.blinding,
       outputCommitment: toFixedHex(rewardOutputUtxo.commitment),
-      spentTimestamp: depositTimestamp,
-      spentRoots: depositRoots,
-      spentPathIndices: depositPathIndices,
-      spentPathElements: depositPathElements,
-      unspentTimestamp: withdrawTimestamp,
-      unspentRoots: withdrawRoots,
-      unspentPathIndices: withdrawPathIndices,
-      unspentPathElements: withdrawPathElements,
+      unspentTimestamp: unspentTimestamp,
+      unspentRoots: unspentRoots,
+      unspentPathIndices: unspentPathIndices,
+      unspentPathElements: unspentPathElements,
+      spentTimestamp: spentTimestamp,
+      spentRoots: spentRoots,
+      spentPathIndices: spentPathIndices,
+      spentPathElements: spentPathElements,
     }
-    console.log('circuitInputs: ', circuitInput)
 
     const { proof, publicSignals } = await snarkjs.groth16.fullProve(
       circuitInput,
@@ -211,28 +201,5 @@ describe.only('Reward snarkjs local proof', () => {
     const vKey = await snarkjs.zKey.exportVerificationKey(zkComponent.zkey);
     const verified = await snarkjs.groth16.verify(vKey, publicSignals, proof);
     expect(verified).to.equal(true);
-
-      // inputs prefixed with output correspond to the anonimity points vanchor
-      // outputChainID:
-      // outputAmount:
-      // outputPrivateKey:
-      // outputBlinding:
-      // outputRoot:
-      // outputPathIndices:
-      // outputPathElements[levels]:
-      // outputCommitment:
-
-  // inputs prefixed with deposit correspond to the depositMerkleTree
-  // signal input depositTimestamp:
-  // signal input depositRoots[length]:
-  // signal input depositPathIndices:
-  // signal input depositPathElements[levels]:
-
-  // inputs prefixed with withdrawal correspond to the withdrawMerkleTree
-  // signal input withdrawTimestamp:
-  // signal input withdrawRoots[length]:
-  // signal input withdrawPathIndices:
-  // signal input withdrawPathElements[levels]:
-
   })
 })
