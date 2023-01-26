@@ -44,26 +44,25 @@ template Reward(levels, zeroLeaf, length) {
   signal input outputPathIndices;
   signal input outputPathElements[levels];
 
-  // inputs prefixed with deposit correspond to the depositMerkleTree
-  signal input depositTimestamp;
-  signal input depositRoots[length];
-  signal input depositPathIndices;
-  signal input depositPathElements[levels];
+  // inputs prefixed with spent correspond to the already spent UTXO
+  signal input spentTimestamp;
+  signal input spentRoots[length];
+  signal input spentPathIndices;
+  signal input spentPathElements[levels];
 
-  // inputs prefixed with withdrawal correspond to the withdrawMerkleTree
-  signal input withdrawTimestamp;
-  signal input withdrawRoots[length];
-  signal input withdrawPathIndices;
-  signal input withdrawPathElements[levels];
+  signal input unspentTimestamp;
+  signal input unspentRoots[length];
+  signal input unspentPathIndices;
+  signal input unspentPathElements[levels];
 
   // Check amount invariant
   signal rewardRate;
   signal rewardAmount;
-  rewardRate <== rate * (withdrawTimestamp - depositTimestamp);
+  rewardRate <== rate * (unspentTimestamp - spentTimestamp);
   rewardAmount <== rewardRate * noteAmount;
 
   inputAmount + rewardAmount === outputAmount + fee;
-  /* inputAmount + (rate * (withdrawalTimestamp - depositTimestamp)) === outputAmount + fee; */
+  /* inputAmount + (rate * (unspentTimestamp - spentTimestamp)) === outputAmount + fee; */
 
 
   // === check input and output accounts and block range ===
@@ -78,7 +77,7 @@ template Reward(levels, zeroLeaf, length) {
   component blockRangeCheck = Num2Bits(32);
   inputAmountCheck.in <== inputAmount;
   outputAmountCheck.in <== outputAmount;
-  blockRangeCheck.in <== withdrawTimestamp - depositTimestamp;
+  blockRangeCheck.in <== unspentTimestamp - spentTimestamp;
 
   component inputKeypair = Keypair();
   inputKeypair.privateKey <== inputPrivateKey;
@@ -159,38 +158,38 @@ template Reward(levels, zeroLeaf, length) {
 
   log(00000000000);
   // Compute deposit commitment
-  component depositHasher = Poseidon(2);
-  depositHasher.inputs[0] <== noteHasher.out;
-  depositHasher.inputs[1] <== depositTimestamp;
+  component spentHasher = Poseidon(2);
+  spentHasher.inputs[0] <== noteHasher.out;
+  spentHasher.inputs[1] <== spentTimestamp;
 
   // Verify that deposit commitment exists in the tree
-  component depositTree = ManyMerkleProof(levels, length);
-  depositTree.leaf <== depositHasher.out;
-  depositTree.pathIndices <== depositPathIndices;
+  component spentTree = ManyMerkleProof(levels, length);
+  spentTree.leaf <== spentHasher.out;
+  spentTree.pathIndices <== spentPathIndices;
   for (var i = 0; i < levels; i++) {
-    depositTree.pathElements[i] <== depositPathElements[i];
+    spentTree.pathElements[i] <== spentPathElements[i];
   }
 
-  depositTree.isEnabled <== 1;
+  spentTree.isEnabled <== 1;
   for (var i = 0; i < length; i++) {
-      depositTree.roots[i] <== depositRoots[i];
+      spentTree.roots[i] <== spentRoots[i];
   }
 
   // Compute withdrawal commitment
-  component withdrawHasher = Poseidon(2);
-  withdrawHasher.inputs[0] <== noteNullifierHasher.out;
-  withdrawHasher.inputs[1] <== withdrawTimestamp;
+  component unspentHasher = Poseidon(2);
+  unspentHasher.inputs[0] <== noteNullifierHasher.out;
+  unspentHasher.inputs[1] <== unspentTimestamp;
 
   // Verify that withdrawal commitment exists in the tree
-  component withdrawTree = ManyMerkleProof(levels, length);
-  withdrawTree.leaf <== withdrawHasher.out;
-  withdrawTree.pathIndices <== withdrawPathIndices;
+  component unspentTree = ManyMerkleProof(levels, length);
+  unspentTree.leaf <== unspentHasher.out;
+  unspentTree.pathIndices <== unspentPathIndices;
   for (var i = 0; i < levels; i++) {
-    withdrawTree.pathElements[i] <== withdrawPathElements[i];
+    unspentTree.pathElements[i] <== unspentPathElements[i];
   }
-  withdrawTree.isEnabled <== 1;
+  unspentTree.isEnabled <== 1;
   for (var i = 0; i < length; i++) {
-      withdrawTree.roots[i] <== withdrawRoots[i];
+      unspentTree.roots[i] <== unspentRoots[i];
   }
 
   // Compute reward nullifier
