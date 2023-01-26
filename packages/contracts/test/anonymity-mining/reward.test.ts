@@ -176,7 +176,7 @@ describe.only('Reward snarkjs local proof', () => {
       fee,
       rewardNullifier,
       // Dummy
-      extDataHash: hexToU8a(randomBN(31).toHexString()),
+      extDataHash: randomBN(31).toHexString(),
 
       noteChainID: chainID,
       noteAmount: aliceDepositUtxo.amount,
@@ -203,14 +203,14 @@ describe.only('Reward snarkjs local proof', () => {
       outputRoot,
       outputPathIndices,
       outputPathElements,
-      depositTimestamp: depositTimestamp,
-      depositRoots,
-      depositPathIndices,
-      depositPathElements,
-      withdrawTimestamp: withdrawTimestamp,
-      withdrawRoots,
-      withdrawPathIndices,
-      withdrawPathElements,
+      spentTimestamp: depositTimestamp,
+      spentRoots: depositRoots,
+      spentPathIndices: depositPathIndices,
+      spentPathElements: depositPathElements,
+      unspentTimestamp: withdrawTimestamp,
+      unspentRoots: withdrawRoots,
+      unspentPathIndices: withdrawPathIndices,
+      unspentPathElements: withdrawPathElements,
     }
     console.log('circuitInputs: ', circuitInput)
 
