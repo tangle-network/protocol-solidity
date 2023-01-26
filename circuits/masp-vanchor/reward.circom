@@ -15,7 +15,7 @@ template Reward(levels, zeroLeaf, length) {
   signal input rate;
   signal input fee;
   signal input rewardNullifier;
-  signal input extDataHash;
+  /* signal input extDataHash; */
 
   signal input noteChainID;
   signal input noteAmount;
@@ -39,22 +39,20 @@ template Reward(levels, zeroLeaf, length) {
   signal input outputAmount;
   signal input outputPrivateKey;
   signal input outputBlinding;
+  signal input outputCommitment;
   signal input outputRoot;
   signal input outputPathIndices;
   signal input outputPathElements[levels];
-  signal input outputCommitment;
 
   // inputs prefixed with deposit correspond to the depositMerkleTree
   signal input depositTimestamp;
   signal input depositRoots[length];
-  /* signal input depositRoot; */
   signal input depositPathIndices;
   signal input depositPathElements[levels];
 
   // inputs prefixed with withdrawal correspond to the withdrawMerkleTree
   signal input withdrawTimestamp;
   signal input withdrawRoots[length];
-  /* signal input withdrawRoot; */
   signal input withdrawPathIndices;
   signal input withdrawPathElements[levels];
 
@@ -62,7 +60,7 @@ template Reward(levels, zeroLeaf, length) {
   signal rewardRate;
   signal rewardAmount;
   rewardRate <== rate * (withdrawTimestamp - depositTimestamp);
-  rewardAmount <== rewardRate * inputAmount;
+  rewardAmount <== rewardRate * noteAmount;
 
   inputAmount + rewardAmount === outputAmount + fee;
   /* inputAmount + (rate * (withdrawalTimestamp - depositTimestamp)) === outputAmount + fee; */
@@ -75,6 +73,8 @@ template Reward(levels, zeroLeaf, length) {
   // negative number that `outputAmount` fits into 248 bits
   component inputAmountCheck = Num2Bits(248);
   component outputAmountCheck = Num2Bits(248);
+
+  // TODO: Check how many bits we should use here
   component blockRangeCheck = Num2Bits(32);
   inputAmountCheck.in <== inputAmount;
   outputAmountCheck.in <== outputAmount;
@@ -94,26 +94,21 @@ template Reward(levels, zeroLeaf, length) {
   inputSignature.privateKey <== inputPrivateKey;
   inputSignature.commitment <== inputHasher.out;
   inputSignature.merklePath <== inputPathIndices;
-  
+
   component inputNullifierHasher = Poseidon(3);
   inputNullifierHasher.inputs[0] <== inputHasher.out;
   inputNullifierHasher.inputs[1] <== inputPathIndices;
   inputNullifierHasher.inputs[2] <== inputSignature.out;
   inputNullifierHasher.out === inputNullifier;
-  
+
   component inputTree = MerkleTree(levels);
   inputTree.leaf <== inputHasher.out;
   inputTree.pathIndices <== inputPathIndices;
-  
-  // add the roots and diffs signals to the bridge circuit
-  /* for (var i = 0; i < length; i++) { */
-  /*     inputTree.roots[i] <== inputRoots[i]; */
-  /* } */
-  
-  /* inputTree.isEnabled <== inputAmount; */
+
   for (var i = 0; i < levels; i++) {
       inputTree.pathElements[i] <== inputPathElements[i];
   }
+
   component checkRoot = ForceEqualIfEnabled();
   checkRoot.in[0] <== inputRoot;
   checkRoot.in[1] <== inputTree.root;
@@ -129,6 +124,7 @@ template Reward(levels, zeroLeaf, length) {
   outputHasher.inputs[2] <== outputKeypair.publicKey;
   outputHasher.inputs[3] <== outputBlinding;
   outputHasher.out === outputCommitment;
+
 
   // Update accounts tree with output account commitment
   component accountTreeUpdater = MerkleTreeUpdater(levels, zeroLeaf);
@@ -150,17 +146,18 @@ template Reward(levels, zeroLeaf, length) {
   noteHasher.inputs[1] <== noteAmount;
   noteHasher.inputs[2] <== noteKeypair.publicKey;
   noteHasher.inputs[3] <== noteBlinding;
-
+  /**/
   component noteSignature = Signature();
   noteSignature.privateKey <== notePrivateKey;
   noteSignature.commitment <== noteHasher.out;
   noteSignature.merklePath <== notePathIndices;
-  
+
   component noteNullifierHasher = Poseidon(3);
   noteNullifierHasher.inputs[0] <== noteHasher.out;
   noteNullifierHasher.inputs[1] <== notePathIndices;
   noteNullifierHasher.inputs[2] <== noteSignature.out;
 
+  log(00000000000);
   // Compute deposit commitment
   component depositHasher = Poseidon(2);
   depositHasher.inputs[0] <== noteHasher.out;
@@ -191,7 +188,6 @@ template Reward(levels, zeroLeaf, length) {
   for (var i = 0; i < levels; i++) {
     withdrawTree.pathElements[i] <== withdrawPathElements[i];
   }
-  /* withdrawalTree.root === withdrawalRoot; */
   withdrawTree.isEnabled <== 1;
   for (var i = 0; i < length; i++) {
       withdrawTree.roots[i] <== withdrawRoots[i];
@@ -205,6 +201,6 @@ template Reward(levels, zeroLeaf, length) {
   // Add hidden signals to make sure that tampering with recipient or fee will invalidate the snark proof
   // Most likely it is not required, but it's better to stay on the safe side and it only takes 2 constraints
   // Squares are used to prevent optimizer from removing those constraints
-  signal extDataHashSquare;
-  extDataHashSquare <== extDataHash * extDataHash;
+  /* signal extDataHashSquare; */
+  /* extDataHashSquare <== extDataHash * extDataHash; */
 }
