@@ -15,7 +15,7 @@ template Reward(levels, zeroLeaf, length) {
   signal input rate;
   signal input fee;
   signal input rewardNullifier;
-  /* signal input extDataHash; */
+  signal input extDataHash;
 
   signal input noteChainID;
   signal input noteAmount;
@@ -201,6 +201,6 @@ template Reward(levels, zeroLeaf, length) {
   // Add hidden signals to make sure that tampering with recipient or fee will invalidate the snark proof
   // Most likely it is not required, but it's better to stay on the safe side and it only takes 2 constraints
   // Squares are used to prevent optimizer from removing those constraints
-  /* signal extDataHashSquare; */
-  /* extDataHashSquare <== extDataHash * extDataHash; */
+  signal extDataHashSquare;
+  extDataHashSquare <== extDataHash * extDataHash;
 }

@@ -168,13 +168,15 @@ describe.only('Reward snarkjs local proof', () => {
     const withdrawPathElements = withdrawalPath.pathElements.map((bignum: BigNumber) => bignum.toString())
     const withdrawPathIndices = MerkleTree.calculateIndexFromPathIndices(withdrawalPath.pathIndices);
 
-    const rewardNullifier = poseidon(aliceNullifier);
+    const rewardNullifier = poseidon([aliceNullifier]);
+    console.log('rewardNullifier: ', rewardNullifier)
 
     const circuitInput = {
       rate,
       fee,
       rewardNullifier,
-      // extDataHash::
+      // Dummy
+      extDataHash: hexToU8a(randomBN(31).toHexString()),
 
       noteChainID: chainID,
       noteAmount: aliceDepositUtxo.amount,
