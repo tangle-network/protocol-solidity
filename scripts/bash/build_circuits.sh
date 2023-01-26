@@ -36,8 +36,12 @@ copy_to_fixtures () {
 ###
 
 echo "Compiling anonimity mining circuit"
-compile reward rewardMain 30
-copy_to_fixtures reward rewardMain 30 reward
+compile reward_2 reward_30_2 30
+copy_to_fixtures reward_2 reward_30_2 30 reward_2
+
+echo "Compiling anonimity mining circuit"
+compile reward_8 reward_30_8 30
+copy_to_fixtures reward_8 reward_30_8 30 reward_8
 
 ###
 # WEBB BATCH TREE UPDATER

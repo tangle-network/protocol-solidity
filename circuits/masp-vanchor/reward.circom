@@ -40,9 +40,6 @@ template Reward(levels, zeroLeaf, length) {
   signal input outputPrivateKey;
   signal input outputBlinding;
   signal input outputCommitment;
-  /* signal input outputRoot; */
-  /* signal input outputPathIndices; */
-  /* signal input outputPathElements[levels]; */
 
   // inputs prefixed with spent correspond to the already spent UTXO
   signal input spentTimestamp;

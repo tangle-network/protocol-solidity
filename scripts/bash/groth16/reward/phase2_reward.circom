@@ -10,7 +10,9 @@ move_verifiers_and_metadata_batch_insert () {
     sed -i 's/pragma solidity ^0.6.11;/pragma solidity ^0.8.0;/g' packages/contracts/contracts/verifiers/$anchorType/VerifierReward_"$size".sol
 }
 
-compile_phase2 packages/contracts/solidity-fixtures/solidity-fixtures/reward/30 rewardMain ./artifacts/circuits/reward
+compile_phase2 packages/contracts/solidity-fixtures/solidity-fixtures/reward_2/30 reward_30_2 ./artifacts/circuits/reward_2
+move_verifiers_and_metadata_batch_insert packages/contracts/solidity-fixtures/solidity-fixtures/reward/30 30 reward_30_2
 
-move_verifiers_and_metadata_batch_insert packages/contracts/solidity-fixtures/solidity-fixtures/reward/30 30 rewardMain
+compile_phase2 packages/contracts/solidity-fixtures/solidity-fixtures/reward_8/30 reward_30_8 ./artifacts/circuits/reward_8
+move_verifiers_and_metadata_batch_insert packages/contracts/solidity-fixtures/solidity-fixtures/reward/30 30 reward_30_8
 

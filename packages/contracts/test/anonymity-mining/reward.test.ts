@@ -87,15 +87,15 @@ describe.only('Reward snarkjs local proof', () => {
     zkComponent = await fetchComponentsFromFilePaths(
       path.resolve(
         __dirname,
-        '../../solidity-fixtures/solidity-fixtures/reward/30/rewardMain.wasm'
+        '../../solidity-fixtures/solidity-fixtures/reward_2/30/reward_30_2.wasm'
       ),
       path.resolve(
         __dirname,
-        '../../solidity-fixtures/solidity-fixtures/reward/30/witness_calculator.cjs'
+        '../../solidity-fixtures/solidity-fixtures/reward_2/30/witness_calculator.cjs'
       ),
       path.resolve(
         __dirname,
-        '../../solidity-fixtures/solidity-fixtures/reward/30/circuit_final.zkey'
+        '../../solidity-fixtures/solidity-fixtures/reward_2/30/circuit_final.zkey'
       )
     );
 
@@ -160,7 +160,7 @@ describe.only('Reward snarkjs local proof', () => {
     const withdrawPathElements = withdrawalPath.pathElements.map((bignum: BigNumber) => bignum.toString())
     const withdrawPathIndices = MerkleTree.calculateIndexFromPathIndices(withdrawalPath.pathIndices);
 
-    const rewardNullifier = poseidon([aliceNullifier]);
+    const rewardNullifier = poseidon([aliceNullifier, UTXOPathIndices]);
     console.log('rewardNullifier: ', rewardNullifier)
 
     const circuitInput = {
