@@ -41,7 +41,7 @@ const path = require('path');
 
 const blocks = ['0xaaaaaaaa', '0xbbbbbbbb', '0xcccccccc', '0xdddddddd'];
 
-describe.only('Reward snarkjs local proof', () => {
+describe('Reward snarkjs local proof', () => {
   let unspentTree: MerkleTree;
   let spentTree: MerkleTree;
   // VAnchor-like contract's merkle-tree
