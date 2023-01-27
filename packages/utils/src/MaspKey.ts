@@ -1,6 +1,7 @@
 import { randomBN } from "@webb-tools/sdk-core";
 import { BigNumber, BigNumberish } from "ethers";
 const { poseidon, babyjub } = require('circomlibjs');
+const { Scalar } = require('ffjavascript');
 
 // sk -> ak -> vk -> pk
 export class MaspKey {
@@ -18,7 +19,13 @@ export class MaspKey {
         
         //get PublicKey object from privateKey object
         this.ak = babyjub.mulPointEscalar(babyjub.Base8, this.sk);
-        this.vk = babyjub.F.e(BigNumber.from(poseidon([this.ak[0], this.ak[1]])).toString()); 
+        const ak_poseidon_hash = poseidon([this.ak[0], this.ak[1]]);
+        const ak_poseidon_hash_bit_length = Scalar.bitLength(ak_poseidon_hash);
+        let ak_poseidon_hash_shifted = ak_poseidon_hash;
+        if (ak_poseidon_hash_bit_length > 253) {
+            ak_poseidon_hash_shifted = Scalar.shr(ak_poseidon_hash, ak_poseidon_hash_bit_length - 253);
+        }
+        this.vk = babyjub.F.e(ak_poseidon_hash_shifted.toString()).toString(); 
         this.pk = babyjub.mulPointEscalar(babyjub.Base8, this.vk);
     }
 

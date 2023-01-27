@@ -132,9 +132,6 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
         // Check MASP keys well formed
         inBabyPbk[tx] = BabyPbk();
         inBabyPbk[tx].in <== sk_alpha[tx];
-        log(sk_alpha[tx]);
-        log(inBabyPbk[tx].Ax);
-        log(inBabyPbk[tx].Ay);
         ak_alpha_X[tx] === inBabyPbk[tx].Ax;
         ak_alpha_Y[tx] === inBabyPbk[tx].Ay;
 
