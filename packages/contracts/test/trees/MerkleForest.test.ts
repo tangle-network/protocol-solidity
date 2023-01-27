@@ -15,8 +15,6 @@ import {
 const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
 
-// const MerkleTreeWithHistory = artifacts.require('MerkleTreePoseidonMock');
-
 describe('MerkleForest', () => {
   let merkleForest: MerkleForestMockContract;
   let poseidonLib: any;

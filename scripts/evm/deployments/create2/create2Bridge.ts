@@ -115,7 +115,7 @@ export class Create2VBridge {
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents
   ): Promise<Create2VBridge> {
-    const salt = '66756';
+    const salt = '999';
     const saltHex = ethers.utils.id(salt);
     let webbTokenAddresses: Map<number, string> = new Map();
     let vBridgeSides: Map<number, SignatureBridgeSide> = new Map();
@@ -135,6 +135,7 @@ export class Create2VBridge {
       let deployer1Contract = await Deployer1.deploy();
       await deployer1Contract.deployed();
       deployer = new Deployer(deployer1Contract);
+      console.log("deployer address : ", deployer.address);
       let vBridgeInstance = await SignatureBridgeSide.create2BridgeSide(
         deployer,
         saltHex,
@@ -237,12 +238,23 @@ export class Create2VBridge {
         largeCircuitZkComponents,
         deployers[chainID]
       );
+
+      // initialize vanchor contract instance
+      let tokenDenomination = '1000000000000000000'; // 1 ether
+      await vAnchorInstance.contract.initialize(
+        BigNumber.from(0).toString(), //minimum withdrawal limit
+        BigNumber.from(tokenDenomination).mul(1_000_000).toString() // max deposit limit
+      );
+
       // grant minting rights to the anchor
       await tokenInstance.grantMinterRole(vAnchorInstance.contract.address);
       chainGroupedVAnchors.push(vAnchorInstance);
       vAnchors.set(Create2VBridge.createVAnchorIdString({ chainId: chainID }), vAnchorInstance);
-      await Create2VBridge.setPermissions(vBridgeInstance, chainGroupedVAnchors);
+
+      // connect bridge, anchor and anchor handler set permissions
+      await vBridgeInstance.connectAnchorWithSignature(vAnchorInstance);
       createdVAnchors.push(chainGroupedVAnchors);
+
       // Transfer ownership of the bridge to the initialGovernor
       const tx = await vBridgeInstance.transferOwnership(initialGovernor, 0);
       await tx.wait();
@@ -265,27 +277,6 @@ export class Create2VBridge {
     const linkedVAnchorMap = await Create2VBridge.createLinkedVAnchorMap(groupLinkedVAnchors);
 
     return new Create2VBridge(vBridgeSides, webbTokenAddresses, linkedVAnchorMap, vAnchors);
-  }
-
-  // The setPermissions method accepts initialized bridgeSide and anchors.
-  // it creates the anchor handler and sets the appropriate permissions
-  // for the bridgeSide/anchorHandler/anchor
-  public static async setPermissions(
-    vBridgeSide: SignatureBridgeSide,
-    vAnchors: VAnchor[]
-  ): Promise<void> {
-    let tokenDenomination = '1000000000000000000'; // 1 ether
-    for (let vAnchor of vAnchors) {
-      await vBridgeSide.connectAnchorWithSignature(vAnchor);
-      await vBridgeSide.executeMinWithdrawalLimitProposalWithSig(
-        vAnchor,
-        BigNumber.from(0).toString()
-      );
-      await vBridgeSide.executeMaxDepositLimitProposalWithSig(
-        vAnchor,
-        BigNumber.from(tokenDenomination).mul(1_000_000).toString()
-      );
-    }
   }
 
   /**

@@ -1,0 +1,44 @@
+[evm]
+
+[evm.sepolia]
+beneficiary = "0xf1fd5607b90f6c421db7313158baac170d4f053b"
+block-confirmations = 0
+chain-id = 11155111
+enabled = true
+http-endpoint = "https://rpc.sepolia.org"
+name = "sepolia"
+private-key = "$SEPOLIA_PRIVATE_KEY"
+ws-endpoint = "wss://rpc.sepolia.dev"
+
+[[evm.sepolia.contracts]]
+address = "0x77f0a3aca922339dc91b82e88a83231ef2dacf02"
+contract = "VAnchor"
+deployed-at = 2750880
+linked-anchors = [
+    { type = "Evm", chain = "goerli", chain-id = 5, address = "0x77f0a3aca922339dc91b82e88a83231ef2dacf02" },
+    { type = "Evm", chain = "optimism", chain-id = 420, address = "0x77f0a3aca922339dc91b82e88a83231ef2dacf02" },
+    { type = "Evm", chain = "moonbase", chain-id = 1287, address = "0x77f0a3aca922339dc91b82e88a83231ef2dacf02"}
+]
+
+[evm.sepolia.contracts.events-watcher]
+enabled = true
+polling-interval = 1000
+print-progress-interval = 7000
+
+[evm.sepolia.contracts.proposal-signing-backend]
+node = "tangle"
+type = "DKGNode"
+
+[evm.sepolia.contracts.withdraw-config]
+withdraw-fee-percentage = 0
+withdraw-gaslimit = "0x5B8D80"
+
+[[evm.sepolia.contracts]]
+address = "0x8a568614cf78ae79ab8d326fd1d3fd5bf888aae7"
+contract = "SignatureBridge"
+deployed-at = 2750859
+
+[evm.sepolia.contracts.events-watcher]
+enabled = true
+polling-interval = 1000
+print-progress-interval = 7000

@@ -18,6 +18,17 @@ export type ExistingAssetInput = {
   asset: Record<number, string[]>;
 };
 
+// Token config to to create new token
+export type TokenConfig = {
+  name: string;
+  symbol: string;
+};
+
+// Default token config
+const defaultTokenConfig: TokenConfig = {
+  name: 'webbWETH',
+  symbol: 'webbWETH',
+};
 // Users define an input for a completely new bridge
 export type VBridgeInput = {
   // The tokens which should be supported after deploying from this bridge input
@@ -28,6 +39,9 @@ export type VBridgeInput = {
 
   // The number of max edges for vanchors, if not provided, maxEdges is derived from passed chainIDs.
   maxEdges?: number;
+
+  // Config to create new tokens
+  tokenConfigs?: Map<number, TokenConfig | undefined>;
 
   // Existing webb tokens can be connected
   webbTokens: Map<number, FungibleTokenWrapper | undefined>;
@@ -179,9 +193,10 @@ export class VBridge {
 
       let tokenInstance: FungibleTokenWrapper;
       if (!vBridgeInput.webbTokens.get(chainID)) {
+        let tokenConfig = vBridgeInput.tokenConfigs?.get(chainID) ?? defaultTokenConfig;
         tokenInstance = await FungibleTokenWrapper.createFungibleTokenWrapper(
-          `webbWETH`,
-          `webbWETH`,
+          tokenConfig.name,
+          tokenConfig.symbol,
           0,
           treasury.contract.address,
           tokenWrapperHandler.contract.address,
