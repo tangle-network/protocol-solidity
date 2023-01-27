@@ -147,7 +147,9 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
         @notice Fetches the asset ID for an address
         @param _address The address
      */
-	function getAssetIdFromWrappedAddress(address _address) external view override returns (uint256) {
+	function getAssetIdFromWrappedAddress(
+		address _address
+	) external view override returns (uint256) {
 		return wrappedAssetToId[_address];
 	}
 
@@ -163,7 +165,9 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
         @notice Fetches the asset ID for an address
         @param _address The address
      */
-	function getAssetIdFromUnwrappedAddress(address _address) external view override returns (uint256) {
+	function getAssetIdFromUnwrappedAddress(
+		address _address
+	) external view override returns (uint256) {
 		return unwrappedNftAssetToId[_address];
 	}
 

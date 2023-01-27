@@ -64,13 +64,13 @@ interface IRegistry {
      */
 	function getAssetIdFromWrappedAddress(address _address) external view returns (uint256);
 
-   /**
+	/**
       @notice Fetches the address for an asset ID
       @param _assetId The asset ID
    */
 	function getUnwrappedAssetAddress(uint256 _assetId) external view returns (address);
 
-   /**
+	/**
       @notice Fetches the asset ID for an address
       @param _address The address
    */

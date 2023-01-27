@@ -31,7 +31,7 @@ contract MultiAssetVAnchorTree is MultiAssetVAnchor, MerkleTree {
 		limit the size of the LinkableAnchor with this parameter.
 	*/
 	constructor(
-        IRegistry _registry,
+		IRegistry _registry,
 		IAnchorVerifier _verifier,
 		uint32 _merkleTreeLevels,
 		IHasher _hasher,

@@ -80,9 +80,9 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 			amount = _executeWrapping(_fromTokenAddress, _toTokenAddress, _amount);
 		} else {
 			IMintableERC20(_toTokenAddress).transferFrom(
-					msg.sender,
-					address(this),
-					uint256(amount)
+				msg.sender,
+				address(this),
+				uint256(amount)
 			);
 		}
 		// Create the record commitment
@@ -116,7 +116,10 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		require(assetID != 0, "Wrapped asset not registered");
 		if (_fromTokenAddress != address(0)) {
 			// Check wrapped and unwrapped addresses are consistent
-			require(IRegistry(registry).getUnwrappedAssetAddress(assetID) == _fromTokenAddress, "Wrapped and unwrapped addresses don't match");
+			require(
+				IRegistry(registry).getUnwrappedAssetAddress(assetID) == _fromTokenAddress,
+				"Wrapped and unwrapped addresses don't match"
+			);
 			INftTokenWrapper(_toTokenAddress).wrap721(_tokenID, _fromTokenAddress);
 		} else {
 			IERC721(_toTokenAddress).safeTransferFrom(msg.sender, address(this), _tokenID);

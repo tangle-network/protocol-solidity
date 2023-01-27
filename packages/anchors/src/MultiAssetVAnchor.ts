@@ -25,20 +25,15 @@ import {
   token2CurrencyId,
   Utxo,
 } from '@webb-tools/sdk-core';
-import {
-  IMASPVAnchorPublicInputs,
-  IVAnchor,
-  IMASPAllInputs, 
-} from '@webb-tools/interfaces';
+import { IMASPVAnchorPublicInputs, IVAnchor, IMASPAllInputs } from '@webb-tools/interfaces';
 const { babyjub } = require('circomlibjs');
-import { u8aToHex, getChainIdType, ZkComponents, MaspUtxo, MaspKey, } from '@webb-tools/utils';
+import { u8aToHex, getChainIdType, ZkComponents, MaspUtxo, MaspKey } from '@webb-tools/utils';
 import { fromAscii } from 'web3-utils';
 import { Registry } from '@webb-tools/tokens';
 import { EthAbiDecodeParametersResultArray } from 'web3/eth/abi';
 import { convertPublicSignals } from '@webb-tools/semaphore-proof/dist/types/generateProof';
 const snarkjs = require('snarkjs');
 const assert = require('assert');
-
 
 export type FullProof = {
   proof: Proof;
@@ -56,7 +51,7 @@ export type Proof = {
 export type MASPVAnchorInputs = {
   allInputs: IMASPAllInputs;
   publicInputs: IMASPVAnchorPublicInputs;
-}
+};
 
 export type ExtData = {
   recipient: string;
@@ -137,10 +132,21 @@ export class MultiAssetVAnchor implements IVAnchor {
     await encodeLibrary.deployed();
 
     const factory = new MultiAssetVAnchorTree__factory(
-      { ['contracts/libs/MASPVAnchorEncodeInputs.sol:MASPVAnchorEncodeInputs']: encodeLibrary.address },
+      {
+        ['contracts/libs/MASPVAnchorEncodeInputs.sol:MASPVAnchorEncodeInputs']:
+          encodeLibrary.address,
+      },
       signer
     );
-    const maspVAnchor = await factory.deploy(registry, verifier, levels, hasher, handler, maxEdges, {});
+    const maspVAnchor = await factory.deploy(
+      registry,
+      verifier,
+      levels,
+      hasher,
+      handler,
+      maxEdges,
+      {}
+    );
     await maspVAnchor.deployed();
     const createdMASPVAnchor = new MultiAssetVAnchor(
       maspVAnchor,
@@ -347,8 +353,8 @@ export class MultiAssetVAnchor implements IVAnchor {
   public getMerkleProof(input: Utxo): MerkleProof {
     const element = BigNumber.from(0);
     const merkleRoot = BigNumber.from(0);
-    const pathElements = [ BigNumber.from(0) ];
-    const pathIndices = [ 0 ];
+    const pathElements = [BigNumber.from(0)];
+    const pathIndices = [0];
     return { element, merkleRoot, pathElements, pathIndices };
   }
 
@@ -408,9 +414,7 @@ export class MultiAssetVAnchor implements IVAnchor {
     return proofEncoded;
   }
 
-  public async generateProof(
-    proofInputs: IMASPAllInputs
-  ): Promise<FullProof> {
+  public async generateProof(proofInputs: IMASPAllInputs): Promise<FullProof> {
     let proof = await snarkjs.groth16.fullProve(
       proofInputs,
       this.smallCircuitZkComponents.wasm,
@@ -462,13 +466,13 @@ export class MultiAssetVAnchor implements IVAnchor {
     return [thisRoot.toString(), ...neighborRootInfos.map((bignum) => bignum.toString())];
   }
 
-  public static async generateMASPVAnchorInputs(  
-    roots: BigNumber[], 
-    chainId: number, 
-    assetId: number, 
-    tokenId: number, 
-    inputs: MaspUtxo[], 
-    outputs: MaspUtxo[], 
+  public static async generateMASPVAnchorInputs(
+    roots: BigNumber[],
+    chainId: number,
+    assetId: number,
+    tokenId: number,
+    inputs: MaspUtxo[],
+    outputs: MaspUtxo[],
     sk_alphas: string[],
     feeAssetId: number,
     feeTokenId: number,
@@ -476,20 +480,20 @@ export class MultiAssetVAnchor implements IVAnchor {
     feeInputs: MaspUtxo[],
     feeOutputs: MaspUtxo[],
     fee_sk_alphas: string[],
-    extAmount: BigNumber, 
-    fee: BigNumber, 
-    extDataHash: BigNumber, 
+    extAmount: BigNumber,
+    fee: BigNumber,
+    extDataHash: BigNumber,
     externalMerkleProofs: MerkleProof[],
-    externalFeeMerkleProofs: MerkleProof[],
-    ): Promise<MASPVAnchorInputs> {
-    const vanchorMerkleProofs = externalMerkleProofs.map(proof => ({
+    externalFeeMerkleProofs: MerkleProof[]
+  ): Promise<MASPVAnchorInputs> {
+    const vanchorMerkleProofs = externalMerkleProofs.map((proof) => ({
       pathIndex: MerkleTree.calculateIndexFromPathIndices(proof.pathIndices),
-      pathElements: proof.pathElements
+      pathElements: proof.pathElements,
     }));
 
-    const feeMerkleProofs = externalFeeMerkleProofs.map(proof => ({
+    const feeMerkleProofs = externalFeeMerkleProofs.map((proof) => ({
       pathIndex: MerkleTree.calculateIndexFromPathIndices(proof.pathIndices),
-      pathElements: proof.pathElements
+      pathElements: proof.pathElements,
     }));
 
     let publicAssetId = 0;
@@ -499,7 +503,11 @@ export class MultiAssetVAnchor implements IVAnchor {
       publicTokenId = tokenId;
     }
 
-    const publicAmount = BigNumber.from(extAmount).sub(fee).add(FIELD_SIZE).mod(FIELD_SIZE).toString();
+    const publicAmount = BigNumber.from(extAmount)
+      .sub(fee)
+      .add(FIELD_SIZE)
+      .mod(FIELD_SIZE)
+      .toString();
 
     const allInputs: IMASPAllInputs = {
       publicAmount: publicAmount,
@@ -508,99 +516,109 @@ export class MultiAssetVAnchor implements IVAnchor {
       tokenID: tokenId,
       publicAssetID: publicAssetId,
       publicTokenID: publicTokenId,
-  
+
       // data for transaction inputs
-      inputNullifier: inputs.map(x => x.getNullifier().toString()),
-      inAmount: inputs.map(x => x.amount.toString()),
-      inBlinding: inputs.map(x => x.blinding.toString()),
-      inPathIndices: vanchorMerkleProofs.map(x => x.pathIndex),
-      inPathElements: vanchorMerkleProofs.map(x => x.pathElements),
-  
+      inputNullifier: inputs.map((x) => x.getNullifier().toString()),
+      inAmount: inputs.map((x) => x.amount.toString()),
+      inBlinding: inputs.map((x) => x.blinding.toString()),
+      inPathIndices: vanchorMerkleProofs.map((x) => x.pathIndex),
+      inPathElements: vanchorMerkleProofs.map((x) => x.pathElements),
+
       // data for transaction outputs
-      outputCommitment: outputs.map(x => x.getCommitment().toString()),
-      outAmount: outputs.map(x => x.amount.toString()),
-      outChainID: outputs.map(x => x.chainID.toString()),
-      outPk_X: outputs.map(x => x.maspKey.getPublicKey()[0].toString()),
-      outPk_Y: outputs.map(x => x.maspKey.getPublicKey()[1].toString()),
-      outBlinding: outputs.map(x => x.blinding.toString()),
-  
+      outputCommitment: outputs.map((x) => x.getCommitment().toString()),
+      outAmount: outputs.map((x) => x.amount.toString()),
+      outChainID: outputs.map((x) => x.chainID.toString()),
+      outPk_X: outputs.map((x) => x.maspKey.getPublicKey()[0].toString()),
+      outPk_Y: outputs.map((x) => x.maspKey.getPublicKey()[1].toString()),
+      outBlinding: outputs.map((x) => x.blinding.toString()),
+
       chainID: chainId.toString(),
-      roots: roots.map(x => x.toString()),
-  
-      ak_X: inputs.map(x => x.maspKey.getProofAuthorizingKey()[0].toString()),
-      ak_Y: inputs.map(x => x.maspKey.getProofAuthorizingKey()[1].toString()),
+      roots: roots.map((x) => x.toString()),
+
+      ak_X: inputs.map((x) => x.maspKey.getProofAuthorizingKey()[0].toString()),
+      ak_Y: inputs.map((x) => x.maspKey.getProofAuthorizingKey()[1].toString()),
       sk_alpha: sk_alphas,
-      ak_alpha_X: sk_alphas.map(x => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[0]),
-      ak_alpha_Y: sk_alphas.map(x => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[1].toString()),
-  
+      ak_alpha_X: sk_alphas.map((x) => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[0]),
+      ak_alpha_Y: sk_alphas.map((x) =>
+        babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[1].toString()
+      ),
+
       feeAssetID: feeAssetId,
       whitelistedAssetIDs: whitelistedAssetIds,
       feeTokenID: feeTokenId,
-  
+
       // data for transaction inputs
-      feeInputNullifier: feeInputs.map(x => x.getNullifier().toString()),
-      feeInAmount: feeInputs.map(x => x.amount.toString()),
-      feeInBlinding: feeInputs.map(x => x.blinding.toString()),
-      feeInPathIndices: feeMerkleProofs.map(x => x.pathIndex),
-      feeInPathElements: feeMerkleProofs.map(x => x.pathElements),
-  
+      feeInputNullifier: feeInputs.map((x) => x.getNullifier().toString()),
+      feeInAmount: feeInputs.map((x) => x.amount.toString()),
+      feeInBlinding: feeInputs.map((x) => x.blinding.toString()),
+      feeInPathIndices: feeMerkleProofs.map((x) => x.pathIndex),
+      feeInPathElements: feeMerkleProofs.map((x) => x.pathElements),
+
       // data for transaction outputs
-      feeOutputCommitment: feeOutputs.map(x => x.getCommitment().toString()),
-      feeOutAmount: feeOutputs.map(x => x.amount.toString()),
-      feeOutChainID: feeOutputs.map(x => x.chainID.toString()),
-      feeOutPk_X: feeOutputs.map(x => x.maspKey.getPublicKey()[0].toString()),
-      feeOutPk_Y: feeOutputs.map(x => x.maspKey.getPublicKey()[1].toString()),
-      feeOutBlinding: feeOutputs.map(x => x.blinding.toString()),
-  
-      fee_ak_X: feeInputs.map(x => x.maspKey.getProofAuthorizingKey()[0].toString()),
-      fee_ak_Y: feeInputs.map(x => x.maspKey.getProofAuthorizingKey()[1].toString()),
+      feeOutputCommitment: feeOutputs.map((x) => x.getCommitment().toString()),
+      feeOutAmount: feeOutputs.map((x) => x.amount.toString()),
+      feeOutChainID: feeOutputs.map((x) => x.chainID.toString()),
+      feeOutPk_X: feeOutputs.map((x) => x.maspKey.getPublicKey()[0].toString()),
+      feeOutPk_Y: feeOutputs.map((x) => x.maspKey.getPublicKey()[1].toString()),
+      feeOutBlinding: feeOutputs.map((x) => x.blinding.toString()),
+
+      fee_ak_X: feeInputs.map((x) => x.maspKey.getProofAuthorizingKey()[0].toString()),
+      fee_ak_Y: feeInputs.map((x) => x.maspKey.getProofAuthorizingKey()[1].toString()),
       fee_sk_alpha: fee_sk_alphas,
-      fee_ak_alpha_X: fee_sk_alphas.map(x => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[0]),
-      fee_ak_alpha_Y: fee_sk_alphas.map(x => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[1]),      
+      fee_ak_alpha_X: fee_sk_alphas.map(
+        (x) => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[0]
+      ),
+      fee_ak_alpha_Y: fee_sk_alphas.map(
+        (x) => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[1]
+      ),
     };
 
     const publicInputs: IMASPVAnchorPublicInputs = {
-      proof: "",
-      extensionRoots: "0x",
+      proof: '',
+      extensionRoots: '0x',
       publicAmount: publicAmount,
       publicAssetID: publicAssetId,
       publicTokenID: publicTokenId,
       extDataHash: extDataHash.toString(),
-  
-      // data for transaction inputs
-      inputNullifier: inputs.map(x => x.getNullifier().toString()),
-  
-      // data for transaction outputs
-      outputCommitment: outputs.map(x => x.getCommitment().toString()),
-  
-      chainID: chainId.toString(),
-      roots: roots.map(x => x.toString()),
-  
-      ak_alpha_X: sk_alphas.map(x => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[0]),
-      ak_alpha_Y: sk_alphas.map(x => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[1]),
-  
-      whitelistedAssetIDs: whitelistedAssetIds,
-  
-      // data for transaction inputs
-      feeInputNullifier: feeInputs.map(x => x.getNullifier().toString()),
-  
-      // data for transaction outputs
-      feeOutputCommitment: feeOutputs.map(x => x.getCommitment().toString()),
 
-      fee_ak_alpha_X: fee_sk_alphas.map(x => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[0]),
-      fee_ak_alpha_Y: fee_sk_alphas.map(x => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[1]), 
+      // data for transaction inputs
+      inputNullifier: inputs.map((x) => x.getNullifier().toString()),
+
+      // data for transaction outputs
+      outputCommitment: outputs.map((x) => x.getCommitment().toString()),
+
+      chainID: chainId.toString(),
+      roots: roots.map((x) => x.toString()),
+
+      ak_alpha_X: sk_alphas.map((x) => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[0]),
+      ak_alpha_Y: sk_alphas.map((x) => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[1]),
+
+      whitelistedAssetIDs: whitelistedAssetIds,
+
+      // data for transaction inputs
+      feeInputNullifier: feeInputs.map((x) => x.getNullifier().toString()),
+
+      // data for transaction outputs
+      feeOutputCommitment: feeOutputs.map((x) => x.getCommitment().toString()),
+
+      fee_ak_alpha_X: fee_sk_alphas.map(
+        (x) => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[0]
+      ),
+      fee_ak_alpha_Y: fee_sk_alphas.map(
+        (x) => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[1]
+      ),
     };
 
-    return { allInputs, publicInputs }
+    return { allInputs, publicInputs };
   }
 
   public async publicInputsWithProof(
-    roots: BigNumber[], 
-    chainId: number, 
-    assetId: number, 
-    tokenId: number, 
-    inputs: MaspUtxo[], 
-    outputs: MaspUtxo[], 
+    roots: BigNumber[],
+    chainId: number,
+    assetId: number,
+    tokenId: number,
+    inputs: MaspUtxo[],
+    outputs: MaspUtxo[],
     sk_alphas: string[],
     feeAssetId: number,
     feeTokenId: number,
@@ -608,13 +626,32 @@ export class MultiAssetVAnchor implements IVAnchor {
     feeInputs: MaspUtxo[],
     feeOutputs: MaspUtxo[],
     fee_sk_alphas: string[],
-    extAmount: BigNumber, 
-    fee: BigNumber, 
-    extDataHash: BigNumber, 
+    extAmount: BigNumber,
+    fee: BigNumber,
+    extDataHash: BigNumber,
     externalMerkleProofs: MerkleProof[],
     externalFeeMerkleProofs: MerkleProof[]
   ): Promise<IMASPVAnchorPublicInputs> {
-    let { allInputs, publicInputs } = await MultiAssetVAnchor.generateMASPVAnchorInputs(roots, chainId, assetId, tokenId, inputs, outputs, sk_alphas, feeAssetId, feeTokenId, whitelistedAssetIds, feeInputs, feeOutputs, fee_sk_alphas, extAmount, fee, extDataHash, externalMerkleProofs, externalFeeMerkleProofs);
+    let { allInputs, publicInputs } = await MultiAssetVAnchor.generateMASPVAnchorInputs(
+      roots,
+      chainId,
+      assetId,
+      tokenId,
+      inputs,
+      outputs,
+      sk_alphas,
+      feeAssetId,
+      feeTokenId,
+      whitelistedAssetIds,
+      feeInputs,
+      feeOutputs,
+      fee_sk_alphas,
+      extAmount,
+      fee,
+      extDataHash,
+      externalMerkleProofs,
+      externalFeeMerkleProofs
+    );
     const fullProof = await this.generateProof(allInputs);
     const proof = await this.generateProofCalldata(fullProof);
     publicInputs.proof = proof;
@@ -641,72 +678,82 @@ export class MultiAssetVAnchor implements IVAnchor {
 
   public static auxInputsToBytes(publicInputs: IMASPVAnchorPublicInputs): string {
     // publicAssetID, publicTokenID, ak_alpha_X, ak_alpha_Y, whitelistedAssetIDs, feeInputNullifiers, feeOutputCommitments, fee_ak_alpha_X, fee_ak_alpha_Y
-    let ak_alpha_X_bytes = "";
+    let ak_alpha_X_bytes = '';
     for (let i = 0; i < publicInputs.ak_alpha_X.length; i++) {
       ak_alpha_X_bytes += toFixedHex(publicInputs.ak_alpha_X[i]).slice(2);
     }
 
-    let ak_alpha_Y_bytes = "";
+    let ak_alpha_Y_bytes = '';
     for (let i = 0; i < publicInputs.ak_alpha_Y.length; i++) {
       ak_alpha_Y_bytes += toFixedHex(publicInputs.ak_alpha_Y[i]).slice(2);
     }
 
-    let whitelistedAssetIDs_bytes = "";
+    let whitelistedAssetIDs_bytes = '';
     for (let i = 0; i < publicInputs.whitelistedAssetIDs.length; i++) {
       whitelistedAssetIDs_bytes += toFixedHex(publicInputs.whitelistedAssetIDs[i]).slice(2);
     }
 
-    let feeInputNullifier_bytes = "";
+    let feeInputNullifier_bytes = '';
     for (let i = 0; i < publicInputs.feeInputNullifier.length; i++) {
       feeInputNullifier_bytes += toFixedHex(publicInputs.feeInputNullifier[i]);
     }
 
-    let feeOutputCommitment_bytes = "";
+    let feeOutputCommitment_bytes = '';
     for (let i = 0; i < publicInputs.feeOutputCommitment.length; i++) {
       feeOutputCommitment_bytes += toFixedHex(publicInputs.feeOutputCommitment[i]);
     }
 
-    let fee_ak_alpha_X_bytes = "";
+    let fee_ak_alpha_X_bytes = '';
     for (let i = 0; i < publicInputs.fee_ak_alpha_X.length; i++) {
       fee_ak_alpha_X_bytes += toFixedHex(publicInputs.fee_ak_alpha_X[i]).slice(2);
     }
 
-    let fee_ak_alpha_Y_bytes = "";
+    let fee_ak_alpha_Y_bytes = '';
     for (let i = 0; i < publicInputs.fee_ak_alpha_Y.length; i++) {
       fee_ak_alpha_Y_bytes += toFixedHex(publicInputs.fee_ak_alpha_Y[i]).slice(2);
     }
 
-    return toFixedHex(publicInputs.publicAssetID) + toFixedHex(publicInputs.publicTokenID) + ak_alpha_X_bytes + ak_alpha_Y_bytes + whitelistedAssetIDs_bytes + feeInputNullifier_bytes + feeOutputCommitment_bytes + fee_ak_alpha_X_bytes + fee_ak_alpha_Y_bytes;
+    return (
+      toFixedHex(publicInputs.publicAssetID) +
+      toFixedHex(publicInputs.publicTokenID) +
+      ak_alpha_X_bytes +
+      ak_alpha_Y_bytes +
+      whitelistedAssetIDs_bytes +
+      feeInputNullifier_bytes +
+      feeOutputCommitment_bytes +
+      fee_ak_alpha_X_bytes +
+      fee_ak_alpha_Y_bytes
+    );
   }
 
-    /**
+  /**
    *
    * @param input A UTXO object that is inside the tree
    * @returns
    */
-     public getMASPMerkleProof(input: MaspUtxo): MerkleProof {
-      let inputMerklePathIndices: number[];
-      let inputMerklePathElements: BigNumber[];
-  
-      if (Number(input.amount) > 0) {
-        if (input.index < BigNumber.from(0)) {
-          throw new Error(`Input commitment ${toFixedHex(input.getCommitment())} was not found`);
-        }
-        const path = this.tree.path(input.index.toNumber());
-        inputMerklePathIndices = path.pathIndices;
-        inputMerklePathElements = path.pathElements;
-      } else {
-        inputMerklePathIndices = new Array(this.tree.levels).fill(0);
-        inputMerklePathElements = new Array(this.tree.levels).fill(0);
+  public getMASPMerkleProof(input: MaspUtxo): MerkleProof {
+    let inputMerklePathIndices: number[];
+    let inputMerklePathElements: BigNumber[];
+
+    if (Number(input.amount) > 0) {
+      if (input.index < BigNumber.from(0)) {
+        throw new Error(`Input commitment ${toFixedHex(input.getCommitment())} was not found`);
       }
-  
-      return {
-        element: input.getCommitment(),
-        pathElements: inputMerklePathElements,
-        pathIndices: inputMerklePathIndices,
-        merkleRoot: this.tree.root(),
-      };
+      const path = this.tree.path(input.index.toNumber());
+      inputMerklePathIndices = path.pathIndices;
+      inputMerklePathElements = path.pathElements;
+    } else {
+      inputMerklePathIndices = new Array(this.tree.levels).fill(0);
+      inputMerklePathElements = new Array(this.tree.levels).fill(0);
     }
+
+    return {
+      element: input.getCommitment(),
+      pathElements: inputMerklePathElements,
+      pathIndices: inputMerklePathIndices,
+      merkleRoot: this.tree.root(),
+    };
+  }
 
   public async transact(
     inputs: MaspUtxo[],
@@ -721,7 +768,7 @@ export class MultiAssetVAnchor implements IVAnchor {
     relayer: string,
     wrappedToken: string,
     tokenId: BigNumber,
-    signer: ethers.Signer,
+    signer: ethers.Signer
   ): Promise<ethers.ContractReceipt> {
     // Default UTXO chain ID will match with the configured signer's chain ID
     const evmId = await this.signer.getChainId();
@@ -736,14 +783,26 @@ export class MultiAssetVAnchor implements IVAnchor {
 
     while (inputs.length !== 2 && inputs.length < 16) {
       inputs.push(
-        new MaspUtxo(BigNumber.from(chainId), dummyMaspKey, BigNumber.from(0), BigNumber.from(0), BigNumber.from(0))
+        new MaspUtxo(
+          BigNumber.from(chainId),
+          dummyMaspKey,
+          BigNumber.from(0),
+          BigNumber.from(0),
+          BigNumber.from(0)
+        )
       );
     }
 
     if (outputs.length < 2) {
       while (outputs.length < 2) {
         outputs.push(
-          new MaspUtxo(BigNumber.from(chainId),dummyMaspKey, BigNumber.from(0), BigNumber.from(0), BigNumber.from(0))
+          new MaspUtxo(
+            BigNumber.from(chainId),
+            dummyMaspKey,
+            BigNumber.from(0),
+            BigNumber.from(0),
+            BigNumber.from(0)
+          )
         );
       }
     }
@@ -755,12 +814,39 @@ export class MultiAssetVAnchor implements IVAnchor {
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
 
-
-    const { extData, extDataHash } = await this.generateExtData(recipient, extAmount, relayer, BigNumber.from(fee), BigNumber.from(refund), wrappedToken, outputs[0].encrypt(), outputs[1].encrypt());
+    const { extData, extDataHash } = await this.generateExtData(
+      recipient,
+      extAmount,
+      relayer,
+      BigNumber.from(fee),
+      BigNumber.from(refund),
+      wrappedToken,
+      outputs[0].encrypt(),
+      outputs[1].encrypt()
+    );
 
     const roots = await this.populateRootsForProof();
 
-    const publicInputs = await this.publicInputsWithProof(roots, chainId, assetID.toNumber(), tokenId.toNumber(), inputs, outputs, sk_alphas, feeAssetId.toNumber(), feeTokenId.toNumber(), whitelistedAssetIds, feeInputs, feeOutputs, fee_sk_alphas, extAmount, BigNumber.from(fee), extDataHash, merkleProofs, feeMerkleProofs);
+    const publicInputs = await this.publicInputsWithProof(
+      roots,
+      chainId,
+      assetID.toNumber(),
+      tokenId.toNumber(),
+      inputs,
+      outputs,
+      sk_alphas,
+      feeAssetId.toNumber(),
+      feeTokenId.toNumber(),
+      whitelistedAssetIds,
+      feeInputs,
+      feeOutputs,
+      fee_sk_alphas,
+      extAmount,
+      BigNumber.from(fee),
+      extDataHash,
+      merkleProofs,
+      feeMerkleProofs
+    );
 
     const auxInputs = MultiAssetVAnchor.auxInputsToBytes(publicInputs);
 
@@ -809,11 +895,17 @@ export class MultiAssetVAnchor implements IVAnchor {
     amount: BigNumberish,
     unwrappedToken: string,
     wrappedToken: string,
-    signer: ethers.Signer,
+    signer: ethers.Signer
   ): Promise<ethers.ContractReceipt> {
     const registry = await Registry.connect(await this.contract.registry(), signer);
     const assetID = await registry.contract.getAssetIdFromWrappedAddress(wrappedToken);
-    const utxo = new MaspUtxo(BigNumber.from(destinationChainId), maspKey, assetID, BigNumber.from(0), BigNumber.from(amount));
+    const utxo = new MaspUtxo(
+      BigNumber.from(destinationChainId),
+      maspKey,
+      assetID,
+      BigNumber.from(0),
+      BigNumber.from(amount)
+    );
 
     let options = {};
     if (amount > 0 && checkNativeAddress(unwrappedToken)) {
@@ -831,7 +923,7 @@ export class MultiAssetVAnchor implements IVAnchor {
       amount,
       toFixedHex(utxo.getPartialCommitment()),
       utxo.encrypt(),
-      options,
+      options
     );
     const receipt = await tx.wait();
     return receipt;
@@ -843,11 +935,17 @@ export class MultiAssetVAnchor implements IVAnchor {
     unwrappedToken: string,
     wrappedToken: string,
     tokenID: BigNumber,
-    signer: ethers.Signer,
+    signer: ethers.Signer
   ): Promise<ethers.ContractReceipt> {
     const registry = await Registry.connect(await this.contract.registry(), signer);
     const assetID = await registry.contract.getAssetIdFromWrappedAddress(wrappedToken);
-    const utxo = new MaspUtxo(BigNumber.from(destinationChainId), maspKey, assetID, tokenID, BigNumber.from(1));
+    const utxo = new MaspUtxo(
+      BigNumber.from(destinationChainId),
+      maspKey,
+      assetID,
+      tokenID,
+      BigNumber.from(1)
+    );
 
     let options = {};
 
@@ -857,7 +955,7 @@ export class MultiAssetVAnchor implements IVAnchor {
       tokenID,
       toFixedHex(utxo.getPartialCommitment()),
       utxo.encrypt(),
-      options,
+      options
     );
     const receipt = await tx.wait();
     return receipt;
