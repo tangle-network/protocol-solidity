@@ -146,7 +146,7 @@ describe('MASPVAnchor for 2 max edges', () => {
   });
 
   describe('masp snark proof native verification on js side', () => {
-    it.only('should work', async () => {
+    it('should work', async () => {
       const extAmount = 1e7;
       const relayer = '0x2111111111111111111111111111111111111111';
       const recipient = '0x1111111111111111111111111111111111111111';

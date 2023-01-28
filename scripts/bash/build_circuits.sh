@@ -1,6 +1,6 @@
 #!/bin/bash
 
-mkdir -p artifacts/circuits/{anchor,anchor,keypair,membership,semaphore,signature,vanchor_2,vanchor_16,poseidon4,identity_vanchor_2,identity_vanchor_16}
+mkdir -p artifacts/circuits/{anchor,anchor,keypair,membership,semaphore,signature,vanchor_2,vanchor_16,poseidon4,identity_vanchor_2,identity_vanchor_16,reward_2,reward_8}
 
 compile () {
     local outdir="$1" circuit="$2" size="$3"
@@ -138,21 +138,21 @@ copy_to_fixtures () {
 # WEBB MASP-VANCHORS
 ###
 
-echo "Compiling Webb style multi-asset Poseidon vanchor 2 circuit w/ 2 inputs"
-compile masp_vanchor_2 masp_vanchor_2_2 2
-copy_to_fixtures masp_vanchor_2 masp_vanchor_2_2 2 masp_vanchor_2
+# echo "Compiling Webb style multi-asset Poseidon vanchor 2 circuit w/ 2 inputs"
+# compile masp_vanchor_2 masp_vanchor_2_2 2
+# copy_to_fixtures masp_vanchor_2 masp_vanchor_2_2 2 masp_vanchor_2
 
-echo "Compiling Webb style multi-asset Poseidon vanchor 8 circuit w/ 2 inputs"
-compile masp_vanchor_2 masp_vanchor_2_8 8
-copy_to_fixtures masp_vanchor_2 masp_vanchor_2_8 8 masp_vanchor_2
+# echo "Compiling Webb style multi-asset Poseidon vanchor 8 circuit w/ 2 inputs"
+# compile masp_vanchor_2 masp_vanchor_2_8 8
+# copy_to_fixtures masp_vanchor_2 masp_vanchor_2_8 8 masp_vanchor_2
 
-echo "Compiling Webb style multi-asset Poseidon vanchor 2 circuit w/ 16 inputs"
-compile masp_vanchor_16 masp_vanchor_16_2 2
-copy_to_fixtures masp_vanchor_16 masp_vanchor_16_2 2 masp_vanchor_16
+# echo "Compiling Webb style multi-asset Poseidon vanchor 2 circuit w/ 16 inputs"
+# compile masp_vanchor_16 masp_vanchor_16_2 2
+# copy_to_fixtures masp_vanchor_16 masp_vanchor_16_2 2 masp_vanchor_16
 
-echo "Compiling Webb style multi-asset Poseidon vanchor 8 circuit w/ 2 inputs"
-compile masp_vanchor_16 masp_vanchor_16_8 8
-copy_to_fixtures masp_vanchor_16 masp_vanchor_16_8 8 masp_vanchor_16
+# echo "Compiling Webb style multi-asset Poseidon vanchor 8 circuit w/ 2 inputs"
+# compile masp_vanchor_16 masp_vanchor_16_8 8
+# copy_to_fixtures masp_vanchor_16 masp_vanchor_16_8 8 masp_vanchor_16
 
 ###
 # WEBB MASP-VANCHORS
@@ -186,3 +186,15 @@ copy_to_fixtures masp_vanchor_16 masp_vanchor_16_8 8 masp_vanchor_16
 # echo "Compiling Signature Circuit"
 # compile signature signature_test
 # copy_to_fixtures signature signature_test 0 none
+
+###
+# WEBB ANONIMITY MINING REWARD SYSTEM
+###
+
+echo "Compiling anonimity mining circuit"
+compile reward_2 reward_30_2 30
+copy_to_fixtures reward_2 reward_30_2 30 reward_2
+
+echo "Compiling anonimity mining circuit"
+compile reward_8 reward_30_8 30
+copy_to_fixtures reward_8 reward_30_8 30 reward_8
