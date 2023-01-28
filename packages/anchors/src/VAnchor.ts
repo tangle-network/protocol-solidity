@@ -768,7 +768,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     finalBlock = finalBlock || (await this.contract.provider.getBlockNumber());
     console.log(`Getting notes from chain`);
     // number of blocks to query at a time
-    const step = 1024;
+    const step = 1000;
     console.log(`Fetching notes with steps of ${step} logs/request`);
 
     try {
