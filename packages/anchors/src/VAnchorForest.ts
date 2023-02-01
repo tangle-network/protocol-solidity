@@ -33,6 +33,7 @@ import {
 } from '@webb-tools/utils';
 import { WebbBridge } from './Common';
 import { Deployer } from './Deployer';
+import { SetupTransactionResult, TransactionOptions } from '.';
 
 export type ExtData = {
   recipient: string;
@@ -544,7 +545,7 @@ export class VAnchorForest extends WebbBridge {
     relayer: string,
     wrapUnwrapToken: string,
     leavesMap: Record<string, Uint8Array[]>
-  ) {
+  ): Promise<SetupTransactionResult> {
     // first, check if the merkle root is known on chain - if not, then update
     if (wrapUnwrapToken.length === 0) {
       wrapUnwrapToken = this.token;
@@ -620,7 +621,8 @@ export class VAnchorForest extends WebbBridge {
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>
+    leavesMap: Record<string, Uint8Array[]>,
+    txOptions?: TransactionOptions
   ): Promise<ethers.ContractReceipt> {
     inputs = await this.padUtxos(inputs, 16);
     outputs = await this.padUtxos(outputs, 2);
@@ -637,7 +639,14 @@ export class VAnchorForest extends WebbBridge {
     );
 
     let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
-    options['gasLimit'] = '0x5B8D80';
+
+    if (txOptions?.gasLimit) {
+      options = { ...options, gasLimit: txOptions.gasLimit };
+    }
+
+    if (txOptions?.gasPrice) {
+      options = { ...options, gasPrice: txOptions.gasPrice };
+    }
 
     let tx = await this.contract.registerAndTransact(
       { owner, keyData: keyData },
@@ -683,8 +692,9 @@ export class VAnchorForest extends WebbBridge {
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>
-  ): Promise<ethers.ContractReceipt> {
+    leavesMap: Record<string, Uint8Array[]>,
+    txOptions?: TransactionOptions
+  ): Promise<ethers.ContractReceipt | SetupTransactionResult> {
     // Validate input utxos have a valid originChainId
     this.validateInputs(inputs);
 
@@ -703,38 +713,48 @@ export class VAnchorForest extends WebbBridge {
       leavesMap
     );
 
-    let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
-    options['gasLimit'] = '0x5B8D80';
-    const tx = await this.contract.transact(
-      publicInputs.proof,
-      ZERO_BYTES32,
-      {
-        recipient: extData.recipient,
-        extAmount: extData.extAmount,
-        relayer: extData.relayer,
-        fee: extData.fee,
-        refund: extData.refund,
-        token: extData.token,
-      },
-      {
-        roots: publicInputs.roots,
-        extensionRoots: [],
-        inputNullifiers: publicInputs.inputNullifiers,
-        outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
-        publicAmount: publicInputs.publicAmount,
-        extDataHash: publicInputs.extDataHash,
-      },
-      {
-        encryptedOutput1: extData.encryptedOutput1,
-        encryptedOutput2: extData.encryptedOutput2,
-      },
-      options
-    );
-    const receipt = await tx.wait();
+    if (txOptions?.relaying) {
+      return { extAmount, extData, publicInputs };
+    } else {
+      let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
 
-    await this.updateForest(outputs);
+      if (txOptions?.gasLimit) {
+        options = { ...options, gasLimit: txOptions.gasLimit };
+      }
 
-    return receipt;
+      if (txOptions?.gasPrice) {
+        options = { ...options, gasPrice: txOptions.gasPrice };
+      }
+
+      const tx = await this.contract.transact(
+        publicInputs.proof,
+        ZERO_BYTES32,
+        {
+          recipient: extData.recipient,
+          extAmount: extData.extAmount,
+          relayer: extData.relayer,
+          fee: extData.fee,
+          refund: extData.refund,
+          token: extData.token,
+        },
+        {
+          roots: publicInputs.roots,
+          extensionRoots: [],
+          inputNullifiers: publicInputs.inputNullifiers,
+          outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
+          publicAmount: publicInputs.publicAmount,
+          extDataHash: publicInputs.extDataHash,
+        },
+        {
+          encryptedOutput1: extData.encryptedOutput1,
+          encryptedOutput2: extData.encryptedOutput2,
+        },
+        options
+      );
+      const receipt = await tx.wait();
+      await this.updateForest(outputs);
+      return receipt;
+    }
   }
 }
 
