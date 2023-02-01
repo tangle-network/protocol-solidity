@@ -23,7 +23,7 @@ import {
   UTXOInputs,
   ZERO_BYTES32,
 } from '@webb-tools/utils';
-import { BigNumber } from 'ethers';
+import { BigNumber, ContractReceipt } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 import {
@@ -453,7 +453,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         keypair: bobPublicKeypair,
       });
 
-      const tx = await idAnchor.transact(
+      const receipt: ContractReceipt = await idAnchor.transact(
         aliceKeypair,
         [],
         [aliceTransferUtxo],
@@ -462,9 +462,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
         alice.address,
         relayer,
         ''
-      );
+      ) as ContractReceipt;
 
-      let receipt = await tx.wait();
       // Bob queries encrypted commitments on chain
       const encryptedCommitments: string[] = receipt.events
         .filter((event) => event.event === 'NewCommitment')
@@ -868,8 +867,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
           token: extData.token,
         },
         {
-          roots: publicInputs.vanchorRoots,
-          extensionRoots: publicInputs.identityRoots,
+          roots: publicInputs.roots,
+          extensionRoots: publicInputs.extensionRoots,
           inputNullifiers: publicInputs.inputNullifiers,
           outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
           publicAmount: publicInputs.publicAmount,
@@ -1000,8 +999,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
           token: extData.token,
         },
         {
-          roots: publicInputs.vanchorRoots,
-          extensionRoots: publicInputs.identityRoots,
+          roots: publicInputs.roots,
+          extensionRoots: publicInputs.extensionRoots,
           inputNullifiers: publicInputs.inputNullifiers,
           outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
           publicAmount: publicInputs.publicAmount,
@@ -1143,8 +1142,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
             token: aliceExtData.token,
           },
           {
-            roots: invalidInputs.vanchorRoots,
-            extensionRoots: invalidInputs.identityRoots,
+            roots: invalidInputs.roots,
+            extensionRoots: invalidInputs.extensionRoots,
             inputNullifiers: invalidInputs.inputNullifiers,
             outputCommitments: [
               invalidInputs.outputCommitments[0],
@@ -1163,7 +1162,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
     });
     it('should reject tampering with external data hash', async () => {
       const invalidInputs = publicInputs;
-      invalidInputs.extDataHash = toFixedHex(BigNumber.from(publicInputs.extDataHash).add(1));
+      invalidInputs.extDataHash = BigNumber.from(publicInputs.extDataHash).add(1);
 
       await expect(
         idAnchor.contract.transact(
@@ -1178,8 +1177,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
             token: aliceExtData.token,
           },
           {
-            roots: invalidInputs.vanchorRoots,
-            extensionRoots: invalidInputs.identityRoots,
+            roots: invalidInputs.roots,
+            extensionRoots: invalidInputs.extensionRoots,
             inputNullifiers: invalidInputs.inputNullifiers,
             outputCommitments: [
               invalidInputs.outputCommitments[0],
@@ -1199,9 +1198,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
     it('should reject tampering with output commitments', async () => {
       const invalidInputs = publicInputs;
-      invalidInputs.outputCommitments[0] = toFixedHex(
-        BigNumber.from(publicInputs.outputCommitments[0]).add(1)
-      );
+      invalidInputs.outputCommitments[0] = BigNumber.from(publicInputs.outputCommitments[0]).add(1);
       await expect(
         idAnchor.contract.transact(
           invalidInputs.proof,
@@ -1215,8 +1212,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
             token: aliceExtData.token,
           },
           {
-            roots: invalidInputs.vanchorRoots,
-            extensionRoots: invalidInputs.identityRoots,
+            roots: invalidInputs.roots,
+            extensionRoots: invalidInputs.extensionRoots,
             inputNullifiers: invalidInputs.inputNullifiers,
             outputCommitments: [
               invalidInputs.outputCommitments[0],
@@ -1235,9 +1232,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
     });
     it('should reject tampering with input commitments', async () => {
       const invalidInputs = publicInputs;
-      invalidInputs.inputNullifiers[0] = toFixedHex(
-        BigNumber.from(publicInputs.inputNullifiers[0]).add(1)
-      );
+      invalidInputs.inputNullifiers[0] = BigNumber.from(publicInputs.inputNullifiers[0]).add(1);
 
       await expect(
         idAnchor.contract.transact(
@@ -1252,8 +1247,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
             token: aliceExtData.token,
           },
           {
-            roots: invalidInputs.vanchorRoots,
-            extensionRoots: invalidInputs.identityRoots,
+            roots: invalidInputs.roots,
+            extensionRoots: invalidInputs.extensionRoots,
             inputNullifiers: invalidInputs.inputNullifiers,
             outputCommitments: [
               invalidInputs.outputCommitments[0],
@@ -1290,8 +1285,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
             token: invalidExtData.token,
           },
           {
-            roots: publicInputs.vanchorRoots,
-            extensionRoots: publicInputs.identityRoots,
+            roots: publicInputs.roots,
+            extensionRoots: publicInputs.extensionRoots,
             inputNullifiers: publicInputs.inputNullifiers,
             outputCommitments: [
               publicInputs.outputCommitments[0],
@@ -1324,8 +1319,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
             token: invalidExtData.token,
           },
           {
-            roots: publicInputs.vanchorRoots,
-            extensionRoots: publicInputs.identityRoots,
+            roots: publicInputs.roots,
+            extensionRoots: publicInputs.extensionRoots,
             inputNullifiers: publicInputs.inputNullifiers,
             outputCommitments: [
               publicInputs.outputCommitments[0],
@@ -1358,8 +1353,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
             token: invalidExtData.token,
           },
           {
-            roots: publicInputs.vanchorRoots,
-            extensionRoots: publicInputs.identityRoots,
+            roots: publicInputs.roots,
+            extensionRoots: publicInputs.extensionRoots,
             inputNullifiers: publicInputs.inputNullifiers,
             outputCommitments: [
               publicInputs.outputCommitments[0],

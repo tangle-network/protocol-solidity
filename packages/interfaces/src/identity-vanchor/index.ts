@@ -1,5 +1,5 @@
 import { BigNumberish } from 'ethers';
-import { IVariableAnchorExtData } from 'packages/interfaces/lib';
+import { IVariableAnchorExtData } from '@webb-tools/interfaces';
 
 export interface IIdentityWitnessInput {
   input: {
