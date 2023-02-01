@@ -1,26 +1,5 @@
-import { BigNumberish, BigNumber } from 'ethers';
-import { Keypair } from '@webb-tools/sdk-core';
-
-export interface IIdentityVariableAnchorPublicInputs {
-  proof: string;
-  identityRoots: string;
-  vanchorRoots: string;
-  inputNullifiers: string[];
-  outputCommitments: [string, string];
-  publicAmount: string;
-  extDataHash: string;
-}
-
-export interface IIdentityVariableAnchorExtData {
-  recipient: string;
-  extAmount: string;
-  relayer: string;
-  fee: string;
-  refund: string;
-  token: string;
-  encryptedOutput1: string;
-  encryptedOutput2: string;
-}
+import { BigNumberish } from 'ethers';
+import { IVariableAnchorExtData } from 'packages/interfaces/lib';
 
 export interface IIdentityWitnessInput {
   input: {
@@ -54,5 +33,5 @@ export interface IIdentityWitnessInput {
     // roots for vanchor interoperability
     vanchorRoots: BigNumberish[];
   };
-  extData: IIdentityVariableAnchorExtData;
+  extData: IVariableAnchorExtData;
 }

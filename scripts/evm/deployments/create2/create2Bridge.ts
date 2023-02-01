@@ -135,7 +135,7 @@ export class Create2VBridge {
       let deployer1Contract = await Deployer1.deploy();
       await deployer1Contract.deployed();
       deployer = new Deployer(deployer1Contract);
-      console.log("deployer address : ", deployer.address);
+      console.log('deployer address : ', deployer.address);
       let vBridgeInstance = await SignatureBridgeSide.create2BridgeSide(
         deployer,
         saltHex,

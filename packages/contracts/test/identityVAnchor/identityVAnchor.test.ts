@@ -40,7 +40,7 @@ import {
 } from '@webb-tools/sdk-core';
 import { IdentityVAnchor, PoseidonHasher } from '@webb-tools/anchors';
 import { IdentityVerifier } from '@webb-tools/vbridge';
-import { IIdentityVariableAnchorPublicInputs } from '@webb-tools/interfaces';
+import { IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
 import { Semaphore } from '@webb-tools/semaphore';
 import { LinkedGroup } from '@webb-tools/semaphore-group';
 import { writeFileSync } from 'fs';
@@ -843,7 +843,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         fullProof.publicSignals
       );
 
-      const publicInputs: IIdentityVariableAnchorPublicInputs = idAnchor.generatePublicInputs(
+      const publicInputs: IVariableAnchorPublicInputs = idAnchor.generatePublicInputs(
         proof,
         calldata
       );
@@ -976,7 +976,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         fullProof.publicSignals
       );
 
-      const publicInputs: IIdentityVariableAnchorPublicInputs = idAnchor.generatePublicInputs(
+      const publicInputs: IVariableAnchorPublicInputs = idAnchor.generatePublicInputs(
         proof,
         calldata
       );
@@ -1024,7 +1024,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
     const extAmount = 1e7;
     const aliceDepositAmount = 1e7;
 
-    let publicInputs: IIdentityVariableAnchorPublicInputs;
+    let publicInputs: IVariableAnchorPublicInputs;
     let aliceExtData: any;
     let aliceExtDataHash: BigNumber;
 
