@@ -974,7 +974,16 @@ describe.only('VAnchor for 1 max edge', () => {
       });
 
       // Insert the UTXO into the tree
-      receipt = await anchor.transact([], [aliceTransferUtxo], 0, 0, '0', '0', token.address, {}) as ContractReceipt;
+      receipt = (await anchor.transact(
+        [],
+        [aliceTransferUtxo],
+        0,
+        0,
+        '0',
+        '0',
+        token.address,
+        {}
+      )) as ContractReceipt;
 
       // Bob queries encrypted commitments on chain
       const encryptedCommitments: string[] = receipt.events
@@ -1010,7 +1019,7 @@ describe.only('VAnchor for 1 max edge', () => {
       const leaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
       // Bob uses the parsed utxos to issue a withdraw
-      receipt = await anchor.transact(
+      receipt = (await anchor.transact(
         spendableUtxos,
         [],
         0,
@@ -1021,7 +1030,7 @@ describe.only('VAnchor for 1 max edge', () => {
         {
           [chainID.toString()]: leaves,
         }
-      ) as ContractReceipt;
+      )) as ContractReceipt;
 
       // get balances after transfer interactions
       const aliceBalanceAfter = await token.balanceOf(sender.address);
