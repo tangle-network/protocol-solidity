@@ -145,13 +145,13 @@ template Reward(levels, zeroLeaf, length) {
 	// Compute MASP commitment
 	// MASP Partial Commitment
 	component notePartialCommitmentHasher = PartialRecord();
-	notePartialCommitmentHasher.chainID <== noteChainID;
 	notePartialCommitmentHasher.pk_X <== noteKeyComputer.pk_X;
 	notePartialCommitmentHasher.pk_Y <== noteKeyComputer.pk_Y;
 	notePartialCommitmentHasher.blinding <== noteBlinding;
 
 	// MASP Full Commitment
 	component noteRecordHasher = Record();
+	noteRecordHasher.chainID <== noteChainID;
 	noteRecordHasher.assetID <== noteAssetID;
 	noteRecordHasher.tokenID <== noteTokenID;
 	noteRecordHasher.amount <== noteAmount;

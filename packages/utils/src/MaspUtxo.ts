@@ -34,7 +34,6 @@ export class MaspUtxo {
   public getPartialCommitment(): BigNumber {
     return BigNumber.from(
       poseidon([
-        this.chainID,
         this.maspKey.getPublicKey()[0].toString(),
         this.maspKey.getPublicKey()[1].toString(),
         this.blinding,
@@ -49,7 +48,7 @@ export class MaspUtxo {
 
   public getCommitment(): BigNumber {
     const partialCommitment = this.getPartialCommitment();
-    return BigNumber.from(poseidon([this.assetID, this.tokenID, this.amount, partialCommitment]));
+    return BigNumber.from(poseidon([this.chainID, this.assetID, this.tokenID, this.amount, partialCommitment]));
   }
 
   public getNullifier(): BigNumber {

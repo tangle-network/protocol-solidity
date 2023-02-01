@@ -140,12 +140,12 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
         inKeyComputer[tx].ak_Y <== ak_Y[tx];
 
         inPartialCommitmentHasher[tx] = PartialRecord();
-        inPartialCommitmentHasher[tx].chainID <== chainID;
         inPartialCommitmentHasher[tx].pk_X <== inKeyComputer[tx].pk_X;
         inPartialCommitmentHasher[tx].pk_Y <== inKeyComputer[tx].pk_Y;
         inPartialCommitmentHasher[tx].blinding <== inBlinding[tx];
 
         inCommitmentHasher[tx] = Record();
+        inCommitmentHasher[tx].chainID <== chainID;
         inCommitmentHasher[tx].assetID <== assetID;
         inCommitmentHasher[tx].tokenID <== tokenID;
         inCommitmentHasher[tx].amount <== inAmount[tx];
@@ -187,12 +187,12 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
     // verify correctness of transaction outputs
     for (var tx = 0; tx < nOuts; tx++) {
         outPartialCommitmentHasher[tx] = PartialRecord();
-        outPartialCommitmentHasher[tx].chainID <== chainID;
         outPartialCommitmentHasher[tx].pk_X <== outPk_X[tx];
         outPartialCommitmentHasher[tx].pk_Y <== outPk_Y[tx];
         outPartialCommitmentHasher[tx].blinding <== outBlinding[tx];
 
         outCommitmentHasher[tx] = Record();
+        outCommitmentHasher[tx].chainID <== chainID;
         outCommitmentHasher[tx].assetID <== assetID;
         outCommitmentHasher[tx].tokenID <== tokenID;
         outCommitmentHasher[tx].amount <== outAmount[tx];
@@ -263,12 +263,12 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
         feeInKeyComputer[tx].ak_Y <== fee_ak_Y[tx];
 
         feeInPartialCommitmentHasher[tx] = PartialRecord();
-        feeInPartialCommitmentHasher[tx].chainID <== outChainID[tx];
         feeInPartialCommitmentHasher[tx].pk_X <== feeInKeyComputer[tx].pk_X;
         feeInPartialCommitmentHasher[tx].pk_Y <== feeInKeyComputer[tx].pk_Y;
         feeInPartialCommitmentHasher[tx].blinding <== feeInBlinding[tx];
 
         feeInCommitmentHasher[tx] = Record();
+        feeInCommitmentHasher[tx].chainID <== outChainID[tx];
         feeInCommitmentHasher[tx].assetID <== feeAssetID;
         feeInCommitmentHasher[tx].tokenID <== feeTokenID;
         feeInCommitmentHasher[tx].amount <== feeInAmount[tx];
@@ -310,12 +310,12 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
     // verify correctness of transaction outputs
     for (var tx = 0; tx < nFeeOuts; tx++) {
         feeOutPartialCommitmentHasher[tx] = PartialRecord();
-        feeOutPartialCommitmentHasher[tx].chainID <== feeOutChainID[tx];
         feeOutPartialCommitmentHasher[tx].pk_X <== feeOutPk_X[tx];
         feeOutPartialCommitmentHasher[tx].pk_Y <== feeOutPk_Y[tx];
         feeOutPartialCommitmentHasher[tx].blinding <== feeOutBlinding[tx];
 
         feeOutCommitmentHasher[tx] = Record();
+        feeOutCommitmentHasher[tx].chainID <== feeOutChainID[tx];
         feeOutCommitmentHasher[tx].assetID <== feeAssetID;
         feeOutCommitmentHasher[tx].tokenID <== feeTokenID;
         feeOutCommitmentHasher[tx].amount <== feeOutAmount[tx];
