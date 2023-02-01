@@ -1,5 +1,5 @@
 import { BigNumberish } from 'ethers';
-import { IVariableAnchorExtData } from '@webb-tools/interfaces';
+import { IVariableAnchorExtData } from '..';
 
 export interface IIdentityWitnessInput {
   input: {
@@ -11,7 +11,6 @@ export interface IIdentityWitnessInput {
     semaphoreRoots: BigNumberish[];
 
     chainID: BigNumberish;
-
     publicAmount: BigNumberish;
     extDataHash: BigNumberish;
 

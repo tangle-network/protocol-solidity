@@ -534,18 +534,21 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
   }
 
   public async setupTransaction(
-    keypair: Keypair,
     inputs: Utxo[],
     outputs: Utxo[],
     fee: BigNumberish,
     refund: BigNumberish,
     recipient: string,
     relayer: string,
-    wrapUnwrapToken: string
+    wrapUnwrapToken: string,
+    txOptions?: TransactionOptions
   ): Promise<SetupTransactionResult> {
     if (wrapUnwrapToken.length === 0) {
       wrapUnwrapToken = this.token;
     }
+
+    // TODO: If the keypair doesn't exist, return an error
+    let keypair: Keypair = txOptions.keypair;
 
     const chainId = getChainIdType(await this.signer.getChainId());
     const identityRootInputs = this.populateIdentityRootsForProof();
@@ -698,7 +701,6 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
   }
 
   public async transact(
-    keypair: Keypair,
     inputs: Utxo[],
     outputs: Utxo[],
     fee: BigNumberish,
@@ -712,14 +714,14 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     outputs = await this.padUtxos(outputs, 2);
 
     const { extAmount, extData, publicInputs } = await this.setupTransaction(
-      keypair,
       inputs,
       outputs,
       fee,
       refund,
       recipient,
       relayer,
-      wrapUnwrapToken
+      wrapUnwrapToken,
+      txOptions
     );
 
     if (txOptions?.relaying) {

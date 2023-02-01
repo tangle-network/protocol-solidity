@@ -621,7 +621,8 @@ export class VAnchorForest extends WebbBridge {
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>
+    leavesMap: Record<string, Uint8Array[]>,
+    txOptions?: TransactionOptions
   ): Promise<ethers.ContractReceipt> {
     inputs = await this.padUtxos(inputs, 16);
     outputs = await this.padUtxos(outputs, 2);
@@ -638,7 +639,14 @@ export class VAnchorForest extends WebbBridge {
     );
 
     let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
-    options['gasLimit'] = '0x5B8D80';
+
+    if (txOptions?.gasLimit) {
+      options = { ...options, gasLimit: txOptions.gasLimit };
+    }
+
+    if (txOptions?.gasPrice) {
+      options = { ...options, gasPrice: txOptions.gasPrice };
+    }
 
     let tx = await this.contract.registerAndTransact(
       { owner, keyData: keyData },

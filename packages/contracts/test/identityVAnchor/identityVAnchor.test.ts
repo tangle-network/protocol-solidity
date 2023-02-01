@@ -364,14 +364,14 @@ describe('IdentityVAnchor for 2 max edges', () => {
       // , await generateUTXOForTest(chainID, new Keypair())];
       const aliceBalanceBeforeDeposit = await token.balanceOf(alice.address);
       const tx = await idAnchor.transact(
-        aliceKeypair,
         inputs,
         outputs,
         fee,
         BigNumber.from(0),
         alice.address,
         relayer,
-        ''
+        '',
+        { keypair: aliceKeypair }
       );
 
       const encOutput1 = outputs[0].encrypt();
@@ -403,14 +403,14 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const outputs = [aliceDepositUtxo];
 
       const tx = await idAnchor.transact(
-        aliceKeypair,
         inputs,
         outputs,
         fee,
         BigNumber.from(0),
         alice.address,
         relayer,
-        ''
+        '',
+        { keypair: aliceKeypair }
       );
 
       const encOutput1 = outputs[0].encrypt();
@@ -453,16 +453,16 @@ describe('IdentityVAnchor for 2 max edges', () => {
         keypair: bobPublicKeypair,
       });
 
-      const receipt: ContractReceipt = await idAnchor.transact(
-        aliceKeypair,
+      const receipt: ContractReceipt = (await idAnchor.transact(
         [],
         [aliceTransferUtxo],
         fee,
         BigNumber.from(0),
         alice.address,
         relayer,
-        ''
-      ) as ContractReceipt;
+        '',
+        { keypair: aliceKeypair }
+      )) as ContractReceipt;
 
       // Bob queries encrypted commitments on chain
       const encryptedCommitments: string[] = receipt.events
@@ -502,14 +502,14 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
       // Bob uses the parsed utxos to issue a withdraw
       await idAnchor.transact(
-        bobKeypair,
         spendableUtxos,
         dummyOutputs,
         fee,
         BigNumber.from(0),
         bob.address,
         relayer,
-        ''
+        '',
+        { keypair: bobKeypair }
       );
 
       const aliceBalanceAfter = await token.balanceOf(alice.address);
@@ -530,14 +530,14 @@ describe('IdentityVAnchor for 2 max edges', () => {
       beforeEach(async () => {
         aliceBalanceBeforeDeposit = await token.balanceOf(alice.address);
         const tx = await idAnchor.transact(
-          aliceKeypair,
           [],
           [aliceDepositUtxo],
           fee,
           BigNumber.from(0),
           alice.address,
           relayer,
-          ''
+          '',
+          { keypair: aliceKeypair }
         );
         aliceBalanceAfterDeposit = await token.balanceOf(alice.address);
         expect(aliceBalanceAfterDeposit.toString()).equal(
@@ -560,14 +560,14 @@ describe('IdentityVAnchor for 2 max edges', () => {
         });
 
         await idAnchor.transact(
-          aliceKeypair,
           [aliceDepositUtxo],
           [aliceRefreshUtxo],
           fee,
           BigNumber.from(0),
           alice.address,
           relayer,
-          ''
+          '',
+          { keypair: aliceKeypair }
         );
       });
 
@@ -579,14 +579,14 @@ describe('IdentityVAnchor for 2 max edges', () => {
         );
 
         await idAnchor.transact(
-          aliceKeypair,
           [aliceDepositUtxo],
           [aliceTransferUtxo],
           fee,
           BigNumber.from(0),
           alice.address,
           relayer,
-          ''
+          '',
+          { keypair: aliceKeypair }
         );
 
         const aliceDoubleSpendTransaction = await generateUTXOForTest(
@@ -597,14 +597,14 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
         expect(
           idAnchor.transact(
-            aliceKeypair,
             [aliceDepositUtxo],
             [aliceDoubleSpendTransaction],
             fee,
             BigNumber.from(0),
             alice.address,
             relayer,
-            ''
+            '',
+            { keypair: aliceKeypair }
           )
         ).to.revertedWith('Input is already spent');
       });
@@ -622,14 +622,14 @@ describe('IdentityVAnchor for 2 max edges', () => {
         //Step 4: Check that step 3 fails
         await expect(
           idAnchor.transact(
-            aliceKeypair,
             [aliceDepositUtxo],
             [aliceOutputUtxo],
             fee,
             BigNumber.from(0),
             alice.address,
             relayer,
-            ''
+            '',
+            { keypair: aliceKeypair }
           )
         ).to.revertedWith('ERC20: transfer amount exceeds balance');
       });
@@ -646,14 +646,14 @@ describe('IdentityVAnchor for 2 max edges', () => {
         );
 
         await idAnchor.transact(
-          aliceKeypair,
           [],
           [aliceDepositUtxo2],
           fee,
           BigNumber.from(0),
           alice.address,
           relayer,
-          ''
+          '',
+          { keypair: aliceKeypair }
         );
         const aliceBalanceAfterSecondDeposit = await token.balanceOf(alice.address);
         expect(aliceBalanceAfterFirstDeposit.sub(aliceBalanceAfterSecondDeposit).toString()).equal(
@@ -668,14 +668,14 @@ describe('IdentityVAnchor for 2 max edges', () => {
         const aliceJoinAmount = 3e7;
         const aliceJoinUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceJoinAmount);
         await idAnchor.transact(
-          aliceKeypair,
           [aliceDepositUtxo, aliceDepositUtxo2],
           [aliceJoinUtxo],
           fee,
           BigNumber.from(0),
           alice.address,
           relayer,
-          ''
+          '',
+          { keypair: aliceKeypair }
         );
         const aliceBalanceAfterJoin = await token.balanceOf(alice.address);
         expect(aliceBalanceBeforeDeposit.sub(aliceBalanceAfterJoin).toString()).equal('30000000');
@@ -687,14 +687,14 @@ describe('IdentityVAnchor for 2 max edges', () => {
         const aliceSplitUtxo2 = await generateUTXOForTest(chainID, aliceKeypair, aliceSplitAmount);
 
         await idAnchor.transact(
-          aliceKeypair,
           [aliceDepositUtxo],
           [aliceSplitUtxo1, aliceSplitUtxo2],
           fee,
           BigNumber.from(0),
           alice.address,
           relayer,
-          ''
+          '',
+          { keypair: aliceKeypair }
         );
 
         // alice shouldn't have deposited into tornado as input utxo has enough
@@ -715,14 +715,14 @@ describe('IdentityVAnchor for 2 max edges', () => {
         const aliceETHAddress = '0xDeaD00000000000000000000000000000000BEEf';
 
         const tx = await idAnchor.transact(
-          aliceKeypair,
           [aliceDepositUtxo],
           [aliceChangeUtxo],
           fee,
           BigNumber.from(0),
           aliceETHAddress,
           relayer,
-          ''
+          '',
+          { keypair: aliceKeypair }
         );
 
         expect(aliceWithdrawAmount.toString()).equal(
@@ -1431,14 +1431,14 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceDepositAmount);
       const tx = await wrappedIdAnchor.transact(
-        aliceKeypair,
         [],
         [aliceDepositUtxo],
         fee,
         BigNumber.from(0),
         '0',
         relayer,
-        token.address
+        token.address,
+        { keypair: aliceKeypair }
       );
       const balTokenAfterDepositSender = await token.balanceOf(alice.address);
       expect(balTokenBeforeDepositSender.sub(balTokenAfterDepositSender).toString()).equal(
@@ -1459,7 +1459,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const aliceDepositAmount = 1e7;
       let aliceDepositUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceDepositAmount);
       await wrappedIdAnchor.transact(
-        aliceKeypair,
         [],
         [aliceDepositUtxo],
         // fee,
@@ -1467,7 +1466,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
         BigNumber.from(0),
         '0',
         relayer,
-        token.address
+        token.address,
+        { keypair: aliceKeypair }
       );
       const balTokenAfterDepositSender = await token.balanceOf(alice.address);
       // Fix: why the magic 2? no idea
@@ -1496,14 +1496,14 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const aliceChangeUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceChangeAmount);
 
       const tx1 = await wrappedIdAnchor.transact(
-        aliceKeypair,
         [aliceDepositUtxo],
         [aliceChangeUtxo],
         BigNumber.from(0),
         BigNumber.from(0),
         alice.address,
         relayer,
-        token.address
+        token.address,
+        { keypair: aliceKeypair }
       );
 
       const balTokenAfterWithdrawAndUnwrapSender = await token.balanceOf(alice.address);

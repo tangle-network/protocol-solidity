@@ -1,4 +1,5 @@
 import { IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
+import { Keypair } from '@webb-tools/sdk-core';
 import { BigNumber } from 'ethers';
 
 export { AnchorHandler } from './AnchorHandler';
@@ -12,9 +13,10 @@ export { Deployer } from './Deployer';
 export { BatchTreeUpdater } from './BatchTreeUpdater';
 
 export interface TransactionOptions {
-  relaying: boolean;
-  gasLimit: string | number;
-  gasPrice: string | number;
+  relaying?: boolean;
+  gasLimit?: string | number;
+  gasPrice?: string | number;
+  keypair?: Keypair;
 }
 
 export interface SetupTransactionResult {
