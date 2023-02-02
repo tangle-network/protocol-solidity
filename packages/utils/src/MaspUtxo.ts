@@ -31,7 +31,7 @@ export class MaspUtxo {
     this.index = BigNumber.from(-1);
   }
 
-  public getPartialCommitment(): BigNumber {
+  public getInnerPartialCommitment(): BigNumber {
     return BigNumber.from(
       poseidon([
         this.maspKey.getPublicKey()[0].toString(),
@@ -41,6 +41,10 @@ export class MaspUtxo {
     );
   }
 
+  public getPartialCommitment(): BigNumber {
+    return BigNumber.from(poseidon([this.chainID, this.getInnerPartialCommitment().toString()]));
+  }
+
   // TODO: Fill in babyjubjub encrypt function
   public encrypt() {
     return '0x';
@@ -48,7 +52,7 @@ export class MaspUtxo {
 
   public getCommitment(): BigNumber {
     const partialCommitment = this.getPartialCommitment();
-    return BigNumber.from(poseidon([this.chainID, this.assetID, this.tokenID, this.amount, partialCommitment]));
+    return BigNumber.from(poseidon([this.assetID, this.tokenID, this.amount, partialCommitment]));
   }
 
   public getNullifier(): BigNumber {
@@ -59,14 +63,7 @@ export class MaspUtxo {
     // nullifier = Poseidon(commitment, merklePath, Poseidon(privKey, commitment, merklePath))
     const commitment = this.getCommitment();
     const merklePath = this.index;
-    return BigNumber.from(
-      poseidon([
-        this.maspKey.getPublicKey()[0].toString(),
-        this.maspKey.getPublicKey()[1].toString(),
-        commitment,
-        merklePath,
-      ])
-    );
+    return BigNumber.from(poseidon([commitment, merklePath]));
   }
 
   public setIndex(index: BigNumber) {

@@ -48,7 +48,7 @@ export type IMASPAllInputs = {
 
   ak_X: string[];
   ak_Y: string[];
-  sk_alpha: string[];
+  alpha: string[];
   ak_alpha_X: string[];
   ak_alpha_Y: string[];
 
@@ -73,7 +73,7 @@ export type IMASPAllInputs = {
 
   fee_ak_X: string[];
   fee_ak_Y: string[];
-  fee_sk_alpha: string[];
+  fee_alpha: string[];
   fee_ak_alpha_X: string[];
   fee_ak_alpha_Y: string[];
 };

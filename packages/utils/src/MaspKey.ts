@@ -25,8 +25,8 @@ export class MaspKey {
     if (ak_poseidon_hash_bit_length > 253) {
       ak_poseidon_hash_shifted = Scalar.shr(ak_poseidon_hash, ak_poseidon_hash_bit_length - 253);
     }
-    this.vk = babyjub.F.e(ak_poseidon_hash_shifted.toString()).toString();
-    this.pk = babyjub.mulPointEscalar(babyjub.Base8, this.vk);
+    this.vk = babyjub.F.e(ak_poseidon_hash_shifted.toString());
+    this.pk = babyjub.mulPointEscalar(babyjub.Base8, this.vk.toString());
   }
 
   public randomize_sk_ak() {

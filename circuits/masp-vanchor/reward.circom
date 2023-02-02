@@ -9,6 +9,7 @@ include "../vanchor/keypair.circom";
 include "./key.circom";
 include "./nullifier.circom";
 include "./record.circom";
+include "./babypow.circom";
 
 template Reward(levels, zeroLeaf, length) {
 	signal input rate;
@@ -28,7 +29,7 @@ template Reward(levels, zeroLeaf, length) {
 	signal input notePathIndices;
 
 	// For Delegatable Claiming
-	signal input note_sk_alpha;
+	signal input note_alpha;
 	signal input note_ak_alpha_X;
 	signal input note_ak_alpha_Y;
 
@@ -133,10 +134,12 @@ template Reward(levels, zeroLeaf, length) {
 	// Compute tornado.cash commitment and nullifier
 
 	// Check delegatable MASP key
-	component babyjub = BabyPbk();
-	babyjub.in <== note_sk_alpha;
-	note_ak_alpha_X === babyjub.Ax;
-	note_ak_alpha_Y === babyjub.Ay;
+	component babypow = BabyPow();
+	babypow.baseX <== note_ak_X;
+	babypow.baseY <== note_ak_Y;
+	babypow.exp <== note_alpha;
+	note_ak_alpha_X === babypow.Ax;
+	note_ak_alpha_Y === babypow.Ay;
 
 	component noteKeyComputer = Key();
 	noteKeyComputer.ak_X <== note_ak_X;
@@ -162,8 +165,6 @@ template Reward(levels, zeroLeaf, length) {
 
 	// MASP Nullifier
 	component noteNullifierHasher = Nullifier();
-	noteNullifierHasher.pk_X <== noteKeyComputer.pk_X;
-	noteNullifierHasher.pk_Y <== noteKeyComputer.pk_Y;
 	noteNullifierHasher.record <== noteRecordHasher.record;
 	noteNullifierHasher.pathIndices <== notePathIndices;
 

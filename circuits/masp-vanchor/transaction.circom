@@ -7,6 +7,7 @@ include "../merkle-tree/manyMerkleProof.circom";
 include "./key.circom";
 include "./nullifier.circom";
 include "./record.circom";
+include "./babypow.circom";
 
 /*
 Goal is to support:
@@ -79,12 +80,12 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
     component inNullifierHasher[nIns];
     component inTree[nIns];
     component inCheckRoot[nIns];
-    component inBabyPbk[nIns];
+    component inBabyPow[nIns];
 
     // MASP Keys
     signal input ak_X[nIns];
     signal input ak_Y[nIns];
-    signal input sk_alpha[nIns];
+    signal input alpha[nIns];
     signal input ak_alpha_X[nIns]; // Public Input
     signal input ak_alpha_Y[nIns]; // Public Input
 
@@ -117,12 +118,12 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
     component feeInNullifierHasher[nFeeIns];
     component feeInTree[nFeeIns];
     component feeInCheckRoot[nFeeIns];
-    component feeInBabyPbk[nFeeIns];
+    component feeInBabyPow[nFeeIns];
 
     // MASP Keys
     signal input fee_ak_X[nFeeIns];
     signal input fee_ak_Y[nFeeIns];
-    signal input fee_sk_alpha[nFeeIns];
+    signal input fee_alpha[nFeeIns];
     signal input fee_ak_alpha_X[nFeeIns]; // Public Input
     signal input fee_ak_alpha_Y[nFeeIns]; // Public Input
     // End Fee Inputs --------------
@@ -132,10 +133,12 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
     // verify correctness of transaction inputs
     for (var tx = 0; tx < nIns; tx++) {
         // Check MASP keys well formed
-        inBabyPbk[tx] = BabyPbk();
-        inBabyPbk[tx].in <== sk_alpha[tx];
-        ak_alpha_X[tx] === inBabyPbk[tx].Ax;
-        ak_alpha_Y[tx] === inBabyPbk[tx].Ay;
+        inBabyPow[tx] = BabyPow();
+        inBabyPow[tx].baseX <== ak_X[tx];
+        inBabyPow[tx].baseY <== ak_Y[tx];
+        inBabyPow[tx].exp <== alpha[tx];
+        ak_alpha_X[tx] === inBabyPow[tx].Ax;
+        ak_alpha_Y[tx] === inBabyPow[tx].Ay;
 
         inKeyComputer[tx] = Key();
         inKeyComputer[tx].ak_X <== ak_X[tx];
@@ -157,8 +160,6 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
         inCommitmentHasher[tx].partialRecord <== inPartialCommitmentHasher[tx].partialRecord;
 
         inNullifierHasher[tx] = Nullifier();
-        inNullifierHasher[tx].pk_X <== inKeyComputer[tx].pk_X;
-        inNullifierHasher[tx].pk_Y <== inKeyComputer[tx].pk_Y;
         inNullifierHasher[tx].record <== inCommitmentHasher[tx].record;
         inNullifierHasher[tx].pathIndices <== inPathIndices[tx];
         inNullifierHasher[tx].nullifier === inputNullifier[tx];
@@ -262,10 +263,12 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
     // verify correctness of transaction inputs
     for (var tx = 0; tx < nFeeIns; tx++) {
         // Check MASP keys well formed
-        feeInBabyPbk[tx] = BabyPbk();
-        feeInBabyPbk[tx].in <== fee_sk_alpha[tx];
-        fee_ak_alpha_X[tx] === feeInBabyPbk[tx].Ax;
-        fee_ak_alpha_Y[tx] === feeInBabyPbk[tx].Ay;
+        feeInBabyPow[tx] = BabyPow();
+        feeInBabyPow[tx].baseX <== fee_ak_X[tx];
+        feeInBabyPow[tx].baseY <== fee_ak_Y[tx];
+        feeInBabyPow[tx].exp <== fee_alpha[tx];
+        fee_ak_alpha_X[tx] === feeInBabyPow[tx].Ax;
+        fee_ak_alpha_Y[tx] === feeInBabyPow[tx].Ay;
 
         feeInKeyComputer[tx] = Key();
         feeInKeyComputer[tx].ak_X <== fee_ak_X[tx];
@@ -287,8 +290,6 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
         feeInCommitmentHasher[tx].partialRecord <== feeInPartialCommitmentHasher[tx].partialRecord;
 
         feeInNullifierHasher[tx] = Nullifier();
-        feeInNullifierHasher[tx].pk_X <== feeInKeyComputer[tx].pk_X;
-        feeInNullifierHasher[tx].pk_Y <== feeInKeyComputer[tx].pk_Y;
         feeInNullifierHasher[tx].record <== feeInCommitmentHasher[tx].record;
         feeInNullifierHasher[tx].pathIndices <== feeInPathIndices[tx];
         feeInNullifierHasher[tx].nullifier === feeInputNullifier[tx];

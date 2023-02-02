@@ -201,7 +201,7 @@ describe('Reward snarkjs local proof', () => {
       notePathElements: maspPathElements,
       notePathIndices: maspPathIndices,
 
-      note_sk_alpha: randomize_maspKey.sk_alpha,
+      note_alpha: randomize_maspKey.alpha,
       note_ak_alpha_X: randomize_maspKey.ak_alpha[0],
       note_ak_alpha_Y: randomize_maspKey.ak_alpha[1],
 

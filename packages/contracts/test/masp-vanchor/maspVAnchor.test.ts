@@ -190,10 +190,7 @@ describe('MASPVAnchor for 2 max edges', () => {
       ];
       const randomize_maspKey_1 = maspKey.randomize_sk_ak();
       const randomize_maspKey_2 = maspKey.randomize_sk_ak();
-      const sk_alphas = [
-        randomize_maspKey_1.sk_alpha.toString(),
-        randomize_maspKey_2.sk_alpha.toString(),
-      ];
+      const alphas = [randomize_maspKey_1.alpha.toString(), randomize_maspKey_2.alpha.toString()];
       const feeMaspKey = new MaspKey();
       const feeInputs = [
         new MaspUtxo(
@@ -229,9 +226,9 @@ describe('MASPVAnchor for 2 max edges', () => {
       ];
       const randomize_feeMaspKey_1 = feeMaspKey.randomize_sk_ak();
       const randomize_feeMaspKey_2 = feeMaspKey.randomize_sk_ak();
-      const fee_sk_alphas = [
-        randomize_feeMaspKey_1.sk_alpha.toString(),
-        randomize_feeMaspKey_2.sk_alpha.toString(),
+      const fee_alphas = [
+        randomize_feeMaspKey_1.alpha.toString(),
+        randomize_feeMaspKey_2.alpha.toString(),
       ];
       const fee = 0;
       const whitelistedAssetIDs = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
@@ -267,13 +264,13 @@ describe('MASPVAnchor for 2 max edges', () => {
         tokenID,
         inputs,
         outputs,
-        sk_alphas,
+        alphas,
         feeAssetID,
         feeTokenID,
         whitelistedAssetIDs,
         feeInputs,
         feeOutputs,
-        fee_sk_alphas,
+        fee_alphas,
         BigNumber.from(extAmount),
         BigNumber.from(0),
         extDataHash,

@@ -34,19 +34,6 @@ template Swap(levels, length) {
     signal input roots[length]; // Public Input
     signal input currentTimestamp; // Public Input
 
-    signal input alice_pk_X;
-    signal input alice_pk_Y;
-    signal input bob_pk_X;
-    signal input bob_pk_Y;
-
-    // Signature related 
-    signal input alice_signature;
-    signal input alice_R8x;
-    signal input alice_R8y;
-    signal input bob_signature;
-    signal input bob_R8x;
-    signal input bob_R8y;
-
     signal input aliceChangeChainID;
     signal input aliceChangeAssetID;
     signal input aliceChangeTokenID;
@@ -73,50 +60,17 @@ template Swap(levels, length) {
     signal input bobReceivePartialRecord;
     signal input bobReceiveRecord; // Public Input
 
-    // Check Swap Message Signature
-    component swapMessageHasher = Poseidon(8);
-    swapMessageHasher.inputs[0] <== aliceSpendAssetID;
-    swapMessageHasher.inputs[1] <== aliceSpendTokenID;
-    swapMessageHasher.inputs[2] <== aliceSpendAmount;
-    swapMessageHasher.inputs[3] <== bobSpendAssetID;
-    swapMessageHasher.inputs[4] <== bobSpendTokenID;
-    swapMessageHasher.inputs[5] <== bobSpendAmount;
-    swapMessageHasher.inputs[6] <== t;
-    swapMessageHasher.inputs[7] <== tPrime;
+    // Range check receive and change record amounts
+    component aliceChangeAmountCheck = Num2Bits(248);
+    aliceChangeAmountCheck.in <== aliceChangeAmount;
+    component aliceReceiveAmountCheck = Num2Bits(248);
+    aliceReceiveAmountCheck.in <== aliceReceiveAmount;
+    component bobChangeAmountCheck = Num2Bits(248);
+    bobChangeAmountCheck.in <== bobChangeAmount;
+    component bobReceiveAmountCheck = Num2Bits(248);
+    bobReceiveAmountCheck.in <== bobReceiveAmount;
 
-    component aliceSigCheck = EdDSAPoseidonVerifier();
-    aliceSigCheck.enabled <== 1;
-    aliceSigCheck.Ax <== alice_pk_X;
-    aliceSigCheck.Ay <== alice_pk_Y;
-    aliceSigCheck.S <== alice_signature;
-    aliceSigCheck.R8x <== alice_R8x;
-    aliceSigCheck.R8y <== alice_R8y;
-    aliceSigCheck.M <== swapMessageHasher.out;
-
-    component bobSigCheck = EdDSAPoseidonVerifier();
-    bobSigCheck.enabled <== 1;
-    bobSigCheck.Ax <== bob_pk_X;
-    bobSigCheck.Ay <== bob_pk_Y;
-    bobSigCheck.S <== bob_signature;
-    bobSigCheck.R8x <== bob_R8x;
-    bobSigCheck.R8y <== bob_R8y;
-    bobSigCheck.M <== swapMessageHasher.out;
-
-    // Check all relevant asset and tokenIDs are equal
-    aliceSpendAssetID === aliceChangeAssetID;
-    aliceReceiveAssetID === bobSpendAssetID;
-    bobSpendAssetID === bobChangeAssetID;
-    bobReceiveAssetID === aliceSpendAssetID;
-    aliceSpendTokenID === aliceChangeTokenID;
-    aliceReceiveTokenID === bobSpendTokenID;
-    bobSpendTokenID === bobChangeTokenID;
-    bobReceiveTokenID === aliceSpendTokenID;
-
-    // Check amount invariant
-    aliceSpendAmount === aliceChangeAmount + bobReceiveAmount;
-    bobSpendAmount === bobChangeAmount + aliceReceiveAmount;
-
-    // Check timestamps
+    // Range Check timestamps
     component tRangeCheck = Num2Bits(252);
     tRangeCheck.in <== t;
     component tPrimeRangeCheck = Num2Bits(252);
@@ -130,15 +84,19 @@ template Swap(levels, length) {
     tPrimeCheck.in[0] <== currentTimestamp;
     tPrimeCheck.in[1] <== tPrime;
 
-    // Range check receive and change record amounts
-    component aliceChangeAmountCheck = Num2Bits(248);
-    aliceChangeAmountCheck.in <== aliceChangeAmount;
-    component aliceReceiveAmountCheck = Num2Bits(248);
-    aliceReceiveAmountCheck.in <== aliceReceiveAmount;
-    component bobChangeAmountCheck = Num2Bits(248);
-    bobChangeAmountCheck.in <== bobChangeAmount;
-    component bobReceiveAmountCheck = Num2Bits(248);
-    bobReceiveAmountCheck.in <== bobReceiveAmount;
+    // Check all relevant asset and tokenIDs and amounts are equal
+    aliceSpendAssetID === aliceChangeAssetID;
+    aliceReceiveAssetID === bobSpendAssetID;
+    bobSpendAssetID === bobChangeAssetID;
+    bobReceiveAssetID === aliceSpendAssetID;
+    aliceSpendTokenID === aliceChangeTokenID;
+    aliceReceiveTokenID === bobSpendTokenID;
+    bobSpendTokenID === bobChangeTokenID;
+    bobReceiveTokenID === aliceSpendTokenID;
+
+    // Check amount invariant
+    aliceSpendAmount === aliceChangeAmount + bobReceiveAmount;
+    bobSpendAmount === bobChangeAmount + aliceReceiveAmount;
 
     // Check Alice Spend Merkle Proof
     component aliceSpendPartialRecordHasher = PartialRecord();
@@ -214,15 +172,11 @@ template Swap(levels, length) {
 
     // Check Alice and Bob Spend Nullifiers constructed correctly
     component aliceNullifierHasher = Nullifier();
-    aliceNullifierHasher.pk_X <== alice_pk_X;
-    aliceNullifierHasher.pk_Y <== alice_pk_Y;
     aliceNullifierHasher.record <== aliceSpendRecordHasher.record;
     aliceNullifierHasher.pathIndices <== aliceSpendPathIndices;
     aliceNullifierHasher.nullifier === aliceSpendNullifier;
 
     component bobNullifierHasher = Nullifier();
-    bobNullifierHasher.pk_X <== bob_pk_X;
-    bobNullifierHasher.pk_Y <== bob_pk_Y;
     bobNullifierHasher.record <== bobSpendRecordHasher.record;
     bobNullifierHasher.pathIndices <== bobSpendPathIndices;
     bobNullifierHasher.nullifier === bobSpendNullifier;

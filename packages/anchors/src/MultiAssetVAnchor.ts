@@ -473,13 +473,13 @@ export class MultiAssetVAnchor implements IVAnchor {
     tokenId: number,
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
-    sk_alphas: string[],
+    alphas: string[],
     feeAssetId: number,
     feeTokenId: number,
     whitelistedAssetIds: number[],
     feeInputs: MaspUtxo[],
     feeOutputs: MaspUtxo[],
-    fee_sk_alphas: string[],
+    fee_alphas: string[],
     extAmount: BigNumber,
     fee: BigNumber,
     extDataHash: BigNumber,
@@ -537,10 +537,14 @@ export class MultiAssetVAnchor implements IVAnchor {
 
       ak_X: inputs.map((x) => x.maspKey.getProofAuthorizingKey()[0].toString()),
       ak_Y: inputs.map((x) => x.maspKey.getProofAuthorizingKey()[1].toString()),
-      sk_alpha: sk_alphas,
-      ak_alpha_X: sk_alphas.map((x) => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[0]),
-      ak_alpha_Y: sk_alphas.map((x) =>
-        babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[1].toString()
+      alpha: alphas,
+      ak_alpha_X: alphas.map(
+        (x, i) =>
+          babyjub.mulPointEscalar(inputs[i].maspKey.getProofAuthorizingKey(), babyjub.F.e(x))[0]
+      ),
+      ak_alpha_Y: alphas.map(
+        (x, i) =>
+          babyjub.mulPointEscalar(inputs[i].maspKey.getProofAuthorizingKey(), babyjub.F.e(x))[1]
       ),
 
       feeAssetID: feeAssetId,
@@ -564,12 +568,14 @@ export class MultiAssetVAnchor implements IVAnchor {
 
       fee_ak_X: feeInputs.map((x) => x.maspKey.getProofAuthorizingKey()[0].toString()),
       fee_ak_Y: feeInputs.map((x) => x.maspKey.getProofAuthorizingKey()[1].toString()),
-      fee_sk_alpha: fee_sk_alphas,
-      fee_ak_alpha_X: fee_sk_alphas.map(
-        (x) => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[0]
+      fee_alpha: fee_alphas,
+      fee_ak_alpha_X: fee_alphas.map(
+        (x, i) =>
+          babyjub.mulPointEscalar(feeInputs[i].maspKey.getProofAuthorizingKey(), babyjub.F.e(x))[0]
       ),
-      fee_ak_alpha_Y: fee_sk_alphas.map(
-        (x) => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[1]
+      fee_ak_alpha_Y: fee_alphas.map(
+        (x, i) =>
+          babyjub.mulPointEscalar(feeInputs[i].maspKey.getProofAuthorizingKey(), babyjub.F.e(x))[1]
       ),
     };
 
@@ -590,8 +596,8 @@ export class MultiAssetVAnchor implements IVAnchor {
       chainID: chainId.toString(),
       roots: roots.map((x) => x.toString()),
 
-      ak_alpha_X: sk_alphas.map((x) => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[0]),
-      ak_alpha_Y: sk_alphas.map((x) => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[1]),
+      ak_alpha_X: alphas.map((x) => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[0]),
+      ak_alpha_Y: alphas.map((x) => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[1]),
 
       whitelistedAssetIDs: whitelistedAssetIds,
 
@@ -601,10 +607,10 @@ export class MultiAssetVAnchor implements IVAnchor {
       // data for transaction outputs
       feeOutputCommitment: feeOutputs.map((x) => x.getCommitment().toString()),
 
-      fee_ak_alpha_X: fee_sk_alphas.map(
+      fee_ak_alpha_X: fee_alphas.map(
         (x) => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[0]
       ),
-      fee_ak_alpha_Y: fee_sk_alphas.map(
+      fee_ak_alpha_Y: fee_alphas.map(
         (x) => babyjub.mulPointEscalar(babyjub.Base8, babyjub.F.e(x))[1]
       ),
     };
@@ -619,13 +625,13 @@ export class MultiAssetVAnchor implements IVAnchor {
     tokenId: number,
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
-    sk_alphas: string[],
+    alphas: string[],
     feeAssetId: number,
     feeTokenId: number,
     whitelistedAssetIds: number[],
     feeInputs: MaspUtxo[],
     feeOutputs: MaspUtxo[],
-    fee_sk_alphas: string[],
+    fee_alphas: string[],
     extAmount: BigNumber,
     fee: BigNumber,
     extDataHash: BigNumber,
@@ -639,13 +645,13 @@ export class MultiAssetVAnchor implements IVAnchor {
       tokenId,
       inputs,
       outputs,
-      sk_alphas,
+      alphas,
       feeAssetId,
       feeTokenId,
       whitelistedAssetIds,
       feeInputs,
       feeOutputs,
-      fee_sk_alphas,
+      fee_alphas,
       extAmount,
       fee,
       extDataHash,
@@ -758,10 +764,10 @@ export class MultiAssetVAnchor implements IVAnchor {
   public async transact(
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
-    sk_alphas: string[],
+    alphas: string[],
     feeInputs: MaspUtxo[],
     feeOutputs: MaspUtxo[],
-    fee_sk_alphas: string[],
+    fee_alphas: string[],
     whitelistedAssetIds: number[],
     refund: BigNumberish,
     recipient: string,
@@ -834,13 +840,13 @@ export class MultiAssetVAnchor implements IVAnchor {
       tokenId.toNumber(),
       inputs,
       outputs,
-      sk_alphas,
+      alphas,
       feeAssetId.toNumber(),
       feeTokenId.toNumber(),
       whitelistedAssetIds,
       feeInputs,
       feeOutputs,
-      fee_sk_alphas,
+      fee_alphas,
       extAmount,
       BigNumber.from(fee),
       extDataHash,
