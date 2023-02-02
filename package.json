@@ -28,6 +28,7 @@
     "setup:groth16:masp-vanchor2": "./scripts/bash/groth16/masp_vanchor/phase2_masp_vanchor2.sh",
     "setup:groth16:masp-vanchor8": "./scripts/bash/groth16/masp_vanchor/phase2_masp_vanchor8.sh",
     "setup:groth16:reward": "./scripts/bash/groth16/masp_vanchor/phase2_reward.sh",
+    "setup:groth16:swap": "./scripts/bash/groth16/masp_vanchor/phase2_swap.sh",
     "setup:plonk:vanchor2": "./scripts/bash/plonk/vanchor/phase2_poseidon_vanchor2.sh",
     "setup:plonk:vanchor8": "./scripts/bash/plonk/vanchor/phase2_poseidon_vanchor8.sh",
     "setup:plonk:identity-vanchor2": "./scripts/bash/plonk/identity_vanchor/phase2_identity_vanchor2.sh",

@@ -23,12 +23,12 @@ UTXO structure:
 {
     assetID,
     amount,
-    partialUtxoCommitment,
+    InnerpartialUtxoCommitment,
 }
 
 For NFTs: hash(contract_address, token_id)
 
-Partial UTXO structure:
+InnerPartial UTXO structure:
 {
     chainID, // destination chain identifier
     pubkey,
@@ -74,6 +74,7 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
 
     component inKeyComputer[nIns];
     component inCommitmentHasher[nIns];
+    component inInnerPartialCommitmentHasher[nIns];
     component inPartialCommitmentHasher[nIns];
     component inNullifierHasher[nIns];
     component inTree[nIns];
@@ -111,6 +112,7 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
 
     component feeInKeyComputer[nFeeIns];
     component feeInCommitmentHasher[nFeeIns];
+    component feeInInnerPartialCommitmentHasher[nFeeIns];
     component feeInPartialCommitmentHasher[nFeeIns];
     component feeInNullifierHasher[nFeeIns];
     component feeInTree[nFeeIns];
@@ -139,13 +141,16 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
         inKeyComputer[tx].ak_X <== ak_X[tx];
         inKeyComputer[tx].ak_Y <== ak_Y[tx];
 
+        inInnerPartialCommitmentHasher[tx] = InnerPartialRecord();
+        inInnerPartialCommitmentHasher[tx].pk_X <== inKeyComputer[tx].pk_X;
+        inInnerPartialCommitmentHasher[tx].pk_Y <== inKeyComputer[tx].pk_Y;
+        inInnerPartialCommitmentHasher[tx].blinding <== inBlinding[tx];
+
         inPartialCommitmentHasher[tx] = PartialRecord();
-        inPartialCommitmentHasher[tx].pk_X <== inKeyComputer[tx].pk_X;
-        inPartialCommitmentHasher[tx].pk_Y <== inKeyComputer[tx].pk_Y;
-        inPartialCommitmentHasher[tx].blinding <== inBlinding[tx];
+        inPartialCommitmentHasher[tx].chainID <== chainID;
+        inPartialCommitmentHasher[tx].innerPartialRecord <== inInnerPartialCommitmentHasher[tx].innerPartialRecord;
 
         inCommitmentHasher[tx] = Record();
-        inCommitmentHasher[tx].chainID <== chainID;
         inCommitmentHasher[tx].assetID <== assetID;
         inCommitmentHasher[tx].tokenID <== tokenID;
         inCommitmentHasher[tx].amount <== inAmount[tx];
@@ -179,6 +184,7 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
     }
 
 
+    component outInnerPartialCommitmentHasher[nOuts];
     component outPartialCommitmentHasher[nOuts];
     component outCommitmentHasher[nOuts];
     component outAmountCheck[nOuts];
@@ -186,13 +192,16 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
 
     // verify correctness of transaction outputs
     for (var tx = 0; tx < nOuts; tx++) {
+        outInnerPartialCommitmentHasher[tx] = InnerPartialRecord();
+        outInnerPartialCommitmentHasher[tx].pk_X <== outPk_X[tx];
+        outInnerPartialCommitmentHasher[tx].pk_Y <== outPk_Y[tx];
+        outInnerPartialCommitmentHasher[tx].blinding <== outBlinding[tx];
+
         outPartialCommitmentHasher[tx] = PartialRecord();
-        outPartialCommitmentHasher[tx].pk_X <== outPk_X[tx];
-        outPartialCommitmentHasher[tx].pk_Y <== outPk_Y[tx];
-        outPartialCommitmentHasher[tx].blinding <== outBlinding[tx];
+        outPartialCommitmentHasher[tx].chainID <== chainID;
+        outPartialCommitmentHasher[tx].innerPartialRecord <== outInnerPartialCommitmentHasher[tx].innerPartialRecord;
 
         outCommitmentHasher[tx] = Record();
-        outCommitmentHasher[tx].chainID <== chainID;
         outCommitmentHasher[tx].assetID <== assetID;
         outCommitmentHasher[tx].tokenID <== tokenID;
         outCommitmentHasher[tx].amount <== outAmount[tx];
@@ -262,13 +271,16 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
         feeInKeyComputer[tx].ak_X <== fee_ak_X[tx];
         feeInKeyComputer[tx].ak_Y <== fee_ak_Y[tx];
 
+        feeInInnerPartialCommitmentHasher[tx] = InnerPartialRecord();
+        feeInInnerPartialCommitmentHasher[tx].pk_X <== feeInKeyComputer[tx].pk_X;
+        feeInInnerPartialCommitmentHasher[tx].pk_Y <== feeInKeyComputer[tx].pk_Y;
+        feeInInnerPartialCommitmentHasher[tx].blinding <== feeInBlinding[tx];
+
         feeInPartialCommitmentHasher[tx] = PartialRecord();
-        feeInPartialCommitmentHasher[tx].pk_X <== feeInKeyComputer[tx].pk_X;
-        feeInPartialCommitmentHasher[tx].pk_Y <== feeInKeyComputer[tx].pk_Y;
-        feeInPartialCommitmentHasher[tx].blinding <== feeInBlinding[tx];
+        feeInPartialCommitmentHasher[tx].chainID <== chainID;
+        feeInPartialCommitmentHasher[tx].innerPartialRecord <== feeInInnerPartialCommitmentHasher[tx].innerPartialRecord;
 
         feeInCommitmentHasher[tx] = Record();
-        feeInCommitmentHasher[tx].chainID <== outChainID[tx];
         feeInCommitmentHasher[tx].assetID <== feeAssetID;
         feeInCommitmentHasher[tx].tokenID <== feeTokenID;
         feeInCommitmentHasher[tx].amount <== feeInAmount[tx];
@@ -302,6 +314,7 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
     }
 
 
+    component feeOutInnerPartialCommitmentHasher[nFeeOuts];
     component feeOutPartialCommitmentHasher[nFeeOuts];
     component feeOutCommitmentHasher[nFeeOuts];
     component feeOutAmountCheck[nFeeOuts];
@@ -309,13 +322,16 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
 
     // verify correctness of transaction outputs
     for (var tx = 0; tx < nFeeOuts; tx++) {
+        feeOutInnerPartialCommitmentHasher[tx] = InnerPartialRecord();
+        feeOutInnerPartialCommitmentHasher[tx].pk_X <== feeOutPk_X[tx];
+        feeOutInnerPartialCommitmentHasher[tx].pk_Y <== feeOutPk_Y[tx];
+        feeOutInnerPartialCommitmentHasher[tx].blinding <== feeOutBlinding[tx];
+
         feeOutPartialCommitmentHasher[tx] = PartialRecord();
-        feeOutPartialCommitmentHasher[tx].pk_X <== feeOutPk_X[tx];
-        feeOutPartialCommitmentHasher[tx].pk_Y <== feeOutPk_Y[tx];
-        feeOutPartialCommitmentHasher[tx].blinding <== feeOutBlinding[tx];
+        feeOutPartialCommitmentHasher[tx].chainID <== chainID;
+        feeOutPartialCommitmentHasher[tx].innerPartialRecord <== feeOutInnerPartialCommitmentHasher[tx].innerPartialRecord;
 
         feeOutCommitmentHasher[tx] = Record();
-        feeOutCommitmentHasher[tx].chainID <== feeOutChainID[tx];
         feeOutCommitmentHasher[tx].assetID <== feeAssetID;
         feeOutCommitmentHasher[tx].tokenID <== feeTokenID;
         feeOutCommitmentHasher[tx].amount <== feeOutAmount[tx];

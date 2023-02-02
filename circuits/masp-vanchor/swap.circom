@@ -13,11 +13,11 @@ template Swap(levels, length) {
     signal input aliceSpendAssetID;
     signal input aliceSpendTokenID;
     signal input aliceSpendAmount;
-    signal input aliceSpendPartialRecord;
+    signal input aliceSpendInnerPartialRecord;
     signal input bobSpendAssetID;
     signal input bobSpendTokenID;
     signal input bobSpendAmount;
-    signal input bobSpendPartialRecord;
+    signal input bobSpendInnerPartialRecord;
     signal input t;
     signal input tPrime;
 
@@ -141,12 +141,14 @@ template Swap(levels, length) {
     bobReceiveAmountCheck.in <== bobReceiveAmount;
 
     // Check Alice Spend Merkle Proof
+    component aliceSpendPartialRecordHasher = PartialRecord();
+    aliceSpendPartialRecordHasher.chainID <== swapChainID;
+    aliceSpendPartialRecordHasher.innerPartialRecord <== aliceSpendInnerPartialRecord;
     component aliceSpendRecordHasher = Record();
-    aliceSpendRecordHasher.chainID <== swapChainID;
     aliceSpendRecordHasher.assetID <== aliceSpendAssetID;
     aliceSpendRecordHasher.tokenID <== aliceSpendTokenID;
     aliceSpendRecordHasher.amount <== aliceSpendAmount;
-    aliceSpendRecordHasher.partialRecord <== aliceSpendPartialRecord;
+    aliceSpendRecordHasher.partialRecord <== aliceSpendPartialRecordHasher.partialRecord;
 
     component aliceMerkleProof = ManyMerkleProof(levels, length);
 	aliceMerkleProof.leaf <== aliceSpendRecordHasher.record;
@@ -160,12 +162,14 @@ template Swap(levels, length) {
 	}
 
     // Check Bob Spend Merkle Proof
+    component bobSpendPartialRecordHasher = PartialRecord();
+    bobSpendPartialRecordHasher.chainID <== swapChainID;
+    bobSpendPartialRecordHasher.innerPartialRecord <== bobSpendInnerPartialRecord;
     component bobSpendRecordHasher = Record();
-    bobSpendRecordHasher.chainID <== swapChainID;
     bobSpendRecordHasher.assetID <== bobSpendAssetID;
     bobSpendRecordHasher.tokenID <== bobSpendTokenID;
     bobSpendRecordHasher.amount <== bobSpendAmount;
-    bobSpendRecordHasher.partialRecord <== bobSpendPartialRecord;
+    bobSpendRecordHasher.partialRecord <== bobSpendPartialRecordHasher.partialRecord;
 
     component bobMerkleProof = ManyMerkleProof(levels, length);
 	bobMerkleProof.leaf <== bobSpendRecordHasher.record;
@@ -180,7 +184,6 @@ template Swap(levels, length) {
 
     // Check Alice and Bob Change/Receive Records constructed correctly
     component aliceChangeRecordHasher = Record();
-    aliceChangeRecordHasher.chainID <== swapChainID;
     aliceChangeRecordHasher.assetID <== aliceChangeAssetID;
     aliceChangeRecordHasher.tokenID <== aliceChangeTokenID;
     aliceChangeRecordHasher.amount <== aliceChangeAmount;
@@ -188,7 +191,6 @@ template Swap(levels, length) {
     aliceChangeRecordHasher.record === aliceChangeRecord;
 
     component aliceReceiveRecordHasher = Record();
-    aliceReceiveRecordHasher.chainID <== swapChainID;
     aliceReceiveRecordHasher.assetID <== aliceReceiveAssetID;
     aliceReceiveRecordHasher.tokenID <== aliceReceiveTokenID;
     aliceReceiveRecordHasher.amount <== aliceReceiveAmount;
@@ -196,7 +198,6 @@ template Swap(levels, length) {
     aliceReceiveRecordHasher.record === aliceReceiveRecord;
 
     component bobChangeRecordHasher = Record();
-    bobChangeRecordHasher.chainID <== swapChainID;
     bobChangeRecordHasher.assetID <== bobChangeAssetID;
     bobChangeRecordHasher.tokenID <== bobChangeTokenID;
     bobChangeRecordHasher.amount <== bobChangeAmount;
@@ -204,7 +205,6 @@ template Swap(levels, length) {
     bobChangeRecordHasher.record === bobChangeRecord;
 
     component bobReceiveRecordHasher = Record();
-    bobReceiveRecordHasher.chainID <== swapChainID;
     bobReceiveRecordHasher.assetID <== bobReceiveAssetID;
     bobReceiveRecordHasher.tokenID <== bobReceiveTokenID;
     bobReceiveRecordHasher.amount <== bobReceiveAmount;
