@@ -175,7 +175,8 @@ describe('Registry', () => {
       const nonce = 1;
       const tokenHandler = sender.address;
       const assetIdentifier = 2;
-      await registry.registerNftToken(nonce, tokenHandler, assetIdentifier, randomBN(20).toString(), wrappedTokenURI, salt);
+      const dummyNftAddress = sender.address;
+      await registry.registerNftToken(nonce, tokenHandler, assetIdentifier, dummyNftAddress, wrappedTokenURI, salt);
 
       const wrappedTokenAddress = await multiNftTokenMgr.contract.wrappedTokens(0);
       assert.strictEqual(

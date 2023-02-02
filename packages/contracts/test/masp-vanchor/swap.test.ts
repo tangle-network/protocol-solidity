@@ -45,7 +45,7 @@ describe('swap snarkjs local proof', () => {
   let create2InputWitness;
   let chainID = BigNumber.from(31337);
 
-  before('should initialize trees and vanchor', async () => {
+  before('should zk components', async () => {
     const signers = await ethers.getSigners();
     const wallet = signers[0];
     sender = wallet;
