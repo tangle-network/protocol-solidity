@@ -117,7 +117,28 @@ template Swap(levels, length) {
     bobSpendAmount === bobChangeAmount + aliceReceiveAmount;
 
     // Check timestamps
-    
+    component tRangeCheck = Num2Bits(252);
+    tRangeCheck.in <== t;
+    component tPrimeRangeCheck = Num2Bits(252);
+    tPrimeRangeCheck.in <== tPrime;
+    component currentTimestampRangeCheck = Num2Bits(252);
+    currentTimestampRangeCheck.in <== currentTimestamp;
+    component tCheck = LessEqThan(252);
+    tCheck.in[0] <== t;
+    tCheck.in[1] <== currentTimestamp;
+    component tPrimeCheck = LessEqThan(252);
+    tPrimeCheck.in[0] <== currentTimestamp;
+    tPrimeCheck.in[1] <== tPrime;
+
+    // Range check receive and change record amounts
+    component aliceChangeAmountCheck = Num2Bits(248);
+    aliceChangeAmount.in <== aliceChangeAmount;
+    component aliceReceiveAmountCheck = Num2Bits(248);
+    aliceReceiveAmountCheck.in <== aliceReceiveAmount;
+    component bobChangeAmountCheck = Num2Bits(248);
+    bobChangeAmount.in <== bobChangeAmount;
+    component bobReceiveAmountCheck = Num2Bits(248);
+    bobReceiveAmountCheck.in <== bobReceiveAmount;
 
     // Check Alice Spend Merkle Proof
     component aliceSpendRecordHasher = Record();
