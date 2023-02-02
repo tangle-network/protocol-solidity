@@ -2,13 +2,14 @@ pragma circom 2.0.0;
 
 include "../merkle-tree/manyMerkleProof.circom";
 include "../../node_modules/circomlib/circuits/poseidon.circom";
+include "../../node_modules/circomlib/circuits/eddsaposeidon.circom";
 include "./record.circom";
 include "./nullifier.circom";
 
 // Swap message is (aliceSpendAssetID, aliceSpendTokenID, aliceSpendAmount, bobSpendAssetID, bobSpendTokenID, bobSpendAmount, t, t')
-// We check Poseidon hash of this message is signed by BOTH Alice and Bob.
+// We check a Poseidon hash of this message is signed by BOTH Alice and Bob.
 
-template Record(levels, length) {
+template Swap(levels, length) {
     signal input aliceSpendAssetID;
     signal input aliceSpendTokenID;
     signal input aliceSpendAmount;
@@ -38,6 +39,14 @@ template Record(levels, length) {
     signal input bob_pk_X;
     signal input bob_pk_Y;
 
+    // Signature related 
+    signal input alice_signature;
+    signal input alice_R8x;
+    signal input alice_R8y;
+    signal input bob_signature;
+    signal input bob_R8x;
+    signal input bob_R8y;
+
     signal input aliceChangeChainID;
     signal input aliceChangeAssetID;
     signal input aliceChangeTokenID;
@@ -64,25 +73,51 @@ template Record(levels, length) {
     signal input bobReceivePartialRecord;
     signal input bobReceiveRecord; // Public Input
 
-    // TODO: Check Swap Message Signature
+    // Check Swap Message Signature
+    component swapMessageHasher = Poseidon(8);
+    swapMessageHasher.inputs[0] <== aliceSpendAssetID;
+    swapMessageHasher.inputs[1] <== aliceSpendTokenID;
+    swapMessageHasher.inputs[2] <== aliceSpendAmount;
+    swapMessageHasher.inputs[3] <== bobSpendAssetID;
+    swapMessageHasher.inputs[4] <== bobSpendTokenID;
+    swapMessageHasher.inputs[5] <== bobSpendAmount;
+    swapMessageHasher.inputs[6] <== t;
+    swapMessageHasher.inputs[7] <== tPrime;
+
+    component aliceSigCheck = EdDSAPoseidonVerifier();
+    aliceSigCheck.enabled <== 1;
+    aliceSigCheck.Ax <== alice_pk_X;
+    aliceSigCheck.Ay <== alice_pk_Y;
+    aliceSigCheck.S <== alice_signature;
+    aliceSigCheck.R8x <== alice_R8x;
+    aliceSigCheck.R8y <== alice_R8y;
+    aliceSigCheck.M <== swapMessageHasher.out;
+
+    component bobSigCheck = EdDSAPoseidonVerifier();
+    bobSigCheck.enabled <== 1;
+    bobSigCheck.Ax <== bob_pk_X;
+    bobSigCheck.Ay <== bob_pk_Y;
+    bobSigCheck.S <== bob_signature;
+    bobSigCheck.R8x <== bob_R8x;
+    bobSigCheck.R8y <== bob_R8y;
+    bobSigCheck.M <== swapMessageHasher.out;
 
     // Check all relevant asset and tokenIDs are equal
     aliceSpendAssetID === aliceChangeAssetID;
-    aliceChangeAssetID === aliceReceiveAssetID;
+    aliceReceiveAssetID === bobSpendAssetID;
     bobSpendAssetID === bobChangeAssetID;
-    bobChangeAssetID === bobReceiveAssetID;
+    bobReceiveAssetID === aliceSpendAssetID;
     aliceSpendTokenID === aliceChangeTokenID;
-    aliceChangeTokenID === aliceReceiveTokenID;
+    aliceReceiveTokenID === bobSpendTokenID;
     bobSpendTokenID === bobChangeTokenID;
-    bobChangeTokenID === bobReceiveTokenID;
+    bobReceiveTokenID === aliceSpendTokenID;
 
     // Check amount invariant
-    aliceSpendAmount === aliceChangeAmount + aliceReceiveAmount;
-    bobSpendAmount === bobChangeAmount + bobReceiveAmount;
+    aliceSpendAmount === aliceChangeAmount + bobReceiveAmount;
+    bobSpendAmount === bobChangeAmount + aliceReceiveAmount;
 
     // Check timestamps
     
-
 
     // Check Alice Spend Merkle Proof
     component aliceSpendRecordHasher = Record();
