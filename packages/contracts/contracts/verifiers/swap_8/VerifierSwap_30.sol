@@ -11,7 +11,7 @@
 //
 //
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.6.11;
+pragma solidity ^0.8.0;
 
 library Pairing {
     struct G1Point {
@@ -212,7 +212,7 @@ library Pairing {
     }
 }
 
-contract Verifier {
+contract VerifierSwap8 {
     using Pairing for *;
     struct VerifyingKey {
         Pairing.G1Point alfa1;
