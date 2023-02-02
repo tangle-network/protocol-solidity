@@ -110,7 +110,7 @@ describe('Reward snarkjs local proof', () => {
     };
   });
 
-  it.only('should work', async () => {
+  it('should work', async () => {
     // Create MASP Key
     const maspKey = new MaspKey();
 

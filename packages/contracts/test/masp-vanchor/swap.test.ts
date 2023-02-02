@@ -74,7 +74,7 @@ describe('swap snarkjs local proof', () => {
     };
   });
 
-  it.only('should work', async () => {
+  it('should work', async () => {
     const webbETHAssetID = 1;
     const webbETHTokenID = 0;
     const webbBTCAssetID = 2;
