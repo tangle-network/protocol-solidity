@@ -52,7 +52,7 @@ template Swap(levels, length) {
     signal input aliceChangeTokenID;
     signal input aliceChangeAmount;
     signal input aliceChangePartialRecord;
-    signal input aliceChangeRecord; 
+    signal input aliceChangeRecord; // Public Input
     signal input bobChangeChainID;
     signal input bobChangeAssetID;
     signal input bobChangeTokenID;
@@ -65,7 +65,7 @@ template Swap(levels, length) {
     signal input aliceReceiveTokenID;
     signal input aliceReceiveAmount;
     signal input aliceReceivePartialRecord;
-    signal input aliceReceiveRecord; 
+    signal input aliceReceiveRecord; // Public Input
     signal input bobReceiveChainID;
     signal input bobReceiveAssetID;
     signal input bobReceiveTokenID;
@@ -132,11 +132,11 @@ template Swap(levels, length) {
 
     // Range check receive and change record amounts
     component aliceChangeAmountCheck = Num2Bits(248);
-    aliceChangeAmount.in <== aliceChangeAmount;
+    aliceChangeAmountCheck.in <== aliceChangeAmount;
     component aliceReceiveAmountCheck = Num2Bits(248);
     aliceReceiveAmountCheck.in <== aliceReceiveAmount;
     component bobChangeAmountCheck = Num2Bits(248);
-    bobChangeAmount.in <== bobChangeAmount;
+    bobChangeAmountCheck.in <== bobChangeAmount;
     component bobReceiveAmountCheck = Num2Bits(248);
     bobReceiveAmountCheck.in <== bobReceiveAmount;
 
@@ -149,7 +149,7 @@ template Swap(levels, length) {
     aliceSpendRecordHasher.partialRecord <== aliceSpendPartialRecord;
 
     component aliceMerkleProof = ManyMerkleProof(levels, length);
-	aliceMerkleProof.leaf <== aliceSpendRecordHasher;
+	aliceMerkleProof.leaf <== aliceSpendRecordHasher.record;
 	aliceMerkleProof.pathIndices <== aliceSpendPathIndices;
 	for (var i = 0; i < levels; i++) {
 	aliceMerkleProof.pathElements[i] <== aliceSpendPathElements[i];

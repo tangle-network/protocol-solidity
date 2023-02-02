@@ -70,7 +70,7 @@ template Reward(levels, zeroLeaf, length) {
 	/* inputAmount + (rate * (spentTimestamp - unspentTimestamp)) === outputAmount + fee; */
 
 
-	// === check input and output accounts and block range ===
+	// === check input and output accounts and block time ===
 	// Check that amounts fit into 248 bits to prevent overflow
 	// Fee range is checked by the smart contract
 	// Technically block range check could be skipped because it can't be large enough

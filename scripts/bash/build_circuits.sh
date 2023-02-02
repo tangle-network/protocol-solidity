@@ -1,6 +1,6 @@
 #!/bin/bash
 
-mkdir -p artifacts/circuits/{anchor,anchor,keypair,membership,semaphore,signature,vanchor_2,vanchor_16,poseidon4,identity_vanchor_2,identity_vanchor_16,reward_2,reward_8}
+mkdir -p artifacts/circuits/{anchor,anchor,keypair,membership,semaphore,signature,vanchor_2,vanchor_16,poseidon4,identity_vanchor_2,identity_vanchor_16,reward_2,reward_8,swap_2,swap_8}
 
 compile () {
     local outdir="$1" circuit="$2" size="$3"
@@ -191,10 +191,22 @@ copy_to_fixtures () {
 # WEBB ANONIMITY MINING REWARD SYSTEM
 ###
 
-echo "Compiling anonimity mining circuit"
-compile reward_2 reward_30_2 30
-copy_to_fixtures reward_2 reward_30_2 30 reward_2
+# echo "Compiling anonimity mining circuit"
+# compile reward_2 reward_30_2 30
+# copy_to_fixtures reward_2 reward_30_2 30 reward_2
 
-echo "Compiling anonimity mining circuit"
-compile reward_8 reward_30_8 30
-copy_to_fixtures reward_8 reward_30_8 30 reward_8
+# echo "Compiling anonimity mining circuit"
+# compile reward_8 reward_30_8 30
+# copy_to_fixtures reward_8 reward_30_8 30 reward_8
+
+###
+# WEBB MASP SWAP SYSTEM
+###
+
+echo "Compiling swap circuit 30 2"
+compile swap_2 swap_30_2 30
+copy_to_fixtures swap_2 swap_30_2 30 swap_2
+
+echo "Compiling swap circuit 30 8"
+compile swap_8 swap_30_8 30
+copy_to_fixtures swap_8 swap_30_8 30 swap_8
