@@ -27,6 +27,7 @@ import {
 import { WebbBridge } from './Common';
 import { Deployer } from '@webb-tools/create2-utils';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents, ZERO_BYTES32 } from '@webb-tools/utils';
+import { SetupTransactionResult, TransactionOptions } from '.';
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 
@@ -250,7 +251,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     const args: IVariableAnchorPublicInputs = {
       proof: `0x${proof}`,
       roots: `0x${roots.map((x) => toFixedHex(x).slice(2)).join('')}`,
-      extensionRoots: '0x00',
+      extensionRoots: '0x',
       inputNullifiers: inputs.map((x) => BigNumber.from(toFixedHex('0x' + x.nullifier))),
       outputCommitments: [
         BigNumber.from(toFixedHex(u8aToHex(outputs[0].commitment))),
@@ -327,7 +328,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
   }
 
   /**
-   *
+   * Sets up a VAnchor transaction by generate the necessary inputs to the tx.
    * @param inputs a list of UTXOs that are either inside the tree or are dummy inputs
    * @param outputs a list of output UTXOs. Needs to have 2 elements.
    * @param fee transaction fee.
@@ -336,7 +337,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
    * @param relayer address to the relayer
    * @param wrapUnwrapToken address to the token being transacted. can be the empty string to use native token
    * @param leavesMap map from chainId to merkle leaves
-   * @returns an object with two fields, publicInputs, extData and extAmount
+   * @returns `SetupTransactionResult` object
    */
   public async setupTransaction(
     inputs: Utxo[],
@@ -347,7 +348,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     relayer: string,
     wrapUnwrapToken: string,
     leavesMap: Record<string, Uint8Array[]>
-  ) {
+  ): Promise<SetupTransactionResult> {
     // first, check if the merkle root is known on chain - if not, then update
     if (wrapUnwrapToken.length === 0) {
       wrapUnwrapToken = this.token;
@@ -519,8 +520,9 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>
-  ): Promise<ethers.ContractReceipt> {
+    leavesMap: Record<string, Uint8Array[]>,
+    txOptions?: TransactionOptions
+  ): Promise<ethers.ContractReceipt | SetupTransactionResult> {
     // Default UTXO chain ID will match with the configured signer's chain ID
     inputs = await this.padUtxos(inputs, 16);
     outputs = await this.padUtxos(outputs, 2);
@@ -536,39 +538,49 @@ export class VAnchor extends WebbBridge implements IVAnchor {
       leavesMap
     );
 
-    let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
+    if (txOptions?.relaying) {
+      return { extAmount, extData, publicInputs };
+    } else {
+      let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
 
-    const tx = await this.contract.transact(
-      publicInputs.proof,
-      ZERO_BYTES32,
-      {
-        recipient: extData.recipient,
-        extAmount: extData.extAmount,
-        relayer: extData.relayer,
-        fee: extData.fee,
-        refund: extData.refund,
-        token: extData.token,
-      },
-      {
-        roots: publicInputs.roots,
-        extensionRoots: '0x',
-        inputNullifiers: publicInputs.inputNullifiers,
-        outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
-        publicAmount: publicInputs.publicAmount,
-        extDataHash: publicInputs.extDataHash,
-      },
-      {
-        encryptedOutput1: extData.encryptedOutput1,
-        encryptedOutput2: extData.encryptedOutput2,
-      },
-      options
-    );
-    const receipt = await tx.wait();
+      if (txOptions?.gasLimit) {
+        options = { ...options, gasLimit: txOptions.gasLimit };
+      }
 
-    // Add the leaves to the tree
-    this.updateTreeState(outputs);
+      if (txOptions?.gasPrice) {
+        options = { ...options, gasPrice: txOptions.gasPrice };
+      }
 
-    return receipt;
+      const tx = await this.contract.transact(
+        publicInputs.proof,
+        ZERO_BYTES32,
+        {
+          recipient: extData.recipient,
+          extAmount: extData.extAmount,
+          relayer: extData.relayer,
+          fee: extData.fee,
+          refund: extData.refund,
+          token: extData.token,
+        },
+        {
+          roots: publicInputs.roots,
+          extensionRoots: publicInputs.extensionRoots,
+          inputNullifiers: publicInputs.inputNullifiers,
+          outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
+          publicAmount: publicInputs.publicAmount,
+          extDataHash: publicInputs.extDataHash,
+        },
+        {
+          encryptedOutput1: extData.encryptedOutput1,
+          encryptedOutput2: extData.encryptedOutput2,
+        },
+        options
+      );
+      const receipt = await tx.wait();
+      // Add the leaves to the tree
+      this.updateTreeState(outputs);
+      return receipt;
+    }
   }
 
   public async register(owner: string, keyData: BytesLike): Promise<ethers.ContractReceipt> {
@@ -590,7 +602,8 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>
+    leavesMap: Record<string, Uint8Array[]>,
+    txOptions?: TransactionOptions
   ): Promise<ethers.ContractReceipt> {
     inputs = await this.padUtxos(inputs, 16);
     outputs = await this.padUtxos(outputs, 2);
@@ -607,6 +620,15 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     );
 
     let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
+
+    if (txOptions?.gasLimit) {
+      options = { ...options, gasLimit: txOptions.gasLimit };
+    }
+
+    if (txOptions?.gasPrice) {
+      options = { ...options, gasPrice: txOptions.gasPrice };
+    }
+
     let tx = await this.contract.registerAndTransact(
       { owner, keyData: keyData },
       publicInputs.proof,
@@ -768,7 +790,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     finalBlock = finalBlock || (await this.contract.provider.getBlockNumber());
     console.log(`Getting notes from chain`);
     // number of blocks to query at a time
-    const step = 1024;
+    const step = 1000;
     console.log(`Fetching notes with steps of ${step} logs/request`);
 
     try {
