@@ -18,7 +18,7 @@ import {
   toFixedHex,
 } from '@webb-tools/sdk-core';
 import { poseidon_gencontract as poseidonContract } from 'circomlibjs';
-import { BigNumber, BigNumberish, ethers } from 'ethers';
+import { BigNumber, BigNumberish, PayableOverrides, ethers } from 'ethers';
 import { groth16 } from 'snarkjs';
 
 // import { MerkleTree } from "."
@@ -33,7 +33,7 @@ import {
 } from '@webb-tools/utils';
 import { WebbBridge } from './Common';
 import { Deployer } from './Deployer';
-import { SetupTransactionResult, TransactionOptions } from './types';
+import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
 
 export var gasBenchmark = [];
 export var proofTimeBenchmark = [];
@@ -625,7 +625,8 @@ export class VAnchorForest extends WebbBridge {
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>
+    leavesMap: Record<string, Uint8Array[]>,
+    overridesTransaction?: OverridesWithFrom<PayableOverrides>
   ): Promise<ethers.ContractReceipt> {
     const { extAmount, extData, publicInputs } = await this.setupTransaction(
       inputs,
@@ -667,7 +668,7 @@ export class VAnchorForest extends WebbBridge {
         encryptedOutput1: extData.encryptedOutput1,
         encryptedOutput2: extData.encryptedOutput2,
       },
-      options
+      { ...options, ...overridesTransaction }
     );
     const receipt = await tx.wait();
     // Add the leaves to the tree
@@ -684,7 +685,8 @@ export class VAnchorForest extends WebbBridge {
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>
+    leavesMap: Record<string, Uint8Array[]>,
+    overridesTransaction?: OverridesWithFrom<PayableOverrides>
   ): Promise<ethers.ContractReceipt> {
     // Validate input utxos have a valid originChainId
     this.validateInputs(inputs);
@@ -725,7 +727,7 @@ export class VAnchorForest extends WebbBridge {
         encryptedOutput1: extData.encryptedOutput1,
         encryptedOutput2: extData.encryptedOutput2,
       },
-      options
+      { ...options, ...overridesTransaction }
     );
     const receipt = await tx.wait();
     await this.updateForest(outputs);

@@ -27,7 +27,7 @@ import { ZERO_BYTES32, ZkComponents, getChainIdType, hexToU8a, u8aToHex } from '
 import { BigNumber, BigNumberish, BytesLike, Overrides, PayableOverrides, ethers } from 'ethers';
 import { WebbBridge } from './Common';
 import { Deployer } from './Deployer';
-import { OverridesWithFrom, SetupTransactionResult } from './types';
+import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
 import { zeroAddress } from './utils';
 
 // This convenience wrapper class is used in tests -
@@ -350,7 +350,8 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>
+    leavesMap: Record<string, Uint8Array[]>,
+    txOptions?: TransactionOptions
   ): Promise<SetupTransactionResult> {
     // Default UTXO chain ID will match with the configured signer's chain ID
     inputs = await this.padUtxos(inputs, 16);

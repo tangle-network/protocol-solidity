@@ -11,6 +11,10 @@ export interface SetupTransactionResult {
   publicInputs: IVariableAnchorPublicInputs;
 }
 
+/**
+ * Options to be passed to the `setup` function.
+ * Make sure update the `splitTransactionOptions` function if you add a new property here.
+ */
 export interface TransactionOptions {
   keypair?: Keypair;
 }

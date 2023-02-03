@@ -1,6 +1,8 @@
 // Copyright 2023 @webb-tools/
 // File contains all the utility functions used in the anchors package
 
+import { TransactionOptions } from './types';
+
 export const zeroAddress = '0x0000000000000000000000000000000000000000';
 
 /**
@@ -13,4 +15,12 @@ export function checkNativeAddress(tokenAddress: string): boolean {
     return true;
   }
   return false;
+}
+
+export function splitTransactionOptions<T extends Object>(
+  options?: T & Partial<TransactionOptions>
+): [T, TransactionOptions] {
+  const { keypair, ...rest } = options ?? {};
+
+  return [rest, { keypair }] as [T, TransactionOptions];
 }

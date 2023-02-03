@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish, ethers } from 'ethers';
+import { BigNumber, BigNumberish, Overrides, PayableOverrides, ethers } from 'ethers';
 import { OpenVAnchor as OpenVAnchorContract, OpenVAnchor__factory } from '@webb-tools/contracts';
 import { solidityPack } from 'ethers/lib/utils';
 import {
@@ -16,6 +16,7 @@ import {
 import { u8aToHex, getChainIdType } from '@webb-tools/utils';
 import { IVAnchor } from '@webb-tools/interfaces';
 import { WebbBridge } from './Common';
+import { OverridesWithFrom } from './types';
 
 function sha3Hash(left: BigNumberish, right: BigNumberish) {
   const packed = solidityPack(['bytes32', 'bytes32'], [toFixedHex(left), toFixedHex(right)]);
@@ -326,7 +327,8 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
     recipient: string,
     delegatedCalldata: string,
     blinding: BigNumberish,
-    relayingFee: BigNumberish
+    relayingFee: BigNumberish,
+    overridesTransaction?: OverridesWithFrom<Overrides>
   ): Promise<ethers.ContractReceipt> {
     // Default UTXO chain ID will match with the configured signer's chain ID
     const evmId = await this.signer.getChainId();
@@ -338,7 +340,7 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
       delegatedCalldata,
       blinding,
       relayingFee,
-      { gasLimit: '0x5B8D80' }
+      { gasLimit: '0x5B8D80', ...overridesTransaction }
     );
 
     const receipt = await tx.wait();
@@ -368,7 +370,8 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
     delegatedCalldata: string,
     blinding: BigNumberish,
     relayingFee: BigNumberish,
-    tokenAddress: string
+    tokenAddress: string,
+    overridesTransaction?: OverridesWithFrom<PayableOverrides>
   ): Promise<ethers.ContractReceipt> {
     let tx = await this.contract.wrapAndDeposit(
       destinationChainId,
@@ -378,7 +381,7 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
       blinding,
       relayingFee,
       tokenAddress,
-      { gasLimit: '0x5B8D80' }
+      { gasLimit: '0x5B8D80', ...overridesTransaction }
     );
 
     const receipt = await tx.wait();
@@ -408,7 +411,8 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
     blinding: BigNumberish,
     relayingFee: BigNumberish,
     merkleProof: MerkleProof,
-    commitmentIndex: number
+    commitmentIndex: number,
+    overridesTransaction?: OverridesWithFrom<Overrides>
   ): Promise<ethers.ContractReceipt> {
     let tx = await this.contract.withdraw(
       withdrawAmount,
@@ -419,7 +423,7 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
       merkleProof.pathElements.map((bignum) => bignum.toHexString()),
       commitmentIndex,
       merkleProof.merkleRoot.toHexString(),
-      { gasLimit: '0x5B8D80' }
+      { gasLimit: '0x5B8D80', ...overridesTransaction }
     );
 
     const receipt = await tx.wait();
@@ -436,7 +440,8 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
     relayingFee: BigNumberish,
     merkleProof: MerkleProof,
     commitmentIndex: number,
-    tokenAddress: string
+    tokenAddress: string,
+    overridesTransaction?: OverridesWithFrom<PayableOverrides>
   ): Promise<ethers.ContractReceipt> {
     let tx = await this.contract.withdrawAndUnwrap(
       withdrawAmount,
@@ -448,7 +453,7 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
       commitmentIndex,
       merkleProof.merkleRoot.toHexString(),
       tokenAddress,
-      { gasLimit: '0x5B8D80' }
+      { gasLimit: '0x5B8D80', ...overridesTransaction }
     );
 
     const receipt = await tx.wait();

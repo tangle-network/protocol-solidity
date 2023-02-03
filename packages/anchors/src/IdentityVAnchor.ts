@@ -32,10 +32,11 @@ import {
   getChainIdType,
   u8aToHex,
 } from '@webb-tools/utils';
-import { BigNumber, BigNumberish, ethers } from 'ethers';
+import { BigNumber, BigNumberish, PayableOverrides, ethers } from 'ethers';
 import { WebbBridge } from './Common';
 import { Deployer } from './Deployer';
-import { SetupTransactionResult, TransactionOptions } from './types';
+import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
+import { splitTransactionOptions } from './utils';
 const assert = require('assert');
 
 const snarkjs = require('snarkjs');
@@ -449,7 +450,6 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
       maxGas,
       minGas,
     };
-    // return gasBenchmark;
   }
 
   public async getProofTimeBenchmark() {
@@ -714,8 +714,10 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    txOptions?: TransactionOptions
+    overridesTransaction?: OverridesWithFrom<PayableOverrides> & TransactionOptions
   ): Promise<ethers.ContractReceipt> {
+    const [overrides, txOpts] = splitTransactionOptions(overridesTransaction);
+
     const { extAmount, extData, publicInputs } = await this.setupTransaction(
       inputs,
       outputs,
@@ -724,7 +726,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
       recipient,
       relayer,
       wrapUnwrapToken,
-      txOptions
+      txOpts
     );
 
     let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
@@ -752,7 +754,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
         encryptedOutput1: extData.encryptedOutput1,
         encryptedOutput2: extData.encryptedOutput2,
       },
-      options
+      { ...options, ...overrides }
     );
     const receipt = await tx.wait();
     // Add the leaves to the tree
