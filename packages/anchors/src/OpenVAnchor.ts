@@ -17,20 +17,14 @@ import { u8aToHex, getChainIdType } from '@webb-tools/utils';
 import { IVAnchor } from '@webb-tools/interfaces';
 import { WebbBridge } from './Common';
 
-const zeroAddress = '0x0000000000000000000000000000000000000000';
-function checkNativeAddress(tokenAddress: string): boolean {
-  if (tokenAddress === zeroAddress || tokenAddress === '0') {
-    return true;
-  }
-  return false;
-}
 function sha3Hash(left: BigNumberish, right: BigNumberish) {
   const packed = solidityPack(['bytes32', 'bytes32'], [toFixedHex(left), toFixedHex(right)]);
   return BigNumber.from(ethers.utils.keccak256(ethers.utils.arrayify(packed)));
 }
 
-export var gasBenchmark = [];
-export var proofTimeBenchmark = [];
+export var gasBenchmark: string[] = [];
+export var proofTimeBenchmark: number[] = [];
+
 // This convenience wrapper class is used in tests -
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
@@ -226,7 +220,7 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
     let inputMerklePathElements: BigNumber[];
 
     if (Number(input.amount) > 0) {
-      if (input.index < 0) {
+      if (!input.index || input.index < 0) {
         throw new Error(`Input commitment ${u8aToHex(input.commitment)} was not found`);
       }
       const path = this.tree.path(input.index);
@@ -265,6 +259,10 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
         index++;
       }
       if (!syncedBlock) {
+        if (!this.signer.provider) {
+          throw new Error('No provider found on signer');
+        }
+
         syncedBlock = await this.signer.provider.getBlockNumber();
       }
       this.tree = newTree;
@@ -289,6 +287,7 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
     };
     // return gasBenchmark;
   }
+
   public async getProofTimeBenchmark() {
     const meanTime = mean(proofTimeBenchmark);
     const medianTime = median(proofTimeBenchmark);
