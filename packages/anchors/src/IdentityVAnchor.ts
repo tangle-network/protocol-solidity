@@ -68,7 +68,6 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
   semaphore: Semaphore;
   group: LinkedGroup;
 
-  latestSyncedBlock: number;
   smallCircuitZkComponents: ZkComponents;
   largeCircuitZkComponents: ZkComponents;
 
@@ -329,39 +328,6 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     return [thisRoot.toString(), ...neighborRootInfos.map((bignum) => bignum.toString())];
   }
 
-  public async getClassAndContractRoots() {
-    return [this.tree.root(), await this.contract.getLastRoot()];
-  }
-
-  /**
-   *
-   * @param input A UTXO object that is inside the tree
-   * @returns
-   */
-  public getMerkleProof(input: Utxo): MerkleProof {
-    let inputMerklePathIndices: number[];
-    let inputMerklePathElements: BigNumber[];
-
-    if (Number(input.amount) > 0) {
-      if (!input.index || input.index < 0) {
-        throw new Error(`Input commitment ${u8aToHex(input.commitment)} was not found`);
-      }
-      const path = this.tree.path(input.index);
-      inputMerklePathIndices = path.pathIndices;
-      inputMerklePathElements = path.pathElements;
-    } else {
-      inputMerklePathIndices = new Array(this.tree.levels).fill(0);
-      inputMerklePathElements = new Array(this.tree.levels).fill(0);
-    }
-
-    return {
-      element: BigNumber.from(u8aToHex(input.commitment)),
-      pathElements: inputMerklePathElements,
-      pathIndices: inputMerklePathIndices,
-      merkleRoot: this.tree.root(),
-    };
-  }
-
   public generatePublicInputs(
     proof: any,
     byte_calldata: any,
@@ -401,40 +367,6 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     };
 
     return args;
-  }
-
-  /**
-   * Given a list of leaves and a latest synced block, update internal tree state
-   * The function will create a new tree, and check on chain root before updating its member variable
-   * If the passed leaves match on chain data,
-   *   update this instance and return true
-   * else
-   *   return false
-   */
-  public async setWithLeaves(leaves: string[], syncedBlock?: number): Promise<Boolean> {
-    let newTree = new MerkleTree(this.tree.levels, leaves);
-    let root = toFixedHex(newTree.root());
-    let validTree = await this.contract.isKnownRoot(root);
-
-    if (validTree) {
-      let index = 0;
-      for (const leaf of newTree.elements()) {
-        this.depositHistory[index] = toFixedHex(this.tree.root());
-        index++;
-      }
-      if (!syncedBlock) {
-        if (!this.signer.provider) {
-          throw new Error('Signer has no provider');
-        }
-
-        syncedBlock = await this.signer.provider.getBlockNumber();
-      }
-      this.tree = newTree;
-      this.latestSyncedBlock = syncedBlock;
-      return true;
-    } else {
-      return false;
-    }
   }
 
   public async getGasBenchmark() {
@@ -698,69 +630,12 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     return vanchorInput;
   }
 
-  public updateTreeState(outputs: Utxo[]): void {
+  public updateTreeOrForestState(outputs: Utxo[]): void {
     outputs.forEach((x) => {
       this.tree.insert(u8aToHex(x.commitment));
       let numOfElements = this.tree.number_of_elements();
       this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
     });
-  }
-
-  public async transact(
-    inputs: Utxo[],
-    outputs: Utxo[],
-    fee: BigNumberish,
-    refund: BigNumberish,
-    recipient: string,
-    relayer: string,
-    wrapUnwrapToken: string,
-    overridesTransaction?: OverridesWithFrom<PayableOverrides> & TransactionOptions
-  ): Promise<ethers.ContractReceipt> {
-    const [overrides, txOpts] = splitTransactionOptions(overridesTransaction);
-
-    const { extAmount, extData, publicInputs } = await this.setupTransaction(
-      inputs,
-      outputs,
-      fee,
-      refund,
-      recipient,
-      relayer,
-      wrapUnwrapToken,
-      txOpts
-    );
-
-    let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
-
-    let tx = await this.contract.transact(
-      publicInputs.proof,
-      ZERO_BYTES32,
-      {
-        recipient: extData.recipient,
-        extAmount: extData.extAmount,
-        relayer: extData.relayer,
-        fee: extData.fee,
-        refund: extData.refund,
-        token: extData.token,
-      },
-      {
-        roots: publicInputs.roots,
-        extensionRoots: publicInputs.extensionRoots,
-        inputNullifiers: publicInputs.inputNullifiers,
-        outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
-        publicAmount: publicInputs.publicAmount,
-        extDataHash: publicInputs.extDataHash,
-      },
-      {
-        encryptedOutput1: extData.encryptedOutput1,
-        encryptedOutput2: extData.encryptedOutput2,
-      },
-      { ...options, ...overrides }
-    );
-    const receipt = await tx.wait();
-    // Add the leaves to the tree
-    this.updateTreeState(outputs);
-
-    return receipt;
   }
 }
 

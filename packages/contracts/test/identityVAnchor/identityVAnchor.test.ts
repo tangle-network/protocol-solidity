@@ -82,6 +82,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
   let carl: SignerWithAddress;
+  const dummyLeavesRecord: Record<string, Uint8Array[]> = {};
 
   const identity_vanchor_2_2_wasm_path = path.resolve(
     __dirname,
@@ -371,6 +372,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         alice.address,
         relayer,
         '',
+        dummyLeavesRecord,
         { keypair: aliceKeypair }
       );
 
@@ -410,6 +412,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         alice.address,
         relayer,
         '',
+        dummyLeavesRecord,
         { keypair: aliceKeypair }
       );
 
@@ -461,6 +464,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         alice.address,
         relayer,
         '',
+        dummyLeavesRecord,
         { keypair: aliceKeypair }
       )) as ContractReceipt;
 
@@ -509,6 +513,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         bob.address,
         relayer,
         '',
+        dummyLeavesRecord,
         { keypair: bobKeypair }
       );
 
@@ -537,6 +542,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
           alice.address,
           relayer,
           '',
+          dummyLeavesRecord,
           { keypair: aliceKeypair }
         );
         aliceBalanceAfterDeposit = await token.balanceOf(alice.address);
@@ -567,6 +573,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
           alice.address,
           relayer,
           '',
+          dummyLeavesRecord,
           { keypair: aliceKeypair }
         );
       });
@@ -586,6 +593,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
           alice.address,
           relayer,
           '',
+          dummyLeavesRecord,
           { keypair: aliceKeypair }
         );
 
@@ -604,6 +612,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
             alice.address,
             relayer,
             '',
+            dummyLeavesRecord,
             { keypair: aliceKeypair }
           )
         ).to.revertedWith('Input is already spent');
@@ -629,6 +638,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
             alice.address,
             relayer,
             '',
+            dummyLeavesRecord,
             { keypair: aliceKeypair }
           )
         ).to.revertedWith('ERC20: transfer amount exceeds balance');
@@ -653,6 +663,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
           alice.address,
           relayer,
           '',
+          dummyLeavesRecord,
           { keypair: aliceKeypair }
         );
         const aliceBalanceAfterSecondDeposit = await token.balanceOf(alice.address);
@@ -675,6 +686,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
           alice.address,
           relayer,
           '',
+          dummyLeavesRecord,
           { keypair: aliceKeypair }
         );
         const aliceBalanceAfterJoin = await token.balanceOf(alice.address);
@@ -694,6 +706,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
           alice.address,
           relayer,
           '',
+          dummyLeavesRecord,
           { keypair: aliceKeypair }
         );
 
@@ -722,6 +735,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
           aliceETHAddress,
           relayer,
           '',
+          dummyLeavesRecord,
           { keypair: aliceKeypair }
         );
 
@@ -1438,6 +1452,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         '0',
         relayer,
         token.address,
+        dummyLeavesRecord,
         { keypair: aliceKeypair }
       );
       const balTokenAfterDepositSender = await token.balanceOf(alice.address);
@@ -1467,6 +1482,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         '0',
         relayer,
         token.address,
+        dummyLeavesRecord,
         { keypair: aliceKeypair }
       );
       const balTokenAfterDepositSender = await token.balanceOf(alice.address);
@@ -1503,6 +1519,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         alice.address,
         relayer,
         token.address,
+        dummyLeavesRecord,
         { keypair: aliceKeypair }
       );
 

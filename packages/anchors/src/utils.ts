@@ -18,7 +18,7 @@ export function checkNativeAddress(tokenAddress: string): boolean {
 }
 
 export function splitTransactionOptions<T extends Object>(
-  options?: T & Partial<TransactionOptions>
+  options?: T & TransactionOptions
 ): [T, TransactionOptions] {
   const { keypair, ...rest } = options ?? {};
 

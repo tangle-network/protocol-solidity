@@ -285,16 +285,12 @@ export class VAnchorForest extends WebbBridge {
     return [thisRoot, ...neighborRootInfos];
   }
 
-  public async getClassAndContractRoots() {
-    return [this.tree.root(), await this.contract.getLastRoot()];
-  }
-
   /**
    *
    * @param input A UTXO object that is inside the tree
    * @returns
    */
-  public getMerkleProof(input: Utxo): any {
+  public override getMerkleProof(input: Utxo): any {
     let inputSubtreePathIndices: number[];
     let inputSubtreePathElements: BigNumber[];
     let inputForestPathIndices: number[];
@@ -356,40 +352,6 @@ export class VAnchorForest extends WebbBridge {
     };
 
     return args;
-  }
-
-  /**
-   * Given a list of leaves and a latest synced block, update internal tree state
-   * The function will create a new tree, and check on chain root before updating its member variable
-   * If the passed leaves match on chain data,
-   *   update this instance and return true
-   * else
-   *   return false
-   */
-  public async setWithLeaves(leaves: string[], syncedBlock?: number): Promise<Boolean> {
-    let newTree = new MerkleTree(this.tree.levels, leaves);
-    let root = toFixedHex(newTree.root());
-    let validTree = await this.contract.isKnownRoot(root);
-
-    if (validTree) {
-      let index = 0;
-      for (const leaf of newTree.elements()) {
-        this.depositHistory[index] = toFixedHex(this.tree.root());
-        index++;
-      }
-      if (!syncedBlock) {
-        if (!this.signer.provider) {
-          throw new Error('No provider found in the signer');
-        }
-
-        syncedBlock = await this.signer.provider.getBlockNumber();
-      }
-      this.tree = newTree;
-      this.latestSyncedBlock = syncedBlock;
-      return true;
-    } else {
-      return false;
-    }
   }
 
   public async getGasBenchmark() {
@@ -515,7 +477,7 @@ export class VAnchorForest extends WebbBridge {
     return { extData, extDataHash };
   }
 
-  public async updateForest(outputs: Utxo[]): Promise<void> {
+  public async updateTreeOrForestState(outputs: Utxo[]): Promise<void> {
     outputs.forEach((x) => {
       const commitment = BigNumber.from(u8aToHex(x.commitment));
       this.tree.insert(commitment.toHexString());
@@ -540,7 +502,7 @@ export class VAnchorForest extends WebbBridge {
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>
+    leavesMap: Record<string, Uint8Array[]> = {}
   ): Promise<SetupTransactionResult> {
     // Default UTXO chain ID will match with the configured signer's chain ID
     inputs = await this.padUtxos(inputs, 16);
@@ -672,65 +634,8 @@ export class VAnchorForest extends WebbBridge {
     );
     const receipt = await tx.wait();
     // Add the leaves to the tree
-    await this.updateForest(outputs);
+    await this.updateTreeOrForestState(outputs);
 
-    return receipt;
-  }
-
-  public async transact(
-    inputs: Utxo[],
-    outputs: Utxo[],
-    fee: BigNumberish,
-    refund: BigNumberish,
-    recipient: string,
-    relayer: string,
-    wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>,
-    overridesTransaction?: OverridesWithFrom<PayableOverrides>
-  ): Promise<ethers.ContractReceipt> {
-    // Validate input utxos have a valid originChainId
-    this.validateInputs(inputs);
-
-    const { extAmount, extData, publicInputs } = await this.setupTransaction(
-      inputs,
-      outputs,
-      fee,
-      refund,
-      recipient,
-      relayer,
-      wrapUnwrapToken,
-      leavesMap
-    );
-
-    let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
-
-    const tx = await this.contract.transact(
-      publicInputs.proof,
-      ZERO_BYTES32,
-      {
-        recipient: extData.recipient,
-        extAmount: extData.extAmount,
-        relayer: extData.relayer,
-        fee: extData.fee,
-        refund: extData.refund,
-        token: extData.token,
-      },
-      {
-        roots: publicInputs.roots,
-        extensionRoots: [],
-        inputNullifiers: publicInputs.inputNullifiers,
-        outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
-        publicAmount: publicInputs.publicAmount,
-        extDataHash: publicInputs.extDataHash,
-      },
-      {
-        encryptedOutput1: extData.encryptedOutput1,
-        encryptedOutput2: extData.encryptedOutput2,
-      },
-      { ...options, ...overridesTransaction }
-    );
-    const receipt = await tx.wait();
-    await this.updateForest(outputs);
     return receipt;
   }
 }
