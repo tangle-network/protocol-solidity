@@ -239,7 +239,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
       toBlock: blockNumber,
       ...filter,
     });
-    const events = logs.map((log) => this.contract.interface.parseLog(log));
+    const events = logs.map((log: any) => this.contract.interface.parseLog(log));
 
     for (let i = 0; i < events.length; i++) {
       if (events[i].args.commitment?._hex === leaf) {
@@ -549,8 +549,8 @@ export class VAnchor extends WebbBridge implements IVAnchor {
 
   async isWrappableTokenApprovalRequired(tokenAddress: string, depositAmount: BigNumberish) {
     const userAddress = await this.signer.getAddress();
-    const webbToken = await this.getWebbToken();
-    const tokenAllowance = await webbToken.allowance(userAddress, webbToken.address);
+    const tokenInstance = ERC20__factory.connect(tokenAddress, this.signer);
+    const tokenAllowance = await tokenInstance.allowance(userAddress, this.contract.address);
 
     if (tokenAllowance < depositAmount) {
       return true;
