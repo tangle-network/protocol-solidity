@@ -14,6 +14,7 @@
     "@webb-tools/sdk-core": "0.1.4-119",
     "@webb-tools/semaphore": "0.0.1-5",
     "@webb-tools/utils": "^0.5.7",
+    "@webb-tools/tokens": "0.5.13",
     "ethers": "5.7.0",
     "jssha": "^3.2.0"
   },

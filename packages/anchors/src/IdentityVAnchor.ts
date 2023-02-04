@@ -34,7 +34,7 @@ import {
 import { Semaphore } from '@webb-tools/semaphore';
 import { LinkedGroup } from '@webb-tools/semaphore-group';
 import { WebbBridge } from './Common';
-import { Deployer } from './Deployer';
+import { Deployer } from '@webb-tools/create2-utils';
 import { SetupTransactionResult, TransactionOptions } from '.';
 
 const snarkjs = require('snarkjs');

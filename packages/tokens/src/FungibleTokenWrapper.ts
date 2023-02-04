@@ -6,7 +6,7 @@ import {
   FungibleTokenWrapper__factory,
 } from '@webb-tools/contracts';
 import { assert } from 'chai';
-import { Deployer } from '@webb-tools/anchors';
+import { Deployer } from '@webb-tools/create2-utils';
 
 export class FungibleTokenWrapper {
   contract: FungibleTokenWrapperContract;

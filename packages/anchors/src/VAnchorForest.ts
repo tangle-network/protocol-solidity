@@ -32,7 +32,7 @@ import {
   ZERO_BYTES32,
 } from '@webb-tools/utils';
 import { WebbBridge } from './Common';
-import { Deployer } from './Deployer';
+import { Deployer } from '@webb-tools/create2-utils';
 import { SetupTransactionResult, TransactionOptions } from '.';
 
 export type ExtData = {

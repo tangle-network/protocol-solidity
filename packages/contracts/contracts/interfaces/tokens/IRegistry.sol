@@ -37,15 +37,17 @@ interface IRegistry {
 	/**
         @notice Registers a new NFT token and deploys the NftTokenWrapper contract
         @param _nonce The nonce of the proposal
-        @param _handler The address of the token handler contract
+        @param _tokenHandler The address of the token handler contract
         @param _assetIdentifier The identifier of the asset for the MASP
+		  @param _unwrappedNftAddress Address of the underlying NFT collection
         @param _uri The uri for the wrapped NFT
         @param _salt Salt used for matching addresses across chain using CREATE2
-     */
+   */
 	function registerNftToken(
 		uint32 _nonce,
-		address _handler,
+		address _tokenHandler,
 		uint256 _assetIdentifier,
+		address _unwrappedNftAddress,
 		string memory _uri,
 		bytes32 _salt
 	) external;
@@ -54,11 +56,23 @@ interface IRegistry {
         @notice Fetches the address for an asset ID
         @param _assetId The asset ID
      */
-	function getAssetAddress(uint256 _assetId) external view returns (address);
+	function getWrappedAssetAddress(uint256 _assetId) external view returns (address);
 
 	/**
         @notice Fetches the asset ID for an address
         @param _address The address
      */
-	function getAssetId(address _address) external view returns (uint256);
+	function getAssetIdFromWrappedAddress(address _address) external view returns (uint256);
+
+	/**
+      @notice Fetches the address for an asset ID
+      @param _assetId The asset ID
+   */
+	function getUnwrappedAssetAddress(uint256 _assetId) external view returns (address);
+
+	/**
+      @notice Fetches the asset ID for an address
+      @param _address The address
+   */
+	function getAssetIdFromUnwrappedAddress(address _address) external view returns (uint256);
 }
