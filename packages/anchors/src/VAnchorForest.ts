@@ -540,7 +540,7 @@ export class VAnchorForest extends WebbBridge {
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]> = {}
+    leavesMap: Record<string, Uint8Array[]>
   ): Promise<SetupTransactionResult> {
     // Default UTXO chain ID will match with the configured signer's chain ID
     inputs = await this.padUtxos(inputs, 16);

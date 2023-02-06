@@ -715,7 +715,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     relayer: string,
     wrapUnwrapToken: string,
     overridesTransaction?: OverridesWithFrom<PayableOverrides> & TransactionOptions
-  ): Promise<ethers.ContractReceipt | SetupTransactionResult> {
+  ): Promise<ethers.ContractReceipt> {
     const [overrides, txOptions] = splitTransactionOptions(overridesTransaction);
 
     const { extAmount, extData, publicInputs } = await this.setupTransaction(

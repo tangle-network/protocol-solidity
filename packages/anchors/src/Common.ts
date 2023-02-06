@@ -29,7 +29,7 @@ type WebbContracts =
   | VAnchorForestContract
   | OpenVAnchorContract;
 
-export abstract class WebbBridge {
+export class WebbBridge {
   signer: ethers.Signer;
   contract: WebbContracts;
 
@@ -273,9 +273,5 @@ export abstract class WebbBridge {
       toHex(nonce, 4).substr(2) +
       toHex(newHandler, 20).substr(2)
     );
-  }
-
-  public async getClassAndContractRoots() {
-    return [this.tree.root(), await this.contract.getLastRoot()];
   }
 }
