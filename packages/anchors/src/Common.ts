@@ -29,22 +29,11 @@ type WebbContracts =
   | VAnchorForestContract
   | OpenVAnchorContract;
 
-function isOpenVAnchorContract(contract: WebbContracts): contract is OpenVAnchorContract {
-  return (
-    'deposit' in contract &&
-    'withdraw' in contract &&
-    'wrapAndDeposit' in contract &&
-    'unwrapAndWithdraw' in contract
-  );
-}
-
 export abstract class WebbBridge {
   signer: ethers.Signer;
   contract: WebbContracts;
 
   tree: MerkleTree;
-
-  latestSyncedBlock: number;
 
   // The depositHistory stores leafIndex => information to create proposals (new root)
   depositHistory: Record<number, string>;
@@ -286,163 +275,7 @@ export abstract class WebbBridge {
     );
   }
 
-  /**
-   * Given a list of leaves and a latest synced block, update internal tree state
-   * The function will create a new tree, and check on chain root before updating its member variable
-   * If the passed leaves match on chain data,
-   *   update this instance and return true
-   * else
-   *   return false
-   */
-  public async setWithLeaves(leaves: string[], syncedBlock?: number): Promise<Boolean> {
-    let newTree = new MerkleTree(this.tree.levels, leaves);
-    let root = toFixedHex(newTree.root());
-    let validTree = await this.contract.isKnownRoot(root);
-
-    if (validTree) {
-      let index = 0;
-      for (const leaf of newTree.elements()) {
-        this.depositHistory[index] = toFixedHex(this.tree.root());
-        index++;
-      }
-      if (!syncedBlock) {
-        if (!this.signer.provider) {
-          throw new Error('Signer has no provider');
-        }
-
-        syncedBlock = await this.signer.provider.getBlockNumber();
-      }
-      this.tree = newTree;
-      this.latestSyncedBlock = syncedBlock;
-      return true;
-    } else {
-      return false;
-    }
-  }
-
   public async getClassAndContractRoots() {
     return [this.tree.root(), await this.contract.getLastRoot()];
-  }
-
-  /**
-   *
-   * @param input A UTXO object that is inside the tree
-   * @returns
-   */
-  public getMerkleProof(input: Utxo): MerkleProof {
-    let inputMerklePathIndices: number[];
-    let inputMerklePathElements: BigNumber[];
-
-    if (Number(input.amount) > 0) {
-      if (!input.index || input.index < 0) {
-        throw new Error(`Input commitment ${u8aToHex(input.commitment)} was not found`);
-      }
-      const path = this.tree.path(input.index);
-      inputMerklePathIndices = path.pathIndices;
-      inputMerklePathElements = path.pathElements;
-    } else {
-      inputMerklePathIndices = new Array(this.tree.levels).fill(0);
-      inputMerklePathElements = new Array(this.tree.levels).fill(0);
-    }
-
-    return {
-      element: BigNumber.from(u8aToHex(input.commitment)),
-      pathElements: inputMerklePathElements,
-      pathIndices: inputMerklePathIndices,
-      merkleRoot: this.tree.root(),
-    };
-  }
-
-  /**
-   * Sets up a VAnchor transaction by generate the necessary inputs to the tx.
-   * @param inputs a list of UTXOs that are either inside the tree or are dummy inputs
-   * @param outputs a list of output UTXOs. Needs to have 2 elements.
-   * @param fee transaction fee.
-   * @param refund amount given as gas to withdraw address
-   * @param recipient address to the recipient
-   * @param relayer address to the relayer
-   * @param wrapUnwrapToken address to the token being transacted. can be the empty string to use native token
-   * @param leavesMap map from chainId to merkle leaves
-   * @param txOptions the optional transaction options
-   * @returns `SetupTransactionResult` object
-   */
-  public abstract setupTransaction(
-    inputs: Utxo[],
-    outputs: Utxo[],
-    fee: BigNumberish,
-    refund: BigNumberish,
-    recipient: string,
-    relayer: string,
-    wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>,
-    txOptions?: TransactionOptions
-  ): Promise<SetupTransactionResult>;
-
-  public abstract updateTreeOrForestState(outputs: Utxo[]): Promise<void> | void;
-
-  public async transact(
-    inputs: Utxo[],
-    outputs: Utxo[],
-    fee: BigNumberish,
-    refund: BigNumberish,
-    recipient: string,
-    relayer: string,
-    wrapUnwrapToken: string,
-    leavesMap?: Record<string, Uint8Array[]>,
-    overridesTransaction?: OverridesWithFrom<PayableOverrides> & TransactionOptions
-  ): Promise<ethers.ContractReceipt> {
-    if (isOpenVAnchorContract(this.contract)) {
-      throw new Error('OpenVAnchor contract does not support the `transact` method');
-    }
-
-    // Validate input utxos have a valid originChainId
-    this.validateInputs(inputs);
-
-    const [overrides, txOpts] = splitTransactionOptions(overridesTransaction);
-
-    const { extAmount, extData, publicInputs } = await this.setupTransaction(
-      inputs,
-      outputs,
-      fee,
-      refund,
-      recipient,
-      relayer,
-      wrapUnwrapToken,
-      leavesMap ?? {},
-      txOpts
-    );
-
-    let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
-
-    let tx = await this.contract.transact(
-      publicInputs.proof,
-      ZERO_BYTES32,
-      {
-        recipient: extData.recipient,
-        extAmount: extData.extAmount,
-        relayer: extData.relayer,
-        fee: extData.fee,
-        refund: extData.refund,
-        token: extData.token,
-      },
-      {
-        roots: publicInputs.roots,
-        extensionRoots: publicInputs.extensionRoots,
-        inputNullifiers: publicInputs.inputNullifiers,
-        outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
-        publicAmount: publicInputs.publicAmount,
-        extDataHash: publicInputs.extDataHash,
-      },
-      {
-        encryptedOutput1: extData.encryptedOutput1,
-        encryptedOutput2: extData.encryptedOutput2,
-      },
-      { ...options, ...overrides }
-    );
-    const receipt = await tx.wait();
-    // Add the leaves to the tree
-    this.updateTreeOrForestState(outputs);
-
-    return receipt;
   }
 }

@@ -1,22 +1,22 @@
-import { BigNumber, BigNumberish, Overrides, PayableOverrides, ethers } from 'ethers';
 import { OpenVAnchor as OpenVAnchorContract, OpenVAnchor__factory } from '@webb-tools/contracts';
-import { solidityPack } from 'ethers/lib/utils';
+import { IVAnchor } from '@webb-tools/interfaces';
 import {
-  toHex,
-  toFixedHex,
-  Utxo,
-  MerkleTree,
-  median,
-  mean,
-  max,
-  min,
   CircomProvingManager,
   MerkleProof,
+  MerkleTree,
+  Utxo,
+  max,
+  mean,
+  median,
+  min,
+  toFixedHex,
+  toHex,
 } from '@webb-tools/sdk-core';
-import { u8aToHex, getChainIdType } from '@webb-tools/utils';
-import { IVAnchor } from '@webb-tools/interfaces';
+import { getChainIdType, u8aToHex } from '@webb-tools/utils';
+import { BigNumber, BigNumberish, Overrides, PayableOverrides, ethers } from 'ethers';
+import { solidityPack } from 'ethers/lib/utils';
 import { WebbBridge } from './Common';
-import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
+import { OverridesWithFrom } from './types';
 
 function sha3Hash(left: BigNumberish, right: BigNumberish) {
   const packed = solidityPack(['bytes32', 'bytes32'], [toFixedHex(left), toFixedHex(right)]);
@@ -207,6 +207,72 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
     return [thisRoot.toString(), ...neighborRootInfos.map((bignum) => bignum.toString())];
   }
 
+  public async getClassAndContractRoots() {
+    return [this.tree.root(), await this.contract.getLastRoot()];
+  }
+
+  /**
+   *
+   * @param input A UTXO object that is inside the tree
+   * @returns
+   */
+  public getMerkleProof(input: Utxo): MerkleProof {
+    let inputMerklePathIndices: number[];
+    let inputMerklePathElements: BigNumber[];
+
+    if (Number(input.amount) > 0) {
+      if (!input.index || input.index < 0) {
+        throw new Error(`Input commitment ${u8aToHex(input.commitment)} was not found`);
+      }
+      const path = this.tree.path(input.index);
+      inputMerklePathIndices = path.pathIndices;
+      inputMerklePathElements = path.pathElements;
+    } else {
+      inputMerklePathIndices = new Array(this.tree.levels).fill(0);
+      inputMerklePathElements = new Array(this.tree.levels).fill(0);
+    }
+
+    return {
+      element: BigNumber.from(u8aToHex(input.commitment)),
+      pathElements: inputMerklePathElements,
+      pathIndices: inputMerklePathIndices,
+      merkleRoot: this.tree.root(),
+    };
+  }
+
+  /**
+   * Given a list of leaves and a latest synced block, update internal tree state
+   * The function will create a new tree, and check on chain root before updating its member variable
+   * If the passed leaves match on chain data,
+   *   update this instance and return true
+   * else
+   *   return false
+   */
+  public async setWithLeaves(leaves: string[], syncedBlock?: number): Promise<Boolean> {
+    let newTree = new MerkleTree(this.tree.levels, leaves);
+    let root = toFixedHex(newTree.root());
+    let validTree = await this.contract.isKnownRoot(root);
+
+    if (validTree) {
+      let index = 0;
+      for (const leaf of newTree.elements()) {
+        this.depositHistory[index] = toFixedHex(this.tree.root());
+        index++;
+      }
+      if (!syncedBlock) {
+        if (!this.signer.provider) {
+          throw new Error('Signer does not have a provider');
+        }
+
+        syncedBlock = await this.signer.provider.getBlockNumber();
+      }
+      this.tree = newTree;
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   public async getGasBenchmark() {
     const gasValues = gasBenchmark.map(Number);
     const meanGas = mean(gasValues);
@@ -394,23 +460,6 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
     gasBenchmark.push(receipt.gasUsed.toString());
 
     return receipt;
-  }
-
-  public setupTransaction(
-    inputs: Utxo[],
-    outputs: Utxo[],
-    fee: BigNumberish,
-    refund: BigNumberish,
-    recipient: string,
-    relayer: string,
-    wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>,
-    txOptions?: TransactionOptions | undefined
-  ): Promise<SetupTransactionResult> {
-    throw new Error('Method not supported on `OpenVAnchor` contract');
-  }
-  public updateTreeOrForestState(outputs: Utxo[]): void | Promise<void> {
-    throw new Error('Method not supported on `OpenVAnchor` contract');
   }
 }
 
