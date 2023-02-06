@@ -68,3 +68,41 @@ jobs:
         env:
           INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
         run: yarn test
+
+  # This job builds and runs crytic/slither analyzer on contracts. See https://github.com/crytic/slither-action for more details
+  analyzer:
+    concurrency:
+      group: test-${{ github.ref }}
+      cancel-in-progress: true
+
+    runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/main' && github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with: 
+          node-version: ${{ matrix.node-version }}
+
+      - name: Setup DVC
+        uses: iterative/setup-dvc@v1
+          
+      - name: Fetch submodules
+        run: git submodule update --init --recursive
+
+      - name: Install dependencies 
+        run: yarn install --production=false
+
+      - name: Populate fixtures
+        run: yarn fetch:fixtures
+
+      - name: Compile the contracts and build typescript interfaces
+        run: yarn build
+
+      - uses: crytic/slither-action@v0.2.0
+        # for a complete list of other options see: https://github.com/marketplace/actions/slither-action#options
+        with:
+          node-version: '16.x'
+          target: 'packages/contracts'
+          fail-on: 'medium'
+
+      
