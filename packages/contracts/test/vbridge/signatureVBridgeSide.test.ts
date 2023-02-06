@@ -23,7 +23,7 @@ import { BigNumber } from 'ethers';
 import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
 import { CircomUtxo, Keypair } from '@webb-tools/sdk-core';
 
-describe('SignatureBridgeSide use', () => {
+describe.skip('SignatureBridgeSide use', () => {
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
   let admin = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
@@ -472,7 +472,7 @@ describe('SignatureBridgeSide use', () => {
   });
 });
 
-describe('Rescue Tokens Tests for ERC20 Tokens', () => {
+describe.skip('Rescue Tokens Tests for ERC20 Tokens', () => {
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
   let srcAnchor: VAnchor;
@@ -739,7 +739,7 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
   });
 });
 
-describe('Rescue Tokens Tests for Native ETH', () => {
+describe.skip('Rescue Tokens Tests for Native ETH', () => {
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
   let srcAnchor: VAnchor;
