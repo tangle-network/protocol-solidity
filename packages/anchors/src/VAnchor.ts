@@ -534,7 +534,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     relayer: string,
     wrapUnwrapToken: string,
     leavesMap: Record<string, Uint8Array[]>,
-    overridesTransaction: OverridesWithFrom<PayableOverrides>
+    overridesTransaction?: OverridesWithFrom<PayableOverrides>
   ): Promise<ethers.ContractReceipt> {
     const { extData, extAmount, publicInputs } = await this.setupTransaction(
       inputs,
