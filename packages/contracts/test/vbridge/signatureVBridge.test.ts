@@ -21,7 +21,7 @@ const path = require('path');
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-describe.skip('2-sided multichain tests for signature vbridge', () => {
+describe('2-sided multichain tests for signature vbridge', () => {
   const FIRST_CHAIN_ID = 31337;
   let hardhatWallet1 = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
 
@@ -1009,7 +1009,7 @@ describe.skip('2-sided multichain tests for signature vbridge', () => {
   });
 });
 
-describe.skip('8-sided multichain tests for signature vbridge', () => {
+describe('8-sided multichain tests for signature vbridge', () => {
   const FIRST_CHAIN_ID = 31337;
   const SECOND_CHAIN_ID = 31338;
   const THIRD_CHAIN_ID = 31339;

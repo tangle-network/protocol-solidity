@@ -301,8 +301,11 @@ export class VAnchorForest extends WebbBridge {
     let inputForestPathElements: BigNumber[];
 
     if (Number(input.amount) > 0) {
-      if (!input.index || input.index < 0) {
-        throw new Error(`Input commitment ${u8aToHex(input.commitment)} was not found`);
+      if (input.index === undefined) {
+        throw new Error(`Input commitment ${u8aToHex(input.commitment)} index was not set`);
+      }
+      if (input.index < 0) {
+        throw new Error(`Input commitment ${u8aToHex(input.commitment)} index should be >= 0`);
       }
       const subtreePath = this.tree.path(input.index);
       const idx = this.forest.indexOf(subtreePath.merkleRoot.toString());
