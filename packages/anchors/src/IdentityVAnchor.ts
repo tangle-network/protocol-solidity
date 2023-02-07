@@ -338,13 +338,21 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
    * @param input A UTXO object that is inside the tree
    * @returns
    */
+  /**
+   *
+   * @param input A UTXO object that is inside the tree
+   * @returns
+   */
   public getMerkleProof(input: Utxo): MerkleProof {
     let inputMerklePathIndices: number[];
     let inputMerklePathElements: BigNumber[];
 
     if (Number(input.amount) > 0) {
-      if (!input.index || input.index < 0) {
-        throw new Error(`Input commitment ${u8aToHex(input.commitment)} was not found`);
+      if (input.index === undefined) {
+        throw new Error(`Input commitment ${u8aToHex(input.commitment)} index was not set`);
+      }
+      if (input.index < 0) {
+        throw new Error(`Input commitment ${u8aToHex(input.commitment)} index should be >= 0`);
       }
       const path = this.tree.path(input.index);
       inputMerklePathIndices = path.pathIndices;
@@ -361,6 +369,30 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
       merkleRoot: this.tree.root(),
     };
   }
+
+  // public getMerkleProof(input: Utxo): MerkleProof {
+  //   let inputMerklePathIndices: number[];
+  //   let inputMerklePathElements: BigNumber[];
+  //
+  //   if (Number(input.amount) > 0) {
+  //     if (!input.index !== undefined || input.index < 0) {
+  //       throw new Error(`Input commitment ${u8aToHex(input.commitment)} was not found`);
+  //     }
+  //     const path = this.tree.path(input.index);
+  //     inputMerklePathIndices = path.pathIndices;
+  //     inputMerklePathElements = path.pathElements;
+  //   } else {
+  //     inputMerklePathIndices = new Array(this.tree.levels).fill(0);
+  //     inputMerklePathElements = new Array(this.tree.levels).fill(0);
+  //   }
+  //
+  //   return {
+  //     element: BigNumber.from(u8aToHex(input.commitment)),
+  //     pathElements: inputMerklePathElements,
+  //     pathIndices: inputMerklePathIndices,
+  //     merkleRoot: this.tree.root(),
+  //   };
+  // }
 
   public generatePublicInputs(
     proof: any,
