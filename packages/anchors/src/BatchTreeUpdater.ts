@@ -1,11 +1,11 @@
-import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
-const assert = require('assert');
-import jsSHA from 'jssha';
 import {
   BatchMerkleTree as BatchMerkleTreeContract,
   BatchMerkleTree__factory,
 } from '@webb-tools/contracts';
-import { toFixedHex, MerkleTree, toBuffer } from '@webb-tools/sdk-core';
+import { MerkleTree, toBuffer, toFixedHex } from '@webb-tools/sdk-core';
+import { BigNumber, ethers } from 'ethers';
+import jsSHA from 'jssha';
+const assert = require('assert');
 
 import { ZkComponents } from '@webb-tools/utils';
 
@@ -49,6 +49,7 @@ export class BatchTreeUpdater {
     this.zkComponents_16 = zkComponents_16;
     this.zkComponents_32 = zkComponents_32;
   }
+
   public static async createBatchTreeUpdater(
     verifierAddr: string,
     levels: number,
@@ -75,6 +76,7 @@ export class BatchTreeUpdater {
     createdBatchTreeUpdater.latestSyncedBlock = contract.deployTransaction.blockNumber!;
     return createdBatchTreeUpdater;
   }
+
   public static hashInputs(input: ProofSignals) {
     const sha = new jsSHA('SHA-256', 'ARRAYBUFFER');
     sha.update(toBuffer(input.oldRoot, 32));
@@ -139,13 +141,14 @@ export class BatchTreeUpdater {
       pathIndices.slice(batchHeight)
     );
     // pathIndices = MerkleTree.calculateIndexFromPathIndices(pathIndices.slice(batchHeight));
-    const input = {
+    const input: ProofSignals = {
       oldRoot,
       newRoot,
       pathIndices: batchPathIndices,
       pathElements: batchPathElements,
       leaves,
     };
+
     input['argsHash'] = BatchTreeUpdater.hashInputs(input);
 
     const { proof, publicSignals } = await snarkjs.groth16.fullProve(
@@ -191,7 +194,7 @@ export class BatchTreeUpdater {
 
     let tx = await this.contract.batchInsert(
       proofEncoded,
-      toFixedHex(input['argsHash']),
+      toFixedHex(input['argsHash'] ?? ''),
       toFixedHex(input['oldRoot']),
       toFixedHex(input['newRoot']),
       input['pathIndices'],
