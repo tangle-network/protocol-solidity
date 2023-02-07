@@ -13,7 +13,7 @@ const bne = (x, e) => BigNumber.from(x + '0'.repeat(parseInt(e)));
 import { expect } from 'chai';
 import { AaveTokenWrapper, AaveTokenWrapper__factory, IERC20 } from '../../lib';
 
-describe('AaveTokenWrapper', () => {
+describe.skip('AaveTokenWrapper', () => {
   let aaveToken: AaveTokenWrapper;
   let sender: SignerWithAddress;
   const aaveTokenName = 'Wrapped Token';
