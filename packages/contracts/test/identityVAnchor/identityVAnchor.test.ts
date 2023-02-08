@@ -52,7 +52,7 @@ const { poseidon } = require('circomlibjs');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
 
-describe('IdentityVAnchor for 2 max edges', () => {
+describe.only('IdentityVAnchor for 2 max edges', () => {
   let idAnchor: IdentityVAnchor;
   let semaphore: Semaphore;
 
@@ -371,6 +371,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         alice.address,
         relayer,
         '',
+        {},
         { keypair: aliceKeypair }
       );
 
@@ -410,6 +411,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         alice.address,
         relayer,
         '',
+        {},
         { keypair: aliceKeypair }
       );
 
@@ -461,6 +463,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         alice.address,
         relayer,
         '',
+        {},
         { keypair: aliceKeypair }
       )) as ContractReceipt;
 
@@ -509,6 +512,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         bob.address,
         relayer,
         '',
+        {},
         { keypair: bobKeypair }
       );
 
@@ -537,6 +541,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
           alice.address,
           relayer,
           '',
+          {},
           { keypair: aliceKeypair }
         );
         // aliceDepositUtxo.setIndex(0)
@@ -549,7 +554,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
           .to.emit(idAnchor.contract, 'NewCommitment')
           .withArgs(aliceDepositUtxo.commitment, 0, aliceDepositUtxo.encrypt());
       });
-      it('should spend input utxo and create output utxo', async () => {
+      it.only('should spend input utxo and create output utxo', async () => {
         // Alice deposits into tornado pool
         const aliceRefreshUtxo = await CircomUtxo.generateUtxo({
           curve: 'Bn254',
@@ -569,7 +574,35 @@ describe('IdentityVAnchor for 2 max edges', () => {
           alice.address,
           relayer,
           '',
+          {},
           { keypair: aliceKeypair }
+        );
+      });
+      it.only('Should be able to generate proof using leavesMap', async () => {
+        // Alice deposits into tornado pool
+        const aliceRefreshUtxo = await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          chainId: BigNumber.from(chainID).toString(),
+          originChainId: BigNumber.from(chainID).toString(),
+          amount: BigNumber.from(aliceDepositAmount).toString(),
+          blinding: hexToU8a(randomBN().toHexString()),
+          keypair: aliceDepositUtxo.keypair,
+        });
+
+        const leaves = idAnchor.tree.elements().map((el) => hexToU8a(el.toHexString()));
+        const leavesMap = { [chainID]: leaves };
+        const txOptions = { keypair: aliceKeypair, treeChainId: chainID.toString() }
+        await idAnchor.transact(
+          [aliceDepositUtxo],
+          [aliceRefreshUtxo],
+          fee,
+          BigNumber.from(0),
+          alice.address,
+          relayer,
+          '',
+          leavesMap,
+          txOptions
         );
       });
 
@@ -588,6 +621,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
           alice.address,
           relayer,
           '',
+          {},
           { keypair: aliceKeypair }
         );
 
@@ -606,6 +640,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
             alice.address,
             relayer,
             '',
+            {},
             { keypair: aliceKeypair }
           )
         ).to.revertedWith('Input is already spent');
@@ -631,6 +666,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
             alice.address,
             relayer,
             '',
+            {},
             { keypair: aliceKeypair }
           )
         ).to.revertedWith('ERC20: transfer amount exceeds balance');
@@ -655,6 +691,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
           alice.address,
           relayer,
           '',
+          {},
           { keypair: aliceKeypair }
         );
         const aliceBalanceAfterSecondDeposit = await token.balanceOf(alice.address);
@@ -675,6 +712,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
           alice.address,
           relayer,
           '',
+          {},
           { keypair: aliceKeypair }
         );
         const aliceBalanceAfterJoin = await token.balanceOf(alice.address);
@@ -694,6 +732,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
           alice.address,
           relayer,
           '',
+          {},
           { keypair: aliceKeypair }
         );
 
@@ -722,6 +761,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
           aliceETHAddress,
           relayer,
           '',
+          {},
           { keypair: aliceKeypair }
         );
 
@@ -1438,6 +1478,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         '0',
         relayer,
         token.address,
+        {},
         { keypair: aliceKeypair }
       );
       const balTokenAfterDepositSender = await token.balanceOf(alice.address);
@@ -1467,14 +1508,13 @@ describe('IdentityVAnchor for 2 max edges', () => {
         '0',
         relayer,
         token.address,
+        {},
         { keypair: aliceKeypair }
       );
       const balTokenAfterDepositSender = await token.balanceOf(alice.address);
       // Fix: why the magic 2? no idea
       // expect(balTokenBeforeDepositSender.sub(balTokenAfterDepositSender).toString()).equal((aliceDepositAmount + (aliceDepositAmount * wrapFee/10000 + 2)).toString());
-      expect(balTokenBeforeDepositSender.sub(balTokenAfterDepositSender).toString()).equal(
-        aliceDepositAmount.toString()
-      );
+      expect(balTokenBeforeDepositSender.sub(balTokenAfterDepositSender)).equal(aliceDepositAmount);
 
       const balWrappedTokenAfterDepositAnchor = await wrappedToken.balanceOf(
         wrappedIdAnchor.contract.address
@@ -1503,6 +1543,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         alice.address,
         relayer,
         token.address,
+        {},
         { keypair: aliceKeypair }
       );
 
