@@ -5,7 +5,7 @@
 
 import "../interfaces/verifiers/IAnchorVerifier.sol";
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.5;
 
 contract TxProofVerifier {
 	IAnchorVerifier public verifier;
