@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.5;
 
 /**
     @dev The Edge struct is used to store the edge data for linkable tree connections.

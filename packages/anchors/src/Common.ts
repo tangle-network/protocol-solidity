@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish, PayableOverrides, ethers } from 'ethers';
+import { BigNumber, BigNumberish, ethers } from 'ethers';
 import {
   VAnchor as VAnchorContract,
   ChainalysisVAnchor as ChainalysisVAnchorContract,
@@ -16,11 +16,9 @@ import {
   UtxoGenInput,
   CircomUtxo,
   MerkleTree,
-  MerkleProof,
 } from '@webb-tools/sdk-core';
-import { hexToU8a, getChainIdType, u8aToHex, ZERO_BYTES32 } from '@webb-tools/utils';
-import { checkNativeAddress, splitTransactionOptions } from './utils';
-import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
+import { hexToU8a, getChainIdType } from '@webb-tools/utils';
+import { checkNativeAddress } from './utils';
 
 type WebbContracts =
   | VAnchorContract
