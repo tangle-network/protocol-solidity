@@ -409,7 +409,7 @@ export class VAnchorForest extends WebbBridge {
     const extDataHash = publicInputs[1];
     const inputNullifiers = publicInputs.slice(2, 2 + nIns);
     const outputCommitments = publicInputs.slice(2 + nIns, 2 + nIns + nOuts);
-    const _chainID = publicInputs[2 + nIns + nOuts];
+    // const _chainID = publicInputs[2 + nIns + nOuts];
     const roots = publicInputs.slice(3 + nIns + nOuts, 3 + nIns + nOuts + maxEdges);
     const args = {
       proof: `0x${proof}`,
@@ -417,6 +417,7 @@ export class VAnchorForest extends WebbBridge {
       inputNullifiers,
       outputCommitments,
       publicAmount,
+      extensionRoots: [],
       extDataHash,
     };
 
@@ -598,7 +599,7 @@ export class VAnchorForest extends WebbBridge {
     return { extData, extDataHash };
   }
 
-  public async updateForest(outputs: Utxo[]): Promise<void> {
+  public async updateTreeOrForestState(outputs: Utxo[]): Promise<void> {
     outputs.forEach((x) => {
       const commitment = BigNumber.from(u8aToHex(x.commitment));
       this.tree.insert(commitment.toHexString());
@@ -654,7 +655,6 @@ export class VAnchorForest extends WebbBridge {
         typedChainId: Number(inputUtxo.originChainId),
       });
     }
-
     const { extData, extDataHash } = await this.generateExtData(
       recipient,
       BigNumber.from(extAmount),
@@ -665,7 +665,6 @@ export class VAnchorForest extends WebbBridge {
       outputs[0].encrypt(),
       outputs[1].encrypt()
     );
-
     const proofInput: UTXOInputs = await this.generateUTXOInputs(
       inputs,
       outputs,
@@ -758,72 +757,8 @@ export class VAnchorForest extends WebbBridge {
     );
     const receipt = await tx.wait();
     // Add the leaves to the tree
-    await this.updateForest(outputs);
+    await this.updateTreeOrForestState(outputs);
 
-    return receipt;
-  }
-
-  public async transact(
-    inputs: Utxo[],
-    outputs: Utxo[],
-    fee: BigNumberish,
-    refund: BigNumberish,
-    recipient: string,
-    relayer: string,
-    wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>, // subtree leaves
-    overridesTransaction?: OverridesWithFrom<PayableOverrides> & TransactionOptions
-  ): Promise<ethers.ContractReceipt> {
-    // Validate input utxos have a valid originChainId
-    this.validateInputs(inputs);
-
-    const [overrides, txOptions] = splitTransactionOptions(overridesTransaction);
-
-    // Default UTXO chain ID will match with the configured signer's chain ID
-    inputs = await this.padUtxos(inputs, 16);
-    outputs = await this.padUtxos(outputs, 2);
-
-    const { extAmount, extData, publicInputs } = await this.setupTransaction(
-      inputs,
-      outputs,
-      fee,
-      refund,
-      recipient,
-      relayer,
-      wrapUnwrapToken,
-      leavesMap,
-      txOptions
-    );
-
-    let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
-
-    const tx = await this.contract.transact(
-      publicInputs.proof,
-      ZERO_BYTES32,
-      {
-        recipient: extData.recipient,
-        extAmount: extData.extAmount,
-        relayer: extData.relayer,
-        fee: extData.fee,
-        refund: extData.refund,
-        token: extData.token,
-      },
-      {
-        roots: publicInputs.roots,
-        extensionRoots: [],
-        inputNullifiers: publicInputs.inputNullifiers,
-        outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
-        publicAmount: publicInputs.publicAmount,
-        extDataHash: publicInputs.extDataHash,
-      },
-      {
-        encryptedOutput1: extData.encryptedOutput1,
-        encryptedOutput2: extData.encryptedOutput2,
-      },
-      { ...options, ...overrides }
-    );
-    const receipt = await tx.wait();
-    await this.updateForest(outputs);
     return receipt;
   }
 }

@@ -494,7 +494,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     };
   }
 
-  public updateTreeState(outputs: Utxo[]): void {
+  public updateTreeOrForestState(outputs: Utxo[]): void {
     outputs.forEach((x) => {
       this.tree.insert(u8aToHex(x.commitment));
       let numOfElements = this.tree.number_of_elements();
@@ -565,61 +565,6 @@ export class VAnchor extends WebbBridge implements IVAnchor {
 
     const proof = await this.provingManager.prove('vanchor', proofInput);
     return { proof, extAmount, proofInput };
-  }
-
-  public async transact(
-    inputs: Utxo[],
-    outputs: Utxo[],
-    fee: BigNumberish,
-    refund: BigNumberish,
-    recipient: string,
-    relayer: string,
-    wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>,
-    overridesTransaction?: OverridesWithFrom<PayableOverrides>
-  ): Promise<ethers.ContractReceipt> {
-    const { extData, extAmount, publicInputs } = await this.setupTransaction(
-      inputs,
-      outputs,
-      fee,
-      refund,
-      recipient,
-      relayer,
-      wrapUnwrapToken,
-      leavesMap
-    );
-
-    let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
-
-    const tx = await this.contract.transact(
-      publicInputs.proof,
-      ZERO_BYTES32,
-      {
-        recipient: extData.recipient,
-        extAmount: extData.extAmount,
-        relayer: extData.relayer,
-        fee: extData.fee,
-        refund: extData.refund,
-        token: extData.token,
-      },
-      {
-        roots: publicInputs.roots,
-        extensionRoots: publicInputs.extensionRoots,
-        inputNullifiers: publicInputs.inputNullifiers,
-        outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
-        publicAmount: publicInputs.publicAmount,
-        extDataHash: publicInputs.extDataHash,
-      },
-      {
-        encryptedOutput1: extData.encryptedOutput1,
-        encryptedOutput2: extData.encryptedOutput2,
-      },
-      { ...options, ...overridesTransaction }
-    );
-    const receipt = await tx.wait();
-    // Add the leaves to the tree
-    this.updateTreeState(outputs);
-    return receipt;
   }
 
   public async register(
@@ -699,7 +644,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     const receipt = await tx.wait();
 
     // Add the leaves to the tree
-    this.updateTreeState(outputs);
+    this.updateTreeOrForestState(outputs);
 
     return receipt;
   }

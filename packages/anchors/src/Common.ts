@@ -29,7 +29,17 @@ type WebbContracts =
   | VAnchorForestContract
   | OpenVAnchorContract;
 
-export class WebbBridge {
+function isOpenVAnchorContract(contract: WebbContracts): contract is OpenVAnchorContract {
+  return (
+    'deposit' in contract &&
+    'withdraw' in contract &&
+    'wrapAndDeposit' in contract &&
+    'unwrapAndWithdraw' in contract &&
+    !('transact' in contract)
+  );
+}
+
+export abstract class WebbBridge {
   signer: ethers.Signer;
   contract: WebbContracts;
 
@@ -275,5 +285,100 @@ export class WebbBridge {
       toHex(nonce, 4).substr(2) +
       toHex(newHandler, 20).substr(2)
     );
+  }
+
+  /**
+   * Sets up a VAnchor transaction by generate the necessary inputs to the tx.
+   * @param inputs a list of UTXOs that are either inside the tree or are dummy inputs
+   * @param outputs a list of output UTXOs. Needs to have 2 elements.
+   * @param fee transaction fee.
+   * @param refund amount given as gas to withdraw address
+   * @param recipient address to the recipient
+   * @param relayer address to the relayer
+   * @param wrapUnwrapToken address to the token being transacted. can be the empty string to use native token
+   * @param leavesMap map from chainId to merkle leaves
+   * @param txOptions the optional transaction options
+   * @returns `SetupTransactionResult` object
+   */
+  public abstract setupTransaction(
+    inputs: Utxo[],
+    outputs: Utxo[],
+    fee: BigNumberish,
+    refund: BigNumberish,
+    recipient: string,
+    relayer: string,
+    wrapUnwrapToken: string,
+    leavesMap: Record<string, Uint8Array[]>,
+    txOptions?: TransactionOptions
+  ): Promise<SetupTransactionResult>;
+
+  public abstract updateTreeOrForestState(outputs: Utxo[]): Promise<void> | void;
+
+  public async transact(
+    inputs: Utxo[],
+    outputs: Utxo[],
+    fee: BigNumberish,
+    refund: BigNumberish,
+    recipient: string,
+    relayer: string,
+    wrapUnwrapToken: string,
+    leavesMap: Record<string, Uint8Array[]>, // subtree
+    overridesTransaction?: OverridesWithFrom<PayableOverrides> & TransactionOptions
+  ): Promise<ethers.ContractReceipt> {
+    if (isOpenVAnchorContract(this.contract)) {
+      throw new Error('OpenVAnchor contract does not support the `transact` method');
+    }
+    // Validate input utxos have a valid originChainId
+    // this.validateInputs(inputs);
+
+    const [overrides, txOptions] = splitTransactionOptions(overridesTransaction);
+
+    // Default UTXO chain ID will match with the configured signer's chain ID
+    // inputs = await this.padUtxos(inputs, 16);
+    // outputs = await this.padUtxos(outputs, 2);
+
+    const { extAmount, extData, publicInputs } = await this.setupTransaction(
+      inputs,
+      outputs,
+      fee,
+      refund,
+      recipient,
+      relayer,
+      wrapUnwrapToken,
+      leavesMap,
+      txOptions
+    );
+
+    let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
+
+    const tx = await this.contract.transact(
+      publicInputs.proof,
+      ZERO_BYTES32,
+      {
+        recipient: extData.recipient,
+        extAmount: extData.extAmount,
+        relayer: extData.relayer,
+        fee: extData.fee,
+        refund: extData.refund,
+        token: extData.token,
+      },
+      {
+        roots: publicInputs.roots,
+        // extensionRoots: isForest ? [] :  publicInputs.extensionRoots ,
+        extensionRoots: publicInputs.extensionRoots ,
+        inputNullifiers: publicInputs.inputNullifiers,
+        outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
+        publicAmount: publicInputs.publicAmount,
+        extDataHash: publicInputs.extDataHash,
+      },
+      {
+        encryptedOutput1: extData.encryptedOutput1,
+        encryptedOutput2: extData.encryptedOutput2,
+      },
+      { ...options, ...overrides }
+    );
+    const receipt = await tx.wait();
+    await this.updateTreeOrForestState(outputs);
+    return receipt;
   }
 }

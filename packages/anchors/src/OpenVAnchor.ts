@@ -16,7 +16,7 @@ import { getChainIdType, u8aToHex } from '@webb-tools/utils';
 import { BigNumber, BigNumberish, Overrides, PayableOverrides, ethers } from 'ethers';
 import { solidityPack } from 'ethers/lib/utils';
 import { WebbBridge } from './Common';
-import { OverridesWithFrom } from './types';
+import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
 
 function sha3Hash(left: BigNumberish, right: BigNumberish) {
   const packed = solidityPack(['bytes32', 'bytes32'], [toFixedHex(left), toFixedHex(right)]);
@@ -460,6 +460,22 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
     gasBenchmark.push(receipt.gasUsed.toString());
 
     return receipt;
+  }
+  public setupTransaction(
+    inputs: Utxo[],
+    outputs: Utxo[],
+    fee: BigNumberish,
+    refund: BigNumberish,
+    recipient: string,
+    relayer: string,
+    wrapUnwrapToken: string,
+    leavesMap: Record<string, Uint8Array[]>,
+    txOptions?: TransactionOptions | undefined
+  ): Promise<SetupTransactionResult> {
+    throw new Error('Method not supported on `OpenVAnchor` contract');
+  }
+  public updateTreeOrForestState(outputs: Utxo[]): void | Promise<void> {
+    throw new Error('Method not supported on `OpenVAnchor` contract');
   }
 }
 

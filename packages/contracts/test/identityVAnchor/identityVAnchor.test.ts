@@ -52,7 +52,7 @@ const { poseidon } = require('circomlibjs');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
 
-describe.only('IdentityVAnchor for 2 max edges', () => {
+describe('IdentityVAnchor for 2 max edges', () => {
   let idAnchor: IdentityVAnchor;
   let semaphore: Semaphore;
 
@@ -372,7 +372,7 @@ describe.only('IdentityVAnchor for 2 max edges', () => {
         relayer,
         '',
         {},
-        { keypair: aliceKeypair }
+        { gasLimit: '0x5B8D80',  keypair: aliceKeypair }
       );
 
       const encOutput1 = outputs[0].encrypt();
@@ -554,7 +554,7 @@ describe.only('IdentityVAnchor for 2 max edges', () => {
           .to.emit(idAnchor.contract, 'NewCommitment')
           .withArgs(aliceDepositUtxo.commitment, 0, aliceDepositUtxo.encrypt());
       });
-      it.only('should spend input utxo and create output utxo', async () => {
+      it('should spend input utxo and create output utxo', async () => {
         // Alice deposits into tornado pool
         const aliceRefreshUtxo = await CircomUtxo.generateUtxo({
           curve: 'Bn254',
@@ -578,7 +578,7 @@ describe.only('IdentityVAnchor for 2 max edges', () => {
           { keypair: aliceKeypair }
         );
       });
-      it.only('Should be able to generate proof using leavesMap', async () => {
+      it('Should be able to generate proof using leavesMap', async () => {
         // Alice deposits into tornado pool
         const aliceRefreshUtxo = await CircomUtxo.generateUtxo({
           curve: 'Bn254',

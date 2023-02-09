@@ -18,7 +18,6 @@ export interface SetupTransactionResult {
 export interface TransactionOptions {
   keypair?: Keypair; // for identityVAnchor
   treeChainId?: string; // for vanchorForest/IdentityVAnchor
-  treeIndex?: number; // for vanchorForest
   forestLeaves?: Uint8Array[]; // for vanchorForest
 }
 
