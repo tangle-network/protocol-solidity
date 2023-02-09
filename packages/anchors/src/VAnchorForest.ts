@@ -8,6 +8,7 @@ import {
   CircomProvingManager,
   LeafIdentifier,
   MerkleTree,
+  MerkleProof,
   Utxo,
   generateVariableWitnessInput,
   getVAnchorExtDataHash,
@@ -34,6 +35,7 @@ import {
 import { WebbBridge } from './Common';
 import { Deployer } from './Deployer';
 import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
+import { splitTransactionOptions } from './utils';
 
 export var gasBenchmark = [];
 export var proofTimeBenchmark = [];
@@ -63,7 +65,7 @@ export class VAnchorForest extends WebbBridge {
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents
   ) {
-    super(contract, signer);
+    super(contract, signer, treeHeight);
     this.signer = signer;
     this.contract = contract;
     this.forest = new MerkleTree(forestHeight);
@@ -294,6 +296,62 @@ export class VAnchorForest extends WebbBridge {
    * @param input A UTXO object that is inside the tree
    * @returns
    */
+  public getMerkleProof2(input: Utxo, treeLeavesMap?: Uint8Array[], forestLeavesMap?: Uint8Array[]) : any {
+    let inputSubtreePathIndices: number[];
+    let inputSubtreePathElements: BigNumber[];
+    let inputForestPathIndices: number[];
+    let inputForestPathElements: BigNumber[];
+
+    if (Number(input.amount) > 0) {
+      if (input.index === undefined) {
+        throw new Error(`Input commitment ${u8aToHex(input.commitment)} index was not set`);
+      }
+      if (input.index < 0) {
+        throw new Error(`Input commitment ${u8aToHex(input.commitment)} index should be >= 0`);
+      }
+      if (treeLeavesMap === undefined) {
+        const subtreePath = this.tree.path(input.index);
+        const idx = this.forest.indexOf(subtreePath.merkleRoot.toString());
+        const forestPath = this.forest.path(idx);
+        inputSubtreePathIndices = subtreePath.pathIndices;
+        inputSubtreePathElements = subtreePath.pathElements;
+        inputForestPathIndices = forestPath.pathIndices;
+        inputForestPathElements = forestPath.pathElements;
+      } else {
+        const subTree = new MerkleTree(this.treeHeight, treeLeavesMap)
+        const subtreePath = subTree.path(input.index);
+
+        const forest = new MerkleTree(this.treeHeight, forestLeavesMap)
+        const idx = forest.indexOf(subtreePath.merkleRoot.toString());
+
+        const forestPath = forest.path(idx);
+        inputSubtreePathIndices = subtreePath.pathIndices;
+        inputSubtreePathElements = subtreePath.pathElements;
+        inputForestPathIndices = forestPath.pathIndices;
+        inputForestPathElements = forestPath.pathElements;
+      }
+    } else {
+      inputSubtreePathIndices = new Array(this.tree.levels).fill(0);
+      inputSubtreePathElements = new Array(this.tree.levels).fill(0);
+      inputForestPathIndices = new Array(this.forest.levels).fill(0);
+      inputForestPathElements = new Array(this.forest.levels).fill(0);
+    }
+
+    return {
+      element: BigNumber.from(u8aToHex(input.commitment)),
+      pathElements: inputSubtreePathElements,
+      pathIndices: inputSubtreePathIndices,
+      forestPathElements: inputForestPathElements,
+      forestPathIndices: inputForestPathIndices,
+      merkleRoot: this.forest.root(),
+    };
+  }
+
+  /**
+   *
+   * @param input A UTXO object that is inside the tree
+   * @returns
+   */
   public getMerkleProof(input: Utxo): any {
     let inputSubtreePathIndices: number[];
     let inputSubtreePathElements: BigNumber[];
@@ -431,12 +489,34 @@ export class VAnchorForest extends WebbBridge {
     chainId: number,
     extAmount: BigNumber,
     fee: BigNumber,
-    extDataHash: BigNumber
+    extDataHash: BigNumber,
+    leavesMap: Record<string, Uint8Array[]>, // subtree leaves
+    txOptions: TransactionOptions
   ): Promise<any> {
     const vanchorRoots = await this.populateRootsForProof();
-    const vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x));
-    const outputCommitment = outputs.map((x) => BigNumber.from(u8aToHex(x.commitment)).toString());
+    let vanchorMerkleProof: any;
+    if (Object.keys(leavesMap).length === 0) {
+      vanchorMerkleProof = inputs.map((x) => this.getMerkleProof2(x));
+    } else {
+      const treeChainId: string | undefined = txOptions.treeChainId;
+      if(treeChainId === undefined) {
+        throw new Error('Need to specify chainId on txOptions in order to generate merkleProof correctly')
+      }
+      const treeIndex: number | undefined = txOptions.treeIndex;
+      if(treeIndex === undefined) {
+        throw new Error('Need to specify treeIndex on txOptions in order to select proper subtree')
+      }
+      const treeElements: Uint8Array[] = leavesMap[treeChainId]
+      const forestElements: Uint8Array[] | undefined = txOptions.forestLeaves;
+      if(forestElements === undefined) {
+        throw new Error('Need to specify treeIndex on txOptions in order to select proper subtree')
+      }
+      // const forestElements = leavesMap[treeChainId]
+      // const treeElements = forestElements[treeIndex]
 
+      vanchorMerkleProof = inputs.map((x) => this.getMerkleProof2(x, treeElements, forestElements));
+
+    }
     const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
       vanchorRoots.map((root) => BigNumber.from(root)),
       chainId,
@@ -449,12 +529,12 @@ export class VAnchorForest extends WebbBridge {
     );
     const indices = vanchorMerkleProof.map((proof) => proof.forestPathIndices);
     const forestPathIndices: number[] = [];
-    indices.forEach((pathIndices) => {
+    indices.forEach((pathIndices: number[]) => {
       let index = MerkleTree.calculateIndexFromPathIndices(pathIndices);
       forestPathIndices.push(index);
     });
 
-    const forestPathElements = vanchorMerkleProof.map((proof) =>
+    const forestPathElements = vanchorMerkleProof.map((proof: any) =>
       proof.forestPathElements.map((bignum: any) => bignum.toString())
     );
 
@@ -543,7 +623,8 @@ export class VAnchorForest extends WebbBridge {
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>
+    leavesMap: Record<string, Uint8Array[]>,
+    txOptions: TransactionOptions
   ): Promise<SetupTransactionResult> {
     // Default UTXO chain ID will match with the configured signer's chain ID
     inputs = await this.padUtxos(inputs, 16);
@@ -558,7 +639,7 @@ export class VAnchorForest extends WebbBridge {
       wrapUnwrapToken = this.token;
     }
     const chainId = getChainIdType(await this.signer.getChainId());
-    let extAmount = await this.getExtAmount(inputs, outputs, fee);
+    let extAmount = this.getExtAmount(inputs, outputs, fee);
 
     // calculate the sum of input notes (for calculating the public amount)
     let sumInputUtxosAmount: BigNumberish = 0;
@@ -574,10 +655,6 @@ export class VAnchorForest extends WebbBridge {
       });
     }
 
-    const encryptedCommitments: [Uint8Array, Uint8Array] = [
-      hexToU8a(outputs[0].encrypt()),
-      hexToU8a(outputs[1].encrypt()),
-    ];
     const { extData, extDataHash } = await this.generateExtData(
       recipient,
       BigNumber.from(extAmount),
@@ -595,7 +672,9 @@ export class VAnchorForest extends WebbBridge {
       chainId,
       BigNumber.from(extAmount),
       BigNumber.from(fee),
-      extDataHash
+      extDataHash,
+      leavesMap,
+      txOptions
     );
 
     let wasmFile;
@@ -631,6 +710,9 @@ export class VAnchorForest extends WebbBridge {
     leavesMap: Record<string, Uint8Array[]>,
     overridesTransaction?: OverridesWithFrom<PayableOverrides>
   ): Promise<ethers.ContractReceipt> {
+
+    const [overrides, txOptions] = splitTransactionOptions(overridesTransaction);
+
     const { extAmount, extData, publicInputs } = await this.setupTransaction(
       inputs,
       outputs,
@@ -639,7 +721,8 @@ export class VAnchorForest extends WebbBridge {
       recipient,
       relayer,
       wrapUnwrapToken,
-      leavesMap
+      leavesMap,
+      txOptions
     );
 
     let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
@@ -688,11 +771,13 @@ export class VAnchorForest extends WebbBridge {
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>,
-    overridesTransaction?: OverridesWithFrom<PayableOverrides>
+    leavesMap: Record<string, Uint8Array[]>, // subtree leaves
+    overridesTransaction?: OverridesWithFrom<PayableOverrides> & TransactionOptions
   ): Promise<ethers.ContractReceipt> {
     // Validate input utxos have a valid originChainId
     this.validateInputs(inputs);
+
+    const [overrides, txOptions] = splitTransactionOptions(overridesTransaction);
 
     // Default UTXO chain ID will match with the configured signer's chain ID
     inputs = await this.padUtxos(inputs, 16);
@@ -706,7 +791,8 @@ export class VAnchorForest extends WebbBridge {
       recipient,
       relayer,
       wrapUnwrapToken,
-      leavesMap
+      leavesMap,
+      txOptions
     );
 
     let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
