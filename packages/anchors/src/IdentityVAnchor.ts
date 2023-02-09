@@ -383,8 +383,11 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     let inputMerklePathElements: BigNumber[];
 
     if (Number(input.amount) > 0) {
-      if (!input.index !== undefined || input.index < 0) {
-        throw new Error(`Input commitment ${u8aToHex(input.commitment)} was not found`);
+      if (input.index === undefined) {
+        throw new Error(`Input commitment ${u8aToHex(input.commitment)} index was not set`);
+      }
+      if (input.index < 0) {
+        throw new Error(`Input commitment ${u8aToHex(input.commitment)} index should be >= 0`);
       }
       const path = this.tree.path(input.index);
       inputMerklePathIndices = path.pathIndices;
@@ -578,7 +581,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     leavesMap: Record<string, Uint8Array[]>,
     txOptions?: TransactionOptions
   ): Promise<SetupTransactionResult> {
-    inputs  = await this.padUtxos(inputs, 16);
+    inputs = await this.padUtxos(inputs, 16);
     outputs = await this.padUtxos(outputs, 2);
 
     if (wrapUnwrapToken.length === 0) {

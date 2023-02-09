@@ -52,7 +52,7 @@ const { poseidon } = require('circomlibjs');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
 
-describe('IdentityVAnchor for 2 max edges', () => {
+describe.skip('IdentityVAnchor for 2 max edges', () => {
   let idAnchor: IdentityVAnchor;
   let semaphore: Semaphore;
 

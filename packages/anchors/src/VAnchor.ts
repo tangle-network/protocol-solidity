@@ -579,6 +579,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
       },
       overridesTransaction
     );
+
     const receipt = await tx.wait();
     return receipt;
   }
