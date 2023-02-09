@@ -48,7 +48,7 @@ const path = require('path');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
 
-describe.only('VAnchorForest for 1 max edge', () => {
+describe('VAnchorForest for 1 max edge', () => {
   let anchor: VAnchorForest;
 
   const subtreeLevels = 30;
@@ -364,6 +364,52 @@ describe.only('VAnchorForest for 1 max edge', () => {
          '',
          {},
          {}
+      );
+    });
+
+    it('should generate proof correctly from leavesMap', async () => {
+      // Alice deposits into tornado pool
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
+
+      await anchor.registerAndTransact(
+        sender.address,
+        aliceDepositUtxo.keypair.toString(),
+        [],
+        [aliceDepositUtxo],
+        0,
+        0,
+        '0',
+        '0',
+        token.address,
+        {}
+      );
+
+      const aliceRefreshUtxo = await CircomUtxo.generateUtxo({
+        curve: 'Bn254',
+        backend: 'Circom',
+        chainId: BigNumber.from(chainID).toString(),
+        originChainId: BigNumber.from(chainID).toString(),
+        amount: BigNumber.from(aliceDepositAmount).toString(),
+        blinding: hexToU8a(randomBN().toHexString()),
+        keypair: aliceDepositUtxo.keypair,
+      });
+
+      const subtreeLeaves = anchor.tree.elements().map((el: BigNumber) => hexToU8a(el.toHexString()));
+      const forestLeaves = anchor.forest.elements().map((el: BigNumber) => hexToU8a(el.toHexString()));
+      const txOptions = { treeChainId: chainID.toString(), forestLeaves: forestLeaves }
+
+      await anchor.transact(
+         [aliceDepositUtxo],
+         [aliceRefreshUtxo],
+         0,
+         0,
+         '0',
+         '0',
+         '',
+         { [chainID]: subtreeLeaves },
+         txOptions
+         // { treeChainId: chainID.toString(), forestLeaves }
       );
     });
 

@@ -47,6 +47,7 @@ export class VAnchorForest extends WebbBridge {
   contract: VAnchorForestContract;
   forest: MerkleTree;
 
+  forestHeight: number;
   maxEdges: number;
   latestSyncedBlock: number;
   smallCircuitZkComponents: ZkComponents;
@@ -71,6 +72,7 @@ export class VAnchorForest extends WebbBridge {
     this.forest = new MerkleTree(forestHeight);
     this.tree = new MerkleTree(treeHeight);
     this.latestSyncedBlock = 0;
+    this.forestHeight = forestHeight;
     this.maxEdges = maxEdges;
     this.depositHistory = {};
     this.smallCircuitZkComponents = smallCircuitZkComponents;
@@ -317,11 +319,13 @@ export class VAnchorForest extends WebbBridge {
         inputSubtreePathElements = subtreePath.pathElements;
         inputForestPathIndices = forestPath.pathIndices;
         inputForestPathElements = forestPath.pathElements;
+
       } else {
+
         const subTree = new MerkleTree(this.treeHeight, treeLeavesMap)
         const subtreePath = subTree.path(input.index);
 
-        const forest = new MerkleTree(this.treeHeight, forestLeavesMap)
+        const forest = new MerkleTree(this.forestHeight, forestLeavesMap)
         const idx = forest.indexOf(subtreePath.merkleRoot.toString());
 
         const forestPath = forest.path(idx);
@@ -502,14 +506,10 @@ export class VAnchorForest extends WebbBridge {
       if(treeChainId === undefined) {
         throw new Error('Need to specify chainId on txOptions in order to generate merkleProof correctly')
       }
-      const treeIndex: number | undefined = txOptions.treeIndex;
-      if(treeIndex === undefined) {
-        throw new Error('Need to specify treeIndex on txOptions in order to select proper subtree')
-      }
       const treeElements: Uint8Array[] = leavesMap[treeChainId]
       const forestElements: Uint8Array[] | undefined = txOptions.forestLeaves;
       if(forestElements === undefined) {
-        throw new Error('Need to specify treeIndex on txOptions in order to select proper subtree')
+        throw new Error('Need to specify forestElements on txOptions in order to generate merkleProof correctly')
       }
       // const forestElements = leavesMap[treeChainId]
       // const treeElements = forestElements[treeIndex]
@@ -557,7 +557,7 @@ export class VAnchorForest extends WebbBridge {
       subtreePathElements: vanchorInput.inPathElements.map((utxoPathElements) =>
         utxoPathElements.map((bignum) => bignum.toString())
       ),
-      forestPathIndices: forestPathIndices,
+      forestPathIndices,
       forestPathElements,
     };
 
@@ -708,7 +708,7 @@ export class VAnchorForest extends WebbBridge {
     relayer: string,
     wrapUnwrapToken: string,
     leavesMap: Record<string, Uint8Array[]>,
-    overridesTransaction?: OverridesWithFrom<PayableOverrides>
+    overridesTransaction?: OverridesWithFrom<PayableOverrides> & TransactionOptions
   ): Promise<ethers.ContractReceipt> {
 
     const [overrides, txOptions] = splitTransactionOptions(overridesTransaction);
@@ -754,7 +754,7 @@ export class VAnchorForest extends WebbBridge {
         encryptedOutput1: extData.encryptedOutput1,
         encryptedOutput2: extData.encryptedOutput2,
       },
-      { ...options, ...overridesTransaction }
+      { ...options, ...overrides}
     );
     const receipt = await tx.wait();
     // Add the leaves to the tree
@@ -820,7 +820,7 @@ export class VAnchorForest extends WebbBridge {
         encryptedOutput1: extData.encryptedOutput1,
         encryptedOutput2: extData.encryptedOutput2,
       },
-      { ...options, ...overridesTransaction }
+      { ...options, ...overrides }
     );
     const receipt = await tx.wait();
     await this.updateForest(outputs);

@@ -39,7 +39,7 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
   provingManager: CircomProvingManager;
 
   constructor(contract: OpenVAnchorContract, signer: ethers.Signer, treeHeight: number) {
-    super(contract, signer);
+    super(contract, signer, treeHeight);
     this.signer = signer;
     this.contract = contract;
     this.tree = new MerkleTree(treeHeight, [], { hashFunction: sha3Hash });

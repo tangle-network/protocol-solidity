@@ -34,13 +34,15 @@ export class WebbBridge {
   contract: WebbContracts;
 
   tree: MerkleTree;
+  treeHeight: number;
 
   // The depositHistory stores leafIndex => information to create proposals (new root)
   depositHistory: Record<number, string>;
 
-  constructor(contract: WebbContracts, signer: ethers.Signer) {
+  constructor(contract: WebbContracts, signer: ethers.Signer, treeHeight: number) {
     this.contract = contract;
     this.signer = signer;
+    this.treeHeight = treeHeight;
   }
 
   public static async generateUTXO(input: UtxoGenInput): Promise<Utxo> {

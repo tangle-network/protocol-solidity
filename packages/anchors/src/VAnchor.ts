@@ -54,7 +54,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents
   ) {
-    super(contract, signer);
+    super(contract, signer, treeHeight);
     this.signer = signer;
     this.contract = contract;
     this.tree = new MerkleTree(treeHeight);
@@ -214,13 +214,55 @@ export class VAnchor extends WebbBridge implements IVAnchor {
    * @param input A UTXO object that is inside the tree
    * @returns
    */
+  public getMerkleProof2(input: Utxo, leavesMap?: Uint8Array[]): MerkleProof {
+    let inputMerklePathIndices: number[];
+    let inputMerklePathElements: BigNumber[];
+
+    if (Number(input.amount) > 0) {
+      if (input.index === undefined) {
+        throw new Error(`Input commitment ${u8aToHex(input.commitment)} index was not set`);
+      }
+      if (input.index < 0) {
+        throw new Error(`Input commitment ${u8aToHex(input.commitment)} index should be >= 0`);
+      }
+      if (leavesMap === undefined) {
+        const path = this.tree.path(input.index);
+        inputMerklePathIndices = path.pathIndices;
+        inputMerklePathElements = path.pathElements;
+      } else {
+        const mt = new MerkleTree(this.treeHeight, leavesMap)
+        const path = mt.path(input.index);
+        inputMerklePathIndices = path.pathIndices;
+        inputMerklePathElements = path.pathElements;
+      }
+    } else {
+      inputMerklePathIndices = new Array(this.tree.levels).fill(0);
+      inputMerklePathElements = new Array(this.tree.levels).fill(0);
+    }
+
+    return {
+      element: BigNumber.from(u8aToHex(input.commitment)),
+      pathElements: inputMerklePathElements,
+      pathIndices: inputMerklePathIndices,
+      merkleRoot: this.tree.root(),
+    };
+  }
+
+  /**
+   *
+   * @param input A UTXO object that is inside the tree
+   * @returns
+   */
   public getMerkleProof(input: Utxo): MerkleProof {
     let inputMerklePathIndices: number[];
     let inputMerklePathElements: BigNumber[];
 
     if (Number(input.amount) > 0) {
-      if (!input.index || input.index < 0) {
-        throw new Error(`Input commitment ${u8aToHex(input.commitment)} was not found`);
+      if (input.index === undefined) {
+        throw new Error(`Input commitment ${u8aToHex(input.commitment)} index was not set`);
+      }
+      if (input.index < 0) {
+        throw new Error(`Input commitment ${u8aToHex(input.commitment)} index should be >= 0`);
       }
       const path = this.tree.path(input.index);
       inputMerklePathIndices = path.pathIndices;
