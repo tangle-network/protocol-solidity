@@ -256,19 +256,6 @@ export class VAnchorForest extends WebbBridge {
     };
   }
 
-  public static convertToExtDataStruct(args: any[]): IVariableAnchorExtData {
-    return {
-      recipient: args[0],
-      extAmount: args[1],
-      relayer: args[2],
-      fee: args[3],
-      refund: args[4],
-      token: args[5],
-      encryptedOutput1: args[6],
-      encryptedOutput2: args[7],
-    };
-  }
-
   // Sync the local tree with the tree on chain.
   // Start syncing from the given block number, otherwise zero.
   public async update(blockNumber?: number) {
@@ -289,16 +276,12 @@ export class VAnchorForest extends WebbBridge {
     return [thisRoot, ...neighborRootInfos];
   }
 
-  public async getClassAndContractRoots() {
-    return [this.tree.root(), await this.contract.getLastRoot()];
-  }
-
   /**
    *
    * @param input A UTXO object that is inside the tree
    * @returns
    */
-  public getMerkleProof2(input: Utxo, treeLeavesMap?: Uint8Array[], forestLeavesMap?: Uint8Array[]) : any {
+  public getMerkleProof(input: Utxo, treeLeavesMap?: Uint8Array[], forestLeavesMap?: Uint8Array[]) : any {
     let inputSubtreePathIndices: number[];
     let inputSubtreePathElements: BigNumber[];
     let inputForestPathIndices: number[];
@@ -351,48 +334,6 @@ export class VAnchorForest extends WebbBridge {
     };
   }
 
-  /**
-   *
-   * @param input A UTXO object that is inside the tree
-   * @returns
-   */
-  public getMerkleProof(input: Utxo): any {
-    let inputSubtreePathIndices: number[];
-    let inputSubtreePathElements: BigNumber[];
-    let inputForestPathIndices: number[];
-    let inputForestPathElements: BigNumber[];
-
-    if (Number(input.amount) > 0) {
-      if (input.index === undefined) {
-        throw new Error(`Input commitment ${u8aToHex(input.commitment)} index was not set`);
-      }
-      if (input.index < 0) {
-        throw new Error(`Input commitment ${u8aToHex(input.commitment)} index should be >= 0`);
-      }
-      const subtreePath = this.tree.path(input.index);
-      const idx = this.forest.indexOf(subtreePath.merkleRoot.toString());
-      const forestPath = this.forest.path(idx);
-      inputSubtreePathIndices = subtreePath.pathIndices;
-      inputSubtreePathElements = subtreePath.pathElements;
-      inputForestPathIndices = forestPath.pathIndices;
-      inputForestPathElements = forestPath.pathElements;
-    } else {
-      inputSubtreePathIndices = new Array(this.tree.levels).fill(0);
-      inputSubtreePathElements = new Array(this.tree.levels).fill(0);
-      inputForestPathIndices = new Array(this.forest.levels).fill(0);
-      inputForestPathElements = new Array(this.forest.levels).fill(0);
-    }
-
-    return {
-      element: BigNumber.from(u8aToHex(input.commitment)),
-      pathElements: inputSubtreePathElements,
-      pathIndices: inputSubtreePathIndices,
-      forestPathElements: inputForestPathElements,
-      forestPathIndices: inputForestPathIndices,
-      merkleRoot: this.forest.root(),
-    };
-  }
-
   public async generatePublicInputs(
     proof: any,
     nIns: number = 2,
@@ -402,7 +343,7 @@ export class VAnchorForest extends WebbBridge {
   ): Promise<any> {
     const byte_calldata = await groth16.exportSolidityCallData(proof.proof, proof.publicSignals);
     // public inputs to the contract
-    proof = await this.encodeSolidityProof(proof, byte_calldata);
+    proof = await this.encodeSolidityProof(byte_calldata);
     const publicInputs = JSON.parse('[' + byte_calldata + ']')[3];
 
     const publicAmount = publicInputs[0];
@@ -432,14 +373,15 @@ export class VAnchorForest extends WebbBridge {
    * else
    *   return false
    */
-  public async setWithLeaves(leaves: string[], syncedBlock?: number): Promise<Boolean> {
-    let newTree = new MerkleTree(this.tree.levels, leaves);
-    let root = toFixedHex(newTree.root());
+  public async setWithLeaves(subtreeLeaves: string[], forestLeaves: string[], syncedBlock?: number): Promise<Boolean> {
+    let newSubtree = new MerkleTree(this.tree.levels, subtreeLeaves);
+    let newForest = new MerkleTree(this.forest.levels, forestLeaves);
+    let root = toFixedHex(newForest.root());
     let validTree = await this.contract.isKnownRoot(root);
 
     if (validTree) {
       let index = 0;
-      for (const leaf of newTree.elements()) {
+      for (const leaf of newForest.elements()) {
         this.depositHistory[index] = toFixedHex(this.tree.root());
         index++;
       }
@@ -450,44 +392,16 @@ export class VAnchorForest extends WebbBridge {
 
         syncedBlock = await this.signer.provider.getBlockNumber();
       }
-      this.tree = newTree;
+      // this.forest = new MerkleTree(this.forestHeight);
+      // this.tree = new MerkleTree(this.treeHeight);
+      this.forest = newForest
+      this.tree = newSubtree
       this.latestSyncedBlock = syncedBlock;
       return true;
     } else {
       return false;
     }
   }
-
-  public async getGasBenchmark() {
-    const gasValues = gasBenchmark.map(Number);
-    const meanGas = mean(gasValues);
-    const medianGas = median(gasValues);
-    const maxGas = max(gasValues);
-    const minGas = min(gasValues);
-    return {
-      gasValues,
-      meanGas,
-      medianGas,
-      maxGas,
-      minGas,
-    };
-    // return gasBenchmark;
-  }
-
-  public async getProofTimeBenchmark() {
-    const meanTime = mean(proofTimeBenchmark);
-    const medianTime = median(proofTimeBenchmark);
-    const maxTime = max(proofTimeBenchmark);
-    const minTime = min(proofTimeBenchmark);
-    return {
-      proofTimeBenchmark,
-      meanTime,
-      medianTime,
-      maxTime,
-      minTime,
-    };
-  }
-
   public async generateUTXOInputs(
     inputs: Utxo[],
     outputs: Utxo[],
@@ -501,7 +415,7 @@ export class VAnchorForest extends WebbBridge {
     const vanchorRoots = await this.populateRootsForProof();
     let vanchorMerkleProof: any;
     if (Object.keys(leavesMap).length === 0) {
-      vanchorMerkleProof = inputs.map((x) => this.getMerkleProof2(x));
+      vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x));
     } else {
       const treeChainId: string | undefined = txOptions.treeChainId;
       if(treeChainId === undefined) {
@@ -515,7 +429,7 @@ export class VAnchorForest extends WebbBridge {
       // const forestElements = leavesMap[treeChainId]
       // const treeElements = forestElements[treeIndex]
 
-      vanchorMerkleProof = inputs.map((x) => this.getMerkleProof2(x, treeElements, forestElements));
+      vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x, treeElements, forestElements));
 
     }
     const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
@@ -563,40 +477,6 @@ export class VAnchorForest extends WebbBridge {
     };
 
     return proofInput;
-  }
-
-  public async generateExtData(
-    recipient: string,
-    extAmount: BigNumber,
-    relayer: string,
-    fee: BigNumber,
-    refund: BigNumber,
-    wrapUnwrapToken: string,
-    encryptedOutput1: string,
-    encryptedOutput2: string
-  ): Promise<{ extData: IVariableAnchorExtData; extDataHash: BigNumber }> {
-    const extData = {
-      recipient: toFixedHex(recipient, 20),
-      extAmount: toFixedHex(extAmount),
-      relayer: toFixedHex(relayer, 20),
-      fee: toFixedHex(fee),
-      refund: toFixedHex(refund.toString()),
-      token: toFixedHex(wrapUnwrapToken, 20),
-      encryptedOutput1,
-      encryptedOutput2,
-    };
-
-    const extDataHash = await getVAnchorExtDataHash(
-      encryptedOutput1,
-      encryptedOutput2,
-      extAmount.toString(),
-      BigNumber.from(fee).toString(),
-      recipient,
-      relayer,
-      refund.toString(),
-      wrapUnwrapToken
-    );
-    return { extData, extDataHash };
   }
 
   public async updateTreeOrForestState(outputs: Utxo[]): Promise<void> {

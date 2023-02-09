@@ -205,16 +205,13 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     return [thisRoot, ...neighborRootInfos];
   }
 
-  public async getClassAndContractRoots() {
-    return [this.tree.root(), await this.contract.getLastRoot()];
-  }
 
   /**
    *
    * @param input A UTXO object that is inside the tree
    * @returns
    */
-  public getMerkleProof2(input: Utxo, leavesMap?: Uint8Array[]): MerkleProof {
+  public getMerkleProof(input: Utxo, leavesMap?: Uint8Array[]): MerkleProof {
     let inputMerklePathIndices: number[];
     let inputMerklePathElements: BigNumber[];
 
@@ -235,38 +232,6 @@ export class VAnchor extends WebbBridge implements IVAnchor {
         inputMerklePathIndices = path.pathIndices;
         inputMerklePathElements = path.pathElements;
       }
-    } else {
-      inputMerklePathIndices = new Array(this.tree.levels).fill(0);
-      inputMerklePathElements = new Array(this.tree.levels).fill(0);
-    }
-
-    return {
-      element: BigNumber.from(u8aToHex(input.commitment)),
-      pathElements: inputMerklePathElements,
-      pathIndices: inputMerklePathIndices,
-      merkleRoot: this.tree.root(),
-    };
-  }
-
-  /**
-   *
-   * @param input A UTXO object that is inside the tree
-   * @returns
-   */
-  public getMerkleProof(input: Utxo): MerkleProof {
-    let inputMerklePathIndices: number[];
-    let inputMerklePathElements: BigNumber[];
-
-    if (Number(input.amount) > 0) {
-      if (input.index === undefined) {
-        throw new Error(`Input commitment ${u8aToHex(input.commitment)} index was not set`);
-      }
-      if (input.index < 0) {
-        throw new Error(`Input commitment ${u8aToHex(input.commitment)} index should be >= 0`);
-      }
-      const path = this.tree.path(input.index);
-      inputMerklePathIndices = path.pathIndices;
-      inputMerklePathElements = path.pathElements;
     } else {
       inputMerklePathIndices = new Array(this.tree.levels).fill(0);
       inputMerklePathElements = new Array(this.tree.levels).fill(0);
@@ -313,31 +278,6 @@ export class VAnchor extends WebbBridge implements IVAnchor {
    * else
    *   return false
    */
-  public async setWithLeaves(leaves: string[], syncedBlock?: number): Promise<Boolean> {
-    let newTree = new MerkleTree(this.tree.levels, leaves);
-    let root = toFixedHex(newTree.root());
-    let validTree = await this.contract.isKnownRoot(root);
-
-    if (validTree) {
-      let index = 0;
-      for (const leaf of newTree.elements()) {
-        this.depositHistory[index] = toFixedHex(this.tree.root());
-        index++;
-      }
-      if (!syncedBlock) {
-        if (!this.signer.provider) {
-          throw new Error('Signer does not have a provider');
-        }
-
-        syncedBlock = await this.signer.provider.getBlockNumber();
-      }
-      this.tree = newTree;
-      this.latestSyncedBlock = syncedBlock;
-      return true;
-    } else {
-      return false;
-    }
-  }
 
   // Verify the leaf occurred at the reported block
   // This is important to check the behavior of relayers before modifying local storage
@@ -358,20 +298,6 @@ export class VAnchor extends WebbBridge implements IVAnchor {
 
     return false;
   }
-
-  public static convertToExtDataStruct(args: any[]): IVariableAnchorExtData {
-    return {
-      recipient: args[0],
-      extAmount: args[1],
-      relayer: args[2],
-      fee: args[3],
-      refund: args[4],
-      token: args[5],
-      encryptedOutput1: args[6],
-      encryptedOutput2: args[7],
-    };
-  }
-
   /**
    * Sets up a VAnchor transaction by generate the necessary inputs to the tx.
    * @param inputs a list of UTXOs that are either inside the tree or are dummy inputs
@@ -655,6 +581,31 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     const tokenInstance = ERC20__factory.connect(tokenAddress, this.signer);
 
     return tokenInstance;
+  }
+  public async setWithLeaves(leaves: string[], syncedBlock?: number): Promise<Boolean> {
+    let newTree = new MerkleTree(this.tree.levels, leaves);
+    let root = toFixedHex(newTree.root());
+    let validTree = await this.contract.isKnownRoot(root);
+
+    if (validTree) {
+      let index = 0;
+      for (const _leaf of newTree.elements()) {
+        this.depositHistory[index] = toFixedHex(this.tree.root());
+        index++;
+      }
+      if (!syncedBlock) {
+        if (!this.signer.provider) {
+          throw new Error('Signer does not have a provider');
+        }
+
+        syncedBlock = await this.signer.provider.getBlockNumber();
+      }
+      this.tree = newTree;
+      this.latestSyncedBlock = syncedBlock;
+      return true;
+    } else {
+      return false;
+    }
   }
 
   async isWebbTokenApprovalRequired(depositAmount: BigNumberish) {

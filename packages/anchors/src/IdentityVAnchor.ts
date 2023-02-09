@@ -5,7 +5,6 @@ import {
 } from '@webb-tools/contracts';
 import {
   IVAnchor,
-  IVariableAnchorExtData,
   IVariableAnchorPublicInputs,
 } from '@webb-tools/interfaces';
 import {
@@ -15,11 +14,6 @@ import {
   MerkleTree,
   Utxo,
   generateVariableWitnessInput,
-  getVAnchorExtDataHash,
-  max,
-  mean,
-  median,
-  min,
   toFixedHex,
 } from '@webb-tools/sdk-core';
 // Importing from src because the lib doesn't export the types
@@ -27,7 +21,6 @@ import { LinkedGroup } from '@webb-tools/semaphore-group';
 import { Semaphore } from '@webb-tools/semaphore/src';
 import {
   UTXOInputs,
-  ZERO_BYTES32,
   ZkComponents,
   getChainIdType,
   u8aToHex,
@@ -36,7 +29,6 @@ import { BigNumber, BigNumberish, PayableOverrides, ethers } from 'ethers';
 import { WebbBridge } from './Common';
 import { Deployer } from './Deployer';
 import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
-import { splitTransactionOptions } from './utils';
 const assert = require('assert');
 
 const snarkjs = require('snarkjs');
@@ -55,9 +47,6 @@ type Proof = {
 };
 
 export type RawPublicSignals = string[11];
-
-export var gasBenchmark = [];
-export var proofTimeBenchmark = [];
 
 // This convenience wrapper class is used in tests -
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
@@ -93,7 +82,6 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     this.signer = signer;
     this.tree = new MerkleTree(treeHeight);
     this.treeHeight = treeHeight;
-    this.latestSyncedBlock = 0;
     this.maxEdges = maxEdges;
     this.groupId = groupId;
     this.group = group;
@@ -297,19 +285,6 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     };
   }
 
-  public static convertToExtDataStruct(args: any[]): IVariableAnchorExtData {
-    return {
-      recipient: args[0],
-      extAmount: args[1],
-      relayer: args[2],
-      fee: args[3],
-      refund: args[4],
-      token: args[5],
-      encryptedOutput1: args[6],
-      encryptedOutput2: args[7],
-    };
-  }
-
   // Sync the local tree with the tree on chain.
   // Start syncing from the given block number, otherwise zero.
   public async update(blockNumber?: number) {
@@ -330,21 +305,12 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     return [thisRoot.toString(), ...neighborRootInfos.map((bignum) => bignum.toString())];
   }
 
-  public async getClassAndContractRoots() {
-    return [this.tree.root(), await this.contract.getLastRoot()];
-  }
-
   /**
    *
    * @param input A UTXO object that is inside the tree
    * @returns
    */
-  /**
-   *
-   * @param input A UTXO object that is inside the tree
-   * @returns
-   */
-  public getMerkleProof2(input: Utxo, leavesMap?: Uint8Array[]): MerkleProof {
+  public getMerkleProof(input: Utxo, leavesMap?: Uint8Array[]): MerkleProof {
     let inputMerklePathIndices: number[];
     let inputMerklePathElements: BigNumber[];
 
@@ -377,34 +343,6 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
       merkleRoot: this.tree.root(),
     };
   }
-
-  public getMerkleProof(input: Utxo): MerkleProof {
-    let inputMerklePathIndices: number[];
-    let inputMerklePathElements: BigNumber[];
-
-    if (Number(input.amount) > 0) {
-      if (input.index === undefined) {
-        throw new Error(`Input commitment ${u8aToHex(input.commitment)} index was not set`);
-      }
-      if (input.index < 0) {
-        throw new Error(`Input commitment ${u8aToHex(input.commitment)} index should be >= 0`);
-      }
-      const path = this.tree.path(input.index);
-      inputMerklePathIndices = path.pathIndices;
-      inputMerklePathElements = path.pathElements;
-    } else {
-      inputMerklePathIndices = new Array(this.tree.levels).fill(0);
-      inputMerklePathElements = new Array(this.tree.levels).fill(0);
-    }
-
-    return {
-      element: BigNumber.from(u8aToHex(input.commitment)),
-      pathElements: inputMerklePathElements,
-      pathIndices: inputMerklePathIndices,
-      merkleRoot: this.tree.root(),
-    };
-  }
-
   public generatePublicInputs(
     proof: any,
     byte_calldata: any,
@@ -461,7 +399,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
 
     if (validTree) {
       let index = 0;
-      for (const leaf of newTree.elements()) {
+      for (const _leaf of newTree.elements()) {
         this.depositHistory[index] = toFixedHex(this.tree.root());
         index++;
       }
@@ -479,36 +417,6 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
       return false;
     }
   }
-
-  public async getGasBenchmark() {
-    const gasValues = gasBenchmark.map(Number);
-    const meanGas = mean(gasValues);
-    const medianGas = median(gasValues);
-    const maxGas = max(gasValues);
-    const minGas = min(gasValues);
-    return {
-      gasValues,
-      meanGas,
-      medianGas,
-      maxGas,
-      minGas,
-    };
-  }
-
-  public async getProofTimeBenchmark() {
-    const meanTime = mean(proofTimeBenchmark);
-    const medianTime = median(proofTimeBenchmark);
-    const maxTime = max(proofTimeBenchmark);
-    const minTime = min(proofTimeBenchmark);
-    return {
-      proofTimeBenchmark,
-      meanTime,
-      medianTime,
-      maxTime,
-      minTime,
-    };
-  }
-
   public async generateProof(
     keypair: Keypair,
     identityRoots: string[],
@@ -569,6 +477,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     );
     return proof;
   }
+
 
   public async setupTransaction(
     inputs: Utxo[],
@@ -666,39 +575,6 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     return this.group.getRoots().map((bignum: BigNumber) => bignum.toString());
   }
 
-  public async generateExtData(
-    recipient: string,
-    extAmount: BigNumber,
-    relayer: string,
-    fee: BigNumber,
-    refund: BigNumber,
-    wrapUnwrapToken: string,
-    encryptedOutput1: string,
-    encryptedOutput2: string
-  ): Promise<{ extData: IVariableAnchorExtData; extDataHash: BigNumber }> {
-    const extData = {
-      recipient: toFixedHex(recipient, 20),
-      extAmount: toFixedHex(extAmount),
-      relayer: toFixedHex(relayer, 20),
-      fee: toFixedHex(fee),
-      refund: toFixedHex(refund.toString()),
-      token: toFixedHex(wrapUnwrapToken, 20),
-      encryptedOutput1,
-      encryptedOutput2,
-    };
-
-    const extDataHash = await getVAnchorExtDataHash(
-      encryptedOutput1,
-      encryptedOutput2,
-      extAmount.toString(),
-      BigNumber.from(fee).toString(),
-      recipient,
-      relayer,
-      refund.toString(),
-      wrapUnwrapToken
-    );
-    return { extData, extDataHash };
-  }
 
   public generateOutputSemaphoreProof(outputs: Utxo[]): MerkleProof[] {
     const outSemaphoreProofs = outputs.map((utxo) => {
@@ -734,17 +610,15 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     const vanchorRoots = await this.populateVAnchorRootsForProof();
     let vanchorMerkleProof: MerkleProof[];
     if (Object.keys(leavesMap).length === 0) {
-      vanchorMerkleProof = inputs.map((x) => this.getMerkleProof2(x));
+      vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x));
     } else {
       const treeChainId: string | undefined = txOptions.treeChainId;
       if(treeChainId === undefined) {
         throw new Error('Need to specify chainId on txOptions in order to generate merkleProof correctly')
       }
       const treeElements = leavesMap[treeChainId]
-      vanchorMerkleProof = inputs.map((x) => this.getMerkleProof2(x, treeElements));
-
+      vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x, treeElements));
     }
-
     const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
       vanchorRoots.map((root) => BigNumber.from(root)),
       chainId,

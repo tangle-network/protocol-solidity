@@ -17,10 +17,14 @@ import {
   CircomUtxo,
   MerkleTree,
   MerkleProof,
+  getVAnchorExtDataHash,
 } from '@webb-tools/sdk-core';
 import { hexToU8a, getChainIdType, u8aToHex, ZERO_BYTES32 } from '@webb-tools/utils';
 import { checkNativeAddress, splitTransactionOptions } from './utils';
 import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
+import {
+  IVariableAnchorExtData,
+} from '@webb-tools/interfaces';
 
 type WebbContracts =
   | VAnchorContract
@@ -38,13 +42,13 @@ function isOpenVAnchorContract(contract: WebbContracts): contract is OpenVAnchor
     !('transact' in contract)
   );
 }
-
 export abstract class WebbBridge {
   signer: ethers.Signer;
   contract: WebbContracts;
 
   tree: MerkleTree;
   treeHeight: number;
+  latestSyncedBlock: number;
 
   // The depositHistory stores leafIndex => information to create proposals (new root)
   depositHistory: Record<number, string>;
@@ -53,6 +57,7 @@ export abstract class WebbBridge {
     this.contract = contract;
     this.signer = signer;
     this.treeHeight = treeHeight;
+    this.latestSyncedBlock = 0;
   }
 
   public static async generateUTXO(input: UtxoGenInput): Promise<Utxo> {
@@ -209,7 +214,7 @@ export abstract class WebbBridge {
     return options;
   }
 
-  public async encodeSolidityProof(fullProof: any, calldata: any): Promise<String> {
+  public async encodeSolidityProof(calldata: any): Promise<String> {
     const proof = JSON.parse('[' + calldata + ']');
     const pi_a = proof[0];
     const pi_b = proof[1];
@@ -285,6 +290,57 @@ export abstract class WebbBridge {
       toHex(nonce, 4).substr(2) +
       toHex(newHandler, 20).substr(2)
     );
+  }
+  public async getClassAndContractRoots() {
+    return [this.tree.root(), await this.contract.getLastRoot()];
+  }
+
+  public async generateExtData(
+    recipient: string,
+    extAmount: BigNumber,
+    relayer: string,
+    fee: BigNumber,
+    refund: BigNumber,
+    wrapUnwrapToken: string,
+    encryptedOutput1: string,
+    encryptedOutput2: string
+  ): Promise<{ extData: IVariableAnchorExtData; extDataHash: BigNumber }> {
+    const extData = {
+      recipient: toFixedHex(recipient, 20),
+      extAmount: toFixedHex(extAmount),
+      relayer: toFixedHex(relayer, 20),
+      fee: toFixedHex(fee),
+      refund: toFixedHex(refund.toString()),
+      token: toFixedHex(wrapUnwrapToken, 20),
+      encryptedOutput1,
+      encryptedOutput2,
+    };
+
+    const extDataHash = getVAnchorExtDataHash(
+      encryptedOutput1,
+      encryptedOutput2,
+      extAmount.toString(),
+      BigNumber.from(fee).toString(),
+      recipient,
+      relayer,
+      refund.toString(),
+      wrapUnwrapToken
+    );
+    return { extData, extDataHash };
+  }
+
+
+  public static convertToExtDataStruct(args: any[]): IVariableAnchorExtData {
+    return {
+      recipient: args[0],
+      extAmount: args[1],
+      relayer: args[2],
+      fee: args[3],
+      refund: args[4],
+      token: args[5],
+      encryptedOutput1: args[6],
+      encryptedOutput2: args[7],
+    };
   }
 
   /**
