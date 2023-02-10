@@ -359,7 +359,7 @@ describe('VAnchor for 1 max edge', () => {
       });
     });
 
-    it.only('should refund native tokens', async () => {
+    it('should refund native tokens', async () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
@@ -412,7 +412,7 @@ describe('VAnchor for 1 max edge', () => {
       );
     });
 
-    it.only('should not refund upon deposit', async () => {
+    it('should not refund upon deposit', async () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
@@ -440,7 +440,7 @@ describe('VAnchor for 1 max edge', () => {
       );
     });
 
-    it.only('should not refund upon internal transfer', async () => {
+    it('should not refund upon internal transfer', async () => {
       // Alice deposits into tornado pool
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
