@@ -52,7 +52,7 @@ describe('VAnchor for 1 max edge', () => {
 
   const levels = 30;
   let fee = BigInt(new BN(`100000000000000000`).toString());
-  let recipient = '0x1111111111111111111111111111111111111111';
+  let recipient;
   let verifier: Verifier;
   let hasherInstance: any;
   let token: ERC20PresetMinterPauser;
@@ -117,6 +117,7 @@ describe('VAnchor for 1 max edge', () => {
     const signers = await ethers.getSigners();
     const wallet = signers[0];
     sender = wallet;
+    recipient = signers[1].address;
     // create poseidon hasher
     const hasherInstance = await PoseidonHasher.createPoseidonHasher(wallet);
 
@@ -356,6 +357,140 @@ describe('VAnchor for 1 max edge', () => {
       await anchor.transact([aliceDepositUtxo], [aliceRefreshUtxo], 0, 0, '0', '0', '', {
         [chainID.toString()]: anchorLeaves,
       });
+    });
+
+    it.only('should refund native tokens', async () => {
+      // Alice deposits into tornado pool
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
+
+      await anchor.registerAndTransact(
+        sender.address,
+        aliceDepositUtxo.keypair.toString(),
+        [],
+        [aliceDepositUtxo],
+        0,
+        0,
+        recipient,
+        '0',
+        token.address,
+        {}
+      );
+
+      const ethBalanceBefore = await ethers.provider.getBalance(recipient);
+
+      const aliceWithdrawUtxo = await CircomUtxo.generateUtxo({
+        curve: 'Bn254',
+        backend: 'Circom',
+        chainId: BigNumber.from(chainID).toString(),
+        originChainId: BigNumber.from(chainID).toString(),
+        amount: BigNumber.from(5e6).toString(),
+        blinding: hexToU8a(randomBN().toHexString()),
+        keypair: aliceDepositUtxo.keypair,
+      });
+
+      const anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
+
+      await anchor.transact(
+        [aliceDepositUtxo],
+        [aliceWithdrawUtxo],
+        0,
+        BigNumber.from(1e4),
+        recipient,
+        '0',
+        '',
+        {
+          [chainID.toString()]: anchorLeaves,
+        }
+      );
+
+      const ethBalanceAfter = await ethers.provider.getBalance(recipient);
+
+      assert.strictEqual(
+        ethBalanceAfter.sub(ethBalanceBefore).toString(),
+        BigNumber.from(1e4).toString()
+      );
+    });
+
+    it.only('should not refund upon deposit', async () => {
+      // Alice deposits into tornado pool
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
+
+      const ethBalanceBefore = await ethers.provider.getBalance(recipient);
+
+      await anchor.registerAndTransact(
+        sender.address,
+        aliceDepositUtxo.keypair.toString(),
+        [],
+        [aliceDepositUtxo],
+        0,
+        BigNumber.from(1e4),
+        recipient,
+        '0',
+        token.address,
+        {}
+      );
+
+      const ethBalanceAfter = await ethers.provider.getBalance(recipient);
+
+      assert.strictEqual(
+        ethBalanceAfter.sub(ethBalanceBefore).toString(),
+        BigNumber.from(0).toString()
+      );
+    });
+
+    it.only('should not refund upon internal transfer', async () => {
+      // Alice deposits into tornado pool
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
+
+      await anchor.registerAndTransact(
+        sender.address,
+        aliceDepositUtxo.keypair.toString(),
+        [],
+        [aliceDepositUtxo],
+        0,
+        0,
+        recipient,
+        '0',
+        token.address,
+        {}
+      );
+
+      const ethBalanceBefore = await ethers.provider.getBalance(recipient);
+
+      const aliceRefreshUtxo = await CircomUtxo.generateUtxo({
+        curve: 'Bn254',
+        backend: 'Circom',
+        chainId: BigNumber.from(chainID).toString(),
+        originChainId: BigNumber.from(chainID).toString(),
+        amount: BigNumber.from(aliceDepositAmount).toString(),
+        blinding: hexToU8a(randomBN().toHexString()),
+        keypair: aliceDepositUtxo.keypair,
+      });
+
+      const anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
+
+      await anchor.transact(
+        [aliceDepositUtxo],
+        [aliceRefreshUtxo],
+        0,
+        BigNumber.from(1e4),
+        recipient,
+        '0',
+        '',
+        {
+          [chainID.toString()]: anchorLeaves,
+        }
+      );
+
+      const ethBalanceAfter = await ethers.provider.getBalance(recipient);
+
+      assert.strictEqual(
+        ethBalanceAfter.sub(ethBalanceBefore).toString(),
+        BigNumber.from(0).toString()
+      );
     });
 
     it('should spend input utxo and split', async () => {

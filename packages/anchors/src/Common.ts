@@ -180,7 +180,11 @@ export class WebbBridge {
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
   }
 
-  public async getWrapUnwrapOptions(extAmount: BigNumber, wrapUnwrapToken: string) {
+  public async getWrapUnwrapOptions(
+    extAmount: BigNumber,
+    refund: BigNumber,
+    wrapUnwrapToken: string
+  ) {
     let options = {};
     if (extAmount.gt(0) && checkNativeAddress(wrapUnwrapToken)) {
       let tokenWrapper = TokenWrapper__factory.connect(await this.contract.token(), this.signer);
@@ -189,8 +193,10 @@ export class WebbBridge {
       options = {
         value: valueToSend.toHexString(),
       };
-    } else {
-      options = {};
+    } else if (extAmount.lt(0)) {
+      options = {
+        value: refund.toHexString(),
+      };
     }
     return options;
   }

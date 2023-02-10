@@ -729,7 +729,11 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
       txOptions
     );
 
-    const options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
+    const options = await this.getWrapUnwrapOptions(
+      extAmount,
+      BigNumber.from(refund),
+      wrapUnwrapToken
+    );
 
     const tx = await this.contract.transact(
       publicInputs.proof,
