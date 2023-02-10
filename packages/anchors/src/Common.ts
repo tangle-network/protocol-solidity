@@ -198,6 +198,10 @@ export class WebbBridge {
         value: refund.toHexString(),
       };
     }
+
+    if (refund.gt(0) && extAmount.gte(0)) {
+      throw new Error('Refund should be zero');
+    }
     return options;
   }
 
