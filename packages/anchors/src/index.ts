@@ -1,7 +1,6 @@
 export { AnchorHandler } from './AnchorHandler';
 export { BatchTreeUpdater } from './BatchTreeUpdater';
 export { ChainalysisVAnchor } from './ChainalysisVAnchor';
-export { Deployer } from './Deployer';
 export { IdentityVAnchor } from './IdentityVAnchor';
 export { OpenVAnchor } from './OpenVAnchor';
 export { PoseidonHasher } from './PoseidonHasher';

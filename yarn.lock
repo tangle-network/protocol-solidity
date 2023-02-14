@@ -5462,6 +5462,17 @@
     "@webb-tools/utils" "^0.4.2"
     ethers "5.7.0"
 
+"@webb-tools/tokens@0.5.13":
+  version "0.5.13"
+  resolved "https://registry.yarnpkg.com/@webb-tools/tokens/-/tokens-0.5.13.tgz#14bd693d198be3acd039cf313a5fba2517f4a4ad"
+  integrity sha512-w7jLUU7HEWDVbVLtoq3uXLEzRMoRB9fhCVFbXa8RH8hoVBxoxN3FCVZTdBw+BgvuMRGC5B8cjGgZ6Jn2TaVF1w==
+  dependencies:
+    "@webb-tools/anchors" "^0.5.13"
+    "@webb-tools/contracts" "^0.5.13"
+    "@webb-tools/sdk-core" "0.1.4-119"
+    "@webb-tools/utils" "^0.5.7"
+    ethers "5.7.0"
+
 "@webb-tools/tokens@^0.2.6", "@webb-tools/tokens@^0.2.7", "@webb-tools/tokens@^0.2.9":
   version "0.2.9"
   resolved "https://registry.yarnpkg.com/@webb-tools/tokens/-/tokens-0.2.9.tgz#00de63cb9f2e613a30779d6657d27227eb18d6d9"

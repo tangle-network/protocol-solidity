@@ -23,7 +23,7 @@ import {
   VerifierMASP216__factory as VerifierMASP216__factory,
   VerifierMASP816__factory as VerifierMASP816__factory,
 } from '@webb-tools/contracts';
-import { Deployer } from '@webb-tools/anchors';
+import { Deployer } from '@webb-tools/create2-utils';
 
 // type V22Factory = Verifier22__factory | VerifierID22__factory | VerifierF22__factory
 // type V82Factory = Verifier82__factory | VerifierID82__factory | VerifierF82__factory
