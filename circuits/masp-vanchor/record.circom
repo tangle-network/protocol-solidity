@@ -4,26 +4,26 @@ include "../../node_modules/circomlib/circuits/poseidon.circom";
 
 // Poseidon(PublicKey_X, PublicKey_Y, blinding)
 template InnerPartialRecord() {
-    signal input pk_X;
-    signal input pk_Y;
     signal input blinding;
     signal output innerPartialRecord;
 
-    component hasher = Poseidon(3);
-    hasher.inputs[0] <== pk_X;
-    hasher.inputs[1] <== pk_Y;
-    hasher.inputs[2] <== blinding;
+    component hasher = Poseidon(1);
+    hasher.inputs[0] <== blinding;
     innerPartialRecord <== hasher.out;
 }
 
 template PartialRecord() {
     signal input chainID;
+    signal input pk_X;
+    signal input pk_Y;
     signal input innerPartialRecord;
     signal output partialRecord;
 
-    component hasher = Poseidon(2);
+    component hasher = Poseidon(4);
     hasher.inputs[0] <== chainID;
-    hasher.inputs[1] <== innerPartialRecord;
+    hasher.inputs[1] <== pk_X;
+    hasher.inputs[2] <== pk_Y;
+    hasher.inputs[3] <== innerPartialRecord;
     partialRecord <== hasher.out;
 }
 

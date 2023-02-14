@@ -148,12 +148,12 @@ template Reward(levels, zeroLeaf, length) {
 	// Compute MASP commitment
 	// MASP Inner Partial Commitment
 	component noteInnerPartialCommitmentHasher = InnerPartialRecord();
-	noteInnerPartialCommitmentHasher.pk_X <== noteKeyComputer.pk_X;
-	noteInnerPartialCommitmentHasher.pk_Y <== noteKeyComputer.pk_Y;
 	noteInnerPartialCommitmentHasher.blinding <== noteBlinding;
 	// MASP Partial Commitment
 	component notePartialCommitmentHasher = PartialRecord();
 	notePartialCommitmentHasher.chainID <== noteChainID;
+	notePartialCommitmentHasher.pk_X <== noteKeyComputer.pk_X;
+	notePartialCommitmentHasher.pk_Y <== noteKeyComputer.pk_Y;
 	notePartialCommitmentHasher.innerPartialRecord <== noteInnerPartialCommitmentHasher.innerPartialRecord;
 
 	// MASP Full Commitment
