@@ -18,14 +18,8 @@ import {
   MerkleTree,
 } from '@webb-tools/sdk-core';
 import { hexToU8a, getChainIdType } from '@webb-tools/utils';
+import { checkNativeAddress } from './utils';
 
-const zeroAddress = '0x0000000000000000000000000000000000000000';
-function checkNativeAddress(tokenAddress: string): boolean {
-  if (tokenAddress === zeroAddress || tokenAddress === '0') {
-    return true;
-  }
-  return false;
-}
 type WebbContracts =
   | VAnchorContract
   | ChainalysisVAnchorContract
@@ -96,12 +90,14 @@ export class WebbBridge {
     }
     return false;
   }
+
   public async createResourceId(): Promise<string> {
     return toHex(
       this.contract.address + toHex(getChainIdType(await this.signer.getChainId()), 6).substr(2),
       32
     );
   }
+
   public async getMinWithdrawalLimitProposalData(
     _minimalWithdrawalAmount: string
   ): Promise<string> {
@@ -183,7 +179,12 @@ export class WebbBridge {
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
   }
-  public async getWrapUnwrapOptions(extAmount, wrapUnwrapToken) {
+
+  public async getWrapUnwrapOptions(
+    extAmount: BigNumber,
+    refund: BigNumber,
+    wrapUnwrapToken: string
+  ) {
     let options = {};
     if (extAmount.gt(0) && checkNativeAddress(wrapUnwrapToken)) {
       let tokenWrapper = TokenWrapper__factory.connect(await this.contract.token(), this.signer);
@@ -192,11 +193,18 @@ export class WebbBridge {
       options = {
         value: valueToSend.toHexString(),
       };
-    } else {
-      options = {};
+    } else if (extAmount.lt(0)) {
+      options = {
+        value: refund.toHexString(),
+      };
+    }
+
+    if (refund.gt(0) && extAmount.gte(0)) {
+      throw new Error('Refund should be zero');
     }
     return options;
   }
+
   public async encodeSolidityProof(fullProof: any, calldata: any): Promise<String> {
     const proof = JSON.parse('[' + calldata + ']');
     const pi_a = proof[0];

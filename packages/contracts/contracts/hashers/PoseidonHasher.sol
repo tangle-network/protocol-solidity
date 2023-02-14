@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.5;
 
 import "./IHasher.sol";
 import { PoseidonT3, PoseidonT4, PoseidonT5, PoseidonT6 } from "./Poseidon.sol";

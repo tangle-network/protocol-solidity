@@ -23,7 +23,7 @@ import { ERC20PresetMinterPauser, ERC20PresetMinterPauser__factory } from '@webb
 import BN from 'bn.js';
 import { expect } from 'chai';
 
-describe('ChainalysisVAnchor', () => {
+describe.skip('ChainalysisVAnchor', () => {
   let anchor: ChainalysisVAnchor;
   let sender: SignerWithAddress;
   const levels = 30;

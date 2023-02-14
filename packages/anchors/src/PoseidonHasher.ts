@@ -15,6 +15,7 @@ export class PoseidonHasher {
   constructor(contract: PoseidonHasherContract) {
     this.contract = contract;
   }
+
   public static async create2PoseidonHasher(
     deployer: Deployer,
     salt: string,

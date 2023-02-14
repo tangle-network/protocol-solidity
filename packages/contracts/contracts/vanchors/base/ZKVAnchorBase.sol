@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.5;
 
 import "./VAnchorBase.sol";
 import "../../interfaces/verifiers/ISetVerifier.sol";
@@ -139,6 +139,13 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 					_externalData.token,
 					_externalData.recipient,
 					uint256(-_externalData.extAmount)
+				);
+			}
+			if (_externalData.refund > 0) {
+				_processRefund(
+					_externalData.refund,
+					_externalData.recipient,
+					_externalData.relayer
 				);
 			}
 		}

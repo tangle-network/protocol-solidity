@@ -1,6 +1,5 @@
 /* eslint-disable camelcase */
 /* eslint-disable sort-keys */
-const assert = require('assert');
 import { BigNumber, ethers } from 'ethers';
 import { groth16 } from 'snarkjs';
 
