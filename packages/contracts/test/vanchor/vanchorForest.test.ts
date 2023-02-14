@@ -8,6 +8,7 @@ const TruffleAssert = require('truffle-assertions');
 
 // Typechain generated bindings for contracts
 // These contracts are included in packages, so should be tested
+// import { toFixedHex, toHex, MerkleTree, MerkleProof } from '@webb-tools/sdk-core';
 import {
   ERC20PresetMinterPauser,
   ERC20PresetMinterPauser__factory,
@@ -36,14 +37,13 @@ import {
   getVAnchorExtDataHash,
   generateWithdrawProofCallData,
   CircomUtxo,
+  toHex,
 } from '@webb-tools/sdk-core';
 import { VAnchorForest, PoseidonHasher } from '@webb-tools/anchors';
 import { ForestVerifier } from '@webb-tools/vbridge';
-import { writeFileSync } from 'fs';
-import { SetupTxVAnchorMock } from './mocks/SetupTxVAnchorMock';
+import { startGanacheServer } from '@webb-tools/test-utils';
 
 const BN = require('bn.js');
-
 const path = require('path');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
@@ -1181,15 +1181,11 @@ describe('VAnchorForest for 1 max edge', () => {
       ];
       let forestPathElements = [
         fakeForestProof.pathElements.map((bignum) => bignum.toString()),
-        emptyMerkleProof.forestPathElements.map((bignum) => bignum.toString()),
+        emptyMerkleProof.forestPathElements.map((bignum: BigNumber) => bignum.toString()),
       ];
       let subtreeIndices = [
         MerkleTree.calculateIndexFromPathIndices(fakeSubtreeProof.pathIndices),
         0,
-      ];
-      let subtreePathElements = [
-        fakeSubtreeProof.pathElements.map((bignum) => bignum.toString()),
-        emptyMerkleProof.pathElements.map((bignum) => bignum.toString()),
       ];
 
       const roots = await anchor.populateRootsForProof();
@@ -1262,11 +1258,6 @@ describe('VAnchorForest for 1 max edge', () => {
       }
 
       const publicInputs = await anchor.generatePublicInputs(proof);
-      const contractInput = {
-        ...publicInputs,
-        outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
-      };
-
       await TruffleAssert.reverts(
         anchor.contract.transact(
           publicInputs.proof,
@@ -1427,8 +1418,6 @@ describe('VAnchorForest for 1 max edge', () => {
       await wrappedToken.grantRole(MINTER_ROLE, wrappedAnchor.contract.address);
 
       await token.approve(wrappedToken.address, '1000000000000000000');
-      const balTokenBeforeDepositSender = await token.balanceOf(sender.address);
-
       const aliceDepositAmount = 1e7;
       const numOfInsertions = 31;
       for (let i = 0; i < numOfInsertions; i++) {
@@ -1522,8 +1511,6 @@ describe('VAnchorForest for 1 max edge', () => {
       });
       //create a deposit on the anchor already setup
       await wrappedVAnchor.transact([], [aliceDepositUtxo], 0, 0, '0', '0', token.address, {});
-
-      let anchorLeaves = wrappedVAnchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
       // Limitations on UTXO index readonly value. create a new UTXO with the proper index.
       const aliceDepositIndex = wrappedVAnchor.tree.getIndexByElement(aliceDepositUtxo.commitment);
@@ -1626,9 +1613,6 @@ describe('VAnchorForest for 1 max edge', () => {
         amount: aliceDepositAmount.toString(),
       });
 
-      const balWrappedTokenBeforeDepositAnchor = await wrappedToken.balanceOf(
-        wrappedVAnchor.contract.address
-      );
       const balUnwrappedTokenBeforeDepositSender = await token.balanceOf(sender.address);
       const balUnwrappedTokenBeforeDepositWrapper = await token.balanceOf(wrappedToken.address);
 
@@ -1833,6 +1817,223 @@ describe('VAnchorForest for 1 max edge', () => {
       await TruffleAssert.fails(
         wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1))
       );
+    });
+    describe('#cross-chain test', () => {
+      const SECOND_CHAIN_ID = 10001;
+      const chainID2 = getChainIdType(SECOND_CHAIN_ID);
+      let ganacheServer: any;
+      let ganacheAnchor: VAnchorForest;
+      let ganacheProvider = new ethers.providers.JsonRpcProvider(
+        `http://localhost:${SECOND_CHAIN_ID}`
+      );
+      ganacheProvider.pollingInterval = 1;
+      let ganacheWallet = new ethers.Wallet(
+        'c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e',
+        ganacheProvider
+      );
+
+      let ganacheVerifier: ForestVerifier
+      let ganacheToken: ERC20PresetMinterPauser;
+      let ganacheWrappedToken: WrappedToken;
+
+      before('start ganache server', async () => {
+        ganacheServer = await startGanacheServer(SECOND_CHAIN_ID, SECOND_CHAIN_ID, [
+          {
+            balance: '0x1000000000000000000000',
+            secretKey: '0xc0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e',
+          },
+        ]);
+        await ganacheProvider.ready;
+
+      });
+      beforeEach(async () => {
+        const ganacheHasherInstance = await PoseidonHasher.createPoseidonHasher(ganacheWallet);
+
+        // create bridge verifier
+        ganacheVerifier = await ForestVerifier.createVerifier(ganacheWallet);
+
+        // create token
+        const tokenFactory = new ERC20PresetMinterPauser__factory(ganacheWallet);
+        ganacheToken = await tokenFactory.deploy('test token 2', 'TEST 2');
+        await ganacheToken.deployed();
+        await ganacheToken.mint(ganacheWallet.address, '10000000000000000000000');
+
+        // create wrapped token
+        const name = 'webbETH2';
+        const symbol = 'webbETH2';
+        const dummyFeeRecipient = '0x0000000000010000000010000000000000000000';
+        const wrappedTokenFactory = new WrappedTokenFactory(ganacheWallet);
+        ganacheWrappedToken = await wrappedTokenFactory.deploy(name, symbol);
+        await ganacheWrappedToken.deployed();
+        await ganacheWrappedToken.initialize(
+          0,
+          dummyFeeRecipient,
+          ganacheWallet.address,
+          '10000000000000000000000000',
+          true,
+          ganacheWallet.address
+        );
+        await ganacheWrappedToken.add(ganacheToken.address, (await ganacheWrappedToken.proposalNonce()).add(1));
+
+        // create Anchor
+        ganacheAnchor = await VAnchorForest.createVAnchor(
+          ganacheVerifier.contract.address,
+          forestLevels,
+          subtreeLevels,
+          ganacheHasherInstance.contract.address,
+          ganacheWallet.address,
+          ganacheWrappedToken.address,
+          1,
+          zkComponents2_2,
+          zkComponents16_2,
+          ganacheWallet
+        );
+
+        await ganacheAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
+        await ganacheAnchor.contract.configureMaximumDepositLimit(
+          BigNumber.from(tokenDenomination).mul(1_000_000),
+          2
+        );
+
+        const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+        await ganacheWrappedToken.grantRole(MINTER_ROLE, ganacheAnchor.contract.address);
+        await ganacheToken.approve(ganacheWrappedToken.address, '1000000000000000000000000');
+      });
+      it('should initialize', async () => {
+        const maxEdges = await ganacheAnchor.contract.maxEdges();
+        assert.strictEqual(maxEdges.toString(), `${MAX_EDGES}`);
+      });
+      it('should transact', async () => {
+        // Alice deposits into tornado pool
+        const aliceKeypair = new Keypair();
+        const aliceDepositAmount = 1e7;
+        // const aliceDepositUtxo = await generateUTXOForTest(chainID2, aliceDepositAmount);
+        const aliceDepositUtxo = await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          chainId: chainID2.toString(),
+          originChainId: chainID2.toString(),
+          amount: aliceDepositAmount.toString(),
+          keypair: aliceKeypair,
+        });
+        const aliceBalanceBeforeDeposit = await ganacheToken.balanceOf(ganacheWallet.address);
+
+        ganacheAnchor.setSigner(ganacheWallet)
+        await ganacheAnchor.registerAndTransact(
+          ganacheWallet.address,
+          aliceDepositUtxo.keypair.toString(),
+          [],
+          [aliceDepositUtxo],
+          0,
+          0,
+          '0',
+          '0',
+          ganacheToken.address,
+          {},
+          { gasLimit: '0x5B8D80' }
+        );
+        const aliceBalanceAfterDeposit = await ganacheToken.balanceOf(ganacheWallet.address);
+        assert.strictEqual(aliceBalanceBeforeDeposit.sub(aliceDepositAmount).toString(), aliceBalanceAfterDeposit.toString())
+      });
+      it('should cross chain withdraw', async () => {
+        // Alice deposits into tornado pool
+        const aliceKeypair = new Keypair();
+        const aliceDepositAmount = 1e7;
+        // const aliceDepositUtxo = await generateUTXOForTest(chainID2, aliceDepositAmount);
+        const aliceDepositUtxo = await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          chainId: chainID.toString(),
+          originChainId: chainID2.toString(),
+          amount: aliceDepositAmount.toString(),
+          keypair: aliceKeypair,
+        });
+        const aliceBalanceBeforeDeposit = await ganacheToken.balanceOf(ganacheWallet.address);
+
+        ganacheAnchor.setSigner(ganacheWallet)
+        await ganacheAnchor.registerAndTransact(
+          ganacheWallet.address,
+          aliceDepositUtxo.keypair.toString(),
+          [],
+          [aliceDepositUtxo],
+          0,
+          0,
+          '0',
+          '0',
+          ganacheToken.address,
+          {},
+          { gasLimit: '0x5B8D80' }
+        );
+        const aliceBalanceAfterDeposit = await ganacheToken.balanceOf(ganacheWallet.address);
+        // making a deposit or the vanchor will not have enough tokens to withdraw
+        const bobKeypair = new Keypair();
+        // const aliceDepositUtxo = await generateUTXOForTest(chainID2, aliceDepositAmount);
+        const bobDepositUtxo = await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          chainId: chainID.toString(),
+          originChainId: chainID.toString(),
+          amount: aliceDepositAmount.toString(),
+          keypair: bobKeypair,
+        });
+        const bobBalanceBeforeDeposit = await token.balanceOf(sender.address);
+
+        ganacheAnchor.setSigner(sender)
+        await anchor.registerAndTransact(
+          sender.address,
+          bobDepositUtxo.keypair.toString(),
+          [],
+          [bobDepositUtxo],
+          0,
+          0,
+          '0',
+          '0',
+          token.address,
+          {}
+        );
+        const bobBalanceAfterDeposit = await token.balanceOf(sender.address);
+        assert.strictEqual(bobBalanceBeforeDeposit.sub(aliceDepositAmount).toString(), bobBalanceAfterDeposit.toString())
+
+        const aliceWithdrawAmount = 5e6;
+        const aliceChangeUtxo = await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          chainId: chainID2.toString(),
+          originChainId: chainID2.toString(),
+          amount: aliceWithdrawAmount.toString(),
+          keypair: aliceDepositUtxo.keypair,
+        });
+        const resourceId = toHex(
+          ganacheAnchor.contract.address + toHex(chainID, 6).substr(2),
+          32
+        );
+
+        const subtreeLeaves = ganacheAnchor.tree.elements().map((el: BigNumber) => hexToU8a(el.toHexString()));
+        const forestLeaves = ganacheAnchor.forest.elements().map((el: BigNumber) => hexToU8a(el.toHexString()));
+        const txOptions = { treeChainId: chainID2.toString(), forestLeaves: forestLeaves, gasLimit: '0x5B8D80' };
+        const contractRoot = await ganacheAnchor.contract.getLastRoot();
+
+        const tx = await anchor.contract.updateEdge(contractRoot, 0, resourceId);
+        const receipt = await tx.wait();
+
+        assert.strictEqual(aliceBalanceBeforeDeposit.sub(aliceDepositAmount).toString(), aliceBalanceAfterDeposit.toString())
+        await anchor.registerAndTransact(
+          sender.address,
+          aliceDepositUtxo.keypair.toString(),
+           [aliceDepositUtxo],
+           [aliceChangeUtxo],
+           0,
+           0,
+           sender.address,
+           '0',
+            token.address,
+           { [chainID2]: subtreeLeaves },
+           txOptions
+           // { treeChainId: chainID.toString(), forestLeaves }
+        );
+        // const aliceBalanceFinal = await token.balanceOf(sender.address);
+        // assert.strictEqual(aliceBalanceAfterDeposit.add(aliceWithdrawAmount).toString(), aliceBalanceFinal.toString())
+      });
     });
   });
 });
