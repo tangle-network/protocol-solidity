@@ -547,7 +547,11 @@ export class VAnchor extends WebbBridge implements IVAnchor {
       leavesMap
     );
 
-    let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
+    let options = await this.getWrapUnwrapOptions(
+      extAmount,
+      BigNumber.from(refund),
+      wrapUnwrapToken
+    );
 
     const tx = await this.contract.transact(
       publicInputs.proof,
@@ -623,7 +627,11 @@ export class VAnchor extends WebbBridge implements IVAnchor {
       leavesMap
     );
 
-    let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
+    let options = await this.getWrapUnwrapOptions(
+      extAmount,
+      BigNumber.from(refund),
+      wrapUnwrapToken
+    );
 
     let tx = await this.contract.registerAndTransact(
       { owner, keyData: keyData },
