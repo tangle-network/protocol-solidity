@@ -32,15 +32,18 @@ export class MaspUtxo {
   }
 
   public getInnerPartialCommitment(): BigNumber {
-    return BigNumber.from(
-      poseidon([
-        this.blinding,
-      ])
-    );
+    return BigNumber.from(poseidon([this.blinding]));
   }
 
   public getPartialCommitment(): BigNumber {
-    return BigNumber.from(poseidon([this.chainID, this.maspKey.getPublicKey()[0].toString(), this.maspKey.getPublicKey()[1].toString(),this.getInnerPartialCommitment().toString()]));
+    return BigNumber.from(
+      poseidon([
+        this.chainID,
+        this.maspKey.getPublicKey()[0].toString(),
+        this.maspKey.getPublicKey()[1].toString(),
+        this.getInnerPartialCommitment().toString(),
+      ])
+    );
   }
 
   // TODO: Fill in babyjubjub encrypt function

@@ -56,26 +56,26 @@ template Swap(levels, length) {
     signal input aliceChangeTokenID;
     signal input aliceChangeAmount;
     signal input aliceChangeInnerPartialRecord;
-    signal input aliceChangeRecord; 
+    signal input aliceChangeRecord; // Public Input
     signal input bobChangeChainID;
     signal input bobChangeAssetID;
     signal input bobChangeTokenID;
     signal input bobChangeAmount;
     signal input bobChangeInnerPartialRecord;
-    signal input bobChangeRecord; 
+    signal input bobChangeRecord; // Public Input
 
     signal input aliceReceiveChainID;
     signal input aliceReceiveAssetID;
     signal input aliceReceiveTokenID;
     signal input aliceReceiveAmount;
     signal input aliceReceiveInnerPartialRecord;
-    signal input aliceReceiveRecord;
+    signal input aliceReceiveRecord; // Public Input
     signal input bobReceiveChainID;
     signal input bobReceiveAssetID;
     signal input bobReceiveTokenID;
     signal input bobReceiveAmount;
     signal input bobReceiveInnerPartialRecord;
-    signal input bobReceiveRecord; 
+    signal input bobReceiveRecord; // Public Input
 
     // Range check receive and change record amounts
     component aliceChangeAmountCheck = Num2Bits(248);
@@ -130,7 +130,7 @@ template Swap(levels, length) {
     bobPkComputer.ak_X <== bob_ak_X;
     bobPkComputer.ak_Y <== bob_ak_Y;
     bob_pk_X <== bobPkComputer.pk_X;
-    bob_pk_Y <== alicePkComputer.pk_Y;
+    bob_pk_Y <== bobPkComputer.pk_Y;
 
     component swapMessageHasher = Poseidon(6);
     swapMessageHasher.inputs[0] <== aliceChangeRecord;
@@ -142,8 +142,8 @@ template Swap(levels, length) {
 
     component aliceSigChecker = EdDSAPoseidonVerifier();
     aliceSigChecker.enabled <== 1;
-    aliceSigChecker.Ax <== alice_pk_X;
-    aliceSigChecker.Ay <== alice_pk_Y;
+    aliceSigChecker.Ax <== alice_ak_X;
+    aliceSigChecker.Ay <== alice_ak_Y;
     aliceSigChecker.S <== aliceSig;
     aliceSigChecker.R8x <== alice_R8x;
     aliceSigChecker.R8y <== alice_R8y;
@@ -151,8 +151,8 @@ template Swap(levels, length) {
 
     component bobSigChecker = EdDSAPoseidonVerifier();
     bobSigChecker.enabled <== 1;
-    bobSigChecker.Ax <== bob_pk_X;
-    bobSigChecker.Ay <== bob_pk_Y;
+    bobSigChecker.Ax <== bob_ak_X;
+    bobSigChecker.Ay <== bob_ak_Y;
     bobSigChecker.S <== bobSig;
     bobSigChecker.R8x <== bob_R8x;
     bobSigChecker.R8y <== bob_R8y;
