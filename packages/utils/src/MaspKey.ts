@@ -6,6 +6,7 @@ const { Scalar } = require('ffjavascript');
 // sk -> ak -> vk -> pk
 export class MaspKey {
   private sk;
+  hashed_sk;
   ak;
   vk;
   pk;

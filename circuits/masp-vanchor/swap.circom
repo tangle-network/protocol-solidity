@@ -7,7 +7,7 @@ include "./record.circom";
 include "./nullifier.circom";
 include "./key.circom";
 
-// Swap message is (alice_pk, bob_pk, aliceChangeRecord, aliceReceiveRecord, bobChangeRecord, bobReceiveRecord, t, t')
+// Swap message is (aliceChangeRecord, aliceReceiveRecord, bobChangeRecord, bobReceiveRecord, t, t')
 // We check a Poseidon Hash of message is signed by both parties
 
 template Swap(levels, length) {
@@ -132,17 +132,13 @@ template Swap(levels, length) {
     bob_pk_X <== bobPkComputer.pk_X;
     bob_pk_Y <== alicePkComputer.pk_Y;
 
-    component swapMessageHasher = Poseidon(10);
-    swapMessageHasher.inputs[0] <== alice_pk_X;
-    swapMessageHasher.inputs[1] <== alice_pk_Y;
-    swapMessageHasher.inputs[2] <== bob_pk_X;
-    swapMessageHasher.inputs[3] <== bob_pk_Y;
-    swapMessageHasher.inputs[4] <== aliceChangeRecord;
-    swapMessageHasher.inputs[5] <== aliceReceiveRecord;
-    swapMessageHasher.inputs[6] <== bobChangeRecord;
-    swapMessageHasher.inputs[7] <== bobReceiveRecord;
-    swapMessageHasher.inputs[8] <== t;
-    swapMessageHasher.inputs[9] <== tPrime;
+    component swapMessageHasher = Poseidon(6);
+    swapMessageHasher.inputs[0] <== aliceChangeRecord;
+    swapMessageHasher.inputs[1] <== aliceReceiveRecord;
+    swapMessageHasher.inputs[2] <== bobChangeRecord;
+    swapMessageHasher.inputs[3] <== bobReceiveRecord;
+    swapMessageHasher.inputs[4] <== t;
+    swapMessageHasher.inputs[5] <== tPrime;
 
     component aliceSigChecker = EdDSAPoseidonVerifier();
     aliceSigChecker.enabled <== 1;
