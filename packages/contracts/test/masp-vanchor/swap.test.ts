@@ -131,8 +131,8 @@ describe('swap snarkjs local proof', () => {
 
     const maspMerkleTree = new MerkleTree(levels);
 
-    await maspMerkleTree.insert(aliceSpendRecord.getCommitment());
-    await maspMerkleTree.insert(bobSpendRecord.getCommitment());
+    maspMerkleTree.insert(aliceSpendRecord.getCommitment());
+    maspMerkleTree.insert(bobSpendRecord.getCommitment());
     assert.strictEqual(maspMerkleTree.number_of_elements(), 2);
     const alicePath = maspMerkleTree.path(0);
     const aliceSpendPathElements = alicePath.pathElements.map((bignum: BigNumber) =>
@@ -140,11 +140,11 @@ describe('swap snarkjs local proof', () => {
     );
     const aliceSpendPathIndices = MerkleTree.calculateIndexFromPathIndices(alicePath.pathIndices);
     aliceSpendRecord.setIndex(BigNumber.from(0));
+
     const bobPath = maspMerkleTree.path(1);
     const bobSpendPathElements = bobPath.pathElements.map((bignum: BigNumber) => bignum.toString());
     const bobSpendPathIndices = MerkleTree.calculateIndexFromPathIndices(bobPath.pathIndices);
     bobSpendRecord.setIndex(BigNumber.from(1));
-    // Insert the spend records into a Merkle tree
 
     let t = new Date();
     let currentTimestamp = new Date();
@@ -152,6 +152,18 @@ describe('swap snarkjs local proof', () => {
 
     currentTimestamp.setMonth(3);
     tPrime.setMonth(5);
+
+    const swapMessageHash = poseidon([
+      aliceChangeRecord.getCommitment(),
+      aliceReceiveRecord.getCommitment(),
+      bobChangeRecord.getCommitment(),
+      bobReceiveRecord.getCommitment(),
+      t.getTime(),
+      tPrime.getTime(),
+    ]);
+
+    const aliceSig = eddsa.signPoseidon(aliceKey.sk, swapMessageHash);
+    const bobSig = eddsa.signPoseidon(bobKey.sk, swapMessageHash);
 
     const circuitInput = {
       aliceSpendAssetID: aliceSpendRecord.assetID,
@@ -164,6 +176,22 @@ describe('swap snarkjs local proof', () => {
       bobSpendInnerPartialRecord: bobSpendRecord.getInnerPartialCommitment(),
       t: t.getTime(),
       tPrime: tPrime.getTime(),
+
+      alice_ak_X: aliceKey.ak[0],
+      alice_ak_Y: aliceKey.ak[1],
+
+      bob_ak_X: bobKey.ak[0],
+      bob_ak_Y: bobKey.ak[1],
+
+      alice_R8x: aliceSig.R8[0],
+      alice_R8y: aliceSig.R8[1],
+
+      aliceSig: aliceSig.S,
+
+      bob_R8x: bobSig.R8[0],
+      bob_R8y: bobSig.R8[1],
+
+      bobSig: bobSig.S,
 
       aliceSpendPathElements: aliceSpendPathElements,
       aliceSpendPathIndices: aliceSpendPathIndices,
@@ -181,26 +209,26 @@ describe('swap snarkjs local proof', () => {
       aliceChangeAssetID: aliceChangeRecord.assetID,
       aliceChangeTokenID: aliceChangeRecord.tokenID,
       aliceChangeAmount: aliceChangeRecord.amount,
-      aliceChangePartialRecord: aliceChangeRecord.getPartialCommitment(),
+      aliceChangeInnerPartialRecord: aliceChangeRecord.getInnerPartialCommitment(),
       aliceChangeRecord: aliceChangeRecord.getCommitment(),
       bobChangeChainID: bobChangeRecord.chainID,
       bobChangeAssetID: bobChangeRecord.assetID,
       bobChangeTokenID: bobChangeRecord.tokenID,
       bobChangeAmount: bobChangeRecord.amount,
-      bobChangePartialRecord: bobChangeRecord.getPartialCommitment(),
+      bobChangeInnerPartialRecord: bobChangeRecord.getInnerPartialCommitment(),
       bobChangeRecord: bobChangeRecord.getCommitment(),
 
       aliceReceiveChainID: aliceReceiveRecord.chainID,
       aliceReceiveAssetID: aliceReceiveRecord.assetID,
       aliceReceiveTokenID: aliceReceiveRecord.tokenID,
       aliceReceiveAmount: aliceReceiveRecord.amount,
-      aliceReceivePartialRecord: aliceReceiveRecord.getPartialCommitment(),
+      aliceReceiveInnerPartialRecord: aliceReceiveRecord.getInnerPartialCommitment(),
       aliceReceiveRecord: aliceReceiveRecord.getCommitment(),
       bobReceiveChainID: bobReceiveRecord.chainID,
       bobReceiveAssetID: bobReceiveRecord.assetID,
       bobReceiveTokenID: bobReceiveRecord.tokenID,
       bobReceiveAmount: bobReceiveRecord.amount,
-      bobReceivePartialRecord: bobReceiveRecord.getPartialCommitment(),
+      bobReceiveInnerPartialRecord: bobReceiveRecord.getInnerPartialCommitment(),
       bobReceiveRecord: bobReceiveRecord.getCommitment(),
     };
 

@@ -7,7 +7,8 @@ import {
   TokenWrapperHandler,
 } from '@webb-tools/tokens';
 import { AnchorIdentifier, GovernorConfig, DeployerConfig } from '@webb-tools/interfaces';
-import { AnchorHandler, Deployer, PoseidonHasher, VAnchor } from '@webb-tools/anchors';
+import { AnchorHandler, PoseidonHasher, VAnchor } from '@webb-tools/anchors';
+import { Deployer } from '@webb-tools/create2-utils';
 import { getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { Verifier } from '@webb-tools/vbridge';
 import { DeterministicDeployFactory__factory } from '@webb-tools/contracts';
