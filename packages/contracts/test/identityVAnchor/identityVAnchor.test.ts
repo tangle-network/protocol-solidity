@@ -1542,7 +1542,7 @@ describe.only('IdentityVAnchor for 2 max edges', () => {
       expect(balTokenAfterWithdrawAndUnwrapSender).equal(balTokenBeforeDepositSender);
     });
   });
-    describe.only('#cross-chain test', () => {
+    describe('#cross-chain test', () => {
       const SECOND_CHAIN_ID = 10001;
       const chainID2 = getChainIdType(SECOND_CHAIN_ID);
       let ganacheServer: any;
@@ -1636,7 +1636,6 @@ describe.only('IdentityVAnchor for 2 max edges', () => {
           .withArgs(groupId, johnLeaf, ganacheGroup.root);
 
         const tx3 = await semaphore.updateEdge(groupId.toNumber(), group.root.toString(), 0, chainID2);
-        console.log(tx3)
 
         group.updateEdge(chainID2, ganacheGroup.root.toString())
         // create Anchor
@@ -1670,7 +1669,7 @@ describe.only('IdentityVAnchor for 2 max edges', () => {
         const maxEdges = await ganacheAnchor.contract.maxEdges();
         expect(maxEdges.toString()).to.equal(`1`);
       });
-      it.only('john should be able to deposit on chainB', async () => {
+      it('john should be able to deposit on chainB', async () => {
         const relayer = '0x2111111111111111111111111111111111111111';
         const johnDepositAmount = 1e7;
         const johnDepositUtxo = await CircomUtxo.generateUtxo({
@@ -1698,9 +1697,8 @@ describe.only('IdentityVAnchor for 2 max edges', () => {
           '',
           {},
           { gasLimit: '0x5B8D80',  ...txOptions});
-        console.log('end')
       });
-      it.only('john should be able to deposit on chainA', async () => {
+      it('john should be able to deposit on chainA', async () => {
         const relayer = '0x2111111111111111111111111111111111111111';
         const johnDepositAmount = 1e7;
         const johnDepositUtxo = await CircomUtxo.generateUtxo({
@@ -1722,17 +1720,10 @@ describe.only('IdentityVAnchor for 2 max edges', () => {
           keypair: johnKeypair ,
           externalLeaves: ganacheGroup.members.map((bignum: BigNumber) => hexToU8a(bignum.toHexString()))
         }
-        console.log('start')
         let johnLeaf = johnKeypair.getPubKey();
-        console.log('john Leaf: ', johnLeaf)
-        console.log('john Leaf: ', BigNumber.from(johnLeaf).toString())
-        console.log('ganacheGroup root: ', ganacheGroup.root)
-        console.log('group root: ', group.root)
-        console.log('externalLeaves: ', txOptions.externalLeaves.map((a) => u8aToHex(a)))
         const updateEdgeTx = await semaphore.updateEdge(groupId.toNumber(), ganacheGroup.root.toString(), 1, chainID2)
 
         const updateEdgeReceipt = await updateEdgeTx.wait()
-        console.log('updateedgetx events: ', updateEdgeReceipt.events[0])
         const tx = await idAnchor.transact(
           inputs,
           outputs,
@@ -1743,7 +1734,6 @@ describe.only('IdentityVAnchor for 2 max edges', () => {
           '',
           {},
           { gasLimit: '0x5B8D80',  ...txOptions});
-        console.log('end')
       });
       // it('alice should be able to deposit on chainB', async () => {
       //   const relayer = '0x2111111111111111111111111111111111111111';
@@ -1763,8 +1753,6 @@ describe.only('IdentityVAnchor for 2 max edges', () => {
       //   // , await generateUTXOForTest(chainID, new Keypair())];
       //   const aliceBalanceBeforeDeposit = await token.balanceOf(alice.address);
       //   const txOptions: TransactionOptions = { keypair: aliceKeypair, externalLeaves: group.members.map((bignum: BigNumber) => hexToU8a(bignum.toHexString())) }
-      //   console.log('start')
-      //   console.log('group root: ', group.root)
       //   const tx = await ganacheAnchor.transact(
       //     inputs,
       //     outputs,
@@ -1775,7 +1763,6 @@ describe.only('IdentityVAnchor for 2 max edges', () => {
       //     '',
       //     {},
       //     { gasLimit: '0x5B8D80',  ...txOptions});
-      //   console.log('end')
       //   //
       //   // const encOutput1 = outputs[0].encrypt();
       //   // const encOutput2 = outputs[1].encrypt();
