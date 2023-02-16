@@ -145,6 +145,40 @@ describe('MASPVAnchor for 2 max edges', () => {
     });
   });
 
+  describe('note encryption decryption', () => {
+    it('should decrypt correctly', async () => {
+      const maspKey = new MaspKey();
+      const assetID = 1;
+      const tokenID = 0;
+      const maspUtxo = new MaspUtxo(
+        BigNumber.from(chainID),
+        maspKey,
+        BigNumber.from(assetID),
+        BigNumber.from(tokenID),
+        BigNumber.from(0)
+      );
+      const encryption = maspUtxo.encrypt(maspKey);
+      const decryption = maspUtxo.decrypt(maspKey, maspUtxo.getCommitment(), encryption);
+      assert.strictEqual(maspUtxo.assetID.toString(), decryption.assetID.toString());
+      assert.strictEqual(maspUtxo.tokenID.toString(), decryption.tokenID.toString());
+      assert.strictEqual(maspUtxo.amount.toString(), decryption.amount.toString());
+      assert.strictEqual(maspUtxo.chainID.toString(), decryption.chainID.toString());
+      assert.strictEqual(
+        maspUtxo.maspKey.getPublicKey()[0].toString(),
+        decryption.publicKey[0].toString()
+      );
+      assert.strictEqual(
+        maspUtxo.maspKey.getPublicKey()[1].toString(),
+        decryption.publicKey[1].toString()
+      );
+      assert.strictEqual(maspUtxo.blinding.toString(), decryption.blinding.toString());
+
+      const wrongMaspKey = new MaspKey();
+      const wrongDecryption = maspUtxo.decrypt(wrongMaspKey, maspUtxo.getCommitment(), encryption);
+      assert.strictEqual(wrongDecryption, undefined);
+    });
+  });
+
   describe('masp snark proof native verification on js side', () => {
     it('should work', async () => {
       const extAmount = 1e7;
@@ -239,12 +273,12 @@ describe('MASPVAnchor for 2 max edges', () => {
       inputs.map((x) => x.setIndex(BigNumber.from(0)));
 
       const merkleProofsForInputs = inputs.map((x) => maspVAnchor.getMASPMerkleProof(x));
-      const encOutput1 = outputs[0].encrypt();
-      const encOutput2 = outputs[1].encrypt();
+      const encOutput1 = '0x';
+      const encOutput2 = '0x';
 
       const feeMerkleProofsForInputs = feeInputs.map((x) => maspVAnchor.getMASPMerkleProof(x));
-      const feeEncOutput1 = feeOutputs[0].encrypt();
-      const feeEncOutput2 = feeOutputs[1].encrypt();
+      const feeEncOutput1 = '0x';
+      const feeEncOutput2 = '0x';
 
       const { extData, extDataHash } = await maspVAnchor.generateExtData(
         recipient,

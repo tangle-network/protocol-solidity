@@ -827,8 +827,8 @@ export class MultiAssetVAnchor implements IVAnchor {
       BigNumber.from(fee),
       BigNumber.from(refund),
       wrappedToken,
-      outputs[0].encrypt(),
-      outputs[1].encrypt()
+      outputs[0].encrypt(outputs[0].maspKey).toString(),
+      outputs[1].encrypt(outputs[1].maspKey).toString()
     );
 
     const roots = await this.populateRootsForProof();
@@ -928,7 +928,7 @@ export class MultiAssetVAnchor implements IVAnchor {
       wrappedToken,
       amount,
       toFixedHex(utxo.getPartialCommitment()),
-      utxo.encrypt(),
+      utxo.encrypt(maspKey),
       options
     );
     const receipt = await tx.wait();
@@ -960,7 +960,7 @@ export class MultiAssetVAnchor implements IVAnchor {
       wrappedToken,
       tokenID,
       toFixedHex(utxo.getPartialCommitment()),
-      utxo.encrypt(),
+      utxo.encrypt(maspKey),
       options
     );
     const receipt = await tx.wait();

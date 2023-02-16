@@ -7558,6 +7558,11 @@ cbor@^5.2.0:
     bignumber.js "^9.0.1"
     nofilter "^1.0.4"
 
+chacha20@^0.1.4:
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/chacha20/-/chacha20-0.1.4.tgz#0ae14749ac23c444912fdc482968461649f69e18"
+  integrity sha512-nxKJwtcXKxXIITkHQDrgCrZKAHjL6CY94n74obSux9WynGnoYj4wGTYHygp6DDSrBB9Efjts0QXSAFRz7E1hJg==
+
 chai@^4.2.0, chai@^4.3.5:
   version "4.3.7"
   resolved "https://registry.yarnpkg.com/chai/-/chai-4.3.7.tgz#ec63f6df01829088e8bf55fca839bcd464a8ec51"
