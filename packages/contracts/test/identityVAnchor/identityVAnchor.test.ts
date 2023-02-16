@@ -1542,7 +1542,7 @@ describe.only('IdentityVAnchor for 2 max edges', () => {
       expect(balTokenAfterWithdrawAndUnwrapSender).equal(balTokenBeforeDepositSender);
     });
   });
-    describe('#cross-chain test', () => {
+    describe.only('#cross-chain test', () => {
       const SECOND_CHAIN_ID = 10001;
       const chainID2 = getChainIdType(SECOND_CHAIN_ID);
       let ganacheServer: any;
@@ -1635,7 +1635,7 @@ describe.only('IdentityVAnchor for 2 max edges', () => {
           .to.emit(ganacheSemaphore.contract, 'MemberAdded')
           .withArgs(groupId, johnLeaf, ganacheGroup.root);
 
-        const tx3 = await semaphore.updateEdge(groupId.toNumber(), group.root.toString(), 0, chainID2);
+        const tx3 = await semaphore.updateEdge(groupId.toNumber(), ganacheGroup.root.toString(), 0, chainID2);
 
         group.updateEdge(chainID2, ganacheGroup.root.toString())
         // create Anchor
@@ -1721,9 +1721,9 @@ describe.only('IdentityVAnchor for 2 max edges', () => {
           externalLeaves: ganacheGroup.members.map((bignum: BigNumber) => hexToU8a(bignum.toHexString()))
         }
         let johnLeaf = johnKeypair.getPubKey();
-        const updateEdgeTx = await semaphore.updateEdge(groupId.toNumber(), ganacheGroup.root.toString(), 1, chainID2)
-
-        const updateEdgeReceipt = await updateEdgeTx.wait()
+        // const updateEdgeTx = await semaphore.updateEdge(groupId.toNumber(), ganacheGroup.root.toString(), 1, chainID2)
+        //
+        // const updateEdgeReceipt = await updateEdgeTx.wait()
         const tx = await idAnchor.transact(
           inputs,
           outputs,
@@ -1733,6 +1733,66 @@ describe.only('IdentityVAnchor for 2 max edges', () => {
           relayer,
           '',
           {},
+          { gasLimit: '0x5B8D80',  ...txOptions});
+      });
+      it('john should be able to withdraw on chainA', async () => {
+        const relayer = '0x2111111111111111111111111111111111111111';
+        const johnDepositAmount = 1e7;
+        const johnDepositUtxo = await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          chainId: chainID.toString(),
+          originChainId: chainID2.toString(),
+          amount: johnDepositAmount.toString(),
+          blinding: hexToU8a(randomBN(31).toHexString()),
+          keypair: johnKeypair,
+        });
+        // john deposits into tornado pool
+        const johnBalanceBeforeDeposit = await ganacheToken.balanceOf(john.address);
+        const txOptions: TransactionOptions = { keypair: johnKeypair }
+        const tx = await ganacheAnchor.transact(
+          [],
+          [johnDepositUtxo],
+          fee,
+          BigNumber.from(0),
+          ganacheWallet.address,
+          relayer,
+          '',
+          {},
+          { gasLimit: '0x5B8D80',  ...txOptions});
+
+        const johnBalanceAfterDeposit = await ganacheToken.balanceOf(john.address);
+        expect(johnBalanceAfterDeposit).to.equal(johnBalanceBeforeDeposit.sub(BigInt(johnDepositAmount) + fee))
+
+        const johnWithdrawAmount = 5e6;
+        const johnWithdrawUtxo = await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          chainId: BigNumber.from(chainID).toString(),
+          originChainId: BigNumber.from(chainID).toString(),
+          amount: BigNumber.from(johnWithdrawAmount).toString(),
+          blinding: hexToU8a(randomBN().toHexString()),
+          keypair: johnDepositUtxo.keypair,
+        });
+        const txOptions2: TransactionOptions = {
+          keypair: johnKeypair ,
+          externalLeaves: ganacheGroup.members.map((bignum: BigNumber) => hexToU8a(bignum.toHexString()))
+        }
+        await token.mint(idAnchor.contract.address, BigNumber.from(1e10).toString());
+        const leaves = ganacheAnchor.tree.elements().map((el) => hexToU8a(el.toHexString()));
+        const leavesMap = { [chainID2]: leaves };
+
+        console.log('leavesMap: ', leavesMap[chainID2].map((u8a) => u8aToHex(u8a)))
+        console.log('johnDepositUtxo', u8aToHex(johnDepositUtxo.commitment))
+        const withdrawTx = await idAnchor.transact(
+          [johnDepositUtxo],
+          [johnWithdrawUtxo],
+          fee,
+          BigNumber.from(0),
+          john.address,
+          relayer,
+          '',
+          leavesMap,
           { gasLimit: '0x5B8D80',  ...txOptions});
       });
       // it('alice should be able to deposit on chainB', async () => {
