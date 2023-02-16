@@ -138,21 +138,21 @@ copy_to_fixtures () {
 # WEBB MASP-VANCHORS
 ###
 
-# echo "Compiling Webb style multi-asset Poseidon vanchor 2 circuit w/ 2 inputs"
-# compile masp_vanchor_2 masp_vanchor_2_2 2
-# copy_to_fixtures masp_vanchor_2 masp_vanchor_2_2 2 masp_vanchor_2
+echo "Compiling Webb style multi-asset Poseidon vanchor 2 circuit w/ 2 inputs"
+compile masp_vanchor_2 masp_vanchor_2_2 2
+copy_to_fixtures masp_vanchor_2 masp_vanchor_2_2 2 masp_vanchor_2
 
-# echo "Compiling Webb style multi-asset Poseidon vanchor 8 circuit w/ 2 inputs"
-# compile masp_vanchor_2 masp_vanchor_2_8 8
-# copy_to_fixtures masp_vanchor_2 masp_vanchor_2_8 8 masp_vanchor_2
+echo "Compiling Webb style multi-asset Poseidon vanchor 8 circuit w/ 2 inputs"
+compile masp_vanchor_2 masp_vanchor_2_8 8
+copy_to_fixtures masp_vanchor_2 masp_vanchor_2_8 8 masp_vanchor_2
 
-# echo "Compiling Webb style multi-asset Poseidon vanchor 2 circuit w/ 16 inputs"
-# compile masp_vanchor_16 masp_vanchor_16_2 2
-# copy_to_fixtures masp_vanchor_16 masp_vanchor_16_2 2 masp_vanchor_16
+echo "Compiling Webb style multi-asset Poseidon vanchor 2 circuit w/ 16 inputs"
+compile masp_vanchor_16 masp_vanchor_16_2 2
+copy_to_fixtures masp_vanchor_16 masp_vanchor_16_2 2 masp_vanchor_16
 
-# echo "Compiling Webb style multi-asset Poseidon vanchor 8 circuit w/ 2 inputs"
-# compile masp_vanchor_16 masp_vanchor_16_8 8
-# copy_to_fixtures masp_vanchor_16 masp_vanchor_16_8 8 masp_vanchor_16
+echo "Compiling Webb style multi-asset Poseidon vanchor 8 circuit w/ 2 inputs"
+compile masp_vanchor_16 masp_vanchor_16_8 8
+copy_to_fixtures masp_vanchor_16 masp_vanchor_16_8 8 masp_vanchor_16
 
 ###
 # WEBB MASP-VANCHORS
@@ -203,10 +203,10 @@ copy_to_fixtures () {
 # # WEBB MASP SWAP SYSTEM
 # ###
 
-echo "Compiling swap circuit 30 2"
-compile swap_2 swap_30_2 30
-copy_to_fixtures swap_2 swap_30_2 30 swap_2
+# echo "Compiling swap circuit 30 2"
+# compile swap_2 swap_30_2 30
+# copy_to_fixtures swap_2 swap_30_2 30 swap_2
 
-echo "Compiling swap circuit 30 8"
-compile swap_8 swap_30_8 30
-copy_to_fixtures swap_8 swap_30_8 30 swap_8
+# echo "Compiling swap circuit 30 8"
+# compile swap_8 swap_30_8 30
+# copy_to_fixtures swap_8 swap_30_8 30 swap_8
