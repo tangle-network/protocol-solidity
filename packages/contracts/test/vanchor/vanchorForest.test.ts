@@ -397,7 +397,7 @@ describe('VAnchorForest for 1 max edge', () => {
 
       const subtreeLeaves = anchor.tree.elements().map((el: BigNumber) => hexToU8a(el.toHexString()));
       const forestLeaves = anchor.forest.elements().map((el: BigNumber) => hexToU8a(el.toHexString()));
-      const txOptions = { treeChainId: chainID.toString(), forestLeaves: forestLeaves }
+      const txOptions = { treeChainId: chainID.toString(), externalLeaves: forestLeaves }
 
       await anchor.transact(
          [aliceDepositUtxo],
@@ -2010,7 +2010,7 @@ describe('VAnchorForest for 1 max edge', () => {
 
         const subtreeLeaves = ganacheAnchor.tree.elements().map((el: BigNumber) => hexToU8a(el.toHexString()));
         const forestLeaves = ganacheAnchor.forest.elements().map((el: BigNumber) => hexToU8a(el.toHexString()));
-        const txOptions = { treeChainId: chainID2.toString(), forestLeaves: forestLeaves, gasLimit: '0x5B8D80' };
+        const txOptions = { treeChainId: chainID2.toString(), externalLeaves: forestLeaves, gasLimit: '0x5B8D80' };
         const contractRoot = await ganacheAnchor.contract.getLastRoot();
 
         const tx = await anchor.contract.updateEdge(contractRoot, 0, resourceId);

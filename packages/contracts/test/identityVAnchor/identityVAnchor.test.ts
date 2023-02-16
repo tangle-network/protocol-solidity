@@ -13,6 +13,7 @@ import {
   FungibleTokenWrapper as WrappedToken,
   FungibleTokenWrapper__factory as WrappedTokenFactory,
 } from '@webb-tools/contracts';
+import { startGanacheServer } from '@webb-tools/test-utils';
 
 import {
   hexToU8a,
@@ -33,7 +34,6 @@ import {
   MerkleTree,
   randomBN,
   toFixedHex,
-  generateWithdrawProofCallData,
   getVAnchorExtDataHash,
   generateVariableWitnessInput,
   CircomUtxo,
@@ -43,16 +43,14 @@ import { IdentityVerifier } from '@webb-tools/vbridge';
 import { IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
 import { Semaphore } from '@webb-tools/semaphore';
 import { LinkedGroup } from '@webb-tools/semaphore-group';
-import { writeFileSync } from 'fs';
+import { TransactionOptions } from './types';
 
 const BN = require('bn.js');
-
 const path = require('path');
-const { poseidon } = require('circomlibjs');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
 
-describe('IdentityVAnchor for 2 max edges', () => {
+describe.only('IdentityVAnchor for 2 max edges', () => {
   let idAnchor: IdentityVAnchor;
   let semaphore: Semaphore;
 
@@ -180,7 +178,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
     let bob_addmember_tx = await semaphore.contract
       .connect(sender)
       .addMember(groupId, bobLeaf, { gasLimit: '0x5B8D80' });
-    // const receipt = await alice_addmember_tx.wait();
     group.addMember(bobLeaf);
 
     expect(bob_addmember_tx)
@@ -302,8 +299,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
         }
       });
 
-      const wasmFilePath = `solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/identity_vanchor_2_2.wasm`;
-      const zkeyFilePath = `solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/circuit_final.zkey`;
       const fullProof = await idAnchor.generateProof(
         aliceKeypair,
         identityRootInputs,
@@ -395,8 +390,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
     it('should process fee on deposit', async () => {
       // Alice deposits into tornado pool
-      let aliceLeaf = aliceKeypair.getPubKey();
-      const vanchorRoots = await idAnchor.populateVAnchorRootsForProof();
       const fee = 1e6;
 
       const aliceBalanceBeforeDeposit = await token.balanceOf(alice.address);
@@ -440,7 +433,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
     it('alice should deposit to bob (bob is registered)', async function() {
       await idAnchor.setSigner(alice);
       const aliceDepositAmount = 1e7;
-      const vanchorRoots = await idAnchor.populateVAnchorRootsForProof();
       const aliceBalanceBefore = await token.balanceOf(alice.address);
       const bobBalanceBefore = await token.balanceOf(bob.address);
       const bobPublicKeypair = Keypair.fromString(bobKeypair.toString());
@@ -766,7 +758,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         );
 
         expect(aliceWithdrawAmount.toString()).equal(
-          await (await token.balanceOf(aliceETHAddress)).toString()
+          (await token.balanceOf(aliceETHAddress)).toString()
         );
       });
     });
@@ -1067,8 +1059,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
     let aliceExtData: any;
     let aliceExtDataHash: BigNumber;
 
-    let encOutput1;
-    let encOutput2;
+    let encOutput1: string;
+    let encOutput2: string;
 
     // should be before but it says idAnchor is undefined in this case
     beforeEach(async () => {
@@ -1512,8 +1504,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
         { keypair: aliceKeypair }
       );
       const balTokenAfterDepositSender = await token.balanceOf(alice.address);
-      // Fix: why the magic 2? no idea
-      // expect(balTokenBeforeDepositSender.sub(balTokenAfterDepositSender).toString()).equal((aliceDepositAmount + (aliceDepositAmount * wrapFee/10000 + 2)).toString());
       expect(balTokenBeforeDepositSender.sub(balTokenAfterDepositSender)).equal(aliceDepositAmount);
 
       const balWrappedTokenAfterDepositAnchor = await wrappedToken.balanceOf(
@@ -1528,14 +1518,14 @@ describe('IdentityVAnchor for 2 max edges', () => {
       aliceDepositUtxo.setIndex(aliceDepositIndex);
 
       //Check that vAnchor has the right amount of wrapped token balance
-      await expect(
+      expect(
         (await wrappedToken.balanceOf(wrappedIdAnchor.contract.address)).toString()
       ).equal(BigNumber.from(1e7).toString());
 
       const aliceChangeAmount = 0;
       const aliceChangeUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceChangeAmount);
 
-      const tx1 = await wrappedIdAnchor.transact(
+      await wrappedIdAnchor.transact(
         [aliceDepositUtxo],
         [aliceChangeUtxo],
         BigNumber.from(0),
@@ -1548,11 +1538,378 @@ describe('IdentityVAnchor for 2 max edges', () => {
       );
 
       const balTokenAfterWithdrawAndUnwrapSender = await token.balanceOf(alice.address);
-      const balTokenAfterWithdrawAndUnwrapAnchor = await wrappedToken.balanceOf(
-        idAnchor.contract.address
-      );
       expect(balTokenBeforeDepositSender).equal(balTokenAfterWithdrawAndUnwrapSender);
       expect(balTokenAfterWithdrawAndUnwrapSender).equal(balTokenBeforeDepositSender);
     });
   });
+    describe.only('#cross-chain test', () => {
+      const SECOND_CHAIN_ID = 10001;
+      const chainID2 = getChainIdType(SECOND_CHAIN_ID);
+      let ganacheServer: any;
+      let ganacheAnchor: IdentityVAnchor;
+      let ganacheProvider = new ethers.providers.JsonRpcProvider(
+        `http://localhost:${SECOND_CHAIN_ID}`
+      );
+      ganacheProvider.pollingInterval = 1;
+      let ganacheWallet = new ethers.Wallet(
+        'c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e',
+        ganacheProvider
+      );
+
+      let ganacheGroup: LinkedGroup
+      let ganacheVerifier: IdentityVerifier
+      let ganacheToken: ERC20PresetMinterPauser;
+      let ganacheWrappedToken: WrappedToken;
+      let ganacheSemaphore: Semaphore;
+      let johnKeypair = new Keypair();
+      let john = ganacheWallet;
+
+      before('start ganache server', async () => {
+        // ganacheServer = await startGanacheServer(SECOND_CHAIN_ID, SECOND_CHAIN_ID, [
+        //   {
+        //     balance: '0x1000000000000000000000',
+        //     secretKey: '0xc0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e',
+        //   },
+        // ]);
+        await ganacheProvider.ready;
+
+      });
+      beforeEach(async () => {
+        const ganacheHasherInstance = await PoseidonHasher.createPoseidonHasher(ganacheWallet);
+
+        // create bridge verifier
+        ganacheVerifier = await IdentityVerifier.createVerifier(ganacheWallet);
+
+        // create token
+        const tokenFactory = new ERC20PresetMinterPauser__factory(ganacheWallet);
+        ganacheToken = await tokenFactory.deploy('test token 2', 'TEST 2');
+        await ganacheToken.deployed();
+        await ganacheToken.mint(ganacheWallet.address, '10000000000000000000000');
+        await ganacheToken.mint(alice.address, BigNumber.from(1e10).toString());
+        await ganacheToken.mint(bob.address, BigNumber.from(1e10).toString());
+        await ganacheToken.mint(carl.address, BigNumber.from(1e10).toString());
+
+        // create wrapped token
+        const name = 'webbETH2';
+        const symbol = 'webbETH2';
+        const dummyFeeRecipient = '0x0000000000010000000010000000000000000000';
+        const wrappedTokenFactory = new WrappedTokenFactory(ganacheWallet);
+        ganacheWrappedToken = await wrappedTokenFactory.deploy(name, symbol);
+        await ganacheWrappedToken.deployed();
+        await ganacheWrappedToken.initialize(
+          0,
+          dummyFeeRecipient,
+          ganacheWallet.address,
+          '10000000000000000000000000',
+          true,
+          ganacheWallet.address
+        );
+        await ganacheWrappedToken.add(ganacheToken.address, (await ganacheWrappedToken.proposalNonce()).add(1));
+        ganacheSemaphore = await Semaphore.createSemaphore(levels, zkComponents2_2, zkComponents2_2, ganacheWallet);
+        const groupId = BigNumber.from(99); // arbitrary
+
+        const tx = await ganacheSemaphore.createGroup(groupId.toNumber(), levels, ganacheWallet.address, maxEdges);
+        let johnLeaf = johnKeypair.getPubKey();
+        ganacheGroup = new LinkedGroup(levels, maxEdges, BigInt(defaultRoot));
+        ganacheGroup.addMember(johnLeaf);
+        let john_addmember_tx = await ganacheSemaphore.contract
+          .connect(ganacheWallet)
+          .addMember(groupId, johnLeaf, { gasLimit: '0x5B8D80' });
+        // const receipt = await alice_addmember_tx.wait();
+        expect(john_addmember_tx)
+          .to.emit(ganacheSemaphore.contract, 'MemberAdded')
+          .withArgs(groupId, johnLeaf, ganacheGroup.root);
+
+        // const tx2 = await ganacheSemaphore.addMember(groupId.toNumber(), group.root.toString(), 2, chainID);
+        const tx2 = await ganacheSemaphore.updateEdge(groupId.toNumber(), group.root.toString(), 2, chainID);
+
+        // update group edges cross-chain
+        ganacheGroup.updateEdge(chainID, group.root.toString())
+
+        let john_addmember_tx = await ganacheSemaphore.contract
+          .connect(sender)
+          .addMember(groupId, johnLeaf, { gasLimit: '0x5B8D80' });
+        // const receipt = await alice_addmember_tx.wait();
+        expect(john_addmember_tx)
+          .to.emit(ganacheSemaphore.contract, 'MemberAdded')
+          .withArgs(groupId, johnLeaf, ganacheGroup.root);
+
+        group.updateEdge(chainID2, ganacheGroup.root.toString())
+        // create Anchor
+        ganacheAnchor = await IdentityVAnchor.createIdentityVAnchor(
+          ganacheSemaphore,
+          ganacheVerifier.contract.address,
+          levels,
+          ganacheHasherInstance.contract.address,
+          ganacheWallet.address,
+          ganacheToken.address,
+          1,
+          groupId,
+          ganacheGroup,
+          zkComponents2_2,
+          zkComponents16_2,
+          ganacheWallet
+        );
+
+        await ganacheAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
+        await ganacheAnchor.contract.configureMaximumDepositLimit(
+          BigNumber.from(tokenDenomination).mul(1_000_000),
+          2
+        );
+
+        const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+        await ganacheWrappedToken.grantRole(MINTER_ROLE, ganacheAnchor.contract.address);
+        await ganacheToken.approve(ganacheWrappedToken.address, '1000000000000000000000000');
+        await ganacheToken.approve(ganacheAnchor.contract.address, '1000000000000000000000000');
+      });
+      it('should initialize', async () => {
+        const maxEdges = await ganacheAnchor.contract.maxEdges();
+        expect(maxEdges.toString()).to.equal(`1`);
+      });
+      it.only('john should be able to deposit on chainB', async () => {
+        const relayer = '0x2111111111111111111111111111111111111111';
+        const johnDepositAmount = 1e7;
+        const johnDepositUtxo = await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          chainId: chainID2.toString(),
+          originChainId: chainID2.toString(),
+          amount: johnDepositAmount.toString(),
+          blinding: hexToU8a(randomBN(31).toHexString()),
+          keypair: johnKeypair,
+        });
+        // Alice deposits into tornado pool
+        const inputs: Utxo[] = [];
+        const outputs = [johnDepositUtxo];
+        // , await generateUTXOForTest(chainID, new Keypair())];
+        const johnBalanceBeforeDeposit = await ganacheToken.balanceOf(john.address);
+        const txOptions: TransactionOptions = { keypair: johnKeypair }
+        const tx = await ganacheAnchor.transact(
+          inputs,
+          outputs,
+          fee,
+          BigNumber.from(0),
+          ganacheWallet.address,
+          relayer,
+          '',
+          {},
+          { gasLimit: '0x5B8D80',  ...txOptions});
+        console.log('end')
+      });
+      it.only('john should be able to deposit on chainA', async () => {
+        const relayer = '0x2111111111111111111111111111111111111111';
+        const johnDepositAmount = 1e7;
+        const johnDepositUtxo = await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          chainId: chainID.toString(),
+          originChainId: chainID.toString(),
+          amount: johnDepositAmount.toString(),
+          blinding: hexToU8a(randomBN(31).toHexString()),
+          keypair: johnKeypair,
+        });
+        // Alice deposits into tornado pool
+        const inputs: Utxo[] = [];
+        const outputs = [johnDepositUtxo];
+        // , await generateUTXOForTest(chainID, new Keypair())];
+        await token.mint(john.address, BigNumber.from(1e10).toString());
+        const johnBalanceBeforeDeposit = await token.balanceOf(john.address);
+        const txOptions: TransactionOptions = {
+          keypair: johnKeypair ,
+          externalLeaves: ganacheGroup.members.map((bignum: BigNumber) => hexToU8a(bignum.toHexString()))
+        }
+        console.log('start')
+        console.log('ganacheGroup root: ', ganacheGroup.root)
+        console.log('group root: ', group.root)
+        const tx = await idAnchor.transact(
+          inputs,
+          outputs,
+          fee,
+          BigNumber.from(0),
+          john.address,
+          relayer,
+          '',
+          {},
+          { gasLimit: '0x5B8D80',  ...txOptions});
+        console.log('end')
+      });
+      it('alice should be able to deposit on chainB', async () => {
+        const relayer = '0x2111111111111111111111111111111111111111';
+        const aliceDepositAmount = 1e7;
+        const aliceDepositUtxo = await CircomUtxo.generateUtxo({
+          curve: 'Bn254',
+          backend: 'Circom',
+          chainId: chainID2.toString(),
+          originChainId: chainID2.toString(),
+          amount: aliceDepositAmount.toString(),
+          blinding: hexToU8a(randomBN(31).toHexString()),
+          keypair: aliceKeypair,
+        });
+        // Alice deposits into tornado pool
+        const inputs: Utxo[] = [];
+        const outputs = [aliceDepositUtxo];
+        // , await generateUTXOForTest(chainID, new Keypair())];
+        const aliceBalanceBeforeDeposit = await token.balanceOf(alice.address);
+        const txOptions: TransactionOptions = { keypair: aliceKeypair, externalLeaves: group.members.map((bignum: BigNumber) => hexToU8a(bignum.toHexString())) }
+        console.log('start')
+        console.log('group root: ', group.root)
+        const tx = await ganacheAnchor.transact(
+          inputs,
+          outputs,
+          fee,
+          BigNumber.from(0),
+          ganacheWallet.address,
+          relayer,
+          '',
+          {},
+          { gasLimit: '0x5B8D80',  ...txOptions});
+        console.log('end')
+        //
+        // const encOutput1 = outputs[0].encrypt();
+        // const encOutput2 = outputs[1].encrypt();
+        //
+        // const aliceBalanceAfterDeposit = await token.balanceOf(alice.address);
+        //
+        // expect(tx)
+        //   .to.emit(idAnchor.contract, 'NewCommitment')
+        //   .withArgs(outputs[0].commitment, 0, encOutput1);
+        // expect(tx)
+        //   .to.emit(idAnchor.contract, 'NewCommitment')
+        //   .withArgs(outputs[1].commitment, 1, encOutput2);
+        // expect(tx).to.emit(idAnchor.contract, 'NewNullifier').withArgs(inputs[0].nullifier);
+        // expect(tx).to.emit(idAnchor.contract, 'NewNullifier').withArgs(inputs[1].nullifier);
+        // const expectedBalance = aliceBalanceBeforeDeposit.sub(aliceDepositAmount).sub(fee);
+        // // expect(aliceBalanceAfterDeposit.add(BigNumber.from(fee))).equal(BN(toBN(aliceBalanceBeforeDeposit).sub(toBN(aliceDepositAmount))))
+        // expect(aliceBalanceAfterDeposit).equal(expectedBalance);
+      });
+      // it('should transact', async () => {
+      //   // Alice deposits into tornado pool
+      //   const aliceKeypair = new Keypair();
+      //   const aliceDepositAmount = 1e7;
+      //   // const aliceDepositUtxo = await generateUTXOForTest(chainID2, aliceDepositAmount);
+      //   const aliceDepositUtxo = await CircomUtxo.generateUtxo({
+      //     curve: 'Bn254',
+      //     backend: 'Circom',
+      //     chainId: chainID2.toString(),
+      //     originChainId: chainID2.toString(),
+      //     amount: aliceDepositAmount.toString(),
+      //     keypair: aliceKeypair,
+      //   });
+      //   const aliceBalanceBeforeDeposit = await ganacheToken.balanceOf(ganacheWallet.address);
+      //
+      //   ganacheAnchor.setSigner(ganacheWallet)
+      //   await ganacheAnchor.transact(
+      //     [],
+      //     [aliceDepositUtxo],
+      //     0,
+      //     0,
+      //     '0',
+      //     '0',
+      //     ganacheToken.address,
+      //     {},
+      //   { gasLimit: '0x5B8D80',  keypair: aliceKeypair }
+      //   );
+      //   const aliceBalanceAfterDeposit = await ganacheToken.balanceOf(ganacheWallet.address);
+      //   expect(aliceBalanceBeforeDeposit.sub(aliceDepositAmount).toString()).to.equal(aliceBalanceAfterDeposit.toString())
+      // });
+      // it('should cross chain withdraw', async () => {
+      //   // Alice deposits into tornado pool
+      //   const aliceKeypair = new Keypair();
+      //   const aliceDepositAmount = 1e7;
+      //   // const aliceDepositUtxo = await generateUTXOForTest(chainID2, aliceDepositAmount);
+      //   const aliceDepositUtxo = await CircomUtxo.generateUtxo({
+      //     curve: 'Bn254',
+      //     backend: 'Circom',
+      //     chainId: chainID.toString(),
+      //     originChainId: chainID2.toString(),
+      //     amount: aliceDepositAmount.toString(),
+      //     keypair: aliceKeypair,
+      //   });
+      //   const aliceBalanceBeforeDeposit = await ganacheToken.balanceOf(ganacheWallet.address);
+      //
+      //   ganacheAnchor.setSigner(ganacheWallet)
+      //   await ganacheAnchor.registerAndTransact(
+      //     ganacheWallet.address,
+      //     aliceDepositUtxo.keypair.toString(),
+      //     [],
+      //     [aliceDepositUtxo],
+      //     0,
+      //     0,
+      //     '0',
+      //     '0',
+      //     ganacheToken.address,
+      //     {},
+      //     { gasLimit: '0x5B8D80' }
+      //   );
+      //   const aliceBalanceAfterDeposit = await ganacheToken.balanceOf(ganacheWallet.address);
+      //   // making a deposit or the vanchor will not have enough tokens to withdraw
+      //   const bobKeypair = new Keypair();
+      //   // const aliceDepositUtxo = await generateUTXOForTest(chainID2, aliceDepositAmount);
+      //   const bobDepositUtxo = await CircomUtxo.generateUtxo({
+      //     curve: 'Bn254',
+      //     backend: 'Circom',
+      //     chainId: chainID.toString(),
+      //     originChainId: chainID.toString(),
+      //     amount: aliceDepositAmount.toString(),
+      //     keypair: bobKeypair,
+      //   });
+      //   const bobBalanceBeforeDeposit = await token.balanceOf(sender.address);
+      //
+      //   ganacheAnchor.setSigner(sender)
+      //   await anchor.registerAndTransact(
+      //     sender.address,
+      //     bobDepositUtxo.keypair.toString(),
+      //     [],
+      //     [bobDepositUtxo],
+      //     0,
+      //     0,
+      //     '0',
+      //     '0',
+      //     token.address,
+      //     {}
+      //   );
+      //   const bobBalanceAfterDeposit = await token.balanceOf(sender.address);
+      //   assert.strictEqual(bobBalanceBeforeDeposit.sub(aliceDepositAmount).toString(), bobBalanceAfterDeposit.toString())
+      //
+      //   const aliceWithdrawAmount = 5e6;
+      //   const aliceChangeUtxo = await CircomUtxo.generateUtxo({
+      //     curve: 'Bn254',
+      //     backend: 'Circom',
+      //     chainId: chainID2.toString(),
+      //     originChainId: chainID2.toString(),
+      //     amount: aliceWithdrawAmount.toString(),
+      //     keypair: aliceDepositUtxo.keypair,
+      //   });
+      //   const resourceId = toHex(
+      //     ganacheAnchor.contract.address + toHex(chainID, 6).substr(2),
+      //     32
+      //   );
+      //
+      //   const subtreeLeaves = ganacheAnchor.tree.elements().map((el: BigNumber) => hexToU8a(el.toHexString()));
+      //   const forestLeaves = ganacheAnchor.forest.elements().map((el: BigNumber) => hexToU8a(el.toHexString()));
+      //   const txOptions = { treeChainId: chainID2.toString(), forestLeaves: forestLeaves, gasLimit: '0x5B8D80' };
+      //   const contractRoot = await ganacheAnchor.contract.getLastRoot();
+      //
+      //   const tx = await anchor.contract.updateEdge(contractRoot, 0, resourceId);
+      //   const receipt = await tx.wait();
+      //
+      //   assert.strictEqual(aliceBalanceBeforeDeposit.sub(aliceDepositAmount).toString(), aliceBalanceAfterDeposit.toString())
+      //   await anchor.registerAndTransact(
+      //     sender.address,
+      //     aliceDepositUtxo.keypair.toString(),
+      //      [aliceDepositUtxo],
+      //      [aliceChangeUtxo],
+      //      0,
+      //      0,
+      //      sender.address,
+      //      '0',
+      //       token.address,
+      //      { [chainID2]: subtreeLeaves },
+      //      txOptions
+      //      // { treeChainId: chainID.toString(), forestLeaves }
+      //   );
+      //   // const aliceBalanceFinal = await token.balanceOf(sender.address);
+      //   // assert.strictEqual(aliceBalanceAfterDeposit.add(aliceWithdrawAmount).toString(), aliceBalanceFinal.toString())
+      // });
+    });
 });

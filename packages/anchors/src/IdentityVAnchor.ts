@@ -17,7 +17,7 @@ import {
   toFixedHex,
 } from '@webb-tools/sdk-core';
 // Importing from src because the lib doesn't export the types
-import { LinkedGroup } from '@webb-tools/semaphore-group';
+import { Group, LinkedGroup } from '@webb-tools/semaphore-group';
 import { Semaphore } from '@webb-tools/semaphore/src';
 import {
   UTXOInputs,
@@ -510,9 +510,11 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
       throw new Error('keypair is required for setupTransaction');
     }
 
+    const groupElements: Uint8Array[] | undefined = txOptions.externalLeaves;
+
     const chainId = getChainIdType(await this.signer.getChainId());
     const identityRootInputs = this.populateIdentityRootsForProof();
-    const identityMerkleProof: MerkleProof = this.generateIdentityMerkleProof(keypair.getPubKey());
+    const identityMerkleProof: MerkleProof = this.generateIdentityMerkleProof(keypair.getPubKey(), groupElements);
     let extAmount = this.getExtAmount(inputs, outputs, fee);
 
     const { extData, extDataHash } = await this.generateExtData(
@@ -537,7 +539,9 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
       txOptions,
     );
 
-    const outSemaphoreProofs = this.generateOutputSemaphoreProof(outputs);
+    const outSemaphoreProofs = this.generateOutputSemaphoreProof(outputs, groupElements);
+    console.log('out semaphore proof: ', outSemaphoreProofs)
+    console.log('identityRoots: ', identityRootInputs)
     const fullProof = await this.generateProof(
       keypair,
       identityRootInputs,
@@ -565,9 +569,29 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     return { extAmount, extData, publicInputs };
   }
 
-  public generateIdentityMerkleProof(pubkey: string): MerkleProof {
-    const idx = this.group.indexOf(pubkey);
-    const identityMerkleProof: MerkleProof = this.group.generateProofOfMembership(idx);
+  public generateIdentityMerkleProof(
+    pubkey: string,
+    groupElements?: Uint8Array[]
+  ): MerkleProof {
+    console.log('generating identity merkle proof')
+    let identityMerkleProof: MerkleProof
+    if (groupElements === undefined) {
+      const idx = this.group.indexOf(pubkey);
+      identityMerkleProof = this.group.generateProofOfMembership(idx);
+
+    } else {
+      console.log('inside else')
+      const group = new Group(this.group.levels)
+      console.log('group generated: ', group.root)
+      group.addMembers(groupElements.map((u8a: Uint8Array) => u8aToHex(u8a)))
+      console.log('members added: ', group.root)
+      const idx = group.indexOf(pubkey);
+      console.log('index found? ', idx)
+      identityMerkleProof = group.generateProofOfMembership(idx);
+      console.log('merkle proof generated')
+      console.log('returning ', identityMerkleProof)
+    }
+
     return identityMerkleProof;
   }
 
@@ -576,12 +600,23 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
   }
 
 
-  public generateOutputSemaphoreProof(outputs: Utxo[]): MerkleProof[] {
+  public generateOutputSemaphoreProof(outputs: Utxo[], groupElements: Uint8Array[]): MerkleProof[] {
     const outSemaphoreProofs = outputs.map((utxo) => {
       const leaf = utxo.keypair.getPubKey();
       if (Number(utxo.amount) > 0) {
-        const idx = this.group.indexOf(leaf);
-        return this.group.generateProofOfMembership(idx);
+        if (groupElements === undefined) {
+          const idx = this.group.indexOf(leaf);
+          return this.group.generateProofOfMembership(idx);
+        } else {
+          const group = new Group(this.group.levels)
+          console.log('group generated')
+          group.addMembers(groupElements.map((u8a: Uint8Array) => u8aToHex(u8a)))
+          console.log('members added')
+          const idx = group.indexOf(leaf);
+          console.log('index found? ', idx)
+          return group.generateProofOfMembership(idx);
+          console.log('merkle proof generated')
+        }
       } else {
         const inputMerklePathIndices = new Array(this.group.depth).fill(0);
         const inputMerklePathElements = new Array(this.group.depth).fill(0);

@@ -422,7 +422,7 @@ export class VAnchorForest extends WebbBridge {
         throw new Error('Need to specify chainId on txOptions in order to generate merkleProof correctly')
       }
       const treeElements: Uint8Array[] = leavesMap[treeChainId]
-      const forestElements: Uint8Array[] | undefined = txOptions.forestLeaves;
+      const forestElements: Uint8Array[] | undefined = txOptions.externalLeaves;
       if(forestElements === undefined) {
         throw new Error('Need to specify forestElements on txOptions in order to generate merkleProof correctly')
       }
