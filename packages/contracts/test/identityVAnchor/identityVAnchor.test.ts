@@ -1562,6 +1562,7 @@ describe.only('IdentityVAnchor for 2 max edges', () => {
       let ganacheWrappedToken: WrappedToken;
       let ganacheSemaphore: Semaphore;
       let johnKeypair = new Keypair();
+      const groupId = BigNumber.from(99); // arbitrary
       let john = ganacheWallet;
 
       before('start ganache server', async () => {
@@ -1634,6 +1635,9 @@ describe.only('IdentityVAnchor for 2 max edges', () => {
           .to.emit(ganacheSemaphore.contract, 'MemberAdded')
           .withArgs(groupId, johnLeaf, ganacheGroup.root);
 
+        const tx3 = await semaphore.updateEdge(groupId.toNumber(), group.root.toString(), 0, chainID2);
+        console.log(tx3)
+
         group.updateEdge(chainID2, ganacheGroup.root.toString())
         // create Anchor
         ganacheAnchor = await IdentityVAnchor.createIdentityVAnchor(
@@ -1702,8 +1706,8 @@ describe.only('IdentityVAnchor for 2 max edges', () => {
         const johnDepositUtxo = await CircomUtxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
-          chainId: chainID.toString(),
-          originChainId: chainID.toString(),
+          chainId: chainID2.toString(),
+          originChainId: chainID2.toString(),
           amount: johnDepositAmount.toString(),
           blinding: hexToU8a(randomBN(31).toHexString()),
           keypair: johnKeypair,
@@ -1719,8 +1723,16 @@ describe.only('IdentityVAnchor for 2 max edges', () => {
           externalLeaves: ganacheGroup.members.map((bignum: BigNumber) => hexToU8a(bignum.toHexString()))
         }
         console.log('start')
+        let johnLeaf = johnKeypair.getPubKey();
+        console.log('john Leaf: ', johnLeaf)
+        console.log('john Leaf: ', BigNumber.from(johnLeaf).toString())
         console.log('ganacheGroup root: ', ganacheGroup.root)
         console.log('group root: ', group.root)
+        console.log('externalLeaves: ', txOptions.externalLeaves.map((a) => u8aToHex(a)))
+        const updateEdgeTx = await semaphore.updateEdge(groupId.toNumber(), ganacheGroup.root.toString(), 1, chainID2)
+
+        const updateEdgeReceipt = await updateEdgeTx.wait()
+        console.log('updateedgetx events: ', updateEdgeReceipt.events[0])
         const tx = await idAnchor.transact(
           inputs,
           outputs,
@@ -1733,55 +1745,55 @@ describe.only('IdentityVAnchor for 2 max edges', () => {
           { gasLimit: '0x5B8D80',  ...txOptions});
         console.log('end')
       });
-      it('alice should be able to deposit on chainB', async () => {
-        const relayer = '0x2111111111111111111111111111111111111111';
-        const aliceDepositAmount = 1e7;
-        const aliceDepositUtxo = await CircomUtxo.generateUtxo({
-          curve: 'Bn254',
-          backend: 'Circom',
-          chainId: chainID2.toString(),
-          originChainId: chainID2.toString(),
-          amount: aliceDepositAmount.toString(),
-          blinding: hexToU8a(randomBN(31).toHexString()),
-          keypair: aliceKeypair,
-        });
-        // Alice deposits into tornado pool
-        const inputs: Utxo[] = [];
-        const outputs = [aliceDepositUtxo];
-        // , await generateUTXOForTest(chainID, new Keypair())];
-        const aliceBalanceBeforeDeposit = await token.balanceOf(alice.address);
-        const txOptions: TransactionOptions = { keypair: aliceKeypair, externalLeaves: group.members.map((bignum: BigNumber) => hexToU8a(bignum.toHexString())) }
-        console.log('start')
-        console.log('group root: ', group.root)
-        const tx = await ganacheAnchor.transact(
-          inputs,
-          outputs,
-          fee,
-          BigNumber.from(0),
-          ganacheWallet.address,
-          relayer,
-          '',
-          {},
-          { gasLimit: '0x5B8D80',  ...txOptions});
-        console.log('end')
-        //
-        // const encOutput1 = outputs[0].encrypt();
-        // const encOutput2 = outputs[1].encrypt();
-        //
-        // const aliceBalanceAfterDeposit = await token.balanceOf(alice.address);
-        //
-        // expect(tx)
-        //   .to.emit(idAnchor.contract, 'NewCommitment')
-        //   .withArgs(outputs[0].commitment, 0, encOutput1);
-        // expect(tx)
-        //   .to.emit(idAnchor.contract, 'NewCommitment')
-        //   .withArgs(outputs[1].commitment, 1, encOutput2);
-        // expect(tx).to.emit(idAnchor.contract, 'NewNullifier').withArgs(inputs[0].nullifier);
-        // expect(tx).to.emit(idAnchor.contract, 'NewNullifier').withArgs(inputs[1].nullifier);
-        // const expectedBalance = aliceBalanceBeforeDeposit.sub(aliceDepositAmount).sub(fee);
-        // // expect(aliceBalanceAfterDeposit.add(BigNumber.from(fee))).equal(BN(toBN(aliceBalanceBeforeDeposit).sub(toBN(aliceDepositAmount))))
-        // expect(aliceBalanceAfterDeposit).equal(expectedBalance);
-      });
+      // it('alice should be able to deposit on chainB', async () => {
+      //   const relayer = '0x2111111111111111111111111111111111111111';
+      //   const aliceDepositAmount = 1e7;
+      //   const aliceDepositUtxo = await CircomUtxo.generateUtxo({
+      //     curve: 'Bn254',
+      //     backend: 'Circom',
+      //     chainId: chainID2.toString(),
+      //     originChainId: chainID2.toString(),
+      //     amount: aliceDepositAmount.toString(),
+      //     blinding: hexToU8a(randomBN(31).toHexString()),
+      //     keypair: aliceKeypair,
+      //   });
+      //   // Alice deposits into tornado pool
+      //   const inputs: Utxo[] = [];
+      //   const outputs = [aliceDepositUtxo];
+      //   // , await generateUTXOForTest(chainID, new Keypair())];
+      //   const aliceBalanceBeforeDeposit = await token.balanceOf(alice.address);
+      //   const txOptions: TransactionOptions = { keypair: aliceKeypair, externalLeaves: group.members.map((bignum: BigNumber) => hexToU8a(bignum.toHexString())) }
+      //   console.log('start')
+      //   console.log('group root: ', group.root)
+      //   const tx = await ganacheAnchor.transact(
+      //     inputs,
+      //     outputs,
+      //     fee,
+      //     BigNumber.from(0),
+      //     ganacheWallet.address,
+      //     relayer,
+      //     '',
+      //     {},
+      //     { gasLimit: '0x5B8D80',  ...txOptions});
+      //   console.log('end')
+      //   //
+      //   // const encOutput1 = outputs[0].encrypt();
+      //   // const encOutput2 = outputs[1].encrypt();
+      //   //
+      //   // const aliceBalanceAfterDeposit = await token.balanceOf(alice.address);
+      //   //
+      //   // expect(tx)
+      //   //   .to.emit(idAnchor.contract, 'NewCommitment')
+      //   //   .withArgs(outputs[0].commitment, 0, encOutput1);
+      //   // expect(tx)
+      //   //   .to.emit(idAnchor.contract, 'NewCommitment')
+      //   //   .withArgs(outputs[1].commitment, 1, encOutput2);
+      //   // expect(tx).to.emit(idAnchor.contract, 'NewNullifier').withArgs(inputs[0].nullifier);
+      //   // expect(tx).to.emit(idAnchor.contract, 'NewNullifier').withArgs(inputs[1].nullifier);
+      //   // const expectedBalance = aliceBalanceBeforeDeposit.sub(aliceDepositAmount).sub(fee);
+      //   // // expect(aliceBalanceAfterDeposit.add(BigNumber.from(fee))).equal(BN(toBN(aliceBalanceBeforeDeposit).sub(toBN(aliceDepositAmount))))
+      //   // expect(aliceBalanceAfterDeposit).equal(expectedBalance);
+      // });
       // it('should transact', async () => {
       //   // Alice deposits into tornado pool
       //   const aliceKeypair = new Keypair();

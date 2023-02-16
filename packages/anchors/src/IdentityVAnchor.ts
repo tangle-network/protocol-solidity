@@ -541,7 +541,10 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
 
     const outSemaphoreProofs = this.generateOutputSemaphoreProof(outputs, groupElements);
     console.log('out semaphore proof: ', outSemaphoreProofs)
+    console.log('identityRoots: ', identityRootInputs.map((str_value) => BigNumber.from(str_value).toHexString()))
     console.log('identityRoots: ', identityRootInputs)
+    console.log('pubkey: ', keypair.getPubKey())
+    console.log('pubkey: ', BigNumber.from(keypair.getPubKey()).toString())
     const fullProof = await this.generateProof(
       keypair,
       identityRootInputs,
@@ -580,8 +583,9 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
       identityMerkleProof = this.group.generateProofOfMembership(idx);
 
     } else {
+      console.log('group LEVELS ', this.group.levels)
       console.log('inside else')
-      const group = new Group(this.group.levels)
+      const group = new Group(this.group.levels, BigInt(this.group.zeroValue.toString()))
       console.log('group generated: ', group.root)
       group.addMembers(groupElements.map((u8a: Uint8Array) => u8aToHex(u8a)))
       console.log('members added: ', group.root)
@@ -608,14 +612,18 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
           const idx = this.group.indexOf(leaf);
           return this.group.generateProofOfMembership(idx);
         } else {
-          const group = new Group(this.group.levels)
-          console.log('group generated')
+          console.log('group LEVELS ', this.group.levels)
+          const group = new Group(this.group.levels, this.group.zeroValue.toString())
+          console.log('adding member: ', leaf)
+          console.log('group generated: ', group.root)
           group.addMembers(groupElements.map((u8a: Uint8Array) => u8aToHex(u8a)))
-          console.log('members added')
+          console.log('members added: ', group.root)
           const idx = group.indexOf(leaf);
           console.log('index found? ', idx)
-          return group.generateProofOfMembership(idx);
+          const merkleProof = group.generateProofOfMembership(idx);
           console.log('merkle proof generated')
+          console.log('returning ', merkleProof)
+          return merkleProof;
         }
       } else {
         const inputMerklePathIndices = new Array(this.group.depth).fill(0);
