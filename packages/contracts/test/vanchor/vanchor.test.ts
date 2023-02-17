@@ -52,7 +52,7 @@ describe('VAnchor for 1 max edge', () => {
 
   const levels = 30;
   let fee = BigInt(new BN(`100000000000000000`).toString());
-  let recipient = '0x1111111111111111111111111111111111111111';
+  let recipient;
   let verifier: Verifier;
   let hasherInstance: any;
   let token: ERC20PresetMinterPauser;
@@ -117,6 +117,7 @@ describe('VAnchor for 1 max edge', () => {
     const signers = await ethers.getSigners();
     const wallet = signers[0];
     sender = wallet;
+    recipient = signers[1].address;
     // create poseidon hasher
     const hasherInstance = await PoseidonHasher.createPoseidonHasher(wallet);
 
@@ -356,6 +357,135 @@ describe('VAnchor for 1 max edge', () => {
       await anchor.transact([aliceDepositUtxo], [aliceRefreshUtxo], 0, 0, '0', '0', '', {
         [chainID.toString()]: anchorLeaves,
       });
+    });
+
+    it('should refund native tokens', async () => {
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
+
+      await anchor.registerAndTransact(
+        sender.address,
+        aliceDepositUtxo.keypair.toString(),
+        [],
+        [aliceDepositUtxo],
+        0,
+        0,
+        recipient,
+        '0',
+        token.address,
+        {}
+      );
+
+      const ethBalanceBefore = await ethers.provider.getBalance(recipient);
+
+      const aliceWithdrawUtxo = await CircomUtxo.generateUtxo({
+        curve: 'Bn254',
+        backend: 'Circom',
+        chainId: BigNumber.from(chainID).toString(),
+        originChainId: BigNumber.from(chainID).toString(),
+        amount: BigNumber.from(5e6).toString(),
+        blinding: hexToU8a(randomBN().toHexString()),
+        keypair: aliceDepositUtxo.keypair,
+      });
+
+      const anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
+
+      const refundAmount = ethers.utils.parseEther('1');
+      await anchor.transact(
+        [aliceDepositUtxo],
+        [aliceWithdrawUtxo],
+        0,
+        refundAmount,
+        recipient,
+        '0',
+        '',
+        {
+          [chainID.toString()]: anchorLeaves,
+        }
+      );
+
+      const ethBalanceAfter = await ethers.provider.getBalance(recipient);
+
+      assert.strictEqual(ethBalanceAfter.sub(ethBalanceBefore).toString(), refundAmount.toString());
+    });
+
+    it('should not refund upon deposit', async () => {
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
+
+      const ethBalanceBefore = await ethers.provider.getBalance(recipient);
+      const nonZeroRefund = ethers.utils.parseEther('1');
+      await assert.rejects(
+        anchor.registerAndTransact(
+          sender.address,
+          aliceDepositUtxo.keypair.toString(),
+          [],
+          [aliceDepositUtxo],
+          0,
+          nonZeroRefund,
+          recipient,
+          '0',
+          token.address,
+          {}
+        ),
+        Error,
+        'Refund should be zero'
+      );
+
+      const ethBalanceAfter = await ethers.provider.getBalance(recipient);
+
+      assert.strictEqual(
+        ethBalanceAfter.sub(ethBalanceBefore).toString(),
+        ethers.utils.parseEther('0').toString()
+      );
+    });
+
+    it('should not refund upon internal transfer', async () => {
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
+
+      await anchor.registerAndTransact(
+        sender.address,
+        aliceDepositUtxo.keypair.toString(),
+        [],
+        [aliceDepositUtxo],
+        0,
+        0,
+        recipient,
+        '0',
+        token.address,
+        {}
+      );
+
+      const aliceRefreshUtxo = await CircomUtxo.generateUtxo({
+        curve: 'Bn254',
+        backend: 'Circom',
+        chainId: BigNumber.from(chainID).toString(),
+        originChainId: BigNumber.from(chainID).toString(),
+        amount: BigNumber.from(aliceDepositAmount).toString(),
+        blinding: hexToU8a(randomBN().toHexString()),
+        keypair: aliceDepositUtxo.keypair,
+      });
+
+      const anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
+
+      const nonZeroRefund = ethers.utils.parseEther('1');
+      await assert.rejects(
+        anchor.transact(
+          [aliceDepositUtxo],
+          [aliceRefreshUtxo],
+          0,
+          nonZeroRefund,
+          recipient,
+          '0',
+          '',
+          {
+            [chainID.toString()]: anchorLeaves,
+          }
+        ),
+        Error,
+        'Refund should be zero'
+      );
     });
 
     it('should spend input utxo and split', async () => {

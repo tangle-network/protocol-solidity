@@ -141,6 +141,13 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 					uint256(-_externalData.extAmount)
 				);
 			}
+			if (_externalData.refund > 0) {
+				_processRefund(
+					_externalData.refund,
+					_externalData.recipient,
+					_externalData.relayer
+				);
+			}
 		}
 
 		if (_externalData.fee > 0) {

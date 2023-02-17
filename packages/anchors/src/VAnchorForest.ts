@@ -604,7 +604,11 @@ export class VAnchorForest extends WebbBridge {
       txOptions
     );
 
-    let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
+    let options = await this.getWrapUnwrapOptions(
+      extAmount,
+      BigNumber.from(refund),
+      wrapUnwrapToken
+    );
 
     let tx = await this.contract.registerAndTransact(
       { owner, keyData: keyData },

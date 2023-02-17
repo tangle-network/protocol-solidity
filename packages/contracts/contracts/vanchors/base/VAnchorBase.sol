@@ -248,6 +248,26 @@ abstract contract VAnchorBase is LinkableAnchor {
 	}
 
 	/**
+		@notice Process the refund and send it to the recipient. checks if the msg.value is enough to cover the refund
+		@param _refund The refund amount in native token
+		@param _recipient The recipient of the refund
+		@param _relayer The relayer of the transaction
+	 */
+	function _processRefund(
+		uint256 _refund,
+		address _recipient,
+		address _relayer
+	) internal virtual {
+		require(msg.value == _refund, "Incorrect refund amount received by the contract");
+		(bool success, ) = payable(_recipient).call{ value: _refund }("");
+		// if the refund fails, send it back to the relayer
+		if (!success) {
+			(bool success2, ) = payable(_relayer).call{ value: _refund }("");
+			require(success2, "Refund failed");
+		}
+	}
+
+	/**
         @notice Whether a note is already spent
         @param _nullifierHash The nullifier hash of the deposit note
         @return bool Whether the note is already spent
