@@ -512,7 +512,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
 
     const groupElements: Uint8Array[] | undefined = txOptions.externalLeaves;
 
-    const chainId = getChainIdType(await this.signer.getChainId());
+    const chainId = txOptions.treeChainId === undefined ? getChainIdType(await this.signer.getChainId()) : getChainIdType(Number(txOptions.treeChainId));
     const identityRootInputs = this.populateIdentityRootsForProof();
     const identityMerkleProof: MerkleProof = this.generateIdentityMerkleProof(keypair.getPubKey(), groupElements);
     let extAmount = this.getExtAmount(inputs, outputs, fee);
