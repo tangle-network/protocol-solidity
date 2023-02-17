@@ -50,7 +50,7 @@ const path = require('path');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
 
-describe.only('IdentityVAnchor for 2 max edges', () => {
+describe('IdentityVAnchor for 2 max edges', () => {
   let idAnchor: IdentityVAnchor;
   let semaphore: Semaphore;
 
@@ -1776,7 +1776,8 @@ describe.only('IdentityVAnchor for 2 max edges', () => {
         });
         const txOptions2: TransactionOptions = {
           keypair: johnKeypair ,
-          externalLeaves: ganacheGroup.members.map((bignum: BigNumber) => hexToU8a(bignum.toHexString()))
+          externalLeaves: ganacheGroup.members.map((bignum: BigNumber) => hexToU8a(bignum.toHexString())),
+          treeChainId: chainID2.toString()
         }
         await token.mint(idAnchor.contract.address, BigNumber.from(1e10).toString());
         const leaves = ganacheAnchor.tree.elements().map((el) => hexToU8a(el.toHexString()));
@@ -1793,7 +1794,7 @@ describe.only('IdentityVAnchor for 2 max edges', () => {
           relayer,
           '',
           leavesMap,
-          { gasLimit: '0x5B8D80',  ...txOptions});
+          { gasLimit: '0x5B8D80',  ...txOptions2});
       });
       // it('alice should be able to deposit on chainB', async () => {
       //   const relayer = '0x2111111111111111111111111111111111111111';
