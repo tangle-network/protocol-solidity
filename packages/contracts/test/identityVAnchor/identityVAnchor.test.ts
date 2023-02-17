@@ -1544,7 +1544,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
     });
   });
   describe('#cross-chain test', () => {
-    const SECOND_CHAIN_ID = 10001;
+    const SECOND_CHAIN_ID = 10100;
     const chainID2 = getChainIdType(SECOND_CHAIN_ID);
     let ganacheServer: any;
     let ganacheAnchor: IdentityVAnchor;

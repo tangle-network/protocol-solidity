@@ -1814,7 +1814,7 @@ describe('VAnchorForest for 1 max edge', () => {
       );
     });
     describe('#cross-chain test', () => {
-      const SECOND_CHAIN_ID = 10001;
+      const SECOND_CHAIN_ID = 10010;
       const chainID2 = getChainIdType(SECOND_CHAIN_ID);
       let ganacheServer: any;
       let ganacheAnchor: VAnchorForest;
@@ -2044,6 +2044,9 @@ describe('VAnchorForest for 1 max edge', () => {
         );
         // const aliceBalanceFinal = await token.balanceOf(sender.address);
         // assert.strictEqual(aliceBalanceAfterDeposit.add(aliceWithdrawAmount).toString(), aliceBalanceFinal.toString())
+      });
+      after('terminate networks', async () => {
+        await ganacheServer.close();
       });
     });
   });
