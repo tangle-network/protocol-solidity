@@ -298,6 +298,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
 
   public async populateVAnchorRootsForProof(): Promise<string[]> {
     const neighborEdges = await this.contract.getLatestNeighborEdges();
+    console.log('neighbours: ', neighborEdges)
     const neighborRootInfos = neighborEdges.map((rootData) => {
       return rootData.root;
     });
@@ -512,7 +513,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
 
     const groupElements: Uint8Array[] | undefined = txOptions.externalLeaves;
 
-    const chainId = txOptions.treeChainId === undefined ? getChainIdType(await this.signer.getChainId()) : getChainIdType(Number(txOptions.treeChainId));
+    const chainId = getChainIdType(await this.signer.getChainId());
     const identityRootInputs = this.populateIdentityRootsForProof();
     const identityMerkleProof: MerkleProof = this.generateIdentityMerkleProof(keypair.getPubKey(), groupElements);
     let extAmount = this.getExtAmount(inputs, outputs, fee);
@@ -539,6 +540,10 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
       txOptions,
     );
 
+    console.log('Actual commitment 0 ', u8aToHex(inputs[0].commitment))
+    console.log('actual commitment 1 ', u8aToHex(inputs[1].commitment))
+    console.log('Actual commitment 0 ', BigNumber.from(u8aToHex(inputs[0].commitment)).toString())
+    console.log('actual commitment 1 ', BigNumber.from(u8aToHex(inputs[1].commitment)).toString())
     const outSemaphoreProofs = this.generateOutputSemaphoreProof(outputs, groupElements);
     const fullProof = await this.generateProof(
       keypair,
@@ -631,6 +636,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     txOptions: TransactionOptions
   ): Promise<UTXOInputs> {
     const vanchorRoots = await this.populateVAnchorRootsForProof();
+    console.log('vanchor Roots: ', vanchorRoots)
     let vanchorMerkleProof: MerkleProof[];
     if (Object.keys(leavesMap).length === 0) {
       vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x));
@@ -652,6 +658,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
       BigNumber.from(extDataHash),
       vanchorMerkleProof
     );
+    console.log('vanchorInput: ', vanchorInput)
 
     return vanchorInput;
   }

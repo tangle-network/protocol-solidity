@@ -1735,7 +1735,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
           {},
           { gasLimit: '0x5B8D80',  ...txOptions});
       });
-      it('john should be able to withdraw on chainA', async () => {
+      it.only('john should be able to withdraw on chainA', async () => {
         const relayer = '0x2111111111111111111111111111111111111111';
         const johnDepositAmount = 1e7;
         const johnDepositUtxo = await CircomUtxo.generateUtxo({
@@ -1760,7 +1760,9 @@ describe('IdentityVAnchor for 2 max edges', () => {
           '',
           {},
           { gasLimit: '0x5B8D80',  ...txOptions});
+        const updateEdgeTx = await idAnchor.contract.updateEdge(ganacheAnchor.tree.root().toString(), 0, toFixedHex(ganacheAnchor.contract.address + chainID2))
 
+        console.log(updateEdgeTx)
         const johnBalanceAfterDeposit = await ganacheToken.balanceOf(john.address);
         expect(johnBalanceAfterDeposit).to.equal(johnBalanceBeforeDeposit.sub(BigInt(johnDepositAmount) + fee))
 
@@ -1785,6 +1787,11 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
         console.log('leavesMap: ', leavesMap[chainID2].map((u8a) => u8aToHex(u8a)))
         console.log('johnDepositUtxo', u8aToHex(johnDepositUtxo.commitment))
+        console.log('chainID', chainID)
+        console.log('chainID2', chainID2)
+        console.log('idAnchor root: ', idAnchor.tree.root.toString())
+        console.log('ganacheAnchor root: ', ganacheAnchor.tree.root.toString())
+        const johnBalanceBeforeWithdraw = await token.balanceOf(john.address);
         const withdrawTx = await idAnchor.transact(
           [johnDepositUtxo],
           [johnWithdrawUtxo],
@@ -1795,6 +1802,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
           '',
           leavesMap,
           { gasLimit: '0x5B8D80',  ...txOptions2});
+        const johnBalanceAfterWithdraw = await token.balanceOf(john.address);
+        expect(johnBalanceAfterWithdraw).to.equal(johnBalanceBeforeWithdraw.add(BigInt(johnWithdrawAmount)-fee))
       });
       // it('alice should be able to deposit on chainB', async () => {
       //   const relayer = '0x2111111111111111111111111111111111111111';
