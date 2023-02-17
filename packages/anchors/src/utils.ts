@@ -22,5 +22,5 @@ export function splitTransactionOptions<T extends Object>(
 ): [T, TransactionOptions] {
   const { keypair, treeChainId, externalLeaves, ...rest } = options ?? {};
 
-  return [rest, { keypair, treeChainId, externalLeaves}] as [T, TransactionOptions];
+  return [rest, { keypair, treeChainId, externalLeaves }] as [T, TransactionOptions];
 }

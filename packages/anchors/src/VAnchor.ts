@@ -205,7 +205,6 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     return [thisRoot, ...neighborRootInfos];
   }
 
-
   /**
    *
    * @param input A UTXO object that is inside the tree
@@ -227,7 +226,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
         inputMerklePathIndices = path.pathIndices;
         inputMerklePathElements = path.pathElements;
       } else {
-        const mt = new MerkleTree(this.treeHeight, leavesMap)
+        const mt = new MerkleTree(this.treeHeight, leavesMap);
         const path = mt.path(input.index);
         inputMerklePathIndices = path.pathIndices;
         inputMerklePathElements = path.pathElements;
@@ -492,7 +491,6 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     const proof = await this.provingManager.prove('vanchor', proofInput);
     return { proof, extAmount, proofInput };
   }
-
 
   public async register(
     owner: string,

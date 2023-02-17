@@ -22,9 +22,7 @@ import {
 import { hexToU8a, getChainIdType, u8aToHex, ZERO_BYTES32 } from '@webb-tools/utils';
 import { checkNativeAddress, splitTransactionOptions } from './utils';
 import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
-import {
-  IVariableAnchorExtData,
-} from '@webb-tools/interfaces';
+import { IVariableAnchorExtData } from '@webb-tools/interfaces';
 
 type WebbContracts =
   | VAnchorContract
@@ -339,7 +337,6 @@ export abstract class WebbBridge {
     return { extData, extDataHash };
   }
 
-
   public static convertToExtDataStruct(args: any[]): IVariableAnchorExtData {
     return {
       recipient: args[0],
@@ -415,7 +412,11 @@ export abstract class WebbBridge {
       txOptions
     );
 
-    let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
+    let options = await this.getWrapUnwrapOptions(
+      extAmount,
+      BigNumber.from(refund),
+      wrapUnwrapToken
+    );
 
     const tx = await this.contract.transact(
       publicInputs.proof,
@@ -431,7 +432,7 @@ export abstract class WebbBridge {
       {
         roots: publicInputs.roots,
         // extensionRoots: isForest ? [] :  publicInputs.extensionRoots ,
-        extensionRoots: publicInputs.extensionRoots ,
+        extensionRoots: publicInputs.extensionRoots,
         inputNullifiers: publicInputs.inputNullifiers,
         outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
         publicAmount: publicInputs.publicAmount,

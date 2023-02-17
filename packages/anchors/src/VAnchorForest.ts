@@ -281,7 +281,11 @@ export class VAnchorForest extends WebbBridge {
    * @param input A UTXO object that is inside the tree
    * @returns
    */
-  public getMerkleProof(input: Utxo, treeLeavesMap?: Uint8Array[], forestLeavesMap?: Uint8Array[]) : any {
+  public getMerkleProof(
+    input: Utxo,
+    treeLeavesMap?: Uint8Array[],
+    forestLeavesMap?: Uint8Array[]
+  ): any {
     let inputSubtreePathIndices: number[];
     let inputSubtreePathElements: BigNumber[];
     let inputForestPathIndices: number[];
@@ -302,13 +306,11 @@ export class VAnchorForest extends WebbBridge {
         inputSubtreePathElements = subtreePath.pathElements;
         inputForestPathIndices = forestPath.pathIndices;
         inputForestPathElements = forestPath.pathElements;
-
       } else {
-
-        const subTree = new MerkleTree(this.treeHeight, treeLeavesMap)
+        const subTree = new MerkleTree(this.treeHeight, treeLeavesMap);
         const subtreePath = subTree.path(input.index);
 
-        const forest = new MerkleTree(this.forestHeight, forestLeavesMap)
+        const forest = new MerkleTree(this.forestHeight, forestLeavesMap);
         const idx = forest.indexOf(subtreePath.merkleRoot.toString());
 
         const forestPath = forest.path(idx);
@@ -373,7 +375,11 @@ export class VAnchorForest extends WebbBridge {
    * else
    *   return false
    */
-  public async setWithLeaves(subtreeLeaves: string[], forestLeaves: string[], syncedBlock?: number): Promise<Boolean> {
+  public async setWithLeaves(
+    subtreeLeaves: string[],
+    forestLeaves: string[],
+    syncedBlock?: number
+  ): Promise<Boolean> {
     let newSubtree = new MerkleTree(this.tree.levels, subtreeLeaves);
     let newForest = new MerkleTree(this.forest.levels, forestLeaves);
     let root = toFixedHex(newForest.root());
@@ -394,8 +400,8 @@ export class VAnchorForest extends WebbBridge {
       }
       // this.forest = new MerkleTree(this.forestHeight);
       // this.tree = new MerkleTree(this.treeHeight);
-      this.forest = newForest
-      this.tree = newSubtree
+      this.forest = newForest;
+      this.tree = newSubtree;
       this.latestSyncedBlock = syncedBlock;
       return true;
     } else {
@@ -418,19 +424,22 @@ export class VAnchorForest extends WebbBridge {
       vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x));
     } else {
       const treeChainId: string | undefined = txOptions.treeChainId;
-      if(treeChainId === undefined) {
-        throw new Error('Need to specify chainId on txOptions in order to generate merkleProof correctly')
+      if (treeChainId === undefined) {
+        throw new Error(
+          'Need to specify chainId on txOptions in order to generate merkleProof correctly'
+        );
       }
-      const treeElements: Uint8Array[] = leavesMap[treeChainId]
+      const treeElements: Uint8Array[] = leavesMap[treeChainId];
       const forestElements: Uint8Array[] | undefined = txOptions.externalLeaves;
-      if(forestElements === undefined) {
-        throw new Error('Need to specify forestElements on txOptions in order to generate merkleProof correctly')
+      if (forestElements === undefined) {
+        throw new Error(
+          'Need to specify forestElements on txOptions in order to generate merkleProof correctly'
+        );
       }
       // const forestElements = leavesMap[treeChainId]
       // const treeElements = forestElements[treeIndex]
 
       vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x, treeElements, forestElements));
-
     }
     const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
       vanchorRoots.map((root) => BigNumber.from(root)),
@@ -589,7 +598,6 @@ export class VAnchorForest extends WebbBridge {
     leavesMap: Record<string, Uint8Array[]>,
     overridesTransaction?: OverridesWithFrom<PayableOverrides> & TransactionOptions
   ): Promise<ethers.ContractReceipt> {
-
     const [overrides, txOptions] = splitTransactionOptions(overridesTransaction);
 
     const { extAmount, extData, publicInputs } = await this.setupTransaction(
@@ -637,7 +645,7 @@ export class VAnchorForest extends WebbBridge {
         encryptedOutput1: extData.encryptedOutput1,
         encryptedOutput2: extData.encryptedOutput2,
       },
-      { ...options, ...overrides}
+      { ...options, ...overrides }
     );
     const receipt = await tx.wait();
     // Add the leaves to the tree
