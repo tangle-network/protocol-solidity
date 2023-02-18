@@ -320,11 +320,6 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     leavesMap: Record<string, Uint8Array[]>,
     txOptions?: TransactionOptions
   ): Promise<SetupTransactionResult> {
-    // Default UTXO chain ID will match with the configured signer's chain ID
-    inputs = await this.padUtxos(inputs, 16);
-    outputs = await this.padUtxos(outputs, 2);
-
-    // Check if the merkle root is known on chain - if not, then update
     if (wrapUnwrapToken.length === 0) {
       if (!this.token) {
         throw new Error('Token address not set');

@@ -436,9 +436,6 @@ export class VAnchorForest extends WebbBridge {
           'Need to specify forestElements on txOptions in order to generate merkleProof correctly'
         );
       }
-      // const forestElements = leavesMap[treeChainId]
-      // const treeElements = forestElements[treeIndex]
-
       vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x, treeElements, forestElements));
     }
     const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
@@ -451,7 +448,7 @@ export class VAnchorForest extends WebbBridge {
       BigNumber.from(extDataHash),
       vanchorMerkleProof
     );
-    const indices = vanchorMerkleProof.map((proof) => proof.forestPathIndices);
+    const indices = vanchorMerkleProof.map((proof: any) => proof.forestPathIndices);
     const forestPathIndices: number[] = [];
     indices.forEach((pathIndices: number[]) => {
       let index = MerkleTree.calculateIndexFromPathIndices(pathIndices);
@@ -496,7 +493,6 @@ export class VAnchorForest extends WebbBridge {
       this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
     });
     const curIdx = await this.contract.currSubtreeIndex();
-    const lastSubtreeRoot = await this.contract.getLastSubtreeRoot(0);
     this.forest.update(curIdx, this.tree.root().toHexString());
   }
 
@@ -516,11 +512,6 @@ export class VAnchorForest extends WebbBridge {
     leavesMap: Record<string, Uint8Array[]>,
     txOptions: TransactionOptions
   ): Promise<SetupTransactionResult> {
-    // Default UTXO chain ID will match with the configured signer's chain ID
-    inputs = await this.padUtxos(inputs, 16);
-    outputs = await this.padUtxos(outputs, 2);
-
-    // first, check if the merkle root is known on chain - if not, then update
     if (wrapUnwrapToken.length === 0) {
       if (!this.token) {
         throw new Error('Token address is not set');
@@ -599,6 +590,10 @@ export class VAnchorForest extends WebbBridge {
     overridesTransaction?: OverridesWithFrom<PayableOverrides> & TransactionOptions
   ): Promise<ethers.ContractReceipt> {
     const [overrides, txOptions] = splitTransactionOptions(overridesTransaction);
+
+    // Default UTXO chain ID will match with the configured signer's chain ID
+    inputs = await this.padUtxos(inputs, 16);
+    outputs = await this.padUtxos(outputs, 2);
 
     const { extAmount, extData, publicInputs } = await this.setupTransaction(
       inputs,

@@ -481,9 +481,6 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     leavesMap: Record<string, Uint8Array[]>,
     txOptions?: TransactionOptions
   ): Promise<SetupTransactionResult> {
-    inputs = await this.padUtxos(inputs, 16);
-    outputs = await this.padUtxos(outputs, 2);
-
     if (wrapUnwrapToken.length === 0) {
       if (!this.token) {
         throw new Error('Token address is not set');

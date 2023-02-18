@@ -16,10 +16,9 @@ import {
   UtxoGenInput,
   CircomUtxo,
   MerkleTree,
-  MerkleProof,
   getVAnchorExtDataHash,
 } from '@webb-tools/sdk-core';
-import { hexToU8a, getChainIdType, u8aToHex, ZERO_BYTES32 } from '@webb-tools/utils';
+import { hexToU8a, getChainIdType, ZERO_BYTES32 } from '@webb-tools/utils';
 import { checkNativeAddress, splitTransactionOptions } from './utils';
 import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
 import { IVariableAnchorExtData } from '@webb-tools/interfaces';
@@ -47,6 +46,7 @@ export abstract class WebbBridge {
   tree: MerkleTree;
   treeHeight: number;
   latestSyncedBlock: number;
+  token?: string;
 
   // The depositHistory stores leafIndex => information to create proposals (new root)
   depositHistory: Record<number, string>;
@@ -391,14 +391,11 @@ export abstract class WebbBridge {
     if (isOpenVAnchorContract(this.contract)) {
       throw new Error('OpenVAnchor contract does not support the `transact` method');
     }
-    // Validate input utxos have a valid originChainId
-    // this.validateInputs(inputs);
-
     const [overrides, txOptions] = splitTransactionOptions(overridesTransaction);
 
     // Default UTXO chain ID will match with the configured signer's chain ID
-    // inputs = await this.padUtxos(inputs, 16);
-    // outputs = await this.padUtxos(outputs, 2);
+    inputs = await this.padUtxos(inputs, 16);
+    outputs = await this.padUtxos(outputs, 2);
 
     const { extAmount, extData, publicInputs } = await this.setupTransaction(
       inputs,

@@ -108,7 +108,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
   );
 
   const generateUTXOForTest = async (chainId: number, keypair: Keypair, amount?: number) => {
-    // const randomKeypair = new Keypair();
     const amountString = amount ? amount.toString() : '0';
 
     return CircomUtxo.generateUtxo({
@@ -275,7 +274,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
         merkleProofsForInputs
       );
       // Alice deposits into tornado pool
-      const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceDepositAmount);
       const aliceLeaf = aliceKeypair.getPubKey();
 
       const identityRootInputs = group.getRoots().map((bignum: BigNumber) => bignum.toString());
@@ -536,7 +534,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
           {},
           { keypair: aliceKeypair }
         );
-        // aliceDepositUtxo.setIndex(0)
         const aliceDepositIndex = idAnchor.tree.getIndexByElement(aliceDepositUtxo.commitment);
         aliceDepositUtxo.setIndex(aliceDepositIndex);
         aliceBalanceAfterDeposit = await token.balanceOf(alice.address);
@@ -769,9 +766,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const vanchorRoots = await idAnchor.populateVAnchorRootsForProof();
       const depositAmount = 1e8;
       const depositUtxo = await generateUTXOForTest(chainID, aliceKeypair, depositAmount);
-      // const fakeUtxo = await generateUTXOForTest(chainID, aliceKeypair, depositAmount);
       const fakeChainId = getChainIdType(666);
-      // fakeUtxo.originChainId = fakeChainId.toString()
       const fakeUtxo = await CircomUtxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
@@ -784,11 +779,9 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
       const inputs: Utxo[] = [
         fakeUtxo,
-        // await generateUTXOForTest(chainID, new Keypair()),
         await generateUTXOForTest(chainID, new Keypair()),
       ];
       const outputs = [depositUtxo, await generateUTXOForTest(chainID, new Keypair())];
-      // const merkleProofsForInputs = inputs.map((x) => idAnchor.getMerkleProof(x));
       const fakeTree = new MerkleTree(idAnchor.tree.levels);
       const fakeCommitment = u8aToHex(fakeUtxo.commitment);
       fakeTree.insert(fakeCommitment);
@@ -815,7 +808,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const extDataHash = getVAnchorExtDataHash(
         encOutput1,
         encOutput2,
-        // depositAmount.toString(),
         extAmount.toString(),
         BigNumber.from(fee).toString(),
         alice.address,
@@ -886,7 +878,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
         fullProof.proof
       );
       expect(is_valid).equals(true);
-      // (is_valid, true);
 
       const tx = idAnchor.contract.transact(
         publicInputs.proof,
@@ -1463,7 +1454,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const relayer = '0x2111111111111111111111111111111111111111';
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceKeypair, aliceDepositAmount);
-      const tx = await wrappedIdAnchor.transact(
+      await wrappedIdAnchor.transact(
         [],
         [aliceDepositUtxo],
         fee,
@@ -1515,7 +1506,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
       expect(balWrappedTokenAfterDepositSender.toString()).equal('0');
       const aliceDepositIndex = wrappedIdAnchor.tree.getIndexByElement(aliceDepositUtxo.commitment);
 
-      // aliceDepositUtxo = await updateUtxoWithIndex(aliceDepositUtxo, aliceDepositIndex, chainID);
       aliceDepositUtxo.setIndex(aliceDepositIndex);
 
       //Check that vAnchor has the right amount of wrapped token balance
@@ -1634,8 +1624,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         .to.emit(ganacheSemaphore.contract, 'MemberAdded')
         .withArgs(groupId, johnLeaf, ganacheGroup.root);
 
-      // const tx2 = await ganacheSemaphore.addMember(groupId.toNumber(), group.root.toString(), 2, chainID);
-      const tx2 = await ganacheSemaphore.updateEdge(
+      await ganacheSemaphore.updateEdge(
         groupId.toNumber(),
         group.root.toString(),
         2,
@@ -1645,15 +1634,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       // update group edges cross-chain
       ganacheGroup.updateEdge(chainID, group.root.toString());
 
-      // let john_addmember_tx = await ganacheSemaphore.contract
-      //   .connect(sender)
-      //   .addMember(groupId, johnLeaf, { gasLimit: '0x5B8D80' });
-      // // const receipt = await alice_addmember_tx.wait();
-      // expect(john_addmember_tx)
-      //   .to.emit(ganacheSemaphore.contract, 'MemberAdded')
-      //   .withArgs(groupId, johnLeaf, ganacheGroup.root);
-
-      const tx3 = await semaphore.updateEdge(
+      await semaphore.updateEdge(
         groupId.toNumber(),
         ganacheGroup.root.toString(),
         0,
@@ -1704,13 +1685,11 @@ describe('IdentityVAnchor for 2 max edges', () => {
         blinding: hexToU8a(randomBN(31).toHexString()),
         keypair: johnKeypair,
       });
-      // Alice deposits into tornado pool
+      // John deposits into tornado pool
       const inputs: Utxo[] = [];
       const outputs = [johnDepositUtxo];
-      // , await generateUTXOForTest(chainID, new Keypair())];
-      const johnBalanceBeforeDeposit = await ganacheToken.balanceOf(john.address);
       const txOptions: TransactionOptions = { keypair: johnKeypair };
-      const tx = await ganacheAnchor.transact(
+      await ganacheAnchor.transact(
         inputs,
         outputs,
         fee,
@@ -1735,24 +1714,17 @@ describe('IdentityVAnchor for 2 max edges', () => {
         keypair: johnKeypair,
       });
       // Alice deposits into tornado pool
-      const inputs: Utxo[] = [];
-      const outputs = [johnDepositUtxo];
-      // , await generateUTXOForTest(chainID, new Keypair())];
       await token.mint(john.address, BigNumber.from(1e10).toString());
-      const johnBalanceBeforeDeposit = await token.balanceOf(john.address);
       const txOptions: TransactionOptions = {
         keypair: johnKeypair,
         externalLeaves: ganacheGroup.members.map((bignum: BigNumber) =>
           hexToU8a(bignum.toHexString())
         ),
       };
-      let johnLeaf = johnKeypair.getPubKey();
-      // const updateEdgeTx = await semaphore.updateEdge(groupId.toNumber(), ganacheGroup.root.toString(), 1, chainID2)
-      //
-      // const updateEdgeReceipt = await updateEdgeTx.wait()
-      const tx = await idAnchor.transact(
-        inputs,
-        outputs,
+
+      await idAnchor.transact(
+        [],
+        [johnDepositUtxo],
         fee,
         BigNumber.from(0),
         john.address,
@@ -1777,7 +1749,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       // john deposits into tornado pool
       const johnBalanceBeforeDeposit = await ganacheToken.balanceOf(john.address);
       const txOptions: TransactionOptions = { keypair: johnKeypair };
-      const tx = await ganacheAnchor.transact(
+      await ganacheAnchor.transact(
         [],
         [johnDepositUtxo],
         fee,
@@ -1788,7 +1760,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
         {},
         { gasLimit: '0x5B8D80', ...txOptions }
       );
-      const updateEdgeTx = await idAnchor.contract.updateEdge(
+
+      await idAnchor.contract.updateEdge(
         ganacheAnchor.tree.root().toString(),
         0,
         toFixedHex(ganacheAnchor.contract.address + chainID2)
@@ -1821,7 +1794,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const leavesMap = { [chainID2]: leaves };
 
       const johnBalanceBeforeWithdraw = await token.balanceOf(john.address);
-      const withdrawTx = await idAnchor.transact(
+
+      await idAnchor.transact(
         [johnDepositUtxo],
         [johnWithdrawUtxo],
         fee,
