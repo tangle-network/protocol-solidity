@@ -16,7 +16,9 @@ export interface SetupTransactionResult {
  * Make sure update the `splitTransactionOptions` function if you add a new property here.
  */
 export interface TransactionOptions {
-  keypair?: Keypair;
+  keypair?: Keypair; // for identityVAnchor
+  treeChainId?: string; // for vanchorForest/IdentityVAnchor
+  externalLeaves?: Uint8Array[]; // for vanchorForest
 }
 
 /**
