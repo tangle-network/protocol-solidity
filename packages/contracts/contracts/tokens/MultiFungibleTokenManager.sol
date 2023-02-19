@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.5;
 
 import "./FungibleTokenWrapper.sol";
 import "./MultiTokenManagerBase.sol";
@@ -25,6 +25,7 @@ contract MultiFungibleTokenManager is MultiTokenManagerBase {
         @param _limit The maximum amount of tokens that can be wrapped
         @param _feePercentage The fee percentage for wrapping
         @param _isNativeAllowed Whether or not native tokens are allowed to be wrapped
+		@param _admin The address of the admin who will receive minting rights and admin role
      */
 	function registerToken(
 		address _handler,
@@ -33,7 +34,8 @@ contract MultiFungibleTokenManager is MultiTokenManagerBase {
 		bytes32 _salt,
 		uint256 _limit,
 		uint16 _feePercentage,
-		bool _isNativeAllowed
+		bool _isNativeAllowed,
+		address _admin
 	) external override onlyRegistry onlyInitialized returns (address) {
 		FungibleTokenWrapper token = new FungibleTokenWrapper{ salt: _salt }(_name, _symbol);
 
@@ -42,7 +44,8 @@ contract MultiFungibleTokenManager is MultiTokenManagerBase {
 			payable(masterFeeRecipient),
 			_handler,
 			_limit,
-			_isNativeAllowed
+			_isNativeAllowed,
+			_admin
 		);
 
 		wrappedTokens.push(address(token));

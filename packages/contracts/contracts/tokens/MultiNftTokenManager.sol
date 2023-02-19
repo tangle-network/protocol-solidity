@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.5;
 
 import "./NftTokenWrapper.sol";
 import "./MultiTokenManagerBase.sol";
@@ -23,7 +23,8 @@ contract MultiNftTokenManager is MultiTokenManagerBase {
 		bytes32,
 		uint256,
 		uint16,
-		bool
+		bool,
+		address
 	) public view override onlyRegistry onlyInitialized returns (address) {
 		revert();
 	}

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.5;
 
 import "../interfaces/tokens/ITokenWrapper.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -39,6 +39,16 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
      */
 	function getFeeFromAmount(uint256 _amountToWrap) public view override returns (uint256) {
 		return _amountToWrap.mul(feePercentage).div(10000);
+	}
+
+	/**
+        @notice Get the fee for a target amount to wrap
+        @param _admin the address for granting minting, pausing and admin roles at initialization
+     */
+	function _initialize(address _admin) internal returns (uint256) {
+		_setupRole(MINTER_ROLE, _admin);
+		_setupRole(DEFAULT_ADMIN_ROLE, _admin);
+		_setupRole(PAUSER_ROLE, _admin);
 	}
 
 	/**

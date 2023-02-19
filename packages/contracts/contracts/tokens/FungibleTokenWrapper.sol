@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.5;
 
 import "../interfaces/tokens/IFungibleTokenWrapper.sol";
 import "./TokenWrapper.sol";
@@ -18,8 +18,8 @@ import "../utils/ProposalNonceTracker.sol";
     TokenHandler contract.
  */
 contract FungibleTokenWrapper is
-	TokenWrapper,
 	Initialized,
+	TokenWrapper,
 	IFungibleTokenWrapper,
 	ProposalNonceTracker
 {
@@ -48,14 +48,17 @@ contract FungibleTokenWrapper is
         @param _handler The address of the handler
         @param _limit The maximum amount of tokens that can be wrapped
         @param _isNativeAllowed Whether or not native tokens are allowed to be wrapped
+		@param _admin The address of the admin who will receive minting rights and admin role
      */
 	function initialize(
 		uint16 _feePercentage,
 		address _feeRecipient,
 		address _handler,
 		uint256 _limit,
-		bool _isNativeAllowed
+		bool _isNativeAllowed,
+		address _admin
 	) public onlyUninitialized {
+		super._initialize(_admin);
 		initialized = true;
 		feePercentage = _feePercentage;
 		feeRecipient = payable(_feeRecipient);

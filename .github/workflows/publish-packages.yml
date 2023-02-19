@@ -1,0 +1,43 @@
+name: Publish
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  release:
+    name: Packages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js 16.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+
+      - name: Install Dependencies
+        run: yarn
+
+      - name: Publish to NPM registry
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          # auto publishes PATCH version bump
+          publish: yarn publish:ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.PA_GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Slack Notification
+        if: steps.changesets.outputs.published == 'true'
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_USERNAME: 'Webb-Bot'
+          SLACK_CHANNEL: '#webb-protocol-solidity'
+          SLACK_MESSAGE: 'A new version of ${GITHUB_REPOSITORY} packages was published!'

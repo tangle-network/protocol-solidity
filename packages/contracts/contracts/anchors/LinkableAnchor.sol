@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.5;
 
 import "../structs/Edge.sol";
 import "../hashers/IHasher.sol";
@@ -65,6 +65,14 @@ abstract contract LinkableAnchor is
 	// Edge linking events
 	event EdgeAddition(uint256 chainID, uint256 latestLeafIndex, uint256 merkleRoot);
 	event EdgeUpdate(uint256 chainID, uint256 latestLeafIndex, uint256 merkleRoot);
+
+	/**
+        @notice Checks the sender is the AnchorHandler configured on this contract
+     */
+	modifier onlyHandler() {
+		require(msg.sender == handler, "sender is not the handler");
+		_;
+	}
 
 	/**
         @notice The LinkableAnchor constructor
@@ -225,14 +233,6 @@ abstract contract LinkableAnchor is
 			rootIndex++;
 		}
 		return true;
-	}
-
-	/**
-        @notice Checks the sender is the AnchorHandler configured on this contract
-     */
-	modifier onlyHandler() {
-		require(msg.sender == handler, "sender is not the handler");
-		_;
 	}
 
 	/**

@@ -1,29 +1,34 @@
-import { BigNumber, BigNumberish, ethers } from 'ethers';
+import { Log } from '@ethersproject/abstract-provider';
 import {
+  ERC20,
+  ERC20__factory,
+  VAnchorEncodeInputs__factory,
   VAnchorTree as VAnchorTreeContract,
   VAnchorTree__factory,
-  VAnchorEncodeInputs__factory,
 } from '@webb-tools/contracts';
-import {
-  toFixedHex,
-  Utxo,
-  MerkleTree,
-  CircomProvingManager,
-  ProvingManagerSetupInput,
-  MerkleProof,
-  FIELD_SIZE,
-  LeafIdentifier,
-} from '@webb-tools/sdk-core';
 import {
   IVAnchor,
   IVariableAnchorExtData,
   IVariableAnchorPublicInputs,
 } from '@webb-tools/interfaces';
+import {
+  CircomProvingManager,
+  CircomUtxo,
+  FIELD_SIZE,
+  Keypair,
+  LeafIdentifier,
+  MerkleProof,
+  MerkleTree,
+  ProvingManagerSetupInput,
+  Utxo,
+  toFixedHex,
+} from '@webb-tools/sdk-core';
+import { ZERO_BYTES32, ZkComponents, getChainIdType, hexToU8a, u8aToHex } from '@webb-tools/utils';
+import { BigNumber, BigNumberish, BytesLike, Overrides, PayableOverrides, ethers } from 'ethers';
 import { WebbBridge } from './Common';
 import { Deployer } from './Deployer';
-import { hexToU8a, u8aToHex, getChainIdType, ZkComponents, ZERO_BYTES32 } from '@webb-tools/utils';
-
-const zeroAddress = '0x0000000000000000000000000000000000000000';
+import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
+import { zeroAddress } from './utils';
 
 // This convenience wrapper class is used in tests -
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
@@ -49,7 +54,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents
   ) {
-    super(contract, signer);
+    super(contract, signer, treeHeight);
     this.signer = signer;
     this.contract = contract;
     this.tree = new MerkleTree(treeHeight);
@@ -200,26 +205,32 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     return [thisRoot, ...neighborRootInfos];
   }
 
-  public async getClassAndContractRoots() {
-    return [this.tree.root(), await this.contract.getLastRoot()];
-  }
-
   /**
    *
    * @param input A UTXO object that is inside the tree
    * @returns
    */
-  public getMerkleProof(input: Utxo): MerkleProof {
+  public getMerkleProof(input: Utxo, leavesMap?: Uint8Array[]): MerkleProof {
     let inputMerklePathIndices: number[];
     let inputMerklePathElements: BigNumber[];
 
     if (Number(input.amount) > 0) {
-      if (input.index < 0) {
-        throw new Error(`Input commitment ${u8aToHex(input.commitment)} was not found`);
+      if (input.index === undefined) {
+        throw new Error(`Input commitment ${u8aToHex(input.commitment)} index was not set`);
       }
-      const path = this.tree.path(input.index);
-      inputMerklePathIndices = path.pathIndices;
-      inputMerklePathElements = path.pathElements;
+      if (input.index < 0) {
+        throw new Error(`Input commitment ${u8aToHex(input.commitment)} index should be >= 0`);
+      }
+      if (leavesMap === undefined) {
+        const path = this.tree.path(input.index);
+        inputMerklePathIndices = path.pathIndices;
+        inputMerklePathElements = path.pathElements;
+      } else {
+        const mt = new MerkleTree(this.treeHeight, leavesMap);
+        const path = mt.path(input.index);
+        inputMerklePathIndices = path.pathIndices;
+        inputMerklePathElements = path.pathElements;
+      }
     } else {
       inputMerklePathIndices = new Array(this.tree.levels).fill(0);
       inputMerklePathElements = new Array(this.tree.levels).fill(0);
@@ -245,7 +256,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     const args: IVariableAnchorPublicInputs = {
       proof: `0x${proof}`,
       roots: `0x${roots.map((x) => toFixedHex(x).slice(2)).join('')}`,
-      extensionRoots: '0x00',
+      extensionRoots: '0x',
       inputNullifiers: inputs.map((x) => BigNumber.from(toFixedHex('0x' + x.nullifier))),
       outputCommitments: [
         BigNumber.from(toFixedHex(u8aToHex(outputs[0].commitment))),
@@ -266,42 +277,28 @@ export class VAnchor extends WebbBridge implements IVAnchor {
    * else
    *   return false
    */
-  public async setWithLeaves(leaves: string[], syncedBlock?: number): Promise<Boolean> {
-    let newTree = new MerkleTree(this.tree.levels, leaves);
-    let root = toFixedHex(newTree.root());
-    let validTree = await this.contract.isKnownRoot(root);
 
-    if (validTree) {
-      let index = 0;
-      for (const leaf of newTree.elements()) {
-        this.depositHistory[index] = toFixedHex(this.tree.root());
-        index++;
+  // Verify the leaf occurred at the reported block
+  // This is important to check the behavior of relayers before modifying local storage
+  async leafCreatedAtBlock(leaf: string, blockNumber: number): Promise<boolean> {
+    const filter = this.contract.filters.NewCommitment(null, null, null);
+    const logs = await this.contract.provider.getLogs({
+      fromBlock: blockNumber,
+      toBlock: blockNumber,
+      ...filter,
+    });
+    const events = logs.map((log: any) => this.contract.interface.parseLog(log));
+
+    for (let i = 0; i < events.length; i++) {
+      if (events[i].args.commitment?._hex === leaf) {
+        return true;
       }
-      if (!syncedBlock) {
-        syncedBlock = await this.signer.provider.getBlockNumber();
-      }
-      this.tree = newTree;
-      this.latestSyncedBlock = syncedBlock;
-      return true;
-    } else {
-      return false;
     }
-  }
-  public static convertToExtDataStruct(args: any[]): IVariableAnchorExtData {
-    return {
-      recipient: args[0],
-      extAmount: args[1],
-      relayer: args[2],
-      fee: args[3],
-      refund: args[4],
-      token: args[5],
-      encryptedOutput1: args[6],
-      encryptedOutput2: args[7],
-    };
-  }
 
+    return false;
+  }
   /**
-   *
+   * Sets up a VAnchor transaction by generate the necessary inputs to the tx.
    * @param inputs a list of UTXOs that are either inside the tree or are dummy inputs
    * @param outputs a list of output UTXOs. Needs to have 2 elements.
    * @param fee transaction fee.
@@ -310,7 +307,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
    * @param relayer address to the relayer
    * @param wrapUnwrapToken address to the token being transacted. can be the empty string to use native token
    * @param leavesMap map from chainId to merkle leaves
-   * @returns an object with two fields, publicInputs, extData and extAmount
+   * @returns `SetupTransactionResult` object
    */
   public async setupTransaction(
     inputs: Utxo[],
@@ -320,10 +317,14 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>
-  ) {
-    // first, check if the merkle root is known on chain - if not, then update
+    leavesMap: Record<string, Uint8Array[]>,
+    txOptions?: TransactionOptions
+  ): Promise<SetupTransactionResult> {
     if (wrapUnwrapToken.length === 0) {
+      if (!this.token) {
+        throw new Error('Token address not set');
+      }
+
       wrapUnwrapToken = this.token;
     }
 
@@ -343,7 +344,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     for (const inputUtxo of inputs) {
       sumInputUtxosAmount = BigNumber.from(sumInputUtxosAmount).add(inputUtxo.amount);
       leafIds.push({
-        index: inputUtxo.index,
+        index: inputUtxo.index!, // TODO: remove non-null assertion here
         typedChainId: Number(inputUtxo.originChainId),
       });
     }
@@ -413,13 +414,14 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     };
   }
 
-  public updateTreeState(outputs: Utxo[]): void {
+  public updateTreeOrForestState(outputs: Utxo[]): void {
     outputs.forEach((x) => {
       this.tree.insert(u8aToHex(x.commitment));
       let numOfElements = this.tree.number_of_elements();
       this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
     });
   }
+
   public async generateProof(
     roots: string[],
     inputs: Utxo[],
@@ -445,7 +447,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     for (const inputUtxo of inputs) {
       sumInputUtxosAmount = BigNumber.from(sumInputUtxosAmount).add(inputUtxo.amount);
       leafIds.push({
-        index: inputUtxo.index,
+        index: inputUtxo.index!, // TODO: remove non-null assertion here
         typedChainId: Number(inputUtxo.originChainId),
       });
     }
@@ -485,63 +487,20 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     return { proof, extAmount, proofInput };
   }
 
-  public async transact(
-    inputs: Utxo[],
-    outputs: Utxo[],
-    fee: BigNumberish,
-    refund: BigNumberish,
-    recipient: string,
-    relayer: string,
-    wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>
+  public async register(
+    owner: string,
+    keyData: BytesLike,
+    overridesTransaction?: OverridesWithFrom<Overrides>
   ): Promise<ethers.ContractReceipt> {
-    // Default UTXO chain ID will match with the configured signer's chain ID
-    inputs = await this.padUtxos(inputs, 16);
-    outputs = await this.padUtxos(outputs, 2);
-
-    const { extData, extAmount, publicInputs } = await this.setupTransaction(
-      inputs,
-      outputs,
-      fee,
-      refund,
-      recipient,
-      relayer,
-      wrapUnwrapToken,
-      leavesMap
+    const tx = await this.contract.register(
+      {
+        owner,
+        keyData,
+      },
+      overridesTransaction
     );
 
-    let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
-
-    const tx = await this.contract.transact(
-      publicInputs.proof,
-      ZERO_BYTES32,
-      {
-        recipient: extData.recipient,
-        extAmount: extData.extAmount,
-        relayer: extData.relayer,
-        fee: extData.fee,
-        refund: extData.refund,
-        token: extData.token,
-      },
-      {
-        roots: publicInputs.roots,
-        extensionRoots: '0x',
-        inputNullifiers: publicInputs.inputNullifiers,
-        outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
-        publicAmount: publicInputs.publicAmount,
-        extDataHash: publicInputs.extDataHash,
-      },
-      {
-        encryptedOutput1: extData.encryptedOutput1,
-        encryptedOutput2: extData.encryptedOutput2,
-      },
-      options
-    );
     const receipt = await tx.wait();
-
-    // Add the leaves to the tree
-    this.updateTreeState(outputs);
-
     return receipt;
   }
 
@@ -555,7 +514,8 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>
+    leavesMap: Record<string, Uint8Array[]>,
+    overridesTransaction?: OverridesWithFrom<PayableOverrides>
   ): Promise<ethers.ContractReceipt> {
     inputs = await this.padUtxos(inputs, 16);
     outputs = await this.padUtxos(outputs, 2);
@@ -571,7 +531,12 @@ export class VAnchor extends WebbBridge implements IVAnchor {
       leavesMap
     );
 
-    let options = await this.getWrapUnwrapOptions(extAmount, wrapUnwrapToken);
+    let options = await this.getWrapUnwrapOptions(
+      extAmount,
+      BigNumber.from(refund),
+      wrapUnwrapToken
+    );
+
     let tx = await this.contract.registerAndTransact(
       { owner, keyData: keyData },
       publicInputs.proof,
@@ -599,14 +564,234 @@ export class VAnchor extends WebbBridge implements IVAnchor {
         encryptedOutput1: extData.encryptedOutput1,
         encryptedOutput2: extData.encryptedOutput2,
       },
-      options
+      { ...options, ...overridesTransaction }
     );
     const receipt = await tx.wait();
 
     // Add the leaves to the tree
-    this.updateTreeState(outputs);
+    this.updateTreeOrForestState(outputs);
 
     return receipt;
+  }
+
+  async getWebbToken(): Promise<ERC20> {
+    const tokenAddress = await this.contract.token();
+    const tokenInstance = ERC20__factory.connect(tokenAddress, this.signer);
+
+    return tokenInstance;
+  }
+  public async setWithLeaves(leaves: string[], syncedBlock?: number): Promise<Boolean> {
+    let newTree = new MerkleTree(this.tree.levels, leaves);
+    let root = toFixedHex(newTree.root());
+    let validTree = await this.contract.isKnownRoot(root);
+
+    if (validTree) {
+      let index = 0;
+      for (const _leaf of newTree.elements()) {
+        this.depositHistory[index] = toFixedHex(this.tree.root());
+        index++;
+      }
+      if (!syncedBlock) {
+        if (!this.signer.provider) {
+          throw new Error('Signer does not have a provider');
+        }
+
+        syncedBlock = await this.signer.provider.getBlockNumber();
+      }
+      this.tree = newTree;
+      this.latestSyncedBlock = syncedBlock;
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  async isWebbTokenApprovalRequired(depositAmount: BigNumberish) {
+    const userAddress = await this.signer.getAddress();
+    const tokenInstance = await this.getWebbToken();
+    const tokenAllowance = await tokenInstance.allowance(userAddress, this.contract.address);
+
+    if (tokenAllowance < depositAmount) {
+      return true;
+    }
+
+    return false;
+  }
+
+  async isWrappableTokenApprovalRequired(tokenAddress: string, depositAmount: BigNumberish) {
+    const userAddress = await this.signer.getAddress();
+    const tokenInstance = ERC20__factory.connect(tokenAddress, this.signer);
+    const tokenAllowance = await tokenInstance.allowance(userAddress, this.contract.address);
+
+    if (tokenAllowance < depositAmount) {
+      return true;
+    }
+
+    return false;
+  }
+
+  async hasEnoughBalance(depositAmount: BigNumberish, tokenAddress?: string) {
+    const userAddress = await this.signer.getAddress();
+    let tokenBalance: BigNumber;
+
+    // If a token address was supplied, the user is querying for enough balance of a wrappableToken
+    if (tokenAddress) {
+      // query for native balance
+      if (tokenAddress === zeroAddress) {
+        tokenBalance = await this.signer.getBalance();
+      } else {
+        const tokenInstance = ERC20__factory.connect(tokenAddress, this.signer);
+
+        tokenBalance = await tokenInstance.balanceOf(userAddress);
+      }
+    } else {
+      // Querying for balance of the webbToken
+      const tokenInstance = await this.getWebbToken();
+
+      tokenBalance = await tokenInstance.balanceOf(userAddress);
+    }
+
+    if (tokenBalance.lt(BigNumber.from(depositAmount))) {
+      return false;
+    }
+
+    return true;
+  }
+
+  async getDepositLeaves(
+    startingBlock: number,
+    finalBlock: number,
+    abortSignal: AbortSignal,
+    retryPromise: (...args: any[]) => PromiseLike<any> // TODO: Determine the type of this function
+  ): Promise<{ lastQueriedBlock: number; newLeaves: string[] }> {
+    const filter = this.contract.filters.NewCommitment(null, null, null);
+
+    console.log('Getting leaves with filter', filter);
+    finalBlock = finalBlock || (await this.contract.provider.getBlockNumber());
+    console.log(`finalBlock detected as: ${finalBlock}`);
+
+    let logs: Array<Log> = []; // Read the stored logs into this variable
+    const step = 1000; // Metamask infura caps requests at 1000 blocks
+    console.log(`Fetching leaves with steps of ${step} logs/request`);
+
+    try {
+      for (let i = startingBlock; i <= finalBlock; i += step) {
+        const nextLogs = await retryPromise(
+          () => {
+            return this.contract.provider.getLogs({
+              fromBlock: i,
+              toBlock: finalBlock - i > step ? i + step : finalBlock,
+              ...filter,
+            });
+          },
+          20,
+          10,
+          abortSignal
+        );
+
+        logs = [...logs, ...nextLogs];
+
+        console.log(`Getting logs for block range: ${i} through ${i + step}`);
+      }
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+
+    const events = logs.map((log) => this.contract.interface.parseLog(log));
+
+    const newCommitments = events
+      .sort((a, b) => a.args.index - b.args.index) // Sort events in chronological order
+      .map((e) => BigNumber.from(e.args.commitment).toHexString());
+    return {
+      lastQueriedBlock: finalBlock,
+      newLeaves: newCommitments,
+    };
+  }
+
+  // This function will query the chain for notes that are spendable by a keypair in a block range
+  async getSpendableUtxosFromChain(
+    owner: Keypair,
+    startingBlock: number,
+    finalBlock: number,
+    abortSignal: AbortSignal,
+    retryPromise: (...args: any[]) => PromiseLike<any> // TODO: Determine the type of this function
+  ): Promise<Utxo[]> {
+    const filter = this.contract.filters.NewCommitment(null, null, null);
+    let logs: Array<Log> = []; // Read the stored logs into this variable
+
+    finalBlock = finalBlock || (await this.contract.provider.getBlockNumber());
+    console.log(`Getting notes from chain`);
+    // number of blocks to query at a time
+    const step = 1000;
+    console.log(`Fetching notes with steps of ${step} logs/request`);
+
+    try {
+      for (let i = startingBlock; i < finalBlock; i += step) {
+        const nextLogs = await retryPromise(
+          () => {
+            return this.contract.provider.getLogs({
+              fromBlock: i,
+              toBlock: finalBlock - i > step ? i + step : finalBlock,
+              ...filter,
+            });
+          },
+          20,
+          10,
+          abortSignal
+        );
+
+        logs = [...logs, ...nextLogs];
+
+        console.log(`Getting logs for block range: ${i} through ${i + step}`);
+      }
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+
+    const events = logs.map((log) => this.contract.interface.parseLog(log));
+    const encryptedCommitments: string[] = events
+      .sort((a, b) => a.args.index - b.args.index) // Sort events in chronological order
+      .map((e) => e.args.encryptedOutput);
+
+    // Attempt to decrypt with the owner's keypair
+    const utxos = await Promise.all(
+      encryptedCommitments.map(async (enc, index) => {
+        try {
+          const decryptedUtxo = await CircomUtxo.decrypt(owner, enc);
+          // In order to properly calculate the nullifier, an index is required.
+          // The decrypt function generates a utxo without an index, and the index is a readonly property.
+          // So, regenerate the utxo with the proper index.
+          const regeneratedUtxo = await CircomUtxo.generateUtxo({
+            amount: decryptedUtxo.amount,
+            backend: 'Circom',
+            blinding: hexToU8a(decryptedUtxo.blinding),
+            chainId: decryptedUtxo.chainId,
+            curve: 'Bn254',
+            keypair: owner,
+            index: index.toString(),
+          });
+          const alreadySpent = await this.contract.isSpent(
+            toFixedHex(`0x${regeneratedUtxo.nullifier}`, 32)
+          );
+          if (!alreadySpent) {
+            return regeneratedUtxo;
+          } else {
+            return undefined;
+          }
+        } catch (e) {
+          return undefined;
+        }
+      })
+    );
+
+    // Unsure why the following filter statement does not change type from (Utxo | undefined)[] to Utxo[]
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const decryptedUtxos: Utxo[] = utxos.filter((value) => value !== undefined);
+
+    return decryptedUtxos;
   }
 }
 

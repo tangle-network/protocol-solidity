@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.5;
 pragma experimental ABIEncoderV2;
 
 import "../../anchors/LinkableAnchor.sol";
@@ -75,14 +75,14 @@ abstract contract VAnchorBase is LinkableAnchor {
 	function configureMinimalWithdrawalLimit(
 		uint256 _minimalWithdrawalAmount,
 		uint32 _nonce
-	) public override onlyHandler onlyIncrementingByOne(_nonce) {
+	) public override onlyHandler onlyIncrementingByOne(_nonce) onlyInitialized {
 		_configureMinimalWithdrawalLimit(_minimalWithdrawalAmount);
 	}
 
 	function configureMaximumDepositLimit(
 		uint256 _maximumDepositAmount,
 		uint32 _nonce
-	) public override onlyHandler onlyIncrementingByOne(_nonce) {
+	) public override onlyHandler onlyIncrementingByOne(_nonce) onlyInitialized {
 		_configureMaximumDepositLimit(_maximumDepositAmount);
 	}
 
@@ -244,6 +244,26 @@ abstract contract VAnchorBase is LinkableAnchor {
 			} else {
 				IMintableERC20(_token).mint(_relayer, _fee);
 			}
+		}
+	}
+
+	/**
+		@notice Process the refund and send it to the recipient. checks if the msg.value is enough to cover the refund
+		@param _refund The refund amount in native token
+		@param _recipient The recipient of the refund
+		@param _relayer The relayer of the transaction
+	 */
+	function _processRefund(
+		uint256 _refund,
+		address _recipient,
+		address _relayer
+	) internal virtual {
+		require(msg.value == _refund, "Incorrect refund amount received by the contract");
+		(bool success, ) = payable(_recipient).call{ value: _refund }("");
+		// if the refund fails, send it back to the relayer
+		if (!success) {
+			(bool success2, ) = payable(_relayer).call{ value: _refund }("");
+			require(success2, "Refund failed");
 		}
 	}
 
