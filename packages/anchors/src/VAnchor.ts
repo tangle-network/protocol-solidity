@@ -772,14 +772,8 @@ export class VAnchor extends WebbBridge implements IVAnchor {
             keypair: owner,
             index: index.toString(),
           });
-          const alreadySpent = await this.contract.isSpent(
-            toFixedHex(`0x${regeneratedUtxo.nullifier}`, 32)
-          );
-          if (!alreadySpent) {
-            return regeneratedUtxo;
-          } else {
-            return undefined;
-          }
+
+          return regeneratedUtxo;
         } catch (e) {
           return undefined;
         }
