@@ -177,6 +177,11 @@ async function main() {
       secretKey: '0xc0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e',
     },
   ]);
+
+  console.log('Chain A typedChainId: ', chainA.typedChainId);
+  console.log('Chain B typedChainId: ', chainB.typedChainId);
+  console.log('Chain C typedChainId: ', chainC.typedChainId);
+
   const chainAWallet = new ethers.Wallet(relayerPrivateKey, chainA.provider());
   const chainBWallet = new ethers.Wallet(relayerPrivateKey, chainB.provider());
   const chainCWallet = new ethers.Wallet(relayerPrivateKey, chainC.provider());
