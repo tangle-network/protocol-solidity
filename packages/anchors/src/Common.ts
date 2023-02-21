@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish, ethers } from 'ethers';
+import { BigNumber, BigNumberish, PayableOverrides, ethers } from 'ethers';
 import {
   VAnchor as VAnchorContract,
   ChainalysisVAnchor as ChainalysisVAnchorContract,
@@ -16,9 +16,12 @@ import {
   UtxoGenInput,
   CircomUtxo,
   MerkleTree,
+  getVAnchorExtDataHash,
 } from '@webb-tools/sdk-core';
-import { hexToU8a, getChainIdType } from '@webb-tools/utils';
-import { checkNativeAddress } from './utils';
+import { hexToU8a, getChainIdType, ZERO_BYTES32 } from '@webb-tools/utils';
+import { checkNativeAddress, splitTransactionOptions } from './utils';
+import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
+import { IVariableAnchorExtData } from '@webb-tools/interfaces';
 
 type WebbContracts =
   | VAnchorContract
@@ -27,18 +30,32 @@ type WebbContracts =
   | VAnchorForestContract
   | OpenVAnchorContract;
 
-export class WebbBridge {
+function isOpenVAnchorContract(contract: WebbContracts): contract is OpenVAnchorContract {
+  return (
+    'deposit' in contract &&
+    'withdraw' in contract &&
+    'wrapAndDeposit' in contract &&
+    'unwrapAndWithdraw' in contract &&
+    !('transact' in contract)
+  );
+}
+export abstract class WebbBridge {
   signer: ethers.Signer;
   contract: WebbContracts;
 
   tree: MerkleTree;
+  treeHeight: number;
+  latestSyncedBlock: number;
+  token?: string;
 
   // The depositHistory stores leafIndex => information to create proposals (new root)
   depositHistory: Record<number, string>;
 
-  constructor(contract: WebbContracts, signer: ethers.Signer) {
+  constructor(contract: WebbContracts, signer: ethers.Signer, treeHeight: number) {
     this.contract = contract;
     this.signer = signer;
+    this.treeHeight = treeHeight;
+    this.latestSyncedBlock = 0;
   }
 
   public static async generateUTXO(input: UtxoGenInput): Promise<Utxo> {
@@ -205,7 +222,7 @@ export class WebbBridge {
     return options;
   }
 
-  public async encodeSolidityProof(fullProof: any, calldata: any): Promise<String> {
+  public async encodeSolidityProof(calldata: any): Promise<String> {
     const proof = JSON.parse('[' + calldata + ']');
     const pi_a = proof[0];
     const pi_b = proof[1];
@@ -281,5 +298,151 @@ export class WebbBridge {
       toHex(nonce, 4).substr(2) +
       toHex(newHandler, 20).substr(2)
     );
+  }
+  public async getClassAndContractRoots() {
+    return [this.tree.root(), await this.contract.getLastRoot()];
+  }
+
+  public async generateExtData(
+    recipient: string,
+    extAmount: BigNumber,
+    relayer: string,
+    fee: BigNumber,
+    refund: BigNumber,
+    wrapUnwrapToken: string,
+    encryptedOutput1: string,
+    encryptedOutput2: string
+  ): Promise<{ extData: IVariableAnchorExtData; extDataHash: BigNumber }> {
+    const extData = {
+      recipient: toFixedHex(recipient, 20),
+      extAmount: toFixedHex(extAmount),
+      relayer: toFixedHex(relayer, 20),
+      fee: toFixedHex(fee),
+      refund: toFixedHex(refund.toString()),
+      token: toFixedHex(wrapUnwrapToken, 20),
+      encryptedOutput1,
+      encryptedOutput2,
+    };
+
+    const extDataHash = getVAnchorExtDataHash(
+      encryptedOutput1,
+      encryptedOutput2,
+      extAmount.toString(),
+      BigNumber.from(fee).toString(),
+      recipient,
+      relayer,
+      refund.toString(),
+      wrapUnwrapToken
+    );
+    return { extData, extDataHash };
+  }
+
+  public static convertToExtDataStruct(args: any[]): IVariableAnchorExtData {
+    return {
+      recipient: args[0],
+      extAmount: args[1],
+      relayer: args[2],
+      fee: args[3],
+      refund: args[4],
+      token: args[5],
+      encryptedOutput1: args[6],
+      encryptedOutput2: args[7],
+    };
+  }
+
+  /**
+   * Sets up a VAnchor transaction by generate the necessary inputs to the tx.
+   * @param inputs a list of UTXOs that are either inside the tree or are dummy inputs
+   * @param outputs a list of output UTXOs. Needs to have 2 elements.
+   * @param fee transaction fee.
+   * @param refund amount given as gas to withdraw address
+   * @param recipient address to the recipient
+   * @param relayer address to the relayer
+   * @param wrapUnwrapToken address to the token being transacted. can be the empty string to use native token
+   * @param leavesMap map from chainId to merkle leaves
+   * @param txOptions the optional transaction options
+   * @returns `SetupTransactionResult` object
+   */
+  public abstract setupTransaction(
+    inputs: Utxo[],
+    outputs: Utxo[],
+    fee: BigNumberish,
+    refund: BigNumberish,
+    recipient: string,
+    relayer: string,
+    wrapUnwrapToken: string,
+    leavesMap: Record<string, Uint8Array[]>,
+    txOptions?: TransactionOptions
+  ): Promise<SetupTransactionResult>;
+
+  public abstract updateTreeOrForestState(outputs: Utxo[]): Promise<void> | void;
+
+  public async transact(
+    inputs: Utxo[],
+    outputs: Utxo[],
+    fee: BigNumberish,
+    refund: BigNumberish,
+    recipient: string,
+    relayer: string,
+    wrapUnwrapToken: string,
+    leavesMap: Record<string, Uint8Array[]>, // subtree
+    overridesTransaction?: OverridesWithFrom<PayableOverrides> & TransactionOptions
+  ): Promise<ethers.ContractReceipt> {
+    if (isOpenVAnchorContract(this.contract)) {
+      throw new Error('OpenVAnchor contract does not support the `transact` method');
+    }
+    const [overrides, txOptions] = splitTransactionOptions(overridesTransaction);
+
+    // Default UTXO chain ID will match with the configured signer's chain ID
+    inputs = await this.padUtxos(inputs, 16);
+    outputs = await this.padUtxos(outputs, 2);
+
+    const { extAmount, extData, publicInputs } = await this.setupTransaction(
+      inputs,
+      outputs,
+      fee,
+      refund,
+      recipient,
+      relayer,
+      wrapUnwrapToken,
+      leavesMap,
+      txOptions
+    );
+
+    let options = await this.getWrapUnwrapOptions(
+      extAmount,
+      BigNumber.from(refund),
+      wrapUnwrapToken
+    );
+
+    const tx = await this.contract.transact(
+      publicInputs.proof,
+      ZERO_BYTES32,
+      {
+        recipient: extData.recipient,
+        extAmount: extData.extAmount,
+        relayer: extData.relayer,
+        fee: extData.fee,
+        refund: extData.refund,
+        token: extData.token,
+      },
+      {
+        roots: publicInputs.roots,
+        // extensionRoots: isForest ? [] :  publicInputs.extensionRoots ,
+        extensionRoots: publicInputs.extensionRoots,
+        inputNullifiers: publicInputs.inputNullifiers,
+        outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
+        publicAmount: publicInputs.publicAmount,
+        extDataHash: publicInputs.extDataHash,
+      },
+      {
+        encryptedOutput1: extData.encryptedOutput1,
+        encryptedOutput2: extData.encryptedOutput2,
+      },
+      { ...options, ...overrides }
+    );
+    const receipt = await tx.wait();
+    await this.updateTreeOrForestState(outputs);
+    return receipt;
   }
 }
