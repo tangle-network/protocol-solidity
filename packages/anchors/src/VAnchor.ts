@@ -676,11 +676,12 @@ export class VAnchor extends WebbBridge implements IVAnchor {
 
     try {
       for (let i = startingBlock; i <= finalBlock; i += step) {
+        const toBlock = finalBlock - i > step ? i + step - 1 : finalBlock;
         const nextLogs = await retryPromise(
           () => {
             return this.contract.provider.getLogs({
               fromBlock: i,
-              toBlock: finalBlock - i > step ? i + step : finalBlock,
+              toBlock,
               ...filter,
             });
           },
@@ -691,7 +692,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
 
         logs = [...logs, ...nextLogs];
 
-        console.log(`Getting logs for block range: ${i} through ${i + step}`);
+        console.log(`Getting logs for block range: ${i} through ${toBlock}`);
       }
     } catch (e) {
       console.error(e);
@@ -728,11 +729,12 @@ export class VAnchor extends WebbBridge implements IVAnchor {
 
     try {
       for (let i = startingBlock; i < finalBlock; i += step) {
+        const toBlock = finalBlock - i > step ? i + step - 1 : finalBlock;
         const nextLogs = await retryPromise(
           () => {
             return this.contract.provider.getLogs({
               fromBlock: i,
-              toBlock: finalBlock - i > step ? i + step : finalBlock,
+              toBlock,
               ...filter,
             });
           },
@@ -743,7 +745,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
 
         logs = [...logs, ...nextLogs];
 
-        console.log(`Getting logs for block range: ${i} through ${i + step}`);
+        console.log(`Getting logs for block range: ${i} through ${toBlock}`);
       }
     } catch (e) {
       console.error(e);
