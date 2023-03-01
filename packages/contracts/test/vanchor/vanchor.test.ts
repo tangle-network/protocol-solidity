@@ -40,6 +40,7 @@ import {
 import { VAnchor, PoseidonHasher } from '@webb-tools/anchors';
 import { Verifier } from '@webb-tools/vbridge';
 import { SetupTxVAnchorMock } from './mocks/SetupTxVAnchorMock';
+import { retryPromiseMock } from './mocks/retryPromiseMock';
 
 const BN = require('bn.js');
 
@@ -1314,6 +1315,7 @@ describe('VAnchor for 1 max edge', () => {
       );
     });
   });
+
   describe('#wrapping tests', () => {
     it('should wrap and deposit', async () => {
       const signers = await ethers.getSigners();
@@ -1847,6 +1849,144 @@ describe('VAnchor for 1 max edge', () => {
       await TruffleAssert.fails(
         wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1))
       );
+    });
+  });
+
+  describe.only('#getDepositLeaves', () => {
+    const deposit = async () => {
+      // Alice deposits into the pool
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
+      await anchor.registerAndTransact(
+        sender.address,
+        aliceDepositUtxo.keypair.toString(),
+        [],
+        [aliceDepositUtxo],
+        0,
+        0,
+        '0',
+        '0',
+        token.address,
+        {}
+      );
+    };
+
+    it('First deposit should return 2 leaves', async () => {
+      // We fallback to final block to get the latest block
+      const finalBlock = 0;
+      const lastQueriedBlock = 0;
+
+      await deposit();
+
+      // Get the leaves
+      const depositLeaves = await anchor.getDepositLeaves(
+        lastQueriedBlock,
+        finalBlock,
+        retryPromiseMock
+      );
+
+      assert.strictEqual(depositLeaves.newLeaves.length, 2);
+
+      // Validate the leaves
+      const treeHeight = await anchor.contract.getLevels();
+      const lastRoot = await anchor.contract.getLastRoot();
+      const provingTree = MerkleTree.createTreeWithRoot(
+        treeHeight,
+        depositLeaves.newLeaves,
+        toFixedHex(lastRoot.toHexString())
+      );
+
+      assert.notEqual(provingTree, undefined);
+    });
+
+    it('Odd number of deposits after the first deposit, then validate the leaves', async () => {
+      // We fallback to final block to get the latest block
+      const finalBlock = 0;
+
+      let lastQueriedBlock = 0;
+      const leaves = [];
+
+      await deposit();
+
+      // First do a deposit
+      const firstDepositLeaves = await anchor.getDepositLeaves(
+        lastQueriedBlock + 1,
+        finalBlock,
+        retryPromiseMock
+      );
+
+      // Cache the leaves
+      lastQueriedBlock = firstDepositLeaves.lastQueriedBlock;
+      leaves.push(...firstDepositLeaves.newLeaves);
+
+      // Do another deposit
+      await deposit();
+
+      // Get the leaves
+      const latestDepositLeaves = await anchor.getDepositLeaves(
+        lastQueriedBlock + 1,
+        finalBlock,
+        retryPromiseMock
+      );
+
+      // Merge the leaves
+      leaves.push(...latestDepositLeaves.newLeaves);
+
+      // Validate the leaves
+      const treeHeight = await anchor.contract.getLevels();
+      const lastRoot = await anchor.contract.getLastRoot();
+      const provingTree = MerkleTree.createTreeWithRoot(
+        treeHeight,
+        leaves,
+        toFixedHex(lastRoot.toHexString())
+      );
+
+      assert.notEqual(provingTree, undefined);
+    });
+
+    it('Even number of deposits after the first deposit, then validate the leaves', async () => {
+      // We fallback to final block to get the latest block
+      const finalBlock = 0;
+
+      let lastQueriedBlock = 0;
+      const leaves = [];
+
+      await deposit();
+
+      // First do a deposit
+      const firstDepositLeaves = await anchor.getDepositLeaves(
+        lastQueriedBlock + 1,
+        finalBlock,
+        retryPromiseMock
+      );
+
+      // Cache the leaves
+      lastQueriedBlock = firstDepositLeaves.lastQueriedBlock;
+      leaves.push(...firstDepositLeaves.newLeaves);
+
+      // Do 2 deposits
+      await Promise.all([deposit(), deposit()]);
+
+      // Latest leaves
+      const latestLeaves = await anchor.getDepositLeaves(
+        lastQueriedBlock + 1,
+        finalBlock,
+        retryPromiseMock
+      );
+
+      // Merge the leaves
+      leaves.push(...latestLeaves.newLeaves);
+
+      // Validate the leaves
+      const treeHeight = await anchor.contract.getLevels();
+      const lastRoot = await anchor.contract.getLastRoot();
+      const provingTree = MerkleTree.createTreeWithRoot(
+        treeHeight,
+        leaves,
+        toFixedHex(lastRoot.toHexString())
+      );
+
+      assert.notEqual(provingTree, undefined);
     });
   });
 });

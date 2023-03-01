@@ -297,6 +297,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
 
     return false;
   }
+
   /**
    * Sets up a VAnchor transaction by generate the necessary inputs to the tx.
    * @param inputs a list of UTXOs that are either inside the tree or are dummy inputs
@@ -580,6 +581,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
 
     return tokenInstance;
   }
+
   public async setWithLeaves(leaves: string[], syncedBlock?: number): Promise<Boolean> {
     let newTree = new MerkleTree(this.tree.levels, leaves);
     let root = toFixedHex(newTree.root());
@@ -661,8 +663,8 @@ export class VAnchor extends WebbBridge implements IVAnchor {
   async getDepositLeaves(
     startingBlock: number,
     finalBlock: number,
-    abortSignal: AbortSignal,
-    retryPromise: (...args: any[]) => PromiseLike<any> // TODO: Determine the type of this function
+    retryPromise: (...args: any[]) => PromiseLike<any>, // TODO: Determine the type of this function
+    abortSignal?: AbortSignal
   ): Promise<{ lastQueriedBlock: number; newLeaves: string[] }> {
     const filter = this.contract.filters.NewCommitment(null, null, null);
 
@@ -703,7 +705,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
 
     const newCommitments = events
       .sort((a, b) => a.args.index - b.args.index) // Sort events in chronological order
-      .map((e) => BigNumber.from(e.args.commitment).toHexString());
+      .map((e) => toFixedHex(BigNumber.from(e.args.commitment).toHexString()));
     return {
       lastQueriedBlock: finalBlock,
       newLeaves: newCommitments,
@@ -715,8 +717,8 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     owner: Keypair,
     startingBlock: number,
     finalBlock: number,
-    abortSignal: AbortSignal,
-    retryPromise: (...args: any[]) => PromiseLike<any> // TODO: Determine the type of this function
+    retryPromise: (...args: any[]) => PromiseLike<any>, // TODO: Determine the type of this function
+    abortSignal?: AbortSignal
   ): Promise<Utxo[]> {
     const filter = this.contract.filters.NewCommitment(null, null, null);
     let logs: Array<Log> = []; // Read the stored logs into this variable
