@@ -1852,7 +1852,7 @@ describe('VAnchor for 1 max edge', () => {
     });
   });
 
-  describe.only('#getDepositLeaves', () => {
+  describe('#getDepositLeaves', () => {
     const deposit = async () => {
       // Alice deposits into the pool
       const aliceDepositAmount = 1e7;
