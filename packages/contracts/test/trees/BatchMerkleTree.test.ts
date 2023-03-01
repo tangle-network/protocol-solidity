@@ -16,7 +16,7 @@ import {
   VerifierBatch16__factory,
   VerifierBatch32__factory,
   BatchTreeVerifierSelector__factory,
-} from '../../lib';
+} from '../../typechain';
 import path from 'path';
 const snarkjs = require('snarkjs');
 

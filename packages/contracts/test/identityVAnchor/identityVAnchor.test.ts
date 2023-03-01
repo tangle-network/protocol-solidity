@@ -777,10 +777,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         keypair: aliceKeypair,
       });
 
-      const inputs: Utxo[] = [
-        fakeUtxo,
-        await generateUTXOForTest(chainID, new Keypair()),
-      ];
+      const inputs: Utxo[] = [fakeUtxo, await generateUTXOForTest(chainID, new Keypair())];
       const outputs = [depositUtxo, await generateUTXOForTest(chainID, new Keypair())];
       const fakeTree = new MerkleTree(idAnchor.tree.levels);
       const fakeCommitment = u8aToHex(fakeUtxo.commitment);
@@ -1624,22 +1621,12 @@ describe('IdentityVAnchor for 2 max edges', () => {
         .to.emit(ganacheSemaphore.contract, 'MemberAdded')
         .withArgs(groupId, johnLeaf, ganacheGroup.root);
 
-      await ganacheSemaphore.updateEdge(
-        groupId.toNumber(),
-        group.root.toString(),
-        2,
-        chainID
-      );
+      await ganacheSemaphore.updateEdge(groupId.toNumber(), group.root.toString(), 2, chainID);
 
       // update group edges cross-chain
       ganacheGroup.updateEdge(chainID, group.root.toString());
 
-      await semaphore.updateEdge(
-        groupId.toNumber(),
-        ganacheGroup.root.toString(),
-        0,
-        chainID2
-      );
+      await semaphore.updateEdge(groupId.toNumber(), ganacheGroup.root.toString(), 0, chainID2);
 
       group.updateEdge(chainID2, ganacheGroup.root.toString());
       // create Anchor
