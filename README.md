@@ -28,7 +28,7 @@
 
 <h2 id="start"> Getting Started  🎉 </h2>
 
-For additional information, please refer to the [Webb protocol-solidity implementation docs](https://webb-tools.github.io/protocol-solidity/) 📝. Have feedback on how to improve protocol-ink? Or have a specific question to ask? Checkout the [Anchor Protocol Feedback Discussion](https://github.com/webb-tools/feedback/discussions/categories/anchor-protocol) 💬.
+For additional information, please refer to the [Webb protocol-solidity implementation docs](https://webb-tools.github.io/protocol-solidity/) and the official [Webb docs site](http://docs.webb.tools/) 📝. Have feedback on how to improve protocol-solidity? Or have a specific question to ask? Checkout the [Anchor System Feedback Discussion](https://github.com/webb-tools/feedback/discussions/categories/anchor-protocol) 💬.
 
 ## Prerequisites
 
