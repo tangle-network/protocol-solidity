@@ -2,7 +2,16 @@
   "name": "@webb-tools/contracts",
   "main": "./typechain/index.ts",
   "types": "./typechain/index.ts",
-  "license": "GPL-3.0-or-later",
+  "license": [
+    {
+      "type": "Apache-2.0",
+      "file": "LICENSE.Apache-2.0"
+    },
+    {
+      "type": "MIT",
+      "file": "LICENSE.MIT"
+    }
+  ],
   "author": "Webb Developers <drew@webb.tools>",
   "scripts": {
     "compile": "yarn compile:contracts",

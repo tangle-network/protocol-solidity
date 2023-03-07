@@ -2,7 +2,16 @@
   "name": "@webb-tools/protocol-solidity",
   "main": "./lib/index.js",
   "version": "0.5.24",
-  "license": "GPL-3.0-or-later",
+  "license": [
+    {
+      "type": "Apache-2.0",
+      "file": "LICENSE.Apache-2.0"
+    },
+    {
+      "type": "MIT",
+      "file": "LICENSE.MIT"
+    }
+  ],
   "author": "Webb Developers <drew@webb.tools>",
   "scripts": {
     "build": "yarn run clean && yarn run compile",

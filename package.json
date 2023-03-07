@@ -2,7 +2,16 @@
   "name": "protocol-solidity",
   "repository": "git://github.com/webb-tools/protocol-solidity.git",
   "author": "Webb Developers <drew@webb.tools>",
-  "license": "GPL-3.0-or-later",
+  "license": [
+    {
+      "type": "Apache-2.0",
+      "file": "LICENSE.Apache-2.0"
+    },
+    {
+      "type": "MIT",
+      "file": "LICENSE.MIT"
+    }
+  ],
   "private": true,
   "workspaces": [
     "packages/*"
