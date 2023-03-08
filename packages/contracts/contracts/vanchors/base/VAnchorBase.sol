@@ -6,7 +6,7 @@
 pragma solidity ^0.8.5;
 pragma experimental ABIEncoderV2;
 
-import "../../anchors/LinkableAnchor.sol";
+import "../../vanchors/base/LinkableAnchor.sol";
 import "../../structs/PublicInputs.sol";
 import "../../interfaces/tokens/IMintableERC20.sol";
 import "../../interfaces/tokens/ITokenWrapper.sol";

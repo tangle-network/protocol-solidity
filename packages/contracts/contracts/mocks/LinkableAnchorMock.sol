@@ -5,7 +5,7 @@
 
 pragma solidity ^0.8.5;
 
-import "../anchors/LinkableAnchor.sol";
+import "../vanchors/base/LinkableAnchor.sol";
 import "../interfaces/verifiers/IAnchorVerifier.sol";
 import "../interfaces/verifiers/ISetVerifier.sol";
 import "../trees/MerkleTree.sol";
