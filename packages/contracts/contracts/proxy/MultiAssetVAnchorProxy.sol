@@ -10,6 +10,8 @@ import "../interfaces/tokens/INftTokenWrapper.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "../hashers/IHasher.sol";
 import "../vanchors/instances/MultiAssetVAnchorBatchUpdatableTree.sol";
+import "../interfaces/tokens/ITokenWrapper.sol";
+import "../interfaces/tokens/INftTokenWrapper.sol";
 
 
 /// @dev This contract holds a merkle tree of all tornado cash deposit and withdrawal events
@@ -59,7 +61,7 @@ contract MultiAssetVAnchorProxy is Initialized {
     // Event for Refunding Deposit
 
     /// @dev Queue a new deposit data to be inserted into a merkle tree
-    function queueFungibleTokenDeposit (QueueDepositInfo memory depositInfo) public payable {
+    function queueERC20Deposit (QueueDepositInfo memory depositInfo) public payable {
         uint256 amount = depositInfo.amount;
         address depositToken = depositInfo.unwrappedToken;
         IMintableERC20(depositToken).transferFrom(
@@ -73,7 +75,7 @@ contract MultiAssetVAnchorProxy is Initialized {
     }
 
     // TODO: Batch Deposit from Queue
-    function batchDepositFungibleTokens(IMultiAssetVAnchorBatchTree proxiedMASP, bytes32 _argsHash, bytes32 _currentRoot, bytes32 _newRoot, uint32 _pathIndices, uint8 _batchHeight) public {
+    function batchDepositERC20s(IMultiAssetVAnchorBatchTree proxiedMASP, bytes32 _argsHash, bytes32 _currentRoot, bytes32 _newRoot, uint32 _pathIndices, uint8 _batchHeight) public {
         require(proxiedMASPs[address(proxiedMASP)], "Invalid MASP");
         // Calculate commitment = hash of QueueDepositInfo data
         uint256 _batchSize = 2 ** _batchHeight;
@@ -89,16 +91,20 @@ contract MultiAssetVAnchorProxy is Initialized {
             ]));
             // Queue reward commitments
             queueRewardUnspentTreeCommitment(bytes32(IHasher(hasher).hashLeftRight(uint256(commitments[i]), block.timestamp)));
-            IMintableERC20(depositInfo.depositToken).transfer(
+            if (depositInfo.unwrappedToken != depositInfo.wrappedToken) {
+			    amount = IMultiAssetVAnchorBatchTree(proxiedMASP)._executeWrapping(depositInfo.unwrappedToken, depositInfo.wrappedToken, depositInfo.amount);
+		    } else {
+                IMintableERC20(depositInfo.wrappedToken).transferFrom(
+                    address(this),
                     address(proxiedMASP),
-                    uint256(depositInfo.amount)
-            );
-        }   
-
+                    uint256(amount)
+                );
+		    }
+        } 
         // Update latestProcessedDepositLeaf
         lastProcessedDepositLeaf = _lastProcessedDepositLeaf + _batchSize;
         // Call batchInsert function on MASP
-        masp.batchInsert(_argsHash, _currentRoot, _newRoot, _pathIndices, _batchHeight, commitments);
+        IMultiAssetVAnchorBatchTree(proxiedMASP).batchInsert(_argsHash, _currentRoot, _newRoot, _pathIndices, _batchHeight, commitments);
     }
 
     // TODO: Queue Reward Unspent Tree Commitment
