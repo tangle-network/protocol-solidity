@@ -28,7 +28,7 @@ contract MultiAssetVAnchorProxy is Initialized {
 
     // mapping(QueueDepositInfo => uint256) public ReverseQueueDepositMap;
 
-    mapping(uint256 => bytes32) public rewardUnspentTreeCommitmentMap;
+    mapping(uint256 => bytes32) public RewardUnspentTreeCommitmentMap;
     uint256 nextRewardUnspentTreeCommitmentIndex;
     uint256 public lastProcessedRewardTreelLeaf;
 
@@ -57,11 +57,23 @@ contract MultiAssetVAnchorProxy is Initialized {
     }
 
     // TODO: Batch Deposit from Queue
-    function batchDepositERC20() public {
-
+    function batchDepositFungibleTokens() public {
+        // Calculate commitment = hash of QueueDepositInfo data
+        // Effects
+        // Update latestProcessedDepositLeaf
+        // Queue reward commitments
+        // Interactions
+        // Call batchInsert function on MASP
+        // Transfer fungible tokens to MASP
     }
 
     // TODO: Queue Reward Unspent Tree Commitment
+    function queueRewardUnspentTreeCommitment (bytes32 rewardUnspentTreeCommitment) public payable {
+        RewardUnspentTreeCommitmentMap[nextQueueDepositIndex] = rewardUnspentTreeCommitment;
+        // TODO: Emit Event
+        nextRewardUnspentTreeCommitmentIndex = nextRewardUnspentTreeCommitmentIndex + 1;
+    }
+
     // TODO: Batch Insert Into Reward Unspent Tree
     // TODO: Same logic for NFTs as for Fungible Tokens
     // TODO: Refund Deposit from Queue
