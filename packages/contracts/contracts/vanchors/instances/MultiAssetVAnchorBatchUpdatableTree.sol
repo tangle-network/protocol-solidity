@@ -8,7 +8,6 @@ pragma solidity ^0.8.0;
 import "../base/MultiAssetVAnchor.sol";
 import "../../trees/BatchUpdatableTree.sol";
 import "../../interfaces/verifiers/IBatchVerifier.sol";
-import "../../structs/PublicInputs.sol";
 
 contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, BatchMerkleTree {
 	using SafeERC20 for IERC20;

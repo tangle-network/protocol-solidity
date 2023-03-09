@@ -5,6 +5,12 @@ pragma solidity ^0.8.5;
 import "../interfaces/verifiers/IBatchVerifier.sol";
 import "../utils/Initialized.sol";
 import "../interfaces/tokens/IMintableERC20.sol";
+import "../interfaces/tokens/IRegistry.sol";
+import "../interfaces/tokens/INftTokenWrapper.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "../hashers/IHasher.sol";
+import "../vanchors/instances/MultiAssetVAnchorBatchUpdatableTree.sol";
+
 
 /// @dev This contract holds a merkle tree of all tornado cash deposit and withdrawal events
 contract MultiAssetVAnchorProxy is Initialized {
@@ -32,39 +38,67 @@ contract MultiAssetVAnchorProxy is Initialized {
     uint256 nextRewardUnspentTreeCommitmentIndex;
     uint256 public lastProcessedRewardTreelLeaf;
 
-    constructor() public {}
+    IHasher public hasher;
 
-    function initialize() public onlyUninitialized {}
+    mapping(address => bool) public proxiedMASPs;
+
+    constructor(IHasher _hasher) public {
+        hasher = _hasher;
+    }
+
+    function initialize(IMultiAssetVAnchorBatchTree[] memory _proxiedMASPs) public onlyUninitialized {
+        for (uint256 i = 0; i < _proxiedMASPs.length; i++) {
+            proxiedMASPs[address(_proxiedMASPs[i])] = true;
+        }
+    }
 
     // TODO: Add events
+    // Event for Queueing Deposit
+    // Event for Queueing Reward Unspent Tree Commitment
+    // Event for Queueing Rewward Spent Tree Commitment
+    // Event for Refunding Deposit
 
     /// @dev Queue a new deposit data to be inserted into a merkle tree
     function queueFungibleTokenDeposit (QueueDepositInfo memory depositInfo) public payable {
         uint256 amount = depositInfo.amount;
         address depositToken = depositInfo.unwrappedToken;
-        if (depositToken == address(0)) {
-            require(msg.value == amount, "Invalid deposit amount");
-        } else {
-            IMintableERC20(depositToken).transferFrom(
-                msg.sender,
-                address(this),
-                uint256(amount)
-            );
-        }
+        IMintableERC20(depositToken).transferFrom(
+            msg.sender,
+            address(this),
+            uint256(amount)
+        );
         QueueDepositMap[nextQueueDepositIndex] = depositInfo;
         // TODO: Emit Event
         nextQueueDepositIndex = nextQueueDepositIndex + 1;
     }
 
     // TODO: Batch Deposit from Queue
-    function batchDepositFungibleTokens() public {
+    function batchDepositFungibleTokens(IMultiAssetVAnchorBatchTree proxiedMASP, bytes32 _argsHash, bytes32 _currentRoot, bytes32 _newRoot, uint32 _pathIndices, uint8 _batchHeight) public {
+        require(proxiedMASPs[address(proxiedMASP)], "Invalid MASP");
         // Calculate commitment = hash of QueueDepositInfo data
-        // Effects
+        uint256 _batchSize = 2 ** _batchHeight;
+        bytes32[] memory commitments = new bytes32[](_batchSize);
+        uint _lastProcessedDepositLeaf = lastProcessedDepositLeaf;
+        for (uint i = _lastProcessedDepositLeaf; i < _lastProcessedDepositLeaf + _batchSize; i++) {
+            QueueDepositInfo memory depositInfo = QueueDepositMap[i];
+            commitments[i] = bytes32(IHasher(hasher).hash4([
+                depositInfo.assetID,
+                depositInfo.tokenID,
+                depositInfo.amount,
+                uint256(depositInfo.depositPartialCommitment)
+            ]));
+            // Queue reward commitments
+            queueRewardUnspentTreeCommitment(bytes32(IHasher(hasher).hashLeftRight(uint256(commitments[i]), block.timestamp)));
+            IMintableERC20(depositInfo.depositToken).transfer(
+                    address(proxiedMASP),
+                    uint256(depositInfo.amount)
+            );
+        }   
+
         // Update latestProcessedDepositLeaf
-        // Queue reward commitments
-        // Interactions
+        lastProcessedDepositLeaf = _lastProcessedDepositLeaf + _batchSize;
         // Call batchInsert function on MASP
-        // Transfer fungible tokens to MASP
+        masp.batchInsert(_argsHash, _currentRoot, _newRoot, _pathIndices, _batchHeight, commitments);
     }
 
     // TODO: Queue Reward Unspent Tree Commitment
@@ -75,10 +109,9 @@ contract MultiAssetVAnchorProxy is Initialized {
     }
 
     // TODO: Batch Insert Into Reward Unspent Tree
+    // TODO: Queue Reward Spent Tree Commitment
+    // TODO: Batch Insert Into Reward Spent Tree
+
     // TODO: Same logic for NFTs as for Fungible Tokens
     // TODO: Refund Deposit from Queue
-
-    function blockTimestamp() public view virtual returns (uint256) {
-    return block.timestamp;
-    }
 }

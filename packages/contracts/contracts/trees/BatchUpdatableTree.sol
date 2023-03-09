@@ -41,12 +41,6 @@ contract BatchMerkleTree is MerkleTreeWithHistory, ProofUtils {
 
 	event DepositData(address instance, bytes32 indexed hash, uint256 block, uint256 index);
 
-	function _registerInsertion(address _instance, bytes32 _commitment) internal {
-		queue[queueLength] = _commitment;
-		emit DepositData(_instance, _commitment, blockNumber(), queueLength);
-		queueLength = queueLength + 1;
-	}
-
 	function checkLeavesLength(bytes32[] calldata _leaves) public {
 		require(
 			_leaves.length == 4 ||
@@ -112,9 +106,5 @@ contract BatchMerkleTree is MerkleTreeWithHistory, ProofUtils {
 		nextIndex = nextIndex + uint32(_leaves.length);
 		roots[newRootIndex] = Root(uint256(currentRoot), nextIndex);
 		currentRootIndex = newRootIndex;
-	}
-
-	function blockNumber() public returns (uint256) {
-		return block.number;
 	}
 }
