@@ -12,13 +12,6 @@ contract MultiAssetVAnchorProxy is Initialized {
     bytes32 public previousDepositRoot;
     bytes32 public withdrawalRoot;
     bytes32 public previousWithdrawalRoot;
-    IBatchTreeVerifierSelector public treeUpdateVerifier;
-
-    uint256 public constant CHUNK_TREE_HEIGHT = 8;
-    uint256 public constant CHUNK_SIZE = 2**CHUNK_TREE_HEIGHT;
-    uint256 public constant ITEM_SIZE = 32 + 20 + 4;
-    uint256 public constant BYTES_SIZE = 32 + 32 + 4 + CHUNK_SIZE * ITEM_SIZE;
-    uint256 public constant SNARK_FIELD = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
     struct QueueDepositInfo {
         address unwrappedToken; // 0 if ETH
@@ -33,7 +26,7 @@ contract MultiAssetVAnchorProxy is Initialized {
     uint256 nextQueueDepositIndex;
     uint256 public lastProcessedDepositLeaf;
 
-    mapping(QueueDepositInfo => uint256) public ReverseQueueDepositMap;
+    // mapping(QueueDepositInfo => uint256) public ReverseQueueDepositMap;
 
     mapping(uint256 => bytes32) public rewardUnspentTreeCommitmentMap;
     uint256 nextRewardUnspentTreeCommitmentIndex;
@@ -41,14 +34,12 @@ contract MultiAssetVAnchorProxy is Initialized {
 
     constructor() public {}
 
-    function initialize(IBatchTreeVerifierSelector _treeUpdateVerifier) public onlyUninitialized {
-    treeUpdateVerifier = _treeUpdateVerifier;
-    }
+    function initialize() public onlyUninitialized {}
 
     // TODO: Add events
 
     /// @dev Queue a new deposit data to be inserted into a merkle tree
-    function queueFungibleTokenDeposit (QueueDepositInfo depositInfo) public payable {
+    function queueFungibleTokenDeposit (QueueDepositInfo memory depositInfo) public payable {
         uint256 amount = depositInfo.amount;
         address depositToken = depositInfo.unwrappedToken;
         if (depositToken == address(0)) {
@@ -66,10 +57,14 @@ contract MultiAssetVAnchorProxy is Initialized {
     }
 
     // TODO: Batch Deposit from Queue
-    // TODO: Refund Deposit from Queue
+    function batchDepositERC20() public {
+
+    }
+
     // TODO: Queue Reward Unspent Tree Commitment
     // TODO: Batch Insert Into Reward Unspent Tree
     // TODO: Same logic for NFTs as for Fungible Tokens
+    // TODO: Refund Deposit from Queue
 
     function blockTimestamp() public view virtual returns (uint256) {
     return block.timestamp;

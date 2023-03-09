@@ -8,8 +8,9 @@ pragma solidity ^0.8.5;
 import "./MerkleTreeWithHistory.sol";
 import "../interfaces/verifiers/IBatchVerifier.sol";
 import "hardhat/console.sol";
+import "../utils/ProofUtils.sol";
 
-contract BatchMerkleTree is MerkleTreeWithHistory {
+contract BatchMerkleTree is MerkleTreeWithHistory, ProofUtils {
 	bytes32 public currentRoot;
 	bytes32 public previousRoot;
 	uint256 public queueLength;
@@ -115,15 +116,5 @@ contract BatchMerkleTree is MerkleTreeWithHistory {
 
 	function blockNumber() public returns (uint256) {
 		return block.number;
-	}
-
-	function unpackProof(
-		uint256[8] memory _proof
-	) public pure returns (uint256[2] memory, uint256[2][2] memory, uint256[2] memory) {
-		return (
-			[_proof[0], _proof[1]],
-			[[_proof[2], _proof[3]], [_proof[4], _proof[5]]],
-			[_proof[6], _proof[7]]
-		);
 	}
 }
