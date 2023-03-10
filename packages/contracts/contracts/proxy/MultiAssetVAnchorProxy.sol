@@ -67,7 +67,6 @@ contract MultiAssetVAnchorProxy is Initialized {
     // Event for Queueing Rewward Spent Tree Commitment
     // Event for Refunding Deposit
 
-    /// @dev Queue a new deposit data to be inserted into a merkle tree
     function queueERC20Deposit (QueueDepositInfo memory depositInfo) public payable {
         uint256 amount = depositInfo.amount;
         address depositToken = depositInfo.unwrappedToken;
@@ -162,5 +161,22 @@ contract MultiAssetVAnchorProxy is Initialized {
     }
 
     // TODO: Same logic for NFTs as for Fungible Tokens
+    function queueERC721Deposit (QueueDepositInfo memory depositInfo) public payable {
+        uint256 amount = depositInfo.amount;
+        address depositToken = depositInfo.unwrappedToken;
+        IERC721(depositToken).safeTransferFrom(msg.sender, address(this), depositInfo.tokenID);
+        QueueDepositMap[nextQueueDepositIndex] = depositInfo;
+        // TODO: Emit Event
+        nextQueueDepositIndex = nextQueueDepositIndex + 1;
+    }
+    
     // TODO: Refund Deposit from Queue
 }
+
+// Overall TODOs
+// 1. Add events
+// 2. NFT Logic
+// 3. Add Registry Checking
+// 4. Trigger spent tree Queuing upon MASP withdraw
+// 5. Refund logic
+// 6. Interfaces for MASP and Reward Tree
