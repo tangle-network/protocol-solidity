@@ -28,6 +28,7 @@ contract MultiAssetVAnchorProxy is Initialized {
         uint256 assetID;
         uint256 tokenID;
         bytes32 depositPartialCommitment;
+        address proxiedMASP;
     }
 
     mapping(uint256 => QueueDepositInfo) public QueueDepositMap;
@@ -61,13 +62,14 @@ contract MultiAssetVAnchorProxy is Initialized {
         }
     }
 
-    // TODO: Add events
     // Event for Queueing Deposit
     // Event for Queueing Reward Unspent Tree Commitment
     // Event for Queueing Rewward Spent Tree Commitment
     // Event for Refunding Deposit
 
     function queueERC20Deposit (QueueDepositInfo memory depositInfo) public payable {
+        require(proxiedMASPs[depositInfo.proxiedMASP], "Invalid MASP");
+        require(IRegistry(proxiedMASP.registry).getAssetIdFromWrappedAddress(depositInfo.wrappedToken); != 0, "Wrapped asset not registered");
         uint256 amount = depositInfo.amount;
         address depositToken = depositInfo.unwrappedToken;
         IMintableERC20(depositToken).transferFrom(
@@ -80,9 +82,7 @@ contract MultiAssetVAnchorProxy is Initialized {
         nextQueueDepositIndex = nextQueueDepositIndex + 1;
     }
 
-    // TODO: Batch Deposit from Queue
-    function batchDepositERC20s(IMultiAssetVAnchorBatchTree proxiedMASP, bytes32 _argsHash, bytes32 _currentRoot, bytes32 _newRoot, uint32 _pathIndices, uint8 _batchHeight) public {
-        require(proxiedMASPs[address(proxiedMASP)], "Invalid MASP");
+    function batchDepositERC20s(bytes32 _argsHash, bytes32 _currentRoot, bytes32 _newRoot, uint32 _pathIndices, uint8 _batchHeight) public {
         // Calculate commitment = hash of QueueDepositInfo data
         uint256 _batchSize = 2 ** _batchHeight;
         bytes32[] memory commitments = new bytes32[](_batchSize);
@@ -98,11 +98,11 @@ contract MultiAssetVAnchorProxy is Initialized {
             // Queue reward commitments
             queueRewardUnspentTreeCommitment(bytes32(IHasher(hasher).hashLeftRight(uint256(commitments[i]), block.timestamp)));
             if (depositInfo.unwrappedToken != depositInfo.wrappedToken) {
-			    IMultiAssetVAnchorBatchTree(proxiedMASP)._executeWrapping(depositInfo.unwrappedToken, depositInfo.wrappedToken, depositInfo.amount);
+			    IMultiAssetVAnchorBatchTree(depositInfo.proxiedMASP)._executeWrapping(depositInfo.unwrappedToken, depositInfo.wrappedToken, depositInfo.amount);
 		    } else {
                 IMintableERC20(depositInfo.wrappedToken).transferFrom(
                     address(this),
-                    address(proxiedMASP),
+                    address(depositInfo.proxiedMASP),
                     uint256(amount)
                 );
 		    }
@@ -113,14 +113,12 @@ contract MultiAssetVAnchorProxy is Initialized {
         IMultiAssetVAnchorBatchTree(proxiedMASP).batchInsert(_argsHash, _currentRoot, _newRoot, _pathIndices, _batchHeight, commitments);
     }
 
-    // TODO: Queue Reward Unspent Tree Commitment
     function queueRewardUnspentTreeCommitment (bytes32 rewardUnspentTreeCommitment) public payable {
         RewardUnspentTreeCommitmentMap[nextQueueDepositIndex] = rewardUnspentTreeCommitment;
         // TODO: Emit Event
         nextRewardUnspentTreeCommitmentIndex = nextRewardUnspentTreeCommitmentIndex + 1;
     }
 
-    // TODO: Batch Insert Into Reward Unspent Tree
     function batchInsertRewardUnspentTree(IRewardTrees proxiedRewardTree, bytes32 _argsHash, bytes32 _currentRoot, bytes32 _newRoot, uint32 _pathIndices, uint8 _batchHeight) public {
         // Calculate commitment = hash of QueueDepositInfo data
         require(proxiedRewardTrees[address(proxiedRewardTree)], "Invalid Reward Tree");
@@ -136,16 +134,15 @@ contract MultiAssetVAnchorProxy is Initialized {
         proxiedRewardTree.batchInsertUnspentTree(_argsHash, _currentRoot, _newRoot, _pathIndices, _batchHeight, commitments);
     }
 
-    // TODO: Queue Reward Spent Tree Commitment
     function queueRewardSpentTreeCommitment (bytes32 rewardSpentTreeCommitment) public payable {
         RewardSpentTreeCommitmentMap[nextQueueDepositIndex] = rewardSpentTreeCommitment;
         // TODO: Emit Event
         nextRewardSpentTreeCommitmentIndex = nextRewardSpentTreeCommitmentIndex + 1;
     }
 
-    // TODO: Batch Insert Into Reward Spent Tree
-    function batchInsertRewardSpentTree(IRewardTrees proxiedRewardTree, bytes32 _argsHash, bytes32 _currentRoot, bytes32 _newRoot, uint32 _pathIndices, uint8 _batchHeight) public {
+    function batchInsertRewardSpentTree(address proxiedRewardTree, bytes32 _argsHash, bytes32 _currentRoot, bytes32 _newRoot, uint32 _pathIndices, uint8 _batchHeight) public {
         // Calculate commitment = hash of QueueDepositInfo data
+        require(proxiedRewardTree.masp == msg.sender, "Invalid Reward Tree");
         require(proxiedRewardTrees[address(proxiedRewardTree)], "Invalid Reward Tree");
         require(proxiedMASP[msg.sender], "Invalid MASP");
         uint256 _batchSize = 2 ** _batchHeight;
@@ -160,18 +157,22 @@ contract MultiAssetVAnchorProxy is Initialized {
         proxiedRewardTree.batchInsertSpentTree(_argsHash, _currentRoot, _newRoot, _pathIndices, _batchHeight, commitments);
     }
 
-    // TODO: Same logic for NFTs as for Fungible Tokens
     function queueERC721Deposit (QueueDepositInfo memory depositInfo) public payable {
-        uint256 amount = depositInfo.amount;
+        require(proxiedMASPs[depositInfo.proxiedMASP], "Invalid MASP");
+        require(IRegistry(proxiedMASP.registry).getAssetIdFromWrappedAddress(depositInfo.wrappedToken); != 0, "Wrapped asset not registered");
         address depositToken = depositInfo.unwrappedToken;
+        require(
+            IRegistry(proxiedMASP.registry).getUnwrappedAssetAddress(assetID) == depositToken,
+            "Wrapped and unwrapped addresses don't match"
+        );x
+        uint256 amount = depositInfo.amount;
         IERC721(depositToken).safeTransferFrom(msg.sender, address(this), depositInfo.tokenID);
         QueueDepositMap[nextQueueDepositIndex] = depositInfo;
         // TODO: Emit Event
         nextQueueDepositIndex = nextQueueDepositIndex + 1;
     }
 
-    function batchDepositERC721s(IMultiAssetVAnchorBatchTree proxiedMASP, bytes32 _argsHash, bytes32 _currentRoot, bytes32 _newRoot, uint32 _pathIndices, uint8 _batchHeight) public {
-        require(proxiedMASPs[address(proxiedMASP)], "Invalid MASP");
+    function batchDepositERC721s(bytes32 _argsHash, bytes32 _currentRoot, bytes32 _newRoot, uint32 _pathIndices, uint8 _batchHeight) public {
         // Calculate commitment = hash of QueueDepositInfo data
         uint256 _batchSize = 2 ** _batchHeight;
         bytes32[] memory commitments = new bytes32[](_batchSize);
@@ -189,7 +190,7 @@ contract MultiAssetVAnchorProxy is Initialized {
             if (depositInfo.unwrappedToken != depositInfo.wrappedToken) {
 			    INftTokenWrapper(depositInfo.wrappedToken).wrap721(depositInfo.tokenID, depositInfo.unwrappedToken);
 		    } else {
-			    IERC721(depositInfo.wrappedToken).safeTransferFrom(address(this), address(proxiedMASP), depositInfo.tokenID);
+			    IERC721(depositInfo.wrappedToken).safeTransferFrom(address(this), address(depositInfo.proxiedMASP), depositInfo.tokenID);
 		    }
         } 
         // Update latestProcessedDepositLeaf
@@ -197,8 +198,6 @@ contract MultiAssetVAnchorProxy is Initialized {
         // Call batchInsert function on MASP
         IMultiAssetVAnchorBatchTree(proxiedMASP).batchInsert(_argsHash, _currentRoot, _newRoot, _pathIndices, _batchHeight, commitments);
     }
-
-    // TODO: Refund Deposit from Queue
 }
 
 // Overall TODOs
