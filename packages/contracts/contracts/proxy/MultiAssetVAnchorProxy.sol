@@ -35,9 +35,12 @@ contract MultiAssetVAnchorProxy is Initialized {
     uint256 nextQueueDepositIndex;
     uint256 public lastProcessedDepositLeaf;
 
-    // mapping(QueueDepositInfo => uint256) public ReverseQueueDepositMap;
+    struct QueueRewardUnspentTreeCommitmentInfo {
+        bytes32 commitment;
+        address proxiedMASP;
+    }
 
-    mapping(uint256 => bytes32) public RewardUnspentTreeCommitmentMap;
+    mapping(uint256 => QueueRewardUnspentTreeCommitmentInfo) public RewardUnspentTreeCommitmentMap;
     uint256 nextRewardUnspentTreeCommitmentIndex;
     uint256 public lastProcessedRewardUnspentTreelLeaf;
 
@@ -49,23 +52,19 @@ contract MultiAssetVAnchorProxy is Initialized {
 
     mapping(address => bool) public proxiedMASPs;
 
-    mapping(address => bool) public proxiedRewardTrees;
-
     constructor(IHasher _hasher) public {
         hasher = _hasher;
     }
 
-    function initialize(IMultiAssetVAnchorBatchTree[] memory _proxiedMASPs, IRewardTrees memory proxiedRewardTrees) public onlyUninitialized {
+    function initialize(IMultiAssetVAnchorBatchTree[] memory _proxiedMASPs) public onlyUninitialized {
         for (uint256 i = 0; i < _proxiedMASPs.length; i++) {
             proxiedMASPs[address(_proxiedMASPs[i])] = true;
-            proxiedRewardTrees[address(proxiedRewardTrees)] = true;
         }
     }
 
     // Event for Queueing Deposit
     // Event for Queueing Reward Unspent Tree Commitment
     // Event for Queueing Rewward Spent Tree Commitment
-    // Event for Refunding Deposit
 
     function queueERC20Deposit (QueueDepositInfo memory depositInfo) public payable {
         require(proxiedMASPs[depositInfo.proxiedMASP], "Invalid MASP");
@@ -96,7 +95,7 @@ contract MultiAssetVAnchorProxy is Initialized {
                 uint256(depositInfo.depositPartialCommitment)
             ]));
             // Queue reward commitments
-            queueRewardUnspentTreeCommitment(bytes32(IHasher(hasher).hashLeftRight(uint256(commitments[i]), block.timestamp)));
+            queueRewardUnspentTreeCommitment(bytes32(IHasher(hasher).hashLeftRight(uint256(commitments[i]), block.timestamp)), depositInfo.proxiedMASP);
             if (depositInfo.unwrappedToken != depositInfo.wrappedToken) {
 			    IMultiAssetVAnchorBatchTree(depositInfo.proxiedMASP)._executeWrapping(depositInfo.unwrappedToken, depositInfo.wrappedToken, depositInfo.amount);
 		    } else {
@@ -113,25 +112,24 @@ contract MultiAssetVAnchorProxy is Initialized {
         IMultiAssetVAnchorBatchTree(proxiedMASP).batchInsert(_argsHash, _currentRoot, _newRoot, _pathIndices, _batchHeight, commitments);
     }
 
-    function queueRewardUnspentTreeCommitment (bytes32 rewardUnspentTreeCommitment) public payable {
+    function queueRewardUnspentTreeCommitment (bytes32 rewardUnspentTreeCommitment, address proxiedMASP) public payable {s
         RewardUnspentTreeCommitmentMap[nextQueueDepositIndex] = rewardUnspentTreeCommitment;
         // TODO: Emit Event
         nextRewardUnspentTreeCommitmentIndex = nextRewardUnspentTreeCommitmentIndex + 1;
     }
 
-    function batchInsertRewardUnspentTree(IRewardTrees proxiedRewardTree, bytes32 _argsHash, bytes32 _currentRoot, bytes32 _newRoot, uint32 _pathIndices, uint8 _batchHeight) public {
+    function batchInsertRewardUnspentTree(bytes32 _argsHash, bytes32 _currentRoot, bytes32 _newRoot, uint32 _pathIndices, uint8 _batchHeight) public {
         // Calculate commitment = hash of QueueDepositInfo data
-        require(proxiedRewardTrees[address(proxiedRewardTree)], "Invalid Reward Tree");
         uint256 _batchSize = 2 ** _batchHeight;
         bytes32[] memory commitments = new bytes32[](_batchSize);
         uint _lastProcessedRewardUnspentTreeLeaf = lastProcessedRewardUnspentTreeLeaf;
         for (uint i = _lastProcessedRewardUnspentTreeLeaf; i < _lastProcessedRewardUnspentTreeLeaf + _batchSize; i++) {
-            commitments[i] = RewardUnspentTreeCommitmentMap[i];
+            commitments[i] = RewardUnspentTreeCommitmentMap[i].commitment;
         } 
         // Update latestProcessedDepositLeaf
         lastProcessedRewardUnspentTreeLeaf = _lastProcessedRewardUnspentTreeLeaf + _batchSize;
         // Call batchInsert function on MASP
-        proxiedRewardTree.batchInsertUnspentTree(_argsHash, _currentRoot, _newRoot, _pathIndices, _batchHeight, commitments);
+        rewardTree.batchInsertUnspentTree(_argsHash, _currentRoot, _newRoot, _pathIndices, _batchHeight, commitments);
     }
 
     function queueRewardSpentTreeCommitment (bytes32 rewardSpentTreeCommitment) public payable {
@@ -140,11 +138,10 @@ contract MultiAssetVAnchorProxy is Initialized {
         nextRewardSpentTreeCommitmentIndex = nextRewardSpentTreeCommitmentIndex + 1;
     }
 
-    function batchInsertRewardSpentTree(address proxiedRewardTree, bytes32 _argsHash, bytes32 _currentRoot, bytes32 _newRoot, uint32 _pathIndices, uint8 _batchHeight) public {
+    function batchInsertRewardSpentTree(bytes32 _argsHash, bytes32 _currentRoot, bytes32 _newRoot, uint32 _pathIndices, uint8 _batchHeight) public {
         // Calculate commitment = hash of QueueDepositInfo data
-        require(proxiedRewardTree.masp == msg.sender, "Invalid Reward Tree");
-        require(proxiedRewardTrees[address(proxiedRewardTree)], "Invalid Reward Tree");
-        require(proxiedMASP[msg.sender], "Invalid MASP");
+        address withdrawMASP = msg.sender;
+        require(proxiedMASP[withdrawMASP], "Invalid MASP");
         uint256 _batchSize = 2 ** _batchHeight;
         bytes32[] memory commitments = new bytes32[](_batchSize);
         uint _lastProcessedRewardSpentTreeLeaf = lastProcessedRewardSpentTreeLeaf;
@@ -154,7 +151,7 @@ contract MultiAssetVAnchorProxy is Initialized {
         // Update latestProcessedDepositLeaf
         lastProcessedRewardSpentTreeLeaf = _lastProcessedRewardSpentTreeLeaf + _batchSize;
         // Call batchInsert function on MASP
-        proxiedRewardTree.batchInsertSpentTree(_argsHash, _currentRoot, _newRoot, _pathIndices, _batchHeight, commitments);
+        IMultiAssetVAnchorBatchTree(withdrawMASP).rewardTree.batchInsertSpentTree(_argsHash, _currentRoot, _newRoot, _pathIndices, _batchHeight, commitments);
     }
 
     function queueERC721Deposit (QueueDepositInfo memory depositInfo) public payable {
@@ -202,7 +199,4 @@ contract MultiAssetVAnchorProxy is Initialized {
 
 // Overall TODOs
 // 1. Add events
-// 3. Add Registry Checking
-// 4. Trigger spent tree Queuing upon MASP withdraw
-// 5. Refund logic
 // 6. Interfaces for MASP and Reward Tree

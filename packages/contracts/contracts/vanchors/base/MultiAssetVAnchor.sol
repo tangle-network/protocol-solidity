@@ -38,6 +38,7 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 	using SafeMath for uint256;
 
 	address public registry;
+	address public rewardTrees;
 
 	/**
 		@notice The VAnchor constructor
@@ -51,12 +52,14 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 	*/
 	constructor(
 		IRegistry _registry,
+		IRewardTrees _rewardTrees,
 		IAnchorVerifier _verifier,
 		uint32 _levels,
 		address _handler,
 		uint8 _maxEdges
 	) ZKVAnchorBase(_verifier, _levels, _handler, _maxEdges) {
 		registry = address(_registry);
+		rewardTrees = address(_rewardTrees);
 	}
 
 	/**
@@ -150,6 +153,12 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 			_publicInputs,
 			_encryptions
 		);
+		uint256 timestamp = block.timestamp;
+		for (uint256 i = 0; i < _publicInputs.inputNullifiers.length; i++) {
+			proxy.queueRewardSpentTreeCommitment(bytes32(IHasher(this.getHasher()).hashLeftRight(
+				_publicInputs.inputNullifiers[i],
+				timestamp));
+		}
 	}
 
 	/// @inheritdoc ZKVAnchorBase
