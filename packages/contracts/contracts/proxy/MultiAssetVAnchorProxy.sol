@@ -98,7 +98,7 @@ contract MultiAssetVAnchorProxy is Initialized {
             // Queue reward commitments
             queueRewardUnspentTreeCommitment(bytes32(IHasher(hasher).hashLeftRight(uint256(commitments[i]), block.timestamp)));
             if (depositInfo.unwrappedToken != depositInfo.wrappedToken) {
-			    amount = IMultiAssetVAnchorBatchTree(proxiedMASP)._executeWrapping(depositInfo.unwrappedToken, depositInfo.wrappedToken, depositInfo.amount);
+			    IMultiAssetVAnchorBatchTree(proxiedMASP)._executeWrapping(depositInfo.unwrappedToken, depositInfo.wrappedToken, depositInfo.amount);
 		    } else {
                 IMintableERC20(depositInfo.wrappedToken).transferFrom(
                     address(this),
@@ -169,13 +169,40 @@ contract MultiAssetVAnchorProxy is Initialized {
         // TODO: Emit Event
         nextQueueDepositIndex = nextQueueDepositIndex + 1;
     }
-    
+
+    function batchDepositERC20s(IMultiAssetVAnchorBatchTree proxiedMASP, bytes32 _argsHash, bytes32 _currentRoot, bytes32 _newRoot, uint32 _pathIndices, uint8 _batchHeight) public {
+        require(proxiedMASPs[address(proxiedMASP)], "Invalid MASP");
+        // Calculate commitment = hash of QueueDepositInfo data
+        uint256 _batchSize = 2 ** _batchHeight;
+        bytes32[] memory commitments = new bytes32[](_batchSize);
+        uint _lastProcessedDepositLeaf = lastProcessedDepositLeaf;
+        for (uint i = _lastProcessedDepositLeaf; i < _lastProcessedDepositLeaf + _batchSize; i++) {
+            QueueDepositInfo memory depositInfo = QueueDepositMap[i];
+            commitments[i] = bytes32(IHasher(hasher).hash4([
+                depositInfo.assetID,
+                depositInfo.tokenID,
+                depositInfo.amount,
+                uint256(depositInfo.depositPartialCommitment)
+            ]));
+            // Queue reward commitments
+            queueRewardUnspentTreeCommitment(bytes32(IHasher(hasher).hashLeftRight(uint256(commitments[i]), block.timestamp)));
+            if (depositInfo.unwrappedToken != depositInfo.wrappedToken) {
+			    INftTokenWrapper(depositInfo.wrappedToken).wrap721(depositInfo.tokenID, depositInfo.unwrappedToken);
+		    } else {
+			    IERC721(depositInfo.wrappedToken).safeTransferFrom(address(this), address(proxiedMASP), depositInfo.tokenID);
+		    }
+        } 
+        // Update latestProcessedDepositLeaf
+        lastProcessedDepositLeaf = _lastProcessedDepositLeaf + _batchSize;
+        // Call batchInsert function on MASP
+        IMultiAssetVAnchorBatchTree(proxiedMASP).batchInsert(_argsHash, _currentRoot, _newRoot, _pathIndices, _batchHeight, commitments);
+    }
+
     // TODO: Refund Deposit from Queue
 }
 
 // Overall TODOs
 // 1. Add events
-// 2. NFT Logic
 // 3. Add Registry Checking
 // 4. Trigger spent tree Queuing upon MASP withdraw
 // 5. Refund logic
