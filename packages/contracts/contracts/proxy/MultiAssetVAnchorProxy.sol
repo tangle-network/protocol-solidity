@@ -170,7 +170,7 @@ contract MultiAssetVAnchorProxy is Initialized {
         nextQueueDepositIndex = nextQueueDepositIndex + 1;
     }
 
-    function batchDepositERC20s(IMultiAssetVAnchorBatchTree proxiedMASP, bytes32 _argsHash, bytes32 _currentRoot, bytes32 _newRoot, uint32 _pathIndices, uint8 _batchHeight) public {
+    function batchDepositERC721s(IMultiAssetVAnchorBatchTree proxiedMASP, bytes32 _argsHash, bytes32 _currentRoot, bytes32 _newRoot, uint32 _pathIndices, uint8 _batchHeight) public {
         require(proxiedMASPs[address(proxiedMASP)], "Invalid MASP");
         // Calculate commitment = hash of QueueDepositInfo data
         uint256 _batchSize = 2 ** _batchHeight;
