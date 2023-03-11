@@ -63,8 +63,19 @@ contract MultiAssetVAnchorProxy is Initialized {
     }
 
     // Event for Queueing Deposit
+    event QueueDeposit(uint256 indexed depositIndex, address proxiedMASP);
     // Event for Queueing Reward Unspent Tree Commitment
-    // Event for Queueing Rewward Spent Tree Commitment
+    event QueueRewardUnspentTree(uint256 indexed rewardUnspentTreeIndex, address proxiedMASP);
+    // Event for Queueing Reward Spent Tree Commitment
+    event QueueRewardSpentTree(uint256 indexed rewardSpentTreeIndex, address proxiedMASP);
+    // Event for batch inserting deposits
+    event BatchInsertERC20s(uint256 indexed lastProcessedDepositLeaf, address proxiedMASP, bytes32 newRoot);
+    // Event for batch inserting reward unspent tree commitments
+    event BatchInsertRewardUnspentTree(uint256 indexed lastProcessedRewardUnspentTreeLeaf, address proxiedMASP, bytes32 newRoot);
+    // Event for batch inserting reward spent tree commitments
+    event BatchInsertRewardSpentTree(uint256 indexed lastProcessedRewardSpentTreeLeaf, address proxiedMASP, bytes32 newRoot);
+    // Event for batch inserting NFTs
+    event BatchInsertNFTs(uint256 indexed lastProcessedNFTLeaf, address proxiedMASP, bytes32 newRoot);
 
     function queueERC20Deposit (QueueDepositInfo memory depositInfo) public payable {
         require(proxiedMASPs[depositInfo.proxiedMASP], "Invalid MASP");
@@ -198,5 +209,4 @@ contract MultiAssetVAnchorProxy is Initialized {
 }
 
 // Overall TODOs
-// 1. Add events
 // 6. Interfaces for MASP and Reward Tree
