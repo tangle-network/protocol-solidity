@@ -99,6 +99,7 @@ contract MultiAssetVAnchorProxy is Initialized {
         uint256 _batchSize = 2 ** _batchHeight;
         bytes32[] memory commitments = new bytes32[](_batchSize);
         uint _lastProcessedDepositLeaf = lastProcessedDepositLeaf;
+        require(_lastProcessedDepositLeaf + _batchSize <= nextQueueDepositIndex, "Batch size too big");
         for (uint i = _lastProcessedDepositLeaf; i < _lastProcessedDepositLeaf + _batchSize; i++) {
             QueueDepositInfo memory depositInfo = QueueDepositMap[proxiedMASP][i];
             commitments[i] = bytes32(IHasher(hasher).hash4([
@@ -139,6 +140,7 @@ contract MultiAssetVAnchorProxy is Initialized {
         uint256 _batchSize = 2 ** _batchHeight;
         bytes32[] memory commitments = new bytes32[](_batchSize);
         uint _lastProcessedRewardUnspentTreeLeaf = lastProcessedRewardUnspentTreeLeaf;
+        require(_lastProcessedRewardUnspentTreeLeaf + _batchSize <= nextRewardUnspentTreeCommitmentIndex, "Batch size too big");
         for (uint i = _lastProcessedRewardUnspentTreeLeaf; i < _lastProcessedRewardUnspentTreeLeaf + _batchSize; i++) {
             commitments[i] = RewardUnspentTreeCommitmentMap[proxiedMASP][i].commitment;
         } 
@@ -162,6 +164,7 @@ contract MultiAssetVAnchorProxy is Initialized {
         uint256 _batchSize = 2 ** _batchHeight;
         bytes32[] memory commitments = new bytes32[](_batchSize);
         uint _lastProcessedRewardSpentTreeLeaf = lastProcessedRewardSpentTreeLeaf;
+        require(_lastProcessedRewardSpentTreeLeaf + _batchSize <= nextRewardSpentTreeCommitmentIndex, "Batch size too big");
         for (uint i = _lastProcessedRewardSpentTreeLeaf; i < _lastProcessedRewardSpentTreeLeaf + _batchSize; i++) {
             commitments[i] = RewardSpentTreeCommitmentMap[proxiedMASP][i].commitment;
         } 
@@ -193,6 +196,7 @@ contract MultiAssetVAnchorProxy is Initialized {
         uint256 _batchSize = 2 ** _batchHeight;
         bytes32[] memory commitments = new bytes32[](_batchSize);
         uint _lastProcessedDepositLeaf = lastProcessedDepositLeaf;
+        require(_lastProcessedDepositLeaf + _batchSize <= nextQueueDepositIndex, "Batch size too big");
         for (uint i = _lastProcessedDepositLeaf; i < _lastProcessedDepositLeaf + _batchSize; i++) {
             QueueDepositInfo memory depositInfo = QueueDepositMap[proxiedMASP][i];
             commitments[i] = bytes32(IHasher(hasher).hash4([
