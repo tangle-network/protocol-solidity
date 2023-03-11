@@ -88,7 +88,8 @@ contract MultiAssetVAnchorProxy is Initialized {
             uint256(amount)
         );
         QueueDepositMap[nextQueueDepositIndex] = depositInfo;
-        // TODO: Emit Event
+        // Emit Event
+        emit QueueDeposit(nextQueueDepositIndex, depositInfo.proxiedMASP);
         nextQueueDepositIndex = nextQueueDepositIndex + 1;
     }
 
@@ -121,11 +122,13 @@ contract MultiAssetVAnchorProxy is Initialized {
         lastProcessedDepositLeaf = _lastProcessedDepositLeaf + _batchSize;
         // Call batchInsert function on MASP
         IMultiAssetVAnchorBatchTree(proxiedMASP).batchInsert(_argsHash, _currentRoot, _newRoot, _pathIndices, _batchHeight, commitments);
+        emit BatchInsertERC20s(lastProcessedDepositLeaf, proxiedMASP, _newRoot);
     }
 
     function queueRewardUnspentTreeCommitment (bytes32 rewardUnspentTreeCommitment, address proxiedMASP) public payable {s
         RewardUnspentTreeCommitmentMap[nextQueueDepositIndex] = rewardUnspentTreeCommitment;
-        // TODO: Emit Event
+        // Emit Event
+        emit QueueRewardUnspentTree(nextRewardUnspentTreeCommitmentIndex, proxiedMASP);
         nextRewardUnspentTreeCommitmentIndex = nextRewardUnspentTreeCommitmentIndex + 1;
     }
 
@@ -141,11 +144,13 @@ contract MultiAssetVAnchorProxy is Initialized {
         lastProcessedRewardUnspentTreeLeaf = _lastProcessedRewardUnspentTreeLeaf + _batchSize;
         // Call batchInsert function on MASP
         rewardTree.batchInsertUnspentTree(_argsHash, _currentRoot, _newRoot, _pathIndices, _batchHeight, commitments);
+        emit BatchInsertRewardUnspentTree(lastProcessedRewardUnspentTreeLeaf, proxiedMASP, _newRoot);
     }
 
     function queueRewardSpentTreeCommitment (bytes32 rewardSpentTreeCommitment) public payable {
         RewardSpentTreeCommitmentMap[nextQueueDepositIndex] = rewardSpentTreeCommitment;
-        // TODO: Emit Event
+        // Emit Event
+        emit QueueRewardSpentTree(nextRewardSpentTreeCommitmentIndex, proxiedMASP);
         nextRewardSpentTreeCommitmentIndex = nextRewardSpentTreeCommitmentIndex + 1;
     }
 
@@ -163,6 +168,7 @@ contract MultiAssetVAnchorProxy is Initialized {
         lastProcessedRewardSpentTreeLeaf = _lastProcessedRewardSpentTreeLeaf + _batchSize;
         // Call batchInsert function on MASP
         IMultiAssetVAnchorBatchTree(withdrawMASP).rewardTree.batchInsertSpentTree(_argsHash, _currentRoot, _newRoot, _pathIndices, _batchHeight, commitments);
+        emit BatchInsertRewardSpentTree(lastProcessedRewardSpentTreeLeaf, proxiedMASP, _newRoot);
     }
 
     function queueERC721Deposit (QueueDepositInfo memory depositInfo) public payable {
@@ -176,7 +182,8 @@ contract MultiAssetVAnchorProxy is Initialized {
         uint256 amount = depositInfo.amount;
         IERC721(depositToken).safeTransferFrom(msg.sender, address(this), depositInfo.tokenID);
         QueueDepositMap[nextQueueDepositIndex] = depositInfo;
-        // TODO: Emit Event
+        // Emit Event
+        emit QueueDepositERC721(nextQueueDepositIndex, depositInfo.proxiedMASP);
         nextQueueDepositIndex = nextQueueDepositIndex + 1;
     }
 
@@ -205,6 +212,7 @@ contract MultiAssetVAnchorProxy is Initialized {
         lastProcessedDepositLeaf = _lastProcessedDepositLeaf + _batchSize;
         // Call batchInsert function on MASP
         IMultiAssetVAnchorBatchTree(proxiedMASP).batchInsert(_argsHash, _currentRoot, _newRoot, _pathIndices, _batchHeight, commitments);
+        emit BatchInsertERC721s(lastProcessedDepositLeaf, proxiedMASP, _newRoot);
     }
 }
 
