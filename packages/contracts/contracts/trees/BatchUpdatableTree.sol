@@ -39,6 +39,12 @@ contract BatchMerkleTree is MerkleTreeWithHistory, ProofUtils {
 		currentRoot = hasher.zeros(_levels);
 	}
 
+	function _registerInsertion(address _instance, bytes32 _commitment) internal {
+		queue[queueLength] = _commitment;
+		emit DepositData(_instance, _commitment, block.number, queueLength);
+		queueLength = queueLength + 1;
+	}
+
 	event DepositData(address instance, bytes32 indexed hash, uint256 block, uint256 index);
 
 	function checkLeavesLength(bytes32[] calldata _leaves) public {

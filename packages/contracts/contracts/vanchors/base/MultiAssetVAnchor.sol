@@ -12,6 +12,8 @@ import "../../interfaces/tokens/IRegistry.sol";
 import "../../trees/MerkleTree.sol";
 import "../../interfaces/tokens/INftTokenWrapper.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "../../interfaces/IBatchTree.sol";
+import "../../interfaces/IMASPProxy.sol";
 
 /**
 	@title Multi Asset Variable Anchor contract
@@ -38,7 +40,9 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 	using SafeMath for uint256;
 
 	address public registry;
-	address public rewardTrees;
+	address public rewardUnspentTree;
+	address public rewardSpentTree;
+	address proxy;
 
 	/**
 		@notice The VAnchor constructor
@@ -52,14 +56,18 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 	*/
 	constructor(
 		IRegistry _registry,
-		IRewardTrees _rewardTrees,
+		IBatchTree _rewardUnspentTree,
+		IBatchTree _rewardSpentTree,
+		IMASPProxy _proxy,
 		IAnchorVerifier _verifier,
 		uint32 _levels,
 		address _handler,
 		uint8 _maxEdges
 	) ZKVAnchorBase(_verifier, _levels, _handler, _maxEdges) {
 		registry = address(_registry);
-		rewardTrees = address(_rewardTrees);
+		rewardUnspentTree = address(_rewardUnspentTree);
+		rewardSpentTree = address(_rewardSpentTree);
+		proxy = address(_proxy);
 	}
 
 	/**
@@ -155,9 +163,9 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		);
 		uint256 timestamp = block.timestamp;
 		for (uint256 i = 0; i < _publicInputs.inputNullifiers.length; i++) {
-			proxy.queueRewardSpentTreeCommitment(bytes32(IHasher(this.getHasher()).hashLeftRight(
+			IMASPProxy(proxy).queueRewardSpentTreeCommitment(bytes32(IHasher(this.getHasher()).hashLeftRight(
 				_publicInputs.inputNullifiers[i],
-				timestamp));
+				timestamp)));
 		}
 	}
 
