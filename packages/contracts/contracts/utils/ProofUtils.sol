@@ -1,4 +1,4 @@
-	/**
+/**
  * Copyright 2021-2022 Webb Technologies
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
@@ -6,8 +6,7 @@
 pragma solidity ^0.8.5;
 
 contract ProofUtils {
-    
-    /**
+	/**
         @notice A helper function to convert an array of 8 uint256 values into the a, b,
         and c array values that the zk-SNARK verifier's verifyProof accepts.
         @param _proof The array of 8 uint256 values

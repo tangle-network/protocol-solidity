@@ -31,7 +31,7 @@ contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, BatchMerkleTree {
 		uint32 _merkleTreeLevels,
 		IHasher _hasher,
 		address _handler,
-        IBatchTreeVerifierSelector _batchTreeVerifier,
+		IBatchTreeVerifierSelector _batchTreeVerifier,
 		uint8 _maxEdges
 	)
 		MultiAssetVAnchor(_registry, _verifier, _merkleTreeLevels, _handler, _maxEdges)
