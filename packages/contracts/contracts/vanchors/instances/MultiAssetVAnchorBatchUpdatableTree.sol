@@ -10,7 +10,7 @@ import "../../trees/BatchUpdatableTree.sol";
 import "../../interfaces/verifiers/IBatchVerifier.sol";
 import "../../interfaces/IMultiAssetVAnchorBatchTree.sol";
 
-contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, BatchMerkleTree, IMultiAssetVAnchorBatchTree {
+contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, BatchMerkleTree {
 	using SafeERC20 for IERC20;
 	using SafeMath for uint256;
 
@@ -28,6 +28,9 @@ contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, BatchMerkleTree, IMult
 	*/
 	constructor(
 		IRegistry _registry,
+		IBatchTree _rewardUnspentTree,
+		IBatchTree _rewardSpentTree,
+		IMASPProxy _proxy,
 		IAnchorVerifier _verifier,
 		uint32 _merkleTreeLevels,
 		IHasher _hasher,
@@ -35,7 +38,16 @@ contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, BatchMerkleTree, IMult
 		IBatchTreeVerifierSelector _batchTreeVerifier,
 		uint8 _maxEdges
 	)
-		MultiAssetVAnchor(_registry, _verifier, _merkleTreeLevels, _handler, _maxEdges)
+		MultiAssetVAnchor(
+			_registry,
+			_rewardUnspentTree,
+			_rewardSpentTree,
+			_proxy,
+			_verifier,
+			_merkleTreeLevels,
+			_handler,
+			_maxEdges
+		)
 		BatchMerkleTree(_merkleTreeLevels, _hasher, _batchTreeVerifier)
 	{}
 

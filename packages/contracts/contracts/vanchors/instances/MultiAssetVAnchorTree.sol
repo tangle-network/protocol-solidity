@@ -32,13 +32,25 @@ contract MultiAssetVAnchorTree is MultiAssetVAnchor, MerkleTree {
 	*/
 	constructor(
 		IRegistry _registry,
+		IBatchTree _rewardUnspentTree,
+		IBatchTree _rewardSpentTree,
+		IMASPProxy _proxy,
 		IAnchorVerifier _verifier,
 		uint32 _merkleTreeLevels,
 		IHasher _hasher,
 		address _handler,
 		uint8 _maxEdges
 	)
-		MultiAssetVAnchor(_registry, _verifier, _merkleTreeLevels, _handler, _maxEdges)
+		MultiAssetVAnchor(
+			_registry,
+			_rewardUnspentTree,
+			_rewardSpentTree,
+			_proxy,
+			_verifier,
+			_merkleTreeLevels,
+			_handler,
+			_maxEdges
+		)
 		MerkleTree(_merkleTreeLevels, _hasher)
 	{}
 

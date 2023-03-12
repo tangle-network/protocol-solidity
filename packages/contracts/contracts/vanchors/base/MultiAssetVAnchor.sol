@@ -163,9 +163,14 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		);
 		uint256 timestamp = block.timestamp;
 		for (uint256 i = 0; i < _publicInputs.inputNullifiers.length; i++) {
-			IMASPProxy(proxy).queueRewardSpentTreeCommitment(bytes32(IHasher(this.getHasher()).hashLeftRight(
-				_publicInputs.inputNullifiers[i],
-				timestamp)));
+			IMASPProxy(proxy).queueRewardSpentTreeCommitment(
+				bytes32(
+					IHasher(this.getHasher()).hashLeftRight(
+						_publicInputs.inputNullifiers[i],
+						timestamp
+					)
+				)
+			);
 		}
 	}
 
