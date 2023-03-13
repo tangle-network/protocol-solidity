@@ -225,8 +225,8 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		Encryptions memory bobEncryptions
 	) public {
 		// Verify the proof
-		bool isMaxEdgesTwo = maxEdges == 2;
-		(bytes memory encodedInputs, uint256[] memory roots) = isMaxEdgesTwo
+		bool isMaxEdgesOne = maxEdges == 1;
+		(bytes memory encodedInputs, uint256[] memory roots) = isMaxEdgesOne
 		? SwapEncodeInputs._encodeInputs2(_publicInputs)
 		: SwapEncodeInputs._encodeInputs8(_publicInputs);
 		require(isValidRoots(roots), "Invalid vanchor roots");
