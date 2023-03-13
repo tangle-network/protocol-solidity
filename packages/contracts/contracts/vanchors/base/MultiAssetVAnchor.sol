@@ -216,4 +216,15 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 				)
 			);
 	}
+
+	function swap (
+		bytes memory proof,
+		PublicInputs memory publicInputs,
+		Encryptions memory encryptions
+	) public {
+		// Verify the proof
+		// Nullify the spent Records
+		// Check block timestamp versus timestamps in swap
+		// Add new Records from swap (receive and change records) to Record Merkle tree. 
+	}
 }
