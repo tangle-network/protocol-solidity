@@ -220,13 +220,20 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 
 	function swap (
 		bytes memory proof,
-		PublicInputs memory _publicInputs,
+		SwapPublicInputs memory _publicInputs,
 		Encryptions memory encryptions
 	) public {
 		// Verify the proof
+		bool isMaxEdgesTwo = maxEdges == 2;
+		(bytes memory encodedInputs) = isMaxedgesTwo
+		? SwapEncodeInputs._encodeInputs2(_publicInputs)
+		: SwapEncodeInputs._encodeInputs8(_publicInputs);
+		require(verifySwap(proof, encodedInputs, encryptions), "Invalid swap proof");
 		// Nullify the spent Records
+		nullifierHashes[_publicInputs.aliceSpendNullifier] = true;
+		nullifierHashes[_publicInputs.bobSpendNullifier] = true;
 		// Check block timestamp versus timestamps in swap
-		require(block.timestamp - allowableSwapTimestampEpsilon <= _publicInputs.currentTimestamp <= block.timestamp + allowableSwapTimestampEpsilon, "Timestamp1 is expired");
+		require(block.timestamp - allowableSwapTimestampEpsilon <= _publicInputs.currentTimestamp <= block.timestamp + allowableSwapTimestampEpsilon, "Current timestamp not valid");
 		// Add new Records from swap (receive and change records) to Record Merkle tree. 
 		// Insert Alice's Change and Receive Records
 		_insertTwo(_publicInputs.aliceChangeRecord, _publicInputs.aliceReceiveRecord);
