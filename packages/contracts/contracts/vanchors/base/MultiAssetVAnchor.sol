@@ -221,23 +221,31 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 	function swap (
 		bytes memory proof,
 		SwapPublicInputs memory _publicInputs,
-		Encryptions memory encryptions
+		Encryptions memory aliceEncryptions,
+		Encryptions memory bobEncryptions
 	) public {
 		// Verify the proof
 		bool isMaxEdgesTwo = maxEdges == 2;
-		(bytes memory encodedInputs) = isMaxedgesTwo
+		(bytes memory encodedInputs, uint256[] memory roots) = isMaxEdgesTwo
 		? SwapEncodeInputs._encodeInputs2(_publicInputs)
 		: SwapEncodeInputs._encodeInputs8(_publicInputs);
-		require(verifySwap(proof, encodedInputs, encryptions), "Invalid swap proof");
+		require(isValidRoots(roots), "Invalid vanchor roots");
+		require(verifySwap(proof, encodedInputs), "Invalid swap proof");
 		// Nullify the spent Records
 		nullifierHashes[_publicInputs.aliceSpendNullifier] = true;
 		nullifierHashes[_publicInputs.bobSpendNullifier] = true;
+		emit NewNullifier(_publicInputs.aliceSpendNullifier);
+		emit NewNullifier(_publicInputs.bobSpendNullifier);
 		// Check block timestamp versus timestamps in swap
 		require(block.timestamp - allowableSwapTimestampEpsilon <= _publicInputs.currentTimestamp <= block.timestamp + allowableSwapTimestampEpsilon, "Current timestamp not valid");
 		// Add new Records from swap (receive and change records) to Record Merkle tree. 
 		// Insert Alice's Change and Receive Records
 		_insertTwo(_publicInputs.aliceChangeRecord, _publicInputs.aliceReceiveRecord);
+		emit NewCommitment(_publicInputs.aliceChangeRecord, 0, this.getNextIndex() - 2, aliceEncryptions.encryptedOutput1);
+		emit NewCommitment(_publicInputs.aliceReceiveRecord, 0, this.getNextIndex() - 1, aliceEncryptions.encryptedOutput2);
 		// Insert Bob's Change and Receive Records
 		_insertTwo(_publicInputs.bobChangeRecord, _publicInputs.bobReceiveRecord);
+		emit NewCommitment(_publicInputs.bobChangeRecord, 0, this.getNextIndex() - 2, bobEncryptions.encryptedOutput1);
+		emit NewCommitment(_publicInputs.bobReceiveRecord, 0, this.getNextIndex() - 1, bobEncryptions.encryptedOutput2);
 	}
 }
