@@ -14,6 +14,7 @@ import "../../interfaces/tokens/INftTokenWrapper.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "../../interfaces/IBatchTree.sol";
 import "../../interfaces/IMASPProxy.sol";
+import "../../libs/SwapEncodeInputs.sol";
 
 /**
 	@title Multi Asset Variable Anchor contract
@@ -225,10 +226,7 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		Encryptions memory bobEncryptions
 	) public {
 		// Verify the proof
-		bool isMaxEdgesOne = maxEdges == 1;
-		(bytes memory encodedInputs, uint256[] memory roots) = isMaxEdgesOne
-		? SwapEncodeInputs._encodeInputs2(_publicInputs)
-		: SwapEncodeInputs._encodeInputs8(_publicInputs);
+		(bytes memory encodedInputs, uint256[] memory roots) = SwapEncodeInputs._encodeInputs(_publicInputs, maxEdges);
 		require(isValidRoots(roots), "Invalid vanchor roots");
 		require(verifySwap(proof, encodedInputs), "Invalid swap proof");
 		// Nullify the spent Records
