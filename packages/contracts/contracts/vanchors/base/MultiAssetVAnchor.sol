@@ -15,6 +15,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "../../interfaces/IBatchTree.sol";
 import "../../interfaces/IMASPProxy.sol";
 import "../../libs/SwapEncodeInputs.sol";
+import "../../interfaces/verifiers/ISwapVerifier.sol";
 
 /**
 	@title Multi Asset Variable Anchor contract
@@ -45,6 +46,7 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 	address public rewardSpentTree;
 	address proxy;
 	uint256 allowableSwapTimestampEpsilon = 1 minutes;
+	address swapVerifier;
 
 	/**
 		@notice The VAnchor constructor
@@ -62,6 +64,7 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		IBatchTree _rewardSpentTree,
 		IMASPProxy _proxy,
 		IAnchorVerifier _verifier,
+		ISwapVerifier _swapVerifier,
 		uint32 _levels,
 		address _handler,
 		uint8 _maxEdges
@@ -70,6 +73,7 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		rewardUnspentTree = address(_rewardUnspentTree);
 		rewardSpentTree = address(_rewardSpentTree);
 		proxy = address(_proxy);
+		swapVerifier = address(_swapVerifier);
 	}
 
 	/**
@@ -219,16 +223,22 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 			);
 	}
 
-	function swap (
+	function swap(
 		bytes memory proof,
 		SwapPublicInputs memory _publicInputs,
 		Encryptions memory aliceEncryptions,
 		Encryptions memory bobEncryptions
 	) public {
 		// Verify the proof
-		(bytes memory encodedInputs, uint256[] memory roots) = SwapEncodeInputs._encodeInputs(_publicInputs, maxEdges);
+		(bytes memory encodedInputs, uint256[] memory roots) = SwapEncodeInputs._encodeInputs(
+			_publicInputs,
+			maxEdges
+		);
 		require(isValidRoots(roots), "Invalid vanchor roots");
-		require(verifySwap(proof, encodedInputs), "Invalid swap proof");
+		require(
+			ISwapVerifier(swapVerifier).verifySwap(proof, encodedInputs, maxEdges),
+			"Invalid swap proof"
+		);
 		// Nullify the spent Records
 		nullifierHashes[_publicInputs.aliceSpendNullifier] = true;
 		nullifierHashes[_publicInputs.bobSpendNullifier] = true;
@@ -251,16 +261,40 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 			)
 		);
 		// Check block timestamp versus timestamps in swap
-		require(block.timestamp - allowableSwapTimestampEpsilon <= _publicInputs.currentTimestamp <= block.timestamp + allowableSwapTimestampEpsilon, "Current timestamp not valid");
-		// Add new Records from swap (receive and change records) to Record Merkle tree. 
+		require(
+			(block.timestamp - allowableSwapTimestampEpsilon <= _publicInputs.currentTimestamp) &&
+				(_publicInputs.currentTimestamp <= block.timestamp + allowableSwapTimestampEpsilon),
+			"Current timestamp not valid"
+		);
+		// Add new Records from swap (receive and change records) to Record Merkle tree.
 		// Insert Alice's Change and Receive Records
 		_insertTwo(_publicInputs.aliceChangeRecord, _publicInputs.aliceReceiveRecord);
-		emit NewCommitment(_publicInputs.aliceChangeRecord, 0, this.getNextIndex() - 2, aliceEncryptions.encryptedOutput1);
-		emit NewCommitment(_publicInputs.aliceReceiveRecord, 0, this.getNextIndex() - 1, aliceEncryptions.encryptedOutput2);
+		emit NewCommitment(
+			_publicInputs.aliceChangeRecord,
+			0,
+			this.getNextIndex() - 2,
+			aliceEncryptions.encryptedOutput1
+		);
+		emit NewCommitment(
+			_publicInputs.aliceReceiveRecord,
+			0,
+			this.getNextIndex() - 1,
+			aliceEncryptions.encryptedOutput2
+		);
 		// Insert Bob's Change and Receive Records
 		_insertTwo(_publicInputs.bobChangeRecord, _publicInputs.bobReceiveRecord);
-		emit NewCommitment(_publicInputs.bobChangeRecord, 0, this.getNextIndex() - 2, bobEncryptions.encryptedOutput1);
-		emit NewCommitment(_publicInputs.bobReceiveRecord, 0, this.getNextIndex() - 1, bobEncryptions.encryptedOutput2);
+		emit NewCommitment(
+			_publicInputs.bobChangeRecord,
+			0,
+			this.getNextIndex() - 2,
+			bobEncryptions.encryptedOutput1
+		);
+		emit NewCommitment(
+			_publicInputs.bobReceiveRecord,
+			0,
+			this.getNextIndex() - 1,
+			bobEncryptions.encryptedOutput2
+		);
 		IMASPProxy(proxy).queueRewardSpentTreeCommitment(
 			bytes32(
 				IHasher(this.getHasher()).hashLeftRight(

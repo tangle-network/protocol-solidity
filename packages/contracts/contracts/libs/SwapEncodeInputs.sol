@@ -58,7 +58,7 @@ library SwapEncodeInputs {
 			inputs[2] = uint256(_chainId);
 			inputs[3] = uint256(roots[0]);
 			inputs[4] = uint256(roots[1]);
-            inputs[5] = uint256(_args.currentTimestamp);
+			inputs[5] = uint256(_args.currentTimestamp);
 			inputs[6] = uint256(_args.aliceChangeRecord);
 			inputs[7] = uint256(_args.bobChangeRecord);
 			inputs[8] = uint256(_args.aliceReceiveRecord);
@@ -88,7 +88,7 @@ library SwapEncodeInputs {
 			inputs[8] = uint256(roots[5]);
 			inputs[9] = uint256(roots[6]);
 			inputs[10] = uint256(roots[7]);
-            inputs[11] = uint256(_args.currentTimestamp);
+			inputs[11] = uint256(_args.currentTimestamp);
 			inputs[12] = uint256(_args.aliceChangeRecord);
 			inputs[13] = uint256(_args.bobChangeRecord);
 			inputs[14] = uint256(_args.aliceReceiveRecord);

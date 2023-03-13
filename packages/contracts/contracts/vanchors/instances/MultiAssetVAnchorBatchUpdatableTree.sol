@@ -32,6 +32,7 @@ contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, BatchMerkleTree {
 		IBatchTree _rewardSpentTree,
 		IMASPProxy _proxy,
 		IAnchorVerifier _verifier,
+		ISwapVerifier _swapVerifier,
 		uint32 _merkleTreeLevels,
 		IHasher _hasher,
 		address _handler,
@@ -44,6 +45,7 @@ contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, BatchMerkleTree {
 			_rewardSpentTree,
 			_proxy,
 			_verifier,
+			_swapVerifier,
 			_merkleTreeLevels,
 			_handler,
 			_maxEdges

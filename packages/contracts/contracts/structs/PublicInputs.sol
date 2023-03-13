@@ -70,7 +70,7 @@ struct SwapPublicInputs {
 	uint256 aliceSpendNullifier;
 	uint256 bobSpendNullifier;
 	uint256 swapChainID;
-    uint256 currentTimestamp;
+	uint256 currentTimestamp;
 	uint256 aliceChangeRecord;
 	uint256 bobChangeRecord;
 	uint256 aliceReceiveRecord;
