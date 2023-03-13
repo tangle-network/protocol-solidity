@@ -43,6 +43,7 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 	address public rewardUnspentTree;
 	address public rewardSpentTree;
 	address proxy;
+	uint256 allowableSwapTimestampEpsilon = 1 minutes;
 
 	/**
 		@notice The VAnchor constructor
@@ -219,12 +220,17 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 
 	function swap (
 		bytes memory proof,
-		PublicInputs memory publicInputs,
+		PublicInputs memory _publicInputs,
 		Encryptions memory encryptions
 	) public {
 		// Verify the proof
 		// Nullify the spent Records
 		// Check block timestamp versus timestamps in swap
+		require(block.timestamp - allowableSwapTimestampEpsilon <= _publicInputs.currentTimestamp <= block.timestamp + allowableSwapTimestampEpsilon, "Timestamp1 is expired");
 		// Add new Records from swap (receive and change records) to Record Merkle tree. 
+		// Insert Alice's Change and Receive Records
+		_insertTwo(_publicInputs.aliceChangeRecord, _publicInputs.aliceReceiveRecord);
+		// Insert Bob's Change and Receive Records
+		_insertTwo(_publicInputs.bobChangeRecord, _publicInputs.bobReceiveRecord);
 	}
 }
