@@ -234,6 +234,22 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		nullifierHashes[_publicInputs.bobSpendNullifier] = true;
 		emit NewNullifier(_publicInputs.aliceSpendNullifier);
 		emit NewNullifier(_publicInputs.bobSpendNullifier);
+		IMASPProxy(proxy).queueRewardSpentTreeCommitment(
+			bytes32(
+				IHasher(this.getHasher()).hashLeftRight(
+					_publicInputs.aliceSpendNullifier,
+					block.timestamp
+				)
+			)
+		);
+		IMASPProxy(proxy).queueRewardSpentTreeCommitment(
+			bytes32(
+				IHasher(this.getHasher()).hashLeftRight(
+					_publicInputs.bobSpendNullifier,
+					block.timestamp
+				)
+			)
+		);
 		// Check block timestamp versus timestamps in swap
 		require(block.timestamp - allowableSwapTimestampEpsilon <= _publicInputs.currentTimestamp <= block.timestamp + allowableSwapTimestampEpsilon, "Current timestamp not valid");
 		// Add new Records from swap (receive and change records) to Record Merkle tree. 
@@ -245,5 +261,37 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		_insertTwo(_publicInputs.bobChangeRecord, _publicInputs.bobReceiveRecord);
 		emit NewCommitment(_publicInputs.bobChangeRecord, 0, this.getNextIndex() - 2, bobEncryptions.encryptedOutput1);
 		emit NewCommitment(_publicInputs.bobReceiveRecord, 0, this.getNextIndex() - 1, bobEncryptions.encryptedOutput2);
+		IMASPProxy(proxy).queueRewardSpentTreeCommitment(
+			bytes32(
+				IHasher(this.getHasher()).hashLeftRight(
+					_publicInputs.aliceChangeRecord,
+					block.timestamp
+				)
+			)
+		);
+		IMASPProxy(proxy).queueRewardSpentTreeCommitment(
+			bytes32(
+				IHasher(this.getHasher()).hashLeftRight(
+					_publicInputs.aliceReceiveRecord,
+					block.timestamp
+				)
+			)
+		);
+		IMASPProxy(proxy).queueRewardSpentTreeCommitment(
+			bytes32(
+				IHasher(this.getHasher()).hashLeftRight(
+					_publicInputs.bobChangeRecord,
+					block.timestamp
+				)
+			)
+		);
+		IMASPProxy(proxy).queueRewardSpentTreeCommitment(
+			bytes32(
+				IHasher(this.getHasher()).hashLeftRight(
+					_publicInputs.bobReceiveRecord,
+					block.timestamp
+				)
+			)
+		);
 	}
 }
