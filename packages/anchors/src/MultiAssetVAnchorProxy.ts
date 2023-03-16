@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import { BigNumber, ethers } from 'ethers';
 import { MultiAssetVAnchorProxy as MultiAssetVAnchorProxyContract, MultiAssetVAnchorProxy__factory } from '@webb-tools/contracts';
 
 import { MultiAssetVAnchor as MultiAssetVAnchorContract, MultiAssetVAnchor__factory } from '@webb-tools/contracts';
@@ -61,14 +61,87 @@ export class MultiAssetVAnchorProxy {
   }
 
   // Batch insert ERC20 deposits
-  public async batchInsertERC20Deposit() {
-    await this.contract.batchInsertERC20Deposit();
+  public async batchDepositERC20s(		
+    masp: string,
+		proof: string,
+		argsHash: string,
+		currentRoot: string,
+		newRoot: string,
+		pathIndices: BigNumber,
+		batchHeight: BigNumber,
+  ) {
+    await this.contract.batchDepositERC20s(
+      masp,
+      proof,
+      argsHash,
+      currentRoot,
+      newRoot,
+      pathIndices,
+      batchHeight,
+    );
   }
 
   // Batch insert ERC721 deposits
+  public async batchDepositERC721s(		
+    masp: string,
+    proof: string,
+    argsHash: string,
+    currentRoot: string,
+    newRoot: string,
+    pathIndices: BigNumber,
+    batchHeight: BigNumber,
+  ) {
+    await this.contract.batchDepositERC20s(
+      masp,
+      proof,
+      argsHash,
+      currentRoot,
+      newRoot,
+      pathIndices,
+      batchHeight,
+    );
+  }
 
   // Batch insert reward unspent tree commitments
+  public async batchInsertRewardUnspentTree(		
+    masp: string,
+    proof: string,
+    argsHash: string,
+    currentRoot: string,
+    newRoot: string,
+    pathIndices: BigNumber,
+    batchHeight: BigNumber,
+  ) {
+    await this.contract.batchInsertRewardUnspentTree(
+      masp,
+      proof,
+      argsHash,
+      currentRoot,
+      newRoot,
+      pathIndices,
+      batchHeight,
+    );
+  }
 
   // Batch insert reward spent tree commitments
+  public async batchInsertRewardSpentTree(		
+    masp: string,
+    proof: string,
+    argsHash: string,
+    currentRoot: string,
+    newRoot: string,
+    pathIndices: BigNumber,
+    batchHeight: BigNumber,
+  ) {
+    await this.contract.batchInsertRewardUnspentTree(
+      masp,
+      proof,
+      argsHash,
+      currentRoot,
+      newRoot,
+      pathIndices,
+      batchHeight,
+    );
+  }
 }
 
