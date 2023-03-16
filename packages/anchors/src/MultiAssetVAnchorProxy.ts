@@ -143,5 +143,9 @@ export class MultiAssetVAnchorProxy {
       batchHeight,
     );
   }
+
+  // Utility Classes *****
+
+  // Get queued ERC20 deposits
 }
 
