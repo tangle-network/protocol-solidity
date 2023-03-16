@@ -358,6 +358,3 @@ contract MultiAssetVAnchorProxy is Initialized {
 		emit BatchInsertNFTs(lastProcessedDepositLeaf, proxiedMASP, _newRoot);
 	}
 }
-
-// Overall TODOs
-// 1. Interfaces for MASP and Reward Tree
