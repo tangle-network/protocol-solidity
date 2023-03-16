@@ -3,6 +3,8 @@ import { MultiAssetVAnchorProxy as MultiAssetVAnchorProxyContract, MultiAssetVAn
 
 import { MultiAssetVAnchor as MultiAssetVAnchorContract, MultiAssetVAnchor__factory } from '@webb-tools/contracts';
 
+import { QueueDepositInfo } from '@webb-tools/interfaces';
+
 export class MultiAssetVAnchorProxy {
   contract: MultiAssetVAnchorProxyContract;
 
@@ -30,14 +32,38 @@ export class MultiAssetVAnchorProxy {
   }
 
   // Queue ERC20 deposits
+  public async queueERC20Deposit(depositInfo: QueueDepositInfo) {
+    await this.contract.queueERC20Deposit(
+      depositInfo
+    );
+  }
 
   // Queue ERC721 deposits
+  public async queueERC721Deposit(depositInfo: QueueDepositInfo) {
+    await this.contract.queueERC721Deposit(
+      depositInfo
+    );
+  }
 
   // Queue reward unspent tree commitments
+  public async queueRewardUnspentCommitment(masp: string, commitment: string) {
+    await this.contract.queueRewardUnspentTreeCommitment(
+      masp,
+      commitment
+    );
+  }
 
   // Queue reward spent tree commitments
+  public async queueRewardSpentCommitment(commitment: string) {
+    await this.contract.queueRewardSpentTreeCommitment(
+      commitment,
+    );
+  }
 
   // Batch insert ERC20 deposits
+  public async batchInsertERC20Deposit() {
+    await this.contract.batchInsertERC20Deposit();
+  }
 
   // Batch insert ERC721 deposits
 

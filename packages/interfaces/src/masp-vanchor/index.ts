@@ -1,5 +1,15 @@
 import { BigNumber } from 'ethers';
 
+export interface QueueDepositInfo {
+  unwrappedToken: string;
+  wrappedToken: string;
+  amount: number;
+  assetID: number;
+  tokenID: number;
+  depositPartialCommitment: string;
+  proxiedMASP: string;
+}
+
 export interface IMASPVAnchorPublicInputs {
   proof: string;
   publicAmount: string;
