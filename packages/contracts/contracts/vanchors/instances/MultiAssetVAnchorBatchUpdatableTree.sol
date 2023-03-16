@@ -6,11 +6,11 @@
 pragma solidity ^0.8.0;
 
 import "../base/MultiAssetVAnchor.sol";
-import "../../trees/BatchUpdatableTree.sol";
+import "../../trees/ProxiedBatchUpdatableTree.sol";
 import "../../interfaces/verifiers/IBatchVerifier.sol";
 import "../../interfaces/IMultiAssetVAnchorBatchTree.sol";
 
-contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, BatchMerkleTree {
+contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, ProxiedBatchMerkleTree {
 	using SafeERC20 for IERC20;
 	using SafeMath for uint256;
 
@@ -50,7 +50,7 @@ contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, BatchMerkleTree {
 			_handler,
 			_maxEdges
 		)
-		BatchMerkleTree(_merkleTreeLevels, _hasher, _batchTreeVerifier)
+		ProxiedBatchMerkleTree(_merkleTreeLevels, _hasher, _batchTreeVerifier, _proxy)
 	{}
 
 	/// @inheritdoc ZKVAnchorBase
