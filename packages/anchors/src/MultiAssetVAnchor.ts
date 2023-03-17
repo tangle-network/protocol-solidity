@@ -1,7 +1,7 @@
 import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
 import {
-  MultiAssetVAnchorTree as MultiAssetVAnchorTreeContract,
-  MultiAssetVAnchorTree__factory,
+  MultiAssetVAnchor as MultiAssetVAnchorContract,
+  MultiAssetVAnchor__factory,
   MASPVAnchorEncodeInputs__factory,
   TokenWrapper__factory,
   Registry__factory,
@@ -80,9 +80,9 @@ export var proofTimeBenchmark = [];
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
-export class MultiAssetVAnchor implements IVAnchor {
+export abstract class MultiAssetVAnchor implements IVAnchor {
+  contract: MultiAssetVAnchorContract;
   signer: ethers.Signer;
-  contract: MultiAssetVAnchorTreeContract;
   tree: MerkleTree;
   // hex string of the connected root
   maxEdges: number;
@@ -90,12 +90,9 @@ export class MultiAssetVAnchor implements IVAnchor {
   smallCircuitZkComponents: ZkComponents;
   largeCircuitZkComponents: ZkComponents;
 
-  // The depositHistory stores leafIndex => information to create proposals (new root)
-  depositHistory: Record<number, string>;
-  provingManager: CircomProvingManager;
 
   constructor(
-    contract: MultiAssetVAnchorTreeContract,
+    contract: MultiAssetVAnchorContract,
     signer: ethers.Signer,
     treeHeight: number,
     maxEdges: number,
@@ -112,80 +109,14 @@ export class MultiAssetVAnchor implements IVAnchor {
     this.largeCircuitZkComponents = largeCircuitZkComponents;
   }
 
+
   getAddress(): string {
     return this.contract.address;
   }
 
-  public static async createMASPVAnchor(
-    registry: string,
-    verifier: string,
-    levels: BigNumberish,
-    hasher: string,
-    handler: string,
-    maxEdges: number,
-    smallCircuitZkComponents: ZkComponents,
-    largeCircuitZkComponents: ZkComponents,
-    signer: ethers.Signer
-  ) {
-    const encodeLibraryFactory = new MASPVAnchorEncodeInputs__factory(signer);
-    const encodeLibrary = await encodeLibraryFactory.deploy();
-    await encodeLibrary.deployed();
-
-    const factory = new MultiAssetVAnchorTree__factory(
-      {
-        ['contracts/libs/MASPVAnchorEncodeInputs.sol:MASPVAnchorEncodeInputs']:
-          encodeLibrary.address,
-      },
-      signer
-    );
-    const maspVAnchor = await factory.deploy(
-      registry,
-      verifier,
-      levels,
-      hasher,
-      handler,
-      maxEdges,
-      {}
-    );
-    await maspVAnchor.deployed();
-    const createdMASPVAnchor = new MultiAssetVAnchor(
-      maspVAnchor,
-      signer,
-      BigNumber.from(levels).toNumber(),
-      maxEdges,
-      smallCircuitZkComponents,
-      largeCircuitZkComponents
-    );
-    createdMASPVAnchor.latestSyncedBlock = maspVAnchor.deployTransaction.blockNumber!;
-    const tx = await createdMASPVAnchor.contract.initialize(
-      BigNumber.from('1'),
-      BigNumber.from(2).pow(256).sub(1)
-    );
-    await tx.wait();
-    return createdMASPVAnchor;
-  }
-
-  public static async connect(
-    // connect via factory method
-    // build up tree by querying provider for logs
-    address: string,
-    smallCircuitZkComponents: ZkComponents,
-    largeCircuitZkComponents: ZkComponents,
-    signer: ethers.Signer
-  ) {
-    const anchor = MultiAssetVAnchorTree__factory.connect(address, signer);
-    const maxEdges = await anchor.maxEdges();
-    const treeHeight = await anchor.levels();
-    const createdAnchor = new MultiAssetVAnchor(
-      anchor,
-      signer,
-      treeHeight,
-      maxEdges,
-      smallCircuitZkComponents,
-      largeCircuitZkComponents
-    );
-    return createdAnchor;
-  }
+  // The depositHistory stores leafIndex => information to create proposals (new root)
+  depositHistory: Record<number, string>;
+  provingManager: CircomProvingManager;
 
   public static createRootsBytes(rootArray: string[]) {
     let rootsBytes = '0x';
