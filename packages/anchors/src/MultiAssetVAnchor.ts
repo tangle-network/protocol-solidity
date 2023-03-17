@@ -93,11 +93,11 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
 
   constructor(
     contract: MultiAssetVAnchorContract,
-    signer: ethers.Signer,
     treeHeight: number,
     maxEdges: number,
     smallCircuitZkComponents: ZkComponents,
-    largeCircuitZkComponents: ZkComponents
+    largeCircuitZkComponents: ZkComponents,
+    signer: ethers.Signer,
   ) {
     this.signer = signer;
     this.contract = contract;
