@@ -1,7 +1,7 @@
 {
   "name": "@webb-tools/protocol-solidity",
   "main": "./lib/index.js",
-  "version": "0.5.26",
+  "version": "0.5.27",
   "license": [
     {
       "type": "Apache-2.0",
@@ -19,14 +19,14 @@
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@webb-tools/anchors": "^0.5.26",
-    "@webb-tools/bridges": "^0.5.26",
-    "@webb-tools/contracts": "^0.5.26",
-    "@webb-tools/evm-test-utils": "^0.5.26",
-    "@webb-tools/interfaces": "^0.5.26",
-    "@webb-tools/tokens": "^0.5.26",
-    "@webb-tools/utils": "^0.5.18",
-    "@webb-tools/vbridge": "^0.5.26"
+    "@webb-tools/anchors": "^0.5.27",
+    "@webb-tools/bridges": "^0.5.27",
+    "@webb-tools/contracts": "^0.5.27",
+    "@webb-tools/evm-test-utils": "^0.5.27",
+    "@webb-tools/interfaces": "^0.5.27",
+    "@webb-tools/tokens": "^0.5.27",
+    "@webb-tools/utils": "^0.5.19",
+    "@webb-tools/vbridge": "^0.5.27"
   },
   "publishConfig": {
     "access": "public"
