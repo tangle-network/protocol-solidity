@@ -6,7 +6,7 @@ import { BigNumberish, ethers } from 'ethers';
 import {
   BatchMerkleTreeMock as BatchMerkleTreeContract,
   BatchMerkleTreeMock__factory,
-} from '../../../typechain';
+} from '../../../lib';
 
 const assert = require('assert');
 

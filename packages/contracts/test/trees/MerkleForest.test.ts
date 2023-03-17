@@ -11,7 +11,7 @@ import { ethers } from 'hardhat';
 import {
   LinkableIncrementalBinaryTree as LinkableIncrementalBinaryTreeContract,
   MerkleForestMock as MerkleForestMockContract,
-} from '../../typechain';
+} from '../../lib';
 const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
 
