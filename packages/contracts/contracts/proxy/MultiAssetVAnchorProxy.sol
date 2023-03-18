@@ -31,19 +31,19 @@ contract MultiAssetVAnchorProxy is Initialized {
 	}
 
 	mapping(address => mapping(uint256 => QueueDepositInfo)) public QueueERC20DepositMap;
-	uint256 nextQueueERC20DepositIndex;
+	mapping(address => uint256) public nextQueueERC20DepositIndex;
 	uint256 public lastProcessedERC20DepositLeaf;
 
 	mapping(address => mapping(uint256 => QueueDepositInfo)) public QueueERC721DepositMap;
-	uint256 nextQueueERC721DepositIndex;
+	mapping(address => uint256) public nextQueueERC721DepositIndex;
 	uint256 public lastProcessedERC721DepositLeaf;
 
 	mapping(address => mapping(uint256 => bytes32)) public RewardUnspentTreeCommitmentMap;
-	uint256 nextRewardUnspentTreeCommitmentIndex;
+	mapping(address => uint256) public nextRewardUnspentTreeCommitmentIndex;
 	uint256 public lastProcessedRewardUnspentTreeLeaf;
 
 	mapping(address => mapping(uint256 => bytes32)) public RewardSpentTreeCommitmentMap;
-	uint256 nextRewardSpentTreeCommitmentIndex;
+	mapping(address => uint256) public nextRewardSpentTreeCommitmentIndex;
 	uint256 public lastProcessedRewardSpentTreeLeaf;
 
 	address public hasher;
@@ -103,10 +103,10 @@ contract MultiAssetVAnchorProxy is Initialized {
 		uint256 amount = depositInfo.amount;
 		address depositToken = depositInfo.unwrappedToken;
 		IMintableERC20(depositToken).transferFrom(msg.sender, address(this), uint256(amount));
-		QueueERC20DepositMap[depositInfo.proxiedMASP][nextQueueERC20DepositIndex] = depositInfo;
+		QueueERC20DepositMap[depositInfo.proxiedMASP][nextQueueERC20DepositIndex[depositInfo.proxiedMASP]] = depositInfo;
 		// Emit Event
-		emit QueueDeposit(nextQueueERC20DepositIndex, depositInfo.proxiedMASP);
-		nextQueueERC20DepositIndex = nextQueueERC20DepositIndex + 1;
+		emit QueueDeposit(nextQueueERC20DepositIndex[depositInfo.proxiedMASP], depositInfo.proxiedMASP);
+		nextQueueERC20DepositIndex[depositInfo.proxiedMASP] = nextQueueERC20DepositIndex[depositInfo.proxiedMASP] + 1;
 	}
 
 	function batchDepositERC20s(
@@ -124,7 +124,7 @@ contract MultiAssetVAnchorProxy is Initialized {
 		bytes32[] memory commitments = new bytes32[](_batchSize);
 		uint _lastProcessedERC20DepositLeaf = lastProcessedERC20DepositLeaf;
 		require(
-			_lastProcessedERC20DepositLeaf + _batchSize <= nextQueueERC20DepositIndex,
+			_lastProcessedERC20DepositLeaf + _batchSize <= nextQueueERC20DepositIndex[proxiedMASP],
 			"Batch size too big"
 		);
 		for (uint i = _lastProcessedERC20DepositLeaf; i < _lastProcessedERC20DepositLeaf + _batchSize; i++) {
@@ -178,11 +178,11 @@ contract MultiAssetVAnchorProxy is Initialized {
 		bytes32 rewardUnspentTreeCommitment
 	) public payable {
 		RewardUnspentTreeCommitmentMap[proxiedMASP][
-			nextRewardUnspentTreeCommitmentIndex
+			nextRewardUnspentTreeCommitmentIndex[proxiedMASP]
 		] = rewardUnspentTreeCommitment;
 		// Emit Event
-		emit QueueRewardUnspentTree(nextRewardUnspentTreeCommitmentIndex, proxiedMASP);
-		nextRewardUnspentTreeCommitmentIndex = nextRewardUnspentTreeCommitmentIndex + 1;
+		emit QueueRewardUnspentTree(nextRewardUnspentTreeCommitmentIndex[proxiedMASP], proxiedMASP);
+		nextRewardUnspentTreeCommitmentIndex[proxiedMASP] = nextRewardUnspentTreeCommitmentIndex[proxiedMASP] + 1;
 	}
 
 	function batchInsertRewardUnspentTree(
@@ -201,7 +201,7 @@ contract MultiAssetVAnchorProxy is Initialized {
 		uint _lastProcessedRewardUnspentTreeLeaf = lastProcessedRewardUnspentTreeLeaf;
 		require(
 			_lastProcessedRewardUnspentTreeLeaf + _batchSize <=
-				nextRewardUnspentTreeCommitmentIndex,
+				nextRewardUnspentTreeCommitmentIndex[proxiedMASP],
 			"Batch size too big"
 		);
 		for (
@@ -233,11 +233,11 @@ contract MultiAssetVAnchorProxy is Initialized {
 	function queueRewardSpentTreeCommitment(bytes32 rewardSpentTreeCommitment) public payable {
 		address proxiedMASP = msg.sender;
 		RewardSpentTreeCommitmentMap[proxiedMASP][
-			nextRewardSpentTreeCommitmentIndex
+			nextRewardSpentTreeCommitmentIndex[proxiedMASP]
 		] = rewardSpentTreeCommitment;
 		// Emit Event
-		emit QueueRewardSpentTree(nextRewardSpentTreeCommitmentIndex, proxiedMASP);
-		nextRewardSpentTreeCommitmentIndex = nextRewardSpentTreeCommitmentIndex + 1;
+		emit QueueRewardSpentTree(nextRewardSpentTreeCommitmentIndex[proxiedMASP], proxiedMASP);
+		nextRewardSpentTreeCommitmentIndex[proxiedMASP] = nextRewardSpentTreeCommitmentIndex[proxiedMASP] + 1;
 	}
 
 	function batchInsertRewardSpentTree(
@@ -255,7 +255,7 @@ contract MultiAssetVAnchorProxy is Initialized {
 		bytes32[] memory commitments = new bytes32[](_batchSize);
 		uint _lastProcessedRewardSpentTreeLeaf = lastProcessedRewardSpentTreeLeaf;
 		require(
-			_lastProcessedRewardSpentTreeLeaf + _batchSize <= nextRewardSpentTreeCommitmentIndex,
+			_lastProcessedRewardSpentTreeLeaf + _batchSize <= nextRewardSpentTreeCommitmentIndex[proxiedMASP],
 			"Batch size too big"
 		);
 		for (
@@ -294,10 +294,10 @@ contract MultiAssetVAnchorProxy is Initialized {
 			"Wrapped and unwrapped addresses don't match"
 		);
 		IERC721(depositToken).safeTransferFrom(msg.sender, address(this), depositInfo.tokenID);
-		QueueERC721DepositMap[depositInfo.proxiedMASP][nextQueueERC721DepositIndex] = depositInfo;
+		QueueERC721DepositMap[depositInfo.proxiedMASP][nextQueueERC721DepositIndex[depositInfo.proxiedMASP]] = depositInfo;
 		// Emit Event
-		emit QueueDeposit(nextQueueERC721DepositIndex, depositInfo.proxiedMASP);
-		nextQueueERC721DepositIndex = nextQueueERC721DepositIndex + 1;
+		emit QueueDeposit(nextQueueERC721DepositIndex[depositInfo.proxiedMASP], depositInfo.proxiedMASP);
+		nextQueueERC721DepositIndex[depositInfo.proxiedMASP] = nextQueueERC721DepositIndex[depositInfo.proxiedMASP] + 1;
 	}
 
 	function batchDepositERC721s(
@@ -314,7 +314,7 @@ contract MultiAssetVAnchorProxy is Initialized {
 		bytes32[] memory commitments = new bytes32[](_batchSize);
 		uint _lastProcessedERC721DepositLeaf = lastProcessedERC721DepositLeaf;
 		require(
-			_lastProcessedERC721DepositLeaf + _batchSize <= nextQueueERC721DepositIndex,
+			_lastProcessedERC721DepositLeaf + _batchSize <= nextQueueERC721DepositIndex[proxiedMASP],
 			"Batch size too big"
 		);
 		for (uint i = _lastProcessedERC721DepositLeaf; i < _lastProcessedERC721DepositLeaf + _batchSize; i++) {
