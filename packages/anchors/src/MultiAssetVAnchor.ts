@@ -25,7 +25,13 @@ import {
   token2CurrencyId,
   Utxo,
 } from '@webb-tools/sdk-core';
-import { IMASPVAnchorPublicInputs, IVAnchor, IMASPAllInputs } from '@webb-tools/interfaces';
+import {
+  IMASPVAnchorPublicInputs,
+  IVAnchor,
+  IMASPAllInputs,
+  IMASPSwapAllInputs,
+  IMASPSwapPublicInputs,
+} from '@webb-tools/interfaces';
 const { babyjub } = require('circomlibjs');
 import { u8aToHex, getChainIdType, ZkComponents, MaspUtxo, MaspKey } from '@webb-tools/utils';
 import { fromAscii } from 'web3-utils';
@@ -34,6 +40,7 @@ import { EthAbiDecodeParametersResultArray } from 'web3/eth/abi';
 import { convertPublicSignals } from '@webb-tools/semaphore-proof/dist/types/generateProof';
 const snarkjs = require('snarkjs');
 const assert = require('assert');
+const { poseidon, eddsa } = require('circomlibjs');
 
 export type FullProof = {
   proof: Proof;
@@ -51,6 +58,11 @@ export type Proof = {
 export type MASPVAnchorInputs = {
   allInputs: IMASPAllInputs;
   publicInputs: IMASPVAnchorPublicInputs;
+};
+
+export type MASPSwapInputs = {
+  swapAllInputs: IMASPSwapAllInputs;
+  swapPublicInputs: IMASPSwapPublicInputs;
 };
 
 export type ExtData = {
@@ -89,6 +101,7 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
   latestSyncedBlock: number;
   smallCircuitZkComponents: ZkComponents;
   largeCircuitZkComponents: ZkComponents;
+  swapCircuitZkComponents: ZkComponents;
 
   constructor(
     contract: MultiAssetVAnchorContract,
@@ -96,6 +109,7 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     maxEdges: number,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents,
+    swapCircuitZkComponents: ZkComponents,
     signer: ethers.Signer
   ) {
     this.signer = signer;
@@ -106,6 +120,7 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     this.depositHistory = {};
     this.smallCircuitZkComponents = smallCircuitZkComponents;
     this.largeCircuitZkComponents = largeCircuitZkComponents;
+    this.swapCircuitZkComponents = swapCircuitZkComponents;
   }
 
   getAddress(): string {
@@ -894,6 +909,190 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     );
     const receipt = await tx.wait();
     return receipt;
+  }
+
+  /** Swap Functions */
+  public async generateSwapProof(swapAllInputs: IMASPSwapAllInputs): Promise<FullProof> {
+    let proof = await snarkjs.groth16.fullProve(
+      swapAllInputs,
+      this.swapCircuitZkComponents.wasm,
+      this.swapCircuitZkComponents.zkey
+    );
+    return proof;
+  }
+
+  public async generateSwapInputsWithProof(
+    aliceSpendRecord: MaspUtxo,
+    aliceChangeRecord: MaspUtxo,
+    aliceReceiveRecord: MaspUtxo,
+    bobSpendRecord: MaspUtxo,
+    bobChangeRecord: MaspUtxo,
+    bobReceiveRecord: MaspUtxo,
+    aliceSpendMerkleProof: MerkleProof,
+    bobSpendMerkleProof: MerkleProof,
+    t: BigNumber,
+    tPrime: BigNumber,
+    currentTimestamp: BigNumber,
+    swapChainID: BigNumber
+  ): Promise<MASPSwapInputs> {
+    const roots = await this.populateRootsForProof();
+    const aliceMerkleProofData = {
+      pathIndex: MerkleTree.calculateIndexFromPathIndices(aliceSpendMerkleProof.pathIndices),
+      pathElements: aliceSpendMerkleProof.pathElements,
+    };
+    const bobMerkleProofData = {
+      pathIndex: MerkleTree.calculateIndexFromPathIndices(bobSpendMerkleProof.pathIndices),
+      pathElements: bobSpendMerkleProof.pathElements,
+    };
+
+    const swapMessageHash = poseidon([
+      aliceChangeRecord.getCommitment(),
+      aliceReceiveRecord.getCommitment(),
+      bobChangeRecord.getCommitment(),
+      bobReceiveRecord.getCommitment(),
+      t,
+      tPrime,
+    ]);
+
+    const aliceSig = eddsa.signPoseidon(aliceSpendRecord.maspKey.sk, swapMessageHash);
+    const bobSig = eddsa.signPoseidon(bobSpendRecord.maspKey.sk, swapMessageHash);
+
+    const swapAllInputs = {
+      aliceSpendAssetID: aliceSpendRecord.assetID.toString(),
+      aliceSpendTokenID: aliceSpendRecord.tokenID.toString(),
+      aliceSpendAmount: aliceSpendRecord.amount.toString(),
+      aliceSpendInnerPartialRecord: aliceSpendRecord.getInnerPartialCommitment().toString(),
+      bobSpendAssetID: bobSpendRecord.assetID.toString(),
+      bobSpendTokenID: bobSpendRecord.tokenID.toString(),
+      bobSpendAmount: bobSpendRecord.amount.toString(),
+      bobSpendInnerPartialRecord: bobSpendRecord.getInnerPartialCommitment().toString(),
+      t: t.toString(),
+      tPrime: tPrime.toString(),
+      alice_ak_X: aliceSpendRecord.maspKey.getProofAuthorizingKey()[0].toString(),
+      alice_ak_Y: aliceSpendRecord.maspKey.getProofAuthorizingKey()[1].toString(),
+      bob_ak_X: bobSpendRecord.maspKey.getProofAuthorizingKey()[0].toString(),
+      bob_ak_Y: bobSpendRecord.maspKey.getProofAuthorizingKey()[1].toString(),
+      alice_R8x: aliceSig.R8[0].toString(),
+      alice_R8y: aliceSig.R8[1].toString(),
+      aliceSig: aliceSig.S.toString(),
+      bob_R8x: bobSig.R8[0].toString(),
+      bob_R8y: bobSig.R8[1].toString(),
+      bobSig: bobSig.S.toString(),
+      aliceSpendPathElements: aliceMerkleProofData.pathElements,
+      aliceSpendPathIndices: aliceMerkleProofData.pathIndex.toString(),
+      aliceSpendNullifier: aliceSpendRecord.getNullifier().toString(),
+      bobSpendPathElements: bobMerkleProofData.pathElements,
+      bobSpendPathIndices: bobMerkleProofData.pathIndex.toString(),
+      bobSpendNullifier: bobSpendRecord.getNullifier().toString(),
+      swapChainID: swapChainID.toString(),
+      roots: roots.map((root) => root.toString()),
+      currentTimestamp: currentTimestamp.toString(),
+      aliceChangeChainID: aliceChangeRecord.chainID.toString(),
+      aliceChangeAssetID: aliceChangeRecord.assetID.toString(),
+      aliceChangeTokenID: aliceChangeRecord.tokenID.toString(),
+      aliceChangeAmount: aliceChangeRecord.amount.toString(),
+      aliceChangeInnerPartialRecord: aliceChangeRecord.getInnerPartialCommitment().toString(),
+      aliceChangeRecord: aliceChangeRecord.getCommitment().toString(),
+      bobChangeChainID: bobChangeRecord.chainID.toString(),
+      bobChangeAssetID: bobChangeRecord.assetID.toString(),
+      bobChangeTokenID: bobChangeRecord.tokenID.toString(),
+      bobChangeAmount: bobChangeRecord.amount.toString(),
+      bobChangeInnerPartialRecord: bobChangeRecord.getInnerPartialCommitment().toString(),
+      bobChangeRecord: bobChangeRecord.getCommitment().toString(),
+      aliceReceiveChainID: aliceReceiveRecord.chainID.toString(),
+      aliceReceiveAssetID: aliceReceiveRecord.assetID.toString(),
+      aliceReceiveTokenID: aliceReceiveRecord.tokenID.toString(),
+      aliceReceiveAmount: aliceReceiveRecord.amount.toString(),
+      aliceReceiveInnerPartialRecord: aliceReceiveRecord.getInnerPartialCommitment().toString(),
+      aliceReceiveRecord: aliceReceiveRecord.getCommitment().toString(),
+      bobReceiveChainID: bobReceiveRecord.chainID.toString(),
+      bobReceiveAssetID: bobReceiveRecord.assetID.toString(),
+      bobReceiveTokenID: bobReceiveRecord.tokenID.toString(),
+      bobReceiveAmount: bobReceiveRecord.amount.toString(),
+      bobReceiveInnerPartialRecord: bobReceiveRecord.getInnerPartialCommitment().toString(),
+      bobReceiveRecord: bobReceiveRecord.getCommitment().toString(),
+    };
+
+    const swapPublicInputs = {
+      proof: '',
+      aliceSpendNullifier: swapAllInputs.aliceSpendNullifier,
+      bobSpendNullifier: swapAllInputs.bobSpendNullifier,
+      swapChainID: swapAllInputs.swapChainID,
+      roots: swapAllInputs.roots,
+      currentTimestamp: swapAllInputs.currentTimestamp,
+      aliceChangeRecord: swapAllInputs.aliceChangeRecord,
+      bobChangeRecord: swapAllInputs.bobChangeRecord,
+      aliceReceiveRecord: swapAllInputs.aliceReceiveRecord,
+      bobReceiveRecord: swapAllInputs.bobReceiveRecord,
+    };
+
+    const fullProof = await this.generateSwapProof(swapAllInputs);
+    const proof = await this.generateProofCalldata(fullProof);
+    swapPublicInputs.proof = proof;
+    const vKey = await snarkjs.zKey.exportVerificationKey(this.swapCircuitZkComponents.zkey);
+
+    const is_valid: boolean = await snarkjs.groth16.verify(
+      vKey,
+      fullProof.publicSignals,
+      fullProof.proof
+    );
+    assert.strictEqual(is_valid, true);
+    return { swapAllInputs, swapPublicInputs };
+  }
+
+  // Smart contract interaction for swap
+  public async swap(
+    aliceSpendRecord: MaspUtxo,
+    aliceChangeRecord: MaspUtxo,
+    aliceReceiveRecord: MaspUtxo,
+    bobSpendRecord: MaspUtxo,
+    bobChangeRecord: MaspUtxo,
+    bobReceiveRecord: MaspUtxo,
+    aliceSpendMerkleProof: MerkleProof,
+    bobSpendMerkleProof: MerkleProof,
+    t: BigNumber,
+    tPrime: BigNumber,
+    currentTimestamp: BigNumber,
+    signer: ethers.Signer
+  ) {
+    const evmId = await signer.getChainId();
+    const swapChainID = getChainIdType(evmId);
+    const { swapAllInputs, swapPublicInputs } = await this.generateSwapInputsWithProof(
+      aliceSpendRecord,
+      aliceChangeRecord,
+      aliceReceiveRecord,
+      bobSpendRecord,
+      bobChangeRecord,
+      bobReceiveRecord,
+      aliceSpendMerkleProof,
+      bobSpendMerkleProof,
+      t,
+      tPrime,
+      currentTimestamp,
+      BigNumber.from(swapChainID)
+    );
+    await this.contract.swap(
+      swapPublicInputs.proof,
+      {
+        aliceSpendNullifier: swapPublicInputs.aliceSpendNullifier,
+        bobSpendNullifier: swapPublicInputs.bobSpendNullifier,
+        swapChainID: swapPublicInputs.swapChainID,
+        roots: MultiAssetVAnchor.createRootsBytes(swapPublicInputs.roots),
+        currentTimestamp: swapPublicInputs.currentTimestamp,
+        aliceChangeRecord: swapPublicInputs.aliceChangeRecord,
+        bobChangeRecord: swapPublicInputs.bobChangeRecord,
+        aliceReceiveRecord: swapPublicInputs.aliceReceiveRecord,
+        bobReceiveRecord: swapPublicInputs.bobReceiveRecord,
+      },
+      {
+        encryptedOutput1: aliceChangeRecord.encrypt(aliceChangeRecord.maspKey),
+        encryptedOutput2: aliceReceiveRecord.encrypt(aliceReceiveRecord.maspKey),
+      },
+      {
+        encryptedOutput1: bobChangeRecord.encrypt(bobChangeRecord.maspKey),
+        encryptedOutput2: bobReceiveRecord.encrypt(bobReceiveRecord.maspKey),
+      }
+    );
   }
 }
 
