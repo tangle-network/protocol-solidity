@@ -42,8 +42,6 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 	using SafeMath for uint256;
 
 	address public registry;
-	address public rewardUnspentTree;
-	address public rewardSpentTree;
 	address proxy;
 	uint256 allowableSwapTimestampEpsilon = 1 minutes;
 	address swapVerifier;
@@ -60,8 +58,6 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 	*/
 	constructor(
 		IRegistry _registry,
-		IBatchTree _rewardUnspentTree,
-		IBatchTree _rewardSpentTree,
 		IMASPProxy _proxy,
 		IAnchorVerifier _verifier,
 		ISwapVerifier _swapVerifier,
@@ -70,8 +66,6 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		uint8 _maxEdges
 	) ZKVAnchorBase(_verifier, _levels, _handler, _maxEdges) {
 		registry = address(_registry);
-		rewardUnspentTree = address(_rewardUnspentTree);
-		rewardSpentTree = address(_rewardSpentTree);
 		proxy = address(_proxy);
 		swapVerifier = address(_swapVerifier);
 	}

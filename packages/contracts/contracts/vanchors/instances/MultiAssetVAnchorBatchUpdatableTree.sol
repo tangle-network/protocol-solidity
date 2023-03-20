@@ -14,6 +14,9 @@ contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, ProxiedBatchMerkleTree
 	using SafeERC20 for IERC20;
 	using SafeMath for uint256;
 
+	address public rewardUnspentTree;
+	address public rewardSpentTree;
+
 	/**
 		@notice The VAnchorTree constructor
         @param _registry The asset registry address
@@ -41,8 +44,6 @@ contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, ProxiedBatchMerkleTree
 	)
 		MultiAssetVAnchor(
 			_registry,
-			_rewardUnspentTree,
-			_rewardSpentTree,
 			_proxy,
 			_verifier,
 			_swapVerifier,
@@ -51,7 +52,10 @@ contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, ProxiedBatchMerkleTree
 			_maxEdges
 		)
 		ProxiedBatchMerkleTree(_merkleTreeLevels, _hasher, _batchTreeVerifier, _proxy)
-	{}
+	{
+		rewardUnspentTree = address(_rewardUnspentTree);
+		rewardSpentTree = address(_rewardSpentTree);
+	}
 
 	/// @inheritdoc ZKVAnchorBase
 	function _executeInsertions(

@@ -1,12 +1,12 @@
 import { ethers, Signer, ContractFactory } from 'ethers';
 
 import {
-    BatchTreeVerifierSelector as BatchTreeVerifierSelectorContract,
-    BatchTreeVerifierSelector__factory,
-    VerifierBatch4__factory as v4__factory,
-    VerifierBatch8__factory as v8__factory,
-    VerifierBatch16__factory as v16__factory,
-    VerifierBatch32__factory as v32__factory,
+  BatchTreeVerifierSelector as BatchTreeVerifierSelectorContract,
+  BatchTreeVerifierSelector__factory,
+  VerifierBatch4__factory as v4__factory,
+  VerifierBatch8__factory as v8__factory,
+  VerifierBatch16__factory as v16__factory,
+  VerifierBatch32__factory as v32__factory,
 } from '@webb-tools/contracts';
 import { Deployer } from '@webb-tools/create2-utils';
 
@@ -24,7 +24,7 @@ export class BatchTreeVerifier {
     v16__factory: any,
     v32__factory: any,
     signer: Signer
-  ): Promise<{ v4: any, v8: any, v16: any, v32: any }> {
+  ): Promise<{ v4: any; v8: any; v16: any; v32: any }> {
     const v4Factory = new v4__factory(signer);
     const v4 = await v4Factory.deploy();
     await v4.deployed();
@@ -51,7 +51,7 @@ export class BatchTreeVerifier {
     v16__factory: any,
     v32__factory: any,
     signer: Signer
-  ): Promise<{ v4:any; v8:any; v16:any; v32:any; }> {
+  ): Promise<{ v4: any; v8: any; v16: any; v32: any }> {
     const { contract: v4 } = await deployer.deploy(v4__factory, saltHex, signer);
     const { contract: v8 } = await deployer.deploy(v8__factory, saltHex, signer);
     const { contract: v16 } = await deployer.deploy(v16__factory, saltHex, signer);
@@ -68,7 +68,7 @@ export class BatchTreeVerifier {
     v4: any,
     v8: any,
     v16: any,
-    v32: any,
+    v32: any
   ): Promise<BatchTreeVerifierSelectorContract> {
     const argTypes = ['address', 'address', 'address', 'address'];
     const args = [v4.address, v8.address, v16.address, v32.address];
@@ -89,7 +89,7 @@ export class BatchTreeVerifier {
     v4: any,
     v8: any,
     v16: any,
-    v32: any,
+    v32: any
   ) {
     const factory = new BatchTreeVerifierSelector__factory(signer);
     const verifier = await factory.deploy(v4.address, v16.address, v8.address, v32.address);

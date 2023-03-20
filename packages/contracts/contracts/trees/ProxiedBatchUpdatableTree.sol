@@ -24,9 +24,14 @@ contract ProxiedBatchMerkleTree is MerkleTreeWithHistory, ProofUtils {
 	uint256 public constant SNARK_FIELD =
 		21888242871839275222246405745257275088548364400416034343698204186575808495617;
 	IBatchTreeVerifierSelector public treeUpdateVerifier;
-    address public maspProxy;
+	address public maspProxy;
 
-	constructor(uint32 _levels, IHasher _hasher, IBatchTreeVerifierSelector _treeUpdateVerifier, IMASPProxy _maspProxy) {
+	constructor(
+		uint32 _levels,
+		IHasher _hasher,
+		IBatchTreeVerifierSelector _treeUpdateVerifier,
+		IMASPProxy _maspProxy
+	) {
 		require(_levels > 0, "_levels should be greater than zero");
 		require(_levels < 32, "_levels should be less than 32");
 		levels = _levels;
@@ -39,7 +44,7 @@ contract ProxiedBatchMerkleTree is MerkleTreeWithHistory, ProofUtils {
 		queueLength = 0;
 		roots[0] = Root(uint256(hasher.zeros(_levels)), 0);
 		currentRoot = hasher.zeros(_levels);
-        maspProxy = address(_maspProxy);
+		maspProxy = address(_maspProxy);
 	}
 
 	function _registerInsertion(address _instance, bytes32 _commitment) internal {
@@ -117,8 +122,8 @@ contract ProxiedBatchMerkleTree is MerkleTreeWithHistory, ProofUtils {
 		currentRootIndex = newRootIndex;
 	}
 
-    modifier onlyProxy() {
-        require(msg.sender == maspProxy, "Only MASP proxy can call this function");
-        _;
-    }
+	modifier onlyProxy() {
+		require(msg.sender == maspProxy, "Only MASP proxy can call this function");
+		_;
+	}
 }

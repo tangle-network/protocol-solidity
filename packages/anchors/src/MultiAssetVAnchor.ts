@@ -90,14 +90,13 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
   smallCircuitZkComponents: ZkComponents;
   largeCircuitZkComponents: ZkComponents;
 
-
   constructor(
     contract: MultiAssetVAnchorContract,
     treeHeight: number,
     maxEdges: number,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents,
-    signer: ethers.Signer,
+    signer: ethers.Signer
   ) {
     this.signer = signer;
     this.contract = contract;
@@ -108,7 +107,6 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     this.smallCircuitZkComponents = smallCircuitZkComponents;
     this.largeCircuitZkComponents = largeCircuitZkComponents;
   }
-
 
   getAddress(): string {
     return this.contract.address;

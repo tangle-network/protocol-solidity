@@ -32,8 +32,6 @@ contract MultiAssetVAnchorTree is MultiAssetVAnchor, MerkleTree {
 	*/
 	constructor(
 		IRegistry _registry,
-		IBatchTree _rewardUnspentTree,
-		IBatchTree _rewardSpentTree,
 		IMASPProxy _proxy,
 		IAnchorVerifier _verifier,
 		ISwapVerifier _swapVerifier,
@@ -44,8 +42,6 @@ contract MultiAssetVAnchorTree is MultiAssetVAnchor, MerkleTree {
 	)
 		MultiAssetVAnchor(
 			_registry,
-			_rewardUnspentTree,
-			_rewardSpentTree,
 			_proxy,
 			_verifier,
 			_swapVerifier,
