@@ -327,4 +327,92 @@ describe('MASPVAnchor for 2 max edges', () => {
       assert.strictEqual(res, true);
     });
   });
+
+  describe('asset registration smart contract tests', () => {
+    it('registry handler should register fungible token', async () => {});
+
+    it('registry handler should register non-fungible token', async () => {});
+  });
+
+  describe('masp smart contract deposit tests max edges = 1', () => {
+    it('proxy should queue erc20 deposit', async () => {});
+
+    it('proxy should NOT queue erc20 deposit for unregistered asset', async () => {});
+
+    it('proxy should queue erc721 deposit', async () => {});
+
+    it('proxy should NOT queue erc721 deposit for unregistered asset', async () => {});
+
+    it('proxy should NOT queue deposit for masp it does not proxy for', async () => {});
+
+    it('e2e should batch insert erc20/721 -> queue reward unspent tree -> transfer funds to masp -> batch insert on reward unspent tree', async () => {});
+
+    it('should NOT batch insert erc20 with invalid batch proof', async () => {});
+
+    it('should NOT batch insert erc721 with invalid batch proof', async () => {});
+  });
+
+  describe('masp smart contract internal shielded transfer', () => {
+    it('e2e should internal shielded transfer with valid transact proof -> reward tree commitments queued -> batch insert reward tree commitments', async () => {});
+
+    it('should NOT internal shielded transfer with invalid transact proof (invalid MASP key)', async () => {});
+
+    it('should NOT internal shielded transfer with invalid transact proof (invalid output commitments)', async () => {});
+
+    it('should NOT internal shielded transfer with invalid transact proof (invalid Merkle proof)', async () => {});
+
+    it('should NOT internal shielded transfer with invalid transact proof (fee token not whitelisted)', async () => {});
+
+    it('should NOT internal shielded transfer with invalid transact proof (input nullifiers not well-formed)', async () => {});
+
+    it('should NOT be able to double spend internal shieled transfer)', async () => {});
+  });
+
+  describe('masp smart contract withdraw ERC20', () => {
+    it('e2e should withdraw ERC20 with valid transact proof -> reward tree commitments queued -> funds transferred -> batch insert reward tree commitments', async () => {});
+
+    it('should withdraw AND unwrap ERC20 with valid transact proof -> reward tree commitments queued -> funds transferred', async () => {});
+
+    it('should NOT withdraw ERC20 with invalid transact proof (invalid MASP key)', async () => {});
+
+    it('should NOT withdraw ERC20 with invalid transact proof (invalid output commitments)', async () => {});
+
+    it('should NOT withdraw ERC20 with invalid transact proof (invalid Merkle proof)', async () => {});
+
+    it('should NOT withdraw ERC20 with invalid transact proof (fee token not whitelisted)', async () => {});
+
+    it('should NOT withdraw ERC20 with invalid transact proof (input nullifiers not well-formed)', async () => {});
+
+    it('should NOT be able to double spend ERC721 withdraw)', async () => {});
+  });
+
+  describe('masp smart contract withdraw ERC721', () => {
+    it('should withdraw ERC721 with valid transact proof -> reward tree commitments queued -> funds transferred -> batch insert reward tree commitments', async () => {});
+
+    it('should withdraw AND unwrap ERC721 with valid transact proof -> reward tree commitments queued -> funds transferred', async () => {});
+
+    it('should NOT withdraw ERC721 with invalid transact proof (invalid MASP key)', async () => {});
+
+    it('should NOT withdraw ERC721 with invalid transact proof (invalid output commitments)', async () => {});
+
+    it('should NOT withdraw ERC721 with invalid transact proof (invalid Merkle proof)', async () => {});
+
+    it('should NOT withdraw ERC721 with invalid transact proof (fee token not whitelisted)', async () => {});
+
+    it('should NOT withdraw ERC721 with invalid transact proof (input nullifiers not well-formed)', async () => {});
+
+    it('should NOT be able to double spend ERC721 withdraw)', async () => {});
+  });
+
+  describe('masp smart contract swapping', () => {
+    it('e2e should swap with valid proof -> update reward tree queues -> spend created commitments', async () => {});
+
+    it('should NOT swap with invalid proof (invalid Alice/Bob sigs)', async () => {});
+
+    it('should NOT swap with invalid proof (funds created out of thin air)', async () => {});
+
+    it('should NOT be able to double spend swapped commitmnets', async () => {});
+
+    it('should NOT be able to swap outdated swaps', async () => {});
+  });
 });
