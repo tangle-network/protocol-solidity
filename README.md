@@ -210,6 +210,10 @@ ENDPOINT=https://rinkeby.infura.io/v3/fff68ca474dd4764a8d54dd14fa5519e
 # Add private key
 PRIVATE_KEY=XXX-XXX-XXX
 ```
+After adding the `.env`, scripts can be executed using `ts-node`
+```bash
+ npx ts-node ./scripts/evm/deployments/LocalEvmVBridge.ts
+```
 
 <h2 id="contribute"> Contributing </h2>
 
