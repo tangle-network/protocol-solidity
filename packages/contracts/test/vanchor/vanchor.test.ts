@@ -681,13 +681,18 @@ describe('VAnchor for 1 max edge', () => {
 
       let anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
+      const vAnchorWrappedTokenBalanceBeforerWithdraw = await wrappedToken.balanceOf(
+        anchor.contract.address
+      );
+
       const aliceWithdrawAmount = 5e6;
+      const aliceChangeAmount = aliceDepositAmount - aliceWithdrawAmount;
       const aliceChangeUtxo = await CircomUtxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: chainID.toString(),
         originChainId: chainID.toString(),
-        amount: aliceWithdrawAmount.toString(),
+        amount: aliceChangeAmount.toString(),
         keypair: aliceDepositUtxo.keypair,
       });
       const aliceETHAddress = '0xDeaD00000000000000000000000000000000BEEf';
@@ -696,9 +701,20 @@ describe('VAnchor for 1 max edge', () => {
         [chainID.toString()]: anchorLeaves,
       });
 
+      // Check that Alice receives withdrawn wrapped tokens
       assert.strictEqual(
         aliceWithdrawAmount.toString(),
         await (await wrappedToken.balanceOf(aliceETHAddress)).toString()
+      );
+
+      // Check that VAnchor's balance of wrapped tokens goes down by withdraw amount
+      const vAnchorWrappedTokenBalanceAfterWithdraw = await wrappedToken.balanceOf(
+        anchor.contract.address
+      );
+
+      assert.strictEqual(
+        vAnchorWrappedTokenBalanceAfterWithdraw.toString(),
+        vAnchorWrappedTokenBalanceBeforerWithdraw.sub(aliceWithdrawAmount).toString()
       );
     });
 
