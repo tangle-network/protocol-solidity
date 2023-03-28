@@ -5,9 +5,9 @@ import {
   MultiAssetVAnchorTree as MultiAssetVAnchorTreeContract,
 } from '@webb-tools/contracts';
 import {
-  MultiAssetVAnchorBatchUpdatableTree as MultiAssetVAnchorBatchUpdatableTreeContract,
-  MultiAssetVAnchorBatchUpdatableTree__factory,
-} from '@webb/contracts';
+  MultiAssetVAnchorBatchTree as MultiAssetVAnchorBatchTreeContract,
+  MultiAssetVAnchorBatchTree__factory,
+} from '@webb-tools/contracts';
 import { ProxiedBatchTreeUpdater } from './ProxiedBatchTreeUpdater';
 import { ZkComponents } from '@webb-tools/utils';
 import { BigNumber, BigNumberish, ethers } from 'ethers';
@@ -23,17 +23,18 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
 
   // Constructor
   constructor(
-    contract: MultiAssetVAnchorBatchUpdatableTreeContract,
+    contract: MultiAssetVAnchorBatchTreeContract,
     levels: number,
     maxEdges: number,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents,
+    swapCircuitZkComponents: ZkComponents,
     depositTree: ProxiedBatchMerkleTreeContract,
     unspentTree: ProxiedBatchMerkleTreeContract,
     spentTree: ProxiedBatchMerkleTreeContract,
     signer: ethers.Signer
   ) {
-    super(contract, levels, maxEdges, smallCircuitZkComponents, largeCircuitZkComponents, signer);
+    super(contract, levels, maxEdges, smallCircuitZkComponents, largeCircuitZkComponents, swapCircuitZkComponents, signer);
 
     this.depositTree.contract = depositTree;
     this.unspentTree.contract = unspentTree;
@@ -52,6 +53,7 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
     maxEdges: number,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents,
+    swapCircuitZkComponents: ZkComponents,
     batchVerifierAddr: string,
     hasherAddr: string,
     proxyAddr: string,
@@ -65,7 +67,7 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
     const encodeLibrary = await encodeLibraryFactory.deploy();
     await encodeLibrary.deployed();
 
-    const factory = new MultiAssetVAnchorBatchUpdatableTree__factory(
+    const factory = new MultiAssetVAnchorBatchTree__factory(
       {
         ['contracts/libs/MASPVAnchorEncodeInputs.sol:MASPVAnchorEncodeInputs']:
           encodeLibrary.address,
@@ -118,7 +120,7 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
       levels,
       hasher,
       handler,
-      depositTree.contract.treeUpdateVerifier(),
+      await depositTree.contract.treeUpdateVerifier(),
       maxEdges,
       {}
     );
@@ -129,6 +131,7 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
       maxEdges,
       smallCircuitZkComponents,
       largeCircuitZkComponents,
+      swapCircuitZkComponents,
       depositTree.contract,
       unspentTree.contract,
       spentTree.contract,
@@ -165,12 +168,13 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
     address: string,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents,
+    swapCircuitZkComponents: ZkComponents,
     depositTreeAddr: string,
     unspentTreeAddr: string,
     spentTreeAddr: string,
     signer: ethers.Signer
   ) {
-    const masp = MultiAssetVAnchorBatchUpdatableTree__factory.connect(address, signer);
+    const masp = MultiAssetVAnchorBatchTree__factory.connect(address, signer);
     const depositTree = ProxiedBatchMerkleTree__factory.connect(depositTreeAddr, signer);
     const unspentTree = ProxiedBatchMerkleTree__factory.connect(unspentTreeAddr, signer);
     const spentTree = ProxiedBatchMerkleTree__factory.connect(spentTreeAddr, signer);
@@ -182,6 +186,7 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
       maxEdges,
       smallCircuitZkComponents,
       largeCircuitZkComponents,
+      swapCircuitZkComponents,
       depositTree,
       unspentTree,
       spentTree,

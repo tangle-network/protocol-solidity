@@ -69,9 +69,9 @@ export class MultiAssetVAnchorProxy {
     );
 
     await this.contract.batchDepositERC20s(
-      masp,
+      masp.contract.address,
       batchProofInfo.proof,
-      batchProofInfo.input.argsHash,
+      batchProofInfo.input.argsHash!,
       batchProofInfo.input.oldRoot,
       batchProofInfo.input.newRoot,
       batchProofInfo.input.pathIndices,
@@ -92,9 +92,9 @@ export class MultiAssetVAnchorProxy {
     );
 
     await this.contract.batchDepositERC721s(
-      masp,
+      masp.contract.address,
       batchProofInfo.proof,
-      batchProofInfo.input.argsHash,
+      batchProofInfo.input.argsHash!,
       batchProofInfo.input.oldRoot,
       batchProofInfo.input.newRoot,
       batchProofInfo.input.pathIndices,
@@ -119,9 +119,9 @@ export class MultiAssetVAnchorProxy {
     );
 
     await this.contract.batchInsertRewardUnspentTree(
-      masp,
+      masp.contract.address,
       batchProofInfo.proof,
-      batchProofInfo.input.argsHash,
+      batchProofInfo.input.argsHash!,
       batchProofInfo.input.oldRoot,
       batchProofInfo.input.newRoot,
       batchProofInfo.input.pathIndices,
@@ -142,9 +142,9 @@ export class MultiAssetVAnchorProxy {
     );
 
     await this.contract.batchInsertRewardSpentTree(
-      masp,
+      masp.contract.address,
       batchProofInfo.proof,
-      batchProofInfo.input.argsHash,
+      batchProofInfo.input.argsHash!,
       batchProofInfo.input.oldRoot,
       batchProofInfo.input.newRoot,
       batchProofInfo.input.pathIndices,
@@ -196,7 +196,7 @@ export class MultiAssetVAnchorProxy {
     startIndex: BigNumber,
     batchSize: BigNumber
   ): Promise<string[]> {
-    const nextIndex = await this.contract.nextQueueRewardUnspentCommitmentIndex[maspAddr];
+    const nextIndex = await this.contract.nextRewardUnspentTreeCommitmentIndex[maspAddr];
     const endIndex = startIndex.add(batchSize);
     const commitments = [];
     for (let i = startIndex; i.lt(endIndex); i = i.add(1)) {
@@ -214,7 +214,7 @@ export class MultiAssetVAnchorProxy {
     startIndex: BigNumber,
     batchSize: BigNumber
   ): Promise<string[]> {
-    const nextIndex = await this.contract.nextQueueRewardSpentCommitmentIndex[maspAddr];
+    const nextIndex = await this.contract.nextRewardSpentTreeCommitmentIndex[maspAddr];
     const endIndex = startIndex.add(batchSize);
     const commitments = [];
     for (let i = startIndex; i.lt(endIndex); i = i.add(1)) {
