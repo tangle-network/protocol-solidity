@@ -4,6 +4,7 @@ import {
   MASPVAnchorEncodeInputs__factory,
   MultiAssetVAnchorTree as MultiAssetVAnchorTreeContract,
 } from '@webb-tools/contracts';
+import { SwapEncodeInputs__factory } from '@webb-tools/contracts';
 import {
   MultiAssetVAnchorBatchTree as MultiAssetVAnchorBatchTreeContract,
   MultiAssetVAnchorBatchTree__factory,
@@ -34,7 +35,15 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
     spentTree: ProxiedBatchMerkleTreeContract,
     signer: ethers.Signer
   ) {
-    super(contract, levels, maxEdges, smallCircuitZkComponents, largeCircuitZkComponents, swapCircuitZkComponents, signer);
+    super(
+      contract,
+      levels,
+      maxEdges,
+      smallCircuitZkComponents,
+      largeCircuitZkComponents,
+      swapCircuitZkComponents,
+      signer
+    );
 
     this.depositTree.contract = depositTree;
     this.unspentTree.contract = unspentTree;
@@ -67,10 +76,15 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
     const encodeLibrary = await encodeLibraryFactory.deploy();
     await encodeLibrary.deployed();
 
+    const swapEncodeLibraryFactory = new MASPVAnchorEncodeInputs__factory(signer);
+    const swapEncodeLibrary = await swapEncodeLibraryFactory.deploy();
+    await swapEncodeLibrary.deployed();
+
     const factory = new MultiAssetVAnchorBatchTree__factory(
       {
         ['contracts/libs/MASPVAnchorEncodeInputs.sol:MASPVAnchorEncodeInputs']:
           encodeLibrary.address,
+        ['contracts/libs/SwapEncodeInputs.sol:SwapEncodeInputs']: swapEncodeLibrary.address,
       },
       signer
     );
