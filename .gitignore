@@ -17,6 +17,8 @@ artifacts
 /typechain-types
 /src
 
+solidity-fixtures/
+
 dist
 
 *.ptau
