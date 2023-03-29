@@ -32,7 +32,7 @@ import {
   MaspKey,
 } from '@webb-tools/utils';
 
-import { MultiAssetVAnchorProxy, MultiAssetVAnchorBatchUpdatableTree, PoseidonHasher } from '@webb-tools/anchors';
+import { MultiAssetVAnchorProxy, MultiAssetVAnchorBatchUpdatableTree, PoseidonHasher, BatchTreeVerifier } from '@webb-tools/anchors';
 
 import { MultiAssetVerifier } from '@webb-tools/vbridge';
 import { writeFileSync } from 'fs';
@@ -50,6 +50,11 @@ describe('MASPVAnchor for 2 max edges', () => {
   let maspVAnchor: MultiAssetVAnchorBatchUpdatableTree;
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
+  let swapCircuitZkComponents: ZkComponents;
+  let batchTreeZkComponents_4: ZkComponents;
+  let batchTreeZkComponents_8: ZkComponents;
+  let batchTreeZkComponents_16: ZkComponents;
+  let batchTreeZkComponents_32: ZkComponents;
   const levels = 30;
   let sender;
   const maxEdges = 1;
@@ -62,6 +67,7 @@ describe('MASPVAnchor for 2 max edges', () => {
   let masterFeeRecipient;
   let transactionVerifier;
   let swapVerifier;
+  let batchVerifier;
   let dummyAnchorHandlerAddress;
   const chainID = getChainIdType(31337);
   let unwrappedERC20_1;
@@ -103,6 +109,81 @@ describe('MASPVAnchor for 2 max edges', () => {
     '../../solidity-fixtures/solidity-fixtures/masp_vanchor_16/2/circuit_final.zkey'
   );
 
+  const swap_2_wasm_path = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/swap_2/30/swap_30_2.wasm'
+  );
+
+  const swap_2_witness_calc_path = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/swap_2/30/witness_calculator.cjs'
+  );
+
+  const swap_2_zkey_path = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/swap_2/30/circuit_final.zkey'
+  );
+
+  const batchTree_4_wasm_path = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/batch-tree/4/batchMerkleTreeUpdate_4.wasm'
+  );
+
+  const batchTree_4_witness_calc_path = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/batch-tree/4/witness_calculator.cjs'
+  );
+
+  const batchTree_4_zkey_path = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/batch-tree/4/circuit_final.zkey'
+  );
+
+  const batchTree_8_wasm_path = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/batch-tree/8/batchMerkleTreeUpdate_8.wasm'
+  );
+
+  const batchTree_8_witness_calc_path = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/batch-tree/8/witness_calculator.cjs'
+  );
+
+  const batchTree_8_zkey_path = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/batch-tree/8/circuit_final.zkey'
+  );
+
+  const batchTree_16_wasm_path = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/batch-tree/16/batchMerkleTreeUpdate_16.wasm'
+  );
+
+  const batchTree_16_witness_calc_path = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/batch-tree/16/witness_calculator.cjs'
+  );
+
+  const batchTree_16_zkey_path = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/batch-tree/16/circuit_final.zkey'
+  );
+
+  const batchTree_32_wasm_path = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/batch-tree/32/batchMerkleTreeUpdate_32.wasm'
+  );
+
+  const batchTree_32_witness_calc_path = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/batch-tree/32/witness_calculator.cjs'
+  );
+
+  const batchTree_32_zkey_path = path.resolve(
+    __dirname,
+    '../../solidity-fixtures/solidity-fixtures/batch-tree/32/circuit_final.zkey'
+  );
+
   before('instantiate zkcomponents and user keypairs', async () => {
     zkComponents2_2 = await fetchComponentsFromFilePaths(
       masp_vanchor_2_2_wasm_path,
@@ -114,6 +195,36 @@ describe('MASPVAnchor for 2 max edges', () => {
       masp_vanchor_16_2_wasm_path,
       masp_vanchor_16_2_witness_calc_path,
       masp_vanchor_16_2_zkey_path
+    );
+
+    swapCircuitZkComponents = await fetchComponentsFromFilePaths(
+      swap_2_wasm_path,
+      swap_2_witness_calc_path,
+      swap_2_zkey_path
+    );
+
+    batchTreeZkComponents_4 = await fetchComponentsFromFilePaths(
+      batchTree_4_wasm_path,
+      batchTree_4_witness_calc_path,
+      batchTree_4_zkey_path
+    );
+
+    batchTreeZkComponents_8 = await fetchComponentsFromFilePaths(
+      batchTree_8_wasm_path,
+      batchTree_8_witness_calc_path,
+      batchTree_8_zkey_path
+    );
+
+    batchTreeZkComponents_16 = await fetchComponentsFromFilePaths(
+      batchTree_16_wasm_path,
+      batchTree_16_witness_calc_path,
+      batchTree_16_zkey_path
+    );
+
+    batchTreeZkComponents_32 = await fetchComponentsFromFilePaths(
+      batchTree_32_wasm_path,
+      batchTree_32_witness_calc_path,
+      batchTree_32_zkey_path
     );
 
     create2InputWitness = async (data: any) => {
@@ -149,6 +260,8 @@ describe('MASPVAnchor for 2 max edges', () => {
     );
     transactionVerifier = await MultiAssetVerifier.createVerifier(sender);
     maspProxy = await MultiAssetVAnchorProxy.createMultiAssetVAnchorProxy(hasherInstance.contract.address, sender);
+    swapVerifier = await SwapVerifier.createVerifier(sender);
+    batchVerifier = await BatchTreeVerifier.createVerifier(sender);
     dummyAnchorHandlerAddress = await signers[4].getAddress();
     maspVAnchor = await MultiAssetVAnchorBatchUpdatableTree.createMASPVAnchorBatchTree(
       registry.contract.address,
@@ -160,13 +273,13 @@ describe('MASPVAnchor for 2 max edges', () => {
       zkComponents2_2,
       zkComponents16_2,
       swapCircuitZkComponents,
-      batchVerifier,
+      batchVerifier.contract.address,
       hasherInstance.contract.address,
       maspProxy.contract.address,
-      batchZkComponents_4,
-      batchZkComponents_8,
-      batchZkComponents_16,
-      batchZkComponents_32,
+      batchTreeZkComponents_4,
+      batchTreeZkComponents_8,
+      batchTreeZkComponents_16,
+      batchTreeZkComponents_32,
       sender,
     )
     // Initialize Registry

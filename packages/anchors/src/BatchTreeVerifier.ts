@@ -18,11 +18,7 @@ export class BatchTreeVerifier {
     this.signer = signer;
     this.contract = contract;
   }
-  public static async createFactories(
-    v4__factory: any,
-    v8__factory: any,
-    v16__factory: any,
-    v32__factory: any,
+  public static async createVerifier(
     signer: Signer
   ): Promise<{ v4: any; v8: any; v16: any; v32: any }> {
     const v4Factory = new v4__factory(signer);
@@ -40,7 +36,11 @@ export class BatchTreeVerifier {
     const v32Factory = new v32__factory(signer);
     const v32 = await v32Factory.deploy();
     await v32.deployed();
-    return { v4, v8, v16, v32 };
+    
+    const factory = new BatchTreeVerifierSelector__factory(signer);
+    const verifier = await factory.deploy(v4.address, v16.address, v8.address, v32.address);
+    await verifier.deployed();
+    return verifier;
   }
 
   public static async create2Verifiers(
@@ -81,19 +81,6 @@ export class BatchTreeVerifier {
       argTypes,
       args
     );
-    return verifier;
-  }
-
-  public static async createBatchTreeVerifier(
-    signer: Signer,
-    v4: any,
-    v8: any,
-    v16: any,
-    v32: any
-  ) {
-    const factory = new BatchTreeVerifierSelector__factory(signer);
-    const verifier = await factory.deploy(v4.address, v16.address, v8.address, v32.address);
-    await verifier.deployed();
     return verifier;
   }
 }
