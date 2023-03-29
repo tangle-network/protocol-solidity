@@ -32,11 +32,11 @@ import {
   MaspKey,
 } from '@webb-tools/utils';
 
-import { MultiAssetVAnchor, PoseidonHasher } from '@webb-tools/anchors';
+import { MultiAssetVAnchorProxy, MultiAssetVAnchorBatchUpdatableTree, PoseidonHasher } from '@webb-tools/anchors';
 
 import { MultiAssetVerifier } from '@webb-tools/vbridge';
 import { writeFileSync } from 'fs';
-import { Registry, RegistryHandler } from '@webb-tools/tokens';
+import { Registry, RegistryHandler, MultiFungibleTokenManager, MultiNftTokenManager } from '@webb-tools/tokens';
 import { randomBytes } from 'ethers/lib/utils';
 
 const BN = require('bn.js');
@@ -47,14 +47,22 @@ const { toBN } = require('web3-utils');
 const { babyjub } = require('circomlibjs');
 
 describe('MASPVAnchor for 2 max edges', () => {
-  let maspVAnchor: MultiAssetVAnchor;
+  let maspVAnchor: MultiAssetVAnchorBatchUpdatableTree;
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
   const levels = 30;
   let sender;
   const maxEdges = 1;
   let registry;
-  let verifier;
+  let registryHandler;
+  let maspProxy;
+  let dummyBridgeSigner;
+  let multiFungibleTokenManager;
+  let multiNftTokenManager;
+  let masterFeeRecipient;
+  let transactionVerifier;
+  let swapVerifier;
+  let dummyAnchorHandlerAddress;
   const chainID = getChainIdType(31337);
   let unwrappedERC20_1;
   let unwrappedERC20_2;
@@ -124,20 +132,53 @@ describe('MASPVAnchor for 2 max edges', () => {
     signers = await ethers.getSigners();
     const wallet = signers[0];
     sender = wallet;
+    dummyBridgeSigner = signers[1];
     const hasherInstance = await PoseidonHasher.createPoseidonHasher(wallet);
     registry = await Registry.createRegistry(sender);
-    verifier = await MultiAssetVerifier.createVerifier(sender);
-    // maspVAnchor = await MultiAssetVAnchor.createMASPVAnchor(
-    //   registry.contract.address,
-    //   verifier.contract.address,
-    //   levels,
-    //   hasherInstance.contract.address,
-    //   sender.address,
-    //   maxEdges,
-    //   zkComponents2_2,
-    //   zkComponents16_2,
-    //   sender
-    // );
+    registryHandler = await RegistryHandler.createRegistryHandler(await dummyBridgeSigner.getAddress(), [await registry.createResourceId()], [ registry.contract.address], dummyBridgeSigner);
+    multiFungibleTokenManager = await MultiFungibleTokenManager.createMultiFungibleTokenManager(sender);
+    multiNftTokenManager = await MultiNftTokenManager.createMultiNftTokenManager(sender);
+    masterFeeRecipient = await signers[2].getAddress();
+    const maspAddress = await signers[3].getAddress();
+    await registry.initialize(
+      registryHandler.contract.address,
+      multiFungibleTokenManager.contract.address,
+      multiNftTokenManager.contract.address,
+      masterFeeRecipient,
+      maspAddress,
+    );
+    transactionVerifier = await MultiAssetVerifier.createVerifier(sender);
+    maspProxy = await MultiAssetVAnchorProxy.createMultiAssetVAnchorProxy(hasherInstance.contract.address, sender);
+    dummyAnchorHandlerAddress = await signers[4].getAddress();
+    maspVAnchor = await MultiAssetVAnchorBatchUpdatableTree.createMASPVAnchorBatchTree(
+      registry.contract.address,
+      transactionVerifier.contact.address,
+      swapVerifier.contract.address,
+      levels,
+      dummyAnchorHandlerAddress,
+      maxEdges,
+      zkComponents2_2,
+      zkComponents16_2,
+      swapCircuitZkComponents,
+      batchVerifier,
+      hasherInstance.contract.address,
+      maspProxy.contract.address,
+      batchZkComponents_4,
+      batchZkComponents_8,
+      batchZkComponents_16,
+      batchZkComponents_32,
+      sender,
+    )
+    // Initialize Registry
+    await registry.initialize(
+      registryHandler.contract.address,
+      multiFungibleTokenManager.contract.address,
+      multiNftTokenManager.contract.address,
+      masterFeeRecipient,
+      maspVAnchor.contract.address,
+    );
+    // Initialize MASP Proxy
+    await maspProxy.initialize([maspVAnchor.contract.address]);
   });
 
   describe('#constructor', () => {
@@ -293,7 +334,7 @@ describe('MASPVAnchor for 2 max edges', () => {
         encOutput2
       );
 
-      const { allInputs, publicInputs } = await MultiAssetVAnchor.generateMASPVAnchorInputs(
+      const { allInputs, publicInputs } = await MultiAssetVAnchorBatchUpdatableTree.generateMASPVAnchorInputs(
         roots,
         chainID,
         assetID,
@@ -335,7 +376,7 @@ describe('MASPVAnchor for 2 max edges', () => {
       // Initialize a RegistryHandler contract with dummy bridgeAddress
       const dummyBridgeSigner = signers[1];
       const dummyBridgeAddress = await dummyBridgeSigner.getAddress();
-      const registryHandler = await RegistryHandler.createRegistryHandler(dummyBridgeAddress, [], [], sender);
+      const registryHandler = await RegistryHandler.createRegistryHandler(dummyBridgeAddress, [await registry.createResourceId()], [registry.contract.address], sender);
       const registryHandlerWithBridgeSigner = await RegistryHandler.connect(registryHandler.contract.address, dummyBridgeSigner);
       // Get dummy register fungible token proposal
       const dummyTokenHandler = "0x" + Buffer.from(randomBytes(20)).toString('hex');

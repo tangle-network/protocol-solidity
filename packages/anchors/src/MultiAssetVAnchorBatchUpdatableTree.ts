@@ -57,7 +57,6 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
     verifier: string,
     swapVerifier: string,
     levels: number,
-    hasher: string,
     handler: string,
     maxEdges: number,
     smallCircuitZkComponents: ZkComponents,
@@ -132,7 +131,7 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
       verifier,
       swapVerifier,
       levels,
-      hasher,
+      hasherAddr,
       handler,
       await depositTree.contract.treeUpdateVerifier(),
       maxEdges,
@@ -157,22 +156,6 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
     );
     await tx.wait();
     return createdMASPVAnchorBatchTree;
-  }
-  static proxy(
-    registry: string,
-    address: any,
-    address1: any,
-    proxy: any,
-    verifier: string,
-    swapVerifier: string,
-    levels: BigNumberish,
-    hasher: string,
-    handler: string,
-    arg9: any,
-    maxEdges: number,
-    arg11: {}
-  ) {
-    throw new Error('Method not implemented.');
   }
 
   // Connect to an existing MultiAssetVAnchorBatchUpdatableTree
