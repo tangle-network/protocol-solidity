@@ -36,7 +36,8 @@ import { MultiAssetVAnchor, PoseidonHasher } from '@webb-tools/anchors';
 
 import { MultiAssetVerifier } from '@webb-tools/vbridge';
 import { writeFileSync } from 'fs';
-import { Registry } from '@webb-tools/tokens';
+import { Registry, RegistryHandler } from '@webb-tools/tokens';
+import { randomBytes } from 'ethers/lib/utils';
 
 const BN = require('bn.js');
 const path = require('path');
@@ -66,6 +67,7 @@ describe('MASPVAnchor for 2 max edges', () => {
   let wrappedERC721_2;
   let wrappedERC721_3;
   let create2InputWitness;
+  let signers;
 
   const masp_vanchor_2_2_wasm_path = path.resolve(
     __dirname,
@@ -119,23 +121,23 @@ describe('MASPVAnchor for 2 max edges', () => {
   });
 
   beforeEach(async () => {
-    const signers = await ethers.getSigners();
+    signers = await ethers.getSigners();
     const wallet = signers[0];
     sender = wallet;
     const hasherInstance = await PoseidonHasher.createPoseidonHasher(wallet);
     registry = await Registry.createRegistry(sender);
     verifier = await MultiAssetVerifier.createVerifier(sender);
-    maspVAnchor = await MultiAssetVAnchor.createMASPVAnchor(
-      registry.contract.address,
-      verifier.contract.address,
-      levels,
-      hasherInstance.contract.address,
-      sender.address,
-      maxEdges,
-      zkComponents2_2,
-      zkComponents16_2,
-      sender
-    );
+    // maspVAnchor = await MultiAssetVAnchor.createMASPVAnchor(
+    //   registry.contract.address,
+    //   verifier.contract.address,
+    //   levels,
+    //   hasherInstance.contract.address,
+    //   sender.address,
+    //   maxEdges,
+    //   zkComponents2_2,
+    //   zkComponents16_2,
+    //   sender
+    // );
   });
 
   describe('#constructor', () => {
@@ -329,7 +331,36 @@ describe('MASPVAnchor for 2 max edges', () => {
   });
 
   describe('asset registration smart contract tests', () => {
-    it('registry handler should register fungible token', async () => {});
+    it.only('registry handler should register fungible token', async () => {
+      // Initialize a RegistryHandler contract with dummy bridgeAddress
+      const dummyBridgeSigner = signers[1];
+      const dummyBridgeAddress = await dummyBridgeSigner.getAddress();
+      const registryHandler = await RegistryHandler.createRegistryHandler(dummyBridgeAddress, [], [], sender);
+      // Get dummy register fungible token proposal
+      const dummyTokenHandler = randomBytes(20).toString();;
+      const dummyAssetId = "1";
+      const dummyTokenName = "webb-ether";
+      const dummyTokenSymbol = "webbeth";
+      const dummySalt = randomBytes(32).toString();
+      const dummyLimit = randomBytes(32).toString();
+      const dummyFeePercentage = "10";
+      const dummyIsNativeAllowed = true;
+      const proposalData = await registry.getRegisterFungibleTokenProposalData(
+        dummyTokenHandler,
+        dummyAssetId,
+        dummyTokenName,
+        dummyTokenSymbol,
+        dummySalt,
+        dummyLimit,
+        dummyFeePercentage,
+        dummyIsNativeAllowed,
+      );
+      // Call executeProposal function
+      const registerFungibleTokenTx = await registryHandler.contract.executeProposal(await registry.createResourceId(), proposalData, dummyBridgeSigner);
+      await registerFungibleTokenTx.wait();
+      // Check that fungible token is registered on the Registry contract
+      console.log(await registry.contract.idToWrappedAsset(1));
+    });
 
     it('registry handler should register non-fungible token', async () => {});
   });

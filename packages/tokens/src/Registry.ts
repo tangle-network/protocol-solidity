@@ -1,11 +1,16 @@
 import { BigNumberish, ethers } from 'ethers';
 import { Registry as RegistryContract, Registry__factory } from '@webb-tools/contracts';
+import { generateFunctionSigHash, toHex } from '@webb-tools/sdk-core';
+import { getChainIdType } from '@webb-tools/utils';
 
 export class Registry {
   contract: RegistryContract;
+  signer: ethers.Signer;
+  REGISTER_FUNGIBLE_TOKEN_SIGNATURE = 'registerToken(uint32,address,uint256,string,string,bytes32,uint256,uint16,bool)';
 
-  constructor(contract: RegistryContract) {
+  constructor(contract: RegistryContract, signer: ethers.Signer) {
     this.contract = contract;
+    this.signer = signer;
   }
 
   public static async createRegistry(deployer: ethers.Signer) {
@@ -13,13 +18,13 @@ export class Registry {
     const contract = await factory.deploy();
     await contract.deployed();
 
-    const registry = new Registry(contract);
+    const registry = new Registry(contract, deployer);
     return registry;
   }
 
   public static async connect(registryAddress: string, signer: ethers.Signer) {
     const registryContract = Registry__factory.connect(registryAddress, signer);
-    const registry = new Registry(registryContract);
+    const registry = new Registry(registryContract, signer);
     return registry;
   }
 
@@ -86,5 +91,41 @@ export class Registry {
     );
 
     await tx.wait();
+  }
+
+  public async createResourceId(): Promise<string> {
+    return toHex(
+      this.contract.address + toHex(getChainIdType(await this.signer.getChainId()), 6).substr(2),
+      32
+    );
+  }
+
+  public async getRegisterFungibleTokenProposalData(
+    tokenHandler: string,
+    assetIdentifier: number,
+    wrappedTokenName: string,
+    wrappedTokenSymbol: string,
+    salt: string,
+    limit: string,
+    feePercentage: number,
+    isNativeAllowed: boolean
+  ) {
+    const resourceID = await this.createResourceId();
+    const nonce = await this.contract.proposalNonce();
+    const functionSig = generateFunctionSigHash(this.REGISTER_FUNGIBLE_TOKEN_SIGNATURE);
+    return (
+      '0x' +
+      toHex(resourceID, 32).slice(2) +
+      functionSig.slice(2) +
+      toHex(Number(nonce), 4).slice(2) +
+      toHex(tokenHandler, 20).slice(2) +
+      toHex(assetIdentifier, 32).slice(2) +
+      toHex(wrappedTokenName, 32).slice(2) +
+      toHex(wrappedTokenSymbol, 32).slice(2) +
+      toHex(salt, 32).slice(2) +
+      toHex(limit, 32).slice(2) +
+      toHex(feePercentage, 2).slice(2) +
+      toHex(isNativeAllowed ? 1 : 0, 1).slice(2)
+    );
   }
 }
