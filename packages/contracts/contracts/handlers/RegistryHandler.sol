@@ -64,7 +64,7 @@ contract RegistryHandler is IExecutor, HandlerHelpers {
 			functionSig ==
 			bytes4(
 				keccak256(
-					"registerToken(uint32,address,uint254,string,string,bytes32,uint256,uint16,bool)"
+					"registerToken(uint32,address,uint256,string,string,bytes32,uint256,uint16,bool)"
 				)
 			)
 		) {

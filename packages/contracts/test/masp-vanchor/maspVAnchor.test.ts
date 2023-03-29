@@ -336,14 +336,15 @@ describe('MASPVAnchor for 2 max edges', () => {
       const dummyBridgeSigner = signers[1];
       const dummyBridgeAddress = await dummyBridgeSigner.getAddress();
       const registryHandler = await RegistryHandler.createRegistryHandler(dummyBridgeAddress, [], [], sender);
+      const registryHandlerWithBridgeSigner = await RegistryHandler.connect(registryHandler.contract.address, dummyBridgeSigner);
       // Get dummy register fungible token proposal
-      const dummyTokenHandler = randomBytes(20).toString();;
-      const dummyAssetId = "1";
-      const dummyTokenName = "webb-ether";
-      const dummyTokenSymbol = "webbeth";
-      const dummySalt = randomBytes(32).toString();
-      const dummyLimit = randomBytes(32).toString();
-      const dummyFeePercentage = "10";
+      const dummyTokenHandler = "0x" + Buffer.from(randomBytes(20)).toString('hex');
+      const dummyAssetId = 1;
+      const dummyTokenName = "0x" + Buffer.from(ethers.utils.toUtf8Bytes("webb-ether")).toString('hex');
+      const dummyTokenSymbol = "0x" + Buffer.from(ethers.utils.toUtf8Bytes("webbeth")).toString('hex');
+      const dummySalt = "0x" + Buffer.from(randomBytes(32)).toString('hex');
+      const dummyLimit = "0x" + Buffer.from(randomBytes(32)).toString('hex');
+      const dummyFeePercentage = 10;
       const dummyIsNativeAllowed = true;
       const proposalData = await registry.getRegisterFungibleTokenProposalData(
         dummyTokenHandler,
@@ -356,7 +357,7 @@ describe('MASPVAnchor for 2 max edges', () => {
         dummyIsNativeAllowed,
       );
       // Call executeProposal function
-      const registerFungibleTokenTx = await registryHandler.contract.executeProposal(await registry.createResourceId(), proposalData, dummyBridgeSigner);
+      const registerFungibleTokenTx = await registryHandlerWithBridgeSigner.contract.executeProposal(await registry.createResourceId(), proposalData);
       await registerFungibleTokenTx.wait();
       // Check that fungible token is registered on the Registry contract
       console.log(await registry.contract.idToWrappedAsset(1));
