@@ -10,4 +10,4 @@ export { VAnchorForest } from './VAnchorForest';
 export { MultiAssetVAnchorProxy } from './MultiAssetVAnchorProxy';
 export { MultiAssetVAnchorBatchUpdatableTree } from './MultiAssetVAnchorBatchUpdatableTree';
 export { BatchTreeVerifier } from './BatchTreeVerifier';
-export { SwapProofVerifier } from './SwapProofVerifier';
+export { SwapProofVerifier } from './SwapVerifier';

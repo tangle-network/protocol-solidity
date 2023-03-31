@@ -30,9 +30,9 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents,
     swapCircuitZkComponents: ZkComponents,
-    depositTree: ProxiedBatchMerkleTreeContract,
-    unspentTree: ProxiedBatchMerkleTreeContract,
-    spentTree: ProxiedBatchMerkleTreeContract,
+    depositTree: ProxiedBatchTreeUpdater,
+    unspentTree: ProxiedBatchTreeUpdater,
+    spentTree: ProxiedBatchTreeUpdater,
     signer: ethers.Signer
   ) {
     super(
@@ -45,9 +45,9 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
       signer
     );
 
-    this.depositTree.contract = depositTree;
-    this.unspentTree.contract = unspentTree;
-    this.spentTree.contract = spentTree;
+    this.depositTree = depositTree;
+    this.unspentTree = unspentTree;
+    this.spentTree = spentTree;
   }
 
   // Create a new MultiAssetVAnchorBatchUpdatableTree
@@ -145,9 +145,9 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
       smallCircuitZkComponents,
       largeCircuitZkComponents,
       swapCircuitZkComponents,
-      depositTree.contract,
-      unspentTree.contract,
-      spentTree.contract,
+      depositTree,
+      unspentTree,
+      spentTree,
       signer
     );
     const tx = await createdMASPVAnchorBatchTree.contract.initialize(
@@ -158,37 +158,37 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
     return createdMASPVAnchorBatchTree;
   }
 
-  // Connect to an existing MultiAssetVAnchorBatchUpdatableTree
-  public static async connect(
-    // connect via factory method
-    // build up tree by querying provider for logs
-    address: string,
-    smallCircuitZkComponents: ZkComponents,
-    largeCircuitZkComponents: ZkComponents,
-    swapCircuitZkComponents: ZkComponents,
-    depositTreeAddr: string,
-    unspentTreeAddr: string,
-    spentTreeAddr: string,
-    signer: ethers.Signer
-  ) {
-    const masp = MultiAssetVAnchorBatchTree__factory.connect(address, signer);
-    const depositTree = ProxiedBatchMerkleTree__factory.connect(depositTreeAddr, signer);
-    const unspentTree = ProxiedBatchMerkleTree__factory.connect(unspentTreeAddr, signer);
-    const spentTree = ProxiedBatchMerkleTree__factory.connect(spentTreeAddr, signer);
-    const maxEdges = await masp.maxEdges();
-    const treeHeight = await masp.levels();
-    const createdAnchor = new MultiAssetVAnchorBatchUpdatableTree(
-      masp,
-      treeHeight,
-      maxEdges,
-      smallCircuitZkComponents,
-      largeCircuitZkComponents,
-      swapCircuitZkComponents,
-      depositTree,
-      unspentTree,
-      spentTree,
-      signer
-    );
-    return createdAnchor;
-  }
+  // // Connect to an existing MultiAssetVAnchorBatchUpdatableTree
+  // public static async connect(
+  //   // connect via factory method
+  //   // build up tree by querying provider for logs
+  //   address: string,
+  //   smallCircuitZkComponents: ZkComponents,
+  //   largeCircuitZkComponents: ZkComponents,
+  //   swapCircuitZkComponents: ZkComponents,
+  //   depositTreeAddr: string,
+  //   unspentTreeAddr: string,
+  //   spentTreeAddr: string,
+  //   signer: ethers.Signer
+  // ) {
+  //   const masp = MultiAssetVAnchorBatchTree__factory.connect(address, signer);
+  //   const depositTree = ProxiedBatchMerkleTree__factory.connect(depositTreeAddr, signer);
+  //   const unspentTree = ProxiedBatchMerkleTree__factory.connect(unspentTreeAddr, signer);
+  //   const spentTree = ProxiedBatchMerkleTree__factory.connect(spentTreeAddr, signer);
+  //   const maxEdges = await masp.maxEdges();
+  //   const treeHeight = await masp.levels();
+  //   const createdAnchor = new MultiAssetVAnchorBatchUpdatableTree(
+  //     masp,
+  //     treeHeight,
+  //     maxEdges,
+  //     smallCircuitZkComponents,
+  //     largeCircuitZkComponents,
+  //     swapCircuitZkComponents,
+  //     depositTree,
+  //     unspentTree,
+  //     spentTree,
+  //     signer
+  //   );
+  //   return createdAnchor;
+  // }
 }

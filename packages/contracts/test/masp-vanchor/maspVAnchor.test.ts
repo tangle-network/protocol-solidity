@@ -32,7 +32,7 @@ import {
   MaspKey,
 } from '@webb-tools/utils';
 
-import { MultiAssetVAnchorProxy, MultiAssetVAnchorBatchUpdatableTree, PoseidonHasher, BatchTreeVerifier } from '@webb-tools/anchors';
+import { MultiAssetVAnchorProxy, MultiAssetVAnchorBatchUpdatableTree, PoseidonHasher, BatchTreeVerifier, SwapProofVerifier } from '@webb-tools/anchors';
 
 import { MultiAssetVerifier } from '@webb-tools/vbridge';
 import { writeFileSync } from 'fs';
@@ -248,24 +248,18 @@ describe('MASPVAnchor for 2 max edges', () => {
     registry = await Registry.createRegistry(sender);
     registryHandler = await RegistryHandler.createRegistryHandler(await dummyBridgeSigner.getAddress(), [await registry.createResourceId()], [ registry.contract.address], dummyBridgeSigner);
     multiFungibleTokenManager = await MultiFungibleTokenManager.createMultiFungibleTokenManager(sender);
+    console.log(multiFungibleTokenManager.contract.address)
     multiNftTokenManager = await MultiNftTokenManager.createMultiNftTokenManager(sender);
+    console.log(multiNftTokenManager.contract.address)
     masterFeeRecipient = await signers[2].getAddress();
-    const maspAddress = await signers[3].getAddress();
-    await registry.initialize(
-      registryHandler.contract.address,
-      multiFungibleTokenManager.contract.address,
-      multiNftTokenManager.contract.address,
-      masterFeeRecipient,
-      maspAddress,
-    );
     transactionVerifier = await MultiAssetVerifier.createVerifier(sender);
     maspProxy = await MultiAssetVAnchorProxy.createMultiAssetVAnchorProxy(hasherInstance.contract.address, sender);
-    swapVerifier = await SwapVerifier.createVerifier(sender);
+    swapVerifier = await SwapProofVerifier.createVerifier(sender);
     batchVerifier = await BatchTreeVerifier.createVerifier(sender);
-    dummyAnchorHandlerAddress = await signers[4].getAddress();
+    dummyAnchorHandlerAddress = await signers[3].getAddress();
     maspVAnchor = await MultiAssetVAnchorBatchUpdatableTree.createMASPVAnchorBatchTree(
       registry.contract.address,
-      transactionVerifier.contact.address,
+      transactionVerifier.contract.address,
       swapVerifier.contract.address,
       levels,
       dummyAnchorHandlerAddress,
@@ -284,14 +278,14 @@ describe('MASPVAnchor for 2 max edges', () => {
     )
     // Initialize Registry
     await registry.initialize(
-      registryHandler.contract.address,
       multiFungibleTokenManager.contract.address,
       multiNftTokenManager.contract.address,
+      registryHandler.contract.address,
       masterFeeRecipient,
       maspVAnchor.contract.address,
     );
     // Initialize MASP Proxy
-    await maspProxy.initialize([maspVAnchor.contract.address]);
+    await maspProxy.initialize([maspVAnchor.contract]);
   });
 
   describe('#constructor', () => {
@@ -486,12 +480,6 @@ describe('MASPVAnchor for 2 max edges', () => {
 
   describe('asset registration smart contract tests', () => {
     it.only('registry handler should register fungible token', async () => {
-      // Initialize a RegistryHandler contract with dummy bridgeAddress
-      const dummyBridgeSigner = signers[1];
-      const dummyBridgeAddress = await dummyBridgeSigner.getAddress();
-      const registryHandler = await RegistryHandler.createRegistryHandler(dummyBridgeAddress, [await registry.createResourceId()], [registry.contract.address], sender);
-      const registryHandlerWithBridgeSigner = await RegistryHandler.connect(registryHandler.contract.address, dummyBridgeSigner);
-      // Get dummy register fungible token proposal
       const dummyTokenHandler = "0x" + Buffer.from(randomBytes(20)).toString('hex');
       const dummyAssetId = 1;
       const dummyTokenName = "0x" + Buffer.from(ethers.utils.toUtf8Bytes("webb-ether")).toString('hex');
@@ -511,7 +499,7 @@ describe('MASPVAnchor for 2 max edges', () => {
         dummyIsNativeAllowed,
       );
       // Call executeProposal function
-      const registerFungibleTokenTx = await registryHandlerWithBridgeSigner.contract.executeProposal(await registry.createResourceId(), proposalData);
+      const registerFungibleTokenTx = await registryHandler.contract.executeProposal(await registry.createResourceId(), proposalData);
       await registerFungibleTokenTx.wait();
       // Check that fungible token is registered on the Registry contract
       console.log(await registry.contract.idToWrappedAsset(1));

@@ -20,7 +20,7 @@ export class BatchTreeVerifier {
   }
   public static async createVerifier(
     signer: Signer
-  ): Promise<{ v4: any; v8: any; v16: any; v32: any }> {
+  ) {
     const v4Factory = new v4__factory(signer);
     const v4 = await v4Factory.deploy();
     await v4.deployed();
@@ -40,7 +40,7 @@ export class BatchTreeVerifier {
     const factory = new BatchTreeVerifierSelector__factory(signer);
     const verifier = await factory.deploy(v4.address, v16.address, v8.address, v32.address);
     await verifier.deployed();
-    return verifier;
+    return new BatchTreeVerifier(verifier, signer);
   }
 
   public static async create2Verifiers(

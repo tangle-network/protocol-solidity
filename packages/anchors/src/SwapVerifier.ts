@@ -18,7 +18,7 @@ export class SwapProofVerifier {
   }
   public static async createVerifier(
     signer: Signer
-  ): Promise<{ v2: any; v8:any }> {
+  ) {
     const v2Factory = new v2__factory(signer);
     const v2 = await v2Factory.deploy();
     await v2.deployed();
@@ -31,7 +31,7 @@ export class SwapProofVerifier {
     const factory = new SwapProofVerifier__factory(signer);
     const verifier = await factory.deploy(v2.address, v8.address);
     await verifier.deployed();
-    return verifier;
+    return new SwapProofVerifier(verifier, signer);
   }
 
   public static async create2Verifiers(
