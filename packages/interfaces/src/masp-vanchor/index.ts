@@ -3,9 +3,9 @@ import { BigNumber } from 'ethers';
 export interface QueueDepositInfo {
   unwrappedToken: string;
   wrappedToken: string;
-  amount: number;
-  assetID: number;
-  tokenID: number;
+  amount: BigNumber;
+  assetID: BigNumber;
+  tokenID: BigNumber;
   depositPartialCommitment: string;
   proxiedMASP: string;
 }

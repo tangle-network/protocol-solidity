@@ -6,11 +6,11 @@
 import "./IBatchTree.sol";
 
 abstract contract IMultiAssetVAnchorBatchTree is IBatchTree {
-	function getRegistry() external view virtual returns (address);
+	function registry() external view virtual returns (address);
 
-	function getRewardUnspentTree() external view virtual returns (address);
+	function rewardUnspentTree() external view virtual returns (address);
 
-	function getRewardSpentTree() external view virtual returns (address);
+	function rewardSpentTree() external view virtual returns (address);
 
 	function _executeWrapping(
 		address _fromToken,

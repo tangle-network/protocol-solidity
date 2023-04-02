@@ -36,7 +36,7 @@ import { MultiAssetVAnchorProxy, MultiAssetVAnchorBatchUpdatableTree, PoseidonHa
 
 import { MultiAssetVerifier } from '@webb-tools/vbridge';
 import { writeFileSync } from 'fs';
-import { Registry, RegistryHandler, MultiFungibleTokenManager, MultiNftTokenManager } from '@webb-tools/tokens';
+import { Registry, RegistryHandler, MultiFungibleTokenManager, MultiNftTokenManager, ERC20, TokenWrapperHandler, FungibleTokenWrapper } from '@webb-tools/tokens';
 import { randomBytes } from 'ethers/lib/utils';
 
 const BN = require('bn.js');
@@ -80,6 +80,7 @@ describe('MASPVAnchor for 2 max edges', () => {
   let wrappedERC721_1;
   let wrappedERC721_2;
   let wrappedERC721_3;
+  let fungibleWebbToken;
   let create2InputWitness;
   let signers;
 
@@ -284,6 +285,62 @@ describe('MASPVAnchor for 2 max edges', () => {
     );
     // Initialize MASP Proxy
     await maspProxy.initialize([maspVAnchor.contract]);
+
+    // Deploy a token handler
+    const tokenHandler = await TokenWrapperHandler.createTokenWrapperHandler(await dummyBridgeSigner.getAddress(), [], [], dummyBridgeSigner);
+
+    // Initialize Unwrapped ERC20 Tokens
+    unwrappedERC20_1 = await ERC20.createERC20PresetMinterPauser("ERC 20 Token 1", "ERC20-1", sender);
+    const mintTx1 = await unwrappedERC20_1.contract.mint(sender.address, 1000000);
+    await mintTx1.wait();
+    unwrappedERC20_2 = await ERC20.createERC20PresetMinterPauser("ERC 20 Token 2", "ERC20-2", sender);
+    const mintTx2 = await unwrappedERC20_2.contract.mint(sender.address, 1000000);
+    await mintTx2.wait();
+    unwrappedERC20_3 = await ERC20.createERC20PresetMinterPauser("ERC 20 Token 3", "ERC20-3", sender);
+    const mintTx3 = await unwrappedERC20_3.contract.mint(sender.address, 1000000);
+    await mintTx3.wait();
+
+    // Register a wrapped fungible WEBB token
+    const assetId = 1;
+    const tokenName = "0x" + Buffer.from(ethers.utils.toUtf8Bytes("webb-fungible")).toString('hex');
+    const tokenSymbol = "0x" + Buffer.from(ethers.utils.toUtf8Bytes("webbfung")).toString('hex');
+    const salt = "0x" + Buffer.from(randomBytes(32)).toString('hex');
+    const limit = "0x" + Buffer.from(randomBytes(32)).toString('hex');
+    const feePercentage = 0;
+    const isNativeAllowed = false;
+    const proposalData = await registry.getRegisterFungibleTokenProposalData(
+      tokenHandler.contract.address,
+      assetId,
+      tokenName,
+      tokenSymbol,
+      salt,
+      limit,
+      feePercentage,
+      isNativeAllowed,
+    );
+    // Call executeProposal function
+    const registerFungibleTokenTx = await registryHandler.contract.executeProposal(await registry.createResourceId(), proposalData);
+    await registerFungibleTokenTx.wait();
+
+    fungibleWebbToken = await FungibleTokenWrapper.connect(await registry.contract.idToWrappedAsset(assetId), sender);
+
+    // Set resource Id in token handler to fungible address
+    const setResourceTx = await tokenHandler.contract.setResource(await fungibleWebbToken.createResourceId(), fungibleWebbToken.contract.address,
+    {
+      from: await dummyBridgeSigner.getAddress(),
+    });
+
+    await setResourceTx.wait();
+
+    // Add unwrapped ERC20 tokens to the wrapped fungible token
+    const addTokenTx1 = await tokenHandler.contract.executeProposal(await fungibleWebbToken.createResourceId(), await fungibleWebbToken.getAddTokenProposalData(unwrappedERC20_1.contract.address));
+    await addTokenTx1.wait();
+
+    const addTokenTx2 = await tokenHandler.contract.executeProposal(await fungibleWebbToken.createResourceId(), await fungibleWebbToken.getAddTokenProposalData(unwrappedERC20_2.contract.address));
+    await addTokenTx2.wait();
+
+    const addTokenTx3 = await tokenHandler.contract.executeProposal(await fungibleWebbToken.createResourceId(), await fungibleWebbToken.getAddTokenProposalData(unwrappedERC20_3.contract.address));
+    await addTokenTx3.wait();
   });
 
   describe('#constructor', () => {
@@ -527,9 +584,39 @@ describe('MASPVAnchor for 2 max edges', () => {
   });
 
   describe('masp smart contract deposit tests max edges = 1', () => {
-    it('proxy should queue erc20 deposit', async () => {});
+    it('proxy should queue erc20 deposit', async () => {
+      // Queue ERC20 deposit
+      const tokenApproveTx = await unwrappedERC20_1.contract.approve(await maspProxy.contract.address, 100);
+      await tokenApproveTx.wait();
+      await maspProxy.queueERC20Deposit(
+        {
+          unwrappedToken: unwrappedERC20_1.contract.address,
+          wrappedToken: fungibleWebbToken.contract.address,
+          amount: 100,
+          assetID: 1,
+          tokenID: 0,
+          depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
+          proxiedMASP: maspVAnchor.contract.address,
+        },
+        {
+          from: sender.address,
+        }
+      );
+      // Check that deposit is queued
+      const queuedDeposit = await maspProxy.getQueuedERC20Deposits(maspVAnchor.contract.address, BigNumber.from(0), BigNumber.from(1));
+      assert.strictEqual(queuedDeposit.length, 1);
+      assert.strictEqual(queuedDeposit[0].unwrappedToken, unwrappedERC20_1.contract.address);
+      assert.strictEqual(queuedDeposit[0].wrappedToken, fungibleWebbToken.contract.address);
+      assert.strictEqual(queuedDeposit[0].amount.toString(), '100');
+      assert.strictEqual(queuedDeposit[0].assetID.toString(), '1');
+      assert.strictEqual(queuedDeposit[0].tokenID.toString(), '0');
+      // Check that MASP proxy owns the ERC20 tokens
+      assert.strictEqual((await unwrappedERC20_1.contract.balanceOf(maspProxy.contract.address)).toString(), '100');
+    });
 
-    it('proxy should NOT queue erc20 deposit for unregistered asset', async () => {});
+    it.only('proxy should NOT queue erc20 deposit for unregistered asset', async () => {
+
+    });
 
     it('proxy should queue erc721 deposit', async () => {});
 

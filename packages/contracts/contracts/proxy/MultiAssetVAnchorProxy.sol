@@ -96,7 +96,7 @@ contract MultiAssetVAnchorProxy is Initialized {
 	function queueERC20Deposit(QueueDepositInfo memory depositInfo) public payable {
 		require(validProxiedMASPs[depositInfo.proxiedMASP], "Invalid MASP");
 		require(
-			IRegistry(IMultiAssetVAnchorBatchTree(depositInfo.proxiedMASP).getRegistry())
+			IRegistry(IMultiAssetVAnchorBatchTree(depositInfo.proxiedMASP).registry())
 				.getAssetIdFromWrappedAddress(depositInfo.wrappedToken) != 0,
 			"Wrapped asset not registered"
 		);
@@ -227,7 +227,7 @@ contract MultiAssetVAnchorProxy is Initialized {
 		// Update latestProcessedDepositLeaf
 		lastProcessedRewardUnspentTreeLeaf = _lastProcessedRewardUnspentTreeLeaf + _batchSize;
 		// Call batchInsert function on MASP
-		IBatchTree(IMultiAssetVAnchorBatchTree(proxiedMASP).getRewardUnspentTree()).batchInsert(
+		IBatchTree(IMultiAssetVAnchorBatchTree(proxiedMASP).rewardUnspentTree()).batchInsert(
 			_proof,
 			_argsHash,
 			_currentRoot,
@@ -284,7 +284,7 @@ contract MultiAssetVAnchorProxy is Initialized {
 		// Update latestProcessedDepositLeaf
 		lastProcessedRewardSpentTreeLeaf = _lastProcessedRewardSpentTreeLeaf + _batchSize;
 		// Call batchInsert function on MASP
-		IBatchTree(IMultiAssetVAnchorBatchTree(proxiedMASP).getRewardSpentTree()).batchInsert(
+		IBatchTree(IMultiAssetVAnchorBatchTree(proxiedMASP).rewardSpentTree()).batchInsert(
 			_proof,
 			_argsHash,
 			_currentRoot,
@@ -299,13 +299,13 @@ contract MultiAssetVAnchorProxy is Initialized {
 	function queueERC721Deposit(QueueDepositInfo memory depositInfo) public payable {
 		require(validProxiedMASPs[depositInfo.proxiedMASP], "Invalid MASP");
 		require(
-			IRegistry(IMultiAssetVAnchorBatchTree(depositInfo.proxiedMASP).getRegistry())
+			IRegistry(IMultiAssetVAnchorBatchTree(depositInfo.proxiedMASP).registry())
 				.getAssetIdFromWrappedAddress(depositInfo.wrappedToken) != 0,
 			"Wrapped asset not registered"
 		);
 		address depositToken = depositInfo.unwrappedToken;
 		require(
-			IRegistry(IMultiAssetVAnchorBatchTree(depositInfo.proxiedMASP).getRegistry())
+			IRegistry(IMultiAssetVAnchorBatchTree(depositInfo.proxiedMASP).registry())
 				.getUnwrappedAssetAddress(depositInfo.assetID) == depositToken,
 			"Wrapped and unwrapped addresses don't match"
 		);

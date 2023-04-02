@@ -63,9 +63,10 @@ export class MultiAssetVAnchorProxy {
     batchHeight: BigNumber
   ) {
     const batchSize = BigNumber.from(2).pow(batchHeight);
+    const leaves = (await this.getQueuedERC20Deposits(masp.contract.address, startQueueIndex, batchSize)).map(x => x.depositPartialCommitment);
     const batchProofInfo = await masp.depositTree.generateProof(
       batchSize.toNumber(),
-      await this.getQueuedERC20Deposits(masp.contract.address, startQueueIndex, batchSize)
+      leaves
     );
 
     await this.contract.batchDepositERC20s(
@@ -86,9 +87,10 @@ export class MultiAssetVAnchorProxy {
     batchHeight: BigNumber
   ) {
     const batchSize = BigNumber.from(2).pow(batchHeight);
+    const leaves = (await this.getQueuedERC721Deposits(masp.contract.address, startQueueIndex, batchSize)).map(x => x.depositPartialCommitment);
     const batchProofInfo = await masp.depositTree.generateProof(
       batchSize.toNumber(),
-      await this.getQueuedERC721Deposits(masp.contract.address, startQueueIndex, batchSize)
+      leaves
     );
 
     await this.contract.batchDepositERC721s(
@@ -159,15 +161,15 @@ export class MultiAssetVAnchorProxy {
     maspAddr: string,
     startIndex: BigNumber,
     batchSize: BigNumber
-  ): Promise<string[]> {
-    const nextIndex = await this.contract.nextQueueERC20DepositIndex[maspAddr];
+  ): Promise<QueueDepositInfo[]> {
+    const nextIndex = await this.contract.nextQueueERC20DepositIndex(maspAddr);
     const endIndex = startIndex.add(batchSize);
     const deposits = [];
     for (let i = startIndex; i.lt(endIndex); i = i.add(1)) {
       if (i.gte(nextIndex)) {
         break;
       }
-      deposits.push(await this.contract.QueueERC20DepositMap[maspAddr][i]);
+      deposits.push(await this.contract.QueueERC20DepositMap(maspAddr, i));
     }
     return deposits;
   }
@@ -177,15 +179,15 @@ export class MultiAssetVAnchorProxy {
     maspAddr: string,
     startIndex: BigNumber,
     batchSize: BigNumber
-  ): Promise<string[]> {
-    const nextIndex = await this.contract.nextQueueERC721DepositIndex[maspAddr];
+  ): Promise<QueueDepositInfo[]> {
+    const nextIndex = await this.contract.nextQueueERC721DepositIndex(maspAddr);
     const endIndex = startIndex.add(batchSize);
     const deposits = [];
     for (let i = startIndex; i.lt(endIndex); i = i.add(1)) {
       if (i.gte(nextIndex)) {
         break;
       }
-      deposits.push(await this.contract.QueueERC721DepositMap[maspAddr][i]);
+      deposits.push(await this.contract.QueueERC721DepositMap(maspAddr, i));
     }
     return deposits;
   }
@@ -196,14 +198,14 @@ export class MultiAssetVAnchorProxy {
     startIndex: BigNumber,
     batchSize: BigNumber
   ): Promise<string[]> {
-    const nextIndex = await this.contract.nextRewardUnspentTreeCommitmentIndex[maspAddr];
+    const nextIndex = await this.contract.nextRewardUnspentTreeCommitmentIndex(maspAddr);
     const endIndex = startIndex.add(batchSize);
     const commitments = [];
     for (let i = startIndex; i.lt(endIndex); i = i.add(1)) {
       if (i.gte(nextIndex)) {
         break;
       }
-      commitments.push(await this.contract.RewardUnspentTreeCommitmentMap[maspAddr][i]);
+      commitments.push(await this.contract.RewardUnspentTreeCommitmentMap(maspAddr, i));
     }
     return commitments;
   }
@@ -214,14 +216,14 @@ export class MultiAssetVAnchorProxy {
     startIndex: BigNumber,
     batchSize: BigNumber
   ): Promise<string[]> {
-    const nextIndex = await this.contract.nextRewardSpentTreeCommitmentIndex[maspAddr];
+    const nextIndex = await this.contract.nextRewardSpentTreeCommitmentIndex(maspAddr);
     const endIndex = startIndex.add(batchSize);
     const commitments = [];
     for (let i = startIndex; i.lt(endIndex); i = i.add(1)) {
       if (i.gte(nextIndex)) {
         break;
       }
-      commitments.push(await this.contract.RewardSpentTreeCommitmentMap[maspAddr][i]);
+      commitments.push(await this.contract.RewardSpentTreeCommitmentMap(maspAddr, i));
     }
     return commitments;
   }
