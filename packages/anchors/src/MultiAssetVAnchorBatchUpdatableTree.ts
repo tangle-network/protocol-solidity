@@ -158,37 +158,62 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
     return createdMASPVAnchorBatchTree;
   }
 
-  // // Connect to an existing MultiAssetVAnchorBatchUpdatableTree
-  // public static async connect(
-  //   // connect via factory method
-  //   // build up tree by querying provider for logs
-  //   address: string,
-  //   smallCircuitZkComponents: ZkComponents,
-  //   largeCircuitZkComponents: ZkComponents,
-  //   swapCircuitZkComponents: ZkComponents,
-  //   depositTreeAddr: string,
-  //   unspentTreeAddr: string,
-  //   spentTreeAddr: string,
-  //   signer: ethers.Signer
-  // ) {
-  //   const masp = MultiAssetVAnchorBatchTree__factory.connect(address, signer);
-  //   const depositTree = ProxiedBatchMerkleTree__factory.connect(depositTreeAddr, signer);
-  //   const unspentTree = ProxiedBatchMerkleTree__factory.connect(unspentTreeAddr, signer);
-  //   const spentTree = ProxiedBatchMerkleTree__factory.connect(spentTreeAddr, signer);
-  //   const maxEdges = await masp.maxEdges();
-  //   const treeHeight = await masp.levels();
-  //   const createdAnchor = new MultiAssetVAnchorBatchUpdatableTree(
-  //     masp,
-  //     treeHeight,
-  //     maxEdges,
-  //     smallCircuitZkComponents,
-  //     largeCircuitZkComponents,
-  //     swapCircuitZkComponents,
-  //     depositTree,
-  //     unspentTree,
-  //     spentTree,
-  //     signer
-  //   );
-  //   return createdAnchor;
-  // }
+  // Connect to an existing MultiAssetVAnchorBatchUpdatableTree
+  public static async connect(
+    // connect via factory method
+    // build up tree by querying provider for logs
+    address: string,
+    smallCircuitZkComponents: ZkComponents,
+    largeCircuitZkComponents: ZkComponents,
+    swapCircuitZkComponents: ZkComponents,
+    depositTreeAddr: string,
+    unspentTreeAddr: string,
+    spentTreeAddr: string,
+    zkComponents_4: ZkComponents,
+    zkComponents_8: ZkComponents,
+    zkComponents_16: ZkComponents,
+    zkComponents_32: ZkComponents,
+    signer: ethers.Signer
+  ) {
+    const masp = MultiAssetVAnchorBatchTree__factory.connect(address, signer);
+    const depositTree = await ProxiedBatchTreeUpdater.connect(
+      depositTreeAddr,
+      zkComponents_4,
+      zkComponents_8,
+      zkComponents_16,
+      zkComponents_32,
+      signer
+    );
+    const unspentTree = await ProxiedBatchTreeUpdater.connect(
+      unspentTreeAddr,
+      zkComponents_4,
+      zkComponents_8,
+      zkComponents_16,
+      zkComponents_32,
+      signer
+    );
+    const spentTree = await ProxiedBatchTreeUpdater.connect(
+      spentTreeAddr,
+      zkComponents_4,
+      zkComponents_8,
+      zkComponents_16,
+      zkComponents_32,
+      signer
+    );
+    const maxEdges = await masp.maxEdges();
+    const treeHeight = await masp.levels();
+    const createdAnchor = new MultiAssetVAnchorBatchUpdatableTree(
+      masp,
+      treeHeight,
+      maxEdges,
+      smallCircuitZkComponents,
+      largeCircuitZkComponents,
+      swapCircuitZkComponents,
+      depositTree,
+      unspentTree,
+      spentTree,
+      signer
+    );
+    return createdAnchor;
+  }
 }

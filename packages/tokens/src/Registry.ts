@@ -7,6 +7,7 @@ export class Registry {
   contract: RegistryContract;
   signer: ethers.Signer;
   REGISTER_FUNGIBLE_TOKEN_SIGNATURE = 'registerToken(uint32,address,uint256,string,string,bytes32,uint256,uint16,bool)';
+  REGISTER_NFT_TOKEN_SIGNATURE = 'registerNftToken(uint32,address,uint256,address,string,bytes32)';
 
   constructor(contract: RegistryContract, signer: ethers.Signer) {
     this.contract = contract;
@@ -111,7 +112,7 @@ export class Registry {
     isNativeAllowed: boolean
   ) {
     const resourceID = await this.createResourceId();
-    const nonce = await this.contract.proposalNonce();
+    const nonce = (await this.contract.proposalNonce()).add(1);
     const functionSig = generateFunctionSigHash(this.REGISTER_FUNGIBLE_TOKEN_SIGNATURE);
     return (
       '0x' +
@@ -126,6 +127,29 @@ export class Registry {
       toHex(limit, 32).slice(2) +
       toHex(feePercentage, 2).slice(2) +
       toHex(isNativeAllowed ? 1 : 0, 1).slice(2)
+    );
+  }
+
+  public async getRegisterNftTokenProposalData(
+    tokenHandler: string,
+    assetIdentifier: number,
+    unwrappedNftAddress: string,
+    salt: string,
+    uri: string,
+  ) {
+    const resourceID = await this.createResourceId();
+    const nonce = (await this.contract.proposalNonce()).add(1);
+    const functionSig = generateFunctionSigHash(this.REGISTER_NFT_TOKEN_SIGNATURE);
+    return (
+      '0x' +
+      toHex(resourceID, 32).slice(2) +
+      functionSig.slice(2) +
+      toHex(Number(nonce), 4).slice(2) +
+      toHex(tokenHandler, 20).slice(2) +
+      toHex(assetIdentifier, 32).slice(2) +
+      toHex(unwrappedNftAddress, 20).slice(2) +
+      toHex(salt, 32).slice(2) +
+      toHex(uri, 64).slice(2)
     );
   }
 }

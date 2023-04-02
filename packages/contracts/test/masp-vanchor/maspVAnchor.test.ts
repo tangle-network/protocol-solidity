@@ -248,9 +248,7 @@ describe('MASPVAnchor for 2 max edges', () => {
     registry = await Registry.createRegistry(sender);
     registryHandler = await RegistryHandler.createRegistryHandler(await dummyBridgeSigner.getAddress(), [await registry.createResourceId()], [ registry.contract.address], dummyBridgeSigner);
     multiFungibleTokenManager = await MultiFungibleTokenManager.createMultiFungibleTokenManager(sender);
-    console.log(multiFungibleTokenManager.contract.address)
     multiNftTokenManager = await MultiNftTokenManager.createMultiNftTokenManager(sender);
-    console.log(multiNftTokenManager.contract.address)
     masterFeeRecipient = await signers[2].getAddress();
     transactionVerifier = await MultiAssetVerifier.createVerifier(sender);
     maspProxy = await MultiAssetVAnchorProxy.createMultiAssetVAnchorProxy(hasherInstance.contract.address, sender);
@@ -479,7 +477,7 @@ describe('MASPVAnchor for 2 max edges', () => {
   });
 
   describe('asset registration smart contract tests', () => {
-    it.only('registry handler should register fungible token', async () => {
+    it('registry handler should register fungible token', async () => {
       const dummyTokenHandler = "0x" + Buffer.from(randomBytes(20)).toString('hex');
       const dummyAssetId = 1;
       const dummyTokenName = "0x" + Buffer.from(ethers.utils.toUtf8Bytes("webb-ether")).toString('hex');
@@ -502,10 +500,30 @@ describe('MASPVAnchor for 2 max edges', () => {
       const registerFungibleTokenTx = await registryHandler.contract.executeProposal(await registry.createResourceId(), proposalData);
       await registerFungibleTokenTx.wait();
       // Check that fungible token is registered on the Registry contract
-      console.log(await registry.contract.idToWrappedAsset(1));
+      const wrappedAssetAddr = await registry.contract.idToWrappedAsset(1);
+      assert.strictEqual((await registry.contract.wrappedAssetToId(wrappedAssetAddr)).toString(), dummyAssetId.toString());
     });
 
-    it('registry handler should register non-fungible token', async () => {});
+    it('registry handler should register non-fungible token', async () => {
+      const dummyTokenHandler = "0x" + Buffer.from(randomBytes(20)).toString('hex');
+      const dummyAssetId = 1;
+      const dummyUnwrappedNftAddr = "0x" + Buffer.from(randomBytes(20)).toString('hex');
+      const dummySalt = "0x" + Buffer.from(randomBytes(32)).toString('hex');
+      const dummyUri = "0x" + Buffer.from(randomBytes(64)).toString('hex');
+      const proposalData = await registry.getRegisterNftTokenProposalData(
+        dummyTokenHandler,
+        dummyAssetId,
+        dummyUnwrappedNftAddr,
+        dummySalt,
+        dummyUri,
+      );
+      // Call executeProposal function
+      const registerNftTokenTx = await registryHandler.contract.executeProposal(await registry.createResourceId(), proposalData);
+      await registerNftTokenTx.wait();
+      // Check that fungible token is registered on the Registry contract
+      const wrappedAssetAddr = await registry.contract.idToWrappedAsset(1);
+      assert.strictEqual((await registry.contract.wrappedAssetToId(wrappedAssetAddr)).toString(), dummyAssetId.toString());
+    });
   });
 
   describe('masp smart contract deposit tests max edges = 1', () => {

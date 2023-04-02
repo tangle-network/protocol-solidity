@@ -78,6 +78,29 @@ export class ProxiedBatchTreeUpdater {
     return createdProxiedBatchTreeUpdater;
   }
 
+  public static async connect(
+    contractAddr: string,
+    zkComponents_4: ZkComponents,
+    zkComponents_8: ZkComponents,
+    zkComponents_16: ZkComponents,
+    zkComponents_32: ZkComponents,
+    signer: ethers.Signer
+  ) {
+    const factory = new ProxiedBatchMerkleTree__factory(signer);
+    const proxiedBatchTreeContract = factory.attach(contractAddr);
+    const levels = await proxiedBatchTreeContract.levels();
+    const createdProxiedBatchTreeUpdater = new ProxiedBatchTreeUpdater(
+      proxiedBatchTreeContract,
+      signer,
+      levels,
+      zkComponents_4,
+      zkComponents_8,
+      zkComponents_16,
+      zkComponents_32
+    );
+    return createdProxiedBatchTreeUpdater;
+  }
+
   public static hashInputs(input: ProofSignals) {
     const sha = new jsSHA('SHA-256', 'ARRAYBUFFER');
     sha.update(toBuffer(input.oldRoot, 32));
