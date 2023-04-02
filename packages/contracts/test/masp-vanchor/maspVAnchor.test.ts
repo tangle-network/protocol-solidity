@@ -36,7 +36,7 @@ import { MultiAssetVAnchorProxy, MultiAssetVAnchorBatchUpdatableTree, PoseidonHa
 
 import { MultiAssetVerifier } from '@webb-tools/vbridge';
 import { writeFileSync } from 'fs';
-import { Registry, RegistryHandler, MultiFungibleTokenManager, MultiNftTokenManager, ERC20, TokenWrapperHandler, FungibleTokenWrapper } from '@webb-tools/tokens';
+import { Registry, RegistryHandler, MultiFungibleTokenManager, MultiNftTokenManager, NftTokenWrapper, ERC20, ERC721, TokenWrapperHandler, FungibleTokenWrapper } from '@webb-tools/tokens';
 import { randomBytes } from 'ethers/lib/utils';
 
 const BN = require('bn.js');
@@ -73,14 +73,11 @@ describe('MASPVAnchor for 2 max edges', () => {
   let unwrappedERC20_1;
   let unwrappedERC20_2;
   let unwrappedERC20_3;
-  let wrappedERC20;
   let unwrappedERC721_1;
   let unwrappedERC721_2;
   let unwrappedERC721_3;
-  let wrappedERC721_1;
-  let wrappedERC721_2;
-  let wrappedERC721_3;
   let fungibleWebbToken;
+  let nftWebbToken;
   let create2InputWitness;
   let signers;
 
@@ -341,6 +338,29 @@ describe('MASPVAnchor for 2 max edges', () => {
 
     const addTokenTx3 = await tokenHandler.contract.executeProposal(await fungibleWebbToken.createResourceId(), await fungibleWebbToken.getAddTokenProposalData(unwrappedERC20_3.contract.address));
     await addTokenTx3.wait();
+
+    // Initialize Unwrapped ERC721 Tokens
+    unwrappedERC721_1 = await ERC721.createERC721("ERC721 Token 1", "ERC721-1", sender);
+    const mintTx4 = await unwrappedERC721_1.contract.mint(sender.address);
+    await mintTx4.wait();
+
+    // Register a wrapped non-fungible WEBB token
+    const webbNftAssetId = 2;
+    const unwrappedNftAddr = await unwrappedERC721_1.contract.address;
+    const webbNftSalt = "0x" + Buffer.from(randomBytes(32)).toString('hex');
+    const webbNftUri = "0x" + Buffer.from(randomBytes(64)).toString('hex');
+    const webbNftProposalData = await registry.getRegisterNftTokenProposalData(
+      tokenHandler.contract.address,
+      webbNftAssetId,
+      unwrappedNftAddr,
+      webbNftSalt,
+      webbNftUri,
+    );
+    // Call executeProposal function
+    const registerNftTokenTx = await registryHandler.contract.executeProposal(await registry.createResourceId(), webbNftProposalData);
+    await registerNftTokenTx.wait();
+
+    nftWebbToken = await NftTokenWrapper.connect(await registry.contract.idToWrappedAsset(webbNftAssetId), sender);
   });
 
   describe('#constructor', () => {
@@ -614,7 +634,7 @@ describe('MASPVAnchor for 2 max edges', () => {
       assert.strictEqual((await unwrappedERC20_1.contract.balanceOf(maspProxy.contract.address)).toString(), '100');
     });
 
-    it.only('proxy should NOT queue erc20 deposit for unregistered asset', async () => {
+    it('proxy should NOT queue erc20 deposit for unregistered asset', async () => {
       await TruffleAssert.reverts(
         maspProxy.queueERC20Deposit(
           {
@@ -634,9 +654,53 @@ describe('MASPVAnchor for 2 max edges', () => {
       );
     });
 
-    it('proxy should queue erc721 deposit', async () => {});
+    it('proxy should queue erc721 deposit', async () => {
+      await unwrappedERC721_1.approve(await maspProxy.contract.address, 1);
+      await maspProxy.queueERC721Deposit(
+        {
+          unwrappedToken: unwrappedERC721_1.contract.address,
+          wrappedToken: nftWebbToken.contract.address,
+          amount: 1,
+          assetID: 2,
+          tokenID: 1,
+          depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
+          proxiedMASP: maspVAnchor.contract.address,
+        },
+        {
+          from: sender.address,
+        }
+      );
+      // Check that deposit is queued
+      const queuedDeposit = await maspProxy.getQueuedERC721Deposits(maspVAnchor.contract.address, BigNumber.from(0), BigNumber.from(1));
+      assert.strictEqual(queuedDeposit.length, 1);
+      assert.strictEqual(queuedDeposit[0].unwrappedToken, unwrappedERC721_1.contract.address);
+      assert.strictEqual(queuedDeposit[0].wrappedToken, nftWebbToken.contract.address);
+      assert.strictEqual(queuedDeposit[0].amount.toString(), '1');
+      assert.strictEqual(queuedDeposit[0].assetID.toString(), '2');
+      assert.strictEqual(queuedDeposit[0].tokenID.toString(), '1');
+      // Check that MASP proxy owns the ERC721 tokens
+      assert.strictEqual((await unwrappedERC721_1.contract.balanceOf(maspProxy.contract.address)).toString(), '1');
+    });
 
-    it('proxy should NOT queue erc721 deposit for unregistered asset', async () => {});
+    it('proxy should NOT queue erc721 deposit for unregistered asset', async () => {
+      await TruffleAssert.reverts(
+        maspProxy.queueERC721Deposit(
+          {
+            unwrappedToken: unwrappedERC721_1.contract.address,
+            wrappedToken: signers[4].address,
+            amount: 1,
+            assetID: 2,
+            tokenID: 1,
+            depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
+            proxiedMASP: maspVAnchor.contract.address,
+          },
+          {
+            from: sender.address,
+          }
+        ),
+        'Wrapped asset not registered'
+      ) 
+    });
 
     it('proxy should NOT queue deposit for masp it does not proxy for', async () => {});
 

@@ -16,6 +16,7 @@ import "../../interfaces/IBatchTree.sol";
 import "../../interfaces/IMASPProxy.sol";
 import "../../libs/SwapEncodeInputs.sol";
 import "../../interfaces/verifiers/ISwapVerifier.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 /**
 	@title Multi Asset Variable Anchor contract
@@ -37,7 +38,7 @@ import "../../interfaces/verifiers/ISwapVerifier.sol";
 
 	IMPORTANT: A bridge ERC20 token MUST have the same assetID across chain.
  */
-abstract contract MultiAssetVAnchor is ZKVAnchorBase {
+abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 	using SafeERC20 for IERC20;
 	using SafeMath for uint256;
 
@@ -321,5 +322,23 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 				)
 			)
 		);
+	}
+
+	/**
+     * @dev Whenever an {IERC721} `tokenId` token is transferred to this contract via {IERC721-safeTransferFrom}
+     * by `operator` from `from`, this function is called.
+     *
+     * It must return its Solidity selector to confirm the token transfer.
+     * If any other value is returned or the interface is not implemented by the recipient, the transfer will be reverted.
+     *
+     * The selector can be obtained in Solidity with `IERC721Receiver.onERC721Received.selector`.
+     */
+    function onERC721Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes calldata data
+    ) external override returns (bytes4) {
+		return this.onERC721Received.selector;
 	}
 }
