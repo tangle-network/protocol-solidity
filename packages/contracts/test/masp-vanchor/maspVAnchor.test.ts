@@ -615,7 +615,23 @@ describe('MASPVAnchor for 2 max edges', () => {
     });
 
     it.only('proxy should NOT queue erc20 deposit for unregistered asset', async () => {
-
+      await TruffleAssert.reverts(
+        maspProxy.queueERC20Deposit(
+          {
+            unwrappedToken: unwrappedERC20_1.contract.address,
+            wrappedToken: signers[3].address,
+            amount: 100,
+            assetID: 1,
+            tokenID: 0,
+            depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
+            proxiedMASP: maspVAnchor.contract.address,
+          },
+          {
+            from: sender.address,
+          }
+        ),
+        'Wrapped asset not registered'
+      );
     });
 
     it('proxy should queue erc721 deposit', async () => {});
