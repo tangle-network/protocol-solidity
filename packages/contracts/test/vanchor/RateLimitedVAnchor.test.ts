@@ -34,7 +34,7 @@ import { Verifier } from '@webb-tools/vbridge';
 
 const path = require('path');
 
-describe.only('Rate Limited VAnchor', () => {
+describe('Rate Limited VAnchor', () => {
   let anchor: RateLimitedVAnchor;
 
   const levels = 30;

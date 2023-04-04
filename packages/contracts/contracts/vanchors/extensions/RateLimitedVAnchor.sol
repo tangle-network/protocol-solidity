@@ -6,7 +6,6 @@
 pragma solidity ^0.8.5;
 
 import "../instances/VAnchorTree.sol";
-import "hardhat/console.sol";
 
 /**
 	@title Rate Limited Variable Anchor contract
@@ -58,7 +57,6 @@ contract RateLimitedVAnchor is VAnchorTree {
 		override
 		nonReentrant
 	{
-		console.log(currentDailyWithdrawal);
 		// If we are in the current day, continue to add to the currentDailyWithdrawal
 		if (block.timestamp < startTime + 1 days) {
 			currentDailyWithdrawal = (_externalData.extAmount < 0)
@@ -71,8 +69,6 @@ contract RateLimitedVAnchor is VAnchorTree {
 				: 0;
 			startTime = block.timestamp;
 		}
-		console.log(DAILY_WITHDRAWAL_LIMIT);
-		console.log(currentDailyWithdrawal);
 		// Ensure the currentDailyWithdrawal is less than the DAILY_WITHDRAWAL_LIMIT, revert.
 		require(
 			currentDailyWithdrawal <= DAILY_WITHDRAWAL_LIMIT,
