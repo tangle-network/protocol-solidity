@@ -20,16 +20,16 @@ abstract contract MultiTokenManagerBase is IMultiTokenManager, Initialized, Prop
 	address public masterFeeRecipient;
 	address[] public wrappedTokens;
 
-	event RegistryIsSet(address _registyAddress);
-	event MasterFeeRecipientIsSet(address _feeRecipient);
+	event RegistryUpdated(address _registyAddress);
+	event MasterFeeRecipientUpdated(address _feeRecipient);
 
 	function initialize(
 		address _registry,
 		address _feeRecipient
 	) external override onlyUninitialized {
 		initialized = true;
-		require(_registry != address(0), "Registry address can't be 0");
-		require(_feeRecipient != address(0), "Fee recipient address can't be 0");
+		require(_registry != address(0), "MultiTokenManager: Registry address can't be 0");
+		require(_feeRecipient != address(0), "MultiTokenManager: Fee recipient address can't be 0");
 		registry = _registry;
 		masterFeeRecipient = _feeRecipient;
 	}
@@ -39,9 +39,9 @@ abstract contract MultiTokenManagerBase is IMultiTokenManager, Initialized, Prop
      */
 	function setRegistry(address _registry) external onlyInitialized {
 		require(msg.sender == registry, "MultiTokenManager: Only registry can set registry");
-		require(_registry != address(0), "Registry address can't be 0");
+		require(_registry != address(0), "MultiTokenManager: Registry address can't be 0");
 		registry = _registry;
-		emit RegistryIsSet(registry);
+		emit RegistryUpdated(registry);
 	}
 
 	/**
@@ -52,9 +52,9 @@ abstract contract MultiTokenManagerBase is IMultiTokenManager, Initialized, Prop
 			msg.sender == masterFeeRecipient,
 			"MultiTokenManager: Only registry can set master fee recipient"
 		);
-		require(_feeRecipient != address(0), "Fee recipient address can't be 0");
+		require(_feeRecipient != address(0), "MultiTokenManager: Fee recipient address can't be 0");
 		masterFeeRecipient = _feeRecipient;
-		emit MasterFeeRecipientIsSet(masterFeeRecipient);
+		emit MasterFeeRecipientUpdated(masterFeeRecipient);
 	}
 
 	/**

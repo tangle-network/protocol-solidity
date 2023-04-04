@@ -45,7 +45,7 @@ abstract contract VAnchorBase is LinkableAnchor {
 	);
 	event NewNullifier(uint256 nullifier);
 	event PublicKey(address indexed owner, bytes key);
-	event HandlerIsSet(address _handler);
+	event HandlerUpdated(address _handler);
 
 	/**
 		@dev The constructor
@@ -307,6 +307,6 @@ abstract contract VAnchorBase is LinkableAnchor {
 	) external override onlyHandler onlyIncrementingByOne(_nonce) {
 		require(_handler != address(0), "Handler cannot be 0");
 		handler = _handler;
-		emit HandlerIsSet(handler);
+		emit HandlerUpdated(handler);
 	}
 }
