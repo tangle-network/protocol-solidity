@@ -13,7 +13,6 @@ import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol"
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-
 /**
     @title A token that allows ERC20s to wrap into and mint it.
     @author Webb Technologies.

@@ -1,6 +1,10 @@
 import { ZkComponents } from '@webb-tools/utils';
 import { BigNumberish, ethers, BigNumber } from 'ethers';
-import { VAnchorEncodeInputs__factory, RateLimitedVAnchor__factory, RateLimitedVAnchor as RateLimitedVAnchorContract } from '@webb-tools/contracts';
+import {
+  VAnchorEncodeInputs__factory,
+  RateLimitedVAnchor__factory,
+  RateLimitedVAnchor as RateLimitedVAnchorContract,
+} from '@webb-tools/contracts';
 import VAnchor from '../VAnchor';
 import { Deployer } from '../Deployer';
 
@@ -92,7 +96,10 @@ export class RateLimitedVAnchor extends VAnchor {
 
   public async setDailyWithdrawalLimit(limit: BigNumber) {
     const nonce = await this.contract.getProposalNonce();
-    const tx = await (this.contract as RateLimitedVAnchorContract).setDailyWithdrawalLimit(limit, nonce.add(BigNumber.from("1")));
+    const tx = await (this.contract as RateLimitedVAnchorContract).setDailyWithdrawalLimit(
+      limit,
+      nonce.add(BigNumber.from('1'))
+    );
     const result = await tx.wait();
     return result;
   }

@@ -144,10 +144,7 @@ contract FungibleTokenWrapper is
 		uint16 _feePercentage,
 		uint32 _nonce
 	) external override onlyHandler onlyIncrementingByOne(_nonce) {
-		require(
-			_feePercentage <= 10_000,
-			"FungibleTokenWrapper: Invalid fee percentage"
-		);
+		require(_feePercentage <= 10_000, "FungibleTokenWrapper: Invalid fee percentage");
 		feePercentage = _feePercentage;
 	}
 

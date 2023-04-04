@@ -24,11 +24,7 @@ import {
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
-import {
-  Keypair,
-  randomBN,
-  CircomUtxo,
-} from '@webb-tools/sdk-core';
+import { Keypair, randomBN, CircomUtxo } from '@webb-tools/sdk-core';
 import { VAnchor, PoseidonHasher, RateLimitedVAnchor } from '@webb-tools/anchors';
 import { Verifier } from '@webb-tools/vbridge';
 
@@ -148,9 +144,7 @@ describe('Rate Limited VAnchor', () => {
       BigNumber.from(tokenDenomination).mul(1_000_000),
       2
     );
-    await anchor.setDailyWithdrawalLimit(
-      BigNumber.from('10').pow(BigNumber.from('18')),
-    );
+    await anchor.setDailyWithdrawalLimit(BigNumber.from('10').pow(BigNumber.from('18')));
     const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
     await wrappedToken.grantRole(MINTER_ROLE, anchor.contract.address);
     await token.approve(wrappedToken.address, '1000000000000000000000000');
@@ -228,9 +222,7 @@ describe('Rate Limited VAnchor', () => {
 
       let anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
-      await anchor.setDailyWithdrawalLimit(
-        BigNumber.from(`${5e6}`)
-      );
+      await anchor.setDailyWithdrawalLimit(BigNumber.from(`${5e6}`));
       const aliceWithdrawAmount = 6e6;
       const aliceChangeAmount = aliceDepositAmount - aliceWithdrawAmount;
       const aliceChangeUtxo = await CircomUtxo.generateUtxo({
@@ -247,7 +239,7 @@ describe('Rate Limited VAnchor', () => {
         anchor.transact([aliceDepositUtxo], [aliceChangeUtxo], 0, 0, aliceETHAddress, '0', '', {
           [chainID.toString()]: anchorLeaves,
         }),
-        'RateLimitedVAnchor: Daily withdrawal limit reached',
+        'RateLimitedVAnchor: Daily withdrawal limit reached'
       );
     });
   });
