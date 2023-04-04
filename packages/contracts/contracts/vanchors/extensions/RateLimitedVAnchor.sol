@@ -67,7 +67,7 @@ contract RateLimitedVAnchor is VAnchorTree {
 			currentDailyWithdrawal = (_externalData.extAmount < 0)
 				? uint256(-_externalData.extAmount)
 				: 0;
-			startTime = block.timestamp;
+			startTime = startTime + 1 days;
 		}
 		// Ensure the currentDailyWithdrawal is less than the DAILY_WITHDRAWAL_LIMIT, revert.
 		require(
