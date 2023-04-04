@@ -11,6 +11,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
 
 /**
     @title A token that allows ERC20s to wrap into and mint it.
@@ -19,6 +21,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
  */
 abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
 	using SafeMath for uint256;
+	using SafeERC20 for IERC20;
 	uint16 public feePercentage;
 	address payable public feeRecipient;
 
@@ -83,9 +86,9 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
 			feeRecipient.transfer(costToWrap);
 		} else {
 			// transfer liquidity to the token wrapper
-			IERC20(tokenAddress).transferFrom(_msgSender(), address(this), leftover);
+			IERC20(tokenAddress).safeTransferFrom(_msgSender(), address(this), leftover);
 			// transfer fee (costToWrap) to the feeRecipient
-			IERC20(tokenAddress).transferFrom(_msgSender(), feeRecipient, costToWrap);
+			IERC20(tokenAddress).safeTransferFrom(_msgSender(), feeRecipient, costToWrap);
 			// mint the wrapped token for the sender
 			_mint(_msgSender(), leftover);
 		}
@@ -108,7 +111,7 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
 			payable(msg.sender).transfer(amount);
 		} else {
 			// transfer ERC20 liquidity from the token wrapper to the sender
-			IERC20(tokenAddress).transfer(_msgSender(), amount);
+			IERC20(tokenAddress).safeTransfer(_msgSender(), amount);
 		}
 	}
 
@@ -130,7 +133,7 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
 			payable(recipient).transfer(amount);
 		} else {
 			// transfer ERC20 liquidity from the token wrapper to the sender
-			IERC20(tokenAddress).transfer(recipient, amount);
+			IERC20(tokenAddress).safeTransfer(recipient, amount);
 		}
 	}
 
@@ -154,9 +157,9 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
 			feeRecipient.transfer(costToWrap);
 		} else {
 			// transfer liquidity to the token wrapper
-			IERC20(tokenAddress).transferFrom(sender, address(this), leftover);
+			IERC20(tokenAddress).safeTransferFrom(sender, address(this), leftover);
 			// transfer fee (costToWrap) to feeRecipient
-			IERC20(tokenAddress).transferFrom(sender, feeRecipient, costToWrap);
+			IERC20(tokenAddress).safeTransferFrom(sender, feeRecipient, costToWrap);
 		}
 		// mint the wrapped token for the sender
 		_mint(sender, leftover);
@@ -184,9 +187,9 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
 			feeRecipient.transfer(costToWrap);
 		} else {
 			// transfer liquidity to the token wrapper
-			IERC20(tokenAddress).transferFrom(sender, address(this), leftover);
+			IERC20(tokenAddress).safeTransferFrom(sender, address(this), leftover);
 			// transfer fee (costToWrap) to feeRecipient
-			IERC20(tokenAddress).transferFrom(sender, feeRecipient, costToWrap);
+			IERC20(tokenAddress).safeTransferFrom(sender, feeRecipient, costToWrap);
 		}
 		// mint the wrapped token for the recipient
 		_mint(recipient, leftover);
@@ -209,7 +212,7 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
 			payable(sender).transfer(amount);
 		} else {
 			// transfer liquidity from the token wrapper to the sender
-			IERC20(tokenAddress).transfer(sender, amount);
+			IERC20(tokenAddress).safeTransfer(sender, amount);
 		}
 	}
 

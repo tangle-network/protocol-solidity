@@ -56,7 +56,7 @@ contract OpenVAnchor is VAnchorBase, MerkleTree {
 			)
 		);
 		// Send the wrapped asset directly to this contract.
-		IERC20(token).transferFrom(msg.sender, address(this), depositAmount);
+		IERC20(token).safeTransferFrom(msg.sender, address(this), depositAmount);
 		// Insert the commitment
 		_executeInsertion(uint256(commitment));
 	}

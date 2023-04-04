@@ -35,6 +35,7 @@ contract TokenWrapperHandler is IExecutor, HandlerHelpers {
 			"initialResourceIDs and initialContractAddresses len mismatch"
 		);
 
+		require(bridgeAddress != address(0), "Bridge address can't be 0");
 		_bridgeAddress = bridgeAddress;
 
 		for (uint256 i = 0; i < initialResourceIDs.length; i++) {

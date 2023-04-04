@@ -34,6 +34,7 @@ contract NftTokenWrapper is
         @param _handler The address of the token handler contract
      */
 	function initialize(address _handler) external onlyUninitialized {
+		require(_handler != address(0), "Handler address can't be 0");
 		initialized = true;
 		handler = _handler;
 	}

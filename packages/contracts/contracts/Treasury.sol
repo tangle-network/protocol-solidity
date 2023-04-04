@@ -7,13 +7,18 @@ pragma solidity ^0.8.5;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./interfaces/ITreasury.sol";
 import "./utils/ProposalNonceTracker.sol";
 
 contract Treasury is ITreasury, ProposalNonceTracker {
+	using SafeERC20 for IERC20;
 	address treasuryHandler;
 
+	event TreasuryHandlerIsSet(address _handler);
+
 	constructor(address _treasuryHandler) {
+		require(_treasuryHandler != address(0), "Treasury Handler can't be 0");
 		treasuryHandler = _treasuryHandler;
 	}
 
@@ -43,9 +48,9 @@ contract Treasury is ITreasury, ProposalNonceTracker {
 			// ERC20 Token
 			uint256 erc20Balance = IERC20(tokenAddress).balanceOf(address(this));
 			if (erc20Balance >= amountToRescue) {
-				IERC20(tokenAddress).transfer(to, amountToRescue);
+				IERC20(tokenAddress).safeTransfer(to, amountToRescue);
 			} else {
-				IERC20(tokenAddress).transfer(to, erc20Balance);
+				IERC20(tokenAddress).safeTransfer(to, erc20Balance);
 			}
 		}
 	}
@@ -56,6 +61,7 @@ contract Treasury is ITreasury, ProposalNonceTracker {
 	) external override onlyHandler onlyIncrementingByOne(nonce) {
 		require(newHandler != address(0), "Handler cannot be 0");
 		treasuryHandler = newHandler;
+		emit TreasuryHandlerIsSet(treasuryHandler);
 	}
 
 	receive() external payable {}
