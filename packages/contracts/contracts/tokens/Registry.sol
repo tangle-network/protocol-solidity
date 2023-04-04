@@ -1,24 +1,24 @@
 /**
  * Copyright 2021-2023 Webb Technologies
- * SPDX-License-Identifier: Apache 2.0/MIT
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
 pragma solidity ^0.8.5;
 
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./FungibleTokenWrapper.sol";
+import "./NftTokenWrapper.sol";
 import "../utils/Initialized.sol";
 import "../utils/ProposalNonceTracker.sol";
-import "./NftTokenWrapper.sol";
 import "../interfaces/tokens/IRegistry.sol";
 import "../interfaces/tokens/IMultiTokenManager.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
     @title A Registry for registering different assets
     ERC20 / ERC721 / ERC1155 tokens on the bridge
     @author Webb Technologies.
  */
-contract Registry is Initialized, IRegistry, ProposalNonceTracker {
+contract Registry is Initialized, IRegistry, ProposalNonceTracker, ReentrancyGuard {
 	using SafeMath for uint256;
 
 	address public fungibleTokenManager;
@@ -93,7 +93,7 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
 		uint256 _limit,
 		uint16 _feePercentage,
 		bool _isNativeAllowed
-	) external override onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
+	) external override nonReentrant onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
 		require(_assetIdentifier != 0, "Registry: Asset identifier cannot be 0");
 		require(
 			idToWrappedAsset[_assetIdentifier] == address(0x0),
@@ -128,7 +128,7 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
 		uint256 _assetIdentifier,
 		string memory _uri,
 		bytes32 _salt
-	) external override onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
+	) external override nonReentrant onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
 		require(_assetIdentifier != 0, "Registry: Asset identifier cannot be 0");
 		require(
 			idToWrappedAsset[_assetIdentifier] == address(0x0),

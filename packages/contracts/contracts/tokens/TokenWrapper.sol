@@ -1,6 +1,6 @@
 /**
  * Copyright 2021-2023 Webb Technologies
- * SPDX-License-Identifier: Apache 2.0/MIT
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
 pragma solidity ^0.8.5;
@@ -18,7 +18,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
     @author Webb Technologies.
     @notice This contract is intended to be used with TokenHandler/FungibleToken contract.
  */
-abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
+abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, ReentrancyGuard {
 	using SafeMath for uint256;
 	using SafeERC20 for IERC20;
 	uint16 public feePercentage;
@@ -70,7 +70,7 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
 	function wrap(
 		address tokenAddress,
 		uint256 amount
-	) public payable override isValidWrapping(tokenAddress, feeRecipient, amount) {
+	) public payable override nonReentrant isValidWrapping(tokenAddress, feeRecipient, amount) {
 		uint256 costToWrap = getFeeFromAmount(tokenAddress == address(0) ? msg.value : amount);
 
 		uint256 leftover = tokenAddress == address(0)
@@ -101,7 +101,7 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
 	function unwrap(
 		address tokenAddress,
 		uint256 amount
-	) public override isValidUnwrapping(tokenAddress, amount) {
+	) public override nonReentrant isValidUnwrapping(tokenAddress, amount) {
 		// burn wrapped token from sender
 		_burn(_msgSender(), amount);
 		// unwrap liquidity and send to the sender
@@ -123,7 +123,7 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
 		address tokenAddress,
 		uint256 amount,
 		address recipient
-	) public override isValidUnwrapping(tokenAddress, amount) {
+	) public override nonReentrant isValidUnwrapping(tokenAddress, amount) {
 		// burn wrapped token from sender
 		_burn(_msgSender(), amount);
 		// unwrap liquidity and send to the sender
@@ -146,7 +146,14 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
 		address sender,
 		address tokenAddress,
 		uint256 amount
-	) public payable override isMinter isValidWrapping(tokenAddress, feeRecipient, amount) {
+	)
+		public
+		payable
+		override
+		nonReentrant
+		isMinter
+		isValidWrapping(tokenAddress, feeRecipient, amount)
+	{
 		uint256 costToWrap = getFeeFromAmount(tokenAddress == address(0) ? msg.value : amount);
 		uint256 leftover = tokenAddress == address(0)
 			? uint256(msg.value).sub(costToWrap)
@@ -176,7 +183,14 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
 		address tokenAddress,
 		uint256 amount,
 		address recipient
-	) public payable override isMinter isValidWrapping(tokenAddress, feeRecipient, amount) {
+	)
+		public
+		payable
+		override
+		nonReentrant
+		isMinter
+		isValidWrapping(tokenAddress, feeRecipient, amount)
+	{
 		uint256 costToWrap = getFeeFromAmount(tokenAddress == address(0) ? msg.value : amount);
 		uint256 leftover = tokenAddress == address(0)
 			? uint256(msg.value).sub(costToWrap)
@@ -204,7 +218,7 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
 		address sender,
 		address tokenAddress,
 		uint256 amount
-	) public override isMinter isValidUnwrapping(tokenAddress, amount) {
+	) public override nonReentrant isMinter isValidUnwrapping(tokenAddress, amount) {
 		// burn wrapped token from sender
 		_burn(sender, amount);
 		if (tokenAddress == address(0)) {
