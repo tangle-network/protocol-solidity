@@ -11,6 +11,7 @@ import "../utils/ProposalNonceTracker.sol";
 import "./NftTokenWrapper.sol";
 import "../interfaces/tokens/IRegistry.sol";
 import "../interfaces/tokens/IMultiTokenManager.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
     @title A Registry for registering different assets
@@ -44,6 +45,12 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
 		address _masterFeeRecipient,
 		address _maspVAnchor
 	) external onlyUninitialized {
+		require(_fungibleTokenManager != address(0), "Fungible Token Manager Address can't be 0");
+		require(_nonFungibleTokenManager != address(0), "Non-Fungible Token Manager Address can't be 0");
+		require(_handler != address(0), "Handler Address can't be 0");
+		require(_masterFeeRecipient != address(0), "Master Fee Recipient Address can't be 0");
+		require(_maspVAnchor != address(0), "MASP VAnchor Address can't be 0");
+		
 		initialized = true;
 		fungibleTokenManager = _fungibleTokenManager;
 		nonFungibleTokenManager = _nonFungibleTokenManager;

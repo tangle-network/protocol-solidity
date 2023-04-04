@@ -54,6 +54,7 @@ abstract contract HandlerHelpers is IExecutor {
 	}
 
 	function migrateBridge(address newBridge) external override onlyBridge {
+		require(newBridge != address(0), "Bridge address can't be 0");
 		_bridgeAddress = newBridge;
 	}
 }
