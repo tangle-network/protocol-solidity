@@ -1,6 +1,6 @@
 /**
- * Copyright 2021-2022 Webb Technologies
- * SPDX-License-Identifier: GPL-3.0-or-later-only
+ * Copyright 2021-2023 Webb Technologies
+ * SPDX-License-Identifier: Apache 2.0/MIT
  */
 import { BigNumber } from 'ethers';
 import { artifacts, contract, assert } from 'hardhat';
