@@ -47,7 +47,7 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, Reentr
         @notice Get the fee for a target amount to wrap
         @param _admin the address for granting minting, pausing and admin roles at initialization
      */
-	function _initialize(address _admin) internal returns (uint256) {
+	function _initialize(address _admin) internal {
 		_setupRole(MINTER_ROLE, _admin);
 		_setupRole(DEFAULT_ADMIN_ROLE, _admin);
 		_setupRole(PAUSER_ROLE, _admin);
@@ -250,7 +250,7 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, Reentr
 	function _isValidAmount(uint256 amount) internal view virtual returns (bool);
 
 	modifier isMinter() {
-		require(hasRole(MINTER_ROLE, msg.sender), "ERC20PresetMinterPauser: must have minter role");
+		require(hasRole(MINTER_ROLE, msg.sender), "TokenWrapper: must have minter role");
 		_;
 	}
 
@@ -266,16 +266,18 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, Reentr
 		uint256 _amount
 	) {
 		if (_tokenAddress == address(0)) {
-			require(_amount == 0, "Invalid amount provided for native wrapping");
-			require(_isNativeValid(), "Native wrapping is not allowed for this token wrapper");
+			require(_amount == 0, "TokenWrapper: Invalid amount provided for native wrapping");
+			require(
+				_isNativeValid(),
+				"TokenWrapper: Native wrapping is not allowed for this token wrapper"
+			);
 		} else {
-			require(msg.value == 0, "Invalid value sent for wrapping");
-			require(_isValidAddress(_tokenAddress), "Invalid token address");
+			require(msg.value == 0, "TokenWrapper: Invalid value sent for wrapping");
+			require(_isValidAddress(_tokenAddress), "TokenWrapper: Invalid token address");
 		}
 
-		require(_feeRecipient != address(0), "Fee Recipient cannot be zero address");
-
-		require(_isValidAmount(_amount), "Invalid token amount");
+		require(_feeRecipient != address(0), "TokenWrapper: Fee Recipient cannot be zero address");
+		require(_isValidAmount(_amount), "TokenWrapper: Invalid token amount");
 		_;
 	}
 
@@ -286,14 +288,20 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, Reentr
      */
 	modifier isValidUnwrapping(address _tokenAddress, uint256 _amount) {
 		if (_tokenAddress == address(0)) {
-			require(address(this).balance >= _amount, "Insufficient native balance");
-			require(_isNativeValid(), "Native unwrapping is not allowed for this token wrapper");
+			require(address(this).balance >= _amount, "TokenWrapper: Insufficient native balance");
+			require(
+				_isNativeValid(),
+				"TokenWrapper: Native unwrapping is not allowed for this token wrapper"
+			);
 		} else {
 			require(
 				IERC20(_tokenAddress).balanceOf(address(this)) >= _amount,
-				"Insufficient ERC20 balance"
+				"TokenWrapper: Insufficient ERC20 balance"
 			);
-			require(_isValidHistoricalAddress(_tokenAddress), "Invalid historical token address");
+			require(
+				_isValidHistoricalAddress(_tokenAddress),
+				"TokenWrapper: Invalid historical token address"
+			);
 		}
 
 		_;
