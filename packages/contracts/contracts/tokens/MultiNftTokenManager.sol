@@ -7,13 +7,14 @@ pragma solidity ^0.8.5;
 
 import "./NftTokenWrapper.sol";
 import "./MultiTokenManagerBase.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
     @title A MultiNftTokenManager manages NftTokenWrapper systems
     using an external `governor` address
     @author Webb Technologies.
  */
-contract MultiNftTokenManager is MultiTokenManagerBase {
+contract MultiNftTokenManager is MultiTokenManagerBase, ReentrancyGuard {
 	using SafeMath for uint256;
 
 	function registerToken(
@@ -33,7 +34,7 @@ contract MultiNftTokenManager is MultiTokenManagerBase {
 		address _handler,
 		string memory _uri,
 		bytes32 _salt
-	) external override onlyRegistry onlyInitialized returns (address) {
+	) external override nonReentrant onlyRegistry onlyInitialized returns (address) {
 		NftTokenWrapper nftWrapper = new NftTokenWrapper{ salt: _salt }(_uri);
 
 		nftWrapper.initialize(_handler);

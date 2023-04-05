@@ -7,13 +7,14 @@ pragma solidity ^0.8.5;
 
 import "./FungibleTokenWrapper.sol";
 import "./MultiTokenManagerBase.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
     @title A MultiFungibleTokenManager manages FungibleTokenWrapper systems
     using an external `handler` address.
     @author Webb Technologies.
  */
-contract MultiFungibleTokenManager is MultiTokenManagerBase {
+contract MultiFungibleTokenManager is MultiTokenManagerBase, ReentrancyGuard {
 	using SafeMath for uint256;
 
 	/**
@@ -36,7 +37,7 @@ contract MultiFungibleTokenManager is MultiTokenManagerBase {
 		uint16 _feePercentage,
 		bool _isNativeAllowed,
 		address _admin
-	) external override onlyRegistry onlyInitialized returns (address) {
+	) external override nonReentrant onlyRegistry onlyInitialized returns (address) {
 		FungibleTokenWrapper token = new FungibleTokenWrapper{ salt: _salt }(_name, _symbol);
 
 		token.initialize(

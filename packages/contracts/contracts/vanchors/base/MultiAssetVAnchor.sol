@@ -71,7 +71,7 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		uint256 _amount,
 		bytes32 partialCommitment,
 		bytes memory encryptedCommitment
-	) public payable {
+	) public payable nonReentrant {
 		// Execute the wrapping
 		uint256 wrapAmount = _executeWrapping(_fromTokenAddress, _toTokenAddress, _amount);
 		// Create the record commitment

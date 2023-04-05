@@ -12,6 +12,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "../utils/Initialized.sol";
 import "../utils/ProposalNonceTracker.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
     @title A MultiTokenManager manages FungibleTokenWrapper systems using an external `governor` address
@@ -22,7 +23,8 @@ contract NftTokenWrapper is
 	ERC1155Receiver,
 	IERC721Receiver,
 	Initialized,
-	ProposalNonceTracker
+	ProposalNonceTracker,
+	ReentrancyGuard
 {
 	using SafeMath for uint256;
 	address public handler;
@@ -43,7 +45,7 @@ contract NftTokenWrapper is
 		IERC721(_tokenContract).safeTransferFrom(msg.sender, address(this), _tokenId);
 	}
 
-	function unwrap721(uint256 _tokenId, address _tokenContract) external {
+	function unwrap721(uint256 _tokenId, address _tokenContract) external nonReentrant {
 		// Ensure msg.sender is the owner of the wrapped token
 		require(
 			balanceOf(msg.sender, _tokenId) == 1,
@@ -62,7 +64,7 @@ contract NftTokenWrapper is
 		IERC1155(_tokenContract).safeTransferFrom(msg.sender, address(this), _tokenId, 1, "");
 	}
 
-	function unwrap1155(uint256 _tokenId, address _tokenContract) external {
+	function unwrap1155(uint256 _tokenId, address _tokenContract) external nonReentrant{
 		// Ensure msg.sender is the owner of the wrapped token
 		require(
 			balanceOf(msg.sender, _tokenId) == 1,
