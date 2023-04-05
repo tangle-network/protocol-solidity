@@ -57,6 +57,7 @@ contract MultiFungibleTokenManager is MultiTokenManagerBase {
      */
 	function registerNftToken(
 		address,
+		address,
 		string memory,
 		bytes32
 	) public view override onlyRegistry onlyInitialized returns (address) {

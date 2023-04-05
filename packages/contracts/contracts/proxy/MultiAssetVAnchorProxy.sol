@@ -5,6 +5,7 @@ pragma solidity ^0.8.5;
 import "../interfaces/verifiers/IBatchVerifier.sol";
 import "../utils/Initialized.sol";
 import "../interfaces/tokens/IMintableERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../interfaces/tokens/IRegistry.sol";
 import "../interfaces/tokens/INftTokenWrapper.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
@@ -13,6 +14,7 @@ import "../interfaces/IMultiAssetVAnchorBatchTree.sol";
 import "../interfaces/tokens/ITokenWrapper.sol";
 import "../interfaces/tokens/INftTokenWrapper.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "hardhat/console.sol";
 
 /// @dev This contract holds a merkle tree of all tornado cash deposit and withdrawal events
 contract MultiAssetVAnchorProxy is Initialized, IERC721Receiver {
@@ -47,12 +49,12 @@ contract MultiAssetVAnchorProxy is Initialized, IERC721Receiver {
 	mapping(address => uint256) public nextRewardSpentTreeCommitmentIndex;
 	uint256 public lastProcessedRewardSpentTreeLeaf;
 
-	address public hasher;
+	IHasher public hasher;
 
 	mapping(address => bool) public validProxiedMASPs;
 
 	constructor(IHasher _hasher) {
-		hasher = address(_hasher);
+		hasher = _hasher;
 	}
 
 	function initialize(
@@ -135,6 +137,8 @@ contract MultiAssetVAnchorProxy is Initialized, IERC721Receiver {
 			_lastProcessedERC20DepositLeaf + _batchSize <= nextQueueERC20DepositIndex[proxiedMASP],
 			"Batch size too big"
 		);
+		console.log("Batch size: %s", _batchSize);
+		console.log("lastProcessedERC20DepositLeaf: %s", _lastProcessedERC20DepositLeaf);
 		for (
 			uint i = _lastProcessedERC20DepositLeaf;
 			i < _lastProcessedERC20DepositLeaf + _batchSize;
@@ -151,28 +155,37 @@ contract MultiAssetVAnchorProxy is Initialized, IERC721Receiver {
 					]
 				)
 			);
+			console.logBytes32(commitments[i]);
 			// Queue reward commitments
 			queueRewardUnspentTreeCommitment(
 				proxiedMASP,
 				bytes32(IHasher(hasher).hashLeftRight(uint256(commitments[i]), block.timestamp))
 			);
+			console.log("Transferring funds batch insert");
 			if (depositInfo.unwrappedToken != depositInfo.wrappedToken) {
+				console.log("transfer 111");
+				IERC20(depositInfo.unwrappedToken).approve(
+					address(depositInfo.wrappedToken),
+					uint256(depositInfo.amount)
+				);
 				IMultiAssetVAnchorBatchTree(depositInfo.proxiedMASP)._executeWrapping(
 					depositInfo.unwrappedToken,
 					depositInfo.wrappedToken,
 					depositInfo.amount
 				);
 			} else {
-				IMintableERC20(depositInfo.wrappedToken).transferFrom(
-					address(this),
+				console.log("transfer 222");
+				IERC20(depositInfo.wrappedToken).transfer(
 					address(depositInfo.proxiedMASP),
 					uint256(depositInfo.amount)
 				);
 			}
 		}
+		console.log("Does it reach here?");
 		// Update latestProcessedDepositLeaf
 		lastProcessedERC20DepositLeaf = _lastProcessedERC20DepositLeaf + _batchSize;
 		// Call batchInsert function on MASP
+		
 		IMultiAssetVAnchorBatchTree(proxiedMASP).batchInsert(
 			_proof,
 			_argsHash,
@@ -349,7 +362,7 @@ contract MultiAssetVAnchorProxy is Initialized, IERC721Receiver {
 		) {
 			QueueDepositInfo memory depositInfo = QueueERC721DepositMap[proxiedMASP][i];
 			commitments[i] = bytes32(
-				IHasher(hasher).hash4(
+				hasher.hash4(
 					[
 						depositInfo.assetID,
 						depositInfo.tokenID,

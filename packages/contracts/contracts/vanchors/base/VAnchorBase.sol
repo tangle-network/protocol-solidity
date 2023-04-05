@@ -15,6 +15,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "hardhat/console.sol";
 
 /** @dev This contract(pool) allows deposit of an arbitrary amount to it, shielded transfer to another registered user inside the pool
  * and withdrawal from the pool. Project utilizes UTXO model to handle users' funds.
@@ -158,11 +159,13 @@ abstract contract VAnchorBase is LinkableAnchor {
 	) public payable returns (uint256) {
 		// Before executing the wrapping, determine the amount which needs to be sent to the tokenWrapper
 		uint256 wrapAmount = ITokenWrapper(_toTokenAddress).getAmountToWrap(_extAmount);
-
+		console.log("wrap amount");
+		console.log(wrapAmount);
 		// If the address is zero, this is meant to wrap native tokens
 		if (_fromTokenAddress == address(0)) {
 			require(msg.value == wrapAmount);
 			// If the wrapping is native, ensure the amount sent to the tokenWrapper is 0
+			console.log("wrap for and send to native");
 			ITokenWrapper(_toTokenAddress).wrapForAndSendTo{ value: msg.value }(
 				msg.sender,
 				_fromTokenAddress,
@@ -170,6 +173,7 @@ abstract contract VAnchorBase is LinkableAnchor {
 				address(this)
 			);
 		} else {
+			console.log("wrap for and send to non-native");
 			// wrap into the token and send directly to this contract
 			ITokenWrapper(_toTokenAddress).wrapForAndSendTo{ value: msg.value }(
 				msg.sender,
@@ -178,7 +182,7 @@ abstract contract VAnchorBase is LinkableAnchor {
 				address(this)
 			);
 		}
-
+		console.log(wrapAmount);
 		return wrapAmount;
 	}
 

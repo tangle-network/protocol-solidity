@@ -35,18 +35,21 @@ template BatchTreeUpdate(levels, batchLevels, zeroBatchLeaf) {
   signal input pathElements[height];
   signal input leaves[nLeaves];
   /* signal input blocks[nLeaves]; */
-
   // Check that hash of arguments is correct
   // We compress arguments into a single hash to considerably reduce gas usage on chain
+  log(1);
   component argsHasher = TreeUpdateArgsHasher(nLeaves);
   argsHasher.oldRoot <== oldRoot;
   argsHasher.newRoot <== newRoot;
   argsHasher.pathIndices <== pathIndices;
   for(var i = 0; i < nLeaves; i++) {
+    log(leaves[i]);
     argsHasher.leaves[i] <== leaves[i];
   }
+  log(argsHash);
+  log(argsHasher.out);
   argsHash === argsHasher.out;
-
+  log(12);
   // Compute batch subtree merkle root
   component layers[batchLevels];
   for(var level = batchLevels - 1; level >= 0; level--) {
@@ -55,6 +58,7 @@ template BatchTreeUpdate(levels, batchLevels, zeroBatchLeaf) {
       layers[level].ins[i] <== level == batchLevels - 1 ? leaves[i] : layers[level + 1].outs[i];
     }
   }
+  log(123);
   // Verify that batch subtree was inserted correctly
   component treeUpdater = MerkleTreeUpdater(height, zeroBatchLeaf);
   treeUpdater.oldRoot <== oldRoot;
@@ -64,6 +68,7 @@ template BatchTreeUpdate(levels, batchLevels, zeroBatchLeaf) {
   for(var i = 0; i < height; i++) {
     treeUpdater.pathElements[i] <== pathElements[i];
   }
+  log(1234);
 }
 
 // zeroLeaf = keccak256("tornado") % FIELD_SIZE

@@ -20,6 +20,10 @@ type ProofSignals = {
   argsHash?: string;
 };
 
+const SNARK_FIELD_SIZE = BigNumber.from(
+  '21888242871839275222246405745257275088548364400416034343698204186575808495617'
+);
+
 export class ProxiedBatchTreeUpdater {
   signer: ethers.Signer;
   contract: ProxiedBatchMerkleTreeContract;
@@ -103,20 +107,21 @@ export class ProxiedBatchTreeUpdater {
 
   public static hashInputs(input: ProofSignals) {
     const sha = new jsSHA('SHA-256', 'ARRAYBUFFER');
-    sha.update(toBuffer(input.oldRoot, 32));
-    sha.update(toBuffer(input.newRoot, 32));
+    console.log("old root", toFixedHex(BigNumber.from(input.oldRoot).mod(SNARK_FIELD_SIZE)));
+    sha.update(toBuffer(BigNumber.from(input.oldRoot).mod(SNARK_FIELD_SIZE), 32));
+    console.log("new root", toFixedHex(BigNumber.from(input.newRoot).mod(SNARK_FIELD_SIZE)));
+    sha.update(toBuffer(BigNumber.from(input.newRoot).mod(SNARK_FIELD_SIZE), 32));
     sha.update(toBuffer(input.pathIndices, 4));
 
     for (let i = 0; i < input.leaves.length; i++) {
-      sha.update(toBuffer(input.leaves[i], 32));
+      console.log("leaves", toFixedHex(BigNumber.from(input.leaves[i]).mod(SNARK_FIELD_SIZE)));
+      sha.update(toBuffer(BigNumber.from(input.leaves[i]).mod(SNARK_FIELD_SIZE), 32));
     }
 
     const hash = '0x' + sha.getHash('HEX');
     const result = BigNumber.from(hash)
       .mod(
-        BigNumber.from(
-          '21888242871839275222246405745257275088548364400416034343698204186575808495617'
-        )
+        SNARK_FIELD_SIZE
       )
       .toString();
     return result;
@@ -160,10 +165,12 @@ export class ProxiedBatchTreeUpdater {
     this.tree.bulkInsert(leaves);
     const newRoot: string = this.tree.root().toString();
     let { pathElements, pathIndices } = this.tree.path(this.tree.elements().length - 1);
+    console.log(pathIndices, 'pathIndices');
     let batchPathElements: string[] = pathElements.slice(batchHeight).map((e) => e.toString());
     let batchPathIndices: number = MerkleTree.calculateIndexFromPathIndices(
       pathIndices.slice(batchHeight)
     );
+    console.log(batchPathIndices, 'batchPathIndices');
     // pathIndices = MerkleTree.calculateIndexFromPathIndices(pathIndices.slice(batchHeight));
     const input: ProofSignals = {
       oldRoot,
@@ -173,16 +180,50 @@ export class ProxiedBatchTreeUpdater {
       leaves,
     };
 
+    console.log(input);
+
     input['argsHash'] = ProxiedBatchTreeUpdater.hashInputs(input);
 
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
-      input,
-      zkComponent.wasm,
-      zkComponent.zkey
+    const wtns = await zkComponent.witnessCalculator.calculateWTNSBin(input, 0);
+    
+    const res= await snarkjs.groth16.prove(
+      zkComponent.zkey,
+      wtns,
     );
-    const vKey = await snarkjs.zKey.exportVerificationKey(zkComponent.zkey);
-    const verified = await snarkjs.groth16.verify(vKey, publicSignals, proof);
-    return { input, proof, publicSignals, verified };
+
+    const calldata = await snarkjs.groth16.exportSolidityCallData(res.proof, res.publicSignals);
+    const proofJson = JSON.parse('[' + calldata + ']');
+    const pi_a = proofJson[0];
+    const pi_b = proofJson[1];
+    const pi_c = proofJson[2];
+
+    let proofEncoded = [
+      pi_a[0],
+      pi_a[1],
+      pi_b[0][0],
+      pi_b[0][1],
+      pi_b[1][0],
+      pi_b[1][1],
+      pi_c[0],
+      pi_c[1],
+    ]
+      .map((elt) => elt.substr(2))
+      .join('');
+
+    proofEncoded = `0x${proofEncoded}`;
+
+    const proof = proofEncoded;
+    const publicSignals = res.publicSignals;
+    console.log(proof, publicSignals, 'proof, publicSignals')
+
+    // const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+    //   input,
+    //   zkComponent.wasm,
+    //   zkComponent.zkey
+    // );
+    // const vKey = await snarkjs.zKey.exportVerificationKey(zkComponent.zkey);
+    // const verified = await snarkjs.groth16.verify(vKey, publicSignals, proof);
+    return { input, proof, publicSignals };
   }
 
   public async batchInsert(batchSize: number) {

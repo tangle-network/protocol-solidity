@@ -87,6 +87,13 @@ contract ProxiedBatchMerkleTree is MerkleTreeWithHistory, ProofUtils {
 		require(_pathIndices == offset >> _batchHeight, "Incorrect deposit insert index");
 		this.checkLeavesLength(_leaves);
 
+		_newRoot = bytes32(uint256(_newRoot) % SNARK_FIELD);
+		_currentRoot = bytes32(uint256(_currentRoot) % SNARK_FIELD);
+		console.log("newRoot");
+		console.logBytes32(_newRoot);
+		console.log("currentRoot");
+		console.logBytes32(_currentRoot);
+
 		bytes memory data = new bytes(HEADER_SIZE + ITEM_SIZE * _leaves.length);
 		assembly {
 			mstore(add(data, 0x44), _pathIndices)
@@ -94,9 +101,9 @@ contract ProxiedBatchMerkleTree is MerkleTreeWithHistory, ProofUtils {
 			mstore(add(data, 0x20), _currentRoot)
 		}
 		for (uint256 i = 0; i < _leaves.length; i++) {
-			bytes32 leafHash = _leaves[i];
-			bytes32 deposit = queue[offset + i];
-			require(leafHash == deposit, "Incorrect deposit");
+			bytes32 leafHash = bytes32(uint256(_leaves[i]) % SNARK_FIELD);
+			console.log("leafHash");
+			console.logBytes32(leafHash);
 			assembly {
 				let itemOffset := add(data, mul(ITEM_SIZE, i))
 				mstore(add(itemOffset, 0x64), leafHash)
@@ -105,6 +112,10 @@ contract ProxiedBatchMerkleTree is MerkleTreeWithHistory, ProofUtils {
 		}
 
 		uint256 argsHash = uint256(sha256(data)) % SNARK_FIELD;
+		console.log("argsHash");
+		console.logUint(argsHash);
+		console.log("argsHash");
+		console.logUint(uint256(_argsHash));
 		require(argsHash == uint256(_argsHash), "Invalid args hash");
 		uint256[8] memory p = abi.decode(_proof, (uint256[8]));
 		(uint256[2] memory a, uint256[2][2] memory b, uint256[2] memory c) = unpackProof(p);

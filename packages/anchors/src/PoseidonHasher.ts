@@ -46,7 +46,7 @@ export class PoseidonHasher {
     const libraryAddresses = {
       ['contracts/hashers/Poseidon.sol:PoseidonT3']: poseidonT3Library.address,
       ['contracts/hashers/Poseidon.sol:PoseidonT4']: poseidonT4Library.address,
-      ['contracts/hashers/Poseidon.sol:PoseidonT5']: poseidonT4Library.address,
+      ['contracts/hashers/Poseidon.sol:PoseidonT5']: poseidonT5Library.address,
       ['contracts/hashers/Poseidon.sol:PoseidonT6']: poseidonT6Library.address,
     };
     const { contract } = await deployer.deploy(
@@ -80,7 +80,7 @@ export class PoseidonHasher {
     const libraryAddresses = {
       ['contracts/hashers/Poseidon.sol:PoseidonT3']: poseidonT3Library.address,
       ['contracts/hashers/Poseidon.sol:PoseidonT4']: poseidonT4Library.address,
-      ['contracts/hashers/Poseidon.sol:PoseidonT5']: poseidonT4Library.address,
+      ['contracts/hashers/Poseidon.sol:PoseidonT5']: poseidonT5Library.address,
       ['contracts/hashers/Poseidon.sol:PoseidonT6']: poseidonT6Library.address,
     };
     const factory = new PoseidonHasher__factory(libraryAddresses, signer);

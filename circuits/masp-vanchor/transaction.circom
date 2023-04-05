@@ -197,7 +197,7 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
         outInnerPartialCommitmentHasher[tx].blinding <== outBlinding[tx];
 
         outPartialCommitmentHasher[tx] = PartialRecord();
-        outPartialCommitmentHasher[tx].chainID <== chainID;
+        outPartialCommitmentHasher[tx].chainID <== outChainID[tx];
         outPartialCommitmentHasher[tx].pk_X <== outPk_X[tx];
         outPartialCommitmentHasher[tx].pk_Y <== outPk_Y[tx];
         outPartialCommitmentHasher[tx].innerPartialRecord <== outInnerPartialCommitmentHasher[tx].innerPartialRecord;
@@ -327,7 +327,7 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
         feeOutInnerPartialCommitmentHasher[tx].blinding <== feeOutBlinding[tx];
 
         feeOutPartialCommitmentHasher[tx] = PartialRecord();
-        feeOutPartialCommitmentHasher[tx].chainID <== chainID;
+        feeOutPartialCommitmentHasher[tx].chainID <== feeOutChainID[tx];
         feeOutPartialCommitmentHasher[tx].pk_X <== feeOutPk_X[tx];
         feeOutPartialCommitmentHasher[tx].pk_Y <== feeOutPk_Y[tx];
         feeOutPartialCommitmentHasher[tx].innerPartialRecord <== feeOutInnerPartialCommitmentHasher[tx].innerPartialRecord;
@@ -345,7 +345,7 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
         feeOutAmountCheck[tx] = Num2Bits(248);
         feeOutAmountCheck[tx].in <== feeOutAmount[tx];
 
-        sumOuts += feeOutAmount[tx];
+        sumFeeOuts += feeOutAmount[tx];
     }
 
     // check that there are no same nullifiers among all inputs
@@ -357,7 +357,7 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
           sameFeeNullifiers[feeIndex].in[0] <== feeInputNullifier[i];
           sameFeeNullifiers[feeIndex].in[1] <== feeInputNullifier[j];
           sameFeeNullifiers[feeIndex].out === 0;
-          index++;
+          feeIndex++;
       }
     }
 

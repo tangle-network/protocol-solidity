@@ -4,6 +4,8 @@ import {
   MultiAssetVAnchorProxy__factory,
 } from '@webb-tools/contracts';
 
+import { poseidon } from 'circomlibjs';
+
 import {
   MultiAssetVAnchorBatchTree as MultiAssetVAnchorBatchTreeContract,
   MultiAssetVAnchorBatchTree__factory,
@@ -12,6 +14,8 @@ import {
 import { MultiAssetVAnchorBatchUpdatableTree } from './MultiAssetVAnchorBatchUpdatableTree';
 
 import { QueueDepositInfo } from '@webb-tools/interfaces';
+import { toFixedHex } from '@webb-tools/sdk-core';
+import { MaspUtxo } from '@webb-tools/utils';
 
 export class MultiAssetVAnchorProxy {
   contract: MultiAssetVAnchorProxyContract;
@@ -38,22 +42,26 @@ export class MultiAssetVAnchorProxy {
 
   // Queue ERC20 deposits
   public async queueERC20Deposit(depositInfo: QueueDepositInfo) {
-    await this.contract.queueERC20Deposit(depositInfo);
+    const tx = await this.contract.queueERC20Deposit(depositInfo);
+    await tx.wait();
   }
 
   // Queue ERC721 deposits
   public async queueERC721Deposit(depositInfo: QueueDepositInfo) {
-    await this.contract.queueERC721Deposit(depositInfo);
+    const tx = await this.contract.queueERC721Deposit(depositInfo);
+    await tx.wait();
   }
 
   // Queue reward unspent tree commitments
   public async queueRewardUnspentCommitment(masp: string, commitment: string) {
-    await this.contract.queueRewardUnspentTreeCommitment(masp, commitment);
+    const tx = await this.contract.queueRewardUnspentTreeCommitment(masp, commitment);
+    await tx.wait();
   }
 
   // Queue reward spent tree commitments
   public async queueRewardSpentCommitment(commitment: string) {
-    await this.contract.queueRewardSpentTreeCommitment(commitment);
+    const tx = await this.contract.queueRewardSpentTreeCommitment(commitment);
+    await tx.wait();
   }
 
   // Batch insert ERC20 deposits
@@ -63,21 +71,27 @@ export class MultiAssetVAnchorProxy {
     batchHeight: BigNumber
   ) {
     const batchSize = BigNumber.from(2).pow(batchHeight);
-    const leaves = (await this.getQueuedERC20Deposits(masp.contract.address, startQueueIndex, batchSize)).map(x => x.depositPartialCommitment);
+    const leaves = (await this.getQueuedERC20Deposits(masp.contract.address, startQueueIndex, batchSize)).map(x => toFixedHex(BigNumber.from(poseidon([x.assetID, x.tokenID, x.amount, x.depositPartialCommitment]))));
     const batchProofInfo = await masp.depositTree.generateProof(
       batchSize.toNumber(),
       leaves
     );
 
-    await this.contract.batchDepositERC20s(
+    console.log(batchProofInfo.proof, batchProofInfo.input.argsHash!, batchProofInfo.input.oldRoot, batchProofInfo.input.newRoot, batchProofInfo.input.pathIndices, batchHeight, "batchProofInfo");
+
+    console.log('it reached here');
+
+    const batchTx = await this.contract.batchDepositERC20s(
       masp.contract.address,
       batchProofInfo.proof,
-      batchProofInfo.input.argsHash!,
-      batchProofInfo.input.oldRoot,
-      batchProofInfo.input.newRoot,
+      toFixedHex(BigNumber.from(batchProofInfo.input.argsHash!), 32),
+      toFixedHex(BigNumber.from(batchProofInfo.input.oldRoot), 32),
+      toFixedHex(BigNumber.from(batchProofInfo.input.newRoot), 32),
       batchProofInfo.input.pathIndices,
       batchHeight
     );
+
+    await batchTx.wait();
   }
 
   // Batch insert ERC721 deposits

@@ -125,6 +125,7 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
 		);
 		address token = IMultiTokenManager(nonFungibleTokenManager).registerNftToken(
 			_tokenHandler,
+			_unwrappedNftAddress,
 			_uri,
 			_salt
 		);

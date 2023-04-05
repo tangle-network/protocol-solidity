@@ -11,6 +11,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import "hardhat/console.sol";
 
 /**
     @title A token that allows ERC20s to wrap into and mint it.
@@ -185,11 +186,15 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper {
 		} else {
 			// transfer liquidity to the token wrapper
 			IERC20(tokenAddress).transferFrom(sender, address(this), leftover);
+			console.log("address(this)");
 			// transfer fee (costToWrap) to feeRecipient
 			IERC20(tokenAddress).transferFrom(sender, feeRecipient, costToWrap);
+			console.log("feeRecipient");
 		}
 		// mint the wrapped token for the recipient
+		console.log("hi minting 1");
 		_mint(recipient, leftover);
+		console.log("hi minting 2");
 	}
 
 	/**

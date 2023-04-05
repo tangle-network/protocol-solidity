@@ -31,12 +31,13 @@ contract MultiNftTokenManager is MultiTokenManagerBase {
 
 	function registerNftToken(
 		address _handler,
+		address _unwrappedNftAddress,
 		string memory _uri,
 		bytes32 _salt
 	) external override onlyRegistry onlyInitialized returns (address) {
 		NftTokenWrapper nftWrapper = new NftTokenWrapper{ salt: _salt }(_uri);
 
-		nftWrapper.initialize(_handler);
+		nftWrapper.initialize(_handler, _unwrappedNftAddress);
 
 		wrappedTokens.push(address(nftWrapper));
 		return address(nftWrapper);
