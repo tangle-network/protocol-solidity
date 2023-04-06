@@ -11,6 +11,7 @@ import "./utils/Governable.sol";
 import "./utils/ChainIdWithType.sol";
 import "./utils/ProposalNonceTracker.sol";
 import "./interfaces/IExecutor.sol";
+import "hardhat/console.sol";
 
 /**
     @title Facilitates proposals execution and resource ID additions/updates
@@ -116,6 +117,7 @@ contract SignatureBridge is Pausable, Governable, ChainIdWithType, ProposalNonce
 			"SignatureBridge: Executing on wrong chain"
 		);
 		address handler = _resourceIDToHandlerAddress[resourceID];
+		console.log("handler: %s", handler);
 		IExecutor executionHandler = IExecutor(handler);
 		executionHandler.executeProposal(resourceID, data);
 	}

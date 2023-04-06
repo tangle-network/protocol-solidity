@@ -92,7 +92,6 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
       [],
       admin
     );
-
     // Create ERC20 Token
     erc20TokenInstance = await MintableToken.createToken('testToken', 'TEST', admin);
     await erc20TokenInstance.mintTokens(admin.address, '100000000000000000000000');
@@ -108,7 +107,6 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
       true,
       admin
     );
-
     // Set bridgeSide handler to tokenWrapperHandler
     bridgeSide.setTokenWrapperHandler(tokenWrapperHandler);
 
@@ -118,7 +116,6 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
     wrappingFee = 10;
     // Execute change fee proposal
     await bridgeSide.executeFeeProposalWithSig(fungibleToken, wrappingFee);
-
     // Check that fee actually changed
     assert.strictEqual((await fungibleToken.contract.getFee()).toString(), '10');
     assert.strictEqual((await fungibleToken.contract.proposalNonce()).toString(), '1');
@@ -128,7 +125,6 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
       fungibleToken,
       erc20TokenInstance.contract.address
     );
-
     // Check that fungibleToken contains the added token
     assert(
       (await fungibleToken.contract.getTokens()).includes(erc20TokenInstance.contract.address)
@@ -143,14 +139,13 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
     const hasherInstance = await PoseidonHasher.createPoseidonHasher(admin);
 
     const verifier = await Verifier.createVerifier(admin);
-
+    
     anchorHandler = await AnchorHandler.createAnchorHandler(
       bridgeSide.contract.address,
       [],
       [],
       admin
     );
-
     let depositAmount = 1e7;
     srcAnchor = await VAnchor.createVAnchor(
       verifier.contract.address,
@@ -163,11 +158,12 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
       zkComponents16_2,
       admin
     );
-
     await fungibleToken.grantMinterRole(srcAnchor.contract.address);
     let amountToWrap = await fungibleToken.contract.getAmountToWrap(BigNumber.from(1e7));
     await erc20TokenInstance.approveSpending(fungibleToken.contract.address, amountToWrap);
     bridgeSide.setAnchorHandler(anchorHandler);
+    // Connect resourceID of srcAnchor with AnchorHandler on the SignatureBridge
+    await bridgeSide.setAnchorResourceWithSignature(srcAnchor);
     await bridgeSide.executeMinWithdrawalLimitProposalWithSig(
       srcAnchor,
       BigNumber.from(0).toString()
@@ -176,7 +172,6 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
       srcAnchor,
       BigNumber.from(1e8).toString()
     );
-
     // Define inputs/outputs for transact function
     const depositUtxo = await CircomUtxo.generateUtxo({
       curve: 'Bn254',
@@ -189,7 +184,6 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
 
     // Change Fee Recipient to treasury Address
     await bridgeSide.executeFeeRecipientProposalWithSig(fungibleToken, treasury.contract.address);
-
     // For ERC20 Tests
     await srcAnchor.transact(
       [],
@@ -201,7 +195,6 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
       erc20TokenInstance.contract.address,
       {}
     );
-
     // Anchor Denomination amount should go to TokenWrapper
     assert.strictEqual(
       (await erc20TokenInstance.getBalance(fungibleToken.contract.address)).toString(),

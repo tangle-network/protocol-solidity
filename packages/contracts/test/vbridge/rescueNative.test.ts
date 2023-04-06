@@ -147,6 +147,8 @@ describe('Rescue Tokens Tests for Native ETH', () => {
 
     await fungibleToken.grantMinterRole(srcAnchor.contract.address);
     bridgeSide.setAnchorHandler(anchorHandler);
+    // Connect resourceID of srcAnchor with AnchorHandler on the SignatureBridge
+    await bridgeSide.setAnchorResourceWithSignature(srcAnchor);
     await bridgeSide.executeMinWithdrawalLimitProposalWithSig(
       srcAnchor,
       BigNumber.from(0).toString()
