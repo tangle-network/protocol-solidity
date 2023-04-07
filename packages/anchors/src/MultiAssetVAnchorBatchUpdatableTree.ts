@@ -220,37 +220,36 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
   }
 
   public async transact(
+    assetID: BigNumber,
+    tokenID: BigNumber,
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
     alphas: string[],
+    fee: BigNumber,
+    feeAssetID: BigNumber,
+    feeTokenID: BigNumber,
     feeInputs: MaspUtxo[],
     feeOutputs: MaspUtxo[],
     fee_alphas: string[],
     whitelistedAssetIds: number[],
-    refund: BigNumberish,
+    refund: BigNumber,
     recipient: string,
     relayer: string,
-    wrappedToken: string,
-    tokenId: BigNumber,
     signer: ethers.Signer
   ): Promise<ethers.ContractReceipt> {
     // Default UTXO chain ID will match with the configured signer's chain ID
     const evmId = await this.signer.getChainId();
     const chainId = getChainIdType(evmId);
-
     const registry = await Registry.connect(await this.contract.registry(), signer);
-    const assetID = await registry.contract.getAssetIdFromWrappedAddress(wrappedToken);
+    const wrappedToken = await registry.contract.getWrappedAssetAddress(assetID);
     const dummyMaspKey = new MaspKey();
-    const feeAssetId = feeInputs[0].assetID;
-    const feeTokenId = feeInputs[0].tokenID;
-    const fee = 0;
 
     while (inputs.length !== 2 && inputs.length < 16) {
-      const dummyUtxo =    new MaspUtxo(
+      const dummyUtxo = new MaspUtxo(
         BigNumber.from(chainId),
         dummyMaspKey,
-        BigNumber.from(1),
-        BigNumber.from(0),
+        assetID,
+        tokenID,
         BigNumber.from(0)
       )
       inputs.push(
@@ -265,8 +264,8 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
           new MaspUtxo(
             BigNumber.from(chainId),
             dummyMaspKey,
-            BigNumber.from(1),
-            BigNumber.from(0),
+            assetID,
+            tokenID,
             BigNumber.from(0)
           )
         );
@@ -304,7 +303,7 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
     const merkleProofs = inputs.map((x) => MultiAssetVAnchor.getMASPMerkleProof(x, this.depositTree.tree));
     const feeMerkleProofs = feeInputs.map((x) => MultiAssetVAnchor.getMASPMerkleProof(x, this.depositTree.tree));
 
-    let extAmount = BigNumber.from(fee)
+    let extAmount = fee
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
 
@@ -312,8 +311,8 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
       recipient,
       extAmount,
       relayer,
-      BigNumber.from(fee),
-      BigNumber.from(refund),
+      fee,
+      refund,
       wrappedToken,
       toFixedHex(0), //outputs[0].encrypt(outputs[0].maspKey).toString(),
       toFixedHex(0), // outputs[1].encrypt(outputs[1].maspKey).toString()
@@ -325,12 +324,12 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
       roots,
       chainId,
       assetID.toNumber(),
-      tokenId.toNumber(),
+      tokenID.toNumber(),
       inputs,
       outputs,
       alphas,
-      feeAssetId.toNumber(),
-      feeTokenId.toNumber(),
+      feeAssetID.toNumber(),
+      feeTokenID.toNumber(),
       whitelistedAssetIds,
       feeInputs,
       feeOutputs,
@@ -371,16 +370,8 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
       },
       {}
     );
-    const receipt = await tx.wait();
 
-    // Add the leaves to the tree
-    outputs.forEach((x) => {
-      // Maintain tree state after insertions
-      this.tree.insert(x.getCommitment());
-      x.setIndex(BigNumber.from(this.tree.indexOf(x.getCommitment())));
-      let numOfElements = this.tree.number_of_elements();
-      this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
-    });
+    const receipt = await tx.wait();
 
     return receipt;
   }
