@@ -1,6 +1,6 @@
 /**
  * Copyright 2021-2023 Webb Technologies
- * SPDX-License-Identifier: Apache 2.0/MIT
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
 pragma solidity ^0.8.5;
@@ -18,7 +18,7 @@ contract RateLimitedVAnchor is VAnchorTree {
 	using SafeERC20 for IERC20;
 	using SafeMath for uint256;
 
-	uint256 public DAILY_WITHDRAWAL_LIMIT = 1_000_000 * 10**18;
+	uint256 public DAILY_WITHDRAWAL_LIMIT = 1_000_000 * 10 ** 18;
 	uint256 public currentDailyWithdrawal = 0;
 	uint256 public startTime = 0;
 
@@ -51,12 +51,7 @@ contract RateLimitedVAnchor is VAnchorTree {
 		CommonExtData memory _externalData,
 		PublicInputs memory _publicInputs,
 		Encryptions memory _encryptions
-	)
-		public
-		payable
-		override
-		nonReentrant
-	{
+	) public payable override nonReentrant {
 		// If we are in the current day, continue to add to the currentDailyWithdrawal
 		if (block.timestamp < startTime + 1 days) {
 			currentDailyWithdrawal = (_externalData.extAmount < 0)

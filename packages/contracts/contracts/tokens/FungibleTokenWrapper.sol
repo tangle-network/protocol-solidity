@@ -1,6 +1,6 @@
 /**
  * Copyright 2021-2023 Webb Technologies
- * SPDX-License-Identifier: Apache 2.0/MIT
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
 pragma solidity ^0.8.5;
@@ -28,12 +28,14 @@ contract FungibleTokenWrapper is
 	address public handler;
 	address[] public tokens;
 	address[] public historicalTokens;
-	event HandlerIsSet(address _handler);
+
 	mapping(address => bool) valid;
 	mapping(address => bool) historicallyValid;
 
 	bool public isNativeAllowed;
 	uint256 public wrappingLimit;
+
+	event HandlerUpdated(address _handler);
 
 	/**
         @notice FungibleTokenWrapper constructor
@@ -59,9 +61,12 @@ contract FungibleTokenWrapper is
 		bool _isNativeAllowed,
 		address _admin
 	) public onlyUninitialized {
-		require(_feeRecipient != address(0), "Fee Recipient Address can't be 0");
-		require(_handler != address(0), "Handler Address can't be 0");
-		require(_admin != address(0), "Admin Address can't be 0");
+		require(
+			_feeRecipient != address(0),
+			"FungibleTokenWrapper: Fee Recipient Address can't be 0"
+		);
+		require(_handler != address(0), "FungibleTokenWrapper: Handler Address can't be 0");
+		require(_admin != address(0), "FungibleTokenWrapper: Admin Address can't be 0");
 		super._initialize(_admin);
 		initialized = true;
 		feePercentage = _feePercentage;
@@ -77,9 +82,9 @@ contract FungibleTokenWrapper is
         @notice Only the handler can call this function
      */
 	function setHandler(address _handler) public onlyHandler {
-		require(_handler != address(0), "Handler Address can't be 0");
+		require(_handler != address(0), "FungibleTokenWrapper: Handler Address can't be 0");
 		handler = _handler;
-		emit HandlerIsSet(_handler);
+		emit HandlerUpdated(_handler);
 	}
 
 	/**
@@ -144,10 +149,7 @@ contract FungibleTokenWrapper is
 		uint16 _feePercentage,
 		uint32 _nonce
 	) external override onlyHandler onlyIncrementingByOne(_nonce) {
-		require(
-			_feePercentage <= 10_000,
-			"FungibleTokenWrapper: Invalid fee percentage"
-		);
+		require(_feePercentage <= 10_000, "FungibleTokenWrapper: Invalid fee percentage");
 		feePercentage = _feePercentage;
 	}
 

@@ -1,6 +1,6 @@
 /**
  * Copyright 2021 Webb Technologies
- * SPDX-License-Identifier: Apache 2.0/MIT
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
 import { PoseidonHasher } from '@webb-tools/anchors';

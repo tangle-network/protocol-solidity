@@ -1,6 +1,6 @@
 /**
  * Copyright 2021-2023 Webb Technologies
- * SPDX-License-Identifier: Apache 2.0/MIT
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
 pragma solidity ^0.8.5;
@@ -15,7 +15,7 @@ contract Treasury is ITreasury, ProposalNonceTracker {
 	using SafeERC20 for IERC20;
 	address treasuryHandler;
 
-	event TreasuryHandlerIsSet(address _handler);
+	event TreasuryHandlerUpdated(address _handler);
 
 	constructor(address _treasuryHandler) {
 		require(_treasuryHandler != address(0), "Treasury Handler can't be 0");
@@ -61,7 +61,7 @@ contract Treasury is ITreasury, ProposalNonceTracker {
 	) external override onlyHandler onlyIncrementingByOne(nonce) {
 		require(newHandler != address(0), "Handler cannot be 0");
 		treasuryHandler = newHandler;
-		emit TreasuryHandlerIsSet(treasuryHandler);
+		emit TreasuryHandlerUpdated(treasuryHandler);
 	}
 
 	receive() external payable {}

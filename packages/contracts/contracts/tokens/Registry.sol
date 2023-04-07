@@ -1,24 +1,24 @@
 /**
  * Copyright 2021-2023 Webb Technologies
- * SPDX-License-Identifier: Apache 2.0/MIT
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
 pragma solidity ^0.8.5;
 
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./FungibleTokenWrapper.sol";
+import "./NftTokenWrapper.sol";
 import "../utils/Initialized.sol";
 import "../utils/ProposalNonceTracker.sol";
-import "./NftTokenWrapper.sol";
 import "../interfaces/tokens/IRegistry.sol";
 import "../interfaces/tokens/IMultiTokenManager.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
     @title A Registry for registering different assets
     ERC20 / ERC721 / ERC1155 tokens on the bridge
     @author Webb Technologies.
  */
-contract Registry is Initialized, IRegistry, ProposalNonceTracker {
+contract Registry is Initialized, IRegistry, ProposalNonceTracker, ReentrancyGuard {
 	using SafeMath for uint256;
 
 	address public fungibleTokenManager;
@@ -45,12 +45,21 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
 		address _masterFeeRecipient,
 		address _maspVAnchor
 	) external onlyUninitialized {
-		require(_fungibleTokenManager != address(0), "Fungible Token Manager Address can't be 0");
-		require(_nonFungibleTokenManager != address(0), "Non-Fungible Token Manager Address can't be 0");
-		require(_handler != address(0), "Handler Address can't be 0");
-		require(_masterFeeRecipient != address(0), "Master Fee Recipient Address can't be 0");
-		require(_maspVAnchor != address(0), "MASP VAnchor Address can't be 0");
-		
+		require(
+			_fungibleTokenManager != address(0),
+			"Registry: Fungible Token Manager Address can't be 0"
+		);
+		require(
+			_nonFungibleTokenManager != address(0),
+			"Registry: Non-Fungible Token Manager Address can't be 0"
+		);
+		require(_handler != address(0), "Registry: Handler Address can't be 0");
+		require(
+			_masterFeeRecipient != address(0),
+			"Registry: Master Fee Recipient Address can't be 0"
+		);
+		require(_maspVAnchor != address(0), "Registry: MASP VAnchor Address can't be 0");
+
 		initialized = true;
 		fungibleTokenManager = _fungibleTokenManager;
 		nonFungibleTokenManager = _nonFungibleTokenManager;
@@ -84,7 +93,7 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
 		uint256 _limit,
 		uint16 _feePercentage,
 		bool _isNativeAllowed
-	) external override onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
+	) external override nonReentrant onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
 		require(_assetIdentifier != 0, "Registry: Asset identifier cannot be 0");
 		require(
 			idToWrappedAsset[_assetIdentifier] == address(0x0),
@@ -119,7 +128,7 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
 		uint256 _assetIdentifier,
 		string memory _uri,
 		bytes32 _salt
-	) external override onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
+	) external override nonReentrant onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
 		require(_assetIdentifier != 0, "Registry: Asset identifier cannot be 0");
 		require(
 			idToWrappedAsset[_assetIdentifier] == address(0x0),
