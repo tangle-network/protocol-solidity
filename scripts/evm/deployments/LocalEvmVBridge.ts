@@ -7,6 +7,7 @@ import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '@web
 import { CircomUtxo } from '@webb-tools/sdk-core';
 import ECPairFactory, { ECPairAPI, TinySecp256k1Interface } from 'ecpair';
 import { LocalEvmChain } from '@webb-tools/evm-test-utils';
+import Create2VBridge from './create2/create2Bridge';
 
 const tinysecp: TinySecp256k1Interface = require('tiny-secp256k1');
 const ECPair: ECPairAPI = ECPairFactory(tinysecp);
@@ -185,6 +186,7 @@ async function main() {
   const chainAWallet = new ethers.Wallet(relayerPrivateKey, chainA.provider());
   const chainBWallet = new ethers.Wallet(relayerPrivateKey, chainB.provider());
   const chainCWallet = new ethers.Wallet(relayerPrivateKey, chainC.provider());
+  console.log('deployer', chainAWallet.address);
   console.log('Before random transfers');
   // do a random transfer on chainA to a random address
   // do it on chainB twice.
@@ -214,13 +216,19 @@ async function main() {
   console.log('After deploy WEBB tokens');
   // Deploy the signature bridge.
   let zkComponents = await fetchZkFixtures([chainA, chainB, chainC]);
-  const signatureBridge = await LocalEvmChain.deployVBridge(
+  const signatureBridgeConfig = await LocalEvmChain.deployVBridgeConfig(
     [chainA, chainB, chainC],
     [chainAToken, chainBToken, chainCToken],
-    [chainAWallet, chainBWallet, chainCWallet],
+    [chainAWallet, chainBWallet, chainCWallet]
+  );
+  const signatureBridge = await Create2VBridge.deployVariableAnchorBridge(
+    signatureBridgeConfig.bridgeInput,
+    signatureBridgeConfig.deployerConfig,
+    signatureBridgeConfig.governorConfig,
     zkComponents.zkComponentsSmall,
     zkComponents.zkComponentsLarge
   );
+  const signatureBridge1 = signatureBridge.intoVBridge();
   console.log('After deploying VBridges');
   // get chainA bridge
   const chainASignatureBridge = signatureBridge.getVBridgeSide(chainA.typedChainId)!;
@@ -340,7 +348,7 @@ async function main() {
         amount: '10000000000',
       });
 
-      await signatureBridge.transact([], [utxo], '0', '0', '0', '0', '', chainAWallet);
+      await signatureBridge1.transact([], [utxo], '0', '0', '0', '0', '', chainAWallet);
       return;
     }
 

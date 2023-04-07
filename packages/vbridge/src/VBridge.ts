@@ -90,6 +90,18 @@ export class VBridge {
   public static createVAnchorIdString(vAnchorIdentifier: AnchorIdentifier): string {
     return `${vAnchorIdentifier.chainId.toString()}`;
   }
+  /**
+   *  Create a new vBridge instance from  fields
+   *
+   * */
+  public static new(
+    vBridgeSides: Map<number, SignatureBridgeSide>,
+    webbTokenAddresses: Map<number, string>,
+    linkedVAnchors: Map<string, VAnchor[]>,
+    vAnchors: Map<string, VAnchor>
+  ): VBridge {
+    return new VBridge(vBridgeSides, webbTokenAddresses, linkedVAnchors, vAnchors);
+  }
 
   public static createVAnchorIdentifier(vAnchorString: string): AnchorIdentifier | null {
     return {

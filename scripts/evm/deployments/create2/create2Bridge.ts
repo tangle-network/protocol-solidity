@@ -9,7 +9,7 @@ import {
 import { AnchorIdentifier, GovernorConfig, DeployerConfig } from '@webb-tools/interfaces';
 import { AnchorHandler, Deployer, PoseidonHasher, VAnchor } from '@webb-tools/anchors';
 import { getChainIdType, ZkComponents } from '@webb-tools/utils';
-import { Verifier } from '@webb-tools/vbridge';
+import { VBridge, Verifier } from '@webb-tools/vbridge';
 import { DeterministicDeployFactory__factory } from '@webb-tools/contracts';
 
 export type ExistingAssetInput = {
@@ -332,6 +332,15 @@ export class Create2VBridge {
       vAnchors: this.vAnchors,
       vBridgeSides: this.vBridgeSides,
     };
+  }
+
+  public intoVBridge(): VBridge {
+    return VBridge.new(
+      new Map([...this.vBridgeSides]),
+      new Map([...this.webbTokenAddresses]),
+      new Map([...this.linkedVAnchors]),
+      new Map([...this.vAnchors])
+    );
   }
 }
 

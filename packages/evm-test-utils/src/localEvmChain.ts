@@ -1,4 +1,9 @@
-import { IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
+import {
+  DeployerConfig,
+  GovernorConfig,
+  IVariableAnchorExtData,
+  IVariableAnchorPublicInputs,
+} from '@webb-tools/interfaces';
 import { VAnchor } from '@webb-tools/anchors';
 import { CircomUtxo, Keypair, Utxo } from '@webb-tools/sdk-core';
 import { MintableToken } from '@webb-tools/tokens';
@@ -54,15 +59,18 @@ export class LocalEvmChain {
   ): Promise<MintableToken> {
     return MintableToken.createToken(name, symbol, wallet);
   }
-
-  // It is expected that parameters are passed with the same indices of arrays.
-  public static async deployVBridge(
+  /**
+   * Map the configs to vBridge configuration
+   * */
+  public static async deployVBridgeConfig(
     chains: LocalEvmChain[],
     tokens: MintableToken[],
-    wallets: ethers.Wallet[],
-    zkComponentsSmall: ZkComponents,
-    zkComponentsLarge: ZkComponents
-  ): Promise<VBridge> {
+    wallets: ethers.Wallet[]
+  ): Promise<{
+    bridgeInput: VBridgeInput;
+    deployerConfig: DeployerConfig;
+    governorConfig: GovernorConfig;
+  }> {
     const assetRecord: Record<number, string[]> = {};
     const deployers: Record<number, ethers.Wallet> = {};
     const governors: Record<number, string> = {};
@@ -89,7 +97,26 @@ export class LocalEvmChain {
     const governorConfig = {
       ...governors,
     };
+    return {
+      bridgeInput,
+      deployerConfig,
+      governorConfig,
+    };
+  }
 
+  // It is expected that parameters are passed with the same indices of arrays.
+  public static async deployVBridge(
+    chains: LocalEvmChain[],
+    tokens: MintableToken[],
+    wallets: ethers.Wallet[],
+    zkComponentsSmall: ZkComponents,
+    zkComponentsLarge: ZkComponents
+  ): Promise<VBridge> {
+    const { bridgeInput, deployerConfig, governorConfig } = await LocalEvmChain.deployVBridgeConfig(
+      chains,
+      tokens,
+      wallets
+    );
     return VBridge.deployVariableAnchorBridge(
       bridgeInput,
       deployerConfig,
