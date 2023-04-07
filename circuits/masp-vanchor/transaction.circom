@@ -311,7 +311,7 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, zeroLeaf, length, n
         // We don't need to range check input amounts, since all inputs are valid UTXOs that
         // were already checked as outputs in the previous transaction (or zero amount UTXOs that don't
         // need to be checked either).
-        sumFeeIns += inAmount[tx];
+        sumFeeIns += feeInAmount[tx];
     }
 
 

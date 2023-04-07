@@ -7,6 +7,7 @@ pragma solidity ^0.8.5;
 
 import "../interfaces/verifiers/IAnchorVerifier.sol";
 import "../interfaces/verifiers/IMASPVAnchorVerifier.sol";
+import "hardhat/console.sol";
 
 contract MASPVAnchorVerifier is IAnchorVerifier {
 	IMASPVAnchorVerifier2_2 public v2_2;
@@ -35,11 +36,15 @@ contract MASPVAnchorVerifier is IAnchorVerifier {
 		uint8 maxEdges,
 		bool smallInputs
 	) external view override returns (bool r) {
+		console.log("MASPVAnchorVerifier 1");
 		if (maxEdges == 1) {
+			console.log("MASPVAnchorVerifier 2");
 			if (smallInputs) {
+				console.log("MASPVAnchorVerifier 3");
 				uint256[33] memory _inputs = abi.decode(input, (uint256[33]));
 				return v2_2.verifyProof(a, b, c, _inputs);
 			} else {
+				console.log("MASPVAnchorVerifier 4");
 				uint256[39] memory _inputs = abi.decode(input, (uint256[39]));
 				return v2_16.verifyProof(a, b, c, _inputs);
 			}

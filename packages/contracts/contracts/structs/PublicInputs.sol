@@ -34,27 +34,31 @@ struct PublicInputs {
 
 /**
     @notice Auxiliary public input struct made up of deserializable values
-    @param assetID the public asset ID of the asset being deposited or withdrawn
- */
-struct AuxPublicInputs {
-	uint256 assetID;
-}
-
-/**
-    @notice Auxiliary public input struct made up of deserializable values
     @param publicAssetID the public asset ID of the asset being deposited or withdrawn
 	@param publicTokenID tokenID of Nft
  */
-struct MASPAuxPublicInputs {
+struct MASPAuxPublicInputsSmall {
 	uint256 publicAssetID;
 	uint256 publicTokenID;
-	uint256[] ak_alpha_X;
-	uint256[] ak_alpha_Y;
-	uint256[] whitelistedAssetIDs;
-	uint256[] feeInputNullifiers;
+	uint256[2] ak_alpha_X;
+	uint256[2] ak_alpha_Y;
+	uint256[10] whitelistedAssetIDs;
+	uint256[2] feeInputNullifiers;
 	uint256[2] feeOutputCommitments;
-	uint256[] fee_ak_alpha_X;
-	uint256[] fee_ak_alpha_Y;
+	uint256[2] fee_ak_alpha_X;
+	uint256[2] fee_ak_alpha_Y;
+}
+
+struct MASPAuxPublicInputsLarge {
+	uint256 publicAssetID;
+	uint256 publicTokenID;
+	uint256[16] ak_alpha_X;
+	uint256[16] ak_alpha_Y;
+	uint256[10] whitelistedAssetIDs;
+	uint256[2] feeInputNullifiers;
+	uint256[2] feeOutputCommitments;
+	uint256[2] fee_ak_alpha_X;
+	uint256[2] fee_ak_alpha_Y;
 }
 
 /**

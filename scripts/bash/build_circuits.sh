@@ -35,21 +35,21 @@ copy_to_fixtures () {
 # WEBB BATCH TREE UPDATER
 ###
 
-echo "Compiling batch insertion for 4 leafs (levels=2)"
-compile batch_tree_4 batchMerkleTreeUpdate_4 4
-copy_to_fixtures batch_tree_4 batchMerkleTreeUpdate_4 4 batch-tree
+# echo "Compiling batch insertion for 4 leafs (levels=2)"
+# compile batch_tree_4 batchMerkleTreeUpdate_4 4
+# copy_to_fixtures batch_tree_4 batchMerkleTreeUpdate_4 4 batch-tree
 
-echo "Compiling batch insertion for 8 leafs (levels=3)"
-compile batch_tree_8 batchMerkleTreeUpdate_8 8
-copy_to_fixtures batch_tree_8 batchMerkleTreeUpdate_8 8 batch-tree
+# echo "Compiling batch insertion for 8 leafs (levels=3)"
+# compile batch_tree_8 batchMerkleTreeUpdate_8 8
+# copy_to_fixtures batch_tree_8 batchMerkleTreeUpdate_8 8 batch-tree
 
-echo "Compiling batch insertion for 16 leafs (levels=4)"
-compile batch_tree_16 batchMerkleTreeUpdate_16 16
-copy_to_fixtures batch_tree_16 batchMerkleTreeUpdate_16 16 batch-tree
+# echo "Compiling batch insertion for 16 leafs (levels=4)"
+# compile batch_tree_16 batchMerkleTreeUpdate_16 16
+# copy_to_fixtures batch_tree_16 batchMerkleTreeUpdate_16 16 batch-tree
 
-echo "Compiling batch insertion for 32 leafs (levels=5)"
-compile batch_tree_32 batchMerkleTreeUpdate_32 32
-copy_to_fixtures batch_tree_32 batchMerkleTreeUpdate_32 32 batch-tree
+# echo "Compiling batch insertion for 32 leafs (levels=5)"
+# compile batch_tree_32 batchMerkleTreeUpdate_32 32
+# copy_to_fixtures batch_tree_32 batchMerkleTreeUpdate_32 32 batch-tree
 
 # echo "Compiling batch insertion for 64 leafs (levels=6)"
 # compile batch_tree_64 batchMerkleTreeUpdate_64 64
@@ -138,9 +138,9 @@ copy_to_fixtures batch_tree_32 batchMerkleTreeUpdate_32 32 batch-tree
 # WEBB MASP-VANCHORS
 ###
 
-# echo "Compiling Webb style multi-asset Poseidon vanchor 2 circuit w/ 2 inputs"
-# compile masp_vanchor_2 masp_vanchor_2_2 2
-# copy_to_fixtures masp_vanchor_2 masp_vanchor_2_2 2 masp_vanchor_2
+echo "Compiling Webb style multi-asset Poseidon vanchor 2 circuit w/ 2 inputs"
+compile masp_vanchor_2 masp_vanchor_2_2 2
+copy_to_fixtures masp_vanchor_2 masp_vanchor_2_2 2 masp_vanchor_2
 
 # echo "Compiling Webb style multi-asset Poseidon vanchor 8 circuit w/ 2 inputs"
 # compile masp_vanchor_2 masp_vanchor_2_8 8

@@ -10,12 +10,14 @@ import {
   MultiAssetVAnchorBatchTree__factory,
 } from '@webb-tools/contracts';
 import { ProxiedBatchTreeUpdater } from './ProxiedBatchTreeUpdater';
-import { ZkComponents } from '@webb-tools/utils';
+import { getChainIdType, MaspKey, MaspUtxo, ZkComponents } from '@webb-tools/utils';
 import { BigNumber, BigNumberish, ethers } from 'ethers';
 import {
   ProxiedBatchMerkleTree as ProxiedBatchMerkleTreeContract,
   ProxiedBatchMerkleTree__factory,
 } from '@webb-tools/contracts';
+import { toFixedHex } from '@webb-tools/sdk-core';
+import { Registry } from '@webb-tools/tokens';
 
 export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
   depositTree: ProxiedBatchTreeUpdater;
@@ -215,5 +217,171 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
       signer
     );
     return createdAnchor;
+  }
+
+  public async transact(
+    inputs: MaspUtxo[],
+    outputs: MaspUtxo[],
+    alphas: string[],
+    feeInputs: MaspUtxo[],
+    feeOutputs: MaspUtxo[],
+    fee_alphas: string[],
+    whitelistedAssetIds: number[],
+    refund: BigNumberish,
+    recipient: string,
+    relayer: string,
+    wrappedToken: string,
+    tokenId: BigNumber,
+    signer: ethers.Signer
+  ): Promise<ethers.ContractReceipt> {
+    // Default UTXO chain ID will match with the configured signer's chain ID
+    const evmId = await this.signer.getChainId();
+    const chainId = getChainIdType(evmId);
+
+    const registry = await Registry.connect(await this.contract.registry(), signer);
+    const assetID = await registry.contract.getAssetIdFromWrappedAddress(wrappedToken);
+    const dummyMaspKey = new MaspKey();
+    const feeAssetId = feeInputs[0].assetID;
+    const feeTokenId = feeInputs[0].tokenID;
+    const fee = 0;
+
+    while (inputs.length !== 2 && inputs.length < 16) {
+      const dummyUtxo =    new MaspUtxo(
+        BigNumber.from(chainId),
+        dummyMaspKey,
+        BigNumber.from(1),
+        BigNumber.from(0),
+        BigNumber.from(0)
+      )
+      inputs.push(
+        dummyUtxo
+      );
+      dummyUtxo.setIndex(BigNumber.from(0));
+    }
+
+    if (outputs.length < 2) {
+      while (outputs.length < 2) {
+        outputs.push(
+          new MaspUtxo(
+            BigNumber.from(chainId),
+            dummyMaspKey,
+            BigNumber.from(1),
+            BigNumber.from(0),
+            BigNumber.from(0)
+          )
+        );
+      }
+    }
+
+    while (feeInputs.length !== 2 && feeInputs.length < 16) {
+      const dummyUtxo =    new MaspUtxo(
+        BigNumber.from(chainId),
+        dummyMaspKey,
+        BigNumber.from(1),
+        BigNumber.from(0),
+        BigNumber.from(0)
+      )
+      feeInputs.push(
+        dummyUtxo
+      );
+      dummyUtxo.setIndex(BigNumber.from(0));
+    }
+
+    if (feeOutputs.length < 2) {
+      while (feeOutputs.length < 2) {
+        feeOutputs.push(
+          new MaspUtxo(
+            BigNumber.from(chainId),
+            dummyMaspKey,
+            BigNumber.from(1),
+            BigNumber.from(0),
+            BigNumber.from(0)
+          )
+        );
+      }
+    }
+
+    const merkleProofs = inputs.map((x) => MultiAssetVAnchor.getMASPMerkleProof(x, this.depositTree.tree));
+    const feeMerkleProofs = feeInputs.map((x) => MultiAssetVAnchor.getMASPMerkleProof(x, this.depositTree.tree));
+
+    let extAmount = BigNumber.from(fee)
+      .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+      .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
+
+    const { extData, extDataHash } = await this.generateExtData(
+      recipient,
+      extAmount,
+      relayer,
+      BigNumber.from(fee),
+      BigNumber.from(refund),
+      wrappedToken,
+      toFixedHex(0), //outputs[0].encrypt(outputs[0].maspKey).toString(),
+      toFixedHex(0), // outputs[1].encrypt(outputs[1].maspKey).toString()
+    );
+
+    const roots = await this.populateRootsForProof();
+
+    const publicInputs = await this.publicInputsWithProof(
+      roots,
+      chainId,
+      assetID.toNumber(),
+      tokenId.toNumber(),
+      inputs,
+      outputs,
+      alphas,
+      feeAssetId.toNumber(),
+      feeTokenId.toNumber(),
+      whitelistedAssetIds,
+      feeInputs,
+      feeOutputs,
+      fee_alphas,
+      extAmount,
+      BigNumber.from(fee),
+      extDataHash,
+      merkleProofs,
+      feeMerkleProofs
+    );
+
+    const auxInputs = MultiAssetVAnchor.auxInputsToBytes(publicInputs);
+    console.log('proof proof', publicInputs.proof);
+    console.log('auxInputs', auxInputs);
+
+    const tx = await this.contract.transact(
+      '0x' + publicInputs.proof,
+      auxInputs,
+      {
+        recipient: extData.recipient,
+        extAmount: extData.extAmount,
+        relayer: extData.relayer,
+        fee: extData.fee,
+        refund: extData.refund,
+        token: extData.token,
+      },
+      {
+        roots: MultiAssetVAnchor.createRootsBytes(publicInputs.roots),
+        extensionRoots: '0x',
+        inputNullifiers: publicInputs.inputNullifier,
+        outputCommitments: [publicInputs.outputCommitment[0], publicInputs.outputCommitment[1]],
+        publicAmount: publicInputs.publicAmount,
+        extDataHash: publicInputs.extDataHash,
+      },
+      {
+        encryptedOutput1: extData.encryptedOutput1,
+        encryptedOutput2: extData.encryptedOutput2,
+      },
+      {}
+    );
+    const receipt = await tx.wait();
+
+    // Add the leaves to the tree
+    outputs.forEach((x) => {
+      // Maintain tree state after insertions
+      this.tree.insert(x.getCommitment());
+      x.setIndex(BigNumber.from(this.tree.indexOf(x.getCommitment())));
+      let numOfElements = this.tree.number_of_elements();
+      this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
+    });
+
+    return receipt;
   }
 }

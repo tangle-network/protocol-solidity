@@ -130,6 +130,8 @@ contract ProxiedBatchMerkleTree is MerkleTreeWithHistory, ProofUtils {
 		uint32 newRootIndex = (currentRootIndex + 1) % ROOT_HISTORY_SIZE;
 		nextIndex = nextIndex + uint32(_leaves.length);
 		roots[newRootIndex] = Root(uint256(currentRoot), nextIndex);
+		console.log("current root");
+		console.logBytes32(currentRoot);
 		currentRootIndex = newRootIndex;
 	}
 

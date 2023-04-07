@@ -79,8 +79,6 @@ export class MultiAssetVAnchorProxy {
 
     console.log(batchProofInfo.proof, batchProofInfo.input.argsHash!, batchProofInfo.input.oldRoot, batchProofInfo.input.newRoot, batchProofInfo.input.pathIndices, batchHeight, "batchProofInfo");
 
-    console.log('it reached here');
-
     const batchTx = await this.contract.batchDepositERC20s(
       masp.contract.address,
       batchProofInfo.proof,
@@ -101,18 +99,20 @@ export class MultiAssetVAnchorProxy {
     batchHeight: BigNumber
   ) {
     const batchSize = BigNumber.from(2).pow(batchHeight);
-    const leaves = (await this.getQueuedERC721Deposits(masp.contract.address, startQueueIndex, batchSize)).map(x => x.depositPartialCommitment);
+    const leaves = (await this.getQueuedERC721Deposits(masp.contract.address, startQueueIndex, batchSize)).map(x => toFixedHex(BigNumber.from(poseidon([x.assetID, x.tokenID, x.amount, x.depositPartialCommitment]))));
     const batchProofInfo = await masp.depositTree.generateProof(
       batchSize.toNumber(),
       leaves
     );
 
+    console.log(batchProofInfo.proof, batchProofInfo.input.argsHash!, batchProofInfo.input.oldRoot, batchProofInfo.input.newRoot, batchProofInfo.input.pathIndices, batchHeight, "batchProofInfo");
+
     await this.contract.batchDepositERC721s(
       masp.contract.address,
       batchProofInfo.proof,
-      batchProofInfo.input.argsHash!,
-      batchProofInfo.input.oldRoot,
-      batchProofInfo.input.newRoot,
+      toFixedHex(BigNumber.from(batchProofInfo.input.argsHash!), 32),
+      toFixedHex(BigNumber.from(batchProofInfo.input.oldRoot), 32),
+      toFixedHex(BigNumber.from(batchProofInfo.input.newRoot), 32),
       batchProofInfo.input.pathIndices,
       batchHeight
     );
