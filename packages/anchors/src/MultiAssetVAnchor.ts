@@ -359,17 +359,25 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
   }
 
   public async generateProof(proofInputs: IMASPAllInputs): Promise<FullProof> {
-    const wtns = await this.smallCircuitZkComponents.witnessCalculator.calculateWTNSBin(proofInputs, 0);
-    let proof = await snarkjs.groth16.prove(
-      this.smallCircuitZkComponents.zkey,
+    let proofZkComponents;
+    if (proofInputs.inputNullifier.length == 2) {
+      proofZkComponents = this.smallCircuitZkComponents;
+    } else if (proofInputs.inputNullifier.length == 16) {
+      proofZkComponents = this.largeCircuitZkComponents;
+    } else {
+      throw new Error('Invalid number of inputs');
+    }
+    const wtns = await proofZkComponents.witnessCalculator.calculateWTNSBin(proofInputs, 0);
+    let res = await snarkjs.groth16.prove(
+      proofZkComponents.zkey,
       wtns,
     );
     const vKey = await snarkjs.zKey.exportVerificationKey(
-      this.smallCircuitZkComponents.zkey,
+      proofZkComponents.zkey,
     );
-    const res = await snarkjs.groth16.verify(vKey, proof.publicSignals, proof.proof);
-    console.log('resres', res);
-    return proof;
+    const verified = await snarkjs.groth16.verify(vKey, res.publicSignals, res.proof);
+    assert.strictEqual(verified, true);
+    return res.proof;
   }
 
   public async generateExtData(
@@ -708,78 +716,6 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
       pathIndices: inputMerklePathIndices,
       merkleRoot: tree.root(),
     };
-  }
-
-  public async depositERC20(
-    maspKey: MaspKey,
-    destinationChainId: BigNumberish,
-    amount: BigNumberish,
-    unwrappedToken: string,
-    wrappedToken: string,
-    signer: ethers.Signer
-  ): Promise<ethers.ContractReceipt> {
-    const registry = await Registry.connect(await this.contract.registry(), signer);
-    const assetID = await registry.contract.getAssetIdFromWrappedAddress(wrappedToken);
-    const utxo = new MaspUtxo(
-      BigNumber.from(destinationChainId),
-      maspKey,
-      assetID,
-      BigNumber.from(0),
-      BigNumber.from(amount)
-    );
-
-    let options = {};
-    if (amount > 0 && checkNativeAddress(unwrappedToken)) {
-      let tokenWrapper = TokenWrapper__factory.connect(wrappedToken, this.signer);
-      let valueToSend = await tokenWrapper.getAmountToWrap(amount);
-
-      options = {
-        value: valueToSend.toHexString(),
-      };
-    }
-
-    const tx = await this.contract.depositERC20(
-      unwrappedToken,
-      wrappedToken,
-      amount,
-      toFixedHex(utxo.getPartialCommitment()),
-      utxo.encrypt(maspKey),
-      options
-    );
-    const receipt = await tx.wait();
-    return receipt;
-  }
-
-  public async depositERC721(
-    maspKey: MaspKey,
-    destinationChainId: BigNumberish,
-    unwrappedToken: string,
-    wrappedToken: string,
-    tokenID: BigNumber,
-    signer: ethers.Signer
-  ): Promise<ethers.ContractReceipt> {
-    const registry = await Registry.connect(await this.contract.registry(), signer);
-    const assetID = await registry.contract.getAssetIdFromWrappedAddress(wrappedToken);
-    const utxo = new MaspUtxo(
-      BigNumber.from(destinationChainId),
-      maspKey,
-      assetID,
-      tokenID,
-      BigNumber.from(1)
-    );
-
-    let options = {};
-
-    const tx = await this.contract.depositERC721(
-      unwrappedToken,
-      wrappedToken,
-      tokenID,
-      toFixedHex(utxo.getPartialCommitment()),
-      utxo.encrypt(maspKey),
-      options
-    );
-    const receipt = await tx.wait();
-    return receipt;
   }
 
   /** Swap Functions */

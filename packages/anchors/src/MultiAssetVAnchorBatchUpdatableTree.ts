@@ -225,7 +225,7 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
     alphas: string[],
-    fee: BigNumber,
+    fee: BigNumber, // Most likely 0 because fee will be paid through feeInputs
     feeAssetID: BigNumber,
     feeTokenID: BigNumber,
     feeInputs: MaspUtxo[],
