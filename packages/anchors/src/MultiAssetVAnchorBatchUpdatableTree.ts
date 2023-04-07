@@ -276,8 +276,8 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
       const dummyUtxo =    new MaspUtxo(
         BigNumber.from(chainId),
         dummyMaspKey,
-        BigNumber.from(1),
-        BigNumber.from(0),
+        feeAssetID,
+        feeTokenID,
         BigNumber.from(0)
       )
       feeInputs.push(
@@ -292,8 +292,8 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
           new MaspUtxo(
             BigNumber.from(chainId),
             dummyMaspKey,
-            BigNumber.from(1),
-            BigNumber.from(0),
+            feeAssetID,
+            feeTokenID,
             BigNumber.from(0)
           )
         );
@@ -342,8 +342,6 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
     );
 
     const auxInputs = MultiAssetVAnchor.auxInputsToBytes(publicInputs);
-    console.log('proof proof', publicInputs.proof);
-    console.log('auxInputs', auxInputs);
 
     const tx = await this.contract.transact(
       '0x' + publicInputs.proof,
