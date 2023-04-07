@@ -1,6 +1,6 @@
 /**
- * Copyright 2021-2022 Webb Technologies
- * SPDX-License-Identifier: GPL-3.0-or-later-only
+ * Copyright 2021-2023 Webb Technologies
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
 pragma solidity ^0.8.5;
@@ -71,7 +71,7 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		uint256 _amount,
 		bytes32 partialCommitment,
 		bytes memory encryptedCommitment
-	) public payable {
+	) public payable nonReentrant {
 		// Execute the wrapping
 		uint256 wrapAmount = _executeWrapping(_fromTokenAddress, _toTokenAddress, _amount);
 		// Create the record commitment

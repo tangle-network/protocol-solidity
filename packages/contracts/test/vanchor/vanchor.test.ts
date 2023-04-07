@@ -1,6 +1,6 @@
 /**
- * Copyright 2021-2022 Webb Technologies
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * Copyright 2021-2023 Webb Technologies
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 const assert = require('assert');
 import { ethers } from 'hardhat';
@@ -294,7 +294,7 @@ describe('VAnchor for 1 max edge', () => {
 
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
-      //Step 1: Alice deposits into Tornado Pool
+      // Step 1: Alice deposits into Tornado Pool
       const aliceBalanceBeforeDeposit = await token.balanceOf(alice.address);
       const relayer = '0x2111111111111111111111111111111111111111';
       const fee = 1e6;
@@ -311,14 +311,14 @@ describe('VAnchor for 1 max edge', () => {
         {}
       );
 
-      //Step 2: Check Alice's balance
+      // Step 2: Check Alice's balance
       const aliceBalanceAfterDeposit = await token.balanceOf(alice.address);
       assert.strictEqual(
         aliceBalanceAfterDeposit.toString(),
         BN(toBN(aliceBalanceBeforeDeposit).sub(toBN(aliceDepositAmount)).sub(toBN(fee))).toString()
       );
 
-      //Step 3 Check relayers balance
+      // Step 3 Check relayers balance
       assert.strictEqual(
         (await wrappedToken.balanceOf(relayer)).toString(),
         BigNumber.from(fee).toString()
@@ -681,13 +681,18 @@ describe('VAnchor for 1 max edge', () => {
 
       let anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
+      const vAnchorWrappedTokenBalanceBeforerWithdraw = await wrappedToken.balanceOf(
+        anchor.contract.address
+      );
+
       const aliceWithdrawAmount = 5e6;
+      const aliceChangeAmount = aliceDepositAmount - aliceWithdrawAmount;
       const aliceChangeUtxo = await CircomUtxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: chainID.toString(),
         originChainId: chainID.toString(),
-        amount: aliceWithdrawAmount.toString(),
+        amount: aliceChangeAmount.toString(),
         keypair: aliceDepositUtxo.keypair,
       });
       const aliceETHAddress = '0xDeaD00000000000000000000000000000000BEEf';
@@ -696,9 +701,20 @@ describe('VAnchor for 1 max edge', () => {
         [chainID.toString()]: anchorLeaves,
       });
 
+      // Check that Alice receives withdrawn wrapped tokens
       assert.strictEqual(
         aliceWithdrawAmount.toString(),
         await (await wrappedToken.balanceOf(aliceETHAddress)).toString()
+      );
+
+      // Check that VAnchor's balance of wrapped tokens goes down by withdraw amount
+      const vAnchorWrappedTokenBalanceAfterWithdraw = await wrappedToken.balanceOf(
+        anchor.contract.address
+      );
+
+      assert.strictEqual(
+        vAnchorWrappedTokenBalanceAfterWithdraw.toString(),
+        vAnchorWrappedTokenBalanceBeforerWithdraw.sub(aliceWithdrawAmount).toString()
       );
     });
 
@@ -767,7 +783,7 @@ describe('VAnchor for 1 max edge', () => {
         originChainId: chainID.toString(),
         amount: aliceDepositAmount.toString(),
       });
-      //Step 1: Alice deposits into Tornado Pool
+      // Step 1: Alice deposits into Tornado Pool
       const aliceBalanceBeforeDeposit = await token.balanceOf(alice.address);
       await anchor.registerAndTransact(
         alice.address,
@@ -784,14 +800,14 @@ describe('VAnchor for 1 max edge', () => {
 
       let anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
-      //Step 2: Check Alice's balance
+      // Step 2: Check Alice's balance
       const aliceBalanceAfterDeposit = await token.balanceOf(alice.address);
       assert.strictEqual(
         aliceBalanceAfterDeposit.toString(),
         BN(toBN(aliceBalanceBeforeDeposit).sub(toBN(aliceDepositAmount))).toString()
       );
 
-      //Step 3: Alice tries to create a UTXO with more funds than she has in her account
+      // Step 3: Alice tries to create a UTXO with more funds than she has in her account
       const aliceOutputAmount = '100000000000000000000000';
       const aliceOutputUtxo = await CircomUtxo.generateUtxo({
         curve: 'Bn254',
@@ -801,7 +817,7 @@ describe('VAnchor for 1 max edge', () => {
         amount: aliceOutputAmount,
         keypair: aliceDepositUtxo.keypair,
       });
-      //Step 4: Check that step 3 fails
+      // Step 4: Check that step 3 fails
       await TruffleAssert.reverts(
         anchor.transact([aliceDepositUtxo], [aliceOutputUtxo], 0, 0, '0', '0', token.address, {
           [chainID.toString()]: anchorLeaves,

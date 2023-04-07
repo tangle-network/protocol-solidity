@@ -1,10 +1,11 @@
 /**
- * Copyright 2021-2022 Webb Technologies
- * SPDX-License-Identifier: GPL-3.0-or-later-only
+ * Copyright 2021-2023 Webb Technologies
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
 pragma solidity ^0.8.5;
 
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./NftTokenWrapper.sol";
 import "./MultiTokenManagerBase.sol";
 
@@ -13,7 +14,7 @@ import "./MultiTokenManagerBase.sol";
     using an external `governor` address
     @author Webb Technologies.
  */
-contract MultiNftTokenManager is MultiTokenManagerBase {
+contract MultiNftTokenManager is MultiTokenManagerBase, ReentrancyGuard {
 	using SafeMath for uint256;
 
 	function registerToken(
@@ -33,7 +34,7 @@ contract MultiNftTokenManager is MultiTokenManagerBase {
 		address _handler,
 		string memory _uri,
 		bytes32 _salt
-	) external override onlyRegistry onlyInitialized returns (address) {
+	) external override nonReentrant onlyRegistry onlyInitialized returns (address) {
 		NftTokenWrapper nftWrapper = new NftTokenWrapper{ salt: _salt }(_uri);
 
 		nftWrapper.initialize(_handler);

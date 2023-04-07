@@ -1,6 +1,6 @@
 /**
- * Copyright 2021-2022 Webb Technologies
- * SPDX-License-Identifier: GPL-3.0-or-later-only
+ * Copyright 2021-2023 Webb Technologies
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
 pragma solidity ^0.8.5;
@@ -45,6 +45,7 @@ abstract contract VAnchorBase is LinkableAnchor {
 	);
 	event NewNullifier(uint256 nullifier);
 	event PublicKey(address indexed owner, bytes key);
+	event HandlerUpdated(address _handler);
 
 	/**
 		@dev The constructor
@@ -306,5 +307,6 @@ abstract contract VAnchorBase is LinkableAnchor {
 	) external override onlyHandler onlyIncrementingByOne(_nonce) {
 		require(_handler != address(0), "Handler cannot be 0");
 		handler = _handler;
+		emit HandlerUpdated(handler);
 	}
 }
