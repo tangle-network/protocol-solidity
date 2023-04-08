@@ -131,7 +131,7 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
   depositHistory: Record<number, string>;
   provingManager: CircomProvingManager;
 
-  public static createRootsBytes(rootArray: string[]) {
+  public static createRootsBytes(rootArray: BigNumberish[]) {
     let rootsBytes = '0x';
     for (let i = 0; i < rootArray.length; i++) {
       rootsBytes += toFixedHex(rootArray[i]).substr(2);
@@ -425,22 +425,22 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
   }
 
   public static async generateMASPVAnchorInputs(
-    roots: BigNumber[],
-    chainId: number,
-    assetId: number,
-    tokenId: number,
+    roots: BigNumberish[],
+    chainId: BigNumberish,
+    assetId: BigNumberish,
+    tokenId: BigNumberish,
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
-    alphas: string[],
-    feeAssetId: number,
-    feeTokenId: number,
-    whitelistedAssetIds: number[],
+    alphas: BigNumberish[],
+    feeAssetId: BigNumberish,
+    feeTokenId: BigNumberish,
+    whitelistedAssetIds: BigNumberish[],
     feeInputs: MaspUtxo[],
     feeOutputs: MaspUtxo[],
-    fee_alphas: string[],
-    extAmount: BigNumber,
-    fee: BigNumber,
-    extDataHash: BigNumber,
+    fee_alphas: BigNumberish[],
+    extAmount: BigNumberish,
+    fee: BigNumberish,
+    extDataHash: BigNumberish,
     externalMerkleProofs: MerkleProof[],
     externalFeeMerkleProofs: MerkleProof[]
   ): Promise<MASPVAnchorInputs> {
@@ -454,11 +454,11 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
       pathElements: proof.pathElements,
     }));
 
-    let publicAssetId = 0;
-    let publicTokenId = 0;
+    let publicAssetId = BigNumber.from(0);
+    let publicTokenId = BigNumber.from(0);
     if (extAmount != BigNumber.from(0)) {
-      publicAssetId = assetId;
-      publicTokenId = tokenId;
+      publicAssetId = BigNumber.from(assetId);
+      publicTokenId = BigNumber.from(tokenId);
     }
 
     const publicAmount = BigNumber.from(extAmount)
@@ -573,22 +573,22 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
   }
 
   public async publicInputsWithProof(
-    roots: BigNumber[],
-    chainId: number,
-    assetId: number,
-    tokenId: number,
+    roots: BigNumberish[],
+    chainId: BigNumberish,
+    assetId: BigNumberish,
+    tokenId: BigNumberish,
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
-    alphas: string[],
-    feeAssetId: number,
-    feeTokenId: number,
-    whitelistedAssetIds: number[],
+    alphas: BigNumberish[],
+    feeAssetId: BigNumberish,
+    feeTokenId: BigNumberish,
+    whitelistedAssetIds: BigNumberish[],
     feeInputs: MaspUtxo[],
     feeOutputs: MaspUtxo[],
-    fee_alphas: string[],
-    extAmount: BigNumber,
-    fee: BigNumber,
-    extDataHash: BigNumber,
+    fee_alphas: BigNumberish[],
+    extAmount: BigNumberish,
+    fee: BigNumberish,
+    extDataHash: BigNumberish,
     externalMerkleProofs: MerkleProof[],
     externalFeeMerkleProofs: MerkleProof[]
   ): Promise<IMASPVAnchorPublicInputs> {

@@ -1,91 +1,91 @@
-import { BigNumber } from 'ethers';
+import { BigNumber, BigNumberish } from 'ethers';
 
 export interface QueueDepositInfo {
   unwrappedToken: string;
   wrappedToken: string;
-  amount: BigNumber;
-  assetID: BigNumber;
-  tokenID: BigNumber;
+  amount: BigNumberish;
+  assetID: BigNumberish;
+  tokenID: BigNumberish;
   depositPartialCommitment: string;
   proxiedMASP: string;
 }
 
 export interface IMASPVAnchorPublicInputs {
-  proof: string;
-  publicAmount: string;
-  extDataHash: string;
-  publicAssetID: number;
-  publicTokenID: number;
-  inputNullifier: string[];
-  outputCommitment: string[];
-  chainID: string;
-  roots: string[];
-  extensionRoots: string;
-  ak_alpha_X: string[];
-  ak_alpha_Y: string[];
-  whitelistedAssetIDs: number[];
-  feeInputNullifier: string[];
-  feeOutputCommitment: string[];
-  fee_ak_alpha_X: string[];
-  fee_ak_alpha_Y: string[];
+  proof: BigNumberish;
+  publicAmount: BigNumberish;
+  extDataHash: BigNumberish;
+  publicAssetID: BigNumberish;
+  publicTokenID: BigNumberish;
+  inputNullifier: BigNumberish[];
+  outputCommitment: BigNumberish[];
+  chainID: BigNumberish;
+  roots: BigNumberish[];
+  extensionRoots: BigNumberish;
+  ak_alpha_X: BigNumberish[];
+  ak_alpha_Y: BigNumberish[];
+  whitelistedAssetIDs: BigNumberish[];
+  feeInputNullifier: BigNumberish[];
+  feeOutputCommitment: BigNumberish[];
+  fee_ak_alpha_X: BigNumberish[];
+  fee_ak_alpha_Y: BigNumberish[];
 }
 
 export type IMASPAllInputs = {
-  publicAmount: string;
-  extDataHash: string;
-  assetID: number;
-  tokenID: number;
-  publicAssetID: number;
-  publicTokenID: number;
+  publicAmount: BigNumberish;
+  extDataHash: BigNumberish;
+  assetID: BigNumberish;
+  tokenID: BigNumberish;
+  publicAssetID: BigNumberish;
+  publicTokenID: BigNumberish;
 
   // data for transaction inputs
-  inputNullifier: string[];
-  inAmount: string[];
-  inBlinding: string[];
-  inPathIndices: number[];
+  inputNullifier: BigNumberish[];
+  inAmount: BigNumberish[];
+  inBlinding: BigNumberish[];
+  inPathIndices: BigNumberish[];
   inPathElements: BigNumber[][];
 
   // data for transaction outputs
-  outputCommitment: string[];
-  outAmount: string[];
-  outChainID: string[];
-  outPk_X: string[];
-  outPk_Y: string[];
-  outBlinding: string[];
+  outputCommitment: BigNumberish[];
+  outAmount: BigNumberish[];
+  outChainID: BigNumberish[];
+  outPk_X: BigNumberish[];
+  outPk_Y: BigNumberish[];
+  outBlinding: BigNumberish[];
 
-  chainID: string;
-  roots: string[];
+  chainID: BigNumberish;
+  roots: BigNumberish[];
 
-  ak_X: string[];
-  ak_Y: string[];
-  alpha: string[];
-  ak_alpha_X: string[];
-  ak_alpha_Y: string[];
+  ak_X: BigNumberish[];
+  ak_Y: BigNumberish[];
+  alpha: BigNumberish[];
+  ak_alpha_X: BigNumberish[];
+  ak_alpha_Y: BigNumberish[];
 
-  feeAssetID: number;
-  whitelistedAssetIDs: number[];
-  feeTokenID: number;
+  feeAssetID: BigNumberish;
+  whitelistedAssetIDs: BigNumberish[];
+  feeTokenID: BigNumberish;
 
   // data for transaction inputs
-  feeInputNullifier: string[];
-  feeInAmount: string[];
-  feeInBlinding: string[];
-  feeInPathIndices: number[];
+  feeInputNullifier: BigNumberish[];
+  feeInAmount: BigNumberish[];
+  feeInBlinding: BigNumberish[];
+  feeInPathIndices: BigNumberish[];
   feeInPathElements: BigNumber[][];
 
   // data for transaction outputs
-  feeOutputCommitment: string[];
-  feeOutAmount: string[];
-  feeOutChainID: string[];
-  feeOutPk_X: string[];
-  feeOutPk_Y: string[];
-  feeOutBlinding: string[];
+  feeOutputCommitment: BigNumberish[];
+  feeOutAmount: BigNumberish[];
+  feeOutChainID: BigNumberish[];
+  feeOutPk_X: BigNumberish[];
+  feeOutPk_Y: BigNumberish[];
+  feeOutBlinding: BigNumberish[];
 
-  fee_ak_X: string[];
-  fee_ak_Y: string[];
-  fee_alpha: string[];
-  fee_ak_alpha_X: string[];
-  fee_ak_alpha_Y: string[];
+  fee_ak_X: BigNumberish[];
+  fee_ak_Y: BigNumberish[];
+  fee_alpha: BigNumberish[];
+  fee_ak_alpha_X: BigNumberish[];
+  fee_ak_alpha_Y: BigNumberish[];
 };
 
 export type IMASPSwapPublicInputs = {
