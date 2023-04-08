@@ -17,7 +17,6 @@ import "../../interfaces/IMASPProxy.sol";
 import "../../libs/SwapEncodeInputs.sol";
 import "../../interfaces/verifiers/ISwapVerifier.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "hardhat/console.sol";
 
 /**
 	@title Multi Asset Variable Anchor contract
@@ -153,9 +152,7 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 		PublicInputs memory _publicInputs,
 		Encryptions memory _encryptions
 	) public payable virtual override {
-		console.log("hi from transact 1");
 		MASPAuxPublicInputsSmall memory aux = abi.decode(_auxPublicInputs, (MASPAuxPublicInputsSmall));
-		console.log("hi from transact 2");
 		address wrappedToken = IRegistry(registry).getWrappedAssetAddress(aux.publicAssetID);
 		_transact(
 			wrappedToken,

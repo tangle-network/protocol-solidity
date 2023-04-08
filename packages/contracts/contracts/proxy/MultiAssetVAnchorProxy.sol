@@ -14,7 +14,6 @@ import "../interfaces/IMultiAssetVAnchorBatchTree.sol";
 import "../interfaces/tokens/ITokenWrapper.sol";
 import "../interfaces/tokens/INftTokenWrapper.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "hardhat/console.sol";
 
 /// @dev This contract holds a merkle tree of all tornado cash deposit and withdrawal events
 contract MultiAssetVAnchorProxy is Initialized, IERC721Receiver {
@@ -137,8 +136,6 @@ contract MultiAssetVAnchorProxy is Initialized, IERC721Receiver {
 			_lastProcessedERC20DepositLeaf + _batchSize <= nextQueueERC20DepositIndex[proxiedMASP],
 			"Batch size too big"
 		);
-		console.log("Batch size: %s", _batchSize);
-		console.log("lastProcessedERC20DepositLeaf: %s", _lastProcessedERC20DepositLeaf);
 		for (
 			uint i = _lastProcessedERC20DepositLeaf;
 			i < _lastProcessedERC20DepositLeaf + _batchSize;
@@ -155,15 +152,12 @@ contract MultiAssetVAnchorProxy is Initialized, IERC721Receiver {
 					]
 				)
 			);
-			console.logBytes32(commitments[i]);
 			// Queue reward commitments
 			queueRewardUnspentTreeCommitment(
 				proxiedMASP,
 				bytes32(IHasher(hasher).hashLeftRight(uint256(commitments[i]), block.timestamp))
 			);
-			console.log("Transferring funds batch insert");
 			if (depositInfo.unwrappedToken != depositInfo.wrappedToken) {
-				console.log("transfer 111");
 				IERC20(depositInfo.unwrappedToken).approve(
 					address(depositInfo.wrappedToken),
 					uint256(depositInfo.amount)
@@ -174,14 +168,12 @@ contract MultiAssetVAnchorProxy is Initialized, IERC721Receiver {
 					depositInfo.amount
 				);
 			} else {
-				console.log("transfer 222");
 				IERC20(depositInfo.wrappedToken).transfer(
 					address(depositInfo.proxiedMASP),
 					uint256(depositInfo.amount)
 				);
 			}
 		}
-		console.log("Does it reach here?");
 		// Update latestProcessedDepositLeaf
 		lastProcessedERC20DepositLeaf = _lastProcessedERC20DepositLeaf + _batchSize;
 		// Call batchInsert function on MASP
@@ -355,7 +347,6 @@ contract MultiAssetVAnchorProxy is Initialized, IERC721Receiver {
 				nextQueueERC721DepositIndex[proxiedMASP],
 			"Batch size too big"
 		);
-		console.log("hi from batch deposit erc721s 1");
 		for (
 			uint i = _lastProcessedERC721DepositLeaf;
 			i < _lastProcessedERC721DepositLeaf + _batchSize;
@@ -377,9 +368,7 @@ contract MultiAssetVAnchorProxy is Initialized, IERC721Receiver {
 				proxiedMASP,
 				bytes32(IHasher(hasher).hashLeftRight(uint256(commitments[i]), block.timestamp))
 			);
-			console.log("hi from batch deposit erc721s 2");
 			if (depositInfo.unwrappedToken != depositInfo.wrappedToken) {
-				console.log("hi from batch deposit erc721s 3");
 				IERC721(depositInfo.unwrappedToken).approve(
 					address(depositInfo.wrappedToken),
 					depositInfo.tokenID
@@ -387,7 +376,6 @@ contract MultiAssetVAnchorProxy is Initialized, IERC721Receiver {
 				INftTokenWrapper(depositInfo.wrappedToken).wrap721(
 					depositInfo.tokenID
 				);
-				console.log("hi from batch deposit erc721s 4");
 			} else {
 				IERC721(depositInfo.unwrappedToken).approve(
 					address(depositInfo.wrappedToken),

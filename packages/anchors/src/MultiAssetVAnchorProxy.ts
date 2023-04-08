@@ -77,8 +77,6 @@ export class MultiAssetVAnchorProxy {
       leaves
     );
 
-    console.log(batchProofInfo.proof, batchProofInfo.input.argsHash!, batchProofInfo.input.oldRoot, batchProofInfo.input.newRoot, batchProofInfo.input.pathIndices, batchHeight, "batchProofInfo");
-
     const batchTx = await this.contract.batchDepositERC20s(
       masp.contract.address,
       batchProofInfo.proof,
@@ -104,8 +102,6 @@ export class MultiAssetVAnchorProxy {
       batchSize.toNumber(),
       leaves
     );
-
-    console.log(batchProofInfo.proof, batchProofInfo.input.argsHash!, batchProofInfo.input.oldRoot, batchProofInfo.input.newRoot, batchProofInfo.input.pathIndices, batchHeight, "batchProofInfo");
 
     await this.contract.batchDepositERC721s(
       masp.contract.address,

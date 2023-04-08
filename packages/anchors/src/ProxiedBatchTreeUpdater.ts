@@ -107,14 +107,11 @@ export class ProxiedBatchTreeUpdater {
 
   public static hashInputs(input: ProofSignals) {
     const sha = new jsSHA('SHA-256', 'ARRAYBUFFER');
-    console.log("old root", toFixedHex(BigNumber.from(input.oldRoot).mod(SNARK_FIELD_SIZE)));
     sha.update(toBuffer(BigNumber.from(input.oldRoot).mod(SNARK_FIELD_SIZE), 32));
-    console.log("new root", toFixedHex(BigNumber.from(input.newRoot).mod(SNARK_FIELD_SIZE)));
     sha.update(toBuffer(BigNumber.from(input.newRoot).mod(SNARK_FIELD_SIZE), 32));
     sha.update(toBuffer(input.pathIndices, 4));
 
     for (let i = 0; i < input.leaves.length; i++) {
-      console.log("leaves", toFixedHex(BigNumber.from(input.leaves[i]).mod(SNARK_FIELD_SIZE)));
       sha.update(toBuffer(BigNumber.from(input.leaves[i]).mod(SNARK_FIELD_SIZE), 32));
     }
 
@@ -165,12 +162,10 @@ export class ProxiedBatchTreeUpdater {
     this.tree.bulkInsert(leaves);
     const newRoot: string = this.tree.root().toString();
     let { pathElements, pathIndices } = this.tree.path(this.tree.elements().length - 1);
-    console.log(pathIndices, 'pathIndices');
     let batchPathElements: string[] = pathElements.slice(batchHeight).map((e) => e.toString());
     let batchPathIndices: number = MerkleTree.calculateIndexFromPathIndices(
       pathIndices.slice(batchHeight)
     );
-    console.log(batchPathIndices, 'batchPathIndices');
     // pathIndices = MerkleTree.calculateIndexFromPathIndices(pathIndices.slice(batchHeight));
     const input: ProofSignals = {
       oldRoot,
@@ -180,7 +175,6 @@ export class ProxiedBatchTreeUpdater {
       leaves,
     };
 
-    console.log(input);
 
     input['argsHash'] = ProxiedBatchTreeUpdater.hashInputs(input);
 
@@ -214,7 +208,6 @@ export class ProxiedBatchTreeUpdater {
 
     const proof = proofEncoded;
     const publicSignals = res.publicSignals;
-    console.log(proof, publicSignals, 'proof, publicSignals')
 
     // const { proof, publicSignals } = await snarkjs.groth16.fullProve(
     //   input,

@@ -7,7 +7,6 @@ pragma solidity ^0.8.5;
 
 import "./MerkleTreeWithHistory.sol";
 import "../interfaces/verifiers/IBatchVerifier.sol";
-import "hardhat/console.sol";
 import "../utils/ProofUtils.sol";
 import "../interfaces/IMASPProxy.sol";
 
@@ -89,10 +88,6 @@ contract ProxiedBatchMerkleTree is MerkleTreeWithHistory, ProofUtils {
 
 		_newRoot = bytes32(uint256(_newRoot) % SNARK_FIELD);
 		_currentRoot = bytes32(uint256(_currentRoot) % SNARK_FIELD);
-		console.log("newRoot");
-		console.logBytes32(_newRoot);
-		console.log("currentRoot");
-		console.logBytes32(_currentRoot);
 
 		bytes memory data = new bytes(HEADER_SIZE + ITEM_SIZE * _leaves.length);
 		assembly {
@@ -102,8 +97,6 @@ contract ProxiedBatchMerkleTree is MerkleTreeWithHistory, ProofUtils {
 		}
 		for (uint256 i = 0; i < _leaves.length; i++) {
 			bytes32 leafHash = bytes32(uint256(_leaves[i]) % SNARK_FIELD);
-			console.log("leafHash");
-			console.logBytes32(leafHash);
 			assembly {
 				let itemOffset := add(data, mul(ITEM_SIZE, i))
 				mstore(add(itemOffset, 0x64), leafHash)
@@ -112,10 +105,6 @@ contract ProxiedBatchMerkleTree is MerkleTreeWithHistory, ProofUtils {
 		}
 
 		uint256 argsHash = uint256(sha256(data)) % SNARK_FIELD;
-		console.log("argsHash");
-		console.logUint(argsHash);
-		console.log("argsHash");
-		console.logUint(uint256(_argsHash));
 		require(argsHash == uint256(_argsHash), "Invalid args hash");
 		uint256[8] memory p = abi.decode(_proof, (uint256[8]));
 		(uint256[2] memory a, uint256[2][2] memory b, uint256[2] memory c) = unpackProof(p);
@@ -130,8 +119,6 @@ contract ProxiedBatchMerkleTree is MerkleTreeWithHistory, ProofUtils {
 		uint32 newRootIndex = (currentRootIndex + 1) % ROOT_HISTORY_SIZE;
 		nextIndex = nextIndex + uint32(_leaves.length);
 		roots[newRootIndex] = Root(uint256(currentRoot), nextIndex);
-		console.log("current root");
-		console.logBytes32(currentRoot);
 		currentRootIndex = newRootIndex;
 	}
 

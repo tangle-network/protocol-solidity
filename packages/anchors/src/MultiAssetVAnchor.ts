@@ -390,7 +390,6 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     encryptedOutput1: string,
     encryptedOutput2: string
   ): Promise<{ extData: ExtData; extDataHash: BigNumber }> {
-    console.log('reached here 1')
     const extData = {
       recipient: toFixedHex(recipient, 20),
       extAmount: toFixedHex(extAmount),
@@ -402,7 +401,6 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
       encryptedOutput2,
     };
 
-    console.log(extData);
 
     const extDataHash = await getVAnchorExtDataHash(
       encryptedOutput1,
@@ -614,7 +612,6 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
       externalMerkleProofs,
       externalFeeMerkleProofs
     );
-    console.log('allInputs', allInputs)
     const res = await this.generateProof(allInputs);
     const proofEncoded = await this.generateProofCalldata(res);
     publicInputs.proof = proofEncoded;

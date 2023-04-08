@@ -4,7 +4,6 @@ pragma solidity ^0.8.5;
 pragma experimental ABIEncoderV2;
 
 import "../structs/PublicInputs.sol";
-import "hardhat/console.sol";
 
 /**
     @title MASPVAnchorEncodeInputs library for encoding inputs for MASP VAnchor proofs
@@ -96,9 +95,6 @@ library MASPVAnchorEncodeInputs {
 			inputs[30] = uint256(_aux.fee_ak_alpha_X[1]);
 			inputs[31] = uint256(_aux.fee_ak_alpha_Y[0]);
 			inputs[32] = uint256(_aux.fee_ak_alpha_Y[1]);
-			for (uint256 i = 0; i < inputs.length; i++) {
-				console.log(inputs[i]);
-			}
 			encodedInput = abi.encodePacked(inputs);
 		} else if (_maxEdges == 7) {
 			uint256[39] memory inputs;

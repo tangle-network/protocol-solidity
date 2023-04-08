@@ -244,7 +244,6 @@ describe('MASPVAnchor for 2 max edges', () => {
     sender = wallet;
     dummyBridgeSigner = signers[1];
     const hasherInstance = await PoseidonHasher.createPoseidonHasher(wallet);
-    console.log('hasherInstance', hasherInstance.contract.address);
     registry = await Registry.createRegistry(sender);
     registryHandler = await RegistryHandler.createRegistryHandler(await dummyBridgeSigner.getAddress(), [await registry.createResourceId()], [ registry.contract.address], dummyBridgeSigner);
     multiFungibleTokenManager = await MultiFungibleTokenManager.createMultiFungibleTokenManager(sender);
@@ -795,11 +794,7 @@ describe('MASPVAnchor for 2 max edges', () => {
 
       // Check MASP Proxy Balance of unwrapped ERC20
       assert.strictEqual((await unwrappedERC20_1.contract.balanceOf(maspProxy.contract.address)).toString(), '400');
-      console.log((await unwrappedERC20_1.contract.balanceOf(maspProxy.contract.address)).toString(), 'masp proxy balance');
-      console.log(BigNumber.from(await maspVAnchor.depositTree.contract.currentRoot()).toString());
-      console.log(await maspVAnchor.depositTree.tree.root().toString())
       
-      console.log(await maspProxy.getQueuedERC20Deposits(maspVAnchor.contract.address, BigNumber.from(0), BigNumber.from(4)));
       // Batch Insert
       await maspProxy.batchDepositERC20s(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
     });
@@ -900,7 +895,6 @@ describe('MASPVAnchor for 2 max edges', () => {
 
       // Queue deposit
       await unwrappedERC20_1.contract.approve(await maspProxy.contract.address, 400);
-      console.log('hi1')
       await maspProxy.queueERC20Deposit(
         {
           unwrappedToken: unwrappedERC20_1.contract.address,
@@ -915,7 +909,6 @@ describe('MASPVAnchor for 2 max edges', () => {
           from: sender.address,
         }
       );
-      console.log('hi2')
       await maspProxy.queueERC20Deposit(
         {
           unwrappedToken: unwrappedERC20_1.contract.address,
@@ -930,7 +923,6 @@ describe('MASPVAnchor for 2 max edges', () => {
           from: sender.address,
         }
       );
-      console.log('hi3')
       await maspProxy.queueERC20Deposit(
         {
           unwrappedToken: unwrappedERC20_1.contract.address,
@@ -945,7 +937,6 @@ describe('MASPVAnchor for 2 max edges', () => {
           from: sender.address,
         }
       );
-      console.log('hi4')
       await maspProxy.queueERC20Deposit(
         {
           unwrappedToken: unwrappedERC20_1.contract.address,
@@ -963,26 +954,18 @@ describe('MASPVAnchor for 2 max edges', () => {
 
       // Check MASP Proxy Balance of unwrapped ERC20
       assert.strictEqual((await unwrappedERC20_1.contract.balanceOf(maspProxy.contract.address)).toString(), '310');
-      console.log((await unwrappedERC20_1.contract.balanceOf(maspProxy.contract.address)).toString(), 'masp proxy balance');
-      console.log(BigNumber.from(await maspVAnchor.depositTree.contract.currentRoot()).toString());
-      console.log(await maspVAnchor.depositTree.tree.root().toString())
       
-      console.log(await maspProxy.getQueuedERC20Deposits(maspVAnchor.contract.address, BigNumber.from(0), BigNumber.from(4)));
       // Batch Insert
       await maspProxy.batchDepositERC20s(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
       const queuedUtxos = [alice_utxo, alice_fee_utxo, bob_utxo, carol_utxo];
       const leaves = queuedUtxos.map((x) => x.getCommitment().toString());
-      console.log('son 1', BigNumber.from(await maspVAnchor.depositTree.contract.currentRoot()).toString());
       queuedUtxos.forEach((x) => {
         // Maintain tree state after insertions
         // maspVAnchor.depositTree.tree.insert(x.getCommitment());
         x.setIndex(BigNumber.from(maspVAnchor.depositTree.tree.indexOf(x.getCommitment().toString())));
-        console.log(x.index.toString(), 'index');
       });
 
-      console.log('son 2', BigNumber.from(await maspVAnchor.depositTree.contract.currentRoot()).toString());
 
-      console.log(alice_utxo.getCommitment(), 'alice utxo');
 
       // Do internal shielded transfer
       const alice_utxo_2 = new MaspUtxo(BigNumber.from(chainID), alice_key, webbFungibleAssetID, webbFungibleTokenID, BigNumber.from(50));
@@ -1046,7 +1029,6 @@ describe('MASPVAnchor for 2 max edges', () => {
       
             // Queue deposit
             await unwrappedERC20_1.contract.approve(await maspProxy.contract.address, 400);
-            console.log('hi1')
             await maspProxy.queueERC20Deposit(
               {
                 unwrappedToken: unwrappedERC20_1.contract.address,
@@ -1061,7 +1043,6 @@ describe('MASPVAnchor for 2 max edges', () => {
                 from: sender.address,
               }
             );
-            console.log('hi2')
             await maspProxy.queueERC20Deposit(
               {
                 unwrappedToken: unwrappedERC20_1.contract.address,
@@ -1076,7 +1057,6 @@ describe('MASPVAnchor for 2 max edges', () => {
                 from: sender.address,
               }
             );
-            console.log('hi3')
             await maspProxy.queueERC20Deposit(
               {
                 unwrappedToken: unwrappedERC20_1.contract.address,
@@ -1091,7 +1071,6 @@ describe('MASPVAnchor for 2 max edges', () => {
                 from: sender.address,
               }
             );
-            console.log('hi4')
             await maspProxy.queueERC20Deposit(
               {
                 unwrappedToken: unwrappedERC20_1.contract.address,
@@ -1109,26 +1088,18 @@ describe('MASPVAnchor for 2 max edges', () => {
       
             // Check MASP Proxy Balance of unwrapped ERC20
             assert.strictEqual((await unwrappedERC20_1.contract.balanceOf(maspProxy.contract.address)).toString(), '310');
-            console.log((await unwrappedERC20_1.contract.balanceOf(maspProxy.contract.address)).toString(), 'masp proxy balance');
-            console.log(BigNumber.from(await maspVAnchor.depositTree.contract.currentRoot()).toString());
-            console.log(await maspVAnchor.depositTree.tree.root().toString())
             
-            console.log(await maspProxy.getQueuedERC20Deposits(maspVAnchor.contract.address, BigNumber.from(0), BigNumber.from(4)));
             // Batch Insert
             await maspProxy.batchDepositERC20s(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
             const queuedUtxos = [alice_utxo, alice_fee_utxo, bob_utxo, carol_utxo];
             const leaves = queuedUtxos.map((x) => x.getCommitment().toString());
-            console.log('son 1', BigNumber.from(await maspVAnchor.depositTree.contract.currentRoot()).toString());
             queuedUtxos.forEach((x) => {
               // Maintain tree state after insertions
               // maspVAnchor.depositTree.tree.insert(x.getCommitment());
               x.setIndex(BigNumber.from(maspVAnchor.depositTree.tree.indexOf(x.getCommitment().toString())));
-              console.log(x.index.toString(), 'index');
             });
       
-            console.log('son 2', BigNumber.from(await maspVAnchor.depositTree.contract.currentRoot()).toString());
       
-            console.log(alice_utxo.getCommitment(), 'alice utxo');
       
             // Do internal shielded transfer
             const alice_utxo_2 = new MaspUtxo(BigNumber.from(chainID), alice_key, webbFungibleAssetID, webbFungibleTokenID, BigNumber.from(50));
