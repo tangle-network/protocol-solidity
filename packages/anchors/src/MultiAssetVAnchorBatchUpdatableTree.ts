@@ -314,8 +314,8 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
       fee,
       refund,
       wrappedToken,
-      toFixedHex(0), //outputs[0].encrypt(outputs[0].maspKey).toString(),
-      toFixedHex(0), // outputs[1].encrypt(outputs[1].maspKey).toString()
+      '0x' + outputs[0].encrypt(outputs[0].maspKey).toString('hex'),
+      '0x' + outputs[1].encrypt(outputs[1].maspKey).toString('hex')
     );
 
     const roots = await this.populateRootsForProof();

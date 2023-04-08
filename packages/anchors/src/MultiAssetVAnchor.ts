@@ -377,7 +377,7 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     );
     const verified = await snarkjs.groth16.verify(vKey, res.publicSignals, res.proof);
     assert.strictEqual(verified, true);
-    return res.proof;
+    return res;
   }
 
   public async generateExtData(
@@ -615,18 +615,9 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
       externalFeeMerkleProofs
     );
     console.log('allInputs', allInputs)
-    const fullProof = await this.generateProof(allInputs);
-    const proof = await this.generateProofCalldata(fullProof);
-    publicInputs.proof = proof;
-    const vKey = await snarkjs.zKey.exportVerificationKey(this.smallCircuitZkComponents.zkey);
-
-    const is_valid: boolean = await snarkjs.groth16.verify(
-      vKey,
-      fullProof.publicSignals,
-      fullProof.proof
-    );
-    assert.strictEqual(is_valid, true);
-
+    const res = await this.generateProof(allInputs);
+    const proofEncoded = await this.generateProofCalldata(res);
+    publicInputs.proof = proofEncoded;
     return publicInputs;
   }
 

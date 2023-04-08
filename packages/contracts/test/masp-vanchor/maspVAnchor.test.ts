@@ -882,7 +882,7 @@ describe('MASPVAnchor for 2 max edges', () => {
   });
 
   describe('masp smart contract internal shielded transfer', () => {
-    it('e2e should internal shielded transfer with valid transact proof -> reward tree commitments queued -> batch insert reward tree commitments', async () => {
+    it.only('e2e should internal shielded transfer with valid transact proof -> reward tree commitments queued -> batch insert reward tree commitments', async () => {
       // 4 Masp Keys
       const alice_key = new MaspKey();
       const bob_key = new MaspKey();
@@ -994,9 +994,14 @@ describe('MASPVAnchor for 2 max edges', () => {
       const alice_randomized_key = alice_key.randomize_sk_ak();
       const alice_randomized_fee_key = alice_key.randomize_sk_ak();
       await maspVAnchor.transact(
+        webbFungibleAssetID,
+        webbFungibleTokenID,
         [alice_utxo],
         [alice_utxo_2, bob_utxo_2],
         [alice_randomized_key.alpha.toString(), alice_randomized_key.alpha.toString()],
+        BigNumber.from(0),
+        webbFungibleAssetID,
+        webbFungibleTokenID,
         [alice_fee_utxo],
         [fee_output_utxo],
         [alice_randomized_fee_key.alpha.toString(), alice_randomized_fee_key.alpha.toString()],
@@ -1004,8 +1009,6 @@ describe('MASPVAnchor for 2 max edges', () => {
         BigNumber.from(0),
         sender.address,
         sender.address,
-        fungibleWebbToken.contract.address,
-        BigNumber.from(0),
         sender,
       );
     });
@@ -1025,7 +1028,7 @@ describe('MASPVAnchor for 2 max edges', () => {
   });
 
   describe('masp smart contract withdraw ERC20', () => {
-    it.only('e2e should withdraw ERC20 with valid transact proof -> reward tree commitments queued -> funds transferred -> batch insert reward tree commitments', async () => {
+    it('e2e should withdraw ERC20 with valid transact proof -> reward tree commitments queued -> funds transferred -> batch insert reward tree commitments', async () => {
             // 4 Masp Keys
             const alice_key = new MaspKey();
             const bob_key = new MaspKey();
