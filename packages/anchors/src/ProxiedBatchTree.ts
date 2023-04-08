@@ -1,6 +1,6 @@
 import {
-  ProxiedBatchMerkleTree as ProxiedBatchMerkleTreeContract,
-  ProxiedBatchMerkleTree__factory,
+  ProxiedBatchTree as ProxiedBatchTreeContract,
+  ProxiedBatchTree__factory,
 } from '@webb-tools/contracts';
 import { MerkleTree, toBuffer, toFixedHex } from '@webb-tools/sdk-core';
 import { BigNumber, ethers } from 'ethers';
@@ -24,9 +24,9 @@ const SNARK_FIELD_SIZE = BigNumber.from(
   '21888242871839275222246405745257275088548364400416034343698204186575808495617'
 );
 
-export class ProxiedBatchTreeUpdater {
+export class ProxiedBatchTree {
   signer: ethers.Signer;
-  contract: ProxiedBatchMerkleTreeContract;
+  contract: ProxiedBatchTreeContract;
   tree: MerkleTree;
   // hex string of the connected root
   latestSyncedBlock: number;
@@ -36,7 +36,7 @@ export class ProxiedBatchTreeUpdater {
   zkComponents_32: ZkComponents;
 
   constructor(
-    contract: ProxiedBatchMerkleTreeContract,
+    contract: ProxiedBatchTreeContract,
     signer: ethers.Signer,
     levels: number,
     zkComponents_4: ZkComponents,
@@ -54,7 +54,7 @@ export class ProxiedBatchTreeUpdater {
     this.zkComponents_32 = zkComponents_32;
   }
 
-  public static async createProxiedBatchTreeUpdater(
+  public static async createProxiedBatchTree(
     verifierAddr: string,
     levels: number,
     hasherAddr: string,
@@ -65,11 +65,11 @@ export class ProxiedBatchTreeUpdater {
     zkComponents_32: ZkComponents,
     signer: ethers.Signer
   ) {
-    const factory = new ProxiedBatchMerkleTree__factory(signer);
+    const factory = new ProxiedBatchTree__factory(signer);
     const contract = await factory.deploy(levels, hasherAddr, verifierAddr, proxyAddr);
     await contract.deployed();
 
-    const createdProxiedBatchTreeUpdater = new ProxiedBatchTreeUpdater(
+    const createdProxiedBatchTree = new ProxiedBatchTree(
       contract,
       signer,
       levels,
@@ -78,8 +78,8 @@ export class ProxiedBatchTreeUpdater {
       zkComponents_16,
       zkComponents_32
     );
-    createdProxiedBatchTreeUpdater.latestSyncedBlock = contract.deployTransaction.blockNumber!;
-    return createdProxiedBatchTreeUpdater;
+    createdProxiedBatchTree.latestSyncedBlock = contract.deployTransaction.blockNumber!;
+    return createdProxiedBatchTree;
   }
 
   public static async connect(
@@ -90,10 +90,10 @@ export class ProxiedBatchTreeUpdater {
     zkComponents_32: ZkComponents,
     signer: ethers.Signer
   ) {
-    const factory = new ProxiedBatchMerkleTree__factory(signer);
+    const factory = new ProxiedBatchTree__factory(signer);
     const proxiedBatchTreeContract = factory.attach(contractAddr);
     const levels = await proxiedBatchTreeContract.levels();
-    const createdProxiedBatchTreeUpdater = new ProxiedBatchTreeUpdater(
+    const createdProxiedBatchTree = new ProxiedBatchTree(
       proxiedBatchTreeContract,
       signer,
       levels,
@@ -102,7 +102,7 @@ export class ProxiedBatchTreeUpdater {
       zkComponents_16,
       zkComponents_32
     );
-    return createdProxiedBatchTreeUpdater;
+    return createdProxiedBatchTree;
   }
 
   public static hashInputs(input: ProofSignals) {
@@ -163,7 +163,7 @@ export class ProxiedBatchTreeUpdater {
     };
 
 
-    input['argsHash'] = ProxiedBatchTreeUpdater.hashInputs(input);
+    input['argsHash'] = ProxiedBatchTree.hashInputs(input);
 
     const wtns = await zkComponent.witnessCalculator.calculateWTNSBin(input, 0);
     
@@ -205,4 +205,5 @@ export class ProxiedBatchTreeUpdater {
     // const verified = await snarkjs.groth16.verify(vKey, publicSignals, proof);
     return { input, proof, publicSignals };
   }
+
 }

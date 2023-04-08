@@ -11,7 +11,7 @@ import {
   MultiAssetVAnchorBatchTree__factory,
 } from '@webb-tools/contracts';
 
-import { MultiAssetVAnchorBatchUpdatableTree } from './MultiAssetVAnchorBatchUpdatableTree';
+import { MultiAssetVAnchorBatchTree } from './MultiAssetVAnchorBatchTree';
 
 import { QueueDepositInfo } from '@webb-tools/interfaces';
 import { toFixedHex } from '@webb-tools/sdk-core';
@@ -66,7 +66,7 @@ export class MultiAssetVAnchorProxy {
 
   // Batch insert ERC20 deposits
   public async batchDepositERC20s(
-    masp: MultiAssetVAnchorBatchUpdatableTree,
+    masp: MultiAssetVAnchorBatchTree,
     startQueueIndex: BigNumber,
     batchHeight: BigNumber
   ) {
@@ -92,7 +92,7 @@ export class MultiAssetVAnchorProxy {
 
   // Batch insert ERC721 deposits
   public async batchDepositERC721s(
-    masp: MultiAssetVAnchorBatchUpdatableTree,
+    masp: MultiAssetVAnchorBatchTree,
     startQueueIndex: BigNumber,
     batchHeight: BigNumber
   ) {
@@ -116,7 +116,7 @@ export class MultiAssetVAnchorProxy {
 
   // Batch insert reward unspent tree commitments
   public async batchInsertRewardUnspentTree(
-    masp: MultiAssetVAnchorBatchUpdatableTree,
+    masp: MultiAssetVAnchorBatchTree,
     startQueueIndex: BigNumber,
     batchHeight: BigNumber
   ) {
@@ -143,7 +143,7 @@ export class MultiAssetVAnchorProxy {
 
   // Batch insert reward spent tree commitments
   public async batchInsertRewardSpentTree(
-    masp: MultiAssetVAnchorBatchUpdatableTree,
+    masp: MultiAssetVAnchorBatchTree,
     startQueueIndex: BigNumber,
     batchHeight: BigNumber
   ) {

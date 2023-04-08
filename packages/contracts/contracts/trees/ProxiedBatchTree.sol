@@ -10,7 +10,7 @@ import "../interfaces/verifiers/IBatchVerifier.sol";
 import "../utils/ProofUtils.sol";
 import "../interfaces/IMASPProxy.sol";
 
-contract ProxiedBatchMerkleTree is MerkleTreeWithHistory, ProofUtils {
+contract ProxiedBatchTree is MerkleTreeWithHistory, ProofUtils {
 	bytes32 public currentRoot;
 	bytes32 public previousRoot;
 	uint256 public queueLength;

@@ -8,6 +8,6 @@ export { MultiAssetVAnchor } from './MultiAssetVAnchor';
 export { VAnchor } from './VAnchor';
 export { VAnchorForest } from './VAnchorForest';
 export { MultiAssetVAnchorProxy } from './MultiAssetVAnchorProxy';
-export { MultiAssetVAnchorBatchUpdatableTree } from './MultiAssetVAnchorBatchUpdatableTree';
+export { MultiAssetVAnchorBatchTree } from './MultiAssetVAnchorBatchTree';
 export { BatchTreeVerifier } from './BatchTreeVerifier';
 export { SwapProofVerifier } from './SwapVerifier';

@@ -6,11 +6,11 @@
 pragma solidity ^0.8.0;
 
 import "../base/MultiAssetVAnchor.sol";
-import "../../trees/ProxiedBatchUpdatableTree.sol";
+import "../../trees/ProxiedBatchTree.sol";
 import "../../interfaces/verifiers/IBatchVerifier.sol";
 import "../../interfaces/IMultiAssetVAnchorBatchTree.sol";
 
-contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, ProxiedBatchMerkleTree {
+contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, ProxiedBatchTree {
 	using SafeERC20 for IERC20;
 	using SafeMath for uint256;
 
@@ -51,7 +51,7 @@ contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, ProxiedBatchMerkleTree
 			_handler,
 			_maxEdges
 		)
-		ProxiedBatchMerkleTree(_merkleTreeLevels, _hasher, _batchTreeVerifier, _proxy)
+		ProxiedBatchTree(_merkleTreeLevels, _hasher, _batchTreeVerifier, _proxy)
 	{
 		rewardUnspentTree = address(_rewardUnspentTree);
 		rewardSpentTree = address(_rewardSpentTree);
