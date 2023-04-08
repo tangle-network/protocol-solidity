@@ -124,19 +124,6 @@ export class ProxiedBatchTreeUpdater {
     return result;
   }
 
-  // public async registerInsertion(instance: string, commitment: BigNumberish) {
-  //   return await this.contract.registerInsertion(instance, toFixedHex(commitment));
-  // }
-
-  // public async registerInsertions(instances: string[], commitments: BigNumberish[]) {
-  //   assert(instances.length === commitments.length);
-  //   let transactions = [];
-  //   for (let i = 0; i < instances.length; i++) {
-  //     let tx = await this.contract.registerInsertion(instances[i], toFixedHex(commitments[i]));
-  //     transactions.push(tx);
-  //   }
-  //   return transactions;
-  // }
   public async validateBatchSize(batchSize: number) {
     if (batchSize == 4) {
       return this.zkComponents_4;
@@ -217,48 +204,5 @@ export class ProxiedBatchTreeUpdater {
     // const vKey = await snarkjs.zKey.exportVerificationKey(zkComponent.zkey);
     // const verified = await snarkjs.groth16.verify(vKey, publicSignals, proof);
     return { input, proof, publicSignals };
-  }
-
-  public async batchInsert(batchSize: number) {
-    let batchHeight = Math.log2(batchSize);
-    let leaves = [];
-    let startIndex = await this.contract.nextIndex();
-    for (var i = startIndex; i < startIndex + batchSize; i++) {
-      let c = await this.contract.queue(i);
-      leaves.push(c);
-    }
-
-    const { input, proof, publicSignals } = await this.generateProof(batchSize, leaves);
-    const calldata = await snarkjs.groth16.exportSolidityCallData(proof, publicSignals);
-    const proofJson = JSON.parse('[' + calldata + ']');
-    const pi_a = proofJson[0];
-    const pi_b = proofJson[1];
-    const pi_c = proofJson[2];
-
-    let proofEncoded = [
-      pi_a[0],
-      pi_a[1],
-      pi_b[0][0],
-      pi_b[0][1],
-      pi_b[1][0],
-      pi_b[1][1],
-      pi_c[0],
-      pi_c[1],
-    ]
-      .map((elt) => elt.substr(2))
-      .join('');
-
-    proofEncoded = `0x${proofEncoded}`;
-
-    let tx = await this.contract.batchInsert(
-      proofEncoded,
-      toFixedHex(input['argsHash'] ?? ''),
-      toFixedHex(input['oldRoot']),
-      toFixedHex(input['newRoot']),
-      input['pathIndices'],
-      input['leaves'],
-      batchHeight
-    );
-    return { input, tx };
   }
 }
