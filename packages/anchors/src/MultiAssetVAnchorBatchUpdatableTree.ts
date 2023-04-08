@@ -27,14 +27,14 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
   // Constructor
   constructor(
     contract: MultiAssetVAnchorBatchTreeContract,
+    depositTree: ProxiedBatchTreeUpdater,
+    unspentTree: ProxiedBatchTreeUpdater,
+    spentTree: ProxiedBatchTreeUpdater,
     levels: number,
     maxEdges: number,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents,
     swapCircuitZkComponents: ZkComponents,
-    depositTree: ProxiedBatchTreeUpdater,
-    unspentTree: ProxiedBatchTreeUpdater,
-    spentTree: ProxiedBatchTreeUpdater,
     signer: ethers.Signer
   ) {
     super(
@@ -56,17 +56,17 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
 
   public static async createMASPVAnchorBatchTree(
     registry: string,
-    verifier: string,
-    swapVerifier: string,
+    transactVerifierAddr: string,
+    batchVerifierAddr: string,
+    swapVerifierAddr: string,
+    handlerAddr: string,
+    hasherAddr: string,
+    proxyAddr: string,
     levels: number,
-    handler: string,
     maxEdges: number,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents,
     swapCircuitZkComponents: ZkComponents,
-    batchVerifierAddr: string,
-    hasherAddr: string,
-    proxyAddr: string,
     zkComponents_4: ZkComponents,
     zkComponents_8: ZkComponents,
     zkComponents_16: ZkComponents,
@@ -130,11 +130,11 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
       unspentTree.contract.address,
       spentTree.contract.address,
       proxy,
-      verifier,
-      swapVerifier,
+      transactVerifierAddr,
+      swapVerifierAddr,
       levels,
       hasherAddr,
-      handler,
+      handlerAddr,
       await depositTree.contract.treeUpdateVerifier(),
       maxEdges,
       {}
@@ -142,14 +142,14 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
     await maspVAnchorBatchTree.deployed();
     const createdMASPVAnchorBatchTree = new MultiAssetVAnchorBatchUpdatableTree(
       maspVAnchorBatchTree,
+      depositTree,
+      unspentTree,
+      spentTree,
       levels,
       maxEdges,
       smallCircuitZkComponents,
       largeCircuitZkComponents,
       swapCircuitZkComponents,
-      depositTree,
-      unspentTree,
-      spentTree,
       signer
     );
     const tx = await createdMASPVAnchorBatchTree.contract.initialize(
@@ -164,20 +164,20 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
   public static async connect(
     // connect via factory method
     // build up tree by querying provider for logs
-    address: string,
-    smallCircuitZkComponents: ZkComponents,
-    largeCircuitZkComponents: ZkComponents,
-    swapCircuitZkComponents: ZkComponents,
+    maspAddress: string,
     depositTreeAddr: string,
     unspentTreeAddr: string,
     spentTreeAddr: string,
+    smallCircuitZkComponents: ZkComponents,
+    largeCircuitZkComponents: ZkComponents,
+    swapCircuitZkComponents: ZkComponents,
     zkComponents_4: ZkComponents,
     zkComponents_8: ZkComponents,
     zkComponents_16: ZkComponents,
     zkComponents_32: ZkComponents,
     signer: ethers.Signer
   ) {
-    const masp = MultiAssetVAnchorBatchTree__factory.connect(address, signer);
+    const masp = MultiAssetVAnchorBatchTree__factory.connect(maspAddress, signer);
     const depositTree = await ProxiedBatchTreeUpdater.connect(
       depositTreeAddr,
       zkComponents_4,
@@ -206,14 +206,14 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
     const treeHeight = await masp.levels();
     const createdAnchor = new MultiAssetVAnchorBatchUpdatableTree(
       masp,
+      depositTree,
+      unspentTree,
+      spentTree,
       treeHeight,
       maxEdges,
       smallCircuitZkComponents,
       largeCircuitZkComponents,
       swapCircuitZkComponents,
-      depositTree,
-      unspentTree,
-      spentTree,
       signer
     );
     return createdAnchor;
