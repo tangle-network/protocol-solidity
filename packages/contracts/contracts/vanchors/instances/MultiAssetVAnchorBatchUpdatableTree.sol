@@ -31,15 +31,15 @@ contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, ProxiedBatchMerkleTree
 	*/
 	constructor(
 		IRegistry _registry,
-		IBatchTree _rewardUnspentTree,
-		IBatchTree _rewardSpentTree,
-		IMASPProxy _proxy,
 		IAnchorVerifier _verifier,
 		ISwapVerifier _swapVerifier,
-		uint32 _merkleTreeLevels,
-		IHasher _hasher,
-		address _handler,
 		IBatchTreeVerifierSelector _batchTreeVerifier,
+		address _handler,
+		IHasher _hasher,
+		IMASPProxy _proxy,
+		IBatchTree _rewardUnspentTree,
+		IBatchTree _rewardSpentTree,
+		uint32 _merkleTreeLevels,
 		uint8 _maxEdges
 	)
 		MultiAssetVAnchor(

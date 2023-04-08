@@ -127,15 +127,15 @@ export class MultiAssetVAnchorBatchUpdatableTree extends MultiAssetVAnchor {
 
     const maspVAnchorBatchTree = await factory.deploy(
       registry,
-      unspentTree.contract.address,
-      spentTree.contract.address,
-      proxy,
       transactVerifierAddr,
       swapVerifierAddr,
-      levels,
-      hasherAddr,
-      handlerAddr,
       await depositTree.contract.treeUpdateVerifier(),
+      handlerAddr,
+      hasherAddr,
+      proxy,
+      unspentTree.contract.address,
+      spentTree.contract.address,
+      levels,
       maxEdges,
       {}
     );
