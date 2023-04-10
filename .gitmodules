@@ -13,6 +13,6 @@
 [submodule "contracts-forge/lib/openzeppelin-contracts"]
 	path = contracts-forge/lib/openzeppelin-contracts
 	url = https://github.com/openzeppelin/openzeppelin-contracts
-[submodule "contracts-foundry/lib/ds-test"]
-	path = contracts-foundry/lib/ds-test
+[submodule "contracts-forge/lib/ds-test"]
+	path = contracts-forge/lib/ds-test
 	url = https://github.com/dapphub/ds-test
