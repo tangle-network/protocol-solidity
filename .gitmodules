@@ -1,3 +1,3 @@
 [submodule "solidity-fixtures"]
-	path = packages/contracts/solidity-fixtures
-	url = https://github.com/webb-tools/solidity-fixtures
+	path = "packages/contracts/solidity-fixtures"
+	url = "https://github.com/webb-tools/solidity-fixtures"
