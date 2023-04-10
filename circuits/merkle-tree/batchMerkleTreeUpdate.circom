@@ -35,7 +35,6 @@ template BatchTreeUpdate(levels, batchLevels, zeroBatchLeaf) {
   signal input pathElements[height];
   signal input leaves[nLeaves];
   /* signal input blocks[nLeaves]; */
-
   // Check that hash of arguments is correct
   // We compress arguments into a single hash to considerably reduce gas usage on chain
   component argsHasher = TreeUpdateArgsHasher(nLeaves);
@@ -46,7 +45,6 @@ template BatchTreeUpdate(levels, batchLevels, zeroBatchLeaf) {
     argsHasher.leaves[i] <== leaves[i];
   }
   argsHash === argsHasher.out;
-
   // Compute batch subtree merkle root
   component layers[batchLevels];
   for(var level = batchLevels - 1; level >= 0; level--) {

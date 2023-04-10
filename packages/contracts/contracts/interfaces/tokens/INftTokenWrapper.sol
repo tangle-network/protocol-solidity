@@ -10,7 +10,7 @@ pragma solidity ^0.8.0;
     @author Webb Technologies.
  */
 interface INftTokenWrapper {
-	function wrap721(uint256 _tokenId, address _tokenContract) external;
+	function wrap721(uint256 _tokenId) external;
 
 	function unwrap721(uint256 _tokenId, address _tokenContract) external;
 }

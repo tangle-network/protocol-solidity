@@ -8,8 +8,9 @@ pragma solidity ^0.8.5;
 import "./MerkleTreeWithHistory.sol";
 import "../interfaces/verifiers/IBatchVerifier.sol";
 import "../utils/ProofUtils.sol";
+import "../interfaces/IMASPProxy.sol";
 
-contract BatchMerkleTree is MerkleTreeWithHistory, ProofUtils {
+contract ProxiedBatchTree is MerkleTreeWithHistory, ProofUtils {
 	bytes32 public currentRoot;
 	bytes32 public previousRoot;
 	uint256 public queueLength;
@@ -22,8 +23,14 @@ contract BatchMerkleTree is MerkleTreeWithHistory, ProofUtils {
 	uint256 public constant SNARK_FIELD =
 		21888242871839275222246405745257275088548364400416034343698204186575808495617;
 	IBatchTreeVerifierSelector public treeUpdateVerifier;
+	address public maspProxy;
 
-	constructor(uint32 _levels, IHasher _hasher, IBatchTreeVerifierSelector _treeUpdateVerifier) {
+	constructor(
+		uint32 _levels,
+		IHasher _hasher,
+		IBatchTreeVerifierSelector _treeUpdateVerifier,
+		IMASPProxy _maspProxy
+	) {
 		require(_levels > 0, "_levels should be greater than zero");
 		require(_levels < 32, "_levels should be less than 32");
 		levels = _levels;
@@ -36,6 +43,7 @@ contract BatchMerkleTree is MerkleTreeWithHistory, ProofUtils {
 		queueLength = 0;
 		roots[0] = Root(uint256(hasher.zeros(_levels)), 0);
 		currentRoot = hasher.zeros(_levels);
+		maspProxy = address(_maspProxy);
 	}
 
 	function _registerInsertion(address _instance, bytes32 _commitment) internal {
@@ -71,12 +79,15 @@ contract BatchMerkleTree is MerkleTreeWithHistory, ProofUtils {
 		uint32 _pathIndices,
 		bytes32[] calldata _leaves,
 		uint32 _batchHeight
-	) public {
+	) public onlyProxy {
 		uint256 offset = nextIndex;
 
 		require(_currentRoot == currentRoot, "Initial deposit root is invalid");
 		require(_pathIndices == offset >> _batchHeight, "Incorrect deposit insert index");
 		this.checkLeavesLength(_leaves);
+
+		_newRoot = bytes32(uint256(_newRoot) % SNARK_FIELD);
+		_currentRoot = bytes32(uint256(_currentRoot) % SNARK_FIELD);
 
 		bytes memory data = new bytes(HEADER_SIZE + ITEM_SIZE * _leaves.length);
 		assembly {
@@ -85,9 +96,7 @@ contract BatchMerkleTree is MerkleTreeWithHistory, ProofUtils {
 			mstore(add(data, 0x20), _currentRoot)
 		}
 		for (uint256 i = 0; i < _leaves.length; i++) {
-			bytes32 leafHash = _leaves[i];
-			bytes32 deposit = queue[offset + i];
-			require(leafHash == deposit, "Incorrect deposit");
+			bytes32 leafHash = bytes32(uint256(_leaves[i]) % SNARK_FIELD);
 			assembly {
 				let itemOffset := add(data, mul(ITEM_SIZE, i))
 				mstore(add(itemOffset, 0x64), leafHash)
@@ -111,5 +120,10 @@ contract BatchMerkleTree is MerkleTreeWithHistory, ProofUtils {
 		nextIndex = nextIndex + uint32(_leaves.length);
 		roots[newRootIndex] = Root(uint256(currentRoot), nextIndex);
 		currentRootIndex = newRootIndex;
+	}
+
+	modifier onlyProxy() {
+		require(msg.sender == maspProxy, "Only MASP proxy can call this function");
+		_;
 	}
 }

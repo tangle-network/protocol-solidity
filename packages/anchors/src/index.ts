@@ -7,3 +7,7 @@ export { PoseidonHasher } from './PoseidonHasher';
 export { MultiAssetVAnchor } from './MultiAssetVAnchor';
 export { VAnchor } from './VAnchor';
 export { VAnchorForest } from './VAnchorForest';
+export { MultiAssetVAnchorProxy } from './MultiAssetVAnchorProxy';
+export { MultiAssetVAnchorBatchTree } from './MultiAssetVAnchorBatchTree';
+export { BatchTreeVerifier } from './BatchTreeVerifier';
+export { SwapProofVerifier } from './SwapVerifier';

@@ -10,7 +10,7 @@ import { PoseidonT3, PoseidonT4, PoseidonT5, PoseidonT6 } from "./Poseidon.sol";
 import { SnarkConstants } from "./SnarkConstants.sol";
 
 /*
- * Poseidon hash functions for 2, 5, and 11 input elements.
+ * Poseidon hash functions for 2, 4, 5, and 11 input elements.
  */
 contract PoseidonHasher is SnarkConstants, IHasher {
 	function hash3(uint256[3] memory array) public pure override returns (uint256) {

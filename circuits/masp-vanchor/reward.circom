@@ -25,7 +25,6 @@ template Reward(levels, zeroLeaf, length) {
 	signal input note_ak_X;
 	signal input note_ak_Y;
 	signal input noteBlinding;
-	signal input notePathElements[levels];
 	signal input notePathIndices;
 
 	// For Delegatable Claiming

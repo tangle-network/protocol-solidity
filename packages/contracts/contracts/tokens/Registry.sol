@@ -125,6 +125,7 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
 		);
 		address token = IMultiTokenManager(nonFungibleTokenManager).registerNftToken(
 			_tokenHandler,
+			_unwrappedNftAddress,
 			_uri,
 			_salt
 		);
@@ -175,7 +176,7 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
         @notice Modifier for enforcing that the caller is the governor
      */
 	modifier onlyHandler() {
-		require(msg.sender == registryHandler, "Only governor can call this function");
+		require(msg.sender == registryHandler, "Only registry handler can call this function");
 		_;
 	}
 }

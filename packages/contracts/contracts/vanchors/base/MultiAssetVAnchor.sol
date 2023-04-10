@@ -12,6 +12,11 @@ import "../../interfaces/tokens/IRegistry.sol";
 import "../../trees/MerkleTree.sol";
 import "../../interfaces/tokens/INftTokenWrapper.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "../../interfaces/IBatchTree.sol";
+import "../../interfaces/IMASPProxy.sol";
+import "../../libs/SwapEncodeInputs.sol";
+import "../../interfaces/verifiers/ISwapVerifier.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 /**
 	@title Multi Asset Variable Anchor contract
@@ -33,11 +38,14 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 	IMPORTANT: A bridge ERC20 token MUST have the same assetID across chain.
  */
-abstract contract MultiAssetVAnchor is ZKVAnchorBase {
+abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 	using SafeERC20 for IERC20;
 	using SafeMath for uint256;
 
 	address public registry;
+	address proxy;
+	uint256 allowableSwapTimestampEpsilon = 1 minutes;
+	address swapVerifier;
 
 	/**
 		@notice The VAnchor constructor
@@ -51,12 +59,16 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 	*/
 	constructor(
 		IRegistry _registry,
+		IMASPProxy _proxy,
 		IAnchorVerifier _verifier,
+		ISwapVerifier _swapVerifier,
 		uint32 _levels,
 		address _handler,
 		uint8 _maxEdges
 	) ZKVAnchorBase(_verifier, _levels, _handler, _maxEdges) {
 		registry = address(_registry);
+		proxy = address(_proxy);
+		swapVerifier = address(_swapVerifier);
 	}
 
 	/**
@@ -120,7 +132,7 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 				IRegistry(registry).getUnwrappedAssetAddress(assetID) == _fromTokenAddress,
 				"Wrapped and unwrapped addresses don't match"
 			);
-			INftTokenWrapper(_toTokenAddress).wrap721(_tokenID, _fromTokenAddress);
+			INftTokenWrapper(_toTokenAddress).wrap721(_tokenID);
 		} else {
 			IERC721(_toTokenAddress).safeTransferFrom(msg.sender, address(this), _tokenID);
 		}
@@ -140,7 +152,10 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		PublicInputs memory _publicInputs,
 		Encryptions memory _encryptions
 	) public payable virtual override {
-		MASPAuxPublicInputs memory aux = abi.decode(_auxPublicInputs, (MASPAuxPublicInputs));
+		MASPAuxPublicInputsSmall memory aux = abi.decode(
+			_auxPublicInputs,
+			(MASPAuxPublicInputsSmall)
+		);
 		address wrappedToken = IRegistry(registry).getWrappedAssetAddress(aux.publicAssetID);
 		_transact(
 			wrappedToken,
@@ -150,6 +165,17 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 			_publicInputs,
 			_encryptions
 		);
+		uint256 timestamp = block.timestamp;
+		for (uint256 i = 0; i < _publicInputs.inputNullifiers.length; i++) {
+			IMASPProxy(proxy).queueRewardSpentTreeCommitment(
+				bytes32(
+					IHasher(this.getHasher()).hashLeftRight(
+						_publicInputs.inputNullifiers[i],
+						timestamp
+					)
+				)
+			);
+		}
 	}
 
 	/// @inheritdoc ZKVAnchorBase
@@ -193,5 +219,129 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 					)
 				)
 			);
+	}
+
+	function swap(
+		bytes memory proof,
+		SwapPublicInputs memory _publicInputs,
+		Encryptions memory aliceEncryptions,
+		Encryptions memory bobEncryptions
+	) public {
+		// Verify the proof
+		(bytes memory encodedInputs, uint256[] memory roots) = SwapEncodeInputs._encodeInputs(
+			_publicInputs,
+			maxEdges
+		);
+		require(isValidRoots(roots), "Invalid vanchor roots");
+		require(
+			ISwapVerifier(swapVerifier).verifySwap(proof, encodedInputs, maxEdges),
+			"Invalid swap proof"
+		);
+		// Nullify the spent Records
+		nullifierHashes[_publicInputs.aliceSpendNullifier] = true;
+		nullifierHashes[_publicInputs.bobSpendNullifier] = true;
+		emit NewNullifier(_publicInputs.aliceSpendNullifier);
+		emit NewNullifier(_publicInputs.bobSpendNullifier);
+		IMASPProxy(proxy).queueRewardSpentTreeCommitment(
+			bytes32(
+				IHasher(this.getHasher()).hashLeftRight(
+					_publicInputs.aliceSpendNullifier,
+					block.timestamp
+				)
+			)
+		);
+		IMASPProxy(proxy).queueRewardSpentTreeCommitment(
+			bytes32(
+				IHasher(this.getHasher()).hashLeftRight(
+					_publicInputs.bobSpendNullifier,
+					block.timestamp
+				)
+			)
+		);
+		// Check block timestamp versus timestamps in swap
+		require(
+			(block.timestamp - allowableSwapTimestampEpsilon <= _publicInputs.currentTimestamp) &&
+				(_publicInputs.currentTimestamp <= block.timestamp + allowableSwapTimestampEpsilon),
+			"Current timestamp not valid"
+		);
+		// Add new Records from swap (receive and change records) to Record Merkle tree.
+		// Insert Alice's Change and Receive Records
+		_insertTwo(_publicInputs.aliceChangeRecord, _publicInputs.aliceReceiveRecord);
+		emit NewCommitment(
+			_publicInputs.aliceChangeRecord,
+			0,
+			this.getNextIndex() - 2,
+			aliceEncryptions.encryptedOutput1
+		);
+		emit NewCommitment(
+			_publicInputs.aliceReceiveRecord,
+			0,
+			this.getNextIndex() - 1,
+			aliceEncryptions.encryptedOutput2
+		);
+		// Insert Bob's Change and Receive Records
+		_insertTwo(_publicInputs.bobChangeRecord, _publicInputs.bobReceiveRecord);
+		emit NewCommitment(
+			_publicInputs.bobChangeRecord,
+			0,
+			this.getNextIndex() - 2,
+			bobEncryptions.encryptedOutput1
+		);
+		emit NewCommitment(
+			_publicInputs.bobReceiveRecord,
+			0,
+			this.getNextIndex() - 1,
+			bobEncryptions.encryptedOutput2
+		);
+		IMASPProxy(proxy).queueRewardSpentTreeCommitment(
+			bytes32(
+				IHasher(this.getHasher()).hashLeftRight(
+					_publicInputs.aliceChangeRecord,
+					block.timestamp
+				)
+			)
+		);
+		IMASPProxy(proxy).queueRewardSpentTreeCommitment(
+			bytes32(
+				IHasher(this.getHasher()).hashLeftRight(
+					_publicInputs.aliceReceiveRecord,
+					block.timestamp
+				)
+			)
+		);
+		IMASPProxy(proxy).queueRewardSpentTreeCommitment(
+			bytes32(
+				IHasher(this.getHasher()).hashLeftRight(
+					_publicInputs.bobChangeRecord,
+					block.timestamp
+				)
+			)
+		);
+		IMASPProxy(proxy).queueRewardSpentTreeCommitment(
+			bytes32(
+				IHasher(this.getHasher()).hashLeftRight(
+					_publicInputs.bobReceiveRecord,
+					block.timestamp
+				)
+			)
+		);
+	}
+
+	/**
+	 * @dev Whenever an {IERC721} `tokenId` token is transferred to this contract via {IERC721-safeTransferFrom}
+	 * by `operator` from `from`, this function is called.
+	 *
+	 * It must return its Solidity selector to confirm the token transfer.
+	 * If any other value is returned or the interface is not implemented by the recipient, the transfer will be reverted.
+	 *
+	 * The selector can be obtained in Solidity with `IERC721Receiver.onERC721Received.selector`.
+	 */
+	function onERC721Received(
+		address operator,
+		address from,
+		uint256 tokenId,
+		bytes calldata data
+	) external override returns (bytes4) {
+		return this.onERC721Received.selector;
 	}
 }

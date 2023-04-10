@@ -6,17 +6,16 @@
 pragma solidity ^0.8.0;
 
 import "../base/MultiAssetVAnchor.sol";
-import "../../trees/MerkleTree.sol";
+import "../../trees/ProxiedBatchTree.sol";
+import "../../interfaces/verifiers/IBatchVerifier.sol";
+import "../../interfaces/IMultiAssetVAnchorBatchTree.sol";
 
-/**
-	@title Variable Anchor Forest contract
-	@author Webb Technologies
-	@notice The Variable Anchor Forest is the same as a VAnchor system but with
-	many merkle trees for commitment storage.
- */
-contract MultiAssetVAnchorTree is MultiAssetVAnchor, MerkleTree {
+contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, ProxiedBatchTree {
 	using SafeERC20 for IERC20;
 	using SafeMath for uint256;
+
+	address public rewardUnspentTree;
+	address public rewardSpentTree;
 
 	/**
 		@notice The VAnchorTree constructor
@@ -32,12 +31,15 @@ contract MultiAssetVAnchorTree is MultiAssetVAnchor, MerkleTree {
 	*/
 	constructor(
 		IRegistry _registry,
-		IMASPProxy _proxy,
 		IAnchorVerifier _verifier,
 		ISwapVerifier _swapVerifier,
-		uint32 _merkleTreeLevels,
-		IHasher _hasher,
+		IBatchTreeVerifierSelector _batchTreeVerifier,
 		address _handler,
+		IHasher _hasher,
+		IMASPProxy _proxy,
+		IBatchTree _rewardUnspentTree,
+		IBatchTree _rewardSpentTree,
+		uint32 _merkleTreeLevels,
 		uint8 _maxEdges
 	)
 		MultiAssetVAnchor(
@@ -49,8 +51,11 @@ contract MultiAssetVAnchorTree is MultiAssetVAnchor, MerkleTree {
 			_handler,
 			_maxEdges
 		)
-		MerkleTree(_merkleTreeLevels, _hasher)
-	{}
+		ProxiedBatchTree(_merkleTreeLevels, _hasher, _batchTreeVerifier, _proxy)
+	{
+		rewardUnspentTree = address(_rewardUnspentTree);
+		rewardSpentTree = address(_rewardSpentTree);
+	}
 
 	/// @inheritdoc ZKVAnchorBase
 	function _executeInsertions(

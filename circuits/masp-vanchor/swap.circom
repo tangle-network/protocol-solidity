@@ -97,9 +97,11 @@ template Swap(levels, length) {
     component tCheck = LessEqThan(252);
     tCheck.in[0] <== t;
     tCheck.in[1] <== currentTimestamp;
+    tCheck.out === 1;
     component tPrimeCheck = LessEqThan(252);
     tPrimeCheck.in[0] <== currentTimestamp;
     tPrimeCheck.in[1] <== tPrime;
+    tPrimeCheck.out === 1;
 
     // Check all relevant asset and tokenIDs and amounts are equal
     aliceSpendAssetID === aliceChangeAssetID;

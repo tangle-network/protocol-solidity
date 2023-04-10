@@ -158,7 +158,6 @@ abstract contract VAnchorBase is LinkableAnchor {
 	) public payable returns (uint256) {
 		// Before executing the wrapping, determine the amount which needs to be sent to the tokenWrapper
 		uint256 wrapAmount = ITokenWrapper(_toTokenAddress).getAmountToWrap(_extAmount);
-
 		// If the address is zero, this is meant to wrap native tokens
 		if (_fromTokenAddress == address(0)) {
 			require(msg.value == wrapAmount);
@@ -178,7 +177,6 @@ abstract contract VAnchorBase is LinkableAnchor {
 				address(this)
 			);
 		}
-
 		return wrapAmount;
 	}
 
