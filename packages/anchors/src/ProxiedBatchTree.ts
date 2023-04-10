@@ -116,11 +116,7 @@ export class ProxiedBatchTree {
     }
 
     const hash = '0x' + sha.getHash('HEX');
-    const result = BigNumber.from(hash)
-      .mod(
-        SNARK_FIELD_SIZE
-      )
-      .toString();
+    const result = BigNumber.from(hash).mod(SNARK_FIELD_SIZE).toString();
     return result;
   }
 
@@ -162,15 +158,11 @@ export class ProxiedBatchTree {
       leaves,
     };
 
-
     input['argsHash'] = ProxiedBatchTree.hashInputs(input);
 
     const wtns = await zkComponent.witnessCalculator.calculateWTNSBin(input, 0);
-    
-    const res= await snarkjs.groth16.prove(
-      zkComponent.zkey,
-      wtns,
-    );
+
+    const res = await snarkjs.groth16.prove(zkComponent.zkey, wtns);
 
     const calldata = await snarkjs.groth16.exportSolidityCallData(res.proof, res.publicSignals);
     const proofJson = JSON.parse('[' + calldata + ']');
@@ -205,5 +197,4 @@ export class ProxiedBatchTree {
     // const verified = await snarkjs.groth16.verify(vKey, publicSignals, proof);
     return { input, proof, publicSignals };
   }
-
 }

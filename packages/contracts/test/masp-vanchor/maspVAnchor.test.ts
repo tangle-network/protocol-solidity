@@ -32,11 +32,27 @@ import {
   MaspKey,
 } from '@webb-tools/utils';
 
-import { MultiAssetVAnchorProxy, MultiAssetVAnchorBatchUpdatableTree, PoseidonHasher, BatchTreeVerifier, SwapProofVerifier } from '@webb-tools/anchors';
+import {
+  MultiAssetVAnchorProxy,
+  MultiAssetVAnchorBatchTree,
+  PoseidonHasher,
+  BatchTreeVerifier,
+  SwapProofVerifier,
+} from '@webb-tools/anchors';
 
 import { MultiAssetVerifier } from '@webb-tools/vbridge';
 import { writeFileSync } from 'fs';
-import { Registry, RegistryHandler, MultiFungibleTokenManager, MultiNftTokenManager, NftTokenWrapper, ERC20, ERC721, TokenWrapperHandler, FungibleTokenWrapper } from '@webb-tools/tokens';
+import {
+  Registry,
+  RegistryHandler,
+  MultiFungibleTokenManager,
+  MultiNftTokenManager,
+  NftTokenWrapper,
+  ERC20,
+  ERC721,
+  TokenWrapperHandler,
+  FungibleTokenWrapper,
+} from '@webb-tools/tokens';
 import { randomBytes } from 'ethers/lib/utils';
 import { toFixedHex } from '@webb-tools/sdk-core';
 
@@ -48,7 +64,7 @@ const { toBN } = require('web3-utils');
 const { babyjub } = require('circomlibjs');
 
 describe('MASPVAnchor for 2 max edges', () => {
-  let maspVAnchor: MultiAssetVAnchorBatchUpdatableTree;
+  let maspVAnchor: MultiAssetVAnchorBatchTree;
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
   let swapCircuitZkComponents: ZkComponents;
@@ -245,65 +261,92 @@ describe('MASPVAnchor for 2 max edges', () => {
     dummyBridgeSigner = signers[1];
     const hasherInstance = await PoseidonHasher.createPoseidonHasher(wallet);
     registry = await Registry.createRegistry(sender);
-    registryHandler = await RegistryHandler.createRegistryHandler(await dummyBridgeSigner.getAddress(), [await registry.createResourceId()], [ registry.contract.address], dummyBridgeSigner);
-    multiFungibleTokenManager = await MultiFungibleTokenManager.createMultiFungibleTokenManager(sender);
+    registryHandler = await RegistryHandler.createRegistryHandler(
+      await dummyBridgeSigner.getAddress(),
+      [await registry.createResourceId()],
+      [registry.contract.address],
+      dummyBridgeSigner
+    );
+    multiFungibleTokenManager = await MultiFungibleTokenManager.createMultiFungibleTokenManager(
+      sender
+    );
     multiNftTokenManager = await MultiNftTokenManager.createMultiNftTokenManager(sender);
     masterFeeRecipient = await signers[2].getAddress();
     transactionVerifier = await MultiAssetVerifier.createVerifier(sender);
-    maspProxy = await MultiAssetVAnchorProxy.createMultiAssetVAnchorProxy(hasherInstance.contract.address, sender);
+    maspProxy = await MultiAssetVAnchorProxy.createMultiAssetVAnchorProxy(
+      hasherInstance.contract.address,
+      sender
+    );
     swapVerifier = await SwapProofVerifier.createVerifier(sender);
     batchVerifier = await BatchTreeVerifier.createVerifier(sender);
     dummyAnchorHandlerAddress = await signers[3].getAddress();
-    maspVAnchor = await MultiAssetVAnchorBatchUpdatableTree.createMASPVAnchorBatchTree(
+    maspVAnchor = await MultiAssetVAnchorBatchTree.createMultiAssetVAnchorBatchTree(
       registry.contract.address,
       transactionVerifier.contract.address,
+      batchVerifier.contract.address,
       swapVerifier.contract.address,
-      levels,
       dummyAnchorHandlerAddress,
+      hasherInstance.contract.address,
+      maspProxy.contract.address,
+      levels,
       maxEdges,
       zkComponents2_2,
       zkComponents16_2,
       swapCircuitZkComponents,
-      batchVerifier.contract.address,
-      hasherInstance.contract.address,
-      maspProxy.contract.address,
       batchTreeZkComponents_4,
       batchTreeZkComponents_8,
       batchTreeZkComponents_16,
       batchTreeZkComponents_32,
-      sender,
-    )
+      sender
+    );
     // Initialize Registry
     await registry.initialize(
       multiFungibleTokenManager.contract.address,
       multiNftTokenManager.contract.address,
       registryHandler.contract.address,
       masterFeeRecipient,
-      maspVAnchor.contract.address,
+      maspVAnchor.contract.address
     );
     // Initialize MASP Proxy
     await maspProxy.initialize([maspVAnchor.contract]);
 
     // Deploy a token handler
-    const tokenHandler = await TokenWrapperHandler.createTokenWrapperHandler(await dummyBridgeSigner.getAddress(), [], [], dummyBridgeSigner);
+    const tokenHandler = await TokenWrapperHandler.createTokenWrapperHandler(
+      await dummyBridgeSigner.getAddress(),
+      [],
+      [],
+      dummyBridgeSigner
+    );
 
     // Initialize Unwrapped ERC20 Tokens
-    unwrappedERC20_1 = await ERC20.createERC20PresetMinterPauser("ERC 20 Token 1", "ERC20-1", sender);
+    unwrappedERC20_1 = await ERC20.createERC20PresetMinterPauser(
+      'ERC 20 Token 1',
+      'ERC20-1',
+      sender
+    );
     const mintTx1 = await unwrappedERC20_1.contract.mint(sender.address, 1000000);
     await mintTx1.wait();
-    unwrappedERC20_2 = await ERC20.createERC20PresetMinterPauser("ERC 20 Token 2", "ERC20-2", sender);
+    unwrappedERC20_2 = await ERC20.createERC20PresetMinterPauser(
+      'ERC 20 Token 2',
+      'ERC20-2',
+      sender
+    );
     const mintTx2 = await unwrappedERC20_2.contract.mint(sender.address, 1000000);
     await mintTx2.wait();
-    unwrappedERC20_3 = await ERC20.createERC20PresetMinterPauser("ERC 20 Token 3", "ERC20-3", sender);
+    unwrappedERC20_3 = await ERC20.createERC20PresetMinterPauser(
+      'ERC 20 Token 3',
+      'ERC20-3',
+      sender
+    );
     const mintTx3 = await unwrappedERC20_3.contract.mint(sender.address, 1000000);
     await mintTx3.wait();
 
     // Register a wrapped fungible WEBB token
     const assetId = 1;
-    const tokenName = "0x" + Buffer.from(ethers.utils.toUtf8Bytes("webb-fungible")).toString('hex');
-    const tokenSymbol = "0x" + Buffer.from(ethers.utils.toUtf8Bytes("webbfung")).toString('hex');
-    const salt = "0x" + Buffer.from(randomBytes(32)).toString('hex');
-    const limit = "0x" + Buffer.from(randomBytes(32)).toString('hex');
+    const tokenName = '0x' + Buffer.from(ethers.utils.toUtf8Bytes('webb-fungible')).toString('hex');
+    const tokenSymbol = '0x' + Buffer.from(ethers.utils.toUtf8Bytes('webbfung')).toString('hex');
+    const salt = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+    const limit = '0x' + Buffer.from(randomBytes(32)).toString('hex');
     const feePercentage = 0;
     const isNativeAllowed = false;
     const proposalData = await registry.getRegisterFungibleTokenProposalData(
@@ -314,34 +357,52 @@ describe('MASPVAnchor for 2 max edges', () => {
       salt,
       limit,
       feePercentage,
-      isNativeAllowed,
+      isNativeAllowed
     );
     // Call executeProposal function
-    const registerFungibleTokenTx = await registryHandler.contract.executeProposal(await registry.createResourceId(), proposalData);
+    const registerFungibleTokenTx = await registryHandler.contract.executeProposal(
+      await registry.createResourceId(),
+      proposalData
+    );
     await registerFungibleTokenTx.wait();
 
-    fungibleWebbToken = await FungibleTokenWrapper.connect(await registry.contract.idToWrappedAsset(assetId), sender);
+    fungibleWebbToken = await FungibleTokenWrapper.connect(
+      await registry.contract.idToWrappedAsset(assetId),
+      sender
+    );
 
     // Set resource Id in token handler to fungible address
-    const setResourceTx = await tokenHandler.contract.setResource(await fungibleWebbToken.createResourceId(), fungibleWebbToken.contract.address,
-    {
-      from: await dummyBridgeSigner.getAddress(),
-    });
+    const setResourceTx = await tokenHandler.contract.setResource(
+      await fungibleWebbToken.createResourceId(),
+      fungibleWebbToken.contract.address,
+      {
+        from: await dummyBridgeSigner.getAddress(),
+      }
+    );
 
     await setResourceTx.wait();
 
     // Add unwrapped ERC20 tokens to the wrapped fungible token
-    const addTokenTx1 = await tokenHandler.contract.executeProposal(await fungibleWebbToken.createResourceId(), await fungibleWebbToken.getAddTokenProposalData(unwrappedERC20_1.contract.address));
+    const addTokenTx1 = await tokenHandler.contract.executeProposal(
+      await fungibleWebbToken.createResourceId(),
+      await fungibleWebbToken.getAddTokenProposalData(unwrappedERC20_1.contract.address)
+    );
     await addTokenTx1.wait();
 
-    const addTokenTx2 = await tokenHandler.contract.executeProposal(await fungibleWebbToken.createResourceId(), await fungibleWebbToken.getAddTokenProposalData(unwrappedERC20_2.contract.address));
+    const addTokenTx2 = await tokenHandler.contract.executeProposal(
+      await fungibleWebbToken.createResourceId(),
+      await fungibleWebbToken.getAddTokenProposalData(unwrappedERC20_2.contract.address)
+    );
     await addTokenTx2.wait();
 
-    const addTokenTx3 = await tokenHandler.contract.executeProposal(await fungibleWebbToken.createResourceId(), await fungibleWebbToken.getAddTokenProposalData(unwrappedERC20_3.contract.address));
+    const addTokenTx3 = await tokenHandler.contract.executeProposal(
+      await fungibleWebbToken.createResourceId(),
+      await fungibleWebbToken.getAddTokenProposalData(unwrappedERC20_3.contract.address)
+    );
     await addTokenTx3.wait();
 
     // Initialize Unwrapped ERC721 Tokens
-    unwrappedERC721_1 = await ERC721.createERC721("ERC721 Token 1", "ERC721-1", sender);
+    unwrappedERC721_1 = await ERC721.createERC721('ERC721 Token 1', 'ERC721-1', sender);
     const mintTx4 = await unwrappedERC721_1.contract.mint(sender.address);
     await mintTx4.wait();
     const mintTx5 = await unwrappedERC721_1.contract.mint(sender.address);
@@ -354,20 +415,26 @@ describe('MASPVAnchor for 2 max edges', () => {
     // Register a wrapped non-fungible WEBB token
     const webbNftAssetId = 2;
     const unwrappedNftAddr = await unwrappedERC721_1.contract.address;
-    const webbNftSalt = "0x" + Buffer.from(randomBytes(32)).toString('hex');
-    const webbNftUri = "0x" + Buffer.from(randomBytes(64)).toString('hex');
+    const webbNftSalt = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+    const webbNftUri = '0x' + Buffer.from(randomBytes(64)).toString('hex');
     const webbNftProposalData = await registry.getRegisterNftTokenProposalData(
       tokenHandler.contract.address,
       webbNftAssetId,
       unwrappedNftAddr,
       webbNftSalt,
-      webbNftUri,
+      webbNftUri
     );
     // Call executeProposal function
-    const registerNftTokenTx = await registryHandler.contract.executeProposal(await registry.createResourceId(), webbNftProposalData);
+    const registerNftTokenTx = await registryHandler.contract.executeProposal(
+      await registry.createResourceId(),
+      webbNftProposalData
+    );
     await registerNftTokenTx.wait();
 
-    nftWebbToken = await NftTokenWrapper.connect(await registry.contract.idToWrappedAsset(webbNftAssetId), sender);
+    nftWebbToken = await NftTokenWrapper.connect(
+      await registry.contract.idToWrappedAsset(webbNftAssetId),
+      sender
+    );
   });
 
   describe('#constructor', () => {
@@ -480,7 +547,7 @@ describe('MASPVAnchor for 2 max edges', () => {
           feeMaspKey,
           BigNumber.from(feeAssetID),
           BigNumber.from(feeTokenID),
-          BigNumber.from(5e6)
+          BigNumber.from(0)
         ),
         new MaspUtxo(
           BigNumber.from(chainID),
@@ -504,11 +571,15 @@ describe('MASPVAnchor for 2 max edges', () => {
       inputs.map((x) => x.setIndex(BigNumber.from(0)));
       inputs.map((x) => x.setIndex(BigNumber.from(0)));
 
-      const merkleProofsForInputs = inputs.map((x) => maspVAnchor.getMASPMerkleProof(x));
+      const merkleProofsForInputs = inputs.map((x) =>
+        MultiAssetVAnchorBatchTree.getMASPMerkleProof(x, maspVAnchor.depositTree.tree)
+      );
       const encOutput1 = '0x';
       const encOutput2 = '0x';
 
-      const feeMerkleProofsForInputs = feeInputs.map((x) => maspVAnchor.getMASPMerkleProof(x));
+      const feeMerkleProofsForInputs = feeInputs.map((x) =>
+        MultiAssetVAnchorBatchTree.getMASPMerkleProof(x, maspVAnchor.depositTree.tree)
+      );
       const feeEncOutput1 = '0x';
       const feeEncOutput2 = '0x';
 
@@ -523,26 +594,27 @@ describe('MASPVAnchor for 2 max edges', () => {
         encOutput2
       );
 
-      const { allInputs, publicInputs } = await MultiAssetVAnchorBatchUpdatableTree.generateMASPVAnchorInputs(
-        roots,
-        chainID,
-        assetID,
-        tokenID,
-        inputs,
-        outputs,
-        alphas,
-        feeAssetID,
-        feeTokenID,
-        whitelistedAssetIDs,
-        feeInputs,
-        feeOutputs,
-        fee_alphas,
-        BigNumber.from(extAmount),
-        BigNumber.from(0),
-        extDataHash,
-        merkleProofsForInputs,
-        feeMerkleProofsForInputs
-      );
+      const { allInputs, publicInputs } =
+        await MultiAssetVAnchorBatchTree.generateMASPVAnchorInputs(
+          roots,
+          chainID,
+          assetID,
+          tokenID,
+          inputs,
+          outputs,
+          alphas,
+          feeAssetID,
+          feeTokenID,
+          whitelistedAssetIDs,
+          feeInputs,
+          feeOutputs,
+          fee_alphas,
+          BigNumber.from(extAmount),
+          BigNumber.from(0),
+          extDataHash,
+          merkleProofsForInputs,
+          feeMerkleProofsForInputs
+        );
 
       const wtns = await create2InputWitness(allInputs);
       let res = await snarkjs.groth16.prove(
@@ -562,12 +634,14 @@ describe('MASPVAnchor for 2 max edges', () => {
 
   describe('asset registration smart contract tests', () => {
     it('registry handler should register fungible token', async () => {
-      const dummyTokenHandler = "0x" + Buffer.from(randomBytes(20)).toString('hex');
-      const dummyAssetId = 1;
-      const dummyTokenName = "0x" + Buffer.from(ethers.utils.toUtf8Bytes("webb-ether")).toString('hex');
-      const dummyTokenSymbol = "0x" + Buffer.from(ethers.utils.toUtf8Bytes("webbeth")).toString('hex');
-      const dummySalt = "0x" + Buffer.from(randomBytes(32)).toString('hex');
-      const dummyLimit = "0x" + Buffer.from(randomBytes(32)).toString('hex');
+      const dummyTokenHandler = '0x' + Buffer.from(randomBytes(20)).toString('hex');
+      const dummyAssetId = 4;
+      const dummyTokenName =
+        '0x' + Buffer.from(ethers.utils.toUtf8Bytes('webb-ether')).toString('hex');
+      const dummyTokenSymbol =
+        '0x' + Buffer.from(ethers.utils.toUtf8Bytes('webbeth')).toString('hex');
+      const dummySalt = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      const dummyLimit = '0x' + Buffer.from(randomBytes(32)).toString('hex');
       const dummyFeePercentage = 10;
       const dummyIsNativeAllowed = true;
       const proposalData = await registry.getRegisterFungibleTokenProposalData(
@@ -578,42 +652,57 @@ describe('MASPVAnchor for 2 max edges', () => {
         dummySalt,
         dummyLimit,
         dummyFeePercentage,
-        dummyIsNativeAllowed,
+        dummyIsNativeAllowed
       );
       // Call executeProposal function
-      const registerFungibleTokenTx = await registryHandler.contract.executeProposal(await registry.createResourceId(), proposalData);
+      const registerFungibleTokenTx = await registryHandler.contract.executeProposal(
+        await registry.createResourceId(),
+        proposalData
+      );
       await registerFungibleTokenTx.wait();
       // Check that fungible token is registered on the Registry contract
-      const wrappedAssetAddr = await registry.contract.idToWrappedAsset(1);
-      assert.strictEqual((await registry.contract.wrappedAssetToId(wrappedAssetAddr)).toString(), dummyAssetId.toString());
+      const wrappedAssetAddr = await registry.contract.idToWrappedAsset(4);
+      assert.strictEqual(
+        (await registry.contract.wrappedAssetToId(wrappedAssetAddr)).toString(),
+        dummyAssetId.toString()
+      );
     });
 
     it('registry handler should register non-fungible token', async () => {
-      const dummyTokenHandler = "0x" + Buffer.from(randomBytes(20)).toString('hex');
-      const dummyAssetId = 1;
-      const dummyUnwrappedNftAddr = "0x" + Buffer.from(randomBytes(20)).toString('hex');
-      const dummySalt = "0x" + Buffer.from(randomBytes(32)).toString('hex');
-      const dummyUri = "0x" + Buffer.from(randomBytes(64)).toString('hex');
+      const dummyTokenHandler = '0x' + Buffer.from(randomBytes(20)).toString('hex');
+      const dummyAssetId = 5;
+      const dummyUnwrappedNftAddr = '0x' + Buffer.from(randomBytes(20)).toString('hex');
+      const dummySalt = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      const dummyUri = '0x' + Buffer.from(randomBytes(64)).toString('hex');
       const proposalData = await registry.getRegisterNftTokenProposalData(
         dummyTokenHandler,
         dummyAssetId,
         dummyUnwrappedNftAddr,
         dummySalt,
-        dummyUri,
+        dummyUri
       );
       // Call executeProposal function
-      const registerNftTokenTx = await registryHandler.contract.executeProposal(await registry.createResourceId(), proposalData);
+      const registerNftTokenTx = await registryHandler.contract.executeProposal(
+        await registry.createResourceId(),
+        proposalData
+      );
       await registerNftTokenTx.wait();
       // Check that fungible token is registered on the Registry contract
-      const wrappedAssetAddr = await registry.contract.idToWrappedAsset(1);
-      assert.strictEqual((await registry.contract.wrappedAssetToId(wrappedAssetAddr)).toString(), dummyAssetId.toString());
+      const wrappedAssetAddr = await registry.contract.idToWrappedAsset(5);
+      assert.strictEqual(
+        (await registry.contract.wrappedAssetToId(wrappedAssetAddr)).toString(),
+        dummyAssetId.toString()
+      );
     });
   });
 
   describe('masp smart contract deposit tests max edges = 1', () => {
     it('proxy should queue erc20 deposit', async () => {
       // Queue ERC20 deposit
-      const tokenApproveTx = await unwrappedERC20_1.contract.approve(await maspProxy.contract.address, 100);
+      const tokenApproveTx = await unwrappedERC20_1.contract.approve(
+        await maspProxy.contract.address,
+        100
+      );
       await tokenApproveTx.wait();
       await maspProxy.queueERC20Deposit(
         {
@@ -630,7 +719,11 @@ describe('MASPVAnchor for 2 max edges', () => {
         }
       );
       // Check that deposit is queued
-      const queuedDeposit = await maspProxy.getQueuedERC20Deposits(maspVAnchor.contract.address, BigNumber.from(0), BigNumber.from(1));
+      const queuedDeposit = await maspProxy.getQueuedERC20Deposits(
+        maspVAnchor.contract.address,
+        BigNumber.from(0),
+        BigNumber.from(1)
+      );
       assert.strictEqual(queuedDeposit.length, 1);
       assert.strictEqual(queuedDeposit[0].unwrappedToken, unwrappedERC20_1.contract.address);
       assert.strictEqual(queuedDeposit[0].wrappedToken, fungibleWebbToken.contract.address);
@@ -638,7 +731,10 @@ describe('MASPVAnchor for 2 max edges', () => {
       assert.strictEqual(queuedDeposit[0].assetID.toString(), '1');
       assert.strictEqual(queuedDeposit[0].tokenID.toString(), '0');
       // Check that MASP proxy owns the ERC20 tokens
-      assert.strictEqual((await unwrappedERC20_1.contract.balanceOf(maspProxy.contract.address)).toString(), '100');
+      assert.strictEqual(
+        (await unwrappedERC20_1.contract.balanceOf(maspProxy.contract.address)).toString(),
+        '100'
+      );
     });
 
     it('proxy should NOT queue erc20 deposit for unregistered asset', async () => {
@@ -678,7 +774,11 @@ describe('MASPVAnchor for 2 max edges', () => {
         }
       );
       // Check that deposit is queued
-      const queuedDeposit = await maspProxy.getQueuedERC721Deposits(maspVAnchor.contract.address, BigNumber.from(0), BigNumber.from(1));
+      const queuedDeposit = await maspProxy.getQueuedERC721Deposits(
+        maspVAnchor.contract.address,
+        BigNumber.from(0),
+        BigNumber.from(1)
+      );
       assert.strictEqual(queuedDeposit.length, 1);
       assert.strictEqual(queuedDeposit[0].unwrappedToken, unwrappedERC721_1.contract.address);
       assert.strictEqual(queuedDeposit[0].wrappedToken, nftWebbToken.contract.address);
@@ -686,7 +786,10 @@ describe('MASPVAnchor for 2 max edges', () => {
       assert.strictEqual(queuedDeposit[0].assetID.toString(), '2');
       assert.strictEqual(queuedDeposit[0].tokenID.toString(), '1');
       // Check that MASP proxy owns the ERC721 tokens
-      assert.strictEqual((await unwrappedERC721_1.contract.balanceOf(maspProxy.contract.address)).toString(), '1');
+      assert.strictEqual(
+        (await unwrappedERC721_1.contract.balanceOf(maspProxy.contract.address)).toString(),
+        '1'
+      );
     });
 
     it('proxy should NOT queue erc721 deposit for unregistered asset', async () => {
@@ -706,7 +809,7 @@ describe('MASPVAnchor for 2 max edges', () => {
           }
         ),
         'Wrapped asset not registered'
-      ) 
+      );
     });
 
     it('proxy should NOT queue deposit for masp it does not proxy for', async () => {
@@ -793,91 +896,18 @@ describe('MASPVAnchor for 2 max edges', () => {
       );
 
       // Check MASP Proxy Balance of unwrapped ERC20
-      assert.strictEqual((await unwrappedERC20_1.contract.balanceOf(maspProxy.contract.address)).toString(), '400');
-      
+      assert.strictEqual(
+        (await unwrappedERC20_1.contract.balanceOf(maspProxy.contract.address)).toString(),
+        '400'
+      );
+
       // Batch Insert
       await maspProxy.batchDepositERC20s(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
     });
-
-    it('e2e should batch insert erc721 -> queue reward unspent tree -> transfer funds to masp -> batch insert on reward unspent tree', async () => {
-      // Queue deposit
-      await unwrappedERC721_1.contract.approve(await maspProxy.contract.address, 1);
-      await unwrappedERC721_1.contract.approve(await maspProxy.contract.address, 2);
-      await unwrappedERC721_1.contract.approve(await maspProxy.contract.address, 3);
-      await unwrappedERC721_1.contract.approve(await maspProxy.contract.address, 4);
-      await maspProxy.queueERC721Deposit(
-        {
-          unwrappedToken: unwrappedERC721_1.contract.address,
-          wrappedToken: nftWebbToken.contract.address,
-          amount: 1,
-          assetID: 2,
-          tokenID: 1,
-          depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
-          proxiedMASP: maspVAnchor.contract.address,
-        },
-        {
-          from: sender.address,
-        }
-      );
-
-      await maspProxy.queueERC721Deposit(
-        {
-          unwrappedToken: unwrappedERC721_1.contract.address,
-          wrappedToken: nftWebbToken.contract.address,
-          amount: 1,
-          assetID: 2,
-          tokenID: 2,
-          depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
-          proxiedMASP: maspVAnchor.contract.address,
-        },
-        {
-          from: sender.address,
-        }
-      );
-
-      await maspProxy.queueERC721Deposit(
-        {
-          unwrappedToken: unwrappedERC721_1.contract.address,
-          wrappedToken: nftWebbToken.contract.address,
-          amount: 1,
-          assetID: 2,
-          tokenID: 3,
-          depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
-          proxiedMASP: maspVAnchor.contract.address,
-        },
-        {
-          from: sender.address,
-        }
-      );
-
-      await maspProxy.queueERC721Deposit(
-        {
-          unwrappedToken: unwrappedERC721_1.contract.address,
-          wrappedToken: nftWebbToken.contract.address,
-          amount: 1,
-          assetID: 2,
-          tokenID: 4,
-          depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
-          proxiedMASP: maspVAnchor.contract.address,
-        },
-        {
-          from: sender.address,
-        }
-      );
-
-      // Check MASP Proxy Balance of unwrapped ERC721
-      assert.strictEqual((await unwrappedERC721_1.contract.balanceOf(maspProxy.contract.address)).toString(), '4');
-      // Batch Insert
-      await maspProxy.batchDepositERC721s(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
-    });
-
-    it('should NOT batch insert erc20 with invalid batch proof', async () => {});
-
-    it('should NOT batch insert erc721 with invalid batch proof', async () => {});
   });
 
   describe('masp smart contract internal shielded transfer', () => {
-    it.only('e2e should internal shielded transfer with valid transact proof -> reward tree commitments queued -> batch insert reward tree commitments', async () => {
+    it('e2e should internal shielded transfer with valid transact proof -> reward tree commitments queued -> batch insert reward tree commitments', async () => {
       // 4 Masp Keys
       const alice_key = new MaspKey();
       const bob_key = new MaspKey();
@@ -888,10 +918,34 @@ describe('MASPVAnchor for 2 max edges', () => {
       const webbFungibleTokenID = BigNumber.from(0);
 
       // 4 Masp Utxos
-      const alice_utxo = new MaspUtxo(BigNumber.from(chainID), alice_key, webbFungibleAssetID, webbFungibleTokenID, BigNumber.from(100));
-      const alice_fee_utxo = new MaspUtxo(BigNumber.from(chainID), alice_key, webbFungibleAssetID, webbFungibleTokenID, BigNumber.from(10));
-      const bob_utxo = new MaspUtxo(BigNumber.from(chainID), carol_key, webbFungibleAssetID, webbFungibleTokenID, BigNumber.from(100));
-      const carol_utxo = new MaspUtxo(BigNumber.from(chainID), dave_key, webbFungibleAssetID, webbFungibleTokenID, BigNumber.from(100));
+      const alice_utxo = new MaspUtxo(
+        BigNumber.from(chainID),
+        alice_key,
+        webbFungibleAssetID,
+        webbFungibleTokenID,
+        BigNumber.from(100)
+      );
+      const alice_fee_utxo = new MaspUtxo(
+        BigNumber.from(chainID),
+        alice_key,
+        webbFungibleAssetID,
+        webbFungibleTokenID,
+        BigNumber.from(10)
+      );
+      const bob_utxo = new MaspUtxo(
+        BigNumber.from(chainID),
+        carol_key,
+        webbFungibleAssetID,
+        webbFungibleTokenID,
+        BigNumber.from(100)
+      );
+      const carol_utxo = new MaspUtxo(
+        BigNumber.from(chainID),
+        dave_key,
+        webbFungibleAssetID,
+        webbFungibleTokenID,
+        BigNumber.from(100)
+      );
 
       // Queue deposit
       await unwrappedERC20_1.contract.approve(await maspProxy.contract.address, 400);
@@ -953,8 +1007,11 @@ describe('MASPVAnchor for 2 max edges', () => {
       );
 
       // Check MASP Proxy Balance of unwrapped ERC20
-      assert.strictEqual((await unwrappedERC20_1.contract.balanceOf(maspProxy.contract.address)).toString(), '310');
-      
+      assert.strictEqual(
+        (await unwrappedERC20_1.contract.balanceOf(maspProxy.contract.address)).toString(),
+        '310'
+      );
+
       // Batch Insert
       await maspProxy.batchDepositERC20s(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
       const queuedUtxos = [alice_utxo, alice_fee_utxo, bob_utxo, carol_utxo];
@@ -962,17 +1019,35 @@ describe('MASPVAnchor for 2 max edges', () => {
       queuedUtxos.forEach((x) => {
         // Maintain tree state after insertions
         // maspVAnchor.depositTree.tree.insert(x.getCommitment());
-        x.setIndex(BigNumber.from(maspVAnchor.depositTree.tree.indexOf(x.getCommitment().toString())));
+        x.setIndex(
+          BigNumber.from(maspVAnchor.depositTree.tree.indexOf(x.getCommitment().toString()))
+        );
       });
 
-
-
       // Do internal shielded transfer
-      const alice_utxo_2 = new MaspUtxo(BigNumber.from(chainID), alice_key, webbFungibleAssetID, webbFungibleTokenID, BigNumber.from(50));
+      const alice_utxo_2 = new MaspUtxo(
+        BigNumber.from(chainID),
+        alice_key,
+        webbFungibleAssetID,
+        webbFungibleTokenID,
+        BigNumber.from(50)
+      );
 
-      const bob_utxo_2 = new MaspUtxo(BigNumber.from(chainID), bob_key, webbFungibleAssetID, webbFungibleTokenID, BigNumber.from(50));
+      const bob_utxo_2 = new MaspUtxo(
+        BigNumber.from(chainID),
+        bob_key,
+        webbFungibleAssetID,
+        webbFungibleTokenID,
+        BigNumber.from(50)
+      );
 
-      const fee_output_utxo = new MaspUtxo(BigNumber.from(chainID), carol_key, webbFungibleAssetID, webbFungibleTokenID, BigNumber.from(10));
+      const fee_output_utxo = new MaspUtxo(
+        BigNumber.from(chainID),
+        carol_key,
+        webbFungibleAssetID,
+        webbFungibleTokenID,
+        BigNumber.from(10)
+      );
 
       const alice_randomized_key = alice_key.randomize_sk_ak();
       const alice_randomized_fee_key = alice_key.randomize_sk_ak();
@@ -992,183 +1067,174 @@ describe('MASPVAnchor for 2 max edges', () => {
         BigNumber.from(0),
         sender.address,
         sender.address,
-        sender,
+        sender
       );
     });
-
-    it('should NOT internal shielded transfer with invalid transact proof (invalid MASP key)', async () => {
-    });
-
-    it('should NOT internal shielded transfer with invalid transact proof (invalid output commitments)', async () => {});
-
-    it('should NOT internal shielded transfer with invalid transact proof (invalid Merkle proof)', async () => {});
-
-    it('should NOT internal shielded transfer with invalid transact proof (fee token not whitelisted)', async () => {});
-
-    it('should NOT internal shielded transfer with invalid transact proof (input nullifiers not well-formed)', async () => {});
-
-    it('should NOT be able to double spend internal shieled transfer)', async () => {});
   });
 
   describe('masp smart contract withdraw ERC20', () => {
     it('e2e should withdraw ERC20 with valid transact proof -> reward tree commitments queued -> funds transferred -> batch insert reward tree commitments', async () => {
-            // 4 Masp Keys
-            const alice_key = new MaspKey();
-            const bob_key = new MaspKey();
-            const carol_key = new MaspKey();
-            const dave_key = new MaspKey();
-      
-            const webbFungibleAssetID = BigNumber.from(1);
-            const webbFungibleTokenID = BigNumber.from(0);
-      
-            // 4 Masp Utxos
-            const alice_utxo = new MaspUtxo(BigNumber.from(chainID), alice_key, webbFungibleAssetID, webbFungibleTokenID, BigNumber.from(100));
-            const alice_fee_utxo = new MaspUtxo(BigNumber.from(chainID), alice_key, webbFungibleAssetID, webbFungibleTokenID, BigNumber.from(10));
-            const bob_utxo = new MaspUtxo(BigNumber.from(chainID), carol_key, webbFungibleAssetID, webbFungibleTokenID, BigNumber.from(100));
-            const carol_utxo = new MaspUtxo(BigNumber.from(chainID), dave_key, webbFungibleAssetID, webbFungibleTokenID, BigNumber.from(100));
-      
-            // Queue deposit
-            await unwrappedERC20_1.contract.approve(await maspProxy.contract.address, 400);
-            await maspProxy.queueERC20Deposit(
-              {
-                unwrappedToken: unwrappedERC20_1.contract.address,
-                wrappedToken: fungibleWebbToken.contract.address,
-                amount: 100,
-                assetID: 1,
-                tokenID: 0,
-                depositPartialCommitment: toFixedHex(alice_utxo.getPartialCommitment()),
-                proxiedMASP: maspVAnchor.contract.address,
-              },
-              {
-                from: sender.address,
-              }
-            );
-            await maspProxy.queueERC20Deposit(
-              {
-                unwrappedToken: unwrappedERC20_1.contract.address,
-                wrappedToken: fungibleWebbToken.contract.address,
-                amount: 10,
-                assetID: 1,
-                tokenID: 0,
-                depositPartialCommitment: toFixedHex(alice_fee_utxo.getPartialCommitment()),
-                proxiedMASP: maspVAnchor.contract.address,
-              },
-              {
-                from: sender.address,
-              }
-            );
-            await maspProxy.queueERC20Deposit(
-              {
-                unwrappedToken: unwrappedERC20_1.contract.address,
-                wrappedToken: fungibleWebbToken.contract.address,
-                amount: 100,
-                assetID: 1,
-                tokenID: 0,
-                depositPartialCommitment: toFixedHex(bob_utxo.getPartialCommitment()),
-                proxiedMASP: maspVAnchor.contract.address,
-              },
-              {
-                from: sender.address,
-              }
-            );
-            await maspProxy.queueERC20Deposit(
-              {
-                unwrappedToken: unwrappedERC20_1.contract.address,
-                wrappedToken: fungibleWebbToken.contract.address,
-                amount: 100,
-                assetID: 1,
-                tokenID: 0,
-                depositPartialCommitment: toFixedHex(carol_utxo.getPartialCommitment()),
-                proxiedMASP: maspVAnchor.contract.address,
-              },
-              {
-                from: sender.address,
-              }
-            );
-      
-            // Check MASP Proxy Balance of unwrapped ERC20
-            assert.strictEqual((await unwrappedERC20_1.contract.balanceOf(maspProxy.contract.address)).toString(), '310');
-            
-            // Batch Insert
-            await maspProxy.batchDepositERC20s(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
-            const queuedUtxos = [alice_utxo, alice_fee_utxo, bob_utxo, carol_utxo];
-            const leaves = queuedUtxos.map((x) => x.getCommitment().toString());
-            queuedUtxos.forEach((x) => {
-              // Maintain tree state after insertions
-              // maspVAnchor.depositTree.tree.insert(x.getCommitment());
-              x.setIndex(BigNumber.from(maspVAnchor.depositTree.tree.indexOf(x.getCommitment().toString())));
-            });
-      
-      
-      
-            // Do internal shielded transfer
-            const alice_utxo_2 = new MaspUtxo(BigNumber.from(chainID), alice_key, webbFungibleAssetID, webbFungibleTokenID, BigNumber.from(50));
-      
-            const bob_utxo_2 = new MaspUtxo(BigNumber.from(chainID), bob_key, webbFungibleAssetID, webbFungibleTokenID, BigNumber.from(40));
-      
-            const fee_output_utxo = new MaspUtxo(BigNumber.from(chainID), carol_key, webbFungibleAssetID, webbFungibleTokenID, BigNumber.from(10));
-      
-            const alice_randomized_key = alice_key.randomize_sk_ak();
-            const alice_randomized_fee_key = alice_key.randomize_sk_ak();
-            await maspVAnchor.transact(
-              [alice_utxo],
-              [alice_utxo_2, bob_utxo_2],
-              [alice_randomized_key.alpha.toString(), alice_randomized_key.alpha.toString()],
-              [alice_fee_utxo],
-              [fee_output_utxo],
-              [alice_randomized_fee_key.alpha.toString(), alice_randomized_fee_key.alpha.toString()],
-              [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-              BigNumber.from(0),
-              sender.address,
-              sender.address,
-              fungibleWebbToken.contract.address,
-              BigNumber.from(0),
-              sender,
-            );
+      // 4 Masp Keys
+      const alice_key = new MaspKey();
+      const bob_key = new MaspKey();
+      const carol_key = new MaspKey();
+      const dave_key = new MaspKey();
+
+      const webbFungibleAssetID = BigNumber.from(1);
+      const webbFungibleTokenID = BigNumber.from(0);
+
+      // 4 Masp Utxos
+      const alice_utxo = new MaspUtxo(
+        BigNumber.from(chainID),
+        alice_key,
+        webbFungibleAssetID,
+        webbFungibleTokenID,
+        BigNumber.from(100)
+      );
+      const alice_fee_utxo = new MaspUtxo(
+        BigNumber.from(chainID),
+        alice_key,
+        webbFungibleAssetID,
+        webbFungibleTokenID,
+        BigNumber.from(10)
+      );
+      const bob_utxo = new MaspUtxo(
+        BigNumber.from(chainID),
+        carol_key,
+        webbFungibleAssetID,
+        webbFungibleTokenID,
+        BigNumber.from(100)
+      );
+      const carol_utxo = new MaspUtxo(
+        BigNumber.from(chainID),
+        dave_key,
+        webbFungibleAssetID,
+        webbFungibleTokenID,
+        BigNumber.from(100)
+      );
+
+      // Queue deposit
+      await unwrappedERC20_1.contract.approve(await maspProxy.contract.address, 400);
+      await maspProxy.queueERC20Deposit(
+        {
+          unwrappedToken: unwrappedERC20_1.contract.address,
+          wrappedToken: fungibleWebbToken.contract.address,
+          amount: 100,
+          assetID: 1,
+          tokenID: 0,
+          depositPartialCommitment: toFixedHex(alice_utxo.getPartialCommitment()),
+          proxiedMASP: maspVAnchor.contract.address,
+        },
+        {
+          from: sender.address,
+        }
+      );
+      await maspProxy.queueERC20Deposit(
+        {
+          unwrappedToken: unwrappedERC20_1.contract.address,
+          wrappedToken: fungibleWebbToken.contract.address,
+          amount: 10,
+          assetID: 1,
+          tokenID: 0,
+          depositPartialCommitment: toFixedHex(alice_fee_utxo.getPartialCommitment()),
+          proxiedMASP: maspVAnchor.contract.address,
+        },
+        {
+          from: sender.address,
+        }
+      );
+      await maspProxy.queueERC20Deposit(
+        {
+          unwrappedToken: unwrappedERC20_1.contract.address,
+          wrappedToken: fungibleWebbToken.contract.address,
+          amount: 100,
+          assetID: 1,
+          tokenID: 0,
+          depositPartialCommitment: toFixedHex(bob_utxo.getPartialCommitment()),
+          proxiedMASP: maspVAnchor.contract.address,
+        },
+        {
+          from: sender.address,
+        }
+      );
+      await maspProxy.queueERC20Deposit(
+        {
+          unwrappedToken: unwrappedERC20_1.contract.address,
+          wrappedToken: fungibleWebbToken.contract.address,
+          amount: 100,
+          assetID: 1,
+          tokenID: 0,
+          depositPartialCommitment: toFixedHex(carol_utxo.getPartialCommitment()),
+          proxiedMASP: maspVAnchor.contract.address,
+        },
+        {
+          from: sender.address,
+        }
+      );
+
+      // Check MASP Proxy Balance of unwrapped ERC20
+      assert.strictEqual(
+        (await unwrappedERC20_1.contract.balanceOf(maspProxy.contract.address)).toString(),
+        '310'
+      );
+
+      // Batch Insert
+      await maspProxy.batchDepositERC20s(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
+      const queuedUtxos = [alice_utxo, alice_fee_utxo, bob_utxo, carol_utxo];
+      const leaves = queuedUtxos.map((x) => x.getCommitment().toString());
+      queuedUtxos.forEach((x) => {
+        // Maintain tree state after insertions
+        // maspVAnchor.depositTree.tree.insert(x.getCommitment());
+        x.setIndex(
+          BigNumber.from(maspVAnchor.depositTree.tree.indexOf(x.getCommitment().toString()))
+        );
+      });
+
+      // Do internal shielded transfer
+      const alice_utxo_2 = new MaspUtxo(
+        BigNumber.from(chainID),
+        alice_key,
+        webbFungibleAssetID,
+        webbFungibleTokenID,
+        BigNumber.from(50)
+      );
+
+      const bob_utxo_2 = new MaspUtxo(
+        BigNumber.from(chainID),
+        bob_key,
+        webbFungibleAssetID,
+        webbFungibleTokenID,
+        BigNumber.from(40)
+      );
+
+      const fee_output_utxo = new MaspUtxo(
+        BigNumber.from(chainID),
+        carol_key,
+        webbFungibleAssetID,
+        webbFungibleTokenID,
+        BigNumber.from(10)
+      );
+
+      const alice_randomized_key = alice_key.randomize_sk_ak();
+      const alice_randomized_fee_key = alice_key.randomize_sk_ak();
+      await maspVAnchor.transact(
+        webbFungibleAssetID,
+        webbFungibleTokenID,
+        [alice_utxo],
+        [alice_utxo_2, bob_utxo_2],
+        [alice_randomized_key.alpha.toString(), alice_randomized_key.alpha.toString()],
+        BigNumber.from(0),
+        webbFungibleAssetID,
+        webbFungibleTokenID,
+        [alice_fee_utxo],
+        [fee_output_utxo],
+        [alice_randomized_fee_key.alpha.toString(), alice_randomized_fee_key.alpha.toString()],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        BigNumber.from(0),
+        sender.address,
+        sender.address,
+        sender
+      );
     });
-
-    it('should withdraw AND unwrap ERC20 with valid transact proof -> reward tree commitments queued -> funds transferred', async () => {});
-
-    it('should NOT withdraw ERC20 with invalid transact proof (invalid MASP key)', async () => {});
-
-    it('should NOT withdraw ERC20 with invalid transact proof (invalid output commitments)', async () => {});
-
-    it('should NOT withdraw ERC20 with invalid transact proof (invalid Merkle proof)', async () => {});
-
-    it('should NOT withdraw ERC20 with invalid transact proof (fee token not whitelisted)', async () => {});
-
-    it('should NOT withdraw ERC20 with invalid transact proof (input nullifiers not well-formed)', async () => {});
-
-    it('should NOT be able to double spend ERC721 withdraw)', async () => {});
-  });
-
-  describe('masp smart contract withdraw ERC721', () => {
-    it('should withdraw ERC721 with valid transact proof -> reward tree commitments queued -> funds transferred -> batch insert reward tree commitments', async () => {});
-
-    it('should withdraw AND unwrap ERC721 with valid transact proof -> reward tree commitments queued -> funds transferred', async () => {});
-
-    it('should NOT withdraw ERC721 with invalid transact proof (invalid MASP key)', async () => {});
-
-    it('should NOT withdraw ERC721 with invalid transact proof (invalid output commitments)', async () => {});
-
-    it('should NOT withdraw ERC721 with invalid transact proof (invalid Merkle proof)', async () => {});
-
-    it('should NOT withdraw ERC721 with invalid transact proof (fee token not whitelisted)', async () => {});
-
-    it('should NOT withdraw ERC721 with invalid transact proof (input nullifiers not well-formed)', async () => {});
-
-    it('should NOT be able to double spend ERC721 withdraw)', async () => {});
-  });
-
-  describe('masp smart contract swapping', () => {
-    it('e2e should swap with valid proof -> update reward tree queues -> spend created commitments', async () => {});
-
-    it('should NOT swap with invalid proof (invalid Alice/Bob sigs)', async () => {});
-
-    it('should NOT swap with invalid proof (funds created out of thin air)', async () => {});
-
-    it('should NOT be able to double spend swapped commitmnets', async () => {});
-
-    it('should NOT be able to swap outdated swaps', async () => {});
   });
 });

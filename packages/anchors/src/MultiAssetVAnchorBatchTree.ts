@@ -220,19 +220,19 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
   }
 
   public async transact(
-    assetID: BigNumber,
-    tokenID: BigNumber,
+    assetID: BigNumberish,
+    tokenID: BigNumberish,
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
-    alphas: BigNumber[],
-    fee: BigNumber, // Most likely 0 because fee will be paid through feeInputs
-    feeAssetID: BigNumber,
-    feeTokenID: BigNumber,
+    alphas: BigNumberish[],
+    fee: BigNumberish, // Most likely 0 because fee will be paid through feeInputs
+    feeAssetID: BigNumberish,
+    feeTokenID: BigNumberish,
     feeInputs: MaspUtxo[],
     feeOutputs: MaspUtxo[],
-    fee_alphas: BigNumber[],
-    whitelistedAssetIds: BigNumber[],
-    refund: BigNumber,
+    fee_alphas: BigNumberish[],
+    whitelistedAssetIds: BigNumberish[],
+    refund: BigNumberish,
     recipient: string,
     relayer: string,
     signer: ethers.Signer
@@ -248,13 +248,11 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
       const dummyUtxo = new MaspUtxo(
         BigNumber.from(chainId),
         dummyMaspKey,
-        assetID,
-        tokenID,
+        BigNumber.from(assetID),
+        BigNumber.from(tokenID),
         BigNumber.from(0)
-      )
-      inputs.push(
-        dummyUtxo
       );
+      inputs.push(dummyUtxo);
       dummyUtxo.setIndex(BigNumber.from(0));
     }
 
@@ -264,8 +262,8 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
           new MaspUtxo(
             BigNumber.from(chainId),
             dummyMaspKey,
-            assetID,
-            tokenID,
+            BigNumber.from(assetID),
+            BigNumber.from(tokenID),
             BigNumber.from(0)
           )
         );
@@ -273,16 +271,14 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
     }
 
     while (feeInputs.length !== 2 && feeInputs.length < 16) {
-      const dummyUtxo =    new MaspUtxo(
+      const dummyUtxo = new MaspUtxo(
         BigNumber.from(chainId),
         dummyMaspKey,
-        feeAssetID,
-        feeTokenID,
+        BigNumber.from(feeAssetID),
+        BigNumber.from(feeTokenID),
         BigNumber.from(0)
-      )
-      feeInputs.push(
-        dummyUtxo
       );
+      feeInputs.push(dummyUtxo);
       dummyUtxo.setIndex(BigNumber.from(0));
     }
 
@@ -292,18 +288,22 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
           new MaspUtxo(
             BigNumber.from(chainId),
             dummyMaspKey,
-            feeAssetID,
-            feeTokenID,
+            BigNumber.from(feeAssetID),
+            BigNumber.from(feeTokenID),
             BigNumber.from(0)
           )
         );
       }
     }
 
-    const merkleProofs = inputs.map((x) => MultiAssetVAnchor.getMASPMerkleProof(x, this.depositTree.tree));
-    const feeMerkleProofs = feeInputs.map((x) => MultiAssetVAnchor.getMASPMerkleProof(x, this.depositTree.tree));
+    const merkleProofs = inputs.map((x) =>
+      MultiAssetVAnchor.getMASPMerkleProof(x, this.depositTree.tree)
+    );
+    const feeMerkleProofs = feeInputs.map((x) =>
+      MultiAssetVAnchor.getMASPMerkleProof(x, this.depositTree.tree)
+    );
 
-    let extAmount = fee
+    let extAmount = BigNumber.from(fee)
       .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
       .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
 
@@ -311,8 +311,8 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
       recipient,
       extAmount,
       relayer,
-      fee,
-      refund,
+      BigNumber.from(fee),
+      BigNumber.from(refund),
       wrappedToken,
       '0x' + outputs[0].encrypt(outputs[0].maspKey).toString('hex'),
       '0x' + outputs[1].encrypt(outputs[1].maspKey).toString('hex')
@@ -323,13 +323,13 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
     const publicInputs = await this.publicInputsWithProof(
       roots,
       chainId,
-      assetID.toNumber(),
-      tokenID.toNumber(),
+      assetID,
+      tokenID,
       inputs,
       outputs,
       alphas,
-      feeAssetID.toNumber(),
-      feeTokenID.toNumber(),
+      feeAssetID,
+      feeTokenID,
       whitelistedAssetIds,
       feeInputs,
       feeOutputs,

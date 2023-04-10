@@ -6,7 +6,8 @@ import { getChainIdType } from '@webb-tools/utils';
 export class Registry {
   contract: RegistryContract;
   signer: ethers.Signer;
-  REGISTER_FUNGIBLE_TOKEN_SIGNATURE = 'registerToken(uint32,address,uint256,string,string,bytes32,uint256,uint16,bool)';
+  REGISTER_FUNGIBLE_TOKEN_SIGNATURE =
+    'registerToken(uint32,address,uint256,string,string,bytes32,uint256,uint16,bool)';
   REGISTER_NFT_TOKEN_SIGNATURE = 'registerNftToken(uint32,address,uint256,address,string,bytes32)';
 
   constructor(contract: RegistryContract, signer: ethers.Signer) {
@@ -135,7 +136,7 @@ export class Registry {
     assetIdentifier: number,
     unwrappedNftAddress: string,
     salt: string,
-    uri: string,
+    uri: string
   ) {
     const resourceID = await this.createResourceId();
     const nonce = (await this.contract.proposalNonce()).add(1);

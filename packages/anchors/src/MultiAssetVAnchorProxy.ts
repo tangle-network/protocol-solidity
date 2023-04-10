@@ -71,11 +71,14 @@ export class MultiAssetVAnchorProxy {
     batchHeight: BigNumber
   ) {
     const batchSize = BigNumber.from(2).pow(batchHeight);
-    const leaves = (await this.getQueuedERC20Deposits(masp.contract.address, startQueueIndex, batchSize)).map(x => toFixedHex(BigNumber.from(poseidon([x.assetID, x.tokenID, x.amount, x.depositPartialCommitment]))));
-    const batchProofInfo = await masp.depositTree.generateProof(
-      batchSize.toNumber(),
-      leaves
+    const leaves = (
+      await this.getQueuedERC20Deposits(masp.contract.address, startQueueIndex, batchSize)
+    ).map((x) =>
+      toFixedHex(
+        BigNumber.from(poseidon([x.assetID, x.tokenID, x.amount, x.depositPartialCommitment]))
+      )
     );
+    const batchProofInfo = await masp.depositTree.generateProof(batchSize.toNumber(), leaves);
 
     const batchTx = await this.contract.batchDepositERC20s(
       masp.contract.address,
@@ -97,11 +100,14 @@ export class MultiAssetVAnchorProxy {
     batchHeight: BigNumber
   ) {
     const batchSize = BigNumber.from(2).pow(batchHeight);
-    const leaves = (await this.getQueuedERC721Deposits(masp.contract.address, startQueueIndex, batchSize)).map(x => toFixedHex(BigNumber.from(poseidon([x.assetID, x.tokenID, x.amount, x.depositPartialCommitment]))));
-    const batchProofInfo = await masp.depositTree.generateProof(
-      batchSize.toNumber(),
-      leaves
+    const leaves = (
+      await this.getQueuedERC721Deposits(masp.contract.address, startQueueIndex, batchSize)
+    ).map((x) =>
+      toFixedHex(
+        BigNumber.from(poseidon([x.assetID, x.tokenID, x.amount, x.depositPartialCommitment]))
+      )
     );
+    const batchProofInfo = await masp.depositTree.generateProof(batchSize.toNumber(), leaves);
 
     await this.contract.batchDepositERC721s(
       masp.contract.address,

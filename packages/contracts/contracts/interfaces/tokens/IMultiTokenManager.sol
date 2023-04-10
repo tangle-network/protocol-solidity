@@ -47,7 +47,7 @@ interface IMultiTokenManager {
      */
 	function registerNftToken(
 		address _handler,
-      address _unwrappedNftAddress,
+		address _unwrappedNftAddress,
 		string memory _uri,
 		bytes32 _salt
 	) external returns (address);

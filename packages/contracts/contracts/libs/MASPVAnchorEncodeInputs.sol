@@ -53,7 +53,10 @@ library MASPVAnchorEncodeInputs {
 		uint256[] memory result = new uint256[](_maxEdges + 1);
 		bytes memory encodedInput;
 
-		MASPAuxPublicInputsSmall memory _aux = abi.decode(_auxPublicInputs, (MASPAuxPublicInputsSmall));
+		MASPAuxPublicInputsSmall memory _aux = abi.decode(
+			_auxPublicInputs,
+			(MASPAuxPublicInputsSmall)
+		);
 
 		if (_maxEdges == 1) {
 			uint256[33] memory inputs;
@@ -171,7 +174,10 @@ library MASPVAnchorEncodeInputs {
 		uint256[] memory result = new uint256[](_maxEdges + 1);
 		bytes memory encodedInput;
 
-		MASPAuxPublicInputsLarge memory _aux = abi.decode(_auxPublicInputs, (MASPAuxPublicInputsLarge));
+		MASPAuxPublicInputsLarge memory _aux = abi.decode(
+			_auxPublicInputs,
+			(MASPAuxPublicInputsLarge)
+		);
 
 		if (_maxEdges == 1) {
 			uint256[75] memory inputs;

@@ -16,9 +16,7 @@ export class SwapProofVerifier {
     this.signer = signer;
     this.contract = contract;
   }
-  public static async createVerifier(
-    signer: Signer
-  ) {
+  public static async createVerifier(signer: Signer) {
     const v2Factory = new v2__factory(signer);
     const v2 = await v2Factory.deploy();
     await v2.deployed();
@@ -26,8 +24,7 @@ export class SwapProofVerifier {
     const v8Factory = new v8__factory(signer);
     const v8 = await v8Factory.deploy();
     await v8.deployed();
-    
-    
+
     const factory = new SwapProofVerifier__factory(signer);
     const verifier = await factory.deploy(v2.address, v8.address);
     await verifier.deployed();
@@ -40,11 +37,11 @@ export class SwapProofVerifier {
     v2__factory: any,
     v8__factory: any,
     signer: Signer
-  ): Promise<{ v2: any, v8: any }> {
+  ): Promise<{ v2: any; v8: any }> {
     const { contract: v2 } = await deployer.deploy(v2__factory, saltHex, signer);
     const { contract: v8 } = await deployer.deploy(v8__factory, saltHex, signer);
 
-    return { v2, v8,  };
+    return { v2, v8 };
   }
 
   public static async create2SwapProofVerifier(
@@ -53,7 +50,7 @@ export class SwapProofVerifier {
     verifier__factory: any,
     signer: Signer,
     v2: any,
-    v8: any,
+    v8: any
   ): Promise<SwapProofVerifierContract> {
     const argTypes = ['address', 'address'];
     const args = [v2.address, v8.address];

@@ -368,13 +368,8 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
       throw new Error('Invalid number of inputs');
     }
     const wtns = await proofZkComponents.witnessCalculator.calculateWTNSBin(proofInputs, 0);
-    let res = await snarkjs.groth16.prove(
-      proofZkComponents.zkey,
-      wtns,
-    );
-    const vKey = await snarkjs.zKey.exportVerificationKey(
-      proofZkComponents.zkey,
-    );
+    let res = await snarkjs.groth16.prove(proofZkComponents.zkey, wtns);
+    const vKey = await snarkjs.zKey.exportVerificationKey(proofZkComponents.zkey);
     const verified = await snarkjs.groth16.verify(vKey, res.publicSignals, res.proof);
     assert.strictEqual(verified, true);
     return res;
@@ -400,7 +395,6 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
       encryptedOutput1,
       encryptedOutput2,
     };
-
 
     const extDataHash = await getVAnchorExtDataHash(
       encryptedOutput1,
