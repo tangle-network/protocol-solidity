@@ -24,7 +24,7 @@ describe('NftTokenWrapper', () => {
     wrappedNft = await NftTokenWrapperClass.createNftTokenWrapper(
       uri,
       sender.address,
-      sender.address,
+      token.contract.address,
       sender
     );
   });
