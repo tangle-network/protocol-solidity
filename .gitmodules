@@ -1,3 +1,18 @@
 [submodule "solidity-fixtures"]
 	path = "packages/contracts/solidity-fixtures"
 	url = "https://github.com/webb-tools/solidity-fixtures"
+[submodule "contracts-forge/lib/prb-math"]
+	path = contracts-forge/lib/prb-math
+	url = https://github.com/PaulRBerg/prb-math
+[submodule "contracts-forge/lib/prb-test"]
+	path = contracts-forge/lib/prb-test
+	url = https://github.com/PaulRBerg/prb-test
+[submodule "contracts-forge/lib/forge-std"]
+	path = contracts-forge/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+[submodule "contracts-forge/lib/openzeppelin-contracts"]
+	path = contracts-forge/lib/openzeppelin-contracts
+	url = https://github.com/openzeppelin/openzeppelin-contracts
+[submodule "contracts-foundry/lib/ds-test"]
+	path = contracts-foundry/lib/ds-test
+	url = https://github.com/dapphub/ds-test
