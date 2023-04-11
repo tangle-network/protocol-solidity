@@ -19,5 +19,16 @@ describe('EdDSA', () => {
     eddsaContract = await eddsaFactory.deploy();
     await eddsaContract.deployed();
   });
-  it('should verify a valid signature', async () => {});
+  it.only('should verify a valid signature', async () => {
+    const maspKey = new MaspKey();
+    const message = '0x1234';
+    const signature = eddsa.signPoseidon(maspKey.sk, BigInt(message));
+    const result = await eddsaContract.Verify(
+      maspKey.ak,
+      message,
+      [signature.R8[0], signature.R8[1]],
+      signature.S
+    );
+    assert(result);
+  });
 });
