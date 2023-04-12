@@ -21,7 +21,7 @@ contract PoseidonHasher is SnarkConstants, IHasher {
 		return PoseidonT5.poseidon(array);
 	}
 
-	function hash5(uint256[5] memory array) public pure returns (uint256) {
+	function hash5(uint256[5] memory array) public pure override returns (uint256) {
 		return PoseidonT6.poseidon(array);
 	}
 

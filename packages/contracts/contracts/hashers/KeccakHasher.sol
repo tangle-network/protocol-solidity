@@ -19,6 +19,10 @@ contract KeccakHasher is IHasher {
 		return uint256(keccak256(abi.encodePacked(array)));
 	}
 
+	function hash5(uint256[5] memory array) public pure override returns (uint256) {
+		return uint256(keccak256(abi.encodePacked(array)));
+	}
+
 	function hashLeftRight(uint256 _left, uint256 _right) public pure override returns (uint256) {
 		uint256 output = uint256(_left);
 		uint256 right = uint256(_right);

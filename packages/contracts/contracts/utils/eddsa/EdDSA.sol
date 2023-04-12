@@ -8,15 +8,13 @@
 pragma solidity ^0.8.5;
 
 import "./JubJub.sol";
+import "../../hashers/IHasher.sol";
 
 contract EdDSA {
-	function HashToInt(bytes memory data) public pure returns (uint256) {
-		uint256 hashed = uint256(sha256(data));
+	IHasher public hasher;
 
-		// (2<<249) - 1
-		uint256 mask = 1809251394333065553493296640760748560207343510400633813116524750123642650623;
-
-		return hashed & mask;
+	constructor (IHasher _hasher) {
+		hasher = _hasher;
 	}
 
 	function Verify(
@@ -31,9 +29,10 @@ contract EdDSA {
 
 		(lhs[0], lhs[1]) = JubJub.scalarMult(B[0], B[1], s);
 
-		uint256 t = HashToInt(abi.encodePacked(R[0], R[1], pubkey[0], pubkey[1], hashed_msg));
+		uint256 t = hasher.hash5([R[0], R[1], pubkey[0], pubkey[1], hashed_msg]);
 
-		(rhs[0], rhs[1]) = JubJub.scalarMult(pubkey[0], pubkey[1], t);
+		(rhs[0], rhs[1]) = JubJub.scalarMult(pubkey[0], pubkey[1], t * 8);
+		rhs = JubJub.pointAdd([R[0], R[1]], [rhs[0], rhs[1]]);
 
 		return lhs[0] == rhs[0] && lhs[1] == rhs[1];
 	}

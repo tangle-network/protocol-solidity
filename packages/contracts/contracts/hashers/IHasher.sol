@@ -13,6 +13,8 @@ interface IHasher {
 
 	function hash4(uint256[4] memory array) external view returns (uint256);
 
+	function hash5(uint256[5] memory array) external view returns (uint256);
+
 	/// @dev provides a 2 elemtns hash with left and right elements
 	function hashLeftRight(uint256 _left, uint256 _right) external view returns (uint256);
 
