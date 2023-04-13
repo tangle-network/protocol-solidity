@@ -49,7 +49,7 @@ abstract contract ChainIdWithType {
 		@notice Verifies that the current chain matches the chain ID from the resource ID
 		@param resourceID The resource ID to verify
 	 */
-    function isCorrectExecutionChain(bytes32 resourceID) external view returns (bool) {
+	function isCorrectExecutionChain(bytes32 resourceID) external view returns (bool) {
 		uint64 executionChainId = parseChainIdFromResourceId(resourceID);
 		// Verify current chain matches chain ID from resource ID
 		return uint256(getChainIdType()) == uint256(executionChainId);
