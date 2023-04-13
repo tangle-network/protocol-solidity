@@ -128,7 +128,7 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		bytes memory _auxPublicInputs,
 		CommonExtData memory _externalData,
 		Encryptions memory _encryptions
-	) internal virtual override returns (bytes32) {
+	) public virtual override returns (bytes32) {
 		AuxPublicInputs memory aux = abi.decode(_auxPublicInputs, (AuxPublicInputs));
 		return
 			keccak256(

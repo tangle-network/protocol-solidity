@@ -95,7 +95,7 @@ abstract contract VAnchor is ZKVAnchorBase {
 		bytes memory,
 		CommonExtData memory _externalData,
 		Encryptions memory _encryptions
-	) internal virtual override returns (bytes32) {
+	) public virtual override returns (bytes32) {
 		return
 			keccak256(
 				abi.encode(

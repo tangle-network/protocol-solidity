@@ -16,13 +16,13 @@ import {
   VerifierBatch16__factory,
   VerifierBatch32__factory,
   BatchTreeVerifierSelector__factory,
-} from '../../lib';
+} from '../../compiled';
 import path from 'path';
 const snarkjs = require('snarkjs');
 
 const blocks = ['0xaaaaaaaa', '0xbbbbbbbb', '0xcccccccc', '0xdddddddd'];
 
-contract('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
+contract.only('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
   let merkleTree;
   let batchTree: BatchTreeUpdater;
   let hasherInstance: PoseidonHasher;

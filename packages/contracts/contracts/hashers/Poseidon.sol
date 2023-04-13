@@ -1,6 +1,10 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.5;
 
+library PoseidonT2 {
+	function poseidon(uint256[1] memory input) public pure returns (uint256) {}
+}
+
 library PoseidonT3 {
 	function poseidon(uint256[2] memory input) public pure returns (uint256) {}
 }

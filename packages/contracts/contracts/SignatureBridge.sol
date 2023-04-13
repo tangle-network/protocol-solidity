@@ -10,7 +10,6 @@ import "./utils/Governable.sol";
 import "./utils/ChainIdWithType.sol";
 import "./utils/ProposalNonceTracker.sol";
 import "./interfaces/IExecutor.sol";
-import "hardhat/console.sol";
 
 /**
     @title Facilitates proposals execution and resource ID additions/updates
@@ -76,11 +75,11 @@ contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 	{
 		require(
 			this.isCorrectExecutionChain(resourceID),
-			"adminSetResourceWithSignature: Executing on wrong chain"
+			"SignatureBridge::adminSetResourceWithSignature: Executing on wrong chain"
 		);
 		require(
 			this.isCorrectExecutionChain(newResourceID),
-			"adminSetResourceWithSignature: Executing on wrong chain"
+			"SignatureBridge::adminSetResourceWithSignature: Executing on wrong chain"
 		);
 		require(
 			this.isCorrectExecutionContext(resourceID),
@@ -93,7 +92,7 @@ contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 						"adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,bytes)"
 					)
 				),
-			"adminSetResourceWithSignature: Invalid function signature"
+			"SignatureBridge::adminSetResourceWithSignature: Invalid function signature"
 		);
 		_resourceIDToHandlerAddress[newResourceID] = handlerAddress;
 		IExecutor handler = IExecutor(handlerAddress);
@@ -116,7 +115,6 @@ contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 			"SignatureBridge: Executing on wrong chain"
 		);
 		address handler = _resourceIDToHandlerAddress[resourceID];
-		console.log("handler: %s", handler);
 		IExecutor executionHandler = IExecutor(handler);
 		executionHandler.executeProposal(resourceID, data);
 	}
@@ -140,15 +138,5 @@ contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 			IExecutor executionHandler = IExecutor(handler);
 			executionHandler.executeProposal(resourceID, data[i]);
 		}
-	}
-
-	function isCorrectExecutionChain(bytes32 resourceID) external view returns (bool) {
-		uint64 executionChainId = parseChainIdFromResourceId(resourceID);
-		// Verify current chain matches chain ID from resource ID
-		return uint256(getChainIdType()) == uint256(executionChainId);
-	}
-
-	function isCorrectExecutionContext(bytes32 resourceId) public view returns (bool) {
-		return address(bytes20(resourceId << (6 * 8))) == address(this);
 	}
 }
