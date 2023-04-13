@@ -94,7 +94,7 @@ contract VAnchorHandlerTest is Deployer {
         vm.expectRevert(bytes("LinkableAnchor: New leaf index must be greater"));
         this.executeAnchorUpdateProposal(srcResourceId, merkleRoot, 0);
         // Try and update more than 2**16 leaf insertions
-        vm.expectRevert(bytes("LinkableAnchor: New leaf index must within 2^16 updates"));
+        vm.expectRevert(bytes("LinkableAnchor: New leaf index must be within 2^16 updates"));
         this.executeAnchorUpdateProposal(srcResourceId, merkleRoot, 2**17);
         // Try and update the srcResourceId for the same chain Id
         address newAddress = address(uint160(srcVAnchorBeingLinked) + 1);

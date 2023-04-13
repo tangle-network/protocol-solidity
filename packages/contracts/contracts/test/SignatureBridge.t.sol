@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.19 <0.9.0;
 
+import { PRBTest } from "@prb/test/PRBTest.sol";
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
@@ -8,7 +9,7 @@ import { ProposalHelpers } from "./ProposalHelpers.t.sol";
 import { SignatureBridge } from "../SignatureBridge.sol";
 import { AnchorHandler } from "../handlers/AnchorHandler.sol";
 
-contract SignatureBridgeTest is ProposalHelpers, StdCheats {
+contract SignatureBridgeTest is ProposalHelpers, PRBTest, StdCheats {
     SignatureBridge bridge;
     AnchorHandler handler;
     address governor;

@@ -17,7 +17,7 @@ import "./interfaces/IExecutor.sol";
  */
 contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 	// resourceID => handler address
-	mapping(bytes32 => address) public _resourceIDToHandlerAddress;
+	mapping(bytes32 => address) public _resourceIdToHandlerAddress;
 
 	/**
         Verifying signature of governor over some datahash
@@ -49,7 +49,7 @@ contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 
 	/**
         @notice Sets a new resource for handler contracts that use the IExecutor interface,
-        and maps the {handlerAddress} to {newResourceID} in {_resourceIDToHandlerAddress}.
+        and maps the {handlerAddress} to {newResourceID} in {_resourceIdToHandlerAddress}.
         @notice Only callable by an address that currently has the admin role.
         @param resourceID Target resource ID of the proposal header.
         @param functionSig Function signature of the proposal header.
@@ -83,7 +83,7 @@ contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 		);
 		require(
 			this.isCorrectExecutionContext(resourceID),
-			"adminSetResourceWithSignature: Invalid execution context"
+			"SignatureBridge::adminSetResourceWithSignature: Invalid execution context"
 		);
 		require(
 			functionSig ==
@@ -94,7 +94,7 @@ contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 				),
 			"SignatureBridge::adminSetResourceWithSignature: Invalid function signature"
 		);
-		_resourceIDToHandlerAddress[newResourceID] = handlerAddress;
+		_resourceIdToHandlerAddress[newResourceID] = handlerAddress;
 		IExecutor handler = IExecutor(handlerAddress);
 		address executionContext = address(bytes20(newResourceID << (6 * 8)));
 		handler.setResource(newResourceID, executionContext);
@@ -114,7 +114,7 @@ contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 			this.isCorrectExecutionChain(resourceID),
 			"SignatureBridge: Executing on wrong chain"
 		);
-		address handler = _resourceIDToHandlerAddress[resourceID];
+		address handler = _resourceIdToHandlerAddress[resourceID];
 		IExecutor executionHandler = IExecutor(handler);
 		executionHandler.executeProposal(resourceID, data);
 	}
@@ -134,7 +134,7 @@ contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 				this.isCorrectExecutionChain(resourceID),
 				"SignatureBridge: Batch Executing on wrong chain"
 			);
-			address handler = _resourceIDToHandlerAddress[resourceID];
+			address handler = _resourceIdToHandlerAddress[resourceID];
 			IExecutor executionHandler = IExecutor(handler);
 			executionHandler.executeProposal(resourceID, data[i]);
 		}

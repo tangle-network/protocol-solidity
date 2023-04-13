@@ -7,7 +7,7 @@ build/
 # Packages
 packages/contracts/typechain
 packages/*/node_modules
-packages/*/lib
+packages/*/dist
 packages/*/compiled
 packages/*/tsconfig.tsbuildinfo
 

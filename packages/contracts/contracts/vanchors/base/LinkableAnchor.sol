@@ -125,7 +125,7 @@ abstract contract LinkableAnchor is
 			emit EdgeUpdate(_srcChainID, _leafIndex, _root);
 		} else {
 			// Add Edge
-			require(edgeList.length < maxEdges, "This Anchor is at capacity");
+			require(edgeList.length < maxEdges, "LinkableAnchor: This Anchor is at capacity");
 			edgeExistsForChain[_srcChainID] = true;
 			uint index = edgeList.length;
 			Edge memory edge = Edge({

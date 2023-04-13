@@ -1,12 +1,11 @@
 [default]
 src = 'contracts'
 out = 'out'
-libs = ['lib']
+libs = ['libs']
 test = 'test'
 remappings = [
-    '@openzeppelin/=lib/openzeppelin-contracts/',
+    '@openzeppelin/=node_modules/@openzeppelin/',
+    '@prb/test/=lib/prb-test/src/',
     'forge-std/=lib/forge-std/src/',
     'src/=src/',
 ]
-
-# See more config options https://github.com/gakonst/foundry/tree/master/config
