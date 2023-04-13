@@ -44,7 +44,7 @@ export async function fetchComponentsFromFilePaths(
 ): Promise<ZkComponents> {
   const wasm: Buffer = fs.readFileSync(path.resolve(__dirname, wasmPath));
   const witnessCalculatorGenerator = await import(witnessCalculatorPath);
-  const witnessCalculator = await witnessCalculatorGenerator(wasm);
+  const witnessCalculator = await witnessCalculatorGenerator.default(wasm);
   const zkeyBuffer: Buffer = fs.readFileSync(path.resolve(__dirname, zkeyPath));
   const zkey: Uint8Array = new Uint8Array(
     zkeyBuffer.buffer.slice(zkeyBuffer.byteOffset, zkeyBuffer.byteOffset + zkeyBuffer.byteLength)
