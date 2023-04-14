@@ -18,7 +18,7 @@ export class NftTokenWrapper {
     deployer: ethers.Signer
   ) {
     const factory = new NftTokenWrapper__factory(deployer);
-    const contract = await factory.deploy(uri);
+    const contract = await factory.deploy(uri, uri);
     await contract.deployed();
 
     const tx = await contract.initialize(tokenHandler, unwrappedNftAddress);
