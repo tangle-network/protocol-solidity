@@ -1,6 +1,6 @@
 #!/bin/bash
 
-mkdir -p artifacts/circuits/{anchor,anchor,keypair,membership,semaphore,signature,vanchor_2,vanchor_16,poseidon4,identity_vanchor_2,identity_vanchor_16,reward_2,reward_8,swap_2,swap_8}
+mkdir -p artifacts/circuits/{anchor,anchor,keypair,membership,semaphore,signature,vanchor_2,vanchor_16,poseidon4,identity_vanchor_2,identity_vanchor_16,reward_2,reward_8,swap_2,swap_8,test_eeddsa_verifier}
 
 compile () {
     local outdir="$1" circuit="$2" size="$3"
@@ -94,21 +94,21 @@ copy_to_fixtures () {
 # WEBB VANCHORS
 ###
 
-echo "Compiling Webb style Poseidon vanchor 2 circuit w/ 2 inputs"
-compile vanchor_2 poseidon_vanchor_2_2 2
-copy_to_fixtures vanchor_2 poseidon_vanchor_2_2 2 vanchor_2
+# echo "Compiling Webb style Poseidon vanchor 2 circuit w/ 2 inputs"
+# compile vanchor_2 poseidon_vanchor_2_2 2
+# copy_to_fixtures vanchor_2 poseidon_vanchor_2_2 2 vanchor_2
 
-echo "Compiling Webb style Poseidon vanchor 2 circuit w/ 16 inputs"
-compile vanchor_16 poseidon_vanchor_16_2 2
-copy_to_fixtures vanchor_16 poseidon_vanchor_16_2 2 vanchor_16
+# echo "Compiling Webb style Poseidon vanchor 2 circuit w/ 16 inputs"
+# compile vanchor_16 poseidon_vanchor_16_2 2
+# copy_to_fixtures vanchor_16 poseidon_vanchor_16_2 2 vanchor_16
 
-echo "Compiling Webb style Poseidon vanchor 8 circuit w/ 2 inputs"
-compile vanchor_2 poseidon_vanchor_2_8 8
-copy_to_fixtures vanchor_2 poseidon_vanchor_2_8 8 vanchor_2
+# echo "Compiling Webb style Poseidon vanchor 8 circuit w/ 2 inputs"
+# compile vanchor_2 poseidon_vanchor_2_8 8
+# copy_to_fixtures vanchor_2 poseidon_vanchor_2_8 8 vanchor_2
 
-echo "Compiling Webb style Poseidon vanchor 8 circuit w/ 16 inputs"
-compile vanchor_16 poseidon_vanchor_16_8 8
-copy_to_fixtures vanchor_16 poseidon_vanchor_16_8 8 vanchor_16
+# echo "Compiling Webb style Poseidon vanchor 8 circuit w/ 16 inputs"
+# compile vanchor_16 poseidon_vanchor_16_8 8
+# copy_to_fixtures vanchor_16 poseidon_vanchor_16_8 8 vanchor_16
 
 # echo "Compiling Poseidon4 test gadget"
 # compile poseidon4 poseidon4_test 4
@@ -138,21 +138,21 @@ copy_to_fixtures vanchor_16 poseidon_vanchor_16_8 8 vanchor_16
 # WEBB MASP-VANCHORS
 ###
 
-# echo "Compiling Webb style multi-asset Poseidon vanchor 2 circuit w/ 2 inputs"
-# compile masp_vanchor_2 masp_vanchor_2_2 2
-# copy_to_fixtures masp_vanchor_2 masp_vanchor_2_2 2 masp_vanchor_2
+echo "Compiling Webb style multi-asset Poseidon vanchor 2 circuit w/ 2 inputs"
+compile masp_vanchor_2 masp_vanchor_2_2 2
+copy_to_fixtures masp_vanchor_2 masp_vanchor_2_2 2 masp_vanchor_2
 
-# echo "Compiling Webb style multi-asset Poseidon vanchor 8 circuit w/ 2 inputs"
-# compile masp_vanchor_2 masp_vanchor_2_8 8
-# copy_to_fixtures masp_vanchor_2 masp_vanchor_2_8 8 masp_vanchor_2
+echo "Compiling Webb style multi-asset Poseidon vanchor 8 circuit w/ 2 inputs"
+compile masp_vanchor_2 masp_vanchor_2_8 8
+copy_to_fixtures masp_vanchor_2 masp_vanchor_2_8 8 masp_vanchor_2
 
-# echo "Compiling Webb style multi-asset Poseidon vanchor 2 circuit w/ 16 inputs"
-# compile masp_vanchor_16 masp_vanchor_16_2 2
-# copy_to_fixtures masp_vanchor_16 masp_vanchor_16_2 2 masp_vanchor_16
+echo "Compiling Webb style multi-asset Poseidon vanchor 2 circuit w/ 16 inputs"
+compile masp_vanchor_16 masp_vanchor_16_2 2
+copy_to_fixtures masp_vanchor_16 masp_vanchor_16_2 2 masp_vanchor_16
 
-# echo "Compiling Webb style multi-asset Poseidon vanchor 8 circuit w/ 2 inputs"
-# compile masp_vanchor_16 masp_vanchor_16_8 8
-# copy_to_fixtures masp_vanchor_16 masp_vanchor_16_8 8 masp_vanchor_16
+echo "Compiling Webb style multi-asset Poseidon vanchor 8 circuit w/ 2 inputs"
+compile masp_vanchor_16 masp_vanchor_16_8 8
+copy_to_fixtures masp_vanchor_16 masp_vanchor_16_8 8 masp_vanchor_16
 
 ###
 # WEBB MASP-VANCHORS
