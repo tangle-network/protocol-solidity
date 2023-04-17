@@ -71,10 +71,6 @@ jobs:
 
   # This job builds and runs forge tests for the contracts
   forge-tests:
-    concurrency:
-      group: test-${{ github.ref }}
-      cancel-in-progress: true
-
     runs-on: ubuntu-latest
     if: github.ref != 'refs/heads/main' && github.event.pull_request.draft == false
     strategy:
