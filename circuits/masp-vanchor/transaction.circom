@@ -128,6 +128,9 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, length, numFeeToken
     component feeInCheckRoot[nFeeIns];
     component feeInPoseidonHasher = Poseidon(nFeeIns);
     component feeInSignatureChecker;
+
+    signal input fee_ak_X;
+    signal input fee_ak_Y;
     // End Fee Inputs --------------
 
     var sumIns = 0;
@@ -325,8 +328,8 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, length, numFeeToken
 
     // verify fee inputs sig
     feeInSignatureChecker = EdDSAPoseidonVerifier();
-    feeInSignatureChecker.Ax <== ak_X;
-    feeInSignatureChecker.Ay <== ak_Y;
+    feeInSignatureChecker.Ax <== fee_ak_X;
+    feeInSignatureChecker.Ay <== fee_ak_Y;
     feeInSignatureChecker.R8x <== feeInR8x;
     feeInSignatureChecker.R8y <== feeInR8y;
     feeInSignatureChecker.M <== feeInPoseidonHasher.out;
@@ -372,8 +375,8 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, length, numFeeToken
     // verify fee outputs sig
     feeOutSignatureChecker = EdDSAPoseidonVerifier();
     feeOutSignatureChecker.enabled <== 1;
-    feeOutSignatureChecker.Ax <== ak_X;
-    feeOutSignatureChecker.Ay <== ak_Y;
+    feeOutSignatureChecker.Ax <== fee_ak_X;
+    feeOutSignatureChecker.Ay <== fee_ak_Y;
     feeOutSignatureChecker.R8x <== feeOutR8x;
     feeOutSignatureChecker.R8y <== feeOutR8y;
     feeOutSignatureChecker.M <== feeOutPoseidonHasher.out;
