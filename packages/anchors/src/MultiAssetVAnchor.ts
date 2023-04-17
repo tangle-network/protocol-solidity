@@ -425,12 +425,14 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     tokenId: BigNumberish,
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
+    signing_secret_key: BigNumberish,
     ak: BigNumberish[],
     feeAssetId: BigNumberish,
     feeTokenId: BigNumberish,
     whitelistedAssetIds: BigNumberish[],
     feeInputs: MaspUtxo[],
     feeOutputs: MaspUtxo[],
+    fee_signing_secret_key: BigNumberish,
     fee_ak: BigNumberish[],
     extAmount: BigNumberish,
     fee: BigNumberish,
@@ -465,10 +467,10 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     const feeInputRecordsHash = poseidon(feeInputRecords);
     const feeOutputRecordsHash = poseidon(feeOutputRecords);
 
-    const inSig = eddsa.signPoseidon(inputs[0].maspKey.sk, inputRecordsHash);
-    const outSig = eddsa.signPoseidon(outputs[0].maspKey.sk, outputRecordsHash, );
-    const feeInSig = eddsa.signPoseidon(feeInputs[0].maspKey.sk, feeInputRecordsHash);
-    const feeOutSig = eddsa.signPoseidon(feeOutputs[0].maspKey.sk, feeOutputRecordsHash);
+    const inSig = eddsa.signPoseidon(signing_secret_key, inputRecordsHash);
+    const outSig = eddsa.signPoseidon(signing_secret_key, outputRecordsHash, );
+    const feeInSig = eddsa.signPoseidon(fee_signing_secret_key, feeInputRecordsHash);
+    const feeOutSig = eddsa.signPoseidon(fee_signing_secret_key, feeOutputRecordsHash);
 
     const publicAmount = BigNumber.from(extAmount)
       .sub(fee)
@@ -577,12 +579,14 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     tokenId: BigNumberish,
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
+    signing_secret_key: BigNumberish,
     ak: BigNumberish[],
     feeAssetId: BigNumberish,
     feeTokenId: BigNumberish,
     whitelistedAssetIds: BigNumberish[],
     feeInputs: MaspUtxo[],
     feeOutputs: MaspUtxo[],
+    fee_signing_secret_key: BigNumberish,
     fee_ak: BigNumberish[],
     extAmount: BigNumberish,
     fee: BigNumberish,
@@ -597,12 +601,14 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
       tokenId,
       inputs,
       outputs,
+      signing_secret_key,
       ak,
       feeAssetId,
       feeTokenId,
       whitelistedAssetIds,
       feeInputs,
       feeOutputs,
+      fee_signing_secret_key,
       fee_ak,
       extAmount,
       fee,
