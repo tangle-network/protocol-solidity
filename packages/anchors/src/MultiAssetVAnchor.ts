@@ -425,7 +425,6 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     tokenId: BigNumberish,
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
-    alphas: BigNumberish[],
     feeAssetId: BigNumberish,
     feeTokenId: BigNumberish,
     whitelistedAssetIds: BigNumberish[],
@@ -489,16 +488,7 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
 
       ak_X: inputs.map((x) => x.maspKey.getProofAuthorizingKey()[0].toString()),
       ak_Y: inputs.map((x) => x.maspKey.getProofAuthorizingKey()[1].toString()),
-      alpha: alphas,
-      ak_alpha_X: alphas.map(
-        (x, i) =>
-          babyjub.mulPointEscalar(inputs[i].maspKey.getProofAuthorizingKey(), babyjub.F.e(x))[0]
-      ),
-      ak_alpha_Y: alphas.map(
-        (x, i) =>
-          babyjub.mulPointEscalar(inputs[i].maspKey.getProofAuthorizingKey(), babyjub.F.e(x))[1]
-      ),
-
+      
       feeAssetID: feeAssetId,
       whitelistedAssetIDs: whitelistedAssetIds,
       feeTokenID: feeTokenId,
