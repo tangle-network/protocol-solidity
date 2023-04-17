@@ -40,7 +40,9 @@ jobs:
           )" >> $GITHUB_ENV
 
       - name: "Run the tests"
-        run: "forge test"
+        run: |
+          "cd packages/contracts"
+          "forge test"
 
       - name: "Add test summary"
         run: |
