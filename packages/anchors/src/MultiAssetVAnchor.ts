@@ -430,7 +430,6 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     whitelistedAssetIds: BigNumberish[],
     feeInputs: MaspUtxo[],
     feeOutputs: MaspUtxo[],
-    fee_alphas: BigNumberish[],
     extAmount: BigNumberish,
     fee: BigNumberish,
     extDataHash: BigNumberish,
@@ -454,6 +453,21 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
       publicTokenId = BigNumber.from(tokenId);
     }
 
+    const inputRecords = inputs.map((input) => input.getCommitment());
+    const outputRecords = outputs.map((output) => output.getCommitment());
+    const feeInputRecords = feeInputs.map((input) => input.getCommitment());
+    const feeOutputRecords = feeOutputs.map((output) => output.getCommitment());
+
+    const inputRecordsHash = poseidon(inputRecords);
+    const outputRecordsHash = poseidon(outputRecords);
+    const feeInputRecordsHash = poseidon(feeInputRecords);
+    const feeOutputRecordsHash = poseidon(feeOutputRecords);
+
+    const inSig = eddsa.signPoseidon(inputRecordsHash, inputs[0].maspKey.sk);
+    const outSig = eddsa.signPoseidon(outputRecordsHash, outputs[0].maspKey.sk);
+    const feeInSig = eddsa.signPoseidon(feeInputRecordsHash, feeInputs[0].maspKey.sk);
+    const feeOutSig = eddsa.signPoseidon(feeOutputRecordsHash, feeOutputs[0].maspKey.sk);
+
     const publicAmount = BigNumber.from(extAmount)
       .sub(fee)
       .add(FIELD_SIZE)
@@ -474,6 +488,9 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
       inBlinding: inputs.map((x) => x.blinding.toString()),
       inPathIndices: vanchorMerkleProofs.map((x) => x.pathIndex),
       inPathElements: vanchorMerkleProofs.map((x) => x.pathElements),
+      inSignature: inSig.S,
+      inR8x: inSig.R8[0],
+      inR8y: inSig.R8[1],
 
       // data for transaction outputs
       outputCommitment: outputs.map((x) => x.getCommitment().toString()),
@@ -482,13 +499,16 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
       outPk_X: outputs.map((x) => x.maspKey.getPublicKey()[0].toString()),
       outPk_Y: outputs.map((x) => x.maspKey.getPublicKey()[1].toString()),
       outBlinding: outputs.map((x) => x.blinding.toString()),
+      outSignature: outSig.S,
+      outR8x: outSig.R8[0],
+      outR8y: outSig.R8[1],
 
       chainID: chainId.toString(),
       roots: roots.map((x) => x.toString()),
 
       ak_X: inputs.map((x) => x.maspKey.getProofAuthorizingKey()[0].toString()),
       ak_Y: inputs.map((x) => x.maspKey.getProofAuthorizingKey()[1].toString()),
-      
+
       feeAssetID: feeAssetId,
       whitelistedAssetIDs: whitelistedAssetIds,
       feeTokenID: feeTokenId,
@@ -499,6 +519,9 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
       feeInBlinding: feeInputs.map((x) => x.blinding.toString()),
       feeInPathIndices: feeMerkleProofs.map((x) => x.pathIndex),
       feeInPathElements: feeMerkleProofs.map((x) => x.pathElements),
+      feeInSignature: feeInSig.S,
+      feeInR8x: feeInSig.R8[0],
+      feeInR8y: feeInSig.R8[1],
 
       // data for transaction outputs
       feeOutputCommitment: feeOutputs.map((x) => x.getCommitment().toString()),
@@ -507,18 +530,12 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
       feeOutPk_X: feeOutputs.map((x) => x.maspKey.getPublicKey()[0].toString()),
       feeOutPk_Y: feeOutputs.map((x) => x.maspKey.getPublicKey()[1].toString()),
       feeOutBlinding: feeOutputs.map((x) => x.blinding.toString()),
+      feeOutSignature: feeOutSig.S,
+      feeOutR8x: feeOutSig.R8[0],
+      feeOutR8y: feeOutSig.R8[1],
 
       fee_ak_X: feeInputs.map((x) => x.maspKey.getProofAuthorizingKey()[0].toString()),
       fee_ak_Y: feeInputs.map((x) => x.maspKey.getProofAuthorizingKey()[1].toString()),
-      fee_alpha: fee_alphas,
-      fee_ak_alpha_X: fee_alphas.map(
-        (x, i) =>
-          babyjub.mulPointEscalar(feeInputs[i].maspKey.getProofAuthorizingKey(), babyjub.F.e(x))[0]
-      ),
-      fee_ak_alpha_Y: fee_alphas.map(
-        (x, i) =>
-          babyjub.mulPointEscalar(feeInputs[i].maspKey.getProofAuthorizingKey(), babyjub.F.e(x))[1]
-      ),
     };
 
     const publicInputs: IMASPVAnchorPublicInputs = {
@@ -538,8 +555,6 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
       chainID: allInputs.chainID,
       roots: allInputs.roots,
 
-      ak_alpha_X: allInputs.ak_alpha_X,
-      ak_alpha_Y: allInputs.ak_alpha_Y,
 
       whitelistedAssetIDs: allInputs.whitelistedAssetIDs,
 
@@ -548,9 +563,6 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
 
       // data for transaction outputs
       feeOutputCommitment: allInputs.feeOutputCommitment,
-
-      fee_ak_alpha_X: allInputs.fee_ak_alpha_X,
-      fee_ak_alpha_Y: allInputs.fee_ak_alpha_Y,
     };
 
     return { allInputs, publicInputs };
@@ -563,13 +575,11 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     tokenId: BigNumberish,
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
-    alphas: BigNumberish[],
     feeAssetId: BigNumberish,
     feeTokenId: BigNumberish,
     whitelistedAssetIds: BigNumberish[],
     feeInputs: MaspUtxo[],
     feeOutputs: MaspUtxo[],
-    fee_alphas: BigNumberish[],
     extAmount: BigNumberish,
     fee: BigNumberish,
     extDataHash: BigNumberish,
@@ -583,13 +593,11 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
       tokenId,
       inputs,
       outputs,
-      alphas,
       feeAssetId,
       feeTokenId,
       whitelistedAssetIds,
       feeInputs,
       feeOutputs,
-      fee_alphas,
       extAmount,
       fee,
       extDataHash,
@@ -612,16 +620,7 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
   }
 
   public static auxInputsToBytes(publicInputs: IMASPVAnchorPublicInputs): string {
-    // publicAssetID, publicTokenID, ak_alpha_X, ak_alpha_Y, whitelistedAssetIDs, feeInputNullifiers, feeOutputCommitments, fee_ak_alpha_X, fee_ak_alpha_Y
-    let ak_alpha_X_bytes = '';
-    for (let i = 0; i < publicInputs.ak_alpha_X.length; i++) {
-      ak_alpha_X_bytes += toFixedHex(publicInputs.ak_alpha_X[i]).slice(2);
-    }
-
-    let ak_alpha_Y_bytes = '';
-    for (let i = 0; i < publicInputs.ak_alpha_Y.length; i++) {
-      ak_alpha_Y_bytes += toFixedHex(publicInputs.ak_alpha_Y[i]).slice(2);
-    }
+    // publicAssetID, publicTokenID, whitelistedAssetIDs, feeInputNullifiers, feeOutputCommitments,
 
     let whitelistedAssetIDs_bytes = '';
     for (let i = 0; i < publicInputs.whitelistedAssetIDs.length; i++) {
@@ -638,26 +637,12 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
       feeOutputCommitment_bytes += toFixedHex(publicInputs.feeOutputCommitment[i]).slice(2);
     }
 
-    let fee_ak_alpha_X_bytes = '';
-    for (let i = 0; i < publicInputs.fee_ak_alpha_X.length; i++) {
-      fee_ak_alpha_X_bytes += toFixedHex(publicInputs.fee_ak_alpha_X[i]).slice(2);
-    }
-
-    let fee_ak_alpha_Y_bytes = '';
-    for (let i = 0; i < publicInputs.fee_ak_alpha_Y.length; i++) {
-      fee_ak_alpha_Y_bytes += toFixedHex(publicInputs.fee_ak_alpha_Y[i]).slice(2);
-    }
-
     return (
       toFixedHex(publicInputs.publicAssetID) +
       toFixedHex(publicInputs.publicTokenID).slice(2) +
-      ak_alpha_X_bytes +
-      ak_alpha_Y_bytes +
       whitelistedAssetIDs_bytes +
       feeInputNullifier_bytes +
-      feeOutputCommitment_bytes +
-      fee_ak_alpha_X_bytes +
-      fee_ak_alpha_Y_bytes
+      feeOutputCommitment_bytes 
     );
   }
 
