@@ -282,6 +282,9 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, length, numFeeToken
 
     var sumFeeIns = 0;
 
+    component feeKeyComputer = Key();
+    feeKeyComputer.ak_X <== fee_ak_X;
+    feeKeyComputer.ak_Y <== fee_ak_Y;
     // verify correctness of transaction inputs
     for (var tx = 0; tx < nFeeIns; tx++) {
         feeInInnerPartialCommitmentHasher[tx] = InnerPartialRecord();
@@ -289,8 +292,8 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, length, numFeeToken
 
         feeInPartialCommitmentHasher[tx] = PartialRecord();
         feeInPartialCommitmentHasher[tx].chainID <== chainID;
-        feeInPartialCommitmentHasher[tx].pk_X <== keyComputer.pk_X;
-        feeInPartialCommitmentHasher[tx].pk_Y <== keyComputer.pk_Y;
+        feeInPartialCommitmentHasher[tx].pk_X <== feeKeyComputer.pk_X;
+        feeInPartialCommitmentHasher[tx].pk_Y <== feeKeyComputer.pk_Y;
         feeInPartialCommitmentHasher[tx].innerPartialRecord <== feeInInnerPartialCommitmentHasher[tx].innerPartialRecord;
 
         feeInCommitmentHasher[tx] = Record();

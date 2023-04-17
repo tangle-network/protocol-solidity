@@ -425,11 +425,13 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     tokenId: BigNumberish,
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
+    ak: BigNumberish[],
     feeAssetId: BigNumberish,
     feeTokenId: BigNumberish,
     whitelistedAssetIds: BigNumberish[],
     feeInputs: MaspUtxo[],
     feeOutputs: MaspUtxo[],
+    fee_ak: BigNumberish[],
     extAmount: BigNumberish,
     fee: BigNumberish,
     extDataHash: BigNumberish,
@@ -463,10 +465,10 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     const feeInputRecordsHash = poseidon(feeInputRecords);
     const feeOutputRecordsHash = poseidon(feeOutputRecords);
 
-    const inSig = eddsa.signPoseidon(inputRecordsHash, inputs[0].maspKey.sk);
-    const outSig = eddsa.signPoseidon(outputRecordsHash, outputs[0].maspKey.sk);
-    const feeInSig = eddsa.signPoseidon(feeInputRecordsHash, feeInputs[0].maspKey.sk);
-    const feeOutSig = eddsa.signPoseidon(feeOutputRecordsHash, feeOutputs[0].maspKey.sk);
+    const inSig = eddsa.signPoseidon(inputs[0].maspKey.sk, inputRecordsHash);
+    const outSig = eddsa.signPoseidon(outputs[0].maspKey.sk, outputRecordsHash, );
+    const feeInSig = eddsa.signPoseidon(feeInputs[0].maspKey.sk, feeInputRecordsHash);
+    const feeOutSig = eddsa.signPoseidon(feeOutputs[0].maspKey.sk, feeOutputRecordsHash);
 
     const publicAmount = BigNumber.from(extAmount)
       .sub(fee)
@@ -506,8 +508,8 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
       chainID: chainId.toString(),
       roots: roots.map((x) => x.toString()),
 
-      ak_X: inputs.map((x) => x.maspKey.getProofAuthorizingKey()[0].toString()),
-      ak_Y: inputs.map((x) => x.maspKey.getProofAuthorizingKey()[1].toString()),
+      ak_X: ak[0],
+      ak_Y: ak[1],
 
       feeAssetID: feeAssetId,
       whitelistedAssetIDs: whitelistedAssetIds,
@@ -534,8 +536,8 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
       feeOutR8x: feeOutSig.R8[0],
       feeOutR8y: feeOutSig.R8[1],
 
-      fee_ak_X: feeInputs.map((x) => x.maspKey.getProofAuthorizingKey()[0].toString()),
-      fee_ak_Y: feeInputs.map((x) => x.maspKey.getProofAuthorizingKey()[1].toString()),
+      fee_ak_X: fee_ak[0],
+      fee_ak_Y: fee_ak[1],
     };
 
     const publicInputs: IMASPVAnchorPublicInputs = {
@@ -575,11 +577,13 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     tokenId: BigNumberish,
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
+    ak: BigNumberish[],
     feeAssetId: BigNumberish,
     feeTokenId: BigNumberish,
     whitelistedAssetIds: BigNumberish[],
     feeInputs: MaspUtxo[],
     feeOutputs: MaspUtxo[],
+    fee_ak: BigNumberish[],
     extAmount: BigNumberish,
     fee: BigNumberish,
     extDataHash: BigNumberish,
@@ -593,11 +597,13 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
       tokenId,
       inputs,
       outputs,
+      ak,
       feeAssetId,
       feeTokenId,
       whitelistedAssetIds,
       feeInputs,
       feeOutputs,
+      fee_ak,
       extAmount,
       fee,
       extDataHash,

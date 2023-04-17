@@ -58,8 +58,8 @@ export type IMASPAllInputs = {
   chainID: BigNumberish;
   roots: BigNumberish[];
 
-  ak_X: BigNumberish[];
-  ak_Y: BigNumberish[];
+  ak_X: BigNumberish;
+  ak_Y: BigNumberish;
 
   feeAssetID: BigNumberish;
   whitelistedAssetIDs: BigNumberish[];
@@ -86,8 +86,8 @@ export type IMASPAllInputs = {
   feeOutR8x: BigNumberish;
   feeOutR8y: BigNumberish[];
 
-  fee_ak_X: BigNumberish[];
-  fee_ak_Y: BigNumberish[];
+  fee_ak_X: BigNumberish;
+  fee_ak_Y: BigNumberish;
 };
 
 export type IMASPSwapPublicInputs = {

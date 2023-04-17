@@ -521,9 +521,6 @@ describe('MASPVAnchor for 2 max edges', () => {
           BigNumber.from(0)
         ),
       ];
-      const randomize_maspKey_1 = maspKey.randomize_sk_ak();
-      const randomize_maspKey_2 = maspKey.randomize_sk_ak();
-      const alphas = [randomize_maspKey_1.alpha.toString(), randomize_maspKey_2.alpha.toString()];
       const feeMaspKey = new MaspKey();
       const feeInputs = [
         new MaspUtxo(
@@ -556,12 +553,6 @@ describe('MASPVAnchor for 2 max edges', () => {
           BigNumber.from(feeTokenID),
           BigNumber.from(0)
         ),
-      ];
-      const randomize_feeMaspKey_1 = feeMaspKey.randomize_sk_ak();
-      const randomize_feeMaspKey_2 = feeMaspKey.randomize_sk_ak();
-      const fee_alphas = [
-        randomize_feeMaspKey_1.alpha.toString(),
-        randomize_feeMaspKey_2.alpha.toString(),
       ];
       const fee = 0;
       const whitelistedAssetIDs = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
@@ -602,13 +593,13 @@ describe('MASPVAnchor for 2 max edges', () => {
           tokenID,
           inputs,
           outputs,
-          alphas,
+          inputs[0].maspKey.getProofAuthorizingKey(),
           feeAssetID,
           feeTokenID,
           whitelistedAssetIDs,
           feeInputs,
           feeOutputs,
-          fee_alphas,
+          feeInputs[0].maspKey.getProofAuthorizingKey(),
           BigNumber.from(extAmount),
           BigNumber.from(0),
           extDataHash,
@@ -1049,20 +1040,18 @@ describe('MASPVAnchor for 2 max edges', () => {
         BigNumber.from(10)
       );
 
-      const alice_randomized_key = alice_key.randomize_sk_ak();
-      const alice_randomized_fee_key = alice_key.randomize_sk_ak();
       await maspVAnchor.transact(
         webbFungibleAssetID,
         webbFungibleTokenID,
         [alice_utxo],
         [alice_utxo_2, bob_utxo_2],
-        [alice_randomized_key.alpha.toString(), alice_randomized_key.alpha.toString()],
+        alice_utxo.maspKey.getProofAuthorizingKey(),
         BigNumber.from(0),
         webbFungibleAssetID,
         webbFungibleTokenID,
         [alice_fee_utxo],
         [fee_output_utxo],
-        [alice_randomized_fee_key.alpha.toString(), alice_randomized_fee_key.alpha.toString()],
+        alice_fee_utxo.maspKey.getProofAuthorizingKey(),
         [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         BigNumber.from(0),
         sender.address,
@@ -1215,20 +1204,18 @@ describe('MASPVAnchor for 2 max edges', () => {
         BigNumber.from(10)
       );
 
-      const alice_randomized_key = alice_key.randomize_sk_ak();
-      const alice_randomized_fee_key = alice_key.randomize_sk_ak();
       await maspVAnchor.transact(
         webbFungibleAssetID,
         webbFungibleTokenID,
         [alice_utxo],
         [alice_utxo_2, bob_utxo_2],
-        [alice_randomized_key.alpha.toString(), alice_randomized_key.alpha.toString()],
+        alice_utxo.maspKey.getProofAuthorizingKey(),
         BigNumber.from(0),
         webbFungibleAssetID,
         webbFungibleTokenID,
         [alice_fee_utxo],
         [fee_output_utxo],
-        [alice_randomized_fee_key.alpha.toString(), alice_randomized_fee_key.alpha.toString()],
+        alice_fee_utxo.maspKey.getProofAuthorizingKey(),
         [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         BigNumber.from(0),
         sender.address,
