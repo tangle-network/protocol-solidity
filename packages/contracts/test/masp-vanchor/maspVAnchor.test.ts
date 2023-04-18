@@ -473,7 +473,7 @@ describe('MASPVAnchor for 2 max edges', () => {
   });
 
   describe('masp snark proof native verification on js side', () => {
-    it.only('should work', async () => {
+    it('should work', async () => {
       const extAmount = 1e7;
       const relayer = '0x2111111111111111111111111111111111111111';
       const recipient = '0x1111111111111111111111111111111111111111';
@@ -608,7 +608,7 @@ describe('MASPVAnchor for 2 max edges', () => {
       let publicSignals = res.publicSignals;
       const vKey = await snarkjs.zKey.exportVerificationKey(zkComponents2_2.zkey);
 
-      res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
+      res = await snarkjs.groth16.verify(vKey, publicSignals, proof, console);
       assert.strictEqual(res, true);
     });
   });

@@ -329,6 +329,7 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, length, numFeeToken
 
     // verify fee inputs sig
     feeInSignatureChecker = EdDSAPoseidonVerifier();
+    feeInSignatureChecker.enabled <== 1;
     feeInSignatureChecker.Ax <== fee_ak_X;
     feeInSignatureChecker.Ay <== fee_ak_Y;
     feeInSignatureChecker.R8x <== feeInR8x;
