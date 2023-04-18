@@ -224,13 +224,11 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
     tokenID: BigNumberish,
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
-    ak: BigNumberish[],
     fee: BigNumberish, // Most likely 0 because fee will be paid through feeInputs
     feeAssetID: BigNumberish,
     feeTokenID: BigNumberish,
     feeInputs: MaspUtxo[],
     feeOutputs: MaspUtxo[],
-    fee_ak: BigNumberish[],
     whitelistedAssetIds: BigNumberish[],
     refund: BigNumberish,
     recipient: string,
@@ -248,7 +246,7 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
     }
 
     let dummyOutMaspKey = new MaspKey();
-    
+
     let dummyFeeInMaspKey = new MaspKey();
     if (feeInputs.length !== 0) {
       dummyFeeInMaspKey = feeInputs[0].maspKey;
@@ -339,15 +337,13 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
       tokenID,
       inputs,
       outputs,
-      dummyInMaspKey.sk,
-      ak,
+      dummyInMaspKey,
       feeAssetID,
       feeTokenID,
       whitelistedAssetIds,
       feeInputs,
       feeOutputs,
-      dummyFeeInMaspKey.sk,
-      fee_ak,
+      dummyFeeInMaspKey,
       extAmount,
       BigNumber.from(fee),
       extDataHash,

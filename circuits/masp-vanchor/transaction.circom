@@ -163,8 +163,6 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, length, numFeeToken
         inNullifierHasher[tx].pathIndices <== inPathIndices[tx];
         inNullifierHasher[tx].nullifier === inputNullifier[tx];
 
-        log(tx);
-
         inTree[tx] = ManyMerkleProof(levels, length);
         inTree[tx].leaf <== inCommitmentHasher[tx].record;
         inTree[tx].pathIndices <== inPathIndices[tx];
@@ -178,8 +176,6 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, length, numFeeToken
         for (var i = 0; i < levels; i++) {
             inTree[tx].pathElements[i] <== inPathElements[tx][i];
         }
-
-        log(tx);
 
         // We don't need to range check input amounts, since all inputs are valid UTXOs that
         // were already checked as outputs in the previous transaction (or zero amount UTXOs that don't
@@ -263,14 +259,10 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, length, numFeeToken
     // Enforce that outAssetID is zero if publicAmount is zero (i.e. shielded tx)
     // Otherwise it is equal to tokenField
     component isShieldedTx = IsZero();
-    isShieldedTx.in <== publicAmount;
-    log(assetID);
-    component checkAssetIDEqualIfNotShielded = ForceEqualIfEnabled();
+    isShieldedTx.in <== publicAmount;    component checkAssetIDEqualIfNotShielded = ForceEqualIfEnabled();
     checkAssetIDEqualIfNotShielded.enabled <== 1 - isShieldedTx.out;
     checkAssetIDEqualIfNotShielded.in[0] <== assetID;
-    checkAssetIDEqualIfNotShielded.in[1] <== publicAssetID;
-    log(assetID);
-    component checkTokenIDEqualIfNotShielded = ForceEqualIfEnabled();
+    checkAssetIDEqualIfNotShielded.in[1] <== publicAssetID;    component checkTokenIDEqualIfNotShielded = ForceEqualIfEnabled();
     checkTokenIDEqualIfNotShielded.enabled <== 1 - isShieldedTx.out;
     checkTokenIDEqualIfNotShielded.in[0] <== tokenID;
     checkTokenIDEqualIfNotShielded.in[1] <== publicTokenID;
@@ -315,8 +307,6 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, length, numFeeToken
         feeInNullifierHasher[tx].pathIndices <== feeInPathIndices[tx];
         feeInNullifierHasher[tx].nullifier === feeInputNullifier[tx];
 
-        log(tx);
-
         feeInTree[tx] = ManyMerkleProof(levels, length);
         feeInTree[tx].leaf <== feeInCommitmentHasher[tx].record;
         feeInTree[tx].pathIndices <== feeInPathIndices[tx];
@@ -330,8 +320,6 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, length, numFeeToken
         for (var i = 0; i < levels; i++) {
             feeInTree[tx].pathElements[i] <== feeInPathElements[tx][i];
         }
-
-        log(tx);
 
         // We don't need to range check input amounts, since all inputs are valid UTXOs that
         // were already checked as outputs in the previous transaction (or zero amount UTXOs that don't

@@ -479,7 +479,7 @@ describe('MASPVAnchor for 2 max edges', () => {
   });
 
   describe('masp snark proof native verification on js side', () => {
-    it('should work', async () => {
+    it.only('should work', async () => {
       const extAmount = 1e7;
       const relayer = '0x2111111111111111111111111111111111111111';
       const recipient = '0x1111111111111111111111111111111111111111';
@@ -560,7 +560,7 @@ describe('MASPVAnchor for 2 max edges', () => {
       feeInputs.map((x) => x.setIndex(BigNumber.from(0)));
       // Dummy set index
       inputs.map((x) => x.setIndex(BigNumber.from(0)));
-      inputs.map((x) => x.setIndex(BigNumber.from(0)));
+      feeInputs.map((x) => x.setIndex(BigNumber.from(0)));
 
       const merkleProofsForInputs = inputs.map((x) =>
         MultiAssetVAnchorBatchTree.getMASPMerkleProof(x, maspVAnchor.depositTree.tree)
@@ -593,12 +593,14 @@ describe('MASPVAnchor for 2 max edges', () => {
           tokenID,
           inputs,
           outputs,
+          inputs[0].maspKey.sk,
           inputs[0].maspKey.getProofAuthorizingKey(),
           feeAssetID,
           feeTokenID,
           whitelistedAssetIDs,
           feeInputs,
           feeOutputs,
+          feeInputs[0].maspKey.sk,
           feeInputs[0].maspKey.getProofAuthorizingKey(),
           BigNumber.from(extAmount),
           BigNumber.from(0),
@@ -612,11 +614,10 @@ describe('MASPVAnchor for 2 max edges', () => {
         'solidity-fixtures/solidity-fixtures/masp_vanchor_2/2/circuit_final.zkey',
         wtns
       );
+
       const proof = res.proof;
       let publicSignals = res.publicSignals;
-      const vKey = await snarkjs.zKey.exportVerificationKey(
-        'solidity-fixtures/solidity-fixtures/masp_vanchor_2/2/circuit_final.zkey'
-      );
+      const vKey = await snarkjs.zKey.exportVerificationKey(zkComponents2_2.zkey);
 
       res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       assert.strictEqual(res, true);
@@ -898,7 +899,7 @@ describe('MASPVAnchor for 2 max edges', () => {
   });
 
   describe('masp smart contract internal shielded transfer', () => {
-    it.only('e2e should internal shielded transfer with valid transact proof -> reward tree commitments queued -> batch insert reward tree commitments', async () => {
+    it('e2e should internal shielded transfer with valid transact proof -> reward tree commitments queued -> batch insert reward tree commitments', async () => {
       // 4 Masp Keys
       const alice_key = new MaspKey();
       const bob_key = new MaspKey();
