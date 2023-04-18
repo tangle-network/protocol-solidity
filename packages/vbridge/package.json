@@ -22,7 +22,7 @@
     "@webb-tools/bridges": "^0.5.32",
     "@webb-tools/contracts": "^0.5.32",
     "@webb-tools/interfaces": "^0.5.32",
-    "@webb-tools/sdk-core": "0.1.4-119",
+    "@webb-tools/sdk-core": "0.1.4-123",
     "@webb-tools/tokens": "^0.5.32",
     "@webb-tools/utils": "^0.5.24",
     "ethers": "5.7.0"

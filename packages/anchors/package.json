@@ -20,7 +20,7 @@
   "dependencies": {
     "@webb-tools/contracts": "^0.5.32",
     "@webb-tools/interfaces": "^0.5.32",
-    "@webb-tools/sdk-core": "0.1.4-119",
+    "@webb-tools/sdk-core": "0.1.4-123",
     "@webb-tools/semaphore": "0.0.1-5",
     "@webb-tools/utils": "^0.5.24",
     "ethers": "5.7.0",
