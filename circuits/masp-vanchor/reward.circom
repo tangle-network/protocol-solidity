@@ -27,11 +27,6 @@ template Reward(levels, zeroLeaf, length) {
 	signal input noteBlinding;
 	signal input notePathIndices;
 
-	// For Delegatable Claiming
-	signal input note_alpha;
-	signal input note_ak_alpha_X;
-	signal input note_ak_alpha_Y;
-
 	// inputs prefixed with input correspond to the vanchor utxos
 	signal input inputChainID;
 	signal input inputAmount;
@@ -131,14 +126,6 @@ template Reward(levels, zeroLeaf, length) {
 
 	// === check deposit and withdrawal ===
 	// Compute tornado.cash commitment and nullifier
-
-	// Check delegatable MASP key
-	component babypow = BabyPow();
-	babypow.baseX <== note_ak_X;
-	babypow.baseY <== note_ak_Y;
-	babypow.exp <== note_alpha;
-	note_ak_alpha_X === babypow.Ax;
-	note_ak_alpha_Y === babypow.Ay;
 
 	component noteKeyComputer = Key();
 	noteKeyComputer.ak_X <== note_ak_X;

@@ -136,8 +136,6 @@ describe('Reward snarkjs local proof', () => {
     const maspPathIndices = MerkleTree.calculateIndexFromPathIndices(maspPath.pathIndices);
     maspUtxo.setIndex(BigNumber.from(0));
 
-    const randomize_maspKey = maspKey.randomize_sk_ak();
-
     // Update depositTree with vanchor UTXO commitment
     const unspentTimestamp = Date.now();
     const unspentLeaf = poseidon([maspCommitment, unspentTimestamp]);
@@ -198,12 +196,7 @@ describe('Reward snarkjs local proof', () => {
       note_ak_X: maspKey.getProofAuthorizingKey()[0],
       note_ak_Y: maspKey.getProofAuthorizingKey()[1],
       noteBlinding: maspUtxo.blinding,
-      notePathElements: maspPathElements,
       notePathIndices: maspPathIndices,
-
-      note_alpha: randomize_maspKey.alpha,
-      note_ak_alpha_X: randomize_maspKey.ak_alpha[0],
-      note_ak_alpha_Y: randomize_maspKey.ak_alpha[1],
 
       // inputs prefixed with input correspond to the vanchor utxos
       inputChainID: chainID,
