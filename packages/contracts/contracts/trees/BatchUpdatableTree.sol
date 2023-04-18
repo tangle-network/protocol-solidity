@@ -7,7 +7,6 @@ pragma solidity ^0.8.5;
 
 import "./MerkleTreeWithHistory.sol";
 import "../interfaces/verifiers/IBatchVerifier.sol";
-import "hardhat/console.sol";
 
 contract BatchMerkleTree is MerkleTreeWithHistory {
 	bytes32 public currentRoot;
