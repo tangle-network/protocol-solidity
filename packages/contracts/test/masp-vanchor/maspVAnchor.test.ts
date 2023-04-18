@@ -243,13 +243,7 @@ describe('MASPVAnchor for 2 max edges', () => {
     );
 
     create2InputWitness = async (data: any) => {
-      const witnessCalculator = require('../../solidity-fixtures/solidity-fixtures/masp_vanchor_2/2/witness_calculator.cjs');
-      const fileBuf = require('fs').readFileSync(
-        'solidity-fixtures/solidity-fixtures/masp_vanchor_2/2/masp_vanchor_2_2.wasm'
-      );
-      const wtnsCalc = await witnessCalculator(fileBuf);
-
-      const wtns = await wtnsCalc.calculateWTNSBin(data, 0);
+      const wtns = await zkComponents2_2.witnessCalculator.calculateWTNSBin(data, 0);
       return wtns;
     };
   });
@@ -521,9 +515,6 @@ describe('MASPVAnchor for 2 max edges', () => {
           BigNumber.from(0)
         ),
       ];
-      const randomize_maspKey_1 = maspKey.randomize_sk_ak();
-      const randomize_maspKey_2 = maspKey.randomize_sk_ak();
-      const alphas = [randomize_maspKey_1.alpha.toString(), randomize_maspKey_2.alpha.toString()];
       const feeMaspKey = new MaspKey();
       const feeInputs = [
         new MaspUtxo(
@@ -557,19 +548,13 @@ describe('MASPVAnchor for 2 max edges', () => {
           BigNumber.from(0)
         ),
       ];
-      const randomize_feeMaspKey_1 = feeMaspKey.randomize_sk_ak();
-      const randomize_feeMaspKey_2 = feeMaspKey.randomize_sk_ak();
-      const fee_alphas = [
-        randomize_feeMaspKey_1.alpha.toString(),
-        randomize_feeMaspKey_2.alpha.toString(),
-      ];
       const fee = 0;
       const whitelistedAssetIDs = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
       inputs.map((x) => x.setIndex(BigNumber.from(0)));
       feeInputs.map((x) => x.setIndex(BigNumber.from(0)));
       // Dummy set index
       inputs.map((x) => x.setIndex(BigNumber.from(0)));
-      inputs.map((x) => x.setIndex(BigNumber.from(0)));
+      feeInputs.map((x) => x.setIndex(BigNumber.from(0)));
 
       const merkleProofsForInputs = inputs.map((x) =>
         MultiAssetVAnchorBatchTree.getMASPMerkleProof(x, maspVAnchor.depositTree.tree)
@@ -602,13 +587,13 @@ describe('MASPVAnchor for 2 max edges', () => {
           tokenID,
           inputs,
           outputs,
-          alphas,
+          inputs[0].maspKey,
           feeAssetID,
           feeTokenID,
           whitelistedAssetIDs,
           feeInputs,
           feeOutputs,
-          fee_alphas,
+          feeInputs[0].maspKey,
           BigNumber.from(extAmount),
           BigNumber.from(0),
           extDataHash,
@@ -617,17 +602,13 @@ describe('MASPVAnchor for 2 max edges', () => {
         );
 
       const wtns = await create2InputWitness(allInputs);
-      let res = await snarkjs.groth16.prove(
-        'solidity-fixtures/solidity-fixtures/masp_vanchor_2/2/circuit_final.zkey',
-        wtns
-      );
+      let res = await snarkjs.groth16.prove(zkComponents2_2.zkey, wtns);
+
       const proof = res.proof;
       let publicSignals = res.publicSignals;
-      const vKey = await snarkjs.zKey.exportVerificationKey(
-        'solidity-fixtures/solidity-fixtures/masp_vanchor_2/2/circuit_final.zkey'
-      );
+      const vKey = await snarkjs.zKey.exportVerificationKey(zkComponents2_2.zkey);
 
-      res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
+      res = await snarkjs.groth16.verify(vKey, publicSignals, proof, console);
       assert.strictEqual(res, true);
     });
   });
@@ -1131,20 +1112,16 @@ describe('MASPVAnchor for 2 max edges', () => {
         BigNumber.from(10)
       );
 
-      const alice_randomized_key = alice_key.randomize_sk_ak();
-      const alice_randomized_fee_key = alice_key.randomize_sk_ak();
       await maspVAnchor.transact(
         webbFungibleAssetID,
         webbFungibleTokenID,
         [alice_utxo],
         [alice_utxo_2, bob_utxo_2],
-        [alice_randomized_key.alpha.toString(), alice_randomized_key.alpha.toString()],
         BigNumber.from(0),
         webbFungibleAssetID,
         webbFungibleTokenID,
         [alice_fee_utxo],
         [fee_output_utxo],
-        [alice_randomized_fee_key.alpha.toString(), alice_randomized_fee_key.alpha.toString()],
         [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         BigNumber.from(0),
         sender.address,
@@ -1297,20 +1274,16 @@ describe('MASPVAnchor for 2 max edges', () => {
         BigNumber.from(10)
       );
 
-      const alice_randomized_key = alice_key.randomize_sk_ak();
-      const alice_randomized_fee_key = alice_key.randomize_sk_ak();
       await maspVAnchor.transact(
         webbFungibleAssetID,
         webbFungibleTokenID,
         [alice_utxo],
         [alice_utxo_2, bob_utxo_2],
-        [alice_randomized_key.alpha.toString(), alice_randomized_key.alpha.toString()],
         BigNumber.from(0),
         webbFungibleAssetID,
         webbFungibleTokenID,
         [alice_fee_utxo],
         [fee_output_utxo],
-        [alice_randomized_fee_key.alpha.toString(), alice_randomized_fee_key.alpha.toString()],
         [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         BigNumber.from(0),
         sender.address,

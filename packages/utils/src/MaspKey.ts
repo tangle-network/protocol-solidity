@@ -33,13 +33,6 @@ export class MaspKey {
     this.pk = babyjub.mulPointEscalar(babyjub.Base8, this.vk.toString());
   }
 
-  public randomize_sk_ak() {
-    let alpha = raw2prv(randomBN(32).toString());
-    let sk_alpha = BigNumber.from(this.hashed_sk.toString()).mul(alpha.toString()).toString();
-    let ak_alpha = babyjub.mulPointEscalar(babyjub.Base8, sk_alpha);
-    return { alpha, sk_alpha, ak_alpha };
-  }
-
   public getProofAuthorizingKey() {
     return this.ak;
   }

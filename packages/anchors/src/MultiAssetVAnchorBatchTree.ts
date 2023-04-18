@@ -224,13 +224,11 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
     tokenID: BigNumberish,
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
-    alphas: BigNumberish[],
     fee: BigNumberish, // Most likely 0 because fee will be paid through feeInputs
     feeAssetID: BigNumberish,
     feeTokenID: BigNumberish,
     feeInputs: MaspUtxo[],
     feeOutputs: MaspUtxo[],
-    fee_alphas: BigNumberish[],
     whitelistedAssetIds: BigNumberish[],
     refund: BigNumberish,
     recipient: string,
@@ -242,12 +240,24 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
     const chainId = getChainIdType(evmId);
     const registry = await Registry.connect(await this.contract.registry(), signer);
     const wrappedToken = await registry.contract.getWrappedAssetAddress(assetID);
-    const dummyMaspKey = new MaspKey();
+    let dummyInMaspKey = new MaspKey();
+    if (inputs.length !== 0) {
+      dummyInMaspKey = inputs[0].maspKey;
+    }
+
+    let dummyOutMaspKey = new MaspKey();
+
+    let dummyFeeInMaspKey = new MaspKey();
+    if (feeInputs.length !== 0) {
+      dummyFeeInMaspKey = feeInputs[0].maspKey;
+    }
+
+    let dummyFeeOutMaspKey = new MaspKey();
 
     while (inputs.length !== 2 && inputs.length < 16) {
       const dummyUtxo = new MaspUtxo(
         BigNumber.from(chainId),
-        dummyMaspKey,
+        dummyInMaspKey,
         BigNumber.from(assetID),
         BigNumber.from(tokenID),
         BigNumber.from(0)
@@ -261,7 +271,7 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
         outputs.push(
           new MaspUtxo(
             BigNumber.from(chainId),
-            dummyMaspKey,
+            dummyOutMaspKey,
             BigNumber.from(assetID),
             BigNumber.from(tokenID),
             BigNumber.from(0)
@@ -273,7 +283,7 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
     while (feeInputs.length !== 2 && feeInputs.length < 16) {
       const dummyUtxo = new MaspUtxo(
         BigNumber.from(chainId),
-        dummyMaspKey,
+        dummyFeeInMaspKey,
         BigNumber.from(feeAssetID),
         BigNumber.from(feeTokenID),
         BigNumber.from(0)
@@ -287,7 +297,7 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
         feeOutputs.push(
           new MaspUtxo(
             BigNumber.from(chainId),
-            dummyMaspKey,
+            dummyFeeOutMaspKey,
             BigNumber.from(feeAssetID),
             BigNumber.from(feeTokenID),
             BigNumber.from(0)
@@ -327,13 +337,13 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
       tokenID,
       inputs,
       outputs,
-      alphas,
+      dummyInMaspKey,
       feeAssetID,
       feeTokenID,
       whitelistedAssetIds,
       feeInputs,
       feeOutputs,
-      fee_alphas,
+      dummyFeeInMaspKey,
       extAmount,
       BigNumber.from(fee),
       extDataHash,

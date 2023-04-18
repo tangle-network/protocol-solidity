@@ -21,13 +21,9 @@ export interface IMASPVAnchorPublicInputs {
   chainID: BigNumberish;
   roots: BigNumberish[];
   extensionRoots: BigNumberish;
-  ak_alpha_X: BigNumberish[];
-  ak_alpha_Y: BigNumberish[];
   whitelistedAssetIDs: BigNumberish[];
   feeInputNullifier: BigNumberish[];
   feeOutputCommitment: BigNumberish[];
-  fee_ak_alpha_X: BigNumberish[];
-  fee_ak_alpha_Y: BigNumberish[];
 }
 
 export type IMASPAllInputs = {
@@ -44,6 +40,9 @@ export type IMASPAllInputs = {
   inBlinding: BigNumberish[];
   inPathIndices: BigNumberish[];
   inPathElements: BigNumber[][];
+  inSignature: BigNumberish;
+  inR8x: BigNumberish;
+  inR8y: BigNumberish;
 
   // data for transaction outputs
   outputCommitment: BigNumberish[];
@@ -52,15 +51,15 @@ export type IMASPAllInputs = {
   outPk_X: BigNumberish[];
   outPk_Y: BigNumberish[];
   outBlinding: BigNumberish[];
+  outSignature: BigNumberish;
+  outR8x: BigNumberish;
+  outR8y: BigNumberish[];
 
   chainID: BigNumberish;
   roots: BigNumberish[];
 
-  ak_X: BigNumberish[];
-  ak_Y: BigNumberish[];
-  alpha: BigNumberish[];
-  ak_alpha_X: BigNumberish[];
-  ak_alpha_Y: BigNumberish[];
+  ak_X: BigNumberish;
+  ak_Y: BigNumberish;
 
   feeAssetID: BigNumberish;
   whitelistedAssetIDs: BigNumberish[];
@@ -72,6 +71,9 @@ export type IMASPAllInputs = {
   feeInBlinding: BigNumberish[];
   feeInPathIndices: BigNumberish[];
   feeInPathElements: BigNumber[][];
+  feeInSignature: BigNumberish;
+  feeInR8x: BigNumberish;
+  feeInR8y: BigNumberish;
 
   // data for transaction outputs
   feeOutputCommitment: BigNumberish[];
@@ -80,12 +82,12 @@ export type IMASPAllInputs = {
   feeOutPk_X: BigNumberish[];
   feeOutPk_Y: BigNumberish[];
   feeOutBlinding: BigNumberish[];
+  feeOutSignature: BigNumberish;
+  feeOutR8x: BigNumberish;
+  feeOutR8y: BigNumberish[];
 
-  fee_ak_X: BigNumberish[];
-  fee_ak_Y: BigNumberish[];
-  fee_alpha: BigNumberish[];
-  fee_ak_alpha_X: BigNumberish[];
-  fee_ak_alpha_Y: BigNumberish[];
+  fee_ak_X: BigNumberish;
+  fee_ak_Y: BigNumberish;
 };
 
 export type IMASPSwapPublicInputs = {
