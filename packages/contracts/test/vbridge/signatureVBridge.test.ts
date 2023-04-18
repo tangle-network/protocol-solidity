@@ -12,7 +12,7 @@ import { VAnchor } from '@webb-tools/anchors';
 import { MintableToken, FungibleTokenWrapper } from '@webb-tools/tokens';
 import { BigNumber } from 'ethers';
 import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '@webb-tools/utils';
-import { startGanacheServer } from '@webb-tools/test-utils';
+import { startGanacheServer } from '@webb-tools/evm-test-utils';
 import { CircomUtxo } from '@webb-tools/sdk-core';
 import { DeployerConfig, GovernorConfig } from '@webb-tools/interfaces';
 import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';

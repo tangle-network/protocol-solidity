@@ -1,14 +1,13 @@
 const assert = require('assert');
 const TruffleAssert = require('truffle-assertions');
-import { ethers, network } from 'hardhat';
-import { toFixedHex, toHex, MerkleTree, MerkleProof } from '@webb-tools/sdk-core';
+import { ethers } from 'hardhat';
+import { toFixedHex, MerkleTree } from '@webb-tools/sdk-core';
 import { BigNumber, BigNumberish } from 'ethers';
 import { solidityPack } from 'ethers/lib/utils';
 import { getChainIdType } from '@webb-tools/utils';
 import { OpenVAnchor } from '@webb-tools/anchors';
-import { ERC20PresetMinterPauser__factory, KeccakHasher__factory } from '../../typechain';
-import { startGanacheServer } from '@webb-tools/test-utils';
-import { CircomUtxo } from '@webb-tools/sdk-core';
+import { KeccakHasher__factory } from '../../typechain';
+import { startGanacheServer } from '@webb-tools/evm-test-utils';
 import { DeployerConfig, GovernorConfig } from '@webb-tools/interfaces';
 import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
 import { OpenVBridge, VBridgeInput } from '@webb-tools/vbridge';

@@ -13,7 +13,7 @@ import {
   FungibleTokenWrapper as WrappedToken,
   FungibleTokenWrapper__factory as WrappedTokenFactory,
 } from '@webb-tools/contracts';
-import { startGanacheServer } from '@webb-tools/test-utils';
+import { startGanacheServer } from '@webb-tools/evm-test-utils';
 
 import {
   hexToU8a,
