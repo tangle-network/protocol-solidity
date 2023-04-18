@@ -11,18 +11,12 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "../utils/Initialized.sol";
 import "../utils/ProposalNonceTracker.sol";
-import "hardhat/console.sol";
 
 /**
     @title A MultiTokenManager manages FungibleTokenWrapper systems using an external `governor` address
     @author Webb Technologies.
  */
-contract NftTokenWrapper is
-	ERC721,
-	IERC721Receiver,
-	Initialized,
-	ProposalNonceTracker
-{
+contract NftTokenWrapper is ERC721, IERC721Receiver, Initialized, ProposalNonceTracker {
 	using SafeMath for uint256;
 	address public handler;
 	address unwrappedNftAddress;
@@ -40,20 +34,12 @@ contract NftTokenWrapper is
 	}
 
 	function wrap721(uint256 _tokenId) external {
-		console.log("hi from nft token wrapper 1");
-		console.logAddress(unwrappedNftAddress);
-		console.logAddress(address(this));
-		console.logAddress(msg.sender);
 		IERC721(unwrappedNftAddress).safeTransferFrom(msg.sender, address(this), _tokenId);
-		console.log("hi from nft token wrapper 2");
 	}
 
 	function unwrap721(uint256 _tokenId, address _tokenContract) external {
 		// Ensure msg.sender is the owner of the wrapped token
-		require(
-			_ownerOf(_tokenId) == msg.sender,
-			"NftTokenWrapper: Not the owner of the token"
-		);
+		require(_ownerOf(_tokenId) == msg.sender, "NftTokenWrapper: Not the owner of the token");
 		// Ensure this contract is the owner of the token
 		require(
 			IERC721(_tokenContract).ownerOf(_tokenId) == address(this),

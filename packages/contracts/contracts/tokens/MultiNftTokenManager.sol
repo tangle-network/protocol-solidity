@@ -7,7 +7,6 @@ pragma solidity ^0.8.5;
 
 import "./NftTokenWrapper.sol";
 import "./MultiTokenManagerBase.sol";
-import "hardhat/console.sol";
 
 /**
     @title A MultiNftTokenManager manages NftTokenWrapper systems
@@ -37,8 +36,6 @@ contract MultiNftTokenManager is MultiTokenManagerBase {
 		bytes32 _salt
 	) external override onlyRegistry onlyInitialized returns (address) {
 		NftTokenWrapper nftWrapper = new NftTokenWrapper{ salt: _salt }(_uri, _uri);
-		console.logAddress(address(nftWrapper));
-		console.log("token nft address");
 		nftWrapper.initialize(_handler, _unwrappedNftAddress);
 
 		wrappedTokens.push(address(nftWrapper));

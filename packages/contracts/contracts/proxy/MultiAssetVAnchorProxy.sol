@@ -14,7 +14,6 @@ import "../interfaces/IMultiAssetVAnchorBatchTree.sol";
 import "../interfaces/tokens/ITokenWrapper.sol";
 import "../interfaces/tokens/INftTokenWrapper.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "hardhat/console.sol";
 
 /// @dev This contract holds a merkle tree of all tornado cash deposit and withdrawal events
 contract MultiAssetVAnchorProxy is Initialized, IERC721Receiver {
@@ -370,14 +369,11 @@ contract MultiAssetVAnchorProxy is Initialized, IERC721Receiver {
 				bytes32(IHasher(hasher).hashLeftRight(uint256(commitments[i]), block.timestamp))
 			);
 			if (depositInfo.unwrappedToken != depositInfo.wrappedToken) {
-				console.log("hi from masp proxy 1");
 				IERC721(depositInfo.unwrappedToken).approve(
 					address(depositInfo.wrappedToken),
 					depositInfo.tokenID
 				);
-				console.log("hi from masp proxy 2");
 				INftTokenWrapper(depositInfo.wrappedToken).wrap721(depositInfo.tokenID);
-				console.log("hi from masp proxy 3");
 			} else {
 				IERC721(depositInfo.unwrappedToken).approve(
 					address(depositInfo.wrappedToken),
