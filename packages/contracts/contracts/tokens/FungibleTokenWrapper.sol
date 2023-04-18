@@ -29,8 +29,8 @@ contract FungibleTokenWrapper is
 	address[] public tokens;
 	address[] public historicalTokens;
 
-	mapping(address => bool) valid;
-	mapping(address => bool) historicallyValid;
+	mapping(address => bool) public valid;
+	mapping(address => bool) public historicallyValid;
 
 	bool public isNativeAllowed;
 	uint256 public wrappingLimit;
