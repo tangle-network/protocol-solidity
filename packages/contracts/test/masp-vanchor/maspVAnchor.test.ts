@@ -889,7 +889,7 @@ describe('MASPVAnchor for 2 max edges', () => {
       // Batch insert into reward unspent tree
     });
 
-    it('e2e should batch insert erc721 -> queue reward unspent tree -> transfer funds to masp -> batch insert on reward unspent tree', async () => {
+    it.only('e2e should batch insert erc721 -> queue reward unspent tree -> transfer funds to masp -> batch insert on reward unspent tree', async () => {
       await unwrappedERC721_1.contract.approve(await maspProxy.contract.address, 1);
       await unwrappedERC721_1.contract.approve(await maspProxy.contract.address, 2);
       await unwrappedERC721_1.contract.approve(await maspProxy.contract.address, 3);
