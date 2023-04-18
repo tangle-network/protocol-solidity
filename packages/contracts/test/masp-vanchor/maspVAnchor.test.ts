@@ -243,13 +243,7 @@ describe('MASPVAnchor for 2 max edges', () => {
     );
 
     create2InputWitness = async (data: any) => {
-      const witnessCalculator = require('../../solidity-fixtures/solidity-fixtures/masp_vanchor_2/2/witness_calculator.cjs');
-      const fileBuf = require('fs').readFileSync(
-        'solidity-fixtures/solidity-fixtures/masp_vanchor_2/2/masp_vanchor_2_2.wasm'
-      );
-      const wtnsCalc = await witnessCalculator(fileBuf);
-
-      const wtns = await wtnsCalc.calculateWTNSBin(data, 0);
+      const wtns = await zkComponents2_2.witnessCalculator.calculateWTNSBin(data, 0);
       return wtns;
     };
   });
@@ -593,15 +587,13 @@ describe('MASPVAnchor for 2 max edges', () => {
           tokenID,
           inputs,
           outputs,
-          inputs[0].maspKey.sk,
-          inputs[0].maspKey.getProofAuthorizingKey(),
+          inputs[0].maspKey,
           feeAssetID,
           feeTokenID,
           whitelistedAssetIDs,
           feeInputs,
           feeOutputs,
-          feeInputs[0].maspKey.sk,
-          feeInputs[0].maspKey.getProofAuthorizingKey(),
+          feeInputs[0].maspKey,
           BigNumber.from(extAmount),
           BigNumber.from(0),
           extDataHash,
@@ -610,10 +602,7 @@ describe('MASPVAnchor for 2 max edges', () => {
         );
 
       const wtns = await create2InputWitness(allInputs);
-      let res = await snarkjs.groth16.prove(
-        'solidity-fixtures/solidity-fixtures/masp_vanchor_2/2/circuit_final.zkey',
-        wtns
-      );
+      let res = await snarkjs.groth16.prove(zkComponents2_2.zkey, wtns);
 
       const proof = res.proof;
       let publicSignals = res.publicSignals;
@@ -1046,13 +1035,11 @@ describe('MASPVAnchor for 2 max edges', () => {
         webbFungibleTokenID,
         [alice_utxo],
         [alice_utxo_2, bob_utxo_2],
-        alice_utxo.maspKey.getProofAuthorizingKey(),
         BigNumber.from(0),
         webbFungibleAssetID,
         webbFungibleTokenID,
         [alice_fee_utxo],
         [fee_output_utxo],
-        alice_fee_utxo.maspKey.getProofAuthorizingKey(),
         [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         BigNumber.from(0),
         sender.address,
@@ -1210,13 +1197,11 @@ describe('MASPVAnchor for 2 max edges', () => {
         webbFungibleTokenID,
         [alice_utxo],
         [alice_utxo_2, bob_utxo_2],
-        alice_utxo.maspKey.getProofAuthorizingKey(),
         BigNumber.from(0),
         webbFungibleAssetID,
         webbFungibleTokenID,
         [alice_fee_utxo],
         [fee_output_utxo],
-        alice_fee_utxo.maspKey.getProofAuthorizingKey(),
         [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         BigNumber.from(0),
         sender.address,
