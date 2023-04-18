@@ -23,6 +23,7 @@ jobs:
       - uses: actions/setup-node@v3
         with: 
           node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
           
       - name: Fetch submodules
         run: git submodule update --init --recursive
@@ -41,6 +42,9 @@ jobs:
           echo "FOUNDRY_FUZZ_SEED=$(
             echo $(($EPOCHSECONDS - $EPOCHSECONDS % 604800))
           )" >> $GITHUB_ENV
+    
+      - name: Compile the contracts and build typescript interfaces
+        run: yarn build
 
       - name: "Run the tests"
         run: |
