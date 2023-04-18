@@ -196,7 +196,6 @@ describe('Reward snarkjs local proof', () => {
       note_ak_X: maspKey.getProofAuthorizingKey()[0],
       note_ak_Y: maspKey.getProofAuthorizingKey()[1],
       noteBlinding: maspUtxo.blinding,
-      notePathElements: maspPathElements,
       notePathIndices: maspPathIndices,
 
       // inputs prefixed with input correspond to the vanchor utxos
