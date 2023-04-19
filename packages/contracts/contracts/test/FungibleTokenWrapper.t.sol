@@ -45,6 +45,24 @@ contract FungibleTokenWrapperTest is PRBTest, StdCheats {
 		assertEq(token.feePercentage(), 0);
 	}
 
+	function test_calculateAmountToWrapProperly(uint16 fee) public {
+		vm.assume(fee < 10000);
+		uint256 amount = 10 ether;
+		uint256 amountToWrap = token.getAmountToWrap(amount);
+		// Default fee for tests is 0
+		assertEq(amount, amountToWrap);
+		// Set fee to be 1 percent (100 / 10000 = 0.01)
+		vm.prank(alice);
+		token.setFee(fee, 1);
+		amountToWrap = token.getAmountToWrap(amount);
+		// Amount to wrap should be (100 / 99) * amount
+		assertEq(amountToWrap, amount * 10000 / (10000 - fee));
+		// Set fee to be 100 percent (10000 / 10000 = 1) shouldn't work
+		vm.expectRevert("FungibleTokenWrapper: Invalid fee percentage");
+		vm.prank(alice);
+		token.setFee(10000, 2);
+	}
+
 	function test_wrapNative() public {
 		uint256 amount = 10 ether;
 		vm.prank(alice);
@@ -129,6 +147,70 @@ contract FungibleTokenWrapperTest is PRBTest, StdCheats {
 		assertEq(token.balanceOf(alice), 0);
 		assertEq(token.totalSupply(), 0);
 		assertEq(newToken.balanceOf(alice), aliceBalance);
+	}
+
+	function test_wrapForNative() public {
+		uint256 amount = 10 ether;
+		address bob = vm.addr(2);
+		vm.prank(alice);
+		token.wrapFor{value: amount}(bob, address(0x0), 0);
+		assertEq(token.balanceOf(alice), 0);
+		assertEq(token.balanceOf(bob), amount);
+		assertEq(token.totalSupply(), amount);
+	}
+
+	function test_wrapForERC20() public {
+		uint256 amount = 10 ether;
+		address bob = vm.addr(2);
+		ERC20PresetMinterPauser newToken = new ERC20PresetMinterPauser("BASE", "BASE");
+		newToken.mint(bob, amount);
+		vm.prank(alice);
+		token.add(address(newToken), 1);
+		vm.prank(bob);
+		newToken.approve(address(token), amount);
+		vm.prank(alice);
+		token.wrapFor(bob, address(newToken), amount);
+		assertEq(token.balanceOf(alice), 0);
+		assertEq(token.balanceOf(bob), amount);
+		assertEq(token.totalSupply(), amount);
+	}
+
+	function test_unwrapForNative() public {
+		uint256 amount = 10 ether;
+		address bob = vm.addr(2);
+		vm.prank(alice);
+		token.wrapFor{value: amount}(bob, address(0x0), 0);
+		assertEq(token.balanceOf(alice), 0);
+		assertEq(token.balanceOf(bob), amount);
+		assertEq(token.totalSupply(), amount);
+		vm.prank(alice);
+		token.unwrapFor(bob, address(0x0), amount);
+		assertEq(token.balanceOf(alice), 0);
+		assertEq(token.balanceOf(bob), 0);
+		assertEq(token.totalSupply(), 0);
+		assertEq(address(bob).balance, amount);
+	}
+
+	function test_unwrapForERC20() public {
+		uint256 amount = 10 ether;
+		address bob = vm.addr(2);
+		ERC20PresetMinterPauser newToken = new ERC20PresetMinterPauser("BASE", "BASE");
+		newToken.mint(bob, amount);
+		vm.prank(alice);
+		token.add(address(newToken), 1);
+		vm.prank(bob);
+		newToken.approve(address(token), amount);
+		vm.prank(alice);
+		token.wrapFor(bob, address(newToken), amount);
+		assertEq(token.balanceOf(alice), 0);
+		assertEq(token.balanceOf(bob), amount);
+		assertEq(token.totalSupply(), amount);
+		vm.prank(alice);
+		token.unwrapFor(bob, address(newToken), amount);
+		assertEq(token.balanceOf(alice), 0);
+		assertEq(token.balanceOf(bob), 0);
+		assertEq(token.totalSupply(), 0);
+		assertEq(newToken.balanceOf(bob), amount);
 	}
 
 	function test_setFee(uint16 feePercentage) public {
@@ -225,5 +307,53 @@ contract FungibleTokenWrapperTest is PRBTest, StdCheats {
 		vm.expectRevert("TokenWrapper: Invalid token address");
 		vm.prank(alice);
 		token.wrap(tokenAddress, amount);
+	}
+
+	function test_wrapForShouldFailIfNoAllowance() public {
+		uint256 amount = 10 ether;
+		address bob = vm.addr(2);
+		ERC20PresetMinterPauser newToken = new ERC20PresetMinterPauser("BASE", "BASE");
+		newToken.mint(bob, amount);
+		vm.prank(alice);
+		token.add(address(newToken), 1);
+		vm.expectRevert("ERC20: insufficient allowance");
+		vm.prank(alice);
+		token.wrapFor(bob, address(newToken), amount);
+	}
+
+	function test_wrapForERC20ShouldFailIfNotMinter() public {
+		uint256 amount = 10 ether;
+		address bob = vm.addr(2);
+		address charlie = vm.addr(3);
+		ERC20PresetMinterPauser newToken = new ERC20PresetMinterPauser("BASE", "BASE");
+		newToken.mint(bob, amount);
+		vm.prank(alice);
+		token.add(address(newToken), 1);
+		vm.prank(bob);
+		newToken.approve(address(token), amount);
+		vm.expectRevert("TokenWrapper: must have minter role");
+		vm.prank(charlie);
+		token.wrapFor(bob, address(newToken), amount);
+	}
+
+	function test_unwrapForERC20ShouldFailIfNotMinter() public {
+		uint256 amount = 10 ether;
+		address bob = vm.addr(2);
+		address charlie = vm.addr(3);
+		ERC20PresetMinterPauser newToken = new ERC20PresetMinterPauser("BASE", "BASE");
+		newToken.mint(bob, amount);
+		vm.prank(alice);
+		token.add(address(newToken), 1);
+		vm.prank(bob);
+		newToken.approve(address(token), amount);
+		vm.expectRevert("TokenWrapper: must have minter role");
+		vm.prank(charlie);
+		token.wrapFor(bob, address(newToken), amount);
+		// Wrap for Bob with the minter role (Alice)
+		vm.prank(alice);
+		token.wrapFor(bob, address(newToken), amount);
+		vm.expectRevert("TokenWrapper: must have minter role");
+		vm.prank(charlie);
+		token.unwrapFor(bob, address(newToken), amount);
 	}
 }

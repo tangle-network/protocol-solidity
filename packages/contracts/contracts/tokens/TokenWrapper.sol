@@ -94,49 +94,6 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, Reentr
 	}
 
 	/**
-        @notice Used to unwrap/burn the wrapper token on behalf of a sender.
-        @param tokenAddress Address of ERC20 to unwrap into.
-        @param amount Amount of tokens to burn.
-     */
-	function unwrap(
-		address tokenAddress,
-		uint256 amount
-	) public override nonReentrant isValidUnwrapping(tokenAddress, amount) {
-		// burn wrapped token from sender
-		_burn(_msgSender(), amount);
-		// unwrap liquidity and send to the sender
-		if (tokenAddress == address(0)) {
-			// transfer native liquidity from the token wrapper to the sender
-			payable(msg.sender).transfer(amount);
-		} else {
-			// transfer ERC20 liquidity from the token wrapper to the sender
-			IERC20(tokenAddress).safeTransfer(_msgSender(), amount);
-		}
-	}
-
-	/**
-        @notice Used to unwrap/burn the wrapper token on behalf of a sender.
-        @param tokenAddress Address of ERC20 to unwrap into.
-        @param amount Amount of tokens to burn.
-     */
-	function unwrapAndSendTo(
-		address tokenAddress,
-		uint256 amount,
-		address recipient
-	) public override nonReentrant isValidUnwrapping(tokenAddress, amount) {
-		// burn wrapped token from sender
-		_burn(_msgSender(), amount);
-		// unwrap liquidity and send to the sender
-		if (tokenAddress == address(0)) {
-			// transfer native liquidity from the token wrapper to the sender
-			payable(recipient).transfer(amount);
-		} else {
-			// transfer ERC20 liquidity from the token wrapper to the sender
-			IERC20(tokenAddress).safeTransfer(recipient, amount);
-		}
-	}
-
-	/**
         @notice Used to wrap tokens on behalf of a sender
         @param sender Address of sender where assets are sent from.
         @param tokenAddress Address of ERC20 to transfer.
@@ -154,21 +111,7 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, Reentr
 		isMinter
 		isValidWrapping(tokenAddress, feeRecipient, amount)
 	{
-		uint256 costToWrap = getFeeFromAmount(tokenAddress == address(0) ? msg.value : amount);
-		uint256 leftover = tokenAddress == address(0)
-			? uint256(msg.value).sub(costToWrap)
-			: amount.sub(costToWrap);
-		if (tokenAddress == address(0)) {
-			// transfer fee (costToWrap) to feeRecipient
-			feeRecipient.transfer(costToWrap);
-		} else {
-			// transfer liquidity to the token wrapper
-			IERC20(tokenAddress).safeTransferFrom(sender, address(this), leftover);
-			// transfer fee (costToWrap) to feeRecipient
-			IERC20(tokenAddress).safeTransferFrom(sender, feeRecipient, costToWrap);
-		}
-		// mint the wrapped token for the sender
-		_mint(sender, leftover);
+		_wrapForAndSendTo(sender, tokenAddress, amount, sender);
 	}
 
 	/**
@@ -191,21 +134,32 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, Reentr
 		isMinter
 		isValidWrapping(tokenAddress, feeRecipient, amount)
 	{
-		uint256 costToWrap = getFeeFromAmount(tokenAddress == address(0) ? msg.value : amount);
-		uint256 leftover = tokenAddress == address(0)
-			? uint256(msg.value).sub(costToWrap)
-			: amount.sub(costToWrap);
-		if (tokenAddress == address(0)) {
-			// transfer fee (costToWrap) to feeRecipient
-			feeRecipient.transfer(costToWrap);
-		} else {
-			// transfer liquidity to the token wrapper
-			IERC20(tokenAddress).safeTransferFrom(sender, address(this), leftover);
-			// transfer fee (costToWrap) to feeRecipient
-			IERC20(tokenAddress).safeTransferFrom(sender, feeRecipient, costToWrap);
-		}
-		// mint the wrapped token for the recipient
-		_mint(recipient, leftover);
+		_wrapForAndSendTo(sender, tokenAddress, amount, recipient);
+	}
+
+	/**
+        @notice Used to unwrap/burn the wrapper token on behalf of a sender.
+        @param tokenAddress Address of ERC20 to unwrap into.
+        @param amount Amount of tokens to burn.
+     */
+	function unwrap(
+		address tokenAddress,
+		uint256 amount
+	) public override nonReentrant isValidUnwrapping(tokenAddress, amount) {
+		_unwrapAndSendTo(tokenAddress, amount, _msgSender());
+	}
+
+	/**
+        @notice Used to unwrap/burn the wrapper token on behalf of a sender.
+        @param tokenAddress Address of ERC20 to unwrap into.
+        @param amount Amount of tokens to burn.
+     */
+	function unwrapAndSendTo(
+		address tokenAddress,
+		uint256 amount,
+		address recipient
+	) public override nonReentrant isValidUnwrapping(tokenAddress, amount) {
+		_unwrapAndSendTo(tokenAddress, amount, recipient);
 	}
 
 	/**
@@ -234,6 +188,46 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, Reentr
 			return _isNativeValid();
 		} else {
 			return _isValidAddress(tokenAddress);
+		}
+	}
+
+	function _wrapForAndSendTo(
+		address sender,
+		address tokenAddress,
+		uint256 amount,
+		address recipient
+	) internal {
+		uint256 costToWrap = getFeeFromAmount(tokenAddress == address(0) ? msg.value : amount);
+		uint256 leftover = tokenAddress == address(0)
+			? uint256(msg.value).sub(costToWrap)
+			: amount.sub(costToWrap);
+		if (tokenAddress == address(0)) {
+			// transfer fee (costToWrap) to feeRecipient
+			feeRecipient.transfer(costToWrap);
+		} else {
+			// transfer liquidity to the token wrapper
+			IERC20(tokenAddress).safeTransferFrom(sender, address(this), leftover);
+			// transfer fee (costToWrap) to feeRecipient
+			IERC20(tokenAddress).safeTransferFrom(sender, feeRecipient, costToWrap);
+		}
+		// mint the wrapped token for the recipient
+		_mint(recipient, leftover);
+	}
+
+	function _unwrapAndSendTo(
+		address tokenAddress,
+		uint256 amount,
+		address recipient
+	) internal {
+		// burn wrapped token from sender
+		_burn(_msgSender(), amount);
+		// unwrap liquidity and send to the sender
+		if (tokenAddress == address(0)) {
+			// transfer native liquidity from the token wrapper to the sender
+			payable(recipient).transfer(amount);
+		} else {
+			// transfer ERC20 liquidity from the token wrapper to the sender
+			IERC20(tokenAddress).safeTransfer(recipient, amount);
 		}
 	}
 
