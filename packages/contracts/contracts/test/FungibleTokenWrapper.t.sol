@@ -19,7 +19,7 @@ contract FungibleTokenWrapperTest is PRBTest, StdCheats {
 	address governor;
 	address tokenHandler;
 
-    function setUp() public virtual {
+	function setUp() public virtual {
 		alice = vm.addr(1);
 		governor = alice;
 		tokenHandler = alice;
@@ -56,7 +56,7 @@ contract FungibleTokenWrapperTest is PRBTest, StdCheats {
 		token.setFee(fee, 1);
 		amountToWrap = token.getAmountToWrap(amount);
 		// Amount to wrap should be (100 / 99) * amount
-		assertEq(amountToWrap, amount * 10000 / (10000 - fee));
+		assertEq(amountToWrap, (amount * 10000) / (10000 - fee));
 		// Set fee to be 100 percent (10000 / 10000 = 1) shouldn't work
 		vm.expectRevert("FungibleTokenWrapper: Invalid fee percentage");
 		vm.prank(alice);
@@ -66,7 +66,7 @@ contract FungibleTokenWrapperTest is PRBTest, StdCheats {
 	function test_wrapNative() public {
 		uint256 amount = 10 ether;
 		vm.prank(alice);
-		token.wrap{value: amount}(address(0x0), 0);
+		token.wrap{ value: amount }(address(0x0), 0);
 		assertEq(token.balanceOf(alice), amount);
 		assertEq(token.totalSupply(), amount);
 	}
@@ -117,7 +117,7 @@ contract FungibleTokenWrapperTest is PRBTest, StdCheats {
 		uint256 aliceBalance = address(alice).balance;
 		uint256 amount = 10 ether;
 		vm.prank(alice);
-		token.wrap{value: amount}(address(0x0), 0);
+		token.wrap{ value: amount }(address(0x0), 0);
 		assertEq(token.balanceOf(alice), amount);
 		assertEq(token.totalSupply(), amount);
 		assertEq(address(alice).balance, aliceBalance - amount);
@@ -153,7 +153,7 @@ contract FungibleTokenWrapperTest is PRBTest, StdCheats {
 		uint256 amount = 10 ether;
 		address bob = vm.addr(2);
 		vm.prank(alice);
-		token.wrapFor{value: amount}(bob, address(0x0), 0);
+		token.wrapFor{ value: amount }(bob, address(0x0), 0);
 		assertEq(token.balanceOf(alice), 0);
 		assertEq(token.balanceOf(bob), amount);
 		assertEq(token.totalSupply(), amount);
@@ -179,7 +179,7 @@ contract FungibleTokenWrapperTest is PRBTest, StdCheats {
 		uint256 amount = 10 ether;
 		address bob = vm.addr(2);
 		vm.prank(alice);
-		token.wrapFor{value: amount}(bob, address(0x0), 0);
+		token.wrapFor{ value: amount }(bob, address(0x0), 0);
 		assertEq(token.balanceOf(alice), 0);
 		assertEq(token.balanceOf(bob), amount);
 		assertEq(token.totalSupply(), amount);
@@ -298,7 +298,7 @@ contract FungibleTokenWrapperTest is PRBTest, StdCheats {
 		token.setNativeAllowed(false);
 		vm.expectRevert("TokenWrapper: Native wrapping is not allowed for this token wrapper");
 		vm.prank(alice);
-		token.wrap{value: amount}(address(0x0), 0);
+		token.wrap{ value: amount }(address(0x0), 0);
 	}
 
 	function test_wrapERC20ShouldFailIfNotValidToken() public {
