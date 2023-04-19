@@ -309,6 +309,20 @@ contract FungibleTokenWrapperTest is PRBTest, StdCheats {
 		token.wrap(tokenAddress, amount);
 	}
 
+	function test_wrapERC20ShouldFailIfNotEnoughBalance() public {
+		uint256 amount = 10 ether;
+		address bob = vm.addr(2);
+		ERC20PresetMinterPauser newToken = new ERC20PresetMinterPauser("BASE", "BASE");
+		newToken.mint(bob, amount);
+		vm.prank(alice);
+		token.add(address(newToken), 1);
+		vm.prank(bob);
+		newToken.approve(address(token), amount + 1);
+		vm.expectRevert("ERC20: transfer amount exceeds balance");
+		vm.prank(bob);
+		token.wrap(address(newToken), amount + 1);
+	}
+
 	function test_wrapForShouldFailIfNoAllowance() public {
 		uint256 amount = 10 ether;
 		address bob = vm.addr(2);
