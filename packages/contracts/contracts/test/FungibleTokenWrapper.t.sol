@@ -54,9 +54,11 @@ contract FungibleTokenWrapperTest is PRBTest, StdCheats {
 	}
 
 	function test_addToken() public {
+		assertEq(token.getProposalNonce(), 0);
 		address tokenAddress = vm.addr(2);
 		vm.prank(alice);
 		token.add(tokenAddress, 1);
+		assertEq(token.getProposalNonce(), 1);
 		assertEq(token.tokens(0), tokenAddress);
 		assertEq(token.valid(tokenAddress), true);
 		assertEq(token.historicalTokens(0), tokenAddress);
@@ -64,20 +66,55 @@ contract FungibleTokenWrapperTest is PRBTest, StdCheats {
 	}
 
 	function test_removeToken() public {
+		assertEq(token.getProposalNonce(), 0);
 		address tokenAddress = vm.addr(2);
 		vm.prank(alice);
 		token.add(tokenAddress, 1);
+		assertEq(token.getProposalNonce(), 1);
 		vm.prank(alice);
 		token.remove(tokenAddress, 2);
+		assertEq(token.getProposalNonce(), 2);
 		assertEq(token.valid(tokenAddress), false);
 		assertEq(token.historicalTokens(0), tokenAddress);
 		assertEq(token.historicallyValid(tokenAddress), true);
 	}
 
 	function test_wrapERC20() public {
+		assertEq(token.getProposalNonce(), 0);
 		uint256 amount = 10 ether;
 		ERC20PresetMinterPauser newToken = new ERC20PresetMinterPauser("BASE", "BASE");
 		newToken.mint(alice, amount);
+		vm.prank(alice);
+		token.add(address(newToken), 1);
+		assertEq(token.getProposalNonce(), 1);
+		vm.prank(alice);
+		newToken.approve(address(token), amount);
+		vm.prank(alice);
+		token.wrap(address(newToken), amount);
+		assertEq(token.balanceOf(alice), amount);
+		assertEq(token.totalSupply(), amount);
+	}
+
+	function test_wrapUnwrapNative() public {
+		uint256 aliceBalance = address(alice).balance;
+		uint256 amount = 10 ether;
+		vm.prank(alice);
+		token.wrap{value: amount}(address(0x0), 0);
+		assertEq(token.balanceOf(alice), amount);
+		assertEq(token.totalSupply(), amount);
+		assertEq(address(alice).balance, aliceBalance - amount);
+		vm.prank(alice);
+		token.unwrap(address(0x0), amount);
+		assertEq(token.balanceOf(alice), 0);
+		assertEq(token.totalSupply(), 0);
+		assertEq(address(alice).balance, aliceBalance);
+	}
+
+	function test_wrapUnwrapERC20() public {
+		uint256 amount = 10 ether;
+		ERC20PresetMinterPauser newToken = new ERC20PresetMinterPauser("BASE", "BASE");
+		newToken.mint(alice, amount);
+		uint256 aliceBalance = newToken.balanceOf(alice);
 		vm.prank(alice);
 		token.add(address(newToken), 1);
 		vm.prank(alice);
@@ -86,6 +123,83 @@ contract FungibleTokenWrapperTest is PRBTest, StdCheats {
 		token.wrap(address(newToken), amount);
 		assertEq(token.balanceOf(alice), amount);
 		assertEq(token.totalSupply(), amount);
+		assertEq(newToken.balanceOf(alice), aliceBalance - amount);
+		vm.prank(alice);
+		token.unwrap(address(newToken), amount);
+		assertEq(token.balanceOf(alice), 0);
+		assertEq(token.totalSupply(), 0);
+		assertEq(newToken.balanceOf(alice), aliceBalance);
+	}
+
+	function test_setFee(uint16 feePercentage) public {
+		vm.assume(feePercentage <= 10000);
+		assertEq(token.getProposalNonce(), 0);
+		vm.prank(alice);
+		token.setFee(feePercentage, 1);
+		assertEq(token.getProposalNonce(), 1);
+		assertEq(token.feePercentage(), feePercentage);
+	}
+
+	function test_setFeeRecipient(address feeRecipient) public {
+		vm.assume(feeRecipient != address(0x0));
+		assertEq(token.getProposalNonce(), 0);
+		vm.prank(alice);
+		token.setFeeRecipient(payable(feeRecipient), 1);
+		assertEq(token.getProposalNonce(), 1);
+		assertEq(token.feeRecipient(), feeRecipient);
+	}
+
+	function test_setFeeShouldFailIfGreaterThan10000(uint16 feePercentage) public {
+		vm.assume(feePercentage > 10000);
+		assertEq(token.getProposalNonce(), 0);
+		vm.expectRevert("FungibleTokenWrapper: Invalid fee percentage");
+		vm.prank(alice);
+		token.setFee(feePercentage, 1);
+		assertEq(token.getProposalNonce(), 0);
+	}
+
+	function test_setFeeRecipientShouldFailIfZero() public {
+		vm.expectRevert("FungibleTokenWrapper: Fee Recipient cannot be zero address");
+		vm.prank(alice);
+		token.setFeeRecipient(payable(address(0x0)), 1);
+	}
+
+	function test_addTokenShouldFailIfAlreadyValid() public {
+		address tokenAddress = vm.addr(2);
+		vm.prank(alice);
+		token.add(tokenAddress, 1);
+		vm.expectRevert("FungibleTokenWrapper: Token should not be valid");
+		vm.prank(alice);
+		token.add(tokenAddress, 2);
+	}
+
+	function test_removeTokenShouldFailIfTokenDoesntExist() public {
+		address tokenAddress = vm.addr(2);
+		vm.expectRevert("FungibleTokenWrapper: Token should be valid");
+		vm.prank(alice);
+		token.remove(tokenAddress, 1);
+	}
+
+	function test_unwrapShouldFailIfNotHistoricallyValid() public {
+		uint256 amount = 10 ether;
+		ERC20PresetMinterPauser newToken = new ERC20PresetMinterPauser("BASE", "BASE");
+		newToken.mint(alice, amount);
+		uint256 aliceBalance = newToken.balanceOf(alice);
+		vm.expectRevert("TokenWrapper: Insufficient ERC20 balance");
+		vm.prank(alice);
+		token.unwrap(address(newToken), amount);
+	}
+
+	function test_unwrapShouldFailIfNoLiquidity() public {
+		uint256 amount = 10 ether;
+		ERC20PresetMinterPauser newToken = new ERC20PresetMinterPauser("BASE", "BASE");
+		newToken.mint(alice, amount);
+		uint256 aliceBalance = newToken.balanceOf(alice);
+		vm.prank(alice);
+		token.add(address(newToken), 1);
+		vm.expectRevert("TokenWrapper: Insufficient ERC20 balance");
+		vm.prank(alice);
+		token.unwrap(address(newToken), amount);
 	}
 
 	function test_wrapNativeShouldFailIfNotPassedAsValue() public {
