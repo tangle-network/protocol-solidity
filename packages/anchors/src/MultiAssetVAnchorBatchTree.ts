@@ -309,6 +309,7 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
     const merkleProofs = inputs.map((x) =>
       MultiAssetVAnchor.getMASPMerkleProof(x, this.depositTree.tree)
     );
+
     const feeMerkleProofs = feeInputs.map((x) =>
       MultiAssetVAnchor.getMASPMerkleProof(x, this.depositTree.tree)
     );

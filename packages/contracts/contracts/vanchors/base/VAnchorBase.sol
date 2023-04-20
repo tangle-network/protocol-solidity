@@ -12,9 +12,11 @@ import "../../interfaces/tokens/IMintableERC20.sol";
 import "../../interfaces/tokens/ITokenWrapper.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "hardhat/console.sol";
 
 /** @dev This contract(pool) allows deposit of an arbitrary amount to it, shielded transfer to another registered user inside the pool
  * and withdrawal from the pool. Project utilizes UTXO model to handle users' funds.
@@ -224,6 +226,20 @@ abstract contract VAnchorBase is LinkableAnchor {
 		} else {
 			// mint tokens when not enough balance exists
 			IMintableERC20(_token).mint(_recipient, _minusExtAmount);
+		}
+	}
+
+	function _processWithdrawERC721(
+		address _token,
+		address _recipient,
+		uint256 publicTokenID
+	) internal virtual {
+		uint balance = IERC721(_token).balanceOf(address(this));
+		if (balance == 1) {
+			// transfer tokens when balance exists
+			IERC721(_token).safeTransferFrom(address(this), _recipient, publicTokenID);
+		} else {
+			// TODO: mint tokens when not enough balance exists
 		}
 	}
 

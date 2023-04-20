@@ -154,8 +154,10 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 	) public payable virtual override {
 		MASPAuxPublicInputs memory aux = abi.decode(_auxPublicInputs, (MASPAuxPublicInputs));
 		address wrappedToken = IRegistry(registry).getWrappedAssetAddress(aux.publicAssetID);
+		uint256 publicTokenID = aux.publicTokenID;
 		_transact(
 			wrappedToken,
+			publicTokenID,
 			_proof,
 			_auxPublicInputs,
 			_externalData,

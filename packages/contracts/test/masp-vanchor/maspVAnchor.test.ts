@@ -418,7 +418,7 @@ describe('MASPVAnchor for 2 max edges', () => {
       unwrappedNftAddr,
       webbNftSalt,
       webbNftName,
-      webbNftSymbol,
+      webbNftSymbol
     );
     // Call executeProposal function
     const registerNftTokenTx = await registryHandler.contract.executeProposal(
@@ -664,7 +664,7 @@ describe('MASPVAnchor for 2 max edges', () => {
         dummyUnwrappedNftAddr,
         dummySalt,
         dummyName,
-        dummySymbol,
+        dummySymbol
       );
       // Call executeProposal function
       const registerNftTokenTx = await registryHandler.contract.executeProposal(
@@ -1134,7 +1134,7 @@ describe('MASPVAnchor for 2 max edges', () => {
     });
   });
 
-  describe('masp smart contract withdraw ERC20', () => {
+  describe('masp smart contract withdraw tests', () => {
     it('e2e should withdraw ERC20 with valid transact proof -> reward tree commitments queued -> funds transferred -> batch insert reward tree commitments', async () => {
       // 4 Masp Keys
       const alice_key = new MaspKey();
@@ -1243,7 +1243,6 @@ describe('MASPVAnchor for 2 max edges', () => {
       // Batch Insert
       await maspProxy.batchDepositERC20s(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
       const queuedUtxos = [alice_utxo, alice_fee_utxo, bob_utxo, carol_utxo];
-      const leaves = queuedUtxos.map((x) => x.getCommitment().toString());
       queuedUtxos.forEach((x) => {
         // Maintain tree state after insertions
         // maspVAnchor.depositTree.tree.insert(x.getCommitment());
@@ -1302,7 +1301,7 @@ describe('MASPVAnchor for 2 max edges', () => {
       const carol_key = new MaspKey();
       const dave_key = new MaspKey();
 
-      const webbNftAssetID = BigNumber.from(1);
+      const webbNftAssetID = BigNumber.from(2);
 
       // 4 Masp Utxos
       const alice_utxo = new MaspUtxo(
@@ -1310,28 +1309,28 @@ describe('MASPVAnchor for 2 max edges', () => {
         alice_key,
         webbNftAssetID,
         BigNumber.from(1),
-        BigNumber.from(100)
+        BigNumber.from(1)
       );
       const bob_utxo = new MaspUtxo(
         BigNumber.from(chainID),
         bob_key,
         webbNftAssetID,
         BigNumber.from(2),
-        BigNumber.from(100)
+        BigNumber.from(1)
       );
       const carol_utxo = new MaspUtxo(
         BigNumber.from(chainID),
         carol_key,
         webbNftAssetID,
         BigNumber.from(3),
-        BigNumber.from(100)
+        BigNumber.from(1)
       );
       const dave_utxo = new MaspUtxo(
         BigNumber.from(chainID),
         dave_key,
         webbNftAssetID,
         BigNumber.from(4),
-        BigNumber.from(100)
+        BigNumber.from(1)
       );
 
       // Queue deposits
@@ -1410,12 +1409,20 @@ describe('MASPVAnchor for 2 max edges', () => {
       // Batch Insert
       await maspProxy.batchDepositERC721s(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
 
+      const queuedUtxos = [alice_utxo, bob_utxo, carol_utxo, dave_utxo];
+      queuedUtxos.forEach((x) => {
+        // Maintain tree state after insertions
+        x.setIndex(
+          BigNumber.from(maspVAnchor.depositTree.tree.indexOf(x.getCommitment().toString()))
+        );
+      });
+
       const webbFeeAssetID = BigNumber.from(1);
       const webbFeeTokenID = BigNumber.from(0);
 
       await maspVAnchor.transact(
         webbNftAssetID,
-        BigNumber.from(0),
+        BigNumber.from(1),
         [alice_utxo],
         [],
         BigNumber.from(0),

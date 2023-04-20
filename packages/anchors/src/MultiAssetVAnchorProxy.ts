@@ -107,6 +107,7 @@ export class MultiAssetVAnchorProxy {
         BigNumber.from(poseidon([x.assetID, x.tokenID, x.amount, x.depositPartialCommitment]))
       )
     );
+
     const batchProofInfo = await masp.depositTree.generateProof(batchSize.toNumber(), leaves);
 
     await this.contract.batchDepositERC721s(
