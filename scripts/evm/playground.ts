@@ -1,18 +1,7 @@
 require('dotenv').config();
 const path = require('path');
-import { BigNumber, ethers } from 'ethers';
-import {
-  toFixedHex,
-  Note,
-  Keypair,
-  CircomUtxo,
-  Utxo,
-  calculateTypedChainId,
-  ChainType,
-} from '@webb-tools/sdk-core';
-import type { JsNote } from '@webb-tools/wasm-utils';
-import { VAnchor, VAnchor__factory } from '@webb-tools/contracts';
-import { hexToU8a, u8aToHex } from '@webb-tools/utils';
+import { ethers } from 'ethers';
+import { VAnchor__factory } from '@webb-tools/contracts';
 
 const providerGanache = new ethers.providers.JsonRpcProvider(`http://localhost:5001`);
 const walletGanache = new ethers.Wallet(process.env.PRIVATE_KEY!, providerGanache);

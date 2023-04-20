@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@webb-tools/sdk-core": "0.1.4-123",
-    "ethers": "5.7.0"
+    "ethers": "6.3.0"
   },
   "publishConfig": {
     "access": "public"
