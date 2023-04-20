@@ -97,13 +97,15 @@ contract RegistryHandler is IExecutor, HandlerHelpers {
 			uint256 assetId = uint256(bytes32(arguments[24:56]));
 			address unwrappedNftAddress = address(bytes20(arguments[56:76]));
 			bytes32 salt = bytes32(arguments[76:108]);
-			bytes memory uri = bytes(arguments[108:]);
+			bytes memory name = bytes(arguments[108:140]);
+			bytes memory symbol = bytes(arguments[140:172]);
 			registry.registerNftToken(
 				nonce,
 				tokenHandler,
 				assetId,
 				unwrappedNftAddress,
-				string(uri),
+				string(name),
+				string(symbol),
 				salt
 			);
 		} else {

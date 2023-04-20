@@ -107,7 +107,6 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
         @param _tokenHandler The address of the token handler contract
         @param _assetIdentifier The identifier of the asset for the MASP
 		@param _unwrappedNftAddress Address of the underlying NFT collection
-        @param _uri The uri for the wrapped NFT
         @param _salt Salt used for matching addresses across chain using CREATE2
      */
 	function registerNftToken(
@@ -115,7 +114,8 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
 		address _tokenHandler,
 		uint256 _assetIdentifier,
 		address _unwrappedNftAddress,
-		string memory _uri,
+		string memory _name,
+		string memory _symbol,
 		bytes32 _salt
 	) external override onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
 		require(_assetIdentifier != 0, "Registry: Asset identifier cannot be 0");
@@ -126,7 +126,8 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker {
 		address token = IMultiTokenManager(nonFungibleTokenManager).registerNftToken(
 			_tokenHandler,
 			_unwrappedNftAddress,
-			_uri,
+			_name,
+			_symbol,
 			_salt
 		);
 		emit TokenRegistered(token, _tokenHandler, _assetIdentifier);

@@ -42,13 +42,16 @@ interface IMultiTokenManager {
 	/**
         @notice Registers a new NFT token and deploys the NftTokenWrapper contract
         @param _handler The address of the token handler contract
-        @param _uri The uri for the wrapped ERC1155
+        @param _unwrappedNftAddress The address of the unwrapped NFT
+         @param _name The name of the ERC721
+         @param _symbol The symbol of the ERC721
         @param _salt Salt used for matching addresses across chain using CREATE2
      */
 	function registerNftToken(
 		address _handler,
 		address _unwrappedNftAddress,
-		string memory _uri,
+		string memory _name,
+		string memory _symbol,
 		bytes32 _salt
 	) external returns (address);
 }

@@ -59,6 +59,7 @@ contract MultiFungibleTokenManager is MultiTokenManagerBase {
 		address,
 		address,
 		string memory,
+		string memory,
 		bytes32
 	) public view override onlyRegistry onlyInitialized returns (address) {
 		revert();
