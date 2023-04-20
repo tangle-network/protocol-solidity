@@ -8,7 +8,7 @@ export class Registry {
   signer: ethers.Signer;
   REGISTER_FUNGIBLE_TOKEN_SIGNATURE =
     'registerToken(uint32,address,uint256,string,string,bytes32,uint256,uint16,bool)';
-  REGISTER_NFT_TOKEN_SIGNATURE = 'registerNftToken(uint32,address,uint256,address,string,bytes32)';
+  REGISTER_NFT_TOKEN_SIGNATURE = 'registerNftToken(uint32,address,uint256,address,string,string,bytes32)';
 
   constructor(contract: RegistryContract, signer: ethers.Signer) {
     this.contract = contract;
@@ -79,7 +79,8 @@ export class Registry {
     tokenHandler: string,
     assetIdentifier: number,
     unwrappedNftAddress: string,
-    wrappedTokenURI: string,
+    name: string,
+    symbol: string,
     salt: string
   ) {
     const tx = await this.contract.registerNftToken(
@@ -87,7 +88,8 @@ export class Registry {
       tokenHandler,
       assetIdentifier,
       unwrappedNftAddress,
-      wrappedTokenURI,
+      name,
+      symbol,
       salt,
       { gasLimit: '0x5B8D80' }
     );
@@ -136,7 +138,8 @@ export class Registry {
     assetIdentifier: number,
     unwrappedNftAddress: string,
     salt: string,
-    uri: string
+    name: string,
+    symbol: string,
   ) {
     const resourceID = await this.createResourceId();
     const nonce = (await this.contract.proposalNonce()).add(1);
@@ -150,7 +153,8 @@ export class Registry {
       toHex(assetIdentifier, 32).slice(2) +
       toHex(unwrappedNftAddress, 20).slice(2) +
       toHex(salt, 32).slice(2) +
-      toHex(uri, 64).slice(2)
+      toHex(name, 32).slice(2) +
+      toHex(symbol, 32).slice(2)
     );
   }
 }

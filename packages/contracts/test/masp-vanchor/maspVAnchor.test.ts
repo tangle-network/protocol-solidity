@@ -410,13 +410,15 @@ describe('MASPVAnchor for 2 max edges', () => {
     const webbNftAssetId = 2;
     const unwrappedNftAddr = await unwrappedERC721_1.contract.address;
     const webbNftSalt = '0x' + Buffer.from(randomBytes(32)).toString('hex');
-    const webbNftUri = '0x' + Buffer.from(randomBytes(64)).toString('hex');
+    const webbNftName = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+    const webbNftSymbol = '0x' + Buffer.from(randomBytes(32)).toString('hex');
     const webbNftProposalData = await registry.getRegisterNftTokenProposalData(
       tokenHandler.contract.address,
       webbNftAssetId,
       unwrappedNftAddr,
       webbNftSalt,
-      webbNftUri
+      webbNftName,
+      webbNftSymbol,
     );
     // Call executeProposal function
     const registerNftTokenTx = await registryHandler.contract.executeProposal(
@@ -654,13 +656,15 @@ describe('MASPVAnchor for 2 max edges', () => {
       const dummyAssetId = 5;
       const dummyUnwrappedNftAddr = '0x' + Buffer.from(randomBytes(20)).toString('hex');
       const dummySalt = '0x' + Buffer.from(randomBytes(32)).toString('hex');
-      const dummyUri = '0x' + Buffer.from(randomBytes(64)).toString('hex');
+      const dummyName = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      const dummySymbol = '0x' + Buffer.from(randomBytes(32)).toString('hex');
       const proposalData = await registry.getRegisterNftTokenProposalData(
         dummyTokenHandler,
         dummyAssetId,
         dummyUnwrappedNftAddr,
         dummySalt,
-        dummyUri
+        dummyName,
+        dummySymbol,
       );
       // Call executeProposal function
       const registerNftTokenTx = await registryHandler.contract.executeProposal(
@@ -884,6 +888,160 @@ describe('MASPVAnchor for 2 max edges', () => {
 
       // Batch Insert
       await maspProxy.batchDepositERC20s(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
+    });
+    it('e2e should batch insert erc20 -> queue reward unspent tree -> transfer funds to masp -> batch insert on reward unspent tree', async () => {
+      // Queue deposit
+      await unwrappedERC20_1.contract.approve(await maspProxy.contract.address, 400);
+      await maspProxy.queueERC20Deposit(
+        {
+          unwrappedToken: unwrappedERC20_1.contract.address,
+          wrappedToken: fungibleWebbToken.contract.address,
+          amount: 100,
+          assetID: 1,
+          tokenID: 0,
+          depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
+          proxiedMASP: maspVAnchor.contract.address,
+        },
+        {
+          from: sender.address,
+        }
+      );
+
+      await maspProxy.queueERC20Deposit(
+        {
+          unwrappedToken: unwrappedERC20_1.contract.address,
+          wrappedToken: fungibleWebbToken.contract.address,
+          amount: 100,
+          assetID: 1,
+          tokenID: 0,
+          depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
+          proxiedMASP: maspVAnchor.contract.address,
+        },
+        {
+          from: sender.address,
+        }
+      );
+
+      await maspProxy.queueERC20Deposit(
+        {
+          unwrappedToken: unwrappedERC20_1.contract.address,
+          wrappedToken: fungibleWebbToken.contract.address,
+          amount: 100,
+          assetID: 1,
+          tokenID: 0,
+          depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
+          proxiedMASP: maspVAnchor.contract.address,
+        },
+        {
+          from: sender.address,
+        }
+      );
+
+      await maspProxy.queueERC20Deposit(
+        {
+          unwrappedToken: unwrappedERC20_1.contract.address,
+          wrappedToken: fungibleWebbToken.contract.address,
+          amount: 100,
+          assetID: 1,
+          tokenID: 0,
+          depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
+          proxiedMASP: maspVAnchor.contract.address,
+        },
+        {
+          from: sender.address,
+        }
+      );
+
+      // Check MASP Proxy Balance of unwrapped ERC20
+      assert.strictEqual(
+        (await unwrappedERC20_1.contract.balanceOf(maspProxy.contract.address)).toString(),
+        '400'
+      );
+
+      // Batch Insert
+      await maspProxy.batchDepositERC20s(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
+
+      // Check Reward Unspent Tree is Queued
+      // Batch insert into reward unspent tree
+    });
+
+    it('e2e should batch insert erc721 -> queue reward unspent tree -> transfer funds to masp -> batch insert on reward unspent tree', async () => {
+      await unwrappedERC721_1.contract.approve(await maspProxy.contract.address, 1);
+      await unwrappedERC721_1.contract.approve(await maspProxy.contract.address, 2);
+      await unwrappedERC721_1.contract.approve(await maspProxy.contract.address, 3);
+      await unwrappedERC721_1.contract.approve(await maspProxy.contract.address, 4);
+
+      // Queue deposits
+      await maspProxy.queueERC721Deposit(
+        {
+          unwrappedToken: unwrappedERC721_1.contract.address,
+          wrappedToken: nftWebbToken.contract.address,
+          amount: 1,
+          assetID: 2,
+          tokenID: 1,
+          depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
+          proxiedMASP: maspVAnchor.contract.address,
+        },
+        {
+          from: sender.address,
+        }
+      );
+
+      await maspProxy.queueERC721Deposit(
+        {
+          unwrappedToken: unwrappedERC721_1.contract.address,
+          wrappedToken: nftWebbToken.contract.address,
+          amount: 1,
+          assetID: 2,
+          tokenID: 2,
+          depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
+          proxiedMASP: maspVAnchor.contract.address,
+        },
+        {
+          from: sender.address,
+        }
+      );
+
+      await maspProxy.queueERC721Deposit(
+        {
+          unwrappedToken: unwrappedERC721_1.contract.address,
+          wrappedToken: nftWebbToken.contract.address,
+          amount: 1,
+          assetID: 2,
+          tokenID: 3,
+          depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
+          proxiedMASP: maspVAnchor.contract.address,
+        },
+        {
+          from: sender.address,
+        }
+      );
+
+      await maspProxy.queueERC721Deposit(
+        {
+          unwrappedToken: unwrappedERC721_1.contract.address,
+          wrappedToken: nftWebbToken.contract.address,
+          amount: 1,
+          assetID: 2,
+          tokenID: 4,
+          depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
+          proxiedMASP: maspVAnchor.contract.address,
+        },
+        {
+          from: sender.address,
+        }
+      );
+      // Check MASP Proxy Balance of unwrapped ERC721
+      assert.strictEqual(
+        (await unwrappedERC721_1.contract.balanceOf(maspProxy.contract.address)).toString(),
+        '4'
+      );
+
+      // Batch Insert
+      await maspProxy.batchDepositERC721s(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
+
+      // Check Reward Unspent Tree is Queued
+      // Batch insert into reward unspent tree
     });
   });
 
