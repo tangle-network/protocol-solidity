@@ -613,7 +613,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     const tokenInstance = await this.getWebbToken();
     const tokenAllowance = await tokenInstance.allowance(userAddress, this.contract.address);
 
-    if (tokenAllowance < depositAmount) {
+    if (tokenAllowance.lt(depositAmount)) {
       return true;
     }
 
@@ -625,7 +625,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     const tokenInstance = ERC20__factory.connect(tokenAddress, this.signer);
     const tokenAllowance = await tokenInstance.allowance(userAddress, this.contract.address);
 
-    if (tokenAllowance < depositAmount) {
+    if (tokenAllowance.lt(depositAmount)) {
       return true;
     }
 

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "./lib/",
+    "outDir": "./dist/",
   },
   "exclude": [],
   "extends": "../../tsconfig.build.json",
