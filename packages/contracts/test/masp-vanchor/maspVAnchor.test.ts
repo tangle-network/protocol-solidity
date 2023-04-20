@@ -32,6 +32,8 @@ import {
   MaspKey,
 } from '@webb-tools/utils';
 
+import { time } from '@nomicfoundation/hardhat-network-helpers';
+
 import {
   MultiAssetVAnchorProxy,
   MultiAssetVAnchorBatchTree,
@@ -1705,7 +1707,8 @@ describe('MASPVAnchor for 2 max edges', () => {
       const blockNumBefore = await ethers.provider.getBlockNumber();
       const blockBefore = await ethers.provider.getBlock(blockNumBefore);
       const t = blockBefore.timestamp;
-      const tPrime = t + 100000;
+      await time.setNextBlockTimestamp(t + 5000);
+      const tPrime = t + 10000;
 
       const swapMessageHash = poseidon([
         aliceChangeRecord.getCommitment(),

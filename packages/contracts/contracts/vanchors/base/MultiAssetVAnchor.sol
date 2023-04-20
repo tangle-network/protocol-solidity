@@ -17,6 +17,7 @@ import "../../interfaces/IMASPProxy.sol";
 import "../../libs/SwapEncodeInputs.sol";
 import "../../interfaces/verifiers/ISwapVerifier.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "hardhat/console.sol";
 
 /**
 	@title Multi Asset Variable Anchor contract
@@ -44,7 +45,7 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 
 	address public registry;
 	address proxy;
-	uint256 allowableSwapTimestampEpsilon = 1 minutes;
+	uint256 allowableSwapTimestampEpsilon = 60_000;
 	address swapVerifier;
 
 	/**
@@ -258,11 +259,11 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 			)
 		);
 		// Check block timestamp versus timestamps in swap
-		// require(
-		// 	(block.timestamp - allowableSwapTimestampEpsilon <= _publicInputs.currentTimestamp) &&
-		// 		(_publicInputs.currentTimestamp <= block.timestamp + allowableSwapTimestampEpsilon),
-		// 	"Current timestamp not valid"
-		// );
+		require(
+			(block.timestamp - allowableSwapTimestampEpsilon <= _publicInputs.currentTimestamp) &&
+				(_publicInputs.currentTimestamp <= block.timestamp + allowableSwapTimestampEpsilon),
+			"Current timestamp not valid"
+		);
 		// Add new Records from swap (receive and change records) to Record Merkle tree.
 		// Insert Alice's Change and Receive Records
 		_insertTwo(_publicInputs.aliceChangeRecord, _publicInputs.aliceReceiveRecord);
