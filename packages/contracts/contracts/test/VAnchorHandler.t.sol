@@ -74,10 +74,10 @@ contract VAnchorHandlerTest is Deployer {
 			this.executeAnchorUpdateProposal(srcResourceId, merkleRoot, 1);
 		}
 
-		bytes6 OTHER_CHAIN_ID = this.buildTypedChainId(CHAIN_TYPE, CHAIN_ID + maxEdges + 1);
-		bytes32 srcResourceId = this.buildResourceId(srcVAnchorBeingLinked, OTHER_CHAIN_ID);
+		bytes6 NEW_OTHER_CHAIN_ID = this.buildTypedChainId(CHAIN_TYPE, CHAIN_ID + maxEdges + 1);
+		bytes32 newSrcResourceId = this.buildResourceId(srcVAnchorBeingLinked, NEW_OTHER_CHAIN_ID);
 		vm.expectRevert(bytes("LinkableAnchor: This Anchor is at capacity"));
-		this.executeAnchorUpdateProposal(srcResourceId, merkleRoot, 1);
+		this.executeAnchorUpdateProposal(newSrcResourceId, merkleRoot, 1);
 	}
 
 	function test_anchorUpdateShouldFailIfOverwritingEdgeIncorrectly(

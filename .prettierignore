@@ -13,7 +13,10 @@ build/
 packages/contracts/typechain
 packages/*/node_modules
 packages/*/lib
+packages/*/compiled
 packages/*/tsconfig.tsbuildinfo
+
+solidity-fixtures
 
 # Hardhat files
 cache

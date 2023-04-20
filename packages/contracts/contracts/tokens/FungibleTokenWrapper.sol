@@ -29,8 +29,8 @@ contract FungibleTokenWrapper is
 	address[] public tokens;
 	address[] public historicalTokens;
 
-	mapping(address => bool) valid;
-	mapping(address => bool) historicallyValid;
+	mapping(address => bool) public valid;
+	mapping(address => bool) public historicallyValid;
 
 	bool public isNativeAllowed;
 	uint256 public wrappingLimit;
@@ -149,7 +149,7 @@ contract FungibleTokenWrapper is
 		uint16 _feePercentage,
 		uint32 _nonce
 	) external override onlyHandler onlyIncrementingByOne(_nonce) {
-		require(_feePercentage <= 10_000, "FungibleTokenWrapper: Invalid fee percentage");
+		require(_feePercentage < 10_000, "FungibleTokenWrapper: Invalid fee percentage");
 		feePercentage = _feePercentage;
 	}
 

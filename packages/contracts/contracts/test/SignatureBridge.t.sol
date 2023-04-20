@@ -164,7 +164,7 @@ contract SignatureBridgeTest is ProposalHelpers, PRBTest, StdCheats {
 		);
 	}
 
-	function test_setResourceShouldFailFromResourceIdContext(address resource) public {
+	function test_setResourceShouldFailFromInvalidResourceIdContext(address resource) public {
 		bytes6 typedChainId = this.buildTypedChainId(CHAIN_TYPE, CHAIN_ID);
 		bytes32 invalidResourceId = this.buildResourceId(address(0x0), typedChainId);
 		bytes32 newResourceId = this.buildResourceId(resource, typedChainId);
@@ -196,7 +196,6 @@ contract SignatureBridgeTest is ProposalHelpers, PRBTest, StdCheats {
 			address(this),
 			this.buildTypedChainId(CHAIN_TYPE, CHAIN_ID)
 		);
-		console2.logBytes32(resourceId);
 		assertEq(bridge.isCorrectExecutionChain(resourceId), true);
 	}
 
@@ -213,7 +212,6 @@ contract SignatureBridgeTest is ProposalHelpers, PRBTest, StdCheats {
 			address(address(bridge)),
 			this.buildTypedChainId(CHAIN_TYPE, CHAIN_ID)
 		);
-		console2.logBytes32(resourceId);
 		assertEq(bridge.isCorrectExecutionContext(resourceId), true);
 	}
 
