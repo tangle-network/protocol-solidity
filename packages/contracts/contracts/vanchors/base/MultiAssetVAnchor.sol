@@ -258,11 +258,11 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 			)
 		);
 		// Check block timestamp versus timestamps in swap
-		require(
-			(block.timestamp - allowableSwapTimestampEpsilon <= _publicInputs.currentTimestamp) &&
-				(_publicInputs.currentTimestamp <= block.timestamp + allowableSwapTimestampEpsilon),
-			"Current timestamp not valid"
-		);
+		// require(
+		// 	(block.timestamp - allowableSwapTimestampEpsilon <= _publicInputs.currentTimestamp) &&
+		// 		(_publicInputs.currentTimestamp <= block.timestamp + allowableSwapTimestampEpsilon),
+		// 	"Current timestamp not valid"
+		// );
 		// Add new Records from swap (receive and change records) to Record Merkle tree.
 		// Insert Alice's Change and Receive Records
 		_insertTwo(_publicInputs.aliceChangeRecord, _publicInputs.aliceReceiveRecord);

@@ -58,10 +58,9 @@ import { toFixedHex } from '@webb-tools/sdk-core';
 
 const BN = require('bn.js');
 const path = require('path');
-const { poseidon } = require('circomlibjs');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
-const { babyjub } = require('circomlibjs');
+const { babyjub, poseidon, eddsa } = require('circomlibjs');
 
 describe('MASPVAnchor for 2 max edges', () => {
   let maspVAnchor: MultiAssetVAnchorBatchTree;
@@ -126,17 +125,17 @@ describe('MASPVAnchor for 2 max edges', () => {
 
   const swap_2_wasm_path = path.resolve(
     __dirname,
-    '../../solidity-fixtures/solidity-fixtures/swap_2/30/swap_30_2.wasm'
+    '../../solidity-fixtures/solidity-fixtures/swap_2/20/swap_20_2.wasm'
   );
 
   const swap_2_witness_calc_path = path.resolve(
     __dirname,
-    '../../solidity-fixtures/solidity-fixtures/swap_2/30/witness_calculator.cjs'
+    '../../solidity-fixtures/solidity-fixtures/swap_2/20/witness_calculator.cjs'
   );
 
   const swap_2_zkey_path = path.resolve(
     __dirname,
-    '../../solidity-fixtures/solidity-fixtures/swap_2/30/circuit_final.zkey'
+    '../../solidity-fixtures/solidity-fixtures/swap_2/20/circuit_final.zkey'
   );
 
   const batchTree_4_wasm_path = path.resolve(
@@ -1294,7 +1293,7 @@ describe('MASPVAnchor for 2 max edges', () => {
       );
     });
 
-    it.only('e2e should withdraw ERC721 with valid transact proof -> reward tree commitments queued -> funds transferred -> batch insert reward tree commitments', async () => {
+    it('e2e should withdraw ERC721 with valid transact proof -> reward tree commitments queued -> funds transferred -> batch insert reward tree commitments', async () => {
       // 4 Masp Keys
       const alice_key = new MaspKey();
       const bob_key = new MaspKey();
@@ -1434,6 +1433,305 @@ describe('MASPVAnchor for 2 max edges', () => {
         BigNumber.from(0),
         sender.address,
         sender.address,
+        sender
+      );
+    });
+  });
+
+  describe('swap tests', () => {
+    it.only('should swap an erc721 for erc20', async () => {
+      // 4 Masp Keys
+      const alice_key = new MaspKey();
+      const bob_key = new MaspKey();
+      const carol_key = new MaspKey();
+      const dave_key = new MaspKey();
+      // Queue ERC20 deposits
+      const webbFungibleAssetID = BigNumber.from(1);
+      const webbFungibleTokenID = BigNumber.from(0);
+      // 4 Masp Utxos
+      const alice_fungible_utxo = new MaspUtxo(
+        BigNumber.from(chainID),
+        alice_key,
+        webbFungibleAssetID,
+        webbFungibleTokenID,
+        BigNumber.from(100)
+      );
+      const bob_fungible_utxo = new MaspUtxo(
+        BigNumber.from(chainID),
+        bob_key,
+        webbFungibleAssetID,
+        webbFungibleTokenID,
+        BigNumber.from(100)
+      );
+      const carol_fungible_utxo = new MaspUtxo(
+        BigNumber.from(chainID),
+        carol_key,
+        webbFungibleAssetID,
+        webbFungibleTokenID,
+        BigNumber.from(100)
+      );
+      const dave_fungible_utxo = new MaspUtxo(
+        BigNumber.from(chainID),
+        dave_key,
+        webbFungibleAssetID,
+        webbFungibleTokenID,
+        BigNumber.from(100)
+      );
+
+      // Queue deposit
+      await unwrappedERC20_1.contract.approve(await maspProxy.contract.address, 400);
+      await maspProxy.queueERC20Deposit(
+        {
+          unwrappedToken: unwrappedERC20_1.contract.address,
+          wrappedToken: fungibleWebbToken.contract.address,
+          amount: 100,
+          assetID: 1,
+          tokenID: 0,
+          depositPartialCommitment: toFixedHex(alice_fungible_utxo.getPartialCommitment()),
+          proxiedMASP: maspVAnchor.contract.address,
+        },
+        {
+          from: sender.address,
+        }
+      );
+      await maspProxy.queueERC20Deposit(
+        {
+          unwrappedToken: unwrappedERC20_1.contract.address,
+          wrappedToken: fungibleWebbToken.contract.address,
+          amount: 100,
+          assetID: 1,
+          tokenID: 0,
+          depositPartialCommitment: toFixedHex(bob_fungible_utxo.getPartialCommitment()),
+          proxiedMASP: maspVAnchor.contract.address,
+        },
+        {
+          from: sender.address,
+        }
+      );
+      await maspProxy.queueERC20Deposit(
+        {
+          unwrappedToken: unwrappedERC20_1.contract.address,
+          wrappedToken: fungibleWebbToken.contract.address,
+          amount: 100,
+          assetID: 1,
+          tokenID: 0,
+          depositPartialCommitment: toFixedHex(carol_fungible_utxo.getPartialCommitment()),
+          proxiedMASP: maspVAnchor.contract.address,
+        },
+        {
+          from: sender.address,
+        }
+      );
+      await maspProxy.queueERC20Deposit(
+        {
+          unwrappedToken: unwrappedERC20_1.contract.address,
+          wrappedToken: fungibleWebbToken.contract.address,
+          amount: 100,
+          assetID: 1,
+          tokenID: 0,
+          depositPartialCommitment: toFixedHex(dave_fungible_utxo.getPartialCommitment()),
+          proxiedMASP: maspVAnchor.contract.address,
+        },
+        {
+          from: sender.address,
+        }
+      );
+
+      // Queue ERC721 deposits
+      const webbNftAssetID = BigNumber.from(2);
+
+      // 4 Masp Utxos
+      const alice_nft_utxo = new MaspUtxo(
+        BigNumber.from(chainID),
+        alice_key,
+        webbNftAssetID,
+        BigNumber.from(1),
+        BigNumber.from(1)
+      );
+      const bob_nft_utxo = new MaspUtxo(
+        BigNumber.from(chainID),
+        bob_key,
+        webbNftAssetID,
+        BigNumber.from(2),
+        BigNumber.from(1)
+      );
+      const carol_nft_utxo = new MaspUtxo(
+        BigNumber.from(chainID),
+        carol_key,
+        webbNftAssetID,
+        BigNumber.from(3),
+        BigNumber.from(1)
+      );
+      const dave_nft_utxo = new MaspUtxo(
+        BigNumber.from(chainID),
+        dave_key,
+        webbNftAssetID,
+        BigNumber.from(4),
+        BigNumber.from(1)
+      );
+
+      // Queue deposits
+      await unwrappedERC721_1.contract.approve(await maspProxy.contract.address, 1);
+      await unwrappedERC721_1.contract.approve(await maspProxy.contract.address, 2);
+      await unwrappedERC721_1.contract.approve(await maspProxy.contract.address, 3);
+      await unwrappedERC721_1.contract.approve(await maspProxy.contract.address, 4);
+
+      // Queue deposits
+      await maspProxy.queueERC721Deposit(
+        {
+          unwrappedToken: unwrappedERC721_1.contract.address,
+          wrappedToken: nftWebbToken.contract.address,
+          amount: 1,
+          assetID: 2,
+          tokenID: 1,
+          depositPartialCommitment: toFixedHex(alice_nft_utxo.getPartialCommitment()),
+          proxiedMASP: maspVAnchor.contract.address,
+        },
+        {
+          from: sender.address,
+        }
+      );
+
+      await maspProxy.queueERC721Deposit(
+        {
+          unwrappedToken: unwrappedERC721_1.contract.address,
+          wrappedToken: nftWebbToken.contract.address,
+          amount: 1,
+          assetID: 2,
+          tokenID: 2,
+          depositPartialCommitment: toFixedHex(bob_nft_utxo.getPartialCommitment()),
+          proxiedMASP: maspVAnchor.contract.address,
+        },
+        {
+          from: sender.address,
+        }
+      );
+
+      await maspProxy.queueERC721Deposit(
+        {
+          unwrappedToken: unwrappedERC721_1.contract.address,
+          wrappedToken: nftWebbToken.contract.address,
+          amount: 1,
+          assetID: 2,
+          tokenID: 3,
+          depositPartialCommitment: toFixedHex(carol_nft_utxo.getPartialCommitment()),
+          proxiedMASP: maspVAnchor.contract.address,
+        },
+        {
+          from: sender.address,
+        }
+      );
+
+      await maspProxy.queueERC721Deposit(
+        {
+          unwrappedToken: unwrappedERC721_1.contract.address,
+          wrappedToken: nftWebbToken.contract.address,
+          amount: 1,
+          assetID: 2,
+          tokenID: 4,
+          depositPartialCommitment: toFixedHex(dave_nft_utxo.getPartialCommitment()),
+          proxiedMASP: maspVAnchor.contract.address,
+        },
+        {
+          from: sender.address,
+        }
+      );
+
+      // Check MASP Proxy Balance of unwrapped ERC721
+      assert.strictEqual(
+        (await unwrappedERC721_1.contract.balanceOf(maspProxy.contract.address)).toString(),
+        '4'
+      );
+
+      // Batch Insert ERC20s
+      await maspProxy.batchDepositERC20s(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
+
+      // Batch Insert ERC721s
+      await maspProxy.batchDepositERC721s(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
+
+      const queuedUtxos = [
+        alice_fungible_utxo,
+        bob_fungible_utxo,
+        carol_fungible_utxo,
+        dave_fungible_utxo,
+        alice_nft_utxo,
+        bob_nft_utxo,
+        carol_nft_utxo,
+        dave_nft_utxo,
+      ];
+      queuedUtxos.forEach((x) => {
+        // Maintain tree state after insertions
+        x.setIndex(
+          BigNumber.from(maspVAnchor.depositTree.tree.indexOf(x.getCommitment().toString()))
+        );
+      });
+
+      // Alice will swap 1 NFT for 50 of Bob's ERC20s.
+      // Form Change and Receive Records
+      const aliceSpendRecord = alice_nft_utxo;
+      const bobSpendRecord = bob_fungible_utxo;
+
+      const aliceReceiveRecord = new MaspUtxo(
+        BigNumber.from(chainID),
+        alice_key,
+        bob_fungible_utxo.assetID,
+        bob_fungible_utxo.tokenID,
+        BigNumber.from(50)
+      );
+      const bobReceiveRecord = new MaspUtxo(
+        BigNumber.from(chainID),
+        bob_key,
+        alice_nft_utxo.assetID,
+        alice_nft_utxo.tokenID,
+        BigNumber.from(1)
+      );
+
+      const aliceChangeRecord = new MaspUtxo(
+        BigNumber.from(chainID),
+        alice_key,
+        alice_nft_utxo.assetID,
+        alice_nft_utxo.tokenID,
+        BigNumber.from(0)
+      );
+      const bobChangeRecord = new MaspUtxo(
+        BigNumber.from(chainID),
+        bob_key,
+        bob_fungible_utxo.assetID,
+        bob_fungible_utxo.tokenID,
+        BigNumber.from(50)
+      );
+
+      // getting timestamp
+      const blockNumBefore = await ethers.provider.getBlockNumber();
+      const blockBefore = await ethers.provider.getBlock(blockNumBefore);
+      const t = blockBefore.timestamp;
+      const tPrime = t + 100000;
+
+      const swapMessageHash = poseidon([
+        aliceChangeRecord.getCommitment(),
+        aliceReceiveRecord.getCommitment(),
+        bobChangeRecord.getCommitment(),
+        bobReceiveRecord.getCommitment(),
+        t,
+        tPrime,
+      ]);
+
+      const aliceSig = eddsa.signPoseidon(alice_key.sk, swapMessageHash);
+      const bobSig = eddsa.signPoseidon(bob_key.sk, swapMessageHash);
+
+      // Execute swap
+      await maspVAnchor.swap(
+        aliceSpendRecord,
+        aliceChangeRecord,
+        aliceReceiveRecord,
+        bobSpendRecord,
+        bobChangeRecord,
+        bobReceiveRecord,
+        aliceSig,
+        bobSig,
+        BigNumber.from(t),
+        BigNumber.from(tPrime),
+        BigNumber.from(t + 1000),
         sender
       );
     });

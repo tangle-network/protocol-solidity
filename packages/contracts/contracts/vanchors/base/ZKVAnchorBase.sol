@@ -8,7 +8,6 @@ pragma solidity ^0.8.5;
 import "./VAnchorBase.sol";
 import "../../interfaces/verifiers/ISetVerifier.sol";
 import "../../verifiers/TxProofVerifier.sol";
-import "hardhat/console.sol";
 
 /**
 	@title ZK VAnchor Base
@@ -93,7 +92,6 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 		PublicInputs memory _publicInputs,
 		Encryptions memory _encryptions
 	) internal virtual {
-		console.log("reached _transact");
 		_executeValidationAndVerification(
 			_proof,
 			_auxPublicInputs,
@@ -124,7 +122,6 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 		}
 
 		if (_externalData.extAmount < 0) {
-			console.log("reached _transact extAmount < 0");
 			require(_externalData.recipient != address(0), "Can't withdraw to zero address");
 			// Prevents ddos attack to Bridge
 			require(
@@ -132,7 +129,6 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 				"amount is less than minimalWithdrawalAmount"
 			);
 			if (_externalData.token == _wrappedToken) {
-				console.log("reached _transact extAmount < 0 _externalData.token == _wrappedToken");
 				if (publicTokenID == 0) {
 					_processWithdraw(
 						_wrappedToken,
@@ -143,7 +139,6 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 					_processWithdrawERC721(_wrappedToken, _externalData.recipient, publicTokenID);
 				}
 			} else {
-				console.log("reached _transact extAmount < 0 _externalData.token != _wrappedToken");
 				_withdrawAndUnwrap(
 					_wrappedToken,
 					_externalData.token,
