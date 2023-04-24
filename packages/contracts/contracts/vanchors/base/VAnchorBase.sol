@@ -206,6 +206,13 @@ abstract contract VAnchorBase is LinkableAnchor {
 		);
 	}
 
+	function _withdrawAndUnwrapERC721(
+		address _fromTokenAddress,
+		address _toTokenAddress,
+		address _recipient,
+		uint256 publicTokenID
+	) public payable virtual {}
+
 	/**
 		@notice Process the withdrawal by sending/minting the wrapped tokens to/for the recipient
 		@param _token The token to withdraw
@@ -232,15 +239,7 @@ abstract contract VAnchorBase is LinkableAnchor {
 		address _token,
 		address _recipient,
 		uint256 publicTokenID
-	) internal virtual {
-		uint balance = IERC721(_token).balanceOf(address(this));
-		if (balance == 1) {
-			// transfer tokens when balance exists
-			IERC721(_token).safeTransferFrom(address(this), _recipient, publicTokenID);
-		} else {
-			// TODO: mint tokens when not enough balance exists
-		}
-	}
+	) internal virtual {}
 
 	/**
 		@notice Process and pay the relayer their fee. Mint the fee if contract has no balance.

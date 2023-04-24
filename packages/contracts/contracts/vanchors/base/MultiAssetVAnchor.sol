@@ -327,6 +327,32 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 		);
 	}
 
+	function _processWithdrawERC721(
+		address _token,
+		address _recipient,
+		uint256 publicTokenID
+	) internal virtual override {
+		uint balance = IERC721(_token).balanceOf(address(this));
+		if (balance == 1) {
+			// transfer tokens when balance exists
+			IERC721(_token).safeTransferFrom(address(this), _recipient, publicTokenID);
+		} else {
+			// mint tokens when not enough balance exists
+			INftTokenWrapper(_token)._mint(_recipient, publicTokenID);
+		}
+	}
+
+	function _withdrawAndUnwrapERC721(
+		address _fromTokenAddress,
+		address _toTokenAddress,
+		address _recipient,
+		uint256 publicTokenID
+	) public payable override {
+		_processWithdrawERC721(_fromTokenAddress, payable(address(this)), publicTokenID);
+
+		INftTokenWrapper(_fromTokenAddress).unwrap721(publicTokenID, _toTokenAddress);
+	}
+
 	/**
 	 * @dev Whenever an {IERC721} `tokenId` token is transferred to this contract via {IERC721-safeTransferFrom}
 	 * by `operator` from `from`, this function is called.

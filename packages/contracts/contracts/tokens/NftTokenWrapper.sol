@@ -39,11 +39,12 @@ contract NftTokenWrapper is ERC721, IERC721Receiver, Initialized, ProposalNonceT
 
 	function unwrap721(uint256 _tokenId, address _tokenContract) external {
 		// Ensure msg.sender is the owner of the wrapped token
+		require(unwrappedNftAddress == _tokenContract, "Wrong unwrapped NFT address");
 		require(_ownerOf(_tokenId) == msg.sender, "NftTokenWrapper: Not the owner of the token");
 		// Ensure this contract is the owner of the token
 		require(
 			IERC721(_tokenContract).ownerOf(_tokenId) == address(this),
-			"NftTokenWrapper: Not the owner of the wrapped token"
+			"NftTokenWrapper: Not the owner of the unwrapped token"
 		);
 		IERC721(_tokenContract).safeTransferFrom(address(this), msg.sender, _tokenId);
 		_burn(_tokenId);

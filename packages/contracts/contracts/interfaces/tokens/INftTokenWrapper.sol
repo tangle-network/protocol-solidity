@@ -13,4 +13,6 @@ interface INftTokenWrapper {
 	function wrap721(uint256 _tokenId) external;
 
 	function unwrap721(uint256 _tokenId, address _tokenContract) external;
+
+	function _mint(address to, uint256 tokenId) external;
 }
