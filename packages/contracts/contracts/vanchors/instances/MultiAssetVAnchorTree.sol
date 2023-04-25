@@ -74,4 +74,23 @@ contract MultiAssetVAnchorTree is MultiAssetVAnchor, MerkleTree {
 			emit NewNullifier(_publicInputs.inputNullifiers[i]);
 		}
 	}
+
+	function _executeFeeInsertions(
+		uint256[2] memory feeOutputCommitments,
+		Encryptions memory _feeEncryptions
+	) internal override {
+		insertTwo(feeOutputCommitments[0], feeOutputCommitments[1]);
+		emit NewCommitment(
+			feeOutputCommitments[0],
+			0,
+			this.getNextIndex() - 2,
+			_feeEncryptions.encryptedOutput1
+		);
+		emit NewCommitment(
+			feeOutputCommitments[1],
+			0,
+			this.getNextIndex() - 1,
+			_feeEncryptions.encryptedOutput2
+		);
+	}
 }

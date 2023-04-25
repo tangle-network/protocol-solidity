@@ -145,6 +145,11 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 		emit NewCommitment(commitment, 0, this.getNextIndex() - 2, encryptedCommitment);
 	}
 
+	function _executeFeeInsertions(
+		uint256[2] memory feeOutputCommitments,
+		Encryptions memory _feeEncryptions
+	) internal virtual;
+
 	/// @inheritdoc ZKVAnchorBase
 	function transact(
 		bytes memory _proof,
@@ -176,6 +181,29 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 				)
 			);
 		}
+		for (uint256 i = 0; i < _publicInputs.outputCommitments.length; i++) {
+			IMASPProxy(proxy).queueRewardUnspentTreeCommitment(
+				address(this), 
+				bytes32(
+					IHasher(this.getHasher()).hashLeftRight(
+						_publicInputs.outputCommitments[i],
+						timestamp
+					)
+				)
+			);
+		}
+		for (uint256 i = 0; i < aux.feeOutputCommitments.length; i++) {
+			IMASPProxy(proxy).queueRewardUnspentTreeCommitment(
+				address(this), 
+				bytes32(
+					IHasher(this.getHasher()).hashLeftRight(
+						aux.feeOutputCommitments[i],
+						timestamp
+					)
+				)
+			);
+		}
+		_executeFeeInsertions(aux.feeOutputCommitments, _encryptions);
 	}
 
 	/// @inheritdoc ZKVAnchorBase

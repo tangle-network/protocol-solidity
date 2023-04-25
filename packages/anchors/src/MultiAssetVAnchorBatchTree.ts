@@ -382,6 +382,18 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
 
     const receipt = await tx.wait();
 
+    outputs.forEach((x) => {
+      this.depositTree.tree.insert(x.getCommitment());
+      let numOfElements = this.tree.number_of_elements();
+      this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
+    });
+
+    feeOutputs.forEach((x) => {
+      this.depositTree.tree.insert(x.getCommitment());
+      let numOfElements = this.tree.number_of_elements();
+      this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
+    });
+
     return receipt;
   }
 

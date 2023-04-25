@@ -140,9 +140,9 @@ export class MultiAssetVAnchorProxy {
     await this.contract.batchInsertRewardUnspentTree(
       masp.contract.address,
       batchProofInfo.proof,
-      batchProofInfo.input.argsHash!,
-      batchProofInfo.input.oldRoot,
-      batchProofInfo.input.newRoot,
+      toFixedHex(BigNumber.from(batchProofInfo.input.argsHash!), 32),
+      toFixedHex(BigNumber.from(batchProofInfo.input.oldRoot), 32),
+      toFixedHex(BigNumber.from(batchProofInfo.input.newRoot), 32),
       batchProofInfo.input.pathIndices,
       batchHeight
     );
@@ -163,9 +163,9 @@ export class MultiAssetVAnchorProxy {
     await this.contract.batchInsertRewardSpentTree(
       masp.contract.address,
       batchProofInfo.proof,
-      batchProofInfo.input.argsHash!,
-      batchProofInfo.input.oldRoot,
-      batchProofInfo.input.newRoot,
+      toFixedHex(BigNumber.from(batchProofInfo.input.argsHash!), 32),
+      toFixedHex(BigNumber.from(batchProofInfo.input.oldRoot), 32),
+      toFixedHex(BigNumber.from(batchProofInfo.input.newRoot), 32),
       batchProofInfo.input.pathIndices,
       batchHeight
     );

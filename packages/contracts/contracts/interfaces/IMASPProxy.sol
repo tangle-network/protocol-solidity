@@ -8,5 +8,7 @@ pragma solidity ^0.8.5;
 interface IMASPProxy {
 	function queueRewardSpentTreeCommitment(bytes32 commitment) external;
 
-	function queueRewardUnspentTreeCommitment(bytes32 commitment) external;
+	function queueRewardUnspentTreeCommitment(address proxiedMASP, bytes32 commitment) external;
+
+	function queueShieldedTranferCommitment(uint256[2] memory commitments) external;
 }

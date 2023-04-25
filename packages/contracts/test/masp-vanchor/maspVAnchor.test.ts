@@ -890,7 +890,12 @@ describe('MASPVAnchor for 2 max edges', () => {
       await maspProxy.batchDepositERC20s(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
 
       // Check Reward Unspent Tree is Queued
+      const queuedRewardUnspentComms = await maspProxy.getQueuedRewardUnspentCommitments(maspVAnchor.contract.address, BigNumber.from(0), BigNumber.from(4));
+
+      assert.strictEqual(queuedRewardUnspentComms.length, 4);
+
       // Batch insert into reward unspent tree
+      await maspProxy.batchInsertRewardUnspentTree(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
     });
 
     it('e2e should batch insert erc721 -> queue reward unspent tree -> transfer funds to masp -> batch insert on reward unspent tree', async () => {
@@ -969,12 +974,17 @@ describe('MASPVAnchor for 2 max edges', () => {
       await maspProxy.batchDepositERC721s(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
 
       // Check Reward Unspent Tree is Queued
+      const queuedRewardUnspentComms = await maspProxy.getQueuedRewardUnspentCommitments(maspVAnchor.contract.address, BigNumber.from(0), BigNumber.from(4));
+
+      assert.strictEqual(queuedRewardUnspentComms.length, 4);
+
       // Batch insert into reward unspent tree
+      await maspProxy.batchInsertRewardUnspentTree(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
     });
   });
 
   describe('masp smart contract internal shielded transfer', () => {
-    it('e2e should internal shielded transfer with valid transact proof -> reward tree commitments queued -> batch insert reward tree commitments', async () => {
+    it.only('e2e should internal shielded transfer with valid transact proof -> reward tree commitments queued -> batch insert reward tree commitments', async () => {
       // 4 Masp Keys
       const alice_key = new MaspKey();
       const bob_key = new MaspKey();
@@ -1001,14 +1011,14 @@ describe('MASPVAnchor for 2 max edges', () => {
       );
       const bob_utxo = new MaspUtxo(
         BigNumber.from(chainID),
-        carol_key,
+        bob_key,
         webbFungibleAssetID,
         webbFungibleTokenID,
         BigNumber.from(100)
       );
       const carol_utxo = new MaspUtxo(
         BigNumber.from(chainID),
-        dave_key,
+        carol_key,
         webbFungibleAssetID,
         webbFungibleTokenID,
         BigNumber.from(100)
@@ -1081,8 +1091,8 @@ describe('MASPVAnchor for 2 max edges', () => {
 
       // Batch Insert
       await maspProxy.batchDepositERC20s(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
+      // TODO: Get rid of this...
       const queuedUtxos = [alice_utxo, alice_fee_utxo, bob_utxo, carol_utxo];
-      const leaves = queuedUtxos.map((x) => x.getCommitment().toString());
       queuedUtxos.forEach((x) => {
         // Maintain tree state after insertions
         // maspVAnchor.depositTree.tree.insert(x.getCommitment());
@@ -1090,6 +1100,11 @@ describe('MASPVAnchor for 2 max edges', () => {
           BigNumber.from(maspVAnchor.depositTree.tree.indexOf(x.getCommitment().toString()))
         );
       });
+
+      // Check Reward Unspent Tree is Queued
+      const queuedRewardUnspentComms = await maspProxy.getQueuedRewardUnspentCommitments(maspVAnchor.contract.address, BigNumber.from(0), BigNumber.from(4));
+
+      assert.strictEqual(queuedRewardUnspentComms.length, 4);
 
       // Do internal shielded transfer
       const alice_utxo_2 = new MaspUtxo(
@@ -1132,6 +1147,58 @@ describe('MASPVAnchor for 2 max edges', () => {
         sender.address,
         sender
       );
+
+      const new_utxos = [alice_utxo_2, bob_utxo_2, fee_output_utxo];
+      new_utxos.forEach((x) => {
+        // Maintain tree state after insertions
+        // maspVAnchor.depositTree.tree.insert(x.getCommitment());
+        console.log(maspVAnchor.depositTree.tree.indexOf(x.getCommitment().toString()));
+        x.setIndex(
+          BigNumber.from(maspVAnchor.depositTree.tree.indexOf(x.getCommitment().toString()))
+        );
+      });
+
+      // Check reward unspent and spent tree is queued
+      const queuedRewardUnspentCommsAfterTransfer = await maspProxy.getQueuedRewardUnspentCommitments(maspVAnchor.contract.address, BigNumber.from(0), BigNumber.from(6));
+
+      assert.strictEqual(queuedRewardUnspentCommsAfterTransfer.length, 6);
+
+      // Batch insert into reward unspent tree
+      await maspProxy.batchInsertRewardUnspentTree(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
+
+      const carol_utxo_2 = new MaspUtxo(
+        BigNumber.from(chainID),
+        carol_key,
+        webbFungibleAssetID,
+        webbFungibleTokenID,
+        BigNumber.from(50)
+      );
+
+      console.log("hi1");
+      console.log(maspVAnchor.depositTree.tree.root().toString());
+      console.log(await maspVAnchor.populateRootsForProof());
+
+      // Do another internal shielded transfer
+      await maspVAnchor.transact(
+        webbFungibleAssetID,
+        webbFungibleTokenID,
+        [bob_utxo_2],
+        [carol_utxo_2],
+        BigNumber.from(0),
+        webbFungibleAssetID,
+        webbFungibleTokenID,
+        [],
+        [],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        BigNumber.from(0),
+        sender.address,
+        sender.address,
+        sender
+      );
+
+      console.log("hi2");
+      // Batch Insert into Reward Spent Tree
+      await maspProxy.batchInsertRewardSpentTree(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
     });
   });
 
@@ -1252,7 +1319,7 @@ describe('MASPVAnchor for 2 max edges', () => {
         );
       });
 
-      // Do internal shielded transfer
+      // Do withdraw.
       const alice_utxo_2 = new MaspUtxo(
         BigNumber.from(chainID),
         alice_key,
@@ -1293,6 +1360,8 @@ describe('MASPVAnchor for 2 max edges', () => {
         sender.address,
         sender
       );
+
+      // TODO: Check token balances
     });
 
     it('e2e should withdraw ERC721 with valid transact proof -> reward tree commitments queued -> funds transferred -> batch insert reward tree commitments', async () => {
@@ -1437,11 +1506,13 @@ describe('MASPVAnchor for 2 max edges', () => {
         sender.address,
         sender
       );
+      
+      // TODO: Check token balances
     });
   });
 
   describe('swap tests', () => {
-    it.only('should swap an erc721 for erc20', async () => {
+    it('should swap an erc721 for erc20', async () => {
       // 4 Masp Keys
       const alice_key = new MaspKey();
       const bob_key = new MaspKey();
@@ -1737,6 +1808,11 @@ describe('MASPVAnchor for 2 max edges', () => {
         BigNumber.from(t + 1000),
         sender
       );
+
+      // TODO: Check reward trees are queued
+      // Try double spending after swap...make sure reverts
+      // Check token balances
+      // Alice can spend her new notes and Bob can spend his new notes
     });
   });
 });
