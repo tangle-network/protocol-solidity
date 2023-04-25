@@ -1,6 +1,5 @@
 const assert = require('assert');
 import { ethers } from 'hardhat';
-import { HARDHAT_ACCOUNTS } from '../../hardhatAccounts.js';
 const TruffleAssert = require('truffle-assertions');
 
 // Typechain generated bindings for contracts
@@ -11,11 +10,14 @@ import { getChainIdType } from '@webb-tools/utils';
 import { Semaphore } from '@webb-tools/semaphore';
 import { LinkedGroup } from '@webb-tools/semaphore-group';
 import { startGanacheServer } from '@webb-tools/evm-test-utils';
-import { PoseidonHasher, IdentityVAnchor, Deployer } from '@webb-tools/anchors';
+import { PoseidonHasher, Deployer } from '@webb-tools/anchors';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 import { IdentityVerifier } from '@webb-tools/vbridge';
-import { JsonRpcProvider } from 'ethers/types/ethers.js';
+import { JsonRpcProvider, id, parseEther } from 'ethers/types/ethers.js';
+
+import { HARDHAT_ACCOUNTS } from '../../hardhatAccounts.js';
+import { IdentityVAnchor } from '../../';
 
 const path = require('path');
 
@@ -54,7 +56,7 @@ describe('Should deploy verifiers to the same address', () => {
     const signers = await ethers.getSigners();
     const wallet = signers[1];
     let hardhatNonce = await wallet.provider.getTransactionCount(wallet.address, 'latest');
-    let ganacheNonce = await ganacheWallet1.provider.getTransactionCount(
+    let ganacheNonce = await ganacheWallet1.provider!.getTransactionCount(
       ganacheWallet1.address,
       'latest'
     );
@@ -62,18 +64,15 @@ describe('Should deploy verifiers to the same address', () => {
     while (ganacheNonce < hardhatNonce) {
       ganacheWallet1.sendTransaction({
         to: ganacheWallet2.address,
-        value: ethers.utils.parseEther('0.0'),
+        value: parseEther('0.0'),
       });
       hardhatNonce = await wallet.provider.getTransactionCount(wallet.address, 'latest');
-      ganacheNonce = await ganacheWallet1.provider.getTransactionCount(
+      ganacheNonce = await ganacheWallet1.provider!.getTransactionCount(
         ganacheWallet1.address,
         'latest'
       );
     }
     assert.strictEqual(ganacheNonce, hardhatNonce);
-    let b1 = await wallet.provider.getBalance(wallet.address);
-    let b2 = await ganacheWallet1.provider.getBalance(ganacheWallet1.address);
-    let b3 = await ganacheWallet2.provider.getBalance(ganacheWallet2.address);
     sender = wallet;
   });
   describe('#deploy IdentityVAnchor', () => {
@@ -90,7 +89,7 @@ describe('Should deploy verifiers to the same address', () => {
     });
     it('should deploy Semaphore contract to the same address using different wallets', async () => {
       const salt = '667';
-      const saltHex = ethers.utils.id(salt);
+      const saltHex = id(salt);
       const semaphoreLevels = 20;
 
       semaphore1 = await Semaphore.create2Semaphore(
@@ -115,20 +114,20 @@ describe('Should deploy verifiers to the same address', () => {
       const salt = '42';
       const semaphoreLevels = 20;
       const maxEdges = 1;
-      const saltHex = ethers.utils.id(salt);
-      const groupId = BigNumber.from(99); // arbitrary
+      const saltHex = id(salt);
+      const groupId = BigInt(99); // arbitrary
       const defaultRoot = BigInt(
         '21663839004416932945382355908790599225266501822907911457504978515578255421292'
       );
       const group = new LinkedGroup(semaphoreLevels, maxEdges, BigInt(defaultRoot));
       const tx1 = await semaphore1.createGroup(
-        groupId.toNumber(),
+        Number(groupId),
         semaphoreLevels,
         sender.address,
         maxEdges
       );
       const tx2 = await semaphore2.createGroup(
-        groupId.toNumber(),
+        Number(groupId),
         semaphoreLevels,
         ganacheWallet2.address,
         maxEdges
@@ -150,8 +149,16 @@ describe('Should deploy verifiers to the same address', () => {
         maxEdges,
         groupId,
         group,
-        undefined,
-        undefined,
+        {
+          wasm: Buffer.from([]),
+          zkey: Uint8Array.from([]),
+          witnessCalculator: {},
+        },
+        {
+          wasm: Buffer.from([]),
+          zkey: Uint8Array.from([]),
+          witnessCalculator: {},
+        },
         sender
       );
       const vanchor2 = await IdentityVAnchor.create2IdentityVAnchor(
@@ -166,8 +173,16 @@ describe('Should deploy verifiers to the same address', () => {
         maxEdges,
         groupId,
         group,
-        undefined,
-        undefined,
+        {
+          wasm: Buffer.from([]),
+          zkey: Uint8Array.from([]),
+          witnessCalculator: {},
+        },
+        {
+          wasm: Buffer.from([]),
+          zkey: Uint8Array.from([]),
+          witnessCalculator: {},
+        },
         ganacheWallet2
       );
       assert.strictEqual(vanchor1.contract.address, vanchor2.contract.address);
