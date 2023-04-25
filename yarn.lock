@@ -4085,6 +4085,14 @@
     lodash "^4.17.15"
     ts-essentials "^7.0.1"
 
+"@typechain/ethers-v6@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@typechain/ethers-v6/-/ethers-v6-0.3.0.tgz#76f5e90f0d4fdd9c43f9aea281061dc4c2fcdbe6"
+  integrity sha512-/dYPGDqwyyb8FG0PEftOEegnB9OEJEfxaln+Z4c4nUfHcX5YEbl5Y/hKueA+oXTQdgJgBOiqksK8F+Bq+0tWIA==
+  dependencies:
+    lodash "^4.17.15"
+    ts-essentials "^7.0.1"
+
 "@types/abstract-leveldown@*":
   version "7.2.1"
   resolved "https://registry.yarnpkg.com/@types/abstract-leveldown/-/abstract-leveldown-7.2.1.tgz#bb16403c17754b0c4d5772d71d03b924a03d4c80"

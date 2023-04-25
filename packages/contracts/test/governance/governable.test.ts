@@ -61,9 +61,7 @@ describe('Governable Contract', () => {
     const key = ec.keyFromPrivate(wallet.privateKey.slice(2), 'hex');
     const pubkey = key.getPublic().encode('hex').slice(2);
     const publicKey = '0x' + pubkey;
-    let nextGovernorAddress = ethers.utils.getAddress(
-      '0x' + ethers.utils.keccak256(publicKey).slice(-40)
-    );
+    let nextGovernorAddress = ethers.utils.getAddress('0x' + keccak256(publicKey).slice(-40));
     let firstRotationKey = nextGovernorAddress;
     await governableInstance.transferOwnership(nextGovernorAddress, 1);
     assert.strictEqual(await governableInstance.governor(), nextGovernorAddress);
@@ -77,7 +75,7 @@ describe('Governable Contract', () => {
       .encode('hex')
       .slice(2);
     let prehashed = nonceString + dummyPubkey;
-    let msg = ethers.utils.arrayify(ethers.utils.keccak256(prehashed));
+    let msg = ethers.utils.arrayify(keccak256(prehashed));
     let signature = key.sign(msg);
     let expandedSig = {
       r: '0x' + signature.r.toString('hex'),
@@ -97,9 +95,7 @@ describe('Governable Contract', () => {
     }
 
     await governableInstance.transferOwnershipWithSignaturePubKey('0x' + dummyPubkey, 2, sig);
-    nextGovernorAddress = ethers.utils.getAddress(
-      '0x' + ethers.utils.keccak256('0x' + dummyPubkey).slice(-40)
-    );
+    nextGovernorAddress = ethers.utils.getAddress('0x' + keccak256('0x' + dummyPubkey).slice(-40));
     assert.strictEqual(await governableInstance.governor(), nextGovernorAddress);
 
     const filter = governableInstance.filters.GovernanceOwnershipTransferred();
@@ -115,9 +111,7 @@ describe('Governable Contract', () => {
     const key = ec.keyFromPrivate(wallet.privateKey.slice(2), 'hex');
     const pubkey = key.getPublic().encode('hex').slice(2);
     const publicKey = '0x' + pubkey;
-    let nextGovernorAddress = ethers.utils.getAddress(
-      '0x' + ethers.utils.keccak256(publicKey).slice(-40)
-    );
+    let nextGovernorAddress = ethers.utils.getAddress('0x' + keccak256(publicKey).slice(-40));
     await governableInstance.transferOwnership(nextGovernorAddress, 1);
     assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '1');
 
@@ -133,7 +127,7 @@ describe('Governable Contract', () => {
       toFixedHex(dummyNumOfProposers, 4).slice(2) +
       toFixedHex(dummyProposerSetUpdateNonce, 4).slice(2);
 
-    let msg = ethers.utils.arrayify(ethers.utils.keccak256(prehashed));
+    let msg = ethers.utils.arrayify(keccak256(prehashed));
     let signature = key.sign(msg);
     let expandedSig = {
       r: '0x' + signature.r.toString('hex'),
@@ -186,9 +180,7 @@ describe('Governable Contract', () => {
     const key = ec.keyFromPrivate(wallet.privateKey.slice(2), 'hex');
     const pubkey = key.getPublic().encode('hex').slice(2);
     const publicKey = '0x' + pubkey;
-    let nextGovernorAddress = ethers.utils.getAddress(
-      '0x' + ethers.utils.keccak256(publicKey).slice(-40)
-    );
+    let nextGovernorAddress = ethers.utils.getAddress('0x' + keccak256(publicKey).slice(-40));
     await governableInstance.transferOwnership(nextGovernorAddress, 1);
     assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '1');
 
@@ -206,15 +198,15 @@ describe('Governable Contract', () => {
     const proposer3Signer = signers[3];
     const proposer3 = signers[3].address;
 
-    const hashProposer0 = ethers.utils.keccak256(proposer0);
-    const hashProposer1 = ethers.utils.keccak256(proposer1);
-    const hashProposer2 = ethers.utils.keccak256(proposer2);
-    const hashProposer3 = ethers.utils.keccak256(proposer3);
+    const hashProposer0 = keccak256(proposer0);
+    const hashProposer1 = keccak256(proposer1);
+    const hashProposer2 = keccak256(proposer2);
+    const hashProposer3 = keccak256(proposer3);
 
-    const hashProposer01 = ethers.utils.keccak256(hashProposer0 + hashProposer1.slice(2));
-    const hashProposer23 = ethers.utils.keccak256(hashProposer2 + hashProposer3.slice(2));
+    const hashProposer01 = keccak256(hashProposer0 + hashProposer1.slice(2));
+    const hashProposer23 = keccak256(hashProposer2 + hashProposer3.slice(2));
 
-    const hashProposer0123 = ethers.utils.keccak256(hashProposer01 + hashProposer23.slice(2));
+    const hashProposer0123 = keccak256(hashProposer01 + hashProposer23.slice(2));
 
     const proposerSetRoot = hashProposer0123;
     const averageSessionLengthInMilliseconds = 50000;
@@ -227,7 +219,7 @@ describe('Governable Contract', () => {
       toFixedHex(numOfProposers, 4).slice(2) +
       toFixedHex(proposerSetUpdateNonce, 4).slice(2);
 
-    let msg = ethers.utils.arrayify(ethers.utils.keccak256(prehashed));
+    let msg = ethers.utils.arrayify(keccak256(prehashed));
     let signature = key.sign(msg);
     let expandedSig = {
       r: '0x' + signature.r.toString('hex'),

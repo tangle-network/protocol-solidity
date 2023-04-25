@@ -7,7 +7,7 @@ import { ethers } from 'hardhat';
 const assert = require('assert');
 const hre = require('hardhat');
 const { BigNumber } = require('ethers');
-const bne = (x, e) => BigNumber.from(x + '0'.repeat(parseInt(e)));
+const bne = (x, e) => BigInt(x + '0'.repeat(parseInt(e)));
 const path = require('path');
 
 import { ChainalysisVAnchor, PoseidonHasher, VAnchor } from '@webb-tools/anchors';
@@ -87,9 +87,9 @@ describe.skip('ChainalysisVAnchor', () => {
       sender
     );
 
-    await anchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
+    await anchor.contract.configureMinimalWithdrawalLimit(BigInt(0), 1);
     await anchor.contract.configureMaximumDepositLimit(
-      BigNumber.from(tokenDenomination).mul(1_000_000),
+      BigInt(tokenDenomination) * BigInt(1_000_000),
       2
     );
 
@@ -106,7 +106,7 @@ describe.skip('ChainalysisVAnchor', () => {
       chainId: chainId.toString(),
       originChainId: chainId.toString(),
       amount: amountString,
-      blinding: hexToU8a(randomBN(31).toHexString()),
+      blinding: hexToU8a(randomBN(31).toString(16)),
       keypair: randomKeypair,
     });
   };

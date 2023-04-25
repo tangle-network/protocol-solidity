@@ -26,7 +26,7 @@ import { groth16 } from 'snarkjs';
 // import { MerkleTree } from "."
 import { IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
 import {
-  UTXOInputs,
+  VAnchorProofInputs,
   ZERO_BYTES32,
   ZkComponents,
   getChainIdType,
@@ -269,7 +269,7 @@ export class VAnchorForest extends WebbBridge {
 
   public async populateRootsForProof(): Promise<BigInt[]> {
     const neighborEdges = await this.contract.getLatestNeighborEdges();
-    const neighborRootInfos = neighborEdges.map((rootData) => {
+    const neighborRootInfos = neighborEdges.map((rootData: any) => {
       return rootData.root;
     });
     let thisRoot = await this.contract.getLastRoot();
@@ -340,20 +340,20 @@ export class VAnchorForest extends WebbBridge {
     proof: any,
     nIns: number = 2,
     nOuts: number = 2,
-    maxEdges: number = 2
+    numAnchors: number = 2
     // ): IVariableAnchorPublicInputs {
   ): Promise<any> {
-    const byte_calldata = await groth16.exportSolidityCallData(proof.proof, proof.publicSignals);
+    const callData = await groth16.exportSolidityCallData(proof.proof, proof.publicSignals);
     // public inputs to the contract
-    proof = await this.encodeSolidityProof(byte_calldata);
-    const publicInputs = JSON.parse('[' + byte_calldata + ']')[3];
+    proof = await this.encodeSolidityProof(callData);
+    const publicInputs = JSON.parse('[' + callData + ']')[3];
 
     const publicAmount = publicInputs[0];
     const extDataHash = publicInputs[1];
     const inputNullifiers = publicInputs.slice(2, 2 + nIns);
     const outputCommitments = publicInputs.slice(2 + nIns, 2 + nIns + nOuts);
     // const _chainID = publicInputs[2 + nIns + nOuts];
-    const roots = publicInputs.slice(3 + nIns + nOuts, 3 + nIns + nOuts + maxEdges);
+    const roots = publicInputs.slice(3 + nIns + nOuts, 3 + nIns + nOuts + numAnchors);
     const args = {
       proof: `0x${proof}`,
       roots: `0x${roots.map((x: any) => toFixedHex(x).slice(2)).join('')}`,
@@ -408,6 +408,7 @@ export class VAnchorForest extends WebbBridge {
       return false;
     }
   }
+
   public async generateUTXOInputs(
     inputs: Utxo[],
     outputs: Utxo[],
@@ -438,7 +439,7 @@ export class VAnchorForest extends WebbBridge {
       }
       vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x, treeElements, forestElements));
     }
-    const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
+    const vanchorInput: VAnchorProofInputs = await generateVariableWitnessInput(
       vanchorRoots.map((root) => root.toString()),
       chainId,
       inputs,
@@ -546,7 +547,7 @@ export class VAnchorForest extends WebbBridge {
       outputs[0].encrypt(),
       outputs[1].encrypt()
     );
-    const proofInput: UTXOInputs = await this.generateUTXOInputs(
+    const proofInput: VAnchorProofInputs = await this.generateUTXOInputs(
       inputs,
       outputs,
       chainId,

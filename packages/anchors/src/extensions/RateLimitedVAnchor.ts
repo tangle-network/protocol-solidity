@@ -1,5 +1,5 @@
 import { ZkComponents } from '@webb-tools/utils';
-import { BigNumberish, ethers, BigNumber } from 'ethers';
+import { BigNumberish, ethers } from 'ethers';
 import {
   VAnchorEncodeInputs__factory,
   RateLimitedVAnchor__factory,
@@ -46,7 +46,7 @@ export class RateLimitedVAnchor extends VAnchor {
     const createdVAnchor = new VAnchor(
       vanchor,
       signer,
-      BigNumber.from(levels).toNumber(),
+      Number(levels),
       maxEdges,
       smallCircuitZkComponents,
       largeCircuitZkComponents
@@ -79,7 +79,7 @@ export class RateLimitedVAnchor extends VAnchor {
     const createdVAnchor = new RateLimitedVAnchor(
       vAnchor,
       signer,
-      BigNumber.from(levels).toNumber(),
+      Number(levels),
       maxEdges,
       smallCircuitZkComponents,
       largeCircuitZkComponents
@@ -87,18 +87,18 @@ export class RateLimitedVAnchor extends VAnchor {
     createdVAnchor.latestSyncedBlock = vAnchor.deployTransaction.blockNumber!;
     createdVAnchor.token = token;
     const tx = await createdVAnchor.contract.initialize(
-      BigNumber.from('1'),
-      BigNumber.from(2).pow(256).sub(1)
+      BigInt('1'),
+      BigInt(2) ^ (BigInt(256) - BigInt(1))
     );
     await tx.wait();
     return createdVAnchor;
   }
 
-  public async setDailyWithdrawalLimit(limit: BigNumber) {
-    const nonce = await this.contract.getProposalNonce();
+  public async setDailyWithdrawalLimit(limit: BigNumberish) {
+    const nonce: BigNumberish = await this.contract.getProposalNonce();
     const tx = await (this.contract as RateLimitedVAnchorContract).setDailyWithdrawalLimit(
       limit,
-      nonce.add(BigNumber.from('1'))
+      BigInt(nonce) + BigInt('1')
     );
     const result = await tx.wait();
     return result;

@@ -60,10 +60,7 @@ describe('FungibleTokenWrapper', () => {
         ethers.utils.parseEther('1')
       );
 
-      assert.strictEqual(
-        amountToWrap.toString(),
-        ethers.BigNumber.from('1000100010001000100').toString()
-      );
+      assert.strictEqual(amountToWrap.toString(), ethers.BigInt('1000100010001000100').toString());
     });
   });
 });

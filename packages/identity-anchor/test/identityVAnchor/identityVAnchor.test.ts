@@ -21,7 +21,7 @@ import {
   getChainIdType,
   ZkComponents,
   u8aToHex,
-  UTXOInputs,
+  VAnchorProofInputs,
   ZERO_BYTES32,
 } from '@webb-tools/utils';
 import {
@@ -270,8 +270,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
         token.address
       );
 
-      const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
-        vanchorRoots.map((root) => BigInt(root)),
+      const vanchorInput: VAnchorProofInputs = await generateVariableWitnessInput(
+        vanchorRoots.map((root) => root.toString()),
         chainID,
         inputs,
         outputs,
@@ -844,8 +844,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
       const fakeRoots = vanchorRoots;
       fakeRoots[1] = fakeTree.root().toString();
-      const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
-        fakeRoots.map((root) => BigInt(root)),
+      const vanchorInput: VAnchorProofInputs = await generateVariableWitnessInput(
+        fakeRoots.map((root) => root.toString()),
         chainID,
         inputs,
         outputs,
@@ -985,8 +985,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
         token.address
       );
 
-      const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
-        vanchorRoots.map((root) => BigInt(root)),
+      const vanchorInput: VAnchorProofInputs = await generateVariableWitnessInput(
+        vanchorRoots.map((root) => root.toString()),
         chainID,
         inputs,
         outputs,
@@ -1142,8 +1142,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
         token.address
       );
 
-      const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
-        vanchorRoots.map((root) => BigInt(root)),
+      const vanchorInput: VAnchorProofInputs = await generateVariableWitnessInput(
+        vanchorRoots.map((root) => root.toString()),
         chainID,
         inputs,
         outputs,

@@ -7,7 +7,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
 const hre = require('hardhat');
 const { BigNumber } = require('ethers');
-const bne = (x, e) => BigNumber.from(x + '0'.repeat(parseInt(e)));
+const bne = (x, e) => BigInt(x + '0'.repeat(parseInt(e)));
 
 // Convenience wrapper classes for contract classes
 import { expect } from 'chai';

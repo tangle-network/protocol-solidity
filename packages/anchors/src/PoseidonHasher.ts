@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import { ethers, id } from 'ethers';
 import {
   PoseidonHasher as PoseidonHasherContract,
   PoseidonHasher__factory,
@@ -21,7 +21,7 @@ export class PoseidonHasher {
     salt: string,
     signer: ethers.Signer
   ) {
-    const saltHex = ethers.utils.id(salt);
+    const saltHex = id(salt);
     const { contract: poseidonT2Library } = await deployer.deploy(
       PoseidonT2__factory,
       saltHex,

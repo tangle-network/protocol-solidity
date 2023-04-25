@@ -58,7 +58,7 @@ class MintableToken {
   }
 
   public grantMinterRole(address: string) {
-    const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+    const MINTER_ROLE = keccak256(toUtf8Bytes('MINTER_ROLE'));
     return this.contract.grantRole(MINTER_ROLE, address);
   }
 }

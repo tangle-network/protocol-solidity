@@ -242,8 +242,8 @@ export class Create2VBridge {
       // initialize vanchor contract instance
       let tokenDenomination = '1000000000000000000'; // 1 ether
       await vAnchorInstance.contract.initialize(
-        BigNumber.from(0).toString(), //minimum withdrawal limit
-        BigNumber.from(tokenDenomination).mul(1_000_000).toString() // max deposit limit
+        BigInt(0).toString(), //minimum withdrawal limit
+        BigInt(tokenDenomination) * BigInt(1_000_000).toString() // max deposit limit
       );
 
       // grant minting rights to the anchor

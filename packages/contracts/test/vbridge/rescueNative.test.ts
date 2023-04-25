@@ -147,14 +147,8 @@ describe('Rescue Tokens Tests for Native ETH', () => {
     bridgeSide.setAnchorHandler(anchorHandler);
     // Connect resourceID of srcAnchor with AnchorHandler on the SignatureBridge
     await bridgeSide.setAnchorResourceWithSignature(srcAnchor);
-    await bridgeSide.executeMinWithdrawalLimitProposalWithSig(
-      srcAnchor,
-      BigNumber.from(0).toString()
-    );
-    await bridgeSide.executeMaxDepositLimitProposalWithSig(
-      srcAnchor,
-      BigNumber.from(1e8).toString()
-    );
+    await bridgeSide.executeMinWithdrawalLimitProposalWithSig(srcAnchor, BigInt(0).toString());
+    await bridgeSide.executeMaxDepositLimitProposalWithSig(srcAnchor, BigInt(1e8).toString());
 
     // Define inputs/outputs for transact function
     const depositUtxo = await CircomUtxo.generateUtxo({
@@ -197,19 +191,14 @@ describe('Rescue Tokens Tests for Native ETH', () => {
     let to = signers[2].address;
     let balToBeforeRescue = await ethers.provider.getBalance(to);
 
-    await bridgeSide.executeRescueTokensProposalWithSig(
-      treasury,
-      zeroAddress,
-      to,
-      BigNumber.from('500')
-    );
+    await bridgeSide.executeRescueTokensProposalWithSig(treasury, zeroAddress, to, BigInt('500'));
 
     let balTreasuryAfterRescue = await ethers.provider.getBalance(treasury.contract.address);
     let balToAfterRescue = await ethers.provider.getBalance(to);
 
-    assert.strictEqual(balTreasuryBeforeRescue.sub(balTreasuryAfterRescue).toString(), '500');
+    assert.strictEqual(balTreasuryBeforeRescue - BigInt(balTreasuryAfterRescue), 500);
 
-    assert.strictEqual(balToAfterRescue.sub(balToBeforeRescue).toString(), '500');
+    assert.strictEqual(balToAfterRescue - BigInt(balToBeforeRescue), 500);
 
     assert.strictEqual((await treasury.contract.proposalNonce()).toString(), '1');
   });
@@ -223,7 +212,7 @@ describe('Rescue Tokens Tests for Native ETH', () => {
       treasury,
       zeroAddress,
       to,
-      BigNumber.from('500000000000000')
+      BigInt('500000000000000')
     );
 
     let balTreasuryAfterRescue = await ethers.provider.getBalance(treasury.contract.address);
@@ -231,16 +220,13 @@ describe('Rescue Tokens Tests for Native ETH', () => {
 
     // balTreasuryAfterRescue = 0
     assert.strictEqual(
-      balTreasuryBeforeRescue.sub(balTreasuryAfterRescue).toString(),
-      balTreasuryBeforeRescue.toString()
+      balTreasuryBeforeRescue - BigInt(balTreasuryAfterRescue),
+      balTreasuryBeforeRescue
     );
 
     // Should be balTreasuryBeforeRescue, since all tokens are transferred to the to address
-    assert.strictEqual(
-      balToAfterRescue.sub(balToBeforeRescue).toString(),
-      balTreasuryBeforeRescue.toString()
-    );
+    assert.strictEqual(balToAfterRescue - BigInt(balToBeforeRescue), balTreasuryBeforeRescue);
 
-    assert.strictEqual((await treasury.contract.proposalNonce()).toString(), '1');
+    assert.strictEqual(await treasury.contract.proposalNonce(), 1);
   });
 });

@@ -2,12 +2,10 @@ import { HardhatUserConfig } from 'hardhat/types';
 import { HARDHAT_ACCOUNTS } from './hardhatAccounts.js';
 import 'hardhat-artifactor';
 import 'hardhat-gas-reporter';
-import 'hardhat-preprocessor';
 import '@nomiclabs/hardhat-waffle';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-truffle5';
 import { subtask } from 'hardhat/config';
-import { removeConsoleLog } from 'hardhat-preprocessor';
 
 import { poseidon_gencontract as poseidonContract } from 'circomlibjs';
 
@@ -18,7 +16,7 @@ const buildPoseidon = async (numInputs: number) => {
   await overwriteArtifact(`PoseidonT${numInputs + 1}`, poseidonContract.createCode(numInputs));
 };
 
-/// Wverwrite the artifact before generating types
+/// Overwrite the artifact before generating types
 subtask('Overwrite Poseidon bytecode', async (taskArgs, hre, runSuper) => {
   await buildPoseidon(1);
   await buildPoseidon(2);
@@ -44,7 +42,7 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: '0.8.5',
+        version: '0.8.19',
         settings: {
           optimizer: {
             enabled: true,
@@ -61,11 +59,6 @@ const config: HardhatUserConfig = {
     enabled: process.env.REPORT_GAS ? true : false,
     currency: 'USD',
     gasPrice: 21,
-  },
-  preprocess: {
-    eachLine: removeConsoleLog(
-      (hre) => hre.network.name !== 'hardhat' && hre.network.name !== 'localhost'
-    ),
   },
 };
 

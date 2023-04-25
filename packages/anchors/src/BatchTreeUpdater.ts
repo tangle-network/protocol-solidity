@@ -3,11 +3,11 @@ import {
   BatchMerkleTree__factory,
 } from '@webb-tools/contracts';
 import { MerkleTree, toBuffer, toFixedHex } from '@webb-tools/sdk-core';
-import { BigNumber, ethers } from 'ethers';
+import { ethers } from 'ethers';
 import jsSHA from 'jssha';
 const assert = require('assert');
 
-import { ZkComponents } from '@webb-tools/utils';
+import { FIELD_SIZE, ZkComponents } from '@webb-tools/utils';
 
 const snarkjs = require('snarkjs');
 
@@ -88,13 +88,7 @@ export class BatchTreeUpdater {
     }
 
     const hash = '0x' + sha.getHash('HEX');
-    const result = BigNumber.from(hash)
-      .mod(
-        BigNumber.from(
-          '21888242871839275222246405745257275088548364400416034343698204186575808495617'
-        )
-      )
-      .toString();
+    const result = BigInt(hash) % FIELD_SIZE;
     return result;
   }
 
@@ -149,7 +143,7 @@ export class BatchTreeUpdater {
       leaves,
     };
 
-    input['argsHash'] = BatchTreeUpdater.hashInputs(input);
+    input['argsHash'] = BatchTreeUpdater.hashInputs(input).toString();
 
     const { proof, publicSignals } = await snarkjs.groth16.fullProve(
       input,

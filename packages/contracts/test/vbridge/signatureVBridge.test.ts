@@ -14,8 +14,7 @@ import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '@web
 import { startGanacheServer } from '@webb-tools/evm-test-utils';
 import { CircomUtxo } from '@webb-tools/sdk-core';
 import { DeployerConfig, GovernorConfig } from '@webb-tools/interfaces';
-import { HARDHAT_PK_1 } from '../../../../hardhatAccounts.js';
-import { BigNumber } from 'ethers';
+import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
 import { JsonRpcProvider } from 'ethers/types/ethers.js';
 
 const path = require('path');
@@ -158,7 +157,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
       const destAnchorEdgeAfter = await vAnchor2.contract.edgeList(edgeIndex);
       // make sure the roots / anchors state have changed
       assert.notEqual(sourceAnchorRootAfter, sourceAnchorRootBefore);
-      assert.deepEqual(ethers.BigNumber.from(1), destAnchorEdgeAfter.latestLeafIndex);
+      assert.deepEqual(BigInt(1), destAnchorEdgeAfter.latestLeafIndex);
 
       const transferUtxo = await CircomUtxo.generateUtxo({
         curve: 'Bn254',
@@ -590,13 +589,13 @@ describe('2-sided multichain tests for signature vbridge', () => {
         //Check that deposit went through
         assert.strictEqual(
           (await webbToken2.getBalance(vAnchor2Address)).toString(),
-          BigNumber.from(6e7).toString()
+          BigInt(6e7).toString()
         );
 
         //Balance in VAnchor1 is 1e7
         assert.strictEqual(
           (await webbToken1.getBalance(vAnchor1Address)).toString(),
-          BigNumber.from(1e7).toString()
+          BigInt(1e7).toString()
         );
 
         //check latest leaf index is incremented
@@ -631,7 +630,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         );
         assert.strictEqual(
           (await webbToken1.getBalance(vAnchor1Address)).toString(),
-          BigNumber.from(1e7).toString()
+          BigInt(1e7).toString()
         );
       });
     });
@@ -760,13 +759,13 @@ describe('2-sided multichain tests for signature vbridge', () => {
         const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
 
         const vAnchor1Balance = await webbToken1.getBalance(vAnchor1Address);
-        assert.strictEqual(vAnchor1Balance.toString(), BigNumber.from(1e7).toString());
+        assert.strictEqual(vAnchor1Balance.toString(), BigInt(1e7).toString());
 
         const webbTokenAddress2 = vBridge.getWebbTokenAddress(chainID2);
         const webbToken2 = await MintableToken.tokenFromAddress(webbTokenAddress2!, ganacheWallet2);
 
         const vAnchor2Balance = await webbToken2.getBalance(vAnchor2Address);
-        assert.strictEqual(vAnchor2Balance.toString(), BigNumber.from(1e7).toString());
+        assert.strictEqual(vAnchor2Balance.toString(), BigInt(1e7).toString());
       });
 
       it('should transact and wrap with native', async () => {
@@ -833,7 +832,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
 
         assert.strictEqual(
           (await webbToken2.getBalance(vAnchor2Address)).toString(),
-          BigNumber.from(6e7).toString()
+          BigInt(6e7).toString()
         );
 
         // Withdraw UTXO
@@ -864,18 +863,18 @@ describe('2-sided multichain tests for signature vbridge', () => {
         const balSigners2Unwrapped = await existingToken1.contract.balanceOf(
           await signers[2].getAddress()
         );
-        assert.strictEqual(balSigners2Unwrapped.toString(), BigNumber.from(4e7).toString());
+        assert.strictEqual(balSigners2Unwrapped.toString(), BigInt(4e7).toString());
         //Unwrapped balance of vanchor1tokenaddr should be
         const balWrapper1UnwrappedAfter = await existingToken1.contract.balanceOf(
           vAnchor1TokenAddr
         );
         assert.strictEqual(
-          balWrapper1UnwrappedBefore.sub(BigNumber.from(4e7)).toString(),
+          balWrapper1UnwrappedBefore.sub(BigInt(4e7)).toString(),
           balWrapper1UnwrappedAfter.toString()
         );
         //wrapped balance of vanchor1 should be 1e7
         const balVAnchor1Wrapped = await webbToken1.getBalance(vAnchor1.contract.address);
-        assert.strictEqual(balVAnchor1Wrapped.toString(), BigNumber.from(1e7).toString());
+        assert.strictEqual(balVAnchor1Wrapped.toString(), BigInt(1e7).toString());
       });
 
       it('wrap and deposit, withdraw and unwrap works join split 16 input via transact and wrapping', async () => {
@@ -948,7 +947,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         const webbToken2 = await MintableToken.tokenFromAddress(webbTokenAddress2!, ganacheWallet2);
         assert.strictEqual(
           (await webbToken2.getBalance(vAnchor2Address)).toString(),
-          BigNumber.from(7e7).toString()
+          BigInt(7e7).toString()
         );
 
         const balSigners2UnwrappedBefore = await existingToken1.contract.balanceOf(
@@ -986,19 +985,19 @@ describe('2-sided multichain tests for signature vbridge', () => {
         );
         assert.strictEqual(
           balSigners2UnwrappedAfter.sub(balSigners2UnwrappedBefore).toString(),
-          BigNumber.from(5e7).toString()
+          BigInt(5e7).toString()
         );
         //Unwrapped balance of vanchor1tokenaddr should be
         const balWrapper1UnwrappedAfter = await existingToken1.contract.balanceOf(
           vAnchor1TokenAddr
         );
         assert.strictEqual(
-          balWrapper1UnwrappedBefore.sub(BigNumber.from(5e7)).toString(),
+          balWrapper1UnwrappedBefore.sub(BigInt(5e7)).toString(),
           balWrapper1UnwrappedAfter.toString()
         );
         //wrapped balance of vanchor1 should be 1e7
         const balVAnchor1Wrapped = await webbToken1.getBalance(vAnchor1.contract.address);
-        assert.strictEqual(balVAnchor1Wrapped.toString(), BigNumber.from(1e7).toString());
+        assert.strictEqual(balVAnchor1Wrapped.toString(), BigInt(1e7).toString());
       }).timeout(120000);
     });
   });

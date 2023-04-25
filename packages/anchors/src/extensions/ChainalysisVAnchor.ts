@@ -1,5 +1,5 @@
 import { ZkComponents } from '@webb-tools/utils';
-import { BigNumberish, ethers, BigNumber } from 'ethers';
+import { BigNumberish, ethers } from 'ethers';
 import { VAnchorEncodeInputs__factory, ChainalysisVAnchor__factory } from '@webb-tools/contracts';
 import VAnchor from '../VAnchor';
 import { Deployer } from '../Deployer';
@@ -41,7 +41,7 @@ export class ChainalysisVAnchor extends VAnchor {
     const createdVAnchor = new VAnchor(
       vanchor,
       signer,
-      BigNumber.from(levels).toNumber(),
+      Number(levels),
       maxEdges,
       smallCircuitZkComponents,
       largeCircuitZkComponents
@@ -74,7 +74,7 @@ export class ChainalysisVAnchor extends VAnchor {
     const createdVAnchor = new ChainalysisVAnchor(
       vAnchor,
       signer,
-      BigNumber.from(levels).toNumber(),
+      Number(levels),
       maxEdges,
       smallCircuitZkComponents,
       largeCircuitZkComponents
@@ -82,8 +82,8 @@ export class ChainalysisVAnchor extends VAnchor {
     createdVAnchor.latestSyncedBlock = vAnchor.deployTransaction.blockNumber!;
     createdVAnchor.token = token;
     const tx = await createdVAnchor.contract.initialize(
-      BigNumber.from('1'),
-      BigNumber.from(2).pow(256).sub(1)
+      BigInt('1'),
+      BigInt(2) ^ (BigInt(256) - BigInt(1))
     );
     await tx.wait();
     return createdVAnchor;

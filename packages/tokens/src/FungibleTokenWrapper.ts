@@ -95,7 +95,7 @@ export class FungibleTokenWrapper {
   }
 
   public async grantMinterRole(address: string): Promise<ethers.ContractReceipt> {
-    const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+    const MINTER_ROLE = keccak256(toUtf8Bytes('MINTER_ROLE'));
     const tx = await this.contract.grantRole(MINTER_ROLE, address);
     const receipt = await tx.wait();
     return receipt;

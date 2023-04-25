@@ -204,7 +204,7 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
 
   public async populateRootsForProof(): Promise<string[]> {
     const neighborEdges = await this.contract.getLatestNeighborEdges();
-    const neighborRootInfos = neighborEdges.map((rootData) => {
+    const neighborRootInfos = neighborEdges.map((rootData: any) => {
       return rootData.root;
     });
     let thisRoot = await this.contract.getLastRoot();
@@ -470,7 +470,7 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>,
+    leavesMap: Record<string, BigNumberish[]>,
     txOptions?: TransactionOptions | undefined
   ): Promise<SetupTransactionResult> {
     throw new Error('Method not supported on `OpenVAnchor` contract');

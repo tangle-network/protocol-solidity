@@ -55,7 +55,7 @@ describe('Rate Limited VAnchor', () => {
       chainId: chainId.toString(),
       originChainId: chainId.toString(),
       amount: amountString,
-      blinding: hexToU8a(randomBN(31).toHexString()),
+      blinding: hexToU8a(randomBN(31).toString(16)),
       keypair: randomKeypair,
     });
   };
@@ -138,13 +138,13 @@ describe('Rate Limited VAnchor', () => {
       zkComponents16_2,
       sender
     );
-    await anchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
+    await anchor.contract.configureMinimalWithdrawalLimit(BigInt(0), 1);
     await anchor.contract.configureMaximumDepositLimit(
-      BigNumber.from(tokenDenomination).mul(1_000_000),
+      BigInt(tokenDenomination) * BigInt(1_000_000),
       2
     );
-    await anchor.setDailyWithdrawalLimit(BigNumber.from('10').pow(BigNumber.from('18')));
-    const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+    await anchor.setDailyWithdrawalLimit(BigInt('10').pow(BigInt('18')));
+    const MINTER_ROLE = keccak256(toUtf8Bytes('MINTER_ROLE'));
     await wrappedToken.grantRole(MINTER_ROLE, anchor.contract.address);
     await token.approve(wrappedToken.address, '1000000000000000000000000');
 
@@ -221,7 +221,7 @@ describe('Rate Limited VAnchor', () => {
 
       let anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
-      await anchor.setDailyWithdrawalLimit(BigNumber.from(`${5e6}`));
+      await anchor.setDailyWithdrawalLimit(BigInt(`${5e6}`));
       const aliceWithdrawAmount = 6e6;
       const aliceChangeAmount = aliceDepositAmount - aliceWithdrawAmount;
       const aliceChangeUtxo = await CircomUtxo.generateUtxo({

@@ -158,19 +158,13 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
       admin
     );
     await fungibleToken.grantMinterRole(srcAnchor.contract.address);
-    let amountToWrap = await fungibleToken.contract.getAmountToWrap(BigNumber.from(1e7));
+    let amountToWrap = await fungibleToken.contract.getAmountToWrap(BigInt(1e7));
     await erc20TokenInstance.approveSpending(fungibleToken.contract.address, amountToWrap);
     bridgeSide.setAnchorHandler(anchorHandler);
     // Connect resourceID of srcAnchor with AnchorHandler on the SignatureBridge
     await bridgeSide.setAnchorResourceWithSignature(srcAnchor);
-    await bridgeSide.executeMinWithdrawalLimitProposalWithSig(
-      srcAnchor,
-      BigNumber.from(0).toString()
-    );
-    await bridgeSide.executeMaxDepositLimitProposalWithSig(
-      srcAnchor,
-      BigNumber.from(1e8).toString()
-    );
+    await bridgeSide.executeMinWithdrawalLimitProposalWithSig(srcAnchor, BigInt(0).toString());
+    await bridgeSide.executeMaxDepositLimitProposalWithSig(srcAnchor, BigInt(1e8).toString());
     // Define inputs/outputs for transact function
     const depositUtxo = await CircomUtxo.generateUtxo({
       curve: 'Bn254',
@@ -221,7 +215,7 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
       treasury,
       erc20TokenInstance.contract.address,
       to,
-      BigNumber.from('500')
+      BigInt('500')
     );
 
     let balTreasuryAfterRescue = await erc20TokenInstance.getBalance(treasury.contract.address);
@@ -243,7 +237,7 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
       treasury,
       erc20TokenInstance.contract.address,
       to,
-      BigNumber.from('500000000000000000000000')
+      BigInt('500000000000000000000000')
     );
 
     let balTreasuryAfterRescue = await erc20TokenInstance.getBalance(treasury.contract.address);

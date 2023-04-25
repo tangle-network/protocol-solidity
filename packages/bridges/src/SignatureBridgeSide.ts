@@ -262,9 +262,7 @@ export class SignatureBridgeSide implements IBridgeSide {
     const resourceId = await this.createResourceId();
     const functionSig = ethers.utils
       .keccak256(
-        ethers.utils.toUtf8Bytes(
-          'adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,bytes)'
-        )
+        toUtf8Bytes('adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,bytes)')
       )
       .slice(0, 10)
       .padEnd(10, '0');

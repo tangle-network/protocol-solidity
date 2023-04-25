@@ -15,7 +15,7 @@ export const FIELD_SIZE = BigInt(
   '21888242871839275222246405745257275088548364400416034343698204186575808495617'
 );
 
-export type UTXOInputs = {
+export type VAnchorProofInputs = {
   roots: string[];
   chainID: string;
   inputNullifier: string[];
@@ -123,7 +123,7 @@ export async function generateProof(
   identityMerkleProof: MerkleProof,
   outSemaphoreProofs: MerkleProof[],
   extDataHash: string,
-  vanchor_inputs: UTXOInputs,
+  vanchor_inputs: VAnchorProofInputs,
   wasmFilePath: string,
   zkeyFilePath: string
 ): Promise<any> {

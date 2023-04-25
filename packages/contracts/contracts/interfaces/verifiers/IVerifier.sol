@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
-pragma solidity ^0.8.5;
+pragma solidity ^0.8.19;
 
 /**
     @title IVerifier2 interface for an Anchor Verifier with 2 edges

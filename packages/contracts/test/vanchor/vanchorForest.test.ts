@@ -20,12 +20,18 @@ import {
   hexToU8a,
   fetchComponentsFromFilePaths,
   getChainIdType,
-  UTXOInputs,
+  VAnchorProofInputs,
   ZkComponents,
   u8aToHex,
   ZERO_BYTES32,
 } from '@webb-tools/utils';
-import { BigNumber, ContractReceipt } from 'ethers';
+import {
+  BigNumberish,
+  ContractTransactionReceipt,
+  JsonRpcProvider,
+  keccak256,
+  toUtf8Bytes,
+} from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 import {
@@ -78,7 +84,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       chainId: chainId.toString(),
       originChainId: chainId.toString(),
       amount: amountString,
-      blinding: hexToU8a(randomBN(31).toHexString()),
+      blinding: hexToU8a(randomBN(31).toString(16)),
       keypair: randomKeypair,
     });
   };
@@ -146,7 +152,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       true,
       wallet.address
     );
-    await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
+    await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()) + 1);
 
     // create Anchor
     anchor = await VAnchorForest.createVAnchor(
@@ -162,13 +168,13 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       sender
     );
 
-    await anchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
+    await anchor.contract.configureMinimalWithdrawalLimit(BigInt(0), 1);
     await anchor.contract.configureMaximumDepositLimit(
-      BigNumber.from(tokenDenomination).mul(1_000_000),
+      BigInt(tokenDenomination) * BigInt(1_000_000),
       2
     );
 
-    const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+    const MINTER_ROLE = keccak256(toUtf8Bytes('MINTER_ROLE'));
     await wrappedToken.grantRole(MINTER_ROLE, anchor.contract.address);
     await token.approve(wrappedToken.address, '1000000000000000000000000');
 
@@ -210,15 +216,15 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         encOutput1,
         encOutput2,
         extAmount.toString(),
-        BigNumber.from(fee).toString(),
+        BigInt(fee).toString(),
         recipient,
         relayer,
-        BigNumber.from(0).toString(),
+        BigInt(0).toString(),
         token.address
       );
 
       const input = await generateVariableWitnessInput(
-        roots.map((root) => BigNumber.from(root)),
+        roots.map((root) => root.toString()),
         chainID,
         inputs,
         outputs,
@@ -304,8 +310,8 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         aliceDepositUtxo.keypair.toString(),
         [await generateUTXOForTest(chainID), await generateUTXOForTest(chainID)],
         [aliceDepositUtxo, await generateUTXOForTest(chainID)],
-        BigNumber.from(fee),
-        BigNumber.from(0),
+        BigInt(fee),
+        BigInt(0),
         '0',
         relayer,
         token.address,
@@ -322,7 +328,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       //Step 3 Check relayers balance
       assert.strictEqual(
         (await wrappedToken.balanceOf(relayer)).toString(),
-        BigNumber.from(fee).toString()
+        BigInt(fee).toString()
       );
     });
 
@@ -347,10 +353,10 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       const aliceRefreshUtxo = await CircomUtxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
-        chainId: BigNumber.from(chainID).toString(),
-        originChainId: BigNumber.from(chainID).toString(),
-        amount: BigNumber.from(aliceDepositAmount).toString(),
-        blinding: hexToU8a(randomBN().toHexString()),
+        chainId: BigInt(chainID).toString(),
+        originChainId: BigInt(chainID).toString(),
+        amount: BigInt(aliceDepositAmount).toString(),
+        blinding: hexToU8a(randomBN().toString(16)),
         keypair: aliceDepositUtxo.keypair,
       });
 
@@ -378,19 +384,15 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       const aliceRefreshUtxo = await CircomUtxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
-        chainId: BigNumber.from(chainID).toString(),
-        originChainId: BigNumber.from(chainID).toString(),
-        amount: BigNumber.from(aliceDepositAmount).toString(),
-        blinding: hexToU8a(randomBN().toHexString()),
+        chainId: BigInt(chainID).toString(),
+        originChainId: BigInt(chainID).toString(),
+        amount: BigInt(aliceDepositAmount).toString(),
+        blinding: hexToU8a(randomBN().toString(16)),
         keypair: aliceDepositUtxo.keypair,
       });
 
-      const subtreeLeaves = anchor.tree
-        .elements()
-        .map((el: BigNumber) => hexToU8a(el.toHexString()));
-      const forestLeaves = anchor.forest
-        .elements()
-        .map((el: BigNumber) => hexToU8a(el.toHexString()));
+      const subtreeLeaves = anchor.tree.elements().map((el: BigNumberish) => el.toString(16));
+      const forestLeaves = anchor.forest.elements().map((el: BigNumberish) => el.toString(16));
       const txOptions = { treeChainId: chainID.toString(), externalLeaves: forestLeaves };
 
       await anchor.transact(
@@ -403,7 +405,6 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         '',
         { [chainID]: subtreeLeaves },
         txOptions
-        // { treeChainId: chainID.toString(), forestLeaves }
       );
     });
 
@@ -459,29 +460,29 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         {}
       );
 
-      let anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
-
       const aliceDepositAmount2 = 1e7;
       let aliceDepositUtxo2 = await CircomUtxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: chainID.toString(),
         originChainId: chainID.toString(),
-        amount: BigNumber.from(aliceDepositAmount2).toString(),
+        amount: BigInt(aliceDepositAmount2).toString(),
         keypair: aliceDepositUtxo1.keypair,
-        blinding: hexToU8a(randomBN().toHexString()),
+        blinding: hexToU8a(randomBN().toString(16)),
       });
 
       await anchor.transact([], [aliceDepositUtxo2], 0, 0, '0', '0', token.address, {}, {});
-
-      anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
       const aliceJoinAmount = 2e7;
       const aliceJoinUtxo = await generateUTXOForTest(chainID, aliceJoinAmount);
 
       // Limitations on UTXO index readonly value. create a new UTXO with the proper index.
-      const aliceDeposit1Index = anchor.tree.getIndexByElement(aliceDepositUtxo1.commitment);
-      const aliceDeposit2Index = anchor.tree.getIndexByElement(aliceDepositUtxo2.commitment);
+      const aliceDeposit1Index = anchor.tree.getIndexByElement(
+        BigInt(Buffer.from(aliceDepositUtxo1.commitment).toString('hex'))
+      );
+      const aliceDeposit2Index = anchor.tree.getIndexByElement(
+        BigInt(Buffer.from(aliceDepositUtxo2.commitment).toString('hex'))
+      );
       aliceDepositUtxo1.setIndex(aliceDeposit1Index);
       aliceDepositUtxo2.setIndex(aliceDeposit2Index);
 
@@ -530,7 +531,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         backend: 'Circom',
         chainId: chainID.toString(),
         originChainId: chainID.toString(),
-        amount: BigNumber.from(aliceDepositAmount3).toString(),
+        amount: BigInt(aliceDepositAmount3).toString(),
         keypair: aliceDepositUtxo1.keypair,
       });
 
@@ -542,14 +543,20 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         backend: 'Circom',
         chainId: chainID.toString(),
         originChainId: chainID.toString(),
-        amount: BigNumber.from(aliceJoinAmount).toString(),
+        amount: BigInt(aliceJoinAmount).toString(),
         keypair: aliceDepositUtxo1.keypair,
       });
 
       // Limitations on UTXO index readonly value. create a new UTXO with the proper index.
-      const aliceDeposit1Index = anchor.tree.getIndexByElement(aliceDepositUtxo1.commitment);
-      const aliceDeposit2Index = anchor.tree.getIndexByElement(aliceDepositUtxo2.commitment);
-      const aliceDeposit3Index = anchor.tree.getIndexByElement(aliceDepositUtxo3.commitment);
+      const aliceDeposit1Index = anchor.tree.getIndexByElement(
+        BigInt(Buffer.from(aliceDepositUtxo1.commitment).toString('hex'))
+      );
+      const aliceDeposit2Index = anchor.tree.getIndexByElement(
+        BigInt(Buffer.from(aliceDepositUtxo2.commitment).toString('hex'))
+      );
+      const aliceDeposit3Index = anchor.tree.getIndexByElement(
+        BigInt(Buffer.from(aliceDepositUtxo3.commitment).toString('hex'))
+      );
       aliceDepositUtxo1.setIndex(aliceDeposit1Index);
       aliceDepositUtxo2.setIndex(aliceDeposit2Index);
       aliceDepositUtxo3.setIndex(aliceDeposit3Index);
@@ -636,9 +643,10 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         {}
       );
 
-      let anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
       // Limitations on UTXO index readonly value. create a new UTXO with the proper index.
-      const aliceDepositIndex = anchor.tree.getIndexByElement(aliceDepositUtxo.commitment);
+      const aliceDepositIndex = anchor.tree.getIndexByElement(
+        BigInt(Buffer.from(aliceDepositUtxo.commitment).toString('hex'))
+      );
       aliceDepositUtxo.setIndex(aliceDepositIndex);
 
       const aliceTransferUtxo = await CircomUtxo.generateUtxo({
@@ -651,8 +659,6 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       });
 
       await anchor.transact([aliceDepositUtxo], [aliceTransferUtxo], 0, 0, '0', '0', '', {}, {});
-
-      anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
       await TruffleAssert.reverts(
         anchor.transact([aliceDepositUtxo], [aliceTransferUtxo], 0, 0, '0', '0', '', {}, {}),
@@ -741,15 +747,15 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         encOutput1,
         encOutput2,
         extAmount.toString(),
-        BigNumber.from(fee).toString(),
+        BigInt(fee).toString(),
         recipient,
         relayer,
-        BigNumber.from(0).toString(),
+        BigInt(0).toString(),
         token.address
       );
 
       const input = await generateVariableWitnessInput(
-        roots.map((root) => BigNumber.from(root)),
+        roots.map((root) => root.toString()),
         chainID,
         inputs,
         outputs,
@@ -795,7 +801,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         VAnchorForest.createRootsBytes(input.roots.map((x) => x.toString())),
         input.inputNullifier.map((x) => toFixedHex(x)),
         [toFixedHex(input.outputCommitment[0]), toFixedHex(input.outputCommitment[1])],
-        toFixedHex(BigNumber.from(input.publicAmount).add(1)),
+        toFixedHex(BigInt(input.publicAmount) + BigInt(1)),
         toFixedHex(input.extDataHash),
       ];
 
@@ -824,7 +830,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         input.inputNullifier.map((x) => toFixedHex(x)),
         [toFixedHex(input.outputCommitment[0]), toFixedHex(input.outputCommitment[1])],
         toFixedHex(input.publicAmount),
-        toFixedHex(BigNumber.from(input.extDataHash).add(1)),
+        toFixedHex(BigInt(input.extDataHash) + BigInt(1)),
       ];
 
       incorrectPublicInputs = VAnchorForest.convertToPublicInputsStruct(incorrectPublicInputArgs);
@@ -849,7 +855,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         VAnchorForest.createRootsBytes(input.roots.map((x) => x.toString())),
         input.inputNullifier.map((x) => toFixedHex(x)),
         [
-          toFixedHex(BigNumber.from(input.outputCommitment[0]).add(1)),
+          toFixedHex(BigInt(input.outputCommitment[0]) + BigInt(1)),
           toFixedHex(input.outputCommitment[1]),
         ],
         toFixedHex(input.publicAmount),
@@ -876,7 +882,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       incorrectPublicInputArgs = [
         `0x${proofEncoded}`,
         VAnchorForest.createRootsBytes(input.roots.map((x) => x.toString())),
-        input.inputNullifier.map((x) => toFixedHex(BigNumber.from(x).add(1))),
+        input.inputNullifier.map((x) => toFixedHex(BigInt(x) + BigInt(1))),
         [toFixedHex(input.outputCommitment[0]), toFixedHex(input.outputCommitment[1])],
         toFixedHex(input.publicAmount),
         toFixedHex(input.extDataHash),
@@ -1028,7 +1034,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         '0',
         token.address,
         {}
-      )) as ContractReceipt;
+      )) as ContractTransactionReceipt;
 
       // Bob queries encrypted commitments on chain
       const encryptedCommitments: string[] = receipt.events
@@ -1107,7 +1113,8 @@ describe.skip('VAnchorForest for 1 max edge', () => {
 
       //build merkle tree end
       const commitment = aliceDepositUtxo.commitment;
-      const index = tree.indexOf(toFixedHex(commitment)); // it's the same as merklePath and merklePathIndexes and index in the tree
+      // it's the same as merklePath and merklePathIndexes and index in the tree
+      const index = tree.indexOf(toFixedHex(BigInt(Buffer.from(commitment).toString('hex'))));
 
       aliceDepositUtxo.setIndex(index);
 
@@ -1115,8 +1122,8 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       // on the verifier side we compute commitment and nullifier and then check them onchain
 
       assert.strictEqual(
-        BigNumber.from(aliceDepositUtxo.commitment).toString(),
-        BigNumber.from(commitment).toString()
+        BigInt(Buffer.from(aliceDepositUtxo.commitment).toString('hex')),
+        BigInt(Buffer.from(commitment).toString('hex'))
       );
       assert.strictEqual(
         await anchor.contract.nullifierHashes(toFixedHex('0x' + aliceDepositUtxo.nullifier)),
@@ -1144,9 +1151,10 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       const fakeInputs = await anchor.padUtxos([fakeUtxo], 2);
       const outputs = await anchor.padUtxos([], 2);
 
-      const extAmount = BigNumber.from(fee)
-        .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
-        .sub(fakeInputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
+      const extAmount =
+        BigInt(fee) +
+        outputs.reduce((sum, x) => sum + BigInt(x.amount), BigInt(0)) -
+        fakeInputs.reduce((sum, x) => sum + BigInt(x.amount), BigInt(0));
 
       const fakeTree = new MerkleTree(subtreeLevels);
       const fakeForest = new MerkleTree(forestLevels);
@@ -1165,8 +1173,8 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         0,
       ];
       let forestPathElements = [
-        fakeForestProof.pathElements.map((bignum) => bignum.toString()),
-        emptyMerkleProof.forestPathElements.map((bignum: BigNumber) => bignum.toString()),
+        fakeForestProof.pathElements.map((el) => el.toString()),
+        emptyMerkleProof.forestPathElements.map((el: BigNumberish) => el.toString()),
       ];
       let subtreeIndices = [
         MerkleTree.calculateIndexFromPathIndices(fakeSubtreeProof.pathIndices),
@@ -1174,14 +1182,14 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       ];
 
       const roots = await anchor.populateRootsForProof();
-      roots[1] = fakeRoot;
+      roots[1] = BigInt(fakeRoot);
 
       const { extData, extDataHash } = await anchor.generateExtData(
         recipient,
-        BigNumber.from(extAmount),
+        BigInt(extAmount),
         relayer,
-        BigNumber.from(fee),
-        BigNumber.from(0),
+        BigInt(fee),
+        BigInt(0),
         wrappedToken.address,
         outputs[0].encrypt(),
         outputs[1].encrypt()
@@ -1189,23 +1197,21 @@ describe.skip('VAnchorForest for 1 max edge', () => {
 
       const merkleProofs = [fakeSubtreeProof, emptyMerkleProof];
 
-      const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
-        roots.map((root) => BigNumber.from(root)),
+      const vanchorInput: VAnchorProofInputs = await generateVariableWitnessInput(
+        roots.map((root) => root.toString()),
         chainID,
         fakeInputs,
         outputs,
         extAmount,
         fee,
-        BigNumber.from(extDataHash),
+        extDataHash.toString(),
         merkleProofs
       );
 
       const proofInput = {
         roots: vanchorInput.roots,
         chainID: vanchorInput.chainID,
-        inputNullifier: vanchorInput.inputNullifier.map((hexStr) =>
-          BigNumber.from(hexStr).toString()
-        ),
+        inputNullifier: vanchorInput.inputNullifier.map((hexStr) => BigInt(hexStr).toString()),
         outputCommitment: vanchorInput.outputCommitment,
         publicAmount: vanchorInput.publicAmount,
         extDataHash: vanchorInput.extDataHash,
@@ -1316,13 +1322,13 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         sender
       );
 
-      await wrappedAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
+      await wrappedAnchor.contract.configureMinimalWithdrawalLimit(BigInt(0), 1);
       await wrappedAnchor.contract.configureMaximumDepositLimit(
-        BigNumber.from(tokenDenomination).mul(1_000_000),
+        BigInt(tokenDenomination) * BigInt(1_000_000),
         2
       );
 
-      const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+      const MINTER_ROLE = keccak256(toUtf8Bytes('MINTER_ROLE'));
       await wrappedToken.grantRole(MINTER_ROLE, wrappedAnchor.contract.address);
 
       await token.approve(wrappedToken.address, '1000000000000000000');
@@ -1393,13 +1399,13 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         sender
       );
 
-      await wrappedAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
+      await wrappedAnchor.contract.configureMinimalWithdrawalLimit(BigInt(0), 1);
       await wrappedAnchor.contract.configureMaximumDepositLimit(
-        BigNumber.from(tokenDenomination).mul(1_000_000),
+        BigInt(tokenDenomination) * BigInt(1_000_000),
         2
       );
 
-      const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+      const MINTER_ROLE = keccak256(toUtf8Bytes('MINTER_ROLE'));
       await wrappedToken.grantRole(MINTER_ROLE, wrappedAnchor.contract.address);
 
       await token.approve(wrappedToken.address, '1000000000000000000');
@@ -1420,9 +1426,9 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       }
 
       assert.equal(
-        BigNumber.from(numOfInsertions * 2).toString(),
-        BigNumber.from(
-          await ethers.provider.getStorageAt(
+        BigInt(numOfInsertions * 2).toString(),
+        BigInt(
+          await ethers.provider.getStorage(
             wrappedAnchor.contract.address,
             '0xcc69885fda6bcc1a4ace058b4a62bf5e179ea78fd58a1ccd71c22cc9b6887930'
           )
@@ -1469,19 +1475,19 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         sender
       );
 
-      await wrappedVAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
+      await wrappedVAnchor.contract.configureMinimalWithdrawalLimit(BigInt(0), 1);
       await wrappedVAnchor.contract.configureMaximumDepositLimit(
-        BigNumber.from(tokenDenomination).mul(1_000_000),
+        BigInt(tokenDenomination) * BigInt(1_000_000),
         2
       );
 
-      const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+      const MINTER_ROLE = keccak256(toUtf8Bytes('MINTER_ROLE'));
       await wrappedToken.grantRole(MINTER_ROLE, wrappedVAnchor.contract.address);
       await token.approve(wrappedToken.address, '1000000000000000000');
       //Check that VAnchorForest has the right amount of wrapped token balance
       assert.strictEqual(
         (await wrappedToken.balanceOf(wrappedVAnchor.contract.address)).toString(),
-        BigNumber.from(0).toString()
+        BigInt(0).toString()
       );
       const balTokenBeforeDepositSender = await token.balanceOf(sender.address);
       const aliceDepositAmount = 1e7;
@@ -1498,13 +1504,15 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       await wrappedVAnchor.transact([], [aliceDepositUtxo], 0, 0, '0', '0', token.address, {});
 
       // Limitations on UTXO index readonly value. create a new UTXO with the proper index.
-      const aliceDepositIndex = wrappedVAnchor.tree.getIndexByElement(aliceDepositUtxo.commitment);
+      const aliceDepositIndex = wrappedVAnchor.tree.getIndexByElement(
+        BigInt(Buffer.from(aliceDepositUtxo.commitment).toString('hex'))
+      );
       aliceDepositUtxo.setIndex(aliceDepositIndex);
 
       //Check that VAnchorForest has the right amount of wrapped token balance
       assert.strictEqual(
         (await wrappedToken.balanceOf(wrappedVAnchor.contract.address)).toString(),
-        BigNumber.from(1e7).toString()
+        BigInt(1e7).toString()
       );
 
       const aliceChangeAmount = 0;
@@ -1576,13 +1584,13 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         sender
       );
 
-      await wrappedVAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
+      await wrappedVAnchor.contract.configureMinimalWithdrawalLimit(BigInt(0), 1);
       await wrappedVAnchor.contract.configureMaximumDepositLimit(
-        BigNumber.from(tokenDenomination).mul(1_000_000),
+        BigInt(tokenDenomination) * BigInt(1_000_000),
         2
       );
 
-      const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+      const MINTER_ROLE = keccak256(toUtf8Bytes('MINTER_ROLE'));
       await wrappedToken.grantRole(MINTER_ROLE, wrappedVAnchor.contract.address);
 
       await token.approve(wrappedToken.address, '10000000000000000000');
@@ -1604,17 +1612,16 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       await wrappedVAnchor.transact([], [aliceDepositUtxo], 0, 0, '0', '0', token.address, {});
 
       // Limitations on UTXO index readonly value. create a new UTXO with the proper index.
-      const aliceDepositIndex = wrappedVAnchor.tree.getIndexByElement(aliceDepositUtxo.commitment);
+      const aliceDepositIndex = wrappedVAnchor.tree.getIndexByElement(
+        BigInt(Buffer.from(aliceDepositUtxo.commitment).toString('hex'))
+      );
       aliceDepositUtxo.setIndex(aliceDepositIndex);
 
       // Balance of VAnchorForest wrapped token should be 2e7
       const balWrappedTokenAfterDepositAnchor = await wrappedToken.balanceOf(
         wrappedVAnchor.contract.address
       );
-      assert.strictEqual(
-        balWrappedTokenAfterDepositAnchor.toString(),
-        BigNumber.from(2e7).toString()
-      );
+      assert.strictEqual(balWrappedTokenAfterDepositAnchor.toString(), BigInt(2e7).toString());
 
       // Balance of sender unwrapped token should have gone down by 2e7 * (100) / (100 - wrapFee);
       const expectedSenderTokenOutflows = Math.trunc((2e7 * 10000) / (10000 - wrapFee));
@@ -1628,12 +1635,11 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       const balUnwrappedTokenAfterDepositWrapper = await token.balanceOf(wrappedToken.address);
       assert.strictEqual(
         balUnwrappedTokenAfterDepositWrapper.sub(balUnwrappedTokenBeforeDepositWrapper).toString(),
-        BigNumber.from(2e7).toString()
+        BigInt(2e7).toString()
       );
 
       // Withdraw 1e7 and check relevant balances
       const aliceWithdrawAmount = 1e7;
-      let anchorLeaves = wrappedVAnchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
       let aliceChangeUtxo = await CircomUtxo.generateUtxo({
         curve: 'Bn254',
@@ -1656,14 +1662,15 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         {}
       );
 
-      anchorLeaves = wrappedVAnchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
-      const aliceChangeIndex = wrappedVAnchor.tree.getIndexByElement(aliceChangeUtxo.commitment);
+      const aliceChangeIndex = wrappedVAnchor.tree.getIndexByElement(
+        BigInt(Buffer.from(aliceChangeUtxo.commitment).toString('hex'))
+      );
       aliceChangeUtxo.setIndex(aliceChangeIndex);
 
       const balUnwrappedTokenAfterWithdrawSender = await token.balanceOf(sender.address);
       assert.strictEqual(
         balUnwrappedTokenAfterWithdrawSender.sub(balUnwrappedTokenAfterDepositSender).toString(),
-        BigNumber.from(1e7).toString()
+        BigInt(1e7).toString()
       );
 
       const balWrappedTokenAfterWithdrawAnchor = await wrappedToken.balanceOf(
@@ -1671,13 +1678,13 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       );
       assert.strictEqual(
         balWrappedTokenAfterDepositAnchor.sub(balWrappedTokenAfterWithdrawAnchor).toString(),
-        BigNumber.from(1e7).toString()
+        BigInt(1e7).toString()
       );
 
       const balUnwrappedTokenAfterWithdrawWrapper = await token.balanceOf(wrappedToken.address);
       assert.strictEqual(
         balUnwrappedTokenAfterDepositWrapper.sub(balUnwrappedTokenAfterWithdrawWrapper).toString(),
-        BigNumber.from(1e7).toString()
+        BigInt(1e7).toString()
       );
 
       await TruffleAssert.passes(
@@ -1818,9 +1825,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       const chainID2 = getChainIdType(SECOND_CHAIN_ID);
       let ganacheServer: any;
       let ganacheAnchor: VAnchorForest;
-      let ganacheProvider = new ethers.providers.JsonRpcProvider(
-        `http://localhost:${SECOND_CHAIN_ID}`
-      );
+      let ganacheProvider = new JsonRpcProvider(`http://localhost:${SECOND_CHAIN_ID}`);
       ganacheProvider.pollingInterval = 1;
       let ganacheWallet = new ethers.Wallet(
         'c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e',
@@ -1886,13 +1891,13 @@ describe.skip('VAnchorForest for 1 max edge', () => {
           ganacheWallet
         );
 
-        await ganacheAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
+        await ganacheAnchor.contract.configureMinimalWithdrawalLimit(BigInt(0), 1);
         await ganacheAnchor.contract.configureMaximumDepositLimit(
-          BigNumber.from(tokenDenomination).mul(1_000_000),
+          BigInt(tokenDenomination) * BigInt(1_000_000),
           2
         );
 
-        const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+        const MINTER_ROLE = keccak256(toUtf8Bytes('MINTER_ROLE'));
         await ganacheWrappedToken.grantRole(MINTER_ROLE, ganacheAnchor.contract.address);
         await ganacheToken.approve(ganacheWrappedToken.address, '1000000000000000000000000');
       });
@@ -2010,10 +2015,10 @@ describe.skip('VAnchorForest for 1 max edge', () => {
 
         const subtreeLeaves = ganacheAnchor.tree
           .elements()
-          .map((el: BigNumber) => hexToU8a(el.toHexString()));
+          .map((el: BigNumberish) => el.toString(16));
         const forestLeaves = ganacheAnchor.forest
           .elements()
-          .map((el: BigNumber) => hexToU8a(el.toHexString()));
+          .map((el: BigNumberish) => el.toString(16));
         const txOptions = {
           treeChainId: chainID2.toString(),
           externalLeaves: forestLeaves,

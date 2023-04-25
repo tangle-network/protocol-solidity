@@ -73,10 +73,10 @@ describe('MerkleForest', () => {
       const defaultGroupRoot = await hasherInstance.contract.zeros(groupLevels);
 
       const initialRoot = await merkleForest.getLastRoot();
-      assert.strictEqual(defaultGroupRoot, toFixedHex(BigNumber.from(initialRoot.toString())));
+      assert.strictEqual(defaultGroupRoot, toFixedHex(BigInt(initialRoot.toString())));
       assert.strictEqual(defaultGroupRoot, toFixedHex(initialRoot.toString()));
 
-      const defaultSubtreeRoot = BigNumber.from(await hasherInstance.contract.zeros(subtreeLevels));
+      const defaultSubtreeRoot = BigInt(await hasherInstance.contract.zeros(subtreeLevels));
       const initialSubtreeRoot = await merkleForest.getLastSubtreeRoot(0);
       assert.strictEqual(initialSubtreeRoot.toString(), defaultSubtreeRoot.toString());
       const subtree = await merkleForest.subtrees(0);
@@ -292,7 +292,7 @@ describe('MerkleForest', () => {
       await merkleForest.insertSubtreeTest(0, toFixedHex(commitment), {
         from: sender,
       });
-      const rootFromContract = BigNumber.from(await merkleForest.getLastRoot());
+      const rootFromContract = BigInt(await merkleForest.getLastRoot());
       assert.strictEqual(merkleRoot.toHexString(), rootFromContract.toHexString());
       let curr = subtreeRoot.toHexString();
       for (let i = 0; i < pathElements.length; i++) {

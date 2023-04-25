@@ -119,7 +119,7 @@ export async function setupVanchorEvmWithdrawTx(
   extData: IVariableAnchorExtData;
   publicInputs: IVariableAnchorPublicInputs;
 }> {
-  const extAmount = ethers.BigNumber.from(0).sub(inputUtxo.amount);
+  const extAmount = ethers.BigInt(0).sub(inputUtxo.amount);
 
   const dummyOutput1 = await CircomUtxo.generateUtxo({
     amount: '0',

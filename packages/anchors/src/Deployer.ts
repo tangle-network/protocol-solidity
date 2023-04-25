@@ -1,6 +1,13 @@
-import { Signer, ethers } from 'ethers';
+import {
+  AbiCoder,
+  BytesLike,
+  ParamType,
+  Signer,
+  ethers,
+  getCreate2Address,
+  keccak256,
+} from 'ethers';
 import { DeterministicDeployFactory as DeterministicDeployFactoryContract } from '@webb-tools/contracts';
-import { ParamType } from 'ethers/lib/utils';
 
 export class Deployer {
   signer: ethers.Signer;
@@ -15,21 +22,13 @@ export class Deployer {
   }
 
   public static encode(types: ReadonlyArray<string | ParamType>, values: ReadonlyArray<any>) {
-    const abiCoder = ethers.utils.defaultAbiCoder;
+    const abiCoder = AbiCoder.defaultAbiCoder();
     const encodedParams = abiCoder.encode(types, values);
     return encodedParams.slice(2);
   }
 
-  public static create2Address(
-    factoryAddress: string,
-    saltHex: string,
-    initCode: ethers.utils.BytesLike
-  ) {
-    const create2Addr = ethers.utils.getCreate2Address(
-      factoryAddress,
-      saltHex,
-      ethers.utils.keccak256(initCode)
-    );
+  public static create2Address(factoryAddress: string, saltHex: string, initCode: BytesLike) {
+    const create2Addr = getCreate2Address(factoryAddress, saltHex, keccak256(initCode));
     return create2Addr;
   }
 
