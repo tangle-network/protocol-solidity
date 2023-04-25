@@ -22,23 +22,24 @@ contract MultiAssetVAnchorProxy is Initialized, IERC721Receiver {
 	bytes32 public withdrawalRoot;
 	bytes32 public previousWithdrawalRoot;
 
+	enum AssetType { ERC20, ERC721 }
+
 	struct QueueDepositInfo {
+		AssetType assetType;
 		address unwrappedToken;
 		address wrappedToken;
 		uint256 amount;
 		uint256 assetID;
 		uint256 tokenID;
 		bytes32 depositPartialCommitment;
+		bytes32 commitment;
+		bool isShielded; // true if corresponds to output commitment from transact
 		address proxiedMASP;
 	}
 
-	mapping(address => mapping(uint256 => QueueDepositInfo)) public QueueERC20DepositMap;
-	mapping(address => uint256) public nextQueueERC20DepositIndex;
-	uint256 public lastProcessedERC20DepositLeaf;
-
-	mapping(address => mapping(uint256 => QueueDepositInfo)) public QueueERC721DepositMap;
-	mapping(address => uint256) public nextQueueERC721DepositIndex;
-	uint256 public lastProcessedERC721DepositLeaf;
+	mapping(address => mapping(uint256 => QueueDepositInfo)) public QueueDepositMap;
+	mapping(address => uint256) public nextQueueDepositIndex;
+	uint256 public lastProcessedDepositLeaf;
 
 	mapping(address => mapping(uint256 => bytes32)) public RewardUnspentTreeCommitmentMap;
 	mapping(address => uint256) public nextRewardUnspentTreeCommitmentIndex;
@@ -103,30 +104,50 @@ contract MultiAssetVAnchorProxy is Initialized, IERC721Receiver {
 		bytes32 newRoot
 	);
 
-	function queueERC20Deposit(QueueDepositInfo memory depositInfo) public payable {
-		require(validProxiedMASPs[depositInfo.proxiedMASP], "Invalid MASP");
-		require(
-			IRegistry(IMultiAssetVAnchorBatchTree(depositInfo.proxiedMASP).registry())
-				.getAssetIdFromWrappedAddress(depositInfo.wrappedToken) != 0,
-			"Wrapped asset not registered"
-		);
-		uint256 amount = depositInfo.amount;
-		address depositToken = depositInfo.unwrappedToken;
-		IMintableERC20(depositToken).transferFrom(msg.sender, address(this), uint256(amount));
-		QueueERC20DepositMap[depositInfo.proxiedMASP][
-			nextQueueERC20DepositIndex[depositInfo.proxiedMASP]
+	function queueDeposit(QueueDepositInfo memory depositInfo) public payable {
+		address proxiedMASP = depositInfo.proxiedMASP;
+		require(validProxiedMASPs[proxiedMASP], "Invalid MASP");
+		if (msg.sender != proxiedMASP) {
+			// Not an output commitment from transact so need to transfer tokens to MASP
+			require(depositInfo.isShielded == false, "Not an output commitment, isShielded should be false");
+			require(
+				IRegistry(IMultiAssetVAnchorBatchTree(proxiedMASP).registry())
+					.getAssetIdFromWrappedAddress(depositInfo.wrappedToken) != 0,
+				"Wrapped asset not registered"
+			);
+			uint256 amount = depositInfo.amount;
+			address depositToken = depositInfo.unwrappedToken;
+			// Check deposit commitment is correct
+			require(depositInfo.commitment == bytes32(
+				IHasher(hasher).hash4(
+					[
+						depositInfo.assetID,
+						depositInfo.tokenID,
+						depositInfo.amount,
+						uint256(depositInfo.depositPartialCommitment)
+					]
+				)), "Commitment Hash is wrong");
+			// Transfer tokens to MASP
+			if (depositInfo.assetType == AssetType.ERC20) {
+				IMintableERC20(depositToken).transferFrom(msg.sender, address(this), uint256(amount));
+			} else {
+				IERC721(depositToken).safeTransferFrom(msg.sender, address(this), depositInfo.tokenID);
+			}
+		}
+		QueueDepositMap[proxiedMASP][
+			nextQueueDepositIndex[proxiedMASP]
 		] = depositInfo;
 		// Emit Event
 		emit QueueDeposit(
-			nextQueueERC20DepositIndex[depositInfo.proxiedMASP],
-			depositInfo.proxiedMASP
+			nextQueueDepositIndex[proxiedMASP],
+			proxiedMASP
 		);
-		nextQueueERC20DepositIndex[depositInfo.proxiedMASP] =
-			nextQueueERC20DepositIndex[depositInfo.proxiedMASP] +
+		nextQueueDepositIndex[proxiedMASP] =
+			nextQueueDepositIndex[proxiedMASP] +
 			1;
 	}
 
-	function batchDepositERC20s(
+	function batchInsertDeposits(
 		address proxiedMASP,
 		bytes calldata _proof,
 		bytes32 _argsHash,
@@ -308,33 +329,6 @@ contract MultiAssetVAnchorProxy is Initialized, IERC721Receiver {
 			_batchHeight
 		);
 		emit BatchInsertRewardSpentTree(lastProcessedRewardSpentTreeLeaf, proxiedMASP, _newRoot);
-	}
-
-	function queueERC721Deposit(QueueDepositInfo memory depositInfo) public payable {
-		require(validProxiedMASPs[depositInfo.proxiedMASP], "Invalid MASP");
-		require(
-			IRegistry(IMultiAssetVAnchorBatchTree(depositInfo.proxiedMASP).registry())
-				.getAssetIdFromWrappedAddress(depositInfo.wrappedToken) != 0,
-			"Wrapped asset not registered"
-		);
-		address depositToken = depositInfo.unwrappedToken;
-		require(
-			IRegistry(IMultiAssetVAnchorBatchTree(depositInfo.proxiedMASP).registry())
-				.getUnwrappedAssetAddress(depositInfo.assetID) == depositToken,
-			"Wrapped and unwrapped addresses don't match"
-		);
-		IERC721(depositToken).safeTransferFrom(msg.sender, address(this), depositInfo.tokenID);
-		QueueERC721DepositMap[depositInfo.proxiedMASP][
-			nextQueueERC721DepositIndex[depositInfo.proxiedMASP]
-		] = depositInfo;
-		// Emit Event
-		emit QueueDeposit(
-			nextQueueERC721DepositIndex[depositInfo.proxiedMASP],
-			depositInfo.proxiedMASP
-		);
-		nextQueueERC721DepositIndex[depositInfo.proxiedMASP] =
-			nextQueueERC721DepositIndex[depositInfo.proxiedMASP] +
-			1;
 	}
 
 	function batchDepositERC721s(
