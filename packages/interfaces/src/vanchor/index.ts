@@ -1,4 +1,4 @@
-import { BigNumberish, BigNumber } from 'ethers';
+import { BigNumberish } from 'ethers';
 import { Keypair } from '@webb-tools/sdk-core';
 
 export interface IMerkleProofData {
@@ -8,10 +8,10 @@ export interface IMerkleProofData {
 }
 
 export interface IUTXOInput {
-  chainId: BigNumber;
-  amount: BigNumber;
+  chainId: BigNumberish;
+  amount: BigNumberish;
   keypair: Keypair;
-  blinding: BigNumber;
+  blinding: BigNumberish;
   index: number;
 }
 
@@ -19,10 +19,10 @@ export interface IVariableAnchorPublicInputs {
   proof: string;
   roots: string;
   extensionRoots: string;
-  inputNullifiers: BigNumber[];
-  outputCommitments: [BigNumber, BigNumber];
+  inputNullifiers: BigNumberish[];
+  outputCommitments: [BigNumberish, BigNumberish];
   publicAmount: string;
-  extDataHash: BigNumber;
+  extDataHash: BigNumberish;
 }
 
 export interface IVariableAnchorExtData {

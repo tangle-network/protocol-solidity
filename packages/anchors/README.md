@@ -5,7 +5,7 @@ Wrapper classes and utilities for deploying and interacting with zero-knowledge 
 ## License
 
 <sup>
-Licensed under <a href="LICENSE">GPLV3 license</a>.
+Licensed under <a href="LICENSE">Apache 2.0 / MIT license</a>.
 </sup>
 
 <br/>

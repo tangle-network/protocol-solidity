@@ -10,12 +10,13 @@ const hre = require('hardhat');
 import { VBridge, VBridgeInput } from '@webb-tools/vbridge';
 import { VAnchor } from '@webb-tools/anchors';
 import { MintableToken, FungibleTokenWrapper } from '@webb-tools/tokens';
-import { BigNumber } from 'ethers';
 import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { startGanacheServer } from '@webb-tools/evm-test-utils';
 import { CircomUtxo } from '@webb-tools/sdk-core';
 import { DeployerConfig, GovernorConfig } from '@webb-tools/interfaces';
 import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
+import { BigNumber } from 'ethers';
+import { JsonRpcProvider } from 'ethers/types/ethers.js';
 
 const path = require('path');
 
@@ -26,7 +27,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
   let hardhatWallet1 = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
 
   const SECOND_CHAIN_ID = 10000;
-  let ganacheProvider2 = new ethers.providers.JsonRpcProvider(
+  let ganacheProvider2 = new JsonRpcProvider(
     `http://localhost:${SECOND_CHAIN_ID}`
   );
   ganacheProvider2.pollingInterval = 1;
@@ -1077,7 +1078,7 @@ describe.skip('8-sided multichain tests for signature vbridge', () => {
 
     let hardhatWallet1 = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
 
-    let ganacheProvider2 = new ethers.providers.JsonRpcProvider(
+    let ganacheProvider2 = new JsonRpcProvider(
       `http://localhost:${SECOND_CHAIN_ID}`
     );
     ganacheProvider2.pollingInterval = 1;
@@ -1086,7 +1087,7 @@ describe.skip('8-sided multichain tests for signature vbridge', () => {
       ganacheProvider2
     );
 
-    let ganacheProvider3 = new ethers.providers.JsonRpcProvider(
+    let ganacheProvider3 = new JsonRpcProvider(
       `http://localhost:${THIRD_CHAIN_ID}`
     );
     ganacheProvider3.pollingInterval = 1;

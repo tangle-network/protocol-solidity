@@ -13,9 +13,9 @@ build/
 packages/contracts/typechain
 packages/*/node_modules
 packages/*/lib
-packages/*/compiled
+packages/*/dist
 packages/*/tsconfig.tsbuildinfo
-
+compiled
 solidity-fixtures
 
 # Hardhat files

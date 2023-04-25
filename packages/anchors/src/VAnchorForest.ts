@@ -18,8 +18,9 @@ import {
   min,
   toFixedHex,
 } from '@webb-tools/sdk-core';
+import { PayableOverrides } from '@ethersproject/contracts';
 import { poseidon_gencontract as poseidonContract } from 'circomlibjs';
-import { BigNumber, BigNumberish, PayableOverrides, ethers } from 'ethers';
+import { BigNumberish, ContractTransactionReceipt, ethers } from 'ethers';
 import { groth16 } from 'snarkjs';
 
 // import { MerkleTree } from "."
@@ -139,8 +140,8 @@ export class VAnchorForest extends WebbBridge {
     const createdVAnchor = new VAnchorForest(
       vAnchor,
       signer,
-      BigNumber.from(forestLevels).toNumber(),
-      BigNumber.from(subtreeLevels).toNumber(),
+      Number(forestLevels),
+      Number(subtreeLevels),
       maxEdges,
       smallCircuitZkComponents,
       largeCircuitZkComponents
@@ -164,17 +165,16 @@ export class VAnchorForest extends WebbBridge {
   ) {
     const encodeLibraryFactory = new VAnchorEncodeInputs__factory(signer);
     const encodeLibrary = await encodeLibraryFactory.deploy();
-    await encodeLibrary.deployed();
+
     const poseidonABI = poseidonContract.generateABI(2);
     const poseidonBytecode = poseidonContract.createCode(2);
 
     const PoseidonLibFactory = new ethers.ContractFactory(poseidonABI, poseidonBytecode, signer);
     const poseidonLib = await PoseidonLibFactory.deploy();
-    await poseidonLib.deployed();
 
     const LinkableIncrementalBinaryTree = new LinkableIncrementalBinaryTree__factory(
       {
-        ['contracts/hashers/Poseidon.sol:PoseidonT3']: poseidonLib.address,
+        ['contracts/hashers/Poseidon.sol:PoseidonT3']: await poseidonLib.getAddress(),
       },
       signer
     );
@@ -183,7 +183,7 @@ export class VAnchorForest extends WebbBridge {
     const factory = new VAnchorForest__factory(
       {
         ['contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs']: encodeLibrary.address,
-        ['contracts/hashers/Poseidon.sol:PoseidonT3']: poseidonLib.address,
+        ['contracts/hashers/Poseidon.sol:PoseidonT3']: await poseidonLib.getAddress(),
         ['contracts/trees/LinkableIncrementalBinaryTree.sol:LinkableIncrementalBinaryTree']:
           linkableIncrementalBinaryTree.address,
       },
@@ -203,8 +203,8 @@ export class VAnchorForest extends WebbBridge {
     const createdVAnchor = new VAnchorForest(
       vAnchor,
       signer,
-      BigNumber.from(forestLevels).toNumber(),
-      BigNumber.from(subtreeLevels).toNumber(),
+      Number(forestLevels),
+      Number(subtreeLevels),
       maxEdges,
       smallCircuitZkComponents,
       largeCircuitZkComponents
@@ -212,8 +212,8 @@ export class VAnchorForest extends WebbBridge {
     createdVAnchor.latestSyncedBlock = vAnchor.deployTransaction.blockNumber!;
     createdVAnchor.token = token;
     const tx = await createdVAnchor.contract.initialize(
-      BigNumber.from('1'),
-      BigNumber.from(2).pow(256).sub(1)
+      BigInt('1'),
+      BigInt(2) ^ BigInt(256) - BigInt(1)
     );
     await tx.wait();
     return createdVAnchor;
@@ -267,7 +267,7 @@ export class VAnchorForest extends WebbBridge {
     // this.latestSyncedBlock = currentBlockNumber;
   }
 
-  public async populateRootsForProof(): Promise<BigNumber[]> {
+  public async populateRootsForProof(): Promise<BigInt[]> {
     const neighborEdges = await this.contract.getLatestNeighborEdges();
     const neighborRootInfos = neighborEdges.map((rootData) => {
       return rootData.root;
@@ -283,13 +283,13 @@ export class VAnchorForest extends WebbBridge {
    */
   public getMerkleProof(
     input: Utxo,
-    treeLeavesMap?: Uint8Array[],
-    forestLeavesMap?: Uint8Array[]
+    treeLeavesMap?: BigNumberish[],
+    forestLeavesMap?: BigNumberish[]
   ): any {
     let inputSubtreePathIndices: number[];
-    let inputSubtreePathElements: BigNumber[];
+    let inputSubtreePathElements: BigInt[];
     let inputForestPathIndices: number[];
-    let inputForestPathElements: BigNumber[];
+    let inputForestPathElements: BigInt[];
 
     if (Number(input.amount) > 0) {
       if (input.index === undefined) {
@@ -303,9 +303,9 @@ export class VAnchorForest extends WebbBridge {
         const idx = this.forest.indexOf(subtreePath.merkleRoot.toString());
         const forestPath = this.forest.path(idx);
         inputSubtreePathIndices = subtreePath.pathIndices;
-        inputSubtreePathElements = subtreePath.pathElements;
+        inputSubtreePathElements = subtreePath.pathElements.map((elt) => BigInt(elt));
         inputForestPathIndices = forestPath.pathIndices;
-        inputForestPathElements = forestPath.pathElements;
+        inputForestPathElements = forestPath.pathElements.map((elt) => BigInt(elt));
       } else {
         const subTree = new MerkleTree(this.treeHeight, treeLeavesMap);
         const subtreePath = subTree.path(input.index);
@@ -315,9 +315,9 @@ export class VAnchorForest extends WebbBridge {
 
         const forestPath = forest.path(idx);
         inputSubtreePathIndices = subtreePath.pathIndices;
-        inputSubtreePathElements = subtreePath.pathElements;
+        inputSubtreePathElements = subtreePath.pathElements.map((elt) => BigInt(elt));
         inputForestPathIndices = forestPath.pathIndices;
-        inputForestPathElements = forestPath.pathElements;
+        inputForestPathElements = forestPath.pathElements.map((elt) => BigInt(elt));
       }
     } else {
       inputSubtreePathIndices = new Array(this.tree.levels).fill(0);
@@ -327,7 +327,7 @@ export class VAnchorForest extends WebbBridge {
     }
 
     return {
-      element: BigNumber.from(u8aToHex(input.commitment)),
+      element: BigInt(u8aToHex(input.commitment)),
       pathElements: inputSubtreePathElements,
       pathIndices: inputSubtreePathIndices,
       forestPathElements: inputForestPathElements,
@@ -412,10 +412,10 @@ export class VAnchorForest extends WebbBridge {
     inputs: Utxo[],
     outputs: Utxo[],
     chainId: number,
-    extAmount: BigNumber,
-    fee: BigNumber,
-    extDataHash: BigNumber,
-    leavesMap: Record<string, Uint8Array[]>, // subtree leaves
+    extAmount: BigNumberish,
+    fee: BigNumberish,
+    extDataHash: BigNumberish,
+    leavesMap: Record<string, BigNumberish[]>, // subtree leaves
     txOptions: TransactionOptions
   ): Promise<any> {
     const vanchorRoots = await this.populateRootsForProof();
@@ -429,8 +429,8 @@ export class VAnchorForest extends WebbBridge {
           'Need to specify chainId on txOptions in order to generate merkleProof correctly'
         );
       }
-      const treeElements: Uint8Array[] = leavesMap[treeChainId];
-      const forestElements: Uint8Array[] | undefined = txOptions.externalLeaves;
+      const treeElements: BigNumberish[] = leavesMap[treeChainId];
+      const forestElements: BigNumberish[] | undefined = txOptions.externalLeaves;
       if (forestElements === undefined) {
         throw new Error(
           'Need to specify forestElements on txOptions in order to generate merkleProof correctly'
@@ -439,13 +439,13 @@ export class VAnchorForest extends WebbBridge {
       vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x, treeElements, forestElements));
     }
     const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
-      vanchorRoots.map((root) => BigNumber.from(root)),
+      vanchorRoots.map((root) => root.toString()),
       chainId,
       inputs,
       outputs,
       extAmount,
       fee,
-      BigNumber.from(extDataHash),
+      BigInt(extDataHash),
       vanchorMerkleProof
     );
     const indices = vanchorMerkleProof.map((proof: any) => proof.forestPathIndices);
@@ -487,13 +487,13 @@ export class VAnchorForest extends WebbBridge {
 
   public async updateTreeOrForestState(outputs: Utxo[]): Promise<void> {
     outputs.forEach((x) => {
-      const commitment = BigNumber.from(u8aToHex(x.commitment));
-      this.tree.insert(commitment.toHexString());
+      const commitment = BigInt(u8aToHex(x.commitment));
+      this.tree.insert(commitment.toString(16));
       let numOfElements = this.tree.number_of_elements();
       this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
     });
     const curIdx = await this.contract.currSubtreeIndex();
-    this.forest.update(curIdx, this.tree.root().toHexString());
+    this.forest.update(curIdx, this.tree.root().toString(16));
   }
 
   /**
@@ -509,7 +509,7 @@ export class VAnchorForest extends WebbBridge {
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>,
+    leavesMap: Record<string, BigNumberish[]>,
     txOptions: TransactionOptions
   ): Promise<SetupTransactionResult> {
     if (wrapUnwrapToken.length === 0) {
@@ -519,7 +519,8 @@ export class VAnchorForest extends WebbBridge {
 
       wrapUnwrapToken = this.token;
     }
-    const chainId = getChainIdType(await this.signer.getChainId());
+    const chainIdBigInt = (await this.signer.provider!.getNetwork()).chainId;
+    const chainId = getChainIdType(Number(chainIdBigInt));
     let extAmount = this.getExtAmount(inputs, outputs, fee);
 
     // calculate the sum of input notes (for calculating the public amount)
@@ -529,7 +530,7 @@ export class VAnchorForest extends WebbBridge {
     let leafIds: LeafIdentifier[] = [];
 
     for (const inputUtxo of inputs) {
-      sumInputUtxosAmount = BigNumber.from(sumInputUtxosAmount).add(inputUtxo.amount);
+      sumInputUtxosAmount = BigInt(sumInputUtxosAmount) + BigInt(inputUtxo.amount);
       leafIds.push({
         index: inputUtxo.index!, // TODO: remove non-null assertion here
         typedChainId: Number(inputUtxo.originChainId),
@@ -537,10 +538,10 @@ export class VAnchorForest extends WebbBridge {
     }
     const { extData, extDataHash } = await this.generateExtData(
       recipient,
-      BigNumber.from(extAmount),
+      BigInt(extAmount),
       relayer,
-      BigNumber.from(fee),
-      BigNumber.from(refund),
+      BigInt(fee),
+      BigInt(refund),
       wrapUnwrapToken,
       outputs[0].encrypt(),
       outputs[1].encrypt()
@@ -549,9 +550,9 @@ export class VAnchorForest extends WebbBridge {
       inputs,
       outputs,
       chainId,
-      BigNumber.from(extAmount),
-      BigNumber.from(fee),
-      extDataHash,
+      BigInt(extAmount),
+      BigInt(fee),
+      extDataHash.toString(),
       leavesMap,
       txOptions
     );
@@ -586,9 +587,9 @@ export class VAnchorForest extends WebbBridge {
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>,
-    overridesTransaction?: OverridesWithFrom<PayableOverrides> & TransactionOptions
-  ): Promise<ethers.ContractReceipt> {
+    leavesMap: Record<string, BigNumberish[]>,
+    overridesTransaction?: PayableOverrides & TransactionOptions
+  ): Promise<ContractTransactionReceipt> {
     const [overrides, txOptions] = splitTransactionOptions(overridesTransaction);
 
     // Default UTXO chain ID will match with the configured signer's chain ID
@@ -608,8 +609,8 @@ export class VAnchorForest extends WebbBridge {
     );
 
     let options = await this.getWrapUnwrapOptions(
-      extAmount,
-      BigNumber.from(refund),
+      BigInt(extAmount),
+      BigInt(refund),
       wrapUnwrapToken
     );
 
@@ -630,8 +631,8 @@ export class VAnchorForest extends WebbBridge {
         extensionRoots: [],
         inputNullifiers: publicInputs.inputNullifiers,
         outputCommitments: [
-          BigNumber.from(publicInputs.outputCommitments[0]),
-          BigNumber.from(publicInputs.outputCommitments[1]),
+          BigInt(publicInputs.outputCommitments[0]),
+          BigInt(publicInputs.outputCommitments[1]),
         ],
         publicAmount: publicInputs.publicAmount,
         extDataHash: publicInputs.extDataHash,

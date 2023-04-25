@@ -1,0 +1,1 @@
+export { IdentityVAnchor } from './IdentityVAnchor';

@@ -20,7 +20,6 @@ import {
 } from '@webb-tools/tokens';
 import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { CircomUtxo, Keypair } from '@webb-tools/sdk-core';
-import { BigNumber } from 'ethers';
 import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
 
 describe('SignatureBridgeSide use', () => {
@@ -92,7 +91,7 @@ describe('SignatureBridgeSide use', () => {
       zkComponents16_2,
       admin
     );
-    await tokenInstance.approveSpending(anchor.contract.address, BigNumber.from(1e7));
+    await tokenInstance.approveSpending(anchor.contract.address, BigInt(1e7));
     bridgeSide.setAnchorHandler(anchorHandler);
     // Function call below sets resource with signature
     await bridgeSide.connectAnchorWithSignature(anchor);
@@ -128,25 +127,25 @@ describe('SignatureBridgeSide use', () => {
       admin
     );
 
-    await tokenInstance.approveSpending(srcAnchor.contract.address, BigNumber.from(1e7));
+    await tokenInstance.approveSpending(srcAnchor.contract.address, BigInt(1e7));
 
     bridgeSide.setAnchorHandler(anchorHandler);
     const res = await bridgeSide.connectAnchorWithSignature(srcAnchor);
 
     await bridgeSide.executeMinWithdrawalLimitProposalWithSig(
       srcAnchor,
-      BigNumber.from(0).toString()
+      BigInt(0).toString()
     );
     await bridgeSide.executeMaxDepositLimitProposalWithSig(
       srcAnchor,
-      BigNumber.from(1e8).toString()
+      BigInt(1e8).toString()
     );
 
     // Define inputs/outputs for transact function
     const depositUtxo = await CircomUtxo.generateUtxo({
       curve: 'Bn254',
       backend: 'Circom',
-      amount: BigNumber.from(1e7).toString(),
+      amount: BigInt(1e7).toString(),
       originChainId: chainID1.toString(),
       chainId: chainID1.toString(),
       keypair: new Keypair(),
@@ -450,7 +449,7 @@ describe('SignatureBridgeSide use', () => {
       admin
     );
 
-    await tokenInstance.approveSpending(anchor.contract.address, BigNumber.from(1e7));
+    await tokenInstance.approveSpending(anchor.contract.address, BigInt(1e7));
 
     await bridgeSide.setAnchorHandler(anchorHandler);
     // Function call below sets resource with signature

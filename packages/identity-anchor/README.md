@@ -1,8 +1,8 @@
-<h1 align="center">Webb Interfaces</h1>
+<h1 align="center">Webb Identity Anchors</h1>
 
-Interfaces for various classes and types.
-
-## License 
+Wrapper classes and utilities for deploying and interacting with zero-knowledge Identity Anchors in solidity.
+ 
+## License
 
 <sup>
 Licensed under <a href="LICENSE">Apache 2.0 / MIT license</a>.

@@ -5,9 +5,9 @@
 
 pragma solidity ^0.8.5;
 
-import "../instances/VAnchorTree.sol";
-import "../../libs/IdentityVAnchorEncodeInputs.sol";
-import "../../interfaces/anchors/ISemaphoreGroups.sol";
+import "@webb-tools/protocol-solidity/vanchors/instances/VAnchorTree.sol";
+import "./IdentityVAnchorEncodeInputs.sol";
+import "./ISemaphoreGroups.sol";
 
 /**
 	@title Identity VAnchor contract

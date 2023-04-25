@@ -4,8 +4,7 @@
  */
 
 const { expect } = require('chai');
-import { MerkleTree, toFixedHex, toBuffer, randomBN } from '@webb-tools/sdk-core';
-import { BigNumber } from 'ethers';
+import { MerkleTree, toFixedHex, randomBN } from '@webb-tools/sdk-core';
 import { contract, ethers } from 'hardhat';
 import { PoseidonHasher } from '@webb-tools/anchors';
 import { BatchTreeUpdaterMock as BatchTreeUpdater } from './mocks/BatchTreeUpdaterMock';
@@ -16,7 +15,7 @@ import {
   VerifierBatch16__factory,
   VerifierBatch32__factory,
   BatchTreeVerifierSelector__factory,
-} from '../../compiled';
+} from '../../dist';
 import path from 'path';
 const snarkjs = require('snarkjs');
 

@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-import "../../structs/Edge.sol";
+import "@webb-tools/protocol-solidity/structs/Edge.sol";
 
 /// @title SemaphoreGroups interface.
 /// @dev Interface of a SemaphoreGroups contract.

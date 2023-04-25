@@ -3,7 +3,6 @@ export { BatchTreeUpdater } from './BatchTreeUpdater';
 export { ChainalysisVAnchor } from './extensions/ChainalysisVAnchor';
 export { RateLimitedVAnchor } from './extensions/RateLimitedVAnchor';
 export { Deployer } from './Deployer';
-export { IdentityVAnchor } from './IdentityVAnchor';
 export { OpenVAnchor } from './OpenVAnchor';
 export { PoseidonHasher } from './PoseidonHasher';
 export { VAnchor } from './VAnchor';

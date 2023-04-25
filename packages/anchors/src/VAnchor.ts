@@ -24,7 +24,8 @@ import {
   toFixedHex,
 } from '@webb-tools/sdk-core';
 import { ZERO_BYTES32, ZkComponents, getChainIdType, hexToU8a, u8aToHex } from '@webb-tools/utils';
-import { BigNumber, BigNumberish, BytesLike, Overrides, PayableOverrides, ethers } from 'ethers';
+import { BigNumberish, BytesLike, ContractTransactionReceipt, Overrides, ethers } from 'ethers';
+import { PayableOverrides } from '@ethersproject/contracts';
 import { WebbBridge } from './Common';
 import { Deployer } from './Deployer';
 import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
@@ -101,7 +102,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     const createdVAnchor = new VAnchor(
       vanchor,
       signer,
-      BigNumber.from(levels).toNumber(),
+      Number(levels),
       maxEdges,
       smallCircuitZkComponents,
       largeCircuitZkComponents
@@ -135,7 +136,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     const createdVAnchor = new VAnchor(
       vAnchor,
       signer,
-      BigNumber.from(levels).toNumber(),
+      Number(levels),
       maxEdges,
       smallCircuitZkComponents,
       largeCircuitZkComponents
@@ -143,8 +144,8 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     createdVAnchor.latestSyncedBlock = vAnchor.deployTransaction.blockNumber!;
     createdVAnchor.token = token;
     const tx = await createdVAnchor.contract.initialize(
-      BigNumber.from('1'),
-      BigNumber.from(2).pow(256).sub(1)
+      BigInt('1'),
+      BigInt('2') ^ BigInt('256') - BigInt('1')
     );
     await tx.wait();
     return createdVAnchor;
@@ -196,7 +197,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     // this.latestSyncedBlock = currentBlockNumber;
   }
 
-  public async populateRootsForProof(): Promise<BigNumber[]> {
+  public async populateRootsForProof(): Promise<BigInt[]> {
     const neighborEdges = await this.contract.getLatestNeighborEdges();
     const neighborRootInfos = neighborEdges.map((rootData) => {
       return rootData.root;
@@ -210,9 +211,9 @@ export class VAnchor extends WebbBridge implements IVAnchor {
    * @param input A UTXO object that is inside the tree
    * @returns
    */
-  public getMerkleProof(input: Utxo, leavesMap?: Uint8Array[]): MerkleProof {
+  public getMerkleProof(input: Utxo, leavesMap?: BigNumberish[]): MerkleProof {
     let inputMerklePathIndices: number[];
-    let inputMerklePathElements: BigNumber[];
+    let inputMerklePathElements: BigNumberish[];
 
     if (Number(input.amount) > 0) {
       if (input.index === undefined) {
@@ -237,7 +238,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     }
 
     return {
-      element: BigNumber.from(u8aToHex(input.commitment)),
+      element: BigInt(u8aToHex(input.commitment)),
       pathElements: inputMerklePathElements,
       pathIndices: inputMerklePathIndices,
       merkleRoot: this.tree.root(),
@@ -246,24 +247,24 @@ export class VAnchor extends WebbBridge implements IVAnchor {
 
   public generatePublicInputs(
     proof: any,
-    roots: BigNumber[],
+    roots: BigInt[],
     inputs: Utxo[],
     outputs: Utxo[],
     publicAmount: BigNumberish,
-    extDataHash: BigNumber
+    extDataHash: BigInt
   ): IVariableAnchorPublicInputs {
     // public inputs to the contract
     const args: IVariableAnchorPublicInputs = {
       proof: `0x${proof}`,
-      roots: `0x${roots.map((x) => toFixedHex(x).slice(2)).join('')}`,
+      roots: `0x${roots.map((x) => toFixedHex(x.toString()).slice(2)).join('')}`,
       extensionRoots: '0x',
-      inputNullifiers: inputs.map((x) => BigNumber.from(toFixedHex('0x' + x.nullifier))),
+      inputNullifiers: inputs.map((x) => BigInt(toFixedHex('0x' + x.nullifier))),
       outputCommitments: [
-        BigNumber.from(toFixedHex(u8aToHex(outputs[0].commitment))),
-        BigNumber.from(toFixedHex(u8aToHex(outputs[1].commitment))),
+        BigInt(toFixedHex(u8aToHex(outputs[0].commitment))),
+        BigInt(toFixedHex(u8aToHex(outputs[1].commitment))),
       ],
       publicAmount: toFixedHex(publicAmount),
-      extDataHash,
+      extDataHash: extDataHash.toString(),
     };
 
     return args;
@@ -332,7 +333,8 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     if (outputs.length !== 2) {
       throw new Error('Only two outputs are supported');
     }
-    const chainId = getChainIdType(await this.signer.getChainId());
+    const chainIdBigInt = (await this.signer.provider?.getNetwork())?.chainId;
+    const chainId = getChainIdType(Number(chainIdBigInt));
     const roots = await this.populateRootsForProof();
     let extAmount = this.getExtAmount(inputs, outputs, fee);
 
@@ -343,7 +345,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     let leafIds: LeafIdentifier[] = [];
 
     for (const inputUtxo of inputs) {
-      sumInputUtxosAmount = BigNumber.from(sumInputUtxosAmount).add(inputUtxo.amount);
+      sumInputUtxosAmount = BigInt(sumInputUtxosAmount) + BigInt(inputUtxo.amount);
       leafIds.push({
         index: inputUtxo.index!, // TODO: remove non-null assertion here
         typedChainId: Number(inputUtxo.originChainId),
@@ -359,18 +361,18 @@ export class VAnchor extends WebbBridge implements IVAnchor {
       inputUtxos: inputs,
       leavesMap,
       leafIds,
-      roots: roots.map((root) => hexToU8a(root.toHexString())),
+      roots: roots.map((root) => hexToU8a(root.toString(16))),
       chainId: chainId.toString(),
       output: [outputs[0], outputs[1]],
       encryptedCommitments,
-      publicAmount: BigNumber.from(extAmount).sub(fee).add(FIELD_SIZE).mod(FIELD_SIZE).toString(),
+      publicAmount: (BigInt(extAmount) - BigInt(fee) + BigInt(FIELD_SIZE) % BigInt(FIELD_SIZE)).toString(),
       provingKey:
         inputs.length > 2 ? this.largeCircuitZkComponents.zkey : this.smallCircuitZkComponents.zkey,
       relayer: hexToU8a(relayer),
       recipient: hexToU8a(recipient),
-      extAmount: toFixedHex(BigNumber.from(extAmount)),
-      fee: BigNumber.from(fee).toString(),
-      refund: BigNumber.from(refund).toString(),
+      extAmount: toFixedHex(BigInt(extAmount)),
+      fee: BigInt(fee).toString(),
+      refund: BigInt(refund).toString(),
       token: hexToU8a(wrapUnwrapToken),
     };
 
@@ -394,16 +396,16 @@ export class VAnchor extends WebbBridge implements IVAnchor {
       inputs,
       outputs,
       proofInput.publicAmount,
-      BigNumber.from(u8aToHex(proof.extDataHash))
+      BigInt(u8aToHex(proof.extDataHash))
     );
 
     const extData: IVariableAnchorExtData = {
-      recipient: toFixedHex(proofInput.recipient, 20),
+      recipient: toFixedHex(proofInput.recipient.toString(), 20),
       extAmount: toFixedHex(proofInput.extAmount),
-      relayer: toFixedHex(proofInput.relayer, 20),
+      relayer: toFixedHex(proofInput.relayer.toString(), 20),
       fee: toFixedHex(proofInput.fee),
       refund: toFixedHex(proofInput.refund),
-      token: toFixedHex(proofInput.token, 20),
+      token: toFixedHex(proofInput.token.toString(), 20),
       encryptedOutput1: u8aToHex(proofInput.encryptedCommitments[0]),
       encryptedOutput2: u8aToHex(proofInput.encryptedCommitments[1]),
     };
@@ -440,13 +442,14 @@ export class VAnchor extends WebbBridge implements IVAnchor {
       hexToU8a(outputs[0].encrypt()),
       hexToU8a(outputs[1].encrypt()),
     ];
-    const chainId = getChainIdType(await this.signer.getChainId());
+    const chainIdBigInt = (await this.signer.provider?.getNetwork())?.chainId;
+    const chainId = getChainIdType(Number(chainIdBigInt));
 
     let sumInputUtxosAmount: BigNumberish = 0;
     let leafIds: LeafIdentifier[] = [];
 
     for (const inputUtxo of inputs) {
-      sumInputUtxosAmount = BigNumber.from(sumInputUtxosAmount).add(inputUtxo.amount);
+      sumInputUtxosAmount = BigInt(sumInputUtxosAmount) + BigInt(inputUtxo.amount);
       leafIds.push({
         index: inputUtxo.index!, // TODO: remove non-null assertion here
         typedChainId: Number(inputUtxo.originChainId),
@@ -461,14 +464,14 @@ export class VAnchor extends WebbBridge implements IVAnchor {
       chainId: chainId.toString(),
       output: [outputs[0], outputs[1]],
       encryptedCommitments,
-      publicAmount: BigNumber.from(extAmount).sub(fee).add(FIELD_SIZE).mod(FIELD_SIZE).toString(),
+      publicAmount: (BigInt(extAmount) - BigInt(fee) + BigInt(FIELD_SIZE) % BigInt(FIELD_SIZE)).toString(),
       provingKey:
         inputs.length > 2 ? this.largeCircuitZkComponents.zkey : this.smallCircuitZkComponents.zkey,
       relayer: hexToU8a(relayer),
       recipient: hexToU8a(recipient),
-      extAmount: toFixedHex(BigNumber.from(extAmount)),
-      fee: BigNumber.from(fee).toString(),
-      refund: BigNumber.from(refund).toString(),
+      extAmount: toFixedHex(BigInt(extAmount)),
+      fee: BigInt(fee).toString(),
+      refund: BigInt(refund).toString(),
       token: hexToU8a(tokenAddress),
     };
 
@@ -492,7 +495,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     owner: string,
     keyData: BytesLike,
     overridesTransaction?: OverridesWithFrom<Overrides>
-  ): Promise<ethers.ContractReceipt> {
+  ): Promise<ContractTransactionReceipt> {
     const tx = await this.contract.register(
       {
         owner,
@@ -516,8 +519,8 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     relayer: string,
     wrapUnwrapToken: string,
     leavesMap: Record<string, Uint8Array[]>,
-    overridesTransaction?: OverridesWithFrom<PayableOverrides>
-  ): Promise<ethers.ContractReceipt> {
+    overridesTransaction?: PayableOverrides
+  ): Promise<ContractTransactionReceipt> {
     inputs = await this.padUtxos(inputs, 16);
     outputs = await this.padUtxos(outputs, 2);
 
@@ -533,8 +536,8 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     );
 
     let options = await this.getWrapUnwrapOptions(
-      extAmount,
-      BigNumber.from(refund),
+      BigInt(extAmount),
+      BigInt(refund),
       wrapUnwrapToken
     );
 
@@ -555,8 +558,8 @@ export class VAnchor extends WebbBridge implements IVAnchor {
         extensionRoots: [],
         inputNullifiers: publicInputs.inputNullifiers,
         outputCommitments: [
-          BigNumber.from(publicInputs.outputCommitments[0]),
-          BigNumber.from(publicInputs.outputCommitments[1]),
+          BigInt(publicInputs.outputCommitments[0]),
+          BigInt(publicInputs.outputCommitments[1]),
         ],
         publicAmount: publicInputs.publicAmount,
         extDataHash: publicInputs.extDataHash,
@@ -634,13 +637,13 @@ export class VAnchor extends WebbBridge implements IVAnchor {
 
   async hasEnoughBalance(depositAmount: BigNumberish, tokenAddress?: string) {
     const userAddress = await this.signer.getAddress();
-    let tokenBalance: BigNumber;
+    let tokenBalance: BigInt;
 
     // If a token address was supplied, the user is querying for enough balance of a wrappableToken
     if (tokenAddress) {
       // query for native balance
       if (tokenAddress === zeroAddress) {
-        tokenBalance = await this.signer.getBalance();
+        tokenBalance = await this.signer.provider!.getBalance(await this.signer.getAddress());
       } else {
         const tokenInstance = ERC20__factory.connect(tokenAddress, this.signer);
 
@@ -653,7 +656,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
       tokenBalance = await tokenInstance.balanceOf(userAddress);
     }
 
-    if (tokenBalance.lt(BigNumber.from(depositAmount))) {
+    if (BigInt(tokenBalance.toString()) < BigInt(depositAmount)) {
       return false;
     }
 
@@ -705,7 +708,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
 
     const newCommitments = events
       .sort((a, b) => a.args.index - b.args.index) // Sort events in chronological order
-      .map((e) => toFixedHex(BigNumber.from(e.args.commitment).toHexString()));
+      .map((e) => toFixedHex(BigInt(e.args.commitment).toString(16)));
     return {
       lastQueriedBlock: finalBlock,
       newLeaves: newCommitments,

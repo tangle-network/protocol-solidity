@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 /* eslint-disable sort-keys */
-import { BigNumber, ethers } from 'ethers';
+import { AbiCoder, BigNumberish, ethers, keccak256 } from 'ethers';
 import { groth16 } from 'snarkjs';
 
 import path from 'path';
@@ -11,7 +11,7 @@ import { toFixedHex, Keypair, MerkleProof } from '@webb-tools/sdk-core';
 export const ZERO_BYTES32 = '0x0000000000000000000000000000000000000000000000000000000000000000';
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
-export const FIELD_SIZE = BigNumber.from(
+export const FIELD_SIZE = BigInt(
   '21888242871839275222246405745257275088548364400416034343698204186575808495617'
 );
 
@@ -27,8 +27,8 @@ export type UTXOInputs = {
   inAmount: string[];
   inPrivateKey: string[];
   inBlinding: string[];
-  inPathIndices: number[][];
-  inPathElements: number[][];
+  inPathIndices: bigint[][];
+  inPathElements: bigint[][];
 
   // data for 2 transaction outputs
   outChainID: string;
@@ -78,7 +78,7 @@ export function getIdentityVAnchorExtDataHash(
   refund: string,
   token: string
 ) {
-  const abi = new ethers.utils.AbiCoder();
+  const abi = new AbiCoder();
   const encodedData = abi.encode(
     [
       'tuple(address recipient,int256 extAmount,address relayer,uint256 fee,uint256 refund,address token,bytes encryptedOutput1,bytes encryptedOutput2)',
@@ -97,9 +97,9 @@ export function getIdentityVAnchorExtDataHash(
     ]
   );
 
-  const hash = ethers.utils.keccak256(encodedData);
+  const hash = keccak256(encodedData);
 
-  return BigNumber.from(hash).mod(FIELD_SIZE);
+  return BigInt(hash) % FIELD_SIZE;
 }
 export default function verifyProof(
   verificationKey: any,
@@ -131,7 +131,7 @@ export async function generateProof(
     privateKey: keypair.privkey.toString(),
     semaphoreTreePathIndices: identityMerkleProof.pathIndices,
     semaphoreTreeSiblings: identityMerkleProof.pathElements.map((x) =>
-      BigNumber.from(x).toString()
+      BigInt(x.toString()).toString()
     ),
     semaphoreRoots: identityRoots,
     chainID: vanchor_inputs.chainID,
@@ -152,10 +152,10 @@ export async function generateProof(
     outAmount: vanchor_inputs.outAmount,
     outPubkey: vanchor_inputs.outPubkey,
     outSemaphoreTreePathIndices: outSemaphoreProofs.map((proof) =>
-      proof.pathIndices.map((idx) => BigNumber.from(idx).toString())
+      proof.pathIndices.map((idx) => BigInt(idx.toString()).toString())
     ),
     outSemaphoreTreeElements: outSemaphoreProofs.map((proof) =>
-      proof.pathElements.map((elem) => BigNumber.from(elem).toString())
+      proof.pathElements.map((elem) => BigInt(elem.toString()).toString())
     ),
     outBlinding: vanchor_inputs.outBlinding,
     vanchorRoots: vanchor_inputs.roots,

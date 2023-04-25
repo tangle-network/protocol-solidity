@@ -1,8 +1,8 @@
-import { BigNumber, BigNumberish, PayableOverrides, ethers } from 'ethers';
+import { BigNumberish, ContractTransactionReceipt, ethers, keccak256, toUtf8Bytes } from 'ethers';
+import { PayableOverrides } from '@ethersproject/contracts';
 import {
   VAnchor as VAnchorContract,
   ChainalysisVAnchor as ChainalysisVAnchorContract,
-  IdentityVAnchor as IdentityVAnchorContract,
   VAnchorForest as VAnchorForestContract,
   OpenVAnchor as OpenVAnchorContract,
   TokenWrapper__factory,
@@ -26,7 +26,6 @@ import { IVariableAnchorExtData } from '@webb-tools/interfaces';
 type WebbContracts =
   | VAnchorContract
   | ChainalysisVAnchorContract
-  | IdentityVAnchorContract
   | VAnchorForestContract
   | OpenVAnchorContract;
 
@@ -91,14 +90,14 @@ export abstract class WebbBridge {
   public async setHandler(handlerAddress: string) {
     const tx = await this.contract.setHandler(
       handlerAddress,
-      BigNumber.from(await this.contract.getProposalNonce()).add(1)
+      BigInt(await this.contract.getProposalNonce()) + BigInt(1)
     );
     await tx.wait();
   }
 
   public async setSigner(newSigner: ethers.Signer) {
-    const currentChainId = await this.signer.getChainId();
-    const newChainId = await newSigner.getChainId();
+    const currentChainId = (await this.signer.provider!.getNetwork()).chainId;
+    const newChainId = (await newSigner.provider!.getNetwork()).chainId;
 
     if (currentChainId === newChainId) {
       this.signer = newSigner;
@@ -109,8 +108,9 @@ export abstract class WebbBridge {
   }
 
   public async createResourceId(): Promise<string> {
+    const chainId = (await this.signer.provider!.getNetwork()).chainId;
     return toHex(
-      this.contract.address + toHex(getChainIdType(await this.signer.getChainId()), 6).substr(2),
+      this.contract.address + toHex(getChainIdType(Number(chainId)), 6).substr(2),
       32
     );
   }
@@ -119,8 +119,9 @@ export abstract class WebbBridge {
     _minimalWithdrawalAmount: string
   ): Promise<string> {
     const resourceID = await this.createResourceId();
-    const functionSig = ethers.utils
-      .keccak256(ethers.utils.toUtf8Bytes('configureMinimalWithdrawalLimit(uint256,uint32)'))
+    const functionSig = keccak256(
+        toUtf8Bytes('configureMinimalWithdrawalLimit(uint256,uint32)')
+      )
       .slice(0, 10)
       .padEnd(10, '0');
     const nonce = Number(await this.contract.getProposalNonce()) + 1;
@@ -135,8 +136,9 @@ export abstract class WebbBridge {
 
   public async getMaxDepositLimitProposalData(_maximumDepositAmount: string): Promise<string> {
     const resourceID = await this.createResourceId();
-    const functionSig = ethers.utils
-      .keccak256(ethers.utils.toUtf8Bytes('configureMaximumDepositLimit(uint256,uint32)'))
+    const functionSig = keccak256(
+        toUtf8Bytes('configureMaximumDepositLimit(uint256,uint32)')
+      )
       .slice(0, 10)
       .padEnd(10, '0');
     const nonce = Number(await this.contract.getProposalNonce()) + 1;
@@ -169,9 +171,11 @@ export abstract class WebbBridge {
     leafIndex: number
   ): Promise<string> {
     // If no leaf index passed in, set it to the most recent one.
-    const chainID = getChainIdType(await this.signer.getChainId());
-    const functionSig = ethers.utils
-      .keccak256(ethers.utils.toUtf8Bytes('updateEdge(uint256,uint32,bytes32)'))
+    const chainIdBigInt = (await this.signer.provider!.getNetwork()).chainId;
+    const chainID = getChainIdType(Number(chainIdBigInt));
+    const functionSig = keccak256(
+        toUtf8Bytes('updateEdge(uint256,uint32,bytes32)')
+      )
       .slice(0, 10)
       .padEnd(10, '0');
 
@@ -192,31 +196,31 @@ export abstract class WebbBridge {
   }
 
   public getExtAmount(inputs: Utxo[], outputs: Utxo[], fee: BigNumberish) {
-    return BigNumber.from(fee)
-      .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
-      .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
+    return BigInt(fee)
+      + outputs.reduce((sum, x) => sum + BigInt(x.amount), BigInt(0))
+      - inputs.reduce((sum, x) => sum + BigInt(x.amount), BigInt(0));
   }
 
   public async getWrapUnwrapOptions(
-    extAmount: BigNumber,
-    refund: BigNumber,
+    extAmount: BigInt,
+    refund: BigInt,
     wrapUnwrapToken: string
   ) {
     let options = {};
-    if (extAmount.gt(0) && checkNativeAddress(wrapUnwrapToken)) {
+    if (BigInt(extAmount.toString()) > BigInt(0) && checkNativeAddress(wrapUnwrapToken)) {
       let tokenWrapper = TokenWrapper__factory.connect(await this.contract.token(), this.signer);
       let valueToSend = await tokenWrapper.getAmountToWrap(extAmount);
 
       options = {
-        value: valueToSend.toHexString(),
+        value: valueToSend.toString(16),
       };
-    } else if (extAmount.lt(0)) {
+    } else if (BigInt(extAmount.toString()) < BigInt(0)) {
       options = {
-        value: refund.toHexString(),
+        value: refund.toString(16),
       };
     }
 
-    if (refund.gt(0) && extAmount.gte(0)) {
+    if (BigInt(refund.toString()) > BigInt(0) && BigInt(extAmount.toString()) >= BigInt(0)) {
       throw new Error('Refund should be zero');
     }
     return options;
@@ -245,8 +249,8 @@ export abstract class WebbBridge {
   }
 
   public async padUtxos(utxos: Utxo[], maxLen: number): Promise<Utxo[]> {
-    const evmId = await this.signer.getChainId();
-    const chainId = getChainIdType(evmId);
+    const evmId = (await this.signer.provider!.getNetwork()).chainId;
+    const chainId = getChainIdType(Number(evmId));
     const randomKeypair = new Keypair();
 
     while (utxos.length !== 2 && utxos.length < maxLen) {
@@ -257,7 +261,7 @@ export abstract class WebbBridge {
           chainId: chainId.toString(),
           originChainId: chainId.toString(),
           amount: '0',
-          blinding: hexToU8a(randomBN(31).toHexString()),
+          blinding: hexToU8a(randomBN(31).toString(16)),
           keypair: randomKeypair,
         })
       );
@@ -285,8 +289,9 @@ export abstract class WebbBridge {
 
   public async getHandlerProposalData(newHandler: string): Promise<string> {
     const resourceID = await this.createResourceId();
-    const functionSig = ethers.utils
-      .keccak256(ethers.utils.toUtf8Bytes('setHandler(address,uint32)'))
+    const functionSig = keccak256(
+        toUtf8Bytes('setHandler(address,uint32)')
+      )
       .slice(0, 10)
       .padEnd(10, '0');
     const nonce = Number(await this.contract.getProposalNonce()) + 1;
@@ -305,19 +310,19 @@ export abstract class WebbBridge {
 
   public async generateExtData(
     recipient: string,
-    extAmount: BigNumber,
+    extAmount: BigInt,
     relayer: string,
-    fee: BigNumber,
-    refund: BigNumber,
+    fee: BigInt,
+    refund: BigInt,
     wrapUnwrapToken: string,
     encryptedOutput1: string,
     encryptedOutput2: string
-  ): Promise<{ extData: IVariableAnchorExtData; extDataHash: BigNumber }> {
+  ): Promise<{ extData: IVariableAnchorExtData; extDataHash: BigInt }> {
     const extData = {
       recipient: toFixedHex(recipient, 20),
-      extAmount: toFixedHex(extAmount),
+      extAmount: toFixedHex(extAmount.toString()),
       relayer: toFixedHex(relayer, 20),
-      fee: toFixedHex(fee),
+      fee: toFixedHex(fee.toString()),
       refund: toFixedHex(refund.toString()),
       token: toFixedHex(wrapUnwrapToken, 20),
       encryptedOutput1,
@@ -328,7 +333,7 @@ export abstract class WebbBridge {
       encryptedOutput1,
       encryptedOutput2,
       extAmount.toString(),
-      BigNumber.from(fee).toString(),
+      fee.toString(),
       recipient,
       relayer,
       refund.toString(),
@@ -371,7 +376,7 @@ export abstract class WebbBridge {
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>,
+    leavesMap: Record<string, BigNumberish[]>,
     txOptions?: TransactionOptions
   ): Promise<SetupTransactionResult>;
 
@@ -385,9 +390,9 @@ export abstract class WebbBridge {
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, Uint8Array[]>, // subtree
-    overridesTransaction?: OverridesWithFrom<PayableOverrides> & TransactionOptions
-  ): Promise<ethers.ContractReceipt> {
+    leavesMap: Record<string, BigNumberish[]>, // subtree
+    overridesTransaction?: PayableOverrides & TransactionOptions
+  ): Promise<ContractTransactionReceipt> {
     if (isOpenVAnchorContract(this.contract)) {
       throw new Error('OpenVAnchor contract does not support the `transact` method');
     }
@@ -410,8 +415,8 @@ export abstract class WebbBridge {
     );
 
     let options = await this.getWrapUnwrapOptions(
-      extAmount,
-      BigNumber.from(refund),
+      BigInt(extAmount),
+      BigInt(refund),
       wrapUnwrapToken
     );
 

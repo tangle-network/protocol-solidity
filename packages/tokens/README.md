@@ -5,7 +5,7 @@ This sub-module is for defining token-related functionality in webb solidity.
 ## License
 
 <sup>
-Licensed under <a href="LICENSE">GPLV3 license</a>.
+Licensed under <a href="LICENSE">Apache 2.0 / MIT license</a>.
 </sup>
 
 <br/>

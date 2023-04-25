@@ -5,8 +5,8 @@
 
 pragma solidity ^0.8.5;
 
-import "../interfaces/verifiers/IAnchorVerifier.sol";
-import "../interfaces/verifiers/IIdentityVAnchorVerifier.sol";
+import "@webb-tools/protocol-solidity/interfaces/verifiers/IAnchorVerifier.sol";
+import "@webb-tools/protocol-solidity/interfaces/verifiers/IIdentityVAnchorVerifier.sol";
 
 contract IdentityVAnchorVerifier is IAnchorVerifier {
 	IIdentityVAnchorVerifier2_2 public v2_2;

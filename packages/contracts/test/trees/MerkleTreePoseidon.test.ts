@@ -4,7 +4,6 @@
  */
 
 import { MerkleTree, toFixedHex } from '@webb-tools/sdk-core';
-import { BigNumber } from 'ethers';
 import { artifacts, contract, ethers } from 'hardhat';
 import { poseidon } from 'circomlibjs';
 import { PoseidonHasher } from '@webb-tools/anchors';

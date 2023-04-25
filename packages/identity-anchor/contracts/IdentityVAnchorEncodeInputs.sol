@@ -6,7 +6,7 @@
 pragma solidity ^0.8.5;
 pragma experimental ABIEncoderV2;
 
-import "../structs/PublicInputs.sol";
+import "@webb-tools/protocol-solidity/structs/PublicInputs.sol";
 
 /**
 	@title VAnchorEncodeInputs library for encoding inputs for VAnchor proofs

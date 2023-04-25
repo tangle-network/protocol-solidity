@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
-import { BigNumber } from 'ethers';
 import { artifacts, contract, assert } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
 
@@ -72,7 +71,7 @@ contract('LinkableAnchor - [add edges]', async (accounts) => {
 
   it('LinkableAnchor edges should be modifiable by handler only', async () => {
     const edge = {
-      root: BigNumber.from('0x1111111111111111111111111111111111111111111111111111111111111111'),
+      root: BigInt('0x1111111111111111111111111111111111111111111111111111111111111111'),
       latestLeafIndex: 1,
       srcResourceID: '0x1111111111111111111111111111111111111111111111111111001000000001',
     };
@@ -120,7 +119,7 @@ contract('LinkableAnchor - [add edges]', async (accounts) => {
 
   it('latestNeighborRoots should return correct roots', async () => {
     const edge = {
-      root: BigNumber.from('0x1111111111111111111111111111111111111111111111111111111111111111'),
+      root: BigInt('0x1111111111111111111111111111111111111111111111111111111111111111'),
       latestLeafIndex: 1,
       srcResourceID: '0x1111111111111111111111111111111111111111111111111111001000000001',
     };
@@ -133,9 +132,9 @@ contract('LinkableAnchor - [add edges]', async (accounts) => {
 
   it('Adding edge should emit correct EdgeAddition event', async () => {
     const edge = {
-      sourceChainID: BigNumber.from('0x100000000001'),
-      root: BigNumber.from('0x1111111111111111111111111111111111111111111111111111111111111111'),
-      latestLeafIndex: BigNumber.from(1),
+      sourceChainID: BigInt('0x100000000001'),
+      root: BigInt('0x1111111111111111111111111111111111111111111111111111111111111111'),
+      latestLeafIndex: BigInt(1),
       srcResourceID: '0x1111111111111111111111111111111111111111111111111111100000000001',
     };
 

@@ -15,23 +15,35 @@
       "@webb-tools/bridges/*": [
         "packages/bridges/src/*"
       ],
-      "@webb-tools/evm-test-utils": [
-        "packages/evm-test-utils/src"
-      ],
-      "@webb-tools/evm-test-utils/*": [
-        "packages/evm-test-utils/src/*"
-      ],
       "@webb-tools/contracts": [
         "packages/contracts/src"
       ],
       "@webb-tools/contracts/*": [
         "packages/contracts/src/*"
       ],
+      "@webb-tools/evm-test-utils": [
+        "packages/evm-test-utils/src"
+      ],
+      "@webb-tools/evm-test-utils/*": [
+        "packages/evm-test-utils/src/*"
+      ],
+      "@webb-tools/identity-anchors": [
+        "packages/identity-anchors/src"
+      ],
+      "@webb-tools/identity-anchors/*": [
+        "packages/identity-anchors/src/*"
+      ],
       "@webb-tools/interfaces": [
         "packages/interfaces/src"
       ],
       "@webb-tools/interfaces/*": [
         "packages/interfaces/src/*"
+      ],
+      "@webb-tools/protocol-solidity": [
+        "packages/contracts/contracts"
+      ],
+      "@webb-tools/protocol-solidity/*": [
+        "packages/contracts/contracts/*"
       ],
       "@webb-tools/tokens": [
         "packages/tokens/src"

@@ -3,10 +3,10 @@
 
 import { IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
 import { Keypair } from '@webb-tools/sdk-core';
-import { BigNumber, Overrides, ethers } from 'ethers';
+import { BigNumberish, Overrides, ethers } from 'ethers';
 
 export interface SetupTransactionResult {
-  extAmount: BigNumber;
+  extAmount: BigNumberish;
   extData: IVariableAnchorExtData;
   publicInputs: IVariableAnchorPublicInputs;
 }
@@ -18,7 +18,7 @@ export interface SetupTransactionResult {
 export interface TransactionOptions {
   keypair?: Keypair; // for identityVAnchor
   treeChainId?: string; // for vanchorForest/IdentityVAnchor
-  externalLeaves?: Uint8Array[]; // for vanchorForest
+  externalLeaves?: BigNumberish[]; // for vanchorForest
 }
 
 /**

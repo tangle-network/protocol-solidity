@@ -17,10 +17,10 @@ import {
 import { Group, LinkedGroup } from '@webb-tools/semaphore-group';
 import { Semaphore } from '@webb-tools/semaphore/src';
 import { UTXOInputs, ZkComponents, getChainIdType, u8aToHex } from '@webb-tools/utils';
-import { BigNumber, BigNumberish, PayableOverrides, ethers } from 'ethers';
-import { WebbBridge } from './Common';
-import { Deployer } from './Deployer';
-import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
+import { BigNumberish, ethers } from 'ethers';
+import { WebbBridge } from '@webb-tools/anchors/Common';
+import { Deployer } from '@webb-tools/anchors/Deployer';
+import { SetupTransactionResult, TransactionOptions } from '@webb-tools/anchors/types';
 const assert = require('assert');
 
 const snarkjs = require('snarkjs');
@@ -56,7 +56,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
   token?: string;
   denomination?: string;
   maxEdges: number;
-  groupId: BigNumber;
+  groupId: BigNumberish;
   provingManager: CircomProvingManager;
 
   constructor(
@@ -64,7 +64,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     signer: ethers.Signer,
     treeHeight: number,
     maxEdges: number,
-    groupId: BigNumber,
+    groupId: BigNumberish,
     group: LinkedGroup,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents
@@ -96,7 +96,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     handler: string,
     token: string,
     maxEdges: number,
-    groupId: BigNumber,
+    groupId: BigNumberish,
     group: LinkedGroup,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents,
@@ -143,7 +143,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     const createdIdentityVAnchor = new IdentityVAnchor(
       vAnchor,
       signer,
-      BigNumber.from(levels).toNumber(),
+      levels,
       maxEdges,
       groupId,
       group,
@@ -163,7 +163,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     handler: string,
     token: string,
     maxEdges: number,
-    groupId: BigNumber,
+    groupId: BigNumberish,
     group: LinkedGroup,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents,
@@ -194,7 +194,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     const createdIdentityVAnchor = new IdentityVAnchor(
       vAnchor,
       signer,
-      BigNumber.from(levels).toNumber(),
+      levels,
       maxEdges,
       groupId,
       group,
@@ -204,8 +204,8 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     createdIdentityVAnchor.latestSyncedBlock = vAnchor.deployTransaction.blockNumber!;
     createdIdentityVAnchor.token = token;
     const tx = await createdIdentityVAnchor.contract.initialize(
-      BigNumber.from('1'),
-      BigNumber.from(2).pow(256).sub(1)
+      BigInt('1'),
+      BigInt('2') ^ BigInt('256') - BigInt('1')
     );
     await tx.wait();
     return createdIdentityVAnchor;
@@ -304,7 +304,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
    */
   public getMerkleProof(input: Utxo, leavesMap?: Uint8Array[]): MerkleProof {
     let inputMerklePathIndices: number[];
-    let inputMerklePathElements: BigNumber[];
+    let inputMerklePathElements: BigInt[];
 
     if (Number(input.amount) > 0) {
       if (input.index === undefined) {
@@ -329,7 +329,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     }
 
     return {
-      element: BigNumber.from(u8aToHex(input.commitment)),
+      element: BigInt(u8aToHex(input.commitment)),
       pathElements: inputMerklePathElements,
       pathIndices: inputMerklePathIndices,
       merkleRoot: this.tree.root(),
@@ -366,11 +366,11 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
       roots: `0x${vanchorRoots.map((x: any) => toFixedHex(x).slice(2)).join('')}`,
       inputNullifiers: inputs.map((x: any) => toFixedHex(x)),
       outputCommitments: [
-        BigNumber.from(toFixedHex(outputs[0])),
-        BigNumber.from(toFixedHex(outputs[1])),
+        BigInt(toFixedHex(outputs[0])),
+        BigInt(toFixedHex(outputs[1])),
       ],
       publicAmount: toFixedHex(publicAmount),
-      extDataHash: BigNumber.from(toFixedHex(extDataHash)),
+      extDataHash: BigInt(toFixedHex(extDataHash)),
     };
 
     return args;
@@ -425,7 +425,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
       privateKey: keypair.privkey.toString(),
       semaphoreTreePathIndices: identityMerkleProof.pathIndices,
       semaphoreTreeSiblings: identityMerkleProof.pathElements.map((x) =>
-        BigNumber.from(x).toString()
+        BigInt(x).toString()
       ),
       semaphoreRoots: identityRoots,
       chainID: vanchorInputs.chainID,
@@ -439,7 +439,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
       inBlinding: vanchorInputs.inBlinding,
       inPathIndices: vanchorInputs.inPathIndices,
       inPathElements: vanchorInputs.inPathElements.map((utxoPathElements) =>
-        utxoPathElements.map((x) => BigNumber.from(x).toString())
+        utxoPathElements.map((x) => BigInt(x).toString())
       ),
 
       // data for 2 transaction outputs
@@ -448,14 +448,14 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
       outAmount: vanchorInputs.outAmount,
       outPubkey: vanchorInputs.outPubkey,
       outSemaphoreTreePathIndices: outSemaphoreProofs.map((proof) =>
-        proof.pathIndices.map((idx) => BigNumber.from(idx).toString())
+        proof.pathIndices.map((idx) => BigInt(idx).toString())
       ),
       outSemaphoreTreeElements: outSemaphoreProofs.map((proof) =>
         proof.pathElements.map((elem) => {
-          if (BigNumber.isBigNumber(elem)) {
+          if (typeof elem == "bigint") {
             return elem.toString();
           }
-          return BigNumber.from(elem).toString();
+          return BigInt(elem).toString();
         })
       ),
       outBlinding: vanchorInputs.outBlinding,
@@ -512,8 +512,8 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
       recipient,
       extAmount,
       relayer,
-      BigNumber.from(fee),
-      BigNumber.from(refund),
+      BigInt(fee),
+      BigInt(refund),
       wrapUnwrapToken,
       outputs[0].encrypt(),
       outputs[1].encrypt()
@@ -524,7 +524,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
       outputs,
       chainId,
       extAmount,
-      BigNumber.from(fee),
+      BigInt(fee),
       extDataHash,
       leavesMap,
       txOptions
@@ -598,8 +598,8 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
         return {
           pathIndices: inputMerklePathIndices,
           pathElements: inputMerklePathElements,
-          element: BigNumber.from(0),
-          merkleRoot: BigNumber.from(0),
+          element: BigInt(0),
+          merkleRoot: BigInt(0),
         };
       }
     });
@@ -610,9 +610,9 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     inputs: Utxo[],
     outputs: Utxo[],
     chainId: number,
-    extAmount: BigNumber,
-    fee: BigNumber,
-    extDataHash: BigNumber,
+    extAmount: BigNumberish,
+    fee: BigNumberish,
+    extDataHash: BigNumberish,
     leavesMap: Record<string, Uint8Array[]>,
     txOptions: TransactionOptions
   ): Promise<UTXOInputs> {
@@ -631,13 +631,13 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
       vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x, treeElements));
     }
     const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
-      vanchorRoots.map((root) => BigNumber.from(root)),
+      vanchorRoots.map((root) => BigInt(root)),
       chainId,
       inputs,
       outputs,
       extAmount,
       fee,
-      BigNumber.from(extDataHash),
+      BigInt(extDataHash),
       vanchorMerkleProof
     );
 

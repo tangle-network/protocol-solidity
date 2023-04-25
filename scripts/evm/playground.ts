@@ -1,9 +1,11 @@
 require('dotenv').config();
 const path = require('path');
-import { ethers } from 'ethers';
+import { ethers, JsonRpcProvider } from 'ethers';
 import { VAnchor__factory } from '@webb-tools/contracts';
+import { CircomUtxo } from '@webb-tools/sdk-core/solidity-utils';
+import { calculateTypedChainId, ChainType } from '@webb-tools/sdk-core/typed-chain-id';
 
-const providerGanache = new ethers.providers.JsonRpcProvider(`http://localhost:5001`);
+const providerGanache = new JsonRpcProvider(`http://localhost:5001`);
 const walletGanache = new ethers.Wallet(process.env.PRIVATE_KEY!, providerGanache);
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));

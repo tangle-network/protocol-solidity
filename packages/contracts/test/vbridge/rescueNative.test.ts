@@ -10,7 +10,6 @@ import { SignatureBridgeSide } from '@webb-tools/bridges';
 import { VAnchor, AnchorHandler, PoseidonHasher } from '@webb-tools/anchors';
 import { Verifier } from '@webb-tools/vbridge';
 import {
-  MintableToken,
   Treasury,
   TreasuryHandler,
   FungibleTokenWrapper,
@@ -18,7 +17,6 @@ import {
 } from '@webb-tools/tokens';
 import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { CircomUtxo, Keypair } from '@webb-tools/sdk-core';
-import { BigNumber } from 'ethers';
 import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
 
 describe('Rescue Tokens Tests for Native ETH', () => {
