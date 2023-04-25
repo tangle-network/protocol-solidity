@@ -87,30 +87,30 @@ describe.skip('VAnchorForest for 1 max edge', () => {
     zkComponents2_2 = await fetchComponentsFromFilePaths(
       path.resolve(
         __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_forest_2/2/vanchor_forest_2_2.wasm'
+        '../../../../solidity-fixtures/solidity-fixtures/vanchor_forest_2/2/vanchor_forest_2_2.wasm'
       ),
       path.resolve(
         __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_forest_2/2/witness_calculator.cjs'
+        '../../../../solidity-fixtures/solidity-fixtures/vanchor_forest_2/2/witness_calculator.cjs'
       ),
       path.resolve(
         __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_forest_2/2/circuit_final.zkey'
+        '../../../../solidity-fixtures/solidity-fixtures/vanchor_forest_2/2/circuit_final.zkey'
       )
     );
 
     zkComponents16_2 = await fetchComponentsFromFilePaths(
       path.resolve(
         __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_forest_16/2/vanchor_forest_16_2.wasm'
+        '../../../../solidity-fixtures/solidity-fixtures/vanchor_forest_16/2/vanchor_forest_16_2.wasm'
       ),
       path.resolve(
         __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_forest_16/2/witness_calculator.cjs'
+        '../../../../solidity-fixtures/solidity-fixtures/vanchor_forest_16/2/witness_calculator.cjs'
       ),
       path.resolve(
         __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_forest_16/2/circuit_final.zkey'
+        '../../../../solidity-fixtures/solidity-fixtures/vanchor_forest_16/2/circuit_final.zkey'
       )
     );
   });
@@ -173,7 +173,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
     await token.approve(wrappedToken.address, '1000000000000000000000000');
 
     create2InputWitness = async (data: any) => {
-      const witnessCalculator = require('../../solidity-fixtures/solidity-fixtures/vanchor_2/2/witness_calculator.cjs');
+      const witnessCalculator = require('../../../../solidity-fixtures/solidity-fixtures/vanchor_2/2/witness_calculator.cjs');
       const fileBuf = require('fs').readFileSync(
         'solidity-fixtures/solidity-fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'
       );
@@ -1233,7 +1233,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       const vKey = await snarkjs.zKey.exportVerificationKey(
         path.resolve(
           __dirname,
-          '../../solidity-fixtures/solidity-fixtures/vanchor_forest_2/2/circuit_final.zkey'
+          '../../../../solidity-fixtures/solidity-fixtures/vanchor_forest_2/2/circuit_final.zkey'
         )
       );
 

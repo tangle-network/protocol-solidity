@@ -34,54 +34,54 @@ contract('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
   // let levels = 30;
   const wasmFilePath_4 = path.resolve(
     __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/4/batchMerkleTreeUpdate_4.wasm'
+    '../../../../solidity-fixtures/solidity-fixtures/batch-tree/4/batchMerkleTreeUpdate_4.wasm'
   );
   const zkeyFilePath_4 = path.resolve(
     __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/4/circuit_final.zkey'
+    '../../../../solidity-fixtures/solidity-fixtures/batch-tree/4/circuit_final.zkey'
   );
   const wtnsCalcFilePath_4 = path.resolve(
     __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/4/witness_calculator.cjs'
+    '../../../../solidity-fixtures/solidity-fixtures/batch-tree/4/witness_calculator.cjs'
   );
 
   const wasmFilePath_8 = path.resolve(
     __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/8/batchMerkleTreeUpdate_8.wasm'
+    '../../../../solidity-fixtures/solidity-fixtures/batch-tree/8/batchMerkleTreeUpdate_8.wasm'
   );
   const zkeyFilePath_8 = path.resolve(
     __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/8/circuit_final.zkey'
+    '../../../../solidity-fixtures/solidity-fixtures/batch-tree/8/circuit_final.zkey'
   );
   const wtnsCalcFilePath_8 = path.resolve(
     __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/8/witness_calculator.cjs'
+    '../../../../solidity-fixtures/solidity-fixtures/batch-tree/8/witness_calculator.cjs'
   );
 
   const wasmFilePath_16 = path.resolve(
     __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/16/batchMerkleTreeUpdate_16.wasm'
+    '../../../../solidity-fixtures/solidity-fixtures/batch-tree/16/batchMerkleTreeUpdate_16.wasm'
   );
   const zkeyFilePath_16 = path.resolve(
     __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/16/circuit_final.zkey'
+    '../../../../solidity-fixtures/solidity-fixtures/batch-tree/16/circuit_final.zkey'
   );
   const wtnsCalcFilePath_16 = path.resolve(
     __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/16/witness_calculator.cjs'
+    '../../../../solidity-fixtures/solidity-fixtures/batch-tree/16/witness_calculator.cjs'
   );
 
   const wasmFilePath_32 = path.resolve(
     __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/32/batchMerkleTreeUpdate_32.wasm'
+    '../../../../solidity-fixtures/solidity-fixtures/batch-tree/32/batchMerkleTreeUpdate_32.wasm'
   );
   const zkeyFilePath_32 = path.resolve(
     __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/32/circuit_final.zkey'
+    '../../../../solidity-fixtures/solidity-fixtures/batch-tree/32/circuit_final.zkey'
   );
   const wtnsCalcFilePath_32 = path.resolve(
     __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/32/witness_calculator.cjs'
+    '../../../../solidity-fixtures/solidity-fixtures/batch-tree/32/witness_calculator.cjs'
   );
 
   const levels = 20;

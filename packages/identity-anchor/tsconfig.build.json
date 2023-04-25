@@ -6,5 +6,7 @@
   "extends": "../../tsconfig.build.json",
   "include": [
     "./src/*.ts",
+    "./typechain/**/*.ts",
+    "./typechain/*.ts"
   ]
 }

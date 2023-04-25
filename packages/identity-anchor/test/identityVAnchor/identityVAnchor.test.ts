@@ -24,7 +24,14 @@ import {
   UTXOInputs,
   ZERO_BYTES32,
 } from '@webb-tools/utils';
-import { BigNumber, ContractReceipt } from 'ethers';
+import {
+  ContractTransactionReceipt,
+  EventLog,
+  JsonRpcProvider,
+  Log,
+  keccak256,
+  toUtf8Bytes,
+} from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 import {
@@ -38,13 +45,13 @@ import {
   generateVariableWitnessInput,
   CircomUtxo,
 } from '@webb-tools/sdk-core';
-import { IdentityVAnchor, PoseidonHasher } from '@webb-tools/anchors';
+import { PoseidonHasher } from '@webb-tools/anchors';
 import { IdentityVerifier } from '@webb-tools/vbridge';
 import { IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
 import { Semaphore } from '@webb-tools/semaphore';
 import { LinkedGroup } from '@webb-tools/semaphore-group';
 import { TransactionOptions } from '@webb-tools/anchors/types';
-
+import { IdentityVAnchor } from '../../';
 const BN = require('bn.js');
 const path = require('path');
 const snarkjs = require('snarkjs');
@@ -83,28 +90,28 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
   const identity_vanchor_2_2_wasm_path = path.resolve(
     __dirname,
-    '../../solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/identity_vanchor_2_2.wasm'
+    '../../../../solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/identity_vanchor_2_2.wasm'
   );
   const identity_vanchor_2_2_witness_calc_path = path.resolve(
     __dirname,
-    '../../solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/witness_calculator.cjs'
+    '../../../../solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/witness_calculator.cjs'
   );
   const identity_vanchor_2_2_zkey_path = path.resolve(
     __dirname,
-    '../../solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/circuit_final.zkey'
+    '../../../../solidity-fixtures/solidity-fixtures/identity_vanchor_2/2/circuit_final.zkey'
   );
 
   const identity_vanchor_16_2_wasm_path = path.resolve(
     __dirname,
-    '../../solidity-fixtures/solidity-fixtures/identity_vanchor_16/2/identity_vanchor_16_2.wasm'
+    '../../../../solidity-fixtures/solidity-fixtures/identity_vanchor_16/2/identity_vanchor_16_2.wasm'
   );
   const identity_vanchor_16_2_witness_calc_path = path.resolve(
     __dirname,
-    '../../solidity-fixtures/solidity-fixtures/identity_vanchor_16/2/witness_calculator.cjs'
+    '../../../../solidity-fixtures/solidity-fixtures/identity_vanchor_16/2/witness_calculator.cjs'
   );
   const identity_vanchor_16_2_zkey_path = path.resolve(
     __dirname,
-    '../../solidity-fixtures/solidity-fixtures/identity_vanchor_16/2/circuit_final.zkey'
+    '../../../../solidity-fixtures/solidity-fixtures/identity_vanchor_16/2/circuit_final.zkey'
   );
 
   const generateUTXOForTest = async (chainId: number, keypair: Keypair, amount?: number) => {
@@ -116,7 +123,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       chainId: chainId.toString(),
       originChainId: chainId.toString(),
       amount: amountString,
-      blinding: hexToU8a(randomBN(31).toHexString()),
+      blinding: hexToU8a(randomBN(31).toString(16)),
       keypair: keypair,
     });
   };
@@ -156,13 +163,13 @@ describe('IdentityVAnchor for 2 max edges', () => {
     const tokenFactory = new ERC20PresetMinterPauser__factory(wallet);
     token = await tokenFactory.deploy('test token', 'TEST');
     await token.deployed();
-    await token.mint(alice.address, BigNumber.from(1e10).toString());
-    await token.mint(bob.address, BigNumber.from(1e10).toString());
-    await token.mint(carl.address, BigNumber.from(1e10).toString());
+    await token.mint(alice.address, BigInt(1e10).toString());
+    await token.mint(bob.address, BigInt(1e10).toString());
+    await token.mint(carl.address, BigInt(1e10).toString());
     // create Anchor
     semaphore = await Semaphore.createSemaphore(levels, zkComponents2_2, zkComponents2_2, sender);
-    const groupId = BigNumber.from(99); // arbitrary
-    const tx = await semaphore.createGroup(groupId.toNumber(), levels, alice.address, maxEdges);
+    const groupId = BigInt(99); // arbitrary
+    const tx = await semaphore.createGroup(Number(groupId), levels, alice.address, maxEdges);
     let aliceLeaf = aliceKeypair.getPubKey();
     group = new LinkedGroup(levels, maxEdges, BigInt(defaultRoot));
     group.addMember(aliceLeaf);
@@ -196,9 +203,9 @@ describe('IdentityVAnchor for 2 max edges', () => {
       zkComponents16_2,
       sender
     );
-    await idAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
+    await idAnchor.contract.configureMinimalWithdrawalLimit(BigInt(0), 1);
     await idAnchor.contract.configureMaximumDepositLimit(
-      BigNumber.from(tokenDenomination).mul(1_000_000),
+      BigInt(tokenDenomination) * BigInt(1_000_000),
       2
     );
 
@@ -246,7 +253,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         extAmount: toFixedHex(extAmount),
         relayer: toFixedHex(relayer, 20),
         fee: toFixedHex(fee),
-        refund: toFixedHex(BigNumber.from(0).toString()),
+        refund: toFixedHex(BigInt(0).toString()),
         token: toFixedHex(token.address, 20),
         encryptedOutput1: encOutput1,
         encryptedOutput2: encOutput2,
@@ -256,15 +263,15 @@ describe('IdentityVAnchor for 2 max edges', () => {
         encOutput1,
         encOutput2,
         extAmount.toString(),
-        BigNumber.from(fee).toString(),
+        BigInt(fee).toString(),
         alice.address,
         relayer,
-        BigNumber.from(0).toString(),
+        BigInt(0).toString(),
         token.address
       );
 
       const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
-        vanchorRoots.map((root) => BigNumber.from(root)),
+        vanchorRoots.map((root) => BigInt(root)),
         chainID,
         inputs,
         outputs,
@@ -276,23 +283,35 @@ describe('IdentityVAnchor for 2 max edges', () => {
       // Alice deposits into tornado pool
       const aliceLeaf = aliceKeypair.getPubKey();
 
-      const identityRootInputs = group.getRoots().map((bignum: BigNumber) => bignum.toString());
+      const identityRootInputs = group.getRoots().map((bignum) => bignum.toString());
       const idx = group.indexOf(aliceLeaf);
-      const identityMerkleProof: MerkleProof = group.generateProofOfMembership(idx);
+      const tempIdentityMerkleProof = group.generateProofOfMembership(idx);
+      const identityMerkleProof: MerkleProof = {
+        pathIndices: tempIdentityMerkleProof.pathIndices,
+        pathElements: tempIdentityMerkleProof.pathElements.map((el) => el.toString()),
+        element: tempIdentityMerkleProof.element.toString(),
+        merkleRoot: tempIdentityMerkleProof.merkleRoot.toString(),
+      };
 
-      const outSemaphoreProofs = outputs.map((utxo) => {
+      const outSemaphoreProofs: MerkleProof[] = outputs.map((utxo) => {
         const leaf = utxo.keypair.getPubKey();
         if (Number(utxo.amount) > 0) {
           const idx = group.indexOf(leaf);
-          return group.generateProofOfMembership(idx);
+          const tempMerkleProof = group.generateProofOfMembership(idx);
+          return {
+            pathIndices: tempMerkleProof.pathIndices,
+            pathElements: tempMerkleProof.pathElements.map((el) => el.toString()),
+            element: tempMerkleProof.element.toString(),
+            merkleRoot: tempMerkleProof.merkleRoot.toString(),
+          };
         } else {
           const inputMerklePathIndices = new Array(group.depth).fill(0);
           const inputMerklePathElements = new Array(group.depth).fill(0);
           return {
             pathIndices: inputMerklePathIndices,
             pathElements: inputMerklePathElements,
-            element: BigNumber.from(defaultRoot),
-            merkleRoot: BigNumber.from(defaultRoot),
+            element: BigInt(defaultRoot),
+            merkleRoot: BigInt(defaultRoot),
           };
         }
       });
@@ -360,7 +379,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         inputs,
         outputs,
         fee,
-        BigNumber.from(0),
+        BigInt(0),
         alice.address,
         relayer,
         '',
@@ -382,7 +401,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       expect(tx).to.emit(idAnchor.contract, 'NewNullifier').withArgs(inputs[0].nullifier);
       expect(tx).to.emit(idAnchor.contract, 'NewNullifier').withArgs(inputs[1].nullifier);
       const expectedBalance = aliceBalanceBeforeDeposit.sub(aliceDepositAmount).sub(fee);
-      // expect(aliceBalanceAfterDeposit.add(BigNumber.from(fee))).equal(BN(toBN(aliceBalanceBeforeDeposit).sub(toBN(aliceDepositAmount))))
+      // expect(aliceBalanceAfterDeposit.add(BigInt(fee))).equal(BN(toBN(aliceBalanceBeforeDeposit).sub(toBN(aliceDepositAmount))))
       expect(aliceBalanceAfterDeposit).equal(expectedBalance);
     });
 
@@ -398,7 +417,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         inputs,
         outputs,
         fee,
-        BigNumber.from(0),
+        BigInt(0),
         alice.address,
         relayer,
         '',
@@ -423,7 +442,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       expect(aliceBalanceAfterDeposit.toString()).equal(
         BN(toBN(aliceBalanceBeforeDeposit).sub(toBN(aliceDepositAmount)).sub(toBN(fee))).toString()
       );
-      expect((await token.balanceOf(relayer)).toString()).equal(BigNumber.from(fee).toString());
+      expect((await token.balanceOf(relayer)).toString()).equal(BigInt(fee).toString());
     });
 
     // This test is meant to prove that utxo transfer flows are possible, and the receiver
@@ -445,23 +464,23 @@ describe('IdentityVAnchor for 2 max edges', () => {
         keypair: bobPublicKeypair,
       });
 
-      const receipt: ContractReceipt = (await idAnchor.transact(
+      const receipt: ContractTransactionReceipt = (await idAnchor.transact(
         [],
         [aliceTransferUtxo],
         fee,
-        BigNumber.from(0),
+        BigInt(0),
         alice.address,
         relayer,
         '',
         {},
         { keypair: aliceKeypair }
-      )) as ContractReceipt;
+      )) as ContractTransactionReceipt;
 
       // Bob queries encrypted commitments on chain
-      const encryptedCommitments: string[] = receipt.events
-        .filter((event) => event.event === 'NewCommitment')
-        .sort((a, b) => a.args.index - b.args.index)
-        .map((e) => e.args.encryptedOutput);
+      const encryptedCommitments: string[] = receipt.logs
+        .filter((log) => (log as EventLog).eventName === 'NewCommitment')
+        .sort((a, b) => (a as Log).index - (b as Log).index)
+        .map((e) => (e as EventLog).args.encryptedOutput);
 
       // Attempt to decrypt the encrypted commitments with bob's keypair
       const utxos = await Promise.all(
@@ -486,7 +505,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         })
       );
 
-      const spendableUtxos = utxos.filter((utxo) => utxo !== undefined);
+      const spendableUtxos: Utxo[] = utxos.filter((utxo) => utxo !== undefined) as Utxo[];
       // // fetch the inserted leaves
       const dummyOutputs = [
         await generateUTXOForTest(chainID, new Keypair()),
@@ -498,7 +517,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         spendableUtxos,
         dummyOutputs,
         fee,
-        BigNumber.from(0),
+        BigInt(0),
         bob.address,
         relayer,
         '',
@@ -518,8 +537,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
     });
 
     describe('## Alice already deposited:', () => {
-      let aliceBalanceBeforeDeposit: BigNumber;
-      let aliceBalanceAfterDeposit: BigNumber;
+      let aliceBalanceBeforeDeposit: BigInt;
+      let aliceBalanceAfterDeposit: BigInt;
 
       beforeEach(async () => {
         aliceBalanceBeforeDeposit = await token.balanceOf(alice.address);
@@ -527,18 +546,20 @@ describe('IdentityVAnchor for 2 max edges', () => {
           [],
           [aliceDepositUtxo],
           fee,
-          BigNumber.from(0),
+          BigInt(0),
           alice.address,
           relayer,
           '',
           {},
           { keypair: aliceKeypair }
         );
-        const aliceDepositIndex = idAnchor.tree.getIndexByElement(aliceDepositUtxo.commitment);
+        const aliceDepositIndex = idAnchor.tree.getIndexByElement(
+          BigInt(`0x${Buffer.from(aliceDepositUtxo.commitment).toString('hex')}`)
+        );
         aliceDepositUtxo.setIndex(aliceDepositIndex);
         aliceBalanceAfterDeposit = await token.balanceOf(alice.address);
         expect(aliceBalanceAfterDeposit).equal(
-          aliceBalanceBeforeDeposit.sub(aliceDepositAmount).sub(fee)
+          BigInt(aliceBalanceBeforeDeposit.toString()) - BigInt(aliceDepositAmount) - BigInt(fee)
         );
         expect(tx)
           .to.emit(idAnchor.contract, 'NewCommitment')
@@ -549,10 +570,10 @@ describe('IdentityVAnchor for 2 max edges', () => {
         const aliceRefreshUtxo = await CircomUtxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
-          chainId: BigNumber.from(chainID).toString(),
-          originChainId: BigNumber.from(chainID).toString(),
-          amount: BigNumber.from(aliceDepositAmount).toString(),
-          blinding: hexToU8a(randomBN().toHexString()),
+          chainId: BigInt(chainID).toString(),
+          originChainId: BigInt(chainID).toString(),
+          amount: BigInt(aliceDepositAmount).toString(),
+          blinding: hexToU8a(randomBN().toString(16)),
           keypair: aliceDepositUtxo.keypair,
         });
 
@@ -560,7 +581,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
           [aliceDepositUtxo],
           [aliceRefreshUtxo],
           fee,
-          BigNumber.from(0),
+          BigInt(0),
           alice.address,
           relayer,
           '',
@@ -573,21 +594,21 @@ describe('IdentityVAnchor for 2 max edges', () => {
         const aliceRefreshUtxo = await CircomUtxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
-          chainId: BigNumber.from(chainID).toString(),
-          originChainId: BigNumber.from(chainID).toString(),
-          amount: BigNumber.from(aliceDepositAmount).toString(),
-          blinding: hexToU8a(randomBN().toHexString()),
+          chainId: BigInt(chainID).toString(),
+          originChainId: BigInt(chainID).toString(),
+          amount: BigInt(aliceDepositAmount).toString(),
+          blinding: hexToU8a(randomBN().toString(16)),
           keypair: aliceDepositUtxo.keypair,
         });
 
-        const leaves = idAnchor.tree.elements().map((el) => hexToU8a(el.toHexString()));
+        const leaves = idAnchor.tree.elements().map((el) => BigInt(el.toString()));
         const leavesMap = { [chainID]: leaves };
         const txOptions = { keypair: aliceKeypair, treeChainId: chainID.toString() };
         await idAnchor.transact(
           [aliceDepositUtxo],
           [aliceRefreshUtxo],
           fee,
-          BigNumber.from(0),
+          BigInt(0),
           alice.address,
           relayer,
           '',
@@ -607,7 +628,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
           [aliceDepositUtxo],
           [aliceTransferUtxo],
           fee,
-          BigNumber.from(0),
+          BigInt(0),
           alice.address,
           relayer,
           '',
@@ -626,7 +647,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
             [aliceDepositUtxo],
             [aliceDoubleSpendTransaction],
             fee,
-            BigNumber.from(0),
+            BigInt(0),
             alice.address,
             relayer,
             '',
@@ -637,7 +658,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       });
 
       it('should prevent increasing UTXO amount without depositing', async () => {
-        const aliceOutputAmount = aliceBalanceAfterDeposit.mul(2);
+        const aliceOutputAmount = BigInt(aliceBalanceAfterDeposit.toString()) * BigInt(2);
         const aliceOutputUtxo = await CircomUtxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
@@ -652,7 +673,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
             [aliceDepositUtxo],
             [aliceOutputUtxo],
             fee,
-            BigNumber.from(0),
+            BigInt(0),
             alice.address,
             relayer,
             '',
@@ -663,9 +684,11 @@ describe('IdentityVAnchor for 2 max edges', () => {
       });
       it('should join and spend', async () => {
         const aliceBalanceAfterFirstDeposit = await token.balanceOf(alice.address);
-        expect(aliceBalanceBeforeDeposit.sub(aliceBalanceAfterFirstDeposit).toString()).equal(
-          '10000000'
-        );
+        expect(
+          (
+            BigInt(aliceBalanceBeforeDeposit.toString()) - BigInt(aliceBalanceAfterFirstDeposit)
+          ).toString()
+        ).equal('10000000');
         const aliceDepositAmount2 = 2e7;
         let aliceDepositUtxo2 = await generateUTXOForTest(
           chainID,
@@ -677,7 +700,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
           [],
           [aliceDepositUtxo2],
           fee,
-          BigNumber.from(0),
+          BigInt(0),
           alice.address,
           relayer,
           '',
@@ -689,7 +712,9 @@ describe('IdentityVAnchor for 2 max edges', () => {
           '20000000'
         );
 
-        const aliceDeposit2Index = idAnchor.tree.getIndexByElement(aliceDepositUtxo2.commitment);
+        const aliceDeposit2Index = idAnchor.tree.getIndexByElement(
+          BigInt(`0x${Buffer.from(aliceDepositUtxo2.commitment).toString('hex')}`)
+        );
         aliceDepositUtxo2.setIndex(aliceDeposit2Index);
 
         const aliceJoinAmount = 3e7;
@@ -698,7 +723,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
           [aliceDepositUtxo, aliceDepositUtxo2],
           [aliceJoinUtxo],
           fee,
-          BigNumber.from(0),
+          BigInt(0),
           alice.address,
           relayer,
           '',
@@ -706,7 +731,9 @@ describe('IdentityVAnchor for 2 max edges', () => {
           { keypair: aliceKeypair }
         );
         const aliceBalanceAfterJoin = await token.balanceOf(alice.address);
-        expect(aliceBalanceBeforeDeposit.sub(aliceBalanceAfterJoin).toString()).equal('30000000');
+        expect(
+          (BigInt(aliceBalanceBeforeDeposit.toString()) - BigInt(aliceBalanceAfterJoin)).toString()
+        ).equal('30000000');
       });
       it('should spend input utxo and split', async () => {
         // Alice deposits into tornado pool
@@ -718,7 +745,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
           [aliceDepositUtxo],
           [aliceSplitUtxo1, aliceSplitUtxo2],
           fee,
-          BigNumber.from(0),
+          BigInt(0),
           alice.address,
           relayer,
           '',
@@ -728,7 +755,9 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
         // alice shouldn't have deposited into tornado as input utxo has enough
         const aliceBalanceAfterSplit = await token.balanceOf(alice.address);
-        expect(aliceBalanceAfterDeposit.sub(aliceBalanceAfterSplit).toString()).equal('0');
+        expect(
+          (BigInt(aliceBalanceAfterDeposit.toString()) - BigInt(aliceBalanceAfterSplit)).toString()
+        ).equal('0');
       });
 
       it('should withdraw', async () => {
@@ -747,7 +776,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
           [aliceDepositUtxo],
           [aliceChangeUtxo],
           fee,
-          BigNumber.from(0),
+          BigInt(0),
           aliceETHAddress,
           relayer,
           '',
@@ -761,7 +790,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       });
     });
     it('should reject proofs made against VAnchor empty edges', async () => {
-      await expect(idAnchor.contract.edgeList(BigNumber.from(0))).revertedWith('CALL_EXCEPTION');
+      await expect(idAnchor.contract.edgeList(BigInt(0))).revertedWith('CALL_EXCEPTION');
 
       const vanchorRoots = await idAnchor.populateVAnchorRootsForProof();
       const depositAmount = 1e8;
@@ -772,8 +801,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
         backend: 'Circom',
         chainId: chainID.toString(),
         originChainId: fakeChainId.toString(),
-        amount: BigNumber.from(depositAmount).toString(),
-        blinding: hexToU8a(randomBN(31).toHexString()),
+        amount: BigInt(depositAmount).toString(),
+        blinding: hexToU8a(randomBN(31).toString(16)),
         keypair: aliceKeypair,
       });
 
@@ -795,28 +824,28 @@ describe('IdentityVAnchor for 2 max edges', () => {
         extAmount: toFixedHex(0),
         relayer: toFixedHex(relayer, 20),
         fee: toFixedHex(fee),
-        refund: toFixedHex(BigNumber.from(0).toString()),
+        refund: toFixedHex(BigInt(0).toString()),
         token: toFixedHex(token.address, 20),
         encryptedOutput1: encOutput1,
         encryptedOutput2: encOutput2,
       };
 
-      const extAmount = BigNumber.from(0);
+      const extAmount = BigInt(0);
       const extDataHash = getVAnchorExtDataHash(
         encOutput1,
         encOutput2,
         extAmount.toString(),
-        BigNumber.from(fee).toString(),
+        BigInt(fee).toString(),
         alice.address,
         relayer,
-        BigNumber.from(0).toString(),
+        BigInt(0).toString(),
         token.address
       );
 
       const fakeRoots = vanchorRoots;
       fakeRoots[1] = fakeTree.root().toString();
       const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
-        fakeRoots.map((root) => BigNumber.from(root)),
+        fakeRoots.map((root) => BigInt(root)),
         chainID,
         inputs,
         outputs,
@@ -828,23 +857,35 @@ describe('IdentityVAnchor for 2 max edges', () => {
       // Alice deposits into tornado pool
       const aliceLeaf = aliceKeypair.getPubKey();
 
-      const identityRootInputs = group.getRoots().map((bignum: BigNumber) => bignum.toString());
+      const identityRootInputs = group.getRoots().map((bignum) => bignum.toString());
       const idx = group.indexOf(aliceLeaf);
-      const identityMerkleProof: MerkleProof = group.generateProofOfMembership(idx);
+      const tempIdentityMerkleProof = group.generateProofOfMembership(idx);
+      const identityMerkleProof: MerkleProof = {
+        pathIndices: tempIdentityMerkleProof.pathIndices,
+        pathElements: tempIdentityMerkleProof.pathElements.map((el) => el.toString()),
+        element: tempIdentityMerkleProof.element.toString(),
+        merkleRoot: tempIdentityMerkleProof.merkleRoot.toString(),
+      };
 
-      const outSemaphoreProofs = outputs.map((utxo) => {
+      const outSemaphoreProofs: MerkleProof[] = outputs.map((utxo) => {
         const leaf = utxo.keypair.getPubKey();
         if (Number(utxo.amount) > 0) {
           const idx = group.indexOf(leaf);
-          return group.generateProofOfMembership(idx);
+          const tempMerkleProof = group.generateProofOfMembership(idx);
+          return {
+            pathIndices: tempMerkleProof.pathIndices,
+            pathElements: tempMerkleProof.pathElements.map((el) => el.toString()),
+            element: tempMerkleProof.element.toString(),
+            merkleRoot: tempMerkleProof.merkleRoot.toString(),
+          };
         } else {
           const inputMerklePathIndices = new Array(group.depth).fill(0);
           const inputMerklePathElements = new Array(group.depth).fill(0);
           return {
             pathIndices: inputMerklePathIndices,
             pathElements: inputMerklePathElements,
-            element: BigNumber.from(defaultRoot),
-            merkleRoot: BigNumber.from(defaultRoot),
+            element: BigInt(defaultRoot),
+            merkleRoot: BigInt(defaultRoot),
           };
         }
       });
@@ -927,7 +968,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         extAmount: toFixedHex(depositAmount),
         relayer: toFixedHex(relayer, 20),
         fee: toFixedHex(fee),
-        refund: toFixedHex(BigNumber.from(0).toString()),
+        refund: toFixedHex(BigInt(0).toString()),
         token: toFixedHex(token.address, 20),
         encryptedOutput1: encOutput1,
         encryptedOutput2: encOutput2,
@@ -937,15 +978,15 @@ describe('IdentityVAnchor for 2 max edges', () => {
         encOutput1,
         encOutput2,
         depositAmount.toString(),
-        BigNumber.from(fee).toString(),
+        BigInt(fee).toString(),
         recipient,
         relayer,
-        BigNumber.from(0).toString(),
+        BigInt(0).toString(),
         token.address
       );
 
       const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
-        vanchorRoots.map((root) => BigNumber.from(root)),
+        vanchorRoots.map((root) => BigInt(root)),
         chainID,
         inputs,
         outputs,
@@ -959,24 +1000,36 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const fakeGroup = new LinkedGroup(levels, maxEdges, BigInt(defaultRoot));
       fakeGroup.addMember(carlLeaf);
 
-      const identityRootInputs = group.getRoots().map((bignum: BigNumber) => bignum.toString());
+      const identityRootInputs = group.getRoots().map((bignum) => bignum.toString());
       identityRootInputs[1] = fakeGroup.root.toString();
       const idx = fakeGroup.indexOf(carlLeaf);
-      const identityMerkleProof: MerkleProof = group.generateProofOfMembership(idx);
+      const tempIdentityMerkleProof = group.generateProofOfMembership(idx);
+      const identityMerkleProof: MerkleProof = {
+        pathIndices: tempIdentityMerkleProof.pathIndices,
+        pathElements: tempIdentityMerkleProof.pathElements.map((el) => el.toString()),
+        element: tempIdentityMerkleProof.element.toString(),
+        merkleRoot: tempIdentityMerkleProof.merkleRoot.toString(),
+      };
 
-      const outSemaphoreProofs = outputs.map((utxo) => {
+      const outSemaphoreProofs: MerkleProof[] = outputs.map((utxo) => {
         const leaf = utxo.keypair.getPubKey();
         if (Number(utxo.amount) > 0) {
           const idx = fakeGroup.indexOf(leaf);
-          return fakeGroup.generateProofOfMembership(idx);
+          const tempMerkleProof = fakeGroup.generateProofOfMembership(idx);
+          return {
+            pathIndices: tempMerkleProof.pathIndices,
+            pathElements: tempMerkleProof.pathElements.map((el) => el.toString()),
+            element: tempMerkleProof.element.toString(),
+            merkleRoot: tempMerkleProof.merkleRoot.toString(),
+          };
         } else {
           const inputMerklePathIndices = new Array(group.depth).fill(0);
           const inputMerklePathElements = new Array(group.depth).fill(0);
           return {
             pathIndices: inputMerklePathIndices,
             pathElements: inputMerklePathElements,
-            element: BigNumber.from(defaultRoot),
-            merkleRoot: BigNumber.from(defaultRoot),
+            element: BigInt(defaultRoot),
+            merkleRoot: BigInt(defaultRoot),
           };
         }
       });
@@ -1046,7 +1099,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
     let publicInputs: IVariableAnchorPublicInputs;
     let aliceExtData: any;
-    let aliceExtDataHash: BigNumber;
+    let aliceExtDataHash: BigInt;
 
     let encOutput1: string;
     let encOutput2: string;
@@ -1072,7 +1125,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         extAmount: toFixedHex(aliceDepositAmount),
         relayer: toFixedHex(relayer, 20),
         fee: toFixedHex(fee),
-        refund: toFixedHex(BigNumber.from(0).toString()),
+        refund: toFixedHex(BigInt(0).toString()),
         token: toFixedHex(token.address, 20),
         encryptedOutput1: encOutput1,
         encryptedOutput2: encOutput2,
@@ -1082,43 +1135,55 @@ describe('IdentityVAnchor for 2 max edges', () => {
         encOutput1,
         encOutput2,
         extAmount.toString(),
-        BigNumber.from(fee).toString(),
+        BigInt(fee).toString(),
         alice.address,
         relayer,
-        BigNumber.from(0).toString(),
+        BigInt(0).toString(),
         token.address
       );
 
       const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
-        vanchorRoots.map((root) => BigNumber.from(root)),
+        vanchorRoots.map((root) => BigInt(root)),
         chainID,
         inputs,
         outputs,
         extAmount,
         fee,
-        aliceExtDataHash,
+        BigInt(aliceExtDataHash.toString()),
         merkleProofsForInputs
       );
       // Alice deposits into tornado pool
       const aliceLeaf = aliceKeypair.getPubKey();
 
-      const identityRootInputs = group.getRoots().map((bignum: BigNumber) => bignum.toString());
+      const identityRootInputs = group.getRoots().map((bignum) => bignum.toString());
       const idx = group.indexOf(aliceLeaf);
-      const identityMerkleProof: MerkleProof = group.generateProofOfMembership(idx);
+      const tempIdentityMerkleProof = group.generateProofOfMembership(idx);
+      const identityMerkleProof: MerkleProof = {
+        pathIndices: tempIdentityMerkleProof.pathIndices,
+        pathElements: tempIdentityMerkleProof.pathElements.map((el) => el.toString()),
+        element: tempIdentityMerkleProof.element.toString(),
+        merkleRoot: tempIdentityMerkleProof.merkleRoot.toString(),
+      };
 
-      const outSemaphoreProofs = outputs.map((utxo) => {
+      const outSemaphoreProofs: MerkleProof[] = outputs.map((utxo) => {
         const leaf = utxo.keypair.getPubKey();
         if (Number(utxo.amount) > 0) {
           const idx = group.indexOf(leaf);
-          return group.generateProofOfMembership(idx);
+          const tempMerkleProof = group.generateProofOfMembership(idx);
+          return {
+            pathIndices: tempMerkleProof.pathIndices,
+            pathElements: tempMerkleProof.pathElements.map((el) => el.toString()),
+            element: tempMerkleProof.element.toString(),
+            merkleRoot: tempMerkleProof.merkleRoot.toString(),
+          };
         } else {
           const inputMerklePathIndices = new Array(group.depth).fill(0);
           const inputMerklePathElements = new Array(group.depth).fill(0);
           return {
             pathIndices: inputMerklePathIndices,
             pathElements: inputMerklePathElements,
-            merkleRoot: BigNumber.from(defaultRoot),
-            element: BigNumber.from(defaultRoot),
+            merkleRoot: BigInt(defaultRoot),
+            element: BigInt(defaultRoot),
           };
         }
       });
@@ -1148,7 +1213,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
     });
     it('should reject tampering with public amount', async () => {
       const invalidInputs = publicInputs;
-      invalidInputs.publicAmount = toFixedHex(BigNumber.from(1e10));
+      invalidInputs.publicAmount = toFixedHex(BigInt(1e10));
 
       await expect(
         idAnchor.contract.transact(
@@ -1183,7 +1248,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
     });
     it('should reject tampering with external data hash', async () => {
       const invalidInputs = publicInputs;
-      invalidInputs.extDataHash = BigNumber.from(publicInputs.extDataHash).add(1);
+      invalidInputs.extDataHash = BigInt(publicInputs.extDataHash) + BigInt(1);
 
       await expect(
         idAnchor.contract.transact(
@@ -1219,7 +1284,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
     it('should reject tampering with output commitments', async () => {
       const invalidInputs = publicInputs;
-      invalidInputs.outputCommitments[0] = BigNumber.from(publicInputs.outputCommitments[0]).add(1);
+      invalidInputs.outputCommitments[0] = BigInt(publicInputs.outputCommitments[0]) + BigInt(1);
       await expect(
         idAnchor.contract.transact(
           invalidInputs.proof,
@@ -1253,7 +1318,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
     });
     it('should reject tampering with input commitments', async () => {
       const invalidInputs = publicInputs;
-      invalidInputs.inputNullifiers[0] = BigNumber.from(publicInputs.inputNullifiers[0]).add(1);
+      invalidInputs.inputNullifiers[0] = BigInt(publicInputs.inputNullifiers[0]) + BigInt(1);
 
       await expect(
         idAnchor.contract.transact(
@@ -1418,7 +1483,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         wallet.address
       );
       await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
-      const groupId = BigNumber.from(99); // arbitrary
+      const groupId = BigInt(99); // arbitrary
       await wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1));
 
       wrappedIdAnchor = await IdentityVAnchor.createIdentityVAnchor(
@@ -1436,12 +1501,12 @@ describe('IdentityVAnchor for 2 max edges', () => {
         alice
       );
 
-      await wrappedIdAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
+      await wrappedIdAnchor.contract.configureMinimalWithdrawalLimit(BigInt(0), 1);
       await wrappedIdAnchor.contract.configureMaximumDepositLimit(
-        BigNumber.from(tokenDenomination).mul(1_000_000),
+        BigInt(tokenDenomination) * BigInt(1_000_000),
         2
       );
-      const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+      const MINTER_ROLE = keccak256(toUtf8Bytes('MINTER_ROLE'));
       await wrappedToken.grantRole(MINTER_ROLE, wrappedIdAnchor.contract.address);
       await token.approve(wrappedToken.address, '10000000000000000000');
     });
@@ -1455,7 +1520,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         [],
         [aliceDepositUtxo],
         fee,
-        BigNumber.from(0),
+        BigInt(0),
         '0',
         relayer,
         token.address,
@@ -1484,8 +1549,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
         [],
         [aliceDepositUtxo],
         // fee,
-        BigNumber.from(0),
-        BigNumber.from(0),
+        BigInt(0),
+        BigInt(0),
         '0',
         relayer,
         token.address,
@@ -1501,13 +1566,15 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const balWrappedTokenAfterDepositSender = await wrappedToken.balanceOf(alice.address);
       expect(balWrappedTokenAfterDepositAnchor.toString()).equal('10000000');
       expect(balWrappedTokenAfterDepositSender.toString()).equal('0');
-      const aliceDepositIndex = wrappedIdAnchor.tree.getIndexByElement(aliceDepositUtxo.commitment);
+      const aliceDepositIndex = wrappedIdAnchor.tree.getIndexByElement(
+        BigInt(`0x${Buffer.from(aliceDepositUtxo.commitment).toString('hex')}`)
+      );
 
       aliceDepositUtxo.setIndex(aliceDepositIndex);
 
       //Check that vAnchor has the right amount of wrapped token balance
       expect((await wrappedToken.balanceOf(wrappedIdAnchor.contract.address)).toString()).equal(
-        BigNumber.from(1e7).toString()
+        BigInt(1e7).toString()
       );
 
       const aliceChangeAmount = 0;
@@ -1516,8 +1583,8 @@ describe('IdentityVAnchor for 2 max edges', () => {
       await wrappedIdAnchor.transact(
         [aliceDepositUtxo],
         [aliceChangeUtxo],
-        BigNumber.from(0),
-        BigNumber.from(0),
+        BigInt(0),
+        BigInt(0),
         alice.address,
         relayer,
         token.address,
@@ -1535,9 +1602,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
     const chainID2 = getChainIdType(SECOND_CHAIN_ID);
     let ganacheServer: any;
     let ganacheAnchor: IdentityVAnchor;
-    let ganacheProvider = new ethers.providers.JsonRpcProvider(
-      `http://localhost:${SECOND_CHAIN_ID}`
-    );
+    let ganacheProvider = new JsonRpcProvider(`http://localhost:${SECOND_CHAIN_ID}`);
     ganacheProvider.pollingInterval = 1;
     let ganacheWallet = new ethers.Wallet(
       'c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e',
@@ -1550,7 +1615,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
     let ganacheWrappedToken: WrappedToken;
     let ganacheSemaphore: Semaphore;
     let johnKeypair = new Keypair();
-    const groupId = BigNumber.from(99); // arbitrary
+    const groupId = BigInt(99); // arbitrary
     let john = ganacheWallet;
 
     before('start ganache server', async () => {
@@ -1573,9 +1638,9 @@ describe('IdentityVAnchor for 2 max edges', () => {
       ganacheToken = await tokenFactory.deploy('test token 2', 'TEST 2');
       await ganacheToken.deployed();
       await ganacheToken.mint(ganacheWallet.address, '10000000000000000000000');
-      await ganacheToken.mint(alice.address, BigNumber.from(1e10).toString());
-      await ganacheToken.mint(bob.address, BigNumber.from(1e10).toString());
-      await ganacheToken.mint(carl.address, BigNumber.from(1e10).toString());
+      await ganacheToken.mint(alice.address, BigInt(1e10).toString());
+      await ganacheToken.mint(bob.address, BigInt(1e10).toString());
+      await ganacheToken.mint(carl.address, BigInt(1e10).toString());
 
       // create wrapped token
       const name = 'webbETH2';
@@ -1602,10 +1667,10 @@ describe('IdentityVAnchor for 2 max edges', () => {
         zkComponents2_2,
         ganacheWallet
       );
-      const groupId = BigNumber.from(99); // arbitrary
+      const groupId = BigInt(99); // arbitrary
 
       const tx = await ganacheSemaphore.createGroup(
-        groupId.toNumber(),
+        Number(groupId),
         levels,
         ganacheWallet.address,
         maxEdges
@@ -1621,12 +1686,12 @@ describe('IdentityVAnchor for 2 max edges', () => {
         .to.emit(ganacheSemaphore.contract, 'MemberAdded')
         .withArgs(groupId, johnLeaf, ganacheGroup.root);
 
-      await ganacheSemaphore.updateEdge(groupId.toNumber(), group.root.toString(), 2, chainID);
+      await ganacheSemaphore.updateEdge(Number(groupId), group.root.toString(), 2, chainID);
 
       // update group edges cross-chain
       ganacheGroup.updateEdge(chainID, group.root.toString());
 
-      await semaphore.updateEdge(groupId.toNumber(), ganacheGroup.root.toString(), 0, chainID2);
+      await semaphore.updateEdge(Number(groupId), ganacheGroup.root.toString(), 0, chainID2);
 
       group.updateEdge(chainID2, ganacheGroup.root.toString());
       // create Anchor
@@ -1645,13 +1710,13 @@ describe('IdentityVAnchor for 2 max edges', () => {
         ganacheWallet
       );
 
-      await ganacheAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
+      await ganacheAnchor.contract.configureMinimalWithdrawalLimit(BigInt(0), 1);
       await ganacheAnchor.contract.configureMaximumDepositLimit(
-        BigNumber.from(tokenDenomination).mul(1_000_000),
+        BigInt(tokenDenomination) * BigInt(1_000_000),
         2
       );
 
-      const MINTER_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('MINTER_ROLE'));
+      const MINTER_ROLE = keccak256(toUtf8Bytes('MINTER_ROLE'));
       await ganacheWrappedToken.grantRole(MINTER_ROLE, ganacheAnchor.contract.address);
       await ganacheToken.approve(ganacheWrappedToken.address, '1000000000000000000000000');
       await ganacheToken.approve(ganacheAnchor.contract.address, '1000000000000000000000000');
@@ -1669,7 +1734,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         chainId: chainID2.toString(),
         originChainId: chainID2.toString(),
         amount: johnDepositAmount.toString(),
-        blinding: hexToU8a(randomBN(31).toHexString()),
+        blinding: hexToU8a(randomBN(31).toString(16)),
         keypair: johnKeypair,
       });
       // John deposits into tornado pool
@@ -1680,7 +1745,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         inputs,
         outputs,
         fee,
-        BigNumber.from(0),
+        BigInt(0),
         ganacheWallet.address,
         relayer,
         '',
@@ -1697,23 +1762,21 @@ describe('IdentityVAnchor for 2 max edges', () => {
         chainId: chainID2.toString(),
         originChainId: chainID2.toString(),
         amount: johnDepositAmount.toString(),
-        blinding: hexToU8a(randomBN(31).toHexString()),
+        blinding: hexToU8a(randomBN(31).toString(16)),
         keypair: johnKeypair,
       });
       // Alice deposits into tornado pool
-      await token.mint(john.address, BigNumber.from(1e10).toString());
+      await token.mint(john.address, BigInt(1e10).toString());
       const txOptions: TransactionOptions = {
         keypair: johnKeypair,
-        externalLeaves: ganacheGroup.members.map((bignum: BigNumber) =>
-          hexToU8a(bignum.toHexString())
-        ),
+        externalLeaves: ganacheGroup.members.map((bignum) => BigInt(bignum.toString())),
       };
 
       await idAnchor.transact(
         [],
         [johnDepositUtxo],
         fee,
-        BigNumber.from(0),
+        BigInt(0),
         john.address,
         relayer,
         '',
@@ -1730,7 +1793,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         chainId: chainID.toString(),
         originChainId: chainID2.toString(),
         amount: johnDepositAmount.toString(),
-        blinding: hexToU8a(randomBN(31).toHexString()),
+        blinding: hexToU8a(randomBN(31).toString(16)),
         keypair: johnKeypair,
       });
       // john deposits into tornado pool
@@ -1740,7 +1803,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         [],
         [johnDepositUtxo],
         fee,
-        BigNumber.from(0),
+        BigInt(0),
         ganacheWallet.address,
         relayer,
         '',
@@ -1763,21 +1826,19 @@ describe('IdentityVAnchor for 2 max edges', () => {
       const johnWithdrawUtxo = await CircomUtxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
-        chainId: BigNumber.from(chainID).toString(),
-        originChainId: BigNumber.from(chainID).toString(),
-        amount: BigNumber.from(johnWithdrawAmount).toString(),
-        blinding: hexToU8a(randomBN().toHexString()),
+        chainId: BigInt(chainID).toString(),
+        originChainId: BigInt(chainID).toString(),
+        amount: BigInt(johnWithdrawAmount).toString(),
+        blinding: hexToU8a(randomBN().toString(16)),
         keypair: johnDepositUtxo.keypair,
       });
       const txOptions2: TransactionOptions = {
         keypair: johnKeypair,
-        externalLeaves: ganacheGroup.members.map((bignum: BigNumber) =>
-          hexToU8a(bignum.toHexString())
-        ),
+        externalLeaves: ganacheGroup.members.map((bignum) => BigInt(bignum.toString())),
         treeChainId: chainID2.toString(),
       };
-      await token.mint(idAnchor.contract.address, BigNumber.from(1e10).toString());
-      const leaves = ganacheAnchor.tree.elements().map((el) => hexToU8a(el.toHexString()));
+      await token.mint(idAnchor.contract.address, BigInt(1e10).toString());
+      const leaves = ganacheAnchor.tree.elements().map((el) => BigInt(el.toString()));
       const leavesMap = { [chainID2]: leaves };
 
       const johnBalanceBeforeWithdraw = await token.balanceOf(john.address);
@@ -1786,7 +1847,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         [johnDepositUtxo],
         [johnWithdrawUtxo],
         fee,
-        BigNumber.from(0),
+        BigInt(0),
         john.address,
         relayer,
         '',
