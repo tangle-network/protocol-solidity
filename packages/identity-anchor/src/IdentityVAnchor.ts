@@ -205,7 +205,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     createdIdentityVAnchor.token = token;
     const tx = await createdIdentityVAnchor.contract.initialize(
       BigInt('1'),
-      BigInt('2') ^ BigInt('256') - BigInt('1')
+      BigInt('2') ^ (BigInt('256') - BigInt('1'))
     );
     await tx.wait();
     return createdIdentityVAnchor;
@@ -365,10 +365,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
       extensionRoots: `0x${identityRoots.map((x: any) => toFixedHex(x).slice(2)).join('')}`,
       roots: `0x${vanchorRoots.map((x: any) => toFixedHex(x).slice(2)).join('')}`,
       inputNullifiers: inputs.map((x: any) => toFixedHex(x)),
-      outputCommitments: [
-        BigInt(toFixedHex(outputs[0])),
-        BigInt(toFixedHex(outputs[1])),
-      ],
+      outputCommitments: [BigInt(toFixedHex(outputs[0])), BigInt(toFixedHex(outputs[1]))],
       publicAmount: toFixedHex(publicAmount),
       extDataHash: BigInt(toFixedHex(extDataHash)),
     };
@@ -424,9 +421,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     const proofInputs = {
       privateKey: keypair.privkey.toString(),
       semaphoreTreePathIndices: identityMerkleProof.pathIndices,
-      semaphoreTreeSiblings: identityMerkleProof.pathElements.map((x) =>
-        BigInt(x).toString()
-      ),
+      semaphoreTreeSiblings: identityMerkleProof.pathElements.map((x) => BigInt(x).toString()),
       semaphoreRoots: identityRoots,
       chainID: vanchorInputs.chainID,
       publicAmount: vanchorInputs.publicAmount,
@@ -452,7 +447,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
       ),
       outSemaphoreTreeElements: outSemaphoreProofs.map((proof) =>
         proof.pathElements.map((elem) => {
-          if (typeof elem == "bigint") {
+          if (typeof elem == 'bigint') {
             return elem.toString();
           }
           return BigInt(elem).toString();

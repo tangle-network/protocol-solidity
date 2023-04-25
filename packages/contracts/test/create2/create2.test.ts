@@ -39,9 +39,7 @@ describe('Should deploy verifiers to the same address', () => {
   const FIRST_CHAIN_ID = 31337;
   const SECOND_CHAIN_ID = 10000;
   let ganacheServer2: any;
-  let ganacheProvider2 = new JsonRpcProvider(
-    `http://localhost:${SECOND_CHAIN_ID}`
-  );
+  let ganacheProvider2 = new JsonRpcProvider(`http://localhost:${SECOND_CHAIN_ID}`);
   ganacheProvider2.pollingInterval = 1;
   let ganacheWallet1 = new ethers.Wallet(HARDHAT_ACCOUNTS[1].privateKey, ganacheProvider2);
   let ganacheWallet2 = new ethers.Wallet(

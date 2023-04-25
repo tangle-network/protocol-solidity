@@ -145,7 +145,7 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     createdVAnchor.token = token;
     const tx = await createdVAnchor.contract.initialize(
       BigInt('1'),
-      BigInt('2') ^ BigInt('256') - BigInt('1')
+      BigInt('2') ^ (BigInt('256') - BigInt('1'))
     );
     await tx.wait();
     return createdVAnchor;
@@ -365,7 +365,11 @@ export class VAnchor extends WebbBridge implements IVAnchor {
       chainId: chainId.toString(),
       output: [outputs[0], outputs[1]],
       encryptedCommitments,
-      publicAmount: (BigInt(extAmount) - BigInt(fee) + BigInt(FIELD_SIZE) % BigInt(FIELD_SIZE)).toString(),
+      publicAmount: (
+        BigInt(extAmount) -
+        BigInt(fee) +
+        (BigInt(FIELD_SIZE) % BigInt(FIELD_SIZE))
+      ).toString(),
       provingKey:
         inputs.length > 2 ? this.largeCircuitZkComponents.zkey : this.smallCircuitZkComponents.zkey,
       relayer: hexToU8a(relayer),
@@ -464,7 +468,11 @@ export class VAnchor extends WebbBridge implements IVAnchor {
       chainId: chainId.toString(),
       output: [outputs[0], outputs[1]],
       encryptedCommitments,
-      publicAmount: (BigInt(extAmount) - BigInt(fee) + BigInt(FIELD_SIZE) % BigInt(FIELD_SIZE)).toString(),
+      publicAmount: (
+        BigInt(extAmount) -
+        BigInt(fee) +
+        (BigInt(FIELD_SIZE) % BigInt(FIELD_SIZE))
+      ).toString(),
       provingKey:
         inputs.length > 2 ? this.largeCircuitZkComponents.zkey : this.smallCircuitZkComponents.zkey,
       relayer: hexToU8a(relayer),

@@ -132,14 +132,8 @@ describe('SignatureBridgeSide use', () => {
     bridgeSide.setAnchorHandler(anchorHandler);
     const res = await bridgeSide.connectAnchorWithSignature(srcAnchor);
 
-    await bridgeSide.executeMinWithdrawalLimitProposalWithSig(
-      srcAnchor,
-      BigInt(0).toString()
-    );
-    await bridgeSide.executeMaxDepositLimitProposalWithSig(
-      srcAnchor,
-      BigInt(1e8).toString()
-    );
+    await bridgeSide.executeMinWithdrawalLimitProposalWithSig(srcAnchor, BigInt(0).toString());
+    await bridgeSide.executeMaxDepositLimitProposalWithSig(srcAnchor, BigInt(1e8).toString());
 
     // Define inputs/outputs for transact function
     const depositUtxo = await CircomUtxo.generateUtxo({

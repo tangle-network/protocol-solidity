@@ -27,9 +27,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
   let hardhatWallet1 = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
 
   const SECOND_CHAIN_ID = 10000;
-  let ganacheProvider2 = new JsonRpcProvider(
-    `http://localhost:${SECOND_CHAIN_ID}`
-  );
+  let ganacheProvider2 = new JsonRpcProvider(`http://localhost:${SECOND_CHAIN_ID}`);
   ganacheProvider2.pollingInterval = 1;
   let ganacheWallet2 = new ethers.Wallet(
     'c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e',
@@ -1078,18 +1076,14 @@ describe.skip('8-sided multichain tests for signature vbridge', () => {
 
     let hardhatWallet1 = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
 
-    let ganacheProvider2 = new JsonRpcProvider(
-      `http://localhost:${SECOND_CHAIN_ID}`
-    );
+    let ganacheProvider2 = new JsonRpcProvider(`http://localhost:${SECOND_CHAIN_ID}`);
     ganacheProvider2.pollingInterval = 1;
     let ganacheWallet2 = new ethers.Wallet(
       'c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e',
       ganacheProvider2
     );
 
-    let ganacheProvider3 = new JsonRpcProvider(
-      `http://localhost:${THIRD_CHAIN_ID}`
-    );
+    let ganacheProvider3 = new JsonRpcProvider(`http://localhost:${THIRD_CHAIN_ID}`);
     ganacheProvider3.pollingInterval = 1;
     let ganacheWallet3 = new ethers.Wallet(
       'c0d375903fd6f6ad3edafc2c5428900c0757ce1da10e5dd864fe387b32b91d7e',

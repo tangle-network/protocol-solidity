@@ -109,19 +109,14 @@ export abstract class WebbBridge {
 
   public async createResourceId(): Promise<string> {
     const chainId = (await this.signer.provider!.getNetwork()).chainId;
-    return toHex(
-      this.contract.address + toHex(getChainIdType(Number(chainId)), 6).substr(2),
-      32
-    );
+    return toHex(this.contract.address + toHex(getChainIdType(Number(chainId)), 6).substr(2), 32);
   }
 
   public async getMinWithdrawalLimitProposalData(
     _minimalWithdrawalAmount: string
   ): Promise<string> {
     const resourceID = await this.createResourceId();
-    const functionSig = keccak256(
-        toUtf8Bytes('configureMinimalWithdrawalLimit(uint256,uint32)')
-      )
+    const functionSig = keccak256(toUtf8Bytes('configureMinimalWithdrawalLimit(uint256,uint32)'))
       .slice(0, 10)
       .padEnd(10, '0');
     const nonce = Number(await this.contract.getProposalNonce()) + 1;
@@ -136,9 +131,7 @@ export abstract class WebbBridge {
 
   public async getMaxDepositLimitProposalData(_maximumDepositAmount: string): Promise<string> {
     const resourceID = await this.createResourceId();
-    const functionSig = keccak256(
-        toUtf8Bytes('configureMaximumDepositLimit(uint256,uint32)')
-      )
+    const functionSig = keccak256(toUtf8Bytes('configureMaximumDepositLimit(uint256,uint32)'))
       .slice(0, 10)
       .padEnd(10, '0');
     const nonce = Number(await this.contract.getProposalNonce()) + 1;
@@ -173,9 +166,7 @@ export abstract class WebbBridge {
     // If no leaf index passed in, set it to the most recent one.
     const chainIdBigInt = (await this.signer.provider!.getNetwork()).chainId;
     const chainID = getChainIdType(Number(chainIdBigInt));
-    const functionSig = keccak256(
-        toUtf8Bytes('updateEdge(uint256,uint32,bytes32)')
-      )
+    const functionSig = keccak256(toUtf8Bytes('updateEdge(uint256,uint32,bytes32)'))
       .slice(0, 10)
       .padEnd(10, '0');
 
@@ -196,16 +187,14 @@ export abstract class WebbBridge {
   }
 
   public getExtAmount(inputs: Utxo[], outputs: Utxo[], fee: BigNumberish) {
-    return BigInt(fee)
-      + outputs.reduce((sum, x) => sum + BigInt(x.amount), BigInt(0))
-      - inputs.reduce((sum, x) => sum + BigInt(x.amount), BigInt(0));
+    return (
+      BigInt(fee) +
+      outputs.reduce((sum, x) => sum + BigInt(x.amount), BigInt(0)) -
+      inputs.reduce((sum, x) => sum + BigInt(x.amount), BigInt(0))
+    );
   }
 
-  public async getWrapUnwrapOptions(
-    extAmount: BigInt,
-    refund: BigInt,
-    wrapUnwrapToken: string
-  ) {
+  public async getWrapUnwrapOptions(extAmount: BigInt, refund: BigInt, wrapUnwrapToken: string) {
     let options = {};
     if (BigInt(extAmount.toString()) > BigInt(0) && checkNativeAddress(wrapUnwrapToken)) {
       let tokenWrapper = TokenWrapper__factory.connect(await this.contract.token(), this.signer);
@@ -289,9 +278,7 @@ export abstract class WebbBridge {
 
   public async getHandlerProposalData(newHandler: string): Promise<string> {
     const resourceID = await this.createResourceId();
-    const functionSig = keccak256(
-        toUtf8Bytes('setHandler(address,uint32)')
-      )
+    const functionSig = keccak256(toUtf8Bytes('setHandler(address,uint32)'))
       .slice(0, 10)
       .padEnd(10, '0');
     const nonce = Number(await this.contract.getProposalNonce()) + 1;

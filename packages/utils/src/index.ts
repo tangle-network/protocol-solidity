@@ -7,4 +7,4 @@ export * from './utils';
 export * from './hexToU8a';
 export * from './u8aToHex';
 
-export type AnySigner = ethers.Signer | SignerWithAddress
+export type AnySigner = ethers.Signer | SignerWithAddress;

@@ -13,7 +13,16 @@ import {
   toHex,
 } from '@webb-tools/sdk-core';
 import { getChainIdType, u8aToHex } from '@webb-tools/utils';
-import { BigNumberish, ContractTransactionReceipt, Overrides, ethers, getBytes, keccak256, solidityPacked, toUtf8Bytes } from 'ethers';
+import {
+  BigNumberish,
+  ContractTransactionReceipt,
+  Overrides,
+  ethers,
+  getBytes,
+  keccak256,
+  solidityPacked,
+  toUtf8Bytes,
+} from 'ethers';
 import { PayableOverrides } from '@ethersproject/contracts';
 import { WebbBridge } from './Common';
 import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
@@ -64,7 +73,7 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
     createdVAnchor.token = token;
     const tx = await createdVAnchor.contract.initialize(
       BigInt('1'),
-      BigInt('2') ^ BigInt('256') - BigInt('1')
+      BigInt('2') ^ (BigInt('256') - BigInt('1'))
     );
     await tx.wait();
     return createdVAnchor;
@@ -118,10 +127,7 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
 
   public async createResourceId(): Promise<string> {
     const chainId = (await this.signer.provider?.getNetwork())?.chainId;
-    return toHex(
-      this.contract.address + toHex(getChainIdType(Number(chainId)), 6).substr(2),
-      32
-    );
+    return toHex(this.contract.address + toHex(getChainIdType(Number(chainId)), 6).substr(2), 32);
   }
 
   public async setHandler(handlerAddress: string) {

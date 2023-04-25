@@ -63,7 +63,9 @@ const config: HardhatUserConfig = {
     gasPrice: 21,
   },
   preprocess: {
-    eachLine: removeConsoleLog((hre) => hre.network.name !== 'hardhat' && hre.network.name !== 'localhost'),
+    eachLine: removeConsoleLog(
+      (hre) => hre.network.name !== 'hardhat' && hre.network.name !== 'localhost'
+    ),
   },
 };
 

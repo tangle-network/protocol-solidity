@@ -213,7 +213,7 @@ export class VAnchorForest extends WebbBridge {
     createdVAnchor.token = token;
     const tx = await createdVAnchor.contract.initialize(
       BigInt('1'),
-      BigInt(2) ^ BigInt(256) - BigInt(1)
+      BigInt(2) ^ (BigInt(256) - BigInt(1))
     );
     await tx.wait();
     return createdVAnchor;
