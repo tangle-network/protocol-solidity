@@ -40,10 +40,6 @@ contract MultiAssetVAnchorProxy is Initialized, IERC721Receiver {
 	mapping(address => uint256) public nextQueueERC721DepositIndex;
 	uint256 public lastProcessedERC721DepositLeaf;
 
-	mapping (address => mapping(uint256 => bytes32)) public ShieldedTransferCommitmentMap;
-	mapping (address => uint256) public nextShieldedTransferCommitmentIndex;
-	uint256 public lastProcessedShieldedTransferCommitmentLeaf;
-
 	mapping(address => mapping(uint256 => bytes32)) public RewardUnspentTreeCommitmentMap;
 	mapping(address => uint256) public nextRewardUnspentTreeCommitmentIndex;
 	uint256 public lastProcessedRewardUnspentTreeLeaf;
@@ -200,67 +196,6 @@ contract MultiAssetVAnchorProxy is Initialized, IERC721Receiver {
 			uint32(_batchHeight)
 		);
 		emit BatchInsertERC20s(lastProcessedERC20DepositLeaf, proxiedMASP, _newRoot);
-	}
-
-
-	function queueShieldedTransferCommitment(uint256[2] memory shieldedTransferCommitment) public payable {
-		address proxiedMASP = msg.sender;
-		ShieldedTransferCommitmentMap[proxiedMASP][
-			nextShieldedTransferCommitmentIndex[proxiedMASP]
-		] = bytes32(shieldedTransferCommitment[0]);
-		// Emit Event
-		emit QueueShieldedTransferCommitment(nextShieldedTransferCommitmentIndex[proxiedMASP], proxiedMASP);
-		nextShieldedTransferCommitmentIndex[proxiedMASP] =
-			nextRewardSpentTreeCommitmentIndex[proxiedMASP] +
-			1;
-		ShieldedTransferCommitmentMap[proxiedMASP][
-			nextShieldedTransferCommitmentIndex[proxiedMASP]
-		] = bytes32(shieldedTransferCommitment[1]);
-		// Emit Event
-		emit QueueShieldedTransferCommitment(nextShieldedTransferCommitmentIndex[proxiedMASP], proxiedMASP);
-		nextShieldedTransferCommitmentIndex[proxiedMASP] =
-			nextRewardSpentTreeCommitmentIndex[proxiedMASP] +
-			1;
-	}
-
-	function batchInsertShieldedTransferCommitments(
-		address proxiedMASP,
-		bytes calldata _proof,
-		bytes32 _argsHash,
-		bytes32 _currentRoot,
-		bytes32 _newRoot,
-		uint32 _pathIndices,
-		uint8 _batchHeight
-	) public {
-		require(validProxiedMASPs[proxiedMASP], "Invalid MASP");
-		uint256 _batchSize = 2 ** _batchHeight;
-		bytes32[] memory commitments = new bytes32[](_batchSize);
-		uint _lastProcessedShieldedTransferCommitmentLeaf = lastProcessedShieldedTransferCommitmentLeaf;
-		require(
-			_lastProcessedShieldedTransferCommitmentLeaf + _batchSize <=
-				nextShieldedTransferCommitmentIndex[proxiedMASP],
-			"Batch size too big"
-		);
-		for (
-			uint i = _lastProcessedShieldedTransferCommitmentLeaf;
-			i < _lastProcessedShieldedTransferCommitmentLeaf + _batchSize;
-			i++
-		) {
-			commitments[i] = RewardSpentTreeCommitmentMap[proxiedMASP][i];
-		}
-		// Update latestProcessedDepositLeaf
-		lastProcessedShieldedTransferCommitmentLeaf = _lastProcessedShieldedTransferCommitmentLeaf + _batchSize;
-		// Call batchInsert function on MASP
-		IMultiAssetVAnchorBatchTree(proxiedMASP).batchInsert(
-			_proof,
-			_argsHash,
-			_currentRoot,
-			_newRoot,
-			_pathIndices,
-			commitments,
-			_batchHeight
-		);
-		emit BatchInsertShieldedTranfers(lastProcessedShieldedTransferCommitmentLeaf, proxiedMASP, _newRoot);
 	}
 
 	function queueRewardUnspentTreeCommitment(
