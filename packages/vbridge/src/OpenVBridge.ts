@@ -222,8 +222,11 @@ export class OpenVBridge {
       await OpenVBridge.setPermissions(vBridgeInstance, chainGroupedVAnchors);
       createdVAnchors.push(chainGroupedVAnchors);
 
+      const governorAddress =
+        typeof initialGovernor === 'string' ? initialGovernor : initialGovernor.address;
+      const governorNonce = typeof initialGovernor === 'string' ? 0 : initialGovernor.nonce;
       // Transfer ownership of the bridge to the initialGovernor
-      const tx = await vBridgeInstance.transferOwnership(initialGovernor, 0);
+      const tx = await vBridgeInstance.transferOwnership(governorAddress, governorNonce);
       await tx.wait();
       vBridgeSides.set(chainID, vBridgeInstance);
     }
