@@ -17,7 +17,7 @@ jobs:
     if: github.ref != 'refs/heads/main' && github.event.pull_request.draft == false
     strategy:
       matrix:
-        node-version: [16.x]
+        node-version: [18.x]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
