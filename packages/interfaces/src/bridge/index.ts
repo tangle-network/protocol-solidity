@@ -6,7 +6,16 @@ import { IBridgeSide } from '../IBridgeSide';
 export type DeployerConfig = Record<number, ethers.Wallet>;
 
 // Initial Governor config the chainId to the initial governor for that chain
-export type GovernorConfig = Record<number, string>;
+export type GovernorWithNonce = {
+  address: string;
+  nonce: number;
+};
+/**
+ * The governor config is a record of chainId => governor eth address
+ * or chainId => {governor: eth address, nonce: number}, where the nonce is the
+ * nonce of the governor at the time of deployment. Nonce is zero if not specified.
+ **/
+export type GovernorConfig = Record<number, string | GovernorWithNonce>;
 
 export type AnchorIdentifier = {
   anchorSize?: ethers.BigNumberish;
