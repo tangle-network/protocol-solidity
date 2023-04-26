@@ -6,8 +6,8 @@ build/
 
 # Packages
 packages/contracts/typechain
+packages/contracts/typechain-types
 packages/*/node_modules
-packages/*/dist
 packages/*/dist
 packages/*/tsconfig.tsbuildinfo
 

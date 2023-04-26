@@ -6,8 +6,6 @@
   "include": [
     "packages/**/*",
     "scripts/**/*",
-    "test/**/*",
-    "./hardhat.config.ts"
   ],
   "compilerOptions": {
     "declaration": true,

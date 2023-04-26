@@ -16,4 +16,4 @@ rm -rf out/Context.sol/
 rm -rf out/draft*.sol/
 
 # Then generate typechain artifacts
-typechain --target=ethers-v6 --out-dir ./typechain/ ./out/**/*.json
+typechain --target=ethers-v5 --out-dir ./typechain/ ./out/**/*.json
