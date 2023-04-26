@@ -3,7 +3,7 @@
 
 import { IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
 import { Keypair } from '@webb-tools/sdk-core';
-import { BigNumberish, Overrides, ethers } from 'ethers';
+import { BigNumberish, Overrides } from 'ethers';
 
 export interface SetupTransactionResult {
   extAmount: BigNumberish;

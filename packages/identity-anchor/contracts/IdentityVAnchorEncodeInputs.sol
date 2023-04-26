@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.18;
 pragma experimental ABIEncoderV2;
 
 import "@webb-tools/protocol-solidity/structs/PublicInputs.sol";

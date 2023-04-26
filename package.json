@@ -7,43 +7,41 @@
   "engines": {
     "node": "18.x.x"
   },
-  "resolutions": {
-    "@webb-tools/sdk-core": "file:../webb.js/packages/sdk-core/build"
-  },
   "workspaces": {
     "packages": [
       "packages/*"
     ],
     "nohoist": [
-      "**/@openzeppelin/**"
+      "**/@openzeppelin/**",
+      "**/@webb-tools/protocol-solidity/**"
     ]
   },
   "scripts": {
     "compile": "lerna run compile --scope=@webb-tools/contracts",
-    "build": "yarn compile && yarn build:packages",
+    "build": "yarn build:packages",
     "setup": "yarn compile && yarn build:circuits && yarn build:ptau",
     "test": "yarn workspace @webb-tools/contracts run test",
     "fast": "yarn workspace @webb-tools/contracts run test:parallel",
-    "build:circuits": "./scripts/bash/build_circuits.sh",
+    "build:circuits": "./scripts/zkp/build_circuits.sh",
     "build:packages": "lerna run build",
-    "build:ptau": "./scripts/bash/generate_phase1_ptau.sh",
+    "build:ptau": "./scripts/zkp/generate_phase1_ptau.sh",
     "clean": "yarn clean:packages",
     "clean:packages": "lerna run clean",
     "fetch:fixtures": "cd packages/contracts/solidity-fixtures && dvc pull && cd ../../../",
     "prettier": "prettier -c .",
     "publish:packages": "lerna run compile && lerna publish",
     "publish:ci": "lerna run compile && lerna publish patch --yes --message 'chore: release new versions' ",
-    "setup:groth16:vanchor2": "./scripts/bash/groth16/vanchor/phase2_poseidon_vanchor2.sh",
-    "setup:groth16:vanchor8": "./scripts/bash/groth16/vanchor/phase2_poseidon_vanchor8.sh",
-    "setup:groth16:identity-vanchor2": "./scripts/bash/groth16/identity_vanchor/phase2_identity_vanchor2.sh",
-    "setup:groth16:identity-vanchor8": "./scripts/bash/groth16/identity_vanchor/phase2_identity_vanchor8.sh",
-    "setup:groth16:masp-vanchor2": "./scripts/bash/groth16/masp_vanchor/phase2_masp_vanchor2.sh",
-    "setup:groth16:masp-vanchor8": "./scripts/bash/groth16/masp_vanchor/phase2_masp_vanchor8.sh",
-    "setup:plonk:vanchor2": "./scripts/bash/plonk/vanchor/phase2_poseidon_vanchor2.sh",
-    "setup:plonk:vanchor8": "./scripts/bash/plonk/vanchor/phase2_poseidon_vanchor8.sh",
-    "setup:plonk:identity-vanchor2": "./scripts/bash/plonk/identity_vanchor/phase2_identity_vanchor2.sh",
-    "setup:plonk:identity-vanchor8": "./scripts/bash/plonk/identity_vanchor/phase2_identity_vanchor8.sh",
-    "setup:plonk": "./scripts/bash/setup_verifiers_plonk.sh",
+    "setup:groth16:vanchor2": "./scripts/zkp/groth16/vanchor/phase2_poseidon_vanchor2.sh",
+    "setup:groth16:vanchor8": "./scripts/zkp/groth16/vanchor/phase2_poseidon_vanchor8.sh",
+    "setup:groth16:identity-vanchor2": "./scripts/zkp/groth16/identity_vanchor/phase2_identity_vanchor2.sh",
+    "setup:groth16:identity-vanchor8": "./scripts/zkp/groth16/identity_vanchor/phase2_identity_vanchor8.sh",
+    "setup:groth16:masp-vanchor2": "./scripts/zkp/groth16/masp_vanchor/phase2_masp_vanchor2.sh",
+    "setup:groth16:masp-vanchor8": "./scripts/zkp/groth16/masp_vanchor/phase2_masp_vanchor8.sh",
+    "setup:plonk:vanchor2": "./scripts/zkp/plonk/vanchor/phase2_poseidon_vanchor2.sh",
+    "setup:plonk:vanchor8": "./scripts/zkp/plonk/vanchor/phase2_poseidon_vanchor8.sh",
+    "setup:plonk:identity-vanchor2": "./scripts/zkp/plonk/identity_vanchor/phase2_identity_vanchor2.sh",
+    "setup:plonk:identity-vanchor8": "./scripts/zkp/plonk/identity_vanchor/phase2_identity_vanchor8.sh",
+    "setup:plonk": "./scripts/zkp/setup_verifiers_plonk.sh",
     "ts-check": "tsc --noEmit -p ./tsconfig.json",
     "format": "prettier -w ."
   },
@@ -52,5 +50,8 @@
     "nx": "^15.9.2",
     "prettier-plugin-solidity": "^1.1.3",
     "tomlify-j0.4": "^3.0.0"
+  },
+  "dependencies": {
+    "typescript": "^5.0.4"
   }
 }

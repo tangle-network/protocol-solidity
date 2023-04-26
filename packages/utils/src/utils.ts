@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 /* eslint-disable sort-keys */
-import { AbiCoder, BigNumberish, ethers, keccak256 } from 'ethers';
+import { AbiCoder, keccak256 } from 'ethers';
 import { groth16 } from 'snarkjs';
 
 import path from 'path';

@@ -46,7 +46,7 @@ export class ChainalysisVAnchor extends VAnchor {
       smallCircuitZkComponents,
       largeCircuitZkComponents
     );
-    createdVAnchor.latestSyncedBlock = receipt.blockNumber!;
+    createdVAnchor.latestSyncedBlock = receipt!.blockNumber!;
     createdVAnchor.token = token;
     return createdVAnchor;
   }
@@ -65,8 +65,10 @@ export class ChainalysisVAnchor extends VAnchor {
     const encodeLibraryFactory = new VAnchorEncodeInputs__factory(signer);
     const encodeLibrary = await encodeLibraryFactory.deploy();
     await encodeLibrary.deployed();
+
+    const address = await encodeLibrary.getAddress();
     const factory = new ChainalysisVAnchor__factory(
-      { ['contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs']: encodeLibrary.address },
+      { ['contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs']: address },
       signer
     );
     const vAnchor = await factory.deploy(verifier, levels, hasher, handler, token, maxEdges, {});

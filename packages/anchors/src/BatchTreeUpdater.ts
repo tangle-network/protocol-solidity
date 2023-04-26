@@ -24,7 +24,6 @@ export class BatchTreeUpdater {
   signer: ethers.Signer;
   contract: BatchMerkleTreeContract;
   tree: MerkleTree;
-  // hex string of the connected root
   latestSyncedBlock: number;
   zkComponents_4: ZkComponents;
   zkComponents_8: ZkComponents;
@@ -62,7 +61,7 @@ export class BatchTreeUpdater {
   ) {
     const factory = new BatchMerkleTree__factory(signer);
     const contract = await factory.deploy(levels, hasherAddr, verifierAddr);
-    await contract.deployed();
+    const txResult = await contract.deployed();
 
     const createdBatchTreeUpdater = new BatchTreeUpdater(
       contract,
@@ -73,7 +72,7 @@ export class BatchTreeUpdater {
       zkComponents_16,
       zkComponents_32
     );
-    createdBatchTreeUpdater.latestSyncedBlock = contract.deployTransaction.blockNumber!;
+    createdBatchTreeUpdater.latestSyncedBlock = Number(txResult.blockNumber!);
     return createdBatchTreeUpdater;
   }
 
@@ -158,7 +157,7 @@ export class BatchTreeUpdater {
   public async batchInsert(batchSize: number) {
     let batchHeight = Math.log2(batchSize);
     let leaves = [];
-    let startIndex = await this.contract.nextIndex();
+    let startIndex = Number(await this.contract.nextIndex());
     for (var i = startIndex; i < startIndex + batchSize; i++) {
       let c = await this.contract.queue(i);
       leaves.push(c);

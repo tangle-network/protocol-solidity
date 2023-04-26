@@ -1,4 +1,11 @@
-import { BigNumberish, ContractTransactionReceipt, ethers, keccak256, toUtf8Bytes } from 'ethers';
+import {
+  BaseContract,
+  BigNumberish,
+  ContractTransactionReceipt,
+  ethers,
+  keccak256,
+  toUtf8Bytes,
+} from 'ethers';
 import { PayableOverrides } from '@ethersproject/contracts';
 import {
   VAnchor as VAnchorContract,
@@ -38,9 +45,10 @@ function isOpenVAnchorContract(contract: WebbContracts): contract is OpenVAnchor
     !('transact' in contract)
   );
 }
-export abstract class WebbBridge {
+
+export abstract class WebbBridge<A extends WebbContracts> {
   signer: ethers.Signer;
-  contract: WebbContracts;
+  contract: A;
 
   tree: MerkleTree;
   treeHeight: number;
@@ -50,7 +58,7 @@ export abstract class WebbBridge {
   // The depositHistory stores leafIndex => information to create proposals (new root)
   depositHistory: Record<number, string>;
 
-  constructor(contract: WebbContracts, signer: ethers.Signer, treeHeight: number) {
+  constructor(contract: A, signer: ethers.Signer, treeHeight: number) {
     this.contract = contract;
     this.signer = signer;
     this.treeHeight = treeHeight;
@@ -69,8 +77,8 @@ export abstract class WebbBridge {
     return rootsBytes; // root byte string (32 * array.length bytes)
   }
 
-  getAddress(): string {
-    return this.contract.address;
+  async getAddress(): Promise<string> {
+    return this.contract.getAddress();
   }
 
   // Convert a hex string to a byte array
@@ -101,7 +109,7 @@ export abstract class WebbBridge {
 
     if (currentChainId === newChainId) {
       this.signer = newSigner;
-      this.contract = this.contract.connect(newSigner);
+      this.contract = this.contract.connect(newSigner) as A;
       return true;
     }
     return false;
@@ -109,7 +117,10 @@ export abstract class WebbBridge {
 
   public async createResourceId(): Promise<string> {
     const chainId = (await this.signer.provider!.getNetwork()).chainId;
-    return toHex(this.contract.address + toHex(getChainIdType(Number(chainId)), 6).substr(2), 32);
+    return toHex(
+      (await this.contract.getAddress()) + toHex(getChainIdType(Number(chainId)), 6).substr(2),
+      32
+    );
   }
 
   public async getMinWithdrawalLimitProposalData(
@@ -170,7 +181,7 @@ export abstract class WebbBridge {
       .slice(0, 10)
       .padEnd(10, '0');
 
-    const srcContract = this.contract.address;
+    const srcContract = await this.contract.getAddress();
     const srcResourceId =
       '0x' +
       toHex(0, 6).substring(2) +
@@ -198,7 +209,7 @@ export abstract class WebbBridge {
     let options = {};
     if (BigInt(extAmount.toString()) > BigInt(0) && checkNativeAddress(wrapUnwrapToken)) {
       let tokenWrapper = TokenWrapper__factory.connect(await this.contract.token(), this.signer);
-      let valueToSend = await tokenWrapper.getAmountToWrap(extAmount);
+      let valueToSend = await tokenWrapper.getAmountToWrap(extAmount.toString());
 
       options = {
         value: valueToSend.toString(16),
@@ -383,7 +394,7 @@ export abstract class WebbBridge {
     if (isOpenVAnchorContract(this.contract)) {
       throw new Error('OpenVAnchor contract does not support the `transact` method');
     }
-    const [overrides, txOptions] = splitTransactionOptions(overridesTransaction);
+    const [_, txOptions] = splitTransactionOptions(overridesTransaction);
 
     // Default UTXO chain ID will match with the configured signer's chain ID
     inputs = await this.padUtxos(inputs, 16);
@@ -420,7 +431,6 @@ export abstract class WebbBridge {
       },
       {
         roots: publicInputs.roots,
-        // extensionRoots: isForest ? [] :  publicInputs.extensionRoots ,
         extensionRoots: publicInputs.extensionRoots,
         inputNullifiers: publicInputs.inputNullifiers,
         outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
@@ -431,10 +441,10 @@ export abstract class WebbBridge {
         encryptedOutput1: extData.encryptedOutput1,
         encryptedOutput2: extData.encryptedOutput2,
       },
-      { ...options, ...overrides }
+      { ...options }
     );
     const receipt = await tx.wait();
     await this.updateTreeOrForestState(outputs);
-    return receipt;
+    return receipt!;
   }
 }

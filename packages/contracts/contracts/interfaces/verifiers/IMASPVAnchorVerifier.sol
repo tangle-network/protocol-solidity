@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.18;
 
 /**
     @title IMASPVAnchorVerifier join/split verifier interface with 2 edges
