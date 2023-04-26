@@ -7,7 +7,7 @@ pragma solidity >=0.8.19 <0.9.0;
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
-import { Deployer } from "./Deployer.t.sol";
+import { Deployer } from "@webb-tools/create2-utils.t.sol";
 
 contract VAnchorHandlerTest is Deployer {
 	function setUp() public virtual override {
