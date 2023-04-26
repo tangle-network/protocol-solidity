@@ -6,13 +6,19 @@
 pragma solidity ^0.8.5;
 
 import "./IHasher.sol";
-import { PoseidonT3, PoseidonT4, PoseidonT6 } from "./Poseidon.sol";
+import { PoseidonT2, PoseidonT3, PoseidonT4, PoseidonT6 } from "./Poseidon.sol";
 import { SnarkConstants } from "./SnarkConstants.sol";
 
 /*
  * Poseidon hash functions for 2, 5, and 11 input elements.
  */
 contract PoseidonHasher is SnarkConstants, IHasher {
+	function hash1(uint256 value) public pure returns (uint256) {
+		uint256[1] memory input;
+		input[0] = value;
+		return PoseidonT2.poseidon(input);
+	}
+
 	function hash3(uint256[3] memory array) public pure override returns (uint256) {
 		return PoseidonT4.poseidon(array);
 	}

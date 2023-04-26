@@ -2005,4 +2005,62 @@ describe('VAnchor for 1 max edge', () => {
       assert.notEqual(provingTree, undefined);
     });
   });
+
+  describe('#isWebbTokenApprovalRequired', () => {
+    it('should return true if the webb token is not approved', async () => {
+      const amount = 1000;
+      const amountInWei = ethers.utils.parseEther(amount.toString());
+      const isApprovalRequired = await anchor.isWebbTokenApprovalRequired(amountInWei);
+      assert.strictEqual(isApprovalRequired, true);
+    });
+
+    it('should return false if the webb token is approved', async () => {
+      const amount = 1000;
+      const amountInWei = ethers.utils.parseEther(amount.toString());
+      const spender = anchor.contract.address;
+
+      const webbToken = await anchor.getWebbToken();
+
+      // Approve the anchor contract
+      const tx = await webbToken.approve(spender, amountInWei);
+      await tx.wait();
+
+      const isApprovalRequired = await anchor.isWebbTokenApprovalRequired(amountInWei);
+      assert.strictEqual(isApprovalRequired, false);
+    });
+  });
+
+  describe('#isWrappableTokenApprovalRequired', () => {
+    it('should return true if the wrappable token is not approved', async () => {
+      const amount = 1000;
+      const amountInWei = ethers.utils.parseEther(amount.toString());
+
+      const amountToWrap = await wrappedToken.getAmountToWrap(amountInWei);
+
+      const isApprovalRequired = await anchor.isWrappableTokenApprovalRequired(
+        token.address,
+        amountToWrap
+      );
+
+      assert.strictEqual(isApprovalRequired, true);
+    });
+
+    it('should return false if the wrappable token is approved', async () => {
+      const amount = 1000;
+      const amountInWei = ethers.utils.parseEther(amount.toString());
+      const amountToWrap = await wrappedToken.getAmountToWrap(amountInWei);
+
+      const spender = anchor.contract.address;
+
+      // Approve the anchor contract
+      await token.approve(spender, amountToWrap);
+
+      const isApprovalRequired = await anchor.isWrappableTokenApprovalRequired(
+        token.address,
+        amountToWrap
+      );
+
+      assert.strictEqual(isApprovalRequired, false);
+    });
+  });
 });

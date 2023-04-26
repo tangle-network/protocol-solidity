@@ -139,7 +139,7 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
     const hasherInstance = await PoseidonHasher.createPoseidonHasher(admin);
 
     const verifier = await Verifier.createVerifier(admin);
-    
+
     anchorHandler = await AnchorHandler.createAnchorHandler(
       bridgeSide.contract.address,
       [],

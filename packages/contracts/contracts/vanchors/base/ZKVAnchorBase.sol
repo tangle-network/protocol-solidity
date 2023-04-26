@@ -225,7 +225,7 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 		bytes memory _auxPublicInputs,
 		CommonExtData memory _externalData,
 		Encryptions memory _encryptions
-	) internal virtual returns (bytes32);
+	) public virtual returns (bytes32);
 
 	/**
 		@notice Set a new verifier with a nonce
