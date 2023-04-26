@@ -5,15 +5,14 @@
   "license": "(MIT or Apache-2.0)",
   "author": "Webb Developers <drew@webb.tools>",
   "scripts": {
-    "build:contracts": "npx hardhat compile",
+    "build:contracts": "forge build",
     "build:library": "tsc -p tsconfig.build.json",
-    "build:typechain": "typechain --target=ethers-v6 --out-dir ./typechain/ ./artifacts/**/*.json",
+    "build:typechain": "./scripts/build-typechain.sh",
     "compile": "yarn compile:contracts && yarn copy:declarations && yarn build:library",
     "compile:contracts": "yarn run clean && yarn run build:contracts",
-    "copy:declarations": "yarn remove:dbg && yarn build:typechain && copyfiles -f ./typechain/*.ts ./dist",
+    "copy:declarations": "yarn build:typechain && copyfiles -f ./typechain/*.ts ./dist",
     "build": "exit 0",
     "clean": "rimraf -rf ./dist && rimraf -rf ./typechain && rimraf -rf ./cache && rimraf -rf ./artifacts",
-    "remove:dbg": "rm -rf ./artifacts/contracts/**/*.dbg.json",
     "test": "npx hardhat test",
     "test:parallel": "npx hardhat test --parallel",
     "test:gas-reporter": "REPORT_GAS=true npx hardhat test --parallel"
