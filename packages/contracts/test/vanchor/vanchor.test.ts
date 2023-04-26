@@ -1,6 +1,6 @@
 /**
- * Copyright 2021-2022 Webb Technologies
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * Copyright 2021-2023 Webb Technologies
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 const assert = require('assert');
 import { ethers } from 'hardhat';
@@ -40,6 +40,7 @@ import {
 import { VAnchor, PoseidonHasher } from '@webb-tools/anchors';
 import { Verifier } from '@webb-tools/vbridge';
 import { SetupTxVAnchorMock } from './mocks/SetupTxVAnchorMock';
+import { retryPromiseMock } from './mocks/retryPromiseMock';
 
 const BN = require('bn.js');
 
@@ -293,7 +294,7 @@ describe('VAnchor for 1 max edge', () => {
 
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
-      //Step 1: Alice deposits into Tornado Pool
+      // Step 1: Alice deposits into Tornado Pool
       const aliceBalanceBeforeDeposit = await token.balanceOf(alice.address);
       const relayer = '0x2111111111111111111111111111111111111111';
       const fee = 1e6;
@@ -310,14 +311,14 @@ describe('VAnchor for 1 max edge', () => {
         {}
       );
 
-      //Step 2: Check Alice's balance
+      // Step 2: Check Alice's balance
       const aliceBalanceAfterDeposit = await token.balanceOf(alice.address);
       assert.strictEqual(
         aliceBalanceAfterDeposit.toString(),
         BN(toBN(aliceBalanceBeforeDeposit).sub(toBN(aliceDepositAmount)).sub(toBN(fee))).toString()
       );
 
-      //Step 3 Check relayers balance
+      // Step 3 Check relayers balance
       assert.strictEqual(
         (await wrappedToken.balanceOf(relayer)).toString(),
         BigNumber.from(fee).toString()
@@ -680,13 +681,18 @@ describe('VAnchor for 1 max edge', () => {
 
       let anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
+      const vAnchorWrappedTokenBalanceBeforerWithdraw = await wrappedToken.balanceOf(
+        anchor.contract.address
+      );
+
       const aliceWithdrawAmount = 5e6;
+      const aliceChangeAmount = aliceDepositAmount - aliceWithdrawAmount;
       const aliceChangeUtxo = await CircomUtxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: chainID.toString(),
         originChainId: chainID.toString(),
-        amount: aliceWithdrawAmount.toString(),
+        amount: aliceChangeAmount.toString(),
         keypair: aliceDepositUtxo.keypair,
       });
       const aliceETHAddress = '0xDeaD00000000000000000000000000000000BEEf';
@@ -695,9 +701,20 @@ describe('VAnchor for 1 max edge', () => {
         [chainID.toString()]: anchorLeaves,
       });
 
+      // Check that Alice receives withdrawn wrapped tokens
       assert.strictEqual(
         aliceWithdrawAmount.toString(),
         await (await wrappedToken.balanceOf(aliceETHAddress)).toString()
+      );
+
+      // Check that VAnchor's balance of wrapped tokens goes down by withdraw amount
+      const vAnchorWrappedTokenBalanceAfterWithdraw = await wrappedToken.balanceOf(
+        anchor.contract.address
+      );
+
+      assert.strictEqual(
+        vAnchorWrappedTokenBalanceAfterWithdraw.toString(),
+        vAnchorWrappedTokenBalanceBeforerWithdraw.sub(aliceWithdrawAmount).toString()
       );
     });
 
@@ -766,7 +783,7 @@ describe('VAnchor for 1 max edge', () => {
         originChainId: chainID.toString(),
         amount: aliceDepositAmount.toString(),
       });
-      //Step 1: Alice deposits into Tornado Pool
+      // Step 1: Alice deposits into Tornado Pool
       const aliceBalanceBeforeDeposit = await token.balanceOf(alice.address);
       await anchor.registerAndTransact(
         alice.address,
@@ -783,14 +800,14 @@ describe('VAnchor for 1 max edge', () => {
 
       let anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
-      //Step 2: Check Alice's balance
+      // Step 2: Check Alice's balance
       const aliceBalanceAfterDeposit = await token.balanceOf(alice.address);
       assert.strictEqual(
         aliceBalanceAfterDeposit.toString(),
         BN(toBN(aliceBalanceBeforeDeposit).sub(toBN(aliceDepositAmount))).toString()
       );
 
-      //Step 3: Alice tries to create a UTXO with more funds than she has in her account
+      // Step 3: Alice tries to create a UTXO with more funds than she has in her account
       const aliceOutputAmount = '100000000000000000000000';
       const aliceOutputUtxo = await CircomUtxo.generateUtxo({
         curve: 'Bn254',
@@ -800,7 +817,7 @@ describe('VAnchor for 1 max edge', () => {
         amount: aliceOutputAmount,
         keypair: aliceDepositUtxo.keypair,
       });
-      //Step 4: Check that step 3 fails
+      // Step 4: Check that step 3 fails
       await TruffleAssert.reverts(
         anchor.transact([aliceDepositUtxo], [aliceOutputUtxo], 0, 0, '0', '0', token.address, {
           [chainID.toString()]: anchorLeaves,
@@ -1071,7 +1088,7 @@ describe('VAnchor for 1 max edge', () => {
 
     // This test is meant to prove that utxo transfer flows are possible, and the receiver
     // can query on-chain data to construct and spend a utxo generated by the sender.
-    it('should be able to transfer without direct communication between sender and recipient', async function () {
+    it('should be able to transfer without direct communication between sender and recipient', async () => {
       const [sender, recipient] = await ethers.getSigners();
       const bobKeypair = new Keypair();
 
@@ -1314,6 +1331,7 @@ describe('VAnchor for 1 max edge', () => {
       );
     });
   });
+
   describe('#wrapping tests', () => {
     it('should wrap and deposit', async () => {
       const signers = await ethers.getSigners();
@@ -1847,6 +1865,202 @@ describe('VAnchor for 1 max edge', () => {
       await TruffleAssert.fails(
         wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1))
       );
+    });
+  });
+
+  describe('#getDepositLeaves', () => {
+    const deposit = async () => {
+      // Alice deposits into the pool
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
+      await anchor.registerAndTransact(
+        sender.address,
+        aliceDepositUtxo.keypair.toString(),
+        [],
+        [aliceDepositUtxo],
+        0,
+        0,
+        '0',
+        '0',
+        token.address,
+        {}
+      );
+    };
+
+    it('First deposit should return 2 leaves', async () => {
+      // We fallback to final block to get the latest block
+      const finalBlock = 0;
+      const lastQueriedBlock = 0;
+
+      await deposit();
+
+      // Get the leaves
+      const depositLeaves = await anchor.getDepositLeaves(
+        lastQueriedBlock,
+        finalBlock,
+        retryPromiseMock
+      );
+
+      assert.strictEqual(depositLeaves.newLeaves.length, 2);
+
+      // Validate the leaves
+      const treeHeight = await anchor.contract.getLevels();
+      const lastRoot = await anchor.contract.getLastRoot();
+      const provingTree = MerkleTree.createTreeWithRoot(
+        treeHeight,
+        depositLeaves.newLeaves,
+        toFixedHex(lastRoot.toHexString())
+      );
+
+      assert.notEqual(provingTree, undefined);
+    });
+
+    it('Odd number of deposits after the first deposit, then validate the leaves', async () => {
+      // We fallback to final block to get the latest block
+      const finalBlock = 0;
+
+      let lastQueriedBlock = 0;
+      const leaves = [];
+
+      await deposit();
+
+      // First do a deposit
+      const firstDepositLeaves = await anchor.getDepositLeaves(
+        lastQueriedBlock + 1,
+        finalBlock,
+        retryPromiseMock
+      );
+
+      // Cache the leaves
+      lastQueriedBlock = firstDepositLeaves.lastQueriedBlock;
+      leaves.push(...firstDepositLeaves.newLeaves);
+
+      // Do another deposit
+      await deposit();
+
+      // Get the leaves
+      const latestDepositLeaves = await anchor.getDepositLeaves(
+        lastQueriedBlock + 1,
+        finalBlock,
+        retryPromiseMock
+      );
+
+      // Merge the leaves
+      leaves.push(...latestDepositLeaves.newLeaves);
+
+      // Validate the leaves
+      const treeHeight = await anchor.contract.getLevels();
+      const lastRoot = await anchor.contract.getLastRoot();
+      const provingTree = MerkleTree.createTreeWithRoot(
+        treeHeight,
+        leaves,
+        toFixedHex(lastRoot.toHexString())
+      );
+
+      assert.notEqual(provingTree, undefined);
+    });
+
+    it('Even number of deposits after the first deposit, then validate the leaves', async () => {
+      // We fallback to final block to get the latest block
+      const finalBlock = 0;
+
+      let lastQueriedBlock = 0;
+      const leaves = [];
+
+      await deposit();
+
+      // First do a deposit
+      const firstDepositLeaves = await anchor.getDepositLeaves(
+        lastQueriedBlock + 1,
+        finalBlock,
+        retryPromiseMock
+      );
+
+      // Cache the leaves
+      lastQueriedBlock = firstDepositLeaves.lastQueriedBlock;
+      leaves.push(...firstDepositLeaves.newLeaves);
+
+      // Do 2 deposits
+      await Promise.all([deposit(), deposit()]);
+
+      // Latest leaves
+      const latestLeaves = await anchor.getDepositLeaves(
+        lastQueriedBlock + 1,
+        finalBlock,
+        retryPromiseMock
+      );
+
+      // Merge the leaves
+      leaves.push(...latestLeaves.newLeaves);
+
+      // Validate the leaves
+      const treeHeight = await anchor.contract.getLevels();
+      const lastRoot = await anchor.contract.getLastRoot();
+      const provingTree = MerkleTree.createTreeWithRoot(
+        treeHeight,
+        leaves,
+        toFixedHex(lastRoot.toHexString())
+      );
+
+      assert.notEqual(provingTree, undefined);
+    });
+  });
+
+  describe('#isWebbTokenApprovalRequired', () => {
+    it('should return true if the webb token is not approved', async () => {
+      const amount = 1000;
+      const amountInWei = ethers.utils.parseEther(amount.toString());
+      const isApprovalRequired = await anchor.isWebbTokenApprovalRequired(amountInWei);
+      assert.strictEqual(isApprovalRequired, true);
+    });
+
+    it('should return false if the webb token is approved', async () => {
+      const amount = 1000;
+      const amountInWei = ethers.utils.parseEther(amount.toString());
+      const spender = anchor.contract.address;
+
+      const webbToken = await anchor.getWebbToken();
+
+      // Approve the anchor contract
+      const tx = await webbToken.approve(spender, amountInWei);
+      await tx.wait();
+
+      const isApprovalRequired = await anchor.isWebbTokenApprovalRequired(amountInWei);
+      assert.strictEqual(isApprovalRequired, false);
+    });
+  });
+
+  describe('#isWrappableTokenApprovalRequired', () => {
+    it('should return true if the wrappable token is not approved', async () => {
+      const amount = 1000;
+      const amountInWei = ethers.utils.parseEther(amount.toString());
+
+      const amountToWrap = await wrappedToken.getAmountToWrap(amountInWei);
+
+      const isApprovalRequired = await anchor.isWrappableTokenApprovalRequired(
+        token.address,
+        amountToWrap
+      );
+
+      assert.strictEqual(isApprovalRequired, true);
+    });
+
+    it('should return false if the wrappable token is approved', async () => {
+      const amount = 1000;
+      const amountInWei = ethers.utils.parseEther(amount.toString());
+      const amountToWrap = await wrappedToken.getAmountToWrap(amountInWei);
+
+      const spender = anchor.contract.address;
+
+      // Approve the anchor contract
+      await token.approve(spender, amountToWrap);
+
+      const isApprovalRequired = await anchor.isWrappableTokenApprovalRequired(
+        token.address,
+        amountToWrap
+      );
+
+      assert.strictEqual(isApprovalRequired, false);
     });
   });
 });

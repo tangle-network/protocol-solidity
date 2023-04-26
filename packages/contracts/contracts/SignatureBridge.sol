@@ -1,12 +1,11 @@
 /**
- * Copyright 2021-2022 Webb Technologies
- * SPDX-License-Identifier: GPL-3.0-or-later-only
+ * Copyright 2021-2023 Webb Technologies
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
 pragma solidity ^0.8.5;
 pragma experimental ABIEncoderV2;
 
-import "./utils/Pausable.sol";
 import "./utils/Governable.sol";
 import "./utils/ChainIdWithType.sol";
 import "./utils/ProposalNonceTracker.sol";
@@ -16,9 +15,9 @@ import "./interfaces/IExecutor.sol";
     @title Facilitates proposals execution and resource ID additions/updates
     @author ChainSafe Systems & Webb Technologies.
  */
-contract SignatureBridge is Pausable, Governable, ChainIdWithType, ProposalNonceTracker {
+contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 	// resourceID => handler address
-	mapping(bytes32 => address) public _resourceIDToHandlerAddress;
+	mapping(bytes32 => address) public _resourceIdToHandlerAddress;
 
 	/**
         Verifying signature of governor over some datahash
@@ -50,7 +49,7 @@ contract SignatureBridge is Pausable, Governable, ChainIdWithType, ProposalNonce
 
 	/**
         @notice Sets a new resource for handler contracts that use the IExecutor interface,
-        and maps the {handlerAddress} to {newResourceID} in {_resourceIDToHandlerAddress}.
+        and maps the {handlerAddress} to {newResourceID} in {_resourceIdToHandlerAddress}.
         @notice Only callable by an address that currently has the admin role.
         @param resourceID Target resource ID of the proposal header.
         @param functionSig Function signature of the proposal header.
@@ -76,15 +75,15 @@ contract SignatureBridge is Pausable, Governable, ChainIdWithType, ProposalNonce
 	{
 		require(
 			this.isCorrectExecutionChain(resourceID),
-			"adminSetResourceWithSignature: Executing on wrong chain"
+			"SignatureBridge::adminSetResourceWithSignature: Executing on wrong chain"
 		);
 		require(
 			this.isCorrectExecutionChain(newResourceID),
-			"adminSetResourceWithSignature: Executing on wrong chain"
+			"SignatureBridge::adminSetResourceWithSignature: Executing on wrong chain"
 		);
 		require(
 			this.isCorrectExecutionContext(resourceID),
-			"adminSetResourceWithSignature: Invalid execution context"
+			"SignatureBridge::adminSetResourceWithSignature: Invalid execution context"
 		);
 		require(
 			functionSig ==
@@ -93,9 +92,9 @@ contract SignatureBridge is Pausable, Governable, ChainIdWithType, ProposalNonce
 						"adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,bytes)"
 					)
 				),
-			"adminSetResourceWithSignature: Invalid function signature"
+			"SignatureBridge::adminSetResourceWithSignature: Invalid function signature"
 		);
-		_resourceIDToHandlerAddress[newResourceID] = handlerAddress;
+		_resourceIdToHandlerAddress[newResourceID] = handlerAddress;
 		IExecutor handler = IExecutor(handlerAddress);
 		address executionContext = address(bytes20(newResourceID << (6 * 8)));
 		handler.setResource(newResourceID, executionContext);
@@ -115,7 +114,7 @@ contract SignatureBridge is Pausable, Governable, ChainIdWithType, ProposalNonce
 			this.isCorrectExecutionChain(resourceID),
 			"SignatureBridge: Executing on wrong chain"
 		);
-		address handler = _resourceIDToHandlerAddress[resourceID];
+		address handler = _resourceIdToHandlerAddress[resourceID];
 		IExecutor executionHandler = IExecutor(handler);
 		executionHandler.executeProposal(resourceID, data);
 	}
@@ -135,19 +134,9 @@ contract SignatureBridge is Pausable, Governable, ChainIdWithType, ProposalNonce
 				this.isCorrectExecutionChain(resourceID),
 				"SignatureBridge: Batch Executing on wrong chain"
 			);
-			address handler = _resourceIDToHandlerAddress[resourceID];
+			address handler = _resourceIdToHandlerAddress[resourceID];
 			IExecutor executionHandler = IExecutor(handler);
 			executionHandler.executeProposal(resourceID, data[i]);
 		}
-	}
-
-	function isCorrectExecutionChain(bytes32 resourceID) external view returns (bool) {
-		uint64 executionChainId = parseChainIdFromResourceId(resourceID);
-		// Verify current chain matches chain ID from resource ID
-		return uint256(getChainIdType()) == uint256(executionChainId);
-	}
-
-	function isCorrectExecutionContext(bytes32 resourceId) public view returns (bool) {
-		return address(bytes20(resourceId << (6 * 8))) == address(this);
 	}
 }

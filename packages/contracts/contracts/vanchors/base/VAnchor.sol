@@ -1,6 +1,6 @@
 /**
- * Copyright 2021-2022 Webb Technologies
- * SPDX-License-Identifier: GPL-3.0-or-later-only
+ * Copyright 2021-2023 Webb Technologies
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
 pragma solidity ^0.8.5;
@@ -95,7 +95,7 @@ abstract contract VAnchor is ZKVAnchorBase {
 		bytes memory,
 		CommonExtData memory _externalData,
 		Encryptions memory _encryptions
-	) internal virtual override returns (bytes32) {
+	) public virtual override returns (bytes32) {
 		return
 			keccak256(
 				abi.encode(

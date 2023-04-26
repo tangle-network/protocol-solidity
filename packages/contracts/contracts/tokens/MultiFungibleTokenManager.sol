@@ -1,10 +1,11 @@
 /**
- * Copyright 2021-2022 Webb Technologies
- * SPDX-License-Identifier: GPL-3.0-or-later-only
+ * Copyright 2021-2023 Webb Technologies
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
 pragma solidity ^0.8.5;
 
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./FungibleTokenWrapper.sol";
 import "./MultiTokenManagerBase.sol";
 
@@ -13,7 +14,7 @@ import "./MultiTokenManagerBase.sol";
     using an external `handler` address.
     @author Webb Technologies.
  */
-contract MultiFungibleTokenManager is MultiTokenManagerBase {
+contract MultiFungibleTokenManager is MultiTokenManagerBase, ReentrancyGuard {
 	using SafeMath for uint256;
 
 	/**
@@ -36,7 +37,7 @@ contract MultiFungibleTokenManager is MultiTokenManagerBase {
 		uint16 _feePercentage,
 		bool _isNativeAllowed,
 		address _admin
-	) external override onlyRegistry onlyInitialized returns (address) {
+	) external override nonReentrant onlyRegistry onlyInitialized returns (address) {
 		FungibleTokenWrapper token = new FungibleTokenWrapper{ salt: _salt }(_name, _symbol);
 
 		token.initialize(

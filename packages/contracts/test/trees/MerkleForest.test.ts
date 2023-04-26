@@ -1,6 +1,6 @@
 /**
  * Copyright 2021 Webb Technologies
- * SPDX-License-Identifier: GPL-3.0-or-later-only
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
 import { PoseidonHasher } from '@webb-tools/anchors';
@@ -11,7 +11,7 @@ import { ethers } from 'hardhat';
 import {
   LinkableIncrementalBinaryTree as LinkableIncrementalBinaryTreeContract,
   MerkleForestMock as MerkleForestMockContract,
-} from '../../lib';
+} from '../../compiled';
 const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
 

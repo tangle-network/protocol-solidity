@@ -2,11 +2,23 @@
   "name": "protocol-solidity",
   "repository": "git://github.com/webb-tools/protocol-solidity.git",
   "author": "Webb Developers <drew@webb.tools>",
-  "license": "GPL-3.0-or-later",
-  "private": true,
-  "workspaces": [
-    "packages/*"
+  "license": [
+    {
+      "type": "Apache-2.0",
+      "file": "LICENSE.Apache-2.0"
+    },
+    {
+      "type": "MIT",
+      "file": "LICENSE.MIT"
+    }
   ],
+  "private": true,
+  "workspaces": {
+    "packages": [
+      "packages/*"
+    ],
+    "nohoist": ["**/@openzeppelin/**"]
+  },
   "scripts": {
     "compile": "lerna run compile --scope=@webb-tools/contracts",
     "build": "yarn compile && yarn build:packages",
@@ -59,7 +71,6 @@
   },
   "dependencies": {
     "@nomiclabs/hardhat-waffle": "^2.0.3",
-    "@openzeppelin/contracts": "^4.7.3",
     "@primitivefi/hardhat-dodoc": "^0.1.1",
     "@truffle/contract": "^4.3.24",
     "@typechain/ethers-v5": "^7.0.1",

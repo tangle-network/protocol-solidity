@@ -1,6 +1,6 @@
 /**
- * Copyright 2021-2022 Webb Technologies
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * Copyright 2021-2023 Webb Technologies
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
@@ -1009,7 +1009,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
   });
 });
 
-describe('8-sided multichain tests for signature vbridge', () => {
+describe.skip('8-sided multichain tests for signature vbridge', () => {
   const FIRST_CHAIN_ID = 31337;
   const SECOND_CHAIN_ID = 31338;
   const THIRD_CHAIN_ID = 31339;

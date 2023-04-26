@@ -1,6 +1,6 @@
 /**
- * Copyright 2021-2022 Webb Technologies
- * SPDX-License-Identifier: GPL-3.0-or-later-only
+ * Copyright 2021-2023 Webb Technologies
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
 pragma solidity ^0.8.5;
@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../utils/Initialized.sol";
 import "../utils/ProposalNonceTracker.sol";
 
@@ -22,7 +23,8 @@ contract NftTokenWrapper is
 	ERC1155Receiver,
 	IERC721Receiver,
 	Initialized,
-	ProposalNonceTracker
+	ProposalNonceTracker,
+	ReentrancyGuard
 {
 	using SafeMath for uint256;
 	address public handler;
@@ -44,7 +46,7 @@ contract NftTokenWrapper is
 		IERC721(unwrappedNftAddress).safeTransferFrom(msg.sender, address(this), _tokenId);
 	}
 
-	function unwrap721(uint256 _tokenId, address _tokenContract) external {
+	function unwrap721(uint256 _tokenId, address _tokenContract) external nonReentrant {
 		// Ensure msg.sender is the owner of the wrapped token
 		require(
 			balanceOf(msg.sender, _tokenId) == 1,
@@ -59,11 +61,11 @@ contract NftTokenWrapper is
 		_burn(msg.sender, _tokenId, 1);
 	}
 
-	function wrap1155(uint256 _tokenId, address _tokenContract) external {
+	function wrap1155(uint256 _tokenId, address _tokenContract) external nonReentrant {
 		IERC1155(_tokenContract).safeTransferFrom(msg.sender, address(this), _tokenId, 1, "");
 	}
 
-	function unwrap1155(uint256 _tokenId, address _tokenContract) external {
+	function unwrap1155(uint256 _tokenId, address _tokenContract) external nonReentrant {
 		// Ensure msg.sender is the owner of the wrapped token
 		require(
 			balanceOf(msg.sender, _tokenId) == 1,

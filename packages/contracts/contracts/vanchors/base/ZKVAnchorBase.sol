@@ -1,6 +1,6 @@
 /**
- * Copyright 2021-2022 Webb Technologies
- * SPDX-License-Identifier: GPL-3.0-or-later-only
+ * Copyright 2021-2023 Webb Technologies
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
 pragma solidity ^0.8.5;
@@ -158,16 +158,6 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 	}
 
 	/**
-		@notice Inserts the output commitments into the underlying merkle system
-		@param _publicInputs The public inputs for the proof
-		@param _encryptions The encryptions of the output commitments
-	 */
-	function _executeInsertions(
-		PublicInputs memory _publicInputs,
-		Encryptions memory _encryptions
-	) internal virtual;
-
-	/**
 		@notice Checks whether the transaction is valid
 		1. Checks that the nullifiers are not spent
 		2. Checks that the public amount is valid (doesn't exceed the MAX_FEE or MAX_EXT_AMOUNT and doesn't overflow)
@@ -208,6 +198,16 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 	}
 
 	/**
+		@notice Inserts the output commitments into the underlying merkle system
+		@param _publicInputs The public inputs for the proof
+		@param _encryptions The encryptions of the output commitments
+	 */
+	function _executeInsertions(
+		PublicInputs memory _publicInputs,
+		Encryptions memory _encryptions
+	) internal virtual;
+
+	/**
 		@notice Verifies the zero-knowledge proof and validity of roots/public inputs.
 		@param _proof The zkSNARK proof
 		@param _auxPublicInputs The extension public inputs for the zkSNARK proof
@@ -225,7 +225,7 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 		bytes memory _auxPublicInputs,
 		CommonExtData memory _externalData,
 		Encryptions memory _encryptions
-	) internal virtual returns (bytes32);
+	) public virtual returns (bytes32);
 
 	/**
 		@notice Set a new verifier with a nonce

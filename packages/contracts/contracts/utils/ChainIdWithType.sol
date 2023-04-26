@@ -1,6 +1,6 @@
 /**
- * Copyright 2021-2022 Webb Technologies
- * SPDX-License-Identifier: GPL-3.0-or-later-only
+ * Copyright 2021-2023 Webb Technologies
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
 pragma solidity ^0.8.5;
@@ -43,5 +43,23 @@ abstract contract ChainIdWithType {
      */
 	function parseChainIdFromResourceId(bytes32 _resourceId) public pure returns (uint64) {
 		return uint64(uint48(bytes6(_resourceId << (26 * 8))));
+	}
+
+	/**
+		@notice Verifies that the current chain matches the chain ID from the resource ID
+		@param resourceID The resource ID to verify
+	 */
+	function isCorrectExecutionChain(bytes32 resourceID) external view returns (bool) {
+		uint64 executionChainId = parseChainIdFromResourceId(resourceID);
+		// Verify current chain matches chain ID from resource ID
+		return uint256(getChainIdType()) == uint256(executionChainId);
+	}
+
+	/**
+		@notice Verifies that the current execution context matches the execution context from the resource ID
+		@param resourceId The resource ID to verify
+	 */
+	function isCorrectExecutionContext(bytes32 resourceId) public view returns (bool) {
+		return address(bytes20(resourceId << (6 * 8))) == address(this);
 	}
 }

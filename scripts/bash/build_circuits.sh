@@ -118,9 +118,9 @@ copy_to_fixtures () {
 # WEBB IDENTITY-VANCHORS
 ###
 
-# echo "Compiling Webb style Poseidon identity-vanchor 2 circuit w/ 2 inputs"
-# compile identity_vanchor_2 identity_vanchor_2_2 2
-# copy_to_fixtures identity_vanchor_2 identity_vanchor_2_2 2 identity_vanchor_2
+echo "Compiling Webb style Poseidon identity-vanchor 2 circuit w/ 2 inputs"
+compile identity_vanchor_2 identity_vanchor_2_2 2
+copy_to_fixtures identity_vanchor_2 identity_vanchor_2_2 2 identity_vanchor_2
 
 # echo "Compiling Webb style Poseidon identity-vanchor 2 circuit w/ 16 inputs"
 # compile identity_vanchor_16 identity_vanchor_16_2 2

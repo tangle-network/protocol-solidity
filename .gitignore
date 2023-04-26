@@ -2,24 +2,38 @@ node_modules
 .vscode
 .DS_STORE
 build/
-.env
+*.env
 
-#Packages
+# Packages
 packages/contracts/typechain
 packages/*/node_modules
-packages/*/lib
+packages/*/dist
+packages/*/compiled
 packages/*/tsconfig.tsbuildinfo
 
-#Hardhat files
+# Directories
 cache
+out
 artifacts
 /typechain
 /typechain-types
 /src
+
+solidity-fixtures/
 
 dist
 
 *.ptau
 yarn-error.log
 
-solidity-fixtures/
+# files
+*.log
+.DS_Store
+.pnp.*
+lcov.info
+yarn.lock
+
+# broadcasts
+!broadcast
+broadcast/*
+broadcast/*/31337/
