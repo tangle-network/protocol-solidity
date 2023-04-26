@@ -10,7 +10,6 @@ packages/*/node_modules
 packages/*/dist
 packages/*/compiled
 packages/*/tsconfig.tsbuildinfo
-packages/*/lib
 
 # Directories
 cache
