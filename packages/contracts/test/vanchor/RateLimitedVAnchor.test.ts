@@ -25,7 +25,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 import { Keypair, randomBN, CircomUtxo } from '@webb-tools/sdk-core';
 import { VAnchor, PoseidonHasher, RateLimitedVAnchor } from '@webb-tools/anchors';
-import { Verifier } from '@webb-tools/vbridge';
+import { Verifier } from '@webb-tools/anchors';
 
 const path = require('path');
 

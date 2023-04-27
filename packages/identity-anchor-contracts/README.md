@@ -1,8 +1,8 @@
-<h1 align="center">Webb Bridges</h1>
+<h1 align="center">Webb Identity Anchors</h1>
 
-Wrapper classes and utilities for deploying and interacting with zero-knowledge Bridges in solidity.
-
-## License 
+Wrapper classes and utilities for deploying and interacting with zero-knowledge Identity Anchors in solidity.
+ 
+## License
 
 <sup>
 Licensed under <a href="LICENSE">Apache 2.0 / MIT license</a>.

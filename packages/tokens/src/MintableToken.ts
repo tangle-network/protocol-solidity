@@ -1,10 +1,10 @@
 import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
 import { ERC20PresetMinterPauser, ERC20PresetMinterPauser__factory } from '@webb-tools/contracts';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
 
 class MintableToken {
   contract: ERC20PresetMinterPauser;
-  signer: ethers.Signer | SignerWithAddress;
+  signer: ethers.Signer;
   name: string;
   symbol: string;
 
@@ -12,7 +12,7 @@ class MintableToken {
     contract: ERC20PresetMinterPauser,
     name: string,
     symbol: string,
-    signer: ethers.Signer | SignerWithAddress
+    signer: ethers.Signer
   ) {
     this.contract = contract;
     this.signer = signer;

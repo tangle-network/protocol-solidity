@@ -1,10 +1,7 @@
 import {
-  BaseContract,
   BigNumberish,
-  ContractTransactionReceipt,
+  ContractReceipt,
   ethers,
-  keccak256,
-  toUtf8Bytes,
 } from 'ethers';
 import { PayableOverrides } from '@ethersproject/contracts';
 import {
@@ -27,8 +24,9 @@ import {
 } from '@webb-tools/sdk-core';
 import { hexToU8a, getChainIdType, ZERO_BYTES32 } from '@webb-tools/utils';
 import { checkNativeAddress, splitTransactionOptions } from './utils';
-import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
+import { SetupTransactionResult, TransactionOptions } from './types';
 import { IVariableAnchorExtData } from '@webb-tools/interfaces';
+import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
 
 type WebbContracts =
   | VAnchorContract
@@ -77,8 +75,8 @@ export abstract class WebbBridge<A extends WebbContracts> {
     return rootsBytes; // root byte string (32 * array.length bytes)
   }
 
-  async getAddress(): Promise<string> {
-    return this.contract.getAddress();
+  getAddress(): string {
+    return this.contract.address;
   }
 
   // Convert a hex string to a byte array
@@ -98,7 +96,7 @@ export abstract class WebbBridge<A extends WebbContracts> {
   public async setHandler(handlerAddress: string) {
     const tx = await this.contract.setHandler(
       handlerAddress,
-      BigInt(await this.contract.getProposalNonce()) + BigInt(1)
+      BigInt((await this.contract.getProposalNonce()).toString()) + BigInt(1)
     );
     await tx.wait();
   }
@@ -118,7 +116,7 @@ export abstract class WebbBridge<A extends WebbContracts> {
   public async createResourceId(): Promise<string> {
     const chainId = (await this.signer.provider!.getNetwork()).chainId;
     return toHex(
-      (await this.contract.getAddress()) + toHex(getChainIdType(Number(chainId)), 6).substr(2),
+      (await this.contract.address) + toHex(getChainIdType(Number(chainId)), 6).substr(2),
       32
     );
   }
@@ -181,7 +179,7 @@ export abstract class WebbBridge<A extends WebbContracts> {
       .slice(0, 10)
       .padEnd(10, '0');
 
-    const srcContract = await this.contract.getAddress();
+    const srcContract = await this.contract.address;
     const srcResourceId =
       '0x' +
       toHex(0, 6).substring(2) +
@@ -199,7 +197,7 @@ export abstract class WebbBridge<A extends WebbContracts> {
 
   public getExtAmount(inputs: Utxo[], outputs: Utxo[], fee: BigNumberish) {
     return (
-      BigInt(fee) +
+      BigInt(fee.toString()) +
       outputs.reduce((sum, x) => sum + BigInt(x.amount), BigInt(0)) -
       inputs.reduce((sum, x) => sum + BigInt(x.amount), BigInt(0))
     );
@@ -212,7 +210,7 @@ export abstract class WebbBridge<A extends WebbContracts> {
       let valueToSend = await tokenWrapper.getAmountToWrap(extAmount.toString());
 
       options = {
-        value: valueToSend.toString(16),
+        value: valueToSend.toHexString(),
       };
     } else if (BigInt(extAmount.toString()) < BigInt(0)) {
       options = {
@@ -261,7 +259,7 @@ export abstract class WebbBridge<A extends WebbContracts> {
           chainId: chainId.toString(),
           originChainId: chainId.toString(),
           amount: '0',
-          blinding: hexToU8a(randomBN(31).toString(16)),
+          blinding: hexToU8a(randomBN(31).toHexString()),
           keypair: randomKeypair,
         })
       );
@@ -327,7 +325,7 @@ export abstract class WebbBridge<A extends WebbContracts> {
       encryptedOutput2,
     };
 
-    const extDataHash = getVAnchorExtDataHash(
+    const extDataHash = BigInt(getVAnchorExtDataHash(
       encryptedOutput1,
       encryptedOutput2,
       extAmount.toString(),
@@ -336,7 +334,7 @@ export abstract class WebbBridge<A extends WebbContracts> {
       relayer,
       refund.toString(),
       wrapUnwrapToken
-    );
+    ).toString());
     return { extData, extDataHash };
   }
 
@@ -390,7 +388,7 @@ export abstract class WebbBridge<A extends WebbContracts> {
     wrapUnwrapToken: string,
     leavesMap: Record<string, BigNumberish[]>, // subtree
     overridesTransaction?: PayableOverrides & TransactionOptions
-  ): Promise<ContractTransactionReceipt> {
+  ): Promise<ContractReceipt> {
     if (isOpenVAnchorContract(this.contract)) {
       throw new Error('OpenVAnchor contract does not support the `transact` method');
     }
@@ -413,8 +411,8 @@ export abstract class WebbBridge<A extends WebbContracts> {
     );
 
     let options = await this.getWrapUnwrapOptions(
-      BigInt(extAmount),
-      BigInt(refund),
+      BigInt(extAmount.toString()),
+      BigInt(refund.toString()),
       wrapUnwrapToken
     );
 

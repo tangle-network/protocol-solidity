@@ -21,8 +21,8 @@ solidity-fixtures
 # Hardhat files
 cache
 artifacts
-/typechain
-/typechain-types
+typechain
+typechain-types
 /src
 
 dist

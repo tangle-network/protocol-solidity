@@ -1,29 +1,25 @@
-import { ethers, Signer, ContractFactory } from 'ethers';
+import { BaseContract, ethers, Signer } from 'ethers';
 
 import {
   VAnchorVerifier__factory,
-  IdentityVAnchorVerifier__factory,
-  Verifier22__factory,
-  Verifier82__factory,
-  Verifier216__factory,
-  Verifier816__factory,
+  Verifier2_2__factory,
+  Verifier8_2__factory,
+  Verifier2_16__factory,
+  Verifier8_16__factory,
   VAnchorVerifier as VerifierContract,
-  DeterministicDeployFactory as DeterministicDeployFactoryContract,
-  VerifierID22__factory,
-  VerifierID82__factory,
-  VerifierID216__factory,
-  VerifierID816__factory,
-  VerifierF22__factory,
-  VerifierF82__factory,
-  VerifierF216__factory,
-  VerifierF816__factory,
+  VerifierF2_2__factory,
+  VerifierF8_2__factory,
+  VerifierF2_16__factory,
+  VerifierF8_16__factory,
 } from '@webb-tools/contracts';
 import { Deployer } from '@webb-tools/anchors';
 
-// type V22Factory = Verifier22__factory | VerifierID22__factory | VerifierF22__factory
-// type V82Factory = Verifier82__factory | VerifierID82__factory | VerifierF82__factory
-// type V216Factory = Verifier216__factory | VerifierID216__factory | VerifierF216__factory
-// type V816Factory = Verifier816__factory | VerifierID816__factory | VerifierF816__factory
+type VerifierInterface = {
+    v22: BaseContract;
+    v82: BaseContract;
+    v216: BaseContract;
+    v816: BaseContract;
+}
 
 export class VerifierBase {
   signer: ethers.Signer;
@@ -36,10 +32,10 @@ export class VerifierBase {
   public static async createFactories(
     v22__factory: any,
     v82__factory: any,
-    v216__factory: any,
-    v816__factory: any,
+    v2_16__factory: any,
+    v8_16__factory: any,
     signer: Signer
-  ): Promise<{ v22; v82; v216; v816 }> {
+  ): Promise<VerifierInterface> {
     const v22Factory = new v22__factory(signer);
     const v22 = await v22Factory.deploy();
     await v22.deployed();
@@ -48,11 +44,11 @@ export class VerifierBase {
     const v82 = await v82Factory.deploy();
     await v82.deployed();
 
-    const v216Factory = new v216__factory(signer);
+    const v216Factory = new v2_16__factory(signer);
     const v216 = await v216Factory.deploy();
     await v216.deployed();
 
-    const v816Factory = new v816__factory(signer);
+    const v816Factory = new v8_16__factory(signer);
     const v816 = await v816Factory.deploy();
     await v816.deployed();
     return { v22, v82, v216, v816 };
@@ -63,14 +59,14 @@ export class VerifierBase {
     saltHex: string,
     v22__factory: any,
     v82__factory: any,
-    v216__factory: any,
-    v816__factory: any,
+    v2_16__factory: any,
+    v8_16__factory: any,
     signer: Signer
-  ): Promise<{ v22; v82; v216; v816 }> {
+  ): Promise<VerifierInterface> {
     const { contract: v22 } = await deployer.deploy(v22__factory, saltHex, signer);
     const { contract: v82 } = await deployer.deploy(v82__factory, saltHex, signer);
-    const { contract: v216 } = await deployer.deploy(v216__factory, saltHex, signer);
-    const { contract: v816 } = await deployer.deploy(v816__factory, saltHex, signer);
+    const { contract: v216 } = await deployer.deploy(v2_16__factory, saltHex, signer);
+    const { contract: v816 } = await deployer.deploy(v8_16__factory, saltHex, signer);
 
     return { v22, v82, v216, v816 };
   }
@@ -79,7 +75,7 @@ export class VerifierBase {
     saltHex: string,
     verifier__factory: any,
     signer: Signer,
-    { v22, v82, v216, v816 }
+    { v22, v82, v216, v816 }: VerifierInterface
   ): Promise<VerifierContract> {
     const argTypes = ['address', 'address', 'address', 'address'];
     const args = [v22.address, v216.address, v82.address, v816.address];
@@ -97,7 +93,7 @@ export class VerifierBase {
   public static async createVAnchorVerifier(
     vanchorVerifier__factory: any,
     signer: Signer,
-    { v22, v82, v216, v816 }
+    { v22, v82, v216, v816 }: VerifierInterface
   ) {
     const factory = new vanchorVerifier__factory(signer);
     const verifier = await factory.deploy(v22.address, v216.address, v82.address, v816.address);
@@ -122,10 +118,10 @@ export class Verifier extends VerifierBase {
     const verifiers = await this.create2Verifiers(
       deployer,
       saltHex,
-      Verifier22__factory,
-      Verifier82__factory,
-      Verifier216__factory,
-      Verifier816__factory,
+      Verifier2_2__factory,
+      Verifier8_2__factory,
+      Verifier2_16__factory,
+      Verifier8_16__factory,
       signer
     );
 
@@ -143,10 +139,10 @@ export class Verifier extends VerifierBase {
   // Deploys a Verifier contract and all auxiliary verifiers used by this verifier
   public static async createVerifier(signer: ethers.Signer) {
     const verifiers = await this.createFactories(
-      Verifier22__factory,
-      Verifier82__factory,
-      Verifier216__factory,
-      Verifier816__factory,
+      Verifier2_2__factory,
+      Verifier8_2__factory,
+      Verifier2_16__factory,
+      Verifier8_16__factory,
       signer
     );
 
@@ -156,59 +152,6 @@ export class Verifier extends VerifierBase {
   }
 }
 
-// This convenience wrapper class is used in tests -
-// It represents a deployed contract throughout its life (e.g. maintains all verifiers)
-export class IdentityVerifier extends VerifierBase {
-  signer: ethers.Signer;
-  contract: VerifierContract;
-
-  private constructor(contract: VerifierContract, signer: ethers.Signer) {
-    super(contract, signer);
-    this.signer = signer;
-    this.contract = contract;
-  }
-  public static async create2Verifier(deployer: Deployer, salt: string, signer: ethers.Signer) {
-    const saltHex = ethers.utils.id(salt);
-    const verifiers = await this.create2Verifiers(
-      deployer,
-      saltHex,
-      VerifierID22__factory,
-      VerifierID82__factory,
-      VerifierID216__factory,
-      VerifierID816__factory,
-      signer
-    );
-
-    const verifier = await this.create2VAnchorVerifier(
-      deployer,
-      saltHex,
-      IdentityVAnchorVerifier__factory,
-      signer,
-      verifiers
-    );
-    const createdVerifier = new IdentityVerifier(verifier, signer);
-    return createdVerifier;
-  }
-
-  // Deploys a Verifier contract and all auxiliary verifiers used by this verifier
-  public static async createVerifier(signer: ethers.Signer) {
-    const verifiers = await this.createFactories(
-      VerifierID22__factory,
-      VerifierID82__factory,
-      VerifierID216__factory,
-      VerifierID816__factory,
-      signer
-    );
-
-    const verifier = await this.createVAnchorVerifier(
-      IdentityVAnchorVerifier__factory,
-      signer,
-      verifiers
-    );
-    const createdVerifier = new IdentityVerifier(verifier, signer);
-    return createdVerifier;
-  }
-}
 // This convenience wrapper class is used in tests -
 // It represents a deployed contract throughout its life (e.g. maintains all verifiers)
 export class ForestVerifier extends VerifierBase {
@@ -226,17 +169,17 @@ export class ForestVerifier extends VerifierBase {
     const verifiers = await this.create2Verifiers(
       deployer,
       saltHex,
-      VerifierF22__factory,
-      VerifierF82__factory,
-      VerifierF216__factory,
-      VerifierF816__factory,
+      VerifierF2_2__factory,
+      VerifierF8_2__factory,
+      VerifierF2_16__factory,
+      VerifierF8_16__factory,
       signer
     );
 
     const verifier = await this.create2VAnchorVerifier(
       deployer,
       saltHex,
-      IdentityVAnchorVerifier__factory,
+      VAnchorVerifier__factory,
       signer,
       verifiers
     );
@@ -247,10 +190,10 @@ export class ForestVerifier extends VerifierBase {
   // Deploys a Verifier contract and all auxiliary verifiers used by this verifier
   public static async createVerifier(signer: ethers.Signer) {
     const verifiers = await this.createFactories(
-      VerifierF22__factory,
-      VerifierF82__factory,
-      VerifierF216__factory,
-      VerifierF816__factory,
+      VerifierF2_2__factory,
+      VerifierF8_2__factory,
+      VerifierF2_16__factory,
+      VerifierF8_16__factory,
       signer
     );
 

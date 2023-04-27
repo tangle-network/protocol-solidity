@@ -27,10 +27,7 @@ import {
 } from '@webb-tools/utils';
 import {
   BigNumberish,
-  ContractTransactionReceipt,
-  JsonRpcProvider,
-  keccak256,
-  toUtf8Bytes,
+  ContractReceipt,
 } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
@@ -48,6 +45,8 @@ import {
 import { VAnchorForest, PoseidonHasher } from '@webb-tools/anchors';
 import { ForestVerifier } from '@webb-tools/vbridge';
 import { startGanacheServer } from '@webb-tools/evm-test-utils';
+import { JsonRpcProvider } from '@ethersproject/providers';
+import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
 
 const BN = require('bn.js');
 const path = require('path');
@@ -84,7 +83,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       chainId: chainId.toString(),
       originChainId: chainId.toString(),
       amount: amountString,
-      blinding: hexToU8a(randomBN(31).toString(16)),
+      blinding: hexToU8a(randomBN(31).toHexString()),
       keypair: randomKeypair,
     });
   };
@@ -152,7 +151,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       true,
       wallet.address
     );
-    await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()) + 1);
+    await wrappedToken.add(token.address, Number(await wrappedToken.proposalNonce()) + 1);
 
     // create Anchor
     anchor = await VAnchorForest.createVAnchor(
@@ -356,7 +355,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         chainId: BigInt(chainID).toString(),
         originChainId: BigInt(chainID).toString(),
         amount: BigInt(aliceDepositAmount).toString(),
-        blinding: hexToU8a(randomBN().toString(16)),
+        blinding: hexToU8a(randomBN().toHexString()),
         keypair: aliceDepositUtxo.keypair,
       });
 
@@ -387,7 +386,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         chainId: BigInt(chainID).toString(),
         originChainId: BigInt(chainID).toString(),
         amount: BigInt(aliceDepositAmount).toString(),
-        blinding: hexToU8a(randomBN().toString(16)),
+        blinding: hexToU8a(randomBN().toHexString()),
         keypair: aliceDepositUtxo.keypair,
       });
 
@@ -468,7 +467,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         originChainId: chainID.toString(),
         amount: BigInt(aliceDepositAmount2).toString(),
         keypair: aliceDepositUtxo1.keypair,
-        blinding: hexToU8a(randomBN().toString(16)),
+        blinding: hexToU8a(randomBN().toHexString()),
       });
 
       await anchor.transact([], [aliceDepositUtxo2], 0, 0, '0', '0', token.address, {}, {});
@@ -1034,7 +1033,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         '0',
         token.address,
         {}
-      )) as ContractTransactionReceipt;
+      )) as ContractReceipt;
 
       // Bob queries encrypted commitments on chain
       const encryptedCommitments: string[] = receipt.events
@@ -1182,7 +1181,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       ];
 
       const roots = await anchor.populateRootsForProof();
-      roots[1] = BigInt(fakeRoot);
+      roots[1] = BigInt(fakeRoot.toString());
 
       const { extData, extDataHash } = await anchor.generateExtData(
         recipient,
@@ -1428,7 +1427,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       assert.equal(
         BigInt(numOfInsertions * 2).toString(),
         BigInt(
-          await ethers.provider.getStorage(
+          await ethers.provider.getStorageAt(
             wrappedAnchor.contract.address,
             '0xcc69885fda6bcc1a4ace058b4a62bf5e179ea78fd58a1ccd71c22cc9b6887930'
           )

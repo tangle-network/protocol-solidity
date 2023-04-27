@@ -7,3 +7,4 @@ export { OpenVAnchor } from './OpenVAnchor';
 export { PoseidonHasher } from './PoseidonHasher';
 export { VAnchor } from './VAnchor';
 export { VAnchorForest } from './VAnchorForest';
+export { Verifier } from './Verifier';

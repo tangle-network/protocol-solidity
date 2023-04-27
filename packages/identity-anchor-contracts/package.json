@@ -1,7 +1,6 @@
 {
-  "name": "@webb-tools/contracts",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "name": "@webb-tools/identity-anchor-contracts",
+  "main": "./src/index.ts",
   "license": "(MIT or Apache-2.0)",
   "author": "Webb Developers <drew@webb.tools>",
   "scripts": {
@@ -21,7 +20,7 @@
     "access": "public"
   },
   "repository": {
-    "directory": "packages/contracts",
+    "directory": "packages/identity-anchor",
     "type": "git",
     "url": "git://github.com/webb-tools/protocol-solidity.git"
   },
@@ -38,6 +37,8 @@
     "@typechain/hardhat": "^6.1.5",
     "@types/chai": "^4.3.4",
     "@types/mocha": "^10.0.1",
+    "@webb-tools/evm-test-utils": "0.5.35",
+    "@webb-tools/protocol-solidity": "1.0.0",
     "@webb-tools/sdk-core": "0.1.4-125",
     "@webb-tools/test-utils": "0.1.4-125",
     "chai": "^4.3.7",
@@ -60,7 +61,7 @@
   "dependencies": {
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
-    "ethers": "^5.7.0",
+    "ethers": "5.7.0",
     "typescript": "^5.0.4"
   }
 }

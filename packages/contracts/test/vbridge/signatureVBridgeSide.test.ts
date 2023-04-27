@@ -8,9 +8,9 @@ import { ethers } from 'hardhat';
 const hre = require('hardhat');
 const TruffleAssert = require('truffle-assertions');
 
-import { SignatureBridgeSide } from '@webb-tools/bridges';
+import { SignatureBridgeSide } from '@webb-tools/vbridge';
 import { VAnchor, AnchorHandler, PoseidonHasher } from '@webb-tools/anchors';
-import { Verifier } from '@webb-tools/vbridge';
+import { Verifier } from '@webb-tools/anchors';
 import {
   MintableToken,
   Treasury,
@@ -20,7 +20,8 @@ import {
 } from '@webb-tools/tokens';
 import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { CircomUtxo, Keypair } from '@webb-tools/sdk-core';
-import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
+import { HARDHAT_PK_1 } from '@webb-tools/evm-test-utils';
+import { BigNumber } from 'ethers';
 
 describe('SignatureBridgeSide use', () => {
   let zkComponents2_2: ZkComponents;
@@ -91,7 +92,7 @@ describe('SignatureBridgeSide use', () => {
       zkComponents16_2,
       admin
     );
-    await tokenInstance.approveSpending(anchor.contract.address, BigInt(1e7));
+    await tokenInstance.approveSpending(anchor.contract.address, BigNumber.from(1e7));
     bridgeSide.setAnchorHandler(anchorHandler);
     // Function call below sets resource with signature
     await bridgeSide.connectAnchorWithSignature(anchor);
@@ -127,7 +128,7 @@ describe('SignatureBridgeSide use', () => {
       admin
     );
 
-    await tokenInstance.approveSpending(srcAnchor.contract.address, BigInt(1e7));
+    await tokenInstance.approveSpending(srcAnchor.contract.address, BigNumber.from(1e7));
 
     bridgeSide.setAnchorHandler(anchorHandler);
     const res = await bridgeSide.connectAnchorWithSignature(srcAnchor);
@@ -139,7 +140,7 @@ describe('SignatureBridgeSide use', () => {
     const depositUtxo = await CircomUtxo.generateUtxo({
       curve: 'Bn254',
       backend: 'Circom',
-      amount: BigInt(1e7).toString(),
+      amount: BigNumber.from(1e7).toString(),
       originChainId: chainID1.toString(),
       chainId: chainID1.toString(),
       keypair: new Keypair(),
@@ -443,7 +444,7 @@ describe('SignatureBridgeSide use', () => {
       admin
     );
 
-    await tokenInstance.approveSpending(anchor.contract.address, BigInt(1e7));
+    await tokenInstance.approveSpending(anchor.contract.address, BigNumber.from(1e7));
 
     await bridgeSide.setAnchorHandler(anchorHandler);
     // Function call below sets resource with signature

@@ -1,13 +1,10 @@
 import {
-  AbiCoder,
   BytesLike,
-  ParamType,
   Signer,
   ethers,
-  getCreate2Address,
-  keccak256,
 } from 'ethers';
 import { DeterministicDeployFactory as DeterministicDeployFactoryContract } from '@webb-tools/contracts';
+import { ParamType, AbiCoder, getCreate2Address, keccak256 } from 'ethers/lib/utils';
 
 export class Deployer {
   signer: ethers.Signer;
@@ -22,7 +19,7 @@ export class Deployer {
   }
 
   public static encode(types: ReadonlyArray<string | ParamType>, values: ReadonlyArray<any>) {
-    const abiCoder = AbiCoder.defaultAbiCoder();
+    const abiCoder = new AbiCoder();
     const encodedParams = abiCoder.encode(types, values);
     return encodedParams.slice(2);
   }

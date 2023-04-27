@@ -1,4 +1,4 @@
-import { BigNumber, ethers } from 'ethers';
+import { BaseContract, BigNumber, ethers } from 'ethers';
 import { SignatureBridge, SignatureBridge__factory } from '@webb-tools/contracts';
 import { FungibleTokenWrapper, Treasury } from '@webb-tools/tokens';
 import { TokenWrapperHandler } from '@webb-tools/tokens';
@@ -7,6 +7,7 @@ import { IVAnchor, IBridgeSide, Proposal } from '@webb-tools/interfaces';
 import { TreasuryHandler } from '@webb-tools/tokens';
 import { getChainIdType } from '@webb-tools/utils';
 import { signMessage, toHex } from '@webb-tools/sdk-core';
+import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
 
 type SystemSigningFn = (data: any) => Promise<string>;
 
@@ -136,14 +137,14 @@ export class SignatureBridgeSide implements IBridgeSide {
    * @returns Promise<string>
    */
   public async createAnchorUpdateProposalData(
-    srcAnchor: IVAnchor,
+    srcAnchor: IVAnchor<BaseContract>,
     executionResourceID: string
   ): Promise<string> {
     const proposalData = await srcAnchor.getProposalData(executionResourceID);
     return proposalData;
   }
 
-  public async createHandlerUpdateProposalData(anchor: IVAnchor, newHandler: string) {
+  public async createHandlerUpdateProposalData(anchor: IVAnchor<BaseContract>, newHandler: string) {
     const proposalData = await anchor.getHandlerProposalData(newHandler);
     return proposalData;
   }
@@ -214,14 +215,14 @@ export class SignatureBridgeSide implements IBridgeSide {
   }
 
   public async createMinWithdrawalLimitProposalData(
-    vAnchor: IVAnchor,
+    vAnchor: IVAnchor<BaseContract>,
     _minimalWithdrawalAmount: string
   ) {
     const proposalData = await vAnchor.getMinWithdrawalLimitProposalData(_minimalWithdrawalAmount);
     return proposalData;
   }
 
-  public async createMaxDepositLimitProposalData(vAnchor: IVAnchor, _maximumDepositAmount: string) {
+  public async createMaxDepositLimitProposalData(vAnchor: IVAnchor<BaseContract>, _maximumDepositAmount: string) {
     const proposalData = await vAnchor.getMaxDepositLimitProposalData(_maximumDepositAmount);
     return proposalData;
   }
@@ -241,7 +242,7 @@ export class SignatureBridgeSide implements IBridgeSide {
   // Connects the bridgeSide, anchor handler, and anchor.
   // Returns the resourceId of the anchor instance that connects
   // the anchor handler to the anchor (execution) contract.
-  public async connectAnchorWithSignature(anchor: IVAnchor): Promise<string> {
+  public async connectAnchorWithSignature(anchor: IVAnchor<BaseContract>): Promise<string> {
     const resourceId = await this.setAnchorResourceWithSignature(anchor);
     if (this.anchorHandler.contract.address !== (await anchor.getHandler())) {
       await this.executeHandlerProposalWithSig(anchor, this.anchorHandler.contract.address);
@@ -260,8 +261,7 @@ export class SignatureBridgeSide implements IBridgeSide {
 
   public async setResourceWithSignature(newResourceId: string, handler: string): Promise<string> {
     const resourceId = await this.createResourceId();
-    const functionSig = ethers.utils
-      .keccak256(
+    const functionSig = keccak256(
         toUtf8Bytes('adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,bytes)')
       )
       .slice(0, 10)
@@ -292,7 +292,7 @@ export class SignatureBridgeSide implements IBridgeSide {
     return newResourceId;
   }
 
-  public async setAnchorResourceWithSignature(anchor: IVAnchor): Promise<string> {
+  public async setAnchorResourceWithSignature(anchor: IVAnchor<BaseContract>): Promise<string> {
     if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
 
     const newResourceId = await anchor.createResourceId();
@@ -329,13 +329,13 @@ export class SignatureBridgeSide implements IBridgeSide {
     return receipt;
   }
 
-  public async executeHandlerProposalWithSig(anchor: IVAnchor, newHandler: string) {
+  public async executeHandlerProposalWithSig(anchor: IVAnchor<BaseContract>, newHandler: string) {
     const proposalData = await this.createHandlerUpdateProposalData(anchor, newHandler);
     return this.execute(proposalData);
   }
 
   // emit ProposalEvent(chainID, nonce, ProposalStatus.Executed, dataHash);
-  public async executeAnchorProposalWithSig(srcAnchor: IVAnchor, executionResourceID: string) {
+  public async executeAnchorProposalWithSig(srcAnchor: IVAnchor<BaseContract>, executionResourceID: string) {
     if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
     const proposalData = await this.createAnchorUpdateProposalData(srcAnchor, executionResourceID);
     return this.execute(proposalData);
@@ -404,7 +404,7 @@ export class SignatureBridgeSide implements IBridgeSide {
   }
 
   public async executeMinWithdrawalLimitProposalWithSig(
-    anchor: IVAnchor,
+    anchor: IVAnchor<BaseContract>,
     _minimalWithdrawalAmount: string
   ) {
     if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
@@ -416,7 +416,7 @@ export class SignatureBridgeSide implements IBridgeSide {
   }
 
   public async executeMaxDepositLimitProposalWithSig(
-    anchor: IVAnchor,
+    anchor: IVAnchor<BaseContract>,
     _maximumDepositAmount: string
   ) {
     if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;

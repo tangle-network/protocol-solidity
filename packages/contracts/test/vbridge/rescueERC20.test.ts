@@ -6,9 +6,9 @@ const assert = require('assert');
 const path = require('path');
 import { ethers } from 'hardhat';
 
-import { SignatureBridgeSide } from '@webb-tools/bridges';
+import { SignatureBridgeSide } from '@webb-tools/vbridge';
 import { VAnchor, AnchorHandler, PoseidonHasher } from '@webb-tools/anchors';
-import { Verifier } from '@webb-tools/vbridge';
+import { Verifier } from '@webb-tools/anchors';
 import {
   MintableToken,
   Treasury,
@@ -16,9 +16,8 @@ import {
   FungibleTokenWrapper,
   TokenWrapperHandler,
 } from '@webb-tools/tokens';
-import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '@webb-tools/utils';
+import { fetchComponentsFromFilePaths, getChainIdType, HARDHAT_PK_1, ZkComponents } from '@webb-tools/utils';
 import { CircomUtxo, Keypair } from '@webb-tools/sdk-core';
-import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
 
 describe('Rescue Tokens Tests for ERC20 Tokens', () => {
   let zkComponents2_2: ZkComponents;

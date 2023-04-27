@@ -9,7 +9,7 @@
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@webb-tools/sdk-core": "0.1.4-123",
+    "@webb-tools/sdk-core": "0.1.4-125",
     "ethers": "5.7.0"
   },
   "publishConfig": {

@@ -20,7 +20,7 @@ import {
 } from '@webb-tools/sdk-core';
 import { PayableOverrides } from '@ethersproject/contracts';
 import { poseidon_gencontract as poseidonContract } from 'circomlibjs';
-import { BigNumberish, ContractTransactionReceipt, ethers } from 'ethers';
+import { BigNumberish, ContractReceipt, ethers } from 'ethers';
 import { groth16 } from 'snarkjs';
 
 // import { MerkleTree } from "."
@@ -44,7 +44,7 @@ export var proofTimeBenchmark = [];
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
-export class VAnchorForest extends WebbBridge {
+export class VAnchorForest extends WebbBridge<VAnchorForestContract> {
   contract: VAnchorForestContract;
   forest: MerkleTree;
 
@@ -287,9 +287,9 @@ export class VAnchorForest extends WebbBridge {
     forestLeavesMap?: BigNumberish[]
   ): any {
     let inputSubtreePathIndices: number[];
-    let inputSubtreePathElements: BigInt[];
+    let inputSubtreePathElements: BigNumberish[];
     let inputForestPathIndices: number[];
-    let inputForestPathElements: BigInt[];
+    let inputForestPathElements: BigNumberish[];
 
     if (Number(input.amount) > 0) {
       if (input.index === undefined) {
@@ -303,9 +303,9 @@ export class VAnchorForest extends WebbBridge {
         const idx = this.forest.indexOf(subtreePath.merkleRoot.toString());
         const forestPath = this.forest.path(idx);
         inputSubtreePathIndices = subtreePath.pathIndices;
-        inputSubtreePathElements = subtreePath.pathElements.map((elt) => BigInt(elt));
+        inputSubtreePathElements = subtreePath.pathElements;
         inputForestPathIndices = forestPath.pathIndices;
-        inputForestPathElements = forestPath.pathElements.map((elt) => BigInt(elt));
+        inputForestPathElements = forestPath.pathElements;
       } else {
         const subTree = new MerkleTree(this.treeHeight, treeLeavesMap);
         const subtreePath = subTree.path(input.index);
@@ -315,9 +315,9 @@ export class VAnchorForest extends WebbBridge {
 
         const forestPath = forest.path(idx);
         inputSubtreePathIndices = subtreePath.pathIndices;
-        inputSubtreePathElements = subtreePath.pathElements.map((elt) => BigInt(elt));
+        inputSubtreePathElements = subtreePath.pathElements;
         inputForestPathIndices = forestPath.pathIndices;
-        inputForestPathElements = forestPath.pathElements.map((elt) => BigInt(elt));
+        inputForestPathElements = forestPath.pathElements;
       }
     } else {
       inputSubtreePathIndices = new Array(this.tree.levels).fill(0);
@@ -409,7 +409,7 @@ export class VAnchorForest extends WebbBridge {
     }
   }
 
-  public async generateUTXOInputs(
+  public async generateProofInputs(
     inputs: Utxo[],
     outputs: Utxo[],
     chainId: number,
@@ -446,7 +446,7 @@ export class VAnchorForest extends WebbBridge {
       outputs,
       extAmount,
       fee,
-      BigInt(extDataHash),
+      BigInt(extDataHash.toString()),
       vanchorMerkleProof
     );
     const indices = vanchorMerkleProof.map((proof: any) => proof.forestPathIndices);
@@ -494,7 +494,7 @@ export class VAnchorForest extends WebbBridge {
       this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
     });
     const curIdx = await this.contract.currSubtreeIndex();
-    this.forest.update(curIdx, this.tree.root().toString(16));
+    this.forest.update(curIdx, this.tree.root().toHexString());
   }
 
   /**
@@ -541,18 +541,18 @@ export class VAnchorForest extends WebbBridge {
       recipient,
       BigInt(extAmount),
       relayer,
-      BigInt(fee),
-      BigInt(refund),
+      BigInt(fee.toString()),
+      BigInt(refund.toString()),
       wrapUnwrapToken,
       outputs[0].encrypt(),
       outputs[1].encrypt()
     );
-    const proofInput: VAnchorProofInputs = await this.generateUTXOInputs(
+    const proofInput: VAnchorProofInputs = await this.generateProofInputs(
       inputs,
       outputs,
       chainId,
       BigInt(extAmount),
-      BigInt(fee),
+      BigInt(fee.toString()),
       extDataHash.toString(),
       leavesMap,
       txOptions
@@ -590,7 +590,7 @@ export class VAnchorForest extends WebbBridge {
     wrapUnwrapToken: string,
     leavesMap: Record<string, BigNumberish[]>,
     overridesTransaction?: PayableOverrides & TransactionOptions
-  ): Promise<ContractTransactionReceipt> {
+  ): Promise<ContractReceipt> {
     const [overrides, txOptions] = splitTransactionOptions(overridesTransaction);
 
     // Default UTXO chain ID will match with the configured signer's chain ID
@@ -610,8 +610,8 @@ export class VAnchorForest extends WebbBridge {
     );
 
     let options = await this.getWrapUnwrapOptions(
-      BigInt(extAmount),
-      BigInt(refund),
+      BigInt(extAmount.toString()),
+      BigInt(refund.toString()),
       wrapUnwrapToken
     );
 
@@ -632,8 +632,8 @@ export class VAnchorForest extends WebbBridge {
         extensionRoots: [],
         inputNullifiers: publicInputs.inputNullifiers,
         outputCommitments: [
-          BigInt(publicInputs.outputCommitments[0]),
-          BigInt(publicInputs.outputCommitments[1]),
+          publicInputs.outputCommitments[0],
+          publicInputs.outputCommitments[1],
         ],
         publicAmount: publicInputs.publicAmount,
         extDataHash: publicInputs.extDataHash,

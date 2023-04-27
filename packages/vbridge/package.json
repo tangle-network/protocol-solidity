@@ -10,10 +10,9 @@
   },
   "dependencies": {
     "@webb-tools/anchors": "^0.5.35",
-    "@webb-tools/bridges": "^0.5.35",
     "@webb-tools/contracts": "^0.5.35",
     "@webb-tools/interfaces": "^0.5.35",
-    "@webb-tools/sdk-core": "0.1.4-123",
+    "@webb-tools/sdk-core": "0.1.4-125",
     "@webb-tools/tokens": "^0.5.35",
     "@webb-tools/utils": "^0.5.27",
     "ethers": "5.7.0"

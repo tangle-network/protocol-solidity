@@ -1,15 +1,14 @@
 const assert = require('assert');
 const TruffleAssert = require('truffle-assertions');
+
 import { ethers } from 'hardhat';
 import { toFixedHex, MerkleTree } from '@webb-tools/sdk-core';
 import { BigNumber, BigNumberish } from 'ethers';
-import { solidityPack } from 'ethers/lib/utils';
+import { keccak256, solidityPack } from 'ethers/lib/utils';
 import { getChainIdType } from '@webb-tools/utils';
 import { OpenVAnchor } from '@webb-tools/anchors';
-import { KeccakHasher__factory } from '../../typechain';
 import { startGanacheServer } from '@webb-tools/evm-test-utils';
 import { DeployerConfig, GovernorConfig } from '@webb-tools/interfaces';
-import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
 import { OpenVBridge, VBridgeInput } from '@webb-tools/vbridge';
 import { MintableToken, FungibleTokenWrapper } from '@webb-tools/tokens';
 
@@ -254,12 +253,12 @@ describe('Open VAnchor Contract - cross chain', () => {
     const ganacheWallet2BalanceBefore = await webbToken2.getBalance(
       await ganacheWallet2.getAddress()
     );
-    assert.strictEqual(BigInt(ganacheWallet2BalanceBefore).toString(), BigInt(0).toString());
+    assert.strictEqual(BigInt(ganacheWallet2BalanceBefore.toString()), BigInt(0));
 
     const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainID1);
     const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, recipient);
     const recipientBalanceBefore = await webbToken1.getBalance(await recipient.getAddress());
-    assert.strictEqual(BigInt(recipientBalanceBefore).toString(), BigInt(0).toString());
+    assert.strictEqual(BigInt(recipientBalanceBefore.toString()), BigInt(0));
 
     await vAnchor1.setSigner(sender);
     await vAnchor1.wrapAndDeposit(

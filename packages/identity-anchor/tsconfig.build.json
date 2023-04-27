@@ -7,6 +7,6 @@
   "include": [
     "./src/*.ts",
     "./typechain/**/*.ts",
-    "./typechain/*.ts"
+    "./typechain/*.ts",
   ]
 }

@@ -1,4 +1,4 @@
-import { ethers, id } from 'ethers';
+import { ethers } from 'ethers';
 import {
   PoseidonHasher as PoseidonHasherContract,
   PoseidonHasher__factory,
@@ -8,6 +8,7 @@ import {
   PoseidonT6__factory,
 } from '@webb-tools/contracts';
 import { Deployer } from './Deployer';
+import { id } from 'ethers/lib/utils';
 
 export class PoseidonHasher {
   contract: PoseidonHasherContract;

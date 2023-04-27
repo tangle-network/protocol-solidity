@@ -507,19 +507,19 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
       recipient,
       extAmount,
       relayer,
-      BigInt(fee),
-      BigInt(refund),
+      BigInt(fee.toString()),
+      BigInt(refund.toString()),
       wrapUnwrapToken,
       outputs[0].encrypt(),
       outputs[1].encrypt()
     );
 
-    const vanchorInput: VAnchorProofInputs = await this.generateUTXOInputs(
+    const vanchorInput: VAnchorProofInputs = await this.generateProofInputs(
       inputs,
       outputs,
       chainId,
       extAmount,
-      BigInt(fee),
+      BigInt(fee.toString()),
       extDataHash.toString(),
       leavesMap,
       txOptions
@@ -560,9 +560,9 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
       const tempIdentityMerkleProof = this.group.generateProofOfMembership(idx);
       identityMerkleProof = {
         pathIndices: tempIdentityMerkleProof.pathIndices,
-        pathElements: tempIdentityMerkleProof.pathElements.map((x) => BigInt(x.toString())),
-        element: tempIdentityMerkleProof.element.toString(),
-        merkleRoot: tempIdentityMerkleProof.merkleRoot.toString(),
+        pathElements: tempIdentityMerkleProof.pathElements,
+        element: tempIdentityMerkleProof.element,
+        merkleRoot: tempIdentityMerkleProof.merkleRoot,
       };
     } else {
       const group = new Group(this.group.levels, BigInt(this.group.zeroValue.toString()));
@@ -571,9 +571,9 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
       const tempIdentityMerkleProof = group.generateProofOfMembership(idx);
       identityMerkleProof = {
         pathIndices: tempIdentityMerkleProof.pathIndices,
-        pathElements: tempIdentityMerkleProof.pathElements.map((x) => BigInt(x.toString())),
-        element: tempIdentityMerkleProof.element.toString(),
-        merkleRoot: tempIdentityMerkleProof.merkleRoot.toString(),
+        pathElements: tempIdentityMerkleProof.pathElements,
+        element: tempIdentityMerkleProof.element,
+        merkleRoot: tempIdentityMerkleProof.merkleRoot,
       };
     }
 
@@ -627,7 +627,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
     return outSemaphoreProofs;
   }
 
-  public async generateUTXOInputs(
+  public async generateProofInputs(
     inputs: Utxo[],
     outputs: Utxo[],
     chainId: number,
@@ -658,7 +658,7 @@ export class IdentityVAnchor extends WebbBridge implements IVAnchor {
       outputs,
       extAmount,
       fee,
-      BigInt(extDataHash),
+      BigInt(extDataHash.toString()),
       vanchorMerkleProof
     );
 

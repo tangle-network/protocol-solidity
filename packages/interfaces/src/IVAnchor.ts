@@ -1,10 +1,9 @@
-import { VAnchorBase } from '@webb-tools/contracts';
 import { MerkleProof, Utxo } from '@webb-tools/sdk-core';
-import { ethers } from 'ethers';
+import { BaseContract, BigNumberish, ethers } from 'ethers';
 
-export interface IVAnchor {
+export interface IVAnchor<A extends BaseContract> {
   signer: ethers.Signer;
-  contract: VAnchorBase;
+  contract: A;
   latestSyncedBlock: number;
   token?: string;
   denomination?: string;
@@ -20,5 +19,5 @@ export interface IVAnchor {
   update(blockNumber?: number): Promise<void>;
 
   // VAnchor methods
-  getMerkleProof(input: Utxo): MerkleProof;
+  getMerkleProof(input: Utxo, leavesMap?: BigNumberish[]): MerkleProof;
 }

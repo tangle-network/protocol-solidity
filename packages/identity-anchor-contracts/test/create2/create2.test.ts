@@ -6,7 +6,7 @@ const TruffleAssert = require('truffle-assertions');
 // These contracts are included in packages, so should be tested
 import { ERC20PresetMinterPauser } from '@webb-tools/contracts';
 
-import { getChainIdType } from '@webb-tools/utils';
+import { HARDHAT_ACCOUNTS, getChainIdType } from '@webb-tools/utils';
 import { Semaphore } from '@webb-tools/semaphore';
 import { LinkedGroup } from '@webb-tools/semaphore-group';
 import { startGanacheServer } from '@webb-tools/evm-test-utils';

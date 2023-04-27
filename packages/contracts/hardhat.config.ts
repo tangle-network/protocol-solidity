@@ -1,5 +1,4 @@
 import { HardhatUserConfig } from 'hardhat/types';
-import { HARDHAT_ACCOUNTS } from './hardhatAccounts.js';
 import 'hardhat-artifactor';
 import 'hardhat-gas-reporter';
 import '@typechain/hardhat';
@@ -9,6 +8,7 @@ import '@nomiclabs/hardhat-truffle5';
 import { subtask } from 'hardhat/config';
 
 import { poseidon_gencontract as poseidonContract } from 'circomlibjs';
+import { HARDHAT_ACCOUNTS } from '@webb-tools/evm-test-utils';
 
 require('dotenv').config({ path: __dirname + '/.env' });
 

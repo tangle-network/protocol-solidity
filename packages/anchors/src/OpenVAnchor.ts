@@ -14,22 +14,20 @@ import {
 } from '@webb-tools/sdk-core';
 import { getChainIdType, u8aToHex } from '@webb-tools/utils';
 import {
+  BigNumber,
   BigNumberish,
-  ContractTransactionReceipt,
+  ContractReceipt,
   Overrides,
   ethers,
-  getBytes,
-  keccak256,
-  solidityPacked,
-  toUtf8Bytes,
 } from 'ethers';
 import { PayableOverrides } from '@ethersproject/contracts';
 import { WebbBridge } from './Common';
 import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
+import { solidityPack, keccak256, toUtf8Bytes, arrayify } from 'ethers/lib/utils';
 
 function sha3Hash(left: BigNumberish, right: BigNumberish) {
-  const packed = solidityPacked(['bytes32', 'bytes32'], [toFixedHex(left), toFixedHex(right)]);
-  return BigInt(keccak256(getBytes(packed)));
+  const packed = solidityPack(['bytes32', 'bytes32'], [toFixedHex(left), toFixedHex(right)]);
+  return BigNumber.from(keccak256(arrayify(packed)));
 }
 
 export var gasBenchmark: string[] = [];
@@ -39,7 +37,7 @@ export var proofTimeBenchmark: number[] = [];
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
-export class OpenVAnchor extends WebbBridge implements IVAnchor {
+export class OpenVAnchor extends WebbBridge<OpenVAnchorContract> implements IVAnchor {
   contract: OpenVAnchorContract;
   latestSyncedBlock = 0;
 
@@ -133,7 +131,7 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
   public async setHandler(handlerAddress: string) {
     const tx = await this.contract.setHandler(
       handlerAddress,
-      BigInt(await this.contract.getProposalNonce()) + BigInt(0)
+      Number(await this.contract.getProposalNonce()) + 1
     );
     await tx.wait();
   }
@@ -222,7 +220,7 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
    */
   public getMerkleProof(input: Utxo): MerkleProof {
     let inputMerklePathIndices: number[];
-    let inputMerklePathElements: BigNumberish[];
+    let inputMerklePathElements: BigNumber[];
 
     if (Number(input.amount) > 0) {
       if (!input.index || input.index < 0) {
@@ -237,7 +235,7 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
     }
 
     return {
-      element: BigInt(u8aToHex(input.commitment)),
+      element: BigNumber.from(u8aToHex(input.commitment)),
       pathElements: inputMerklePathElements,
       pathIndices: inputMerklePathIndices,
       merkleRoot: this.tree.root(),
@@ -315,13 +313,13 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
     blinding: BigNumberish,
     relayingFee: BigNumberish
   ): string {
-    const delegatedCalldataHash = keccak256(getBytes('0x00'));
+    const delegatedCalldataHash = keccak256(arrayify('0x00'));
 
-    const packedValues = solidityPacked(
+    const packedValues = solidityPack(
       ['uint48', 'uint256', 'address', 'bytes32', 'uint256', 'uint256'],
       [chainId, amount, recipientAddr, delegatedCalldataHash, blinding, relayingFee]
     );
-    const commitment = keccak256(getBytes(packedValues));
+    const commitment = keccak256(arrayify(packedValues));
     return commitment;
   }
 
@@ -333,7 +331,7 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
     blinding: BigNumberish,
     relayingFee: BigNumberish,
     overridesTransaction?: OverridesWithFrom<Overrides>
-  ): Promise<ContractTransactionReceipt> {
+  ): Promise<ContractReceipt> {
     let tx = await this.contract.deposit(
       depositAmount,
       destinationChainId,
@@ -373,7 +371,7 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
     relayingFee: BigNumberish,
     tokenAddress: string,
     overridesTransaction?: PayableOverrides
-  ): Promise<ContractTransactionReceipt> {
+  ): Promise<ContractReceipt> {
     let tx = await this.contract.wrapAndDeposit(
       destinationChainId,
       depositAmount,
@@ -414,16 +412,16 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
     merkleProof: MerkleProof,
     commitmentIndex: number,
     overridesTransaction?: OverridesWithFrom<Overrides>
-  ): Promise<ContractTransactionReceipt> {
+  ): Promise<ContractReceipt> {
     let tx = await this.contract.withdraw(
       withdrawAmount,
       recipient,
       delegatedCalldata,
       blinding,
       relayingFee,
-      merkleProof.pathElements.map((bignum) => bignum.toString(16)),
+      merkleProof.pathElements,
       commitmentIndex,
-      merkleProof.merkleRoot.toString(16),
+      merkleProof.merkleRoot,
       { gasLimit: '0x5B8D80', ...overridesTransaction }
     );
 
@@ -443,16 +441,16 @@ export class OpenVAnchor extends WebbBridge implements IVAnchor {
     commitmentIndex: number,
     tokenAddress: string,
     overridesTransaction?: PayableOverrides
-  ): Promise<ContractTransactionReceipt> {
+  ): Promise<ContractReceipt> {
     let tx = await this.contract.withdrawAndUnwrap(
       withdrawAmount,
       recipient,
       delegatedCalldata,
       blinding,
       relayingFee,
-      merkleProof.pathElements.map((bignum) => bignum.toString(16)),
+      merkleProof.pathElements,
       commitmentIndex,
-      merkleProof.merkleRoot.toString(16),
+      merkleProof.merkleRoot,
       tokenAddress,
       { gasLimit: '0x5B8D80', ...overridesTransaction }
     );

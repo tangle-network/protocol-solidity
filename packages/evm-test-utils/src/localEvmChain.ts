@@ -106,7 +106,7 @@ export class LocalEvmChain {
     index for proving.
     The `inputUtxo` should be spendable by the `spender`
  **/
-export async function setupVanchorEvmWithdrawTx(
+export async function setupVAnchorEvmWithdrawTx(
   inputUtxo: Utxo,
   srcChain: LocalChain,
   destChain: LocalChain,
@@ -119,7 +119,7 @@ export async function setupVanchorEvmWithdrawTx(
   extData: IVariableAnchorExtData;
   publicInputs: IVariableAnchorPublicInputs;
 }> {
-  const extAmount = ethers.BigInt(0).sub(inputUtxo.amount);
+  const extAmount = ethers.BigNumber.from(0).sub(inputUtxo.amount);
 
   const dummyOutput1 = await CircomUtxo.generateUtxo({
     amount: '0',

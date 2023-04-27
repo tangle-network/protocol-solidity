@@ -66,9 +66,8 @@ export class ChainalysisVAnchor extends VAnchor {
     const encodeLibrary = await encodeLibraryFactory.deploy();
     await encodeLibrary.deployed();
 
-    const address = await encodeLibrary.getAddress();
     const factory = new ChainalysisVAnchor__factory(
-      { ['contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs']: address },
+      { ['contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs']: encodeLibrary.address },
       signer
     );
     const vAnchor = await factory.deploy(verifier, levels, hasher, handler, token, maxEdges, {});

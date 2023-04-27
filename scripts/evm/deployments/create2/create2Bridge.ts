@@ -1,5 +1,4 @@
-import { ethers, BigNumber } from 'ethers';
-import { SignatureBridgeSide } from '@webb-tools/bridges';
+import { ethers } from 'ethers';
 import {
   FungibleTokenWrapper,
   TreasuryHandler,
@@ -7,10 +6,10 @@ import {
   TokenWrapperHandler,
 } from '@webb-tools/tokens';
 import { AnchorIdentifier, GovernorConfig, DeployerConfig } from '@webb-tools/interfaces';
-import { AnchorHandler, Deployer, PoseidonHasher, VAnchor } from '@webb-tools/anchors';
+import { AnchorHandler, Deployer, PoseidonHasher, VAnchor, Verifier } from '@webb-tools/anchors';
 import { getChainIdType, ZkComponents } from '@webb-tools/utils';
-import { Verifier } from '@webb-tools/vbridge';
 import { DeterministicDeployFactory__factory } from '@webb-tools/contracts';
+import { SignatureBridgeSide } from '@webb-tools/vbridge';
 
 export type ExistingAssetInput = {
   // A record of chainId => address of wrappable tokens to be supported in the webbToken.
@@ -243,7 +242,7 @@ export class Create2VBridge {
       let tokenDenomination = '1000000000000000000'; // 1 ether
       await vAnchorInstance.contract.initialize(
         BigInt(0).toString(), //minimum withdrawal limit
-        BigInt(tokenDenomination) * BigInt(1_000_000).toString() // max deposit limit
+        (BigInt(tokenDenomination) * BigInt(1_000_000)).toString() // max deposit limit
       );
 
       // grant minting rights to the anchor
@@ -256,8 +255,13 @@ export class Create2VBridge {
       createdVAnchors.push(chainGroupedVAnchors);
 
       // Transfer ownership of the bridge to the initialGovernor
-      const tx = await vBridgeInstance.transferOwnership(initialGovernor, 0);
-      await tx.wait();
+      if (typeof initialGovernor === 'string') {
+        const tx = await vBridgeInstance.transferOwnership(initialGovernor, 0);
+        await tx.wait();
+      } else {
+        const tx = await vBridgeInstance.transferOwnership(initialGovernor.address, initialGovernor.nonce);
+        await tx.wait();
+      }
       vBridgeSides.set(chainID, vBridgeInstance);
     }
 

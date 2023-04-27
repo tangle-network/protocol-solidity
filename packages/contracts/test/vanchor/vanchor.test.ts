@@ -23,7 +23,7 @@ import {
   u8aToHex,
   ZERO_BYTES32,
 } from '@webb-tools/utils';
-import { ContractTransactionReceipt, keccak256, parseEther, toUtf8Bytes } from 'ethers';
+import { ContractReceipt, keccak256, parseEther, toUtf8Bytes } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 import {
@@ -38,7 +38,7 @@ import {
   CircomUtxo,
 } from '@webb-tools/sdk-core';
 import { VAnchor, PoseidonHasher } from '@webb-tools/anchors';
-import { Verifier } from '@webb-tools/vbridge';
+import { Verifier } from '@webb-tools/anchors';
 import { retryPromiseMock } from './mocks/retryPromiseMock';
 
 const BN = require('bn.js');
@@ -1138,7 +1138,7 @@ describe('VAnchor for 1 max edge', () => {
         '0',
         token.address,
         {}
-      )) as ContractTransactionReceipt;
+      )) as ContractReceipt;
 
       // Bob queries encrypted commitments on chain
       const encryptedCommitments: string[] = receipt.events
@@ -1185,7 +1185,7 @@ describe('VAnchor for 1 max edge', () => {
         {
           [chainID.toString()]: leaves,
         }
-      )) as ContractTransactionReceipt;
+      )) as ContractReceipt;
 
       // get balances after transfer interactions
       const aliceBalanceAfter = await token.balanceOf(sender.address);
@@ -1486,7 +1486,7 @@ describe('VAnchor for 1 max edge', () => {
       assert.equal(
         BigInt(numOfInsertions * 2).toString(),
         BigInt(
-          await ethers.provider.getStorage(
+          await ethers.provider.getStorageAt(
             wrappedAnchor.contract.address,
             '0xcc69885fda6bcc1a4ace058b4a62bf5e179ea78fd58a1ccd71c22cc9b6887930'
           )

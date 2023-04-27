@@ -14,8 +14,6 @@ import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '@web
 import { startGanacheServer } from '@webb-tools/evm-test-utils';
 import { CircomUtxo } from '@webb-tools/sdk-core';
 import { DeployerConfig, GovernorConfig } from '@webb-tools/interfaces';
-import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
-import { JsonRpcProvider } from 'ethers/types/ethers.js';
 
 const path = require('path');
 

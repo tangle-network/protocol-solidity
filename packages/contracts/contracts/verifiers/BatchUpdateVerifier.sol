@@ -5,8 +5,6 @@
 
 pragma solidity ^0.8.18;
 
-// import "../interfaces/verifiers/IAnchorVerifier.sol";
-// import "../interfaces/verifiers/IVAnchorVerifier.sol";
 import "../interfaces/verifiers/IBatchVerifier.sol";
 
 contract BatchTreeVerifierSelector is IBatchTreeVerifierSelector {

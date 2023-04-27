@@ -7,6 +7,7 @@ import {
 } from '@webb-tools/contracts';
 import { assert } from 'chai';
 import { Deployer } from '@webb-tools/anchors';
+import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
 
 export class FungibleTokenWrapper {
   contract: FungibleTokenWrapperContract;

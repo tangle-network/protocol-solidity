@@ -11,7 +11,7 @@
   "dependencies": {
     "@webb-tools/contracts": "^0.5.35",
     "@webb-tools/interfaces": "^0.5.35",
-    "@webb-tools/sdk-core": "0.1.4-124",
+    "@webb-tools/sdk-core": "0.1.4-125",
     "@webb-tools/utils": "^0.5.27",
     "ethers": "5.7.0",
     "jssha": "^3.2.0"

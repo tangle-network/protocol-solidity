@@ -15,8 +15,8 @@ packages/*/tsconfig.tsbuildinfo
 cache
 out
 artifacts
-/typechain
-/typechain-types
+typechain
+typechain-types
 /src
 
 solidity-fixtures/

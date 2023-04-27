@@ -1,6 +1,5 @@
 const assert = require('assert');
 import { ethers } from 'hardhat';
-import { HARDHAT_ACCOUNTS } from '../../hardhatAccounts.js';
 const TruffleAssert = require('truffle-assertions');
 
 // Typechain generated bindings for contracts
@@ -12,19 +11,17 @@ import {
   VAnchorEncodeInputs__factory,
 } from '@webb-tools/contracts';
 
-import { getChainIdType } from '@webb-tools/utils';
+import { HARDHAT_ACCOUNTS, getChainIdType } from '@webb-tools/utils';
 import { startGanacheServer } from '@webb-tools/evm-test-utils';
 import {
   PoseidonHasher,
   VAnchor,
-  IdentityVAnchor,
   VAnchorForest,
   Deployer,
 } from '@webb-tools/anchors';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
-import { Verifier, ForestVerifier, IdentityVerifier } from '@webb-tools/vbridge';
-import { JsonRpcProvider } from 'ethers/types/ethers.js';
+import { ForestVerifier } from '@webb-tools/vbridge';
 
 const path = require('path');
 

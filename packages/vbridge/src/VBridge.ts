@@ -1,5 +1,4 @@
 import { ethers, BigNumber, BigNumberish } from 'ethers';
-import { SignatureBridgeSide } from '@webb-tools/bridges';
 import {
   MintableToken,
   FungibleTokenWrapper,
@@ -7,11 +6,12 @@ import {
   Treasury,
   TokenWrapperHandler,
 } from '@webb-tools/tokens';
-import Verifier from './Verifier';
+import { Verifier } from '@webb-tools/anchors';
 import { AnchorIdentifier, GovernorConfig, DeployerConfig } from '@webb-tools/interfaces';
 import { AnchorHandler, PoseidonHasher, VAnchor } from '@webb-tools/anchors';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { CircomUtxo, Utxo } from '@webb-tools/sdk-core';
+import { SignatureBridgeSide } from './SignatureBridgeSide';
 
 export type ExistingAssetInput = {
   // A record of chainId => address of wrappable tokens to be supported in the webbToken.
@@ -286,7 +286,7 @@ export class VBridge {
       await vBridgeSide.executeMinWithdrawalLimitProposalWithSig(vAnchor, BigInt(0).toString());
       await vBridgeSide.executeMaxDepositLimitProposalWithSig(
         vAnchor,
-        BigInt(tokenDenomination) * BigInt(1_000_000).toString()
+        (BigInt(tokenDenomination) * BigInt(1_000_000)).toString()
       );
     }
   }
@@ -386,11 +386,11 @@ export class VBridge {
       throw new Error('Token not supported');
     }
 
-    const extAmount = BigInt(fee)
-      .add(outputs.reduce((sum, x) => sum.add(x.amount), BigInt(0)))
-      .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigInt(0)));
+    const extAmount = BigInt(fee.toString())
+       + (outputs.reduce((sum, x) => sum + BigInt(x.amount), BigInt(0)))
+       - (inputs.reduce((sum, x) => sum + BigInt(x.amount), BigInt(0)));
 
-    const publicAmount = extAmount.sub(fee);
+    const publicAmount = extAmount - BigInt(fee.toString());
 
     // If the wrapUnwrapToken is unspecified ('') then we assume that
     // the user is trying to transact directly with the webbToken. We instead
@@ -402,7 +402,7 @@ export class VBridge {
         vAnchor.contract.address
       );
       if (userTokenAllowance.lt(publicAmount)) {
-        await tokenInstance.approveSpending(vAnchor.contract.address, publicAmount);
+        await tokenInstance.approveSpending(vAnchor.contract.address, BigNumber.from(publicAmount));
       }
 
       wrapUnwrapToken = webbTokenAddress;
@@ -410,7 +410,7 @@ export class VBridge {
       const tokenInstance = await MintableToken.tokenFromAddress(wrapUnwrapToken, signer);
       const userTokenAllowance = await tokenInstance.getAllowance(signerAddress, webbTokenAddress);
       if (userTokenAllowance.lt(publicAmount)) {
-        await tokenInstance.approveSpending(webbTokenAddress, publicAmount);
+        await tokenInstance.approveSpending(webbTokenAddress, BigNumber.from(publicAmount));
       }
     }
 

@@ -1,5 +1,5 @@
 import { ethers, BigNumber, BigNumberish } from 'ethers';
-import { SignatureBridgeSide } from '@webb-tools/bridges';
+import { SignatureBridgeSide } from '@webb-tools/vbridge';
 import {
   MintableToken,
   FungibleTokenWrapper,
@@ -8,7 +8,6 @@ import {
   TokenWrapperHandler,
 } from '@webb-tools/tokens';
 import { PoseidonT3__factory } from '@webb-tools/contracts';
-import Verifier from './Verifier';
 import { AnchorIdentifier, GovernorConfig, DeployerConfig } from '@webb-tools/interfaces';
 import { AnchorHandler, OpenVAnchor as VAnchor } from '@webb-tools/anchors';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
@@ -223,8 +222,14 @@ export class OpenVBridge {
       createdVAnchors.push(chainGroupedVAnchors);
 
       // Transfer ownership of the bridge to the initialGovernor
-      const tx = await vBridgeInstance.transferOwnership(initialGovernor, 0);
-      await tx.wait();
+      if (typeof initialGovernor === 'string') {
+        const tx = await vBridgeInstance.transferOwnership(initialGovernor, 0);
+        await tx.wait();
+      } else {
+        const tx = await vBridgeInstance.transferOwnership(initialGovernor.address, initialGovernor.nonce);
+        await tx.wait();
+      }
+
       vBridgeSides.set(chainID, vBridgeInstance);
     }
 
@@ -258,7 +263,7 @@ export class OpenVBridge {
       await vBridgeSide.executeMinWithdrawalLimitProposalWithSig(vAnchor, BigInt(0).toString());
       await vBridgeSide.executeMaxDepositLimitProposalWithSig(
         vAnchor,
-        BigInt(tokenDenomination) * BigInt(1_000_000).toString()
+        (BigInt(tokenDenomination) * BigInt(1_000_000)).toString()
       );
     }
   }

@@ -3,17 +3,30 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      /**
+      ********   Solidity Contracts   ********
+      */
+      "@webb-tools/identity-protocol-solidity": [
+        "packages/identity-anchors-contracts/contracts"
+      ],
+      "@webb-tools/identity-protocol-solidity/*": [
+        "packages/identity-anchors-contracts/contracts/*"
+      ],
+      "@webb-tools/protocol-solidity": [
+        "packages/contracts/contracts"
+      ],
+      "@webb-tools/protocol-solidity/*": [
+        "packages/contracts/contracts/*"
+      ],
+
+      /**
+      ********   Typescript Classes   ********
+      */
       "@webb-tools/anchors": [
         "packages/anchors/src"
       ],
       "@webb-tools/anchors/*": [
         "packages/anchors/src/*"
-      ],
-      "@webb-tools/bridges": [
-        "packages/bridges/src"
-      ],
-      "@webb-tools/bridges/*": [
-        "packages/bridges/src/*"
       ],
       "@webb-tools/contracts": [
         "packages/contracts/src"
@@ -38,12 +51,6 @@
       ],
       "@webb-tools/interfaces/*": [
         "packages/interfaces/src/*"
-      ],
-      "@webb-tools/protocol-solidity": [
-        "packages/contracts/contracts"
-      ],
-      "@webb-tools/protocol-solidity/*": [
-        "packages/contracts/contracts/*"
       ],
       "@webb-tools/tokens": [
         "packages/tokens/src"

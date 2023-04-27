@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import { ethers, BaseContract } from 'ethers';
 import { IVAnchor } from '..';
 import { IBridgeSide } from '../IBridgeSide';
 
@@ -45,14 +45,14 @@ export type BridgeInput = {
   chainIDs: number[];
 };
 
-export type BridgeConfig = {
+export type BridgeConfig<A extends BaseContract> = {
   // The addresses of tokens available to be transferred over this bridge config
   // chainId => FungibleTokenWrapperAddress
   webbTokenAddresses: Map<number, string>;
 
   // The addresses of the anchors for the FungibleTokenWrapper
   // {anchorIdentifier} => anchorAddress
-  anchors: Map<string, IVAnchor>;
+  anchors: Map<string, IVAnchor<A>>;
 
   // The addresses of the Bridge contracts (bridgeSides) to interact with
   bridgeSides: Map<number, IBridgeSide>;
