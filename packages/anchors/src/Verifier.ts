@@ -15,11 +15,11 @@ import {
 import { Deployer } from '@webb-tools/anchors';
 
 type VerifierInterface = {
-    v22: BaseContract;
-    v82: BaseContract;
-    v216: BaseContract;
-    v816: BaseContract;
-}
+  v22: BaseContract;
+  v82: BaseContract;
+  v216: BaseContract;
+  v816: BaseContract;
+};
 
 export class VerifierBase {
   signer: ethers.Signer;

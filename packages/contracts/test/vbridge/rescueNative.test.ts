@@ -15,7 +15,12 @@ import {
   FungibleTokenWrapper,
   TokenWrapperHandler,
 } from '@webb-tools/tokens';
-import { fetchComponentsFromFilePaths, getChainIdType, HARDHAT_PK_1, ZkComponents } from '@webb-tools/utils';
+import {
+  fetchComponentsFromFilePaths,
+  getChainIdType,
+  HARDHAT_PK_1,
+  ZkComponents,
+} from '@webb-tools/utils';
 import { CircomUtxo, Keypair } from '@webb-tools/sdk-core';
 
 describe('Rescue Tokens Tests for Native ETH', () => {

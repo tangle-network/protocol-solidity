@@ -222,7 +222,10 @@ export class SignatureBridgeSide implements IBridgeSide {
     return proposalData;
   }
 
-  public async createMaxDepositLimitProposalData(vAnchor: IVAnchor<BaseContract>, _maximumDepositAmount: string) {
+  public async createMaxDepositLimitProposalData(
+    vAnchor: IVAnchor<BaseContract>,
+    _maximumDepositAmount: string
+  ) {
     const proposalData = await vAnchor.getMaxDepositLimitProposalData(_maximumDepositAmount);
     return proposalData;
   }
@@ -262,8 +265,8 @@ export class SignatureBridgeSide implements IBridgeSide {
   public async setResourceWithSignature(newResourceId: string, handler: string): Promise<string> {
     const resourceId = await this.createResourceId();
     const functionSig = keccak256(
-        toUtf8Bytes('adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,bytes)')
-      )
+      toUtf8Bytes('adminSetResourceWithSignature(bytes32,bytes4,uint32,bytes32,address,bytes)')
+    )
       .slice(0, 10)
       .padEnd(10, '0');
     const nonce = Number(await this.contract.proposalNonce()) + 1;
@@ -335,7 +338,10 @@ export class SignatureBridgeSide implements IBridgeSide {
   }
 
   // emit ProposalEvent(chainID, nonce, ProposalStatus.Executed, dataHash);
-  public async executeAnchorProposalWithSig(srcAnchor: IVAnchor<BaseContract>, executionResourceID: string) {
+  public async executeAnchorProposalWithSig(
+    srcAnchor: IVAnchor<BaseContract>,
+    executionResourceID: string
+  ) {
     if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
     const proposalData = await this.createAnchorUpdateProposalData(srcAnchor, executionResourceID);
     return this.execute(proposalData);

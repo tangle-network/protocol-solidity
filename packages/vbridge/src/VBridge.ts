@@ -386,9 +386,10 @@ export class VBridge {
       throw new Error('Token not supported');
     }
 
-    const extAmount = BigInt(fee.toString())
-       + (outputs.reduce((sum, x) => sum + BigInt(x.amount), BigInt(0)))
-       - (inputs.reduce((sum, x) => sum + BigInt(x.amount), BigInt(0)));
+    const extAmount =
+      BigInt(fee.toString()) +
+      outputs.reduce((sum, x) => sum + BigInt(x.amount), BigInt(0)) -
+      inputs.reduce((sum, x) => sum + BigInt(x.amount), BigInt(0));
 
     const publicAmount = extAmount - BigInt(fee.toString());
 

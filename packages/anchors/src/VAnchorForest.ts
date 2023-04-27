@@ -631,10 +631,7 @@ export class VAnchorForest extends WebbBridge<VAnchorForestContract> {
         roots: publicInputs.roots,
         extensionRoots: [],
         inputNullifiers: publicInputs.inputNullifiers,
-        outputCommitments: [
-          publicInputs.outputCommitments[0],
-          publicInputs.outputCommitments[1],
-        ],
+        outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
         publicAmount: publicInputs.publicAmount,
         extDataHash: publicInputs.extDataHash,
       },

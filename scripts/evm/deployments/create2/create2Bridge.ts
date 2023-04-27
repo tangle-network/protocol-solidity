@@ -259,7 +259,10 @@ export class Create2VBridge {
         const tx = await vBridgeInstance.transferOwnership(initialGovernor, 0);
         await tx.wait();
       } else {
-        const tx = await vBridgeInstance.transferOwnership(initialGovernor.address, initialGovernor.nonce);
+        const tx = await vBridgeInstance.transferOwnership(
+          initialGovernor.address,
+          initialGovernor.nonce
+        );
         await tx.wait();
       }
       vBridgeSides.set(chainID, vBridgeInstance);

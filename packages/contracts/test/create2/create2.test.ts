@@ -13,12 +13,7 @@ import {
 
 import { HARDHAT_ACCOUNTS, getChainIdType } from '@webb-tools/utils';
 import { startGanacheServer } from '@webb-tools/evm-test-utils';
-import {
-  PoseidonHasher,
-  VAnchor,
-  VAnchorForest,
-  Deployer,
-} from '@webb-tools/anchors';
+import { PoseidonHasher, VAnchor, VAnchorForest, Deployer } from '@webb-tools/anchors';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 import { ForestVerifier } from '@webb-tools/vbridge';

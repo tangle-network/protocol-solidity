@@ -24,14 +24,7 @@ import {
   VAnchorProofInputs,
   ZERO_BYTES32,
 } from '@webb-tools/utils';
-import {
-  ContractReceipt,
-  EventLog,
-  JsonRpcProvider,
-  Log,
-  keccak256,
-  toUtf8Bytes,
-} from 'ethers';
+import { ContractReceipt, EventLog, JsonRpcProvider, Log, keccak256, toUtf8Bytes } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 import {

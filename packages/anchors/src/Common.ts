@@ -1,8 +1,4 @@
-import {
-  BigNumberish,
-  ContractReceipt,
-  ethers,
-} from 'ethers';
+import { BigNumberish, ContractReceipt, ethers } from 'ethers';
 import { PayableOverrides } from '@ethersproject/contracts';
 import {
   VAnchor as VAnchorContract,
@@ -325,16 +321,18 @@ export abstract class WebbBridge<A extends WebbContracts> {
       encryptedOutput2,
     };
 
-    const extDataHash = BigInt(getVAnchorExtDataHash(
-      encryptedOutput1,
-      encryptedOutput2,
-      extAmount.toString(),
-      fee.toString(),
-      recipient,
-      relayer,
-      refund.toString(),
-      wrapUnwrapToken
-    ).toString());
+    const extDataHash = BigInt(
+      getVAnchorExtDataHash(
+        encryptedOutput1,
+        encryptedOutput2,
+        extAmount.toString(),
+        fee.toString(),
+        recipient,
+        relayer,
+        refund.toString(),
+        wrapUnwrapToken
+      ).toString()
+    );
     return { extData, extDataHash };
   }
 

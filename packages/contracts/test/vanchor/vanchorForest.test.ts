@@ -25,10 +25,7 @@ import {
   u8aToHex,
   ZERO_BYTES32,
 } from '@webb-tools/utils';
-import {
-  BigNumberish,
-  ContractReceipt,
-} from 'ethers';
+import { BigNumberish, ContractReceipt } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 import {

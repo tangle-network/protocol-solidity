@@ -1,8 +1,4 @@
-import {
-  BytesLike,
-  Signer,
-  ethers,
-} from 'ethers';
+import { BytesLike, Signer, ethers } from 'ethers';
 import { DeterministicDeployFactory as DeterministicDeployFactoryContract } from '@webb-tools/contracts';
 import { ParamType, AbiCoder, getCreate2Address, keccak256 } from 'ethers/lib/utils';
 

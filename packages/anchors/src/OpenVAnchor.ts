@@ -13,13 +13,7 @@ import {
   toHex,
 } from '@webb-tools/sdk-core';
 import { getChainIdType, u8aToHex } from '@webb-tools/utils';
-import {
-  BigNumber,
-  BigNumberish,
-  ContractReceipt,
-  Overrides,
-  ethers,
-} from 'ethers';
+import { BigNumber, BigNumberish, ContractReceipt, Overrides, ethers } from 'ethers';
 import { PayableOverrides } from '@ethersproject/contracts';
 import { WebbBridge } from './Common';
 import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
