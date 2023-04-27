@@ -7,8 +7,9 @@ pragma solidity ^0.8.5;
 
 import "./MerkleTreeWithHistory.sol";
 import "../interfaces/verifiers/IBatchVerifier.sol";
+import "../utils/ProofUtils.sol";
 
-contract BatchMerkleTree is MerkleTreeWithHistory {
+contract BatchMerkleTree is MerkleTreeWithHistory, ProofUtils {
 	bytes32 public currentRoot;
 	bytes32 public previousRoot;
 	uint256 public queueLength;
@@ -37,13 +38,13 @@ contract BatchMerkleTree is MerkleTreeWithHistory {
 		currentRoot = hasher.zeros(_levels);
 	}
 
-	event DepositData(address instance, bytes32 indexed hash, uint256 block, uint256 index);
-
 	function _registerInsertion(address _instance, bytes32 _commitment) internal {
 		queue[queueLength] = _commitment;
-		emit DepositData(_instance, _commitment, blockNumber(), queueLength);
+		emit DepositData(_instance, _commitment, block.number, queueLength);
 		queueLength = queueLength + 1;
 	}
+
+	event DepositData(address instance, bytes32 indexed hash, uint256 block, uint256 index);
 
 	function checkLeavesLength(bytes32[] calldata _leaves) public {
 		require(
@@ -110,19 +111,5 @@ contract BatchMerkleTree is MerkleTreeWithHistory {
 		nextIndex = nextIndex + uint32(_leaves.length);
 		roots[newRootIndex] = Root(uint256(currentRoot), nextIndex);
 		currentRootIndex = newRootIndex;
-	}
-
-	function blockNumber() public returns (uint256) {
-		return block.number;
-	}
-
-	function unpackProof(
-		uint256[8] memory _proof
-	) public pure returns (uint256[2] memory, uint256[2][2] memory, uint256[2] memory) {
-		return (
-			[_proof[0], _proof[1]],
-			[[_proof[2], _proof[3]], [_proof[4], _proof[5]]],
-			[_proof[6], _proof[7]]
-		);
 	}
 }

@@ -3,7 +3,7 @@ import {
   TreasuryHandler as TreasuryHandlerContract,
   TreasuryHandler__factory,
 } from '@webb-tools/contracts';
-import { Deployer } from '@webb-tools/anchors';
+import { Deployer } from '@webb-tools/create2-utils';
 
 export class TreasuryHandler {
   contract: TreasuryHandlerContract;

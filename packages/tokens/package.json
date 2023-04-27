@@ -18,6 +18,7 @@
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
+    "@webb-tools/create2-utils": "^0.5.4",
     "@webb-tools/anchors": "^0.5.37",
     "@webb-tools/contracts": "^0.5.37",
     "@webb-tools/sdk-core": "0.1.4-123",

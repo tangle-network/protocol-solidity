@@ -1,0 +1,25 @@
+{
+  "name": "@webb-tools/create2-utils",
+  "main": "./lib/index.js",
+  "license": "GPL-3.0-or-later",
+  "author": "Webb Developers <drew@webb.tools>",
+  "scripts": {
+    "build": "yarn run clean && yarn run compile",
+    "clean": "rimraf -rf ./lib",
+    "compile": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "@webb-tools/contracts": "^0.5.4",
+    "ethers": "5.7.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "directory": "packages/create2-utils",
+    "type": "git",
+    "url": "git://github.com/webb-tools/protocol-solidity.git"
+  },
+  "version": "0.5.4",
+  "gitHead": "e1f3b300b6e004ac5a346dc0458bb1d303969d97"
+}

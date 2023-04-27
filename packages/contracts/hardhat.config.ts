@@ -23,6 +23,7 @@ subtask('typechain-generate-types', async (taskArgs, hre, runSuper) => {
   await buildPoseidon(1);
   await buildPoseidon(2);
   await buildPoseidon(3);
+  await buildPoseidon(4);
   await buildPoseidon(5);
   await runSuper();
 });

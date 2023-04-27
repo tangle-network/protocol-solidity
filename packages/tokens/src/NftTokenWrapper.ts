@@ -14,13 +14,14 @@ export class NftTokenWrapper {
   public static async createNftTokenWrapper(
     uri: string,
     tokenHandler: string,
+    unwrappedNftAddress: string,
     deployer: ethers.Signer
   ) {
     const factory = new NftTokenWrapper__factory(deployer);
     const contract = await factory.deploy(uri);
     await contract.deployed();
 
-    const tx = await contract.initialize(tokenHandler);
+    const tx = await contract.initialize(tokenHandler, unwrappedNftAddress);
     await tx.wait();
 
     const tokenWrapper = new NftTokenWrapper(contract);
@@ -33,8 +34,8 @@ export class NftTokenWrapper {
     return tokenWrapper;
   }
 
-  public async wrap721(tokenId: number, tokenAddress: string) {
-    const tx = await this.contract.wrap721(tokenId, tokenAddress);
+  public async wrap721(tokenId: number) {
+    const tx = await this.contract.wrap721(tokenId);
     await tx.wait();
   }
 

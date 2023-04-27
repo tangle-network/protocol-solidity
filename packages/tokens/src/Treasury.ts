@@ -2,7 +2,7 @@ import { BigNumber, ethers } from 'ethers';
 import { getChainIdType } from '@webb-tools/utils';
 import { toHex, generateFunctionSigHash, toFixedHex } from '@webb-tools/sdk-core';
 import { Treasury as TreasuryContract, Treasury__factory } from '@webb-tools/contracts';
-import { Deployer } from '@webb-tools/anchors';
+import { Deployer } from '@webb-tools/create2-utils';
 
 export class Treasury {
   contract: TreasuryContract;

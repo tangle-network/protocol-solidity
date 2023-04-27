@@ -2,7 +2,7 @@ import { ZkComponents } from '@webb-tools/utils';
 import { BigNumberish, ethers, BigNumber } from 'ethers';
 import { VAnchorEncodeInputs__factory, ChainalysisVAnchor__factory } from '@webb-tools/contracts';
 import VAnchor from '../VAnchor';
-import { Deployer } from '../Deployer';
+import { Deployer } from '@webb-tools/create2-utils';
 
 export class ChainalysisVAnchor extends VAnchor {
   public static async create2VAnchor(

@@ -12,6 +12,7 @@ import {
   Registry,
   NftTokenWrapper,
 } from '@webb-tools/tokens';
+import { randomBN } from '@webb-tools/sdk-core';
 
 describe('Registry', () => {
   let multiFungibleTokenMgr: MultiFungibleTokenManager;
@@ -174,7 +175,15 @@ describe('Registry', () => {
       const nonce = 1;
       const tokenHandler = sender.address;
       const assetIdentifier = 2;
-      await registry.registerNftToken(nonce, tokenHandler, assetIdentifier, wrappedTokenURI, salt);
+      const dummyNftAddress = sender.address;
+      await registry.registerNftToken(
+        nonce,
+        tokenHandler,
+        assetIdentifier,
+        dummyNftAddress,
+        wrappedTokenURI,
+        salt
+      );
 
       const wrappedTokenAddress = await multiNftTokenMgr.contract.wrappedTokens(0);
       assert.strictEqual(

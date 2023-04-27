@@ -6179,6 +6179,17 @@
     "@webb-tools/utils" "^0.5.24"
     ethers "5.7.0"
 
+"@webb-tools/tokens@0.5.13":
+  version "0.5.13"
+  resolved "https://registry.yarnpkg.com/@webb-tools/tokens/-/tokens-0.5.13.tgz#14bd693d198be3acd039cf313a5fba2517f4a4ad"
+  integrity sha512-w7jLUU7HEWDVbVLtoq3uXLEzRMoRB9fhCVFbXa8RH8hoVBxoxN3FCVZTdBw+BgvuMRGC5B8cjGgZ6Jn2TaVF1w==
+  dependencies:
+    "@webb-tools/anchors" "^0.5.13"
+    "@webb-tools/contracts" "^0.5.13"
+    "@webb-tools/sdk-core" "0.1.4-119"
+    "@webb-tools/utils" "^0.5.7"
+    ethers "5.7.0"
+
 "@webb-tools/tokens@^0.2.6", "@webb-tools/tokens@^0.2.7", "@webb-tools/tokens@^0.2.9":
   version "0.2.9"
   resolved "https://registry.yarnpkg.com/@webb-tools/tokens/-/tokens-0.2.9.tgz#00de63cb9f2e613a30779d6657d27227eb18d6d9"
@@ -7616,6 +7627,14 @@ babelify@^7.3.0:
     babel-core "^6.0.14"
     object-assign "^4.0.0"
 
+babyjubjub@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/babyjubjub/-/babyjubjub-1.0.4.tgz#7b5ff0814005ea9c0a8bf63c93c5092232529bb6"
+  integrity sha512-R+EcKjxMSoctFCUtRUBKf3oDrnBrbbHUnt7u4LMGaERCx6/8+qfHZlqpBdsgAar9IvoPbDk0BLIj9lL9gfKCkw==
+  dependencies:
+    bignumber.js "^9.0.0"
+    buffer-reverse "^1.0.1"
+
 babylon@^6.18.0:
   version "6.18.0"
   resolved "https://registry.yarnpkg.com/babylon/-/babylon-6.18.0.tgz#af2f3b88fa6f5c1e4c634d1a0f8eac4f55b395e3"
@@ -8030,6 +8049,11 @@ buffer-from@^1.0.0:
   resolved "https://registry.yarnpkg.com/buffer-from/-/buffer-from-1.1.2.tgz#2b146a6fd72e80b4f55d255f35ed59a3a9a41bd5"
   integrity sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==
 
+buffer-reverse@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/buffer-reverse/-/buffer-reverse-1.0.1.tgz#49283c8efa6f901bc01fa3304d06027971ae2f60"
+  integrity sha512-M87YIUBsZ6N924W57vDwT/aOu8hw7ZgdByz6ijksLjmHJELBASmYTTlNHRgjE+pTsT9oJXGaDSgqqwfdHotDUg==
+
 buffer-to-arraybuffer@^0.0.5:
   version "0.0.5"
   resolved "https://registry.yarnpkg.com/buffer-to-arraybuffer/-/buffer-to-arraybuffer-0.0.5.tgz#6064a40fa76eb43c723aba9ef8f6e1216d10511a"
@@ -8291,6 +8315,11 @@ cbor@^5.2.0:
   dependencies:
     bignumber.js "^9.0.1"
     nofilter "^1.0.4"
+
+chacha20@^0.1.4:
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/chacha20/-/chacha20-0.1.4.tgz#0ae14749ac23c444912fdc482968461649f69e18"
+  integrity sha512-nxKJwtcXKxXIITkHQDrgCrZKAHjL6CY94n74obSux9WynGnoYj4wGTYHygp6DDSrBB9Efjts0QXSAFRz7E1hJg==
 
 chai@^4.2.0, chai@^4.3.5:
   version "4.3.7"
@@ -11437,7 +11466,7 @@ ffjavascript@0.2.55:
     wasmcurves "0.1.0"
     web-worker "^1.2.0"
 
-ffjavascript@^0.2.38, ffjavascript@^0.2.48, ffjavascript@^0.2.54:
+ffjavascript@0.2.57, ffjavascript@^0.2.38, ffjavascript@^0.2.48, ffjavascript@^0.2.54:
   version "0.2.57"
   resolved "https://registry.yarnpkg.com/ffjavascript/-/ffjavascript-0.2.57.tgz#ba1be96015b2688192e49f2f4de2cc5150fd8594"
   integrity sha512-V+vxZ/zPNcthrWmqfe/1YGgqdkTamJeXiED0tsk7B84g40DKlrTdx47IqZuiygqAVG6zMw4qYuvXftIJWsmfKQ==

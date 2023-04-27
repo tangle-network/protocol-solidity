@@ -10,6 +10,13 @@ import "../../structs/MultiAssetExtData.sol";
 import "../../libs/MASPVAnchorEncodeInputs.sol";
 import "../../interfaces/tokens/IRegistry.sol";
 import "../../trees/MerkleTree.sol";
+import "../../interfaces/tokens/INftTokenWrapper.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "../../interfaces/IBatchTree.sol";
+import "../../interfaces/IMASPProxy.sol";
+import "../../libs/SwapEncodeInputs.sol";
+import "../../interfaces/verifiers/ISwapVerifier.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 /**
 	@title Multi Asset Variable Anchor contract
@@ -31,11 +38,14 @@ import "../../trees/MerkleTree.sol";
 
 	IMPORTANT: A bridge ERC20 token MUST have the same assetID across chain.
  */
-abstract contract MultiAssetVAnchor is ZKVAnchorBase {
+abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 	using SafeERC20 for IERC20;
 	using SafeMath for uint256;
 
 	address public registry;
+	address proxy;
+	uint256 allowableSwapTimestampEpsilon = 1 minutes;
+	address swapVerifier;
 
 	/**
 		@notice The VAnchor constructor
@@ -49,35 +59,86 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 	*/
 	constructor(
 		IRegistry _registry,
+		IMASPProxy _proxy,
 		IAnchorVerifier _verifier,
+		ISwapVerifier _swapVerifier,
 		uint32 _levels,
 		address _handler,
 		uint8 _maxEdges
 	) ZKVAnchorBase(_verifier, _levels, _handler, _maxEdges) {
 		registry = address(_registry);
+		proxy = address(_proxy);
+		swapVerifier = address(_swapVerifier);
 	}
 
 	/**
 		@notice Wraps and deposits in a single flow without a proof. Leads to a single non-zero UTXO.
-		@param _fromTokenAddress The address of the token to wrap from
+		@param _fromTokenAddress The address of the token to wrap from. If address(0) then do not wrap.
 		@param _toTokenAddress The address of the token to wrap into
 		@param _amount The amount of tokens to wrap
 		@param partialCommitment The partial commitment of the UTXO
 		@param encryptedCommitment The encrypted commitment of the partial UTXO
 	 */
-	function wrapAndDepositERC20(
+	function depositERC20(
 		address _fromTokenAddress,
 		address _toTokenAddress,
 		uint256 _amount,
 		bytes32 partialCommitment,
 		bytes memory encryptedCommitment
-	) public payable nonReentrant {
-		// Execute the wrapping
-		uint256 wrapAmount = _executeWrapping(_fromTokenAddress, _toTokenAddress, _amount);
+	) public payable {
+		uint256 amount = _amount;
+		// Execute wrapping if wrapAndDeposit, otherwise directly transfer wrapped tokens.
+		if (_fromTokenAddress != address(0)) {
+			amount = _executeWrapping(_fromTokenAddress, _toTokenAddress, _amount);
+		} else {
+			IMintableERC20(_toTokenAddress).transferFrom(
+				msg.sender,
+				address(this),
+				uint256(amount)
+			);
+		}
 		// Create the record commitment
-		uint256 assetID = IRegistry(registry).getAssetId(_toTokenAddress);
-		uint256 commitment = IHasher(this.getHasher()).hash3(
-			[assetID, wrapAmount, uint256(partialCommitment)]
+		uint256 assetID = IRegistry(registry).getAssetIdFromWrappedAddress(_toTokenAddress);
+		require(assetID != 0, "Wrapped asset not registered");
+		uint256 commitment = IHasher(this.getHasher()).hash4(
+			[assetID, 0, amount, uint256(partialCommitment)]
+		);
+		_insertTwo(commitment, 0);
+		emit NewCommitment(commitment, 0, this.getNextIndex() - 2, encryptedCommitment);
+	}
+
+	/**
+		@notice Wraps and deposits in a single flow without a proof. Leads to a single non-zero UTXO.
+		@param _fromTokenAddress The address of the token to wrap from. If address(0) do not wrap.
+		@param _toTokenAddress The address of the token to wrap into
+		@param _tokenID Nft token ID
+		@param partialCommitment The partial commitment of the UTXO
+		@param encryptedCommitment The encrypted commitment of the partial UTXO
+	 */
+	function depositERC721(
+		address _fromTokenAddress,
+		address _toTokenAddress,
+		uint256 _tokenID,
+		bytes32 partialCommitment,
+		bytes memory encryptedCommitment
+	) public payable {
+		// Execute the wrapping
+		uint256 assetID = IRegistry(registry).getAssetIdFromWrappedAddress(_toTokenAddress);
+		// Check assetID is not 0
+		require(assetID != 0, "Wrapped asset not registered");
+		if (_fromTokenAddress != address(0)) {
+			// Check wrapped and unwrapped addresses are consistent
+			require(
+				IRegistry(registry).getUnwrappedAssetAddress(assetID) == _fromTokenAddress,
+				"Wrapped and unwrapped addresses don't match"
+			);
+			INftTokenWrapper(_toTokenAddress).wrap721(_tokenID);
+		} else {
+			IERC721(_toTokenAddress).safeTransferFrom(msg.sender, address(this), _tokenID);
+		}
+		// Create the record commitment
+		uint256 commitment = IHasher(this.getHasher()).hash4(
+			[assetID, _tokenID, 1, uint256(partialCommitment)]
 		);
 		_insertTwo(commitment, 0);
 		emit NewCommitment(commitment, 0, this.getNextIndex() - 2, encryptedCommitment);
@@ -91,8 +152,8 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		PublicInputs memory _publicInputs,
 		Encryptions memory _encryptions
 	) public payable virtual override {
-		AuxPublicInputs memory aux = abi.decode(_auxPublicInputs, (AuxPublicInputs));
-		address wrappedToken = IRegistry(registry).getAssetAddress(aux.assetID);
+		MASPAuxPublicInputs memory aux = abi.decode(_auxPublicInputs, (MASPAuxPublicInputs));
+		address wrappedToken = IRegistry(registry).getWrappedAssetAddress(aux.publicAssetID);
 		_transact(
 			wrappedToken,
 			_proof,
@@ -101,6 +162,17 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 			_publicInputs,
 			_encryptions
 		);
+		uint256 timestamp = block.timestamp;
+		for (uint256 i = 0; i < _publicInputs.inputNullifiers.length; i++) {
+			IMASPProxy(proxy).queueRewardSpentTreeCommitment(
+				bytes32(
+					IHasher(this.getHasher()).hashLeftRight(
+						_publicInputs.inputNullifiers[i],
+						timestamp
+					)
+				)
+			);
+		}
 	}
 
 	/// @inheritdoc ZKVAnchorBase
@@ -129,12 +201,10 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 		CommonExtData memory _externalData,
 		Encryptions memory _encryptions
 	) public virtual override returns (bytes32) {
-		AuxPublicInputs memory aux = abi.decode(_auxPublicInputs, (AuxPublicInputs));
 		return
 			keccak256(
 				abi.encode(
 					ExtData(
-						aux.assetID,
 						_externalData.recipient,
 						_externalData.extAmount,
 						_externalData.relayer,
@@ -146,5 +216,129 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase {
 					)
 				)
 			);
+	}
+
+	function swap(
+		bytes memory proof,
+		SwapPublicInputs memory _publicInputs,
+		Encryptions memory aliceEncryptions,
+		Encryptions memory bobEncryptions
+	) public {
+		// Verify the proof
+		(bytes memory encodedInputs, uint256[] memory roots) = SwapEncodeInputs._encodeInputs(
+			_publicInputs,
+			maxEdges
+		);
+		require(isValidRoots(roots), "Invalid vanchor roots");
+		require(
+			ISwapVerifier(swapVerifier).verifySwap(proof, encodedInputs, maxEdges),
+			"Invalid swap proof"
+		);
+		// Nullify the spent Records
+		nullifierHashes[_publicInputs.aliceSpendNullifier] = true;
+		nullifierHashes[_publicInputs.bobSpendNullifier] = true;
+		emit NewNullifier(_publicInputs.aliceSpendNullifier);
+		emit NewNullifier(_publicInputs.bobSpendNullifier);
+		IMASPProxy(proxy).queueRewardSpentTreeCommitment(
+			bytes32(
+				IHasher(this.getHasher()).hashLeftRight(
+					_publicInputs.aliceSpendNullifier,
+					block.timestamp
+				)
+			)
+		);
+		IMASPProxy(proxy).queueRewardSpentTreeCommitment(
+			bytes32(
+				IHasher(this.getHasher()).hashLeftRight(
+					_publicInputs.bobSpendNullifier,
+					block.timestamp
+				)
+			)
+		);
+		// Check block timestamp versus timestamps in swap
+		require(
+			(block.timestamp - allowableSwapTimestampEpsilon <= _publicInputs.currentTimestamp) &&
+				(_publicInputs.currentTimestamp <= block.timestamp + allowableSwapTimestampEpsilon),
+			"Current timestamp not valid"
+		);
+		// Add new Records from swap (receive and change records) to Record Merkle tree.
+		// Insert Alice's Change and Receive Records
+		_insertTwo(_publicInputs.aliceChangeRecord, _publicInputs.aliceReceiveRecord);
+		emit NewCommitment(
+			_publicInputs.aliceChangeRecord,
+			0,
+			this.getNextIndex() - 2,
+			aliceEncryptions.encryptedOutput1
+		);
+		emit NewCommitment(
+			_publicInputs.aliceReceiveRecord,
+			0,
+			this.getNextIndex() - 1,
+			aliceEncryptions.encryptedOutput2
+		);
+		// Insert Bob's Change and Receive Records
+		_insertTwo(_publicInputs.bobChangeRecord, _publicInputs.bobReceiveRecord);
+		emit NewCommitment(
+			_publicInputs.bobChangeRecord,
+			0,
+			this.getNextIndex() - 2,
+			bobEncryptions.encryptedOutput1
+		);
+		emit NewCommitment(
+			_publicInputs.bobReceiveRecord,
+			0,
+			this.getNextIndex() - 1,
+			bobEncryptions.encryptedOutput2
+		);
+		IMASPProxy(proxy).queueRewardSpentTreeCommitment(
+			bytes32(
+				IHasher(this.getHasher()).hashLeftRight(
+					_publicInputs.aliceChangeRecord,
+					block.timestamp
+				)
+			)
+		);
+		IMASPProxy(proxy).queueRewardSpentTreeCommitment(
+			bytes32(
+				IHasher(this.getHasher()).hashLeftRight(
+					_publicInputs.aliceReceiveRecord,
+					block.timestamp
+				)
+			)
+		);
+		IMASPProxy(proxy).queueRewardSpentTreeCommitment(
+			bytes32(
+				IHasher(this.getHasher()).hashLeftRight(
+					_publicInputs.bobChangeRecord,
+					block.timestamp
+				)
+			)
+		);
+		IMASPProxy(proxy).queueRewardSpentTreeCommitment(
+			bytes32(
+				IHasher(this.getHasher()).hashLeftRight(
+					_publicInputs.bobReceiveRecord,
+					block.timestamp
+				)
+			)
+		);
+	}
+
+	/**
+	 * @dev Whenever an {IERC721} `tokenId` token is transferred to this contract via {IERC721-safeTransferFrom}
+	 * by `operator` from `from`, this function is called.
+	 *
+	 * It must return its Solidity selector to confirm the token transfer.
+	 * If any other value is returned or the interface is not implemented by the recipient, the transfer will be reverted.
+	 *
+	 * The selector can be obtained in Solidity with `IERC721Receiver.onERC721Received.selector`.
+	 */
+	function onERC721Received(
+		address operator,
+		address from,
+		uint256 tokenId,
+		bytes calldata data
+	) external override returns (bytes4) {
+		return this.onERC721Received.selector;
 	}
 }

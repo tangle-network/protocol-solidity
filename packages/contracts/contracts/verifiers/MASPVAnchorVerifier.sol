@@ -37,18 +37,18 @@ contract MASPVAnchorVerifier is IAnchorVerifier {
 	) external view override returns (bool r) {
 		if (maxEdges == 1) {
 			if (smallInputs) {
-				uint256[10] memory _inputs = abi.decode(input, (uint256[10]));
+				uint256[25] memory _inputs = abi.decode(input, (uint256[25]));
 				return v2_2.verifyProof(a, b, c, _inputs);
 			} else {
-				uint256[24] memory _inputs = abi.decode(input, (uint256[24]));
+				uint256[39] memory _inputs = abi.decode(input, (uint256[39]));
 				return v2_16.verifyProof(a, b, c, _inputs);
 			}
 		} else if (maxEdges == 7) {
 			if (smallInputs) {
-				uint256[16] memory _inputs = abi.decode(input, (uint256[16]));
+				uint256[31] memory _inputs = abi.decode(input, (uint256[31]));
 				return v8_2.verifyProof(a, b, c, _inputs);
 			} else {
-				uint256[30] memory _inputs = abi.decode(input, (uint256[30]));
+				uint256[45] memory _inputs = abi.decode(input, (uint256[45]));
 				return v8_16.verifyProof(a, b, c, _inputs);
 			}
 		} else {

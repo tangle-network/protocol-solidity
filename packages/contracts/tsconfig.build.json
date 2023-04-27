@@ -8,6 +8,8 @@
     "./contracts/**/*.sol",
     "./contracts/*.sol",
     "./typechain/**/*.ts",
-    "./typechain/*.ts"
+    "./typechain/*.ts",
+    "./compiled/**/*.ts",
+    "./compiled/*.ts"
   ]
 }

@@ -19,7 +19,7 @@ import { Semaphore } from '@webb-tools/semaphore/src';
 import { UTXOInputs, ZkComponents, getChainIdType, u8aToHex } from '@webb-tools/utils';
 import { BigNumber, BigNumberish, PayableOverrides, ethers } from 'ethers';
 import { WebbBridge } from './Common';
-import { Deployer } from './Deployer';
+import { Deployer } from '@webb-tools/create2-utils';
 import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
 const assert = require('assert');
 

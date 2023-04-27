@@ -21,7 +21,12 @@ describe('NftTokenWrapper', () => {
     sender = wallet;
 
     token = await ERC721Class.createERC721(tokenName, tokenSymbol, sender);
-    wrappedNft = await NftTokenWrapperClass.createNftTokenWrapper(uri, sender.address, sender);
+    wrappedNft = await NftTokenWrapperClass.createNftTokenWrapper(
+      uri,
+      sender.address,
+      token.contract.address,
+      sender
+    );
   });
 
   describe('#constructor', () => {
@@ -38,9 +43,9 @@ describe('NftTokenWrapper', () => {
   describe('#wrap', () => {
     it('should fail to wrap', async () => {
       const nonExistantTokenId = 1;
-      await expect(
-        wrappedNft.wrap721(nonExistantTokenId, token.contract.address)
-      ).to.be.revertedWith('ERC721: invalid token ID');
+      await expect(wrappedNft.wrap721(nonExistantTokenId)).to.be.revertedWith(
+        'ERC721: invalid token ID'
+      );
     });
 
     it('should wrap/unwrap an ERC721 token with a token id', async () => {
@@ -51,7 +56,7 @@ describe('NftTokenWrapper', () => {
       );
       await token.mint(sender.address);
       await token.approve(wrappedNft.contract.address, tokenId);
-      await wrappedNft.wrap721(tokenId, token.contract.address);
+      await wrappedNft.wrap721(tokenId);
       assert.strictEqual(
         (await token.contract.balanceOf(wrappedNft.contract.address)).toNumber(),
         1

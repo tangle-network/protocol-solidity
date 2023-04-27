@@ -26,7 +26,7 @@ import {
 import { ZERO_BYTES32, ZkComponents, getChainIdType, hexToU8a, u8aToHex } from '@webb-tools/utils';
 import { BigNumber, BigNumberish, BytesLike, Overrides, PayableOverrides, ethers } from 'ethers';
 import { WebbBridge } from './Common';
-import { Deployer } from './Deployer';
+import { Deployer } from '@webb-tools/create2-utils';
 import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
 import { zeroAddress } from './utils';
 

@@ -73,13 +73,13 @@ describe.skip('AaveTokenWrapper', () => {
   });
 
   describe('#constructor', () => {
-    it('should initialize', async () => {
+    it.skip('should initialize', async () => {
       assert.strictEqual(await aaveToken.name(), aaveTokenName);
       assert.strictEqual(await aaveToken.symbol(), aaveTokenSymbol);
       assert.strictEqual((await aaveToken.aaveLendingPool()).toString(), aaveLendingPoolAddress);
     });
 
-    it('should do a basic deposit for DAI', async () => {
+    it.skip('should do a basic deposit for DAI', async () => {
       let depositAmount = bne(10, 6);
       const daiBalanceAaveTokenInitial = await dai.balanceOf(aaveToken.address);
       await dai.connect(daiWhaleSigner).transfer(aaveToken.address, depositAmount);
@@ -92,7 +92,7 @@ describe.skip('AaveTokenWrapper', () => {
       expect(aDAIBalancePoolPostDeposit).to.equal(depositAmount);
     });
 
-    it('should do a basic withdrawal for DAI', async () => {
+    it.skip('should do a basic withdrawal for DAI', async () => {
       let depositAmount = bne(10, 18);
       const daiBalanceAaveTokenInitial = await dai.balanceOf(aaveToken.address);
       await dai.connect(daiWhaleSigner).transfer(aaveToken.address, depositAmount);

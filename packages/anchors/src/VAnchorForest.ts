@@ -33,7 +33,19 @@ import {
   u8aToHex,
 } from '@webb-tools/utils';
 import { WebbBridge } from './Common';
-import { Deployer } from './Deployer';
+import { Deployer } from '@webb-tools/create2-utils';
+
+export type ExtData = {
+  recipient: string;
+  extAmount: string;
+  relayer: string;
+  fee: string;
+  refund: string;
+  token: string;
+  encryptedOutput1: string;
+  encryptedOutput2: string;
+};
+
 import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
 import { splitTransactionOptions } from './utils';
 

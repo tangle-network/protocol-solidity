@@ -65,7 +65,7 @@ contract RegistryHandler is IExecutor, HandlerHelpers {
 			functionSig ==
 			bytes4(
 				keccak256(
-					"registerToken(uint32,address,uint254,string,string,bytes32,uint256,uint16,bool)"
+					"registerToken(uint32,address,uint256,string,string,bytes32,uint256,uint16,bool)"
 				)
 			)
 		) {
@@ -91,14 +91,22 @@ contract RegistryHandler is IExecutor, HandlerHelpers {
 			);
 		} else if (
 			functionSig ==
-			bytes4(keccak256("registerNftToken(uint32,address,uint254,string,bytes32)"))
+			bytes4(keccak256("registerNftToken(uint32,address,uint256,address,string,bytes32)"))
 		) {
 			uint32 nonce = uint32(bytes4(arguments[0:4]));
 			address tokenHandler = address(bytes20(arguments[4:24]));
 			uint256 assetId = uint256(bytes32(arguments[24:56]));
-			bytes32 salt = bytes32(arguments[56:88]);
-			bytes memory uri = bytes(arguments[88:]);
-			registry.registerNftToken(nonce, tokenHandler, assetId, string(uri), salt);
+			address unwrappedNftAddress = address(bytes20(arguments[56:76]));
+			bytes32 salt = bytes32(arguments[76:108]);
+			bytes memory uri = bytes(arguments[108:]);
+			registry.registerNftToken(
+				nonce,
+				tokenHandler,
+				assetId,
+				unwrappedNftAddress,
+				string(uri),
+				salt
+			);
 		} else {
 			revert("Invalid function sig");
 		}

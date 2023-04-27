@@ -16,13 +16,8 @@ import { getChainIdType } from '@webb-tools/utils';
 import { Semaphore } from '@webb-tools/semaphore';
 import { LinkedGroup } from '@webb-tools/semaphore-group';
 import { startGanacheServer } from '@webb-tools/evm-test-utils';
-import {
-  PoseidonHasher,
-  VAnchor,
-  IdentityVAnchor,
-  VAnchorForest,
-  Deployer,
-} from '@webb-tools/anchors';
+import { PoseidonHasher, VAnchor, IdentityVAnchor, VAnchorForest } from '@webb-tools/anchors';
+import { Deployer } from '@webb-tools/create2-utils';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 

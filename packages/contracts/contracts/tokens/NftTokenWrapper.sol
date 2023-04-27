@@ -28,6 +28,7 @@ contract NftTokenWrapper is
 {
 	using SafeMath for uint256;
 	address public handler;
+	address unwrappedNftAddress;
 
 	constructor(string memory _uri) ERC1155(_uri) {}
 
@@ -35,14 +36,15 @@ contract NftTokenWrapper is
         @notice Initializes the contract
         @param _handler The address of the token handler contract
      */
-	function initialize(address _handler) external nonReentrant onlyUninitialized {
+	function initialize(address _handler, address _unwrappedNftAddress) external onlyUninitialized {
 		require(_handler != address(0), "Handler address can't be 0");
 		initialized = true;
 		handler = _handler;
+		unwrappedNftAddress = _unwrappedNftAddress;
 	}
 
-	function wrap721(uint256 _tokenId, address _tokenContract) external nonReentrant {
-		IERC721(_tokenContract).safeTransferFrom(msg.sender, address(this), _tokenId);
+	function wrap721(uint256 _tokenId) external {
+		IERC721(unwrappedNftAddress).safeTransferFrom(msg.sender, address(this), _tokenId);
 	}
 
 	function unwrap721(uint256 _tokenId, address _tokenContract) external nonReentrant {
