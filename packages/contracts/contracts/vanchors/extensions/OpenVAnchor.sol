@@ -1,6 +1,6 @@
 /**
- * Copyright 2021-2022 Webb Technologies
- * SPDX-License-Identifier: GPL-3.0-or-later-only
+ * Copyright 2021-2023 Webb Technologies
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
 pragma solidity ^0.8.5;
@@ -56,7 +56,7 @@ contract OpenVAnchor is VAnchorBase, MerkleTree {
 			)
 		);
 		// Send the wrapped asset directly to this contract.
-		IERC20(token).transferFrom(msg.sender, address(this), depositAmount);
+		IERC20(token).safeTransferFrom(msg.sender, address(this), depositAmount);
 		// Insert the commitment
 		_executeInsertion(uint256(commitment));
 	}

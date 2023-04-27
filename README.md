@@ -28,7 +28,7 @@
 
 <h2 id="start"> Getting Started  🎉 </h2>
 
-For additional information, please refer to the [Webb protocol-solidity implementation docs](https://webb-tools.github.io/protocol-solidity/) 📝. Have feedback on how to improve protocol-ink? Or have a specific question to ask? Checkout the [Anchor Protocol Feedback Discussion](https://github.com/webb-tools/feedback/discussions/categories/anchor-protocol) 💬.
+For additional information, please refer to the [Webb protocol-solidity implementation docs](https://webb-tools.github.io/protocol-solidity/) and the official [Webb docs site](http://docs.webb.tools/) 📝. Have feedback on how to improve protocol-solidity? Or have a specific question to ask? Checkout the [Anchor System Feedback Discussion](https://github.com/webb-tools/feedback/discussions/categories/anchor-protocol) 💬.
 
 ## Prerequisites
 
@@ -209,6 +209,10 @@ ENDPOINT=https://rinkeby.infura.io/v3/fff68ca474dd4764a8d54dd14fa5519e
 
 # Add private key
 PRIVATE_KEY=XXX-XXX-XXX
+```
+After adding the `.env`, scripts can be executed using `ts-node`
+```bash
+ npx ts-node ./scripts/evm/deployments/LocalEvmVBridge.ts
 ```
 
 <h2 id="contribute"> Contributing </h2>

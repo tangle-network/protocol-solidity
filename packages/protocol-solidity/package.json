@@ -1,23 +1,32 @@
 {
   "name": "@webb-tools/protocol-solidity",
-  "main": "./lib/index.js",
-  "version": "0.5.19",
-  "license": "GPL-3.0-or-later",
+  "main": "./dist/index.js",
+  "version": "0.5.37",
+  "license": [
+    {
+      "type": "Apache-2.0",
+      "file": "LICENSE.Apache-2.0"
+    },
+    {
+      "type": "MIT",
+      "file": "LICENSE.MIT"
+    }
+  ],
   "author": "Webb Developers <drew@webb.tools>",
   "scripts": {
     "build": "yarn run clean && yarn run compile",
-    "clean": "rimraf -rf ./lib",
+    "clean": "rimraf -rf ./dist",
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@webb-tools/anchors": "^0.5.19",
-    "@webb-tools/bridges": "^0.5.19",
-    "@webb-tools/contracts": "^0.5.19",
-    "@webb-tools/evm-test-utils": "^0.5.19",
-    "@webb-tools/interfaces": "^0.5.19",
-    "@webb-tools/tokens": "^0.5.19",
-    "@webb-tools/utils": "^0.5.11",
-    "@webb-tools/vbridge": "^0.5.19"
+    "@webb-tools/anchors": "^0.5.37",
+    "@webb-tools/bridges": "^0.5.37",
+    "@webb-tools/contracts": "^0.5.37",
+    "@webb-tools/evm-test-utils": "^0.5.37",
+    "@webb-tools/interfaces": "^0.5.37",
+    "@webb-tools/tokens": "^0.5.37",
+    "@webb-tools/utils": "^0.5.29",
+    "@webb-tools/vbridge": "^0.5.37"
   },
   "publishConfig": {
     "access": "public"

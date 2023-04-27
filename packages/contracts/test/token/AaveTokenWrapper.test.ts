@@ -1,6 +1,6 @@
 /**
  * Copyright 2021 Webb Technologies
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 const assert = require('assert');
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -11,7 +11,7 @@ const bne = (x, e) => BigNumber.from(x + '0'.repeat(parseInt(e)));
 
 // Convenience wrapper classes for contract classes
 import { expect } from 'chai';
-import { AaveTokenWrapper, AaveTokenWrapper__factory, IERC20 } from '../../lib';
+import { AaveTokenWrapper, AaveTokenWrapper__factory, IERC20 } from '../../compiled';
 
 describe.skip('AaveTokenWrapper', () => {
   let aaveToken: AaveTokenWrapper;

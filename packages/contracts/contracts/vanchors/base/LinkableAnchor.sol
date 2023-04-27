@@ -1,16 +1,16 @@
 /**
- * Copyright 2021-2022 Webb Technologies
- * SPDX-License-Identifier: GPL-3.0-or-later-only
+ * Copyright 2021-2023 Webb Technologies
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
 pragma solidity ^0.8.5;
 
-import "../structs/Edge.sol";
-import "../hashers/IHasher.sol";
-import "../utils/ChainIdWithType.sol";
-import "../utils/ProposalNonceTracker.sol";
-import "../interfaces/anchors/ILinkableAnchor.sol";
-import "../interfaces/IMerkleSystem.sol";
+import "../../structs/Edge.sol";
+import "../../hashers/IHasher.sol";
+import "../../utils/ChainIdWithType.sol";
+import "../../utils/ProposalNonceTracker.sol";
+import "../../interfaces/anchors/ILinkableAnchor.sol";
+import "../../interfaces/IMerkleSystem.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
@@ -102,30 +102,30 @@ abstract contract LinkableAnchor is
 			// Require increasing nonce
 			require(
 				edgeList[edgeIndex[_srcChainID]].latestLeafIndex < _leafIndex,
-				"New leaf index must be greater"
+				"LinkableAnchor: New leaf index must be greater"
 			);
 			// Require leaf index increase is bounded by 65,536 updates at once
 			require(
 				_leafIndex < edgeList[edgeIndex[_srcChainID]].latestLeafIndex + (65_536),
-				"New leaf index must within 2^16 updates"
+				"LinkableAnchor: New leaf index must be within 2^16 updates"
 			);
 			require(
 				_srcResourceID == edgeList[edgeIndex[_srcChainID]].srcResourceID,
-				"srcResourceID must be the same"
+				"LinkableAnchor: srcResourceID must be the same"
 			);
 			uint index = edgeIndex[_srcChainID];
-			// update the edge in the edge list
+			// Update the edge in the edge list
 			edgeList[index].latestLeafIndex = _leafIndex;
 			edgeList[index].root = uint256(_root);
-			// add to root histories
+			// Add to root histories
 			uint32 neighborRootIndex = (currentNeighborRootIndex[_srcChainID] + 1) %
 				ROOT_HISTORY_SIZE;
 			currentNeighborRootIndex[_srcChainID] = neighborRootIndex;
 			neighborRoots[_srcChainID][neighborRootIndex] = _root;
 			emit EdgeUpdate(_srcChainID, _leafIndex, _root);
 		} else {
-			//Add Edge
-			require(edgeList.length < maxEdges, "This Anchor is at capacity");
+			// Add Edge
+			require(edgeList.length < maxEdges, "LinkableAnchor: This Anchor is at capacity");
 			edgeExistsForChain[_srcChainID] = true;
 			uint index = edgeList.length;
 			Edge memory edge = Edge({

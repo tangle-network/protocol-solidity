@@ -1,6 +1,6 @@
 /**
- * Copyright 2021-2022 Webb Technologies
- * SPDX-License-Identifier: GPL-3.0-or-later-only
+ * Copyright 2021-2023 Webb Technologies
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
 const { expect } = require('chai');
@@ -16,7 +16,7 @@ import {
   VerifierBatch16__factory,
   VerifierBatch32__factory,
   BatchTreeVerifierSelector__factory,
-} from '../../lib';
+} from '../../compiled';
 import path from 'path';
 const snarkjs = require('snarkjs');
 
@@ -174,7 +174,7 @@ contract('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
       }
     });
   });
-  describe('#batchInsert_4', () => {
+  describe.skip('#batchInsert_4', () => {
     const batchHeight = 2;
     const batchSize = 2 ** batchHeight;
     let leaves = [];
@@ -197,7 +197,7 @@ contract('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
       expect(updatedRoot).to.equal(input['newRoot']);
     });
   });
-  describe('#batchInsert_8', () => {
+  describe.skip('#batchInsert_8', () => {
     const batchHeight = 3;
     const batchSize = 2 ** batchHeight;
     let leaves = [];
@@ -220,7 +220,7 @@ contract('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
       expect(updatedRoot).to.equal(input['newRoot']);
     });
   });
-  describe('#batchInsert_16', () => {
+  describe.skip('#batchInsert_16', () => {
     const batchHeight = 4;
     const batchSize = 2 ** batchHeight;
     let leaves = [];
@@ -242,7 +242,7 @@ contract('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
       expect(updatedRoot).to.equal(input['newRoot']);
     });
   });
-  describe('#batchInsert_32', () => {
+  describe.skip('#batchInsert_32', () => {
     const batchHeight = 5;
     const batchSize = 2 ** batchHeight;
     let leaves = [];

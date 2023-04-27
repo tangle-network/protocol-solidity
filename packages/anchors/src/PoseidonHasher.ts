@@ -2,6 +2,7 @@ import { ethers } from 'ethers';
 import {
   PoseidonHasher as PoseidonHasherContract,
   PoseidonHasher__factory,
+  PoseidonT2__factory,
   PoseidonT3__factory,
   PoseidonT4__factory,
   PoseidonT5__factory,
@@ -22,6 +23,11 @@ export class PoseidonHasher {
     signer: ethers.Signer
   ) {
     const saltHex = ethers.utils.id(salt);
+    const { contract: poseidonT2Library } = await deployer.deploy(
+      PoseidonT2__factory,
+      saltHex,
+      signer
+    );
     const { contract: poseidonT3Library } = await deployer.deploy(
       PoseidonT3__factory,
       saltHex,
@@ -44,6 +50,7 @@ export class PoseidonHasher {
     );
 
     const libraryAddresses = {
+      ['contracts/hashers/Poseidon.sol:PoseidonT2']: poseidonT2Library.address,
       ['contracts/hashers/Poseidon.sol:PoseidonT3']: poseidonT3Library.address,
       ['contracts/hashers/Poseidon.sol:PoseidonT4']: poseidonT4Library.address,
       ['contracts/hashers/Poseidon.sol:PoseidonT5']: poseidonT5Library.address,
@@ -61,6 +68,10 @@ export class PoseidonHasher {
   }
 
   public static async createPoseidonHasher(signer: ethers.Signer) {
+    const poseidonT2LibraryFactory = new PoseidonT2__factory(signer);
+    const poseidonT2Library = await poseidonT2LibraryFactory.deploy();
+    await poseidonT2Library.deployed();
+
     const poseidonT3LibraryFactory = new PoseidonT3__factory(signer);
     const poseidonT3Library = await poseidonT3LibraryFactory.deploy();
     await poseidonT3Library.deployed();
@@ -78,6 +89,7 @@ export class PoseidonHasher {
     await poseidonT6Library.deployed();
 
     const libraryAddresses = {
+      ['contracts/hashers/Poseidon.sol:PoseidonT2']: poseidonT2Library.address,
       ['contracts/hashers/Poseidon.sol:PoseidonT3']: poseidonT3Library.address,
       ['contracts/hashers/Poseidon.sol:PoseidonT4']: poseidonT4Library.address,
       ['contracts/hashers/Poseidon.sol:PoseidonT5']: poseidonT5Library.address,

@@ -1,6 +1,6 @@
 /**
- * Copyright 2021-2022 Webb Technologies
- * SPDX-License-Identifier: GPL-3.0-or-later-only
+ * Copyright 2021-2023 Webb Technologies
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
 pragma solidity ^0.8.5;
@@ -35,6 +35,7 @@ contract TokenWrapperHandler is IExecutor, HandlerHelpers {
 			"initialResourceIDs and initialContractAddresses len mismatch"
 		);
 
+		require(bridgeAddress != address(0), "Bridge address can't be 0");
 		_bridgeAddress = bridgeAddress;
 
 		for (uint256 i = 0; i < initialResourceIDs.length; i++) {

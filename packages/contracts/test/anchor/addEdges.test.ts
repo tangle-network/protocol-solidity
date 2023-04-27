@@ -1,6 +1,6 @@
 /**
- * Copyright 2021-2022 Webb Technologies
- * SPDX-License-Identifier: GPL-3.0-or-later-only
+ * Copyright 2021-2023 Webb Technologies
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
 import { BigNumber } from 'ethers';
@@ -113,7 +113,9 @@ contract('LinkableAnchor - [add edges]', async (accounts) => {
     await TruffleAssert.passes(updateEdge(edge, accounts[0]));
     assert((await AnchorInstance.edgeIndex('0x01')) == 0);
 
-    await TruffleAssert.reverts(updateEdge(edge1, accounts[0], 'This Anchor is at capacity'));
+    await TruffleAssert.reverts(
+      updateEdge(edge1, accounts[0], 'LinkableAnchor: This Anchor is at capacity')
+    );
   });
 
   it('latestNeighborRoots should return correct roots', async () => {

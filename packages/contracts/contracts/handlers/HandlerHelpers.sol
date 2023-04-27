@@ -1,6 +1,6 @@
 /**
- * Copyright 2021-2022 Webb Technologies
- * SPDX-License-Identifier: GPL-3.0-or-later-only
+ * Copyright 2021-2023 Webb Technologies
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
 pragma solidity ^0.8.5;
@@ -54,6 +54,7 @@ abstract contract HandlerHelpers is IExecutor {
 	}
 
 	function migrateBridge(address newBridge) external override onlyBridge {
+		require(newBridge != address(0), "Bridge address can't be 0");
 		_bridgeAddress = newBridge;
 	}
 }

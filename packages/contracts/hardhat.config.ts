@@ -20,12 +20,19 @@ const buildPoseidon = async (numInputs: number) => {
 
 subtask('typechain-generate-types', async (taskArgs, hre, runSuper) => {
   // overwrite the artifact before generating types
+  await buildPoseidon(1);
   await buildPoseidon(2);
   await buildPoseidon(3);
   await buildPoseidon(4);
   await buildPoseidon(5);
   await runSuper();
 });
+
+const { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } = require('hardhat/builtin-tasks/task-names');
+
+subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(async (_, __, runSuper) =>
+  (await runSuper()).filter((path) => !path.endsWith('.t.sol'))
+);
 
 const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',

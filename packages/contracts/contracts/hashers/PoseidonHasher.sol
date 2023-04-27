@@ -1,18 +1,24 @@
 /**
- * Copyright 2021-2022 Webb Technologies
- * SPDX-License-Identifier: GPL-3.0-or-later-only
+ * Copyright 2021-2023 Webb Technologies
+ * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
 pragma solidity ^0.8.5;
 
 import "./IHasher.sol";
-import { PoseidonT3, PoseidonT4, PoseidonT5, PoseidonT6 } from "./Poseidon.sol";
+import { PoseidonT2, PoseidonT3, PoseidonT4, PoseidonT5, PoseidonT6 } from "./Poseidon.sol";
 import { SnarkConstants } from "./SnarkConstants.sol";
 
 /*
  * Poseidon hash functions for 2, 4, 5, and 11 input elements.
  */
 contract PoseidonHasher is SnarkConstants, IHasher {
+	function hash1(uint256 value) public pure returns (uint256) {
+		uint256[1] memory input;
+		input[0] = value;
+		return PoseidonT2.poseidon(input);
+	}
+
 	function hash3(uint256[3] memory array) public pure override returns (uint256) {
 		return PoseidonT4.poseidon(array);
 	}
