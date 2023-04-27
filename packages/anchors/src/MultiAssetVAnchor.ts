@@ -34,10 +34,6 @@ import {
 } from '@webb-tools/interfaces';
 const { babyjub } = require('circomlibjs');
 import { u8aToHex, getChainIdType, ZkComponents, MaspUtxo, MaspKey } from '@webb-tools/utils';
-import { fromAscii } from 'web3-utils';
-import { Registry } from '@webb-tools/tokens';
-import { EthAbiDecodeParametersResultArray } from 'web3/eth/abi';
-import { convertPublicSignals } from '@webb-tools/semaphore-proof/dist/types/generateProof';
 const snarkjs = require('snarkjs');
 const assert = require('assert');
 const { poseidon, eddsa } = require('circomlibjs');
