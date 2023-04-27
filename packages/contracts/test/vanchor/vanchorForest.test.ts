@@ -41,7 +41,7 @@ import {
 } from '@webb-tools/sdk-core';
 import { VAnchorForest, PoseidonHasher } from '@webb-tools/anchors';
 import { ForestVerifier } from '@webb-tools/vbridge';
-import { startGanacheServer } from '@webb-tools/test-utils';
+import { startGanacheServer } from '@webb-tools/evm-test-utils';
 
 const BN = require('bn.js');
 const path = require('path');

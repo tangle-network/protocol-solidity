@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@webb-tools/contracts": "^0.5.36",
-    "@webb-tools/sdk-core": "0.1.4-119"
+    "@webb-tools/sdk-core": "0.1.4-123"
   },
   "publishConfig": {
     "access": "public"
