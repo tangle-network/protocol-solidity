@@ -6,7 +6,7 @@ import {
   RateLimitedVAnchor as RateLimitedVAnchorContract,
 } from '@webb-tools/contracts';
 import VAnchor from '../VAnchor';
-import { Deployer } from '../Deployer';
+import { Deployer } from '@webb-tools/create2-utils';
 
 export class RateLimitedVAnchor extends VAnchor {
   public static async create2VAnchor(
