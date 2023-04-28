@@ -1,11 +1,10 @@
-import { randomBN, toBuffer } from '@webb-tools/sdk-core';
+import { randomBN } from '@webb-tools/sdk-core';
 import { BigNumber } from 'ethers';
 import { poseidon, babyjub } from 'circomlibjs';
-const { PublicKey, PrivateKey } = require('babyjubjub');
 import { MaspKey } from './MaspKey';
 import { raw2prv } from './babyjubjubUtils';
+import { encrypt, decrypt } from 'chacha20';
 import { randomBytes } from 'ethers/lib/utils';
-import * as chacha20 from 'chacha20';
 import { hexToU8a } from './hexToU8a';
 
 export class MaspUtxo {
@@ -70,7 +69,7 @@ export class MaspUtxo {
       Buffer.from(u8aBlinding),
     ];
     // Create chacha20 ciphertext
-    const ciphertext = chacha20.encrypt(sharedKey, 0, Buffer.concat(secret));
+    const ciphertext = encrypt(sharedKey, 0, Buffer.concat(secret));
     // Return Concatenation ciphertext with ephemeral public key
     // Total Bytes 32 epk + 32 assetID + 32 tokenID + 32 amount + 8 chainID + 32 pubkey + 32 blinding = 200 bytes
     // TODO: Num of bytes can likely be reduced.
@@ -86,7 +85,7 @@ export class MaspUtxo {
     const sharedKey = babyjub.packPoint(
       babyjub.mulPointEscalar(epk, maspKey.getViewingKey().toString())
     );
-    const decrypted = chacha20.decrypt(sharedKey, 0, memo.subarray(32, 200));
+    const decrypted = decrypt(sharedKey, 0, memo.subarray(32, 200));
     const assetID = BigNumber.from('0x' + decrypted.subarray(0, 32).toString('hex'));
     const tokenID = BigNumber.from('0x' + decrypted.subarray(32, 64).toString('hex'));
     const amount = BigNumber.from('0x' + decrypted.subarray(64, 96).toString('hex'));
