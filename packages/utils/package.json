@@ -19,7 +19,9 @@
   },
   "dependencies": {
     "@webb-tools/sdk-core": "0.1.4-123",
-    "ethers": "5.7.0"
+    "ethers": "5.7.0",
+    "chacha20": "^0.1.4",
+    "babyjubjub": "^1.0.4"
   },
   "publishConfig": {
     "access": "public"

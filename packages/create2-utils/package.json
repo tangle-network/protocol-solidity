@@ -1,11 +1,11 @@
 {
   "name": "@webb-tools/create2-utils",
-  "main": "./lib/index.js",
+  "main": "./dist/index.js",
   "license": "GPL-3.0-or-later",
   "author": "Webb Developers <drew@webb.tools>",
   "scripts": {
     "build": "yarn run clean && yarn run compile",
-    "clean": "rimraf -rf ./lib",
+    "clean": "rimraf -rf ./dist",
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
