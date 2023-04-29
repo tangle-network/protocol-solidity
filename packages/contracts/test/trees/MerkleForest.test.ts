@@ -6,13 +6,13 @@
 import { PoseidonHasher } from '@webb-tools/anchors';
 import { MerkleTree, toFixedHex } from '@webb-tools/sdk-core';
 import { poseidon_gencontract as poseidonContract } from 'circomlibjs';
-import { ethers } from 'hardhat';
+import { ethers, assert } from 'hardhat';
 import {
   LinkableIncrementalBinaryTree as LinkableIncrementalBinaryTreeContract,
   MerkleForestMock as MerkleForestMockContract,
 } from '../../dist';
+import { BigNumber } from 'ethers';
 const TruffleAssert = require('truffle-assertions');
-const assert = require('assert');
 
 describe('MerkleForest', () => {
   let merkleForest: MerkleForestMockContract;
@@ -292,7 +292,7 @@ describe('MerkleForest', () => {
       await merkleForest.insertSubtreeTest(0, toFixedHex(commitment), {
         from: sender,
       });
-      const rootFromContract = BigInt(await merkleForest.getLastRoot());
+      const rootFromContract = BigNumber.from(await merkleForest.getLastRoot());
       assert.strictEqual(merkleRoot.toHexString(), rootFromContract.toHexString());
       let curr = subtreeRoot.toHexString();
       for (let i = 0; i < pathElements.length; i++) {

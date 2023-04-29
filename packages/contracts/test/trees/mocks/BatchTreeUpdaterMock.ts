@@ -1,5 +1,4 @@
 import { BatchTreeUpdater } from '@webb-tools/anchors';
-
 import { toFixedHex } from '@webb-tools/sdk-core';
 import { ZkComponents } from '@webb-tools/utils';
 import { BigNumberish, ethers } from 'ethers';

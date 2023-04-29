@@ -2,9 +2,8 @@
  * Copyright 2021-2023 Webb Technologies
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
-const assert = require('assert');
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { ethers, expect } from 'hardhat';
+import { ethers, expect, assert } from 'hardhat';
 import {
   FungibleTokenWrapper,
   MultiNftTokenManager,
@@ -12,6 +11,7 @@ import {
   Registry,
   NftTokenWrapper,
 } from '@webb-tools/tokens';
+const TruffleAssert = require('truffle-assertions');
 
 describe('Registry', () => {
   let multiFungibleTokenMgr: MultiFungibleTokenManager;
@@ -60,11 +60,9 @@ describe('Registry', () => {
     it('should not work to register a token with a non-registry', async () => {
       const salt = ethers.utils.formatBytes32String('1');
       const limit = ethers.utils.parseEther('1000');
-      const nonce = 1;
       const tokenHandler = sender.address;
-      const assetIdentifier = 1;
       const feePercentage = 0;
-      expect(
+      await TruffleAssert.reverts(
         multiFungibleTokenMgr.contract.registerToken(
           tokenHandler,
           wrappedTokenName,
@@ -74,8 +72,9 @@ describe('Registry', () => {
           feePercentage,
           true,
           sender.address
-        )
-      ).to.be.revertedWith('MultiTokenManagerBase: Only registry can call this function');
+        ),
+        'MultiTokenManagerBase: Only registry can call this function'
+      );
     });
 
     it('should register a fungible token through the registry', async () => {
@@ -132,7 +131,7 @@ describe('Registry', () => {
         true
       );
 
-      expect(
+      await TruffleAssert.reverts(
         registry.registerToken(
           nonce,
           tokenHandler,
@@ -143,8 +142,9 @@ describe('Registry', () => {
           limit,
           feePercentage,
           true
-        )
-      ).to.be.revertedWith('Registry: Asset already registered');
+        ),
+        'Registry: Asset already registered'
+      );
     });
 
     it('should fail to register an asset with an assetIdentifier of 0', async () => {
@@ -154,7 +154,7 @@ describe('Registry', () => {
       const tokenHandler = sender.address;
       const assetIdentifier = 0;
       const feePercentage = 0;
-      expect(
+      await TruffleAssert.reverts(
         registry.registerToken(
           nonce,
           tokenHandler,
@@ -165,8 +165,9 @@ describe('Registry', () => {
           limit,
           feePercentage,
           true
-        )
-      ).to.be.revertedWith('Registry: Asset identifier cannot be 0');
+        ),
+        'Registry: Asset identifier cannot be 0'
+      );
     });
 
     it('should register a non fungible token through the registry', async () => {

@@ -1,20 +1,19 @@
-const assert = require('assert');
-const TruffleAssert = require('truffle-assertions');
-
-import { ethers } from 'hardhat';
+import { ethers, assert } from 'hardhat';
 import { toFixedHex, MerkleTree } from '@webb-tools/sdk-core';
 import { BigNumber, BigNumberish } from 'ethers';
 import { keccak256, solidityPack } from 'ethers/lib/utils';
-import { getChainIdType } from '@webb-tools/utils';
+import { HARDHAT_PK_1, getChainIdType } from '@webb-tools/utils';
 import { OpenVAnchor } from '@webb-tools/anchors';
 import { startGanacheServer } from '@webb-tools/evm-test-utils';
 import { DeployerConfig, GovernorConfig } from '@webb-tools/interfaces';
 import { OpenVBridge, VBridgeInput } from '@webb-tools/vbridge';
 import { MintableToken, FungibleTokenWrapper } from '@webb-tools/tokens';
+import { KeccakHasher__factory } from '../../typechain';
+const TruffleAssert = require('truffle-assertions');
 
-function sha3Hash(left: BigNumberish, right: BigNumberish) {
+function sha3Hash(left: BigNumberish, right: BigNumberish): BigNumber {
   const packed = solidityPack(['bytes32', 'bytes32'], [toFixedHex(left), toFixedHex(right)]);
-  return BigInt(keccak256(ethers.utils.arrayify(packed)));
+  return BigNumber.from(keccak256(ethers.utils.arrayify(packed)));
 }
 
 describe('Open VAnchor Contract', () => {

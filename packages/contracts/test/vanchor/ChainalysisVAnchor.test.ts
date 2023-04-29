@@ -3,14 +3,10 @@
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { ethers } from 'hardhat';
-const assert = require('assert');
-const hre = require('hardhat');
-const { BigNumber } = require('ethers');
-const bne = (x, e) => BigInt(x + '0'.repeat(parseInt(e)));
+import hre, { ethers } from 'hardhat';
 const path = require('path');
-
-import { ChainalysisVAnchor, PoseidonHasher, VAnchor } from '@webb-tools/anchors';
+const TruffleAssert = require('truffle-assertions');
+import { ChainalysisVAnchor, PoseidonHasher, VAnchor, Verifier } from '@webb-tools/anchors';
 import {
   fetchComponentsFromFilePaths,
   getChainIdType,
@@ -18,7 +14,6 @@ import {
   ZkComponents,
 } from '@webb-tools/utils';
 import { Keypair, CircomUtxo, randomBN } from '@webb-tools/sdk-core';
-import { Verifier } from '@webb-tools/bridges';
 import { ERC20PresetMinterPauser, ERC20PresetMinterPauser__factory } from '@webb-tools/contracts';
 import BN from 'bn.js';
 import { expect } from 'chai';
@@ -106,7 +101,7 @@ describe.skip('ChainalysisVAnchor', () => {
       chainId: chainId.toString(),
       originChainId: chainId.toString(),
       amount: amountString,
-      blinding: hexToU8a(randomBN(31).toString(16)),
+      blinding: hexToU8a(randomBN(31).toHexString()),
       keypair: randomKeypair,
     });
   };
@@ -149,7 +144,7 @@ describe.skip('ChainalysisVAnchor', () => {
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
       anchor.setSigner(sanctionedSigner);
-      expect(
+      await TruffleAssert.revert(
         anchor.registerAndTransact(
           sender.address,
           aliceDepositUtxo.keypair.toString(),
@@ -161,8 +156,9 @@ describe.skip('ChainalysisVAnchor', () => {
           '0',
           '',
           {}
-        )
-      ).to.be.revertedWith('SanctionFilter: Sanctioned address');
+        ),
+        'SanctionFilter: Sanctioned address'
+      );
     });
   });
 });

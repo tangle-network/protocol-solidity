@@ -116,7 +116,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       chainId: chainId.toString(),
       originChainId: chainId.toString(),
       amount: amountString,
-      blinding: hexToU8a(randomBN(31).toString(16)),
+      blinding: hexToU8a(randomBN(31).toHexString()),
       keypair: keypair,
     });
   };
@@ -795,7 +795,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         chainId: chainID.toString(),
         originChainId: fakeChainId.toString(),
         amount: BigInt(depositAmount).toString(),
-        blinding: hexToU8a(randomBN(31).toString(16)),
+        blinding: hexToU8a(randomBN(31).toHexString()),
         keypair: aliceKeypair,
       });
 
@@ -935,7 +935,9 @@ describe('IdentityVAnchor for 2 max edges', () => {
         },
         { gasLimit: '0x5B8D80' }
       );
-      await expect(tx).revertedWith('non-existent edge is not set to the default root');
+      await expect(tx).revertedWith(
+        'LinkableAnchor: Non-existent edge is not set to the default root'
+      );
     });
     it('should reject proofs made against Semaphore empty edges', async () => {
       const vanchorRoots = await idAnchor.populateVAnchorRootsForProof();
@@ -1080,7 +1082,9 @@ describe('IdentityVAnchor for 2 max edges', () => {
         { gasLimit: '0x5B8D80' }
       );
 
-      await expect(tx).revertedWith('non-existent edge is not set to the default root');
+      await expect(tx).revertedWith(
+        'LinkableAnchor: Non-existent edge is not set to the default root'
+      );
     });
   });
 
@@ -1727,7 +1731,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         chainId: chainID2.toString(),
         originChainId: chainID2.toString(),
         amount: johnDepositAmount.toString(),
-        blinding: hexToU8a(randomBN(31).toString(16)),
+        blinding: hexToU8a(randomBN(31).toHexString()),
         keypair: johnKeypair,
       });
       // John deposits into tornado pool
@@ -1755,7 +1759,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         chainId: chainID2.toString(),
         originChainId: chainID2.toString(),
         amount: johnDepositAmount.toString(),
-        blinding: hexToU8a(randomBN(31).toString(16)),
+        blinding: hexToU8a(randomBN(31).toHexString()),
         keypair: johnKeypair,
       });
       // Alice deposits into tornado pool
@@ -1786,7 +1790,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         chainId: chainID.toString(),
         originChainId: chainID2.toString(),
         amount: johnDepositAmount.toString(),
-        blinding: hexToU8a(randomBN(31).toString(16)),
+        blinding: hexToU8a(randomBN(31).toHexString()),
         keypair: johnKeypair,
       });
       // john deposits into tornado pool

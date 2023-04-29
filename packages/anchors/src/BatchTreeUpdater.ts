@@ -5,10 +5,9 @@ import {
 import { MerkleTree, toBuffer, toFixedHex } from '@webb-tools/sdk-core';
 import { ethers } from 'ethers';
 import jsSHA from 'jssha';
-const assert = require('assert');
-
 import { FIELD_SIZE, ZkComponents } from '@webb-tools/utils';
 
+const assert = require('assert');
 const snarkjs = require('snarkjs');
 
 type ProofSignals = {

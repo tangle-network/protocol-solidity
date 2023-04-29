@@ -4,10 +4,10 @@ import { VAnchorVerifier as VerifierContract } from '@webb-tools/contracts';
 import { Deployer } from '@webb-tools/anchors';
 import { VerifierBase } from '@webb-tools/anchors';
 import {
+  IdentityVAnchorVerifier__factory,
   VerifierID2_2__factory,
   VerifierID2_16__factory,
   VerifierID8_16__factory,
-  IdentityVAnchorVerifier__factory,
   VerifierID8_2__factory,
 } from '@webb-tools/identity-anchor-contracts';
 
@@ -28,7 +28,7 @@ export class IdentityVerifier extends VerifierBase {
       deployer,
       saltHex,
       VerifierID2_2__factory,
-      VerifierID82__factory,
+      VerifierID8_2__factory,
       VerifierID2_16__factory,
       VerifierID8_16__factory,
       signer

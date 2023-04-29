@@ -4,10 +4,10 @@ export interface IVariableAnchorPublicInputs {
   proof: string;
   roots: string;
   extensionRoots: string;
-  inputNullifiers: BigNumberish[];
-  outputCommitments: [BigNumberish, BigNumberish];
+  inputNullifiers: string[];
+  outputCommitments: [string, string];
   publicAmount: string;
-  extDataHash: BigNumberish;
+  extDataHash: string;
 }
 
 export interface IVariableAnchorExtData {

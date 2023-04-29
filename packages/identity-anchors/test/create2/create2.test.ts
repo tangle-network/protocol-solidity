@@ -1,24 +1,13 @@
-const assert = require('assert');
-import { ethers } from 'hardhat';
-const TruffleAssert = require('truffle-assertions');
-
-// Typechain generated bindings for contracts
-// These contracts are included in packages, so should be tested
+import { ethers, assert } from 'hardhat';
 import { ERC20PresetMinterPauser } from '@webb-tools/contracts';
-
-import { getChainIdType } from '@webb-tools/utils';
+import { HARDHAT_ACCOUNTS, getChainIdType } from '@webb-tools/utils';
 import { Semaphore } from '@webb-tools/semaphore';
 import { LinkedGroup } from '@webb-tools/semaphore-group';
 import { startGanacheServer } from '@webb-tools/evm-test-utils';
 import { PoseidonHasher, Deployer } from '@webb-tools/anchors';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-
-import { IdentityVerifier } from '@webb-tools/vbridge';
-import { JsonRpcProvider, id, parseEther } from 'ethers/types/ethers.js';
-
-import { IdentityVAnchor } from '../../src/index.js';
-
-const path = require('path');
+import { parseEther, id } from 'ethers/lib/utils.js';
+import { IdentityVAnchor, IdentityVerifier } from '../../src/index.js';
 
 describe('Should deploy verifiers to the same address', () => {
   let deployer1: Deployer;
@@ -31,7 +20,9 @@ describe('Should deploy verifiers to the same address', () => {
   const FIRST_CHAIN_ID = 31337;
   const SECOND_CHAIN_ID = 10000;
   let ganacheServer2: any;
-  let ganacheProvider2 = new JsonRpcProvider(`http://localhost:${SECOND_CHAIN_ID}`);
+  let ganacheProvider2 = new ethers.providers.JsonRpcProvider(
+    `http://localhost:${SECOND_CHAIN_ID}`
+  );
   ganacheProvider2.pollingInterval = 1;
   let ganacheWallet1 = new ethers.Wallet(HARDHAT_ACCOUNTS[1].privateKey, ganacheProvider2);
   let ganacheWallet2 = new ethers.Wallet(

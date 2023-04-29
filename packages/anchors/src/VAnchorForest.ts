@@ -24,7 +24,11 @@ import { BigNumberish, ContractReceipt, ethers } from 'ethers';
 import { groth16 } from 'snarkjs';
 
 // import { MerkleTree } from "."
-import { IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
+import {
+  IVAnchor,
+  IVariableAnchorExtData,
+  IVariableAnchorPublicInputs,
+} from '@webb-tools/interfaces';
 import {
   VAnchorProofInputs,
   ZERO_BYTES32,
@@ -38,13 +42,14 @@ import { Deployer } from './Deployer';
 import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
 import { splitTransactionOptions } from './utils';
 
-export var gasBenchmark = [];
-export var proofTimeBenchmark = [];
 // This convenience wrapper class is used in tests -
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
-export class VAnchorForest extends WebbBridge<VAnchorForestContract> {
+export class VAnchorForest
+  extends WebbBridge<VAnchorForestContract>
+  implements IVAnchor<VAnchorForestContract>
+{
   contract: VAnchorForestContract;
   forest: MerkleTree;
 

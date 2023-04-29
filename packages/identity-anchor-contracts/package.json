@@ -1,6 +1,7 @@
 {
   "name": "@webb-tools/identity-anchor-contracts",
-  "main": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "license": "(MIT or Apache-2.0)",
   "author": "Webb Developers <drew@webb.tools>",
   "scripts": {
@@ -20,7 +21,7 @@
     "access": "public"
   },
   "repository": {
-    "directory": "packages/identity-anchor",
+    "directory": "packages/identity-anchor-contracts",
     "type": "git",
     "url": "git://github.com/webb-tools/protocol-solidity.git"
   },

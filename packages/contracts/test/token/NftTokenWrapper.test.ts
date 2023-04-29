@@ -2,10 +2,12 @@
  * Copyright 2021-2023 Webb Technologies
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
-const assert = require('assert');
+
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { ethers, expect } from 'hardhat';
+import { ethers, assert } from 'hardhat';
 import { ERC721 as ERC721Class, NftTokenWrapper as NftTokenWrapperClass } from '@webb-tools/tokens';
+
+const TruffleAssert = require('truffle-assertions');
 
 describe('NftTokenWrapper', () => {
   let token: ERC721Class;
@@ -38,9 +40,10 @@ describe('NftTokenWrapper', () => {
   describe('#wrap', () => {
     it('should fail to wrap', async () => {
       const nonExistantTokenId = 1;
-      await expect(
-        wrappedNft.wrap721(nonExistantTokenId, token.contract.address)
-      ).to.be.revertedWith('ERC721: invalid token ID');
+      await TruffleAssert.reverts(
+        wrappedNft.wrap721(nonExistantTokenId, token.contract.address),
+        'ERC721: invalid token ID'
+      );
     });
 
     it('should wrap/unwrap an ERC721 token with a token id', async () => {

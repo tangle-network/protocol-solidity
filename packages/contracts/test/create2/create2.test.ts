@@ -1,6 +1,4 @@
-const assert = require('assert');
-import { ethers } from 'hardhat';
-const TruffleAssert = require('truffle-assertions');
+import { ethers, assert } from 'hardhat';
 
 // Typechain generated bindings for contracts
 // These contracts are included in packages, so should be tested
@@ -13,10 +11,11 @@ import {
 
 import { HARDHAT_ACCOUNTS, getChainIdType } from '@webb-tools/utils';
 import { startGanacheServer } from '@webb-tools/evm-test-utils';
-import { PoseidonHasher, VAnchor, VAnchorForest, Deployer } from '@webb-tools/anchors';
+import { PoseidonHasher, VAnchor, VAnchorForest, Deployer, Verifier } from '@webb-tools/anchors';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
-import { ForestVerifier } from '@webb-tools/vbridge';
+import { ForestVerifier } from '@webb-tools/anchors';
+import { JsonRpcProvider } from '@ethersproject/providers';
 
 const path = require('path');
 

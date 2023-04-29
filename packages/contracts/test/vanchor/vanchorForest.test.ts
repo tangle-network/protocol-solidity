@@ -2,8 +2,7 @@
  * Copyright 2021-2023 Webb Technologies
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
-const assert = require('assert');
-import { ethers } from 'hardhat';
+import { ethers, assert } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
 
 // Typechain generated bindings for contracts
@@ -40,7 +39,7 @@ import {
   toHex,
 } from '@webb-tools/sdk-core';
 import { VAnchorForest, PoseidonHasher } from '@webb-tools/anchors';
-import { ForestVerifier } from '@webb-tools/vbridge';
+import { ForestVerifier } from '@webb-tools/anchors';
 import { startGanacheServer } from '@webb-tools/evm-test-utils';
 import { JsonRpcProvider } from '@ethersproject/providers';
 import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
@@ -1274,7 +1273,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
           },
           { gasLimit: '0x5B8D80' }
         ),
-        'non-existent edge is not set to the default root'
+        'LinkableAnchor: Non-existent edge is not set to the default root'
       );
     });
   });

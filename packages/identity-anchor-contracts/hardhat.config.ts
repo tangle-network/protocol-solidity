@@ -8,7 +8,7 @@ import '@nomiclabs/hardhat-truffle5';
 import { subtask } from 'hardhat/config';
 
 import { poseidon_gencontract as poseidonContract } from 'circomlibjs';
-import { HARDHAT_ACCOUNTS } from '@webb-tools/evm-test-utils';
+import { HARDHAT_ACCOUNTS } from '@webb-tools/utils';
 
 require('dotenv').config({ path: __dirname + '/.env' });
 

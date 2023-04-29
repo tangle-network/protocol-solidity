@@ -2,9 +2,8 @@
  * Copyright 2021-2023 Webb Technologies
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
-const assert = require('assert');
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { ethers } from 'hardhat';
+import { ethers, assert } from 'hardhat';
 
 import {
   ERC20 as ERC20Class,
@@ -60,7 +59,10 @@ describe('FungibleTokenWrapper', () => {
         ethers.utils.parseEther('1')
       );
 
-      assert.strictEqual(amountToWrap.toString(), ethers.BigInt('1000100010001000100').toString());
+      assert.strictEqual(
+        amountToWrap.toString(),
+        ethers.BigNumber.from('1000100010001000100').toString()
+      );
     });
   });
 });

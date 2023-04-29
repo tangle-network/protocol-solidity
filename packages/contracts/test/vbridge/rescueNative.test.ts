@@ -2,10 +2,8 @@
  * Copyright 2021-2023 Webb Technologies
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
-const assert = require('assert');
-const path = require('path');
-import { ethers } from 'hardhat';
 
+import { ethers, assert } from 'hardhat';
 import { SignatureBridgeSide } from '@webb-tools/vbridge';
 import { VAnchor, AnchorHandler, PoseidonHasher } from '@webb-tools/anchors';
 import { Verifier } from '@webb-tools/anchors';
@@ -22,6 +20,9 @@ import {
   ZkComponents,
 } from '@webb-tools/utils';
 import { CircomUtxo, Keypair } from '@webb-tools/sdk-core';
+import { BigNumber } from 'ethers';
+
+const path = require('path');
 
 describe('Rescue Tokens Tests for Native ETH', () => {
   let zkComponents2_2: ZkComponents;
@@ -195,14 +196,19 @@ describe('Rescue Tokens Tests for Native ETH', () => {
     let to = signers[2].address;
     let balToBeforeRescue = await ethers.provider.getBalance(to);
 
-    await bridgeSide.executeRescueTokensProposalWithSig(treasury, zeroAddress, to, BigInt('500'));
+    await bridgeSide.executeRescueTokensProposalWithSig(
+      treasury,
+      zeroAddress,
+      to,
+      BigNumber.from('500')
+    );
 
     let balTreasuryAfterRescue = await ethers.provider.getBalance(treasury.contract.address);
     let balToAfterRescue = await ethers.provider.getBalance(to);
 
-    assert.strictEqual(balTreasuryBeforeRescue - BigInt(balTreasuryAfterRescue), 500);
+    assert.strictEqual(balTreasuryBeforeRescue.sub(balTreasuryAfterRescue), BigNumber.from(500));
 
-    assert.strictEqual(balToAfterRescue - BigInt(balToBeforeRescue), 500);
+    assert.strictEqual(balToAfterRescue.sub(balToBeforeRescue), BigNumber.from(500));
 
     assert.strictEqual((await treasury.contract.proposalNonce()).toString(), '1');
   });
@@ -216,7 +222,7 @@ describe('Rescue Tokens Tests for Native ETH', () => {
       treasury,
       zeroAddress,
       to,
-      BigInt('500000000000000')
+      BigNumber.from('500000000000000')
     );
 
     let balTreasuryAfterRescue = await ethers.provider.getBalance(treasury.contract.address);
@@ -224,12 +230,12 @@ describe('Rescue Tokens Tests for Native ETH', () => {
 
     // balTreasuryAfterRescue = 0
     assert.strictEqual(
-      balTreasuryBeforeRescue - BigInt(balTreasuryAfterRescue),
+      balTreasuryBeforeRescue.sub(balTreasuryAfterRescue),
       balTreasuryBeforeRescue
     );
 
     // Should be balTreasuryBeforeRescue, since all tokens are transferred to the to address
-    assert.strictEqual(balToAfterRescue - BigInt(balToBeforeRescue), balTreasuryBeforeRescue);
+    assert.strictEqual(balToAfterRescue.sub(balToBeforeRescue), balTreasuryBeforeRescue);
 
     assert.strictEqual(await treasury.contract.proposalNonce(), 1);
   });

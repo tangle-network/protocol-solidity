@@ -2,21 +2,25 @@
  * Copyright 2021-2023 Webb Technologies
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
-const TruffleAssert = require('truffle-assertions');
-const assert = require('assert');
-import { ethers } from 'hardhat';
-const hre = require('hardhat');
 
+import { ethers, assert } from 'hardhat';
 import { VBridge, VBridgeInput } from '@webb-tools/vbridge';
 import { VAnchor } from '@webb-tools/anchors';
 import { MintableToken, FungibleTokenWrapper } from '@webb-tools/tokens';
-import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '@webb-tools/utils';
+import {
+  fetchComponentsFromFilePaths,
+  getChainIdType,
+  HARDHAT_PK_1,
+  ZkComponents,
+} from '@webb-tools/utils';
 import { startGanacheServer } from '@webb-tools/evm-test-utils';
 import { CircomUtxo } from '@webb-tools/sdk-core';
 import { DeployerConfig, GovernorConfig } from '@webb-tools/interfaces';
+import { JsonRpcProvider } from '@ethersproject/providers';
+import { BigNumber } from 'ethers';
 
 const path = require('path');
-
+const TruffleAssert = require('truffle-assertions');
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 describe('2-sided multichain tests for signature vbridge', () => {
@@ -155,7 +159,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
       const destAnchorEdgeAfter = await vAnchor2.contract.edgeList(edgeIndex);
       // make sure the roots / anchors state have changed
       assert.notEqual(sourceAnchorRootAfter, sourceAnchorRootBefore);
-      assert.deepEqual(BigInt(1), destAnchorEdgeAfter.latestLeafIndex);
+      assert.deepEqual(BigNumber.from(1), destAnchorEdgeAfter.latestLeafIndex);
 
       const transferUtxo = await CircomUtxo.generateUtxo({
         curve: 'Bn254',

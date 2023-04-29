@@ -4,12 +4,11 @@
  */
 
 import { MerkleTree, toFixedHex } from '@webb-tools/sdk-core';
-import { artifacts, contract, ethers } from 'hardhat';
+import { artifacts, contract, ethers, assert } from 'hardhat';
 import { poseidon } from 'circomlibjs';
 import { PoseidonHasher } from '@webb-tools/anchors';
-const TruffleAssert = require('truffle-assertions');
-const assert = require('assert');
 
+const TruffleAssert = require('truffle-assertions');
 const MerkleTreeWithHistory = artifacts.require('MerkleTreePoseidonMock');
 
 contract('MerkleTree w/ Poseidon hasher', (accounts) => {

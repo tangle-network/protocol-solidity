@@ -2,12 +2,7 @@
  * Copyright 2021-2023 Webb Technologies
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
-const assert = require('assert');
-const path = require('path');
-import { ethers } from 'hardhat';
-const hre = require('hardhat');
-const TruffleAssert = require('truffle-assertions');
-
+import { ethers, assert } from 'hardhat';
 import { SignatureBridgeSide } from '@webb-tools/vbridge';
 import { VAnchor, AnchorHandler, PoseidonHasher } from '@webb-tools/anchors';
 import { Verifier } from '@webb-tools/anchors';
@@ -18,10 +13,17 @@ import {
   FungibleTokenWrapper,
   TokenWrapperHandler,
 } from '@webb-tools/tokens';
-import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '@webb-tools/utils';
+import {
+  fetchComponentsFromFilePaths,
+  getChainIdType,
+  HARDHAT_PK_1,
+  ZkComponents,
+} from '@webb-tools/utils';
 import { CircomUtxo, Keypair } from '@webb-tools/sdk-core';
-import { HARDHAT_PK_1 } from '@webb-tools/evm-test-utils';
 import { BigNumber } from 'ethers';
+
+const TruffleAssert = require('truffle-assertions');
+const path = require('path');
 
 describe('SignatureBridgeSide use', () => {
   let zkComponents2_2: ZkComponents;
@@ -36,30 +38,30 @@ describe('SignatureBridgeSide use', () => {
     zkComponents2_2 = await fetchComponentsFromFilePaths(
       path.resolve(
         __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'
+        '../../../../solidity-fixtures/solidity-fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'
       ),
       path.resolve(
         __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/witness_calculator.cjs'
+        '../../../../solidity-fixtures/solidity-fixtures/vanchor_2/2/witness_calculator.cjs'
       ),
       path.resolve(
         __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey'
+        '../../../../solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey'
       )
     );
 
     zkComponents16_2 = await fetchComponentsFromFilePaths(
       path.resolve(
         __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'
+        '../../../../solidity-fixtures/solidity-fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'
       ),
       path.resolve(
         __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/witness_calculator.cjs'
+        '../../../../solidity-fixtures/solidity-fixtures/vanchor_16/2/witness_calculator.cjs'
       ),
       path.resolve(
         __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/circuit_final.zkey'
+        '../../../../solidity-fixtures/solidity-fixtures/vanchor_16/2/circuit_final.zkey'
       )
     );
   });

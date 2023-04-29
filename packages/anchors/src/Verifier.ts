@@ -12,7 +12,7 @@ import {
   VerifierF2_16__factory,
   VerifierF8_16__factory,
 } from '@webb-tools/contracts';
-import { Deployer } from '@webb-tools/anchors';
+import Deployer from './Deployer';
 
 type VerifierInterface = {
   v22: BaseContract;

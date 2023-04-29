@@ -7,10 +7,10 @@
       ********   Solidity Contracts   ********
       */
       "@webb-tools/identity-protocol-solidity": [
-        "packages/identity-anchors-contracts/contracts"
+        "packages/identity-anchor-contracts/contracts"
       ],
       "@webb-tools/identity-protocol-solidity/*": [
-        "packages/identity-anchors-contracts/contracts/*"
+        "packages/identity-anchor-contracts/contracts/*"
       ],
       "@webb-tools/protocol-solidity": [
         "packages/contracts/contracts"
@@ -45,6 +45,12 @@
       ],
       "@webb-tools/identity-anchors/*": [
         "packages/identity-anchors/src/*"
+      ],
+      "@webb-tools/identity-anchor-contracts": [
+        "packages/identity-anchor-contracts/src"
+      ],
+      "@webb-tools/identity-anchor-contracts/*": [
+        "packages/identity-anchor-contracts/src/*"
       ],
       "@webb-tools/interfaces": [
         "packages/interfaces/src"

@@ -2,18 +2,15 @@
  * Copyright 2021-2023 Webb Technologies
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
-const assert = require('assert');
-const TruffleAssert = require('truffle-assertions');
-import { ethers } from 'hardhat';
-
-// Typechain generated bindings for contracts
-// These contracts are included in packages, so should be tested
+import { ethers, assert } from 'hardhat';
 import {
   ERC20PresetMinterPauser,
   ERC20PresetMinterPauser__factory,
   FungibleTokenWrapper as WrappedToken,
   FungibleTokenWrapper__factory as WrappedTokenFactory,
 } from '@webb-tools/contracts';
+
+const TruffleAssert = require('truffle-assertions');
 
 import {
   hexToU8a,
@@ -26,6 +23,8 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { Keypair, randomBN, CircomUtxo } from '@webb-tools/sdk-core';
 import { VAnchor, PoseidonHasher, RateLimitedVAnchor } from '@webb-tools/anchors';
 import { Verifier } from '@webb-tools/anchors';
+import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
+import { BigNumber } from 'ethers';
 
 const path = require('path');
 
@@ -55,7 +54,7 @@ describe('Rate Limited VAnchor', () => {
       chainId: chainId.toString(),
       originChainId: chainId.toString(),
       amount: amountString,
-      blinding: hexToU8a(randomBN(31).toString(16)),
+      blinding: hexToU8a(randomBN(31).toHexString()),
       keypair: randomKeypair,
     });
   };
@@ -138,12 +137,12 @@ describe('Rate Limited VAnchor', () => {
       zkComponents16_2,
       sender
     );
-    await anchor.contract.configureMinimalWithdrawalLimit(BigInt(0), 1);
+    await anchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
     await anchor.contract.configureMaximumDepositLimit(
-      BigInt(tokenDenomination) * BigInt(1_000_000),
+      BigNumber.from(tokenDenomination).mul(BigNumber.from(1_000_000)),
       2
     );
-    await anchor.setDailyWithdrawalLimit(BigInt('10').pow(BigInt('18')));
+    await anchor.setDailyWithdrawalLimit(BigNumber.from('10').pow(BigNumber.from('18')));
     const MINTER_ROLE = keccak256(toUtf8Bytes('MINTER_ROLE'));
     await wrappedToken.grantRole(MINTER_ROLE, anchor.contract.address);
     await token.approve(wrappedToken.address, '1000000000000000000000000');
@@ -221,7 +220,7 @@ describe('Rate Limited VAnchor', () => {
 
       let anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
-      await anchor.setDailyWithdrawalLimit(BigInt(`${5e6}`));
+      await anchor.setDailyWithdrawalLimit(BigNumber.from(`${5e6}`));
       const aliceWithdrawAmount = 6e6;
       const aliceChangeAmount = aliceDepositAmount - aliceWithdrawAmount;
       const aliceChangeUtxo = await CircomUtxo.generateUtxo({

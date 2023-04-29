@@ -2,16 +2,12 @@
  * Copyright 2021 Webb Technologies
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
-const assert = require('assert');
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { ethers } from 'hardhat';
-const hre = require('hardhat');
-const { BigNumber } = require('ethers');
-const bne = (x, e) => BigInt(x + '0'.repeat(parseInt(e)));
-
-// Convenience wrapper classes for contract classes
+import hre, { ethers, assert } from 'hardhat';
 import { expect } from 'chai';
+import { BigNumber } from 'ethers';
 import { AaveTokenWrapper, AaveTokenWrapper__factory, IERC20 } from '../../dist';
+const bne = (x, e) => BigNumber.from(x + '0'.repeat(parseInt(e)));
 
 describe.skip('AaveTokenWrapper', () => {
   let aaveToken: AaveTokenWrapper;
@@ -103,7 +99,7 @@ describe.skip('AaveTokenWrapper', () => {
       const daiBalancePoolPostWithdraw = await dai.balanceOf(aaveToken.address);
       const aDAIBalancePoolPostWithdraw = await aDAI.balanceOf(aaveToken.address);
       expect(daiBalancePoolPostWithdraw).to.be.equal(depositAmount);
-      expect(aDAIBalancePoolPostWithdraw).to.be.lt(bne(10, 12));
+      expect(aDAIBalancePoolPostWithdraw).to.be.lt(Number(bne(10, 12)));
     });
   });
 });

@@ -1,6 +1,6 @@
 {
   "name": "@webb-tools/identity-anchors",
-  "main": "./src/index.ts",
+  "main": "./dist/index.js",
   "license": "(MIT or Apache-2.0)",
   "author": "Webb Developers <drew@webb.tools>",
   "scripts": {

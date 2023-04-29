@@ -1,18 +1,14 @@
-import { ethers, BigNumber, BigNumberish } from 'ethers';
-import { SignatureBridgeSide } from '@webb-tools/vbridge';
 import {
-  MintableToken,
   FungibleTokenWrapper,
   TreasuryHandler,
   Treasury,
   TokenWrapperHandler,
 } from '@webb-tools/tokens';
-import { PoseidonT3__factory } from '@webb-tools/contracts';
 import { AnchorIdentifier, GovernorConfig, DeployerConfig } from '@webb-tools/interfaces';
 import { AnchorHandler, OpenVAnchor as VAnchor } from '@webb-tools/anchors';
-import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
-import { CircomUtxo, Utxo } from '@webb-tools/sdk-core';
+import { getChainIdType } from '@webb-tools/utils';
 import { KeccakHasher__factory } from '@webb-tools/contracts';
+import { SignatureBridgeSide } from './SignatureBridgeSide';
 
 export type ExistingAssetInput = {
   // A record of chainId => address of wrappable tokens to be supported in the webbToken.

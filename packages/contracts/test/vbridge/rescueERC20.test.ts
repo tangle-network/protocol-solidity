@@ -2,10 +2,7 @@
  * Copyright 2021-2023 Webb Technologies
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
-const assert = require('assert');
-const path = require('path');
-import { ethers } from 'hardhat';
-
+import { ethers, assert } from 'hardhat';
 import { SignatureBridgeSide } from '@webb-tools/vbridge';
 import { VAnchor, AnchorHandler, PoseidonHasher } from '@webb-tools/anchors';
 import { Verifier } from '@webb-tools/anchors';
@@ -23,6 +20,9 @@ import {
   ZkComponents,
 } from '@webb-tools/utils';
 import { CircomUtxo, Keypair } from '@webb-tools/sdk-core';
+import { BigNumber } from 'ethers';
+
+const path = require('path');
 
 describe('Rescue Tokens Tests for ERC20 Tokens', () => {
   let zkComponents2_2: ZkComponents;
@@ -219,7 +219,7 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
       treasury,
       erc20TokenInstance.contract.address,
       to,
-      BigInt('500')
+      BigNumber.from('500')
     );
 
     let balTreasuryAfterRescue = await erc20TokenInstance.getBalance(treasury.contract.address);
@@ -241,7 +241,7 @@ describe('Rescue Tokens Tests for ERC20 Tokens', () => {
       treasury,
       erc20TokenInstance.contract.address,
       to,
-      BigInt('500000000000000000000000')
+      BigNumber.from('500000000000000000000000')
     );
 
     let balTreasuryAfterRescue = await erc20TokenInstance.getBalance(treasury.contract.address);

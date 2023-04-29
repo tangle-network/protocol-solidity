@@ -25,13 +25,15 @@ function sha3Hash(left: BigNumberish, right: BigNumberish) {
 }
 
 export var gasBenchmark: string[] = [];
-export var proofTimeBenchmark: number[] = [];
 
 // This convenience wrapper class is used in tests -
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
-export class OpenVAnchor extends WebbBridge<OpenVAnchorContract> implements IVAnchor {
+export class OpenVAnchor
+  extends WebbBridge<OpenVAnchorContract>
+  implements IVAnchor<OpenVAnchorContract>
+{
   contract: OpenVAnchorContract;
   latestSyncedBlock = 0;
 
@@ -281,21 +283,6 @@ export class OpenVAnchor extends WebbBridge<OpenVAnchorContract> implements IVAn
       medianGas,
       maxGas,
       minGas,
-    };
-    // return gasBenchmark;
-  }
-
-  public async getProofTimeBenchmark() {
-    const meanTime = mean(proofTimeBenchmark);
-    const medianTime = median(proofTimeBenchmark);
-    const maxTime = max(proofTimeBenchmark);
-    const minTime = min(proofTimeBenchmark);
-    return {
-      proofTimeBenchmark,
-      meanTime,
-      medianTime,
-      maxTime,
-      minTime,
     };
   }
 

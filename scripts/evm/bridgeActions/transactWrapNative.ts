@@ -68,7 +68,7 @@ export async function transactWrapNative(anchorAddress: string, sender: ethers.S
         chainId: sourceChainId.toString(),
         originChainId: sourceChainId.toString(),
         amount: '0',
-        blinding: hexToU8a(randomBN(31).toString(16)),
+        blinding: hexToU8a(randomBN(31).toHexString()),
         keypair: randomKeypair,
       })
     );

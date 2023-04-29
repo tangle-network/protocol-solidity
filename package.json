@@ -13,11 +13,12 @@
     ],
     "nohoist": [
       "**/@openzeppelin/**",
-      "**/@webb-tools/protocol-solidity/**"
+      "**/@webb-tools/protocol-solidity/**",
+      "**/@webb-tools/contracts/**"
     ]
   },
   "scripts": {
-    "compile": "lerna run compile --scope=@webb-tools/contracts",
+    "compile": "lerna run compile --scope=@webb-tools/contracts && lerna run compile --scope=@webb-tools/identity-anchor-contracts",
     "build": "yarn build:packages",
     "setup": "yarn compile && yarn build:circuits && yarn build:ptau",
     "test": "yarn workspace @webb-tools/contracts run test",

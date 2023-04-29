@@ -1,4 +1,4 @@
-import { BigNumberish, ContractReceipt, ethers } from 'ethers';
+import { BigNumber, BigNumberish, ContractReceipt, ethers } from 'ethers';
 import { PayableOverrides } from '@ethersproject/contracts';
 import {
   VAnchor as VAnchorContract,
@@ -24,7 +24,7 @@ import { SetupTransactionResult, TransactionOptions } from './types';
 import { IVariableAnchorExtData } from '@webb-tools/interfaces';
 import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
 
-type WebbContracts =
+export type WebbContracts =
   | VAnchorContract
   | ChainalysisVAnchorContract
   | VAnchorForestContract
@@ -199,22 +199,32 @@ export abstract class WebbBridge<A extends WebbContracts> {
     );
   }
 
-  public async getWrapUnwrapOptions(extAmount: BigInt, refund: BigInt, wrapUnwrapToken: string) {
+  public async getWrapUnwrapOptions(
+    extAmount: BigNumberish,
+    refund: BigNumberish,
+    wrapUnwrapToken: string
+  ) {
     let options = {};
-    if (BigInt(extAmount.toString()) > BigInt(0) && checkNativeAddress(wrapUnwrapToken)) {
+    if (
+      BigNumber.from(extAmount.toString()) > BigNumber.from(0) &&
+      checkNativeAddress(wrapUnwrapToken)
+    ) {
       let tokenWrapper = TokenWrapper__factory.connect(await this.contract.token(), this.signer);
       let valueToSend = await tokenWrapper.getAmountToWrap(extAmount.toString());
 
       options = {
         value: valueToSend.toHexString(),
       };
-    } else if (BigInt(extAmount.toString()) < BigInt(0)) {
+    } else if (BigNumber.from(extAmount.toString()) < BigNumber.from(0)) {
       options = {
         value: refund.toString(16),
       };
     }
 
-    if (BigInt(refund.toString()) > BigInt(0) && BigInt(extAmount.toString()) >= BigInt(0)) {
+    if (
+      BigNumber.from(refund.toString()) > BigNumber.from(0) &&
+      BigNumber.from(extAmount.toString()) >= BigNumber.from(0)
+    ) {
       throw new Error('Refund should be zero');
     }
     return options;
@@ -302,14 +312,14 @@ export abstract class WebbBridge<A extends WebbContracts> {
 
   public async generateExtData(
     recipient: string,
-    extAmount: BigInt,
+    extAmount: BigNumberish,
     relayer: string,
-    fee: BigInt,
-    refund: BigInt,
+    fee: BigNumberish,
+    refund: BigNumberish,
     wrapUnwrapToken: string,
     encryptedOutput1: string,
     encryptedOutput2: string
-  ): Promise<{ extData: IVariableAnchorExtData; extDataHash: BigInt }> {
+  ): Promise<{ extData: IVariableAnchorExtData; extDataHash: BigNumberish }> {
     const extData = {
       recipient: toFixedHex(recipient, 20),
       extAmount: toFixedHex(extAmount.toString()),
@@ -321,7 +331,7 @@ export abstract class WebbBridge<A extends WebbContracts> {
       encryptedOutput2,
     };
 
-    const extDataHash = BigInt(
+    const extDataHash = BigNumber.from(
       getVAnchorExtDataHash(
         encryptedOutput1,
         encryptedOutput2,
@@ -331,7 +341,7 @@ export abstract class WebbBridge<A extends WebbContracts> {
         relayer,
         refund.toString(),
         wrapUnwrapToken
-      ).toString()
+      )
     );
     return { extData, extDataHash };
   }
@@ -409,11 +419,33 @@ export abstract class WebbBridge<A extends WebbContracts> {
     );
 
     let options = await this.getWrapUnwrapOptions(
-      BigInt(extAmount.toString()),
-      BigInt(refund.toString()),
+      extAmount.toString(),
+      refund.toString(),
       wrapUnwrapToken
     );
-
+    console.log(options);
+    console.log({
+      extData: {
+        recipient: extData.recipient,
+        extAmount: extData.extAmount,
+        relayer: extData.relayer,
+        fee: extData.fee,
+        refund: extData.refund,
+        token: extData.token,
+      },
+      publicInputs: {
+        roots: publicInputs.roots,
+        extensionRoots: publicInputs.extensionRoots,
+        inputNullifiers: publicInputs.inputNullifiers,
+        outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
+        publicAmount: publicInputs.publicAmount,
+        extDataHash: publicInputs.extDataHash,
+      },
+      outputs: {
+        encryptedOutput1: extData.encryptedOutput1,
+        encryptedOutput2: extData.encryptedOutput2,
+      },
+    });
     const tx = await this.contract.transact(
       publicInputs.proof,
       ZERO_BYTES32,

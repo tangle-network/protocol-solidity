@@ -10,13 +10,14 @@ import { PoseidonHasher } from '@webb-tools/anchors';
 import { BatchTreeUpdaterMock as BatchTreeUpdater } from './mocks/BatchTreeUpdaterMock';
 import { ZkComponents, fetchComponentsFromFilePaths } from '@webb-tools/utils';
 import {
-  VerifierBatch4__factory,
-  VerifierBatch8__factory,
-  VerifierBatch16__factory,
-  VerifierBatch32__factory,
+  VerifierBatch_4__factory,
+  VerifierBatch_8__factory,
+  VerifierBatch_16__factory,
+  VerifierBatch_32__factory,
   BatchTreeVerifierSelector__factory,
 } from '../../dist';
 import path from 'path';
+import { BigNumber } from 'ethers';
 const snarkjs = require('snarkjs');
 
 const blocks = ['0xaaaaaaaa', '0xbbbbbbbb', '0xcccccccc', '0xdddddddd'];
@@ -115,16 +116,16 @@ contract('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
     const wallet = signers[0];
     hasherInstance = await PoseidonHasher.createPoseidonHasher(wallet);
     merkleTree = new MerkleTree(levels);
-    const verifierFactory_4 = new VerifierBatch4__factory(wallet);
+    const verifierFactory_4 = new VerifierBatch_4__factory(wallet);
     const verifier_4 = await verifierFactory_4.deploy();
 
-    const verifierFactory_8 = new VerifierBatch8__factory(wallet);
+    const verifierFactory_8 = new VerifierBatch_8__factory(wallet);
     const verifier_8 = await verifierFactory_8.deploy();
 
-    const verifierFactory_16 = new VerifierBatch16__factory(wallet);
+    const verifierFactory_16 = new VerifierBatch_16__factory(wallet);
     const verifier_16 = await verifierFactory_16.deploy();
 
-    const verifierFactory_32 = new VerifierBatch32__factory(wallet);
+    const verifierFactory_32 = new VerifierBatch_32__factory(wallet);
     const verifier_32 = await verifierFactory_32.deploy();
 
     const verifierSelectorFactory = new BatchTreeVerifierSelector__factory(wallet);
@@ -277,11 +278,11 @@ contract('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
       }
       let { input: input_16 } = await batchTree.batchInsert(batchSize_16);
       const updatedRoot_16 = await batchTree.contract.getLastRoot();
-      expect(updatedRoot_16).to.equal(input_16['newRoot']);
+      expect(updatedRoot_16.toString()).to.equal(input_16['newRoot']);
 
       let { input: input_4 } = await batchTree.batchInsert(batchSize_4);
       const updatedRoot_4 = await batchTree.contract.getLastRoot();
-      expect(updatedRoot_4).to.equal(input_4['newRoot']);
+      expect(updatedRoot_4.toString()).to.equal(input_4['newRoot']);
     });
     // this takes way too long
     it.skip('should do [16, 8, 8, 16] batchInsertions respectively', async () => {
