@@ -6,9 +6,8 @@ import {
   Treasury,
   TokenWrapperHandler,
 } from '@webb-tools/tokens';
-import { Verifier } from '@webb-tools/anchors';
 import { AnchorIdentifier, GovernorConfig, DeployerConfig } from '@webb-tools/interfaces';
-import { AnchorHandler, PoseidonHasher, VAnchor } from '@webb-tools/anchors';
+import { AnchorHandler, PoseidonHasher, VAnchor, Verifier } from '@webb-tools/anchors';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { CircomUtxo, Utxo } from '@webb-tools/sdk-core';
 import { SignatureBridgeSide } from './SignatureBridgeSide';
@@ -29,6 +28,7 @@ const defaultTokenConfig: TokenConfig = {
   name: 'webbWETH',
   symbol: 'webbWETH',
 };
+
 // Users define an input for a completely new bridge
 export type VBridgeInput = {
   // The tokens which should be supported after deploying from this bridge input
@@ -69,7 +69,6 @@ function checkNativeAddress(tokenAddress: string): boolean {
   return false;
 }
 
-// A bridge is
 export class VBridge {
   private constructor(
     // Mapping of chainId => vBridgeSide
@@ -283,10 +282,13 @@ export class VBridge {
     let tokenDenomination = '1000000000000000000'; // 1 ether
     for (let vAnchor of vAnchors) {
       await vBridgeSide.connectAnchorWithSignature(vAnchor);
-      await vBridgeSide.executeMinWithdrawalLimitProposalWithSig(vAnchor, BigInt(0).toString());
+      await vBridgeSide.executeMinWithdrawalLimitProposalWithSig(
+        vAnchor,
+        BigNumber.from(0).toString()
+      );
       await vBridgeSide.executeMaxDepositLimitProposalWithSig(
         vAnchor,
-        (BigInt(tokenDenomination) * BigInt(1_000_000)).toString()
+        BigNumber.from(tokenDenomination).mul(1_000_000).toString()
       );
     }
   }
@@ -386,12 +388,11 @@ export class VBridge {
       throw new Error('Token not supported');
     }
 
-    const extAmount =
-      BigInt(fee.toString()) +
-      outputs.reduce((sum, x) => sum + BigInt(x.amount), BigInt(0)) -
-      inputs.reduce((sum, x) => sum + BigInt(x.amount), BigInt(0));
+    const extAmount = BigNumber.from(fee)
+      .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+      .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
 
-    const publicAmount = extAmount - BigInt(fee.toString());
+    const publicAmount = extAmount.sub(fee);
 
     // If the wrapUnwrapToken is unspecified ('') then we assume that
     // the user is trying to transact directly with the webbToken. We instead
@@ -403,7 +404,7 @@ export class VBridge {
         vAnchor.contract.address
       );
       if (userTokenAllowance.lt(publicAmount)) {
-        await tokenInstance.approveSpending(vAnchor.contract.address, BigNumber.from(publicAmount));
+        await tokenInstance.approveSpending(vAnchor.contract.address, publicAmount);
       }
 
       wrapUnwrapToken = webbTokenAddress;
@@ -411,7 +412,7 @@ export class VBridge {
       const tokenInstance = await MintableToken.tokenFromAddress(wrapUnwrapToken, signer);
       const userTokenAllowance = await tokenInstance.getAllowance(signerAddress, webbTokenAddress);
       if (userTokenAllowance.lt(publicAmount)) {
-        await tokenInstance.approveSpending(webbTokenAddress, BigNumber.from(publicAmount));
+        await tokenInstance.approveSpending(webbTokenAddress, publicAmount);
       }
     }
 

@@ -24,30 +24,20 @@ import {
   generateVariableWitnessInput,
   toFixedHex,
 } from '@webb-tools/sdk-core';
-import {
-  VAnchorProofInputs,
-  ZERO_BYTES32,
-  ZkComponents,
-  getChainIdType,
-  hexToU8a,
-  u8aToHex,
-} from '@webb-tools/utils';
-import { BigNumber, BigNumberish, BytesLike, ContractReceipt, Overrides, ethers } from 'ethers';
-import { PayableOverrides } from '@ethersproject/contracts';
+import { VAnchorProofInputs, ZERO_BYTES32, ZkComponents, getChainIdType, hexToU8a, u8aToHex } from '@webb-tools/utils';
+import { BigNumber, BigNumberish, BytesLike, Overrides, PayableOverrides, ethers } from 'ethers';
 import { groth16 } from 'snarkjs';
+
 import { WebbBridge } from './Common';
-import { Deployer } from './Deployer';
 import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
 import { zeroAddress } from './utils';
+import Deployer from './Deployer';
 
 // This convenience wrapper class is used in tests -
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
-export class VAnchor
-  extends WebbBridge<VAnchorTreeContract>
-  implements IVAnchor<VAnchorTreeContract>
-{
+export class VAnchor extends WebbBridge<VAnchorTreeContract> implements IVAnchor<VAnchorTreeContract> {
   contract: VAnchorTreeContract;
 
   maxEdges: number;
@@ -114,7 +104,7 @@ export class VAnchor
     const createdVAnchor = new VAnchor(
       vanchor,
       signer,
-      Number(levels),
+      BigNumber.from(levels).toNumber(),
       maxEdges,
       smallCircuitZkComponents,
       largeCircuitZkComponents
@@ -148,7 +138,7 @@ export class VAnchor
     const createdVAnchor = new VAnchor(
       vAnchor,
       signer,
-      Number(levels),
+      BigNumber.from(levels).toNumber(),
       maxEdges,
       smallCircuitZkComponents,
       largeCircuitZkComponents
@@ -157,7 +147,7 @@ export class VAnchor
     createdVAnchor.token = token;
     const tx = await createdVAnchor.contract.initialize(
       BigNumber.from('1'),
-      BigNumber.from('2').pow(BigNumber.from('256').sub(BigNumber.from('1')))
+      BigNumber.from(2).pow(256).sub(1)
     );
     await tx.wait();
     return createdVAnchor;
@@ -209,9 +199,9 @@ export class VAnchor
     // this.latestSyncedBlock = currentBlockNumber;
   }
 
-  public async populateRootsForProof(): Promise<BigNumberish[]> {
+  public async populateRootsForProof(): Promise<BigNumber[]> {
     const neighborEdges = await this.contract.getLatestNeighborEdges();
-    const neighborRootInfos = neighborEdges.map((rootData: any) => {
+    const neighborRootInfos = neighborEdges.map((rootData) => {
       return rootData.root;
     });
     let thisRoot = await this.contract.getLastRoot();
@@ -223,7 +213,7 @@ export class VAnchor
    * @param input A UTXO object that is inside the tree
    * @returns
    */
-  public getMerkleProof(input: Utxo, leavesMap?: BigNumberish[]): MerkleProof {
+  public getMerkleProof(input: Utxo, leavesMap?: Uint8Array[]): MerkleProof {
     let inputMerklePathIndices: number[];
     let inputMerklePathElements: BigNumber[];
 
@@ -263,19 +253,19 @@ export class VAnchor
     inputs: Utxo[],
     outputs: Utxo[],
     publicAmount: BigNumberish,
-    extDataHash: BigNumberish
+    extDataHash: BigNumberish,
   ): IVariableAnchorPublicInputs {
     // public inputs to the contract
     const args: IVariableAnchorPublicInputs = {
       proof: `0x${proof}`,
       roots: `0x${roots.map((x) => toFixedHex(x).slice(2)).join('')}`,
-      extensionRoots: '0x',
+      extensionRoots: '0x00',
       inputNullifiers: inputs.map((x) => BigNumber.from(toFixedHex('0x' + x.nullifier)).toString()),
       outputCommitments: [
         BigNumber.from(toFixedHex(u8aToHex(outputs[0].commitment))).toString(),
         BigNumber.from(toFixedHex(u8aToHex(outputs[1].commitment))).toString(),
       ],
-      publicAmount: toFixedHex(publicAmount),
+      publicAmount: BigNumber.from(toFixedHex(publicAmount)).toString(),
       extDataHash: BigNumber.from(extDataHash).toString(),
     };
 
@@ -311,18 +301,6 @@ export class VAnchor
     return false;
   }
 
-  /**
-   * Generate the proof inputs given all private and public inputs for the zkSNARK
-   * @param inputs The input UTXOs
-   * @param outputs The output UTXOs
-   * @param chainId The chain ID where the transaction is happening
-   * @param extAmount The external amount defining a deposit, transfer, or withdrawal
-   * @param fee The fee for the relayer
-   * @param extDataHash The external data hash for the transaction
-   * @param leavesMap The leaves map for the transaction
-   * @param txOptions The transaction options
-   * @returns
-   */
   public async generateProofInputs(
     inputs: Utxo[],
     outputs: Utxo[],
@@ -330,9 +308,9 @@ export class VAnchor
     extAmount: BigNumberish,
     fee: BigNumberish,
     extDataHash: BigNumberish,
-    leavesMap: Record<string, BigNumberish[]>, // subtree leaves
+    leavesMap: Record<string, Uint8Array[]>,
     txOptions?: TransactionOptions
-  ): Promise<VAnchorProofInputs> {
+  ): Promise<any> {
     const vanchorRoots = await this.populateRootsForProof();
     let vanchorMerkleProof: any;
     if (Object.keys(leavesMap).length === 0) {
@@ -344,8 +322,7 @@ export class VAnchor
           'Need to specify chainId on txOptions in order to generate merkleProof correctly'
         );
       }
-      const treeElements: BigNumberish[] = leavesMap[treeChainId];
-      vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x, treeElements));
+      vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x, leavesMap[treeChainId]));
     }
     const vanchorInput: VAnchorProofInputs = await generateVariableWitnessInput(
       vanchorRoots.map((root) => root.toString()),
@@ -354,11 +331,29 @@ export class VAnchor
       outputs,
       extAmount,
       fee,
-      BigNumber.from(extDataHash.toString()),
+      BigInt(extDataHash.toString()),
       vanchorMerkleProof
     );
 
-    return vanchorInput;
+    const proofInput = {
+      roots: vanchorInput.roots,
+      chainID: vanchorInput.chainID,
+      inputNullifier: vanchorInput.inputNullifier,
+      outputCommitment: vanchorInput.outputCommitment,
+      publicAmount: vanchorInput.publicAmount,
+      extDataHash: vanchorInput.extDataHash,
+      inAmount: vanchorInput.inAmount,
+      inPrivateKey: vanchorInput.inPrivateKey,
+      inBlinding: vanchorInput.inBlinding,
+      outChainID: vanchorInput.outChainID,
+      outAmount: vanchorInput.outAmount,
+      outPubkey: vanchorInput.outPubkey,
+      outBlinding: vanchorInput.outBlinding,
+      inPathIndices: vanchorInput.inPathIndices,
+      inPathElements: vanchorInput.inPathElements
+    };
+
+    return proofInput;
   }
 
   /**
@@ -381,10 +376,9 @@ export class VAnchor
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, BigNumberish[]>,
+    leavesMap: Record<string, Uint8Array[]>,
     txOptions?: TransactionOptions
   ): Promise<SetupTransactionResult> {
-    // WrapUnwrap token validation
     if (wrapUnwrapToken.length === 0) {
       if (!this.token) {
         throw new Error('Token address not set');
@@ -393,14 +387,10 @@ export class VAnchor
       wrapUnwrapToken = this.token;
     }
 
-    // Output length validation
     if (outputs.length !== 2) {
       throw new Error('Only two outputs are supported');
     }
-
-    // Get chainId
-    const chainIdNumber = (await this.signer.provider?.getNetwork())?.chainId;
-    const chainId = getChainIdType(Number(chainIdNumber));
+    const chainId = getChainIdType(await this.signer.getChainId());
     const roots = await this.populateRootsForProof();
     let extAmount = this.getExtAmount(inputs, outputs, fee);
 
@@ -411,9 +401,7 @@ export class VAnchor
     let leafIds: LeafIdentifier[] = [];
 
     for (const inputUtxo of inputs) {
-      sumInputUtxosAmount = BigNumber.from(sumInputUtxosAmount).add(
-        BigNumber.from(inputUtxo.amount)
-      );
+      sumInputUtxosAmount = BigNumber.from(sumInputUtxosAmount).add(inputUtxo.amount);
       leafIds.push({
         index: inputUtxo.index!, // TODO: remove non-null assertion here
         typedChainId: Number(inputUtxo.originChainId),
@@ -454,23 +442,15 @@ export class VAnchor
 
     let proof = await groth16.fullProve(proofInput, wasmFile, zkeyFile);
 
-    console.log('Proof generated');
-    console.log({
-      roots,
-      inputs,
-      outputs,
-      proofInput: proofInput.publicAmount,
-      extDataHash,
-    });
     const publicInputs: IVariableAnchorPublicInputs = this.generatePublicInputs(
       proof.proof,
       roots,
       inputs,
       outputs,
       proofInput.publicAmount,
-      extDataHash.toString()
+      extDataHash,
     );
-    console.log('here');
+
     return {
       extAmount,
       extData,
@@ -490,7 +470,7 @@ export class VAnchor
     owner: string,
     keyData: BytesLike,
     overridesTransaction?: OverridesWithFrom<Overrides>
-  ): Promise<ContractReceipt> {
+  ): Promise<ethers.ContractReceipt> {
     const tx = await this.contract.register(
       {
         owner,
@@ -513,9 +493,9 @@ export class VAnchor
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, BigNumberish[]>,
-    overridesTransaction?: PayableOverrides
-  ): Promise<ContractReceipt> {
+    leavesMap: Record<string, Uint8Array[]>,
+    overridesTransaction?: OverridesWithFrom<PayableOverrides>
+  ): Promise<ethers.ContractReceipt> {
     inputs = await this.padUtxos(inputs, 16);
     outputs = await this.padUtxos(outputs, 2);
 
@@ -531,8 +511,8 @@ export class VAnchor
     );
 
     let options = await this.getWrapUnwrapOptions(
-      BigNumber.from(extAmount.toString()),
-      BigNumber.from(refund.toString()),
+      extAmount,
+      BigNumber.from(refund),
       wrapUnwrapToken
     );
 
@@ -552,7 +532,10 @@ export class VAnchor
         roots: publicInputs.roots,
         extensionRoots: [],
         inputNullifiers: publicInputs.inputNullifiers,
-        outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
+        outputCommitments: [
+          BigNumber.from(publicInputs.outputCommitments[0]),
+          BigNumber.from(publicInputs.outputCommitments[1]),
+        ],
         publicAmount: publicInputs.publicAmount,
         extDataHash: publicInputs.extDataHash,
       },
@@ -629,13 +612,13 @@ export class VAnchor
 
   async hasEnoughBalance(depositAmount: BigNumberish, tokenAddress?: string) {
     const userAddress = await this.signer.getAddress();
-    let tokenBalance: BigNumberish;
+    let tokenBalance: BigNumber;
 
     // If a token address was supplied, the user is querying for enough balance of a wrappableToken
     if (tokenAddress) {
       // query for native balance
       if (tokenAddress === zeroAddress) {
-        tokenBalance = await this.signer.provider!.getBalance(await this.signer.getAddress());
+        tokenBalance = await this.signer.getBalance();
       } else {
         const tokenInstance = ERC20__factory.connect(tokenAddress, this.signer);
 
@@ -648,7 +631,7 @@ export class VAnchor
       tokenBalance = await tokenInstance.balanceOf(userAddress);
     }
 
-    if (BigNumber.from(tokenBalance.toString()) < BigNumber.from(depositAmount.toString())) {
+    if (tokenBalance.lt(BigNumber.from(depositAmount))) {
       return false;
     }
 

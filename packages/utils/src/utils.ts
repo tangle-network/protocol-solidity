@@ -6,7 +6,6 @@ import path from 'path';
 import fs from 'fs';
 import { ZkComponents } from './types';
 import { toFixedHex, Keypair, MerkleProof } from '@webb-tools/sdk-core';
-import { AbiCoder, keccak256 } from 'ethers/lib/utils';
 
 export const ZERO_BYTES32 = '0x0000000000000000000000000000000000000000000000000000000000000000';
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
@@ -67,101 +66,3 @@ export const getChainIdType = (chainID: number = 31337): number => {
   const chainIdType = CHAIN_TYPE + toFixedHex(chainID, 4).substr(2);
   return Number(BigInt(chainIdType));
 };
-
-export function getIdentityVAnchorExtDataHash(
-  encryptedOutput1: string,
-  encryptedOutput2: string,
-  extAmount: string,
-  fee: string,
-  recipient: string,
-  relayer: string,
-  refund: string,
-  token: string
-) {
-  const abi = new AbiCoder();
-  const encodedData = abi.encode(
-    [
-      'tuple(address recipient,int256 extAmount,address relayer,uint256 fee,uint256 refund,address token,bytes encryptedOutput1,bytes encryptedOutput2)',
-    ],
-    [
-      {
-        recipient: toFixedHex(recipient, 20),
-        extAmount: toFixedHex(extAmount),
-        relayer: toFixedHex(relayer, 20),
-        fee: toFixedHex(fee),
-        refund: toFixedHex(refund),
-        token: toFixedHex(token, 20),
-        encryptedOutput1,
-        encryptedOutput2,
-      },
-    ]
-  );
-
-  const hash = keccak256(encodedData);
-
-  return BigInt(hash) % FIELD_SIZE;
-}
-export default function verifyProof(
-  verificationKey: any,
-  { proof, publicSignals }: any
-): Promise<boolean> {
-  return groth16.verify(
-    verificationKey,
-    [
-      publicSignals.merkleRoot,
-      publicSignals.nullifierHash,
-      publicSignals.signalHash,
-      publicSignals.externalNullifier,
-    ],
-    proof
-  );
-}
-
-export async function generateProof(
-  keypair: Keypair,
-  identityRoots: string[],
-  identityMerkleProof: MerkleProof,
-  outSemaphoreProofs: MerkleProof[],
-  extDataHash: string,
-  vanchor_inputs: VAnchorProofInputs,
-  wasmFilePath: string,
-  zkeyFilePath: string
-): Promise<any> {
-  const inputs = {
-    privateKey: keypair.privkey.toString(),
-    semaphoreTreePathIndices: identityMerkleProof.pathIndices,
-    semaphoreTreeSiblings: identityMerkleProof.pathElements.map((x) =>
-      BigInt(x.toString()).toString()
-    ),
-    semaphoreRoots: identityRoots,
-    chainID: vanchor_inputs.chainID,
-    publicAmount: vanchor_inputs.publicAmount,
-    extDataHash: extDataHash,
-
-    // data for 2 transaction inputs
-    inputNullifier: vanchor_inputs.inputNullifier,
-    inAmount: vanchor_inputs.inAmount,
-    inPrivateKey: vanchor_inputs.inPrivateKey,
-    inBlinding: vanchor_inputs.inBlinding,
-    inPathIndices: vanchor_inputs.inPathIndices,
-    inPathElements: vanchor_inputs.inPathElements,
-
-    // data for 2 transaction outputs
-    outputCommitment: vanchor_inputs.outputCommitment,
-    outChainID: vanchor_inputs.outChainID,
-    outAmount: vanchor_inputs.outAmount,
-    outPubkey: vanchor_inputs.outPubkey,
-    outSemaphoreTreePathIndices: outSemaphoreProofs.map((proof) =>
-      proof.pathIndices.map((idx) => BigInt(idx.toString()).toString())
-    ),
-    outSemaphoreTreeElements: outSemaphoreProofs.map((proof) =>
-      proof.pathElements.map((elem) => BigInt(elem.toString()).toString())
-    ),
-    outBlinding: vanchor_inputs.outBlinding,
-    vanchorRoots: vanchor_inputs.roots,
-  };
-
-  let proof = await groth16.fullProve(inputs, wasmFilePath, zkeyFilePath);
-
-  return proof;
-}

@@ -1,3 +1,4 @@
+import { WebbBridge, Deployer, TransactionOptions, SetupTransactionResult } from '@webb-tools/anchors';
 import {
   IdentityVAnchor as IdentityVAnchorContract,
   IdentityVAnchorEncodeInputs__factory,
@@ -18,12 +19,6 @@ import { Group, LinkedGroup } from '@webb-tools/semaphore-group';
 import { Semaphore } from '@webb-tools/semaphore/src';
 import { VAnchorProofInputs, ZkComponents, getChainIdType, u8aToHex } from '@webb-tools/utils';
 import { BigNumber, BigNumberish, ethers } from 'ethers';
-import {
-  Deployer,
-  SetupTransactionResult,
-  TransactionOptions,
-  WebbBridge,
-} from '@webb-tools/anchors';
 
 const assert = require('assert');
 const snarkjs = require('snarkjs');
@@ -47,10 +42,7 @@ export type RawPublicSignals = string[11];
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
-export class IdentityVAnchor
-  extends WebbBridge<IdentityVAnchorContract>
-  implements IVAnchor<IdentityVAnchorContract>
-{
+export class IdentityVAnchor extends WebbBridge<IdentityVAnchorContract> implements IVAnchor<IdentityVAnchorContract> {
   contract: IdentityVAnchorContract;
   semaphore: Semaphore;
   group: LinkedGroup;
@@ -62,7 +54,7 @@ export class IdentityVAnchor
   token?: string;
   denomination?: string;
   maxEdges: number;
-  groupId: BigNumberish;
+  groupId: BigNumber;
   provingManager: CircomProvingManager;
 
   constructor(
@@ -70,7 +62,7 @@ export class IdentityVAnchor
     signer: ethers.Signer,
     treeHeight: number,
     maxEdges: number,
-    groupId: BigNumberish,
+    groupId: BigNumber,
     group: LinkedGroup,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents
@@ -102,7 +94,7 @@ export class IdentityVAnchor
     handler: string,
     token: string,
     maxEdges: number,
-    groupId: BigNumberish,
+    groupId: BigNumber,
     group: LinkedGroup,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents,
@@ -149,7 +141,7 @@ export class IdentityVAnchor
     const createdIdentityVAnchor = new IdentityVAnchor(
       vAnchor,
       signer,
-      levels,
+      BigNumber.from(levels).toNumber(),
       maxEdges,
       groupId,
       group,
@@ -169,7 +161,7 @@ export class IdentityVAnchor
     handler: string,
     token: string,
     maxEdges: number,
-    groupId: BigNumberish,
+    groupId: BigNumber,
     group: LinkedGroup,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents,
@@ -200,7 +192,7 @@ export class IdentityVAnchor
     const createdIdentityVAnchor = new IdentityVAnchor(
       vAnchor,
       signer,
-      levels,
+      BigNumber.from(levels).toNumber(),
       maxEdges,
       groupId,
       group,
@@ -210,8 +202,8 @@ export class IdentityVAnchor
     createdIdentityVAnchor.latestSyncedBlock = vAnchor.deployTransaction.blockNumber!;
     createdIdentityVAnchor.token = token;
     const tx = await createdIdentityVAnchor.contract.initialize(
-      BigInt('1'),
-      BigInt('2') ^ (BigInt('256') - BigInt('1'))
+      BigNumber.from('1'),
+      BigNumber.from(2).pow(256).sub(1)
     );
     await tx.wait();
     return createdIdentityVAnchor;
@@ -296,11 +288,11 @@ export class IdentityVAnchor
 
   public async populateVAnchorRootsForProof(): Promise<string[]> {
     const neighborEdges = await this.contract.getLatestNeighborEdges();
-    const neighborRootInfos = neighborEdges.map((rootData: any) => {
+    const neighborRootInfos = neighborEdges.map((rootData) => {
       return rootData.root;
     });
     let thisRoot = await this.contract.getLastRoot();
-    return [thisRoot.toString(), ...neighborRootInfos];
+    return [thisRoot.toString(), ...neighborRootInfos.map((bignum) => bignum.toString())];
   }
 
   /**
@@ -308,7 +300,7 @@ export class IdentityVAnchor
    * @param input A UTXO object that is inside the tree
    * @returns
    */
-  public getMerkleProof(input: Utxo, leavesMap?: BigNumberish[]): MerkleProof {
+  public getMerkleProof(input: Utxo, leavesMap?: Uint8Array[]): MerkleProof {
     let inputMerklePathIndices: number[];
     let inputMerklePathElements: BigNumber[];
 
@@ -376,7 +368,7 @@ export class IdentityVAnchor
         BigNumber.from(toFixedHex(outputs[1])).toString(),
       ],
       publicAmount: toFixedHex(publicAmount),
-      extDataHash: BigNumber.from(toFixedHex(extDataHash)).toString(),
+      extDataHash: toFixedHex(extDataHash),
     };
 
     return args;
@@ -430,7 +422,9 @@ export class IdentityVAnchor
     const proofInputs = {
       privateKey: keypair.privkey.toString(),
       semaphoreTreePathIndices: identityMerkleProof.pathIndices,
-      semaphoreTreeSiblings: identityMerkleProof.pathElements,
+      semaphoreTreeSiblings: identityMerkleProof.pathElements.map((x) =>
+        BigNumber.from(x).toString()
+      ),
       semaphoreRoots: identityRoots,
       chainID: vanchorInputs.chainID,
       publicAmount: vanchorInputs.publicAmount,
@@ -443,7 +437,7 @@ export class IdentityVAnchor
       inBlinding: vanchorInputs.inBlinding,
       inPathIndices: vanchorInputs.inPathIndices,
       inPathElements: vanchorInputs.inPathElements.map((utxoPathElements) =>
-        utxoPathElements.map((x) => BigInt(x).toString())
+        utxoPathElements.map((x) => BigNumber.from(x).toString())
       ),
 
       // data for 2 transaction outputs
@@ -451,8 +445,17 @@ export class IdentityVAnchor
       outChainID: vanchorInputs.outChainID,
       outAmount: vanchorInputs.outAmount,
       outPubkey: vanchorInputs.outPubkey,
-      outSemaphoreTreePathIndices: outSemaphoreProofs,
-      outSemaphoreTreeElements: outSemaphoreProofs,
+      outSemaphoreTreePathIndices: outSemaphoreProofs.map((proof) =>
+        proof.pathIndices.map((idx) => BigNumber.from(idx).toString())
+      ),
+      outSemaphoreTreeElements: outSemaphoreProofs.map((proof) =>
+        proof.pathElements.map((elem) => {
+          if (BigNumber.isBigNumber(elem)) {
+            return elem.toString();
+          }
+          return BigNumber.from(elem).toString();
+        })
+      ),
       outBlinding: vanchorInputs.outBlinding,
       vanchorRoots: vanchorInputs.roots,
     };
@@ -473,7 +476,7 @@ export class IdentityVAnchor
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, BigNumberish[]>,
+    leavesMap: Record<string, Uint8Array[]>,
     txOptions?: TransactionOptions
   ): Promise<SetupTransactionResult> {
     if (wrapUnwrapToken.length === 0) {
@@ -493,9 +496,9 @@ export class IdentityVAnchor
       throw new Error('keypair is required for setupTransaction');
     }
 
-    const groupElements: BigNumberish[] = txOptions.externalLeaves || [];
-    const chainIdBigInt = (await this.signer.provider!.getNetwork()).chainId;
-    const chainId = getChainIdType(Number(chainIdBigInt));
+    const groupElements: BigNumberish[] | undefined = txOptions.externalLeaves;
+
+    const chainId = getChainIdType(await this.signer.getChainId());
     const identityRootInputs = this.populateIdentityRootsForProof();
     const identityMerkleProof: MerkleProof = this.generateIdentityMerkleProof(
       keypair.getPubKey(),
@@ -507,20 +510,20 @@ export class IdentityVAnchor
       recipient,
       extAmount,
       relayer,
-      BigInt(fee.toString()),
-      BigInt(refund.toString()),
+      BigNumber.from(fee),
+      BigNumber.from(refund),
       wrapUnwrapToken,
       outputs[0].encrypt(),
       outputs[1].encrypt()
     );
 
-    const vanchorInput: VAnchorProofInputs = await this.generateProofInputs(
+    const vanchorInput: VAnchorProofInputs = await this.generateUTXOInputs(
       inputs,
       outputs,
       chainId,
       extAmount,
-      BigInt(fee.toString()),
-      extDataHash.toString(),
+      BigNumber.from(fee),
+      extDataHash,
       leavesMap,
       txOptions
     );
@@ -557,60 +560,34 @@ export class IdentityVAnchor
     let identityMerkleProof: MerkleProof;
     if (groupElements === undefined) {
       const idx = this.group.indexOf(pubkey);
-      const tempIdentityMerkleProof = this.group.generateProofOfMembership(idx);
-      identityMerkleProof = {
-        pathIndices: tempIdentityMerkleProof.pathIndices,
-        pathElements: tempIdentityMerkleProof.pathElements,
-        element: tempIdentityMerkleProof.element,
-        merkleRoot: tempIdentityMerkleProof.merkleRoot,
-      };
+      identityMerkleProof = this.group.generateProofOfMembership(idx);
     } else {
       const group = new Group(this.group.levels, BigInt(this.group.zeroValue.toString()));
-      group.addMembers(groupElements);
+      group.addMembers(groupElements.map((u8a: Uint8Array) => u8aToHex(u8a)));
       const idx = group.indexOf(pubkey);
-      const tempIdentityMerkleProof = group.generateProofOfMembership(idx);
-      identityMerkleProof = {
-        pathIndices: tempIdentityMerkleProof.pathIndices,
-        pathElements: tempIdentityMerkleProof.pathElements,
-        element: tempIdentityMerkleProof.element,
-        merkleRoot: tempIdentityMerkleProof.merkleRoot,
-      };
+      identityMerkleProof = group.generateProofOfMembership(idx);
     }
 
     return identityMerkleProof;
   }
 
   public populateIdentityRootsForProof(): string[] {
-    return this.group.getRoots().map((el) => el.toString());
+    return this.group.getRoots().map((bignum: BigNumber) => bignum.toString());
   }
 
-  public generateOutputSemaphoreProof(
-    outputs: Utxo[],
-    groupElements: BigNumberish[]
-  ): MerkleProof[] {
+  public generateOutputSemaphoreProof(outputs: Utxo[], groupElements: BigNumberish[]): MerkleProof[] {
     const outSemaphoreProofs = outputs.map((utxo) => {
       const leaf = utxo.keypair.getPubKey();
       if (Number(utxo.amount) > 0) {
         if (groupElements === undefined) {
           const idx = this.group.indexOf(leaf);
-          const tempMerkleProof = this.group.generateProofOfMembership(idx);
-          return {
-            pathIndices: tempMerkleProof.pathIndices,
-            pathElements: tempMerkleProof.pathElements,
-            element: tempMerkleProof.element,
-            merkleRoot: tempMerkleProof.merkleRoot,
-          };
+          return this.group.generateProofOfMembership(idx);
         } else {
           const group = new Group(this.group.levels, this.group.zeroValue.toString());
-          group.addMembers(groupElements);
+          group.addMembers(groupElements.map((u8a: Uint8Array) => u8aToHex(u8a)));
           const idx = group.indexOf(leaf);
-          const tempMerkleProof = group.generateProofOfMembership(idx);
-          return {
-            pathIndices: tempMerkleProof.pathIndices,
-            pathElements: tempMerkleProof.pathElements,
-            element: tempMerkleProof.element,
-            merkleRoot: tempMerkleProof.merkleRoot,
-          };
+          const merkleProof = group.generateProofOfMembership(idx);
+          return merkleProof;
         }
       } else {
         const inputMerklePathIndices = new Array(this.group.depth).fill(0);
@@ -627,14 +604,14 @@ export class IdentityVAnchor
     return outSemaphoreProofs;
   }
 
-  public async generateProofInputs(
+  public async generateUTXOInputs(
     inputs: Utxo[],
     outputs: Utxo[],
     chainId: number,
     extAmount: BigNumberish,
     fee: BigNumberish,
     extDataHash: BigNumberish,
-    leavesMap: Record<string, BigNumberish[]>,
+    leavesMap: Record<string, Uint8Array[]>,
     txOptions: TransactionOptions
   ): Promise<VAnchorProofInputs> {
     const vanchorRoots = await this.populateVAnchorRootsForProof();
@@ -652,13 +629,13 @@ export class IdentityVAnchor
       vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x, treeElements));
     }
     const vanchorInput: VAnchorProofInputs = await generateVariableWitnessInput(
-      vanchorRoots.map((root) => BigInt(root)),
+      vanchorRoots.map((root) => BigNumber.from(root)),
       chainId,
       inputs,
       outputs,
       extAmount,
       fee,
-      BigInt(extDataHash.toString()),
+      BigNumber.from(extDataHash),
       vanchorMerkleProof
     );
 

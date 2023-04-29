@@ -449,7 +449,7 @@ export class OpenVAnchor
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, BigNumberish[]>,
+    leavesMap: Record<string, Uint8Array[]>,
     txOptions?: TransactionOptions | undefined
   ): Promise<SetupTransactionResult> {
     throw new Error('Method not supported on `OpenVAnchor` contract');

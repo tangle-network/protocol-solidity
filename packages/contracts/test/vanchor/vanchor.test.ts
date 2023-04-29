@@ -358,7 +358,9 @@ describe('VAnchor for 1 max edge', () => {
         keypair: aliceDepositUtxo.keypair,
       });
 
-      const anchorLeaves = anchor.tree.elements();
+      const anchorLeaves = anchor.tree.elements().map((el) => (
+        Uint8Array.from(Buffer.from(el.toHexString())))
+      );
 
       await anchor.transact([aliceDepositUtxo], [aliceRefreshUtxo], 0, 0, '0', '0', '', {
         [chainID.toString()]: anchorLeaves,
@@ -394,7 +396,9 @@ describe('VAnchor for 1 max edge', () => {
         keypair: aliceDepositUtxo.keypair,
       });
 
-      const anchorLeaves = anchor.tree.elements();
+      const anchorLeaves = anchor.tree.elements().map((el) => (
+        Uint8Array.from(Buffer.from(el.toHexString())))
+      );
 
       const refundAmount = parseEther('1');
       await anchor.transact(
@@ -470,7 +474,9 @@ describe('VAnchor for 1 max edge', () => {
         keypair: aliceDepositUtxo.keypair,
       });
 
-      const anchorLeaves = anchor.tree.elements();
+      const anchorLeaves = anchor.tree.elements().map((el) => (
+        Uint8Array.from(Buffer.from(el.toHexString())))
+      );
 
       const nonZeroRefund = parseEther('1');
       await assert.rejects(
@@ -509,7 +515,9 @@ describe('VAnchor for 1 max edge', () => {
         {}
       );
 
-      const anchorLeaves = anchor.tree.elements();
+      const anchorLeaves = anchor.tree.elements().map((el) => (
+        Uint8Array.from(Buffer.from(el.toHexString())))
+      );
 
       const aliceSplitAmount = 5;
       const aliceSplitUtxo1 = await generateUTXOForTest(chainID, aliceSplitAmount);
@@ -546,7 +554,9 @@ describe('VAnchor for 1 max edge', () => {
         {}
       );
 
-      let anchorLeaves = anchor.tree.elements();
+      let anchorLeaves = anchor.tree.elements().map((el) => (
+        Uint8Array.from(Buffer.from(el.toHexString())))
+      );
 
       const aliceDepositAmount2 = 1e7;
       let aliceDepositUtxo2 = await CircomUtxo.generateUtxo({
@@ -563,7 +573,9 @@ describe('VAnchor for 1 max edge', () => {
         [chainID.toString()]: anchorLeaves,
       });
 
-      anchorLeaves = anchor.tree.elements();
+      anchorLeaves = anchor.tree.elements().map((el) => (
+        Uint8Array.from(Buffer.from(el.toHexString())))
+      );
 
       const aliceJoinAmount = 2e7;
       const aliceJoinUtxo = await generateUTXOForTest(chainID, aliceJoinAmount);
@@ -618,7 +630,9 @@ describe('VAnchor for 1 max edge', () => {
         {}
       );
 
-      let anchorLeaves = anchor.tree.elements();
+      let anchorLeaves = anchor.tree.elements().map((el) => (
+        Uint8Array.from(Buffer.from(el.toHexString())))
+      );
 
       const aliceDepositAmount3 = 1e7;
       let aliceDepositUtxo3 = await CircomUtxo.generateUtxo({
@@ -634,7 +648,9 @@ describe('VAnchor for 1 max edge', () => {
         [chainID.toString()]: anchorLeaves,
       });
 
-      anchorLeaves = anchor.tree.elements();
+      anchorLeaves = anchor.tree.elements().map((el) => (
+        Uint8Array.from(Buffer.from(el.toHexString())))
+      );
 
       const aliceJoinAmount = 3e7;
       const aliceJoinUtxo = await CircomUtxo.generateUtxo({
@@ -691,7 +707,9 @@ describe('VAnchor for 1 max edge', () => {
         {}
       );
 
-      let anchorLeaves = anchor.tree.elements();
+      let anchorLeaves = anchor.tree.elements().map((el) => (
+        Uint8Array.from(Buffer.from(el.toHexString())))
+      );
 
       const vAnchorWrappedTokenBalanceBeforerWithdraw = await wrappedToken.balanceOf(
         anchor.contract.address
@@ -755,7 +773,9 @@ describe('VAnchor for 1 max edge', () => {
         {}
       );
 
-      let anchorLeaves = anchor.tree.elements();
+      let anchorLeaves = anchor.tree.elements().map((el) => (
+        Uint8Array.from(Buffer.from(el.toHexString())))
+      );
       // Limitations on UTXO index readonly value. create a new UTXO with the proper index.
       const aliceDepositIndex = anchor.tree.getIndexByElement(
         BigNumber.from(Buffer.from(aliceDepositUtxo.commitment).toString('hex'))
@@ -775,7 +795,9 @@ describe('VAnchor for 1 max edge', () => {
         [chainID.toString()]: anchorLeaves,
       });
 
-      anchorLeaves = anchor.tree.elements();
+      anchorLeaves = anchor.tree.elements().map((el) => (
+        Uint8Array.from(Buffer.from(el.toHexString())))
+      );
 
       await TruffleAssert.reverts(
         anchor.transact([aliceDepositUtxo], [aliceTransferUtxo], 0, 0, '0', '0', '', {
@@ -812,7 +834,9 @@ describe('VAnchor for 1 max edge', () => {
         {}
       );
 
-      let anchorLeaves = anchor.tree.elements();
+      let anchorLeaves = anchor.tree.elements().map((el) => (
+        Uint8Array.from(Buffer.from(el.toHexString())))
+      );
 
       // Step 2: Check Alice's balance
       const aliceBalanceAfterDeposit = await token.balanceOf(alice.address);
@@ -1177,7 +1201,9 @@ describe('VAnchor for 1 max edge', () => {
       const spendableUtxos = utxos.filter((utxo) => utxo !== undefined);
 
       // fetch the inserted leaves
-      const leaves = anchor.tree.elements();
+      const anchorLeaves = anchor.tree.elements().map((el) => (
+        Uint8Array.from(Buffer.from(el.toHexString())))
+      );
 
       // Bob uses the parsed utxos to issue a withdraw
       receipt = (await anchor.transact(
@@ -1189,7 +1215,7 @@ describe('VAnchor for 1 max edge', () => {
         '0',
         token.address,
         {
-          [chainID.toString()]: leaves,
+          [chainID.toString()]: anchorLeaves,
         }
       )) as ContractReceipt;
 
@@ -1213,7 +1239,9 @@ describe('VAnchor for 1 max edge', () => {
 
       await anchor.transact([], [aliceDepositUtxo], 0, 0, '0', '0', token.address, {});
 
-      const anchorLeaves = anchor.tree.elements();
+      const anchorLeaves = anchor.tree.elements().map((el) => (
+        Uint8Array.from(Buffer.from(el.toHexString())))
+      );
 
       // withdrawal
       await anchor.transact([aliceDepositUtxo], [], 0, 0, sender.address, '0', '', {
@@ -1331,8 +1359,8 @@ describe('VAnchor for 1 max edge', () => {
         '0',
         setupVAnchor.token,
         {
-          [fakeChainId.toString()]: [Buffer.from(fakeUtxo.commitment).toString('hex')],
-          [chainID.toString()]: [fakeTree.zeroElement],
+          [fakeChainId.toString()]: [fakeUtxo.commitment],
+          [chainID.toString()]: [Buffer.from(fakeTree.zeroElement.toHexString())],
         }
       );
       await TruffleAssert.reverts(
@@ -1565,7 +1593,9 @@ describe('VAnchor for 1 max edge', () => {
       //create a deposit on the anchor already setup
       await wrappedVAnchor.transact([], [aliceDepositUtxo], 0, 0, '0', '0', token.address, {});
 
-      let anchorLeaves = wrappedVAnchor.tree.elements();
+      let anchorLeaves = wrappedVAnchor.tree.elements().map((el) => (
+        Uint8Array.from(Buffer.from(el.toHexString())))
+      );
 
       // Limitations on UTXO index readonly value. create a new UTXO with the proper index.
       const aliceDepositIndex = wrappedVAnchor.tree.getIndexByElement(
@@ -1710,7 +1740,9 @@ describe('VAnchor for 1 max edge', () => {
 
       // Withdraw 1e7 and check relevant balances
       const aliceWithdrawAmount = 1e7;
-      let anchorLeaves = wrappedVAnchor.tree.elements();
+      let anchorLeaves = wrappedVAnchor.tree.elements().map((el) => (
+        Uint8Array.from(Buffer.from(el.toHexString())))
+      );
 
       let aliceChangeUtxo = await CircomUtxo.generateUtxo({
         curve: 'Bn254',
@@ -1734,7 +1766,10 @@ describe('VAnchor for 1 max edge', () => {
         }
       );
 
-      anchorLeaves = wrappedVAnchor.tree.elements();
+      anchorLeaves = wrappedVAnchor.tree.elements().map((el) => (
+        Uint8Array.from(Buffer.from(el.toHexString())))
+      );
+
       const aliceChangeIndex = wrappedVAnchor.tree.getIndexByElement(
         BigNumber.from(Buffer.from(aliceChangeUtxo.commitment).toString('hex'))
       );

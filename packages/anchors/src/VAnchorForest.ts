@@ -8,48 +8,34 @@ import {
   CircomProvingManager,
   LeafIdentifier,
   MerkleTree,
-  MerkleProof,
   Utxo,
   generateVariableWitnessInput,
-  getVAnchorExtDataHash,
-  max,
-  mean,
-  median,
-  min,
   toFixedHex,
 } from '@webb-tools/sdk-core';
-import { PayableOverrides } from '@ethersproject/contracts';
 import { poseidon_gencontract as poseidonContract } from 'circomlibjs';
-import { BigNumberish, ContractReceipt, ethers } from 'ethers';
+import { BigNumber, BigNumberish, PayableOverrides, ethers } from 'ethers';
 import { groth16 } from 'snarkjs';
 
 // import { MerkleTree } from "."
-import {
-  IVAnchor,
-  IVariableAnchorExtData,
-  IVariableAnchorPublicInputs,
-} from '@webb-tools/interfaces';
+import { IVAnchor, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
 import {
   VAnchorProofInputs,
   ZERO_BYTES32,
   ZkComponents,
   getChainIdType,
-  hexToU8a,
   u8aToHex,
 } from '@webb-tools/utils';
 import { WebbBridge } from './Common';
-import { Deployer } from './Deployer';
 import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
 import { splitTransactionOptions } from './utils';
+import Deployer from './Deployer';
+
 
 // This convenience wrapper class is used in tests -
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
-export class VAnchorForest
-  extends WebbBridge<VAnchorForestContract>
-  implements IVAnchor<VAnchorForestContract>
-{
+export class VAnchorForest extends WebbBridge<VAnchorForestContract> implements IVAnchor<VAnchorForestContract> {
   contract: VAnchorForestContract;
   forest: MerkleTree;
 
@@ -145,8 +131,8 @@ export class VAnchorForest
     const createdVAnchor = new VAnchorForest(
       vAnchor,
       signer,
-      Number(forestLevels),
-      Number(subtreeLevels),
+      BigNumber.from(forestLevels).toNumber(),
+      BigNumber.from(subtreeLevels).toNumber(),
       maxEdges,
       smallCircuitZkComponents,
       largeCircuitZkComponents
@@ -170,16 +156,17 @@ export class VAnchorForest
   ) {
     const encodeLibraryFactory = new VAnchorEncodeInputs__factory(signer);
     const encodeLibrary = await encodeLibraryFactory.deploy();
-
+    await encodeLibrary.deployed();
     const poseidonABI = poseidonContract.generateABI(2);
     const poseidonBytecode = poseidonContract.createCode(2);
 
     const PoseidonLibFactory = new ethers.ContractFactory(poseidonABI, poseidonBytecode, signer);
     const poseidonLib = await PoseidonLibFactory.deploy();
+    await poseidonLib.deployed();
 
     const LinkableIncrementalBinaryTree = new LinkableIncrementalBinaryTree__factory(
       {
-        ['contracts/hashers/Poseidon.sol:PoseidonT3']: await poseidonLib.getAddress(),
+        ['contracts/hashers/Poseidon.sol:PoseidonT3']: poseidonLib.address,
       },
       signer
     );
@@ -188,7 +175,7 @@ export class VAnchorForest
     const factory = new VAnchorForest__factory(
       {
         ['contracts/libs/VAnchorEncodeInputs.sol:VAnchorEncodeInputs']: encodeLibrary.address,
-        ['contracts/hashers/Poseidon.sol:PoseidonT3']: await poseidonLib.getAddress(),
+        ['contracts/hashers/Poseidon.sol:PoseidonT3']: poseidonLib.address,
         ['contracts/trees/LinkableIncrementalBinaryTree.sol:LinkableIncrementalBinaryTree']:
           linkableIncrementalBinaryTree.address,
       },
@@ -208,8 +195,8 @@ export class VAnchorForest
     const createdVAnchor = new VAnchorForest(
       vAnchor,
       signer,
-      Number(forestLevels),
-      Number(subtreeLevels),
+      BigNumber.from(forestLevels).toNumber(),
+      BigNumber.from(subtreeLevels).toNumber(),
       maxEdges,
       smallCircuitZkComponents,
       largeCircuitZkComponents
@@ -217,8 +204,8 @@ export class VAnchorForest
     createdVAnchor.latestSyncedBlock = vAnchor.deployTransaction.blockNumber!;
     createdVAnchor.token = token;
     const tx = await createdVAnchor.contract.initialize(
-      BigInt('1'),
-      BigInt(2) ^ (BigInt(256) - BigInt(1))
+      BigNumber.from('1'),
+      BigNumber.from(2).pow(256).sub(1)
     );
     await tx.wait();
     return createdVAnchor;
@@ -253,7 +240,7 @@ export class VAnchorForest
     return {
       proof: args[0],
       roots: args[1],
-      extensionRoots: '0x',
+      extensionRoots: '0x00',
       inputNullifiers: args[2],
       outputCommitments: args[3],
       publicAmount: args[4],
@@ -272,9 +259,9 @@ export class VAnchorForest
     // this.latestSyncedBlock = currentBlockNumber;
   }
 
-  public async populateRootsForProof(): Promise<BigInt[]> {
+  public async populateRootsForProof(): Promise<BigNumber[]> {
     const neighborEdges = await this.contract.getLatestNeighborEdges();
-    const neighborRootInfos = neighborEdges.map((rootData: any) => {
+    const neighborRootInfos = neighborEdges.map((rootData) => {
       return rootData.root;
     });
     let thisRoot = await this.contract.getLastRoot();
@@ -292,9 +279,9 @@ export class VAnchorForest
     forestLeavesMap?: BigNumberish[]
   ): any {
     let inputSubtreePathIndices: number[];
-    let inputSubtreePathElements: BigNumberish[];
+    let inputSubtreePathElements: BigNumber[];
     let inputForestPathIndices: number[];
-    let inputForestPathElements: BigNumberish[];
+    let inputForestPathElements: BigNumber[];
 
     if (Number(input.amount) > 0) {
       if (input.index === undefined) {
@@ -332,7 +319,7 @@ export class VAnchorForest
     }
 
     return {
-      element: BigInt(u8aToHex(input.commitment)),
+      element: BigNumber.from(u8aToHex(input.commitment)),
       pathElements: inputSubtreePathElements,
       pathIndices: inputSubtreePathIndices,
       forestPathElements: inputForestPathElements,
@@ -345,20 +332,20 @@ export class VAnchorForest
     proof: any,
     nIns: number = 2,
     nOuts: number = 2,
-    numAnchors: number = 2
+    maxEdges: number = 2
     // ): IVariableAnchorPublicInputs {
   ): Promise<any> {
-    const callData = await groth16.exportSolidityCallData(proof.proof, proof.publicSignals);
+    const byte_calldata = await groth16.exportSolidityCallData(proof.proof, proof.publicSignals);
     // public inputs to the contract
-    proof = await this.encodeSolidityProof(callData);
-    const publicInputs = JSON.parse('[' + callData + ']')[3];
+    proof = await this.encodeSolidityProof(byte_calldata);
+    const publicInputs = JSON.parse('[' + byte_calldata + ']')[3];
 
     const publicAmount = publicInputs[0];
     const extDataHash = publicInputs[1];
     const inputNullifiers = publicInputs.slice(2, 2 + nIns);
     const outputCommitments = publicInputs.slice(2 + nIns, 2 + nIns + nOuts);
     // const _chainID = publicInputs[2 + nIns + nOuts];
-    const roots = publicInputs.slice(3 + nIns + nOuts, 3 + nIns + nOuts + numAnchors);
+    const roots = publicInputs.slice(3 + nIns + nOuts, 3 + nIns + nOuts + maxEdges);
     const args = {
       proof: `0x${proof}`,
       roots: `0x${roots.map((x: any) => toFixedHex(x).slice(2)).join('')}`,
@@ -413,7 +400,6 @@ export class VAnchorForest
       return false;
     }
   }
-
   public async generateProofInputs(
     inputs: Utxo[],
     outputs: Utxo[],
@@ -421,7 +407,7 @@ export class VAnchorForest
     extAmount: BigNumberish,
     fee: BigNumberish,
     extDataHash: BigNumberish,
-    leavesMap: Record<string, BigNumberish[]>, // subtree leaves
+    leavesMap: Record<string, Uint8Array[]>, // subtree leaves
     txOptions: TransactionOptions
   ): Promise<any> {
     const vanchorRoots = await this.populateRootsForProof();
@@ -445,13 +431,13 @@ export class VAnchorForest
       vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x, treeElements, forestElements));
     }
     const vanchorInput: VAnchorProofInputs = await generateVariableWitnessInput(
-      vanchorRoots.map((root) => root.toString()),
+      vanchorRoots.map((root) => BigNumber.from(root)),
       chainId,
       inputs,
       outputs,
       extAmount,
       fee,
-      BigInt(extDataHash.toString()),
+      BigNumber.from(extDataHash),
       vanchorMerkleProof
     );
     const indices = vanchorMerkleProof.map((proof: any) => proof.forestPathIndices);
@@ -493,8 +479,8 @@ export class VAnchorForest
 
   public async updateTreeOrForestState(outputs: Utxo[]): Promise<void> {
     outputs.forEach((x) => {
-      const commitment = BigInt(u8aToHex(x.commitment));
-      this.tree.insert(commitment.toString(16));
+      const commitment = BigNumber.from(u8aToHex(x.commitment));
+      this.tree.insert(commitment.toHexString());
       let numOfElements = this.tree.number_of_elements();
       this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
     });
@@ -515,7 +501,7 @@ export class VAnchorForest
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, BigNumberish[]>,
+    leavesMap: Record<string, Uint8Array[]>,
     txOptions: TransactionOptions
   ): Promise<SetupTransactionResult> {
     if (wrapUnwrapToken.length === 0) {
@@ -525,8 +511,7 @@ export class VAnchorForest
 
       wrapUnwrapToken = this.token;
     }
-    const chainIdBigInt = (await this.signer.provider!.getNetwork()).chainId;
-    const chainId = getChainIdType(Number(chainIdBigInt));
+    const chainId = getChainIdType(await this.signer.getChainId());
     let extAmount = this.getExtAmount(inputs, outputs, fee);
 
     // calculate the sum of input notes (for calculating the public amount)
@@ -536,7 +521,7 @@ export class VAnchorForest
     let leafIds: LeafIdentifier[] = [];
 
     for (const inputUtxo of inputs) {
-      sumInputUtxosAmount = BigInt(sumInputUtxosAmount) + BigInt(inputUtxo.amount);
+      sumInputUtxosAmount = BigNumber.from(sumInputUtxosAmount).add(inputUtxo.amount);
       leafIds.push({
         index: inputUtxo.index!, // TODO: remove non-null assertion here
         typedChainId: Number(inputUtxo.originChainId),
@@ -544,10 +529,10 @@ export class VAnchorForest
     }
     const { extData, extDataHash } = await this.generateExtData(
       recipient,
-      BigInt(extAmount),
+      BigNumber.from(extAmount),
       relayer,
-      BigInt(fee.toString()),
-      BigInt(refund.toString()),
+      BigNumber.from(fee),
+      BigNumber.from(refund),
       wrapUnwrapToken,
       outputs[0].encrypt(),
       outputs[1].encrypt()
@@ -556,9 +541,9 @@ export class VAnchorForest
       inputs,
       outputs,
       chainId,
-      BigInt(extAmount),
-      BigInt(fee.toString()),
-      extDataHash.toString(),
+      BigNumber.from(extAmount),
+      BigNumber.from(fee),
+      extDataHash,
       leavesMap,
       txOptions
     );
@@ -593,9 +578,9 @@ export class VAnchorForest
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, BigNumberish[]>,
-    overridesTransaction?: PayableOverrides & TransactionOptions
-  ): Promise<ContractReceipt> {
+    leavesMap: Record<string, Uint8Array[]>,
+    overridesTransaction?: OverridesWithFrom<PayableOverrides> & TransactionOptions
+  ): Promise<ethers.ContractReceipt> {
     const [overrides, txOptions] = splitTransactionOptions(overridesTransaction);
 
     // Default UTXO chain ID will match with the configured signer's chain ID
@@ -615,8 +600,8 @@ export class VAnchorForest
     );
 
     let options = await this.getWrapUnwrapOptions(
-      BigInt(extAmount.toString()),
-      BigInt(refund.toString()),
+      extAmount,
+      BigNumber.from(refund),
       wrapUnwrapToken
     );
 
@@ -636,7 +621,10 @@ export class VAnchorForest
         roots: publicInputs.roots,
         extensionRoots: [],
         inputNullifiers: publicInputs.inputNullifiers,
-        outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
+        outputCommitments: [
+          BigNumber.from(publicInputs.outputCommitments[0]),
+          BigNumber.from(publicInputs.outputCommitments[1]),
+        ],
         publicAmount: publicInputs.publicAmount,
         extDataHash: publicInputs.extDataHash,
       },

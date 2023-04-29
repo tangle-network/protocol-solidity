@@ -193,9 +193,9 @@ export abstract class WebbBridge<A extends WebbContracts> {
 
   public getExtAmount(inputs: Utxo[], outputs: Utxo[], fee: BigNumberish) {
     return (
-      BigInt(fee.toString()) +
-      outputs.reduce((sum, x) => sum + BigInt(x.amount), BigInt(0)) -
-      inputs.reduce((sum, x) => sum + BigInt(x.amount), BigInt(0))
+      BigNumber.from(fee.toString())
+        .add(outputs.reduce((sum, x) => sum + BigInt(x.amount), BigInt(0)))
+        .sub(inputs.reduce((sum, x) => sum + BigInt(x.amount), BigInt(0)))
     );
   }
 
@@ -342,7 +342,7 @@ export abstract class WebbBridge<A extends WebbContracts> {
         refund.toString(),
         wrapUnwrapToken
       )
-    );
+    ).toString();
     return { extData, extDataHash };
   }
 
@@ -380,7 +380,7 @@ export abstract class WebbBridge<A extends WebbContracts> {
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, BigNumberish[]>,
+    leavesMap: Record<string, Uint8Array[]>,
     txOptions?: TransactionOptions
   ): Promise<SetupTransactionResult>;
 
@@ -394,7 +394,7 @@ export abstract class WebbBridge<A extends WebbContracts> {
     recipient: string,
     relayer: string,
     wrapUnwrapToken: string,
-    leavesMap: Record<string, BigNumberish[]>, // subtree
+    leavesMap: Record<string, Uint8Array[]>, // subtree
     overridesTransaction?: PayableOverrides & TransactionOptions
   ): Promise<ContractReceipt> {
     if (isOpenVAnchorContract(this.contract)) {
@@ -469,9 +469,10 @@ export abstract class WebbBridge<A extends WebbContracts> {
         encryptedOutput1: extData.encryptedOutput1,
         encryptedOutput2: extData.encryptedOutput2,
       },
-      { ...options }
+      { ...options },
     );
     const receipt = await tx.wait();
+    console.log('here');
     await this.updateTreeOrForestState(outputs);
     return receipt!;
   }

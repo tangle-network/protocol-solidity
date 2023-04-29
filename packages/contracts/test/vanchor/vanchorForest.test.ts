@@ -386,8 +386,12 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         keypair: aliceDepositUtxo.keypair,
       });
 
-      const subtreeLeaves = anchor.tree.elements().map((el: BigNumberish) => el.toString(16));
-      const forestLeaves = anchor.forest.elements().map((el: BigNumberish) => el.toString(16));
+      const subtreeLeaves = anchor.tree.elements().map((el) => (
+        Uint8Array.from(Buffer.from(el.toHexString())))
+      );
+      const forestLeaves = anchor.forest.elements().map((el) => (
+        Uint8Array.from(Buffer.from(el.toHexString())))
+      );
       const txOptions = { treeChainId: chainID.toString(), externalLeaves: forestLeaves };
 
       await anchor.transact(
@@ -1177,7 +1181,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       ];
 
       const roots = await anchor.populateRootsForProof();
-      roots[1] = BigInt(fakeRoot.toString());
+      roots[1] = fakeRoot;
 
       const { extData, extDataHash } = await anchor.generateExtData(
         recipient,
