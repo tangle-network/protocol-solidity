@@ -17,7 +17,6 @@ import "../../interfaces/IMASPProxy.sol";
 import "../../libs/SwapEncodeInputs.sol";
 import "../../interfaces/verifiers/ISwapVerifier.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "hardhat/console.sol";
 
 /**
 	@title Multi Asset Variable Anchor contract

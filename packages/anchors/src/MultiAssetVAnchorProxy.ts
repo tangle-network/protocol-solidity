@@ -41,7 +41,7 @@ export class MultiAssetVAnchorProxy {
   }
 
   // Queue ERC20 deposits
-  public async queueERC20Deposit(depositInfo: QueueDepositInfo) {
+  public async queueDeposit(depositInfo: QueueDepositInfo) {
     const tx = await this.contract.queueDeposit(depositInfo);
     await tx.wait();
   }
@@ -68,12 +68,9 @@ export class MultiAssetVAnchorProxy {
     const leaves = (
       await this.getQueuedDeposits(masp.contract.address, startQueueIndex, batchSize)
     ).map((x) =>
-      toFixedHex(
-        BigNumber.from(poseidon([x.assetID, x.tokenID, x.amount, x.depositPartialCommitment]))
-      )
+      x.commitment.toString()
     );
     const batchProofInfo = await masp.depositTree.generateProof(batchSize.toNumber(), leaves);
-
     const batchTx = await this.contract.batchInsertDeposits(
       masp.contract.address,
       batchProofInfo.proof,

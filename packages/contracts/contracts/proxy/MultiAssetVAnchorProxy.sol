@@ -143,46 +143,49 @@ contract MultiAssetVAnchorProxy is IMASPProxy, Initialized, IERC721Receiver {
 			i++
 		) {
 			QueueDepositInfo memory depositInfo = QueueDepositMap[proxiedMASP][i];
-			commitments[i] = depositInfo.commitment;
+			uint256 commitmentIndex = i - _lastProcessedDepositLeaf;
+			commitments[commitmentIndex] = depositInfo.commitment;
 			// Queue reward commitments
 			queueRewardUnspentTreeCommitment(
 				proxiedMASP,
-				bytes32(IHasher(hasher).hashLeftRight(uint256(commitments[i]), block.timestamp))
+				bytes32(IHasher(hasher).hashLeftRight(uint256(commitments[commitmentIndex]), block.timestamp))
 			);
-			if (depositInfo.assetType == AssetType.ERC20) {
-				if (depositInfo.unwrappedToken != depositInfo.wrappedToken) {
-					IERC20(depositInfo.unwrappedToken).approve(
-						address(depositInfo.wrappedToken),
-						uint256(depositInfo.amount)
-					);
-					IMultiAssetVAnchorBatchTree(depositInfo.proxiedMASP)._executeWrapping(
-						depositInfo.unwrappedToken,
-						depositInfo.wrappedToken,
-						depositInfo.amount
-					);
+			if (!depositInfo.isShielded) {
+				if (depositInfo.assetType == AssetType.ERC20) {
+					if (depositInfo.unwrappedToken != depositInfo.wrappedToken) {
+						IERC20(depositInfo.unwrappedToken).approve(
+							address(depositInfo.wrappedToken),
+							uint256(depositInfo.amount)
+						);
+						IMultiAssetVAnchorBatchTree(depositInfo.proxiedMASP)._executeWrapping(
+							depositInfo.unwrappedToken,
+							depositInfo.wrappedToken,
+							depositInfo.amount
+						);
+					} else {
+						IERC20(depositInfo.wrappedToken).transfer(
+							address(depositInfo.proxiedMASP),
+							uint256(depositInfo.amount)
+						);
+					}
 				} else {
-					IERC20(depositInfo.wrappedToken).transfer(
-						address(depositInfo.proxiedMASP),
-						uint256(depositInfo.amount)
-					);
-				}
-			} else {
-				if (depositInfo.unwrappedToken != depositInfo.wrappedToken) {
-					IERC721(depositInfo.unwrappedToken).approve(
-						address(depositInfo.wrappedToken),
-						depositInfo.tokenID
-					);
-					INftTokenWrapper(depositInfo.wrappedToken).wrap721(depositInfo.tokenID);
-				} else {
-					IERC721(depositInfo.unwrappedToken).approve(
-						address(depositInfo.wrappedToken),
-						depositInfo.tokenID
-					);
-					IERC721(depositInfo.wrappedToken).safeTransferFrom(
-						address(this),
-						address(depositInfo.proxiedMASP),
-						depositInfo.tokenID
-					);
+					if (depositInfo.unwrappedToken != depositInfo.wrappedToken) {
+						IERC721(depositInfo.unwrappedToken).approve(
+							address(depositInfo.wrappedToken),
+							depositInfo.tokenID
+						);
+						INftTokenWrapper(depositInfo.wrappedToken).wrap721(depositInfo.tokenID);
+					} else {
+						IERC721(depositInfo.unwrappedToken).approve(
+							address(depositInfo.wrappedToken),
+							depositInfo.tokenID
+						);
+						IERC721(depositInfo.wrappedToken).safeTransferFrom(
+							address(this),
+							address(depositInfo.proxiedMASP),
+							depositInfo.tokenID
+						);
+					}
 				}
 			}
 		}
@@ -240,7 +243,7 @@ contract MultiAssetVAnchorProxy is IMASPProxy, Initialized, IERC721Receiver {
 			i < _lastProcessedRewardUnspentTreeLeaf + _batchSize;
 			i++
 		) {
-			commitments[i] = RewardUnspentTreeCommitmentMap[proxiedMASP][i];
+			commitments[i - _lastProcessedRewardUnspentTreeLeaf] = RewardUnspentTreeCommitmentMap[proxiedMASP][i];
 		}
 		// Update latestProcessedDepositLeaf
 		lastProcessedRewardUnspentTreeLeaf = _lastProcessedRewardUnspentTreeLeaf + _batchSize;
@@ -297,7 +300,7 @@ contract MultiAssetVAnchorProxy is IMASPProxy, Initialized, IERC721Receiver {
 			i < _lastProcessedRewardSpentTreeLeaf + _batchSize;
 			i++
 		) {
-			commitments[i] = RewardSpentTreeCommitmentMap[proxiedMASP][i];
+			commitments[i - _lastProcessedRewardSpentTreeLeaf] = RewardSpentTreeCommitmentMap[proxiedMASP][i];
 		}
 		// Update latestProcessedDepositLeaf
 		lastProcessedRewardSpentTreeLeaf = _lastProcessedRewardSpentTreeLeaf + _batchSize;

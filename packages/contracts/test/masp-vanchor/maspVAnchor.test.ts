@@ -57,6 +57,7 @@ import {
 } from '@webb-tools/tokens';
 import { randomBytes } from 'ethers/lib/utils';
 import { toFixedHex } from '@webb-tools/sdk-core';
+import { AssetType } from '@webb-tools/interfaces';
 
 const BN = require('bn.js');
 const path = require('path');
@@ -690,14 +691,20 @@ describe('MASPVAnchor for 2 max edges', () => {
         100
       );
       await tokenApproveTx.wait();
-      await maspProxy.queueERC20Deposit(
+      const depositPartialCommitment = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      await maspProxy.queueDeposit(
         {
+          assetType: AssetType.ERC20,
           unwrappedToken: unwrappedERC20_1.contract.address,
           wrappedToken: fungibleWebbToken.contract.address,
           amount: 100,
           assetID: 1,
           tokenID: 0,
-          depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
+          depositPartialCommitment: depositPartialCommitment,
+          commitment: toFixedHex(
+            BigNumber.from(poseidon([1, 0, 100, BigNumber.from(depositPartialCommitment)]))
+          ),
+          isShielded: false, 
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
@@ -705,7 +712,7 @@ describe('MASPVAnchor for 2 max edges', () => {
         }
       );
       // Check that deposit is queued
-      const queuedDeposit = await maspProxy.getQueuedERC20Deposits(
+      const queuedDeposit = await maspProxy.getQueuedDeposits(
         maspVAnchor.contract.address,
         BigNumber.from(0),
         BigNumber.from(1)
@@ -724,15 +731,21 @@ describe('MASPVAnchor for 2 max edges', () => {
     });
 
     it('proxy should NOT queue erc20 deposit for unregistered asset', async () => {
+      const depositPartialCommitment = '0x' + Buffer.from(randomBytes(32)).toString('hex');
       await TruffleAssert.reverts(
-        maspProxy.queueERC20Deposit(
+        maspProxy.queueDeposit(
           {
+            assetType: AssetType.ERC20,
             unwrappedToken: unwrappedERC20_1.contract.address,
             wrappedToken: signers[3].address,
             amount: 100,
             assetID: 1,
             tokenID: 0,
             depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
+            commitment: toFixedHex(
+              BigNumber.from(poseidon([1, 0, 100, BigNumber.from(depositPartialCommitment)]))
+            ),
+            isShielded: false, 
             proxiedMASP: maspVAnchor.contract.address,
           },
           {
@@ -745,14 +758,20 @@ describe('MASPVAnchor for 2 max edges', () => {
 
     it('proxy should queue erc721 deposit', async () => {
       await unwrappedERC721_1.approve(await maspProxy.contract.address, 1);
-      await maspProxy.queueERC721Deposit(
+      const depositPartialCommitment = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      await maspProxy.queueDeposit(
         {
+          assetType: AssetType.ERC721,
           unwrappedToken: unwrappedERC721_1.contract.address,
           wrappedToken: nftWebbToken.contract.address,
           amount: 1,
           assetID: 2,
           tokenID: 1,
-          depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
+          depositPartialCommitment: depositPartialCommitment,
+          commitment: toFixedHex(
+            BigNumber.from(poseidon([2, 1, 1, BigNumber.from(depositPartialCommitment)]))
+          ),
+          isShielded: false, 
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
@@ -760,7 +779,7 @@ describe('MASPVAnchor for 2 max edges', () => {
         }
       );
       // Check that deposit is queued
-      const queuedDeposit = await maspProxy.getQueuedERC721Deposits(
+      const queuedDeposit = await maspProxy.getQueuedDeposits(
         maspVAnchor.contract.address,
         BigNumber.from(0),
         BigNumber.from(1)
@@ -779,15 +798,21 @@ describe('MASPVAnchor for 2 max edges', () => {
     });
 
     it('proxy should NOT queue erc721 deposit for unregistered asset', async () => {
+      const depositPartialCommitment = '0x' + Buffer.from(randomBytes(32)).toString('hex');
       await TruffleAssert.reverts(
-        maspProxy.queueERC721Deposit(
+        maspProxy.queueDeposit(
           {
+            assetType: AssetType.ERC721,
             unwrappedToken: unwrappedERC721_1.contract.address,
             wrappedToken: signers[4].address,
             amount: 1,
             assetID: 2,
             tokenID: 1,
-            depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
+            depositPartialCommitment: depositPartialCommitment,
+            commitment: toFixedHex(
+              BigNumber.from(poseidon([2, 1, 1, BigNumber.from(depositPartialCommitment)]))
+            ),
+            isShielded: false, 
             proxiedMASP: maspVAnchor.contract.address,
           },
           {
@@ -799,15 +824,19 @@ describe('MASPVAnchor for 2 max edges', () => {
     });
 
     it('proxy should NOT queue deposit for masp it does not proxy for', async () => {
+      const depositPartialCommitment = '0x' + Buffer.from(randomBytes(32)).toString('hex');
       await TruffleAssert.reverts(
-        maspProxy.queueERC721Deposit(
+        maspProxy.queueDeposit(
           {
+            assetType: AssetType.ERC721,
             unwrappedToken: unwrappedERC721_1.contract.address,
             wrappedToken: nftWebbToken.contract.address,
             amount: 1,
             assetID: 2,
             tokenID: 1,
-            depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
+            depositPartialCommitment: depositPartialCommitment,
+            commitment: toFixedHex(poseidon([2, 1, 1, BigNumber.from(depositPartialCommitment)])),
+            isShielded: false,
             proxiedMASP: signers[5].address,
           },
           {
@@ -820,14 +849,62 @@ describe('MASPVAnchor for 2 max edges', () => {
     it('e2e should batch insert erc20 -> queue reward unspent tree -> transfer funds to masp -> batch insert on reward unspent tree', async () => {
       // Queue deposit
       await unwrappedERC20_1.contract.approve(await maspProxy.contract.address, 400);
-      await maspProxy.queueERC20Deposit(
+      const depositPartialCommitment1 = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      await maspProxy.queueDeposit(
         {
+          assetType: AssetType.ERC20,
           unwrappedToken: unwrappedERC20_1.contract.address,
           wrappedToken: fungibleWebbToken.contract.address,
           amount: 100,
           assetID: 1,
           tokenID: 0,
-          depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
+          depositPartialCommitment: depositPartialCommitment1,
+          commitment: toFixedHex(
+            BigNumber.from(poseidon([1, 0, 100, BigNumber.from(depositPartialCommitment1)]))
+          ),
+          isShielded: false, 
+          proxiedMASP: maspVAnchor.contract.address,
+        },
+        {
+          from: sender.address,
+        }
+      );
+      
+      const depositPartialCommitment2 = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      await maspProxy.queueDeposit(
+        {
+          assetType: AssetType.ERC20,
+          unwrappedToken: unwrappedERC20_1.contract.address,
+          wrappedToken: fungibleWebbToken.contract.address,
+          amount: 100,
+          assetID: 1,
+          tokenID: 0,
+          depositPartialCommitment: depositPartialCommitment2,
+          commitment: toFixedHex(
+            BigNumber.from(poseidon([1, 0, 100, BigNumber.from(depositPartialCommitment2)]))
+          ),
+          isShielded: false, 
+          proxiedMASP: maspVAnchor.contract.address,
+        },
+        {
+          from: sender.address,
+        }
+      );
+      
+      const depositPartialCommitment3 = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      await maspProxy.queueDeposit(
+        {
+          assetType: AssetType.ERC20,
+          unwrappedToken: unwrappedERC20_1.contract.address,
+          wrappedToken: fungibleWebbToken.contract.address,
+          amount: 100,
+          assetID: 1,
+          tokenID: 0,
+          depositPartialCommitment: depositPartialCommitment3,
+          commitment: toFixedHex(
+            BigNumber.from(poseidon([1, 0, 100, BigNumber.from(depositPartialCommitment3)]))
+          ),
+          isShielded: false, 
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
@@ -835,44 +912,20 @@ describe('MASPVAnchor for 2 max edges', () => {
         }
       );
 
-      await maspProxy.queueERC20Deposit(
+      const depositPartialCommitment4 = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      await maspProxy.queueDeposit(
         {
+          assetType: AssetType.ERC20,
           unwrappedToken: unwrappedERC20_1.contract.address,
           wrappedToken: fungibleWebbToken.contract.address,
           amount: 100,
           assetID: 1,
           tokenID: 0,
-          depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
-          proxiedMASP: maspVAnchor.contract.address,
-        },
-        {
-          from: sender.address,
-        }
-      );
-
-      await maspProxy.queueERC20Deposit(
-        {
-          unwrappedToken: unwrappedERC20_1.contract.address,
-          wrappedToken: fungibleWebbToken.contract.address,
-          amount: 100,
-          assetID: 1,
-          tokenID: 0,
-          depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
-          proxiedMASP: maspVAnchor.contract.address,
-        },
-        {
-          from: sender.address,
-        }
-      );
-
-      await maspProxy.queueERC20Deposit(
-        {
-          unwrappedToken: unwrappedERC20_1.contract.address,
-          wrappedToken: fungibleWebbToken.contract.address,
-          amount: 100,
-          assetID: 1,
-          tokenID: 0,
-          depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
+          depositPartialCommitment: depositPartialCommitment4,
+          commitment: toFixedHex(
+            BigNumber.from(poseidon([1, 0, 100, BigNumber.from(depositPartialCommitment4)]))
+          ),
+          isShielded: false, 
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
@@ -887,7 +940,7 @@ describe('MASPVAnchor for 2 max edges', () => {
       );
 
       // Batch Insert
-      await maspProxy.batchDepositERC20s(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
+      await maspProxy.batchInsertDeposits(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
 
       // Check Reward Unspent Tree is Queued
       const queuedRewardUnspentComms = await maspProxy.getQueuedRewardUnspentCommitments(maspVAnchor.contract.address, BigNumber.from(0), BigNumber.from(4));
@@ -905,29 +958,37 @@ describe('MASPVAnchor for 2 max edges', () => {
       await unwrappedERC721_1.contract.approve(await maspProxy.contract.address, 4);
 
       // Queue deposits
-      await maspProxy.queueERC721Deposit(
+      const depositPartialCommitment1 = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      await maspProxy.queueDeposit(
         {
+          assetType: AssetType.ERC721,
           unwrappedToken: unwrappedERC721_1.contract.address,
           wrappedToken: nftWebbToken.contract.address,
           amount: 1,
           assetID: 2,
           tokenID: 1,
-          depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
+          depositPartialCommitment: depositPartialCommitment1,
+          commitment: toFixedHex(poseidon([2, 1, 1, BigNumber.from(depositPartialCommitment1)])),
+          isShielded: false,
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
           from: sender.address,
         }
       );
-
-      await maspProxy.queueERC721Deposit(
+      
+      const depositPartialCommitment2 = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      await maspProxy.queueDeposit(
         {
+          assetType: AssetType.ERC721,
           unwrappedToken: unwrappedERC721_1.contract.address,
           wrappedToken: nftWebbToken.contract.address,
           amount: 1,
           assetID: 2,
           tokenID: 2,
-          depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
+          depositPartialCommitment: depositPartialCommitment2,
+          commitment: toFixedHex(poseidon([2, 2, 1, BigNumber.from(depositPartialCommitment2)])),
+          isShielded: false,
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
@@ -935,14 +996,18 @@ describe('MASPVAnchor for 2 max edges', () => {
         }
       );
 
-      await maspProxy.queueERC721Deposit(
+      const depositPartialCommitment3 = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      await maspProxy.queueDeposit(
         {
+          assetType: AssetType.ERC721,
           unwrappedToken: unwrappedERC721_1.contract.address,
           wrappedToken: nftWebbToken.contract.address,
           amount: 1,
           assetID: 2,
           tokenID: 3,
-          depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
+          depositPartialCommitment: depositPartialCommitment3,
+          commitment: toFixedHex(poseidon([2, 3, 1, BigNumber.from(depositPartialCommitment3)])),
+          isShielded: false,
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
@@ -950,14 +1015,18 @@ describe('MASPVAnchor for 2 max edges', () => {
         }
       );
 
-      await maspProxy.queueERC721Deposit(
+      const depositPartialCommitment4 = '0x' + Buffer.from(randomBytes(32)).toString('hex');
+      await maspProxy.queueDeposit(
         {
+          assetType: AssetType.ERC721,
           unwrappedToken: unwrappedERC721_1.contract.address,
           wrappedToken: nftWebbToken.contract.address,
           amount: 1,
           assetID: 2,
           tokenID: 4,
-          depositPartialCommitment: '0x' + Buffer.from(randomBytes(32)).toString('hex'),
+          depositPartialCommitment: depositPartialCommitment4,
+          commitment: toFixedHex(poseidon([2, 4, 1, BigNumber.from(depositPartialCommitment4)])),
+          isShielded: false,
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
@@ -971,7 +1040,7 @@ describe('MASPVAnchor for 2 max edges', () => {
       );
 
       // Batch Insert
-      await maspProxy.batchDepositERC721s(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
+      await maspProxy.batchInsertDeposits(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
 
       // Check Reward Unspent Tree is Queued
       const queuedRewardUnspentComms = await maspProxy.getQueuedRewardUnspentCommitments(maspVAnchor.contract.address, BigNumber.from(0), BigNumber.from(4));
@@ -984,12 +1053,11 @@ describe('MASPVAnchor for 2 max edges', () => {
   });
 
   describe('masp smart contract internal shielded transfer', () => {
-    it.only('e2e should internal shielded transfer with valid transact proof -> reward tree commitments queued -> batch insert reward tree commitments', async () => {
+    it('e2e should internal shielded transfer with valid transact proof -> reward tree commitments queued -> batch insert reward tree commitments', async () => {
       // 4 Masp Keys
       const alice_key = new MaspKey();
       const bob_key = new MaspKey();
       const carol_key = new MaspKey();
-      const dave_key = new MaspKey();
 
       const webbFungibleAssetID = BigNumber.from(1);
       const webbFungibleTokenID = BigNumber.from(0);
@@ -1026,56 +1094,83 @@ describe('MASPVAnchor for 2 max edges', () => {
 
       // Queue deposit
       await unwrappedERC20_1.contract.approve(await maspProxy.contract.address, 400);
-      await maspProxy.queueERC20Deposit(
+      const depositPartialCommitment1 = toFixedHex(alice_utxo.getPartialCommitment());
+      await maspProxy.queueDeposit(
         {
+          assetType: AssetType.ERC20,
           unwrappedToken: unwrappedERC20_1.contract.address,
           wrappedToken: fungibleWebbToken.contract.address,
           amount: 100,
           assetID: 1,
           tokenID: 0,
-          depositPartialCommitment: toFixedHex(alice_utxo.getPartialCommitment()),
+          depositPartialCommitment: depositPartialCommitment1,
+          commitment: toFixedHex(
+            BigNumber.from(poseidon([1, 0, 100, BigNumber.from(depositPartialCommitment1)]))
+          ),
+          isShielded: false, 
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
           from: sender.address,
         }
       );
-      await maspProxy.queueERC20Deposit(
+
+      const depositPartialCommitment2 = toFixedHex(alice_fee_utxo.getPartialCommitment());
+      await maspProxy.queueDeposit(
         {
+          assetType: AssetType.ERC20,
           unwrappedToken: unwrappedERC20_1.contract.address,
           wrappedToken: fungibleWebbToken.contract.address,
           amount: 10,
           assetID: 1,
           tokenID: 0,
-          depositPartialCommitment: toFixedHex(alice_fee_utxo.getPartialCommitment()),
+          depositPartialCommitment: depositPartialCommitment2,
+          commitment: toFixedHex(
+            BigNumber.from(poseidon([1, 0, 10, BigNumber.from(depositPartialCommitment2)]))
+          ),
+          isShielded: false, 
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
           from: sender.address,
         }
       );
-      await maspProxy.queueERC20Deposit(
+
+      const depositPartialCommitment3 = toFixedHex(bob_utxo.getPartialCommitment());
+      await maspProxy.queueDeposit(
         {
+          assetType: AssetType.ERC20,
           unwrappedToken: unwrappedERC20_1.contract.address,
           wrappedToken: fungibleWebbToken.contract.address,
           amount: 100,
           assetID: 1,
           tokenID: 0,
-          depositPartialCommitment: toFixedHex(bob_utxo.getPartialCommitment()),
+          depositPartialCommitment: depositPartialCommitment3,
+          commitment: toFixedHex(
+            BigNumber.from(poseidon([1, 0, 100, BigNumber.from(depositPartialCommitment3)]))
+          ),
+          isShielded: false, 
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
           from: sender.address,
         }
       );
-      await maspProxy.queueERC20Deposit(
+
+      const depositPartialCommitment4 = toFixedHex(carol_utxo.getPartialCommitment());
+      await maspProxy.queueDeposit(
         {
+          assetType: AssetType.ERC20,
           unwrappedToken: unwrappedERC20_1.contract.address,
           wrappedToken: fungibleWebbToken.contract.address,
           amount: 100,
           assetID: 1,
           tokenID: 0,
-          depositPartialCommitment: toFixedHex(carol_utxo.getPartialCommitment()),
+          depositPartialCommitment: depositPartialCommitment4,
+          commitment: toFixedHex(
+            BigNumber.from(poseidon([1, 0, 100, BigNumber.from(depositPartialCommitment4)]))
+          ),
+          isShielded: false, 
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
@@ -1090,7 +1185,7 @@ describe('MASPVAnchor for 2 max edges', () => {
       );
 
       // Batch Insert
-      await maspProxy.batchDepositERC20s(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
+      await maspProxy.batchInsertDeposits(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
       // TODO: Get rid of this...
       const queuedUtxos = [alice_utxo, alice_fee_utxo, bob_utxo, carol_utxo];
       queuedUtxos.forEach((x) => {
@@ -1148,11 +1243,12 @@ describe('MASPVAnchor for 2 max edges', () => {
         sender
       );
 
+      await maspProxy.batchInsertDeposits(maspVAnchor, BigNumber.from(4), BigNumber.from(2));
+
       const new_utxos = [alice_utxo_2, bob_utxo_2, fee_output_utxo];
       new_utxos.forEach((x) => {
         // Maintain tree state after insertions
         // maspVAnchor.depositTree.tree.insert(x.getCommitment());
-        console.log(maspVAnchor.depositTree.tree.indexOf(x.getCommitment().toString()));
         x.setIndex(
           BigNumber.from(maspVAnchor.depositTree.tree.indexOf(x.getCommitment().toString()))
         );
@@ -1174,10 +1270,6 @@ describe('MASPVAnchor for 2 max edges', () => {
         BigNumber.from(50)
       );
 
-      console.log("hi1");
-      console.log(maspVAnchor.depositTree.tree.root().toString());
-      console.log(await maspVAnchor.populateRootsForProof());
-
       // Do another internal shielded transfer
       await maspVAnchor.transact(
         webbFungibleAssetID,
@@ -1196,14 +1288,13 @@ describe('MASPVAnchor for 2 max edges', () => {
         sender
       );
 
-      console.log("hi2");
       // Batch Insert into Reward Spent Tree
       await maspProxy.batchInsertRewardSpentTree(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
     });
   });
 
   describe('masp smart contract withdraw tests', () => {
-    it('e2e should withdraw ERC20 with valid transact proof -> reward tree commitments queued -> funds transferred -> batch insert reward tree commitments', async () => {
+    it.only('e2e should withdraw ERC20 with valid transact proof -> reward tree commitments queued -> funds transferred -> batch insert reward tree commitments', async () => {
       // 4 Masp Keys
       const alice_key = new MaspKey();
       const bob_key = new MaspKey();
