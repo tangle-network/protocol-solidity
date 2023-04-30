@@ -286,13 +286,13 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 		address _recipient,
 		uint256 publicTokenID
 	) internal virtual override {
-		uint balance = IERC721(_token).balanceOf(address(this));
-		if (balance == 1) {
+		address owner = IERC721(_token).ownerOf(publicTokenID);
+		if (owner == address(this)) {
 			// transfer tokens when balance exists
 			IERC721(_token).safeTransferFrom(address(this), _recipient, publicTokenID);
 		} else {
 			// mint tokens when not enough balance exists
-			INftTokenWrapper(_token)._mint(_recipient, publicTokenID);
+			INftTokenWrapper(_token).mint(_recipient, publicTokenID);
 		}
 	}
 

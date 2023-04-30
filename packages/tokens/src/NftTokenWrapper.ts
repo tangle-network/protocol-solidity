@@ -35,8 +35,8 @@ export class NftTokenWrapper {
     return tokenWrapper;
   }
 
-  public async wrap721(tokenId: number) {
-    const tx = await this.contract.wrap721(tokenId);
+  public async wrap721(address: string, tokenId: number) {
+    const tx = await this.contract.wrap721(address, tokenId);
     await tx.wait();
   }
 

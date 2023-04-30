@@ -174,7 +174,7 @@ contract MultiAssetVAnchorProxy is IMASPProxy, Initialized, IERC721Receiver {
 							address(depositInfo.wrappedToken),
 							depositInfo.tokenID
 						);
-						INftTokenWrapper(depositInfo.wrappedToken).wrap721(depositInfo.tokenID);
+						INftTokenWrapper(depositInfo.wrappedToken).wrap721(address(depositInfo.proxiedMASP), depositInfo.tokenID);
 					} else {
 						IERC721(depositInfo.unwrappedToken).approve(
 							address(depositInfo.wrappedToken),

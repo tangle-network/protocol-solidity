@@ -11,17 +11,18 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "../utils/Initialized.sol";
 import "../utils/ProposalNonceTracker.sol";
+import "../mocks/ERC721Mock.sol";
 
 /**
     @title A MultiTokenManager manages FungibleTokenWrapper systems using an external `governor` address
     @author Webb Technologies.
  */
-contract NftTokenWrapper is ERC721, IERC721Receiver, Initialized, ProposalNonceTracker {
+contract NftTokenWrapper is ERC721Mintable, IERC721Receiver, Initialized, ProposalNonceTracker {
 	using SafeMath for uint256;
 	address public handler;
 	address unwrappedNftAddress;
 
-	constructor(string memory name, string memory symbol) ERC721(name, symbol) {}
+	constructor(string memory name, string memory symbol) ERC721Mintable(name, symbol) {}
 
 	/**
         @notice Initializes the contract
@@ -33,8 +34,9 @@ contract NftTokenWrapper is ERC721, IERC721Receiver, Initialized, ProposalNonceT
 		unwrappedNftAddress = _unwrappedNftAddress;
 	}
 
-	function wrap721(uint256 _tokenId) external {
+	function wrap721(address masp, uint256 _tokenId) external {
 		IERC721(unwrappedNftAddress).safeTransferFrom(msg.sender, address(this), _tokenId);
+		_mint(masp, _tokenId);
 	}
 
 	function unwrap721(uint256 _tokenId, address _tokenContract) external {
@@ -65,7 +67,6 @@ contract NftTokenWrapper is ERC721, IERC721Receiver, Initialized, ProposalNonceT
 		uint256 tokenId,
 		bytes calldata data
 	) external override returns (bytes4) {
-		_mint(from, tokenId);
 		return this.onERC721Received.selector;
 	}
 }
