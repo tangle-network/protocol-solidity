@@ -226,38 +226,6 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 			[_publicInputs.bobChangeRecord, _publicInputs.bobReceiveRecord],
 			bobEncryptions
 		);
-		IMASPProxy(proxy).queueRewardSpentTreeCommitment(
-			bytes32(
-				IHasher(this.getHasher()).hashLeftRight(
-					_publicInputs.aliceChangeRecord,
-					block.timestamp
-				)
-			)
-		);
-		IMASPProxy(proxy).queueRewardSpentTreeCommitment(
-			bytes32(
-				IHasher(this.getHasher()).hashLeftRight(
-					_publicInputs.aliceReceiveRecord,
-					block.timestamp
-				)
-			)
-		);
-		IMASPProxy(proxy).queueRewardSpentTreeCommitment(
-			bytes32(
-				IHasher(this.getHasher()).hashLeftRight(
-					_publicInputs.bobChangeRecord,
-					block.timestamp
-				)
-			)
-		);
-		IMASPProxy(proxy).queueRewardSpentTreeCommitment(
-			bytes32(
-				IHasher(this.getHasher()).hashLeftRight(
-					_publicInputs.bobReceiveRecord,
-					block.timestamp
-				)
-			)
-		);
 	}
 
 	function _processWithdrawERC721(

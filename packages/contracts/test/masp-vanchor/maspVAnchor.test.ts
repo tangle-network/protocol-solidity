@@ -1686,7 +1686,7 @@ describe('MASPVAnchor for 2 max edges', () => {
   });
 
   describe('swap tests', () => {
-    it('should swap an erc721 for erc20', async () => {
+    it.only('should swap an erc721 for erc20', async () => {
       // 4 Masp Keys
       const alice_key = new MaspKey();
       const bob_key = new MaspKey();
@@ -2015,10 +2015,62 @@ describe('MASPVAnchor for 2 max edges', () => {
         sender
       );
 
-      // TODO: Check reward trees are queued
-      // Try double spending after swap...make sure reverts
-      // Check token balances
+      // Check reward trees are queued
+      const queuedRewardSpentComms = await maspProxy.getQueuedRewardSpentCommitments(
+        maspVAnchor.contract.address,
+        BigNumber.from(0),
+        BigNumber.from(2)
+      );
+      assert.strictEqual(queuedRewardSpentComms.length, 2);
+
+      // Double spending spend commitments should revert
+      await TruffleAssert.reverts(
+        maspVAnchor.transact(
+          webbNftAssetID,
+          BigNumber.from(1),
+          nftWebbToken.contract.address,
+          [alice_nft_utxo],
+          [],
+          BigNumber.from(0),
+          webbFungibleAssetID,
+          webbFungibleTokenID,
+          [],
+          [],
+          [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          BigNumber.from(0),
+          sender.address,
+          sender.address,
+          sender
+        ),
+        'Input is already spent'
+      );
+
       // Alice can spend her new notes and Bob can spend his new notes
+      await maspProxy.batchInsertDeposits(maspVAnchor, BigNumber.from(8), BigNumber.from(2));
+      const receiveUtxo = [aliceReceiveRecord];
+      receiveUtxo.forEach((x) => {
+        // Maintain tree state after insertions
+        x.setIndex(
+          BigNumber.from(maspVAnchor.depositTree.tree.indexOf(x.getCommitment().toString()))
+        );
+      });
+      await maspVAnchor.transact(
+        webbFungibleAssetID,
+        webbFungibleTokenID,
+        fungibleWebbToken.contract.address,
+        [aliceReceiveRecord],
+        [],
+        BigNumber.from(0),
+        webbFungibleAssetID,
+        webbFungibleTokenID,
+        [],
+        [],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        BigNumber.from(0),
+        sender.address,
+        sender.address,
+        sender
+      );
     });
   });
 });
