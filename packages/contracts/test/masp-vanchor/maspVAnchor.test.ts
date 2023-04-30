@@ -554,11 +554,8 @@ describe('MASPVAnchor for 2 max edges', () => {
       ];
       const fee = 0;
       const whitelistedAssetIDs = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
-      inputs.map((x) => x.setIndex(BigNumber.from(0)));
-      feeInputs.map((x) => x.setIndex(BigNumber.from(0)));
-      // Dummy set index
-      inputs.map((x) => x.setIndex(BigNumber.from(0)));
-      feeInputs.map((x) => x.setIndex(BigNumber.from(0)));
+      inputs.map((x) => x.forceSetIndex(BigNumber.from(0)));
+      feeInputs.map((x) => x.forceSetIndex(BigNumber.from(0)));
 
       const merkleProofsForInputs = inputs.map((x) =>
         MultiAssetVAnchorBatchTree.getMASPMerkleProof(x, maspVAnchor.depositTree.tree)
@@ -583,27 +580,26 @@ describe('MASPVAnchor for 2 max edges', () => {
         encOutput2
       );
 
-      const { allInputs, publicInputs } =
-        await MultiAssetVAnchorBatchTree.generateMASPVAnchorInputs(
-          roots,
-          chainID,
-          assetID,
-          tokenID,
-          inputs,
-          outputs,
-          inputs[0].maspKey,
-          feeAssetID,
-          feeTokenID,
-          whitelistedAssetIDs,
-          feeInputs,
-          feeOutputs,
-          feeInputs[0].maspKey,
-          BigNumber.from(extAmount),
-          BigNumber.from(0),
-          extDataHash,
-          merkleProofsForInputs,
-          feeMerkleProofsForInputs
-        );
+      const { allInputs, publicInputs } = await maspVAnchor.generateMASPVAnchorInputs(
+        roots,
+        chainID,
+        assetID,
+        tokenID,
+        inputs,
+        outputs,
+        inputs[0].maspKey,
+        feeAssetID,
+        feeTokenID,
+        whitelistedAssetIDs,
+        feeInputs,
+        feeOutputs,
+        feeInputs[0].maspKey,
+        BigNumber.from(extAmount),
+        BigNumber.from(0),
+        extDataHash,
+        merkleProofsForInputs,
+        feeMerkleProofsForInputs
+      );
 
       const wtns = await create2InputWitness(allInputs);
       let res = await snarkjs.groth16.prove(zkComponents2_2.zkey, wtns);
@@ -1202,15 +1198,6 @@ describe('MASPVAnchor for 2 max edges', () => {
 
       // Batch Insert
       await maspProxy.batchInsertDeposits(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
-      // TODO: Get rid of this...
-      const queuedUtxos = [alice_utxo, alice_fee_utxo, bob_utxo, carol_utxo];
-      queuedUtxos.forEach((x) => {
-        // Maintain tree state after insertions
-        // maspVAnchor.depositTree.tree.insert(x.getCommitment());
-        x.setIndex(
-          BigNumber.from(maspVAnchor.depositTree.tree.indexOf(x.getCommitment().toString()))
-        );
-      });
 
       // Check Reward Unspent Tree is Queued
       const queuedRewardUnspentComms = await maspProxy.getQueuedRewardUnspentCommitments(
@@ -1265,15 +1252,6 @@ describe('MASPVAnchor for 2 max edges', () => {
       );
 
       await maspProxy.batchInsertDeposits(maspVAnchor, BigNumber.from(4), BigNumber.from(2));
-
-      const new_utxos = [alice_utxo_2, bob_utxo_2, fee_output_utxo];
-      new_utxos.forEach((x) => {
-        // Maintain tree state after insertions
-        // maspVAnchor.depositTree.tree.insert(x.getCommitment());
-        x.setIndex(
-          BigNumber.from(maspVAnchor.depositTree.tree.indexOf(x.getCommitment().toString()))
-        );
-      });
 
       // Check reward unspent and spent tree is queued
       const queuedRewardUnspentCommsAfterTransfer =
@@ -1459,14 +1437,6 @@ describe('MASPVAnchor for 2 max edges', () => {
 
       // Batch Insert
       await maspProxy.batchInsertDeposits(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
-      const queuedUtxos = [alice_utxo, alice_fee_utxo, bob_utxo, carol_utxo];
-      queuedUtxos.forEach((x) => {
-        // Maintain tree state after insertions
-        // maspVAnchor.depositTree.tree.insert(x.getCommitment());
-        x.setIndex(
-          BigNumber.from(maspVAnchor.depositTree.tree.indexOf(x.getCommitment().toString()))
-        );
-      });
 
       // Do withdraw.
       const alice_utxo_2 = new MaspUtxo(
@@ -1651,14 +1621,6 @@ describe('MASPVAnchor for 2 max edges', () => {
       // Batch Insert
       await maspProxy.batchInsertDeposits(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
 
-      const queuedUtxos = [alice_utxo, bob_utxo, carol_utxo, dave_utxo];
-      queuedUtxos.forEach((x) => {
-        // Maintain tree state after insertions
-        x.setIndex(
-          BigNumber.from(maspVAnchor.depositTree.tree.indexOf(x.getCommitment().toString()))
-        );
-      });
-
       const webbFeeAssetID = BigNumber.from(1);
       const webbFeeTokenID = BigNumber.from(0);
       const aliceAddress = signers[4];
@@ -1686,7 +1648,7 @@ describe('MASPVAnchor for 2 max edges', () => {
   });
 
   describe('swap tests', () => {
-    it.only('should swap an erc721 for erc20', async () => {
+    it('should swap an erc721 for erc20', async () => {
       // 4 Masp Keys
       const alice_key = new MaspKey();
       const bob_key = new MaspKey();
@@ -1928,23 +1890,6 @@ describe('MASPVAnchor for 2 max edges', () => {
       // Batch Insert ERC721s
       await maspProxy.batchInsertDeposits(maspVAnchor, BigNumber.from(4), BigNumber.from(2));
 
-      const queuedUtxos = [
-        alice_fungible_utxo,
-        bob_fungible_utxo,
-        carol_fungible_utxo,
-        dave_fungible_utxo,
-        alice_nft_utxo,
-        bob_nft_utxo,
-        carol_nft_utxo,
-        dave_nft_utxo,
-      ];
-      queuedUtxos.forEach((x) => {
-        // Maintain tree state after insertions
-        x.setIndex(
-          BigNumber.from(maspVAnchor.depositTree.tree.indexOf(x.getCommitment().toString()))
-        );
-      });
-
       // Alice will swap 1 NFT for 50 of Bob's ERC20s.
       // Form Change and Receive Records
       const aliceSpendRecord = alice_nft_utxo;
@@ -2047,13 +1992,7 @@ describe('MASPVAnchor for 2 max edges', () => {
 
       // Alice can spend her new notes and Bob can spend his new notes
       await maspProxy.batchInsertDeposits(maspVAnchor, BigNumber.from(8), BigNumber.from(2));
-      const receiveUtxo = [aliceReceiveRecord];
-      receiveUtxo.forEach((x) => {
-        // Maintain tree state after insertions
-        x.setIndex(
-          BigNumber.from(maspVAnchor.depositTree.tree.indexOf(x.getCommitment().toString()))
-        );
-      });
+
       await maspVAnchor.transact(
         webbFungibleAssetID,
         webbFungibleTokenID,

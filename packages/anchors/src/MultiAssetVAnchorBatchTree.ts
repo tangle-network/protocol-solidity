@@ -1,4 +1,4 @@
-import { MultiAssetVAnchor } from './MultiAssetVAnchor';
+import { MASPSwapInputs, MASPVAnchorInputs, MultiAssetVAnchor } from './MultiAssetVAnchor';
 import { MultiAssetVAnchorProxy } from './MultiAssetVAnchorProxy';
 import {
   MASPVAnchorEncodeInputs__factory,
@@ -16,8 +16,14 @@ import {
   ProxiedBatchTree as ProxiedBatchTreeContract,
   ProxiedBatchTree__factory,
 } from '@webb-tools/contracts';
-import { toFixedHex } from '@webb-tools/sdk-core';
+import { FIELD_SIZE, MerkleProof, toFixedHex } from '@webb-tools/sdk-core';
 import { Registry } from '@webb-tools/tokens';
+import { IMASPAllInputs, IMASPVAnchorPublicInputs } from '@webb-tools/interfaces';
+import { MerkleTree } from '@webb-tools/sdk-core';
+
+const { poseidon, eddsa } = require('circomlibjs');
+const snarkjs = require('snarkjs');
+const assert = require('assert');
 
 export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
   depositTree: ProxiedBatchTree;
@@ -264,7 +270,7 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
         BigNumber.from(0)
       );
       inputs.push(dummyUtxo);
-      dummyUtxo.setIndex(BigNumber.from(0));
+      dummyUtxo.forceSetIndex(BigNumber.from(0));
     }
 
     if (outputs.length < 2) {
@@ -290,7 +296,7 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
         BigNumber.from(0)
       );
       feeInputs.push(dummyUtxo);
-      dummyUtxo.setIndex(BigNumber.from(0));
+      dummyUtxo.forceSetIndex(BigNumber.from(0));
     }
 
     if (feeOutputs.length < 2) {

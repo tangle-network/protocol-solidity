@@ -414,7 +414,87 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     return [thisRoot.toString(), ...neighborRootInfos.map((bignum) => bignum.toString())];
   }
 
-  public static async generateMASPVAnchorInputs(
+  public async populateRootsForProof(): Promise<BigNumber[]> {
+    const neighborEdges = await this.contract.getLatestNeighborEdges();
+    const neighborRootInfos = neighborEdges.map((rootData) => {
+      return rootData.root;
+    });
+    let thisRoot = await this.contract.getLastRoot();
+    return [thisRoot, ...neighborRootInfos];
+  }
+
+  public static auxInputsToBytes(publicInputs: IMASPVAnchorPublicInputs): string {
+    // publicAssetID, publicTokenID, whitelistedAssetIDs, feeInputNullifiers, feeOutputCommitments,
+
+    let whitelistedAssetIDs_bytes = '';
+    for (let i = 0; i < publicInputs.whitelistedAssetIDs.length; i++) {
+      whitelistedAssetIDs_bytes += toFixedHex(publicInputs.whitelistedAssetIDs[i]).slice(2);
+    }
+
+    let feeInputNullifier_bytes = '';
+    for (let i = 0; i < publicInputs.feeInputNullifier.length; i++) {
+      feeInputNullifier_bytes += toFixedHex(publicInputs.feeInputNullifier[i]).slice(2);
+    }
+
+    let feeOutputCommitment_bytes = '';
+    for (let i = 0; i < publicInputs.feeOutputCommitment.length; i++) {
+      feeOutputCommitment_bytes += toFixedHex(publicInputs.feeOutputCommitment[i]).slice(2);
+    }
+
+    return (
+      toFixedHex(publicInputs.publicAssetID) +
+      toFixedHex(publicInputs.publicTokenID).slice(2) +
+      whitelistedAssetIDs_bytes +
+      feeInputNullifier_bytes +
+      feeOutputCommitment_bytes
+    );
+  }
+
+  /**
+   *
+   * @param input A UTXO object that is inside the tree
+   * @returns
+   */
+  public static getMASPMerkleProof(input: MaspUtxo, tree: MerkleTree): MerkleProof {
+    let inputMerklePathIndices: number[];
+    let inputMerklePathElements: BigNumber[];
+
+    if (Number(input.amount) > 0) {
+      const index = BigNumber.from(tree.indexOf(input.getCommitment().toString()));
+      input.forceSetIndex(index);
+      if (index < BigNumber.from(0)) {
+        throw new Error(`Input commitment ${toFixedHex(input.getCommitment())} was not found`);
+      }
+      const path = tree.path(index.toNumber());
+      inputMerklePathIndices = path.pathIndices;
+      inputMerklePathElements = path.pathElements;
+    } else {
+      inputMerklePathIndices = new Array(tree.levels).fill(0);
+      inputMerklePathElements = new Array(tree.levels).fill(0);
+    }
+
+    return {
+      element: input.getCommitment(),
+      pathElements: inputMerklePathElements,
+      pathIndices: inputMerklePathIndices,
+      merkleRoot: tree.root(),
+    };
+  }
+
+  /** Swap Functions */
+  public async generateSwapProof(swapAllInputs: IMASPSwapAllInputs): Promise<FullProof> {
+    const wtns = await this.swapCircuitZkComponents.witnessCalculator.calculateWTNSBin(
+      swapAllInputs,
+      0
+    );
+    let res = await snarkjs.groth16.prove(this.swapCircuitZkComponents.zkey, wtns);
+    const vKey = await snarkjs.zKey.exportVerificationKey(this.swapCircuitZkComponents.zkey);
+    const verified = await snarkjs.groth16.verify(vKey, res.publicSignals, res.proof);
+    assert.strictEqual(verified, true);
+    return res;
+  }
+
+  public async generateMASPVAnchorInputs(
     roots: BigNumberish[],
     chainId: BigNumberish,
     assetId: BigNumberish,
@@ -587,7 +667,7 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     externalMerkleProofs: MerkleProof[],
     externalFeeMerkleProofs: MerkleProof[]
   ): Promise<IMASPVAnchorPublicInputs> {
-    let { allInputs, publicInputs } = await MultiAssetVAnchor.generateMASPVAnchorInputs(
+    let { allInputs, publicInputs } = await this.generateMASPVAnchorInputs(
       roots,
       chainId,
       assetId,
@@ -611,84 +691,6 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     const proofEncoded = await this.generateProofCalldata(res);
     publicInputs.proof = proofEncoded;
     return publicInputs;
-  }
-
-  public async populateRootsForProof(): Promise<BigNumber[]> {
-    const neighborEdges = await this.contract.getLatestNeighborEdges();
-    const neighborRootInfos = neighborEdges.map((rootData) => {
-      return rootData.root;
-    });
-    let thisRoot = await this.contract.getLastRoot();
-    return [thisRoot, ...neighborRootInfos];
-  }
-
-  public static auxInputsToBytes(publicInputs: IMASPVAnchorPublicInputs): string {
-    // publicAssetID, publicTokenID, whitelistedAssetIDs, feeInputNullifiers, feeOutputCommitments,
-
-    let whitelistedAssetIDs_bytes = '';
-    for (let i = 0; i < publicInputs.whitelistedAssetIDs.length; i++) {
-      whitelistedAssetIDs_bytes += toFixedHex(publicInputs.whitelistedAssetIDs[i]).slice(2);
-    }
-
-    let feeInputNullifier_bytes = '';
-    for (let i = 0; i < publicInputs.feeInputNullifier.length; i++) {
-      feeInputNullifier_bytes += toFixedHex(publicInputs.feeInputNullifier[i]).slice(2);
-    }
-
-    let feeOutputCommitment_bytes = '';
-    for (let i = 0; i < publicInputs.feeOutputCommitment.length; i++) {
-      feeOutputCommitment_bytes += toFixedHex(publicInputs.feeOutputCommitment[i]).slice(2);
-    }
-
-    return (
-      toFixedHex(publicInputs.publicAssetID) +
-      toFixedHex(publicInputs.publicTokenID).slice(2) +
-      whitelistedAssetIDs_bytes +
-      feeInputNullifier_bytes +
-      feeOutputCommitment_bytes
-    );
-  }
-
-  /**
-   *
-   * @param input A UTXO object that is inside the tree
-   * @returns
-   */
-  public static getMASPMerkleProof(input: MaspUtxo, tree: MerkleTree): MerkleProof {
-    let inputMerklePathIndices: number[];
-    let inputMerklePathElements: BigNumber[];
-
-    if (Number(input.amount) > 0) {
-      if (input.index < BigNumber.from(0)) {
-        throw new Error(`Input commitment ${toFixedHex(input.getCommitment())} was not found`);
-      }
-      const path = tree.path(input.index.toNumber());
-      inputMerklePathIndices = path.pathIndices;
-      inputMerklePathElements = path.pathElements;
-    } else {
-      inputMerklePathIndices = new Array(tree.levels).fill(0);
-      inputMerklePathElements = new Array(tree.levels).fill(0);
-    }
-
-    return {
-      element: input.getCommitment(),
-      pathElements: inputMerklePathElements,
-      pathIndices: inputMerklePathIndices,
-      merkleRoot: tree.root(),
-    };
-  }
-
-  /** Swap Functions */
-  public async generateSwapProof(swapAllInputs: IMASPSwapAllInputs): Promise<FullProof> {
-    const wtns = await this.swapCircuitZkComponents.witnessCalculator.calculateWTNSBin(
-      swapAllInputs,
-      0
-    );
-    let res = await snarkjs.groth16.prove(this.swapCircuitZkComponents.zkey, wtns);
-    const vKey = await snarkjs.zKey.exportVerificationKey(this.swapCircuitZkComponents.zkey);
-    const verified = await snarkjs.groth16.verify(vKey, res.publicSignals, res.proof);
-    assert.strictEqual(verified, true);
-    return res;
   }
 
   public async generateSwapInputsWithProof(
