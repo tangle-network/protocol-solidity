@@ -24,7 +24,14 @@ import {
   generateVariableWitnessInput,
   toFixedHex,
 } from '@webb-tools/sdk-core';
-import { VAnchorProofInputs, ZERO_BYTES32, ZkComponents, getChainIdType, hexToU8a, u8aToHex } from '@webb-tools/utils';
+import {
+  VAnchorProofInputs,
+  ZERO_BYTES32,
+  ZkComponents,
+  getChainIdType,
+  hexToU8a,
+  u8aToHex,
+} from '@webb-tools/utils';
 import { BigNumber, BigNumberish, BytesLike, Overrides, PayableOverrides, ethers } from 'ethers';
 import { groth16 } from 'snarkjs';
 
@@ -37,7 +44,10 @@ import Deployer from './Deployer';
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
-export class VAnchor extends WebbBridge<VAnchorTreeContract> implements IVAnchor<VAnchorTreeContract> {
+export class VAnchor
+  extends WebbBridge<VAnchorTreeContract>
+  implements IVAnchor<VAnchorTreeContract>
+{
   contract: VAnchorTreeContract;
 
   maxEdges: number;
@@ -201,10 +211,12 @@ export class VAnchor extends WebbBridge<VAnchorTreeContract> implements IVAnchor
 
   public async populateRootsForProof(): Promise<BigNumber[]> {
     const neighborEdges = await this.contract.getLatestNeighborEdges();
-    const neighborRootInfos = neighborEdges.map((rootData) => {
+    const neighborRootInfos = neighborEdges.map((rootData: any) => {
       return rootData.root;
     });
     let thisRoot = await this.contract.getLastRoot();
+    console.log('thisRoot', thisRoot);
+    console.log('neighborRootInfos', neighborRootInfos);
     return [thisRoot, ...neighborRootInfos];
   }
 
@@ -247,26 +259,29 @@ export class VAnchor extends WebbBridge<VAnchorTreeContract> implements IVAnchor
     };
   }
 
-  public generatePublicInputs(
+  public async generatePublicInputs(
     proof: any,
     roots: BigNumberish[],
     inputs: Utxo[],
     outputs: Utxo[],
     publicAmount: BigNumberish,
-    extDataHash: BigNumberish,
-  ): IVariableAnchorPublicInputs {
+    extDataHash: BigNumberish
+  ): Promise<IVariableAnchorPublicInputs> {
+    const byte_calldata = await groth16.exportSolidityCallData(proof.proof, proof.publicSignals);
+    // public inputs to the contract
+    proof = await this.encodeSolidityProof(byte_calldata);
     // public inputs to the contract
     const args: IVariableAnchorPublicInputs = {
       proof: `0x${proof}`,
       roots: `0x${roots.map((x) => toFixedHex(x).slice(2)).join('')}`,
-      extensionRoots: '0x00',
-      inputNullifiers: inputs.map((x) => BigNumber.from(toFixedHex('0x' + x.nullifier)).toString()),
+      extensionRoots: '0x',
+      inputNullifiers: inputs.map((x) => BigNumber.from(toFixedHex('0x' + x.nullifier))),
       outputCommitments: [
-        BigNumber.from(toFixedHex(u8aToHex(outputs[0].commitment))).toString(),
-        BigNumber.from(toFixedHex(u8aToHex(outputs[1].commitment))).toString(),
+        BigNumber.from(toFixedHex(u8aToHex(outputs[0].commitment))),
+        BigNumber.from(toFixedHex(u8aToHex(outputs[1].commitment))),
       ],
       publicAmount: BigNumber.from(toFixedHex(publicAmount)).toString(),
-      extDataHash: BigNumber.from(extDataHash).toString(),
+      extDataHash: BigNumber.from(extDataHash),
     };
 
     return args;
@@ -331,7 +346,7 @@ export class VAnchor extends WebbBridge<VAnchorTreeContract> implements IVAnchor
       outputs,
       extAmount,
       fee,
-      BigInt(extDataHash.toString()),
+      extDataHash,
       vanchorMerkleProof
     );
 
@@ -350,7 +365,7 @@ export class VAnchor extends WebbBridge<VAnchorTreeContract> implements IVAnchor
       outPubkey: vanchorInput.outPubkey,
       outBlinding: vanchorInput.outBlinding,
       inPathIndices: vanchorInput.inPathIndices,
-      inPathElements: vanchorInput.inPathElements
+      inPathElements: vanchorInput.inPathElements,
     };
 
     return proofInput;
@@ -410,10 +425,10 @@ export class VAnchor extends WebbBridge<VAnchorTreeContract> implements IVAnchor
 
     const { extData, extDataHash } = await this.generateExtData(
       recipient,
-      BigNumber.from(extAmount),
+      extAmount,
       relayer,
-      BigNumber.from(fee.toString()),
-      BigNumber.from(refund.toString()),
+      fee,
+      refund,
       wrapUnwrapToken,
       outputs[0].encrypt(),
       outputs[1].encrypt()
@@ -423,9 +438,9 @@ export class VAnchor extends WebbBridge<VAnchorTreeContract> implements IVAnchor
       inputs,
       outputs,
       chainId,
-      BigNumber.from(extAmount),
-      BigNumber.from(fee.toString()),
-      extDataHash.toString(),
+      extAmount,
+      fee,
+      extDataHash,
       leavesMap,
       txOptions
     );
@@ -442,13 +457,13 @@ export class VAnchor extends WebbBridge<VAnchorTreeContract> implements IVAnchor
 
     let proof = await groth16.fullProve(proofInput, wasmFile, zkeyFile);
 
-    const publicInputs: IVariableAnchorPublicInputs = this.generatePublicInputs(
-      proof.proof,
+    const publicInputs: IVariableAnchorPublicInputs = await this.generatePublicInputs(
+      proof,
       roots,
       inputs,
       outputs,
       proofInput.publicAmount,
-      extDataHash,
+      extDataHash
     );
 
     return {

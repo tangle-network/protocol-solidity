@@ -1,4 +1,9 @@
-import { WebbBridge, Deployer, TransactionOptions, SetupTransactionResult } from '@webb-tools/anchors';
+import {
+  WebbBridge,
+  Deployer,
+  TransactionOptions,
+  SetupTransactionResult,
+} from '@webb-tools/anchors';
 import {
   IdentityVAnchor as IdentityVAnchorContract,
   IdentityVAnchorEncodeInputs__factory,
@@ -42,7 +47,10 @@ export type RawPublicSignals = string[11];
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
-export class IdentityVAnchor extends WebbBridge<IdentityVAnchorContract> implements IVAnchor<IdentityVAnchorContract> {
+export class IdentityVAnchor
+  extends WebbBridge<IdentityVAnchorContract>
+  implements IVAnchor<IdentityVAnchorContract>
+{
   contract: IdentityVAnchorContract;
   semaphore: Semaphore;
   group: LinkedGroup;
@@ -575,7 +583,10 @@ export class IdentityVAnchor extends WebbBridge<IdentityVAnchorContract> impleme
     return this.group.getRoots().map((bignum: BigNumber) => bignum.toString());
   }
 
-  public generateOutputSemaphoreProof(outputs: Utxo[], groupElements: BigNumberish[]): MerkleProof[] {
+  public generateOutputSemaphoreProof(
+    outputs: Utxo[],
+    groupElements: BigNumberish[]
+  ): MerkleProof[] {
     const outSemaphoreProofs = outputs.map((utxo) => {
       const leaf = utxo.keypair.getPubKey();
       if (Number(utxo.amount) > 0) {

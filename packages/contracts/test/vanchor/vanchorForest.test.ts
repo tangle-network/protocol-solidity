@@ -386,12 +386,12 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         keypair: aliceDepositUtxo.keypair,
       });
 
-      const subtreeLeaves = anchor.tree.elements().map((el) => (
-        Uint8Array.from(Buffer.from(el.toHexString())))
-      );
-      const forestLeaves = anchor.forest.elements().map((el) => (
-        Uint8Array.from(Buffer.from(el.toHexString())))
-      );
+      const subtreeLeaves = anchor.tree
+        .elements()
+        .map((el) => Uint8Array.from(Buffer.from(el.toHexString())));
+      const forestLeaves = anchor.forest
+        .elements()
+        .map((el) => Uint8Array.from(Buffer.from(el.toHexString())));
       const txOptions = { treeChainId: chainID.toString(), externalLeaves: forestLeaves };
 
       await anchor.transact(

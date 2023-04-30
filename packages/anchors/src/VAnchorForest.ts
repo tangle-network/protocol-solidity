@@ -30,12 +30,14 @@ import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from '.
 import { splitTransactionOptions } from './utils';
 import Deployer from './Deployer';
 
-
 // This convenience wrapper class is used in tests -
 // It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
 // Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
 // Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
-export class VAnchorForest extends WebbBridge<VAnchorForestContract> implements IVAnchor<VAnchorForestContract> {
+export class VAnchorForest
+  extends WebbBridge<VAnchorForestContract>
+  implements IVAnchor<VAnchorForestContract>
+{
   contract: VAnchorForestContract;
   forest: MerkleTree;
 

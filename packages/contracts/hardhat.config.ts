@@ -6,9 +6,9 @@ import '@nomiclabs/hardhat-waffle';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-truffle5';
 import { subtask } from 'hardhat/config';
-
-import { poseidon_gencontract as poseidonContract } from 'circomlibjs';
+import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from 'hardhat/builtin-tasks/task-names';
 import { HARDHAT_ACCOUNTS } from '@webb-tools/utils';
+import poseidonContract from 'circomlibjs/src/poseidon_gencontract.js';
 
 require('dotenv').config({ path: __dirname + '/.env' });
 
@@ -18,15 +18,14 @@ const buildPoseidon = async (numInputs: number) => {
 };
 
 /// Overwrite the artifact before generating types
-subtask('Overwrite Poseidon bytecode', async (taskArgs, hre, runSuper) => {
+subtask('typechain-generate-types', async (taskArgs, hre, runSuper) => {
+  console.log('Overwriting poseidon bytecode');
   await buildPoseidon(1);
   await buildPoseidon(2);
   await buildPoseidon(3);
   await buildPoseidon(5);
   await runSuper();
 });
-
-const { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } = require('hardhat/builtin-tasks/task-names');
 
 subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(async (_, __, runSuper) =>
   (await runSuper()).filter((path) => !path.endsWith('.t.sol'))

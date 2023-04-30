@@ -192,11 +192,9 @@ export abstract class WebbBridge<A extends WebbContracts> {
   }
 
   public getExtAmount(inputs: Utxo[], outputs: Utxo[], fee: BigNumberish) {
-    return (
-      BigNumber.from(fee.toString())
-        .add(outputs.reduce((sum, x) => sum + BigInt(x.amount), BigInt(0)))
-        .sub(inputs.reduce((sum, x) => sum + BigInt(x.amount), BigInt(0)))
-    );
+    return BigNumber.from(fee)
+      .add(outputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)))
+      .sub(inputs.reduce((sum, x) => sum.add(x.amount), BigNumber.from(0)));
   }
 
   public async getWrapUnwrapOptions(
@@ -342,7 +340,7 @@ export abstract class WebbBridge<A extends WebbContracts> {
         refund.toString(),
         wrapUnwrapToken
       )
-    ).toString();
+    );
     return { extData, extDataHash };
   }
 
@@ -423,29 +421,6 @@ export abstract class WebbBridge<A extends WebbContracts> {
       refund.toString(),
       wrapUnwrapToken
     );
-    console.log(options);
-    console.log({
-      extData: {
-        recipient: extData.recipient,
-        extAmount: extData.extAmount,
-        relayer: extData.relayer,
-        fee: extData.fee,
-        refund: extData.refund,
-        token: extData.token,
-      },
-      publicInputs: {
-        roots: publicInputs.roots,
-        extensionRoots: publicInputs.extensionRoots,
-        inputNullifiers: publicInputs.inputNullifiers,
-        outputCommitments: [publicInputs.outputCommitments[0], publicInputs.outputCommitments[1]],
-        publicAmount: publicInputs.publicAmount,
-        extDataHash: publicInputs.extDataHash,
-      },
-      outputs: {
-        encryptedOutput1: extData.encryptedOutput1,
-        encryptedOutput2: extData.encryptedOutput2,
-      },
-    });
     const tx = await this.contract.transact(
       publicInputs.proof,
       ZERO_BYTES32,
@@ -469,10 +444,9 @@ export abstract class WebbBridge<A extends WebbContracts> {
         encryptedOutput1: extData.encryptedOutput1,
         encryptedOutput2: extData.encryptedOutput2,
       },
-      { ...options },
+      { ...options }
     );
     const receipt = await tx.wait();
-    console.log('here');
     await this.updateTreeOrForestState(outputs);
     return receipt!;
   }

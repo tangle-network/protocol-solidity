@@ -18,7 +18,9 @@
     ]
   },
   "scripts": {
-    "compile": "lerna run compile --scope=@webb-tools/contracts && lerna run compile --scope=@webb-tools/identity-anchor-contracts",
+    "compile": "yarn run compile:contracts && yarn run compile:identity-anchor-contracts",
+    "compile:contracts": "cd packages/contracts && yarn compile && cd ../..",
+    "compile:identity-anchor-contracts": "cd packages/identity-anchor-contracts && yarn compile && cd ../..",
     "build": "yarn build:packages",
     "setup": "yarn compile && yarn build:circuits && yarn build:ptau",
     "test": "yarn workspace @webb-tools/contracts run test",
