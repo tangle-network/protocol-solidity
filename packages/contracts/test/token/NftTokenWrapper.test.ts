@@ -22,7 +22,8 @@ describe('NftTokenWrapper', () => {
 
     token = await ERC721Class.createERC721(tokenName, tokenSymbol, sender);
     wrappedNft = await NftTokenWrapperClass.createNftTokenWrapper(
-      uri,
+      tokenName,
+      tokenSymbol,
       sender.address,
       token.contract.address,
       sender
@@ -36,45 +37,35 @@ describe('NftTokenWrapper', () => {
 
       assert.strictEqual((await wrappedNft.contract.proposalNonce()).toNumber(), 0);
       assert.strictEqual(await wrappedNft.contract.handler(), sender.address);
-      assert.strictEqual(await wrappedNft.contract.uri(0), 'https://example.com/token/{id}.json');
     });
   });
 
   describe('#wrap', () => {
     it('should fail to wrap', async () => {
       const nonExistantTokenId = 1;
-      await expect(wrappedNft.wrap721(nonExistantTokenId)).to.be.revertedWith(
+      await expect(wrappedNft.wrap721(sender.address, nonExistantTokenId)).to.be.revertedWith(
         'ERC721: invalid token ID'
       );
     });
 
     it('should wrap/unwrap an ERC721 token with a token id', async () => {
       const tokenId = 1;
-      assert.strictEqual(
-        (await wrappedNft.contract.balanceOf(sender.address, tokenId)).toNumber(),
-        0
-      );
-      await token.mint(sender.address);
+      assert.strictEqual((await wrappedNft.contract.balanceOf(sender.address)).toNumber(), 0);
+      await token.mint(sender.address, tokenId);
       await token.approve(wrappedNft.contract.address, tokenId);
-      await wrappedNft.wrap721(tokenId);
+      await wrappedNft.wrap721(sender.address, tokenId);
       assert.strictEqual(
         (await token.contract.balanceOf(wrappedNft.contract.address)).toNumber(),
         1
       );
-      assert.strictEqual(
-        (await wrappedNft.contract.balanceOf(sender.address, tokenId)).toNumber(),
-        1
-      );
+      assert.strictEqual((await wrappedNft.contract.balanceOf(sender.address)).toNumber(), 1);
 
       await wrappedNft.unwrap721(tokenId, token.contract.address);
       assert.strictEqual(
         (await token.contract.balanceOf(wrappedNft.contract.address)).toNumber(),
         0
       );
-      assert.strictEqual(
-        (await wrappedNft.contract.balanceOf(sender.address, tokenId)).toNumber(),
-        0
-      );
+      assert.strictEqual((await wrappedNft.contract.balanceOf(sender.address)).toNumber(), 0);
       assert.strictEqual((await token.contract.balanceOf(sender.address)).toNumber(), 1);
     });
   });
