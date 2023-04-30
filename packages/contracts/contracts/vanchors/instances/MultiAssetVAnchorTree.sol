@@ -75,7 +75,7 @@ contract MultiAssetVAnchorTree is MultiAssetVAnchor, MerkleTree {
 		}
 	}
 
-	function _executeFeeInsertions(
+	function _executeAuxInsertions(
 		uint256[2] memory feeOutputCommitments,
 		Encryptions memory _feeEncryptions
 	) internal override {

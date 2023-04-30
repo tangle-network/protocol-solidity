@@ -71,7 +71,7 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 		swapVerifier = address(_swapVerifier);
 	}
 
-	function _executeFeeInsertions(
+	function _executeAuxInsertions(
 		uint256[2] memory feeOutputCommitments,
 		Encryptions memory _feeEncryptions
 	) internal virtual;
@@ -129,7 +129,7 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 				)
 			);
 		}
-		_executeFeeInsertions(aux.feeOutputCommitments, _encryptions);
+		_executeAuxInsertions(aux.feeOutputCommitments, _encryptions);
 	}
 
 	/// @inheritdoc ZKVAnchorBase
@@ -220,33 +220,9 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 		);
 		// Add new Records from swap (receive and change records) to Record Merkle tree.
 		// Insert Alice's Change and Receive Records
-		_insertTwo(_publicInputs.aliceChangeRecord, _publicInputs.aliceReceiveRecord);
-		emit NewCommitment(
-			_publicInputs.aliceChangeRecord,
-			0,
-			this.getNextIndex() - 2,
-			aliceEncryptions.encryptedOutput1
-		);
-		emit NewCommitment(
-			_publicInputs.aliceReceiveRecord,
-			0,
-			this.getNextIndex() - 1,
-			aliceEncryptions.encryptedOutput2
-		);
+		_executeAuxInsertions([_publicInputs.aliceChangeRecord, _publicInputs.aliceReceiveRecord], aliceEncryptions);
 		// Insert Bob's Change and Receive Records
-		_insertTwo(_publicInputs.bobChangeRecord, _publicInputs.bobReceiveRecord);
-		emit NewCommitment(
-			_publicInputs.bobChangeRecord,
-			0,
-			this.getNextIndex() - 2,
-			bobEncryptions.encryptedOutput1
-		);
-		emit NewCommitment(
-			_publicInputs.bobReceiveRecord,
-			0,
-			this.getNextIndex() - 1,
-			bobEncryptions.encryptedOutput2
-		);
+		_executeAuxInsertions([_publicInputs.bobChangeRecord, _publicInputs.bobReceiveRecord], bobEncryptions);
 		IMASPProxy(proxy).queueRewardSpentTreeCommitment(
 			bytes32(
 				IHasher(this.getHasher()).hashLeftRight(

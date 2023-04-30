@@ -1644,7 +1644,7 @@ describe('MASPVAnchor for 2 max edges', () => {
   });
 
   describe('swap tests', () => {
-    it.only('should swap an erc721 for erc20', async () => {
+    it('should swap an erc721 for erc20', async () => {
       // 4 Masp Keys
       const alice_key = new MaspKey();
       const bob_key = new MaspKey();

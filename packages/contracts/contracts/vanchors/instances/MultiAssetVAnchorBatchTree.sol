@@ -112,7 +112,7 @@ contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, ProxiedBatchTree {
 		}
 	}
 
-	function _executeFeeInsertions(
+	function _executeAuxInsertions(
 		uint256[2] memory feeOutputCommitments,
 		Encryptions memory _feeEncryptions
 	) internal override {
