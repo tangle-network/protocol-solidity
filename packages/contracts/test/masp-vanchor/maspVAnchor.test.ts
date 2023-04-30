@@ -704,7 +704,7 @@ describe('MASPVAnchor for 2 max edges', () => {
           commitment: toFixedHex(
             BigNumber.from(poseidon([1, 0, 100, BigNumber.from(depositPartialCommitment)]))
           ),
-          isShielded: false, 
+          isShielded: false,
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
@@ -745,7 +745,7 @@ describe('MASPVAnchor for 2 max edges', () => {
             commitment: toFixedHex(
               BigNumber.from(poseidon([1, 0, 100, BigNumber.from(depositPartialCommitment)]))
             ),
-            isShielded: false, 
+            isShielded: false,
             proxiedMASP: maspVAnchor.contract.address,
           },
           {
@@ -771,7 +771,7 @@ describe('MASPVAnchor for 2 max edges', () => {
           commitment: toFixedHex(
             BigNumber.from(poseidon([2, 1, 1, BigNumber.from(depositPartialCommitment)]))
           ),
-          isShielded: false, 
+          isShielded: false,
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
@@ -812,7 +812,7 @@ describe('MASPVAnchor for 2 max edges', () => {
             commitment: toFixedHex(
               BigNumber.from(poseidon([2, 1, 1, BigNumber.from(depositPartialCommitment)]))
             ),
-            isShielded: false, 
+            isShielded: false,
             proxiedMASP: maspVAnchor.contract.address,
           },
           {
@@ -862,14 +862,14 @@ describe('MASPVAnchor for 2 max edges', () => {
           commitment: toFixedHex(
             BigNumber.from(poseidon([1, 0, 100, BigNumber.from(depositPartialCommitment1)]))
           ),
-          isShielded: false, 
+          isShielded: false,
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
           from: sender.address,
         }
       );
-      
+
       const depositPartialCommitment2 = '0x' + Buffer.from(randomBytes(32)).toString('hex');
       await maspProxy.queueDeposit(
         {
@@ -883,14 +883,14 @@ describe('MASPVAnchor for 2 max edges', () => {
           commitment: toFixedHex(
             BigNumber.from(poseidon([1, 0, 100, BigNumber.from(depositPartialCommitment2)]))
           ),
-          isShielded: false, 
+          isShielded: false,
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
           from: sender.address,
         }
       );
-      
+
       const depositPartialCommitment3 = '0x' + Buffer.from(randomBytes(32)).toString('hex');
       await maspProxy.queueDeposit(
         {
@@ -904,7 +904,7 @@ describe('MASPVAnchor for 2 max edges', () => {
           commitment: toFixedHex(
             BigNumber.from(poseidon([1, 0, 100, BigNumber.from(depositPartialCommitment3)]))
           ),
-          isShielded: false, 
+          isShielded: false,
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
@@ -925,7 +925,7 @@ describe('MASPVAnchor for 2 max edges', () => {
           commitment: toFixedHex(
             BigNumber.from(poseidon([1, 0, 100, BigNumber.from(depositPartialCommitment4)]))
           ),
-          isShielded: false, 
+          isShielded: false,
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
@@ -943,12 +943,20 @@ describe('MASPVAnchor for 2 max edges', () => {
       await maspProxy.batchInsertDeposits(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
 
       // Check Reward Unspent Tree is Queued
-      const queuedRewardUnspentComms = await maspProxy.getQueuedRewardUnspentCommitments(maspVAnchor.contract.address, BigNumber.from(0), BigNumber.from(4));
+      const queuedRewardUnspentComms = await maspProxy.getQueuedRewardUnspentCommitments(
+        maspVAnchor.contract.address,
+        BigNumber.from(0),
+        BigNumber.from(4)
+      );
 
       assert.strictEqual(queuedRewardUnspentComms.length, 4);
 
       // Batch insert into reward unspent tree
-      await maspProxy.batchInsertRewardUnspentTree(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
+      await maspProxy.batchInsertRewardUnspentTree(
+        maspVAnchor,
+        BigNumber.from(0),
+        BigNumber.from(2)
+      );
     });
 
     it('e2e should batch insert erc721 -> queue reward unspent tree -> transfer funds to masp -> batch insert on reward unspent tree', async () => {
@@ -976,7 +984,7 @@ describe('MASPVAnchor for 2 max edges', () => {
           from: sender.address,
         }
       );
-      
+
       const depositPartialCommitment2 = '0x' + Buffer.from(randomBytes(32)).toString('hex');
       await maspProxy.queueDeposit(
         {
@@ -1043,12 +1051,20 @@ describe('MASPVAnchor for 2 max edges', () => {
       await maspProxy.batchInsertDeposits(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
 
       // Check Reward Unspent Tree is Queued
-      const queuedRewardUnspentComms = await maspProxy.getQueuedRewardUnspentCommitments(maspVAnchor.contract.address, BigNumber.from(0), BigNumber.from(4));
+      const queuedRewardUnspentComms = await maspProxy.getQueuedRewardUnspentCommitments(
+        maspVAnchor.contract.address,
+        BigNumber.from(0),
+        BigNumber.from(4)
+      );
 
       assert.strictEqual(queuedRewardUnspentComms.length, 4);
 
       // Batch insert into reward unspent tree
-      await maspProxy.batchInsertRewardUnspentTree(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
+      await maspProxy.batchInsertRewardUnspentTree(
+        maspVAnchor,
+        BigNumber.from(0),
+        BigNumber.from(2)
+      );
     });
   });
 
@@ -1107,7 +1123,7 @@ describe('MASPVAnchor for 2 max edges', () => {
           commitment: toFixedHex(
             BigNumber.from(poseidon([1, 0, 100, BigNumber.from(depositPartialCommitment1)]))
           ),
-          isShielded: false, 
+          isShielded: false,
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
@@ -1128,7 +1144,7 @@ describe('MASPVAnchor for 2 max edges', () => {
           commitment: toFixedHex(
             BigNumber.from(poseidon([1, 0, 10, BigNumber.from(depositPartialCommitment2)]))
           ),
-          isShielded: false, 
+          isShielded: false,
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
@@ -1149,7 +1165,7 @@ describe('MASPVAnchor for 2 max edges', () => {
           commitment: toFixedHex(
             BigNumber.from(poseidon([1, 0, 100, BigNumber.from(depositPartialCommitment3)]))
           ),
-          isShielded: false, 
+          isShielded: false,
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
@@ -1170,7 +1186,7 @@ describe('MASPVAnchor for 2 max edges', () => {
           commitment: toFixedHex(
             BigNumber.from(poseidon([1, 0, 100, BigNumber.from(depositPartialCommitment4)]))
           ),
-          isShielded: false, 
+          isShielded: false,
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
@@ -1197,7 +1213,11 @@ describe('MASPVAnchor for 2 max edges', () => {
       });
 
       // Check Reward Unspent Tree is Queued
-      const queuedRewardUnspentComms = await maspProxy.getQueuedRewardUnspentCommitments(maspVAnchor.contract.address, BigNumber.from(0), BigNumber.from(4));
+      const queuedRewardUnspentComms = await maspProxy.getQueuedRewardUnspentCommitments(
+        maspVAnchor.contract.address,
+        BigNumber.from(0),
+        BigNumber.from(4)
+      );
 
       assert.strictEqual(queuedRewardUnspentComms.length, 4);
 
@@ -1229,6 +1249,7 @@ describe('MASPVAnchor for 2 max edges', () => {
       await maspVAnchor.transact(
         webbFungibleAssetID,
         webbFungibleTokenID,
+        fungibleWebbToken.contract.address,
         [alice_utxo],
         [alice_utxo_2, bob_utxo_2],
         BigNumber.from(0),
@@ -1255,12 +1276,21 @@ describe('MASPVAnchor for 2 max edges', () => {
       });
 
       // Check reward unspent and spent tree is queued
-      const queuedRewardUnspentCommsAfterTransfer = await maspProxy.getQueuedRewardUnspentCommitments(maspVAnchor.contract.address, BigNumber.from(0), BigNumber.from(6));
+      const queuedRewardUnspentCommsAfterTransfer =
+        await maspProxy.getQueuedRewardUnspentCommitments(
+          maspVAnchor.contract.address,
+          BigNumber.from(0),
+          BigNumber.from(6)
+        );
 
       assert.strictEqual(queuedRewardUnspentCommsAfterTransfer.length, 6);
 
       // Batch insert into reward unspent tree
-      await maspProxy.batchInsertRewardUnspentTree(maspVAnchor, BigNumber.from(0), BigNumber.from(2));
+      await maspProxy.batchInsertRewardUnspentTree(
+        maspVAnchor,
+        BigNumber.from(0),
+        BigNumber.from(2)
+      );
 
       const carol_utxo_2 = new MaspUtxo(
         BigNumber.from(chainID),
@@ -1274,6 +1304,7 @@ describe('MASPVAnchor for 2 max edges', () => {
       await maspVAnchor.transact(
         webbFungibleAssetID,
         webbFungibleTokenID,
+        fungibleWebbToken.contract.address,
         [bob_utxo_2],
         [carol_utxo_2],
         BigNumber.from(0),
@@ -1349,7 +1380,7 @@ describe('MASPVAnchor for 2 max edges', () => {
           commitment: toFixedHex(
             BigNumber.from(poseidon([1, 0, 100, BigNumber.from(depositPartialCommitment1)]))
           ),
-          isShielded: false, 
+          isShielded: false,
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
@@ -1370,7 +1401,7 @@ describe('MASPVAnchor for 2 max edges', () => {
           commitment: toFixedHex(
             BigNumber.from(poseidon([1, 0, 10, BigNumber.from(depositPartialCommitment2)]))
           ),
-          isShielded: false, 
+          isShielded: false,
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
@@ -1391,7 +1422,7 @@ describe('MASPVAnchor for 2 max edges', () => {
           commitment: toFixedHex(
             BigNumber.from(poseidon([1, 0, 100, BigNumber.from(depositPartialCommitment3)]))
           ),
-          isShielded: false, 
+          isShielded: false,
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
@@ -1412,7 +1443,7 @@ describe('MASPVAnchor for 2 max edges', () => {
           commitment: toFixedHex(
             BigNumber.from(poseidon([1, 0, 100, BigNumber.from(depositPartialCommitment4)]))
           ),
-          isShielded: false, 
+          isShielded: false,
           proxiedMASP: maspVAnchor.contract.address,
         },
         {
@@ -1462,9 +1493,12 @@ describe('MASPVAnchor for 2 max edges', () => {
         BigNumber.from(10)
       );
 
+      const aliceAddress = signers[4];
+
       await maspVAnchor.transact(
         webbFungibleAssetID,
         webbFungibleTokenID,
+        fungibleWebbToken.contract.address,
         [alice_utxo],
         [alice_utxo_2, bob_utxo_2],
         BigNumber.from(0),
@@ -1474,12 +1508,16 @@ describe('MASPVAnchor for 2 max edges', () => {
         [fee_output_utxo],
         [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         BigNumber.from(0),
-        sender.address,
+        aliceAddress.address,
         sender.address,
         sender
       );
 
-      // TODO: Check token balances
+      // Should withdraw but not unwrap due to how we set the wrapUnwrapTOken
+      assert.strictEqual(
+        (await fungibleWebbToken.contract.balanceOf(aliceAddress.address)).toString(),
+        '10'
+      );
     });
 
     it('e2e should withdraw ERC721 with valid transact proof -> check token balances', async () => {
@@ -1623,9 +1661,11 @@ describe('MASPVAnchor for 2 max edges', () => {
 
       const webbFeeAssetID = BigNumber.from(1);
       const webbFeeTokenID = BigNumber.from(0);
+      const aliceAddress = signers[4];
       await maspVAnchor.transact(
         webbNftAssetID,
         BigNumber.from(1),
+        nftWebbToken.contract.address,
         [alice_utxo],
         [],
         BigNumber.from(0),
@@ -1635,11 +1675,13 @@ describe('MASPVAnchor for 2 max edges', () => {
         [],
         [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         BigNumber.from(0),
-        sender.address,
+        aliceAddress.address,
         sender.address,
         sender
       );
-      // TODO: Check token balances
+      // Check token balances
+      // Should withdraw but not unwrap due to how we set the wrapUnwrapToken
+      assert.strictEqual((await nftWebbToken.contract.ownerOf(1)).toString(), aliceAddress.address);
     });
   });
 
@@ -1854,7 +1896,7 @@ describe('MASPVAnchor for 2 max edges', () => {
           from: sender.address,
         }
       );
-      
+
       const depositPartialCommitment8 = toFixedHex(dave_nft_utxo.getPartialCommitment());
       await maspProxy.queueDeposit(
         {

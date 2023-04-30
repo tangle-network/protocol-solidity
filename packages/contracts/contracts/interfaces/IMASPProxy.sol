@@ -6,7 +6,10 @@
 pragma solidity ^0.8.5;
 
 interface IMASPProxy {
-	enum AssetType { ERC20, ERC721 }
+	enum AssetType {
+		ERC20,
+		ERC721
+	}
 
 	struct QueueDepositInfo {
 		AssetType assetType;

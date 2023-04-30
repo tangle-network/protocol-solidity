@@ -76,12 +76,15 @@ contract MultiAssetVAnchorProxy is IMASPProxy, Initialized, IERC721Receiver {
 		bytes32 newRoot
 	);
 
-	function queueDeposit(QueueDepositInfo memory depositInfo) override public payable {
+	function queueDeposit(QueueDepositInfo memory depositInfo) public payable override {
 		address proxiedMASP = depositInfo.proxiedMASP;
 		require(validProxiedMASPs[proxiedMASP], "Invalid MASP");
 		if (msg.sender != proxiedMASP) {
 			// Not an output commitment from transact so need to transfer tokens to MASP
-			require(depositInfo.isShielded == false, "Not an output commitment, isShielded should be false");
+			require(
+				depositInfo.isShielded == false,
+				"Not an output commitment, isShielded should be false"
+			);
 			require(
 				IRegistry(IMultiAssetVAnchorBatchTree(proxiedMASP).registry())
 					.getAssetIdFromWrappedAddress(depositInfo.wrappedToken) != 0,
@@ -90,33 +93,39 @@ contract MultiAssetVAnchorProxy is IMASPProxy, Initialized, IERC721Receiver {
 			uint256 amount = depositInfo.amount;
 			address depositToken = depositInfo.unwrappedToken;
 			// Check deposit commitment is correct
-			require(depositInfo.commitment == bytes32(
-				IHasher(hasher).hash4(
-					[
-						depositInfo.assetID,
-						depositInfo.tokenID,
-						depositInfo.amount,
-						uint256(depositInfo.depositPartialCommitment)
-					]
-				)), "Commitment Hash is wrong");
+			require(
+				depositInfo.commitment ==
+					bytes32(
+						IHasher(hasher).hash4(
+							[
+								depositInfo.assetID,
+								depositInfo.tokenID,
+								depositInfo.amount,
+								uint256(depositInfo.depositPartialCommitment)
+							]
+						)
+					),
+				"Commitment Hash is wrong"
+			);
 			// Transfer tokens to MASP
 			if (depositInfo.assetType == AssetType.ERC20) {
-				IMintableERC20(depositToken).transferFrom(msg.sender, address(this), uint256(amount));
+				IMintableERC20(depositToken).transferFrom(
+					msg.sender,
+					address(this),
+					uint256(amount)
+				);
 			} else {
-				IERC721(depositToken).safeTransferFrom(msg.sender, address(this), depositInfo.tokenID);
+				IERC721(depositToken).safeTransferFrom(
+					msg.sender,
+					address(this),
+					depositInfo.tokenID
+				);
 			}
 		}
-		QueueDepositMap[proxiedMASP][
-			nextQueueDepositIndex[proxiedMASP]
-		] = depositInfo;
+		QueueDepositMap[proxiedMASP][nextQueueDepositIndex[proxiedMASP]] = depositInfo;
 		// Emit Event
-		emit QueueDeposit(
-			nextQueueDepositIndex[proxiedMASP],
-			proxiedMASP
-		);
-		nextQueueDepositIndex[proxiedMASP] =
-			nextQueueDepositIndex[proxiedMASP] +
-			1;
+		emit QueueDeposit(nextQueueDepositIndex[proxiedMASP], proxiedMASP);
+		nextQueueDepositIndex[proxiedMASP] = nextQueueDepositIndex[proxiedMASP] + 1;
 	}
 
 	function batchInsertDeposits(
@@ -137,18 +146,19 @@ contract MultiAssetVAnchorProxy is IMASPProxy, Initialized, IERC721Receiver {
 			_lastProcessedDepositLeaf + _batchSize <= nextQueueDepositIndex[proxiedMASP],
 			"Batch size too big"
 		);
-		for (
-			uint i = _lastProcessedDepositLeaf;
-			i < _lastProcessedDepositLeaf + _batchSize;
-			i++
-		) {
+		for (uint i = _lastProcessedDepositLeaf; i < _lastProcessedDepositLeaf + _batchSize; i++) {
 			QueueDepositInfo memory depositInfo = QueueDepositMap[proxiedMASP][i];
 			uint256 commitmentIndex = i - _lastProcessedDepositLeaf;
 			commitments[commitmentIndex] = depositInfo.commitment;
 			// Queue reward commitments
 			queueRewardUnspentTreeCommitment(
 				proxiedMASP,
-				bytes32(IHasher(hasher).hashLeftRight(uint256(commitments[commitmentIndex]), block.timestamp))
+				bytes32(
+					IHasher(hasher).hashLeftRight(
+						uint256(commitments[commitmentIndex]),
+						block.timestamp
+					)
+				)
 			);
 			if (!depositInfo.isShielded) {
 				if (depositInfo.assetType == AssetType.ERC20) {
@@ -174,7 +184,10 @@ contract MultiAssetVAnchorProxy is IMASPProxy, Initialized, IERC721Receiver {
 							address(depositInfo.wrappedToken),
 							depositInfo.tokenID
 						);
-						INftTokenWrapper(depositInfo.wrappedToken).wrap721(address(depositInfo.proxiedMASP), depositInfo.tokenID);
+						INftTokenWrapper(depositInfo.wrappedToken).wrap721(
+							address(depositInfo.proxiedMASP),
+							depositInfo.tokenID
+						);
 					} else {
 						IERC721(depositInfo.unwrappedToken).approve(
 							address(depositInfo.wrappedToken),
@@ -208,7 +221,7 @@ contract MultiAssetVAnchorProxy is IMASPProxy, Initialized, IERC721Receiver {
 	function queueRewardUnspentTreeCommitment(
 		address proxiedMASP,
 		bytes32 rewardUnspentTreeCommitment
-	) override public {
+	) public override {
 		RewardUnspentTreeCommitmentMap[proxiedMASP][
 			nextRewardUnspentTreeCommitmentIndex[proxiedMASP]
 		] = rewardUnspentTreeCommitment;
@@ -243,7 +256,9 @@ contract MultiAssetVAnchorProxy is IMASPProxy, Initialized, IERC721Receiver {
 			i < _lastProcessedRewardUnspentTreeLeaf + _batchSize;
 			i++
 		) {
-			commitments[i - _lastProcessedRewardUnspentTreeLeaf] = RewardUnspentTreeCommitmentMap[proxiedMASP][i];
+			commitments[i - _lastProcessedRewardUnspentTreeLeaf] = RewardUnspentTreeCommitmentMap[
+				proxiedMASP
+			][i];
 		}
 		// Update latestProcessedDepositLeaf
 		lastProcessedRewardUnspentTreeLeaf = _lastProcessedRewardUnspentTreeLeaf + _batchSize;
@@ -264,7 +279,7 @@ contract MultiAssetVAnchorProxy is IMASPProxy, Initialized, IERC721Receiver {
 		);
 	}
 
-	function queueRewardSpentTreeCommitment(bytes32 rewardSpentTreeCommitment) override public {
+	function queueRewardSpentTreeCommitment(bytes32 rewardSpentTreeCommitment) public override {
 		address proxiedMASP = msg.sender;
 		RewardSpentTreeCommitmentMap[proxiedMASP][
 			nextRewardSpentTreeCommitmentIndex[proxiedMASP]
@@ -300,7 +315,9 @@ contract MultiAssetVAnchorProxy is IMASPProxy, Initialized, IERC721Receiver {
 			i < _lastProcessedRewardSpentTreeLeaf + _batchSize;
 			i++
 		) {
-			commitments[i - _lastProcessedRewardSpentTreeLeaf] = RewardSpentTreeCommitmentMap[proxiedMASP][i];
+			commitments[i - _lastProcessedRewardSpentTreeLeaf] = RewardSpentTreeCommitmentMap[
+				proxiedMASP
+			][i];
 		}
 		// Update latestProcessedDepositLeaf
 		lastProcessedRewardSpentTreeLeaf = _lastProcessedRewardSpentTreeLeaf + _batchSize;

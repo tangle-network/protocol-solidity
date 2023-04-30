@@ -222,6 +222,7 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
   public async transact(
     assetID: BigNumberish,
     tokenID: BigNumberish,
+    wrapUnwrapToken: string,
     inputs: MaspUtxo[],
     outputs: MaspUtxo[],
     fee: BigNumberish, // Most likely 0 because fee will be paid through feeInputs
@@ -324,7 +325,7 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
       relayer,
       BigNumber.from(fee),
       BigNumber.from(refund),
-      wrappedToken,
+      wrapUnwrapToken,
       '0x' + outputs[0].encrypt(outputs[0].maspKey).toString('hex'),
       '0x' + outputs[1].encrypt(outputs[1].maspKey).toString('hex')
     );

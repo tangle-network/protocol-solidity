@@ -109,7 +109,7 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 		}
 		for (uint256 i = 0; i < _publicInputs.outputCommitments.length; i++) {
 			IMASPProxy(proxy).queueRewardUnspentTreeCommitment(
-				address(this), 
+				address(this),
 				bytes32(
 					IHasher(this.getHasher()).hashLeftRight(
 						_publicInputs.outputCommitments[i],
@@ -120,12 +120,9 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 		}
 		for (uint256 i = 0; i < aux.feeOutputCommitments.length; i++) {
 			IMASPProxy(proxy).queueRewardUnspentTreeCommitment(
-				address(this), 
+				address(this),
 				bytes32(
-					IHasher(this.getHasher()).hashLeftRight(
-						aux.feeOutputCommitments[i],
-						timestamp
-					)
+					IHasher(this.getHasher()).hashLeftRight(aux.feeOutputCommitments[i], timestamp)
 				)
 			);
 		}
@@ -220,9 +217,15 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 		);
 		// Add new Records from swap (receive and change records) to Record Merkle tree.
 		// Insert Alice's Change and Receive Records
-		_executeAuxInsertions([_publicInputs.aliceChangeRecord, _publicInputs.aliceReceiveRecord], aliceEncryptions);
+		_executeAuxInsertions(
+			[_publicInputs.aliceChangeRecord, _publicInputs.aliceReceiveRecord],
+			aliceEncryptions
+		);
 		// Insert Bob's Change and Receive Records
-		_executeAuxInsertions([_publicInputs.bobChangeRecord, _publicInputs.bobReceiveRecord], bobEncryptions);
+		_executeAuxInsertions(
+			[_publicInputs.bobChangeRecord, _publicInputs.bobReceiveRecord],
+			bobEncryptions
+		);
 		IMASPProxy(proxy).queueRewardSpentTreeCommitment(
 			bytes32(
 				IHasher(this.getHasher()).hashLeftRight(
