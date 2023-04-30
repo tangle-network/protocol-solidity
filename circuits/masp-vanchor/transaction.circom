@@ -276,7 +276,7 @@ template Transaction(levels, nIns, nOuts, nFeeIns, nFeeOuts, length, numFeeToken
     }
 
     // Fee Token must be a fungible token
-    tokenID === 0;
+    feeTokenID === 0;
 
     var sumFeeIns = 0;
 

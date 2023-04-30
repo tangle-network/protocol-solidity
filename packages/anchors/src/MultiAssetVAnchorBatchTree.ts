@@ -77,7 +77,7 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
     const encodeLibrary = await encodeLibraryFactory.deploy();
     await encodeLibrary.deployed();
 
-    const swapEncodeLibraryFactory = new MASPVAnchorEncodeInputs__factory(signer);
+    const swapEncodeLibraryFactory = new SwapEncodeInputs__factory(signer);
     const swapEncodeLibrary = await swapEncodeLibraryFactory.deploy();
     await swapEncodeLibrary.deployed();
 
@@ -309,6 +309,7 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
     const merkleProofs = inputs.map((x) =>
       MultiAssetVAnchor.getMASPMerkleProof(x, this.depositTree.tree)
     );
+
     const feeMerkleProofs = feeInputs.map((x) =>
       MultiAssetVAnchor.getMASPMerkleProof(x, this.depositTree.tree)
     );
@@ -381,6 +382,83 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
 
     const receipt = await tx.wait();
 
+    outputs.forEach((x) => {
+      this.depositTree.tree.insert(x.getCommitment());
+      let numOfElements = this.tree.number_of_elements();
+      this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
+    });
+
+    feeOutputs.forEach((x) => {
+      this.depositTree.tree.insert(x.getCommitment());
+      let numOfElements = this.tree.number_of_elements();
+      this.depositHistory[numOfElements - 1] = toFixedHex(this.tree.root().toString());
+    });
+
     return receipt;
+  }
+
+  // Smart contract interaction for swap
+  public async swap(
+    aliceSpendRecord: MaspUtxo,
+    aliceChangeRecord: MaspUtxo,
+    aliceReceiveRecord: MaspUtxo,
+    bobSpendRecord: MaspUtxo,
+    bobChangeRecord: MaspUtxo,
+    bobReceiveRecord: MaspUtxo,
+    aliceSig: any,
+    bobSig: any,
+    t: BigNumber,
+    tPrime: BigNumber,
+    currentTimestamp: BigNumber,
+    signer: ethers.Signer
+  ) {
+    const evmId = await signer.getChainId();
+    const swapChainID = getChainIdType(evmId);
+    const aliceSpendMerkleProof = await MultiAssetVAnchor.getMASPMerkleProof(
+      aliceSpendRecord,
+      this.depositTree.tree
+    );
+    const bobSpendMerkleProof = await MultiAssetVAnchor.getMASPMerkleProof(
+      bobSpendRecord,
+      this.depositTree.tree
+    );
+    const { swapAllInputs, swapPublicInputs } = await this.generateSwapInputsWithProof(
+      aliceSpendRecord,
+      aliceChangeRecord,
+      aliceReceiveRecord,
+      bobSpendRecord,
+      bobChangeRecord,
+      bobReceiveRecord,
+      aliceSpendMerkleProof,
+      bobSpendMerkleProof,
+      aliceSig,
+      bobSig,
+      t,
+      tPrime,
+      currentTimestamp,
+      BigNumber.from(swapChainID)
+    );
+    await this.contract.swap(
+      '0x' + swapPublicInputs.proof,
+      {
+        aliceSpendNullifier: swapPublicInputs.aliceSpendNullifier,
+        bobSpendNullifier: swapPublicInputs.bobSpendNullifier,
+        swapChainID: swapPublicInputs.swapChainID,
+        roots: MultiAssetVAnchor.createRootsBytes(swapPublicInputs.roots),
+        currentTimestamp: swapPublicInputs.currentTimestamp,
+        aliceChangeRecord: swapPublicInputs.aliceChangeRecord,
+        bobChangeRecord: swapPublicInputs.bobChangeRecord,
+        aliceReceiveRecord: swapPublicInputs.aliceReceiveRecord,
+        bobReceiveRecord: swapPublicInputs.bobReceiveRecord,
+      },
+      {
+        encryptedOutput1: aliceChangeRecord.encrypt(aliceChangeRecord.maspKey),
+        encryptedOutput2: aliceReceiveRecord.encrypt(aliceReceiveRecord.maspKey),
+      },
+      {
+        encryptedOutput1: bobChangeRecord.encrypt(bobChangeRecord.maspKey),
+        encryptedOutput2: bobReceiveRecord.encrypt(bobReceiveRecord.maspKey),
+      }
+    );
   }
 }

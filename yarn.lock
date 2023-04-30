@@ -2860,6 +2860,13 @@
     mcl-wasm "^0.7.1"
     rustbn.js "~0.2.0"
 
+"@nomicfoundation/hardhat-network-helpers@^1.0.8":
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/@nomicfoundation/hardhat-network-helpers/-/hardhat-network-helpers-1.0.8.tgz#e4fe1be93e8a65508c46d73c41fa26c7e9f84931"
+  integrity sha512-MNqQbzUJZnCMIYvlniC3U+kcavz/PhhQSsY90tbEtUyMj/IQqsLwIRZa4ctjABh3Bz0KCh9OXUZ7Yk/d9hr45Q==
+  dependencies:
+    ethereumjs-util "^7.1.4"
+
 "@nomicfoundation/solidity-analyzer-darwin-arm64@0.1.1":
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/@nomicfoundation/solidity-analyzer-darwin-arm64/-/solidity-analyzer-darwin-arm64-0.1.1.tgz#4c858096b1c17fe58a474fe81b46815f93645c15"
@@ -6168,17 +6175,6 @@
     "@webb-tools/utils" "^0.2.7"
     ethers "5.7.0"
 
-"@webb-tools/tokens@0.5.32":
-  version "0.5.32"
-  resolved "https://registry.yarnpkg.com/@webb-tools/tokens/-/tokens-0.5.32.tgz#31a25d7e4b99806492b1d9d79ceda5f156a97c7a"
-  integrity sha512-24gs9jMUDZajPeHb6sb8T2vJpCmKRaSBMv1A0MigViJt+quafI+r25nPOZf14/uNsY4M3abGbF919bB/AMvnZg==
-  dependencies:
-    "@webb-tools/anchors" "^0.5.32"
-    "@webb-tools/contracts" "^0.5.32"
-    "@webb-tools/sdk-core" "0.1.4-119"
-    "@webb-tools/utils" "^0.5.24"
-    ethers "5.7.0"
-
 "@webb-tools/tokens@0.5.13":
   version "0.5.13"
   resolved "https://registry.yarnpkg.com/@webb-tools/tokens/-/tokens-0.5.13.tgz#14bd693d198be3acd039cf313a5fba2517f4a4ad"
@@ -6188,6 +6184,17 @@
     "@webb-tools/contracts" "^0.5.13"
     "@webb-tools/sdk-core" "0.1.4-119"
     "@webb-tools/utils" "^0.5.7"
+    ethers "5.7.0"
+
+"@webb-tools/tokens@0.5.32":
+  version "0.5.32"
+  resolved "https://registry.yarnpkg.com/@webb-tools/tokens/-/tokens-0.5.32.tgz#31a25d7e4b99806492b1d9d79ceda5f156a97c7a"
+  integrity sha512-24gs9jMUDZajPeHb6sb8T2vJpCmKRaSBMv1A0MigViJt+quafI+r25nPOZf14/uNsY4M3abGbF919bB/AMvnZg==
+  dependencies:
+    "@webb-tools/anchors" "^0.5.32"
+    "@webb-tools/contracts" "^0.5.32"
+    "@webb-tools/sdk-core" "0.1.4-119"
+    "@webb-tools/utils" "^0.5.24"
     ethers "5.7.0"
 
 "@webb-tools/tokens@^0.2.6", "@webb-tools/tokens@^0.2.7", "@webb-tools/tokens@^0.2.9":

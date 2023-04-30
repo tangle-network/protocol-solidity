@@ -57,6 +57,7 @@
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-truffle5": "^2.0.0",
     "@nomiclabs/hardhat-web3": "^2.0.0",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.8",
     "eth-proof": "~2.1.6",
     "ethers": "5.7.0",
     "itertools": "^1.7.1",

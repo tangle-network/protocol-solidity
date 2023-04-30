@@ -62,21 +62,13 @@ contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, ProxiedBatchTree {
 		PublicInputs memory _publicInputs,
 		Encryptions memory _encryptions
 	) internal override {
-		insertTwo(_publicInputs.outputCommitments[0], _publicInputs.outputCommitments[1]);
-		emit NewCommitment(
-			_publicInputs.outputCommitments[0],
-			0,
-			this.getNextIndex() - 2,
-			_encryptions.encryptedOutput1
-		);
-		emit NewCommitment(
-			_publicInputs.outputCommitments[1],
-			0,
-			this.getNextIndex() - 1,
-			_encryptions.encryptedOutput2
-		);
-		for (uint256 i = 0; i < _publicInputs.inputNullifiers.length; i++) {
-			emit NewNullifier(_publicInputs.inputNullifiers[i]);
-		}
+		// TODO: Queue the output commitments
+	}
+
+	function _executeFeeInsertions(
+		uint256[2] memory feeOutputCommitments,
+		Encryptions memory _feeEncryptions
+	) internal override {
+		// TODO: Queue the fee output commitments
 	}
 }

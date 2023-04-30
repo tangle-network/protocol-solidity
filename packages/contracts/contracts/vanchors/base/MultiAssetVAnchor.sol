@@ -1,6 +1,6 @@
 /**
- * Copyright 2021-2023 Webb Technologies
- * SPDX-License-Identifier: MIT OR Apache-2.0
+ * Copyright 2021-2022 Webb Technologies
+ * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
 pragma solidity ^0.8.5;
@@ -17,6 +17,7 @@ import "../../interfaces/IMASPProxy.sol";
 import "../../libs/SwapEncodeInputs.sol";
 import "../../interfaces/verifiers/ISwapVerifier.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "hardhat/console.sol";
 
 /**
 	@title Multi Asset Variable Anchor contract
@@ -44,7 +45,7 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 
 	address public registry;
 	address proxy;
-	uint256 allowableSwapTimestampEpsilon = 1 minutes;
+	uint256 allowableSwapTimestampEpsilon = 60_000;
 	address swapVerifier;
 
 	/**
@@ -71,78 +72,10 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 		swapVerifier = address(_swapVerifier);
 	}
 
-	/**
-		@notice Wraps and deposits in a single flow without a proof. Leads to a single non-zero UTXO.
-		@param _fromTokenAddress The address of the token to wrap from. If address(0) then do not wrap.
-		@param _toTokenAddress The address of the token to wrap into
-		@param _amount The amount of tokens to wrap
-		@param partialCommitment The partial commitment of the UTXO
-		@param encryptedCommitment The encrypted commitment of the partial UTXO
-	 */
-	function depositERC20(
-		address _fromTokenAddress,
-		address _toTokenAddress,
-		uint256 _amount,
-		bytes32 partialCommitment,
-		bytes memory encryptedCommitment
-	) public payable {
-		uint256 amount = _amount;
-		// Execute wrapping if wrapAndDeposit, otherwise directly transfer wrapped tokens.
-		if (_fromTokenAddress != address(0)) {
-			amount = _executeWrapping(_fromTokenAddress, _toTokenAddress, _amount);
-		} else {
-			IMintableERC20(_toTokenAddress).transferFrom(
-				msg.sender,
-				address(this),
-				uint256(amount)
-			);
-		}
-		// Create the record commitment
-		uint256 assetID = IRegistry(registry).getAssetIdFromWrappedAddress(_toTokenAddress);
-		require(assetID != 0, "Wrapped asset not registered");
-		uint256 commitment = IHasher(this.getHasher()).hash4(
-			[assetID, 0, amount, uint256(partialCommitment)]
-		);
-		_insertTwo(commitment, 0);
-		emit NewCommitment(commitment, 0, this.getNextIndex() - 2, encryptedCommitment);
-	}
-
-	/**
-		@notice Wraps and deposits in a single flow without a proof. Leads to a single non-zero UTXO.
-		@param _fromTokenAddress The address of the token to wrap from. If address(0) do not wrap.
-		@param _toTokenAddress The address of the token to wrap into
-		@param _tokenID Nft token ID
-		@param partialCommitment The partial commitment of the UTXO
-		@param encryptedCommitment The encrypted commitment of the partial UTXO
-	 */
-	function depositERC721(
-		address _fromTokenAddress,
-		address _toTokenAddress,
-		uint256 _tokenID,
-		bytes32 partialCommitment,
-		bytes memory encryptedCommitment
-	) public payable {
-		// Execute the wrapping
-		uint256 assetID = IRegistry(registry).getAssetIdFromWrappedAddress(_toTokenAddress);
-		// Check assetID is not 0
-		require(assetID != 0, "Wrapped asset not registered");
-		if (_fromTokenAddress != address(0)) {
-			// Check wrapped and unwrapped addresses are consistent
-			require(
-				IRegistry(registry).getUnwrappedAssetAddress(assetID) == _fromTokenAddress,
-				"Wrapped and unwrapped addresses don't match"
-			);
-			INftTokenWrapper(_toTokenAddress).wrap721(_tokenID);
-		} else {
-			IERC721(_toTokenAddress).safeTransferFrom(msg.sender, address(this), _tokenID);
-		}
-		// Create the record commitment
-		uint256 commitment = IHasher(this.getHasher()).hash4(
-			[assetID, _tokenID, 1, uint256(partialCommitment)]
-		);
-		_insertTwo(commitment, 0);
-		emit NewCommitment(commitment, 0, this.getNextIndex() - 2, encryptedCommitment);
-	}
+	function _executeFeeInsertions(
+		uint256[2] memory feeOutputCommitments,
+		Encryptions memory _feeEncryptions
+	) internal virtual;
 
 	/// @inheritdoc ZKVAnchorBase
 	function transact(
@@ -154,8 +87,10 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 	) public payable virtual override {
 		MASPAuxPublicInputs memory aux = abi.decode(_auxPublicInputs, (MASPAuxPublicInputs));
 		address wrappedToken = IRegistry(registry).getWrappedAssetAddress(aux.publicAssetID);
+		uint256 publicTokenID = aux.publicTokenID;
 		_transact(
 			wrappedToken,
+			publicTokenID,
 			_proof,
 			_auxPublicInputs,
 			_externalData,
@@ -173,6 +108,29 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 				)
 			);
 		}
+		for (uint256 i = 0; i < _publicInputs.outputCommitments.length; i++) {
+			IMASPProxy(proxy).queueRewardUnspentTreeCommitment(
+				address(this), 
+				bytes32(
+					IHasher(this.getHasher()).hashLeftRight(
+						_publicInputs.outputCommitments[i],
+						timestamp
+					)
+				)
+			);
+		}
+		for (uint256 i = 0; i < aux.feeOutputCommitments.length; i++) {
+			IMASPProxy(proxy).queueRewardUnspentTreeCommitment(
+				address(this), 
+				bytes32(
+					IHasher(this.getHasher()).hashLeftRight(
+						aux.feeOutputCommitments[i],
+						timestamp
+					)
+				)
+			);
+		}
+		_executeFeeInsertions(aux.feeOutputCommitments, _encryptions);
 	}
 
 	/// @inheritdoc ZKVAnchorBase
@@ -322,6 +280,32 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 				)
 			)
 		);
+	}
+
+	function _processWithdrawERC721(
+		address _token,
+		address _recipient,
+		uint256 publicTokenID
+	) internal virtual override {
+		uint balance = IERC721(_token).balanceOf(address(this));
+		if (balance == 1) {
+			// transfer tokens when balance exists
+			IERC721(_token).safeTransferFrom(address(this), _recipient, publicTokenID);
+		} else {
+			// mint tokens when not enough balance exists
+			INftTokenWrapper(_token)._mint(_recipient, publicTokenID);
+		}
+	}
+
+	function _withdrawAndUnwrapERC721(
+		address _fromTokenAddress,
+		address _toTokenAddress,
+		address _recipient,
+		uint256 publicTokenID
+	) public payable override {
+		_processWithdrawERC721(_fromTokenAddress, payable(address(this)), publicTokenID);
+
+		INftTokenWrapper(_fromTokenAddress).unwrap721(publicTokenID, _toTokenAddress);
 	}
 
 	/**

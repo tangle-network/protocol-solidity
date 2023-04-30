@@ -34,6 +34,10 @@ import {
 } from '@webb-tools/interfaces';
 const { babyjub } = require('circomlibjs');
 import { u8aToHex, getChainIdType, ZkComponents, MaspUtxo, MaspKey } from '@webb-tools/utils';
+import { fromAscii } from 'web3-utils';
+import { Registry } from '@webb-tools/tokens';
+import { EthAbiDecodeParametersResultArray } from 'web3/eth/abi';
+import { convertPublicSignals } from '@webb-tools/semaphore-proof/dist/types/generateProof';
 const snarkjs = require('snarkjs');
 const assert = require('assert');
 const { poseidon, eddsa } = require('circomlibjs');
@@ -680,12 +684,15 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
 
   /** Swap Functions */
   public async generateSwapProof(swapAllInputs: IMASPSwapAllInputs): Promise<FullProof> {
-    let proof = await snarkjs.groth16.fullProve(
+    const wtns = await this.swapCircuitZkComponents.witnessCalculator.calculateWTNSBin(
       swapAllInputs,
-      this.swapCircuitZkComponents.wasm,
-      this.swapCircuitZkComponents.zkey
+      0
     );
-    return proof;
+    let res = await snarkjs.groth16.prove(this.swapCircuitZkComponents.zkey, wtns);
+    const vKey = await snarkjs.zKey.exportVerificationKey(this.swapCircuitZkComponents.zkey);
+    const verified = await snarkjs.groth16.verify(vKey, res.publicSignals, res.proof);
+    assert.strictEqual(verified, true);
+    return res;
   }
 
   public async generateSwapInputsWithProof(
@@ -697,6 +704,8 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     bobReceiveRecord: MaspUtxo,
     aliceSpendMerkleProof: MerkleProof,
     bobSpendMerkleProof: MerkleProof,
+    aliceSig: any,
+    bobSig: any,
     t: BigNumber,
     tPrime: BigNumber,
     currentTimestamp: BigNumber,
@@ -711,18 +720,6 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
       pathIndex: MerkleTree.calculateIndexFromPathIndices(bobSpendMerkleProof.pathIndices),
       pathElements: bobSpendMerkleProof.pathElements,
     };
-
-    const swapMessageHash = poseidon([
-      aliceChangeRecord.getCommitment(),
-      aliceReceiveRecord.getCommitment(),
-      bobChangeRecord.getCommitment(),
-      bobReceiveRecord.getCommitment(),
-      t,
-      tPrime,
-    ]);
-
-    const aliceSig = eddsa.signPoseidon(aliceSpendRecord.maspKey.sk, swapMessageHash);
-    const bobSig = eddsa.signPoseidon(bobSpendRecord.maspKey.sk, swapMessageHash);
 
     const swapAllInputs = {
       aliceSpendAssetID: aliceSpendRecord.assetID.toString(),
@@ -805,61 +802,6 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     );
     assert.strictEqual(is_valid, true);
     return { swapAllInputs, swapPublicInputs };
-  }
-
-  // Smart contract interaction for swap
-  public async swap(
-    aliceSpendRecord: MaspUtxo,
-    aliceChangeRecord: MaspUtxo,
-    aliceReceiveRecord: MaspUtxo,
-    bobSpendRecord: MaspUtxo,
-    bobChangeRecord: MaspUtxo,
-    bobReceiveRecord: MaspUtxo,
-    aliceSpendMerkleProof: MerkleProof,
-    bobSpendMerkleProof: MerkleProof,
-    t: BigNumber,
-    tPrime: BigNumber,
-    currentTimestamp: BigNumber,
-    signer: ethers.Signer
-  ) {
-    const evmId = await signer.getChainId();
-    const swapChainID = getChainIdType(evmId);
-    const { swapAllInputs, swapPublicInputs } = await this.generateSwapInputsWithProof(
-      aliceSpendRecord,
-      aliceChangeRecord,
-      aliceReceiveRecord,
-      bobSpendRecord,
-      bobChangeRecord,
-      bobReceiveRecord,
-      aliceSpendMerkleProof,
-      bobSpendMerkleProof,
-      t,
-      tPrime,
-      currentTimestamp,
-      BigNumber.from(swapChainID)
-    );
-    await this.contract.swap(
-      swapPublicInputs.proof,
-      {
-        aliceSpendNullifier: swapPublicInputs.aliceSpendNullifier,
-        bobSpendNullifier: swapPublicInputs.bobSpendNullifier,
-        swapChainID: swapPublicInputs.swapChainID,
-        roots: MultiAssetVAnchor.createRootsBytes(swapPublicInputs.roots),
-        currentTimestamp: swapPublicInputs.currentTimestamp,
-        aliceChangeRecord: swapPublicInputs.aliceChangeRecord,
-        bobChangeRecord: swapPublicInputs.bobChangeRecord,
-        aliceReceiveRecord: swapPublicInputs.aliceReceiveRecord,
-        bobReceiveRecord: swapPublicInputs.bobReceiveRecord,
-      },
-      {
-        encryptedOutput1: aliceChangeRecord.encrypt(aliceChangeRecord.maspKey),
-        encryptedOutput2: aliceReceiveRecord.encrypt(aliceReceiveRecord.maspKey),
-      },
-      {
-        encryptedOutput1: bobChangeRecord.encrypt(bobChangeRecord.maspKey),
-        encryptedOutput2: bobReceiveRecord.encrypt(bobReceiveRecord.maspKey),
-      }
-    );
   }
 }
 

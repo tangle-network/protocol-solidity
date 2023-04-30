@@ -1,6 +1,6 @@
 /**
- * Copyright 2021-2023 Webb Technologies
- * SPDX-License-Identifier: MIT OR Apache-2.0
+ * Copyright 2021-2022 Webb Technologies
+ * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
 pragma solidity ^0.8.5;
@@ -85,6 +85,7 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 	 */
 	function _transact(
 		address _wrappedToken,
+		uint256 publicTokenID,
 		bytes memory _proof,
 		bytes memory _auxPublicInputs,
 		CommonExtData memory _externalData,
@@ -128,11 +129,15 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 				"amount is less than minimalWithdrawalAmount"
 			);
 			if (_externalData.token == _wrappedToken) {
-				_processWithdraw(
-					_wrappedToken,
-					_externalData.recipient,
-					uint256(-_externalData.extAmount)
-				);
+				if (publicTokenID == 0) {
+					_processWithdraw(
+						_wrappedToken,
+						_externalData.recipient,
+						uint256(-_externalData.extAmount)
+					);
+				} else {
+					_processWithdrawERC721(_wrappedToken, _externalData.recipient, publicTokenID);
+				}
 			} else {
 				_withdrawAndUnwrap(
 					_wrappedToken,
@@ -156,6 +161,16 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 
 		_executeInsertions(_publicInputs, _encryptions);
 	}
+
+	/**
+		@notice Inserts the output commitments into the underlying merkle system
+		@param _publicInputs The public inputs for the proof
+		@param _encryptions The encryptions of the output commitments
+	 */
+	function _executeInsertions(
+		PublicInputs memory _publicInputs,
+		Encryptions memory _encryptions
+	) internal virtual;
 
 	/**
 		@notice Checks whether the transaction is valid
@@ -196,16 +211,6 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 			nullifierHashes[_publicInputs.inputNullifiers[i]] = true;
 		}
 	}
-
-	/**
-		@notice Inserts the output commitments into the underlying merkle system
-		@param _publicInputs The public inputs for the proof
-		@param _encryptions The encryptions of the output commitments
-	 */
-	function _executeInsertions(
-		PublicInputs memory _publicInputs,
-		Encryptions memory _encryptions
-	) internal virtual;
 
 	/**
 		@notice Verifies the zero-knowledge proof and validity of roots/public inputs.
