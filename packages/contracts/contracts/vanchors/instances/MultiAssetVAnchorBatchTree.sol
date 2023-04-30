@@ -17,6 +17,13 @@ contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, ProxiedBatchTree {
 	address public rewardUnspentTree;
 	address public rewardSpentTree;
 
+	event NewQueuedCommitment(
+		uint256 commitment,
+		uint256 subTreeIndex,
+		uint256 leafIndex,
+		bytes encryptedOutput
+	);
+
 	/**
 		@notice The VAnchorTree constructor
         @param _registry The asset registry address
@@ -62,13 +69,90 @@ contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, ProxiedBatchTree {
 		PublicInputs memory _publicInputs,
 		Encryptions memory _encryptions
 	) internal override {
-		// TODO: Queue the output commitments
+		IMASPProxy.QueueDepositInfo memory depositInfo_0 = IMASPProxy.QueueDepositInfo(
+			IMASPProxy.AssetType.ERC20,
+			address(0x0),
+			address(0x0),
+			0,
+			0,
+			0,
+			bytes32(0x0),
+			bytes32(_publicInputs.outputCommitments[0]),
+			true,
+			address(this)
+		);
+		IMASPProxy(proxy).queueDeposit(depositInfo_0);
+		IMASPProxy.QueueDepositInfo memory depositInfo_1 = IMASPProxy.QueueDepositInfo(
+			IMASPProxy.AssetType.ERC20,
+			address(0x0),
+			address(0x0),
+			0,
+			0,
+			0,
+			bytes32(0x0),
+			bytes32(_publicInputs.outputCommitments[1]),
+			true,
+			address(this)
+		);
+		IMASPProxy(proxy).queueDeposit(depositInfo_1);
+		emit NewQueuedCommitment(
+			_publicInputs.outputCommitments[0],
+			0,
+			this.getNextIndex() - 2,
+			_encryptions.encryptedOutput1
+		);
+		emit NewQueuedCommitment(
+			_publicInputs.outputCommitments[1],
+			0,
+			this.getNextIndex() - 1,
+			_encryptions.encryptedOutput2
+		);
+		for (uint256 i = 0; i < _publicInputs.inputNullifiers.length; i++) {
+			emit NewNullifier(_publicInputs.inputNullifiers[i]);
+		}
 	}
 
 	function _executeFeeInsertions(
 		uint256[2] memory feeOutputCommitments,
 		Encryptions memory _feeEncryptions
 	) internal override {
-		// TODO: Queue the fee output commitments
+		IMASPProxy.QueueDepositInfo memory depositInfo_0 = IMASPProxy.QueueDepositInfo(
+			IMASPProxy.AssetType.ERC20,
+			address(0x0),
+			address(0x0),
+			0,
+			0,
+			0,
+			bytes32(0x0),
+			bytes32(feeOutputCommitments[0]),
+			true,
+			address(this)
+		);
+		IMASPProxy(proxy).queueDeposit(depositInfo_0);
+		IMASPProxy.QueueDepositInfo memory depositInfo_1 = IMASPProxy.QueueDepositInfo(
+			IMASPProxy.AssetType.ERC20,
+			address(0x0),
+			address(0x0),
+			0,
+			0,
+			0,
+			bytes32(0x0),
+			bytes32(feeOutputCommitments[1]),
+			true,
+			address(this)
+		);
+		IMASPProxy(proxy).queueDeposit(depositInfo_1);
+		emit NewQueuedCommitment(
+			feeOutputCommitments[0],
+			0,
+			this.getNextIndex() - 2,
+			_feeEncryptions.encryptedOutput1
+		);
+		emit NewQueuedCommitment(
+			feeOutputCommitments[1],
+			0,
+			this.getNextIndex() - 1,
+			_feeEncryptions.encryptedOutput2
+		);
 	}
 }
