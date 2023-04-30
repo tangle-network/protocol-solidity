@@ -134,7 +134,7 @@ describe('Reward snarkjs local proof', () => {
     const maspPath = maspMerkleTree.path(0);
     const maspPathElements = maspPath.pathElements.map((bignum: BigNumber) => bignum.toString());
     const maspPathIndices = MerkleTree.calculateIndexFromPathIndices(maspPath.pathIndices);
-    maspUtxo.setIndex(BigNumber.from(0));
+    maspUtxo.forceSetIndex(BigNumber.from(0));
 
     // Update depositTree with vanchor UTXO commitment
     const unspentTimestamp = Date.now();
