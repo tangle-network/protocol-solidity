@@ -13,29 +13,15 @@ import "../hashers/IHasher.sol";
 import "../interfaces/IMultiAssetVAnchorBatchTree.sol";
 import "../interfaces/tokens/ITokenWrapper.sol";
 import "../interfaces/tokens/INftTokenWrapper.sol";
+import "../interfaces/IMASPProxy.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 /// @dev This contract holds a merkle tree of all tornado cash deposit and withdrawal events
-contract MultiAssetVAnchorProxy is Initialized, IERC721Receiver {
+contract MultiAssetVAnchorProxy is IMASPProxy, Initialized, IERC721Receiver {
 	bytes32 public depositRoot;
 	bytes32 public previousDepositRoot;
 	bytes32 public withdrawalRoot;
 	bytes32 public previousWithdrawalRoot;
-
-	enum AssetType { ERC20, ERC721 }
-
-	struct QueueDepositInfo {
-		AssetType assetType;
-		address unwrappedToken;
-		address wrappedToken;
-		uint256 amount;
-		uint256 assetID;
-		uint256 tokenID;
-		bytes32 depositPartialCommitment;
-		bytes32 commitment;
-		bool isShielded; // true if corresponds to output commitment from transact
-		address proxiedMASP;
-	}
 
 	mapping(address => mapping(uint256 => QueueDepositInfo)) public QueueDepositMap;
 	mapping(address => uint256) public nextQueueDepositIndex;
@@ -90,7 +76,7 @@ contract MultiAssetVAnchorProxy is Initialized, IERC721Receiver {
 		bytes32 newRoot
 	);
 
-	function queueDeposit(QueueDepositInfo memory depositInfo) public payable {
+	function queueDeposit(QueueDepositInfo memory depositInfo) override public payable {
 		address proxiedMASP = depositInfo.proxiedMASP;
 		require(validProxiedMASPs[proxiedMASP], "Invalid MASP");
 		if (msg.sender != proxiedMASP) {
@@ -219,7 +205,7 @@ contract MultiAssetVAnchorProxy is Initialized, IERC721Receiver {
 	function queueRewardUnspentTreeCommitment(
 		address proxiedMASP,
 		bytes32 rewardUnspentTreeCommitment
-	) public payable {
+	) override public {
 		RewardUnspentTreeCommitmentMap[proxiedMASP][
 			nextRewardUnspentTreeCommitmentIndex[proxiedMASP]
 		] = rewardUnspentTreeCommitment;
@@ -275,7 +261,7 @@ contract MultiAssetVAnchorProxy is Initialized, IERC721Receiver {
 		);
 	}
 
-	function queueRewardSpentTreeCommitment(bytes32 rewardSpentTreeCommitment) public payable {
+	function queueRewardSpentTreeCommitment(bytes32 rewardSpentTreeCommitment) override public {
 		address proxiedMASP = msg.sender;
 		RewardSpentTreeCommitmentMap[proxiedMASP][
 			nextRewardSpentTreeCommitmentIndex[proxiedMASP]
