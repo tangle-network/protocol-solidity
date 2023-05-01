@@ -1,6 +1,6 @@
 /**
- * Copyright 2021-2023 Webb Technologies
- * SPDX-License-Identifier: MIT OR Apache-2.0
+ * Copyright 2021-2022 Webb Technologies
+ * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
 pragma solidity ^0.8.5;
@@ -42,13 +42,16 @@ interface IMultiTokenManager {
 	/**
         @notice Registers a new NFT token and deploys the NftTokenWrapper contract
         @param _handler The address of the token handler contract
-        @param _uri The uri for the wrapped ERC1155
+        @param _unwrappedNftAddress The address of the unwrapped NFT
+         @param _name The name of the ERC721
+         @param _symbol The symbol of the ERC721
         @param _salt Salt used for matching addresses across chain using CREATE2
      */
 	function registerNftToken(
 		address _handler,
 		address _unwrappedNftAddress,
-		string memory _uri,
+		string memory _name,
+		string memory _symbol,
 		bytes32 _salt
 	) external returns (address);
 }

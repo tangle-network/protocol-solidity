@@ -181,7 +181,8 @@ describe('Registry', () => {
         tokenHandler,
         assetIdentifier,
         dummyNftAddress,
-        wrappedTokenURI,
+        wrappedTokenName,
+        wrappedTokenSymbol,
         salt
       );
 
@@ -192,7 +193,8 @@ describe('Registry', () => {
       );
 
       const wrappedToken = NftTokenWrapper.connect(wrappedTokenAddress, sender);
-      assert.strictEqual(await wrappedToken.contract.uri(assetIdentifier), wrappedTokenURI);
+      assert.strictEqual(await wrappedToken.contract.name(), wrappedTokenName);
+      assert.strictEqual(await wrappedToken.contract.symbol(), wrappedTokenSymbol);
     });
   });
 });

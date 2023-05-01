@@ -1,6 +1,6 @@
 /**
- * Copyright 2021-2023 Webb Technologies
- * SPDX-License-Identifier: MIT OR Apache-2.0
+ * Copyright 2021-2022 Webb Technologies
+ * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
 pragma solidity ^0.8.5;
@@ -35,7 +35,6 @@ contract RegistryHandler is IExecutor, HandlerHelpers {
 			"initialResourceIDs and initialContractAddresses len mismatch"
 		);
 
-		require(bridgeAddress != address(0), "Bridge Address can't be 0");
 		_bridgeAddress = bridgeAddress;
 
 		for (uint256 i = 0; i < initialResourceIDs.length; i++) {
@@ -91,20 +90,24 @@ contract RegistryHandler is IExecutor, HandlerHelpers {
 			);
 		} else if (
 			functionSig ==
-			bytes4(keccak256("registerNftToken(uint32,address,uint256,address,string,bytes32)"))
+			bytes4(
+				keccak256("registerNftToken(uint32,address,uint256,address,string,string,bytes32)")
+			)
 		) {
 			uint32 nonce = uint32(bytes4(arguments[0:4]));
 			address tokenHandler = address(bytes20(arguments[4:24]));
 			uint256 assetId = uint256(bytes32(arguments[24:56]));
 			address unwrappedNftAddress = address(bytes20(arguments[56:76]));
 			bytes32 salt = bytes32(arguments[76:108]);
-			bytes memory uri = bytes(arguments[108:]);
+			bytes memory name = bytes(arguments[108:140]);
+			bytes memory symbol = bytes(arguments[140:172]);
 			registry.registerNftToken(
 				nonce,
 				tokenHandler,
 				assetId,
 				unwrappedNftAddress,
-				string(uri),
+				string(name),
+				string(symbol),
 				salt
 			);
 		} else {

@@ -414,7 +414,87 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     return [thisRoot.toString(), ...neighborRootInfos.map((bignum) => bignum.toString())];
   }
 
-  public static async generateMASPVAnchorInputs(
+  public async populateRootsForProof(): Promise<BigNumber[]> {
+    const neighborEdges = await this.contract.getLatestNeighborEdges();
+    const neighborRootInfos = neighborEdges.map((rootData) => {
+      return rootData.root;
+    });
+    let thisRoot = await this.contract.getLastRoot();
+    return [thisRoot, ...neighborRootInfos];
+  }
+
+  public static auxInputsToBytes(publicInputs: IMASPVAnchorPublicInputs): string {
+    // publicAssetID, publicTokenID, whitelistedAssetIDs, feeInputNullifiers, feeOutputCommitments,
+
+    let whitelistedAssetIDs_bytes = '';
+    for (let i = 0; i < publicInputs.whitelistedAssetIDs.length; i++) {
+      whitelistedAssetIDs_bytes += toFixedHex(publicInputs.whitelistedAssetIDs[i]).slice(2);
+    }
+
+    let feeInputNullifier_bytes = '';
+    for (let i = 0; i < publicInputs.feeInputNullifier.length; i++) {
+      feeInputNullifier_bytes += toFixedHex(publicInputs.feeInputNullifier[i]).slice(2);
+    }
+
+    let feeOutputCommitment_bytes = '';
+    for (let i = 0; i < publicInputs.feeOutputCommitment.length; i++) {
+      feeOutputCommitment_bytes += toFixedHex(publicInputs.feeOutputCommitment[i]).slice(2);
+    }
+
+    return (
+      toFixedHex(publicInputs.publicAssetID) +
+      toFixedHex(publicInputs.publicTokenID).slice(2) +
+      whitelistedAssetIDs_bytes +
+      feeInputNullifier_bytes +
+      feeOutputCommitment_bytes
+    );
+  }
+
+  /**
+   *
+   * @param input A UTXO object that is inside the tree
+   * @returns
+   */
+  public static getMASPMerkleProof(input: MaspUtxo, tree: MerkleTree): MerkleProof {
+    let inputMerklePathIndices: number[];
+    let inputMerklePathElements: BigNumber[];
+
+    if (Number(input.amount) > 0) {
+      const index = BigNumber.from(tree.indexOf(input.getCommitment().toString()));
+      input.forceSetIndex(index);
+      if (index < BigNumber.from(0)) {
+        throw new Error(`Input commitment ${toFixedHex(input.getCommitment())} was not found`);
+      }
+      const path = tree.path(index.toNumber());
+      inputMerklePathIndices = path.pathIndices;
+      inputMerklePathElements = path.pathElements;
+    } else {
+      inputMerklePathIndices = new Array(tree.levels).fill(0);
+      inputMerklePathElements = new Array(tree.levels).fill(0);
+    }
+
+    return {
+      element: input.getCommitment(),
+      pathElements: inputMerklePathElements,
+      pathIndices: inputMerklePathIndices,
+      merkleRoot: tree.root(),
+    };
+  }
+
+  /** Swap Functions */
+  public async generateSwapProof(swapAllInputs: IMASPSwapAllInputs): Promise<FullProof> {
+    const wtns = await this.swapCircuitZkComponents.witnessCalculator.calculateWTNSBin(
+      swapAllInputs,
+      0
+    );
+    let res = await snarkjs.groth16.prove(this.swapCircuitZkComponents.zkey, wtns);
+    const vKey = await snarkjs.zKey.exportVerificationKey(this.swapCircuitZkComponents.zkey);
+    const verified = await snarkjs.groth16.verify(vKey, res.publicSignals, res.proof);
+    assert.strictEqual(verified, true);
+    return res;
+  }
+
+  public async generateMASPVAnchorInputs(
     roots: BigNumberish[],
     chainId: BigNumberish,
     assetId: BigNumberish,
@@ -587,7 +667,7 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     externalMerkleProofs: MerkleProof[],
     externalFeeMerkleProofs: MerkleProof[]
   ): Promise<IMASPVAnchorPublicInputs> {
-    let { allInputs, publicInputs } = await MultiAssetVAnchor.generateMASPVAnchorInputs(
+    let { allInputs, publicInputs } = await this.generateMASPVAnchorInputs(
       roots,
       chainId,
       assetId,
@@ -613,81 +693,6 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     return publicInputs;
   }
 
-  public async populateRootsForProof(): Promise<BigNumber[]> {
-    const neighborEdges = await this.contract.getLatestNeighborEdges();
-    const neighborRootInfos = neighborEdges.map((rootData) => {
-      return rootData.root;
-    });
-    let thisRoot = await this.contract.getLastRoot();
-    return [thisRoot, ...neighborRootInfos];
-  }
-
-  public static auxInputsToBytes(publicInputs: IMASPVAnchorPublicInputs): string {
-    // publicAssetID, publicTokenID, whitelistedAssetIDs, feeInputNullifiers, feeOutputCommitments,
-
-    let whitelistedAssetIDs_bytes = '';
-    for (let i = 0; i < publicInputs.whitelistedAssetIDs.length; i++) {
-      whitelistedAssetIDs_bytes += toFixedHex(publicInputs.whitelistedAssetIDs[i]).slice(2);
-    }
-
-    let feeInputNullifier_bytes = '';
-    for (let i = 0; i < publicInputs.feeInputNullifier.length; i++) {
-      feeInputNullifier_bytes += toFixedHex(publicInputs.feeInputNullifier[i]).slice(2);
-    }
-
-    let feeOutputCommitment_bytes = '';
-    for (let i = 0; i < publicInputs.feeOutputCommitment.length; i++) {
-      feeOutputCommitment_bytes += toFixedHex(publicInputs.feeOutputCommitment[i]).slice(2);
-    }
-
-    return (
-      toFixedHex(publicInputs.publicAssetID) +
-      toFixedHex(publicInputs.publicTokenID).slice(2) +
-      whitelistedAssetIDs_bytes +
-      feeInputNullifier_bytes +
-      feeOutputCommitment_bytes
-    );
-  }
-
-  /**
-   *
-   * @param input A UTXO object that is inside the tree
-   * @returns
-   */
-  public static getMASPMerkleProof(input: MaspUtxo, tree: MerkleTree): MerkleProof {
-    let inputMerklePathIndices: number[];
-    let inputMerklePathElements: BigNumber[];
-
-    if (Number(input.amount) > 0) {
-      if (input.index < BigNumber.from(0)) {
-        throw new Error(`Input commitment ${toFixedHex(input.getCommitment())} was not found`);
-      }
-      const path = tree.path(input.index.toNumber());
-      inputMerklePathIndices = path.pathIndices;
-      inputMerklePathElements = path.pathElements;
-    } else {
-      inputMerklePathIndices = new Array(tree.levels).fill(0);
-      inputMerklePathElements = new Array(tree.levels).fill(0);
-    }
-
-    return {
-      element: input.getCommitment(),
-      pathElements: inputMerklePathElements,
-      pathIndices: inputMerklePathIndices,
-      merkleRoot: tree.root(),
-    };
-  }
-
-  /** Swap Functions */
-  public async generateSwapProof(swapAllInputs: IMASPSwapAllInputs): Promise<FullProof> {
-    let proof = await snarkjs.groth16.fullProve(
-      swapAllInputs,
-      this.swapCircuitZkComponents.wasm,
-      this.swapCircuitZkComponents.zkey
-    );
-    return proof;
-  }
-
   public async generateSwapInputsWithProof(
     aliceSpendRecord: MaspUtxo,
     aliceChangeRecord: MaspUtxo,
@@ -697,6 +702,8 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     bobReceiveRecord: MaspUtxo,
     aliceSpendMerkleProof: MerkleProof,
     bobSpendMerkleProof: MerkleProof,
+    aliceSig: any,
+    bobSig: any,
     t: BigNumber,
     tPrime: BigNumber,
     currentTimestamp: BigNumber,
@@ -711,18 +718,6 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
       pathIndex: MerkleTree.calculateIndexFromPathIndices(bobSpendMerkleProof.pathIndices),
       pathElements: bobSpendMerkleProof.pathElements,
     };
-
-    const swapMessageHash = poseidon([
-      aliceChangeRecord.getCommitment(),
-      aliceReceiveRecord.getCommitment(),
-      bobChangeRecord.getCommitment(),
-      bobReceiveRecord.getCommitment(),
-      t,
-      tPrime,
-    ]);
-
-    const aliceSig = eddsa.signPoseidon(aliceSpendRecord.maspKey.sk, swapMessageHash);
-    const bobSig = eddsa.signPoseidon(bobSpendRecord.maspKey.sk, swapMessageHash);
 
     const swapAllInputs = {
       aliceSpendAssetID: aliceSpendRecord.assetID.toString(),
@@ -805,61 +800,6 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     );
     assert.strictEqual(is_valid, true);
     return { swapAllInputs, swapPublicInputs };
-  }
-
-  // Smart contract interaction for swap
-  public async swap(
-    aliceSpendRecord: MaspUtxo,
-    aliceChangeRecord: MaspUtxo,
-    aliceReceiveRecord: MaspUtxo,
-    bobSpendRecord: MaspUtxo,
-    bobChangeRecord: MaspUtxo,
-    bobReceiveRecord: MaspUtxo,
-    aliceSpendMerkleProof: MerkleProof,
-    bobSpendMerkleProof: MerkleProof,
-    t: BigNumber,
-    tPrime: BigNumber,
-    currentTimestamp: BigNumber,
-    signer: ethers.Signer
-  ) {
-    const evmId = await signer.getChainId();
-    const swapChainID = getChainIdType(evmId);
-    const { swapAllInputs, swapPublicInputs } = await this.generateSwapInputsWithProof(
-      aliceSpendRecord,
-      aliceChangeRecord,
-      aliceReceiveRecord,
-      bobSpendRecord,
-      bobChangeRecord,
-      bobReceiveRecord,
-      aliceSpendMerkleProof,
-      bobSpendMerkleProof,
-      t,
-      tPrime,
-      currentTimestamp,
-      BigNumber.from(swapChainID)
-    );
-    await this.contract.swap(
-      swapPublicInputs.proof,
-      {
-        aliceSpendNullifier: swapPublicInputs.aliceSpendNullifier,
-        bobSpendNullifier: swapPublicInputs.bobSpendNullifier,
-        swapChainID: swapPublicInputs.swapChainID,
-        roots: MultiAssetVAnchor.createRootsBytes(swapPublicInputs.roots),
-        currentTimestamp: swapPublicInputs.currentTimestamp,
-        aliceChangeRecord: swapPublicInputs.aliceChangeRecord,
-        bobChangeRecord: swapPublicInputs.bobChangeRecord,
-        aliceReceiveRecord: swapPublicInputs.aliceReceiveRecord,
-        bobReceiveRecord: swapPublicInputs.bobReceiveRecord,
-      },
-      {
-        encryptedOutput1: aliceChangeRecord.encrypt(aliceChangeRecord.maspKey),
-        encryptedOutput2: aliceReceiveRecord.encrypt(aliceReceiveRecord.maspKey),
-      },
-      {
-        encryptedOutput1: bobChangeRecord.encrypt(bobChangeRecord.maspKey),
-        encryptedOutput2: bobReceiveRecord.encrypt(bobReceiveRecord.maspKey),
-      }
-    );
   }
 }
 

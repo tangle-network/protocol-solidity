@@ -1,12 +1,20 @@
 import { BigNumber, BigNumberish } from 'ethers';
 
+export enum AssetType {
+  ERC20,
+  ERC721,
+}
+
 export interface QueueDepositInfo {
+  assetType: AssetType;
   unwrappedToken: string;
   wrappedToken: string;
   amount: BigNumberish;
   assetID: BigNumberish;
   tokenID: BigNumberish;
   depositPartialCommitment: string;
+  commitment: string;
+  isShielded: boolean;
   proxiedMASP: string;
 }
 

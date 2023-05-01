@@ -10,8 +10,8 @@ move_verifiers_and_metadata_swap () {
     sed -i 's/pragma solidity ^0.6.11;/pragma solidity ^0.8.0;/g' packages/contracts/contracts/verifiers/$anchorType/VerifierSwap_"$size".sol
 }
 
-compile_phase2 ./packages/contracts/solidity-fixtures/solidity-fixtures/swap_2/30 swap_30_2 ./artifacts/circuits/swap_2
-move_verifiers_and_metadata_swap ./packages/contracts/solidity-fixtures/solidity-fixtures/swap_2/30 30 swap_2
+compile_phase2 ./packages/contracts/solidity-fixtures/solidity-fixtures/swap_2/20 swap_20_2 ./artifacts/circuits/swap_2
+move_verifiers_and_metadata_swap ./packages/contracts/solidity-fixtures/solidity-fixtures/swap_2/20 20 swap_2
 
-compile_phase2 ./packages/contracts/solidity-fixtures/solidity-fixtures/swap_8/30 swap_30_8 ./artifacts/circuits/swap_8
-move_verifiers_and_metadata_swap ./packages/contracts/solidity-fixtures/solidity-fixtures/swap_8/30 30 swap_8
+compile_phase2 ./packages/contracts/solidity-fixtures/solidity-fixtures/swap_8/20 swap_20_8 ./artifacts/circuits/swap_8
+move_verifiers_and_metadata_swap ./packages/contracts/solidity-fixtures/solidity-fixtures/swap_8/20 20 swap_8

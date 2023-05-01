@@ -41,14 +41,8 @@ export class MultiAssetVAnchorProxy {
   }
 
   // Queue ERC20 deposits
-  public async queueERC20Deposit(depositInfo: QueueDepositInfo) {
-    const tx = await this.contract.queueERC20Deposit(depositInfo);
-    await tx.wait();
-  }
-
-  // Queue ERC721 deposits
-  public async queueERC721Deposit(depositInfo: QueueDepositInfo) {
-    const tx = await this.contract.queueERC721Deposit(depositInfo);
+  public async queueDeposit(depositInfo: QueueDepositInfo) {
+    const tx = await this.contract.queueDeposit(depositInfo);
     await tx.wait();
   }
 
@@ -65,22 +59,17 @@ export class MultiAssetVAnchorProxy {
   }
 
   // Batch insert ERC20 deposits
-  public async batchDepositERC20s(
+  public async batchInsertDeposits(
     masp: MultiAssetVAnchorBatchTree,
     startQueueIndex: BigNumber,
     batchHeight: BigNumber
   ) {
     const batchSize = BigNumber.from(2).pow(batchHeight);
     const leaves = (
-      await this.getQueuedERC20Deposits(masp.contract.address, startQueueIndex, batchSize)
-    ).map((x) =>
-      toFixedHex(
-        BigNumber.from(poseidon([x.assetID, x.tokenID, x.amount, x.depositPartialCommitment]))
-      )
-    );
+      await this.getQueuedDeposits(masp.contract.address, startQueueIndex, batchSize)
+    ).map((x) => x.commitment.toString());
     const batchProofInfo = await masp.depositTree.generateProof(batchSize.toNumber(), leaves);
-
-    const batchTx = await this.contract.batchDepositERC20s(
+    const batchTx = await this.contract.batchInsertDeposits(
       masp.contract.address,
       batchProofInfo.proof,
       toFixedHex(BigNumber.from(batchProofInfo.input.argsHash!), 32),
@@ -91,33 +80,6 @@ export class MultiAssetVAnchorProxy {
     );
 
     await batchTx.wait();
-  }
-
-  // Batch insert ERC721 deposits
-  public async batchDepositERC721s(
-    masp: MultiAssetVAnchorBatchTree,
-    startQueueIndex: BigNumber,
-    batchHeight: BigNumber
-  ) {
-    const batchSize = BigNumber.from(2).pow(batchHeight);
-    const leaves = (
-      await this.getQueuedERC721Deposits(masp.contract.address, startQueueIndex, batchSize)
-    ).map((x) =>
-      toFixedHex(
-        BigNumber.from(poseidon([x.assetID, x.tokenID, x.amount, x.depositPartialCommitment]))
-      )
-    );
-    const batchProofInfo = await masp.depositTree.generateProof(batchSize.toNumber(), leaves);
-
-    await this.contract.batchDepositERC721s(
-      masp.contract.address,
-      batchProofInfo.proof,
-      toFixedHex(BigNumber.from(batchProofInfo.input.argsHash!), 32),
-      toFixedHex(BigNumber.from(batchProofInfo.input.oldRoot), 32),
-      toFixedHex(BigNumber.from(batchProofInfo.input.newRoot), 32),
-      batchProofInfo.input.pathIndices,
-      batchHeight
-    );
   }
 
   // Batch insert reward unspent tree commitments
@@ -139,9 +101,9 @@ export class MultiAssetVAnchorProxy {
     await this.contract.batchInsertRewardUnspentTree(
       masp.contract.address,
       batchProofInfo.proof,
-      batchProofInfo.input.argsHash!,
-      batchProofInfo.input.oldRoot,
-      batchProofInfo.input.newRoot,
+      toFixedHex(BigNumber.from(batchProofInfo.input.argsHash!), 32),
+      toFixedHex(BigNumber.from(batchProofInfo.input.oldRoot), 32),
+      toFixedHex(BigNumber.from(batchProofInfo.input.newRoot), 32),
       batchProofInfo.input.pathIndices,
       batchHeight
     );
@@ -162,9 +124,9 @@ export class MultiAssetVAnchorProxy {
     await this.contract.batchInsertRewardSpentTree(
       masp.contract.address,
       batchProofInfo.proof,
-      batchProofInfo.input.argsHash!,
-      batchProofInfo.input.oldRoot,
-      batchProofInfo.input.newRoot,
+      toFixedHex(BigNumber.from(batchProofInfo.input.argsHash!), 32),
+      toFixedHex(BigNumber.from(batchProofInfo.input.oldRoot), 32),
+      toFixedHex(BigNumber.from(batchProofInfo.input.newRoot), 32),
       batchProofInfo.input.pathIndices,
       batchHeight
     );
@@ -173,37 +135,19 @@ export class MultiAssetVAnchorProxy {
   // Utility Classes *****
 
   // Get queued ERC20 deposits
-  public async getQueuedERC20Deposits(
+  public async getQueuedDeposits(
     maspAddr: string,
     startIndex: BigNumber,
     batchSize: BigNumber
   ): Promise<QueueDepositInfo[]> {
-    const nextIndex = await this.contract.nextQueueERC20DepositIndex(maspAddr);
+    const nextIndex = await this.contract.nextQueueDepositIndex(maspAddr);
     const endIndex = startIndex.add(batchSize);
     const deposits = [];
     for (let i = startIndex; i.lt(endIndex); i = i.add(1)) {
       if (i.gte(nextIndex)) {
         break;
       }
-      deposits.push(await this.contract.QueueERC20DepositMap(maspAddr, i));
-    }
-    return deposits;
-  }
-
-  // Get queued ERC721 deposits
-  public async getQueuedERC721Deposits(
-    maspAddr: string,
-    startIndex: BigNumber,
-    batchSize: BigNumber
-  ): Promise<QueueDepositInfo[]> {
-    const nextIndex = await this.contract.nextQueueERC721DepositIndex(maspAddr);
-    const endIndex = startIndex.add(batchSize);
-    const deposits = [];
-    for (let i = startIndex; i.lt(endIndex); i = i.add(1)) {
-      if (i.gte(nextIndex)) {
-        break;
-      }
-      deposits.push(await this.contract.QueueERC721DepositMap(maspAddr, i));
+      deposits.push(await this.contract.QueueDepositMap(maspAddr, i));
     }
     return deposits;
   }

@@ -1,15 +1,14 @@
 /**
- * Copyright 2021-2023 Webb Technologies
- * SPDX-License-Identifier: MIT OR Apache-2.0
+ * Copyright 2021-2022 Webb Technologies
+ * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
 pragma solidity ^0.8.5;
 
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./FungibleTokenWrapper.sol";
-import "./NftTokenWrapper.sol";
 import "../utils/Initialized.sol";
 import "../utils/ProposalNonceTracker.sol";
+import "./NftTokenWrapper.sol";
 import "../interfaces/tokens/IRegistry.sol";
 import "../interfaces/tokens/IMultiTokenManager.sol";
 
@@ -18,7 +17,7 @@ import "../interfaces/tokens/IMultiTokenManager.sol";
     ERC20 / ERC721 / ERC1155 tokens on the bridge
     @author Webb Technologies.
  */
-contract Registry is Initialized, IRegistry, ProposalNonceTracker, ReentrancyGuard {
+contract Registry is Initialized, IRegistry, ProposalNonceTracker {
 	using SafeMath for uint256;
 
 	address public fungibleTokenManager;
@@ -48,21 +47,6 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker, ReentrancyGua
 		address _masterFeeRecipient,
 		address _maspVAnchor
 	) external onlyUninitialized {
-		require(
-			_fungibleTokenManager != address(0),
-			"Registry: Fungible Token Manager Address can't be 0"
-		);
-		require(
-			_nonFungibleTokenManager != address(0),
-			"Registry: Non-Fungible Token Manager Address can't be 0"
-		);
-		require(_handler != address(0), "Registry: Handler Address can't be 0");
-		require(
-			_masterFeeRecipient != address(0),
-			"Registry: Master Fee Recipient Address can't be 0"
-		);
-		require(_maspVAnchor != address(0), "Registry: MASP VAnchor Address can't be 0");
-
 		initialized = true;
 		fungibleTokenManager = _fungibleTokenManager;
 		nonFungibleTokenManager = _nonFungibleTokenManager;
@@ -96,7 +80,7 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker, ReentrancyGua
 		uint256 _limit,
 		uint16 _feePercentage,
 		bool _isNativeAllowed
-	) external override nonReentrant onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
+	) external override onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
 		require(_assetIdentifier != 0, "Registry: Asset identifier cannot be 0");
 		require(
 			idToWrappedAsset[_assetIdentifier] == address(0x0),
@@ -123,7 +107,6 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker, ReentrancyGua
         @param _tokenHandler The address of the token handler contract
         @param _assetIdentifier The identifier of the asset for the MASP
 		@param _unwrappedNftAddress Address of the underlying NFT collection
-        @param _uri The uri for the wrapped NFT
         @param _salt Salt used for matching addresses across chain using CREATE2
      */
 	function registerNftToken(
@@ -131,9 +114,10 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker, ReentrancyGua
 		address _tokenHandler,
 		uint256 _assetIdentifier,
 		address _unwrappedNftAddress,
-		string memory _uri,
+		string memory _name,
+		string memory _symbol,
 		bytes32 _salt
-	) external override nonReentrant onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
+	) external override onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
 		require(_assetIdentifier != 0, "Registry: Asset identifier cannot be 0");
 		require(
 			idToWrappedAsset[_assetIdentifier] == address(0x0),
@@ -142,7 +126,8 @@ contract Registry is Initialized, IRegistry, ProposalNonceTracker, ReentrancyGua
 		address token = IMultiTokenManager(nonFungibleTokenManager).registerNftToken(
 			_tokenHandler,
 			_unwrappedNftAddress,
-			_uri,
+			_name,
+			_symbol,
 			_salt
 		);
 		emit TokenRegistered(token, _tokenHandler, _assetIdentifier);

@@ -188,13 +188,9 @@ export class ProxiedBatchTree {
     const proof = proofEncoded;
     const publicSignals = res.publicSignals;
 
-    // const { proof, publicSignals } = await snarkjs.groth16.fullProve(
-    //   input,
-    //   zkComponent.wasm,
-    //   zkComponent.zkey
-    // );
-    // const vKey = await snarkjs.zKey.exportVerificationKey(zkComponent.zkey);
-    // const verified = await snarkjs.groth16.verify(vKey, publicSignals, proof);
+    const vKey = await snarkjs.zKey.exportVerificationKey(zkComponent.zkey);
+    const verified = await snarkjs.groth16.verify(vKey, publicSignals, res.proof);
+    assert(verified, true);
     return { input, proof, publicSignals };
   }
 }

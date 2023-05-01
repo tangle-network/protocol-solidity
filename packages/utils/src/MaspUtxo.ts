@@ -6,6 +6,7 @@ import { raw2prv } from './babyjubjubUtils';
 import { encrypt, decrypt } from 'chacha20';
 import { randomBytes } from 'ethers/lib/utils';
 import { hexToU8a } from './hexToU8a';
+import { MerkleTree } from '@webb-tools/sdk-core';
 
 export class MaspUtxo {
   // Partial Commitment
@@ -141,7 +142,7 @@ export class MaspUtxo {
     return BigNumber.from(poseidon([commitment, merklePath]));
   }
 
-  public setIndex(index: BigNumber) {
+  public forceSetIndex(index: BigNumber) {
     this.index = index;
   }
 }

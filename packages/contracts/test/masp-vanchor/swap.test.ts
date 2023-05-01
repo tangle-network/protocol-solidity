@@ -139,12 +139,12 @@ describe('swap snarkjs local proof', () => {
       bignum.toString()
     );
     const aliceSpendPathIndices = MerkleTree.calculateIndexFromPathIndices(alicePath.pathIndices);
-    aliceSpendRecord.setIndex(BigNumber.from(0));
+    aliceSpendRecord.forceSetIndex(BigNumber.from(0));
 
     const bobPath = maspMerkleTree.path(1);
     const bobSpendPathElements = bobPath.pathElements.map((bignum: BigNumber) => bignum.toString());
     const bobSpendPathIndices = MerkleTree.calculateIndexFromPathIndices(bobPath.pathIndices);
-    bobSpendRecord.setIndex(BigNumber.from(1));
+    bobSpendRecord.forceSetIndex(BigNumber.from(1));
 
     let t = new Date();
     let currentTimestamp = new Date();

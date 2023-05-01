@@ -27,8 +27,8 @@ class ERC721 {
     return token;
   }
 
-  public async mint(to: string) {
-    const tx = await this.contract.mint(to);
+  public async mint(to: string, tokenId: number) {
+    const tx = await this.contract.mint(to, tokenId);
     await tx.wait();
   }
 

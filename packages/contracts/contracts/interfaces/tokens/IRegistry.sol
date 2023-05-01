@@ -1,6 +1,6 @@
 /**
- * Copyright 2021-2023 Webb Technologies
- * SPDX-License-Identifier: MIT OR Apache-2.0
+ * Copyright 2021-2022 Webb Technologies
+ * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
 pragma solidity ^0.8.5;
@@ -40,7 +40,6 @@ interface IRegistry {
         @param _tokenHandler The address of the token handler contract
         @param _assetIdentifier The identifier of the asset for the MASP
 		  @param _unwrappedNftAddress Address of the underlying NFT collection
-        @param _uri The uri for the wrapped NFT
         @param _salt Salt used for matching addresses across chain using CREATE2
    */
 	function registerNftToken(
@@ -48,7 +47,8 @@ interface IRegistry {
 		address _tokenHandler,
 		uint256 _assetIdentifier,
 		address _unwrappedNftAddress,
-		string memory _uri,
+		string memory _name,
+		string memory _symbol,
 		bytes32 _salt
 	) external;
 
