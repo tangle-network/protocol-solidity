@@ -2,7 +2,7 @@ import { HardhatUserConfig } from 'hardhat/types';
 import 'hardhat-artifactor';
 import 'hardhat-gas-reporter';
 import '@typechain/hardhat';
-import '@nomiclabs/hardhat-waffle';
+import "@nomicfoundation/hardhat-chai-matchers";
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-truffle5';
 import { subtask } from 'hardhat/config';

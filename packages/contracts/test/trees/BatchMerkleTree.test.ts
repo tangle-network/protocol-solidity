@@ -5,7 +5,7 @@
 
 const { expect } = require('chai');
 import { MerkleTree, toFixedHex, randomBN } from '@webb-tools/sdk-core';
-import { contract, ethers } from 'hardhat';
+import { ethers } from 'hardhat';
 import { PoseidonHasher } from '@webb-tools/anchors';
 import { BatchTreeUpdaterMock as BatchTreeUpdater } from './mocks/BatchTreeUpdaterMock';
 import { ZkComponents, fetchComponentsFromFilePaths } from '@webb-tools/utils';
@@ -17,12 +17,12 @@ import {
   BatchTreeVerifierSelector__factory,
 } from '../../dist';
 import path from 'path';
-import { BigNumber } from 'ethers';
+import { BigNumber, Signer } from 'ethers';
 const snarkjs = require('snarkjs');
 
 const blocks = ['0xaaaaaaaa', '0xbbbbbbbb', '0xcccccccc', '0xdddddddd'];
 
-contract('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
+describe('BatchMerkleTree w/ Poseidon hasher', () => {
   let merkleTree;
   let batchTree: BatchTreeUpdater;
   let hasherInstance: PoseidonHasher;
@@ -87,7 +87,7 @@ contract('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
 
   const levels = 20;
   const CHUNK_TREE_HEIGHT = 4;
-  const sender = accounts[0];
+  let sender: Signer;
   let tree: MerkleTree;
   let initialRoot: BigNumber;
 
@@ -114,6 +114,8 @@ contract('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
     );
     const signers = await ethers.getSigners();
     const wallet = signers[0];
+    sender = wallet;
+
     hasherInstance = await PoseidonHasher.createPoseidonHasher(wallet);
     merkleTree = new MerkleTree(levels);
     const verifierFactory_4 = new VerifierBatch_4__factory(wallet);

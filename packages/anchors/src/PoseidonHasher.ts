@@ -9,6 +9,7 @@ import {
 } from '@webb-tools/contracts';
 import { Deployer } from './Deployer';
 import { id } from 'ethers/lib/utils';
+import poseidonContract from 'circomlibjs/src/poseidon_gencontract.js';
 
 export class PoseidonHasher {
   contract: PoseidonHasherContract;
@@ -62,19 +63,22 @@ export class PoseidonHasher {
   }
 
   public static async createPoseidonHasher(signer: ethers.Signer) {
-    const poseidonT2LibraryFactory = new PoseidonT2__factory(signer);
+    const poseidonABI = (width: number) => poseidonContract.generateABI(width)
+    const poseidonBytecode = (width: number) => poseidonContract.createCode(width)
+
+    const poseidonT2LibraryFactory = new ethers.ContractFactory(poseidonABI(2), poseidonBytecode(2), signer);
     const poseidonT2Library = await poseidonT2LibraryFactory.deploy();
     await poseidonT2Library.deployed();
 
-    const poseidonT3LibraryFactory = new PoseidonT3__factory(signer);
+    const poseidonT3LibraryFactory = new ethers.ContractFactory(poseidonABI(3), poseidonBytecode(3), signer);
     const poseidonT3Library = await poseidonT3LibraryFactory.deploy();
     await poseidonT3Library.deployed();
 
-    const poseidonT4LibraryFactory = new PoseidonT4__factory(signer);
+    const poseidonT4LibraryFactory = new ethers.ContractFactory(poseidonABI(4), poseidonBytecode(4), signer);
     const poseidonT4Library = await poseidonT4LibraryFactory.deploy();
     await poseidonT4Library.deployed();
 
-    const poseidonT6LibraryFactory = new PoseidonT6__factory(signer);
+    const poseidonT6LibraryFactory = new ethers.ContractFactory(poseidonABI(6), poseidonBytecode(6), signer);
     const poseidonT6Library = await poseidonT6LibraryFactory.deploy();
     await poseidonT6Library.deployed();
 

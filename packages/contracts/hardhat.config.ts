@@ -2,12 +2,15 @@ import { HardhatUserConfig } from 'hardhat/types';
 import 'hardhat-artifactor';
 import 'hardhat-gas-reporter';
 import '@typechain/hardhat';
-import '@nomiclabs/hardhat-waffle';
+import "@nomicfoundation/hardhat-chai-matchers"
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-truffle5';
 import { subtask } from 'hardhat/config';
+
 import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from 'hardhat/builtin-tasks/task-names';
+
 import { HARDHAT_ACCOUNTS } from '@webb-tools/utils';
+
 import poseidonContract from 'circomlibjs/src/poseidon_gencontract.js';
 
 require('dotenv').config({ path: __dirname + '/.env' });
