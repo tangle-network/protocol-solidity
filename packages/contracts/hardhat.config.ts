@@ -3,7 +3,7 @@ import { HARDHAT_ACCOUNTS } from './hardhatAccounts.js';
 import 'hardhat-artifactor';
 import 'hardhat-gas-reporter';
 import '@typechain/hardhat';
-import '@nomiclabs/hardhat-waffle';
+
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-truffle5';
 // import '@primitivefi/hardhat-dodoc';
@@ -62,6 +62,12 @@ const config: HardhatUserConfig = {
     enabled: process.env.REPORT_GAS ? true : false,
     currency: 'USD',
     gasPrice: 21,
+  },
+  typechain: {
+    outDir: 'typechain',
+    target: 'ethers-v5',
+    alwaysGenerateOverloads: false,
+    dontOverrideCompile: false,
   },
 };
 

@@ -9,6 +9,10 @@ import {
   PoseidonT6__factory,
 } from '@webb-tools/contracts';
 import { Deployer } from '@webb-tools/create2-utils';
+import { poseidon_gencontract as poseidonContract } from 'circomlibjs';
+
+const poseidonABI = (w: number) => poseidonContract.generateABI(w);
+const poseidonBytecode = (w: number) => poseidonContract.createCode(w);
 
 export class PoseidonHasher {
   contract: PoseidonHasherContract;
@@ -68,23 +72,43 @@ export class PoseidonHasher {
   }
 
   public static async createPoseidonHasher(signer: ethers.Signer) {
-    const poseidonT2LibraryFactory = new PoseidonT2__factory(signer);
+    const poseidonT2LibraryFactory = new ethers.ContractFactory(
+      poseidonABI(1),
+      poseidonBytecode(1),
+      signer
+    );
     const poseidonT2Library = await poseidonT2LibraryFactory.deploy();
     await poseidonT2Library.deployed();
 
-    const poseidonT3LibraryFactory = new PoseidonT3__factory(signer);
+    const poseidonT3LibraryFactory = new ethers.ContractFactory(
+      poseidonABI(2),
+      poseidonBytecode(2),
+      signer
+    );
     const poseidonT3Library = await poseidonT3LibraryFactory.deploy();
     await poseidonT3Library.deployed();
 
-    const poseidonT4LibraryFactory = new PoseidonT4__factory(signer);
+    const poseidonT4LibraryFactory = new ethers.ContractFactory(
+      poseidonABI(3),
+      poseidonBytecode(3),
+      signer
+    );
     const poseidonT4Library = await poseidonT4LibraryFactory.deploy();
     await poseidonT4Library.deployed();
 
-    const poseidonT5LibraryFactory = new PoseidonT5__factory(signer);
+    const poseidonT5LibraryFactory = new ethers.ContractFactory(
+      poseidonABI(4),
+      poseidonBytecode(4),
+      signer
+    );
     const poseidonT5Library = await poseidonT5LibraryFactory.deploy();
     await poseidonT5Library.deployed();
 
-    const poseidonT6LibraryFactory = new PoseidonT6__factory(signer);
+    const poseidonT6LibraryFactory = new ethers.ContractFactory(
+      poseidonABI(5),
+      poseidonBytecode(5),
+      signer
+    );
     const poseidonT6Library = await poseidonT6LibraryFactory.deploy();
     await poseidonT6Library.deployed();
 

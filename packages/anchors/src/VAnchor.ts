@@ -25,16 +25,12 @@ import {
 } from '@webb-tools/sdk-core';
 import { ZERO_BYTES32, ZkComponents, getChainIdType, hexToU8a, u8aToHex } from '@webb-tools/utils';
 import { BigNumber, BigNumberish, BytesLike, Overrides, PayableOverrides, ethers } from 'ethers';
-import { WebbBridge } from './Common';
+import { WebbBridge, WebbContracts } from './Common';
 import { Deployer } from '@webb-tools/create2-utils';
 import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
 import { zeroAddress } from './utils';
 
-// This convenience wrapper class is used in tests -
-// It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
-// Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
-// Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
-export class VAnchor extends WebbBridge implements IVAnchor {
+export class VAnchor extends WebbBridge<WebbContracts> implements IVAnchor<WebbContracts> {
   contract: VAnchorTreeContract;
 
   maxEdges: number;
@@ -43,7 +39,6 @@ export class VAnchor extends WebbBridge implements IVAnchor {
   largeCircuitZkComponents: ZkComponents;
 
   token?: string;
-  denomination?: string;
   provingManager: CircomProvingManager;
 
   constructor(
@@ -63,6 +58,13 @@ export class VAnchor extends WebbBridge implements IVAnchor {
     this.depositHistory = {};
     this.smallCircuitZkComponents = smallCircuitZkComponents;
     this.largeCircuitZkComponents = largeCircuitZkComponents;
+  }
+
+  getToken(): Promise<string> {
+    return this.contract.token();
+  }
+  getContract(): Promise<string> {
+    return new Promise((resolve) => resolve(this.contract.address));
   }
 
   public static async create2VAnchor(

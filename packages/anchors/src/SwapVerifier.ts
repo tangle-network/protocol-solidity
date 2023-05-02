@@ -3,8 +3,8 @@ import { ethers, Signer, ContractFactory } from 'ethers';
 import {
   SwapProofVerifier as SwapProofVerifierContract,
   SwapProofVerifier__factory,
-  VerifierSwap202__factory as v2__factory,
-  VerifierSwap208__factory as v8__factory,
+  VerifierSwap20_2__factory as v2__factory,
+  VerifierSwap20_8__factory as v8__factory,
 } from '@webb-tools/contracts';
 import { Deployer } from '@webb-tools/create2-utils';
 

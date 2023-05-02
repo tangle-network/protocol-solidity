@@ -67,7 +67,7 @@ abstract contract VAnchor is ZKVAnchorBase {
 		PublicInputs memory _publicInputs,
 		Encryptions memory _encryptions
 	) public payable virtual override {
-		_transact(token, 0, _proof, _auxPublicInputs, _externalData, _publicInputs, _encryptions);
+		_transact(token, _proof, _auxPublicInputs, _externalData, _publicInputs, _encryptions);
 	}
 
 	/// @inheritdoc ZKVAnchorBase

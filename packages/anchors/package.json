@@ -1,16 +1,7 @@
 {
   "name": "@webb-tools/anchors",
   "main": "./dist/index.js",
-  "license": [
-    {
-      "type": "Apache-2.0",
-      "file": "LICENSE.Apache-2.0"
-    },
-    {
-      "type": "MIT",
-      "file": "LICENSE.MIT"
-    }
-  ],
+  "license": "(MIT OR Apache-2.0)",
   "author": "Webb Developers <drew@webb.tools>",
   "scripts": {
     "build": "yarn run clean && yarn run compile",
@@ -21,10 +12,11 @@
     "@webb-tools/contracts": "^0.5.40",
     "@webb-tools/create2-utils": "^0.5.7",
     "@webb-tools/interfaces": "^0.5.40",
-    "@webb-tools/sdk-core": "0.1.4-123",
+    "@webb-tools/sdk-core": "0.1.4-125",
     "@webb-tools/semaphore": "0.0.1-5",
-    "@webb-tools/tokens": "0.5.13",
+    "@webb-tools/tokens": "0.5.40",
     "@webb-tools/utils": "^0.5.32",
+    "circomlibjs": "^0.0.8",
     "ethers": "5.7.0",
     "jssha": "^3.2.0"
   },

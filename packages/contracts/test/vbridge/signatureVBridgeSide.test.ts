@@ -8,9 +8,9 @@ import { ethers } from 'hardhat';
 const hre = require('hardhat');
 const TruffleAssert = require('truffle-assertions');
 
-import { SignatureBridgeSide } from '@webb-tools/bridges';
+import { SignatureBridgeSide } from '@webb-tools/vbridge';
 import { VAnchor, AnchorHandler, PoseidonHasher } from '@webb-tools/anchors';
-import { Verifier } from '@webb-tools/vbridge';
+import { Verifier } from '@webb-tools/anchors';
 import {
   MintableToken,
   Treasury,
@@ -18,50 +18,29 @@ import {
   FungibleTokenWrapper,
   TokenWrapperHandler,
 } from '@webb-tools/tokens';
-import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '@webb-tools/utils';
+import {
+  fetchComponentsFromFilePaths,
+  getChainIdType,
+  vanchorFixtures,
+  ZkComponents,
+} from '@webb-tools/utils';
 import { CircomUtxo, Keypair } from '@webb-tools/sdk-core';
 import { BigNumber } from 'ethers';
 import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
+import { VAnchorTree } from '@webb-tools/contracts';
 
 describe('SignatureBridgeSide use', () => {
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
   let admin = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
-  let bridgeSide: SignatureBridgeSide;
+  let bridgeSide: SignatureBridgeSide<VAnchorTree>;
   let maxEdges = 1;
   const zeroAddress = '0x0000000000000000000000000000000000000000';
   const chainID1 = getChainIdType(31337);
 
   before(async () => {
-    zkComponents2_2 = await fetchComponentsFromFilePaths(
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/witness_calculator.cjs'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey'
-      )
-    );
-
-    zkComponents16_2 = await fetchComponentsFromFilePaths(
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/witness_calculator.cjs'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/circuit_final.zkey'
-      )
-    );
+    zkComponents2_2 = await vanchorFixtures[22]();
+    zkComponents16_2 = await vanchorFixtures[162]();
   });
 
   beforeEach(async () => {

@@ -12,8 +12,6 @@ import "../../interfaces/tokens/IMintableERC20.sol";
 import "../../interfaces/tokens/ITokenWrapper.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
@@ -206,13 +204,6 @@ abstract contract VAnchorBase is LinkableAnchor {
 		);
 	}
 
-	function _withdrawAndUnwrapERC721(
-		address _fromTokenAddress,
-		address _toTokenAddress,
-		address _recipient,
-		uint256 publicTokenID
-	) public payable virtual {}
-
 	/**
 		@notice Process the withdrawal by sending/minting the wrapped tokens to/for the recipient
 		@param _token The token to withdraw
@@ -234,12 +225,6 @@ abstract contract VAnchorBase is LinkableAnchor {
 			IMintableERC20(_token).mint(_recipient, _minusExtAmount);
 		}
 	}
-
-	function _processWithdrawERC721(
-		address _token,
-		address _recipient,
-		uint256 publicTokenID
-	) internal virtual {}
 
 	/**
 		@notice Process and pay the relayer their fee. Mint the fee if contract has no balance.

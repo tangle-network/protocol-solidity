@@ -3,17 +3,36 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      /**
+      *   Solidity contracts
+      */
+      "@webb-tools/protocol-solidity": [
+        "packages/contracts/contracts"
+      ],
+      "@webb-tools/protocol-solidity/*": [
+        "packages/contracts/contracts/*"
+      ],
+      "@webb-tools/identity-protocol-solidity": [
+        "packages/identity-anchor-contracts/contracts"
+      ],
+      "@webb-tools/identity-protocol-solidity/*": [
+        "packages/identity-anchor-contracts/contracts/*"
+      ],
+
+      /**
+      *   TypeScript packages
+      */
       "@webb-tools/anchors": [
         "packages/anchors/src"
       ],
       "@webb-tools/anchors/*": [
         "packages/anchors/src/*"
       ],
-      "@webb-tools/bridges": [
-        "packages/bridges/src"
+      "@webb-tools/identity-anchors": [
+        "packages/identity-anchors/src"
       ],
-      "@webb-tools/bridges/*": [
-        "packages/bridges/src/*"
+      "@webb-tools/identity-anchors/*": [
+        "packages/identity-anchors/src/*"
       ],
       "@webb-tools/evm-test-utils": [
         "packages/evm-test-utils/src"
@@ -26,6 +45,12 @@
       ],
       "@webb-tools/contracts/*": [
         "packages/contracts/src/*"
+      ],
+      "@webb-tools/identity-anchor-contracts": [
+        "packages/identity-anchor-contracts/src"
+      ],
+      "@webb-tools/identity-anchor-contracts/*": [
+        "packages/identity-anchor-contracts/src/*"
       ],
       "@webb-tools/create2-utils": [
         "packages/create2-utils/src"

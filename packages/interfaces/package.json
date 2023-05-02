@@ -1,16 +1,7 @@
 {
   "name": "@webb-tools/interfaces",
   "main": "./dist/index.js",
-  "license": [
-    {
-      "type": "Apache-2.0",
-      "file": "LICENSE.Apache-2.0"
-    },
-    {
-      "type": "MIT",
-      "file": "LICENSE.MIT"
-    }
-  ],
+  "license": "(MIT OR Apache-2.0)",
   "author": "Webb Developers <drew@webb.tools>",
   "scripts": {
     "build": "yarn run clean && yarn run compile",
@@ -18,8 +9,7 @@
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@webb-tools/contracts": "^0.5.40",
-    "@webb-tools/sdk-core": "0.1.4-123"
+    "@webb-tools/sdk-core": "0.1.4-125"
   },
   "publishConfig": {
     "access": "public"

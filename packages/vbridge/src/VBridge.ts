@@ -1,5 +1,4 @@
-import { ethers, BigNumber, BigNumberish } from 'ethers';
-import { SignatureBridgeSide } from '@webb-tools/bridges';
+import { ethers, BigNumber, BigNumberish, BaseContract } from 'ethers';
 import {
   MintableToken,
   FungibleTokenWrapper,
@@ -7,11 +6,12 @@ import {
   Treasury,
   TokenWrapperHandler,
 } from '@webb-tools/tokens';
-import Verifier from './Verifier';
-import { AnchorIdentifier, GovernorConfig, DeployerConfig } from '@webb-tools/interfaces';
-import { AnchorHandler, PoseidonHasher, VAnchor } from '@webb-tools/anchors';
+import { GovernorConfig, DeployerConfig, IVAnchor } from '@webb-tools/interfaces';
+import { AnchorHandler, PoseidonHasher, VAnchor, WebbContracts } from '@webb-tools/anchors';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { CircomUtxo, Utxo } from '@webb-tools/sdk-core';
+import { Verifier } from '@webb-tools/anchors';
+import { SignatureBridgeSide } from './SignatureBridgeSide';
 
 export type ExistingAssetInput = {
   // A record of chainId => address of wrappable tokens to be supported in the webbToken.
@@ -24,18 +24,13 @@ export type TokenConfig = {
   symbol: string;
 };
 
-// Default token config
-const defaultTokenConfig: TokenConfig = {
-  name: 'webbWETH',
-  symbol: 'webbWETH',
-};
 // Users define an input for a completely new bridge
 export type VBridgeInput = {
   // The tokens which should be supported after deploying from this bridge input
   vAnchorInputs: ExistingAssetInput;
 
   // The IDs of the chains to deploy to
-  chainIDs: number[];
+  chainIds: number[];
 
   // The number of max edges for vanchors, if not provided, maxEdges is derived from passed chainIDs.
   maxEdges?: number;
@@ -47,17 +42,23 @@ export type VBridgeInput = {
   webbTokens: Map<number, FungibleTokenWrapper | undefined>;
 };
 
-export type BridgeConfig = {
+export type BridgeConfig<A extends BaseContract> = {
   // The addresses of tokens available to be transferred over this bridge config
   // chainId => FungibleTokenWrapperAddress
   webbTokenAddresses: Map<number, string | undefined>;
 
   // The addresses of the anchors for the FungibleTokenWrapper
   // {anchorIdentifier} => anchorAddress
-  vAnchors: Map<string, VAnchor>;
+  vAnchors: Map<string, IVAnchor<A>>;
 
   // The addresses of the Bridge contracts (bridgeSides) to interact with
-  vBridgeSides: Map<number, SignatureBridgeSide>;
+  vBridgeSides: Map<number, SignatureBridgeSide<A>>;
+};
+
+// Default token config
+const defaultTokenConfig: TokenConfig = {
+  name: 'webbWETH',
+  symbol: 'webbWETH',
 };
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
@@ -70,39 +71,33 @@ function checkNativeAddress(tokenAddress: string): boolean {
 }
 
 // A bridge is
-export class VBridge {
+export class VBridge<A extends BaseContract> {
   private constructor(
     // Mapping of chainId => vBridgeSide
-    public vBridgeSides: Map<number, SignatureBridgeSide>,
+    public vBridgeSides: Map<number, SignatureBridgeSide<A>>,
 
     // chainID => FungibleTokenWrapper (webbToken) address
     public webbTokenAddresses: Map<number, string>,
 
     // Mapping of resourceID => linkedVAnchor[]; so we know which
     // vanchors need updating when the anchor for resourceID changes state.
-    public linkedVAnchors: Map<string, VAnchor[]>,
+    public linkedVAnchors: Map<string, IVAnchor<A>[]>,
 
     // Mapping of anchorIdString => Anchor for easy anchor access
-    public vAnchors: Map<string, VAnchor>
+    public vAnchors: Map<string, IVAnchor<A>>
   ) {}
 
   //might need some editing depending on whether anchor identifier structure changes
-  public static createVAnchorIdString(vAnchorIdentifier: AnchorIdentifier): string {
-    return `${vAnchorIdentifier.chainId.toString()}`;
-  }
-
-  public static createVAnchorIdentifier(vAnchorString: string): AnchorIdentifier | null {
-    return {
-      chainId: Number(vAnchorString),
-    };
+  public static createVAnchorIdString(chainId: BigNumberish): string {
+    return chainId.toString();
   }
 
   // Takes as input a 2D array [[anchors to link together], [...]]
   // And returns a map of resourceID => linkedAnchor[]
-  public static async createLinkedVAnchorMap(
-    createdVAnchors: VAnchor[][]
-  ): Promise<Map<string, VAnchor[]>> {
-    let linkedVAnchorMap = new Map<string, VAnchor[]>();
+  public static async createLinkedVAnchorMap<A extends BaseContract>(
+    createdVAnchors: IVAnchor<A>[][]
+  ): Promise<Map<string, IVAnchor<A>[]>> {
+    let linkedVAnchorMap = new Map<string, IVAnchor<A>[]>();
     for (let groupedVAnchors of createdVAnchors) {
       for (let i = 0; i < groupedVAnchors.length; i++) {
         // create the resourceID of this anchor
@@ -123,27 +118,27 @@ export class VBridge {
   // Deployments of all contracts for the bridge will be done with the DeployerConfig.
   // After deployments, the wallet in the DeployerConfig will transfer ownership
   // to the initialGovernor
-  public static async deployVariableAnchorBridge(
+  public static async deployVariableAnchorBridge<A extends BaseContract>(
     vBridgeInput: VBridgeInput,
     deployers: DeployerConfig,
     initialGovernors: GovernorConfig,
     smallCircuitZkComponents: ZkComponents,
     largeCircuitZkComponents: ZkComponents
-  ): Promise<VBridge> {
+  ): Promise<VBridge<A>> {
     let webbTokenAddresses: Map<number, string> = new Map();
-    let vBridgeSides: Map<number, SignatureBridgeSide> = new Map();
-    let vAnchors: Map<string, VAnchor> = new Map();
+    let vBridgeSides: Map<number, SignatureBridgeSide<A>> = new Map();
+    let vAnchors: Map<string, IVAnchor<A>> = new Map();
     // createdAnchors have the form of [[Anchors created on chainID], [...]]
     // and anchors in the subArrays of thhe same index should be linked together
-    let createdVAnchors: VAnchor[][] = [];
+    let createdVAnchors: IVAnchor<A>[][] = [];
 
     // Determine the maxEdges for the anchors on this VBridge deployment
-    let maxEdges = vBridgeInput.maxEdges ?? vBridgeInput.chainIDs.length > 2 ? 7 : 1;
+    let maxEdges = vBridgeInput.maxEdges ?? vBridgeInput.chainIds.length > 2 ? 7 : 1;
 
-    for (let chainID of vBridgeInput.chainIDs) {
-      const initialGovernor = initialGovernors[chainID];
+    for (let chainId of vBridgeInput.chainIds) {
+      const initialGovernor = initialGovernors[chainId];
       // Create the bridgeSide
-      let vBridgeInstance = await SignatureBridgeSide.createBridgeSide(deployers[chainID]);
+      let vBridgeInstance = await SignatureBridgeSide.createBridgeSide(deployers[chainId]);
 
       const handler = await AnchorHandler.createAnchorHandler(
         vBridgeInstance.contract.address,
@@ -169,14 +164,14 @@ export class VBridge {
       await vBridgeInstance.setTreasuryResourceWithSignature(treasury);
 
       // Create the Hasher and Verifier for the chain
-      const hasherInstance = await PoseidonHasher.createPoseidonHasher(deployers[chainID]);
+      const hasherInstance = await PoseidonHasher.createPoseidonHasher(deployers[chainId]);
 
-      const verifier = await Verifier.createVerifier(deployers[chainID]);
+      const verifier = await Verifier.createVerifier(deployers[chainId]);
       let verifierInstance = verifier.contract;
 
       // Check the addresses of the asset. If it is zero, deploy a native token wrapper
       let allowedNative: boolean = false;
-      for (const tokenToBeWrapped of vBridgeInput.vAnchorInputs.asset[chainID]!) {
+      for (const tokenToBeWrapped of vBridgeInput.vAnchorInputs.asset[chainId]!) {
         // If passed '0' or zero address, token to be wrapped should support native.
         if (checkNativeAddress(tokenToBeWrapped)) {
           allowedNative = true;
@@ -192,8 +187,8 @@ export class VBridge {
       );
 
       let tokenInstance: FungibleTokenWrapper;
-      if (!vBridgeInput.webbTokens.get(chainID)) {
-        let tokenConfig = vBridgeInput.tokenConfigs?.get(chainID) ?? defaultTokenConfig;
+      if (!vBridgeInput.webbTokens.get(chainId)) {
+        let tokenConfig = vBridgeInput.tokenConfigs?.get(chainId) ?? defaultTokenConfig;
         tokenInstance = await FungibleTokenWrapper.createFungibleTokenWrapper(
           tokenConfig.name,
           tokenConfig.symbol,
@@ -202,17 +197,17 @@ export class VBridge {
           tokenWrapperHandler.contract.address,
           '10000000000000000000000000',
           allowedNative,
-          deployers[chainID]
+          deployers[chainId]
         );
       } else {
-        tokenInstance = vBridgeInput.webbTokens.get(chainID)!;
+        tokenInstance = vBridgeInput.webbTokens.get(chainId)!;
       }
 
       await vBridgeInstance.setTokenWrapperHandler(tokenWrapperHandler);
       await vBridgeInstance.setFungibleTokenResourceWithSignature(tokenInstance);
 
       // Add all token addresses to the governed token instance.
-      for (const tokenToBeWrapped of vBridgeInput.vAnchorInputs.asset[chainID]!) {
+      for (const tokenToBeWrapped of vBridgeInput.vAnchorInputs.asset[chainId]!) {
         // if the address is not '0', then add it
         if (!checkNativeAddress(tokenToBeWrapped)) {
           await vBridgeInstance.executeAddTokenProposalWithSig(tokenInstance, tokenToBeWrapped);
@@ -220,9 +215,9 @@ export class VBridge {
       }
 
       // append each token
-      webbTokenAddresses.set(chainID, tokenInstance.contract.address);
+      webbTokenAddresses.set(chainId, tokenInstance.contract.address);
 
-      let chainGroupedVAnchors: VAnchor[] = [];
+      let chainGroupedVAnchors: IVAnchor<A>[] = [];
 
       // loop through all the anchor sizes on the token
       const vAnchorInstance = await VAnchor.createVAnchor(
@@ -234,14 +229,17 @@ export class VBridge {
         maxEdges,
         smallCircuitZkComponents,
         largeCircuitZkComponents,
-        deployers[chainID]
+        deployers[chainId]
       );
 
       // grant minting rights to the anchor
       await tokenInstance.grantMinterRole(vAnchorInstance.contract.address);
 
-      chainGroupedVAnchors.push(vAnchorInstance);
-      vAnchors.set(VBridge.createVAnchorIdString({ chainId: chainID }), vAnchorInstance);
+      chainGroupedVAnchors.push(vAnchorInstance as unknown as IVAnchor<A>);
+      vAnchors.set(
+        VBridge.createVAnchorIdString(chainId),
+        vAnchorInstance as unknown as IVAnchor<A>
+      );
 
       await VBridge.setPermissions(vBridgeInstance, chainGroupedVAnchors);
       createdVAnchors.push(chainGroupedVAnchors);
@@ -252,15 +250,15 @@ export class VBridge {
       // Transfer ownership of the bridge to the initialGovernor
       const tx = await vBridgeInstance.transferOwnership(governorAddress, governorNonce);
       await tx.wait();
-      vBridgeSides.set(chainID, vBridgeInstance);
+      vBridgeSides.set(chainId, vBridgeInstance);
     }
 
     // All anchors created, massage data to group anchors which should be linked together
-    let groupLinkedVAnchors: VAnchor[][] = [];
+    let groupLinkedVAnchors: IVAnchor<A>[][] = [];
 
     // all subarrays will have the same number of elements
     for (let i = 0; i < createdVAnchors[0].length; i++) {
-      let linkedAnchors: VAnchor[] = [];
+      let linkedAnchors: IVAnchor<A>[] = [];
       for (let j = 0; j < createdVAnchors.length; j++) {
         linkedAnchors.push(createdVAnchors[j][i]);
       }
@@ -276,9 +274,9 @@ export class VBridge {
   // The setPermissions method accepts initialized bridgeSide and anchors.
   // it creates the anchor handler and sets the appropriate permissions
   // for the bridgeSide/anchorHandler/anchor
-  public static async setPermissions(
-    vBridgeSide: SignatureBridgeSide,
-    vAnchors: VAnchor[]
+  public static async setPermissions<A extends BaseContract>(
+    vBridgeSide: SignatureBridgeSide<A>,
+    vAnchors: IVAnchor<A>[]
   ): Promise<void> {
     let tokenDenomination = '1000000000000000000'; // 1 ether
     for (let vAnchor of vAnchors) {
@@ -300,9 +298,7 @@ export class VBridge {
    * @param srcAnchor The anchor that has updated.
    * @returns
    */
-  public async updateLinkedVAnchors(srcAnchor: VAnchor) {
-    console.log(srcAnchor.contract.address);
-    console.log(await srcAnchor.contract.getLastRoot());
+  public async updateLinkedVAnchors(srcAnchor: IVAnchor<A>) {
     // Find the bridge sides that are connected to this Anchor
     const linkedResourceID = await srcAnchor.createResourceId();
     const vAnchorsToUpdate = this.linkedVAnchors.get(linkedResourceID);
@@ -333,8 +329,8 @@ export class VBridge {
   }
 
   public getVAnchor(chainId: number) {
-    let intendedAnchor: VAnchor = undefined;
-    intendedAnchor = this.vAnchors.get(VBridge.createVAnchorIdString({ chainId }));
+    let intendedAnchor: IVAnchor<A>;
+    intendedAnchor = this.vAnchors.get(VBridge.createVAnchorIdString(chainId));
     return intendedAnchor;
   }
 
@@ -343,7 +339,7 @@ export class VBridge {
     return this.webbTokenAddresses.get(chainId);
   }
 
-  public exportConfig(): BridgeConfig {
+  public exportConfig(): BridgeConfig<A> {
     return {
       webbTokenAddresses: this.webbTokenAddresses,
       vAnchors: this.vAnchors,
@@ -383,7 +379,7 @@ export class VBridge {
       }
     }
 
-    const webbTokenAddress = await vAnchor.contract.token();
+    const webbTokenAddress = await vAnchor.getToken();
 
     if (!webbTokenAddress) {
       throw new Error('Token not supported');
@@ -421,12 +417,12 @@ export class VBridge {
     const leavesMap: Record<string, Uint8Array[]> = {};
 
     // Always include the leaves of the chain which we are interacting on
-    leavesMap[chainId] = vAnchor.tree
+    leavesMap[chainId] = (vAnchor as unknown as VAnchor).tree
       .elements()
       .map((commitment) => hexToU8a(commitment.toHexString()));
 
     for (let input of inputs) {
-      const inputTree = this.getVAnchor(Number(input.originChainId)).tree;
+      const inputTree = (this.getVAnchor(Number(input.originChainId)) as unknown as VAnchor).tree;
 
       if (!leavesMap[input.originChainId]) {
         leavesMap[input.originChainId] = inputTree
@@ -453,7 +449,7 @@ export class VBridge {
       );
     }
 
-    await vAnchor.transact(
+    await (vAnchor as unknown as VAnchor).transact(
       inputs,
       outputs,
       fee,

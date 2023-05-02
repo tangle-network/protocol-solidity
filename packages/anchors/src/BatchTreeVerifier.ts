@@ -3,10 +3,10 @@ import { ethers, Signer, ContractFactory } from 'ethers';
 import {
   BatchTreeVerifierSelector as BatchTreeVerifierSelectorContract,
   BatchTreeVerifierSelector__factory,
-  VerifierBatch4__factory as v4__factory,
-  VerifierBatch8__factory as v8__factory,
-  VerifierBatch16__factory as v16__factory,
-  VerifierBatch32__factory as v32__factory,
+  VerifierBatch_4__factory as v4__factory,
+  VerifierBatch_8__factory as v8__factory,
+  VerifierBatch_16__factory as v16__factory,
+  VerifierBatch_32__factory as v32__factory,
 } from '@webb-tools/contracts';
 import { Deployer } from '@webb-tools/create2-utils';
 

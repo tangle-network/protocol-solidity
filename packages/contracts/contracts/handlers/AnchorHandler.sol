@@ -9,7 +9,7 @@ pragma experimental ABIEncoderV2;
 import "./HandlerHelpers.sol";
 import "../interfaces/IExecutor.sol";
 import "../interfaces/verifiers/ISetVerifier.sol";
-import "../interfaces/anchors/ILinkableAnchor.sol";
+import "../interfaces/ILinkableAnchor.sol";
 
 /**
     @title Handles Anchor edge list merkle root updates

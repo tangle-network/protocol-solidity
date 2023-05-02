@@ -8,16 +8,14 @@ build/
 packages/contracts/typechain
 packages/*/node_modules
 packages/*/dist
-packages/*/compiled
 packages/*/tsconfig.tsbuildinfo
 
 # Directories
 cache
 out
 artifacts
-/typechain
-/typechain-types
-/src
+typechain
+typechain-types
 
 solidity-fixtures/
 

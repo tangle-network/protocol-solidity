@@ -4,40 +4,14 @@
  */
 
 const assert = require('assert');
-import {
-  Keypair,
-  generateVariableWitnessInput,
-  getVAnchorExtDataHash,
-  CircomUtxo,
-  MerkleTree,
-  toFixedHex,
-  toBuffer,
-  randomBN,
-} from '@webb-tools/sdk-core';
-import { PoseidonHasher, VAnchor } from '@webb-tools/anchors';
+import { Keypair, CircomUtxo, MerkleTree, toFixedHex, randomBN } from '@webb-tools/sdk-core';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
 import { poseidon } from 'circomlibjs';
-import {
-  getChainIdType,
-  hexToU8a,
-  u8aToHex,
-  ZkComponents,
-  fetchComponentsFromFilePaths,
-} from '@webb-tools/utils';
-import { Verifier } from '@webb-tools/vbridge';
-import {
-  ERC20PresetMinterPauser,
-  ERC20PresetMinterPauser__factory,
-  FungibleTokenWrapper as WrappedToken,
-  FungibleTokenWrapper__factory as WrappedTokenFactory,
-} from '@webb-tools/contracts';
+import { getChainIdType, hexToU8a, ZkComponents, maspRewardFixtures } from '@webb-tools/utils';
 import { MaspKey, MaspUtxo } from '@webb-tools/utils';
 const snarkjs = require('snarkjs');
-const path = require('path');
-
-const blocks = ['0xaaaaaaaa', '0xbbbbbbbb', '0xcccccccc', '0xdddddddd'];
 
 describe('Reward snarkjs local proof', () => {
   let unspentTree: MerkleTree;
@@ -46,16 +20,13 @@ describe('Reward snarkjs local proof', () => {
   let maspMerkleTree: MerkleTree;
   // VAnchor-like contract's merkle-tree for the AP tokens
   let rewardMerkleTree: MerkleTree;
-  let token: ERC20PresetMinterPauser;
   let sender: SignerWithAddress;
-  let wrappedToken: WrappedToken;
   let zkComponent: ZkComponents;
   let emptyTreeRoot: BigNumber;
   let create2InputWitness;
 
   const chainID = getChainIdType(31337);
   const levels = 30;
-  let tokenDenomination = '1000000000000000000'; // 1 ether
 
   const generateUTXOForTest = async (chainId: number, amount?: number) => {
     const randomKeypair = new Keypair();
@@ -83,29 +54,10 @@ describe('Reward snarkjs local proof', () => {
     rewardMerkleTree = new MerkleTree(levels);
     emptyTreeRoot = maspMerkleTree.root();
 
-    zkComponent = await fetchComponentsFromFilePaths(
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/reward_2/30/reward_30_2.wasm'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/reward_2/30/witness_calculator.cjs'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/reward_2/30/circuit_final.zkey'
-      )
-    );
+    zkComponent = await maspRewardFixtures[230]();
 
     create2InputWitness = async (data: any) => {
-      const witnessCalculator = require('../../solidity-fixtures/solidity-fixtures/reward_2/30/witness_calculator.cjs');
-      const fileBuf = require('fs').readFileSync(
-        'solidity-fixtures/solidity-fixtures/reward_2/30/reward_30_2.wasm'
-      );
-      const wtnsCalc = await witnessCalculator(fileBuf);
-
-      const wtns = await wtnsCalc.calculateWTNSBin(data, 0);
+      const wtns = await zkComponent.witnessCalculator.calculateWTNSBin(data, 0);
       return wtns;
     };
   });
@@ -224,16 +176,10 @@ describe('Reward snarkjs local proof', () => {
     };
 
     const wtns = await create2InputWitness(circuitInput);
-    let res = await snarkjs.groth16.prove(
-      'solidity-fixtures/solidity-fixtures/reward_2/30/circuit_final.zkey',
-      wtns
-    );
+    let res = await maspRewardFixtures.prove_2_30(wtns);
     const proof = res.proof;
     let publicSignals = res.publicSignals;
-    const vKey = await snarkjs.zKey.exportVerificationKey(
-      'solidity-fixtures/solidity-fixtures/reward_2/30/circuit_final.zkey'
-    );
-
+    const vKey = await maspRewardFixtures.vkey_2_30();
     res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
     assert.strictEqual(res, true);
   });

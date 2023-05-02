@@ -11,11 +11,11 @@ import "../../libs/MASPVAnchorEncodeInputs.sol";
 import "../../interfaces/tokens/IRegistry.sol";
 import "../../trees/MerkleTree.sol";
 import "../../interfaces/tokens/INftTokenWrapper.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "../../interfaces/IBatchTree.sol";
 import "../../interfaces/IMASPProxy.sol";
 import "../../libs/SwapEncodeInputs.sol";
 import "../../interfaces/verifiers/ISwapVerifier.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 /**
@@ -89,7 +89,6 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 		uint256 publicTokenID = aux.publicTokenID;
 		_transact(
 			wrappedToken,
-			publicTokenID,
 			_proof,
 			_auxPublicInputs,
 			_externalData,
@@ -127,6 +126,108 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 			);
 		}
 		_executeAuxInsertions(aux.feeOutputCommitments, _encryptions);
+	}
+
+	/**
+		@notice Executes a deposit/withdrawal or combination join/split transaction
+        including possible wrapping or unwrapping if a valid token is provided.
+		@param _wrappedToken The wrapped token address (only tokens living on the bridge)
+		@param _proof The zkSNARK proof
+		@param _externalData The serialized external data
+		@param _auxPublicInputs The extension public inputs for the zkSNARK proof
+		@param _publicInputs The public inputs for the zkSNARK proof
+		@param _encryptions The encrypted outputs
+	 */
+	function _transact(
+		address _wrappedToken,
+		bytes memory _proof,
+		bytes memory _auxPublicInputs,
+		CommonExtData memory _externalData,
+		PublicInputs memory _publicInputs,
+		Encryptions memory _encryptions
+	) internal virtual override {
+		_executeValidationAndVerification(
+			_proof,
+			_auxPublicInputs,
+			_externalData,
+			_publicInputs,
+			_encryptions
+		);
+
+		// Check if extAmount > 0, call wrapAndDeposit
+		if (_externalData.extAmount > 0) {
+			require(
+				uint256(_externalData.extAmount) <= maximumDepositAmount,
+				"amount is larger than maximumDepositAmount"
+			);
+			if (_externalData.token == _wrappedToken) {
+				IMintableERC20(_wrappedToken).transferFrom(
+					msg.sender,
+					address(this),
+					uint256(_externalData.extAmount)
+				);
+			} else {
+				_executeWrapping(
+					_externalData.token,
+					_wrappedToken,
+					uint256(_externalData.extAmount)
+				);
+			}
+		}
+
+		if (_externalData.extAmount < 0) {
+			require(_externalData.recipient != address(0), "Can't withdraw to zero address");
+			// Prevents ddos attack to Bridge
+			require(
+				uint256(-_externalData.extAmount) >= minimalWithdrawalAmount,
+				"amount is less than minimalWithdrawalAmount"
+			);
+			MASPAuxPublicInputs memory aux = abi.decode(_auxPublicInputs, (MASPAuxPublicInputs));
+			if (_externalData.token == _wrappedToken) {
+				if (aux.publicTokenID == 0) {
+					_processWithdraw(
+						_wrappedToken,
+						_externalData.recipient,
+						uint256(-_externalData.extAmount)
+					);
+				} else {
+					_processWithdrawERC721(
+						_wrappedToken,
+						_externalData.recipient,
+						aux.publicTokenID
+					);
+				}
+			} else {
+				if (aux.publicTokenID == 0) {
+					_withdrawAndUnwrap(
+						_wrappedToken,
+						_externalData.token,
+						_externalData.recipient,
+						uint256(-_externalData.extAmount)
+					);
+				} else {
+					_withdrawAndUnwrapERC721(
+						_wrappedToken,
+						_externalData.token,
+						_externalData.recipient,
+						aux.publicTokenID
+					);
+				}
+			}
+			if (_externalData.refund > 0) {
+				_processRefund(
+					_externalData.refund,
+					_externalData.recipient,
+					_externalData.relayer
+				);
+			}
+		}
+
+		if (_externalData.fee > 0) {
+			_processFee(_wrappedToken, _externalData.relayer, _externalData.fee);
+		}
+
+		_executeInsertions(_publicInputs, _encryptions);
 	}
 
 	/// @inheritdoc ZKVAnchorBase
@@ -232,7 +333,7 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 		address _token,
 		address _recipient,
 		uint256 publicTokenID
-	) internal virtual override {
+	) internal virtual {
 		address owner = IERC721(_token).ownerOf(publicTokenID);
 		if (owner == address(this)) {
 			// transfer tokens when balance exists
@@ -248,8 +349,8 @@ abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 		address _toTokenAddress,
 		address _recipient,
 		uint256 publicTokenID
-	) public payable override {
-		_processWithdrawERC721(_fromTokenAddress, payable(address(this)), publicTokenID);
+	) internal virtual {
+		_processWithdrawERC721(_fromTokenAddress, address(this), publicTokenID);
 
 		INftTokenWrapper(_fromTokenAddress).unwrap721(publicTokenID, _toTokenAddress);
 	}

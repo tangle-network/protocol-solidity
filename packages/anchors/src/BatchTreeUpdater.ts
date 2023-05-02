@@ -140,7 +140,7 @@ export class BatchTreeUpdater {
     let batchPathIndices: number = MerkleTree.calculateIndexFromPathIndices(
       pathIndices.slice(batchHeight)
     );
-    // pathIndices = MerkleTree.calculateIndexFromPathIndices(pathIndices.slice(batchHeight));
+
     const input: ProofSignals = {
       oldRoot,
       newRoot,

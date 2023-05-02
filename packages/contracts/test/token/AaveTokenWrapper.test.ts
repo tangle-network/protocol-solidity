@@ -11,7 +11,7 @@ const bne = (x, e) => BigNumber.from(x + '0'.repeat(parseInt(e)));
 
 // Convenience wrapper classes for contract classes
 import { expect } from 'chai';
-import { AaveTokenWrapper, AaveTokenWrapper__factory, IERC20 } from '../../compiled';
+import { AaveTokenWrapper, AaveTokenWrapper__factory, IERC20 } from '@webb-tools/contracts';
 
 describe.skip('AaveTokenWrapper', () => {
   let aaveToken: AaveTokenWrapper;

@@ -2,6 +2,7 @@
  * Copyright 2021-2023 Webb Technologies
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
+import '@nomicfoundation/hardhat-chai-matchers';
 const assert = require('assert');
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers, expect } from 'hardhat';

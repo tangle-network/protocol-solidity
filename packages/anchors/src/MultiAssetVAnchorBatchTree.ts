@@ -1,9 +1,5 @@
-import { MASPSwapInputs, MASPVAnchorInputs, MultiAssetVAnchor } from './MultiAssetVAnchor';
-import { MultiAssetVAnchorProxy } from './MultiAssetVAnchorProxy';
-import {
-  MASPVAnchorEncodeInputs__factory,
-  MultiAssetVAnchorTree as MultiAssetVAnchorTreeContract,
-} from '@webb-tools/contracts';
+import { MultiAssetVAnchor } from './MultiAssetVAnchor';
+import { MASPVAnchorEncodeInputs__factory } from '@webb-tools/contracts';
 import { SwapEncodeInputs__factory } from '@webb-tools/contracts';
 import {
   MultiAssetVAnchorBatchTree as MultiAssetVAnchorBatchTreeContract,
@@ -12,18 +8,7 @@ import {
 import { ProxiedBatchTree } from './ProxiedBatchTree';
 import { getChainIdType, MaspKey, MaspUtxo, ZkComponents } from '@webb-tools/utils';
 import { BigNumber, BigNumberish, ethers } from 'ethers';
-import {
-  ProxiedBatchTree as ProxiedBatchTreeContract,
-  ProxiedBatchTree__factory,
-} from '@webb-tools/contracts';
-import { FIELD_SIZE, MerkleProof, toFixedHex } from '@webb-tools/sdk-core';
 import { Registry } from '@webb-tools/tokens';
-import { IMASPAllInputs, IMASPVAnchorPublicInputs } from '@webb-tools/interfaces';
-import { MerkleTree } from '@webb-tools/sdk-core';
-
-const { poseidon, eddsa } = require('circomlibjs');
-const snarkjs = require('snarkjs');
-const assert = require('assert');
 
 export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
   depositTree: ProxiedBatchTree;

@@ -9,18 +9,14 @@ import { BigNumber } from 'ethers';
 import { contract, ethers } from 'hardhat';
 import { PoseidonHasher } from '@webb-tools/anchors';
 import { BatchTreeUpdaterMock as BatchTreeUpdater } from './mocks/BatchTreeUpdaterMock';
-import { ZkComponents, fetchComponentsFromFilePaths } from '@webb-tools/utils';
+import { ZkComponents, batchTreeFixtures, fetchComponentsFromFilePaths } from '@webb-tools/utils';
 import {
-  VerifierBatch4__factory,
-  VerifierBatch8__factory,
-  VerifierBatch16__factory,
-  VerifierBatch32__factory,
+  VerifierBatch_4__factory,
+  VerifierBatch_8__factory,
+  VerifierBatch_16__factory,
+  VerifierBatch_32__factory,
   BatchTreeVerifierSelector__factory,
-} from '../../compiled';
-import path from 'path';
-const snarkjs = require('snarkjs');
-
-const blocks = ['0xaaaaaaaa', '0xbbbbbbbb', '0xcccccccc', '0xdddddddd'];
+} from '@webb-tools/contracts';
 
 contract('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
   let merkleTree;
@@ -32,100 +28,30 @@ contract('BatchMerkleTree w/ Poseidon hasher', (accounts) => {
   let zkComponents_32: ZkComponents;
   // dummy
   const instance = '0x1111000000000000000000000000000000001111';
-  // let levels = 30;
-  const wasmFilePath_4 = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/4/batchMerkleTreeUpdate_4.wasm'
-  );
-  const zkeyFilePath_4 = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/4/circuit_final.zkey'
-  );
-  const wtnsCalcFilePath_4 = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/4/witness_calculator.cjs'
-  );
-
-  const wasmFilePath_8 = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/8/batchMerkleTreeUpdate_8.wasm'
-  );
-  const zkeyFilePath_8 = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/8/circuit_final.zkey'
-  );
-  const wtnsCalcFilePath_8 = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/8/witness_calculator.cjs'
-  );
-
-  const wasmFilePath_16 = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/16/batchMerkleTreeUpdate_16.wasm'
-  );
-  const zkeyFilePath_16 = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/16/circuit_final.zkey'
-  );
-  const wtnsCalcFilePath_16 = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/16/witness_calculator.cjs'
-  );
-
-  const wasmFilePath_32 = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/32/batchMerkleTreeUpdate_32.wasm'
-  );
-  const zkeyFilePath_32 = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/32/circuit_final.zkey'
-  );
-  const wtnsCalcFilePath_32 = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/32/witness_calculator.cjs'
-  );
 
   const levels = 20;
-  const CHUNK_TREE_HEIGHT = 4;
-  const sender = accounts[0];
-  let tree: MerkleTree;
   let initialRoot: BigNumber;
 
   beforeEach(async () => {
-    zkComponents_4 = await fetchComponentsFromFilePaths(
-      wasmFilePath_4,
-      wtnsCalcFilePath_4,
-      zkeyFilePath_4
-    );
-    zkComponents_8 = await fetchComponentsFromFilePaths(
-      wasmFilePath_8,
-      wtnsCalcFilePath_8,
-      zkeyFilePath_8
-    );
-    zkComponents_16 = await fetchComponentsFromFilePaths(
-      wasmFilePath_16,
-      wtnsCalcFilePath_16,
-      zkeyFilePath_16
-    );
-    zkComponents_32 = await fetchComponentsFromFilePaths(
-      wasmFilePath_32,
-      wtnsCalcFilePath_32,
-      zkeyFilePath_32
-    );
+    zkComponents_4 = await batchTreeFixtures[4]();
+    zkComponents_8 = await batchTreeFixtures[8]();
+    zkComponents_16 = await batchTreeFixtures[16]();
+    zkComponents_32 = await batchTreeFixtures[32]();
+
     const signers = await ethers.getSigners();
     const wallet = signers[0];
     hasherInstance = await PoseidonHasher.createPoseidonHasher(wallet);
     merkleTree = new MerkleTree(levels);
-    const verifierFactory_4 = new VerifierBatch4__factory(wallet);
+    const verifierFactory_4 = new VerifierBatch_4__factory(wallet);
     const verifier_4 = await verifierFactory_4.deploy();
 
-    const verifierFactory_8 = new VerifierBatch8__factory(wallet);
+    const verifierFactory_8 = new VerifierBatch_8__factory(wallet);
     const verifier_8 = await verifierFactory_8.deploy();
 
-    const verifierFactory_16 = new VerifierBatch16__factory(wallet);
+    const verifierFactory_16 = new VerifierBatch_16__factory(wallet);
     const verifier_16 = await verifierFactory_16.deploy();
 
-    const verifierFactory_32 = new VerifierBatch32__factory(wallet);
+    const verifierFactory_32 = new VerifierBatch_32__factory(wallet);
     const verifier_32 = await verifierFactory_32.deploy();
 
     const verifierSelectorFactory = new BatchTreeVerifierSelector__factory(wallet);

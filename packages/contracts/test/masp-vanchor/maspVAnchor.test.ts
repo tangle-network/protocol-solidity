@@ -8,28 +8,17 @@ const TruffleAssert = require('truffle-assertions');
 
 // Typechain generated bindings for contracts
 // These contracts are included in packages, so should be tested
-import {
-  ERC20PresetMinterPauser,
-  ERC20PresetMinterPauser__factory,
-  ERC721Mintable,
-  ERC721Mintable__factory,
-  FungibleTokenWrapper as WrappedToken,
-  FungibleTokenWrapper__factory as WrappedTokenFactory,
-  NftTokenWrapper as WrappedNftToken,
-  NftTokenWrapper__factory as WrappedNftTokenFactory,
-} from '@webb-tools/contracts';
 
 import { BigNumber } from 'ethers';
 
 import {
-  hexToU8a,
-  fetchComponentsFromFilePaths,
   getChainIdType,
   ZkComponents,
-  u8aToHex,
-  ZERO_BYTES32,
   MaspUtxo,
   MaspKey,
+  maspVAnchorFixtures,
+  maspSwapFixtures,
+  batchTreeFixtures,
 } from '@webb-tools/utils';
 
 import { time } from '@nomicfoundation/hardhat-network-helpers';
@@ -42,8 +31,7 @@ import {
   SwapProofVerifier,
 } from '@webb-tools/anchors';
 
-import { MultiAssetVerifier } from '@webb-tools/vbridge';
-import { writeFileSync } from 'fs';
+import { MultiAssetVerifier } from '@webb-tools/anchors';
 import {
   Registry,
   RegistryHandler,
@@ -59,11 +47,9 @@ import { randomBytes } from 'ethers/lib/utils';
 import { toFixedHex } from '@webb-tools/sdk-core';
 import { AssetType } from '@webb-tools/interfaces';
 
-const BN = require('bn.js');
-const path = require('path');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
-const { babyjub, poseidon, eddsa } = require('circomlibjs');
+const { poseidon, eddsa } = require('circomlibjs');
 
 describe('MASPVAnchor for 2 max edges', () => {
   let maspVAnchor: MultiAssetVAnchorBatchTree;
@@ -93,156 +79,19 @@ describe('MASPVAnchor for 2 max edges', () => {
   let unwrappedERC20_2;
   let unwrappedERC20_3;
   let unwrappedERC721_1;
-  let unwrappedERC721_2;
-  let unwrappedERC721_3;
   let fungibleWebbToken;
   let nftWebbToken;
   let create2InputWitness;
   let signers;
 
-  const masp_vanchor_2_2_wasm_path = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/masp_vanchor_2/2/masp_vanchor_2_2.wasm'
-  );
-  const masp_vanchor_2_2_witness_calc_path = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/masp_vanchor_2/2/witness_calculator.cjs'
-  );
-  const masp_vanchor_2_2_zkey_path = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/masp_vanchor_2/2/circuit_final.zkey'
-  );
-
-  const masp_vanchor_16_2_wasm_path = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/masp_vanchor_16/2/masp_vanchor_16_2.wasm'
-  );
-  const masp_vanchor_16_2_witness_calc_path = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/masp_vanchor_16/2/witness_calculator.cjs'
-  );
-  const masp_vanchor_16_2_zkey_path = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/masp_vanchor_16/2/circuit_final.zkey'
-  );
-
-  const swap_2_wasm_path = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/swap_2/20/swap_20_2.wasm'
-  );
-
-  const swap_2_witness_calc_path = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/swap_2/20/witness_calculator.cjs'
-  );
-
-  const swap_2_zkey_path = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/swap_2/20/circuit_final.zkey'
-  );
-
-  const batchTree_4_wasm_path = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/4/batchMerkleTreeUpdate_4.wasm'
-  );
-
-  const batchTree_4_witness_calc_path = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/4/witness_calculator.cjs'
-  );
-
-  const batchTree_4_zkey_path = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/4/circuit_final.zkey'
-  );
-
-  const batchTree_8_wasm_path = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/8/batchMerkleTreeUpdate_8.wasm'
-  );
-
-  const batchTree_8_witness_calc_path = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/8/witness_calculator.cjs'
-  );
-
-  const batchTree_8_zkey_path = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/8/circuit_final.zkey'
-  );
-
-  const batchTree_16_wasm_path = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/16/batchMerkleTreeUpdate_16.wasm'
-  );
-
-  const batchTree_16_witness_calc_path = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/16/witness_calculator.cjs'
-  );
-
-  const batchTree_16_zkey_path = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/16/circuit_final.zkey'
-  );
-
-  const batchTree_32_wasm_path = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/32/batchMerkleTreeUpdate_32.wasm'
-  );
-
-  const batchTree_32_witness_calc_path = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/32/witness_calculator.cjs'
-  );
-
-  const batchTree_32_zkey_path = path.resolve(
-    __dirname,
-    '../../solidity-fixtures/solidity-fixtures/batch-tree/32/circuit_final.zkey'
-  );
-
   before('instantiate zkcomponents and user keypairs', async () => {
-    zkComponents2_2 = await fetchComponentsFromFilePaths(
-      masp_vanchor_2_2_wasm_path,
-      masp_vanchor_2_2_witness_calc_path,
-      masp_vanchor_2_2_zkey_path
-    );
-
-    zkComponents16_2 = await fetchComponentsFromFilePaths(
-      masp_vanchor_16_2_wasm_path,
-      masp_vanchor_16_2_witness_calc_path,
-      masp_vanchor_16_2_zkey_path
-    );
-
-    swapCircuitZkComponents = await fetchComponentsFromFilePaths(
-      swap_2_wasm_path,
-      swap_2_witness_calc_path,
-      swap_2_zkey_path
-    );
-
-    batchTreeZkComponents_4 = await fetchComponentsFromFilePaths(
-      batchTree_4_wasm_path,
-      batchTree_4_witness_calc_path,
-      batchTree_4_zkey_path
-    );
-
-    batchTreeZkComponents_8 = await fetchComponentsFromFilePaths(
-      batchTree_8_wasm_path,
-      batchTree_8_witness_calc_path,
-      batchTree_8_zkey_path
-    );
-
-    batchTreeZkComponents_16 = await fetchComponentsFromFilePaths(
-      batchTree_16_wasm_path,
-      batchTree_16_witness_calc_path,
-      batchTree_16_zkey_path
-    );
-
-    batchTreeZkComponents_32 = await fetchComponentsFromFilePaths(
-      batchTree_32_wasm_path,
-      batchTree_32_witness_calc_path,
-      batchTree_32_zkey_path
-    );
+    zkComponents2_2 = await maspVAnchorFixtures[22]();
+    zkComponents16_2 = await maspVAnchorFixtures[162]();
+    swapCircuitZkComponents = await maspSwapFixtures[220]();
+    batchTreeZkComponents_4 = await batchTreeFixtures[4]();
+    batchTreeZkComponents_8 = await batchTreeFixtures[8]();
+    batchTreeZkComponents_16 = await batchTreeFixtures[16]();
+    batchTreeZkComponents_32 = await batchTreeFixtures[32]();
 
     create2InputWitness = async (data: any) => {
       const wtns = await zkComponents2_2.witnessCalculator.calculateWTNSBin(data, 0);
@@ -552,7 +401,6 @@ describe('MASPVAnchor for 2 max edges', () => {
           BigNumber.from(0)
         ),
       ];
-      const fee = 0;
       const whitelistedAssetIDs = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
       inputs.map((x) => x.forceSetIndex(BigNumber.from(0)));
       feeInputs.map((x) => x.forceSetIndex(BigNumber.from(0)));
@@ -566,10 +414,8 @@ describe('MASPVAnchor for 2 max edges', () => {
       const feeMerkleProofsForInputs = feeInputs.map((x) =>
         MultiAssetVAnchorBatchTree.getMASPMerkleProof(x, maspVAnchor.depositTree.tree)
       );
-      const feeEncOutput1 = '0x';
-      const feeEncOutput2 = '0x';
 
-      const { extData, extDataHash } = await maspVAnchor.generateExtData(
+      const { extDataHash } = await maspVAnchor.generateExtData(
         recipient,
         BigNumber.from(extAmount),
         relayer,
@@ -580,7 +426,7 @@ describe('MASPVAnchor for 2 max edges', () => {
         encOutput2
       );
 
-      const { allInputs, publicInputs } = await maspVAnchor.generateMASPVAnchorInputs(
+      const { allInputs } = await maspVAnchor.generateMASPVAnchorInputs(
         roots,
         chainID,
         assetID,

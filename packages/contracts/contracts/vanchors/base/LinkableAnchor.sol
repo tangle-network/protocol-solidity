@@ -5,13 +5,13 @@
 
 pragma solidity ^0.8.5;
 
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../../structs/Edge.sol";
 import "../../hashers/IHasher.sol";
 import "../../utils/ChainIdWithType.sol";
 import "../../utils/ProposalNonceTracker.sol";
-import "../../interfaces/anchors/ILinkableAnchor.sol";
+import "../../interfaces/ILinkableAnchor.sol";
 import "../../interfaces/IMerkleSystem.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
     @title The LinkableAnchor contract

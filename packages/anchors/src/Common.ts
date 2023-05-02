@@ -1,10 +1,8 @@
-import { BigNumber, BigNumberish, PayableOverrides, ethers } from 'ethers';
+import { BaseContract, BigNumber, BigNumberish, PayableOverrides, ethers } from 'ethers';
 import {
   VAnchor as VAnchorContract,
   ChainalysisVAnchor as ChainalysisVAnchorContract,
-  IdentityVAnchor as IdentityVAnchorContract,
   VAnchorForest as VAnchorForestContract,
-  OpenVAnchor as OpenVAnchorContract,
   TokenWrapper__factory,
 } from '@webb-tools/contracts';
 import {
@@ -23,25 +21,11 @@ import { checkNativeAddress, splitTransactionOptions } from './utils';
 import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
 import { IVariableAnchorExtData } from '@webb-tools/interfaces';
 
-type WebbContracts =
-  | VAnchorContract
-  | ChainalysisVAnchorContract
-  | IdentityVAnchorContract
-  | VAnchorForestContract
-  | OpenVAnchorContract;
+export type WebbContracts = VAnchorContract | ChainalysisVAnchorContract | VAnchorForestContract;
 
-function isOpenVAnchorContract(contract: WebbContracts): contract is OpenVAnchorContract {
-  return (
-    'deposit' in contract &&
-    'withdraw' in contract &&
-    'wrapAndDeposit' in contract &&
-    'unwrapAndWithdraw' in contract &&
-    !('transact' in contract)
-  );
-}
-export abstract class WebbBridge {
+export abstract class WebbBridge<A extends WebbContracts> {
   signer: ethers.Signer;
-  contract: WebbContracts;
+  contract: A;
 
   tree: MerkleTree;
   treeHeight: number;
@@ -51,7 +35,7 @@ export abstract class WebbBridge {
   // The depositHistory stores leafIndex => information to create proposals (new root)
   depositHistory: Record<number, string>;
 
-  constructor(contract: WebbContracts, signer: ethers.Signer, treeHeight: number) {
+  constructor(contract: A, signer: ethers.Signer, treeHeight: number) {
     this.contract = contract;
     this.signer = signer;
     this.treeHeight = treeHeight;
@@ -102,7 +86,7 @@ export abstract class WebbBridge {
 
     if (currentChainId === newChainId) {
       this.signer = newSigner;
-      this.contract = this.contract.connect(newSigner);
+      this.contract = (this.contract as BaseContract).connect(newSigner) as A;
       return true;
     }
     return false;
@@ -312,7 +296,7 @@ export abstract class WebbBridge {
     wrapUnwrapToken: string,
     encryptedOutput1: string,
     encryptedOutput2: string
-  ): Promise<{ extData: IVariableAnchorExtData; extDataHash: BigNumber }> {
+  ): Promise<{ extData: IVariableAnchorExtData; extDataHash: BigNumberish }> {
     const extData = {
       recipient: toFixedHex(recipient, 20),
       extAmount: toFixedHex(extAmount),
@@ -388,9 +372,6 @@ export abstract class WebbBridge {
     leavesMap: Record<string, Uint8Array[]>, // subtree
     overridesTransaction?: OverridesWithFrom<PayableOverrides> & TransactionOptions
   ): Promise<ethers.ContractReceipt> {
-    if (isOpenVAnchorContract(this.contract)) {
-      throw new Error('OpenVAnchor contract does not support the `transact` method');
-    }
     const [overrides, txOptions] = splitTransactionOptions(overridesTransaction);
 
     // Default UTXO chain ID will match with the configured signer's chain ID

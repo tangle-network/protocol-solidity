@@ -1,28 +1,17 @@
-import { BigNumber, BigNumberish, ContractTransaction, ethers } from 'ethers';
-import {
-  MultiAssetVAnchor as MultiAssetVAnchorContract,
-  MultiAssetVAnchor__factory,
-  MASPVAnchorEncodeInputs__factory,
-  TokenWrapper__factory,
-  Registry__factory,
-} from '@webb-tools/contracts';
+import { BaseContract, BigNumber, BigNumberish, ethers } from 'ethers';
+import { MultiAssetVAnchor as MultiAssetVAnchorContract } from '@webb-tools/contracts';
 import {
   toHex,
-  Keypair,
   toFixedHex,
   MerkleTree,
   median,
   mean,
   max,
   min,
-  randomBN,
   CircomProvingManager,
-  ProvingManagerSetupInput,
   MerkleProof,
   FIELD_SIZE,
-  LeafIdentifier,
   getVAnchorExtDataHash,
-  token2CurrencyId,
   Utxo,
 } from '@webb-tools/sdk-core';
 import {
@@ -31,9 +20,10 @@ import {
   IMASPAllInputs,
   IMASPSwapAllInputs,
   IMASPSwapPublicInputs,
+  IVariableAnchorExtData,
 } from '@webb-tools/interfaces';
-const { babyjub } = require('circomlibjs');
-import { u8aToHex, getChainIdType, ZkComponents, MaspUtxo, MaspKey } from '@webb-tools/utils';
+import { getChainIdType, ZkComponents, MaspUtxo, MaspKey } from '@webb-tools/utils';
+import { RawPublicSignals, WebbContracts } from '.';
 const snarkjs = require('snarkjs');
 const assert = require('assert');
 const { poseidon, eddsa } = require('circomlibjs');
@@ -61,19 +51,6 @@ export type MASPSwapInputs = {
   swapPublicInputs: IMASPSwapPublicInputs;
 };
 
-export type ExtData = {
-  recipient: string;
-  extAmount: string;
-  relayer: string;
-  fee: string;
-  refund: string;
-  token: string;
-  encryptedOutput1: string;
-  encryptedOutput2: string;
-};
-
-export type RawPublicSignals = string[11];
-
 const zeroAddress = '0x0000000000000000000000000000000000000000';
 function checkNativeAddress(tokenAddress: string): boolean {
   if (tokenAddress === zeroAddress || tokenAddress === '0') {
@@ -82,13 +59,7 @@ function checkNativeAddress(tokenAddress: string): boolean {
   return false;
 }
 
-export var gasBenchmark = [];
-export var proofTimeBenchmark = [];
-// This convenience wrapper class is used in tests -
-// It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
-// Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
-// Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
-export abstract class MultiAssetVAnchor implements IVAnchor {
+export abstract class MultiAssetVAnchor implements IVAnchor<MultiAssetVAnchorContract> {
   contract: MultiAssetVAnchorContract;
   signer: ethers.Signer;
   tree: MerkleTree;
@@ -98,6 +69,9 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
   smallCircuitZkComponents: ZkComponents;
   largeCircuitZkComponents: ZkComponents;
   swapCircuitZkComponents: ZkComponents;
+
+  gasBenchmark = [];
+  proofTimeBenchmark = [];
 
   constructor(
     contract: MultiAssetVAnchorContract,
@@ -117,6 +91,15 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     this.smallCircuitZkComponents = smallCircuitZkComponents;
     this.largeCircuitZkComponents = largeCircuitZkComponents;
     this.swapCircuitZkComponents = swapCircuitZkComponents;
+  }
+  token?: string | undefined;
+
+  getToken(): Promise<string> {
+    throw new Error('Method not implemented.');
+  }
+
+  getContract(): Promise<string> {
+    return Promise.resolve(this.contract.address);
   }
 
   getAddress(): string {
@@ -299,7 +282,7 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
   }
 
   public async getGasBenchmark() {
-    const gasValues = gasBenchmark.map(Number);
+    const gasValues = this.gasBenchmark.map(Number);
     const meanGas = mean(gasValues);
     const medianGas = median(gasValues);
     const maxGas = max(gasValues);
@@ -314,12 +297,12 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     // return gasBenchmark;
   }
   public async getProofTimeBenchmark() {
-    const meanTime = mean(proofTimeBenchmark);
-    const medianTime = median(proofTimeBenchmark);
-    const maxTime = max(proofTimeBenchmark);
-    const minTime = min(proofTimeBenchmark);
+    const meanTime = mean(this.proofTimeBenchmark);
+    const medianTime = median(this.proofTimeBenchmark);
+    const maxTime = max(this.proofTimeBenchmark);
+    const minTime = min(this.proofTimeBenchmark);
     return {
-      proofTimeBenchmark,
+      proofTimeBenchmark: this.proofTimeBenchmark,
       meanTime,
       medianTime,
       maxTime,
@@ -328,7 +311,6 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
   }
 
   public async generateProofCalldata(fullProof: any) {
-    // const result = snarkjs.groth16.exportSolidityCallData(proof, publicSignals);
     const calldata = await snarkjs.groth16.exportSolidityCallData(
       fullProof.proof,
       fullProof.publicSignals
@@ -380,7 +362,7 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
     wrapUnwrapToken: string,
     encryptedOutput1: string,
     encryptedOutput2: string
-  ): Promise<{ extData: ExtData; extDataHash: BigNumber }> {
+  ): Promise<{ extData: IVariableAnchorExtData; extDataHash: BigNumberish }> {
     const extData = {
       recipient: toFixedHex(recipient, 20),
       extAmount: toFixedHex(extAmount),
@@ -407,16 +389,16 @@ export abstract class MultiAssetVAnchor implements IVAnchor {
 
   public async populateVAnchorRootsForProof(): Promise<string[]> {
     const neighborEdges = await this.contract.getLatestNeighborEdges();
-    const neighborRootInfos = neighborEdges.map((rootData) => {
+    const neighborRootInfos = neighborEdges.map((rootData: any) => {
       return rootData.root;
     });
     let thisRoot = await this.contract.getLastRoot();
-    return [thisRoot.toString(), ...neighborRootInfos.map((bignum) => bignum.toString())];
+    return [thisRoot.toString(), ...neighborRootInfos.map((el: any) => el.toString())];
   }
 
   public async populateRootsForProof(): Promise<BigNumber[]> {
     const neighborEdges = await this.contract.getLatestNeighborEdges();
-    const neighborRootInfos = neighborEdges.map((rootData) => {
+    const neighborRootInfos = neighborEdges.map((rootData: any) => {
       return rootData.root;
     });
     let thisRoot = await this.contract.getLastRoot();

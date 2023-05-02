@@ -4,38 +4,14 @@
  */
 
 const assert = require('assert');
-import {
-  Keypair,
-  generateVariableWitnessInput,
-  getVAnchorExtDataHash,
-  CircomUtxo,
-  MerkleTree,
-  toFixedHex,
-  toBuffer,
-  randomBN,
-} from '@webb-tools/sdk-core';
-import { PoseidonHasher, VAnchor } from '@webb-tools/anchors';
+import { MerkleTree, randomBN } from '@webb-tools/sdk-core';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
-import {
-  getChainIdType,
-  hexToU8a,
-  u8aToHex,
-  ZkComponents,
-  fetchComponentsFromFilePaths,
-} from '@webb-tools/utils';
-import { Verifier } from '@webb-tools/vbridge';
-import {
-  ERC20PresetMinterPauser,
-  ERC20PresetMinterPauser__factory,
-  FungibleTokenWrapper as WrappedToken,
-  FungibleTokenWrapper__factory as WrappedTokenFactory,
-} from '@webb-tools/contracts';
+import { ZkComponents, maspSwapFixtures } from '@webb-tools/utils';
 import { MaspKey, MaspUtxo } from '@webb-tools/utils';
 const snarkjs = require('snarkjs');
-const path = require('path');
-const { babyjub, poseidon, eddsa } = require('circomlibjs');
+const { poseidon, eddsa } = require('circomlibjs');
 
 const blocks = ['0xaaaaaaaa', '0xbbbbbbbb', '0xcccccccc', '0xdddddddd'];
 
@@ -50,26 +26,10 @@ describe('swap snarkjs local proof', () => {
     const wallet = signers[0];
     sender = wallet;
 
-    zkComponent = await fetchComponentsFromFilePaths(
-      path.resolve(__dirname, '../../solidity-fixtures/solidity-fixtures/swap_2/30/swap_30_2.wasm'),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/swap_2/30/witness_calculator.cjs'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/swap_2/30/circuit_final.zkey'
-      )
-    );
+    zkComponent = await maspSwapFixtures[220]();
 
     create2InputWitness = async (data: any) => {
-      const witnessCalculator = require('../../solidity-fixtures/solidity-fixtures/swap_2/30/witness_calculator.cjs');
-      const fileBuf = require('fs').readFileSync(
-        'solidity-fixtures/solidity-fixtures/swap_2/30/swap_30_2.wasm'
-      );
-      const wtnsCalc = await witnessCalculator(fileBuf);
-
-      const wtns = await wtnsCalc.calculateWTNSBin(data, 0);
+      const wtns = await zkComponent.witnessCalculator.calculateWTNSBin(data, 0);
       return wtns;
     };
   });
@@ -233,16 +193,10 @@ describe('swap snarkjs local proof', () => {
     };
 
     const wtns = await create2InputWitness(circuitInput);
-    let res = await snarkjs.groth16.prove(
-      'solidity-fixtures/solidity-fixtures/swap_2/30/circuit_final.zkey',
-      wtns
-    );
+    let res = await maspSwapFixtures.prove_2_20(wtns);
     const proof = res.proof;
     let publicSignals = res.publicSignals;
-    const vKey = await snarkjs.zKey.exportVerificationKey(
-      'solidity-fixtures/solidity-fixtures/swap_2/30/circuit_final.zkey'
-    );
-
+    const vKey = await maspSwapFixtures.vkey_2_20();
     res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
     assert.strictEqual(res, true);
   });

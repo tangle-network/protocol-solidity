@@ -8,54 +8,28 @@ import {
   CircomProvingManager,
   LeafIdentifier,
   MerkleTree,
-  MerkleProof,
   Utxo,
   generateVariableWitnessInput,
-  getVAnchorExtDataHash,
-  max,
-  mean,
-  median,
-  min,
   toFixedHex,
 } from '@webb-tools/sdk-core';
 import { poseidon_gencontract as poseidonContract } from 'circomlibjs';
 import { BigNumber, BigNumberish, PayableOverrides, ethers } from 'ethers';
-import { groth16 } from 'snarkjs';
-
-// import { MerkleTree } from "."
-import { IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
+import { IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
 import {
-  UTXOInputs,
+  VAnchorProofInputs,
   ZERO_BYTES32,
   ZkComponents,
   getChainIdType,
-  hexToU8a,
   u8aToHex,
 } from '@webb-tools/utils';
-import { WebbBridge } from './Common';
+import { WebbBridge, WebbContracts } from './Common';
 import { Deployer } from '@webb-tools/create2-utils';
-
-export type ExtData = {
-  recipient: string;
-  extAmount: string;
-  relayer: string;
-  fee: string;
-  refund: string;
-  token: string;
-  encryptedOutput1: string;
-  encryptedOutput2: string;
-};
+import { groth16 } from 'snarkjs';
 
 import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
 import { splitTransactionOptions } from './utils';
 
-export var gasBenchmark = [];
-export var proofTimeBenchmark = [];
-// This convenience wrapper class is used in tests -
-// It represents a deployed contract throughout its life (e.g. maintains merkle tree state)
-// Functionality relevant to anchors in general (proving, verifying) is implemented in static methods
-// Functionality relevant to a particular anchor deployment (deposit, withdraw) is implemented in instance methods
-export class VAnchorForest extends WebbBridge {
+export class VAnchorForest extends WebbBridge<WebbContracts> {
   contract: VAnchorForestContract;
   forest: MerkleTree;
 
@@ -66,8 +40,10 @@ export class VAnchorForest extends WebbBridge {
   largeCircuitZkComponents: ZkComponents;
 
   token?: string;
-  denomination?: string;
   provingManager: CircomProvingManager;
+
+  gasBenchmark = [];
+  proofTimeBenchmark = [];
 
   constructor(
     contract: VAnchorForestContract,
@@ -420,7 +396,7 @@ export class VAnchorForest extends WebbBridge {
       return false;
     }
   }
-  public async generateUTXOInputs(
+  public async generateVAnchorProofInputs(
     inputs: Utxo[],
     outputs: Utxo[],
     chainId: number,
@@ -450,7 +426,7 @@ export class VAnchorForest extends WebbBridge {
       }
       vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x, treeElements, forestElements));
     }
-    const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
+    const vanchorInput: VAnchorProofInputs = await generateVariableWitnessInput(
       vanchorRoots.map((root) => BigNumber.from(root)),
       chainId,
       inputs,
@@ -487,8 +463,8 @@ export class VAnchorForest extends WebbBridge {
       outBlinding: vanchorInput.outBlinding,
 
       subtreePathIndices: vanchorInput.inPathIndices,
-      subtreePathElements: vanchorInput.inPathElements.map((utxoPathElements) =>
-        utxoPathElements.map((bignum) => bignum.toString())
+      subtreePathElements: vanchorInput.inPathElements.map((utxoPathElements: any) =>
+        utxoPathElements.map((el: any) => el.toString())
       ),
       forestPathIndices,
       forestPathElements,
@@ -557,13 +533,13 @@ export class VAnchorForest extends WebbBridge {
       outputs[0].encrypt(),
       outputs[1].encrypt()
     );
-    const proofInput: UTXOInputs = await this.generateUTXOInputs(
+    const proofInput: VAnchorProofInputs = await this.generateVAnchorProofInputs(
       inputs,
       outputs,
       chainId,
       BigNumber.from(extAmount),
       BigNumber.from(fee),
-      extDataHash,
+      BigNumber.from(extDataHash),
       leavesMap,
       txOptions
     );

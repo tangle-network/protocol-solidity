@@ -22,6 +22,7 @@ import {
   ZkComponents,
   u8aToHex,
   ZERO_BYTES32,
+  vanchorFixtures,
 } from '@webb-tools/utils';
 import { BigNumber, ContractReceipt } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -38,7 +39,7 @@ import {
   CircomUtxo,
 } from '@webb-tools/sdk-core';
 import { VAnchor, PoseidonHasher } from '@webb-tools/anchors';
-import { Verifier } from '@webb-tools/vbridge';
+import { Verifier } from '@webb-tools/anchors';
 import { SetupTxVAnchorMock } from './mocks/SetupTxVAnchorMock';
 import { retryPromiseMock } from './mocks/retryPromiseMock';
 
@@ -83,35 +84,8 @@ describe('VAnchor for 1 max edge', () => {
   };
 
   before('instantiate zkcomponents', async () => {
-    zkComponents2_2 = await fetchComponentsFromFilePaths(
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/witness_calculator.cjs'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey'
-      )
-    );
-
-    zkComponents16_2 = await fetchComponentsFromFilePaths(
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/witness_calculator.cjs'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/circuit_final.zkey'
-      )
-    );
+    zkComponents2_2 = await vanchorFixtures[22]();
+    zkComponents16_2 = await vanchorFixtures[162]();
   });
 
   beforeEach(async () => {
@@ -171,12 +145,7 @@ describe('VAnchor for 1 max edge', () => {
     await token.approve(wrappedToken.address, '1000000000000000000000000');
 
     create2InputWitness = async (data: any) => {
-      const witnessCalculator = require('../../solidity-fixtures/solidity-fixtures/vanchor_2/2/witness_calculator.cjs');
-      const fileBuf = require('fs').readFileSync(
-        'solidity-fixtures/solidity-fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'
-      );
-      const wtnsCalc = await witnessCalculator(fileBuf);
-      const wtns = await wtnsCalc.calculateWTNSBin(data, 0);
+      const wtns = await zkComponents2_2.witnessCalculator.calculateWTNSBin(data, 0);
       return wtns;
     };
   });
@@ -228,15 +197,10 @@ describe('VAnchor for 1 max edge', () => {
       );
 
       const wtns = await create2InputWitness(input);
-      let res = await snarkjs.groth16.prove(
-        'solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey',
-        wtns
-      );
+      let res = await vanchorFixtures.prove_2_2(wtns);
       const proof = res.proof;
       let publicSignals = res.publicSignals;
-      const vKey = await snarkjs.zKey.exportVerificationKey(
-        'solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey'
-      );
+      const vKey = await vanchorFixtures.vkey_2_2();
 
       res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       assert.strictEqual(res, true);
@@ -865,10 +829,7 @@ describe('VAnchor for 1 max edge', () => {
       );
 
       const wtns = await create2InputWitness(input);
-      let res = await snarkjs.groth16.prove(
-        'solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey',
-        wtns
-      );
+      let res = await vanchorFixtures.prove_2_2(wtns);
       const proof = res.proof;
       let publicSignals = res.publicSignals;
       const proofEncoded = await generateWithdrawProofCallData(proof, publicSignals);

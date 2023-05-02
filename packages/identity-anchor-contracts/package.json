@@ -1,0 +1,66 @@
+{
+  "name": "@webb-tools/identity-anchor-contracts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "license": "(MIT or Apache-2.0)",
+  "author": "Webb Developers <drew@webb.tools>",
+  "scripts": {
+    "build:contracts": "npx hardhat compile",
+    "build:library": "tsc -p tsconfig.build.json",
+    "build:typechain-foundry": "../../scripts/build-typechain.sh",
+    "compile": "yarn compile:contracts && yarn copy:declarations && yarn build:library",
+    "compile:contracts": "yarn run clean && yarn run build:contracts",
+    "copy:declarations": "copyfiles -f ./typechain/*.ts ./dist",
+    "build": "exit 0",
+    "clean": "rimraf -rf ./dist && rimraf -rf ./typechain && rimraf -rf ./cache && rimraf -rf ./artifacts",
+    "test": "npx hardhat test",
+    "test:parallel": "npx hardhat test --parallel",
+    "test:gas-reporter": "REPORT_GAS=true npx hardhat test --parallel"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "directory": "packages/identity-anchor-contracts",
+    "type": "git",
+    "url": "git://github.com/webb-tools/protocol-solidity.git"
+  },
+  "version": "0.5.40",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^1.0.6",
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@openzeppelin/contracts": "^4.8.3",
+    "@truffle/contract": "^4.6.20",
+    "@nomiclabs/hardhat-truffle5": "^2.0.7",
+    "@nomiclabs/hardhat-web3": "^2.0.0",
+    "@typechain/ethers-v5": "^10.2.0",
+    "@typechain/hardhat": "^6.1.5",
+    "@types/chai": "^4.3.4",
+    "@types/mocha": "^10.0.1",
+    "@webb-tools/protocol-solidity": "1.0.0",
+    "@webb-tools/sdk-core": "0.1.4-125",
+    "@webb-tools/test-utils": "0.1.4-125",
+    "chai": "^4.3.7",
+    "circomlibjs": "^0.0.8",
+    "copyfiles": "^2.4.1",
+    "dotenv": "^16.0.3",
+    "elliptic": "^6.5.4",
+    "ethers": "^5.7.0",
+    "hardhat": "^2.14.0",
+    "hardhat-artifactor": "^0.2.0",
+    "hardhat-gas-reporter": "^1.0.9",
+    "hardhat-preprocessor": "^0.1.5",
+    "snarkjs": "^0.6.10",
+    "solidity-coverage": "^0.8.2",
+    "truffle-artifactor": "^4.0.30",
+    "truffle-assertions": "^0.9.2",
+    "ts-node": "^10.9.1",
+    "typechain": "^8.1.1"
+  },
+  "dependencies": {
+    "@ethersproject/abi": "^5.7.0",
+    "@ethersproject/providers": "^5.7.2",
+    "ethers": "^5.7.0",
+    "typescript": "^5.0.4"
+  }
+}
