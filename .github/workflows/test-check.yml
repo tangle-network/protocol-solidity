@@ -18,9 +18,26 @@ jobs:
       matrix:
         node-version: [18.x]
     steps:
-      - uses: webb-tools/webb-github-actions/setup-workflow@main
-        with:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with: 
           node-version: ${{ matrix.node-version }}
+
+      - name: Setup DVC
+        uses: iterative/setup-dvc@v1
+          
+      - name: Fetch submodules
+        run: git submodule update --init --recursive
+
+      - name: Install dependencies 
+        run: yarn install --production=false
+
+      - name: Populate fixtures
+        run: yarn fetch:fixtures
+
+      - name: Compile the contracts and build typescript interfaces
+        run: yarn build
+        
       - name: Upload build artifacts
         uses: actions/upload-artifact@v2
         with:
