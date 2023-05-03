@@ -17,7 +17,7 @@
       "security"
     ],
     "author": "Webb Developers <hello@webb.tools>",
-    "license": "Apache2.0 / MIT",
+    "license": "(MIT OR Apache-2.0)",
     "bugs": {
       "url": "https://github.com/webb-tools/protocol-solidity/issues"
     },

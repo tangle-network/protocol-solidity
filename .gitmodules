@@ -10,3 +10,21 @@
 [submodule "packages/contracts/lib/prb-test"]
 	path = packages/contracts/lib/prb-test
 	url = https://github.com/PaulRBerg/prb-test
+[submodule "packages/masp-anchor-contracts/lib/prb-test"]
+	path = packages/masp-anchor-contracts/lib/prb-test
+	url = https://github.com/PaulRBerg/prb-test
+[submodule "packages/masp-anchor-contracts/lib/openzeppelin-contracts"]
+	path = packages/masp-anchor-contracts/lib/openzeppelin-contracts
+	url = https://github.com/openzeppelin/openzeppelin-contracts
+[submodule "packages/masp-anchor-contracts/lib/forge-std"]
+	path = packages/masp-anchor-contracts/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+[submodule "packages/identity-anchor-contracts/lib/forge-std"]
+	path = packages/identity-anchor-contracts/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+[submodule "packages/identity-anchor-contracts/lib/openzeppelin-contracts"]
+	path = packages/identity-anchor-contracts/lib/openzeppelin-contracts
+	url = https://github.com/openzeppelin/openzeppelin-contracts
+[submodule "packages/identity-anchor-contracts/lib/prb-test"]
+	path = packages/identity-anchor-contracts/lib/prb-test
+	url = https://github.com/PaulRBerg/prb-test
