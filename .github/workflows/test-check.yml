@@ -1,0 +1,123 @@
+name: run-test-suite
+
+on:
+  push:
+    branches: [ 'main' ]
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [ '**' ]
+    paths-ignore:
+      - 'README.md'
+
+  workflow_dispatch:
+
+jobs:
+  setup-build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+      - uses: webb-tools/webb-github-actions/setup-workflow@main
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-artifacts
+          path: |
+            build/
+            node_modules/
+
+  test:
+    needs: setup-build
+    concurrency:
+      group: test-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/main' && github.event.pull_request.draft == false
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download build artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: build-artifacts
+          path: .
+      - name: Run test suite
+        env:
+          INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
+        run: yarn test
+  
+  identity-tests:
+    needs: setup-build
+    concurrency:
+      group: ts-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download build artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: build-artifacts
+          path: .
+      - name: ts-check
+        run: yarn test:identity
+
+  # masp-tests:
+  #   needs: setup-build
+  #   concurrency:
+  #     group: test-${{ github.ref }}
+  #     cancel-in-progress: true
+  #   runs-on: ubuntu-latest
+  #   if: github.ref != 'refs/heads/main' && github.event.pull_request.draft == false
+  #   strategy:
+  #     matrix:
+  #       node-version: [18.x]
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: Download build artifacts
+  #       uses: actions/download-artifact@v2
+  #       with:
+  #         name: build-artifacts
+  #         path: .
+  #     - name: Run test suite
+  #       env:
+  #         INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
+  #       run: yarn masp:test
+
+  forge-tests:
+    needs: setup-build
+    runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/main' && github.event.pull_request.draft == false
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download build artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: build-artifacts
+          path: .
+      - name: "Install Foundry"
+        uses: "foundry-rs/foundry-toolchain@v1"
+      - name: "Show the Foundry config"
+        run: "forge config"
+      - name: "Generate a fuzz seed that changes weekly to avoid burning through RPC allowance"
+        run: >
+          echo "FOUNDRY_FUZZ_SEED=$(
+            echo $(($EPOCHSECONDS - $EPOCHSECONDS % 604800))
+          )" >> $GITHUB_ENV
+      - name: "Run the tests"
+        run: "forge test"
+      - name: "Add test summary"
+        run: |
+          echo "## Tests result" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Passed" >> $
