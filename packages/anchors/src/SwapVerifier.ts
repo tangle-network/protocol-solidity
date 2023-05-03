@@ -1,4 +1,4 @@
-import { ethers, Signer, ContractFactory } from 'ethers';
+import { ethers, Signer } from 'ethers';
 
 import {
   SwapProofVerifier as SwapProofVerifierContract,

@@ -45,7 +45,7 @@ const MASP_SWAP_DIR = (w: number) => `swap_${w}`;
 const MASP_SWAP_WASM = (w: number, depth: number) => `swap_${depth}_${w}.wasm`;
 
 const MASP_REWARD_DIR = (w: number) => `reward_${w}`;
-const MASP_REWARD_WASM = (w: number, depth: number) => `reward${depth}_${w}.wasm`;
+const MASP_REWARD_WASM = (w: number, depth: number) => `reward_${depth}_${w}.wasm`;
 
 const BATCH_TREE_DIR = 'batch-tree';
 const BATCH_TREE_WASM = (size: number) => `batchMerkleTreeUpdate_${size}.wasm`;
