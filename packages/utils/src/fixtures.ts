@@ -354,6 +354,21 @@ export const maspSwapFixtures = {
       path.resolve(__dirname, `${PATH_PREFIX}/${MASP_SWAP_DIR(2)}/20/${WITNESS_CALCULATOR_NAME}`),
       path.resolve(__dirname, `${PATH_PREFIX}/${MASP_SWAP_DIR(2)}/20/${ZKEY_NAME}`)
     ),
+  prove_2_30: async (witness) =>
+    snarkjs.groth16.prove(
+      path.resolve(__dirname, `${PATH_PREFIX}/${MASP_SWAP_DIR(2)}/30/${ZKEY_NAME}`),
+      witness
+    ),
+  vkey_2_30: async () =>
+    await snarkjs.zKey.exportVerificationKey(
+      path.resolve(__dirname, `${PATH_PREFIX}/${MASP_SWAP_DIR(2)}/30/${ZKEY_NAME}`)
+    ),
+  2_30: async () =>
+    await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, `${PATH_PREFIX}/${MASP_SWAP_DIR(2)}/30/${MASP_SWAP_WASM(2, 30)}`),
+      path.resolve(__dirname, `${PATH_PREFIX}/${MASP_SWAP_DIR(2)}/30/${WITNESS_CALCULATOR_NAME}`),
+      path.resolve(__dirname, `${PATH_PREFIX}/${MASP_SWAP_DIR(2)}/30/${ZKEY_NAME}`)
+    ),
 };
 
 export const maspRewardFixtures = {
@@ -369,6 +384,21 @@ export const maspRewardFixtures = {
   2_30: async () =>
     await fetchComponentsFromFilePaths(
       path.resolve(__dirname, `${PATH_PREFIX}/${MASP_REWARD_DIR(2)}/30/${MASP_REWARD_WASM(2, 30)}`),
+      path.resolve(__dirname, `${PATH_PREFIX}/${MASP_REWARD_DIR(2)}/30/${WITNESS_CALCULATOR_NAME}`),
+      path.resolve(__dirname, `${PATH_PREFIX}/${MASP_REWARD_DIR(2)}/30/${ZKEY_NAME}`)
+    ),
+  prove_8_30: async (witness) =>
+    snarkjs.groth16.prove(
+      path.resolve(__dirname, `${PATH_PREFIX}/${MASP_REWARD_DIR(2)}/30/${ZKEY_NAME}`),
+      witness
+    ),
+  vkey_8_30: async () =>
+    await snarkjs.zKey.exportVerificationKey(
+      path.resolve(__dirname, `${PATH_PREFIX}/${MASP_REWARD_DIR(2)}/30/${ZKEY_NAME}`)
+    ),
+  8_30: async () =>
+    await fetchComponentsFromFilePaths(
+      path.resolve(__dirname, `${PATH_PREFIX}/${MASP_REWARD_DIR(2)}/30/${MASP_REWARD_WASM(8, 30)}`),
       path.resolve(__dirname, `${PATH_PREFIX}/${MASP_REWARD_DIR(2)}/30/${WITNESS_CALCULATOR_NAME}`),
       path.resolve(__dirname, `${PATH_PREFIX}/${MASP_REWARD_DIR(2)}/30/${ZKEY_NAME}`)
     ),
