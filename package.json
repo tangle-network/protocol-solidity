@@ -27,7 +27,7 @@
     "build:ptau": "./scripts/bash/generate_phase1_ptau.sh",
     "clean": "rm -rf artifacts typechain && yarn clean:packages",
     "clean:packages": "lerna run clean",
-    "fetch:fixtures": "cd solidity-fixtures && dvc pull && cd ../",
+    "fetch:fixtures": "cd packages/contracts/solidity-fixtures && dvc pull && cd ../",
     "prettier": "prettier -c .",
     "publish:packages": "lerna run compile && lerna publish",
     "publish:ci": "lerna run compile && lerna publish patch --yes --message 'chore: release new versions' ",
