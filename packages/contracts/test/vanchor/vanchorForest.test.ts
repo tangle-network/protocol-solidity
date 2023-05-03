@@ -6,7 +6,6 @@ const assert = require('assert');
 import { ethers } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
 
-
 // import { toFixedHex, toHex, MerkleTree, MerkleProof } from '@webb-tools/sdk-core';
 import {
   ERC20PresetMinterPauser,
@@ -1226,7 +1225,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
           },
           { gasLimit: '0x5B8D80' }
         ),
-        'non-existent edge is not set to the default root'
+        'LinkableAnchor: non-existent edge is not set to the default root'
       );
     });
   });

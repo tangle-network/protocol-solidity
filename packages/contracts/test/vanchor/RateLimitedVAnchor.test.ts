@@ -6,7 +6,6 @@ const assert = require('assert');
 const TruffleAssert = require('truffle-assertions');
 import { ethers } from 'hardhat';
 
-
 import {
   ERC20PresetMinterPauser,
   ERC20PresetMinterPauser__factory,

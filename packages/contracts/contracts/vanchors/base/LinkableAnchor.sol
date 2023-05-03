@@ -228,7 +228,7 @@ abstract contract LinkableAnchor is
 		while (rootIndex != maxEdges + 1) {
 			require(
 				_roots[rootIndex] == this.getZeroHash(outerLevels - 1),
-				"non-existent edge is not set to the default root"
+				"LinkableAnchor: non-existent edge is not set to the default root"
 			);
 			rootIndex++;
 		}

@@ -13,7 +13,7 @@ build/
 packages/contracts/typechain
 packages/*/node_modules
 packages/*/lib
-packages/*/compiled
+packages/*/dist
 packages/*/tsconfig.tsbuildinfo
 
 solidity-fixtures
@@ -21,8 +21,8 @@ solidity-fixtures
 # Hardhat files
 cache
 artifacts
-/typechain
-/typechain-types
+typechain
+typechain-types
 /src
 
 dist

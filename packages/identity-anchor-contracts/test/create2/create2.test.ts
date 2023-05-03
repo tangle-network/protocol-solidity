@@ -3,7 +3,7 @@ import {
   DeterministicDeployFactory__factory,
   ERC20PresetMinterPauser,
   ERC20PresetMinterPauser__factory,
-  VAnchorEncodeInputs__factory
+  VAnchorEncodeInputs__factory,
 } from '@webb-tools/contracts';
 import { getChainIdType } from '@webb-tools/utils';
 import { Semaphore } from '@webb-tools/semaphore';
@@ -207,12 +207,7 @@ describe('Should deploy verifiers to the same address', () => {
         '21663839004416932945382355908790599225266501822907911457504978515578255421292'
       );
       const group = new LinkedGroup(semaphoreLevels, maxEdges, BigInt(defaultRoot));
-      await semaphore1.createGroup(
-        Number(groupId),
-        semaphoreLevels,
-        sender.address,
-        maxEdges
-      );
+      await semaphore1.createGroup(Number(groupId), semaphoreLevels, sender.address, maxEdges);
       await semaphore2.createGroup(
         Number(groupId),
         semaphoreLevels,

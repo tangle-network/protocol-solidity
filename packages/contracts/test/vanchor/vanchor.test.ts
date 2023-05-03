@@ -6,7 +6,6 @@ const assert = require('assert');
 import { ethers } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
 
-
 import {
   ERC20PresetMinterPauser,
   ERC20PresetMinterPauser__factory,
@@ -1287,7 +1286,7 @@ describe('VAnchor for 1 max edge', () => {
           encryptedOutput1: outputs[0].encrypt(),
           encryptedOutput2: outputs[1].encrypt(),
         }),
-        'non-existent edge is not set to the default root'
+        'LinkableAnchor: non-existent edge is not set to the default root'
       );
     });
   });

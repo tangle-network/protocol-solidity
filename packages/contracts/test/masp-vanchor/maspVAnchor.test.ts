@@ -6,8 +6,6 @@ const assert = require('assert');
 import { ethers } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
 
-
-
 import { BigNumber } from 'ethers';
 
 import {
