@@ -103,7 +103,7 @@ export class VAnchor extends WebbBridge<WebbContracts> implements IVAnchor<WebbC
     const createdVAnchor = new VAnchor(
       vanchor,
       signer,
-      BigNumber.from(levels).toNumber(),
+      Number(levels),
       maxEdges,
       smallCircuitZkComponents,
       largeCircuitZkComponents
@@ -137,7 +137,7 @@ export class VAnchor extends WebbBridge<WebbContracts> implements IVAnchor<WebbC
     const createdVAnchor = new VAnchor(
       vAnchor,
       signer,
-      BigNumber.from(levels).toNumber(),
+      Number(levels),
       maxEdges,
       smallCircuitZkComponents,
       largeCircuitZkComponents

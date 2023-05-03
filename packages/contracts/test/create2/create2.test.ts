@@ -1,8 +1,7 @@
 import { ethers, assert } from 'hardhat';
 import { HARDHAT_ACCOUNTS } from '../../hardhatAccounts.js';
 
-// Typechain generated bindings for contracts
-// These contracts are included in packages, so should be tested
+
 import {
   DeterministicDeployFactory__factory,
   ERC20PresetMinterPauser,

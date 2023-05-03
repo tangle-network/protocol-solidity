@@ -6,8 +6,7 @@ const assert = require('assert');
 import { ethers } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
 
-// Typechain generated bindings for contracts
-// These contracts are included in packages, so should be tested
+
 import {
   ERC20PresetMinterPauser,
   ERC20PresetMinterPauser__factory,

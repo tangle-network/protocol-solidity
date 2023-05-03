@@ -41,7 +41,7 @@ export class ChainalysisVAnchor extends VAnchor {
     const createdVAnchor = new VAnchor(
       vanchor,
       signer,
-      BigNumber.from(levels).toNumber(),
+      Number(levels),
       maxEdges,
       smallCircuitZkComponents,
       largeCircuitZkComponents
@@ -74,7 +74,7 @@ export class ChainalysisVAnchor extends VAnchor {
     const createdVAnchor = new ChainalysisVAnchor(
       vAnchor,
       signer,
-      BigNumber.from(levels).toNumber(),
+      Number(levels),
       maxEdges,
       smallCircuitZkComponents,
       largeCircuitZkComponents

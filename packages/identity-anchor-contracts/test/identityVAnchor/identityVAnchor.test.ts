@@ -5,8 +5,7 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import '@nomicfoundation/hardhat-chai-matchers';
-// Typechain generated bindings for contracts
-// These contracts are included in packages, so should be tested
+
 import {
   ERC20PresetMinterPauser,
   ERC20PresetMinterPauser__factory,
@@ -17,7 +16,6 @@ import { startGanacheServer } from '../startGanache';
 
 import {
   hexToU8a,
-  fetchComponentsFromFilePaths,
   getChainIdType,
   ZkComponents,
   u8aToHex,
@@ -47,16 +45,16 @@ import { LinkedGroup } from '@webb-tools/semaphore-group';
 import { TransactionOptions } from '@webb-tools/anchors/types';
 
 const BN = require('bn.js');
-const path = require('path');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
 
-describe('IdentityVAnchor for 2 max edges', () => {
+describe.only('IdentityVAnchor for 2 max edges', () => {
   let idAnchor: IdentityVAnchor;
   let semaphore: Semaphore;
 
   const levels = 30;
   const defaultRoot = BigInt(
+    
     '21663839004416932945382355908790599225266501822907911457504978515578255421292'
   );
   let fee = BigInt(new BN(`100`).toString());
@@ -112,36 +110,42 @@ describe('IdentityVAnchor for 2 max edges', () => {
     alice = signers[0];
     bob = signers[1];
     carl = signers[2];
+    console.log('here');
     // create poseidon hasher
     const hasherInstance = await PoseidonHasher.createPoseidonHasher(wallet);
-
+    console.log('Poseidon hasher created');
     // create bridge verifier
     verifier = await IdentityVerifier.createVerifier(sender);
-
+    console.log('Verifier created');
     // create token
     const tokenFactory = new ERC20PresetMinterPauser__factory(wallet);
     token = await tokenFactory.deploy('test token', 'TEST');
     await token.deployed();
+    console.log('Token created');
     await token.mint(alice.address, BigNumber.from(1e10).toString());
     await token.mint(bob.address, BigNumber.from(1e10).toString());
     await token.mint(carl.address, BigNumber.from(1e10).toString());
+    console.log('Token minted');
     // create Anchor
     semaphore = await Semaphore.createSemaphore(levels, zkComponents2_2, zkComponents2_2, sender);
+    console.log('Semaphore created: ', semaphore.contract.address);
+    console.log(semaphore);
     const groupId = BigNumber.from(99); // arbitrary
-    let aliceLeaf = aliceKeypair.getPubKey();
+    let aliceLeaf = BigNumber.from(aliceKeypair.getPubKey());
     group = new LinkedGroup(levels, maxEdges, BigInt(defaultRoot));
     group.addMember(aliceLeaf);
+    console.log('Create local group with Alice');
     let alice_addmember_tx = await semaphore.contract
-      .connect(sender)
-      .addMember(groupId, aliceLeaf, { gasLimit: '0x5B8D80' });
+      .addMember(groupId, aliceLeaf, { gasLimit: '0x5B8D80', from: sender.address });
+    console.log('Alice added');
     // const receipt = await alice_addmember_tx.wait();
     expect(alice_addmember_tx)
       .to.emit(semaphore.contract, 'MemberAdded')
       .withArgs(groupId, aliceLeaf, group.root);
     let bobLeaf = bobKeypair.getPubKey();
     let bob_addmember_tx = await semaphore.contract
-      .connect(sender)
-      .addMember(groupId, bobLeaf, { gasLimit: '0x5B8D80' });
+      .addMember(groupId, bobLeaf, { gasLimit: '0x5B8D80', from: sender.address });
+    console.log('Bob added');
     group.addMember(bobLeaf);
 
     expect(bob_addmember_tx)
@@ -254,7 +258,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
       aliceProof = fullProof.proof;
       alicePublicSignals = fullProof.publicSignals;
 
-      const vKey = await snarkjs.zKey.exportVerificationKey(identity_vanchor_2_2_zkey_path);
+      const vKey = await identityVAnchorFixtures.vkey_2_2();
 
       const res = await snarkjs.groth16.verify(vKey, alicePublicSignals, aliceProof);
       aliceCalldata = await snarkjs.groth16.exportSolidityCallData(
@@ -980,7 +984,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
     let publicInputs: IVariableAnchorPublicInputs;
     let aliceExtData: any;
-    let aliceExtDataHash: BigNumber;
 
     let encOutput1: string;
     let encOutput2: string;
@@ -1012,7 +1015,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         encryptedOutput2: encOutput2,
       };
 
-      aliceExtDataHash = getVAnchorExtDataHash(
+      const aliceExtDataHash = getVAnchorExtDataHash(
         encOutput1,
         encOutput2,
         extAmount.toString(),

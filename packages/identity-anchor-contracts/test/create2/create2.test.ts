@@ -1,5 +1,10 @@
 import { ethers, assert } from 'hardhat';
-import { ERC20PresetMinterPauser } from '@webb-tools/contracts';
+import {
+  DeterministicDeployFactory__factory,
+  ERC20PresetMinterPauser,
+  ERC20PresetMinterPauser__factory,
+  VAnchorEncodeInputs__factory
+} from '@webb-tools/contracts';
 import { getChainIdType } from '@webb-tools/utils';
 import { Semaphore } from '@webb-tools/semaphore';
 import { LinkedGroup } from '@webb-tools/semaphore-group';
@@ -69,6 +74,94 @@ describe('Should deploy verifiers to the same address', () => {
     assert.strictEqual(ganacheNonce, hardhatNonce);
     sender = wallet;
   });
+
+  describe('#deploy common', () => {
+    it('should deploy to the same address', async () => {
+      let hardhatNonce = await sender.provider.getTransactionCount(sender.address, 'latest');
+      let ganacheNonce = await ganacheWallet1.provider.getTransactionCount(
+        ganacheWallet1.address,
+        'latest'
+      );
+      while (ganacheNonce !== hardhatNonce) {
+        if (ganacheNonce < hardhatNonce) {
+          const Deployer2 = new DeterministicDeployFactory__factory(ganacheWallet1);
+          let deployer2 = await Deployer2.deploy();
+          await deployer2.deployed();
+        } else {
+          const Deployer1 = new DeterministicDeployFactory__factory(sender);
+          let deployer1 = await Deployer1.deploy();
+          await deployer1.deployed();
+        }
+
+        hardhatNonce = await sender.provider.getTransactionCount(sender.address, 'latest');
+        ganacheNonce = await ganacheWallet1.provider.getTransactionCount(
+          ganacheWallet1.address,
+          'latest'
+        );
+        if (ganacheNonce === hardhatNonce) {
+          break;
+        }
+      }
+      assert.strictEqual(ganacheNonce, hardhatNonce);
+      const Deployer1 = new DeterministicDeployFactory__factory(sender);
+      let deployer1Contract = await Deployer1.deploy();
+      await deployer1Contract.deployed();
+      deployer1 = new Deployer(deployer1Contract);
+
+      const Deployer2 = new DeterministicDeployFactory__factory(ganacheWallet1);
+      let deployer2Contract = await Deployer2.deploy();
+      await deployer2Contract.deployed();
+      deployer2 = new Deployer(deployer2Contract);
+      assert.strictEqual(deployer1.address, deployer2.address);
+    });
+    it('should deploy ERC20PresetMinterPauser to the same address using different wallets', async () => {
+      const salt = '666';
+      const saltHex = ethers.utils.id(salt);
+      const argTypes = ['string', 'string'];
+      const args = ['test token', 'TEST'];
+      const { contract: contractToken1 } = await deployer1.deploy(
+        ERC20PresetMinterPauser__factory,
+        saltHex,
+        sender,
+        undefined,
+        argTypes,
+        args
+      );
+      token1 = contractToken1;
+      const { contract: contractToken2 } = await deployer2.deploy(
+        ERC20PresetMinterPauser__factory,
+        saltHex,
+        ganacheWallet2,
+        undefined,
+        argTypes,
+        args
+      );
+      token2 = contractToken2;
+      assert.strictEqual(token1.address, token2.address);
+    });
+    it('should deploy VAnchorEncodeInput library to the same address using same handler', async () => {
+      const salt = '667';
+      const saltHex = ethers.utils.id(salt);
+      const { contract: contract1 } = await deployer1.deploy(
+        VAnchorEncodeInputs__factory,
+        saltHex,
+        sender
+      );
+      const { contract: contract2 } = await deployer2.deploy(
+        VAnchorEncodeInputs__factory,
+        saltHex,
+        ganacheWallet2
+      );
+      assert.strictEqual(contract1.address, contract2.address);
+    });
+    it('should deploy poseidonHasher to the same address using different wallets', async () => {
+      const salt = '666';
+      poseidonHasher1 = await PoseidonHasher.create2PoseidonHasher(deployer1, salt, sender);
+      poseidonHasher2 = await PoseidonHasher.create2PoseidonHasher(deployer2, salt, ganacheWallet2);
+      assert.strictEqual(poseidonHasher1.contract.address, poseidonHasher2.contract.address);
+    });
+  });
+
   describe('#deploy IdentityVAnchor', () => {
     let identityVerifier1: IdentityVerifier;
     let identityVerifier2: IdentityVerifier;
@@ -114,13 +207,13 @@ describe('Should deploy verifiers to the same address', () => {
         '21663839004416932945382355908790599225266501822907911457504978515578255421292'
       );
       const group = new LinkedGroup(semaphoreLevels, maxEdges, BigInt(defaultRoot));
-      const tx1 = await semaphore1.createGroup(
+      await semaphore1.createGroup(
         Number(groupId),
         semaphoreLevels,
         sender.address,
         maxEdges
       );
-      const tx2 = await semaphore2.createGroup(
+      await semaphore2.createGroup(
         Number(groupId),
         semaphoreLevels,
         ganacheWallet2.address,

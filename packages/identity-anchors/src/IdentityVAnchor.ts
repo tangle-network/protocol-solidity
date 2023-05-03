@@ -15,7 +15,6 @@ import {
   generateVariableWitnessInput,
   toFixedHex,
 } from '@webb-tools/sdk-core';
-// Importing from src because the lib doesn't export the types
 import { Group, LinkedGroup } from '@webb-tools/semaphore-group';
 import { Semaphore } from '@webb-tools/semaphore/src';
 import { VAnchorProofInputs, ZkComponents, getChainIdType, u8aToHex } from '@webb-tools/utils';
@@ -114,7 +113,7 @@ export class IdentityVAnchor
       signer
     );
     let libraryAddresses = {
-      ['contracts/libs/IdentityVAnchorEncodeInputs.sol:IdentityVAnchorEncodeInputs']:
+      ['contracts/IdentityVAnchorEncodeInputs.sol:IdentityVAnchorEncodeInputs']:
         encodeLibrary.address,
     };
     const argTypes = [
@@ -149,7 +148,7 @@ export class IdentityVAnchor
     const createdIdentityVAnchor = new IdentityVAnchor(
       vAnchor,
       signer,
-      BigNumber.from(levels).toNumber(),
+      Number(levels),
       maxEdges,
       groupId,
       group,
@@ -200,7 +199,7 @@ export class IdentityVAnchor
     const createdIdentityVAnchor = new IdentityVAnchor(
       vAnchor,
       signer,
-      BigNumber.from(levels).toNumber(),
+      Number(levels),
       maxEdges,
       groupId,
       group,
