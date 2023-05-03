@@ -5,7 +5,7 @@ This sub-module is for defining common functionality / types used across other p
 ## License
 
 <sup>
-Licensed under <a href="LICENSE">MIT OR Apache 2.0 License</a>.
+Licensed under <a href="LICENSE">Apache 2.0 / MIT license</a>.
 </sup>
 
 <br/>

@@ -18,6 +18,12 @@
       "@webb-tools/identity-protocol-solidity/*": [
         "packages/identity-anchor-contracts/contracts/*"
       ],
+      // "@webb-tools/masp-protocol-solidity": [
+      //   "packages/masp-anchor-contracts/contracts"
+      // ],
+      // "@webb-tools/masp-protocol-solidity/*": [
+      //   "packages/masp-anchor-contracts/contracts/*"
+      // ],
 
       /**
       *   TypeScript packages
@@ -34,6 +40,12 @@
       "@webb-tools/identity-anchors/*": [
         "packages/identity-anchors/src/*"
       ],
+      // "@webb-tools/masp-anchors": [
+      //   "packages/masp-anchors/src"
+      // ],
+      // "@webb-tools/masp-anchors/*": [
+      //   "packages/masp-anchors/src/*"
+      // ],
       "@webb-tools/evm-test-utils": [
         "packages/evm-test-utils/src"
       ],
@@ -52,6 +64,12 @@
       "@webb-tools/identity-anchor-contracts/*": [
         "packages/identity-anchor-contracts/src/*"
       ],
+      // "@webb-tools/masp-anchor-contracts": [
+      //   "packages/masp-anchor-contracts/src"
+      // ],
+      // "@webb-tools/masp-anchor-contracts/*": [
+      //   "packages/masp-anchor-contracts/src/*"
+      // ],
       "@webb-tools/create2-utils": [
         "packages/create2-utils/src"
       ],

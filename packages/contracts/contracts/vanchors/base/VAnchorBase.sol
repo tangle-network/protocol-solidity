@@ -6,14 +6,14 @@
 pragma solidity ^0.8.5;
 pragma experimental ABIEncoderV2;
 
-import "./LinkableAnchor.sol";
-import "../../structs/PublicInputs.sol";
-import "../../interfaces/tokens/IMintableERC20.sol";
-import "../../interfaces/tokens/ITokenWrapper.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "./LinkableAnchor.sol";
+import "../../structs/PublicInputs.sol";
+import "../../interfaces/tokens/IMintableERC20.sol";
+import "../../interfaces/tokens/ITokenWrapper.sol";
 
 /** @dev This contract(pool) allows deposit of an arbitrary amount to it, shielded transfer to another registered user inside the pool
  * and withdrawal from the pool. Project utilizes UTXO model to handle users' funds.

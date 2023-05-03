@@ -38,7 +38,6 @@
     "@typechain/hardhat": "^6.1.5",
     "@types/chai": "^4.3.4",
     "@types/mocha": "^10.0.1",
-    "@webb-tools/protocol-solidity": "1.0.0",
     "@webb-tools/sdk-core": "0.1.4-125",
     "@webb-tools/test-utils": "0.1.4-125",
     "chai": "^4.3.7",

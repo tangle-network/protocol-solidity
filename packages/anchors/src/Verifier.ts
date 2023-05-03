@@ -2,7 +2,6 @@ import { ethers, Signer } from 'ethers';
 
 import {
   VAnchorVerifier as VerifierContract,
-  MASPVAnchorVerifier__factory,
   VAnchorVerifier__factory,
   Verifier2_2__factory,
   Verifier8_2__factory,
@@ -12,10 +11,6 @@ import {
   VerifierF8_2__factory,
   VerifierF2_16__factory,
   VerifierF8_16__factory,
-  VerifierMASP2_2__factory,
-  VerifierMASP8_2__factory,
-  VerifierMASP2_16__factory,
-  VerifierMASP8_16__factory,
 } from '@webb-tools/contracts';
 import { Deployer } from '@webb-tools/create2-utils';
 
@@ -111,6 +106,7 @@ export class Verifier extends VerifierBase {
     this.signer = signer;
     this.contract = contract;
   }
+
   public static async create2Verifier(deployer: Deployer, salt: string, signer: ethers.Signer) {
     const saltHex = ethers.utils.id(salt);
     const verifiers = await this.create2Verifiers(
@@ -201,40 +197,4 @@ export class ForestVerifier extends VerifierBase {
   }
 }
 
-// This convenience wrapper class is used in tests -
-// It represents a deployed contract throughout its life (e.g. maintains all verifiers)
-export class MultiAssetVerifier {
-  signer: ethers.Signer;
-  contract: VerifierContract;
-
-  private constructor(contract: VerifierContract, signer: ethers.Signer) {
-    this.signer = signer;
-    this.contract = contract;
-  }
-
-  // Deploys a Verifier contract and all auxiliary verifiers used by this verifier
-  public static async createVerifier(signer: ethers.Signer) {
-    const v22Factory = new VerifierMASP2_2__factory(signer);
-    const v22 = await v22Factory.deploy();
-    await v22.deployed();
-
-    const v82Factory = new VerifierMASP8_2__factory(signer);
-    const v82 = await v82Factory.deploy();
-    await v82.deployed();
-
-    const v216Factory = new VerifierMASP2_16__factory(signer);
-    const v216 = await v216Factory.deploy();
-    await v216.deployed();
-
-    const v816Factory = new VerifierMASP8_16__factory(signer);
-    const v816 = await v816Factory.deploy();
-    await v816.deployed();
-
-    const factory = new MASPVAnchorVerifier__factory(signer);
-    const verifier = await factory.deploy(v22.address, v216.address, v82.address, v816.address);
-    await verifier.deployed();
-    const createdVerifier = new MultiAssetVerifier(verifier, signer);
-    return createdVerifier;
-  }
-}
 export default Verifier;

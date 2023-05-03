@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist/",
+  },
+  "exclude": [],
+  "extends": "../../tsconfig.build.json",
+  "include": [
+    "./src/*.ts",
+    "./typechain/**/*.ts",
+    "./typechain/*.ts",
+  ]
+}

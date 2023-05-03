@@ -64,6 +64,7 @@
   "dependencies": {
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
+    "@webb-tools/protocol-solidity": "1.0.0",
     "ethers": "^5.7.0",
     "typescript": "^5.0.4"
   }

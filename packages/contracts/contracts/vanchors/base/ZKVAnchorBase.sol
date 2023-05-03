@@ -106,7 +106,7 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 				"amount is larger than maximumDepositAmount"
 			);
 			if (_externalData.token == _wrappedToken) {
-				IMintableERC20(_wrappedToken).transferFrom(
+				IERC20(_wrappedToken).safeTransferFrom(
 					msg.sender,
 					address(this),
 					uint256(_externalData.extAmount)

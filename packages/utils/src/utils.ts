@@ -1,12 +1,9 @@
 /* eslint-disable camelcase */
 /* eslint-disable sort-keys */
-import { BigNumber, ethers } from 'ethers';
+import { BigNumber } from 'ethers';
 import { groth16 } from 'snarkjs';
 
-import path from 'path';
-import fs from 'fs';
-import { ZkComponents } from './types';
-import { toFixedHex, Keypair, MerkleProof } from '@webb-tools/sdk-core';
+import { toFixedHex } from '@webb-tools/sdk-core';
 
 export const ZERO_BYTES32 = '0x0000000000000000000000000000000000000000000000000000000000000000';
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';

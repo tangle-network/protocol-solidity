@@ -6,7 +6,7 @@ It is essentially the typechain-generated output packaged up and exposed for oth
 ## License 
 
 <sup>
-Licensed under <a href="LICENSE">MIT OR Apache 2.0 License</a>.
+Licensed under <a href="LICENSE">Apache 2.0 / MIT license</a>.
 </sup>
 
 <br/>
