@@ -38,6 +38,7 @@
     "setup": "yarn compile && yarn build:circuits && yarn build:ptau",
     "test": "yarn workspace @webb-tools/contracts run test",
     "test:identity": "yarn workspace @webb-tools/identity-anchor-contracts run test",
+    "test:masp": "yarn workspace @webb-tools/masp-anchor-contracts run test",
     "fast": "yarn workspace @webb-tools/contracts run test:parallel",
     "build:circuits": "./scripts/bash/build_circuits.sh",
     "build:packages": "lerna run build",
