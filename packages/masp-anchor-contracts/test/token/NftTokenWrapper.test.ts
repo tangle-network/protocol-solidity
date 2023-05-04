@@ -6,7 +6,8 @@ import '@nomicfoundation/hardhat-chai-matchers';
 const assert = require('assert');
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers, expect } from 'hardhat';
-import { ERC721 as ERC721Class, NftTokenWrapper as NftTokenWrapperClass } from '@webb-tools/tokens';
+import { ERC721 as ERC721Class } from '@webb-tools/tokens';
+import { NftTokenWrapper as NftTokenWrapperClass } from '@webb-tools/masp-anchors';
 
 describe('NftTokenWrapper', () => {
   let token: ERC721Class;

@@ -24,31 +24,26 @@ import {
   MultiAssetVerifier,
   BatchTreeVerifier,
   SwapProofVerifier,
-} from '@webb-tools/masp-anchors';
-
-import { PoseidonHasher } from '@webb-tools/anchors';
-import {
   Registry,
   RegistryHandler,
   MultiFungibleTokenManager,
   MultiNftTokenManager,
   NftTokenWrapper,
-  ERC20,
-  ERC721,
-  TokenWrapperHandler,
-  FungibleTokenWrapper,
-} from '@webb-tools/tokens';
+  MaspKey,
+  MaspUtxo,
+} from '@webb-tools/masp-anchors';
+
+import { PoseidonHasher } from '@webb-tools/anchors';
+import { ERC20, ERC721, TokenWrapperHandler, FungibleTokenWrapper } from '@webb-tools/tokens';
 import { randomBytes } from 'ethers/lib/utils';
 import { toFixedHex } from '@webb-tools/sdk-core';
 import { AssetType } from '@webb-tools/interfaces';
-import { MaspKey } from '@webb-tools/masp-anchors/primitives/MaspKey';
-import { MaspUtxo } from '@webb-tools/masp-anchors/primitives/MaspUtxo';
 
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
 const { poseidon, eddsa } = require('circomlibjs');
 
-describe('MASPVAnchor for 2 max edges', () => {
+describe('MASP for 2 max edges', () => {
   let maspVAnchor: MultiAssetVAnchorBatchTree;
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
@@ -322,7 +317,7 @@ describe('MASPVAnchor for 2 max edges', () => {
     });
   });
 
-  describe('masp snark proof native verification on js side', () => {
+  describe('MASP snark proof native verification on js side', () => {
     it('should work', async () => {
       const extAmount = 1e7;
       const relayer = '0x2111111111111111111111111111111111111111';
@@ -451,12 +446,12 @@ describe('MASPVAnchor for 2 max edges', () => {
       let publicSignals = res.publicSignals;
       const vKey = await snarkjs.zKey.exportVerificationKey(zkComponents2_2.zkey);
 
-      res = await snarkjs.groth16.verify(vKey, publicSignals, proof, console);
+      res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       assert.strictEqual(res, true);
     });
   });
 
-  describe('asset registration smart contract tests', () => {
+  describe('Asset Registration smart contract tests', () => {
     it('registry handler should register fungible token', async () => {
       const dummyTokenHandler = '0x' + Buffer.from(randomBytes(20)).toString('hex');
       const dummyAssetId = 4;
@@ -522,7 +517,7 @@ describe('MASPVAnchor for 2 max edges', () => {
     });
   });
 
-  describe('masp smart contract deposit tests max edges = 1', () => {
+  describe('MASP smart contract deposit tests max edges = 1', () => {
     it('proxy should queue erc20 deposit', async () => {
       // Queue ERC20 deposit
       const tokenApproveTx = await unwrappedERC20_1.contract.approve(
@@ -907,7 +902,7 @@ describe('MASPVAnchor for 2 max edges', () => {
     });
   });
 
-  describe('masp smart contract internal shielded transfer', () => {
+  describe('MASP smart contract internal shielded transfer', () => {
     it('e2e should internal shielded transfer with valid transact proof -> reward tree commitments queued -> batch insert reward tree commitments', async () => {
       // 4 Masp Keys
       const alice_key = new MaspKey();
@@ -1145,7 +1140,7 @@ describe('MASPVAnchor for 2 max edges', () => {
     });
   });
 
-  describe('masp smart contract withdraw tests', () => {
+  describe('MASP smart contract withdraw tests', () => {
     it('e2e should withdraw ERC20 with valid transact proof -> check token balances', async () => {
       // 4 Masp Keys
       const alice_key = new MaspKey();

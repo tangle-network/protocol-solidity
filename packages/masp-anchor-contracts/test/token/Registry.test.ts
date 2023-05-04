@@ -6,14 +6,13 @@ import '@nomicfoundation/hardhat-chai-matchers';
 const assert = require('assert');
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers, expect } from 'hardhat';
+import { FungibleTokenWrapper } from '@webb-tools/tokens';
 import {
-  FungibleTokenWrapper,
-  MultiNftTokenManager,
   MultiFungibleTokenManager,
+  MultiNftTokenManager,
   Registry,
   NftTokenWrapper,
-} from '@webb-tools/tokens';
-import { randomBN } from '@webb-tools/sdk-core';
+} from '@webb-tools/masp-anchors';
 
 describe('Registry', () => {
   let multiFungibleTokenMgr: MultiFungibleTokenManager;

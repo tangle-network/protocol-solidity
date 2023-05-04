@@ -5,7 +5,7 @@
 
 pragma solidity ^0.8.5;
 
-import "./ProofUtils.sol";
+import "@webb-tools/protocol-solidity/utils/ProofUtils.sol";
 import "../interfaces/ISwapVerifier.sol";
 
 contract SwapProofVerifier is ISwapVerifier, ProofUtils {

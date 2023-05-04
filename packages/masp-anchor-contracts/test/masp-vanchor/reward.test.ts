@@ -10,8 +10,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
 import { poseidon } from 'circomlibjs';
 import { getChainIdType, hexToU8a, ZkComponents, maspRewardFixtures } from '@webb-tools/utils';
-import { MaspKey } from '@webb-tools/masp-anchors/primitives/MaspKey';
-import { MaspUtxo } from '@webb-tools/masp-anchors/primitives/MaspUtxo';
+import { MaspUtxo, MaspKey } from '@webb-tools/masp-anchors';
 const snarkjs = require('snarkjs');
 
 describe('Reward snarkjs local proof', () => {

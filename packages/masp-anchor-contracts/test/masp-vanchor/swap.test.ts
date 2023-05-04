@@ -9,12 +9,9 @@ import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
 import { ZkComponents, maspSwapFixtures } from '@webb-tools/utils';
-import { MaspUtxo } from '@webb-tools/masp-anchors/primitives/MaspUtxo';
-import { MaspKey } from '@webb-tools/masp-anchors/primitives/MaspKey';
+import { MaspUtxo, MaspKey } from '@webb-tools/masp-anchors';
 const snarkjs = require('snarkjs');
 const { poseidon, eddsa } = require('circomlibjs');
-
-const blocks = ['0xaaaaaaaa', '0xbbbbbbbb', '0xcccccccc', '0xdddddddd'];
 
 describe('swap snarkjs local proof', () => {
   let sender: SignerWithAddress;

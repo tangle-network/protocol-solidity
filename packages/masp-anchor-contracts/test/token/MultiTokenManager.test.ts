@@ -6,7 +6,7 @@ const assert = require('assert');
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
 import { ERC20 as ERC20Class, FungibleTokenWrapper } from '@webb-tools/tokens';
-import { MultiFungibleTokenManager } from '@webb-tools/tokens';
+import { MultiFungibleTokenManager } from '@webb-tools/masp-anchors';
 
 describe('MultiFungibleTokenManager', () => {
   let token: ERC20Class;

@@ -6,7 +6,7 @@
 pragma solidity ^0.8.5;
 
 import "@webb-tools/protocol-solidity/trees/MerkleTreeWithHistory.sol";
-import "../verifiers/ProofUtils.sol";
+import "@webb-tools/protocol-solidity/utils/ProofUtils.sol";
 import "../interfaces/IBatchVerifier.sol";
 import "../interfaces/IMASPProxy.sol";
 

@@ -1004,7 +1004,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
 
     let publicInputs: IVariableAnchorPublicInputs;
     let aliceExtData: any;
-    let aliceExtDataHash: BigNumber;
 
     let encOutput1: string;
     let encOutput2: string;
@@ -1036,7 +1035,7 @@ describe('IdentityVAnchor for 2 max edges', () => {
         encryptedOutput2: encOutput2,
       };
 
-      aliceExtDataHash = getVAnchorExtDataHash(
+      const aliceExtDataHash = getVAnchorExtDataHash(
         encOutput1,
         encOutput2,
         extAmount.toString(),

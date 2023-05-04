@@ -61,12 +61,11 @@ contract NftTokenWrapper is ERC721, IERC721Receiver, Initialized, ProposalNonceT
 	 * The selector can be obtained in Solidity with `IERC721Receiver.onERC721Received.selector`.
 	 */
 	function onERC721Received(
-		address operator,
-		address from,
-		uint256 tokenId,
-		bytes calldata data
-	) external override returns (bytes4) {
-		_mint(operator, tokenId);
+		address,
+		address,
+		uint256,
+		bytes calldata
+	) external pure override returns (bytes4) {
 		return this.onERC721Received.selector;
 	}
 }

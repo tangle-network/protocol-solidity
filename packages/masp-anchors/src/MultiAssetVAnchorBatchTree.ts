@@ -76,9 +76,8 @@ export class MultiAssetVAnchorBatchTree extends MultiAssetVAnchor {
 
     const factory = new MultiAssetVAnchorBatchTree__factory(
       {
-        ['contracts/libs/MASPVAnchorEncodeInputs.sol:MASPVAnchorEncodeInputs']:
-          encodeLibrary.address,
-        ['contracts/libs/SwapEncodeInputs.sol:SwapEncodeInputs']: swapEncodeLibrary.address,
+        ['contracts/MASPVAnchorEncodeInputs.sol:MASPVAnchorEncodeInputs']: encodeLibrary.address,
+        ['contracts/SwapEncodeInputs.sol:SwapEncodeInputs']: swapEncodeLibrary.address,
       },
       signer
     );
