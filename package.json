@@ -16,21 +16,21 @@
     "node": "18.x.x"
   },
   "resolutions": {
-    "@webb-tools/contracts": "file:./packages/contracts",
-    "@webb-tools/identity-anchor-contracts": "file:./packages/identity-anchor-contracts",
-    "@webb-tools/masp-anchor-contracts": "file:./packages/masp-anchor-contracts",
-    "@webb-tools/interfaces": "file:./packages/interfaces",
-    "@webb-tools/utils": "file:./packages/utils",
-    "@webb-tools/anchors": "file:./packages/anchors",
-    "@webb-tools/vbridge": "file:./packages/vbridge",
-    "@webb-tools/tokens": "file:./packages/tokens",
-    "@webb-tools/identity-anchors": "file:./packages/identity-anchors",
-    "@webb-tools/masp-anchors": "file:./packages/masp-anchors",
     "@webb-tools/create2-utils": "file:./packages/create2-utils",
     "@webb-tools/evm-test-utils": "file:./packages/evm-test-utils",
+    "@webb-tools/interfaces": "file:./packages/interfaces",
+    "@webb-tools/tokens": "file:./packages/tokens",
+    "@webb-tools/utils": "file:./packages/utils",
+    "@webb-tools/vbridge": "file:./packages/vbridge",
+    "@webb-tools/contracts": "file:./packages/contracts",
     "@webb-tools/protocol-solidity": "file:./packages/contracts/contracts",
+    "@webb-tools/anchors": "file:./packages/anchors",
+    "@webb-tools/identity-anchor-contracts": "file:./packages/identity-anchor-contracts",
     "@webb-tools/identity-protocol-solidity": "file:./packages/identity-anchor-contracts/contracts",
-    "@webb-tools/masp-protocol-solidity": "file:./packages/masp-anchor-contracts/contracts"
+    "@webb-tools/identity-anchors": "file:./packages/identity-anchors",
+    "@webb-tools/masp-anchor-contracts": "file:./packages/masp-anchor-contracts",
+    "@webb-tools/masp-protocol-solidity": "file:./packages/masp-anchor-contracts/contracts",
+    "@webb-tools/masp-anchors": "file:./packages/masp-anchors"
   },
   "scripts": {
     "compile": "lerna run compile --parallel --scope=@webb-tools/contracts --scope=@webb-tools/identity-anchor-contracts --scope=@webb-tools/masp-anchor-contracts",

@@ -5,13 +5,13 @@ build/
 *.env
 
 # Packages
-packages/contracts/typechain
-packages/contracts/typechain-types/
-packages/identity-anchor-contracts/typechain-types/
-packages/masp-anchor-contracts/typechain-types/
 packages/*/node_modules
 packages/*/dist
 packages/*/tsconfig.tsbuildinfo
+
+# Typechain
+typechain-types
+typechain
 
 # Directories
 cache
