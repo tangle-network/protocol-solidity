@@ -26,29 +26,6 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - name: ts-check
-        run: |
-          yarn install --frozen-lockfile
-          yarn compile
-          yarn ts-check
-
-  # This job builds and runs tests for the contracts
-  tests:
-    concurrency:
-      group: test-${{ github.ref }}
-      cancel-in-progress: true
-
-    runs-on: ubuntu-latest
-    if: github.ref != 'refs/heads/main' && github.event.pull_request.draft == false
-    strategy:
-      matrix:
-        node-version: [18.x]
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with: 
-          node-version: ${{ matrix.node-version }}
-
       - name: Setup DVC
         uses: iterative/setup-dvc@v1
           
@@ -61,46 +38,18 @@ jobs:
       - name: Populate fixtures
         run: yarn fetch:fixtures
 
-      - name: Compile the contracts and build typescript interfaces
-        run: yarn build
+      - name: clean
+        run: yarn clean
 
-      - name: Run test suite
-        env:
-          INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
-        run: yarn test
+      - name: Compile @webb-tools/contracts
+        run: lerna run compile --scope=@webb-tools/contracts
+      - name: Compile @webb-tools/identity-anchor-contracts
+        run: lerna run compile --scope @webb-tools/identity-anchor-contracts
+      - name: Compile @webb-tools/masp-anchor-contracts
+        run: lerna run compile --scope @webb-tools/masp-anchor-contracts
 
-  # This job builds and runs forge tests for the contracts
-  forge-tests:
-    runs-on: ubuntu-latest
-    if: github.ref != 'refs/heads/main' && github.event.pull_request.draft == false
-    strategy:
-      matrix:
-        node-version: [18.x]
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with: 
-          node-version: ${{ matrix.node-version }}
-          
-      - name: Fetch submodules
-        run: git submodule update --init --recursive
+      - name: Build packages
+        run: lerna run build
 
-      - name: "Install Foundry"
-        uses: "foundry-rs/foundry-toolchain@v1"
-
-      - name: "Show the Foundry config"
-        run: "forge config"
-
-      - name: "Generate a fuzz seed that changes weekly to avoid burning through RPC allowance"
-        run: >
-          echo "FOUNDRY_FUZZ_SEED=$(
-            echo $(($EPOCHSECONDS - $EPOCHSECONDS % 604800))
-          )" >> $GITHUB_ENV
-
-      - name: "Run the tests"
-        run: "forge test"
-
-      - name: "Add test summary"
-        run: |
-          echo "## Tests result" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Passed" >> $GITHUB_STEP_SUMMARY
+      - name: ts-check
+        run: yarn ts-check

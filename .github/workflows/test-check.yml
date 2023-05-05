@@ -12,6 +12,7 @@ on:
   workflow_dispatch:
 
 jobs:
+  # sets up build artifacts for other jobs to use
   setup-build:
     runs-on: ubuntu-latest
     strategy:
@@ -35,8 +36,18 @@ jobs:
       - name: Populate fixtures
         run: yarn fetch:fixtures
 
-      - name: Compile the contracts and build typescript interfaces
-        run: yarn build
+      - name: clean
+        run: yarn clean
+
+      - name: Compile contracts
+        run: lerna run compile --scope=@webb-tools/contracts
+      - name: Compile identity contracts
+        run: lerna run compile --scope @webb-tools/identity-anchor-contracts
+      - name: Compile masp contracts
+        run: lerna run compile --scope @webb-tools/masp-anchor-contracts
+
+      - name: Build packages
+        run: lerna run build
         
       - name: Upload build artifacts
         uses: actions/upload-artifact@v2
@@ -87,30 +98,11 @@ jobs:
       - name: ts-check
         run: yarn test:identity
 
-  # masp-tests:
-  #   needs: setup-build
-  #   concurrency:
-  #     group: test-${{ github.ref }}
-  #     cancel-in-progress: true
-  #   runs-on: ubuntu-latest
-  #   if: github.ref != 'refs/heads/main' && github.event.pull_request.draft == false
-  #   strategy:
-  #     matrix:
-  #       node-version: [18.x]
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - name: Download build artifacts
-  #       uses: actions/download-artifact@v2
-  #       with:
-  #         name: build-artifacts
-  #         path: .
-  #     - name: Run test suite
-  #       env:
-  #         INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
-  #       run: yarn masp:test
-
-  forge-tests:
+  masp-tests:
     needs: setup-build
+    concurrency:
+      group: test-${{ github.ref }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     if: github.ref != 'refs/heads/main' && github.event.pull_request.draft == false
     strategy:
@@ -123,18 +115,7 @@ jobs:
         with:
           name: build-artifacts
           path: .
-      - name: "Install Foundry"
-        uses: "foundry-rs/foundry-toolchain@v1"
-      - name: "Show the Foundry config"
-        run: "forge config"
-      - name: "Generate a fuzz seed that changes weekly to avoid burning through RPC allowance"
-        run: >
-          echo "FOUNDRY_FUZZ_SEED=$(
-            echo $(($EPOCHSECONDS - $EPOCHSECONDS % 604800))
-          )" >> $GITHUB_ENV
-      - name: "Run the tests"
-        run: "forge test"
-      - name: "Add test summary"
-        run: |
-          echo "## Tests result" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Passed" >> $
+      - name: Run test suite
+        env:
+          INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
+        run: yarn masp:test

@@ -62,8 +62,7 @@ const config: HardhatUserConfig = {
     gasPrice: 21,
   },
   typechain: {
-    outDir: 'typechain',
-    target: 'ethers-v5',
+    outDir: 'typechain-types',
     alwaysGenerateOverloads: false,
     dontOverrideCompile: false,
   },

@@ -6,6 +6,9 @@ build/
 
 # Packages
 packages/contracts/typechain
+packages/contracts/typechain-types/
+packages/identity-anchor-contracts/typechain-types/
+packages/masp-anchor-contracts/typechain-types/
 packages/*/node_modules
 packages/*/dist
 packages/*/tsconfig.tsbuildinfo
@@ -14,10 +17,6 @@ packages/*/tsconfig.tsbuildinfo
 cache
 out
 artifacts
-typechain
-typechain-types
-
-solidity-fixtures/
 
 dist
 

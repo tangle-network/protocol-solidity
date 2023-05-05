@@ -10,9 +10,9 @@
     "build:typechain-foundry": "../../scripts/build-typechain.sh",
     "compile": "yarn compile:contracts && yarn copy:declarations && yarn build:library",
     "compile:contracts": "yarn run clean && yarn run build:contracts",
-    "copy:declarations": "copyfiles -f ./typechain/*.ts ./dist",
+    "copy:declarations": "copyfiles -f ./typechain-types/*.ts ./dist",
     "build": "exit 0",
-    "clean": "rimraf -rf ./dist && rimraf -rf ./typechain && rimraf -rf ./cache && rimraf -rf ./artifacts",
+    "clean": "rimraf -rf ./dist && rimraf -rf ./typechain-types && rimraf -rf ./cache && rimraf -rf ./artifacts",
     "test": "npx hardhat test",
     "test:parallel": "npx hardhat test --parallel",
     "test:gas-reporter": "REPORT_GAS=true npx hardhat test --parallel"
