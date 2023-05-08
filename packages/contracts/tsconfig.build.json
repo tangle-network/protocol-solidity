@@ -5,6 +5,7 @@
   "exclude": [],
   "extends": "../../tsconfig.build.json",
   "include": [
-    "./typechain-types/**/*.ts"
+    "./typechain-types/**/*.ts",
+    "./dist/**/*"
   ]
 }
