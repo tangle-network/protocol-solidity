@@ -61,11 +61,6 @@ const config: HardhatUserConfig = {
     currency: 'USD',
     gasPrice: 21,
   },
-  typechain: {
-    outDir: 'typechain-types',
-    alwaysGenerateOverloads: false,
-    dontOverrideCompile: false,
-  },
 };
 
 export default config;
