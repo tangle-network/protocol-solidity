@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
-pragma solidity ^0.8.5;
+pragma solidity ^0.8.18;
 
 import "../interfaces/verifiers/IAnchorVerifier.sol";
 import "../interfaces/verifiers/IVAnchorVerifier.sol";

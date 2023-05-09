@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
-pragma solidity ^0.8.5;
+pragma solidity ^0.8.18;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";

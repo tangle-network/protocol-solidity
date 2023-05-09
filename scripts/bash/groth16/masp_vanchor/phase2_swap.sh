@@ -7,7 +7,7 @@ move_verifiers_and_metadata_swap () {
     mkdir -p packages/contracts/contracts/verifiers/$anchorType
     cp $indir/verifier.sol packages/contracts/contracts/verifiers/$anchorType/VerifierSwap_"$size".sol
     sed -i 's/contract Verifier/contract VerifierSwap_'$size'/g' packages/contracts/contracts/verifiers/$anchorType/VerifierSwap_"$size".sol
-    sed -i 's/pragma solidity ^0.6.11;/pragma solidity ^0.8.5;/g' packages/contracts/contracts/verifiers/$anchorType/VerifierSwap_"$size".sol
+    sed -i 's/pragma solidity ^0.6.11;/pragma solidity ^0.8.18;/g' packages/contracts/contracts/verifiers/$anchorType/VerifierSwap_"$size".sol
 }
 
 compile_phase2 ./packages/contracts/solidity-fixtures/solidity-fixtures/swap_2/20 swap_20_2 ./artifacts/circuits/swap_2

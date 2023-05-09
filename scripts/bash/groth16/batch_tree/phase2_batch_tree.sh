@@ -7,7 +7,7 @@ move_verifiers_and_metadata_batch_insert () {
     mkdir -p packages/contracts/contracts/verifiers/$anchorType
     cp $indir/verifier.sol packages/contracts/contracts/verifiers/$anchorType/VerifierBatch_"$size".sol
     sed -i 's/contract Verifier/contract VerifierBatch_'$size'/g' packages/contracts/contracts/verifiers/$anchorType/VerifierBatch_"$size".sol
-    sed -i 's/pragma solidity ^0.6.11;/pragma solidity ^0.8.5;/g' packages/contracts/contracts/verifiers/$anchorType/VerifierBatch_"$size".sol
+    sed -i 's/pragma solidity ^0.6.11;/pragma solidity ^0.8.18;/g' packages/contracts/contracts/verifiers/$anchorType/VerifierBatch_"$size".sol
 }
 
 compile_phase2 packages/contracts/solidity-fixtures/solidity-fixtures/batch-tree/4 batchMerkleTreeUpdate_4 ./artifacts/circuits/batch_tree_4

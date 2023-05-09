@@ -2,7 +2,7 @@
  * Copyright 2021-2023 Webb Technologies
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
-pragma solidity ^0.8.5;
+pragma solidity ^0.8.18;
 
 library PoseidonT2 {
 	function poseidon(uint256[1] memory input) public pure returns (uint256) {}

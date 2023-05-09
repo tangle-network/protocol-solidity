@@ -6,7 +6,7 @@
 import "../interfaces/verifiers/IAnchorVerifier.sol";
 import "../utils/ProofUtils.sol";
 
-pragma solidity ^0.8.5;
+pragma solidity ^0.8.18;
 
 contract TxProofVerifier is ProofUtils {
 	IAnchorVerifier public verifier;

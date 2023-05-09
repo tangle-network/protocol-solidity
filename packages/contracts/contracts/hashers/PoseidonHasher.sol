@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
-pragma solidity ^0.8.5;
+pragma solidity ^0.8.18;
 
 import "./IHasher.sol";
 import { PoseidonT2, PoseidonT3, PoseidonT4, PoseidonT5, PoseidonT6 } from "./Poseidon.sol";
