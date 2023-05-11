@@ -12,6 +12,14 @@ export const FIELD_SIZE = BigNumber.from(
   '21888242871839275222246405745257275088548364400416034343698204186575808495617'
 );
 
+export type Proof = {
+  pi_a: string[3];
+  pi_b: Array<string[2]>;
+  pi_c: string[3];
+  protocol: string;
+  curve: string;
+};
+
 export type VAnchorProofInputs = {
   roots: string[];
   chainID: string;

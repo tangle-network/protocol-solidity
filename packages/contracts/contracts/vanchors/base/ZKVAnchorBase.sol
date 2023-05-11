@@ -18,7 +18,6 @@ import "../../verifiers/TxProofVerifier.sol";
  */
 abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 	using SafeERC20 for IERC20;
-	using SafeMath for uint256;
 
 	/**
 		@notice The VAnchor constructor

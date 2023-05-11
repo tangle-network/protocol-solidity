@@ -51,7 +51,6 @@ import "./ISemaphoreGroups.sol";
  */
 contract IdentityVAnchor is VAnchorTree {
 	using SafeERC20 for IERC20;
-	using SafeMath for uint256;
 
 	ISemaphoreGroups SemaphoreContract;
 	uint256 public immutable groupId; // Assumes group is already setup on the semaphore contract

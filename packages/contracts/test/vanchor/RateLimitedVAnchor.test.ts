@@ -35,7 +35,6 @@ describe('Rate Limited VAnchor', () => {
   const chainID = getChainIdType(31337);
   let create2InputWitness: any;
   let sender: SignerWithAddress;
-  // setup zero knowledge components
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
 

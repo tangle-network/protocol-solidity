@@ -16,7 +16,6 @@ import "../../trees/MerkleTree.sol";
  */
 contract VAnchorTree is VAnchor, MerkleTree {
 	using SafeERC20 for IERC20;
-	using SafeMath for uint256;
 
 	/**
 		@notice The VAnchorTree constructor

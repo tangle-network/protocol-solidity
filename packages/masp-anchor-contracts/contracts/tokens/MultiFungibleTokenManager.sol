@@ -14,8 +14,6 @@ import "./MultiTokenManagerBase.sol";
     @author Webb Technologies.
  */
 contract MultiFungibleTokenManager is MultiTokenManagerBase {
-	using SafeMath for uint256;
-
 	/**
         @notice Registers a new token and deploys the FungibleTokenWrapper contract
         @param _handler The address of the token handler contract

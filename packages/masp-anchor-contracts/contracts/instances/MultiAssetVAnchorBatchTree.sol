@@ -20,7 +20,6 @@ import "../interfaces/IMultiAssetVAnchorBatchTree.sol";
  */
 contract MultiAssetVAnchorBatchTree is MultiAssetVAnchor, ProxiedBatchTree {
 	using SafeERC20 for IERC20;
-	using SafeMath for uint256;
 
 	address public rewardUnspentTree;
 	address public rewardSpentTree;

@@ -17,7 +17,6 @@ import "../MultiAssetVAnchor.sol";
  */
 contract MultiAssetVAnchorTree is MultiAssetVAnchor, MerkleTree {
 	using SafeERC20 for IERC20;
-	using SafeMath for uint256;
 
 	/**
 		@notice The VAnchorTree constructor

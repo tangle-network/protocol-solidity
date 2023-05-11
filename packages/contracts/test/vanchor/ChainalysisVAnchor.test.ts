@@ -25,7 +25,6 @@ describe.skip('ChainalysisVAnchor', () => {
   let signers: any;
   let sanctionedAddress = '0x5a14e72060c11313e38738009254a90968f58f51';
   let sanctionedSigner: SignerWithAddress;
-  // setup zero knowledge components
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
   const chainID = getChainIdType(31337);

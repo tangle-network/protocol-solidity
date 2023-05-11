@@ -21,14 +21,33 @@ import {
   MerkleTree,
   ProvingManagerSetupInput,
   Utxo,
+  buildVariableWitnessCalculator,
+  generateVariableWitnessInput,
   toFixedHex,
 } from '@webb-tools/sdk-core';
-import { ZERO_BYTES32, ZkComponents, getChainIdType, hexToU8a, u8aToHex } from '@webb-tools/utils';
+import {
+  Proof,
+  VAnchorProofInputs,
+  ZERO_BYTES32,
+  ZkComponents,
+  getChainIdType,
+  hexToU8a,
+  u8aToHex,
+} from '@webb-tools/utils';
 import { BigNumber, BigNumberish, BytesLike, Overrides, PayableOverrides, ethers } from 'ethers';
 import { WebbBridge, WebbContracts } from './Common';
 import { Deployer } from '@webb-tools/create2-utils';
 import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
 import { zeroAddress } from './utils';
+import { RawPublicSignals } from '.';
+
+const snarkjs = require('snarkjs');
+const assert = require('assert');
+
+type FullProof = {
+  proof: Proof;
+  publicSignals: RawPublicSignals;
+};
 
 export class VAnchor extends WebbBridge<WebbContracts> implements IVAnchor<WebbContracts> {
   contract: VAnchorTreeContract;
@@ -252,7 +271,7 @@ export class VAnchor extends WebbBridge<WebbContracts> implements IVAnchor<WebbC
     inputs: Utxo[],
     outputs: Utxo[],
     publicAmount: BigNumberish,
-    extDataHash: BigNumber
+    extDataHash: BigNumberish
   ): IVariableAnchorPublicInputs {
     // public inputs to the contract
     const args: IVariableAnchorPublicInputs = {
@@ -265,7 +284,7 @@ export class VAnchor extends WebbBridge<WebbContracts> implements IVAnchor<WebbC
         BigNumber.from(toFixedHex(u8aToHex(outputs[1].commitment))),
       ],
       publicAmount: toFixedHex(publicAmount),
-      extDataHash,
+      extDataHash: BigNumber.from(extDataHash),
     };
 
     return args;
@@ -298,6 +317,70 @@ export class VAnchor extends WebbBridge<WebbContracts> implements IVAnchor<WebbC
     }
 
     return false;
+  }
+
+  public async generateProofCalldata(fullProof: any) {
+    const calldata = await snarkjs.groth16.exportSolidityCallData(
+      fullProof.proof,
+      fullProof.publicSignals
+    );
+    const proof = JSON.parse('[' + calldata + ']');
+    const pi_a = proof[0];
+    const pi_b = proof[1];
+    const pi_c = proof[2];
+
+    const proofEncoded = [
+      pi_a[0],
+      pi_a[1],
+      pi_b[0][0],
+      pi_b[0][1],
+      pi_b[1][0],
+      pi_b[1][1],
+      pi_c[0],
+      pi_c[1],
+    ]
+      .map((elt) => elt.substr(2))
+      .join('');
+
+    return proofEncoded;
+  }
+
+  public async generateProofInputs(
+    inputs: Utxo[],
+    outputs: Utxo[],
+    chainId: number,
+    extAmount: BigNumberish,
+    fee: BigNumberish,
+    extDataHash: BigNumberish,
+    leavesMap: Record<string, Uint8Array[]>,
+    txOptions?: TransactionOptions
+  ): Promise<VAnchorProofInputs> {
+    const vanchorRoots = await this.populateRootsForProof();
+    let vanchorMerkleProof: MerkleProof[];
+    if (Object.keys(leavesMap).length === 0) {
+      vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x));
+    } else {
+      const treeChainId: string | undefined = txOptions?.treeChainId;
+      if (treeChainId === undefined) {
+        throw new Error(
+          'Need to specify chainId on txOptions in order to generate merkleProof correctly'
+        );
+      }
+      const treeElements = leavesMap[treeChainId];
+      vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x, treeElements));
+    }
+    const vanchorInput: VAnchorProofInputs = await generateVariableWitnessInput(
+      vanchorRoots.map((root) => BigNumber.from(root)),
+      chainId,
+      inputs,
+      outputs,
+      extAmount,
+      fee,
+      BigNumber.from(extDataHash),
+      vanchorMerkleProof
+    );
+
+    return vanchorInput;
   }
 
   /**
@@ -334,81 +417,59 @@ export class VAnchor extends WebbBridge<WebbContracts> implements IVAnchor<WebbC
     if (outputs.length !== 2) {
       throw new Error('Only two outputs are supported');
     }
+
     const chainId = getChainIdType(await this.signer.getChainId());
     const roots = await this.populateRootsForProof();
     let extAmount = this.getExtAmount(inputs, outputs, fee);
 
-    // calculate the sum of input notes (for calculating the public amount)
-    let sumInputUtxosAmount: BigNumberish = 0;
+    const { extData, extDataHash } = await this.generateExtData(
+      recipient,
+      extAmount,
+      relayer,
+      fee,
+      refund,
+      wrapUnwrapToken,
+      outputs[0].encrypt(),
+      outputs[1].encrypt()
+    );
 
-    // Pass the identifier for leaves alongside the proof input
-    let leafIds: LeafIdentifier[] = [];
-
-    for (const inputUtxo of inputs) {
-      sumInputUtxosAmount = BigNumber.from(sumInputUtxosAmount).add(inputUtxo.amount);
-      leafIds.push({
-        index: inputUtxo.index!, // TODO: remove non-null assertion here
-        typedChainId: Number(inputUtxo.originChainId),
-      });
-    }
-
-    const encryptedCommitments: [Uint8Array, Uint8Array] = [
-      hexToU8a(outputs[0].encrypt()),
-      hexToU8a(outputs[1].encrypt()),
-    ];
-
-    const proofInput: ProvingManagerSetupInput<'vanchor'> = {
-      inputUtxos: inputs,
+    const vanchorInput: VAnchorProofInputs = await this.generateProofInputs(
+      inputs,
+      outputs,
+      chainId,
+      extAmount,
+      fee,
+      extDataHash,
       leavesMap,
-      leafIds,
-      roots: roots.map((root) => hexToU8a(root.toHexString())),
-      chainId: chainId.toString(),
-      output: [outputs[0], outputs[1]],
-      encryptedCommitments,
-      publicAmount: BigNumber.from(extAmount).sub(fee).add(FIELD_SIZE).mod(FIELD_SIZE).toString(),
-      provingKey:
-        inputs.length > 2 ? this.largeCircuitZkComponents.zkey : this.smallCircuitZkComponents.zkey,
-      relayer: hexToU8a(relayer),
-      recipient: hexToU8a(recipient),
-      extAmount: toFixedHex(BigNumber.from(extAmount)),
-      fee: BigNumber.from(fee).toString(),
-      refund: BigNumber.from(refund).toString(),
-      token: hexToU8a(wrapUnwrapToken),
-    };
+      txOptions
+    );
 
-    inputs.length > 2
-      ? (this.provingManager = new CircomProvingManager(
-          this.largeCircuitZkComponents.wasm,
-          this.tree.levels,
-          null
-        ))
-      : (this.provingManager = new CircomProvingManager(
-          this.smallCircuitZkComponents.wasm,
-          this.tree.levels,
-          null
-        ));
+    const fullProof = await this.generateProof(vanchorInput);
+    const proof = await this.generateProofCalldata(fullProof);
+    const zkey =
+      inputs.length === 2 ? this.smallCircuitZkComponents.zkey : this.largeCircuitZkComponents.zkey;
+    const vKey = await snarkjs.zKey.exportVerificationKey(zkey);
 
-    const proof = await this.provingManager.prove('vanchor', proofInput);
-
+    const publicAmount = BigNumber.from(extAmount)
+      .sub(fee)
+      .add(FIELD_SIZE)
+      .mod(FIELD_SIZE)
+      .toString();
     const publicInputs: IVariableAnchorPublicInputs = this.generatePublicInputs(
-      proof.proof,
+      proof,
       roots,
       inputs,
       outputs,
-      proofInput.publicAmount,
-      BigNumber.from(u8aToHex(proof.extDataHash))
+      publicAmount,
+      extDataHash
     );
 
-    const extData: IVariableAnchorExtData = {
-      recipient: toFixedHex(proofInput.recipient, 20),
-      extAmount: toFixedHex(proofInput.extAmount),
-      relayer: toFixedHex(proofInput.relayer, 20),
-      fee: toFixedHex(proofInput.fee),
-      refund: toFixedHex(proofInput.refund),
-      token: toFixedHex(proofInput.token, 20),
-      encryptedOutput1: u8aToHex(proofInput.encryptedCommitments[0]),
-      encryptedOutput2: u8aToHex(proofInput.encryptedCommitments[1]),
-    };
+    const is_valid: boolean = await snarkjs.groth16.verify(
+      vKey,
+      fullProof.publicSignals,
+      fullProof.proof
+    );
+    assert.strictEqual(is_valid, true);
 
     return {
       extAmount,
@@ -425,69 +486,19 @@ export class VAnchor extends WebbBridge<WebbContracts> implements IVAnchor<WebbC
     });
   }
 
-  public async generateProof(
-    roots: string[],
-    inputs: Utxo[],
-    outputs: Utxo[],
-    fee: BigNumberish,
-    refund: BigNumberish,
-    tokenAddress: string,
-    recipient: string,
-    relayer: string,
-    leavesMap: Record<string, Uint8Array[]>
-  ) {
-    let extAmount = this.getExtAmount(inputs, outputs, fee);
-
-    const encryptedCommitments: [Uint8Array, Uint8Array] = [
-      hexToU8a(outputs[0].encrypt()),
-      hexToU8a(outputs[1].encrypt()),
-    ];
-    const chainId = getChainIdType(await this.signer.getChainId());
-
-    let sumInputUtxosAmount: BigNumberish = 0;
-    let leafIds: LeafIdentifier[] = [];
-
-    for (const inputUtxo of inputs) {
-      sumInputUtxosAmount = BigNumber.from(sumInputUtxosAmount).add(inputUtxo.amount);
-      leafIds.push({
-        index: inputUtxo.index!, // TODO: remove non-null assertion here
-        typedChainId: Number(inputUtxo.originChainId),
-      });
-    }
-
-    const proofInput: ProvingManagerSetupInput<'vanchor'> = {
-      inputUtxos: inputs,
-      leavesMap,
-      leafIds,
-      roots: roots.map((root) => hexToU8a(root)),
-      chainId: chainId.toString(),
-      output: [outputs[0], outputs[1]],
-      encryptedCommitments,
-      publicAmount: BigNumber.from(extAmount).sub(fee).add(FIELD_SIZE).mod(FIELD_SIZE).toString(),
-      provingKey:
-        inputs.length > 2 ? this.largeCircuitZkComponents.zkey : this.smallCircuitZkComponents.zkey,
-      relayer: hexToU8a(relayer),
-      recipient: hexToU8a(recipient),
-      extAmount: toFixedHex(BigNumber.from(extAmount)),
-      fee: BigNumber.from(fee).toString(),
-      refund: BigNumber.from(refund).toString(),
-      token: hexToU8a(tokenAddress),
-    };
-
-    inputs.length > 2
-      ? (this.provingManager = new CircomProvingManager(
-          this.largeCircuitZkComponents.wasm,
-          this.tree.levels,
-          null
-        ))
-      : (this.provingManager = new CircomProvingManager(
-          this.smallCircuitZkComponents.wasm,
-          this.tree.levels,
-          null
-        ));
-
-    const proof = await this.provingManager.prove('vanchor', proofInput);
-    return { proof, extAmount, proofInput };
+  public async generateProof(vanchorInputs: VAnchorProofInputs): Promise<FullProof> {
+    const circuitWasm =
+      vanchorInputs.inAmount.length === 2
+        ? this.smallCircuitZkComponents.wasm
+        : this.largeCircuitZkComponents.wasm;
+    const zkey =
+      vanchorInputs.inAmount.length === 2
+        ? this.smallCircuitZkComponents.zkey
+        : this.largeCircuitZkComponents.zkey;
+    const witnessCalculator = await buildVariableWitnessCalculator(circuitWasm, 0);
+    const witness = await witnessCalculator.calculateWTNSBin(vanchorInputs, 0);
+    let proof = await snarkjs.groth16.prove(zkey, witness);
+    return proof;
   }
 
   public async register(

@@ -5,7 +5,6 @@
 
 pragma solidity ^0.8.18;
 
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -17,7 +16,6 @@ import "@webb-tools/protocol-solidity/utils/ProposalNonceTracker.sol";
     @author Webb Technologies.
  */
 contract NftTokenWrapper is ERC721, IERC721Receiver, Initialized, ProposalNonceTracker {
-	using SafeMath for uint256;
 	address public handler;
 	address unwrappedNftAddress;
 

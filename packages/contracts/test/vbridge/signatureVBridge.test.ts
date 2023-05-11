@@ -44,7 +44,6 @@ describe('2-sided multichain tests for signature vbridge', () => {
   const chainID2 = getChainIdType(SECOND_CHAIN_ID);
   // setup ganache networks
   let ganacheServer2: any;
-  // setup zero knowledge components
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
 
@@ -998,7 +997,6 @@ describe.skip('8-sided multichain tests for signature vbridge', () => {
   // setup ganache networks
   let ganacheServer2: any;
   let ganacheServer3: any;
-  // setup zero knowledge components
   let zkComponents2_8: ZkComponents;
   let zkComponents16_8: ZkComponents;
 

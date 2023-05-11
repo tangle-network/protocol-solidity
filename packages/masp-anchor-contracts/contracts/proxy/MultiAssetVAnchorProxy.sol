@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@webb-tools/protocol-solidity/interfaces/tokens/ITokenWrapper.sol";
 import "@webb-tools/protocol-solidity/hashers/IHasher.sol";
 import "@webb-tools/protocol-solidity/utils/Initialized.sol";
@@ -19,7 +18,6 @@ import "../interfaces/IMASPProxy.sol";
 
 /// @dev This contract holds a merkle tree of all tornado cash deposit and withdrawal events
 contract MultiAssetVAnchorProxy is IMASPProxy, Initialized, IERC721Receiver {
-	using SafeMath for uint256;
 	using SafeERC20 for IERC20;
 
 	bytes32 public depositRoot;

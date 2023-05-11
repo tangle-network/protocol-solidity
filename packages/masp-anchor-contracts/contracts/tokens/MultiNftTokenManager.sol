@@ -14,8 +14,6 @@ import "./MultiTokenManagerBase.sol";
     @author Webb Technologies.
  */
 contract MultiNftTokenManager is MultiTokenManagerBase {
-	using SafeMath for uint256;
-
 	function registerToken(
 		address,
 		string memory,

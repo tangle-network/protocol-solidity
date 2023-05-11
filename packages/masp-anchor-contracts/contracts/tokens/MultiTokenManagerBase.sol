@@ -5,7 +5,6 @@
 
 pragma solidity ^0.8.18;
 
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@webb-tools/protocol-solidity/utils/Initialized.sol";
 import "@webb-tools/protocol-solidity/utils/ProposalNonceTracker.sol";
 import "../interfaces/IMultiTokenManager.sol";
@@ -15,7 +14,6 @@ import "../interfaces/IMultiTokenManager.sol";
     @author Webb Technologies.
  */
 abstract contract MultiTokenManagerBase is IMultiTokenManager, Initialized, ProposalNonceTracker {
-	using SafeMath for uint256;
 	address public registry;
 	address public masterFeeRecipient;
 	address[] public wrappedTokens;

@@ -15,7 +15,6 @@ import "../../utils/SanctionFilter.sol";
  */
 contract ChainalysisVAnchor is VAnchorTree, SanctionFilter {
 	using SafeERC20 for IERC20;
-	using SafeMath for uint256;
 
 	constructor(
 		IAnchorVerifier _verifier,

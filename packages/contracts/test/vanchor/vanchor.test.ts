@@ -15,7 +15,6 @@ import {
 
 import {
   hexToU8a,
-  fetchComponentsFromFilePaths,
   getChainIdType,
   ZkComponents,
   u8aToHex,
@@ -47,14 +46,13 @@ const path = require('path');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
 
-describe('VAnchor for 1 max edge', () => {
+describe.only('VAnchor for 1 max edge', () => {
   let anchor: VAnchor;
 
   const levels = 30;
   let fee = BigInt(new BN(`100000000000000000`).toString());
   let recipient;
   let verifier: Verifier;
-  let hasherInstance: any;
   let token: ERC20PresetMinterPauser;
   let wrappedToken: WrappedToken;
   let tokenDenomination = '1000000000000000000'; // 1 ether
@@ -62,7 +60,6 @@ describe('VAnchor for 1 max edge', () => {
   const MAX_EDGES = 1;
   let create2InputWitness: any;
   let sender: SignerWithAddress;
-  // setup zero knowledge components
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
 
@@ -317,9 +314,21 @@ describe('VAnchor for 1 max edge', () => {
 
       const anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
-      await anchor.transact([aliceDepositUtxo], [aliceRefreshUtxo], 0, 0, '0', '0', '', {
-        [chainID.toString()]: anchorLeaves,
-      });
+      await anchor.transact(
+        [aliceDepositUtxo],
+        [aliceRefreshUtxo],
+        0,
+        0,
+        '0',
+        '0',
+        '',
+        {
+          [chainID.toString()]: anchorLeaves,
+        },
+        {
+          treeChainId: chainID.toString(),
+        }
+      );
     });
 
     it('should refund native tokens', async () => {
@@ -364,6 +373,9 @@ describe('VAnchor for 1 max edge', () => {
         '',
         {
           [chainID.toString()]: anchorLeaves,
+        },
+        {
+          treeChainId: chainID.toString(),
         }
       );
 
@@ -444,6 +456,9 @@ describe('VAnchor for 1 max edge', () => {
           '',
           {
             [chainID.toString()]: anchorLeaves,
+          },
+          {
+            treeChainId: chainID.toString(),
           }
         ),
         Error,
@@ -485,6 +500,9 @@ describe('VAnchor for 1 max edge', () => {
         '',
         {
           [chainID.toString()]: anchorLeaves,
+        },
+        {
+          treeChainId: chainID.toString(),
         }
       );
     });
@@ -519,9 +537,21 @@ describe('VAnchor for 1 max edge', () => {
         blinding: hexToU8a(randomBN().toHexString()),
       });
 
-      await anchor.transact([], [aliceDepositUtxo2], 0, 0, '0', '0', token.address, {
-        [chainID.toString()]: anchorLeaves,
-      });
+      await anchor.transact(
+        [],
+        [aliceDepositUtxo2],
+        0,
+        0,
+        '0',
+        '0',
+        token.address,
+        {
+          [chainID.toString()]: anchorLeaves,
+        },
+        {
+          treeChainId: chainID.toString(),
+        }
+      );
 
       anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
@@ -544,6 +574,9 @@ describe('VAnchor for 1 max edge', () => {
         '',
         {
           [chainID.toString()]: anchorLeaves,
+        },
+        {
+          treeChainId: chainID.toString(),
         }
       );
     });
@@ -573,7 +606,7 @@ describe('VAnchor for 1 max edge', () => {
         token.address,
         {}
       );
-
+      console.log('here');
       let anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
       const aliceDepositAmount3 = 1e7;
@@ -586,10 +619,22 @@ describe('VAnchor for 1 max edge', () => {
         keypair: aliceDepositUtxo1.keypair,
       });
 
-      await anchor.transact([], [aliceDepositUtxo3], 0, 0, '0', '0', token.address, {
-        [chainID.toString()]: anchorLeaves,
-      });
-
+      await anchor.transact(
+        [],
+        [aliceDepositUtxo3],
+        0,
+        0,
+        '0',
+        '0',
+        token.address,
+        {
+          [chainID.toString()]: anchorLeaves,
+        },
+        {
+          treeChainId: chainID.toString(),
+        }
+      );
+      console.log('here');
       anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
       const aliceJoinAmount = 3e7;
@@ -609,7 +654,7 @@ describe('VAnchor for 1 max edge', () => {
       aliceDepositUtxo1.setIndex(aliceDeposit1Index);
       aliceDepositUtxo2.setIndex(aliceDeposit2Index);
       aliceDepositUtxo3.setIndex(aliceDeposit3Index);
-
+      console.log('here');
       await anchor.transact(
         [aliceDepositUtxo1, aliceDepositUtxo2, aliceDepositUtxo3],
         [aliceJoinUtxo],
@@ -620,8 +665,12 @@ describe('VAnchor for 1 max edge', () => {
         '',
         {
           [chainID.toString()]: anchorLeaves,
+        },
+        {
+          treeChainId: chainID.toString(),
         }
       );
+      console.log('here');
     }).timeout(120000);
 
     it('should withdraw', async () => {
@@ -659,9 +708,21 @@ describe('VAnchor for 1 max edge', () => {
       });
       const aliceETHAddress = '0xDeaD00000000000000000000000000000000BEEf';
 
-      await anchor.transact([aliceDepositUtxo], [aliceChangeUtxo], 0, 0, aliceETHAddress, '0', '', {
-        [chainID.toString()]: anchorLeaves,
-      });
+      await anchor.transact(
+        [aliceDepositUtxo],
+        [aliceChangeUtxo],
+        0,
+        0,
+        aliceETHAddress,
+        '0',
+        '',
+        {
+          [chainID.toString()]: anchorLeaves,
+        },
+        {
+          treeChainId: chainID.toString(),
+        }
+      );
 
       // Check that Alice receives withdrawn wrapped tokens
       assert.strictEqual(
@@ -719,16 +780,40 @@ describe('VAnchor for 1 max edge', () => {
         keypair: aliceDepositUtxo.keypair,
       });
 
-      await anchor.transact([aliceDepositUtxo], [aliceTransferUtxo], 0, 0, '0', '0', '', {
-        [chainID.toString()]: anchorLeaves,
-      });
+      await anchor.transact(
+        [aliceDepositUtxo],
+        [aliceTransferUtxo],
+        0,
+        0,
+        '0',
+        '0',
+        '',
+        {
+          [chainID.toString()]: anchorLeaves,
+        },
+        {
+          treeChainId: chainID.toString(),
+        }
+      );
 
       anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
       await TruffleAssert.reverts(
-        anchor.transact([aliceDepositUtxo], [aliceTransferUtxo], 0, 0, '0', '0', '', {
-          [chainID.toString()]: anchorLeaves,
-        }),
+        anchor.transact(
+          [aliceDepositUtxo],
+          [aliceTransferUtxo],
+          0,
+          0,
+          '0',
+          '0',
+          '',
+          {
+            [chainID.toString()]: anchorLeaves,
+          },
+          {
+            treeChainId: chainID.toString(),
+          }
+        ),
         'Input is already spent'
       );
     });
@@ -781,9 +866,21 @@ describe('VAnchor for 1 max edge', () => {
       });
       // Step 4: Check that step 3 fails
       await TruffleAssert.reverts(
-        anchor.transact([aliceDepositUtxo], [aliceOutputUtxo], 0, 0, '0', '0', token.address, {
-          [chainID.toString()]: anchorLeaves,
-        }),
+        anchor.transact(
+          [aliceDepositUtxo],
+          [aliceOutputUtxo],
+          0,
+          0,
+          '0',
+          '0',
+          token.address,
+          {
+            [chainID.toString()]: anchorLeaves,
+          },
+          {
+            treeChainId: chainID.toString(),
+          }
+        ),
         'ERC20: transfer amount exceeds balance'
       );
     });
@@ -1135,6 +1232,9 @@ describe('VAnchor for 1 max edge', () => {
         token.address,
         {
           [chainID.toString()]: leaves,
+        },
+        {
+          treeChainId: chainID.toString(),
         }
       )) as ContractReceipt;
 
@@ -1161,9 +1261,21 @@ describe('VAnchor for 1 max edge', () => {
       const anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
       // withdrawal
-      await anchor.transact([aliceDepositUtxo], [], 0, 0, sender.address, '0', '', {
-        [chainID.toString()]: anchorLeaves,
-      });
+      await anchor.transact(
+        [aliceDepositUtxo],
+        [],
+        0,
+        0,
+        sender.address,
+        '0',
+        '',
+        {
+          [chainID.toString()]: anchorLeaves,
+        },
+        {
+          treeChainId: chainID.toString(),
+        }
+      );
 
       //build merkle tree start
       const filter = anchor.contract.filters.NewCommitment();
@@ -1542,6 +1654,9 @@ describe('VAnchor for 1 max edge', () => {
         token.address,
         {
           [chainID.toString()]: anchorLeaves,
+        },
+        {
+          treeChainId: chainID.toString(),
         }
       );
 
@@ -1673,6 +1788,9 @@ describe('VAnchor for 1 max edge', () => {
         token.address,
         {
           [chainID.toString()]: anchorLeaves,
+        },
+        {
+          treeChainId: chainID.toString(),
         }
       );
 
@@ -1701,9 +1819,21 @@ describe('VAnchor for 1 max edge', () => {
       );
 
       await TruffleAssert.passes(
-        wrappedVAnchor.transact([aliceChangeUtxo], [], 0, 0, sender.address, '0', token.address, {
-          [chainID.toString()]: anchorLeaves,
-        })
+        wrappedVAnchor.transact(
+          [aliceChangeUtxo],
+          [],
+          0,
+          0,
+          sender.address,
+          '0',
+          token.address,
+          {
+            [chainID.toString()]: anchorLeaves,
+          },
+          {
+            treeChainId: chainID.toString(),
+          }
+        )
       );
 
       let originalTokenDifference = expectedSenderTokenOutflows - 2e7;

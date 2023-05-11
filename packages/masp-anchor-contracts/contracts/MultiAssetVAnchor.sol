@@ -40,7 +40,6 @@ import "./SwapEncodeInputs.sol";
  */
 abstract contract MultiAssetVAnchor is ZKVAnchorBase, IERC721Receiver {
 	using SafeERC20 for IERC20;
-	using SafeMath for uint256;
 
 	address public registry;
 	address proxy;

@@ -18,7 +18,8 @@
     "@webb-tools/utils": "^0.5.32",
     "circomlibjs": "^0.0.8",
     "ethers": "5.7.0",
-    "jssha": "^3.2.0"
+    "jssha": "^3.2.0",
+    "snarkjs": "^0.6.10"
   },
   "publishConfig": {
     "access": "public"

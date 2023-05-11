@@ -63,7 +63,6 @@ describe.skip('VAnchorForest for 1 max edge', () => {
   const MAX_EDGES = 1;
   let create2InputWitness: any;
   let sender: SignerWithAddress;
-  // setup zero knowledge components
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
 

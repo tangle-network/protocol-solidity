@@ -18,8 +18,6 @@ import "../interfaces/IMultiTokenManager.sol";
     @author Webb Technologies.
  */
 contract Registry is Initialized, IRegistry, ProposalNonceTracker {
-	using SafeMath for uint256;
-
 	address public fungibleTokenManager;
 	address public nonFungibleTokenManager;
 

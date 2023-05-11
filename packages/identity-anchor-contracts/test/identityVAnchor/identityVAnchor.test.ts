@@ -64,7 +64,6 @@ describe('IdentityVAnchor for 2 max edges', () => {
   const maxEdges = 1;
   let create2InputWitness: any;
   let sender: SignerWithAddress;
-  // setup zero knowledge components
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
   let group: LinkedGroup;

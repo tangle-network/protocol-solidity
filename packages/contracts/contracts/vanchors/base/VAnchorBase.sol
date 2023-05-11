@@ -9,7 +9,6 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./LinkableAnchor.sol";
 import "../../structs/PublicInputs.sol";
 import "../../interfaces/tokens/IMintableERC20.sol";
@@ -19,7 +18,6 @@ import "../../interfaces/tokens/ITokenWrapper.sol";
  * and withdrawal from the pool. Project utilizes UTXO model to handle users' funds.
  */
 abstract contract VAnchorBase is LinkableAnchor {
-	using SafeMath for uint256;
 	using SafeERC20 for IERC20;
 
 	int256 public constant MAX_EXT_AMOUNT = 2 ** 248;
@@ -115,7 +113,7 @@ abstract contract VAnchorBase is LinkableAnchor {
 
 		uint32 insertedIndex = _insert(_commitment);
 		commitments[_commitment] = true;
-		emit Insertion(_commitment, insertedIndex, block.timestamp);
+		emit Insertion(_commitment, insertedIndex, block.timestamp, this.getLastRoot());
 
 		return insertedIndex;
 	}
@@ -138,8 +136,8 @@ abstract contract VAnchorBase is LinkableAnchor {
 		uint32 insertedIndex = _insertTwo([_firstCommitment, _secondCommitment]);
 		commitments[_firstCommitment] = true;
 		commitments[_secondCommitment] = true;
-		emit Insertion(_firstCommitment, insertedIndex, block.timestamp);
-		emit Insertion(_secondCommitment, insertedIndex + 1, block.timestamp);
+		emit Insertion(_firstCommitment, insertedIndex, block.timestamp, this.getLastRoot());
+		emit Insertion(_secondCommitment, insertedIndex + 1, block.timestamp, this.getLastRoot());
 
 		return insertedIndex;
 	}

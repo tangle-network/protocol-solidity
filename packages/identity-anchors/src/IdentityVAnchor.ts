@@ -17,7 +17,13 @@ import {
 } from '@webb-tools/sdk-core';
 import { Group, LinkedGroup } from '@webb-tools/semaphore-group';
 import { Semaphore } from '@webb-tools/semaphore/src';
-import { VAnchorProofInputs, ZkComponents, getChainIdType, u8aToHex } from '@webb-tools/utils';
+import {
+  Proof,
+  VAnchorProofInputs,
+  ZkComponents,
+  getChainIdType,
+  u8aToHex,
+} from '@webb-tools/utils';
 import { BigNumber, BigNumberish, ethers } from 'ethers';
 import { RawPublicSignals } from '.';
 import { SetupTransactionResult, TransactionOptions } from '@webb-tools/anchors';
@@ -28,14 +34,6 @@ const snarkjs = require('snarkjs');
 type FullProof = {
   proof: Proof;
   publicSignals: RawPublicSignals;
-};
-
-type Proof = {
-  pi_a: string[3];
-  pi_b: Array<string[2]>;
-  pi_c: string[3];
-  protocol: string;
-  curve: string;
 };
 
 type IdentityContracts = IdentityVAnchorContract | WebbContracts;
@@ -244,7 +242,6 @@ export class IdentityVAnchor
   }
 
   public async generateProofCalldata(fullProof: any) {
-    // const result = snarkjs.groth16.exportSolidityCallData(proof, publicSignals);
     const calldata = await snarkjs.groth16.exportSolidityCallData(
       fullProof.proof,
       fullProof.publicSignals
@@ -524,7 +521,7 @@ export class IdentityVAnchor
       outputs[1].encrypt()
     );
 
-    const vanchorInput: VAnchorProofInputs = await this.generateUTXOInputs(
+    const vanchorInput: VAnchorProofInputs = await this.generateProofInputs(
       inputs,
       outputs,
       chainId,
@@ -614,7 +611,7 @@ export class IdentityVAnchor
     return outSemaphoreProofs;
   }
 
-  public async generateUTXOInputs(
+  public async generateProofInputs(
     inputs: Utxo[],
     outputs: Utxo[],
     chainId: number,

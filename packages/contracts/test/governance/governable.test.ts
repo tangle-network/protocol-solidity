@@ -11,7 +11,7 @@ import EC from 'elliptic';
 const ec = new EC.ec('secp256k1');
 const TruffleAssert = require('truffle-assertions');
 
-import { Governable, Governable__factory } from '../../typechain';
+import { Governable, Governable__factory } from '@webb-tools/contracts';
 import { ethers } from 'ethers';
 
 describe('Governable Contract', () => {
