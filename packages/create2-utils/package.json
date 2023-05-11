@@ -1,7 +1,7 @@
 {
   "name": "@webb-tools/create2-utils",
   "main": "./dist/index.js",
-  "license": "GPL-3.0-or-later",
+  "license": "(MIT OR Apache-2.0)",
   "author": "Webb Developers <drew@webb.tools>",
   "scripts": {
     "build": "yarn run clean && yarn run compile",
@@ -20,6 +20,6 @@
     "type": "git",
     "url": "git://github.com/webb-tools/protocol-solidity.git"
   },
-  "version": "0.5.7",
+  "version": "0.5.40",
   "gitHead": "e1f3b300b6e004ac5a346dc0458bb1d303969d97"
 }

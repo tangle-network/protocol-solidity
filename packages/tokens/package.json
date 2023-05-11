@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@webb-tools/contracts": "^0.5.40",
-    "@webb-tools/create2-utils": "^0.5.6",
+    "@webb-tools/create2-utils": "^0.5.40",
     "@webb-tools/sdk-core": "0.1.4-125",
     "@webb-tools/utils": "^0.5.32",
     "ethers": "5.7.0"
