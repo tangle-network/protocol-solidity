@@ -11,7 +11,7 @@
     "compile": "yarn compile:contracts && yarn copy:declarations && yarn build:library",
     "compile:contracts": "yarn run clean && yarn run build:contracts",
     "copy:declarations": "copyfiles -f ./typechain-types/*.ts ./dist",
-    "build": "exit 0",
+    "build": "tsc -p tsconfig.build.json",
     "clean": "rimraf -rf ./dist && rimraf -rf ./typechain-types && rimraf -rf ./cache && rimraf -rf ./artifacts",
     "test": "npx hardhat test",
     "test:parallel": "npx hardhat test --parallel",
