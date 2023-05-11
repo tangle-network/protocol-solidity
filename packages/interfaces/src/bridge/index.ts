@@ -18,6 +18,11 @@ export type GovernorWithNonce = {
  **/
 export type GovernorConfig = Record<number, string | GovernorWithNonce>;
 
+export type AnchorIdentifier = {
+  anchorSize?: ethers.BigNumberish;
+  chainId: number;
+};
+
 export type Proposal = {
   data: string;
   dataHash: string;
