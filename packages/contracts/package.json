@@ -6,7 +6,7 @@
   "author": "Webb Developers <drew@webb.tools>",
   "scripts": {
     "build:contracts": "npx hardhat compile",
-    "build:library": "tsc -p tsconfig.build.json",
+    "build:library": "tsc -p tsconfig.build.json && ls -a",
     "compile": "yarn compile:contracts && yarn build:library && yarn copy:declarations",
     "compile:contracts": "yarn run clean && yarn run build:contracts",
     "copy:declarations": "copyfiles -f ./typechain-types/*.d.ts ./dist",
