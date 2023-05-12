@@ -1,17 +1,16 @@
-import { ethers, BigNumber } from 'ethers';
-import { SignatureBridgeSide } from '@webb-tools/bridges';
+import { AnchorHandler, PoseidonHasher, VAnchor, Verifier } from '@webb-tools/anchors';
+import { DeterministicDeployFactory__factory } from '@webb-tools/contracts';
+import { Deployer } from '@webb-tools/create2-utils';
+import { DeployerConfig, GovernorConfig } from '@webb-tools/interfaces';
 import {
   FungibleTokenWrapper,
-  TreasuryHandler,
-  Treasury,
   TokenWrapperHandler,
+  Treasury,
+  TreasuryHandler,
 } from '@webb-tools/tokens';
-import { AnchorIdentifier, GovernorConfig, DeployerConfig } from '@webb-tools/interfaces';
-import { AnchorHandler, PoseidonHasher, VAnchor } from '@webb-tools/anchors';
-import { Deployer } from '@webb-tools/create2-utils';
-import { getChainIdType, ZkComponents } from '@webb-tools/utils';
-import { Verifier } from '@webb-tools/vbridge';
-import { DeterministicDeployFactory__factory } from '@webb-tools/contracts';
+import { ZkComponents, getChainIdType } from '@webb-tools/utils';
+import { SignatureBridgeSide } from '@webb-tools/vbridge';
+import { BaseContract, BigNumber, ethers } from 'ethers';
 
 export type ExistingAssetInput = {
   // A record of chainId => address of wrappable tokens to be supported in the webbToken.
@@ -43,7 +42,7 @@ export type BridgeConfig = {
   vAnchors: Map<string, VAnchor>;
 
   // The addresses of the Bridge contracts (bridgeSides) to interact with
-  vBridgeSides: Map<number, SignatureBridgeSide>;
+  vBridgeSides: Map<number, SignatureBridgeSide<BaseContract>>;
 };
 
 const zeroAddress = '0x0000000000000000000000000000000000000000';
@@ -59,7 +58,7 @@ function checkNativeAddress(tokenAddress: string): boolean {
 export class Create2VBridge {
   private constructor(
     // Mapping of chainId => vBridgeSide
-    public vBridgeSides: Map<number, SignatureBridgeSide>,
+    public vBridgeSides: Map<number, SignatureBridgeSide<BaseContract>>,
 
     // chainID => FungibleTokenWrapper (webbToken) address
     public webbTokenAddresses: Map<number, string>,
@@ -73,14 +72,8 @@ export class Create2VBridge {
   ) {}
 
   //might need some editing depending on whether anchor identifier structure changes
-  public static createVAnchorIdString(vAnchorIdentifier: AnchorIdentifier): string {
-    return `${vAnchorIdentifier.chainId.toString()}`;
-  }
-
-  public static createVAnchorIdentifier(vAnchorString: string): AnchorIdentifier | null {
-    return {
-      chainId: Number(vAnchorString),
-    };
+  public static createVAnchorIdString(chainId: number): string {
+    return chainId.toString();
   }
 
   // Takes as input a 2D array [[anchors to link together], [...]]
@@ -119,7 +112,7 @@ export class Create2VBridge {
     const salt = '999';
     const saltHex = ethers.utils.id(salt);
     let webbTokenAddresses: Map<number, string> = new Map();
-    let vBridgeSides: Map<number, SignatureBridgeSide> = new Map();
+    let vBridgeSides: Map<number, SignatureBridgeSide<BaseContract>> = new Map();
     let vAnchors: Map<string, VAnchor> = new Map();
     // createdAnchors have the form of [[Anchors created on chainID], [...]]
     // and anchors in the subArrays of thhe same index should be linked together
@@ -250,7 +243,7 @@ export class Create2VBridge {
       // grant minting rights to the anchor
       await tokenInstance.grantMinterRole(vAnchorInstance.contract.address);
       chainGroupedVAnchors.push(vAnchorInstance);
-      vAnchors.set(Create2VBridge.createVAnchorIdString({ chainId: chainID }), vAnchorInstance);
+      vAnchors.set(Create2VBridge.createVAnchorIdString(chainID), vAnchorInstance);
 
       // connect bridge, anchor and anchor handler set permissions
       await vBridgeInstance.connectAnchorWithSignature(vAnchorInstance);
@@ -322,7 +315,7 @@ export class Create2VBridge {
 
   public getVAnchor(chainId: number) {
     let intendedAnchor: VAnchor = undefined;
-    intendedAnchor = this.vAnchors.get(Create2VBridge.createVAnchorIdString({ chainId }));
+    intendedAnchor = this.vAnchors.get(Create2VBridge.createVAnchorIdString(chainId));
     return intendedAnchor;
   }
 

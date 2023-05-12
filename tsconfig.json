@@ -53,22 +53,22 @@
         "packages/evm-test-utils/src/*"
       ],
       "@webb-tools/contracts": [
-        "packages/contracts/src"
+        "packages/contracts"
       ],
       "@webb-tools/contracts/*": [
-        "packages/contracts/src/*"
+        "packages/contracts/*"
       ],
       "@webb-tools/identity-anchor-contracts": [
-        "packages/identity-anchor-contracts/src"
+        "packages/identity-anchor-contracts"
       ],
       "@webb-tools/identity-anchor-contracts/*": [
-        "packages/identity-anchor-contracts/src/*"
+        "packages/identity-anchor-contracts/*"
       ],
       "@webb-tools/masp-anchor-contracts": [
-        "packages/masp-anchor-contracts/src"
+        "packages/masp-anchor-contracts"
       ],
       "@webb-tools/masp-anchor-contracts/*": [
-        "packages/masp-anchor-contracts/src/*"
+        "packages/masp-anchor-contracts/*"
       ],
       "@webb-tools/create2-utils": [
         "packages/create2-utils/src"

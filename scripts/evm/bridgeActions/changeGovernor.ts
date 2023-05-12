@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { SignatureBridgeSide } from '@webb-tools/bridges';
+import { SignatureBridgeSide } from '@webb-tools/vbridge';
 
 export async function changeGovernor(
   bridgeAddress: string,
