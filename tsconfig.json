@@ -71,34 +71,34 @@
         "packages/masp-anchor-contracts/*"
       ],
       "@webb-tools/create2-utils": [
-        "packages/create2-utils/src"
+        "packages/create2-utils"
       ],
       "@webb-tools/create2-utils/*": [
-        "packages/create2-utils/src/*"
+        "packages/create2-utils/*"
       ],
       "@webb-tools/interfaces": [
-        "packages/interfaces/src"
+        "packages/interfaces"
       ],
       "@webb-tools/interfaces/*": [
-        "packages/interfaces/src/*"
+        "packages/interfaces/*"
       ],
       "@webb-tools/tokens": [
-        "packages/tokens/src"
+        "packages/tokens"
       ],
       "@webb-tools/tokens/*": [
-        "packages/tokens/src/*"
+        "packages/tokens/*"
       ],
       "@webb-tools/utils": [
-        "packages/utils/src"
+        "packages/utils"
       ],
       "@webb-tools/utils/*": [
-        "packages/utils/src/*"
+        "packages/utils/*"
       ],
       "@webb-tools/vbridge": [
-        "packages/vbridge/src"
+        "packages/vbridge"
       ],
       "@webb-tools/vbridge/*": [
-        "packages/vbridge/src/*"
+        "packages/vbridge/*"
       ],
     },
     "noEmit": true
