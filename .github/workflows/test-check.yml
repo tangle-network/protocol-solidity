@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.15.x]
+        node-version: [18.15.0]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -53,7 +53,7 @@ jobs:
     if: github.ref != 'refs/heads/main' && github.event.pull_request.draft == false
     strategy:
       matrix:
-        node-version: [18.15.x]
+        node-version: [18.15.0]
     steps:
       - uses: actions/checkout@v3
       - name: Download build artifacts
@@ -91,7 +91,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.15.x]
+        node-version: [18.15.0]
     steps:
       - uses: actions/checkout@v3
       - name: Download build artifacts
@@ -128,7 +128,7 @@ jobs:
     if: github.ref != 'refs/heads/main' && github.event.pull_request.draft == false
     strategy:
       matrix:
-        node-version: [18.15.x]
+        node-version: [18.15.0]
     steps:
       - uses: actions/checkout@v3
       - name: Download build artifacts
