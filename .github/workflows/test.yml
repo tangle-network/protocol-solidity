@@ -1,4 +1,4 @@
-name: run-test-suite
+name: run-test-suite-2
 
 on:
   push:
@@ -12,8 +12,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # sets up build artifacts for other jobs to use
-  setup-build:
+  tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -32,45 +31,12 @@ jobs:
 
       - name: Compile and build contracts
         run: yarn build
-        
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: build-artifacts
-          path: |
-            packages/**/dist
-            !packages/**/node_modules
-
-  test:
-    needs: setup-build
-    concurrency:
-      group: test-${{ github.ref }}
-      cancel-in-progress: true
-    runs-on: ubuntu-latest
-    if: github.ref != 'refs/heads/main' && github.event.pull_request.draft == false
-    strategy:
-      matrix:
-        node-version: [18.x]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Download build artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: build-artifacts
-          path: .
-
-      - uses: actions/setup-node@v3
-        with: 
-          node-version: ${{ matrix.node-version }}
 
       - name: Setup DVC
         uses: iterative/setup-dvc@v1
           
       - name: Fetch submodules
         run: git submodule update --init --recursive
-
-      - name: Install dependencies 
-        run: yarn install --production=false
 
       - name: Populate fixtures
         run: yarn fetch:fixtures
@@ -80,72 +46,67 @@ jobs:
           INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
         run: yarn test
   
+  # sets up build artifacts for other jobs to use
   identity-tests:
-    needs: setup-build
-    concurrency:
-      group: ts-${{ github.ref }}
-      cancel-in-progress: true
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [18.x]
     steps:
       - uses: actions/checkout@v3
-      - name: Download build artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: build-artifacts
-          path: .
-      
       - uses: actions/setup-node@v3
         with: 
           node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies 
+        run: yarn install --production=false
+
+      - name: clean
+        run: yarn clean
+
+      - name: Compile and build contracts
+        run: yarn build
 
       - name: Setup DVC
         uses: iterative/setup-dvc@v1
           
       - name: Fetch submodules
         run: git submodule update --init --recursive
-
-      - name: Install dependencies 
-        run: yarn install --production=false
 
       - name: Populate fixtures
         run: yarn fetch:fixtures
 
-      - name: ts-check
+      - name: Run test suite
+        env:
+          INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
         run: yarn test:identity
 
+  # sets up build artifacts for other jobs to use
   masp-tests:
-    needs: setup-build
-    concurrency:
-      group: test-${{ github.ref }}
-      cancel-in-progress: true
     runs-on: ubuntu-latest
-    if: github.ref != 'refs/heads/main' && github.event.pull_request.draft == false
     strategy:
       matrix:
         node-version: [18.x]
     steps:
       - uses: actions/checkout@v3
-      - name: Download build artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: build-artifacts
-          path: .
-
       - uses: actions/setup-node@v3
         with: 
           node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies 
+        run: yarn install --production=false
+
+      - name: clean
+        run: yarn clean
+
+      - name: Compile and build contracts
+        run: yarn build
 
       - name: Setup DVC
         uses: iterative/setup-dvc@v1
           
       - name: Fetch submodules
         run: git submodule update --init --recursive
-
-      - name: Install dependencies 
-        run: yarn install --production=false
 
       - name: Populate fixtures
         run: yarn fetch:fixtures
@@ -154,3 +115,44 @@ jobs:
         env:
           INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
         run: yarn test:masp
+
+  # sets up build artifacts for other jobs to use
+  forge-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with: 
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies 
+        run: yarn install --production=false
+
+      - name: "Install Foundry"
+        uses: "foundry-rs/foundry-toolchain@v1"
+
+      - name: "Show the Foundry config"
+        run: "forge config"
+
+      - name: "Generate a fuzz seed that changes weekly to avoid burning through RPC allowance"
+        run: >
+          echo "FOUNDRY_FUZZ_SEED=$(
+            echo $(($EPOCHSECONDS - $EPOCHSECONDS % 604800))
+          )" >> $GITHUB_ENV
+    
+      - name: clean
+        run: yarn clean
+
+      - name: "Run the tests"
+        run: |
+          cd ./packages/contracts
+          forge build
+          forge test
+
+      - name: "Add test summary"
+        run: |
+          echo "## Tests result" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Passed" >> $GITHUB_STEP_SUMMARY
