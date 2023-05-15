@@ -60,6 +60,12 @@ jobs:
         node-version: [18.x]
     steps:
       - uses: actions/checkout@v3
+      - name: Download build artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: build-artifacts
+          path: .
+
       - uses: actions/setup-node@v3
         with: 
           node-version: ${{ matrix.node-version }}
@@ -76,12 +82,6 @@ jobs:
       - name: Populate fixtures
         run: yarn fetch:fixtures
 
-      - uses: actions/checkout@v3
-      - name: Download build artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: build-artifacts
-          path: .
       - name: Run test suite
         env:
           INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
@@ -98,6 +98,12 @@ jobs:
         node-version: [18.x]
     steps:
       - uses: actions/checkout@v3
+      - name: Download build artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: build-artifacts
+          path: .
+      
       - uses: actions/setup-node@v3
         with: 
           node-version: ${{ matrix.node-version }}
@@ -114,12 +120,6 @@ jobs:
       - name: Populate fixtures
         run: yarn fetch:fixtures
 
-      - uses: actions/checkout@v3
-      - name: Download build artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: build-artifacts
-          path: .
       - name: ts-check
         run: yarn test:identity
 
@@ -135,6 +135,12 @@ jobs:
         node-version: [18.x]
     steps:
       - uses: actions/checkout@v3
+      - name: Download build artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: build-artifacts
+          path: .
+
       - uses: actions/setup-node@v3
         with: 
           node-version: ${{ matrix.node-version }}
@@ -151,12 +157,6 @@ jobs:
       - name: Populate fixtures
         run: yarn fetch:fixtures
 
-      - uses: actions/checkout@v3
-      - name: Download build artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: build-artifacts
-          path: .
       - name: Run test suite
         env:
           INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
