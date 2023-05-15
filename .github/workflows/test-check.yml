@@ -24,17 +24,8 @@ jobs:
         with: 
           node-version: ${{ matrix.node-version }}
 
-      - name: Setup DVC
-        uses: iterative/setup-dvc@v1
-          
-      - name: Fetch submodules
-        run: git submodule update --init --recursive
-
       - name: Install dependencies 
         run: yarn install --production=false
-
-      - name: Populate fixtures
-        run: yarn fetch:fixtures
 
       - name: clean
         run: yarn clean
@@ -54,8 +45,8 @@ jobs:
         with:
           name: build-artifacts
           path: |
-            build/
-            node_modules/
+            packages/**/dist
+            !packages/**/node_modules
 
   test:
     needs: setup-build
@@ -68,6 +59,18 @@ jobs:
       matrix:
         node-version: [18.x]
     steps:
+      - name: Setup DVC
+        uses: iterative/setup-dvc@v1
+          
+      - name: Fetch submodules
+        run: git submodule update --init --recursive
+
+      - name: Install dependencies 
+        run: yarn install --production=false
+
+      - name: Populate fixtures
+        run: yarn fetch:fixtures
+
       - uses: actions/checkout@v3
       - name: Download build artifacts
         uses: actions/download-artifact@v2
@@ -89,6 +92,18 @@ jobs:
       matrix:
         node-version: [18.x]
     steps:
+      - name: Setup DVC
+        uses: iterative/setup-dvc@v1
+          
+      - name: Fetch submodules
+        run: git submodule update --init --recursive
+
+      - name: Install dependencies 
+        run: yarn install --production=false
+
+      - name: Populate fixtures
+        run: yarn fetch:fixtures
+
       - uses: actions/checkout@v3
       - name: Download build artifacts
         uses: actions/download-artifact@v2
@@ -109,6 +124,18 @@ jobs:
       matrix:
         node-version: [18.x]
     steps:
+      - name: Setup DVC
+        uses: iterative/setup-dvc@v1
+          
+      - name: Fetch submodules
+        run: git submodule update --init --recursive
+
+      - name: Install dependencies 
+        run: yarn install --production=false
+
+      - name: Populate fixtures
+        run: yarn fetch:fixtures
+
       - uses: actions/checkout@v3
       - name: Download build artifacts
         uses: actions/download-artifact@v2
