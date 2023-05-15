@@ -64,7 +64,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: build-artifacts
-          path: .
+          path: packages
 
       - uses: actions/setup-node@v3
         with: 
@@ -102,7 +102,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: build-artifacts
-          path: .
+          path: packages
       
       - uses: actions/setup-node@v3
         with: 
@@ -139,7 +139,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: build-artifacts
-          path: .
+          path: packages
 
       - uses: actions/setup-node@v3
         with: 
