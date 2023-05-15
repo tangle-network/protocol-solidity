@@ -30,7 +30,14 @@ jobs:
         run: yarn clean
 
       - name: Compile and build contracts
-        run: yarn build
+        run: lerna run compile --scope=@webb-tools/contracts
+      - name: Compile identity contracts
+        run: lerna run compile --scope @webb-tools/identity-anchor-contracts
+      - name: Compile masp contracts
+        run: lerna run compile --scope @webb-tools/masp-anchor-contracts
+
+      - name: Build packages
+        run: lerna run build
 
       - name: Setup DVC
         uses: iterative/setup-dvc@v1
@@ -65,7 +72,14 @@ jobs:
         run: yarn clean
 
       - name: Compile and build contracts
-        run: yarn build
+        run: lerna run compile --scope=@webb-tools/contracts
+      - name: Compile identity contracts
+        run: lerna run compile --scope @webb-tools/identity-anchor-contracts
+      - name: Compile masp contracts
+        run: lerna run compile --scope @webb-tools/masp-anchor-contracts
+
+      - name: Build packages
+        run: lerna run build
 
       - name: Setup DVC
         uses: iterative/setup-dvc@v1
@@ -100,7 +114,14 @@ jobs:
         run: yarn clean
 
       - name: Compile and build contracts
-        run: yarn build
+        run: lerna run compile --scope=@webb-tools/contracts
+      - name: Compile identity contracts
+        run: lerna run compile --scope @webb-tools/identity-anchor-contracts
+      - name: Compile masp contracts
+        run: lerna run compile --scope @webb-tools/masp-anchor-contracts
+
+      - name: Build packages
+        run: lerna run build
 
       - name: Setup DVC
         uses: iterative/setup-dvc@v1
