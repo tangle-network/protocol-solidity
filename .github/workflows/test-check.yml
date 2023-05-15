@@ -90,7 +90,7 @@ jobs:
   identity-tests:
     needs: setup-build
     concurrency:
-      group: ts-${{ github.ref }}
+      group: identity-test-${{ github.ref }}
       cancel-in-progress: true
     runs-on: ubuntu-latest
     strategy:
@@ -126,7 +126,7 @@ jobs:
   masp-tests:
     needs: setup-build
     concurrency:
-      group: test-${{ github.ref }}
+      group: masp-test-${{ github.ref }}
       cancel-in-progress: true
     runs-on: ubuntu-latest
     if: github.ref != 'refs/heads/main' && github.event.pull_request.draft == false
