@@ -606,7 +606,7 @@ describe.only('VAnchor for 1 max edge', () => {
         token.address,
         {}
       );
-      console.log('here');
+
       let anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
       const aliceDepositAmount3 = 1e7;
@@ -634,7 +634,7 @@ describe.only('VAnchor for 1 max edge', () => {
           treeChainId: chainID.toString(),
         }
       );
-      console.log('here');
+
       anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
       const aliceJoinAmount = 3e7;
@@ -654,7 +654,7 @@ describe.only('VAnchor for 1 max edge', () => {
       aliceDepositUtxo1.setIndex(aliceDeposit1Index);
       aliceDepositUtxo2.setIndex(aliceDeposit2Index);
       aliceDepositUtxo3.setIndex(aliceDeposit3Index);
-      console.log('here');
+
       await anchor.transact(
         [aliceDepositUtxo1, aliceDepositUtxo2, aliceDepositUtxo3],
         [aliceJoinUtxo],
@@ -670,7 +670,7 @@ describe.only('VAnchor for 1 max edge', () => {
           treeChainId: chainID.toString(),
         }
       );
-      console.log('here');
+
     }).timeout(120000);
 
     it('should withdraw', async () => {
