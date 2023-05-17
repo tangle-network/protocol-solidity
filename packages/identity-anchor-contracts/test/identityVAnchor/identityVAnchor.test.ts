@@ -858,7 +858,9 @@ describe('IdentityVAnchor for 2 max edges', () => {
         },
         { gasLimit: '0x5B8D80' }
       );
-      await expect(tx).revertedWith('non-existent edge is not set to the default root');
+      await expect(tx).revertedWith(
+        'LinkableAnchor: non-existent edge is not set to the default root'
+      );
     });
     it('should reject proofs made against Semaphore empty edges', async () => {
       const vanchorRoots = await idAnchor.populateVAnchorRootsForProof();
@@ -991,7 +993,9 @@ describe('IdentityVAnchor for 2 max edges', () => {
         { gasLimit: '0x5B8D80' }
       );
 
-      await expect(tx).revertedWith('non-existent edge is not set to the default root');
+      await expect(tx).revertedWith(
+        'LinkableAnchor: non-existent edge is not set to the default root'
+      );
     });
   });
 

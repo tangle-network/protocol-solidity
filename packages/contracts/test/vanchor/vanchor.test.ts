@@ -670,7 +670,6 @@ describe.only('VAnchor for 1 max edge', () => {
           treeChainId: chainID.toString(),
         }
       );
-
     }).timeout(120000);
 
     it('should withdraw', async () => {
