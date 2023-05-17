@@ -5126,7 +5126,7 @@
   version "0.5.40"
   dependencies:
     "@webb-tools/contracts" "^0.5.40"
-    "@webb-tools/create2-utils" "^0.5.7"
+    "@webb-tools/create2-utils" "^0.5.40"
     "@webb-tools/interfaces" "^0.5.40"
     "@webb-tools/sdk-core" "0.1.4-125"
     "@webb-tools/semaphore" "0.0.1-5"
@@ -5135,6 +5135,7 @@
     circomlibjs "^0.0.8"
     ethers "5.7.0"
     jssha "^3.2.0"
+    snarkjs "^0.6.10"
 
 "@webb-tools/api-derive@0.1.4-108":
   version "0.1.4-108"
@@ -5179,7 +5180,7 @@
     typescript "^5.0.4"
 
 "@webb-tools/create2-utils@file:./packages/create2-utils":
-  version "0.5.7"
+  version "0.5.40"
   dependencies:
     "@webb-tools/contracts" "^0.5.40"
     ethers "5.7.0"
@@ -5479,7 +5480,7 @@
   version "0.5.40"
   dependencies:
     "@webb-tools/contracts" "^0.5.40"
-    "@webb-tools/create2-utils" "^0.5.7"
+    "@webb-tools/create2-utils" "^0.5.40"
     "@webb-tools/sdk-core" "0.1.4-125"
     "@webb-tools/utils" "^0.5.32"
     ethers "5.7.0"
