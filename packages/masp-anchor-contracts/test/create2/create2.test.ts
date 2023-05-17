@@ -9,7 +9,7 @@ import {
 } from '@webb-tools/contracts';
 
 import { getChainIdType } from '@webb-tools/utils';
-import { PoseidonHasher, VAnchor, VAnchorForest } from '@webb-tools/anchors';
+import { PoseidonHasher, VAnchor } from '@webb-tools/anchors';
 import { Deployer } from '@webb-tools/create2-utils';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { Verifier, ForestVerifier } from '@webb-tools/anchors';
