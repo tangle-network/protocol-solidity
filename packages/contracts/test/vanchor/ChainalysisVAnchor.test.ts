@@ -2,11 +2,11 @@
  * Copyright 2021 Webb Technologies
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
+import '@nomicfoundation/hardhat-chai-matchers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
 const hre = require('hardhat');
 const { BigNumber } = require('ethers');
-const path = require('path');
 
 import { ChainalysisVAnchor, PoseidonHasher, VAnchor, Verifier } from '@webb-tools/anchors';
 import { getChainIdType, hexToU8a, vanchorFixtures, ZkComponents } from '@webb-tools/utils';
