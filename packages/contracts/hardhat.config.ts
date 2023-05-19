@@ -3,7 +3,7 @@ import { HARDHAT_ACCOUNTS } from './hardhatAccounts.js';
 import 'hardhat-artifactor';
 import 'hardhat-gas-reporter';
 import '@typechain/hardhat';
-import '@nomiclabs/hardhat-waffle';
+
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-truffle5';
 // import '@primitivefi/hardhat-dodoc';
@@ -45,7 +45,7 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: '0.8.5',
+        version: '0.8.18',
         settings: {
           optimizer: {
             enabled: true,

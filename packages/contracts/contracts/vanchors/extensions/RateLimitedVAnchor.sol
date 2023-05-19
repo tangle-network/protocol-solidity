@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
-pragma solidity ^0.8.5;
+pragma solidity ^0.8.18;
 
 import "../instances/VAnchorTree.sol";
 
@@ -16,7 +16,6 @@ import "../instances/VAnchorTree.sol";
  */
 contract RateLimitedVAnchor is VAnchorTree {
 	using SafeERC20 for IERC20;
-	using SafeMath for uint256;
 
 	uint256 public DAILY_WITHDRAWAL_LIMIT = 1_000_000 * 10 ** 18;
 	uint256 public currentDailyWithdrawal = 0;
@@ -55,7 +54,7 @@ contract RateLimitedVAnchor is VAnchorTree {
 		// If we are in the current day, continue to add to the currentDailyWithdrawal
 		if (block.timestamp < startTime + 1 days) {
 			currentDailyWithdrawal = (_externalData.extAmount < 0)
-				? currentDailyWithdrawal.add(uint256(-_externalData.extAmount))
+				? currentDailyWithdrawal + uint256(-_externalData.extAmount)
 				: currentDailyWithdrawal;
 		} else {
 			// If we are in a new day, reset the currentDailyWithdrawal and set the new startTime

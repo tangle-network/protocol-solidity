@@ -1,6 +1,6 @@
 import { VBridge } from '@webb-tools/vbridge';
 import { FungibleTokenWrapper } from '@webb-tools/tokens';
-import { fetchComponentsFromFilePaths, getChainIdType } from '@webb-tools/utils';
+import { getChainIdType, vanchorFixtures } from '@webb-tools/utils';
 import { DeployerConfig } from '@webb-tools/interfaces';
 import path from 'path';
 import {
@@ -36,11 +36,12 @@ import {
   polygonEndPoints,
   sepoliaEndPoints,
 } from './endPoints';
+import { VAnchorTree } from '@webb-tools/contracts';
 
 async function deploySignatureVBridge(
   tokens: Record<number, string[]>,
   deployers: DeployerConfig
-): Promise<VBridge> {
+): Promise<VBridge<VAnchorTree>> {
   let assetRecord: Record<number, string[]> = {};
   let chainIdsArray: number[] = [];
   let existingWebbTokens = new Map<number, FungibleTokenWrapper>();
@@ -58,40 +59,14 @@ async function deploySignatureVBridge(
     vAnchorInputs: {
       asset: assetRecord,
     },
-    chainIDs: chainIdsArray,
+    chainIds: chainIdsArray,
     webbTokens: existingWebbTokens,
   };
 
   console.log(bridgeInput);
 
-  const zkComponentsSmall = await fetchComponentsFromFilePaths(
-    path.resolve(
-      __dirname,
-      `../../../solidity-fixtures/solidity-fixtures/vanchor_2/8/poseidon_vanchor_2_8.wasm`
-    ),
-    path.resolve(
-      __dirname,
-      `../../../solidity-fixtures/solidity-fixtures/vanchor_2/8/witness_calculator.cjs`
-    ),
-    path.resolve(
-      __dirname,
-      `../../../solidity-fixtures/solidity-fixtures/vanchor_2/8/circuit_final.zkey`
-    )
-  );
-  const zkComponentsLarge = await fetchComponentsFromFilePaths(
-    path.resolve(
-      __dirname,
-      `../../../solidity-fixtures/solidity-fixtures/vanchor_16/8/poseidon_vanchor_16_8.wasm`
-    ),
-    path.resolve(
-      __dirname,
-      `../../../solidity-fixtures/solidity-fixtures/vanchor_16/8/witness_calculator.cjs`
-    ),
-    path.resolve(
-      __dirname,
-      `../../../solidity-fixtures/solidity-fixtures/vanchor_16/8/circuit_final.zkey`
-    )
-  );
+  const zkComponentsSmall = await vanchorFixtures[28]();
+  const zkComponentsLarge = await vanchorFixtures[168]();
 
   console.log(governorConfig);
 

@@ -1,6 +1,11 @@
 {
     "compilerOptions": {
-      "outDir": "./dist/",
+      "rootDir": "./src/",
+    "outDir": "./dist/",
+      "baseUrl": ".",
+      "paths": {
+        "@webb-tools/*": ["../*/dist"]
+      },
     },
     "extends": "../../tsconfig.build.json",
     "include": [

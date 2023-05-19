@@ -223,6 +223,6 @@ If you have a contribution in mind, please check out our [Contribution Guide](./
 
 <h2 id="license"> License </h2>
 
-Licensed under <a href="LICENSE">Apache 2.0 license</a>.
+Licensed under <a href="LICENSE">Apache 2.0 / MIT license</a>.
 
-Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in this crate by you, as defined in the Apache 2.0 license, shall be licensed as above, without any additional terms or conditions.
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in this crate by you, as defined in the MIT OR Apache 2.0 license, shall be licensed as above, without any additional terms or conditions.

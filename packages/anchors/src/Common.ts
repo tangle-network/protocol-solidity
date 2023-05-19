@@ -1,10 +1,8 @@
-import { BigNumber, BigNumberish, PayableOverrides, ethers } from 'ethers';
+import { BaseContract, BigNumber, BigNumberish, PayableOverrides, ethers } from 'ethers';
 import {
   VAnchor as VAnchorContract,
   ChainalysisVAnchor as ChainalysisVAnchorContract,
-  IdentityVAnchor as IdentityVAnchorContract,
   VAnchorForest as VAnchorForestContract,
-  OpenVAnchor as OpenVAnchorContract,
   TokenWrapper__factory,
 } from '@webb-tools/contracts';
 import {
@@ -18,30 +16,16 @@ import {
   MerkleTree,
   getVAnchorExtDataHash,
 } from '@webb-tools/sdk-core';
-import { hexToU8a, getChainIdType, ZERO_BYTES32 } from '@webb-tools/utils';
+import { hexToU8a, getChainIdType, ZERO_BYTES32, FIELD_SIZE } from '@webb-tools/utils';
 import { checkNativeAddress, splitTransactionOptions } from './utils';
 import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
 import { IVariableAnchorExtData } from '@webb-tools/interfaces';
 
-type WebbContracts =
-  | VAnchorContract
-  | ChainalysisVAnchorContract
-  | IdentityVAnchorContract
-  | VAnchorForestContract
-  | OpenVAnchorContract;
+export type WebbContracts = VAnchorContract | ChainalysisVAnchorContract | VAnchorForestContract;
 
-function isOpenVAnchorContract(contract: WebbContracts): contract is OpenVAnchorContract {
-  return (
-    'deposit' in contract &&
-    'withdraw' in contract &&
-    'wrapAndDeposit' in contract &&
-    'unwrapAndWithdraw' in contract &&
-    !('transact' in contract)
-  );
-}
-export abstract class WebbBridge {
+export abstract class WebbBridge<A extends WebbContracts> {
   signer: ethers.Signer;
-  contract: WebbContracts;
+  contract: A;
 
   tree: MerkleTree;
   treeHeight: number;
@@ -51,7 +35,7 @@ export abstract class WebbBridge {
   // The depositHistory stores leafIndex => information to create proposals (new root)
   depositHistory: Record<number, string>;
 
-  constructor(contract: WebbContracts, signer: ethers.Signer, treeHeight: number) {
+  constructor(contract: A, signer: ethers.Signer, treeHeight: number) {
     this.contract = contract;
     this.signer = signer;
     this.treeHeight = treeHeight;
@@ -102,7 +86,7 @@ export abstract class WebbBridge {
 
     if (currentChainId === newChainId) {
       this.signer = newSigner;
-      this.contract = this.contract.connect(newSigner);
+      this.contract = (this.contract as BaseContract).connect(newSigner) as A;
       return true;
     }
     return false;
@@ -303,17 +287,17 @@ export abstract class WebbBridge {
     return [this.tree.root(), await this.contract.getLastRoot()];
   }
 
-  public async generateExtData(
+  public generateExtData(
     recipient: string,
-    extAmount: BigNumber,
+    extAmount: BigNumberish,
     relayer: string,
-    fee: BigNumber,
-    refund: BigNumber,
+    fee: BigNumberish,
+    refund: BigNumberish,
     wrapUnwrapToken: string,
     encryptedOutput1: string,
     encryptedOutput2: string
-  ): Promise<{ extData: IVariableAnchorExtData; extDataHash: BigNumber }> {
-    const extData = {
+  ): { extData: IVariableAnchorExtData; extDataHash: BigNumberish } {
+    const extData: IVariableAnchorExtData = {
       recipient: toFixedHex(recipient, 20),
       extAmount: toFixedHex(extAmount),
       relayer: toFixedHex(relayer, 20),
@@ -324,17 +308,17 @@ export abstract class WebbBridge {
       encryptedOutput2,
     };
 
-    const extDataHash = getVAnchorExtDataHash(
-      encryptedOutput1,
-      encryptedOutput2,
-      extAmount.toString(),
-      BigNumber.from(fee).toString(),
-      recipient,
-      relayer,
-      refund.toString(),
-      wrapUnwrapToken
-    );
+    const extDataHash = this.getVAnchorExtDataHash(extData);
     return { extData, extDataHash };
+  }
+
+  public getVAnchorExtDataHash(extData: IVariableAnchorExtData): BigNumberish {
+    const abi = new ethers.utils.AbiCoder();
+    const abiString =
+      'tuple(address recipient,int256 extAmount,address relayer,uint256 fee,uint256 refund,address token,bytes encryptedOutput1,bytes encryptedOutput2)';
+    const encodedData = abi.encode([abiString], [extData]);
+    const hash = ethers.utils.keccak256(encodedData);
+    return BigNumber.from(hash).mod(FIELD_SIZE);
   }
 
   public static convertToExtDataStruct(args: any[]): IVariableAnchorExtData {
@@ -388,9 +372,6 @@ export abstract class WebbBridge {
     leavesMap: Record<string, Uint8Array[]>, // subtree
     overridesTransaction?: OverridesWithFrom<PayableOverrides> & TransactionOptions
   ): Promise<ethers.ContractReceipt> {
-    if (isOpenVAnchorContract(this.contract)) {
-      throw new Error('OpenVAnchor contract does not support the `transact` method');
-    }
     const [overrides, txOptions] = splitTransactionOptions(overridesTransaction);
 
     // Default UTXO chain ID will match with the configured signer's chain ID

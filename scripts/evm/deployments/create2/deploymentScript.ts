@@ -1,5 +1,5 @@
 import { FungibleTokenWrapper } from '@webb-tools/tokens';
-import { fetchComponentsFromFilePaths, getChainIdType } from '@webb-tools/utils';
+import { fetchComponentsFromFilePaths, getChainIdType, vanchorFixtures } from '@webb-tools/utils';
 import { DeployerConfig } from '@webb-tools/interfaces';
 import path from 'path';
 import { ethers } from 'ethers';
@@ -64,34 +64,8 @@ async function deploySignatureVBridge(
 
   console.log(bridgeInput);
 
-  const zkComponentsSmall = await fetchComponentsFromFilePaths(
-    path.resolve(
-      __dirname,
-      `../../../../solidity-fixtures/solidity-fixtures/vanchor_2/8/poseidon_vanchor_2_8.wasm`
-    ),
-    path.resolve(
-      __dirname,
-      `../../../../solidity-fixtures/solidity-fixtures/vanchor_2/8/witness_calculator.cjs`
-    ),
-    path.resolve(
-      __dirname,
-      `../../../../solidity-fixtures/solidity-fixtures/vanchor_2/8/circuit_final.zkey`
-    )
-  );
-  const zkComponentsLarge = await fetchComponentsFromFilePaths(
-    path.resolve(
-      __dirname,
-      `../../../../solidity-fixtures/solidity-fixtures/vanchor_16/8/poseidon_vanchor_16_8.wasm`
-    ),
-    path.resolve(
-      __dirname,
-      `../../../../solidity-fixtures/solidity-fixtures/vanchor_16/8/witness_calculator.cjs`
-    ),
-    path.resolve(
-      __dirname,
-      `../../../../solidity-fixtures/solidity-fixtures/vanchor_16/8/circuit_final.zkey`
-    )
-  );
+  const zkComponentsSmall = await vanchorFixtures[28]();
+  const zkComponentsLarge = await vanchorFixtures[168]();
 
   console.log(governorConfig);
 

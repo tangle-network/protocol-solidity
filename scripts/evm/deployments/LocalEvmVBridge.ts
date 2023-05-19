@@ -3,7 +3,12 @@ import path from 'path';
 import readline from 'readline';
 import { ethers } from 'ethers';
 import { FungibleTokenWrapper, MintableToken } from '@webb-tools/tokens';
-import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '@webb-tools/utils';
+import {
+  fetchComponentsFromFilePaths,
+  getChainIdType,
+  vanchorFixtures,
+  ZkComponents,
+} from '@webb-tools/utils';
 import { CircomUtxo } from '@webb-tools/sdk-core';
 import ECPairFactory, { ECPairAPI, TinySecp256k1Interface } from 'ecpair';
 import { LocalEvmChain } from '@webb-tools/evm-test-utils';
@@ -64,65 +69,11 @@ export async function fetchZkFixtures(chains: any[]) {
   let zkComponentsLarge: ZkComponents;
 
   if (isEightSided) {
-    zkComponentsSmall = await fetchComponentsFromFilePaths(
-      path.resolve(
-        __dirname,
-        '../../../packages/contracts/solidity-fixtures/solidity-fixtures/vanchor_2/8/poseidon_vanchor_2_8.wasm'
-      ),
-      path.resolve(
-        __dirname,
-        '../../../packages/contracts/solidity-fixtures/solidity-fixtures/vanchor_2/8/witness_calculator.cjs'
-      ),
-      path.resolve(
-        __dirname,
-        '../../../packages/contracts/solidity-fixtures/solidity-fixtures/vanchor_2/8/circuit_final.zkey'
-      )
-    );
-
-    zkComponentsLarge = await fetchComponentsFromFilePaths(
-      path.resolve(
-        __dirname,
-        '../../../packages/contracts/solidity-fixtures/solidity-fixtures/vanchor_16/8/poseidon_vanchor_16_8.wasm'
-      ),
-      path.resolve(
-        __dirname,
-        '../../../packages/contracts/solidity-fixtures/solidity-fixtures/vanchor_16/8/witness_calculator.cjs'
-      ),
-      path.resolve(
-        __dirname,
-        '../../../packages/contracts/solidity-fixtures/solidity-fixtures/vanchor_16/8/circuit_final.zkey'
-      )
-    );
+    zkComponentsSmall = await vanchorFixtures[28]();
+    zkComponentsLarge = await vanchorFixtures[168]();
   } else {
-    zkComponentsSmall = await fetchComponentsFromFilePaths(
-      path.resolve(
-        __dirname,
-        '../../../packages/contracts/solidity-fixtures/solidity-fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'
-      ),
-      path.resolve(
-        __dirname,
-        '../../../packages/contracts/solidity-fixtures/solidity-fixtures/vanchor_2/2/witness_calculator.cjs'
-      ),
-      path.resolve(
-        __dirname,
-        '../../../packages/contracts/solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey'
-      )
-    );
-
-    zkComponentsLarge = await fetchComponentsFromFilePaths(
-      path.resolve(
-        __dirname,
-        '../../../packages/contracts/solidity-fixtures/solidity-fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'
-      ),
-      path.resolve(
-        __dirname,
-        '../../../packages/contracts/solidity-fixtures/solidity-fixtures/vanchor_16/2/witness_calculator.cjs'
-      ),
-      path.resolve(
-        __dirname,
-        '../../../packages/contracts/solidity-fixtures/solidity-fixtures/vanchor_16/2/circuit_final.zkey'
-      )
-    );
+    zkComponentsSmall = await vanchorFixtures[22]();
+    zkComponentsLarge = await vanchorFixtures[162]();
   }
 
   return {

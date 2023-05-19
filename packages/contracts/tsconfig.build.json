@@ -1,15 +1,10 @@
 {
   "compilerOptions": {
-    "outDir": "./compiled/"
+    "outDir": "./dist/"
   },
   "exclude": [],
   "extends": "../../tsconfig.build.json",
   "include": [
-    "./contracts/**/*.sol",
-    "./contracts/*.sol",
-    "./typechain/**/*.ts",
-    "./typechain/*.ts",
-    "./compiled/**/*.ts",
-    "./compiled/*.ts"
+    "./typechain-types/**/*.ts"
   ]
 }

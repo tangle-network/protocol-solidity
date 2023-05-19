@@ -5,7 +5,7 @@
 
 import "../interfaces/external/chainalysis/ISanctionsList.sol";
 
-pragma solidity ^0.8.5;
+pragma solidity ^0.8.18;
 
 contract SanctionFilter {
 	address constant SANCTIONS_CONTRACT = 0x40C57923924B5c5c5455c48D93317139ADDaC8fb;

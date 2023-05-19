@@ -1,16 +1,8 @@
 {
   "name": "@webb-tools/evm-test-utils",
   "main": "./dist/index.js",
-  "license": [
-    {
-      "type": "Apache-2.0",
-      "file": "LICENSE.Apache-2.0"
-    },
-    {
-      "type": "MIT",
-      "file": "LICENSE.MIT"
-    }
-  ],
+  "types": "./dist/index.d.ts",
+  "license": "(MIT OR Apache-2.0)",
   "author": "Webb Developers <drew@webb.tools>",
   "scripts": {
     "build": "yarn run clean && yarn run compile",
@@ -19,7 +11,7 @@
   },
   "dependencies": {
     "@webb-tools/interfaces": "^0.5.40",
-    "@webb-tools/sdk-core": "0.1.4-123",
+    "@webb-tools/sdk-core": "0.1.4-125",
     "@webb-tools/utils": "^0.5.32",
     "@webb-tools/vbridge": "^0.5.40",
     "ecpair": "^2.0.1",

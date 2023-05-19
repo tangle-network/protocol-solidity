@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
-pragma solidity ^0.8.5;
+pragma solidity ^0.8.18;
 
 import "../instances/VAnchorTree.sol";
 import "../../utils/SanctionFilter.sol";
@@ -15,7 +15,6 @@ import "../../utils/SanctionFilter.sol";
  */
 contract ChainalysisVAnchor is VAnchorTree, SanctionFilter {
 	using SafeERC20 for IERC20;
-	using SafeMath for uint256;
 
 	constructor(
 		IAnchorVerifier _verifier,

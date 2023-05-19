@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
-pragma solidity ^0.8.5;
+pragma solidity ^0.8.18;
 
 import "./VAnchorBase.sol";
 import "../../interfaces/verifiers/ISetVerifier.sol";
@@ -13,12 +13,11 @@ import "../../verifiers/TxProofVerifier.sol";
 	@title ZK VAnchor Base
 	@author Webb Technologies
 	@notice The base VAnchor contract for all VAnchors leveraging zero knowledge proofs.
-    This contract implements the most basic VAnchor for a single token. All other
-    contracts should inherit from this contract and override methods as needed.
+	This contract implements the most basic VAnchor for a single token. All other
+	contracts should inherit from this contract and override methods as needed.
  */
 abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 	using SafeERC20 for IERC20;
-	using SafeMath for uint256;
 
 	/**
 		@notice The VAnchor constructor
@@ -75,7 +74,7 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 
 	/**
 		@notice Executes a deposit/withdrawal or combination join/split transaction
-        including possible wrapping or unwrapping if a valid token is provided.
+		including possible wrapping or unwrapping if a valid token is provided.
 		@param _wrappedToken The wrapped token address (only tokens living on the bridge)
 		@param _proof The zkSNARK proof
 		@param _externalData The serialized external data
@@ -85,7 +84,6 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 	 */
 	function _transact(
 		address _wrappedToken,
-		uint256 publicTokenID,
 		bytes memory _proof,
 		bytes memory _auxPublicInputs,
 		CommonExtData memory _externalData,
@@ -107,7 +105,7 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 				"amount is larger than maximumDepositAmount"
 			);
 			if (_externalData.token == _wrappedToken) {
-				IMintableERC20(_wrappedToken).transferFrom(
+				IERC20(_wrappedToken).safeTransferFrom(
 					msg.sender,
 					address(this),
 					uint256(_externalData.extAmount)
@@ -129,15 +127,11 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 				"amount is less than minimalWithdrawalAmount"
 			);
 			if (_externalData.token == _wrappedToken) {
-				if (publicTokenID == 0) {
-					_processWithdraw(
-						_wrappedToken,
-						_externalData.recipient,
-						uint256(-_externalData.extAmount)
-					);
-				} else {
-					_processWithdrawERC721(_wrappedToken, _externalData.recipient, publicTokenID);
-				}
+				_processWithdraw(
+					_wrappedToken,
+					_externalData.recipient,
+					uint256(-_externalData.extAmount)
+				);
 			} else {
 				_withdrawAndUnwrap(
 					_wrappedToken,

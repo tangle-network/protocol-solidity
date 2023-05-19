@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
-pragma solidity ^0.8.5;
+pragma solidity ^0.8.18;
 
 struct CommonExtData {
 	address recipient;
@@ -33,34 +33,9 @@ struct PublicInputs {
 }
 
 /**
-    @notice Auxiliary public input struct made up of deserializable values
-    @param publicAssetID the public asset ID of the asset being deposited or withdrawn
-	@param publicTokenID tokenID of Nft
- */
-struct MASPAuxPublicInputs {
-	uint256 publicAssetID;
-	uint256 publicTokenID;
-	uint256[10] whitelistedAssetIDs;
-	uint256[2] feeInputNullifiers;
-	uint256[2] feeOutputCommitments;
-}
-
-/**
     @notice External encryptions for new output commitments
  */
 struct Encryptions {
 	bytes encryptedOutput1;
 	bytes encryptedOutput2;
-}
-
-struct SwapPublicInputs {
-	bytes roots;
-	uint256 aliceSpendNullifier;
-	uint256 bobSpendNullifier;
-	uint256 swapChainID;
-	uint256 currentTimestamp;
-	uint256 aliceChangeRecord;
-	uint256 bobChangeRecord;
-	uint256 aliceReceiveRecord;
-	uint256 bobReceiveRecord;
 }

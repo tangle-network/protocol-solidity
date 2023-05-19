@@ -1,0 +1,25 @@
+{
+  "name": "@webb-tools/protocol-solidity",
+  "description": "Solidity contracts for protocol-solidity",
+  "version": "1.0.0",
+  "files": [
+    "**/*.sol"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/webb-tools/protocol-solidity.git"
+  },
+  "keywords": [
+    "solidity",
+    "ethereum",
+    "smart",
+    "contracts",
+    "security"
+  ],
+  "author": "Webb Developers <hello@webb.tools>",
+  "license": "(MIT OR Apache-2.0)",
+  "bugs": {
+    "url": "https://github.com/webb-tools/protocol-solidity/issues"
+  },
+  "homepage": "https://webb.tools"
+}

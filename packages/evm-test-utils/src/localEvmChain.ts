@@ -11,6 +11,7 @@ import { LocalChain } from './localTestnet';
 import { hexToU8a, u8aToHex } from '@polkadot/util';
 
 import { GanacheAccounts, startGanacheServer } from './startGanacheServer.js';
+import { VAnchorTree } from '@webb-tools/contracts';
 
 export class LocalEvmChain {
   public readonly typedChainId: number;
@@ -62,7 +63,7 @@ export class LocalEvmChain {
     wallets: ethers.Wallet[],
     zkComponentsSmall: ZkComponents,
     zkComponentsLarge: ZkComponents
-  ): Promise<VBridge> {
+  ): Promise<VBridge<VAnchorTree>> {
     const assetRecord: Record<number, string[]> = {};
     const deployers: Record<number, ethers.Wallet> = {};
     const governors: Record<number, string> = {};
@@ -77,7 +78,7 @@ export class LocalEvmChain {
     }
 
     const bridgeInput: VBridgeInput = {
-      chainIDs: chainIdsArray,
+      chainIds: chainIdsArray,
       vAnchorInputs: {
         asset: assetRecord,
       },

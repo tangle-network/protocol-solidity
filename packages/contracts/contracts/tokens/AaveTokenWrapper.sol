@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
-pragma solidity ^0.8.5;
+pragma solidity ^0.8.18;
 
-import "../interfaces/tokens/IAaveTokenWrapper.sol";
 import "./FungibleTokenWrapper.sol";
+import "../interfaces/tokens/IAaveTokenWrapper.sol";
 import "../interfaces/external/aave/IAaveLendingPool.sol";
 
 /**
@@ -14,7 +14,6 @@ import "../interfaces/external/aave/IAaveLendingPool.sol";
     @author Webb Technologies.
  */
 contract AaveTokenWrapper is FungibleTokenWrapper, IAaveTokenWrapper {
-	using SafeMath for uint256;
 	IAaveLendingPool public aaveLendingPool;
 
 	/**

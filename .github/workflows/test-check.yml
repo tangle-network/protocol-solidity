@@ -1,0 +1,84 @@
+name: run-test-suite
+
+on:
+  push:
+    branches: [ 'main' ]
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [ '**' ]
+    paths-ignore:
+      - 'README.md'
+
+  workflow_dispatch:
+
+jobs:
+  # sets up build artifacts for other jobs to use
+  setup-build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.15.0]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with: 
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies 
+        run: yarn install --production=false
+
+      - name: clean
+        run: yarn clean
+
+      - name: Compile @webb-tools/contracts
+        run: lerna run compile --scope=@webb-tools/contracts
+
+      - name: Build packages
+        run: lerna run build
+        
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-artifacts
+          path: |
+            packages/**/dist
+            !packages/**/node_modules
+
+  test:
+    needs: setup-build
+    concurrency:
+      group: test-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/main' && github.event.pull_request.draft == false
+    strategy:
+      matrix:
+        node-version: [18.15.0]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download build artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: build-artifacts
+          path: packages
+
+      - uses: actions/setup-node@v3
+        with: 
+          node-version: ${{ matrix.node-version }}
+
+      - name: Setup DVC
+        uses: iterative/setup-dvc@v1
+          
+      - name: Fetch submodules
+        run: git submodule update --init --recursive
+
+      - name: Install dependencies 
+        run: yarn install --production=false
+
+      - name: Populate fixtures
+        run: yarn fetch:fixtures
+
+      - name: Run test suite
+        env:
+          INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
+        run: yarn test

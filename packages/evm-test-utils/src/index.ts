@@ -1,2 +1,3 @@
-export * from './startGanacheServer.js';
-export * from './localEvmChain.js';
+export * from './startGanacheServer';
+export * from './localEvmChain';
+export * from './localTestnet';

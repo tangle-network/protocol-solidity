@@ -3,38 +3,17 @@ require('dotenv').config();
 import { ethers } from 'ethers';
 import { VAnchor } from '@webb-tools/anchors';
 import path from 'path';
-import { hexToU8a, fetchComponentsFromFilePaths, getChainIdType } from '@webb-tools/utils';
+import {
+  hexToU8a,
+  fetchComponentsFromFilePaths,
+  getChainIdType,
+  vanchorFixtures,
+} from '@webb-tools/utils';
 import { CircomUtxo, Keypair, randomBN, Utxo } from '@webb-tools/sdk-core';
 
 export async function transactWrapNative(anchorAddress: string, sender: ethers.Signer) {
-  const zkComponentsSmall = await fetchComponentsFromFilePaths(
-    path.resolve(
-      __dirname,
-      `../../../solidity-fixtures/solidity-fixtures/vanchor_2/8/poseidon_vanchor_2_8.wasm`
-    ),
-    path.resolve(
-      __dirname,
-      `../../../solidity-fixtures/solidity-fixtures/vanchor_2/8/witness_calculator.cjs`
-    ),
-    path.resolve(
-      __dirname,
-      `../../../solidity-fixtures/solidity-fixtures/vanchor_2/8/circuit_final.zkey`
-    )
-  );
-  const zkComponentsLarge = await fetchComponentsFromFilePaths(
-    path.resolve(
-      __dirname,
-      `../../../solidity-fixtures/solidity-fixtures/vanchor_16/8/poseidon_vanchor_16_8.wasm`
-    ),
-    path.resolve(
-      __dirname,
-      `../../../solidity-fixtures/solidity-fixtures/vanchor_16/8/witness_calculator.cjs`
-    ),
-    path.resolve(
-      __dirname,
-      `../../../solidity-fixtures/solidity-fixtures/vanchor_16/8/circuit_final.zkey`
-    )
-  );
+  const zkComponentsSmall = await vanchorFixtures[28]();
+  const zkComponentsLarge = await vanchorFixtures[168]();
   const anchor = await VAnchor.connect(anchorAddress, zkComponentsSmall, zkComponentsLarge, sender);
   const sourceChainId = getChainIdType(5001);
   const randomKeypair = new Keypair();

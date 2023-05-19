@@ -11,11 +11,17 @@ import { VBridge, VBridgeInput } from '@webb-tools/vbridge';
 import { VAnchor } from '@webb-tools/anchors';
 import { MintableToken, FungibleTokenWrapper } from '@webb-tools/tokens';
 import { BigNumber } from 'ethers';
-import { fetchComponentsFromFilePaths, getChainIdType, ZkComponents } from '@webb-tools/utils';
-import { startGanacheServer } from '@webb-tools/evm-test-utils';
+import {
+  fetchComponentsFromFilePaths,
+  getChainIdType,
+  vanchorFixtures,
+  ZkComponents,
+} from '@webb-tools/utils';
 import { CircomUtxo } from '@webb-tools/sdk-core';
 import { DeployerConfig, GovernorConfig } from '@webb-tools/interfaces';
 import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
+import { startGanacheServer } from '../startGanache';
+import { VAnchorTree } from '@webb-tools/contracts';
 
 const path = require('path');
 
@@ -38,7 +44,6 @@ describe('2-sided multichain tests for signature vbridge', () => {
   const chainID2 = getChainIdType(SECOND_CHAIN_ID);
   // setup ganache networks
   let ganacheServer2: any;
-  // setup zero knowledge components
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
 
@@ -50,35 +55,8 @@ describe('2-sided multichain tests for signature vbridge', () => {
       },
     ]);
 
-    zkComponents2_2 = await fetchComponentsFromFilePaths(
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/witness_calculator.cjs'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey'
-      )
-    );
-
-    zkComponents16_2 = await fetchComponentsFromFilePaths(
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/witness_calculator.cjs'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/circuit_final.zkey'
-      )
-    );
+    zkComponents2_2 = await vanchorFixtures[22]();
+    zkComponents16_2 = await vanchorFixtures[162]();
   });
 
   describe('BridgeConstruction', () => {
@@ -112,7 +90,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
             [chainID2]: [tokenInstance2.contract.address],
           },
         },
-        chainIDs: [chainID1, chainID2],
+        chainIds: [chainID1, chainID2],
         webbTokens: webbTokens1,
       };
       const signers = await ethers.getSigners();
@@ -184,7 +162,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
             [chainID2]: [tokenInstance2.contract.address],
           },
         },
-        chainIDs: [chainID1, chainID2],
+        chainIds: [chainID1, chainID2],
         webbTokens: webbTokens1,
       };
 
@@ -215,7 +193,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
     let existingToken1: MintableToken;
     let existingToken2: MintableToken;
 
-    let vBridge: VBridge;
+    let vBridge: VBridge<VAnchorTree>;
 
     beforeEach(async () => {
       const signers = await ethers.getSigners();
@@ -239,7 +217,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
             [chainID2]: [existingToken2.contract.address],
           },
         },
-        chainIDs: [chainID1, chainID2],
+        chainIds: [chainID1, chainID2],
         webbTokens: webbTokens1,
       };
 
@@ -643,7 +621,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
     let existingToken1: MintableToken;
     let existingToken2: MintableToken;
 
-    let vBridge: VBridge;
+    let vBridge: VBridge<VAnchorTree>;
 
     beforeEach(async () => {
       const signers = await ethers.getSigners();
@@ -673,7 +651,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
             ],
           },
         },
-        chainIDs: [chainID1, chainID2],
+        chainIds: [chainID1, chainID2],
         webbTokens: webbTokens1,
       };
 
@@ -1019,7 +997,6 @@ describe.skip('8-sided multichain tests for signature vbridge', () => {
   // setup ganache networks
   let ganacheServer2: any;
   let ganacheServer3: any;
-  // setup zero knowledge components
   let zkComponents2_8: ZkComponents;
   let zkComponents16_8: ZkComponents;
 
@@ -1037,40 +1014,13 @@ describe.skip('8-sided multichain tests for signature vbridge', () => {
       },
     ]);
 
-    zkComponents2_8 = await fetchComponentsFromFilePaths(
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_2/8/poseidon_vanchor_2_8.wasm'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_2/8/witness_calculator.cjs'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_2/8/circuit_final.zkey'
-      )
-    );
-
-    zkComponents16_8 = await fetchComponentsFromFilePaths(
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_16/8/poseidon_vanchor_16_8.wasm'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_16/8/witness_calculator.cjs'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_16/8/circuit_final.zkey'
-      )
-    );
+    zkComponents2_8 = await vanchorFixtures[28]();
+    zkComponents16_8 = await vanchorFixtures[168]();
   });
 
   describe('8 sided bridge existing token use', () => {
     // ERC20 compliant contracts that can easily create balances for test
-    let vBridge: VBridge;
+    let vBridge: VBridge<VAnchorTree>;
     let existingToken1: MintableToken;
     let existingToken2: MintableToken;
     let existingToken3: MintableToken;
@@ -1122,7 +1072,7 @@ describe.skip('8-sided multichain tests for signature vbridge', () => {
             [chainID3]: [existingToken3.contract.address],
           },
         },
-        chainIDs: [chainID1, chainID2, chainID3],
+        chainIds: [chainID1, chainID2, chainID3],
         webbTokens,
       };
 

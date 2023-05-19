@@ -3,15 +3,15 @@
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
-pragma solidity ^0.8.5;
+pragma solidity ^0.8.18;
 
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../../structs/Edge.sol";
 import "../../hashers/IHasher.sol";
 import "../../utils/ChainIdWithType.sol";
 import "../../utils/ProposalNonceTracker.sol";
-import "../../interfaces/anchors/ILinkableAnchor.sol";
+import "../../interfaces/ILinkableAnchor.sol";
 import "../../interfaces/IMerkleSystem.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
     @title The LinkableAnchor contract
@@ -228,7 +228,7 @@ abstract contract LinkableAnchor is
 		while (rootIndex != maxEdges + 1) {
 			require(
 				_roots[rootIndex] == this.getZeroHash(outerLevels - 1),
-				"non-existent edge is not set to the default root"
+				"LinkableAnchor: non-existent edge is not set to the default root"
 			);
 			rootIndex++;
 		}

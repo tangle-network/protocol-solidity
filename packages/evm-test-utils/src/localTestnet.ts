@@ -16,13 +16,7 @@
  */
 import { getChainIdType } from '@webb-tools/utils';
 import { ethers } from 'ethers';
-import { LocalEvmChain } from './';
-
-// Describes the ganache account
-export type GanacheAccounts = {
-  balance: string;
-  secretKey: string;
-};
+import { GanacheAccounts, LocalEvmChain } from './';
 
 // Describes chain info
 type LocalChainOpts = {

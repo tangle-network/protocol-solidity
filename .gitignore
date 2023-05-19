@@ -5,21 +5,18 @@ build/
 *.env
 
 # Packages
-packages/contracts/typechain
 packages/*/node_modules
 packages/*/dist
-packages/*/compiled
 packages/*/tsconfig.tsbuildinfo
+
+# Typechain
+typechain-types
+typechain
 
 # Directories
 cache
 out
 artifacts
-/typechain
-/typechain-types
-/src
-
-solidity-fixtures/
 
 dist
 

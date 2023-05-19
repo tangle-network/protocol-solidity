@@ -19,7 +19,7 @@ move_verifiers_and_metadata () {
         mkdir -p contracts/verifiers/$anchorType
     fi
     cp $outdir/verifier.sol contracts/verifiers/$anchorType/"Verifier$size.sol"
-    # sed -i s/'pragma solidity ^0.8.5;'/'pragma solidity ^0.8.5;'/ contracts/verifiers/$anchorType/"Verifier$size.sol"
+    # sed -i s/'pragma solidity ^0.8.18;'/'pragma solidity ^0.8.18;'/ contracts/verifiers/$anchorType/"Verifier$size.sol"
     sed -i s/"contract PlonkVerifier"/"contract PlonkVerifier$size"/ contracts/verifiers/$anchorType/"Verifier$size.sol"
     sed -i s/"uint16 constant n"/"uint32 constant n"/ contracts/verifiers/$anchorType/"Verifier$size.sol"
 }

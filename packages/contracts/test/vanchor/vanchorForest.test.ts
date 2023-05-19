@@ -6,8 +6,6 @@ const assert = require('assert');
 import { ethers } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
 
-// Typechain generated bindings for contracts
-// These contracts are included in packages, so should be tested
 // import { toFixedHex, toHex, MerkleTree, MerkleProof } from '@webb-tools/sdk-core';
 import {
   ERC20PresetMinterPauser,
@@ -18,12 +16,12 @@ import {
 
 import {
   hexToU8a,
-  fetchComponentsFromFilePaths,
   getChainIdType,
-  UTXOInputs,
+  VAnchorProofInputs,
   ZkComponents,
   u8aToHex,
   ZERO_BYTES32,
+  vanchorForestFixtures,
 } from '@webb-tools/utils';
 import { BigNumber, ContractReceipt } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -40,8 +38,9 @@ import {
   toHex,
 } from '@webb-tools/sdk-core';
 import { VAnchorForest, PoseidonHasher } from '@webb-tools/anchors';
-import { ForestVerifier } from '@webb-tools/vbridge';
-import { startGanacheServer } from '@webb-tools/evm-test-utils';
+import { ForestVerifier } from '@webb-tools/anchors';
+
+import { startGanacheServer } from '../startGanache';
 
 const BN = require('bn.js');
 const path = require('path');
@@ -64,7 +63,6 @@ describe.skip('VAnchorForest for 1 max edge', () => {
   const MAX_EDGES = 1;
   let create2InputWitness: any;
   let sender: SignerWithAddress;
-  // setup zero knowledge components
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
 
@@ -84,35 +82,8 @@ describe.skip('VAnchorForest for 1 max edge', () => {
   };
 
   before('instantiate zkcomponents', async () => {
-    zkComponents2_2 = await fetchComponentsFromFilePaths(
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_forest_2/2/vanchor_forest_2_2.wasm'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_forest_2/2/witness_calculator.cjs'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_forest_2/2/circuit_final.zkey'
-      )
-    );
-
-    zkComponents16_2 = await fetchComponentsFromFilePaths(
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_forest_16/2/vanchor_forest_16_2.wasm'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_forest_16/2/witness_calculator.cjs'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_forest_16/2/circuit_final.zkey'
-      )
-    );
+    zkComponents2_2 = await vanchorForestFixtures[22]();
+    zkComponents16_2 = await vanchorForestFixtures[162]();
   });
 
   beforeEach(async () => {
@@ -173,12 +144,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
     await token.approve(wrappedToken.address, '1000000000000000000000000');
 
     create2InputWitness = async (data: any) => {
-      const witnessCalculator = require('../../solidity-fixtures/solidity-fixtures/vanchor_2/2/witness_calculator.cjs');
-      const fileBuf = require('fs').readFileSync(
-        'solidity-fixtures/solidity-fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'
-      );
-      const wtnsCalc = await witnessCalculator(fileBuf);
-      const wtns = await wtnsCalc.calculateWTNSBin(data, 0);
+      const wtns = await zkComponents2_2.witnessCalculator.calculateWTNSBin(data, 0);
       return wtns;
     };
   });
@@ -229,16 +195,10 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       );
 
       const wtns = await create2InputWitness(input);
-      let res = await snarkjs.groth16.prove(
-        'solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey',
-        wtns
-      );
+      let res = await vanchorForestFixtures.prove_2_2(wtns);
       const proof = res.proof;
       let publicSignals = res.publicSignals;
-      const vKey = await snarkjs.zKey.exportVerificationKey(
-        'solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey'
-      );
-
+      const vKey = await vanchorForestFixtures.vkey_2_2();
       res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       assert.strictEqual(res, true);
     });
@@ -760,10 +720,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       );
 
       const wtns = await create2InputWitness(input);
-      let res = await snarkjs.groth16.prove(
-        'solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey',
-        wtns
-      );
+      let res = await vanchorForestFixtures.prove_2_2(wtns);
       const proof = res.proof;
       let publicSignals = res.publicSignals;
       const proofEncoded = generateWithdrawProofCallData(proof, publicSignals);
@@ -1189,7 +1146,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
 
       const merkleProofs = [fakeSubtreeProof, emptyMerkleProof];
 
-      const vanchorInput: UTXOInputs = await generateVariableWitnessInput(
+      const vanchorInput: VAnchorProofInputs = await generateVariableWitnessInput(
         roots.map((root) => BigNumber.from(root)),
         chainID,
         fakeInputs,
@@ -1230,12 +1187,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       const zkeyFile = anchor.smallCircuitZkComponents.zkey;
 
       let proof = await snarkjs.groth16.fullProve(proofInput, wasmFile, zkeyFile);
-      const vKey = await snarkjs.zKey.exportVerificationKey(
-        path.resolve(
-          __dirname,
-          '../../solidity-fixtures/solidity-fixtures/vanchor_forest_2/2/circuit_final.zkey'
-        )
-      );
+      const vKey = await vanchorForestFixtures.vkey_2_2();
 
       const res = await snarkjs.groth16.verify(vKey, proof.publicSignals, proof.proof);
       if (res !== true) {
@@ -1272,7 +1224,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
           },
           { gasLimit: '0x5B8D80' }
         ),
-        'non-existent edge is not set to the default root'
+        'LinkableAnchor: non-existent edge is not set to the default root'
       );
     });
   });

@@ -46,7 +46,7 @@ export class RateLimitedVAnchor extends VAnchor {
     const createdVAnchor = new VAnchor(
       vanchor,
       signer,
-      BigNumber.from(levels).toNumber(),
+      Number(levels),
       maxEdges,
       smallCircuitZkComponents,
       largeCircuitZkComponents
@@ -79,7 +79,7 @@ export class RateLimitedVAnchor extends VAnchor {
     const createdVAnchor = new RateLimitedVAnchor(
       vAnchor,
       signer,
-      BigNumber.from(levels).toNumber(),
+      Number(levels),
       maxEdges,
       smallCircuitZkComponents,
       largeCircuitZkComponents

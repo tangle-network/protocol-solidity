@@ -3,17 +3,30 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      /**
+      *   Solidity contracts & Typechain
+      */
+      "@webb-tools/contracts": [
+        "packages/contracts/typechain-types"
+      ],
+      "@webb-tools/contracts/*": [
+        "packages/contracts/typechain-types/*"
+      ],
+      "@webb-tools/protocol-solidity": [
+        "packages/contracts/contracts"
+      ],
+      "@webb-tools/protocol-solidity/*": [
+        "packages/contracts/contracts/*"
+      ],
+
+      /**
+      *   TypeScript packages
+      */
       "@webb-tools/anchors": [
         "packages/anchors/src"
       ],
       "@webb-tools/anchors/*": [
         "packages/anchors/src/*"
-      ],
-      "@webb-tools/bridges": [
-        "packages/bridges/src"
-      ],
-      "@webb-tools/bridges/*": [
-        "packages/bridges/src/*"
       ],
       "@webb-tools/evm-test-utils": [
         "packages/evm-test-utils/src"
@@ -21,41 +34,35 @@
       "@webb-tools/evm-test-utils/*": [
         "packages/evm-test-utils/src/*"
       ],
-      "@webb-tools/contracts": [
-        "packages/contracts/src"
-      ],
-      "@webb-tools/contracts/*": [
-        "packages/contracts/src/*"
-      ],
       "@webb-tools/create2-utils": [
-        "packages/create2-utils/src"
+        "packages/create2-utils"
       ],
       "@webb-tools/create2-utils/*": [
-        "packages/create2-utils/src/*"
+        "packages/create2-utils/*"
       ],
       "@webb-tools/interfaces": [
-        "packages/interfaces/src"
+        "packages/interfaces"
       ],
       "@webb-tools/interfaces/*": [
-        "packages/interfaces/src/*"
+        "packages/interfaces/*"
       ],
       "@webb-tools/tokens": [
-        "packages/tokens/src"
+        "packages/tokens"
       ],
       "@webb-tools/tokens/*": [
-        "packages/tokens/src/*"
+        "packages/tokens/*"
       ],
       "@webb-tools/utils": [
-        "packages/utils/src"
+        "packages/utils"
       ],
       "@webb-tools/utils/*": [
-        "packages/utils/src/*"
+        "packages/utils/*"
       ],
       "@webb-tools/vbridge": [
-        "packages/vbridge/src"
+        "packages/vbridge"
       ],
       "@webb-tools/vbridge/*": [
-        "packages/vbridge/src/*"
+        "packages/vbridge/*"
       ],
     },
     "noEmit": true

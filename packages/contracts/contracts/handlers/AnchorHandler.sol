@@ -3,13 +3,13 @@
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
-pragma solidity ^0.8.5;
+pragma solidity ^0.8.18;
 pragma experimental ABIEncoderV2;
 
 import "./HandlerHelpers.sol";
 import "../interfaces/IExecutor.sol";
 import "../interfaces/verifiers/ISetVerifier.sol";
-import "../interfaces/anchors/ILinkableAnchor.sol";
+import "../interfaces/ILinkableAnchor.sol";
 
 /**
     @title Handles Anchor edge list merkle root updates

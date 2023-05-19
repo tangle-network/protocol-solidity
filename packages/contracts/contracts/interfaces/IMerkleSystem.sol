@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
-pragma solidity ^0.8.5;
+pragma solidity ^0.8.18;
 
 import "../utils/Initialized.sol";
 import "../hashers/IHasher.sol";
@@ -55,7 +55,12 @@ abstract contract MerkleSystem is IMerkleSystem, Initialized {
 	// The mapping to store all commitments to prevent accidental deposits with the same commitment
 	mapping(uint256 => bool) public commitments;
 
-	event Insertion(uint256 indexed commitment, uint32 leafIndex, uint256 timestamp);
+	event Insertion(
+		uint256 indexed commitment,
+		uint32 leafIndex,
+		uint256 timestamp,
+		uint256 indexed newMerkleRoot
+	);
 
 	// Internal functions
 	function _initialize() internal {

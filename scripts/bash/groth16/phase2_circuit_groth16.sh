@@ -34,25 +34,7 @@ move_verifiers_and_metadata_vanchor () {
     mkdir -p packages/contracts/contracts/verifiers/$anchorType
     cp $indir/verifier.sol packages/contracts/contracts/verifiers/$anchorType/Verifier"$size"_"$nIns".sol
     sed -i 's/contract Verifier/contract Verifier'$size'_'$nIns'/g' packages/contracts/contracts/verifiers/$anchorType/Verifier"$size"_"$nIns".sol
-    sed -i 's/pragma solidity ^0.6.11;/pragma solidity ^0.8.5;/g' packages/contracts/contracts/verifiers/$anchorType/Verifier"$size"_"$nIns".sol
-}
-
-move_verifiers_and_metadata_masp_vanchor () {
-    local indir="$1" size="$2" anchorType="$3" nIns="$4"
-    cp $indir/circuit_final.zkey packages/contracts/solidity-fixtures/solidity-fixtures/$anchorType/$size/circuit_final.zkey
-
-    mkdir -p packages/contracts/contracts/verifiers/$anchorType
-    cp $indir/verifier.sol packages/contracts/contracts/verifiers/$anchorType/VerifierMASP"$size"_"$nIns".sol
-}
-
-move_verifiers_and_metadata_identity_vanchor () {
-    local indir="$1" size="$2" anchorType="$3" nIns="$4"
-    cp $indir/circuit_final.zkey packages/contracts/solidity-fixtures/solidity-fixtures/$anchorType/$size/circuit_final.zkey
-
-    mkdir -p packages/contracts/contracts/verifiers/$anchorType
-    cp $indir/verifier.sol packages/contracts/contracts/verifiers/$anchorType/VerifierID"$size"_"$nIns".sol
-    sed -i 's/contract Verifier/contract VerifierID'$size'_'$nIns'/g' packages/contracts/contracts/verifiers/$anchorType/VerifierID"$size"_"$nIns".sol
-    sed -i 's/pragma solidity ^0.6.11;/pragma solidity ^0.8.5;/g' packages/contracts/contracts/verifiers/$anchorType/VerifierID"$size"_"$nIns".sol
+    sed -i 's/pragma solidity ^0.6.11;/pragma solidity ^0.8.18;/g' packages/contracts/contracts/verifiers/$anchorType/Verifier"$size"_"$nIns".sol
 }
 
 move_verifiers_and_metadata_vanchor_forest () {
@@ -62,5 +44,5 @@ move_verifiers_and_metadata_vanchor_forest () {
     mkdir -p packages/contracts/contracts/verifiers/$anchorType
     cp $indir/verifier.sol packages/contracts/contracts/verifiers/$anchorType/VerifierF"$size"_"$nIns".sol
     sed -i 's/contract Verifier/contract VerifierF'$size'_'$nIns'/g' packages/contracts/contracts/verifiers/$anchorType/VerifierF"$size"_"$nIns".sol
-    sed -i 's/pragma solidity ^0.6.11;/pragma solidity ^0.8.5;/g' packages/contracts/contracts/verifiers/$anchorType/VerifierF"$size"_"$nIns".sol
+    sed -i 's/pragma solidity ^0.6.11;/pragma solidity ^0.8.18;/g' packages/contracts/contracts/verifiers/$anchorType/VerifierF"$size"_"$nIns".sol
 }

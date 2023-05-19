@@ -3,25 +3,21 @@
  * SPDX-License-Identifier: GPL-3.0-or-later-only
  */
 
-pragma solidity ^0.8.5;
+pragma solidity ^0.8.18;
 pragma experimental ABIEncoderV2;
 
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./LinkableAnchor.sol";
 import "../../structs/PublicInputs.sol";
 import "../../interfaces/tokens/IMintableERC20.sol";
 import "../../interfaces/tokens/ITokenWrapper.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 /** @dev This contract(pool) allows deposit of an arbitrary amount to it, shielded transfer to another registered user inside the pool
  * and withdrawal from the pool. Project utilizes UTXO model to handle users' funds.
  */
 abstract contract VAnchorBase is LinkableAnchor {
-	using SafeMath for uint256;
 	using SafeERC20 for IERC20;
 
 	int256 public constant MAX_EXT_AMOUNT = 2 ** 248;
@@ -117,7 +113,7 @@ abstract contract VAnchorBase is LinkableAnchor {
 
 		uint32 insertedIndex = _insert(_commitment);
 		commitments[_commitment] = true;
-		emit Insertion(_commitment, insertedIndex, block.timestamp);
+		emit Insertion(_commitment, insertedIndex, block.timestamp, this.getLastRoot());
 
 		return insertedIndex;
 	}
@@ -140,8 +136,8 @@ abstract contract VAnchorBase is LinkableAnchor {
 		uint32 insertedIndex = _insertTwo([_firstCommitment, _secondCommitment]);
 		commitments[_firstCommitment] = true;
 		commitments[_secondCommitment] = true;
-		emit Insertion(_firstCommitment, insertedIndex, block.timestamp);
-		emit Insertion(_secondCommitment, insertedIndex + 1, block.timestamp);
+		emit Insertion(_firstCommitment, insertedIndex, block.timestamp, this.getLastRoot());
+		emit Insertion(_secondCommitment, insertedIndex + 1, block.timestamp, this.getLastRoot());
 
 		return insertedIndex;
 	}
@@ -206,13 +202,6 @@ abstract contract VAnchorBase is LinkableAnchor {
 		);
 	}
 
-	function _withdrawAndUnwrapERC721(
-		address _fromTokenAddress,
-		address _toTokenAddress,
-		address _recipient,
-		uint256 publicTokenID
-	) public payable virtual {}
-
 	/**
 		@notice Process the withdrawal by sending/minting the wrapped tokens to/for the recipient
 		@param _token The token to withdraw
@@ -234,12 +223,6 @@ abstract contract VAnchorBase is LinkableAnchor {
 			IMintableERC20(_token).mint(_recipient, _minusExtAmount);
 		}
 	}
-
-	function _processWithdrawERC721(
-		address _token,
-		address _recipient,
-		uint256 publicTokenID
-	) internal virtual {}
 
 	/**
 		@notice Process and pay the relayer their fee. Mint the fee if contract has no balance.

@@ -6,8 +6,6 @@ const assert = require('assert');
 const TruffleAssert = require('truffle-assertions');
 import { ethers } from 'hardhat';
 
-// Typechain generated bindings for contracts
-// These contracts are included in packages, so should be tested
 import {
   ERC20PresetMinterPauser,
   ERC20PresetMinterPauser__factory,
@@ -15,18 +13,13 @@ import {
   FungibleTokenWrapper__factory as WrappedTokenFactory,
 } from '@webb-tools/contracts';
 
-import {
-  hexToU8a,
-  fetchComponentsFromFilePaths,
-  getChainIdType,
-  ZkComponents,
-} from '@webb-tools/utils';
+import { hexToU8a, getChainIdType, ZkComponents, vanchorFixtures } from '@webb-tools/utils';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 import { Keypair, randomBN, CircomUtxo } from '@webb-tools/sdk-core';
-import { VAnchor, PoseidonHasher, RateLimitedVAnchor } from '@webb-tools/anchors';
-import { Verifier } from '@webb-tools/vbridge';
+import { PoseidonHasher, RateLimitedVAnchor } from '@webb-tools/anchors';
+import { Verifier } from '@webb-tools/anchors';
 
 const path = require('path');
 
@@ -42,7 +35,6 @@ describe('Rate Limited VAnchor', () => {
   const chainID = getChainIdType(31337);
   let create2InputWitness: any;
   let sender: SignerWithAddress;
-  // setup zero knowledge components
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
 
@@ -62,35 +54,8 @@ describe('Rate Limited VAnchor', () => {
   };
 
   before('instantiate zkcomponents', async () => {
-    zkComponents2_2 = await fetchComponentsFromFilePaths(
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/witness_calculator.cjs'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey'
-      )
-    );
-
-    zkComponents16_2 = await fetchComponentsFromFilePaths(
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/witness_calculator.cjs'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/circuit_final.zkey'
-      )
-    );
+    zkComponents2_2 = await vanchorFixtures[22]();
+    zkComponents16_2 = await vanchorFixtures[162]();
   });
 
   beforeEach(async () => {
@@ -150,12 +115,7 @@ describe('Rate Limited VAnchor', () => {
     await token.approve(wrappedToken.address, '1000000000000000000000000');
 
     create2InputWitness = async (data: any) => {
-      const witnessCalculator = require('../../solidity-fixtures/solidity-fixtures/vanchor_2/2/witness_calculator.cjs');
-      const fileBuf = require('fs').readFileSync(
-        'solidity-fixtures/solidity-fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'
-      );
-      const wtnsCalc = await witnessCalculator(fileBuf);
-      const wtns = await wtnsCalc.calculateWTNSBin(data, 0);
+      const wtns = await zkComponents2_2.witnessCalculator.calculateWTNSBin(data, 0);
       return wtns;
     };
   });

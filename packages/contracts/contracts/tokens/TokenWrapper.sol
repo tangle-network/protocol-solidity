@@ -3,10 +3,9 @@
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
-pragma solidity ^0.8.5;
+pragma solidity ^0.8.18;
 
 import "../interfaces/tokens/ITokenWrapper.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
@@ -19,7 +18,6 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 	@notice This contract is intended to be used with TokenHandler/FungibleToken contract.
  */
 abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, ReentrancyGuard {
-	using SafeMath for uint256;
 	using SafeERC20 for IERC20;
 	uint16 public feePercentage;
 	address payable public feeRecipient;
@@ -40,7 +38,7 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, Reentr
 		@return uint The fee amount of the token being wrapped
 	 */
 	function getFeeFromAmount(uint256 _amountToWrap) public view override returns (uint256) {
-		return _amountToWrap.mul(feePercentage).div(10000);
+		return (_amountToWrap * feePercentage) / 10000;
 	}
 
 	/**
@@ -59,7 +57,7 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, Reentr
 		@return uint The amount to wrap conditioned on the deposit amount
 	 */
 	function getAmountToWrap(uint256 _deposit) public view override returns (uint256) {
-		return _deposit.mul(10000).div(10000 - feePercentage);
+		return (_deposit * 10000) / (10000 - feePercentage);
 	}
 
 	/**
@@ -173,8 +171,8 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, Reentr
 	) internal {
 		uint256 costToWrap = getFeeFromAmount(tokenAddress == address(0) ? msg.value : amount);
 		uint256 leftover = tokenAddress == address(0)
-			? uint256(msg.value).sub(costToWrap)
-			: amount.sub(costToWrap);
+			? uint256(msg.value) - costToWrap
+			: amount - costToWrap;
 		if (tokenAddress == address(0)) {
 			// transfer fee (costToWrap) to feeRecipient
 			feeRecipient.transfer(costToWrap);

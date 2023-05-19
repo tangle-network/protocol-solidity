@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
-pragma solidity ^0.8.5;
+pragma solidity ^0.8.18;
 
-import "../interfaces/tokens/IFungibleTokenWrapper.sol";
 import "./TokenWrapper.sol";
+import "../interfaces/tokens/IFungibleTokenWrapper.sol";
 import "../utils/Initialized.sol";
 import "../utils/ProposalNonceTracker.sol";
 
@@ -23,8 +23,6 @@ contract FungibleTokenWrapper is
 	IFungibleTokenWrapper,
 	ProposalNonceTracker
 {
-	using SafeMath for uint256;
-
 	address public handler;
 	address[] public tokens;
 	address[] public historicalTokens;

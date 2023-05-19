@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
-pragma solidity ^0.8.5;
+pragma solidity ^0.8.18;
 
 import "../base/VAnchor.sol";
 import "../../trees/MerkleForest.sol";
@@ -16,7 +16,6 @@ import "../../trees/MerkleForest.sol";
  */
 contract VAnchorForest is VAnchor, MerkleForest {
 	using SafeERC20 for IERC20;
-	using SafeMath for uint256;
 
 	/**
 		@notice The VAnchor Forest constructor

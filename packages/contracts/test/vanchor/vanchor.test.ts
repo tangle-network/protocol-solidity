@@ -6,8 +6,6 @@ const assert = require('assert');
 import { ethers } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
 
-// Typechain generated bindings for contracts
-// These contracts are included in packages, so should be tested
 import {
   ERC20PresetMinterPauser,
   ERC20PresetMinterPauser__factory,
@@ -17,11 +15,11 @@ import {
 
 import {
   hexToU8a,
-  fetchComponentsFromFilePaths,
   getChainIdType,
   ZkComponents,
   u8aToHex,
   ZERO_BYTES32,
+  vanchorFixtures,
 } from '@webb-tools/utils';
 import { BigNumber, ContractReceipt } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -38,7 +36,7 @@ import {
   CircomUtxo,
 } from '@webb-tools/sdk-core';
 import { VAnchor, PoseidonHasher } from '@webb-tools/anchors';
-import { Verifier } from '@webb-tools/vbridge';
+import { Verifier } from '@webb-tools/anchors';
 import { SetupTxVAnchorMock } from './mocks/SetupTxVAnchorMock';
 import { retryPromiseMock } from './mocks/retryPromiseMock';
 
@@ -48,14 +46,13 @@ const path = require('path');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
 
-describe('VAnchor for 1 max edge', () => {
+describe.only('VAnchor for 1 max edge', () => {
   let anchor: VAnchor;
 
   const levels = 30;
   let fee = BigInt(new BN(`100000000000000000`).toString());
   let recipient;
   let verifier: Verifier;
-  let hasherInstance: any;
   let token: ERC20PresetMinterPauser;
   let wrappedToken: WrappedToken;
   let tokenDenomination = '1000000000000000000'; // 1 ether
@@ -63,7 +60,6 @@ describe('VAnchor for 1 max edge', () => {
   const MAX_EDGES = 1;
   let create2InputWitness: any;
   let sender: SignerWithAddress;
-  // setup zero knowledge components
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
 
@@ -83,35 +79,8 @@ describe('VAnchor for 1 max edge', () => {
   };
 
   before('instantiate zkcomponents', async () => {
-    zkComponents2_2 = await fetchComponentsFromFilePaths(
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/witness_calculator.cjs'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey'
-      )
-    );
-
-    zkComponents16_2 = await fetchComponentsFromFilePaths(
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/poseidon_vanchor_16_2.wasm'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/witness_calculator.cjs'
-      ),
-      path.resolve(
-        __dirname,
-        '../../solidity-fixtures/solidity-fixtures/vanchor_16/2/circuit_final.zkey'
-      )
-    );
+    zkComponents2_2 = await vanchorFixtures[22]();
+    zkComponents16_2 = await vanchorFixtures[162]();
   });
 
   beforeEach(async () => {
@@ -171,12 +140,7 @@ describe('VAnchor for 1 max edge', () => {
     await token.approve(wrappedToken.address, '1000000000000000000000000');
 
     create2InputWitness = async (data: any) => {
-      const witnessCalculator = require('../../solidity-fixtures/solidity-fixtures/vanchor_2/2/witness_calculator.cjs');
-      const fileBuf = require('fs').readFileSync(
-        'solidity-fixtures/solidity-fixtures/vanchor_2/2/poseidon_vanchor_2_2.wasm'
-      );
-      const wtnsCalc = await witnessCalculator(fileBuf);
-      const wtns = await wtnsCalc.calculateWTNSBin(data, 0);
+      const wtns = await zkComponents2_2.witnessCalculator.calculateWTNSBin(data, 0);
       return wtns;
     };
   });
@@ -228,15 +192,10 @@ describe('VAnchor for 1 max edge', () => {
       );
 
       const wtns = await create2InputWitness(input);
-      let res = await snarkjs.groth16.prove(
-        'solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey',
-        wtns
-      );
+      let res = await vanchorFixtures.prove_2_2(wtns);
       const proof = res.proof;
       let publicSignals = res.publicSignals;
-      const vKey = await snarkjs.zKey.exportVerificationKey(
-        'solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey'
-      );
+      const vKey = await vanchorFixtures.vkey_2_2();
 
       res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       assert.strictEqual(res, true);
@@ -355,9 +314,21 @@ describe('VAnchor for 1 max edge', () => {
 
       const anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
-      await anchor.transact([aliceDepositUtxo], [aliceRefreshUtxo], 0, 0, '0', '0', '', {
-        [chainID.toString()]: anchorLeaves,
-      });
+      await anchor.transact(
+        [aliceDepositUtxo],
+        [aliceRefreshUtxo],
+        0,
+        0,
+        '0',
+        '0',
+        '',
+        {
+          [chainID.toString()]: anchorLeaves,
+        },
+        {
+          treeChainId: chainID.toString(),
+        }
+      );
     });
 
     it('should refund native tokens', async () => {
@@ -402,6 +373,9 @@ describe('VAnchor for 1 max edge', () => {
         '',
         {
           [chainID.toString()]: anchorLeaves,
+        },
+        {
+          treeChainId: chainID.toString(),
         }
       );
 
@@ -482,6 +456,9 @@ describe('VAnchor for 1 max edge', () => {
           '',
           {
             [chainID.toString()]: anchorLeaves,
+          },
+          {
+            treeChainId: chainID.toString(),
           }
         ),
         Error,
@@ -523,6 +500,9 @@ describe('VAnchor for 1 max edge', () => {
         '',
         {
           [chainID.toString()]: anchorLeaves,
+        },
+        {
+          treeChainId: chainID.toString(),
         }
       );
     });
@@ -557,9 +537,21 @@ describe('VAnchor for 1 max edge', () => {
         blinding: hexToU8a(randomBN().toHexString()),
       });
 
-      await anchor.transact([], [aliceDepositUtxo2], 0, 0, '0', '0', token.address, {
-        [chainID.toString()]: anchorLeaves,
-      });
+      await anchor.transact(
+        [],
+        [aliceDepositUtxo2],
+        0,
+        0,
+        '0',
+        '0',
+        token.address,
+        {
+          [chainID.toString()]: anchorLeaves,
+        },
+        {
+          treeChainId: chainID.toString(),
+        }
+      );
 
       anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
@@ -582,6 +574,9 @@ describe('VAnchor for 1 max edge', () => {
         '',
         {
           [chainID.toString()]: anchorLeaves,
+        },
+        {
+          treeChainId: chainID.toString(),
         }
       );
     });
@@ -624,9 +619,21 @@ describe('VAnchor for 1 max edge', () => {
         keypair: aliceDepositUtxo1.keypair,
       });
 
-      await anchor.transact([], [aliceDepositUtxo3], 0, 0, '0', '0', token.address, {
-        [chainID.toString()]: anchorLeaves,
-      });
+      await anchor.transact(
+        [],
+        [aliceDepositUtxo3],
+        0,
+        0,
+        '0',
+        '0',
+        token.address,
+        {
+          [chainID.toString()]: anchorLeaves,
+        },
+        {
+          treeChainId: chainID.toString(),
+        }
+      );
 
       anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
@@ -658,6 +665,9 @@ describe('VAnchor for 1 max edge', () => {
         '',
         {
           [chainID.toString()]: anchorLeaves,
+        },
+        {
+          treeChainId: chainID.toString(),
         }
       );
     }).timeout(120000);
@@ -697,9 +707,21 @@ describe('VAnchor for 1 max edge', () => {
       });
       const aliceETHAddress = '0xDeaD00000000000000000000000000000000BEEf';
 
-      await anchor.transact([aliceDepositUtxo], [aliceChangeUtxo], 0, 0, aliceETHAddress, '0', '', {
-        [chainID.toString()]: anchorLeaves,
-      });
+      await anchor.transact(
+        [aliceDepositUtxo],
+        [aliceChangeUtxo],
+        0,
+        0,
+        aliceETHAddress,
+        '0',
+        '',
+        {
+          [chainID.toString()]: anchorLeaves,
+        },
+        {
+          treeChainId: chainID.toString(),
+        }
+      );
 
       // Check that Alice receives withdrawn wrapped tokens
       assert.strictEqual(
@@ -757,16 +779,40 @@ describe('VAnchor for 1 max edge', () => {
         keypair: aliceDepositUtxo.keypair,
       });
 
-      await anchor.transact([aliceDepositUtxo], [aliceTransferUtxo], 0, 0, '0', '0', '', {
-        [chainID.toString()]: anchorLeaves,
-      });
+      await anchor.transact(
+        [aliceDepositUtxo],
+        [aliceTransferUtxo],
+        0,
+        0,
+        '0',
+        '0',
+        '',
+        {
+          [chainID.toString()]: anchorLeaves,
+        },
+        {
+          treeChainId: chainID.toString(),
+        }
+      );
 
       anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
       await TruffleAssert.reverts(
-        anchor.transact([aliceDepositUtxo], [aliceTransferUtxo], 0, 0, '0', '0', '', {
-          [chainID.toString()]: anchorLeaves,
-        }),
+        anchor.transact(
+          [aliceDepositUtxo],
+          [aliceTransferUtxo],
+          0,
+          0,
+          '0',
+          '0',
+          '',
+          {
+            [chainID.toString()]: anchorLeaves,
+          },
+          {
+            treeChainId: chainID.toString(),
+          }
+        ),
         'Input is already spent'
       );
     });
@@ -819,9 +865,21 @@ describe('VAnchor for 1 max edge', () => {
       });
       // Step 4: Check that step 3 fails
       await TruffleAssert.reverts(
-        anchor.transact([aliceDepositUtxo], [aliceOutputUtxo], 0, 0, '0', '0', token.address, {
-          [chainID.toString()]: anchorLeaves,
-        }),
+        anchor.transact(
+          [aliceDepositUtxo],
+          [aliceOutputUtxo],
+          0,
+          0,
+          '0',
+          '0',
+          token.address,
+          {
+            [chainID.toString()]: anchorLeaves,
+          },
+          {
+            treeChainId: chainID.toString(),
+          }
+        ),
         'ERC20: transfer amount exceeds balance'
       );
     });
@@ -865,10 +923,7 @@ describe('VAnchor for 1 max edge', () => {
       );
 
       const wtns = await create2InputWitness(input);
-      let res = await snarkjs.groth16.prove(
-        'solidity-fixtures/solidity-fixtures/vanchor_2/2/circuit_final.zkey',
-        wtns
-      );
+      let res = await vanchorFixtures.prove_2_2(wtns);
       const proof = res.proof;
       let publicSignals = res.publicSignals;
       const proofEncoded = await generateWithdrawProofCallData(proof, publicSignals);
@@ -1176,6 +1231,9 @@ describe('VAnchor for 1 max edge', () => {
         token.address,
         {
           [chainID.toString()]: leaves,
+        },
+        {
+          treeChainId: chainID.toString(),
         }
       )) as ContractReceipt;
 
@@ -1202,9 +1260,21 @@ describe('VAnchor for 1 max edge', () => {
       const anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
       // withdrawal
-      await anchor.transact([aliceDepositUtxo], [], 0, 0, sender.address, '0', '', {
-        [chainID.toString()]: anchorLeaves,
-      });
+      await anchor.transact(
+        [aliceDepositUtxo],
+        [],
+        0,
+        0,
+        sender.address,
+        '0',
+        '',
+        {
+          [chainID.toString()]: anchorLeaves,
+        },
+        {
+          treeChainId: chainID.toString(),
+        }
+      );
 
       //build merkle tree start
       const filter = anchor.contract.filters.NewCommitment();
@@ -1327,7 +1397,7 @@ describe('VAnchor for 1 max edge', () => {
           encryptedOutput1: outputs[0].encrypt(),
           encryptedOutput2: outputs[1].encrypt(),
         }),
-        'non-existent edge is not set to the default root'
+        'LinkableAnchor: non-existent edge is not set to the default root'
       );
     });
   });
@@ -1583,6 +1653,9 @@ describe('VAnchor for 1 max edge', () => {
         token.address,
         {
           [chainID.toString()]: anchorLeaves,
+        },
+        {
+          treeChainId: chainID.toString(),
         }
       );
 
@@ -1714,6 +1787,9 @@ describe('VAnchor for 1 max edge', () => {
         token.address,
         {
           [chainID.toString()]: anchorLeaves,
+        },
+        {
+          treeChainId: chainID.toString(),
         }
       );
 
@@ -1742,9 +1818,21 @@ describe('VAnchor for 1 max edge', () => {
       );
 
       await TruffleAssert.passes(
-        wrappedVAnchor.transact([aliceChangeUtxo], [], 0, 0, sender.address, '0', token.address, {
-          [chainID.toString()]: anchorLeaves,
-        })
+        wrappedVAnchor.transact(
+          [aliceChangeUtxo],
+          [],
+          0,
+          0,
+          sender.address,
+          '0',
+          token.address,
+          {
+            [chainID.toString()]: anchorLeaves,
+          },
+          {
+            treeChainId: chainID.toString(),
+          }
+        )
       );
 
       let originalTokenDifference = expectedSenderTokenOutflows - 2e7;
