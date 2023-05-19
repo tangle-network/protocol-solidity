@@ -4,6 +4,7 @@
   "types": "./dist/index.d.ts",
   "license": "(MIT or Apache-2.0)",
   "author": "Webb Developers <drew@webb.tools>",
+  "version": "0.5.40",
   "scripts": {
     "build:contracts": "npx hardhat compile",
     "build:library": "tsc -p tsconfig.build.json",
@@ -25,7 +26,6 @@
     "type": "git",
     "url": "git://github.com/webb-tools/protocol-solidity.git"
   },
-  "version": "0.5.40",
   "devDependencies": {
     "@webb-tools/semaphore": "0.0.1-5",
     "@webb-tools/semaphore-group": "0.0.1-4",

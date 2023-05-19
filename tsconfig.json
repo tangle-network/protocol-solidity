@@ -4,19 +4,39 @@
     "baseUrl": ".",
     "paths": {
       /**
-      *   Solidity contracts
+      *   Solidity contracts & Typechain
       */
+      "@webb-tools/contracts": [
+        "packages/contracts/typechain-types"
+      ],
+      "@webb-tools/contracts/*": [
+        "packages/contracts/typechain-types/*"
+      ],
       "@webb-tools/protocol-solidity": [
         "packages/contracts/contracts"
       ],
       "@webb-tools/protocol-solidity/*": [
         "packages/contracts/contracts/*"
       ],
+
+      "@webb-tools/identity-anchor-contracts": [
+        "packages/identity-anchor-contracts/typechain-types"
+      ],
+      "@webb-tools/identity-anchor-contracts/*": [
+        "packages/identity-anchor-contracts/typechain-types/*"
+      ],
       "@webb-tools/identity-protocol-solidity": [
         "packages/identity-anchor-contracts/contracts"
       ],
       "@webb-tools/identity-protocol-solidity/*": [
         "packages/identity-anchor-contracts/contracts/*"
+      ],
+
+      "@webb-tools/masp-anchor-contracts": [
+        "packages/masp-anchor-contracts/typechain-types"
+      ],
+      "@webb-tools/masp-anchor-contracts/*": [
+        "packages/masp-anchor-contracts/typechain-types/*"
       ],
       "@webb-tools/masp-protocol-solidity": [
         "packages/masp-anchor-contracts/contracts"
@@ -51,24 +71,6 @@
       ],
       "@webb-tools/evm-test-utils/*": [
         "packages/evm-test-utils/src/*"
-      ],
-      "@webb-tools/contracts": [
-        "packages/contracts"
-      ],
-      "@webb-tools/contracts/*": [
-        "packages/contracts/*"
-      ],
-      "@webb-tools/identity-anchor-contracts": [
-        "packages/identity-anchor-contracts"
-      ],
-      "@webb-tools/identity-anchor-contracts/*": [
-        "packages/identity-anchor-contracts/*"
-      ],
-      "@webb-tools/masp-anchor-contracts": [
-        "packages/masp-anchor-contracts"
-      ],
-      "@webb-tools/masp-anchor-contracts/*": [
-        "packages/masp-anchor-contracts/*"
       ],
       "@webb-tools/create2-utils": [
         "packages/create2-utils"

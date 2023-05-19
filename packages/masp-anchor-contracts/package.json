@@ -4,6 +4,7 @@
   "types": "./dist/index.d.ts",
   "license": "(MIT or Apache-2.0)",
   "author": "Webb Developers <drew@webb.tools>",
+  "version": "0.5.40",
   "scripts": {
     "build:contracts": "npx hardhat compile",
     "build:library": "tsc -p tsconfig.build.json",
@@ -25,7 +26,6 @@
     "type": "git",
     "url": "git://github.com/webb-tools/protocol-solidity.git"
   },
-  "version": "0.5.40",
   "dependencies": {
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",

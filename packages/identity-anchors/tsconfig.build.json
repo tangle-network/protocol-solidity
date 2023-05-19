@@ -1,16 +1,15 @@
 {
   "compilerOptions": {
+    "rootDir": "./src/",
     "outDir": "./dist/",
     "baseUrl": ".",
     "paths": {
       "@webb-tools/*": ["../*/dist"]
-    },
+    }
   },
   "exclude": [],
   "extends": "../../tsconfig.build.json",
   "include": [
     "./src/*.ts",
-    "./typechain/**/*.ts",
-    "./typechain/*.ts",
   ]
 }
