@@ -24,7 +24,7 @@ export async function fetchComponentsFromFilePaths(
   };
 }
 
-const PATH_PREFIX = '../../../../solidity-fixtures/solidity-fixtures';
+const PATH_PREFIX = '../../../solidity-fixtures/solidity-fixtures';
 const ZKEY_NAME = 'circuit_final.zkey';
 const WITNESS_CALCULATOR_NAME = 'witness_calculator.cjs';
 
