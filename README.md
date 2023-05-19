@@ -127,21 +127,6 @@ To compile contracts and build typescript interfaces
 yarn build
 ```
 
-The above command will build the Solidity system, performing the following build steps:
-
-1. Compile the smart contracts and generate appropriate typescript bindings in a folder `typechain` at the root directory. 
-
-2. Compile the hashers. These hashers are provided to the merkle tree upon deployment.
-
-
-**Note:** If you need to generate fixtures you should run:
-
-```
-yarn build
-```
-
-The above command will `compile` the contracts but also compile the circom circuits, and generate ptau. The ptau is needed for setup of zero knowledge proofs. This ptau is for test and development purposes only!
-
 **Note:** If you push new fixtures to remote storage
 
 ```
