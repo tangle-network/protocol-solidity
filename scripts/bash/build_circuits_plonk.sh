@@ -1,7 +1,5 @@
 #!/bin/bash
 
-mkdir -p artifacts/circuits/{anchor,anchor,keypair,membership,semaphore,signature,vanchor_2,vanchor_16,poseidon4}
-
 compile () {
     local outdir="$1" circuit="$2" size="$3"
     mkdir -p build/$outdir
@@ -57,13 +55,6 @@ copy_to_fixtures anchor poseidon_anchor_6 6 anchor
 echo "Compiling Webb style Poseidon anchor 32 withdrawal circuit..."
 compile anchor poseidon_anchor_32 32
 copy_to_fixtures anchor poseidon_anchor_32 32 anchor
-
-# ###
-# # WEBB SEMPAHORES
-# ###
-# echo "Compiling Webb style Semaphore anchor 2 withdrawal circuit..."
-# compile semaphore semaphore_anchor_2 2
-# copy_to_fixtures semaphore semaphore_anchor_2 2 semaphore
 
 ###
 # WEBB VANCHORS
