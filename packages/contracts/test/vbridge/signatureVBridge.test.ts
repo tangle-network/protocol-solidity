@@ -23,9 +23,9 @@ import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
 import { startGanacheServer } from '../startGanache';
 import { VAnchorTree } from '@webb-tools/contracts';
 
-const path = require('path');
-
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+const zkComponents = vanchorFixtures('../../../solidity-fixtures/solidity-fixtures');
 
 describe('2-sided multichain tests for signature vbridge', () => {
   const FIRST_CHAIN_ID = 31337;
@@ -55,8 +55,8 @@ describe('2-sided multichain tests for signature vbridge', () => {
       },
     ]);
 
-    zkComponents2_2 = await vanchorFixtures[22]();
-    zkComponents16_2 = await vanchorFixtures[162]();
+    zkComponents2_2 = await zkComponents[22]();
+    zkComponents16_2 = await zkComponents[162]();
   });
 
   describe('BridgeConstruction', () => {
@@ -1014,8 +1014,8 @@ describe.skip('8-sided multichain tests for signature vbridge', () => {
       },
     ]);
 
-    zkComponents2_8 = await vanchorFixtures[28]();
-    zkComponents16_8 = await vanchorFixtures[168]();
+    zkComponents2_8 = await zkComponents[28]();
+    zkComponents16_8 = await zkComponents[168]();
   });
 
   describe('8 sided bridge existing token use', () => {

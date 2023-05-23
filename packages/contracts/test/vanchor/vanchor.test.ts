@@ -41,12 +41,12 @@ import { SetupTxVAnchorMock } from './mocks/SetupTxVAnchorMock';
 import { retryPromiseMock } from './mocks/retryPromiseMock';
 
 const BN = require('bn.js');
-
-const path = require('path');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
 
-describe.only('VAnchor for 1 max edge', () => {
+const zkComponents = vanchorFixtures('../../../solidity-fixtures/solidity-fixtures');
+
+describe('VAnchor for 1 max edge', () => {
   let anchor: VAnchor;
 
   const levels = 30;
@@ -79,8 +79,8 @@ describe.only('VAnchor for 1 max edge', () => {
   };
 
   before('instantiate zkcomponents', async () => {
-    zkComponents2_2 = await vanchorFixtures[22]();
-    zkComponents16_2 = await vanchorFixtures[162]();
+    zkComponents2_2 = await zkComponents[22]();
+    zkComponents16_2 = await zkComponents[162]();
   });
 
   beforeEach(async () => {
@@ -192,10 +192,10 @@ describe.only('VAnchor for 1 max edge', () => {
       );
 
       const wtns = await create2InputWitness(input);
-      let res = await vanchorFixtures.prove_2_2(wtns);
+      let res = await zkComponents.prove_2_2(wtns);
       const proof = res.proof;
       let publicSignals = res.publicSignals;
-      const vKey = await vanchorFixtures.vkey_2_2();
+      const vKey = await zkComponents.vkey_2_2();
 
       res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       assert.strictEqual(res, true);
@@ -923,7 +923,7 @@ describe.only('VAnchor for 1 max edge', () => {
       );
 
       const wtns = await create2InputWitness(input);
-      let res = await vanchorFixtures.prove_2_2(wtns);
+      let res = await zkComponents.prove_2_2(wtns);
       const proof = res.proof;
       let publicSignals = res.publicSignals;
       const proofEncoded = await generateWithdrawProofCallData(proof, publicSignals);

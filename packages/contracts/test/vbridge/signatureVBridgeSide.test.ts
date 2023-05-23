@@ -29,6 +29,8 @@ import { BigNumber } from 'ethers';
 import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
 import { VAnchorTree } from '@webb-tools/contracts';
 
+const zkComponents = vanchorFixtures('../../../solidity-fixtures/solidity-fixtures');
+
 describe('SignatureBridgeSide use', () => {
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
@@ -39,8 +41,8 @@ describe('SignatureBridgeSide use', () => {
   const chainID1 = getChainIdType(31337);
 
   before(async () => {
-    zkComponents2_2 = await vanchorFixtures[22]();
-    zkComponents16_2 = await vanchorFixtures[162]();
+    zkComponents2_2 = await zkComponents[22]();
+    zkComponents16_2 = await zkComponents[162]();
   });
 
   beforeEach(async () => {

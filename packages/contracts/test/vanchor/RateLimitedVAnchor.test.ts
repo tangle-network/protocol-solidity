@@ -21,7 +21,7 @@ import { Keypair, randomBN, CircomUtxo } from '@webb-tools/sdk-core';
 import { PoseidonHasher, RateLimitedVAnchor } from '@webb-tools/anchors';
 import { Verifier } from '@webb-tools/anchors';
 
-const path = require('path');
+const zkComponents = vanchorFixtures('../../../solidity-fixtures/solidity-fixtures');
 
 describe('Rate Limited VAnchor', () => {
   let anchor: RateLimitedVAnchor;
@@ -54,8 +54,8 @@ describe('Rate Limited VAnchor', () => {
   };
 
   before('instantiate zkcomponents', async () => {
-    zkComponents2_2 = await vanchorFixtures[22]();
-    zkComponents16_2 = await vanchorFixtures[162]();
+    zkComponents2_2 = await zkComponents[22]();
+    zkComponents16_2 = await zkComponents[162]();
   });
 
   beforeEach(async () => {

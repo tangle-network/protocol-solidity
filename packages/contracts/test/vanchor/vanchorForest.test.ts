@@ -6,7 +6,6 @@ const assert = require('assert');
 import { ethers } from 'hardhat';
 const TruffleAssert = require('truffle-assertions');
 
-// import { toFixedHex, toHex, MerkleTree, MerkleProof } from '@webb-tools/sdk-core';
 import {
   ERC20PresetMinterPauser,
   ERC20PresetMinterPauser__factory,
@@ -43,9 +42,10 @@ import { ForestVerifier } from '@webb-tools/anchors';
 import { startGanacheServer } from '../startGanache';
 
 const BN = require('bn.js');
-const path = require('path');
 const snarkjs = require('snarkjs');
 const { toBN } = require('web3-utils');
+
+const zkComponents = vanchorForestFixtures('../../../solidity-fixtures/solidity-fixtures');
 
 describe.skip('VAnchorForest for 1 max edge', () => {
   let anchor: VAnchorForest;
@@ -82,8 +82,8 @@ describe.skip('VAnchorForest for 1 max edge', () => {
   };
 
   before('instantiate zkcomponents', async () => {
-    zkComponents2_2 = await vanchorForestFixtures[22]();
-    zkComponents16_2 = await vanchorForestFixtures[162]();
+    zkComponents2_2 = await zkComponents[22]();
+    zkComponents16_2 = await zkComponents[162]();
   });
 
   beforeEach(async () => {
@@ -195,10 +195,10 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       );
 
       const wtns = await create2InputWitness(input);
-      let res = await vanchorForestFixtures.prove_2_2(wtns);
+      let res = await zkComponents.prove_2_2(wtns);
       const proof = res.proof;
       let publicSignals = res.publicSignals;
-      const vKey = await vanchorForestFixtures.vkey_2_2();
+      const vKey = await zkComponents.vkey_2_2();
       res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       assert.strictEqual(res, true);
     });
@@ -720,7 +720,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       );
 
       const wtns = await create2InputWitness(input);
-      let res = await vanchorForestFixtures.prove_2_2(wtns);
+      let res = await zkComponents.prove_2_2(wtns);
       const proof = res.proof;
       let publicSignals = res.publicSignals;
       const proofEncoded = generateWithdrawProofCallData(proof, publicSignals);
