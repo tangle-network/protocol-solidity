@@ -1187,7 +1187,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       const zkeyFile = anchor.smallCircuitZkComponents.zkey;
 
       let proof = await snarkjs.groth16.fullProve(proofInput, wasmFile, zkeyFile);
-      const vKey = await vanchorForestFixtures.vkey_2_2();
+      const vKey = await zkComponents.vkey_2_2();
 
       const res = await snarkjs.groth16.verify(vKey, proof.publicSignals, proof.proof);
       if (res !== true) {
