@@ -135,7 +135,7 @@ describe('Rate Limited VAnchor', () => {
         '0',
         '0',
         token.address,
-        {}
+        {},
       );
 
       let anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
@@ -154,6 +154,8 @@ describe('Rate Limited VAnchor', () => {
 
       await anchor.transact([aliceDepositUtxo], [aliceChangeUtxo], 0, 0, aliceETHAddress, '0', '', {
         [chainID.toString()]: anchorLeaves,
+      }, {
+        treeChainId: chainID.toString(),
       });
 
       // Check that Alice receives withdrawn wrapped tokens
@@ -198,6 +200,8 @@ describe('Rate Limited VAnchor', () => {
       await TruffleAssert.reverts(
         anchor.transact([aliceDepositUtxo], [aliceChangeUtxo], 0, 0, aliceETHAddress, '0', '', {
           [chainID.toString()]: anchorLeaves,
+        }, {
+          treeChainId: chainID.toString(),
         }),
         'RateLimitedVAnchor: Daily withdrawal limit reached'
       );

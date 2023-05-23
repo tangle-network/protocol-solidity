@@ -457,7 +457,10 @@ export class VBridge<A extends BaseContract> {
       recipient,
       relayer,
       wrapUnwrapToken,
-      leavesMap
+      leavesMap,
+      {
+        treeChainId: chainId.toString(),
+      }
     );
     await this.update(chainId);
   }
