@@ -11,11 +11,7 @@ import { VBridge, VBridgeInput } from '@webb-tools/vbridge';
 import { VAnchor } from '@webb-tools/anchors';
 import { MintableToken, FungibleTokenWrapper } from '@webb-tools/tokens';
 import { BigNumber } from 'ethers';
-import {
-  getChainIdType,
-  vanchorFixtures,
-  ZkComponents,
-} from '@webb-tools/utils';
+import { getChainIdType, vanchorFixtures, ZkComponents } from '@webb-tools/utils';
 import { CircomUtxo } from '@webb-tools/sdk-core';
 import { DeployerConfig, GovernorConfig } from '@webb-tools/interfaces';
 import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
