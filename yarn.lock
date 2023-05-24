@@ -5526,11 +5526,6 @@ cbor@^5.2.0:
     bignumber.js "^9.0.1"
     nofilter "^1.0.4"
 
-chacha20@^0.1.4:
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/chacha20/-/chacha20-0.1.4.tgz#0ae14749ac23c444912fdc482968461649f69e18"
-  integrity sha512-nxKJwtcXKxXIITkHQDrgCrZKAHjL6CY94n74obSux9WynGnoYj4wGTYHygp6DDSrBB9Efjts0QXSAFRz7E1hJg==
-
 chai-as-promised@^7.1.1:
   version "7.1.1"
   resolved "https://registry.yarnpkg.com/chai-as-promised/-/chai-as-promised-7.1.1.tgz#08645d825deb8696ee61725dbf590c012eb00ca0"

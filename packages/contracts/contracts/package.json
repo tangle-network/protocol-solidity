@@ -1,7 +1,7 @@
 {
   "name": "@webb-tools/protocol-solidity",
   "description": "Solidity contracts for protocol-solidity",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "files": [
     "**/*.sol"
   ],

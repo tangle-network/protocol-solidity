@@ -449,6 +449,7 @@ export class VBridge<A extends BaseContract> {
       );
     }
 
+    let inputChainId = inputs[0].originChainId;
     await (vAnchor as unknown as VAnchor).transact(
       inputs,
       outputs,
@@ -457,7 +458,10 @@ export class VBridge<A extends BaseContract> {
       recipient,
       relayer,
       wrapUnwrapToken,
-      leavesMap
+      leavesMap,
+      {
+        treeChainId: inputChainId,
+      }
     );
     await this.update(chainId);
   }

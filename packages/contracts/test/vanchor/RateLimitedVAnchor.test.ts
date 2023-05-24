@@ -21,7 +21,7 @@ import { Keypair, randomBN, CircomUtxo } from '@webb-tools/sdk-core';
 import { PoseidonHasher, RateLimitedVAnchor } from '@webb-tools/anchors';
 import { Verifier } from '@webb-tools/anchors';
 
-const path = require('path');
+const zkComponents = vanchorFixtures('../../../solidity-fixtures/solidity-fixtures');
 
 describe('Rate Limited VAnchor', () => {
   let anchor: RateLimitedVAnchor;
@@ -54,8 +54,8 @@ describe('Rate Limited VAnchor', () => {
   };
 
   before('instantiate zkcomponents', async () => {
-    zkComponents2_2 = await vanchorFixtures[22]();
-    zkComponents16_2 = await vanchorFixtures[162]();
+    zkComponents2_2 = await zkComponents[22]();
+    zkComponents16_2 = await zkComponents[162]();
   });
 
   beforeEach(async () => {
@@ -152,9 +152,21 @@ describe('Rate Limited VAnchor', () => {
       });
       const aliceETHAddress = '0xDeaD00000000000000000000000000000000BEEf';
 
-      await anchor.transact([aliceDepositUtxo], [aliceChangeUtxo], 0, 0, aliceETHAddress, '0', '', {
-        [chainID.toString()]: anchorLeaves,
-      });
+      await anchor.transact(
+        [aliceDepositUtxo],
+        [aliceChangeUtxo],
+        0,
+        0,
+        aliceETHAddress,
+        '0',
+        '',
+        {
+          [chainID.toString()]: anchorLeaves,
+        },
+        {
+          treeChainId: chainID.toString(),
+        }
+      );
 
       // Check that Alice receives withdrawn wrapped tokens
       assert.strictEqual(
@@ -196,9 +208,21 @@ describe('Rate Limited VAnchor', () => {
       const aliceETHAddress = '0xDeaD00000000000000000000000000000000BEEf';
 
       await TruffleAssert.reverts(
-        anchor.transact([aliceDepositUtxo], [aliceChangeUtxo], 0, 0, aliceETHAddress, '0', '', {
-          [chainID.toString()]: anchorLeaves,
-        }),
+        anchor.transact(
+          [aliceDepositUtxo],
+          [aliceChangeUtxo],
+          0,
+          0,
+          aliceETHAddress,
+          '0',
+          '',
+          {
+            [chainID.toString()]: anchorLeaves,
+          },
+          {
+            treeChainId: chainID.toString(),
+          }
+        ),
         'RateLimitedVAnchor: Daily withdrawal limit reached'
       );
     });

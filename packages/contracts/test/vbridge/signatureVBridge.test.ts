@@ -11,21 +11,16 @@ import { VBridge, VBridgeInput } from '@webb-tools/vbridge';
 import { VAnchor } from '@webb-tools/anchors';
 import { MintableToken, FungibleTokenWrapper } from '@webb-tools/tokens';
 import { BigNumber } from 'ethers';
-import {
-  fetchComponentsFromFilePaths,
-  getChainIdType,
-  vanchorFixtures,
-  ZkComponents,
-} from '@webb-tools/utils';
+import { getChainIdType, vanchorFixtures, ZkComponents } from '@webb-tools/utils';
 import { CircomUtxo } from '@webb-tools/sdk-core';
 import { DeployerConfig, GovernorConfig } from '@webb-tools/interfaces';
 import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
 import { startGanacheServer } from '../startGanache';
 import { VAnchorTree } from '@webb-tools/contracts';
 
-const path = require('path');
-
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+const zkComponents = vanchorFixtures('../../../solidity-fixtures/solidity-fixtures');
 
 describe('2-sided multichain tests for signature vbridge', () => {
   const FIRST_CHAIN_ID = 31337;
@@ -55,8 +50,8 @@ describe('2-sided multichain tests for signature vbridge', () => {
       },
     ]);
 
-    zkComponents2_2 = await vanchorFixtures[22]();
-    zkComponents16_2 = await vanchorFixtures[162]();
+    zkComponents2_2 = await zkComponents[22]();
+    zkComponents16_2 = await zkComponents[162]();
   });
 
   describe('BridgeConstruction', () => {
@@ -188,6 +183,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
       assert.deepEqual(governorAddress, chainGovernor);
     });
   });
+
   describe('2 sided bridge existing token use', () => {
     // ERC20 compliant contracts that can easily create balances for test
     let existingToken1: MintableToken;
@@ -259,11 +255,11 @@ describe('2-sided multichain tests for signature vbridge', () => {
       // Should be able to retrieve the token address (so we can mint tokens for test scenario)
       const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainID1);
       const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
-      const tx1 = await webbToken1.mintTokens(signers[1].address, '100000000000000000000000');
+      await webbToken1.mintTokens(signers[1].address, '100000000000000000000000');
 
       const webbTokenAddress2 = vBridge.getWebbTokenAddress(chainID2);
       const webbToken2 = await MintableToken.tokenFromAddress(webbTokenAddress2!, ganacheWallet2);
-      const tx2 = await webbToken2.mintTokens(ganacheWallet2.address, '100000000000000000000000');
+      await webbToken2.mintTokens(ganacheWallet2.address, '100000000000000000000000');
 
       // Transact on the bridge
       await vBridge.transact([], [depositUtxo1], 0, 0, '0', '0', '', signers[1]);
@@ -1014,8 +1010,8 @@ describe.skip('8-sided multichain tests for signature vbridge', () => {
       },
     ]);
 
-    zkComponents2_8 = await vanchorFixtures[28]();
-    zkComponents16_8 = await vanchorFixtures[168]();
+    zkComponents2_8 = await zkComponents[28]();
+    zkComponents16_8 = await zkComponents[168]();
   });
 
   describe('8 sided bridge existing token use', () => {

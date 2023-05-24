@@ -14,6 +14,8 @@ import { Keypair, CircomUtxo, randomBN } from '@webb-tools/sdk-core';
 import { ERC20PresetMinterPauser, ERC20PresetMinterPauser__factory } from '@webb-tools/contracts';
 import { expect } from 'chai';
 
+const zkComponents = vanchorFixtures('../../../solidity-fixtures/solidity-fixtures');
+
 describe.skip('ChainalysisVAnchor', () => {
   let anchor: ChainalysisVAnchor;
   let sender: SignerWithAddress;
@@ -100,8 +102,8 @@ describe.skip('ChainalysisVAnchor', () => {
   };
 
   before('instantiate zkcomponents', async () => {
-    zkComponents2_2 = await vanchorFixtures[22]();
-    zkComponents16_2 = await vanchorFixtures[162]();
+    zkComponents2_2 = await zkComponents[22]();
+    zkComponents16_2 = await zkComponents[162]();
   });
 
   describe('#transact', () => {

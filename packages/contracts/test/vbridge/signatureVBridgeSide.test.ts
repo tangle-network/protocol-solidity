@@ -18,16 +18,13 @@ import {
   FungibleTokenWrapper,
   TokenWrapperHandler,
 } from '@webb-tools/tokens';
-import {
-  fetchComponentsFromFilePaths,
-  getChainIdType,
-  vanchorFixtures,
-  ZkComponents,
-} from '@webb-tools/utils';
+import { getChainIdType, vanchorFixtures, ZkComponents } from '@webb-tools/utils';
 import { CircomUtxo, Keypair } from '@webb-tools/sdk-core';
 import { BigNumber } from 'ethers';
 import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
 import { VAnchorTree } from '@webb-tools/contracts';
+
+const zkComponents = vanchorFixtures('../../../solidity-fixtures/solidity-fixtures');
 
 describe('SignatureBridgeSide use', () => {
   let zkComponents2_2: ZkComponents;
@@ -39,8 +36,8 @@ describe('SignatureBridgeSide use', () => {
   const chainID1 = getChainIdType(31337);
 
   before(async () => {
-    zkComponents2_2 = await vanchorFixtures[22]();
-    zkComponents16_2 = await vanchorFixtures[162]();
+    zkComponents2_2 = await zkComponents[22]();
+    zkComponents16_2 = await zkComponents[162]();
   });
 
   beforeEach(async () => {
@@ -131,9 +128,21 @@ describe('SignatureBridgeSide use', () => {
       keypair: new Keypair(),
     });
     // Transact on the bridge
-    await srcAnchor.transact([], [depositUtxo], '0', '0', zeroAddress, zeroAddress, '', {
-      [chainID1.toString()]: [],
-    });
+    await srcAnchor.transact(
+      [],
+      [depositUtxo],
+      '0',
+      '0',
+      zeroAddress,
+      zeroAddress,
+      '',
+      {
+        [chainID1.toString()]: [],
+      },
+      {
+        treeChainId: chainID1.toString(),
+      }
+    );
   });
 
   it('execute fee proposal', async () => {

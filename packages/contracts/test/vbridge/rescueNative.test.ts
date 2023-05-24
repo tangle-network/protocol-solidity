@@ -21,6 +21,8 @@ import { BigNumber } from 'ethers';
 import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
 import { VAnchorTree } from '@webb-tools/contracts';
 
+const zkComponents = vanchorFixtures('../../../solidity-fixtures/solidity-fixtures');
+
 describe('Rescue Tokens Tests for Native ETH', () => {
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
@@ -38,8 +40,8 @@ describe('Rescue Tokens Tests for Native ETH', () => {
   let maxEdges = 1;
 
   before(async () => {
-    zkComponents2_2 = await vanchorFixtures[22]();
-    zkComponents16_2 = await vanchorFixtures[162]();
+    zkComponents2_2 = await zkComponents[22]();
+    zkComponents16_2 = await zkComponents[162]();
   });
 
   beforeEach(async () => {
@@ -145,9 +147,21 @@ describe('Rescue Tokens Tests for Native ETH', () => {
     await bridgeSide.executeFeeRecipientProposalWithSig(fungibleToken, treasury.contract.address);
 
     // For Native ETH Tests
-    await srcAnchor.transact([], [depositUtxo], '0', '0', zeroAddress, zeroAddress, zeroAddress, {
-      [chainID1.toString()]: [],
-    });
+    await srcAnchor.transact(
+      [],
+      [depositUtxo],
+      '0',
+      '0',
+      zeroAddress,
+      zeroAddress,
+      zeroAddress,
+      {
+        [chainID1.toString()]: [],
+      },
+      {
+        treeChainId: chainID1.toString(),
+      }
+    );
 
     // Anchor Denomination amount should go to TokenWrapper
     assert.strictEqual(
