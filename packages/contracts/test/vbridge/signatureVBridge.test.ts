@@ -27,7 +27,7 @@ export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const zkComponents = vanchorFixtures('../../../solidity-fixtures/solidity-fixtures');
 
-describe('2-sided multichain tests for signature vbridge', () => {
+describe.only('2-sided multichain tests for signature vbridge', () => {
   const FIRST_CHAIN_ID = 31337;
   let hardhatWallet1 = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
 

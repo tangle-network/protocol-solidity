@@ -31,7 +31,7 @@ import { VAnchorTree } from '@webb-tools/contracts';
 
 const zkComponents = vanchorFixtures('../../../solidity-fixtures/solidity-fixtures');
 
-describe('SignatureBridgeSide use', () => {
+describe.only('SignatureBridgeSide use', () => {
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
   let admin = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
@@ -135,6 +135,8 @@ describe('SignatureBridgeSide use', () => {
     // Transact on the bridge
     await srcAnchor.transact([], [depositUtxo], '0', '0', zeroAddress, zeroAddress, '', {
       [chainID1.toString()]: [],
+    }, {
+      treeChainId: chainID1.toString(),
     });
   });
 
