@@ -12,7 +12,6 @@ import { VAnchor } from '@webb-tools/anchors';
 import { MintableToken, FungibleTokenWrapper } from '@webb-tools/tokens';
 import { BigNumber } from 'ethers';
 import {
-  fetchComponentsFromFilePaths,
   getChainIdType,
   vanchorFixtures,
   ZkComponents,
@@ -27,7 +26,7 @@ export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const zkComponents = vanchorFixtures('../../../solidity-fixtures/solidity-fixtures');
 
-describe.only('2-sided multichain tests for signature vbridge', () => {
+describe('2-sided multichain tests for signature vbridge', () => {
   const FIRST_CHAIN_ID = 31337;
   let hardhatWallet1 = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
 
@@ -188,6 +187,7 @@ describe.only('2-sided multichain tests for signature vbridge', () => {
       assert.deepEqual(governorAddress, chainGovernor);
     });
   });
+
   describe('2 sided bridge existing token use', () => {
     // ERC20 compliant contracts that can easily create balances for test
     let existingToken1: MintableToken;
@@ -259,11 +259,11 @@ describe.only('2-sided multichain tests for signature vbridge', () => {
       // Should be able to retrieve the token address (so we can mint tokens for test scenario)
       const webbTokenAddress1 = vBridge.getWebbTokenAddress(chainID1);
       const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
-      const tx1 = await webbToken1.mintTokens(signers[1].address, '100000000000000000000000');
+      await webbToken1.mintTokens(signers[1].address, '100000000000000000000000');
 
       const webbTokenAddress2 = vBridge.getWebbTokenAddress(chainID2);
       const webbToken2 = await MintableToken.tokenFromAddress(webbTokenAddress2!, ganacheWallet2);
-      const tx2 = await webbToken2.mintTokens(ganacheWallet2.address, '100000000000000000000000');
+      await webbToken2.mintTokens(ganacheWallet2.address, '100000000000000000000000');
 
       // Transact on the bridge
       await vBridge.transact([], [depositUtxo1], 0, 0, '0', '0', '', signers[1]);

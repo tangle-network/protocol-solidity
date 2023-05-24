@@ -19,7 +19,6 @@ import {
   TokenWrapperHandler,
 } from '@webb-tools/tokens';
 import {
-  fetchComponentsFromFilePaths,
   getChainIdType,
   vanchorFixtures,
   ZkComponents,
@@ -31,7 +30,7 @@ import { VAnchorTree } from '@webb-tools/contracts';
 
 const zkComponents = vanchorFixtures('../../../solidity-fixtures/solidity-fixtures');
 
-describe.only('SignatureBridgeSide use', () => {
+describe('SignatureBridgeSide use', () => {
   let zkComponents2_2: ZkComponents;
   let zkComponents16_2: ZkComponents;
   let admin = new ethers.Wallet(HARDHAT_PK_1, ethers.provider);
