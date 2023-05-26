@@ -17,7 +17,12 @@ contract Governable {
 	// Refresh nonce is for rotating the DKG
 	uint32 public refreshNonce = 0;
 
-	/// Storage values relevant to proposer set update
+	// Last time ownership was transferred to a new governor
+	uint256 public lastGovernorUpdateTime;
+
+	/**
+	 * Storage values relevant to proposer set update
+	 */
 
 	// The proposal nonce
 	uint32 public proposerSetUpdateNonce = 0;
@@ -46,9 +51,6 @@ contract Governable {
 		bytes32[] siblingPathNodes;
 		address proposedGovernor;
 	}
-
-	// Last time ownership was transferred to a new govenror
-	uint256 public lastGovernorUpdateTime;
 
 	event GovernanceOwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 	event RecoveredAddress(address indexed recovered);
@@ -92,6 +94,18 @@ contract Governable {
 		bytes memory sig
 	) public view returns (bool) {
 		bytes32 hashedData = keccak256(data);
+		address signer = ECDSA.recover(hashedData, sig);
+		return signer == governor();
+	}
+
+	/**
+        @notice Returns true if the signature is signed by the current governor.
+        @return bool Whether the signature of the data is signed by the governor
+     */
+	function isSignatureFromGovernorPrehashed(
+		bytes32 hashedData,
+		bytes memory sig
+	) public view returns (bool) {
 		address signer = ECDSA.recover(hashedData, sig);
 		return signer == governor();
 	}

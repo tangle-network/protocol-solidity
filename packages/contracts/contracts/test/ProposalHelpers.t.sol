@@ -19,6 +19,20 @@ contract ProposalHelpers is ChainIdWithType {
 			bytes32(uint256(uint48(typedChainId)));
 	}
 
+	function buildManyResourceIds(
+		uint8 count,
+		address randomResource,
+		bytes6 typedChainId
+	) public pure returns (bytes32[] memory) {
+		bytes32[] memory resourceIds = new bytes32[](count);
+		for (uint8 i = 0; i < count; i++) {
+			bytes32 randomHash = keccak256(abi.encodePacked(i, randomResource));
+			address resource = address(ripemd160(abi.encodePacked(randomHash)));
+			resourceIds[i] = buildResourceId(resource, typedChainId);
+		}
+		return resourceIds;
+	}
+
 	function buildProposalHeader(
 		bytes32 resourceId,
 		bytes4 functionSig,

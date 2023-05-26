@@ -12,6 +12,18 @@ pragma solidity ^0.8.18;
 contract ProposalNonceTracker {
 	uint256 public proposalNonce;
 
+	modifier manyIncrementingByOne(uint32[] memory nonces) {
+		for (uint256 i = 0; i < nonces.length; i++) {
+			require(proposalNonce < nonces[i], "ProposalNonceTracker: Invalid nonce");
+			require(
+				nonces[i] <= proposalNonce + 1,
+				"ProposalNonceTracker: Nonce must not increment more than 1"
+			);
+			proposalNonce = nonces[i];
+		}
+		_;
+	}
+
 	modifier onlyIncrementingByOne(uint nonce) {
 		require(proposalNonce < nonce, "ProposalNonceTracker: Invalid nonce");
 		require(
