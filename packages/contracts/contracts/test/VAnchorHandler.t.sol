@@ -168,7 +168,7 @@ contract VAnchorHandlerTest is Deployer {
 		bridge.batchExecuteProposalsWithSignature(proposals, sig);
 	}
 
-	function test_batchExecuteAnchorUpdateProposalsShouldFailWithInvalidNonces(
+	function test_batchExecuteAnchorUpdateProposalsShouldFailWithInvalidLeafNonces(
 		address srcVAnchorsBeingLinked,
 		bytes32[2] memory merkleRoots
 	) public {
@@ -188,6 +188,36 @@ contract VAnchorHandlerTest is Deployer {
 		(uint8 v, bytes32 r, bytes32 s) = vm.sign(1, hashedData);
 		bytes memory sig = abi.encodePacked(r, s, v);
 		vm.expectRevert(bytes("LinkableAnchor: New leaf index must be greater"));
+		bridge.batchExecuteProposalsWithSignature(proposals, sig);
+	}
+
+	function test_batchExecuteAnchorUpdateProposalsShouldFailWithInvalidExecutionContexts(
+		address srcVAnchorsBeingLinked,
+		bytes32[2] memory merkleRoots
+	) public {
+		bytes6 OTHER_CHAIN_ID = this.buildTypedChainId(CHAIN_TYPE, CHAIN_ID + 1);
+		bytes32 srcResourceId = this.buildResourceId(srcVAnchorsBeingLinked, OTHER_CHAIN_ID);
+		bytes[] memory proposals = new bytes[](10);
+		for (uint i = 1; i <= 2; i++) {
+			bytes32 tempResourceId;
+			if (i == 1) {
+				tempResourceId = vanchorResourceId;
+			} else {
+				tempResourceId = srcResourceId;
+			}
+
+			bytes memory proposal = this.buildAnchorUpdateProposal(
+				tempResourceId,
+				merkleRoots[i - 1],
+				uint32(i),
+				srcResourceId
+			);
+			proposals[i - 1] = proposal;
+		}
+		bytes32 hashedData = keccak256(abi.encode(proposals));
+		(uint8 v, bytes32 r, bytes32 s) = vm.sign(1, hashedData);
+		bytes memory sig = abi.encodePacked(r, s, v);
+		vm.expectRevert(bytes("SignatureBridge: Batch Executing on wrong chain"));
 		bridge.batchExecuteProposalsWithSignature(proposals, sig);
 	}
 }
