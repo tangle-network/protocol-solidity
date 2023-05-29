@@ -31,5 +31,9 @@
     "@ethersproject/providers": "^5.7.2",
     "ethers": "^5.7.0",
     "typescript": "^5.0.4"
+  },
+  "devDependencies": {
+    "@uniswap/universal-router": "^1.4.2",
+    "solmate": "^6.7.0"
   }
 }

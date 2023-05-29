@@ -6,6 +6,9 @@ test = 'test'
 remappings = [
     '@openzeppelin/=lib/openzeppelin-contracts/',
     '@prb/test/=lib/prb-test/src/',
+    '@uniswap/universal-router/=lib/universal-router.git/',
     'forge-std/=lib/forge-std/src/',
     'src/=src/',
+    'solmate/=lib/universal-router.git/solmate/',
+    'permit2/=lib/universal-router.git/permit2/'
 ]
