@@ -152,21 +152,9 @@ describe('Rate Limited VAnchor', () => {
       });
       const aliceETHAddress = '0xDeaD00000000000000000000000000000000BEEf';
 
-      await anchor.transact(
-        [aliceDepositUtxo],
-        [aliceChangeUtxo],
-        0,
-        0,
-        aliceETHAddress,
-        '0',
-        '',
-        {
-          [chainID.toString()]: anchorLeaves,
-        },
-        {
-          treeChainId: chainID.toString(),
-        }
-      );
+      await anchor.transact([aliceDepositUtxo], [aliceChangeUtxo], 0, 0, aliceETHAddress, '0', '', {
+        [chainID.toString()]: anchorLeaves,
+      });
 
       // Check that Alice receives withdrawn wrapped tokens
       assert.strictEqual(
@@ -208,21 +196,9 @@ describe('Rate Limited VAnchor', () => {
       const aliceETHAddress = '0xDeaD00000000000000000000000000000000BEEf';
 
       await TruffleAssert.reverts(
-        anchor.transact(
-          [aliceDepositUtxo],
-          [aliceChangeUtxo],
-          0,
-          0,
-          aliceETHAddress,
-          '0',
-          '',
-          {
-            [chainID.toString()]: anchorLeaves,
-          },
-          {
-            treeChainId: chainID.toString(),
-          }
-        ),
+        anchor.transact([aliceDepositUtxo], [aliceChangeUtxo], 0, 0, aliceETHAddress, '0', '', {
+          [chainID.toString()]: anchorLeaves,
+        }),
         'RateLimitedVAnchor: Daily withdrawal limit reached'
       );
     });
