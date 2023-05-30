@@ -82,6 +82,7 @@ export class VAnchor extends WebbBridge<WebbContracts> implements IVAnchor<WebbC
   getToken(): Promise<string> {
     return this.contract.token();
   }
+
   getContract(): Promise<string> {
     return new Promise((resolve) => resolve(this.contract.address));
   }
@@ -291,16 +292,9 @@ export class VAnchor extends WebbBridge<WebbContracts> implements IVAnchor<WebbC
   }
 
   /**
-   * Given a list of leaves and a latest synced block, update internal tree state
-   * The function will create a new tree, and check on chain root before updating its member variable
-   * If the passed leaves match on chain data,
-   *   update this instance and return true
-   * else
-   *   return false
+   * Verify the leaf occurred at the reported block
+   * This is important to check the behavior of relayers before modifying local storage
    */
-
-  // Verify the leaf occurred at the reported block
-  // This is important to check the behavior of relayers before modifying local storage
   async leafCreatedAtBlock(leaf: string, blockNumber: number): Promise<boolean> {
     const filter = this.contract.filters.NewCommitment(null, null, null);
     const logs = await this.contract.provider.getLogs({
@@ -352,22 +346,16 @@ export class VAnchor extends WebbBridge<WebbContracts> implements IVAnchor<WebbC
     extAmount: BigNumberish,
     fee: BigNumberish,
     extDataHash: BigNumberish,
-    leavesMap: Record<string, Uint8Array[]>,
-    txOptions?: TransactionOptions
+    leavesMap: Record<string, Uint8Array[]>
   ): Promise<VAnchorProofInputs> {
     const vanchorRoots = await this.populateRootsForProof();
     let vanchorMerkleProof: MerkleProof[];
     if (Object.keys(leavesMap).length === 0) {
       vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x));
     } else {
-      const treeChainId: string | undefined = txOptions?.treeChainId;
-      if (treeChainId === undefined) {
-        throw new Error(
-          'Need to specify chainId on txOptions in order to generate merkleProof correctly'
-        );
-      }
-      const treeElements = leavesMap[treeChainId];
-      vanchorMerkleProof = inputs.map((x) => this.getMerkleProof(x, treeElements));
+      vanchorMerkleProof = inputs.map((utxo) =>
+        this.getMerkleProof(utxo, utxo.originChainId ? leavesMap[utxo.originChainId] : undefined)
+      );
     }
     const vanchorInput: VAnchorProofInputs = await generateVariableWitnessInput(
       vanchorRoots.map((root) => BigNumber.from(root)),
@@ -422,7 +410,7 @@ export class VAnchor extends WebbBridge<WebbContracts> implements IVAnchor<WebbC
     const roots = await this.populateRootsForProof();
     let extAmount = this.getExtAmount(inputs, outputs, fee);
 
-    const { extData, extDataHash } = await this.generateExtData(
+    const { extData, extDataHash } = this.generateExtData(
       recipient,
       extAmount,
       relayer,
@@ -440,8 +428,7 @@ export class VAnchor extends WebbBridge<WebbContracts> implements IVAnchor<WebbC
       extAmount,
       fee,
       extDataHash,
-      leavesMap,
-      txOptions
+      leavesMap
     );
 
     const fullProof = await this.generateProof(vanchorInput);

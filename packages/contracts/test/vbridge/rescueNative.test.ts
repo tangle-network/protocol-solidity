@@ -147,21 +147,9 @@ describe('Rescue Tokens Tests for Native ETH', () => {
     await bridgeSide.executeFeeRecipientProposalWithSig(fungibleToken, treasury.contract.address);
 
     // For Native ETH Tests
-    await srcAnchor.transact(
-      [],
-      [depositUtxo],
-      '0',
-      '0',
-      zeroAddress,
-      zeroAddress,
-      zeroAddress,
-      {
-        [chainID1.toString()]: [],
-      },
-      {
-        treeChainId: chainID1.toString(),
-      }
-    );
+    await srcAnchor.transact([], [depositUtxo], '0', '0', zeroAddress, zeroAddress, zeroAddress, {
+      [chainID1.toString()]: [],
+    });
 
     // Anchor Denomination amount should go to TokenWrapper
     assert.strictEqual(
