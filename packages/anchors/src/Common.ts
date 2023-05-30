@@ -18,7 +18,12 @@ import {
 } from '@webb-tools/sdk-core';
 import { hexToU8a, getChainIdType, ZERO_BYTES32, FIELD_SIZE } from '@webb-tools/utils';
 import { checkNativeAddress, splitTransactionOptions } from './utils';
-import { OverridesWithFrom, SetupTransactionResult, TransactionOptions } from './types';
+import {
+  OverridesWithFrom,
+  SetupTransactionResult,
+  TransactionOptions,
+  TransactionState,
+} from './types';
 import { IVariableAnchorExtData } from '@webb-tools/interfaces';
 
 export type WebbContracts = VAnchorContract | ChainalysisVAnchorContract | VAnchorForestContract;
@@ -378,6 +383,7 @@ export abstract class WebbBridge<A extends WebbContracts> {
     inputs = await this.padUtxos(inputs, 16);
     outputs = await this.padUtxos(outputs, 2);
 
+    txOptions.onTransactionState?.(TransactionState.GENERATE_ZK_PROOF, undefined);
     const { extAmount, extData, publicInputs } = await this.setupTransaction(
       inputs,
       outputs,
@@ -396,6 +402,7 @@ export abstract class WebbBridge<A extends WebbContracts> {
       wrapUnwrapToken
     );
 
+    txOptions.onTransactionState?.(TransactionState.INITIALIZE_TRANSACTION, undefined);
     const tx = await this.contract.transact(
       publicInputs.proof,
       ZERO_BYTES32,
@@ -422,8 +429,13 @@ export abstract class WebbBridge<A extends WebbContracts> {
       },
       { ...options, ...overrides }
     );
+
+    txOptions.onTransactionState?.(TransactionState.WAITING_FOR_FINALIZATION, tx.hash);
     const receipt = await tx.wait();
+
+    txOptions.onTransactionState?.(TransactionState.FINALIZED, receipt.transactionHash);
     await this.updateTreeOrForestState(outputs);
+
     return receipt;
   }
 }

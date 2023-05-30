@@ -3,12 +3,26 @@
 
 import { IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
 import { Keypair } from '@webb-tools/sdk-core';
-import { BigNumber, Overrides, ethers } from 'ethers';
+import { BigNumber, Overrides } from 'ethers';
 
 export interface SetupTransactionResult {
   extAmount: BigNumber;
   extData: IVariableAnchorExtData;
   publicInputs: IVariableAnchorPublicInputs;
+}
+
+export enum TransactionState {
+  GENERATE_ZK_PROOF = 'GENERATE_ZK_PROOF',
+  INITIALIZE_TRANSACTION = 'INITIALIZE_TRANSACTION',
+  WAITING_FOR_FINALIZATION = 'WAITING_FOR_FINALIZATION',
+  FINALIZED = 'FINALIZED',
+}
+
+export interface TransactionStateUpdatePayload {
+  [TransactionState.GENERATE_ZK_PROOF]: undefined;
+  [TransactionState.INITIALIZE_TRANSACTION]: undefined;
+  [TransactionState.WAITING_FOR_FINALIZATION]: string;
+  [TransactionState.FINALIZED]: string;
 }
 
 /**
@@ -19,6 +33,15 @@ export interface TransactionOptions {
   keypair?: Keypair; // for identityVAnchor
   treeChainId?: string; // for vanchorForest/IdentityVAnchor
   externalLeaves?: Uint8Array[]; // for vanchorForest
+
+  /**
+   * The callback to update the transaction state
+   * when the transanction progress and send
+   */
+  onTransactionState?: <T extends TransactionState>(
+    state: T,
+    payload: TransactionStateUpdatePayload[T]
+  ) => void;
 }
 
 /**
