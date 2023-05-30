@@ -191,6 +191,113 @@ contract SignatureBridgeTest is ProposalHelpers, PRBTest, StdCheats {
 		);
 	}
 
+	function test_batchExecuteSetResourceProposals(address resource) public {
+		bytes6 typedChainId = this.buildTypedChainId(CHAIN_TYPE, CHAIN_ID);
+		bytes32 bridgeResourceId = this.buildResourceId(address(bridge), typedChainId);
+		bytes[] memory proposals = new bytes[](10);
+		uint32[] memory nonces = new uint32[](10);
+		address[] memory handlers = new address[](10);
+		bytes32[] memory newResourceIds = this.buildManyResourceIds(10, resource, typedChainId);
+
+		for (uint i = 1; i <= 10; i++) {
+			bytes memory proposal = this.buildSetResourceProposal(
+				bridgeResourceId,
+				uint32(i),
+				newResourceIds[i - 1],
+				address(handler)
+			);
+			proposals[i - 1] = proposal;
+			nonces[i - 1] = uint32(i);
+			handlers[i - 1] = address(handler);
+		}
+		bytes32 hashedData = keccak256(abi.encode(proposals));
+		(uint8 v, bytes32 r, bytes32 s) = vm.sign(1, hashedData);
+		bytes memory sig = abi.encodePacked(r, s, v);
+		bridge.batchAdminSetResourceWithSignature(
+			bridgeResourceId,
+			SignatureBridge.adminSetResourceWithSignature.selector,
+			nonces,
+			newResourceIds,
+			handlers,
+			hashedData,
+			sig
+		);
+	}
+
+	function test_batchExecuteShouldFailWithUnevenNonces(address resource) public {
+		bytes6 typedChainId = this.buildTypedChainId(CHAIN_TYPE, CHAIN_ID);
+		bytes32 bridgeResourceId = this.buildResourceId(address(bridge), typedChainId);
+		bytes[] memory proposals = new bytes[](10);
+		uint32[] memory nonces = new uint32[](10);
+		address[] memory handlers = new address[](10);
+		bytes32[] memory newResourceIds = this.buildManyResourceIds(10, resource, typedChainId);
+
+		for (uint i = 1; i <= 10; i++) {
+			bytes memory proposal = this.buildSetResourceProposal(
+				bridgeResourceId,
+				uint32(i),
+				newResourceIds[i - 1],
+				address(handler)
+			);
+			proposals[i - 1] = proposal;
+			if (i == 2) {
+				nonces[i - 1] = uint32(i - 1);
+			} else {
+				nonces[i - 1] = uint32(i);
+			}
+
+			handlers[i - 1] = address(handler);
+		}
+		bytes32 hashedData = keccak256(abi.encode(proposals));
+		(uint8 v, bytes32 r, bytes32 s) = vm.sign(1, hashedData);
+		bytes memory sig = abi.encodePacked(r, s, v);
+		vm.expectRevert(bytes("ProposalNonceTracker: Invalid nonce"));
+		bridge.batchAdminSetResourceWithSignature(
+			bridgeResourceId,
+			SignatureBridge.adminSetResourceWithSignature.selector,
+			nonces,
+			newResourceIds,
+			handlers,
+			hashedData,
+			sig
+		);
+	}
+
+	function test_batchExecuteShouldFailWithIncorrectHash(address resource) public {
+		bytes6 typedChainId = this.buildTypedChainId(CHAIN_TYPE, CHAIN_ID);
+		bytes32 bridgeResourceId = this.buildResourceId(address(bridge), typedChainId);
+		bytes[] memory proposals = new bytes[](10);
+		uint32[] memory nonces = new uint32[](10);
+		address[] memory handlers = new address[](10);
+		bytes32[] memory newResourceIds = this.buildManyResourceIds(10, resource, typedChainId);
+
+		for (uint i = 1; i <= 10; i++) {
+			bytes memory proposal = this.buildSetResourceProposal(
+				bridgeResourceId,
+				uint32(i),
+				newResourceIds[i - 1],
+				address(handler)
+			);
+			proposals[i - 1] = proposal;
+			nonces[i - 1] = uint32(i);
+			handlers[i - 1] = address(handler);
+		}
+		(uint8 v, bytes32 r, bytes32 s) = vm.sign(1, bytes32(0));
+		bytes memory sig = abi.encodePacked(r, s, v);
+		vm.expectRevert(
+			bytes("SignatureBridge::batchAdminSetResourceWithSignature: Hashed data does not match")
+		);
+		bridge.batchAdminSetResourceWithSignature(
+			bridgeResourceId,
+			SignatureBridge.adminSetResourceWithSignature.selector,
+			nonces,
+			newResourceIds,
+			handlers,
+			bytes32(0),
+			sig
+		);
+	}
+
 	function test_isCorrectExecutionChain() public {
 		bytes32 resourceId = this.buildResourceId(
 			address(this),

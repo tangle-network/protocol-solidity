@@ -7,6 +7,7 @@ pragma solidity >=0.8.19 <0.9.0;
 import { console2 } from "forge-std/console2.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
+import { VAnchorTree } from "../vanchors/instances/VAnchorTree.sol";
 import { Deployer } from "./Deployer.t.sol";
 
 contract VAnchorHandlerTest is Deployer {
@@ -98,5 +99,125 @@ contract VAnchorHandlerTest is Deployer {
 		bytes32 invalidNewResourceId = this.buildResourceId(newAddress, OTHER_CHAIN_ID);
 		vm.expectRevert(bytes("LinkableAnchor: srcResourceID must be the same"));
 		this.executeAnchorUpdateProposal(invalidNewResourceId, merkleRoot, 2);
+	}
+
+	function test_batchExecuteAnchorUpdateProposals(
+		address[2] memory srcVAnchorsBeingLinked,
+		bytes32[2] memory merkleRoots
+	) public {
+		maxEdges = 2;
+		uint32 merkleTreeLevels = 30;
+		VAnchorTree testVAnchor = new VAnchorTree(
+			verifier,
+			merkleTreeLevels,
+			hasher,
+			address(anchorHandler),
+			address(token),
+			maxEdges
+		);
+		// Initialize the vanchor with a minWithdrawal of 0 and maxDeposit of 100 ether
+		testVAnchor.initialize(0, 100 ether);
+
+		bytes32 testVanchorResourceId = setResource(
+			uint32(bridge.getProposalNonce() + 1),
+			address(testVAnchor),
+			address(anchorHandler)
+		);
+
+		vm.assume(srcVAnchorsBeingLinked[0] != srcVAnchorsBeingLinked[1]);
+		bytes[] memory proposals = new bytes[](2);
+		for (uint i = 1; i <= 2; i++) {
+			bytes6 OTHER_CHAIN_ID = this.buildTypedChainId(CHAIN_TYPE, CHAIN_ID + uint32(i));
+			bytes32 srcResourceId = this.buildResourceId(
+				srcVAnchorsBeingLinked[i - 1],
+				OTHER_CHAIN_ID
+			);
+			bytes memory proposal = this.buildAnchorUpdateProposal(
+				testVanchorResourceId,
+				merkleRoots[i - 1],
+				1,
+				srcResourceId
+			);
+			proposals[i - 1] = proposal;
+		}
+		bytes32 hashedData = keccak256(abi.encode(proposals));
+		(uint8 v, bytes32 r, bytes32 s) = vm.sign(1, hashedData);
+		bytes memory sig = abi.encodePacked(r, s, v);
+		bridge.batchExecuteProposalsWithSignature(proposals, sig);
+	}
+
+	function test_batchExecuteAnchorUpdateProposalsFromSameSrc(
+		address srcVAnchorsBeingLinked,
+		bytes32[10] memory merkleRoots
+	) public {
+		bytes6 OTHER_CHAIN_ID = this.buildTypedChainId(CHAIN_TYPE, CHAIN_ID + 1);
+		bytes32 srcResourceId = this.buildResourceId(srcVAnchorsBeingLinked, OTHER_CHAIN_ID);
+		bytes[] memory proposals = new bytes[](10);
+		for (uint i = 1; i <= 10; i++) {
+			bytes memory proposal = this.buildAnchorUpdateProposal(
+				vanchorResourceId,
+				merkleRoots[i - 1],
+				uint32(i),
+				srcResourceId
+			);
+			proposals[i - 1] = proposal;
+		}
+		bytes32 hashedData = keccak256(abi.encode(proposals));
+		(uint8 v, bytes32 r, bytes32 s) = vm.sign(1, hashedData);
+		bytes memory sig = abi.encodePacked(r, s, v);
+		bridge.batchExecuteProposalsWithSignature(proposals, sig);
+	}
+
+	function test_batchExecuteAnchorUpdateProposalsShouldFailWithInvalidLeafNonces(
+		address srcVAnchorsBeingLinked,
+		bytes32[2] memory merkleRoots
+	) public {
+		bytes6 OTHER_CHAIN_ID = this.buildTypedChainId(CHAIN_TYPE, CHAIN_ID + 1);
+		bytes32 srcResourceId = this.buildResourceId(srcVAnchorsBeingLinked, OTHER_CHAIN_ID);
+		bytes[] memory proposals = new bytes[](2);
+		for (uint i = 1; i <= 2; i++) {
+			bytes memory proposal = this.buildAnchorUpdateProposal(
+				vanchorResourceId,
+				merkleRoots[i - 1],
+				1,
+				srcResourceId
+			);
+			proposals[i - 1] = proposal;
+		}
+		bytes32 hashedData = keccak256(abi.encode(proposals));
+		(uint8 v, bytes32 r, bytes32 s) = vm.sign(1, hashedData);
+		bytes memory sig = abi.encodePacked(r, s, v);
+		vm.expectRevert(bytes("LinkableAnchor: New leaf index must be greater"));
+		bridge.batchExecuteProposalsWithSignature(proposals, sig);
+	}
+
+	function test_batchExecuteAnchorUpdateProposalsShouldFailWithInvalidExecutionContexts(
+		address srcVAnchorsBeingLinked,
+		bytes32[2] memory merkleRoots
+	) public {
+		bytes6 OTHER_CHAIN_ID = this.buildTypedChainId(CHAIN_TYPE, CHAIN_ID + 1);
+		bytes32 srcResourceId = this.buildResourceId(srcVAnchorsBeingLinked, OTHER_CHAIN_ID);
+		bytes[] memory proposals = new bytes[](10);
+		for (uint i = 1; i <= 2; i++) {
+			bytes32 tempResourceId;
+			if (i == 1) {
+				tempResourceId = vanchorResourceId;
+			} else {
+				tempResourceId = srcResourceId;
+			}
+
+			bytes memory proposal = this.buildAnchorUpdateProposal(
+				tempResourceId,
+				merkleRoots[i - 1],
+				uint32(i),
+				srcResourceId
+			);
+			proposals[i - 1] = proposal;
+		}
+		bytes32 hashedData = keccak256(abi.encode(proposals));
+		(uint8 v, bytes32 r, bytes32 s) = vm.sign(1, hashedData);
+		bytes memory sig = abi.encodePacked(r, s, v);
+		vm.expectRevert(bytes("SignatureBridge: Batch Executing on wrong chain"));
+		bridge.batchExecuteProposalsWithSignature(proposals, sig);
 	}
 }
