@@ -27,12 +27,24 @@ export interface TransactionStateUpdatePayload {
 
 /**
  * Options to be passed to the `setup` function.
- * Make sure update the `splitTransactionOptions` function if you add a new property here.
+ *
+ * NOTE: MAKE SURE UPDATE THE `splitTransactionOptions` FUNCTION (IN `utils.ts`) IF YOU ADD A NEW PROPERTY HERE.
  */
 export interface TransactionOptions {
-  keypair?: Keypair; // for identityVAnchor
-  treeChainId?: string; // for vanchorForest/IdentityVAnchor
-  externalLeaves?: Uint8Array[]; // for vanchorForest
+  /**
+   * For identityVAnchor
+   */
+  keypair?: Keypair; //
+
+  /**
+   * For vanchorForest/IdentityVAnchor
+   */
+  treeChainId?: string;
+
+  /**
+   * For vanchorForest
+   */
+  externalLeaves?: Uint8Array[];
 
   /**
    * The callback to update the transaction state
