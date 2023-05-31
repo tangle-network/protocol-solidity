@@ -28,7 +28,7 @@ export interface TransactionStateUpdatePayload {
 /**
  * Options to be passed to the `setup` function.
  *
- * NOTE: MAKE SURE UPDATE THE `splitTransactionOptions` FUNCTION (IN `utils.ts`) IF YOU ADD A NEW PROPERTY HERE.
+ * NOTE: MAKE SURE TO UPDATE THE `splitTransactionOptions` FUNCTION (IN `utils.ts`) IF YOU ADD A NEW PROPERTY HERE.
  */
 export interface TransactionOptions {
   /**
