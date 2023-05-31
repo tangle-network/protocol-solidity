@@ -20,7 +20,10 @@ export function checkNativeAddress(tokenAddress: string): boolean {
 export function splitTransactionOptions<T extends Object>(
   options?: T & TransactionOptions
 ): [T, TransactionOptions] {
-  const { keypair, treeChainId, externalLeaves, ...rest } = options ?? {};
+  const { keypair, treeChainId, externalLeaves, onTransactionState, ...rest } = options ?? {};
 
-  return [rest, { keypair, treeChainId, externalLeaves }] as [T, TransactionOptions];
+  return [rest, { keypair, treeChainId, externalLeaves, onTransactionState }] as [
+    T,
+    TransactionOptions
+  ];
 }
