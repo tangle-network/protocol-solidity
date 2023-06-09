@@ -5,9 +5,9 @@
 
 pragma solidity ^0.8.18;
 
-/*
- * Hasher interface for hashing 2 uint256 elements.
- */
+/// @title Hasher interface for hashing 2 uint256 elements.
+/// @author Webb Technologies.
+/// @notice This contract is meant to be used to generalize over different hash functions.
 interface IHasher {
 	function hash3(uint256[3] memory array) external view returns (uint256);
 

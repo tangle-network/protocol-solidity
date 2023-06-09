@@ -7,21 +7,19 @@ pragma solidity ^0.8.18;
 
 import "../interfaces/IExecutor.sol";
 
-/**
-    @title Function used across handler contracts.
-    @author Webb Technologies, adapted from ChainSafe Systems.
-    @notice This contract is intended to be used with the Bridge contract.
- */
+/// @title Function used across handler contracts.
+/// @author Webb Technologies, adapted from ChainSafe Systems.
+/// @notice This contract is intended to be used with the Bridge contract.
 abstract contract HandlerHelpers is IExecutor {
 	address public _bridgeAddress;
 
-	// resourceID => token contract address
+	/// resourceID => token contract address
 	mapping(bytes32 => address) public _resourceIDToContractAddress;
 
-	// Execution contract address => resourceID
+	/// Execution contract address => resourceID
 	mapping(address => bytes32) public _contractAddressToResourceID;
 
-	// Execution contract address => is whitelisted
+	/// Execution contract address => is whitelisted
 	mapping(address => bool) public _contractWhitelist;
 
 	modifier onlyBridge() {
@@ -30,18 +28,16 @@ abstract contract HandlerHelpers is IExecutor {
 	}
 
 	function _onlyBridge() private view {
-		require(msg.sender == _bridgeAddress, "sender must be bridge contract");
+		require(msg.sender == _bridgeAddress, "HandlerHelpers: sender must be bridge contract");
 	}
 
-	/**
-        @notice First verifies {_resourceIDToContractAddress}[{resourceID}] and
-        {_contractAddressToResourceID}[{contractAddress}] are not already set,
-        then sets {_resourceIDToContractAddress} with {contractAddress},
-        {_contractAddressToResourceID} with {resourceID},
-        and {_contractWhitelist} to true for {contractAddress}.
-        @param resourceID ResourceID to be used when executing proposals.
-        @param contractAddress Address of contract to be called when a proposal is signed and submitted for execution.
-     */
+	/// @notice First verifies {_resourceIDToContractAddress}[{resourceID}] and
+	/// {_contractAddressToResourceID}[{contractAddress}] are not already set,
+	/// then sets {_resourceIDToContractAddress} with {contractAddress},
+	/// {_contractAddressToResourceID} with {resourceID},
+	/// and {_contractWhitelist} to true for {contractAddress}.
+	/// @param resourceID ResourceID to be used when executing proposals.
+	/// @param contractAddress Address of contract to be called when a proposal is signed and submitted for execution.
 	function setResource(bytes32 resourceID, address contractAddress) external override onlyBridge {
 		_setResource(resourceID, contractAddress);
 	}
@@ -54,7 +50,7 @@ abstract contract HandlerHelpers is IExecutor {
 	}
 
 	function migrateBridge(address newBridge) external override onlyBridge {
-		require(newBridge != address(0), "Bridge address can't be 0");
+		require(newBridge != address(0), "HandlerHelpers: Bridge address can't be 0");
 		_bridgeAddress = newBridge;
 	}
 }

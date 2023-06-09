@@ -7,9 +7,9 @@ pragma solidity ^0.8.18;
 
 import "./IHasher.sol";
 
-/*
- * Keccak hash functions for 2 inputs.
- */
+/// @title Keccak hash functions for 2 inputs.
+/// @author Webb Technologies.
+/// @notice This contract is intended to be used with keccak merkle trees.
 contract KeccakHasher is IHasher {
 	function hash3(uint256[3] memory array) public pure override returns (uint256) {
 		return uint256(keccak256(abi.encodePacked(array)));
@@ -92,6 +92,6 @@ contract KeccakHasher is IHasher {
 			return bytes32(0x3878a3ff0eda8bcd772059f6c38939e9b4888d7848b36e8645e3929e0ba2f974);
 		else if (i == 31)
 			return bytes32(0x819bff9ae5cb51403b906d369e5a1bbd8b791c51f7c27d3be41f9271d9434af1);
-		else revert("Index out of bounds");
+		else revert("KeccakHasher: Index out of bounds");
 	}
 }

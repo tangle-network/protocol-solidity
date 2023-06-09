@@ -7,6 +7,9 @@ pragma solidity ^0.8.18;
 
 import "./MerkleTreeWithHistory.sol";
 
+/// @title MerkleTree contract.
+/// @author Webb Technologies.
+/// @notice This contract is used to store the merkle tree data.
 contract MerkleTree is MerkleTreeWithHistory {
 	constructor(uint32 _levels, IHasher _hasher) {
 		require(_levels > 0, "_levels should be greater than zero");

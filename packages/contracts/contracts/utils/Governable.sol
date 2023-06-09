@@ -7,49 +7,48 @@ pragma solidity ^0.8.18;
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
-/**
-    @title The Governable contract that defines the governance mechanism
-    @author Webb Technologies
- */
+/// @title The Governable contract that defines the governance mechanism
+/// @author Webb Technologies.
+/// @notice This contract is used to for ownership and governance of smart contracts.
 contract Governable {
 	address private _governor;
 
-	// Refresh nonce is for rotating the DKG
+	/// Refresh nonce is for rotating the DKG
 	uint32 public refreshNonce = 0;
 
-	// Last time ownership was transferred to a new governor
+	/// Last time ownership was transferred to a new governor
 	uint256 public lastGovernorUpdateTime;
 
-	/**
-	 * Storage values relevant to proposer set update
-	 */
-
-	// The proposal nonce
+	/// -------------------------------------------------------
+	/// Storage values relevant to proposer set update
+	/// -------------------------------------------------------
+	
+	/// The proposal nonce
 	uint32 public proposerSetUpdateNonce = 0;
-	// The root of the proposer set Merkle tree
+	/// The root of the proposer set Merkle tree
 	bytes32 public proposerSetRoot;
-	// The average session length in millisecs
+	/// The average session length in millisecs
 	uint64 public averageSessionLengthInMillisecs = 2 ** 64 - 1;
-	// The session length multiplier (see the voteInFavorForceSetGovernor function below)
+	/// The session length multiplier (see the voteInFavorForceSetGovernor function below)
 	uint256 public sessionLengthMultiplier = 2;
-	// The number of proposers
+	/// The number of proposers
 	uint32 public numOfProposers;
-	// The current voting period
+	/// The current voting period
 	uint256 public currentVotingPeriod = 0;
-	// (currentVotingPeriod => (proposer => (true/false))) whether a proposer has
-	// voted in this period
+	/// (currentVotingPeriod => (proposer => (true/false))) whether a proposer has
+	/// voted in this period
 	mapping(uint256 => mapping(address => bool)) alreadyVoted;
-	// (currentVotingPeriod => (proposerGovernor => (uint))) number of votes a
-	// proposedGovernor has in the current period
+	/// (currentVotingPeriod => (proposerGovernor => (uint))) number of votes a
+	/// proposedGovernor has in the current period
 	mapping(uint256 => mapping(address => uint32)) numOfVotesForGovernor;
 
-	// leafIndex: leafIndex of the proposer in the proposer set Merkle tree
-	// siblingPathNodes: Merkle proof path of sibling nodes
-	// proposedGovernor: the governor that the voter wants to force reset to
+	/// leafIndex: leafIndex of the proposer in the proposer set Merkle tree
+	/// siblingPathNodes: Merkle proof path of sibling nodes
+	/// proposedGovernor: the governor that the voter wants to force reset to
 	struct Vote {
+		address proposedGovernor;
 		uint32 leafIndex;
 		bytes32[] siblingPathNodes;
-		address proposedGovernor;
 	}
 
 	event GovernanceOwnershipTransferred(address indexed previousOwner, address indexed newOwner);
@@ -62,33 +61,38 @@ contract Governable {
 		emit GovernanceOwnershipTransferred(address(0), _governor);
 	}
 
-	/**
-	 * @notice Returns the address of the current owner.
-	 */
+	/// @notice Returns the address of the current owner.
 	function governor() public view returns (address) {
 		return _governor;
 	}
 
-	/**
-	 * @notice Throws if called by any account other than the owner.
-	 */
+	/// @notice Throws if called by any account other than the owner.
 	modifier onlyGovernor() {
 		require(isGovernor(), "Governable: caller is not the governor");
 		_;
 	}
 
-	/**
-        @notice Returns true if the caller is the current owner.
-        @return bool Whether the `msg.sender` is the governor
-     */
+	/// @notice Checks if its a valid time to vote.
+	modifier isValidTimeToVote() {
+		// Check block time stamp is some length greater than the last time
+		// ownership transferred
+		require(
+			block.timestamp >=
+				lastGovernorUpdateTime +
+					((sessionLengthMultiplier * averageSessionLengthInMillisecs) / 1000),
+			"Governable: Invalid time for vote"
+		);
+		_;
+	}
+
+	/// @notice Returns true if the caller is the current owner.
+	/// @return bool Whether the `msg.sender` is the governor
 	function isGovernor() public view returns (bool) {
 		return msg.sender == _governor;
 	}
 
-	/**
-        @notice Returns true if the signature is signed by the current governor.
-        @return bool Whether the signature of the data is signed by the governor
-     */
+	/// @notice Returns true if the signature is signed by the current governor.
+	/// @return bool Whether the signature of the data is signed by the governor
 	function isSignatureFromGovernor(
 		bytes memory data,
 		bytes memory sig
@@ -98,10 +102,8 @@ contract Governable {
 		return signer == governor();
 	}
 
-	/**
-        @notice Returns true if the signature is signed by the current governor.
-        @return bool Whether the signature of the data is signed by the governor
-     */
+	/// @notice Returns true if the signature is signed by the current governor.
+	/// @return bool Whether the signature of the data is signed by the governor
 	function isSignatureFromGovernorPrehashed(
 		bytes32 hashedData,
 		bytes memory sig
@@ -110,34 +112,28 @@ contract Governable {
 		return signer == governor();
 	}
 
-	/**
-        @notice Leaves the contract without owner. It will not be possible to call
-        `onlyGovernor` functions anymore. Can only be called by the current owner.
-        @notice Renouncing ownership will leave the contract without an owner,
-        thereby removing any functionality that is only available to the owner.
-     */
+	/// @notice Leaves the contract without owner. It will not be possible to call
+	/// `onlyGovernor` functions anymore. Can only be called by the current owner.
+	/// @notice Renouncing ownership will leave the contract without an owner,
+	/// thereby removing any functionality that is only available to the owner.
 	function renounceOwnership() public onlyGovernor {
 		emit GovernanceOwnershipTransferred(_governor, address(0));
 		_governor = address(0);
 	}
 
-	/**
-        @notice Transfers ownership of the contract to a new account (`newOwner`).
-        @param newOwner The new owner of the contract.
-        @param nonce The nonce of the proposal.
-        @notice Can only be called by the current owner.
-     */
+	/// @notice Transfers ownership of the contract to a new account (`newOwner`).
+	/// @param newOwner The new owner of the contract.
+	/// @param nonce The nonce of the proposal.
+	/// @notice Can only be called by the current owner.
 	function transferOwnership(address newOwner, uint32 nonce) public onlyGovernor {
 		_transferOwnership(newOwner);
 		refreshNonce = nonce;
 	}
 
-	/**
-        @notice Transfers ownership of the contract to a new account associated with the publicKey
-        @param publicKey The public key of the new owner
-        @param nonce The nonce of the proposal
-        @param sig The signature of the transfer ownership/refresh proposal
-     */
+	/// @notice Transfers ownership of the contract to a new account associated with the publicKey
+	/// @param publicKey The public key of the new owner
+	/// @param nonce The nonce of the proposal
+	/// @param sig The signature of the transfer ownership/refresh proposal
 	function transferOwnershipWithSignaturePubKey(
 		bytes memory publicKey,
 		uint32 nonce,
@@ -155,22 +151,18 @@ contract Governable {
 		refreshNonce = nonce;
 	}
 
-	/**
-        @notice Helper function for recovering the address from the signature `sig` of `data`
-        @param data The data being signed
-        @param sig The signature of the data
-        @return address The address of the signer
-     */
+	/// @notice Helper function for recovering the address from the signature `sig` of `data`
+	/// @param data The data being signed
+	/// @param sig The signature of the data
+	/// @return address The address of the signer
 	function recover(bytes memory data, bytes memory sig) public pure returns (address) {
 		bytes32 hashedData = keccak256(data);
 		address signer = ECDSA.recover(hashedData, sig);
 		return signer;
 	}
 
-	/**
-        @notice Transfers ownership of the contract to a new account (`newOwner`).
-        @param newOwner The new owner of the contract
-     */
+	/// @notice Transfers ownership of the contract to a new account (`newOwner`).
+	/// @param newOwner The new owner of the contract
 	function _transferOwnership(address newOwner) internal {
 		require(newOwner != address(0), "Governable: new owner is the zero address");
 		emit GovernanceOwnershipTransferred(_governor, newOwner);
@@ -179,14 +171,12 @@ contract Governable {
 		currentVotingPeriod++;
 	}
 
-	/**
-	 * @notice Updates the proposer set data if a valid signature from the DKG is provided. The *      data consists proposerSetRoot, the average session length in milliseconds, the *      number of proposers, and the proposal nonce.
-	 * @param _proposerSetRoot the root hash of the proposer set Merkle tree
-	 * @param _averageSessionLengthInMillisecs the average DKG session length in milliseconds
-	 * @param _numOfProposers the total number of proposers
-	 * @param _proposerSetUpdateNonce the proposal nonce (to prevent replay attacks)
-	 * @param _sig the DKGs signature of the aforementioned parameters
-	 */
+	/// @notice Updates the proposer set data if a valid signature from the DKG is provided. The *      data consists proposerSetRoot, the average session length in milliseconds, the *      number of proposers, and the proposal nonce.
+	/// @param _proposerSetRoot the root hash of the proposer set Merkle tree
+	/// @param _averageSessionLengthInMillisecs the average DKG session length in milliseconds
+	/// @param _numOfProposers the total number of proposers
+	/// @param _proposerSetUpdateNonce the proposal nonce (to prevent replay attacks)
+	/// @param _sig the DKGs signature of the aforementioned parameters
 	function updateProposerSetData(
 		bytes32 _proposerSetRoot,
 		uint64 _averageSessionLengthInMillisecs,
@@ -194,11 +184,10 @@ contract Governable {
 		uint32 _proposerSetUpdateNonce,
 		bytes memory _sig
 	) public {
-		// Valid Nonce
-		require(proposerSetUpdateNonce < _proposerSetUpdateNonce, "Invalid nonce");
+		require(proposerSetUpdateNonce < _proposerSetUpdateNonce, "Governable: Invalid nonce");
 		require(
 			_proposerSetUpdateNonce <= proposerSetUpdateNonce + 1,
-			"Nonce must not increment more than 1"
+			"Governable: Nonce must not increment more than 1"
 		);
 
 		// Valid Signature
@@ -219,54 +208,64 @@ contract Governable {
 		averageSessionLengthInMillisecs = _averageSessionLengthInMillisecs;
 		numOfProposers = _numOfProposers;
 		proposerSetUpdateNonce = _proposerSetUpdateNonce;
-		currentVotingPeriod++;
 	}
 
-	/**
-        @notice Casts a vote in favor of force refreshing the governor
-        @param vote A vote struct
-     */
-	function voteInFavorForceSetGovernor(Vote memory vote) external {
-		// Check block time stamp is some length greater than the last time
-		// ownership transferred
-		require(
-			block.timestamp >=
-				lastGovernorUpdateTime +
-					((sessionLengthMultiplier * averageSessionLengthInMillisecs) / 1000),
-			"Invalid time for vote"
-		);
+	/// @notice Casts a vote in favor of force refreshing the governor
+	/// @param vote A vote struct
+	function voteInFavorForceSetGovernor(Vote memory vote) isValidTimeToVote external {
 		address proposerAddress = msg.sender;
 		// Check merkle proof is valid
 		require(
 			_isValidMerkleProof(vote.siblingPathNodes, proposerAddress, vote.leafIndex),
-			"invalid merkle proof"
+			"Governable: Invalid merkle proof"
 		);
 
 		// Make sure proposer has not already voted
-		require(!alreadyVoted[currentVotingPeriod][proposerAddress], "already voted");
+		require(!alreadyVoted[currentVotingPeriod][proposerAddress], "Governable: Already voted");
 
 		alreadyVoted[currentVotingPeriod][proposerAddress] = true;
 		numOfVotesForGovernor[currentVotingPeriod][vote.proposedGovernor] += 1;
 		_tryResolveVote(vote.proposedGovernor);
 	}
 
-	/**
-        @notice Tries and resolves the vote by checking the number of votes for
-        a proposed governor is greater than numOfProposers/2.
-        @param proposedGovernor the address to transfer ownership to, if the vote passes
-     */
+	/// @notice Casts a vote in favor of force refreshing the governor with a signature
+	/// @param votes Vote structs
+	/// @param sig Signatures of the votes
+	function voteInFavorForceSetGovernorWithSig(Vote[] memory votes, bytes[] memory sigs) isValidTimeToVote external {
+		require(votes.length == sigs.length, "Governable: Invalid number of votes and signatures");
+		for (uint i = 0; i < votes.length; i++) {
+			// Recover the public key from the signature
+			address proposerAddress = recover(abi.encodePacked(votes[i]), sigs[i]);
+
+			// Check merkle proof is valid
+			require(
+				_isValidMerkleProof(vote.siblingPathNodes, proposerAddress, vote.leafIndex),
+				"Governable: Invalid merkle proof"
+			);
+
+			// Make sure proposer has not already voted
+			if (!alreadyVoted[currentVotingPeriod][proposerAddress]) {
+				alreadyVoted[currentVotingPeriod][proposerAddress] = true;
+				numOfVotesForGovernor[currentVotingPeriod][vote.proposedGovernor] += 1;
+			}
+		}
+
+		_tryResolveVote(vote.proposedGovernor);	
+	}
+
+	/// @notice Tries and resolves the vote by checking the number of votes for
+	/// a proposed governor is greater than numOfProposers/2.
+	/// @param proposedGovernor the address to transfer ownership to, if the vote passes
 	function _tryResolveVote(address proposedGovernor) internal {
 		if (numOfVotesForGovernor[currentVotingPeriod][proposedGovernor] > numOfProposers / 2) {
 			_transferOwnership(proposedGovernor);
 		}
 	}
 
-	/**
-        @notice Checks a merkle proof given a leaf and merkle path of sibling nodes.
-        @param siblingPathNodes the path of sibling nodes of the Merkle proof
-        @param leaf the leaf to prove membership of in the Merkle tree
-        @param leafIndex the index of the leaf in the Merkle tree
-     */
+	/// @notice Checks a merkle proof given a leaf and merkle path of sibling nodes.
+	/// @param siblingPathNodes the path of sibling nodes of the Merkle proof
+	/// @param leaf the leaf to prove membership of in the Merkle tree
+	/// @param leafIndex the index of the leaf in the Merkle tree
 	function _isValidMerkleProof(
 		bytes32[] memory siblingPathNodes,
 		address leaf,

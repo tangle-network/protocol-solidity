@@ -8,11 +8,9 @@ pragma solidity ^0.8.18;
 import "../instances/VAnchorTree.sol";
 import "../../utils/SanctionFilter.sol";
 
-/**
-	@title Chainalysis Variable Anchor contract
-	@author Webb Technologies
-	@notice The main addition here is a filter for sanctioned addresses on transactions.
- */
+/// @title Chainalysis Variable Anchor contract
+/// @author Webb Technologies
+/// @notice The main addition here is a filter for sanctioned addresses on transactions.
 contract ChainalysisVAnchor is VAnchorTree, SanctionFilter {
 	using SafeERC20 for IERC20;
 

@@ -8,6 +8,9 @@ pragma solidity ^0.8.18;
 import "../interfaces/verifiers/IAnchorVerifier.sol";
 import "../interfaces/verifiers/IVAnchorVerifier.sol";
 
+/// @title VAnchorVerifier contract.
+/// @author Webb Technologies.
+/// @notice This contract is used to verify the proofs for the VAnchor.
 contract VAnchorVerifier is IAnchorVerifier {
 	IVAnchorVerifier2_2 public v2_2;
 	IVAnchorVerifier2_16 public v2_16;

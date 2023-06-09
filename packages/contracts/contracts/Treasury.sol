@@ -11,6 +11,9 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./interfaces/ITreasury.sol";
 import "./utils/ProposalNonceTracker.sol";
 
+/// @title Treasury contract
+/// @author Webb Technologies.
+/// @notice This contract is used to store funds and recover them.
 contract Treasury is ITreasury, ProposalNonceTracker {
 	using SafeERC20 for IERC20;
 	address treasuryHandler;
@@ -18,12 +21,12 @@ contract Treasury is ITreasury, ProposalNonceTracker {
 	event TreasuryHandlerUpdated(address _handler);
 
 	constructor(address _treasuryHandler) {
-		require(_treasuryHandler != address(0), "Treasury Handler can't be 0");
+		require(_treasuryHandler != address(0), "Treasury: Treasury Handler can't be 0");
 		treasuryHandler = _treasuryHandler;
 	}
 
 	modifier onlyHandler() {
-		require(msg.sender == treasuryHandler, "Function can only be called by treasury handler");
+		require(msg.sender == treasuryHandler, "Treasury: Function can only be called by treasury handler");
 		_;
 	}
 
@@ -33,8 +36,8 @@ contract Treasury is ITreasury, ProposalNonceTracker {
 		uint256 amountToRescue,
 		uint32 nonce
 	) external override onlyHandler onlyIncrementingByOne(nonce) {
-		require(to != address(0), "Cannot send liquidity to zero address");
-		require(tokenAddress != address(this), "Cannot rescue wrapped asset");
+		require(to != address(0), "Treasury: Cannot send liquidity to zero address");
+		require(tokenAddress != address(this), "Treasury: Cannot rescue wrapped asset");
 
 		if (tokenAddress == address(0)) {
 			// Native Ether
@@ -59,7 +62,7 @@ contract Treasury is ITreasury, ProposalNonceTracker {
 		address newHandler,
 		uint32 nonce
 	) external override onlyHandler onlyIncrementingByOne(nonce) {
-		require(newHandler != address(0), "Handler cannot be 0");
+		require(newHandler != address(0), "Treasury: Handler cannot be 0");
 		treasuryHandler = newHandler;
 		emit TreasuryHandlerUpdated(treasuryHandler);
 	}

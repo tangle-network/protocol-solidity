@@ -5,10 +5,9 @@
 
 pragma solidity ^0.8.18;
 
-/**
-    @title IAnchorVerifier interface
-    @notice A generic interface for verifying zero-knowledge proofs for anchors of different sizes.
- */
+/// @title IAnchorVerifier interface
+/// @notice A generic interface for verifying zero-knowledge proofs for anchors of different sizes.
+/// @dev This contract is meant to be used with the `VAnchor` contract.
 interface IAnchorVerifier {
 	function verifyProof(
 		uint[2] memory a,

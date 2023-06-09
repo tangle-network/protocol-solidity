@@ -5,10 +5,9 @@
 
 pragma solidity ^0.8.18;
 
-/**
-    @title A contract that can be initialized once and only once
-    @author Webb Technologies.
- */
+/// @title A contract that can be initialized once and only once
+/// @author Webb Technologies.
+/// @notice This contract tracks nonces for proposal execution.
 contract ProposalNonceTracker {
 	uint256 public proposalNonce;
 

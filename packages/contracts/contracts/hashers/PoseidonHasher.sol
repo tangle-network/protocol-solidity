@@ -9,9 +9,9 @@ import "./IHasher.sol";
 import { PoseidonT2, PoseidonT3, PoseidonT4, PoseidonT5, PoseidonT6 } from "./Poseidon.sol";
 import { SnarkConstants } from "./SnarkConstants.sol";
 
-/*
- * Poseidon hash functions for 2, 4, 5, and 11 input elements.
- */
+/// @title Poseidon hash functions for 2, 4, 5, and 11 input elements.
+/// @author Webb Technologies.
+/// @notice This contract is meant to be used for poseidon merkle trees and other poseidon based hashing.
 contract PoseidonHasher is SnarkConstants, IHasher {
 	function hash1(uint256 value) public pure returns (uint256) {
 		uint256[1] memory input;

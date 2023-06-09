@@ -9,34 +9,29 @@ import "./FungibleTokenWrapper.sol";
 import "../interfaces/tokens/IAaveTokenWrapper.sol";
 import "../interfaces/external/aave/IAaveLendingPool.sol";
 
-/**
-    @title An AaveTokenWrapper system that deposits/withdraws into Aave lending pools
-    @author Webb Technologies.
- */
+/// @title An AaveTokenWrapper system that deposits/withdraws into Aave lending pools
+/// @author Webb Technologies.
+/// @notice This contract is meant to be used over the `FungibleTokenWrapper` contract.
 contract AaveTokenWrapper is FungibleTokenWrapper, IAaveTokenWrapper {
 	IAaveLendingPool public aaveLendingPool;
 
-	/**
-        @notice AaveTokenWrapper constructor
-        @param _name The name of the ERC20 TokenWrapper
-        @param _symbol The symbol of the ERC20 TokenWrapper
-     */
+	/// @notice AaveTokenWrapper constructor
+	/// @param _name The name of the ERC20 TokenWrapper
+	/// @param _symbol The symbol of the ERC20 TokenWrapper
 	constructor(
 		string memory _name,
 		string memory _symbol,
 		address _aaveLendingPool
 	) FungibleTokenWrapper(_name, _symbol) {}
 
-	/**
-        @notice AaveTokenWrapper initializer
-        @param _feePercentage The fee percentage for wrapping
-        @param _feeRecipient The recipient for fees from wrapping.
-        @param _handler The address of the handler
-        @param _limit The maximum amount of tokens that can be wrapped
-        @param _isNativeAllowed Whether or not native tokens are allowed to be wrapped
-		@param _admin The address of the admin who will receive minting rights and admin role
-		@param _aaveLendingPool The address of the Aave lending pool
-     */
+	/// @notice AaveTokenWrapper initializer
+	/// @param _feePercentage The fee percentage for wrapping
+	/// @param _feeRecipient The recipient for fees from wrapping.
+	/// @param _handler The address of the handler
+	/// @param _limit The maximum amount of tokens that can be wrapped
+	/// @param _isNativeAllowed Whether or not native tokens are allowed to be wrapped
+	/// @param _admin The address of the admin who will receive minting rights and admin role
+	/// @param _aaveLendingPool The address of the Aave lending pool
 	function initialize(
 		uint16 _feePercentage,
 		address _feeRecipient,
