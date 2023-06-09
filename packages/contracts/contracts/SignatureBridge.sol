@@ -72,7 +72,7 @@ contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 			sig
 		)
 	{
-		_handleSetResource(resourceID, functionSig, nonce, newResourceID, handlerAddress);
+		_handleSetResource(resourceID, functionSig, newResourceID, handlerAddress);
 	}
 
 	/// @notice Sets a batch new resources for handler contracts that use the IExecutor interface,
@@ -120,7 +120,6 @@ contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 			_handleSetResource(
 				resourceID,
 				functionSig,
-				nonces[i],
 				newResourceIDs[i],
 				handlerAddresses[i]
 			);
@@ -173,7 +172,6 @@ contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 	function _handleSetResource(
 		bytes32 resourceID,
 		bytes4 functionSig,
-		uint32 nonce,
 		bytes32 newResourceID,
 		address handlerAddress
 	) internal {

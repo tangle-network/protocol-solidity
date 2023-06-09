@@ -230,7 +230,7 @@ contract Governable {
 
 	/// @notice Casts a vote in favor of force refreshing the governor with a signature
 	/// @param votes Vote structs
-	/// @param sig Signatures of the votes
+	/// @param sigs Signatures of the votes
 	function voteInFavorForceSetGovernorWithSig(
 		Vote[] memory votes,
 		bytes[] memory sigs
@@ -238,22 +238,18 @@ contract Governable {
 		require(votes.length == sigs.length, "Governable: Invalid number of votes and signatures");
 		for (uint i = 0; i < votes.length; i++) {
 			// Recover the public key from the signature
-			address proposerAddress = recover(abi.encodePacked(votes[i]), sigs[i]);
+			address proposerAddress = recover(abi.encode(votes[i]), sigs[i]);
 
 			// Check merkle proof is valid
-			require(
-				_isValidMerkleProof(vote.siblingPathNodes, proposerAddress, vote.leafIndex),
-				"Governable: Invalid merkle proof"
-			);
-
-			// Make sure proposer has not already voted
-			if (!alreadyVoted[currentVotingPeriod][proposerAddress]) {
-				alreadyVoted[currentVotingPeriod][proposerAddress] = true;
-				numOfVotesForGovernor[currentVotingPeriod][vote.proposedGovernor] += 1;
+			if (_isValidMerkleProof(votes[i].siblingPathNodes, proposerAddress, votes[i].leafIndex)) {
+				// Make sure proposer has not already voted
+				if (!alreadyVoted[currentVotingPeriod][proposerAddress]) {
+					alreadyVoted[currentVotingPeriod][proposerAddress] = true;
+					numOfVotesForGovernor[currentVotingPeriod][votes[i].proposedGovernor] += 1;
+					_tryResolveVote(votes[i].proposedGovernor);
+				}
 			}
 		}
-
-		_tryResolveVote(vote.proposedGovernor);
 	}
 
 	/// @notice Tries and resolves the vote by checking the number of votes for
