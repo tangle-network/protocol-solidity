@@ -9,7 +9,7 @@
     "compile": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@webb-tools/sdk-core": "0.1.4-125"
+    "@webb-tools/sdk-core": "0.1.4-126"
   },
   "publishConfig": {
     "access": "public"

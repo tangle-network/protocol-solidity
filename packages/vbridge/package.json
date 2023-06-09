@@ -12,7 +12,7 @@
     "@webb-tools/anchors": "^0.5.46",
     "@webb-tools/contracts": "^0.5.46",
     "@webb-tools/interfaces": "^0.5.46",
-    "@webb-tools/sdk-core": "0.1.4-125",
+    "@webb-tools/sdk-core": "0.1.4-126",
     "@webb-tools/tokens": "^0.5.46",
     "@webb-tools/utils": "^0.5.38",
     "ethers": "5.7.0"

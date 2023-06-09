@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@webb-tools/interfaces": "^0.5.46",
-    "@webb-tools/sdk-core": "0.1.4-125",
+    "@webb-tools/sdk-core": "0.1.4-126",
     "@webb-tools/utils": "^0.5.38",
     "@webb-tools/vbridge": "^0.5.46",
     "ecpair": "^2.0.1",
