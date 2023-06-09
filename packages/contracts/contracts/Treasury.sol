@@ -26,7 +26,10 @@ contract Treasury is ITreasury, ProposalNonceTracker {
 	}
 
 	modifier onlyHandler() {
-		require(msg.sender == treasuryHandler, "Treasury: Function can only be called by treasury handler");
+		require(
+			msg.sender == treasuryHandler,
+			"Treasury: Function can only be called by treasury handler"
+		);
 		_;
 	}
 

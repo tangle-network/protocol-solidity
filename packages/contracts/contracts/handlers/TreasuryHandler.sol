@@ -39,14 +39,14 @@ contract TreasuryHandler is IExecutor, HandlerHelpers {
 		}
 	}
 
-    /// @notice Proposal execution should be initiated when a proposal is finalized in the Bridge contract.
-    /// by a relayer on the deposit's destination chain. Or when a valid signature is produced by the DKG in the case of SignatureBridge.
-    /// @param resourceID ResourceID corresponding to a particular set of Treasury contracts
-    /// @param data passed into the function should be constructed as follows:
-    /// resourceID: bytes 0-32
-    /// functionSig: bytes 32-36
-    /// arguments: bytes 36-
-    /// First 4 bytes of argument is nonce.  
+	/// @notice Proposal execution should be initiated when a proposal is finalized in the Bridge contract.
+	/// by a relayer on the deposit's destination chain. Or when a valid signature is produced by the DKG in the case of SignatureBridge.
+	/// @param resourceID ResourceID corresponding to a particular set of Treasury contracts
+	/// @param data passed into the function should be constructed as follows:
+	/// resourceID: bytes 0-32
+	/// functionSig: bytes 32-36
+	/// arguments: bytes 36-
+	/// First 4 bytes of argument is nonce.
 	function executeProposal(bytes32 resourceID, bytes calldata data) external override onlyBridge {
 		bytes32 resourceId;
 		bytes4 functionSig;

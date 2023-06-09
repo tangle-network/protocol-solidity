@@ -5,7 +5,6 @@
 
 pragma solidity ^0.8.18;
 
-
 /// @title IVAnchorVerifier join/split verifier interface with 2 edges
 /// @author Webb Technologies.
 /// and 2 inputs to 2 outputs.

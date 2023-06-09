@@ -39,7 +39,6 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
 		}
 	}
 
-
 	/// @notice Proposal execution should be initiated when a proposal is signed and executed by the `SignatureBridge`
 	/// @param resourceID ResourceID corresponding to a particular executing anchor contract.
 	/// @param data Consists of a specific proposal data structure for each finer-grained anchor proposal
@@ -54,7 +53,10 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
 
 		address anchorAddress = _resourceIDToContractAddress[resourceID];
 
-		require(_contractWhitelist[anchorAddress], "AnchorHandler: provided tokenAddress is not whitelisted");
+		require(
+			_contractWhitelist[anchorAddress],
+			"AnchorHandler: provided tokenAddress is not whitelisted"
+		);
 
 		if (functionSig == bytes4(keccak256("setHandler(address,uint32)"))) {
 			uint32 nonce = uint32(bytes4(arguments[0:4]));

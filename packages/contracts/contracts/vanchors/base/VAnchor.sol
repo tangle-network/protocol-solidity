@@ -25,7 +25,7 @@ import "../../libs/VAnchorEncodeInputs.sol";
 /// The hash input is the UTXO data. All deposits/withdrawals are unified under
 /// a common `transact` function which requires a zkSNARK proof that the UTXO commitments
 /// are well-formed (i.e. that the deposit amount matches the sum of new UTXOs' amounts).
-/// 
+///
 /// Information regarding the commitments:
 /// - Poseidon is a zkSNARK friendly hash function
 /// - destinationChainID is the chainId of the destination chain, where the withdrawal
@@ -38,7 +38,7 @@ import "../../libs/VAnchorEncodeInputs.sol";
 ///
 /// Commitments adhering to different hash functions and formats will invalidate
 /// any attempt at withdrawal.
-/// 
+///
 /// Using the preimage / UTXO of the commitment, users can generate a zkSNARK proof that
 /// the UTXO is located in one-of-many VAnchor merkle trees and that the commitment's
 /// destination chain id matches the underlying chain id of the VAnchor where the

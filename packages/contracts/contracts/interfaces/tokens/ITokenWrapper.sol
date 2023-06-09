@@ -32,7 +32,7 @@ interface ITokenWrapper {
 	/// @param _amount Amount of tokens to wrap
 	function wrapFor(address _sender, address _tokenAddress, uint256 _amount) external payable;
 
-	/// @notice Wraps an `amount of tokens from `tokenAddress` for the `sender` address and sends to a `_mintRecipient` 
+	/// @notice Wraps an `amount of tokens from `tokenAddress` for the `sender` address and sends to a `_mintRecipient`
 	/// @param _sender The sender address the tokens are being wrapped for
 	/// @param _tokenAddress Address of the token to wrap
 	/// @param _amount Amount of tokens to wrap

@@ -181,13 +181,17 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, Reentr
 			IERC20(tokenAddress).safeTransfer(recipient, amount);
 		}
 	}
- 	/// @dev this function is defined in a child contract
+
+	/// @dev this function is defined in a child contract
 	function _isValidAddress(address tokenAddress) internal view virtual returns (bool);
- 	/// @dev this function is defined in a child contract
+
+	/// @dev this function is defined in a child contract
 	function _isValidHistoricalAddress(address tokenAddress) internal view virtual returns (bool);
- 	/// @dev this function is defined in a child contract
+
+	/// @dev this function is defined in a child contract
 	function _isNativeValid() internal view virtual returns (bool);
- 	/// @dev this function is defined in a child contract
+
+	/// @dev this function is defined in a child contract
 	function _isValidAmount(uint256 amount) internal view virtual returns (bool);
 
 	modifier isMinter() {

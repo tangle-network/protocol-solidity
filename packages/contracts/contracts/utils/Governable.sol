@@ -22,7 +22,7 @@ contract Governable {
 	/// -------------------------------------------------------
 	/// Storage values relevant to proposer set update
 	/// -------------------------------------------------------
-	
+
 	/// The proposal nonce
 	uint32 public proposerSetUpdateNonce = 0;
 	/// The root of the proposer set Merkle tree
@@ -212,7 +212,7 @@ contract Governable {
 
 	/// @notice Casts a vote in favor of force refreshing the governor
 	/// @param vote A vote struct
-	function voteInFavorForceSetGovernor(Vote memory vote) isValidTimeToVote external {
+	function voteInFavorForceSetGovernor(Vote memory vote) external isValidTimeToVote {
 		address proposerAddress = msg.sender;
 		// Check merkle proof is valid
 		require(
@@ -231,7 +231,10 @@ contract Governable {
 	/// @notice Casts a vote in favor of force refreshing the governor with a signature
 	/// @param votes Vote structs
 	/// @param sig Signatures of the votes
-	function voteInFavorForceSetGovernorWithSig(Vote[] memory votes, bytes[] memory sigs) isValidTimeToVote external {
+	function voteInFavorForceSetGovernorWithSig(
+		Vote[] memory votes,
+		bytes[] memory sigs
+	) external isValidTimeToVote {
 		require(votes.length == sigs.length, "Governable: Invalid number of votes and signatures");
 		for (uint i = 0; i < votes.length; i++) {
 			// Recover the public key from the signature
@@ -250,7 +253,7 @@ contract Governable {
 			}
 		}
 
-		_tryResolveVote(vote.proposedGovernor);	
+		_tryResolveVote(vote.proposedGovernor);
 	}
 
 	/// @notice Tries and resolves the vote by checking the number of votes for

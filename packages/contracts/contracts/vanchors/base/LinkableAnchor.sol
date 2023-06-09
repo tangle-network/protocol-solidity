@@ -22,7 +22,7 @@ import "../../interfaces/IMerkleSystem.sol";
 /// - Chain id that the edge points to
 /// - Latest merkle root of the MerkleTreePoseidon contract being linked
 /// - Latest leaf insertion index (used as a nonce) of the linked merkle tree.
-/// 
+///
 /// Updating the state of the LinkableAnchor's edges is done through the handler
 /// architecture defined originally by ChainSafe's ChainBridge system. In our case,
 /// we employ a handler to propagate updates to a LinkableAnchor contract. For example,
