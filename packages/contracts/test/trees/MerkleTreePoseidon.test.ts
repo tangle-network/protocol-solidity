@@ -11,7 +11,7 @@ import { PoseidonHasher } from '@webb-tools/anchors';
 const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
 
-const MerkleTreeWithHistory = artifacts.require('MerkleTreePoseidonMock');
+const MerkleTreeWithHistory = artifacts.require('MerkleTreeMock');
 
 contract('MerkleTree w/ Poseidon hasher', (accounts) => {
   let merkleTreeWithHistory;

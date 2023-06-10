@@ -9,6 +9,9 @@ import "./LinkableIncrementalBinaryTree.sol";
 import "../interfaces/IMerkleSystem.sol";
 import "../hashers/IHasher.sol";
 
+/// @title MerkleForest contract that stores multiple merkle trees in a forest.
+/// @author Webb Technologies.
+/// @notice This contract is meant to be used to store multiple merkle trees in a forest.
 contract MerkleForest is MerkleSystem {
 	using LinkableIncrementalBinaryTree for LinkableIncrementalTreeData;
 	IHasher public hasher;
@@ -22,7 +25,10 @@ contract MerkleForest is MerkleSystem {
 	mapping(uint256 => LinkableIncrementalTreeData) public subtrees;
 	LinkableIncrementalTreeData public merkleForest;
 
-	// bytes32[] public leaves;
+	/// @notice Initializes the MerkleForest contract.
+	/// @param _forestLevels The number of levels in the forest.
+	/// @param _subtreeLevels The number of levels in each subtree.
+	/// @param _hasher The address of the hasher contract.
 	constructor(uint32 _forestLevels, uint32 _subtreeLevels, IHasher _hasher) {
 		require(_forestLevels > 0, "_forestLevels should be greater than zero");
 		require(_subtreeLevels > 0, "_subtreeLevels should be greater than zero");
@@ -41,9 +47,7 @@ contract MerkleForest is MerkleSystem {
 		subtreeLevels = _subtreeLevels;
 	}
 
-	/**
-        @dev inserts single leaf into subtree then update forest
-    */
+	/// @dev inserts single leaf into subtree then update forest
 	function _insert(uint256 _leaf) internal override returns (uint32) {
 		if (numSubtreeElements >= uint32(2 ** subtreeLevels)) {
 			numSubtreeElements = 0;
@@ -56,9 +60,7 @@ contract MerkleForest is MerkleSystem {
 		return numSubtreeElements;
 	}
 
-	/**
-        @dev inserts pair of leaves into subtree then update forest
-    */
+	/// @dev inserts pair of leaves into subtree then update forest
 	function _insertTwo(uint256 _leaf1, uint256 _leaf2) internal override returns (uint32) {
 		if (numSubtreeElements + 1 >= uint32(2 ** subtreeLevels)) {
 			numSubtreeElements = 0;
@@ -71,9 +73,7 @@ contract MerkleForest is MerkleSystem {
 		return index;
 	}
 
-	/**
-        @dev inserts single leaf into specific subtreeId (if possible)
-    */
+	/// @dev inserts single leaf into specific subtreeId (if possible)
 	function _insertSubtree(uint32 _subtreeId, uint256 _leaf) internal returns (uint) {
 		if (numSubtreeElements >= uint32(2 ** subtreeLevels)) {
 			numSubtreeElements = 0;
@@ -85,16 +85,12 @@ contract MerkleForest is MerkleSystem {
 		return merkleForest.getLastRoot();
 	}
 
-	/**
-        @dev Whether the root is present in any of the subtree's history
-    */
+	/// @dev Whether the root is present in any of the subtree's history
 	function isKnownSubtreeRoot(uint _subtreeId, uint256 _root) public view returns (bool) {
 		return subtrees[_subtreeId].isKnownRoot(uint(_root));
 	}
 
-	/**
-        @dev Whether the root is present in any of the subtree's history
-    */
+	/// @dev Whether the root is present in any of the subtree's history
 	function getLastSubtreeRoot(uint256 _subtreeId) public view returns (uint) {
 		return subtrees[_subtreeId].getLastRoot();
 	}

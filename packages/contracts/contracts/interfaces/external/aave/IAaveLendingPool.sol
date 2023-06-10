@@ -5,6 +5,9 @@
 
 pragma solidity ^0.8.18;
 
+/// @title Lending pool deposit/withdraw functionality for Aave
+/// @author Webb Technologies.
+/// @notice This contract is meant to be used with the `TokenWrapper.sol`.
 interface IAaveLendingPool {
 	function deposit(
 		address asset,

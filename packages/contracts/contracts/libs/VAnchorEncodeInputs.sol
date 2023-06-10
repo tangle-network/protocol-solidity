@@ -8,21 +8,19 @@ pragma experimental ABIEncoderV2;
 
 import "../structs/PublicInputs.sol";
 
-/**
-    @title VAnchorEncodeInputs library for encoding inputs for VAnchor proofs
- */
+/// @title VAnchorEncodeInputs library for encoding inputs for VAnchor proofs
+/// @author Webb Technologies.
+/// @notice This contract is meant to be used with the `VAnchor` contract.
 library VAnchorEncodeInputs {
 	bytes2 public constant EVM_CHAIN_ID_TYPE = 0x0100;
 
-	/**
-        @notice Proof struct for VAnchor proofs
-        @param proof The zkSNARK proof data
-        @param roots The roots on the VAnchor bridge to verify the proof against
-        @param inputNullifiers The nullifiers of the UTXO 
-        @param outputCommitments The 2 new commitments for the join/split UTXO transaction
-        @param publicAmount The public amount being deposited to this VAnchor
-        @param extDataHash The external data hash for the proof verification
-    */
+	/// @notice Proof struct for VAnchor proofs
+	/// @param proof The zkSNARK proof data
+	/// @param roots The roots on the VAnchor bridge to verify the proof against
+	/// @param inputNullifiers The nullifiers of the UTXO
+	/// @param outputCommitments The 2 new commitments for the join/split UTXO transaction
+	/// @param publicAmount The public amount being deposited to this VAnchor
+	/// @param extDataHash The external data hash for the proof verification
 	struct Proof {
 		bytes proof;
 		bytes roots;
@@ -32,9 +30,7 @@ library VAnchorEncodeInputs {
 		bytes32 extDataHash;
 	}
 
-	/**
-        @notice Gets the chain id using the chain id opcode
-     */
+	/// @notice Gets the chain id using the chain id opcode
 	function getChainId() public view returns (uint) {
 		uint chainId;
 		assembly {
@@ -43,9 +39,7 @@ library VAnchorEncodeInputs {
 		return chainId;
 	}
 
-	/**
-        @notice Computes the modified chain id using the underlying chain type (EVM)
-     */
+	/// @notice Computes the modified chain id using the underlying chain type (EVM)
 	function getChainIdType() public view returns (uint48) {
 		// The chain ID and type pair is 6 bytes in length
 		// The first 2 bytes are reserved for the chain type.
@@ -59,12 +53,10 @@ library VAnchorEncodeInputs {
 		return uint48(bytes6(chainIdWithType));
 	}
 
-	/**
-        @notice Encodes the proof into its public inputs and roots array for 2 input / 2 output txes
-        @param _args The proof arguments
-        @param _maxEdges The maximum # of edges supported by the underlying VAnchor
-        @return (bytes, bytes) The public inputs and roots array separated
-     */
+	/// @notice Encodes the proof into its public inputs and roots array for 2 input / 2 output txes
+	/// @param _args The proof arguments
+	/// @param _maxEdges The maximum # of edges supported by the underlying VAnchor
+	/// @return (bytes, bytes) The public inputs and roots array separated
 	function _encodeInputs2(
 		PublicInputs memory _args,
 		bytes memory,
@@ -121,18 +113,16 @@ library VAnchorEncodeInputs {
 			inputs[14] = uint256(roots[7]);
 			encodedInput = abi.encodePacked(inputs);
 		} else {
-			require(false, "Invalid edges");
+			require(false, "VAnchorEncodeInputs: Invalid edges");
 		}
 
 		return (encodedInput, result);
 	}
 
-	/**
-        @notice Encodes the proof into its public inputs and roots array for 16 input / 2 output txes
-        @param _args The proof arguments
-        @param _maxEdges The maximum # of edges supported by the underlying VAnchor
-        @return (bytes, bytes) The public inputs and roots array separated
-     */
+	/// @notice Encodes the proof into its public inputs and roots array for 16 input / 2 output txes
+	/// @param _args The proof arguments
+	/// @param _maxEdges The maximum # of edges supported by the underlying VAnchor
+	/// @return (bytes, bytes) The public inputs and roots array separated
 	function _encodeInputs16(
 		PublicInputs memory _args,
 		bytes memory,
@@ -218,7 +208,7 @@ library VAnchorEncodeInputs {
 			inputs[28] = uint256(roots[7]);
 			encodedInput = abi.encodePacked(inputs);
 		} else {
-			require(false, "Invalid edges");
+			require(false, "VAnchorEncodeInputs: Invalid edges");
 		}
 
 		return (encodedInput, result);

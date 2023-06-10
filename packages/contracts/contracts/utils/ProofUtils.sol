@@ -5,13 +5,14 @@
 
 pragma solidity ^0.8.18;
 
+/// @title ProofUtils contract.
+/// @author Webb Technologies.
+/// @notice This contract is used to unpack the proof values.
 contract ProofUtils {
-	/**
-        @notice A helper function to convert an array of 8 uint256 values into the a, b,
-        and c array values that the zk-SNARK verifier's verifyProof accepts.
-        @param _proof The array of 8 uint256 values
-        @return (uint256[2] memory a, uint256[2][2] memory b, uint256[2] memory c) The unpacked proof values
-    */
+	/// @notice A helper function to convert an array of 8 uint256 values into the a, b,
+	/// and c array values that the zk-SNARK verifier's verifyProof accepts.
+	/// @param _proof The array of 8 uint256 values
+	/// @return (uint256[2] memory a, uint256[2][2] memory b, uint256[2] memory c) The unpacked proof values
 	function unpackProof(
 		uint256[8] memory _proof
 	) public pure returns (uint256[2] memory, uint256[2][2] memory, uint256[2] memory) {

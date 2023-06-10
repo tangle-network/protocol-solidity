@@ -12,59 +12,47 @@ import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol"
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-/**
-	@title A token that allows ERC20s to wrap into and mint it.
-	@author Webb Technologies.
-	@notice This contract is intended to be used with TokenHandler/FungibleToken contract.
- */
+/// @title A token that allows ERC20s to wrap into and mint it.
+/// @author Webb Technologies.
+/// @notice This contract is intended to be used with TokenHandler/FungibleToken contract.
 abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, ReentrancyGuard {
 	using SafeERC20 for IERC20;
 	uint16 public feePercentage;
 	address payable public feeRecipient;
 
-	/**
-		@notice TokenWrapper constructor
-		@param _name The name of the ERC20
-		@param _symbol The symbol of the ERC20
-	 */
+	/// @notice TokenWrapper constructor
+	/// @param _name The name of the ERC20
+	/// @param _symbol The symbol of the ERC20
 	constructor(
 		string memory _name,
 		string memory _symbol
 	) ERC20PresetMinterPauser(_name, _symbol) {}
 
-	/**
-		@notice Get the fee for a target amount to wrap
-		@param _amountToWrap The amount to wrap
-		@return uint The fee amount of the token being wrapped
-	 */
+	/// @notice Get the fee for a target amount to wrap
+	/// @param _amountToWrap The amount to wrap
+	/// @return uint The fee amount of the token being wrapped
 	function getFeeFromAmount(uint256 _amountToWrap) public view override returns (uint256) {
 		return (_amountToWrap * feePercentage) / 10000;
 	}
 
-	/**
-		@notice Get the fee for a target amount to wrap
-		@param _admin the address for granting minting, pausing and admin roles at initialization
-	 */
+	/// @notice Get the fee for a target amount to wrap
+	/// @param _admin the address for granting minting, pausing and admin roles at initialization
 	function _initialize(address _admin) internal {
 		_setupRole(MINTER_ROLE, _admin);
 		_setupRole(DEFAULT_ADMIN_ROLE, _admin);
 		_setupRole(PAUSER_ROLE, _admin);
 	}
 
-	/**
-		@notice Get the amount to wrap for a target `_deposit` amount
-		@param _deposit The deposit amount
-		@return uint The amount to wrap conditioned on the deposit amount
-	 */
+	/// @notice Get the amount to wrap for a target `_deposit` amount
+	/// @param _deposit The deposit amount
+	/// @return uint The amount to wrap conditioned on the deposit amount
 	function getAmountToWrap(uint256 _deposit) public view override returns (uint256) {
 		return (_deposit * 10000) / (10000 - feePercentage);
 	}
 
-	/**
-		@notice Used to wrap tokens on behalf of a sender. Must be called by a minter role.
-		@param tokenAddress Address of ERC20 to transfer.
-		@param amount Amount of tokens to transfer.
-	 */
+	/// @notice Used to wrap tokens on behalf of a sender. Must be called by a minter role.
+	/// @param tokenAddress Address of ERC20 to transfer.
+	/// @param amount Amount of tokens to transfer.
 	function wrap(
 		address tokenAddress,
 		uint256 amount
@@ -72,12 +60,10 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, Reentr
 		_wrapForAndSendTo(_msgSender(), tokenAddress, amount, _msgSender());
 	}
 
-	/**
-		@notice Used to wrap tokens on behalf of a sender
-		@param sender Address of sender where assets are sent from.
-		@param tokenAddress Address of ERC20 to transfer.
-		@param amount Amount of tokens to transfer.
-	 */
+	/// @notice Used to wrap tokens on behalf of a sender
+	/// @param sender Address of sender where assets are sent from.
+	/// @param tokenAddress Address of ERC20 to transfer.
+	/// @param amount Amount of tokens to transfer.
 	function wrapFor(
 		address sender,
 		address tokenAddress,
@@ -93,13 +79,11 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, Reentr
 		_wrapForAndSendTo(sender, tokenAddress, amount, sender);
 	}
 
-	/**
-		@notice Used to wrap tokens on behalf of a sender and mint to a potentially different address
-		@param sender Address of sender where assets are sent from.
-		@param tokenAddress Address of ERC20 to transfer.
-		@param amount Amount of tokens to transfer.
-		@param recipient Recipient of the wrapped tokens.
-	 */
+	/// @notice Used to wrap tokens on behalf of a sender and mint to a potentially different address
+	/// @param sender Address of sender where assets are sent from.
+	/// @param tokenAddress Address of ERC20 to transfer.
+	/// @param amount Amount of tokens to transfer.
+	/// @param recipient Recipient of the wrapped tokens.
 	function wrapForAndSendTo(
 		address sender,
 		address tokenAddress,
@@ -116,11 +100,9 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, Reentr
 		_wrapForAndSendTo(sender, tokenAddress, amount, recipient);
 	}
 
-	/**
-		@notice Used to unwrap/burn the wrapper token on behalf of a sender.
-		@param tokenAddress Address of ERC20 to unwrap into.
-		@param amount Amount of tokens to burn.
-	 */
+	/// @notice Used to unwrap/burn the wrapper token on behalf of a sender.
+	/// @param tokenAddress Address of ERC20 to unwrap into.
+	/// @param amount Amount of tokens to burn.
 	function unwrap(
 		address tokenAddress,
 		uint256 amount
@@ -128,11 +110,9 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, Reentr
 		_unwrapAndSendTo(_msgSender(), tokenAddress, amount, _msgSender());
 	}
 
-	/**
-		@notice Used to unwrap/burn the wrapper token on behalf of a sender.
-		@param tokenAddress Address of ERC20 to unwrap into.
-		@param amount Amount of tokens to burn.
-	 */
+	/// @notice Used to unwrap/burn the wrapper token on behalf of a sender.
+	/// @param tokenAddress Address of ERC20 to unwrap into.
+	/// @param amount Amount of tokens to burn.
 	function unwrapAndSendTo(
 		address tokenAddress,
 		uint256 amount,
@@ -141,12 +121,10 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, Reentr
 		_unwrapAndSendTo(_msgSender(), tokenAddress, amount, recipient);
 	}
 
-	/**
-		@notice Used to unwrap/burn the wrapper token.
-		@param sender The address that the caller is unwrapping for
-		@param tokenAddress Address of ERC20 to unwrap into.
-		@param amount Amount of tokens to burn.
-	 */
+	/// @notice Used to unwrap/burn the wrapper token.
+	/// @param sender The address that the caller is unwrapping for
+	/// @param tokenAddress Address of ERC20 to unwrap into.
+	/// @param amount Amount of tokens to burn.
 	function unwrapFor(
 		address sender,
 		address tokenAddress,
@@ -204,16 +182,16 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, Reentr
 		}
 	}
 
-	/** @dev this function is defined in a child contract */
+	/// @dev this function is defined in a child contract
 	function _isValidAddress(address tokenAddress) internal view virtual returns (bool);
 
-	/** @dev this function is defined in a child contract */
+	/// @dev this function is defined in a child contract
 	function _isValidHistoricalAddress(address tokenAddress) internal view virtual returns (bool);
 
-	/** @dev this function is defined in a child contract */
+	/// @dev this function is defined in a child contract
 	function _isNativeValid() internal view virtual returns (bool);
 
-	/** @dev this function is defined in a child contract */
+	/// @dev this function is defined in a child contract
 	function _isValidAmount(uint256 amount) internal view virtual returns (bool);
 
 	modifier isMinter() {
@@ -221,12 +199,10 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, Reentr
 		_;
 	}
 
-	/**
-		@notice Modifier to check if the wrapping is valid
-		@param _tokenAddress The token address to wrap from
-		@param _feeRecipient The fee recipient for the wrapping fee
-		@param _amount The amount of tokens to wrap
-	 */
+	/// @notice Modifier to check if the wrapping is valid
+	/// @param _tokenAddress The token address to wrap from
+	/// @param _feeRecipient The fee recipient for the wrapping fee
+	/// @param _amount The amount of tokens to wrap
 	modifier isValidWrapping(
 		address _tokenAddress,
 		address _feeRecipient,
@@ -248,11 +224,9 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, Reentr
 		_;
 	}
 
-	/**
-		@notice Modifier to check if the unwrapping is valid
-		@param _tokenAddress The token address to unwrap into
-		@param _amount The amount of tokens to unwrap
-	 */
+	/// @notice Modifier to check if the unwrapping is valid
+	/// @param _tokenAddress The token address to unwrap into
+	/// @param _amount The amount of tokens to unwrap
 	modifier isValidUnwrapping(address _tokenAddress, uint256 _amount) {
 		if (_tokenAddress == address(0)) {
 			require(address(this).balance >= _amount, "TokenWrapper: Insufficient native balance");

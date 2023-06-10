@@ -11,25 +11,19 @@ import "./utils/ChainIdWithType.sol";
 import "./utils/ProposalNonceTracker.sol";
 import "./interfaces/IExecutor.sol";
 
-/**
-	@title Facilitates proposals execution and resource ID additions/updates
-	@author ChainSafe Systems & Webb Technologies.
- */
+/// @title Facilitates proposals execution and resource ID additions/updates
+/// @author ChainSafe Systems & Webb Technologies.
 contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 	// resourceID => handler address
 	mapping(bytes32 => address) public _resourceIdToHandlerAddress;
 
-	/**
-		Verifying signature of governor over some data
-	 */
+	/// @notice Verifying signature of governor over some data
 	modifier signedByGovernor(bytes memory data, bytes memory sig) {
 		require(isSignatureFromGovernor(data, sig), "SignatureBridge: Not valid sig from governor");
 		_;
 	}
 
-	/**
-		Verifying signature of governor over some datahash
-	 */
+	/// @notice Verifying signature of governor over some datahash
 	modifier signedByGovernorPrehashed(bytes32 hashedData, bytes memory sig) {
 		require(
 			isSignatureFromGovernorPrehashed(hashedData, sig),
@@ -38,9 +32,7 @@ contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 		_;
 	}
 
-	/**
-		Verifying many signatures from a governor over some datahash
-	 */
+	/// @notice Verifying many signatures from a governor over some datahash
 	modifier manySignedByGovernor(bytes[] memory data, bytes[] memory sig) {
 		require(data.length == sig.length, "SignatureBridge: Data and sig lengths must match");
 		for (uint256 i = 0; i < data.length; i++) {
@@ -52,23 +44,19 @@ contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 		_;
 	}
 
-	/**
-		@notice Initializes SignatureBridge with a governor
-		@param initialGovernor Addresses that should be initially granted the relayer role.
-	 */
+	/// @notice Initializes SignatureBridge with a governor
+	/// @param initialGovernor Addresses that should be initially granted the relayer role.
 	constructor(address initialGovernor, uint32 nonce) Governable(initialGovernor, nonce) {}
 
-	/**
-		@notice Sets a new resource for handler contracts that use the IExecutor interface,
-		and maps the {handlerAddress} to {newResourceID} in {_resourceIdToHandlerAddress}.
-		@notice Only callable by an address that currently has the admin role.
-		@param resourceID Target resource ID of the proposal header.
-		@param functionSig Function signature of the proposal header.
-		@param nonce Nonce of the proposal header.
-		@param newResourceID Secondary resourceID begin mapped to a handler address.
-		@param handlerAddress Address of handler resource will be set for.
-		@param sig The signature from the governor of the encoded set resource proposal.
-	 */
+	/// @notice Sets a new resource for handler contracts that use the IExecutor interface,
+	/// and maps the {handlerAddress} to {newResourceID} in {_resourceIdToHandlerAddress}.
+	/// @notice Only callable by an address that currently has the admin role.
+	/// @param resourceID Target resource ID of the proposal header.
+	/// @param functionSig Function signature of the proposal header.
+	/// @param nonce Nonce of the proposal header.
+	/// @param newResourceID Secondary resourceID begin mapped to a handler address.
+	/// @param handlerAddress Address of handler resource will be set for.
+	/// @param sig The signature from the governor of the encoded set resource proposal.
 	function adminSetResourceWithSignature(
 		bytes32 resourceID,
 		bytes4 functionSig,
@@ -84,21 +72,19 @@ contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 			sig
 		)
 	{
-		_handleSetResource(resourceID, functionSig, nonce, newResourceID, handlerAddress);
+		_handleSetResource(resourceID, functionSig, newResourceID, handlerAddress);
 	}
 
-	/**
-		@notice Sets a batch new resources for handler contracts that use the IExecutor interface,
-		and maps the {handlerAddress} to {newResourceID} in {_resourceIdToHandlerAddress}.
-		@notice Only callable by an address that currently has the admin role.
-		@param resourceID Target resource ID of the proposal header.
-		@param functionSig Function signature of the proposal header.
-		@param nonces Nonces of the proposal headers.
-		@param newResourceIDs Secondary resourceIDs begin mapped to a handler address.
-		@param handlerAddresses Addresses of handler resource will be set for.
-		@param hashedData The encoded data of all proposals to be used for easy checking.
-		@param sig The signature from the governor of the encoded set resource proposal.
-	 */
+	/// @notice Sets a batch new resources for handler contracts that use the IExecutor interface,
+	/// and maps the {handlerAddress} to {newResourceID} in {_resourceIdToHandlerAddress}.
+	/// @notice Only callable by an address that currently has the admin role.
+	/// @param resourceID Target resource ID of the proposal header.
+	/// @param functionSig Function signature of the proposal header.
+	/// @param nonces Nonces of the proposal headers.
+	/// @param newResourceIDs Secondary resourceIDs begin mapped to a handler address.
+	/// @param handlerAddresses Addresses of handler resource will be set for.
+	/// @param hashedData The encoded data of all proposals to be used for easy checking.
+	/// @param sig The signature from the governor of the encoded set resource proposal.
 	function batchAdminSetResourceWithSignature(
 		bytes32 resourceID,
 		bytes4 functionSig,
@@ -131,20 +117,12 @@ contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 		);
 
 		for (uint i = 0; i < nonces.length; i++) {
-			_handleSetResource(
-				resourceID,
-				functionSig,
-				nonces[i],
-				newResourceIDs[i],
-				handlerAddresses[i]
-			);
+			_handleSetResource(resourceID, functionSig, newResourceIDs[i], handlerAddresses[i]);
 		}
 	}
 
-	/**
-		@notice Executes a proposal signed by the governor.
-		@param data Data meant for execution by execution handlers.
-	 */
+	/// @notice Executes a proposal signed by the governor.
+	/// @param data Data meant for execution by execution handlers.
 	function executeProposalWithSignature(
 		bytes calldata data,
 		bytes memory sig
@@ -152,10 +130,8 @@ contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 		_handleExecuteProposal(data);
 	}
 
-	/**
-		@notice Executes a many of proposals signed by the governor in a single tx.
-		@param data Data meant for execution by execution handlers.
-	 */
+	/// @notice Executes a many of proposals signed by the governor in a single tx.
+	/// @param data Data meant for execution by execution handlers.
 	function executeManyProposalsWithSignature(
 		bytes[] calldata data,
 		bytes[] memory sig
@@ -165,10 +141,8 @@ contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 		}
 	}
 
-	/**
-		@notice Executes a batch of proposals signed by the governor in a single tx.
-		@param data Data meant for execution by execution handlers.
-	 */
+	/// @notice Executes a batch of proposals signed by the governor in a single tx.
+	/// @param data Data meant for execution by execution handlers.
 	function batchExecuteProposalsWithSignature(
 		bytes[] calldata data,
 		bytes memory sig
@@ -193,7 +167,6 @@ contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 	function _handleSetResource(
 		bytes32 resourceID,
 		bytes4 functionSig,
-		uint32 nonce,
 		bytes32 newResourceID,
 		address handlerAddress
 	) internal {

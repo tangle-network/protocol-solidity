@@ -2,6 +2,7 @@
  * Copyright 2021-2023 Webb Technologies
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
+
 pragma solidity ^0.8.4;
 
 import { PoseidonT3 } from "../hashers/Poseidon.sol";
@@ -243,9 +244,7 @@ library LinkableIncrementalBinaryTree {
 		return hash == uint256(self.roots[self.currentRootIndex]);
 	}
 
-	/**
-        @dev Whether the root is present in the root history
-    */
+	/// @dev Whether the root is present in the root history
 	function isKnownRoot(
 		LinkableIncrementalTreeData storage self,
 		uint256 _root
@@ -268,17 +267,13 @@ library LinkableIncrementalBinaryTree {
 		return false;
 	}
 
-	/**
-        @dev Returns the last root
-    */
+	/// @dev Returns the last root
 	function getLastRoot(LinkableIncrementalTreeData storage self) public view returns (uint256) {
 		return self.roots[self.currentRootIndex];
 	}
 
-	/**
-        @notice Decodes a byte string of roots into its parts.
-        @return bytes32[] An array of bytes32 merkle roots
-     */
+	/// @notice Decodes a byte string of roots into its parts.
+	/// @return bytes32[] An array of bytes32 merkle roots
 	function decodeRoots(
 		LinkableIncrementalTreeData storage self,
 		bytes calldata roots
@@ -291,9 +286,7 @@ library LinkableIncrementalBinaryTree {
 		return decodedRoots;
 	}
 
-	/**
-        Parses the typed chain ID out from a 32-byte resource ID
-     */
+	/// Parses the typed chain ID out from a 32-byte resource ID
 	function parseChainIdFromResourceId(bytes32 _resourceId) public pure returns (uint64) {
 		return uint64(uint48(bytes6(_resourceId << (26 * 8))));
 	}

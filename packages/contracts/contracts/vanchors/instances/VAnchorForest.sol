@@ -8,28 +8,24 @@ pragma solidity ^0.8.18;
 import "../base/VAnchor.sol";
 import "../../trees/MerkleForest.sol";
 
-/**
-	@title Variable Anchor Forest contract
-	@author Webb Technologies
-	@notice The Variable Anchor Forest is the same as a VAnchor system but with
-	many merkle trees for commitment storage.
- */
+/// @title Variable Anchor Forest contract
+/// @author Webb Technologies
+/// @notice The Variable Anchor Forest is the same as a VAnchor system but with
+/// many merkle trees for commitment storage.
 contract VAnchorForest is VAnchor, MerkleForest {
 	using SafeERC20 for IERC20;
 
-	/**
-		@notice The VAnchor Forest constructor
-		@param _verifier The address of SNARK verifier for this contract
-		@param _forestLevels The height/# of levels of underlying Merkle Forest
-		@param _subtreeLevels The height/# of levels of underlying Merkle Trees in the forest
-		@param _hasher The address of hash contract
-		@param _handler The address of AnchorHandler for this contract
-		@param _token The address of the token that is used to pay the deposit
-		@param _maxEdges The maximum number of edges in the LinkableAnchor + Verifier supports.
-		@notice The `_maxEdges` is zero-knowledge circuit dependent, meaning the
-		`_verifier` ONLY supports a certain maximum # of edges. Therefore we need to
-		limit the size of the LinkableAnchor with this parameter.
-	*/
+	/// @notice The VAnchor Forest constructor
+	/// @param _verifier The address of SNARK verifier for this contract
+	/// @param _forestLevels The height/# of levels of underlying Merkle Forest
+	/// @param _subtreeLevels The height/# of levels of underlying Merkle Trees in the forest
+	/// @param _hasher The address of hash contract
+	/// @param _handler The address of AnchorHandler for this contract
+	/// @param _token The address of the token that is used to pay the deposit
+	/// @param _maxEdges The maximum number of edges in the LinkableAnchor + Verifier supports.
+	/// @notice The `_maxEdges` is zero-knowledge circuit dependent, meaning the
+	/// `_verifier` ONLY supports a certain maximum # of edges. Therefore we need to
+	/// limit the size of the LinkableAnchor with this parameter.
 	constructor(
 		IAnchorVerifier _verifier,
 		uint32 _forestLevels,

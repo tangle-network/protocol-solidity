@@ -8,6 +8,8 @@ import "../utils/ProofUtils.sol";
 
 pragma solidity ^0.8.18;
 
+/// @title TxProofVerifier contract.
+/// @notice This contract is used to verify the zero knowledge proofs.
 contract TxProofVerifier is ProofUtils {
 	IAnchorVerifier public verifier;
 
@@ -15,14 +17,12 @@ contract TxProofVerifier is ProofUtils {
 		verifier = _verifier;
 	}
 
-	/**
-        @notice Verifies a zero-knowledge proof of knowledge over the tree according
-        to the underlying `Verifier` circuit this `AnchorBase` is using.
-        @notice This aims to be as generic as currently needed to support our VAnchor (variable deposit) contracts.
-        @param _proof The zero-knowledge proof bytes
-        @param _input The public input packed bytes
-        @return bool Whether the proof is valid
-     */
+	/// @notice Verifies a zero-knowledge proof of knowledge over the tree according
+	/// to the underlying `Verifier` circuit this `AnchorBase` is using.
+	/// @notice This aims to be as generic as currently needed to support our VAnchor (variable deposit) contracts.
+	/// @param _proof The zero-knowledge proof bytes
+	/// @param _input The public input packed bytes
+	/// @return bool Whether the proof is valid
 	function verify(
 		bytes memory _proof,
 		bytes memory _input,

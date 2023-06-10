@@ -8,6 +8,9 @@ pragma solidity ^0.8.18;
 import "../hashers/IHasher.sol";
 import "../interfaces/IMerkleSystem.sol";
 
+/// @title MerkleTreeWithHistory contract stores history of roots.
+/// @author Webb Technologies.
+/// @notice This contract is used to store the merkle tree data.
 abstract contract MerkleTreeWithHistory is MerkleSystem {
 	uint32 public currentRootIndex = 0;
 	uint32 public nextIndex = 0;

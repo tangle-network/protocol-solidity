@@ -7,13 +7,11 @@ pragma solidity ^0.8.18;
 
 import "../instances/VAnchorTree.sol";
 
-/**
-	@title Rate Limited Variable Anchor contract
-	@author Webb Technologies
-	@notice The main addition here is a rate limiter on the amount that can be withdrawn
-	in a single day. This is to prevent a single user from withdrawing all of the funds
-	in the pool in a single day.
- */
+/// @title Rate Limited Variable Anchor contract
+/// @author Webb Technologies
+/// @notice The main addition here is a rate limiter on the amount that can be withdrawn
+/// in a single day. This is to prevent a single user from withdrawing all of the funds
+/// in the pool in a single day.
 contract RateLimitedVAnchor is VAnchorTree {
 	using SafeERC20 for IERC20;
 
