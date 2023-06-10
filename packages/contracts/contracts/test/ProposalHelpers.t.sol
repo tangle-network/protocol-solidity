@@ -89,4 +89,19 @@ contract ProposalHelpers is ChainIdWithType {
 		// Return the proposal header and proposal data concatenated
 		return buildProposal(proposalHeader, proposalData);
 	}
+
+	function buildProposerSetUpdateProposal(
+		bytes32 _proposerSetRoot,
+		uint64 _averageSessionLengthInMillisecs,
+		uint32 _numOfProposers,
+		uint32 _proposerSetUpdateNonce
+	) public pure returns (bytes memory) {
+		return
+			abi.encodePacked(
+				_proposerSetRoot,
+				bytes8(_averageSessionLengthInMillisecs),
+				bytes4(_numOfProposers),
+				bytes4(_proposerSetUpdateNonce)
+			);
+	}
 }

@@ -7,6 +7,15 @@ pragma solidity ^0.8.18;
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
+/// @param leafIndex leafIndex of the proposer in the proposer set Merkle tree
+/// @param siblingPathNodes Merkle proof path of sibling nodes
+/// @param proposedGovernor the governor that the voter wants to force reset to
+struct Vote {
+	uint32 leafIndex;
+	address proposedGovernor;
+	bytes32[] siblingPathNodes;
+}
+
 /// @title The Governable contract that defines the governance mechanism
 /// @author Webb Technologies.
 /// @notice This contract is used to for ownership and governance of smart contracts.
@@ -35,28 +44,20 @@ contract Governable {
 	uint32 public numOfProposers;
 	/// The current voting period
 	uint256 public currentVotingPeriod = 0;
-	/// (currentVotingPeriod => (proposer => (true/false))) whether a proposer has
-	/// voted in this period
-	mapping(uint256 => mapping(address => bool)) alreadyVoted;
+	/// (currentVotingPeriod => (proposer => (vote of new governor))) whether a proposer has
+	/// voted in this period and who they're voting for
+	mapping(uint256 => mapping(address => address)) alreadyVoted;
 	/// (currentVotingPeriod => (proposerGovernor => (uint))) number of votes a
 	/// proposedGovernor has in the current period
 	mapping(uint256 => mapping(address => uint32)) numOfVotesForGovernor;
 
-	/// leafIndex: leafIndex of the proposer in the proposer set Merkle tree
-	/// siblingPathNodes: Merkle proof path of sibling nodes
-	/// proposedGovernor: the governor that the voter wants to force reset to
-	struct Vote {
-		address proposedGovernor;
-		uint32 leafIndex;
-		bytes32[] siblingPathNodes;
-	}
-
 	event GovernanceOwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 	event RecoveredAddress(address indexed recovered);
 
-	constructor(address gov, uint32 nonce) {
+	constructor(address gov, uint32 _refreshNonce) {
 		_governor = gov;
-		refreshNonce = nonce;
+		refreshNonce = _refreshNonce;
+		proposerSetUpdateNonce = _refreshNonce;
 		lastGovernorUpdateTime = block.timestamp;
 		emit GovernanceOwnershipTransferred(address(0), _governor);
 	}
@@ -139,8 +140,8 @@ contract Governable {
 		uint32 nonce,
 		bytes memory sig
 	) public {
-		require(refreshNonce < nonce, "Invalid nonce");
-		require(nonce <= refreshNonce + 1, "Nonce must increment by 1");
+		require(refreshNonce < nonce, "Governable: Invalid nonce");
+		require(nonce <= refreshNonce + 1, "Governable: Nonce must increment by 1");
 		bytes32 pubKeyHash = keccak256(publicKey);
 		address newOwner = address(uint160(uint256(pubKeyHash)));
 		require(
@@ -164,7 +165,7 @@ contract Governable {
 	/// @notice Transfers ownership of the contract to a new account (`newOwner`).
 	/// @param newOwner The new owner of the contract
 	function _transferOwnership(address newOwner) internal {
-		require(newOwner != address(0), "Governable: new owner is the zero address");
+		require(newOwner != address(0), "Governable: New governor is the zero address");
 		emit GovernanceOwnershipTransferred(_governor, newOwner);
 		_governor = newOwner;
 		lastGovernorUpdateTime = block.timestamp;
@@ -208,11 +209,30 @@ contract Governable {
 		averageSessionLengthInMillisecs = _averageSessionLengthInMillisecs;
 		numOfProposers = _numOfProposers;
 		proposerSetUpdateNonce = _proposerSetUpdateNonce;
+		currentVotingPeriod++;
+	}
+
+	/// @notice Helper function for creating a vote struct
+	/// @param _leafIndex The leaf index of the vote
+	/// @param _proposedGovernor The proposed governor
+	/// @param _siblingPathNodes The sibling path nodes of the vote
+	/// @return Vote The vote struct
+	function createVote(
+		uint32 _leafIndex,
+		address _proposedGovernor,
+		bytes32[] memory _siblingPathNodes
+	) public view returns (Vote memory) {
+		return Vote(_leafIndex, _proposedGovernor, _siblingPathNodes);
 	}
 
 	/// @notice Casts a vote in favor of force refreshing the governor
 	/// @param vote A vote struct
 	function voteInFavorForceSetGovernor(Vote memory vote) external isValidTimeToVote {
+		require(
+			vote.proposedGovernor != address(0x0),
+			"Governable: Proposed governor cannot be the zero address"
+		);
+
 		address proposerAddress = msg.sender;
 		// Check merkle proof is valid
 		require(
@@ -220,12 +240,7 @@ contract Governable {
 			"Governable: Invalid merkle proof"
 		);
 
-		// Make sure proposer has not already voted
-		require(!alreadyVoted[currentVotingPeriod][proposerAddress], "Governable: Already voted");
-
-		alreadyVoted[currentVotingPeriod][proposerAddress] = true;
-		numOfVotesForGovernor[currentVotingPeriod][vote.proposedGovernor] += 1;
-		_tryResolveVote(vote.proposedGovernor);
+		_processVote(vote, proposerAddress);
 	}
 
 	/// @notice Casts a vote in favor of force refreshing the governor with a signature
@@ -237,19 +252,33 @@ contract Governable {
 	) external isValidTimeToVote {
 		require(votes.length == sigs.length, "Governable: Invalid number of votes and signatures");
 		for (uint i = 0; i < votes.length; i++) {
-			// Recover the public key from the signature
+			require(
+				votes[i].proposedGovernor != address(0x0),
+				"Governable: Proposed governor cannot be the zero address"
+			);
+			// Recover the address from the signature
 			address proposerAddress = recover(abi.encode(votes[i]), sigs[i]);
 
 			// Check merkle proof is valid
-			if (_isValidMerkleProof(votes[i].siblingPathNodes, proposerAddress, votes[i].leafIndex)) {
-				// Make sure proposer has not already voted
-				if (!alreadyVoted[currentVotingPeriod][proposerAddress]) {
-					alreadyVoted[currentVotingPeriod][proposerAddress] = true;
-					numOfVotesForGovernor[currentVotingPeriod][votes[i].proposedGovernor] += 1;
-					_tryResolveVote(votes[i].proposedGovernor);
-				}
+			if (
+				_isValidMerkleProof(votes[i].siblingPathNodes, proposerAddress, votes[i].leafIndex)
+			) {
+				_processVote(votes[i], proposerAddress);
 			}
 		}
+	}
+
+	/// @notice Process a vote
+	function _processVote(Vote memory vote, address voter) internal {
+		// If the proposer has already voted, remove their previous vote
+		if (alreadyVoted[currentVotingPeriod][voter] != address(0x0)) {
+			address previousVote = alreadyVoted[currentVotingPeriod][voter];
+			numOfVotesForGovernor[currentVotingPeriod][previousVote] -= 1;
+		}
+
+		alreadyVoted[currentVotingPeriod][voter] = vote.proposedGovernor;
+		numOfVotesForGovernor[currentVotingPeriod][vote.proposedGovernor] += 1;
+		_tryResolveVote(vote.proposedGovernor);
 	}
 
 	/// @notice Tries and resolves the vote by checking the number of votes for
@@ -273,7 +302,6 @@ contract Governable {
 		bytes32 leafHash = keccak256(abi.encodePacked(leaf));
 		bytes32 currNodeHash = leafHash;
 		uint32 nodeIndex = leafIndex;
-
 		for (uint8 i = 0; i < siblingPathNodes.length; i++) {
 			if (nodeIndex % 2 == 0) {
 				currNodeHash = keccak256(abi.encodePacked(currNodeHash, siblingPathNodes[i]));

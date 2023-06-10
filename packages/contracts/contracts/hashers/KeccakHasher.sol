@@ -26,7 +26,7 @@ contract KeccakHasher is IHasher {
 		return output;
 	}
 
-	/// @dev provides Zero (Empty) elements for a Poseidon MerkleTree. Up to 32 levels
+	/// @dev provides Zero (Empty) elements for a Keccak MerkleTree. Up to 32 levels
 	function zeros(uint256 i) public pure override returns (bytes32) {
 		if (i == 0)
 			return bytes32(0x2fe54c60d3acabf3343a35b6eba15db4821b340f76e741e2249685ed4899af6c);

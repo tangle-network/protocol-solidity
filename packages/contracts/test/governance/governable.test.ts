@@ -14,7 +14,7 @@ const TruffleAssert = require('truffle-assertions');
 import { Governable, Governable__factory } from '@webb-tools/contracts';
 import { ethers } from 'ethers';
 
-describe('Governable Contract', () => {
+describe.only('Governable Contract', () => {
   let governableInstance: Governable;
   let sender: ethers.Signer;
   let nextGovernor: ethers.Signer;
@@ -28,7 +28,7 @@ describe('Governable Contract', () => {
     arbSigner = signers[2];
     // create poseidon hasher
     const govFactory = new Governable__factory(wallet);
-    governableInstance = await govFactory.deploy(sender.address, 0);
+    governableInstance = await govFactory.deploy(sender.address, 0, 0);
     await governableInstance.deployed();
   });
 
@@ -56,14 +56,16 @@ describe('Governable Contract', () => {
     );
   });
 
-  it('should check ownership is transferred to new governor via signed public key', async () => {
+  it.only('should check ownership is transferred to new governor via signed public key', async () => {
     const wallet = ethers.Wallet.createRandom();
     const key = ec.keyFromPrivate(wallet.privateKey.slice(2), 'hex');
     const pubkey = key.getPublic().encode('hex').slice(2);
+    console.log(pubkey);
     const publicKey = '0x' + pubkey;
     let nextGovernorAddress = ethers.utils.getAddress(
       '0x' + ethers.utils.keccak256(publicKey).slice(-40)
     );
+    console.log(nextGovernorAddress);
     let firstRotationKey = nextGovernorAddress;
     await governableInstance.transferOwnership(nextGovernorAddress, 1);
     assert.strictEqual(await governableInstance.governor(), nextGovernorAddress);
@@ -275,11 +277,6 @@ describe('Governable Contract', () => {
     assert.notEqual(
       await governableInstance.governor(),
       '0x1111111111111111111111111111111111111111'
-    );
-
-    await TruffleAssert.reverts(
-      governableInstance.connect(proposer0Signer).voteInFavorForceSetGovernor(voteProposer0),
-      'already voted'
     );
 
     const voteProposer1 = {

@@ -117,12 +117,7 @@ contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 		);
 
 		for (uint i = 0; i < nonces.length; i++) {
-			_handleSetResource(
-				resourceID,
-				functionSig,
-				newResourceIDs[i],
-				handlerAddresses[i]
-			);
+			_handleSetResource(resourceID, functionSig, newResourceIDs[i], handlerAddresses[i]);
 		}
 	}
 
