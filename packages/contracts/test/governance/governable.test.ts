@@ -14,7 +14,7 @@ const TruffleAssert = require('truffle-assertions');
 import { Governable, Governable__factory } from '@webb-tools/contracts';
 import { ethers } from 'ethers';
 
-describe.only('Governable Contract', () => {
+describe('Governable Contract', () => {
   let governableInstance: Governable;
   let sender: ethers.Signer;
   let nextGovernor: ethers.Signer;
@@ -56,7 +56,7 @@ describe.only('Governable Contract', () => {
     );
   });
 
-  it.only('should check ownership is transferred to new governor via signed public key', async () => {
+  it('should check ownership is transferred to new governor via signed public key', async () => {
     const wallet = ethers.Wallet.createRandom();
     const key = ec.keyFromPrivate(wallet.privateKey.slice(2), 'hex');
     const pubkey = key.getPublic().encode('hex').slice(2);
