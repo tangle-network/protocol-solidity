@@ -20,6 +20,7 @@
   <ul>
     <li><a href="#start"> Getting Started</a></li>
     <li><a href="#compile">Install and Compile</a></li>
+    <li><a href="#nix">Using Nix with Flakes</a></li>
     <li><a href="#test">Testing</a></li>
     <li><a href="#contribute">Contributing</a></li>
     <li><a href="#license">License</a></li>
@@ -134,6 +135,13 @@ cd solidity-fixtures
 dvc add solidity-fixtures
 dvc push --remote aws
 ```
+<h2 id="nix"> Using Nix with Flakes ❄️ </h2>
+
+1. Install [Nix](https://nixos.org/download.html)
+2. Enable Flakes (if you are not already see here: [Flakes](https://nixos.wiki/wiki/Flakes))
+3. If you have [`direnv`](https://github.com/nix-community/nix-direnv#installation) installed, everything should work out of the box.
+4. Alternatively, you can run `nix develop` in the root of this repo to get a shell with all the dependencies installed.
+5. Happy hacking!
 
 <h2 id="test"> Testing 🧪 </h2>
 
