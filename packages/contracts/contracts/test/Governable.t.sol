@@ -38,7 +38,8 @@ contract GovernableTest is PRBTest, StdCheats, ProposalHelpers {
 		return abi.encodePacked(r, s, v);
 	}
 
-	function test_transferOwnership(address newGovernor) public {
+	function test_transferOwnership() public {
+        address newGovernor = address(0x3);
 		vm.prank(governor);
 		governableContract.transferOwnership(newGovernor, refreshNonce + 1);
 		assertEq(governableContract.governor(), newGovernor);
