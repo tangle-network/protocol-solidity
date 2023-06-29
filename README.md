@@ -22,6 +22,7 @@
     <li><a href="#compile">Install and Compile</a></li>
     <li><a href="#nix">Using Nix with Flakes</a></li>
     <li><a href="#test">Testing</a></li>
+    <li><a href="#fixtures">Fixtures</a></li>
     <li><a href="#contribute">Contributing</a></li>
     <li><a href="#license">License</a></li>
   </ul>  
@@ -29,11 +30,73 @@
 
 <h2 id="start"> Getting Started  🎉 </h2>
 
-For additional information, please refer to the [Webb protocol-solidity implementation docs](https://webb-tools.github.io/protocol-solidity/) and the official [Webb docs site](http://docs.webb.tools/) 📝. Have feedback on how to improve protocol-solidity? Or have a specific question to ask? Checkout the [Anchor System Feedback Discussion](https://github.com/webb-tools/feedback/discussions/categories/anchor-protocol) 💬.
+This repository contains the Solidity smart contracts for Webb's Anchor System and single asset shielded pool protocols. The Anchor System is a bridging protocol for connecting cryptographic accumulators between chains and can be used, as is implemented in this repo, to build interoperable shielded pool protocols. These shielded pool protocols enable cross-chain private asset transfers and liquidity pools.
 
-## Prerequisites
+For additional information, please refer to the official [Webb docs site](http://docs.webb.tools/) 📝. Have feedback on how to improve protocol-solidity? Or have a specific question to ask? Checkout the [Anchor System Feedback Discussion](https://github.com/webb-tools/feedback/discussions/categories/anchor-protocol) 💬.
 
-Your development environment will need to include nodejs, and Rust setups. If you need to generate fixtures you will also require Circom 2.0 and snarkjs installations. You can find installation instructions below. 
+
+<h2 id="compile"> Installation & Compile 💻 </h2>
+
+Install dependencies: 
+
+```
+yarn install 
+```
+
+Update submodules:
+
+```
+git submodule update --init --recursive
+```
+
+To populate fixtures from the submodules, you'll need to install DVC: https://dvc.org/doc/install. Then run:
+
+```
+yarn fetch:fixtures
+```
+
+To compile contracts and build typescript interfaces
+
+```
+yarn build
+```
+
+To run the test suite:
+
+```
+yarn test
+```
+
+To fix the formatting:
+
+```
+yarn format
+```
+
+To run TypeScript checks:
+
+```
+yarn ts-check
+```
+
+**Note:** If you push new fixtures to remote storage
+
+```
+cd solidity-fixtures
+dvc add solidity-fixtures
+dvc push --remote aws
+```
+<h2 id="nix"> Using Nix with Flakes ❄️ </h2>
+
+1. Install [Nix](https://nixos.org/download.html)
+2. Enable Flakes (if you are not already see here: [Flakes](https://nixos.wiki/wiki/Flakes))
+3. If you have [`direnv`](https://github.com/nix-community/nix-direnv#installation) installed, everything should work out of the box.
+4. Alternatively, you can run `nix develop` in the root of this repo to get a shell with all the dependencies installed.
+5. Happy hacking!
+
+<h2 id="fixtures"> Generating Fixtures </h2>
+
+If you need to generate fixtures you will need Circom 2.0 and snarkjs installations. You can find installation instructions below. 
 
 This repository makes use of node.js, yarn, Rust, and requires version 16. To install node.js binaries, installers, and source tarballs, please visit https://nodejs.org/en/download/. Once node.js is installed you may proceed to install [`yarn`](https://classic.yarnpkg.com/en/docs/install):
 
@@ -63,15 +126,6 @@ rustup update nightly
 rustup target add wasm32-unknown-unknown
 ```
 
-Great! Now your **Rust** environment is ready! 🚀🚀
-
-Lastly, install 
-
-  - [DVC](https://dvc.org/) is used for fetching large ZK files and managing them alongside git
-  - [substrate.io](https://docs.substrate.io/main-docs/install/) may require additional dependencies
-
-🚀🚀 Your environment is complete! 🚀🚀
-
 ### Generating Fixtures Prerequisites
 
 > NOTE: This is only required for testing / dev purposes and not required to compile or interact with smart contracts. 
@@ -100,112 +154,6 @@ snarkjs is a npm package that contains code to generate and validate ZK proofs f
 You can install snarkjs with the following command:
 ```
 npm install -g snarkjs
-```
-
-<h2 id="compile"> Installation & Compile 💻 </h2>
-
-Install dependencies: 
-
-```
-yarn install 
-```
-
-Update submodules:
-
-```
-git submodule update --init --recursive
-```
-
-Populate fixtures from the submodules:
-
-```
-yarn fetch:fixtures
-```
-
-To compile contracts and build typescript interfaces
-
-```
-yarn build
-```
-
-**Note:** If you push new fixtures to remote storage
-
-```
-cd solidity-fixtures
-dvc add solidity-fixtures
-dvc push --remote aws
-```
-<h2 id="nix"> Using Nix with Flakes ❄️ </h2>
-
-1. Install [Nix](https://nixos.org/download.html)
-2. Enable Flakes (if you are not already see here: [Flakes](https://nixos.wiki/wiki/Flakes))
-3. If you have [`direnv`](https://github.com/nix-community/nix-direnv#installation) installed, everything should work out of the box.
-4. Alternatively, you can run `nix develop` in the root of this repo to get a shell with all the dependencies installed.
-5. Happy hacking!
-
-<h2 id="test"> Testing 🧪 </h2>
-
-To run the test suite, update the submodules:
-
-```
-git submodule update --init --recursive
-```
-
-Fetch the fixtures:
-```
-yarn fetch:fixtures
-```
-
-Install the dependencies:
-
-```
-yarn install
-```
-
-Compile the contracts:
-
-```
-yarn compile
-```
-
-Run test suite:
-
-```
-yarn test
-```
-
-It is also possible to output a gas report of the contracts by running:
-
-```
-yarn test:gas-reporter
-```
-
-To fix the formatting, please run:
-
-```
-yarn format
-```
-
-To run TypeScript checks:
-
-```
-yarn ts-check
-```
-
-### Interacting
-
-This repository contains a variety of scripts to deploy and interact with the smart contracts in the `scripts` folder. To use these scripts, one will need to setup an `.env` file in the root directory:
-
-```
-# Setup an endpoint
-ENDPOINT=https://rinkeby.infura.io/v3/fff68ca474dd4764a8d54dd14fa5519e
-
-# Add private key
-PRIVATE_KEY=XXX-XXX-XXX
-```
-After adding the `.env`, scripts can be executed using `ts-node`
-```bash
- npx ts-node ./scripts/evm/deployments/LocalEvmVBridge.ts
 ```
 
 <h2 id="contribute"> Contributing </h2>
