@@ -6,6 +6,19 @@ pragma solidity >=0.8.19 <0.9.0;
 
 import "../utils/ChainIdWithType.sol";
 
+/// @param voterMerkleRoot the Merkle root of the voter set Merkle tree
+/// @param averageSessionLengthInMillisecs the average session length in milliseconds
+/// @param voterCount the number of voters
+/// @param nonce the nonce of the proposal
+/// @param publicKey the public key of the new governor
+struct RefreshProposal {
+	bytes32 voterMerkleRoot;
+	uint64 averageSessionLengthInMillisecs;
+	uint32 voterCount;
+	uint32 nonce;
+	bytes publicKey;
+}
+
 contract ProposalHelpers is ChainIdWithType {
 	function buildTypedChainId(uint16 chainType, uint32 chainId) public pure returns (bytes6) {
 		// Return a 6 bytes value of the chainType and chainId concatenated
@@ -90,18 +103,28 @@ contract ProposalHelpers is ChainIdWithType {
 		return buildProposal(proposalHeader, proposalData);
 	}
 
-	function buildProposerSetUpdateProposal(
-		bytes32 _proposerSetRoot,
+	function buildRefreshProposal(
+		bytes32 _voterMerkleRoot,
 		uint64 _averageSessionLengthInMillisecs,
-		uint32 _numOfProposers,
-		uint32 _proposerSetUpdateNonce
-	) public pure returns (bytes memory) {
-		return
+		uint32 _voterCount,
+		uint32 _refreshNonce,
+		bytes memory _publicKey
+	) public pure returns (RefreshProposal memory, bytes memory) {
+		return (
+			RefreshProposal(
+				_voterMerkleRoot,
+				_averageSessionLengthInMillisecs,
+				_voterCount,
+				_refreshNonce,
+				_publicKey
+			),
 			abi.encodePacked(
-				_proposerSetRoot,
-				bytes8(_averageSessionLengthInMillisecs),
-				bytes4(_numOfProposers),
-				bytes4(_proposerSetUpdateNonce)
-			);
+				_voterMerkleRoot,
+				_averageSessionLengthInMillisecs,
+				_voterCount,
+				_refreshNonce,
+				_publicKey
+			)
+		);
 	}
 }
