@@ -41,6 +41,9 @@ abstract contract VAnchorBase is LinkableAnchor {
 	);
 	event NewNullifier(uint256 nullifier);
 	event PublicKey(address indexed owner, bytes key);
+	event MaxDepositLimitUpdated(uint256 maximumDepositAmount, uint32 nonce);
+	event MinWithdrawalLimitUpdated(uint256 minimalWithdrawalAmount, uint32 nonce);
+	event SetHandler(address handler, uint32 nonce);
 
 	/// @dev The constructor
 	/// @param _levels The number of levels in the merkle tree
@@ -71,6 +74,7 @@ abstract contract VAnchorBase is LinkableAnchor {
 		uint32 _nonce
 	) public override onlyHandler onlyIncrementingByOne(_nonce) onlyInitialized {
 		_configureMinimalWithdrawalLimit(_minimalWithdrawalAmount);
+		emit MinWithdrawalLimitUpdated(_minimalWithdrawalAmount, _nonce);
 	}
 
 	function configureMaximumDepositLimit(
@@ -78,6 +82,7 @@ abstract contract VAnchorBase is LinkableAnchor {
 		uint32 _nonce
 	) public override onlyHandler onlyIncrementingByOne(_nonce) onlyInitialized {
 		_configureMaximumDepositLimit(_maximumDepositAmount);
+		emit MaxDepositLimitUpdated(_maximumDepositAmount, _nonce);
 	}
 
 	function calculatePublicAmount(int256 _extAmount, uint256 _fee) public pure returns (uint256) {
@@ -278,5 +283,6 @@ abstract contract VAnchorBase is LinkableAnchor {
 	) external override onlyHandler onlyIncrementingByOne(_nonce) {
 		require(_handler != address(0), "Handler cannot be 0");
 		handler = _handler;
+		emit SetHandler(_handler, _nonce);
 	}
 }

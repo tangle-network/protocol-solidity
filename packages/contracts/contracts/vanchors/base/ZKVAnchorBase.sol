@@ -17,6 +17,8 @@ import "../../verifiers/TxProofVerifier.sol";
 abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 	using SafeERC20 for IERC20;
 
+	event SetVerifier(address verifier, uint32 nonce);
+
 	/// @notice The VAnchor constructor
 	/// @param _verifier The address of SNARK verifier for this contract
 	/// @param _levels The height/# of levels of underlying Merkle Tree
@@ -220,5 +222,6 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 	) external override onlyHandler onlyIncrementingByOne(_nonce) {
 		require(_verifier != address(0), "Handler cannot be 0");
 		verifier = IAnchorVerifier(_verifier);
+		emit SetVerifier(_verifier, _nonce);
 	}
 }
