@@ -32,6 +32,12 @@ contract FungibleTokenWrapper is
 	uint256 public wrappingLimit;
 
 	event HandlerUpdated(address _handler);
+	event NativeAllowed(bool _isNativeAllowed);
+	event TokenAdded(address _tokenAddress);
+	event TokenRemoved(address _tokenAddress);
+	event FeeUpdated(uint16 _feePercentage);
+	event FeeRecipientUpdated(address _feeRecipient);
+	event WrappingLimitUpdated(uint256 _limit);
 
 	/// @notice FungibleTokenWrapper constructor
 	/// @param _name The name of the ERC20 TokenWrapper
@@ -82,6 +88,7 @@ contract FungibleTokenWrapper is
 	/// @notice Only the handler can call this function
 	function setNativeAllowed(bool _isNativeAllowed) public onlyHandler {
 		isNativeAllowed = _isNativeAllowed;
+		emit NativeAllowed(_isNativeAllowed);
 	}
 
 	/// @notice Adds a token at `_tokenAddress` to the FungibleTokenWrapper's wrapping list
@@ -100,6 +107,7 @@ contract FungibleTokenWrapper is
 			historicallyValid[_tokenAddress] = true;
 		}
 		valid[_tokenAddress] = true;
+		emit TokenAdded(_tokenAddress);
 	}
 
 	/// @notice Removes a token at `_tokenAddress` from the FungibleTokenWrapper's wrapping list
@@ -121,6 +129,7 @@ contract FungibleTokenWrapper is
 		require(index < tokens.length, "FungibleTokenWrapper: Token not found");
 		valid[_tokenAddress] = false;
 		removeTokenAtIndex(index);
+		emit TokenRemoved(_tokenAddress);
 	}
 
 	/// @notice Sets a new `_feePercentage` for the FungibleTokenWrapper
@@ -133,6 +142,7 @@ contract FungibleTokenWrapper is
 	) external override onlyHandler onlyIncrementingByOne(_nonce) {
 		require(_feePercentage < 10_000, "FungibleTokenWrapper: Invalid fee percentage");
 		feePercentage = _feePercentage;
+		emit FeeUpdated(_feePercentage);
 	}
 
 	/// @notice Sets a new `_feeRecipient` for the FungibleTokenWrapper
@@ -148,6 +158,7 @@ contract FungibleTokenWrapper is
 			"FungibleTokenWrapper: Fee Recipient cannot be zero address"
 		);
 		feeRecipient = _feeRecipient;
+		emit FeeRecipientUpdated(_feeRecipient);
 	}
 
 	/// @notice Removes a token at `_index` from the FungibleTokenWrapper's wrapping list
@@ -162,6 +173,7 @@ contract FungibleTokenWrapper is
 	/// @notice Only the handler can call this function
 	function updateLimit(uint256 _limit) public onlyHandler {
 		wrappingLimit = _limit;
+		emit WrappingLimitUpdated(_limit);
 	}
 
 	/// @notice Gets the current fee percentage
