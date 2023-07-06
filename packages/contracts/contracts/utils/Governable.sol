@@ -20,7 +20,7 @@ struct Vote {
 /// @author Webb Technologies.
 /// @notice This contract is used to for ownership and governance of smart contracts.
 contract Governable {
-	address private _governor;
+	address public governor;
 
 	/// Refresh nonce is for rotating the DKG
 	uint32 public refreshNonce = 0;
@@ -28,43 +28,41 @@ contract Governable {
 	/// Last time ownership was transferred to a new governor
 	uint256 public lastGovernorUpdateTime;
 
-	/// -------------------------------------------------------
-	/// Storage values relevant to proposer set update
-	/// -------------------------------------------------------
-
-	/// The proposal nonce
-	uint32 public proposerSetUpdateNonce = 0;
 	/// The root of the proposer set Merkle tree
-	bytes32 public proposerSetRoot;
+	bytes32 public voterMerkleRoot;
+
 	/// The average session length in millisecs
 	uint64 public averageSessionLengthInMillisecs = 2 ** 64 - 1;
+
 	/// The session length multiplier (see the voteInFavorForceSetGovernor function below)
 	uint256 public sessionLengthMultiplier = 2;
+
 	/// The number of proposers
-	uint32 public numOfProposers;
+	uint32 public voterCount;
+
 	/// The current voting period
 	uint256 public currentVotingPeriod = 0;
+
 	/// (currentVotingPeriod => (proposer => (vote of new governor))) whether a proposer has
 	/// voted in this period and who they're voting for
 	mapping(uint256 => mapping(address => address)) alreadyVoted;
+
 	/// (currentVotingPeriod => (proposerGovernor => (uint))) number of votes a
 	/// proposedGovernor has in the current period
 	mapping(uint256 => mapping(address => uint32)) numOfVotesForGovernor;
 
-	event GovernanceOwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+	event GovernanceOwnershipTransferred(
+		address indexed previousOwner,
+		address indexed newOwner,
+		uint256 timestamp
+	);
 	event RecoveredAddress(address indexed recovered);
 
-	constructor(address gov, uint32 _refreshNonce) {
-		_governor = gov;
+	constructor(address _governor, uint32 _refreshNonce) {
+		governor = _governor;
 		refreshNonce = _refreshNonce;
-		proposerSetUpdateNonce = _refreshNonce;
 		lastGovernorUpdateTime = block.timestamp;
-		emit GovernanceOwnershipTransferred(address(0), _governor);
-	}
-
-	/// @notice Returns the address of the current owner.
-	function governor() public view returns (address) {
-		return _governor;
+		emit GovernanceOwnershipTransferred(address(0), _governor, block.timestamp);
 	}
 
 	/// @notice Throws if called by any account other than the owner.
@@ -89,7 +87,7 @@ contract Governable {
 	/// @notice Returns true if the caller is the current owner.
 	/// @return bool Whether the `msg.sender` is the governor
 	function isGovernor() public view returns (bool) {
-		return msg.sender == _governor;
+		return msg.sender == governor;
 	}
 
 	/// @notice Returns true if the signature is signed by the current governor.
@@ -100,7 +98,7 @@ contract Governable {
 	) public view returns (bool) {
 		bytes32 hashedData = keccak256(data);
 		address signer = ECDSA.recover(hashedData, sig);
-		return signer == governor();
+		return signer == governor;
 	}
 
 	/// @notice Returns true if the signature is signed by the current governor.
@@ -110,7 +108,7 @@ contract Governable {
 		bytes memory sig
 	) public view returns (bool) {
 		address signer = ECDSA.recover(hashedData, sig);
-		return signer == governor();
+		return signer == governor;
 	}
 
 	/// @notice Leaves the contract without owner. It will not be possible to call
@@ -118,8 +116,12 @@ contract Governable {
 	/// @notice Renouncing ownership will leave the contract without an owner,
 	/// thereby removing any functionality that is only available to the owner.
 	function renounceOwnership() public onlyGovernor {
-		emit GovernanceOwnershipTransferred(_governor, address(0));
-		_governor = address(0);
+		voterMerkleRoot = bytes32(0);
+		averageSessionLengthInMillisecs = 1 << (64 - 1);
+		voterCount = 0;
+		refreshNonce = refreshNonce + 1;
+		governor = address(0);
+		emit GovernanceOwnershipTransferred(governor, address(0), block.timestamp);
 	}
 
 	/// @notice Transfers ownership of the contract to a new account (`newOwner`).
@@ -132,24 +134,43 @@ contract Governable {
 	}
 
 	/// @notice Transfers ownership of the contract to a new account associated with the publicKey
-	/// @param publicKey The public key of the new owner
-	/// @param nonce The nonce of the proposal
-	/// @param sig The signature of the transfer ownership/refresh proposal
-	function transferOwnershipWithSignaturePubKey(
-		bytes memory publicKey,
-		uint32 nonce,
-		bytes memory sig
+	///			and update other storage values relevant to the emergency voting process.
+	/// @param _voterMerkleRoot The new voter merkle root.
+	/// @param _averageSessionLengthInMillisecs The new average session length in milliseconds.
+	/// @param _voterCount The new number of voters.
+	/// @param _nonce The nonce of the proposal.
+	/// @param _publicKey The public key of the new governor.
+	/// @param _sig The signature of the propsal data.
+	function transferOwnershipWithSignature(
+		bytes32 _voterMerkleRoot,
+		uint64 _averageSessionLengthInMillisecs,
+		uint32 _voterCount,
+		uint32 _nonce,
+		bytes memory _publicKey,
+		bytes memory _sig
 	) public {
-		require(refreshNonce < nonce, "Governable: Invalid nonce");
-		require(nonce <= refreshNonce + 1, "Governable: Nonce must increment by 1");
-		bytes32 pubKeyHash = keccak256(publicKey);
+		require(refreshNonce < _nonce, "Governable: Invalid nonce");
+		require(_nonce <= refreshNonce + 1, "Governable: Nonce must increment by 1");
+		bytes32 pubKeyHash = keccak256(_publicKey);
 		address newOwner = address(uint160(uint256(pubKeyHash)));
 		require(
-			isSignatureFromGovernor(abi.encodePacked(nonce, publicKey), sig),
+			isSignatureFromGovernor(
+				abi.encodePacked(
+					_voterMerkleRoot,
+					_averageSessionLengthInMillisecs,
+					_voterCount,
+					_nonce,
+					_publicKey
+				),
+				_sig
+			),
 			"Governable: caller is not the governor"
 		);
+		voterMerkleRoot = _voterMerkleRoot;
+		averageSessionLengthInMillisecs = _averageSessionLengthInMillisecs;
+		voterCount = _voterCount;
+		refreshNonce = _nonce;
 		_transferOwnership(newOwner);
-		refreshNonce = nonce;
 	}
 
 	/// @notice Helper function for recovering the address from the signature `sig` of `data`
@@ -166,50 +187,11 @@ contract Governable {
 	/// @param newOwner The new owner of the contract
 	function _transferOwnership(address newOwner) internal {
 		require(newOwner != address(0), "Governable: New governor is the zero address");
-		emit GovernanceOwnershipTransferred(_governor, newOwner);
-		_governor = newOwner;
+		address previousGovernor = governor;
+		governor = newOwner;
 		lastGovernorUpdateTime = block.timestamp;
 		currentVotingPeriod++;
-	}
-
-	/// @notice Updates the proposer set data if a valid signature from the DKG is provided. The *      data consists proposerSetRoot, the average session length in milliseconds, the *      number of proposers, and the proposal nonce.
-	/// @param _proposerSetRoot the root hash of the proposer set Merkle tree
-	/// @param _averageSessionLengthInMillisecs the average DKG session length in milliseconds
-	/// @param _numOfProposers the total number of proposers
-	/// @param _proposerSetUpdateNonce the proposal nonce (to prevent replay attacks)
-	/// @param _sig the DKGs signature of the aforementioned parameters
-	function updateProposerSetData(
-		bytes32 _proposerSetRoot,
-		uint64 _averageSessionLengthInMillisecs,
-		uint32 _numOfProposers,
-		uint32 _proposerSetUpdateNonce,
-		bytes memory _sig
-	) public {
-		require(proposerSetUpdateNonce < _proposerSetUpdateNonce, "Governable: Invalid nonce");
-		require(
-			_proposerSetUpdateNonce <= proposerSetUpdateNonce + 1,
-			"Governable: Nonce must not increment more than 1"
-		);
-
-		// Valid Signature
-		require(
-			isSignatureFromGovernor(
-				abi.encodePacked(
-					_proposerSetRoot,
-					bytes8(_averageSessionLengthInMillisecs),
-					bytes4(_numOfProposers),
-					bytes4(_proposerSetUpdateNonce)
-				),
-				_sig
-			),
-			"Governable: caller is not the governor"
-		);
-
-		proposerSetRoot = _proposerSetRoot;
-		averageSessionLengthInMillisecs = _averageSessionLengthInMillisecs;
-		numOfProposers = _numOfProposers;
-		proposerSetUpdateNonce = _proposerSetUpdateNonce;
-		currentVotingPeriod++;
+		emit GovernanceOwnershipTransferred(previousGovernor, newOwner, lastGovernorUpdateTime);
 	}
 
 	/// @notice Helper function for creating a vote struct
@@ -221,7 +203,7 @@ contract Governable {
 		uint32 _leafIndex,
 		address _proposedGovernor,
 		bytes32[] memory _siblingPathNodes
-	) public view returns (Vote memory) {
+	) public pure returns (Vote memory) {
 		return Vote(_leafIndex, _proposedGovernor, _siblingPathNodes);
 	}
 
@@ -269,6 +251,8 @@ contract Governable {
 	}
 
 	/// @notice Process a vote
+	/// @param vote A vote struct
+	/// @param voter The address of the voter
 	function _processVote(Vote memory vote, address voter) internal {
 		// If the proposer has already voted, remove their previous vote
 		if (alreadyVoted[currentVotingPeriod][voter] != address(0x0)) {
@@ -282,10 +266,10 @@ contract Governable {
 	}
 
 	/// @notice Tries and resolves the vote by checking the number of votes for
-	/// a proposed governor is greater than numOfProposers/2.
+	/// a proposed governor is greater than voterCount/2.
 	/// @param proposedGovernor the address to transfer ownership to, if the vote passes
 	function _tryResolveVote(address proposedGovernor) internal {
-		if (numOfVotesForGovernor[currentVotingPeriod][proposedGovernor] > numOfProposers / 2) {
+		if (numOfVotesForGovernor[currentVotingPeriod][proposedGovernor] > voterCount / 2) {
 			_transferOwnership(proposedGovernor);
 		}
 	}
@@ -310,6 +294,6 @@ contract Governable {
 			}
 			nodeIndex = nodeIndex / 2;
 		}
-		return proposerSetRoot == currNodeHash;
+		return voterMerkleRoot == currNodeHash;
 	}
 }

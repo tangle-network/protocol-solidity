@@ -13,8 +13,10 @@ const TruffleAssert = require('truffle-assertions');
 
 import { Governable, Governable__factory } from '@webb-tools/contracts';
 import { ethers } from 'ethers';
+import { ZERO_BYTES32 } from '@webb-tools/utils';
+import { keccak256, recoverAddress, solidityPack } from 'ethers/lib/utils';
 
-describe('Governable Contract', () => {
+describe.only('Governable Contract', () => {
   let governableInstance: Governable;
   let sender: ethers.Signer;
   let nextGovernor: ethers.Signer;
@@ -60,25 +62,44 @@ describe('Governable Contract', () => {
     const wallet = ethers.Wallet.createRandom();
     const key = ec.keyFromPrivate(wallet.privateKey.slice(2), 'hex');
     const pubkey = key.getPublic().encode('hex').slice(2);
-    console.log(pubkey);
+
     const publicKey = '0x' + pubkey;
     let nextGovernorAddress = ethers.utils.getAddress(
       '0x' + ethers.utils.keccak256(publicKey).slice(-40)
     );
-    console.log(nextGovernorAddress);
-    let firstRotationKey = nextGovernorAddress;
+    const firstRotationKey = nextGovernorAddress;
     await governableInstance.transferOwnership(nextGovernorAddress, 1);
-    assert.strictEqual(await governableInstance.governor(), nextGovernorAddress);
-    // Set next governor to the same pub key for posterity
-    let nonceString = toHex(2, 4);
-    // msg to be signed is hash(nonce + pubkey)
+
     const dummy = ethers.Wallet.createRandom();
     const dummyPubkey = ec
       .keyFromPrivate(dummy.privateKey, 'hex')
       .getPublic()
       .encode('hex')
       .slice(2);
-    let prehashed = nonceString + dummyPubkey;
+
+    nextGovernorAddress = ethers.utils.getAddress(
+      '0x' + ethers.utils.keccak256('0x' + dummyPubkey).slice(-40)
+    );
+
+    const refreshProposal = {
+      voterMerkleRoot: ZERO_BYTES32,
+      averageSessionLengthInMillisecs: '50000',
+      voterCount: '1',
+      nonce: '2',
+      publicKey: `0x${dummyPubkey}`,
+    };
+
+    const prehashed = solidityPack(
+      ['bytes32', 'uint64', 'uint32', 'uint32', 'bytes'],
+      [
+        refreshProposal.voterMerkleRoot,
+        refreshProposal.averageSessionLengthInMillisecs,
+        refreshProposal.voterCount,
+        refreshProposal.nonce,
+        refreshProposal.publicKey,
+      ]
+    );
+
     let msg = ethers.utils.arrayify(ethers.utils.keccak256(prehashed));
     let signature = key.sign(msg);
     let expandedSig = {
@@ -98,77 +119,28 @@ describe('Governable Contract', () => {
       sig = ethers.utils.joinSignature(expandedSig);
     }
 
-    await governableInstance.transferOwnershipWithSignaturePubKey('0x' + dummyPubkey, 2, sig);
-    nextGovernorAddress = ethers.utils.getAddress(
-      '0x' + ethers.utils.keccak256('0x' + dummyPubkey).slice(-40)
+    const tx = await governableInstance.transferOwnershipWithSignature(
+      refreshProposal.voterMerkleRoot,
+      refreshProposal.averageSessionLengthInMillisecs,
+      refreshProposal.voterCount,
+      refreshProposal.nonce,
+      refreshProposal.publicKey,
+      sig
     );
+    await tx.wait();
+
     assert.strictEqual(await governableInstance.governor(), nextGovernorAddress);
+    assert.strictEqual(
+      (await governableInstance.voterCount()).toString(),
+      refreshProposal.voterCount
+    );
+    assert.strictEqual(await governableInstance.voterMerkleRoot(), refreshProposal.voterMerkleRoot);
+    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '2');
 
     const filter = governableInstance.filters.GovernanceOwnershipTransferred();
     const events = await governableInstance.queryFilter(filter);
     assert.strictEqual(nextGovernorAddress, events[2].args.newOwner);
     assert.strictEqual(firstRotationKey, events[2].args.previousOwner);
-  });
-
-  it('proposer set data should update properly', async () => {
-    // Transfer ownership to an address we can sign with
-    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '0');
-    const wallet = ethers.Wallet.createRandom();
-    const key = ec.keyFromPrivate(wallet.privateKey.slice(2), 'hex');
-    const pubkey = key.getPublic().encode('hex').slice(2);
-    const publicKey = '0x' + pubkey;
-    let nextGovernorAddress = ethers.utils.getAddress(
-      '0x' + ethers.utils.keccak256(publicKey).slice(-40)
-    );
-    await governableInstance.transferOwnership(nextGovernorAddress, 1);
-    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '1');
-
-    const dummyProposerSetRoot =
-      '0x5555555555555555555555555555555555555555555555555555555555555555';
-    const dummyAverageSessionLengthInMilliseconds = 50000;
-    const dummyNumOfProposers = 4;
-    const dummyProposerSetUpdateNonce = 1;
-
-    const prehashed =
-      dummyProposerSetRoot +
-      toFixedHex(dummyAverageSessionLengthInMilliseconds, 8).slice(2) +
-      toFixedHex(dummyNumOfProposers, 4).slice(2) +
-      toFixedHex(dummyProposerSetUpdateNonce, 4).slice(2);
-
-    let msg = ethers.utils.arrayify(ethers.utils.keccak256(prehashed));
-    let signature = key.sign(msg);
-    let expandedSig = {
-      r: '0x' + signature.r.toString('hex'),
-      s: '0x' + signature.s.toString('hex'),
-      v: signature.recoveryParam + 27,
-    };
-
-    // Transaction malleability fix if s is too large (Bitcoin allows it, Ethereum rejects it)
-    // https://ethereum.stackexchange.com/questions/55245/why-is-s-in-transaction-signature-limited-to-n-21
-    let sig;
-    try {
-      sig = ethers.utils.joinSignature(expandedSig);
-    } catch (e) {
-      expandedSig.s = '0x' + new BN(ec.curve.n).sub(signature.s).toString('hex');
-      expandedSig.v = expandedSig.v === 27 ? 28 : 27;
-      sig = ethers.utils.joinSignature(expandedSig);
-    }
-
-    await governableInstance.updateProposerSetData(
-      dummyProposerSetRoot,
-      dummyAverageSessionLengthInMilliseconds,
-      dummyNumOfProposers,
-      dummyProposerSetUpdateNonce,
-      sig
-    );
-
-    assert.strictEqual(
-      (await governableInstance.averageSessionLengthInMillisecs()).toString(),
-      '50000'
-    );
-    assert.strictEqual((await governableInstance.proposerSetUpdateNonce()).toString(), '1');
-    assert.strictEqual((await governableInstance.numOfProposers()).toString(), '4');
-    assert.strictEqual(await governableInstance.proposerSetRoot(), dummyProposerSetRoot);
   });
 
   it('should vote validly and change the governor', async () => {
@@ -191,43 +163,63 @@ describe('Governable Contract', () => {
     let nextGovernorAddress = ethers.utils.getAddress(
       '0x' + ethers.utils.keccak256(publicKey).slice(-40)
     );
+    const firstRotationKey = nextGovernorAddress;
     await governableInstance.transferOwnership(nextGovernorAddress, 1);
-    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '1');
+
+    const dummy = ethers.Wallet.createRandom();
+    const dummyPubkey = ec
+      .keyFromPrivate(dummy.privateKey, 'hex')
+      .getPublic()
+      .encode('hex')
+      .slice(2);
+
+    const nonce = 2;
 
     const signers = await ethers.getSigners();
 
-    const proposer0Signer = signers[0];
-    const proposer0 = signers[0].address;
+    const voter0Signer = signers[0];
+    const voter0 = signers[0].address;
 
-    const proposer1Signer = signers[1];
-    const proposer1 = signers[1].address;
+    const voter1Signer = signers[1];
+    const voter1 = signers[1].address;
 
-    const proposer2Signer = signers[2];
-    const proposer2 = signers[2].address;
+    const voter2Signer = signers[2];
+    const voter2 = signers[2].address;
 
-    const proposer3Signer = signers[3];
-    const proposer3 = signers[3].address;
+    const voter3 = signers[3].address;
 
-    const hashProposer0 = ethers.utils.keccak256(proposer0);
-    const hashProposer1 = ethers.utils.keccak256(proposer1);
-    const hashProposer2 = ethers.utils.keccak256(proposer2);
-    const hashProposer3 = ethers.utils.keccak256(proposer3);
+    const hashVoter0 = ethers.utils.keccak256(voter0);
+    const hashVoter1 = ethers.utils.keccak256(voter1);
+    const hashVoter2 = ethers.utils.keccak256(voter2);
+    const hashVoter3 = ethers.utils.keccak256(voter3);
 
-    const hashProposer01 = ethers.utils.keccak256(hashProposer0 + hashProposer1.slice(2));
-    const hashProposer23 = ethers.utils.keccak256(hashProposer2 + hashProposer3.slice(2));
+    const hashVoter01 = ethers.utils.keccak256(hashVoter0 + hashVoter1.slice(2));
+    const hashVoter23 = ethers.utils.keccak256(hashVoter2 + hashVoter3.slice(2));
 
-    const hashProposer0123 = ethers.utils.keccak256(hashProposer01 + hashProposer23.slice(2));
+    const hashVoter0123 = ethers.utils.keccak256(hashVoter01 + hashVoter23.slice(2));
 
-    const proposerSetRoot = hashProposer0123;
-    const averageSessionLengthInMilliseconds = 50000;
-    const numOfProposers = 4;
-    const proposerSetUpdateNonce = 1;
+    const voterMerkleRoot = hashVoter0123;
+    const averageSessionLengthInMillisecs = 50000;
+    const voterCount = 4;
 
-    const prehashed =
-      proposerSetRoot +
-      toFixedHex(averageSessionLengthInMilliseconds, 8).slice(2) +
-      toFixedHex(numOfProposers, 4).slice(2) +
-      toFixedHex(proposerSetUpdateNonce, 4).slice(2);
+    const refreshProposal = {
+      voterMerkleRoot,
+      averageSessionLengthInMillisecs,
+      voterCount,
+      nonce,
+      publicKey: `0x${dummyPubkey}`,
+    };
+
+    const prehashed = solidityPack(
+      ['bytes32', 'uint64', 'uint32', 'uint32', 'bytes'],
+      [
+        refreshProposal.voterMerkleRoot,
+        refreshProposal.averageSessionLengthInMillisecs,
+        refreshProposal.voterCount,
+        refreshProposal.nonce,
+        refreshProposal.publicKey,
+      ]
+    );
 
     let msg = ethers.utils.arrayify(ethers.utils.keccak256(prehashed));
     let signature = key.sign(msg);
@@ -239,7 +231,7 @@ describe('Governable Contract', () => {
 
     // Transaction malleability fix if s is too large (Bitcoin allows it, Ethereum rejects it)
     // https://ethereum.stackexchange.com/questions/55245/why-is-s-in-transaction-signature-limited-to-n-21
-    let sig;
+    let sig: any;
     try {
       sig = ethers.utils.joinSignature(expandedSig);
     } catch (e) {
@@ -248,57 +240,58 @@ describe('Governable Contract', () => {
       sig = ethers.utils.joinSignature(expandedSig);
     }
 
-    await governableInstance.updateProposerSetData(
-      proposerSetRoot,
-      averageSessionLengthInMilliseconds,
-      numOfProposers,
-      proposerSetUpdateNonce,
+    const tx = await governableInstance.transferOwnershipWithSignature(
+      refreshProposal.voterMerkleRoot,
+      refreshProposal.averageSessionLengthInMillisecs,
+      refreshProposal.voterCount,
+      refreshProposal.nonce,
+      refreshProposal.publicKey,
       sig
     );
+    await tx.wait();
 
     assert.strictEqual(
       (await governableInstance.averageSessionLengthInMillisecs()).toString(),
-      '50000'
+      averageSessionLengthInMillisecs.toString()
     );
-    assert.strictEqual((await governableInstance.proposerSetUpdateNonce()).toString(), '1');
-    assert.strictEqual((await governableInstance.numOfProposers()).toString(), '4');
-    assert.strictEqual(await governableInstance.proposerSetRoot(), proposerSetRoot);
+    assert.strictEqual((await governableInstance.voterCount()).toString(), '4');
+    assert.strictEqual(await governableInstance.voterMerkleRoot(), voterMerkleRoot);
     assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '2');
     await network.provider.send('evm_increaseTime', [600]);
 
-    const voteProposer0 = {
+    const vote0 = {
       leafIndex: 0,
-      siblingPathNodes: [hashProposer1, hashProposer23],
+      siblingPathNodes: [hashVoter1, hashVoter23],
       proposedGovernor: '0x1111111111111111111111111111111111111111',
     };
 
-    await governableInstance.connect(proposer0Signer).voteInFavorForceSetGovernor(voteProposer0);
+    await governableInstance.connect(voter0Signer).voteInFavorForceSetGovernor(vote0);
 
     assert.notEqual(
       await governableInstance.governor(),
       '0x1111111111111111111111111111111111111111'
     );
 
-    const voteProposer1 = {
+    const vote1 = {
       leafIndex: 1,
-      siblingPathNodes: [hashProposer0, hashProposer23],
+      siblingPathNodes: [hashVoter0, hashVoter23],
       proposedGovernor: '0x1111111111111111111111111111111111111111',
     };
 
-    await governableInstance.connect(proposer1Signer).voteInFavorForceSetGovernor(voteProposer1);
+    await governableInstance.connect(voter1Signer).voteInFavorForceSetGovernor(vote1);
 
     assert.notEqual(
       await governableInstance.governor(),
       '0x1111111111111111111111111111111111111111'
     );
 
-    const voteProposer2 = {
+    const vote2 = {
       leafIndex: 2,
-      siblingPathNodes: [hashProposer3, hashProposer01],
+      siblingPathNodes: [hashVoter3, hashVoter01],
       proposedGovernor: '0x1111111111111111111111111111111111111111',
     };
 
-    await governableInstance.connect(proposer2Signer).voteInFavorForceSetGovernor(voteProposer2);
+    await governableInstance.connect(voter2Signer).voteInFavorForceSetGovernor(vote2);
 
     assert.strictEqual(
       await governableInstance.governor(),
