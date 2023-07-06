@@ -20,6 +20,21 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, Reentr
 	uint16 public feePercentage;
 	address payable public feeRecipient;
 
+	event Wrapping(
+		address indexed sender,
+		address indexed recipient,
+		address indexed tokenAddress,
+		uint256 wrappingFee,
+		uint256 afterFeeAmount
+	);
+
+	event Unwrapping(
+		address indexed sender,
+		address indexed recipient,
+		address indexed tokenAddress,
+		uint256 amount
+	);
+
 	/// @notice TokenWrapper constructor
 	/// @param _name The name of the ERC20
 	/// @param _symbol The symbol of the ERC20
@@ -162,6 +177,9 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, Reentr
 		}
 		// mint the wrapped token for the recipient
 		_mint(recipient, leftover);
+
+		// Emit the wrapping event
+		emit Wrapping(sender, recipient, tokenAddress, costToWrap, leftover);
 	}
 
 	function _unwrapAndSendTo(
@@ -180,6 +198,9 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, ITokenWrapper, Reentr
 			// transfer ERC20 liquidity from the token wrapper to the sender
 			IERC20(tokenAddress).safeTransfer(recipient, amount);
 		}
+
+		// Emit the unwrapping event
+		emit Unwrapping(sender, recipient, tokenAddress, amount);
 	}
 
 	/// @dev this function is defined in a child contract
