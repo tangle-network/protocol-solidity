@@ -46,13 +46,13 @@ contract AaveTokenWrapper is FungibleTokenWrapper, IAaveTokenWrapper {
 	}
 
 	/// @inheritdoc IAaveTokenWrapper
-	function deposit(address _tokenAddress, uint256 _amount) external override {
+	function deposit(address _tokenAddress, uint256 _amount) onlyInitialized external override {
 		IERC20(_tokenAddress).approve(address(aaveLendingPool), _amount);
 		aaveLendingPool.deposit(_tokenAddress, _amount, address(this), 0);
 	}
 
 	/// @inheritdoc IAaveTokenWrapper
-	function withdraw(address _tokenAddress, uint256 _amount) external override {
+	function withdraw(address _tokenAddress, uint256 _amount) onlyInitialized external override {
 		uint256 tokenBalance = IERC20(_tokenAddress).balanceOf(address(this));
 		aaveLendingPool.withdraw(_tokenAddress, _amount, address(this));
 		uint256 redeemed = IERC20(_tokenAddress).balanceOf(address(this)) - tokenBalance;
