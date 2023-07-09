@@ -17,7 +17,7 @@ import { hexToU8a, getChainIdType, ZkComponents, vanchorFixtures } from '@webb-t
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
-import { Keypair, randomBN, CircomUtxo } from '@webb-tools/sdk-core';
+import { Keypair, randomBN, Utxo } from '@webb-tools/utils';
 import { PoseidonHasher, RateLimitedVAnchor } from '@webb-tools/anchors';
 import { Verifier } from '@webb-tools/anchors';
 
@@ -42,7 +42,7 @@ describe('Rate Limited VAnchor', () => {
     const randomKeypair = new Keypair();
     const amountString = amount ? amount.toString() : '0';
 
-    return CircomUtxo.generateUtxo({
+    return Utxo.generateUtxo({
       curve: 'Bn254',
       backend: 'Circom',
       chainId: chainId.toString(),
@@ -142,7 +142,7 @@ describe('Rate Limited VAnchor', () => {
 
       const aliceWithdrawAmount = 5e6;
       const aliceChangeAmount = aliceDepositAmount - aliceWithdrawAmount;
-      const aliceChangeUtxo = await CircomUtxo.generateUtxo({
+      const aliceChangeUtxo = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: chainID.toString(),
@@ -185,7 +185,7 @@ describe('Rate Limited VAnchor', () => {
       await anchor.setDailyWithdrawalLimit(BigNumber.from(`${5e6}`));
       const aliceWithdrawAmount = 6e6;
       const aliceChangeAmount = aliceDepositAmount - aliceWithdrawAmount;
-      const aliceChangeUtxo = await CircomUtxo.generateUtxo({
+      const aliceChangeUtxo = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: chainID.toString(),

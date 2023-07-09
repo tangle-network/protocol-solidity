@@ -2,7 +2,7 @@
 // File contains all the types used in the anchors package
 
 import { IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
-import { Keypair } from '@webb-tools/sdk-core';
+import { Keypair } from '@webb-tools/utils';
 import { BigNumber, Overrides } from 'ethers';
 
 export interface SetupTransactionResult {

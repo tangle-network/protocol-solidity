@@ -1,12 +1,12 @@
 import { expect } from 'chai';
 import { Keypair } from '../protocol/keypair';
-import { Utxo as CircomUtxo } from '../protocol/utxo';
-import { Utxo } from '@webb-tools/sdk-core';
+import { Utxo as Utxo } from '../protocol/utxo';
+import { Utxo } from '@webb-tools/utils';
 import { u8aToHex, hexToU8a } from '..';
 
 describe('Utxo Class', () => {
   it('should construct with params', async function () {
-    const utxo = await Utxo.generateUtxo({
+    const utxo = Utxo.generateUtxo({
       amount: '1',
       backend: 'Arkworks',
       chainId: '1',
@@ -20,7 +20,7 @@ describe('Utxo Class', () => {
     const amount = utxo.amount;
     const index = utxo.index;
     const serializedUtxo = utxo.serialize();
-    const deserializedUtxo = await Utxo.deserialize(serializedUtxo);
+    const deserializedUtxo = Utxo.deserialize(serializedUtxo);
     const nullifier2 = deserializedUtxo.nullifier;
     const commitment2 = deserializedUtxo.commitment;
     const blinding2 = deserializedUtxo.blinding;
@@ -48,7 +48,7 @@ describe('Utxo Class', () => {
       '25e8b77121b8fcbf2332970720cd5b51d20a0548ca142eb8ae7814a53225d82c',
       '1',
     ].join('&');
-    const deserialized = await Utxo.deserialize(serializedInput);
+    const deserialized = Utxo.deserialize(serializedInput);
 
     const serializedOutput = deserialized.serialize();
 
@@ -68,7 +68,7 @@ describe('Utxo Class', () => {
       '',
     ].join('&');
 
-    const deserialized = await Utxo.deserialize(serializedInput);
+    const deserialized = Utxo.deserialize(serializedInput);
     const serializedOutput = deserialized.serialize();
 
     expect(serializedOutput).to.deep.equal(serializedInput);
@@ -79,7 +79,7 @@ describe('Utxo Class', () => {
       '0x1111111111111111111111111111111111111111111111111111111111111111'
     );
 
-    const utxo = await CircomUtxo.generateUtxo({
+    const utxo = Utxo.generateUtxo({
       amount: '10',
       backend: 'Arkworks',
       chainId: '1',
@@ -89,13 +89,13 @@ describe('Utxo Class', () => {
 
     const serializedUtxo = utxo.serialize();
 
-    const deserializedUtxo = await Utxo.deserialize(serializedUtxo);
+    const deserializedUtxo = Utxo.deserialize(serializedUtxo);
     const utxoString = deserializedUtxo.serialize();
 
     expect(utxoString).to.deep.equal(serializedUtxo);
   });
 
-  it('CircomUtxo and Utxo should generate compatible outputs public utxo', async function () {
+  it('Utxo and Utxo should generate compatible outputs public utxo', async function () {
     const keypair = Keypair.fromString(
       '0x1111111111111111111111111111111111111111111111111111111111111111'
     );
@@ -104,7 +104,7 @@ describe('Utxo Class', () => {
       256
     );
 
-    const utxo = await Utxo.generateUtxo({
+    const utxo = Utxo.generateUtxo({
       amount: '1000000000',
       backend: 'Arkworks',
       blinding,
@@ -113,7 +113,7 @@ describe('Utxo Class', () => {
       index: '0',
       keypair: keypair as unknown as any,
     });
-    const circomUtxo = await CircomUtxo.generateUtxo({
+    const Utxo = Utxo.generateUtxo({
       amount: '1000000000',
       backend: 'Circom',
       blinding,
@@ -123,21 +123,21 @@ describe('Utxo Class', () => {
       keypair,
     });
 
-    expect(utxo.amount).to.deep.equal(circomUtxo.amount);
-    expect(utxo.chainId).to.deep.equal(circomUtxo.chainId);
-    expect(utxo.public_key).to.deep.equal(circomUtxo.public_key);
-    expect(utxo.blinding).to.deep.equal(circomUtxo.blinding);
-    expect(utxo.commitment).to.deep.equal(circomUtxo.commitment);
+    expect(utxo.amount).to.deep.equal(Utxo.amount);
+    expect(utxo.chainId).to.deep.equal(Utxo.chainId);
+    expect(utxo.public_key).to.deep.equal(Utxo.public_key);
+    expect(utxo.blinding).to.deep.equal(Utxo.blinding);
+    expect(utxo.commitment).to.deep.equal(Utxo.commitment);
   });
 
-  it('CircomUtxo and Utxo should generate compatible outputs private utxo', async function () {
+  it('Utxo and Utxo should generate compatible outputs private utxo', async function () {
     const keypair = new Keypair();
     const blinding = hexToU8a(
       '0x17415b69c56a3c3897dcb339ce266a0f2a70c9372a6fec1676f81ddaf68e9926',
       256
     );
 
-    const utxo = await Utxo.generateUtxo({
+    const utxo = Utxo.generateUtxo({
       amount: '1000000000',
       backend: 'Arkworks',
       blinding,
@@ -146,7 +146,7 @@ describe('Utxo Class', () => {
       index: '0',
       keypair: keypair as unknown as any,
     });
-    const circomUtxo = await CircomUtxo.generateUtxo({
+    const Utxo = Utxo.generateUtxo({
       amount: '1000000000',
       backend: 'Circom',
       blinding,
@@ -156,14 +156,14 @@ describe('Utxo Class', () => {
       keypair,
     });
 
-    expect(utxo.amount).to.deep.equal(circomUtxo.amount);
-    expect(utxo.chainId).to.deep.equal(circomUtxo.chainId);
-    expect(utxo.keypair.toString()).to.deep.equal(circomUtxo._keypair.toString());
-    expect(utxo.public_key).to.deep.equal(circomUtxo.public_key);
-    expect(utxo.secret_key).to.deep.equal(circomUtxo.secret_key);
-    expect(utxo.blinding).to.deep.equal(circomUtxo.blinding);
-    expect(utxo.commitment).to.deep.equal(circomUtxo.commitment);
-    expect(utxo.nullifier).to.deep.equal(circomUtxo.nullifier);
+    expect(utxo.amount).to.deep.equal(Utxo.amount);
+    expect(utxo.chainId).to.deep.equal(Utxo.chainId);
+    expect(utxo.keypair.toString()).to.deep.equal(Utxo._keypair.toString());
+    expect(utxo.public_key).to.deep.equal(Utxo.public_key);
+    expect(utxo.secret_key).to.deep.equal(Utxo.secret_key);
+    expect(utxo.blinding).to.deep.equal(Utxo.blinding);
+    expect(utxo.commitment).to.deep.equal(Utxo.commitment);
+    expect(utxo.nullifier).to.deep.equal(Utxo.nullifier);
   });
 
   it('Check valid encryption length', async function () {
@@ -172,16 +172,16 @@ describe('Utxo Class', () => {
     const enc = Keypair.encryptWithKey(kp.getEncryptionKey()!, 'jumbo');
 
     try {
-      await CircomUtxo.decrypt(kp, enc);
+      Utxo.decrypt(kp, enc);
     } catch (ex: any) {
       expect(ex.message).to.contain('malformed utxo encryption');
     }
   });
 
-  it('Should set the index of an CircomUtxo', async function () {
+  it('Should set the index of an Utxo', async function () {
     const keypair = new Keypair();
 
-    const utxo = await CircomUtxo.generateUtxo({
+    const utxo = Utxo.generateUtxo({
       amount: '0',
       backend: 'Arkworks',
       chainId: '1',

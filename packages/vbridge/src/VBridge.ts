@@ -9,7 +9,7 @@ import {
 import { GovernorConfig, DeployerConfig, IVAnchor } from '@webb-tools/interfaces';
 import { AnchorHandler, PoseidonHasher, VAnchor, WebbContracts } from '@webb-tools/anchors';
 import { hexToU8a, u8aToHex, getChainIdType, ZkComponents } from '@webb-tools/utils';
-import { CircomUtxo, Utxo } from '@webb-tools/sdk-core';
+import { Utxo } from '@webb-tools/utils';
 import { Verifier } from '@webb-tools/anchors';
 import { SignatureBridgeSide } from './SignatureBridgeSide';
 
@@ -438,7 +438,7 @@ export class VBridge<A extends BaseContract> {
     // Create dummy UTXOs to satisfy the circuit
     while (inputs.length !== 2 && inputs.length < 16) {
       inputs.push(
-        await CircomUtxo.generateUtxo({
+        Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           chainId: chainId.toString(),

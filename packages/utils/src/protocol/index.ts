@@ -12,3 +12,4 @@ export * from './merkle-tree';
 export * from './note';
 export * from './utxo';
 export * from './typed-chain-id';
+export * from './keypair';

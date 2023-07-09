@@ -6,7 +6,7 @@
 const assert = require('assert');
 import { ethers, network } from 'hardhat';
 import BN from 'bn.js';
-import { toFixedHex, toHex } from '@webb-tools/sdk-core';
+import { toFixedHex, toHex } from '@webb-tools/utils';
 import EC from 'elliptic';
 const ec = new EC.ec('secp256k1');
 const TruffleAssert = require('truffle-assertions');

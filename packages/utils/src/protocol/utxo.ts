@@ -57,7 +57,7 @@ export class Utxo {
    *   parts[6] Optional - EncryptionKey, the public key of "publicKey = encryptionScheme(privateKey)" value used for messaging.
    *   parts[7] Optional - PrivateKey, the secret key component correlated to the above values.
    *   parts[8] Optional - Index, the leaf index if the utxo has been inserted in a merkle tree
-   * @returns The CircomUtxo object implementation of a Utxo.
+   * @returns The Utxo object implementation of a Utxo.
    */
   static async deserialize(utxoString: string): Promise<Utxo> {
     const utxo = new Utxo();
@@ -165,6 +165,14 @@ export class Utxo {
     return utxo;
   }
 
+  get keypair(): Keypair {
+    return this._keypair;
+  }
+
+  set keypair(keypair: Keypair) {
+    this._keypair = keypair;
+  }
+
   get amount(): string {
     return this._amount;
   }
@@ -187,6 +195,14 @@ export class Utxo {
 
   set chainId(chainId: string) {
     this._chainId = chainId;
+  }
+
+  get originChainId(): string | undefined {
+    return this._originChainId;
+  }
+
+  set originChainId(originChainId: string | undefined) {
+    this._originChainId = originChainId;
   }
 
   /**

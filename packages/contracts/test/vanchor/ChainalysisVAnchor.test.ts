@@ -10,7 +10,7 @@ const { BigNumber } = require('ethers');
 
 import { ChainalysisVAnchor, PoseidonHasher, VAnchor, Verifier } from '@webb-tools/anchors';
 import { getChainIdType, hexToU8a, vanchorFixtures, ZkComponents } from '@webb-tools/utils';
-import { Keypair, CircomUtxo, randomBN } from '@webb-tools/sdk-core';
+import { Keypair, Utxo, randomBN } from '@webb-tools/utils';
 import { ERC20PresetMinterPauser, ERC20PresetMinterPauser__factory } from '@webb-tools/contracts';
 import { expect } from 'chai';
 
@@ -90,7 +90,7 @@ describe.skip('ChainalysisVAnchor', () => {
     const randomKeypair = new Keypair();
     const amountString = amount ? amount.toString() : '0';
 
-    return CircomUtxo.generateUtxo({
+    return Utxo.generateUtxo({
       curve: 'Bn254',
       backend: 'Circom',
       chainId: chainId.toString(),

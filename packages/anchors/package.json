@@ -14,7 +14,6 @@
     "@webb-tools/contracts": "^1.0.4",
     "@webb-tools/create2-utils": "^1.0.4",
     "@webb-tools/interfaces": "^1.0.4",
-    "@webb-tools/sdk-core": "0.1.4-126",
     "@webb-tools/tokens": "^1.0.4",
     "@webb-tools/utils": "^1.0.4",
     "circomlibjs": "^0.0.8",

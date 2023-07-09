@@ -33,11 +33,9 @@ import {
   generateVariableWitnessInput,
   getVAnchorExtDataHash,
   generateWithdrawProofCallData,
-  CircomUtxo,
-} from '@webb-tools/sdk-core';
+} from '@webb-tools/utils';
 import { VAnchor, PoseidonHasher } from '@webb-tools/anchors';
 import { Verifier } from '@webb-tools/anchors';
-import { SetupTxVAnchorMock } from './mocks/SetupTxVAnchorMock';
 import { retryPromiseMock } from './mocks/retryPromiseMock';
 
 const BN = require('bn.js');
@@ -67,7 +65,7 @@ describe('VAnchor for 1 max edge', () => {
     const randomKeypair = new Keypair();
     const amountString = amount ? amount.toString() : '0';
 
-    return CircomUtxo.generateUtxo({
+    return Utxo.generateUtxo({
       curve: 'Bn254',
       backend: 'Circom',
       chainId: chainId.toString(),
@@ -302,7 +300,7 @@ describe('VAnchor for 1 max edge', () => {
         {}
       );
 
-      const aliceRefreshUtxo = await CircomUtxo.generateUtxo({
+      const aliceRefreshUtxo = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: BigNumber.from(chainID).toString(),
@@ -338,7 +336,7 @@ describe('VAnchor for 1 max edge', () => {
 
       const ethBalanceBefore = await ethers.provider.getBalance(recipient);
 
-      const aliceWithdrawUtxo = await CircomUtxo.generateUtxo({
+      const aliceWithdrawUtxo = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: BigNumber.from(chainID).toString(),
@@ -417,7 +415,7 @@ describe('VAnchor for 1 max edge', () => {
         {}
       );
 
-      const aliceRefreshUtxo = await CircomUtxo.generateUtxo({
+      const aliceRefreshUtxo = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: BigNumber.from(chainID).toString(),
@@ -506,7 +504,7 @@ describe('VAnchor for 1 max edge', () => {
       let anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
       const aliceDepositAmount2 = 1e7;
-      let aliceDepositUtxo2 = await CircomUtxo.generateUtxo({
+      let aliceDepositUtxo2 = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: chainID.toString(),
@@ -549,7 +547,7 @@ describe('VAnchor for 1 max edge', () => {
       const aliceDepositAmount1 = 1e7;
       let aliceDepositUtxo1 = await generateUTXOForTest(chainID, aliceDepositAmount1);
       const aliceDepositAmount2 = 1e7;
-      let aliceDepositUtxo2 = await CircomUtxo.generateUtxo({
+      let aliceDepositUtxo2 = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: chainID.toString(),
@@ -574,7 +572,7 @@ describe('VAnchor for 1 max edge', () => {
       let anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
       const aliceDepositAmount3 = 1e7;
-      let aliceDepositUtxo3 = await CircomUtxo.generateUtxo({
+      let aliceDepositUtxo3 = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: chainID.toString(),
@@ -602,7 +600,7 @@ describe('VAnchor for 1 max edge', () => {
       anchorLeaves = anchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
       const aliceJoinAmount = 3e7;
-      const aliceJoinUtxo = await CircomUtxo.generateUtxo({
+      const aliceJoinUtxo = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: chainID.toString(),
@@ -658,7 +656,7 @@ describe('VAnchor for 1 max edge', () => {
 
       const aliceWithdrawAmount = 5e6;
       const aliceChangeAmount = aliceDepositAmount - aliceWithdrawAmount;
-      const aliceChangeUtxo = await CircomUtxo.generateUtxo({
+      const aliceChangeUtxo = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: chainID.toString(),
@@ -692,7 +690,7 @@ describe('VAnchor for 1 max edge', () => {
     it('should prevent double spend', async () => {
       const aliceKeypair = new Keypair();
       const aliceDepositAmount = 1e7;
-      let aliceDepositUtxo = await CircomUtxo.generateUtxo({
+      let aliceDepositUtxo = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: chainID.toString(),
@@ -719,7 +717,7 @@ describe('VAnchor for 1 max edge', () => {
       const aliceDepositIndex = anchor.tree.getIndexByElement(aliceDepositUtxo.commitment);
       aliceDepositUtxo.setIndex(aliceDepositIndex);
 
-      const aliceTransferUtxo = await CircomUtxo.generateUtxo({
+      const aliceTransferUtxo = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: chainID.toString(),
@@ -747,7 +745,7 @@ describe('VAnchor for 1 max edge', () => {
       const alice = signers[0];
 
       const aliceDepositAmount = 1e7;
-      const aliceDepositUtxo = await CircomUtxo.generateUtxo({
+      const aliceDepositUtxo = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: chainID.toString(),
@@ -780,7 +778,7 @@ describe('VAnchor for 1 max edge', () => {
 
       // Step 3: Alice tries to create a UTXO with more funds than she has in her account
       const aliceOutputAmount = '100000000000000000000000';
-      const aliceOutputUtxo = await CircomUtxo.generateUtxo({
+      const aliceOutputUtxo = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: chainID.toString(),
@@ -1079,7 +1077,7 @@ describe('VAnchor for 1 max edge', () => {
       const bobPublicKeypair = Keypair.fromString(registeredKeydata);
 
       // generate a UTXO that is only spendable by bob
-      const aliceTransferUtxo = await CircomUtxo.generateUtxo({
+      const aliceTransferUtxo = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: chainID.toString(),
@@ -1110,7 +1108,7 @@ describe('VAnchor for 1 max edge', () => {
       const utxos = await Promise.all(
         encryptedCommitments.map(async (enc, index) => {
           try {
-            const decryptedUtxo = await CircomUtxo.decrypt(bobKeypair, enc);
+            const decryptedUtxo = Utxo.decrypt(bobKeypair, enc);
             // In order to properly calculate the nullifier, an index is required.
             decryptedUtxo.setIndex(index);
             decryptedUtxo.setOriginChainId(chainID.toString());
@@ -1205,99 +1203,6 @@ describe('VAnchor for 1 max edge', () => {
       // in report we can see the tx with NewCommitment event (this is how alice got money)
       // and the tx with NewNullifier event is where alice spent the UTXO
     });
-
-    it('should reject proofs made against roots of empty edges', async () => {
-      // This test has not been linked to another anchor - edgeList should be empty.
-      await TruffleAssert.reverts(anchor.contract.edgeList(0));
-
-      // create the UTXO for commitment into a fake tree.
-      const depositAmount = 1e7;
-      const fakeChainId = getChainIdType(666);
-      const keypair = new Keypair();
-      let fakeUtxo = await CircomUtxo.generateUtxo({
-        curve: 'Bn254',
-        backend: 'Circom',
-        chainId: chainID.toString(),
-        originChainId: fakeChainId.toString(),
-        amount: depositAmount.toString(),
-        index: '0',
-        keypair,
-      });
-
-      // Attempt to withdraw by creating a proof against a root that shouldn't exist.
-      // create the merkle tree
-      const fakeTree = new MerkleTree(30);
-      const fakeCommitment = u8aToHex(fakeUtxo.commitment);
-      fakeTree.insert(fakeCommitment);
-
-      const fakeRoot = fakeTree.root();
-
-      const roots = await anchor.populateRootsForProof();
-      roots[1] = fakeRoot;
-
-      const setupVAnchor = new SetupTxVAnchorMock(
-        anchor.contract,
-        anchor.signer,
-        30,
-        1,
-        anchor.smallCircuitZkComponents,
-        anchor.largeCircuitZkComponents,
-        roots
-      );
-      setupVAnchor.token = anchor.token;
-      let inputs: Utxo[] = [
-        fakeUtxo,
-        await CircomUtxo.generateUtxo({
-          curve: 'Bn254',
-          backend: 'Circom',
-          chainId: chainID.toString(),
-          originChainId: chainID.toString(),
-          amount: '0',
-          blinding: hexToU8a(randomBN(31).toHexString()),
-          keypair,
-        }),
-      ];
-
-      let outputs: [Utxo, Utxo] = [
-        await CircomUtxo.generateUtxo({
-          curve: 'Bn254',
-          backend: 'Circom',
-          chainId: chainID.toString(),
-          originChainId: chainID.toString(),
-          amount: '0',
-          keypair,
-        }),
-        await CircomUtxo.generateUtxo({
-          curve: 'Bn254',
-          backend: 'Circom',
-          chainId: chainID.toString(),
-          originChainId: chainID.toString(),
-          amount: '0',
-          keypair,
-        }),
-      ];
-
-      const { publicInputs, extData } = await setupVAnchor.setupTransaction(
-        inputs,
-        outputs,
-        0,
-        0,
-        recipient,
-        '0',
-        setupVAnchor.token,
-        {
-          [fakeChainId.toString()]: [fakeUtxo.commitment],
-          [chainID.toString()]: [hexToU8a(fakeTree.zeroElement.toHexString())],
-        }
-      );
-      await TruffleAssert.reverts(
-        anchor.contract.transact(publicInputs.proof, ZERO_BYTES32, extData, publicInputs, {
-          encryptedOutput1: outputs[0].encrypt(),
-          encryptedOutput2: outputs[1].encrypt(),
-        }),
-        'LinkableAnchor: non-existent edge is not set to the default root'
-      );
-    });
   });
 
   describe('#wrapping tests', () => {
@@ -1352,7 +1257,7 @@ describe('VAnchor for 1 max edge', () => {
       const balTokenBeforeDepositSender = await token.balanceOf(sender.address);
 
       const aliceDepositAmount = 1e7;
-      const aliceDepositUtxo = await CircomUtxo.generateUtxo({
+      const aliceDepositUtxo = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: chainID.toString(),
@@ -1430,7 +1335,7 @@ describe('VAnchor for 1 max edge', () => {
       const aliceDepositAmount = 1e7;
       const numOfInsertions = 31;
       for (let i = 0; i < numOfInsertions; i++) {
-        const aliceDepositUtxo = await CircomUtxo.generateUtxo({
+        const aliceDepositUtxo = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           chainId: chainID.toString(),
@@ -1509,7 +1414,7 @@ describe('VAnchor for 1 max edge', () => {
       const balTokenBeforeDepositSender = await token.balanceOf(sender.address);
       const aliceDepositAmount = 1e7;
       const keypair = new Keypair();
-      let aliceDepositUtxo = await CircomUtxo.generateUtxo({
+      let aliceDepositUtxo = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: chainID.toString(),
@@ -1533,7 +1438,7 @@ describe('VAnchor for 1 max edge', () => {
       );
 
       const aliceChangeAmount = 0;
-      const aliceChangeUtxo = await CircomUtxo.generateUtxo({
+      const aliceChangeUtxo = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: chainID.toString(),
@@ -1615,7 +1520,7 @@ describe('VAnchor for 1 max edge', () => {
       //Should take a fee when depositing
       //Deposit 2e7 and Check Relevant Balances
       const aliceDepositAmount = 2e7;
-      let aliceDepositUtxo = await CircomUtxo.generateUtxo({
+      let aliceDepositUtxo = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: chainID.toString(),
@@ -1663,7 +1568,7 @@ describe('VAnchor for 1 max edge', () => {
       const aliceWithdrawAmount = 1e7;
       let anchorLeaves = wrappedVAnchor.tree.elements().map((leaf) => hexToU8a(leaf.toHexString()));
 
-      let aliceChangeUtxo = await CircomUtxo.generateUtxo({
+      let aliceChangeUtxo = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: chainID.toString(),

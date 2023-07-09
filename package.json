@@ -48,7 +48,6 @@
     "@typechain/hardhat": "^6.1.5",
     "@types/chai": "^4.3.4",
     "@types/mocha": "^10.0.1",
-    "@webb-tools/sdk-core": "0.1.4-126",
     "@webb-tools/test-utils": "0.1.4-126",
     "chai": "^4.3.7",
     "circomlibjs": "^0.0.8",

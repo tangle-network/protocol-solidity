@@ -7,7 +7,7 @@ import { Deployer } from '@webb-tools/create2-utils';
 import { IVAnchor, IBridgeSide, Proposal } from '@webb-tools/interfaces';
 import { TreasuryHandler } from '@webb-tools/tokens';
 import { getChainIdType } from '@webb-tools/utils';
-import { signMessage, toHex } from '@webb-tools/sdk-core';
+import { signMessage, toHex } from '@webb-tools/utils';
 
 type SystemSigningFn = (data: any) => Promise<string>;
 

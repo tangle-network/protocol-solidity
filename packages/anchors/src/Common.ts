@@ -12,10 +12,8 @@ import {
   Utxo,
   randomBN,
   UtxoGenInput,
-  CircomUtxo,
   MerkleTree,
-  getVAnchorExtDataHash,
-} from '@webb-tools/sdk-core';
+} from '@webb-tools/utils';
 import { hexToU8a, getChainIdType, ZERO_BYTES32, FIELD_SIZE } from '@webb-tools/utils';
 import { checkNativeAddress, splitTransactionOptions } from './utils';
 import {
@@ -48,7 +46,7 @@ export abstract class WebbBridge<A extends WebbContracts> {
   }
 
   public static async generateUTXO(input: UtxoGenInput): Promise<Utxo> {
-    return CircomUtxo.generateUtxo(input);
+    return Utxo.generateUtxo(input);
   }
 
   public static createRootsBytes(rootArray: string[]) {
@@ -240,7 +238,7 @@ export abstract class WebbBridge<A extends WebbContracts> {
 
     while (utxos.length !== 2 && utxos.length < maxLen) {
       utxos.push(
-        await CircomUtxo.generateUtxo({
+        Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           chainId: chainId.toString(),
