@@ -1,45 +1,71 @@
-/* eslint-disable camelcase */
-/* eslint-disable sort-keys */
-import { BigNumber } from 'ethers';
-import { groth16 } from 'snarkjs';
+import crypto from 'crypto';
+import { BigNumber, BigNumberish, ethers } from 'ethers';
+import { FIELD_SIZE } from './protocol';
 
-import { toFixedHex } from '@webb-tools/sdk-core';
+export const median = (arr: number[]): number => {
+  const s = [...arr].sort((a, b) => a - b);
+  const mid = Math.floor(s.length / 2);
 
-export const ZERO_BYTES32 = '0x0000000000000000000000000000000000000000000000000000000000000000';
-export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
-
-export const FIELD_SIZE = BigNumber.from(
-  '21888242871839275222246405745257275088548364400416034343698204186575808495617'
-);
-
-export type Proof = {
-  pi_a: string[3];
-  pi_b: Array<string[2]>;
-  pi_c: string[3];
-  protocol: string;
-  curve: string;
+  return s.length % 2 === 0 ? (s[mid - 1] + s[mid]) / 2 : s[mid];
 };
 
-export type VAnchorProofInputs = {
-  roots: string[];
-  chainID: string;
-  inputNullifier: string[];
-  outputCommitment: string[];
-  publicAmount: string;
-  extDataHash: string;
+export const mean = (arr: number[]) => arr.reduce((p, c) => p + c, 0) / arr.length;
+export const max = (arr: number[]) => arr.reduce((a, b) => (a > b ? a : b));
+export const min = (arr: number[]) => arr.reduce((a, b) => (a <= b ? a : b));
 
-  // data for 2 transaction inputs
-  inAmount: string[];
-  inPrivateKey: string[];
-  inBlinding: string[];
-  inPathIndices: number[][];
-  inPathElements: number[][];
+/** Generate random number of specified byte length */
+export const randomBN = (nbytes = 31) => BigNumber.from(crypto.randomBytes(nbytes));
 
-  // data for 2 transaction outputs
-  outChainID: string;
-  outAmount: string[];
-  outPubkey: string[];
-  outBlinding: string[];
+export const randomFieldElement = (nbytes = 32) => {
+  const fieldElt = randomBN(nbytes).mod(FIELD_SIZE);
+  return Uint8Array.from(Buffer.from(fieldElt.toHexString()));
+};
+
+export const toHex = (
+  covertThis: ethers.utils.BytesLike | number | bigint,
+  padding: number
+): string => {
+  return ethers.utils.hexZeroPad(ethers.utils.hexlify(covertThis), padding);
+};
+
+/** BigNumber to hex string of specified length */
+export function toFixedHex(number: BigNumberish, length = 32): string {
+  let result =
+    '0x' +
+    (number instanceof Buffer
+      ? number.toString('hex')
+      : BigNumber.from(number).toHexString().replace('0x', '')
+    ).padStart(length * 2, '0');
+
+  if (result.indexOf('-') > -1) {
+    result = '-' + result.replace('-', '');
+  }
+
+  return result;
+}
+
+/** Pad the bigint to 256 bits (32 bytes) */
+export function p256(n: bigint) {
+  let nstr = BigInt(n).toString(16);
+
+  while (nstr.length < 64) {
+    nstr = '0' + nstr;
+  }
+
+  nstr = `"0x${nstr}"`;
+
+  return nstr;
+}
+
+/** Convert value into buffer of specified byte length */
+export const toBuffer = (value: BigNumberish, length: number) => {
+  return Buffer.from(
+    BigNumber.from(value)
+      .toHexString()
+      .slice(2)
+      .padStart(length * 2, '0'),
+    'hex'
+  );
 };
 
 /**
@@ -52,19 +78,3 @@ export const getChainIdType = (chainID: number = 31337): number => {
   const chainIdType = CHAIN_TYPE + toFixedHex(chainID, 4).substr(2);
   return Number(BigInt(chainIdType));
 };
-
-export default function verifyProof(
-  verificationKey: any,
-  { proof, publicSignals }: any
-): Promise<boolean> {
-  return groth16.verify(
-    verificationKey,
-    [
-      publicSignals.merkleRoot,
-      publicSignals.nullifierHash,
-      publicSignals.signalHash,
-      publicSignals.externalNullifier,
-    ],
-    proof
-  );
-}
