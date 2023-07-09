@@ -45,7 +45,7 @@ export abstract class WebbBridge<A extends WebbContracts> {
     this.latestSyncedBlock = 0;
   }
 
-  public static async generateUTXO(input: UtxoGenInput): Promise<Utxo> {
+  public static generateUTXO(input: UtxoGenInput): Utxo {
     return Utxo.generateUtxo(input);
   }
 

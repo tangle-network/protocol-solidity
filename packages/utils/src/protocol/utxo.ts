@@ -59,7 +59,7 @@ export class Utxo {
    *   parts[8] Optional - Index, the leaf index if the utxo has been inserted in a merkle tree
    * @returns The Utxo object implementation of a Utxo.
    */
-  static async deserialize(utxoString: string): Promise<Utxo> {
+  static deserialize(utxoString: string): Utxo {
     const utxo = new Utxo();
     const parts = utxoString.split('&');
 
