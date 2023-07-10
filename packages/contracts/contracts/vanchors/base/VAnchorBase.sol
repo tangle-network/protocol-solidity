@@ -153,7 +153,7 @@ abstract contract VAnchorBase is LinkableAnchor {
 		uint256 wrapAmount = ITokenWrapper(_toTokenAddress).getAmountToWrap(_extAmount);
 		// If the address is zero, this is meant to wrap native tokens
 		if (_fromTokenAddress == address(0)) {
-			require(msg.value == wrapAmount, "VAnchorBase: msg.value should be equal to wrapAmount")
+			require(msg.value == wrapAmount, "VAnchorBase: msg.value should be equal to wrapAmount");
 			// If the wrapping is native, ensure the amount sent to the tokenWrapper is 0
 			ITokenWrapper(_toTokenAddress).wrapForAndSendTo{ value: msg.value }(
 				msg.sender,
@@ -162,7 +162,7 @@ abstract contract VAnchorBase is LinkableAnchor {
 				address(this)
 			);
 		} else {
-			require(msg.value == 0, "VAnchorBase: msg.value should be 0")
+			require(msg.value == 0, "VAnchorBase: msg.value should be 0");
 			// wrap into the token and send directly to this contract
 			ITokenWrapper(_toTokenAddress).wrapForAndSendTo(
 				msg.sender,
