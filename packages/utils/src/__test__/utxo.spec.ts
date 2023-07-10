@@ -58,7 +58,7 @@ describe('Utxo Class', () => {
   it('should deserialize and serialize a utxo which does not have an index', async function () {
     const serializedInput = [
       'Bn254',
-      'Arkworks',
+      'Circom',
       '10000000000000',
       '2199023256632',
       '17415b69c56a3c3897dcb339ce266a0f2a70c9372a6fec1676f81ddaf68e9926',

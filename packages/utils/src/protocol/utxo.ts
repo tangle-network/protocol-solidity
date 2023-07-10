@@ -38,7 +38,7 @@ export class Utxo {
       this.getKeypair().getPubKey().slice(2),
       this.getKeypair().getEncryptionKey()?.slice(2),
       this.getKeypair().privkey?.slice(2),
-      this.index.toString(),
+      this.index == -1 ? '' : this.index.toString(),
     ].join('&');
   }
 
@@ -84,6 +84,7 @@ export class Utxo {
     }
 
     if (maybeIndex.length > 0) {
+      console.log('maybeIndex', maybeIndex);
       utxo._index = Number(maybeIndex);
     }
 
@@ -227,7 +228,7 @@ export class Utxo {
    *
    */
   get index(): number {
-    return this._index ?? 0;
+    return this._index ?? -1;
   }
 
   set index(index: number) {
