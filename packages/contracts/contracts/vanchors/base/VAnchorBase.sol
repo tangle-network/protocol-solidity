@@ -162,8 +162,9 @@ abstract contract VAnchorBase is LinkableAnchor {
 				address(this)
 			);
 		} else {
+			require(msg.value == 0);
 			// wrap into the token and send directly to this contract
-			ITokenWrapper(_toTokenAddress).wrapForAndSendTo{ value: msg.value }(
+			ITokenWrapper(_toTokenAddress).wrapForAndSendTo(
 				msg.sender,
 				_fromTokenAddress,
 				wrapAmount,
