@@ -99,7 +99,9 @@ export const signMessage = (wallet: ethers.Wallet, data: BytesLike) => {
   try {
     sig = ethers.utils.joinSignature(expandedSig);
   } catch (_) {
-    expandedSig.s = '0x' + BigNumber.from(ec.curve.n).sub(signature.s).toHexString();
+    expandedSig.s = BigNumber.from('0x' + ec.curve.n)
+      .sub(signature.s)
+      .toHexString();
     expandedSig.v = expandedSig.v === 27 ? 28 : 27;
     sig = ethers.utils.joinSignature(expandedSig);
   }
