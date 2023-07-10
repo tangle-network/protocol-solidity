@@ -16,7 +16,7 @@ import { ethers } from 'ethers';
 import { ZERO_BYTES32 } from '@webb-tools/utils';
 import { keccak256, recoverAddress, solidityPack } from 'ethers/lib/utils';
 
-describe.only('Governable Contract', () => {
+describe('Governable Contract', () => {
   let governableInstance: Governable;
   let sender: ethers.Signer;
   let nextGovernor: ethers.Signer;

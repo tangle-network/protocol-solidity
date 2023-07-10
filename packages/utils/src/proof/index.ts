@@ -1,5 +1,5 @@
-export * from './variable-anchor.js';
-export * from './build-variable-witness.js';
+export * from './variable-anchor';
+export * from './build-variable-witness';
 
 import { ethers } from 'ethers';
 import { p256 } from '../utils';

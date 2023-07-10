@@ -19,7 +19,7 @@
     "compile": "lerna run compile --scope=@webb-tools/contracts",
     "build": "yarn compile && yarn build:packages",
     "setup": "yarn compile && yarn build:circuits && yarn build:ptau",
-    "test": "lerna run test --scope=@webb-tools/contracts",
+    "test": "lerna run test",
     "fast": "yarn workspace @webb-tools/contracts run test:parallel",
     "build:circuits": "./scripts/bash/build_circuits.sh",
     "build:packages": "lerna run build",
