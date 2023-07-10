@@ -12,19 +12,15 @@ import {
   IVariableAnchorPublicInputs,
 } from '@webb-tools/interfaces';
 import {
-  CircomProvingManager,
-  CircomUtxo,
+  Utxo,
   FIELD_SIZE,
   Keypair,
-  LeafIdentifier,
   MerkleProof,
   MerkleTree,
-  ProvingManagerSetupInput,
-  Utxo,
   buildVariableWitnessCalculator,
   generateVariableWitnessInput,
   toFixedHex,
-} from '@webb-tools/sdk-core';
+} from '@webb-tools/utils';
 import {
   Proof,
   VAnchorProofInputs,
@@ -58,7 +54,6 @@ export class VAnchor extends WebbBridge<WebbContracts> implements IVAnchor<WebbC
   largeCircuitZkComponents: ZkComponents;
 
   token?: string;
-  provingManager: CircomProvingManager;
 
   constructor(
     contract: VAnchorTreeContract,
@@ -763,11 +758,11 @@ export class VAnchor extends WebbBridge<WebbContracts> implements IVAnchor<WebbC
     const utxos = await Promise.all(
       encryptedCommitments.map(async (enc, index) => {
         try {
-          const decryptedUtxo = await CircomUtxo.decrypt(owner, enc);
+          const decryptedUtxo = Utxo.decrypt(owner, enc);
           // In order to properly calculate the nullifier, an index is required.
           // The decrypt function generates a utxo without an index, and the index is a readonly property.
           // So, regenerate the utxo with the proper index.
-          const regeneratedUtxo = await CircomUtxo.generateUtxo({
+          const regeneratedUtxo = Utxo.generateUtxo({
             amount: decryptedUtxo.amount,
             backend: 'Circom',
             blinding: hexToU8a(decryptedUtxo.blinding),

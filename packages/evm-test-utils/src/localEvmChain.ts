@@ -1,6 +1,6 @@
 import { IVariableAnchorExtData, IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
 import { VAnchor } from '@webb-tools/anchors';
-import { CircomUtxo, Keypair, Utxo } from '@webb-tools/sdk-core';
+import { Utxo, Keypair } from '@webb-tools/utils';
 import { MintableToken } from '@webb-tools/tokens';
 import { getChainIdType, ZkComponents } from '@webb-tools/utils';
 import { VBridge, VBridgeInput } from '@webb-tools/vbridge';
@@ -122,7 +122,7 @@ export async function setupVanchorEvmWithdrawTx(
 }> {
   const extAmount = ethers.BigNumber.from(0).sub(inputUtxo.amount);
 
-  const dummyOutput1 = await CircomUtxo.generateUtxo({
+  const dummyOutput1 = Utxo.generateUtxo({
     amount: '0',
     backend: 'Circom',
     chainId: destChain.chainId.toString(),
@@ -130,7 +130,7 @@ export async function setupVanchorEvmWithdrawTx(
     keypair: spender,
   });
 
-  const dummyOutput2 = await CircomUtxo.generateUtxo({
+  const dummyOutput2 = Utxo.generateUtxo({
     amount: '0',
     backend: 'Circom',
     chainId: destChain.chainId.toString(),
@@ -138,7 +138,7 @@ export async function setupVanchorEvmWithdrawTx(
     keypair: spender,
   });
 
-  const dummyInput = await CircomUtxo.generateUtxo({
+  const dummyInput = Utxo.generateUtxo({
     amount: '0',
     backend: 'Circom',
     chainId: destChain.chainId.toString(),

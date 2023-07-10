@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.build.json",
   "compilerOptions": {
+    "preserveSymlinks": true,
     "baseUrl": ".",
     "paths": {
       /**
@@ -45,6 +46,12 @@
       ],
       "@webb-tools/interfaces/*": [
         "packages/interfaces/*"
+      ],
+      "@webb-tools/proposals": [
+        "packages/proposals"
+      ],
+      "@webb-tools/proposals/*": [
+        "packages/proposals/*"
       ],
       "@webb-tools/tokens": [
         "packages/tokens"

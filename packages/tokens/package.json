@@ -11,7 +11,6 @@
   "dependencies": {
     "@webb-tools/contracts": "^1.0.4",
     "@webb-tools/create2-utils": "^1.0.4",
-    "@webb-tools/sdk-core": "0.1.4-126",
     "@webb-tools/utils": "^1.0.4",
     "ethers": "5.7.0"
   },

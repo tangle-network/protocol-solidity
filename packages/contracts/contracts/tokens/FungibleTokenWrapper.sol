@@ -7,7 +7,6 @@ pragma solidity ^0.8.18;
 
 import "./TokenWrapper.sol";
 import "../interfaces/tokens/IFungibleTokenWrapper.sol";
-import "../utils/Initialized.sol";
 import "../utils/ProposalNonceTracker.sol";
 
 /// @title A governed TokenWrapper system using an external `handler` address
@@ -16,7 +15,6 @@ import "../utils/ProposalNonceTracker.sol";
 /// sets fees for wrapping into itself. This contract is intended to be used with
 /// TokenHandler contract.
 contract FungibleTokenWrapper is
-	Initialized,
 	TokenWrapper,
 	IFungibleTokenWrapper,
 	ProposalNonceTracker
@@ -77,7 +75,7 @@ contract FungibleTokenWrapper is
 	/// @notice Sets the handler of the FungibleTokenWrapper contract
 	/// @param _handler The address of the new handler
 	/// @notice Only the handler can call this function
-	function setHandler(address _handler) public onlyHandler {
+	function setHandler(address _handler) public onlyHandler onlyInitialized {
 		require(_handler != address(0), "FungibleTokenWrapper: Handler Address can't be 0");
 		handler = _handler;
 		emit HandlerUpdated(_handler);
@@ -86,7 +84,7 @@ contract FungibleTokenWrapper is
 	/// @notice Sets whether native tokens are allowed to be wrapped
 	/// @param _isNativeAllowed Whether or not native tokens are allowed to be wrapped
 	/// @notice Only the handler can call this function
-	function setNativeAllowed(bool _isNativeAllowed) public onlyHandler {
+	function setNativeAllowed(bool _isNativeAllowed) public onlyHandler onlyInitialized {
 		isNativeAllowed = _isNativeAllowed;
 		emit NativeAllowed(_isNativeAllowed);
 	}
@@ -98,7 +96,7 @@ contract FungibleTokenWrapper is
 	function add(
 		address _tokenAddress,
 		uint32 _nonce
-	) external override onlyHandler onlyIncrementingByOne(_nonce) {
+	) external override onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
 		require(!valid[_tokenAddress], "FungibleTokenWrapper: Token should not be valid");
 		tokens.push(_tokenAddress);
 
@@ -117,7 +115,7 @@ contract FungibleTokenWrapper is
 	function remove(
 		address _tokenAddress,
 		uint32 _nonce
-	) external override onlyHandler onlyIncrementingByOne(_nonce) {
+	) external override onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
 		require(valid[_tokenAddress], "FungibleTokenWrapper: Token should be valid");
 		uint index = 0;
 		for (uint i = 0; i < tokens.length; i++) {
@@ -139,7 +137,7 @@ contract FungibleTokenWrapper is
 	function setFee(
 		uint16 _feePercentage,
 		uint32 _nonce
-	) external override onlyHandler onlyIncrementingByOne(_nonce) {
+	) external override onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
 		require(_feePercentage < 10_000, "FungibleTokenWrapper: Invalid fee percentage");
 		feePercentage = _feePercentage;
 		emit FeeUpdated(_feePercentage);
@@ -152,7 +150,7 @@ contract FungibleTokenWrapper is
 	function setFeeRecipient(
 		address payable _feeRecipient,
 		uint32 _nonce
-	) external override onlyHandler onlyIncrementingByOne(_nonce) {
+	) external override onlyHandler onlyInitialized onlyIncrementingByOne(_nonce) {
 		require(
 			_feeRecipient != address(0),
 			"FungibleTokenWrapper: Fee Recipient cannot be zero address"

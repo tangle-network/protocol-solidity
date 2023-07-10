@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT OR Apache-2.0
  */
 
-import { MerkleTree, toFixedHex } from '@webb-tools/sdk-core';
+import { MerkleTree, toFixedHex } from '@webb-tools/utils';
 import { BigNumber } from 'ethers';
 import { artifacts, contract, ethers } from 'hardhat';
 import { poseidon } from 'circomlibjs';

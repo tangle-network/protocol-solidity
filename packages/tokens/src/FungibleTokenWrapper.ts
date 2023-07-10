@@ -1,6 +1,6 @@
 import { BigNumberish, ethers } from 'ethers';
 import { getChainIdType } from '@webb-tools/utils';
-import { toHex, generateFunctionSigHash } from '@webb-tools/sdk-core';
+import { toHex, generateFunctionSigHash } from '@webb-tools/utils';
 import {
   FungibleTokenWrapper as FungibleTokenWrapperContract,
   FungibleTokenWrapper__factory,

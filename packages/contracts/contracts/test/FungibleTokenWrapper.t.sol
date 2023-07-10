@@ -35,6 +35,23 @@ contract FungibleTokenWrapperTest is PRBTest, StdCheats {
 		token.initialize(feePercentage, feeRecipient, handler, limit, isNativeAllowed, admin);
 	}
 
+	function test_initialize() public {
+		FungibleTokenWrapper new_token = new FungibleTokenWrapper("TOKEN", "TKN");
+		uint16 feePercentage = 0;
+		address feeRecipient = alice;
+		address handler = address(tokenHandler);
+		uint256 limit = 100 ether;
+		bool isNativeAllowed = true;
+		address admin = alice;
+		new_token.initialize(feePercentage, feeRecipient, handler, limit, isNativeAllowed, admin);
+	}
+
+	function test_shouldFailIfUninitialized() public {
+		FungibleTokenWrapper new_token = new FungibleTokenWrapper("TOKEN", "TKN");
+		vm.expectRevert("Initialized: Not initialized");
+		new_token.wrap(address(0x0), 0);
+	}
+
 	function test_setup() public {
 		assertEq(token.isNativeAllowed(), true);
 		assertEq(token.name(), "TOKEN");

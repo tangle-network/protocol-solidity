@@ -1,16 +1,18 @@
 {
   "name": "@webb-tools/utils",
   "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "license": "(MIT OR Apache-2.0)",
   "author": "Webb Developers <drew@webb.tools>",
   "scripts": {
     "build": "yarn run clean && yarn run compile",
     "clean": "rimraf -rf ./dist",
-    "compile": "tsc -p tsconfig.build.json"
+    "compile": "tsc -p tsconfig.build.json",
+    "test": "mocha -r ts-node/register 'src/__test__/**/*.ts'"
   },
   "dependencies": {
-    "@webb-tools/sdk-core": "0.1.4-126",
-    "babyjubjub": "^1.0.4",
+    "@metamask/eth-sig-util": "^6.0.0",
+    "circomlibjs": "^0.0.8",
     "ethers": "5.7.0",
     "snarkjs": "^0.6.10"
   },
@@ -23,5 +25,9 @@
     "url": "git://github.com/webb-tools/protocol-solidity.git"
   },
   "version": "1.0.4",
-  "gitHead": "e1f3b300b6e004ac5a346dc0458bb1d303969d97"
+  "gitHead": "e1f3b300b6e004ac5a346dc0458bb1d303969d97",
+  "devDependencies": {
+    "@webb-tools/sdk-core": "0.1.4-126",
+    "chai": "^4.3.7"
+  }
 }

@@ -1,5 +1,5 @@
 import { BigNumberish, BigNumber } from 'ethers';
-import { Keypair } from '@webb-tools/sdk-core';
+import { Keypair } from '@webb-tools/utils';
 
 export interface IMerkleProofData {
   pathElements: BigNumberish[];

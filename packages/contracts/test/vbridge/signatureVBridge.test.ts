@@ -12,7 +12,7 @@ import { VAnchor } from '@webb-tools/anchors';
 import { MintableToken, FungibleTokenWrapper } from '@webb-tools/tokens';
 import { BigNumber } from 'ethers';
 import { getChainIdType, vanchorFixtures, ZkComponents } from '@webb-tools/utils';
-import { CircomUtxo } from '@webb-tools/sdk-core';
+import { Utxo } from '@webb-tools/utils';
 import { DeployerConfig, GovernorConfig } from '@webb-tools/interfaces';
 import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
 import { startGanacheServer } from '../startGanache';
@@ -116,7 +116,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
       // Get the state of anchors before deposit
       const sourceAnchorRootBefore = await vAnchor1.contract.getLastRoot();
       // Define inputs/outputs for transact function
-      const depositUtxo = await CircomUtxo.generateUtxo({
+      const depositUtxo = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         amount: (1e7).toString(),
@@ -134,7 +134,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
       assert.notEqual(sourceAnchorRootAfter, sourceAnchorRootBefore);
       assert.deepEqual(ethers.BigNumber.from(1), destAnchorEdgeAfter.latestLeafIndex);
 
-      const transferUtxo = await CircomUtxo.generateUtxo({
+      const transferUtxo = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         chainId: chainID1.toString(),
@@ -237,14 +237,14 @@ describe('2-sided multichain tests for signature vbridge', () => {
       );
 
       // make one deposit so the  edge exists
-      const depositUtxo1 = await CircomUtxo.generateUtxo({
+      const depositUtxo1 = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         amount: (1e7).toString(),
         originChainId: chainID1.toString(),
         chainId: chainID2.toString(),
       });
-      const depositUtxo2 = await CircomUtxo.generateUtxo({
+      const depositUtxo2 = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         amount: (1e7).toString(),
@@ -280,7 +280,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         const signers2BalanceBefore = await webbToken1.getBalance(await signers[2].getAddress());
 
         //ganacheWallet2 makes a deposit with dest chain chainID1
-        const ganacheDepositUtxo = await CircomUtxo.generateUtxo({
+        const ganacheDepositUtxo = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (1e7).toString(),
@@ -298,7 +298,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         );
 
         //withdraw ganacheWallet2 deposit on chainID1 to signers[2] address
-        const hardhatWithdrawUtxo = await CircomUtxo.generateUtxo({
+        const hardhatWithdrawUtxo = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (5e6).toString(),
@@ -339,7 +339,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         );
 
         //ganacheWallet2 makes a deposit with dest chain chainID1
-        const hardhatDepositUtxo = await CircomUtxo.generateUtxo({
+        const hardhatDepositUtxo = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (1e7).toString(),
@@ -357,7 +357,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         );
 
         //withdraw ganacheWallet2 deposit on chainID1 to signers[2] address
-        const ganacheWithdrawUtxo = await CircomUtxo.generateUtxo({
+        const ganacheWithdrawUtxo = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (5e6).toString(),
@@ -394,14 +394,14 @@ describe('2-sided multichain tests for signature vbridge', () => {
         const signers2BalanceBefore = await webbToken1.getBalance(await signers[2].getAddress());
 
         //ganacheWallet2 makes a deposit with dest chain chainID1
-        const ganacheDepositUtxo1 = await CircomUtxo.generateUtxo({
+        const ganacheDepositUtxo1 = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (1e7).toString(),
           originChainId: chainID2.toString(),
           chainId: chainID1.toString(),
         });
-        const ganacheDepositUtxo2 = await CircomUtxo.generateUtxo({
+        const ganacheDepositUtxo2 = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (1e7).toString(),
@@ -421,7 +421,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         );
 
         //withdraw ganacheWallet2 deposit on chainID1 to signers[2] address
-        const hardhatWithdrawUtxo = await CircomUtxo.generateUtxo({
+        const hardhatWithdrawUtxo = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (5e6).toString(),
@@ -458,14 +458,14 @@ describe('2-sided multichain tests for signature vbridge', () => {
         const startingBalanceDest = await webbToken1.getBalance(signers[1].address);
 
         //ganacheWallet2 makes a deposit with dest chain chainID1
-        const ganacheDepositUtxo1 = await CircomUtxo.generateUtxo({
+        const ganacheDepositUtxo1 = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (1e7).toString(),
           originChainId: chainID2.toString(),
           chainId: chainID1.toString(),
         });
-        const ganacheDepositUtxo2 = await CircomUtxo.generateUtxo({
+        const ganacheDepositUtxo2 = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (1e7).toString(),
@@ -483,7 +483,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         );
 
         //withdraw ganacheWallet2 deposit on chainID1 to signers[2] address
-        const hardhatWithdrawUtxo = await CircomUtxo.generateUtxo({
+        const hardhatWithdrawUtxo = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (5e6).toString(),
@@ -510,7 +510,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         const signers = await ethers.getSigners();
 
         //ganacheWallet2 makes a deposit with dest chain chainID1
-        const ganacheDepositUtxo = await CircomUtxo.generateUtxo({
+        const ganacheDepositUtxo = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (1e7).toString(),
@@ -518,7 +518,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
           chainId: chainID1.toString(),
         });
 
-        const hardhatUtxo = await CircomUtxo.generateUtxo({
+        const hardhatUtxo = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (1e7).toString(),
@@ -552,7 +552,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         const webbToken2 = await MintableToken.tokenFromAddress(webbTokenAddress2!, ganacheWallet2);
 
         //ganacheWallet2 makes a deposit with dest chain chainID1
-        const ganacheDepositUtxo = await CircomUtxo.generateUtxo({
+        const ganacheDepositUtxo = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (5e7).toString(),
@@ -582,7 +582,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         );
 
         //withdrawing 3e7 from ganacheWallet2 deposit on chainID1 should work despite vanchor1 only having 1e7 webb tokens...this indicates that it minted 2e7 webb tokens to make up the balance
-        const hardhatWithdrawUtxo = await CircomUtxo.generateUtxo({
+        const hardhatWithdrawUtxo = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (2e7).toString(),
@@ -671,14 +671,14 @@ describe('2-sided multichain tests for signature vbridge', () => {
       );
 
       // make one deposit so the  edge exists
-      const depositUtxo1 = await CircomUtxo.generateUtxo({
+      const depositUtxo1 = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         amount: (1e7).toString(),
         originChainId: chainID1.toString(),
         chainId: chainID2.toString(),
       });
-      const depositUtxo2 = await CircomUtxo.generateUtxo({
+      const depositUtxo2 = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         amount: (1e7).toString(),
@@ -749,7 +749,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         const webbTokenAddress = vBridge.getWebbTokenAddress(chainID1);
         const webbToken = await MintableToken.tokenFromAddress(webbTokenAddress!, signers[1]);
         //Deposit UTXO
-        const hardhatDepositUtxo1 = await CircomUtxo.generateUtxo({
+        const hardhatDepositUtxo1 = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (2.5e7).toString(),
@@ -779,14 +779,14 @@ describe('2-sided multichain tests for signature vbridge', () => {
         const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
 
         //Deposit UTXO
-        const ganacheDepositUtxo1 = await CircomUtxo.generateUtxo({
+        const ganacheDepositUtxo1 = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (2.5e7).toString(),
           originChainId: chainID2.toString(),
           chainId: chainID1.toString(),
         });
-        const ganacheDepositUtxo2 = await CircomUtxo.generateUtxo({
+        const ganacheDepositUtxo2 = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (2.5e7).toString(),
@@ -817,7 +817,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         const balWrapper1UnwrappedBefore = await existingToken1.contract.balanceOf(
           vAnchor1TokenAddr
         );
-        const hardhatWithdrawUtxo = await CircomUtxo.generateUtxo({
+        const hardhatWithdrawUtxo = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (1e7).toString(),
@@ -864,21 +864,21 @@ describe('2-sided multichain tests for signature vbridge', () => {
         const webbToken1 = await MintableToken.tokenFromAddress(webbTokenAddress1!, signers[1]);
 
         //Deposit UTXO
-        const ganacheDepositUtxo1 = await CircomUtxo.generateUtxo({
+        const ganacheDepositUtxo1 = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (2e7).toString(),
           originChainId: chainID2.toString(),
           chainId: chainID1.toString(),
         });
-        const ganacheDepositUtxo2 = await CircomUtxo.generateUtxo({
+        const ganacheDepositUtxo2 = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (2e7).toString(),
           originChainId: chainID2.toString(),
           chainId: chainID1.toString(),
         });
-        const ganacheDepositUtxo3 = await CircomUtxo.generateUtxo({
+        const ganacheDepositUtxo3 = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (2e7).toString(),
@@ -936,7 +936,7 @@ describe('2-sided multichain tests for signature vbridge', () => {
         const balWrapper1UnwrappedBefore = await existingToken1.contract.balanceOf(
           vAnchor1TokenAddr
         );
-        const hardhatWithdrawUtxo = await CircomUtxo.generateUtxo({
+        const hardhatWithdrawUtxo = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (1e7).toString(),
@@ -1107,21 +1107,21 @@ describe.skip('8-sided multichain tests for signature vbridge', () => {
       await webbToken3.mintTokens(ganacheWallet3.address, '100000000000000000000000');
 
       // Call transact at least once so we can query the edge list for assertions
-      const depositUtxo1 = await CircomUtxo.generateUtxo({
+      const depositUtxo1 = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         amount: (1e7).toString(),
         originChainId: chainID1.toString(),
         chainId: chainID2.toString(),
       });
-      const depositUtxo2 = await CircomUtxo.generateUtxo({
+      const depositUtxo2 = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         amount: (1e7).toString(),
         originChainId: chainID2.toString(),
         chainId: chainID3.toString(),
       });
-      const depositUtxo3 = await CircomUtxo.generateUtxo({
+      const depositUtxo3 = Utxo.generateUtxo({
         curve: 'Bn254',
         backend: 'Circom',
         amount: (1e7).toString(),
@@ -1147,7 +1147,7 @@ describe.skip('8-sided multichain tests for signature vbridge', () => {
         const signers2BalanceBefore = await webbToken1.getBalance(await signers[2].getAddress());
 
         //ganacheWallet2 makes a deposit with dest chain chainID1
-        const ganacheDepositUtxo = await CircomUtxo.generateUtxo({
+        const ganacheDepositUtxo = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (1e7).toString(),
@@ -1165,7 +1165,7 @@ describe.skip('8-sided multichain tests for signature vbridge', () => {
         );
 
         //withdraw ganacheWallet2 deposit on chainID1 to signers[2] address
-        const hardhatWithdrawUtxo = await CircomUtxo.generateUtxo({
+        const hardhatWithdrawUtxo = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (5e6).toString(),
@@ -1207,7 +1207,7 @@ describe.skip('8-sided multichain tests for signature vbridge', () => {
         );
 
         //ganacheWallet2 makes a deposit with dest chain chainID1
-        const hardhatDepositUtxo = await CircomUtxo.generateUtxo({
+        const hardhatDepositUtxo = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (1e7).toString(),
@@ -1225,7 +1225,7 @@ describe.skip('8-sided multichain tests for signature vbridge', () => {
         );
 
         //withdraw ganacheWallet2 deposit on chainID1 to signers[2] address
-        const ganacheWithdrawUtxo = await CircomUtxo.generateUtxo({
+        const ganacheWithdrawUtxo = Utxo.generateUtxo({
           curve: 'Bn254',
           backend: 'Circom',
           amount: (5e6).toString(),

@@ -1,8 +1,12 @@
 import fs from 'fs';
 import path from 'path';
-import { ZkComponents } from '.';
-
 const snarkjs = require('snarkjs');
+
+export type ZkComponents = {
+  wasm: Buffer;
+  zkey: Uint8Array;
+  witnessCalculator: any;
+};
 
 export async function fetchComponentsFromFilePaths(
   wasmPath: string,

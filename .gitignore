@@ -35,3 +35,6 @@ yarn.lock
 broadcast/*
 broadcast/*/31337/
 .direnv
+
+coverage
+report

@@ -4,14 +4,7 @@ import {
   VAnchorForest as VAnchorForestContract,
   VAnchorForest__factory,
 } from '@webb-tools/contracts';
-import {
-  CircomProvingManager,
-  LeafIdentifier,
-  MerkleTree,
-  Utxo,
-  generateVariableWitnessInput,
-  toFixedHex,
-} from '@webb-tools/sdk-core';
+import { MerkleTree, Utxo, generateVariableWitnessInput, toFixedHex } from '@webb-tools/utils';
 import { poseidon_gencontract as poseidonContract } from 'circomlibjs';
 import { BigNumber, BigNumberish, PayableOverrides, ethers } from 'ethers';
 import { IVariableAnchorPublicInputs } from '@webb-tools/interfaces';
@@ -40,7 +33,6 @@ export class VAnchorForest extends WebbBridge<WebbContracts> {
   largeCircuitZkComponents: ZkComponents;
 
   token?: string;
-  provingManager: CircomProvingManager;
 
   gasBenchmark = [];
   proofTimeBenchmark = [];
@@ -510,19 +502,6 @@ export class VAnchorForest extends WebbBridge<WebbContracts> {
     const chainId = getChainIdType(await this.signer.getChainId());
     let extAmount = this.getExtAmount(inputs, outputs, fee);
 
-    // calculate the sum of input notes (for calculating the public amount)
-    let sumInputUtxosAmount: BigNumberish = 0;
-
-    // Pass the identifier for leaves alongside the proof input
-    let leafIds: LeafIdentifier[] = [];
-
-    for (const inputUtxo of inputs) {
-      sumInputUtxosAmount = BigNumber.from(sumInputUtxosAmount).add(inputUtxo.amount);
-      leafIds.push({
-        index: inputUtxo.index!, // TODO: remove non-null assertion here
-        typedChainId: Number(inputUtxo.originChainId),
-      });
-    }
     const { extData, extDataHash } = await this.generateExtData(
       recipient,
       BigNumber.from(extAmount),

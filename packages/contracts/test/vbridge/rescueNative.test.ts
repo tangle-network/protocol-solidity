@@ -16,7 +16,7 @@ import {
   TokenWrapperHandler,
 } from '@webb-tools/tokens';
 import { getChainIdType, vanchorFixtures, ZkComponents } from '@webb-tools/utils';
-import { CircomUtxo, Keypair } from '@webb-tools/sdk-core';
+import { Utxo, Keypair } from '@webb-tools/utils';
 import { BigNumber } from 'ethers';
 import { HARDHAT_PK_1 } from '../../hardhatAccounts.js';
 import { VAnchorTree } from '@webb-tools/contracts';
@@ -134,7 +134,7 @@ describe('Rescue Tokens Tests for Native ETH', () => {
     );
 
     // Define inputs/outputs for transact function
-    const depositUtxo = await CircomUtxo.generateUtxo({
+    const depositUtxo = Utxo.generateUtxo({
       curve: 'Bn254',
       backend: 'Circom',
       amount: depositAmount.toString(),

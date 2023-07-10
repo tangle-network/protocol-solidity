@@ -1,4 +1,4 @@
-import { MerkleProof, Utxo } from '@webb-tools/sdk-core';
+import { MerkleProof, Utxo } from '@webb-tools/utils';
 import { ethers, BaseContract } from 'ethers';
 
 export interface IVAnchor<A extends BaseContract> {
