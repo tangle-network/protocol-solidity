@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@metamask/eth-sig-util": "^6.0.0",
+    "big-integer": "^1.6.51",
     "circomlibjs": "^0.0.8",
     "ethers": "5.7.0",
     "snarkjs": "^0.6.10"
