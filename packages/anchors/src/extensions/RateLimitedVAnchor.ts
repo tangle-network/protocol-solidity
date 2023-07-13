@@ -98,7 +98,7 @@ export class RateLimitedVAnchor extends VAnchor {
     const nonce = await this.contract.getProposalNonce();
     const tx = await (this.contract as RateLimitedVAnchorContract).setDailyWithdrawalLimit(
       limit,
-      nonce.add(BigNumber.from('1'))
+      nonce + 1,
     );
     const result = await tx.wait();
     return result;
