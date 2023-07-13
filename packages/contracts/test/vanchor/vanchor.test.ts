@@ -128,7 +128,7 @@ describe('VAnchor for 1 max edge', () => {
       sender
     );
 
-    await anchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
+    await anchor.contract.configureMinimumWithdrawalLimit(BigNumber.from(0), 1);
     await anchor.contract.configureMaximumDepositLimit(
       BigNumber.from(tokenDenomination).mul(1_000_000),
       2
@@ -1244,7 +1244,7 @@ describe('VAnchor for 1 max edge', () => {
         sender
       );
 
-      await wrappedAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
+      await wrappedAnchor.contract.configureMinimumWithdrawalLimit(BigNumber.from(0), 1);
       await wrappedAnchor.contract.configureMaximumDepositLimit(
         BigNumber.from(tokenDenomination).mul(1_000_000),
         2
@@ -1320,7 +1320,7 @@ describe('VAnchor for 1 max edge', () => {
         sender
       );
 
-      await wrappedAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
+      await wrappedAnchor.contract.configureMinimumWithdrawalLimit(BigNumber.from(0), 1);
       await wrappedAnchor.contract.configureMaximumDepositLimit(
         BigNumber.from(tokenDenomination).mul(1_000_000),
         2
@@ -1397,7 +1397,7 @@ describe('VAnchor for 1 max edge', () => {
         sender
       );
 
-      await wrappedVAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
+      await wrappedVAnchor.contract.configureMinimumWithdrawalLimit(BigNumber.from(0), 1);
       await wrappedVAnchor.contract.configureMaximumDepositLimit(
         BigNumber.from(tokenDenomination).mul(1_000_000),
         2
@@ -1506,7 +1506,7 @@ describe('VAnchor for 1 max edge', () => {
         sender
       );
 
-      await wrappedVAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
+      await wrappedVAnchor.contract.configureMinimumWithdrawalLimit(BigNumber.from(0), 1);
       await wrappedVAnchor.contract.configureMaximumDepositLimit(
         BigNumber.from(tokenDenomination).mul(1_000_000),
         2

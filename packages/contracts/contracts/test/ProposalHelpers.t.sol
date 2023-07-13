@@ -20,6 +20,10 @@ struct RefreshProposal {
 }
 
 contract ProposalHelpers is ChainIdWithType {
+	///													///
+	///				Generic proposal helpers			///
+	///													///
+
 	function buildTypedChainId(uint16 chainType, uint32 chainId) public pure returns (bytes6) {
 		// Return a 6 bytes value of the chainType and chainId concatenated
 		return bytes6((uint48(chainType) << (4 * 8)) | uint32(chainId));
@@ -63,6 +67,52 @@ contract ProposalHelpers is ChainIdWithType {
 		return abi.encodePacked(proposalHeader, proposalData);
 	}
 
+	function buildSetSingleAddressProposal(
+		bytes32 targetResourceId,
+		uint32 nonce,
+		bytes4 functionSig,
+		address newAddress
+	) public pure returns (bytes memory) {
+		// Create the proposal header with the resourceId as the nonce
+		bytes memory proposalHeader = buildProposalHeader(targetResourceId, functionSig, nonce);
+		// Create the proposal data as the newAddress concatenated
+		bytes memory proposalData = abi.encodePacked(newAddress);
+		// Return the proposal header and proposal data concatenated
+		return buildProposal(proposalHeader, proposalData);
+	}
+
+	function buildSetSingleUint256Proposal(
+		bytes32 targetResourceId,
+		uint32 nonce,
+		bytes4 functionSig,
+		uint256 newValue
+	) public pure returns (bytes memory) {
+		// Create the proposal header with the resourceId as the nonce
+		bytes memory proposalHeader = buildProposalHeader(targetResourceId, functionSig, nonce);
+		// Create the proposal data as the newValue concatenated
+		bytes memory proposalData = abi.encodePacked(newValue);
+		// Return the proposal header and proposal data concatenated
+		return buildProposal(proposalHeader, proposalData);
+	}
+
+	function buildSetHandlerProposal(
+		bytes32 targetResourceId,
+		uint32 nonce,
+		address handlerAddress
+	) public pure returns (bytes memory) {
+		return
+			buildSetSingleAddressProposal(
+				targetResourceId,
+				nonce,
+				bytes4(keccak256("setHandler(address,uint32)")),
+				handlerAddress
+			);
+	}
+
+	///													///
+	///					Anchor proposals				///
+	///													///
+
 	function buildAnchorUpdateProposal(
 		bytes32 targetResourceId,
 		bytes32 merkleRoot,
@@ -80,6 +130,52 @@ contract ProposalHelpers is ChainIdWithType {
 		// Return the proposal header and proposal data concatenated
 		return buildProposal(proposalHeader, proposalData);
 	}
+
+	function buildSetVerifierProposal(
+		bytes32 targetResourceId,
+		uint32 nonce,
+		address verifierAddress
+	) public pure returns (bytes memory) {
+		return
+			buildSetSingleAddressProposal(
+				targetResourceId,
+				nonce,
+				bytes4(keccak256("setVerifier(address,uint32)")),
+				verifierAddress
+			);
+	}
+
+	function buildSetMaximumDepositLimitProposal(
+		bytes32 targetResourceId,
+		uint32 nonce,
+		uint256 maximumDepositLimit
+	) public pure returns (bytes memory) {
+		return
+			buildSetSingleUint256Proposal(
+				targetResourceId,
+				nonce,
+				bytes4(keccak256("configureMaximumDepositLimit(uint256,uint32)")),
+				maximumDepositLimit
+			);
+	}
+
+	function buildSetMinimumWithdrawalLimitProposal(
+		bytes32 targetResourceId,
+		uint32 nonce,
+		uint256 minimumWithdrawLimit
+	) public pure returns (bytes memory) {
+		return
+			buildSetSingleUint256Proposal(
+				targetResourceId,
+				nonce,
+				bytes4(keccak256("configureMinimumWithdrawalLimit(uint256,uint32)")),
+				minimumWithdrawLimit
+			);
+	}
+
+	///													///
+	///					Bridge proposals				///
+	///													///
 
 	function buildSetResourceProposal(
 		bytes32 bridgeResourceId,
@@ -102,6 +198,10 @@ contract ProposalHelpers is ChainIdWithType {
 		// Return the proposal header and proposal data concatenated
 		return buildProposal(proposalHeader, proposalData);
 	}
+
+	///													///
+	///					Refresh proposals				///
+	///													///
 
 	function buildRefreshProposal(
 		bytes32 _voterMerkleRoot,
@@ -126,5 +226,108 @@ contract ProposalHelpers is ChainIdWithType {
 				_publicKey
 			)
 		);
+	}
+
+	///														///
+	///		TokenWrapper / TokenWrapperHandler proposals	///
+	///														///
+
+	function buildAddTokenProposal(
+		bytes32 tokenResourceId,
+		uint32 nonce,
+		address tokenToAdd
+	) public pure returns (bytes memory) {
+		return
+			buildSetSingleAddressProposal(
+				tokenResourceId,
+				nonce,
+				bytes4(keccak256("add(address,uint32)")),
+				tokenToAdd
+			);
+	}
+
+	function buildRemoveTokenProposal(
+		bytes32 tokenResourceId,
+		uint32 nonce,
+		address tokenToRemove
+	) public pure returns (bytes memory) {
+		return
+			buildSetSingleAddressProposal(
+				tokenResourceId,
+				nonce,
+				bytes4(keccak256("remove(address,uint32)")),
+				tokenToRemove
+			);
+	}
+
+	function buildSetFeeProposal(
+		bytes32 tokenResourceId,
+		uint32 nonce,
+		uint16 fee
+	) public pure returns (bytes memory) {
+		// Create the proposal header with the resourceId as the nonce
+		bytes memory proposalHeader = buildProposalHeader(
+			tokenResourceId,
+			bytes4(keccak256("setFee(uint16,uint32)")),
+			nonce
+		);
+		// Create the proposal data as the newResourceId + handlerAddress concatenated
+		bytes memory proposalData = abi.encodePacked(fee);
+		// Return the proposal header and proposal data concatenated
+		return buildProposal(proposalHeader, proposalData);
+	}
+
+	function buildSetFeeRecipientProposal(
+		bytes32 tokenResourceId,
+		uint32 nonce,
+		address feeRecipient
+	) public pure returns (bytes memory) {
+		return
+			buildSetSingleAddressProposal(
+				tokenResourceId,
+				nonce,
+				bytes4(keccak256("setFeeRecipient(address,uint32)")),
+				feeRecipient
+			);
+	}
+
+	function buildSetNativeAllowedProposal(
+		bytes32 tokenResourceId,
+		uint32 nonce,
+		bool nativeAllowed
+	) public pure returns (bytes memory) {
+		// Create the proposal header with the resourceId as the nonce
+		bytes memory proposalHeader = buildProposalHeader(
+			tokenResourceId,
+			bytes4(keccak256("setNativeAllowed(bool,uint32)")),
+			nonce
+		);
+		// Create the proposal data as the newResourceId + handlerAddress concatenated
+		bytes memory proposalData = abi.encodePacked(nativeAllowed);
+		// Return the proposal header and proposal data concatenated
+		return buildProposal(proposalHeader, proposalData);
+	}
+
+	///													///
+	///					Treasury proposals				///
+	///													///
+
+	function buildRescueTokensProposal(
+		bytes32 treasuryResourceId,
+		uint32 nonce,
+		address tokenAddress,
+		address payable to,
+		uint256 amountToRescue
+	) public pure returns (bytes memory) {
+		// Create the proposal header with the resourceId as the nonce
+		bytes memory proposalHeader = buildProposalHeader(
+			treasuryResourceId,
+			bytes4(keccak256("rescueTokens(address,address,uint256,uint32)")),
+			nonce
+		);
+		// Create the proposal data as the newResourceId + handlerAddress concatenated
+		bytes memory proposalData = abi.encodePacked(tokenAddress, to, amountToRescue);
+		// Return the proposal header and proposal data concatenated
+		return buildProposal(proposalHeader, proposalData);
 	}
 }

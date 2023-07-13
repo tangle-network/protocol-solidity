@@ -16,20 +16,17 @@ import "./utils/ProposalNonceTracker.sol";
 /// @notice This contract is used to store funds and recover them.
 contract Treasury is ITreasury, ProposalNonceTracker {
 	using SafeERC20 for IERC20;
-	address treasuryHandler;
+	address public handler;
 
 	event TreasuryHandlerUpdated(address _handler);
 
 	constructor(address _treasuryHandler) {
 		require(_treasuryHandler != address(0), "Treasury: Treasury Handler can't be 0");
-		treasuryHandler = _treasuryHandler;
+		handler = _treasuryHandler;
 	}
 
 	modifier onlyHandler() {
-		require(
-			msg.sender == treasuryHandler,
-			"Treasury: Function can only be called by treasury handler"
-		);
+		require(msg.sender == handler, "Treasury: Function can only be called by treasury handler");
 		_;
 	}
 
@@ -66,8 +63,8 @@ contract Treasury is ITreasury, ProposalNonceTracker {
 		uint32 nonce
 	) external override onlyHandler onlyIncrementingByOne(nonce) {
 		require(newHandler != address(0), "Treasury: Handler cannot be 0");
-		treasuryHandler = newHandler;
-		emit TreasuryHandlerUpdated(treasuryHandler);
+		handler = newHandler;
+		emit TreasuryHandlerUpdated(handler);
 	}
 
 	receive() external payable {}

@@ -20,9 +20,9 @@ interface ILinkableAnchor {
 	function setHandler(address handler, uint32 nonce) external;
 
 	/// @notice Sets the minimal withdrawal limit for the anchor
-	/// @param minimalWithdrawalAmount The new minimal withdrawal limit
-	function configureMinimalWithdrawalLimit(
-		uint256 minimalWithdrawalAmount,
+	/// @param minimumWithdrawalAmount The new minimal withdrawal limit
+	function configureMinimumWithdrawalLimit(
+		uint256 minimumWithdrawalAmount,
 		uint32 nonce
 	) external;
 

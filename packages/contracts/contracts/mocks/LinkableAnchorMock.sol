@@ -45,11 +45,11 @@ contract LinkableAnchorMock is MerkleTree, LinkableAnchor, ISetVerifier {
 		return;
 	}
 
-	function configureMinimalWithdrawalLimit(
-		uint256 _minimalWithdrawalAmount,
+	function configureMinimumWithdrawalLimit(
+		uint256 _minimumWithdrawalAmount,
 		uint32 _nonce
 	) external override onlyHandler onlyIncrementingByOne(_nonce) {
-		_minimalWithdrawalAmount + _minimalWithdrawalAmount;
+		_minimumWithdrawalAmount + _minimumWithdrawalAmount;
 		return;
 	}
 

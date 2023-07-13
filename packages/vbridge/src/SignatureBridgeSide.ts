@@ -218,9 +218,9 @@ export class SignatureBridgeSide<A extends BaseContract> implements IBridgeSide 
 
   public async createMinWithdrawalLimitProposalData(
     vAnchor: IVAnchor<A>,
-    _minimalWithdrawalAmount: string
+    _minimumWithdrawalAmount: string
   ) {
-    const proposalData = await vAnchor.getMinWithdrawalLimitProposalData(_minimalWithdrawalAmount);
+    const proposalData = await vAnchor.getMinWithdrawalLimitProposalData(_minimumWithdrawalAmount);
     return proposalData;
   }
 
@@ -413,12 +413,12 @@ export class SignatureBridgeSide<A extends BaseContract> implements IBridgeSide 
 
   public async executeMinWithdrawalLimitProposalWithSig(
     anchor: IVAnchor<A>,
-    _minimalWithdrawalAmount: string
+    _minimumWithdrawalAmount: string
   ) {
     if (!this.anchorHandler) throw this.ANCHOR_HANDLER_MISSING_ERROR;
     const proposalData = await this.createMinWithdrawalLimitProposalData(
       anchor,
-      _minimalWithdrawalAmount
+      _minimumWithdrawalAmount
     );
     return this.execute(proposalData);
   }

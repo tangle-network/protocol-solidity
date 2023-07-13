@@ -56,12 +56,12 @@ contract DeterministicDeployFactory {
 	/// @notice Deploy a VAnchor
 	/// @param bytecode The bytecode of the contract
 	/// @param _salt The salt for the contract
-	/// @param _minimalWithdrawalAmount The minimal withdrawal amount
+	/// @param _minimumWithdrawalAmount The minimal withdrawal amount
 	/// @param _maximumDepositAmount The maximum deposit amount
 	function deployVAnchor(
 		bytes memory bytecode,
 		uint _salt,
-		uint256 _minimalWithdrawalAmount,
+		uint256 _minimumWithdrawalAmount,
 		uint256 _maximumDepositAmount
 	) external {
 		address c = this.deploy(bytecode, _salt);
@@ -69,7 +69,7 @@ contract DeterministicDeployFactory {
 		(bool success, bytes memory data) = c.call(
 			abi.encodeWithSignature(
 				"initialize(uint256,uint256)",
-				_minimalWithdrawalAmount,
+				_minimumWithdrawalAmount,
 				_maximumDepositAmount
 			)
 		);

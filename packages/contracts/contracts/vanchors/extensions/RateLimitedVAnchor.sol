@@ -35,7 +35,7 @@ contract RateLimitedVAnchor is VAnchorTree {
 	/// @param _nonce The nonce of the proposal
 	function setDailyWithdrawalLimit(
 		uint256 _limit,
-		uint256 _nonce
+		uint32 _nonce
 	) external onlyHandler onlyIncrementingByOne(_nonce) {
 		DAILY_WITHDRAWAL_LIMIT = _limit;
 		proposalNonce = _nonce;

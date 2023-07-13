@@ -24,7 +24,7 @@ abstract contract VAnchorBase is LinkableAnchor {
 	uint256 public constant MAX_FEE = 2 ** 248;
 
 	uint256 public lastBalance;
-	uint256 public minimalWithdrawalAmount;
+	uint256 public minimumWithdrawalAmount;
 	uint256 public maximumDepositAmount;
 
 	struct Account {
@@ -42,7 +42,7 @@ abstract contract VAnchorBase is LinkableAnchor {
 	event NewNullifier(uint256 nullifier);
 	event PublicKey(address indexed owner, bytes key);
 	event MaxDepositLimitUpdated(uint256 maximumDepositAmount, uint32 nonce);
-	event MinWithdrawalLimitUpdated(uint256 minimalWithdrawalAmount, uint32 nonce);
+	event MinWithdrawalLimitUpdated(uint256 minimumWithdrawalAmount, uint32 nonce);
 	event SetHandler(address handler, uint32 nonce);
 
 	/// @dev The constructor
@@ -56,11 +56,11 @@ abstract contract VAnchorBase is LinkableAnchor {
 	) LinkableAnchor(_handler, _levels, _maxEdges) {}
 
 	function initialize(
-		uint256 _minimalWithdrawalAmount,
+		uint256 _minimumWithdrawalAmount,
 		uint256 _maximumDepositAmount
 	) external onlyUninitialized {
 		super._initialize();
-		_configureMinimalWithdrawalLimit(_minimalWithdrawalAmount);
+		_configureMinimumWithdrawalLimit(_minimumWithdrawalAmount);
 		_configureMaximumDepositLimit(_maximumDepositAmount);
 	}
 
@@ -69,12 +69,12 @@ abstract contract VAnchorBase is LinkableAnchor {
 		_register(_account);
 	}
 
-	function configureMinimalWithdrawalLimit(
-		uint256 _minimalWithdrawalAmount,
+	function configureMinimumWithdrawalLimit(
+		uint256 _minimumWithdrawalAmount,
 		uint32 _nonce
 	) public override onlyHandler onlyIncrementingByOne(_nonce) onlyInitialized {
-		_configureMinimalWithdrawalLimit(_minimalWithdrawalAmount);
-		emit MinWithdrawalLimitUpdated(_minimalWithdrawalAmount, _nonce);
+		_configureMinimumWithdrawalLimit(_minimumWithdrawalAmount);
+		emit MinWithdrawalLimitUpdated(_minimumWithdrawalAmount, _nonce);
 	}
 
 	function configureMaximumDepositLimit(
@@ -96,8 +96,8 @@ abstract contract VAnchorBase is LinkableAnchor {
 		emit PublicKey(_account.owner, _account.keyData);
 	}
 
-	function _configureMinimalWithdrawalLimit(uint256 _minimalWithdrawalAmount) internal {
-		minimalWithdrawalAmount = _minimalWithdrawalAmount;
+	function _configureMinimumWithdrawalLimit(uint256 _minimumWithdrawalAmount) internal {
+		minimumWithdrawalAmount = _minimumWithdrawalAmount;
 	}
 
 	function _configureMaximumDepositLimit(uint256 _maximumDepositAmount) internal {
@@ -153,7 +153,10 @@ abstract contract VAnchorBase is LinkableAnchor {
 		uint256 wrapAmount = ITokenWrapper(_toTokenAddress).getAmountToWrap(_extAmount);
 		// If the address is zero, this is meant to wrap native tokens
 		if (_fromTokenAddress == address(0)) {
-			require(msg.value == wrapAmount, "VAnchorBase: msg.value should be equal to wrapAmount");
+			require(
+				msg.value == wrapAmount,
+				"VAnchorBase: msg.value should be equal to wrapAmount"
+			);
 			// If the wrapping is native, ensure the amount sent to the tokenWrapper is 0
 			ITokenWrapper(_toTokenAddress).wrapForAndSendTo{ value: msg.value }(
 				msg.sender,

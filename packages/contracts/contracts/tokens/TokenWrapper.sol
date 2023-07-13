@@ -16,7 +16,12 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 /// @title A token that allows ERC20s to wrap into and mint it.
 /// @author Webb Technologies.
 /// @notice This contract is intended to be used with TokenHandler/FungibleToken contract.
-abstract contract TokenWrapper is ERC20PresetMinterPauser, Initialized, ReentrancyGuard, ITokenWrapper {
+abstract contract TokenWrapper is
+	ERC20PresetMinterPauser,
+	Initialized,
+	ReentrancyGuard,
+	ITokenWrapper
+{
 	using SafeERC20 for IERC20;
 	uint16 public feePercentage;
 	address payable public feeRecipient;
@@ -72,7 +77,14 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, Initialized, Reentran
 	function wrap(
 		address tokenAddress,
 		uint256 amount
-	) public payable override nonReentrant onlyInitialized isValidWrapping(tokenAddress, feeRecipient, amount) {
+	)
+		public
+		payable
+		override
+		nonReentrant
+		onlyInitialized
+		isValidWrapping(tokenAddress, feeRecipient, amount)
+	{
 		_wrapForAndSendTo(_msgSender(), tokenAddress, amount, _msgSender());
 	}
 
@@ -147,7 +159,14 @@ abstract contract TokenWrapper is ERC20PresetMinterPauser, Initialized, Reentran
 		address sender,
 		address tokenAddress,
 		uint256 amount
-	) public override nonReentrant onlyInitialized isMinter isValidUnwrapping(tokenAddress, amount) {
+	)
+		public
+		override
+		nonReentrant
+		onlyInitialized
+		isMinter
+		isValidUnwrapping(tokenAddress, amount)
+	{
 		_unwrapAndSendTo(sender, tokenAddress, amount, sender);
 	}
 

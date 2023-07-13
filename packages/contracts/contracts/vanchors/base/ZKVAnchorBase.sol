@@ -115,8 +115,8 @@ abstract contract ZKVAnchorBase is VAnchorBase, TxProofVerifier, ISetVerifier {
 			require(_externalData.recipient != address(0), "Can't withdraw to zero address");
 			// Prevents ddos attack to Bridge
 			require(
-				uint256(-_externalData.extAmount) >= minimalWithdrawalAmount,
-				"amount is less than minimalWithdrawalAmount"
+				uint256(-_externalData.extAmount) >= minimumWithdrawalAmount,
+				"amount is less than minimumWithdrawalAmount"
 			);
 			if (_externalData.token == _wrappedToken) {
 				_processWithdraw(

@@ -311,8 +311,9 @@ contract FungibleTokenWrapperTest is PRBTest, StdCheats {
 
 	function test_wrapNativeShouldFailIfNotNativeAllowed() public {
 		uint256 amount = 10 ether;
+		uint32 nonce = (token.proposalNonce() + 1);
 		vm.prank(alice);
-		token.setNativeAllowed(false);
+		token.setNativeAllowed(false, nonce);
 		vm.expectRevert("TokenWrapper: Native wrapping is not allowed for this token wrapper");
 		vm.prank(alice);
 		token.wrap{ value: amount }(address(0x0), 0);

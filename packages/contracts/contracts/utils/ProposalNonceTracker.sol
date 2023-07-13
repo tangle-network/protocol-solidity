@@ -9,7 +9,7 @@ pragma solidity ^0.8.18;
 /// @author Webb Technologies.
 /// @notice This contract tracks nonces for proposal execution.
 contract ProposalNonceTracker {
-	uint256 public proposalNonce;
+	uint32 public proposalNonce;
 
 	modifier manyIncrementingByOne(uint32[] memory nonces) {
 		for (uint256 i = 0; i < nonces.length; i++) {
@@ -23,7 +23,7 @@ contract ProposalNonceTracker {
 		_;
 	}
 
-	modifier onlyIncrementingByOne(uint nonce) {
+	modifier onlyIncrementingByOne(uint32 nonce) {
 		require(proposalNonce < nonce, "ProposalNonceTracker: Invalid nonce");
 		require(
 			nonce <= proposalNonce + 1,
@@ -33,7 +33,7 @@ contract ProposalNonceTracker {
 		_;
 	}
 
-	modifier onlyIncrementingByAtMost1048(uint nonce) {
+	modifier onlyIncrementingByAtMost1048(uint32 nonce) {
 		require(proposalNonce < nonce, "ProposalNonceTracker: Invalid nonce");
 		require(
 			nonce <= proposalNonce + 1048,
@@ -43,7 +43,7 @@ contract ProposalNonceTracker {
 		_;
 	}
 
-	function getProposalNonce() external view returns (uint256) {
+	function getProposalNonce() external view returns (uint32) {
 		return proposalNonce;
 	}
 }

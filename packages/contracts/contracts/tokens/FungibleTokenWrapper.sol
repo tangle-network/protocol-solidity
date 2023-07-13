@@ -14,11 +14,7 @@ import "../utils/ProposalNonceTracker.sol";
 /// @notice Governs allowable ERC20s to deposit using a governable wrapping limit and
 /// sets fees for wrapping into itself. This contract is intended to be used with
 /// TokenHandler contract.
-contract FungibleTokenWrapper is
-	TokenWrapper,
-	IFungibleTokenWrapper,
-	ProposalNonceTracker
-{
+contract FungibleTokenWrapper is TokenWrapper, IFungibleTokenWrapper, ProposalNonceTracker {
 	address public handler;
 	address[] public tokens;
 	address[] public historicalTokens;
@@ -75,7 +71,10 @@ contract FungibleTokenWrapper is
 	/// @notice Sets the handler of the FungibleTokenWrapper contract
 	/// @param _handler The address of the new handler
 	/// @notice Only the handler can call this function
-	function setHandler(address _handler) public onlyHandler onlyInitialized {
+	function setHandler(
+		address _handler,
+		uint32 _nonce
+	) public onlyHandler onlyIncrementingByOne(_nonce) onlyInitialized {
 		require(_handler != address(0), "FungibleTokenWrapper: Handler Address can't be 0");
 		handler = _handler;
 		emit HandlerUpdated(_handler);
@@ -84,7 +83,10 @@ contract FungibleTokenWrapper is
 	/// @notice Sets whether native tokens are allowed to be wrapped
 	/// @param _isNativeAllowed Whether or not native tokens are allowed to be wrapped
 	/// @notice Only the handler can call this function
-	function setNativeAllowed(bool _isNativeAllowed) public onlyHandler onlyInitialized {
+	function setNativeAllowed(
+		bool _isNativeAllowed,
+		uint32 _nonce
+	) public onlyHandler onlyIncrementingByOne(_nonce) onlyInitialized {
 		isNativeAllowed = _isNativeAllowed;
 		emit NativeAllowed(_isNativeAllowed);
 	}
