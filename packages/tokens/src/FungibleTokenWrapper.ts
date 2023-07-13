@@ -141,7 +141,7 @@ export class FungibleTokenWrapper {
   public async getAddTokenProposalData(tokenAddress: string): Promise<string> {
     const resourceID = await this.createResourceId();
     const functionSig = generateFunctionSigHash(this.ADD_TOKEN_SIGNATURE);
-    const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
+    const nonce = (await this.contract.proposalNonce()) + 1;
 
     return (
       '0x' +
@@ -155,7 +155,7 @@ export class FungibleTokenWrapper {
   public async getRemoveTokenProposalData(tokenAddress: string): Promise<string> {
     const resourceID = await this.createResourceId();
     const functionSig = generateFunctionSigHash(this.REMOVE_TOKEN_SIGNATURE);
-    const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
+    const nonce = (await this.contract.proposalNonce()) + 1;
 
     return (
       '0x' +
@@ -168,7 +168,7 @@ export class FungibleTokenWrapper {
 
   public async getFeeProposalData(fee: number): Promise<string> {
     const resourceID = await this.createResourceId();
-    const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
+    const nonce = (await this.contract.proposalNonce()) + 1;
     const functionSig = generateFunctionSigHash(this.SET_FEE_SIGNATURE);
     const feeString = toHex(fee, 2);
 
@@ -184,7 +184,7 @@ export class FungibleTokenWrapper {
   public async getFeeRecipientProposalData(feeRecipient: string): Promise<string> {
     const resourceID = await this.createResourceId();
     const functionSig = generateFunctionSigHash(this.FEE_RECIPIENT_SIGNATURE);
-    const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
+    const nonce = (await this.contract.proposalNonce()) + 1;
 
     return (
       '0x' +
