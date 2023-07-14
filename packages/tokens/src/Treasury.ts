@@ -63,7 +63,7 @@ export class Treasury {
     //First 4 bytes of keccak hash is encoded function sig...
     const resourceID = await this.createResourceId();
     const functionSig = generateFunctionSigHash(this.SET_HANDLER_SIGNATURE);
-    const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
+    const nonce = (await this.contract.proposalNonce()) + 1;
 
     return (
       '0x' +
@@ -84,7 +84,7 @@ export class Treasury {
   ): Promise<string> {
     const resourceID = await this.createResourceId();
     const functionSig = generateFunctionSigHash(this.RESCUE_TOKENS_SIGNATURE);
-    const nonce = (await this.contract.proposalNonce()).add(1).toNumber();
+    const nonce = (await this.contract.proposalNonce()) + 1;
 
     return (
       '0x' +

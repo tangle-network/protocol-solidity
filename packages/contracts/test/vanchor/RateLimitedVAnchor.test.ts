@@ -90,7 +90,7 @@ describe('Rate Limited VAnchor', () => {
       true,
       wallet.address
     );
-    await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
+    await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()) + 1);
 
     // create Anchor
     anchor = await RateLimitedVAnchor.createVAnchor(
@@ -104,7 +104,7 @@ describe('Rate Limited VAnchor', () => {
       zkComponents16_2,
       sender
     );
-    await anchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
+    await anchor.contract.configureMinimumWithdrawalLimit(BigNumber.from(0), 1);
     await anchor.contract.configureMaximumDepositLimit(
       BigNumber.from(tokenDenomination).mul(1_000_000),
       2

@@ -16,7 +16,7 @@ export interface IVAnchor<A extends BaseContract> {
   getHandler(): Promise<string>;
   getHandlerProposalData(newHandler: string): Promise<string>;
   getAddress(): string;
-  getMinWithdrawalLimitProposalData(_minimalWithdrawalAmount: string): Promise<string>;
+  getMinWithdrawalLimitProposalData(_minimumWithdrawalAmount: string): Promise<string>;
   getMaxDepositLimitProposalData(_maximumDepositAmount: string): Promise<string>;
   createResourceId(): Promise<string>;
   update(blockNumber?: number): Promise<void>;

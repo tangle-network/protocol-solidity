@@ -37,7 +37,7 @@ contract VAnchorHandlerTest is Deployer {
 		// Same chain type, different chain ID, different `TypedChainId`
 		bytes6 OTHER_CHAIN_ID = this.buildTypedChainId(CHAIN_TYPE, CHAIN_ID + 1);
 		bytes32 srcResourceId = this.buildResourceId(srcVAnchorBeingLinked, OTHER_CHAIN_ID);
-		this.executeAnchorUpdateProposal(srcResourceId, merkleRoot, 1);
+		this.executeAnchorUpdateProposal(vanchorResourceId, merkleRoot, 1, srcResourceId);
 		// Once executed, verify the state of the linked vanchor on the target vanchor
 		uint256 srcTypedChainId = uint256(uint48(OTHER_CHAIN_ID));
 		assertEq(vanchor.edgeExistsForChain(uint256(uint48(THIS_CHAIN_ID))), false);
@@ -60,9 +60,9 @@ contract VAnchorHandlerTest is Deployer {
 		assertEq(vanchor.edgeExistsForChain(uint256(uint48(OTHER_CHAIN_ID))), false);
 		assertEq(vanchor.edgeExistsForChain(uint256(uint48(THIS_CHAIN_ID))), false);
 		bytes32 srcResourceId = this.buildResourceId(srcVAnchorBeingLinked, OTHER_CHAIN_ID);
-		this.executeAnchorUpdateProposal(srcResourceId, merkleRoot, 1);
+		this.executeAnchorUpdateProposal(vanchorResourceId, merkleRoot, 1, srcResourceId);
 		vm.expectRevert(bytes("LinkableAnchor: New leaf index must be greater"));
-		this.executeAnchorUpdateProposal(srcResourceId, merkleRoot, 1);
+		this.executeAnchorUpdateProposal(vanchorResourceId, merkleRoot, 1, srcResourceId);
 	}
 
 	function test_anchorUpdatesShouldFailAfterLimit(
@@ -72,13 +72,13 @@ contract VAnchorHandlerTest is Deployer {
 		for (uint32 i = 0; i < maxEdges; i++) {
 			bytes6 OTHER_CHAIN_ID = this.buildTypedChainId(CHAIN_TYPE, CHAIN_ID + i + 1);
 			bytes32 srcResourceId = this.buildResourceId(srcVAnchorBeingLinked, OTHER_CHAIN_ID);
-			this.executeAnchorUpdateProposal(srcResourceId, merkleRoot, 1);
+			this.executeAnchorUpdateProposal(vanchorResourceId, merkleRoot, 1, srcResourceId);
 		}
 
 		bytes6 NEW_OTHER_CHAIN_ID = this.buildTypedChainId(CHAIN_TYPE, CHAIN_ID + maxEdges + 1);
 		bytes32 newSrcResourceId = this.buildResourceId(srcVAnchorBeingLinked, NEW_OTHER_CHAIN_ID);
 		vm.expectRevert(bytes("LinkableAnchor: This Anchor is at capacity"));
-		this.executeAnchorUpdateProposal(newSrcResourceId, merkleRoot, 1);
+		this.executeAnchorUpdateProposal(vanchorResourceId, merkleRoot, 1, newSrcResourceId);
 	}
 
 	function test_anchorUpdateShouldFailIfOverwritingEdgeIncorrectly(
@@ -87,18 +87,18 @@ contract VAnchorHandlerTest is Deployer {
 	) public {
 		bytes6 OTHER_CHAIN_ID = this.buildTypedChainId(CHAIN_TYPE, CHAIN_ID + 1);
 		bytes32 srcResourceId = this.buildResourceId(srcVAnchorBeingLinked, OTHER_CHAIN_ID);
-		this.executeAnchorUpdateProposal(srcResourceId, merkleRoot, 1);
+		this.executeAnchorUpdateProposal(vanchorResourceId, merkleRoot, 1, srcResourceId);
 		// Try and update with the lower leaf index
 		vm.expectRevert(bytes("LinkableAnchor: New leaf index must be greater"));
-		this.executeAnchorUpdateProposal(srcResourceId, merkleRoot, 0);
+		this.executeAnchorUpdateProposal(vanchorResourceId, merkleRoot, 0, srcResourceId);
 		// Try and update more than 2**16 leaf insertions
 		vm.expectRevert(bytes("LinkableAnchor: New leaf index must be within 2^16 updates"));
-		this.executeAnchorUpdateProposal(srcResourceId, merkleRoot, 2 ** 17);
+		this.executeAnchorUpdateProposal(vanchorResourceId, merkleRoot, 2 ** 17, srcResourceId);
 		// Try and update the srcResourceId for the same chain Id
 		address newAddress = address(uint160(srcVAnchorBeingLinked) + 1);
 		bytes32 invalidNewResourceId = this.buildResourceId(newAddress, OTHER_CHAIN_ID);
 		vm.expectRevert(bytes("LinkableAnchor: srcResourceID must be the same"));
-		this.executeAnchorUpdateProposal(invalidNewResourceId, merkleRoot, 2);
+		this.executeAnchorUpdateProposal(vanchorResourceId, merkleRoot, 2, invalidNewResourceId);
 	}
 
 	function test_batchExecuteAnchorUpdateProposals(
@@ -219,5 +219,57 @@ contract VAnchorHandlerTest is Deployer {
 		bytes memory sig = abi.encodePacked(r, s, v);
 		vm.expectRevert(bytes("SignatureBridge: Batch Executing on wrong chain"));
 		bridge.batchExecuteProposalsWithSignature(proposals, sig);
+	}
+
+	function test_setMaximumDepositLimitProposal(uint256 newMaxDeposit) public {
+		vm.assume(newMaxDeposit != vanchor.maximumDepositAmount());
+		this.executeSetMaximumDepositLimitProposal(
+			vanchorResourceId,
+			uint32(vanchor.proposalNonce()) + 1,
+			newMaxDeposit
+		);
+		assertEq(vanchor.maximumDepositAmount(), newMaxDeposit);
+	}
+
+	function test_setMinimumWithdrawalLimitProposal(uint256 newMinWithdrawal) public {
+		vm.assume(newMinWithdrawal != vanchor.minimumWithdrawalAmount());
+		this.executeSetMinimumWithdrawalLimitProposal(
+			vanchorResourceId,
+			uint32(vanchor.proposalNonce()) + 1,
+			newMinWithdrawal
+		);
+		assertEq(vanchor.minimumWithdrawalAmount(), newMinWithdrawal);
+	}
+
+	function test_allCallsShouldFailWithInvalidNonce(address newHandler) public {
+		vm.assume(newHandler != address(anchorHandler));
+		vm.assume(newHandler != address(0));
+		// With non-incremented nonce
+		uint32 nonce = vanchor.proposalNonce();
+		vm.expectRevert(bytes("ProposalNonceTracker: Invalid nonce"));
+		this.executeSetMaximumDepositLimitProposal(vanchorResourceId, nonce, 100 ether);
+		vm.expectRevert(bytes("ProposalNonceTracker: Invalid nonce"));
+		this.executeSetMinimumWithdrawalLimitProposal(vanchorResourceId, nonce, 0);
+		vm.expectRevert(bytes("ProposalNonceTracker: Invalid nonce"));
+		this.executeSetHandlerProposal(vanchorResourceId, nonce, newHandler);
+		// With incremented too much nonce
+		nonce = vanchor.proposalNonce() + 2;
+		vm.expectRevert("ProposalNonceTracker: Nonce must not increment more than 1");
+		this.executeSetMaximumDepositLimitProposal(vanchorResourceId, nonce, 100 ether);
+		vm.expectRevert("ProposalNonceTracker: Nonce must not increment more than 1");
+		this.executeSetMinimumWithdrawalLimitProposal(vanchorResourceId, nonce, 0);
+		vm.expectRevert("ProposalNonceTracker: Nonce must not increment more than 1");
+		this.executeSetHandlerProposal(vanchorResourceId, nonce, newHandler);
+	}
+
+	function test_setHandlerProposal(address newHandler) public {
+		vm.assume(newHandler != address(anchorHandler));
+		vm.assume(newHandler != address(0));
+		this.executeSetHandlerProposal(
+			vanchorResourceId,
+			uint32(vanchor.proposalNonce()) + 1,
+			newHandler
+		);
+		assertEq(vanchor.handler(), newHandler);
 	}
 }

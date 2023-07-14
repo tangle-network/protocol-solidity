@@ -72,12 +72,12 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
 			bytes32 target = bytes32(arguments[36:68]);
 			ILinkableAnchor(anchorAddress).updateEdge(merkleRoot, nonce, target);
 		} else if (
-			functionSig == bytes4(keccak256("configureMinimalWithdrawalLimit(uint256,uint32)"))
+			functionSig == bytes4(keccak256("configureMinimumWithdrawalLimit(uint256,uint32)"))
 		) {
 			uint32 nonce = uint32(bytes4(arguments[0:4]));
-			uint256 minimalWithdrawalAmount = uint256(bytes32(arguments[4:36]));
-			ILinkableAnchor(anchorAddress).configureMinimalWithdrawalLimit(
-				minimalWithdrawalAmount,
+			uint256 minimumWithdrawalAmount = uint256(bytes32(arguments[4:36]));
+			ILinkableAnchor(anchorAddress).configureMinimumWithdrawalLimit(
+				minimumWithdrawalAmount,
 				nonce
 			);
 		} else if (

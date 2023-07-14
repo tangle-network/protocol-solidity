@@ -117,7 +117,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       true,
       wallet.address
     );
-    await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
+    await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()) + 1);
 
     // create Anchor
     anchor = await VAnchorForest.createVAnchor(
@@ -133,7 +133,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       sender
     );
 
-    await anchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
+    await anchor.contract.configureMinimumWithdrawalLimit(BigNumber.from(0), 1);
     await anchor.contract.configureMaximumDepositLimit(
       BigNumber.from(tokenDenomination).mul(1_000_000),
       2
@@ -1252,7 +1252,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         true,
         wallet.address
       );
-      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
+      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()) + 1);
 
       // create Anchor for wrapped token
       const wrappedAnchor = await VAnchorForest.createVAnchor(
@@ -1268,7 +1268,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         sender
       );
 
-      await wrappedAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
+      await wrappedAnchor.contract.configureMinimumWithdrawalLimit(BigNumber.from(0), 1);
       await wrappedAnchor.contract.configureMaximumDepositLimit(
         BigNumber.from(tokenDenomination).mul(1_000_000),
         2
@@ -1329,7 +1329,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         true,
         wallet.address
       );
-      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
+      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()) + 1);
 
       // create Anchor for wrapped token
       const wrappedAnchor = await VAnchorForest.createVAnchor(
@@ -1345,7 +1345,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         sender
       );
 
-      await wrappedAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
+      await wrappedAnchor.contract.configureMinimumWithdrawalLimit(BigNumber.from(0), 1);
       await wrappedAnchor.contract.configureMaximumDepositLimit(
         BigNumber.from(tokenDenomination).mul(1_000_000),
         2
@@ -1405,7 +1405,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         true,
         wallet.address
       );
-      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
+      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()) + 1);
 
       // create Anchor for wrapped token
       const wrappedVAnchor = await VAnchorForest.createVAnchor(
@@ -1421,7 +1421,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         sender
       );
 
-      await wrappedVAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
+      await wrappedVAnchor.contract.configureMinimumWithdrawalLimit(BigNumber.from(0), 1);
       await wrappedVAnchor.contract.configureMaximumDepositLimit(
         BigNumber.from(tokenDenomination).mul(1_000_000),
         2
@@ -1510,9 +1510,9 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         true,
         wallet.address
       );
-      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
+      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()) + 1);
       const wrapFee = 5;
-      await wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1));
+      await wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()) + 1);
 
       // create Anchor for wrapped token
       const wrappedVAnchor = await VAnchorForest.createVAnchor(
@@ -1528,7 +1528,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         sender
       );
 
-      await wrappedVAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
+      await wrappedVAnchor.contract.configureMinimumWithdrawalLimit(BigNumber.from(0), 1);
       await wrappedVAnchor.contract.configureMaximumDepositLimit(
         BigNumber.from(tokenDenomination).mul(1_000_000),
         2
@@ -1673,13 +1673,11 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         true,
         wallet.address
       );
-      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
+      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()) + 1);
       const wrapFee = 5;
       const otherSender = signers[1];
       await TruffleAssert.reverts(
-        wrappedToken
-          .connect(otherSender)
-          .setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1)),
+        wrappedToken.connect(otherSender).setFee(wrapFee, (await wrappedToken.proposalNonce()) + 1),
         'FungibleTokenWrapper: Only handler can call this function'
       );
     });
@@ -1703,11 +1701,11 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         true,
         wallet.address
       );
-      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
+      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()) + 1);
       const wrapFee = 10001;
       assert;
       await TruffleAssert.reverts(
-        wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1)),
+        wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()) + 1),
         'FungibleTokenWrapper: Invalid fee percentage'
       );
     });
@@ -1731,11 +1729,11 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         true,
         wallet.address
       );
-      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
+      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()) + 1);
       const wrapFee = -1;
       assert;
       await TruffleAssert.fails(
-        wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1))
+        wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()) + 1)
       );
     });
 
@@ -1758,11 +1756,11 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         true,
         wallet.address
       );
-      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
+      await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()) + 1);
       const wrapFee = 2.5;
       assert;
       await TruffleAssert.fails(
-        wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()).add(1))
+        wrappedToken.setFee(wrapFee, (await wrappedToken.proposalNonce()) + 1)
       );
     });
     describe('#cross-chain test', () => {
@@ -1821,7 +1819,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
         );
         await ganacheWrappedToken.add(
           ganacheToken.address,
-          (await ganacheWrappedToken.proposalNonce()).add(1)
+          (await ganacheWrappedToken.proposalNonce()) + 1
         );
 
         // create Anchor
@@ -1838,7 +1836,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
           ganacheWallet
         );
 
-        await ganacheAnchor.contract.configureMinimalWithdrawalLimit(BigNumber.from(0), 1);
+        await ganacheAnchor.contract.configureMinimumWithdrawalLimit(BigNumber.from(0), 1);
         await ganacheAnchor.contract.configureMaximumDepositLimit(
           BigNumber.from(tokenDenomination).mul(1_000_000),
           2
