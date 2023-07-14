@@ -1677,9 +1677,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       const wrapFee = 5;
       const otherSender = signers[1];
       await TruffleAssert.reverts(
-        wrappedToken
-          .connect(otherSender)
-          .setFee(wrapFee, (await wrappedToken.proposalNonce()) + 1),
+        wrappedToken.connect(otherSender).setFee(wrapFee, (await wrappedToken.proposalNonce()) + 1),
         'FungibleTokenWrapper: Only handler can call this function'
       );
     });
