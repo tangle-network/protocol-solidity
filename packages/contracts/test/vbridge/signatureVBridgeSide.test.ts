@@ -73,7 +73,7 @@ describe('SignatureBridgeSide use', () => {
     // Function call below sets resource with signature
     await bridgeSide.connectAnchorWithSignature(anchor);
     //Check that proposal nonce is updated on anchor contract since handler prposal has been executed
-    assert.strictEqual((await bridgeSide.contract.proposalNonce()).toNumber(), 1);
+    assert.strictEqual((await bridgeSide.contract.proposalNonce()), 1);
   });
 
   it('execute anchor proposal', async () => {

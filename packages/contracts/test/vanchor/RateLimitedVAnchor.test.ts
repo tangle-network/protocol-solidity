@@ -90,7 +90,7 @@ describe('Rate Limited VAnchor', () => {
       true,
       wallet.address
     );
-    await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()).add(1));
+    await wrappedToken.add(token.address, (await wrappedToken.proposalNonce()) + 1);
 
     // create Anchor
     anchor = await RateLimitedVAnchor.createVAnchor(
