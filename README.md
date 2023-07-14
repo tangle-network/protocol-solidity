@@ -96,18 +96,6 @@ dvc push --remote aws
 
 <h2 id="fixtures"> Generating Fixtures </h2>
 
-If you need to generate fixtures you will need Circom 2.0 and snarkjs installations. You can find installation instructions below. 
-
-This repository makes use of node.js, yarn, Rust, and requires version 16. To install node.js binaries, installers, and source tarballs, please visit https://nodejs.org/en/download/. Once node.js is installed you may proceed to install [`yarn`](https://classic.yarnpkg.com/en/docs/install):
-
-```
-npm install --global yarn
-```
-
-Great! Now your **Node** environment is ready! 🚀🚀
-
-You must also have Rust installed. This guide uses <https://rustup.rs> installer and the `rustup` tool to manage the Rust toolchain.
-
 First install and configure `rustup`:
 
 ```bash
@@ -125,10 +113,6 @@ rustup update
 rustup update nightly
 rustup target add wasm32-unknown-unknown
 ```
-
-### Generating Fixtures Prerequisites
-
-> NOTE: This is only required for testing / dev purposes and not required to compile or interact with smart contracts. 
 
 To generate fixtures you will need Circom 2.0 and snarkjs installed. To install from source, clone the circom repository:
 
@@ -157,8 +141,6 @@ npm install -g snarkjs
 ```
 
 <h2 id="contribute"> Contributing </h2>
-
-Interested in contributing to the Webb Relayer Network? Thank you so much for your interest! We are always appreciative for contributions from the open-source community!
 
 If you have a contribution in mind, please check out our [Contribution Guide](./.github/CONTRIBUTING.md) for information on how to do so. We are excited for your first contribution!
 
