@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+    # Only publish when changes are made to the following paths
+    paths:
+      - 'packages/**'
+      - 'circuits/**'
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
