@@ -203,7 +203,7 @@ export class VBridge<A extends BaseContract> {
         tokenInstance = vBridgeInput.webbTokens.get(chainId)!;
       }
 
-      await vBridgeInstance.setTokenWrapperHandler(tokenWrapperHandler);
+      vBridgeInstance.setTokenWrapperHandler(tokenWrapperHandler);
       await vBridgeInstance.setFungibleTokenResourceWithSignature(tokenInstance);
 
       // Add all token addresses to the governed token instance.
