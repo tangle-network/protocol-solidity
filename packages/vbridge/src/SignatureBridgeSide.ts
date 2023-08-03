@@ -288,13 +288,26 @@ export class SignatureBridgeSide<A extends BaseContract> implements IBridgeSide 
       toHex(handler, 20).substr(2);
 
     const sig = await this.signingSystemSignFn(unsignedData);
-    const tx = await this.contract.adminSetResourceWithSignature(
+    // Estimate gas.
+    const gas = await this.contract.estimateGas.adminSetResourceWithSignature(
       resourceId,
       functionSig,
       nonce,
       newResourceId,
       handler,
       sig
+    );
+    const tx = await this.contract.adminSetResourceWithSignature(
+      resourceId,
+      functionSig,
+      nonce,
+      newResourceId,
+      handler,
+      sig,
+      {
+        // Add a little extra gas to be safe.
+        gasLimit: gas.mul(2),
+      }
     );
     await tx.wait();
     return newResourceId;
@@ -331,7 +344,12 @@ export class SignatureBridgeSide<A extends BaseContract> implements IBridgeSide 
 
   public async execute(proposalData: string) {
     const sig = await this.signingSystemSignFn(proposalData);
-    const tx = await this.contract.executeProposalWithSignature(proposalData, sig);
+    // Estimate gas.
+    const gas = await this.contract.estimateGas.executeProposalWithSignature(proposalData, sig);
+    const tx = await this.contract.executeProposalWithSignature(proposalData, sig, {
+      // Add a little extra gas to be safe.
+      gasLimit: gas.mul(4),
+    });
     const receipt = await tx.wait();
 
     return receipt;
