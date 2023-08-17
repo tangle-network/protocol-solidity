@@ -212,10 +212,13 @@ contract Governable {
 			address proposerAddress = recover(abi.encode(votes[i]), sigs[i]);
 
 			// Check merkle proof is valid
-			if (
-				_isValidMerkleProof(votes[i].siblingPathNodes, proposerAddress, votes[i].leafIndex)
-			) {
-				_processVote(votes[i], proposerAddress);
+			bool isValid = _isValidMerkleProof(votes[i].siblingPathNodes, proposerAddress, votes[i].leafIndex);
+			if (isValid) {
+				// Since we require voterCount / 2 votes to be in favor of a new governor,
+				// we can stop processing votes if we have enough votes for a new governor.
+				if (_processVote(votes[i], proposerAddress)) {
+					return;
+				}
 			}
 		}
 	}
@@ -223,7 +226,7 @@ contract Governable {
 	/// @notice Process a vote
 	/// @param vote A vote struct
 	/// @param voter The address of the voter
-	function _processVote(Vote memory vote, address voter) internal {
+	function _processVote(Vote memory vote, address voter) internal returns (bool) {
 		// If the proposer has already voted, remove their previous vote
 		if (alreadyVoted[vote.nonce][voter] != address(0x0)) {
 			address previousVote = alreadyVoted[vote.nonce][voter];
@@ -235,7 +238,11 @@ contract Governable {
 		// Try to resolve the vote if enough votes for a proposed governor have been cast
 		if (numOfVotesForGovernor[vote.nonce][vote.proposedGovernor] > voterCount / 2) {
 			_transferOwnership(vote.proposedGovernor);
+			// If we transferred ownership, we return true to indicate the election is over.
+			return true;
 		}
+
+		return false;
 	}
 
 	/// @notice Checks a merkle proof given a leaf and merkle path of sibling nodes.
