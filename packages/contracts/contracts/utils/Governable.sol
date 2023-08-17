@@ -7,10 +7,13 @@ pragma solidity ^0.8.18;
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
+/// @title The Vote struct that defines a vote in the governance mechanism
+/// @param nonce nonce of the proposal
 /// @param leafIndex leafIndex of the proposer in the proposer set Merkle tree
 /// @param siblingPathNodes Merkle proof path of sibling nodes
 /// @param proposedGovernor the governor that the voter wants to force reset to
 struct Vote {
+	uint32 nonce;
 	uint32 leafIndex;
 	address proposedGovernor;
 	bytes32[] siblingPathNodes;
@@ -40,15 +43,12 @@ contract Governable {
 	/// The number of proposers
 	uint32 public voterCount;
 
-	/// The current voting period
-	uint256 public currentVotingPeriod = 0;
-
-	/// (currentVotingPeriod => (proposer => (vote of new governor))) whether a proposer has
-	/// voted in this period and who they're voting for
+	/// (votingPeriod/refreshNonce => (proposer => (vote of new governor)))
+	/// whether a proposer has voted in this period and who they're voting for
 	mapping(uint256 => mapping(address => address)) alreadyVoted;
 
-	/// (currentVotingPeriod => (proposerGovernor => (uint))) number of votes a
-	/// proposedGovernor has in the current period
+	/// (votingPeriod/refreshNonce => (proposerGovernor => (uint)))
+	/// number of votes a proposedGovernor has in the current period
 	mapping(uint256 => mapping(address => uint32)) numOfVotesForGovernor;
 
 	event GovernanceOwnershipTransferred(
@@ -67,7 +67,7 @@ contract Governable {
 
 	/// @notice Throws if called by any account other than the owner.
 	modifier onlyGovernor() {
-		require(isGovernor(), "Governable: caller is not the governor");
+		require(msg.sender == governor, "Governable: caller is not the governor");
 		_;
 	}
 
@@ -84,10 +84,16 @@ contract Governable {
 		_;
 	}
 
-	/// @notice Returns true if the caller is the current owner.
-	/// @return bool Whether the `msg.sender` is the governor
-	function isGovernor() public view returns (bool) {
-		return msg.sender == governor;
+	/// @notice Checks if the vote nonces are valid.
+	modifier areValidVotes(Vote[] memory votes) {
+		for (uint i = 0; i < votes.length; i++) {
+			require(votes[i].nonce == refreshNonce, "Governable: Nonce of vote must match refreshNonce");
+			require(
+				votes[i].proposedGovernor != address(0x0),
+				"Governable: Proposed governor cannot be the zero address"
+			);
+		}
+		_;
 	}
 
 	/// @notice Returns true if the signature is signed by the current governor.
@@ -169,54 +175,18 @@ contract Governable {
 		voterMerkleRoot = _voterMerkleRoot;
 		averageSessionLengthInMillisecs = _averageSessionLengthInMillisecs;
 		voterCount = _voterCount;
-		refreshNonce = _nonce;
 		_transferOwnership(newOwner);
-	}
-
-	/// @notice Helper function for recovering the address from the signature `sig` of `data`
-	/// @param data The data being signed
-	/// @param sig The signature of the data
-	/// @return address The address of the signer
-	function recover(bytes memory data, bytes memory sig) public pure returns (address) {
-		bytes32 hashedData = keccak256(data);
-		address signer = ECDSA.recover(hashedData, sig);
-		return signer;
-	}
-
-	/// @notice Transfers ownership of the contract to a new account (`newOwner`).
-	/// @param newOwner The new owner of the contract
-	function _transferOwnership(address newOwner) internal {
-		require(newOwner != address(0), "Governable: New governor is the zero address");
-		address previousGovernor = governor;
-		governor = newOwner;
-		lastGovernorUpdateTime = block.timestamp;
-		currentVotingPeriod++;
-		emit GovernanceOwnershipTransferred(previousGovernor, newOwner, lastGovernorUpdateTime);
-	}
-
-	/// @notice Helper function for creating a vote struct
-	/// @param _leafIndex The leaf index of the vote
-	/// @param _proposedGovernor The proposed governor
-	/// @param _siblingPathNodes The sibling path nodes of the vote
-	/// @return Vote The vote struct
-	function createVote(
-		uint32 _leafIndex,
-		address _proposedGovernor,
-		bytes32[] memory _siblingPathNodes
-	) public pure returns (Vote memory) {
-		return Vote(_leafIndex, _proposedGovernor, _siblingPathNodes);
 	}
 
 	/// @notice Casts a vote in favor of force refreshing the governor
 	/// @param vote A vote struct
-	function voteInFavorForceSetGovernor(Vote memory vote) external isValidTimeToVote {
-		require(
-			vote.proposedGovernor != address(0x0),
-			"Governable: Proposed governor cannot be the zero address"
-		);
-
-		address proposerAddress = msg.sender;
+	function voteInFavorForceSetGovernor(Vote memory vote)
+		external
+		isValidTimeToVote
+		areValidVotes(arrayifyVote(vote))
+	{
 		// Check merkle proof is valid
+		address proposerAddress = msg.sender;
 		require(
 			_isValidMerkleProof(vote.siblingPathNodes, proposerAddress, vote.leafIndex),
 			"Governable: Invalid merkle proof"
@@ -231,13 +201,13 @@ contract Governable {
 	function voteInFavorForceSetGovernorWithSig(
 		Vote[] memory votes,
 		bytes[] memory sigs
-	) external isValidTimeToVote {
+	)
+		external
+		isValidTimeToVote
+		areValidVotes(votes)
+	{
 		require(votes.length == sigs.length, "Governable: Invalid number of votes and signatures");
 		for (uint i = 0; i < votes.length; i++) {
-			require(
-				votes[i].proposedGovernor != address(0x0),
-				"Governable: Proposed governor cannot be the zero address"
-			);
 			// Recover the address from the signature
 			address proposerAddress = recover(abi.encode(votes[i]), sigs[i]);
 
@@ -255,22 +225,16 @@ contract Governable {
 	/// @param voter The address of the voter
 	function _processVote(Vote memory vote, address voter) internal {
 		// If the proposer has already voted, remove their previous vote
-		if (alreadyVoted[currentVotingPeriod][voter] != address(0x0)) {
-			address previousVote = alreadyVoted[currentVotingPeriod][voter];
-			numOfVotesForGovernor[currentVotingPeriod][previousVote] -= 1;
+		if (alreadyVoted[vote.nonce][voter] != address(0x0)) {
+			address previousVote = alreadyVoted[vote.nonce][voter];
+			numOfVotesForGovernor[vote.nonce][previousVote] -= 1;
 		}
-
-		alreadyVoted[currentVotingPeriod][voter] = vote.proposedGovernor;
-		numOfVotesForGovernor[currentVotingPeriod][vote.proposedGovernor] += 1;
-		_tryResolveVote(vote.proposedGovernor);
-	}
-
-	/// @notice Tries and resolves the vote by checking the number of votes for
-	/// a proposed governor is greater than voterCount/2.
-	/// @param proposedGovernor the address to transfer ownership to, if the vote passes
-	function _tryResolveVote(address proposedGovernor) internal {
-		if (numOfVotesForGovernor[currentVotingPeriod][proposedGovernor] > voterCount / 2) {
-			_transferOwnership(proposedGovernor);
+		// Update the vote mappings
+		alreadyVoted[vote.nonce][voter] = vote.proposedGovernor;
+		numOfVotesForGovernor[vote.nonce][vote.proposedGovernor] += 1;
+		// Try to resolve the vote if enough votes for a proposed governor have been cast
+		if (numOfVotesForGovernor[vote.nonce][vote.proposedGovernor] > voterCount / 2) {
+			_transferOwnership(vote.proposedGovernor);
 		}
 	}
 
@@ -295,5 +259,51 @@ contract Governable {
 			nodeIndex = nodeIndex / 2;
 		}
 		return voterMerkleRoot == currNodeHash;
+	}
+
+	/// @notice Transfers ownership of the contract to a new account (`newOwner`).
+	/// @param newOwner The new owner of the contract
+	function _transferOwnership(address newOwner) internal {
+		require(newOwner != address(0), "Governable: New governor is the zero address");
+		address previousGovernor = governor;
+		governor = newOwner;
+		lastGovernorUpdateTime = block.timestamp;
+		refreshNonce++;
+		emit GovernanceOwnershipTransferred(previousGovernor, newOwner, lastGovernorUpdateTime);
+	}
+
+	/// @notice Helper function for recovering the address from the signature `sig` of `data`
+	/// @param data The data being signed
+	/// @param sig The signature of the data
+	/// @return address The address of the signer
+	function recover(bytes memory data, bytes memory sig) public pure returns (address) {
+		bytes32 hashedData = keccak256(data);
+		address signer = ECDSA.recover(hashedData, sig);
+		return signer;
+	}
+
+	/// @notice Helper function to arrayify a vote.
+	/// @param vote The vote struct
+	/// @return Vote[] The arrayified vote
+	function arrayifyVote(Vote memory vote) public pure returns (Vote[] memory) {
+		Vote[] memory votes = new Vote[](1);
+		votes[0] = vote;
+		return votes;
+	}
+
+
+	/// @notice Helper function for creating a vote struct
+	/// @param _nonce The nonce of the proposal
+	/// @param _leafIndex The leaf index of the vote
+	/// @param _proposedGovernor The proposed governor
+	/// @param _siblingPathNodes The sibling path nodes of the vote
+	/// @return Vote The vote struct
+	function createVote(
+		uint32 _nonce,
+		uint32 _leafIndex,
+		address _proposedGovernor,
+		bytes32[] memory _siblingPathNodes
+	) public pure returns (Vote memory) {
+		return Vote(_nonce, _leafIndex, _proposedGovernor, _siblingPathNodes);
 	}
 }
