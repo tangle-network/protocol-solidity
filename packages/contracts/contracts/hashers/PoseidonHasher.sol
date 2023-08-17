@@ -32,6 +32,7 @@ contract PoseidonHasher is SnarkConstants, IHasher {
 	}
 
 	function hash11(uint256[] memory array) public pure returns (uint256) {
+		require(array.length == 11, "PoseidonHasher: Array should have 11 elements");
 		uint256[] memory input11 = new uint256[](11);
 		uint256[5] memory first5;
 		uint256[5] memory second5;
