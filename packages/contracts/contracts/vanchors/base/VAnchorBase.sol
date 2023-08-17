@@ -148,7 +148,7 @@ abstract contract VAnchorBase is LinkableAnchor {
 		address _fromTokenAddress,
 		address _toTokenAddress,
 		uint256 _extAmount
-	) public payable returns (uint256) {
+	) internal returns (uint256) {
 		// Before executing the wrapping, determine the amount which needs to be sent to the tokenWrapper
 		uint256 wrapAmount = ITokenWrapper(_toTokenAddress).getAmountToWrap(_extAmount);
 		// If the address is zero, this is meant to wrap native tokens
@@ -187,7 +187,7 @@ abstract contract VAnchorBase is LinkableAnchor {
 		address _toTokenAddress,
 		address _recipient,
 		uint256 _minusExtAmount
-	) public payable {
+	) internal {
 		// We first withdraw the assets and send them to `this` contract address.
 		// This ensure that when we unwrap the assets, `this` contract has the
 		// assets to unwrap into.
