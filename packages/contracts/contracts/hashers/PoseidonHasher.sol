@@ -20,10 +20,16 @@ contract PoseidonHasher is SnarkConstants, IHasher {
 	}
 
 	function hash3(uint256[3] memory array) public pure override returns (uint256) {
+		for (uint256 i = 0; i < array.length; i++) {
+			require(array[i] < SNARK_SCALAR_FIELD, "Value not in field");
+		}
 		return PoseidonT4.poseidon(array);
 	}
 
 	function hash4(uint256[4] memory array) public pure override returns (uint256) {
+		for (uint256 i = 0; i < array.length; i++) {
+			require(array[i] < SNARK_SCALAR_FIELD, "Value not in field");
+		}
 		return PoseidonT5.poseidon(array);
 	}
 
