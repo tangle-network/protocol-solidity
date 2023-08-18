@@ -265,6 +265,7 @@ contract Governable {
 		address leaf,
 		uint32 leafIndex
 	) internal view returns (bool) {
+		require(siblingPathNodes.length == getVoterMerkleTreeDepth(), "Governable: Invalid merkle proof length");
 		bytes32 leafHash = keccak256(abi.encodePacked(leaf));
 		bytes32 currNodeHash = leafHash;
 		uint32 nodeIndex = leafIndex;
@@ -323,5 +324,36 @@ contract Governable {
 		bytes32[] memory _siblingPathNodes
 	) public pure returns (Vote memory) {
 		return Vote(_nonce, _leafIndex, _proposedGovernor, _siblingPathNodes);
+	}
+
+	/// @notice Helper function to return the depth of the voter merkle tree.
+	/// @return uint8 The depth of the voter merkle tree
+	/// @notice It is assumed that the number of voters never exceeds 4096.
+	function getVoterMerkleTreeDepth() public view returns (uint8) {
+		if (voterCount <= 2) {
+			return 1;
+		} else if (voterCount <= 4) {
+			return 2;
+		} else if (voterCount <= 8) {
+			return 3;
+		} else if (voterCount <= 16) {
+			return 4;
+		} else if (voterCount <= 32) {
+			return 5;
+		} else if (voterCount <= 64) {
+			return 6;
+		} else if (voterCount <= 128) {
+			return 7;
+		} else if (voterCount <= 256) {
+			return 8;
+		} else if (voterCount <= 512) {
+			return 9;
+		} else if (voterCount <= 1024) {
+			return 10;
+		} else if (voterCount <= 2048) {
+			return 11;
+		} else {
+			return 12;
+		}
 	}
 }
