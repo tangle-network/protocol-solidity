@@ -8,13 +8,14 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./interfaces/ITreasury.sol";
 import "./utils/ProposalNonceTracker.sol";
 
 /// @title Treasury contract
 /// @author Webb Technologies.
 /// @notice This contract is used to store funds and recover them.
-contract Treasury is ITreasury, ProposalNonceTracker {
+contract Treasury is ITreasury, ProposalNonceTracker, ReentrancyGuard {
 	using SafeERC20 for IERC20;
 	address public handler;
 
@@ -35,7 +36,7 @@ contract Treasury is ITreasury, ProposalNonceTracker {
 		address payable to,
 		uint256 amountToRescue,
 		uint32 nonce
-	) external override onlyHandler onlyIncrementingByOne(nonce) {
+	) external override nonReentrant onlyHandler onlyIncrementingByOne(nonce) {
 		require(to != address(0), "Treasury: Cannot send liquidity to zero address");
 		require(tokenAddress != address(this), "Treasury: Cannot rescue wrapped asset");
 
@@ -43,9 +44,11 @@ contract Treasury is ITreasury, ProposalNonceTracker {
 			// Native Ether
 			uint256 ethBalance = address(this).balance;
 			if (ethBalance >= amountToRescue) {
-				to.transfer(amountToRescue);
+				(bool success, ) = payable(to).call{ value: amountToRescue }("");
+				require(success, "Treasury: Failed to refund");
 			} else {
-				to.transfer(ethBalance);
+				(bool success, ) = payable(to).call{ value: ethBalance }("");
+				require(success, "Treasury: Failed to refund");
 			}
 		} else {
 			// ERC20 Token

@@ -190,7 +190,8 @@ abstract contract TokenWrapper is
 			: amount - costToWrap;
 		if (tokenAddress == address(0)) {
 			// transfer fee (costToWrap) to feeRecipient
-			feeRecipient.transfer(costToWrap);
+			(bool success, ) = feeRecipient.call{ value: costToWrap }("");
+			require(success, "TokenWrapper: Native transfer failed");
 		} else {
 			// transfer liquidity to the token wrapper
 			IERC20(tokenAddress).safeTransferFrom(sender, address(this), leftover);
@@ -215,7 +216,8 @@ abstract contract TokenWrapper is
 		// unwrap liquidity and send to the sender
 		if (tokenAddress == address(0)) {
 			// transfer native liquidity from the token wrapper to the sender
-			payable(recipient).transfer(amount);
+			(bool success, ) = payable(recipient).call{ value: amount }("");
+			require(success, "TokenWrapper: Native transfer failed");
 		} else {
 			// transfer ERC20 liquidity from the token wrapper to the sender
 			IERC20(tokenAddress).safeTransfer(recipient, amount);
