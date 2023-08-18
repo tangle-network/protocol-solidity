@@ -5,6 +5,10 @@
 
 pragma solidity ^0.8.18;
 
+/// @title DeterministicDeployFactory contract.
+/// @notice This contract is used to deploy contracts deterministically w/ create2.
+/// @notice zkSync requires that any bytecode passed into deploy can be determined statically.
+/// This means that this contract cannot be deployed properly on zkSync (V-WBT-VUL-026: Create2 Compatibility Problems).
 contract DeterministicDeployFactory {
 	event Deploy(address addr);
 
