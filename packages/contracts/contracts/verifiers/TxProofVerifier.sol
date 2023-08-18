@@ -14,7 +14,10 @@ contract TxProofVerifier is ProofUtils {
 	IAnchorVerifier public verifier;
 
 	constructor(IAnchorVerifier _verifier) {
-		require(address(_verifier) != address(0), "TxProofVerifier: Cannot set verifier to 0 address");
+		require(
+			address(_verifier) != address(0),
+			"TxProofVerifier: Cannot set verifier to 0 address"
+		);
 		verifier = _verifier;
 	}
 

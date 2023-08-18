@@ -46,7 +46,7 @@ abstract contract LinkableAnchor is
 {
 	address public handler;
 
-	uint32 public immutable UPDATE_MAX_LENGTH = 2**16;
+	uint32 public immutable UPDATE_MAX_LENGTH = 2 ** 16;
 
 	/// The maximum number of edges this tree can support for zero-knowledge linkability.
 	uint8 public immutable maxEdges;
@@ -79,7 +79,10 @@ abstract contract LinkableAnchor is
 	constructor(address _handler, uint32 _outerTreeHeight, uint8 _maxEdges) {
 		require(_handler != address(0), "LinkableAnchor: Handler cannot be 0 address");
 		require(_maxEdges > 0, "LinkableAnchor: maxEdges must be greater than 0");
-		require(_outerTreeHeight >= 1 && _outerTreeHeight <= 32, "LinkableAnchor: outerTreeHeight must be between 1 and 32");
+		require(
+			_outerTreeHeight >= 1 && _outerTreeHeight <= 32,
+			"LinkableAnchor: outerTreeHeight must be between 1 and 32"
+		);
 		handler = _handler;
 		outerLevels = _outerTreeHeight;
 		maxEdges = _maxEdges;

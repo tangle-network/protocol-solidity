@@ -23,10 +23,7 @@ contract ProposalNonceTracker {
 	}
 
 	modifier onlyIncrementingByOne(uint32 nonce) {
-		require(
-			nonce == proposalNonce + 1,
-			"ProposalNonceTracker: Nonce must not increment by 1"
-		);
+		require(nonce == proposalNonce + 1, "ProposalNonceTracker: Nonce must not increment by 1");
 		proposalNonce = nonce;
 		_;
 	}

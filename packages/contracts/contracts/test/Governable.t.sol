@@ -198,7 +198,12 @@ contract GovernableTest is PRBTest, StdCheats, ProposalHelpers {
 		// We only need a majority of votes so we can skip the last proposer
 		for (uint i = 0; i < proposers.length - 1; i++) {
 			bytes32[] memory path = getPathForLeaf(proposers, i, voterMerkleRoot);
-			Vote memory vote = governableContract.createVote(governableContract.refreshNonce(), uint32(i), newGovernor, path);
+			Vote memory vote = governableContract.createVote(
+				governableContract.refreshNonce(),
+				uint32(i),
+				newGovernor,
+				path
+			);
 			vm.prank(proposers[i]);
 			governableContract.voteInFavorForceSetGovernor(vote);
 		}
@@ -207,7 +212,7 @@ contract GovernableTest is PRBTest, StdCheats, ProposalHelpers {
 		assertEq(governableContract.refreshNonce(), 2);
 	}
 
-function test_forceChangeGovernorWithVotesShouldFailIfNotEnoughTimeHasPassed() public {
+	function test_forceChangeGovernorWithVotesShouldFailIfNotEnoughTimeHasPassed() public {
 		address[] memory proposers = new address[](4);
 
 		for (uint256 i = 0; i < 4; i++) {
@@ -305,11 +310,21 @@ function test_forceChangeGovernorWithVotesShouldFailIfNotEnoughTimeHasPassed() p
 		// We only need a majority of votes so we can skip the last proposer
 		for (uint i = 0; i < proposers.length - 1; i++) {
 			bytes32[] memory path = getPathForLeaf(proposers, i, voterMerkleRoot);
-			Vote memory vote1 = governableContract.createVote(governableContract.refreshNonce() + 1, uint32(i), newGovernor, path);
+			Vote memory vote1 = governableContract.createVote(
+				governableContract.refreshNonce() + 1,
+				uint32(i),
+				newGovernor,
+				path
+			);
 			vm.prank(proposers[i]);
 			vm.expectRevert(bytes("Governable: Nonce of vote must match refreshNonce"));
 			governableContract.voteInFavorForceSetGovernor(vote1);
-			Vote memory vote2 = governableContract.createVote(governableContract.refreshNonce(), uint32(i), address(0), path);
+			Vote memory vote2 = governableContract.createVote(
+				governableContract.refreshNonce(),
+				uint32(i),
+				address(0),
+				path
+			);
 			vm.prank(proposers[i]);
 			vm.expectRevert(bytes("Governable: Proposed governor cannot be the zero address"));
 			governableContract.voteInFavorForceSetGovernor(vote2);
@@ -367,7 +382,12 @@ function test_forceChangeGovernorWithVotesShouldFailIfNotEnoughTimeHasPassed() p
 		bytes[] memory sigs = new bytes[](proposers.length - 1);
 		for (uint i = 0; i < proposers.length - 1; i++) {
 			bytes32[] memory path = getPathForLeaf(proposers, i, voterMerkleRoot);
-			Vote memory vote = governableContract.createVote(governableContract.refreshNonce(), uint32(i), newGovernor, path);
+			Vote memory vote = governableContract.createVote(
+				governableContract.refreshNonce(),
+				uint32(i),
+				newGovernor,
+				path
+			);
 			// Sign the vote with the proposer's key
 			(uint8 v, bytes32 r, bytes32 s) = vm.sign(
 				uint256(keccak256(abi.encodePacked(i))),

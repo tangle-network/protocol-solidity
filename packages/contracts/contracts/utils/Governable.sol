@@ -91,7 +91,10 @@ contract Governable {
 	/// @notice Checks if the vote nonces are valid.
 	modifier areValidVotes(Vote[] memory votes) {
 		for (uint i = 0; i < votes.length; i++) {
-			require(votes[i].nonce == refreshNonce, "Governable: Nonce of vote must match refreshNonce");
+			require(
+				votes[i].nonce == refreshNonce,
+				"Governable: Nonce of vote must match refreshNonce"
+			);
 			require(
 				votes[i].proposedGovernor != address(0x0),
 				"Governable: Proposed governor cannot be the zero address"
@@ -184,11 +187,9 @@ contract Governable {
 
 	/// @notice Casts a vote in favor of force refreshing the governor
 	/// @param vote A vote struct
-	function voteInFavorForceSetGovernor(Vote memory vote)
-		external
-		isValidTimeToVote
-		areValidVotes(arrayifyVote(vote))
-	{
+	function voteInFavorForceSetGovernor(
+		Vote memory vote
+	) external isValidTimeToVote areValidVotes(arrayifyVote(vote)) {
 		// Check merkle proof is valid
 		address proposerAddress = msg.sender;
 		require(
@@ -205,18 +206,18 @@ contract Governable {
 	function voteInFavorForceSetGovernorWithSig(
 		Vote[] memory votes,
 		bytes[] memory sigs
-	)
-		external
-		isValidTimeToVote
-		areValidVotes(votes)
-	{
+	) external isValidTimeToVote areValidVotes(votes) {
 		require(votes.length == sigs.length, "Governable: Invalid number of votes and signatures");
 		for (uint i = 0; i < votes.length; i++) {
 			// Recover the address from the signature
 			address proposerAddress = recover(abi.encode(votes[i]), sigs[i]);
 
 			// Check merkle proof is valid
-			bool isValid = _isValidMerkleProof(votes[i].siblingPathNodes, proposerAddress, votes[i].leafIndex);
+			bool isValid = _isValidMerkleProof(
+				votes[i].siblingPathNodes,
+				proposerAddress,
+				votes[i].leafIndex
+			);
 			if (isValid) {
 				// Since we require voterCount / 2 votes to be in favor of a new governor,
 				// we can stop processing votes if we have enough votes for a new governor.
@@ -264,7 +265,10 @@ contract Governable {
 		address leaf,
 		uint32 leafIndex
 	) internal view returns (bool) {
-		require(siblingPathNodes.length == getVoterMerkleTreeDepth(), "Governable: Invalid merkle proof length");
+		require(
+			siblingPathNodes.length == getVoterMerkleTreeDepth(),
+			"Governable: Invalid merkle proof length"
+		);
 		bytes32 leafHash = keccak256(abi.encodePacked(leaf));
 		bytes32 currNodeHash = leafHash;
 		uint32 nodeIndex = leafIndex;
@@ -287,7 +291,12 @@ contract Governable {
 		governor = newOwner;
 		lastGovernorUpdateTime = block.timestamp;
 		refreshNonce++;
-		emit GovernanceOwnershipTransferred(previousGovernor, newOwner, lastGovernorUpdateTime, refreshNonce);
+		emit GovernanceOwnershipTransferred(
+			previousGovernor,
+			newOwner,
+			lastGovernorUpdateTime,
+			refreshNonce
+		);
 	}
 
 	/// @notice Helper function for recovering the address from the signature `sig` of `data`
@@ -308,7 +317,6 @@ contract Governable {
 		votes[0] = vote;
 		return votes;
 	}
-
 
 	/// @notice Helper function for creating a vote struct
 	/// @param _nonce The nonce of the proposal
