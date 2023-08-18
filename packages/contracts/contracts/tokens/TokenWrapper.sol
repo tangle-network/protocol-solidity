@@ -26,6 +26,8 @@ abstract contract TokenWrapper is
 	uint16 public feePercentage;
 	address payable public feeRecipient;
 
+	uint16 public immutable MAX_FEE_PERCENTAGE = 10000; // 100% fee
+
 	event Wrapping(
 		address indexed sender,
 		address indexed recipient,
@@ -53,7 +55,7 @@ abstract contract TokenWrapper is
 	/// @param _amountToWrap The amount to wrap
 	/// @return uint The fee amount of the token being wrapped
 	function getFeeFromAmount(uint256 _amountToWrap) public view override returns (uint256) {
-		return (_amountToWrap * feePercentage) / 10000;
+		return (_amountToWrap * feePercentage) / MAX_FEE_PERCENTAGE;
 	}
 
 	/// @notice Get the fee for a target amount to wrap
@@ -68,7 +70,7 @@ abstract contract TokenWrapper is
 	/// @param _deposit The deposit amount
 	/// @return uint The amount to wrap conditioned on the deposit amount
 	function getAmountToWrap(uint256 _deposit) public view override returns (uint256) {
-		return (_deposit * 10000) / (10000 - feePercentage);
+		return (_deposit * MAX_FEE_PERCENTAGE) / (MAX_FEE_PERCENTAGE - feePercentage);
 	}
 
 	/// @notice Used to wrap tokens on behalf of a sender. Must be called by a minter role.
