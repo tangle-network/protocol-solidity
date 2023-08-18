@@ -111,17 +111,17 @@ contract Deployer is ProposalHelpers, PRBTest, StdCheats {
 		vanchor.initialize(0, 100 ether);
 
 		tokenResourceId = setResource(
-			uint32(bridge.getProposalNonce() + 1),
+			uint32(bridge.proposalNonce() + 1),
 			address(token),
 			address(tokenHandler)
 		);
 		vanchorResourceId = setResource(
-			uint32(bridge.getProposalNonce() + 1),
+			uint32(bridge.proposalNonce() + 1),
 			address(vanchor),
 			address(anchorHandler)
 		);
 		treasuryResourceId = setResource(
-			uint32(bridge.getProposalNonce() + 1),
+			uint32(bridge.proposalNonce() + 1),
 			address(treasury),
 			address(treasuryHandler)
 		);

@@ -42,8 +42,4 @@ contract ProposalNonceTracker {
 		proposalNonce = nonce;
 		_;
 	}
-
-	function getProposalNonce() external view returns (uint32) {
-		return proposalNonce;
-	}
 }

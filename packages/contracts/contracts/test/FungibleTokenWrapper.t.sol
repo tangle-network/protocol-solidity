@@ -89,11 +89,11 @@ contract FungibleTokenWrapperTest is PRBTest, StdCheats {
 	}
 
 	function test_addToken() public {
-		assertEq(token.getProposalNonce(), 0);
+		assertEq(token.proposalNonce(), 0);
 		address tokenAddress = vm.addr(2);
 		vm.prank(alice);
 		token.add(tokenAddress, 1);
-		assertEq(token.getProposalNonce(), 1);
+		assertEq(token.proposalNonce(), 1);
 		assertEq(token.tokens(0), tokenAddress);
 		assertEq(token.valid(tokenAddress), true);
 		assertEq(token.historicalTokens(0), tokenAddress);
@@ -101,27 +101,27 @@ contract FungibleTokenWrapperTest is PRBTest, StdCheats {
 	}
 
 	function test_removeToken() public {
-		assertEq(token.getProposalNonce(), 0);
+		assertEq(token.proposalNonce(), 0);
 		address tokenAddress = vm.addr(2);
 		vm.prank(alice);
 		token.add(tokenAddress, 1);
-		assertEq(token.getProposalNonce(), 1);
+		assertEq(token.proposalNonce(), 1);
 		vm.prank(alice);
 		token.remove(tokenAddress, 2);
-		assertEq(token.getProposalNonce(), 2);
+		assertEq(token.proposalNonce(), 2);
 		assertEq(token.valid(tokenAddress), false);
 		assertEq(token.historicalTokens(0), tokenAddress);
 		assertEq(token.historicallyValid(tokenAddress), true);
 	}
 
 	function test_wrapERC20() public {
-		assertEq(token.getProposalNonce(), 0);
+		assertEq(token.proposalNonce(), 0);
 		uint256 amount = 10 ether;
 		ERC20PresetMinterPauser newToken = new ERC20PresetMinterPauser("BASE", "BASE");
 		newToken.mint(alice, amount);
 		vm.prank(alice);
 		token.add(address(newToken), 1);
-		assertEq(token.getProposalNonce(), 1);
+		assertEq(token.proposalNonce(), 1);
 		vm.prank(alice);
 		newToken.approve(address(token), amount);
 		vm.prank(alice);
@@ -232,29 +232,29 @@ contract FungibleTokenWrapperTest is PRBTest, StdCheats {
 
 	function test_setFee(uint16 feePercentage) public {
 		vm.assume(feePercentage <= 10000);
-		assertEq(token.getProposalNonce(), 0);
+		assertEq(token.proposalNonce(), 0);
 		vm.prank(alice);
 		token.setFee(feePercentage, 1);
-		assertEq(token.getProposalNonce(), 1);
+		assertEq(token.proposalNonce(), 1);
 		assertEq(token.feePercentage(), feePercentage);
 	}
 
 	function test_setFeeRecipient(address feeRecipient) public {
 		vm.assume(feeRecipient != address(0x0));
-		assertEq(token.getProposalNonce(), 0);
+		assertEq(token.proposalNonce(), 0);
 		vm.prank(alice);
 		token.setFeeRecipient(payable(feeRecipient), 1);
-		assertEq(token.getProposalNonce(), 1);
+		assertEq(token.proposalNonce(), 1);
 		assertEq(token.feeRecipient(), feeRecipient);
 	}
 
 	function test_setFeeShouldFailIfGreaterThan10000(uint16 feePercentage) public {
 		vm.assume(feePercentage > 10000);
-		assertEq(token.getProposalNonce(), 0);
+		assertEq(token.proposalNonce(), 0);
 		vm.expectRevert("FungibleTokenWrapper: Invalid fee percentage");
 		vm.prank(alice);
 		token.setFee(feePercentage, 1);
-		assertEq(token.getProposalNonce(), 0);
+		assertEq(token.proposalNonce(), 0);
 	}
 
 	function test_setFeeRecipientShouldFailIfZero() public {

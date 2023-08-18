@@ -119,7 +119,7 @@ contract VAnchorHandlerTest is Deployer {
 		testVAnchor.initialize(0, 100 ether);
 
 		bytes32 testVanchorResourceId = setResource(
-			uint32(bridge.getProposalNonce() + 1),
+			uint32(bridge.proposalNonce() + 1),
 			address(testVAnchor),
 			address(anchorHandler)
 		);

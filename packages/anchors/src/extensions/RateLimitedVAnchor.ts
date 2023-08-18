@@ -95,7 +95,7 @@ export class RateLimitedVAnchor extends VAnchor {
   }
 
   public async setDailyWithdrawalLimit(limit: BigNumber) {
-    const nonce = await this.contract.getProposalNonce();
+    const nonce = await this.contract.proposalNonce();
     const tx = await (this.contract as RateLimitedVAnchorContract).setDailyWithdrawalLimit(
       limit,
       nonce + 1
@@ -105,7 +105,7 @@ export class RateLimitedVAnchor extends VAnchor {
   }
 
   public async setDailyDepositLimit(limit: BigNumber) {
-    const nonce = await this.contract.getProposalNonce();
+    const nonce = await this.contract.proposalNonce();
     const tx = await (this.contract as RateLimitedVAnchorContract).setDailyDepositLimit(
       limit,
       nonce + 1

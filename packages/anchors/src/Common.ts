@@ -78,7 +78,7 @@ export abstract class WebbBridge<A extends WebbContracts> {
   public async setHandler(handlerAddress: string) {
     const tx = await this.contract.setHandler(
       handlerAddress,
-      BigNumber.from(await this.contract.getProposalNonce()).add(1)
+      BigNumber.from(await this.contract.proposalNonce()).add(1)
     );
     await tx.wait();
   }
@@ -110,7 +110,7 @@ export abstract class WebbBridge<A extends WebbContracts> {
       .keccak256(ethers.utils.toUtf8Bytes('configureMinimumWithdrawalLimit(uint256,uint32)'))
       .slice(0, 10)
       .padEnd(10, '0');
-    const nonce = Number(await this.contract.getProposalNonce()) + 1;
+    const nonce = Number(await this.contract.proposalNonce()) + 1;
     return (
       '0x' +
       toHex(resourceID, 32).substr(2) +
@@ -126,7 +126,7 @@ export abstract class WebbBridge<A extends WebbContracts> {
       .keccak256(ethers.utils.toUtf8Bytes('configureMaximumDepositLimit(uint256,uint32)'))
       .slice(0, 10)
       .padEnd(10, '0');
-    const nonce = Number(await this.contract.getProposalNonce()) + 1;
+    const nonce = Number(await this.contract.proposalNonce()) + 1;
     return (
       '0x' +
       toHex(resourceID, 32).substr(2) +
@@ -276,7 +276,7 @@ export abstract class WebbBridge<A extends WebbContracts> {
       .keccak256(ethers.utils.toUtf8Bytes('setHandler(address,uint32)'))
       .slice(0, 10)
       .padEnd(10, '0');
-    const nonce = Number(await this.contract.getProposalNonce()) + 1;
+    const nonce = Number(await this.contract.proposalNonce()) + 1;
 
     return (
       '0x' +
