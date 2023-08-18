@@ -54,7 +54,8 @@ contract Governable {
 	event GovernanceOwnershipTransferred(
 		address indexed previousOwner,
 		address indexed newOwner,
-		uint256 timestamp
+		uint256 timestamp,
+		uint32 indexed refreshNonce
 	);
 	event RecoveredAddress(address indexed recovered);
 
@@ -62,7 +63,7 @@ contract Governable {
 		governor = _governor;
 		refreshNonce = _refreshNonce;
 		lastGovernorUpdateTime = block.timestamp;
-		emit GovernanceOwnershipTransferred(address(0), _governor, block.timestamp);
+		emit GovernanceOwnershipTransferred(address(0), _governor, block.timestamp, refreshNonce);
 	}
 
 	/// @notice Throws if called by any account other than the owner.
@@ -125,9 +126,9 @@ contract Governable {
 		voterMerkleRoot = bytes32(0);
 		averageSessionLengthInMillisecs = 1 << (64 - 1);
 		voterCount = 0;
-		refreshNonce = refreshNonce + 1;
+		refreshNonce++;
 		governor = address(0);
-		emit GovernanceOwnershipTransferred(governor, address(0), block.timestamp);
+		emit GovernanceOwnershipTransferred(governor, address(0), block.timestamp, refreshNonce);
 	}
 
 	/// @notice Transfers ownership of the contract to a new account (`newOwner`).
@@ -235,7 +236,10 @@ contract Governable {
 		// Update the vote mappings
 		alreadyVoted[vote.nonce][voter] = vote.proposedGovernor;
 		numOfVotesForGovernor[vote.nonce][vote.proposedGovernor] += 1;
-		// Try to resolve the vote if enough votes for a proposed governor have been cast
+		// Try to resolve the vote if enough votes for a proposed governor have been cast.
+		// Note: `voterCount` is also assumed to be the maximum # of voters in the system.
+		// Therefore, if `voterCount / 2` votes are in favor of a new governor, we can
+		// safely assume that there is no other governor that has more votes.
 		if (numOfVotesForGovernor[vote.nonce][vote.proposedGovernor] > voterCount / 2) {
 			_transferOwnership(vote.proposedGovernor);
 			// If we transferred ownership, we return true to indicate the election is over.
@@ -276,7 +280,7 @@ contract Governable {
 		governor = newOwner;
 		lastGovernorUpdateTime = block.timestamp;
 		refreshNonce++;
-		emit GovernanceOwnershipTransferred(previousGovernor, newOwner, lastGovernorUpdateTime);
+		emit GovernanceOwnershipTransferred(previousGovernor, newOwner, lastGovernorUpdateTime, refreshNonce);
 	}
 
 	/// @notice Helper function for recovering the address from the signature `sig` of `data`
