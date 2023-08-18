@@ -209,7 +209,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       const signers = await ethers.getSigners();
       await TruffleAssert.reverts(
         anchor.contract.setHandler(signers[1].address, 0),
-        'ProposalNonceTracker: Invalid nonce'
+        'ProposalNonceTracker: Nonce must not increment by 1'
       );
       await TruffleAssert.reverts(
         anchor.contract.setHandler(signers[1].address, 4),
@@ -221,7 +221,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       const signers = await ethers.getSigners();
       await TruffleAssert.reverts(
         anchor.contract.setVerifier(signers[1].address, 0),
-        'ProposalNonceTracker: Invalid nonce'
+        'ProposalNonceTracker: Nonce must not increment by 1'
       );
       await TruffleAssert.reverts(
         anchor.contract.setVerifier(signers[1].address, 4),

@@ -46,6 +46,8 @@ abstract contract LinkableAnchor is
 {
 	address public handler;
 
+	uint32 public immutable UPDATE_MAX_LENGTH = 2**16;
+
 	/// The maximum number of edges this tree can support for zero-knowledge linkability.
 	uint8 public immutable maxEdges;
 	uint32 public immutable outerLevels;
@@ -101,7 +103,7 @@ abstract contract LinkableAnchor is
 			);
 			// Require leaf index increase is bounded by 65,536 updates at once
 			require(
-				_leafIndex < edgeList[edgeIndex[_srcChainID]].latestLeafIndex + (65_536),
+				_leafIndex < edgeList[edgeIndex[_srcChainID]].latestLeafIndex + UPDATE_MAX_LENGTH,
 				"LinkableAnchor: New leaf index must be within 2^16 updates"
 			);
 			require(

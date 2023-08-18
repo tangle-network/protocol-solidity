@@ -251,7 +251,7 @@ contract SignatureBridgeTest is ProposalHelpers, PRBTest, StdCheats {
 		bytes32 hashedData = keccak256(abi.encode(proposals));
 		(uint8 v, bytes32 r, bytes32 s) = vm.sign(1, hashedData);
 		bytes memory sig = abi.encodePacked(r, s, v);
-		vm.expectRevert(bytes("ProposalNonceTracker: Invalid nonce"));
+		vm.expectRevert(bytes("ProposalNonceTracker: Nonce must not increment by 1"));
 		bridge.batchAdminSetResourceWithSignature(
 			bridgeResourceId,
 			SignatureBridge.adminSetResourceWithSignature.selector,

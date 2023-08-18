@@ -79,17 +79,17 @@ contract TokenWrapperHandlerTest is Deployer {
 	function test_allCallsShouldFailWithInvalidNonce() public {
 		// With non-incremented nonce
 		uint32 nonce = token.proposalNonce();
-		vm.expectRevert("ProposalNonceTracker: Invalid nonce");
+		vm.expectRevert("ProposalNonceTracker: Nonce must not increment by 1");
 		this.executeAddTokenProposal(tokenResourceId, nonce, address(token));
-		vm.expectRevert("ProposalNonceTracker: Invalid nonce");
+		vm.expectRevert("ProposalNonceTracker: Nonce must not increment by 1");
 		this.executeRemoveTokenProposal(tokenResourceId, nonce, address(token));
-		vm.expectRevert("ProposalNonceTracker: Invalid nonce");
+		vm.expectRevert("ProposalNonceTracker: Nonce must not increment by 1");
 		this.executeSetNativeAllowedProposal(tokenResourceId, nonce, false);
-		vm.expectRevert("ProposalNonceTracker: Invalid nonce");
+		vm.expectRevert("ProposalNonceTracker: Nonce must not increment by 1");
 		this.executeSetFeeProposal(tokenResourceId, nonce, 100);
-		vm.expectRevert("ProposalNonceTracker: Invalid nonce");
+		vm.expectRevert("ProposalNonceTracker: Nonce must not increment by 1");
 		this.executeSetFeeRecipientProposal(tokenResourceId, nonce, vm.addr(2));
-		vm.expectRevert("ProposalNonceTracker: Invalid nonce");
+		vm.expectRevert("ProposalNonceTracker: Nonce must not increment by 1");
 		this.executeSetHandlerProposal(tokenResourceId, nonce, vm.addr(2));
 		// With incremented too much nonce
 		nonce = token.proposalNonce() + 2;

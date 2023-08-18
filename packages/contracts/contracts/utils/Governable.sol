@@ -159,8 +159,7 @@ contract Governable {
 		bytes memory _publicKey,
 		bytes memory _sig
 	) public {
-		require(refreshNonce < _nonce, "Governable: Invalid nonce");
-		require(_nonce <= refreshNonce + 1, "Governable: Nonce must increment by 1");
+		require(_nonce == refreshNonce + 1, "Governable: Nonce must increment by 1");
 		require(_averageSessionLengthInMillisecs > 0, "Governable: Invalid session length");
 		bytes32 pubKeyHash = keccak256(_publicKey);
 		address newOwner = address(uint160(uint256(pubKeyHash)));

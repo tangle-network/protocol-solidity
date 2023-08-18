@@ -246,11 +246,11 @@ contract VAnchorHandlerTest is Deployer {
 		vm.assume(newHandler != address(0));
 		// With non-incremented nonce
 		uint32 nonce = vanchor.proposalNonce();
-		vm.expectRevert(bytes("ProposalNonceTracker: Invalid nonce"));
+		vm.expectRevert(bytes("ProposalNonceTracker: Nonce must not increment by 1"));
 		this.executeSetMaximumDepositLimitProposal(vanchorResourceId, nonce, 100 ether);
-		vm.expectRevert(bytes("ProposalNonceTracker: Invalid nonce"));
+		vm.expectRevert(bytes("ProposalNonceTracker: Nonce must not increment by 1"));
 		this.executeSetMinimumWithdrawalLimitProposal(vanchorResourceId, nonce, 0);
-		vm.expectRevert(bytes("ProposalNonceTracker: Invalid nonce"));
+		vm.expectRevert(bytes("ProposalNonceTracker: Nonce must not increment by 1"));
 		this.executeSetHandlerProposal(vanchorResourceId, nonce, newHandler);
 		// With incremented too much nonce
 		nonce = vanchor.proposalNonce() + 2;
