@@ -1,7 +1,7 @@
 import { signMessage } from '../utils';
 import { Wallet } from 'ethers';
 
-describe.only('signMessage constructor tests', () => {
+describe('signMessage constructor tests', () => {
   it('Should sign a message without throwing an error', async function () {
     const testPrivateKey = '0x0000000000000000000000000000000000000000000000000000000000000001';
     const wallet = new Wallet(testPrivateKey);

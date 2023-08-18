@@ -120,7 +120,7 @@ describe('Rate Limited VAnchor', () => {
     };
   });
 
-  describe('#withdraw rate limiting', () => {
+  describe('#rate limiting', () => {
     it('should withdraw', async () => {
       const aliceDepositAmount = 1e7;
       const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
@@ -200,6 +200,28 @@ describe('Rate Limited VAnchor', () => {
           [chainID.toString()]: anchorLeaves,
         }),
         'RateLimitedVAnchor: Daily withdrawal limit reached'
+      );
+    });
+
+    it('should rate limit deposits and fail', async () => {
+      const aliceDepositAmount = 1e7;
+      const aliceDepositUtxo = await generateUTXOForTest(chainID, aliceDepositAmount);
+
+      await anchor.setDailyDepositLimit(BigNumber.from(`${5e6}`));
+      await TruffleAssert.reverts(
+        anchor.registerAndTransact(
+          sender.address,
+          aliceDepositUtxo.keypair.toString(),
+          [],
+          [aliceDepositUtxo],
+          0,
+          0,
+          '0',
+          '0',
+          token.address,
+          {}
+        ),
+        'RateLimitedVAnchor: Daily deposit limit reached'
       );
     });
   });

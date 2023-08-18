@@ -103,4 +103,14 @@ export class RateLimitedVAnchor extends VAnchor {
     const result = await tx.wait();
     return result;
   }
+
+  public async setDailyDepositLimit(limit: BigNumber) {
+    const nonce = await this.contract.getProposalNonce();
+    const tx = await (this.contract as RateLimitedVAnchorContract).setDailyDepositLimit(
+      limit,
+      nonce + 1
+    );
+    const result = await tx.wait();
+    return result;
+  }
 }
