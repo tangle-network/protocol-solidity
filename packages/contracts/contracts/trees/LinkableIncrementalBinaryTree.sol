@@ -272,20 +272,6 @@ library LinkableIncrementalBinaryTree {
 		return self.roots[self.currentRootIndex];
 	}
 
-	/// @notice Decodes a byte string of roots into its parts.
-	/// @return bytes32[] An array of bytes32 merkle roots
-	function decodeRoots(
-		LinkableIncrementalTreeData storage self,
-		bytes calldata roots
-	) internal view returns (bytes32[] memory) {
-		bytes32[] memory decodedRoots = new bytes32[](self.maxEdges + 1);
-		for (uint256 i = 0; i <= self.maxEdges; i++) {
-			decodedRoots[i] = bytes32(roots[(32 * i):(32 * (i + 1))]);
-		}
-
-		return decodedRoots;
-	}
-
 	/// Parses the typed chain ID out from a 32-byte resource ID
 	function parseChainIdFromResourceId(bytes32 _resourceId) public pure returns (uint64) {
 		return uint64(uint48(bytes6(_resourceId << (26 * 8))));
