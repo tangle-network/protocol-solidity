@@ -75,6 +75,8 @@ abstract contract LinkableAnchor is
 	/// @param _outerTreeHeight The height of outer-most merkle tree
 	/// @param _maxEdges The maximum # of edges this linkable tree connects to
 	constructor(address _handler, uint32 _outerTreeHeight, uint8 _maxEdges) {
+		require(_handler != address(0), "LinkableAnchor: Handler cannot be 0 address");
+		require(_maxEdges > 0, "LinkableAnchor: maxEdges must be greater than 0");
 		handler = _handler;
 		outerLevels = _outerTreeHeight;
 		maxEdges = _maxEdges;
