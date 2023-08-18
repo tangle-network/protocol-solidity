@@ -4,10 +4,10 @@ compile () {
     local outdir="$1" circuit="$2" size="$3"
     mkdir -p build/$outdir
     mkdir -p build/$outdir/$size
-    echo "circuits/test/$circuit.circom"
+    echo "circuits/main/$circuit.circom"
     ~/.cargo/bin/circom --r1cs --wasm --sym \
         -o artifacts/circuits/$outdir \
-        circuits/test/$circuit.circom
+        circuits/main/$circuit.circom
     echo -e "Done!\n"
 }
 

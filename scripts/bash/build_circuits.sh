@@ -5,10 +5,10 @@ compile () {
     mkdir -p build/$outdir
     mkdir -p build/$outdir/$size
     mkdir -p artifacts/circuits/$outdir
-    echo "circuits/test/$circuit.circom"
+    echo "circuits/main/$circuit.circom"
     ~/.cargo/bin/circom --r1cs --wasm --sym \
         -o artifacts/circuits/$outdir \
-        circuits/test/$circuit.circom
+        circuits/main/$circuit.circom
     echo -e "Done!\n"
 }
 
