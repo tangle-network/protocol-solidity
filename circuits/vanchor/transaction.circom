@@ -51,6 +51,7 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
     component inNullifierHasher[nIns];
     component inTree[nIns];
     component inCheckRoot[nIns];
+    component isZeroLeaf[nIns];
     var sumIns = 0;
 
     // verify correctness of transaction inputs
@@ -63,6 +64,11 @@ template Transaction(levels, nIns, nOuts, zeroLeaf, length) {
         inCommitmentHasher[tx].inputs[1] <== inAmount[tx];
         inCommitmentHasher[tx].inputs[2] <== inKeypair[tx].publicKey;
         inCommitmentHasher[tx].inputs[3] <== inBlinding[tx];
+
+        isZeroLeaf[tx] = IsEqual();
+        isZeroLeaf[tx].in[0] <== inCommitmentHasher[tx].out;
+        isZeroLeaf[tx].in[1] <== zeroLeaf;
+        isZeroLeaf[tx].out === 0;
 
         inSignature[tx] = Signature();
         inSignature[tx].privateKey <== inPrivateKey[tx];
