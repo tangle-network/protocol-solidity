@@ -73,6 +73,7 @@ abstract contract VAnchorBase is LinkableAnchor {
 		uint256 _minimumWithdrawalAmount,
 		uint32 _nonce
 	) public override onlyHandler onlyIncrementingByOne(_nonce) onlyInitialized {
+		require(_minimumWithdrawalAmount < MAX_EXT_AMOUNT, "Invalid minimum withdrawal amount");
 		_configureMinimumWithdrawalLimit(_minimumWithdrawalAmount);
 		emit MinWithdrawalLimitUpdated(_minimumWithdrawalAmount, _nonce);
 	}
@@ -81,6 +82,7 @@ abstract contract VAnchorBase is LinkableAnchor {
 		uint256 _maximumDepositAmount,
 		uint32 _nonce
 	) public override onlyHandler onlyIncrementingByOne(_nonce) onlyInitialized {
+		require(maximumDepositAmount < MAX_EXT_AMOUNT, "Invalid maximum deposit amount");
 		_configureMaximumDepositLimit(_maximumDepositAmount);
 		emit MaxDepositLimitUpdated(_maximumDepositAmount, _nonce);
 	}
