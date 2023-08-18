@@ -259,13 +259,13 @@ abstract contract TokenWrapper is
 				_isNativeValid(),
 				"TokenWrapper: Native wrapping is not allowed for this token wrapper"
 			);
+			require(_isValidAmount(msg.value), "TokenWrapper: Invalid token amount");
 		} else {
 			require(msg.value == 0, "TokenWrapper: Invalid value sent for wrapping");
 			require(_isValidAddress(_tokenAddress), "TokenWrapper: Invalid token address");
+			require(_isValidAmount(_amount), "TokenWrapper: Invalid token amount");
 		}
-
 		require(_feeRecipient != address(0), "TokenWrapper: Fee Recipient cannot be zero address");
-		require(_isValidAmount(_amount), "TokenWrapper: Invalid token amount");
 		_;
 	}
 
