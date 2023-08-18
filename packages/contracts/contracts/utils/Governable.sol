@@ -77,7 +77,7 @@ contract Governable {
 		// Check block time stamp is some length greater than the last time
 		// ownership transferred
 		require(
-			block.timestamp >=
+			block.timestamp >
 				lastGovernorUpdateTime +
 					((sessionLengthMultiplier * averageSessionLengthInMillisecs) / 1000),
 			"Governable: Invalid time for vote"
@@ -158,6 +158,7 @@ contract Governable {
 	) public {
 		require(refreshNonce < _nonce, "Governable: Invalid nonce");
 		require(_nonce <= refreshNonce + 1, "Governable: Nonce must increment by 1");
+		require(_averageSessionLengthInMillisecs > 0, "Governable: Invalid session length");
 		bytes32 pubKeyHash = keccak256(_publicKey);
 		address newOwner = address(uint160(uint256(pubKeyHash)));
 		require(
