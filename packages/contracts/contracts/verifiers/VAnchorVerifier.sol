@@ -62,7 +62,7 @@ contract VAnchorVerifier is IAnchorVerifier {
 				return v8_16.verifyProof(a, b, c, _inputs);
 			}
 		} else {
-			return false;
+			require(false, "VAnchorVerifier: Invalid maxEdges");
 		}
 	}
 }
