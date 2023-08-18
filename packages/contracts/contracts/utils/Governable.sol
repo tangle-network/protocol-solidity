@@ -221,6 +221,9 @@ contract Governable {
 			if (isValid) {
 				// Since we require voterCount / 2 votes to be in favor of a new governor,
 				// we can stop processing votes if we have enough votes for a new governor.
+				// Since we have nonces on votes, we can safely assume that the votes from
+				// previous rounds cannot be processed. We process and terminate the vote early
+				// even if the vote is not the last vote in the array by choice.
 				if (_processVote(votes[i], proposerAddress)) {
 					return;
 				}
