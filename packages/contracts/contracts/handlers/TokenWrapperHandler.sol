@@ -56,26 +56,32 @@ contract TokenWrapperHandler is IExecutor, HandlerHelpers {
 		IFungibleTokenWrapper fungibleToken = IFungibleTokenWrapper(fungibleTokenAddress);
 
 		if (functionSig == bytes4(keccak256("setHandler(address,uint32)"))) {
+			require(arguments.length == 24, "TokenWrapperHandler: Invalid arguments length");
 			uint32 nonce = uint32(bytes4(arguments[0:4]));
 			address newHandler = address(bytes20(arguments[4:24]));
 			fungibleToken.setHandler(newHandler, nonce);
 		} else if (functionSig == bytes4(keccak256("setNativeAllowed(bool,uint32)"))) {
+			require(arguments.length == 5, "TokenWrapperHandler: Invalid arguments length");
 			uint32 nonce = uint32(bytes4(arguments[0:4]));
 			bool nativeAllowed = bytes1(arguments[4:5]) != bytes1(0x0);
 			fungibleToken.setNativeAllowed(nativeAllowed, nonce);
 		} else if (functionSig == bytes4(keccak256("setFee(uint16,uint32)"))) {
+			require(arguments.length == 6, "TokenWrapperHandler: Invalid arguments length");
 			uint32 nonce = uint32(bytes4(arguments[0:4]));
 			uint16 newFee = uint16(bytes2(arguments[4:6]));
 			fungibleToken.setFee(newFee, nonce);
 		} else if (functionSig == bytes4(keccak256("add(address,uint32)"))) {
+			require(arguments.length == 24, "TokenWrapperHandler: Invalid arguments length");
 			uint32 nonce = uint32(bytes4(arguments[0:4]));
 			address tokenAddress = address(bytes20(arguments[4:24]));
 			fungibleToken.add(tokenAddress, nonce);
 		} else if (functionSig == bytes4(keccak256("remove(address,uint32)"))) {
+			require(arguments.length == 24, "TokenWrapperHandler: Invalid arguments length");
 			uint32 nonce = uint32(bytes4(arguments[0:4]));
 			address tokenAddress = address(bytes20(arguments[4:24]));
 			fungibleToken.remove(tokenAddress, nonce);
 		} else if (functionSig == bytes4(keccak256("setFeeRecipient(address,uint32)"))) {
+			require(arguments.length == 24, "TokenWrapperHandler: Invalid arguments length");
 			uint32 nonce = uint32(bytes4(arguments[0:4]));
 			address payable feeRecipient = payable(address(bytes20(arguments[4:24])));
 			fungibleToken.setFeeRecipient(feeRecipient, nonce);
