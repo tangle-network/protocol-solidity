@@ -35,6 +35,9 @@ contract Governable {
 	bytes32 public voterMerkleRoot;
 
 	/// The average session length in millisecs
+	/// Note: This default is set to the max value of a uint64 so that there
+	/// is no chance of a new governor being voted for before the governance has successfully
+	/// been transferred. In this first transferral, the actual session length will be set.
 	uint64 public averageSessionLengthInMillisecs = 2 ** 64 - 1;
 
 	/// The session length multiplier (see the voteInFavorForceSetGovernor function below)
