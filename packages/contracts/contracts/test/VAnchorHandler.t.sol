@@ -223,6 +223,7 @@ contract VAnchorHandlerTest is Deployer {
 
 	function test_setMaximumDepositLimitProposal(uint256 newMaxDeposit) public {
 		vm.assume(newMaxDeposit != vanchor.maximumDepositAmount());
+		vm.assume(newMaxDeposit < uint256(vanchor.MAX_EXT_AMOUNT()));
 		this.executeSetMaximumDepositLimitProposal(
 			vanchorResourceId,
 			uint32(vanchor.proposalNonce()) + 1,
