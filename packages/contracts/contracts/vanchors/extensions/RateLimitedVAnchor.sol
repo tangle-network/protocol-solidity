@@ -61,7 +61,7 @@ contract RateLimitedVAnchor is VAnchorTree {
 		CommonExtData memory _externalData,
 		PublicInputs memory _publicInputs,
 		Encryptions memory _encryptions
-	) public payable override nonReentrant {
+	) public payable override {
 		// If we are in the current day, continue to add to the current daily limits
 		if (block.timestamp < startTime + 1 days) {
 			currentDailyWithdrawal = (_externalData.extAmount < 0)

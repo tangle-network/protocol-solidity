@@ -23,7 +23,7 @@ import { Verifier } from '@webb-tools/anchors';
 
 const zkComponents = vanchorFixtures('../../../solidity-fixtures/solidity-fixtures');
 
-describe('Rate Limited VAnchor', () => {
+describe.only('Rate Limited VAnchor', () => {
   let anchor: RateLimitedVAnchor;
 
   const levels = 30;

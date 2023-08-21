@@ -85,7 +85,7 @@ abstract contract VAnchorBase is LinkableAnchor {
 		uint256 _maximumDepositAmount,
 		uint32 _nonce
 	) public override onlyHandler onlyIncrementingByOne(_nonce) onlyInitialized {
-		require(maximumDepositAmount < uint256(MAX_EXT_AMOUNT), "Invalid maximum deposit amount");
+		require(_maximumDepositAmount < uint256(MAX_EXT_AMOUNT), "Invalid maximum deposit amount");
 		_configureMaximumDepositLimit(_maximumDepositAmount);
 		emit MaxDepositLimitUpdated(_maximumDepositAmount, _nonce);
 	}

@@ -64,7 +64,7 @@ abstract contract VAnchor is ZKVAnchorBase {
 		CommonExtData memory _externalData,
 		PublicInputs memory _publicInputs,
 		Encryptions memory _encryptions
-	) public payable virtual override nonReentrant {
+	) public payable virtual override {
 		_transact(token, _proof, _auxPublicInputs, _externalData, _publicInputs, _encryptions);
 	}
 
