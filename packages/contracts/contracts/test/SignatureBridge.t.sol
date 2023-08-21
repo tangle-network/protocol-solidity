@@ -124,7 +124,7 @@ contract SignatureBridgeTest is ProposalHelpers, PRBTest, StdCheats {
 		bytes32 setResourceProposalHash = keccak256(setResourceProposal);
 		(uint8 v, bytes32 r, bytes32 s) = vm.sign(1, setResourceProposalHash);
 		bytes memory sig = abi.encodePacked(r, s, v);
-		vm.expectRevert(bytes("ProposalNonceTracker: Nonce must not increment more than 1"));
+		vm.expectRevert(bytes("ProposalNonceTracker: Nonce must increment by 1"));
 		bridge.adminSetResourceWithSignature(
 			bridgeResourceId,
 			SignatureBridge.adminSetResourceWithSignature.selector,
@@ -251,7 +251,7 @@ contract SignatureBridgeTest is ProposalHelpers, PRBTest, StdCheats {
 		bytes32 hashedData = keccak256(abi.encode(proposals));
 		(uint8 v, bytes32 r, bytes32 s) = vm.sign(1, hashedData);
 		bytes memory sig = abi.encodePacked(r, s, v);
-		vm.expectRevert(bytes("ProposalNonceTracker: Nonce must not increment by 1"));
+		vm.expectRevert(bytes("ProposalNonceTracker: Nonce must increment by 1"));
 		bridge.batchAdminSetResourceWithSignature(
 			bridgeResourceId,
 			SignatureBridge.adminSetResourceWithSignature.selector,

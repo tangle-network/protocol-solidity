@@ -79,31 +79,31 @@ contract TokenWrapperHandlerTest is Deployer {
 	function test_allCallsShouldFailWithInvalidNonce() public {
 		// With non-incremented nonce
 		uint32 nonce = token.proposalNonce();
-		vm.expectRevert("ProposalNonceTracker: Nonce must not increment by 1");
+		vm.expectRevert("ProposalNonceTracker: Nonce must increment by 1");
 		this.executeAddTokenProposal(tokenResourceId, nonce, address(token));
-		vm.expectRevert("ProposalNonceTracker: Nonce must not increment by 1");
+		vm.expectRevert("ProposalNonceTracker: Nonce must increment by 1");
 		this.executeRemoveTokenProposal(tokenResourceId, nonce, address(token));
-		vm.expectRevert("ProposalNonceTracker: Nonce must not increment by 1");
+		vm.expectRevert("ProposalNonceTracker: Nonce must increment by 1");
 		this.executeSetNativeAllowedProposal(tokenResourceId, nonce, false);
-		vm.expectRevert("ProposalNonceTracker: Nonce must not increment by 1");
+		vm.expectRevert("ProposalNonceTracker: Nonce must increment by 1");
 		this.executeSetFeeProposal(tokenResourceId, nonce, 100);
-		vm.expectRevert("ProposalNonceTracker: Nonce must not increment by 1");
+		vm.expectRevert("ProposalNonceTracker: Nonce must increment by 1");
 		this.executeSetFeeRecipientProposal(tokenResourceId, nonce, vm.addr(2));
-		vm.expectRevert("ProposalNonceTracker: Nonce must not increment by 1");
+		vm.expectRevert("ProposalNonceTracker: Nonce must increment by 1");
 		this.executeSetHandlerProposal(tokenResourceId, nonce, vm.addr(2));
 		// With incremented too much nonce
 		nonce = token.proposalNonce() + 2;
-		vm.expectRevert("ProposalNonceTracker: Nonce must not increment more than 1");
+		vm.expectRevert("ProposalNonceTracker: Nonce must increment by 1");
 		this.executeAddTokenProposal(tokenResourceId, nonce + 2, address(token));
-		vm.expectRevert("ProposalNonceTracker: Nonce must not increment more than 1");
+		vm.expectRevert("ProposalNonceTracker: Nonce must increment by 1");
 		this.executeRemoveTokenProposal(tokenResourceId, nonce + 2, address(token));
-		vm.expectRevert("ProposalNonceTracker: Nonce must not increment more than 1");
+		vm.expectRevert("ProposalNonceTracker: Nonce must increment by 1");
 		this.executeSetNativeAllowedProposal(tokenResourceId, nonce + 2, false);
-		vm.expectRevert("ProposalNonceTracker: Nonce must not increment more than 1");
+		vm.expectRevert("ProposalNonceTracker: Nonce must increment by 1");
 		this.executeSetFeeProposal(tokenResourceId, nonce + 2, 100);
-		vm.expectRevert("ProposalNonceTracker: Nonce must not increment more than 1");
+		vm.expectRevert("ProposalNonceTracker: Nonce must increment by 1");
 		this.executeSetFeeRecipientProposal(tokenResourceId, nonce + 2, vm.addr(2));
-		vm.expectRevert("ProposalNonceTracker: Nonce must not increment more than 1");
+		vm.expectRevert("ProposalNonceTracker: Nonce must increment by 1");
 		this.executeSetHandlerProposal(tokenResourceId, nonce + 2, vm.addr(2));
 	}
 
@@ -130,16 +130,16 @@ contract TokenWrapperHandlerTest is Deployer {
 			token.proposalNonce() + 1,
 			address(treasury)
 		);
-		// 3. Wrap 1000 tokens
-		uint256 amountToWrap = token.getAmountToWrap(1000 ether);
+		// 3. Wrap 10 tokens
+		uint256 amountToWrap = token.getAmountToWrap(10 ether);
 		uint256 costToWrap = token.getFeeFromAmount(amountToWrap);
 		vm.deal(vm.addr(2), amountToWrap);
 		vm.prank(vm.addr(2));
 		token.wrap{ value: amountToWrap }(address(0x0), 0);
-		// 4. Verify treasury has 10 tokens
+		// 4. Verify treasury has 0.1 tokens
 		assertEq(address(treasury).balance, costToWrap);
 		// 5. Verify tokenWrapper has the right tokens
-		assertEq(token.balanceOf(address(vm.addr(2))), 1000 ether);
+		assertEq(token.balanceOf(address(vm.addr(2))), 10 ether);
 		// 6. Rescue 10 tokens from treasury
 		this.executeRescueTokensProposal(
 			treasuryResourceId,
@@ -150,7 +150,7 @@ contract TokenWrapperHandlerTest is Deployer {
 		);
 		// 7. Verify treasury has 0 tokens
 		assertEq(address(treasury).balance, 0);
-		// 8. Verify tokenWrapper has 1000 tokens
+		// 8. Verify tokenWrapper has 10 tokens
 		assertEq(address(0x1234).balance, costToWrap);
 	}
 }

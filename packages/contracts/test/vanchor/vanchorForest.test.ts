@@ -213,7 +213,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       );
       await TruffleAssert.reverts(
         anchor.contract.setHandler(signers[1].address, 4),
-        'ProposalNonceTracker: Nonce must not increment more than 1'
+        'ProposalNonceTracker: Nonce must increment by 1'
       );
     });
 
@@ -225,7 +225,7 @@ describe.skip('VAnchorForest for 1 max edge', () => {
       );
       await TruffleAssert.reverts(
         anchor.contract.setVerifier(signers[1].address, 4),
-        'ProposalNonceTracker: Nonce must not increment more than 1'
+        'ProposalNonceTracker: Nonce must increment by 1'
       );
     });
   });

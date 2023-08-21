@@ -388,4 +388,14 @@ contract FungibleTokenWrapperTest is PRBTest, StdCheats {
 		vm.prank(charlie);
 		token.unwrapFor(bob, address(newToken), amount);
 	}
+
+	function test_wrapShouldFailIfAboveLimit() public {
+		// Wrap 1000 tokens
+		uint256 amountToWrap = token.getAmountToWrap(1000 ether);
+		uint256 costToWrap = token.getFeeFromAmount(amountToWrap);
+		vm.deal(vm.addr(2), amountToWrap);
+		vm.prank(vm.addr(2));
+		vm.expectRevert("TokenWrapper: Invalid native amount");
+		token.wrap{ value: amountToWrap }(address(0x0), 0);
+	}
 }
