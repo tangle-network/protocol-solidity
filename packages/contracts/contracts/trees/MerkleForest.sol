@@ -106,7 +106,7 @@ contract MerkleForest is MerkleSystem {
 	}
 
 	/// @inheritdoc IMerkleSystem
-	function getZeroHash(uint32 index) external pure override returns (uint256) {
+	function getZeroHash(uint32 index) public pure override returns (uint256) {
 		return LinkableIncrementalBinaryTree.zeros(index);
 	}
 

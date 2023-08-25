@@ -24,7 +24,7 @@ abstract contract MerkleTreeWithHistory is MerkleSystem {
 	}
 
 	/// @inheritdoc IMerkleSystem
-	function getZeroHash(uint32 index) external view override returns (uint256) {
+	function getZeroHash(uint32 index) public view override returns (uint256) {
 		return uint256(hasher.zeros(index));
 	}
 

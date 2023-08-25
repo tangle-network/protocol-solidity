@@ -14,7 +14,7 @@ import { SnarkConstants } from "./SnarkConstants.sol";
 /// @notice This contract is meant to be used for poseidon merkle trees and other poseidon based hashing.
 contract PoseidonHasher is SnarkConstants, IHasher {
 	function hash1(uint256 value) public pure returns (uint256) {
-		require(array[i] < SNARK_SCALAR_FIELD, "Value not in field");
+		require(value < SNARK_SCALAR_FIELD, "Value not in field");
 		uint256[1] memory input;
 		input[0] = value;
 		return PoseidonT2.poseidon(input);
