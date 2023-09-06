@@ -59,14 +59,17 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
 		);
 
 		if (functionSig == bytes4(keccak256("setHandler(address,uint32)"))) {
+			require(arguments.length == 24, "AnchorHandler: Invalid arguments length");
 			uint32 nonce = uint32(bytes4(arguments[0:4]));
 			address newHandler = address(bytes20(arguments[4:24]));
 			ILinkableAnchor(anchorAddress).setHandler(newHandler, nonce);
 		} else if (functionSig == bytes4(keccak256("setVerifier(address,uint32)"))) {
+			require(arguments.length == 24, "AnchorHandler: Invalid arguments length");
 			uint32 nonce = uint32(bytes4(arguments[0:4]));
 			address newVerifier = address(bytes20(arguments[4:24]));
 			ISetVerifier(anchorAddress).setVerifier(newVerifier, nonce);
 		} else if (functionSig == bytes4(keccak256("updateEdge(uint256,uint32,bytes32)"))) {
+			require(arguments.length == 68, "AnchorHandler: Invalid arguments length");
 			uint32 nonce = uint32(bytes4(arguments[0:4]));
 			uint256 merkleRoot = uint256(bytes32(arguments[4:36]));
 			bytes32 target = bytes32(arguments[36:68]);
@@ -74,6 +77,7 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
 		} else if (
 			functionSig == bytes4(keccak256("configureMinimumWithdrawalLimit(uint256,uint32)"))
 		) {
+			require(arguments.length == 36, "AnchorHandler: Invalid arguments length");
 			uint32 nonce = uint32(bytes4(arguments[0:4]));
 			uint256 minimumWithdrawalAmount = uint256(bytes32(arguments[4:36]));
 			ILinkableAnchor(anchorAddress).configureMinimumWithdrawalLimit(
@@ -83,6 +87,7 @@ contract AnchorHandler is IExecutor, HandlerHelpers {
 		} else if (
 			functionSig == bytes4(keccak256("configureMaximumDepositLimit(uint256,uint32)"))
 		) {
+			require(arguments.length == 36, "AnchorHandler: Invalid arguments length");
 			uint32 nonce = uint32(bytes4(arguments[0:4]));
 			uint256 maximumDepositAmount = uint256(bytes32(arguments[4:36]));
 			ILinkableAnchor(anchorAddress).configureMaximumDepositLimit(

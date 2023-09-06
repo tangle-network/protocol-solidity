@@ -16,7 +16,9 @@ contract RateLimitedVAnchor is VAnchorTree {
 	using SafeERC20 for IERC20;
 
 	uint256 public DAILY_WITHDRAWAL_LIMIT = 1_000_000 * 10 ** 18;
+	uint256 public DAILY_DEPOSIT_LIMIT = 1_000_000 * 10 ** 18;
 	uint256 public currentDailyWithdrawal = 0;
+	uint256 public currentDailyDeposit = 0;
 	uint256 public startTime = 0;
 
 	constructor(
@@ -41,6 +43,17 @@ contract RateLimitedVAnchor is VAnchorTree {
 		proposalNonce = _nonce;
 	}
 
+	/// Set the daily deposit limit
+	/// @param _limit The new limit
+	/// @param _nonce The nonce of the proposal
+	function setDailyDepositLimit(
+		uint256 _limit,
+		uint32 _nonce
+	) external onlyHandler onlyIncrementingByOne(_nonce) {
+		DAILY_DEPOSIT_LIMIT = _limit;
+		proposalNonce = _nonce;
+	}
+
 	/// @inheritdoc ZKVAnchorBase
 	function transact(
 		bytes memory _proof,
@@ -48,23 +61,33 @@ contract RateLimitedVAnchor is VAnchorTree {
 		CommonExtData memory _externalData,
 		PublicInputs memory _publicInputs,
 		Encryptions memory _encryptions
-	) public payable override nonReentrant {
-		// If we are in the current day, continue to add to the currentDailyWithdrawal
+	) public payable override {
+		// If we are in the current day, continue to add to the current daily limits
 		if (block.timestamp < startTime + 1 days) {
 			currentDailyWithdrawal = (_externalData.extAmount < 0)
 				? currentDailyWithdrawal + uint256(-_externalData.extAmount)
 				: currentDailyWithdrawal;
+			currentDailyDeposit = (_externalData.extAmount > 0)
+				? currentDailyDeposit + uint256(_externalData.extAmount)
+				: currentDailyDeposit;
 		} else {
-			// If we are in a new day, reset the currentDailyWithdrawal and set the new startTime
+			// If we are in a new day, reset the daily limits and set the new startTime
 			currentDailyWithdrawal = (_externalData.extAmount < 0)
 				? uint256(-_externalData.extAmount)
 				: 0;
-			startTime = startTime + 1 days;
+			currentDailyDeposit = (_externalData.extAmount > 0)
+				? uint256(_externalData.extAmount)
+				: 0;
+			startTime = block.timestamp;
 		}
-		// Ensure the currentDailyWithdrawal is less than the DAILY_WITHDRAWAL_LIMIT, revert.
+		// Ensure the daily limits are less than the DAILY_WITHDRAWAL/DEPOSIT_LIMIT.
 		require(
 			currentDailyWithdrawal <= DAILY_WITHDRAWAL_LIMIT,
 			"RateLimitedVAnchor: Daily withdrawal limit reached"
+		);
+		require(
+			currentDailyDeposit <= DAILY_DEPOSIT_LIMIT,
+			"RateLimitedVAnchor: Daily deposit limit reached"
 		);
 
 		super.transact(_proof, _auxPublicInputs, _externalData, _publicInputs, _encryptions);

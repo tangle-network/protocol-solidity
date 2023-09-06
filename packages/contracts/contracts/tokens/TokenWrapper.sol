@@ -26,6 +26,8 @@ abstract contract TokenWrapper is
 	uint16 public feePercentage;
 	address payable public feeRecipient;
 
+	uint16 public immutable MAX_FEE_PERCENTAGE = 10000; // 100% fee
+
 	event Wrapping(
 		address indexed sender,
 		address indexed recipient,
@@ -53,7 +55,7 @@ abstract contract TokenWrapper is
 	/// @param _amountToWrap The amount to wrap
 	/// @return uint The fee amount of the token being wrapped
 	function getFeeFromAmount(uint256 _amountToWrap) public view override returns (uint256) {
-		return (_amountToWrap * feePercentage) / 10000;
+		return (_amountToWrap * feePercentage) / MAX_FEE_PERCENTAGE;
 	}
 
 	/// @notice Get the fee for a target amount to wrap
@@ -68,7 +70,7 @@ abstract contract TokenWrapper is
 	/// @param _deposit The deposit amount
 	/// @return uint The amount to wrap conditioned on the deposit amount
 	function getAmountToWrap(uint256 _deposit) public view override returns (uint256) {
-		return (_deposit * 10000) / (10000 - feePercentage);
+		return (_deposit * MAX_FEE_PERCENTAGE) / (MAX_FEE_PERCENTAGE - feePercentage);
 	}
 
 	/// @notice Used to wrap tokens on behalf of a sender. Must be called by a minter role.
@@ -190,7 +192,8 @@ abstract contract TokenWrapper is
 			: amount - costToWrap;
 		if (tokenAddress == address(0)) {
 			// transfer fee (costToWrap) to feeRecipient
-			feeRecipient.transfer(costToWrap);
+			(bool success, ) = feeRecipient.call{ value: costToWrap }("");
+			require(success, "TokenWrapper: Native transfer failed");
 		} else {
 			// transfer liquidity to the token wrapper
 			IERC20(tokenAddress).safeTransferFrom(sender, address(this), leftover);
@@ -215,7 +218,8 @@ abstract contract TokenWrapper is
 		// unwrap liquidity and send to the sender
 		if (tokenAddress == address(0)) {
 			// transfer native liquidity from the token wrapper to the sender
-			payable(recipient).transfer(amount);
+			(bool success, ) = payable(recipient).call{ value: amount }("");
+			require(success, "TokenWrapper: Native transfer failed");
 		} else {
 			// transfer ERC20 liquidity from the token wrapper to the sender
 			IERC20(tokenAddress).safeTransfer(recipient, amount);
@@ -257,13 +261,13 @@ abstract contract TokenWrapper is
 				_isNativeValid(),
 				"TokenWrapper: Native wrapping is not allowed for this token wrapper"
 			);
+			require(_isValidAmount(msg.value), "TokenWrapper: Invalid native amount");
 		} else {
 			require(msg.value == 0, "TokenWrapper: Invalid value sent for wrapping");
 			require(_isValidAddress(_tokenAddress), "TokenWrapper: Invalid token address");
+			require(_isValidAmount(_amount), "TokenWrapper: Invalid token amount");
 		}
-
 		require(_feeRecipient != address(0), "TokenWrapper: Fee Recipient cannot be zero address");
-		require(_isValidAmount(_amount), "TokenWrapper: Invalid token amount");
 		_;
 	}
 

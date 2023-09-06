@@ -24,6 +24,13 @@ contract VAnchorVerifier is IAnchorVerifier {
 		IVAnchorVerifier8_2 _verifier_8_2,
 		IVAnchorVerifier8_16 _verifier_8_16
 	) {
+		require(
+			address(_verifier_2_2) != address(0) &&
+				address(_verifier_2_16) != address(0) &&
+				address(_verifier_8_2) != address(0) &&
+				address(_verifier_8_16) != address(0),
+			"VAnchorVerifier: Cannot set verifier to 0 address"
+		);
 		v2_2 = _verifier_2_2;
 		v2_16 = _verifier_2_16;
 		v8_2 = _verifier_8_2;
@@ -55,7 +62,7 @@ contract VAnchorVerifier is IAnchorVerifier {
 				return v8_16.verifyProof(a, b, c, _inputs);
 			}
 		} else {
-			return false;
+			require(false, "VAnchorVerifier: Invalid maxEdges");
 		}
 	}
 }

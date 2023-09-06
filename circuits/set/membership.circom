@@ -17,7 +17,7 @@ template SetMembership(length) {
   
   signal diffs[length];
   signal product[length + 1];
-  product[0] <== element;
+  product[0] <== 1;
 
   for (var i = 0; i < length; i++) {
     diffs[i] <== set[i] - element;

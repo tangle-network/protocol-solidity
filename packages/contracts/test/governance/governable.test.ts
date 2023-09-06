@@ -135,7 +135,7 @@ describe('Governable Contract', () => {
       refreshProposal.voterCount
     );
     assert.strictEqual(await governableInstance.voterMerkleRoot(), refreshProposal.voterMerkleRoot);
-    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '2');
+    assert.strictEqual((await governableInstance.refreshNonce()).toString(), '2');
 
     const filter = governableInstance.filters.GovernanceOwnershipTransferred();
     const events = await governableInstance.queryFilter(filter);
@@ -145,6 +145,7 @@ describe('Governable Contract', () => {
 
   it('should vote validly and change the governor', async () => {
     const voteStruct = {
+      nonce: await governableInstance.refreshNonce(),
       leafIndex: 0,
       siblingPathNodes: ['0x0000000000000000000000000000000000000000000000000000000000000001'],
       proposedGovernor: '0x1111111111111111111111111111111111111111',
@@ -155,7 +156,7 @@ describe('Governable Contract', () => {
       'Invalid time for vote'
     );
 
-    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '0');
+    assert.strictEqual((await governableInstance.refreshNonce()).toString(), '0');
     const wallet = ethers.Wallet.createRandom();
     const key = ec.keyFromPrivate(wallet.privateKey.slice(2), 'hex');
     const pubkey = key.getPublic().encode('hex').slice(2);
@@ -256,10 +257,11 @@ describe('Governable Contract', () => {
     );
     assert.strictEqual((await governableInstance.voterCount()).toString(), '4');
     assert.strictEqual(await governableInstance.voterMerkleRoot(), voterMerkleRoot);
-    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '2');
+    assert.strictEqual((await governableInstance.refreshNonce()).toString(), '2');
     await network.provider.send('evm_increaseTime', [600]);
 
     const vote0 = {
+      nonce: await governableInstance.refreshNonce(),
       leafIndex: 0,
       siblingPathNodes: [hashVoter1, hashVoter23],
       proposedGovernor: '0x1111111111111111111111111111111111111111',
@@ -273,6 +275,7 @@ describe('Governable Contract', () => {
     );
 
     const vote1 = {
+      nonce: await governableInstance.refreshNonce(),
       leafIndex: 1,
       siblingPathNodes: [hashVoter0, hashVoter23],
       proposedGovernor: '0x1111111111111111111111111111111111111111',
@@ -286,6 +289,8 @@ describe('Governable Contract', () => {
     );
 
     const vote2 = {
+      nonce: await governableInstance.refreshNonce(),
+
       leafIndex: 2,
       siblingPathNodes: [hashVoter3, hashVoter01],
       proposedGovernor: '0x1111111111111111111111111111111111111111',
@@ -297,6 +302,6 @@ describe('Governable Contract', () => {
       await governableInstance.governor(),
       '0x1111111111111111111111111111111111111111'
     );
-    assert.strictEqual((await governableInstance.currentVotingPeriod()).toString(), '3');
+    assert.strictEqual((await governableInstance.refreshNonce()).toString(), '3');
   });
 });

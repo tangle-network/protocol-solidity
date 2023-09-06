@@ -4,10 +4,10 @@ compile () {
     local outdir="$1" circuit="$2" size="$3"
     mkdir -p build/$outdir
     mkdir -p build/$outdir/$size
-    echo "circuits/test/$circuit.circom"
+    echo "circuits/main/$circuit.circom"
     ~/.cargo/bin/circom --r1cs --wasm --sym \
         -o artifacts/circuits/$outdir \
-        circuits/test/$circuit.circom
+        circuits/main/$circuit.circom
     echo -e "Done!\n"
 }
 
@@ -76,16 +76,8 @@ echo "Compiling Webb style variable Poseidon vanchor 8 circuit w/ 16 inputs"
 compile vanchor_16 poseidon_vanchor_16_8 8
 copy_to_fixtures vanchor_16 poseidon_vanchor_16_8 8 vanchor_16
 
-# echo "Compiling Poseidon4 test gadget"
-# compile poseidon4 poseidon4_test 4
-# copy_to_fixtures poseidon4 poseidon4_test 4 none
-
-# Keypair and Signature Circuits
+# Keypair Circuits
 
 # echo "Compiling Keypair Circuit"
 # compile keypair keypair_test 0
 # copy_to_fixtures keypair keypair_test 0 none
-#
-# echo "Compiling Signature Circuit"
-# compile signature signature_test
-# copy_to_fixtures signature signature_test 0 none

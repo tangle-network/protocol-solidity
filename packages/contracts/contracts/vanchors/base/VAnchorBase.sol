@@ -73,6 +73,10 @@ abstract contract VAnchorBase is LinkableAnchor {
 		uint256 _minimumWithdrawalAmount,
 		uint32 _nonce
 	) public override onlyHandler onlyIncrementingByOne(_nonce) onlyInitialized {
+		require(
+			_minimumWithdrawalAmount < uint256(MAX_EXT_AMOUNT),
+			"Invalid minimum withdrawal amount"
+		);
 		_configureMinimumWithdrawalLimit(_minimumWithdrawalAmount);
 		emit MinWithdrawalLimitUpdated(_minimumWithdrawalAmount, _nonce);
 	}
@@ -81,6 +85,7 @@ abstract contract VAnchorBase is LinkableAnchor {
 		uint256 _maximumDepositAmount,
 		uint32 _nonce
 	) public override onlyHandler onlyIncrementingByOne(_nonce) onlyInitialized {
+		require(_maximumDepositAmount < uint256(MAX_EXT_AMOUNT), "Invalid maximum deposit amount");
 		_configureMaximumDepositLimit(_maximumDepositAmount);
 		emit MaxDepositLimitUpdated(_maximumDepositAmount, _nonce);
 	}
@@ -148,7 +153,7 @@ abstract contract VAnchorBase is LinkableAnchor {
 		address _fromTokenAddress,
 		address _toTokenAddress,
 		uint256 _extAmount
-	) public payable returns (uint256) {
+	) internal returns (uint256) {
 		// Before executing the wrapping, determine the amount which needs to be sent to the tokenWrapper
 		uint256 wrapAmount = ITokenWrapper(_toTokenAddress).getAmountToWrap(_extAmount);
 		// If the address is zero, this is meant to wrap native tokens
@@ -187,7 +192,7 @@ abstract contract VAnchorBase is LinkableAnchor {
 		address _toTokenAddress,
 		address _recipient,
 		uint256 _minusExtAmount
-	) public payable {
+	) internal {
 		// We first withdraw the assets and send them to `this` contract address.
 		// This ensure that when we unwrap the assets, `this` contract has the
 		// assets to unwrap into.

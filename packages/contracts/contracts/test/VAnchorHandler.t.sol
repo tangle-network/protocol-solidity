@@ -119,7 +119,7 @@ contract VAnchorHandlerTest is Deployer {
 		testVAnchor.initialize(0, 100 ether);
 
 		bytes32 testVanchorResourceId = setResource(
-			uint32(bridge.getProposalNonce() + 1),
+			uint32(bridge.proposalNonce() + 1),
 			address(testVAnchor),
 			address(anchorHandler)
 		);
@@ -223,6 +223,7 @@ contract VAnchorHandlerTest is Deployer {
 
 	function test_setMaximumDepositLimitProposal(uint256 newMaxDeposit) public {
 		vm.assume(newMaxDeposit != vanchor.maximumDepositAmount());
+		vm.assume(newMaxDeposit < uint256(vanchor.MAX_EXT_AMOUNT()));
 		this.executeSetMaximumDepositLimitProposal(
 			vanchorResourceId,
 			uint32(vanchor.proposalNonce()) + 1,
@@ -233,6 +234,7 @@ contract VAnchorHandlerTest is Deployer {
 
 	function test_setMinimumWithdrawalLimitProposal(uint256 newMinWithdrawal) public {
 		vm.assume(newMinWithdrawal != vanchor.minimumWithdrawalAmount());
+		vm.assume(newMinWithdrawal < uint256(vanchor.MAX_EXT_AMOUNT()));
 		this.executeSetMinimumWithdrawalLimitProposal(
 			vanchorResourceId,
 			uint32(vanchor.proposalNonce()) + 1,
@@ -246,19 +248,19 @@ contract VAnchorHandlerTest is Deployer {
 		vm.assume(newHandler != address(0));
 		// With non-incremented nonce
 		uint32 nonce = vanchor.proposalNonce();
-		vm.expectRevert(bytes("ProposalNonceTracker: Invalid nonce"));
+		vm.expectRevert(bytes("ProposalNonceTracker: Nonce must increment by 1"));
 		this.executeSetMaximumDepositLimitProposal(vanchorResourceId, nonce, 100 ether);
-		vm.expectRevert(bytes("ProposalNonceTracker: Invalid nonce"));
+		vm.expectRevert(bytes("ProposalNonceTracker: Nonce must increment by 1"));
 		this.executeSetMinimumWithdrawalLimitProposal(vanchorResourceId, nonce, 0);
-		vm.expectRevert(bytes("ProposalNonceTracker: Invalid nonce"));
+		vm.expectRevert(bytes("ProposalNonceTracker: Nonce must increment by 1"));
 		this.executeSetHandlerProposal(vanchorResourceId, nonce, newHandler);
 		// With incremented too much nonce
 		nonce = vanchor.proposalNonce() + 2;
-		vm.expectRevert("ProposalNonceTracker: Nonce must not increment more than 1");
+		vm.expectRevert("ProposalNonceTracker: Nonce must increment by 1");
 		this.executeSetMaximumDepositLimitProposal(vanchorResourceId, nonce, 100 ether);
-		vm.expectRevert("ProposalNonceTracker: Nonce must not increment more than 1");
+		vm.expectRevert("ProposalNonceTracker: Nonce must increment by 1");
 		this.executeSetMinimumWithdrawalLimitProposal(vanchorResourceId, nonce, 0);
-		vm.expectRevert("ProposalNonceTracker: Nonce must not increment more than 1");
+		vm.expectRevert("ProposalNonceTracker: Nonce must increment by 1");
 		this.executeSetHandlerProposal(vanchorResourceId, nonce, newHandler);
 	}
 

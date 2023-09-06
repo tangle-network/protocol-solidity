@@ -5,10 +5,14 @@
 
 pragma solidity ^0.8.18;
 
+/// @title DeterministicDeployFactory contract.
+/// @notice This contract is used to deploy contracts deterministically w/ create2.
+/// @notice zkSync requires that any bytecode passed into deploy can be determined statically.
+/// This means that this contract cannot be deployed properly on zkSync (V-WBT-VUL-026: Create2 Compatibility Problems).
 contract DeterministicDeployFactory {
 	event Deploy(address addr);
 
-	function deploy(bytes memory bytecode, uint _salt) external returns (address) {
+	function deploy(bytes memory bytecode, uint _salt) public returns (address) {
 		address addr;
 		assembly {
 			addr := create2(0, add(bytecode, 0x20), mload(bytecode), _salt)
@@ -38,7 +42,7 @@ contract DeterministicDeployFactory {
 		uint256 _limit,
 		bool _isNativeAllowed
 	) external {
-		address c = this.deploy(bytecode, _salt);
+		address c = deploy(bytecode, _salt);
 		// delegate call initialize the contract created with the msg.sender
 		(bool success, bytes memory data) = c.call(
 			abi.encodeWithSignature(
@@ -64,7 +68,7 @@ contract DeterministicDeployFactory {
 		uint256 _minimumWithdrawalAmount,
 		uint256 _maximumDepositAmount
 	) external {
-		address c = this.deploy(bytecode, _salt);
+		address c = deploy(bytecode, _salt);
 		// delegate call initialize the contract created with the msg.sender
 		(bool success, bytes memory data) = c.call(
 			abi.encodeWithSignature(

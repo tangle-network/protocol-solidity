@@ -26,7 +26,7 @@ template DualMux() {
     out[1] <== (in[0] - in[1])*s + in[1];
 }
 
-// Verifies that merkle proof is correct for given merkle root and a leaf
+// Computes and outputs a merkle root based on the provided merkle proof.
 // pathIndices input is an array of 0/1 selectors telling whether given pathElement is on the left or right side of merkle path
 template RawMerkleTree(levels) {
     signal input leaf;

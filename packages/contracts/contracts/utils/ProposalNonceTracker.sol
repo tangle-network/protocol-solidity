@@ -13,10 +13,9 @@ contract ProposalNonceTracker {
 
 	modifier manyIncrementingByOne(uint32[] memory nonces) {
 		for (uint256 i = 0; i < nonces.length; i++) {
-			require(proposalNonce < nonces[i], "ProposalNonceTracker: Invalid nonce");
 			require(
-				nonces[i] <= proposalNonce + 1,
-				"ProposalNonceTracker: Nonce must not increment more than 1"
+				nonces[i] == proposalNonce + 1,
+				"ProposalNonceTracker: Nonce must increment by 1"
 			);
 			proposalNonce = nonces[i];
 		}
@@ -24,26 +23,8 @@ contract ProposalNonceTracker {
 	}
 
 	modifier onlyIncrementingByOne(uint32 nonce) {
-		require(proposalNonce < nonce, "ProposalNonceTracker: Invalid nonce");
-		require(
-			nonce <= proposalNonce + 1,
-			"ProposalNonceTracker: Nonce must not increment more than 1"
-		);
+		require(nonce == proposalNonce + 1, "ProposalNonceTracker: Nonce must increment by 1");
 		proposalNonce = nonce;
 		_;
-	}
-
-	modifier onlyIncrementingByAtMost1048(uint32 nonce) {
-		require(proposalNonce < nonce, "ProposalNonceTracker: Invalid nonce");
-		require(
-			nonce <= proposalNonce + 1048,
-			"ProposalNonceTracker: Nonce must not increment more than 1"
-		);
-		proposalNonce = nonce;
-		_;
-	}
-
-	function getProposalNonce() external view returns (uint32) {
-		return proposalNonce;
 	}
 }

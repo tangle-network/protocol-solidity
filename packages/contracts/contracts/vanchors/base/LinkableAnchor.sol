@@ -46,6 +46,8 @@ abstract contract LinkableAnchor is
 {
 	address public handler;
 
+	uint32 public immutable UPDATE_MAX_LENGTH = 2 ** 16;
+
 	/// The maximum number of edges this tree can support for zero-knowledge linkability.
 	uint8 public immutable maxEdges;
 	uint32 public immutable outerLevels;
@@ -75,6 +77,12 @@ abstract contract LinkableAnchor is
 	/// @param _outerTreeHeight The height of outer-most merkle tree
 	/// @param _maxEdges The maximum # of edges this linkable tree connects to
 	constructor(address _handler, uint32 _outerTreeHeight, uint8 _maxEdges) {
+		require(_handler != address(0), "LinkableAnchor: Handler cannot be 0 address");
+		require(_maxEdges > 0, "LinkableAnchor: maxEdges must be greater than 0");
+		require(
+			_outerTreeHeight >= 1 && _outerTreeHeight <= 32,
+			"LinkableAnchor: outerTreeHeight must be between 1 and 32"
+		);
 		handler = _handler;
 		outerLevels = _outerTreeHeight;
 		maxEdges = _maxEdges;
@@ -98,7 +106,7 @@ abstract contract LinkableAnchor is
 			);
 			// Require leaf index increase is bounded by 65,536 updates at once
 			require(
-				_leafIndex < edgeList[edgeIndex[_srcChainID]].latestLeafIndex + (65_536),
+				_leafIndex < edgeList[edgeIndex[_srcChainID]].latestLeafIndex + UPDATE_MAX_LENGTH,
 				"LinkableAnchor: New leaf index must be within 2^16 updates"
 			);
 			require(
@@ -222,16 +230,5 @@ abstract contract LinkableAnchor is
 	/// @notice Checks the `_chainID` has an edge on this contract
 	function hasEdge(uint256 _chainID) external view returns (bool) {
 		return edgeExistsForChain[_chainID];
-	}
-
-	/// @notice Decodes a byte string of roots into its parts.
-	/// @return bytes32[] An array of bytes32 merkle roots
-	function decodeRoots(bytes calldata roots) internal view returns (bytes32[] memory) {
-		bytes32[] memory decodedRoots = new bytes32[](maxEdges + 1);
-		for (uint i = 0; i <= maxEdges; i++) {
-			decodedRoots[i] = bytes32(roots[32 * i:32 * (i + 1)]);
-		}
-
-		return decodedRoots;
 	}
 }

@@ -60,12 +60,14 @@ contract TreasuryHandler is IExecutor, HandlerHelpers {
 		ITreasury treasury = ITreasury(treasuryAddress);
 
 		if (functionSig == bytes4(keccak256("setHandler(address,uint32)"))) {
+			require(arguments.length == 24, "TreasuryHandler: Invalid arguments length");
 			uint32 nonce = uint32(bytes4(arguments[0:4]));
 			address newHandler = address(bytes20(arguments[4:24]));
 			treasury.setHandler(newHandler, nonce);
 		} else if (
 			functionSig == bytes4(keccak256("rescueTokens(address,address,uint256,uint32)"))
 		) {
+			require(arguments.length == 76, "TreasuryHandler: Invalid arguments length");
 			uint32 nonce = uint32(bytes4(arguments[0:4]));
 			address tokenAddress = address(bytes20(arguments[4:24]));
 			address payable to = payable(address(bytes20(arguments[24:44])));

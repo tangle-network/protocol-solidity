@@ -156,7 +156,7 @@ contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 		// Parse resourceID from the data
 		bytes32 resourceID = bytes32(data[0:32]);
 		require(
-			this.isCorrectExecutionChain(resourceID),
+			isCorrectExecutionChain(resourceID),
 			"SignatureBridge: Batch Executing on wrong chain"
 		);
 		address handler = _resourceIdToHandlerAddress[resourceID];
@@ -171,11 +171,11 @@ contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 		address handlerAddress
 	) internal {
 		require(
-			this.isCorrectExecutionChain(resourceID),
+			isCorrectExecutionChain(resourceID),
 			"SignatureBridge::adminSetResourceWithSignature: Executing on wrong chain"
 		);
 		require(
-			this.isCorrectExecutionChain(newResourceID),
+			isCorrectExecutionChain(newResourceID),
 			"SignatureBridge::adminSetResourceWithSignature: Executing on wrong chain"
 		);
 		require(

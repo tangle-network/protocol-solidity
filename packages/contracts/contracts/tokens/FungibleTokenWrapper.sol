@@ -95,6 +95,8 @@ contract FungibleTokenWrapper is TokenWrapper, IFungibleTokenWrapper, ProposalNo
 	/// @param _tokenAddress The address of the token to be added
 	/// @param _nonce The nonce tracking updates to this contract
 	/// @notice Only the handler can call this function
+	/// @notice Multiple tokens are allowed to be added to a wrapping. The risk of adding
+	/// multiple tokens to the wrapping is managed through the governance of the system.
 	function add(
 		address _tokenAddress,
 		uint32 _nonce
@@ -201,6 +203,8 @@ contract FungibleTokenWrapper is TokenWrapper, IFungibleTokenWrapper, ProposalNo
 	/// @notice Checks if an amount of the underlying token can be wrapped or if the limit has been reached
 	/// @param _amount The amount of the underlying token to be wrapped
 	/// @return bool Whether or not the amount can be wrapped
+	/// @notice It is assumed that the amount being wrapped is 1:1 with the underlying token, so that
+	/// the amount being wrapped is the same as the amount of the underlying token in denomination.
 	function _isValidAmount(uint256 _amount) internal view virtual override returns (bool) {
 		return _amount + this.totalSupply() <= wrappingLimit;
 	}

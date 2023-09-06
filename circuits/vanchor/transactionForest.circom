@@ -53,6 +53,7 @@ template TransactionForest(forestLevels, subtreeLevels, nIns, nOuts, zeroLeaf, l
     component inNullifierHasher[nIns];
     component inTree[nIns];
     component inCheckRoot[nIns];
+    component isZeroLeaf[nIns];
     var sumIns = 0;
 
     // verify correctness of transaction inputs
@@ -65,6 +66,11 @@ template TransactionForest(forestLevels, subtreeLevels, nIns, nOuts, zeroLeaf, l
         inCommitmentHasher[tx].inputs[1] <== inAmount[tx];
         inCommitmentHasher[tx].inputs[2] <== inKeypair[tx].publicKey;
         inCommitmentHasher[tx].inputs[3] <== inBlinding[tx];
+
+        isZeroLeaf[tx] = IsEqual();
+        isZeroLeaf[tx].in[0] <== inAmount[tx];
+        isZeroLeaf[tx].in[1] <== zeroLeaf;
+        isZeroLeaf[tx].out === 0;
 
         inSignature[tx] = Signature();
         inSignature[tx].privateKey <== inPrivateKey[tx];

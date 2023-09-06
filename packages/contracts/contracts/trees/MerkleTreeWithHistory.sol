@@ -24,7 +24,7 @@ abstract contract MerkleTreeWithHistory is MerkleSystem {
 	}
 
 	/// @inheritdoc IMerkleSystem
-	function getZeroHash(uint32 index) external view override returns (uint256) {
+	function getZeroHash(uint32 index) public view override returns (uint256) {
 		return uint256(hasher.zeros(index));
 	}
 
@@ -97,9 +97,10 @@ abstract contract MerkleTreeWithHistory is MerkleSystem {
 	// Disclaimer: using this function assumes both leaves are siblings.
 	function _insertTwo(uint256 _leaf1, uint256 _leaf2) internal override returns (uint32 index) {
 		uint32 _nextIndex = nextIndex;
+		require(_nextIndex % 2 == 0, "MerkleTreeWithHistory: nextIndex must be even");
 		require(
 			_nextIndex != uint32(2) ** levels,
-			"Merkle tree is full. No more leaves can be added"
+			"MerkleTreeWithHistory: Merkle tree is full. No more leaves can be added"
 		);
 		uint32 currentIndex = _nextIndex / 2;
 		uint256 currentLevelHash = hashLeftRight(_leaf1, _leaf2);

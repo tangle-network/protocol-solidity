@@ -14,47 +14,24 @@ import { SnarkConstants } from "./SnarkConstants.sol";
 /// @notice This contract is meant to be used for poseidon merkle trees and other poseidon based hashing.
 contract PoseidonHasher is SnarkConstants, IHasher {
 	function hash1(uint256 value) public pure returns (uint256) {
+		require(value < SNARK_SCALAR_FIELD, "Value not in field");
 		uint256[1] memory input;
 		input[0] = value;
 		return PoseidonT2.poseidon(input);
 	}
 
 	function hash3(uint256[3] memory array) public pure override returns (uint256) {
+		for (uint256 i = 0; i < array.length; i++) {
+			require(array[i] < SNARK_SCALAR_FIELD, "Value not in field");
+		}
 		return PoseidonT4.poseidon(array);
 	}
 
 	function hash4(uint256[4] memory array) public pure override returns (uint256) {
-		return PoseidonT5.poseidon(array);
-	}
-
-	function hash5(uint256[5] memory array) public pure returns (uint256) {
-		return PoseidonT6.poseidon(array);
-	}
-
-	function hash11(uint256[] memory array) public pure returns (uint256) {
-		uint256[] memory input11 = new uint256[](11);
-		uint256[5] memory first5;
-		uint256[5] memory second5;
 		for (uint256 i = 0; i < array.length; i++) {
-			input11[i] = array[i];
+			require(array[i] < SNARK_SCALAR_FIELD, "Value not in field");
 		}
-
-		for (uint256 i = array.length; i < 11; i++) {
-			input11[i] = 0;
-		}
-
-		for (uint256 i = 0; i < 5; i++) {
-			first5[i] = input11[i];
-			second5[i] = input11[i + 5];
-		}
-
-		uint256[2] memory first2;
-		first2[0] = PoseidonT6.poseidon(first5);
-		first2[1] = PoseidonT6.poseidon(second5);
-		uint256[2] memory second2;
-		second2[0] = PoseidonT3.poseidon(first2);
-		second2[1] = input11[10];
-		return PoseidonT3.poseidon(second2);
+		return PoseidonT5.poseidon(array);
 	}
 
 	function hashLeftRight(uint256 _left, uint256 _right) public pure override returns (uint256) {
