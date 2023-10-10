@@ -7,6 +7,7 @@ import {
   PoseidonT4__factory,
   PoseidonT5__factory,
   PoseidonT6__factory,
+  PoseidonT7__factory,
 } from '@webb-tools/contracts';
 import { Deployer } from '@webb-tools/create2-utils';
 import { poseidon_gencontract as poseidonContract } from 'circomlibjs';
@@ -52,6 +53,11 @@ export class PoseidonHasher {
       saltHex,
       signer
     );
+    const { contract: poseidonT7Library } = await deployer.deploy(
+      PoseidonT7__factory,
+      saltHex,
+      signer
+    );
 
     const libraryAddresses = {
       ['contracts/hashers/Poseidon.sol:PoseidonT2']: poseidonT2Library.address,
@@ -59,6 +65,7 @@ export class PoseidonHasher {
       ['contracts/hashers/Poseidon.sol:PoseidonT4']: poseidonT4Library.address,
       ['contracts/hashers/Poseidon.sol:PoseidonT5']: poseidonT5Library.address,
       ['contracts/hashers/Poseidon.sol:PoseidonT6']: poseidonT6Library.address,
+      ['contracts/hashers/Poseidon.sol:PoseidonT7']: poseidonT7Library.address,
     };
     const { contract } = await deployer.deploy(
       PoseidonHasher__factory,
@@ -112,12 +119,21 @@ export class PoseidonHasher {
     const poseidonT6Library = await poseidonT6LibraryFactory.deploy();
     await poseidonT6Library.deployed();
 
+    const poseidonT7LibraryFactory = new ethers.ContractFactory(
+      poseidonABI(6),
+      poseidonBytecode(6),
+      signer
+    );
+    const poseidonT7Library = await poseidonT7LibraryFactory.deploy();
+    await poseidonT7Library.deployed();
+
     const libraryAddresses = {
       ['contracts/hashers/Poseidon.sol:PoseidonT2']: poseidonT2Library.address,
       ['contracts/hashers/Poseidon.sol:PoseidonT3']: poseidonT3Library.address,
       ['contracts/hashers/Poseidon.sol:PoseidonT4']: poseidonT4Library.address,
       ['contracts/hashers/Poseidon.sol:PoseidonT5']: poseidonT5Library.address,
       ['contracts/hashers/Poseidon.sol:PoseidonT6']: poseidonT6Library.address,
+      ['contracts/hashers/Poseidon.sol:PoseidonT7']: poseidonT7Library.address,
     };
     const factory = new PoseidonHasher__factory(libraryAddresses, signer);
 

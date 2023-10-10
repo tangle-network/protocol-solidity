@@ -27,3 +27,7 @@ library PoseidonT5 {
 library PoseidonT6 {
 	function poseidon(uint256[5] memory input) public pure returns (uint256) {}
 }
+
+library PoseidonT7 {
+	function poseidon(uint256[6] memory input) public pure returns (uint256) {}
+}

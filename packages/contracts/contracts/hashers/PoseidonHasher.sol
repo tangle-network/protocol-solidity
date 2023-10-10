@@ -6,18 +6,27 @@
 pragma solidity ^0.8.18;
 
 import "./IHasher.sol";
-import { PoseidonT2, PoseidonT3, PoseidonT4, PoseidonT5, PoseidonT6 } from "./Poseidon.sol";
+import { PoseidonT2, PoseidonT3, PoseidonT4, PoseidonT5, PoseidonT6, PoseidonT7 } from "./Poseidon.sol";
 import { SnarkConstants } from "./SnarkConstants.sol";
 
 /// @title Poseidon hash functions for 2, 4, 5, and 11 input elements.
 /// @author Webb Technologies.
 /// @notice This contract is meant to be used for poseidon merkle trees and other poseidon based hashing.
 contract PoseidonHasher is SnarkConstants, IHasher {
+	uint32 internal constant BATCH_SIZE = 6;
+
 	function hash1(uint256 value) public pure returns (uint256) {
 		require(value < SNARK_SCALAR_FIELD, "Value not in field");
 		uint256[1] memory input;
 		input[0] = value;
 		return PoseidonT2.poseidon(input);
+	}
+
+	function hash2(uint256[2] memory array) public pure override returns (uint256) {
+		for (uint256 i = 0; i < array.length; i++) {
+			require(array[i] < SNARK_SCALAR_FIELD, "Value not in field");
+		}
+		return PoseidonT3.poseidon(array);
 	}
 
 	function hash3(uint256[3] memory array) public pure override returns (uint256) {
@@ -32,6 +41,45 @@ contract PoseidonHasher is SnarkConstants, IHasher {
 			require(array[i] < SNARK_SCALAR_FIELD, "Value not in field");
 		}
 		return PoseidonT5.poseidon(array);
+	}
+
+	function hash5(uint256[5] memory array) public pure override returns (uint256) {
+		for (uint256 i = 0; i < array.length; i++) {
+			require(array[i] < SNARK_SCALAR_FIELD, "Value not in field");
+		}
+		return PoseidonT6.poseidon(array);
+	}
+
+	function hash6(uint256[6] memory array) public pure override returns (uint256) {
+		for (uint256 i = 0; i < array.length; i++) {
+			require(array[i] < SNARK_SCALAR_FIELD, "Value not in field");
+		}
+		return PoseidonT7.poseidon(array);
+	}
+
+	function hash(uint256[] calldata values) public pure returns (uint256) {
+		uint256[BATCH_SIZE] memory frame = [uint256(0), 0, 0, 0, 0, 0];
+		bool dirty = false;
+		uint256 fullHash = 0;
+		uint32 k = 0;
+		for (uint32 i = 0; i < values.length; i++) {
+			dirty = true;
+			frame[k] = values[i];
+			if (k == BATCH_SIZE - 1) {
+				fullHash = PoseidonT7.poseidon(frame);
+				dirty = false;
+				frame = [uint256(0), 0, 0, 0, 0, 0];
+				frame[0] = fullHash;
+				k = 1;
+			} else {
+				k++;
+			}
+		}
+		if (dirty) {
+			// we haven't hashed something in the main sponge loop and need to do hash here
+			fullHash = PoseidonT7.poseidon(frame);
+		}
+		return fullHash;
 	}
 
 	function hashLeftRight(uint256 _left, uint256 _right) public pure override returns (uint256) {

@@ -11,11 +11,31 @@ import "./IHasher.sol";
 /// @author Webb Technologies.
 /// @notice This contract is intended to be used with keccak merkle trees.
 contract KeccakHasher is IHasher {
+	function hash1(uint256 value) public pure override returns (uint256) {
+		return uint256(keccak256(abi.encodePacked(value)));
+	}
+
+	function hash2(uint256[2] memory array) public pure override returns (uint256) {
+		return uint256(keccak256(abi.encodePacked(array)));
+	}
+
 	function hash3(uint256[3] memory array) public pure override returns (uint256) {
 		return uint256(keccak256(abi.encodePacked(array)));
 	}
 
 	function hash4(uint256[4] memory array) public pure override returns (uint256) {
+		return uint256(keccak256(abi.encodePacked(array)));
+	}
+
+	function hash5(uint256[5] memory array) public pure override returns (uint256) {
+		return uint256(keccak256(abi.encodePacked(array)));
+	}
+
+	function hash6(uint256[6] memory array) public pure override returns (uint256) {
+		return uint256(keccak256(abi.encodePacked(array)));
+	}
+
+	function hash(uint256[] memory array) public pure override returns (uint256) {
 		return uint256(keccak256(abi.encodePacked(array)));
 	}
 
