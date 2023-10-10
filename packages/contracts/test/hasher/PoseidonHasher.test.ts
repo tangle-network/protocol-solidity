@@ -21,6 +21,12 @@ contract('Poseidon hasher', (accounts) => {
     });
 
     describe('#sponge-hash', () => {
+        it('should hash a random value', async () => {
+            const input = randomBN();
+            let contractResult = await hasherInstance.contract.hash1(input);
+            let result = poseidon([input]);
+            assert.strictEqual(result.toString(), contractResult.toString());
+        });
         it('should hash random values of 6-elements array', async () => {
             const inputs: any = [];
             for (let i = 0; i < 6; i++) {
