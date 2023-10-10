@@ -8,6 +8,7 @@ import { BigNumber } from 'ethers';
 import { contract, ethers } from 'hardhat';
 import { PoseidonHasher } from '@webb-tools/anchors';
 const assert = require('assert');
+import { poseidon } from 'circomlibjs';
 
 contract('Poseidon hasher', (accounts) => {
     let hasherInstance: PoseidonHasher;
@@ -20,9 +21,18 @@ contract('Poseidon hasher', (accounts) => {
     });
 
     describe('#sponge-hash', () => {
-        it('should hash random values of array', async () => {
+        it('should hash random values of 6-elements array', async () => {
             const inputs: any = [];
-            for (let i = 0; i < 13; i++) {
+            for (let i = 0; i < 6; i++) {
+                inputs.push(randomBN());
+            }
+            let contractResult = await hasherInstance.contract.hash6(inputs);
+            let result = poseidon(inputs);
+            assert.strictEqual(result.toString(), contractResult.toString());
+        });
+        it('should hash random values of 50-elements array', async () => {
+            const inputs: any = [];
+            for (let i = 0; i < 50; i++) {
                 inputs.push(randomBN());
             }
             let contractResult = await hasherInstance.contract.hash(inputs);
