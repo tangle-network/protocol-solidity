@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import { BigNumber, BigNumberish, BytesLike, ethers } from 'ethers';
 import { FIELD_SIZE } from './protocol';
-
+import { poseidon } from 'circomlibjs';
 import EC from 'elliptic';
 
 export const median = (arr: number[]): number => {
@@ -107,4 +107,47 @@ export const signMessage = (wallet: ethers.Wallet, data: BytesLike) => {
   }
 
   return sig;
+};
+
+export const poseidonSpongeHash = (values: BigNumber[]): BigNumber => {
+  const BATCH_SIZE = 6;
+
+  let frame: BigNumber[] = [
+    BigNumber.from(0),
+    BigNumber.from(0),
+    BigNumber.from(0),
+    BigNumber.from(0),
+    BigNumber.from(0),
+    BigNumber.from(0),
+  ];
+  let dirty = false;
+  let fullHash: BigNumber = BigNumber.from(0);
+  let k = 0;
+
+  for (let i = 0; i < values.length; i++) {
+    dirty = true;
+    frame[k] = values[i];
+
+    if (k === BATCH_SIZE - 1) {
+      fullHash = poseidon(frame);
+      dirty = false;
+      frame = [
+        fullHash,
+        BigNumber.from(0),
+        BigNumber.from(0),
+        BigNumber.from(0),
+        BigNumber.from(0),
+        BigNumber.from(0),
+      ];
+      k = 1;
+    } else {
+      k++;
+    }
+  }
+
+  if (dirty) {
+    fullHash = poseidon(frame);
+  }
+
+  return fullHash;
 };
