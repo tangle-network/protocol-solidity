@@ -15,7 +15,7 @@
     "circomlibjs": "^0.0.8",
     "elliptic": "6.5.4",
     "ethers": "5.7.0",
-    "snarkjs": "^0.6.10"
+    "snarkjs": "^0.7.2"
   },
   "publishConfig": {
     "access": "public"
@@ -30,5 +30,37 @@
   "devDependencies": {
     "@webb-tools/sdk-core": "0.1.4-126",
     "chai": "^4.3.7"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./bytes": {
+      "types": "./dist/bytes/index.d.ts",
+      "require": "./dist/bytes/index.js",
+      "default": "./dist/bytes/index.js"
+    },
+    "./proof": {
+      "types": "./dist/proof/index.d.ts",
+      "require": "./dist/proof/index.js",
+      "default": "./dist/proof/index.js"
+    },
+    "./protocol": {
+      "types": "./dist/protocol/index.d.ts",
+      "require": "./dist/protocol/index.js",
+      "default": "./dist/protocol/index.js"
+    },
+    "./fixtures": {
+      "types": "./dist/fixtures.d.ts",
+      "require": "./dist/fixtures.js",
+      "default": "./dist/fixtures.js"
+    },
+    "./utils": {
+      "types": "./dist/utils.d.ts",
+      "require": "./dist/utils.js",
+      "default": "./dist/utils.js"
+    }
   }
 }
