@@ -15,6 +15,7 @@ export class SignatureBridgeSide<A extends BaseContract> implements IBridgeSide 
   contract: SignatureBridge;
   admin: ethers.Signer;
   governor: ethers.Wallet | string;
+  jobId: number;
   anchorHandler: AnchorHandler;
   tokenHandler: TokenWrapperHandler;
   treasuryHandler: TreasuryHandler;
@@ -42,26 +43,27 @@ export class SignatureBridgeSide<A extends BaseContract> implements IBridgeSide 
    * @param admin - The deployer and governor upon creation.
    */
   public static async createBridgeSide<A extends BaseContract>(
-    admin: ethers.Wallet
+    admin: ethers.Wallet,
   ): Promise<SignatureBridgeSide<A>> {
     const bridgeFactory = new SignatureBridge__factory(admin);
-    const deployedBridge = await bridgeFactory.deploy(admin.address, 0);
+    const deployedBridge = await bridgeFactory.deploy(admin.address, 0, 1);
     await deployedBridge.deployed();
     const bridgeSide = new SignatureBridgeSide(deployedBridge, (data: any) => {
       return Promise.resolve(signMessage(admin, data));
     });
     bridgeSide.admin = admin;
     bridgeSide.governor = admin;
+    bridgeSide.jobId = 0;
     return bridgeSide;
   }
 
   public static async create2BridgeSide<A extends BaseContract>(
     deployer: Deployer,
     saltHex: string,
-    admin: ethers.Wallet
+    admin: ethers.Wallet,
   ): Promise<SignatureBridgeSide<A>> {
     const argTypes = ['address', 'uint32'];
-    const args = [admin.address, 0];
+    const args = [admin.address, 0, 1];
     const { contract: deployedBridge } = await deployer.deploy(
       SignatureBridge__factory,
       saltHex,
@@ -75,6 +77,7 @@ export class SignatureBridgeSide<A extends BaseContract> implements IBridgeSide 
     });
     bridgeSide.admin = admin;
     bridgeSide.governor = admin;
+    bridgeSide.jobId = 0;
     return bridgeSide;
   }
 
@@ -124,9 +127,10 @@ export class SignatureBridgeSide<A extends BaseContract> implements IBridgeSide 
    * Transfers ownership directly from the current governor to the new governor.
    * Note that this requires an externally-signed transaction from the current governor.
    * @param newOwner The new owner of the bridge
+   * @param jobId The JobId of the new owner
    */
-  public async transferOwnership(newOwner: string, nonce: number) {
-    return this.contract.transferOwnership(newOwner, nonce, {
+  public async transferOwnership(newOwner: string, jobId: number) {
+    return this.contract.transferOwnership(newOwner, jobId, {
       gasLimit: '0x5B8D80',
     });
   }

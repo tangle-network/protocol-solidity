@@ -46,7 +46,9 @@ contract SignatureBridge is Governable, ChainIdWithType, ProposalNonceTracker {
 
 	/// @notice Initializes SignatureBridge with a governor
 	/// @param initialGovernor Addresses that should be initially granted the relayer role.
-	constructor(address initialGovernor, uint32 nonce) Governable(initialGovernor, nonce) {}
+	/// @param jobId JobId of the governor.
+	/// @param votingThreshold Number of votes required to force set the governor.
+	constructor(address initialGovernor, uint32 jobId, uint32 votingThreshold) Governable(initialGovernor, jobId, votingThreshold) {}
 
 	/// @notice Sets a new resource for handler contracts that use the IExecutor interface,
 	/// and maps the {handlerAddress} to {newResourceID} in {_resourceIdToHandlerAddress}.
