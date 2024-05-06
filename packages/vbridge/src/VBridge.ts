@@ -246,9 +246,9 @@ export class VBridge<A extends BaseContract> {
 
       const governorAddress =
         typeof initialGovernor === 'string' ? initialGovernor : initialGovernor.address;
-      const governorNonce = typeof initialGovernor === 'string' ? 0 : initialGovernor.nonce;
+      const governorJobId = typeof initialGovernor === 'string' ? 0 : initialGovernor.jobId;
       // Transfer ownership of the bridge to the initialGovernor
-      const tx = await vBridgeInstance.transferOwnership(governorAddress, governorNonce);
+      const tx = await vBridgeInstance.transferOwnership(governorAddress, governorJobId);
       await tx.wait();
       vBridgeSides.set(chainId, vBridgeInstance);
     }
