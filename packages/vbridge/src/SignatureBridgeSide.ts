@@ -43,7 +43,7 @@ export class SignatureBridgeSide<A extends BaseContract> implements IBridgeSide 
    * @param admin - The deployer and governor upon creation.
    */
   public static async createBridgeSide<A extends BaseContract>(
-    admin: ethers.Wallet,
+    admin: ethers.Wallet
   ): Promise<SignatureBridgeSide<A>> {
     const bridgeFactory = new SignatureBridge__factory(admin);
     const deployedBridge = await bridgeFactory.deploy(admin.address, 0, 1);
@@ -60,7 +60,7 @@ export class SignatureBridgeSide<A extends BaseContract> implements IBridgeSide 
   public static async create2BridgeSide<A extends BaseContract>(
     deployer: Deployer,
     saltHex: string,
-    admin: ethers.Wallet,
+    admin: ethers.Wallet
   ): Promise<SignatureBridgeSide<A>> {
     const argTypes = ['address', 'uint32'];
     const args = [admin.address, 0, 1];

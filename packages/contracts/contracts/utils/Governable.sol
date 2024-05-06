@@ -44,7 +44,6 @@ contract Governable {
 		address indexed newOwner,
 		uint32 indexed jobId,
 		uint256 timestamp
-		
 	);
 	event RecoveredAddress(address indexed recovered);
 
@@ -62,14 +61,10 @@ contract Governable {
 		_;
 	}
 
-
 	/// @notice Checks if the vote nonces are valid.
 	modifier areValidVotes(Vote[] memory votes) {
 		for (uint i = 0; i < votes.length; i++) {
-			require(
-				votes[i].jobId < jobId,
-				"Governable: JobId of vote must match jobId"
-			);
+			require(votes[i].jobId < jobId, "Governable: JobId of vote must match jobId");
 			require(
 				votes[i].proposedGovernor != address(0x0),
 				"Governable: Proposed governor cannot be the zero address"
@@ -131,12 +126,7 @@ contract Governable {
 		bytes32 pubKeyHash = keccak256(_publicKey);
 		address newOwner = address(uint160(uint256(pubKeyHash)));
 		require(
-			isSignatureFromGovernor(
-				abi.encodePacked(
-					_publicKey
-				),
-				_sig
-			),
+			isSignatureFromGovernor(abi.encodePacked(_publicKey), _sig),
 			"Governable: caller is not the governor"
 		);
 		_transferOwnership(newOwner, _jobId);
@@ -173,7 +163,7 @@ contract Governable {
 			}
 		}
 	}
-	
+
 	/// @notice Process a vote
 	/// @param vote A vote struct
 	/// @param voter The address of the voter
@@ -247,6 +237,4 @@ contract Governable {
 	) public pure returns (Vote memory) {
 		return Vote(_jobId, _proposedGovernor);
 	}
-
-
 }
