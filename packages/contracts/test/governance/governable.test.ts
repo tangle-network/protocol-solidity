@@ -117,7 +117,6 @@ describe('Governable Contract', () => {
   });
 
   it('should vote validly and change the governor', async () => {
-    
     assert.strictEqual((await governableInstance.jobId()).toString(), '0');
     const wallet = ethers.Wallet.createRandom();
     const key = ec.keyFromPrivate(wallet.privateKey.slice(2), 'hex');
@@ -167,7 +166,6 @@ describe('Governable Contract', () => {
       sig
     );
     await tx.wait();
-
 
     assert.strictEqual((await governableInstance.jobId()).toString(), '2');
     await network.provider.send('evm_increaseTime', [600]);

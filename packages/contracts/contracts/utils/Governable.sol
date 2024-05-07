@@ -64,7 +64,10 @@ contract Governable {
 	/// @notice Checks if the vote JobId are valid.
 	modifier areValidVotes(Vote[] memory votes) {
 		for (uint i = 0; i < votes.length; i++) {
-			require(votes[i].jobId > jobId, "Governable: JobId of vote must be greater than current jobId");
+			require(
+				votes[i].jobId > jobId,
+				"Governable: JobId of vote must be greater than current jobId"
+			);
 			require(
 				votes[i].proposedGovernor != address(0x0),
 				"Governable: Proposed governor cannot be the zero address"
