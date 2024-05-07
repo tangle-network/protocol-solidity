@@ -61,10 +61,10 @@ contract Governable {
 		_;
 	}
 
-	/// @notice Checks if the vote nonces are valid.
+	/// @notice Checks if the vote JobId are valid.
 	modifier areValidVotes(Vote[] memory votes) {
 		for (uint i = 0; i < votes.length; i++) {
-			require(votes[i].jobId < jobId, "Governable: JobId of vote must match jobId");
+			require(votes[i].jobId > jobId, "Governable: JobId of vote must be greater than current jobId");
 			require(
 				votes[i].proposedGovernor != address(0x0),
 				"Governable: Proposed governor cannot be the zero address"
@@ -180,7 +180,7 @@ contract Governable {
 		// Note: `voterCount` is also assumed to be the maximum # of voters in the system.
 		// Therefore, if `voterCount / 2` votes are in favor of a new governor, we can
 		// safely assume that there is no other governor that has more votes.
-		if (numOfVotesForGovernor[vote.jobId][vote.proposedGovernor] > votingThreshold) {
+		if (numOfVotesForGovernor[vote.jobId][vote.proposedGovernor] >= votingThreshold) {
 			_transferOwnership(vote.proposedGovernor, vote.jobId);
 			// If we transferred ownership, we return true to indicate the election is over.
 			return true;
@@ -191,19 +191,19 @@ contract Governable {
 
 	/// @notice Transfers ownership of the contract to a new account (`newOwner`).
 	/// @param newOwner The new owner of the contract
-	/// @param _jobId JobId of the new governor.
-	function _transferOwnership(address newOwner, uint32 _jobId) internal {
+	/// @param newJobId JobId of the new governor.
+	function _transferOwnership(address newOwner, uint32 newJobId) internal {
 		require(newOwner != address(0), "Governable: New governor is the zero address");
 		address previousGovernor = governor;
 		uint32 previousGovernorJobId = jobId;
 		governor = newOwner;
 		lastGovernorUpdateTime = block.timestamp;
-		jobId = _jobId;
+		jobId = newJobId;
 		emit GovernanceOwnershipTransferred(
 			previousGovernor,
 			previousGovernorJobId,
 			newOwner,
-			_jobId,
+			newJobId,
 			lastGovernorUpdateTime
 		);
 	}
