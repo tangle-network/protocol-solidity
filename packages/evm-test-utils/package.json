@@ -14,7 +14,7 @@
     "@webb-tools/utils": "^1.1.1",
     "@webb-tools/vbridge": "^1.1.1",
     "ecpair": "^2.0.1",
-    "ethers": "5.7.0",
+    "ethers": "5.8.0",
     "ganache": "7.5.0",
     "tiny-secp256k1": "^2.2.1"
   },
