@@ -5,7 +5,6 @@ import 'hardhat-gas-reporter';
 import '@typechain/hardhat';
 
 import '@nomiclabs/hardhat-ethers';
-import '@nomiclabs/hardhat-truffle5';
 // import '@primitivefi/hardhat-dodoc';
 import { subtask } from 'hardhat/config';
 

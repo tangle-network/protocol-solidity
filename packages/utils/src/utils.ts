@@ -2,8 +2,6 @@ import crypto from 'crypto';
 import { BigNumber, BigNumberish, BytesLike, ethers } from 'ethers';
 import { FIELD_SIZE } from './protocol';
 
-import EC from 'elliptic';
-
 export const median = (arr: number[]): number => {
   const s = [...arr].sort((a, b) => a - b);
   const mid = Math.floor(s.length / 2);
@@ -82,29 +80,6 @@ export const getChainIdType = (chainID: number = 31337): number => {
 };
 
 export const signMessage = (wallet: ethers.Wallet, data: BytesLike) => {
-  // eslint-disable-next-line new-cap
-  const ec = new EC.ec('secp256k1');
-  const key = ec.keyFromPrivate(wallet.privateKey.slice(2), 'hex');
   const hash = ethers.utils.keccak256(data);
-  const hashedData = ethers.utils.arrayify(hash);
-  const signature = key.sign(hashedData);
-  const expandedSig = {
-    r: '0x' + signature.r.toString('hex'),
-    s: '0x' + signature.s.toString('hex'),
-    v: signature.recoveryParam + 27,
-  };
-  let sig;
-
-  // Transaction malleability fix if s is too large (Bitcoin allows it, Ethereum rejects it)
-  try {
-    sig = ethers.utils.joinSignature(expandedSig);
-  } catch (e) {
-    expandedSig.s = BigNumber.from('0x' + ec.curve.n.toString('hex'))
-      .sub(BigNumber.from(expandedSig.s))
-      .toHexString();
-    expandedSig.v = expandedSig.v === 27 ? 28 : 27;
-    sig = ethers.utils.joinSignature(expandedSig);
-  }
-
-  return sig;
+  return ethers.utils.joinSignature(wallet._signingKey().signDigest(hash));
 };

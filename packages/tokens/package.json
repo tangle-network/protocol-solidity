@@ -12,7 +12,7 @@
     "@webb-tools/contracts": "^1.1.1",
     "@webb-tools/create2-utils": "^1.1.1",
     "@webb-tools/utils": "^1.1.1",
-    "ethers": "5.7.0"
+    "ethers": "5.8.0"
   },
   "publishConfig": {
     "access": "public"

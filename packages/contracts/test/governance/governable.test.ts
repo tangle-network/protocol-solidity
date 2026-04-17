@@ -5,22 +5,19 @@
 // @ts-nocheck
 const assert = require('assert');
 import { ethers, network } from 'hardhat';
-import BN from 'bn.js';
 import { toFixedHex, toHex } from '@webb-tools/utils';
-import EC from 'elliptic';
-const ec = new EC.ec('secp256k1');
 const TruffleAssert = require('truffle-assertions');
 
 import { Governable, Governable__factory } from '@webb-tools/contracts';
-import { ethers } from 'ethers';
+import type { Signer } from 'ethers';
 import { ZERO_BYTES32 } from '@webb-tools/utils';
 import { keccak256, recoverAddress, solidityPack } from 'ethers/lib/utils';
 
 describe('Governable Contract', () => {
   let governableInstance: Governable;
-  let sender: ethers.Signer;
-  let nextGovernor: ethers.Signer;
-  let arbSigner: ethers.Signer;
+  let sender: Signer;
+  let nextGovernor: Signer;
+  let arbSigner: Signer;
 
   beforeEach(async () => {
     const signers = await ethers.getSigners();
@@ -60,8 +57,7 @@ describe('Governable Contract', () => {
 
   it('should check ownership is transferred to new governor via signed public key', async () => {
     const wallet = ethers.Wallet.createRandom();
-    const key = ec.keyFromPrivate(wallet.privateKey.slice(2), 'hex');
-    const pubkey = key.getPublic().encode('hex').slice(2);
+    const pubkey = ethers.utils.computePublicKey(wallet.privateKey, false).slice(4);
 
     const publicKey = '0x' + pubkey;
     let nextGovernorAddress = ethers.utils.getAddress(
@@ -71,11 +67,7 @@ describe('Governable Contract', () => {
     await governableInstance.transferOwnership(nextGovernorAddress, 1);
 
     const dummy = ethers.Wallet.createRandom();
-    const dummyPubkey = ec
-      .keyFromPrivate(dummy.privateKey, 'hex')
-      .getPublic()
-      .encode('hex')
-      .slice(2);
+    const dummyPubkey = ethers.utils.computePublicKey(dummy.privateKey, false).slice(4);
 
     nextGovernorAddress = ethers.utils.getAddress(
       '0x' + ethers.utils.keccak256('0x' + dummyPubkey).slice(-40)
@@ -100,24 +92,8 @@ describe('Governable Contract', () => {
       ]
     );
 
-    let msg = ethers.utils.arrayify(ethers.utils.keccak256(prehashed));
-    let signature = key.sign(msg);
-    let expandedSig = {
-      r: '0x' + signature.r.toString('hex'),
-      s: '0x' + signature.s.toString('hex'),
-      v: signature.recoveryParam + 27,
-    };
-
-    // Transaction malleability fix if s is too large (Bitcoin allows it, Ethereum rejects it)
-    // https://ethereum.stackexchange.com/questions/55245/why-is-s-in-transaction-signature-limited-to-n-21
-    let sig;
-    try {
-      sig = ethers.utils.joinSignature(expandedSig);
-    } catch (e) {
-      expandedSig.s = '0x' + new BN(ec.curve.n).sub(signature.s).toString('hex');
-      expandedSig.v = expandedSig.v === 27 ? 28 : 27;
-      sig = ethers.utils.joinSignature(expandedSig);
-    }
+    const digest = ethers.utils.keccak256(prehashed);
+    const sig = ethers.utils.joinSignature(wallet._signingKey().signDigest(digest));
 
     const tx = await governableInstance.transferOwnershipWithSignature(
       refreshProposal.voterMerkleRoot,
@@ -158,8 +134,7 @@ describe('Governable Contract', () => {
 
     assert.strictEqual((await governableInstance.refreshNonce()).toString(), '0');
     const wallet = ethers.Wallet.createRandom();
-    const key = ec.keyFromPrivate(wallet.privateKey.slice(2), 'hex');
-    const pubkey = key.getPublic().encode('hex').slice(2);
+    const pubkey = ethers.utils.computePublicKey(wallet.privateKey, false).slice(4);
     const publicKey = '0x' + pubkey;
     let nextGovernorAddress = ethers.utils.getAddress(
       '0x' + ethers.utils.keccak256(publicKey).slice(-40)
@@ -168,11 +143,7 @@ describe('Governable Contract', () => {
     await governableInstance.transferOwnership(nextGovernorAddress, 1);
 
     const dummy = ethers.Wallet.createRandom();
-    const dummyPubkey = ec
-      .keyFromPrivate(dummy.privateKey, 'hex')
-      .getPublic()
-      .encode('hex')
-      .slice(2);
+    const dummyPubkey = ethers.utils.computePublicKey(dummy.privateKey, false).slice(4);
 
     const nonce = 2;
 
@@ -222,24 +193,8 @@ describe('Governable Contract', () => {
       ]
     );
 
-    let msg = ethers.utils.arrayify(ethers.utils.keccak256(prehashed));
-    let signature = key.sign(msg);
-    let expandedSig = {
-      r: '0x' + signature.r.toString('hex'),
-      s: '0x' + signature.s.toString('hex'),
-      v: signature.recoveryParam + 27,
-    };
-
-    // Transaction malleability fix if s is too large (Bitcoin allows it, Ethereum rejects it)
-    // https://ethereum.stackexchange.com/questions/55245/why-is-s-in-transaction-signature-limited-to-n-21
-    let sig: any;
-    try {
-      sig = ethers.utils.joinSignature(expandedSig);
-    } catch (e) {
-      expandedSig.s = '0x' + new BN(ec.curve.n).sub(signature.s).toString('hex');
-      expandedSig.v = expandedSig.v === 27 ? 28 : 27;
-      sig = ethers.utils.joinSignature(expandedSig);
-    }
+    const digest = ethers.utils.keccak256(prehashed);
+    const sig = ethers.utils.joinSignature(wallet._signingKey().signDigest(digest));
 
     const tx = await governableInstance.transferOwnershipWithSignature(
       refreshProposal.voterMerkleRoot,

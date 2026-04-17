@@ -5,19 +5,15 @@
 
 import { MerkleTree, toFixedHex } from '@webb-tools/utils';
 import { BigNumber } from 'ethers';
-import { artifacts, contract, ethers } from 'hardhat';
+import { ethers } from 'hardhat';
 import { poseidon } from 'circomlibjs';
 import { PoseidonHasher } from '@webb-tools/anchors';
-const TruffleAssert = require('truffle-assertions');
 const assert = require('assert');
 
-const MerkleTreeWithHistory = artifacts.require('MerkleTreeMock');
-
-contract('MerkleTree w/ Poseidon hasher', (accounts) => {
+describe('MerkleTree w/ Poseidon hasher', () => {
   let merkleTreeWithHistory;
   let hasherInstance: PoseidonHasher;
   let levels = 30;
-  const sender = accounts[0];
   let tree: MerkleTree;
 
   beforeEach(async () => {
@@ -25,10 +21,9 @@ contract('MerkleTree w/ Poseidon hasher', (accounts) => {
     const wallet = signers[0];
     hasherInstance = await PoseidonHasher.createPoseidonHasher(wallet);
     tree = new MerkleTree(levels);
-    merkleTreeWithHistory = await MerkleTreeWithHistory.new(
-      levels,
-      hasherInstance.contract.address
-    );
+    const MerkleTreeWithHistory = await ethers.getContractFactory('MerkleTreeMock', wallet);
+    merkleTreeWithHistory = await MerkleTreeWithHistory.deploy(levels, hasherInstance.contract.address);
+    await merkleTreeWithHistory.deployed();
   });
 
   describe('#constructor', () => {
@@ -67,7 +62,7 @@ contract('MerkleTree w/ Poseidon hasher', (accounts) => {
       let rootFromContract;
 
       for (let i = 1; i < 11; i++) {
-        await merkleTreeWithHistory.insert(toFixedHex(i), { from: sender });
+        await merkleTreeWithHistory.insert(toFixedHex(i));
         await tree.insert(i);
         let { merkleRoot } = await tree.path(i - 1);
         rootFromContract = await merkleTreeWithHistory.getLastRoot();
@@ -77,21 +72,23 @@ contract('MerkleTree w/ Poseidon hasher', (accounts) => {
 
     it('should reject if tree is full', async () => {
       const levels = 6;
-      const merkleTreeWithHistory = await MerkleTreeWithHistory.new(
+      const MerkleTreeWithHistory = await ethers.getContractFactory('MerkleTreeMock');
+      const merkleTreeWithHistory = await MerkleTreeWithHistory.deploy(
         levels,
         hasherInstance.contract.address
       );
+      await merkleTreeWithHistory.deployed();
 
       for (let i = 0; i < 2 ** levels; i++) {
-        TruffleAssert.passes(await merkleTreeWithHistory.insert(toFixedHex(i + 42)));
+        await merkleTreeWithHistory.insert(toFixedHex(i + 42));
       }
 
-      await TruffleAssert.reverts(
+      await assertRejects(
         merkleTreeWithHistory.insert(toFixedHex(1337)),
         'Merkle tree is full. No more leaves can be added'
       );
 
-      await TruffleAssert.reverts(
+      await assertRejects(
         merkleTreeWithHistory.insert(toFixedHex(1)),
         'Merkle tree is full. No more leaves can be added'
       );
@@ -103,21 +100,21 @@ contract('MerkleTree w/ Poseidon hasher', (accounts) => {
       let path;
 
       for (let i = 1; i < 5; i++) {
-        TruffleAssert.passes(await merkleTreeWithHistory.insert(toFixedHex(i), { from: sender }));
+        await merkleTreeWithHistory.insert(toFixedHex(i));
         await tree.insert(i);
         path = await tree.path(i - 1);
         let isKnown = await merkleTreeWithHistory.isKnownRoot(toFixedHex(path.merkleRoot));
         assert(isKnown);
       }
 
-      TruffleAssert.passes(await merkleTreeWithHistory.insert(toFixedHex(42), { from: sender }));
+      await merkleTreeWithHistory.insert(toFixedHex(42));
       // check outdated root
       let isKnown = await merkleTreeWithHistory.isKnownRoot(toFixedHex(path.merkleRoot));
       assert(isKnown);
     });
 
     it('should not return uninitialized roots', async () => {
-      TruffleAssert.passes(await merkleTreeWithHistory.insert(toFixedHex(42), { from: sender }));
+      await merkleTreeWithHistory.insert(toFixedHex(42));
       let isKnown = await merkleTreeWithHistory.isKnownRoot(toFixedHex(0));
       assert(!isKnown);
     });
@@ -125,14 +122,16 @@ contract('MerkleTree w/ Poseidon hasher', (accounts) => {
 
   describe('#insertions using deposit commitments', async () => {
     it('should rebuild root correctly between native and contract', async () => {
-      const merkleTreeWithHistory = await MerkleTreeWithHistory.new(
+      const MerkleTreeWithHistory = await ethers.getContractFactory('MerkleTreeMock');
+      const merkleTreeWithHistory = await MerkleTreeWithHistory.deploy(
         levels,
         hasherInstance.contract.address
       );
+      await merkleTreeWithHistory.deployed();
       const commitment = '0x0101010101010101010101010101010101010101010101010101010101010101';
       await tree.insert(commitment);
       const { merkleRoot, pathElements, pathIndices } = await tree.path(0);
-      await merkleTreeWithHistory.insert(toFixedHex(commitment), { from: sender });
+      await merkleTreeWithHistory.insert(toFixedHex(commitment));
       const rootFromContract = await merkleTreeWithHistory.getLastRoot();
       assert.strictEqual(
         merkleRoot.toString(),
@@ -156,3 +155,12 @@ contract('MerkleTree w/ Poseidon hasher', (accounts) => {
     });
   });
 });
+
+async function assertRejects(promise: Promise<unknown>, message: string) {
+  try {
+    await promise;
+    assert.fail('Expected promise to reject');
+  } catch (error: any) {
+    assert(error.message.includes(message), `Expected "${error.message}" to include "${message}"`);
+  }
+}
