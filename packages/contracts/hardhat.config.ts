@@ -37,7 +37,10 @@ const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',
   networks: {
     hardhat: {
+      hardfork: 'cancun',
       allowUnlimitedContractSize: true,
+      blockGasLimit: 30_000_000,
+      gas: 30_000_000,
       accounts: HARDHAT_ACCOUNTS,
     },
   },
