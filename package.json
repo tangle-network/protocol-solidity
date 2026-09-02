@@ -75,6 +75,7 @@
   "resolutions": {
     "**/hardhat/adm-zip": "0.6.0",
     "**/axios": "1.20.0",
+    "**/browserslist": "4.28.7",
     "**/@types/minimatch/minimatch/brace-expansion": "5.0.9",
     "**/@tufjs/models/minimatch/brace-expansion": "5.0.9",
     "**/@sigstore/sign/make-fetch-happen/cacache/glob/minimatch/brace-expansion": "5.0.9",
