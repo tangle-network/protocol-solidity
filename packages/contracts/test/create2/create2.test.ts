@@ -1,4 +1,5 @@
-import { ethers, assert } from 'hardhat';
+import { ethers } from 'hardhat';
+import { assert } from 'chai';
 import { HARDHAT_ACCOUNTS } from '../../hardhatAccounts.js';
 
 import {

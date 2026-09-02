@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.15.0]
+        node-version: [22.22.2]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -37,7 +37,7 @@ jobs:
         run: lerna run build
         
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
           path: |
@@ -53,11 +53,11 @@ jobs:
     if: github.ref != 'refs/heads/main' && github.event.pull_request.draft == false
     strategy:
       matrix:
-        node-version: [18.15.0]
+        node-version: [22.22.2]
     steps:
       - uses: actions/checkout@v3
       - name: Download build artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: build-artifacts
           path: packages
@@ -66,9 +66,6 @@ jobs:
         with: 
           node-version: ${{ matrix.node-version }}
 
-      - name: Setup DVC
-        uses: iterative/setup-dvc@v1
-          
       - name: Fetch submodules
         run: git submodule update --init --recursive
 

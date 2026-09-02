@@ -27,10 +27,12 @@ jobs:
 
       - name: Setup Node.js
         uses: actions/setup-node@v2
+        with:
+          node-version: 22.22.2
 
       - name: Install dependencies 
       - run: git submodule update --init --recursive
-      - run: cd solidity-fixtures && dvc pull && cd ..
+      - run: yarn fetch:fixtures
       - run: yarn install --production=false
       - run: yarn compile
       - run: yarn build:packages

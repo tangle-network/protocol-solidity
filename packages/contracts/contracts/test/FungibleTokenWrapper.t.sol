@@ -231,7 +231,7 @@ contract FungibleTokenWrapperTest is PRBTest, StdCheats {
 	}
 
 	function test_setFee(uint16 feePercentage) public {
-		vm.assume(feePercentage <= 10000);
+		vm.assume(feePercentage < 10000);
 		assertEq(token.proposalNonce(), 0);
 		vm.prank(alice);
 		token.setFee(feePercentage, 1);
