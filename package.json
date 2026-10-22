@@ -119,6 +119,7 @@
     "**/hardhat-gas-reporter/viem/ws": "8.21.0",
     "hardhat/ws": "7.5.11",
     "**/swarm-js/eth-lib/ws": "5.2.5",
-    "follow-redirects": "1.16.1"
+    "follow-redirects": "1.16.1",
+    "http-cache-semantics": "4.3.0"
   }
 }
