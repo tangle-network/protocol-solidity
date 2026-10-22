@@ -21,17 +21,17 @@ jobs:
   publish-docs:
     if: github.event_name == 'push' && github.event.ref == 'refs/heads/main'
     name: Publish Documentation
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v5
         with:
           node-version: 22.22.2
 
-      - name: Install dependencies 
-      - run: git submodule update --init --recursive
+      - name: Initialize submodules
+        run: git submodule update --init --recursive
       - run: yarn fetch:fixtures
       - run: yarn install --production=false
       - run: yarn compile
