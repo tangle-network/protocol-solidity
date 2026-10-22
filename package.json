@@ -73,14 +73,14 @@
     "typescript": "^5.0.4"
   },
   "resolutions": {
-    "**/hardhat/adm-zip": "0.6.0",
+    "**/hardhat/adm-zip": "0.6.1",
     "**/axios": "1.20.0",
     "**/browserslist": "4.28.7",
     "**/@types/minimatch/minimatch/brace-expansion": "5.0.9",
     "**/@tufjs/models/minimatch/brace-expansion": "5.0.9",
     "**/@sigstore/sign/make-fetch-happen/cacache/glob/minimatch/brace-expansion": "5.0.9",
     "**/minimatch/brace-expansion": "2.1.4",
-    "**/fast-uri": "3.1.6",
+    "**/fast-uri": "3.1.7",
     "**/axios/form-data": "4.0.6",
     "**/request/form-data": "2.5.6",
     "**/request/tough-cookie": "4.1.4",
@@ -88,13 +88,13 @@
     "@tootallnate/once": "3.0.1",
     "cookie": "1.1.1",
     "es5-ext": "0.10.64",
-    "handlebars": "4.7.9",
+    "handlebars": "4.7.10",
     "**/immutable": "4.3.9",
     "**/ip-address": "10.3.1",
-    "**/nx/js-yaml": "4.3.1",
-    "**/lerna/js-yaml": "4.3.1",
-    "**/mocha/js-yaml": "4.3.1",
-    "**/solidity-coverage/sc-istanbul/js-yaml": "3.15.1",
+    "**/nx/js-yaml": "4.3.2",
+    "**/lerna/js-yaml": "4.3.2",
+    "**/mocha/js-yaml": "4.3.2",
+    "**/solidity-coverage/sc-istanbul/js-yaml": "3.15.2",
     "**/lerna/minimatch": "3.1.5",
     "**/nx/minimatch": "3.1.5",
     "**/@lerna/legacy-package-management/minimatch": "3.1.5",
@@ -118,6 +118,7 @@
     "**/ethers/@ethersproject/providers/ws": "8.21.0",
     "**/hardhat-gas-reporter/viem/ws": "8.21.0",
     "hardhat/ws": "7.5.11",
-    "**/swarm-js/eth-lib/ws": "5.2.5"
+    "**/swarm-js/eth-lib/ws": "5.2.5",
+    "follow-redirects": "1.16.1"
   }
 }
