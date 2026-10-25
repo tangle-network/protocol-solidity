@@ -29,14 +29,20 @@ Contributions are made to this repo via Issues and Pull Requests (PRs). A few ge
 
 Merge the current `origin/main` before qualifying code changes. Use Node from the package's runtime requirements, Corepack/Yarn, Foundry (`forge`), and the pinned Git submodules. The fixture checkout must already contain its approved artifacts; DVC and its existing private storage authorization are needed when restoring fixture data. `yarn fetch:fixtures` verifies and links those files rather than downloading them. Supply `INFURA_API_KEY` through the existing private local environment for RPC-backed tests; never put its value in the repository.
 
-The canonical local gate is `beelink-gate auto https://github.com/tangle-network/protocol-solidity.git <full-sha> -- bash -lc 'git submodule update --init --recursive && yarn fetch:fixtures && yarn clean && yarn compile && yarn build:packages && yarn ts-check && yarn test && (cd packages/contracts && forge build && forge test)'`. The launcher performs the frozen install; package compilation and builds finish before tests. Workflow and documentation changes use YAML and content checks. Package publication and main-branch documentation deployment retain their own workflows.
+The canonical local gate is `beelink-gate auto https://github.com/tangle-network/protocol-solidity.git <full-sha> -- bash -lc 'git submodule update --init --recursive && yarn fetch:fixtures && yarn clean && yarn compile && yarn build:packages && yarn ts-check && yarn test && (cd packages/contracts && export FOUNDRY_FUZZ_SEED="$((EPOCHSECONDS - EPOCHSECONDS % 604800))" && forge build && forge test)'`. The launcher performs the frozen install; package compilation and builds finish before tests. Foundry keeps the retired workflow's weekly fuzz seed before contract tests. Workflow and documentation changes use YAML and content checks. Package publication and main-branch documentation deployment retain their own workflows.
 
-For JavaScript/TypeScript security qualification, use a separately installed [CodeQL CLI bundle and standard query packs](https://docs.github.com/en/code-security/tutorials/customize-code-scanning/analyze-code) on the Beelink. The retired hosted scan selected JavaScript with the default queries; this uses the corresponding standard code-scanning suite. Run from the qualified repository root and retain the database and SARIF outside the checkout:
+For JavaScript/TypeScript security qualification, use a separately installed [CodeQL CLI bundle and standard query packs](https://docs.github.com/en/code-security/tutorials/customize-code-scanning/analyze-code) on the Beelink. The retired hosted scan selected JavaScript with the default queries; this uses the corresponding standard code-scanning suite. Use the same full source SHA in the admitted gate below. It retains each database and SARIF in the Beelink state directory outside the checkout:
 
 ```bash
-codeql_results="$(mktemp -d /tmp/protocol-solidity-codeql.XXXXXX)"
+beelink-gate auto https://github.com/tangle-network/protocol-solidity.git <full-sha> -- bash -lc '
+set -euo pipefail
+codeql_state="${XDG_STATE_HOME:-$HOME/.local/state}/protocol-solidity-codeql"
+mkdir -p "$codeql_state"
+codeql_results="$(mktemp -d "$codeql_state/$(git rev-parse HEAD).XXXXXX")"
 codeql database create "$codeql_results/javascript" --language=javascript-typescript --source-root="$PWD"
 codeql database analyze "$codeql_results/javascript" javascript-code-scanning.qls --format=sarif-latest --output="$codeql_results/javascript.sarif"
+printf "CodeQL evidence: %s\n" "$codeql_results"
+'
 ```
 
 Inspect the SARIF findings as local release evidence. These commands do not upload to GitHub Security. CLI availability and a completed analysis must be verified on the authoring host; documenting the commands does not establish either.
