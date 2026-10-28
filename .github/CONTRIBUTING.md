@@ -11,6 +11,7 @@ Reading and following these guidelines will help us make the contribution proces
 - [Contributing to Webb Protocol Projects](#contributing-to-webb-protocol-projects)
   - [Quicklinks](#quicklinks)
   - [Getting Started](#getting-started)
+    - [Local qualification](#local-qualification)
     - [Issues](#issues)
     - [Pull Requests](#pull-requests)
   - [Getting Help](#getting-help)
@@ -24,6 +25,28 @@ Contributions are made to this repo via Issues and Pull Requests (PRs). A few ge
 - Search for existing Issues and PRs before creating your own.
 - We work hard to makes sure issues are handled in a timely manner but, depending on the impact, it could take a while to investigate the root cause. A friendly ping in the comment thread to the submitter or a contributor can help draw attention if your issue is blocking.
 
+### Local qualification
+
+Merge the current `origin/main` before qualifying code changes. Use Node from the package's runtime requirements, Corepack/Yarn, Foundry (`forge`), and the pinned Git submodules. The fixture checkout must already contain its approved artifacts; DVC and its existing private storage authorization are needed when restoring fixture data. `yarn fetch:fixtures` verifies and links those files rather than downloading them. Supply `INFURA_API_KEY` through the existing private local environment for RPC-backed tests; never put its value in the repository.
+
+The canonical local gate is `beelink-gate auto https://github.com/tangle-network/protocol-solidity.git <full-sha> -- bash -lc 'git submodule update --init --recursive && yarn fetch:fixtures && yarn clean && yarn compile && yarn build:packages && yarn ts-check && yarn test && (cd packages/contracts && export FOUNDRY_FUZZ_SEED="$((EPOCHSECONDS - EPOCHSECONDS % 604800))" && forge build && forge test)'`. The launcher performs the frozen install; package compilation and builds finish before tests. Foundry keeps the retired workflow's weekly fuzz seed before contract tests. Workflow and documentation changes use YAML and content checks. Package publication and main-branch documentation deployment retain their own workflows.
+
+For JavaScript/TypeScript security qualification, use a separately installed [CodeQL CLI bundle and standard query packs](https://docs.github.com/en/code-security/tutorials/customize-code-scanning/analyze-code) on the Beelink. The retired hosted scan selected JavaScript with the default queries; this uses the corresponding standard code-scanning suite. Use the same full source SHA in the admitted gate below. It retains each database and SARIF in the Beelink state directory outside the checkout:
+
+```bash
+beelink-gate auto https://github.com/tangle-network/protocol-solidity.git <full-sha> -- bash -lc '
+set -euo pipefail
+codeql_state="${XDG_STATE_HOME:-$HOME/.local/state}/protocol-solidity-codeql"
+mkdir -p "$codeql_state"
+codeql_results="$(mktemp -d "$codeql_state/$(git rev-parse HEAD).XXXXXX")"
+codeql database create "$codeql_results/javascript" --language=javascript-typescript --source-root="$PWD"
+codeql database analyze "$codeql_results/javascript" javascript-code-scanning.qls --format=sarif-latest --output="$codeql_results/javascript.sarif"
+printf "CodeQL evidence: %s\n" "$codeql_results"
+'
+```
+
+Inspect the SARIF findings as local release evidence. These commands do not upload to GitHub Security. CLI availability and a completed analysis must be verified on the authoring host; documenting the commands does not establish either.
+
 ### Issues
 
 Issues should be used to report problems with the implementation, request a new feature, or to discuss potential changes before a PR is created. When you create a new Issue, a template will be loaded that will guide you through collecting and providing the information we need to investigate.
@@ -35,7 +58,7 @@ If you find an Issue that addresses the problem you're having, please add your o
 PRs to our libraries are always welcome and can be a quick way to get your fix or improvement slated for the next release. In general, PRs should:
 
 - Only fix/add the functionality in question **OR** address wide-spread whitespace/style issues, not both.
-- Add unit or integration tests for fixed or changed functionality (if a test suite already exists).
+- Prove changed behavior with the relevant integration or served product checks.
 - Address a single concern in the least number of changed lines as possible.
 - Include documentation in the repo
 - Be accompanied by a complete Pull Request template (loaded automatically when a PR is created).
